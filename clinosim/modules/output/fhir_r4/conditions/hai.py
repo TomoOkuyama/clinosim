@@ -18,14 +18,12 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import map_diagnosis_code
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import (
-    BundleContext,
-    dual_slot_concept,
-    map_diagnosis_code,
-)
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 
 
 def _extensions_hai_list(ctx: BundleContext) -> list:

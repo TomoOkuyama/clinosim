@@ -11,11 +11,8 @@ from __future__ import annotations
 import pytest
 
 from clinosim.codes import lookup
-from clinosim.locale.loader import load_code_mapping
-from clinosim.modules.output.fhir_r4.lib.common import (
-    iter_diagnosis_mapping_targets,
-    map_diagnosis_code,
-)
+from clinosim.locale.loader import load_code_mapping, map_diagnosis_code
+from clinosim.modules.output.fhir_r4.lib.common import iter_diagnosis_mapping_targets
 
 pytestmark = pytest.mark.unit
 

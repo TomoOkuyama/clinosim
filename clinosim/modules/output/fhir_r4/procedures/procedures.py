@@ -21,7 +21,8 @@ from clinosim.locale.i18n import t
 from clinosim.modules._shared import is_jp, is_us
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding
+from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,

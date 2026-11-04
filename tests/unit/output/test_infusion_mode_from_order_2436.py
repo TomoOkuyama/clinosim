@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from clinosim.modules.disease.protocol import _NAME_ONLY_DRUG_EXEMPT
-from clinosim.modules.output.fhir_r4.lib.common import augment_iv_dosage_with_rate
+from clinosim.modules.output.fhir_r4.lib.dosage import augment_iv_dosage_with_rate
 
 pytestmark = pytest.mark.unit
 

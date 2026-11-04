@@ -25,7 +25,8 @@ from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
-from clinosim.modules.output.fhir_r4.lib.common import _escape_html, derive_meta_last_updated
+from clinosim.modules.output.fhir_r4.lib.common import _escape_html
+from clinosim.modules.output.fhir_r4.lib.fhir_time import derive_meta_last_updated
 
 # ---------------------------------------------------------------------------
 # JP-CLINS eDS constants — the per-profile URIs / codes dispatched by the

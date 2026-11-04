@@ -36,7 +36,7 @@ from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
     lab_observation_id,
 )
 from clinosim.modules.output.fhir_r4.labs.observations import _bb_labs, _build_lab_observation
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 
 pytestmark = pytest.mark.unit
 

@@ -234,6 +234,7 @@ Consumers resolve names only through these functions.
 |---|---|
 | `load_code_mapping(domain, country)` | internal name → code for that country |
 | `lab_code(lab_name, country)` / `lab_codes(lab_name)` | `(system_key, code)` / the codes of every locale |
+| `map_diagnosis_code(code, country, sex)` | internal diagnosis base code → the country's ICD code (`code_mapping_diagnosis.yaml`; sex-conditional leaves), the code itself when unmapped |
 | `vocab_display(vocab, slug, lang, *, fallback)` | vocabulary display (`vocabulary.yaml`) |
 | `narrative_label(section, key, lang, fallback)` | narrative label |
 | `imaging_exam_display(exam_id, lang)` | imaging exam name |

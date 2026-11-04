@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.fhir_r4.lib.common import build_dosage_instruction, build_route_concept
+from clinosim.modules.output.fhir_r4.lib.dosage import build_dosage_instruction, build_route_concept
 from clinosim.modules.output.fhir_r4.lib.localization import ROUTE_TEXT
 from clinosim.modules.output.fhir_r4.lib.reference_data import _ROUTE_ALIASES, _ROUTE_SNOMED
 
@@ -310,15 +310,15 @@ def test_no_builder_reads_the_route_maps_directly():
 
     Two independent `_ROUTE_SNOMED.get(...)` sites drifting apart is what allowed the
     MAR path to accumulate 166 of the 172 defects while the MR path had 6. The single
-    helper is the fix; this test keeps it single. `_fhir_reference_data` (the definition)
-    and `fhir_r4_adapter` (a `# noqa: F401` backwards-compat re-export) are exempt.
+    helper is the fix; this test keeps it single. `reference_data.py` (the definition)
+    and `dosage.py` (the helpers) are exempt.
     """
     import pathlib
 
     root = pathlib.Path(__file__).resolve().parents[3] / "clinosim" / "modules" / "output"
-    exempt = {"reference_data.py", "fhir_r4_adapter.py", "common.py", "fhir_r4/lib/common.py"}
+    exempt = {"reference_data.py", "dosage.py"}
     offenders = {}
-    for path in sorted(root.glob("*.py")):
+    for path in sorted(root.rglob("*.py")):
         if path.name in exempt:
             continue
         refs = _route_map_references(path) - {"<import>"}
@@ -330,12 +330,13 @@ def test_no_builder_reads_the_route_maps_directly():
 
 
 def test_common_module_confines_the_lookup_to_the_helper():
-    """`_fhir_common` owns the maps' only lookup — three sanctioned functions:
+    """The dosage module owns the maps' only lookup — three sanctioned functions:
     `build_route_concept` (the CodeableConcept builder), `canonicalize_route` (the
     alias-aware normalizer for downstream gates like `_is_infusion`), and
     `_validate_route_maps` (the import-time reverse-coverage guard).
 
-    All three live in `fhir_r4/lib/common.py` so downstream builders import a function,
+    All three live in `fhir_r4/lib/dosage.py` (split out of `common.py`, Issue #2530)
+    so downstream builders import a function,
     never the underlying `_ROUTE_*` dicts (test_no_builder_reads_the_route_maps_directly).
     """
     import pathlib
@@ -347,11 +348,11 @@ def test_common_module_confines_the_lookup_to_the_helper():
         / "output"
         / "fhir_r4"
         / "lib"
-        / "common.py"
+        / "dosage.py"
     )
     refs = _route_map_references(path) - {"<import>"}
     assert refs == {"build_route_concept", "canonicalize_route", "_validate_route_maps"}, (
-        f"route-map lookups in fhir_common.py live in {sorted(refs)}; they belong only in "
+        f"route-map lookups in lib/dosage.py live in {sorted(refs)}; they belong only in "
         f"build_route_concept() / canonicalize_route() / _validate_route_maps()"
     )
 
@@ -471,7 +472,7 @@ def test_import_time_guard_rejects_alias_key_in_route_ja():
     guard, expect `ValueError`. Direct call because monkeypatching the module-global
     on import is fragile (the guard runs at import, before test fixtures).
     """
-    from clinosim.modules.output.fhir_r4.lib.common import _validate_route_maps
+    from clinosim.modules.output.fhir_r4.lib.dosage import _validate_route_maps
 
     # Temporarily poison _ROUTE_JA and confirm the guard rejects.
     _ROUTE_JA["INH"] = {"ja": "吸入"}  # alias key sneaking in
@@ -486,7 +487,7 @@ def test_import_time_guard_rejects_missing_canonical_in_route_ja():
     """`_validate_route_maps` must raise when a canonical `_ROUTE_SNOMED` key lacks
     a `_ROUTE_JA` entry — the class of bug that silently emits English on JP output.
     """
-    from clinosim.modules.output.fhir_r4.lib.common import _validate_route_maps
+    from clinosim.modules.output.fhir_r4.lib.dosage import _validate_route_maps
 
     saved = _ROUTE_JA.pop("PO")
     try:

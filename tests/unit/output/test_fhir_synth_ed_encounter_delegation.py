@@ -33,7 +33,7 @@ from clinosim.modules.output.fhir_r4.encounters.encounter import (
     ENCOUNTER_KEY_SYSTEM,
     _build_encounter,
 )
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.inline_bb import _bb_encounters
 
 

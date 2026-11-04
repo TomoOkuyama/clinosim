@@ -74,7 +74,7 @@ sort するため line 順は決定論的。
 
 - `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
   `countries.lang_for`。
-- `clinosim.modules.output.fhir_r4.lib.common` — fragment helper
+- `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — fragment helper
   (`system_coding`, `build_diagnosis_codeable_concept`,
   `infer_severity`, `map_diagnosis_code`, `severity_coding`,
   `to_fhir_date`, `survey_category`, `BundleContext`)。

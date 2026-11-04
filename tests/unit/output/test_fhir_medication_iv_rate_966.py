@@ -15,7 +15,7 @@ looks up per-drug defaults from ``iv_infusion_defaults.yaml``:
 
 from __future__ import annotations
 
-from clinosim.modules.output.fhir_r4.lib.common import (
+from clinosim.modules.output.fhir_r4.lib.dosage import (
     augment_iv_dosage_with_rate,
     build_dosage_instruction,
     resolve_iv_infusion_default,

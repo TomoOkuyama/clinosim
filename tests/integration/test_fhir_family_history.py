@@ -2,7 +2,7 @@ import pytest
 
 from clinosim.modules.output.fhir_r4.demographics.family_history import _bb_family_history
 from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.types.family_history import FamilyMemberHistoryRecord
 
 pytestmark = pytest.mark.integration

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.fhir_r4.lib.common import tz_suffix_for_country
+from clinosim.modules.output.fhir_r4.lib.fhir_time import tz_suffix_for_country
 from clinosim.modules.output.fhir_r4.post_process import (
     _normalize_dt,
     _normalize_dt_fields,

@@ -94,7 +94,7 @@ NDJSON by id.
 
 - `clinosim.modules._shared` — `is_jp`, `countries.lang_for`,
   `get_attr_or_key`.
-- `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
+- `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`,
   `system_coding`, `_social_category`, `loinc_coding`,
   `attach_ecs_institutional_extensions`.
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —

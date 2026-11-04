@@ -190,6 +190,6 @@ def test_strip_protocol_prefix_shared():
 
 def test_strip_protocol_prefix_fhir_alias_unchanged():
     """FHIR builders keep importing the same logic (single edit point)."""
-    from clinosim.modules.output.fhir_r4.lib.common import strip_protocol_prefix
+    from clinosim.modules.output.fhir_r4.lib.dosage import strip_protocol_prefix
 
     assert strip_protocol_prefix is strip_protocol_prefix

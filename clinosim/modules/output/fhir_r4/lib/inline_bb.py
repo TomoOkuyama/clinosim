@@ -46,11 +46,8 @@ from clinosim.modules.output.fhir_r4.encounters.encounter import (
 from clinosim.modules.output.fhir_r4.labs.observations import (
     _build_vital_observations,
 )
-from clinosim.modules.output.fhir_r4.lib.common import (
-    BundleContext,
-    dual_slot_concept,
-    system_coding,
-)
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 from clinosim.modules.output.fhir_r4.medications.medications import (
     _build_discharge_medication_request,

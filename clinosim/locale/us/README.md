@@ -31,7 +31,7 @@ sibling by design:
 | `care_level_rates.yaml` | Japanese Long-Term Care Insurance (介護保険) specifies five explicit care levels (要支援 1-2 + 要介護 1-5) with national incidence rates. The US Medicare / Medicaid LTC pathway is not level-coded in the same way, so there is no equivalent national rate table to port. |
 | `code_mapping_microbiology.yaml` + `code_mapping_microbiology_susceptibility.yaml` | JLAC10 / JSLM pins the Japanese microbiology code mapping. The US cohort reuses the shared LOINC lookups in `clinosim/codes/data/loinc.yaml` directly — no US-specific mapping needed. |
 | `external_organizations.yaml` | JP MedicationRequest / Encounter resources often reference external pharmacy / referral practice names explicitly. US cohort encounters do not currently emit this directly. |
-| `patient_instructions_ja.yaml` | Japanese `MedicationRequest.dosageInstruction.patientInstruction` phrase templates, read directly by the JA FHIR emitter (`clinosim/modules/output/fhir_r4/lib/common.py`). |
+| `patient_instructions_ja.yaml` | Japanese `MedicationRequest.dosageInstruction.patientInstruction` phrase templates, read directly by the JA FHIR emitter (`clinosim/modules/output/fhir_r4/lib/dosage.py`). |
 | `practitioner_qualifications.yaml` | Japanese 医籍登録番号 / 専門医制度 is a national qualification registry with specific values. The US cohort's practitioner profile does not currently require a parallel structure. |
 
 These absences are intentional — a new US contributor adding

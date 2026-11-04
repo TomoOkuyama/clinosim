@@ -15,6 +15,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any
 
+from clinosim.countries import is_jp
 from clinosim.locale._io import (
     _COUNTRY_DIR_MAP,
     _FALLBACK_DEMOGRAPHICS,
@@ -219,6 +220,39 @@ def drug_code(drug_ref: str, country: str) -> tuple[str, str] | None:
     name = rec.names.get("en", "") if rec else drug_ref
     code = load_code_mapping("drug", country).get(name, "")
     return (drug_system_key(code, country), code) if code else None
+
+
+def map_diagnosis_code(code: str, country: str, sex: str = "") -> str:
+    """Translate an internal chronic/history diagnosis base code to its locale code.
+
+    US maps internal category/WHO codes (I50, E78, I21, ...) to billable ICD-10-CM
+    leaves; JP maps identity (WHO ICD-10 category codes are valid as-is). Codes absent
+    from the locale map pass through unchanged — disease primary diagnoses are already
+    specific (e.g. I21.9, A41.9) and stay untouched. See locale/<c>/code_mapping_diagnosis.
+
+    Sex-conditional targets (Issue #957): a mapping value may be a dict of the
+    form ``{default: "<code>", by_sex: {F: "<code>", M: "<code>"}}`` when the
+    ICD-10-CM leaf splits by patient sex (currently only C50 breast cancer,
+    which resolves to ``C50.919`` for female patients and ``C50.929`` for
+    male patients). Pass ``sex`` at every per-person call site; callers that
+    omit it get the ``default`` target (which for C50 is the female leaf,
+    the ~99 %-of-cases pick).
+
+    Dedup is intentionally done on the *internal* base code by the caller, not on the
+    mapped code, so a current acute MI (primary I21.9) still suppresses a duplicate
+    "old MI" chronic entry rather than emitting both.
+    """
+    if not code:
+        return code
+    country_code = "JP" if is_jp(country) else "US"
+    target = load_code_mapping("diagnosis", country_code).get(code, code)
+    if isinstance(target, dict):
+        by_sex = target.get("by_sex") or {}
+        sex_norm = (sex or "").upper()[:1]  # "F"/"M"/"" — first char, case-fold
+        if sex_norm in ("F", "M") and sex_norm in by_sex:
+            return str(by_sex[sex_norm])
+        return str(target.get("default", code))
+    return target
 
 
 def lab_code(lab_name: str, country: str) -> tuple[str, str] | None:

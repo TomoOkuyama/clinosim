@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.fhir_r4.lib.common import build_dosage_instruction
+from clinosim.modules.output.fhir_r4.lib.dosage import build_dosage_instruction
 
 
 @pytest.mark.parametrize(

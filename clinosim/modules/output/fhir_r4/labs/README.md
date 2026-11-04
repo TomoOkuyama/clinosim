@@ -92,7 +92,7 @@ Not applicable — pure builders over CIF + reference-range tables.
 ## Dependencies
 
 - `clinosim.modules._shared` — `is_jp`, `countries.lang_for`.
-- `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
+- `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`,
   fragment helpers.
 - `..demographics.patient.patient_ref`,
   `..encounters.encounter.encounter_ref` — subject / encounter

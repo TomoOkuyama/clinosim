@@ -271,7 +271,7 @@ def load_health_screening_visit_reason() -> dict[str, Any]:
 def load_iv_infusion_defaults() -> dict[str, Any]:
     """Load per-drug default IV infusion rate / bolus duration catalog.
 
-    Referenced by ``clinosim.modules.output.fhir_r4.lib.common
+    Referenced by ``clinosim.modules.output.fhir_r4.lib.dosage
     .resolve_iv_infusion_default`` when emitting ``MedicationRequest
     .dosageInstruction.doseAndRate.rateQuantity`` (continuous drips) or
     ``dosageInstruction.timing.repeat.duration`` (intermittent bolus) for

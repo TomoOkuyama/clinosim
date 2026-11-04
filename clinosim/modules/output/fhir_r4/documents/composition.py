@@ -91,13 +91,9 @@ from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
     pick_external_hospital,
 )
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref, resolve_encounter_id
-from clinosim.modules.output.fhir_r4.lib.common import (
-    BundleContext,
-    _escape_html,
-    derive_meta_last_updated,
-    display_entry,
-    dual_slot_concept,
-)
+from clinosim.modules.output.fhir_r4.lib.common import _escape_html, display_entry, dual_slot_concept
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
+from clinosim.modules.output.fhir_r4.lib.fhir_time import derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.lib.ids import derive_opaque_id
 from clinosim.modules.output.fhir_r4.lib.localization import _clinician_role_rows
 

@@ -145,9 +145,7 @@ def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
     # map_diagnosis_code so display matches the FHIR emit-target.
     conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
     if conds:
-        from clinosim.modules.output.fhir_r4.lib.common import (
-            map_diagnosis_code as _map_diagnosis_code,
-        )
+        from clinosim.locale.loader import map_diagnosis_code as _map_diagnosis_code
 
         country = "JP" if ctx.locale.lower() == "jp" else "US"
         key = _label("code_system_icd_display", "primary", lang)

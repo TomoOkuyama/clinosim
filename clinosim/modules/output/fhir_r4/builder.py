@@ -69,11 +69,8 @@ from clinosim.modules.output.fhir_r4.labs.stage_scale_observations import _bb_st
 # and `convert_cif_to_fhir` (this module's public surface) actually call —
 # the historical facade re-export block (marked with `noqa` directives) was
 # dropped once tests migrated to canonical imports.
-from clinosim.modules.output.fhir_r4.lib.common import (
-    BundleContext,
-    dual_slot_concept,
-    entry,
-)
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, entry
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ed_reattribution import (
     reattribute_encounter_to_ed_bridge as _reattribute_encounter_to_ed_bridge,
 )

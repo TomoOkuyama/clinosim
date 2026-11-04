@@ -24,7 +24,7 @@ from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import is_jp, practitioner_name
-from clinosim.modules.output.fhir_r4.lib.common import derive_meta_last_updated
+from clinosim.modules.output.fhir_r4.lib.fhir_time import derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.post_process.profile import (
     _HL7_OBSERVATION_CATEGORY_SYSTEM,
     _HL7_OBSERVATION_CATEGORY_SYSTEMS,

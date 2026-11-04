@@ -231,7 +231,7 @@ def _apply_jp_clins_profile(resource: dict) -> None:
     covered in a follow-up (this hook currently attaches extensions only
     for Condition / AllergyIntolerance / MedicationRequest).
     """
-    from clinosim.modules.output.fhir_r4.lib.common import attach_ecs_institutional_extensions
+    from clinosim.modules.output.fhir_r4.lib.ecs_extensions import attach_ecs_institutional_extensions
 
     rt = resource.get("resourceType", "")
     profiles = _jp_clins_profiles().get(rt)

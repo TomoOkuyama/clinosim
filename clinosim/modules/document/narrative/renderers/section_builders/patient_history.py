@@ -77,7 +77,7 @@ def build_past_medical_history(generator: TemplateNarrativeGenerator, ctx: Narra
     # ↔ FHIR disagreed on the disease name. Now the narrative looks
     # up the emit-target's display and prints the emit-target code in
     # the trailing ``[code]`` bracket.
-    from clinosim.modules.output.fhir_r4.lib.common import map_diagnosis_code
+    from clinosim.locale.loader import map_diagnosis_code
 
     country = "JP" if ctx.locale.lower() == "jp" else "US"
     icd_system = _label("code_system_icd_display", "primary", lang)

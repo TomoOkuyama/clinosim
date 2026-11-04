@@ -86,7 +86,7 @@ pure 関数。Stage 2 narrative pass は template path で決定論的
 ## 依存
 
 - `clinosim.modules._shared` — `is_jp`, `countries.lang_for`。
-- `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
+- `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`,
   `_escape_html`, `derive_meta_last_updated`, `to_fhir_instant`。
   `lib.ids` — opaque id。
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —

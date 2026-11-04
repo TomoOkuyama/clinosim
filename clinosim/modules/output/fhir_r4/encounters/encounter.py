@@ -18,6 +18,7 @@ from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import map_diagnosis_code
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import is_jp
 from clinosim.modules.diagnosis.nonspecific_codes import is_never_principal_dx, is_visit_reason_zcode
@@ -30,7 +31,6 @@ from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import (
     dual_slot_concept,
     make_participant,
-    map_diagnosis_code,
     map_encounter_status,
     system_coding,
 )

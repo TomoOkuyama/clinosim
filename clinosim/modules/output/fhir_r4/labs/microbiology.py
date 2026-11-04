@@ -26,12 +26,8 @@ from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
     MB_DR_KEY_SYSTEM,
     _resolve_mb_dr_id,
 )
-from clinosim.modules.output.fhir_r4.lib.common import (
-    BundleContext,
-    build_presented_form,
-    dual_slot_concept,
-    system_coding,
-)
+from clinosim.modules.output.fhir_r4.lib.common import build_presented_form, dual_slot_concept, system_coding
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -450,7 +446,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             report["conclusion"] = _mb_conclusion
         # CY8-16 polish: MB DR.issued default = reported_datetime。
         if not report.get("issued") and mb.get("reported_datetime"):
-            from clinosim.modules.output.fhir_r4.lib.common import to_fhir_instant
+            from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_instant
 
             report["issued"] = to_fhir_instant(mb["reported_datetime"])
         # C5-20 (Chain 3): presentedForm — text/plain summary of culture +

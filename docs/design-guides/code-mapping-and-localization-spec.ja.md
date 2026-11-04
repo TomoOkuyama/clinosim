@@ -234,6 +234,7 @@ occupation:
 |---|---|
 | `load_code_mapping(domain, country)` | その国の内部名 → コード |
 | `lab_code(lab_name, country)` / `lab_codes(lab_name)` | `(system_key, code)` / 全ロケールのコード |
+| `map_diagnosis_code(code, country, sex)` | 内部の診断基本コード → その国の ICD コード (`code_mapping_diagnosis.yaml`、性別で分かれる leaf を含む)。対応が無ければコード自身 |
 | `vocab_display(vocab, slug, lang, *, fallback)` | 語彙の表示名 (`vocabulary.yaml`) |
 | `narrative_label(section, key, lang, fallback)` | narrative のラベル |
 | `imaging_exam_display(exam_id, lang)` | 画像検査名 |

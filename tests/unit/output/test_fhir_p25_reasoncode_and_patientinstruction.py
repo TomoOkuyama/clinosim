@@ -15,7 +15,7 @@ consumer sees an actionable phrase, not just the structured timing.
 
 from __future__ import annotations
 
-from clinosim.modules.output.fhir_r4.lib.common import build_dosage_instruction
+from clinosim.modules.output.fhir_r4.lib.dosage import build_dosage_instruction
 from clinosim.modules.output.fhir_r4.procedures.procedures import _build_procedure
 
 # --- P2-5b: patientInstruction derivation from frequency label ---
