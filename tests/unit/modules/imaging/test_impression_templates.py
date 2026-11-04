@@ -18,10 +18,9 @@ def test_bacterial_pneumonia_has_cr_and_ct_templates():
     assert "CR_chest" in bp
     assert "CT_chest" in bp
     cr_normal = bp["CR_chest"]["normal"]
-    assert "findings_en" in cr_normal
-    assert "findings_ja" in cr_normal
-    assert "impression_en" in cr_normal
-    assert "impression_ja" in cr_normal
+    # Language maps (Issue #2505).
+    assert set(cr_normal["findings"]) >= {"en", "ja"}
+    assert set(cr_normal["impression"]) >= {"en", "ja"}
 
 
 def test_hemorrhagic_stroke_ct_head_abnormal_only():

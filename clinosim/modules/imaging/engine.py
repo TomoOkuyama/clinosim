@@ -17,6 +17,7 @@ import numpy as np
 
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
+from clinosim.locale.localized import localized
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.types.encounter import OrderStatus, OrderType
 from clinosim.types.imaging import ImagingSeries, ImagingStudyRecord, RadiologyReport
@@ -235,7 +236,8 @@ def _validate_impression_templates(data: dict[str, Any]) -> None:
 
     Forward-coverage: every SUPPORTED_IMAGING_DISEASES entry must have a templates
     bucket. Each disease × modality_body_site bucket must have either 'normal' or
-    'abnormal' (or both). Each leaf must carry findings_en/ja + impression_en/ja.
+    'abnormal' (or both). Each leaf carries ``findings`` and ``impression`` as
+    language maps with English and Japanese (Issue #2505).
     Reverse-coverage: no stale entries beyond SUPPORTED_IMAGING_DISEASES (silent-no-op
     defense Layer 4 staleness check).
     """
@@ -253,7 +255,8 @@ def _validate_impression_templates(data: dict[str, Any]) -> None:
         raise ValueError(
             f"impression_templates.yaml: stale disease entries (no SUPPORTED_IMAGING_DISEASES match): {sorted(extra)}"
         )
-    required_leaf_keys = ("findings_en", "findings_ja", "impression_en", "impression_ja")
+    required_leaf_keys = ("findings", "impression")
+    required_languages = ("en", "ja")  # the CIF report has an English and a Japanese slot
     for disease, mod_bs_dict in templates.items():
         if not mod_bs_dict:
             raise ValueError(f"impression_templates.yaml[{disease}]: empty modality bucket")
@@ -263,7 +266,8 @@ def _validate_impression_templates(data: dict[str, Any]) -> None:
             for kind in ("normal", "abnormal"):
                 if kind in variants:
                     for k in required_leaf_keys:
-                        if not variants[kind].get(k):
+                        text = variants[kind].get(k)
+                        if not isinstance(text, dict) or not all(text.get(lang) for lang in required_languages):
                             raise ValueError(f"impression_templates.yaml[{disease}][{mod_bs}][{kind}]: missing {k}")
             if "normal" not in variants and "abnormal" not in variants:
                 raise ValueError(
@@ -725,10 +729,12 @@ def imaging_enricher(ctx: Any) -> None:
                 report = RadiologyReport(
                     report_id=f"{RADIOLOGY_REPORT_ID_PREFIX}{encounter_id}-{idx}",
                     status="final",
-                    findings_text=template["findings_en"],
-                    findings_text_ja=template["findings_ja"],
-                    impression_text=template["impression_en"],
-                    impression_text_ja=template["impression_ja"],
+                    # The CIF record's English and Japanese slots, from the
+                    # template's language maps (Issue #2505).
+                    findings_text=localized(template["findings"], "en"),
+                    findings_text_ja=localized(template["findings"], "ja"),
+                    impression_text=localized(template["impression"], "en"),
+                    impression_text_ja=localized(template["impression"], "ja"),
                     # findings_codes: forward-compat slot — PR1 leaves empty.
                 )
             except ValueError:
