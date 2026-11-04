@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 import uuid
+from datetime import datetime, timedelta
 from functools import cache
 from typing import Any
 
@@ -1471,6 +1472,40 @@ def _build_ma_device_block(
     ]
 
 
+def _apply_iv_timing_to_ma(resource: dict[str, Any], dosage: dict[str, Any]) -> None:
+    """Fit the IV catalog augmentation onto the MedicationAdministration shape
+    (Issue #2559).
+
+    ``augment_iv_dosage_with_rate`` writes the ``Dosage`` data-type elements
+    of ``MedicationRequest.dosageInstruction``: ``doseAndRate[].rateQuantity``
+    for a continuous infusion and ``timing.repeat.duration`` for a timed
+    bolus. ``MedicationAdministration.dosage`` has neither (R4: text, site,
+    route, method, dose, rateQuantity, rateRatio), so the rate moves to
+    ``dosage.rateQuantity`` and the infusion time becomes ``effectivePeriod``
+    (start = the administration time, end = start + duration), which replaces
+    ``effectiveDateTime`` (``effective[x]`` is a choice).
+    """
+    # The augmentation's rate (an explicit rate in the dose text, else the
+    # drug's catalog rate) is more specific than the builder's own
+    # "continuous" guess (dose amount + "/h"), so it wins: e.g. an insulin
+    # drip "0.1U 持続" is 0.1 U/kg/h, not 0.1 U/h.
+    dose_and_rate = dosage.pop("doseAndRate", None)
+    rate = (dose_and_rate[0] or {}).get("rateQuantity") if dose_and_rate else None
+    if rate:
+        dosage["rateQuantity"] = rate
+    timing = dosage.pop("timing", None)
+    repeat = (timing or {}).get("repeat") or {}
+    duration = repeat.get("duration")
+    start = resource.get("effectiveDateTime")
+    if duration is None or not start:
+        return
+    minutes = {"s": 1 / 60, "min": 1, "h": 60, "d": 1440}.get(str(repeat.get("durationUnit", "min")), 1)
+    start_dt = datetime.fromisoformat(str(start).replace("Z", "+00:00"))
+    end_dt = start_dt + timedelta(minutes=float(duration) * minutes)
+    resource["effectivePeriod"] = {"start": start, "end": end_dt.isoformat()}
+    del resource["effectiveDateTime"]
+
+
 def _build_medication_admin(
     mar: dict,
     patient_id: str,
@@ -1695,6 +1730,7 @@ def _build_medication_admin(
         country,
     )
     if dosage_block is not None:
+        _apply_iv_timing_to_ma(resource, dosage_block)
         resource["dosage"] = dosage_block
 
     # Reason reference + reasonCode — composed by _build_ma_reason_block.

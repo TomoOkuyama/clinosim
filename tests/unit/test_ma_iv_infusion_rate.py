@@ -61,15 +61,57 @@ def test_non_iv_drug_unchanged() -> None:
     assert not _has_rate(d)
 
 
-def test_iv_bolus_drug_gets_duration_not_rate() -> None:
-    """Bolus-mode catalog entries emit timing.repeat.duration instead of rate."""
+def test_iv_bolus_drug_gets_an_infusion_period_not_a_timing() -> None:
+    """Bolus-mode catalog entries become ``effectivePeriod`` (start = the
+    administration time, end = start + catalog duration); R4
+    MedicationAdministration.dosage has no ``timing`` (Issue #2559)."""
+    from clinosim.modules.output.fhir_r4.lib.dosage import resolve_iv_infusion_default
+
     # Ceftriaxone is a bolus-mode antibiotic in iv_infusion_defaults.yaml
+    duration = resolve_iv_infusion_default("Ceftriaxone", "")["duration_min"]
     r = _build_medication_admin(_mar("Ceftriaxone", "IV", dose=""), "PT-1", 0)
-    d = r.get("dosage", {})
-    # Should emit either duration (bolus mode) or rate (continuous mode);
-    # anything but silent-empty is acceptable per B2 fix intent.
-    timing_dur = d.get("timing", {}).get("repeat", {}).get("duration")
-    assert timing_dur is not None or _has_rate(d), f"IV bolus drug should get timing.duration or rate; got {d}"
+    assert "timing" not in r.get("dosage", {})
+    assert "effectiveDateTime" not in r
+    start, end = r["effectivePeriod"]["start"], r["effectivePeriod"]["end"]
+    from datetime import datetime
+
+    assert start == "2026-01-01T08:05:00"
+    assert (datetime.fromisoformat(end) - datetime.fromisoformat(start)).total_seconds() == duration * 60
+
+
+def test_continuous_iv_rate_is_dosage_rate_quantity() -> None:
+    """A continuous-infusion catalog rate goes to ``dosage.rateQuantity``; R4
+    MedicationAdministration.dosage has no ``doseAndRate`` (Issue #2559)."""
+    d = _build_medication_admin(_mar("Potassium chloride", "IV", dose=""), "PT-1", 0)["dosage"]
+    assert "doseAndRate" not in d and "rateQuantity" in d
+
+
+_R4_MA_DOSAGE = {
+    "id",
+    "extension",
+    "modifierExtension",
+    "text",
+    "site",
+    "route",
+    "method",
+    "dose",
+    "rateQuantity",
+    "rateRatio",
+}
+
+
+def test_ma_dosage_uses_only_r4_elements() -> None:
+    for drug, dose in (
+        ("Ceftriaxone", ""),
+        ("Potassium chloride", ""),
+        ("Normal saline", ""),
+        ("Normal saline", "100mL/h"),
+        ("Heparin", "12 U/kg/h"),
+        ("Amlodipine", "5mg"),
+    ):
+        r = _build_medication_admin(_mar(drug, "PO" if drug == "Amlodipine" else "IV", dose=dose), "PT-1", 0)
+        assert set(r.get("dosage", {})) <= _R4_MA_DOSAGE, (drug, r.get("dosage"))
+        assert not ("effectiveDateTime" in r and "effectivePeriod" in r), drug
 
 
 def test_iv_augment_preserves_existing_structured_dose() -> None:
@@ -165,3 +207,9 @@ def test_bolus_iv_no_parent_no_mar_dose_emits_nothing() -> None:
     )
     d = r.get("dosage", {})
     assert not _has_dose(d), f"no dose source → expected no fabricated dose; got {d}"
+
+
+def test_explicit_rate_in_the_dose_text_wins_over_the_amount_per_hour_guess() -> None:
+    """An insulin drip written "0.1U/kg/h 持続" keeps U/kg/h (Issue #2559)."""
+    d = _build_medication_admin(_mar("Regular insulin", "IV", dose="0.1U/kg/h 持続"), "PT-1", 0)["dosage"]
+    assert d["rateQuantity"]["unit"] == "U/kg/h" and "doseAndRate" not in d
