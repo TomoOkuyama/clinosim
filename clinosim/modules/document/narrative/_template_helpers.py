@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.locale.i18n import t
-from clinosim.locale.localized import localized_field
+from clinosim.locale.localized import localized, localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import practitioner_name
 from clinosim.types.document import NarrativeContext
@@ -130,11 +130,18 @@ def _pick_localized(tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext |
     """
     if tmpl is None:
         return ""
+
+    def _get(name: str) -> Any:
+        return tmpl.get(name) if isinstance(tmpl, dict) else getattr(tmpl, name, None)
+
     field = f"{key_base}_{lang}"
-    if isinstance(tmpl, dict):
-        value = tmpl.get(field)
+    entry = _get(key_base)
+    if isinstance(entry, dict):
+        # A language map (Issue #2506): the requested language, then English.
+        value: Any = localized(entry, lang)
     else:
-        value = getattr(tmpl, field, None)
+        # Legacy `<base>_<lang>` fields, converted by Issue #2507.
+        value = _get(field)
     if value is None or value == "":
         logger.warning("template locale field %s missing on %s", field, type(tmpl).__name__)
         return ""

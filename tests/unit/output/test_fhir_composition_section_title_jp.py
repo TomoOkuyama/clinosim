@@ -43,7 +43,7 @@ from clinosim.modules.output.fhir_r4.documents.composition import (
 # catalog directly — same lookup, single SoT.
 def _section_title_ja_map() -> dict[str, str]:
     """Compatibility shim: `{slug: title_ja}` view of the section catalog."""
-    return {slug: entry.title_ja for slug, entry in load_section_catalog().items()}
+    return {slug: entry.title_for("ja") for slug, entry in load_section_catalog().items()}
 
 
 _SECTION_TITLE_JA = _section_title_ja_map()

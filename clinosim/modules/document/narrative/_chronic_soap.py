@@ -45,8 +45,8 @@ def resolve_chronic_soap(chronic_conditions: list[Any] | None) -> dict[str, str]
             or a plain ICD-10 string. Order is honored — first match wins.
 
     Returns:
-        Dict with keys ``subjective_ja`` / ``objective_ja`` /
-        ``assessment_ja`` / ``plan_ja``, or ``None``.
+        Dict with ``subjective`` / ``objective`` / ``assessment`` / ``plan``
+        language maps, or ``None``.
     """
     if not chronic_conditions:
         return None
