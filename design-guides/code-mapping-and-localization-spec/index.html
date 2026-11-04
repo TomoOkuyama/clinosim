@@ -2979,6 +2979,11 @@
 <td><code>locale/shared/narrative_phrases.yaml</code> (§3.8)</td>
 </tr>
 <tr>
+<td><code>protocol</code></td>
+<td>a disease or encounter protocol (§3.9)</td>
+<td><code>modules/disease/reference_data/</code>, <code>modules/encounter/reference_data/</code></td>
+</tr>
+<tr>
 <td><code>reference</code></td>
 <td>thresholds, keyword lists, content that is not code or display data</td>
 <td><code>&lt;module&gt;/reference_data/</code> of the module that owns the rule; <code>locale/shared/</code> when the locale layer serves it to many modules through its loaders (<code>load_chronic_followup</code>, ...)</td>
@@ -3578,8 +3583,8 @@
 <td>#2483</td>
 </tr>
 <tr>
-<td>Module reference-data YAMLs (<code>**/reference_data/*.yaml</code>, 130 of 149) have no <code>metadata</code> header and are outside the conventions test (§3.1)</td>
-<td>#2500</td>
+<td>Protocol and template YAMLs carry language-suffixed keys (<code>title_ja</code>, <code>findings_en</code>, ...; about 1,300 keys in 70 files) instead of language maps (§3.1 rule 4)</td>
+<td>#2475</td>
 </tr>
 </tbody>
 </table>

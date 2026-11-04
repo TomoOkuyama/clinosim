@@ -2979,6 +2979,11 @@
 <td><code>locale/shared/narrative_phrases.yaml</code> (§3.8)</td>
 </tr>
 <tr>
+<td><code>protocol</code></td>
+<td>疾患・encounter のプロトコル (§3.9)</td>
+<td><code>modules/disease/reference_data/</code>、<code>modules/encounter/reference_data/</code></td>
+</tr>
+<tr>
 <td><code>reference</code></td>
 <td>閾値、キーワード一覧、コードでも表示でもない内容</td>
 <td>規則を持つモジュールの <code>&lt;module&gt;/reference_data/</code>。locale 層がローダー (<code>load_chronic_followup</code> など) で多くのモジュールに提供するものは <code>locale/shared/</code></td>
@@ -3578,8 +3583,8 @@
 <td>#2483</td>
 </tr>
 <tr>
-<td>モジュールの参照データ YAML (<code>**/reference_data/*.yaml</code>、149 ファイル中 130) に <code>metadata</code> ヘッダが無く、規約テストの対象外 (§3.1)</td>
-<td>#2500</td>
+<td>プロトコルとテンプレートの YAML が、言語マップではなく言語接尾辞付きのキー (<code>title_ja</code>、<code>findings_en</code> など、70 ファイル約 1,300 キー) を使っている (§3.1 の 4)</td>
+<td>#2475</td>
 </tr>
 </tbody>
 </table>
