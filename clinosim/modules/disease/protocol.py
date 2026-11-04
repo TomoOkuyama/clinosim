@@ -8,7 +8,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from clinosim.datafiles import load_data_yaml
 
@@ -620,6 +620,23 @@ class DiseaseProtocol(BaseModel):
     # a narrative: block continue to validate without error.
     narrative: NarrativeSpec | None = None
 
+    @model_validator(mode="after")
+    def _course_archetypes_and_modifiers_are_wired(self) -> DiseaseProtocol:
+        """Trajectory keys are trajectory-able state vars, and every archetype
+        modifier names a known condition and an archetype the disease defines
+        (the six fallback archetypes when it defines none) — otherwise they
+        would silently no-op (FP-DELTA-VALIDATE / FP-YAML-2b)."""
+        from clinosim.modules.clinical_course.engine import (
+            _FALLBACK_PROBABILITIES,
+            _validate_archetype_modifiers,
+            _validate_course_archetypes,
+        )
+
+        arch_names = set(self.course_archetypes) or set(_FALLBACK_PROBABILITIES)
+        _validate_archetype_modifiers(self.disease_id, self.archetype_modifiers, arch_names)
+        _validate_course_archetypes(self.disease_id, self.course_archetypes)
+        return self
+
 
 def _validate_incidence_block(disease_id: str, incidence: dict[str, Any]) -> None:
     """Reject fields whose source of truth is the locale demographics (Issue #2288).
@@ -660,26 +677,11 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
 
     _validate_severity_block(disease_id, data.get("severity", {}), protocol.minimum_severity)
 
-    # Fail-loud archetype_modifiers validation (FP-YAML-2b). Effect keys must reference
-    # archetypes the disease defines (or the 6 fallback names when it has none).
-    from clinosim.modules.clinical_course.engine import (
-        _FALLBACK_PROBABILITIES,
-        _validate_archetype_modifiers,
-        validate_complication_risk_factors,
-    )
+    from clinosim.modules.clinical_course.engine import validate_complication_risk_factors
 
-    # Fail-loud complication risk-factor vocabulary (Issue #2093).
+    # Fail-loud complication risk-factor vocabulary (Issue #2093). The
+    # course_archetypes / archetype_modifiers checks run in the model.
     validate_complication_risk_factors(disease_id, data.get("complications") or [])
-
-    arch_names = set((data.get("course_archetypes") or {}).keys()) or set(_FALLBACK_PROBABILITIES)
-    _validate_archetype_modifiers(disease_id, data.get("archetype_modifiers", []), arch_names)
-
-    # Fail-loud course_archetypes[].trajectory state-var validation
-    # (FP-DELTA-VALIDATE sibling). Trajectory keys not in
-    # TRAJECTORY_STATE_VARS silently no-op in get_state_changes.
-    from clinosim.modules.clinical_course.engine import _validate_course_archetypes
-
-    _validate_course_archetypes(disease_id, data.get("course_archetypes", {}) or {})
 
     # Fail-loud initial_state_impact + complications state-var validation
     # (FP-DELTA-VALIDATE). Sibling of anion_gap_status silent-drop
