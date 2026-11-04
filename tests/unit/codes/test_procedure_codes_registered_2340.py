@@ -161,7 +161,13 @@ def test_jp_procedure_without_a_k_code_is_recorded_and_emitted_without_an_empty_
     found = []
     for seed in range(40):
         procs = generate_bedside_procedures(
-            "P1", "E1", "chest_pain", datetime(2025, 3, 1, 10), "severe", np.random.default_rng(seed), country="JP"
+            "P1",
+            "E1",
+            "chest_pain_noncardiac",
+            datetime(2025, 3, 1, 10),
+            "severe",
+            np.random.default_rng(seed),
+            country="JP",
         )
         found += [p for p in procs if p.procedure_type == "iv_line"]
     assert found
