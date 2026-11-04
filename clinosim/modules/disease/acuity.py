@@ -1,16 +1,18 @@
 """Canonical acuity-tier disease sets (Issue #563).
 
-Three overlapping sets used to be inlined as ad-hoc tuples across
-`simulator/inpatient.py` and `modules/procedure/engine.py`. They each
-encode a related but distinct clinical routing:
+Two overlapping sets used to be inlined as ad-hoc tuples across
+`simulator/inpatient.py`. They encode related but distinct clinical
+routing:
 
 * **EMERGENCY_PRIORITY_DISEASES** — `Encounter.priority = "EM"`
 * **CRITICAL_MONITORING_DISEASES** — q1-2h vital-sign sampling
-* **NEURO_LOC_MONITORING_DISEASES** — airway / invasive-line procedure
-  rule for neurosurgical emergencies
 
-Inlining them meant the priority code, the vitals frequency, and the
-neuro-monitoring pattern could drift silently. Issue #563 uncovered exactly
+The neurosurgical-emergency invasive-line rule (hemorrhagic stroke,
+subdural hematoma) is a row of `procedure/reference_data/procedure_rules.yaml`
+(Issue #2525).
+
+Inlining them meant the priority code and the vitals frequency could drift
+silently. Issue #563 uncovered exactly
 that drift: ``subdural_hematoma`` was in EMERGENCY_PRIORITY but missing
 from CRITICAL_MONITORING — a subdural-hematoma admission carried
 ``priority=EM`` yet was sampled q4h instead of q1-2h.
@@ -18,10 +20,8 @@ from CRITICAL_MONITORING — a subdural-hematoma admission carried
 Presence of a disease id in these sets is a load-bearing clinical fact;
 adding or removing an entry is a data-quality PR, not a refactor.
 
-The neuro-perfusion set (`_NEURO_DISEASES` in `inpatient.py`) is a
-different concept (perfusion-based LOC assessment across 6 diseases) —
-intentionally NOT unified with `NEURO_LOC_MONITORING_DISEASES` (2 diseases,
-procedure rule only).
+The neuro-perfusion set (`_NEURO_DISEASES` in `vitals_pipeline.py`) is a
+different concept (perfusion-based LOC assessment across 6 diseases).
 """
 
 from __future__ import annotations
@@ -58,18 +58,4 @@ Consumers: ``clinosim/simulator/inpatient.py::_generate_vitals`` (line
 around 1938). Sibling of ``EMERGENCY_PRIORITY_DISEASES``; historically
 these two sets drifted (``subdural_hematoma`` was in one but not the
 other — Issue #563 aligned them).
-"""
-
-NEURO_LOC_MONITORING_DISEASES: frozenset[str] = frozenset(
-    {
-        "hemorrhagic_stroke",
-        "subdural_hematoma",
-    }
-)
-"""Neurosurgical-emergency diseases that drive the intubation / central-line
-/ arterial-line rule in ``clinosim/modules/procedure/engine.py``.
-
-Their AVPU no longer comes from this set: ``_loc_for`` reads the
-``consciousness_impairment`` state axis set by the disease YAML
-(Issue #2058).
 """

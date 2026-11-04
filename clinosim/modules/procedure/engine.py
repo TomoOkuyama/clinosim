@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import cache
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -16,9 +17,9 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes import data_table
 from clinosim.codes.procedures import bedside_procedures
+from clinosim.datafiles import load_data_yaml
 from clinosim.locale.loader import load_code_mapping
 from clinosim.modules._shared import is_jp
-from clinosim.modules.disease.acuity import NEURO_LOC_MONITORING_DISEASES
 from clinosim.modules.procedure._bedside_thresholds import (
     BEDSIDE_DURATION_MEAN_MIN,
     BEDSIDE_DURATION_MIN_MIN,
@@ -366,127 +367,37 @@ _BEDSIDE_PROCEDURES: list[tuple[str, str, str, str, str, str]] = [
     for e in bedside_procedures()
 ]
 
-# Rules: (disease_id or category) → [(procedure_type, probability)]
-# category keywords checked against disease_id
-_PROCEDURE_RULES: list[tuple[str | list[str], list[tuple[str, float]]]] = [
-    # Universal: urinary catheter for severe patients
-    (
-        [
-            "sepsis",
-            "acute_mi",
-            "heart_failure_exacerbation",
-            "cerebral_infarction",
-            "hemorrhagic_stroke",
-            "subdural_hematoma",
-            "traffic_accident_severe",
-        ],
-        [("urinary_catheter", 0.85)],
-    ),
-    # Moderate-severe inpatients: urinary catheter
-    (
-        [
-            "copd_exacerbation",
-            "gi_bleeding",
-            "acute_pancreatitis",
-            "diabetic_ketoacidosis",
-            "liver_cirrhosis_decompensated",
-            "pulmonary_embolism",
-            "acute_kidney_injury",
-        ],
-        [("urinary_catheter", 0.50)],
-    ),
-    # Sepsis / critical: central line, arterial line
-    (["sepsis"], [("central_line", 0.70), ("arterial_line", 0.50), ("blood_transfusion", 0.15)]),
-    # Heart failure: echocardiography
-    (["heart_failure_exacerbation"], [("echocardiography", 0.80), ("urinary_catheter", 0.60)]),
-    # Acute MI: arterial line, echo
-    (["acute_mi"], [("arterial_line", 0.60), ("central_line", 0.40), ("echocardiography", 0.90)]),
-    # Stroke: nasogastric tube (dysphagia risk), lumbar puncture
-    (["cerebral_infarction", "hemorrhagic_stroke"], [("nasogastric_tube", 0.30), ("echocardiography", 0.50)]),
-    # Hemorrhagic stroke / subdural: invasive lines. Same 2-disease pair as
-    # `NEURO_LOC_MONITORING_DISEASES` — kept as `list(...)` because the outer
-    # rule table's item type is `list[str]`, but membership stays synced with
-    # the canonical set. Intubation follows the consciousness state in the
-    # daily loop (Issue #2091), not this table.
-    (
-        list(NEURO_LOC_MONITORING_DISEASES),
-        [("central_line", 0.50), ("arterial_line", 0.40)],
-    ),
-    # GI bleeding: nasogastric tube, blood transfusion
-    (["gi_bleeding"], [("nasogastric_tube", 0.50), ("blood_transfusion", 0.60), ("central_line", 0.30)]),
-    # Liver cirrhosis: paracentesis, nasogastric tube
-    (
-        ["liver_cirrhosis_decompensated"],
-        [("paracentesis", 0.70), ("nasogastric_tube", 0.25), ("blood_transfusion", 0.30)],
-    ),
-    # Pneumonia/aspiration: bronchoscopy in severe cases. Intubation follows
-    # the oxygenation state in the daily loop (Issue #2091).
-    (["bacterial_pneumonia", "aspiration_pneumonia"], [("bronchoscopy", 0.15)]),
-    # DKA: central line, arterial line
-    (["diabetic_ketoacidosis"], [("central_line", 0.35), ("arterial_line", 0.20)]),
-    # Pulmonary embolism: echo
-    (["pulmonary_embolism"], [("echocardiography", 0.70), ("central_line", 0.20)]),
-    # Ileus: nasogastric tube
-    (["ileus"], [("nasogastric_tube", 0.80)]),
-    # AKI: dialysis in severe cases
-    (["acute_kidney_injury"], [("dialysis_acute", 0.30), ("central_line", 0.40)]),
-    # Atrial fibrillation: cardioversion, echo
-    (["atrial_fibrillation_rvr"], [("cardioversion", 0.25), ("echocardiography", 0.60)]),
-    # Pancreatitis: nasogastric tube
-    (["acute_pancreatitis"], [("nasogastric_tube", 0.40), ("central_line", 0.20)]),
-    # Trauma: central line, arterial line, blood transfusion. Intubation
-    # follows consciousness / oxygenation in the daily loop (Issues #2091, #2079).
-    (
-        ["traffic_accident_severe"],
-        [
-            ("central_line", 0.70),
-            ("arterial_line", 0.60),
-            ("blood_transfusion", 0.50),
-            ("chest_tube", 0.25),
-        ],
-    ),
-    # Cellulitis with severe: wound debridement
-    (["cellulitis"], [("wound_debridement", 0.30)]),
-    # CO-3: ED-specific rules keyed on ED condition_ids
-    # (modules/encounter/reference_data/). Aligned with JP-common ED workflow;
-    # probabilities from clinical practice (JEMS 2022 protocols). Every key
-    # must name a disease or ED condition (Issue #2526).
-    (["chest_pain_noncardiac", "syncope"], [("ecg_12lead", 0.98), ("iv_line", 0.85)]),
-    (["wrist_fracture"], [("reduction_closed", 0.55), ("short_arm_splint", 0.85)]),
-    (["minor_laceration"], [("wound_care", 0.90)]),
-    (["viral_gastroenteritis"], [("iv_line", 0.70)]),
-    (["asthma_attack_mild", "copd_exacerbation_ed"], [("oxygen_therapy", 0.80), ("iv_line", 0.60)]),
-    (["concussion"], [("iv_line", 0.50)]),
-]
+# Procedure dispatch per disease / ED condition, from
+# reference_data/procedure_rules.yaml (Issue #2525): `bedside_rules` draw from
+# the encounter RNG; `isolated_rules` (Issue #939 — PCI, pacemaker, craniotomy,
+# ileus tube, bowel resection) each draw from a per-(encounter, procedure)
+# sub-RNG (`issue939_procedure_seed`) so the shared stream is untouched.
+_ProcedureRules = list[tuple[list[str], list[tuple[str, float]]]]
 
 
-# Issue #939 — cardiology / neurosurgery / GI-obstruction interventions.
-# Kept in a SEPARATE dispatch table (not `_PROCEDURE_RULES`) because these
-# five procedures draw from a per-(encounter, proc_type) sub-RNG
-# (`issue939_procedure_seed`) instead of the shared patient-scoped `rng`.
-# Splitting the tables lets the shared-rng loop stay byte-identical for
-# every disease_id — only the isolated loop below consumes new randomness,
-# and it draws from a stream that no other consumer touches.
-#
-# Baseline probabilities align with the "Expected behavior" section of
-# Issue #939: PCI ~85% of MI, pacemaker ~10% of HFrEF admits, craniotomy
-# ~35% of surgical-candidate ICH, ileus tube ~60% conservative-management,
-# bowel resection ~20% failed-conservative. Tuned probabilities live here
-# rather than in yaml for parity with `_PROCEDURE_RULES`; a future scope
-# item can migrate both tables to a shared per-disease dispatch yaml.
-_ISSUE939_PROCEDURE_RULES: list[tuple[list[str], list[tuple[str, float]]]] = [
-    # Acute MI — primary PCI is standard-of-care for STEMI/NSTEMI.
-    (["acute_mi"], [("coronary_pci", 0.85)]),
-    # Heart failure exacerbation — CRT/pacemaker/ICD implanted in a
-    # minority of HFrEF admits (JCS guideline ~10-15% overall uptake).
-    (["heart_failure_exacerbation"], [("pacemaker_implant", 0.10)]),
-    # Intracerebral / subdural hemorrhage — surgical evacuation for the
-    # portion who meet JSNS criteria (deep/moderate volume + declining LOC).
-    (["hemorrhagic_stroke", "subdural_hematoma"], [("craniotomy_hematoma_evacuation", 0.35)]),
-    # Bowel obstruction / ileus — long tube first-line; resection for
-    # failed conservative management (~20% escalation rate).
-    (["ileus"], [("ileus_tube_placement", 0.60), ("bowel_resection", 0.20)]),
-]
+def _load_procedure_rules() -> tuple[_ProcedureRules, _ProcedureRules]:
+    """Both rule tables, validated: every disease names a disease or ED
+    condition YAML (matching is exact, so an unknown id would never fire,
+    Issue #2526) and every procedure is in the bedside catalog."""
+    data = load_data_yaml(Path(__file__).resolve().parent / "reference_data" / "procedure_rules.yaml")
+    modules = Path(__file__).resolve().parents[1]
+    known_ids = {p.stem for d in ("disease", "encounter") for p in (modules / d / "reference_data").glob("*.yaml")}
+    known_procedures = {p[0] for p in _BEDSIDE_PROCEDURES}
+    tables = []
+    for section in ("bedside_rules", "isolated_rules"):
+        rules: _ProcedureRules = []
+        for rule in data[section]:
+            diseases = [str(d) for d in rule["diseases"]]
+            procedures = [(str(k), float(v)) for k, v in rule["procedures"].items()]
+            unknown = sorted(set(diseases) - known_ids) + sorted({k for k, _ in procedures} - known_procedures)
+            if unknown:
+                raise ValueError(f"procedure_rules.yaml {section}: unknown ids {unknown}")
+            rules.append((diseases, procedures))
+        tables.append(rules)
+    return tables[0], tables[1]
+
+
+_PROCEDURE_RULES, _ISSUE939_PROCEDURE_RULES = _load_procedure_rules()
 
 # Procedure types dispatched from `_ISSUE939_PROCEDURE_RULES` — used to guard
 # against accidental duplication into `_PROCEDURE_RULES` in future edits.
@@ -548,8 +459,7 @@ def generate_bedside_procedures(
 
     triggered: dict[str, float] = {}  # procedure_type → max probability
     for disease_match, proc_list in _PROCEDURE_RULES:
-        match_list = disease_match if isinstance(disease_match, list) else [disease_match]
-        if disease_id not in match_list:
+        if disease_id not in disease_match:
             continue
         for proc_type, prob in proc_list:
             # Take the highest probability across matching rules

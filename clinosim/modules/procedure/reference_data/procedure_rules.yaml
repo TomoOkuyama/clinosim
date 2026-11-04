@@ -1,0 +1,110 @@
+# Bedside and interventional procedure dispatch per disease / ED condition
+# (Issue #2525; moved from procedure/engine.py `_PROCEDURE_RULES` and
+# `_ISSUE939_PROCEDURE_RULES`).
+#
+# Each rule names the disease ids (modules/disease/reference_data/) or ED
+# condition ids (modules/encounter/reference_data/) it applies to — matched
+# exactly, validated at load — and each procedure's base probability, scaled
+# by severity in `generate_bedside_procedures`. When several rules give the
+# same procedure, the highest probability wins.
+#
+# ORDER IS LOAD-BEARING: procedures are drawn in first-seen order (rule order,
+# then the order inside a rule), one draw each from the encounter's RNG.
+# Reordering changes which procedures fire.
+
+metadata:
+  kind: reference
+  name: procedure_rules
+  source: clinosim
+
+# Drawn from the patient-scoped encounter RNG.
+bedside_rules:
+  # Universal: urinary catheter for severe patients.
+  - diseases: [sepsis, acute_mi, heart_failure_exacerbation, cerebral_infarction, hemorrhagic_stroke, subdural_hematoma, traffic_accident_severe]
+    procedures: {urinary_catheter: 0.85}
+  # Moderate-severe inpatients: urinary catheter.
+  - diseases: [copd_exacerbation, gi_bleeding, acute_pancreatitis, diabetic_ketoacidosis, liver_cirrhosis_decompensated, pulmonary_embolism, acute_kidney_injury]
+    procedures: {urinary_catheter: 0.50}
+  # Sepsis / critical: central line, arterial line.
+  - diseases: [sepsis]
+    procedures: {central_line: 0.70, arterial_line: 0.50, blood_transfusion: 0.15}
+  # Heart failure: echocardiography.
+  - diseases: [heart_failure_exacerbation]
+    procedures: {echocardiography: 0.80, urinary_catheter: 0.60}
+  # Acute MI: arterial line, echo.
+  - diseases: [acute_mi]
+    procedures: {arterial_line: 0.60, central_line: 0.40, echocardiography: 0.90}
+  # Stroke: nasogastric tube (dysphagia risk), echocardiography.
+  - diseases: [cerebral_infarction, hemorrhagic_stroke]
+    procedures: {nasogastric_tube: 0.30, echocardiography: 0.50}
+  # Neurosurgical emergencies (hemorrhagic stroke / subdural): invasive
+  # lines. Intubation follows the consciousness state in the daily loop
+  # (Issue #2091), not this table.
+  - diseases: [hemorrhagic_stroke, subdural_hematoma]
+    procedures: {central_line: 0.50, arterial_line: 0.40}
+  # GI bleeding: nasogastric tube, blood transfusion.
+  - diseases: [gi_bleeding]
+    procedures: {nasogastric_tube: 0.50, blood_transfusion: 0.60, central_line: 0.30}
+  # Liver cirrhosis: paracentesis, nasogastric tube.
+  - diseases: [liver_cirrhosis_decompensated]
+    procedures: {paracentesis: 0.70, nasogastric_tube: 0.25, blood_transfusion: 0.30}
+  # Pneumonia / aspiration: bronchoscopy in severe cases. Intubation follows
+  # the oxygenation state in the daily loop (Issue #2091).
+  - diseases: [bacterial_pneumonia, aspiration_pneumonia]
+    procedures: {bronchoscopy: 0.15}
+  # DKA: central line, arterial line.
+  - diseases: [diabetic_ketoacidosis]
+    procedures: {central_line: 0.35, arterial_line: 0.20}
+  # Pulmonary embolism: echo.
+  - diseases: [pulmonary_embolism]
+    procedures: {echocardiography: 0.70, central_line: 0.20}
+  # Ileus: nasogastric tube.
+  - diseases: [ileus]
+    procedures: {nasogastric_tube: 0.80}
+  # AKI: dialysis in severe cases.
+  - diseases: [acute_kidney_injury]
+    procedures: {dialysis_acute: 0.30, central_line: 0.40}
+  # Atrial fibrillation: cardioversion, echo.
+  - diseases: [atrial_fibrillation_rvr]
+    procedures: {cardioversion: 0.25, echocardiography: 0.60}
+  # Pancreatitis: nasogastric tube.
+  - diseases: [acute_pancreatitis]
+    procedures: {nasogastric_tube: 0.40, central_line: 0.20}
+  # Trauma: central line, arterial line, blood transfusion. Intubation follows
+  # consciousness / oxygenation in the daily loop (Issues #2091, #2079).
+  - diseases: [traffic_accident_severe]
+    procedures: {central_line: 0.70, arterial_line: 0.60, blood_transfusion: 0.50, chest_tube: 0.25}
+  # Severe cellulitis: wound debridement.
+  - diseases: [cellulitis]
+    procedures: {wound_debridement: 0.30}
+  # CO-3: ED conditions. Aligned with JP-common ED workflow; probabilities
+  # from clinical practice (JEMS 2022 protocols).
+  - diseases: [chest_pain_noncardiac, syncope]
+    procedures: {ecg_12lead: 0.98, iv_line: 0.85}
+  - diseases: [wrist_fracture]
+    procedures: {reduction_closed: 0.55, short_arm_splint: 0.85}
+  - diseases: [minor_laceration]
+    procedures: {wound_care: 0.90}
+  - diseases: [viral_gastroenteritis]
+    procedures: {iv_line: 0.70}
+  - diseases: [asthma_attack_mild, copd_exacerbation_ed]
+    procedures: {oxygen_therapy: 0.80, iv_line: 0.60}
+  - diseases: [concussion]
+    procedures: {iv_line: 0.50}
+
+# Issue #939 — cardiology / neurosurgery / GI-obstruction interventions. Each
+# procedure draws from its own per-(encounter, procedure) sub-RNG
+# (`issue939_procedure_seed`) instead of the encounter RNG, so adding a row
+# here shifts no other draw. Baselines: PCI ~85% of MI, pacemaker ~10% of
+# HFrEF admissions (JCS guideline ~10-15% uptake), craniotomy ~35% of
+# surgical-candidate ICH (JSNS criteria), ileus long tube ~60% first-line and
+# bowel resection ~20% after failed conservative management.
+isolated_rules:
+  - diseases: [acute_mi]
+    procedures: {coronary_pci: 0.85}
+  - diseases: [heart_failure_exacerbation]
+    procedures: {pacemaker_implant: 0.10}
+  - diseases: [hemorrhagic_stroke, subdural_hematoma]
+    procedures: {craniotomy_hematoma_evacuation: 0.35}
+  - diseases: [ileus]
+    procedures: {ileus_tube_placement: 0.60, bowel_resection: 0.20}

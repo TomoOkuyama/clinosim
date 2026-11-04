@@ -18,7 +18,6 @@ from __future__ import annotations
 from clinosim.modules.disease.acuity import (
     CRITICAL_MONITORING_DISEASES,
     EMERGENCY_PRIORITY_DISEASES,
-    NEURO_LOC_MONITORING_DISEASES,
 )
 
 
@@ -36,10 +35,6 @@ def test_critical_monitoring_set_contents_includes_subdural() -> None:
     )
 
 
-def test_neuro_loc_monitoring_set_contents() -> None:
-    assert NEURO_LOC_MONITORING_DISEASES == frozenset({"hemorrhagic_stroke", "subdural_hematoma"})
-
-
 def test_emergency_priority_and_critical_monitoring_are_aligned() -> None:
     """Sibling sets — Issue #563 required them identical to close the drift
     that caused subdural-hematoma admissions to carry priority=EM yet be
@@ -53,4 +48,3 @@ def test_all_sets_are_frozenset() -> None:
     silently allow mutation and break the "canonical contract" property."""
     assert isinstance(EMERGENCY_PRIORITY_DISEASES, frozenset)
     assert isinstance(CRITICAL_MONITORING_DISEASES, frozenset)
-    assert isinstance(NEURO_LOC_MONITORING_DISEASES, frozenset)
