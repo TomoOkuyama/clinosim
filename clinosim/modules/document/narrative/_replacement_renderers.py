@@ -29,6 +29,7 @@ from clinosim.modules.document.narrative._replacement_localization import (
     localize_oxygen_device,
     localize_token,
 )
+from clinosim.modules.document.narrative._vitals_line import LLM_ARRIVAL, LLM_DAY, format_vitals_line
 from clinosim.modules.document.narrative.template_generator import _filter_vitals_for_day
 
 
@@ -162,26 +163,10 @@ def _render_vitals_for_day(vitals: list, day_index: int, encounter: object | Non
     picks: list[str] = []
     max_pick = 3
     for v in filtered:
-        systolic = _get(v, "systolic_bp")
-        diastolic = _get(v, "diastolic_bp")
-        hr = _get(v, "heart_rate")
-        temp = _get(v, "temperature_celsius")
-        rr = _get(v, "respiratory_rate")
-        spo2 = _get(v, "spo2")
-        bits = []
-        if temp:
-            bits.append(f"T {temp}°C")
-        if hr:
-            bits.append(f"HR {hr}")
-        if systolic and diastolic:
-            bits.append(f"BP {systolic}/{diastolic}")
-        if rr:
-            bits.append(f"RR {rr}")
-        if spo2:
-            bits.append(f"SpO2 {spo2}%")
-        if bits:
+        line = format_vitals_line(v, LLM_DAY, "en")
+        if line:
             ts = _get(v, "timestamp", "")
-            picks.append((str(ts)[:19] + " " if ts else "") + " / ".join(bits))
+            picks.append((str(ts)[:19] + " " if ts else "") + line)
         if len(picks) >= max_pick:
             break
     return "; ".join(picks) if picks else ""
@@ -222,22 +207,9 @@ def _render_supplemental_oxygen_today(vitals: list, day_index: int, encounter: o
 def _render_first_vitals(vitals: list) -> str:
     """First-recorded vitals (arrival vitals for ED)."""
     for v in vitals or []:
-        systolic = _get(v, "systolic_bp")
-        hr = _get(v, "heart_rate")
-        temp = _get(v, "temperature_celsius")
-        spo2 = _get(v, "spo2")
-        bits = []
-        if temp:
-            bits.append(f"T {temp}°C")
-        if hr:
-            bits.append(f"HR {hr}")
-        if systolic:
-            diastolic = _get(v, "diastolic_bp")
-            bits.append(f"BP {systolic}/{diastolic}" if diastolic else f"BP {systolic}")
-        if spo2:
-            bits.append(f"SpO2 {spo2}%")
-        if bits:
-            return " / ".join(bits)
+        line = format_vitals_line(v, LLM_ARRIVAL, "en")
+        if line:
+            return line
     return ""
 
 
