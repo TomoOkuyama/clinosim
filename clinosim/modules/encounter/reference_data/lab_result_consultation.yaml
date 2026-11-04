@@ -43,11 +43,15 @@ seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.
 
 narrative:
   outpatient_soap_template:
-    subjective_ja: '{chief_complaint_ja}の訴え、{onset_days}日前より'
-    objective_ja: バイタル安定、身体所見特記事項なし
-    assessment_ja: '{primary_dx_display_ja}'
-    plan_ja: '{workup_summary_ja}、{follow_up_ja}'
-    subjective_en: '{chief_complaint_en} complaint, onset {onset_days} day(s) ago'
-    objective_en: Vital signs stable; physical exam unremarkable
-    assessment_en: '{primary_dx_display_en}'
-    plan_en: '{workup_summary_en}, {follow_up_en}'
+    subjective:
+      en: '{chief_complaint_en} complaint, onset {onset_days} day(s) ago'
+      ja: '{chief_complaint_ja}の訴え、{onset_days}日前より'
+    objective:
+      en: Vital signs stable; physical exam unremarkable
+      ja: バイタル安定、身体所見特記事項なし
+    assessment:
+      en: '{primary_dx_display_en}'
+      ja: '{primary_dx_display_ja}'
+    plan:
+      en: '{workup_summary_en}, {follow_up_en}'
+      ja: '{workup_summary_ja}、{follow_up_ja}'

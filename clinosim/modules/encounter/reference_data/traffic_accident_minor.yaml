@@ -67,18 +67,23 @@ seasonal: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.3, 8: 1.3, 9: 1.
 
 narrative:
   ed_note_template:
-    chief_complaint_ja: '{chief_complaint_ja}の訴え'
-    hpi_ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
-    physical_exam_ja:
-      general: 意識清明、苦痛様
-    ed_workup_summary_ja: '{lab_summary_ja}、{imaging_summary_ja}'
-    disposition_ja: '{disposition_display_ja}'
-    chief_complaint_en: '{chief_complaint_en} complaint'
-    hpi_en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-    physical_exam_en:
-      general: Alert and oriented, in visible distress
-    ed_workup_summary_en: '{lab_summary_en}, {imaging_summary_en}'
-    disposition_en: '{disposition_display_en}'
+    chief_complaint:
+      en: '{chief_complaint_en} complaint'
+      ja: '{chief_complaint_ja}の訴え'
+    hpi:
+      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
+      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+    physical_exam:
+      en:
+        general: Alert and oriented, in visible distress
+      ja:
+        general: 意識清明、苦痛様
+    ed_workup_summary:
+      en: '{lab_summary_en}, {imaging_summary_en}'
+      ja: '{lab_summary_ja}、{imaging_summary_ja}'
+    disposition:
+      en: '{disposition_display_en}'
+      ja: '{disposition_display_ja}'
   ed_triage_template:
     common_triage_levels:
     - '3'

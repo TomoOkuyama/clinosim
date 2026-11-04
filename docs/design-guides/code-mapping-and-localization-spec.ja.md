@@ -402,8 +402,6 @@ occupation:
 
 ## 11. 既知の逸脱
 
-以下はまだこの仕様に沿っていない。それぞれ記載の Issue で解消する。全体は [#2452](https://github.com/TomoOkuyama/clinosim/issues/2452) で追う。
+この仕様に沿っていない箇所は、解消する Issue とともにここに挙げる ([#2452](https://github.com/TomoOkuyama/clinosim/issues/2452) でこの改訂に準拠させた)。
 
-| 逸脱 | Issue |
-|---|---|
-| プロトコルとテンプレートの YAML が、言語マップではなく言語接尾辞付きのキー (`title_ja`、`findings_en` など、70 ファイル約 1,300 キー) を使っている (§3.1 の 4) | #2475 |
+なし。コードベースはこの仕様に準拠している。

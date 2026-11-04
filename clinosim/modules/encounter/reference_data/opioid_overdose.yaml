@@ -98,22 +98,27 @@ seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.05, 6: 1.05, 7: 1.05, 8: 1.05, 9
 
 narrative:
   ed_note_template:
-    chief_complaint_ja: '{chief_complaint_ja}'
-    hpi_ja: 'オピオイド使用後に反応が乏しくなっているところを発見され救急搬送。呼吸数低下を認めた'
-    physical_exam_ja:
-      general: 傾眠、呼びかけに反応鈍い
-      neuro: 縮瞳、意識レベル低下
-      respiratory: 呼吸数低下、浅い呼吸
-    ed_workup_summary_ja: '{lab_summary_ja}、{imaging_summary_ja}'
-    disposition_ja: '{disposition_display_ja}'
-    chief_complaint_en: '{chief_complaint_en}'
-    hpi_en: 'Found minimally responsive after opioid use; slow, shallow breathing noted by bystanders or EMS.'
-    physical_exam_en:
-      general: Somnolent, slow to respond to voice
-      neuro: Pinpoint pupils, depressed level of consciousness
-      respiratory: Bradypnea with shallow respirations
-    ed_workup_summary_en: '{lab_summary_en}, {imaging_summary_en}'
-    disposition_en: '{disposition_display_en}'
+    chief_complaint:
+      en: '{chief_complaint_en}'
+      ja: '{chief_complaint_ja}'
+    hpi:
+      en: 'Found minimally responsive after opioid use; slow, shallow breathing noted by bystanders or EMS.'
+      ja: 'オピオイド使用後に反応が乏しくなっているところを発見され救急搬送。呼吸数低下を認めた'
+    physical_exam:
+      en:
+        general: Somnolent, slow to respond to voice
+        neuro: Pinpoint pupils, depressed level of consciousness
+        respiratory: Bradypnea with shallow respirations
+      ja:
+        general: 傾眠、呼びかけに反応鈍い
+        neuro: 縮瞳、意識レベル低下
+        respiratory: 呼吸数低下、浅い呼吸
+    ed_workup_summary:
+      en: '{lab_summary_en}, {imaging_summary_en}'
+      ja: '{lab_summary_ja}、{imaging_summary_ja}'
+    disposition:
+      en: '{disposition_display_en}'
+      ja: '{disposition_display_ja}'
   ed_triage_template:
     common_triage_levels:
     - '1'

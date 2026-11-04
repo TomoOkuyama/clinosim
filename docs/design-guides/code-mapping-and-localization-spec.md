@@ -402,8 +402,6 @@ These rules are common to every resolver in §4, in both layers.
 
 ## 11. Known deviations
 
-These parts of the code base do not yet conform. Each one is removed by the issue listed; [#2452](https://github.com/TomoOkuyama/clinosim/issues/2452) tracks them all.
+Parts of the code base that do not conform are listed here, each with the issue that removes it ([#2452](https://github.com/TomoOkuyama/clinosim/issues/2452) brought the code base into conformance with this revision).
 
-| Deviation | Issue |
-|---|---|
-| Protocol and template YAMLs carry language-suffixed keys (`title_ja`, `findings_en`, ...; about 1,300 keys in 70 files) instead of language maps (§3.1 rule 4) | #2475 |
+None: the code base conforms to this specification.

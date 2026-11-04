@@ -32,8 +32,8 @@ def test_abdominal_pain_nonspecific_has_narrative_block() -> None:
     p = EncounterConditionProtocol.model_validate(raw)
     assert p.narrative is not None, "narrative block missing in abdominal_pain_nonspecific"
     assert p.narrative.ed_note_template is not None, "ed_note_template missing (ED encounter)"
-    assert p.narrative.ed_note_template.chief_complaint_ja, "chief_complaint_ja empty"
-    assert p.narrative.ed_note_template.hpi_ja, "hpi_ja empty"
+    assert p.narrative.ed_note_template.chief_complaint["ja"], "chief_complaint.ja empty"
+    assert p.narrative.ed_note_template.hpi["ja"], "hpi.ja empty"
     assert p.narrative.ed_triage_template is not None, "ed_triage_template missing (ED encounter)"
     assert p.narrative.ed_triage_template.common_triage_levels, "common_triage_levels empty"
 

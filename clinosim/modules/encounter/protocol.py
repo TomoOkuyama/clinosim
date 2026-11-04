@@ -21,12 +21,13 @@ _REF_DIR = _HERE / "reference_data"
 
 
 class OutpatientSoapTemplate(BaseModel):
-    """Outpatient SOAP note template fields for narrative generation."""
+    """Outpatient SOAP note template fields for narrative generation. Each
+    field is a language map (Issue #2507)."""
 
-    subjective_ja: str = ""
-    objective_ja: str = ""
-    assessment_ja: str = ""
-    plan_ja: str = ""
+    subjective: dict[str, str] = Field(default_factory=dict)
+    objective: dict[str, str] = Field(default_factory=dict)
+    assessment: dict[str, str] = Field(default_factory=dict)
+    plan: dict[str, str] = Field(default_factory=dict)
 
 
 class EdPhysicalExam(BaseModel):
@@ -44,11 +45,13 @@ class EdPhysicalExam(BaseModel):
 class EdNoteTemplate(BaseModel):
     """ED physician note template fields for narrative generation."""
 
-    chief_complaint_ja: str = ""
-    hpi_ja: str = ""
-    physical_exam_ja: EdPhysicalExam = Field(default_factory=EdPhysicalExam)
-    ed_workup_summary_ja: str = ""
-    disposition_ja: str = ""
+    # Language maps (Issue #2507); `physical_exam` maps a language to the
+    # per-body-system findings.
+    chief_complaint: dict[str, str] = Field(default_factory=dict)
+    hpi: dict[str, str] = Field(default_factory=dict)
+    physical_exam: dict[str, EdPhysicalExam] = Field(default_factory=dict)
+    ed_workup_summary: dict[str, str] = Field(default_factory=dict)
+    disposition: dict[str, str] = Field(default_factory=dict)
 
 
 class EdTriageTemplate(BaseModel):

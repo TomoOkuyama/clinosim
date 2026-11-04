@@ -110,3 +110,25 @@ def test_direct_parse_ratchet_shrinks() -> None:
     found = _direct_parses()
     stale = {f: (found.get(f, 0), n) for f, n in _DIRECT_PARSES.items() if found.get(f, 0) < n}
     assert not stale, f"fewer direct parses than pinned — lower the entry (found, pinned): {stale}"
+
+
+def _language_suffixed_keys(node: object, path: str = "") -> list[str]:
+    found: list[str] = []
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if isinstance(key, str) and key.endswith(("_en", "_ja")):
+                found.append(f"{path}.{key}")
+            found += _language_suffixed_keys(value, f"{path}.{key}")
+    elif isinstance(node, list):
+        for i, value in enumerate(node):
+            found += _language_suffixed_keys(value, f"{path}[{i}]")
+    return found
+
+
+def test_no_language_suffixed_key_in_any_data_yaml() -> None:
+    """Translatable text is a language map, never a `<field>_<lang>` key
+    (spec §3.1 rule 4; META #2475)."""
+    offenders = {
+        _rel(p): keys for p in sorted(_ROOT.rglob("*.yaml")) if (keys := _language_suffixed_keys(load_data_yaml(p)))
+    }
+    assert not offenders, offenders

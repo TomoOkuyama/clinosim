@@ -20,6 +20,8 @@ vitals).
 
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from clinosim.modules.document import specs_for_country
@@ -38,7 +40,26 @@ def _spec(type_key: str, country: str = "us"):
     raise AssertionError(f"spec {type_key} not found")
 
 
+_TEMPLATE_FIELD = re.compile(r"^(?P<base>[a-z_]+?)_(?P<lang>en|ja)$")
+
+
+def _as_language_maps(node):
+    """Template fields as language maps (Issue #2507): the fixtures below are
+    written with `<field>_<lang>` keys for readability."""
+    if isinstance(node, dict):
+        out: dict = {}
+        for key, value in node.items():
+            m = _TEMPLATE_FIELD.match(key) if isinstance(key, str) else None
+            if m:
+                out.setdefault(m["base"], {})[m["lang"]] = _as_language_maps(value)
+            else:
+                out[key] = _as_language_maps(value)
+        return out
+    return node
+
+
 def _ctx(document_type: DocumentType, encounter_protocol: dict, lang: str = "en"):
+    encounter_protocol = _as_language_maps(encounter_protocol)
     return NarrativeContext(
         patient={"patient_id": "P1"},
         encounter={"encounter_id": "ENC-1"},

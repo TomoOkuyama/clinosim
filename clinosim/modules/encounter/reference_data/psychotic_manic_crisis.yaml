@@ -88,20 +88,25 @@ seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.05, 6: 1.05, 7: 1.05, 8: 1.0, 9:
 
 narrative:
   ed_note_template:
-    chief_complaint_ja: '{chief_complaint_ja}'
-    hpi_ja: '{onset_days}日前より不眠と興奮が増悪し、幻覚・被害妄想を伴う異常行動が出現'
-    physical_exam_ja:
-      general: 意識清明、興奮状態、落ち着きなし
-      psychiatric: 精神状態：易刺激的・興奮、会話はまとまりを欠く、幻聴・被害妄想あり、気分は高揚または易怒的、病識・判断力欠如
-    ed_workup_summary_ja: '{lab_summary_ja}、{imaging_summary_ja}'
-    disposition_ja: '{disposition_display_ja}'
-    chief_complaint_en: '{chief_complaint_en}'
-    hpi_en: 'Escalating insomnia and agitation over {onset_days} day(s) with hallucinations, paranoid delusions and bizarre behavior.'
-    physical_exam_en:
-      general: Alert, agitated, restless
-      psychiatric: 'Mental status: irritable and agitated, disorganized speech, auditory hallucinations and paranoid delusions, elevated or irritable mood, no insight, impaired judgment'
-    ed_workup_summary_en: '{lab_summary_en}, {imaging_summary_en}'
-    disposition_en: '{disposition_display_en}'
+    chief_complaint:
+      en: '{chief_complaint_en}'
+      ja: '{chief_complaint_ja}'
+    hpi:
+      en: 'Escalating insomnia and agitation over {onset_days} day(s) with hallucinations, paranoid delusions and bizarre behavior.'
+      ja: '{onset_days}日前より不眠と興奮が増悪し、幻覚・被害妄想を伴う異常行動が出現'
+    physical_exam:
+      en:
+        general: Alert, agitated, restless
+        psychiatric: 'Mental status: irritable and agitated, disorganized speech, auditory hallucinations and paranoid delusions, elevated or irritable mood, no insight, impaired judgment'
+      ja:
+        general: 意識清明、興奮状態、落ち着きなし
+        psychiatric: 精神状態：易刺激的・興奮、会話はまとまりを欠く、幻聴・被害妄想あり、気分は高揚または易怒的、病識・判断力欠如
+    ed_workup_summary:
+      en: '{lab_summary_en}, {imaging_summary_en}'
+      ja: '{lab_summary_ja}、{imaging_summary_ja}'
+    disposition:
+      en: '{disposition_display_en}'
+      ja: '{disposition_display_ja}'
   ed_triage_template:
     common_triage_levels:
     - '2'

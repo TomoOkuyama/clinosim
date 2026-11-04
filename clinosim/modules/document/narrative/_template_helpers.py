@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.locale.i18n import t
-from clinosim.locale.localized import localized, localized_field
+from clinosim.locale.localized import language_slot, localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import practitioner_name
 from clinosim.types.document import NarrativeContext
@@ -117,8 +117,8 @@ def _render_home_med_name(m: Any, lang: str = "en") -> str:
 def _pick_localized(tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext | None = None) -> str:
     """Locale-aware field access fix for multi-language templates. locale-aware field access.
 
-    Reads `<key_base>_<lang>` from tmpl (attribute or dict access), returning
-    an empty string + a warning log on missing. The silent ja fallback that
+    Reads the ``key_base`` language map from tmpl (attribute or dict
+    access), returning an empty string + a warning log on missing. The silent ja fallback that
     previously caused US (en) narratives to contain Japanese characters is
     retired: a structurally empty section is preferable to silent locale
     contamination.
@@ -134,16 +134,14 @@ def _pick_localized(tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext |
     def _get(name: str) -> Any:
         return tmpl.get(name) if isinstance(tmpl, dict) else getattr(tmpl, name, None)
 
-    field = f"{key_base}_{lang}"
+    # Template fields are language maps (Issues #2506, #2507). A template is
+    # used in exactly the requested language; with no text in that language
+    # the caller composes the section from CIF state (no English fallback for
+    # authored prose).
     entry = _get(key_base)
-    if isinstance(entry, dict):
-        # A language map (Issue #2506): the requested language, then English.
-        value: Any = localized(entry, lang)
-    else:
-        # Legacy `<base>_<lang>` fields, converted by Issue #2507.
-        value = _get(field)
-    if value is None or value == "":
-        logger.warning("template locale field %s missing on %s", field, type(tmpl).__name__)
+    value = language_slot(entry, lang)
+    if not value:
+        logger.warning("template field %s.%s missing on %s", key_base, lang, type(tmpl).__name__)
         return ""
     text = str(value)
     if ctx is not None:
