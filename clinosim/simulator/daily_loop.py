@@ -19,6 +19,7 @@ import numpy as np
 
 from clinosim.codes.drugs import has_drug, protocol_drug_name
 from clinosim.locale.i18n import t
+from clinosim.locale.localized import language_slot
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
 from clinosim.modules.clinical_course._complication_risk_conditions import ComplicationContext, in_drug_class
 from clinosim.modules.clinical_course.engine import (
@@ -771,8 +772,8 @@ def _run_daily_loop(
                         # Issue #476: propagate authored localized dose
                         # instructions from YAML so the FHIR builder can emit
                         # them as country-scoped `dosageInstruction.text`.
-                        dose_text_ja=esc_drug.get("dose_ja", ""),
-                        dose_text_en=esc_drug.get("dose_en", ""),
+                        dose_text_ja=language_slot(esc_drug.get("dose_text"), "ja"),
+                        dose_text_en=language_slot(esc_drug.get("dose_text"), "en"),
                     )
                 )
 

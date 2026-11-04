@@ -287,13 +287,18 @@ def _validate_drug_route_consistency(disease_id: str, drugs: dict[str, Any]) -> 
 # is silently swallowed by the reader's `.get("dose_ja", "")`. This validator
 # catches the specific typos most likely to trip up authors extending the
 # Issue #476 pattern to new drug entries.
+# The authored instruction text is the language map `dose_text: {en, ja}`
+# (Issue #2508); the former `dose_ja` / `dose_en` keys and their likely typos
+# are rejected with a pointer to it.
 _LOCALIZED_DOSE_KEY_TYPOS: dict[str, str] = {
-    "dose_jp": "dose_ja",
-    "dose_us": "dose_en",
-    "dose_english": "dose_en",
-    "dose_japanese": "dose_ja",
-    "ja_dose": "dose_ja",
-    "en_dose": "dose_en",
+    "dose_ja": "dose_text.ja",
+    "dose_en": "dose_text.en",
+    "dose_jp": "dose_text.ja",
+    "dose_us": "dose_text.en",
+    "dose_english": "dose_text.en",
+    "dose_japanese": "dose_text.ja",
+    "ja_dose": "dose_text.ja",
+    "en_dose": "dose_text.en",
 }
 
 
@@ -395,7 +400,8 @@ def _validate_no_name_only_drug(disease_id: str, node: Any, path: str = "") -> N
 
 
 def _validate_drug_entry_localized_dose_keys(disease_id: str, drugs: dict[str, Any]) -> None:
-    """Fail loudly on likely typos of the `dose_ja` / `dose_en` keys (Issue #476).
+    """Fail loudly on the former `dose_ja` / `dose_en` keys and their likely
+    typos — the authored instruction is `dose_text: {en, ja}` (Issues #476, #2508).
 
     Load-time (not runtime) on purpose: the data is entirely YAML-sourced,
     so every offender is decidable before a single patient is simulated.

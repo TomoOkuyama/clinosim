@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from clinosim.datafiles import load_data_yaml
+from clinosim.locale.localized import language_slot
 from clinosim.modules.drug_safety.classifier import (
     canonical_name,
     japanese_display,
@@ -81,8 +82,8 @@ def _match_rule(classes_a: list[str], classes_b: list[str]) -> SafetyVerdict:
             rule_id=rule["id"],
             matched_classes=matched,
             matched_active_drug=None,
-            rationale_en=rule.get("rationale_en"),
-            rationale_ja=rule.get("rationale_ja"),
+            rationale_en=language_slot(rule.get("rationale"), "en") or None,
+            rationale_ja=language_slot(rule.get("rationale"), "ja") or None,
             substitution_hint=rule.get("substitution_hint"),
         )
         best_rank = rank
@@ -236,8 +237,8 @@ def check_candidate_against_disease_state(
                 rule_id=rule.get("id"),
                 matched_classes=(rule_class, str(matched_code)),
                 matched_active_drug=None,
-                rationale_en=rule.get("rationale_en"),
-                rationale_ja=rule.get("rationale_ja"),
+                rationale_en=language_slot(rule.get("rationale"), "en") or None,
+                rationale_ja=language_slot(rule.get("rationale"), "ja") or None,
                 substitution_hint=rule.get("substitution_hint"),
             )
         )

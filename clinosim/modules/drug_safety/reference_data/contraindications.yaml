@@ -15,8 +15,9 @@ rules:
     lhs: anticoagulant.vka
     rhs: antiplatelet
     severity: contraindicated
-    rationale_en: "VKA + antiplatelet substantially raises major bleeding risk. Allowed only under specific indications (recent PCI + AF ≤12mo, mechanical valve + secondary prevention) with GI protection."
-    rationale_ja: "ワルファリン (VKA) と抗血小板薬の併用は重大出血リスクを大幅に上昇。特定 indication (PCI 後 12 か月以内かつ AF、機械弁 + 二次予防) 下でのみ、消化管保護と併用。"
+    rationale:
+      en: "VKA + antiplatelet substantially raises major bleeding risk. Allowed only under specific indications (recent PCI + AF ≤12mo, mechanical valve + secondary prevention) with GI protection."
+      ja: "ワルファリン (VKA) と抗血小板薬の併用は重大出血リスクを大幅に上昇。特定 indication (PCI 後 12 か月以内かつ AF、機械弁 + 二次予防) 下でのみ、消化管保護と併用。"
     substitution_hint: pain_management
     source: "CHEST 2016 antithrombotic guidelines; JCS 2020 抗血栓療法"
 
@@ -32,8 +33,9 @@ rules:
     lhs: anticoagulant.doac
     rhs: antiplatelet.p2y12
     severity: contraindicated
-    rationale_en: "DOAC + P2Y12 inhibitor (Clopidogrel/Prasugrel/Ticagrelor) raises major bleeding risk. Reserved to a brief post-PCI window in AF patients (≤6 weeks); long-term double therapy is not indicated."
-    rationale_ja: "DOAC と P2Y12 阻害薬 (クロピドグレル/プラスグレル/チカグレロル) の併用は重大出血リスクを大幅に上昇。AF での PCI 直後 6 週以内に限定される二剤併用、長期併用は原則禁忌。"
+    rationale:
+      en: "DOAC + P2Y12 inhibitor (Clopidogrel/Prasugrel/Ticagrelor) raises major bleeding risk. Reserved to a brief post-PCI window in AF patients (≤6 weeks); long-term double therapy is not indicated."
+      ja: "DOAC と P2Y12 阻害薬 (クロピドグレル/プラスグレル/チカグレロル) の併用は重大出血リスクを大幅に上昇。AF での PCI 直後 6 週以内に限定される二剤併用、長期併用は原則禁忌。"
     substitution_hint: pain_management
     source: "AUGUSTUS 2019, ENTRUST-AF-PCI 2019, JCS 2020 抗血栓療法"
 
@@ -41,8 +43,9 @@ rules:
     lhs: anticoagulant
     rhs: nsaid
     severity: contraindicated
-    rationale_en: "Anticoagulant + NSAID raises GI bleeding risk ~3-4x. Use acetaminophen instead."
-    rationale_ja: "抗凝固薬と NSAID の併用は消化管出血リスクを 3-4 倍に上昇。アセトアミノフェン等の代替を選択。"
+    rationale:
+      en: "Anticoagulant + NSAID raises GI bleeding risk ~3-4x. Use acetaminophen instead."
+      ja: "抗凝固薬と NSAID の併用は消化管出血リスクを 3-4 倍に上昇。アセトアミノフェン等の代替を選択。"
     substitution_hint: pain_management
     source: "BMJ 2011;343:d4094"
 
@@ -50,8 +53,9 @@ rules:
     lhs: beta_blocker
     rhs: ccb.non_dhp
     severity: major
-    rationale_en: "β-blocker + non-DHP CCB (verapamil / diltiazem) risks bradycardia, AV block, heart failure exacerbation."
-    rationale_ja: "β遮断薬と非 DHP CCB (ベラパミル/ジルチアゼム) の併用は徐脈・房室ブロック・心不全増悪リスク。"
+    rationale:
+      en: "β-blocker + non-DHP CCB (verapamil / diltiazem) risks bradycardia, AV block, heart failure exacerbation."
+      ja: "β遮断薬と非 DHP CCB (ベラパミル/ジルチアゼム) の併用は徐脈・房室ブロック・心不全増悪リスク。"
     substitution_hint: hypertension_or_rate_control
     source: "ACC/AHA 2019 chronic coronary disease; JCS 2018 心不全"
 
@@ -59,8 +63,9 @@ rules:
     lhs: acei_arb
     rhs: potassium_supplement
     severity: major
-    rationale_en: "ACEi/ARB + K supplementation risks hyperkalemia; monitor K+ closely if combined."
-    rationale_ja: "ACEi/ARB と K 補充の併用は高 K 血症リスク。併用時は K+ モニタリング必須。"
+    rationale:
+      en: "ACEi/ARB + K supplementation risks hyperkalemia; monitor K+ closely if combined."
+      ja: "ACEi/ARB と K 補充の併用は高 K 血症リスク。併用時は K+ モニタリング必須。"
     substitution_hint: null
     source: "KDIGO 2024 CKD management"
 
@@ -68,8 +73,9 @@ rules:
     lhs: acei_arb
     rhs: diuretic.k_sparing
     severity: moderate
-    rationale_en: "ACEi/ARB + K-sparing diuretic (spironolactone) raises hyperkalemia risk. Combination is sometimes indicated in heart failure — monitor K+."
-    rationale_ja: "ACEi/ARB と K 保持性利尿薬 (スピロノラクトン) の併用は高 K 血症リスク。心不全では併用適応もあるが K+ モニタリング必須。"
+    rationale:
+      en: "ACEi/ARB + K-sparing diuretic (spironolactone) raises hyperkalemia risk. Combination is sometimes indicated in heart failure — monitor K+."
+      ja: "ACEi/ARB と K 保持性利尿薬 (スピロノラクトン) の併用は高 K 血症リスク。心不全では併用適応もあるが K+ モニタリング必須。"
     substitution_hint: null
     source: "ESC 2021 heart failure guidelines"
 
@@ -79,8 +85,9 @@ rules:
     lhs: cyp3a4_substrate
     rhs: cyp3a4_inhibitor_strong
     severity: major
-    rationale_en: "Simvastatin/atorvastatin + strong CYP3A4 inhibitor (clarithromycin, itraconazole) raises rhabdomyolysis risk. Consider holding statin during antibiotic course."
-    rationale_ja: "シンバスタチン/アトルバスタチンと強力な CYP3A4 阻害薬 (クラリスロマイシン、イトラコナゾール) の併用は横紋筋融解症リスク。抗菌薬投与中はスタチン休薬を検討。"
+    rationale:
+      en: "Simvastatin/atorvastatin + strong CYP3A4 inhibitor (clarithromycin, itraconazole) raises rhabdomyolysis risk. Consider holding statin during antibiotic course."
+      ja: "シンバスタチン/アトルバスタチンと強力な CYP3A4 阻害薬 (クラリスロマイシン、イトラコナゾール) の併用は横紋筋融解症リスク。抗菌薬投与中はスタチン休薬を検討。"
     substitution_hint: null
     source: "FDA drug safety communication 2011"
 
@@ -88,8 +95,9 @@ rules:
     lhs: xanthine_oxidase_inhibitor
     rhs: thiopurine
     severity: contraindicated
-    rationale_en: "Allopurinol + azathioprine causes life-threatening bone marrow suppression via blocked thiopurine metabolism. Avoid; if unavoidable, reduce azathioprine to 25% of usual dose."
-    rationale_ja: "アロプリノールとアザチオプリンの併用は代謝阻害により致死的骨髄抑制を引き起こす。原則併用禁忌。やむを得ず併用する場合はアザチオプリンを通常量の 25% に減量。"
+    rationale:
+      en: "Allopurinol + azathioprine causes life-threatening bone marrow suppression via blocked thiopurine metabolism. Avoid; if unavoidable, reduce azathioprine to 25% of usual dose."
+      ja: "アロプリノールとアザチオプリンの併用は代謝阻害により致死的骨髄抑制を引き起こす。原則併用禁忌。やむを得ず併用する場合はアザチオプリンを通常量の 25% に減量。"
     substitution_hint: null
     source: "UpToDate 2024 immunosuppressant drug interactions"
 
@@ -97,8 +105,9 @@ rules:
     lhs: ssri
     rhs: maoi
     severity: contraindicated
-    rationale_en: "SSRI + MAOI risks fatal serotonin syndrome. Requires ≥14-day washout between the two."
-    rationale_ja: "SSRI と MAOI の併用は致死的セロトニン症候群のリスク。切替時は 14 日以上の休薬期間が必要。"
+    rationale:
+      en: "SSRI + MAOI risks fatal serotonin syndrome. Requires ≥14-day washout between the two."
+      ja: "SSRI と MAOI の併用は致死的セロトニン症候群のリスク。切替時は 14 日以上の休薬期間が必要。"
     substitution_hint: null
     source: "APA 2010 major depressive disorder practice guideline"
 
@@ -120,8 +129,9 @@ rules:
     lhs: ssri
     rhs: snri
     severity: major
-    rationale_en: "SSRI + SNRI concurrent raises 5-HT at both the reuptake and additional norepinephrine axes without added efficacy, multiplying serotonin-syndrome risk. Guideline practice is switching with washout, not combining. Augmentation of a serotonergic agent should use an atypical (Mirtazapine, Bupropion) or a non-serotonergic adjunct."
-    rationale_ja: "SSRI と SNRI の併用は 5-HT 再取り込み阻害が重なり、追加の効果上積みなくセロトニン症候群リスクを多重化する。ガイドライン実務は休薬期間を置いた切替であり、両剤同時併用は推奨されない。serotonergic 薬の増強には atypical (Mirtazapine 等) あるいは非 serotonergic 系の併用が標準。"
+    rationale:
+      en: "SSRI + SNRI concurrent raises 5-HT at both the reuptake and additional norepinephrine axes without added efficacy, multiplying serotonin-syndrome risk. Guideline practice is switching with washout, not combining. Augmentation of a serotonergic agent should use an atypical (Mirtazapine, Bupropion) or a non-serotonergic adjunct."
+      ja: "SSRI と SNRI の併用は 5-HT 再取り込み阻害が重なり、追加の効果上積みなくセロトニン症候群リスクを多重化する。ガイドライン実務は休薬期間を置いた切替であり、両剤同時併用は推奨されない。serotonergic 薬の増強には atypical (Mirtazapine 等) あるいは非 serotonergic 系の併用が標準。"
     substitution_hint: null
     source: "APA 2010 major depressive disorder practice guideline; VA/DoD 2022 MDD guideline"
 
@@ -140,8 +150,9 @@ rules:
     lhs: nsaid
     rhs: nsaid
     severity: contraindicated
-    rationale_en: "Multiple NSAIDs concurrent give no added analgesia (single receptor family, ceiling effect) but multiply GI bleed / renal / cardiac risk. Pick one NSAID or switch to acetaminophen."
-    rationale_ja: "NSAID の重複投与は鎮痛効果を上乗せせず (受容体飽和)、消化管出血・腎障害・心血管イベントリスクを多重化。単剤またはアセトアミノフェン等に切替。"
+    rationale:
+      en: "Multiple NSAIDs concurrent give no added analgesia (single receptor family, ceiling effect) but multiply GI bleed / renal / cardiac risk. Pick one NSAID or switch to acetaminophen."
+      ja: "NSAID の重複投与は鎮痛効果を上乗せせず (受容体飽和)、消化管出血・腎障害・心血管イベントリスクを多重化。単剤またはアセトアミノフェン等に切替。"
     substitution_hint: pain_management
     source: "ACR 2020 knee OA guideline; JOA 変形性膝関節症診療ガイドライン 2023"
 
@@ -154,8 +165,9 @@ rules:
     lhs: lithium
     rhs: diuretic
     severity: moderate
-    rationale_en: "Diuretics (thiazides in particular) reduce renal lithium clearance and raise serum lithium. Monitor serum lithium more often and adjust the dose."
-    rationale_ja: "利尿薬 (特にサイアザイド系) はリチウムの腎クリアランスを低下させ血中濃度を上昇させる。血中リチウム濃度を頻回に測定し用量を調整する。"
+    rationale:
+      en: "Diuretics (thiazides in particular) reduce renal lithium clearance and raise serum lithium. Monitor serum lithium more often and adjust the dose."
+      ja: "利尿薬 (特にサイアザイド系) はリチウムの腎クリアランスを低下させ血中濃度を上昇させる。血中リチウム濃度を頻回に測定し用量を調整する。"
     substitution_hint: null
     source: "FDA lithium carbonate label, section 7 Drug Interactions"
 
@@ -163,8 +175,9 @@ rules:
     lhs: lithium
     rhs: acei_arb
     severity: moderate
-    rationale_en: "Renin-angiotensin system antagonists raise steady-state serum lithium. Monitor serum lithium more often and adjust the dose."
-    rationale_ja: "ACE 阻害薬・ARB はリチウムの定常状態血中濃度を上昇させる。血中リチウム濃度を頻回に測定し用量を調整する。"
+    rationale:
+      en: "Renin-angiotensin system antagonists raise steady-state serum lithium. Monitor serum lithium more often and adjust the dose."
+      ja: "ACE 阻害薬・ARB はリチウムの定常状態血中濃度を上昇させる。血中リチウム濃度を頻回に測定し用量を調整する。"
     substitution_hint: null
     source: "FDA lithium carbonate label, section 7 Drug Interactions"
 
@@ -172,7 +185,8 @@ rules:
     lhs: lithium
     rhs: nsaid
     severity: moderate
-    rationale_en: "NSAIDs reduce renal blood flow and lithium clearance, raising serum lithium. Monitor serum lithium more often and adjust the dose, or use acetaminophen."
-    rationale_ja: "NSAID は腎血流とリチウムクリアランスを低下させ血中濃度を上昇させる。血中リチウム濃度を頻回に測定し用量を調整するか、アセトアミノフェンを選択する。"
+    rationale:
+      en: "NSAIDs reduce renal blood flow and lithium clearance, raising serum lithium. Monitor serum lithium more often and adjust the dose, or use acetaminophen."
+      ja: "NSAID は腎血流とリチウムクリアランスを低下させ血中濃度を上昇させる。血中リチウム濃度を頻回に測定し用量を調整するか、アセトアミノフェンを選択する。"
     substitution_hint: pain_management
     source: "FDA lithium carbonate label, section 7 Drug Interactions"

@@ -38,7 +38,7 @@ import numpy as np
 from clinosim.codes.drugs import drug_display
 from clinosim.codes.valuesets import has_condition
 from clinosim.locale.i18n import t
-from clinosim.locale.localized import localized_field
+from clinosim.locale.localized import language_slot, localized_field
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
@@ -168,7 +168,7 @@ def _inject_for_record(
                 # path. Empty when the YAML has no `rationale_ja` slot yet;
                 # `_inject_one_lab` then leaves `clinical_intent_ja` empty
                 # and the SR emitter falls back to the EN string.
-                rationale_ja=str(lab_spec.get("rationale_ja") or ""),
+                rationale_ja=language_slot(lab_spec.get("rationale"), "ja"),
                 drug=drug_name,
                 drug_ja=drug_ja,
                 true_value=true_labs.get(analyte),

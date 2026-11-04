@@ -64,8 +64,7 @@ def test_nursing_assessment_baseline_has_required_fields():
     a = load_nursing_assessment()
     baseline = a["baseline"]
     assert "focus" in baseline
-    assert "interventions_ja" in baseline
-    assert isinstance(baseline["interventions_ja"], list)
+    assert isinstance(baseline["interventions"]["ja"], list)
 
 
 def test_nursing_assessment_disease_entries_have_required_fields():
@@ -73,8 +72,9 @@ def test_nursing_assessment_disease_entries_have_required_fields():
     disease_focus = a["disease_specific_nursing_focus"]
     for disease_id, entry in disease_focus.items():
         assert "focus" in entry, f"disease {disease_id!r} missing 'focus'"
-        assert "interventions_ja" in entry, f"disease {disease_id!r} missing 'interventions_ja'"
-        assert isinstance(entry["interventions_ja"], list), f"disease {disease_id!r}: interventions_ja must be a list"
+        assert isinstance(entry["interventions"]["ja"], list), (
+            f"disease {disease_id!r}: interventions.ja must be a list"
+        )
 
 
 def test_nursing_assessment_required_diseases_present():

@@ -23,7 +23,7 @@ from typing import Any
 
 from clinosim.countries import normalize_lang
 
-__all__ = ["label", "localized", "localized_field", "normalize_lang"]
+__all__ = ["label", "language_slot", "localized", "localized_field", "normalize_lang"]
 
 
 def localized(entry: Any, lang: str | None, *, fallback: str = "") -> str:
@@ -40,11 +40,19 @@ def localized(entry: Any, lang: str | None, *, fallback: str = "") -> str:
 
 
 def localized_field(record: Any, base: str, lang: str | None, *, fallback: str = "") -> str:
-    """``record.<base>_<lang>``, else English (``<base>_en`` or bare ``<base>``),
+    """``record.<base>`` as a language map (data YAML, spec §3.1), else
+    ``record.<base>_<lang>``, else English (``<base>_en`` or bare ``<base>``),
     else ``fallback``. ``record`` may be a mapping or an object."""
 
+    def raw(name: str) -> Any:
+        return record.get(name) if isinstance(record, Mapping) else getattr(record, name, None)
+
+    entry = raw(base)
+    if isinstance(entry, Mapping):
+        return localized(entry, lang, fallback=fallback)
+
     def get(name: str) -> str:
-        value = record.get(name) if isinstance(record, Mapping) else getattr(record, name, None)
+        value = raw(name)
         return str(value) if value else ""
 
     code = normalize_lang(lang)
@@ -60,3 +68,14 @@ def label(catalog: Mapping[str, Any], section: str, key: str, lang: str | None, 
     entries = catalog.get(section) if isinstance(catalog, Mapping) else None
     entry = entries.get(key) if isinstance(entries, Mapping) else None
     return localized(entry, lang, fallback=fallback)
+
+
+def language_slot(entry: Any, lang: str | None) -> str:
+    """The text of exactly ``lang`` in a language map, ``""`` when absent — no
+    English fallback. For filling a record's per-language slot (CIF
+    ``<base>_<lang>`` fields), where another language would be wrong
+    (Issue #2508); display selection uses :func:`localized`."""
+    if not isinstance(entry, Mapping):
+        return ""
+    value = entry.get(normalize_lang(lang))
+    return value if isinstance(value, str) else ""

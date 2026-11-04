@@ -67,10 +67,10 @@ def test_doac_aliases_present(mappings: dict, doac: str, alias: str) -> None:
 @pytest.mark.parametrize("doac", ["Apixaban", "Rivaroxaban", "Dabigatran", "Edoxaban"])
 def test_doac_rationale_bilingual(mappings: dict, doac: str) -> None:
     entry = mappings[doac]["monitoring"][0]
-    assert entry.get("rationale_en"), f"{doac} missing EN rationale"
-    assert entry.get("rationale_ja"), f"{doac} missing JA rationale"
+    assert (entry.get("rationale") or {}).get("en"), f"{doac} missing EN rationale"
+    assert (entry.get("rationale") or {}).get("ja"), f"{doac} missing JA rationale"
     # Sanity check: JP rationale should contain kana / kanji (drug names or 腎)
-    assert any(0x3040 <= ord(c) <= 0x9FFF for c in entry["rationale_ja"])
+    assert any(0x3040 <= ord(c) <= 0x9FFF for c in entry["rationale"]["ja"])
 
 
 @pytest.mark.parametrize(

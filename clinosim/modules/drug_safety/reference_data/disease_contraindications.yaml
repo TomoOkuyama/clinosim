@@ -46,8 +46,9 @@ rules:
     disease_predicate: {icd_prefix: ["I50"]}
     severity: major
     substitution_hint: pain_management
-    rationale_en: "NSAIDs precipitate HF exacerbation via renal Na+/water retention and prostaglandin-mediated vasoconstriction. Substitute with acetaminophen or topical NSAID."
-    rationale_ja: "NSAID は腎 Na+/水貯留とプロスタグランジン阻害による血管収縮により心不全増悪を惹起。アセトアミノフェンまたは外用 NSAID に切替。"
+    rationale:
+      en: "NSAIDs precipitate HF exacerbation via renal Na+/water retention and prostaglandin-mediated vasoconstriction. Substitute with acetaminophen or topical NSAID."
+      ja: "NSAID は腎 Na+/水貯留とプロスタグランジン阻害による血管収縮により心不全増悪を惹起。アセトアミノフェンまたは外用 NSAID に切替。"
     source: "AHA/ACC/HFSA 2022 Heart Failure Guideline; JCS 2021 急性・慢性心不全診療ガイドライン"
 
   - id: nsaid-in-cirrhosis
@@ -55,8 +56,9 @@ rules:
     disease_predicate: {icd_prefix: ["K74", "K70.3"]}
     severity: contraindicated
     substitution_hint: pain_management
-    rationale_en: "NSAIDs risk hepatorenal syndrome, variceal bleeding, and acute kidney injury in cirrhosis. Acetaminophen at reduced dose (≤2 g/day) is safer; opioids with caution."
-    rationale_ja: "NSAID は肝硬変で肝腎症候群・食道静脈瘤出血・急性腎障害リスクを増悪。アセトアミノフェン減量 (2 g/日以下) が安全、オピオイドは慎重投与。"
+    rationale:
+      en: "NSAIDs risk hepatorenal syndrome, variceal bleeding, and acute kidney injury in cirrhosis. Acetaminophen at reduced dose (≤2 g/day) is safer; opioids with caution."
+      ja: "NSAID は肝硬変で肝腎症候群・食道静脈瘤出血・急性腎障害リスクを増悪。アセトアミノフェン減量 (2 g/日以下) が安全、オピオイドは慎重投与。"
     source: "AASLD Practice Guidance 2021 (cirrhosis complications); 日本消化器病学会 肝硬変診療ガイドライン 2020"
 
   - id: nsaid-in-ckd-stage-4-5
@@ -64,8 +66,9 @@ rules:
     disease_predicate: {icd_prefix: ["N18.4", "N18.5", "N18.6"]}
     severity: contraindicated
     substitution_hint: pain_management
-    rationale_en: "NSAIDs cause afferent arteriolar vasoconstriction and are contraindicated at eGFR < 30 mL/min/1.73m2 (KDIGO CKD stage 4-5). Substitute with acetaminophen or topical NSAID; opioids with dose reduction."
-    rationale_ja: "NSAID は腎輸入細動脈収縮により eGFR < 30 (CKD ステージ 4-5) では禁忌。アセトアミノフェンまたは外用 NSAID に切替、オピオイドは減量投与。"
+    rationale:
+      en: "NSAIDs cause afferent arteriolar vasoconstriction and are contraindicated at eGFR < 30 mL/min/1.73m2 (KDIGO CKD stage 4-5). Substitute with acetaminophen or topical NSAID; opioids with dose reduction."
+      ja: "NSAID は腎輸入細動脈収縮により eGFR < 30 (CKD ステージ 4-5) では禁忌。アセトアミノフェンまたは外用 NSAID に切替、オピオイドは減量投与。"
     source: "KDIGO 2024 CKD Guideline; 日本腎臓学会 CKD 診療ガイドライン 2023"
 
   # Issue #2282: the activator stores chronic CKD as the base code N18 with
@@ -79,8 +82,9 @@ rules:
       stage_in: ["CKD G4", "CKD G5"]
     severity: contraindicated
     substitution_hint: pain_management
-    rationale_en: "NSAIDs cause afferent arteriolar vasoconstriction and are contraindicated at eGFR < 30 mL/min/1.73m2 (KDIGO CKD stage 4-5). Substitute with acetaminophen or topical NSAID; opioids with dose reduction."
-    rationale_ja: "NSAID は腎輸入細動脈収縮により eGFR < 30 (CKD ステージ 4-5) では禁忌。アセトアミノフェンまたは外用 NSAID に切替、オピオイドは減量投与。"
+    rationale:
+      en: "NSAIDs cause afferent arteriolar vasoconstriction and are contraindicated at eGFR < 30 mL/min/1.73m2 (KDIGO CKD stage 4-5). Substitute with acetaminophen or topical NSAID; opioids with dose reduction."
+      ja: "NSAID は腎輸入細動脈収縮により eGFR < 30 (CKD ステージ 4-5) では禁忌。アセトアミノフェンまたは外用 NSAID に切替、オピオイドは減量投与。"
     source: "KDIGO 2024 CKD Guideline; 日本腎臓学会 CKD 診療ガイドライン 2023"
 
   # Issue #1769 — Metformin at advanced CKD. The predicate uses the
@@ -100,6 +104,7 @@ rules:
       stage_in: ["CKD G3b", "CKD G4", "CKD G5"]
     severity: contraindicated
     substitution_hint: null
-    rationale_en: "Metformin is contraindicated at eGFR < 30 (CKD stage 4-5) per the FDA label (lactic acidosis risk) and discouraged at CKD stage 3b (eGFR 30-44); KDIGO 2024 preferred strategy is to substitute with a renal-safe DM agent (DPP-4 inhibitor like linagliptin, basal insulin, or repaglinide)."
-    rationale_ja: "メトホルミンは eGFR < 30 (CKD ステージ 4-5) で禁忌 (FDA 添付文書、乳酸アシドーシスリスク)。eGFR 30-44 (CKD ステージ 3b) でも推奨されない (KDIGO 2024)。腎機能障害時は DPP-4 阻害薬 (リナグリプチン等)・基礎インスリン・レパグリニドへの切替を推奨。"
+    rationale:
+      en: "Metformin is contraindicated at eGFR < 30 (CKD stage 4-5) per the FDA label (lactic acidosis risk) and discouraged at CKD stage 3b (eGFR 30-44); KDIGO 2024 preferred strategy is to substitute with a renal-safe DM agent (DPP-4 inhibitor like linagliptin, basal insulin, or repaglinide)."
+      ja: "メトホルミンは eGFR < 30 (CKD ステージ 4-5) で禁忌 (FDA 添付文書、乳酸アシドーシスリスク)。eGFR 30-44 (CKD ステージ 3b) でも推奨されない (KDIGO 2024)。腎機能障害時は DPP-4 阻害薬 (リナグリプチン等)・基礎インスリン・レパグリニドへの切替を推奨。"
     source: "FDA Metformin label (contraindication at eGFR < 30); KDIGO 2024 Diabetes Management in CKD; 日本糖尿病学会 糖尿病診療ガイドライン 2024"

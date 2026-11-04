@@ -29,7 +29,7 @@ class TestMappingLoader:
         assert len(monitoring) >= 1
         pt_inr = next(m for m in monitoring if m["lab"] == "PT_INR")
         assert monitoring_lab_code(pt_inr["lab"]) == "6301-6"
-        assert pt_inr.get("rationale_en")
+        assert (pt_inr.get("rationale") or {}).get("en")
 
     def test_ships_levothyroxine_pair(self):
         # #757 pass 3a
@@ -41,7 +41,7 @@ class TestMappingLoader:
         assert len(monitoring) >= 1
         tsh = next(m for m in monitoring if m["lab"] == "TSH")
         assert monitoring_lab_code(tsh["lab"]) == "3016-3"
-        assert tsh.get("rationale_en")
+        assert (tsh.get("rationale") or {}).get("en")
 
     def test_ships_dm_meds_hba1c_pairs(self):
         # #757 pass 3b — both Metformin and Insulin trigger HbA1c monitoring.

@@ -176,8 +176,8 @@ class TestKeyTypoValidator:
 
         drugs = {
             "discharge_oral": {
-                "japan": [{"drug": "X", "dose_ja": "OK", "dose_en": "OK"}],
-                "us": [{"drug": "Y", "dose_en": "OK"}],
+                "japan": [{"drug": "X", "dose_text": {"en": "OK", "ja": "OK"}}],
+                "us": [{"drug": "Y", "dose_text": {"en": "OK"}}],
             }
         }
         _validate_drug_entry_localized_dose_keys("test_disease", drugs)  # must not raise

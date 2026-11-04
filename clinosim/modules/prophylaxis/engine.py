@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from clinosim.datafiles import load_data_yaml
-from clinosim.locale.localized import localized_field
+from clinosim.locale.localized import language_slot, localized_field
 
 _HERE = Path(__file__).resolve().parent
 _YAML_PATH = _HERE / "reference_data" / "prophylaxis_rules.yaml"
@@ -270,7 +270,7 @@ def build_dvt_prophylaxis_orders(
         display_name=rule["drug"],
         urgency="routine",
         clinical_intent=localized_field(rule, "clinical_intent", "en"),
-        clinical_intent_ja=rule.get("clinical_intent_ja", ""),
+        clinical_intent_ja=language_slot(rule.get("clinical_intent"), "ja"),
         ordered_datetime=ordered_dt,
         ordered_by=getattr(enc, "attending_physician_id", "") or "",
         status=OrderStatus.PLACED,

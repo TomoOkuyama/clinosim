@@ -10,18 +10,18 @@ metadata:
 triage_systems:
   JTAS:
     levels:
-      "1": {name_ja: "蘇生", eng: "Resuscitation", target_wait_min: 0}
-      "2": {name_ja: "緊急", eng: "Emergent", target_wait_min: 15}
-      "3": {name_ja: "準緊急", eng: "Urgent", target_wait_min: 30}
-      "4": {name_ja: "低緊急", eng: "Less Urgent", target_wait_min: 60}
-      "5": {name_ja: "非緊急", eng: "Non-Urgent", target_wait_min: 120}
+      "1": {name: {en: "Resuscitation", ja: "蘇生"}, target_wait_min: 0}
+      "2": {name: {en: "Emergent", ja: "緊急"}, target_wait_min: 15}
+      "3": {name: {en: "Urgent", ja: "準緊急"}, target_wait_min: 30}
+      "4": {name: {en: "Less Urgent", ja: "低緊急"}, target_wait_min: 60}
+      "5": {name: {en: "Non-Urgent", ja: "非緊急"}, target_wait_min: 120}
   ESI:
     levels:
-      "1": {name_en: "Resuscitation", target_wait_min: 0}
-      "2": {name_en: "Emergent", target_wait_min: 10}
-      "3": {name_en: "Urgent", target_wait_min: 30}
-      "4": {name_en: "Semi-Urgent", target_wait_min: 60}
-      "5": {name_en: "Non-Urgent", target_wait_min: 120}
+      "1": {name: {en: "Resuscitation"}, target_wait_min: 0}
+      "2": {name: {en: "Emergent"}, target_wait_min: 10}
+      "3": {name: {en: "Urgent"}, target_wait_min: 30}
+      "4": {name: {en: "Semi-Urgent"}, target_wait_min: 60}
+      "5": {name: {en: "Non-Urgent"}, target_wait_min: 120}
 
 arrival_modes:
   - walk-in

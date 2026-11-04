@@ -23,6 +23,11 @@ SUPPORTED_RISK_ASSESSMENTS: frozenset[str] = frozenset({"fall_risk", "pressure_u
 INPATIENT_ENCOUNTER_TYPES: frozenset[str] = frozenset({"inpatient", "icu", "rehab_inpatient"})
 
 
+def _is_list_map(value: object) -> bool:
+    """A non-empty language map whose values are lists (Issue #2508)."""
+    return isinstance(value, dict) and bool(value) and all(isinstance(v, list) for v in value.values())
+
+
 def _validate_nursing_assessment(data: dict[str, Any]) -> None:
     """6-layer silent-no-op defense for nursing_assessment.yaml."""
     # Layer 1: empty top-level check
@@ -38,8 +43,8 @@ def _validate_nursing_assessment(data: dict[str, Any]) -> None:
     baseline = data["baseline"]
     if not isinstance(baseline, dict) or "focus" not in baseline:
         raise ValueError("nursing_assessment.yaml: baseline must have 'focus' field")
-    if "interventions_ja" not in baseline:
-        raise ValueError("nursing_assessment.yaml: baseline must have 'interventions_ja' field")
+    if "interventions" not in baseline:
+        raise ValueError("nursing_assessment.yaml: baseline must have an 'interventions' language map")
 
     # Layer 4: forward + reverse coverage for adl_categories vs SUPPORTED_ADL_CATEGORIES
     adl_keys = set(data["adl_categories"].keys())
@@ -71,20 +76,20 @@ def _validate_nursing_assessment(data: dict[str, Any]) -> None:
                 f"nursing_assessment.yaml: disease_specific_nursing_focus[{disease_id!r}] "
                 f"missing required field 'focus'"
             )
-        if "interventions_ja" not in entry:
+        if "interventions" not in entry:
             raise ValueError(
                 f"nursing_assessment.yaml: disease_specific_nursing_focus[{disease_id!r}] "
-                f"missing required field 'interventions_ja'"
+                f"missing required field 'interventions'"
             )
 
-    # Layer 6: type checks (interventions_ja must be list)
-    if not isinstance(baseline.get("interventions_ja"), list):
-        raise ValueError("nursing_assessment.yaml: baseline.interventions_ja must be a list")
+    # Layer 6: type checks (interventions maps each language to a list)
+    if not _is_list_map(baseline.get("interventions")):
+        raise ValueError("nursing_assessment.yaml: baseline.interventions must map each language to a list")
     for disease_id, entry in disease_focus.items():
-        if not isinstance(entry.get("interventions_ja"), list):
+        if not _is_list_map(entry.get("interventions")):
             raise ValueError(
                 f"nursing_assessment.yaml: disease_specific_nursing_focus[{disease_id!r}] "
-                f"interventions_ja must be a list"
+                f"interventions must map each language to a list"
             )
 
 

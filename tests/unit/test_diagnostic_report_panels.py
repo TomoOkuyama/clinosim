@@ -41,7 +41,7 @@ class TestLoadPanelGroups:
 
         for name, panel in load_panel_definitions().items():
             assert "loinc" in panel and panel["loinc"]
-            assert "display_en" in panel and panel["display_en"]
+            assert panel["display"]["en"]
             assert isinstance(panel["components"], list) and panel["components"]
             assert isinstance(panel["min_components"], int) and panel["min_components"] >= 1
 
@@ -484,7 +484,7 @@ class TestPanelYAMLs:
             )
             assert r["code"].get("text"), f"panel={panel_name} produced empty code.text"
             # Every JP-shipped panel now carries a display_ja
-            assert panel.get("display_ja"), f"panel={panel_name} missing display_ja"
+            assert panel["display"].get("ja"), f"panel={panel_name} missing display.ja"
 
     def test_lab_panels_yaml_header_does_not_cite_clca_silent_drop(self):
         """I3: stale 'e.g. Cl/Ca in BMP today' comment is removed (PR #78

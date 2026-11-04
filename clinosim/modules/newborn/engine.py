@@ -28,7 +28,7 @@ from clinosim.codes.loinc import loinc_for
 from clinosim.codes.snomed import snomed_for, snomed_map
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
-from clinosim.locale.localized import localized_field
+from clinosim.locale.localized import language_slot, localized_field
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import is_jp
 from clinosim.types.encounter import MedicationAdministration, VitalSignRecord
@@ -561,23 +561,31 @@ def build_metabolic_screen_workflow_data(record: Any, country: str) -> dict[str,
         # extension slots (bilirubin, cchd_pulse_ox).
         "order_loinc": loinc_for("newborn_screen", "panel"),
         "order_display": localized_field(sr_cfg, "order_display", "en", fallback="Newborn screening panel"),
-        "order_display_ja": str(sr_cfg.get("order_display_ja") or t("newborn_screen_display.panel", "ja")),
+        "order_display_ja": str(
+            language_slot(sr_cfg.get("order_display"), "ja") or t("newborn_screen_display.panel", "ja")
+        ),
         "order_category_code": str(sr_cfg.get("category_code") or snomed_for("order_category", "laboratory")),
         "order_category_display": str(sr_cfg.get("category_display") or "Laboratory procedure"),
         "specimen_type_code": str(spec_cfg.get("type_code") or "122554006"),
         "specimen_type_display": localized_field(spec_cfg, "type_display", "en", fallback="Capillary blood specimen"),
         "specimen_type_display_ja": str(
-            spec_cfg.get("type_display_ja") or t("newborn_screen_display.capillary_specimen", "ja")
+            language_slot(spec_cfg.get("type_display"), "ja") or t("newborn_screen_display.capillary_specimen", "ja")
         ),
-        "specimen_body_site_en": str(spec_cfg.get("body_site_text_en") or "Heel"),
-        "specimen_body_site_ja": str(spec_cfg.get("body_site_text_ja") or t("newborn_screen_display.heel", "ja")),
-        "specimen_method_en": str(spec_cfg.get("collection_method_text_en") or "Heel-stick capillary blood collection"),
+        "specimen_body_site_en": str(language_slot(spec_cfg.get("body_site_text"), "en") or "Heel"),
+        "specimen_body_site_ja": str(
+            language_slot(spec_cfg.get("body_site_text"), "ja") or t("newborn_screen_display.heel", "ja")
+        ),
+        "specimen_method_en": str(
+            language_slot(spec_cfg.get("collection_method_text"), "en") or "Heel-stick capillary blood collection"
+        ),
         "specimen_method_ja": str(
-            spec_cfg.get("collection_method_text_ja") or t("newborn_screen_display.heel_stick", "ja")
+            language_slot(spec_cfg.get("collection_method_text"), "ja") or t("newborn_screen_display.heel_stick", "ja")
         ),
         "dr_code_loinc": loinc_for("newborn_screen", "panel"),
         "dr_code_display": localized_field(dr_cfg, "code_display", "en", fallback="Newborn screening panel"),
-        "dr_code_display_ja": str(dr_cfg.get("code_display_ja") or t("newborn_screen_display.panel", "ja")),
+        "dr_code_display_ja": str(
+            language_slot(dr_cfg.get("code_display"), "ja") or t("newborn_screen_display.panel", "ja")
+        ),
         "dr_category_code": str(dr_cfg.get("category_code") or "LAB"),
         "dr_category_display": str(dr_cfg.get("category_display") or "Laboratory"),
     }

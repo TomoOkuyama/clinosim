@@ -435,7 +435,8 @@ drugs:
                    # lives in `dose_ja`; kept empty (rather than "As prescribed")
                    # to avoid the term translator mangling — session 76 Issue #469
                    # rationale, restored to output via #476.
-        dose_ja: "INR 2.0-3.0 に調整 (70 歳以上は 1.5-2.5)"
+        dose_text:
+          ja: "INR 2.0-3.0 に調整 (70 歳以上は 1.5-2.5)"
         duration_days: 90
         note: "Used if mechanical valve or DOAC contraindicated (JCS 2017)"
     us:
