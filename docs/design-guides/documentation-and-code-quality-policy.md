@@ -152,13 +152,46 @@ must be:
    - unit — mg/dL, days, count, probability, …,
    - source / rationale — clinical reference, spec section, empirical
      tuning, link to a design ADR or external source.
-3. **Located** in one of:
-   - a module-local `_constants.py` (private to the module),
-   - the module's public `__init__.py` if the constant is part of the API,
-   - `clinosim/config/*.yaml` if runtime-configurable,
-   - `clinosim/types/config.py` if a typed config model.
+3. **Located** by the rule in §5.1.
 
 Bare `MAGIC_NUMBER = 42` without a docstring is a review-blocker.
+
+### 5.1 YAML or Python
+
+Decide by what the value is keyed by and who changes it.
+
+**YAML** — data. A module's `reference_data/`, `clinosim/locale/<country>/`
+or `clinosim/config/`, written and loaded as the
+[code-mapping specification](code-mapping-and-localization-spec.md) §3
+prescribes (`metadata.kind`, `clinosim.datafiles.load_data_yaml`), and
+validated at load against every identifier it references:
+
+- tables keyed by domain identifiers — disease ids, codes, drug keys, age
+  bands, sex, country: rule tables, dispatch tables, per-condition
+  parameters;
+- epidemiology and calibration values a domain expert tunes against
+  published statistics — prevalence, incidence, rates, distributions;
+- any value that differs by country.
+
+**Python** — constants of an algorithm, in a private module next to the
+code that reads them:
+
+- the coefficients, exponents, floors and cut-points of one formula, whose
+  meaning is the formula itself (changing one without the formula makes no
+  sense);
+- RNG salts and seed offsets;
+- the fallback default of a YAML key (the YAML value wins);
+- enums, dictionary keys and format strings.
+
+Python keeps these type-checked, navigable by name and documented where
+they are used, with no load step that can drift from the code. Name the
+module `_<topic>_thresholds.py` (cut-points and coefficients) or
+`_<topic>_defaults.py` (YAML fallbacks); a constant that is part of a
+module's API lives in its `__init__.py`, and a typed configuration model in
+`clinosim/types/config.py`.
+
+A Python table keyed by domain identifiers is data and moves to YAML. A
+table of formula coefficients stays in Python even when it is long.
 
 ---
 
