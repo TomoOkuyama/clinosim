@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from clinosim.age_bands import lookup_age_band, parse_closed_age_band
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.population._household_thresholds import (
     BLOOD_TYPE_DEFAULT_DISTRIBUTION,
@@ -43,8 +44,7 @@ def _parse_age_distribution(demo: dict) -> tuple[list[tuple[int, int]], list[flo
     bands: list[tuple[int, int]] = []
     probs: list[float] = []
     for key, val in raw.items():
-        lo, hi = key.split("-")
-        bands.append((int(lo), int(hi)))
+        bands.append(parse_closed_age_band(key))
         probs.append(float(val))
     return bands, probs
 
@@ -106,10 +106,9 @@ def _sex_ratio_male_probability(demo: dict, age: int) -> float:
     """
     sr = demo.get("sex_ratio") or {}
     age_cond = sr.get("age_conditional") or {}
-    for band_str, prob in age_cond.items():
-        lo_s, hi_s = str(band_str).split("-")
-        if int(lo_s) <= age <= int(hi_s):
-            return float(prob)
+    prob = lookup_age_band(age_cond, age, None)
+    if prob is not None:
+        return float(prob)
     return float(sr.get("male", SEX_RATIO_MALE_DEFAULT))
 
 
@@ -131,16 +130,9 @@ def _care_seeking_threshold_mean(demo: dict, age: int) -> float:
     """
     cs = demo.get("care_seeking") or {}
     age_cond = cs.get("age_conditional") or {}
-    for band_str, val in age_cond.items():
-        raw = str(band_str)
-        if raw.endswith("+"):
-            lo_s = raw[:-1]
-            if age >= int(lo_s):
-                return float(val)
-            continue
-        lo_s, hi_s = raw.split("-")
-        if int(lo_s) <= age <= int(hi_s):
-            return float(val)
+    val = lookup_age_band(age_cond, age, None)
+    if val is not None:
+        return float(val)
     return float(cs.get("threshold_mean", CARE_SEEKING_THRESHOLD_MEAN_DEFAULT))
 
 

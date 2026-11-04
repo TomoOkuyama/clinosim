@@ -14,6 +14,7 @@ from pathlib import Path
 
 import numpy as np
 
+from clinosim.age_bands import lookup_age_band
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import is_jp, is_us
 
@@ -141,11 +142,10 @@ def _age_on(dob: date | None, on: date, fallback_age: int) -> int:
 
 
 def _coverage(cov: dict, age: int, sex: str) -> float:
-    for band, ms in cov.items():
-        lo, hi = (int(x) for x in band.split("-"))
-        if lo <= age <= hi:
-            return float(ms.get(sex, next(iter(ms.values()))))
-    return 0.0
+    ms = lookup_age_band(cov, age, None)
+    if ms is None:
+        return 0.0
+    return float(ms.get(sex, next(iter(ms.values()))))
 
 
 def _parse(d: str) -> date:
@@ -175,13 +175,7 @@ def _band_lookup(bands: dict, age: int) -> float:
     ``bands`` is falsy or the age falls outside every band. Used by both
     coverage_by_age_sex (with a sex-dimension nested) and wave epoch age_weight
     (flat)."""
-    if not bands:
-        return 0.0
-    for band, val in bands.items():
-        lo, hi = (int(x) for x in band.split("-"))
-        if lo <= age <= hi:
-            return float(val)
-    return 0.0
+    return float(lookup_age_band(bands, age, 0.0))
 
 
 def _pick_flu_month(

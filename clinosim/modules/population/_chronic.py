@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from clinosim.age_bands import parse_closed_age_band
 from clinosim.modules.population._population_thresholds import (
     BMI_MEAN_FEMALE_DEFAULT,
     BMI_MEAN_MALE_DEFAULT,
@@ -250,8 +251,7 @@ def _parse_chronic_prevalence(demo: dict) -> dict[str, ChronicConditionSpec]:
                     )
                 bands: dict[tuple[int, int], float] = {}
                 for range_key, prev in (bands_raw or {}).items():
-                    lo, hi = str(range_key).split("-")
-                    bands[(int(lo), int(hi))] = float(prev)
+                    bands[parse_closed_age_band(range_key)] = float(prev)
                 if i == 0:
                     primary_sex = sex_norm
                     primary_bands = bands
@@ -265,8 +265,7 @@ def _parse_chronic_prevalence(demo: dict) -> dict[str, ChronicConditionSpec]:
         for key, prev in entry.items():
             if key in ("sex", "rng_isolated"):
                 continue
-            lo, hi = str(key).split("-")
-            age_ranges[(int(lo), int(hi))] = float(prev)
+            age_ranges[parse_closed_age_band(key)] = float(prev)
         result[code] = ChronicConditionSpec(
             age_ranges=age_ranges, sex=sex_filter, rng_isolated=bool(entry.get("rng_isolated", False))
         )

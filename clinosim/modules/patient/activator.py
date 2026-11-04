@@ -12,6 +12,7 @@ from functools import lru_cache
 
 import numpy as np
 
+from clinosim.age_bands import age_band_covers
 from clinosim.codes.drugs import drug_classes
 from clinosim.codes.valuesets import concept_group, has_condition
 from clinosim.countries import lang_for
@@ -294,8 +295,7 @@ def _sample_insurance(demo: dict, age: int, rng: np.random.Generator) -> str:
     """Sample insurance type from insurance_distribution age bands."""
     bands = demo.get("insurance_distribution") or []
     for band in bands:
-        lo_str, hi_str = str(band.get("age_range", "0-99")).split("-")
-        if int(lo_str) <= age <= int(hi_str):
+        if age_band_covers(band.get("age_range", "0-99"), age):
             weights_dict = band.get("weights") or {}
             if weights_dict:
                 keys = list(weights_dict.keys())

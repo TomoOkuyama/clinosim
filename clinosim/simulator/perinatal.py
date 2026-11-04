@@ -28,6 +28,7 @@ from datetime import date, datetime, timedelta
 
 import numpy as np
 
+from clinosim.age_bands import lookup_age_band
 from clinosim.codes import system_key_for
 from clinosim.codes.drugs import drug_display
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
@@ -66,15 +67,7 @@ def _lookup_age_band(table: dict, age: int) -> float:
     """Look up the entry in a ``"lo-hi": value`` age-band dict, returning
     the first matching value (0.0 if none matches). Same convention as
     ``chronic_prevalence`` age bands."""
-    for key, value in (table or {}).items():
-        try:
-            lo_s, hi_s = str(key).split("-")
-            lo, hi = int(lo_s), int(hi_s)
-        except (ValueError, TypeError):
-            continue
-        if lo <= age <= hi:
-            return float(value)
-    return 0.0
+    return float(lookup_age_band(table, age, 0.0, skip_malformed=True))
 
 
 def resolve_pregnancy_outcome(mother_id: str, mother_age: int, year: int) -> tuple[str, str]:
