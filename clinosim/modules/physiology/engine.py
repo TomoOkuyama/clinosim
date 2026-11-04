@@ -684,41 +684,10 @@ def po2_from_saturation(saturation_pct: float) -> float:
     return (lo + hi) / 2
 
 
-def derive_lab_values(
-    state: PhysiologicalState,
-    sex: str,
-    age: int,
-    has_diabetes: bool = False,
-    rng: np.random.Generator | None = None,
-    hour: int = 6,
-    myocardial_injury: bool = False,
-    causes_vte: bool = False,
-    on_warfarin: bool = False,
-    hai_inflammation_lift: float = 0.0,
-    has_dyslipidemia: bool = False,
-    hba1c_latent: float | None = None,
-) -> dict[str, float]:
-    """Derive lab values from physiological state. Returns 'true' values before noise.
-
-    ``hba1c_latent`` (Phase 1 longitudinal subsystem, Issue #1695): the
-    per-year HbA1c value read from ``person.longitudinal_history`` via
-    ``clinosim.modules.longitudinal.engine.state_at``. When provided,
-    this overrides the ``glycemic_control``-derived HbA1c computation
-    at the emit site below; a per-encounter measurement-noise overlay
-    (sigma 0.20 %) is applied through ``rng``. When ``None``, the
-    emit falls back to the ``state.glycemic_control`` protocol-override
-    path (DKA / HHS forced metabolic context) and the non-DM default.
-    """
-    labs: dict[str, float] = {}
+def _add_inflammation_labs(labs: dict[str, float], state: PhysiologicalState, hai_inflammation_lift: float) -> None:
+    """CRP, WBC, PCT and albumin."""
     infl = state.inflammation_level
-    renal = state.renal_function
-    cardiac = state.cardiac_function
     hepatic = state.hepatic_function
-    anemia = state.anemia_level
-    perfusion = state.perfusion_status
-    ph = state.ph_status
-
-    # --- Inflammation ---
     # Phase 3a: HAI WBC + CRP lift via effective_infl. Other inflammation-driven
     # analytes (PCT, Albumin, Fibrinogen, pO2, Ca, Temp, SBP/DBP) continue to
     # read state.inflammation_level directly; they will be revisited in Phase 3c
@@ -744,7 +713,11 @@ def derive_lab_values(
         ALBUMIN_BASELINE - infl * ALBUMIN_INFLAMMATION_SCALE - (1 - hepatic) * ALBUMIN_HEPATIC_SCALE,
     )
 
-    # --- Renal ---
+
+def _add_renal_labs(labs: dict[str, float], state: PhysiologicalState, sex: str) -> None:
+    """Creatinine, BUN, eGFR, K and Na."""
+    renal = state.renal_function
+    ph = state.ph_status
     # base_cr calibration (Issue #416):
     #   base = JCCLS ref center × E[reserve],  E[beta(30, 2)] = 30/32 = 0.9375
     #     Cre_M:  0.86  × 0.9375 = 0.80625
@@ -799,7 +772,11 @@ def derive_lab_values(
     labs["Na"] = SODIUM_BASE_MEQ_L + state.sodium_status * SODIUM_STATUS_SCALE - (1 - renal) * SODIUM_RENAL_PENALTY
     labs["Na"] = clamp(labs["Na"], SODIUM_MIN_MEQ_L, SODIUM_MAX_MEQ_L)
 
-    # --- Cardiac ---
+
+def _add_cardiac_labs(labs: dict[str, float], state: PhysiologicalState, myocardial_injury: bool) -> None:
+    """BNP, troponin I and CK-MB."""
+    renal = state.renal_function
+    cardiac = state.cardiac_function
     # BNP reflects ventricular wall stress = volume/pressure load ON a stressed ventricle.
     # The volume term is gated by cardiac dysfunction (coupling), so volume overload only
     # elevates BNP when the heart is failing: HF (low cardiac x high volume) rises sharply,
@@ -842,7 +819,10 @@ def derive_lab_values(
     labs["Troponin_I"] = tnt  # ng/mL (normal < 0.04; ACS ~10–100)
     labs["CK_MB"] = ckmb  # ng/mL (normal < 5)
 
-    # --- Hepatic ---
+
+def _add_hepatic_labs(labs: dict[str, float], state: PhysiologicalState, sex: str) -> None:
+    """AST, ALT, T-Bil, ALP, GGT, TP and LDH."""
+    hepatic = state.hepatic_function
     # Injury / cholestasis markers rise only below the healthy reserve range
     # (Issue #2125): the age-reduced reserve is not hepatocellular injury.
     hep_injury = max(0.0, HEPATIC_INJURY_FLOOR - hepatic) / HEPATIC_INJURY_FLOOR
@@ -857,7 +837,9 @@ def derive_lab_values(
     labs["TP"] = max(TP_FLOOR_G_DL, TP_BASELINE_G_DL - (1 - hepatic) * TP_HEPATIC_SCALE)
     labs["LDH"] = LDH_BASELINE_U_L + hep_injury * LDH_HEPATIC_SCALE
 
-    # --- Lipid ---
+
+def _add_lipid_labs(labs: dict[str, float], sex: str, has_diabetes: bool, has_dyslipidemia: bool) -> None:
+    """TC, HDL, TG and LDL."""
     # Issue #1073 B8: lipid panel — TC + LDL + HDL + TG. Baseline modulated by
     # E78 (dyslipidemia chronic condition) via has_dyslipidemia flag from the
     # caller and by E11 (DM) for TG via has_diabetes.
@@ -877,6 +859,11 @@ def derive_lab_values(
         labs["LDL"] = max(30.0, labs["TC"] - labs["HDL"] - labs["TG"] / 5)
     else:
         labs["LDL"] = max(30.0, LDL_BASELINE_MG_DL + _dyslip * LDL_DYSLIPIDEMIA_SCALE)
+
+
+def _add_pt_inr(labs: dict[str, float], state: PhysiologicalState, on_warfarin: bool) -> None:
+    """PT-INR."""
+    hepatic = state.hepatic_function
     # PT_INR: hepatic (cirrhosis factor depletion) + coagulation_status (DIC
     # consumption) drive baseline; therapeutic warfarin overrides to target
     # the 2.0-3.0 clinical band. AC + comorbidity (DIC, cirrhosis) compounds
@@ -900,12 +887,19 @@ def derive_lab_values(
     else:
         labs["PT_INR"] = base_inr
 
-    # --- Anemia ---
+
+def _add_blood_count_labs(labs: dict[str, float], state: PhysiologicalState, sex: str) -> None:
+    """Hb, Hct and platelets."""
+    anemia = state.anemia_level
     base_hb = HB_BASELINE_MALE_G_DL if sex == "M" else HB_BASELINE_FEMALE_G_DL
     labs["Hb"] = max(HB_FLOOR_G_DL, base_hb * (1 - anemia * HB_ANEMIA_SCALE))
     labs["Hct"] = labs["Hb"] * HCT_HB_RATIO
     labs["Plt"] = max(PLT_FLOOR, PLT_BASELINE - state.coagulation_status * PLT_COAGULATION_SCALE)
 
+
+def _add_coagulation_labs(labs: dict[str, float], state: PhysiologicalState, age: int, causes_vte: bool) -> None:
+    """APTT, PT (from PT-INR), fibrinogen and D-dimer."""
+    infl = state.inflammation_level
     # --- Coagulation panel (LOINC 24373-3 components + Fibrinogen adjunct) ---
     # APTT (activated partial thromboplastin time, seconds). Normal 25-35;
     # DIC 60-100+. Intrinsic-pathway sensitive; coagulation_status proxies
@@ -958,10 +952,16 @@ def derive_lab_values(
     )
     labs["D_dimer"] = clamp(d_dimer, D_DIMER_PHYSIOLOGIC_MIN, D_DIMER_PHYSIOLOGIC_MAX)
 
-    # --- Perfusion ---
+
+def _add_perfusion_labs(labs: dict[str, float], state: PhysiologicalState) -> None:
+    """Lactate."""
+    perfusion = state.perfusion_status
     labs["Lactate"] = LACTATE_BASELINE_MMOL_L + (1 - perfusion) * LACTATE_PERFUSION_SCALE
 
-    # --- pH / Blood gas (two-axis: metabolic HCO3 + respiratory pCO2, AD-57) ---
+
+def _add_blood_gas_labs(labs: dict[str, float], state: PhysiologicalState) -> None:
+    """HCO3, pCO2, pH and pO2."""
+    ph = state.ph_status
     # `ph` is the acid-base disturbance magnitude (neg = acidemia); respiratory_fraction
     # routes it between the metabolic (bicarbonate) and respiratory (CO2) axes. pH then
     # follows Henderson-Hasselbalch on the resulting HCO3/pCO2, with partial compensation
@@ -1000,7 +1000,9 @@ def derive_lab_values(
         po2_from_saturation(room_air_saturation(state, LAB_REFERENCE_SAO2_PCT)), PO2_CLAMP_MIN, PO2_CLAMP_MAX
     )  # mm[Hg]
 
-    # --- Electrolytes: Cl and Ca complete BMP canonical 8 ---
+
+def _add_electrolyte_labs(labs: dict[str, float], state: PhysiologicalState) -> None:
+    """Cl (from Na and HCO3) and total Ca."""
     # Cl reflects (a) Na linkage (electroneutrality) and (b) HCO3 reciprocity:
     # in non-AG metabolic acidosis (diarrhea, RTA) Cl absorbs the HCO3 deficit
     # 1:1 (hyperchloremic), while in high-AG acidosis (DKA, sepsis, uremia) the
@@ -1025,7 +1027,10 @@ def derive_lab_values(
     )
     labs["Ca"] = clamp(ca, CA_CLAMP_MIN, CA_CLAMP_MAX)
 
-    # --- Glucose (chronic diabetes baseline + acute glycemic state + diurnal variation) ---
+
+def _add_glucose(labs: dict[str, float], state: PhysiologicalState, has_diabetes: bool, hour: int) -> None:
+    """Glucose: diabetes baseline, acute glycemic drive, stress and meals."""
+    infl = state.inflammation_level
     is_diabetic = has_diabetes or state.glycemic_control is not None
     gc = state.glycemic_control if state.glycemic_control is not None else GLYCEMIC_CONTROL_DEFAULT
     if is_diabetic:
@@ -1052,7 +1057,18 @@ def derive_lab_values(
     labs["Glucose"] += postprandial
     labs["Glucose"] = clamp(labs["Glucose"], GLU_CLAMP_MIN, GLU_CLAMP_MAX)  # physiological bounds
 
-    # --- HbA1c (chronic glycemic control; ~3-month average, control-driven) ---
+
+def _add_hba1c(
+    labs: dict[str, float],
+    state: PhysiologicalState,
+    age: int,
+    has_diabetes: bool,
+    rng: np.random.Generator | None,
+    hba1c_latent: float | None,
+) -> None:
+    """HbA1c: the longitudinal latent plus measurement noise, else derived from glycemic control."""
+    is_diabetic = has_diabetes or state.glycemic_control is not None
+    gc = state.glycemic_control if state.glycemic_control is not None else GLYCEMIC_CONTROL_DEFAULT
     if hba1c_latent is not None:
         # Phase 1 longitudinal: per-year AR(1) latent + per-encounter
         # measurement-noise overlay (sigma 0.20 % per hba1c_trajectory.yaml).
@@ -1067,13 +1083,57 @@ def derive_lab_values(
     else:
         labs["HbA1c"] = HBA1C_NONDM_BASE + max(0, age - HBA1C_NONDM_AGE_MIN) * HBA1C_NONDM_AGE_SCALE_LAB
 
-    # --- WBC diurnal variation (±10%, afternoon slightly higher) ---
+
+def _apply_wbc_circadian(labs: dict[str, float], hour: int) -> None:
+    """WBC diurnal variation (±10%, nadir ~04:00, peak ~16:00)."""
     # Nadir ~04:00, peak ~16:00
     wbc_circadian = 1.0 + WBC_CIRCADIAN_AMPLITUDE * (
         -math.cos((hour - WBC_CIRCADIAN_HOUR_OFFSET) * math.pi / WBC_CIRCADIAN_HOUR_PERIOD)
     )
     labs["WBC"] *= wbc_circadian
 
+
+def derive_lab_values(
+    state: PhysiologicalState,
+    sex: str,
+    age: int,
+    has_diabetes: bool = False,
+    rng: np.random.Generator | None = None,
+    hour: int = 6,
+    myocardial_injury: bool = False,
+    causes_vte: bool = False,
+    on_warfarin: bool = False,
+    hai_inflammation_lift: float = 0.0,
+    has_dyslipidemia: bool = False,
+    hba1c_latent: float | None = None,
+) -> dict[str, float]:
+    """Derive lab values from physiological state. Returns 'true' values before noise.
+
+    ``hba1c_latent`` (Phase 1 longitudinal subsystem, Issue #1695): the
+    per-year HbA1c value read from ``person.longitudinal_history`` via
+    ``clinosim.modules.longitudinal.engine.state_at``. When provided,
+    this overrides the ``glycemic_control``-derived HbA1c computation
+    at the emit site below; a per-encounter measurement-noise overlay
+    (sigma 0.20 %) is applied through ``rng``. When ``None``, the
+    emit falls back to the ``state.glycemic_control`` protocol-override
+    path (DKA / HHS forced metabolic context) and the non-DM default.
+    """
+    labs: dict[str, float] = {}
+    _add_inflammation_labs(labs, state, hai_inflammation_lift)
+    _add_renal_labs(labs, state, sex)
+    _add_cardiac_labs(labs, state, myocardial_injury)
+    _add_hepatic_labs(labs, state, sex)
+    _add_lipid_labs(labs, sex, has_diabetes, has_dyslipidemia)
+    _add_pt_inr(labs, state, on_warfarin)
+    _add_blood_count_labs(labs, state, sex)
+    _add_coagulation_labs(labs, state, age, causes_vte)
+    _add_perfusion_labs(labs, state)
+    _add_blood_gas_labs(labs, state)
+    _add_electrolyte_labs(labs, state)
+    _add_glucose(labs, state, has_diabetes, hour)
+    # The only random draw (HbA1c measurement noise).
+    _add_hba1c(labs, state, age, has_diabetes, rng, hba1c_latent)
+    _apply_wbc_circadian(labs, hour)
     return labs
 
 
