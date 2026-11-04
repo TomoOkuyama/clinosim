@@ -30,9 +30,9 @@ HAI cascade の中核。
   `state_history[day_index + 1]` から取り、`round_to_precision` +
   `determine_flag` を再適用。enricher ではなく
   `clinosim/simulator/inpatient.py` が AD-32 切り詰め後に呼ぶ); 6 YAML
-  すべての load 時検証 (`engine.py` の `_validate_hai_organisms` /
-  `_validate_hai_rates` / `_validate_hai_codes` /
-  `_validate_hai_specimens`、`__init__.py` の `load_hai_antibiogram`
+  すべての load 時検証 (`engine.py` の Pydantic model `HaiOrganisms` /
+  `HaiRates` / `HaiCodes` /
+  `HaiSpecimens`、`__init__.py` の `load_hai_antibiogram`
   内 inline check、`lab_lift.py` の `_validate_hai_lab_lift_config`);
   `hai_antibiogram.yaml` による culture ごとの S/I/R susceptibility
   draw; `HAI_TYPES` canonical 定数。

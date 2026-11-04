@@ -1,7 +1,7 @@
 """Unit tests for HAI YAML loader validators (sibling sweep, 2026-06-29).
 
-Covers _validate_hai_rates, _validate_hai_codes, _validate_hai_specimens,
-_validate_hai_lab_lift_config, _validate_hai_organisms reverse-coverage.
+Covers HaiRates, HaiCodes, HaiSpecimens,
+_validate_hai_lab_lift_config, HaiOrganisms reverse-coverage.
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ def _clear_hai_caches():
     pre-warmed with their real yaml contents BEFORE each test — the
     autouse fixture runs before the test body's
     `monkeypatch.setattr(yaml, "safe_load", ...)`, so the real catalogs
-    are cached at that point and subsequent `_validate_hai_*` calls see
+    are cached at that point and subsequent `Hai*` model calls see
     them even when `yaml.safe_load` is monkeypatched inside the test.
     Without this, the transitive `load_devices_config()` /
     `_code_in_data(...)` → `_load_system(...)` call in the validator
@@ -52,11 +52,11 @@ def _clear_hai_caches():
     _load_system.cache_clear()
     snomed_map.cache_clear()  # SNOMED internal-key maps (Issue #2379)
     load_devices_config()  # pre-warm with real yaml (before monkeypatch)
-    _load_system("icd-10-cm")  # pre-warm icd-10-cm.yaml (_validate_hai_codes)
-    _load_system("icd-10")  # pre-warm icd-10.yaml (JP WHO ICD-10, _validate_hai_codes)
-    locale_loader.load_code_mapping("diagnosis", "JP")  # pre-warm the CM → WHO crosswalk (_validate_hai_codes, #2257)
-    _load_system("snomed-ct")  # pre-warm snomed-ct.yaml (_validate_hai_codes + _validate_hai_specimens)
-    _load_system("loinc")  # pre-warm loinc.yaml (_validate_hai_specimens test_loinc cross-ref)
+    _load_system("icd-10-cm")  # pre-warm icd-10-cm.yaml (HaiCodes)
+    _load_system("icd-10")  # pre-warm icd-10.yaml (JP WHO ICD-10, HaiCodes)
+    locale_loader.load_code_mapping("diagnosis", "JP")  # pre-warm the CM → WHO crosswalk (HaiCodes, #2257)
+    _load_system("snomed-ct")  # pre-warm snomed-ct.yaml (HaiCodes + HaiSpecimens)
+    _load_system("loinc")  # pre-warm loinc.yaml (HaiSpecimens test_loinc cross-ref)
     for _kind in ("abo", "rh", "cchd_site", "encounter_type", "oxygen_device", "stage"):
         snomed_map(_kind)  # pre-warm snomed-maps.yaml
     _load_system("omb-race")  # Phase 3.γ pre-warm
@@ -71,7 +71,7 @@ def _clear_hai_caches():
 
 
 # ----------------------------------------------------------------------------
-# _validate_hai_rates
+# HaiRates
 # ----------------------------------------------------------------------------
 
 
@@ -159,7 +159,7 @@ def test_hai_rates_rejects_unknown_device_type(monkeypatch) -> None:
 
 
 # ----------------------------------------------------------------------------
-# _validate_hai_codes
+# HaiCodes
 # ----------------------------------------------------------------------------
 
 
@@ -258,7 +258,7 @@ def test_hai_codes_rejects_unknown_snomed(monkeypatch) -> None:
 
 
 # ----------------------------------------------------------------------------
-# _validate_hai_specimens
+# HaiSpecimens
 # ----------------------------------------------------------------------------
 
 
@@ -424,7 +424,7 @@ def test_hai_lab_lift_rejects_out_of_range_lift_value(monkeypatch) -> None:
 
 
 # ----------------------------------------------------------------------------
-# _validate_hai_organisms (existing) — forward-coverage strengthen
+# HaiOrganisms (existing) — forward-coverage strengthen
 # ----------------------------------------------------------------------------
 
 
