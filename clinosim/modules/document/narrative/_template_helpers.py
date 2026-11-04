@@ -25,6 +25,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.localized import language_slot, localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import practitioner_name
+from clinosim.modules.document.narrative._safety_skips import safety_skip_line
 from clinosim.types.document import NarrativeContext
 
 logger = logging.getLogger(__name__)
@@ -323,12 +324,11 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
     template rendered EVERY skip with `avoid` phrasing regardless of
     event_type — the hold / substitute / switch / deescalate events
     were mis-narrated as pair-conflict avoidances. This renderer now
-    dispatches per event_type, mirroring the LLM Rule 2 cadence
-    (`replacement_strategy._build_extra_context`).
+    dispatches per event_type through ``safety_skip_line``, shared with the
+    LLM prompt context (Issue #2519).
     """
     if not skips:
         return ""
-    lines: list[str] = []
 
     # Phase 1c-5 (2026-09-23): JA drug-name localization is a locale-
     # specific data pipeline (katakana translation via `load_narrative_display_dict`)
@@ -355,38 +355,7 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
         except Exception:  # noqa: BLE001
             return value
 
-    # Localized-field selectors: prefer ``<field>_<lang>`` (JA only
-    # populates this slot; EN falls straight through to the base field).
-    def _localized_field(s: dict, base: str) -> str:
-        return str(s.get(f"{base}_{lang}") or s.get(base) or "")
-
-    for s in skips:
-        event = str(s.get("event_type") or "avoid").lower()
-        considered = _drug(_localized_field(s, "considered"))
-        conflict = _localized_field(s, "avoided_due_to")
-        substituted = _drug(_localized_field(s, "substituted_with"))
-
-        day = s.get("stopped_on_day")
-        day_phrase = (
-            t("safety_skips.day_phrase_specific", lang, day=int(day))
-            if day
-            else t("safety_skips.day_phrase_default", lang)
-        )
-
-        if event == "hold":
-            key = "safety_skips.hold"
-        elif event == "substitute":
-            key = "safety_skips.substitute_with_sub" if substituted else "safety_skips.substitute_no_sub"
-        elif event == "switch":
-            key = "safety_skips.switch_with_sub" if substituted else "safety_skips.switch_no_sub"
-        elif event == "deescalate":
-            key = "safety_skips.deescalate_with_sub" if substituted else "safety_skips.deescalate_no_sub"
-        else:  # avoid (default + explicit)
-            key = "safety_skips.avoid_with_sub" if substituted else "safety_skips.avoid_no_sub"
-        lines.append(
-            t(key, lang, considered=considered, conflict=conflict, substituted=substituted, day_phrase=day_phrase)
-        )
-    return "\n".join(lines)
+    return "\n".join(safety_skip_line(s, lang, prefix="safety_skips", drug_name=_drug) for s in skips)
 
 
 # English HPI onset phrases per severity — the disease YAML
