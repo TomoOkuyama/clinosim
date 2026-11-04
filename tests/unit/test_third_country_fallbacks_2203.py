@@ -31,10 +31,15 @@ def test_country_without_a_block_falls_back_to_us(monkeypatch) -> None:
 
 
 def test_us_core_profiles_only_for_the_us() -> None:
-    from clinosim.modules.output.fhir_r4 import builder
+    from clinosim.modules.output.fhir_r4.builder import _finalize_resource
 
-    src = Path(builder.__file__).read_text()
-    assert "elif is_us(country):" in src and "elif is_us(ctx.country):" in src
+    def profiles(country: str) -> list[str]:
+        resource = {"resourceType": "Patient", "id": "P1"}
+        _finalize_resource(resource, country, {})
+        return resource.get("meta", {}).get("profile", [])
+
+    assert any("us/core" in url for url in profiles("US"))
+    assert not any("us/core" in url for url in profiles("DE"))
 
 
 def test_template_demographics_uses_the_loader_schema() -> None:
