@@ -11,7 +11,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
-from clinosim.codes.valuesets import concept_group, has_condition
+from clinosim.codes.valuesets import concept_group
 from clinosim.countries import is_jp, lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import chronic_followup_vitals, load_ambulatory_visit_length, load_chronic_followup
@@ -36,6 +36,7 @@ from clinosim.simulator._outpatient_thresholds import (
     OUTPATIENT_PRESCRIPTION_DURATION_DAYS,
     OUTPATIENT_VITALS_OFFSET_MIN,
 )
+from clinosim.simulator.lab_pipeline import patient_true_labs
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
 from clinosim.types.encounter import (
     EncounterStatus,
@@ -49,11 +50,6 @@ from clinosim.types.encounter import (
 )
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import PatientProfile
-
-
-def _has_diabetes(patient: Any) -> bool:
-    """Diabetes of any type, from the shared ``diabetes`` value set (Issue #2281)."""
-    return has_condition(patient, "diabetes")
 
 
 def _log_pregnancy_substitution(
@@ -425,15 +421,10 @@ def _simulate_outpatient_visit(
     # reuses `_state` initialized above for vitals.
     from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
     from clinosim.modules.physiology.engine import (
-        derive_lab_values,
-        hba1c_latent_at,
         medication_flags_from_context,
         scenario_flags_from_protocol,
     )
 
-    _has_dm = _has_diabetes(patient)
-    _has_dyslipidemia = any("E78" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
-    _hba1c_latent = hba1c_latent_at(patient, visit_date)
     # J5 (Phase 2a): outpatient follow-ups carry no acute scenario flag by
     # design — causes_vte / causes_myocardial_injury describe acute events
     # (ED / inpatient presentations), not chronic-disease monitoring visits.
@@ -445,15 +436,7 @@ def _simulate_outpatient_visit(
         **scenario_flags_from_protocol(None),
         **medication_flags_from_context(patient),
     }
-    _true_labs = derive_lab_values(
-        _state,
-        sex=patient.sex,
-        age=patient.age,
-        has_diabetes=_has_dm,
-        has_dyslipidemia=_has_dyslipidemia,
-        hba1c_latent=_hba1c_latent,
-        **_flags,
-    )
+    _true_labs = patient_true_labs(_state, patient, visit_date, _flags)
     # Reference-normal fallback for analytes physiology doesn't model (HbA1c, WBC, CRP, etc.
     # are physiology-modeled and resolve via _true_labs first). DET-6 single source.
     baseline_values = BASELINE_LAB_NORMALS

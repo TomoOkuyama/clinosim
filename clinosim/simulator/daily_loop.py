@@ -44,7 +44,6 @@ from clinosim.modules.order.treatment_classifier import (
 )
 from clinosim.modules.physiology.engine import (
     apply_state_delta,
-    derive_lab_values,
     medication_flags_from_context,
     scenario_flags_from_protocol,
     update,
@@ -95,7 +94,7 @@ from clinosim.simulator.discharge_gate import (
     extend_stay_for_symptoms,
     mortality_state_multiplier,
 )
-from clinosim.simulator.lab_pipeline import _run_lab_result_pipeline
+from clinosim.simulator.lab_pipeline import _run_lab_result_pipeline, patient_true_labs
 from clinosim.simulator.medication_pipeline import (
     _generate_mar,
     _place_chronic_monitoring_orders,
@@ -223,8 +222,6 @@ def _run_daily_loop(
     admission_orders: list[Order],
     admission_time: datetime,
     target_los: int,
-    has_diabetes: bool,
-    has_dyslipidemia: bool,  # Issue #1073 B8: E78 chronic condition → lipid modulation
     healthcare: HealthcareSystemConfig,
     roster: StaffRoster,
     rng: np.random.Generator,
@@ -455,38 +452,18 @@ def _run_daily_loop(
                 current_day=day,
             ),
         }
-        from clinosim.modules.physiology.engine import hba1c_latent_at
-
-        _hba1c_latent = hba1c_latent_at(patient, admission_time + timedelta(days=day))
         # Issue #1988: on day 0 of a DKA encounter, resolve admission labs
         # against the pre-update state so the ABG HCO3 reflects the acute
         # presentation rather than ~1 day of recovery.
         _true_labs_state = _lab_state_pre_update if _lab_state_pre_update is not None else state
-        true_labs = derive_lab_values(
-            _true_labs_state,
-            sex=patient.sex,
-            age=patient.age,
-            has_diabetes=has_diabetes,
-            has_dyslipidemia=has_dyslipidemia,
-            hour=lab_hour,
-            hba1c_latent=_hba1c_latent,
-            **flags,
-        )  # noqa: E501
+        _lab_at = admission_time + timedelta(days=day)
+        true_labs = patient_true_labs(_true_labs_state, patient, _lab_at, flags, hour=lab_hour)
 
         # Apply temporal lag: CRP reflects inflammation from ~1 day ago
         if len(state_history) >= 2 and "CRP" in true_labs:
             lag_idx = max(0, len(state_history) - 2)
             lagged_state = state_history[lag_idx]
-            lagged_labs = derive_lab_values(
-                lagged_state,
-                sex=patient.sex,
-                age=patient.age,
-                has_diabetes=has_diabetes,
-                has_dyslipidemia=has_dyslipidemia,
-                hour=lab_hour,
-                hba1c_latent=_hba1c_latent,
-                **flags,
-            )  # noqa: E501
+            lagged_labs = patient_true_labs(lagged_state, patient, _lab_at, flags, hour=lab_hour)
             true_labs["CRP"] = lagged_labs.get("CRP", true_labs["CRP"])
 
         # Expand panel orders (e.g. ABG → pH/pCO2/pO2/HCO3; CBC → WBC/Hb/Hct/Plt) into

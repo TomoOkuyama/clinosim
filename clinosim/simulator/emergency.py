@@ -10,7 +10,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
-from clinosim.codes.valuesets import code_by_chronic_prefix, has_condition
+from clinosim.codes.valuesets import code_by_chronic_prefix
 from clinosim.locale.i18n import t
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -48,6 +48,7 @@ from clinosim.simulator._ed_thresholds import (
     ED_TREATMENT_RESPONSE_FACTOR,
     ED_VITALS_OFFSET_MIN,
 )
+from clinosim.simulator.lab_pipeline import patient_true_labs
 from clinosim.simulator.vitals_pipeline import _loc_for
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent, PhysiologicalState
 from clinosim.types.encounter import (
@@ -71,11 +72,6 @@ _ED_SYMPTOM_AXES = (
     "consciousness_impairment",
     "respiratory_depression",  # naloxone reversal (Issue #2154)
 )
-
-
-def _has_diabetes(patient: object) -> bool:
-    """Diabetes of any type, from the shared ``diabetes`` value set (Issue #2281)."""
-    return has_condition(patient, "diabetes")
 
 
 # Treatment ``route`` values that describe no drug administration route.
@@ -350,7 +346,6 @@ def _simulate_ed_visit(
     )
     from clinosim.modules.physiology.engine import (
         apply_disease_onset,
-        derive_lab_values,
         derive_observed_vitals,
         initialize_state,
         medication_flags_from_context,
@@ -462,8 +457,6 @@ def _simulate_ed_visit(
             protocol["initial_state_impact"],
             acid_base_type=protocol.get("acid_base_type", "metabolic"),
         )
-    _has_dm = _has_diabetes(patient)
-    _has_dyslipidemia = any("E78" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     # J5 (Phase 2a): wire all scenario flags (causes_myocardial_injury,
     # causes_vte) through the helper. Pre-Phase-2a, the ED path passed no
     # flag — ED-presentation MI patients had no troponin upshift.
@@ -474,18 +467,7 @@ def _simulate_ed_visit(
         **scenario_flags_from_protocol(protocol),
         **medication_flags_from_context(patient),
     }
-    from clinosim.modules.physiology.engine import hba1c_latent_at as _hba1c_latent_at
-
-    _hba1c_latent = _hba1c_latent_at(patient, visit_time)
-    _true_labs = derive_lab_values(
-        _state,
-        sex=patient.sex,
-        age=patient.age,
-        has_diabetes=_has_dm,
-        has_dyslipidemia=_has_dyslipidemia,
-        hba1c_latent=_hba1c_latent,
-        **_flags,
-    )
+    _true_labs = patient_true_labs(_state, patient, visit_time, _flags)
     # AD-16: per-lab-order sub-RNG so probability skips / noise / timing draws
     # cannot poison the patient master stream when derive_lab_values gains a new
     # analyte (Cl/Ca emission, etc.). See inpatient.py Pass 1 for the parallel

@@ -30,9 +30,11 @@ seed 42 JP+US cohorts must diff at zero non-timestamp lines.
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from clinosim import determinism
+from clinosim.codes.valuesets import has_condition
 from clinosim.modules.observation.engine import (
     canonical_lab_name,
     clamp_to_physiologic_limits,
@@ -47,10 +49,38 @@ from clinosim.modules.observation.pre_analytical import (
     SPECIMEN_REJECTION_RATE,
 )
 from clinosim.modules.order.engine import calculate_result_time_from_state
+from clinosim.modules.physiology.engine import derive_lab_values, hba1c_latent_at
 from clinosim.modules.staff.engine import FALLBACK_TECH_ID, StaffRoster, assign_staff
 from clinosim.seeding import individual_lab_seed, panel_specimen_seed
 from clinosim.types.encounter import Order, OrderResult, OrderStatus
 from clinosim.types.patient import PatientProfile
+
+
+def patient_true_labs(
+    state: Any,
+    patient: Any,
+    at: datetime,
+    flags: dict[str, Any],
+    *,
+    hour: int | None = None,
+) -> dict[str, float]:
+    """True lab values of ``patient`` in physiological ``state`` at ``at``:
+    the one call every encounter kind uses (inpatient daily loop, ED,
+    outpatient, unknown condition; Issue #2521). ``flags`` are the scenario
+    and medication flags (``scenario_flags_from_protocol`` +
+    ``medication_flags_from_context``); ``hour`` drives circadian analytes
+    when the caller samples at a known time. Draws no randomness."""
+    kwargs: dict[str, Any] = {"hour": hour} if hour is not None else {}
+    return derive_lab_values(
+        state,
+        sex=patient.sex,
+        age=patient.age,
+        has_diabetes=has_condition(patient, "diabetes"),
+        has_dyslipidemia=has_condition(patient, "dyslipidemia"),
+        hba1c_latent=hba1c_latent_at(patient, at),
+        **kwargs,
+        **flags,
+    )
 
 
 def _run_lab_result_pipeline(

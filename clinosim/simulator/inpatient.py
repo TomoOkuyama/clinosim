@@ -9,7 +9,7 @@ import numpy as np
 
 from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
-from clinosim.codes.valuesets import code_by_chronic_prefix, has_condition
+from clinosim.codes.valuesets import code_by_chronic_prefix
 from clinosim.modules.clinical_course.engine import (
     select_archetype,
 )
@@ -803,12 +803,9 @@ def _simulate_patient(
     differential = initialize_differential(disease_id, patient.age, protocol_diagnostic=protocol_diagnostic)
 
     # Daily simulation loop
-    has_diabetes = has_condition(patient, "diabetes")  # Issue #2281
     # `target_los_config` (Issue #550) returns dict[str, float]; `min_los` param
     # is typed `int`. Cast at the boundary rather than widening the param type.
     protocol_min_los = int(los_cfg.get("min", 3))
-    # Issue #1073 B8: E78 chronic dyslipidemia flag drives lipid panel derives.
-    has_dyslipidemia = any("E78" in (getattr(c, "code", "") or "") for c in patient.chronic_conditions)
     loop_result = _run_daily_loop(
         state,
         patient,
@@ -819,8 +816,6 @@ def _simulate_patient(
         admission_orders,
         admission_time,
         target_los,
-        has_diabetes,
-        has_dyslipidemia,
         healthcare,
         roster,
         rng,
