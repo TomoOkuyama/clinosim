@@ -37,12 +37,12 @@ def test_inpatient_no_bare_r05_literal_and_uses_named_sentinel() -> None:
         f"instead (or a comment explaining a different intent)."
     )
 
-    # Every `diagnosis_correct=` kwarg on any `ClinicalDiagnosis(...)` call
+    # Every `diagnosis_correct=` kwarg on any `ClinicalDiagnosis(...)` / `encounter_diagnosis(...)` call
     # must reference the named sentinel (unless it's a boolean literal for
     # test-scaffold cases like the placeholder `diagnosis_correct=False`).
     saw_named_reference = False
     for node in ast.walk(tree):
-        if isinstance(node, ast.Call) and getattr(node.func, "id", "") == "ClinicalDiagnosis":
+        if isinstance(node, ast.Call) and getattr(node.func, "id", "") in ("ClinicalDiagnosis", "encounter_diagnosis"):
             for kw in node.keywords:
                 if kw.arg == "diagnosis_correct":
                     src = ast.unparse(kw.value)

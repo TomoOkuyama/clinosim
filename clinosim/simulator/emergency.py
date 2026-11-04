@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 import numpy as np
 
 from clinosim import determinism
-from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.codes.valuesets import code_by_chronic_prefix
 from clinosim.locale.i18n import t
@@ -48,9 +47,10 @@ from clinosim.simulator._ed_thresholds import (
     ED_TREATMENT_RESPONSE_FACTOR,
     ED_VITALS_OFFSET_MIN,
 )
+from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
 from clinosim.simulator.lab_pipeline import patient_true_labs
 from clinosim.simulator.vitals_pipeline import _loc_for
-from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent, PhysiologicalState
+from clinosim.types.clinical import ConditionEvent, PhysiologicalState
 from clinosim.types.encounter import (
     Encounter,
     EncounterStatus,
@@ -704,15 +704,13 @@ def _simulate_ed_visit(
     for o in orders:
         if o.order_type == OrderType.MEDICATION:
             enrich_medication_order(o)
-        if not o.encounter_id:
-            o.encounter_id = encounter.encounter_id
-
-    # ED encounter metadata
-    encounter.admit_source = AdmitSource.OUTP
-    encounter.discharge_disposition = ed_disposition(protocol, severity)
-    encounter.priority = ActPriority.EM
-    encounter.admitting_physician_id = encounter.attending_physician_id
-    encounter.discharging_physician_id = encounter.attending_physician_id
+    attach_orders(orders, encounter)
+    finalize_encounter(
+        encounter,
+        admit_source=AdmitSource.OUTP,
+        disposition=ed_disposition(protocol, severity),
+        priority=ActPriority.EM,
+    )
     discharge_rx = _ed_discharge_prescription(protocol, patient, encounter, _indication_codes, country, cond_name)
 
     # Use ICD-10 from encounter YAML (required by FHIR R4)
@@ -751,12 +749,7 @@ def _simulate_ed_visit(
             condition_type="ed_visit",
             ground_truth_diseases=[cond_name],
         ),
-        clinical_diagnosis=ClinicalDiagnosis(
-            admission_diagnosis_code=icd_code,
-            admission_diagnosis_system=system_key_for("diagnosis", country),
-            discharge_diagnosis_code=icd_code,
-            discharge_diagnosis_system=system_key_for("diagnosis", country),
-        ),
+        clinical_diagnosis=encounter_diagnosis(icd_code, country),
     )
 
     # POST_ENCOUNTER stage for ED encounters (α-min-2 Task 14 fix)

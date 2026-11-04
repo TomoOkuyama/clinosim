@@ -74,6 +74,7 @@ from clinosim.simulator._unknown_condition_thresholds import (
     UNK_TARGET_LOS_MIN,
     UNK_WARD_CAPACITY_DEFAULT,
 )
+from clinosim.simulator.encounter_setup import attach_orders
 from clinosim.simulator.hospital_ops import pick_ward, resolve_department
 from clinosim.simulator.lab_pipeline import patient_true_labs
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
@@ -368,9 +369,7 @@ def _simulate_unknown_condition(
     # _fhir_service_request._build_sr_skeleton raises AssertionError on
     # JP cohorts where unknown-condition patients generate ADM-L orders
     # without encounter_id, causing FHIR export to fail.
-    for o in all_orders:
-        if not o.encounter_id:
-            o.encounter_id = encounter.encounter_id
+    attach_orders(all_orders, encounter)
 
     record = CIFPatientRecord(
         patient=patient,

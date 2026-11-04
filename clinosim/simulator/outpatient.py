@@ -9,7 +9,6 @@ from typing import Any
 import numpy as np
 
 from clinosim import determinism
-from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.codes.valuesets import concept_group
 from clinosim.countries import is_jp, lang_for
@@ -37,8 +36,9 @@ from clinosim.simulator._outpatient_thresholds import (
     OUTPATIENT_PRESCRIPTION_DURATION_DAYS,
     OUTPATIENT_VITALS_OFFSET_MIN,
 )
+from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
 from clinosim.simulator.lab_pipeline import patient_true_labs
-from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
+from clinosim.types.clinical import ConditionEvent
 from clinosim.types.encounter import (
     EncounterStatus,
     EncounterType,
@@ -604,17 +604,10 @@ def _simulate_outpatient_visit(
             items=[_apply_pregnancy_substitution(med) for med in patient.current_medications if not _is_prn(med)],
         )
 
-    # Set encounter_id on all orders
-    for o in orders:
-        if not o.encounter_id:
-            o.encounter_id = encounter.encounter_id
-
-    # Outpatient encounter metadata
-    encounter.admit_source = AdmitSource.OUTP
-    encounter.discharge_disposition = DischargeDisposition.HOME
-    encounter.priority = ActPriority.R
-    encounter.admitting_physician_id = encounter.attending_physician_id
-    encounter.discharging_physician_id = encounter.attending_physician_id
+    attach_orders(orders, encounter)
+    finalize_encounter(
+        encounter, admit_source=AdmitSource.OUTP, disposition=DischargeDisposition.HOME, priority=ActPriority.R
+    )
 
     # Determine diagnosis code — prefer encounter YAML, fall back to chronic/Z-code
     dx_code = ""
@@ -675,12 +668,7 @@ def _simulate_outpatient_visit(
         condition_type="chronic_followup" if chronic_code else "post_discharge_followup",
         ground_truth_diseases=[dx_code] if dx_code else [],
     )
-    clinical_diagnosis = ClinicalDiagnosis(
-        admission_diagnosis_code=dx_code,
-        admission_diagnosis_system=system_key_for("diagnosis", country),
-        discharge_diagnosis_code=dx_code,
-        discharge_diagnosis_system=system_key_for("diagnosis", country),
-    )
+    clinical_diagnosis = encounter_diagnosis(dx_code, country)
 
     # Issue #957 slice 3: radiation-therapy Procedure emit for cancer
     # follow-up encounters flagged ``radiation_therapy_eligible: true``.
