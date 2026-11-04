@@ -18,8 +18,8 @@ Non-emergency encounters are a no-op.
   YAML weight table by severity (shared by JTAS and ESI);
   `pick_arrival_mode(severity, rng)`; `condition_triage_bounds(record)`;
   `triage_level_cap(vitals)`;
-  `load_triage_protocols()` YAML loader with 6-layer
-  `_validate_triage_protocols` (silent-no-op defense).
+  `load_triage_protocols()` YAML loader validated by the
+  `TriageProtocols` Pydantic model (silent-no-op defense).
 - **Out of scope**: encounter routing / class emission (in
   [`clinosim.modules.encounter`](../encounter/README.md)), FHIR
   `Encounter.class` / `type` / `priority` emission (in
@@ -68,7 +68,7 @@ from clinosim.modules.triage.engine import (
   — `triage_systems` (JTAS / ESI level labels), `arrival_modes`,
   country-independent `severity_to_triage_distribution`,
   `arrival_mode_base_distribution` and
-  `arrival_mode_severity_multipliers`. `_validate_triage_protocols`
+  `arrival_mode_severity_multipliers`. The `TriageProtocols` model
   (run by the first `load_triage_protocols()` call) checks: non-empty
   top level / `triage_systems` is exactly JTAS+ESI / each system has
   levels 1-5 / `arrival_modes` matches `SUPPORTED_ARRIVAL_MODES` /

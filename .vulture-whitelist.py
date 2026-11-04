@@ -290,6 +290,13 @@ _.expected_vital_distributions  # disease/protocol.py:497
 _.drug_interactions  # disease/protocol.py:507
 _.causes_myocardial_injury  # disease/protocol.py:521
 
+# ----- clinosim/modules/triage/engine.py (Pydantic BaseModel, Issue #2564) -----
+# Schema fields of the YAML validation model; callers read the raw dict.
+_.triage_systems  # triage/engine.py TriageProtocols
+_.arrival_modes  # triage/engine.py TriageProtocols
+_.severity_to_triage_distribution  # triage/engine.py TriageProtocols
+_.arrival_mode_base_distribution  # triage/engine.py TriageProtocols
+
 # ----- clinosim/modules/encounter/protocol.py (Pydantic BaseModel) -----
 # Narrative template language maps (subjective / objective / assessment /
 # plan / chief_complaint / hpi / physical_exam / ed_workup_summary /

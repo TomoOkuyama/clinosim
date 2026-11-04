@@ -11,9 +11,10 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from clinosim import determinism
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_validated_yaml
 from clinosim.modules._shared import is_jp, normalize_probabilities
 
 _HERE = Path(__file__).resolve().parent
@@ -24,53 +25,80 @@ SUPPORTED_ARRIVAL_MODES: frozenset[str] = frozenset({"walk-in", "ambulance", "po
 SUPPORTED_SEVERITIES: frozenset[str] = frozenset({"mild", "moderate", "severe"})
 
 
-def _validate_triage_protocols(data: dict[str, Any]) -> None:
-    """6-layer silent-no-op defense for triage_protocols.yaml."""
-    if not data:
-        raise ValueError("triage_protocols.yaml: empty top-level")
-    ts = data.get("triage_systems")
-    if ts is None or not isinstance(ts, dict):
-        raise ValueError("triage_protocols.yaml: missing 'triage_systems' key")
-    yaml_systems = set(ts.keys())
-    if yaml_systems != SUPPORTED_LEVEL_SYSTEMS:
-        missing = SUPPORTED_LEVEL_SYSTEMS - yaml_systems
-        extra = yaml_systems - SUPPORTED_LEVEL_SYSTEMS
-        raise ValueError(
-            f"triage_protocols.yaml triage_systems ↔ SUPPORTED_LEVEL_SYSTEMS "
-            f"drift: missing={sorted(missing)}, extra={sorted(extra)} "
-            f"(must be exactly JTAS+ESI)"
-        )
-    # per-system level 1..5 all present
-    for sys_name, sys_data in ts.items():
-        levels = sys_data.get("levels", {})
-        if set(levels.keys()) != {"1", "2", "3", "4", "5"}:
+class _TriageSystem(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    levels: dict[str, Any] = {}
+
+
+class TriageProtocols(BaseModel):
+    """Shape of triage_protocols.yaml: both level systems with levels 1-5,
+    the supported arrival modes, and a severity → level distribution that
+    sums to ~1.0 for each severity."""
+
+    model_config = ConfigDict(extra="allow")
+
+    triage_systems: dict[str, _TriageSystem]
+    arrival_modes: list[str]
+    severity_to_triage_distribution: dict[str, dict[str, float]]
+    arrival_mode_base_distribution: dict[str, float]
+
+    @model_validator(mode="before")
+    @classmethod
+    def _not_empty(cls, data: Any) -> Any:
+        if not data:
+            raise ValueError("triage_protocols.yaml: empty top-level")
+        if not isinstance(data.get("triage_systems"), dict):
+            raise ValueError("triage_protocols.yaml: missing 'triage_systems' key")
+        return data
+
+    @field_validator("triage_systems")
+    @classmethod
+    def _both_systems_with_five_levels(cls, ts: dict[str, _TriageSystem]) -> dict[str, _TriageSystem]:
+        if set(ts) != SUPPORTED_LEVEL_SYSTEMS:
+            missing, extra = SUPPORTED_LEVEL_SYSTEMS - set(ts), set(ts) - SUPPORTED_LEVEL_SYSTEMS
             raise ValueError(
-                f"triage_protocols.yaml[{sys_name}]: levels must be exactly 1-5, got {sorted(levels.keys())}"
+                f"triage_protocols.yaml triage_systems ↔ SUPPORTED_LEVEL_SYSTEMS "
+                f"drift: missing={sorted(missing)}, extra={sorted(extra)} "
+                f"(must be exactly JTAS+ESI)"
             )
-    # arrival_modes cross-validated
-    arr = data.get("arrival_modes", [])
-    if set(arr) != SUPPORTED_ARRIVAL_MODES:
-        raise ValueError("triage_protocols.yaml arrival_modes ↔ SUPPORTED_ARRIVAL_MODES drift")
-    # severity_to_triage_distribution: all 3 severities present, each sums to ~1.0
-    dist = data.get("severity_to_triage_distribution", {})
-    if set(dist.keys()) != SUPPORTED_SEVERITIES:
-        raise ValueError("triage_protocols.yaml severity_to_triage_distribution keys drift")
-    for sev, probs in dist.items():
-        total = sum(probs.values())
-        if not (0.99 <= total <= 1.01):
-            raise ValueError(f"triage_protocols.yaml[severity={sev}] probs must sum to ~1.0, got {total}")
-    # arrival_mode_base_distribution: keys must match SUPPORTED_ARRIVAL_MODES
-    base = data.get("arrival_mode_base_distribution", {})
-    if set(base.keys()) != SUPPORTED_ARRIVAL_MODES:
-        raise ValueError("arrival_mode_base_distribution keys drift")
+        for sys_name, system in ts.items():
+            if set(system.levels) != {"1", "2", "3", "4", "5"}:
+                raise ValueError(
+                    f"triage_protocols.yaml[{sys_name}]: levels must be exactly 1-5, got {sorted(system.levels)}"
+                )
+        return ts
+
+    @field_validator("arrival_modes")
+    @classmethod
+    def _supported_arrival_modes(cls, modes: list[str]) -> list[str]:
+        if set(modes) != SUPPORTED_ARRIVAL_MODES:
+            raise ValueError("triage_protocols.yaml arrival_modes ↔ SUPPORTED_ARRIVAL_MODES drift")
+        return modes
+
+    @field_validator("severity_to_triage_distribution")
+    @classmethod
+    def _every_severity_sums_to_one(cls, dist: dict[str, dict[str, float]]) -> dict[str, dict[str, float]]:
+        if set(dist) != SUPPORTED_SEVERITIES:
+            raise ValueError("triage_protocols.yaml severity_to_triage_distribution keys drift")
+        for sev, probs in dist.items():
+            total = sum(probs.values())
+            if not (0.99 <= total <= 1.01):
+                raise ValueError(f"triage_protocols.yaml[severity={sev}] probs must sum to ~1.0, got {total}")
+        return dist
+
+    @field_validator("arrival_mode_base_distribution")
+    @classmethod
+    def _base_distribution_covers_the_arrival_modes(cls, base: dict[str, float]) -> dict[str, float]:
+        if set(base) != SUPPORTED_ARRIVAL_MODES:
+            raise ValueError("arrival_mode_base_distribution keys drift")
+        return base
 
 
 @lru_cache(maxsize=1)
 def load_triage_protocols() -> dict[str, Any]:
     """Load triage_protocols.yaml + validate."""
-    data = load_data_yaml(_REF_DIR / "triage_protocols.yaml")
-    _validate_triage_protocols(data)
-    return data
+    return load_validated_yaml(_REF_DIR / "triage_protocols.yaml", TriageProtocols)
 
 
 def pick_triage_level(severity: str, level_system: str, rng: np.random.Generator) -> str:
