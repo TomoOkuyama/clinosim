@@ -10,6 +10,7 @@ import hashlib
 from datetime import date, datetime
 
 from clinosim import determinism
+from clinosim.codes import system_key_for
 from clinosim.countries import is_jp
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _get
@@ -219,7 +220,7 @@ def _synthesize_vaccination_encounter(
         chief_complaint_ja=chief_ja if is_jp(country) else "",
         priority="R",  # routine
         admission_diagnosis_code="Z23",
-        admission_diagnosis_system="icd-10-cm",
+        admission_diagnosis_system=system_key_for("diagnosis", country),
     )
 
 
