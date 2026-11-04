@@ -12,6 +12,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import is_jp, normalize_probabilities
 
@@ -190,7 +191,7 @@ def triage_enricher(ctx: Any) -> None:
             severity = _o(enc, "severity", "moderate") or "moderate"
             enc_id = _o(enc, "encounter_id", "")
             sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["triage"], enc_id)
-            rng = np.random.default_rng(sub_seed)
+            rng = determinism.default_rng(sub_seed)
             level = pick_triage_level(severity, level_system, rng)
             lo, hi = condition_triage_bounds(record)
             level = str(min(max(int(level), lo), hi))

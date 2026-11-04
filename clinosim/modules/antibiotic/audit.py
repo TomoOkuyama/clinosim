@@ -46,6 +46,7 @@ from datetime import datetime
 from types import SimpleNamespace
 from typing import Any
 
+from clinosim import determinism
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS, ANTIBIOTIC_LOINC_LOOKUP
 from clinosim.modules.antibiotic.engine import _HAI_EMPIRICAL_YAML
@@ -198,7 +199,6 @@ def _antibiogram_firing_proof_checks() -> list[tuple[str, Any, Any]]:
     ANTIBIOTIC_LOINC_LOOKUP["vancomycin"] (not hardcoded "18991-2"),
     verifies actual enricher invocation not a fixture shortcut.
     """
-    import numpy as np  # local import — numpy is heavy; avoid at audit.py module level
 
     from clinosim.modules.hai import load_hai_antibiogram  # local: avoids circular import
     from clinosim.modules.hai.enricher import _append_hai_culture  # private API; intentional
@@ -216,7 +216,7 @@ def _antibiogram_firing_proof_checks() -> list[tuple[str, Any, Any]]:
         culture_specimen_id="spec-proof",
     )
     abg = load_hai_antibiogram()
-    rng = np.random.default_rng(0)
+    rng = determinism.default_rng(0)
     _append_hai_culture(
         rec,
         ev,

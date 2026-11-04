@@ -495,7 +495,7 @@ def _simulate_ed_visit(
     for i, lab_spec in enumerate(lab_specs):
         test = lab_spec.get("test", "")
         order_id = f"ORD-{encounter.encounter_id}-ED-L{i}"
-        lab_rng = np.random.default_rng(individual_lab_seed(order_id))
+        lab_rng = determinism.default_rng(individual_lab_seed(order_id))
         prob = lab_spec.get("probability", 1.0)
         if lab_rng.random() > prob:
             continue

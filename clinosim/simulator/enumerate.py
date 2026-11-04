@@ -39,6 +39,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
 
+from clinosim import determinism
 from clinosim.datafiles import load_data_yaml
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -572,8 +573,6 @@ def run_enumeration(plan: EnumerationPlan) -> tuple[Any, EnumerationManifest]:
     from datetime import date
     from datetime import datetime as _dt
 
-    import numpy as np
-
     from clinosim.countries import lang_for
     from clinosim.locale.i18n import t
     from clinosim.locale.loader import load_demographics
@@ -595,7 +594,7 @@ def run_enumeration(plan: EnumerationPlan) -> tuple[Any, EnumerationManifest]:
     for i, case in enumerate(plan.cases):
         pid = make_patient_id(i + 1, case)
         sub_seed = derive_case_seed(plan.base_seed, case)
-        rng = np.random.default_rng(sub_seed)
+        rng = determinism.default_rng(sub_seed)
 
         if case.kind == "disease":
             # Reuse the existing ForcedScenario / run_forced path — it already

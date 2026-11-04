@@ -9,8 +9,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
+from clinosim import determinism
 from clinosim.codes import code_exists
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import normalize_probabilities
@@ -261,7 +260,7 @@ def allergy_enricher(ctx: Any) -> None:
         # PersonRecord uses person_id (Layer 1 naming); PatientProfile maps this to patient_id.
         pid = getattr(patient, "person_id", getattr(patient, "patient_id", ""))
         sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["allergy"], pid)
-        rng = np.random.default_rng(sub_seed)
+        rng = determinism.default_rng(sub_seed)
 
         # Gate: has the patient any real allergen at all?
         if rng.random() >= OVERALL_ALLERGY_PREVALENCE:

@@ -12,6 +12,7 @@ from functools import lru_cache
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.age_bands import age_band_covers
 from clinosim.codes.drugs import drug_classes
 from clinosim.codes.valuesets import concept_group, has_condition
@@ -908,7 +909,7 @@ def _derive_home_medications(
                 "_derive_home_medications: either `rng` or `patient_id` must "
                 "be provided (patient_id required for stable sub-RNG derivation)."
             )
-        rng = np.random.default_rng(chronic_medication_seed(patient_id))
+        rng = determinism.default_rng(chronic_medication_seed(patient_id))
 
     meds: list[HomeMedication] = []
     seen: set[str] = set()
@@ -991,7 +992,7 @@ def _derive_home_medications(
             _chemo_data = load_chemo_regimens()
             _chemo_regimens = _chemo_data.get("regimens") or {}
             _by_cancer = _chemo_data.get("by_cancer") or {}
-            _chemo_rng = np.random.default_rng(chemotherapy_regimen_seed(patient_id, _base_code))
+            _chemo_rng = determinism.default_rng(chemotherapy_regimen_seed(patient_id, _base_code))
             _picked = pick_active_chemo_regimen(_chemo_rng, _chemo_regimens, _by_cancer, _base_code)
             if _picked is not None:
                 _, _regimen = _picked

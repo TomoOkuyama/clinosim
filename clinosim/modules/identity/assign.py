@@ -10,8 +10,7 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
-import numpy as np
-
+from clinosim import determinism
 from clinosim.locale.loader import load_identity_config
 from clinosim.modules.identity.registry import get_provider
 from clinosim.seeding import ENRICHER_SEED_OFFSETS
@@ -35,7 +34,7 @@ def assign_identities(registry: Any, country: str, master_seed: int) -> None:
         return
 
     provider = get_provider(country)
-    rng = np.random.default_rng(master_seed + ENRICHER_SEED_OFFSETS["identity"])
+    rng = determinism.default_rng(master_seed + ENRICHER_SEED_OFFSETS["identity"])
 
     for household in registry.households:
         members = household.members
@@ -100,7 +99,7 @@ def assign_identity_for_person(
     pid = getattr(person, "person_id", "")
     salt = hashlib.sha256(f"{master_seed}|identity_person|{pid}|v1".encode()).digest()
     sub_seed = int.from_bytes(salt[:4], "big") + master_seed + ENRICHER_SEED_OFFSETS["identity"]
-    rng = np.random.default_rng(sub_seed)
+    rng = determinism.default_rng(sub_seed)
 
     enrollments = provider.assign_household([person], rng, config)
     identity = provider.assign_personal(person, household_latent, rng, config)

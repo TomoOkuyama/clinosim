@@ -16,6 +16,7 @@ from datetime import date, timedelta
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.types.population import LifeEvent, PersonRecord
 
 
@@ -33,7 +34,7 @@ def pick_active_chemo_regimen(
     (cycle event scheduling) and ``patient/activator._derive_home_medications``
     (chronic-med active-regimen mutex, Issue #1329) — share exactly one
     implementation of the Bernoulli envelope walk. Callers create their own
-    ``np.random.default_rng(chemotherapy_regimen_seed(person_id, code))``
+    ``determinism.default_rng(chemotherapy_regimen_seed(person_id, code))``
     and pass it in; this helper never creates or shares state.
     """
     assignments = by_cancer.get(cancer_code) or []
@@ -83,7 +84,7 @@ def _chemo_cycle_events(person: PersonRecord, year: int) -> list[LifeEvent]:
         assignments = by_cancer.get(cancer_code) or []
         if not assignments:
             continue
-        chemo_rng = np.random.default_rng(chemotherapy_regimen_seed(person.person_id, cancer_code))
+        chemo_rng = determinism.default_rng(chemotherapy_regimen_seed(person.person_id, cancer_code))
         picked = pick_active_chemo_regimen(chemo_rng, regimens, by_cancer, cancer_code)
         if picked is None:
             continue

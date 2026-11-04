@@ -16,7 +16,6 @@ delivery encounter construction). Any other record is a no-op.
 
 from __future__ import annotations
 
-import hashlib
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
@@ -24,6 +23,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.snomed import snomed_for, snomed_map
 from clinosim.datafiles import load_data_yaml
@@ -31,6 +31,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.localized import language_slot, localized_field
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import is_jp
+from clinosim.seeding import text_seed
 from clinosim.types.encounter import MedicationAdministration, VitalSignRecord
 from clinosim.types.procedure import ProcedureRecord
 
@@ -305,8 +306,8 @@ def build_apgar_scores(record: Any) -> list[dict[str, Any]]:
 
     def _sample(weights: dict, salt: str) -> int:
         # Fresh sub-seed keyed on pid + salt — deterministic + isolated.
-        sub = int(hashlib.sha256(f"newborn-apgar|{pid}|{salt}".encode()).hexdigest(), 16) % (2**32)
-        rng = np.random.default_rng(sub)
+        sub = text_seed(f"newborn-apgar|{pid}|{salt}")
+        rng = determinism.default_rng(sub)
         scores = list(weights.keys())
         raw = np.array([float(weights[s]) for s in scores], dtype=float)
         total = float(raw.sum())
@@ -361,8 +362,8 @@ def build_hearing_screen_procedure(record: Any) -> ProcedureRecord | None:
         return None
     result_weights = cfg.get("result_weights") or {"pass": 0.97, "refer": 0.03}
 
-    sub = int(hashlib.sha256(f"newborn-hearing-screen|{pid}".encode()).hexdigest(), 16) % (2**32)
-    rng = np.random.default_rng(sub)
+    sub = text_seed(f"newborn-hearing-screen|{pid}")
+    rng = determinism.default_rng(sub)
     outcomes = list(result_weights.keys())
     raw = np.array([float(result_weights[k]) for k in outcomes], dtype=float)
     probs = raw / raw.sum()
@@ -445,8 +446,8 @@ def build_metabolic_screen_procedure(record: Any, country: str) -> ProcedureReco
         return None
     result_weights = cfg.get("result_weights") or {"pass": 0.997, "refer": 0.003}
 
-    sub = int(hashlib.sha256(f"newborn-metabolic-screen|{pid}".encode()).hexdigest(), 16) % (2**32)
-    rng = np.random.default_rng(sub)
+    sub = text_seed(f"newborn-metabolic-screen|{pid}")
+    rng = determinism.default_rng(sub)
     outcomes = list(result_weights.keys())
     raw = np.array([float(result_weights[k]) for k in outcomes], dtype=float)
     probs = raw / raw.sum()
@@ -534,8 +535,8 @@ def build_metabolic_screen_workflow_data(record: Any, country: str) -> dict[str,
         return None
 
     result_weights = cfg.get("result_weights") or {"pass": 0.997, "refer": 0.003}
-    sub = int(hashlib.sha256(f"newborn-metabolic-screen|{pid}".encode()).hexdigest(), 16) % (2**32)
-    rng = np.random.default_rng(sub)
+    sub = text_seed(f"newborn-metabolic-screen|{pid}")
+    rng = determinism.default_rng(sub)
     outcomes = list(result_weights.keys())
     raw = np.array([float(result_weights[k]) for k in outcomes], dtype=float)
     probs = raw / raw.sum()
@@ -641,8 +642,8 @@ def build_bilirubin_observations(record: Any) -> list[dict[str, Any]]:
             continue
         mean = float((mean_by_day or {}).get(d) or (mean_by_day or {}).get(str(d)) or 6.0 + d * 2.0)
         std = float((std_by_day or {}).get(d) or (std_by_day or {}).get(str(d)) or 2.0)
-        sub = int(hashlib.sha256(f"newborn-bilirubin|{pid}|{d}".encode()).hexdigest(), 16) % (2**32)
-        rng = np.random.default_rng(sub)
+        sub = text_seed(f"newborn-bilirubin|{pid}|{d}")
+        rng = determinism.default_rng(sub)
         value = float(rng.normal(mean, std))
         value = max(clamp_min, min(clamp_max, value))
         out.append({"day": d, "timestamp": ts, "value_mg_dl": round(value, 1), "loinc": loinc})
@@ -687,8 +688,8 @@ def build_cchd_pulse_ox(record: Any) -> list[dict[str, Any]]:
     clamp_max = int(cfg.get("clamp_max", 100) or 100)
 
     def _sample(mean: float, std: float, salt: str) -> int:
-        sub = int(hashlib.sha256(f"newborn-cchd|{pid}|{salt}".encode()).hexdigest(), 16) % (2**32)
-        rng = np.random.default_rng(sub)
+        sub = text_seed(f"newborn-cchd|{pid}|{salt}")
+        rng = determinism.default_rng(sub)
         v = int(round(float(rng.normal(mean, std))))
         return max(clamp_min, min(clamp_max, v))
 

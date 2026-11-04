@@ -15,6 +15,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.codes import code_exists
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
@@ -572,7 +573,7 @@ def imaging_enricher(ctx: Any) -> None:
         for idx, order in enumerate(imaging_orders, start=1):
             order_id: str = _o(order, "order_id", "") or ""
             sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["imaging"], order_id)
-            rng = np.random.default_rng(sub_seed)
+            rng = determinism.default_rng(sub_seed)
 
             modality: str = _o(order, "imaging_modality", "") or ""
             body_site_snomed: str = _o(order, "imaging_body_site_code", "") or ""

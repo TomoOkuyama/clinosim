@@ -6,8 +6,7 @@ encounters and the main simulation stream is untouched (AD-16).
 
 from __future__ import annotations
 
-import numpy as np
-
+from clinosim import determinism
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.family_history.engine import generate_family_history
@@ -21,7 +20,7 @@ def enrich_family_history(ctx) -> None:
         pid = _get(patient, "patient_id", "") if patient else ""
         age = int(_get(patient, "age", 0) or 0) if patient else 0
         conditions = _get(patient, "chronic_conditions", []) if patient else []
-        rng = np.random.default_rng(
+        rng = determinism.default_rng(
             derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["family_history"], pid or "x")
         )  # noqa: E501
         fams = generate_family_history(age, conditions, country, rng)

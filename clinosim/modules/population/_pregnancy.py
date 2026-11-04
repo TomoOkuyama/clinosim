@@ -13,8 +13,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-import numpy as np
-
+from clinosim import determinism
 from clinosim.age_bands import lookup_age_band
 from clinosim.modules._shared import is_jp
 from clinosim.types.population import LifeEvent, PersonRecord, TemporalStatePeriod
@@ -103,7 +102,7 @@ def _pregnancy_lifecycle_events(person: PersonRecord, year: int, country: str) -
     jit = lc.get("delivery_jitter_days") or [-7, 7]
     jit_lo, jit_hi = int(jit[0]), int(jit[1])
 
-    rng = np.random.default_rng(perinatal_delivery_seed(person.person_id, year))
+    rng = determinism.default_rng(perinatal_delivery_seed(person.person_id, year))
 
     active = person.get_active_state("pregnancy")
     if active is not None:

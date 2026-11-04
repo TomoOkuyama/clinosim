@@ -35,6 +35,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.codes.drugs import drug_display
 from clinosim.codes.valuesets import has_condition
 from clinosim.locale.i18n import t
@@ -133,7 +134,7 @@ def _inject_for_record(
     # Per-patient sub-RNG for enricher-scoped micro-decisions (currently only
     # scheduling jitter within the encounter). Master RNG is untouched.
     pid = getattr(patient, "patient_id", "") or ""
-    enricher_rng = np.random.default_rng(
+    enricher_rng = determinism.default_rng(
         derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["medication_monitoring"], pid or "x")
     )
 
@@ -274,7 +275,7 @@ def _inject_one_lab(
     """Append one synthetic monitoring Order + OrderResult to the record."""
     enc_id = getattr(encounter, "encounter_id", "") or "ENC"
     order_id = f"ORD-{enc_id}-MED-MON-{injected_index:02d}"
-    lab_rng = np.random.default_rng(individual_lab_seed(order_id))
+    lab_rng = determinism.default_rng(individual_lab_seed(order_id))
 
     admit_dt = getattr(encounter, "admission_datetime", None)
     if admit_dt is None:

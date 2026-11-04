@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import get_or_create_container, normalize_probabilities
 from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
@@ -102,7 +103,7 @@ def enrich_hai(ctx) -> None:
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
-        rng = np.random.default_rng(
+        rng = determinism.default_rng(
             derive_sub_seed(
                 ctx.master_seed,
                 ENRICHER_SEED_OFFSETS["hai"],

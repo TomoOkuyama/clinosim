@@ -15,14 +15,13 @@ inherited in ``register_newborn`` itself.
 
 from __future__ import annotations
 
-import hashlib
 from datetime import date
 from typing import Any
 
-import numpy as np
-
+from clinosim import determinism
 from clinosim.modules.allergy.engine import _make_nka, load_allergen_config
 from clinosim.modules.population.mortality import draw_community_death, sim_window
+from clinosim.seeding import text_seed
 
 
 def _init_newborn_care_seeking_threshold(person: Any, config: Any) -> None:
@@ -58,8 +57,8 @@ def _init_newborn_care_seeking_threshold(person: Any, config: Any) -> None:
     sd = float(cs.get("threshold_sd", CARE_SEEKING_THRESHOLD_SD_DEFAULT))
 
     pid = getattr(person, "person_id", "")
-    seed = int(hashlib.sha256(f"{pid}|care_seeking_threshold|v1".encode()).hexdigest(), 16) % (2**32)
-    rng = np.random.default_rng(seed)
+    seed = text_seed(f"{pid}|care_seeking_threshold|v1")
+    rng = determinism.default_rng(seed)
     threshold = float(rng.normal(mean, sd))
     threshold = max(CARE_SEEKING_CLAMP_MIN, min(CARE_SEEKING_CLAMP_MAX, threshold))
     person.care_seeking_threshold = threshold
@@ -84,7 +83,7 @@ def _draw_birth_year_death(person: Any, country: str, window: Any) -> None:
         person,
         year,
         country,
-        np.random.default_rng(aging_sub_seed(person.person_id, year, "mortality")),
+        determinism.default_rng(aging_sub_seed(person.person_id, year, "mortality")),
         exposure=(person.date_of_birth, hi),
     )
 

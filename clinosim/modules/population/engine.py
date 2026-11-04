@@ -470,7 +470,7 @@ def generate_population(
                     # marginal). Guard against pathological zero.
                     scaled_base = base_prev / e_compound if e_compound > 0.0 else base_prev
                     final_prev = min(1.0, scaled_base * corr_mult * life_mult)
-                    draw_rng = np.random.default_rng(chronic_isolated_seed(pid, code)) if spec.rng_isolated else rng
+                    draw_rng = determinism.default_rng(chronic_isolated_seed(pid, code)) if spec.rng_isolated else rng
                     if draw_rng.random() < final_prev:
                         # META #957 Incr 1: Z34 (encounter for supervision of
                         # normal pregnancy) and Z37 (outcome of delivery) are
@@ -499,7 +499,7 @@ def generate_population(
                     continue
                 if code in conditions:
                     continue  # already assigned via primary path (defensive)
-                aug_rng = np.random.default_rng(
+                aug_rng = determinism.default_rng(
                     chronic_augment_sex_seed(pid, code)  # per-(patient, code) sub-seed
                 )
                 # Lifestyle + comorbidity multipliers use the same math as
@@ -679,7 +679,7 @@ def generate_population(
             from clinosim.modules.longitudinal.engine import initial_snapshot
             from clinosim.modules.population.aging import aging_sub_seed
 
-            _ls_rng = np.random.default_rng(aging_sub_seed(person.person_id, base_year, "longitudinal:init"))
+            _ls_rng = determinism.default_rng(aging_sub_seed(person.person_id, base_year, "longitudinal:init"))
             initial_snapshot(person, year=base_year, init_rng=_ls_rng)
             # Phase 3 longitudinal (Issue #1705): seed the per-person
             # BMI drift chain from the just-generated Layer-1 bmi value

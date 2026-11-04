@@ -34,6 +34,14 @@ def derive_sub_seed(master_seed: int, module_offset: int, key: str) -> int:
     return (int(master_seed) + module_offset + h) % (2**32)
 
 
+def text_seed(text: str) -> int:
+    """Sub-seed in ``[0, 2**32)`` from the full SHA-256 of ``text`` — the
+    derivation the newborn, perinatal, aging and person-init streams use
+    (``int(hexdigest, 16) % 2**32``). The salted ``text`` names the stream;
+    the formula is fixed (changing it shifts those streams)."""
+    return int(hashlib.sha256(text.encode()).hexdigest(), 16) % (2**32)
+
+
 def panel_specimen_seed(parent_order_id: str) -> int:
     """Per-panel-parent deterministic sub-seed in ``[0, 2**32)``.
 

@@ -14,6 +14,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
@@ -161,7 +162,7 @@ def generate_microbiology(
     antibiotics = data.get("antibiotics") or {}
     organisms = data.get("organisms") or {}
 
-    rng = np.random.default_rng(derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["microbiology"], encounter_id))
+    rng = determinism.default_rng(derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["microbiology"], encounter_id))
 
     org_dist = disease.get("organisms") or {}
     org_ids = list(org_dist.keys())

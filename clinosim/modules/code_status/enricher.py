@@ -6,8 +6,7 @@ simulation stream is untouched (AD-16). Assigned only to serious encounters.
 
 from __future__ import annotations
 
-import numpy as np
-
+from clinosim import determinism
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.code_status.engine import assign_code_status
@@ -36,6 +35,6 @@ def enrich_code_status(ctx) -> None:
             patient = _get(rec, "patient")
             age = int(_get(patient, "age", 0) or 0) if patient else 0
             context = "terminal" if deceased else ("icu" if icu else "routine")
-            rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["code_status"], eid))
+            rng = determinism.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["code_status"], eid))
             code = assign_code_status(age, context, country, rng)
         _set(rec, "code_status", code)
