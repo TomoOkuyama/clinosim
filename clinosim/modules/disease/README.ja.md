@@ -62,8 +62,7 @@ slice list):
   全 registry の 2 loader (共に `@lru_cache`)、条件ベース modifier +
   最低クランプ付きの重症度分布サンプリング、canonical な重症度
   category ↔ score mapping、canonical 3 acuity-tier 疾患集合
-  (`EMERGENCY_PRIORITY_DISEASES`, `CRITICAL_MONITORING_DISEASES`,
-  `NEURO_LOC_MONITORING_DISEASES`)、薬剤ブロック route + 期間
+  (`EMERGENCY_PRIORITY_DISEASES`, `CRITICAL_MONITORING_DISEASES`)、薬剤ブロック route + 期間
   validation (Issue #455 / #437 系)、chief-complaint /
   target-LOS / 部門の localization helper。
 - **In scope (import 時 validation)**: 全 YAML を Pydantic
@@ -131,7 +130,6 @@ from clinosim.modules.disease.severity import (
 from clinosim.modules.disease.acuity import (
     EMERGENCY_PRIORITY_DISEASES,      # Encounter.priority = "EM"
     CRITICAL_MONITORING_DISEASES,     # q1-2h vitals
-    NEURO_LOC_MONITORING_DISEASES,    # LOC (AVPU) 入院 day 0-2
 )
 
 # Localization (国 → YAML キー、chief complaint、部門)
@@ -259,7 +257,7 @@ clinosim/modules/disease/
 | Simulator helper | [`clinosim/simulator/helpers.py`](../../simulator/helpers.py) | `disease.localization` helper + `load_all_disease_protocols` の後方互換再 export (Issue #544)。 |
 | Population | [`clinosim/modules/population/engine.py`](../population/engine.py) | 入院 gate 用 `sample_severity`。 |
 | Drug safety | [`clinosim/modules/drug_safety/engine.py`](../drug_safety/engine.py) | `suggest_alternative` 用 `alternatives_by_indication`。 |
-| Clinical course / procedure | [`clinosim/modules/clinical_course/engine.py`](../clinical_course/engine.py), [`clinosim/modules/procedure/engine.py`](../procedure/engine.py) | modifier 条件語彙 (`EVALUABLE_CONDITIONS`, `KNOWN_MODIFIER_CONDITIONS`)、`NEURO_LOC_MONITORING_DISEASES`。 |
+| Clinical course / procedure | [`clinosim/modules/clinical_course/engine.py`](../clinical_course/engine.py), [`clinosim/modules/procedure/engine.py`](../procedure/engine.py) | modifier 条件語彙 (`EVALUABLE_CONDITIONS`, `KNOWN_MODIFIER_CONDITIONS`)。 |
 | Narrative | [`clinosim/modules/document/narrative/{passes,template_generator}.py`](../document/narrative/) | `DiseaseProtocol.narrative` template + `HpiTemplate` + `DischargeInstructions` を read。 |
 
 ## テスト

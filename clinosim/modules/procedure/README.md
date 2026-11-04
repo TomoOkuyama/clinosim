@@ -133,8 +133,6 @@ CPT / K-code / names / anesthesia per bedside procedure live in the
 - `clinosim.modules.procedure._surgery_thresholds` — surgery
   timing, duration / EBL defaults, ASA, intra-op complication and
   state-impact constants (Issue #637).
-- `clinosim.modules.disease.acuity` — `NEURO_LOC_MONITORING_DISEASES`
-  (disease list for one `_PROCEDURE_RULES` entry).
 - `clinosim.types.procedure` — `ProcedureRecord`, `RehabSession`.
 - `numpy`, `yaml`.
 

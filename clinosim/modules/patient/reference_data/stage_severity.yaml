@@ -1,0 +1,126 @@
+# Stage label → physiologic severity score in [0, 1], per chronic condition
+# (Issue #2525; moved from patient/_severity_activation.py `STAGE_SEVERITY`).
+#
+# Consumed by `physiology/engine.py`'s per-code branches so a sampled clinical
+# stage (KDIGO CKD, NYHA, GOLD, asthma severity, CCS, JNC-8, CDR, Child-Pugh,
+# Hoehn & Yahr, AF type, EDSS, mRS, PHQ-9, GAD-7) drives physiologic severity
+# instead of a generic draw. Keys are ICD-10 base codes; stage labels must
+# match the stored stage text (longitudinal stage YAMLs, Issue #2289).
+
+metadata:
+  kind: reference
+  name: stage_severity
+  source: clinosim
+
+stage_severity:
+  # KDIGO 2012 CKD classification (G1 eGFR ≥90 → G5 <15). Scores rise
+  # exponentially so G4/G5 exceed CKD_SEVERE_THRESHOLD (0.5) and fire the
+  # anemia-of-CKD + metabolic-acidosis branches in the physiology engine.
+  "N18": {"CKD G1": 0.05, "CKD G2": 0.15, "CKD G3a": 0.35, "CKD G3b": 0.50, "CKD G4": 0.70, "CKD G5": 0.90}
+  # NYHA I-IV functional classification. Score I → mild symptomatic, IV →
+  # symptoms at rest. Class II already exceeds HF_SEVERE_THRESHOLD (0.3) so
+  # the volume-overload branch fires from class II upward.
+  "I50": {"NYHA I": 0.10, "NYHA II": 0.25, "NYHA III": 0.45, "NYHA IV": 0.70}
+  # GOLD 1-4 COPD staging (FEV1 % predicted: GOLD 1 ≥80 → GOLD 4 <30).
+  # Empirical severity mapping tuned so GOLD 4 hits severe pH shift.
+  "J44": {"GOLD 1": 0.10, "GOLD 2": 0.25, "GOLD 3": 0.45, "GOLD 4": 0.70}
+  # NAEPP EPR-3 asthma severity classification. Score maps intermittent /
+  # persistent bands to the physiology engine's asthma pH coupling.
+  "J45": {"Mild intermittent": 0.05, "Mild persistent": 0.15, "Moderate persistent": 0.35, "Severe persistent": 0.60}
+  # CCS (Canadian Cardiovascular Society) angina classification I-IV;
+  # clinosim currently samples only classes I-III (see I25_STAGES below).
+  "I25": {"CCS I": 0.10, "CCS II": 0.25, "CCS III": 0.50}
+  # Hypertension: JNC-8 / ACC-AHA 2017 Stage 1 (130-139/80-89) vs Stage 2
+  # (>=140/90). Consumed by the stage-scaled baseline-BP elevation
+  # (FP-I10), making the stage assignment non-degenerate at the vital
+  # layer as well as at the physiology-coupling layer.
+  "I10": {"Stage 1": 0.30, "Stage 2": 0.60}
+  # Clinical Dementia Rating (CDR) — Hughes 1982 / Morris 1993. Diagnosed-
+  # dementia (F00) cohort typically distributes across CDR 0.5 (very mild
+  # / MCI), CDR 1 (mild), CDR 2 (moderate), CDR 3 (severe). Score lifts
+  # the physiology coupling for cognitive-decline-driven lab shifts
+  # (aspiration risk, nutrition decline, fall-related trauma — the
+  # F00 risk_multipliers in demographics.yaml already consume severity
+  # for hip_fracture / aspiration_pneumonia / UTI / vertebral fracture).
+  "F00": {"CDR 0.5": 0.15, "CDR 1": 0.35, "CDR 2": 0.60, "CDR 3": 0.85}
+  # Child-Pugh class A/B/C for liver cirrhosis (alcoholic K70, other
+  # chronic liver disease K74). Pugh 1973 (Br J Surg) 5-9 / 7-9 /
+  # 10-15 scoring over 5 clinical / lab parameters. 1-year
+  # mortality tracks class A ~5% / B ~20% / C ~55%, so severity
+  # score climbs steeply. Score lifts the physiology coupling
+  # for synthetic-function-dependent lab shifts (albumin,
+  # bilirubin, PT/INR, platelets, ammonia) and complications
+  # (variceal bleeding risk, HE, ascites) once the physiology
+  # engine's K70/K74 branches wire in.
+  "K70": {"Child-Pugh A": 0.15, "Child-Pugh B": 0.50, "Child-Pugh C": 0.85}
+  "K74": {"Child-Pugh A": 0.15, "Child-Pugh B": 0.50, "Child-Pugh C": 0.85}
+  # Hoehn & Yahr stages 1-5 for Parkinson's disease (Hoehn & Yahr
+  # 1967 Neurology). Severity rises steeply at stage 3 (postural
+  # instability, falls become a dominant concern) and plateaus
+  # near 1.0 at stage 5 (bedridden, requires full-time nursing).
+  "G20": {"H&Y 1": 0.10, "H&Y 2": 0.25, "H&Y 3": 0.50, "H&Y 4": 0.75, "H&Y 5": 0.90}
+  # AHA/ACC/HRS 2024 AF Guideline classification: paroxysmal
+  # (self-terminating / < 7 days) → persistent (>= 7 days or
+  # requires cardioversion) → long-standing persistent (>= 1 year
+  # continuous, rhythm control still attempted) → permanent (both
+  # patient and clinician accept continuous AF, no further
+  # rhythm-control attempts). Severity reflects stroke/HF/
+  # thromboembolism risk accumulation, which climbs with
+  # arrhythmia burden regardless of individual symptomatology.
+  "I48":
+    "Paroxysmal": 0.15
+    "Persistent": 0.35
+    "Long-standing persistent": 0.55
+    "Permanent": 0.70
+  # EDSS banded staging for multiple sclerosis (Kurtzke 1983
+  # Neurology). The full EDSS has 20 half-integer levels (0, 1,
+  # 1.5, ..., 10); banding into 4 clinically-meaningful groups
+  # keeps the simulator schema uniform with other staged
+  # chronic diseases while preserving the key clinical gates
+  # (ambulatory → walking impairment → wheelchair → bedridden).
+  # Severity grows faster than in G20 because MS has a
+  # steeper functional-decline curve once mobility is lost.
+  "G35":
+    "EDSS 0-2": 0.10  # Minimal / sensory-only deficits, fully ambulatory
+    "EDSS 2.5-5": 0.30  # Mild-moderate disability, ambulatory
+    "EDSS 5.5-7": 0.60  # Walking impairment, assistive device
+    "EDSS 7.5-10": 0.85  # Wheelchair → bedridden
+  # Modified Rankin Scale (van Swieten 1988 Stroke, mRS 0-5) for
+  # post-cerebral-infarction residual deficit (I69.3). mRS 6 is
+  # death and handled by community mortality (population/mortality.py), not a progression
+  # stage here. Severity rises steeply at mRS 3 (walking without
+  # assistance becomes limited) and plateaus near 1.0 at mRS 5
+  # (bedridden, requires constant nursing).
+  "I69":
+    "mRS 0": 0.05
+    "mRS 1": 0.15
+    "mRS 2": 0.30
+    "mRS 3": 0.55
+    "mRS 4": 0.75
+    "mRS 5": 0.90
+  # Issue #1137 — F32 / F33 depression severity bands keyed on
+  # PHQ-9 total score cut-points (Kroenke 2001 JGIM 16:606).
+  # Severity rises monotonically with score; "severe" exceeds the
+  # 0.5 threshold used by downstream physiology branches for
+  # vulnerable-patient gating. F32 and F33 share the same band
+  # labels + severity map (recurrent-depression trajectory shape
+  # follows single-episode once the index episode is diagnosed).
+  "F32":
+    "PHQ-9 none": 0.05
+    "PHQ-9 mild": 0.15
+    "PHQ-9 moderate": 0.35
+    "PHQ-9 moderately severe": 0.55
+    "PHQ-9 severe": 0.75
+  "F33":
+    "PHQ-9 none": 0.05
+    "PHQ-9 mild": 0.15
+    "PHQ-9 moderate": 0.35
+    "PHQ-9 moderately severe": 0.55
+    "PHQ-9 severe": 0.75
+  # F41.1 generalized anxiety severity bands keyed on GAD-7
+  # Spitzer 2006 (Arch Intern Med 166:1092) score cut-points.
+  "F41.1":
+    "GAD-7 minimal": 0.05
+    "GAD-7 mild": 0.20
+    "GAD-7 moderate": 0.45
+    "GAD-7 severe": 0.70

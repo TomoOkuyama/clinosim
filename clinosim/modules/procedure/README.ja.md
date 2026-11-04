@@ -122,8 +122,6 @@ code とともに
   (Issue #637)。
 - `clinosim.modules.procedure._surgery_thresholds` — 手術 timing,
   duration / EBL 既定値, ASA, 術中合併症, state-impact 定数 (Issue #637)。
-- `clinosim.modules.disease.acuity` — `NEURO_LOC_MONITORING_DISEASES`
-  (`_PROCEDURE_RULES` の 1 entry の疾患リスト)。
 - `clinosim.types.procedure` — `ProcedureRecord`, `RehabSession`。
 - `numpy`, `yaml`。
 

@@ -33,3 +33,15 @@ def test_heart_failure_admissions_get_the_severe_catheter_rule() -> None:
         if t == "urinary_catheter"
     ]
     assert max(probs) == 0.85
+
+
+def test_unknown_rule_ids_fail_at_load(tmp_path, monkeypatch) -> None:
+    import clinosim.modules.procedure.engine as eng
+
+    bad = {
+        "bedside_rules": [{"diseases": ["heart_failure"], "procedures": {"urinary_catheter": 0.85}}],
+        "isolated_rules": [],
+    }
+    monkeypatch.setattr(eng, "load_data_yaml", lambda _path: bad)
+    with pytest.raises(ValueError, match="heart_failure"):
+        eng._load_procedure_rules()

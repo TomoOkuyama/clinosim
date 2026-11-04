@@ -67,7 +67,7 @@ slice list): [`docs/reference/oncology-obstetric-service-lines.md`](../../../doc
   distribution sampling with condition-based modifiers and minimum
   clamping; canonical severity category ↔ score mapping; canonical
   acuity-tier disease sets (`EMERGENCY_PRIORITY_DISEASES`,
-  `CRITICAL_MONITORING_DISEASES`, `NEURO_LOC_MONITORING_DISEASES`);
+  `CRITICAL_MONITORING_DISEASES`);
   drug-block route + duration validation (Issue #455 / #437 family);
   chief-complaint / target-LOS / department localization helpers.
 - **In scope (import-time validation)**: every YAML is round-tripped
@@ -136,7 +136,6 @@ from clinosim.modules.disease.severity import (
 from clinosim.modules.disease.acuity import (
     EMERGENCY_PRIORITY_DISEASES,      # Encounter.priority = "EM"
     CRITICAL_MONITORING_DISEASES,     # q1-2h vitals
-    NEURO_LOC_MONITORING_DISEASES,    # airway / invasive-line procedure rule
 )
 
 # Localization helpers (country → YAML key, chief complaint, department)
@@ -270,7 +269,7 @@ what it needs directly.
 | Simulator helpers | [`clinosim/simulator/helpers.py`](../../simulator/helpers.py) | Backward-compat re-export of `disease.localization` helpers + `load_all_disease_protocols` (Issue #544). |
 | Population | [`clinosim/modules/population/engine.py`](../population/engine.py) | `sample_severity` for the hospitalization gate. |
 | Drug safety | [`clinosim/modules/drug_safety/engine.py`](../drug_safety/engine.py) | `alternatives_by_indication` for `suggest_alternative`. |
-| Clinical course / procedure | [`clinosim/modules/clinical_course/engine.py`](../clinical_course/engine.py), [`clinosim/modules/procedure/engine.py`](../procedure/engine.py) | Modifier-condition vocabulary (`EVALUABLE_CONDITIONS`, `KNOWN_MODIFIER_CONDITIONS`); `NEURO_LOC_MONITORING_DISEASES`. |
+| Clinical course / procedure | [`clinosim/modules/clinical_course/engine.py`](../clinical_course/engine.py), [`clinosim/modules/procedure/engine.py`](../procedure/engine.py) | Modifier-condition vocabulary (`EVALUABLE_CONDITIONS`, `KNOWN_MODIFIER_CONDITIONS`). |
 | Narrative | [`clinosim/modules/document/narrative/{passes,template_generator}.py`](../document/narrative/) | Reads `DiseaseProtocol.narrative` templates + `HpiTemplate` + `DischargeInstructions`. |
 
 ## Testing
