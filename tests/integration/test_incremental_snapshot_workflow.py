@@ -25,7 +25,7 @@ from clinosim.types.config import SimulatorConfig
 def _write_full_output(ds, out_dir: Path, config: SimulatorConfig) -> None:
     """CIF + FHIR + _cache_manifest.json を out_dir に書く。"""
     from clinosim.modules.output.cif_writer import write_cif
-    from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
+    from clinosim.modules.output.fhir_r4 import convert_cif_to_fhir
 
     (out_dir / "cif").mkdir(parents=True, exist_ok=True)
     (out_dir / "fhir_r4").mkdir(parents=True, exist_ok=True)

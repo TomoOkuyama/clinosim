@@ -6,7 +6,7 @@ Split from `clinosim/simulator/cli.py` — see PR K.
 from __future__ import annotations
 
 import os
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from clinosim import __version__ as _clinosim_version
@@ -105,7 +105,7 @@ def _run_test_encounter_debug(args: Any) -> None:
             household_id=f"HH-TEST-{i + 1:04d}",
             age=age,
             sex=sex,
-            date_of_birth=__import__("datetime").date(2024 - age, 1, 1),
+            date_of_birth=date(2024 - age, 1, 1),
         )
         patient = activate_patient(person, rng, _demo)
 
@@ -185,7 +185,7 @@ def _run_test_encounter_generate(args: Any) -> None:
             household_id=f"HH-TEST-{i + 1:04d}",
             age=age,
             sex=sex,
-            date_of_birth=__import__("datetime").date(2024 - age, 1, 1),
+            date_of_birth=date(2024 - age, 1, 1),
         )
         patient = activate_patient(person, rng, _demo)
 

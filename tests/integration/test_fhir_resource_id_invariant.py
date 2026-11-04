@@ -39,7 +39,7 @@ import os
 import pytest
 
 from clinosim.modules.output.cif_writer import write_cif
-from clinosim.modules.output.fhir_r4_adapter import (
+from clinosim.modules.output.fhir_r4 import (
     _fhir_id_is_spec_valid,
     convert_cif_to_fhir,
 )

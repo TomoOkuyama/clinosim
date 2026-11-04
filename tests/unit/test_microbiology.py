@@ -7,7 +7,7 @@ from datetime import datetime
 
 import pytest
 
-import clinosim.modules.output.fhir_r4_adapter as fhir
+import clinosim.modules.output.fhir_r4 as fhir
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules.observation.microbiology import (
@@ -152,7 +152,7 @@ class TestFhirBuilder:
         # Mimics the MicrobiologyResult shape hai/enricher.py builds (only
         # specimen / specimen_snomed / test_loinc / growth / organism_snomed /
         # hai_event_id set) — proves the single change point in
-        # _fhir_microbiology.py covers HAI-derived cultures too, since both
+        # fhir_r4/labs/microbiology.py covers HAI-derived cultures too, since both
         # sources carry the same country-neutral `specimen` key.
         hai_culture = {
             "encounter_id": "ENC-HAI",

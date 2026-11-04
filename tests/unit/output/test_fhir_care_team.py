@@ -287,7 +287,7 @@ def test_jp_locale_category_display_in_ja():
     ctx = _make_ctx([_inpatient_enc_dataclass()], country="jp")
     ct = _bb_care_teams(ctx)[0]
     # Session 57 v3: category is emitted as a text-only CodeableConcept
-    # (see _fhir_care_team.py history block for the SNOMED-loadout rationale).
+    # (see fhir_r4/encounters/care_team.py history block for the SNOMED-loadout rationale).
     display = ct["category"][0]["text"]
     assert any("　" <= ch <= "鿿" or "゠" <= ch <= "ヿ" for ch in display), (
         f"Expected Japanese characters in category text, got: {display!r}"

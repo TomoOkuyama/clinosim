@@ -4,7 +4,7 @@ Pins that:
 1. `hl7-admit-source.yaml` no longer defines `hosp` (which is NOT in
    authoritative HL7 admit-source CS r4 7.2.0), and
 2. `other` is defined instead (authoritative fallback for unspecified source),
-3. the `_fhir_encounter.py` IMP hospitalization fallback emits `other`,
+3. the `fhir_r4/encounters/encounter.py` IMP hospitalization fallback emits `other`,
    not `hosp`.
 
 authoritative HL7 admit-source concepts (r4 7.2.0):

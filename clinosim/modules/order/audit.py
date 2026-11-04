@@ -4,7 +4,7 @@ Registered checks (canonical_constants + lift_firing_proof + clinical_acceptance
 
 - canonical_constants: SR_ID_PREFIX / PLACER_ORDER_NUMBER_SYSTEM /
   LAB_CATEGORY_SNOMED / LAB_CATEGORY_V2_0074 verified against the
-  production constants in _fhir_service_request.py.
+  production constants in fhir_r4/labs/service_request.py.
 
 - lift_firing_proof (_build_order_proof): exercises _bb_service_requests
   on synthetic Orders. 7 equality_checks assert:

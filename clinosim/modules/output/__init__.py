@@ -2,7 +2,7 @@
 builders (AD-56). Re-exports the public registration entry points."""
 
 from clinosim.modules.output.adapter import register_output_adapter
-from clinosim.modules.output.fhir_r4_adapter import (
+from clinosim.modules.output.fhir_r4 import (
     available_builders,
     register_bundle_builder,
 )

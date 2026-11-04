@@ -122,7 +122,7 @@ def load_panel_definitions() -> dict[str, dict[str, Any]]:
     Key order matches the YAML insertion order, which is the grouping priority
     (ABG > CBC > BMP > LFT > Lipid > Coag > UA) — this order is load-bearing
     for ``classify_lab_specs`` and for ``group_lab_orders`` in
-    ``_fhir_diagnostic_report.py`` (both iterate panels.items()).
+    ``fhir_r4/labs/diagnostic_report.py`` (both iterate panels.items()).
 
     Returns:
         Validated dict mapping panel name → panel definition dict.

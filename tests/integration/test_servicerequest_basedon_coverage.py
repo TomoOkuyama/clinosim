@@ -13,7 +13,7 @@ import pytest
 from clinosim.modules.output.fhir_r4.labs.service_request import LAB_CATEGORY_V2_0074
 from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
 
-# Microbiology observation IDs use these prefixes (from _fhir_microbiology.py).
+# Microbiology observation IDs use these prefixes (from fhir_r4/labs/microbiology.py).
 # PR1 covers lab panel orders only; microbiology ServiceRequests are future work.
 _MB_ID_PREFIXES = ("mb-org-", "mb-sus-")
 

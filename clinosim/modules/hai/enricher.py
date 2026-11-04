@@ -3,7 +3,7 @@
 Consumes extensions["device"] from PR-A. Samples HAI onsets via CDC NHSN
 per-line-day risk rates, writes list[HAIEvent] under extensions["hai"],
 appends a MicrobiologyResult to record.microbiology so the existing
-_fhir_microbiology.py builder emits the culture automatically.
+fhir_r4/labs/microbiology.py builder emits the culture automatically.
 Independent per-patient sub-seed (ENRICHER_SEED_OFFSETS["hai"] = 0x4841
 "HA") keeps the main RNG untouched (AD-16).
 """
@@ -194,7 +194,7 @@ def _append_hai_culture(
     antibiogram_cfg: dict,
     rng: np.random.Generator,
 ) -> None:
-    """Append a MicrobiologyResult so _fhir_microbiology.py emits the culture.
+    """Append a MicrobiologyResult so fhir_r4/labs/microbiology.py emits the culture.
 
     Populates susceptibilities via NHSN-anchored antibiogram lookup keyed by
     (hai_type, organism_snomed). Sets hai_event_id as a backref for PR3b-3.

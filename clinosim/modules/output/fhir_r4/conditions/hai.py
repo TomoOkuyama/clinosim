@@ -2,7 +2,7 @@
 
 Reads list[HAIEvent] from ctx.record.extensions["hai"] and emits one
 Condition per HAI. Cultures are emitted by the existing
-_fhir_microbiology.py builder via record.microbiology (no overlap).
+fhir_r4/labs/microbiology.py builder via record.microbiology (no overlap).
 Dual coding: US uses ICD-10-CM billable; JP uses WHO ICD-10 4-char
 via existing code_mapping_diagnosis/jp.yaml; SNOMED international
 common to both. The ctx-taking builder imports the shared

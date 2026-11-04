@@ -5,7 +5,7 @@ extensions["hai"] from PR-B. For each HAIEvent whose onset is on/before
 the snapshot date (AD-32 future-onset skip), materializes the IDSA
 empirical regimen as:
   - 1 Order(MEDICATION) per drug, appended to record.orders, so the
-    existing _fhir_medications.py builder emits MedicationRequest.
+    existing fhir_r4/medications/medications.py builder emits MedicationRequest.
   - N MedicationAdministration per regimen, appended to
     record.medication_administrations, so the same builder emits MAR.
   - 1 AntibioticRegimen per drug, appended to

@@ -74,7 +74,7 @@ from clinosim.simulator._unknown_condition_thresholds import (
     UNK_TARGET_LOS_MIN,
     UNK_WARD_CAPACITY_DEFAULT,
 )
-from clinosim.simulator.helpers import pick_ward, resolve_department
+from clinosim.simulator.hospital_ops import pick_ward, resolve_department
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
 from clinosim.types.config import HealthcareSystemConfig, SimulatorConfig
 from clinosim.types.encounter import (
@@ -371,11 +371,9 @@ def _simulate_unknown_condition(
     # (workup finds something, but not a definitive diagnosis)
     if rng.random() < UNK_PARTIAL_RESOLUTION_PROBABILITY:
         discharge_code = "R50.9" if "fever" in event.disease_id else "R53.1"
-        "Unresolved " + complaint
     else:
         # Partially resolved: nonspecific diagnosis assigned
         discharge_code = "R50.9" if "fever" in event.disease_id else "R68.8"
-        complaint.title() + " (under investigation, outpatient follow-up)"
 
     # Set encounter_id for all orders that don't have one — mirrors the
     # identical loop in simulate_inpatient (line 361-363). Without this,

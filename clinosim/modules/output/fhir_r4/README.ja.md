@@ -196,7 +196,6 @@ clinosim/modules/output/fhir_r4/
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
 | Built-in FHIR adapter | [`../adapters_builtin.py`](../adapters_builtin.py) (`FhirR4Adapter.convert`) | AD-58 registry のため `convert_cif_to_fhir` を wrap。 |
-| Backwards-compat shim | [`../fhir_r4_adapter.py`](../fhir_r4_adapter.py) | pre-migration caller のため公開面全体を再 export (Issue #555 PR1)。 |
 | Downstream tools | (外部) | Bulk Data Access spec に沿った NDJSON + manifest.json — HAPI FHIR, InferNo 等。 |
 
 ## テスト

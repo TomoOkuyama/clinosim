@@ -26,30 +26,13 @@ from typing import Any
 
 import numpy as np
 
-# ---------------------------------------------------------------------------
-# Backward-compat re-exports (Issue #544). Permanent compatibility shim —
-# import from the topic module directly in new code, but existing call
-# sites may continue to use these aliases indefinitely.
-# ---------------------------------------------------------------------------
 from clinosim.codes.drugs import drug_ref, get_drug
-from clinosim.modules.disease.localization import (  # noqa: F401
-    _country_to_yaml_key,
-    _disease_chief_complaint,
-    _disease_chief_complaint_ja,
-    _disease_to_department,
-)
 from clinosim.modules.disease.protocol import (
     DiseaseProtocol,
     load_all_disease_protocols,
     load_disease_protocol,
 )
 from clinosim.modules.population.engine import HospitalizationSummary, LifeEvent
-from clinosim.simulator.discharge_gate import (  # noqa: F401
-    _check_discharge_ready,
-    _evaluate_mortality,
-    _evaluate_readmission,
-)
-from clinosim.simulator.hospital_ops import pick_ward, resolve_department  # noqa: F401
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import HomeMedication, PatientProfile
@@ -65,19 +48,7 @@ __all__ = [
     # `_load_all_disease_protocols` was removed after its one-release
     # deprecation cycle; import `load_all_disease_protocols` directly.
     "load_all_disease_protocols",
-    # Issue #544 re-exports (kept for one deprecation cycle; import from the
-    # topic module in new code — mypy-strict requires explicit `__all__`
-    # membership for underscore-prefixed re-exports).
-    "_country_to_yaml_key",
-    "_disease_chief_complaint",
-    "_disease_chief_complaint_ja",
-    "_disease_to_department",
-    "_check_discharge_ready",
-    "_evaluate_mortality",
-    "_evaluate_readmission",
-    "pick_ward",
-    "resolve_department",
-    # Housekeeping helpers that still live here (see follow-up cycle).
+    # Housekeeping helpers that still live here.
     "_deactivate_to_layer1",
     "_select_secondary_disease",
     "_determine_route",

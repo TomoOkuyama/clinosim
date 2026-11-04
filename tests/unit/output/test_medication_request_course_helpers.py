@@ -1,6 +1,6 @@
 """Lock the two MedicationRequest.courseOfTherapyType rules (Issue #548 partial).
 
-`_fhir_medications.py` has two callers that emit `courseOfTherapyType` under
+`fhir_r4/medications/medications.py` has two callers that emit `courseOfTherapyType` under
 DIFFERENT rules. Named helpers make the divergence explicit at every call
 site (see the module docstring for the reasoning). These tests lock:
 

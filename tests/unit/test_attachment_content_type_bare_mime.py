@@ -20,9 +20,9 @@ UTF-8 は FHIR 全体の default 前提で semantic loss なし。
 ## 対象 emitter (全 6 箇所)
 
 - `clinosim/types/clinical.py` — `ClinicalDocument.content_type` default
-- `clinosim/modules/output/_fhir_common.py` — presentedForm builder
-- `clinosim/modules/output/_fhir_documents.py` — DocumentReference builder fallback
-- `clinosim/modules/output/_fhir_document_reference_checkup.py` — checkup DR fallback
+- `clinosim/modules/output/fhir_r4/lib/common.py` — presentedForm builder
+- `clinosim/modules/output/fhir_r4/documents/documents.py` — DocumentReference builder fallback
+- `clinosim/modules/output/fhir_r4/documents/document_reference_checkup.py` — checkup DR fallback
 - `clinosim/modules/document/audit.py` — audit proof literals(2 箇所)
 """
 

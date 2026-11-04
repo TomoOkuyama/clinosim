@@ -32,7 +32,7 @@ from clinosim.types.document import (
 # DOC_REFERENCE_ID_PREFIX: FHIR DocumentReference.id = "doc-{encounter_id}-{seq}"
 # COMPOSITION_ID_PREFIX:   FHIR Composition.id      = "comp-{encounter_id}-{seq}"
 # ALLERGY_ID_PREFIX:       document module convention for referencing Allergy FHIR resources
-#   NOTE: _fhir_patient.py uses "allergy-{patient_id}-{index:02d}" inline;
+#   NOTE: fhir_r4/demographics/patient.py uses "allergy-{patient_id}-{index:02d}" inline;
 #   this constant canonicalises the prefix for Task 9 FHIR builders. (concern logged)
 # CLINICAL_IMPRESSION_ID_PREFIX: FHIR ClinicalImpression.id = "ci-{encounter_id}-{day}"
 DOC_REFERENCE_ID_PREFIX = "doc-"

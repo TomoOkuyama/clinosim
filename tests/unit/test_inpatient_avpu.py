@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from clinosim.simulator.inpatient import _loc_for
+from clinosim.simulator.vitals_pipeline import _loc_for
 from clinosim.types.clinical import PhysiologicalState
 
 pytestmark = pytest.mark.unit

@@ -205,7 +205,7 @@ def test_jp_care_team_count_matches_encounter_count(jp_export_dir: Path) -> None
         f"{real_encounter_count} (total encounters incl. synth ED: "
         f"{len(encounters)}) — CareTeam 1:1-with-Encounter invariant "
         "violated for JP cohort. Check if JP locale gating in "
-        "_fhir_care_team.py is filtering encounters."
+        "fhir_r4/encounters/care_team.py is filtering encounters."
     )
 
 

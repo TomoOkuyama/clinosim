@@ -26,7 +26,7 @@ format_type string match; no engine code changes required):
 
 COMPOSITION format docs (ADMISSION_HP, DISCHARGE_SUMMARY, ADMISSION_NURSING_
 ASSESSMENT, NURSING_DISCHARGE_SUMMARY, OUTPATIENT_SOAP, ED_NOTE) are handled
-by _fhir_composition.py; this builder skips them. QUESTIONNAIRE_RESPONSE is
+by fhir_r4/documents/composition.py; this builder skips them. QUESTIONNAIRE_RESPONSE is
 infrastructure-stub (Task 7) and not yet emitted.
 """
 
@@ -108,7 +108,7 @@ __all__ = [
 def _bb_document_references(ctx: BundleContext) -> list[dict[str, Any]]:
     """Bundle builder: emit DocumentReference for record.documents where format_type='free_text'.
 
-    COMPOSITION format docs are handled by _fhir_composition.py; this builder
+    COMPOSITION format docs are handled by fhir_r4/documents/composition.py; this builder
     skips them. QUESTIONNAIRE_RESPONSE is infrastructure-stub (Task 7) and
     not yet emitted.
 

@@ -320,7 +320,7 @@ def test_mb_org_id_prefix_canonical_constant() -> None:
 
     assert MB_ORG_ID_PREFIX == "mb-org-"
     # The audit helper must import the same constant — proving they're
-    # coupled and a future rename in _fhir_microbiology.py will trigger
+    # coupled and a future rename in fhir_r4/labs/microbiology.py will trigger
     # an import-time NameError in clinical.py, not a silent-no-op.
     import clinosim.audit.axes.clinical as _mod
 

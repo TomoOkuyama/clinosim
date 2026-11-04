@@ -6,7 +6,7 @@
 
 import pytest
 
-from clinosim.modules.output import fhir_r4_adapter as fa
+from clinosim.modules.output import fhir_r4 as fa
 from clinosim.simulator import enrichers as en
 from clinosim.simulator.enrichers import Enricher, EnricherContext
 

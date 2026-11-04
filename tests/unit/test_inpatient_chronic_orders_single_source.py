@@ -25,7 +25,7 @@ from datetime import datetime
 
 import numpy as np
 
-from clinosim.simulator.inpatient import _generate_home_medication_orders
+from clinosim.simulator.medication_pipeline import _generate_home_medication_orders
 
 
 def test_orders_match_current_medications_exactly(patient_factory):

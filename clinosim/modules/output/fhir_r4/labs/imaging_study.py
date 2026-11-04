@@ -21,7 +21,7 @@ No-drop invariant: every populated CIF field maps to a FHIR target
 Canonical constant ownership:
 - IMAGING_STUDY_ID_PREFIX, ENDPOINT_ID_PREFIX: engine.py (writer-owner),
   imported here for use + re-export (silent-no-op defense Layer 2).
-- SR_ID_PREFIX: _fhir_service_request.py (writer-owner), imported for
+- SR_ID_PREFIX: fhir_r4/labs/service_request.py (writer-owner), imported for
   basedOn reference construction.
 - DICOM_UID_SYSTEM: defined here (FHIR/DICOM standard constant).
 """

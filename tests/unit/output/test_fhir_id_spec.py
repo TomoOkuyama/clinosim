@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.fhir_r4_adapter import _fhir_id_is_spec_valid
+from clinosim.modules.output.fhir_r4 import _fhir_id_is_spec_valid
 
 pytestmark = pytest.mark.unit
 

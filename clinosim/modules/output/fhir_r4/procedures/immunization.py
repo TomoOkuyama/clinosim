@@ -2,7 +2,7 @@
 
 Builds FHIR Immunization resources (not Observation; resource type
 distinct) from CIF ImmunizationRecord entries. Extracted from
-_fhir_observations.py in PR3 (AD-55 Module Foundation Refactor final
+fhir_r4/labs/observations.py in PR3 (AD-55 Module Foundation Refactor final
 piece). The ctx-taking builder imports the shared BundleContext from
 _fhir_common, so this module never imports back through the adapter
 (no cycle).

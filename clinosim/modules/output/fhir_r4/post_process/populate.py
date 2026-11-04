@@ -650,7 +650,7 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
         #   元の狙いに復帰し、`periodUnit` + `period` を pop する
         #   (tim-2 non-fire + UnitsOfTime binding 対象外)。
         #
-        # US 側は影響なし(この walker は JP-only、_fhir_common.py の
+        # US 側は影響なし(この walker は JP-only、fhir_r4/lib/common.py の
         # `period + periodUnit` はそのまま emit される。US は FHIR R4
         # 標準 validator が `code` binding を通す仕様)。
         repeat = timing.get("repeat")

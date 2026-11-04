@@ -1,10 +1,8 @@
-"""Inline bundle builders for `fhir_r4_adapter.py`.
-
-Split from `clinosim/modules/output/fhir_r4_adapter.py` — see PR L.
+"""Inline bundle builders registered by ``fhir_r4/builder.py``.
 
 Each `_bb_*` function takes a `BundleContext` and returns a list of FHIR
-resource dicts. They complement the per-theme `_fhir_*.py` builders (which
-are imported into `fhir_r4_adapter.py` alongside these).
+resource dicts. They sit beside the per-theme builders under
+``clinosim/modules/output/fhir_r4/`` (labs, medications, encounters, ...).
 
 Contains:
   - _bb_patient
@@ -18,10 +16,6 @@ Contains:
   - _bb_medication_admins (+ helper build_order_in_rp_map)
   - _bb_procedures
   - _bb_practitioners
-
-The full adapter header (imports + module constants) is inlined below so
-every symbol these builders reference is visible without a circular import
-back into `fhir_r4_adapter.py`.
 """
 
 from __future__ import annotations
@@ -29,139 +23,45 @@ from __future__ import annotations
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
-from clinosim.codes.loinc import loinc_coding  # noqa: F401  (re-exported for builders)
 from clinosim.codes.snomed import snomed_for_phrase
 from clinosim.countries import lang_for
 from clinosim.locale.free_text import localize_procedure_name
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp
-from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import (  # noqa: F401
-    _bb_allergy_intolerances,
-)
-from clinosim.modules.output.fhir_r4.conditions.clinical_impression import (  # noqa: F401
-    _bb_clinical_impressions,
-)
-from clinosim.modules.output.fhir_r4.conditions.code_status import _bb_code_status  # noqa: F401
-from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions  # noqa: F401
-from clinosim.modules.output.fhir_r4.conditions.hai import _bb_hai_conditions  # noqa: F401
-from clinosim.modules.output.fhir_r4.demographics.family_history import _bb_family_history  # noqa: F401
-from clinosim.modules.output.fhir_r4.demographics.patient import (  # noqa: F401
-    _SUBSCRIBER_REL_SYSTEM,
+from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions
+from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_coverage_resources,
     _build_occupation_observation,
     _build_patient,
-    _identity_cfg,
-    _payer_name_map,
     patient_ref,
 )
-from clinosim.modules.output.fhir_r4.demographics.practitioner import (  # noqa: F401
+from clinosim.modules.output.fhir_r4.demographics.practitioner import (
     _build_practitioner,
     _build_practitioner_role,
 )
-from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (  # noqa: F401
-    _bb_alcohol_use,
-    _bb_smoking_status,
-)
-from clinosim.modules.output.fhir_r4.documents.composition import (  # noqa: F401
-    _bb_compositions,
-)
-from clinosim.modules.output.fhir_r4.documents.document_reference_checkup import (  # noqa: F401
-    _bb_document_references_checkup,
-)
-from clinosim.modules.output.fhir_r4.documents.documents import (  # noqa: F401
-    _bb_document_references,
-)
-from clinosim.modules.output.fhir_r4.encounters.care_level import _bb_care_level  # noqa: F401
-from clinosim.modules.output.fhir_r4.encounters.care_team import (  # noqa: F401
-    _bb_care_teams,
-)
-from clinosim.modules.output.fhir_r4.encounters.encounter import (  # noqa: F401
+from clinosim.modules.output.fhir_r4.encounters.encounter import (
     _build_encounter,
-    _compute_encounter_length,
     encounter_ref,
 )
-from clinosim.modules.output.fhir_r4.encounters.endpoint import (  # noqa: F401
-    _bb_endpoints,
-)
-from clinosim.modules.output.fhir_r4.encounters.facility import _build_facility_bundle  # noqa: F401
-from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (  # noqa: F401
-    _bb_diagnostic_reports,
-    build_lab_panel_reports,  # kept for backward compat (tests + external callers)
-)
-from clinosim.modules.output.fhir_r4.labs.imaging_study import (  # noqa: F401
-    _bb_imaging_studies,
-)
-from clinosim.modules.output.fhir_r4.labs.microbiology import _bb_microbiology  # noqa: F401
-from clinosim.modules.output.fhir_r4.labs.observations import (  # noqa: F401
-    _bb_labs,
-    _build_lab_observation,
+from clinosim.modules.output.fhir_r4.labs.observations import (
     _build_vital_observations,
 )
-from clinosim.modules.output.fhir_r4.labs.service_request import (  # noqa: F401
-    _bb_service_requests,
-)
-
-# FA-1 (Phases 1-13) split this adapter's leaf data, shared fragment helpers, and
-# per-theme resource builders into sibling _fhir_* modules. The blocks below are
-# re-imported here so existing `from ...fhir_r4_adapter import X` call sites keep
-# working (facade). They are marked # noqa: F401 because many symbols are now used
-# only by the extracted modules (which import them directly) and are re-exported
-# purely as a compatibility facade; the # noqa keeps the facade stable as further
-# builders move out, without per-symbol import churn each phase.
-from clinosim.modules.output.fhir_r4.lib.common import (  # noqa: F401
+from clinosim.modules.output.fhir_r4.lib.common import (
     BundleContext,
-    _parse_dose_for_mar,
-    _sha1_b64,
-    build_address,
-    build_diagnosis_codeable_concept,
-    build_dosage_instruction,
-    build_reference_range,
-    build_telecom,
     dual_slot_concept,
-    entry,
-    infer_severity,
-    make_participant,
-    map_diagnosis_code,
-    map_encounter_status,
-    map_mar_status,
-    severity_coding,
-    strip_protocol_prefix,
-    survey_category,
     system_coding,
 )
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
-from clinosim.modules.output.fhir_r4.lib.localization import (  # noqa: F401
-    _ROLE_PREFIX_MAP_JA,
-    FREQUENCY_TEXT,
-    ROUTE_TEXT,
-    _dept_display,
-    _load_department_display,
-    _load_med_terms_ja,
-    _load_narrative_display_dict,
-    _localize_dosage_terms,
-    _localize_drug_name,
-    _procedure_display,
-)
-from clinosim.modules.output.fhir_r4.lib.reference_data import (  # noqa: F401
-    _ROUTE_SNOMED,
-    _SEVERITY_SNOMED,
-)
-from clinosim.modules.output.fhir_r4.medications.medications import (  # noqa: F401
+from clinosim.modules.output.fhir_r4.medications.medications import (
     _build_discharge_medication_request,
     _build_medication_admin,
     _build_medication_request,
     _dedup_same_class_orders,
     _resolve_mr_id,
 )
-from clinosim.modules.output.fhir_r4.procedures.device import (  # noqa: F401
-    _bb_device,
-    _bb_device_use,
-)
-from clinosim.modules.output.fhir_r4.procedures.immunization import _bb_immunizations  # noqa: F401
-from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations  # noqa: F401
 from clinosim.modules.output.fhir_r4.procedures.procedures import (
     PROCEDURE_KEY_SYSTEM,
-    _build_procedure,  # noqa: F401
+    _build_procedure,
     _resolve_procedure_id,
 )
 
@@ -1047,7 +947,7 @@ def _bb_practitioners(ctx: BundleContext) -> list[dict]:
     # C2-09: also emit every pharmacist in the roster so
     # CareTeam.participant refs to `Practitioner/PH-*` (C1-15 fix) resolve.
     # Pharmacists are assigned deterministically by encounter-id hash in
-    # _fhir_care_team.py, so any pharmacist in the roster might be referenced.
+    # fhir_r4/encounters/care_team.py, so any pharmacist in the roster might be referenced.
     for sid, staff in (ctx.roster_map or {}).items():
         if (staff.get("role", "") or "") == "pharmacist":
             add(sid)

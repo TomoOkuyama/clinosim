@@ -321,7 +321,7 @@ def _simulate_outpatient_visit(
                 },
             )
             chief = resolve_text(raw_chief, country=country)
-        except (FileNotFoundError, Exception):
+        except FileNotFoundError:
             chief = t("encounter_intent.followup", lang_for(country), code=chronic_code)
 
     encounter = create_inpatient_encounter(
@@ -640,7 +640,7 @@ def _simulate_outpatient_visit(
 
             enc_proto = load_encounter_condition(chronic_code)
             dx_code = enc_proto.get("icd10_code", "")
-        except (FileNotFoundError, Exception):
+        except FileNotFoundError:
             pass
 
     # Second priority: chronic condition ICD code directly

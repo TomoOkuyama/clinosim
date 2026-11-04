@@ -113,7 +113,7 @@ def jp_bacterial_pneumonia_resources(tmp_path_factory):
     from pathlib import Path
 
     from clinosim.modules.output.cif_writer import write_cif
-    from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
+    from clinosim.modules.output.fhir_r4 import convert_cif_to_fhir
     from clinosim.simulator.engine import run_forced
     from clinosim.types.config import SimulatorConfig, load_patient_profile
 

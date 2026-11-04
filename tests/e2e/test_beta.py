@@ -6,7 +6,7 @@ import pytest
 
 from clinosim.modules.output.cif_writer import write_cif
 from clinosim.modules.output.csv_adapter import convert_cif_to_csv
-from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
+from clinosim.modules.output.fhir_r4 import convert_cif_to_fhir
 from clinosim.modules.validator.benchmarks import run_benchmarks
 from clinosim.simulator import run_beta
 from clinosim.types.config import SimulatorConfig

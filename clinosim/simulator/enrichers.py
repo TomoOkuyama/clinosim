@@ -325,7 +325,7 @@ def register_builtin_enrichers() -> None:
     # onset sampling from PR-A device line-days using CDC NHSN baseline
     # per-line-day risk rates. Reads extensions["device"], writes
     # extensions["hai"] + appends MicrobiologyResult to record.microbiology
-    # (existing _fhir_microbiology.py emits the culture chain). Always-on.
+    # (existing fhir_r4/labs/microbiology.py emits the culture chain). Always-on.
     # Order 80 ensures hai runs AFTER device (70) so extensions["device"]
     # is populated by the time hai walks it.
     from clinosim.modules.hai.enricher import enrich_hai

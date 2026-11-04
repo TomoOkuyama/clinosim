@@ -2,7 +2,7 @@
 
 Reads list[DeviceRecord] from ctx.record.extensions['device'] and emits
 one Device + one DeviceUseStatement per record. PR-A introduces this
-file; Phase 2 will add _fhir_hai.py beside it. The ctx-taking builders
+file; Phase 2 will add fhir_r4/conditions/hai.py beside it. The ctx-taking builders
 import the shared BundleContext from _fhir_common, so this module never
 imports back through the adapter (no cycle).
 """

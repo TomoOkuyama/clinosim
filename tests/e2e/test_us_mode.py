@@ -75,7 +75,7 @@ class TestUSMode:
 
     def test_fhir_output_uses_loinc(self, us_dataset, tmp_path):
         from clinosim.modules.output.cif_writer import write_cif
-        from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
+        from clinosim.modules.output.fhir_r4 import convert_cif_to_fhir
 
         cif_dir = str(tmp_path / "cif")
         fhir_dir = str(tmp_path / "fhir")

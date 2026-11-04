@@ -239,7 +239,7 @@ class ClinicalImpressionRecord:
     practitioner_id: str = ""  # 主治医
     # AD-32 snapshot semantics: True only for the current (latest) day of an in-progress
     # encounter. All prior days remain "completed" (clinical picture was fully documented).
-    # Drives ClinicalImpression.status "in-progress" vs "completed" in _fhir_clinical_impression.py.
+    # Drives ClinicalImpression.status "in-progress" vs "completed" in fhir_r4/conditions/clinical_impression.py.
     is_in_progress: bool = False
     # session-88j P1-12: LOINC visit-type code for
     # ClinicalImpression.code (was null for 7,764/7,764 in v14 review).

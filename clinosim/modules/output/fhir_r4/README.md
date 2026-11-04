@@ -201,7 +201,6 @@ offset in `ENRICHER_SEED_OFFSETS`.
 | Consumer | Where | Role |
 |---|---|---|
 | Built-in FHIR adapter | [`../adapters_builtin.py`](../adapters_builtin.py) (`FhirR4Adapter.convert`) | Wraps `convert_cif_to_fhir` for the AD-58 registry. |
-| Backwards-compat shim | [`../fhir_r4_adapter.py`](../fhir_r4_adapter.py) | Re-exports the whole public surface for pre-migration callers (Issue #555 PR1). |
 | Downstream tools | (external) | NDJSON + manifest.json per Bulk Data Access spec — HAPI FHIR, InferNo, etc. |
 
 ## Testing

@@ -300,7 +300,7 @@ def _is_lab_observation(resource: dict) -> bool:
     eCS covers chemistry / hematology / serology only; microbiology and
     pathology are explicitly out of scope in the profile's prose
     (spec: "細菌検査(塗抹・培養・感受性)および病理はスコープ外").
-    Microbiology Observations are emitted by ``_fhir_microbiology.py``
+    Microbiology Observations are emitted by ``fhir_r4/labs/microbiology.py``
     with ``id`` prefixes ``mb-org-*`` / ``mb-sus-*``. Silent-fallback via
     id-prefix is intentional: category is a display concern (all lab-like
     results carry ``laboratory``), while profile stacking is a spec-scope
@@ -326,7 +326,7 @@ def _is_lab_observation(resource: dict) -> bool:
 
     NOTE: this predicate ONLY governs eCS stacking. The parent
     ``JP_Observation_LabResult`` (JP Core) is still emitted on
-    microbiology Observations by ``_fhir_microbiology.py`` line ~227 —
+    microbiology Observations by ``fhir_r4/labs/microbiology.py`` line ~227 —
     that too is non-compliant (correct target is
     ``JP_Observation_Microbiology``, JP Core 1.2.0). Tracked in
     TODO.md § T67-M1. Excluding only from eCS stacking here keeps this

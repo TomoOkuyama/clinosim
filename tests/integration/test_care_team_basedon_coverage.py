@@ -50,7 +50,7 @@ def test_care_team_subject_ref_resolves() -> None:
             "_bb_care_teams builder may not be registered or firing (silent-no-op)."
         )
         assert any(ct.get("subject") for ct in care_teams), (
-            "No CareTeam has a subject field — silent-no-op in _fhir_care_team.py builder"
+            "No CareTeam has a subject field — silent-no-op in fhir_r4/encounters/care_team.py builder"
         )
 
         dangling: list[str] = []
@@ -80,7 +80,7 @@ def test_care_team_encounter_ref_resolves() -> None:
             "CareTeam builder may not be firing (silent-no-op)."
         )
         assert any(ct.get("encounter") for ct in care_teams), (
-            "No CareTeam has an encounter field — silent-no-op in _fhir_care_team.py builder"
+            "No CareTeam has an encounter field — silent-no-op in fhir_r4/encounters/care_team.py builder"
         )
 
         dangling: list[str] = []
@@ -130,7 +130,7 @@ def test_care_team_attending_physician_ref_resolves() -> None:
         if not care_teams_with_participants:
             pytest.skip(
                 "No CareTeam has participant[] — attending_physician_id may be empty "
-                "for all encounters in this cohort. Investigate _fhir_care_team.py."
+                "for all encounters in this cohort. Investigate fhir_r4/encounters/care_team.py."
             )
 
         # Strict check: attending physician (participant[0]) must ALWAYS resolve

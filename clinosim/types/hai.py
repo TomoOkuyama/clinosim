@@ -14,7 +14,7 @@ class HAIEvent:
     rates against PR-A device line-days. A corresponding
     MicrobiologyResult is appended to record.microbiology to satisfy
     the CDC culture-confirmation criterion (emitted by the existing
-    _fhir_microbiology.py builder).
+    fhir_r4/labs/microbiology.py builder).
     """
 
     hai_id: str

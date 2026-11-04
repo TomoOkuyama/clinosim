@@ -78,7 +78,7 @@ _SEVERITY_SNOMED.update(_snomed_rows("severity"))
 # (166 MedicationAdministration + 6 MedicationRequest) were text-only, all `NEB`.
 #
 # That these are real abbreviations rather than typos is corroborated by the sibling
-# JP display map `_ROUTE_JA` (`_fhir_localization.py`), which already carries
+# JP display map `_ROUTE_JA` (`fhir_r4/lib/localization.py`), which already carries
 # `INH: "吸入"` — two maps over the same vocabulary disagreed.
 #
 # INVARIANT: every value here MUST be an existing `_ROUTE_SNOMED` key. This table adds
@@ -158,5 +158,5 @@ def validate_yaml_route_value(raw_route: str, source: str) -> None:
             f"{source}: unknown route value {raw_route!r} (normalized {normalized!r}). "
             f"Add to _ROUTE_SNOMED (with a verified SNOMED code), _ROUTE_ALIASES "
             f"(if it aliases an existing canonical), or _ROUTE_TEXT_ONLY_BY_DESIGN "
-            f"in clinosim/modules/output/_fhir_reference_data.py — do not guess a code."
+            f"in clinosim/modules/output/fhir_r4/lib/reference_data.py — do not guess a code."
         )

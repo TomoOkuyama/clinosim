@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from clinosim.modules.output.fhir_r4_adapter import available_builders
+from clinosim.modules.output.fhir_r4 import available_builders
 from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
 
 _LOINC_PROGRESS_NOTE = "11506-3"

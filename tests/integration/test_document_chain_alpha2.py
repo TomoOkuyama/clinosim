@@ -28,7 +28,7 @@ from pathlib import Path
 
 import pytest
 
-from clinosim.modules.output.fhir_r4_adapter import available_builders
+from clinosim.modules.output.fhir_r4 import available_builders
 from tests.integration._sr_helpers import find_ndjson, load_ndjson, run_generate
 
 # α-min-1 LOINCs (inpatient, unchanged)
@@ -98,7 +98,7 @@ def test_alpha2_care_team_count_matches_encounter_count() -> None:
             f"CareTeam count {len(care_teams)} != real Encounter count "
             f"{real_encounter_count} (total encounters incl. synth ED: "
             f"{len(encounters)}) — CareTeam 1:1-with-Encounter invariant "
-            "violated. Check _fhir_care_team.py for missing encounter dispatch."
+            "violated. Check fhir_r4/encounters/care_team.py for missing encounter dispatch."
         )
 
 

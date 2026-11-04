@@ -63,7 +63,7 @@ clinosim/
 │   ├── identity/             # Resident identifier & insurance numbering (JP, opt-in)
 │   ├── output/               # CIF / FHIR R4 / CSV + clinical documents
 │   │   ├── cif_writer.py              # CIF structural writer
-│   │   ├── fhir_r4_adapter.py         # FHIR R4 Bulk NDJSON (incl. DocumentReference)
+│   │   ├── fhir_r4/                   # FHIR R4 Bulk NDJSON (incl. DocumentReference)
 │   │   ├── csv_adapter.py             # CSV tables
 │   │   └── hospital_course_extractor.py  # ★ deterministic event extraction
 │   ├── llm_service/          # All LLM access (AD-11)

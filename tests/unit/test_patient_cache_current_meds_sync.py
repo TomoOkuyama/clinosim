@@ -48,7 +48,7 @@ import pytest
 from clinosim.locale.loader import load_demographics
 from clinosim.modules.patient.activator import activate_patient
 from clinosim.simulator.helpers import _deactivate_to_layer1
-from clinosim.simulator.inpatient import _generate_home_medication_orders
+from clinosim.simulator.medication_pipeline import _generate_home_medication_orders
 from clinosim.types.encounter import (
     Encounter,
     EncounterType,

@@ -316,7 +316,7 @@ def test_no_builder_reads_the_route_maps_directly():
     import pathlib
 
     root = pathlib.Path(__file__).resolve().parents[3] / "clinosim" / "modules" / "output"
-    exempt = {"reference_data.py", "fhir_r4_adapter.py", "common.py", "_fhir_common.py"}
+    exempt = {"reference_data.py", "fhir_r4_adapter.py", "common.py", "fhir_r4/lib/common.py"}
     offenders = {}
     for path in sorted(root.glob("*.py")):
         if path.name in exempt:
@@ -335,7 +335,7 @@ def test_common_module_confines_the_lookup_to_the_helper():
     alias-aware normalizer for downstream gates like `_is_infusion`), and
     `_validate_route_maps` (the import-time reverse-coverage guard).
 
-    All three live in `_fhir_common.py` so downstream builders import a function,
+    All three live in `fhir_r4/lib/common.py` so downstream builders import a function,
     never the underlying `_ROUTE_*` dicts (test_no_builder_reads_the_route_maps_directly).
     """
     import pathlib

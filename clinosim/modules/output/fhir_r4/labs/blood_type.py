@@ -12,7 +12,7 @@ Blood type (ABO + Rh) is:
 - **Tested at every admission** in JP hospital practice as a safety check
   (`Type & Screen` protocol), but stored persistently once verified.
 - **Represented as a separate Observation** in FHIR — neither FHIR core
-  nor JP Core defines a `Patient.bloodType` Extension. `_fhir_patient.py`
+  nor JP Core defines a `Patient.bloodType` Extension. `fhir_r4/demographics/patient.py`
   (2026-07-17) documents this and leaves the CIF `blood_type` field
   unemitted, deferring to a follow-up chain — this is that follow-up.
 

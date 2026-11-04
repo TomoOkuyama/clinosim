@@ -8,7 +8,7 @@ _fhir_common does this).
 
 Split out of the former _fhir_sdoh.py (PR2 G2 SDOH integrity refactor,
 2026-06-24) so that each SDOH topic family has its own builder file —
-care_level (JP-only) is in _fhir_care_level.py; future SDOH topics
+care_level (JP-only) is in fhir_r4/encounters/care_level.py; future SDOH topics
 (occupation/education/housing) get their own files following this pattern.
 """
 
