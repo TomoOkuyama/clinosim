@@ -16,7 +16,7 @@ C16 / C22) fired at ~70-100 % of patient-years.
 The fix: the engine's chronic_visit branch now unions ``procedures:`` from
 every ``patient.chronic_conditions`` entry that has a chronic_followup
 block, not just the primary. Dedup still tracked per-patient per-year via
-the existing ``_phase4e_annual_procedures_emitted`` attribute.
+the patient's ``visit_ledger.annual_procedures``.
 """
 
 from __future__ import annotations
