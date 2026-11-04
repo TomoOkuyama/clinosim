@@ -29,10 +29,9 @@ from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_proc_type
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
-    NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE,
-    NARRATIVE_BMI_UNDERWEIGHT_MAX_EXCLUSIVE,
     NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT,
     NUTRITION_PROTEIN_G_PER_KG_MIDPOINT,
+    bmi_band,
 )
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
 from clinosim.types.document import NarrativeContext
@@ -234,9 +233,10 @@ def build_ncp_nutrition_risk(generator: TemplateNarrativeGenerator, ctx: Narrati
         return fallback, facts
     facts.append("patient.bmi")
     bmi_r = round(float(bmi), 1)
-    if bmi_r < NARRATIVE_BMI_UNDERWEIGHT_MAX_EXCLUSIVE:
+    band = bmi_band(bmi_r)
+    if band == "underweight":
         return t("nutrition.malnutrition_high_line", lang, bmi=bmi_r), facts
-    if bmi_r > NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE:
+    if band != "normal":
         return t("nutrition.overnutrition_line", lang, bmi=bmi_r), facts
     return t("ncp.nutrition_low_risk_line", lang, bmi=bmi_r), facts
 
@@ -252,23 +252,24 @@ def build_ncp_nutrition_assessment(
     if patient is None:
         return (t("fallback.ncp_assessment_fallback", lang)), facts
     parts: list[str] = []
-    weight = _o(patient, "weight_kg", None)
-    height = _o(patient, "height_cm", None)
-    if weight and height:
-        try:
-            bmi = float(weight) / ((float(height) / 100) ** 2)
-            facts.append("patient.weight_kg+height_cm")
-            if bmi < 18.5:
-                band = t("bmi_band.underweight", lang)
-            elif bmi < 25:
-                band = t("bmi_band.normal", lang)
-            elif bmi < 30:
-                band = t("bmi_band.overweight", lang)
-            else:
-                band = t("bmi_band.obese", lang)
-            parts.append(f"BMI {bmi:.1f} ({band})")
-        except (TypeError, ValueError, ZeroDivisionError):
-            pass
+    # The recorded BMI (the one the nutrition-risk section shows), else
+    # weight / height (Issue #2528).
+    bmi: float | None = None
+    if _o(patient, "bmi", None) is not None:
+        bmi = float(_o(patient, "bmi", None))
+        facts.append("patient.bmi")
+    else:
+        weight = _o(patient, "weight_kg", None)
+        height = _o(patient, "height_cm", None)
+        if weight and height:
+            try:
+                bmi = float(weight) / ((float(height) / 100) ** 2)
+                facts.append("patient.weight_kg+height_cm")
+            except (TypeError, ValueError, ZeroDivisionError):
+                bmi = None
+    if bmi is not None:
+        bmi_r = round(bmi, 1)
+        parts.append(f"BMI {bmi_r:.1f} ({t(f'bmi_band.{bmi_band(bmi_r)}', lang)})")
     # Nutrition-relevant chronic diseases
     conds = _o(patient, "chronic_conditions", []) or []
     codes = {(_o(c, "code", "") or (c if isinstance(c, str) else "")).split(".")[0].upper() for c in conds}

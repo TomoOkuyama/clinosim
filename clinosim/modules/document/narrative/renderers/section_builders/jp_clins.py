@@ -29,9 +29,6 @@ from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
-    NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE,
-    NARRATIVE_BMI_OBESITY_MILD_MAX_EXCLUSIVE,
-    NARRATIVE_BMI_UNDERWEIGHT_MAX_EXCLUSIVE,
     NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD,
     NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD,
     NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD,
@@ -41,6 +38,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
     NARRATIVE_LDL_BORDERLINE_THRESHOLD,
     NARRATIVE_LDL_ELEVATED_THRESHOLD,
     NARRATIVE_LDL_HIGH_THRESHOLD,
+    bmi_band,
 )
 from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
@@ -394,13 +392,13 @@ def build_checkup_lab_results(generator: TemplateNarrativeGenerator, ctx: Narrat
     def _judge_bmi(v: float | None) -> tuple[str, dict, str]:
         if v is None:
             return ("checkup_lab_results.bmi_unmeasured", {}, "A")
-        if v < NARRATIVE_BMI_UNDERWEIGHT_MAX_EXCLUSIVE:
-            return ("checkup_lab_results.bmi_underweight", {"v": v}, "B")
-        if v < NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE:
-            return ("checkup_lab_results.bmi_normal", {"v": v}, "A")
-        if v < NARRATIVE_BMI_OBESITY_MILD_MAX_EXCLUSIVE:
-            return ("checkup_lab_results.bmi_obesity_1", {"v": v}, "B")
-        return ("checkup_lab_results.bmi_obesity_2plus", {"v": v}, "C")
+        key, grade = {
+            "underweight": ("bmi_underweight", "B"),
+            "normal": ("bmi_normal", "A"),
+            "overweight": ("bmi_obesity_1", "B"),
+            "obese": ("bmi_obesity_2plus", "C"),
+        }[bmi_band(v)]
+        return (f"checkup_lab_results.{key}", {"v": v}, grade)
 
     def _judge_bp(sys_v: float | None, dia_v: float | None) -> tuple[str, dict, str]:
         if sys_v is None or dia_v is None:

@@ -19,7 +19,10 @@ substitution preserves the branch decisions bit-identically.
 
 from __future__ import annotations
 
+from typing import Literal
+
 __all__ = [
+    "BmiBand",
     "NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE",
     "NARRATIVE_BMI_OBESITY_MILD_MAX_EXCLUSIVE",
     "NARRATIVE_BMI_UNDERWEIGHT_MAX_EXCLUSIVE",
@@ -34,6 +37,7 @@ __all__ = [
     "NARRATIVE_LDL_HIGH_THRESHOLD",
     "NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT",
     "NUTRITION_PROTEIN_G_PER_KG_MIDPOINT",
+    "bmi_band",
 ]
 
 
@@ -61,6 +65,23 @@ NARRATIVE_BMI_OBESITY_MILD_MAX_EXCLUSIVE: float = 30.0
 「肥満 1 度」 into 「肥満 2 度以上」. Matches the JP 日本肥満学会
 obesity category-2 boundary and the WHO obesity class-I upper
 boundary (both = 30.0)."""
+
+
+BmiBand = Literal["underweight", "normal", "overweight", "obese"]
+
+
+def bmi_band(bmi: float) -> BmiBand:
+    """WHO / 日本肥満学会 band of ``bmi`` (kg/m²), each boundary inclusive on
+    its upper band: 18.5 is normal, 25.0 overweight (肥満 1 度), 30.0 obese
+    (Issue #2528). Callers classify the value they display (rounded to one
+    decimal) so the printed number and its band agree."""
+    if bmi < NARRATIVE_BMI_UNDERWEIGHT_MAX_EXCLUSIVE:
+        return "underweight"
+    if bmi < NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE:
+        return "normal"
+    if bmi < NARRATIVE_BMI_OBESITY_MILD_MAX_EXCLUSIVE:
+        return "overweight"
+    return "obese"
 
 
 # ---------------------------------------------------------------------------

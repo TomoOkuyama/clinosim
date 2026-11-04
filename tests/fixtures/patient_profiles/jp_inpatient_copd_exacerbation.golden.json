@@ -1887,7 +1887,7 @@
         "encounter.ward_id",
         "encounter.attending_physician_id",
         "patient.bmi",
-        "patient.weight_kg+height_cm",
+        "patient.bmi",
         "patient.weight_kg"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
