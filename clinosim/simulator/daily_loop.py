@@ -12,6 +12,7 @@ Function bodies moved verbatim; byte-diff-neutral vs pre-extraction.
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -213,6 +214,769 @@ def apply_symptom_floor(state: PhysiologicalState, floor: dict[str, float]) -> N
             setattr(state, axis, value)
 
 
+@dataclass
+class DailyLoopResult:
+    """Everything the day-by-day loop generated for one inpatient stay."""
+
+    orders: list[Order]
+    lab_results: list[OrderResult]
+    vitals: list[VitalSignRecord]
+    mars: list[MedicationAdministration]
+    io_records: list
+    adl_assessments: list
+    state_history: list[PhysiologicalState]
+    # Phase 1a schema: entries are dicts with onset_day / onset_datetime /
+    # source (see clinosim.simulator.complications for the canonical shape);
+    # typed as CIFPatientRecord.complications_occurred.
+    complications: list[dict[str, Any] | str]
+    death_occurred: bool
+    icu_transferred: bool
+    icu_transferred_day: int  # C5-22: day of ICU transfer, -1 when none
+    escalation_procedures: list  # Issue #2091: state-driven intubation records
+    differential: Any
+    actual_los: int
+
+
+@dataclass
+class _Stay:
+    """The fixed inputs of one stay's daily loop."""
+
+    patient: PatientProfile
+    disease_id: str
+    protocol: DiseaseProtocol
+    archetype: str
+    admission_time: datetime
+    target_los: int
+    healthcare: HealthcareSystemConfig
+    roster: StaffRoster
+    rng: np.random.Generator
+    chronic_monitoring: list[dict] | None
+    country_key: str
+    min_los: int
+    hospital_state: Any
+    hospital_ops: dict | None
+    attending_id: str
+    department: str
+    severity: str
+    encounter_id: str
+    imaging_seq: dict[str, int]
+    symptom_floor: dict[str, float] | None
+    max_los: int | None
+    surgery: tuple[int, float] | None
+    prior_procedures: list | None
+
+    @property
+    def country(self) -> str:
+        return "JP" if self.country_key == "japan" else "US"
+
+
+@dataclass
+class _Run:
+    """What the daily loop accumulates and carries from one day to the next."""
+
+    state: PhysiologicalState
+    differential: Any
+    orders: list[Order]
+    dvt_prophylaxis_planned: bool
+    lab_results: list[OrderResult] = field(default_factory=list)
+    vitals: list[VitalSignRecord] = field(default_factory=list)
+    mars: list[MedicationAdministration] = field(default_factory=list)
+    prn_last_given: dict[str, datetime] = field(default_factory=dict)  # Issue #2085: PRN order -> last dose time
+    io_records: list = field(default_factory=list)
+    adl_assessments: list = field(default_factory=list)
+    state_history: list[PhysiologicalState] = field(default_factory=list)
+    active_complications: set[str] = field(default_factory=set)
+    complications: list[dict[str, Any] | str] = field(default_factory=list)
+    death_occurred: bool = False
+    icu_transferred: bool = False
+    icu_transferred_day: int = -1  # C5-22: day of ICU transfer
+    intubated: bool = False
+    intubated_day: int | None = None  # Issue #2101: complication context
+    escalation_procedures: list = field(default_factory=list)  # Issue #2091: state-driven intubation records
+    prev_diet: str = ""  # last diet ordered for this patient
+    lab_time: datetime | None = None  # the most recent morning lab draw (none before day 1)
+
+
+def _escalate_on_arrival(stay: _Stay, run: _Run) -> None:
+    """Presentation already beyond the airway / ICU thresholds (e.g. GCS <= 8 on
+    arrival): intubate and transfer on the admission day."""
+    if airway_escalation_needed(run.state):
+        run.intubated = True
+        run.intubated_day = 0
+        run.escalation_procedures.append(
+            build_intubation_procedure(
+                stay.patient.patient_id,
+                stay.encounter_id,
+                stay.admission_time + timedelta(hours=1),
+                stay.country,
+                f"PROC-{stay.patient.patient_id}-AIR00",
+            )
+        )
+    if icu_escalation_needed(run.state):
+        run.icu_transferred = True
+        run.icu_transferred_day = 0
+
+
+def _advance_state(stay: _Stay, run: _Run, day: int) -> PhysiologicalState | None:
+    """Apply the day's course directive, dampened when the working diagnosis is
+    wrong, plus natural recovery. Returns the pre-update state on DKA day 0."""
+    patient, protocol = stay.patient, stay.protocol
+    directive = get_daily_directive(
+        stay.archetype,
+        day,
+        patient.physiological_profile,
+        protocol_archetypes=protocol.course_archetypes or None,
+        age=patient.age,
+        rng=stay.rng,
+    )
+
+    # Phase 1: Dampen recovery if diagnosis is wrong
+    dx_confidence = 0.0
+    working_dx = None
+    if run.differential.top_candidate:
+        dx_confidence = run.differential.top_candidate.probability
+        working_dx = run.differential.top_candidate.disease_code
+    dx_difficulty = (protocol.diagnostic or {}).get("diagnostic_difficulty", 0.3)
+    effectiveness = compute_diagnosis_effectiveness(
+        working_dx,
+        stay.disease_id,
+        dx_confidence,
+        day,
+        diagnostic_difficulty=dx_difficulty,
+    )
+    directive = apply_diagnosis_modifier(
+        directive,
+        effectiveness,
+        current_volume=run.state.volume_status,
+        current_ph=run.state.ph_status,
+    )
+
+    # Phase 2: Natural recovery (small baseline healing)
+    nat_directive = natural_recovery_directive(
+        day,
+        stay.disease_id,
+        stay.severity,
+        patient.physiological_profile,
+        treatment_effectiveness=effectiveness,
+    )
+    for var, delta in nat_directive.changes.items():
+        directive.changes[var] = directive.changes.get(var, 0.0) + delta
+
+    # Issue #1988: for DKA, snapshot the pre-day-0 physiological state
+    # so that the admission ABG / BMP orders resolve against the
+    # acute-presentation ph_status (-0.35 moderate / -0.60 severe)
+    # rather than the end-of-day-0 state, which has already recovered
+    # ~0.1 ph_status units toward normal and pushes the admission HCO3
+    # above the ADA severity threshold (< 18 mEq/L defines DKA on
+    # presentation; eval axis clinical.condition_lab_coherence.dka_hco3
+    # measured 15 % of DKA encounters violating this before the fix).
+    # Scoped to DKA — non-DKA cohorts stay byte-identical because the
+    # per-order sub-RNG pipeline (see lab_pipeline.py) does not consume
+    # master RNG, so swapping the lab-derivation state only shifts the
+    # computed value and nothing else.
+    lab_state_pre_update = deepcopy(run.state) if (day == 0 and stay.disease_id == "diabetic_ketoacidosis") else None
+    run.state = update(run.state, directive, timedelta(days=1))
+    if stay.symptom_floor:
+        apply_symptom_floor(run.state, stay.symptom_floor)
+    apply_postoperative_pain(run.state, day, stay.surgery)
+    run.state_history.append(deepcopy(run.state))
+    return lab_state_pre_update
+
+
+def _place_daily_lab_and_imaging_orders(stay: _Stay, run: _Run, day: int) -> None:
+    """Daily lab orders (from Day 1) with context-dependent frequency, and the
+    day's imaging orders."""
+    rng, state = stay.rng, run.state
+    # Morning lab draw: 05:30-07:00 with jitter
+    lab_hour = LAB_MORNING_HOUR
+    lab_min = int(rng.integers(LAB_MIN_START, LAB_MIN_END_EXCLUSIVE))
+    if rng.random() < LAB_EARLY_MORNING_PROBABILITY:
+        lab_hour = LAB_EARLY_MORNING_HOUR
+        lab_min = int(rng.integers(LAB_EARLY_MORNING_MIN_START, LAB_EARLY_MORNING_MIN_END_EXCLUSIVE))
+    lab_time = datetime(
+        stay.admission_time.year,
+        stay.admission_time.month,
+        stay.admission_time.day,
+        lab_hour,
+        lab_min,
+    ) + timedelta(days=day)
+    run.lab_time = lab_time
+
+    # Context-dependent lab frequency modulation
+    freq_mod = stay.healthcare.lab_frequency_multiplier
+    # Severity: severe patients get more frequent labs, mild get fewer
+    severity_mult = {
+        "severe": LAB_FREQ_MULT_SEVERITY_SEVERE,
+        "moderate": LAB_FREQ_MULT_SEVERITY_MODERATE,
+        "mild": LAB_FREQ_MULT_SEVERITY_MILD,
+    }.get(stay.severity, LAB_FREQ_MULT_SEVERITY_FALLBACK)
+    freq_mod *= severity_mult
+    # Near discharge: reduce routine labs
+    if (
+        day >= stay.target_los - LAB_NEAR_DISCHARGE_DAY_OFFSET
+        and state.inflammation_level < LAB_NEAR_DISCHARGE_INFLAMMATION_MAX
+    ):
+        freq_mod *= LAB_FREQ_MULT_NEAR_DISCHARGE
+    # Weekend: reduce non-urgent labs
+    if lab_time.weekday() >= 5:  # Saturday/Sunday
+        freq_mod *= LAB_FREQ_MULT_WEEKEND
+    # Stable patient: reduce after first week
+    if day >= LAB_LATE_STAY_MIN_DAY and state.inflammation_level < LAB_LATE_STAY_INFLAMMATION_MAX:
+        freq_mod *= LAB_FREQ_MULT_LATE_STAY_STABLE
+
+    daily_orders = place_daily_lab_orders(
+        stay.protocol.model_dump(),
+        stay.patient.patient_id,
+        stay.encounter_id,
+        day,
+        lab_time,
+        freq_mod,
+        rng,
+        ordered_by=stay.attending_id,
+    )
+    run.orders.extend(daily_orders)
+
+    # Imaging orders for day >= 1 (day=0 handled pre-loop in
+    # simulate_inpatient_encounter). Counter threads from admission
+    # call so IDs are unique across the full encounter.
+    daily_imaging = place_imaging_orders(
+        stay.protocol,
+        stay.encounter_id,
+        stay.patient.patient_id,
+        stay.admission_time,
+        day_index=day,
+        severity=stay.severity,
+        rng=rng,
+        sequence_counter=stay.imaging_seq,
+    )
+    run.orders.extend(daily_imaging)
+
+
+def _expand_panel_orders(orders: list[Order]) -> dict[str, list[Order]]:
+    """Expand placed panel orders (e.g. ABG → pH/pCO2/pO2/HCO3; CBC →
+    WBC/Hb/Hct/Plt) into component child lab orders, keyed by parent id.
+
+    The parent is marked RESULTED (no scalar result → no duplicate
+    Observation). Children are kept *separate* from the master parent stream
+    so their RNG draws can run on a per-parent isolated sub-RNG (see Pass 2 in
+    lab_pipeline), preventing panel-registry edits from cascading into
+    unrelated patients' cohorts (AD-16).
+    """
+    children_by_parent: dict[str, list[Order]] = {}
+    for order in orders:
+        if order.order_type.value == "lab" and order.status == OrderStatus.PLACED:
+            comps = lab_panel_components(order.display_name)
+            if not comps:
+                continue
+            children: list[Order] = []
+            for comp_name in comps:
+                children.append(
+                    Order(
+                        order_id=f"{order.order_id}-{comp_name}",
+                        patient_id=order.patient_id,
+                        order_type=OrderType.LAB,
+                        display_name=comp_name,
+                        urgency=order.urgency,
+                        clinical_intent=order.clinical_intent,
+                        # Issue #871: forward the JA display alongside the EN.
+                        clinical_intent_ja=order.clinical_intent_ja,
+                        ordered_datetime=order.ordered_datetime,
+                        ordered_by=order.ordered_by,
+                        encounter_id=order.encounter_id,
+                        status=OrderStatus.PLACED,
+                    )
+                )
+            children_by_parent[order.order_id] = children
+            order.status = OrderStatus.RESULTED
+    return children_by_parent
+
+
+def _result_labs(stay: _Stay, run: _Run, day: int, lab_state_pre_update: PhysiologicalState | None) -> int:
+    """Result every placed lab order (with temporal lag for slow markers like
+    CRP). Returns the index of the first result drawn today."""
+    patient, admission_time = stay.patient, stay.admission_time
+    lab_hour = run.lab_time.hour if run.lab_time is not None else 6  # early morning default
+    # J5 (Phase 2a): read every scenario flag (causes_myocardial_injury,
+    # causes_vte, future additions) via one helper and splat with **flags
+    # so every call site stays in sync. See physiology.engine docstring.
+    # Phase 2b (2026-06-24): sibling helper medication_flags_from_context
+    # detects chronic warfarin from current_medications AND in-hospital
+    # warfarin orders >= 3 days old (loading-dose 3-day rule). Both
+    # helpers spread as **flags so a new flag added to derive_lab_values
+    # reaches this site without touching the call.
+    med_orders = [o for o in run.orders if o.order_type.value == "medication"]
+    # Issue #2293: the same in-effect medication list drives INR generation
+    # (the warfarin flag below) and result flagging / therapeutic ranges.
+    meds_in_effect = medications_in_effect(patient.current_medications, med_orders, admission_time.date(), day)
+    flags = {
+        **scenario_flags_from_protocol(stay.protocol),
+        **medication_flags_from_context(
+            patient,
+            medication_orders=med_orders,
+            admission_date=admission_time.date(),
+            current_day=day,
+        ),
+    }
+    # Issue #1988: on day 0 of a DKA encounter, resolve admission labs
+    # against the pre-update state so the ABG HCO3 reflects the acute
+    # presentation rather than ~1 day of recovery.
+    true_labs_state = lab_state_pre_update if lab_state_pre_update is not None else run.state
+    lab_at = admission_time + timedelta(days=day)
+    true_labs = patient_true_labs(true_labs_state, patient, lab_at, flags, hour=lab_hour)
+
+    # Apply temporal lag: CRP reflects inflammation from ~1 day ago
+    if len(run.state_history) >= 2 and "CRP" in true_labs:
+        lag_idx = max(0, len(run.state_history) - 2)
+        lagged_state = run.state_history[lag_idx]
+        lagged_labs = patient_true_labs(lagged_state, patient, lab_at, flags, hour=lab_hour)
+        true_labs["CRP"] = lagged_labs.get("CRP", true_labs["CRP"])
+
+    panel_children_by_parent = _expand_panel_orders(run.orders)
+    # The flat list (preserves insertion order so downstream serialisers, e.g.
+    # _bb_labs in fhir_r4_adapter, retain a stable index for `lab-{enc}-{idx:04d}`).
+    panel_children: list[Order] = [c for kids in panel_children_by_parent.values() for c in kids]
+    run.orders.extend(panel_children)
+    panel_child_ids = {c.order_id for c in panel_children}
+
+    # Two-pass lab-result generation (Pass 1 scalar/non-panel + Pass 2
+    # panel children). Extracted to ``clinosim.simulator.lab_pipeline``
+    # (Issue #552 PR A) — see that module's docstring for the RNG
+    # contract and byte-neutrality guarantees.
+    day_results_start = len(run.lab_results)
+    run.lab_results.extend(
+        _run_lab_result_pipeline(
+            run.orders,
+            panel_children_by_parent,
+            panel_child_ids,
+            true_labs,
+            patient,
+            stay.country_key,
+            stay.roster,
+            stay.hospital_state,
+            stay.hospital_ops,
+            medications=meds_in_effect,
+        )
+    )
+    return day_results_start
+
+
+def _update_diagnosis(stay: _Stay, run: _Run, day: int, day_results_start: int) -> None:
+    # Issue #2240: only the results drawn today. A fixed window over
+    # the whole stay missed CRP behind a large panel and re-counted
+    # the same old result as new evidence on days without a draw.
+    findings = _extract_findings(run.lab_results[day_results_start:], stay.disease_id, day)
+    if findings:
+        protocol = stay.protocol
+        protocol_lr = (
+            protocol.likelihood_ratios
+            if hasattr(protocol, "likelihood_ratios") and protocol.likelihood_ratios
+            else None
+        )  # noqa: E501
+        protocol_diagnostic = protocol.diagnostic if hasattr(protocol, "diagnostic") else {}
+        yaml_lr = protocol_diagnostic.get("likelihood_ratios") if protocol_diagnostic else None
+        run.differential = update_differential(run.differential, findings, protocol_lr_table=yaml_lr or protocol_lr)
+
+
+def _apply_archetype_modifications(stay: _Stay, run: _Run, day: int) -> None:
+    """Archetype-specific order/treatment modifications (YAML-driven)."""
+    protocol, archetype = stay.protocol, stay.archetype
+    archetype_data = protocol.course_archetypes.get(archetype, {}) if protocol.course_archetypes else {}
+    order_mods = archetype_data.get("order_modifications", {})
+    treatment_mods = archetype_data.get("treatment_modifications", {})
+
+    # Check order/treatment modifications for this day (with ±1 day jitter for realism)
+    day_key = f"day_{day}"
+    # Also check adjacent days (in case the modification fires ±1 day early/late)
+    day_keys_to_check = [day_key]
+    if stay.rng.random() < ARCHETYPE_DAY_SHIFT_PROBABILITY:  # ±1 day jitter for realism
+        shift = int(stay.rng.choice([-1, 1]))
+        alt_key = f"day_{day + shift}"
+        if alt_key in order_mods and day_key not in order_mods:
+            day_keys_to_check = [alt_key]
+
+    matched_order_key = next((dk for dk in day_keys_to_check if dk in order_mods), None)
+    if matched_order_key:
+        _add_archetype_workup(stay, run, day, order_mods[matched_order_key])
+
+    # Treatment modifications (same jitter logic)
+    matched_tx_key = next((dk for dk in day_keys_to_check if dk in treatment_mods), None)
+    if matched_tx_key:
+        mod = treatment_mods[matched_tx_key]
+        _stop_archetype_medications(stay, run, day, mod)
+        _start_archetype_treatments(stay, run, day, mod)
+
+
+def _add_archetype_workup(stay: _Stay, run: _Run, day: int, mod: dict) -> None:
+    encounter_id, archetype = stay.encounter_id, stay.archetype
+    ordered_at = stay.admission_time + timedelta(days=day, hours=10)
+    # Add labs
+    for lab_name in mod.get("add_labs", []):
+        run.orders.append(
+            Order(
+                order_id=f"ORD-{encounter_id}-MOD-D{day}-{sanitize_id_token(lab_name, 5)}",
+                patient_id=stay.patient.patient_id,
+                order_type=OrderType.LAB,
+                display_name=lab_name,
+                urgency="stat",
+                clinical_intent=t("order_intent.archetype_workup", "en", day=day, archetype=archetype),
+                # Issue #871: JA display for JP SR reasonCode.text.
+                # `archetype` is a code identifier (sepsis/ards/etc.) —
+                # kept as-is; the shell is translated.
+                clinical_intent_ja=t("order_intent.archetype_workup", "ja", day=day, archetype=archetype),
+                ordered_datetime=ordered_at,
+                status=OrderStatus.PLACED,
+            )
+        )
+    # Add imaging
+    for img_idx, img_name in enumerate(mod.get("add_imaging", [])):
+        run.orders.append(
+            Order(
+                order_id=f"ORD-{encounter_id}-MOD-D{day}-IMG-{img_idx}",
+                patient_id=stay.patient.patient_id,
+                order_type=OrderType.IMAGING,
+                display_name=img_name,
+                urgency="stat",
+                clinical_intent=t("order_intent.archetype_imaging", "en", day=day, archetype=archetype),
+                # Issue #871: JA display for JP SR reasonCode.text.
+                clinical_intent_ja=t("order_intent.archetype_imaging", "ja", day=day, archetype=archetype),
+                ordered_datetime=ordered_at,
+                status=OrderStatus.PLACED,
+            )
+        )
+
+
+def _stop_archetype_medications(stay: _Stay, run: _Run, day: int, mod: dict) -> None:
+    encounter_id, archetype = stay.encounter_id, stay.archetype
+    for stop_idx, drug_name in enumerate(mod.get("stop", [])):
+        run.orders.append(
+            Order(
+                order_id=(
+                    f"ORD-{encounter_id}{MED_STOP_ORDER_ID_MARKER}D{day}-{stop_idx}-{sanitize_id_token(drug_name, 8)}"
+                ),
+                patient_id=stay.patient.patient_id,
+                order_type=OrderType.MEDICATION,
+                display_name=f"DISCONTINUE: {drug_name}",
+                urgency="routine",
+                clinical_intent=t("order_intent.archetype_stop", "en", day=day, archetype=archetype, drug=drug_name),
+                # Issue #871: JA display for JP SR reasonCode.text.
+                clinical_intent_ja=t("order_intent.archetype_stop", "ja", day=day, archetype=archetype, drug=drug_name),
+                ordered_datetime=stay.admission_time + timedelta(days=day, hours=10),
+                status=OrderStatus.PLACED,
+            )
+        )
+
+
+def _start_archetype_treatments(stay: _Stay, run: _Run, day: int, mod: dict) -> None:
+    """Start new medications or procedures."""
+    encounter_id, archetype = stay.encounter_id, stay.archetype
+    start_meds = mod.get("start", {}).get(stay.country_key, mod.get("start", []))
+    if not isinstance(start_meds, list):
+        return
+    for med in start_meds:
+        if not isinstance(med, dict):
+            continue
+        drug = protocol_drug_name(med).strip()
+        proc = med.get("procedure", "").strip()
+        if drug:
+            # Daily-loop step medications sometimes carry device or
+            # therapy names disguised as drugs (NIV_BiPAP / CPAP /
+            # IPC / cardiac monitoring / etc.). Classify via the
+            # canonical treatment_classifier (single source of
+            # truth; J5 pattern prevention — this was C4-28's
+            # RM-6b sibling gap in).
+            display = f"{drug} {med.get('dose', '')}".strip()
+            order_type = classify_encounter_treatment(drug)
+            if order_type == OrderType.MEDICATION:
+                order_id = f"ORD-{encounter_id}-START-D{day}-{sanitize_id_token(drug, 8)}"
+                intent_key = "order_intent.archetype_new_medication"
+            else:
+                order_id = f"ORD-{encounter_id}-DEV-D{day}-{sanitize_id_token(drug, 8)}"
+                intent_key = "order_intent.archetype_device"
+            run.orders.append(
+                Order(
+                    order_id=order_id,
+                    patient_id=stay.patient.patient_id,
+                    order_type=order_type,
+                    display_name=display,
+                    urgency="urgent",
+                    clinical_intent=t(intent_key, "en", day=day, archetype=archetype),
+                    # Issue #871: JA display for JP SR reasonCode.text.
+                    clinical_intent_ja=t(intent_key, "ja", day=day, archetype=archetype),
+                    ordered_datetime=stay.admission_time + timedelta(days=day, hours=10),
+                    status=OrderStatus.PLACED,
+                )
+            )
+        elif proc:
+            # Procedure order (not a medication)
+            detail = med.get("detail", "")
+            display = f"{proc}" + (f" ({detail})" if detail else "")
+            run.orders.append(
+                Order(
+                    order_id=f"ORD-{encounter_id}-PROC-D{day}-{sanitize_id_token(proc, 8)}",
+                    patient_id=stay.patient.patient_id,
+                    order_type=OrderType.PROCEDURE,
+                    display_name=display,
+                    urgency="urgent",
+                    clinical_intent=t("order_intent.archetype_procedure", "en", day=day, archetype=archetype),
+                    # Issue #871: JA display for JP SR reasonCode.text.
+                    clinical_intent_ja=t("order_intent.archetype_procedure", "ja", day=day, archetype=archetype),
+                    ordered_datetime=stay.admission_time + timedelta(days=day, hours=10),
+                    status=OrderStatus.PLACED,
+                )
+            )
+        # Skip entries with neither drug nor procedure
+
+
+def _escalate_treatment(stay: _Stay, run: _Run, day: int) -> None:
+    """Treatment escalation: inflammation not improving by day 3.
+
+    Issue #914: an inflammation-not-improving heuristic alone fired on
+    nearly every day-3 admission with mid-severity, producing meropenem
+    (or the disease's escalation agent) on ~34 % of pyelonephritis
+    encounters — real clinical escalation rate is <15 % (reserved for
+    culture ESBL / true 72 h non-defervescence). Each ``escalation``
+    entry may now carry an optional ``probability`` field (0.0-1.0);
+    when unset the pre-existing "always escalate on trigger" behavior
+    is preserved (byte-compat with disease YAMLs that predate this).
+    """
+    encounter_id, country_key = stay.encounter_id, stay.country_key
+    escalation_drugs = stay.protocol.drugs.get("escalation", {}).get(country_key, [])
+    if isinstance(escalation_drugs, dict):
+        escalation_drugs = [escalation_drugs]
+    for esc_drug in escalation_drugs:
+        if not isinstance(esc_drug, dict):
+            continue
+        esc_prob = esc_drug.get("probability")
+        if esc_prob is not None and float(esc_prob) < 1.0:
+            if stay.rng.random() >= float(esc_prob):
+                continue
+        drug_name = protocol_drug_name(esc_drug) or str(esc_drug.get("procedure") or "")
+        dose = esc_drug.get("dose", "")
+        indication = esc_drug.get("indication", "no improvement")
+        # Escalation entries carry a `drug` field but the value is
+        # sometimes actually a procedure name (Vertebroplasty,
+        # Hemodialysis, endoscopy, etc.). Route via the canonical
+        # treatment_classifier (J5 pattern prevention).
+        run.orders.append(
+            Order(
+                order_id=f"ORD-{encounter_id}-ESC-D{day}-{sanitize_id_token(drug_name, 8)}",
+                encounter_id=encounter_id,
+                patient_id=stay.patient.patient_id,
+                order_type=classify_escalation_treatment(esc_drug),
+                order_code=protocol_drug_order_code(esc_drug, country_key),
+                order_code_system=protocol_drug_order_code_system(esc_drug, country_key),
+                display_name=f"{drug_name} {dose}".strip(),
+                urgency="urgent",
+                clinical_intent=t("order_intent.escalation", "en", day=day, drug=drug_name, indication=indication),
+                # Issue #871: JA display for JP SR reasonCode.text.
+                # `drug_name` and `indication` are kept as-is (may be
+                # EN or already-JA from disease YAML) — shell translated.
+                clinical_intent_ja=t("order_intent.escalation", "ja", day=day, drug=drug_name, indication=indication),
+                ordered_datetime=stay.admission_time + timedelta(days=day, hours=10),
+                ordered_by=stay.attending_id,
+                status=OrderStatus.PLACED,
+                route=esc_drug.get("route", "IV"),
+                # Issue #476: propagate authored localized dose
+                # instructions from YAML so the FHIR builder can emit
+                # them as country-scoped `dosageInstruction.text`.
+                dose_text_ja=language_slot(esc_drug.get("dose_text"), "ja"),
+                dose_text_en=language_slot(esc_drug.get("dose_text"), "en"),
+            )
+        )
+
+
+def _order_diet(stay: _Stay, run: _Run, day: int) -> None:
+    """Diet order (only when diet changes: NPO → clear liquid → soft → regular)."""
+    if day == 0:
+        diet = "NPO"
+    elif day == 1 and run.state.inflammation_level > DIET_CLEAR_LIQUID_INFLAMMATION_THRESHOLD:
+        diet = "clear_liquid"
+    elif run.state.inflammation_level > DIET_SOFT_INFLAMMATION_THRESHOLD:
+        diet = "soft_diet"
+    else:
+        diet = "regular_diet"
+    if diet != run.prev_diet:
+        run.orders.append(
+            Order(
+                order_id=f"ORD-{stay.encounter_id}-DIET-D{day}",
+                patient_id=stay.patient.patient_id,
+                order_type=OrderType.DIET,
+                display_name=diet,
+                urgency="routine",
+                clinical_intent=t("order_intent.diet", "en", day=day, diet=diet),
+                # Issue #871: JA display for JP SR reasonCode.text.
+                clinical_intent_ja=t("order_intent.diet", "ja", day=day, diet=diet),
+                ordered_datetime=stay.admission_time + timedelta(days=day, hours=7),
+                ordered_by=stay.attending_id,
+                status=OrderStatus.PLACED,
+            )
+        )
+        run.prev_diet = diet
+
+
+def _record_bedside_observations(stay: _Stay, run: _Run, day: int) -> None:
+    """Vitals, on-demand PRN doses, the daily I/O record and ADL assessment."""
+    patient, rng = stay.patient, stay.rng
+    ward_nurse_id = assign_staff("medication_administration", stay.department, stay.roster, rng).get(
+        "administering_nurse", FALLBACK_NURSE_ID
+    )  # noqa: E501
+    vitals_today = _generate_vitals(
+        run.state,
+        patient,
+        day,
+        stay.admission_time,
+        rng,
+        disease_id=stay.disease_id,
+        nurse_id=ward_nurse_id,
+        country=stay.country,
+    )  # noqa: E501
+    run.vitals.extend(vitals_today)
+    # Issue #2085: PRN analgesia / benzodiazepines on demand from today's
+    # pain scores and autonomic state.
+    run.mars.extend(generate_prn_administrations(run.orders, vitals_today, run.state, run.prn_last_given))
+
+    # Daily I/O record
+    run.io_records.append(_generate_daily_io(run.state, patient, day, stay.admission_time, rng))
+
+    # ADL assessment (admission, weekly, discharge approach)
+    adl = _generate_adl_assessment(run.state, patient, day, stay.admission_time, rng)
+    if adl:
+        run.adl_assessments.append(adl)
+
+
+def _apply_complications(stay: _Stay, run: _Run, day: int, comp_list: list) -> None:
+    patient = stay.patient
+    triggered = evaluate_complications(
+        day,
+        run.state,
+        patient,
+        comp_list,
+        run.active_complications,
+        stay.rng,
+        severity=stay.severity,
+        context=_complication_context(
+            patient,
+            run.orders,
+            stay.admission_time,
+            icu_day=run.icu_transferred_day if run.icu_transferred else None,
+            intubated_day=run.intubated_day,
+            surgery_day=stay.surgery[0] if stay.surgery else None,
+            procedures=list(stay.prior_procedures or []) + run.escalation_procedures,
+            dvt_prophylaxis=run.dvt_prophylaxis_planned,
+        ),
+    )
+    for comp in triggered:
+        for var, delta in comp.get("state_impact", {}).items():
+            apply_state_delta(run.state, var, delta)
+        comp_name = comp.get("name", "unknown")
+        # Phase 1a: record the onset day + a canonical noon-of-day
+        # timestamp so downstream (narrative context filter,
+        # hospital_course_extractor ordering, future FHIR Condition
+        # .onsetDateTime emit) knows WHEN the complication fired.
+        # The daily loop is per-day, not per-hour, so noon is used
+        # as a stable within-day anchor.
+        onset_dt = stay.admission_time + timedelta(days=day)
+        onset_dt = onset_dt.replace(hour=12, minute=0, second=0, microsecond=0)
+        run.complications.append(
+            build_complication(
+                name=comp_name,
+                onset_day=day,
+                onset_datetime=onset_dt.isoformat(),
+                source="daily_loop",
+            )
+        )
+        if "icu_transfer" in comp.get("actions", []):
+            if not run.icu_transferred:
+                # C5-22: capture day of transfer for
+                # Encounter.classHistory. First trigger wins;
+                # subsequent ICU-triggering complications on later
+                # days do not overwrite (the patient is already in
+                # ICU by then).
+                run.icu_transferred_day = day
+            run.icu_transferred = True
+        # Cancel contraindicated meds when AKI develops as complication
+        if comp_name == "acute_kidney_injury":
+            for o in run.orders:
+                if o.order_type == OrderType.MEDICATION and o.status == OrderStatus.PLACED:
+                    if has_drug([o], "metformin"):
+                        o.status = OrderStatus.CANCELLED
+
+
+def _escalate_airway_and_icu(stay: _Stay, run: _Run, day: int) -> None:
+    """State-driven airway / ICU escalation (Issue #2091): intubation on the
+    day the airway threshold is crossed, ICU transfer for airway or shock."""
+    if not run.intubated and airway_escalation_needed(run.state):
+        run.intubated = True
+        run.intubated_day = day
+        run.escalation_procedures.append(
+            build_intubation_procedure(
+                stay.patient.patient_id,
+                stay.encounter_id,
+                stay.admission_time + timedelta(days=day, hours=AIRWAY_ESCALATION_HOUR),
+                stay.country,
+                f"PROC-{stay.patient.patient_id}-AIR{day:02d}",
+            )
+        )
+    if not run.icu_transferred and icu_escalation_needed(run.state):
+        run.icu_transferred_day = day
+        run.icu_transferred = True
+
+
+def _dies_today(stay: _Stay, run: _Run, day: int, expected_mortality_multiplier: float) -> bool:
+    """Mortality (disease-specific rate from YAML benchmarks)."""
+    benchmark_mortality = stay.protocol.outcome_benchmarks.get(stay.country_key, {}).get("in_hospital_mortality", 0.0)
+    return _evaluate_mortality(
+        run.state,
+        stay.patient,
+        severity=stay.severity,
+        day=day,
+        rng=stay.rng,
+        disease_mortality_rate=benchmark_mortality,
+        target_los=stay.target_los,
+        # Issue #2098: worst consciousness / oxygenation so far, relative to
+        # the disease's presentation mix (keeps the benchmark average).
+        state_relative_risk=mortality_state_multiplier(
+            max(s.consciousness_impairment for s in run.state_history),
+            max(s.oxygenation_impairment for s in run.state_history),
+        )
+        / expected_mortality_multiplier,
+    )
+
+
+def _gate_new_medication_orders(stay: _Stay, admission_orders: list[Order], orders: list[Order]) -> list[Order]:
+    """C7b (#1100): drug_safety gate on post-admission MEDICATION Orders.
+
+    ``admission_orders`` were gated at admission time; anything the
+    daily loop appended afterwards (treatment_mod step-up meds,
+    complication-triggered add-ons) has never been checked. Partition
+    ``orders`` into (admission, new) and route the new ones through
+    the general gate, seeded with home + admission-accepted MEDICATION
+    names so a mid-encounter Aspirin request against an admission-time
+    Enoxaparin is skipped / substituted.
+    """
+    from clinosim.simulator.medication_pipeline import (
+        apply_drug_safety_gate_to_orders,
+    )
+
+    admission_len = len(admission_orders)
+    pre_new = orders[:admission_len]
+    new_orders = orders[admission_len:]
+    if not new_orders:
+        return orders
+    accepted = [o.display_name for o in pre_new if o.order_type == OrderType.MEDICATION and o.display_name]
+    gated_new = apply_drug_safety_gate_to_orders(
+        new_orders,
+        patient=stay.patient,
+        encounter_id=admission_orders[0].encounter_id if admission_orders else "",
+        ordered_datetime=stay.admission_time,
+        attending_id=stay.attending_id,
+        protocol=stay.protocol,
+        country=stay.country_key,
+        already_accepted_meds=accepted,
+    )
+    return pre_new + gated_new
+
+
 def _run_daily_loop(
     state: PhysiologicalState,
     patient: PatientProfile,
@@ -240,743 +1004,123 @@ def _run_daily_loop(
     max_los: int | None = None,
     surgery: tuple[int, float] | None = None,
     prior_procedures: list | None = None,
-) -> dict:
-    """Run the day-by-day simulation loop. Returns all generated data."""
+) -> DailyLoopResult:
+    """Run the day-by-day simulation loop. Returns all generated data.
 
-    all_orders = list(admission_orders)
-    # Thread imaging sequence counter from caller (initialized at day=0 in
-    # simulate_inpatient_encounter). Fallback to {"I": 0} for callers that
-    # don't pass it (backward-compat for direct test calls of _run_daily_loop).
-    _img_seq: dict[str, int] = imaging_seq_counter if imaging_seq_counter is not None else {"I": 0}
-    all_lab_results: list[OrderResult] = []
-    all_vitals: list[VitalSignRecord] = []
-    all_mars: list[MedicationAdministration] = []
-    prn_last_given: dict[str, datetime] = {}  # Issue #2085: PRN order -> last dose time
-    all_io: list = []
-    all_adl: list = []
-    state_history = [deepcopy(state)]
+    Each day runs the phases in a fixed order — state update, orders, lab
+    results, diagnosis, archetype modifications, escalation, MAR, diet,
+    bedside observations, complications, airway / ICU escalation — then the
+    death / discharge / stay-extension checks. The order is load-bearing:
+    the phases share one RNG stream.
+    """
+    stay = _Stay(
+        patient=patient,
+        disease_id=disease_id,
+        protocol=protocol,
+        archetype=archetype,
+        admission_time=admission_time,
+        target_los=target_los,
+        healthcare=healthcare,
+        roster=roster,
+        rng=rng,
+        chronic_monitoring=chronic_monitoring,
+        country_key=country_key,
+        min_los=min_los,
+        hospital_state=hospital_state,
+        hospital_ops=hospital_ops,
+        attending_id=attending_id,
+        department=department,
+        severity=severity,
+        encounter_id=encounter_id,
+        # Thread imaging sequence counter from caller (initialized at day=0 in
+        # simulate_inpatient_encounter). Fallback to {"I": 0} for callers that
+        # don't pass it (backward-compat for direct test calls).
+        imaging_seq=imaging_seq_counter if imaging_seq_counter is not None else {"I": 0},
+        symptom_floor=symptom_floor,
+        max_los=max_los,
+        surgery=surgery,
+        prior_procedures=prior_procedures,
+    )
+    run = _Run(
+        state=state,
+        differential=differential,
+        orders=list(admission_orders),
+        state_history=[deepcopy(state)],
+        dvt_prophylaxis_planned=False,
+    )
     expected_mortality_multiplier = expected_state_multiplier(protocol)
-    active_complications: set[str] = set()
-    # Phase 1a schema: entries are dicts with onset_day / onset_datetime /
-    # source (see clinosim.simulator.complications for the canonical shape).
-    complications_occurred: list[dict[str, Any]] = []
-    death_occurred = False
-    icu_transferred = False
-    icu_transferred_day_local: int = -1  # C5-22: day of ICU transfer
-    intubated = False
-    intubated_day: int | None = None  # Issue #2101: complication context
-    dvt_prophylaxis_planned = _planned_dvt_prophylaxis(patient, protocol, admission_time, target_los)
-    escalation_procedures: list = []  # Issue #2091: state-driven intubation records
-    # Presentation already beyond the airway / ICU thresholds (e.g. GCS <= 8 on
-    # arrival): intubate and transfer on the admission day.
-    if airway_escalation_needed(state):
-        intubated = True
-        intubated_day = 0
-        escalation_procedures.append(
-            build_intubation_procedure(
-                patient.patient_id,
-                encounter_id,
-                admission_time + timedelta(hours=1),
-                "JP" if country_key == "japan" else "US",
-                f"PROC-{patient.patient_id}-AIR00",
-            )
-        )
-    if icu_escalation_needed(state):
-        icu_transferred = True
-        icu_transferred_day_local = 0
+    run.dvt_prophylaxis_planned = _planned_dvt_prophylaxis(patient, protocol, admission_time, target_los)
+    _escalate_on_arrival(stay, run)
 
-    prev_diet = ""  # last diet ordered for this patient; threaded through the day loop
+    comp_list = protocol.complications if protocol.complications else []
     # The sampled target LOS is the stay ceiling; it is extended one day at a
     # time (up to max_los) while autonomic symptoms are uncontrolled. Stays
     # that never extend run exactly ``target_los`` days as before.
     los_ceiling = target_los
+    actual_los = max(1, target_los)  # a stay whose loop never runs
     for day in range(max(target_los, max_los or 0)):
-        # State update with diagnosis-treatment feedback
-        directive = get_daily_directive(
-            archetype,
-            day,
-            patient.physiological_profile,
-            protocol_archetypes=protocol.course_archetypes or None,
-            age=patient.age,
-            rng=rng,
-        )
-
-        # Phase 1: Dampen recovery if diagnosis is wrong
-        dx_confidence = 0.0
-        working_dx = None
-        if differential.top_candidate:
-            dx_confidence = differential.top_candidate.probability
-            working_dx = differential.top_candidate.disease_code
-        dx_difficulty = (protocol.diagnostic or {}).get("diagnostic_difficulty", 0.3)
-        effectiveness = compute_diagnosis_effectiveness(
-            working_dx,
-            disease_id,
-            dx_confidence,
-            day,
-            diagnostic_difficulty=dx_difficulty,
-        )
-        directive = apply_diagnosis_modifier(
-            directive,
-            effectiveness,
-            current_volume=state.volume_status,
-            current_ph=state.ph_status,
-        )
-
-        # Phase 2: Natural recovery (small baseline healing)
-        nat_directive = natural_recovery_directive(
-            day,
-            disease_id,
-            severity,
-            patient.physiological_profile,
-            treatment_effectiveness=effectiveness,
-        )
-        for var, delta in nat_directive.changes.items():
-            directive.changes[var] = directive.changes.get(var, 0.0) + delta
-
-        # Issue #1988: for DKA, snapshot the pre-day-0 physiological state
-        # so that the admission ABG / BMP orders resolve against the
-        # acute-presentation ph_status (-0.35 moderate / -0.60 severe)
-        # rather than the end-of-day-0 state, which has already recovered
-        # ~0.1 ph_status units toward normal and pushes the admission HCO3
-        # above the ADA severity threshold (< 18 mEq/L defines DKA on
-        # presentation; eval axis clinical.condition_lab_coherence.dka_hco3
-        # measured 15 % of DKA encounters violating this before the fix).
-        # Scoped to DKA — non-DKA cohorts stay byte-identical because the
-        # per-order sub-RNG pipeline (see lab_pipeline.py) does not consume
-        # master RNG, so swapping the lab-derivation state only shifts the
-        # computed value and nothing else.
-        _lab_state_pre_update = deepcopy(state) if (day == 0 and disease_id == "diabetic_ketoacidosis") else None
-        state = update(state, directive, timedelta(days=1))
-        if symptom_floor:
-            apply_symptom_floor(state, symptom_floor)
-        apply_postoperative_pain(state, day, surgery)
-        state_history.append(deepcopy(state))
-
-        # Daily lab orders (from Day 1) with context-dependent frequency
+        actual_los = day + 1
+        lab_state_pre_update = _advance_state(stay, run, day)
         if day >= 1:
-            # Morning lab draw: 05:30-07:00 with jitter
-            lab_hour = LAB_MORNING_HOUR
-            lab_min = int(rng.integers(LAB_MIN_START, LAB_MIN_END_EXCLUSIVE))
-            if rng.random() < LAB_EARLY_MORNING_PROBABILITY:
-                lab_hour = LAB_EARLY_MORNING_HOUR
-                lab_min = int(rng.integers(LAB_EARLY_MORNING_MIN_START, LAB_EARLY_MORNING_MIN_END_EXCLUSIVE))
-            lab_time = datetime(
-                admission_time.year,
-                admission_time.month,
-                admission_time.day,
-                lab_hour,
-                lab_min,
-            ) + timedelta(days=day)
-
-            # Context-dependent lab frequency modulation
-            freq_mod = healthcare.lab_frequency_multiplier
-            # Severity: severe patients get more frequent labs, mild get fewer
-            severity_mult = {
-                "severe": LAB_FREQ_MULT_SEVERITY_SEVERE,
-                "moderate": LAB_FREQ_MULT_SEVERITY_MODERATE,
-                "mild": LAB_FREQ_MULT_SEVERITY_MILD,
-            }.get(severity, LAB_FREQ_MULT_SEVERITY_FALLBACK)
-            freq_mod *= severity_mult
-            # Near discharge: reduce routine labs
-            if (
-                day >= target_los - LAB_NEAR_DISCHARGE_DAY_OFFSET
-                and state.inflammation_level < LAB_NEAR_DISCHARGE_INFLAMMATION_MAX
-            ):
-                freq_mod *= LAB_FREQ_MULT_NEAR_DISCHARGE
-            # Weekend: reduce non-urgent labs
-            if lab_time.weekday() >= 5:  # Saturday/Sunday
-                freq_mod *= LAB_FREQ_MULT_WEEKEND
-            # Stable patient: reduce after first week
-            if day >= LAB_LATE_STAY_MIN_DAY and state.inflammation_level < LAB_LATE_STAY_INFLAMMATION_MAX:
-                freq_mod *= LAB_FREQ_MULT_LATE_STAY_STABLE
-
-            daily_orders = place_daily_lab_orders(
-                protocol.model_dump(),
-                patient.patient_id,
-                encounter_id,
-                day,
-                lab_time,
-                freq_mod,
-                rng,
-                ordered_by=attending_id,
-            )
-            all_orders.extend(daily_orders)
-
-            # Imaging orders for day >= 1 (day=0 handled pre-loop in
-            # simulate_inpatient_encounter). Counter threads from admission
-            # call so IDs are unique across the full encounter.
-            daily_imaging = place_imaging_orders(
-                protocol,
-                encounter_id,
-                patient.patient_id,
-                admission_time,
-                day_index=day,
-                severity=severity,
-                rng=rng,
-                sequence_counter=_img_seq,
-            )
-            all_orders.extend(daily_imaging)
-
+            _place_daily_lab_and_imaging_orders(stay, run, day)
         # Chronic condition monitoring labs (additional to disease protocol)
         if chronic_monitoring and day >= 1:
-            chronic_lab_orders = _place_chronic_monitoring_orders(
-                chronic_monitoring,
-                patient.patient_id,
-                day,
-                admission_time,
-                rng,
-                encounter_id=encounter_id,
-                ordered_by=attending_id,
-            )
-            all_orders.extend(chronic_lab_orders)
-
-        # Lab results (with temporal lag for slow markers like CRP)
-        lab_hour = lab_time.hour if "lab_time" in dir() else 6  # early morning default
-        # J5 (Phase 2a): read every scenario flag (causes_myocardial_injury,
-        # causes_vte, future additions) via one helper and splat with **flags
-        # so every call site stays in sync. See physiology.engine docstring.
-        # Phase 2b (2026-06-24): sibling helper medication_flags_from_context
-        # detects chronic warfarin from current_medications AND in-hospital
-        # warfarin orders >= 3 days old (loading-dose 3-day rule). Both
-        # helpers spread as **flags so a new flag added to derive_lab_values
-        # reaches this site without touching the call.
-        _med_orders = [o for o in all_orders if o.order_type.value == "medication"]
-        # Issue #2293: the same in-effect medication list drives INR generation
-        # (the warfarin flag below) and result flagging / therapeutic ranges.
-        _meds_in_effect = medications_in_effect(patient.current_medications, _med_orders, admission_time.date(), day)
-        flags = {
-            **scenario_flags_from_protocol(protocol),
-            **medication_flags_from_context(
-                patient,
-                medication_orders=_med_orders,
-                admission_date=admission_time.date(),
-                current_day=day,
-            ),
-        }
-        # Issue #1988: on day 0 of a DKA encounter, resolve admission labs
-        # against the pre-update state so the ABG HCO3 reflects the acute
-        # presentation rather than ~1 day of recovery.
-        _true_labs_state = _lab_state_pre_update if _lab_state_pre_update is not None else state
-        _lab_at = admission_time + timedelta(days=day)
-        true_labs = patient_true_labs(_true_labs_state, patient, _lab_at, flags, hour=lab_hour)
-
-        # Apply temporal lag: CRP reflects inflammation from ~1 day ago
-        if len(state_history) >= 2 and "CRP" in true_labs:
-            lag_idx = max(0, len(state_history) - 2)
-            lagged_state = state_history[lag_idx]
-            lagged_labs = patient_true_labs(lagged_state, patient, _lab_at, flags, hour=lab_hour)
-            true_labs["CRP"] = lagged_labs.get("CRP", true_labs["CRP"])
-
-        # Expand panel orders (e.g. ABG → pH/pCO2/pO2/HCO3; CBC → WBC/Hb/Hct/Plt) into
-        # component child lab orders. The parent is marked RESULTED (no scalar result →
-        # no duplicate Observation). Children are kept *separate* from the master
-        # parent stream so their RNG draws can run on a per-parent isolated sub-RNG
-        # (see Pass 2 below), preventing panel-registry edits from cascading into
-        # unrelated patients' cohorts (AD-16).
-        _panel_children_by_parent: dict[str, list[Order]] = {}
-        for order in all_orders:
-            if order.order_type.value == "lab" and order.status == OrderStatus.PLACED:
-                comps = lab_panel_components(order.display_name)
-                if not comps:
-                    continue
-                children: list[Order] = []
-                for comp_name in comps:
-                    children.append(
-                        Order(
-                            order_id=f"{order.order_id}-{comp_name}",
-                            patient_id=order.patient_id,
-                            order_type=OrderType.LAB,
-                            display_name=comp_name,
-                            urgency=order.urgency,
-                            clinical_intent=order.clinical_intent,
-                            # Issue #871: forward the JA display alongside the EN.
-                            clinical_intent_ja=order.clinical_intent_ja,
-                            ordered_datetime=order.ordered_datetime,
-                            ordered_by=order.ordered_by,
-                            encounter_id=order.encounter_id,
-                            status=OrderStatus.PLACED,
-                        )
-                    )
-                _panel_children_by_parent[order.order_id] = children
-                order.status = OrderStatus.RESULTED
-
-        # The flat list (preserves insertion order so downstream serialisers, e.g.
-        # _bb_labs in fhir_r4_adapter, retain a stable index for `lab-{enc}-{idx:04d}`).
-        _panel_children: list[Order] = [c for kids in _panel_children_by_parent.values() for c in kids]
-        all_orders.extend(_panel_children)
-        _panel_child_ids = {c.order_id for c in _panel_children}
-
-        # Two-pass lab-result generation (Pass 1 scalar/non-panel + Pass 2
-        # panel children). Extracted to ``clinosim.simulator.lab_pipeline``
-        # (Issue #552 PR A) — see that module's docstring for the RNG
-        # contract and byte-neutrality guarantees.
-        _day_results_start = len(all_lab_results)
-        all_lab_results.extend(
-            _run_lab_result_pipeline(
-                all_orders,
-                _panel_children_by_parent,
-                _panel_child_ids,
-                true_labs,
-                patient,
-                country_key,
-                roster,
-                hospital_state,
-                hospital_ops,
-                medications=_meds_in_effect,
-            )
-        )
-
-        # Diagnosis update
-        if day >= 1:
-            # Issue #2240: only the results drawn today. A fixed window over
-            # the whole stay missed CRP behind a large panel and re-counted
-            # the same old result as new evidence on days without a draw.
-            findings = _extract_findings(all_lab_results[_day_results_start:], disease_id, day)
-            if findings:
-                protocol_lr = (
-                    protocol.likelihood_ratios
-                    if hasattr(protocol, "likelihood_ratios") and protocol.likelihood_ratios
-                    else None
-                )  # noqa: E501
-                protocol_diagnostic = protocol.diagnostic if hasattr(protocol, "diagnostic") else {}
-                yaml_lr = protocol_diagnostic.get("likelihood_ratios") if protocol_diagnostic else None
-                differential = update_differential(differential, findings, protocol_lr_table=yaml_lr or protocol_lr)
-
-        # Archetype-specific order/treatment modifications (YAML-driven)
-        archetype_data = protocol.course_archetypes.get(archetype, {}) if protocol.course_archetypes else {}
-        order_mods = archetype_data.get("order_modifications", {})
-        treatment_mods = archetype_data.get("treatment_modifications", {})
-
-        # Check order/treatment modifications for this day (with ±1 day jitter for realism)
-        day_key = f"day_{day}"
-        # Also check adjacent days (in case the modification fires ±1 day early/late)
-        day_keys_to_check = [day_key]
-        if rng.random() < ARCHETYPE_DAY_SHIFT_PROBABILITY:  # ±1 day jitter for realism
-            shift = int(rng.choice([-1, 1]))
-            alt_key = f"day_{day + shift}"
-            if alt_key in order_mods and day_key not in order_mods:
-                day_keys_to_check = [alt_key]
-
-        matched_order_key = None
-        for dk in day_keys_to_check:
-            if dk in order_mods:
-                matched_order_key = dk
-                break
-
-        if matched_order_key:
-            mod = order_mods[matched_order_key]
-            # Add labs
-            for lab_name in mod.get("add_labs", []):
-                all_orders.append(
-                    Order(
-                        order_id=f"ORD-{encounter_id}-MOD-D{day}-{sanitize_id_token(lab_name, 5)}",
-                        patient_id=patient.patient_id,
-                        order_type=OrderType.LAB,
-                        display_name=lab_name,
-                        urgency="stat",
-                        clinical_intent=t("order_intent.archetype_workup", "en", day=day, archetype=archetype),
-                        # Issue #871: JA display for JP SR reasonCode.text.
-                        # `archetype` is a code identifier (sepsis/ards/etc.) —
-                        # kept as-is; the shell is translated.
-                        clinical_intent_ja=t("order_intent.archetype_workup", "ja", day=day, archetype=archetype),
-                        ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                        status=OrderStatus.PLACED,
-                    )
-                )
-            # Add imaging
-            for img_idx, img_name in enumerate(mod.get("add_imaging", [])):
-                all_orders.append(
-                    Order(
-                        order_id=f"ORD-{encounter_id}-MOD-D{day}-IMG-{img_idx}",
-                        patient_id=patient.patient_id,
-                        order_type=OrderType.IMAGING,
-                        display_name=img_name,
-                        urgency="stat",
-                        clinical_intent=t("order_intent.archetype_imaging", "en", day=day, archetype=archetype),
-                        # Issue #871: JA display for JP SR reasonCode.text.
-                        clinical_intent_ja=t("order_intent.archetype_imaging", "ja", day=day, archetype=archetype),
-                        ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                        status=OrderStatus.PLACED,
-                    )
-                )
-
-        # Treatment modifications (same jitter logic)
-        matched_tx_key = None
-        for dk in day_keys_to_check:
-            if dk in treatment_mods:
-                matched_tx_key = dk
-                break
-
-        if matched_tx_key:
-            mod = treatment_mods[matched_tx_key]
-            # Stop medications
-            for stop_idx, drug_name in enumerate(mod.get("stop", [])):
-                all_orders.append(
-                    Order(
-                        order_id=(
-                            f"ORD-{encounter_id}{MED_STOP_ORDER_ID_MARKER}"
-                            f"D{day}-{stop_idx}-{sanitize_id_token(drug_name, 8)}"
-                        ),
-                        patient_id=patient.patient_id,
-                        order_type=OrderType.MEDICATION,
-                        display_name=f"DISCONTINUE: {drug_name}",
-                        urgency="routine",
-                        clinical_intent=t(
-                            "order_intent.archetype_stop", "en", day=day, archetype=archetype, drug=drug_name
-                        ),
-                        # Issue #871: JA display for JP SR reasonCode.text.
-                        clinical_intent_ja=t(
-                            "order_intent.archetype_stop", "ja", day=day, archetype=archetype, drug=drug_name
-                        ),
-                        ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                        status=OrderStatus.PLACED,
-                    )
-                )
-            # Start new medications or procedures
-            start_meds = mod.get("start", {}).get(country_key, mod.get("start", []))
-            if isinstance(start_meds, list):
-                for med in start_meds:
-                    if not isinstance(med, dict):
-                        continue
-                    drug = protocol_drug_name(med).strip()
-                    proc = med.get("procedure", "").strip()
-                    if drug:
-                        # Daily-loop step medications sometimes carry device or
-                        # therapy names disguised as drugs (NIV_BiPAP / CPAP /
-                        # IPC / cardiac monitoring / etc.). Classify via the
-                        # canonical treatment_classifier (single source of
-                        # truth; J5 pattern prevention — this was C4-28's
-                        # RM-6b sibling gap in).
-                        display = f"{drug} {med.get('dose', '')}".strip()
-                        _dc_order_type = classify_encounter_treatment(drug)
-                        _is_medication = _dc_order_type == OrderType.MEDICATION
-                        if _is_medication:
-                            _order_id_prefix = f"ORD-{encounter_id}-START-D{day}-{sanitize_id_token(drug, 8)}"
-                            _intent = t("order_intent.archetype_new_medication", "en", day=day, archetype=archetype)
-                            _intent_ja = t("order_intent.archetype_new_medication", "ja", day=day, archetype=archetype)
-                        else:
-                            _order_id_prefix = f"ORD-{encounter_id}-DEV-D{day}-{sanitize_id_token(drug, 8)}"
-                            _intent = t("order_intent.archetype_device", "en", day=day, archetype=archetype)
-                            _intent_ja = t("order_intent.archetype_device", "ja", day=day, archetype=archetype)
-                        all_orders.append(
-                            Order(
-                                order_id=_order_id_prefix,
-                                patient_id=patient.patient_id,
-                                order_type=_dc_order_type,
-                                display_name=display,
-                                urgency="urgent",
-                                clinical_intent=_intent,
-                                # Issue #871: JA display for JP SR reasonCode.text.
-                                clinical_intent_ja=_intent_ja,
-                                ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                                status=OrderStatus.PLACED,
-                            )
-                        )
-                    elif proc:
-                        # Procedure order (not a medication)
-                        detail = med.get("detail", "")
-                        display = f"{proc}" + (f" ({detail})" if detail else "")
-                        all_orders.append(
-                            Order(
-                                order_id=f"ORD-{encounter_id}-PROC-D{day}-{sanitize_id_token(proc, 8)}",
-                                patient_id=patient.patient_id,
-                                order_type=OrderType.PROCEDURE,
-                                display_name=display,
-                                urgency="urgent",
-                                clinical_intent=t(
-                                    "order_intent.archetype_procedure", "en", day=day, archetype=archetype
-                                ),
-                                # Issue #871: JA display for JP SR reasonCode.text.
-                                clinical_intent_ja=t(
-                                    "order_intent.archetype_procedure", "ja", day=day, archetype=archetype
-                                ),
-                                ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                                status=OrderStatus.PLACED,
-                            )
-                        )
-                    # Skip entries with neither drug nor procedure
-
-        # Treatment escalation: if inflammation not improving by day 3, escalate
-        # Issue #914: an inflammation-not-improving heuristic alone fired on
-        # nearly every day-3 admission with mid-severity, producing meropenem
-        # (or the disease's escalation agent) on ~34 % of pyelonephritis
-        # encounters — real clinical escalation rate is <15 % (reserved for
-        # culture ESBL / true 72 h non-defervescence). Each ``escalation``
-        # entry may now carry an optional ``probability`` field (0.0-1.0);
-        # when unset the pre-existing "always escalate on trigger" behavior
-        # is preserved (byte-compat with disease YAMLs that predate this).
-        if day == TREATMENT_ESCALATION_DAY and state.inflammation_level > TREATMENT_ESCALATION_INFLAMMATION_MIN:
-            escalation_drugs = protocol.drugs.get("escalation", {}).get(country_key, [])
-            if isinstance(escalation_drugs, dict):
-                escalation_drugs = [escalation_drugs]
-            for esc_drug in escalation_drugs:
-                if not isinstance(esc_drug, dict):
-                    continue
-                _esc_prob = esc_drug.get("probability")
-                if _esc_prob is not None and float(_esc_prob) < 1.0:
-                    if rng.random() >= float(_esc_prob):
-                        continue
-                drug_name = protocol_drug_name(esc_drug) or str(esc_drug.get("procedure") or "")
-                dose = esc_drug.get("dose", "")
-                indication = esc_drug.get("indication", "no improvement")
-                # Escalation entries carry a `drug` field but the value is
-                # sometimes actually a procedure name (Vertebroplasty,
-                # Hemodialysis, endoscopy, etc.). Route via the canonical
-                # treatment_classifier (J5 pattern prevention).
-                _esc_display = f"{drug_name} {dose}".strip()
-                _esc_order_type = classify_escalation_treatment(esc_drug)
-                all_orders.append(
-                    Order(
-                        order_id=f"ORD-{encounter_id}-ESC-D{day}-{sanitize_id_token(drug_name, 8)}",
-                        encounter_id=encounter_id,
-                        patient_id=patient.patient_id,
-                        order_type=_esc_order_type,
-                        order_code=protocol_drug_order_code(esc_drug, country_key),
-                        order_code_system=protocol_drug_order_code_system(esc_drug, country_key),
-                        display_name=_esc_display,
-                        urgency="urgent",
-                        clinical_intent=t(
-                            "order_intent.escalation", "en", day=day, drug=drug_name, indication=indication
-                        ),
-                        # Issue #871: JA display for JP SR reasonCode.text.
-                        # `drug_name` and `indication` are kept as-is (may be
-                        # EN or already-JA from disease YAML) — shell translated.
-                        clinical_intent_ja=t(
-                            "order_intent.escalation", "ja", day=day, drug=drug_name, indication=indication
-                        ),
-                        ordered_datetime=admission_time + timedelta(days=day, hours=10),
-                        ordered_by=attending_id,
-                        status=OrderStatus.PLACED,
-                        route=esc_drug.get("route", "IV"),
-                        # Issue #476: propagate authored localized dose
-                        # instructions from YAML so the FHIR builder can emit
-                        # them as country-scoped `dosageInstruction.text`.
-                        dose_text_ja=language_slot(esc_drug.get("dose_text"), "ja"),
-                        dose_text_en=language_slot(esc_drug.get("dose_text"), "en"),
-                    )
-                )
-
-        # Medication administration (MAR)
-        mars_today = _generate_mar(
-            patient, all_orders, day, admission_time, department=department, roster=roster, rng=rng
-        )  # noqa: E501
-        all_mars.extend(mars_today)
-
-        # Diet order (only when diet changes: NPO → clear liquid → soft → regular)
-        if day == 0:
-            diet = "NPO"
-        elif day == 1 and state.inflammation_level > DIET_CLEAR_LIQUID_INFLAMMATION_THRESHOLD:
-            diet = "clear_liquid"
-        elif state.inflammation_level > DIET_SOFT_INFLAMMATION_THRESHOLD:
-            diet = "soft_diet"
-        else:
-            diet = "regular_diet"
-        if diet != prev_diet:
-            all_orders.append(
-                Order(
-                    order_id=f"ORD-{encounter_id}-DIET-D{day}",
-                    patient_id=patient.patient_id,
-                    order_type=OrderType.DIET,
-                    display_name=diet,
-                    urgency="routine",
-                    clinical_intent=t("order_intent.diet", "en", day=day, diet=diet),
-                    # Issue #871: JA display for JP SR reasonCode.text.
-                    clinical_intent_ja=t("order_intent.diet", "ja", day=day, diet=diet),
-                    ordered_datetime=admission_time + timedelta(days=day, hours=7),
-                    ordered_by=attending_id,
-                    status=OrderStatus.PLACED,
-                )
-            )
-            prev_diet = diet
-
-        # Vitals
-        ward_nurse_id = assign_staff("medication_administration", department, roster, rng).get(
-            "administering_nurse", FALLBACK_NURSE_ID
-        )  # noqa: E501
-        vitals_country = "JP" if country_key == "japan" else "US"
-        vitals_today = _generate_vitals(
-            state,
-            patient,
-            day,
-            admission_time,
-            rng,
-            disease_id=disease_id,
-            nurse_id=ward_nurse_id,
-            country=vitals_country,
-        )  # noqa: E501
-        all_vitals.extend(vitals_today)
-        # Issue #2085: PRN analgesia / benzodiazepines on demand from today's
-        # pain scores and autonomic state.
-        all_mars.extend(generate_prn_administrations(all_orders, vitals_today, state, prn_last_given))
-
-        # Daily I/O record
-        io_record = _generate_daily_io(state, patient, day, admission_time, rng)
-        all_io.append(io_record)
-
-        # ADL assessment (admission, weekly, discharge approach)
-        adl = _generate_adl_assessment(state, patient, day, admission_time, rng)
-        if adl:
-            all_adl.append(adl)
-
-        # Complications
-        comp_list = protocol.complications if protocol.complications else []
-        if comp_list and day >= 1:
-            triggered = evaluate_complications(
-                day,
-                state,
-                patient,
-                comp_list,
-                active_complications,
-                rng,
-                severity=severity,
-                context=_complication_context(
-                    patient,
-                    all_orders,
-                    admission_time,
-                    icu_day=icu_transferred_day_local if icu_transferred else None,
-                    intubated_day=intubated_day,
-                    surgery_day=surgery[0] if surgery else None,
-                    procedures=list(prior_procedures or []) + escalation_procedures,
-                    dvt_prophylaxis=dvt_prophylaxis_planned,
-                ),
-            )
-            for comp in triggered:
-                for var, delta in comp.get("state_impact", {}).items():
-                    apply_state_delta(state, var, delta)
-                comp_name = comp.get("name", "unknown")
-                # Phase 1a: record the onset day + a canonical noon-of-day
-                # timestamp so downstream (narrative context filter,
-                # hospital_course_extractor ordering, future FHIR Condition
-                # .onsetDateTime emit) knows WHEN the complication fired.
-                # The daily loop is per-day, not per-hour, so noon is used
-                # as a stable within-day anchor.
-                onset_dt = admission_time + timedelta(days=day)
-                onset_dt = onset_dt.replace(hour=12, minute=0, second=0, microsecond=0)
-                complications_occurred.append(
-                    build_complication(
-                        name=comp_name,
-                        onset_day=day,
-                        onset_datetime=onset_dt.isoformat(),
-                        source="daily_loop",
-                    )
-                )
-                if "icu_transfer" in comp.get("actions", []):
-                    if not icu_transferred:
-                        # C5-22: capture day of transfer for
-                        # Encounter.classHistory. First trigger wins;
-                        # subsequent ICU-triggering complications on later
-                        # days do not overwrite (the patient is already in
-                        # ICU by then).
-                        icu_transferred_day_local = day
-                    icu_transferred = True
-                # Cancel contraindicated meds when AKI develops as complication
-                if comp_name == "acute_kidney_injury":
-                    for o in all_orders:
-                        if o.order_type == OrderType.MEDICATION and o.status == OrderStatus.PLACED:
-                            if has_drug([o], "metformin"):
-                                o.status = OrderStatus.CANCELLED
-
-        # State-driven airway / ICU escalation (Issue #2091): intubation on the
-        # day the airway threshold is crossed, ICU transfer for airway or shock.
-        if not intubated and airway_escalation_needed(state):
-            intubated = True
-            intubated_day = day
-            escalation_procedures.append(
-                build_intubation_procedure(
+            run.orders.extend(
+                _place_chronic_monitoring_orders(
+                    chronic_monitoring,
                     patient.patient_id,
-                    encounter_id,
-                    admission_time + timedelta(days=day, hours=AIRWAY_ESCALATION_HOUR),
-                    "JP" if country_key == "japan" else "US",
-                    f"PROC-{patient.patient_id}-AIR{day:02d}",
+                    day,
+                    admission_time,
+                    rng,
+                    encounter_id=encounter_id,
+                    ordered_by=attending_id,
                 )
             )
-        if not icu_transferred and icu_escalation_needed(state):
-            icu_transferred_day_local = day
-            icu_transferred = True
+        day_results_start = _result_labs(stay, run, day, lab_state_pre_update)
+        if day >= 1:
+            _update_diagnosis(stay, run, day, day_results_start)
+        _apply_archetype_modifications(stay, run, day)
+        if day == TREATMENT_ESCALATION_DAY and run.state.inflammation_level > TREATMENT_ESCALATION_INFLAMMATION_MIN:
+            _escalate_treatment(stay, run, day)
+        run.mars.extend(
+            _generate_mar(patient, run.orders, day, admission_time, department=department, roster=roster, rng=rng)
+        )
+        _order_diet(stay, run, day)
+        _record_bedside_observations(stay, run, day)
+        if comp_list and day >= 1:
+            _apply_complications(stay, run, day, comp_list)
+        _escalate_airway_and_icu(stay, run, day)
 
-        # Mortality (disease-specific rate from YAML benchmarks)
-        benchmark_mortality = protocol.outcome_benchmarks.get(country_key, {}).get("in_hospital_mortality", 0.0)
-        if _evaluate_mortality(
-            state,
-            patient,
-            severity=severity,
-            day=day,
-            rng=rng,
-            disease_mortality_rate=benchmark_mortality,
-            target_los=target_los,
-            # Issue #2098: worst consciousness / oxygenation so far, relative to
-            # the disease's presentation mix (keeps the benchmark average).
-            state_relative_risk=mortality_state_multiplier(
-                max(s.consciousness_impairment for s in state_history),
-                max(s.oxygenation_impairment for s in state_history),
-            )
-            / expected_mortality_multiplier,
-        ):
-            death_occurred = True
+        if _dies_today(stay, run, day, expected_mortality_multiplier):
+            run.death_occurred = True
             break
-
         # Early discharge: if state-based criteria met before target_los
         # (not for protocols whose recovery the physiology does not model,
         # e.g. psychiatric admissions, Issue #2132).
-        if day >= min_los and not death_occurred and getattr(protocol, "state_based_discharge", True):
-            if _check_discharge_ready(state, day, country_key, symptom_floor):
+        if day >= min_los and getattr(protocol, "state_based_discharge", True):
+            if _check_discharge_ready(run.state, day, country_key, symptom_floor):
                 break  # actual_los = day + 1
-
         if day + 1 >= los_ceiling:
-            if not extend_stay_for_symptoms(state, los_ceiling, max_los, symptom_floor):
+            if not extend_stay_for_symptoms(run.state, los_ceiling, max_los, symptom_floor):
                 break
             los_ceiling += 1
 
-    try:
-        actual_los = day + 1
-    except NameError:
-        actual_los = max(1, target_los)
-
-    # C7b (#1100): drug_safety gate on post-admission MEDICATION Orders.
-    # ``admission_orders`` were gated at admission time; anything the
-    # daily loop appended afterwards (treatment_mod step-up meds,
-    # complication-triggered add-ons) has never been checked. Partition
-    # ``all_orders`` into (admission, new) and route the new ones through
-    # the general gate, seeded with home + admission-accepted MEDICATION
-    # names so a mid-encounter Aspirin request against an admission-time
-    # Enoxaparin is skipped / substituted.
-    from clinosim.simulator.medication_pipeline import (
-        apply_drug_safety_gate_to_orders,
+    return DailyLoopResult(
+        orders=_gate_new_medication_orders(stay, admission_orders, run.orders),
+        lab_results=run.lab_results,
+        vitals=run.vitals,
+        mars=run.mars,
+        io_records=run.io_records,
+        adl_assessments=run.adl_assessments,
+        state_history=run.state_history,
+        complications=run.complications,
+        death_occurred=run.death_occurred,
+        icu_transferred=run.icu_transferred,
+        icu_transferred_day=run.icu_transferred_day,
+        escalation_procedures=run.escalation_procedures,
+        differential=run.differential,
+        actual_los=actual_los,
     )
-
-    _admission_len = len(admission_orders)
-    _pre_new = all_orders[:_admission_len]
-    _new_orders = all_orders[_admission_len:]
-    if _new_orders:
-        _accepted = [o.display_name for o in _pre_new if o.order_type == OrderType.MEDICATION and o.display_name]
-        _gated_new = apply_drug_safety_gate_to_orders(
-            _new_orders,
-            patient=patient,
-            encounter_id=admission_orders[0].encounter_id if admission_orders else "",
-            ordered_datetime=admission_time,
-            attending_id=attending_id,
-            protocol=protocol,
-            country=country_key,
-            already_accepted_meds=_accepted,
-        )
-        all_orders = _pre_new + _gated_new
-
-    return {
-        "orders": all_orders,
-        "lab_results": all_lab_results,
-        "vitals": all_vitals,
-        "mars": all_mars,
-        "io_records": all_io,
-        "adl_assessments": all_adl,
-        "state_history": state_history,
-        "complications": complications_occurred,
-        "death_occurred": death_occurred,
-        "icu_transferred": icu_transferred,
-        "icu_transferred_day": icu_transferred_day_local,  # C5-22
-        "escalation_procedures": escalation_procedures,
-        "differential": differential,
-        "actual_los": actual_los,
-    }
 
 
 # ============================================================
