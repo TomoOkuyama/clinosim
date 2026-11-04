@@ -43,6 +43,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.modules.disease.acuity import CRITICAL_MONITORING_DISEASES
 from clinosim.modules.observation.fluid_balance import (
     AGGRESSIVE_IV_ML,
@@ -436,7 +437,7 @@ def _generate_vitals(
         hashlib.sha256(f"avpu:{patient.patient_id}:{day}".encode()).digest()[:8],
         "big",
     )
-    _stable_day_avpu = _loc_for(state, disease_id, day, np.random.default_rng(_avpu_day_seed))
+    _stable_day_avpu = _loc_for(state, disease_id, day, determinism.default_rng(_avpu_day_seed))
 
     # Routine full-vitals schedule by acuity
     # Critically unstable (septic shock, acute MI, hemorrhagic stroke, subdural

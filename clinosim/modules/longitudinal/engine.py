@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.codes.drugs import drug_key
 from clinosim.modules.longitudinal.loader import (
     AttributeSpec,
@@ -223,7 +224,7 @@ def _apply_pattern(
         if not isinstance(event_body, EventSpec):
             raise TypeError(f"event pattern {spec.attribute_id!r} carries a {type(event_body).__name__} body")
         event_rng = (
-            np.random.default_rng(longitudinal_event_seed(person.person_id, snapshot.year, event_body.event_name))
+            determinism.default_rng(longitudinal_event_seed(person.person_id, snapshot.year, event_body.event_name))
             if event_body.rng_isolated
             else rng
         )

@@ -6,8 +6,7 @@ assessments. Uses a dedicated sub-seed so the main random stream is untouched.
 
 from __future__ import annotations
 
-import numpy as np
-
+from clinosim import determinism
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.observation.nursing import (
@@ -30,7 +29,7 @@ def enrich_nursing(ctx) -> None:
         pid = _get(patient, "patient_id", "") if patient else ""
         age = int(_get(patient, "age", 70) or 70)
         seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["nursing"], pid or "x")
-        rng = np.random.default_rng(seed)
+        rng = determinism.default_rng(seed)
 
         # 1) NEWS2 + GCS on each vital record (NEWS2 deterministic; GCS small jitter)
         #

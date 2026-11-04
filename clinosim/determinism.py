@@ -204,8 +204,8 @@ def exponential(rng: np.random.Generator, mean: float = 1.0) -> float:
 class _DeterministicRngProxy:
     """Transparent wrapper around ``numpy.random.Generator``. Every method
     other than ``beta`` / ``normal`` / ``exponential`` delegates to the
-    underlying generator. Those three route through the bit-reproducible
-    variate functions in this module.
+    underlying generator. Those (and ``standard_normal``) route through the
+    bit-reproducible variate functions in this module.
 
     Two design choices:
 
@@ -232,6 +232,9 @@ class _DeterministicRngProxy:
 
     def exponential(self, scale: float = 1.0) -> float:
         return exponential(self._rng, scale)
+
+    def standard_normal(self) -> float:
+        return normal(self._rng, 0.0, 1.0)
 
     def __getattr__(self, name: str):
         return getattr(self._rng, name)

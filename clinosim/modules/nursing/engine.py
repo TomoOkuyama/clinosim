@@ -12,6 +12,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.datafiles import load_data_yaml
 from clinosim.types.staff import StaffRoster
 
@@ -153,5 +154,5 @@ def nursing_enricher(ctx: Any) -> None:
                 continue
             enc_id = _o(enc, "encounter_id", "")
             sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["nursing"], enc_id)
-            rng = np.random.default_rng(sub_seed)
+            rng = determinism.default_rng(sub_seed)
             enc.primary_nurse_id = assign_primary_nurse(enc, roster, rng)

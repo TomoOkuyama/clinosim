@@ -28,6 +28,7 @@ from datetime import date, datetime, timedelta
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.age_bands import lookup_age_band
 from clinosim.codes import system_key_for
 from clinosim.codes.drugs import drug_display
@@ -37,6 +38,7 @@ from clinosim.locale.loader import load_perinatal_config
 from clinosim.modules._shared import is_jp
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.staff.engine import FALLBACK_PHYSICIAN_ID, StaffRoster, assign_staff
+from clinosim.seeding import text_seed
 from clinosim.simulator.hospital_ops import resolve_department
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
 from clinosim.types.encounter import EncounterStatus, EncounterType
@@ -88,7 +90,7 @@ def resolve_pregnancy_outcome(mother_id: str, mother_age: int, year: int) -> tup
     p_abort = _lookup_age_band(ab_cfg.get("probability_by_age") or {}, mother_age)
     if p_abort <= 0.0:
         return ("delivery", "Z37.0")
-    rng = np.random.default_rng(_abortion_outcome_sub_seed(mother_id, year))
+    rng = determinism.default_rng(_abortion_outcome_sub_seed(mother_id, year))
     if float(rng.random()) >= p_abort:
         return ("delivery", "Z37.0")
     # Abortion outcome — split induced vs spontaneous.
@@ -237,7 +239,7 @@ def _sample_newborn_conditions(
     perinatal: list[ChronicCondition] = []
     if not entries:
         return persistent, perinatal
-    rng = np.random.default_rng(_newborn_conditions_sub_seed(mother_id))
+    rng = determinism.default_rng(_newborn_conditions_sub_seed(mother_id))
     onset = delivery_date
 
     def _route(cond: ChronicCondition) -> None:
@@ -311,8 +313,8 @@ def _sample_newborn_given_name(baby_id: str, sex: str, country: str) -> str:
         return ""
     # Sub-seed derived from baby_id — independent of any RNG stream so
     # perinatal callers see byte-identical output for their own draws.
-    sub = int(hashlib.sha256(f"newborn-given|{baby_id}|{country}|{sex}".encode()).hexdigest(), 16) % (2**32)
-    rng = np.random.default_rng(sub)
+    sub = text_seed(f"newborn-given|{baby_id}|{country}|{sex}")
+    rng = determinism.default_rng(sub)
     picked = _sample_given_name(name_data, sex, rng)
     return str(picked.get("kanji") or picked.get("name") or "")
 
@@ -575,7 +577,7 @@ def simulate_delivery_encounter(
     # patient).
     cs_cfg = cfg.get("cesarean") or {}
     cs_prob = float((cs_cfg.get("probability") or {}).get("jp" if is_jp(country) else "us") or 0.0)
-    cs_rng = np.random.default_rng(_newborn_sub_seed(f"cesarean|{patient.patient_id}"))
+    cs_rng = determinism.default_rng(_newborn_sub_seed(f"cesarean|{patient.patient_id}"))
     is_cesarean = float(cs_rng.random()) < cs_prob
 
     dept = resolve_department(enc_cfg.get("department") or "obstetrics_gynecology", hospital_ops)
@@ -959,7 +961,7 @@ def simulate_delivery_encounter(
     # Per-mother sub-RNG for newborn sex (isolated from calendar RNG
     # so activating newborn emission does not shift any other patient's
     # stream).
-    baby_rng = np.random.default_rng(_newborn_sub_seed(patient.patient_id))
+    baby_rng = determinism.default_rng(_newborn_sub_seed(patient.patient_id))
     baby_sex = "M" if float(baby_rng.random()) < 0.514 else "F"  # ~51.4% male at birth (JP MHLW / US CDC)
     delivery_date = visit_date.date()
     # Issue #1247: pass snapshot_date so `_build_newborn_patient` decides

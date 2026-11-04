@@ -12,8 +12,7 @@ for the ineligible cohort without cascading to any other patient's RNG.
 
 from __future__ import annotations
 
-import numpy as np
-
+from clinosim import determinism
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.care_level.engine import (
@@ -58,7 +57,7 @@ def enrich_care_level(ctx) -> None:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
         age = int(_get(patient, "age", 0) or 0) if patient else 0
-        rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["care_level"], pid or "x"))
+        rng = determinism.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["care_level"], pid or "x"))
         code = assign_care_level(age, country, rng)
         # Issue #940: enforce 介護保険 eligibility AFTER the (RNG-consuming)
         # draw so per-patient RNG shape is untouched — the ineligible

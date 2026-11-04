@@ -43,14 +43,15 @@ Determinism contract:
 
 from __future__ import annotations
 
-import hashlib
 from datetime import date
 from functools import lru_cache
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.modules.allergy.engine import load_allergen_config
 from clinosim.modules.population.mortality import age_in_year, band_of, draw_community_death, smr_normalizers
+from clinosim.seeding import text_seed
 from clinosim.types.population import PersonRecord
 
 __all__ = [
@@ -82,7 +83,7 @@ def aging_sub_seed(person_id: str, year: int, pass_name: str) -> int:
     streams.
     """
     key = f"{_AGING_SEED_SALT}|{person_id}|{year}|{pass_name}"
-    return int(hashlib.sha256(key.encode()).hexdigest(), 16) % (2**32)
+    return text_seed(key)
 
 
 # ---------------------------------------------------------------------------
@@ -472,7 +473,7 @@ def advance_population(
                 person,
                 year,
                 locale,
-                np.random.default_rng(aging_sub_seed(person.person_id, year, "mortality")),
+                determinism.default_rng(aging_sub_seed(person.person_id, year, "mortality")),
                 exposure=(lo, exposure_hi),
                 normalizer=normalizers.get((band_of(age_in_year(person, year)), person.sex), 1.0),
             )
@@ -483,7 +484,7 @@ def advance_population(
             _stroke_sequela_promotion,
             _allergy_drift,
         ):
-            pass_rng = np.random.default_rng(aging_sub_seed(person.person_id, year, pass_fn.__name__))
+            pass_rng = determinism.default_rng(aging_sub_seed(person.person_id, year, pass_fn.__name__))
             pass_fn(person, year, pass_rng, locale=locale)
         # Phase 1 longitudinal subsystem (Issue #1695) — advance the
         # per-year state_history snapshot once the aging passes have
@@ -492,7 +493,7 @@ def advance_population(
         from clinosim.modules.longitudinal.engine import advance_one_year
 
         if person.longitudinal_history and person.longitudinal_history[-1].year < year:
-            _ls_rng = np.random.default_rng(aging_sub_seed(person.person_id, year, "longitudinal"))
+            _ls_rng = determinism.default_rng(aging_sub_seed(person.person_id, year, "longitudinal"))
             advance_one_year(
                 person,
                 year=year,

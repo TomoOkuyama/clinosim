@@ -9,8 +9,7 @@ from __future__ import annotations
 import hashlib
 from datetime import date, datetime
 
-import numpy as np
-
+from clinosim import determinism
 from clinosim.countries import is_jp
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _get
@@ -323,7 +322,9 @@ def enrich_immunizations(ctx) -> None:
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
-        rng = np.random.default_rng(derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["immunization"], pid or "x"))
+        rng = determinism.default_rng(
+            derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["immunization"], pid or "x")
+        )
         recs = generate_immunizations(patient, schedule, _as_of(ctx, rec), rng, nurse_ids=nurse_ids)
         # Issue #1283: append US maternal Tdap (CVX 115) for each
         # pregnancy period whose 27-36-week window overlaps the sim.

@@ -28,6 +28,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.codes.drugs import has_drug
 from clinosim.codes.valuesets import concept_group
 from clinosim.locale.i18n import t
@@ -433,7 +434,7 @@ def enrich_health_checkup(ctx: Any) -> None:
             checkup_type=checkup_type,
         )
         # per-patient sub-rng(AD-16):同 seed+同 patient_id → 同 lab 値。
-        patient_rng = np.random.default_rng(derive_sub_seed(master_seed, hc_offset, patient_id))
+        patient_rng = determinism.default_rng(derive_sub_seed(master_seed, hc_offset, patient_id))
         checkup_labs = _build_checkup_lab_results(
             patient_id,
             patient,
