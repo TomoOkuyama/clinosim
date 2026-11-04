@@ -36,6 +36,7 @@ from clinosim.simulator._outpatient_thresholds import (
     OUTPATIENT_PRESCRIPTION_DURATION_DAYS,
     OUTPATIENT_VITALS_OFFSET_MIN,
 )
+from clinosim.simulator.diagnosis_rules import fallback_visit_code, post_discharge_visit_code, visit_purpose_code
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
 from clinosim.simulator.lab_pipeline import patient_true_labs
 from clinosim.types.clinical import ConditionEvent
@@ -630,38 +631,17 @@ def _simulate_outpatient_visit(
 
     # Third priority: post-discharge follow-up
     if not dx_code and post_discharge_disease:
-        dx_code = "Z09"
+        dx_code = post_discharge_visit_code()
 
-    # Fourth priority: visit-purpose Z-code lookup (Issue #1186 F2 / #1189 F4).
-    # Before this fix, any preventive / screening / vaccination / pediatric
-    # visit whose encounter YAML lacked an `icd10_code` fell through to the
-    # generic Z09 ("治療後フォローアップ") — so a pediatric annual check
-    # emitted `Encounter.reasonCode.text` = 治療後フォローアップ while
-    # the SOAP subjective said 年次健診. Route each named visit purpose
-    # to its Z-family code so reasonCode matches chief_complaint.
+    # Fourth priority: the visit purpose's Z-family code (Issue #1186 F2 /
+    # #1189 F4), so e.g. a pediatric vaccination visit's reasonCode matches
+    # its chief complaint instead of the generic follow-up Z09.
     if not dx_code:
-        _visit_purpose_z = {
-            ("health_screening", "annual_health_screening"): "Z00.0",
-            ("health_screening", "colonoscopy_screening"): "Z12.1",
-            ("health_screening", "mammography_screening"): "Z12.3",
-        }
-        _key = (visit_type, chronic_code or "")
-        if _key in _visit_purpose_z:
-            dx_code = _visit_purpose_z[_key]
-        elif visit_type == "health_screening":
-            dx_code = "Z00.0"  # generic screening fallback
-        elif visit_type == "pediatric_visit":
-            # `Z23` is only for vaccination-purpose visits; well-child
-            # otherwise gets `Z00` (一般健康診断). Distinguish by
-            # chronic_code substring.
-            if "vaccin" in (chronic_code or "") or "immuniz" in (chronic_code or ""):
-                dx_code = "Z23"
-            else:
-                dx_code = "Z00"
+        dx_code = visit_purpose_code(visit_type, chronic_code or "")
 
     # Final fallback
     if not dx_code:
-        dx_code = "Z09"
+        dx_code = fallback_visit_code()
 
     condition_event = ConditionEvent(
         condition_id=f"COND-{patient.patient_id}-OPD",

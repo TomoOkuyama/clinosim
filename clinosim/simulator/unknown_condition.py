@@ -74,6 +74,7 @@ from clinosim.simulator._unknown_condition_thresholds import (
     UNK_TARGET_LOS_MIN,
     UNK_WARD_CAPACITY_DEFAULT,
 )
+from clinosim.simulator.diagnosis_rules import unknown_condition_codes
 from clinosim.simulator.encounter_setup import attach_orders
 from clinosim.simulator.hospital_ops import pick_ward, resolve_department
 from clinosim.simulator.lab_pipeline import patient_true_labs
@@ -356,13 +357,13 @@ def _simulate_unknown_condition(
     encounter.status = EncounterStatus.COMPLETED
     encounter.discharge_datetime = admission_time + timedelta(days=target_los, hours=UNK_DISCHARGE_HOUR)
 
-    # ~50% of unknown conditions get partially resolved during stay
-    # (workup finds something, but not a definitive diagnosis)
+    # The stay ends unresolved, or the workup finds something short of a
+    # definitive diagnosis and a nonspecific code is assigned.
+    dx_codes = unknown_condition_codes(_slug)
     if rng.random() < UNK_PARTIAL_RESOLUTION_PROBABILITY:
-        discharge_code = "R50.9" if "fever" in event.disease_id else "R53.1"
+        discharge_code = dx_codes.unresolved
     else:
-        # Partially resolved: nonspecific diagnosis assigned
-        discharge_code = "R50.9" if "fever" in event.disease_id else "R68.8"
+        discharge_code = dx_codes.partially_resolved
 
     # Set encounter_id for all orders that don't have one — mirrors the
     # identical loop in simulate_inpatient (line 361-363). Without this,
@@ -382,7 +383,7 @@ def _simulate_unknown_condition(
             condition_id=f"COND-{patient.patient_id}-UNK", condition_type="unknown", symptom_pattern=event.disease_id
         ),
         clinical_diagnosis=ClinicalDiagnosis(
-            admission_diagnosis_code="R50.9" if "fever" in event.disease_id else "R53.1",
+            admission_diagnosis_code=dx_codes.admission,
             admission_diagnosis_system="icd-10-cm",
             discharge_diagnosis_code=discharge_code,
             discharge_diagnosis_system="icd-10-cm",

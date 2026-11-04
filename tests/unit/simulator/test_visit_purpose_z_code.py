@@ -109,7 +109,8 @@ def test_pediatric_vaccination_visit_gets_z23() -> None:
         datetime(2026, 8, 1, 10, 0),
         _dummy_roster(),
         np.random.default_rng(0),
-        chronic_code="vaccination_school_age",
+        # A vaccination visit of the pediatric schedule (diagnosis_rules.yaml `by_visit`).
+        chronic_code="immunization_kindergarten",
         country="JP",
         department_id="primary_care",
     )

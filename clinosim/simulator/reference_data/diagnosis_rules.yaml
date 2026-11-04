@@ -1,0 +1,53 @@
+# Diagnosis-coding rules of the encounter simulators (Issue #2552; moved from
+# simulator/outpatient.py, simulator/unknown_condition.py and
+# simulator/daily_loop.py). Every code, id and lab name is validated at load
+# by simulator/diagnosis_rules.py.
+
+metadata:
+  kind: reference
+  name: diagnosis_rules
+  source: clinosim
+
+# Outpatient visit diagnosis when neither the encounter condition YAML
+# (`icd10_code`) nor the chronic condition gives one (Issue #1186 F2 / #1189 F4):
+# each named visit purpose gets its Z-family code so Encounter.reasonCode
+# matches the chief complaint. `by_visit` keys are the visit ids
+# (pediatric schedule `disease_id`s); `default` covers the other visits of
+# that visit type. Anything else falls back to `fallback` (Z09, follow-up).
+visit_purpose_codes:
+  fallback: "Z09"
+  # A post-discharge follow-up without a chronic code.
+  post_discharge: "Z09"
+  by_visit_type:
+    # Screening visits (annual check, colonoscopy, mammography) carry their
+    # own encounter condition YAML `icd10_code`; Z00.0 is the generic
+    # general-examination fallback.
+    health_screening:
+      default: "Z00.0"
+    # Z23 only for vaccination visits; other well-child / pediatric visits
+    # get Z00 (general examination).
+    pediatric_visit:
+      default: "Z00"
+      by_visit:
+        immunization_infant: "Z23"
+        immunization_kindergarten: "Z23"
+        immunization_adolescent: "Z23"
+
+# Unknown-condition (undiagnosed) admissions, by sampled pattern slug
+# (`unknown_<pattern>`, locale demographics `unknown_condition.patterns`):
+# the admission code, and the discharge code when the stay ends unresolved or
+# with a nonspecific diagnosis assigned. `default` covers every other pattern.
+unknown_condition_codes:
+  default: {admission: "R53.1", unresolved: "R53.1", partially_resolved: "R68.8"}
+  by_pattern:
+    fever_unknown: {admission: "R50.9", unresolved: "R50.9", partially_resolved: "R50.9"}
+
+# Findings fed to the inpatient Bayesian differential update.
+differential_findings:
+  # Lab result → finding that is true when the value is above `above`.
+  labs:
+    CRP: {finding: crp_above_100, above: 100}
+    WBC: {finding: wbc_elevated, above: 15000}
+  # Simulated imaging findings, true on hospital day 1, per disease id.
+  day1_imaging:
+    bacterial_pneumonia: [chest_xray_consolidation, procalcitonin_elevated]
