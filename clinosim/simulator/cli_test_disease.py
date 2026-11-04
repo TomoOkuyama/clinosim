@@ -5,6 +5,7 @@ Split from `clinosim/simulator/cli.py` — see PR K.
 
 from __future__ import annotations
 
+import argparse
 import os
 import sys
 from typing import Any
@@ -193,3 +194,69 @@ def _run_test_disease_generate(args: Any) -> None:
     _run_exports(formats, cif_dir, args.output, effective_country)
 
     _print_summary(dataset, args.output)
+
+
+def register(sub: argparse._SubParsersAction) -> None:
+    # === test-disease: generate specific disease/archetype ===
+    td = sub.add_parser("test-disease", help="Generate data for a specific disease and archetype")
+    td.add_argument(
+        "disease_id",
+        nargs="?",
+        default=None,
+        help="Disease ID (e.g., bacterial_pneumonia); optional when --patient-profile is set",
+    )
+    td.add_argument(
+        "--patient-profile",
+        default=None,
+        help="Patient profile fixture name or path (AD-66); CLI args override profile fields with stderr WARN",
+    )
+    # adv-1 F-2: -n/--seed/--country default to None (not 3/42/US) so an EXPLICIT
+    # value equal to the old default is distinguishable from "flag omitted" when
+    # resolving against a --patient-profile. Legacy defaults are applied in
+    # _resolve_test_disease_defaults when the flag is omitted and no profile
+    # supplies a value — non-profile behavior is unchanged.
+    td.add_argument(
+        "-n",
+        "--count",
+        type=int,
+        default=None,
+        help="Number of patients (default: 3, or profile count)",
+    )
+    td.add_argument("--severity", default=None, help="Force severity: mild/moderate/severe")
+    td.add_argument("--archetype", default=None, help="Force archetype name")
+    td.add_argument(
+        "-s",
+        "--seed",
+        type=int,
+        default=None,
+        help="Random seed (default: 42, or profile random_seed)",
+    )
+    td.add_argument(
+        "--country",
+        default=None,
+        help="Country code (US or JP; default: US, or profile country)",
+    )
+    # AD-65 Phase 4 (Task 16): when -o is set, run the full 3-stage pipeline
+    # (structural + narrative + FHIR/CSV) for a tiny disease-specific cohort — a
+    # 10-second targeted verify without regenerating a full cohort. When -o is
+    # omitted (default), the original stdout debug print is unchanged.
+    td.add_argument(
+        "--format",
+        nargs="+",
+        default=None,
+        choices=["cif", "fhir-r4", "csv", "all"],
+        help="Output formats (requires -o/--output; if omitted, stdout debug only)",
+    )
+    td.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        help="Output directory (required when --format is set)",
+    )
+    td.set_defaults(handler=run)
+
+
+def run(args: Any, parser: argparse.ArgumentParser) -> None:
+    if args.format and not args.output:
+        parser.error("--format requires -o/--output to be set")
+    _run_test_disease(args)

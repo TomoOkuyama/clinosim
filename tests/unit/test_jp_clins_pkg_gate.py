@@ -23,7 +23,7 @@ from unittest.mock import patch
 import pytest
 
 from clinosim.modules.output.fhir_r4.labs.coding_package import MissingPackage
-from clinosim.simulator.cli import _enforce_jp_clins_pkg_gate
+from clinosim.simulator.cli_simulate import _enforce_jp_clins_pkg_gate
 
 
 @pytest.fixture(autouse=True)

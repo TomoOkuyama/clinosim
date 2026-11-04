@@ -5,6 +5,7 @@ Split from `clinosim/simulator/cli.py` — see PR K.
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
@@ -284,3 +285,145 @@ def _run_check_narratives(args: Any) -> None:
         print("check-narratives: FAIL", file=sys.stderr)
         sys.exit(1)
     print("check-narratives: PASS")
+
+
+def register_narrate(sub: argparse._SubParsersAction) -> None:
+    # === narrate: Stage 2 template narrative generation (AD-65) ===
+    nr = sub.add_parser(
+        "narrate",
+        help="Generate narrative CIF from a structural CIF directory (AD-65 Stage 2)",
+    )
+    nr.add_argument("--cif-dir", required=True, help="Path to structural CIF directory")
+    nr.add_argument(
+        "--provider",
+        default="template",
+        choices=["template", "bedrock", "ollama", "mock", "vllm", "openai_compatible"],
+        help=(
+            "Narrative generator: 'template' (default, deterministic) or an "
+            "LLM provider run through LLMNarrativePass — 'bedrock' / 'ollama' "
+            "/ 'vllm' (OpenAI-compatible /v1/chat/completions, incl. SGLang "
+            "and any OpenAI-compatible server) / 'openai_compatible' (alias "
+            "for 'vllm') / 'mock' (deterministic MockProvider, dev/test only). "
+            "All non-template providers are configured via "
+            "config/llm_service*.yaml or --llm-config"
+        ),
+    )
+    nr.add_argument(
+        "--llm-config",
+        default=None,
+        help=(
+            "Path to an LLM service YAML (see clinosim/config/llm_service*.yaml). "
+            "Default: bedrock -> config/llm_service.bedrock.yaml, "
+            "ollama -> config/llm_service.yaml, mock -> in-code MockProvider"
+        ),
+    )
+    nr.add_argument(
+        "--version-id",
+        default=None,
+        help="Narrative version directory name (default: provider name)",
+    )
+    nr.add_argument("--tasks", default=None, help="Comma-separated LLMTaskType filter (default: all)")
+    # `--country` for narrate is auto-detected from cif/metadata.json in
+    # _resolve_narrate_country (session 97 fix — a JP-generated CIF used
+    # to silently render EN narratives when this flag was omitted). The
+    # sentinel default "" lets the resolver distinguish "not passed" from
+    # "explicitly passed" (an explicit --country US on a JP CIF fails
+    # loud instead of silently drifting; anything explicit that matches
+    # the CIF metadata is honored).
+    nr.add_argument(
+        "--country", default="", help="Country code (US or JP); auto-detected from cif/metadata.json when omitted"
+    )
+    nr.add_argument(
+        "--set-current",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help=(
+            "Update current_version.txt to point to the new version. "
+            "Default: yes for --provider template, no for LLM providers "
+            "(bedrock/ollama/mock) so a trial run cannot silently repoint "
+            "production exports (M-3, N-chain adv-1), and no for ANY "
+            "provider when --patient-filter is set (a partial version "
+            "must not silently become current — chain 1b adv-1 I-1). "
+            "Explicit --set-current / --no-set-current always wins"
+        ),
+    )
+    nr.add_argument("--seed", type=int, default=42, help="RNG seed for determinism")
+    nr.add_argument(
+        "--patient-filter",
+        default=None,
+        help=(
+            "Regex over patient filename stem / patient_id — narrate only "
+            "matching patients (remote per-patient iteration, chain 1b T3). "
+            "The version manifest records the filter. Default: all patients"
+        ),
+    )
+    nr.add_argument(
+        "--merge-into-version",
+        action="store_true",
+        help=(
+            "With --patient-filter: allow writing into an existing version "
+            "directory that already contains documents (iterate-one-patient "
+            "loop). Files from previous runs remain on disk and "
+            "manifest.json reflects only the last run. Without this flag a "
+            "filtered write into a non-empty version is refused "
+            "(chain 1b adv-1 I-1)"
+        ),
+    )
+    nr.add_argument(
+        "--concurrency",
+        type=int,
+        default=1,
+        help=(
+            "Number of narrate worker threads. Default 1 (sequential, "
+            "byte-identical to the pre-concurrency baseline). Higher values "
+            "let a batching LLM backend (e.g. vLLM continuous batching) "
+            "absorb N in-flight generate() calls per LLM server — set to "
+            "match the server's --max-num-seqs (or a fraction of it). "
+            "Requires thread-safe provider (Ollama/vLLM/Mock are)."
+        ),
+    )
+    nr.set_defaults(handler=run_narrate)
+
+
+def register_check_narratives(sub: argparse._SubParsersAction) -> None:
+    # === check-narratives: β-JP-1 chain 1b T2 semantic check ===
+    cn = sub.add_parser(
+        "check-narratives",
+        help=(
+            "Semantic check of a narrative version (5 axes; the LLM-output "
+            "gate where byte-diff does not apply). Exit 0 = pass, 1 = findings"
+        ),
+    )
+    cn.add_argument("--cif-dir", required=True, help="Path to a CIF directory")
+    cn.add_argument(
+        "--version",
+        required=True,
+        help="Narrative version id to check (e.g. llm-mock, ollama)",
+    )
+    cn.add_argument(
+        "--profile",
+        default=None,
+        help=(
+            "Patient profile name — resolves expectations to "
+            "tests/fixtures/patient_profiles/<name>.llm-expectations.yaml"
+        ),
+    )
+    cn.add_argument(
+        "--expectations",
+        default=None,
+        help="Explicit expectations YAML path (overrides --profile resolution)",
+    )
+    cn.add_argument(
+        "--report",
+        default=None,
+        help="Write the full SemanticCheckReport as JSON to this path",
+    )
+    cn.set_defaults(handler=run_check_narratives)
+
+
+def run_narrate(args: Any, parser: argparse.ArgumentParser) -> None:
+    _run_narrate(args)
+
+
+def run_check_narratives(args: Any, parser: argparse.ArgumentParser) -> None:
+    _run_check_narratives(args)

@@ -24,7 +24,7 @@ _MATCHERS = {
     "modules/order/engine.py",  # " または " splits "A or B" drug alternatives
     "modules/imaging/inference.py",
     "audit/axes/jp_language.py",
-    "simulator/cli.py",  # --help text naming the Japanese insurance fields
+    "simulator/cli_simulate.py",  # --help text naming the Japanese insurance fields
     "simulator/cli_narrate.py",
 }
 # Covered by #2405's own guard.

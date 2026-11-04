@@ -5,6 +5,7 @@ Split from `clinosim/simulator/cli.py` — see PR K.
 
 from __future__ import annotations
 
+import argparse
 from typing import Any
 
 from clinosim.simulator.cli_common import _print_summary, _run_exports
@@ -100,3 +101,69 @@ def _run_enumerate(args: Any) -> None:
 _TD_DEFAULT_COUNT = 3
 _TD_DEFAULT_SEED = 42
 _TD_DEFAULT_COUNTRY = "US"
+
+
+def register(sub: argparse._SubParsersAction) -> None:
+    # === enumerate: exhaustive debug enumeration (Issue #345) ===
+    # Generates exactly one patient per (disease × severity × course_archetype)
+    # plus per (encounter × severity). Purpose: comprehensive FHIR validation
+    # coverage and pattern regression detection — population-driven sampling
+    # can leave rare patterns unfired even at large P, but enumeration
+    # deterministically covers every combination.
+    en = sub.add_parser(
+        "enumerate",
+        help="Exhaustively enumerate all clinical scenarios (debug: 1 patient per pattern)",
+    )
+    en.add_argument(
+        "-o",
+        "--output",
+        required=True,
+        help="Output directory (writes cif/, cif/narratives/template/, fhir_r4/, enumeration_manifest.json)",
+    )
+    en.add_argument(
+        "--level",
+        default="full",
+        choices=["basic", "severity", "full"],
+        help=(
+            "Coverage level. basic=1 per scenario, severity=1 per (scenario × severity), "
+            "full=1 per (disease × severity × course_archetype) + (encounter × severity). "
+            "Default: full."
+        ),
+    )
+    en.add_argument(
+        "--country",
+        default="US",
+        choices=["JP", "US"],
+        help="Country locale (single). Default: US (Issue #570 convention).",
+    )
+    en.add_argument(
+        "--include-both-countries",
+        action="store_true",
+        help="Emit both JP and US patients in one run (approximately doubles the case count).",
+    )
+    en.add_argument("--seed", type=int, default=42, help="Base seed for deterministic sub-seed derivation.")
+    en.add_argument(
+        "--yes-large",
+        action="store_true",
+        help=(
+            "Bypass the coverage-explosion guard (threshold 2000 patients). Required if "
+            "the case count would exceed the threshold."
+        ),
+    )
+    en.add_argument(
+        "--format",
+        nargs="+",
+        default=["cif", "fhir-r4"],
+        choices=["cif", "fhir-r4", "csv", "all"],
+        help="Output formats. Default: cif + fhir-r4.",
+    )
+    en.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Plan only — print discovered scenarios and case count, do not simulate or write output.",
+    )
+    en.set_defaults(handler=run)
+
+
+def run(args: Any, parser: argparse.ArgumentParser) -> None:
+    _run_enumerate(args)

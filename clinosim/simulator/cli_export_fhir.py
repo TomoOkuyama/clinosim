@@ -5,6 +5,7 @@ Split from `clinosim/simulator/cli.py` — see PR K.
 
 from __future__ import annotations
 
+import argparse
 import os
 from typing import Any
 
@@ -56,3 +57,29 @@ def _run_export_fhir(args: Any) -> None:
             print(f"    {name:35s} {line_count:>7d} lines  ({size:>10,} B)")
         else:
             print(f"    {name:35s} {'':>7s}        ({size:>10,} B)")
+
+
+def register(sub: argparse._SubParsersAction) -> None:
+    # === export-fhir: Stage 3 — convert CIF to FHIR NDJSON ===
+    ef = sub.add_parser(
+        "export-fhir",
+        help="Convert an existing CIF directory to FHIR R4 Bulk Data NDJSON",
+    )
+    ef.add_argument("--cif-dir", required=True, help="Path to an existing CIF directory")
+    ef.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        help="FHIR output directory (default: <cif-dir>/../fhir_r4)",
+    )
+    ef.add_argument("--country", default="US", help="Country code (US or JP)")
+    ef.add_argument(
+        "--narrative-version",
+        default="current",
+        help="Narrative version to select (default: current from pointer file)",
+    )
+    ef.set_defaults(handler=run)
+
+
+def run(args: Any, parser: argparse.ArgumentParser) -> None:
+    _run_export_fhir(args)
