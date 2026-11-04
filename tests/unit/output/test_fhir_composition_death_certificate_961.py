@@ -25,6 +25,17 @@ from datetime import datetime, timedelta
 from types import SimpleNamespace
 
 from clinosim.modules.document.engine import document_enricher
+from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
+    build_dc_autopsy_status,
+    build_dc_contributing_conditions,
+    build_dc_duration_of_immediate_cause,
+    build_dc_immediate_cause,
+    build_dds_admission_state,
+    build_dds_autopsy_status_and_findings,
+    build_dds_cause_of_death,
+    build_dds_terminal_course,
+    build_dds_treatment_course,
+)
 from clinosim.modules.output.fhir_r4.documents.composition import _bb_compositions
 from clinosim.types.clinical import ClinicalDiagnosis, ClinicalDocument, ClinicalDocumentNarrative
 from clinosim.types.encounter import Encounter, EncounterStatus, EncounterType
@@ -461,7 +472,7 @@ def test_dds_admission_state_template_is_clinically_defensible_ja() -> None:
 
     ctx = _make_narrative_ctx_for_dds(country="jp")
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_dds_admission_state(ctx)
+    text, facts = build_dds_admission_state(gen, ctx)
     assert text and "心筋梗塞" in text
     assert "2026-04-10" in text
     assert "重症" in text  # severity=severe → 重症
@@ -473,7 +484,7 @@ def test_dds_treatment_course_template_is_clinically_defensible_ja() -> None:
 
     ctx = _make_narrative_ctx_for_dds(country="jp")
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_dds_treatment_course(ctx)
+    text, facts = build_dds_treatment_course(gen, ctx)
     assert text and "3" in text  # 3 days LOS
     assert "ctx.los_days" in facts
 
@@ -483,7 +494,7 @@ def test_dds_terminal_course_template_references_disease_ja() -> None:
 
     ctx = _make_narrative_ctx_for_dds(country="jp")
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_dds_terminal_course(ctx)
+    text, facts = build_dds_terminal_course(gen, ctx)
     assert text
     assert "心筋梗塞" in text
     assert "死亡" in text
@@ -496,8 +507,8 @@ def test_dds_cause_of_death_agrees_with_dc_immediate_cause() -> None:
 
     ctx = _make_narrative_ctx_for_dds(country="jp")
     gen = TemplateNarrativeGenerator()
-    dds_text, _ = gen._build_dds_cause_of_death(ctx)
-    dc_text, _ = gen._build_dc_immediate_cause(ctx)
+    dds_text, _ = build_dds_cause_of_death(gen, ctx)
+    dc_text, _ = build_dc_immediate_cause(gen, ctx)
     # Both must name the same ICD code + display.
     assert "I21.0" in dds_text
     assert "I21.0" in dc_text
@@ -512,8 +523,8 @@ def test_dds_autopsy_and_dc_autopsy_agree_per_encounter() -> None:
 
     ctx = _make_narrative_ctx_for_dds(country="jp")
     gen = TemplateNarrativeGenerator()
-    dc_text, _ = gen._build_dc_autopsy_status(ctx)
-    dds_text, _ = gen._build_dds_autopsy_status_and_findings(ctx)
+    dc_text, _ = build_dc_autopsy_status(gen, ctx)
+    dds_text, _ = build_dds_autopsy_status_and_findings(gen, ctx)
     # DC uses "解剖の有無: 有（病理解剖）" for performed, "解剖の有無: 無" for none
     dc_performed = "有（病理解剖）" in dc_text
     dds_performed = "剖検は施行せず" not in dds_text
@@ -526,7 +537,7 @@ def test_dc_duration_uses_bucket_for_multi_day_stay_ja() -> None:
 
     ctx = _make_narrative_ctx_for_dds(country="jp")
     gen = TemplateNarrativeGenerator()
-    text, _ = gen._build_dc_duration_of_immediate_cause(ctx)
+    text, _ = build_dc_duration_of_immediate_cause(gen, ctx)
     assert "3日" in text
     assert "入院前の経過は本記録範囲外" in text
 
@@ -538,7 +549,7 @@ def test_dc_contributing_conditions_includes_chronic_and_complication_ja() -> No
 
     ctx = _make_narrative_ctx_for_dds(country="jp")
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_dc_contributing_conditions(ctx)
+    text, facts = build_dc_contributing_conditions(gen, ctx)
     assert "I25" in text or "慢性" in text
     # Phase 1d-72: complication tokens now go through
     # _localize_complication, so JA output resolves ``pneumothorax``

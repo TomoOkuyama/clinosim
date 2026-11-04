@@ -22,6 +22,7 @@ import pytest
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document import specs_for_country
 from clinosim.modules.document.narrative.passes import NarrativePass
+from clinosim.modules.document.narrative.renderers.section_builders.discharge_summary import build_discharge_medications
 from clinosim.modules.document.narrative.template_generator import (
     TemplateNarrativeGenerator,
 )
@@ -132,7 +133,7 @@ def test_discharge_medications_section_renders_rx_items_only():
         {"drug_name": "Atorvastatin", "dose": "40mg"},
     ]
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_discharge_medications(ctx)
+    text, facts = build_discharge_medications(gen, ctx)
     assert text == "Aspirin 100mg; Ticagrelor 90mg; Atorvastatin 40mg"
     assert "drip" not in text
     assert "ctx.discharge_medications" in facts
@@ -146,7 +147,7 @@ def test_discharge_medications_section_renders_route_and_frequency_when_present(
         {"drug_name": "Furosemide", "dose": "40mg", "route": "PO", "frequency": "daily", "days_supply": 30},
     ]
     gen = TemplateNarrativeGenerator()
-    text, _ = gen._build_discharge_medications(ctx)
+    text, _ = build_discharge_medications(gen, ctx)
     assert text == "Furosemide 40mg PO daily x30d"
 
 
@@ -157,7 +158,7 @@ def test_discharge_medications_section_strips_protocol_prefix():
         {"drug_name": "antipyretic: Acetaminophen 500mg PO q6h", "dose": ""},
     ]
     gen = TemplateNarrativeGenerator()
-    text, _ = gen._build_discharge_medications(ctx)
+    text, _ = build_discharge_medications(gen, ctx)
     assert text == "Enoxaparin 2000IU SC daily; Acetaminophen 500mg PO q6h"
 
 
@@ -165,7 +166,7 @@ def test_discharge_medications_section_ignores_mar_in_ctx_medications():
     """ctx.medications (MAR) must no longer feed the discharge section."""
     ctx = _ctx()  # MAR present, discharge_medications empty
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_discharge_medications(ctx)
+    text, facts = build_discharge_medications(gen, ctx)
     assert text == "No discharge medications"
     assert facts == []
 
@@ -173,7 +174,7 @@ def test_discharge_medications_section_ignores_mar_in_ctx_medications():
 def test_discharge_medications_none_text_ja():
     ctx = _ctx(lang="ja")
     gen = TemplateNarrativeGenerator()
-    text, _ = gen._build_discharge_medications(ctx)
+    text, _ = build_discharge_medications(gen, ctx)
     assert text == "退院処方なし"
 
 

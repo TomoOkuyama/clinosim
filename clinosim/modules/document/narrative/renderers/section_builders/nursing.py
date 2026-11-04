@@ -28,6 +28,7 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_utils import _lookup_nursing_content
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -41,6 +42,7 @@ if TYPE_CHECKING:
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("nursing_history")
 def build_nursing_history(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build nursing_history from CIF (primary nurse + admission reason
     + chronic conditions + allergy summary). v9 density fix — v8
@@ -88,6 +90,7 @@ def build_nursing_history(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     return "".join(parts), facts
 
 
+@section("adl_assessment")
 def build_adl_assessment(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build adl_assessment from CIF adl_assessments (Barthel Index).
     v9 density fix — v8 emitted 12-char "ADL：自立（問題なし）"."""
@@ -122,6 +125,7 @@ def build_adl_assessment(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     return f"Barthel Index {barthel}/100 → {band}{detail}", facts
 
 
+@section("risk_assessments")
 def build_risk_assessments(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build risk_assessments from CIF (Braden + Morse). v9 density
     fix — v8 emitted 12-char placeholder."""
@@ -169,6 +173,7 @@ def build_risk_assessments(generator: TemplateNarrativeGenerator, ctx: Narrative
     return t("list_sep.period_space", lang).join(parts) + t("list_sep.period", lang), facts
 
 
+@section("nursing_diagnosis")
 def build_nursing_diagnosis(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build nursing_diagnosis from CIF chronic conditions + acute
     admission reason + risk data.
@@ -213,6 +218,7 @@ def build_nursing_diagnosis(generator: TemplateNarrativeGenerator, ctx: Narrativ
     return (t("fallback.nursing_dx_fallback", lang)), facts
 
 
+@section("care_plan")
 def build_care_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build care_plan from CIF-derived nursing diagnoses (mirror of
     _build_nursing_diagnosis interventions).
@@ -262,6 +268,7 @@ def build_care_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("admission_status")
 def build_nursing_admission_status(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 ) -> tuple[str, list[str]]:
@@ -290,6 +297,7 @@ def build_nursing_admission_status(
     return "".join(parts), facts
 
 
+@section("nursing_interventions_provided")
 def build_nursing_interventions_provided(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 ) -> tuple[str, list[str]]:
@@ -321,6 +329,7 @@ def build_nursing_interventions_provided(
     return (t("fallback.interventions_fallback", lang)), facts
 
 
+@section("patient_education")
 def build_patient_education(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build patient_education from chronic conditions + acute
     admission reason.
@@ -342,6 +351,7 @@ def build_patient_education(generator: TemplateNarrativeGenerator, ctx: Narrativ
     return head + sep.join(topics) + t("list_sep.period", lang), facts
 
 
+@section("discharge_readiness")
 def build_discharge_readiness(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build discharge_readiness from latest ADL + risk. v9 density fix."""
     facts: list[str] = []

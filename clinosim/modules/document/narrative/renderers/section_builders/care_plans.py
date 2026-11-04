@@ -11,15 +11,15 @@ function. The class methods of the same name become thin delegators so
 ``generator._build_<section>`` by name) stays unchanged.
 
 Shared helpers accessed via ``generator``:
-  - ``generator._build_chief_complaint`` (acp_symptoms, acp_diagnosis fallback)
-  - ``generator._build_assessment_and_plan`` (acp_treatment_plan)
+  - ``section_builder("chief_complaint")`` (acp_symptoms, acp_diagnosis fallback)
+  - ``section_builder("assessment_and_plan")`` (acp_treatment_plan)
   - ``generator._estimated_los_days`` (acp_estimated_los, rp_discharge_estimate)
 """
 
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
@@ -34,6 +34,11 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
     bmi_band,
 )
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
+from clinosim.modules.document.narrative.renderers.section_builders._registry import (
+    SectionBuilder,
+    section,
+    section_builder,
+)
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -47,6 +52,7 @@ if TYPE_CHECKING:
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("ward_and_room")
 def build_acp_ward_and_room(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """病棟（病室）— Encounter.ward_id + bed_number."""
     facts: list[str] = []
@@ -63,6 +69,7 @@ def build_acp_ward_and_room(generator: TemplateNarrativeGenerator, ctx: Narrativ
     return t("acp.ward_and_room_line", lang, ward=ward or tbd, bed=bed or tbd), facts
 
 
+@section("other_staff")
 def build_acp_other_staff(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Healthcare staff names other than attending physician — mapped to
     Encounter.primary_nurse_id (shares field with CareTeam)."""
@@ -76,6 +83,7 @@ def build_acp_other_staff(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     return t("acp.assigned_nurse_line", lang, name=nurse_disp), facts
 
 
+@section("diagnosis")
 def build_acp_diagnosis(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """病名（他に考え得る病名）— ctx.diagnoses, admission code preferred
     (discharge dx is not yet known when this document is written at
@@ -84,7 +92,7 @@ def build_acp_diagnosis(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
     lang = ctx.target_lang
     diagnoses = ctx.diagnoses or []
     if not diagnoses:
-        return generator._build_chief_complaint(ctx)
+        return section_builder("chief_complaint")(generator, ctx)
 
     facts.append("ctx.diagnoses")
     parts: list[str] = []
@@ -107,19 +115,22 @@ def build_acp_diagnosis(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
 
     if parts:
         return "; ".join(parts), facts
-    return generator._build_chief_complaint(ctx)
+    return section_builder("chief_complaint")(generator, ctx)
 
 
+@section("symptoms")
 def build_acp_symptoms(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """症状 — reuses chief_complaint extraction (presenting symptom)."""
-    return generator._build_chief_complaint(ctx)
+    return section_builder("chief_complaint")(generator, ctx)
 
 
+@section("treatment_plan")
 def build_acp_treatment_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """治療計画 — reuses assessment_and_plan extraction (admission_hp precedent)."""
-    return generator._build_assessment_and_plan(ctx)
+    return section_builder("assessment_and_plan")(generator, ctx)
 
 
+@section("test_schedule")
 def build_acp_test_schedule(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """検査内容及び日程 — distinct test names from ctx.lab_results.
 
@@ -141,6 +152,7 @@ def build_acp_test_schedule(generator: TemplateNarrativeGenerator, ctx: Narrativ
     return t("acp.test_schedule_line", lang, joined=joined), facts
 
 
+@section("surgery_schedule")
 def build_acp_surgery_schedule(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """手術内容及び日程 — ctx.procedures filtered to category_code=387713003 (surgical)."""
     facts: list[str] = []
@@ -162,30 +174,12 @@ def build_acp_surgery_schedule(generator: TemplateNarrativeGenerator, ctx: Narra
     return t("acp.surgery_schedule_line", lang, joined=joined), facts
 
 
+@section("estimated_los")
 def build_acp_estimated_los(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """推定される入院期間 — see _estimated_los_days for the shared calculation."""
     lang = ctx.target_lang
     los_days, facts = generator._estimated_los_days(ctx)
     return t("acp.estimated_los_line", lang, days=los_days), facts
-
-
-def build_acp_special_nutrition_management(
-    generator: TemplateNarrativeGenerator, ctx: NarrativeContext
-) -> tuple[str, list[str]]:
-    """特別な栄養管理の必要性 — MVP: always「無」(no NutritionOrder subsystem
-    exists yet; TODO.md tracks the future nutrition subsystem chain)."""
-    lang = ctx.target_lang
-    return (t("fallback.acp_nutrition_no", lang)), []
-
-
-def build_acp_other_plans(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """その他（看護計画・リハビリテーション等の計画）— fixed cross-reference
-    phrase. NarrativeContext does not carry other stub types' rendered
-    content at this call site (each spec walked independently), so this
-    section cannot dynamically pull admission_nursing_assessment content
-    without a larger architecture change (out of scope, see plan)."""
-    lang = ctx.target_lang
-    return (t("fallback.acp_other_plans", lang)), []
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -201,6 +195,7 @@ def build_acp_other_plans(generator: TemplateNarrativeGenerator, ctx: NarrativeC
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("ward_and_physician")
 def build_ncp_ward_and_physician(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """病棟／担当医師名／入院日 — same Encounter fields as admission_care_plan."""
     facts: list[str] = []
@@ -216,12 +211,7 @@ def build_ncp_ward_and_physician(generator: TemplateNarrativeGenerator, ctx: Nar
     return t("ncp.ward_and_physician_line", lang, ward=ward_disp, physician=physician_disp), facts
 
 
-def build_ncp_dietitian(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """担当管理栄養士名 — MVP: no dietitian staff role exists yet."""
-    lang = ctx.target_lang
-    return (t("fallback.ncp_dietitian_fallback", lang)), []
-
-
+@section("nutrition_risk")
 def build_ncp_nutrition_risk(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """入院時栄養状態に関するリスク — BMI 3-tier threshold (coarse screening
     proxy, not a validated instrument like GLIM/MUST — design spec §4)."""
@@ -241,6 +231,7 @@ def build_ncp_nutrition_risk(generator: TemplateNarrativeGenerator, ctx: Narrati
     return t("ncp.nutrition_low_risk_line", lang, bmi=bmi_r), facts
 
 
+@section("nutrition_assessment")
 def build_ncp_nutrition_assessment(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 ) -> tuple[str, list[str]]:
@@ -299,12 +290,7 @@ def build_ncp_nutrition_assessment(
     return head + t("list_sep.semicolon", lang).join(parts) + t("list_sep.period", lang), facts
 
 
-def build_ncp_nutrition_goals(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """栄養管理計画 目標 — MVP fixed fallback."""
-    lang = ctx.target_lang
-    return (t("fallback.ncp_goals_fallback", lang)), []
-
-
+@section("nutrition_supply")
 def build_ncp_nutrition_supply(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """栄養補給に関する事項 (エネルギー/たんぱく質/補給方法) — standard
     initial-planning estimation formulas from PatientProfile.weight_kg
@@ -322,28 +308,7 @@ def build_ncp_nutrition_supply(generator: TemplateNarrativeGenerator, ctx: Narra
     return t("ncp.nutrition_supply_line", lang, energy=energy, protein=protein), facts
 
 
-def build_ncp_dysphagia_diet(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """嚥下調整食の必要性 — MVP fixed 「なし」."""
-    lang = ctx.target_lang
-    return (t("fallback.ncp_dysphagia_none", lang)), []
-
-
-def build_ncp_dietary_content(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """食事内容 — MVP fixed fallback."""
-    lang = ctx.target_lang
-    return (t("fallback.ncp_dietary_content_fallback", lang)), []
-
-
-def build_ncp_nutrition_counseling(
-    generator: TemplateNarrativeGenerator, ctx: NarrativeContext
-) -> tuple[str, list[str]]:
-    """栄養食事相談に関する事項 — MVP fixed fallback (collapses the 3 MHLW
-    sub-items — admission/consult/discharge instruction — into one
-    section; no per-item data source exists, design spec §2 row 7)."""
-    lang = ctx.target_lang
-    return (t("fallback.ncp_counseling_fallback", lang)), []
-
-
+@section("other_issues")
 def build_ncp_other_issues(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """その他栄養管理上解決すべき課題 — v9 density fix: derive from
     allergies + high-risk chronic combo. Falls back to placeholder
@@ -371,29 +336,12 @@ def build_ncp_other_issues(generator: TemplateNarrativeGenerator, ctx: Narrative
     ), facts
 
 
-def build_ncp_reassessment_timing(
-    generator: TemplateNarrativeGenerator, ctx: NarrativeContext
-) -> tuple[str, list[str]]:
-    """栄養状態の再評価の時期 — MVP fixed fallback."""
-    lang = ctx.target_lang
-    return (t("fallback.ncp_reassessment_fallback", lang)), []
-
-
-def build_ncp_discharge_evaluation(
-    generator: TemplateNarrativeGenerator, ctx: NarrativeContext
-) -> tuple[str, list[str]]:
-    """退院時及び終了時の総合的評価 — genuinely unknowable at plan-creation
-    time; this system has no mechanism to revise a Stage-1 stub at a
-    later encounter phase for this doc type (design spec §2 row 10)."""
-    lang = ctx.target_lang
-    return (t("fallback.ncp_discharge_eval_fallback", lang)), []
-
-
 # ─────────────────────────────────────────────────────────────────────
 # REHABILITATION_PLAN (LOINC 34823-5) section builders.
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("patient_and_diagnosis")
 def build_rp_patient_and_diagnosis(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 ) -> tuple[str, list[str]]:
@@ -402,6 +350,7 @@ def build_rp_patient_and_diagnosis(
     return build_acp_diagnosis(generator, ctx)
 
 
+@section("rehab_team")
 def build_rp_rehab_team(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """リハ担当医・PT・OT・ST — therapy_type set from ctx.rehab_sessions.
     generate_rehab_sessions (modules/procedure/engine.py) currently only
@@ -421,6 +370,7 @@ def build_rp_rehab_team(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
     return t("rp_note.rehab_team_line", lang, disciplines=joined, therapist_note=therapist_note), facts
 
 
+@section("functional_status")
 def build_rp_functional_status(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """機能評価 — latest (by session_date) session's functional_progress /
     patient_participation / pain_score."""
@@ -449,6 +399,7 @@ def build_rp_functional_status(generator: TemplateNarrativeGenerator, ctx: Narra
     )
 
 
+@section("basic_movement")
 def build_rp_basic_movement(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """基本動作 — day_post_op から phase (early/mid/late) を再導出。
     generate_rehab_sessions (modules/procedure/engine.py) が内部で使う閾値
@@ -472,6 +423,7 @@ def build_rp_basic_movement(generator: TemplateNarrativeGenerator, ctx: Narrativ
     return _label("rp_phase", phase, lang), facts
 
 
+@section("session_frequency")
 def build_rp_session_frequency(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """実施回数・期間・1回あたりの時間。"""
     facts: list[str] = []
@@ -497,17 +449,7 @@ def build_rp_session_frequency(generator: TemplateNarrativeGenerator, ctx: Narra
     )
 
 
-def build_rp_goals(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """本人の希望・家族の希望 — CIF に患者意向を表すフィールドなし
-    (design spec §3d)、固定フォールバック。"""
-    return t("fallback.rp_goals_fallback", ctx.target_lang), []
-
-
-def build_rp_policy(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """リハビリテーション治療方針 — 固定フォールバック(design spec §3d)。"""
-    return t("fallback.rp_policy_fallback", ctx.target_lang), []
-
-
+@section("discharge_estimate")
 def build_rp_discharge_estimate(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """リハビリテーション終了の目安・時期 — _estimated_los_days を再利用
     (admission_care_plan の estimated_los と同じ target_los データ、
@@ -517,8 +459,29 @@ def build_rp_discharge_estimate(generator: TemplateNarrativeGenerator, ctx: Narr
     return t("rp_note.discharge_estimate_line", lang, days=los_days), facts
 
 
-def build_rp_explanation_consent(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """本人・家族への説明(署名欄) — 固定フォールバック
-    (admission_care_plan/nutrition_care_plan と同じ signature-block pattern)。"""
-    lang = ctx.target_lang
-    return (t("fallback.rp_explanation_fallback", lang)), []
+# Sections whose text is one fixed phrase (no patient data feeds them yet).
+_FIXED_PHRASE_SECTIONS: dict[str, str] = {
+    "special_nutrition_management": "fallback.acp_nutrition_no",  # 特別な栄養管理の必要性
+    "other_plans": "fallback.acp_other_plans",  # その他（看護計画・リハビリテーション等の計画）— fixed cross-reference
+    "dietitian": "fallback.ncp_dietitian_fallback",  # 担当管理栄養士名
+    "nutrition_goals": "fallback.ncp_goals_fallback",  # 栄養管理計画 目標
+    "dysphagia_diet": "fallback.ncp_dysphagia_none",  # 嚥下調整食の必要性
+    "dietary_content": "fallback.ncp_dietary_content_fallback",  # 食事内容
+    "nutrition_counseling": "fallback.ncp_counseling_fallback",  # 栄養食事相談に関する事項
+    "reassessment_timing": "fallback.ncp_reassessment_fallback",  # 栄養状態の再評価の時期
+    "discharge_evaluation": "fallback.ncp_discharge_eval_fallback",  # 退院時及び終了時の総合的評価
+    "goals": "fallback.rp_goals_fallback",  # 本人の希望・家族の希望
+    "policy": "fallback.rp_policy_fallback",  # リハビリテーション治療方針
+    "explanation_consent": "fallback.rp_explanation_fallback",  # 本人・家族への説明(署名欄)
+}
+
+
+def _fixed_phrase(key: str) -> SectionBuilder:
+    def build(generator: Any, ctx: NarrativeContext) -> tuple[str, list[str]]:
+        return t(key, ctx.target_lang), []
+
+    return build
+
+
+for _section_name, _phrase_key in _FIXED_PHRASE_SECTIONS.items():
+    section(_section_name)(_fixed_phrase(_phrase_key))

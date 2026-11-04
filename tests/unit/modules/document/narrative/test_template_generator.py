@@ -18,6 +18,7 @@ from typing import Any
 
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.document.narrative.registry import load_document_type_specs
+from clinosim.modules.document.narrative.renderers.section_builders.patient_history import build_past_medical_history
 from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
 from clinosim.types.document import DocumentType, FormatType, NarrativeContext
 from clinosim.types.patient import PatientProfile
@@ -849,7 +850,7 @@ def test_pmh_us_f00_maps_to_unspecified_dementia_not_alzheimer_1333() -> None:
         SimpleNamespace(code="F00", stage="", onset_date="2018-01-01"),
     ]
     gen = TemplateNarrativeGenerator()
-    pmh, _facts = gen._build_past_medical_history(ctx)
+    pmh, _facts = build_past_medical_history(gen, ctx)
 
     # Must reference the emit-target billable dementia label, NOT the
     # WHO F00 parent-label ("Dementia in Alzheimer disease").
@@ -873,7 +874,7 @@ def test_pmh_jp_f00_stays_alzheimer_identity_1333() -> None:
         SimpleNamespace(code="F00", stage="", onset_date="2018-01-01"),
     ]
     gen = TemplateNarrativeGenerator()
-    pmh, _facts = gen._build_past_medical_history(ctx)
+    pmh, _facts = build_past_medical_history(gen, ctx)
 
     # JP legitimately renders F00 as Alzheimer type dementia.
     assert "アルツハイマー" in pmh, f"JP F00 must render Alzheimer type dementia display; got: {pmh!r}"
@@ -894,7 +895,7 @@ def test_pmh_us_e78_maps_to_billable_leaf_display_1333() -> None:
         SimpleNamespace(code="E78", stage="", onset_date="2015-05-01"),
     ]
     gen = TemplateNarrativeGenerator()
-    pmh, _facts = gen._build_past_medical_history(ctx)
+    pmh, _facts = build_past_medical_history(gen, ctx)
 
     assert "Hyperlipidemia" in pmh, f"US E78 → E78.5 must surface 'Hyperlipidemia' display; got: {pmh!r}"
     assert "[E78.5]" in pmh, f"Traceability bracket must carry FHIR emit code [E78.5]; got: {pmh!r}"

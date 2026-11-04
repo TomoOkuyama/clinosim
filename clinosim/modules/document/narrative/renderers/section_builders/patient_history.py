@@ -16,7 +16,7 @@ Generator-threaded helpers:
   - ``generator._resolve_physical_exam`` (physical_examination)
   - ``generator._format_physical_exam`` (physical_examination)
   - ``generator._apply_cc_pe_consistency`` (physical_examination)
-  - ``generator._build_chief_complaint`` (admission_summary)
+  - ``section_builder("chief_complaint")`` (admission_summary)
 """
 
 from __future__ import annotations
@@ -37,6 +37,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
     allergen_display,
 )
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -45,6 +46,7 @@ if TYPE_CHECKING:
     )
 
 
+@section("past_medical_history")
 def build_past_medical_history(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build past medical history from ctx.patient.chronic_conditions."""
     facts: list[str] = []
@@ -118,6 +120,7 @@ def build_past_medical_history(generator: TemplateNarrativeGenerator, ctx: Narra
     return none_text, facts
 
 
+@section("medications_at_home")
 def build_medications_at_home(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build home medications from ctx.patient.current_medications."""
     facts: list[str] = []
@@ -140,6 +143,7 @@ def build_medications_at_home(generator: TemplateNarrativeGenerator, ctx: Narrat
     return "; ".join(_render_home_med_name(m, lang=lang) for m in meds), facts
 
 
+@section("allergies")
 def build_allergies(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build allergies section from ctx.allergies.
 
@@ -178,6 +182,7 @@ def build_allergies(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     return "; ".join(parts) if parts else (t("fallback.nkda", lang)), facts
 
 
+@section("social_history")
 def build_social_history(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build social history from patient smoking_status, alcohol_use, occupation."""
     facts: list[str] = []
@@ -217,6 +222,7 @@ def build_social_history(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     return "; ".join(parts) if parts else fallback, facts
 
 
+@section("family_history")
 def build_family_history(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build family_history section from ``ctx.family_history`` (Issue #982).
 
@@ -290,6 +296,7 @@ def build_family_history(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     return prefix + entry_sep.join(entries), facts
 
 
+@section("physical_examination")
 def build_physical_examination(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build physical_examination using multi-step fallback chain.
 
@@ -348,12 +355,13 @@ def build_physical_examination(generator: TemplateNarrativeGenerator, ctx: Narra
     return text, facts
 
 
+@section("admission_summary")
 def build_admission_summary(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build admission_summary for DISCHARGE_SUMMARY."""
     facts: list[str] = []
     lang = ctx.target_lang
 
-    cc_text, cc_facts = generator._build_chief_complaint(ctx)
+    cc_text, cc_facts = section_builder("chief_complaint")(generator, ctx)
     facts.extend(cc_facts)
 
     text = t("admission_summary.head_line", lang, cc=cc_text, day=ctx.day_index + 1)

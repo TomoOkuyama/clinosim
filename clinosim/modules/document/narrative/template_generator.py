@@ -241,13 +241,6 @@ class TemplateNarrativeGenerator:
     # ``_cc_variant_index``) moved alongside.
     # ─────────────────────────────────────────────────────────────────
 
-    def _build_chief_complaint(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import (
-            build_chief_complaint,
-        )
-
-        return build_chief_complaint(self, ctx)
-
     # ─────────────────────────────────────────────────────────────────
     # hpi section builder — thin delegator dispatching to the
     # free-standing function in ``renderers/section_builders/hpi.py``
@@ -255,55 +248,6 @@ class TemplateNarrativeGenerator:
     # (``_build_hpi_core``, ``_maybe_append_newborn_workup``,
     # ``_compose_hpi_extras_from_state``) moved alongside.
     # ─────────────────────────────────────────────────────────────────
-
-    def _build_hpi(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.hpi import (
-            build_hpi,
-        )
-
-        return build_hpi(self, ctx)
-
-    def _build_past_medical_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
-            build_past_medical_history,
-        )
-
-        return build_past_medical_history(self, ctx)
-
-    def _build_medications_at_home(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
-            build_medications_at_home,
-        )
-
-        return build_medications_at_home(self, ctx)
-
-    def _build_allergies(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
-            build_allergies,
-        )
-
-        return build_allergies(self, ctx)
-
-    def _build_social_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
-            build_social_history,
-        )
-
-        return build_social_history(self, ctx)
-
-    def _build_family_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
-            build_family_history,
-        )
-
-        return build_family_history(self, ctx)
-
-    def _build_physical_examination(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
-            build_physical_examination,
-        )
-
-        return build_physical_examination(self, ctx)
 
     # ─────────────────────────────────────────────────────────────────
     # assessment_and_plan section builder — thin delegator dispatching
@@ -316,13 +260,6 @@ class TemplateNarrativeGenerator:
     # (``test_assessment_and_plan.py`` reaches
     # ``gen._compose_ap_plan_from_state`` directly).
     # ─────────────────────────────────────────────────────────────────
-
-    def _build_assessment_and_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.assessment_and_plan import (
-            build_assessment_and_plan,
-        )
-
-        return build_assessment_and_plan(self, ctx)
 
     def _compose_ap_assessment_from_state(self, ctx: NarrativeContext) -> str:
         from clinosim.modules.document.narrative.renderers.section_builders.assessment_and_plan import (
@@ -337,13 +274,6 @@ class TemplateNarrativeGenerator:
         )
 
         return _compose_ap_plan_from_state(self, ctx)
-
-    def _build_admission_summary(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
-            build_admission_summary,
-        )
-
-        return build_admission_summary(self, ctx)
 
     # ─────────────────────────────────────────────────────────────────
     # P2-13 PR2a: JP-CLINS discharge-summary section builders (JP-only).
@@ -361,131 +291,12 @@ class TemplateNarrativeGenerator:
     # method entry point stays on the class.
     # ─────────────────────────────────────────────────────────────────
 
-    def _build_admission_reason(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
-            build_admission_reason,
-        )
-
-        return build_admission_reason(self, ctx)
-
-    def _build_admission_details(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
-            build_admission_details,
-        )
-
-        return build_admission_details(self, ctx)
-
-    def _build_discharge_details(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
-            build_discharge_details,
-        )
-
-        return build_discharge_details(self, ctx)
-
-    def _build_admission_diagnoses(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
-            build_admission_diagnoses,
-        )
-
-        return build_admission_diagnoses(self, ctx)
-
-    def _build_present_illness(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
-            build_present_illness,
-        )
-
-        return build_present_illness(self, ctx)
-
-    def _build_referring_institution(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
-            build_referring_institution,
-        )
-
-        return build_referring_institution(self, ctx)
-
-    def _build_referral_destination(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
-            build_referral_destination,
-        )
-
-        return build_referral_destination(self, ctx)
-
-    def _build_referral_purpose(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
-            build_referral_purpose,
-        )
-
-        return build_referral_purpose(self, ctx)
-
-    def _build_diagnoses_and_complaint(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
-            build_diagnoses_and_complaint,
-        )
-
-        return build_diagnoses_and_complaint(self, ctx)
-
-    def _build_present_illness_ref(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
-            build_present_illness_ref,
-        )
-
-        return build_present_illness_ref(self, ctx)
-
-    def _build_checkup_lab_results(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
-            build_checkup_lab_results,
-        )
-
-        return build_checkup_lab_results(self, ctx)
-
-    def _build_checkup_questionnaire(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
-            build_checkup_questionnaire,
-        )
-
-        return build_checkup_questionnaire(self, ctx)
-
     # ─────────────────────────────────────────────────────────────────
     # DISCHARGE_SUMMARY section builders — thin delegators dispatching
     # to free-standing functions in
     # ``renderers/section_builders/discharge_summary.py`` (full-review
     # Phase C1i, CRITICAL C1).
     # ─────────────────────────────────────────────────────────────────
-
-    def _build_hospital_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.discharge_summary import (
-            build_hospital_course,
-        )
-
-        return build_hospital_course(self, ctx)
-
-    def _build_discharge_diagnoses(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.discharge_summary import (
-            build_discharge_diagnoses,
-        )
-
-        return build_discharge_diagnoses(self, ctx)
-
-    def _build_discharge_medications(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.discharge_summary import (
-            build_discharge_medications,
-        )
-
-        return build_discharge_medications(self, ctx)
-
-    def _build_discharge_instructions(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.discharge_summary import (
-            build_discharge_instructions,
-        )
-
-        return build_discharge_instructions(self, ctx)
-
-    def _build_follow_up(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.discharge_summary import (
-            build_follow_up,
-        )
-
-        return build_follow_up(self, ctx)
 
     # ─────────────────────────────────────────────────────────────────
     # Free-text renderers (NURSING_SHIFT_NOTE, ED_TRIAGE_NOTE)
@@ -520,41 +331,6 @@ class TemplateNarrativeGenerator:
     # ─────────────────────────────────────────────────────────────────
     # ADMISSION_NURSING_ASSESSMENT section builders
     # ─────────────────────────────────────────────────────────────────
-
-    def _build_nursing_history(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.nursing import (
-            build_nursing_history,
-        )
-
-        return build_nursing_history(self, ctx)
-
-    def _build_adl_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.nursing import (
-            build_adl_assessment,
-        )
-
-        return build_adl_assessment(self, ctx)
-
-    def _build_risk_assessments(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.nursing import (
-            build_risk_assessments,
-        )
-
-        return build_risk_assessments(self, ctx)
-
-    def _build_nursing_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.nursing import (
-            build_nursing_diagnosis,
-        )
-
-        return build_nursing_diagnosis(self, ctx)
-
-    def _build_care_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.nursing import (
-            build_care_plan,
-        )
-
-        return build_care_plan(self, ctx)
 
     # ─────────────────────────────────────────────────────────────────
     # ADMISSION_CARE_PLAN (Phase 2) section builders (入院診療計画書, LOINC 18776-5)
@@ -609,254 +385,9 @@ class TemplateNarrativeGenerator:
             facts.append("ctx.los_days")
         return round(los), facts
 
-    def _build_acp_ward_and_room(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_acp_ward_and_room,
-        )
-
-        return build_acp_ward_and_room(self, ctx)
-
-    def _build_acp_other_staff(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_acp_other_staff,
-        )
-
-        return build_acp_other_staff(self, ctx)
-
-    def _build_acp_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_acp_diagnosis,
-        )
-
-        return build_acp_diagnosis(self, ctx)
-
-    def _build_acp_symptoms(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_acp_symptoms,
-        )
-
-        return build_acp_symptoms(self, ctx)
-
-    def _build_acp_treatment_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_acp_treatment_plan,
-        )
-
-        return build_acp_treatment_plan(self, ctx)
-
-    def _build_acp_test_schedule(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_acp_test_schedule,
-        )
-
-        return build_acp_test_schedule(self, ctx)
-
-    def _build_acp_surgery_schedule(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_acp_surgery_schedule,
-        )
-
-        return build_acp_surgery_schedule(self, ctx)
-
-    def _build_acp_estimated_los(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_acp_estimated_los,
-        )
-
-        return build_acp_estimated_los(self, ctx)
-
-    def _build_acp_special_nutrition_management(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_acp_special_nutrition_management,
-        )
-
-        return build_acp_special_nutrition_management(self, ctx)
-
-    def _build_acp_other_plans(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_acp_other_plans,
-        )
-
-        return build_acp_other_plans(self, ctx)
-
-    def _build_ncp_ward_and_physician(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_ncp_ward_and_physician,
-        )
-
-        return build_ncp_ward_and_physician(self, ctx)
-
-    def _build_ncp_dietitian(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_ncp_dietitian,
-        )
-
-        return build_ncp_dietitian(self, ctx)
-
-    def _build_ncp_nutrition_risk(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_ncp_nutrition_risk,
-        )
-
-        return build_ncp_nutrition_risk(self, ctx)
-
-    def _build_ncp_nutrition_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_ncp_nutrition_assessment,
-        )
-
-        return build_ncp_nutrition_assessment(self, ctx)
-
-    def _build_ncp_nutrition_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_ncp_nutrition_goals,
-        )
-
-        return build_ncp_nutrition_goals(self, ctx)
-
-    def _build_ncp_nutrition_supply(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_ncp_nutrition_supply,
-        )
-
-        return build_ncp_nutrition_supply(self, ctx)
-
-    def _build_ncp_dysphagia_diet(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_ncp_dysphagia_diet,
-        )
-
-        return build_ncp_dysphagia_diet(self, ctx)
-
-    def _build_ncp_dietary_content(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_ncp_dietary_content,
-        )
-
-        return build_ncp_dietary_content(self, ctx)
-
-    def _build_ncp_nutrition_counseling(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_ncp_nutrition_counseling,
-        )
-
-        return build_ncp_nutrition_counseling(self, ctx)
-
-    def _build_ncp_other_issues(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_ncp_other_issues,
-        )
-
-        return build_ncp_other_issues(self, ctx)
-
-    def _build_ncp_reassessment_timing(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_ncp_reassessment_timing,
-        )
-
-        return build_ncp_reassessment_timing(self, ctx)
-
-    def _build_ncp_discharge_evaluation(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_ncp_discharge_evaluation,
-        )
-
-        return build_ncp_discharge_evaluation(self, ctx)
-
-    def _build_rp_patient_and_diagnosis(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_rp_patient_and_diagnosis,
-        )
-
-        return build_rp_patient_and_diagnosis(self, ctx)
-
-    def _build_rp_rehab_team(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_rp_rehab_team,
-        )
-
-        return build_rp_rehab_team(self, ctx)
-
-    def _build_rp_functional_status(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_rp_functional_status,
-        )
-
-        return build_rp_functional_status(self, ctx)
-
-    def _build_rp_basic_movement(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_rp_basic_movement,
-        )
-
-        return build_rp_basic_movement(self, ctx)
-
-    def _build_rp_session_frequency(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_rp_session_frequency,
-        )
-
-        return build_rp_session_frequency(self, ctx)
-
-    def _build_rp_goals(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_rp_goals,
-        )
-
-        return build_rp_goals(self, ctx)
-
-    def _build_rp_policy(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_rp_policy,
-        )
-
-        return build_rp_policy(self, ctx)
-
-    def _build_rp_discharge_estimate(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_rp_discharge_estimate,
-        )
-
-        return build_rp_discharge_estimate(self, ctx)
-
-    def _build_rp_explanation_consent(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.care_plans import (
-            build_rp_explanation_consent,
-        )
-
-        return build_rp_explanation_consent(self, ctx)
-
     # ─────────────────────────────────────────────────────────────────
     # NURSING_DISCHARGE_SUMMARY section builders
     # ─────────────────────────────────────────────────────────────────
-
-    def _build_nursing_admission_status(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.nursing import (
-            build_nursing_admission_status,
-        )
-
-        return build_nursing_admission_status(self, ctx)
-
-    def _build_nursing_interventions_provided(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.nursing import (
-            build_nursing_interventions_provided,
-        )
-
-        return build_nursing_interventions_provided(self, ctx)
-
-    def _build_patient_education(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.nursing import (
-            build_patient_education,
-        )
-
-        return build_patient_education(self, ctx)
-
-    def _build_discharge_readiness(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.nursing import (
-            build_discharge_readiness,
-        )
-
-        return build_discharge_readiness(self, ctx)
 
     # ─────────────────────────────────────────────────────────────────
     # OUTPATIENT_SOAP section builders
@@ -921,34 +452,6 @@ class TemplateNarrativeGenerator:
 
         return _compose_today_prescription_line(ctx)
 
-    def _build_outpatient_subjective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.outpatient_soap import (
-            build_outpatient_subjective,
-        )
-
-        return build_outpatient_subjective(self, ctx)
-
-    def _build_outpatient_objective(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.outpatient_soap import (
-            build_outpatient_objective,
-        )
-
-        return build_outpatient_objective(self, ctx)
-
-    def _build_outpatient_assessment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.outpatient_soap import (
-            build_outpatient_assessment,
-        )
-
-        return build_outpatient_assessment(self, ctx)
-
-    def _build_outpatient_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.outpatient_soap import (
-            build_outpatient_plan,
-        )
-
-        return build_outpatient_plan(self, ctx)
-
     def _compose_progress_subjective_from_state(self, ctx: NarrativeContext) -> str:
         from clinosim.modules.document.narrative.renderers._composers import (
             compose_progress_subjective_from_state,
@@ -1010,34 +513,6 @@ class TemplateNarrativeGenerator:
     # free-standing functions in ``renderers/section_builders/ed_note.py``
     # (full-review Phase C1j, CRITICAL C1).
     # ─────────────────────────────────────────────────────────────────
-
-    def _build_triage_details(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.ed_note import (
-            build_triage_details,
-        )
-
-        return build_triage_details(self, ctx)
-
-    def _build_ed_physical_exam(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.ed_note import (
-            build_ed_physical_exam,
-        )
-
-        return build_ed_physical_exam(self, ctx)
-
-    def _build_ed_workup(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.ed_note import (
-            build_ed_workup,
-        )
-
-        return build_ed_workup(self, ctx)
-
-    def _build_ed_disposition(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.ed_note import (
-            build_ed_disposition,
-        )
-
-        return build_ed_disposition(self, ctx)
 
     @staticmethod
     def _ed_triage_level(ctx: NarrativeContext) -> str:
@@ -1110,104 +585,6 @@ class TemplateNarrativeGenerator:
     # outside the DC/DDS cluster uses them.
     # ─────────────────────────────────────────────────────────────────
 
-    def _build_dc_immediate_cause(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dc_immediate_cause,
-        )
-
-        return build_dc_immediate_cause(self, ctx)
-
-    def _build_dc_duration_of_immediate_cause(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dc_duration_of_immediate_cause,
-        )
-
-        return build_dc_duration_of_immediate_cause(self, ctx)
-
-    def _build_dc_underlying_cause(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dc_underlying_cause,
-        )
-
-        return build_dc_underlying_cause(self, ctx)
-
-    def _build_dc_contributing_conditions(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dc_contributing_conditions,
-        )
-
-        return build_dc_contributing_conditions(self, ctx)
-
-    def _build_dc_manner_of_death(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dc_manner_of_death,
-        )
-
-        return build_dc_manner_of_death(self, ctx)
-
-    def _build_dc_autopsy_status(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dc_autopsy_status,
-        )
-
-        return build_dc_autopsy_status(self, ctx)
-
-    def _build_dds_admission_state(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dds_admission_state,
-        )
-
-        return build_dds_admission_state(self, ctx)
-
-    def _build_dds_treatment_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dds_treatment_course,
-        )
-
-        return build_dds_treatment_course(self, ctx)
-
-    def _build_dds_terminal_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dds_terminal_course,
-        )
-
-        return build_dds_terminal_course(self, ctx)
-
-    def _build_dds_circumstances_of_death(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dds_circumstances_of_death,
-        )
-
-        return build_dds_circumstances_of_death(self, ctx)
-
-    def _build_dds_cause_of_death(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dds_cause_of_death,
-        )
-
-        return build_dds_cause_of_death(self, ctx)
-
-    def _build_dds_complications_and_comorbidities(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dds_complications_and_comorbidities,
-        )
-
-        return build_dds_complications_and_comorbidities(self, ctx)
-
-    def _build_dds_family_communication(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dds_family_communication,
-        )
-
-        return build_dds_family_communication(self, ctx)
-
-    def _build_dds_autopsy_status_and_findings(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.mortality import (
-            build_dds_autopsy_status_and_findings,
-        )
-
-        return build_dds_autopsy_status_and_findings(self, ctx)
-
     # ─────────────────────────────────────────────────────────────────
     # OPERATIVE_NOTE section builders (Issue #991)
     # ─────────────────────────────────────────────────────────────────
@@ -1252,125 +629,6 @@ class TemplateNarrativeGenerator:
     # ``generator._build_<section>`` by name, so the method entry point
     # stays on the class.
     # ─────────────────────────────────────────────────────────────────
-
-    def _build_op_procedure_name(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_op_procedure_name,
-        )
-
-        return build_op_procedure_name(self, ctx)
-
-    def _build_op_anesthesia(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_op_anesthesia,
-        )
-
-        return build_op_anesthesia(self, ctx)
-
-    def _build_op_surgeon(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_op_surgeon,
-        )
-
-        return build_op_surgeon(self, ctx)
-
-    def _build_op_findings(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_op_findings,
-        )
-
-        return build_op_findings(self, ctx)
-
-    def _build_op_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_op_course,
-        )
-
-        return build_op_course(self, ctx)
-
-    def _build_op_specimens(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_op_specimens,
-        )
-
-        return build_op_specimens(self, ctx)
-
-    def _build_op_blood_loss(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_op_blood_loss,
-        )
-
-        return build_op_blood_loss(self, ctx)
-
-    def _build_op_equipment(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_op_equipment,
-        )
-
-        return build_op_equipment(self, ctx)
-
-    def _build_op_postop_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_op_postop_plan,
-        )
-
-        return build_op_postop_plan(self, ctx)
-
-    def _build_pn_procedure_name(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_pn_procedure_name,
-        )
-
-        return build_pn_procedure_name(self, ctx)
-
-    def _build_pn_consent(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_pn_consent,
-        )
-
-        return build_pn_consent(self, ctx)
-
-    def _build_pn_performer(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_pn_performer,
-        )
-
-        return build_pn_performer(self, ctx)
-
-    def _build_pn_analgesia(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_pn_analgesia,
-        )
-
-        return build_pn_analgesia(self, ctx)
-
-    def _build_pn_course(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_pn_course,
-        )
-
-        return build_pn_course(self, ctx)
-
-    def _build_pn_complications(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_pn_complications,
-        )
-
-        return build_pn_complications(self, ctx)
-
-    def _build_pn_specimens(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_pn_specimens,
-        )
-
-        return build_pn_specimens(self, ctx)
-
-    def _build_pn_postop_plan(self, ctx: NarrativeContext) -> tuple[str, list[str]]:
-        from clinosim.modules.document.narrative.renderers.section_builders.op_pn_notes import (
-            build_pn_postop_plan,
-        )
-
-        return build_pn_postop_plan(self, ctx)
 
     # ─────────────────────────────────────────────────────────────────
     # Formatting helpers

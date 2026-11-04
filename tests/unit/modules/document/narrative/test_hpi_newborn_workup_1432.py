@@ -21,6 +21,7 @@ from datetime import datetime
 from types import SimpleNamespace
 from typing import Any
 
+from clinosim.modules.document.narrative.renderers.section_builders.hpi import build_hpi
 from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
 from clinosim.types.document import DocumentType, NarrativeContext
 from clinosim.types.patient import PatientProfile
@@ -80,7 +81,7 @@ def test_us_hpi_neonate_appends_apgar_and_workup_summary() -> None:
     "Apgar" hits on admission_hp for Z38.0 encounters."""
     gen = TemplateNarrativeGenerator()
     ctx = _ctx("en", newborn_workup=_full_workup())
-    text, facts = gen._build_hpi(ctx)
+    text, facts = build_hpi(gen, ctx)
     assert "Apgar 8(1 min) / 9(5 min)" in text
     assert "AABR hearing screen completed" in text
     assert "peak total bilirubin 11.4 mg/dL" in text
@@ -95,7 +96,7 @@ def test_jp_hpi_neonate_appends_apgar_and_workup_summary() -> None:
     """JA HPI must carry the same workup data with JA phrasing."""
     gen = TemplateNarrativeGenerator()
     ctx = _ctx("ja", newborn_workup=_full_workup())
-    text, facts = gen._build_hpi(ctx)
+    text, facts = build_hpi(gen, ctx)
     assert "Apgar 8(1分)/9(5分)" in text
     assert "AABR 聴覚スクリーン提出済" in text
     assert "総ビリルビン最高値 11.4 mg/dL" in text
@@ -109,7 +110,7 @@ def test_us_hpi_non_neonate_workup_omitted() -> None:
     """Non-neonate ctx (empty workup dict) must not add any workup text."""
     gen = TemplateNarrativeGenerator()
     ctx = _ctx("en", newborn_workup={})
-    text, facts = gen._build_hpi(ctx)
+    text, facts = build_hpi(gen, ctx)
     assert "Apgar" not in text
     assert "ctx.newborn_workup" not in facts
 
@@ -119,7 +120,7 @@ def test_us_hpi_neonate_with_empty_workup_omitted() -> None:
     empty workup fragment or a bare sentence-terminator."""
     gen = TemplateNarrativeGenerator()
     ctx = _ctx("en", newborn_workup={"is_neonate": True})
-    text, _facts = gen._build_hpi(ctx)
+    text, _facts = build_hpi(gen, ctx)
     assert "Apgar" not in text
     # No lone trailing sentinel like "" + "." remaining as a bare period
     # after a space.
@@ -132,6 +133,6 @@ def test_us_hpi_neonate_appends_after_existing_hpi_text() -> None:
     #1266 guard remains in force."""
     gen = TemplateNarrativeGenerator()
     ctx = _ctx("en", newborn_workup=_full_workup())
-    text, _facts = gen._build_hpi(ctx)
+    text, _facts = build_hpi(gen, ctx)
     assert text.startswith("Patient presented for evaluation.")
     assert "Apgar" in text  # appended after

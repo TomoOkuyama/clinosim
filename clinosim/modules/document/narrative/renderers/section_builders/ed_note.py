@@ -41,6 +41,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _fill_template_placeholders,
     _pick_localized,
 )
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -51,6 +52,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+@section("triage_details")
 def build_triage_details(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build triage_details from encounter.triage_data."""
     facts: list[str] = []
@@ -76,6 +78,7 @@ def build_triage_details(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     return t("triage_details.line", lang, level=level_text, mode=mode_display), facts
 
 
+@section("physical_exam")
 def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build physical_exam for ED_NOTE from ed_note_template.physical_exam_<lang>.
 
@@ -147,6 +150,7 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
     return fallback, facts
 
 
+@section("ed_workup")
 def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build ed_workup from ed_note_template.ed_workup_summary_<lang>.
 
@@ -341,6 +345,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     return fallback, facts
 
 
+@section("disposition")
 def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build disposition from ed_note_template.disposition_<lang>.
 

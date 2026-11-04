@@ -28,6 +28,7 @@ from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._template_helpers import _pick_localized
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.modules.document.reference_data_loaders import load_chief_complaint_variants
 from clinosim.types.document import DocumentType, NarrativeContext
 
@@ -37,6 +38,7 @@ if TYPE_CHECKING:
     )
 
 
+@section("chief_complaint")
 def build_chief_complaint(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build chief_complaint section.
 

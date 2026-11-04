@@ -29,6 +29,7 @@ import re
 import pytest
 
 from clinosim.codes import lookup
+from clinosim.modules.document.narrative.renderers.section_builders.outpatient_soap import build_outpatient_subjective
 
 # ICD codes that previously missed display and drove the Issue #1777
 # leak. Pin them so a future yaml edit cannot silently remove them.
@@ -87,7 +88,7 @@ def _run_outpatient_subjective_with_cods(codes: list[str]) -> str:
     ctx.locale = "us"
     ctx.target_lang = "en"
     try:
-        result = gen._build_outpatient_subjective(ctx)
+        result = build_outpatient_subjective(gen, ctx)
     except Exception:
         # If the mock shape doesn't fit the real generator, we treat the
         # test as skipped at the behavioral layer — the data-level tests

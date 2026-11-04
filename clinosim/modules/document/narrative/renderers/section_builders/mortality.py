@@ -30,6 +30,7 @@ from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_utils import _autopsy_performed_sha256
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -195,6 +196,7 @@ def _dds_severity(severity: str, lang: str) -> str:
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("immediate_cause_of_death")
 def build_dc_immediate_cause(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """直接死因 / Immediate cause of death.
 
@@ -208,6 +210,7 @@ def build_dc_immediate_cause(generator: TemplateNarrativeGenerator, ctx: Narrati
     return t("death_cert_line.immediate_cause", lang, display=display, code=code), facts
 
 
+@section("duration_of_immediate_cause")
 def build_dc_duration_of_immediate_cause(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 ) -> tuple[str, list[str]]:
@@ -256,6 +259,7 @@ def build_dc_duration_of_immediate_cause(
     return _dc_duration_phrase(bucket, los, bucket_hours, pattern, display or "", lang), facts
 
 
+@section("underlying_cause_of_death")
 def build_dc_underlying_cause(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """原死因 / Underlying cause of death.
 
@@ -273,6 +277,7 @@ def build_dc_underlying_cause(generator: TemplateNarrativeGenerator, ctx: Narrat
     return t("death_cert_line.underlying_cause", lang, display=display, chapter=chapter), facts
 
 
+@section("contributing_conditions")
 def build_dc_contributing_conditions(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 ) -> tuple[str, list[str]]:
@@ -358,6 +363,7 @@ def build_dc_contributing_conditions(
     return f"{prefix}{comp_part.strip()}", facts
 
 
+@section("manner_of_death")
 def build_dc_manner_of_death(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """死因の種類 / Manner of death.
 
@@ -373,6 +379,7 @@ def build_dc_manner_of_death(generator: TemplateNarrativeGenerator, ctx: Narrati
     return t("death_cert_line.manner_natural", lang), facts
 
 
+@section("autopsy_status")
 def build_dc_autopsy_status(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """解剖の有無 / Autopsy status.
 
@@ -402,6 +409,7 @@ def build_dc_autopsy_status(generator: TemplateNarrativeGenerator, ctx: Narrativ
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("admission_state")
 def build_dds_admission_state(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """入院時病状 / Clinical state at admission.
 
@@ -445,6 +453,7 @@ def build_dds_admission_state(generator: TemplateNarrativeGenerator, ctx: Narrat
     return body, facts
 
 
+@section("treatment_course")
 def build_dds_treatment_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """治療経過 / Treatment course (multi-day summary).
 
@@ -480,6 +489,7 @@ def build_dds_treatment_course(generator: TemplateNarrativeGenerator, ctx: Narra
     return f"{los_part}{med_part}{proc_part}{wk_part}{tail}", facts
 
 
+@section("terminal_course")
 def build_dds_terminal_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """終末期経過 / Terminal course (final ~24-72 h).
 
@@ -515,6 +525,7 @@ def build_dds_terminal_course(generator: TemplateNarrativeGenerator, ctx: Narrat
     return t("dds_terminal_course.full_line", lang, phrase=phrase, dx_part=dx_part, when=when), facts
 
 
+@section("circumstances_of_death")
 def build_dds_circumstances_of_death(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 ) -> tuple[str, list[str]]:
@@ -550,6 +561,7 @@ def build_dds_circumstances_of_death(
     return t(key, lang), facts
 
 
+@section("cause_of_death")
 def build_dds_cause_of_death(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """死因 / Cause of death (structured mirror of DC immediate cause).
 
@@ -565,6 +577,7 @@ def build_dds_cause_of_death(generator: TemplateNarrativeGenerator, ctx: Narrati
     return t("death_cert_line.cause_of_death", lang, display=display, code=code), facts
 
 
+@section("complications_and_comorbidities")
 def build_dds_complications_and_comorbidities(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 ) -> tuple[str, list[str]]:
@@ -612,6 +625,7 @@ def build_dds_complications_and_comorbidities(
     return t("dds_complications_and_comorbidities.head", lang, body=body), facts
 
 
+@section("family_communication")
 def build_dds_family_communication(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 ) -> tuple[str, list[str]]:
@@ -642,6 +656,7 @@ def build_dds_family_communication(
     return t("dds_family_communication.head_with_tail", lang, lead=lead), facts
 
 
+@section("autopsy_status_and_findings")
 def build_dds_autopsy_status_and_findings(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 ) -> tuple[str, list[str]]:

@@ -19,6 +19,9 @@ from types import SimpleNamespace
 from typing import Any
 
 from clinosim.modules.disease.protocol import load_disease_protocol
+from clinosim.modules.document.narrative.renderers.section_builders.chief_complaint import build_chief_complaint
+from clinosim.modules.document.narrative.renderers.section_builders.ed_note import build_ed_disposition, build_ed_workup
+from clinosim.modules.document.narrative.renderers.section_builders.patient_history import build_family_history
 from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
 from clinosim.modules.document.reference_data_loaders import load_chief_complaint_variants
 from clinosim.types.document import DocumentType, NarrativeContext
@@ -83,7 +86,7 @@ def _make_ctx(
 def test_family_history_empty_returns_fallback_ja() -> None:
     ctx = _make_ctx()
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_family_history(ctx)
+    text, facts = build_family_history(gen, ctx)
     assert text == "特記家族歴なし"
     assert facts == []
 
@@ -96,7 +99,7 @@ def test_family_history_walks_ctx_entries_ja() -> None:
     ]
     ctx = _make_ctx(family_history=fams)
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_family_history(ctx)
+    text, facts = build_family_history(gen, ctx)
     assert text.startswith("家族歴: ")
     # Relationship labels present per relative.
     assert "母" in text
@@ -119,7 +122,7 @@ def test_family_history_all_empty_conditions_falls_back() -> None:
     ]
     ctx = _make_ctx(family_history=fams)
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_family_history(ctx)
+    text, facts = build_family_history(gen, ctx)
     assert text == "特記家族歴なし"
     assert facts == []
 
@@ -128,7 +131,7 @@ def test_family_history_en_locale_renders_english() -> None:
     fams = [{"relationship": "MTH", "sex": "female", "deceased": True, "condition_codes": ["E11"]}]
     ctx = _make_ctx(family_history=fams, target_lang="en", locale="us")
     gen = TemplateNarrativeGenerator()
-    text, _ = gen._build_family_history(ctx)
+    text, _ = build_family_history(gen, ctx)
     assert text.startswith("Family history:")
     assert "mother" in text.lower()
     assert "(deceased)" in text
@@ -162,7 +165,7 @@ def test_ed_workup_lifts_orders_labs_and_imaging_ja() -> None:
     ]
     ctx = _make_ctx(document_type=DocumentType.ED_NOTE, orders=orders)
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_ed_workup(ctx)
+    text, facts = build_ed_workup(gen, ctx)
     assert "検査: " in text
     assert "CBC" in text and "BMP" in text
     assert "画像: " in text
@@ -173,7 +176,7 @@ def test_ed_workup_lifts_orders_labs_and_imaging_ja() -> None:
 def test_ed_workup_falls_back_when_no_orders() -> None:
     ctx = _make_ctx(document_type=DocumentType.ED_NOTE)
     gen = TemplateNarrativeGenerator()
-    text, _ = gen._build_ed_workup(ctx)
+    text, _ = build_ed_workup(gen, ctx)
     assert text == "検査・処置：特記事項なし"
 
 
@@ -184,7 +187,7 @@ def test_ed_workup_filters_orders_by_encounter_id() -> None:
     ]
     ctx = _make_ctx(document_type=DocumentType.ED_NOTE, orders=orders)
     gen = TemplateNarrativeGenerator()
-    text, _ = gen._build_ed_workup(ctx)
+    text, _ = build_ed_workup(gen, ctx)
     assert "Local CBC" in text
     assert "Foreign lab" not in text
 
@@ -202,7 +205,7 @@ def test_ed_disposition_home_includes_jtas_and_reason_ja() -> None:
     )
     ctx = _make_ctx(document_type=DocumentType.ED_NOTE, encounter=enc)
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_ed_disposition(ctx)
+    text, facts = build_ed_disposition(gen, ctx)
     assert "自宅退院" in text
     assert "JTAS レベル 4" in text
     # Reason phrase comes from encounter.chief_complaint_ja.
@@ -222,7 +225,7 @@ def test_ed_disposition_expired_matches_exp_disposition() -> None:
     )
     ctx = _make_ctx(document_type=DocumentType.ED_NOTE, encounter=enc)
     gen = TemplateNarrativeGenerator()
-    text, _ = gen._build_ed_disposition(ctx)
+    text, _ = build_ed_disposition(gen, ctx)
     assert "救急室内死亡" in text
     assert "家族" in text
 
@@ -240,7 +243,7 @@ def test_ed_disposition_admitted_uses_reason() -> None:
     )
     ctx = _make_ctx(document_type=DocumentType.ED_NOTE, encounter=enc, disease_protocol=proto)
     gen = TemplateNarrativeGenerator()
-    text, _ = gen._build_ed_disposition(ctx)
+    text, _ = build_ed_disposition(gen, ctx)
     assert "入院適応" in text
     assert "胸痛" in text or "呼吸困難" in text
 
@@ -293,8 +296,8 @@ def test_chief_complaint_variant_swap_is_deterministic() -> None:
     ctx1 = _make_ctx(disease_protocol=proto, encounter=enc, patient_id="POP-HF-001", encounter_id="enc-hf-1")
     ctx2 = _make_ctx(disease_protocol=proto, encounter=enc, patient_id="POP-HF-001", encounter_id="enc-hf-1")
     gen = TemplateNarrativeGenerator()
-    t1, _ = gen._build_chief_complaint(ctx1)
-    t2, _ = gen._build_chief_complaint(ctx2)
+    t1, _ = build_chief_complaint(gen, ctx1)
+    t2, _ = build_chief_complaint(gen, ctx2)
     assert t1 == t2
 
 
@@ -321,7 +324,7 @@ def test_chief_complaint_variant_distribution_across_patients() -> None:
             patient_id=f"POP-HF-{i:03d}",
             encounter_id=f"enc-hf-{i}",
         )
-        text, _ = gen._build_chief_complaint(ctx)
+        text, _ = build_chief_complaint(gen, ctx)
         seen.add(text)
     pool = load_chief_complaint_variants()["heart_failure_exacerbation"]
     assert len(seen) >= min(3, len(pool)), f"expected variants to rotate — saw {len(seen)}: {seen}"
@@ -344,7 +347,7 @@ def test_chief_complaint_variant_preserves_real_encounter_override() -> None:
     )
     ctx = _make_ctx(disease_protocol=proto, encounter=enc, encounter_id="enc-hf-99")
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_chief_complaint(ctx)
+    text, facts = build_chief_complaint(gen, ctx)
     assert text == "実 CIF 上書き文言"
     # No variant fact was appended.
     assert not any(f.startswith("chief_complaint_variants") for f in facts)
@@ -369,6 +372,6 @@ def test_chief_complaint_variant_only_ja_locale() -> None:
         locale="us",
     )
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_chief_complaint(ctx)
+    text, facts = build_chief_complaint(gen, ctx)
     assert text == "Dyspnea on exertion, orthopnea, lower extremity edema"
     assert not any(f.startswith("chief_complaint_variants") for f in facts)
