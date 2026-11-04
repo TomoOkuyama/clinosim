@@ -2969,7 +2969,7 @@
 <p>実コードの正本パス:
 - Enricher registry: <code>clinosim/simulator/enrichers.py</code>
 - Output adapter registry: <code>clinosim/modules/output/adapter.py</code>
-- FHIR bundle builder registry: <code>clinosim/modules/output/fhir_r4/builder.py</code> (<code>fhir_r4_adapter.py</code> は後方互換 shim)
+- FHIR bundle builder registry: <code>clinosim/modules/output/fhir_r4/builder.py</code>
 - 共有型: <code>clinosim/types/</code>
 - コードシステム: <code>clinosim/codes/</code>
 - locale データ: <code>clinosim/locale/</code></p>
@@ -3533,7 +3533,7 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 </span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="n">uri</span> <span class="o">=</span> <span class="n">get_system_uri</span><span class="p">(</span><span class="s2">"snomed-ct"</span><span class="p">)</span>  <span class="c1"># FHIR system URI を文字列リテラルで書かない</span>
 </span></code></pre></div>
 <blockquote>
-<p><strong>アンチパターン (URI-1, CODES-4, FA-2):</strong> SNOMED/LOINC/UCUM/HL7 URI を生文字列で埋め込まない (現状 fhir_r4_adapter.py に多数残存)。新規キーは <code>codes/loader.py</code> の <code>_BUILTIN_URIS</code> に正準 HL7 URI を登録してから <code>get_system_uri()</code> を使う。</p>
+<p><strong>アンチパターン (URI-1, CODES-4, FA-2):</strong> SNOMED/LOINC/UCUM/HL7 URI を生文字列で埋め込まない。新規キーは <code>codes/loader.py</code> の <code>_BUILTIN_URIS</code> に正準 HL7 URI を登録してから <code>get_system_uri()</code> を使う。</p>
 </blockquote>
 <h3 id="国コード体系の選択は-system_key_for2026-07-02">国→コード体系の選択は <code>system_key_for()</code>(2026-07-02)<a class="headerlink" href="#国コード体系の選択は-system_key_for2026-07-02" title="Permanent link">&para;</a></h3>
 <p>「JP は JLAC10 / ICD-10 (WHO) / YJ / K-codes、それ以外は LOINC / ICD-10-CM / RxNorm / CPT」という国→code system 選択は、必ず <code>clinosim.codes.system_key_for(kind, country)</code> を使います(single source of truth):</p>

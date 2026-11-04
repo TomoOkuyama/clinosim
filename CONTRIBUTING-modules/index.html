@@ -3684,7 +3684,7 @@ vs. 3-axis DQR" section below. For the whole reading order, see
 <p>Canonical source-code paths:
 - Enricher registry: <code>clinosim/simulator/enrichers.py</code>
 - Output-adapter registry: <code>clinosim/modules/output/adapter.py</code>
-- FHIR bundle-builder registry: <code>clinosim/modules/output/fhir_r4/builder.py</code> (<code>fhir_r4_adapter.py</code> is a backwards-compat shim)
+- FHIR bundle-builder registry: <code>clinosim/modules/output/fhir_r4/builder.py</code>
 - Shared types: <code>clinosim/types/</code>
 - Code systems: <code>clinosim/codes/</code>
 - Locale data: <code>clinosim/locale/</code></p>
@@ -4651,8 +4651,7 @@ always empty. Use <code>code_lookup(system, code, lang)</code> for new code.</p>
 </span></code></pre></div>
 <blockquote>
 <p><strong>Anti-pattern (URI-1, CODES-4, FA-2):</strong> do not embed
-SNOMED / LOINC / UCUM / HL7 URIs as raw strings (many remnants
-still in <code>fhir_r4_adapter.py</code>). Register a new key's canonical
+SNOMED / LOINC / UCUM / HL7 URIs as raw strings. Register a new key's canonical
 HL7 URI in <code>_BUILTIN_URIS</code> in <code>codes/loader.py</code> before using
 <code>get_system_uri()</code>.</p>
 </blockquote>
