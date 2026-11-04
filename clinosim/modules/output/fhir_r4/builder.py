@@ -258,65 +258,17 @@ def convert_cif_to_fhir(
     snapshot_drop_counter: dict[str, int] = {}
     try:
         # Master resources (Organization + Location + Device) — written once.
-        # Facility resources bypass `_build_bundle`, so the JP-only post-emit
-        # walkers must be reapplied here or they leak untouched Japanese
-        # display / raw HL7 URIs into the facility subset (iris4h-ai
-        # feedback V4/V5 P2 A regression when Device / Location emit HL7
-        # / SNOMED / DICOM coding with Japanese display).
+        # Facility resources bypass `_build_bundle`, so they go through the
+        # same `_finalize_resource` passes here (otherwise Japanese display /
+        # raw HL7 URIs leak into the facility subset; iris4h-ai feedback
+        # V4/V5 P2 A).
         facility_bundle = _build_facility_bundle(hospital_config, country)
         for entry in facility_bundle.get("entry", []):
             resource = entry["resource"]
-            if is_jp(country):
-                _apply_jp_core_profile(resource)
-                _apply_jp_clins_profile(resource)
-                _normalize_jp_observation_category(resource)
-                _strip_japanese_display_on_english_only_systems(resource)
-                # PR-I (2026-07-17): populate JP-CLINS MedicationDosage_eCS
-                # required fields (extension:periodOfUse + timing.code with the
-                # uncoded dummy usage code that satisfies R5020). No-op on the
-                # facility bundle since it emits no MedicationRequests.
-                _populate_jp_medication_dosage_ecs_fields(resource)
-            elif is_us(country):
-                # Issue #1768 Cluster E T8a: US Core v9 profile URLs for the
-                # facility bundle (Organization / Location / Device). Same
-                # scope + rationale as the main bundle loop below.
-                _apply_us_core_profile(resource)
-            # Runs regardless of country: identifier / meta.lastUpdated are
-            # base-FHIR-optional but JP-eCS-required; universal emission keeps
-            # US output consistent and cost-free.
-            _populate_observation_identifier_and_last_updated(resource, country)
-            # #202 (2026-07-17): scrub `Observation.referenceRange[*].extension`
-            # (and low/high/component mirrors). LabResult_eCS forbids them
-            # (max=0) and the previously-emitted `referenceRangeSource` URL
-            # was not registered anywhere in JP-CLINS 1.13.0. Universal —
-            # US output already omits the extension so the walker is a no-op.
-            _strip_forbidden_observation_reference_range_extensions(resource)
-            # PR-E (2026-07-17): emit companion Specimen for lab Observations
-            # (JP_Observation_LabResult_eCS.specimen min=1). No-op on the
-            # facility bundle (no lab Observations) but keeps the code path
-            # symmetric with the main bundle loop.
-            if _lab_observation_needs_specimen(resource):
-                specimen = _build_companion_specimen(resource, country)
-                resource["specimen"] = {"reference": f"Specimen/{specimen['id']}"}
-                if is_jp(country):
-                    # Same JP-only walkers as any other resource: SNOMED
-                    # `display` on the Specimen.type coding is English-only,
-                    # so the P2 A walker strips Japanese chars — the JP text
-                    # stays in `type.text` per feedback Option 1.
-                    _strip_japanese_display_on_english_only_systems(specimen)
-                _normalize_dt_fields(specimen, country)
+            specimen = _finalize_resource(resource, country, roster_map)
+            if specimen is not None:
                 write(specimen)
                 n_resources += 1
-            # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
-            # Condition / AllergyIntolerance / MedicationRequest. Universal —
-            # US output picks up the same fields harmlessly.
-            _populate_condition_ai_mr_ecs_fields(resource, country)
-            # Issue #1178: fill Reference.display for Practitioner/… refs.
-            # Universal — no-op when roster_map is empty. Runs after every
-            # builder + eCS populator so late-added references get the same
-            # treatment.
-            # Perf fusion (2026-10-17): single-pass walker instead of two.
-            _normalize_dt_and_fill_practitioner_display(resource, country, roster_map)
             write(resource)
             n_resources += 1
 
@@ -704,6 +656,79 @@ def available_builders() -> list[str]:
     return [b.__name__ for b in _BUNDLE_BUILDERS]
 
 
+def _finalize_resource(resource: dict, country: str, roster_map: dict[str, dict]) -> dict | None:
+    """Apply the per-resource finishing passes shared by the facility bundle
+    and every patient bundle, in order (Issue #2515).
+
+    Returns the companion Specimen built for a lab Observation (already
+    finished), for the caller to emit before the resource, or None.
+    """
+    if is_jp(country):
+        # C3-11..18: JP Core / JP-CLINS profile URLs at the adapter level so
+        # every resource type gains conformance declarations without touching
+        # each builder; idempotent (skips when meta.profile is populated).
+        _apply_jp_core_profile(resource)
+        _apply_jp_clins_profile(resource)
+        # JP Core は Observation.category:first slice に
+        # JP_SimpleObservationCategory_CS を、HL7 base Vital Signs
+        # profile(bp / heartrate / oxygensat / bodytemp / resprate)は
+        # VSCat slice に HL7 category coding を要求する。両方を
+        # 満たしつつ display 誤り error(V5 発見 A')も同時に解消
+        # する single seam(builders 個別修正回避)。
+        _normalize_jp_observation_category(resource)
+        # iris4h-ai feedback V4/V5 P2 A: LOINC / SNOMED / HL7
+        # terminology / DICOM / FHIR sid など英語 display のみ定義
+        # されている「standard CodeSystem」に対し、clinosim が
+        # 日本語 display を emit していると HAPI Validator が
+        # 「Wrong Display Name」error を出す(~635k 件)。feedback
+        # Option 1「display 省略、tx server が英語を補完」を採用し、
+        # builders 個別修正の代わりに単一 walker で strip する。
+        # CodeableConcept 側の text は保持されるため人間可読性は
+        # (text 未設定な Coding-direct field を除いて)維持。
+        _strip_japanese_display_on_english_only_systems(resource)
+        # PR-I (2026-07-17): populate JP-CLINS MedicationDosage_eCS
+        # required fields on MedicationRequest.dosageInstruction[]
+        # (extension:periodOfUse + timing.code with the uncoded dummy usage
+        # code that satisfies R5020).
+        _populate_jp_medication_dosage_ecs_fields(resource)
+    elif is_us(country):
+        # Issue #2203: only US output declares US Core; a third country gets
+        # base FHIR rather than a foreign profile. Issue #1768 Cluster E T8a:
+        # US Core v9 profile URL on every resource type for which US Core
+        # publishes a single, unambiguous profile.
+        _apply_us_core_profile(resource)
+    # PR-D (2026-07-17): Observation.identifier + meta.lastUpdated (JP eCS
+    # min=1). Universal — base-FHIR-optional, safe on US output.
+    _populate_observation_identifier_and_last_updated(resource, country)
+    # #202 (2026-07-17): scrub `Observation.referenceRange[*].extension`
+    # (and low/high/component mirrors). LabResult_eCS forbids them (max=0)
+    # and the previously-emitted `referenceRangeSource` URL was not
+    # registered anywhere in JP-CLINS 1.13.0. Universal — no-op on US output.
+    _strip_forbidden_observation_reference_range_extensions(resource)
+    # PR-E (2026-07-17): companion Specimen for lab Observations
+    # (JP_Observation_LabResult_eCS.specimen min=1); the Observation carries
+    # a `specimen` reference pointing at it.
+    specimen = None
+    if _lab_observation_needs_specimen(resource):
+        specimen = _build_companion_specimen(resource, country)
+        resource["specimen"] = {"reference": f"Specimen/{specimen['id']}"}
+        if is_jp(country):
+            # SNOMED `display` on Specimen.type is English-only; the JP text
+            # stays in `type.text`.
+            _strip_japanese_display_on_english_only_systems(specimen)
+        _normalize_dt_fields(specimen, country)
+    # PR-G (2026-07-17): JP-CLINS eCS-required fields on Condition /
+    # AllergyIntolerance / MedicationRequest. Universal.
+    _populate_condition_ai_mr_ecs_fields(resource, country)
+    # Issue #1178 + feedback FB-F1: fill Reference.display for Practitioner
+    # refs and normalise dateTime / instant TZ in one walk (no-op display
+    # fill when roster_map is empty). Runs after every builder and eCS
+    # populator so late-added references get the same treatment; see
+    # ``datetime_normalize._normalize_dt_and_fill_practitioner_display``.
+    _normalize_dt_and_fill_practitioner_display(resource, country, roster_map)
+    return specimen
+
+
 def _build_bundle(
     record: dict,
     country: str,
@@ -786,79 +811,10 @@ def _build_bundle(
             }
             ctx.emitted_mr_ids.discard("")
         for resource in builder(ctx):
-            # C3-11..18: apply JP Core profile URLs at
-            # the adapter level so every resource type gains conformance
-            # declarations without touching each builder. Coverage / Patient /
-            # Encounter / Condition already carry inline profile; the helper is
-            # idempotent (skips when meta.profile is already populated).
-            if is_jp(ctx.country):
-                _apply_jp_core_profile(resource)
-                _apply_jp_clins_profile(resource)
-                # JP Core は Observation.category:first slice に
-                # JP_SimpleObservationCategory_CS を、HL7 base Vital Signs
-                # profile(bp / heartrate / oxygensat / bodytemp / resprate)は
-                # VSCat slice に HL7 category coding を要求する。両方を
-                # 満たしつつ display 誤り error(V5 発見 A')も同時に解消
-                # する single seam(builders 個別修正回避)。
-                _normalize_jp_observation_category(resource)
-                # iris4h-ai feedback V4/V5 P2 A: LOINC / SNOMED / HL7
-                # terminology / DICOM / FHIR sid など英語 display のみ定義
-                # されている「standard CodeSystem」に対し、clinosim が
-                # 日本語 display を emit していると HAPI Validator が
-                # 「Wrong Display Name」error を出す(~635k 件)。feedback
-                # Option 1「display 省略、tx server が英語を補完」を採用し、
-                # builders 個別修正の代わりに単一 walker で strip する。
-                # CodeableConcept 側の text は保持されるため人間可読性は
-                # (text 未設定な Coding-direct field を除いて)維持。
-                _strip_japanese_display_on_english_only_systems(resource)
-                # PR-I (2026-07-17): populate JP-CLINS MedicationDosage_eCS
-                # required fields on MedicationRequest.dosageInstruction[].
-                _populate_jp_medication_dosage_ecs_fields(resource)
-            elif is_us(ctx.country):
-                # Issue #2203: only US output declares US Core; a third
-                # country gets base FHIR rather than a foreign profile.
-                # Issue #1768 Cluster E T8a: declare US Core v9 profile URL
-                # on every resource type for which US Core publishes a
-                # single, unambiguous profile (Patient / Coverage /
-                # MedicationRequest / Immunization / AllergyIntolerance /
-                # Procedure / Practitioner / Organization / Encounter).
-                # Condition and Observation need category-dispatched
-                # profile selection and are tracked for T8b.
-                _apply_us_core_profile(resource)
-            # PR-D (2026-07-17): populate Observation.identifier + meta.lastUpdated
-            # (JP eCS min=1). Universal — safe on US output.
-            _populate_observation_identifier_and_last_updated(resource, country)
-            # #202 (2026-07-17): scrub `Observation.referenceRange[*].extension`
-            # (and low/high/component mirrors). LabResult_eCS forbids them
-            # (max=0) and the previously-emitted `referenceRangeSource` URL
-            # was not registered anywhere in JP-CLINS 1.13.0. Universal —
-            # US output already omits the extension so the walker is a no-op.
-            _strip_forbidden_observation_reference_range_extensions(resource)
-            # PR-E (2026-07-17): emit companion Specimen for lab Observations
-            # (JP_Observation_LabResult_eCS.specimen min=1). The Specimen is
-            # added to the bundle entries alongside the Observation, and the
-            # Observation carries a `specimen` reference pointing at it.
-            if _lab_observation_needs_specimen(resource):
-                specimen = _build_companion_specimen(resource, country)
-                resource["specimen"] = {"reference": f"Specimen/{specimen['id']}"}
-                if is_jp(country):
-                    _strip_japanese_display_on_english_only_systems(specimen)
-                _normalize_dt_fields(specimen, country)
+            specimen = _finalize_resource(resource, country, roster_map)
+            if specimen is not None:
                 entries.append(entry(specimen))
-            # PR-G (2026-07-17): populate JP-CLINS eCS-required fields on
-            # Condition / AllergyIntolerance / MedicationRequest. Universal.
-            _populate_condition_ai_mr_ecs_fields(resource, country)
-            # Issue #1178: fill Reference.display for Practitioner/… refs.
-            # Walks the resource once; no-op when roster_map is empty.
-            # Perf fusion (2026-10-17): single-pass walker instead of two.
-            # Combines the Issue #1178 Practitioner.display population
-            # (``_populate_practitioner_reference_display``) and the
-            # feedback FB-F1 dateTime / instant TZ normalization pass
-            # (``_normalize_dt_fields``). Byte-identical to the
-            # pre-fusion sequence; see ``datetime_normalize._normalize_
-            # dt_and_fill_practitioner_display`` for the semantic
-            # equivalence proof.
-            _normalize_dt_and_fill_practitioner_display(resource, country, getattr(ctx, "roster_map", None))
+            # Patient bundles only (the facility bundle has no encounters).
             # N-3 fix (2026-08-19): route ED-attributable resources from
             # the IMP encounter to the ``-ED`` bridge Encounter so the
             # CY7-05 synth bridge no longer carries zero child resources.
