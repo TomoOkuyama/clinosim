@@ -327,6 +327,12 @@ _.procedure_codes  # imaging/engine.py _BodySite
 # Schema field of the YAML validation model; callers read the raw dict.
 _.min_components  # order/panel_grouping.py _Panel
 
+# ----- clinosim/modules/hai/engine.py (Pydantic BaseModel, Issue #2571) -----
+# Schema fields of the YAML validation models; callers read the raw dict.
+_.hai_organisms  # hai/engine.py HaiOrganisms
+_.hai_rates  # hai/engine.py HaiRates
+_.hai_codes  # hai/engine.py HaiCodes
+
 # ----- clinosim/modules/encounter/protocol.py (Pydantic BaseModel) -----
 # Narrative template language maps (subjective / objective / assessment /
 # plan / chief_complaint / hpi / physical_exam / ed_workup_summary /

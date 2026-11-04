@@ -12,7 +12,7 @@ from __future__ import annotations
 import pytest
 
 # =========================================================================
-# Task 2: _validate_hai_organisms (hai/engine.py)
+# Task 2: HaiOrganisms (hai/engine.py)
 # =========================================================================
 
 
@@ -30,50 +30,50 @@ def test_validate_hai_organisms_passes_current_yaml():
 
 
 def test_validate_hai_organisms_rejects_non_dict():
-    from clinosim.modules.hai.engine import _validate_hai_organisms
+    from clinosim.modules.hai.engine import HaiOrganisms
 
     with pytest.raises(ValueError, match="must be a dict"):
-        _validate_hai_organisms([])  # type: ignore[arg-type]
+        HaiOrganisms.model_validate([])  # type: ignore[arg-type]
 
 
 def test_validate_hai_organisms_rejects_unknown_hai_type():
-    from clinosim.modules.hai.engine import _validate_hai_organisms
+    from clinosim.modules.hai.engine import HaiOrganisms
 
     bad = {"hai_organisms": {"unknown_type": [{"snomed": "123", "weight": 0.5}]}}
     with pytest.raises(ValueError, match="unknown HAI type"):
-        _validate_hai_organisms(bad)
+        HaiOrganisms.model_validate(bad)
 
 
 def test_validate_hai_organisms_rejects_empty_organism_list():
-    from clinosim.modules.hai.engine import _validate_hai_organisms
+    from clinosim.modules.hai.engine import HaiOrganisms
 
     bad = {"hai_organisms": {"clabsi": []}}
     with pytest.raises(ValueError, match="empty organism list"):
-        _validate_hai_organisms(bad)
+        HaiOrganisms.model_validate(bad)
 
 
 def test_validate_hai_organisms_rejects_negative_weight():
-    from clinosim.modules.hai.engine import _validate_hai_organisms
+    from clinosim.modules.hai.engine import HaiOrganisms
 
     bad = {"hai_organisms": {"clabsi": [{"snomed": "123", "weight": -0.1}]}}
     with pytest.raises(ValueError, match="negative weight"):
-        _validate_hai_organisms(bad)
+        HaiOrganisms.model_validate(bad)
 
 
 def test_validate_hai_organisms_rejects_zero_sum_weights():
-    from clinosim.modules.hai.engine import _validate_hai_organisms
+    from clinosim.modules.hai.engine import HaiOrganisms
 
     bad = {"hai_organisms": {"clabsi": [{"snomed": "123", "weight": 0.0}]}}
     with pytest.raises(ValueError, match="zero-sum"):
-        _validate_hai_organisms(bad)
+        HaiOrganisms.model_validate(bad)
 
 
 def test_validate_hai_organisms_rejects_empty_snomed():
-    from clinosim.modules.hai.engine import _validate_hai_organisms
+    from clinosim.modules.hai.engine import HaiOrganisms
 
     bad = {"hai_organisms": {"clabsi": [{"snomed": "", "weight": 1.0}]}}
     with pytest.raises(ValueError, match="empty SNOMED"):
-        _validate_hai_organisms(bad)
+        HaiOrganisms.model_validate(bad)
 
 
 # =========================================================================
@@ -209,29 +209,29 @@ def test_validate_addresses_rejects_negative_city_weight():
 
 
 def test_validate_hai_organisms_rejects_non_dict_organism_entry():
-    from clinosim.modules.hai.engine import _validate_hai_organisms
+    from clinosim.modules.hai.engine import HaiOrganisms
 
     bad = {"hai_organisms": {"clabsi": ["not_a_dict"]}}
     with pytest.raises(ValueError, match="entry must be a dict"):
-        _validate_hai_organisms(bad)
+        HaiOrganisms.model_validate(bad)
 
 
 def test_validate_hai_organisms_rejects_non_list_organism_list():
-    from clinosim.modules.hai.engine import _validate_hai_organisms
+    from clinosim.modules.hai.engine import HaiOrganisms
 
     bad = {"hai_organisms": {"clabsi": "not_a_list"}}
     with pytest.raises(ValueError, match="empty organism list"):
         # not-a-list path: validator's `not isinstance(..., list) or not ...`
         # branch catches this as the same "empty organism list" error.
-        _validate_hai_organisms(bad)
+        HaiOrganisms.model_validate(bad)
 
 
 def test_validate_hai_organisms_rejects_non_dict_organisms_map():
-    from clinosim.modules.hai.engine import _validate_hai_organisms
+    from clinosim.modules.hai.engine import HaiOrganisms
 
     bad = {"hai_organisms": "not_a_dict"}
     with pytest.raises(ValueError, match="'hai_organisms' must be a dict"):
-        _validate_hai_organisms(bad)
+        HaiOrganisms.model_validate(bad)
 
 
 def test_validate_demographics_rejects_non_dict_lifestyle():
@@ -294,11 +294,11 @@ def test_validate_addresses_rejects_non_dict_city_entry():
 
 
 def test_validate_hai_organisms_rejects_non_numeric_weight():
-    from clinosim.modules.hai.engine import _validate_hai_organisms
+    from clinosim.modules.hai.engine import HaiOrganisms
 
     bad = {"hai_organisms": {"clabsi": [{"snomed": "123", "weight": "not-a-number"}]}}
     with pytest.raises(ValueError, match="non-numeric"):
-        _validate_hai_organisms(bad)
+        HaiOrganisms.model_validate(bad)
 
 
 def test_validate_demographics_rejects_non_numeric_weight():

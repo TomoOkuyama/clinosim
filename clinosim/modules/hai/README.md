@@ -34,8 +34,8 @@ HAI cascade.
   `determine_flag` re-applied; called from
   `clinosim/simulator/inpatient.py` after the AD-32 truncation, not
   from the enricher); load-time YAML validation for all six files
-  (`_validate_hai_organisms` / `_validate_hai_rates` /
-  `_validate_hai_codes` / `_validate_hai_specimens` in `engine.py`,
+  (the Pydantic models `HaiOrganisms` / `HaiRates` /
+  `HaiCodes` / `HaiSpecimens` in `engine.py`,
   inline checks in `load_hai_antibiogram` (`__init__.py`),
   `_validate_hai_lab_lift_config` in `lab_lift.py`); per-culture
   S/I/R susceptibility draws from `hai_antibiogram.yaml`; the

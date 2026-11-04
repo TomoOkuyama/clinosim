@@ -14,9 +14,10 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from clinosim.codes import code_exists
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_validated_yaml
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.types.device import DeviceRecord
 
@@ -24,166 +25,289 @@ _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 
 
-def _load_yaml(name: str) -> dict[str, Any]:
-    return load_data_yaml(_REF_DIR / name)
-
-
-def _validate_hai_organisms(data: dict) -> None:
-    """Validate hai_organisms.yaml at load time — fail loud on cross-ref violations.
-
-    Cross-references (silent-no-op risks) covered:
-    1. top-level key 'hai_organisms' must exist and be a dict
-    2. each hai_type ⊆ HAI_TYPES canonical set
-    3. each organism list non-empty
-    4. each weight numeric and >= 0
-    5. each weight sum > 0 (zero-sum is the precondition that
-       normalize_probabilities(fallback="raise") raises at runtime)
-    6. each organism's snomed non-empty string
-
-    HAI_TYPES is imported lazily inside the function to avoid the
-    engine ↔ hai/__init__ circular import (engine is imported BY
-    hai/__init__ during package init, so a top-level import here would
-    fail at module load).
-    """
+def _hai_types() -> set[str]:
+    # Imported lazily: engine is imported BY hai/__init__ during package init,
+    # so a top-level import of HAI_TYPES would be circular.
     from clinosim.modules.hai import HAI_TYPES
 
+    return set(HAI_TYPES)
+
+
+def _top_level_dict(data: Any, file: str) -> Any:
     if not isinstance(data, dict):
-        raise ValueError(f"hai_organisms.yaml: top-level must be a dict, got {type(data).__name__}")
-    organisms_map = data.get("hai_organisms")
-    if not isinstance(organisms_map, dict):
-        raise ValueError(
-            "hai_organisms.yaml: 'hai_organisms' must be a dict of "
-            f"{{hai_type: [organisms]}}, got {type(organisms_map).__name__}"
-        )
-    valid_types = set(HAI_TYPES)
-    for hai_type, organism_list in organisms_map.items():
-        if hai_type not in valid_types:
-            raise ValueError(
-                f"hai_organisms.yaml: unknown HAI type {hai_type!r}; expected one of {sorted(valid_types)}"
-            )
-        if not isinstance(organism_list, list) or not organism_list:
-            raise ValueError(f"hai_organisms.yaml: hai_type {hai_type!r} has empty organism list")
-        weights: list[float] = []
-        for entry in organism_list:
-            if not isinstance(entry, dict):
-                raise ValueError(f"hai_organisms.yaml: {hai_type!r} entry must be a dict, got {entry!r}")
-            snomed = entry.get("snomed")
-            if not isinstance(snomed, str) or not snomed:
-                raise ValueError(f"hai_organisms.yaml: {hai_type!r} entry has empty SNOMED {snomed!r}")
-            try:
-                w = float(entry.get("weight", 0))
-            except (TypeError, ValueError) as exc:
-                raise ValueError(
-                    f"hai_organisms.yaml: {hai_type!r}/{snomed!r} weight non-numeric: {entry.get('weight')!r}"
-                ) from exc
-            if w < 0:
-                raise ValueError(f"hai_organisms.yaml: {hai_type!r}/{snomed!r} has negative weight {w}")
-            weights.append(w)
-        if sum(weights) <= 0:
-            raise ValueError(f"hai_organisms.yaml: {hai_type!r} has zero-sum weights {weights}")
+        raise ValueError(f"{file}: top-level must be a dict, got {type(data).__name__}")
+    return data
 
-    # Forward-coverage (sibling sweep, 2026-06-29): every HAI_TYPE must have an entry.
-    missing = valid_types - set(organisms_map.keys())
+
+def _non_empty_table(data: Any, file: str, section: str) -> Any:
+    if not _top_level_dict(data, file).get(section):
+        raise ValueError(f"{file} top-level empty — silent-no-op risk")
+    return data
+
+
+def _known_hai_types(keys: set[str], file: str, unknown_label: str = "hai_type") -> None:
+    valid = _hai_types()
+    for hai_type in sorted(keys - valid):
+        raise ValueError(f"{file}: unknown {unknown_label} {hai_type!r}, expected one of {sorted(valid)}")
+
+
+def _every_hai_type(keys: set[str], file: str) -> None:
+    """Forward coverage (sibling sweep, 2026-06-29): every HAI_TYPE has an entry."""
+    missing = _hai_types() - keys
     if missing:
-        raise ValueError(f"hai_organisms.yaml missing HAI_TYPES: {sorted(missing)!r}")
+        raise ValueError(f"{file} missing HAI_TYPES: {sorted(missing)!r}")
 
 
-def _validate_hai_rates(data: dict) -> None:
-    """Validate hai_rates.yaml at load time (sibling sweep, 2026-06-29).
+def _non_empty_bucket(bucket: Any, file: str) -> Any:
+    if not isinstance(bucket, dict) or not bucket:
+        raise ValueError(f"{file}: bucket empty")
+    return bucket
 
-    6-layer silent-no-op defense:
-    1. top-level 'hai_rates' must exist and be non-empty
-    2. each hai_type ⊆ HAI_TYPES canonical set (no unknown keys)
-    3. per-bucket non-empty
-    4. HAI_TYPES forward-coverage (every canonical hai_type present)
-    5. per_day_risk numeric and ∈ [0, 1]
-    6. source_device_type ∈ load_devices_config()["devices"] (authoritative)
-    """
-    from clinosim.modules.device.engine import load_devices_config
-    from clinosim.modules.hai import HAI_TYPES
 
-    if not isinstance(data, dict):
-        raise ValueError(f"hai_rates.yaml: top-level must be a dict, got {type(data).__name__}")
-    rates = data.get("hai_rates") or {}
-    if not rates:
-        raise ValueError("hai_rates.yaml top-level empty — silent-no-op risk")
-    valid_types = set(HAI_TYPES)
-    device_table = load_devices_config().get("devices", {})
-    for hai_type, bucket in rates.items():
-        if hai_type not in valid_types:
-            raise ValueError(f"hai_rates.yaml: unknown hai_type {hai_type!r}, expected one of {sorted(valid_types)}")
-        if not isinstance(bucket, dict) or not bucket:
-            raise ValueError(f"hai_rates.yaml: {hai_type!r} bucket empty")
-        risk = bucket.get("per_day_risk")
-        if not isinstance(risk, (int, float)) or not (0.0 <= float(risk) <= 1.0):
-            raise ValueError(f"hai_rates.yaml: {hai_type!r} per_day_risk {risk!r} not in [0, 1]")
-        src = bucket.get("source_device_type", "")
-        if src not in device_table:
+def _registered(system: str, code: str, file: str, field: str, authority: str) -> str:
+    if not code_exists(system, code, exact=True):
+        raise ValueError(f"{file}: {field} {code!r} not in codes/data/{authority}")
+    return code
+
+
+class _HaiOrganism(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    snomed: str
+    weight: float = 0.0
+
+    @model_validator(mode="before")
+    @classmethod
+    def _is_a_mapping(cls, entry: Any) -> Any:
+        if not isinstance(entry, dict):
+            raise ValueError(f"hai_organisms.yaml: entry must be a dict, got {entry!r}")
+        return entry
+
+    @field_validator("snomed", mode="before")
+    @classmethod
+    def _non_empty_snomed(cls, snomed: Any) -> Any:
+        if not isinstance(snomed, str) or not snomed:
+            raise ValueError(f"hai_organisms.yaml: entry has empty SNOMED {snomed!r}")
+        return snomed
+
+    @field_validator("weight", mode="before")
+    @classmethod
+    def _non_negative_number(cls, weight: Any) -> float:
+        try:
+            w = float(weight)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"hai_organisms.yaml: weight non-numeric: {weight!r}") from exc
+        if w < 0:
+            raise ValueError(f"hai_organisms.yaml: entry has negative weight {w}")
+        return w
+
+
+class HaiOrganisms(BaseModel):
+    """Shape of hai_organisms.yaml: a non-empty organism list with registered
+    SNOMED codes and non-negative weights of positive sum (the precondition of
+    ``normalize_probabilities(fallback="raise")``) for exactly the HAI_TYPES."""
+
+    model_config = ConfigDict(extra="allow")
+
+    hai_organisms: dict[str, list[_HaiOrganism]]
+
+    @model_validator(mode="before")
+    @classmethod
+    def _is_a_mapping(cls, data: Any) -> Any:
+        return _top_level_dict(data, "hai_organisms.yaml")
+
+    @field_validator("hai_organisms", mode="before")
+    @classmethod
+    def _known_types_with_organisms(cls, organisms: Any) -> Any:
+        if not isinstance(organisms, dict):
             raise ValueError(
-                f"hai_rates.yaml: {hai_type!r} source_device_type {src!r} "
-                f"not in devices.yaml ({sorted(device_table.keys())})"
+                "hai_organisms.yaml: 'hai_organisms' must be a dict of "
+                f"{{hai_type: [organisms]}}, got {type(organisms).__name__}"
             )
-    missing = valid_types - set(rates.keys())
-    if missing:
-        raise ValueError(f"hai_rates.yaml missing HAI_TYPES: {sorted(missing)!r}")
+        _known_hai_types(set(organisms), "hai_organisms.yaml", "HAI type")
+        for hai_type, organism_list in organisms.items():
+            if not isinstance(organism_list, list) or not organism_list:
+                raise ValueError(f"hai_organisms.yaml: hai_type {hai_type!r} has empty organism list")
+        return organisms
+
+    @field_validator("hai_organisms")
+    @classmethod
+    def _positive_weights_for_every_type(
+        cls, organisms: dict[str, list[_HaiOrganism]]
+    ) -> dict[str, list[_HaiOrganism]]:
+        for hai_type, organism_list in organisms.items():
+            weights = [o.weight for o in organism_list]
+            if sum(weights) <= 0:
+                raise ValueError(f"hai_organisms.yaml: {hai_type!r} has zero-sum weights {weights}")
+        _every_hai_type(set(organisms), "hai_organisms.yaml")
+        return organisms
+
+
+class _HaiRate(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    per_day_risk: Any
+    source_device_type: Any = ""
+
+    @model_validator(mode="before")
+    @classmethod
+    def _non_empty(cls, bucket: Any) -> Any:
+        return _non_empty_bucket(bucket, "hai_rates.yaml")
+
+    @field_validator("per_day_risk")
+    @classmethod
+    def _probability(cls, risk: Any) -> Any:
+        if not isinstance(risk, (int, float)) or not 0.0 <= float(risk) <= 1.0:
+            raise ValueError(f"hai_rates.yaml: per_day_risk {risk!r} not in [0, 1]")
+        return risk
+
+    @model_validator(mode="after")
+    def _known_device_with_risk(self) -> _HaiRate:
+        from clinosim.modules.device.engine import load_devices_config
+
+        devices = load_devices_config().get("devices", {})
+        if self.source_device_type not in devices:
+            raise ValueError(
+                f"hai_rates.yaml: source_device_type {self.source_device_type!r} "
+                f"not in devices.yaml ({sorted(devices)})"
+            )
+        return self
+
+
+class HaiRates(BaseModel):
+    """Shape of hai_rates.yaml: for exactly the HAI_TYPES, a per-day risk in
+    [0, 1] and a source device type from devices.yaml (the authority)."""
+
+    model_config = ConfigDict(extra="allow")
+
+    hai_rates: dict[str, _HaiRate]
+
+    @model_validator(mode="before")
+    @classmethod
+    def _not_empty(cls, data: Any) -> Any:
+        return _non_empty_table(data, "hai_rates.yaml", "hai_rates")
+
+    @field_validator("hai_rates", mode="before")
+    @classmethod
+    def _known_types(cls, rates: Any) -> Any:
+        _known_hai_types(set(rates), "hai_rates.yaml")
+        return rates
+
+    @field_validator("hai_rates")
+    @classmethod
+    def _every_type(cls, rates: dict[str, _HaiRate]) -> dict[str, _HaiRate]:
+        _every_hai_type(set(rates), "hai_rates.yaml")
+        return rates
+
+
+class _HaiCode(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    icd10_us_billable: Any = ""
+    snomed: Any = ""
+
+    @model_validator(mode="before")
+    @classmethod
+    def _non_empty(cls, bucket: Any) -> Any:
+        return _non_empty_bucket(bucket, "hai_codes.yaml")
+
+    @model_validator(mode="after")
+    def _registered_codes(self) -> _HaiCode:
+        from clinosim.locale.loader import load_code_mapping
+
+        icd_us = self.icd10_us_billable
+        _registered("icd-10-cm", icd_us, "hai_codes.yaml", "icd10_us_billable", "icd-10-cm.yaml")
+        # The one CM → WHO crosswalk (Issue #2257); codes absent from it pass
+        # through unchanged, as at emission.
+        icd_jp = str(load_code_mapping("diagnosis", "JP").get(icd_us, icd_us))
+        if not code_exists("icd-10", icd_jp, exact=True):
+            raise ValueError(
+                f"hai_codes.yaml: JP code {icd_jp!r} of {icd_us!r} "
+                "(locale/jp/code_mapping_diagnosis.yaml) not in codes/data/icd-10.yaml"
+            )
+        _registered("snomed-ct", self.snomed, "hai_codes.yaml", "snomed", "snomed-ct.yaml")
+        return self
+
+
+class HaiCodes(BaseModel):
+    """Shape of hai_codes.yaml: for exactly the HAI_TYPES, an ICD-10-CM code
+    (whose JP crosswalk code is a WHO ICD-10 code) and a SNOMED code, all
+    registered in clinosim/codes/data."""
+
+    model_config = ConfigDict(extra="allow")
+
+    hai_codes: dict[str, _HaiCode]
+
+    @model_validator(mode="before")
+    @classmethod
+    def _not_empty(cls, data: Any) -> Any:
+        return _non_empty_table(data, "hai_codes.yaml", "hai_codes")
+
+    @field_validator("hai_codes", mode="before")
+    @classmethod
+    def _known_types(cls, codes: Any) -> Any:
+        _known_hai_types(set(codes), "hai_codes.yaml")
+        return codes
+
+    @field_validator("hai_codes")
+    @classmethod
+    def _every_type(cls, codes: dict[str, _HaiCode]) -> dict[str, _HaiCode]:
+        _every_hai_type(set(codes), "hai_codes.yaml")
+        return codes
+
+
+class _HaiSpecimen(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    specimen_snomed: Any = ""
+    test_loinc: Any = ""
+
+    @model_validator(mode="before")
+    @classmethod
+    def _non_empty(cls, bucket: Any) -> Any:
+        return _non_empty_bucket(bucket, "hai_specimens.yaml")
+
+    @model_validator(mode="after")
+    def _registered_codes(self) -> _HaiSpecimen:
+        _registered("snomed-ct", self.specimen_snomed, "hai_specimens.yaml", "specimen_snomed", "snomed-ct.yaml")
+        _registered("loinc", self.test_loinc, "hai_specimens.yaml", "test_loinc", "loinc.yaml")
+        return self
+
+
+class HaiSpecimens(BaseModel):
+    """Shape of hai_specimens.yaml: for exactly the HAI_TYPES, a specimen
+    SNOMED code and a culture LOINC code registered in clinosim/codes/data."""
+
+    model_config = ConfigDict(extra="allow")
+
+    hai_specimens: dict[str, _HaiSpecimen]
+
+    @model_validator(mode="before")
+    @classmethod
+    def _not_empty(cls, data: Any) -> Any:
+        return _non_empty_table(data, "hai_specimens.yaml", "hai_specimens")
+
+    @field_validator("hai_specimens", mode="before")
+    @classmethod
+    def _known_types(cls, specimens: Any) -> Any:
+        _known_hai_types(set(specimens), "hai_specimens.yaml")
+        return specimens
+
+    @field_validator("hai_specimens")
+    @classmethod
+    def _every_type(cls, specimens: dict[str, _HaiSpecimen]) -> dict[str, _HaiSpecimen]:
+        _every_hai_type(set(specimens), "hai_specimens.yaml")
+        return specimens
 
 
 @lru_cache(maxsize=1)
 def load_hai_rates() -> dict[str, Any]:
-    data = _load_yaml("hai_rates.yaml")
-    _validate_hai_rates(data)
-    return data
-
-
-def _validate_hai_codes(data: dict) -> None:
-    """Validate hai_codes.yaml at load time (sibling sweep).
-
-    Cross-validation via authoritative loaders:
-    - icd10_us_billable ∈ codes/data/icd-10-cm.yaml
-    - the JP code of icd10_us_billable (locale/jp/code_mapping_diagnosis.yaml,
-      the one CM → WHO crosswalk; Issue #2257) ∈ codes/data/icd-10.yaml
-    - snomed           ∈ codes/data/snomed-ct.yaml
-    """
-    from clinosim.modules.hai import HAI_TYPES
-
-    if not isinstance(data, dict):
-        raise ValueError(f"hai_codes.yaml: top-level must be a dict, got {type(data).__name__}")
-    codes_table = data.get("hai_codes") or {}
-    if not codes_table:
-        raise ValueError("hai_codes.yaml top-level empty — silent-no-op risk")
-    valid_types = set(HAI_TYPES)
-    for hai_type, bucket in codes_table.items():
-        if hai_type not in valid_types:
-            raise ValueError(f"hai_codes.yaml: unknown hai_type {hai_type!r}, expected one of {sorted(valid_types)}")
-        if not isinstance(bucket, dict) or not bucket:
-            raise ValueError(f"hai_codes.yaml: {hai_type!r} bucket empty")
-        icd_us = bucket.get("icd10_us_billable", "")
-        if not code_exists("icd-10-cm", icd_us, exact=True):
-            raise ValueError(
-                f"hai_codes.yaml: {hai_type!r} icd10_us_billable {icd_us!r} not in codes/data/icd-10-cm.yaml"
-            )
-        from clinosim.locale.loader import load_code_mapping
-
-        # Codes absent from the crosswalk pass through unchanged, as at emission.
-        icd_jp = str(load_code_mapping("diagnosis", "JP").get(icd_us, icd_us))
-        if not code_exists("icd-10", icd_jp, exact=True):
-            raise ValueError(
-                f"hai_codes.yaml: {hai_type!r} JP code {icd_jp!r} of {icd_us!r} "
-                "(locale/jp/code_mapping_diagnosis.yaml) not in codes/data/icd-10.yaml"
-            )
-        snomed = bucket.get("snomed", "")
-        if not code_exists("snomed-ct", snomed, exact=True):
-            raise ValueError(f"hai_codes.yaml: {hai_type!r} snomed {snomed!r} not in codes/data/snomed-ct.yaml")
-    missing = valid_types - set(codes_table.keys())
-    if missing:
-        raise ValueError(f"hai_codes.yaml missing HAI_TYPES: {sorted(missing)!r}")
+    return load_validated_yaml(_REF_DIR / "hai_rates.yaml", HaiRates)
 
 
 @lru_cache(maxsize=1)
 def load_hai_codes() -> dict[str, Any]:
-    data = _load_yaml("hai_codes.yaml")
-    _validate_hai_codes(data)
-    return data
+    return load_validated_yaml(_REF_DIR / "hai_codes.yaml", HaiCodes)
 
 
 def hai_icd10_code(hai_type: str) -> str:
@@ -194,51 +318,12 @@ def hai_icd10_code(hai_type: str) -> str:
 
 @lru_cache(maxsize=1)
 def load_hai_organisms() -> dict[str, Any]:
-    data = _load_yaml("hai_organisms.yaml")
-    _validate_hai_organisms(data)
-    return data
-
-
-def _validate_hai_specimens(data: dict) -> None:
-    """Validate hai_specimens.yaml at load time (sibling sweep).
-
-    Cross-validation via authoritative loaders:
-    - specimen_snomed ∈ codes/data/snomed-ct.yaml
-    - test_loinc      ∈ codes/data/loinc.yaml
-    """
-    from clinosim.modules.hai import HAI_TYPES
-
-    if not isinstance(data, dict):
-        raise ValueError(f"hai_specimens.yaml: top-level must be a dict, got {type(data).__name__}")
-    spec_table = data.get("hai_specimens") or {}
-    if not spec_table:
-        raise ValueError("hai_specimens.yaml top-level empty — silent-no-op risk")
-    valid_types = set(HAI_TYPES)
-    for hai_type, bucket in spec_table.items():
-        if hai_type not in valid_types:
-            raise ValueError(
-                f"hai_specimens.yaml: unknown hai_type {hai_type!r}, expected one of {sorted(valid_types)}"
-            )
-        if not isinstance(bucket, dict) or not bucket:
-            raise ValueError(f"hai_specimens.yaml: {hai_type!r} bucket empty")
-        snomed = bucket.get("specimen_snomed", "")
-        if not code_exists("snomed-ct", snomed, exact=True):
-            raise ValueError(
-                f"hai_specimens.yaml: {hai_type!r} specimen_snomed {snomed!r} not in codes/data/snomed-ct.yaml"
-            )
-        loinc = bucket.get("test_loinc", "")
-        if not code_exists("loinc", loinc, exact=True):
-            raise ValueError(f"hai_specimens.yaml: {hai_type!r} test_loinc {loinc!r} not in codes/data/loinc.yaml")
-    missing = valid_types - set(spec_table.keys())
-    if missing:
-        raise ValueError(f"hai_specimens.yaml missing HAI_TYPES: {sorted(missing)!r}")
+    return load_validated_yaml(_REF_DIR / "hai_organisms.yaml", HaiOrganisms)
 
 
 @lru_cache(maxsize=1)
 def load_hai_specimens() -> dict[str, Any]:
-    data = _load_yaml("hai_specimens.yaml")
-    _validate_hai_specimens(data)
-    return data
+    return load_validated_yaml(_REF_DIR / "hai_specimens.yaml", HaiSpecimens)
 
 
 def sample_hai_onset(

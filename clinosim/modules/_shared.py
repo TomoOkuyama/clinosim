@@ -375,7 +375,7 @@ def normalize_probabilities(
     - **Inline literal weight callsites MAY use ``fallback="uniform"``** (the
       default), since literal weight lists cannot zero out via YAML editing.
     - Upstream validators (``MicrobiologyConfig``,
-      ``_validate_hai_organisms``, ``_validate_demographics``,
+      ``HaiOrganisms``, ``_validate_demographics``,
       ``_validate_names``, ``_validate_addresses``) catch zero-sum at import
       time as an additional layer of defense (silent-no-op defense triplet:
       canonical constants + upstream validate + backward raise).
