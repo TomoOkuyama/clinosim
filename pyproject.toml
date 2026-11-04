@@ -266,5 +266,5 @@ follow_imports = "skip"
 
 [tool.vulture]
 # Section builders are reached through the `@section(...)` registry, not by
-# name (Issue #2531).
-ignore_decorators = ["@section"]
+# name (Issue #2531); Pydantic calls the validators of the YAML schema models.
+ignore_decorators = ["@section", "@field_validator", "@model_validator"]

@@ -16,8 +16,9 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from pydantic import BaseModel
 
-__all__ = ["DATA_KINDS", "data_metadata", "load_data_yaml"]
+__all__ = ["DATA_KINDS", "data_metadata", "load_data_yaml", "load_validated_yaml"]
 
 # The kinds of data file (spec §3.2).
 DATA_KINDS = frozenset(
@@ -48,6 +49,15 @@ def load_data_yaml(path: Path) -> dict[str, Any]:
     data = _parse(path) or {}
     if isinstance(data, dict) and "metadata" in data:
         return {k: v for k, v in data.items() if k != "metadata"}
+    return data
+
+
+def load_validated_yaml(path: Path, model: type[BaseModel]) -> dict[str, Any]:
+    """``load_data_yaml(path)`` checked against ``model``; the content is
+    returned as loaded, and a shape or cross-reference error raises
+    ``pydantic.ValidationError`` (a ``ValueError``)."""
+    data = load_data_yaml(path)
+    model.model_validate(data)
     return data
 
 

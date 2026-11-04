@@ -18,8 +18,8 @@ no-op。
   weight 表 (severity 別、JTAS と ESI で共通)、
   `pick_arrival_mode(severity, rng)`、`condition_triage_bounds(record)`、
   `triage_level_cap(vitals)`、
-  `load_triage_protocols()` YAML loader with 6-layer
-  `_validate_triage_protocols` (silent-no-op 防御)。
+  `load_triage_protocols()` YAML loader (`TriageProtocols` Pydantic
+  model で検証、silent-no-op 防御)。
 - **Out of scope**: encounter routing / class emission
   ([`clinosim.modules.encounter`](../encounter/README.ja.md))、FHIR
   `Encounter.class` / `type` / `priority` emission
@@ -69,7 +69,7 @@ from clinosim.modules.triage.engine import (
   — `triage_systems` (JTAS / ESI の level ラベル)、`arrival_modes`、
   country 非依存の `severity_to_triage_distribution`、
   `arrival_mode_base_distribution`、`arrival_mode_severity_multipliers`。
-  `_validate_triage_protocols` (初回 `load_triage_protocols()` 呼出時に
+  `TriageProtocols` model (初回 `load_triage_protocols()` 呼出時に
   実行) の検査: top level 非空 / `triage_systems` が JTAS+ESI ちょうど /
   各 system の level が 1-5 / `arrival_modes` と
   `SUPPORTED_ARRIVAL_MODES` の一致 / severity key 一致かつ各分布の合計
