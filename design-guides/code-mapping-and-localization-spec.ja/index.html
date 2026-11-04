@@ -3248,6 +3248,10 @@
 <td><code>(system_key, code)</code> / 全ロケールのコード</td>
 </tr>
 <tr>
+<td><code>map_diagnosis_code(code, country, sex)</code></td>
+<td>内部の診断基本コード → その国の ICD コード (<code>code_mapping_diagnosis.yaml</code>、性別で分かれる leaf を含む)。対応が無ければコード自身</td>
+</tr>
+<tr>
 <td><code>vocab_display(vocab, slug, lang, *, fallback)</code></td>
 <td>語彙の表示名 (<code>vocabulary.yaml</code>)</td>
 </tr>
