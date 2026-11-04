@@ -278,7 +278,7 @@ def test_medication_monitoring_yaml_has_rationale_ja_on_every_entry() -> None:
     monitoring_without_rationale_ja: list[tuple[str, str]] = []
     for drug, spec in mapping.items():
         for lab_spec in spec.get("monitoring", []) or []:
-            if not lab_spec.get("rationale_ja"):
+            if not (lab_spec.get("rationale") or {}).get("ja"):
                 monitoring_without_rationale_ja.append((drug, lab_spec.get("lab", "?")))
     assert not monitoring_without_rationale_ja, (
         f"Monitoring entries missing `rationale_ja` in medication_monitoring.yaml: {monitoring_without_rationale_ja}"
@@ -300,7 +300,7 @@ def test_medication_monitoring_yaml_ja_values_contain_japanese_characters() -> N
         if drug_ja and not ja_char_re.search(drug_ja):
             en_in_ja.append((drug, "drug_ja", drug_ja))
         for lab_spec in spec.get("monitoring", []) or []:
-            rat_ja = lab_spec.get("rationale_ja") or ""
+            rat_ja = (lab_spec.get("rationale") or {}).get("ja") or ""
             if rat_ja and not ja_char_re.search(rat_ja):
                 en_in_ja.append((drug, f"monitoring[{lab_spec.get('lab', '?')}].rationale_ja", rat_ja))
     assert not en_in_ja, f"YAML `_ja` slots that appear to be EN (no Japanese chars): {en_in_ja}"

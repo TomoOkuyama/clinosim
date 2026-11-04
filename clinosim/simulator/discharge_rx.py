@@ -25,6 +25,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes.drugs import drug_key
 from clinosim.locale.i18n import t
+from clinosim.locale.localized import language_slot
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.physiology.renal_thresholds import DISCHARGE_RENAL_HOLD_THRESHOLD
 from clinosim.types.encounter import PrescriptionRecord
@@ -320,8 +321,8 @@ def build_discharge_rx(
                 "dose": drug_spec.get("dose", ""),
                 "duration_days": drug_spec.get("duration_days", default_duration),
                 "route": drug_spec.get("route", "PO"),
-                "dose_ja": drug_spec.get("dose_ja", ""),
-                "dose_en": drug_spec.get("dose_en", ""),
+                "dose_ja": language_slot(drug_spec.get("dose_text"), "ja"),
+                "dose_en": language_slot(drug_spec.get("dose_text"), "en"),
             }
         )
 

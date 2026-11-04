@@ -34,7 +34,7 @@ from clinosim.codes.ucum import ucum_prose
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
-from clinosim.locale.localized import localized_field
+from clinosim.locale.localized import language_slot, localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.imaging.engine import (
     RADIOLOGY_REPORT_ID_PREFIX,
@@ -534,7 +534,7 @@ def build_dr_resource(
     panels = load_panel_definitions()
     panel = panels[group.panel_name]
     lang = lang_for(country)
-    display = registry_display("loinc", panel["loinc"], lang) or panel["display_en"]
+    display = registry_display("loinc", panel["loinc"], lang) or language_slot(panel["display"], "en")
     # Issue #783: `code.text` = JA primary label on JP output (panel `display_ja`
     # in `lab_panels.yaml`), English `display` on US. Prior emit left
     # `code.text` unset entirely — consumers saw only the LOINC code string

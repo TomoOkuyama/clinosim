@@ -24,7 +24,7 @@ def test_validator_raises_on_missing_adl_categories():
     bad = {
         "risk_assessments": {},
         "disease_specific_nursing_focus": {},
-        "baseline": {"focus": "f", "interventions_ja": []},
+        "baseline": {"focus": "f", "interventions": {"ja": []}},
     }
     with pytest.raises(ValueError, match="adl_categories"):
         _validate_nursing_assessment(bad)
@@ -34,7 +34,7 @@ def test_validator_raises_on_missing_risk_assessments():
     bad = {
         "adl_categories": {},
         "disease_specific_nursing_focus": {},
-        "baseline": {"focus": "f", "interventions_ja": []},
+        "baseline": {"focus": "f", "interventions": {"ja": []}},
     }
     with pytest.raises(ValueError, match="risk_assessments"):
         _validate_nursing_assessment(bad)
@@ -67,7 +67,7 @@ def test_validator_raises_on_adl_forward_drift():
             "aspiration_risk": [],
         },
         "disease_specific_nursing_focus": {},
-        "baseline": {"focus": "f", "interventions_ja": []},
+        "baseline": {"focus": "f", "interventions": {"ja": []}},
     }
     with pytest.raises(ValueError, match="adl_categories.*drift|drift.*adl_categories"):
         _validate_nursing_assessment(bad)
@@ -86,7 +86,7 @@ def test_validator_raises_on_adl_reverse_drift():
             "aspiration_risk": [],
         },
         "disease_specific_nursing_focus": {},
-        "baseline": {"focus": "f", "interventions_ja": []},
+        "baseline": {"focus": "f", "interventions": {"ja": []}},
     }
     with pytest.raises(ValueError, match="adl_categories.*drift|drift.*adl_categories"):
         _validate_nursing_assessment(bad)
@@ -109,7 +109,7 @@ def test_validator_raises_on_risk_forward_drift():
             "unknown_risk": [],  # extra
         },
         "disease_specific_nursing_focus": {},
-        "baseline": {"focus": "f", "interventions_ja": []},
+        "baseline": {"focus": "f", "interventions": {"ja": []}},
     }
     with pytest.raises(ValueError, match="risk_assessments.*drift|drift.*risk_assessments"):
         _validate_nursing_assessment(bad)
@@ -130,9 +130,9 @@ def test_validator_raises_on_disease_entry_missing_focus():
             "aspiration_risk": [],
         },
         "disease_specific_nursing_focus": {
-            "bacterial_pneumonia": {"interventions_ja": ["test"]},  # missing focus
+            "bacterial_pneumonia": {"interventions": {"ja": ["test"]}},  # missing focus
         },
-        "baseline": {"focus": "f", "interventions_ja": []},
+        "baseline": {"focus": "f", "interventions": {"ja": []}},
     }
     with pytest.raises(ValueError, match="focus"):
         _validate_nursing_assessment(bad)
@@ -153,11 +153,11 @@ def test_validator_raises_on_disease_entry_interventions_not_list():
             "aspiration_risk": [],
         },
         "disease_specific_nursing_focus": {
-            "bacterial_pneumonia": {"focus": "f", "interventions_ja": "not_a_list"},
+            "bacterial_pneumonia": {"focus": "f", "interventions": {"ja": "not_a_list"}},
         },
-        "baseline": {"focus": "f", "interventions_ja": []},
+        "baseline": {"focus": "f", "interventions": {"ja": []}},
     }
-    with pytest.raises(ValueError, match="interventions_ja.*list|list.*interventions_ja"):
+    with pytest.raises(ValueError, match="interventions.*list|list.*interventions_ja"):
         _validate_nursing_assessment(bad)
 
 
@@ -176,7 +176,7 @@ def test_validator_raises_on_baseline_missing_focus():
             "aspiration_risk": [],
         },
         "disease_specific_nursing_focus": {},
-        "baseline": {"interventions_ja": []},  # missing focus
+        "baseline": {"interventions": {"ja": []}},  # missing focus
     }
     with pytest.raises(ValueError, match="baseline.*focus|focus.*baseline"):
         _validate_nursing_assessment(bad)

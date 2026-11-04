@@ -388,8 +388,9 @@ drugs:
                    # translator mangled the placeholder into "として prescribed"
                    # on the JP path — session 76 Issue #469 escape via `note`
                    # dropped visibility from output entirely; #476 restores it.
-        dose_ja: "以前の吸入薬を再開または新規開始"
-        dose_en: "Resume or initiate controller therapy"
+        dose_text:
+          en: "Resume or initiate controller therapy"
+          ja: "以前の吸入薬を再開または新規開始"
         route: "INH"   # session 73 Issue #455: matches chronic_medications.yaml
                        # convention for inhaled drugs; without this key the
                        # `_append_item` fallback at inpatient.py:2039 fills
@@ -402,8 +403,9 @@ drugs:
       - drug_id: fluticasone_salmeterol
         duration_days: 28   # maintenance controller: same supply as the chronic renewal, so it stays a home medication
         dose: ""   # Issue #476 (same rationale as japan side above).
-        dose_ja: "以前の吸入薬を再開または新規開始"
-        dose_en: "Resume or initiate controller therapy"
+        dose_text:
+          en: "Resume or initiate controller therapy"
+          ja: "以前の吸入薬を再開または新規開始"
         route: "INH"   # session 73 Issue #455 (same rationale as japan side).
 
 # ============================================================

@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from clinosim.datafiles import load_data_yaml
+from clinosim.locale.localized import language_slot
 from clinosim.modules.drug_safety.verdict import SEVERITY_RANK, Severity
 
 _HERE = Path(__file__).resolve().parent
@@ -170,8 +171,8 @@ def check_demographic_gate(
             severity=severity,
             rule_id=rule["id"],
             matched_drug_name=matched,
-            rationale_en=rule.get("rationale_en"),
-            rationale_ja=rule.get("rationale_ja"),
+            rationale_en=language_slot(rule.get("rationale"), "en") or None,
+            rationale_ja=language_slot(rule.get("rationale"), "ja") or None,
         )
         best_rank = rank
     return best
