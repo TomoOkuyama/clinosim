@@ -195,3 +195,42 @@ def test_no_datetime_source_no_lastupdated():
     r: dict = {"resourceType": "Condition", "id": "c1"}
     _populate_condition_ai_mr_ecs_fields(r)
     assert "lastUpdated" not in r.get("meta", {})
+
+
+# ---------------------------------------------------------------------------
+# Issue #2520: JP-CLINS resourceIdentifier slice on builder-set identifiers
+# ---------------------------------------------------------------------------
+
+_RESOURCE_INSTANCE = "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
+_BUILDER_ID = {"system": "urn:clinosim:condition-key", "value": "K1"}
+
+
+@pytest.mark.parametrize("rt", ["Condition", "AllergyIntolerance"])
+def test_jp_slice_is_prepended_to_a_builder_set_identifier(rt):
+    r = {"resourceType": rt, "id": "X1", "identifier": [dict(_BUILDER_ID)]}
+    _populate_condition_ai_mr_ecs_fields(r, country="JP")
+    assert r["identifier"] == [{"system": _RESOURCE_INSTANCE, "value": "X1"}, _BUILDER_ID]
+
+
+@pytest.mark.parametrize("rt", ["Condition", "AllergyIntolerance"])
+def test_jp_slice_is_added_once(rt):
+    r = {"resourceType": rt, "id": "X1", "identifier": [dict(_BUILDER_ID)]}
+    _populate_condition_ai_mr_ecs_fields(r, country="JP")
+    _populate_condition_ai_mr_ecs_fields(r, country="JP")
+    assert sum(i["system"] == _RESOURCE_INSTANCE for i in r["identifier"]) == 1
+
+
+@pytest.mark.parametrize("rt", ["Condition", "AllergyIntolerance"])
+def test_us_builder_identifier_is_left_alone(rt):
+    r = {"resourceType": rt, "id": "X1", "identifier": [dict(_BUILDER_ID)]}
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
+    assert r["identifier"] == [_BUILDER_ID]
+
+
+def test_jp_empty_identifier_gets_slice_then_internal_namespace():
+    r = {"resourceType": "Condition", "id": "X1"}
+    _populate_condition_ai_mr_ecs_fields(r, country="JP")
+    assert r["identifier"] == [
+        {"system": _RESOURCE_INSTANCE, "value": "X1"},
+        {"system": _ECS_IDENTIFIER_SYSTEMS["Condition"], "value": "X1"},
+    ]

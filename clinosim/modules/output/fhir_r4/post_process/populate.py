@@ -481,8 +481,8 @@ def _populate_observation_identifier_and_last_updated(resource: dict, country: s
         existing_systems = {i.get("system") for i in existing if isinstance(i, dict)}
         # JP output: canonical resourceInstance-identifier slice を必ず先頭に
         # (spec `Observation.identifier:resourceIdentifier.system` patternUri)。
-        if is_jp(country) and _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM not in existing_systems:
-            existing.insert(0, {"system": _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM, "value": rid})
+        if is_jp(country):
+            _ensure_jp_resource_identifier(resource)
         # 全 country: 内部 round-trip 用 identifier(既存 downstream consumer 用)。
         if _CLINOSIM_OBSERVATION_ID_SYSTEM not in existing_systems:
             existing.append({"system": _CLINOSIM_OBSERVATION_ID_SYSTEM, "value": rid})
@@ -710,6 +710,24 @@ def _populate_status_coding_display(coding_dict: Any, system_key: str, lang: str
             c["display"] = resolved
 
 
+def _ensure_jp_resource_identifier(resource: dict) -> None:
+    """Prepend the JP-CLINS ``identifier:resourceIdentifier`` slice
+    (system ``resourceInstance-identifier``, value = resource id) unless it is
+    already present; existing identifiers are kept (Issue #2520). Observation,
+    Condition, AllergyIntolerance and MedicationRequest eCS profiles require
+    the slice (min=1)."""
+    rid = resource.get("id", "")
+    if not rid:
+        return
+    ids = resource.get("identifier")
+    if not isinstance(ids, list):
+        ids = resource["identifier"] = []
+    if any(isinstance(i, dict) and i.get("system") == _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM for i in ids):
+        return
+    # In place: callers may hold the list (the Observation walker appends to it).
+    ids.insert(0, {"system": _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM, "value": rid})
+
+
 def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") -> None:
     """Populate JP-CLINS eCS-required fields on Condition / AllergyIntolerance
     / MedicationRequest.
@@ -717,7 +735,8 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     Feedback fix (2026-07-16, PR-G). The 2026-07-16 fhir-jp-validator report
     §"【最優先 2】" lists a common pattern across the three resources:
 
-    - `identifier` (min=1) — canonical clinosim namespace when not builder-set.
+    - `identifier` (min=1) — canonical clinosim namespace when not builder-set;
+      JP output also carries the `resourceIdentifier` slice.
     - `meta.lastUpdated` (min=1) — falls back to the most authoritative
       datetime available on the resource; never fabricated when no source.
     - `clinicalStatus.coding.display` — HL7 CodeSystem values (active /
@@ -761,16 +780,14 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     # Same URI + same 2-element pattern as Chain A on Observation. Keeps the
     # internal `urn:clinosim:*` namespace as a secondary identifier so downstream
     # consumers can still round-trip by resource id.
-    if rt in _ECS_IDENTIFIER_SYSTEMS and not resource.get("identifier"):
-        rid = resource.get("id", "")
-        if rid:
-            if is_jp(country):
-                resource["identifier"] = [
-                    {"system": _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM, "value": rid},
-                    {"system": _ECS_IDENTIFIER_SYSTEMS[rt], "value": rid},
-                ]
-            else:
-                resource["identifier"] = [{"system": _ECS_IDENTIFIER_SYSTEMS[rt], "value": rid}]
+    # Issue #2520: the slice is added whether or not the builder already set
+    # an identifier (the Condition / AllergyIntolerance builders always do,
+    # so the former "only when empty" path never reached them).
+    if rt in _ECS_IDENTIFIER_SYSTEMS and resource.get("id"):
+        if not resource.get("identifier"):
+            resource["identifier"] = [{"system": _ECS_IDENTIFIER_SYSTEMS[rt], "value": resource["id"]}]
+        if is_jp(country):
+            _ensure_jp_resource_identifier(resource)
 
     # (2) meta.lastUpdated fallback chain.
     meta = resource.setdefault("meta", {})
@@ -910,15 +927,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
         # `resourceInstance-identifier` namespace applied to Observation
         # (Chain A) and Condition/AI (Chain-9). Idempotent — the walker
         # skips when the URI is already present in identifier[].
-        ids = resource.get("identifier", []) or []
-        rid = resource.get("id", "")
-        if rid and not any(
-            isinstance(i, dict) and i.get("system") == _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM for i in ids
-        ):
-            resource["identifier"] = [
-                {"system": _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM, "value": rid},
-                *ids,
-            ]
+        _ensure_jp_resource_identifier(resource)
 
 
 def _normalize_jp_observation_category(resource: dict) -> None:
