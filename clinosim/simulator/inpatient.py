@@ -7,7 +7,6 @@ from typing import Any
 
 import numpy as np
 
-from clinosim.codes import system_key_for
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
 from clinosim.codes.valuesets import code_by_chronic_prefix
 from clinosim.modules.clinical_course.engine import (
@@ -75,6 +74,7 @@ from clinosim.simulator._stay_thresholds import (
 from clinosim.simulator.daily_loop import SYMPTOM_AXES, _run_daily_loop
 from clinosim.simulator.discharge_gate import discharge_disposition_for
 from clinosim.simulator.discharge_rx import build_discharge_rx
+from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis
 from clinosim.simulator.medication_pipeline import _generate_home_medication_orders
 from clinosim.types.clinical import (
     ClinicalDiagnosis,
@@ -172,12 +172,10 @@ def _derive_final_diagnosis(
     # branch emitted the WHO code system on JP inpatient encounters, whereas
     # ED / OPD paths and the FHIR emitter routed via the registry — CIF-side
     # diagnosis_system was inconsistent across encounter types.
-    icd_sys = system_key_for("diagnosis", config.country)
-    clinical_diagnosis = ClinicalDiagnosis(
-        admission_diagnosis_code=diagnosis_code_for_patient(protocol, patient, protocol.icd_codes.get("primary", "")),
-        admission_diagnosis_system=icd_sys,
-        discharge_diagnosis_code=dx_code,
-        discharge_diagnosis_system=icd_sys,
+    clinical_diagnosis = encounter_diagnosis(
+        diagnosis_code_for_patient(protocol, patient, protocol.icd_codes.get("primary", "")),
+        config.country,
+        discharge_code=dx_code,
         # Issue #551: the engine returns ``UNRESOLVED_DIAGNOSIS_ICD`` (R69) when
         # the differential did not converge. Previous code compared against
         # ``"R05"`` (Cough) — a real ICD-10 code, which made legitimate cough
@@ -382,9 +380,7 @@ def _finalize_discharge(
     for o in all_orders:
         if o.order_type == OrderType.MEDICATION:
             enrich_medication_order(o)
-        # Set encounter_id for all orders that don't have one
-        if not o.encounter_id:
-            o.encounter_id = encounter.encounter_id
+    attach_orders(all_orders, encounter)
 
     # Set encounter discharge fields
     encounter.discharging_physician_id = attending_id

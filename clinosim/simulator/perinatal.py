@@ -30,7 +30,6 @@ import numpy as np
 
 from clinosim import determinism
 from clinosim.age_bands import lookup_age_band
-from clinosim.codes import system_key_for
 from clinosim.codes.drugs import drug_display
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.locale.i18n import t
@@ -39,8 +38,9 @@ from clinosim.modules._shared import is_jp
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.staff.engine import FALLBACK_PHYSICIAN_ID, StaffRoster, assign_staff
 from clinosim.seeding import text_seed
+from clinosim.simulator.encounter_setup import encounter_diagnosis, finalize_encounter
 from clinosim.simulator.hospital_ops import resolve_department
-from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
+from clinosim.types.clinical import ConditionEvent
 from clinosim.types.encounter import EncounterStatus, EncounterType
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import ChronicCondition, PatientProfile
@@ -139,25 +139,17 @@ def simulate_abortion_encounter(
     encounter.status = EncounterStatus.COMPLETED
     duration_min = int(proc_cfg.get("duration_minutes") or 90)
     encounter.discharge_datetime = visit_date + timedelta(minutes=duration_min)
-    encounter.admit_source = AdmitSource.OUTP
-    encounter.discharge_disposition = DischargeDisposition.HOME
-    encounter.priority = ActPriority.R
 
     staff = assign_staff("rounds", dept, roster, rng)
     encounter.attending_physician_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
-    encounter.admitting_physician_id = encounter.attending_physician_id
-    encounter.discharging_physician_id = encounter.attending_physician_id
+    finalize_encounter(
+        encounter, admit_source=AdmitSource.OUTP, disposition=DischargeDisposition.HOME, priority=ActPriority.R
+    )
 
     # Admission dx = O03 spontaneous or O04 induced (WHO parent); discharge
     # dx = the specific billable leaf resolved earlier.
     admit_dx = "O03" if discharge_dx.startswith("O03") else "O04"
-    icd_system = system_key_for("diagnosis", country)
-    clinical_diagnosis = ClinicalDiagnosis(
-        admission_diagnosis_code=admit_dx,
-        admission_diagnosis_system=icd_system,
-        discharge_diagnosis_code=discharge_dx,
-        discharge_diagnosis_system=icd_system,
-    )
+    clinical_diagnosis = encounter_diagnosis(admit_dx, country, discharge_code=discharge_dx)
     condition_event = ConditionEvent(
         condition_id=f"COND-{patient.patient_id}-ABORTION",
         condition_type="pregnancy_termination",
@@ -611,14 +603,12 @@ def simulate_delivery_encounter(
     else:
         los_days = int((enc_cfg.get("length_of_stay_days") or {}).get("jp" if is_jp(country) else "us") or 2)
     encounter.discharge_datetime = visit_date + timedelta(days=los_days)
-    encounter.admit_source = AdmitSource.OUTP
-    encounter.discharge_disposition = DischargeDisposition.HOME
-    encounter.priority = ActPriority.R
 
     staff = assign_staff("rounds", dept, roster, rng)
     encounter.attending_physician_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
-    encounter.admitting_physician_id = encounter.attending_physician_id
-    encounter.discharging_physician_id = encounter.attending_physician_id
+    finalize_encounter(
+        encounter, admit_source=AdmitSource.OUTP, disposition=DischargeDisposition.HOME, priority=ActPriority.R
+    )
 
     if is_cesarean:
         admit_dx = str(cs_cfg.get("admission_diagnosis_code") or "O82")
@@ -627,7 +617,6 @@ def simulate_delivery_encounter(
     # discharge diagnosis Z37.0 (single liveborn — outcome) applies to
     # both delivery modes; ICD-10 does not sub-divide Z37 by mode.
     discharge_dx = str(enc_cfg.get("discharge_diagnosis_code") or "Z37.0")
-    icd_system = system_key_for("diagnosis", country)
 
     # Issue #1285: surface pre-sampled pregnancy complications on the
     # delivery encounter. `_pregnancy_lifecycle_events` (population/
@@ -668,12 +657,8 @@ def simulate_delivery_encounter(
             }
         )
 
-    clinical_diagnosis = ClinicalDiagnosis(
-        admission_diagnosis_code=admit_dx,
-        admission_diagnosis_system=icd_system,
-        discharge_diagnosis_code=discharge_dx,
-        discharge_diagnosis_system=icd_system,
-        working_diagnoses=working_diagnoses,
+    clinical_diagnosis = encounter_diagnosis(
+        admit_dx, country, discharge_code=discharge_dx, working_diagnoses=working_diagnoses
     )
     condition_event = ConditionEvent(
         condition_id=f"COND-{patient.patient_id}-DELIVERY",
@@ -1042,14 +1027,12 @@ def simulate_delivery_encounter(
     newborn_encounter.status = EncounterStatus.COMPLETED
     # Newborn stays with mother — same LOS.
     newborn_encounter.discharge_datetime = visit_date + timedelta(days=los_days)
-    newborn_encounter.admit_source = AdmitSource.BORN
-    newborn_encounter.discharge_disposition = DischargeDisposition.HOME
-    newborn_encounter.priority = ActPriority.R
     # FHIR mother→baby link via Encounter.partOf on the newborn's encounter.
     newborn_encounter.admit_source_encounter_id = encounter.encounter_id
     newborn_encounter.attending_physician_id = encounter.attending_physician_id
-    newborn_encounter.admitting_physician_id = encounter.attending_physician_id
-    newborn_encounter.discharging_physician_id = encounter.attending_physician_id
+    finalize_encounter(
+        newborn_encounter, admit_source=AdmitSource.BORN, disposition=DischargeDisposition.HOME, priority=ActPriority.R
+    )
 
     # Issue #1581 audit — write the birth admission to the newborn's
     # ``PersonRecord.hospitalization_history`` + ``last_encounter_id`` +
@@ -1093,12 +1076,8 @@ def simulate_delivery_encounter(
             _nb_person.has_visited_hospital = True
             _nb_person.visit_count = max(1, _nb_person.visit_count + 1)
 
-    newborn_diagnosis = ClinicalDiagnosis(
-        admission_diagnosis_code="Z38.0",  # single liveborn, born in hospital, without cesarean
-        admission_diagnosis_system=icd_system,
-        discharge_diagnosis_code="Z38.0",
-        discharge_diagnosis_system=icd_system,
-    )
+    # Z38.0: single liveborn, born in hospital, without cesarean
+    newborn_diagnosis = encounter_diagnosis("Z38.0", country)
     newborn_condition_event = ConditionEvent(
         condition_id=f"COND-{newborn.patient_id}-BIRTH",
         condition_type="newborn_birth",
