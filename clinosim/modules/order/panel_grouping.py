@@ -16,8 +16,10 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator, model_validator
+
 from clinosim.codes import code_exists
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.localized import language_slot
 
 _HERE = Path(__file__).resolve().parent
@@ -28,77 +30,72 @@ PANEL_PRIORITY_ORDER: tuple[str, ...] = ("ABG", "CBC", "BMP", "LFT", "Lipid", "C
 """Priority order for panel matching (header of lab_panels.yaml).
 
 Verified against the YAML header comment at import time via
-``_validate_panel_definitions`` (forward + reverse coverage against YAML keys).
+the ``LabPanels`` model (forward + reverse coverage and order against YAML keys).
 """
 
 
-def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
-    """Validate panel YAML schema + canonical-constant cross-reference.
+class _Panel(BaseModel):
+    model_config = ConfigDict(extra="allow")
 
-    Implements the per-validator 6-layer defense pattern (CLAUDE.md):
-    (1) empty top-level rejected
-    (2) per-bucket empty guards
-    (3) unknown YAML keys rejected (YAML panels not in PANEL_PRIORITY_ORDER)
-    (4) PANEL_PRIORITY_ORDER forward-coverage (every constant has YAML entry)
-    (5) range/type checks (min_components positive int, components non-empty list)
-    (6) authoritative cross-validation: LOINC code resolves via ``code_exists(..., exact=True)``
-        + YAML key order matches PANEL_PRIORITY_ORDER (iteration-order is
-        load-bearing for ``group_lab_orders`` priority grouping)
+    loinc: str
+    display: Any
+    components: list[Any] = Field(min_length=1)
+    min_components: StrictInt = Field(ge=1)
 
-    Raises:
-        ValueError: on any validation failure.
-    """
-    # Layer 1: empty top-level
-    if not panels:
-        raise ValueError("lab_panels.yaml panels section is empty")
+    @field_validator("loinc")
+    @classmethod
+    def _registered(cls, code: str) -> str:
+        """PR-90 lesson: a typo'd LOINC passes the required-field check, so it
+        must resolve in codes/data/loinc.yaml at load time."""
+        if not code_exists("loinc", code, exact=True):
+            raise ValueError(f"unknown LOINC code {code!r} (not in clinosim/codes/data/loinc.yaml)")
+        return code
 
-    yaml_keys = set(panels.keys())
-    expected = set(PANEL_PRIORITY_ORDER)
+    @field_validator("display")
+    @classmethod
+    def _has_an_english_display(cls, display: Any) -> Any:
+        if not language_slot(display, "en"):
+            raise ValueError("empty display string")
+        return display
 
-    # Layer 4: forward-coverage — every PANEL_PRIORITY_ORDER entry must be in YAML
-    missing_in_yaml = expected - yaml_keys
-    if missing_in_yaml:
-        raise ValueError(f"lab_panels.yaml missing panels declared in PANEL_PRIORITY_ORDER: {sorted(missing_in_yaml)}")
 
-    # Layer 3: unknown keys — YAML panels not in PANEL_PRIORITY_ORDER (silent-no-op risk)
-    extra_in_yaml = yaml_keys - expected
-    if extra_in_yaml:
-        raise ValueError(
-            f"lab_panels.yaml has panels NOT in PANEL_PRIORITY_ORDER (silent-no-op risk): {sorted(extra_in_yaml)}"
-        )
+class LabPanels(BaseModel):
+    """Shape of lab_panels.yaml: exactly the PANEL_PRIORITY_ORDER panels, in
+    that order, each with a registered LOINC code, an English display, a
+    non-empty component list and a positive ``min_components``."""
 
-    # Layer 6 (key-order): YAML insertion order must match PANEL_PRIORITY_ORDER.
-    # group_lab_orders iterates panels.items() — a hand-reorder of the YAML would
-    # silently break priority grouping (e.g. BMP would steal HCO3 from ABG).
-    yaml_order = tuple(panels.keys())
-    if yaml_order != PANEL_PRIORITY_ORDER:
-        raise ValueError(
-            f"lab_panels.yaml key order {yaml_order} does not match "
-            f"PANEL_PRIORITY_ORDER {PANEL_PRIORITY_ORDER}. "
-            f"Iteration-order is load-bearing for grouping priority."
-        )
+    model_config = ConfigDict(extra="allow")
 
-    for name, panel in panels.items():
-        # Layer 2: per-bucket empty guard + required-field presence
-        for field in ("loinc", "components", "min_components", "display"):
-            if field not in panel:
-                raise ValueError(f"Panel '{name}' missing required field '{field}'")
-        if not language_slot(panel["display"], "en"):
-            raise ValueError(f"Panel '{name}' has empty display string")
+    panels: dict[str, _Panel]
 
-        # Layer 5: type/range checks
-        if not isinstance(panel["components"], list) or not panel["components"]:
-            raise ValueError(f"Panel '{name}' has empty or non-list components")
-        if not isinstance(panel["min_components"], int) or panel["min_components"] < 1:
-            raise ValueError(f"Panel '{name}' min_components must be positive int")
+    @model_validator(mode="before")
+    @classmethod
+    def _not_empty(cls, data: Any) -> Any:
+        if not (data or {}).get("panels"):
+            raise ValueError("lab_panels.yaml panels section is empty")
+        return data
 
-        # Layer 6a (LOINC): authoritative cross-validation — code must resolve in
-        # codes/data/loinc.yaml. PR-90 lesson: a typo'd LOINC passes required-field
-        # check (Layer 2) but should fail at import time, not only at test-time.
-        if not code_exists("loinc", panel["loinc"], exact=True):
+    @field_validator("panels")
+    @classmethod
+    def _priority_order(cls, panels: dict[str, _Panel]) -> dict[str, _Panel]:
+        keys, expected = set(panels), set(PANEL_PRIORITY_ORDER)
+        if expected - keys:
             raise ValueError(
-                f"Panel '{name}' has unknown LOINC code '{panel['loinc']}' (not in clinosim/codes/data/loinc.yaml)"
+                f"lab_panels.yaml missing panels declared in PANEL_PRIORITY_ORDER: {sorted(expected - keys)}"
             )
+        if keys - expected:
+            raise ValueError(
+                f"lab_panels.yaml has panels NOT in PANEL_PRIORITY_ORDER (silent-no-op risk): {sorted(keys - expected)}"
+            )
+        # group_lab_orders iterates panels.items() — a hand-reorder of the YAML
+        # would silently break priority grouping (BMP would steal HCO3 from ABG).
+        if tuple(panels) != PANEL_PRIORITY_ORDER:
+            raise ValueError(
+                f"lab_panels.yaml key order {tuple(panels)} does not match "
+                f"PANEL_PRIORITY_ORDER {PANEL_PRIORITY_ORDER}. "
+                f"Iteration-order is load-bearing for grouping priority."
+            )
+        return panels
 
 
 @lru_cache(maxsize=1)
@@ -117,9 +114,7 @@ def load_panel_definitions() -> dict[str, dict[str, Any]]:
         ValueError: if YAML fails schema/coverage validation.
         FileNotFoundError: if lab_panels.yaml is missing.
     """
-    data = load_data_yaml(_PANEL_YAML)
-    panels: dict[str, dict[str, Any]] = (data or {}).get("panels") or {}
-    _validate_panel_definitions(panels)
+    panels: dict[str, dict[str, Any]] = load_validated_yaml(_PANEL_YAML, LabPanels)["panels"]
     return panels
 
 

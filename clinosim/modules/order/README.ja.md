@@ -158,7 +158,7 @@ from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (
 - **Panel YAML**: [`observation/reference_data/lab_panels.yaml`](../observation/reference_data/lab_panels.yaml)
   — panel は本来「発注概念」のため `output/reference_data/` から
   ここに移動。header コメントに priority tuple が列挙されており
-  import 時に cross-verify (`_validate_panel_definitions`)。
+  import 時に cross-verify (Pydantic model `LabPanels`)。
 - **Timing threshold** (Issue #637 4-file sweep):
   - [`_lab_result_timing.py`](_lab_result_timing.py) — STAT vs
     routine base delay、夜勤の翌朝 deferral 挙動、urgency 乗数。
