@@ -74,6 +74,10 @@ from clinosim.modules.llm_service import (
 
 ## Determinism
 
+- `LLMService.generate(...)` is deprecated (Issue #2541): documents come
+  from the narrative pipeline (`clinosim narrate`), which calls
+  `LLMService.complete_prompt(...)`; `generate`, `PatientSummary` and
+  `ClinicalEventData` will be removed in a following minor release.
 - The `LLMService.generate(...)` / `LLMService.complete_prompt(...)`
   paths are deterministic when `PromptCache` is enabled AND the
   underlying provider is either `MockProvider` or a real provider

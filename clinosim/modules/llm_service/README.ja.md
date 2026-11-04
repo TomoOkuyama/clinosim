@@ -73,6 +73,10 @@ from clinosim.modules.llm_service import (
 
 ## 決定論
 
+- `LLMService.generate(...)` は非推奨 (Issue #2541)。文書は narrative
+  パイプライン (`clinosim narrate`) が `LLMService.complete_prompt(...)` を
+  通じて生成する。`generate`・`PatientSummary`・`ClinicalEventData` は次以降の
+  minor リリースで削除する。
 - `LLMService.generate(...)` / `LLMService.complete_prompt(...)` 経路は
   `PromptCache` 有効かつ underlying provider が `MockProvider` または
   `temperature=0` の実 provider のときに決定論的。cache key は

@@ -10,6 +10,8 @@ from clinosim.modules.llm_service.engine import (
 )
 from clinosim.modules.llm_service.providers import MockProvider
 
+pytestmark = pytest.mark.filterwarnings("ignore:LLMService.generate is deprecated:DeprecationWarning")
+
 
 @pytest.fixture
 def patient_summary():
@@ -103,3 +105,11 @@ class TestLLMMode:
         report = llm.cost_report()
         assert report["total_calls"] == 2
         assert report["total_input_tokens"] > 0
+
+
+@pytest.mark.unit
+def test_generate_is_deprecated(event_data) -> None:
+    """Issue #2541: documents come from the narrative pipeline."""
+    llm = LLMService(mode="template")
+    with pytest.warns(DeprecationWarning, match="LLMService.generate is deprecated"):
+        llm.generate(LLMTaskType.PROGRESS_NOTE, event_data)

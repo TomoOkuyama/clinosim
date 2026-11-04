@@ -14,7 +14,10 @@ from clinosim.locale.i18n import _load_phrase_catalog
 from clinosim.modules.llm_service import engine as llm_engine
 from clinosim.modules.llm_service.engine import PatientSummary
 
-pytestmark = pytest.mark.unit
+pytestmark = [
+    pytest.mark.unit,
+    pytest.mark.filterwarnings("ignore:LLMService.generate is deprecated:DeprecationWarning"),
+]
 
 _JP = re.compile(r"[぀-ヿ一-鿿]")
 _PS = PatientSummary(age=72, sex="male", chief_complaint="fever", current_diagnosis="pneumonia", hospital_day=3)
