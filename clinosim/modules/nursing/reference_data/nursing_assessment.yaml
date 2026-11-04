@@ -6,7 +6,7 @@
 # disease_specific_nursing_focus keys match disease_id in disease/reference_data/*.yaml
 # baseline: fallback when no disease-specific focus is defined
 #
-# import-time 6-layer validator: _validate_nursing_assessment() in engine.py
+# import-time validator: the NursingAssessment model in engine.py
 
 metadata:
   kind: reference
