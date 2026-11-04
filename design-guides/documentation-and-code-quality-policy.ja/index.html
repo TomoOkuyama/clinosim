@@ -2357,6 +2357,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="5. 定数と設定">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-yaml-か-python-か" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 YAML か Python か
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2598,13 +2615,37 @@ Issue を起票し PR description に link)。</p>
 <li>unit — mg/dL、日、count、probability、…、</li>
 <li>source / rationale — 臨床参考文献、spec section、経験的
      チューニング、design ADR または外部ソースへの link。</li>
-<li><strong>配置</strong> は以下のいずれか:</li>
-<li>モジュールローカル <code>_constants.py</code> (モジュール private)、</li>
-<li>定数が API の一部なら モジュール public <code>__init__.py</code>、</li>
-<li>実行時可変なら <code>clinosim/config/*.yaml</code>、</li>
-<li>typed config モデルなら <code>clinosim/types/config.py</code>。</li>
+<li><strong>配置</strong> は §5.1 の規則に従う。</li>
 </ol>
 <p>docstring なしの bare <code>MAGIC_NUMBER = 42</code> は review-blocker。</p>
+<h3 id="51-yaml-か-python-か">5.1 YAML か Python か<a class="headerlink" href="#51-yaml-か-python-か" title="Permanent link">&para;</a></h3>
+<p>値が何をキーにしているか、誰が変えるかで決める。</p>
+<p><strong>YAML</strong> — データ。モジュールの <code>reference_data/</code>、<code>clinosim/locale/&lt;country&gt;/</code>、
+<code>clinosim/config/</code> に置き、<a href="../code-mapping-and-localization-spec.ja/">コードマッピング仕様</a>
+§3 の書式 (<code>metadata.kind</code>、<code>clinosim.datafiles.load_data_yaml</code>) で書いて読み込み、
+参照するすべての識別子に対して読み込み時に検証する:</p>
+<ul>
+<li>ドメインの識別子 (疾患 ID・コード・薬剤キー・年齢帯・性別・国) をキーにする表:
+  ルール表、dispatch 表、疾患ごとのパラメータ;</li>
+<li>ドメインの専門家が公開統計に合わせて調整する疫学・較正値: 有病率、発症率、
+  レート、分布;</li>
+<li>国によって異なる値。</li>
+</ul>
+<p><strong>Python</strong> — アルゴリズムの定数。読むコードの隣の private モジュールに置く:</p>
+<ul>
+<li>1 つの式の係数・指数・下限・区切り値で、その意味が式そのものであるもの
+  (式と切り離して変えても意味がない);</li>
+<li>RNG の salt と seed offset;</li>
+<li>YAML キーの fallback 既定値 (YAML の値が優先);</li>
+<li>enum、dict キー、書式文字列。</li>
+</ul>
+<p>Python に置くと、型検査され、名前で辿れ、使う場所で文書化され、コードと
+食い違いうる読み込み段がない。モジュール名は <code>_&lt;topic&gt;_thresholds.py</code>
+(区切り値・係数) または <code>_&lt;topic&gt;_defaults.py</code> (YAML の fallback) とする。
+モジュールの API に属する定数はその <code>__init__.py</code>、型付き設定モデルは
+<code>clinosim/types/config.py</code> に置く。</p>
+<p>ドメインの識別子をキーにする Python の表はデータなので YAML に移す。
+式の係数の表は、長くても Python に残す。</p>
 <hr />
 <h2 id="6-dead-code-衛生">6. Dead-code 衛生<a class="headerlink" href="#6-dead-code-衛生" title="Permanent link">&para;</a></h2>
 <ul>

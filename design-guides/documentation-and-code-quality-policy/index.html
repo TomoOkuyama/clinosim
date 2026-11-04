@@ -967,6 +967,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="5. Constants and configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-yaml-or-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 YAML or Python
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2529,6 +2546,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="5. Constants and configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-yaml-or-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 YAML or Python
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2771,13 +2805,42 @@ must be:</p>
 <li>unit — mg/dL, days, count, probability, …,</li>
 <li>source / rationale — clinical reference, spec section, empirical
      tuning, link to a design ADR or external source.</li>
-<li><strong>Located</strong> in one of:</li>
-<li>a module-local <code>_constants.py</code> (private to the module),</li>
-<li>the module's public <code>__init__.py</code> if the constant is part of the API,</li>
-<li><code>clinosim/config/*.yaml</code> if runtime-configurable,</li>
-<li><code>clinosim/types/config.py</code> if a typed config model.</li>
+<li><strong>Located</strong> by the rule in §5.1.</li>
 </ol>
 <p>Bare <code>MAGIC_NUMBER = 42</code> without a docstring is a review-blocker.</p>
+<h3 id="51-yaml-or-python">5.1 YAML or Python<a class="headerlink" href="#51-yaml-or-python" title="Permanent link">&para;</a></h3>
+<p>Decide by what the value is keyed by and who changes it.</p>
+<p><strong>YAML</strong> — data. A module's <code>reference_data/</code>, <code>clinosim/locale/&lt;country&gt;/</code>
+or <code>clinosim/config/</code>, written and loaded as the
+<a href="../code-mapping-and-localization-spec/">code-mapping specification</a> §3
+prescribes (<code>metadata.kind</code>, <code>clinosim.datafiles.load_data_yaml</code>), and
+validated at load against every identifier it references:</p>
+<ul>
+<li>tables keyed by domain identifiers — disease ids, codes, drug keys, age
+  bands, sex, country: rule tables, dispatch tables, per-condition
+  parameters;</li>
+<li>epidemiology and calibration values a domain expert tunes against
+  published statistics — prevalence, incidence, rates, distributions;</li>
+<li>any value that differs by country.</li>
+</ul>
+<p><strong>Python</strong> — constants of an algorithm, in a private module next to the
+code that reads them:</p>
+<ul>
+<li>the coefficients, exponents, floors and cut-points of one formula, whose
+  meaning is the formula itself (changing one without the formula makes no
+  sense);</li>
+<li>RNG salts and seed offsets;</li>
+<li>the fallback default of a YAML key (the YAML value wins);</li>
+<li>enums, dictionary keys and format strings.</li>
+</ul>
+<p>Python keeps these type-checked, navigable by name and documented where
+they are used, with no load step that can drift from the code. Name the
+module <code>_&lt;topic&gt;_thresholds.py</code> (cut-points and coefficients) or
+<code>_&lt;topic&gt;_defaults.py</code> (YAML fallbacks); a constant that is part of a
+module's API lives in its <code>__init__.py</code>, and a typed configuration model in
+<code>clinosim/types/config.py</code>.</p>
+<p>A Python table keyed by domain identifiers is data and moves to YAML. A
+table of formula coefficients stays in Python even when it is long.</p>
 <hr />
 <h2 id="6-dead-code-hygiene">6. Dead-code hygiene<a class="headerlink" href="#6-dead-code-hygiene" title="Permanent link">&para;</a></h2>
 <ul>
