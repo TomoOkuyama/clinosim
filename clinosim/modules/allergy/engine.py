@@ -9,9 +9,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, field_validator, model_validator
+
 from clinosim import determinism
 from clinosim.codes import code_exists
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_validated_yaml
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.allergy import Allergy, AllergyReaction
@@ -48,68 +50,144 @@ unconfirmed across categories (5-15 %). Above this cutoff (the
 remaining 85%) allergies are coded as active + confirmed."""
 
 
-def _validate_allergens(data: dict[str, Any]) -> None:
-    """Fail-loud validation of allergens.yaml (silent-no-op defense Layer 3-6).
+# A YAML number (not a numeric string or a bool-as-string).
+_Number = StrictInt | StrictFloat
 
-    Layer 3: empty top + per-bucket guards
-    Layer 4: forward + reverse coverage vs SUPPORTED_ALLERGEN_CATEGORIES
-    Layer 5: validator runs BEFORE data is returned (pre-register ordering)
-    Layer 6: required-field check per entry + prevalence range 0..1
-    Layer 6b (AD-30 chain): allergen_code + every common_reactions[].manifestation_snomed
-      must resolve in codes/data/snomed-ct.yaml (safety net now that the CIF
-      no longer carries a fallback display string for unresolvable codes).
-    """
-    if not data:
-        raise ValueError("allergens.yaml: empty top-level")
-    allergens = data.get("allergens")
-    if not allergens or not isinstance(allergens, dict):
-        raise ValueError("allergens.yaml: missing or empty 'allergens' key")
-    yaml_keys = set(allergens.keys())
-    if yaml_keys != set(SUPPORTED_ALLERGEN_CATEGORIES):
-        missing = SUPPORTED_ALLERGEN_CATEGORIES - yaml_keys
-        extra = yaml_keys - SUPPORTED_ALLERGEN_CATEGORIES
-        raise ValueError(
-            f"allergens.yaml ↔ SUPPORTED_ALLERGEN_CATEGORIES drift: missing={sorted(missing)}, extra={sorted(extra)}"
-        )
-    # META #1805 Phase A: ``allergen_display_en`` / ``allergen_display_ja``
-    # retired — displays live in clinosim/codes/data/snomed-ct.yaml and
-    # resolve at emit time via code_lookup("snomed-ct", code, lang).
-    required_entry_fields = (
-        "allergen_code",
-        "prevalence",
-        "criticality",
-        "common_reactions",
-    )
-    for cat, entries in allergens.items():
-        if not entries or not isinstance(entries, list):
-            raise ValueError(f"allergens.yaml[{cat}]: empty list")
-        for i, e in enumerate(entries):
-            for f in required_entry_fields:
-                if f not in e:
-                    raise ValueError(f"allergens.yaml[{cat}][{i}]: missing {f!r}")
-            prev = e["prevalence"]
-            if not isinstance(prev, dict) or "adult" not in prev:
-                raise ValueError(f"allergens.yaml[{cat}][{i}].prevalence: must have 'adult' key")
-            adult_val = prev["adult"]
-            if not isinstance(adult_val, (int, float)) or not (0 <= adult_val <= 1):
-                raise ValueError(f"allergens.yaml[{cat}][{i}].prevalence.adult: 0..1 expected, got {adult_val!r}")
-            reactions = e.get("common_reactions", [])
-            if not reactions or not isinstance(reactions, list):
-                raise ValueError(f"allergens.yaml[{cat}][{i}].common_reactions: must be non-empty list")
-            allergen_code = e["allergen_code"]
-            if not code_exists("snomed-ct", allergen_code, exact=True):
-                raise ValueError(
-                    f"allergens.yaml[{cat}][{i}].allergen_code {allergen_code!r} not in codes/data/snomed-ct.yaml"
-                )
-            for j, rxn in enumerate(reactions):
-                manifestation_snomed = rxn.get("manifestation_snomed", "")
-                if not manifestation_snomed:
-                    raise ValueError(f"allergens.yaml[{cat}][{i}].common_reactions[{j}]: missing manifestation_snomed")
-                if not code_exists("snomed-ct", manifestation_snomed, exact=True):
-                    raise ValueError(
-                        f"allergens.yaml[{cat}][{i}].common_reactions[{j}].manifestation_snomed "
-                        f"{manifestation_snomed!r} not in codes/data/snomed-ct.yaml"
-                    )
+
+def _registered_snomed(code: str, where: str) -> str:
+    """AD-30 chain: every SNOMED code must resolve in codes/data/snomed-ct.yaml
+    (the CIF carries no fallback display for an unresolvable code)."""
+    if not code_exists("snomed-ct", code, exact=True):
+        raise ValueError(f"allergens.yaml {where} {code!r} not in codes/data/snomed-ct.yaml")
+    return code
+
+
+def _probability(value: _Number, where: str) -> _Number:
+    if not 0 <= value <= 1:
+        raise ValueError(f"allergens.yaml {where}: 0..1 expected, got {value!r}")
+    return value
+
+
+class _Reaction(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    manifestation_snomed: str
+
+    @field_validator("manifestation_snomed")
+    @classmethod
+    def _registered(cls, code: str) -> str:
+        if not code:
+            raise ValueError("missing manifestation_snomed")
+        return _registered_snomed(code, "manifestation_snomed")
+
+
+class _Allergen(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    allergen_code: str
+    prevalence: dict[str, Any]
+    criticality: Any
+    common_reactions: list[_Reaction] = Field(min_length=1)
+
+    @field_validator("allergen_code")
+    @classmethod
+    def _registered(cls, code: str) -> str:
+        return _registered_snomed(code, "allergen_code")
+
+    @field_validator("prevalence")
+    @classmethod
+    def _adult_prevalence_is_a_probability(cls, prevalence: dict[str, Any]) -> dict[str, Any]:
+        adult = prevalence.get("adult")
+        if "adult" not in prevalence or not isinstance(adult, (int, float)):
+            raise ValueError(f"prevalence: must have a numeric 'adult' key, got {adult!r}")
+        _probability(adult, "prevalence.adult")
+        return prevalence
+
+
+class _NoKnownAllergy(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    allergen_code: str
+    clinical_status: Any
+    verification_status: Any
+
+    @field_validator("allergen_code")
+    @classmethod
+    def _registered(cls, code: str) -> str:
+        return _registered_snomed(code, "nka.allergen_code")
+
+
+class _AgeBucketProbabilities(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    child: _Number
+    adult: _Number
+    elderly: _Number
+
+    @field_validator("child", "adult", "elderly")
+    @classmethod
+    def _is_a_probability(cls, value: _Number) -> _Number:
+        return _probability(value, "polyallergy.probability_given_any_allergy")
+
+
+class _Polyallergy(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    probability_given_any_allergy: _AgeBucketProbabilities
+    additional_count_weights: dict[Any, _Number] = Field(min_length=1)
+
+    @field_validator("additional_count_weights")
+    @classmethod
+    def _non_negative(cls, weights: dict[Any, _Number]) -> dict[Any, _Number]:
+        negative = sorted(k for k, v in weights.items() if v < 0)
+        if negative:
+            raise ValueError(f"allergens.yaml polyallergy.additional_count_weights{negative}: non-negative expected")
+        return weights
+
+
+class _CrossReactivityRule(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    trigger_allergen_codes: Any
+    boost_category: Any
+    boost_weight_bonus: Any
+
+
+class AllergenConfig(BaseModel):
+    """Shape of allergens.yaml (silent-no-op defense): a non-empty entry list
+    for exactly the supported categories, each entry with a registered
+    allergen code, an adult prevalence in 0..1 and registered reaction
+    manifestations; the ``nka`` / ``polyallergy`` blocks (Issue #942); and an
+    optional well-formed ``cross_reactivity`` list."""
+
+    model_config = ConfigDict(extra="allow")
+
+    allergens: dict[str, list[_Allergen]]
+    nka: _NoKnownAllergy
+    polyallergy: _Polyallergy
+    cross_reactivity: list[_CrossReactivityRule] | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _not_empty(cls, data: Any) -> Any:
+        if not data:
+            raise ValueError("allergens.yaml: empty top-level")
+        return data
+
+    @field_validator("allergens")
+    @classmethod
+    def _supported_categories_each_non_empty(cls, allergens: dict[str, list[_Allergen]]) -> dict[str, list[_Allergen]]:
+        keys = set(allergens)
+        if keys != SUPPORTED_ALLERGEN_CATEGORIES:
+            missing, extra = SUPPORTED_ALLERGEN_CATEGORIES - keys, keys - SUPPORTED_ALLERGEN_CATEGORIES
+            raise ValueError(
+                f"allergens.yaml ↔ SUPPORTED_ALLERGEN_CATEGORIES drift: "
+                f"missing={sorted(missing)}, extra={sorted(extra)}"
+            )
+        empty = sorted(cat for cat, entries in allergens.items() if not entries)
+        if empty:
+            raise ValueError(f"allergens.yaml{empty}: empty list")
+        return allergens
 
 
 @lru_cache(maxsize=1)
@@ -120,10 +198,7 @@ def load_allergens() -> dict[str, Any]:
     all pre-#942 call sites. NKA / polyallergy / cross-reactivity blocks
     are read via :func:`load_allergen_config`.
     """
-    data = load_data_yaml(_REF_DIR / "allergens.yaml")
-    _validate_allergens(data)
-    _validate_nka_and_polyallergy(data)
-    return data["allergens"]
+    return load_validated_yaml(_REF_DIR / "allergens.yaml", AllergenConfig)["allergens"]
 
 
 @lru_cache(maxsize=1)
@@ -134,54 +209,7 @@ def load_allergen_config() -> dict[str, Any]:
     :func:`load_allergens` so legacy callers keep the plain allergen-catalog
     view.
     """
-    data = load_data_yaml(_REF_DIR / "allergens.yaml")
-    _validate_allergens(data)
-    _validate_nka_and_polyallergy(data)
-    return data
-
-
-def _validate_nka_and_polyallergy(data: dict[str, Any]) -> None:
-    """Fail-loud on missing / malformed Issue #942 config blocks."""
-    nka = data.get("nka")
-    if not nka or not isinstance(nka, dict):
-        raise ValueError("allergens.yaml: missing 'nka' block (Issue #942)")
-    # META #1805 Phase A: ``code_text_ja`` / ``code_text_en`` retired —
-    # NKA display resolves at emit time via
-    # ``code_lookup("snomed-ct", nka.allergen_code, lang)``.
-    for k in ("allergen_code", "clinical_status", "verification_status"):
-        if k not in nka:
-            raise ValueError(f"allergens.yaml.nka: missing {k!r}")
-    if not code_exists("snomed-ct", nka["allergen_code"], exact=True):
-        raise ValueError(f"allergens.yaml.nka.allergen_code {nka['allergen_code']!r} not in codes/data/snomed-ct.yaml")
-    poly = data.get("polyallergy")
-    if not poly or not isinstance(poly, dict):
-        raise ValueError("allergens.yaml: missing 'polyallergy' block (Issue #942)")
-    probs = poly.get("probability_given_any_allergy")
-    if not isinstance(probs, dict):
-        raise ValueError("allergens.yaml.polyallergy.probability_given_any_allergy: must be dict")
-    for k in ("child", "adult", "elderly"):
-        if k not in probs:
-            raise ValueError(f"allergens.yaml.polyallergy.probability_given_any_allergy: missing {k!r}")
-        v = probs[k]
-        if not isinstance(v, (int, float)) or not (0 <= v <= 1):
-            raise ValueError(f"allergens.yaml.polyallergy.probability_given_any_allergy[{k}]: 0..1 expected, got {v!r}")
-    weights = poly.get("additional_count_weights")
-    if not isinstance(weights, dict) or not weights:
-        raise ValueError("allergens.yaml.polyallergy.additional_count_weights: must be non-empty dict")
-    for k, v in weights.items():
-        if not isinstance(v, (int, float)) or v < 0:
-            raise ValueError(f"allergens.yaml.polyallergy.additional_count_weights[{k}]: non-negative expected")
-    # cross_reactivity is optional but if present must be well-formed.
-    xr = data.get("cross_reactivity")
-    if xr is not None:
-        if not isinstance(xr, list):
-            raise ValueError("allergens.yaml.cross_reactivity: must be a list")
-        for i, rule in enumerate(xr):
-            if not isinstance(rule, dict):
-                raise ValueError(f"allergens.yaml.cross_reactivity[{i}]: must be dict")
-            for k in ("trigger_allergen_codes", "boost_category", "boost_weight_bonus"):
-                if k not in rule:
-                    raise ValueError(f"allergens.yaml.cross_reactivity[{i}]: missing {k!r}")
+    return load_validated_yaml(_REF_DIR / "allergens.yaml", AllergenConfig)
 
 
 def _age_bucket(age: int) -> str:

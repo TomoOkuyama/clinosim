@@ -306,6 +306,17 @@ _.baseline  # nursing/engine.py NursingAssessment
 _.focus  # nursing/engine.py _NursingFocus
 _.interventions  # nursing/engine.py _NursingFocus
 
+# ----- clinosim/modules/allergy/engine.py (Pydantic BaseModel, Issue #2567) -----
+# Schema fields of the YAML validation models; callers read the raw dict.
+_.boost_category  # allergy/engine.py AllergenConfig
+_.boost_weight_bonus  # allergy/engine.py AllergenConfig
+_.common_reactions  # allergy/engine.py AllergenConfig
+_.cross_reactivity  # allergy/engine.py AllergenConfig
+_.nka  # allergy/engine.py AllergenConfig
+_.polyallergy  # allergy/engine.py AllergenConfig
+_.probability_given_any_allergy  # allergy/engine.py AllergenConfig
+_.trigger_allergen_codes  # allergy/engine.py AllergenConfig
+
 # ----- clinosim/modules/encounter/protocol.py (Pydantic BaseModel) -----
 # Narrative template language maps (subjective / objective / assessment /
 # plan / chief_complaint / hpi / physical_exam / ed_workup_summary /
