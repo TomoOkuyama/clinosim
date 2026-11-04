@@ -179,6 +179,26 @@ class HomeMedication:
 
 
 @dataclass
+class OutpatientVisitLedger:
+    """Per-patient outpatient bookkeeping carried from one visit to the next.
+
+    Simulator-internal state: it is not part of the CIF patient record (the
+    CIF writer drops it), so it lives here only because it must last as long
+    as the patient object does.
+    """
+
+    # Phase 4d (#1701): ``baseline_only`` follow-up procedures already emitted, by SNOMED.
+    baseline_procedures: set[str] = field(default_factory=set)
+    # Phase 4e: ``annual`` follow-up procedures, SNOMED -> calendar years emitted.
+    annual_procedures: dict[str, set[int]] = field(default_factory=dict)
+    # Phase 4f: ``semi_annual`` follow-up procedures, SNOMED -> (year, half) emitted (H1 Jan-Jun, H2 Jul-Dec).
+    semi_annual_procedures: dict[str, set[tuple[int, int]]] = field(default_factory=dict)
+    # Phase 1 of #1698: specialty visits emitted, as (specialty, year, period slot);
+    # the slot is None for annual, 1|2 for semi_annual, 1..4 for quarterly.
+    specialty_visits: set[tuple[str, int, int | None]] = field(default_factory=set)
+
+
+@dataclass
 class PatientProfile:
     """Full Layer 2 clinical profile."""
 
@@ -272,6 +292,8 @@ class PatientProfile:
     # The engine's ``state_at`` is duck-typed on ``.longitudinal_history``
     # so both PersonRecord and PatientProfile work as inputs.
     longitudinal_history: list[Any] = field(default_factory=list)
+    # Outpatient follow-up / specialty visit dedup state (not written to the CIF).
+    visit_ledger: OutpatientVisitLedger = field(default_factory=OutpatientVisitLedger, compare=False, repr=False)
 
     def __post_init__(self) -> None:
         """Issue #452 PR 1 migration shim: accept legacy `list[str]` fixtures

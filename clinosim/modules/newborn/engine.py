@@ -45,7 +45,7 @@ def load_newborn_config() -> dict[str, Any]:
 
 
 # Issue #1736 — once-per-newborn baseline-screen dedup tracker. Mirrors
-# the Phase 4d ``_phase4d_baseline_procedures_emitted`` pattern in
+# the Phase 4d ``visit_ledger.baseline_procedures`` pattern in
 # ``clinosim/simulator/outpatient.py`` (CPAP / polysomnography), scoped
 # per-``patient_id`` and per-SNOMED-code. Attribute storage on the
 # baby's ``PatientProfile`` is unsuitable here because sibling deliveries

@@ -117,6 +117,14 @@ class _CIFEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
+def cif_record_dict(record: Any) -> dict[str, Any]:
+    """The CIF content of a patient record: ``asdict`` without the simulator's
+    internal per-patient bookkeeping (``PatientProfile.visit_ledger``)."""
+    record_dict = asdict(record)
+    (record_dict.get("patient") or {}).pop("visit_ledger", None)
+    return record_dict
+
+
 def write_cif(dataset: CIFDataset, output_dir: str) -> None:
     """Write structural CIF to JSON files. Narrative content is stripped
     from documents[] — Stage 2 TemplateNarrativePass writes narrative
@@ -161,7 +169,7 @@ def write_cif(dataset: CIFDataset, output_dir: str) -> None:
     for idx, patient_record in enumerate(dataset.patients):
         patient_id = patient_record.patient.patient_id
         enc_id = patient_record.encounters[0].encounter_id if patient_record.encounters else f"{patient_id}-{idx:04d}"
-        record_dict = asdict(patient_record)
+        record_dict = cif_record_dict(patient_record)
         # Issue #1759: pass the record's own first-encounter admission
         # datetime so ``_apply_baby_snapshot_anthropometry`` can
         # suppress the catch-up on the delivery encounter (admission

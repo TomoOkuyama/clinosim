@@ -39,8 +39,10 @@ from clinosim.simulator._outpatient_thresholds import (
 from clinosim.simulator.diagnosis_rules import fallback_visit_code, post_discharge_visit_code, visit_purpose_code
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
 from clinosim.simulator.lab_pipeline import patient_true_labs
-from clinosim.types.clinical import ConditionEvent
+from clinosim.types.clinical import ConditionEvent, PhysiologicalState
+from clinosim.types.config import SimulatorConfig
 from clinosim.types.encounter import (
+    Encounter,
     EncounterStatus,
     EncounterType,
     Order,
@@ -255,35 +257,14 @@ def radiation_therapy_code(country: str) -> str:
     return str(cfg.get("jp_code" if is_jp(country) else "us_code") or "")
 
 
-def _simulate_outpatient_visit(
-    patient: PatientProfile,
-    visit_type: str,
-    visit_date: datetime,
-    roster: StaffRoster,
-    rng: np.random.Generator,
-    chronic_code: str = "",
-    followup_spec: dict | None = None,
-    post_discharge_disease: str = "",
-    country: str = "US",
-    config: object | None = None,
-    department_id: str = "internal_medicine",
-) -> CIFPatientRecord:
-    """Simulate a single outpatient visit (chronic follow-up or post-discharge).
-
-    Generates: 1 encounter, 0-3 lab orders, 1 vital sign set, prescription renewal.
-
-    ``department_id`` is the resolved available-hospital department this
-    follow-up attaches to; callers should compute it via
-    ``simulator.outpatient_dept.resolve_outpatient_department`` so that
-    post-discharge visits inherit the prior inpatient service, chronic
-    cardiac follow-ups land in cardiology, colonoscopy screening in
-    gastroenterology, etc. The ``"internal_medicine"`` default preserves
-    legacy behavior for callers that have not yet been migrated.
-    """
+def _visit_chief_complaint(
+    spec: dict, chronic_code: str, post_discharge_disease: str, country: str
+) -> tuple[str, str | dict]:
+    """The visit's chief complaint for ``country``, and the raw (possibly
+    bilingual) value it was resolved from (empty when none was authored)."""
     from clinosim.locale.text import resolve_text
 
     # Build visit reason from YAML spec or disease-specific post-discharge reason
-    spec = followup_spec or {}
     raw_chief: str | dict = ""  # captured for the JP-side resolution below (Issue #360 G1)
     if spec.get("visit_reason"):
         raw_chief = spec["visit_reason"]
@@ -322,6 +303,20 @@ def _simulate_outpatient_visit(
         except FileNotFoundError:
             chief = t("encounter_intent.followup", lang_for(country), code=chronic_code)
 
+    return chief, raw_chief
+
+
+def _open_visit_encounter(
+    patient: PatientProfile,
+    visit_type: str,
+    visit_date: datetime,
+    chief: str,
+    raw_chief: str | dict,
+    department_id: str,
+    country: str,
+) -> Encounter:
+    from clinosim.locale.text import resolve_text
+
     encounter = create_inpatient_encounter(
         patient.patient_id,
         visit_date,
@@ -354,15 +349,19 @@ def _simulate_outpatient_visit(
         minutes=_sample_ambulatory_visit_length_minutes(visit_type, country, encounter.encounter_id)
     )
 
-    staff = assign_staff("rounds", department_id, roster, rng)
-    encounter.attending_physician_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
+    return encounter
 
-    orders: list[Order] = []
-    lab_results: list[OrderResult] = []
-    vitals: list[VitalSignRecord] = []
 
-    spec = followup_spec or {}
-
+def _record_visit_vitals(
+    patient: PatientProfile,
+    visit_type: str,
+    chronic_code: str,
+    visit_date: datetime,
+    roster: StaffRoster,
+    rng: np.random.Generator,
+) -> tuple[VitalSignRecord, PhysiologicalState, str]:
+    """The visit's vital-sign set, the comorbidity-adjusted state it was
+    derived from (reused for labs) and the measuring nurse."""
     # Vitals (subset depends on visit type and chronic condition). The
     # follow-up set is the condition's `vitals` list in chronic_followup.yaml
     # (Issue #2287); default profile: BP + HR.
@@ -397,30 +396,39 @@ def _simulate_outpatient_visit(
     vit_time = visit_date + timedelta(minutes=OUTPATIENT_VITALS_OFFSET_MIN)
     raw = derive_observed_vitals(_state, baseline, vit_time, rng)
     opd_nurse_id = assign_staff("medication_administration", "primary_care", roster, rng).get("administering_nurse", "")
-    vitals.append(
-        VitalSignRecord(
-            timestamp=vit_time,
-            temperature_celsius=round(raw["temperature"], 1) if "temp" in fields else None,
-            heart_rate=int(round(raw["heart_rate"])) if "hr" in fields else None,
-            systolic_bp=int(round(raw["systolic_bp"])) if "bp" in fields else None,
-            diastolic_bp=int(round(raw["diastolic_bp"])) if "bp" in fields else None,
-            respiratory_rate=int(round(raw["respiratory_rate"])) if "rr" in fields else None,
-            spo2=round(raw["spo2"], 1) if "spo2" in fields else None,
-            # Chronic pain (e.g. osteoarthritis) is scored at the visit (Issue #2061).
-            pain_score=int(round(_state.pain_level * PAIN_SCORE_SCALE)) if _state.pain_level else None,
-            consciousness_level="",  # not assessed at clinic visits (Issue #2081)
-            measured_by=opd_nurse_id,
-            data_source="manual",
-        )
+    vital = VitalSignRecord(
+        timestamp=vit_time,
+        temperature_celsius=round(raw["temperature"], 1) if "temp" in fields else None,
+        heart_rate=int(round(raw["heart_rate"])) if "hr" in fields else None,
+        systolic_bp=int(round(raw["systolic_bp"])) if "bp" in fields else None,
+        diastolic_bp=int(round(raw["diastolic_bp"])) if "bp" in fields else None,
+        respiratory_rate=int(round(raw["respiratory_rate"])) if "rr" in fields else None,
+        spo2=round(raw["spo2"], 1) if "spo2" in fields else None,
+        # Chronic pain (e.g. osteoarthritis) is scored at the visit (Issue #2061).
+        pain_score=int(round(_state.pain_level * PAIN_SCORE_SCALE)) if _state.pain_level else None,
+        consciousness_level="",  # not assessed at clinic visits (Issue #2081)
+        measured_by=opd_nurse_id,
+        data_source="manual",
     )
 
-    # Pre-assign a lab tech for outpatient labs
-    lab_tech_assignment = assign_staff("lab_collection", "laboratory", roster, rng)
-    lab_tech_id = lab_tech_assignment.get("performing_technician", "")
+    return vital, _state, opd_nurse_id
+
+
+def _result_followup_labs(
+    patient: PatientProfile,
+    spec: dict,
+    encounter: Encounter,
+    visit_date: datetime,
+    state: PhysiologicalState,
+    lab_tech_id: str,
+    country: str,
+) -> tuple[list[Order], list[OrderResult]]:
+    orders: list[Order] = []
+    lab_results: list[OrderResult] = []
 
     # Labs (if specified in followup schedule).
     # Comorbidity-aware true values via the same physiology path as inpatient (AD-57);
-    # reuses `_state` initialized above for vitals.
+    # reuses the state the vitals were derived from.
     from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
     from clinosim.modules.physiology.engine import (
         medication_flags_from_context,
@@ -438,7 +446,7 @@ def _simulate_outpatient_visit(
         **scenario_flags_from_protocol(None),
         **medication_flags_from_context(patient),
     }
-    _true_labs = patient_true_labs(_state, patient, visit_date, _flags)
+    _true_labs = patient_true_labs(state, patient, visit_date, _flags)
     # Reference-normal fallback for analytes physiology doesn't model (HbA1c, WBC, CRP, etc.
     # are physiology-modeled and resolve via _true_labs first). DET-6 single source.
     baseline_values = BASELINE_LAB_NORMALS
@@ -504,6 +512,12 @@ def _simulate_outpatient_visit(
         order.status = OrderStatus.RESULTED
         lab_results.append(result)
 
+    return orders, lab_results
+
+
+def _renewal_prescription(
+    patient: PatientProfile, spec: dict, encounter: Encounter, visit_date: datetime
+) -> PrescriptionRecord | None:
     # Prescription renewal.
     # Issue #452 PR 2: `patient.current_medications` is `list[HomeMedication]`
     # (introduced in PR #498). Thread `route` / `dose` / `frequency` through
@@ -605,11 +619,10 @@ def _simulate_outpatient_visit(
             items=[_apply_pregnancy_substitution(med) for med in patient.current_medications if not _is_prn(med)],
         )
 
-    attach_orders(orders, encounter)
-    finalize_encounter(
-        encounter, admit_source=AdmitSource.OUTP, disposition=DischargeDisposition.HOME, priority=ActPriority.R
-    )
+    return rx
 
+
+def _visit_diagnosis_code(chronic_code: str, post_discharge_disease: str, visit_type: str) -> str:
     # Determine diagnosis code — prefer encounter YAML, fall back to chronic/Z-code
     dx_code = ""
 
@@ -643,19 +656,12 @@ def _simulate_outpatient_visit(
     if not dx_code:
         dx_code = fallback_visit_code()
 
-    condition_event = ConditionEvent(
-        condition_id=f"COND-{patient.patient_id}-OPD",
-        condition_type="chronic_followup" if chronic_code else "post_discharge_followup",
-        ground_truth_diseases=[dx_code] if dx_code else [],
-    )
-    clinical_diagnosis = encounter_diagnosis(dx_code, country)
+    return dx_code
 
-    # Issue #957 slice 3: radiation-therapy Procedure emit for cancer
-    # follow-up encounters flagged ``radiation_therapy_eligible: true``.
-    # Fires per chronic-followup visit; the visit's ``ev_rng`` (already
-    # consumed for labs) is not re-used here — instead we key off a
-    # deterministic sub-rng from the encounter id so downstream RNG is
-    # untouched (feedback_rng_neutral_additive_field pattern).
+
+def _followup_procedures(
+    patient: PatientProfile, spec: dict, chronic_code: str, visit_type: str, encounter: Encounter, visit_date: datetime
+) -> list:
     procedures_list: list = []
 
     # Phase 4d (#1701 partial) — emit chronic_followup.yaml procedures:
@@ -670,8 +676,7 @@ def _simulate_outpatient_visit(
     #                     (H1 Jan-Jun / H2 Jul-Dec) per patient per procedure
     #                     (Phase 4f — NCCN HCC semi-annual US, e.g. C22
     #                     abdominal ultrasound).
-    # Dedup is tracked via per-patient attributes attached here (plan Task
-    # 4 Ruling — PatientProfile has no built-in encounter history field).
+    # Dedup is tracked on the patient's ``visit_ledger`` (OutpatientVisitLedger).
     #
     # Phase 4e cycle-2 (#1701 partial) — union ``procedures:`` from EVERY
     # chronic_followup block the patient's ``chronic_conditions`` qualify
@@ -709,15 +714,10 @@ def _simulate_outpatient_visit(
     if _chronic_procedures:
         from clinosim.types.procedure import ProcedureRecord
 
-        _baseline_set = getattr(patient, "_phase4d_baseline_procedures_emitted", None)
-        if _baseline_set is None:
-            _baseline_set = set()
-        _annual_map = getattr(patient, "_phase4e_annual_procedures_emitted", None)
-        if _annual_map is None:
-            _annual_map = {}
-        _semi_annual_map = getattr(patient, "_phase4f_semi_annual_procedures_emitted", None)
-        if _semi_annual_map is None:
-            _semi_annual_map = {}
+        _ledger = patient.visit_ledger
+        _baseline_set = _ledger.baseline_procedures
+        _annual_map = _ledger.annual_procedures
+        _semi_annual_map = _ledger.semi_annual_procedures
         _visit_year = visit_date.year
         # H1 = Jan-Jun (months 1-6), H2 = Jul-Dec (months 7-12). Keyed as
         # (year, half) so a C22 patient re-fires in H2 of the same year.
@@ -752,15 +752,25 @@ def _simulate_outpatient_visit(
                 _annual_map.setdefault(_snomed, set()).add(_visit_year)
             elif _frequency == "semi_annual":
                 _semi_annual_map.setdefault(_snomed, set()).add(_visit_half_key)
-        # PatientProfile is a non-frozen @dataclass so direct assignment
-        # works at runtime; mypy flags the dynamic attribute because the
-        # dataclass does not declare these simulator-internal state carriers
-        # as fields. The alternative — declaring them on PatientProfile —
-        # would promote private simulator bookkeeping to the public CIF
-        # schema; the type:ignore keeps the state carrier where it belongs.
-        patient._phase4d_baseline_procedures_emitted = _baseline_set  # type: ignore[attr-defined]
-        patient._phase4e_annual_procedures_emitted = _annual_map  # type: ignore[attr-defined]
-        patient._phase4f_semi_annual_procedures_emitted = _semi_annual_map  # type: ignore[attr-defined]
+
+    return procedures_list
+
+
+def _chemo_cycle(
+    patient: PatientProfile,
+    spec: dict,
+    visit_type: str,
+    encounter: Encounter,
+    visit_date: datetime,
+    country: str,
+    department_id: str,
+    roster: StaffRoster,
+    rng: np.random.Generator,
+    opd_nurse_id: str,
+) -> tuple[list, list[Order], list]:
+    """The chemo visit's procedure, per-cycle drug orders and administrations."""
+    procedures_list: list = []
+    orders: list[Order] = []
 
     # Issue #957 Tier-3-A: chemotherapy administration Procedure emit +
     # per-cycle drug MedicationRequest (Order) + MedicationAdministration
@@ -874,6 +884,20 @@ def _simulate_outpatient_visit(
                 )
             )
 
+    return procedures_list, orders, chemo_mars
+
+
+def _radiation_therapy(
+    patient: PatientProfile, spec: dict, chronic_code: str, encounter: Encounter, visit_date: datetime, country: str
+) -> list:
+    procedures_list: list = []
+
+    # Issue #957 slice 3: radiation-therapy Procedure emit for cancer
+    # follow-up encounters flagged ``radiation_therapy_eligible: true``.
+    # Fires per chronic-followup visit; the visit's ``ev_rng`` (already
+    # consumed for labs) is not re-used here — instead we key off a
+    # deterministic sub-rng from the encounter id so downstream RNG is
+    # untouched (feedback_rng_neutral_additive_field pattern).
     if chronic_code and spec.get("radiation_therapy_eligible"):
         import hashlib
 
@@ -906,6 +930,71 @@ def _simulate_outpatient_visit(
                 )
             )
 
+    return procedures_list
+
+
+def _simulate_outpatient_visit(
+    patient: PatientProfile,
+    visit_type: str,
+    visit_date: datetime,
+    roster: StaffRoster,
+    rng: np.random.Generator,
+    chronic_code: str = "",
+    followup_spec: dict | None = None,
+    post_discharge_disease: str = "",
+    country: str = "US",
+    config: SimulatorConfig | None = None,
+    department_id: str = "internal_medicine",
+) -> CIFPatientRecord:
+    """Simulate a single outpatient visit (chronic follow-up or post-discharge).
+
+    Generates: 1 encounter, 0-3 lab orders, 1 vital sign set, prescription renewal.
+
+    ``department_id`` is the resolved available-hospital department this
+    follow-up attaches to; callers should compute it via
+    ``simulator.outpatient_dept.resolve_outpatient_department`` so that
+    post-discharge visits inherit the prior inpatient service, chronic
+    cardiac follow-ups land in cardiology, colonoscopy screening in
+    gastroenterology, etc. The ``"internal_medicine"`` default preserves
+    legacy behavior for callers that have not yet been migrated.
+    """
+    spec = followup_spec or {}
+    chief, raw_chief = _visit_chief_complaint(spec, chronic_code, post_discharge_disease, country)
+    encounter = _open_visit_encounter(patient, visit_type, visit_date, chief, raw_chief, department_id, country)
+
+    staff = assign_staff("rounds", department_id, roster, rng)
+    encounter.attending_physician_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
+
+    vital, visit_state, opd_nurse_id = _record_visit_vitals(patient, visit_type, chronic_code, visit_date, roster, rng)
+    vitals: list[VitalSignRecord] = [vital]
+
+    # Pre-assign a lab tech for outpatient labs
+    lab_tech_assignment = assign_staff("lab_collection", "laboratory", roster, rng)
+    lab_tech_id = lab_tech_assignment.get("performing_technician", "")
+    orders, lab_results = _result_followup_labs(patient, spec, encounter, visit_date, visit_state, lab_tech_id, country)
+    rx = _renewal_prescription(patient, spec, encounter, visit_date)
+
+    attach_orders(orders, encounter)
+    finalize_encounter(
+        encounter, admit_source=AdmitSource.OUTP, disposition=DischargeDisposition.HOME, priority=ActPriority.R
+    )
+
+    dx_code = _visit_diagnosis_code(chronic_code, post_discharge_disease, visit_type)
+    condition_event = ConditionEvent(
+        condition_id=f"COND-{patient.patient_id}-OPD",
+        condition_type="chronic_followup" if chronic_code else "post_discharge_followup",
+        ground_truth_diseases=[dx_code] if dx_code else [],
+    )
+    clinical_diagnosis = encounter_diagnosis(dx_code, country)
+
+    procedures_list = _followup_procedures(patient, spec, chronic_code, visit_type, encounter, visit_date)
+    chemo_procedures, chemo_orders, chemo_mars = _chemo_cycle(
+        patient, spec, visit_type, encounter, visit_date, country, department_id, roster, rng, opd_nurse_id
+    )
+    procedures_list.extend(chemo_procedures)
+    orders.extend(chemo_orders)
+    procedures_list.extend(_radiation_therapy(patient, spec, chronic_code, encounter, visit_date, country))
+
     record = CIFPatientRecord(
         patient=patient,
         encounters=[encounter],
@@ -937,7 +1026,7 @@ def _simulate_outpatient_visit(
             POST_ENCOUNTER,
             EnricherContext(
                 config=config,
-                master_seed=config.random_seed,  # type: ignore[attr-defined]
+                master_seed=config.random_seed,
                 records=[record],
                 roster=roster,
             ),
@@ -958,8 +1047,7 @@ def _simulate_outpatient_visit(
 # fans out into fresh ``_simulate_outpatient_visit`` calls with the
 # resolved specialty department.
 #
-# Dedup state lives on the patient via a dynamic attribute
-# ``_phase1_specialty_visits_emitted`` of shape
+# Dedup state lives on the patient's ``visit_ledger.specialty_visits``, a
 # ``set[tuple[specialty_name, year, period_slot | None]]`` where
 # ``period_slot`` is ``None`` for annual, ``1|2`` for semi_annual
 # (H1 Jan-Jun / H2 Jul-Dec), ``1..4`` for quarterly (Q1-Q4).
@@ -968,7 +1056,9 @@ def _simulate_outpatient_visit(
 # downstream ``_simulate_outpatient_visit`` call. Patients with zero
 # matching routes see an empty return, so the engine performs zero
 # additional emits and their byte-identity is preserved.
-def _specialty_fanout_tick(patient, chronic_event_time):  # noqa: ANN001 — PatientProfile not type-hinted to avoid circular import
+def _specialty_fanout_tick(
+    patient: PatientProfile, chronic_event_time: datetime
+) -> list[tuple[str, str, tuple[int, int | None]]]:
     """Return list of ``(specialty, cadence, period_key)`` tuples to
     synthesise at this chronic_followup tick. Updates per-patient
     dedup tracker in place."""
@@ -986,10 +1076,7 @@ def _specialty_fanout_tick(patient, chronic_event_time):  # noqa: ANN001 — Pat
     if not chronic_codes:
         return []
 
-    emitted = getattr(patient, "_phase1_specialty_visits_emitted", None)
-    if emitted is None:
-        emitted = set()
-        patient._phase1_specialty_visits_emitted = emitted
+    emitted = patient.visit_ledger.specialty_visits
 
     year = chronic_event_time.year
     month = chronic_event_time.month

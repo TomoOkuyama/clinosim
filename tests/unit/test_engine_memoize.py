@@ -13,7 +13,7 @@ adaptation)。
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, replace
+from dataclasses import replace
 from datetime import date, datetime
 from pathlib import Path
 
@@ -262,10 +262,10 @@ def _canonical_cmp(rec: CIFPatientRecord) -> object:
     the memo side, so the exclusion has been reverted and every field —
     including ``result_datetime`` — is again guarded.
     """
-    from clinosim.modules.output.cif_writer import _CIFEncoder
+    from clinosim.modules.output.cif_writer import _CIFEncoder, cif_record_dict
 
     normalized = replace(rec, immunizations=[])
-    return json.loads(json.dumps(asdict(normalized), cls=_CIFEncoder, sort_keys=True))
+    return json.loads(json.dumps(cif_record_dict(normalized), cls=_CIFEncoder, sort_keys=True))
 
 
 @pytest.mark.integration
