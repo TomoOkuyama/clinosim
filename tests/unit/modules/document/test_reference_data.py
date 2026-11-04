@@ -64,13 +64,13 @@ def test_physical_exam_findings_bacterial_pneumonia_override() -> None:
 def test_physical_exam_findings_validator_raises_on_empty() -> None:
     """Layer 3: validator raises ValueError on empty top-level dict."""
     with pytest.raises(ValueError, match="empty top-level"):
-        rdl._validate_physical_exam_findings({})
+        rdl.PhysicalExamFindings.model_validate({})
 
 
 def test_physical_exam_findings_validator_raises_on_missing_baseline() -> None:
     """Layer 3: validator raises ValueError when 'baseline' key absent."""
-    with pytest.raises(ValueError, match="missing 'baseline'"):
-        rdl._validate_physical_exam_findings({"findings": {}})
+    with pytest.raises(ValueError, match=r"baseline\s+Field required"):
+        rdl.PhysicalExamFindings.model_validate({"findings": {}})
 
 
 def test_physical_exam_findings_validator_raises_on_missing_required_field() -> None:
@@ -80,7 +80,7 @@ def test_physical_exam_findings_validator_raises_on_missing_required_field() -> 
         "findings": {},
     }
     with pytest.raises(ValueError, match="uncomplicated_improvement"):
-        rdl._validate_physical_exam_findings(bad)
+        rdl.PhysicalExamFindings.model_validate(bad)
 
 
 def test_physical_exam_findings_validator_raises_on_missing_day_0() -> None:
@@ -90,7 +90,7 @@ def test_physical_exam_findings_validator_raises_on_missing_day_0() -> None:
         "findings": {},
     }
     with pytest.raises(ValueError, match="day_0"):
-        rdl._validate_physical_exam_findings(bad)
+        rdl.PhysicalExamFindings.model_validate(bad)
 
 
 def test_physical_exam_findings_validator_raises_on_no_body_system() -> None:
@@ -100,14 +100,14 @@ def test_physical_exam_findings_validator_raises_on_no_body_system() -> None:
         "findings": {},
     }
     with pytest.raises(ValueError, match="body-system"):
-        rdl._validate_physical_exam_findings(bad)
+        rdl.PhysicalExamFindings.model_validate(bad)
 
 
 def test_physical_exam_findings_validator_raises_on_missing_findings_key() -> None:
     """Layer 6: top-level findings key missing raises ValueError."""
     bad = {"baseline": {"uncomplicated_improvement": {"day_0": {"general": "ok"}}}}
     with pytest.raises(ValueError, match="findings"):
-        rdl._validate_physical_exam_findings(bad)
+        rdl.PhysicalExamFindings.model_validate(bad)
 
 
 def test_physical_exam_findings_cached_lru() -> None:
@@ -167,13 +167,13 @@ def test_discharge_instructions_bacterial_pneumonia_override() -> None:
 def test_discharge_instructions_validator_raises_on_empty() -> None:
     """Layer 3: validator raises ValueError on empty top-level dict."""
     with pytest.raises(ValueError, match="empty top-level"):
-        rdl._validate_discharge_instructions({})
+        rdl.DischargeInstructions.model_validate({})
 
 
 def test_discharge_instructions_validator_raises_on_missing_baseline() -> None:
     """Layer 3: validator raises ValueError when 'baseline' key absent."""
-    with pytest.raises(ValueError, match="missing 'baseline'"):
-        rdl._validate_discharge_instructions({"disease_specific": {}})
+    with pytest.raises(ValueError, match=r"baseline\s+Field required"):
+        rdl.DischargeInstructions.model_validate({"disease_specific": {}})
 
 
 def test_discharge_instructions_validator_raises_on_missing_required_field() -> None:
@@ -187,7 +187,7 @@ def test_discharge_instructions_validator_raises_on_missing_required_field() -> 
         "disease_specific": {},
     }
     with pytest.raises(ValueError, match="rest"):
-        rdl._validate_discharge_instructions(bad)
+        rdl.DischargeInstructions.model_validate(bad)
 
 
 def test_discharge_instructions_validator_raises_on_missing_en_field() -> None:
@@ -200,8 +200,8 @@ def test_discharge_instructions_validator_raises_on_missing_en_field() -> None:
         },
         "disease_specific": {},
     }
-    with pytest.raises(ValueError, match="missing 'en'"):
-        rdl._validate_discharge_instructions(bad)
+    with pytest.raises(ValueError, match=r"\.en\s+Field required"):
+        rdl.DischargeInstructions.model_validate(bad)
 
 
 def test_discharge_instructions_validator_raises_on_disease_specific_missing_ja() -> None:
@@ -219,7 +219,7 @@ def test_discharge_instructions_validator_raises_on_disease_specific_missing_ja(
         },
     }
     with pytest.raises(ValueError, match="ja"):
-        rdl._validate_discharge_instructions(bad)
+        rdl.DischargeInstructions.model_validate(bad)
 
 
 def test_discharge_instructions_cached_lru() -> None:
