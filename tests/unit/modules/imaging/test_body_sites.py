@@ -15,7 +15,7 @@ from __future__ import annotations
 import pytest
 
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules.imaging.engine import _validate_body_sites, load_body_sites
+from clinosim.modules.imaging.engine import ImagingBodySites, load_body_sites
 
 
 def test_body_sites_loads_chest_and_head():
@@ -115,4 +115,4 @@ def test_validate_body_sites_raises_on_unregistered_snomed():
         }
     }
     with pytest.raises(ValueError, match="99999999999"):
-        _validate_body_sites(data)
+        ImagingBodySites.model_validate(data)

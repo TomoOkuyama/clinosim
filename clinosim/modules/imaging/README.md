@@ -20,9 +20,9 @@ multi-series expansion logic MUST live in
 
 - **In scope**: `imaging_enricher` (POST_ENCOUNTER order=90);
   three YAML loaders (`load_modalities`, `load_body_sites`,
-  `load_impression_templates`) with per-loader import-time validators
-  (`_validate_modalities`, `_validate_body_sites`,
-  `_validate_impression_templates`); the multi-view →
+  `load_impression_templates`) validated at load time by the Pydantic
+  models `ImagingModalities`, `ImagingBodySites` and
+  `ImpressionTemplates`; the multi-view →
   multi-series expansion (`_expand_views_to_series`);
   procedure-code resolution
   (`_resolve_imaging_procedure_code_key`);
@@ -112,9 +112,9 @@ from clinosim.modules.imaging.inference import (
   - `body_sites.yaml` — SNOMED body-site catalog.
   - `impression_templates.yaml` — per-modality / per-body-site
     negative and abnormal report templates.
-- Each YAML has an import-time 6-layer `_validate_*` (empty top,
+- Each YAML is checked at load time by its Pydantic model (empty top,
   required keys, forward + reverse coverage, per-entry required
-  fields, cross-reference to SNOMED / LOINC / body-site canonical
+  fields, cross-reference to SNOMED / body-site / disease canonical
   sets).
 - **Canonical id + system constants**: the ID prefixes
   `IMAGING_STUDY_ID_PREFIX` (`"imgst-"`), `ENDPOINT_ID_PREFIX`
@@ -136,7 +136,7 @@ from clinosim.modules.imaging.inference import (
 ```
 clinosim/modules/imaging/
   __init__.py                      re-exports the three CIF types (ImagingStudyRecord / ImagingSeries / RadiologyReport)
-  engine.py                        imaging_enricher + loaders + validators + multi-view expansion
+  engine.py                        imaging_enricher + loaders + YAML models + multi-view expansion
   inference.py                     infer_imaging_metadata whitelist (case-D fallback)
   audit.py                         AD-60 audit plug-in #4 — 15-check lift_firing_proof + basedon_coverage
   reference_data/

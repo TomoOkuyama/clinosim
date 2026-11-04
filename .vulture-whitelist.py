@@ -317,6 +317,12 @@ _.polyallergy  # allergy/engine.py AllergenConfig
 _.probability_given_any_allergy  # allergy/engine.py AllergenConfig
 _.trigger_allergen_codes  # allergy/engine.py AllergenConfig
 
+# ----- clinosim/modules/imaging/engine.py (Pydantic BaseModel, Issue #2568) -----
+# Schema fields of the YAML validation models; callers read the raw dict.
+_.dicom_code  # imaging/engine.py _Modality
+_.jp_k_code  # imaging/engine.py _ProcedureCodes
+_.procedure_codes  # imaging/engine.py _BodySite
+
 # ----- clinosim/modules/encounter/protocol.py (Pydantic BaseModel) -----
 # Narrative template language maps (subjective / objective / assessment /
 # plan / chief_complaint / hpi / physical_exam / ed_workup_summary /

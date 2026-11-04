@@ -21,9 +21,9 @@ multi-series 展開ロジックは必ず `engine._expand_views_to_series` に
 
 - **In scope**: `imaging_enricher` (POST_ENCOUNTER order=90);
   3 YAML loader (`load_modalities`, `load_body_sites`,
-  `load_impression_templates`) with per-loader import 時 validator
-  (`_validate_modalities`, `_validate_body_sites`,
-  `_validate_impression_templates`); multi-view → multi-series 展開
+  `load_impression_templates`) を load 時に Pydantic model
+  (`ImagingModalities`, `ImagingBodySites`,
+  `ImpressionTemplates`) で検証; multi-view → multi-series 展開
   (`_expand_views_to_series`); procedure コード解決
   (`_resolve_imaging_procedure_code_key`); DICOM UID 導出
   (`_study_uid_from`); body-site key 正規化
@@ -107,9 +107,9 @@ from clinosim.modules.imaging.inference import (
   - `body_sites.yaml` — SNOMED body-site カタログ。
   - `impression_templates.yaml` — modality × body-site 別 negative
     / abnormal report template。
-- 各 YAML は import 時 6-layer `_validate_*` (空 top、必須 key、
-  双方向 coverage、per-entry 必須 field、SNOMED / LOINC / body-site
-  canonical への cross-reference) を持つ。
+- 各 YAML は load 時に Pydantic model で検証する (空 top、必須 key、
+  双方向 coverage、per-entry 必須 field、SNOMED / body-site / 疾患
+  canonical への cross-reference)。
 - **Canonical id + system 定数**: ID prefix
   `IMAGING_STUDY_ID_PREFIX` (`"imgst-"`)、`ENDPOINT_ID_PREFIX`
   (`"endpoint-"`)、`RADIOLOGY_REPORT_ID_PREFIX` (`"imgrpt-"`) は
@@ -130,7 +130,7 @@ from clinosim.modules.imaging.inference import (
 ```
 clinosim/modules/imaging/
   __init__.py                      3 CIF 型 (ImagingStudyRecord / ImagingSeries / RadiologyReport) を再 export
-  engine.py                        imaging_enricher + loader + validator + multi-view 展開
+  engine.py                        imaging_enricher + loader + YAML model + multi-view 展開
   inference.py                     infer_imaging_metadata whitelist (case-D fallback)
   audit.py                         AD-60 audit plug-in #4 — 15-check lift_firing_proof + basedon_coverage
   reference_data/
