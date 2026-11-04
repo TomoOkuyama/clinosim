@@ -151,13 +151,41 @@ spec テキストを引用せず単に "Japanese output" や "JP handling" と
    - unit — mg/dL、日、count、probability、…、
    - source / rationale — 臨床参考文献、spec section、経験的
      チューニング、design ADR または外部ソースへの link。
-3. **配置** は以下のいずれか:
-   - モジュールローカル `_constants.py` (モジュール private)、
-   - 定数が API の一部なら モジュール public `__init__.py`、
-   - 実行時可変なら `clinosim/config/*.yaml`、
-   - typed config モデルなら `clinosim/types/config.py`。
+3. **配置** は §5.1 の規則に従う。
 
 docstring なしの bare `MAGIC_NUMBER = 42` は review-blocker。
+
+### 5.1 YAML か Python か
+
+値が何をキーにしているか、誰が変えるかで決める。
+
+**YAML** — データ。モジュールの `reference_data/`、`clinosim/locale/<country>/`、
+`clinosim/config/` に置き、[コードマッピング仕様](code-mapping-and-localization-spec.ja.md)
+§3 の書式 (`metadata.kind`、`clinosim.datafiles.load_data_yaml`) で書いて読み込み、
+参照するすべての識別子に対して読み込み時に検証する:
+
+- ドメインの識別子 (疾患 ID・コード・薬剤キー・年齢帯・性別・国) をキーにする表:
+  ルール表、dispatch 表、疾患ごとのパラメータ;
+- ドメインの専門家が公開統計に合わせて調整する疫学・較正値: 有病率、発症率、
+  レート、分布;
+- 国によって異なる値。
+
+**Python** — アルゴリズムの定数。読むコードの隣の private モジュールに置く:
+
+- 1 つの式の係数・指数・下限・区切り値で、その意味が式そのものであるもの
+  (式と切り離して変えても意味がない);
+- RNG の salt と seed offset;
+- YAML キーの fallback 既定値 (YAML の値が優先);
+- enum、dict キー、書式文字列。
+
+Python に置くと、型検査され、名前で辿れ、使う場所で文書化され、コードと
+食い違いうる読み込み段がない。モジュール名は `_<topic>_thresholds.py`
+(区切り値・係数) または `_<topic>_defaults.py` (YAML の fallback) とする。
+モジュールの API に属する定数はその `__init__.py`、型付き設定モデルは
+`clinosim/types/config.py` に置く。
+
+ドメインの識別子をキーにする Python の表はデータなので YAML に移す。
+式の係数の表は、長くても Python に残す。
 
 ---
 
