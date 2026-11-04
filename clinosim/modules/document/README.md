@@ -151,11 +151,12 @@ from clinosim.modules.document.engine import document_enricher
   `[inpatient, icu, rehab_inpatient]` explicitly to avoid leaking
   into outpatient / ED encounters). Author dispatch is by LOINC
   (`NURSING_LOINCS`), not a spec field.
-- **6-layer reference-data validators** (Task 5 pattern) —
-  `_validate_physical_exam_findings` and
-  `_validate_discharge_instructions` run empty-top / missing-key /
-  per-bucket / required-key / pre-use ordering / per-entry
-  required-field checks; a YAML typo raises at import.
+- **Reference-data YAML models** (Task 5 pattern) — the Pydantic
+  models `PhysicalExamFindings`, `DischargeInstructions`,
+  `ChiefComplaintVariants`, `BedsideProcedureCodes` and
+  `NursingContent` in `reference_data_loaders.py` check empty-top /
+  missing-key / per-bucket / required-key / per-entry required-field
+  shapes before the loader returns; a YAML typo raises at load.
 - **Chronic SOAP + hedging** reference YAMLs
   (`chronic_soap_templates.yaml`, `hedging_phrases.yaml`) are read
   from within [`narrative`](narrative/README.md) submodules but

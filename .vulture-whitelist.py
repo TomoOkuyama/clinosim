@@ -333,6 +333,14 @@ _.hai_organisms  # hai/engine.py HaiOrganisms
 _.hai_rates  # hai/engine.py HaiRates
 _.hai_codes  # hai/engine.py HaiCodes
 
+# ----- clinosim/modules/document/reference_data_loaders.py (Pydantic BaseModel, Issue #2572) -----
+# Schema fields of the YAML validation models; callers read the raw dict.
+_.nursing_diagnoses  # document/reference_data_loaders.py _NursingContentEntry
+_.care_plan  # document/reference_data_loaders.py _NursingContentEntry
+_.patient_education  # document/reference_data_loaders.py _NursingContentEntry
+_.acute_disease  # document/reference_data_loaders.py NursingContent
+_.chronic_icd10  # document/reference_data_loaders.py NursingContent
+
 # ----- clinosim/modules/encounter/protocol.py (Pydantic BaseModel) -----
 # Narrative template language maps (subjective / objective / assessment /
 # plan / chief_complaint / hpi / physical_exam / ed_workup_summary /

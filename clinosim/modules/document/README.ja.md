@@ -146,11 +146,12 @@ from clinosim.modules.document.engine import document_enricher
   inpatient 限定文書の spec は必ず `[inpatient, icu, rehab_inpatient]`
   を明示して outpatient / ED へ leak しないようにする) を保持。author
   dispatch は spec field ではなく LOINC (`NURSING_LOINCS`) で決まる。
-- **6-layer reference-data validator** (Task 5 pattern) —
-  `_validate_physical_exam_findings` と
-  `_validate_discharge_instructions` が empty-top / missing-key /
-  per-bucket / required-key / pre-use 順序 / per-entry required-field
-  を検査。YAML typo は import 時に raise。
+- **Reference-data YAML model** (Task 5 pattern) —
+  `reference_data_loaders.py` の Pydantic model `PhysicalExamFindings`、
+  `DischargeInstructions`、`ChiefComplaintVariants`、
+  `BedsideProcedureCodes`、`NursingContent` が loader の返却前に
+  empty-top / missing-key / per-bucket / required-key / per-entry
+  required-field を検査。YAML typo は load 時に raise。
 - **Chronic SOAP + hedging** reference YAML
   (`chronic_soap_templates.yaml`, `hedging_phrases.yaml`) は
   [`narrative`](narrative/README.ja.md) 側 submodule から read されるが、

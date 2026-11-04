@@ -22,7 +22,7 @@ from clinosim.modules.document.narrative.template_generator import (
     _lookup_nursing_content,
 )
 from clinosim.modules.document.reference_data_loaders import (
-    _validate_nursing_content,
+    NursingContent,
     load_nursing_content,
 )
 
@@ -57,12 +57,12 @@ def test_load_nursing_content_carries_6_grandfathered_chronic_prefixes() -> None
 
 def test_validate_nursing_content_rejects_empty_top_level() -> None:
     with pytest.raises(ValueError, match="empty top-level"):
-        _validate_nursing_content({})
+        NursingContent.model_validate({})
 
 
 def test_validate_nursing_content_rejects_missing_both_axes() -> None:
     with pytest.raises(ValueError, match="missing both"):
-        _validate_nursing_content({"unrelated": {}})
+        NursingContent.model_validate({"unrelated": {}})
 
 
 def test_validate_nursing_content_rejects_missing_lang() -> None:
@@ -75,8 +75,8 @@ def test_validate_nursing_content_rejects_missing_lang() -> None:
             }
         }
     }
-    with pytest.raises(ValueError, match="missing 'en'"):
-        _validate_nursing_content(bad)
+    with pytest.raises(ValueError, match=r"\.en\s+Field required"):
+        NursingContent.model_validate(bad)
 
 
 def test_validate_nursing_content_rejects_empty_list() -> None:
@@ -89,8 +89,8 @@ def test_validate_nursing_content_rejects_empty_list() -> None:
             }
         }
     }
-    with pytest.raises(ValueError, match="empty or not a list"):
-        _validate_nursing_content(bad)
+    with pytest.raises(ValueError, match="at least 1 item"):
+        NursingContent.model_validate(bad)
 
 
 # ─────────────────────────────────────────────────────────────────

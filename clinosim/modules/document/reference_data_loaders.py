@@ -7,16 +7,12 @@ document enricher (Task 8).
 Pattern follows clinosim/modules/allergy/engine.py (Task 2 precedent)
 and clinosim/modules/document/narrative/registry.py (Task 3 precedent):
 - @lru_cache(maxsize=1) loader singletons
-- 6-layer silent-no-op defense validators:
-    Layer 1: empty top-level guard
-    Layer 2: missing required top-level key guard
-    Layer 3: per-bucket empty/null guard
-    Layer 4: required-key coverage (baseline keys + per-entry field coverage)
-    Layer 5: validators run BEFORE data is returned (pre-use ordering)
-    Layer 6: per-entry required-field check (fail-loud on missing)
+- a Pydantic model per file (silent-no-op defense): empty top-level,
+  missing required keys, empty buckets and missing per-entry fields all
+  fail loud, and the model runs BEFORE the data is returned
 
 File ownership:
-  Task 5 (this file): loaders + validators
+  Task 5 (this file): loaders + YAML models
   Task 8: enricher engine (imports from this file)
 """
 
@@ -24,9 +20,11 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
-from clinosim.datafiles import load_data_yaml
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from clinosim.datafiles import load_data_yaml, load_validated_yaml
 from clinosim.reference_data import load_reference_yaml
 
 _HERE = Path(__file__).resolve().parent
@@ -56,68 +54,52 @@ _DISCHARGE_BASELINE_REQUIRED_KEYS = ("hydrate", "rest", "follow_up")
 # ─────────────────────────────────────────────────────────────────
 
 
-def _validate_physical_exam_findings(data: dict[str, Any]) -> None:
-    """Fail-loud 6-layer validation of physical_exam_findings.yaml.
+def _non_blank(text: str) -> str:
+    if not text.strip():
+        raise ValueError("must be a non-empty string")
+    return text
 
-    Layer 1: empty top-level guard
-    Layer 2: missing 'baseline' key guard
-    Layer 3: baseline.uncomplicated_improvement existence guard
-    Layer 4: baseline.uncomplicated_improvement.day_0 existence guard
-    Layer 5: day_0 has at least one recognised body-system key
-    Layer 6: 'findings' top-level key presence (per-disease override section)
-    """
+
+_Text = Annotated[str, AfterValidator(_non_blank)]
+
+
+def _not_empty(data: Any, file: str) -> Any:
     if not data:
-        raise ValueError("physical_exam_findings.yaml: empty top-level")
+        raise ValueError(f"{file}: empty top-level")
+    return data
 
-    if "baseline" not in data:
-        raise ValueError("physical_exam_findings.yaml: missing 'baseline' key")
 
-    baseline = data["baseline"]
-    if not baseline or not isinstance(baseline, dict):
-        raise ValueError("physical_exam_findings.yaml: 'baseline' is empty or not a mapping")
+class PhysicalExamFindings(BaseModel):
+    """Shape of physical_exam_findings.yaml: the baseline must carry the
+    ``uncomplicated_improvement`` / ``day_0`` exam with at least one
+    recognised body system (the fallback every disease relies on), and the
+    per-disease ``findings`` section must be present (it may be empty)."""
 
-    # Layer 3 — required archetype must be present
-    if _PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE not in baseline:
-        raise ValueError(
-            f"physical_exam_findings.yaml: baseline missing required archetype "
-            f"'{_PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE}'"
-        )
+    model_config = ConfigDict(extra="allow")
 
-    archetype = baseline[_PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE]
-    if not archetype or not isinstance(archetype, dict):
-        raise ValueError(
-            f"physical_exam_findings.yaml: baseline.{_PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE} "
-            f"is empty or not a mapping"
-        )
+    baseline: dict[str, dict[str, Any]] = Field(min_length=1)
+    findings: Any
 
-    # Layer 4 — required day key
-    if _PHYSICAL_EXAM_REQUIRED_BASELINE_DAY not in archetype:
-        raise ValueError(
-            f"physical_exam_findings.yaml: "
-            f"baseline.{_PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE} missing "
-            f"'{_PHYSICAL_EXAM_REQUIRED_BASELINE_DAY}'"
-        )
+    @model_validator(mode="before")
+    @classmethod
+    def _non_empty(cls, data: Any) -> Any:
+        return _not_empty(data, "physical_exam_findings.yaml")
 
-    day_0 = archetype[_PHYSICAL_EXAM_REQUIRED_BASELINE_DAY]
-    if not day_0 or not isinstance(day_0, dict):
-        raise ValueError(
-            f"physical_exam_findings.yaml: "
-            f"baseline.{_PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE}"
-            f".{_PHYSICAL_EXAM_REQUIRED_BASELINE_DAY} is empty or not a mapping"
-        )
-
-    # Layer 5 — at least one body-system key present
-    if not any(s in day_0 for s in _PHYSICAL_EXAM_BODY_SYSTEMS):
-        raise ValueError(
-            f"physical_exam_findings.yaml: "
-            f"baseline.{_PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE}"
-            f".{_PHYSICAL_EXAM_REQUIRED_BASELINE_DAY} has no recognised body-system key "
-            f"(expected one of: {sorted(_PHYSICAL_EXAM_BODY_SYSTEMS)})"
-        )
-
-    # Layer 6 — per-disease override section must be present (may be empty dict)
-    if "findings" not in data:
-        raise ValueError("physical_exam_findings.yaml: missing 'findings' key")
+    @field_validator("baseline")
+    @classmethod
+    def _baseline_day_0_exam(cls, baseline: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+        archetype, day = _PHYSICAL_EXAM_REQUIRED_BASELINE_ARCHETYPE, _PHYSICAL_EXAM_REQUIRED_BASELINE_DAY
+        if not baseline.get(archetype):
+            raise ValueError(f"physical_exam_findings.yaml: baseline missing required archetype '{archetype}'")
+        day_0 = baseline[archetype].get(day)
+        if not day_0 or not isinstance(day_0, dict):
+            raise ValueError(f"physical_exam_findings.yaml: baseline.{archetype} missing a '{day}' mapping")
+        if not any(system in day_0 for system in _PHYSICAL_EXAM_BODY_SYSTEMS):
+            raise ValueError(
+                f"physical_exam_findings.yaml: baseline.{archetype}.{day} has no recognised body-system key "
+                f"(expected one of: {sorted(_PHYSICAL_EXAM_BODY_SYSTEMS)})"
+            )
+        return baseline
 
 
 @lru_cache(maxsize=1)
@@ -128,9 +110,7 @@ def load_physical_exam_findings() -> dict[str, Any]:
     Task 6 TemplateNarrativeGenerator uses the 'baseline' section as
     fallback and the 'findings' section for per-disease overrides.
     """
-    data: dict[str, Any] = load_data_yaml(_REF_DIR / "physical_exam_findings.yaml")
-    _validate_physical_exam_findings(data)
-    return data
+    return load_validated_yaml(_REF_DIR / "physical_exam_findings.yaml", PhysicalExamFindings)
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -138,69 +118,36 @@ def load_physical_exam_findings() -> dict[str, Any]:
 # ─────────────────────────────────────────────────────────────────
 
 
-def _validate_discharge_instructions(data: dict[str, Any]) -> None:
-    """Fail-loud 6-layer validation of clinosim-discharge-instruction.yaml.
+class _BilingualText(BaseModel):
+    model_config = ConfigDict(extra="allow")
 
-    Layer 1: empty top-level guard
-    Layer 2: missing 'baseline' key guard
-    Layer 3: baseline is non-empty mapping guard
-    Layer 4: required baseline keys (hydrate / rest / follow_up) presence
-    Layer 5: each baseline entry has both 'en' and 'ja' keys
-    Layer 6: 'disease_specific' top-level key presence (may be empty)
-    """
-    if not data:
-        raise ValueError("clinosim-discharge-instruction.yaml: empty top-level")
+    en: Any
+    ja: Any
 
-    if "baseline" not in data:
-        raise ValueError("clinosim-discharge-instruction.yaml: missing 'baseline' key")
 
-    baseline = data["baseline"]
-    if not baseline or not isinstance(baseline, dict):
-        raise ValueError("clinosim-discharge-instruction.yaml: 'baseline' is empty or not a mapping")
+class DischargeInstructions(BaseModel):
+    """Shape of clinosim-discharge-instruction.yaml: a baseline with at least
+    the hydrate / rest / follow_up instructions, and a ``disease_specific``
+    section (possibly empty, entries possibly null); every instruction has
+    an ``en`` and a ``ja`` text."""
 
-    # Layer 4 — required keys
-    for req_key in _DISCHARGE_BASELINE_REQUIRED_KEYS:
-        if req_key not in baseline:
-            raise ValueError(f"clinosim-discharge-instruction.yaml: baseline missing required key '{req_key}'")
+    model_config = ConfigDict(extra="allow")
 
-    # Layer 5 — each entry must have 'en' and 'ja'
-    for key, entry in baseline.items():
-        if not entry or not isinstance(entry, dict):
-            raise ValueError(f"clinosim-discharge-instruction.yaml: baseline[{key!r}] is empty or not a mapping")
-        if "en" not in entry:
-            raise ValueError(f"clinosim-discharge-instruction.yaml: baseline[{key!r}] missing 'en'")
-        if "ja" not in entry:
-            raise ValueError(f"clinosim-discharge-instruction.yaml: baseline[{key!r}] missing 'ja'")
+    baseline: dict[str, _BilingualText] = Field(min_length=1)
+    disease_specific: dict[str, dict[str, _BilingualText] | None] | None
 
-    # Layer 6 — disease_specific section must be present
-    if "disease_specific" not in data:
-        raise ValueError("clinosim-discharge-instruction.yaml: missing 'disease_specific' key")
+    @model_validator(mode="before")
+    @classmethod
+    def _non_empty(cls, data: Any) -> Any:
+        return _not_empty(data, "clinosim-discharge-instruction.yaml")
 
-    # Validate each disease_specific entry if present
-    disease_specific = data.get("disease_specific") or {}
-    if disease_specific and isinstance(disease_specific, dict):
-        for disease_id, overrides in disease_specific.items():
-            if overrides is None:
-                continue  # empty disease entry is allowed (no-op)
-            if not isinstance(overrides, dict):
-                raise ValueError(
-                    f"clinosim-discharge-instruction.yaml: disease_specific[{disease_id!r}] must be a mapping or null"
-                )
-            for key, entry in overrides.items():
-                if not entry or not isinstance(entry, dict):
-                    raise ValueError(
-                        f"clinosim-discharge-instruction.yaml: "
-                        f"disease_specific[{disease_id!r}][{key!r}] "
-                        f"is empty or not a mapping"
-                    )
-                if "en" not in entry:
-                    raise ValueError(
-                        f"clinosim-discharge-instruction.yaml: disease_specific[{disease_id!r}][{key!r}] missing 'en'"
-                    )
-                if "ja" not in entry:
-                    raise ValueError(
-                        f"clinosim-discharge-instruction.yaml: disease_specific[{disease_id!r}][{key!r}] missing 'ja'"
-                    )
+    @field_validator("baseline")
+    @classmethod
+    def _required_instructions(cls, baseline: dict[str, _BilingualText]) -> dict[str, _BilingualText]:
+        for key in _DISCHARGE_BASELINE_REQUIRED_KEYS:
+            if key not in baseline:
+                raise ValueError(f"clinosim-discharge-instruction.yaml: baseline missing required key '{key}'")
+        return baseline
 
 
 @lru_cache(maxsize=1)
@@ -212,7 +159,7 @@ def load_discharge_instructions() -> dict[str, Any]:
     with disease_specific taking precedence for shared keys.
     """
     data: dict[str, Any] = load_reference_yaml(_REF_DIR / "clinosim-discharge-instruction.yaml")
-    _validate_discharge_instructions(data)
+    DischargeInstructions.model_validate(data)
     return data
 
 
@@ -252,33 +199,18 @@ def load_hpi_pertinent_negatives() -> dict[str, list[str]]:
 # ─────────────────────────────────────────────────────────────────
 
 
-def _validate_chief_complaint_variants(data: dict[str, Any]) -> None:
-    """Fail-loud validation of chief_complaint_variants.yaml.
+class ChiefComplaintVariants(BaseModel):
+    """Shape of chief_complaint_variants.yaml: per disease, a non-empty list
+    of non-empty JP chief-complaint strings."""
 
-    Layer 1: empty top-level guard
-    Layer 2: missing 'variants' top-level key
-    Layer 3: 'variants' is a non-empty mapping
-    Layer 4: each disease_id → non-empty list[str]
-    Layer 5: every variant entry is a non-empty JP string
-    """
-    if not data:
-        raise ValueError("chief_complaint_variants.yaml: empty top-level")
+    model_config = ConfigDict(extra="allow")
 
-    if "variants" not in data:
-        raise ValueError("chief_complaint_variants.yaml: missing 'variants' key")
+    variants: dict[str, Annotated[list[_Text], Field(min_length=1)]] = Field(min_length=1)
 
-    variants = data["variants"]
-    if not variants or not isinstance(variants, dict):
-        raise ValueError("chief_complaint_variants.yaml: 'variants' is empty or not a mapping")
-
-    for disease_id, pool in variants.items():
-        if not pool or not isinstance(pool, list):
-            raise ValueError(f"chief_complaint_variants.yaml: variants[{disease_id!r}] must be a non-empty list")
-        for i, entry in enumerate(pool):
-            if not isinstance(entry, str) or not entry.strip():
-                raise ValueError(
-                    f"chief_complaint_variants.yaml: variants[{disease_id!r}][{i}] must be a non-empty string"
-                )
+    @model_validator(mode="before")
+    @classmethod
+    def _non_empty(cls, data: Any) -> Any:
+        return _not_empty(data, "chief_complaint_variants.yaml")
 
 
 @lru_cache(maxsize=1)
@@ -289,8 +221,7 @@ def load_chief_complaint_variants() -> dict[str, list[str]]:
     at narrative-build time (Issue #983). JP-only by design; US narrative
     keeps the existing single canonical CC (English disease_protocol chain).
     """
-    data: dict[str, Any] = load_data_yaml(_NARRATIVE_REF_DIR / "chief_complaint_variants.yaml")
-    _validate_chief_complaint_variants(data)
+    data = load_validated_yaml(_NARRATIVE_REF_DIR / "chief_complaint_variants.yaml", ChiefComplaintVariants)
     return dict(data["variants"])
 
 
@@ -299,36 +230,31 @@ def load_chief_complaint_variants() -> dict[str, list[str]]:
 # ─────────────────────────────────────────────────────────────────
 
 
-def _validate_bedside_procedure_codes(data: dict[str, Any]) -> None:
-    """Fail-loud validation of bedside_procedure_codes.yaml.
+class BedsideProcedureCodes(BaseModel):
+    """Shape of bedside_procedure_codes.yaml: two non-empty code lists, and no
+    code in both (a Procedure resolves to exactly one document type — an
+    overlap would double-emit)."""
 
-    Layer 1: empty top-level guard
-    Layer 2: required buckets present (procedure_note_codes + operative_note_codes)
-    Layer 3: each bucket is a non-empty list of non-empty strings
-    Layer 4: no code appears in BOTH buckets (a Procedure resolves to
-             exactly one document type — an overlap would double-emit)
-    """
-    if not data:
-        raise ValueError("bedside_procedure_codes.yaml: empty top-level")
-    required_buckets = ("procedure_note_codes", "operative_note_codes")
-    for bucket in required_buckets:
-        if bucket not in data:
-            raise ValueError(f"bedside_procedure_codes.yaml: missing '{bucket}' key")
-        raw = data[bucket]
-        if not raw or not isinstance(raw, list):
-            raise ValueError(f"bedside_procedure_codes.yaml: '{bucket}' must be a non-empty list")
-        for i, entry in enumerate(raw):
-            if not isinstance(entry, str) or not entry.strip():
-                raise ValueError(f"bedside_procedure_codes.yaml: {bucket}[{i}] must be a non-empty string")
-    proc_set = {str(c).strip() for c in data["procedure_note_codes"]}
-    op_set = {str(c).strip() for c in data["operative_note_codes"]}
-    overlap = proc_set & op_set
-    if overlap:
-        raise ValueError(
-            f"bedside_procedure_codes.yaml: codes appear in both buckets "
-            f"({sorted(overlap)}) — a Procedure must resolve to exactly one "
-            f"document type"
-        )
+    model_config = ConfigDict(extra="allow")
+
+    procedure_note_codes: list[_Text] = Field(min_length=1)
+    operative_note_codes: list[_Text] = Field(min_length=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _non_empty(cls, data: Any) -> Any:
+        return _not_empty(data, "bedside_procedure_codes.yaml")
+
+    @model_validator(mode="after")
+    def _disjoint(self) -> BedsideProcedureCodes:
+        overlap = {c.strip() for c in self.procedure_note_codes} & {c.strip() for c in self.operative_note_codes}
+        if overlap:
+            raise ValueError(
+                f"bedside_procedure_codes.yaml: codes appear in both buckets "
+                f"({sorted(overlap)}) — a Procedure must resolve to exactly one "
+                f"document type"
+            )
+        return self
 
 
 @lru_cache(maxsize=1)
@@ -345,8 +271,7 @@ def load_bedside_procedure_codes() -> dict[str, frozenset[str]]:
     bucket) receive no per-procedure document — this is intentional so
     a `K002` bedside wound cleanup does not fabricate a formal note.
     """
-    data: dict[str, Any] = load_data_yaml(_REF_DIR / "bedside_procedure_codes.yaml")
-    _validate_bedside_procedure_codes(data)
+    data = load_validated_yaml(_REF_DIR / "bedside_procedure_codes.yaml", BedsideProcedureCodes)
     return {
         "procedure_note": frozenset(str(c).strip() for c in data["procedure_note_codes"]),
         "operative_note": frozenset(str(c).strip() for c in data["operative_note_codes"]),
@@ -357,60 +282,51 @@ def load_bedside_procedure_codes() -> dict[str, frozenset[str]]:
 # clinosim-nursing-content.yaml (Session 104 Tier 2)
 # ─────────────────────────────────────────────────────────────────
 
-_NURSING_CONTENT_FIELDS = ("nursing_diagnoses", "care_plan", "patient_education")
-_NURSING_CONTENT_LANGS = ("ja", "en")
+_TextList = Annotated[list[_Text], Field(min_length=1)]
 
 
-def _validate_nursing_content(data: dict[str, Any]) -> None:
-    """Fail-loud 6-layer validation of clinosim-nursing-content.yaml (session-104 Tier 2).
+class _NursingTexts(BaseModel):
+    model_config = ConfigDict(extra="allow")
 
-    Layer 1: empty top-level guard
-    Layer 2: at least one axis (`acute_disease` or `chronic_icd10`)
-    Layer 3: each present axis is a non-empty mapping
-    Layer 4: each entry declares all three content fields
-    Layer 5: each field carries BOTH `ja` and `en` list values
-    Layer 6: every list is non-empty (silent-no-op prevention)
-    """
-    if not data:
-        raise ValueError("clinosim-nursing-content.yaml: empty top-level")
+    ja: _TextList
+    en: _TextList
 
-    axes = [ax for ax in ("acute_disease", "chronic_icd10") if ax in data]
-    if not axes:
-        raise ValueError(
-            "clinosim-nursing-content.yaml: missing both 'acute_disease' and 'chronic_icd10' top-level axes"
-        )
 
-    for axis in axes:
-        entries = data[axis]
+class _NursingContentEntry(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    nursing_diagnoses: _NursingTexts
+    care_plan: _NursingTexts
+    patient_education: _NursingTexts
+
+
+class NursingContent(BaseModel):
+    """Shape of clinosim-nursing-content.yaml (session-104 Tier 2): at least
+    one of the ``acute_disease`` / ``chronic_icd10`` axes, each a non-empty
+    mapping whose entries carry nursing diagnoses, care plan and patient
+    education as non-empty ``ja`` and ``en`` string lists."""
+
+    model_config = ConfigDict(extra="allow")
+
+    acute_disease: dict[str, _NursingContentEntry] | None = Field(default=None, min_length=1)
+    chronic_icd10: dict[str, _NursingContentEntry] | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _an_axis(cls, data: Any) -> Any:
+        _not_empty(data, "clinosim-nursing-content.yaml")
+        if "acute_disease" not in data and "chronic_icd10" not in data:
+            raise ValueError(
+                "clinosim-nursing-content.yaml: missing both 'acute_disease' and 'chronic_icd10' top-level axes"
+            )
+        return data
+
+    @field_validator("acute_disease", "chronic_icd10", mode="before")
+    @classmethod
+    def _present_axis_is_a_mapping(cls, entries: Any) -> Any:
         if not entries or not isinstance(entries, dict):
-            raise ValueError(f"clinosim-nursing-content.yaml: '{axis}' is empty or not a mapping")
-        for key, entry in entries.items():
-            if not entry or not isinstance(entry, dict):
-                raise ValueError(f"clinosim-nursing-content.yaml: {axis}[{key!r}] is empty or not a mapping")
-            for field in _NURSING_CONTENT_FIELDS:
-                if field not in entry:
-                    raise ValueError(f"clinosim-nursing-content.yaml: {axis}[{key!r}] missing '{field}'")
-                block = entry[field]
-                if not block or not isinstance(block, dict):
-                    raise ValueError(
-                        f"clinosim-nursing-content.yaml: {axis}[{key!r}][{field!r}] is empty or not a mapping"
-                    )
-                for lang in _NURSING_CONTENT_LANGS:
-                    if lang not in block:
-                        raise ValueError(f"clinosim-nursing-content.yaml: {axis}[{key!r}][{field!r}] missing '{lang}'")
-                    items = block[lang]
-                    if not items or not isinstance(items, list):
-                        raise ValueError(
-                            f"clinosim-nursing-content.yaml: {axis}[{key!r}][{field!r}][{lang!r}]"
-                            f" is empty or not a list"
-                        )
-                    for i, item in enumerate(items):
-                        if not isinstance(item, str) or not item.strip():
-                            raise ValueError(
-                                f"clinosim-nursing-content.yaml: "
-                                f"{axis}[{key!r}][{field!r}][{lang!r}][{i}] "
-                                f"must be a non-empty string"
-                            )
+            raise ValueError("clinosim-nursing-content.yaml: axis is empty or not a mapping")
+        return entries
 
 
 @lru_cache(maxsize=1)
@@ -423,5 +339,5 @@ def load_nursing_content() -> dict[str, Any]:
     capping the merged list.
     """
     data: dict[str, Any] = load_reference_yaml(_REF_DIR / "clinosim-nursing-content.yaml")
-    _validate_nursing_content(data)
+    NursingContent.model_validate(data)
     return data
