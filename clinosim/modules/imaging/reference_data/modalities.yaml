@@ -1,6 +1,6 @@
 # DICOM modality reference.
 # Each entry: dicom_code, localized display, typical instance count range,
-# default views per body site. Validated at import time by _validate_modalities().
+# default views per body site. Validated at load time by the ImagingModalities model in engine.py.
 #
 # CO-1 continuation (session 43): MR + US modalities added along with the
 # 8-body-site expansion (see body_sites.yaml + SUPPORTED_BODY_SITES).

@@ -60,7 +60,7 @@ def load_medication_lab_mapping() -> dict[str, dict[str, Any]]:
 
     Fail-loud on missing / malformed structure so misconfigurations
     surface at import time rather than at emit time (silent-no-op
-    defense; same pattern as ``imaging/engine.py::_validate_modalities``).
+    defense; same pattern as ``imaging/engine.py::ImagingModalities``).
     """
     path = _REF_DIR / "med_lab_mapping.yaml"
     if not path.exists():

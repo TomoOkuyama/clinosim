@@ -14,10 +14,11 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, field_validator, model_validator
 
 from clinosim import determinism
 from clinosim.codes import code_exists
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -133,159 +134,212 @@ def _canonicalize_display(name: str) -> str:
     return " ".join(tokens)
 
 
-def _validate_modalities(data: dict[str, Any]) -> None:
-    """Fail-loud validation of modalities.yaml (silent-no-op defense Layer 3-6)."""
-    if not data:
-        raise ValueError("modalities.yaml: empty top-level")
-    modalities = data.get("modalities")
-    if not modalities or not isinstance(modalities, dict):
-        raise ValueError("modalities.yaml: missing or empty 'modalities' key")
-    # Forward + reverse coverage against canonical set.
-    yaml_keys = set(modalities.keys())
-    if yaml_keys != set(SUPPORTED_MODALITIES):
-        missing = SUPPORTED_MODALITIES - yaml_keys
-        extra = yaml_keys - SUPPORTED_MODALITIES
-        raise ValueError(
-            f"modalities.yaml ↔ SUPPORTED_MODALITIES drift: missing={sorted(missing)}, extra={sorted(extra)}"
-        )
-    for mod_key, mod in modalities.items():
-        if not mod.get("dicom_code"):
-            raise ValueError(f"modalities.yaml[{mod_key}]: missing dicom_code")
-        # META #1805 Phase C: display_en + display_ja retired. Displays
-        # live in clinosim/codes/data/dicom-modality.yaml and resolve
-        # via code_lookup("dicom-modality", code, lang) at emit time.
-        # CR uses per-view range; CT uses per-series range.
-        per_view = mod.get("typical_instances_per_view_range")
-        per_series = mod.get("typical_instances_per_series_range")
-        if per_view is None and per_series is None:
+# A YAML number (not a numeric string).
+_Number = StrictInt | StrictFloat
+
+
+def _exact_keys(keys: set[str], supported: frozenset[str], where: str) -> None:
+    """Forward + reverse coverage against a canonical set (silent-no-op defense Layer 4)."""
+    if keys != supported:
+        missing, extra = supported - keys, keys - supported
+        raise ValueError(f"{where} drift: missing={sorted(missing)}, extra={sorted(extra)}")
+
+
+def _instance_range(value: list[_Number], where: str) -> list[_Number]:
+    if len(value) != 2 or not 1 <= value[0] <= value[1]:
+        raise ValueError(f"modalities.yaml {where}: must be [low, high] with 1 <= low <= high")
+    return value
+
+
+class _Modality(BaseModel):
+    """CR uses a per-view instance range, CT a per-series range per body site.
+    Displays resolve from codes/data/dicom-modality.yaml (META #1805 Phase C)."""
+
+    model_config = ConfigDict(extra="allow")
+
+    dicom_code: str = Field(min_length=1)
+    typical_instances_per_view_range: list[_Number] | None = None
+    typical_instances_per_series_range: dict[str, list[_Number]] | None = None
+
+    @field_validator("typical_instances_per_view_range")
+    @classmethod
+    def _view_range(cls, value: list[_Number] | None) -> list[_Number] | None:
+        return None if value is None else _instance_range(value, "typical_instances_per_view_range")
+
+    @field_validator("typical_instances_per_series_range")
+    @classmethod
+    def _series_ranges(cls, value: dict[str, list[_Number]] | None) -> dict[str, list[_Number]] | None:
+        if value is None:
+            return None
+        if not value:
+            raise ValueError("modalities.yaml typical_instances_per_series_range: non-empty dict required")
+        for body_site, rng in value.items():
+            _instance_range(rng, f"typical_instances_per_series_range[{body_site}]")
+        return value
+
+    @model_validator(mode="after")
+    def _has_an_instance_range(self) -> _Modality:
+        if self.typical_instances_per_view_range is None and self.typical_instances_per_series_range is None:
             raise ValueError(
-                f"modalities.yaml[{mod_key}]: must define either "
-                f"typical_instances_per_view_range or typical_instances_per_series_range"
+                "modalities.yaml: must define either "
+                "typical_instances_per_view_range or typical_instances_per_series_range"
             )
-        if per_view is not None:
-            if not isinstance(per_view, list) or len(per_view) != 2 or per_view[0] > per_view[1] or per_view[0] < 1:
-                raise ValueError(
-                    f"modalities.yaml[{mod_key}].typical_instances_per_view_range: "
-                    f"must be [low, high] with 1 <= low <= high"
-                )
-        if per_series is not None:
-            if not isinstance(per_series, dict) or not per_series:
-                raise ValueError(f"modalities.yaml[{mod_key}].typical_instances_per_series_range: dict required")
-            for bs, rng in per_series.items():
-                if not isinstance(rng, list) or len(rng) != 2 or rng[0] > rng[1] or rng[0] < 1:
-                    raise ValueError(
-                        f"modalities.yaml[{mod_key}].typical_instances_per_series_range[{bs}]: "
-                        f"must be [low, high] with 1 <= low <= high"
-                    )
+        return self
 
 
-def _validate_body_sites(data: dict[str, Any]) -> None:
-    """Fail-loud validation of body_sites.yaml (forward + reverse coverage).
+class ImagingModalities(BaseModel):
+    """Shape of modalities.yaml: exactly the SUPPORTED_MODALITIES, each with a
+    DICOM code and an instance-count range (silent-no-op defense Layer 3-6)."""
 
-    AD-30 chain addition: every body site's `snomed` must resolve in
-    codes/data/snomed-ct.yaml — safety net now that the CIF no longer carries
-    a fallback display string for unresolvable codes.
-    """
-    if not data:
-        raise ValueError("body_sites.yaml: empty top-level")
-    body_sites = data.get("body_sites")
-    if not body_sites or not isinstance(body_sites, dict):
-        raise ValueError("body_sites.yaml: missing or empty 'body_sites' key")
-    yaml_keys = set(body_sites.keys())
-    if yaml_keys != set(SUPPORTED_BODY_SITES):
-        missing = SUPPORTED_BODY_SITES - yaml_keys
-        extra = yaml_keys - SUPPORTED_BODY_SITES
-        raise ValueError(
-            f"body_sites.yaml ↔ SUPPORTED_BODY_SITES drift: missing={sorted(missing)}, extra={sorted(extra)}"
-        )
-    for bs_key, bs in body_sites.items():
-        if not bs.get("snomed"):
-            raise ValueError(f"body_sites.yaml[{bs_key}]: missing snomed")
-        if not code_exists("snomed-ct", bs["snomed"], exact=True):
-            raise ValueError(f"body_sites.yaml[{bs_key}].snomed {bs['snomed']!r} not in codes/data/snomed-ct.yaml")
-        # META #1805 Phase B: top-level display_en + display_ja retired —
-        # displays live in snomed-ct.yaml and resolve at emit time via
-        # code_lookup("snomed-ct", bs.snomed, lang).
-        # META #1805 Phase B.2 Part 2: the nested
-        # procedure_codes[*].display_en / display_ja fields are now also
-        # retired. Displays resolve via code_lookup("loinc", pc.loinc,
-        # lang) against the LOINC authority (clinosim/codes/data/loinc.yaml,
-        # populated by Phase B.2 Part 1 #1835).
-        pcs = bs.get("procedure_codes") or {}
-        if not pcs:
-            raise ValueError(f"body_sites.yaml[{bs_key}]: missing procedure_codes")
-        for proc_key, proc in pcs.items():
-            for required in ("loinc", "cpt", "jp_k_code"):
-                if not proc.get(required):
-                    raise ValueError(f"body_sites.yaml[{bs_key}].procedure_codes[{proc_key}]: missing {required}")
+    model_config = ConfigDict(extra="allow")
+
+    modalities: dict[str, _Modality] = Field(min_length=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _not_empty(cls, data: Any) -> Any:
+        if not data:
+            raise ValueError("modalities.yaml: empty top-level")
+        return data
+
+    @field_validator("modalities")
+    @classmethod
+    def _supported_modalities(cls, modalities: dict[str, _Modality]) -> dict[str, _Modality]:
+        _exact_keys(set(modalities), SUPPORTED_MODALITIES, "modalities.yaml ↔ SUPPORTED_MODALITIES")
+        return modalities
 
 
-def _validate_impression_templates(data: dict[str, Any]) -> None:
-    """Fail-loud validation of impression_templates.yaml.
+class _ProcedureCodes(BaseModel):
+    """Displays resolve from the LOINC authority (META #1805 Phase B.2)."""
 
-    Forward-coverage: every SUPPORTED_IMAGING_DISEASES entry must have a templates
-    bucket. Each disease × modality_body_site bucket must have either 'normal' or
-    'abnormal' (or both). Each leaf carries ``findings`` and ``impression`` as
-    language maps with English and Japanese (Issue #2505).
-    Reverse-coverage: no stale entries beyond SUPPORTED_IMAGING_DISEASES (silent-no-op
-    defense Layer 4 staleness check).
-    """
-    if not data:
-        raise ValueError("impression_templates.yaml: empty top-level")
-    templates = data.get("templates")
-    if not templates or not isinstance(templates, dict):
-        raise ValueError("impression_templates.yaml: missing or empty 'templates' key")
-    yaml_diseases = set(templates.keys())
-    if not SUPPORTED_IMAGING_DISEASES.issubset(yaml_diseases):
-        missing = SUPPORTED_IMAGING_DISEASES - yaml_diseases
-        raise ValueError(f"impression_templates.yaml: missing disease entries: {sorted(missing)}")
-    extra = yaml_diseases - SUPPORTED_IMAGING_DISEASES
-    if extra:
-        raise ValueError(
-            f"impression_templates.yaml: stale disease entries (no SUPPORTED_IMAGING_DISEASES match): {sorted(extra)}"
-        )
-    required_leaf_keys = ("findings", "impression")
-    required_languages = ("en", "ja")  # the CIF report has an English and a Japanese slot
-    for disease, mod_bs_dict in templates.items():
-        if not mod_bs_dict:
-            raise ValueError(f"impression_templates.yaml[{disease}]: empty modality bucket")
-        for mod_bs, variants in mod_bs_dict.items():
-            if not variants:
-                raise ValueError(f"impression_templates.yaml[{disease}][{mod_bs}]: empty variants")
-            for kind in ("normal", "abnormal"):
-                if kind in variants:
-                    for k in required_leaf_keys:
-                        text = variants[kind].get(k)
-                        if not isinstance(text, dict) or not all(text.get(lang) for lang in required_languages):
-                            raise ValueError(f"impression_templates.yaml[{disease}][{mod_bs}][{kind}]: missing {k}")
-            if "normal" not in variants and "abnormal" not in variants:
-                raise ValueError(
-                    f"impression_templates.yaml[{disease}][{mod_bs}]: must have at least 'normal' or 'abnormal' variant"
-                )
+    model_config = ConfigDict(extra="allow")
+
+    loinc: str = Field(min_length=1)
+    cpt: str = Field(min_length=1)
+    jp_k_code: str = Field(min_length=1)
+
+
+class _BodySite(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    snomed: str
+    procedure_codes: dict[str, _ProcedureCodes] = Field(min_length=1)
+
+    @field_validator("snomed")
+    @classmethod
+    def _registered(cls, code: str) -> str:
+        """AD-30 chain: the CIF carries no fallback display for an unresolvable code."""
+        if not code:
+            raise ValueError("body_sites.yaml: missing snomed")
+        if not code_exists("snomed-ct", code, exact=True):
+            raise ValueError(f"body_sites.yaml snomed {code!r} not in codes/data/snomed-ct.yaml")
+        return code
+
+
+class ImagingBodySites(BaseModel):
+    """Shape of body_sites.yaml: exactly the SUPPORTED_BODY_SITES, each with a
+    registered SNOMED code and LOINC / CPT / JP K-code procedure codes."""
+
+    model_config = ConfigDict(extra="allow")
+
+    body_sites: dict[str, _BodySite] = Field(min_length=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _not_empty(cls, data: Any) -> Any:
+        if not data:
+            raise ValueError("body_sites.yaml: empty top-level")
+        return data
+
+    @field_validator("body_sites")
+    @classmethod
+    def _supported_body_sites(cls, body_sites: dict[str, _BodySite]) -> dict[str, _BodySite]:
+        _exact_keys(set(body_sites), SUPPORTED_BODY_SITES, "body_sites.yaml ↔ SUPPORTED_BODY_SITES")
+        return body_sites
+
+
+class _LanguageText(BaseModel):
+    """The CIF report has an English and a Japanese slot (Issue #2505)."""
+
+    model_config = ConfigDict(extra="allow")
+
+    en: str = Field(min_length=1)
+    ja: str = Field(min_length=1)
+
+
+class _ReportText(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    findings: _LanguageText
+    impression: _LanguageText
+
+
+class _ReportVariants(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    normal: _ReportText | None = None
+    abnormal: _ReportText | None = None
+
+    @model_validator(mode="after")
+    def _has_a_variant(self) -> _ReportVariants:
+        if self.normal is None and self.abnormal is None:
+            raise ValueError("impression_templates.yaml: must have at least 'normal' or 'abnormal' variant")
+        return self
+
+
+class ImpressionTemplates(BaseModel):
+    """Shape of impression_templates.yaml: a non-empty bucket for exactly the
+    SUPPORTED_IMAGING_DISEASES (missing and stale entries both rejected), each
+    modality x body site with a normal and/or abnormal findings + impression."""
+
+    model_config = ConfigDict(extra="allow")
+
+    templates: dict[str, dict[str, _ReportVariants]] = Field(min_length=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _not_empty(cls, data: Any) -> Any:
+        if not data:
+            raise ValueError("impression_templates.yaml: empty top-level")
+        return data
+
+    @field_validator("templates")
+    @classmethod
+    def _supported_diseases(
+        cls, templates: dict[str, dict[str, _ReportVariants]]
+    ) -> dict[str, dict[str, _ReportVariants]]:
+        diseases = set(templates)
+        missing = SUPPORTED_IMAGING_DISEASES - diseases
+        if missing:
+            raise ValueError(f"impression_templates.yaml: missing disease entries: {sorted(missing)}")
+        stale = diseases - SUPPORTED_IMAGING_DISEASES
+        if stale:
+            raise ValueError(
+                "impression_templates.yaml: stale disease entries "
+                f"(no SUPPORTED_IMAGING_DISEASES match): {sorted(stale)}"
+            )
+        empty = sorted(disease for disease, buckets in templates.items() if not buckets)
+        if empty:
+            raise ValueError(f"impression_templates.yaml{empty}: empty modality bucket")
+        return templates
 
 
 @lru_cache(maxsize=1)
 def load_modalities() -> dict[str, Any]:
     """Load modalities.yaml + validate. Cached singleton."""
-    data = load_data_yaml(_REF_DIR / "modalities.yaml")
-    _validate_modalities(data)
-    return data["modalities"]
+    return load_validated_yaml(_REF_DIR / "modalities.yaml", ImagingModalities)["modalities"]
 
 
 @lru_cache(maxsize=1)
 def load_body_sites() -> dict[str, Any]:
     """Load body_sites.yaml + validate. Cached singleton."""
-    data = load_data_yaml(_REF_DIR / "body_sites.yaml")
-    _validate_body_sites(data)
-    return data["body_sites"]
+    return load_validated_yaml(_REF_DIR / "body_sites.yaml", ImagingBodySites)["body_sites"]
 
 
 @lru_cache(maxsize=1)
 def load_impression_templates() -> dict[str, Any]:
     """Load impression_templates.yaml + validate. Cached singleton."""
-    data = load_data_yaml(_REF_DIR / "impression_templates.yaml")
-    _validate_impression_templates(data)
-    return data["templates"]
+    return load_validated_yaml(_REF_DIR / "impression_templates.yaml", ImpressionTemplates)["templates"]
 
 
 # ---------------------------------------------------------------------------
