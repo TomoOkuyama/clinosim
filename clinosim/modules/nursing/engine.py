@@ -1,6 +1,6 @@
 """Nursing module engine (Tier 1 #3 α-min-2, AD-64).
 
-Loader + 6-layer validator + primary_nurse assignment.
+Loader (validated by the ``NursingAssessment`` model) + primary_nurse assignment.
 POST_ENCOUNTER enricher entry: nursing_enricher (Task 5 owns, not here).
 """
 
@@ -11,9 +11,10 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from clinosim import determinism
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_validated_yaml
 from clinosim.types.staff import StaffRoster
 
 _HERE = Path(__file__).resolve().parent
@@ -29,77 +30,65 @@ def _is_list_map(value: object) -> bool:
     return isinstance(value, dict) and bool(value) and all(isinstance(v, list) for v in value.values())
 
 
-def _validate_nursing_assessment(data: dict[str, Any]) -> None:
-    """6-layer silent-no-op defense for nursing_assessment.yaml."""
-    # Layer 1: empty top-level check
-    if not data:
-        raise ValueError("nursing_assessment.yaml: empty top-level")
+class _NursingFocus(BaseModel):
+    """A nursing focus with its interventions, each language mapped to a list."""
 
-    # Layer 2: required top-level keys present (None check)
-    for key in ("adl_categories", "risk_assessments", "disease_specific_nursing_focus", "baseline"):
-        if data.get(key) is None:
-            raise ValueError(f"nursing_assessment.yaml: missing required top-level key '{key}'")
+    model_config = ConfigDict(extra="allow")
 
-    # Layer 3: baseline required fields
-    baseline = data["baseline"]
-    if not isinstance(baseline, dict) or "focus" not in baseline:
-        raise ValueError("nursing_assessment.yaml: baseline must have 'focus' field")
-    if "interventions" not in baseline:
-        raise ValueError("nursing_assessment.yaml: baseline must have an 'interventions' language map")
+    focus: Any
+    interventions: dict[str, Any]
 
-    # Layer 4: forward + reverse coverage for adl_categories vs SUPPORTED_ADL_CATEGORIES
-    adl_keys = set(data["adl_categories"].keys())
-    if adl_keys != SUPPORTED_ADL_CATEGORIES:
-        missing = SUPPORTED_ADL_CATEGORIES - adl_keys
-        extra = adl_keys - SUPPORTED_ADL_CATEGORIES
+    @field_validator("interventions")
+    @classmethod
+    def _interventions_map_each_language_to_a_list(cls, value: dict[str, Any]) -> dict[str, Any]:
+        if not _is_list_map(value):
+            raise ValueError("interventions must map each language to a list")
+        return value
+
+
+class NursingAssessment(BaseModel):
+    """Shape of nursing_assessment.yaml: exactly the supported ADL categories
+    and risk assessments, a baseline focus, and per-disease foci."""
+
+    model_config = ConfigDict(extra="allow")
+
+    adl_categories: dict[str, Any]
+    risk_assessments: dict[str, Any]
+    disease_specific_nursing_focus: dict[str, _NursingFocus]
+    baseline: _NursingFocus
+
+    @model_validator(mode="before")
+    @classmethod
+    def _not_empty(cls, data: Any) -> Any:
+        if not data:
+            raise ValueError("nursing_assessment.yaml: empty top-level")
+        return data
+
+    @field_validator("adl_categories")
+    @classmethod
+    def _supported_adl_categories(cls, value: dict[str, Any]) -> dict[str, Any]:
+        _require_exactly(set(value), SUPPORTED_ADL_CATEGORIES, "adl_categories ↔ SUPPORTED_ADL_CATEGORIES")
+        return value
+
+    @field_validator("risk_assessments")
+    @classmethod
+    def _supported_risk_assessments(cls, value: dict[str, Any]) -> dict[str, Any]:
+        _require_exactly(set(value), SUPPORTED_RISK_ASSESSMENTS, "risk_assessments ↔ SUPPORTED_RISK_ASSESSMENTS")
+        return value
+
+
+def _require_exactly(keys: set[str], supported: frozenset[str], what: str) -> None:
+    if keys != supported:
         raise ValueError(
-            f"nursing_assessment.yaml adl_categories ↔ SUPPORTED_ADL_CATEGORIES drift: "
-            f"missing={sorted(missing)}, extra={sorted(extra)}"
+            f"nursing_assessment.yaml {what} drift: "
+            f"missing={sorted(supported - keys)}, extra={sorted(keys - supported)}"
         )
-
-    # Layer 4b: forward + reverse coverage for risk_assessments vs SUPPORTED_RISK_ASSESSMENTS
-    risk_keys = set(data["risk_assessments"].keys())
-    if risk_keys != SUPPORTED_RISK_ASSESSMENTS:
-        missing = SUPPORTED_RISK_ASSESSMENTS - risk_keys
-        extra = risk_keys - SUPPORTED_RISK_ASSESSMENTS
-        raise ValueError(
-            f"nursing_assessment.yaml risk_assessments ↔ SUPPORTED_RISK_ASSESSMENTS drift: "
-            f"missing={sorted(missing)}, extra={sorted(extra)}"
-        )
-
-    # Layer 5: per disease_specific_nursing_focus entry required fields
-    disease_focus = data.get("disease_specific_nursing_focus", {}) or {}
-    for disease_id, entry in disease_focus.items():
-        if not isinstance(entry, dict):
-            raise ValueError(f"nursing_assessment.yaml: disease_specific_nursing_focus[{disease_id!r}] must be a dict")
-        if "focus" not in entry:
-            raise ValueError(
-                f"nursing_assessment.yaml: disease_specific_nursing_focus[{disease_id!r}] "
-                f"missing required field 'focus'"
-            )
-        if "interventions" not in entry:
-            raise ValueError(
-                f"nursing_assessment.yaml: disease_specific_nursing_focus[{disease_id!r}] "
-                f"missing required field 'interventions'"
-            )
-
-    # Layer 6: type checks (interventions maps each language to a list)
-    if not _is_list_map(baseline.get("interventions")):
-        raise ValueError("nursing_assessment.yaml: baseline.interventions must map each language to a list")
-    for disease_id, entry in disease_focus.items():
-        if not _is_list_map(entry.get("interventions")):
-            raise ValueError(
-                f"nursing_assessment.yaml: disease_specific_nursing_focus[{disease_id!r}] "
-                f"interventions must map each language to a list"
-            )
 
 
 @lru_cache(maxsize=1)
 def load_nursing_assessment() -> dict[str, Any]:
     """Load nursing_assessment.yaml + validate (cached)."""
-    data = load_data_yaml(_REF_DIR / "nursing_assessment.yaml")
-    _validate_nursing_assessment(data)
-    return data
+    return load_validated_yaml(_REF_DIR / "nursing_assessment.yaml", NursingAssessment)
 
 
 def assign_primary_nurse(encounter: Any, roster: StaffRoster | None, rng: np.random.Generator) -> str:

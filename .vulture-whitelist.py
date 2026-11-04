@@ -297,6 +297,15 @@ _.arrival_modes  # triage/engine.py TriageProtocols
 _.severity_to_triage_distribution  # triage/engine.py TriageProtocols
 _.arrival_mode_base_distribution  # triage/engine.py TriageProtocols
 
+# ----- clinosim/modules/nursing/engine.py (Pydantic BaseModel, Issue #2565) -----
+# Schema fields of the YAML validation model; callers read the raw dict.
+_.adl_categories  # nursing/engine.py NursingAssessment
+_.risk_assessments  # nursing/engine.py NursingAssessment
+_.disease_specific_nursing_focus  # nursing/engine.py NursingAssessment
+_.baseline  # nursing/engine.py NursingAssessment
+_.focus  # nursing/engine.py _NursingFocus
+_.interventions  # nursing/engine.py _NursingFocus
+
 # ----- clinosim/modules/encounter/protocol.py (Pydantic BaseModel) -----
 # Narrative template language maps (subjective / objective / assessment /
 # plan / chief_complaint / hpi / physical_exam / ed_workup_summary /

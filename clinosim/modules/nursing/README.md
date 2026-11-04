@@ -105,7 +105,7 @@ it directly from
     interventions_ja: list[str]}}` (JP nursing-focus text).
   - `baseline` — same `{focus, interventions_ja}` shape, used as the
     fallback when no disease-specific entry matches.
-- 6-layer import-time validator (`_validate_nursing_assessment`)
+- import-time validator (`NursingAssessment` Pydantic model)
   catches: (1) empty top-level, (2) missing top-level keys,
   (3) missing baseline required fields, (4) `adl_categories` ↔
   `SUPPORTED_ADL_CATEGORIES` drift both ways, (4b) same for

@@ -100,7 +100,7 @@ POST_ENCOUNTER エントリ `nursing_enricher(ctx) -> None` は `engine.py`
     interventions_ja: list[str]}}` (JP 看護 focus テキスト)。
   - `baseline` — 疾患別が無いときの fallback。同 `{focus, interventions_ja}`
     形状。
-- import 時 6-layer validator (`_validate_nursing_assessment`) が検出:
+- import 時 validator (`NursingAssessment` Pydantic model) が検出:
   (1) 空 top-level、(2) top-level 必須キーの欠落、(3) baseline
   必須フィールド欠落、(4) `adl_categories` ↔ `SUPPORTED_ADL_CATEGORIES`
   の双方向 coverage drift、(4b) `risk_assessments` の同左、
