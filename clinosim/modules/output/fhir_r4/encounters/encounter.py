@@ -110,51 +110,8 @@ def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | 
     return ucum_quantity(total_min, "min")
 
 
-def _build_encounter(
-    enc: dict,
-    patient_id: str,
-    is_readmission: bool = False,
-    prior_encounter_id: str | None = None,
-    primary_dx_code: str = "",
-    country: str = "US",
-    admit_dx_code: str = "",
-    admit_dx_system: str = "icd-10-cm",
-    icu_transferred_day: int = -1,
-    deceased: bool = False,
-    chronic_condition_codes: list[str] | None = None,
-    record_orders: list | None = None,  # CY8-03: DIET Order source for dietPreference
-    patient_sex: str = "",  # Issue #957: threads sex to sex-conditional ICD-10-CM mapping (C50)
-) -> dict:
-    """Build FHIR Encounter resource."""
-    encounter_id = enc.get("encounter_id", str(uuid.uuid4()))
-    enc_type = enc.get("encounter_type", "")
-
-    # Map class
-    if enc_type == "inpatient":
-        class_code = "IMP"
-    elif enc_type == "emergency":
-        class_code = "EMER"
-    else:
-        class_code = "AMB"
-
-    resource: dict[str, Any] = {
-        "resourceType": "Encounter",
-        # Issue #854 Bucket B (PR-encounter): opaque `enc-<12hex>` id.
-        # Pre-#854 shape (CIF `encounter_id`) is preserved on
-        # `.identifier[]` via ENCOUNTER_KEY_SYSTEM for round-trip.
-        "id": resolve_encounter_id(encounter_id),
-        "identifier": [wrap_as_identifier(encounter_id, ENCOUNTER_KEY_SYSTEM)],
-        # C2-20: JP Core Encounter profile.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"]}}
-            if is_jp(country)
-            else {}
-        ),
-        "status": map_encounter_status(enc.get("status", "")),
-        "class": system_coding("hl7-v3-actcode", class_code, lang_for(country)),
-        "subject": patient_ref(patient_id),
-    }
-
+def _set_type(resource: dict[str, Any], enc: dict, enc_type: str, primary_dx_code: str, country: str) -> None:
+    """Encounter.type (SNOMED), specific for outpatient visits."""
     # Type (SNOMED). C1-05: outpatient AMB no longer
     # uniformly "Patient-initiated encounter". Use existing context to pick a
     # more specific SNOMED code — JP EHR reality: 再診 (follow-up check-up) is
@@ -181,6 +138,9 @@ def _build_encounter(
         # codes/data entry emit without display=code fallback (FHIR interop).
         resource["type"] = [dual_slot_concept("snomed-ct", type_code, lang_for(country))]
 
+
+def _set_priority(resource: dict[str, Any], enc: dict, country: str) -> None:
+    """Encounter.priority."""
     # Priority (Encounter.priority)
     priority = enc.get("priority", "")
     # CY7-06 (Chain-7): default priority "R" (routine) when unset. Real EHR
@@ -192,16 +152,9 @@ def _build_encounter(
     if priority:
         resource["priority"] = dual_slot_concept("hl7-v3-actpriority", priority, lang_for(country))
 
-    # Service type (department)
-    # feedback FB-F7: hl7-service-type CodeSystem は診療科 code の canonical
-    # source ではない(numeric code 系のみ)。department 名(internal_medicine /
-    # health_checkup 等)を直接 code として使うと validator が "code 未定義" と
-    # reject する。JP-authoritative 診療科 CodeSystem が確立するまで text-only
-    # CodeableConcept で emit(Coverage.type と同じ no-fabrication policy)。
-    department = enc.get("department_id", "") or "internal_medicine"
-    dept_display = _dept_display(department, country)
-    resource["serviceType"] = {"text": dept_display}
 
+def _set_period(resource: dict[str, Any], enc: dict) -> None:
+    """Encounter.period and length."""
     if enc.get("admission_datetime"):
         resource["period"] = {"start": enc["admission_datetime"]}
         if enc.get("discharge_datetime"):
@@ -213,131 +166,144 @@ def _build_encounter(
             if length is not None:
                 resource["length"] = length
 
-    # C5-22: Encounter.classHistory + statusHistory for
-    # inpatient encounters that transitioned through ward → ICU (icu_transferred_day
-    # captured in inpatient.py simulator loop) OR whose planned → in-progress
-    # → finished status transitions matter for audit trail.
-    if class_code == "IMP" and enc.get("admission_datetime"):
-        from datetime import datetime as _dt
-        from datetime import timedelta as _td
 
+def _set_inpatient_histories(resource: dict[str, Any], enc: dict, icu_transferred_day: int, country: str) -> None:
+    """Encounter.classHistory (ward → ICU) and statusHistory of an inpatient stay."""
+    from datetime import datetime as _dt
+    from datetime import timedelta as _td
+
+    try:
+        _adm = _dt.fromisoformat(str(enc["admission_datetime"]).replace("Z", "+00:00").split("+")[0])
+    except (ValueError, TypeError):
+        _adm = None
+    _dis = None
+    if enc.get("discharge_datetime"):
         try:
-            _adm = _dt.fromisoformat(str(enc["admission_datetime"]).replace("Z", "+00:00").split("+")[0])
+            _dis = _dt.fromisoformat(str(enc["discharge_datetime"]).replace("Z", "+00:00").split("+")[0])
         except (ValueError, TypeError):
-            _adm = None
-        _dis = None
-        if enc.get("discharge_datetime"):
-            try:
-                _dis = _dt.fromisoformat(str(enc["discharge_datetime"]).replace("Z", "+00:00").split("+")[0])
-            except (ValueError, TypeError):
-                pass
-        # classHistory: ward IMP → ICU IMP transition
-        if icu_transferred_day is not None and icu_transferred_day >= 0 and _adm:
-            _icu_transfer_dt = _adm + _td(days=icu_transferred_day)
-            class_history: list[dict[str, Any]] = [
+            pass
+    # classHistory: ward IMP → ICU IMP transition
+    if icu_transferred_day is not None and icu_transferred_day >= 0 and _adm:
+        _icu_transfer_dt = _adm + _td(days=icu_transferred_day)
+        class_history: list[dict[str, Any]] = [
+            {
+                "class": system_coding("hl7-v3-actcode", "IMP", lang_for(country)),
+                "period": {
+                    "start": enc["admission_datetime"],
+                    "end": _icu_transfer_dt.isoformat(),
+                },
+            },
+            {
+                "class": system_coding("hl7-v3-actcode", "ACUTE", lang_for(country)),
+                "period": {
+                    "start": _icu_transfer_dt.isoformat(),
+                    **({"end": enc["discharge_datetime"]} if enc.get("discharge_datetime") else {}),
+                },
+            },
+        ]
+        resource["classHistory"] = class_history
+    # statusHistory: planned → in-progress → finished (deterministic
+    # timeline: planned = admission-1h, in-progress = admission,
+    # finished = discharge). Only emit when we have both timestamps.
+    if _adm:
+        _planned_start = (_adm - _td(hours=1)).isoformat()
+        status_history: list[dict[str, Any]] = [
+            {
+                "status": "planned",
+                "period": {
+                    "start": _planned_start,
+                    "end": enc["admission_datetime"],
+                },
+            },
+        ]
+        _cur_status = map_encounter_status(enc.get("status", ""))
+        if _cur_status == "finished" and _dis:
+            status_history.append(
                 {
-                    "class": system_coding("hl7-v3-actcode", "IMP", lang_for(country)),
+                    "status": "in-progress",
                     "period": {
                         "start": enc["admission_datetime"],
-                        "end": _icu_transfer_dt.isoformat(),
+                        "end": enc["discharge_datetime"],
                     },
-                },
-                {
-                    "class": system_coding("hl7-v3-actcode", "ACUTE", lang_for(country)),
-                    "period": {
-                        "start": _icu_transfer_dt.isoformat(),
-                        **({"end": enc["discharge_datetime"]} if enc.get("discharge_datetime") else {}),
-                    },
-                },
-            ]
-            resource["classHistory"] = class_history
-        # statusHistory: planned → in-progress → finished (deterministic
-        # timeline: planned = admission-1h, in-progress = admission,
-        # finished = discharge). Only emit when we have both timestamps.
-        if _adm:
-            _planned_start = (_adm - _td(hours=1)).isoformat()
-            status_history: list[dict[str, Any]] = [
-                {
-                    "status": "planned",
-                    "period": {
-                        "start": _planned_start,
-                        "end": enc["admission_datetime"],
-                    },
-                },
-            ]
-            _cur_status = map_encounter_status(enc.get("status", ""))
-            if _cur_status == "finished" and _dis:
-                status_history.append(
-                    {
-                        "status": "in-progress",
-                        "period": {
-                            "start": enc["admission_datetime"],
-                            "end": enc["discharge_datetime"],
-                        },
-                    }
-                )
-                status_history.append(
-                    {
-                        "status": "finished",
-                        "period": {"start": enc["discharge_datetime"]},
-                    }
-                )
-            else:
-                status_history.append(
-                    {
-                        "status": "in-progress",
-                        "period": {"start": enc["admission_datetime"]},
-                    }
-                )
-            resource["statusHistory"] = status_history
-
-    if enc.get("chief_complaint"):
-        # reasonCode: use diagnosis display in target language (codes module)
-        # Falls back to JP-stashed chief_complaint_ja on JP output, or
-        # English chief_complaint text otherwise, if no code available.
-        lang = lang_for(country)
-        # C4-24: route the admission dx system + code
-        # through the country's diagnosis code system so JP output never
-        # emits icd-10-cm under an icd-10 semantic surface (was 4 encounters
-        # in baseline where CIF stored icd-10-cm CM-granular codes as-is).
-        # `system_key_for("diagnosis", ...)` yields `icd-10-cm` for US and
-        # `icd-10` for JP; `map_diagnosis_code` folds CM-granular to WHO
-        # roots via code_mapping_diagnosis.
-        _reason_system = system_key_for("diagnosis", country)
-        _reason_code = map_diagnosis_code(admit_dx_code, country, sex=patient_sex) if admit_dx_code else ""
-        # Issue #360 G1 (iris4h-ai 2026-07-22): the fallback path (used when
-        # admit_dx_code is empty or code_lookup returns the raw code) must
-        # prefer the JP chief_complaint stashed by the simulator on JP
-        # output — CIF stores English canonical (AD-30), so the plain
-        # ``enc["chief_complaint"]`` is English and would reach the JP
-        # Clinical Cockpit as English protocol text (feedback G1).
-        _fallback_text = localized_field(enc, "chief_complaint", lang)
-        if _reason_code:
-            reason_text = code_lookup(_reason_system, _reason_code, lang)
-            if not reason_text:
-                reason_text = _fallback_text
-        else:
-            reason_text = _fallback_text
-        # C2-29: also emit reasonCode.coding pointing at
-        # the admission diagnosis code (ICD-10 or ICD-10-CM), not just text.
-        # This gives every Encounter a machine-processable reason.
-        rc: dict[str, Any] = {"text": reason_text}
-        if _reason_code:
-            rc["coding"] = [system_coding(_reason_system, _reason_code, lang)]
-        resource["reasonCode"] = [rc]
-        # reasonReference: link to primary Condition (if dx exists).
-        # Chronic-primary encounters resolve to the patient-scoped chronic
-        # Condition; acute-primary encounters keep the encounter-scoped id.
-        # Issue #916: skip the reference when the primary dx is a Z-chapter
-        # visit-reason code — conditions.py no longer emits a Condition for
-        # these, so the reference would dangle. The reasonCode text/coding
-        # above already carries the Z-code semantic.
-        if primary_dx_code and not is_visit_reason_zcode(primary_dx_code):
-            _primary_ref = primary_condition_ref_from_codes(
-                primary_dx_code, chronic_condition_codes, patient_id, encounter_id
+                }
             )
-            resource["reasonReference"] = [{"reference": f"Condition/{_primary_ref}"}]
+            status_history.append(
+                {
+                    "status": "finished",
+                    "period": {"start": enc["discharge_datetime"]},
+                }
+            )
+        else:
+            status_history.append(
+                {
+                    "status": "in-progress",
+                    "period": {"start": enc["admission_datetime"]},
+                }
+            )
+        resource["statusHistory"] = status_history
 
+
+def _set_reason(
+    resource: dict[str, Any],
+    enc: dict,
+    country: str,
+    admit_dx_code: str,
+    patient_sex: str,
+    primary_dx_code: str,
+    chronic_condition_codes: list[str] | None,
+    patient_id: str,
+    encounter_id: str,
+) -> None:
+    """Encounter.reasonCode (admission dx, else the chief complaint) and reasonReference."""
+    # reasonCode: use diagnosis display in target language (codes module)
+    # Falls back to JP-stashed chief_complaint_ja on JP output, or
+    # English chief_complaint text otherwise, if no code available.
+    lang = lang_for(country)
+    # C4-24: route the admission dx system + code
+    # through the country's diagnosis code system so JP output never
+    # emits icd-10-cm under an icd-10 semantic surface (was 4 encounters
+    # in baseline where CIF stored icd-10-cm CM-granular codes as-is).
+    # `system_key_for("diagnosis", ...)` yields `icd-10-cm` for US and
+    # `icd-10` for JP; `map_diagnosis_code` folds CM-granular to WHO
+    # roots via code_mapping_diagnosis.
+    _reason_system = system_key_for("diagnosis", country)
+    _reason_code = map_diagnosis_code(admit_dx_code, country, sex=patient_sex) if admit_dx_code else ""
+    # Issue #360 G1 (iris4h-ai 2026-07-22): the fallback path (used when
+    # admit_dx_code is empty or code_lookup returns the raw code) must
+    # prefer the JP chief_complaint stashed by the simulator on JP
+    # output — CIF stores English canonical (AD-30), so the plain
+    # ``enc["chief_complaint"]`` is English and would reach the JP
+    # Clinical Cockpit as English protocol text (feedback G1).
+    _fallback_text = localized_field(enc, "chief_complaint", lang)
+    if _reason_code:
+        reason_text = code_lookup(_reason_system, _reason_code, lang)
+        if not reason_text:
+            reason_text = _fallback_text
+    else:
+        reason_text = _fallback_text
+    # C2-29: also emit reasonCode.coding pointing at
+    # the admission diagnosis code (ICD-10 or ICD-10-CM), not just text.
+    # This gives every Encounter a machine-processable reason.
+    rc: dict[str, Any] = {"text": reason_text}
+    if _reason_code:
+        rc["coding"] = [system_coding(_reason_system, _reason_code, lang)]
+    resource["reasonCode"] = [rc]
+    # reasonReference: link to primary Condition (if dx exists).
+    # Chronic-primary encounters resolve to the patient-scoped chronic
+    # Condition; acute-primary encounters keep the encounter-scoped id.
+    # Issue #916: skip the reference when the primary dx is a Z-chapter
+    # visit-reason code — conditions.py no longer emits a Condition for
+    # these, so the reference would dangle. The reasonCode text/coding
+    # above already carries the Z-code semantic.
+    if primary_dx_code and not is_visit_reason_zcode(primary_dx_code):
+        _primary_ref = primary_condition_ref_from_codes(
+            primary_dx_code, chronic_condition_codes, patient_id, encounter_id
+        )
+        resource["reasonReference"] = [{"reference": f"Condition/{_primary_ref}"}]
+
+
+def _set_participants(resource: dict[str, Any], enc: dict, class_code: str, country: str) -> None:
+    """Encounter.participant: attending, admitter, discharger."""
     # Participant: attending, admitter, discharger
     participants: list[dict[str, Any]] = []
     attending = enc.get("attending_physician_id", "")
@@ -363,6 +329,18 @@ def _build_encounter(
     if participants:
         resource["participant"] = participants
 
+
+def _set_diagnoses(
+    resource: dict[str, Any],
+    primary_dx_code: str,
+    admit_dx_code: str,
+    chronic_condition_codes: list[str] | None,
+    patient_id: str,
+    encounter_id: str,
+    country: str,
+    patient_sex: str,
+) -> None:
+    """Encounter.diagnosis: the primary dx, comorbidities and the admission dx."""
     # Diagnosis reference (link to Condition)
     # Issue #916: when the primary dx is a Z-chapter visit-reason code,
     # conditions.py does not emit a Condition for it — so ``diagnosis[]``
@@ -473,6 +451,18 @@ def _build_encounter(
                     _entry["rank"] = _r
         resource["diagnosis"] = diagnosis_list
 
+
+def _set_hospitalization(
+    resource: dict[str, Any],
+    enc: dict,
+    class_code: str,
+    country: str,
+    is_readmission: bool,
+    deceased: bool,
+    record_orders: list | None,
+    encounter_id: str,
+) -> None:
+    """Encounter.hospitalization of an inpatient or emergency encounter."""
     # Hospitalization (admit source / discharge disposition / re-admission).
     # C1-02/C1-03: resolve display via authoritative
     # hl7-admit-source / hl7-discharge-disposition code data.
@@ -568,20 +558,9 @@ def _build_encounter(
     if hosp:
         resource["hospitalization"] = hosp
 
-    # Service provider (department Organization ``dept-<department>``, emitted
-    # by facility.py's _build_facility_bundle into Organization.ndjson)
-    # CY8-04 fix:department 未設定 encounter は
-    # hospital-main を fallback として serviceProvider に emit。従来 79.6% →
-    # 100% 化。department 名の "_" は "-" に normalize(既存 pattern)。
-    if department:
-        resource["serviceProvider"] = {
-            "reference": f"Organization/dept-{department.replace('_', '-')}",
-        }
-    else:
-        resource["serviceProvider"] = {
-            "reference": "Organization/hospital-main",
-        }
 
+def _set_locations(resource: dict[str, Any], enc: dict, country: str, department: str, dept_display: str) -> None:
+    """Encounter.location: bed, ward, else the department."""
     # Location (bed → ward hierarchy via partOf in facility bundle)
     ward_id = enc.get("ward_id", "")
     bed_number = enc.get("bed_number", "")
@@ -626,6 +605,108 @@ def _build_encounter(
         )
     if locations:
         resource["location"] = locations
+
+
+def _build_encounter(
+    enc: dict,
+    patient_id: str,
+    is_readmission: bool = False,
+    prior_encounter_id: str | None = None,
+    primary_dx_code: str = "",
+    country: str = "US",
+    admit_dx_code: str = "",
+    admit_dx_system: str = "icd-10-cm",
+    icu_transferred_day: int = -1,
+    deceased: bool = False,
+    chronic_condition_codes: list[str] | None = None,
+    record_orders: list | None = None,  # CY8-03: DIET Order source for dietPreference
+    patient_sex: str = "",  # Issue #957: threads sex to sex-conditional ICD-10-CM mapping (C50)
+) -> dict:
+    """Build FHIR Encounter resource."""
+    encounter_id = enc.get("encounter_id", str(uuid.uuid4()))
+    enc_type = enc.get("encounter_type", "")
+
+    # Map class
+    if enc_type == "inpatient":
+        class_code = "IMP"
+    elif enc_type == "emergency":
+        class_code = "EMER"
+    else:
+        class_code = "AMB"
+
+    resource: dict[str, Any] = {
+        "resourceType": "Encounter",
+        # Issue #854 Bucket B (PR-encounter): opaque `enc-<12hex>` id.
+        # Pre-#854 shape (CIF `encounter_id`) is preserved on
+        # `.identifier[]` via ENCOUNTER_KEY_SYSTEM for round-trip.
+        "id": resolve_encounter_id(encounter_id),
+        "identifier": [wrap_as_identifier(encounter_id, ENCOUNTER_KEY_SYSTEM)],
+        # C2-20: JP Core Encounter profile.
+        **(
+            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"]}}
+            if is_jp(country)
+            else {}
+        ),
+        "status": map_encounter_status(enc.get("status", "")),
+        "class": system_coding("hl7-v3-actcode", class_code, lang_for(country)),
+        "subject": patient_ref(patient_id),
+    }
+
+    _set_type(resource, enc, enc_type, primary_dx_code, country)
+    _set_priority(resource, enc, country)
+    # Service type (department)
+    # feedback FB-F7: hl7-service-type CodeSystem は診療科 code の canonical
+    # source ではない(numeric code 系のみ)。department 名(internal_medicine /
+    # health_checkup 等)を直接 code として使うと validator が "code 未定義" と
+    # reject する。JP-authoritative 診療科 CodeSystem が確立するまで text-only
+    # CodeableConcept で emit(Coverage.type と同じ no-fabrication policy)。
+    department = enc.get("department_id", "") or "internal_medicine"
+    dept_display = _dept_display(department, country)
+    resource["serviceType"] = {"text": dept_display}
+    _set_period(resource, enc)
+    # C5-22: classHistory / statusHistory for inpatient stays.
+    if class_code == "IMP" and enc.get("admission_datetime"):
+        _set_inpatient_histories(resource, enc, icu_transferred_day, country)
+    if enc.get("chief_complaint"):
+        _set_reason(
+            resource,
+            enc,
+            country,
+            admit_dx_code,
+            patient_sex,
+            primary_dx_code,
+            chronic_condition_codes,
+            patient_id,
+            encounter_id,
+        )
+    _set_participants(resource, enc, class_code, country)
+    _set_diagnoses(
+        resource,
+        primary_dx_code,
+        admit_dx_code,
+        chronic_condition_codes,
+        patient_id,
+        encounter_id,
+        country,
+        patient_sex,
+    )
+    _set_hospitalization(resource, enc, class_code, country, is_readmission, deceased, record_orders, encounter_id)
+
+    # Service provider (department Organization ``dept-<department>``, emitted
+    # by facility.py's _build_facility_bundle into Organization.ndjson)
+    # CY8-04 fix:department 未設定 encounter は
+    # hospital-main を fallback として serviceProvider に emit。従来 79.6% →
+    # 100% 化。department 名の "_" は "-" に normalize(既存 pattern)。
+    if department:
+        resource["serviceProvider"] = {
+            "reference": f"Organization/dept-{department.replace('_', '-')}",
+        }
+    else:
+        resource["serviceProvider"] = {
+            "reference": "Organization/hospital-main",
+        }
+
+    _set_locations(resource, enc, country, department, dept_display)
 
     # Readmission: link to prior encounter via partOf.
     # #299:従来 `Encounter.type[]` に v3-ActCode "READM" を
