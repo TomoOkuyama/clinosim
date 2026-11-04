@@ -87,6 +87,7 @@ from clinosim.simulator._daily_loop_thresholds import (
     TREATMENT_ESCALATION_INFLAMMATION_MIN,
 )
 from clinosim.simulator.complications import build_complication
+from clinosim.simulator.diagnosis_rules import day1_imaging_findings, lab_finding_rules
 from clinosim.simulator.discharge_gate import (
     _check_discharge_ready,
     _evaluate_mortality,
@@ -991,17 +992,15 @@ def _extract_findings(
     """Extract diagnostic findings from the day's lab results for Bayesian update."""
     findings: list[tuple[str, bool]] = []
 
+    lab_rules = lab_finding_rules()
     for r in lab_results:
-        if r.lab_name == "CRP":
+        rule = lab_rules.get(r.lab_name)
+        if rule is not None:
             v = r.value if isinstance(r.value, (int, float)) else 0
-            findings.append(("crp_above_100", v > 100))
-        elif r.lab_name == "WBC":
-            v = r.value if isinstance(r.value, (int, float)) else 0
-            findings.append(("wbc_elevated", v > 15000))
+            findings.append((rule.finding, v > rule.above))
 
     # Day 1: imaging findings (simulated)
-    if day == 1 and disease_id == "bacterial_pneumonia":
-        findings.append(("chest_xray_consolidation", True))
-        findings.append(("procalcitonin_elevated", True))
+    if day == 1:
+        findings.extend((finding, True) for finding in day1_imaging_findings(disease_id))
 
     return findings
