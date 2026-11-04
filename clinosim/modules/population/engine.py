@@ -117,8 +117,6 @@ from clinosim.modules.population._population_thresholds import (
     CARE_SEEKING_THRESHOLD_SD_DEFAULT,
     HEIGHT_MEAN_FEMALE_CM_DEFAULT,
     HEIGHT_MEAN_MALE_CM_DEFAULT,
-    HEIGHT_SHRINKAGE_AGE_THRESHOLD,
-    HEIGHT_SHRINKAGE_PER_DECADE_CM_DEFAULT,
     HEIGHT_STD_CM_DEFAULT,
     MOBILE_PHONE_MIN_AGE,
     SMOKING_FALLBACK_LABELS,
@@ -249,6 +247,490 @@ class PopulationRegistry:
         return len(self.persons)
 
 
+@dataclass
+class _PopulationSources:
+    """The locale reference data a population is generated from."""
+
+    country: str
+    base_year: int
+    demo: dict
+    chronic_data: dict[str, ChronicConditionSpec]
+    name_data: dict
+    naming_rules: dict
+    addr_data: dict
+
+
+@dataclass
+class _HouseholdDraw:
+    """What every member of one household shares."""
+
+    household: Household
+    address: dict
+    phone_home: str
+    has_landline: bool
+    surname: dict
+    size: int
+
+
+def _open_household(h_idx: int, src: _PopulationSources, rng: np.random.Generator) -> _HouseholdDraw:
+    hh = Household(household_id=f"HH-{h_idx + 1:06d}")
+
+    # Generate household address (shared by all members)
+    hh_addr = _generate_household_address(src.addr_data, rng)
+    hh_phone_home = _generate_phone(src.addr_data, "landline", rng)
+    has_landline = rng.random() < src.addr_data.get("contact_rules", {}).get(
+        "household_has_landline_probability", HOUSEHOLD_LANDLINE_PROBABILITY_DEFAULT
+    )
+
+    # Household family name — rule depends on country
+    # "shared": all members share one surname (JP, CN traditional)
+    # "mostly_shared": most share, but wife may keep maiden (~20% US)
+    # "not_shared": each person has own surname (KR, ES)
+    household_surname = _sample_surname(src.name_data, rng)
+
+    # Household size: 1-4 (weighted)
+    hh_size = int(rng.choice(HOUSEHOLD_SIZE_WEIGHTED_CHOICES))
+    return _HouseholdDraw(hh, hh_addr, hh_phone_home, has_landline, household_surname, hh_size)
+
+
+def _sample_age_sex_dob(src: _PopulationSources, rng: np.random.Generator) -> tuple[int, str, date]:
+    demo, base_year = src.demo, src.base_year
+    # Age from distribution
+    age_band = _sample_age_band(demo, rng)
+    age = int(rng.integers(age_band[0], age_band[1] + 1))
+
+    # Sex ratio from YAML — supports optional age-conditional band
+    # lookup so cohorts can reproduce the elderly-female skew produced
+    # by female longevity (Issue #741). When the demographics YAML
+    # omits `sex_ratio.age_conditional`, this collapses to the
+    # existing single-probability behaviour (RNG-shape neutral).
+    male_prob = _sex_ratio_male_probability(demo, age)
+    sex = "M" if rng.random() < male_prob else "F"
+    # Issue #1774: age-0 initial-cohort patients had DOB sampled in
+    # ``base_year`` with random month/day, so ~50 % landed with DOB
+    # after sim-start (Jan 1 of base_year) — semantically wrong
+    # (they are "cohort members at sim-start", not future
+    # perinatal-event newborns), and the downstream filter
+    # ``pid.endswith("-BABY")`` systematically missed these 120 /
+    # p=10k patients because their id was ``POP-NNNNNN`` (initial-
+    # cohort pattern) not ``POP-NNNNNN-BABY`` (perinatal pattern).
+    # Fix: for age==0, shift DOB year back one so DOB is always in
+    # ``base_year - 1`` — the baby is unambiguously already born at
+    # sim-start, which matches real-cohort snapshot semantics.
+    # RNG-neutral: same two draws (month + day) regardless of age.
+    dob_year = base_year - age - 1 if age == 0 else base_year - age
+    dob_month = int(rng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE))
+    dob = date(dob_year, dob_month, random_day_of_month(rng, dob_year, dob_month))
+    return age, sex, dob
+
+
+def _sample_bmi(src: _PopulationSources, age: int, sex: str, rng: np.random.Generator) -> float:
+    """BMI from the physiology section. A height is drawn too but not stored
+    on the person; the draw stays so the master stream keeps its shape."""
+    phys = src.demo.get("physiology") or {}
+    bmi_cfg = phys.get("bmi") or {}
+    ht_cfg = phys.get("height_cm") or {}
+    sex_key = "male" if sex == "M" else "female"
+
+    # Pediatric branch (age < adult_path_min_age_years): sample
+    # BMI from the growth-chart median at this age / sex instead
+    # of the adult-only distribution. Pre-fix a 4-year-old would
+    # inherit the adult mean (~26) and the activator then paired
+    # it with an adult height, giving a stored weight ~75 kg —
+    # physically impossible. One rng.normal draw either way, so
+    # the master-stream shape is preserved.
+    peds_bmi = _peds_bmi_params(src.country, sex, age) if age < _peds_upper_age() else None
+    if peds_bmi is not None:
+        bmi_mean = peds_bmi["mean"]
+        bmi_std = peds_bmi["std"]
+        bmi_clamp = bmi_cfg.get("clamp", BMI_CLAMP_DEFAULT)
+    else:
+        bmi_mean = (bmi_cfg.get(sex_key) or {}).get(
+            "mean", BMI_MEAN_MALE_DEFAULT if sex == "M" else BMI_MEAN_FEMALE_DEFAULT
+        )
+        bmi_std = (bmi_cfg.get(sex_key) or {}).get("std", BMI_STD_DEFAULT)
+        bmi_clamp = bmi_cfg.get("clamp", BMI_CLAMP_DEFAULT)
+    bmi = float(np.clip(rng.normal(bmi_mean, bmi_std), bmi_clamp[0], bmi_clamp[1]))
+
+    ht_mean = (ht_cfg.get(sex_key) or {}).get(
+        "mean", HEIGHT_MEAN_MALE_CM_DEFAULT if sex == "M" else HEIGHT_MEAN_FEMALE_CM_DEFAULT
+    )
+    ht_std = (ht_cfg.get(sex_key) or {}).get("std", HEIGHT_STD_CM_DEFAULT)
+    rng.normal(ht_mean, ht_std)  # not stored; the draw keeps the stream shape
+    return bmi
+
+
+def _sample_lifestyle(src: _PopulationSources, age: int, sex: str, rng: np.random.Generator) -> tuple[str, str]:
+    """Smoking and alcohol (sex-specific distributions).
+
+    未成年 override: `rng.choice` は age に関係なく必ず consume する
+    (RNG cursor 保持 = memoize/F4 determinism を破らない)、その上で
+    サンプル結果を捨てて minors (age < LEGAL_ADULT_AGE) は
+    smoking="never" / alcohol="none" に上書き。JP 法定年齢 20+ = 飲
+    酒・喫煙可能。米国は 21 だが、population module 全体 (occupation
+    判定等) が 20+ を成人閾値としているので JP/US 共通 20 で運用。
+
+    Issue #360 G7 で reverted された「sampling 自体を skip」は
+    RNG cursor を shift させて F4 memoize を破ったが、今回の
+    「consume してから override」は cursor が variant-invariant なの
+    で cold vs cache-hit も byte-identical に保たれる。
+    """
+    sex_key = "male" if sex == "M" else "female"
+    lifestyle = src.demo.get("lifestyle_distribution") or {}
+    smoking_dist = (lifestyle.get("smoking") or {}).get(sex_key, {})
+    if smoking_dist:
+        sk = list(smoking_dist.keys())
+        sp = normalize_probabilities([smoking_dist[k] for k in sk], fallback="raise")
+        smoking_status = str(rng.choice(sk, p=sp))
+    else:
+        smoking_status = str(rng.choice(SMOKING_FALLBACK_LABELS, p=SMOKING_FALLBACK_PROBS))
+    if age < LEGAL_ADULT_AGE:
+        smoking_status = "never"
+
+    alcohol_dist = (lifestyle.get("alcohol") or {}).get(sex_key, {})
+    if alcohol_dist:
+        ak = list(alcohol_dist.keys())
+        ap = normalize_probabilities([alcohol_dist[k] for k in ak], fallback="raise")
+        alcohol_use = str(rng.choice(ak, p=ap))
+    else:
+        alcohol_use = str(rng.choice(ALCOHOL_FALLBACK_LABELS, p=ALCOHOL_FALLBACK_PROBS))
+    if age < LEGAL_ADULT_AGE:
+        alcohol_use = "none"
+    return smoking_status, alcohol_use
+
+
+def _member_surname(
+    src: _PopulationSources, household_surname: dict, m_idx: int, sex: str, rng: np.random.Generator
+) -> dict:
+    """Family name under the locale's household surname rule."""
+    surname_rule = src.naming_rules.get("household_surname_rule", "shared")
+    if surname_rule == "shared":
+        # All members share household surname (JP)
+        return household_surname
+    if surname_rule == "mostly_shared":
+        # First member sets surname; spouse may keep maiden with some probability
+        maiden_prob = src.naming_rules.get("wife_keeps_maiden_probability", WIFE_KEEPS_MAIDEN_PROBABILITY_DEFAULT)
+        if m_idx == 0:
+            return household_surname
+        if m_idx == 1 and sex == "F" and rng.random() < maiden_prob:
+            # Spouse keeps maiden name
+            return _sample_surname(src.name_data, rng)
+        return household_surname
+    if surname_rule == "not_shared":
+        # Each person has own surname (KR, ES)
+        if m_idx == 0:
+            return household_surname
+        return _sample_surname(src.name_data, rng)
+    return household_surname
+
+
+def _sample_chronic_conditions(
+    src: _PopulationSources,
+    pid: str,
+    age: int,
+    sex: str,
+    bmi: float,
+    smoking_status: str,
+    rng: np.random.Generator,
+) -> list[str]:
+    """The prevalence-sampled chronic conditions, with accumulated multipliers
+    from comorbidity correlations and lifestyle."""
+    demo, chronic_data = src.demo, src.chronic_data
+    comorbidity_cfg = demo.get("comorbidity_correlations") or {}
+    lifestyle_mults = demo.get("lifestyle_risk_multipliers") or {}
+    bmi_cfg_lm = lifestyle_mults.get("bmi") or {}
+    bmi_thresholds = bmi_cfg_lm.get("thresholds") or {
+        "overweight": BMI_OVERWEIGHT_THRESHOLD,
+        "obese": BMI_OBESE_THRESHOLD,
+    }
+    smoking_cfg_lm = lifestyle_mults.get("smoking") or {}
+    sex_key = "male" if sex == "M" else "female"
+
+    bmi_cat: str | None = None
+    if bmi >= bmi_thresholds.get("obese", BMI_OBESE_THRESHOLD):
+        bmi_cat = "obese"
+    elif bmi >= bmi_thresholds.get("overweight", BMI_OVERWEIGHT_THRESHOLD):
+        bmi_cat = "overweight"
+
+    def _scaled_probability(code: str, base_prev: float, conditions: list[str]) -> float:
+        # Comorbidity correlation multiplier (from already-sampled conditions)
+        corr_mult = 1.0
+        for existing_code in conditions:
+            corr_mult *= (comorbidity_cfg.get(existing_code) or {}).get(code, 1.0)
+        # Lifestyle multipliers (per-patient realized values)
+        life_mult = 1.0
+        if bmi_cat:
+            life_mult *= (bmi_cfg_lm.get(bmi_cat) or {}).get(code, 1.0)
+        life_mult *= (smoking_cfg_lm.get(smoking_status) or {}).get(code, 1.0)
+        # Population-expected compound multiplier over (age, sex)
+        e_corr = _expected_comorbidity_multiplier(chronic_data, code, age, sex, comorbidity_cfg)
+        e_life = _expected_lifestyle_multiplier(demo, code, sex_key, age)
+        e_compound = e_corr * e_life
+        # Rescale base so E[per-patient prob] ≈ base_prev (the target
+        # marginal). Guard against pathological zero.
+        scaled_base = base_prev / e_compound if e_compound > 0.0 else base_prev
+        return min(1.0, scaled_base * corr_mult * life_mult)
+
+    # base_prev in yaml is the TARGET MARGINAL prevalence in the emitted
+    # cohort (B-3). Rescale by the population-expected compound
+    # multiplier so per-patient sampling preserves that marginal while
+    # comorbidity + lifestyle multipliers still shape WHICH patients
+    # get the condition. See population/README.md
+    # "Marginal-preserving prevalence".
+    conditions: list[str] = []
+    for code, spec in chronic_data.items():
+        if spec.sex and spec.sex != sex:
+            continue  # e.g., BPH (N40) is male-only
+        for (lo, hi), base_prev in spec.age_ranges.items():
+            if not (lo <= age <= hi):
+                continue
+            final_prev = _scaled_probability(code, base_prev, conditions)
+            draw_rng = determinism.default_rng(chronic_isolated_seed(pid, code)) if spec.rng_isolated else rng
+            if draw_rng.random() < final_prev:
+                # META #957 Incr 1: Z34 (encounter for supervision of
+                # normal pregnancy) and Z37 (outcome of delivery) are
+                # temporal-state markers, not chronic conditions.
+                # The Bernoulli draw is CONSUMED to preserve the rng
+                # cursor byte-identity for non-obstetric codes iterated
+                # after these entries; the append is skipped so no
+                # problem-list-item is emitted from chronic_conditions.
+                # Pregnancy state lives in ``person.state_periods`` via
+                # the pregnancy-lifecycle generator; Z37 past-birth
+                # marker is derived from state_history in the FHIR
+                # emit adapter.
+                if code in _STATE_PERIOD_CHRONIC_CODES:
+                    continue
+                conditions.append(code)
+
+    # Issue #957 augment_sex_bands: opposite-sex activation for a
+    # previously-single-sex code (currently only C50 male ~1 % of
+    # total). Sampled on a per-(patient, code) sub-RNG so the
+    # master ``rng`` cursor is byte-identical to the pre-#957
+    # path — cross-patient cascade cannot happen when an
+    # augmentation is added or its probability tuned.
+    for code, spec in chronic_data.items():
+        aug_base = spec.augment_prevalence_at(age, sex)
+        if aug_base <= 0.0:
+            continue
+        if code in conditions:
+            continue  # already assigned via primary path (defensive)
+        aug_rng = determinism.default_rng(
+            chronic_augment_sex_seed(pid, code)  # per-(patient, code) sub-seed
+        )
+        # Lifestyle + comorbidity multipliers use the same math as
+        # the primary path; the only isolation change is the RNG
+        # source.
+        final_prev = _scaled_probability(code, aug_base, conditions)
+        if aug_rng.random() < final_prev:
+            if code in _STATE_PERIOD_CHRONIC_CODES:
+                continue  # temporal-state markers — see primary loop
+            conditions.append(code)
+    return conditions
+
+
+def _add_derived_conditions(conditions: list[str], age: int, bmi: float, smoking_status: str, alcohol_use: str) -> None:
+    """Conditions that follow from already-sampled attributes (RNG-neutral)."""
+    # Clinical-coherence mutex: F33 (recurrent depressive disorder)
+    # subsumes F32 (depressive episode, single) per ICD-10-CM
+    # §F30-F39. Both are drawn independently in the prevalence
+    # loop above (``F32`` ~10-13 %, ``F33`` ~3-4 % in US) so a
+    # non-trivial fraction of adults land with both. The mutex is
+    # applied AFTER both Bernoulli draws so the RNG cursor is
+    # byte-identical to the pre-mutex path — only the resulting
+    # ``conditions`` list is filtered, not the random stream.
+    # See ``clinosim/modules/population/condition_mutex.py``.
+    from clinosim.modules.population.condition_mutex import (
+        apply_depression_mutex,
+    )
+
+    apply_depression_mutex(conditions)
+
+    # Issue #1126 (F-1 Obesity): BMI-derived Condition insertion.
+    # Rationale: E66 has ~100 % clinical correlation with BMI ≥ 30 per
+    # ICD-10-CM diagnostic criteria. Sampling E66 independently from a
+    # prevalence YAML would produce nonsensical combinations (BMI-42
+    # patient without E66, or BMI-22 patient with E66). Instead derive
+    # deterministically from the already-generated BMI. RNG-neutral:
+    # no rng draw here, only a threshold check. Inserted AFTER the
+    # ``chronic_prevalence`` + ``augment_sex_bands`` loops so the
+    # marginal-preserving rescale (which uses E[compound] over
+    # chronic_prevalence codes only) is not perturbed.
+    # See META #1137 for design authority.
+    #
+    # Issue #1284: age-gate the E66 dispatch. Adult BMI thresholds
+    # (25/30/40) are not the correct pediatric coding practice —
+    # ICD-10-CM pairs pediatric obesity with `Z68.51`–`Z68.54`
+    # (BMI-for-age percentile) rather than the adult-oriented E66
+    # cascade, and the underlying BMI sampler currently emits
+    # adult-scaled values for all ages (a p=10k s=354 audit
+    # counted 15 toddlers aged 2-5 with E66.01 "morbid obesity",
+    # 52 US pediatric patients with any E66.01, and 881 US
+    # pediatric patients with any E66 code). Skip the E66
+    # dispatch entirely below :data:`LEGAL_ADULT_AGE` (=20 — the
+    # existing adult-boundary constant already used for the
+    # lifestyle-attribute gates above). A future follow-up in
+    # the metabolic/ module (META #1137) can layer proper
+    # `Z68.5x` BMI-for-age emission plus CDC-percentile BMI
+    # sampling on top; this change is the scope-disciplined bug
+    # fix that eliminates the physiologically-impossible peds
+    # E66.01 rows.
+    if age >= LEGAL_ADULT_AGE:
+        if bmi >= BMI_MORBID_OBESITY_THRESHOLD:
+            conditions.append("E66.01")  # Morbid (severe) obesity, BMI ≥ 40
+        elif bmi >= BMI_OBESE_THRESHOLD:
+            conditions.append("E66.9")  # Obesity, unspecified, BMI ≥ 30
+        elif bmi >= BMI_OVERWEIGHT_THRESHOLD:
+            # Issue #1272: complete the 3-band ICD-10-CM E66 dispatch.
+            # BMI 25.0-29.9 is the overweight band (~30 % of US adults,
+            # ~20 % of JP adults). Pre-#1272 no ICD Condition was emitted
+            # for this band, so downstream analytics keying on E66.3
+            # saw an empty cohort even though the BMI Observation
+            # itself was correctly emitted. Same 3-band split #1126
+            # declared in the metabolic-cluster scope (see META #1137).
+            conditions.append("E66.3")  # Overweight, BMI 25-29.9
+
+    # Issue #1134 (Substance Use): SDOH-derived Condition insertion.
+    # Rationale: ``smoking_status`` / ``alcohol_use`` are already
+    # sampled attributes on PersonRecord (SDOH social-history
+    # Observation codes). Cross-resource consistency requires that
+    # patients labeled ``current`` smoker or ``heavy`` drinker also
+    # carry an ICD chronic Condition (F17.210 nicotine dependence /
+    # F10.20 alcohol dependence uncomplicated). Analytics that
+    # filter Conditions for smoking-related risk were previously
+    # blind to the SDOH-encoded classification.
+    # Deterministic (derives from already-sampled attributes), no
+    # rng draw → RNG-neutral. Same insertion phase as E66 (after
+    # chronic loops, before care-seeking threshold).
+    # See META #1137 for design authority.
+    if smoking_status == "current":
+        conditions.append("F17.210")  # Nicotine dependence, cigarettes, uncomplicated
+    if alcohol_use == "heavy":
+        conditions.append("F10.20")  # Alcohol dependence, uncomplicated
+
+
+def _sample_care_seeking_threshold(src: _PopulationSources, age: int, rng: np.random.Generator) -> float:
+    """Care seeking threshold (JP: lower = more willing).
+
+    RM-7e: care-seeking threshold from locale (JP: 20% reflects 健診
+    culture; US: 30% baseline). Issue #922 (session 91): the mean is now
+    age-conditional so the flat threshold is not artificially over-passing
+    pediatric well-child + immunization visits into the emitted cohort.
+    RNG-shape neutral — one `rng.normal(mean, sd)` call per person
+    regardless of which band matches.
+    """
+    cs = src.demo.get("care_seeking") or {}
+    cs_mean = _care_seeking_threshold_mean(src.demo, age)
+    cs_sd = float(cs.get("threshold_sd", CARE_SEEKING_THRESHOLD_SD_DEFAULT))
+    threshold = float(rng.normal(cs_mean, cs_sd))
+    return max(CARE_SEEKING_CLAMP_MIN, min(CARE_SEEKING_CLAMP_MAX, threshold))
+
+
+def _seed_person_extras(person: PersonRecord, country: str, base_year: int) -> None:
+    """RNG-neutral additions after the person is built: single-gene
+    carriers, CKD below 60 and the sim-start longitudinal snapshot."""
+    # Issue #1581 Phase C.3 — sample single-gene carrier
+    # status for every catalogued disease. RNG-neutral (SHA
+    # of person_id + disease code), so this field addition
+    # does not shift any existing master stream. Affected
+    # persons get the ICD code appended to chronic_conditions.
+    from clinosim.locale.loader import load_single_gene_diseases
+    from clinosim.modules.population.single_gene_inheritance import (
+        apply_initial_carrier_sampling,
+    )
+
+    sgd_catalog = (load_single_gene_diseases() or {}).get("single_gene_diseases") or {}
+    if sgd_catalog:
+        for affected_code in apply_initial_carrier_sampling(person, sgd_catalog):
+            if affected_code not in person.chronic_conditions:
+                person.chronic_conditions.append(affected_code)
+    # CKD below 60 (Issue #2023): RNG-neutral SHA Bernoulli per the
+    # locale's ckd_under60_prevalence.yaml, applied before the
+    # longitudinal snapshot so the stage ladder sees the code.
+    from clinosim.modules.population._ckd_under60 import assign_ckd_under60
+
+    assign_ckd_under60(person, country)
+    # Phase 1 longitudinal subsystem (Issue #1695) — seed each
+    # person's longitudinal_history at the sim-start year so
+    # per-encounter emit (physiology / activator) can read via
+    # ``state_at`` from year 1 onward. Non-DM persons get an
+    # empty snapshot (scope gate drops the HbA1c attribute);
+    # Phase 2 / 3 attributes populate additional continuous
+    # latents / stages / events here when they land.
+    from clinosim.modules.longitudinal.engine import initial_snapshot
+    from clinosim.modules.population.aging import aging_sub_seed
+
+    ls_rng = determinism.default_rng(aging_sub_seed(person.person_id, base_year, "longitudinal:init"))
+    initial_snapshot(person, year=base_year, init_rng=ls_rng)
+    # Phase 3 longitudinal (Issue #1705): seed the per-person
+    # BMI drift chain from the just-generated Layer-1 bmi value
+    # so the sim-start snapshot's continuous["bmi"] matches
+    # person.bmi exactly, instead of resampling from the yaml's
+    # dummy initial distribution. Only adults participate in
+    # BMI drift (yaml's requires_age_band: [18, 120]).
+    if person.longitudinal_history and person.age >= 18:
+        person.longitudinal_history[-1].continuous["bmi"] = float(person.bmi)
+
+
+def _generate_person(
+    src: _PopulationSources,
+    draw: _HouseholdDraw,
+    pid: str,
+    m_idx: int,
+    rng: np.random.Generator,
+) -> PersonRecord:
+    """One household member, drawing from ``rng`` in a fixed order: age, sex,
+    date of birth, blood type, BMI, lifestyle, given name, surname, chronic
+    conditions, care-seeking threshold, mobile phone and occupation."""
+    demo, country = src.demo, src.country
+    age, sex, dob = _sample_age_sex_dob(src, rng)
+    blood_type = _sample_blood_type(demo, rng)
+    bmi = _sample_bmi(src, age, sex, rng)
+    smoking_status, alcohol_use = _sample_lifestyle(src, age, sex, rng)
+    # Given name (sex-appropriate)
+    given = _sample_given_name(src.name_data, sex, rng)
+    member_surname = _member_surname(src, draw.surname, m_idx, sex, rng)
+    conditions = _sample_chronic_conditions(src, pid, age, sex, bmi, smoking_status, rng)
+    _add_derived_conditions(conditions, age, bmi, smoking_status, alcohol_use)
+    threshold = _sample_care_seeking_threshold(src, age, rng)
+    # Phone: generate mobile for adults
+    mobile = _generate_phone(src.addr_data, "mobile", rng) if age >= MOBILE_PHONE_MIN_AGE else ""
+
+    hh_addr = draw.address
+    person = PersonRecord(
+        person_id=pid,
+        household_id=draw.household.household_id,
+        age=age,
+        sex=sex,
+        date_of_birth=dob,
+        family_name=member_surname.get("kanji", member_surname.get("name", "")),
+        given_name=given.get("kanji", given.get("name", "")),
+        phonetic=f"{member_surname.get('kana', '')} {given.get('kana', '')}".strip() or None,
+        blood_type=blood_type,
+        rh_factor=_derive_rh_factor(pid, country),
+        postal_code=hh_addr.get("postal_code", ""),
+        state=hh_addr.get("state", ""),
+        city=hh_addr.get("city", ""),
+        address_line=hh_addr.get("line", ""),
+        phone_home=draw.phone_home if draw.has_landline else "",
+        phone_mobile=mobile if age >= MOBILE_PHONE_MIN_AGE else "",
+        chronic_conditions=conditions,
+        occupation=_sample_occupation(demo, age, sex, rng),
+        bmi=bmi,
+        smoking_status=smoking_status,
+        alcohol_use=alcohol_use,
+        care_seeking_threshold=threshold,
+        # Issue #1581 — race / ethnicity derived from a stable
+        # hash of person_id so this field addition is RNG-
+        # neutral (no master-stream shift). The activator still
+        # falls back to its original per-call sampling for test
+        # fixtures that bypass the initial cohort generator.
+        race=_derive_race(pid, demo),
+        ethnicity=_derive_ethnicity(pid, demo),
+    )
+    _seed_person_extras(person, country, src.base_year)
+    return person
+
+
 def generate_population(
     size: int,
     country: str,
@@ -262,437 +744,33 @@ def generate_population(
         demo = _load_demographics(country)
     avg_household_size = demo.get("average_household_size", AVG_HOUSEHOLD_SIZE_DEFAULT)
     n_households = int(size / avg_household_size)
-    chronic_data = _parse_chronic_prevalence(demo)
 
     # Load name data and naming rules
-    name_data = _load_name_data(country)
     from clinosim.locale.loader import load_addresses, load_naming_rules
 
-    naming_rules = load_naming_rules(country)
-    surname_rule = naming_rules.get("household_surname_rule", "shared")
-    addr_data = load_addresses(country)
+    src = _PopulationSources(
+        country=country,
+        base_year=base_year,
+        demo=demo,
+        chronic_data=_parse_chronic_prevalence(demo),
+        name_data=_load_name_data(country),
+        naming_rules=load_naming_rules(country),
+        addr_data=load_addresses(country),
+    )
 
     person_count = 0
     for h_idx in range(n_households):
-        hh_id = f"HH-{h_idx + 1:06d}"
-        hh = Household(household_id=hh_id)
-
-        # Generate household address (shared by all members)
-        hh_addr = _generate_household_address(addr_data, rng)
-        hh_phone_home = _generate_phone(addr_data, "landline", rng)
-        has_landline = rng.random() < addr_data.get("contact_rules", {}).get(
-            "household_has_landline_probability", HOUSEHOLD_LANDLINE_PROBABILITY_DEFAULT
-        )
-
-        # Household family name — rule depends on country
-        # "shared": all members share one surname (JP, CN traditional)
-        # "mostly_shared": most share, but wife may keep maiden (~20% US)
-        # "not_shared": each person has own surname (KR, ES)
-        household_surname = _sample_surname(name_data, rng)
-
-        # Household size: 1-4 (weighted)
-        hh_size = int(rng.choice(HOUSEHOLD_SIZE_WEIGHTED_CHOICES))
-
-        for m_idx in range(hh_size):
+        draw = _open_household(h_idx, src, rng)
+        for m_idx in range(draw.size):
             if person_count >= size:
                 break
-
             person_count += 1
             pid = f"POP-{person_count:06d}"
-
-            # Age from distribution
-            age_band = _sample_age_band(demo, rng)
-            age = int(rng.integers(age_band[0], age_band[1] + 1))
-
-            # Sex ratio from YAML — supports optional age-conditional band
-            # lookup so cohorts can reproduce the elderly-female skew produced
-            # by female longevity (Issue #741). When the demographics YAML
-            # omits `sex_ratio.age_conditional`, this collapses to the
-            # existing single-probability behaviour (RNG-shape neutral).
-            male_prob = _sex_ratio_male_probability(demo, age)
-            sex = "M" if rng.random() < male_prob else "F"
-            # Issue #1774: age-0 initial-cohort patients had DOB sampled in
-            # ``base_year`` with random month/day, so ~50 % landed with DOB
-            # after sim-start (Jan 1 of base_year) — semantically wrong
-            # (they are "cohort members at sim-start", not future
-            # perinatal-event newborns), and the downstream filter
-            # ``pid.endswith("-BABY")`` systematically missed these 120 /
-            # p=10k patients because their id was ``POP-NNNNNN`` (initial-
-            # cohort pattern) not ``POP-NNNNNN-BABY`` (perinatal pattern).
-            # Fix: for age==0, shift DOB year back one so DOB is always in
-            # ``base_year - 1`` — the baby is unambiguously already born at
-            # sim-start, which matches real-cohort snapshot semantics.
-            # RNG-neutral: same two draws (month + day) regardless of age.
-            _dob_year = base_year - age - 1 if age == 0 else base_year - age
-            _dob_month = int(rng.integers(RANDOM_MONTH_MIN, RANDOM_MONTH_MAX_EXCLUSIVE))
-            dob = date(_dob_year, _dob_month, random_day_of_month(rng, _dob_year, _dob_month))
-            blood_type = _sample_blood_type(demo, rng)
-
-            # BMI and height from physiology section
-            phys = demo.get("physiology") or {}
-            bmi_cfg = phys.get("bmi") or {}
-            ht_cfg = phys.get("height_cm") or {}
-            sex_key = "male" if sex == "M" else "female"
-
-            # Pediatric branch (age < adult_path_min_age_years): sample
-            # BMI from the growth-chart median at this age / sex instead
-            # of the adult-only distribution. Pre-fix a 4-year-old would
-            # inherit the adult mean (~26) and the activator then paired
-            # it with an adult height, giving a stored weight ~75 kg —
-            # physically impossible. One rng.normal draw either way, so
-            # the master-stream shape is preserved.
-            peds_bmi = _peds_bmi_params(country, sex, age) if age < _peds_upper_age() else None
-            if peds_bmi is not None:
-                bmi_mean = peds_bmi["mean"]
-                bmi_std = peds_bmi["std"]
-                bmi_clamp = bmi_cfg.get("clamp", BMI_CLAMP_DEFAULT)
-            else:
-                bmi_mean = (bmi_cfg.get(sex_key) or {}).get(
-                    "mean", BMI_MEAN_MALE_DEFAULT if sex == "M" else BMI_MEAN_FEMALE_DEFAULT
-                )
-                bmi_std = (bmi_cfg.get(sex_key) or {}).get("std", BMI_STD_DEFAULT)
-                bmi_clamp = bmi_cfg.get("clamp", BMI_CLAMP_DEFAULT)
-            bmi = float(np.clip(rng.normal(bmi_mean, bmi_std), bmi_clamp[0], bmi_clamp[1]))
-
-            ht_mean = (ht_cfg.get(sex_key) or {}).get(
-                "mean", HEIGHT_MEAN_MALE_CM_DEFAULT if sex == "M" else HEIGHT_MEAN_FEMALE_CM_DEFAULT
-            )
-            ht_std = (ht_cfg.get(sex_key) or {}).get("std", HEIGHT_STD_CM_DEFAULT)
-            shrink = ht_cfg.get("shrinkage_per_decade_after_60", HEIGHT_SHRINKAGE_PER_DECADE_CM_DEFAULT)
-            height = float(rng.normal(ht_mean, ht_std))
-            if age > HEIGHT_SHRINKAGE_AGE_THRESHOLD:
-                height -= (age - HEIGHT_SHRINKAGE_AGE_THRESHOLD) / 10 * shrink
-
-            # Lifestyle: smoking and alcohol (sex-specific distributions).
-            #
-            # 未成年 override: `rng.choice` は age に関係なく必ず consume する
-            # (RNG cursor 保持 = memoize/F4 determinism を破らない)、その上で
-            # サンプル結果を捨てて minors (age < LEGAL_ADULT_AGE) は
-            # smoking="never" / alcohol="none" に上書き。JP 法定年齢 20+ = 飲
-            # 酒・喫煙可能。米国は 21 だが、population module 全体 (occupation
-            # 判定等) が 20+ を成人閾値としているので JP/US 共通 20 で運用。
-            #
-            # Issue #360 G7 で reverted された「sampling 自体を skip」は
-            # RNG cursor を shift させて F4 memoize を破ったが、今回の
-            # 「consume してから override」は cursor が variant-invariant なの
-            # で cold vs cache-hit も byte-identical に保たれる。
-            lifestyle = demo.get("lifestyle_distribution") or {}
-            smoking_dist = (lifestyle.get("smoking") or {}).get(sex_key, {})
-            if smoking_dist:
-                sk = list(smoking_dist.keys())
-                sp = normalize_probabilities([smoking_dist[k] for k in sk], fallback="raise")
-                smoking_status = str(rng.choice(sk, p=sp))
-            else:
-                smoking_status = str(rng.choice(SMOKING_FALLBACK_LABELS, p=SMOKING_FALLBACK_PROBS))
-            if age < LEGAL_ADULT_AGE:
-                smoking_status = "never"
-
-            alcohol_dist = (lifestyle.get("alcohol") or {}).get(sex_key, {})
-            if alcohol_dist:
-                ak = list(alcohol_dist.keys())
-                ap = normalize_probabilities([alcohol_dist[k] for k in ak], fallback="raise")
-                alcohol_use = str(rng.choice(ak, p=ap))
-            else:
-                alcohol_use = str(rng.choice(ALCOHOL_FALLBACK_LABELS, p=ALCOHOL_FALLBACK_PROBS))
-            if age < LEGAL_ADULT_AGE:
-                alcohol_use = "none"
-
-            # Given name (sex-appropriate)
-            given = _sample_given_name(name_data, sex, rng)
-
-            # Family name — apply household surname rule
-            if surname_rule == "shared":
-                # All members share household surname (JP)
-                member_surname = household_surname
-            elif surname_rule == "mostly_shared":
-                # First member sets surname; spouse may keep maiden with some probability
-                maiden_prob = naming_rules.get("wife_keeps_maiden_probability", WIFE_KEEPS_MAIDEN_PROBABILITY_DEFAULT)
-                if m_idx == 0:
-                    member_surname = household_surname
-                elif m_idx == 1 and sex == "F" and rng.random() < maiden_prob:
-                    # Spouse keeps maiden name
-                    member_surname = _sample_surname(name_data, rng)
-                else:
-                    member_surname = household_surname
-            elif surname_rule == "not_shared":
-                # Each person has own surname (KR, ES)
-                if m_idx == 0:
-                    member_surname = household_surname
-                else:
-                    member_surname = _sample_surname(name_data, rng)
-            else:
-                member_surname = household_surname
-
-            # Build accumulated multipliers from comorbidity correlations and lifestyle
-            comorbidity_cfg = demo.get("comorbidity_correlations") or {}
-            lifestyle_mults = demo.get("lifestyle_risk_multipliers") or {}
-            bmi_cfg_lm = lifestyle_mults.get("bmi") or {}
-            bmi_thresholds = bmi_cfg_lm.get("thresholds") or {
-                "overweight": BMI_OVERWEIGHT_THRESHOLD,
-                "obese": BMI_OBESE_THRESHOLD,
-            }
-            smoking_cfg_lm = lifestyle_mults.get("smoking") or {}
-
-            bmi_cat: str | None = None
-            if bmi >= bmi_thresholds.get("obese", BMI_OBESE_THRESHOLD):
-                bmi_cat = "obese"
-            elif bmi >= bmi_thresholds.get("overweight", BMI_OVERWEIGHT_THRESHOLD):
-                bmi_cat = "overweight"
-
-            # base_prev in yaml is the TARGET MARGINAL prevalence in the emitted
-            # cohort (B-3). Rescale by the population-expected compound
-            # multiplier so per-patient sampling preserves that marginal while
-            # comorbidity + lifestyle multipliers still shape WHICH patients
-            # get the condition. See population/README.md
-            # "Marginal-preserving prevalence".
-            sex_key = "male" if sex == "M" else "female"
-            conditions: list[str] = []
-            for code, spec in chronic_data.items():
-                if spec.sex and spec.sex != sex:
-                    continue  # e.g., BPH (N40) is male-only
-                for (lo, hi), base_prev in spec.age_ranges.items():
-                    if not (lo <= age <= hi):
-                        continue
-                    # Comorbidity correlation multiplier (from already-sampled conditions)
-                    corr_mult = 1.0
-                    for existing_code in conditions:
-                        corr_mult *= (comorbidity_cfg.get(existing_code) or {}).get(code, 1.0)
-                    # Lifestyle multipliers (per-patient realized values)
-                    life_mult = 1.0
-                    if bmi_cat:
-                        life_mult *= (bmi_cfg_lm.get(bmi_cat) or {}).get(code, 1.0)
-                    life_mult *= (smoking_cfg_lm.get(smoking_status) or {}).get(code, 1.0)
-                    # Population-expected compound multiplier over (age, sex)
-                    e_corr = _expected_comorbidity_multiplier(chronic_data, code, age, sex, comorbidity_cfg)
-                    e_life = _expected_lifestyle_multiplier(demo, code, sex_key, age)
-                    e_compound = e_corr * e_life
-                    # Rescale base so E[per-patient prob] ≈ base_prev (the target
-                    # marginal). Guard against pathological zero.
-                    scaled_base = base_prev / e_compound if e_compound > 0.0 else base_prev
-                    final_prev = min(1.0, scaled_base * corr_mult * life_mult)
-                    draw_rng = determinism.default_rng(chronic_isolated_seed(pid, code)) if spec.rng_isolated else rng
-                    if draw_rng.random() < final_prev:
-                        # META #957 Incr 1: Z34 (encounter for supervision of
-                        # normal pregnancy) and Z37 (outcome of delivery) are
-                        # temporal-state markers, not chronic conditions.
-                        # The Bernoulli draw is CONSUMED to preserve the rng
-                        # cursor byte-identity for non-obstetric codes iterated
-                        # after these entries; the append is skipped so no
-                        # problem-list-item is emitted from chronic_conditions.
-                        # Pregnancy state lives in ``person.state_periods`` via
-                        # the pregnancy-lifecycle generator; Z37 past-birth
-                        # marker is derived from state_history in the FHIR
-                        # emit adapter.
-                        if code in _STATE_PERIOD_CHRONIC_CODES:
-                            continue
-                        conditions.append(code)
-
-            # Issue #957 augment_sex_bands: opposite-sex activation for a
-            # previously-single-sex code (currently only C50 male ~1 % of
-            # total). Sampled on a per-(patient, code) sub-RNG so the
-            # master ``rng`` cursor is byte-identical to the pre-#957
-            # path — cross-patient cascade cannot happen when an
-            # augmentation is added or its probability tuned.
-            for code, spec in chronic_data.items():
-                aug_base = spec.augment_prevalence_at(age, sex)
-                if aug_base <= 0.0:
-                    continue
-                if code in conditions:
-                    continue  # already assigned via primary path (defensive)
-                aug_rng = determinism.default_rng(
-                    chronic_augment_sex_seed(pid, code)  # per-(patient, code) sub-seed
-                )
-                # Lifestyle + comorbidity multipliers use the same math as
-                # the primary path; the only isolation change is the RNG
-                # source.
-                corr_mult = 1.0
-                for existing_code in conditions:
-                    corr_mult *= (comorbidity_cfg.get(existing_code) or {}).get(code, 1.0)
-                life_mult = 1.0
-                if bmi_cat:
-                    life_mult *= (bmi_cfg_lm.get(bmi_cat) or {}).get(code, 1.0)
-                life_mult *= (smoking_cfg_lm.get(smoking_status) or {}).get(code, 1.0)
-                e_corr = _expected_comorbidity_multiplier(chronic_data, code, age, sex, comorbidity_cfg)
-                e_life = _expected_lifestyle_multiplier(demo, code, sex_key, age)
-                e_compound = e_corr * e_life
-                scaled_base = aug_base / e_compound if e_compound > 0.0 else aug_base
-                final_prev = min(1.0, scaled_base * corr_mult * life_mult)
-                if aug_rng.random() < final_prev:
-                    if code in _STATE_PERIOD_CHRONIC_CODES:
-                        continue  # temporal-state markers — see primary loop
-                    conditions.append(code)
-
-            # Clinical-coherence mutex: F33 (recurrent depressive disorder)
-            # subsumes F32 (depressive episode, single) per ICD-10-CM
-            # §F30-F39. Both are drawn independently in the prevalence
-            # loop above (``F32`` ~10-13 %, ``F33`` ~3-4 % in US) so a
-            # non-trivial fraction of adults land with both. The mutex is
-            # applied AFTER both Bernoulli draws so the RNG cursor is
-            # byte-identical to the pre-mutex path — only the resulting
-            # ``conditions`` list is filtered, not the random stream.
-            # See ``clinosim/modules/population/condition_mutex.py``.
-            from clinosim.modules.population.condition_mutex import (
-                apply_depression_mutex,
-            )
-
-            apply_depression_mutex(conditions)
-
-            # Issue #1126 (F-1 Obesity): BMI-derived Condition insertion.
-            # Rationale: E66 has ~100 % clinical correlation with BMI ≥ 30 per
-            # ICD-10-CM diagnostic criteria. Sampling E66 independently from a
-            # prevalence YAML would produce nonsensical combinations (BMI-42
-            # patient without E66, or BMI-22 patient with E66). Instead derive
-            # deterministically from the already-generated BMI. RNG-neutral:
-            # no rng draw here, only a threshold check. Inserted AFTER the
-            # ``chronic_prevalence`` + ``augment_sex_bands`` loops so the
-            # marginal-preserving rescale (which uses E[compound] over
-            # chronic_prevalence codes only) is not perturbed.
-            # See META #1137 for design authority.
-            #
-            # Issue #1284: age-gate the E66 dispatch. Adult BMI thresholds
-            # (25/30/40) are not the correct pediatric coding practice —
-            # ICD-10-CM pairs pediatric obesity with `Z68.51`–`Z68.54`
-            # (BMI-for-age percentile) rather than the adult-oriented E66
-            # cascade, and the underlying BMI sampler currently emits
-            # adult-scaled values for all ages (a p=10k s=354 audit
-            # counted 15 toddlers aged 2-5 with E66.01 "morbid obesity",
-            # 52 US pediatric patients with any E66.01, and 881 US
-            # pediatric patients with any E66 code). Skip the E66
-            # dispatch entirely below :data:`LEGAL_ADULT_AGE` (=20 — the
-            # existing adult-boundary constant already used for the
-            # lifestyle-attribute gates above). A future follow-up in
-            # the metabolic/ module (META #1137) can layer proper
-            # `Z68.5x` BMI-for-age emission plus CDC-percentile BMI
-            # sampling on top; this change is the scope-disciplined bug
-            # fix that eliminates the physiologically-impossible peds
-            # E66.01 rows.
-            if age >= LEGAL_ADULT_AGE:
-                if bmi >= BMI_MORBID_OBESITY_THRESHOLD:
-                    conditions.append("E66.01")  # Morbid (severe) obesity, BMI ≥ 40
-                elif bmi >= BMI_OBESE_THRESHOLD:
-                    conditions.append("E66.9")  # Obesity, unspecified, BMI ≥ 30
-                elif bmi >= BMI_OVERWEIGHT_THRESHOLD:
-                    # Issue #1272: complete the 3-band ICD-10-CM E66 dispatch.
-                    # BMI 25.0-29.9 is the overweight band (~30 % of US adults,
-                    # ~20 % of JP adults). Pre-#1272 no ICD Condition was emitted
-                    # for this band, so downstream analytics keying on E66.3
-                    # saw an empty cohort even though the BMI Observation
-                    # itself was correctly emitted. Same 3-band split #1126
-                    # declared in the metabolic-cluster scope (see META #1137).
-                    conditions.append("E66.3")  # Overweight, BMI 25-29.9
-
-            # Issue #1134 (Substance Use): SDOH-derived Condition insertion.
-            # Rationale: ``smoking_status`` / ``alcohol_use`` are already
-            # sampled attributes on PersonRecord (SDOH social-history
-            # Observation codes). Cross-resource consistency requires that
-            # patients labeled ``current`` smoker or ``heavy`` drinker also
-            # carry an ICD chronic Condition (F17.210 nicotine dependence /
-            # F10.20 alcohol dependence uncomplicated). Analytics that
-            # filter Conditions for smoking-related risk were previously
-            # blind to the SDOH-encoded classification.
-            # Deterministic (derives from already-sampled attributes), no
-            # rng draw → RNG-neutral. Same insertion phase as E66 (after
-            # chronic loops, before care-seeking threshold).
-            # See META #1137 for design authority.
-            if smoking_status == "current":
-                conditions.append("F17.210")  # Nicotine dependence, cigarettes, uncomplicated
-            if alcohol_use == "heavy":
-                conditions.append("F10.20")  # Alcohol dependence, uncomplicated
-
-            # Care seeking threshold (JP: lower = more willing)
-            # RM-7e: care-seeking threshold from locale
-            # (JP: 20% reflects 健診 culture; US: 30% baseline).
-            # Issue #922 (session 91): the mean is now age-conditional so
-            # the flat threshold is not artificially over-passing pediatric
-            # well-child + immunization visits into the emitted cohort.
-            # RNG-shape neutral — one `rng.normal(mean, sd)` call per person
-            # regardless of which band matches.
-            _cs = demo.get("care_seeking") or {}
-            _cs_mean = _care_seeking_threshold_mean(demo, age)
-            _cs_sd = float(_cs.get("threshold_sd", CARE_SEEKING_THRESHOLD_SD_DEFAULT))
-            threshold = float(rng.normal(_cs_mean, _cs_sd))
-            threshold = max(CARE_SEEKING_CLAMP_MIN, min(CARE_SEEKING_CLAMP_MAX, threshold))
-
-            # Phone: generate mobile for adults
-            mobile = _generate_phone(addr_data, "mobile", rng) if age >= MOBILE_PHONE_MIN_AGE else ""
-
-            person = PersonRecord(
-                person_id=pid,
-                household_id=hh_id,
-                age=age,
-                sex=sex,
-                date_of_birth=dob,
-                family_name=member_surname.get("kanji", member_surname.get("name", "")),
-                given_name=given.get("kanji", given.get("name", "")),
-                phonetic=f"{member_surname.get('kana', '')} {given.get('kana', '')}".strip() or None,
-                blood_type=blood_type,
-                rh_factor=_derive_rh_factor(pid, country),
-                postal_code=hh_addr.get("postal_code", ""),
-                state=hh_addr.get("state", ""),
-                city=hh_addr.get("city", ""),
-                address_line=hh_addr.get("line", ""),
-                phone_home=hh_phone_home if has_landline else "",
-                phone_mobile=mobile if age >= MOBILE_PHONE_MIN_AGE else "",
-                chronic_conditions=conditions,
-                occupation=_sample_occupation(demo, age, sex, rng),
-                bmi=bmi,
-                smoking_status=smoking_status,
-                alcohol_use=alcohol_use,
-                care_seeking_threshold=threshold,
-                # Issue #1581 — race / ethnicity derived from a stable
-                # hash of person_id so this field addition is RNG-
-                # neutral (no master-stream shift). The activator still
-                # falls back to its original per-call sampling for test
-                # fixtures that bypass the initial cohort generator.
-                race=_derive_race(pid, demo),
-                ethnicity=_derive_ethnicity(pid, demo),
-            )
-            # Issue #1581 Phase C.3 — sample single-gene carrier
-            # status for every catalogued disease. RNG-neutral (SHA
-            # of person_id + disease code), so this field addition
-            # does not shift any existing master stream. Affected
-            # persons get the ICD code appended to chronic_conditions.
-            from clinosim.locale.loader import load_single_gene_diseases
-            from clinosim.modules.population.single_gene_inheritance import (
-                apply_initial_carrier_sampling,
-            )
-
-            _sgd_catalog = (load_single_gene_diseases() or {}).get("single_gene_diseases") or {}
-            if _sgd_catalog:
-                _sgd_affected = apply_initial_carrier_sampling(person, _sgd_catalog)
-                for _affected_code in _sgd_affected:
-                    if _affected_code not in person.chronic_conditions:
-                        person.chronic_conditions.append(_affected_code)
-            # CKD below 60 (Issue #2023): RNG-neutral SHA Bernoulli per the
-            # locale's ckd_under60_prevalence.yaml, applied before the
-            # longitudinal snapshot so the stage ladder sees the code.
-            from clinosim.modules.population._ckd_under60 import assign_ckd_under60
-
-            assign_ckd_under60(person, country)
-            # Phase 1 longitudinal subsystem (Issue #1695) — seed each
-            # person's longitudinal_history at the sim-start year so
-            # per-encounter emit (physiology / activator) can read via
-            # ``state_at`` from year 1 onward. Non-DM persons get an
-            # empty snapshot (scope gate drops the HbA1c attribute);
-            # Phase 2 / 3 attributes populate additional continuous
-            # latents / stages / events here when they land.
-            from clinosim.modules.longitudinal.engine import initial_snapshot
-            from clinosim.modules.population.aging import aging_sub_seed
-
-            _ls_rng = determinism.default_rng(aging_sub_seed(person.person_id, base_year, "longitudinal:init"))
-            initial_snapshot(person, year=base_year, init_rng=_ls_rng)
-            # Phase 3 longitudinal (Issue #1705): seed the per-person
-            # BMI drift chain from the just-generated Layer-1 bmi value
-            # so the sim-start snapshot's continuous["bmi"] matches
-            # person.bmi exactly, instead of resampling from the yaml's
-            # dummy initial distribution. Only adults participate in
-            # BMI drift (yaml's requires_age_band: [18, 120]).
-            if person.longitudinal_history and person.age >= 18:
-                person.longitudinal_history[-1].continuous["bmi"] = float(person.bmi)
-            hh.members.append(person)
+            person = _generate_person(src, draw, pid, m_idx, rng)
+            draw.household.members.append(person)
             registry.persons[pid] = person
 
-        registry.households.append(hh)
+        registry.households.append(draw.household)
 
     # Issue #1564 Phase 1: snapshot the initial person set so persons
     # added mid-simulation (e.g. newborns from `register_newborn`) can be
