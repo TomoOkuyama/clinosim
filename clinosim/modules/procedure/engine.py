@@ -374,7 +374,7 @@ _PROCEDURE_RULES: list[tuple[str | list[str], list[tuple[str, float]]]] = [
         [
             "sepsis",
             "acute_mi",
-            "heart_failure",
+            "heart_failure_exacerbation",
             "cerebral_infarction",
             "hemorrhagic_stroke",
             "subdural_hematoma",
@@ -447,18 +447,16 @@ _PROCEDURE_RULES: list[tuple[str | list[str], list[tuple[str, float]]]] = [
     ),
     # Cellulitis with severe: wound debridement
     (["cellulitis"], [("wound_debridement", 0.30)]),
-    # CO-3: ED-specific rules keyed on ED condition_ids.
-    # Aligned with JP-common ED workflow; probabilities from clinical practice
-    # (JEMS 2022 protocols).
-    (["chest_pain", "syncope", "arrhythmia", "acute_coronary_syndrome_ed"], [("ecg_12lead", 0.98), ("iv_line", 0.85)]),
-    (
-        ["wrist_fracture", "ankle_fracture", "distal_radius_fracture"],
-        [("reduction_closed", 0.55), ("short_arm_splint", 0.85)],
-    ),
-    (["laceration", "minor_wound"], [("wound_care", 0.90)]),
-    (["viral_gastroenteritis", "dehydration", "acute_gastritis"], [("iv_line", 0.70)]),
-    (["asthma_exacerbation_ed", "copd_exacerbation_ed"], [("oxygen_therapy", 0.80), ("iv_line", 0.60)]),
-    (["head_injury_minor", "concussion"], [("iv_line", 0.50)]),
+    # CO-3: ED-specific rules keyed on ED condition_ids
+    # (modules/encounter/reference_data/). Aligned with JP-common ED workflow;
+    # probabilities from clinical practice (JEMS 2022 protocols). Every key
+    # must name a disease or ED condition (Issue #2526).
+    (["chest_pain_noncardiac", "syncope"], [("ecg_12lead", 0.98), ("iv_line", 0.85)]),
+    (["wrist_fracture"], [("reduction_closed", 0.55), ("short_arm_splint", 0.85)]),
+    (["minor_laceration"], [("wound_care", 0.90)]),
+    (["viral_gastroenteritis"], [("iv_line", 0.70)]),
+    (["asthma_attack_mild", "copd_exacerbation_ed"], [("oxygen_therapy", 0.80), ("iv_line", 0.60)]),
+    (["concussion"], [("iv_line", 0.50)]),
 ]
 
 
