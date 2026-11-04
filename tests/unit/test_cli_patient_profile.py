@@ -262,7 +262,7 @@ def test_explicit_seed_equal_to_legacy_default_overrides_profile(
     Pre-F-2 defect: `if args.seed != 42` made an explicit `--seed 42`
     indistinguishable from "flag omitted", so it silently lost to the profile.
     """
-    from clinosim.simulator.cli import _apply_profile_cli_overrides
+    from clinosim.simulator.cli_test_disease import _apply_profile_cli_overrides
 
     resolved = _apply_profile_cli_overrides(_make_args(seed=42), _make_profile(random_seed=99))
     assert resolved.random_seed == 42
@@ -274,7 +274,7 @@ def test_explicit_country_equal_to_legacy_default_overrides_profile(
     capsys: pytest.CaptureFixture,
 ):
     """--country US (== old argparse default) vs profile country JP → CLI wins + WARN."""
-    from clinosim.simulator.cli import _apply_profile_cli_overrides
+    from clinosim.simulator.cli_test_disease import _apply_profile_cli_overrides
 
     resolved = _apply_profile_cli_overrides(_make_args(country="US"), _make_profile(country="JP"))
     assert resolved.country == "US"
@@ -284,7 +284,7 @@ def test_explicit_country_equal_to_legacy_default_overrides_profile(
 
 def test_omitted_cli_flags_use_profile_values(capsys: pytest.CaptureFixture):
     """No CLI flags (all None) → profile values win untouched, no WARN."""
-    from clinosim.simulator.cli import _apply_profile_cli_overrides
+    from clinosim.simulator.cli_test_disease import _apply_profile_cli_overrides
 
     profile = _make_profile(country="JP", random_seed=99, count=2)
     resolved = _apply_profile_cli_overrides(_make_args(), profile)
@@ -294,7 +294,7 @@ def test_omitted_cli_flags_use_profile_values(capsys: pytest.CaptureFixture):
 
 def test_cli_value_equal_to_profile_value_is_silent(capsys: pytest.CaptureFixture):
     """Explicit CLI value equal to the profile value → used, but no WARN noise."""
-    from clinosim.simulator.cli import _apply_profile_cli_overrides
+    from clinosim.simulator.cli_test_disease import _apply_profile_cli_overrides
 
     resolved = _apply_profile_cli_overrides(
         _make_args(seed=99, country="JP"), _make_profile(random_seed=99, country="JP")
@@ -305,7 +305,7 @@ def test_cli_value_equal_to_profile_value_is_silent(capsys: pytest.CaptureFixtur
 
 def test_count_overrides_profile_with_warn(capsys: pytest.CaptureFixture):
     """-n/--count overrides profile count with WARN (pre-F-2: silently ignored)."""
-    from clinosim.simulator.cli import _apply_profile_cli_overrides
+    from clinosim.simulator.cli_test_disease import _apply_profile_cli_overrides
 
     resolved = _apply_profile_cli_overrides(_make_args(count=2), _make_profile(count=1))
     assert resolved.count == 2
@@ -315,7 +315,7 @@ def test_count_overrides_profile_with_warn(capsys: pytest.CaptureFixture):
 
 def test_no_profile_applies_legacy_defaults():
     """Non-profile mode: omitted flags resolve to the old defaults (3 / 42 / US)."""
-    from clinosim.simulator.cli import _resolve_test_disease_defaults
+    from clinosim.simulator.cli_test_disease import _resolve_test_disease_defaults
 
     args = _make_args(disease_id="bacterial_pneumonia")
     _resolve_test_disease_defaults(args)

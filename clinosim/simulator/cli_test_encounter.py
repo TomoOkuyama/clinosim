@@ -5,6 +5,7 @@ Split from `clinosim/simulator/cli.py` — see PR K.
 
 from __future__ import annotations
 
+import argparse
 import os
 from datetime import date, datetime
 from typing import Any
@@ -245,3 +246,38 @@ def _run_test_encounter_generate(args: Any) -> None:
     _run_exports(formats, cif_dir, args.output, args.country)
 
     _print_summary(dataset, args.output)
+
+
+def register(sub: argparse._SubParsersAction) -> None:
+    # === test-encounter: debug single encounter condition ===
+    te = sub.add_parser("test-encounter", help="Simulate one patient for an encounter condition (debug)")
+    te.add_argument("condition_id", help="Condition ID (e.g., chest_pain_noncardiac, flu_vaccination)")
+    te.add_argument("-n", "--count", type=int, default=1, help="Number of patients")
+    te.add_argument("-s", "--seed", type=int, default=42, help="Random seed")
+    te.add_argument("--country", default="US", help="Country code")
+    te.add_argument("--age", type=int, default=None, help="Force patient age")
+    te.add_argument("--sex", default=None, help="Force patient sex (M/F)")
+    # AD-65 Phase 4 (Task 17): mirrors test-disease pattern — when -o is set, run the
+    # full 3-stage pipeline (structural CIF + template narrative + FHIR/CSV) for a tiny
+    # encounter-specific cohort. When -o is omitted (default), original stdout debug
+    # print is unchanged.
+    te.add_argument(
+        "--format",
+        nargs="+",
+        default=None,
+        choices=["cif", "fhir-r4", "csv", "all"],
+        help="Output formats (requires -o/--output; if omitted, stdout debug only)",
+    )
+    te.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        help="Output directory (required when --format is set)",
+    )
+    te.set_defaults(handler=run)
+
+
+def run(args: Any, parser: argparse.ArgumentParser) -> None:
+    if args.format and not args.output:
+        parser.error("--format requires -o/--output to be set")
+    _run_test_encounter(args)

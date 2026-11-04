@@ -91,7 +91,7 @@ _ALLOWED: dict[str, set[str]] = {
     # keywords matched against input text
     "modules/output/fhir_r4/procedures/oxygen_therapy.py": {"目標"},
     # --help text naming the Japanese insurance fields
-    "simulator/cli.py": {"  JP insurance numbers (被保険者番号): "},
+    "simulator/cli_simulate.py": {"  JP insurance numbers (被保険者番号): "},
     # --help text
     "simulator/cli_narrate.py": {
         "'. Narrative text is generated in the country's language (JP → 日本語, US → English); a mismatch would produce wrong-language narratives against the structural CIF. Re-run with --country "  # noqa: E501

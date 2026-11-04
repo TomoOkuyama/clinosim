@@ -5,6 +5,7 @@ Split from `clinosim/simulator/cli.py` — see PR K.
 
 from __future__ import annotations
 
+import argparse
 import os
 import sys
 from typing import Any
@@ -166,3 +167,61 @@ def _run_regenerate_goldens(args: Any) -> None:
         f"{other_variants_hint}",
         file=sys.stderr,
     )
+
+
+def register(sub: argparse._SubParsersAction) -> None:
+    # === regenerate-goldens: AD-66 α-min-2c golden narrative bootstrap ===
+    rg = sub.add_parser(
+        "regenerate-goldens",
+        help="Regenerate narrative goldens for canonical patient profiles (AD-66)",
+    )
+    rg_group = rg.add_mutually_exclusive_group(required=True)
+    rg_group.add_argument(
+        "--profile",
+        default=None,
+        help="Regenerate a single profile by name",
+    )
+    rg_group.add_argument(
+        "--all",
+        action="store_true",
+        help="Regenerate goldens for all profiles in the fixtures dir",
+    )
+    # β-JP-1 chain 1b T1: LLM parallel goldens. template (default) keeps the
+    # historical <name>.golden.json naming; LLM providers write
+    # <name>.llm-<tag>.golden.json via a `narrate --provider` subprocess step.
+    rg.add_argument(
+        "--provider",
+        default="template",
+        choices=["template", "mock", "bedrock", "ollama"],
+        help=(
+            "Narrative generator for the golden run: 'template' (default, "
+            "writes <name>.golden.json — unchanged) or an LLM provider "
+            "(mock/bedrock/ollama, writes <name>.llm-<tag>.golden.json)"
+        ),
+    )
+    rg.add_argument(
+        "--llm-config",
+        default=None,
+        help="LLM service YAML passed through to narrate (LLM providers only)",
+    )
+    rg.add_argument(
+        "--model-tag",
+        default=None,
+        help=(
+            "Filename tag for LLM goldens: <name>.llm-<tag>.golden.json "
+            "(default: provider name, e.g. mock). LLM providers only"
+        ),
+    )
+    # T3 guard: declared ONLY so that combining it with regenerate-goldens is
+    # rejected loudly (goldens must always cover the full profile cohort —
+    # a partial golden would silently pass byte-diff on the subset).
+    rg.add_argument(
+        "--patient-filter",
+        default=None,
+        help="NOT allowed here — goldens must never be partial. Use `narrate --patient-filter`",
+    )
+    rg.set_defaults(handler=run)
+
+
+def run(args: Any, parser: argparse.ArgumentParser) -> None:
+    _run_regenerate_goldens(args)

@@ -89,7 +89,7 @@ class TestBuiltinAdapters:
 @pytest.mark.unit
 class TestRunExports:
     def test_runs_requested_adapters_and_skips_cif(self, tmp_path):
-        from clinosim.simulator.cli import _run_exports
+        from clinosim.simulator.cli_common import _run_exports
 
         calls = []
 
@@ -113,7 +113,7 @@ class TestRunExports:
         assert calls[0][2] == "JP"
 
     def test_fhir_alias_resolves(self, tmp_path):
-        from clinosim.simulator.cli import _run_exports
+        from clinosim.simulator.cli_common import _run_exports
 
         seen = []
 
@@ -141,7 +141,7 @@ class TestRunExports:
         assert seen and seen[0].endswith("/fhir_r4")
 
     def test_unknown_format_raises_valueerror(self, tmp_path):
-        from clinosim.simulator.cli import _run_exports
+        from clinosim.simulator.cli_common import _run_exports
 
         with pytest.raises(ValueError, match="Unknown output format"):
             _run_exports(["nope"], str(tmp_path / "cif"), str(tmp_path), "US")
@@ -154,13 +154,13 @@ class TestValidateFormats:
             raise SystemExit(msg)
 
     def test_unknown_format_calls_parser_error(self):
-        from clinosim.simulator.cli import _validate_formats
+        from clinosim.simulator.cli_common import _validate_formats
 
         with pytest.raises(SystemExit, match="Unknown output format"):
             _validate_formats(["bogus"], self._ParserStub())
 
     def test_known_formats_and_aliases_pass(self):
-        from clinosim.simulator.cli import _validate_formats
+        from clinosim.simulator.cli_common import _validate_formats
 
         # cif (special), csv/fhir-r4 (builtins), fhir (alias) all validate without error.
         _validate_formats(["cif", "csv", "fhir-r4", "fhir"], self._ParserStub())
@@ -171,7 +171,7 @@ class TestExportFhirRoutesThroughRegistry:
     def test_export_fhir_uses_adapter(self, tmp_path):
         from argparse import Namespace
 
-        import clinosim.simulator.cli as cli
+        import clinosim.simulator.cli_export_fhir as cli
 
         seen = {}
 
@@ -201,7 +201,7 @@ class TestExportFhirRoutesThroughRegistry:
     def test_export_fhir_default_output_is_cif_sibling(self, tmp_path):
         from argparse import Namespace
 
-        import clinosim.simulator.cli as cli
+        import clinosim.simulator.cli_export_fhir as cli
 
         seen = {}
 
