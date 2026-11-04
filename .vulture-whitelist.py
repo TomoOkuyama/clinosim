@@ -291,14 +291,14 @@ _.drug_interactions  # disease/protocol.py:507
 _.causes_myocardial_injury  # disease/protocol.py:521
 
 # ----- clinosim/modules/encounter/protocol.py (Pydantic BaseModel) -----
-# JP-locale narrative fields (subjective_ja / objective_ja / plan_ja /
-# chief_complaint_ja / hpi_ja / physical_exam_ja / ed_workup_summary_ja /
-# disposition_ja) — populated by the JP narrative pipeline and read by
+# Narrative template language maps (subjective / objective / assessment /
+# plan / chief_complaint / hpi / physical_exam / ed_workup_summary /
+# disposition; Issue #2507) — read from the raw YAML dict by
 # `modules/document/narrative/*` consumers.
-_.subjective_ja  # encounter/protocol.py:25
-_.objective_ja  # encounter/protocol.py:26
-_.assessment_ja  # encounter/protocol.py:27
-_.plan_ja  # encounter/protocol.py:28
+_.subjective  # encounter/protocol.py:27
+_.objective  # encounter/protocol.py:28
+_.assessment  # encounter/protocol.py:29
+_.plan  # encounter/protocol.py:30
 _.general  # encounter/protocol.py:34 (physical-exam categories)
 _.cardiovascular  # encounter/protocol.py:35
 _.respiratory  # encounter/protocol.py:36
@@ -306,11 +306,11 @@ _.abdominal  # encounter/protocol.py:37
 _.neurological  # encounter/protocol.py:38
 _.musculoskeletal  # encounter/protocol.py:39
 _.psychiatric  # encounter/protocol.py (EdPhysicalExam; read by name in the ED note exam renderer)
-_.chief_complaint_ja  # encounter/protocol.py:45
-_.hpi_ja  # encounter/protocol.py:46
-_.physical_exam_ja  # encounter/protocol.py:47
-_.ed_workup_summary_ja  # encounter/protocol.py:48
-_.disposition_ja  # encounter/protocol.py:49
+_.chief_complaint  # encounter/protocol.py:50
+_.hpi  # encounter/protocol.py:51
+_.physical_exam  # encounter/protocol.py:52
+_.ed_workup_summary  # encounter/protocol.py:53
+_.disposition  # encounter/protocol.py:54
 _.common_triage_levels  # encounter/protocol.py:55
 _.outpatient_soap_template  # encounter/protocol.py:66
 _.ed_note_template  # encounter/protocol.py:67

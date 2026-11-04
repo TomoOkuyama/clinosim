@@ -83,20 +83,25 @@ seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.
 
 narrative:
   ed_note_template:
-    chief_complaint_ja: '{chief_complaint_ja}'
-    hpi_ja: '最終使用から約{onset_days}日、全身痛・嘔吐・下痢・不安・不眠が出現'
-    physical_exam_ja:
-      general: 不穏、発汗、あくび・流涙・鼻漏あり
-      neuro: 散瞳、振戦、立毛
-    ed_workup_summary_ja: '{lab_summary_ja}'
-    disposition_ja: '{disposition_display_ja}'
-    chief_complaint_en: '{chief_complaint_en}'
-    hpi_en: 'Body aches, vomiting, diarrhea, anxiety and insomnia starting about {onset_days} day(s) after last opioid use.'
-    physical_exam_en:
-      general: Restless and diaphoretic, yawning, lacrimation and rhinorrhea
-      neuro: Mydriasis, tremor, piloerection
-    ed_workup_summary_en: '{lab_summary_en}'
-    disposition_en: '{disposition_display_en}'
+    chief_complaint:
+      en: '{chief_complaint_en}'
+      ja: '{chief_complaint_ja}'
+    hpi:
+      en: 'Body aches, vomiting, diarrhea, anxiety and insomnia starting about {onset_days} day(s) after last opioid use.'
+      ja: '最終使用から約{onset_days}日、全身痛・嘔吐・下痢・不安・不眠が出現'
+    physical_exam:
+      en:
+        general: Restless and diaphoretic, yawning, lacrimation and rhinorrhea
+        neuro: Mydriasis, tremor, piloerection
+      ja:
+        general: 不穏、発汗、あくび・流涙・鼻漏あり
+        neuro: 散瞳、振戦、立毛
+    ed_workup_summary:
+      en: '{lab_summary_en}'
+      ja: '{lab_summary_ja}'
+    disposition:
+      en: '{disposition_display_en}'
+      ja: '{disposition_display_ja}'
   ed_triage_template:
     common_triage_levels:
     - '3'

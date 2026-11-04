@@ -29,6 +29,7 @@ from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
 from clinosim.locale.loader import narrative_label as _label
+from clinosim.locale.localized import normalize_lang
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import (
     _localize_imaging,
@@ -96,14 +97,15 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
             return t("ed.on_arrival_no_findings", lang, vitals=vital_line), facts
         return fallback, facts
 
-    # physical_exam_<lang> is a structured per-body-system object, not a plain
-    # string, so it is resolved inline rather than via _pick_localized (which
-    # coerces its result to str). Same locale-routing semantics: warn + fall
-    # back on a missing lang-suffixed field instead of silently reading _ja.
-    field = f"physical_exam_{lang}"
-    pe = _o(ed_tmpl, field, None)
+    # physical_exam maps a language to a structured per-body-system object,
+    # not a plain string, so it is resolved inline rather than via
+    # _pick_localized (which coerces its result to str); same routing.
+    field = "physical_exam"
+    exams = _o(ed_tmpl, field, None) or {}
+    # The findings in exactly the requested language (Issue #2507).
+    pe = exams.get(normalize_lang(lang)) if isinstance(exams, dict) else None
     if pe is None:
-        logger.warning("template locale field %s missing on %s", field, type(ed_tmpl).__name__)
+        logger.warning("template field %s.%s missing on %s", field, lang, type(ed_tmpl).__name__)
         return fallback, facts
 
     # Collect non-empty body system findings (placeholder-substituted —
@@ -122,7 +124,7 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
                 parts.append(filled)
 
     if parts:
-        facts.append(f"encounter_protocol.narrative.ed_note_template.{field}")
+        facts.append(f"encounter_protocol.narrative.ed_note_template.{field}_{lang}")  # provenance label as before
         sep = t("list_sep.period_space", lang)
         text = sep.join(parts)
         # JA-locale narrative enhancements (Issues #980 + #979). Both

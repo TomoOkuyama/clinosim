@@ -53,4 +53,4 @@ def test_transferred_patients_screen_with_intent_or_plan() -> None:
 def test_mental_status_exam_is_a_rendered_exam_entry() -> None:
     assert "psychiatric" in EdPhysicalExam.model_fields
     tmpl = load_encounter_condition(_COND)["narrative"]["ed_note_template"]
-    assert tmpl["physical_exam_en"]["psychiatric"] and tmpl["physical_exam_ja"]["psychiatric"]
+    assert tmpl["physical_exam"]["en"]["psychiatric"] and tmpl["physical_exam"]["ja"]["psychiatric"]

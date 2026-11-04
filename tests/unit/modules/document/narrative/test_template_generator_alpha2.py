@@ -68,10 +68,10 @@ def _make_outpatient_encounter_protocol(
 ) -> Any:
     """Build a mock EncounterConditionProtocol with SOAP narrative."""
     soap = SimpleNamespace(
-        subjective_ja=subjective_ja,
-        objective_ja=objective_ja,
-        assessment_ja=assessment_ja,
-        plan_ja=plan_ja,
+        subjective={"ja": subjective_ja},
+        objective={"ja": objective_ja},
+        assessment={"ja": assessment_ja},
+        plan={"ja": plan_ja},
     )
     narrative = SimpleNamespace(
         outpatient_soap_template=soap,
@@ -100,11 +100,11 @@ def _make_ed_encounter_protocol(
         musculoskeletal="",
     )
     ed_note = SimpleNamespace(
-        chief_complaint_ja=chief_complaint_ja,
-        hpi_ja=hpi_ja,
-        physical_exam_ja=physical_exam,
-        ed_workup_summary_ja=ed_workup_summary_ja,
-        disposition_ja=disposition_ja,
+        chief_complaint={"ja": chief_complaint_ja},
+        hpi={"ja": hpi_ja},
+        physical_exam={"ja": physical_exam},
+        ed_workup_summary={"ja": ed_workup_summary_ja},
+        disposition={"ja": disposition_ja},
     )
     narrative = SimpleNamespace(
         outpatient_soap_template=None,
