@@ -16,6 +16,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from clinosim.codes import code_exists
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.localized import language_slot
 
@@ -31,21 +32,6 @@ Verified against the YAML header comment at import time via
 """
 
 
-def _code_in_data(system: str, code: str) -> bool:
-    """Direct membership check in codes/data/<system>.yaml.
-
-    ``lookup()`` returns the code itself as fallback for unknown entries (not None),
-    so it cannot distinguish "code exists" from "code absent". Direct ``cs.codes``
-    membership IS the authoritative check (same pattern as ``hai/engine.py``).
-
-    Raises:
-        ValueError: if the system itself is not registered in codes/data/.
-    """
-    from clinosim.codes import code_exists
-
-    return code_exists(system, code, exact=True)
-
-
 def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
     """Validate panel YAML schema + canonical-constant cross-reference.
 
@@ -55,7 +41,7 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
     (3) unknown YAML keys rejected (YAML panels not in PANEL_PRIORITY_ORDER)
     (4) PANEL_PRIORITY_ORDER forward-coverage (every constant has YAML entry)
     (5) range/type checks (min_components positive int, components non-empty list)
-    (6) authoritative cross-validation: LOINC code resolves via ``_code_in_data``
+    (6) authoritative cross-validation: LOINC code resolves via ``code_exists(..., exact=True)``
         + YAML key order matches PANEL_PRIORITY_ORDER (iteration-order is
         load-bearing for ``group_lab_orders`` priority grouping)
 
@@ -109,7 +95,7 @@ def _validate_panel_definitions(panels: dict[str, dict[str, Any]]) -> None:
         # Layer 6a (LOINC): authoritative cross-validation — code must resolve in
         # codes/data/loinc.yaml. PR-90 lesson: a typo'd LOINC passes required-field
         # check (Layer 2) but should fail at import time, not only at test-time.
-        if not _code_in_data("loinc", panel["loinc"]):
+        if not code_exists("loinc", panel["loinc"], exact=True):
             raise ValueError(
                 f"Panel '{name}' has unknown LOINC code '{panel['loinc']}' (not in clinosim/codes/data/loinc.yaml)"
             )

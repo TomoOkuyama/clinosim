@@ -11,6 +11,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes import code_exists
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
@@ -46,19 +47,6 @@ food-resolved branch) below which the allergy is coded as
 first 5% is claimed by the food-resolved branch, this yields ~10%
 unconfirmed across categories (5-15 %). Above this cutoff (the
 remaining 85%) allergies are coded as active + confirmed."""
-
-
-def _code_in_data(system: str, code: str) -> bool:
-    """Direct membership check in codes/data/<system>.yaml.
-
-    `lookup()` returns the code itself as fallback for unknown entries (not
-    None), so it can't distinguish "code exists" from "code absent". Direct
-    `cs.codes` membership IS the authoritative check (same pattern as
-    `hai/engine.py:_code_in_data`).
-    """
-    from clinosim.codes import code_exists
-
-    return code_exists(system, code, exact=True)
 
 
 def _validate_allergens(data: dict[str, Any]) -> None:
@@ -110,7 +98,7 @@ def _validate_allergens(data: dict[str, Any]) -> None:
             if not reactions or not isinstance(reactions, list):
                 raise ValueError(f"allergens.yaml[{cat}][{i}].common_reactions: must be non-empty list")
             allergen_code = e["allergen_code"]
-            if not _code_in_data("snomed-ct", allergen_code):
+            if not code_exists("snomed-ct", allergen_code, exact=True):
                 raise ValueError(
                     f"allergens.yaml[{cat}][{i}].allergen_code {allergen_code!r} not in codes/data/snomed-ct.yaml"
                 )
@@ -118,7 +106,7 @@ def _validate_allergens(data: dict[str, Any]) -> None:
                 manifestation_snomed = rxn.get("manifestation_snomed", "")
                 if not manifestation_snomed:
                     raise ValueError(f"allergens.yaml[{cat}][{i}].common_reactions[{j}]: missing manifestation_snomed")
-                if not _code_in_data("snomed-ct", manifestation_snomed):
+                if not code_exists("snomed-ct", manifestation_snomed, exact=True):
                     raise ValueError(
                         f"allergens.yaml[{cat}][{i}].common_reactions[{j}].manifestation_snomed "
                         f"{manifestation_snomed!r} not in codes/data/snomed-ct.yaml"
@@ -164,7 +152,7 @@ def _validate_nka_and_polyallergy(data: dict[str, Any]) -> None:
     for k in ("allergen_code", "clinical_status", "verification_status"):
         if k not in nka:
             raise ValueError(f"allergens.yaml.nka: missing {k!r}")
-    if not _code_in_data("snomed-ct", nka["allergen_code"]):
+    if not code_exists("snomed-ct", nka["allergen_code"], exact=True):
         raise ValueError(f"allergens.yaml.nka.allergen_code {nka['allergen_code']!r} not in codes/data/snomed-ct.yaml")
     poly = data.get("polyallergy")
     if not poly or not isinstance(poly, dict):

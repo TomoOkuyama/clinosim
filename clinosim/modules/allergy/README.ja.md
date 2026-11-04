@@ -31,7 +31,7 @@ baseline ~15.3 % に一致)、gate 不成立の患者には「既知のアレル
   food category 限定)。
 - **In scope (validation)**: `allergens.yaml` に対する load 時
   6-layer validator。`allergen_code` および各 reaction の
-  `manifestation_snomed` を `_code_in_data` 経由で
+  `manifestation_snomed` を `code_exists(..., exact=True)` で
   [`clinosim/codes/data/snomed-ct.yaml`](../../codes/data/snomed-ct.yaml)
   membership に対して cross-check。`nka` / `polyallergy` /
   `cross_reactivity` block は `_validate_nka_and_polyallergy` で検証。
@@ -111,7 +111,7 @@ defensible 値で、pre-refactor patient activator baseline (~15.3%) に
 - `clinosim.modules._shared` — `normalize_probabilities`。
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
 - `clinosim.types.allergy` — `Allergy`, `AllergyReaction`。
-- `clinosim.codes.loader._load_system` (`_code_in_data` 経由) —
+- `clinosim.codes.code_exists(..., exact=True)` —
   import 時 SNOMED 直接 membership check。
 - `numpy` — `np.random.Generator`。
 - `yaml` — YAML パーサ。
@@ -142,7 +142,7 @@ defensible 値で、pre-refactor patient activator baseline (~15.3%) に
   は import 時に
   [`clinosim/codes/data/snomed-ct.yaml`](../../codes/data/snomed-ct.yaml)
   に存在するか cross-check し、未知コードは空表示に fall-through させず
-  raise する (AD-30 chain、`hai/engine.py:_code_in_data` の兄弟 pattern)。
+  raise する (AD-30 chain、`clinosim.codes.code_exists`)。
 - 6-layer validator (`_validate_allergens`) は以下を reject:
   (1) 空 top-level、(2) `allergens` 欠落 / 非 dict、
   (3) `SUPPORTED_ALLERGEN_CATEGORIES` との双方向キー drift、

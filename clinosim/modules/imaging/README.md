@@ -92,7 +92,7 @@ from clinosim.modules.imaging.inference import (
 
 - `clinosim.modules._shared` — `get_attr_or_key`.
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`.
-- `clinosim.codes.loader._load_system` — `_code_in_data` validator
+- `clinosim.codes.code_exists` — validator
   helper (matches `hai/engine.py` pattern).
 - `clinosim.audit.registry` (via `audit.py`) — AD-60 audit
   registration.

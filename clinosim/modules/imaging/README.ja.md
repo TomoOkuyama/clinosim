@@ -88,7 +88,7 @@ from clinosim.modules.imaging.inference import (
 
 - `clinosim.modules._shared` — `get_attr_or_key`。
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
-- `clinosim.codes.loader._load_system` — `_code_in_data` validator
+- `clinosim.codes.code_exists` — validator
   helper (`hai/engine.py` pattern 一致)。
 - `clinosim.audit.registry` (`audit.py` 経由) — AD-60 audit 登録。
 - `clinosim.modules.output.fhir_r4` (`audit.py` のみ) — category /
