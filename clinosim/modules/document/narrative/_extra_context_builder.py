@@ -20,7 +20,6 @@ from pathlib import Path
 from clinosim.codes.icd10 import condition_label
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
-from clinosim.locale.localized import localized_field
 from clinosim.modules.document.narrative._patient_info_renderers import (
     _WRITING_DAY_SCOPE,
     _health_literacy_tag,
@@ -46,6 +45,7 @@ from clinosim.modules.document.narrative._replacement_renderers import (
     _render_vitals_range,
     _stay_phase,
 )
+from clinosim.modules.document.narrative._safety_skips import safety_skip_line
 from clinosim.types.document import DocumentTypeSpec, NarrativeContext
 
 # Per-doc-type extras eligibility — biometrics (Ht/Wt/BMI/blood type) and
@@ -266,59 +266,10 @@ def _build_extra_context(
     safety_skips = list(getattr(ctx, "safety_skips", []) or [])
     if safety_skips:
         lang = ctx.target_lang
-        lines: list[str] = []
-        for s in safety_skips[:8]:  # cap payload (~200 tokens max)
-            # Issue #1403: event_type-aware cadence — the narrative
-            # prompt Rule 2 (v17) reads a leading marker per bullet
-            # to dispatch to the matching clinical phrasing (avoid /
-            # hold / substitute / deescalate). Legacy pair-avoid logs
-            # (event_type absent) fall through to "avoid".
-            # Issue #1413 (S114): switch/deescalate keep neutral
-            # "X discontinued → Y started" prose — no direction
-            # assertion (real treatment_modifications stops are mostly
-            # escalations, so a spectrum-agnostic phrasing is safer).
-            event = str(s.get("event_type") or "avoid").lower()
-            # `<field>_<lang>` slot with bare-slot fallback via the
-            # shared CIF-slot picker — no `lang == "ja"` gate here so
-            # adding a locale is a data-only change (populate
-            # `<field>_<lang>` on the safety-skip entry).
-            considered = localized_field(s, "considered", lang)
-            conflict = localized_field(s, "avoided_due_to", lang)
-            substituted = localized_field(s, "substituted_with", lang) or None
-            day = s.get("stopped_on_day")
-            day_phrase = (
-                t("safety_skips.day_phrase_specific", lang, day=int(day))
-                if day
-                else t("safety_skips.day_phrase_default", lang)
-            )
-            if event == "hold":
-                key = "safety_skips_prompt.hold"
-            elif event == "substitute":
-                key = (
-                    "safety_skips_prompt.substitute_with_sub"
-                    if substituted
-                    else "safety_skips_prompt.substitute_no_sub"
-                )
-            elif event == "switch":
-                key = "safety_skips_prompt.switch_with_sub" if substituted else "safety_skips_prompt.switch_no_sub"
-            elif event == "deescalate":
-                key = (
-                    "safety_skips_prompt.deescalate_with_sub"
-                    if substituted
-                    else "safety_skips_prompt.deescalate_no_sub"
-                )
-            else:  # avoid (legacy + explicit)
-                key = "safety_skips_prompt.avoid_with_sub" if substituted else "safety_skips_prompt.avoid_no_sub"
-            lines.append(
-                t(
-                    key,
-                    lang,
-                    considered=considered,
-                    conflict=conflict,
-                    substituted=substituted or "",
-                    day_phrase=day_phrase,
-                )
-            )
+        # Cap the payload (~200 tokens). Phrasing per event_type is shared
+        # with the template path (Issues #1403, #1413, #2519); the prompt's
+        # Rule 2 reads the leading marker of each bullet.
+        lines = [safety_skip_line(s, lang, prefix="safety_skips_prompt") for s in safety_skips[:8]]
         extra["considered_but_not_prescribed"] = "\n".join(lines)
 
     complications = list(getattr(ctx, "complications_occurred", []) or [])
