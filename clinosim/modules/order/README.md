@@ -168,7 +168,7 @@ from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (
   — moved from `output/reference_data/` because "panel" is
   fundamentally an ordering concept. Header comment enumerates the
   priority tuple and is cross-verified at import
-  (`_validate_panel_definitions`).
+  (the `LabPanels` Pydantic model).
 - **Timing thresholds** (Issue #637 four-file sweep):
   - [`_lab_result_timing.py`](_lab_result_timing.py) — STAT vs
     routine base delay, night-shift deferral to next-morning

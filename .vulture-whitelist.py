@@ -323,6 +323,10 @@ _.dicom_code  # imaging/engine.py _Modality
 _.jp_k_code  # imaging/engine.py _ProcedureCodes
 _.procedure_codes  # imaging/engine.py _BodySite
 
+# ----- clinosim/modules/order/panel_grouping.py (Pydantic BaseModel, Issue #2569) -----
+# Schema field of the YAML validation model; callers read the raw dict.
+_.min_components  # order/panel_grouping.py _Panel
+
 # ----- clinosim/modules/encounter/protocol.py (Pydantic BaseModel) -----
 # Narrative template language maps (subjective / objective / assessment /
 # plan / chief_complaint / hpi / physical_exam / ed_workup_summary /
