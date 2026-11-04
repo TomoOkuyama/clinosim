@@ -55,6 +55,8 @@ Two-pass lifecycle (AD-65):
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime, time, timedelta
 from functools import lru_cache
 from typing import Any
@@ -260,39 +262,396 @@ def _compute_los_days(
     return max(1, n - 1) if n > 1 else 1
 
 
-def _make_doc_stub(
+# ---------------------------------------------------------------------------
+# Document planners (Issue #2532)
+# ---------------------------------------------------------------------------
+#
+# Each ``generation_frequency`` value maps to a planner that decides which
+# documents an encounter gets and when they are dated; one builder turns the
+# plans into ``ClinicalDocument`` stubs with sequential ids. The planner keys
+# must equal ``narrative.registry.GENERATION_FREQUENCIES`` (the YAML-load
+# allowlist; a unit test pins the two together).
+
+
+@dataclass(frozen=True)
+class _EncounterFacts:
+    """What the planners read about one encounter."""
+
+    record: Any
+    encounter: Any
+    encounter_id: str
+    pid: str
+    admission_dt: datetime
+    discharge_dt: datetime | None
+    los_days: int
+    config: Any
+
+    @property
+    def is_in_progress(self) -> bool:
+        return self.discharge_dt is None
+
+    @property
+    def end_dt(self) -> datetime:
+        return self.discharge_dt or self.admission_dt
+
+
+@dataclass(frozen=True)
+class _DocPlan:
+    """One planned document: its timing, document-id suffix and the fields
+    that differ from the spec defaults. ``author`` None means the default
+    author for the spec (``_pick_document_author``)."""
+
+    authored: str
+    period_start: str
+    period_end: str
+    id_suffix: str = ""
+    author: str | None = None
+    loinc_code: str | None = None
+    shift: str = ""
+    related_procedure_id: str = ""
+
+
+def _point(dt: datetime, **kw: Any) -> _DocPlan:
+    """A document dated at one instant (authored == period start == end)."""
+    iso = dt.isoformat()
+    return _DocPlan(iso, iso, iso, **kw)
+
+
+def _whole_stay(f: _EncounterFacts) -> _DocPlan:
+    """A document authored at discharge covering the whole stay."""
+    return _DocPlan(f.end_dt.isoformat(), f.admission_dt.isoformat(), f.end_dt.isoformat())
+
+
+def _iso(value: Any) -> str:
+    return value.isoformat() if hasattr(value, "isoformat") else str(value)
+
+
+def _plan_admission_once(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    return [_point(f.admission_dt)]
+
+
+def _plan_admission_once_los_gt_7(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # MHLW mandate: 栄養管理計画書 required only for admissions > 7 days
+    # (design spec §3a).
+    return [_point(f.admission_dt)] if f.los_days > 7 else []
+
+
+def _plan_admission_once_if_rehab_sessions(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # MHLW 別紙様式21: rehabilitation plan required only when the patient is
+    # actually receiving disease-specific rehab therapy (design spec §1).
+    # Dated at the first rehab session, not admission (the plan is assessed
+    # when rehab starts, POD1+ per generate_rehab_sessions).
+    sessions = [s for s in (_o(f.record, "rehab_sessions", []) or []) if _o(s, "encounter_id", "") == f.encounter_id]
+    if not sessions:
+        return []
+    return [_point(min(_o(s, "session_date", f.admission_dt) for s in sessions))]
+
+
+def _plan_daily(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # Spec §7: daily notes skipped for LOS<1 encounters (day surgery /
+    # immediate discharge). Issue #337: LOS=1 keeps its one progress note —
+    # the eDS Composition (discharge_once) needs a hospitalCourseSection
+    # entry target even for one-day stays.
+    return [_point(f.admission_dt + timedelta(days=day)) for day in range(f.los_days)]
+
+
+def _plan_daily_3shift(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # α-min-3: 3 nursing notes per LOS day (night 00:00 / day 08:00 / evening
+    # 16:00); skipped for LOS=1 same-day encounters (spec §7). In-progress
+    # encounters (AD-32) use the same los_days proxy.
+    if f.los_days <= 1:
+        return []
+    plans = []
+    for day in range(f.los_days):
+        day_date = (f.admission_dt + timedelta(days=day)).date()
+        for shift_key, shift_hour in SHIFT_SCHEDULE:
+            shift_dt = datetime.combine(day_date, time(hour=shift_hour))
+            # Issue #820 (N-6): no shift record before the patient arrived.
+            if shift_dt < f.admission_dt:
+                continue
+            plans.append(_point(shift_dt, id_suffix=f"-{shift_key}", shift=shift_key))
+    return plans
+
+
+def _plan_discharge_once(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # AD-32: no discharge document while the encounter is open.
+    return [] if f.is_in_progress else [_whole_stay(f)]
+
+
+def _died(f: _EncounterFacts) -> bool:
+    return _o(f.encounter, "discharge_disposition", "") == "exp"
+
+
+def _plan_discharge_once_if_alive(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # Issue #961: generic 退院時サマリー for living discharges only; a death
+    # gets the 死亡退院サマリー (discharge_once_if_deceased_replaces).
+    return [] if f.is_in_progress or _died(f) else [_whole_stay(f)]
+
+
+def _plan_discharge_once_if_deceased(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # Issue #961: 死亡診断書 (and, under the ``_replaces`` key, the 死亡退院
+    # サマリー) for an encounter that ended in death. The certificate is a
+    # separate legal document (医師法第 20 条), alongside the summary. AD-32:
+    # no death can be certified while the encounter is open.
+    return [_whole_stay(f)] if not f.is_in_progress and _died(f) else []
+
+
+def _plan_discharge_fraction_20pct(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # P2-13 PR2b: JP-CLINS 診療情報提供書 on a deterministic 20% of discharges
+    # (AD-16: stable string hashing, no sub-seed).
+    if f.is_in_progress or not _referral_note_fires(f.encounter_id, f.pid):
+        return []
+    return [_whole_stay(f)]
+
+
+def _plan_checkup_once(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # P2-13 PR3: JP-eCheckup 健診結果報告書, only with the health_checkup module.
+    return [_whole_stay(f)] if f.config.module_enabled("health_checkup") else []
+
+
+def _plan_per_surgical_encounter(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # Issue #991: 手術記録 once per encounter with a surgical ProcedureRecord,
+    # for its earliest surgery, authored when the operation ends. Bedside /
+    # diagnostic procedures get a procedure_note instead. AD-32: none while
+    # the encounter is open.
+    if f.is_in_progress:
+        return []
+    surgical = [
+        p
+        for p in (_o(f.record, "procedures", []) or [])
+        if _o(p, "encounter_id", "") == f.encounter_id and str(_o(p, "category_code", "") or "") == SURGICAL_PROCEDURE
+    ]
+    if not surgical:
+        return []
+    primary = min(surgical, key=lambda p: _o(p, "start_datetime", None) or f.admission_dt)
+    op_dt = _o(primary, "end_datetime", None) or _o(primary, "start_datetime", None) or f.admission_dt
+    return [
+        _point(
+            op_dt,
+            author=_o(primary, "primary_surgeon_id", "") or None,
+            related_procedure_id=str(_o(primary, "procedure_id", "") or ""),
+        )
+    ]
+
+
+def _plan_per_bedside_procedure(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # Issue #992: one procedure_note per ProcedureRecord whose code is listed
+    # under ``procedure_note_codes`` in bedside_procedure_codes.yaml. AD-32: a
+    # bedside procedure done today has its note today, open encounter or not.
+    from clinosim.modules.document.reference_data_loaders import load_bedside_procedure_codes
+
+    codes = load_bedside_procedure_codes()["procedure_note"]
+    plans = []
+    for proc in _o(f.record, "procedures", []) or []:
+        if _o(proc, "encounter_id", "") != f.encounter_id:
+            continue
+        if str(_o(proc, "procedure_code", "") or "").strip() not in codes:
+            continue
+        start = _o(proc, "start_datetime", None) or f.admission_dt
+        end = _o(proc, "end_datetime", None) or start
+        plans.append(
+            _DocPlan(
+                _iso(end),
+                _iso(start),
+                _iso(end),
+                id_suffix="-pn",
+                author=_o(proc, "primary_surgeon_id", "") or None,
+                related_procedure_id=_o(proc, "procedure_id", "") or "",
+            )
+        )
+    return plans
+
+
+def _plan_encounter_once(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
+    # Single-visit encounters (outpatient SOAP, ED note, ED triage note),
+    # authored at arrival and covering the visit; emitted even when open.
+    # Issue #957: oncology encounters get LOINC 34133-9.
+    return [
+        _DocPlan(
+            f.admission_dt.isoformat(),
+            f.admission_dt.isoformat(),
+            f.end_dt.isoformat(),
+            loinc_code=_effective_outpatient_loinc(spec.loinc_code, f.encounter),
+        )
+    ]
+
+
+_Planner = Callable[[Any, _EncounterFacts], list[_DocPlan]]
+
+_PLANNERS: dict[str, _Planner] = {
+    "admission_once": _plan_admission_once,
+    "admission_once_los_gt_7": _plan_admission_once_los_gt_7,
+    "admission_once_if_rehab_sessions": _plan_admission_once_if_rehab_sessions,
+    "daily": _plan_daily,
+    "daily_3shift": _plan_daily_3shift,
+    "discharge_once": _plan_discharge_once,
+    "discharge_once_if_alive": _plan_discharge_once_if_alive,
+    "discharge_once_if_deceased": _plan_discharge_once_if_deceased,
+    "discharge_once_if_deceased_replaces": _plan_discharge_once_if_deceased,
+    "discharge_fraction_20pct": _plan_discharge_fraction_20pct,
+    "checkup_once": _plan_checkup_once,
+    "per_surgical_encounter": _plan_per_surgical_encounter,
+    "per_bedside_procedure": _plan_per_bedside_procedure,
+    "encounter_once": _plan_encounter_once,
+}
+
+
+def _build_documents(
     spec: Any,
+    plans: list[_DocPlan],
+    encounter: Any,
     encounter_id: str,
-    doc_seq: int,
-    dt: datetime,
     pid: str,
     lang: str,
-    author: str,
-) -> ClinicalDocument:
-    """Shared ClinicalDocument construction for the admission_once family of
-    generation_frequency branches (admission_once / admission_once_los_gt_7 /
-    admission_once_if_rehab_sessions) — all three set authored_datetime ==
-    period_start == period_end to the same instant `dt`. Extracted once a
-    third variant landed (rehabilitation_plan design spec §3b), closing the
-    nutrition_care_plan chain's PR #139 deferred TODO ("LOS-gated
-    document_enricher pattern") — mechanical refactor, no behavior change to
-    the two existing call sites (admission_dt in, identical ClinicalDocument
-    out).
+    doc_seq: int,
+) -> tuple[list[ClinicalDocument], int]:
+    """Stubs (narrative=None; AD-65) for ``plans``, numbered from ``doc_seq``.
+    Returns the stubs and the next sequence number."""
+    docs = []
+    for plan in plans:
+        docs.append(
+            ClinicalDocument(
+                document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}{plan.id_suffix}",
+                task_type=spec.type_key,
+                loinc_code=plan.loinc_code or spec.loinc_code,
+                patient_id=pid,
+                encounter_id=encounter_id,
+                author_practitioner_id=plan.author or _pick_document_author(spec, encounter),
+                related_procedure_id=plan.related_procedure_id,
+                authored_datetime=plan.authored,
+                period_start=plan.period_start,
+                period_end=plan.period_end,
+                language=lang,
+                format_type=spec.format_type.value,
+                shift=plan.shift,
+                narrative=None,
+            )
+        )
+        doc_seq += 1
+    return docs, doc_seq
+
+
+def _ed_companion_documents(
+    encounter: Any,
+    encounter_id: str,
+    admission_dt: datetime,
+    country_spec_keys: frozenset[str],
+    pid: str,
+    lang: str,
+    doc_seq: int,
+) -> tuple[list[ClinicalDocument], int]:
+    """Phase B (N-3): ED documents for an inpatient admission that came
+    through the ED.
+
+    The FHIR adapter synthesizes a bridge Encounter ``{IMP}-ED`` for a via-ED
+    admission (``_make_synth_ed_enc_dict``) so ``Encounter.partOf`` resolves.
+    The encounter_once ED specs (救急科記録 34878-9 / トリアージ記録 54094-8)
+    target that bridge id so it carries the documents of the ED phase. The
+    stubs stay on the IMP record (CY7-05: no new ``record.encounters``
+    entry); the narrative pass fills them with the ED templates.
     """
-    return ClinicalDocument(
-        document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-        task_type=spec.type_key,
-        loinc_code=spec.loinc_code,
-        patient_id=pid,
-        encounter_id=encounter_id,
-        author_practitioner_id=author,
-        authored_datetime=dt.isoformat(),
-        period_start=dt.isoformat(),
-        period_end=dt.isoformat(),
-        language=lang,
-        format_type=spec.format_type.value,
-        narrative=None,
+    admit_source = _o(encounter, "admit_source", None)
+    if not (str(admit_source) == "emd" or str(admit_source).lower().endswith(".emd")):
+        return [], doc_seq
+    ed_enc_id = f"{encounter_id}-ED"
+    # Mid-ED-window authored time (synth Encounter.period is
+    # [admission-3.5h, admission]).
+    plan = _DocPlan(
+        (admission_dt - timedelta(hours=2)).isoformat(),
+        (admission_dt - timedelta(hours=3, minutes=30)).isoformat(),
+        admission_dt.isoformat(),
     )
+    docs: list[ClinicalDocument] = []
+    for spec in specs_for_encounter_type("emergency"):
+        if spec.type_key in country_spec_keys and spec.generation_frequency == "encounter_once":
+            built, doc_seq = _build_documents(spec, [plan], encounter, ed_enc_id, pid, lang, doc_seq)
+            docs += built
+    return docs, doc_seq
+
+
+def _clinical_impression_records(
+    encounter: Any,
+    enc_type_val: str,
+    encounter_id: str,
+    admission_dt: datetime,
+    los_days: int,
+    is_in_progress: bool,
+    attending_id: str,
+    country: str,
+) -> list[ClinicalImpressionRecord]:
+    """One ClinicalImpressionRecord per LOS day for an inpatient / ICU /
+    rehab stay (spec §3.3)."""
+    records: list[ClinicalImpressionRecord] = []
+    # C4-11: richer template description.
+    # Pre-fix was a 25-char stub ("Day N clinical assessment").
+    # Now includes disease id + severity + phase hint. Purely
+    # template-driven (deterministic, no LLM) — β-JP-1 is a
+    # DocumentReference/Composition narrative pass and does not
+    # touch ClinicalImpression.description.
+    _disease_id = _o(encounter, "disease_id", "") or ""
+    _severity = _o(encounter, "severity", "") or ""
+    # Labels, phases and descriptions come from the phrase catalog
+    # (``narrative_phrases.yaml`` ``clinical_impression``, Issue #2401).
+    _enc_key = "inpatient" if enc_type_val == "inpatient" else ("icu" if "icu" in enc_type_val.lower() else "rehab")
+    for day in range(los_days):
+        day_dt = admission_dt + timedelta(days=day)
+        # AD-32: the last day of an in-progress encounter is "in-progress"
+        # (encounter still open; prior days remain "completed").
+        last_day_of_in_progress = is_in_progress and (day == los_days - 1)
+        # Phase hint (deterministic by day-index vs LOS) and the LOINC
+        # visit-type code per phase (session-88j P1-12).
+        if los_days <= 2:
+            _phase_key, _doc_type = "brief_admission", "admission_hp"
+        elif day == 0:
+            _phase_key, _doc_type = "admission_workup", "admission_hp"
+        elif day == los_days - 1:
+            _phase_key, _doc_type = "pre_discharge_review", "discharge_summary"
+        elif day < los_days / 3:
+            _phase_key, _doc_type = "acute_phase", "progress_note"
+        elif day < 2 * los_days / 3:
+            _phase_key, _doc_type = "stabilisation", "progress_note"
+        else:
+            _phase_key, _doc_type = "recovery", "progress_note"
+        _code_loinc = document_loinc(_doc_type)
+        _code_loinc_display = loinc_display(_code_loinc, lang_for(country)) or ""
+
+        def _describe(lang: str) -> str:
+            return t(
+                "clinical_impression.description",
+                lang,
+                enc=t(f"clinical_impression.enc_label.{_enc_key}", lang),
+                day=day + 1,
+                los=los_days,
+                dx_part=t("clinical_impression.dx_part", lang, dx=_disease_id) if _disease_id else "",
+                sev_part=t("clinical_impression.sev_part", lang, severity=_severity) if _severity else "",
+                phase=t(f"clinical_impression.phase.{_phase_key}", lang),
+            )
+
+        # CIF keeps both languages (AD-30: the JP description cannot
+        # be re-derived from a code at FHIR emission time).
+        description = _describe("en")
+        description_ja = _describe("ja")
+        records.append(
+            ClinicalImpressionRecord(
+                impression_id=f"{CLINICAL_IMPRESSION_ID_PREFIX}{encounter_id}-{day}",
+                encounter_id=encounter_id,
+                # Issue #821 (N-7): preserve the full datetime so
+                # ClinicalImpression.effectiveDateTime carries time-of-day.
+                # `day_dt` already includes admission_dt's HH:MM offset by
+                # `timedelta(days=day)`; `.date()` was stripping it and
+                # forcing date-only precision downstream, breaking
+                # consumer time-series sort.
+                date=day_dt,
+                day_index=day,
+                description=description,
+                description_ja=description_ja,
+                practitioner_id=attending_id,
+                is_in_progress=last_day_of_in_progress,
+                code_loinc=_code_loinc,
+                code_loinc_display=_code_loinc_display,
+            )
+        )
+    return records
 
 
 # ---------------------------------------------------------------------------
@@ -386,583 +745,43 @@ def document_enricher(ctx: Any) -> None:
             # only (narrative=None). Narrative text/sections population moved to
             # TemplateNarrativePass (clinosim/modules/document/narrative/passes.py),
             # which runs as a separate Stage 2 pass over the written structural CIF.
+            facts = _EncounterFacts(
+                record=record,
+                encounter=encounter,
+                encounter_id=encounter_id,
+                pid=pid,
+                admission_dt=admission_dt,
+                discharge_dt=discharge_dt,
+                los_days=los_days,
+                config=ctx.config,
+            )
             for spec in applicable_specs:
-                freq = spec.generation_frequency
+                planner = _PLANNERS.get(spec.generation_frequency)
+                if planner is None:
+                    continue
+                built, doc_seq = _build_documents(
+                    spec, planner(spec, facts), encounter, encounter_id, pid, lang, doc_seq
+                )
+                documents += built
 
-                if freq == "admission_once":
-                    documents.append(
-                        _make_doc_stub(
-                            spec,
-                            encounter_id,
-                            doc_seq,
-                            admission_dt,
-                            pid,
-                            lang,
-                            _pick_document_author(spec, encounter),
-                        )
-                    )
-                    doc_seq += 1
-
-                elif freq == "admission_once_los_gt_7":
-                    # MHLW mandate: 栄養管理計画書 required only for admissions
-                    # > 7 days (design spec §3a). Mirrors the `daily` branch's
-                    # LOS-skip pattern below.
-                    if los_days <= 7:
-                        continue
-                    documents.append(
-                        _make_doc_stub(
-                            spec,
-                            encounter_id,
-                            doc_seq,
-                            admission_dt,
-                            pid,
-                            lang,
-                            _pick_document_author(spec, encounter),
-                        )
-                    )
-                    doc_seq += 1
-
-                elif freq == "admission_once_if_rehab_sessions":
-                    # MHLW 別紙様式21: rehabilitation plan required only when the
-                    # patient is actually receiving disease-specific rehab therapy
-                    # (design spec §1 — reuses the existing RehabSession data
-                    # rather than the never-fired rehab_inpatient ward-transfer
-                    # scaffold). authored_datetime = first rehab session's date,
-                    # NOT admission_dt (the plan is assessed when rehab starts,
-                    # which is POD1+ per generate_rehab_sessions, not at admission).
-                    enc_rehab_sessions = [
-                        s for s in (_o(record, "rehab_sessions", []) or []) if _o(s, "encounter_id", "") == encounter_id
-                    ]
-                    if not enc_rehab_sessions:
-                        continue
-                    first_session_dt = min(_o(s, "session_date", admission_dt) for s in enc_rehab_sessions)
-                    documents.append(
-                        _make_doc_stub(
-                            spec,
-                            encounter_id,
-                            doc_seq,
-                            first_session_dt,
-                            pid,
-                            lang,
-                            _pick_document_author(spec, encounter),
-                        )
-                    )
-                    doc_seq += 1
-
-                elif freq == "daily":
-                    # Spec §7: daily notes skipped for LOS<1 encounters
-                    # (LOS=0 = day-surgery / immediate discharge、intermediate
-                    # notes 不要)。
-                    # Issue #337:従来 `<= 1` で LOS=1 encounter も
-                    # skip していたが、eDS Composition (discharge_once) は
-                    # LOS=1 でも emit されるため hospitalCourseSection.entry
-                    # min=1 の valid DocumentReference target が欠落 →
-                    # v9 で 3 件 slice error 発火。LOS=1 の 1 progress_note は
-                    # 「入院当日 = 全入院期間の hospital course summary」
-                    # として clinically valid、spec 準拠と両立。
-                    # daily_3shift (nursing) は 3-per-day cadence 保持のため
-                    # LOS=1 skip を維持(下記)。
-                    if los_days < 1:
-                        continue
-                    for day in range(los_days):
-                        day_dt = admission_dt + timedelta(days=day)
-                        documents.append(
-                            ClinicalDocument(
-                                document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                                task_type=spec.type_key,
-                                loinc_code=spec.loinc_code,
-                                patient_id=pid,
-                                encounter_id=encounter_id,
-                                author_practitioner_id=_pick_document_author(spec, encounter),
-                                authored_datetime=day_dt.isoformat(),
-                                period_start=day_dt.isoformat(),
-                                period_end=day_dt.isoformat(),
-                                language=lang,
-                                format_type=spec.format_type.value,
-                                narrative=None,
-                            )
-                        )
-                        doc_seq += 1
-
-                elif freq == "daily_3shift":
-                    # α-min-3: 3 notes per LOS day (night 00:00 / day 08:00 /
-                    # evening 16:00). Mirrors the `daily` branch: skipped for
-                    # LOS=1 same-day encounters (spec §7), and in-progress
-                    # encounters (AD-32) use the same los_days proxy — partial
-                    # data up to the snapshot day only.
-                    if los_days <= 1:
-                        continue
-                    for day in range(los_days):
-                        day_date = (admission_dt + timedelta(days=day)).date()
-                        for shift_key, shift_hour in SHIFT_SCHEDULE:
-                            shift_dt = datetime.combine(day_date, time(hour=shift_hour))
-                            # Issue #820 (N-6): Day 0 shifts before arrival
-                            # cannot exist in real practice — a 10:12 arrival
-                            # has no 00:00 / 08:00 nursing record for the
-                            # admission day. Skip any shift_dt that predates
-                            # the actual admission_dt. Day 1+ never triggers
-                            # this (admission_dt < day_date's 00:00 shift).
-                            if shift_dt < admission_dt:
-                                continue
-                            documents.append(
-                                ClinicalDocument(
-                                    document_id=(f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}-{shift_key}"),
-                                    task_type=spec.type_key,
-                                    loinc_code=spec.loinc_code,
-                                    patient_id=pid,
-                                    encounter_id=encounter_id,
-                                    author_practitioner_id=_pick_document_author(spec, encounter),
-                                    authored_datetime=shift_dt.isoformat(),
-                                    period_start=shift_dt.isoformat(),
-                                    period_end=shift_dt.isoformat(),
-                                    language=lang,
-                                    format_type=spec.format_type.value,
-                                    shift=shift_key,
-                                    narrative=None,
-                                )
-                            )
-                            doc_seq += 1
-
-                elif freq == "discharge_once":
-                    if is_in_progress:
-                        continue  # AD-32: no discharge summary while encounter is open
-                    end_dt = discharge_dt or admission_dt  # discharge_dt is non-None here
-                    documents.append(
-                        ClinicalDocument(
-                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                            task_type=spec.type_key,
-                            loinc_code=spec.loinc_code,
-                            patient_id=pid,
-                            encounter_id=encounter_id,
-                            author_practitioner_id=_pick_document_author(spec, encounter),
-                            authored_datetime=end_dt.isoformat(),
-                            period_start=admission_dt.isoformat(),
-                            period_end=end_dt.isoformat(),
-                            language=lang,
-                            format_type=spec.format_type.value,
-                            narrative=None,
-                        )
-                    )
-                    doc_seq += 1
-
-                elif freq == "discharge_once_if_alive":
-                    # Issue #961 extension: generic 退院時サマリー — fires only
-                    # for LIVING discharges. Deceased encounters
-                    # (discharge_disposition == "exp") are handled by the
-                    # `discharge_once_if_deceased_replaces` branch (which
-                    # emits the 死亡退院サマリー). This split gives consumers
-                    # exactly one discharge-summary Composition per encounter
-                    # whose title tells them whether the patient survived
-                    # (see also AD-32: no discharge summary while an
-                    # encounter is still open).
-                    if is_in_progress:
-                        continue
-                    if _o(encounter, "discharge_disposition", "") == "exp":
-                        continue  # DDS (death_discharge_summary) fires instead
-                    end_dt = discharge_dt or admission_dt
-                    documents.append(
-                        ClinicalDocument(
-                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                            task_type=spec.type_key,
-                            loinc_code=spec.loinc_code,
-                            patient_id=pid,
-                            encounter_id=encounter_id,
-                            author_practitioner_id=_pick_document_author(spec, encounter),
-                            authored_datetime=end_dt.isoformat(),
-                            period_start=admission_dt.isoformat(),
-                            period_end=end_dt.isoformat(),
-                            language=lang,
-                            format_type=spec.format_type.value,
-                            narrative=None,
-                        )
-                    )
-                    doc_seq += 1
-
-                elif freq == "discharge_once_if_deceased_replaces":
-                    # Issue #961 extension: 死亡退院サマリー — the
-                    # deceased-inpatient counterpart to `discharge_once_if_alive`.
-                    # Same gate as death_certificate (discharge_disposition ==
-                    # "exp") but produces the specialized death discharge
-                    # summary (LOINC 18842-5 with title "死亡退院サマリー").
-                    # AD-32: skip in-progress encounters (no death can be
-                    # certified until the encounter closes; inpatient.py forces
-                    # closure at time of death, so this gate never under-fires
-                    # on real deaths).
-                    if is_in_progress:
-                        continue
-                    if _o(encounter, "discharge_disposition", "") != "exp":
-                        continue
-                    end_dt = discharge_dt or admission_dt
-                    documents.append(
-                        ClinicalDocument(
-                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                            task_type=spec.type_key,
-                            loinc_code=spec.loinc_code,
-                            patient_id=pid,
-                            encounter_id=encounter_id,
-                            author_practitioner_id=_pick_document_author(spec, encounter),
-                            authored_datetime=end_dt.isoformat(),
-                            period_start=admission_dt.isoformat(),
-                            period_end=end_dt.isoformat(),
-                            language=lang,
-                            format_type=spec.format_type.value,
-                            narrative=None,
-                        )
-                    )
-                    doc_seq += 1
-
-                elif freq == "discharge_once_if_deceased":
-                    # Issue #961: 死亡診断書 (death certificate) — emit exactly
-                    # one Composition per encounter that ended in death
-                    # (`discharge_disposition == "exp"`, populated by
-                    # inpatient.py:537 when death_occurred). Fires alongside
-                    # `discharge_once` (退院時サマリー), NOT as a replacement —
-                    # 医師法第 20 条 mandates the certificate as a separate
-                    # legal document, and the discharge summary remains
-                    # required for billing/administrative purposes.
-                    #
-                    # AD-32: in-progress encounters cannot certify death
-                    # (no discharge_datetime) — skip so a snapshot-truncated
-                    # patient marked deceased in the future does not get a
-                    # premature certificate.
-                    if is_in_progress:
-                        continue
-                    if _o(encounter, "discharge_disposition", "") != "exp":
-                        continue
-                    end_dt = discharge_dt or admission_dt
-                    documents.append(
-                        ClinicalDocument(
-                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                            task_type=spec.type_key,
-                            loinc_code=spec.loinc_code,
-                            patient_id=pid,
-                            encounter_id=encounter_id,
-                            author_practitioner_id=_pick_document_author(spec, encounter),
-                            authored_datetime=end_dt.isoformat(),
-                            period_start=admission_dt.isoformat(),
-                            period_end=end_dt.isoformat(),
-                            language=lang,
-                            format_type=spec.format_type.value,
-                            narrative=None,
-                        )
-                    )
-                    doc_seq += 1
-
-                elif freq == "discharge_fraction_20pct":
-                    # P2-13 PR2b: JP-CLINS 診療情報提供書 fires on
-                    # a deterministic 20% subset of inpatient discharges
-                    # (empirical acute-care hospital referral-note rate).
-                    # AD-32: no referral note while encounter is open.
-                    # AD-16: per-record deterministic RNG (encounter_id +
-                    # patient_id as the discriminator; no new sub-seed
-                    # allocation needed — the seed is stable string hashing).
-                    if is_in_progress:
-                        continue
-                    if not _referral_note_fires(encounter_id, pid):
-                        continue
-                    end_dt = discharge_dt or admission_dt
-                    documents.append(
-                        ClinicalDocument(
-                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                            task_type=spec.type_key,
-                            loinc_code=spec.loinc_code,
-                            patient_id=pid,
-                            encounter_id=encounter_id,
-                            author_practitioner_id=_pick_document_author(spec, encounter),
-                            authored_datetime=end_dt.isoformat(),
-                            period_start=admission_dt.isoformat(),
-                            period_end=end_dt.isoformat(),
-                            language=lang,
-                            format_type=spec.format_type.value,
-                            narrative=None,
-                        )
-                    )
-                    doc_seq += 1
-
-                elif freq == "checkup_once":
-                    # P2-13 PR3:JP-eCheckup 健診結果報告書
-                    # opt-in。config.module_enabled("health_checkup") が
-                    # True の場合のみ発行対象。encounter_types_supported
-                    # ["checkup"] gate と併せて、通常の inpatient/outpatient
-                    # encounter には絶対に発火しない設計。
-                    if not ctx.config.module_enabled("health_checkup"):
-                        continue
-                    end_dt = discharge_dt or admission_dt
-                    documents.append(
-                        ClinicalDocument(
-                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                            task_type=spec.type_key,
-                            loinc_code=spec.loinc_code,
-                            patient_id=pid,
-                            encounter_id=encounter_id,
-                            author_practitioner_id=_pick_document_author(spec, encounter),
-                            authored_datetime=end_dt.isoformat(),
-                            period_start=admission_dt.isoformat(),
-                            period_end=end_dt.isoformat(),
-                            language=lang,
-                            format_type=spec.format_type.value,
-                            narrative=None,
-                        )
-                    )
-                    doc_seq += 1
-
-                elif freq == "per_surgical_encounter":
-                    # Issue #991: 手術記録 (operative note) — fires once per
-                    # encounter that has at least one surgical ProcedureRecord
-                    # (category_code == "387713003", populated by
-                    # clinosim/modules/procedure/engine.py). The stub records
-                    # `related_procedure_id` = the earliest surgical procedure's
-                    # id (by start_datetime) so the narrative pipeline can
-                    # scope its section builders to that specific procedure.
-                    # authored_datetime = procedure end_datetime (op notes are
-                    # written immediately after the operation). Bedside /
-                    # diagnostic / therapeutic procedures (D/G/J codes such as
-                    # thoracentesis, bronchoscopy, blood_transfusion) never
-                    # trigger this branch — they belong to a future
-                    # procedure_note (LOINC 28570-0, Issue #992).
-                    #
-                    # AD-32: skip in-progress encounters. In practice every
-                    # completed surgery already sits inside a completed
-                    # encounter, but this keeps the branch consistent with
-                    # every other "*_once" branch and prevents a snapshot
-                    # from emitting a note for an intra-op patient.
-                    if is_in_progress:
-                        continue
-                    enc_surgical_procs = [
-                        p
-                        for p in (_o(record, "procedures", []) or [])
-                        if _o(p, "encounter_id", "") == encounter_id
-                        and str(_o(p, "category_code", "") or "") == SURGICAL_PROCEDURE
-                    ]
-                    if not enc_surgical_procs:
-                        continue
-                    primary_proc = min(
-                        enc_surgical_procs,
-                        key=lambda p: _o(p, "start_datetime", None) or admission_dt,
-                    )
-                    op_dt = (
-                        _o(primary_proc, "end_datetime", None)
-                        or _o(primary_proc, "start_datetime", None)
-                        or admission_dt
-                    )
-                    stub = _make_doc_stub(
-                        spec,
-                        encounter_id,
-                        doc_seq,
-                        op_dt,
-                        pid,
-                        lang,
-                        _o(primary_proc, "primary_surgeon_id", "") or _pick_document_author(spec, encounter),
-                    )
-                    stub.related_procedure_id = str(_o(primary_proc, "procedure_id", "") or "")
-                    documents.append(stub)
-                    doc_seq += 1
-                elif freq == "per_bedside_procedure":
-                    # Issue #992: emit one procedure_note (LOINC 28570-0)
-                    # per ProcedureRecord whose ``procedure_code`` is
-                    # listed under ``procedure_note_codes`` in
-                    # bedside_procedure_codes.yaml. Each stub carries
-                    # ``related_procedure_id`` so the narrative pass can
-                    # look up the specific Procedure out of
-                    # ``patient_dict['procedures']`` and build a per-
-                    # procedure ctx (see NarrativePass.run + ctx.related_procedure_id).
-                    #
-                    # AD-32: stubs are emitted for every recorded Procedure
-                    # regardless of encounter close state — a bedside
-                    # procedure done today has a formal note today, not on
-                    # discharge.
-                    from clinosim.modules.document.reference_data_loaders import (
-                        load_bedside_procedure_codes,
-                    )
-
-                    bedside_codes = load_bedside_procedure_codes()["procedure_note"]
-                    for proc in _o(record, "procedures", []) or []:
-                        if _o(proc, "encounter_id", "") != encounter_id:
-                            continue
-                        proc_code = str(_o(proc, "procedure_code", "") or "").strip()
-                        if proc_code not in bedside_codes:
-                            continue
-                        proc_id = _o(proc, "procedure_id", "") or ""
-                        proc_start = _o(proc, "start_datetime", None) or admission_dt
-                        proc_end = _o(proc, "end_datetime", None) or proc_start
-                        documents.append(
-                            ClinicalDocument(
-                                document_id=(f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}-pn"),
-                                task_type=spec.type_key,
-                                loinc_code=spec.loinc_code,
-                                patient_id=pid,
-                                encounter_id=encounter_id,
-                                author_practitioner_id=(
-                                    _o(proc, "primary_surgeon_id", "") or _pick_document_author(spec, encounter)
-                                ),
-                                related_procedure_id=proc_id,
-                                authored_datetime=(
-                                    proc_end.isoformat() if hasattr(proc_end, "isoformat") else str(proc_end)
-                                ),
-                                period_start=(
-                                    proc_start.isoformat() if hasattr(proc_start, "isoformat") else str(proc_start)
-                                ),
-                                period_end=(proc_end.isoformat() if hasattr(proc_end, "isoformat") else str(proc_end)),
-                                language=lang,
-                                format_type=spec.format_type.value,
-                                narrative=None,
-                            )
-                        )
-                        doc_seq += 1
-
-                elif freq == "encounter_once":
-                    # Single-visit encounters (outpatient SOAP, ED note, ED triage note).
-                    # Emit at day 0; period covers full encounter duration.
-                    # AD-32: if discharge_dt is None (rare in-progress outpatient/ED),
-                    # still emit — single-visit context makes partial data meaningful.
-                    end_dt = discharge_dt or admission_dt
-                    # Issue #957: oncology-service-line encounters (chemo_visit)
-                    # get LOINC 34133-9 instead of the generic outpatient
-                    # 34131-3. See `_effective_outpatient_loinc` — no-op for
-                    # every other spec + service_line combination.
-                    _emit_loinc = _effective_outpatient_loinc(spec.loinc_code, encounter)
-                    documents.append(
-                        ClinicalDocument(
-                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{encounter_id}-{doc_seq:02d}",
-                            task_type=spec.type_key,
-                            loinc_code=_emit_loinc,
-                            patient_id=pid,
-                            encounter_id=encounter_id,
-                            author_practitioner_id=_pick_document_author(spec, encounter),
-                            authored_datetime=admission_dt.isoformat(),
-                            period_start=admission_dt.isoformat(),
-                            period_end=end_dt.isoformat(),
-                            language=lang,
-                            format_type=spec.format_type.value,
-                            narrative=None,
-                        )
-                    )
-                    doc_seq += 1
-
-            # ── Phase B (N-3): ED-companion doc dispatch for via-ED IMPs ─────
-            # When an IMP encounter carries `admit_source=EMD`, the FHIR
-            # adapter synthesizes a bridge Encounter with id ``{IMP}-ED``
-            # (see _make_synth_ed_enc_dict) so `Encounter.partOf` resolves.
-            # Dispatch encounter_once ED-only specs (救急科記録 34878-9 /
-            # トリアージ記録 54094-8) targeting that bridge id, so the
-            # -ED Encounter carries the clinical documents that describe
-            # the ED-phase activity of a via-ED admission. Without this,
-            # the -ED bridge appears as an empty shell in the FHIR export.
-            #
-            # Stubs are attached to the IMP record (record.documents list)
-            # per the CY7-05 contract — no new entry in `record.encounters`
-            # to preserve the encounters[0] singleton assumption. The
-            # narrative pass reads all stubs for the patient regardless of
-            # encounter_id, so these -ED-targeted stubs get filled by the
-            # existing ed_note / ed_triage_note template pipeline.
-            _admit_source_val = _o(encounter, "admit_source", None)
-            _is_via_ed = str(_admit_source_val) == "emd" or str(_admit_source_val).lower().endswith(".emd")
-            if _is_via_ed and enc_type_val == "inpatient":
-                _ed_enc_id = f"{encounter_id}-ED"
-                # Mid-ED-window authored time (matches synth Encounter.period
-                # [admission-3.5h, admission] set in _make_synth_ed_enc_dict).
-                _ed_authored_dt = admission_dt - timedelta(hours=2)
-                _ed_period_start_dt = admission_dt - timedelta(hours=3, minutes=30)
-                _ed_period_end_dt = admission_dt
-                _ed_specs = [
-                    s
-                    for s in specs_for_encounter_type("emergency")
-                    if s.type_key in country_spec_keys and s.generation_frequency == "encounter_once"
-                ]
-                for spec in _ed_specs:
-                    documents.append(
-                        ClinicalDocument(
-                            document_id=f"{DOC_REFERENCE_ID_PREFIX}{_ed_enc_id}-{doc_seq:02d}",
-                            task_type=spec.type_key,
-                            loinc_code=spec.loinc_code,
-                            patient_id=pid,
-                            encounter_id=_ed_enc_id,
-                            author_practitioner_id=_pick_document_author(spec, encounter),
-                            authored_datetime=_ed_authored_dt.isoformat(),
-                            period_start=_ed_period_start_dt.isoformat(),
-                            period_end=_ed_period_end_dt.isoformat(),
-                            language=lang,
-                            format_type=spec.format_type.value,
-                            narrative=None,
-                        )
-                    )
-                    doc_seq += 1
+            if enc_type_val == "inpatient":
+                built, doc_seq = _ed_companion_documents(
+                    encounter, encounter_id, admission_dt, country_spec_keys, pid, lang, doc_seq
+                )
+                documents += built
 
             # ── ClinicalImpression generation (inpatient types only; spec §3.3) ─
             if emit_ci:
-                # C4-11: richer template description.
-                # Pre-fix was a 25-char stub ("Day N clinical assessment").
-                # Now includes disease id + severity + phase hint. Purely
-                # template-driven (deterministic, no LLM) — β-JP-1 is a
-                # DocumentReference/Composition narrative pass and does not
-                # touch ClinicalImpression.description.
-                _disease_id = _o(encounter, "disease_id", "") or ""
-                _severity = _o(encounter, "severity", "") or ""
-                # Labels, phases and descriptions come from the phrase catalog
-                # (``narrative_phrases.yaml`` ``clinical_impression``, Issue #2401).
-                _enc_key = (
-                    "inpatient"
-                    if enc_type_val == "inpatient"
-                    else ("icu" if "icu" in enc_type_val.lower() else "rehab")
+                clinical_impressions += _clinical_impression_records(
+                    encounter,
+                    enc_type_val,
+                    encounter_id,
+                    admission_dt,
+                    los_days,
+                    is_in_progress,
+                    attending_id,
+                    country,
                 )
-                for day in range(los_days):
-                    day_dt = admission_dt + timedelta(days=day)
-                    # AD-32: the last day of an in-progress encounter is "in-progress"
-                    # (encounter still open; prior days remain "completed").
-                    last_day_of_in_progress = is_in_progress and (day == los_days - 1)
-                    # Phase hint (deterministic by day-index vs LOS) and the LOINC
-                    # visit-type code per phase (session-88j P1-12).
-                    if los_days <= 2:
-                        _phase_key, _doc_type = "brief_admission", "admission_hp"
-                    elif day == 0:
-                        _phase_key, _doc_type = "admission_workup", "admission_hp"
-                    elif day == los_days - 1:
-                        _phase_key, _doc_type = "pre_discharge_review", "discharge_summary"
-                    elif day < los_days / 3:
-                        _phase_key, _doc_type = "acute_phase", "progress_note"
-                    elif day < 2 * los_days / 3:
-                        _phase_key, _doc_type = "stabilisation", "progress_note"
-                    else:
-                        _phase_key, _doc_type = "recovery", "progress_note"
-                    _code_loinc = document_loinc(_doc_type)
-                    _code_loinc_display = loinc_display(_code_loinc, lang_for(country)) or ""
-
-                    def _describe(lang: str) -> str:
-                        return t(
-                            "clinical_impression.description",
-                            lang,
-                            enc=t(f"clinical_impression.enc_label.{_enc_key}", lang),
-                            day=day + 1,
-                            los=los_days,
-                            dx_part=t("clinical_impression.dx_part", lang, dx=_disease_id) if _disease_id else "",
-                            sev_part=t("clinical_impression.sev_part", lang, severity=_severity) if _severity else "",
-                            phase=t(f"clinical_impression.phase.{_phase_key}", lang),
-                        )
-
-                    # CIF keeps both languages (AD-30: the JP description cannot
-                    # be re-derived from a code at FHIR emission time).
-                    description = _describe("en")
-                    description_ja = _describe("ja")
-                    clinical_impressions.append(
-                        ClinicalImpressionRecord(
-                            impression_id=f"{CLINICAL_IMPRESSION_ID_PREFIX}{encounter_id}-{day}",
-                            encounter_id=encounter_id,
-                            # Issue #821 (N-7): preserve the full datetime so
-                            # ClinicalImpression.effectiveDateTime carries time-of-day.
-                            # `day_dt` already includes admission_dt's HH:MM offset by
-                            # `timedelta(days=day)`; `.date()` was stripping it and
-                            # forcing date-only precision downstream, breaking
-                            # consumer time-series sort.
-                            date=day_dt,
-                            day_index=day,
-                            description=description,
-                            description_ja=description_ja,
-                            practitioner_id=attending_id,
-                            is_in_progress=last_day_of_in_progress,
-                            code_loinc=_code_loinc,
-                            code_loinc_display=_code_loinc_display,
-                        )
-                    )
 
         # ── Write back to record ─────────────────────────────────────────────
         # documents: typed field on CIFPatientRecord; assignable on both dict and object.

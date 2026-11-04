@@ -35,11 +35,11 @@ _REF_DIR = _HERE.parent / "reference_data"
 
 
 # α-min-3: canonical allowlist of generation_frequency values. The engine
-# dispatch (engine.py document_enricher) is an if/elif chain — an unknown
-# frequency value would fall through and silently emit ZERO documents for
-# that spec (PR-90 class silent-no-op). Fail-loud here at YAML load time so
-# a typo (e.g. "daily3shift") raises before any simulation runs. Adding a
-# new frequency requires BOTH the engine branch and this allowlist entry.
+# plans documents per frequency (``engine._PLANNERS``, Issue #2532); a
+# frequency without a planner would silently emit ZERO documents for that
+# spec (PR-90 class silent-no-op). Fail-loud here at YAML load time so a typo
+# (e.g. "daily3shift") raises before any simulation runs. A new frequency
+# needs a planner and this allowlist entry; a unit test keeps them equal.
 GENERATION_FREQUENCIES: frozenset[str] = frozenset(
     {
         "admission_once",
