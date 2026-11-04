@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from clinosim import determinism
 from clinosim.datafiles import load_data_yaml
@@ -25,99 +26,126 @@ _REF_DIR = _HERE / "reference_data"
 _SIR = ("S", "I", "R")
 
 
-def _validate_microbiology(data: dict[str, Any]) -> None:
-    """Validate microbiology.yaml at load time — fail loud on orphan keys.
+def _non_empty_code(code: str, owner: str, what: str) -> str:
+    if not code:
+        raise ValueError(f"microbiology.yaml: {owner} has invalid {what} {code!r}")
+    return code
 
-    Mirrors the validation pattern from ``clinosim.modules.hai.load_hai_antibiogram``.
-    Covers the following cross-references (all silent-no-op risks):
 
-    1. organism.antibiogram[abx_key] → antibiotics keys
-    2. disease.organisms[org_id]    → organisms keys
-    3. disease.cultures[i].specimen → specimens keys
-    4. organism.snomed              → SNOMED system (non-empty string contract)
-    5. specimen.snomed              → SNOMED system (non-empty string contract)
-    6. specimen.test_loinc          → LOINC system (non-empty string contract)
-    7. antibiotics[key] value       → LOINC system (non-empty string contract)
-    """
-    antibiotics = data.get("antibiotics") or {}
-    organisms = data.get("organisms") or {}
-    specimens = data.get("specimens") or {}
-    diseases = data.get("diseases") or {}
+class _Specimen(BaseModel):
+    model_config = ConfigDict(extra="allow")
 
-    valid_antibiotic_keys = set(antibiotics.keys())
-    valid_organism_keys = set(organisms.keys())
-    valid_specimen_keys = set(specimens.keys())
+    snomed: str
+    test_loinc: str
 
-    # Check antibiotic LOINC values are non-empty strings (#7)
-    for abx_key, loinc in antibiotics.items():
-        if not isinstance(loinc, str) or not loinc:
-            raise ValueError(f"microbiology.yaml: antibiotic {abx_key!r} has invalid LOINC value {loinc!r}")
+    @field_validator("snomed")
+    @classmethod
+    def _snomed(cls, code: str) -> str:
+        return _non_empty_code(code, "specimen", "SNOMED")
 
-    # Check specimen.snomed + test_loinc are non-empty (#5 + #6)
-    for spec_id, spec in specimens.items():
-        if not isinstance(spec, dict):
-            continue
-        if not isinstance(spec.get("snomed"), str) or not spec["snomed"]:
-            raise ValueError(f"microbiology.yaml: specimen {spec_id!r} has invalid SNOMED {spec.get('snomed')!r}")
-        if not isinstance(spec.get("test_loinc"), str) or not spec["test_loinc"]:
-            raise ValueError(
-                f"microbiology.yaml: specimen {spec_id!r} has invalid test_loinc {spec.get('test_loinc')!r}"
-            )
+    @field_validator("test_loinc")
+    @classmethod
+    def _test_loinc(cls, code: str) -> str:
+        return _non_empty_code(code, "specimen", "test_loinc")
 
-    for organism_id, organism in organisms.items():
-        # Check organism.snomed non-empty (#4)
-        if isinstance(organism, dict):
-            if not isinstance(organism.get("snomed"), str) or not organism["snomed"]:
+
+class _Organism(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    snomed: str
+    antibiogram: dict[str, list[float]] | None = None
+
+    @field_validator("snomed")
+    @classmethod
+    def _snomed(cls, code: str) -> str:
+        return _non_empty_code(code, "organism", "SNOMED")
+
+    @field_validator("antibiogram")
+    @classmethod
+    def _sir_triples(cls, antibiogram: dict[str, list[float]] | None) -> dict[str, list[float]] | None:
+        """Guards ``normalize_probabilities(fallback="raise")`` at generation time."""
+        for abx_key, triple in (antibiogram or {}).items():
+            if len(triple) != 3:
                 raise ValueError(
-                    f"microbiology.yaml: organism {organism_id!r} has invalid SNOMED {organism.get('snomed')!r}"
+                    f"microbiology.yaml: antibiogram[{abx_key!r}] must be a 3-element [S, I, R] list, got {triple!r}"
                 )
-        # Check organism.antibiogram keys → antibiotics (#1)
-        antibiogram = (organism or {}).get("antibiogram") or {}
-        for abx_key, triple in antibiogram.items():
-            if abx_key not in valid_antibiotic_keys:
-                raise ValueError(
-                    f"microbiology.yaml: organism {organism_id!r} antibiogram "
-                    f"references unknown antibiotic key {abx_key!r}; expected "
-                    f"one of {sorted(valid_antibiotic_keys)}"
-                )
-            # Check SIR triple shape and sum (#8) — guards normalize_probabilities(fallback="raise")
-            if not isinstance(triple, list) or len(triple) != 3:
-                raise ValueError(
-                    f"microbiology.yaml: organism {organism_id!r} antibiogram[{abx_key!r}] "
-                    f"must be a 3-element [S, I, R] list, got {triple!r}"
-                )
-            if sum(float(x) for x in triple) <= 0:
-                raise ValueError(
-                    f"microbiology.yaml: organism {organism_id!r} antibiogram[{abx_key!r}] "
-                    f"SIR triple sums to zero {triple!r}"
-                )
+            if sum(triple) <= 0:
+                raise ValueError(f"microbiology.yaml: antibiogram[{abx_key!r}] SIR triple sums to zero {triple!r}")
+        return antibiogram
 
-    # Check disease.organisms keys → organisms set (#2)
-    # and disease.cultures[i].specimen → specimens (#3)
-    for disease_id, disease in diseases.items():
-        if not isinstance(disease, dict):
-            continue
-        org_dict = disease.get("organisms")
-        if org_dict is not None and not isinstance(org_dict, dict):
-            raise ValueError(
-                f"microbiology.yaml: disease {disease_id!r} 'organisms' must be a "
-                f"mapping, got {type(org_dict).__name__!r}"
-            )
-        for org_id in (org_dict or {}).keys():
-            if org_id not in valid_organism_keys:
-                raise ValueError(
-                    f"microbiology.yaml: disease {disease_id!r} references "
-                    f"unknown organism {org_id!r}; expected one of "
-                    f"{sorted(valid_organism_keys)}"
-                )
-        for culture in disease.get("cultures") or []:
-            spec_key = culture.get("specimen") if isinstance(culture, dict) else None
-            if spec_key and spec_key not in valid_specimen_keys:
-                raise ValueError(
-                    f"microbiology.yaml: disease {disease_id!r} culture references "
-                    f"unknown specimen {spec_key!r}; expected one of "
-                    f"{sorted(valid_specimen_keys)}"
-                )
+
+class _Culture(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    specimen: str | None = None
+
+
+class _DiseaseProfile(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    organisms: dict[str, Any] | None = None
+    cultures: list[_Culture] | None = None
+
+    @field_validator("organisms", mode="before")
+    @classmethod
+    def _organisms_mapping(cls, organisms: Any) -> Any:
+        if organisms is not None and not isinstance(organisms, dict):
+            raise ValueError(f"microbiology.yaml: 'organisms' must be a mapping, got {type(organisms).__name__!r}")
+        return organisms
+
+
+class MicrobiologyConfig(BaseModel):
+    """Shape of microbiology.yaml. Every cross-reference is a silent-no-op
+    risk, so each must resolve within the file (mirrors the HAI antibiogram
+    loader): antibiogram keys → ``antibiotics``, disease organisms →
+    ``organisms``, culture specimens → ``specimens``; codes are non-empty."""
+
+    model_config = ConfigDict(extra="allow")
+
+    antibiotics: dict[str, str] = Field(default_factory=dict)
+    organisms: dict[str, _Organism] = Field(default_factory=dict)
+    specimens: dict[str, _Specimen] = Field(default_factory=dict)
+    diseases: dict[str, _DiseaseProfile] = Field(default_factory=dict)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _empty_sections_are_absent(cls, data: Any) -> Any:
+        """A ``null`` section reads as an empty one, as the loader always did."""
+        if isinstance(data, dict):
+            return {k: v for k, v in data.items() if v is not None}
+        return data
+
+    @field_validator("antibiotics")
+    @classmethod
+    def _antibiotic_loincs(cls, antibiotics: dict[str, str]) -> dict[str, str]:
+        for abx_key, loinc in antibiotics.items():
+            _non_empty_code(loinc, f"antibiotic {abx_key!r}", "LOINC value")
+        return antibiotics
+
+    @model_validator(mode="after")
+    def _references_resolve(self) -> MicrobiologyConfig:
+        for organism_id, organism in self.organisms.items():
+            for abx_key in organism.antibiogram or {}:
+                if abx_key not in self.antibiotics:
+                    raise ValueError(
+                        f"microbiology.yaml: organism {organism_id!r} antibiogram "
+                        f"references unknown antibiotic key {abx_key!r}; expected "
+                        f"one of {sorted(self.antibiotics)}"
+                    )
+        for disease_id, disease in self.diseases.items():
+            for org_id in disease.organisms or {}:
+                if org_id not in self.organisms:
+                    raise ValueError(
+                        f"microbiology.yaml: disease {disease_id!r} references "
+                        f"unknown organism {org_id!r}; expected one of {sorted(self.organisms)}"
+                    )
+            for culture in disease.cultures or []:
+                if culture.specimen and culture.specimen not in self.specimens:
+                    raise ValueError(
+                        f"microbiology.yaml: disease {disease_id!r} culture references "
+                        f"unknown specimen {culture.specimen!r}; expected one of {sorted(self.specimens)}"
+                    )
+        return self
 
 
 @lru_cache(maxsize=1)
@@ -126,7 +154,7 @@ def _load() -> dict[str, Any]:
     if not path.exists():
         return {}
     data = load_data_yaml(path) or {}
-    _validate_microbiology(data)
+    MicrobiologyConfig.model_validate(data)
     return data
 
 
@@ -136,7 +164,7 @@ def antibiotic_loinc_lookup() -> dict[str, str]:
     Single source of truth for antibiotic LOINC codes, shared with
     ``modules/antibiotic`` (avoids a second cross-module raw YAML parse of the
     same file). Returns a fresh dict each call; the underlying YAML is cached
-    and validated by ``_load`` / ``_validate_microbiology``.
+    and validated by ``_load`` / ``MicrobiologyConfig``.
     """
     return {str(k): str(v) for k, v in (_load().get("antibiotics") or {}).items()}
 
@@ -200,7 +228,7 @@ def generate_microbiology(
                     raise ValueError(
                         f"microbiology generate: antibiotic key {abx_key!r} has null/empty "
                         f"LOINC value {loinc!r}; should have been caught at load time by "
-                        f"_validate_microbiology"
+                        f"MicrobiologyConfig"
                     )
                 probs = normalize_probabilities([float(x) for x in sir], fallback="raise")
                 interp = _SIR[int(rng.choice(len(_SIR), p=probs))]

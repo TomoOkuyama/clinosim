@@ -142,10 +142,11 @@ from clinosim.modules.observation.microbiology import (
     (`lab_panel_components`).
   - `microbiology.yaml` — culture organism catalog + susceptibility
     distributions + `antibiotic_loinc_lookup` source. Validated at
-    load via `_validate_microbiology` with 7 checks: antibiogram →
+    load by the `MicrobiologyConfig` Pydantic model: antibiogram →
     `antibiotics` keys, disease organisms → `organisms` keys, culture
     specimens → `specimens` keys, and non-empty organism / specimen
-    SNOMED and specimen / antibiotic LOINC strings.
+    SNOMED and specimen / antibiotic LOINC strings, and 3-element
+    [S, I, R] antibiogram triples with a positive sum.
   - `nursing_scores.yaml` — authoritative published-instrument
     bands for NEWS2, GCS, Braden, Morse (loaded by `_scores`,
     consumed by the `compute_*` functions).
@@ -197,7 +198,7 @@ clinosim/modules/observation/
 ```
 
 The module has **no `audit.py`** — verification is load-time
-(`_validate_microbiology`) plus the tests below.
+(the `MicrobiologyConfig` model) plus the tests below.
 
 ## Enricher wiring
 

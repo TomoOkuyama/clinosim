@@ -130,10 +130,11 @@ from clinosim.modules.observation.microbiology import (
     (`lab_panel_components`)。
   - `microbiology.yaml` — culture organism カタログ + susceptibility
     分布 + `antibiotic_loinc_lookup` source。load 時に
-    `_validate_microbiology` が 7 項目を検証: antibiogram →
+    Pydantic model `MicrobiologyConfig` が検証: antibiogram →
     `antibiotics` key、disease organism → `organisms` key、culture
     specimen → `specimens` key、organism / specimen SNOMED と
-    specimen / antibiotic LOINC が非空文字列であること。
+    specimen / antibiotic LOINC が非空文字列であること、antibiogram の
+    [S, I, R] が 3 要素で合計が正であること。
   - `nursing_scores.yaml` — NEWS2 / GCS / Braden / Morse の
     authoritative 公表 instrument band (`_scores` が load し
     `compute_*` が消費)。
@@ -184,7 +185,7 @@ clinosim/modules/observation/
 ```
 
 **`audit.py` は存在しない** — 検証は load 時
-(`_validate_microbiology`) と下記 test で担保。
+(`MicrobiologyConfig` model) と下記 test で担保。
 
 ## Enricher 配線
 
