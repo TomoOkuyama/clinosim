@@ -71,7 +71,7 @@ Core strict gate does not false-fail today's cohorts.
 from __future__ import annotations
 
 from clinosim.audit.types import Cohort
-from clinosim.eval.axes.locale import _detect_country_from_cohort, _read
+from clinosim.eval.axes.locale import _detect_country_from_cohort
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
 
 # --------------------------------------------------------------------------- #
@@ -90,9 +90,9 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]:
     """7-check JP Core narrow-gate compliance axis. No-op on non-JP cohorts."""
     if _detect_country_from_cohort(cohort, country) != "JP":
         return []
-    patients = list(_read(cohort, country, "Patient"))
-    encounters = list(_read(cohort, country, "Encounter"))
-    med_requests = list(_read(cohort, country, "MedicationRequest"))
+    patients = list(cohort.ndjson(country, "Patient", skip_malformed=True))
+    encounters = list(cohort.ndjson(country, "Encounter", skip_malformed=True))
+    med_requests = list(cohort.ndjson(country, "MedicationRequest", skip_malformed=True))
     return [
         _check_patient_profile_declared(patients),
         _check_patient_identifier(patients),

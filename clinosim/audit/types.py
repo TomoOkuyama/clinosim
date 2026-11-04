@@ -92,15 +92,30 @@ class Cohort:
             return [""]
         return []
 
-    def ndjson(self, country: str, resource: str) -> Iterator[dict]:
+    def ndjson(self, country: str, resource: str, *, skip_malformed: bool = False) -> Iterator[dict]:
+        """Rows of ``<ResourceType>.ndjson`` (empty when the file is absent)."""
         path = self.root / country / "fhir_r4" / f"{resource}.ndjson"
         if not path.exists():
             return iter(())
+        return iter_ndjson(path, skip_malformed=skip_malformed)
 
-        def _iter():
-            with path.open(encoding="utf-8") as f:
-                for line in f:
-                    if line.strip():
-                        yield json.loads(line)
+    def resource_files(self, country: str) -> list[Path]:
+        """Every ``*.ndjson`` of the country's FHIR output, sorted."""
+        base = self.root / country / "fhir_r4"
+        if not base.exists():
+            return []
+        return sorted(base.glob("*.ndjson"))
 
-        return _iter()
+
+def iter_ndjson(path: Path, *, skip_malformed: bool = False) -> Iterator[dict]:
+    """Rows of one NDJSON file, skipping blank lines. A malformed line raises
+    ``json.JSONDecodeError`` unless ``skip_malformed`` is set (Issue #2518)."""
+    with path.open(encoding="utf-8") as f:
+        for line in f:
+            if not line.strip():
+                continue
+            try:
+                yield json.loads(line)
+            except json.JSONDecodeError:
+                if not skip_malformed:
+                    raise

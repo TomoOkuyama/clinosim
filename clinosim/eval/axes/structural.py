@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from clinosim.audit.types import Cohort
+from clinosim.audit.types import Cohort, iter_ndjson
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
 
 
@@ -22,10 +22,10 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]:
 def _check_resource_id_uniqueness(cohort: Cohort, country: str) -> EvalCheck:
     """Within each resourceType file, no two rows may share `id`."""
     dup_by_type: dict[str, int] = {}
-    for path in _fhir_ndjsons(cohort, country):
+    for path in cohort.resource_files(country):
         seen: set[str] = set()
         dupes = 0
-        for row in _read_ndjson(path):
+        for row in iter_ndjson(path, skip_malformed=True):
             rid = row.get("id")
             if not rid:
                 continue
@@ -56,9 +56,9 @@ def _check_reference_integrity(cohort: Cohort, country: str) -> EvalCheck:
     # Collect the set of ResourceType/id declared by the cohort.
     declared: set[str] = set()
     references: list[str] = []
-    for path in _fhir_ndjsons(cohort, country):
+    for path in cohort.resource_files(country):
         rt = path.stem
-        for row in _read_ndjson(path):
+        for row in iter_ndjson(path, skip_malformed=True):
             rid = row.get("id")
             if rid:
                 declared.add(f"{rt}/{rid}")
@@ -88,17 +88,17 @@ def _check_required_fields_present(cohort: Cohort, country: str) -> EvalCheck:
 
     # Patient.identifier: 0..* per spec but a synthetic EHR without it is
     # useless — clinosim always emits at least one. Missing = a real defect.
-    for row in _read_ndjson_by_type(cohort, country, "Patient"):
+    for row in cohort.ndjson(country, "Patient", skip_malformed=True):
         if not row.get("identifier"):
             problems.append(f"Patient/{row.get('id', '?')} missing identifier")
 
     # Encounter.status is required by FHIR R4 (1..1).
-    for row in _read_ndjson_by_type(cohort, country, "Encounter"):
+    for row in cohort.ndjson(country, "Encounter", skip_malformed=True):
         if not row.get("status"):
             problems.append(f"Encounter/{row.get('id', '?')} missing status")
 
     # Condition.subject is required by FHIR R4 (1..1).
-    for row in _read_ndjson_by_type(cohort, country, "Condition"):
+    for row in cohort.ndjson(country, "Condition", skip_malformed=True):
         if not row.get("subject"):
             problems.append(f"Condition/{row.get('id', '?')} missing subject")
 
@@ -156,7 +156,7 @@ def _check_meta_profile_declared(cohort: Cohort, country: str) -> EvalCheck:
     for rt in expected_types:
         without = 0
         total = 0
-        for row in _read_ndjson_by_type(cohort, country, rt):
+        for row in cohort.ndjson(country, rt, skip_malformed=True):
             total += 1
             profile = (row.get("meta") or {}).get("profile") or []
             if not profile:
@@ -183,9 +183,9 @@ def _check_meta_profile_declared(cohort: Cohort, country: str) -> EvalCheck:
 def _check_resource_type_consistency(cohort: Cohort, country: str) -> EvalCheck:
     """Every row in ``X.ndjson`` must have ``resourceType == "X"``."""
     problems: list[str] = []
-    for path in _fhir_ndjsons(cohort, country):
+    for path in cohort.resource_files(country):
         expected = path.stem
-        for row in _read_ndjson(path):
+        for row in iter_ndjson(path, skip_malformed=True):
             rt = row.get("resourceType")
             if rt != expected:
                 problems.append(f"{path.name}: expected {expected!r}, got {rt!r}")
@@ -212,34 +212,6 @@ def _check_resource_type_consistency(cohort: Cohort, country: str) -> EvalCheck:
 
 # --------------------------------------------------------------------------- #
 # helpers
-
-
-def _fhir_ndjsons(cohort: Cohort, country: str):
-    base = cohort.root / country / "fhir_r4"
-    if not base.exists():
-        return []
-    return sorted(base.glob("*.ndjson"))
-
-
-def _read_ndjson(path):
-    import json
-
-    with path.open(encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                yield json.loads(line)
-            except json.JSONDecodeError:
-                continue
-
-
-def _read_ndjson_by_type(cohort: Cohort, country: str, resource_type: str):
-    path = cohort.root / country / "fhir_r4" / f"{resource_type}.ndjson"
-    if not path.exists():
-        return iter(())
-    return _read_ndjson(path)
 
 
 def _walk_references(obj, path: str = "") -> list[str]:

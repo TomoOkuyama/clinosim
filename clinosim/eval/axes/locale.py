@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from clinosim.audit.types import Cohort
+from clinosim.audit.types import Cohort, iter_ndjson
 from clinosim.codes import get_system_uri
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
 from clinosim.modules.output.fhir_r4.labs.coding_package import jp_clins_defined_system_uris
@@ -57,7 +57,7 @@ def _detect_country_from_cohort(cohort: Cohort, country: str) -> str:
     if country and country.upper() in ("US", "JP"):
         return country.upper()
     # Peek at the first Patient.
-    for row in _read(cohort, country, "Patient"):
+    for row in cohort.ndjson(country, "Patient", skip_malformed=True):
         for addr in row.get("address") or []:
             c = (addr.get("country") or "").upper()
             if c in ("US", "JP"):
@@ -98,7 +98,7 @@ def _jp_japanese_displays_on_condition(cohort: Cohort, country: str) -> EvalChec
     display leaked English."""
     total = 0
     english_only = 0
-    for row in _read(cohort, country, "Condition"):
+    for row in cohort.ndjson(country, "Condition", skip_malformed=True):
         code = row.get("code") or {}
         parts = [code.get("text", "")]
         for c in code.get("coding") or []:
@@ -140,7 +140,7 @@ def _jp_jlac10_or_loinc_on_lab(cohort: Cohort, country: str) -> EvalCheck:
     total = 0
     without = 0
     with_dual = 0
-    for row in _read(cohort, country, "Observation"):
+    for row in cohort.ndjson(country, "Observation", skip_malformed=True):
         if not _is_lab_category(row):
             continue
         total += 1
@@ -179,7 +179,7 @@ def _jp_yj_code_on_medications(cohort: Cohort, country: str) -> EvalCheck:
     """MedicationRequest / MedicationAdministration should carry a YJ code."""
     total = 0
     without = 0
-    for row in _read_many(cohort, country, ["MedicationRequest", "MedicationAdministration"]):
+    for row in _read_many(cohort, country, ("MedicationRequest", "MedicationAdministration")):
         codings = ((row.get("medicationCodeableConcept") or {}).get("coding")) or []
         if not codings:
             continue
@@ -214,10 +214,10 @@ def _jp_core_profile_declared(cohort: Cohort, country: str) -> EvalCheck:
     locale-axis concern (JP Core is a locale profile, not a structural one)."""
     types_seen = 0
     types_all_profiled = 0
-    for path in _fhir_ndjsons(cohort, country):
+    for path in cohort.resource_files(country):
         total = 0
         with_profile = 0
-        for row in _iter(path):
+        for row in iter_ndjson(path, skip_malformed=True):
             total += 1
             profile = ((row.get("meta") or {}).get("profile")) or []
             if any(u.startswith(_JP_CORE_URL_PREFIX) for u in profile):
@@ -256,7 +256,7 @@ def _jp_name_order(cohort: Cohort, country: str) -> EvalCheck:
     when the primary name is kanji (IDE)."""
     total = 0
     without_kana = 0
-    for row in _read(cohort, country, "Patient"):
+    for row in cohort.ndjson(country, "Patient", skip_malformed=True):
         names = row.get("name") or []
         if not names:
             continue
@@ -294,7 +294,7 @@ def _jp_name_order(cohort: Cohort, country: str) -> EvalCheck:
 def _us_ascii_only_displays(cohort: Cohort, country: str) -> EvalCheck:
     """No non-ASCII characters should appear in US Condition displays."""
     problems: list[str] = []
-    for row in _read(cohort, country, "Condition"):
+    for row in cohort.ndjson(country, "Condition", skip_malformed=True):
         code = row.get("code") or {}
         parts = [code.get("text", "")] + [c.get("display", "") for c in (code.get("coding") or [])]
         blob = "".join(p for p in parts if p)
@@ -321,7 +321,7 @@ def _us_ascii_only_displays(cohort: Cohort, country: str) -> EvalCheck:
 def _us_rxnorm_present_on_medications(cohort: Cohort, country: str) -> EvalCheck:
     total = 0
     without = 0
-    for row in _read_many(cohort, country, ["MedicationRequest", "MedicationAdministration"]):
+    for row in _read_many(cohort, country, ("MedicationRequest", "MedicationAdministration")):
         codings = ((row.get("medicationCodeableConcept") or {}).get("coding")) or []
         if not codings:
             continue
@@ -353,7 +353,7 @@ def _us_rxnorm_present_on_medications(cohort: Cohort, country: str) -> EvalCheck
 def _us_loinc_present_on_lab_observations(cohort: Cohort, country: str) -> EvalCheck:
     total = 0
     without = 0
-    for row in _read(cohort, country, "Observation"):
+    for row in cohort.ndjson(country, "Observation", skip_malformed=True):
         if not _is_lab_category(row):
             continue
         total += 1
@@ -393,8 +393,8 @@ def _us_no_japanese_leakage(cohort: Cohort, country: str) -> EvalCheck:
         )
 
     leaks: list[str] = []
-    for path in _fhir_ndjsons(cohort, country):
-        for row in _iter(path):
+    for path in cohort.resource_files(country):
+        for row in iter_ndjson(path, skip_malformed=True):
             blob = _dump_strings(row)
             if has_cjk(blob):
                 leaks.append(f"{path.name}: {row.get('id', '?')}")
@@ -423,7 +423,7 @@ def _us_practitioner_name_order(cohort: Cohort, country: str) -> EvalCheck:
     family + given). Heuristic: given is a list, both present."""
     total = 0
     problems = 0
-    for row in _read(cohort, country, "Practitioner"):
+    for row in cohort.ndjson(country, "Practitioner", skip_malformed=True):
         names = row.get("name") or []
         if not names:
             continue
@@ -458,40 +458,9 @@ def _us_practitioner_name_order(cohort: Cohort, country: str) -> EvalCheck:
 # helpers
 
 
-def _read(cohort: Cohort, country: str, resource_type: str):
-    return _iter(cohort.root / country / "fhir_r4" / f"{resource_type}.ndjson")
-
-
-def _read_many(cohort: Cohort, country: str, types: list[str]):
+def _read_many(cohort: Cohort, country: str, types: tuple[str, ...]):
     for t in types:
-        yield from _read(cohort, country, t)
-
-
-def _iter(path):
-    import json
-
-    if not path.exists():
-        return iter(())
-
-    def _gen():
-        with path.open(encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    yield json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-
-    return _gen()
-
-
-def _fhir_ndjsons(cohort: Cohort, country: str):
-    base = cohort.root / country / "fhir_r4"
-    if not base.exists():
-        return []
-    return sorted(base.glob("*.ndjson"))
+        yield from cohort.ndjson(country, t, skip_malformed=True)
 
 
 def _is_lab_category(row: dict) -> bool:
