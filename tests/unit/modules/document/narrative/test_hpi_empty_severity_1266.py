@@ -23,6 +23,11 @@ import re
 from datetime import datetime
 from types import SimpleNamespace
 
+from clinosim.modules.document.narrative.renderers.section_builders.hpi import build_hpi
+from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
+    build_present_illness,
+    build_present_illness_ref,
+)
 from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
 from clinosim.types.document import DocumentType, NarrativeContext
 from clinosim.types.patient import PatientProfile
@@ -68,9 +73,9 @@ def test_us_hpi_empty_severity_no_double_space() -> None:
     """
     gen = TemplateNarrativeGenerator()
     ctx = _ctx("en", severity="")
-    hpi_text, _ = gen._build_hpi(ctx)
-    pi_text, _ = gen._build_present_illness(ctx)
-    pi_ref_text, _ = gen._build_present_illness_ref(ctx)
+    hpi_text, _ = build_hpi(gen, ctx)
+    pi_text, _ = build_present_illness(gen, ctx)
+    pi_ref_text, _ = build_present_illness_ref(gen, ctx)
     for label, text in (
         ("_build_hpi", hpi_text),
         ("_build_present_illness", pi_text),
@@ -89,11 +94,11 @@ def test_us_hpi_empty_severity_uses_evaluation_fallback() -> None:
     """
     gen = TemplateNarrativeGenerator()
     ctx = _ctx("en", severity="")
-    hpi_text, _ = gen._build_hpi(ctx)
+    hpi_text, _ = build_hpi(gen, ctx)
     assert hpi_text == "Patient presented for evaluation."
-    pi_text, _ = gen._build_present_illness(ctx)
+    pi_text, _ = build_present_illness(gen, ctx)
     assert pi_text == "Patient presented for evaluation."
-    pi_ref_text, _ = gen._build_present_illness_ref(ctx)
+    pi_ref_text, _ = build_present_illness_ref(gen, ctx)
     assert pi_ref_text == "Patient presented for evaluation."
 
 
@@ -101,7 +106,7 @@ def test_us_hpi_nonempty_severity_still_interpolates() -> None:
     """Severity present → keep the original graded-severity sentence."""
     gen = TemplateNarrativeGenerator()
     ctx = _ctx("en", severity="moderate")
-    hpi_text, _ = gen._build_hpi(ctx)
+    hpi_text, _ = build_hpi(gen, ctx)
     assert hpi_text == "Patient presented with moderate symptoms."
 
 
@@ -109,7 +114,7 @@ def test_jp_hpi_empty_severity_uses_evaluation_fallback() -> None:
     """JP path guarded symmetrically — no leading-の grammar oddity."""
     gen = TemplateNarrativeGenerator()
     ctx = _ctx("ja", severity="")
-    hpi_text, _ = gen._build_hpi(ctx)
+    hpi_text, _ = build_hpi(gen, ctx)
     assert hpi_text == "受診となった。"
 
 
@@ -117,5 +122,5 @@ def test_jp_hpi_nonempty_severity_still_interpolates() -> None:
     """JP-side non-empty severity: keep the original 症状で受診 sentence."""
     gen = TemplateNarrativeGenerator()
     ctx = _ctx("ja", severity="moderate")
-    hpi_text, _ = gen._build_hpi(ctx)
+    hpi_text, _ = build_hpi(gen, ctx)
     assert hpi_text == "中等度の症状で受診。"

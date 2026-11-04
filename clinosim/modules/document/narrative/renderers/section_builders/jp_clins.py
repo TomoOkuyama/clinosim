@@ -12,8 +12,8 @@ function. The class methods of the same name become thin delegators so
 ``generator._build_<section>`` by name) stays unchanged.
 
 Generator-threaded helpers used:
-  - ``generator._build_chief_complaint`` (admission_reason, diagnoses_and_complaint)
-  - ``generator._build_hpi`` (present_illness, present_illness_ref)
+  - ``section_builder("chief_complaint")`` (admission_reason, diagnoses_and_complaint)
+  - ``section_builder("hpi")`` (present_illness, present_illness_ref)
 """
 
 from __future__ import annotations
@@ -43,6 +43,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
 from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
 )
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -56,6 +57,7 @@ if TYPE_CHECKING:
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("admission_reason")
 def build_admission_reason(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """312 入院理由セクション:入院理由の一言記述。
 
@@ -80,13 +82,14 @@ def build_admission_reason(generator: TemplateNarrativeGenerator, ctx: Narrative
         facts.append("ctx.diagnoses[0].admission_diagnosis_code")
         subject = display
     else:
-        cc_text, cc_facts = generator._build_chief_complaint(ctx)
+        cc_text, cc_facts = section_builder("chief_complaint")(generator, ctx)
         facts.extend(cc_facts)
         subject = cc_text
     text = t("admission_reason.admitted_for", lang, subject=subject)
     return text, facts
 
 
+@section("admission_details")
 def build_admission_details(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """322 入院時詳細セクション:入院日・入院経路(救急経由か)・入棟病棟。
 
@@ -120,6 +123,7 @@ def build_admission_details(generator: TemplateNarrativeGenerator, ctx: Narrativ
     return t("admission_details.full_line", lang, parts=parts_joined), facts
 
 
+@section("discharge_details")
 def build_discharge_details(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """324 退院時詳細セクション:退院日・退院病棟・退院時転帰(JP-only)。
 
@@ -168,6 +172,7 @@ def build_discharge_details(generator: TemplateNarrativeGenerator, ctx: Narrativ
     return text, facts
 
 
+@section("admission_diagnoses")
 def build_admission_diagnoses(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """342 入院時診断セクション:入院時診断名の番号付きリスト。
 
@@ -209,6 +214,7 @@ def build_admission_diagnoses(generator: TemplateNarrativeGenerator, ctx: Narrat
     return "\n".join(lines), facts
 
 
+@section("present_illness")
 def build_present_illness(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """360 現病歴セクション:現病歴の短文記述。
 
@@ -216,7 +222,7 @@ def build_present_illness(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     reuses this template. Tense variation (narrative tone) will be
     LLM 差替時に調整予定。
     """
-    hpi_text, facts = generator._build_hpi(ctx)
+    hpi_text, facts = section_builder("hpi")(generator, ctx)
     lang = ctx.target_lang
     # HPI is already structured as a chronological onset narrative, so
     # no structural changes are needed. Text style harmonization will be
@@ -242,6 +248,7 @@ def build_present_illness(generator: TemplateNarrativeGenerator, ctx: NarrativeC
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("referring_institution")
 def build_referring_institution(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """920 紹介元情報セクション:紹介元(送信元)医療機関の記載。
 
@@ -254,6 +261,7 @@ def build_referring_institution(generator: TemplateNarrativeGenerator, ctx: Narr
     return t("referral.referring_institution_line", lang), facts
 
 
+@section("referral_destination")
 def build_referral_destination(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """910 紹介先情報セクション:紹介先医療機関の記載。
 
@@ -277,6 +285,7 @@ _REFERRAL_PURPOSE_KEYS: tuple[str, ...] = (
 )
 
 
+@section("referral_purpose")
 def build_referral_purpose(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """950 紹介目的セクション:標準セットから決定的に一つ選択。
 
@@ -294,6 +303,7 @@ def build_referral_purpose(generator: TemplateNarrativeGenerator, ctx: Narrative
     return t("referral.referral_purpose_line", lang, purpose=picked), facts
 
 
+@section("diagnoses_and_complaint")
 def build_diagnoses_and_complaint(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 ) -> tuple[str, list[str]]:
@@ -327,7 +337,7 @@ def build_diagnoses_and_complaint(
         facts.append("ctx.diagnoses")
 
     # Chief complaint
-    cc_text, cc_facts = generator._build_chief_complaint(ctx)
+    cc_text, cc_facts = section_builder("chief_complaint")(generator, ctx)
     facts.extend(cc_facts)
 
     dx_body = "\n".join(dx_lines) if dx_lines else t("diagnoses_and_complaint.no_diagnoses", lang)
@@ -335,9 +345,10 @@ def build_diagnoses_and_complaint(
     return text, facts
 
 
+@section("present_illness_ref")
 def build_present_illness_ref(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """360 現病歴セクション(診療情報提供書用):HPI builder を再利用。"""
-    hpi_text, facts = generator._build_hpi(ctx)
+    hpi_text, facts = section_builder("hpi")(generator, ctx)
     lang = ctx.target_lang
     if not hpi_text:
         # #1266 empty-severity guard (see `_build_hpi`).
@@ -359,6 +370,7 @@ def build_present_illness_ref(generator: TemplateNarrativeGenerator, ctx: Narrat
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("checkup_lab_results")
 def build_checkup_lab_results(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """01031 事業者健診検査結果セクション:法定健診項目の判定文。
 
@@ -457,6 +469,7 @@ def build_checkup_lab_results(generator: TemplateNarrativeGenerator, ctx: Narrat
     return text, facts
 
 
+@section("checkup_questionnaire")
 def build_checkup_questionnaire(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """01032 事業者健診問診結果セクション:PatientProfile 依存の個別問診記録。
 

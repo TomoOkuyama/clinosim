@@ -32,7 +32,7 @@ FHIR resource ID prefix も所有する。
   `load_nursing_content`)、per-encounter document-type dispatch
   (`_pick_document_author`, `_referral_note_fires`,
   `_enc_type_value`, `_enc_status_value`, `_compute_los_days`,
-  `_make_doc_stub`)。
+  `_PLANNERS` per generation frequency + `_build_documents`)。
 - **In scope (audit)**: [`audit.py`](audit.py) — 5 番目の
   per-module AD-60 plug-in (hai / antibiotic / order / imaging の次)。
   49-check `lift_firing_proof` が canonical 定数

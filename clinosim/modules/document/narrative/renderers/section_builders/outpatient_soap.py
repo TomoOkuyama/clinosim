@@ -63,6 +63,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
     _render_safety_skips_line,
 )
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.reference_data import load_reference_yaml
 from clinosim.types.document import DocumentType, NarrativeContext
 
@@ -162,6 +163,7 @@ def _get_soap_template(ctx: NarrativeContext) -> Any | None:
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("subjective")
 def build_outpatient_subjective(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build SOAP subjective from outpatient_soap_template.subjective_<lang>.
 
@@ -287,6 +289,7 @@ def _compose_outpatient_subjective_from_state(ctx: NarrativeContext) -> str:
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("objective")
 def build_outpatient_objective(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build SOAP objective — CIF vitals ALWAYS appear; template is a seed.
 
@@ -336,6 +339,7 @@ def build_outpatient_objective(generator: TemplateNarrativeGenerator, ctx: Narra
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("assessment")
 def build_outpatient_assessment(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build SOAP assessment from outpatient_soap_template.assessment_<lang>.
 
@@ -881,6 +885,7 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("plan")
 def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build SOAP plan from outpatient_soap_template.plan_<lang>.
 

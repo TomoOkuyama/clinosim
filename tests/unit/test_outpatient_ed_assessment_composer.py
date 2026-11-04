@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+from clinosim.modules.document.narrative.renderers.section_builders.outpatient_soap import build_outpatient_assessment
 from clinosim.types.document import DocumentType
 
 
@@ -165,12 +166,13 @@ def test_ed_note_document_type_now_composes_from_state() -> None:
     )
 
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_outpatient_assessment(
+    text, facts = build_outpatient_assessment(
+        gen,
         _ctx(
             "en",
             document_type=DocumentType.ED_NOTE,
             chief_complaint="Chest pain, diaphoresis, dyspnea",
-        )
+        ),
     )
     assert "Clinical assessment ongoing" not in text
     assert "Chest pain" in text
@@ -185,12 +187,13 @@ def test_outpatient_no_chronic_composes_from_encounter_reason() -> None:
     )
 
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_outpatient_assessment(
+    text, facts = build_outpatient_assessment(
+        gen,
         _ctx(
             "en",
             chronic=[],  # no chronic conditions
             chief_complaint="Annual physical exam",
-        )
+        ),
     )
     assert "Clinical assessment ongoing" not in text
     assert "Encounter reason" in text
@@ -209,7 +212,7 @@ def test_outpatient_still_uses_chronic_when_present() -> None:
             self.code = code
 
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_outpatient_assessment(_ctx("en", chronic=[_Cond("I10"), _Cond("E11.9")]))
+    text, facts = build_outpatient_assessment(gen, _ctx("en", chronic=[_Cond("I10"), _Cond("E11.9")]))
     # chronic_condition_line or integrated composer wins
     assert "Encounter reason" not in text  # new fallback didn't fire
     assert "Clinical assessment ongoing" not in text

@@ -35,6 +35,7 @@ from clinosim.modules.document.narrative._localization import (
     _localize_proc_type,
 )
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -48,6 +49,7 @@ if TYPE_CHECKING:
 # ─────────────────────────────────────────────────────────────────────
 
 
+@section("op_procedure_name")
 def build_op_procedure_name(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """術式名 — procedure code display + K/CPT code + approach modifier."""
     lang = ctx.target_lang
@@ -67,6 +69,7 @@ def build_op_procedure_name(generator: TemplateNarrativeGenerator, ctx: Narrativ
     return f"{head}{approach_part}{code_part}{duration_part}", facts
 
 
+@section("op_anesthesia")
 def build_op_anesthesia(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """麻酔法 — anesthesia type + ASA class + anesthesiologist."""
     lang = ctx.target_lang
@@ -87,6 +90,7 @@ def build_op_anesthesia(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
     return f"{head}{asa_part}{anes_part}", facts
 
 
+@section("op_surgeon")
 def build_op_surgeon(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """執刀医・助手 — primary surgeon + assistant list (name-resolved)."""
     lang = ctx.target_lang
@@ -110,6 +114,7 @@ def build_op_surgeon(generator: TemplateNarrativeGenerator, ctx: NarrativeContex
     return f"{surgeon_part}{assist_part}", facts
 
 
+@section("op_findings")
 def build_op_findings(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """術中所見 — body site + preop/postop diagnosis + intraop complications."""
     lang = ctx.target_lang
@@ -151,6 +156,7 @@ def build_op_findings(generator: TemplateNarrativeGenerator, ctx: NarrativeConte
     return chunk_sep.join(parts) if parts else t("op_note.findings_none_default", lang), facts
 
 
+@section("op_course")
 def build_op_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """手術経過 — approach + duration + outcome + timing narrative."""
     lang = ctx.target_lang
@@ -203,6 +209,7 @@ def build_op_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     )
 
 
+@section("op_specimens")
 def build_op_specimens(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """摘出臓器・組織 — specimens_sent list."""
     lang = ctx.target_lang
@@ -217,6 +224,7 @@ def build_op_specimens(generator: TemplateNarrativeGenerator, ctx: NarrativeCont
     return t("op_note.specimens_line", lang, list=sep.join(specimens)), facts
 
 
+@section("op_blood_loss")
 def build_op_blood_loss(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """出血量・輸血 — estimated_blood_loss_ml + transfusion note."""
     lang = ctx.target_lang
@@ -240,6 +248,7 @@ def build_op_blood_loss(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
     return t("op_note.blood_loss_line", lang, ebl=ebl, transfusion_part=transfusion_part), facts
 
 
+@section("op_equipment")
 def build_op_equipment(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """使用機器・材料 — implants_used list."""
     lang = ctx.target_lang
@@ -262,6 +271,7 @@ def build_op_equipment(generator: TemplateNarrativeGenerator, ctx: NarrativeCont
     return t("op_note.equipment_head", lang, list=sep.join(implants)), facts
 
 
+@section("op_postop_plan")
 def build_op_postop_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """術後方針 — recovery destination + monitoring plan (derived)."""
     lang = ctx.target_lang
@@ -305,6 +315,7 @@ def _pn_resolve_procedure(ctx: NarrativeContext) -> tuple[Any | None, list[str]]
     return None, []
 
 
+@section("pn_procedure_name")
 def build_pn_procedure_name(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """処置名 / Procedure name — resolved from procedure_code."""
     lang = ctx.target_lang
@@ -343,6 +354,7 @@ def build_pn_procedure_name(generator: TemplateNarrativeGenerator, ctx: Narrativ
     return core + t("list_sep.period", lang), facts
 
 
+@section("pn_consent")
 def build_pn_consent(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """インフォームド・コンセント / Consent — boilerplate.
 
@@ -357,6 +369,7 @@ def build_pn_consent(generator: TemplateNarrativeGenerator, ctx: NarrativeContex
     return t("proc_note.consent_line", lang), facts
 
 
+@section("pn_performer")
 def build_pn_performer(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """実施者 / Performer — from ProcedureRecord.primary_surgeon_id."""
     lang = ctx.target_lang
@@ -395,6 +408,7 @@ def build_pn_performer(generator: TemplateNarrativeGenerator, ctx: NarrativeCont
     return t("list_sep.period_space", lang).join(parts) + t("list_sep.period", lang), facts
 
 
+@section("pn_analgesia")
 def build_pn_analgesia(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """麻酔・鎮静 / Analgesia — from ProcedureRecord.anesthesia_type."""
     lang = ctx.target_lang
@@ -413,6 +427,7 @@ def build_pn_analgesia(generator: TemplateNarrativeGenerator, ctx: NarrativeCont
     return t("proc_note.analgesia_line", lang, method=method), facts
 
 
+@section("pn_course")
 def build_pn_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """処置経過 / Procedure course — from duration + approach + outcome."""
     lang = ctx.target_lang
@@ -437,6 +452,7 @@ def build_pn_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     return core + t("proc_note.course_outcome_suffix", lang, outcome=outcome), facts
 
 
+@section("pn_complications")
 def build_pn_complications(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """合併症の有無 / Complications — from intraop_complications + complication_codes."""
     lang = ctx.target_lang
@@ -460,6 +476,7 @@ def build_pn_complications(generator: TemplateNarrativeGenerator, ctx: Narrative
     return t("proc_note.complications_none", lang), facts
 
 
+@section("pn_specimens")
 def build_pn_specimens(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """検体の有無 / Specimens — from ProcedureRecord.specimens_sent."""
     lang = ctx.target_lang
@@ -475,6 +492,7 @@ def build_pn_specimens(generator: TemplateNarrativeGenerator, ctx: NarrativeCont
     return t("proc_note.specimens_none", lang), facts
 
 
+@section("pn_postop_plan")
 def build_pn_postop_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """術後方針 / Post-procedure plan — outcome-aware boilerplate."""
     lang = ctx.target_lang

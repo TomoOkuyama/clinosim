@@ -12,7 +12,7 @@ function. The class methods of the same name become thin delegators so
 ``generator._build_<section>`` by name) stays unchanged.
 
 Generator-threaded helpers:
-  - ``generator._build_chief_complaint`` (discharge_diagnoses fallback)
+  - ``section_builder("chief_complaint")`` (discharge_diagnoses fallback)
   - ``generator._resolve_discharge_instructions`` (discharge_instructions,
     follow_up)
 """
@@ -27,6 +27,7 @@ from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -35,6 +36,7 @@ if TYPE_CHECKING:
     )
 
 
+@section("hospital_course")
 def build_hospital_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build hospital_course template seed.
 
@@ -136,6 +138,7 @@ def build_hospital_course(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     return " ".join(parts), facts
 
 
+@section("discharge_diagnoses")
 def build_discharge_diagnoses(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build discharge_diagnoses from ctx.diagnoses.
 
@@ -153,7 +156,7 @@ def build_discharge_diagnoses(generator: TemplateNarrativeGenerator, ctx: Narrat
     diagnoses = ctx.diagnoses or []
     if not diagnoses:
         # Fall back to chief complaint
-        cc_text, _ = generator._build_chief_complaint(ctx)
+        cc_text, _ = section_builder("chief_complaint")(generator, ctx)
         return cc_text, []
 
     facts.append("ctx.diagnoses")
@@ -177,10 +180,11 @@ def build_discharge_diagnoses(generator: TemplateNarrativeGenerator, ctx: Narrat
         return "; ".join(parts), facts
 
     # No codes — fall back
-    cc_text, _ = generator._build_chief_complaint(ctx)
+    cc_text, _ = section_builder("chief_complaint")(generator, ctx)
     return cc_text, []
 
 
+@section("discharge_medications")
 def build_discharge_medications(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build discharge_medications from ctx.discharge_medications (rx only).
 
@@ -276,6 +280,7 @@ def build_discharge_medications(generator: TemplateNarrativeGenerator, ctx: Narr
     return none_text, facts
 
 
+@section("discharge_instructions")
 def build_discharge_instructions(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build discharge_instructions using disease-specific override + baseline merge."""
     facts: list[str] = []
@@ -298,6 +303,7 @@ def build_discharge_instructions(generator: TemplateNarrativeGenerator, ctx: Nar
     return " ".join(parts), facts
 
 
+@section("follow_up")
 def build_follow_up(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build follow_up section from discharge instructions follow_up entry."""
     lang = ctx.target_lang

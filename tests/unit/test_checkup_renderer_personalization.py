@@ -7,6 +7,10 @@ from types import SimpleNamespace
 
 import pytest
 
+from clinosim.modules.document.narrative.renderers.section_builders.jp_clins import (
+    build_checkup_lab_results,
+    build_checkup_questionnaire,
+)
 from clinosim.modules.document.narrative.template_generator import (
     TemplateNarrativeGenerator,
 )
@@ -66,7 +70,7 @@ def test_checkup_lab_results_all_normal_grade_a():
         _make_lab_result("LDL", 100),  # LDL 基準内
     ]
     ctx = _make_ctx(labs, patient=SimpleNamespace(patient_id="P1"))
-    text, facts = gen._build_checkup_lab_results(ctx)
+    text, facts = build_checkup_lab_results(gen, ctx)
     assert "総合判定:A" in text
     assert "異常なし" in text
     assert "22.5" in text
@@ -86,7 +90,7 @@ def test_checkup_lab_results_high_bp_grade_d():
         _make_lab_result("LDL", 100),
     ]
     ctx = _make_ctx(labs, patient=SimpleNamespace(patient_id="P2"))
-    text, _ = gen._build_checkup_lab_results(ctx)
+    text, _ = build_checkup_lab_results(gen, ctx)
     assert "高血圧" in text
     assert "総合判定:D" in text
 
@@ -103,7 +107,7 @@ def test_checkup_lab_results_high_hba1c_grade_d():
         _make_lab_result("LDL", 100),
     ]
     ctx = _make_ctx(labs, patient=SimpleNamespace(patient_id="P3"))
-    text, _ = gen._build_checkup_lab_results(ctx)
+    text, _ = build_checkup_lab_results(gen, ctx)
     assert "糖尿病型" in text
     assert "総合判定:D" in text
 
@@ -113,7 +117,7 @@ def test_checkup_lab_results_missing_values_default_to_normal():
     """空の lab_results では未測定表記になり、総合判定 A(異常なし)。"""
     gen = TemplateNarrativeGenerator()
     ctx = _make_ctx([], patient=SimpleNamespace(patient_id="P4"))
-    text, _ = gen._build_checkup_lab_results(ctx)
+    text, _ = build_checkup_lab_results(gen, ctx)
     assert "未測定" in text
     assert "総合判定:A" in text
 
@@ -130,7 +134,7 @@ def test_checkup_questionnaire_healthy_patient():
         alcohol_use="none",
     )
     ctx = _make_ctx([], patient=patient)
-    text, _ = gen._build_checkup_questionnaire(ctx)
+    text, _ = build_checkup_questionnaire(gen, ctx)
     assert "経過観察不要" in text
     assert "喫煙歴なし" in text
     assert "飲酒なし" in text
@@ -153,7 +157,7 @@ def test_checkup_questionnaire_patient_with_chronic_conditions():
         alcohol_use="regular",
     )
     ctx = _make_ctx([], patient=patient)
-    text, _ = gen._build_checkup_questionnaire(ctx)
+    text, _ = build_checkup_questionnaire(gen, ctx)
     assert "継続経過観察を要す" in text
     assert "アムロジピン" in text
     assert "禁煙" in text

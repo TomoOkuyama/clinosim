@@ -21,6 +21,7 @@ from __future__ import annotations
 from datetime import datetime
 from types import SimpleNamespace
 
+from clinosim.modules.document.narrative.renderers.section_builders.care_plans import build_acp_estimated_los
 from clinosim.modules.document.narrative.template_generator import (
     TemplateNarrativeGenerator,
 )
@@ -84,7 +85,7 @@ def test_acp_estimated_los_matches_ap_plan() -> None:
     ctx = _mk_ctx_with_protocol(actual_los=25, protocol_mean_los=17)
     gen = TemplateNarrativeGenerator()
     plan_text = gen._compose_ap_plan_from_state(ctx)
-    acp_text, _ = gen._build_acp_estimated_los(ctx)
+    acp_text, _ = build_acp_estimated_los(gen, ctx)
     # Extract the digit sequence following 約 from both strings and compare.
     import re
 

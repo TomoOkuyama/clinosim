@@ -31,6 +31,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _pick_localized,
     _render_home_med_name,
 )
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.modules.document.reference_data_loaders import load_hpi_pertinent_negatives
 from clinosim.types.document import DocumentType, NarrativeContext
 
@@ -40,6 +41,7 @@ if TYPE_CHECKING:
     )
 
 
+@section("hpi")
 def build_hpi(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build HPI section, then append the neonatal workup one-liner
     for birth admissions (Issue #1432).

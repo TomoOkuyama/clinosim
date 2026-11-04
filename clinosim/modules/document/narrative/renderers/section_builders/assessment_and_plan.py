@@ -40,6 +40,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_PLAN_EN,
     _GENERIC_PLAN_JA,
 )
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -48,6 +49,7 @@ if TYPE_CHECKING:
     )
 
 
+@section("assessment_and_plan")
 def build_assessment_and_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build assessment_and_plan from daily_trajectory day_0 assessment + plan."""
     facts: list[str] = []

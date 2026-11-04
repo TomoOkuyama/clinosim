@@ -18,6 +18,11 @@ from types import SimpleNamespace
 
 import pytest
 
+from clinosim.modules.document.narrative.renderers.section_builders.outpatient_soap import (
+    build_outpatient_assessment,
+    build_outpatient_objective,
+    build_outpatient_plan,
+)
 from clinosim.modules.document.narrative.template_generator import (
     _GENERIC_ASSESSMENT_JA,
     _GENERIC_FALLBACK_JA,
@@ -84,7 +89,7 @@ def test_objective_falls_back_to_vital_signs_line_ja():
         ]
     )
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_outpatient_objective(ctx)
+    text, facts = build_outpatient_objective(gen, ctx)
     assert "BP 132/78 mmHg" in text
     assert "HR 72" in text
     assert "SpO2 98%" in text
@@ -95,7 +100,7 @@ def test_objective_falls_back_to_static_when_no_vitals():
     """O section preserves generic fallback when neither template nor vitals."""
     ctx = _ctx(vitals=[])
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_outpatient_objective(ctx)
+    text, facts = build_outpatient_objective(gen, ctx)
     assert text == _GENERIC_FALLBACK_JA
     assert facts == []
 
@@ -118,7 +123,7 @@ def test_assessment_falls_back_to_chronic_conditions_line():
         ]
     )
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_outpatient_assessment(ctx)
+    text, facts = build_outpatient_assessment(gen, ctx)
     # Primary chronic (I10) MUST surface either via chronic registry
     # ("本態性高血圧") or via per-condition assessment integration.
     assert "本態性" in text or "高血圧" in text or "I10" in text
@@ -127,7 +132,7 @@ def test_assessment_falls_back_to_chronic_conditions_line():
 def test_assessment_static_fallback_when_no_conditions():
     ctx = _ctx(chronic_conditions=[])
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_outpatient_assessment(ctx)
+    text, facts = build_outpatient_assessment(gen, ctx)
     assert text == _GENERIC_ASSESSMENT_JA
     assert facts == []
 
@@ -141,7 +146,7 @@ def test_plan_falls_back_to_current_medications():
         ]
     )
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_outpatient_plan(ctx)
+    text, facts = build_outpatient_plan(gen, ctx)
     assert "継続処方" in text
     assert "アムロジピン" in text
     assert "メトホルミン" in text
@@ -159,7 +164,7 @@ def test_plan_truncates_long_medication_list():
         current_medications=[SimpleNamespace(drug_name=f"薬{i}") for i in range(12)],
     )
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_outpatient_plan(ctx)
+    text, facts = build_outpatient_plan(gen, ctx)
     # 12 drugs → 10 shown + "他 2 剤"
     assert "他 2 剤" in text
 
@@ -169,7 +174,7 @@ def test_plan_static_fallback_when_no_meds():
     follow-up sentinel line rather than the bare _GENERIC_PLAN_JA."""
     ctx = _ctx(current_medications=[])
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_outpatient_plan(ctx)
+    text, facts = build_outpatient_plan(gen, ctx)
     # Follow-up planning phrase must appear (Rx list is empty)
     assert "次回外来" in text or text == _GENERIC_PLAN_JA
 
@@ -190,7 +195,7 @@ def test_english_locale_vital_signs_line():
         ],
     )
     gen = TemplateNarrativeGenerator()
-    text, facts = gen._build_outpatient_objective(ctx)
+    text, facts = build_outpatient_objective(gen, ctx)
     assert "BP 120/80 mmHg" in text
     assert "HR 68 bpm" in text
 
@@ -244,7 +249,7 @@ def test_us_outpatient_assessment_does_not_leak_japanese_drug_names_1033():
         ],
     )
     gen = TemplateNarrativeGenerator()
-    text, _facts = gen._build_outpatient_assessment(ctx)
+    text, _facts = build_outpatient_assessment(gen, ctx)
 
     # No JP characters (hiragana / katakana / CJK) anywhere.
     for ch in text:
@@ -281,7 +286,7 @@ def test_jp_outpatient_assessment_still_uses_japanese_drug_names_1033():
         ],
     )
     gen = TemplateNarrativeGenerator()
-    text, _facts = gen._build_outpatient_assessment(ctx)
+    text, _facts = build_outpatient_assessment(gen, ctx)
 
     # Either the primary chronic hits the disease-specific chronic
     # registry (which supplies its own JP text) or the per-condition
