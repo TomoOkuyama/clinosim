@@ -20,9 +20,15 @@ def test_diabetes_group(code: str, member: bool) -> None:
 
 @pytest.mark.parametrize("code", ["E10.9", "E11.9", "E13.9"])
 def test_lab_generation_sites_see_every_diabetes_type(code: str) -> None:
-    from clinosim.simulator.emergency import _has_diabetes as ed_dm
-    from clinosim.simulator.outpatient import _has_diabetes as opd_dm
+    from clinosim.codes.valuesets import has_condition
 
+    # Every encounter kind derives labs through `lab_pipeline.patient_true_labs`,
+    # which reads the `diabetes` group (Issues #2281, #2521).
     patient = PatientProfile(chronic_conditions=[ChronicCondition(code=code)])
-    assert ed_dm(patient) and opd_dm(patient)
+    assert has_condition(patient, "diabetes")
     assert metabolic._has_diabetes([code])
+
+
+@pytest.mark.parametrize(("code", "member"), [("E78.5", True), ("E78", True), ("E79.0", False)])
+def test_dyslipidemia_group(code: str, member: bool) -> None:
+    assert concept_group("dyslipidemia").contains(code) is member

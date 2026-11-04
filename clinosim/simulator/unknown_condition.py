@@ -33,7 +33,6 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
-from clinosim.codes.valuesets import has_condition, has_icd_prefix
 from clinosim.locale.i18n import t
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
@@ -44,7 +43,6 @@ from clinosim.modules.observation.engine import (
 )
 from clinosim.modules.order.engine import calculate_result_time_from_state
 from clinosim.modules.physiology.engine import (
-    derive_lab_values,
     initialize_state,
     medication_flags_from_context,
     scenario_flags_from_protocol,
@@ -75,6 +73,7 @@ from clinosim.simulator._unknown_condition_thresholds import (
     UNK_WARD_CAPACITY_DEFAULT,
 )
 from clinosim.simulator.hospital_ops import pick_ward, resolve_department
+from clinosim.simulator.lab_pipeline import patient_true_labs
 from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
 from clinosim.types.config import HealthcareSystemConfig, SimulatorConfig
 from clinosim.types.encounter import (
@@ -158,8 +157,6 @@ def _simulate_unknown_condition(
     all_orders: list[Order] = []
     all_lab_results: list[OrderResult] = []
     state_history = [deepcopy(state)]
-    has_diabetes = has_condition(patient, "diabetes")  # Issue #2281
-    has_dyslipidemia = has_icd_prefix(patient.chronic_conditions, "E78")
 
     # Extensive admission workup (broader than known-disease)
     admission_labs = [
@@ -311,18 +308,7 @@ def _simulate_unknown_condition(
             **scenario_flags_from_protocol(None),
             **medication_flags_from_context(patient),
         }
-        from clinosim.modules.physiology.engine import hba1c_latent_at as _hba1c_latent_at
-
-        _hba1c_latent = _hba1c_latent_at(patient, admission_time)
-        true_labs = derive_lab_values(
-            state,
-            sex=patient.sex,
-            age=patient.age,
-            has_diabetes=has_diabetes,
-            has_dyslipidemia=has_dyslipidemia,
-            hba1c_latent=_hba1c_latent,
-            **_flags_unknown,
-        )  # noqa: E501
+        true_labs = patient_true_labs(state, patient, admission_time, _flags_unknown)
         for order in all_orders:
             if (
                 order.order_type.value == "lab"
