@@ -74,7 +74,7 @@ from __future__ import annotations
 
 from clinosim.audit.types import Cohort
 from clinosim.codes import get_system_uri
-from clinosim.eval.axes.locale import _detect_country_from_cohort, _read
+from clinosim.eval.axes.locale import _detect_country_from_cohort
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
 
 # --------------------------------------------------------------------------- #
@@ -109,9 +109,9 @@ def run(cohort: Cohort, country: str) -> list[EvalCheck]:
     """7-check US Core narrow-gate compliance axis. No-op on non-US cohorts."""
     if _detect_country_from_cohort(cohort, country) != "US":
         return []
-    patients = list(_read(cohort, country, "Patient"))
-    encounters = list(_read(cohort, country, "Encounter"))
-    conditions = list(_read(cohort, country, "Condition"))
+    patients = list(cohort.ndjson(country, "Patient", skip_malformed=True))
+    encounters = list(cohort.ndjson(country, "Encounter", skip_malformed=True))
+    conditions = list(cohort.ndjson(country, "Condition", skip_malformed=True))
     return [
         _check_patient_identifier(patients),
         _check_patient_name_family_given(patients),

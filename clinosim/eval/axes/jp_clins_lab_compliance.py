@@ -320,9 +320,7 @@ def _declares_ecs_labresult(row: dict) -> bool:
 
 
 def _iter_lab_observations(cohort: Cohort, country: str):
-    from clinosim.eval.axes.locale import _read
-
-    for row in _read(cohort, country, "Observation"):
+    for row in cohort.ndjson(country, "Observation", skip_malformed=True):
         if _declares_ecs_labresult(row):
             yield row
 

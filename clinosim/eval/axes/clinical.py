@@ -287,7 +287,7 @@ def _check_lab_values_physiological_range(cohort: Cohort, country: str) -> EvalC
     out_of_range: dict[str, int] = {}
     unknown_units: dict[str, dict[str, int]] = {}
     total_checked = 0
-    for row in _read(cohort, country, "Observation"):
+    for row in cohort.ndjson(country, "Observation", skip_malformed=True):
         code_bag = (row.get("code") or {}).get("coding") or []
         loinc_code = _first_code_for_system(code_bag, _LOINC_URI)
         if not loinc_code or loinc_code not in _LAB_BOUNDS_BY_UNIT:
@@ -358,7 +358,7 @@ def _check_age_condition_consistency(cohort: Cohort, country: str) -> EvalCheck:
     peds_only_prefixes: set[str] = set()  # Reserved — clinosim does not model peds diseases yet.
 
     problems: list[str] = []
-    for row in _read(cohort, country, "Condition"):
+    for row in cohort.ndjson(country, "Condition", skip_malformed=True):
         pid = (row.get("subject") or {}).get("reference", "").split("/", 1)[-1]
         age = ages_by_patient.get(pid)
         if age is None:
@@ -395,9 +395,9 @@ def _check_age_condition_consistency(cohort: Cohort, country: str) -> EvalCheck:
 
 def _check_medication_date_sanity(cohort: Cohort, country: str) -> EvalCheck:
     """MedicationRequest.authoredOn must fall after the patient's birthDate."""
-    births = {row.get("id"): row.get("birthDate") for row in _read(cohort, country, "Patient")}
+    births = {row.get("id"): row.get("birthDate") for row in cohort.ndjson(country, "Patient", skip_malformed=True)}
     problems: list[str] = []
-    for row in _read(cohort, country, "MedicationRequest"):
+    for row in cohort.ndjson(country, "MedicationRequest", skip_malformed=True):
         pid = (row.get("subject") or {}).get("reference", "").split("/", 1)[-1]
         birth = births.get(pid)
         authored = (row.get("authoredOn") or "")[:10]
@@ -426,7 +426,7 @@ def _check_encounter_temporal_ordering(cohort: Cohort, country: str) -> EvalChec
     """Encounter.period.start ≤ Encounter.period.end. Both dates required
     for finished encounters; in-progress encounters may omit end."""
     problems: list[str] = []
-    for row in _read(cohort, country, "Encounter"):
+    for row in cohort.ndjson(country, "Encounter", skip_malformed=True):
         period = row.get("period") or {}
         start = period.get("start")
         end = period.get("end")
@@ -453,9 +453,9 @@ def _check_condition_encounter_link(cohort: Cohort, country: str) -> EvalCheck:
     """When Condition.encounter is set, it must reference an emitted
     Encounter. (A missing encounter link is allowed — used for
     chronic problem-list items.)"""
-    valid_encounters = {row.get("id") for row in _read(cohort, country, "Encounter")}
+    valid_encounters = {row.get("id") for row in cohort.ndjson(country, "Encounter", skip_malformed=True)}
     problems: list[str] = []
-    for row in _read(cohort, country, "Condition"):
+    for row in cohort.ndjson(country, "Condition", skip_malformed=True):
         enc_ref = (row.get("encounter") or {}).get("reference", "")
         if enc_ref.startswith("Encounter/"):
             enc_id = enc_ref.split("/", 1)[1]
@@ -482,27 +482,6 @@ def _check_condition_encounter_link(cohort: Cohort, country: str) -> EvalCheck:
 # helpers
 
 
-def _read(cohort: Cohort, country: str, resource_type: str):
-    import json
-
-    path = cohort.root / country / "fhir_r4" / f"{resource_type}.ndjson"
-    if not path.exists():
-        return iter(())
-
-    def _gen():
-        with path.open(encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    yield json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-
-    return _gen()
-
-
 def _first_code_for_system(coding: list, system: str) -> str | None:
     for c in coding:
         if c.get("system") == system:
@@ -513,7 +492,7 @@ def _first_code_for_system(coding: list, system: str) -> str | None:
 def _patient_ages(cohort: Cohort, country: str) -> dict[str, int]:
     today = date.today()
     ages: dict[str, int] = {}
-    for row in _read(cohort, country, "Patient"):
+    for row in cohort.ndjson(country, "Patient", skip_malformed=True):
         pid = row.get("id")
         birth = row.get("birthDate")
         if not (pid and birth):
@@ -559,7 +538,7 @@ def _check_condition_lab_coherence(cohort: Cohort, country: str) -> EvalCheck:
     # any pairing cares about — one pass, then O(1) lookups downstream.
     interesting_loincs = {p.loinc for p in _CONDITION_LAB_PAIRINGS}
     obs_by_patient_loinc: dict[tuple[str, str], list[tuple[date | None, float]]] = {}
-    for row in _read(cohort, country, "Observation"):
+    for row in cohort.ndjson(country, "Observation", skip_malformed=True):
         loinc = _first_loinc(row)
         if loinc not in interesting_loincs:
             continue
@@ -579,7 +558,7 @@ def _check_condition_lab_coherence(cohort: Cohort, country: str) -> EvalCheck:
     for pairing in _CONDITION_LAB_PAIRINGS:
         eligible = 0
         violations = 0
-        for cond in _read(cohort, country, "Condition"):
+        for cond in cohort.ndjson(country, "Condition", skip_malformed=True):
             if not _condition_matches_pairing(cond, pairing):
                 continue
             pid = (cond.get("subject") or {}).get("reference", "").split("/", 1)[-1]
@@ -644,7 +623,7 @@ def _check_medication_lab_coherence_warfarin(cohort: Cohort, country: str) -> Ev
     """
     # Find patients on warfarin. Match by RxNorm (US) or YJ prefix (JP).
     warfarin_start_by_patient: dict[str, date | None] = {}
-    for row in _read(cohort, country, "MedicationRequest"):
+    for row in cohort.ndjson(country, "MedicationRequest", skip_malformed=True):
         codings = ((row.get("medicationCodeableConcept") or {}).get("coding")) or []
         is_warfarin = any(
             (c.get("system") == _RXNORM_URI and c.get("code") == _WARFARIN_RXNORM)
@@ -679,7 +658,7 @@ def _check_medication_lab_coherence_warfarin(cohort: Cohort, country: str) -> Ev
     # after the earliest warfarin start is outside 2.0-3.5.
     eligible = 0
     violations = 0
-    for row in _read(cohort, country, "Observation"):
+    for row in cohort.ndjson(country, "Observation", skip_malformed=True):
         if _first_loinc(row) != _PT_INR_LOINC:
             continue
         pid = (row.get("subject") or {}).get("reference", "").split("/", 1)[-1]
