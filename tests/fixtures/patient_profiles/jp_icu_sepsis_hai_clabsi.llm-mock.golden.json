@@ -1361,7 +1361,7 @@
         "encounter.ward_id",
         "encounter.attending_physician_id",
         "patient.bmi",
-        "patient.weight_kg+height_cm",
+        "patient.bmi",
         "ctx.patient.chronic_conditions",
         "patient.weight_kg"
       ],

@@ -180,3 +180,33 @@ def test_discharge_evaluation_is_pending_placeholder() -> None:
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
     assert "退院時" in out.sections["discharge_evaluation"]
+
+
+# Issue #2528: one BMI band function, boundaries inclusive on the upper band.
+
+
+def test_bmi_band_boundaries() -> None:
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import bmi_band
+
+    assert [bmi_band(v) for v in (18.4, 18.5, 24.9, 25.0, 29.9, 30.0)] == [
+        "underweight",
+        "normal",
+        "normal",
+        "overweight",
+        "overweight",
+        "obese",
+    ]
+
+
+def test_nutrition_risk_bmi_25_is_overnutrition() -> None:
+    out = TemplateNarrativeGenerator().generate(_make_ctx(patient=_make_patient(bmi=25.0)), _make_spec())
+    assert "過栄養" in out.sections["nutrition_risk"]
+
+
+def test_nutrition_assessment_shows_the_recorded_bmi_and_its_band() -> None:
+    patient = _make_patient(bmi=25.0, weight_kg=60.0)
+    patient.height_cm = 170.0  # weight / height alone would give 20.8
+    out = TemplateNarrativeGenerator().generate(_make_ctx(patient=patient, target_lang="en", locale="us"), _make_spec())
+    from clinosim.locale.i18n import t
+
+    assert f"BMI 25.0 ({t('bmi_band.overweight', 'en')})" in out.sections["nutrition_assessment"]
