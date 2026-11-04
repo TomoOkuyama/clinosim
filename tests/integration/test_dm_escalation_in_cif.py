@@ -27,10 +27,16 @@ def _clear_loader() -> None:
 
 @pytest.mark.integration
 def test_dm_patients_may_escalate_to_sglt2i_across_5y() -> None:
-    """A p=200 US cohort advanced 5y should have at least one DM adult
-    whose current_medications gained Empagliflozin via the longitudinal
-    escalation path."""
-    registry = generate_population(size=200, country="US", rng=np.random.default_rng(42), base_year=2024)
+    """A US cohort advanced 5y should have at least one DM adult whose
+    current_medications gained Empagliflozin via the longitudinal
+    escalation path.
+
+    An existence check on one realisation: about 5-9% of DM adults escalate
+    (US p=600, seeds 1-4: 17/198 before and 9/198 after the Issue #2529
+    sampler switch — same distribution, different draws), so the cohort is
+    sized to expect a few escalations (p=600 seed 1: 59 DM adults, 2
+    escalated) rather than sitting at one."""
+    registry = generate_population(size=600, country="US", rng=np.random.default_rng(1), base_year=2024)
     for year in (2025, 2026, 2027, 2028):
         advance_population(registry, year=year, locale="US")
 
@@ -46,7 +52,7 @@ def test_dm_patients_may_escalate_to_sglt2i_across_5y() -> None:
             dm_adults_with_sglt2i += 1
     assert dm_adults > 0, "sample has no DM adults — bump size or seed"
     assert dm_adults_with_sglt2i >= 1, (
-        f"expected >= 1 DM adult escalated to Empagliflozin in p=200 5y, "
+        f"expected >= 1 DM adult escalated to Empagliflozin in p=600 5y, "
         f"got {dm_adults_with_sglt2i} of {dm_adults} DM adults"
     )
 
