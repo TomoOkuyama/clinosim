@@ -33,6 +33,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.locale.i18n import t
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
@@ -55,6 +56,7 @@ from clinosim.modules.staff.engine import (
     StaffRoster,
     assign_staff,
 )
+from clinosim.seeding import individual_lab_seed
 from clinosim.simulator._unknown_condition_thresholds import (
     UNK_ADMISSION_HOUR_MAX_EXCLUSIVE,
     UNK_ADMISSION_HOUR_MIN,
@@ -310,30 +312,30 @@ def _simulate_unknown_condition(
         }
         true_labs = patient_true_labs(state, patient, admission_time, _flags_unknown)
         for order in all_orders:
-            if (
-                order.order_type.value == "lab"
-                and order.status == OrderStatus.PLACED
-                and order.display_name in true_labs
-            ):  # noqa: E501
-                result_time = calculate_result_time_from_state(
-                    order, None, {}, rng
-                )  # unknown condition: no hospital state  # noqa: E501
-                observed = generate_lab_result(order.display_name, true_labs[order.display_name], rng)
+            canon = canonical_lab_name(order.display_name)
+            if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and canon in true_labs:
+                # AD-16: per-lab-order sub-RNG, as in the inpatient / ED / outpatient
+                # paths, so result timing, noise and technician draws never touch
+                # the encounter stream (Issue #2527).
+                lab_rng = determinism.default_rng(individual_lab_seed(order.order_id))
+                # unknown condition: no hospital state
+                result_time = calculate_result_time_from_state(order, None, {}, lab_rng)
+                observed = generate_lab_result(canon, true_labs[canon], lab_rng)
                 flag = determine_flag(
-                    order.display_name,
+                    canon,
                     observed,
                     sex=patient.sex,
                     country=config.country if config else "US",
                     medications=patient.current_medications,
                     age=patient.age,
                 )
-                tech_id = assign_staff("lab_result", "", roster, rng).get("performing_technician", FALLBACK_TECH_ID)
+                tech_id = assign_staff("lab_result", "", roster, lab_rng).get("performing_technician", FALLBACK_TECH_ID)
                 order.result = OrderResult(
                     result_datetime=result_time,
                     performed_by=tech_id,
-                    lab_name=canonical_lab_name(order.display_name),
+                    lab_name=canon,
                     value=observed,
-                    unit=get_lab_unit(order.display_name),
+                    unit=get_lab_unit(canon),
                     flag=flag,
                 )
                 order.status = OrderStatus.RESULTED
