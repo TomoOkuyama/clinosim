@@ -15,6 +15,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes import code_exists
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.types.device import DeviceRecord
@@ -134,25 +135,6 @@ def load_hai_rates() -> dict[str, Any]:
     return data
 
 
-def _code_in_data(system: str, code: str) -> bool:
-    """Direct membership check in codes/data/<system>.yaml.
-
-    Used by sibling sweep validators (`_validate_hai_codes`,
-    `_validate_hai_specimens`) — `lookup()` returns the code itself as
-    fallback for unknown entries (not None), so it can't distinguish
-    "code exists" from "code absent". Direct `cs.codes` membership IS
-    the authoritative check.
-
-    pr121-adv-1 fix (Agent 1 Minor #2): raise ValueError when the
-    system itself is unregistered, rather than collapsing into "code
-    missing". Prevents a future codes/ rename / deletion from
-    masquerading as per-code errors across every hai YAML validator.
-    """
-    from clinosim.codes import code_exists
-
-    return code_exists(system, code, exact=True)
-
-
 def _validate_hai_codes(data: dict) -> None:
     """Validate hai_codes.yaml at load time (sibling sweep).
 
@@ -176,7 +158,7 @@ def _validate_hai_codes(data: dict) -> None:
         if not isinstance(bucket, dict) or not bucket:
             raise ValueError(f"hai_codes.yaml: {hai_type!r} bucket empty")
         icd_us = bucket.get("icd10_us_billable", "")
-        if not _code_in_data("icd-10-cm", icd_us):
+        if not code_exists("icd-10-cm", icd_us, exact=True):
             raise ValueError(
                 f"hai_codes.yaml: {hai_type!r} icd10_us_billable {icd_us!r} not in codes/data/icd-10-cm.yaml"
             )
@@ -184,13 +166,13 @@ def _validate_hai_codes(data: dict) -> None:
 
         # Codes absent from the crosswalk pass through unchanged, as at emission.
         icd_jp = str(load_code_mapping("diagnosis", "JP").get(icd_us, icd_us))
-        if not _code_in_data("icd-10", icd_jp):
+        if not code_exists("icd-10", icd_jp, exact=True):
             raise ValueError(
                 f"hai_codes.yaml: {hai_type!r} JP code {icd_jp!r} of {icd_us!r} "
                 "(locale/jp/code_mapping_diagnosis.yaml) not in codes/data/icd-10.yaml"
             )
         snomed = bucket.get("snomed", "")
-        if not _code_in_data("snomed-ct", snomed):
+        if not code_exists("snomed-ct", snomed, exact=True):
             raise ValueError(f"hai_codes.yaml: {hai_type!r} snomed {snomed!r} not in codes/data/snomed-ct.yaml")
     missing = valid_types - set(codes_table.keys())
     if missing:
@@ -240,12 +222,12 @@ def _validate_hai_specimens(data: dict) -> None:
         if not isinstance(bucket, dict) or not bucket:
             raise ValueError(f"hai_specimens.yaml: {hai_type!r} bucket empty")
         snomed = bucket.get("specimen_snomed", "")
-        if not _code_in_data("snomed-ct", snomed):
+        if not code_exists("snomed-ct", snomed, exact=True):
             raise ValueError(
                 f"hai_specimens.yaml: {hai_type!r} specimen_snomed {snomed!r} not in codes/data/snomed-ct.yaml"
             )
         loinc = bucket.get("test_loinc", "")
-        if not _code_in_data("loinc", loinc):
+        if not code_exists("loinc", loinc, exact=True):
             raise ValueError(f"hai_specimens.yaml: {hai_type!r} test_loinc {loinc!r} not in codes/data/loinc.yaml")
     missing = valid_types - set(spec_table.keys())
     if missing:

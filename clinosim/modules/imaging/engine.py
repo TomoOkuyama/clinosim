@@ -15,6 +15,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim.codes import code_exists
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized
@@ -177,19 +178,6 @@ def _validate_modalities(data: dict[str, Any]) -> None:
                     )
 
 
-def _code_in_data(system: str, code: str) -> bool:
-    """Direct membership check in codes/data/<system>.yaml.
-
-    `lookup()` returns the code itself as fallback for unknown entries (not
-    None), so it can't distinguish "code exists" from "code absent". Direct
-    `cs.codes` membership IS the authoritative check (same pattern as
-    `hai/engine.py:_code_in_data`).
-    """
-    from clinosim.codes import code_exists
-
-    return code_exists(system, code, exact=True)
-
-
 def _validate_body_sites(data: dict[str, Any]) -> None:
     """Fail-loud validation of body_sites.yaml (forward + reverse coverage).
 
@@ -212,7 +200,7 @@ def _validate_body_sites(data: dict[str, Any]) -> None:
     for bs_key, bs in body_sites.items():
         if not bs.get("snomed"):
             raise ValueError(f"body_sites.yaml[{bs_key}]: missing snomed")
-        if not _code_in_data("snomed-ct", bs["snomed"]):
+        if not code_exists("snomed-ct", bs["snomed"], exact=True):
             raise ValueError(f"body_sites.yaml[{bs_key}].snomed {bs['snomed']!r} not in codes/data/snomed-ct.yaml")
         # META #1805 Phase B: top-level display_en + display_ja retired —
         # displays live in snomed-ct.yaml and resolve at emit time via

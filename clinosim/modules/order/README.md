@@ -150,7 +150,7 @@ from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (
   `_lab_result_timing`, `_order_placement_timing`,
   `_state_delay_thresholds` — every timing / delay scalar (Issue
   #637 four-file sweep).
-- `clinosim.codes.loader._load_system` — for `_code_in_data` panel
+- `clinosim.codes.code_exists` — for panel
   validation (matches the sibling `hai/engine.py` pattern).
 - `clinosim.audit.registry` (via `audit.py`) — AD-60 audit
   registration; `audit.py` also imports the ServiceRequest builder

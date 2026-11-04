@@ -9,6 +9,7 @@ from __future__ import annotations
 import pytest
 import yaml
 
+from clinosim.codes import code_exists
 from clinosim.codes.loader import _load_system
 from clinosim.codes.snomed import snomed_map
 from clinosim.locale import loader as locale_loader
@@ -457,12 +458,12 @@ def test_hai_organisms_rejects_missing_hai_type_forward_coverage(monkeypatch) ->
 
 @pytest.mark.unit
 def test_code_in_data_raises_on_unregistered_system() -> None:
-    """pr121-adv-1 Agent 1 Minor #2: _code_in_data raises ValueError when
+    """pr121-adv-1 Agent 1 Minor #2: the code-existence check raises ValueError when
     the code system itself is missing, rather than collapsing into "code
     not found". Prevents codes/ rename from masquerading as per-code
     errors."""
     with pytest.raises(ValueError, match="not registered"):
-        hai_engine._code_in_data("nonexistent-system", "any-code")
+        code_exists("nonexistent-system", "any-code", exact=True)
 
 
 @pytest.mark.unit
