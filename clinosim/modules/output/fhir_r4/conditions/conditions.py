@@ -6,6 +6,7 @@ leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from functools import cache
 from typing import Any
 
@@ -161,69 +162,178 @@ def _bodysite_for(code: str, country: str) -> dict | None:
     }
 
 
+_JP_CONDITION_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"
+# Recorder / asserter for a problem-list Condition when the record has no encounter.
+_FALLBACK_RECORDER_ID = "DR-IM-001"
+
+
+@dataclass(frozen=True)
+class _ConditionContext:
+    """What every Condition of one CIF record shares."""
+
+    patient_id: str
+    country: str
+    encounters: list[dict]
+    deceased: bool
+    patient_sex: str
+
+    @property
+    def country_code(self) -> str:
+        return "JP" if is_jp(self.country) else "US"
+
+    @property
+    def lang(self) -> str:
+        return lang_for(self.country_code)
+
+    @property
+    def encounter(self) -> dict:
+        return self.encounters[0] if self.encounters else {}
+
+    @property
+    def encounter_id(self) -> str:
+        return self.encounter.get("encounter_id", "")
+
+    @property
+    def is_inpatient(self) -> bool:
+        return self.encounter.get("encounter_type", "") == "inpatient"
+
+    @property
+    def admission_dt(self) -> str:
+        return self.encounter.get("admission_datetime", "")
+
+    @property
+    def discharge_dt(self) -> str:
+        return self.encounter.get("discharge_datetime", "")
+
+    @property
+    def resolved_at_discharge(self) -> bool:
+        """An inpatient stay that ended with the patient alive."""
+        return bool(self.is_inpatient and self.discharge_dt and not self.deceased)
+
+    def mapped(self, code: str) -> str:
+        return map_diagnosis_code(code, self.country, sex=self.patient_sex)
+
+
+def _condition_skeleton(
+    ctx: _ConditionContext,
+    *,
+    condition_id: str,
+    structural_key: str,
+    diagnosis_type: str | None,
+    clinical_status: str,
+    category: str,
+    mapped_code: str,
+) -> dict[str, Any]:
+    """The elements every Condition starts with, in emit order. ``diagnosis_type``
+    adds the JP eCS DiagnosisType extension after ``meta`` (``None``: no extension)."""
+    jp = is_jp(ctx.country_code)
+    return {
+        "resourceType": "Condition",
+        "id": condition_id,
+        "identifier": [wrap_as_identifier(structural_key, CONDITION_KEY_SYSTEM)],
+        # C2-20: JP Core Condition profile.
+        **({"meta": {"profile": [_JP_CONDITION_PROFILE]}} if jp else {}),
+        **({"extension": [_ecs_diagnosis_type_extension(diagnosis_type)]} if jp and diagnosis_type else {}),
+        "clinicalStatus": dual_slot_concept("hl7-condition-clinical", clinical_status, ctx.lang),
+        "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", ctx.lang),
+        "category": [dual_slot_concept("hl7-condition-category", category, lang_for(ctx.country))],
+        "code": build_diagnosis_codeable_concept(
+            mapped_code, system_key_for("diagnosis", ctx.country_code), ctx.country
+        ),
+        "subject": patient_ref(ctx.patient_id),
+    }
+
+
+def _evidence(ctx: _ConditionContext, label_key: str) -> list[dict]:
+    """CY6-19: text-only ``Condition.evidence`` naming what supported the
+    diagnosis (R4 allows a text-only code; no fabricated coding)."""
+    return [{"code": [{"text": t(label_key, ctx.lang)}]}]
+
+
+def _set_recorder(cond: dict, practitioner_id: str) -> None:
+    """C2-31 / CY8-22: the diagnosing physician both records and asserts."""
+    cond["recorder"] = {"reference": f"Practitioner/{practitioner_id}"}
+    cond["asserter"] = {"reference": f"Practitioner/{practitioner_id}"}
+
+
+def _stage(stage: str, country: str) -> list[dict]:
+    """``Condition.stage`` for a non-cancer clinical stage (NYHA class, CKD G,
+    GOLD, hypertension stage, CCS, …): the value in ``summary.text``, plus a
+    SNOMED coding when the staging system has a verified concept. ``type`` is a
+    plain-text label — the former SNOMED 385356007 "Tumor stage finding" coding
+    was clinically wrong for these stages and is intentionally not emitted."""
+    summary: dict[str, Any] = {"text": stage}
+    stage_snomed = snomed_for("stage", stage)
+    if stage_snomed:
+        summary["coding"] = [
+            {
+                "system": get_system_uri("snomed-ct"),
+                "code": stage_snomed,
+                **display_entry(code_lookup("snomed-ct", stage_snomed, lang_for(country))),
+            }
+        ]
+    return [{"summary": summary, "type": {"text": "Clinical stage"}}]
+
+
+def _set_bodysite(cond: dict, code: str, country: str) -> None:
+    """CY8-23: SNOMED ``bodySite`` for anatomically localisable diagnoses."""
+    bodysite = _bodysite_for(code, country)
+    if bodysite:
+        cond["bodySite"] = [bodysite]
+
+
+def _chronic_fields(chronic: Any) -> tuple[str, str, str, str]:
+    """``(code, onset_date, severity, stage)`` of a chronic condition given as
+    a bare code, a dict (production JSON path) or a ``ChronicCondition``
+    dataclass (in-memory path)."""
+    if isinstance(chronic, str):
+        return chronic, "", "", ""
+    return (
+        get_attr_or_key(chronic, "code", ""),
+        get_attr_or_key(chronic, "onset_date", ""),
+        get_attr_or_key(chronic, "severity", ""),
+        get_attr_or_key(chronic, "stage", ""),
+    )
+
+
 def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]:
     """Build FHIR Condition resources from diagnosis and chronic conditions.
 
-    Generates:
-    - Primary encounter diagnosis (from clinical_diagnosis) with severity
-    - Chronic conditions (from patient.chronic_conditions) with onset dates
-    Deduplicates by ICD base code.
+    Generates, in order: the primary encounter diagnosis, the admission
+    diagnosis, secondary (working) diagnoses, the patient's chronic
+    conditions and past births. Deduplicates by ICD base code.
     """
-    conditions: list[dict] = []
+    ctx = _ConditionContext(
+        patient_id=patient_id,
+        country=country,
+        encounters=record.get("encounters", []),
+        deceased=record.get("deceased", False),
+        # Issue #957: US ICD-10-CM C50 splits into female (C50.919) / male
+        # (C50.929) billable leaves, so every ``map_diagnosis_code`` call is
+        # per-person. JP C50 is identity-mapped, so the sex is a no-op there.
+        patient_sex=str(record.get("patient", {}).get("sex", "") or ""),
+    )
+    dx = record.get("clinical_diagnosis", {})
+    chronic_list = record.get("patient", {}).get("chronic_conditions", [])
     seen_codes: set[str] = set()
 
-    dx = record.get("clinical_diagnosis", {})
-    encounters = record.get("encounters", [])
-    encounter_id = encounters[0].get("encounter_id", "") if encounters else ""
-    encounter_type = encounters[0].get("encounter_type", "") if encounters else ""
-    is_inpatient = encounter_type == "inpatient"
-    admission_dt = encounters[0].get("admission_datetime", "") if encounters else ""
-    discharge_dt = encounters[0].get("discharge_datetime", "") if encounters else ""
-    deceased = record.get("deceased", False)
+    conditions: list[dict] = []
+    primary = _primary_condition(ctx, record, dx, chronic_list, seen_codes)
+    if primary is not None:
+        conditions.append(primary)
+    admission = _admission_condition(ctx, dx, chronic_list)
+    if admission is not None:
+        conditions.append(admission)
+    conditions.extend(_secondary_conditions(ctx, dx, seen_codes))
+    conditions.extend(_chronic_conditions(ctx, chronic_list, seen_codes))
+    conditions.extend(_past_birth_conditions(ctx, record, seen_codes))
+    return conditions
 
-    country_code = "JP" if is_jp(country) else "US"
-    lang = lang_for(country_code)
-    icd_system_key = system_key_for("diagnosis", country_code)
-    # Issue #957: US ICD-10-CM C50 splits into female (C50.919) / male (C50.929)
-    # billable leaves. Every ``map_diagnosis_code`` call in this builder is
-    # per-person, so we thread the patient's sex through consistently. JP-side
-    # C50 is identity-mapped (no male/female subcategory), so the parameter is
-    # a no-op for JP output — carrying it uniformly avoids future drift when
-    # additional sex-conditional entries are added.
-    patient_sex = str(record.get("patient", {}).get("sex", "") or "")
 
-    # Chronic conditions the patient carries — used both to recognise a chronic
-    # primary diagnosis (active + chronic onset) and to emit problem-list items below.
-    chronic_list = record.get("patient", {}).get("chronic_conditions", [])
-    chronic_onset_by_base: dict[str, str] = {}
-    # C4-05 / C4-07..09: also index severity + stage so a
-    # chronic-primary encounter-diagnosis can inherit them when infer_severity
-    # returns empty (routine outpatient follow-up with no physiological states).
-    # Applies to essential HTN (I10) routine visits, DM/COPD/HF/CKD follow-ups —
-    # 65.8% of I10 lacked severity because infer_severity fell back to "" for
-    # outpatient encounters.
-    chronic_severity_by_base: dict[str, str] = {}
-    chronic_stage_by_base: dict[str, str] = {}
-    for _chronic in chronic_list:
-        if isinstance(_chronic, str):
-            _cc = _chronic
-            _onset = ""
-            _sev = ""
-            _stg = ""
-        else:
-            # dict (production JSON path) or a ChronicCondition dataclass
-            # (in-memory path) — get_attr_or_key handles both uniformly.
-            _cc = get_attr_or_key(_chronic, "code", "")
-            _onset = get_attr_or_key(_chronic, "onset_date", "") or ""
-            _sev = get_attr_or_key(_chronic, "severity", "") or ""
-            _stg = get_attr_or_key(_chronic, "stage", "") or ""
-        if _cc:
-            base = _cc.split(".")[0]
-            chronic_onset_by_base.setdefault(base, _onset)
-            chronic_severity_by_base.setdefault(base, _sev)
-            chronic_stage_by_base.setdefault(base, _stg)
-
-    # --- Primary diagnosis (encounter diagnosis) ---
+def _primary_condition(
+    ctx: _ConditionContext, record: dict, dx: dict, chronic_list: list, seen_codes: set[str]
+) -> dict | None:
+    """The encounter's primary (discharge, else admission) diagnosis."""
     dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "")
     # Issue #916: Z-chapter visit-reason codes (Z00.0 general medical,
     # Z09 follow-up, Z23 immunization, Z12/Z13 screening, …) are not
@@ -235,528 +345,298 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
     # Z-code pseudo-diagnoses; the fix here is to skip the Condition
     # emission (encounter.py mirror in the ``diagnosis[]`` /
     # ``reasonReference`` slots so no dangling refs remain).
-    if dx_code and is_visit_reason_zcode(dx_code):
-        dx_code = ""
-    if dx_code and not _encounter_primary_is_chronic(record):
-        base_code = dx_code.split(".")[0]
-        seen_codes.add(base_code)
+    if not dx_code or is_visit_reason_zcode(dx_code) or _encounter_primary_is_chronic(record):
+        return None
+    base_code = dx_code.split(".")[0]
+    seen_codes.add(base_code)
 
-        # Determine severity from physiological states
-        severity = infer_severity(record)
+    # The patient's chronic conditions by ICD base. C4-05 / C4-07..09: a
+    # chronic primary also inherits their severity and stage when
+    # infer_severity returns empty (routine outpatient follow-up with no
+    # physiological states — 65.8% of I10 lacked severity before).
+    chronic_onset_by_base: dict[str, str] = {}
+    chronic_severity_by_base: dict[str, str] = {}
+    chronic_stage_by_base: dict[str, str] = {}
+    for chronic in chronic_list:
+        code, onset, severity_, stage = _chronic_fields(chronic)
+        if code:
+            base = code.split(".")[0]
+            chronic_onset_by_base.setdefault(base, onset or "")
+            chronic_severity_by_base.setdefault(base, severity_ or "")
+            chronic_stage_by_base.setdefault(base, stage or "")
 
-        # A primary diagnosis that is one of the patient's chronic conditions
-        # (e.g. an outpatient diabetes follow-up coding E11.9) is ongoing, not
-        # resolved at the visit: mark it active with the chronic onset date.
-        is_chronic_primary = base_code in chronic_onset_by_base
-        chronic_onset = chronic_onset_by_base.get(base_code, "") if is_chronic_primary else ""
-        # C4-05: chronic-primary severity fallback.
-        # infer_severity returns "" when the encounter has no physiological
-        # states (routine outpatient follow-up), leaving I10/E11/etc. Condition
-        # without severity. Inherit from patient chronic_conditions severity
-        # so problem-list severity is consistent with encounter-diagnosis.
-        if not severity and is_chronic_primary:
-            severity = chronic_severity_by_base.get(base_code, "")
-        # CY6-21 (Chain-6): acute encounter-diagnosis severity fallback.
-        # ED visits sampled from encounter YAMLs carry a severity category
-        # ("mild"/"moderate"/"severe") on Encounter (AD-65 Bug C
-        # fix stored it as Encounter.severity). Use it when neither the
-        # physiological-state inference nor chronic inheritance produced a
-        # severity, so acute non-chronic Z00 / R07 / T14 / etc. no longer
-        # emit without severity. Only fires for non-Z encounter dx (Z-codes
-        # denote health-check / preventive care where severity is absent
-        # by design).
-        if not severity and not base_code.startswith("Z"):
-            _enc_severity = (encounters[0].get("severity", "") if encounters else "") or ""
-            if _enc_severity:
-                severity = _enc_severity
+    # Determine severity from physiological states
+    severity = infer_severity(record)
 
-        # clinicalStatus: resolved if discharged alive, active if deceased (didn't resolve)
-        if is_chronic_primary:
-            clinical_status = "active"
-        elif is_inpatient:
-            clinical_status = "active" if deceased or not discharge_dt else "resolved"
-        else:
-            clinical_status = "resolved"
+    # A primary diagnosis that is one of the patient's chronic conditions
+    # (e.g. an outpatient diabetes follow-up coding E11.9) is ongoing, not
+    # resolved at the visit: mark it active with the chronic onset date.
+    is_chronic_primary = base_code in chronic_onset_by_base
+    chronic_onset = chronic_onset_by_base.get(base_code, "") if is_chronic_primary else ""
+    # C4-05: chronic-primary severity fallback, so problem-list severity is
+    # consistent with the encounter diagnosis.
+    if not severity and is_chronic_primary:
+        severity = chronic_severity_by_base.get(base_code, "")
+    # CY6-21 (Chain-6): acute encounter-diagnosis severity fallback.
+    # ED visits sampled from encounter YAMLs carry a severity category
+    # ("mild"/"moderate"/"severe") on Encounter (AD-65 Bug C
+    # fix stored it as Encounter.severity). Use it when neither the
+    # physiological-state inference nor chronic inheritance produced a
+    # severity, so acute non-chronic Z00 / R07 / T14 / etc. no longer
+    # emit without severity. Only fires for non-Z encounter dx (Z-codes
+    # denote health-check / preventive care where severity is absent
+    # by design).
+    if not severity and not base_code.startswith("Z"):
+        enc_severity = ctx.encounter.get("severity", "") or ""
+        if enc_severity:
+            severity = enc_severity
 
-        # Issue #854 Bucket B (PR-condition): opaque Condition.id.
-        # Structural key = pre-#854 id body (without ``cond-`` prefix).
-        _primary_structural_key = encounter_primary_condition_key(patient_id, encounter_id)
-        cond: dict[str, Any] = {
-            "resourceType": "Condition",
-            "id": encounter_primary_condition_id(patient_id, encounter_id),
-            "identifier": [wrap_as_identifier(_primary_structural_key, CONDITION_KEY_SYSTEM)],
-            # C2-20: JP Core Condition profile.
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
-                if is_jp(country_code)
-                else {}
-            ),
-            "clinicalStatus": dual_slot_concept("hl7-condition-clinical", clinical_status, lang),
-            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
-            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", lang_for(country))],
-            "code": build_diagnosis_codeable_concept(
-                map_diagnosis_code(dx_code, country, sex=patient_sex), icd_system_key, country
-            ),
-            "subject": patient_ref(patient_id),
-        }
-        # Issue #744: JP_Condition_eCS must-support `extension:eCS_DiagnosisType`
-        # (spec binding: http://hl7.org/fhir/ValueSet/ex-diagnosistype|4.0.1).
-        # Encounter-diagnosis Condition is the reason-for-visit → `principal`
-        # (matches the FHIR-standard code and the JP display CS
-        # `http://jpfhir.jp/core/terminology/CodeSystemJPDisplay/ex-diagnosistype`).
-        if is_jp(country_code):
-            cond.setdefault("extension", []).append(_ecs_diagnosis_type_extension("principal"))
+    # clinicalStatus: resolved if discharged alive, active if deceased (didn't resolve)
+    if is_chronic_primary:
+        clinical_status = "active"
+    elif ctx.is_inpatient:
+        clinical_status = "active" if ctx.deceased or not ctx.discharge_dt else "resolved"
+    else:
+        clinical_status = "resolved"
 
-        if severity:
-            cond["severity"] = severity_coding(severity, country)
-
-        # CY6-19 (Chain-6): Condition.evidence — record what supported the
-        # diagnosis. Cross-referencing specific DiagnosticReport IDs requires
-        # the same panel-grouping logic used by the DR builder; instead, emit
-        # a text-only CodeableConcept via `evidence.code` describing the
-        # supporting evidence category. FHIR R4 Condition.evidence is 0..*
-        # with 0..1 code + 0..* detail — text-only code is spec-compliant
-        # (no fabricated coding). For chronic-primary: prior established
-        # diagnosis; for acute: clinical presentation + supporting labs.
-        _ev_key = "condition_evidence.prior_diagnosis" if is_chronic_primary else "condition_evidence.clinical_and_labs"
-        cond["evidence"] = [
-            {
-                "code": [{"text": t(_ev_key, lang_for(country_code))}],
-            }
-        ]
-
-        # C4-07..10: encounter-diagnosis stage inheritance.
-        # When the primary dx is a staged chronic condition (DM/COPD/HF/CKD)
-        # the encounter-diagnosis Condition should carry the same stage as the
-        # patient's chronic entry. Otherwise E11/J44/I50 encounter-dx records
-        # emit no stage while the sibling problem-list-item entry has stage
-        # populated — inconsistent across the two Condition rows for the same
-        # underlying disease.
-        if is_chronic_primary:
-            _stg = chronic_stage_by_base.get(base_code, "")
-            if _stg:
-                summary: dict[str, Any] = {"text": _stg}
-                stage_snomed = snomed_for("stage", _stg)
-                if stage_snomed:
-                    summary["coding"] = [
-                        {
-                            "system": get_system_uri("snomed-ct"),
-                            "code": stage_snomed,
-                            **display_entry(code_lookup("snomed-ct", stage_snomed, lang_for(country))),
-                        }
-                    ]
-                cond["stage"] = [
-                    {
-                        "summary": summary,
-                        "type": {"text": "Clinical stage"},
-                    }
-                ]
-
-        if chronic_onset:
-            # Chronic primary: onset is the disease onset date (typically month-year
-            # granularity; keep as date-only). recordedDate is the visit — use full
-            # datetime from admission so time-series UIs sort correctly.
-            cond["onsetDateTime"] = to_fhir_date(chronic_onset)
-            if admission_dt:
-                cond["recordedDate"] = to_fhir_datetime(admission_dt)
-        elif admission_dt:
-            # Encounter-diagnosis onset = admission time (full datetime). Issue #821
-            # (N-7): consumer time-series UIs sort by these fields and were
-            # broken by date-only precision.
-            cond["onsetDateTime"] = to_fhir_datetime(admission_dt)
-            cond["recordedDate"] = cond["onsetDateTime"]
-
-        if encounters:
-            cond["encounter"] = encounter_ref(encounters[0].get("encounter_id", ""))
-            # C2-31: Condition.recorder ← attending physician
-            # of the encounter. FHIR R4 R0..1; JP Core Condition recommends
-            # this reference for chart traceability. Attending is emitted as
-            # Practitioner in the encounter builder so this ref resolves.
-            _att = encounters[0].get("attending_physician_id", "")
-            if _att:
-                cond["recorder"] = {"reference": f"Practitioner/{_att}"}
-                # CY8-22 fix:Condition.asserter — 疾患を
-                # 診断・断定する医師。clinosim 運用では recorder と同一 attending。
-                cond["asserter"] = {"reference": f"Practitioner/{_att}"}
-
-        # CY8-24 fix:Condition.abatementDateTime — 疾患解消日。
-        # 入院診断が退院時に active/resolved どちらであるかを CIF は保持しないが、
-        # discharge_datetime が snapshot 前 = encounter finished/completed の場合
-        # 「一時的な急性エピソード」型(cellulitis, pneumonia 等)は退院時に
-        # resolved と想定し abatementDateTime を discharge に設定。
-        # 慢性疾患(chronic primary)は resolved しない前提のため abatement 無し。
-        # 判定:encounter status が完了かつ non-chronic → abatement 付与。
-        #
-        # Chain F (v2 feedback §【最優先 4】): the original guard
-        # relied on the docstring alone and did not check `is_chronic_primary`
-        # in the emit code, so chronic-primary encounters received both
-        # `clinicalStatus="active"` (line 213) and `abatementDateTime` from
-        # the block below, triggering FHIR R4 invariant `con-4` on 2,452
-        # Condition resources. Restrict the abatement emission to
-        # non-chronic-primary, living-patient encounters so the docstring's
-        # intent is actually enforced. (Deceased patients: clinicalStatus=active
-        # because the diagnosis didn't resolve, so abatement must not be set.)
-        if encounters and not is_chronic_primary and not deceased:
-            _enc0 = encounters[0]
-            _dd = _enc0.get("discharge_datetime", "")
-            _est = _enc0.get("status", "")
-            if _dd and _est in ("completed", "finished"):
-                # Issue #821 (N-7): abatement is the discharge time (full datetime).
-                cond["abatementDateTime"] = to_fhir_datetime(_dd)
-
-        # CY8-23 fix:Condition.bodySite — 解剖学的部位。
-        # 15 疾患 prefix に対して SNOMED body structure を emit(非部位性は無し)。
-        _bs = _bodysite_for(dx_code, country)
-        if _bs:
-            cond["bodySite"] = [_bs]
-
-        conditions.append(cond)
-
-    # --- Admission diagnosis (Issue #912) ---
-    # When ``clinical_diagnosis.admission_diagnosis_code`` differs from the
-    # discharge/primary dx AND from every chronic Condition, the admission dx
-    # was previously only carried as a text-only ``Encounter.reasonCode`` with
-    # NO matching ``Condition`` in the patient record — 45.4% of IMP encounters
-    # at seed=500 p=1000 (pyelonephritis-admitted patients whose workup landed
-    # on renal-stone as the discharge dx; COPD-exacerbation-admitted patients
-    # whose diagnosis[] linked to chronic COPD Condition; pneumonia-admitted
-    # patients whose diagnosis[] linked to a more specific pneumococcal
-    # pneumonia Condition; etc.). Fix: emit an ``AD`` Condition so the
-    # invariant ``reasonCode ⊆ diagnosis[].condition.code`` holds. The
-    # encounter builder mirrors this decision (same helper) to add the
-    # ``diagnosis[].use=AD`` entry that references this Condition.
-    _admit_dx_code_raw = dx.get("admission_diagnosis_code", "") or ""
-    _primary_dx_code_raw = dx.get("discharge_diagnosis_code") or _admit_dx_code_raw
-    # Issue #916: skip admission Condition for Z-chapter visit-reason codes
-    # (mirrors the primary-diagnosis skip above — Z09 follow-up admissions,
-    # routine physical Z00.0, etc., belong on Encounter.reasonCode alone).
-    if _admit_dx_code_raw and is_visit_reason_zcode(_admit_dx_code_raw):
-        _admit_dx_code_raw = ""
-    _chronic_codes_raw = [
-        _cc if isinstance(_cc, str) else (get_attr_or_key(_cc, "code", "") or "") for _cc in chronic_list
-    ]
-    _chronic_codes_raw = [c for c in _chronic_codes_raw if c]
-    _admit_mapped_check = map_diagnosis_code(_admit_dx_code_raw, country, sex=patient_sex) if _admit_dx_code_raw else ""
-    _primary_mapped_check = (
-        map_diagnosis_code(_primary_dx_code_raw, country, sex=patient_sex) if _primary_dx_code_raw else ""
+    # Issue #854 Bucket B (PR-condition): opaque Condition.id.
+    # Structural key = pre-#854 id body (without ``cond-`` prefix).
+    cond = _condition_skeleton(
+        ctx,
+        condition_id=encounter_primary_condition_id(ctx.patient_id, ctx.encounter_id),
+        structural_key=encounter_primary_condition_key(ctx.patient_id, ctx.encounter_id),
+        diagnosis_type=None,
+        clinical_status=clinical_status,
+        category="encounter-diagnosis",
+        mapped_code=ctx.mapped(dx_code),
     )
-    _chronic_mapped_check = [map_diagnosis_code(_c, country, sex=patient_sex) for _c in _chronic_codes_raw]
-    # Issue #1341: combine the raw and mapped shape checks with AND, not OR.
-    # The prior OR emitted a false-positive admission Condition whenever the
-    # RAW admit / primary looked distinct but both COLLAPSED to the same code
-    # under ``map_diagnosis_code`` — e.g. JP hip-fracture case where
-    # ``admit_dx=S72.0`` and ``discharge_dx=S72.00`` are raw-distinct but the
-    # JP mapping folds S72.00 → S72.0. Emitting an admission Condition here
-    # produced two S72.0 Conditions on the same encounter (one principal, one
-    # admitting), sharing identity + timestamp. The primary Condition already
-    # carries the mapped admit code, so no extra row is needed. Both checks
-    # must independently say "admit is orphaned" before we emit — that
-    # preserves the defensive raw-check for edge cases where the mapping
-    # collapses primary/chronic but leaves admit distinct, while suppressing
-    # the false positive.
-    if encounter_id and (
-        needs_admission_diagnosis_condition(_admit_dx_code_raw, _primary_dx_code_raw, _chronic_codes_raw)
-        and needs_admission_diagnosis_condition(_admit_mapped_check, _primary_mapped_check, _chronic_mapped_check)
+    # Issue #744: JP_Condition_eCS must-support `extension:eCS_DiagnosisType`
+    # (spec binding: http://hl7.org/fhir/ValueSet/ex-diagnosistype|4.0.1).
+    # Encounter-diagnosis Condition is the reason-for-visit → `principal`
+    # (matches the FHIR-standard code and the JP display CS
+    # `http://jpfhir.jp/core/terminology/CodeSystemJPDisplay/ex-diagnosistype`).
+    # Placed after `subject`, unlike the other kinds.
+    if is_jp(ctx.country_code):
+        cond.setdefault("extension", []).append(_ecs_diagnosis_type_extension("principal"))
+
+    if severity:
+        cond["severity"] = severity_coding(severity, ctx.country)
+
+    # For chronic-primary: prior established diagnosis; for acute: clinical
+    # presentation + supporting labs.
+    cond["evidence"] = _evidence(
+        ctx, "condition_evidence.prior_diagnosis" if is_chronic_primary else "condition_evidence.clinical_and_labs"
+    )
+
+    # C4-07..10: a staged chronic primary (DM/COPD/HF/CKD) carries the same
+    # stage as the patient's problem-list entry for the same disease.
+    if is_chronic_primary:
+        stage = chronic_stage_by_base.get(base_code, "")
+        if stage:
+            cond["stage"] = _stage(stage, ctx.country)
+
+    if chronic_onset:
+        # Chronic primary: onset is the disease onset date (typically month-year
+        # granularity; keep as date-only). recordedDate is the visit — use full
+        # datetime from admission so time-series UIs sort correctly.
+        cond["onsetDateTime"] = to_fhir_date(chronic_onset)
+        if ctx.admission_dt:
+            cond["recordedDate"] = to_fhir_datetime(ctx.admission_dt)
+    elif ctx.admission_dt:
+        # Encounter-diagnosis onset = admission time (full datetime). Issue #821
+        # (N-7): consumer time-series UIs sort by these fields and were
+        # broken by date-only precision.
+        cond["onsetDateTime"] = to_fhir_datetime(ctx.admission_dt)
+        cond["recordedDate"] = cond["onsetDateTime"]
+
+    if ctx.encounters:
+        cond["encounter"] = encounter_ref(ctx.encounter_id)
+        attending = ctx.encounter.get("attending_physician_id", "")
+        if attending:
+            _set_recorder(cond, attending)
+
+    # CY8-24: abatementDateTime = discharge for an acute episode (cellulitis,
+    # pneumonia, …) whose encounter has completed. Chain F: never for a
+    # chronic primary (clinicalStatus=active + abatement violates R4 `con-4`)
+    # nor for a deceased patient (the diagnosis did not resolve).
+    if ctx.encounters and not is_chronic_primary and not ctx.deceased:
+        discharge = ctx.encounter.get("discharge_datetime", "")
+        if discharge and ctx.encounter.get("status", "") in ("completed", "finished"):
+            # Issue #821 (N-7): abatement is the discharge time (full datetime).
+            cond["abatementDateTime"] = to_fhir_datetime(discharge)
+
+    _set_bodysite(cond, dx_code, ctx.country)
+    return cond
+
+
+def _admission_condition(ctx: _ConditionContext, dx: dict, chronic_list: list) -> dict | None:
+    """Issue #912: an admitting-diagnosis Condition when the admission dx differs
+    from the primary dx and from every chronic Condition, so the invariant
+    ``Encounter.reasonCode ⊆ diagnosis[].condition.code`` holds (45.4% of IMP
+    encounters had an orphaned admission dx before). The encounter builder
+    mirrors this decision (same helper) for its ``diagnosis[].use=AD`` entry.
+
+    Its ICD base is deliberately not added to ``seen_codes``: e.g. a COPD
+    exacerbation admission keeps three rows (primary J44.0 / admission J44.1 /
+    chronic J44) as the audit trail."""
+    admit_raw = dx.get("admission_diagnosis_code", "") or ""
+    primary_raw = dx.get("discharge_diagnosis_code") or admit_raw
+    # Issue #916: skip Z-chapter visit-reason codes (mirrors the primary path).
+    if admit_raw and is_visit_reason_zcode(admit_raw):
+        admit_raw = ""
+    chronic_raw = [code for code in (_chronic_fields(c)[0] or "" for c in chronic_list) if code]
+    admit_mapped = ctx.mapped(admit_raw) if admit_raw else ""
+    primary_mapped = ctx.mapped(primary_raw) if primary_raw else ""
+    chronic_mapped = [ctx.mapped(c) for c in chronic_raw]
+    # Issue #1341: the raw AND the mapped codes must both say "admission dx is
+    # orphaned". With OR, a JP hip fracture (admit S72.0, discharge S72.00 →
+    # both S72.0 after mapping) emitted two S72.0 Conditions on one encounter.
+    if not (
+        ctx.encounter_id
+        and needs_admission_diagnosis_condition(admit_raw, primary_raw, chronic_raw)
+        and needs_admission_diagnosis_condition(admit_mapped, primary_mapped, chronic_mapped)
     ):
-        _admit_mapped = _admit_mapped_check
-        # NOTE: intentionally do not add ``_admit_mapped``'s ICD base to
-        # ``seen_codes`` — the admission Condition carries a distinct ICD code
-        # (e.g. J44.1 COPD exacerbation vs J44 chronic COPD on the chronic
-        # entry, or vs J44.0 on the encounter-primary entry). Leaving the base
-        # out of ``seen_codes`` keeps both rows for the same-base cases (three
-        # rows for COPD-exacerbation admissions with chronic COPD carriers:
-        # primary J44.0 / admission J44.1 / chronic J44), which is the desired
-        # audit trail.
-        _admit_structural_key = encounter_admission_condition_key(patient_id, encounter_id)
-        _admit_cond: dict[str, Any] = {
-            "resourceType": "Condition",
-            "id": encounter_admission_condition_id(patient_id, encounter_id),
-            "identifier": [wrap_as_identifier(_admit_structural_key, CONDITION_KEY_SYSTEM)],
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
-                if is_jp(country_code)
-                else {}
-            ),
-            **({"extension": [_ecs_diagnosis_type_extension("admitting")]} if is_jp(country_code) else {}),
-            # Admission dx is the working diagnosis at admission — during the
-            # stay it may be refined or resolved. Encode as ``active`` until
-            # the encounter completes; ``resolved`` at discharge (same rule as
-            # the encounter-primary path above for non-chronic, non-deceased).
-            "clinicalStatus": dual_slot_concept(
-                "hl7-condition-clinical",
-                "resolved" if (is_inpatient and discharge_dt and not deceased) else "active",
-                lang,
-            ),
-            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
-            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", lang_for(country))],
-            "code": build_diagnosis_codeable_concept(_admit_mapped, icd_system_key, country),
-            "subject": patient_ref(patient_id),
-        }
-        # Override ``code.text`` with the code's full-granularity display so
-        # ``Condition.code.text`` == ``Encounter.reasonCode.text`` (Issue #912
-        # audit's substring rule requires the two ``text`` slots to overlap —
-        # short-name lookup in ``build_diagnosis_codeable_concept`` folds to
-        # the ICD base and so returns e.g. "COPD" for J44.1, not the leaf
-        # "COPD急性増悪" that reasonCode carries). Only replaces when a
-        # distinct leaf display exists; otherwise leaves the short-name text
-        # in place (backwards-compatible).
-        _leaf_display = code_lookup(icd_system_key, _admit_mapped, lang) if _admit_mapped else ""
-        if _leaf_display and _leaf_display != _admit_mapped:
-            _admit_cond["code"]["text"] = _leaf_display
-        if encounters:
-            _admit_cond["encounter"] = encounter_ref(encounters[0].get("encounter_id", ""))
-            _att = encounters[0].get("attending_physician_id", "") or encounters[0].get("admitting_physician_id", "")
-            if _att:
-                _admit_cond["recorder"] = {"reference": f"Practitioner/{_att}"}
-                _admit_cond["asserter"] = {"reference": f"Practitioner/{_att}"}
-        if admission_dt:
-            _admit_cond["onsetDateTime"] = to_fhir_datetime(admission_dt)
-            _admit_cond["recordedDate"] = _admit_cond["onsetDateTime"]
-        if is_inpatient and discharge_dt and not deceased:
-            _admit_cond["abatementDateTime"] = to_fhir_datetime(discharge_dt)
-        _bs_admit = _bodysite_for(_admit_dx_code_raw, country)
-        if _bs_admit:
-            _admit_cond["bodySite"] = [_bs_admit]
-        # Text-only evidence label consistent with the encounter-primary path.
-        _admit_cond["evidence"] = [
-            {
-                "code": [{"text": t("condition_evidence.admission_assessment", lang_for(country_code))}],
-            }
-        ]
-        conditions.append(_admit_cond)
+        return None
+    cond = _condition_skeleton(
+        ctx,
+        condition_id=encounter_admission_condition_id(ctx.patient_id, ctx.encounter_id),
+        structural_key=encounter_admission_condition_key(ctx.patient_id, ctx.encounter_id),
+        diagnosis_type="admitting",
+        # The working diagnosis at admission: resolved at a live discharge
+        # (same rule as the primary path), active otherwise.
+        clinical_status="resolved" if ctx.resolved_at_discharge else "active",
+        category="encounter-diagnosis",
+        mapped_code=admit_mapped,
+    )
+    # ``code.text`` takes the leaf display so it equals ``Encounter.reasonCode.text``
+    # (the short name folds J44.1 to "COPD", not "COPD急性増悪"). Only when a
+    # distinct leaf display exists.
+    icd_system_key = system_key_for("diagnosis", ctx.country_code)
+    leaf_display = code_lookup(icd_system_key, admit_mapped, ctx.lang) if admit_mapped else ""
+    if leaf_display and leaf_display != admit_mapped:
+        cond["code"]["text"] = leaf_display
+    if ctx.encounters:
+        cond["encounter"] = encounter_ref(ctx.encounter_id)
+        attending = ctx.encounter.get("attending_physician_id", "") or ctx.encounter.get("admitting_physician_id", "")
+        if attending:
+            _set_recorder(cond, attending)
+    if ctx.admission_dt:
+        cond["onsetDateTime"] = to_fhir_datetime(ctx.admission_dt)
+        cond["recordedDate"] = cond["onsetDateTime"]
+    if ctx.resolved_at_discharge:
+        cond["abatementDateTime"] = to_fhir_datetime(ctx.discharge_dt)
+    _set_bodysite(cond, admit_raw, ctx.country)
+    cond["evidence"] = _evidence(ctx, "condition_evidence.admission_assessment")
+    return cond
 
-    # --- Secondary encounter diagnoses (working_diagnoses) — Issue #1307 ---
-    # ``clinical_diagnosis.working_diagnoses`` carries secondary Dx entries
-    # populated by two writers:
-    #   * ``simulator/perinatal.py`` — pregnancy complications
-    #     (O14 / O24 / O42 / O60 / O64) surfaced from the pregnancy
-    #     TemporalStatePeriod.metadata onto the delivery encounter.
-    #   * ``simulator/engine.py::_record_complication_on_active_encounter``
-    #     — in-hospital complications developed during an active admission
-    #     (sepsis-in-CAP, DKA-in-DM, etc.).
-    # PR #1293 wired the first writer but the FHIR emit path did not read
-    # ``working_diagnoses`` back — 0 O-code Conditions on p=10k builds.
-    # Fix: iterate the list here and emit one Condition per entry, category
-    # ``encounter-diagnosis`` (secondary), onset from the entry's timestamp.
-    _working_dx = dx.get("working_diagnoses") or []
-    for _wd_idx, _wd in enumerate(_working_dx):
-        _wd_code_raw = str((_wd.get("disease_id") or "") if isinstance(_wd, dict) else "")
-        if not _wd_code_raw:
-            continue
-        _wd_base = _wd_code_raw.split(".")[0]
-        # Dedup: skip if the encounter primary / admission / a chronic
-        # already emitted this ICD base — the primary/admission slot owns
-        # it, no need for a duplicate secondary row.
-        if _wd_base in seen_codes:
-            continue
-        seen_codes.add(_wd_base)
-        _wd_mapped = map_diagnosis_code(_wd_code_raw, country, sex=patient_sex)
-        if not _wd_mapped:
-            continue
-        _wd_onset_dt = str(_wd.get("onset_datetime") or "") if isinstance(_wd, dict) else ""
-        _wd_source = str(_wd.get("source") or "") if isinstance(_wd, dict) else ""
-        _wd_structural_key = encounter_secondary_condition_key(patient_id, encounter_id, _wd_idx)
-        _wd_cond: dict[str, Any] = {
-            "resourceType": "Condition",
-            "id": encounter_secondary_condition_id(patient_id, encounter_id, _wd_idx),
-            "identifier": [wrap_as_identifier(_wd_structural_key, CONDITION_KEY_SYSTEM)],
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
-                if is_jp(country_code)
-                else {}
-            ),
-            # JP eCS DiagnosisType: "differential" is the closest
-            # spec-defined value in ``ex-diagnosistype`` for a
-            # working-diagnoses entry (a Condition under active
-            # clinical consideration on this encounter). "secondary"
-            # is NOT a valid code in that value-set.
-            **({"extension": [_ecs_diagnosis_type_extension("differential")]} if is_jp(country_code) else {}),
-            "clinicalStatus": dual_slot_concept(
-                "hl7-condition-clinical",
-                # Match the encounter-primary discharge semantics —
-                # resolved when the encounter ends non-deceased,
-                # active while ongoing / on discharge for deceased.
-                "resolved" if (is_inpatient and discharge_dt and not deceased) else "active",
-                lang,
-            ),
-            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
-            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", lang_for(country))],
-            "code": build_diagnosis_codeable_concept(_wd_mapped, icd_system_key, country),
-            "subject": patient_ref(patient_id),
-        }
-        if encounters:
-            _wd_cond["encounter"] = encounter_ref(encounters[0].get("encounter_id", ""))
-            _wd_att = encounters[0].get("attending_physician_id", "")
-            if _wd_att:
-                _wd_cond["recorder"] = {"reference": f"Practitioner/{_wd_att}"}
-                _wd_cond["asserter"] = {"reference": f"Practitioner/{_wd_att}"}
-        if _wd_onset_dt:
-            _wd_cond["onsetDateTime"] = to_fhir_datetime(_wd_onset_dt)
-            _wd_cond["recordedDate"] = _wd_cond["onsetDateTime"]
-        elif admission_dt:
-            _wd_cond["onsetDateTime"] = to_fhir_datetime(admission_dt)
-            _wd_cond["recordedDate"] = _wd_cond["onsetDateTime"]
-        if is_inpatient and discharge_dt and not deceased:
-            _wd_cond["abatementDateTime"] = to_fhir_datetime(discharge_dt)
-        # Evidence label: distinguish in-hospital complication from
-        # pre-existing pregnancy-complication carryover so downstream
-        # readers can tell them apart without parsing ICD chapters.
-        if _wd_source == "in_hospital_complication":
-            _wd_ev_key = "condition_evidence.in_hospital_complication"
-        else:
-            _wd_ev_key = "condition_evidence.secondary_diagnosis"
-        _wd_cond["evidence"] = [
-            {"code": [{"text": t(_wd_ev_key, lang_for(country_code))}]},
-        ]
-        _bs_wd = _bodysite_for(_wd_code_raw, country)
-        if _bs_wd:
-            _wd_cond["bodySite"] = [_bs_wd]
-        conditions.append(_wd_cond)
 
-    # --- Chronic conditions (from patient profile) ---
-    for i, chronic in enumerate(chronic_list):
-        if isinstance(chronic, str):
-            c_code = chronic
-            c_onset = ""
-            c_severity = ""
-            c_stage = ""
-        else:
-            # dict (production JSON path) or a ChronicCondition dataclass
-            # (in-memory path) — get_attr_or_key handles both uniformly, so
-            # a bare dataclass instance is no longer silently dropped.
-            c_code = get_attr_or_key(chronic, "code", "")
-            c_onset = get_attr_or_key(chronic, "onset_date", "")
-            c_severity = get_attr_or_key(chronic, "severity", "")
-            c_stage = get_attr_or_key(chronic, "stage", "")
-
-        if not c_code:
+def _secondary_conditions(ctx: _ConditionContext, dx: dict, seen_codes: set[str]) -> list[dict]:
+    """Issue #1307: one encounter-diagnosis Condition per
+    ``clinical_diagnosis.working_diagnoses`` entry — pregnancy complications
+    carried onto the delivery encounter (``simulator/perinatal.py``) and
+    in-hospital complications (``simulator/engine.py::
+    _record_complication_on_active_encounter``)."""
+    conditions: list[dict] = []
+    for idx, wd in enumerate(dx.get("working_diagnoses") or []):
+        code_raw = str((wd.get("disease_id") or "") if isinstance(wd, dict) else "")
+        if not code_raw:
             continue
-
-        base = c_code.split(".")[0]
+        base = code_raw.split(".")[0]
+        # The primary / a chronic Condition already owns this ICD base.
         if base in seen_codes:
             continue
         seen_codes.add(base)
-
-        # Issue #854 Bucket B (PR-condition): opaque chronic Condition.id.
-        _chronic_structural_key = chronic_condition_key(patient_id, i)
-        cond = {
-            "resourceType": "Condition",
-            # C4-02: patient-scoped structural key so the adapter's
-            # write() dedup collapses per-encounter re-emissions. Was
-            # `cond-{encounter_id}-chronic-{i}` which produced N duplicates
-            # per patient (N = number of the patient's encounters), driving
-            # cycle-3 RM-7 problem-list-item excess to 10x realistic count.
-            "id": chronic_condition_id(patient_id, i),
-            "identifier": [wrap_as_identifier(_chronic_structural_key, CONDITION_KEY_SYSTEM)],
-            # C2-20: JP Core Condition profile also on chronic-
-            # condition path (encounter-dx path handled above).
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
-                if is_jp(country_code)
-                else {}
-            ),
-            # Issue #744: chronic condition → `clinical` (general clinical
-            # finding, not the encounter's reason). Same extension family as
-            # the encounter-diagnosis path above.
-            **({"extension": [_ecs_diagnosis_type_extension("clinical")]} if is_jp(country_code) else {}),
-            # C2-02/03: use system_coding so the
-            # chronic-condition path also emits displays (was raw code).
-            "clinicalStatus": dual_slot_concept("hl7-condition-clinical", "active", lang),
-            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
-            "category": [dual_slot_concept("hl7-condition-category", "problem-list-item", lang_for(country))],
-            "code": build_diagnosis_codeable_concept(
-                map_diagnosis_code(c_code, country, sex=patient_sex), icd_system_key, country
-            ),
-            "subject": patient_ref(patient_id),
-        }
-
-        if c_severity:
-            cond["severity"] = severity_coding(c_severity, country)
-
-        # CY6-19 (Chain-6): Condition.evidence — problem-list-item entries are
-        # established from prior encounters. Text-only evidence label per the
-        # same rationale as the encounter-diagnosis path.
-        cond["evidence"] = [
-            {
-                "code": [{"text": t("condition_evidence.problem_list_prior", lang_for(country_code))}],  # noqa: E501
-            }
-        ]
-
-        # Stage (NYHA class, CKD G, GOLD, hypertension Stage, CCS, etc.) — c_stage set
-        # in the branch above. The stage VALUE is carried by summary.text (always) plus
-        # a summary.coding when the staging system has a verified SNOMED CT concept
-        # (resolve_stage_snomed — CKD / NYHA / GOLD / asthma severity / HTN / CCS).
-        # type.type is left as a plain-text label: these are non-cancer clinical
-        # stages, so the former SNOMED 385356007 "Tumor stage finding" coding was
-        # clinically wrong and is intentionally NOT emitted.
-        if c_stage:
-            summary = {"text": c_stage}
-            stage_snomed = snomed_for("stage", c_stage)
-            if stage_snomed:
-                summary["coding"] = [
-                    {
-                        "system": get_system_uri("snomed-ct"),
-                        "code": stage_snomed,
-                        **display_entry(code_lookup("snomed-ct", stage_snomed, lang_for(country))),
-                    }
-                ]
-            cond["stage"] = [
-                {
-                    "summary": summary,
-                    "type": {"text": "Clinical stage"},
-                }
-            ]
-
-        if c_onset:
-            cond["onsetDateTime"] = to_fhir_date(c_onset)
-
-        # C2-31: Condition.recorder for chronic path as well.
-        # CY8-21 fix:encounters が無い(problem-list chronic
-        # で outpatient-only 患者)の場合も recorder / asserter を担当医らしき
-        # ID(先頭 encounter が無ければ hospital-main の primary care physician)
-        # にフォールバック。旧 88.7% → 100%。
-        _att = ""
-        if encounters:
-            _att = encounters[0].get("attending_physician_id", "") or ""
-        if _att:
-            cond["recorder"] = {"reference": f"Practitioner/{_att}"}
-            # CY8-22 fix:chronic path も asserter を並置。
-            cond["asserter"] = {"reference": f"Practitioner/{_att}"}
-        else:
-            cond["recorder"] = {"reference": "Practitioner/DR-IM-001"}
-            cond["asserter"] = {"reference": "Practitioner/DR-IM-001"}
-        # recordedDate: use admission datetime (full time) so time-series UIs sort correctly (Issue #821 / N-7).
-        if admission_dt:
-            cond["recordedDate"] = to_fhir_datetime(admission_dt)
-
-        # CY8-23 fix (chronic path): SNOMED bodySite for anatomically-localizable
-        # chronic conditions(e.g. J44 COPD → 肺, I50 心不全 → 心臓)。
-        _bs = _bodysite_for(c_code, country)
-        if _bs:
-            cond["bodySite"] = [_bs]
-
+        mapped = ctx.mapped(code_raw)
+        if not mapped:
+            continue
+        onset_dt = str(wd.get("onset_datetime") or "") if isinstance(wd, dict) else ""
+        source = str(wd.get("source") or "") if isinstance(wd, dict) else ""
+        cond = _condition_skeleton(
+            ctx,
+            condition_id=encounter_secondary_condition_id(ctx.patient_id, ctx.encounter_id, idx),
+            structural_key=encounter_secondary_condition_key(ctx.patient_id, ctx.encounter_id, idx),
+            # "differential" is the closest ``ex-diagnosistype`` code for an
+            # entry under active consideration; "secondary" is not in that value set.
+            diagnosis_type="differential",
+            clinical_status="resolved" if ctx.resolved_at_discharge else "active",
+            category="encounter-diagnosis",
+            mapped_code=mapped,
+        )
+        if ctx.encounters:
+            cond["encounter"] = encounter_ref(ctx.encounter_id)
+            attending = ctx.encounter.get("attending_physician_id", "")
+            if attending:
+                _set_recorder(cond, attending)
+        if onset_dt:
+            cond["onsetDateTime"] = to_fhir_datetime(onset_dt)
+            cond["recordedDate"] = cond["onsetDateTime"]
+        elif ctx.admission_dt:
+            cond["onsetDateTime"] = to_fhir_datetime(ctx.admission_dt)
+            cond["recordedDate"] = cond["onsetDateTime"]
+        if ctx.resolved_at_discharge:
+            cond["abatementDateTime"] = to_fhir_datetime(ctx.discharge_dt)
+        # Tell an in-hospital complication from a carried-over pregnancy
+        # complication without parsing ICD chapters.
+        cond["evidence"] = _evidence(
+            ctx,
+            "condition_evidence.in_hospital_complication"
+            if source == "in_hospital_complication"
+            else "condition_evidence.secondary_diagnosis",
+        )
+        _set_bodysite(cond, code_raw, ctx.country)
         conditions.append(cond)
+    return conditions
 
-    # --- Past pregnancies → Z87.59 problem-list-item (META #957 Incr 1 +
-    # #1092 C6 semantic fix) ---
-    # Replaces the pre-Incr-1 s95-z37 "chronic proxy" past-birth marker.
-    # For each closed pregnancy period with outcome="delivered", emit
-    # one Z87.59 (Personal history of other complications of pregnancy,
-    # childbirth and the puerperium) problem-list-item Condition anchored
-    # at the delivery date. Z37.x is the delivery-encounter outcome code
-    # and belongs only on that encounter's Condition record; using it as a
-    # long-lived problem-list marker was a semantic misuse (#1092).
-    # This remains a biology-consistent record: exactly one past-birth
-    # Condition per delivered pregnancy per patient (multi-parity →
-    # multi-Z87.59), sourced from ``person.state_periods``.
-    state_periods = record.get("patient", {}).get("state_periods", []) or []
-    _att_recorder = encounters[0].get("attending_physician_id", "") if encounters else ""
-    z37_seq = 0
-    for period in state_periods:
-        # asdict serialization: period is a dict on the FHIR emit path
-        # (record built via dataclasses.asdict). In-memory tests may pass
-        # a live TemporalStatePeriod dataclass — get_attr_or_key handles
-        # both.
+
+def _chronic_conditions(ctx: _ConditionContext, chronic_list: list, seen_codes: set[str]) -> list[dict]:
+    """One problem-list-item Condition per chronic condition the patient carries."""
+    conditions: list[dict] = []
+    for i, chronic in enumerate(chronic_list):
+        code, onset, severity, stage = _chronic_fields(chronic)
+        if not code:
+            continue
+        base = code.split(".")[0]
+        if base in seen_codes:
+            continue
+        seen_codes.add(base)
+        cond = _condition_skeleton(
+            ctx,
+            # C4-02: patient-scoped id so the per-encounter re-emissions collapse
+            # in the adapter's dedup (was 10x the realistic problem-list count).
+            condition_id=chronic_condition_id(ctx.patient_id, i),
+            structural_key=chronic_condition_key(ctx.patient_id, i),
+            # Issue #744: a general clinical finding, not the encounter's reason.
+            diagnosis_type="clinical",
+            clinical_status="active",
+            category="problem-list-item",
+            mapped_code=ctx.mapped(code),
+        )
+        if severity:
+            cond["severity"] = severity_coding(severity, ctx.country)
+        cond["evidence"] = _evidence(ctx, "condition_evidence.problem_list_prior")
+        if stage:
+            cond["stage"] = _stage(stage, ctx.country)
+        if onset:
+            cond["onsetDateTime"] = to_fhir_date(onset)
+        # CY8-21: a patient with no encounter in the record falls back to the
+        # hospital's primary-care physician as recorder / asserter.
+        _set_recorder(cond, ctx.encounter.get("attending_physician_id", "") or _FALLBACK_RECORDER_ID)
+        # recordedDate: use admission datetime (full time) so time-series UIs sort correctly (Issue #821 / N-7).
+        if ctx.admission_dt:
+            cond["recordedDate"] = to_fhir_datetime(ctx.admission_dt)
+        _set_bodysite(cond, code, ctx.country)
+        conditions.append(cond)
+    return conditions
+
+
+def _past_birth_conditions(ctx: _ConditionContext, record: dict, seen_codes: set[str]) -> list[dict]:
+    """META #957 / #1092: one Z87.59 (personal history of complications of
+    pregnancy, childbirth and the puerperium) problem-list-item per delivered
+    pregnancy, anchored at the delivery date. Z37.x belongs only on the
+    delivery encounter's own Condition."""
+    conditions: list[dict] = []
+    # A dict on the FHIR emit path; a live TemporalStatePeriod in tests.
+    for period in record.get("patient", {}).get("state_periods", []) or []:
         if get_attr_or_key(period, "state_type", "") != "pregnancy":
             continue
         if get_attr_or_key(period, "outcome", "") != "delivered":
@@ -764,50 +644,23 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
         end_date = get_attr_or_key(period, "end_date", "") or ""
         if not end_date:
             continue
-        # Guard against a same-base-code collision on the chronic dedup
-        # key. Z37 is no longer in chronic_conditions post-Incr-1; Z87.59
-        # is not a chronic code at all — this branch remains as a
-        # defensive break rather than an expected path.
+        # Defensive: Z87 is not a chronic code, so this is not an expected path.
         if "Z87" in seen_codes:
             break
-
-        z37_id = f"cond-past-birth-{patient_id}-{z37_seq}"
-        z37_key = f"pregnancy-past-birth|{patient_id}|{z37_seq}"
-        z37_cond: dict = {
-            "resourceType": "Condition",
-            "id": z37_id,
-            "identifier": [wrap_as_identifier(z37_key, CONDITION_KEY_SYSTEM)],
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]}}
-                if is_jp(country_code)
-                else {}
-            ),
-            **({"extension": [_ecs_diagnosis_type_extension("clinical")]} if is_jp(country_code) else {}),
-            "clinicalStatus": dual_slot_concept("hl7-condition-clinical", "active", lang),
-            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang),
-            "category": [dual_slot_concept("hl7-condition-category", "problem-list-item", lang_for(country))],
-            "code": build_diagnosis_codeable_concept(
-                map_diagnosis_code("Z87.59", country, sex=patient_sex),
-                icd_system_key,
-                country,
-            ),
-            "subject": patient_ref(patient_id),
-            "onsetDateTime": to_fhir_date(end_date),
-            "evidence": [
-                {
-                    "code": [{"text": t("condition_evidence.problem_list_prior", lang_for(country_code))}],
-                }
-            ],
-        }
-        if _att_recorder:
-            z37_cond["recorder"] = {"reference": f"Practitioner/{_att_recorder}"}
-            z37_cond["asserter"] = {"reference": f"Practitioner/{_att_recorder}"}
-        else:
-            z37_cond["recorder"] = {"reference": "Practitioner/DR-IM-001"}
-            z37_cond["asserter"] = {"reference": "Practitioner/DR-IM-001"}
-        if admission_dt:
-            z37_cond["recordedDate"] = to_fhir_datetime(admission_dt)
-        conditions.append(z37_cond)
-        z37_seq += 1
-
+        seq = len(conditions)
+        cond = _condition_skeleton(
+            ctx,
+            condition_id=f"cond-past-birth-{ctx.patient_id}-{seq}",
+            structural_key=f"pregnancy-past-birth|{ctx.patient_id}|{seq}",
+            diagnosis_type="clinical",
+            clinical_status="active",
+            category="problem-list-item",
+            mapped_code=ctx.mapped("Z87.59"),
+        )
+        cond["onsetDateTime"] = to_fhir_date(end_date)
+        cond["evidence"] = _evidence(ctx, "condition_evidence.problem_list_prior")
+        _set_recorder(cond, ctx.encounter.get("attending_physician_id", "") or _FALLBACK_RECORDER_ID)
+        if ctx.admission_dt:
+            cond["recordedDate"] = to_fhir_datetime(ctx.admission_dt)
+        conditions.append(cond)
     return conditions
