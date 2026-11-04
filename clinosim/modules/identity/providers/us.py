@@ -27,18 +27,18 @@ from typing import Any
 import numpy as np
 
 import clinosim.modules.identity.generators as generators
+from clinosim.age_bands import age_band_covers
 from clinosim.types import InsuranceEnrollment, NationalIdentity
 
 
 def _sample_category(distribution: list[dict], age: int, rng: np.random.Generator) -> str:
     """Pick an insurance category from age-banded weights (defaults to 'uninsured')."""
     for band in distribution:
-        lo_s, hi_s = str(band.get("age_range", "0-99")).split("-")
         try:
-            lo, hi = int(lo_s), int(hi_s)
+            covers = age_band_covers(band.get("age_range", "0-99"), age)
         except ValueError:
             continue
-        if lo <= age <= hi:
+        if covers:
             weights = band.get("weights") or {}
             if not weights:
                 continue

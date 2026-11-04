@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
+from clinosim.age_bands import lookup_age_band
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import is_jp, is_us, normalize_probabilities
 from clinosim.types.family_history import FamilyMemberHistoryRecord
@@ -58,11 +59,8 @@ def _condition_code(c) -> str:
 
 
 def _prevalence(prev: dict, code: str, sex: str, age: int) -> float:
-    for band, rows in prev.get(code, {}).items():
-        lo, hi = (int(x) for x in band.split("-"))
-        if lo <= age <= hi:
-            return float(rows.get(sex, 0.0))
-    return 0.0
+    rows = lookup_age_band(prev.get(code, {}), age, None)
+    return 0.0 if rows is None else float(rows.get(sex, 0.0))
 
 
 def _relative(

@@ -15,6 +15,7 @@ from datetime import date, timedelta
 
 import numpy as np
 
+from clinosim.age_bands import lookup_age_band
 from clinosim.modules._shared import is_jp
 from clinosim.types.population import LifeEvent, PersonRecord, TemporalStatePeriod
 
@@ -29,16 +30,7 @@ def _annual_conception_rate(lc: dict, country: str, age: int) -> float:
     ``0.0`` for ages outside the eligible window or when config missing.
     """
     rates = (lc.get("annual_conception_rate") or {}).get("jp" if is_jp(country) else "us") or {}
-    for band, value in rates.items():
-        if "-" not in band:
-            continue
-        try:
-            lo, hi = (int(x) for x in band.split("-"))
-        except ValueError:
-            continue
-        if lo <= age <= hi:
-            return float(value)
-    return 0.0
+    return float(lookup_age_band(rates, age, 0.0, skip_malformed=True))
 
 
 _PERINATAL_STAGE_COUNTERS: dict[str, int] = {}

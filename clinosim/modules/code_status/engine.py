@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
+from clinosim.age_bands import find_age_band
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import is_jp, is_us, normalize_probabilities
 
@@ -32,11 +33,8 @@ def load_rates(country: str) -> dict:
 
 
 def _age_band(age: int, bands: list[str]) -> str:
-    for band in bands:
-        lo, hi = (int(x) for x in band.split("-"))
-        if lo <= age <= hi:
-            return band
-    return bands[-1]
+    band = find_age_band(bands, age)
+    return band if band is not None else bands[-1]
 
 
 def assign_code_status(age: int, context: str, country: str, rng: np.random.Generator) -> str:
