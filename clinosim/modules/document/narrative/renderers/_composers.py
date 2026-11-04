@@ -16,6 +16,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from clinosim.codes.ucum import ucum_prose
+from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -436,7 +437,7 @@ def apply_cc_pe_consistency(text: str, ctx: NarrativeContext) -> tuple[str, list
     rewrite fires, ``text`` is returned unchanged.
     """
     facts: list[str] = []
-    if not text or ctx.target_lang != "ja":
+    if not text or not has_authored_narrative(ctx.target_lang):
         return text, facts
 
     enc = ctx.encounter

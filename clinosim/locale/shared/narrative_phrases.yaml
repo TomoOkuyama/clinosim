@@ -2567,3 +2567,9 @@ fhir_emit_text:
   ward:
     ja: "{n}病棟"
     en: "Ward {n}"
+
+# Punctuation that differs by language (Issue #2483).
+punct:
+  sentence_end:
+    en: "."
+    ja: "。"

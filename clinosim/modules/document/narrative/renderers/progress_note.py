@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from clinosim.countries import has_authored_narrative
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_ASSESSMENT_EN,
@@ -56,7 +57,7 @@ def render_progress_note(
     # fallback (baseline: 19.4 % ``Clinical assessment ongoing`` +
     # 7.8 % ``Continue current management`` across 1,409 progress
     # notes at US p=2000 seed=500).
-    if lang != "ja":
+    if not has_authored_narrative(lang):
         facts.append("composed:progress_note_soap_en")
         # Issue #1155 (session-103): subjective + objective previously
         # short-circuited to "No special findings" on every EN

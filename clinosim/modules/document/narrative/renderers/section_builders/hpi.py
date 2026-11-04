@@ -22,6 +22,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from clinosim.codes.icd10 import condition_label
+from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._narrative_utils import _age_at
@@ -73,7 +74,7 @@ def _maybe_append_newborn_workup(text: str, facts: list[str], ctx: NarrativeCont
         return text, facts
     # Terminate the appended fragment with the locale-appropriate
     # sentence punctuation so the section reads as one paragraph.
-    terminator = "。" if ctx.target_lang == "ja" else "."
+    terminator = t("punct.sentence_end", ctx.target_lang)
     appended = f"{summary}{terminator}"
     if text:
         joined = f"{text} {appended}"
@@ -164,7 +165,7 @@ def _build_hpi_core(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     # `trigger_options` entirely (per-disease English wording is
     # deferred to the LLM narrative pass — a functional fallback beats
     # a locale leak).
-    if lang != "ja":
+    if not has_authored_narrative(lang):
         onset_text_en = _hpi_onset_en(ctx.severity)
         facts.append(f"generic:hpi_onset_en.{ctx.severity}")
         return onset_text_en, facts
@@ -213,7 +214,7 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
     Previously (v9) emitted only demographics + CC + chronic and hit a
     median 23 chars. #984 lifts median to ~100-150 chars while staying
     template-only (no LLM dependency) and CIF-anchored (no fabrication)."""
-    if ctx.target_lang != "ja":
+    if not has_authored_narrative(ctx.target_lang):
         return ""
     patient = ctx.patient
     enc = ctx.encounter

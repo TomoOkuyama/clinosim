@@ -25,6 +25,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from clinosim.codes.ucum import ucum_prose
+from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
 from clinosim.locale.loader import narrative_label as _label
@@ -132,7 +133,7 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
         # would need its own contradiction-rewrite pool and
         # vitals-line style — this is a locale-specific data pipeline
         # gate, not a display translation.
-        if lang == "ja":
+        if has_authored_narrative(lang):
             text, cc_facts = generator._apply_cc_pe_consistency(text, ctx)
             facts.extend(cc_facts)
             vitals_line = generator._compose_pe_vitals_line(ctx)
