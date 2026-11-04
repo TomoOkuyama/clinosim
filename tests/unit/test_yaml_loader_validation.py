@@ -1,9 +1,10 @@
 """Verify import-time YAML loader validation — _validate_* cross-references.
 
-Mirrors clinosim/modules/observation/microbiology.py:_validate_microbiology
-pattern. Each _validate_* raises ValueError on YAML editing accidents
-(empty list / negative weight / unknown key / missing SNOMED etc.) so
-the silent-no-op (PR-90 class bug) cannot slip through.
+Mirrors the load-time cross-reference checks of
+clinosim/modules/observation/microbiology.py:MicrobiologyConfig. Each
+_validate_* raises ValueError on YAML editing accidents (empty list /
+negative weight / unknown key / missing SNOMED etc.) so the silent-no-op
+(PR-90 class bug) cannot slip through.
 """
 
 from __future__ import annotations

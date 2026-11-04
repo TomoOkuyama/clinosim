@@ -332,3 +332,28 @@ def test_antibiotic_empty_loinc_raises(monkeypatch, tmp_path):
             micro_mod._load()
     finally:
         micro_mod._load.cache_clear()  # noqa: SLF001
+
+
+def _shipped() -> dict:
+    import copy
+
+    from clinosim.datafiles import load_data_yaml
+
+    return copy.deepcopy(load_data_yaml(micro_mod._REF_DIR / "microbiology.yaml"))  # noqa: SLF001
+
+
+@pytest.mark.unit
+def test_shipped_yaml_satisfies_the_model():
+    micro_mod.MicrobiologyConfig.model_validate(_shipped())
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("triple", "message"),
+    [([0.5, 0.5], "3-element"), ([0.0, 0.0, 0.0], "sums to zero"), ("SIR", "valid list")],
+)
+def test_malformed_sir_triple_raises(triple, message):
+    data = _shipped()
+    data["organisms"]["escherichia_coli"]["antibiogram"]["ampicillin"] = triple
+    with pytest.raises(ValueError, match=message):
+        micro_mod.MicrobiologyConfig.model_validate(data)
