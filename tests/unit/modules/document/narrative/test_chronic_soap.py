@@ -15,15 +15,15 @@ def test_returns_none_for_empty_conditions():
 def test_matches_i10_hypertension():
     tmpl = resolve_chronic_soap([SimpleNamespace(code="I10")])
     assert tmpl is not None
-    assert "血圧" in tmpl["subjective_ja"]
-    assert "本態性高血圧" in tmpl["assessment_ja"]
+    assert "血圧" in tmpl["subjective"]["ja"]
+    assert "本態性高血圧" in tmpl["assessment"]["ja"]
 
 
 def test_matches_by_prefix_i10_9():
     """Sub-codes (I10.9 etc.) resolve to the I10 base entry."""
     tmpl = resolve_chronic_soap([SimpleNamespace(code="I10.9")])
     assert tmpl is not None
-    assert "血圧" in tmpl["subjective_ja"]
+    assert "血圧" in tmpl["subjective"]["ja"]
 
 
 def test_first_matching_condition_wins():
@@ -35,8 +35,8 @@ def test_first_matching_condition_wins():
         ]
     )
     assert tmpl is not None
-    assert "糖尿病" in tmpl["assessment_ja"]
-    assert "血糖" in tmpl["subjective_ja"]
+    assert "糖尿病" in tmpl["assessment"]["ja"]
+    assert "血糖" in tmpl["subjective"]["ja"]
 
 
 def test_falls_through_when_no_prefix_matches():
@@ -48,14 +48,14 @@ def test_accepts_plain_string_codes():
     """Legacy fixtures may pass ICD codes as bare strings."""
     tmpl = resolve_chronic_soap(["J45"])
     assert tmpl is not None
-    assert "喘息" in tmpl["assessment_ja"]
+    assert "喘息" in tmpl["assessment"]["ja"]
 
 
 def test_accepts_dict_shape():
     """CIF JSON round-trip lands as dicts."""
     tmpl = resolve_chronic_soap([{"code": "N18"}])
     assert tmpl is not None
-    assert "慢性腎臓病" in tmpl["assessment_ja"]
+    assert "慢性腎臓病" in tmpl["assessment"]["ja"]
 
 
 def test_all_registry_entries_have_four_slots():
@@ -64,7 +64,9 @@ def test_all_registry_entries_have_four_slots():
     from clinosim.modules.document.narrative._chronic_soap import _load_registry
 
     reg = _load_registry()
-    required = {"subjective_ja", "objective_ja", "assessment_ja", "plan_ja"}
+    # Each slot is a language map with the authored Japanese text (Issue #2506).
+    required = {"subjective", "objective", "assessment", "plan"}
     for code, entry in reg.items():
         missing = required - set(entry.keys())
         assert not missing, f"registry entry {code} missing: {missing}"
+        assert all(entry[slot].get("ja") for slot in required), code

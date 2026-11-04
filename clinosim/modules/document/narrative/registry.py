@@ -311,25 +311,19 @@ def specs_for_encounter_type(encounter_type: str) -> list[DocumentTypeSpec]:
 class SectionCatalogEntry:
     """One row of the section catalog. Fields align with the yaml schema."""
 
-    __slots__ = ("slug", "title_ja", "title_en", "loinc", "description")
+    __slots__ = ("slug", "title", "loinc", "description")
 
-    def __init__(self, slug: str, title_ja: str, title_en: str, loinc: str, description: str = "") -> None:
+    def __init__(self, slug: str, title: dict[str, str], loinc: str, description: str = "") -> None:
         self.slug = slug
-        self.title_ja = title_ja
-        self.title_en = title_en
+        self.title = dict(title)  # language map (Issue #2506)
         self.loinc = loinc
         self.description = description
 
     def title_for(self, lang: str) -> str:
-        """Return the localized title for a Composition emit language.
-
-        `lang` is a two-letter locale code (`"ja"` for JP, anything else
-        falls back to EN — matches the existing `_localize_section_title`
-        contract).
-        """
+        """The title in ``lang``, then English (spec §6)."""
         from clinosim.locale.localized import localized
 
-        return localized({"en": self.title_en, "ja": self.title_ja}, lang)
+        return localized(self.title, lang)
 
     def __repr__(self) -> str:
         return f"SectionCatalogEntry(slug={self.slug!r}, loinc={self.loinc!r})"
@@ -339,7 +333,7 @@ def _validate_section_catalog(catalog: dict[str, dict[str, Any]]) -> None:
     """Fail-loud validation of the section_catalog.yaml payload.
 
     Runs at import time (via `load_section_catalog`). Fails on:
-      * A slug entry missing title_ja / title_en, or without a ``loinc``
+      * A slug entry whose ``title`` language map lacks ``en`` or ``ja``, or without a ``loinc``
         string ("" when no LOINC section code means the section).
       * Any slug authored in `document_type_specs.yaml::composition_sections*`
         that is not registered in the catalog. This is the drift class the
@@ -352,9 +346,10 @@ def _validate_section_catalog(catalog: dict[str, dict[str, Any]]) -> None:
         if not isinstance(entry, dict):
             incomplete.append(f"{slug} (not a dict)")
             continue
-        for field in ("title_ja", "title_en"):
-            if not entry.get(field):
-                incomplete.append(f"{slug}.{field}")
+        title = entry.get("title")
+        for lang in ("en", "ja"):
+            if not (isinstance(title, dict) and title.get(lang)):
+                incomplete.append(f"{slug}.title.{lang}")
         # ``loinc`` is required but may be "" (no LOINC section code; Issue #2391).
         if not isinstance(entry.get("loinc"), str):
             incomplete.append(f"{slug}.loinc")
@@ -378,7 +373,7 @@ def _validate_section_catalog(catalog: dict[str, dict[str, Any]]) -> None:
             f"section_catalog.yaml: {len(missing)} slug(s) authored in "
             f"document_type_specs.yaml are missing from the catalog — {missing[:20]}"
             + (f" (and {len(missing) - 20} more)" if len(missing) > 20 else "")
-            + ". Add an entry with title_ja / title_en / loinc, or remove "
+            + ". Add an entry with title {en, ja} / loinc, or remove "
             "the slug from document_type_specs.yaml."
         )
 
@@ -392,8 +387,7 @@ def load_section_catalog() -> dict[str, SectionCatalogEntry]:
     for slug, entry in data.items():
         out[slug] = SectionCatalogEntry(
             slug=slug,
-            title_ja=entry["title_ja"],
-            title_en=entry["title_en"],
+            title=entry["title"],
             loinc=entry["loinc"],
             description=entry.get("description", ""),
         )
