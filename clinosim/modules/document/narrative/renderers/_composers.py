@@ -36,6 +36,11 @@ from clinosim.modules.document.narrative._narrative_utils import (
     _pick_from_pool_by_encounter,
     _rewrite_pe_clause,
 )
+from clinosim.modules.document.narrative._vitals_line import (
+    PHYSICAL_EXAM,
+    PROGRESS_OBJECTIVE,
+    format_vitals_line,
+)
 
 if TYPE_CHECKING:
     from clinosim.types.document import NarrativeContext
@@ -348,25 +353,7 @@ def compose_today_vitals_line(ctx: NarrativeContext) -> str:
     picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
     if not picks:
         return ""
-    v = picks[0]
-    parts: list[str] = []
-    _sbp = _o(v, "systolic_bp", None)
-    _dbp = _o(v, "diastolic_bp", None)
-    if _sbp and _dbp:
-        parts.append(f"BP {int(_sbp)}/{int(_dbp)} mmHg")
-    _hr = _o(v, "heart_rate", None)
-    if _hr:
-        parts.append(f"HR {int(_hr)} {t('narrative_text.vital_unit.hr', ctx.target_lang)}")
-    _rr = _o(v, "respiratory_rate", None)
-    if _rr:
-        parts.append(f"RR {int(_rr)} {t('narrative_text.vital_unit.rr', ctx.target_lang)}")
-    _spo2 = _o(v, "spo2", None)
-    if _spo2:
-        parts.append(f"SpO2 {_spo2:.0f}%")
-    _temp = _o(v, "temperature_celsius", None)
-    if _temp:
-        parts.append(f"T {_temp:.1f}°C")
-    return ", ".join(parts) if parts else ""
+    return format_vitals_line(picks[0], PROGRESS_OBJECTIVE, ctx.target_lang)
 
 
 def compose_pe_vitals_line(ctx: NarrativeContext) -> str:
@@ -393,29 +380,7 @@ def compose_pe_vitals_line(ctx: NarrativeContext) -> str:
     picks = _filter_vitals_for_day(vitals, ctx.day_index, ctx.encounter)
     if not picks:
         picks = [vitals[0]]
-    v = picks[0]
-
-    parts: list[str] = []
-    _sbp = _o(v, "systolic_bp", None)
-    _dbp = _o(v, "diastolic_bp", None)
-    if _sbp and _dbp:
-        parts.append(f"BP {int(_sbp)}/{int(_dbp)} mmHg")
-    _hr = _o(v, "heart_rate", None)
-    if _hr:
-        parts.append(f"HR {int(_hr)}/min")
-    _temp = _o(v, "temperature_celsius", None)
-    if _temp:
-        parts.append(f"T {_temp:.1f}°C")
-    _spo2 = _o(v, "spo2", None)
-    if _spo2:
-        on_o2 = bool(_o(v, "on_supplemental_oxygen", False))
-        suffix = "" if on_o2 else " (RA)"
-        parts.append(f"SpO2 {_spo2:.0f}%{suffix}")
-    _rr = _o(v, "respiratory_rate", None)
-    if _rr:
-        parts.append(f"RR {int(_rr)}/min")
-
-    return ", ".join(parts)
+    return format_vitals_line(picks[0], PHYSICAL_EXAM, ctx.target_lang)
 
 
 def apply_cc_pe_consistency(text: str, ctx: NarrativeContext) -> tuple[str, list[str]]:
@@ -490,24 +455,4 @@ def compose_vital_signs_line(ctx: NarrativeContext) -> str:
     vitals = list(ctx.vitals or [])
     if not vitals:
         return ""
-    v = vitals[0]
-    parts: list[str] = []
-    _sbp = _o(v, "systolic_bp", None)
-    _dbp = _o(v, "diastolic_bp", None)
-    if _sbp and _dbp:
-        parts.append(f"BP {int(_sbp)}/{int(_dbp)} mmHg")
-    _hr = _o(v, "heart_rate", None)
-    if _hr:
-        parts.append(f"HR {int(_hr)} {t('narrative_text.vital_unit.hr', ctx.target_lang)}")
-    _rr = _o(v, "respiratory_rate", None)
-    if _rr:
-        parts.append(f"RR {int(_rr)} {t('narrative_text.vital_unit.rr', ctx.target_lang)}")
-    _spo2 = _o(v, "spo2", None)
-    if _spo2:
-        parts.append(f"SpO2 {_spo2:.0f}%")
-    _temp = _o(v, "temperature_celsius", None)
-    if _temp:
-        parts.append(f"T {_temp:.1f}°C")
-    if not parts:
-        return ""
-    return ", ".join(parts)
+    return format_vitals_line(vitals[0], PROGRESS_OBJECTIVE, ctx.target_lang)

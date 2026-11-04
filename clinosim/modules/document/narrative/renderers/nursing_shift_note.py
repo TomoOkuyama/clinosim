@@ -20,6 +20,7 @@ from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._narrative_utils import _filter_vitals_for_day
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
+from clinosim.modules.document.narrative._vitals_line import NURSING_SHIFT, format_vitals_line
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.types.document import NarrativeContext, NarrativeOutput
 
@@ -68,25 +69,12 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
 
     status_bits: list[str] = []
     if v is not None:
-        temp = _o(v, "temperature_celsius", None)
-        spo2 = _o(v, "spo2", None)
-        sbp = _o(v, "systolic_bp", None)
-        dbp = _o(v, "diastolic_bp", None)
-        hr = _o(v, "heart_rate", None)
         on_o2 = _o(v, "on_supplemental_oxygen", False)
         device = _o(v, "oxygen_delivery_device", None)
         flow = _o(v, "oxygen_flow_rate_lpm", None)
-        vital_line_parts: list[str] = []
-        if sbp and dbp:
-            vital_line_parts.append(f"BP {int(sbp)}/{int(dbp)}")
-        if hr:
-            vital_line_parts.append(f"HR {int(hr)}")
-        if spo2:
-            vital_line_parts.append(f"SpO2 {float(spo2):.0f}%")
-        if temp:
-            vital_line_parts.append(f"T {float(temp):.1f}°C")
-        if vital_line_parts:
-            status_bits.append(", ".join(vital_line_parts))
+        vital_line = format_vitals_line(v, NURSING_SHIFT, lang)
+        if vital_line:
+            status_bits.append(vital_line)
         if on_o2:
             # Device-name katakana lookup is a JA-locale data
             # pipeline via `localize_oxygen_device(x, lang)` — a
