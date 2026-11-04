@@ -37,3 +37,11 @@ language_names:
 output_language_instruction:
   ja: "日本語で記述すること。適切な日本語の医学用語を用いること。"
   en: "Write in English. Use standard medical terminology."
+
+# Languages with authored narrative content beyond the phrase catalog: the
+# template YAMLs' daily trajectories and section text, the chief-complaint
+# variant pools, the CC/PE consistency rewrite rules and the lab-name
+# post-processor (Issue #2483). A language listed here gets those pipelines;
+# any other language gets the sections composed from CIF state. Adding a
+# language's authored content is a data change plus one line here.
+authored_narrative_languages: [ja]

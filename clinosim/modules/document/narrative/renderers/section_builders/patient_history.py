@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
-from clinosim.countries import lang_for
+from clinosim.countries import has_authored_narrative, lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -317,7 +317,7 @@ def build_physical_examination(generator: TemplateNarrativeGenerator, ctx: Narra
     # cleanly in either locale. EN now prepends the vitals block
     # so admission H&P PE carries at least the encounter's
     # objective vitals instead of being blank.
-    if lang != "ja":
+    if not has_authored_narrative(lang):
         vitals_line = generator._compose_pe_vitals_line(ctx)
         if vitals_line:
             facts.append(f"ctx.vitals[day_{ctx.day_index}]")

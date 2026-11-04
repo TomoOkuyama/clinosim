@@ -29,10 +29,6 @@ _ALLOWED = {
         "collects JA match patterns of a table row"
     ),
     (
-        "modules/document/narrative/renderers/section_builders/outpatient_soap.py",
-        'ja = tuple(str(h) for h in (row.get("ja") or [])',
-    ): ("collects JA match patterns of a table row"),
-    (
         "modules/document/narrative/_template_helpers.py",
         '"chief_complaint_ja": str(cc.get("ja") or "")',
     ): "fills the _ja field",

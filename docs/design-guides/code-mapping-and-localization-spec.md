@@ -406,5 +406,4 @@ These parts of the code base do not yet conform. Each one is removed by the issu
 
 | Deviation | Issue |
 |---|---|
-| Narrative renderers gate Japanese-only pipelines (chief-complaint variants, CC/PE consistency, daily trajectory, JP code choices) on the language literal (18 comparisons in 12 files) | #2483 |
 | Protocol and template YAMLs carry language-suffixed keys (`title_ja`, `findings_en`, ...; about 1,300 keys in 70 files) instead of language maps (§3.1 rule 4) | #2475 |

@@ -353,8 +353,9 @@ def build_dc_contributing_conditions(
             comp_part=comp_part,
             tail=tail,
         ), facts
-    # No list_part → prefix + comp_part only. EN strips leading whitespace.
-    return f"{prefix}{comp_part.strip() if lang != 'ja' else comp_part}", facts
+    # No list_part → prefix + comp_part only, without the comp_part's own
+    # leading separator (the English phrase starts with a space).
+    return f"{prefix}{comp_part.strip()}", facts
 
 
 def build_dc_manner_of_death(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:

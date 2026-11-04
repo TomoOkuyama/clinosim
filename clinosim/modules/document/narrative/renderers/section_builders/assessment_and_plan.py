@@ -28,6 +28,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from clinosim.codes import display as registry_display
+from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -62,7 +63,7 @@ def build_assessment_and_plan(generator: TemplateNarrativeGenerator, ctx: Narrat
     # Severe wheezing... Initial medications: Prednisone, Albuterol..."
     # instead of the disconnected generic fallback. daily_trajectory
     # YAML content is still JA-only so EN skips that source.
-    if lang != "ja":
+    if not has_authored_narrative(lang):
         facts.append("composed:cif_state_en")
         _en_assessment = _compose_ap_assessment_from_state(ctx) or _GENERIC_ASSESSMENT_EN
         _en_plan = _compose_ap_plan_from_state(generator, ctx) or _GENERIC_PLAN_EN

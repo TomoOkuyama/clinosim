@@ -13,7 +13,15 @@ from typing import Literal
 
 from clinosim.datafiles import load_data_yaml
 
-__all__ = ["country_slot", "is_jp", "is_us", "lang_for", "lang_name", "output_language_instruction"]
+__all__ = [
+    "country_slot",
+    "has_authored_narrative",
+    "is_jp",
+    "is_us",
+    "lang_for",
+    "lang_name",
+    "output_language_instruction",
+]
 
 
 @lru_cache(maxsize=16)
@@ -121,3 +129,14 @@ def output_language_instruction(lang: str) -> str:
     English for an unregistered language (Issue #2278)."""
     table = _country_language_yaml().get("output_language_instruction") or {}
     return str(table.get(str(lang or "").strip().lower()) or table.get("en") or "Write in English.")
+
+
+def has_authored_narrative(lang: str | None) -> bool:
+    """Whether ``lang`` has authored narrative content (template trajectories,
+    chief-complaint variants, CC/PE rewrite rules, lab-name post-processing)
+    — ``authored_narrative_languages`` in ``country_language.yaml``. The
+    narrative renderers gate those pipelines on this instead of comparing the
+    language with a literal (Issue #2483)."""
+    raw = _country_language_yaml()
+    languages = raw.get("authored_narrative_languages") or [] if isinstance(raw, dict) else []
+    return normalize_lang(lang) in {str(x).strip().lower() for x in languages}

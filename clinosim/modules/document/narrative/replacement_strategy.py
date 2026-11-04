@@ -40,7 +40,7 @@ from __future__ import annotations
 import time as _time
 from collections.abc import Callable
 
-from clinosim.countries import lang_name
+from clinosim.countries import has_authored_narrative, lang_name
 from clinosim.modules.document.narrative._extra_context_builder import (
     _biometrics_doc_types as _biometrics_doc_types,
 )
@@ -366,7 +366,7 @@ def _apply_template_seed_strategy(
 
     # prompt v11 hard-guard: JA post-processor for EN lab names — see the
     # matching invocation + comment in `_apply_template_seed_bundle_strategy`.
-    if language == "ja":
+    if has_authored_narrative(language):
         new_sections = _localize_lab_names_in_sections_ja(new_sections)
 
     # FREE_TEXT rejoin (session-88j Tier 1 uplift for progress_note): when
@@ -688,7 +688,7 @@ def _apply_template_seed_bundle_strategy(
     # across 900 new ED_NOTE narratives — the prompt is a soft guardrail
     # only. Standard abbreviations (BUN/CRP/BNP/WBC/HbA1c/eGFR/Cr/PT-INR
     # etc.) are preserved as-is per _LAB_NAME_JA's deliberate omission.
-    if language == "ja":
+    if has_authored_narrative(language):
         new_sections = _localize_lab_names_in_sections_ja(new_sections)
 
     # FREE_TEXT rejoin — same as per-section path.

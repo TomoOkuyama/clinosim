@@ -23,9 +23,11 @@ from typing import TYPE_CHECKING
 
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
+from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import is_jp
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
     NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE,
     NARRATIVE_BMI_OBESITY_MILD_MAX_EXCLUSIVE,
@@ -147,7 +149,7 @@ def build_discharge_details(generator: TemplateNarrativeGenerator, ctx: Narrativ
     dispo_default = t("discharge_details.disposition_default", lang)
     dispo_label = _label("discharge_disposition", disposition, lang, fallback=dispo_default)
 
-    if lang == "ja":
+    if has_authored_narrative(lang):
         parts: list[str] = []
         if dis_date:
             parts.append(dis_date)
@@ -484,7 +486,8 @@ def build_checkup_questionnaire(generator: TemplateNarrativeGenerator, ctx: Narr
         system = _o(cond, "system", "icd-10-cm") or "icd-10-cm"
         if not code:
             continue
-        resolved_system = system_key_for("diagnosis", "JP") if lang == "ja" else system
+        # A country rule: JP output names conditions in the MHLW ICD-10 system.
+        resolved_system = system_key_for("diagnosis", ctx.locale) if is_jp(ctx.locale) else system
         display = code_lookup(resolved_system, code, lang)
         if display and display != code:
             history_lines.append(t("list_item.bullet_dx_with_code", lang, display=display, code=code))

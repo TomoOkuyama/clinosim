@@ -24,6 +24,7 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING, Any
 
+from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._template_helpers import _pick_localized
@@ -198,7 +199,7 @@ def _maybe_swap_cc_variant(
          path; a swap here breaks the pre-#983 uniform-per-condition
          concentration.
     """
-    if lang != "ja" or not text:
+    if not has_authored_narrative(lang) or not text:
         return text, None
     try:
         variants = load_chief_complaint_variants()

@@ -27,6 +27,7 @@ from clinosim.codes.snomed_concepts import PROCEDURE_PARTIALLY_SUCCESSFUL, PROCE
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import is_jp
 from clinosim.modules.document.narrative._localization import (
     _localize_complication,
     _localize_op_approach,
@@ -313,14 +314,14 @@ def build_pn_procedure_name(generator: TemplateNarrativeGenerator, ctx: Narrativ
     code_jp = str(_o(proc, "procedure_code_jp", "") or "")
     code_us = str(_o(proc, "procedure_code_us", "") or "")
     code = str(_o(proc, "procedure_code", "") or "")
-    # Pick the locale-appropriate code system for the display lookup.
-    # JA-locale prefers ``code_jp`` (K-codes / 診療報酬点数コード),
-    # other locales prefer ``code_us`` (CPT); fall back to the base
-    # ``code`` field when the locale-specific slot is empty.
-    if lang == "ja" and code_jp:
+    # The procedure code system is a country rule: JP uses ``code_jp``
+    # (K-codes / 診療報酬点数コード), other countries ``code_us`` (CPT);
+    # fall back to the base ``code`` field when that slot is empty.
+    jp = is_jp(ctx.locale)
+    if jp and code_jp:
         primary_code = code_jp
         system_key = "k-codes"
-    elif lang != "ja" and code_us:
+    elif not jp and code_us:
         primary_code = code_us
         system_key = "cpt"
     else:

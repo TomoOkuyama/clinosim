@@ -40,6 +40,7 @@ from typing import TYPE_CHECKING, Any
 from clinosim.codes import display as registry_display
 from clinosim.codes.icd10 import icd10_system
 from clinosim.codes.valuesets import concept_group, iter_chronic_codes
+from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import chronic_followup_interval_months
 from clinosim.locale.loader import narrative_label as _label
@@ -94,23 +95,17 @@ def _chronic_med_class_hints_raw() -> dict[str, dict[str, Any]]:
     return out
 
 
-def _chronic_med_class_hints(class_key: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
-    """Return `(en_hints, ja_hints)` tuple for a chronic-condition class.
+def _chronic_med_class_hints(class_key: str, lang: str) -> tuple[str, ...]:
+    """Medication-name hints of a chronic-condition class in ``lang`` (then
+    English), from `chronic-med-class-hints.yaml` (`hypertension`, `diabetes`,
+    `dyslipidemia`, `afib_anticoagulation`, `copd`, `asthma`). The hints match
+    the medication names as rendered in that language; a missing list returns
+    `()`, which `_pick_med_containing` treats as "no med cited"."""
+    from clinosim.locale.localized import normalize_lang
 
-    Looked up in `chronic-med-class-hints.yaml` by `class_key`
-    (`hypertension`, `diabetes`, `dyslipidemia`, `afib_anticoagulation`,
-    `copd`, `asthma`). Missing locale lists return `()` — the caller's
-    `_pick_med_containing` treats that as "no med cited".
-    """
     row = _chronic_med_class_hints_raw().get(class_key) or {}
-    en = tuple(str(h) for h in (row.get("en") or []) if isinstance(h, str))
-    ja = tuple(str(h) for h in (row.get("ja") or []) if isinstance(h, str))
-    return (en, ja)
-
-
-# ─────────────────────────────────────────────────────────────────────
-# SOAP template resolver (3-layer fallback chain).
-# ─────────────────────────────────────────────────────────────────────
+    hints = row.get(normalize_lang(lang)) or row.get("en") or []
+    return tuple(str(h) for h in hints if isinstance(h, str))
 
 
 def _get_soap_template(ctx: NarrativeContext) -> Any | None:
@@ -150,7 +145,7 @@ def _get_soap_template(ctx: NarrativeContext) -> Any | None:
     # US sim, all no-op. Skip the registry entirely for EN so the
     # warning fires only when a genuinely bilingual template drops a
     # locale (the guardrail's original intent).
-    if ctx.target_lang == "ja":
+    if has_authored_narrative(ctx.target_lang):
         from clinosim.modules.document.narrative._chronic_soap import resolve_chronic_soap
 
         patient = ctx.patient
@@ -614,13 +609,9 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
     med_names_display = [_render_home_med_name(m, lang=ctx.target_lang) for m in cur_meds]
     med_names_display = [n for n in med_names_display if n]
 
-    def _pick_med_containing(en_hints: tuple[str, ...], ja_hints: tuple[str, ...]) -> str | None:
-        """Return the first current-med whose (locale-rendered) name
-        contains any hint. Hints must be provided for both locales — the
-        match set is chosen by ``ctx.target_lang`` so a US assessment
-        searches on English tokens and a JP assessment on katakana.
-        """
-        hints = ja_hints if lang == "ja" else en_hints
+    def _pick_med_containing(hints: tuple[str, ...]) -> str | None:
+        """Return the first current-med whose (language-rendered) name
+        contains any hint; the hints are in the same language."""
         for n in med_names_display:
             for h in hints:
                 if h in n:
@@ -629,8 +620,7 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
 
     def _pick_med_by_class(class_key: str) -> str | None:
         """Shorthand for `_pick_med_containing(*_chronic_med_class_hints(key))`."""
-        en, ja = _chronic_med_class_hints(class_key)
-        return _pick_med_containing(en_hints=en, ja_hints=ja)
+        return _pick_med_containing(_chronic_med_class_hints(class_key, lang))
 
     lines: list[str] = []
     for i, c in enumerate(conditions, 1):

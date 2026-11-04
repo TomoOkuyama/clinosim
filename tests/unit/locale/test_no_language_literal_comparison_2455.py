@@ -29,21 +29,9 @@ _ALLOWED = {
     "modules/output/fhir_r4/labs/coding_package.py": (1, "reads the language of a designation in the JP-CLINS package"),
 }
 
-# file → (comparisons, issue that removes them).
-_RATCHET = {
-    "modules/document/narrative/renderers/_composers.py": (1, 2483),
-    "modules/document/narrative/renderers/progress_note.py": (1, 2483),
-    "modules/document/narrative/renderers/section_builders/assessment_and_plan.py": (1, 2483),
-    "modules/document/narrative/renderers/section_builders/chief_complaint.py": (1, 2483),
-    "modules/document/narrative/renderers/section_builders/ed_note.py": (1, 2483),
-    "modules/document/narrative/renderers/section_builders/hpi.py": (3, 2483),
-    "modules/document/narrative/renderers/section_builders/jp_clins.py": (2, 2483),
-    "modules/document/narrative/renderers/section_builders/mortality.py": (1, 2483),
-    "modules/document/narrative/renderers/section_builders/op_pn_notes.py": (2, 2483),
-    "modules/document/narrative/renderers/section_builders/outpatient_soap.py": (2, 2483),
-    "modules/document/narrative/renderers/section_builders/patient_history.py": (1, 2483),
-    "modules/document/narrative/replacement_strategy.py": (2, 2483),
-}
+# file → (comparisons, issue that removes them). Empty: every display
+# selection goes through data (Issue #2483).
+_RATCHET: dict[str, tuple[int, int]] = {}
 
 
 def _is_lang(node: ast.AST) -> bool:
@@ -90,3 +78,12 @@ def test_ratchet_shrinks_with_the_fixes() -> None:
     found = _counts()
     stale = {f: (found.get(f, 0), n) for f, (n, _) in {**_ALLOWED, **_RATCHET}.items() if found.get(f, 0) < n}
     assert not stale, f"fewer comparisons than pinned — lower the entry (found, pinned): {stale}"
+
+
+def test_authored_narrative_languages_come_from_data() -> None:
+    """Japanese-only narrative pipelines are gated on the language list in
+    ``country_language.yaml``, not on a literal (Issue #2483)."""
+    from clinosim.countries import has_authored_narrative
+
+    assert has_authored_narrative("ja") and has_authored_narrative("JP") and has_authored_narrative("ja-JP")
+    assert not has_authored_narrative("en") and not has_authored_narrative("fr")
