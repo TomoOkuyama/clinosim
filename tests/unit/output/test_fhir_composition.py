@@ -177,7 +177,7 @@ def test_no_author_yields_placeholder_author_array():
     FHIR R4 Composition.author is 1..*; empty [] is non-conformant. Production path never fires
     (inpatient.py:184 sets attending_id=DR-001); placeholder surfaces via reference integrity
     audit (dangling Practitioner/UNKNOWN) rather than silent invalid [].
-    See TODO in _fhir_composition.py for Task 10/15 full practitioner-ref fix plan."""
+    See TODO in fhir_r4/documents/composition.py for Task 10/15 full practitioner-ref fix plan."""
     doc = _sample_doc_dataclass()
     doc.author_practitioner_id = ""
     ctx = _make_ctx([doc])

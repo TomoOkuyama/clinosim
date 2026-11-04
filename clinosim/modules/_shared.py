@@ -25,7 +25,7 @@ from clinosim.countries import is_us as is_us
 # when a treatment-modification archetype discontinues an active
 # medication (see ``clinosim/simulator/inpatient.py:1147`` and
 # ``sanitize_id_token``'s docstring). FHIR emitters (currently
-# ``clinosim/modules/output/_fhir_medications.py``) key on this marker
+# ``clinosim/modules/output/fhir_r4/medications/medications.py``) key on this marker
 # to override MedicationRequest.status → ``"stopped"`` (Issue #436;
 # investigation ruled out F1 because reassigning
 # ``OrderStatus.STOPPED`` at Order creation shifts ``_generate_mar``'s

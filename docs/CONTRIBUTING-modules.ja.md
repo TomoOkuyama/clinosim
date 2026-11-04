@@ -9,7 +9,7 @@
 実コードの正本パス:
 - Enricher registry: `clinosim/simulator/enrichers.py`
 - Output adapter registry: `clinosim/modules/output/adapter.py`
-- FHIR bundle builder registry: `clinosim/modules/output/fhir_r4/builder.py` (`fhir_r4_adapter.py` は後方互換 shim)
+- FHIR bundle builder registry: `clinosim/modules/output/fhir_r4/builder.py`
 - 共有型: `clinosim/types/`
 - コードシステム: `clinosim/codes/`
 - locale データ: `clinosim/locale/`
@@ -582,7 +582,7 @@ from clinosim.codes import get_system_uri
 uri = get_system_uri("snomed-ct")  # FHIR system URI を文字列リテラルで書かない
 ```
 
-> **アンチパターン (URI-1, CODES-4, FA-2):** SNOMED/LOINC/UCUM/HL7 URI を生文字列で埋め込まない (現状 fhir_r4_adapter.py に多数残存)。新規キーは `codes/loader.py` の `_BUILTIN_URIS` に正準 HL7 URI を登録してから `get_system_uri()` を使う。
+> **アンチパターン (URI-1, CODES-4, FA-2):** SNOMED/LOINC/UCUM/HL7 URI を生文字列で埋め込まない。新規キーは `codes/loader.py` の `_BUILTIN_URIS` に正準 HL7 URI を登録してから `get_system_uri()` を使う。
 
 ### 国→コード体系の選択は `system_key_for()`(2026-07-02)
 

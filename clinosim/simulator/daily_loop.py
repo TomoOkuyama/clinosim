@@ -89,11 +89,12 @@ from clinosim.simulator._daily_loop_thresholds import (
 )
 from clinosim.simulator.complications import build_complication
 from clinosim.simulator.discharge_gate import (
+    _check_discharge_ready,
+    _evaluate_mortality,
     expected_state_multiplier,
     extend_stay_for_symptoms,
     mortality_state_multiplier,
 )
-from clinosim.simulator.helpers import _check_discharge_ready, _evaluate_mortality
 from clinosim.simulator.lab_pipeline import _run_lab_result_pipeline
 from clinosim.simulator.medication_pipeline import (
     _generate_mar,
@@ -456,7 +457,7 @@ def _run_daily_loop(
         }
         from clinosim.modules.physiology.engine import hba1c_latent_at
 
-        _hba1c_latent = hba1c_latent_at(patient, admission_time + __import__("datetime").timedelta(days=day))
+        _hba1c_latent = hba1c_latent_at(patient, admission_time + timedelta(days=day))
         # Issue #1988: on day 0 of a DKA encounter, resolve admission labs
         # against the pre-update state so the ABG HCO3 reflects the acute
         # presentation rather than ~1 day of recovery.
@@ -998,11 +999,6 @@ def _run_daily_loop(
         "differential": differential,
         "actual_los": actual_los,
     }
-
-
-# ============================================================
-# Discharge prescription
-# ============================================================
 
 
 # ============================================================

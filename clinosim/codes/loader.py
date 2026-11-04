@@ -473,7 +473,7 @@ _BUILTIN_URIS: dict[str, str] = {
     # JP MEDIS medication code families — JP Core NamingSystem preferred fixedUri
     # 直接引用 (iris4h-ai/jp_core/package/NamingSystem-jp-medis-medicationcode*.json)。
     # code data 自体は現状 clinosim 側に持たない (URI resolve 目的の registry
-    # entry のみ)。emit 側 `_fhir_medications.py:_resolve_jp_drug_system_uri`
+    # entry のみ)。emit 側 `fhir_r4/medications/medications.py:_resolve_jp_drug_system_uri`
     # の format 別 dispatch から eval axis が同一 canonical を参照するため。
     "hot7": "http://medis.or.jp/CodeSystem/master-HOT7",
     "hot9": "http://medis.or.jp/CodeSystem/master-HOT9",

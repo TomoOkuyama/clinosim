@@ -134,7 +134,7 @@ def _validate_drug_route_vocabulary(disease_id: str, data: dict[str, Any]) -> No
     disease YAML would ship broken FHIR with no error until an audit ran.
 
     Delegates to `validate_yaml_route_value` so the recognized set stays
-    single-sourced in `_fhir_reference_data.py`.
+    single-sourced in `fhir_r4/lib/reference_data.py`.
     """
     from clinosim.modules.output.fhir_r4.lib.reference_data import validate_yaml_route_value
 

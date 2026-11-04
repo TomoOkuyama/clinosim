@@ -1,4 +1,4 @@
-"""_fhir_conditions.py must handle a bare ChronicCondition dataclass, not just
+"""fhir_r4/conditions/conditions.py must handle a bare ChronicCondition dataclass, not just
 str/dict shapes.
 
 `chronic_list` is documented as `record["patient"]["chronic_conditions"]`,

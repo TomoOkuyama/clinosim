@@ -12,7 +12,7 @@ default OFF で急性期病院想定を維持する。
 - HEALTH_CHECKUP_REPORT の ClinicalDocument stub(narrative=None)
 
 narrative content は TemplateNarrativePass(Stage 2)が事後に populate する。
-FHIR emit path は _fhir_composition.py の JP-eCheckup builder が担う。
+FHIR emit path は fhir_r4/documents/composition.py の JP-eCheckup builder が担う。
 """
 
 from clinosim.modules.health_checkup.engine import (

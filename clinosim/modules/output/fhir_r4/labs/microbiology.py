@@ -113,7 +113,7 @@ JP_MB_DR_CODE_DISPLAY = registry_display("jp-document-codes", JP_MB_DR_CODE_VALU
 # DiagnosticReport when MicrobiologyResult.hai_event_id is non-empty.
 # Internal-only — clinosim simulator cross-reference, not registered in
 # JP Core / US Core / HL7 IGs. Uses `urn:clinosim:...` convention
-# matching the existing internal identifier in _fhir_practitioner.py
+# matching the existing internal identifier in fhir_r4/demographics/practitioner.py
 # (`urn:clinosim:staff`) — adversarial-1 finding consolidated the
 # convention to urn-form to avoid two parallel patterns. Audit reader
 # (clinosim.audit.axes.clinical) imports this same constant; a rename

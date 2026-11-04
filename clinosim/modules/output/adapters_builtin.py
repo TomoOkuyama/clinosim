@@ -35,7 +35,7 @@ class FhirR4Adapter:
     subdir = "fhir_r4"
 
     def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -> None:
-        from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
+        from clinosim.modules.output.fhir_r4 import convert_cif_to_fhir
 
         convert_cif_to_fhir(cif_dir, out_dir, country=ctx.country, narrative_version=ctx.narrative_version)
 

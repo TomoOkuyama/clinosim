@@ -1,7 +1,7 @@
 """MedicationAdministration.dosage.text must be localized on JP output (Issue #472).
 
 The MedicationRequest builder ran `dose_text` through `_localize_dosage_terms`
-(`_fhir_medications.py`) while the MedicationAdministration builder assigned it
+(`fhir_r4/medications/medications.py`) while the MedicationAdministration builder assigned it
 raw, so every JP `MedicationAdministration.dosage.text` was emitted in English
 (13,372 of 13,372 rows carrying the field, JP p=300 seed=42). The same function
 already localized the rate-adjustment note, so the miss was inside a partially

@@ -11,6 +11,7 @@ from clinosim import determinism
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_demographics
+from clinosim.modules.disease.localization import _country_to_yaml_key
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.healthcare_system.loader import load_healthcare_config
 from clinosim.modules.patient.activator import activate_patient
@@ -95,10 +96,7 @@ from clinosim.simulator.enrichers import (
     register_builtin_enrichers,
     run_stage,
 )
-from clinosim.simulator.helpers import (
-    _country_to_yaml_key,
-    load_all_disease_protocols,
-)
+from clinosim.simulator.helpers import load_all_disease_protocols
 from clinosim.simulator.inpatient import _simulate_patient
 from clinosim.simulator.phases._forward_loop import ForwardContext, run_forward_loop
 from clinosim.types.config import ForcedScenario, SimulatorConfig

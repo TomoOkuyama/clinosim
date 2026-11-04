@@ -839,7 +839,7 @@ def run(spec: ModuleAuditSpec, cohort: Cohort) -> AxisResult:
                     # identifier[] に round-trip 保存されているので、そちらを
                     # 唯一の source of truth として prefix + suffix を判定する。
                     # `MEDICATION_REQUEST_KEY_SYSTEM` は writer / reader 共有
-                    # constant(_fhir_medications.py 由来)= rename で ImportError
+                    # constant(fhir_r4/medications/medications.py 由来)= rename で ImportError
                     # に落ちる same MB_ORG_ID_PREFIX 防御 pattern。
                     structural_key = _medication_request_structural_key(row)
                     if ABX_ORDER_ID_PREFIX not in structural_key:

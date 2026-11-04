@@ -159,7 +159,7 @@ class TestCategoryFilters:
 @pytest.mark.unit
 class TestBundleIntegration:
     def test_jp_bundle_medication_request_has_both_profiles(self):
-        from clinosim.modules.output.fhir_r4_adapter import _build_bundle
+        from clinosim.modules.output.fhir_r4 import _build_bundle
 
         record = _minimal_jp_record()
         bundle = _build_bundle(record, "JP")
@@ -175,7 +175,7 @@ class TestBundleIntegration:
             )
 
     def test_us_bundle_has_no_clins_profile(self):
-        from clinosim.modules.output.fhir_r4_adapter import _build_bundle
+        from clinosim.modules.output.fhir_r4 import _build_bundle
 
         record = _minimal_us_record()
         bundle = _build_bundle(record, "US")

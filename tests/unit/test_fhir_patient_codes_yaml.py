@@ -1,4 +1,4 @@
-"""_fhir_patient.py's marital status / language displays must resolve via
+"""fhir_r4/demographics/patient.py's marital status / language displays must resolve via
 codes/data/*.yaml + code_lookup (AD-30 sibling: "never hardcode clinical
 display dicts in Python"), not the hardcoded _MARITAL_DISPLAY(_JA) /
 _LANG_DISPLAY dicts (2026-07-02 grand design review, display-dict migration).

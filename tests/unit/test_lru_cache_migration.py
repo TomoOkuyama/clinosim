@@ -83,7 +83,7 @@ def test_no_module_level_cache_in_fhir_diagnostic_report():
     assert not hasattr(mod, "_PANELS_CACHE"), "module-level _PANELS_CACHE should be gone"
 
 
-# ---------- L4-L6: _fhir_localization.py 3 sibling loaders (Fix PR-1) ----------
+# ---------- L4-L6: fhir_r4/lib/localization.py 3 sibling loaders (Fix PR-1) ----------
 
 
 def test_l4_load_med_terms_ja_uses_lru_cache():

@@ -21,7 +21,8 @@ from clinosim.modules.population.engine import LifeEvent
 from clinosim.modules.population.vital_status import record_hospital_death
 from clinosim.seeding import PHASE_INPATIENT_SIM, PHASE_READMISSION, derive_phase_rng
 from clinosim.simulator._setup import _activate_cached_person
-from clinosim.simulator.helpers import _deactivate_to_layer1, _evaluate_readmission
+from clinosim.simulator.discharge_gate import _evaluate_readmission
+from clinosim.simulator.helpers import _deactivate_to_layer1
 from clinosim.simulator.inpatient import _simulate_patient
 from clinosim.types.output import CIFPatientRecord
 

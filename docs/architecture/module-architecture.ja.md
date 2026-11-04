@@ -64,7 +64,7 @@ clinosim/
 │   ├── identity/             # 住民識別子 & 保険番号 (JP、opt-in)
 │   ├── output/               # CIF / FHIR R4 / CSV + 臨床文書
 │   │   ├── cif_writer.py              # CIF structural writer
-│   │   ├── fhir_r4_adapter.py         # FHIR R4 Bulk NDJSON (DocumentReference 含む)
+│   │   ├── fhir_r4/                   # FHIR R4 Bulk NDJSON (DocumentReference 含む)
 │   │   ├── csv_adapter.py             # CSV テーブル
 │   │   └── hospital_course_extractor.py  # ★ 決定的イベント抽出
 │   ├── llm_service/          # LLM アクセス全部 (AD-11)

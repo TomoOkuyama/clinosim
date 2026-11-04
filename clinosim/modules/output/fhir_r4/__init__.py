@@ -11,8 +11,7 @@ verbatim.
 
 META #1633 P6 split: the former 1326-line ``__init__.py`` was promoted
 to ``builder.py`` and this facade kept the public + the private
-``_*`` symbols that tests + the ``fhir_r4_adapter`` shim reach into,
-so no caller import changes.
+``_*`` symbols that tests reach into, so no caller import changes.
 
 See [`README.md`](README.md) for the FHIR resource → domain map.
 """
@@ -36,18 +35,14 @@ from clinosim.modules.output.fhir_r4.builder import (  # noqa: F401
     register_bundle_builder,
 )
 
-# Explicit ``__all__`` names every re-exported symbol so (a) mypy
-# treats the ``_*`` names as deliberately exported (back-compat API
-# for tests + the ``fhir_r4_adapter.py`` shim), and (b) a
-# ``from fhir_r4 import *`` wildcard (performed by
-# ``fhir_r4_adapter.py``) still sees both the public and private
-# surfaces.
+# Explicit ``__all__`` names every re-exported symbol so mypy treats the
+# ``_*`` names (used by tests) as deliberately exported.
 __all__ = [
     # Public API
     "available_builders",
     "convert_cif_to_fhir",
     "register_bundle_builder",
-    # Back-compat private surface (tests + fhir_r4_adapter.py shim)
+    # Private surface used by tests
     "_AFTER_DEATH_ALLOWED_RESOURCE_TYPES",
     "_AFTER_DEATH_START_GATED_RESOURCE_TYPES",
     "_BUNDLE_BUILDERS",

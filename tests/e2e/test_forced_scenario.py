@@ -61,10 +61,10 @@ class TestForcedScenario:
         # It used to be stored on the _generate_vitals function object keyed by
         # patient_id, leaking across every generation run in the process (stale state
         # + unbounded growth). Guard the exact anti-pattern: no such attribute appears.
-        from clinosim.simulator import inpatient as inpatient_mod
+        from clinosim.simulator import vitals_pipeline
 
         run_forced(ForcedScenario(disease_id="bacterial_pneumonia", count=3))
-        assert not hasattr(inpatient_mod._generate_vitals, "_prev_diet"), (
+        assert not hasattr(vitals_pipeline._generate_vitals, "_prev_diet"), (
             "diet tracking must be call-local, not a function-attribute global (AD-16)"
         )
 

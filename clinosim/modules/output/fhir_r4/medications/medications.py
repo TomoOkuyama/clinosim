@@ -186,7 +186,7 @@ def _derive_mr_category(
 # `clinosim/audit/axes/clinical.py` for the narrow-rate gate that filters
 # antibiotic MRs by their structural-key identifier — same
 # writer/reader shared-constant pattern as ``MB_ORG_ID_PREFIX``
-# (`_fhir_microbiology.py`). Rename here triggers an ImportError
+# (`fhir_r4/labs/microbiology.py`). Rename here triggers an ImportError
 # downstream rather than a silent gate skip.
 MEDICATION_REQUEST_KEY_SYSTEM = structural_key_system("medication-request-key")
 

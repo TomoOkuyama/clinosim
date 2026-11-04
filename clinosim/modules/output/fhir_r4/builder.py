@@ -92,7 +92,7 @@ from clinosim.modules.output.fhir_r4.lib.inline_bb import (
     _bb_vitals,
 )
 
-# PR N: post-emit helpers extracted to _fhir_post_process.py.
+# Post-emit helpers (fhir_r4/post_process/).
 # Imported for use inside `_build_bundle` (see finalize pass).
 from clinosim.modules.output.fhir_r4.post_process import (
     _apply_jp_clins_profile,

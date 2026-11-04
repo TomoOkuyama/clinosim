@@ -138,10 +138,8 @@ forward-compatible for format-specific settings but currently unused.
   callables of shape `(ctx: BundleContext) -> list[resource]`; the
   registry itself lives in
   [`fhir_r4/`](fhir_r4/README.md).
-- **Backwards-compat shim**: `fhir_r4_adapter.py` re-exports the
-  FHIR subpackage's public surface for the ~100 pre-migration
-  callers (Issue #555 PR1). No `DeprecationWarning` — the shim is a
-  cleanup rename, not a deprecation.
+- **Import path**: `clinosim.modules.output.fhir_r4` (the former
+  `fhir_r4_adapter.py` shim was removed in Issue #2517).
 
 ## Directory contents
 
@@ -154,7 +152,6 @@ clinosim/modules/output/
   cif_reader.py                      CIFReader (merges structural + narrative) + resolve_current_narrative_dir
   csv_adapter.py                     per-domain CSV emission (`convert_cif_to_csv`)
   hospital_course_extractor.py       HospitalCourseFact + extract_hospital_course + summarize_* (narrative helper)
-  fhir_r4_adapter.py                 backwards-compat shim (re-exports fhir_r4/)
   fhir_r4/                           FHIR R4 emission subpackage (see fhir_r4/README.md)
   SPEC.md                            extended design reference (not runtime)
 ```

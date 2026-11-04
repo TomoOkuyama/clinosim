@@ -132,10 +132,8 @@ adapter は本 facade を編集せず新 `format_id` を import 時に登録で�
   resource 追加のための AD-56 plug-in 面。builder は
   `(ctx: BundleContext) -> list[resource]` の callable。registry
   実体は [`fhir_r4/`](fhir_r4/README.ja.md) 内。
-- **Backwards-compat shim**: `fhir_r4_adapter.py` は FHIR subpackage
-  の公開面を pre-migration の ~100 caller のため再 export する
-  (Issue #555 PR1)。`DeprecationWarning` は出さない — shim は
-  cleanup rename であり deprecation ではない。
+- **Import path**: `clinosim.modules.output.fhir_r4` (旧 `fhir_r4_adapter.py`
+  shim は Issue #2517 で削除)。
 
 ## ディレクトリ構造
 
@@ -148,7 +146,6 @@ clinosim/modules/output/
   cif_reader.py                      CIFReader (構造化 + narrative merge) + resolve_current_narrative_dir
   csv_adapter.py                     per-domain CSV emission (`convert_cif_to_csv`)
   hospital_course_extractor.py       HospitalCourseFact + extract_hospital_course + summarize_* (narrative helper)
-  fhir_r4_adapter.py                 backwards-compat shim (fhir_r4/ を再 export)
   fhir_r4/                           FHIR R4 emission subpackage (fhir_r4/README.md 参照)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```

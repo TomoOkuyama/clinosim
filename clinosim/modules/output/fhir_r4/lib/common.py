@@ -15,12 +15,8 @@ release cycle to make the promotion byte-neutral; a follow-up PR will drop
 the ``_`` prefix on the truly-public symbols (see the Issue #545 body for
 the rename list).
 
-The deprecated ``_fhir_common`` import path still works via a compatibility
-shim in ``clinosim/modules/output/_fhir_common.py`` that emits a
-``DeprecationWarning``. Migrate to
-``clinosim.modules.output.fhir_r4.lib.common`` (Issue #555 canonical path;
-the earlier intermediate ``clinosim.modules.output.fhir_common`` path from
-Issue #545 is also removed by this restructure).
+The canonical import path is ``clinosim.modules.output.fhir_r4.lib.common``
+(Issue #555); the earlier ``_fhir_common`` and ``fhir_common`` paths are gone.
 """
 
 from __future__ import annotations
@@ -247,7 +243,7 @@ def _escape_html(s: str) -> str:
 
     Escapes &, <, >, " — sufficient for plain-text clinical content that
     may contain lab values, units, or angle brackets (e.g. "PaO2 < 80 & SpO2 > 90").
-    Shared across _fhir_diagnostic_report.py and _fhir_composition.py (DRY, CLAUDE.md
+    Shared across fhir_r4/labs/diagnostic_report.py and fhir_r4/documents/composition.py (DRY, CLAUDE.md
     unification rule — no inline duplication).
     """
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")

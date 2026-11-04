@@ -3,9 +3,7 @@ translation, department extraction.
 
 Extracted from ``simulator/helpers.py`` (Issue #544). These helpers all read
 ``DiseaseProtocol`` fields (chief_complaint, department) and belong beside
-``protocol.py`` rather than under ``simulator/``. Callers keep their existing
-``from clinosim.simulator.helpers import _country_to_yaml_key`` etc via the
-helpers.py re-export facade for one deprecation cycle.
+``protocol.py`` rather than under ``simulator/``; import them from here.
 """
 
 from __future__ import annotations

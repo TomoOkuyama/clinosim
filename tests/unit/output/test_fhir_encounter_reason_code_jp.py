@@ -134,7 +134,7 @@ def test_disease_chief_complaint_ja_returns_ja_when_present() -> None:
     language dict is present."""
     from types import SimpleNamespace
 
-    from clinosim.simulator.helpers import _disease_chief_complaint_ja
+    from clinosim.modules.disease.localization import _disease_chief_complaint_ja
 
     proto = SimpleNamespace(chief_complaint={"en": "Dyspnea", "ja": "呼吸困難"})
     assert _disease_chief_complaint_ja(proto) == "呼吸困難"
@@ -146,7 +146,7 @@ def test_disease_chief_complaint_ja_returns_empty_when_plain_string() -> None:
     field empty (emitter falls back to English)."""
     from types import SimpleNamespace
 
-    from clinosim.simulator.helpers import _disease_chief_complaint_ja
+    from clinosim.modules.disease.localization import _disease_chief_complaint_ja
 
     proto = SimpleNamespace(chief_complaint="Dyspnea only in English")
     assert _disease_chief_complaint_ja(proto) == ""
@@ -158,7 +158,7 @@ def test_disease_chief_complaint_ja_returns_empty_when_ja_missing() -> None:
     purpose by stashing English in the JA field)."""
     from types import SimpleNamespace
 
-    from clinosim.simulator.helpers import _disease_chief_complaint_ja
+    from clinosim.modules.disease.localization import _disease_chief_complaint_ja
 
     proto = SimpleNamespace(chief_complaint={"en": "Dyspnea"})
     assert _disease_chief_complaint_ja(proto) == ""

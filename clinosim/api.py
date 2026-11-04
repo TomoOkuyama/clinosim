@@ -27,7 +27,7 @@ from clinosim.modules.output.adapter import (
 )
 
 # FHIR R4 bundle builder registry
-from clinosim.modules.output.fhir_r4_adapter import (
+from clinosim.modules.output.fhir_r4 import (
     available_builders,
     convert_cif_to_fhir,
     register_bundle_builder,

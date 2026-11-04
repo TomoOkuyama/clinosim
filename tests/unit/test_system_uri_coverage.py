@@ -48,7 +48,8 @@ EXPECTED_URIS = {
     "occupation-category": "http://clinosim.dev/fhir/CodeSystem/occupation-category",
 }
 
-_ADAPTER = Path(__file__).resolve().parent.parent.parent / "clinosim" / "modules" / "output" / "fhir_r4_adapter.py"
+# The bundle builder (formerly the `fhir_r4_adapter.py` module, Issue #555).
+_ADAPTER = Path(__file__).resolve().parent.parent.parent / "clinosim" / "modules" / "output" / "fhir_r4" / "builder.py"
 
 
 @pytest.mark.unit

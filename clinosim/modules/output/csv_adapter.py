@@ -313,7 +313,7 @@ def convert_cif_to_csv(
         # test_code/test_code_system + antibiotic_code/antibiotic_code_system are
         # resolved via the same country-gated single source of truth the FHIR
         # builder uses (resolve_culture_code/resolve_susceptibility_code in
-        # _fhir_microbiology.py), so CSV and FHIR output stay consistent for JP
+        # fhir_r4/labs/microbiology.py), so CSV and FHIR output stay consistent for JP
         # (TODO.md 2026-07-04).
         for mb in record.get("microbiology", []):
             test_code, test_code_system = resolve_culture_code(

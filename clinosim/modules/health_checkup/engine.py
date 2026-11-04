@@ -16,7 +16,7 @@ country=JP のときのみ発火する。default OFF で急性期病院想定を
 - ``record.documents`` に HEALTH_CHECKUP_REPORT の ClinicalDocument stub
   (narrative=None、Stage 2 TemplateNarrativePass が populate)
 
-FHIR emit は _fhir_composition.py の JP-eCheckup builder が担う。
+FHIR emit は fhir_r4/documents/composition.py の JP-eCheckup builder が担う。
 Composition.section の text.div は narrative pass が入れる。
 """
 

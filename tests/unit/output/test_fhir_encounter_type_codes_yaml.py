@@ -1,4 +1,4 @@
-"""_fhir_encounter.py's encounter-type SNOMED display must resolve via
+"""fhir_r4/encounters/encounter.py's encounter-type SNOMED display must resolve via
 codes/data/snomed-ct.yaml + code_lookup, keyed by the SNOMED code itself —
 not the internal encounter-type enum via a hardcoded _ENCOUNTER_TYPE_SNOMED_JA
 dict (2026-07-02 grand design review, display-dict migration).

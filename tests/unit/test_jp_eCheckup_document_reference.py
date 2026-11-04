@@ -238,6 +238,6 @@ def test_custodian_set_and_masteridentifier_stable():
 @pytest.mark.unit
 def test_registered_in_bundle_builders():
     """`_BUNDLE_BUILDERS` に登録済み(AD-56 registry)。"""
-    from clinosim.modules.output.fhir_r4_adapter import available_builders
+    from clinosim.modules.output.fhir_r4 import available_builders
 
     assert "_bb_document_references_checkup" in available_builders()

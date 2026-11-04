@@ -26,7 +26,7 @@ on **HOW-TO**.
 Canonical source-code paths:
 - Enricher registry: `clinosim/simulator/enrichers.py`
 - Output-adapter registry: `clinosim/modules/output/adapter.py`
-- FHIR bundle-builder registry: `clinosim/modules/output/fhir_r4/builder.py` (`fhir_r4_adapter.py` is a backwards-compat shim)
+- FHIR bundle-builder registry: `clinosim/modules/output/fhir_r4/builder.py`
 - Shared types: `clinosim/types/`
 - Code systems: `clinosim/codes/`
 - Locale data: `clinosim/locale/`
@@ -1002,8 +1002,7 @@ uri = get_system_uri("snomed-ct")  # do not embed FHIR system URIs as string lit
 ```
 
 > **Anti-pattern (URI-1, CODES-4, FA-2):** do not embed
-> SNOMED / LOINC / UCUM / HL7 URIs as raw strings (many remnants
-> still in `fhir_r4_adapter.py`). Register a new key's canonical
+> SNOMED / LOINC / UCUM / HL7 URIs as raw strings. Register a new key's canonical
 > HL7 URI in `_BUILTIN_URIS` in `codes/loader.py` before using
 > `get_system_uri()`.
 

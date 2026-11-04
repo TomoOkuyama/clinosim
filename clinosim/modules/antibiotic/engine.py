@@ -35,7 +35,7 @@ _NARROW_LADDER_YAML = _REF_DIR / "narrow_ladder.yaml"
 # by antibiotic origin (clinosim/audit/axes/clinical.py narrow-rate gate) import
 # these constants instead of duplicating literals, so a rename here triggers an
 # ImportError downstream rather than a silent gate skip — same defense pattern
-# as MB_ORG_ID_PREFIX in _fhir_microbiology.py.
+# as MB_ORG_ID_PREFIX in fhir_r4/labs/microbiology.py.
 ABX_REGIMEN_ID_PREFIX = "abx-"  # AntibioticRegimen.regimen_id
 ABX_ORDER_REQ_PREFIX = "req-"  # Order.order_id = "req-" + regimen_id
 ABX_ORDER_ID_PREFIX = ABX_ORDER_REQ_PREFIX + ABX_REGIMEN_ID_PREFIX  # composed prefix for readers

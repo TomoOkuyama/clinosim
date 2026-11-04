@@ -363,7 +363,7 @@ def _simulate_ed_visit(
         from clinosim.modules.encounter.protocol import load_encounter_condition
 
         protocol = load_encounter_condition(cond_name)
-    except (FileNotFoundError, Exception):
+    except FileNotFoundError:
         protocol = None
 
     from clinosim.locale.text import resolve_text

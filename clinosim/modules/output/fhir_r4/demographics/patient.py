@@ -835,7 +835,7 @@ def _build_patient(p: dict, country: str) -> dict:
                         "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient",
                         "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Patient_eCS",
                     ],
-                    # Static deterministic timestamp mirrors `_fhir_facility.py`
+                    # Static deterministic timestamp mirrors `fhir_r4/encounters/facility.py`
                     # (pattern). Real-world lastUpdated is server-
                     # provided; clinosim's simulator has no such notion, so
                     # a fixed value keeps reproducibility byte-clean while

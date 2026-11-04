@@ -3,7 +3,7 @@
 Canonical numeric Observation resources: per-order lab values (via
 _build_lab_observation helper) and per-encounter vital signs. Microbiology,
 nursing flowsheets, and Immunization were split out in PR3 into
-_fhir_microbiology.py / _fhir_nursing.py / _fhir_immunization.py
+fhir_r4/labs/microbiology.py / fhir_r4/procedures/nursing.py / fhir_r4/procedures/immunization.py
 respectively. The ctx-taking builder imports the shared BundleContext
 from _fhir_common, so this module never imports back through the adapter
 (no cycle).

@@ -21,7 +21,13 @@ from clinosim.modules.diagnosis.nonspecific_codes import UNRESOLVED_DIAGNOSIS_IC
 from clinosim.modules.disease.acuity import (
     EMERGENCY_PRIORITY_DISEASES,
 )
-from clinosim.modules.disease.localization import target_los_config
+from clinosim.modules.disease.localization import (
+    _country_to_yaml_key,
+    _disease_chief_complaint,
+    _disease_chief_complaint_ja,
+    _disease_to_department,
+    target_los_config,
+)
 from clinosim.modules.disease.protocol import DiseaseProtocol, load_disease_protocol
 from clinosim.modules.disease.severity import category_from_score
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -66,59 +72,10 @@ from clinosim.simulator._stay_thresholds import (
     URGENT_ADMISSION_HOUR_MIN,
     URGENT_ADMISSION_HOUR_STD,
 )
-
-# Backwards-compat re-export (Issue #552 residual). The per-day state
-# machine `_run_daily_loop` (573 LOC) and its helper `_extract_findings`
-# (23 LOC) moved to `clinosim/simulator/daily_loop.py`. Existing call
-# sites in `_simulate_patient` (and external test callers) resolve via
-# this re-import; new call sites should import directly from
-# `daily_loop`.
-from clinosim.simulator.daily_loop import (  # noqa: E402, F401
-    SYMPTOM_AXES,
-    _extract_findings,
-    _run_daily_loop,
-)
+from clinosim.simulator.daily_loop import SYMPTOM_AXES, _run_daily_loop
 from clinosim.simulator.discharge_gate import discharge_disposition_for
 from clinosim.simulator.discharge_rx import build_discharge_rx
-from clinosim.simulator.helpers import (  # noqa: I001
-    _country_to_yaml_key,
-    _disease_chief_complaint,
-    _disease_chief_complaint_ja,
-    _disease_to_department,
-)
-
-# Two-pass lab-result generation extracted to lab_pipeline (Issue #552 PR A).
-# Backwards-compat re-exports (Issue #552 PR C). The 3 medication-related
-# per-day generators moved to `clinosim/simulator/medication_pipeline.py`.
-# Existing call sites in `_run_daily_loop` (and `_simulate_unknown_condition`
-# still in this file on this branch) resolve via these re-imports.
-from clinosim.simulator.medication_pipeline import (  # noqa: E402, F401
-    _generate_home_medication_orders,
-    _generate_mar,
-    _place_chronic_monitoring_orders,
-)
-
-# Backwards-compat re-export (Issue #552 PR D). `_simulate_unknown_condition`
-# was moved to `clinosim/simulator/unknown_condition.py`; the re-export keeps
-# existing `from clinosim.simulator.inpatient import _simulate_unknown_condition`
-# imports resolving without touching call sites in the same PR.
-from clinosim.simulator.unknown_condition import _simulate_unknown_condition  # noqa: E402, F401
-
-# Backwards-compat re-exports (Issue #552 PR B). The vitals family (5
-# functions + 2 supporting frozensets) moved to
-# `clinosim/simulator/vitals_pipeline.py`. Existing call sites in
-# `_run_daily_loop` still resolve via these re-imports; new call sites
-# should import directly from `vitals_pipeline`.
-from clinosim.simulator.vitals_pipeline import (  # noqa: E402, F401
-    _NEURO_DISEASES,
-    _RESPIRATORY_DISEASES,
-    _generate_adl_assessment,
-    _generate_daily_io,
-    _generate_vitals,
-    _loc_for,
-    _make_raw,
-    _o2_for,
-)
+from clinosim.simulator.medication_pipeline import _generate_home_medication_orders
 from clinosim.types.clinical import (
     ClinicalDiagnosis,
     ConditionEvent,
@@ -677,7 +634,7 @@ def _simulate_patient(
     encounter.clinical_course_archetype = archetype
 
     # Department resolution: granular YAML specialty → hospital's available department
-    from clinosim.simulator.helpers import pick_ward, resolve_department
+    from clinosim.simulator.hospital_ops import pick_ward, resolve_department
 
     granular_dept = _disease_to_department(protocol)
     department = resolve_department(granular_dept, hospital_ops)

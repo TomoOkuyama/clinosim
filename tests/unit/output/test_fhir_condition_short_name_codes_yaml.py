@@ -1,4 +1,4 @@
-"""_fhir_common.py's clinical short-name (code.text abbreviation) must
+"""fhir_r4/lib/common.py's clinical short-name (code.text abbreviation) must
 resolve via a new codes/data/condition-short-name.yaml + code_lookup, not
 the hardcoded _CONDITION_SHORT_NAME dict (2026-07-02 grand design review,
 display-dict migration — the largest/last item in this backlog).
