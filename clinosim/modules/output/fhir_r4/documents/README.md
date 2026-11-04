@@ -90,7 +90,7 @@ gate replaces byte-diff (see
 ## Dependencies
 
 - `clinosim.modules._shared` — `is_jp`, `countries.lang_for`.
-- `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
+- `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`,
   `_escape_html`, `derive_meta_last_updated`, `to_fhir_instant`;
   `lib.ids` — opaque ids.
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —

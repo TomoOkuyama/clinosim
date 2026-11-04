@@ -7,14 +7,12 @@ from typing import Any
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import map_diagnosis_code
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.family_history.engine import load_reference
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
-from clinosim.modules.output.fhir_r4.lib.common import (
-    BundleContext,
-    build_diagnosis_codeable_concept,
-    map_diagnosis_code,
-)
+from clinosim.modules.output.fhir_r4.lib.common import build_diagnosis_codeable_concept
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,

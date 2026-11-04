@@ -88,7 +88,7 @@ Domain-README files enumerate the per-family builders.
 - `clinosim.modules.newborn.fhir_emit` — the seven `_bb_newborn_*`
   builders in the registry.
 - `clinosim.simulator.log` — export progress events.
-- Every domain subpackage imports `lib.common.BundleContext` +
+- Every domain subpackage imports `lib.context.BundleContext` +
   shared fragment helpers. `lib/common.py` itself has no domain
   imports, but `lib/inline_bb.py` imports builder helpers from the
   domain subpackages (and `lib/ed_reattribution.py` from
@@ -113,14 +113,14 @@ Domain-README files enumerate the per-family builders.
   [`clinosim.modules.document`](../../document/README.md);
   `SR_ID_PREFIX` / `PLACER_ORDER_NUMBER_SYSTEM` etc. in the
   `labs/service_request.py` file).
-- **`BundleContext`** (`lib/common.py`): the read-only context
+- **`BundleContext`** (`lib/context.py`): the read-only context
   passed to every `_bb_*` builder. Fields: `record`, `country`,
   `roster_map`, `hospital_config`, `patient_data`, `patient_id`,
   `is_readmission`, `prior_encounter_id`, `primary_dx_code`,
   `admit_dx_code`, `admit_dx_system`, `primary_enc_id`,
   `patient_sex`, `encounter_resource_index`, `snapshot_date`,
   `emitted_mr_ids`.
-- **JP-CLINS extensions** (`lib/common.py`):
+- **JP-CLINS extensions** (`lib/ecs_extensions.py`):
   `build_ecs_institution_extension`,
   `build_ecs_department_extension`,
   `attach_ecs_institutional_extensions` — the eCS (electronic

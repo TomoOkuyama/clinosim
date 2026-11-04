@@ -39,7 +39,9 @@ from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.documents.composition import _resolve_composition_id
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _sha1_b64, display_entry, to_fhir_instant
+from clinosim.modules.output.fhir_r4.lib.common import _sha1_b64, display_entry
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
+from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_instant
 
 
 def _build_relates_to_composition(document_id: str) -> list[dict]:

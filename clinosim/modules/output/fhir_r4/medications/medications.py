@@ -22,17 +22,16 @@ from clinosim.codes.drugs import drug_system_uri, is_verified_yj, jp_drug_code_t
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import load_code_mapping
+from clinosim.locale.loader import load_code_mapping, map_diagnosis_code
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, get_attr_or_key, is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import (
+from clinosim.modules.output.fhir_r4.lib.dosage import (
     _parse_dose_for_mar,
     build_dosage_instruction,
     build_route_concept,
     canonicalize_route,
-    map_diagnosis_code,
     map_mar_status,
     strip_protocol_prefix,
 )
@@ -1131,7 +1130,7 @@ def _build_discharge_rx_dosage(
     # どおり") don't get an inferred numeric dose.
     if not authored_text and dose:
         from clinosim.modules.order.engine import parse_dose_string
-        from clinosim.modules.output.fhir_r4.lib.common import resolve_timing_repeat
+        from clinosim.modules.output.fhir_r4.lib.dosage import resolve_timing_repeat
 
         _parsed = parse_dose_string(dose)
         _qty = _parsed.get("dose_quantity")
@@ -1151,9 +1150,7 @@ def _build_discharge_rx_dosage(
     # Issue #966: IV augmentation (continuous → rateQuantity; bolus →
     # timing.repeat.duration). Per-drug defaults from
     # iv_infusion_defaults.yaml.
-    from clinosim.modules.output.fhir_r4.lib.common import (
-        augment_iv_dosage_with_rate as _augment_iv,
-    )
+    from clinosim.modules.output.fhir_r4.lib.dosage import augment_iv_dosage_with_rate as _augment_iv
 
     _augment_iv(dosage, dose_text=dose or "", route=route, display_name=drug_name or "")
     return dosage
@@ -1380,9 +1377,7 @@ def _build_ma_dosage_block(
 
     # Issue #1067 B2: IV-route drugs missing a structured dose get the same
     # catalog-based rate/duration augmentation the MR builder gets.
-    from clinosim.modules.output.fhir_r4.lib.common import (
-        augment_iv_dosage_with_rate as _augment_iv,
-    )
+    from clinosim.modules.output.fhir_r4.lib.dosage import augment_iv_dosage_with_rate as _augment_iv
 
     _po_iv = parent_order or {}
     _augment_iv(

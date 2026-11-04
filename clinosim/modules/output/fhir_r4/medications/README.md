@@ -101,7 +101,7 @@ Not applicable — pure builders over CIF orders + MAR records.
 - `clinosim.modules._shared` — `is_jp`, `countries.lang_for`,
   `get_attr_or_key`.
 - `clinosim.codes.ucum` — `ucum_quantity` (every UCUM Quantity).
-- `clinosim.modules.output.fhir_r4.lib.common` — dosage / route / status
+- `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — dosage / route / status
   helpers.
 - `clinosim.modules.output.fhir_r4.lib.ids` — `derive_opaque_id` +
   `structural_key_system`.

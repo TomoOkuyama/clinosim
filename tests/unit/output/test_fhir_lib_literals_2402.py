@@ -10,7 +10,8 @@ from pathlib import Path
 import pytest
 
 import clinosim
-from clinosim.modules.output.fhir_r4.lib.common import _resolve_patient_instruction_ja, build_ecs_department_extension
+from clinosim.modules.output.fhir_r4.lib.dosage import _resolve_patient_instruction_ja
+from clinosim.modules.output.fhir_r4.lib.ecs_extensions import build_ecs_department_extension
 from clinosim.modules.output.fhir_r4.lib.reference_data import _SEVERITY_JP
 
 pytestmark = pytest.mark.unit

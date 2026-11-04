@@ -28,7 +28,7 @@ from typing import Any
 
 import pytest
 
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.inline_bb import _bb_medication_admins
 
 pytestmark = pytest.mark.unit

@@ -245,9 +245,7 @@ def _compose_outpatient_subjective_from_state(ctx: NarrativeContext) -> str:
     # renders as "Unspecified dementia", not the WHO parent-code
     # "Dementia in Alzheimer disease").
     from clinosim.codes import lookup as _code_lookup
-    from clinosim.modules.output.fhir_r4.lib.common import (
-        map_diagnosis_code as _map_diagnosis_code,
-    )
+    from clinosim.locale.loader import map_diagnosis_code as _map_diagnosis_code
 
     country = "JP" if ctx.locale.lower() == "jp" else "US"
     conditions = _o(patient, "chronic_conditions", []) or []

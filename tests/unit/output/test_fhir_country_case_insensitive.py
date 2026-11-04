@@ -11,7 +11,7 @@ _fhir_hai via ``system_key_for``.
 
 import pytest
 
-from clinosim.modules.output.fhir_r4.lib.common import map_diagnosis_code
+from clinosim.locale.loader import map_diagnosis_code
 from clinosim.modules.output.fhir_r4.lib.localization import _localize_drug_name
 
 pytestmark = pytest.mark.unit

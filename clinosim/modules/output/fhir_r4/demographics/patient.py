@@ -32,9 +32,8 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     display_entry,
     dual_slot_concept,
     system_coding,
-    to_fhir_date,
-    to_fhir_deceased_datetime,
 )
+from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_date, to_fhir_deceased_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -1034,7 +1033,7 @@ def _build_patient(p: dict, country: str) -> dict:
     # must-support (the Department extension context excludes Patient).
     # Attach here (inline) because Patient's eCS profile URL is set
     # directly on this builder, not via `_apply_jp_clins_profile` post-hook.
-    from clinosim.modules.output.fhir_r4.lib.common import attach_ecs_institutional_extensions
+    from clinosim.modules.output.fhir_r4.lib.ecs_extensions import attach_ecs_institutional_extensions
 
     attach_ecs_institutional_extensions(resource, country, include_department=False)
 

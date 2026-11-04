@@ -6,7 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from clinosim.modules.output.fhir_r4.lib.common import build_diagnosis_codeable_concept, build_route_concept
+from clinosim.modules.output.fhir_r4.lib.common import build_diagnosis_codeable_concept
+from clinosim.modules.output.fhir_r4.lib.dosage import build_route_concept
 
 pytestmark = pytest.mark.unit
 

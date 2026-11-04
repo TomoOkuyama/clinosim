@@ -241,9 +241,7 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
         parts.append(t("narrative_text.hpi.chief_complaint", "ja", cc=cc))
     # Chronic short list — Issue #1333: route CIF base code through
     # map_diagnosis_code so display matches the FHIR emit-target.
-    from clinosim.modules.output.fhir_r4.lib.common import (
-        map_diagnosis_code as _map_diagnosis_code,
-    )
+    from clinosim.locale.loader import map_diagnosis_code as _map_diagnosis_code
 
     country = "JP" if ctx.locale.lower() == "jp" else "US"
     conds = _o(patient, "chronic_conditions", []) or []

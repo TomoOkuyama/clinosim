@@ -113,7 +113,7 @@ def load_frequency_tokens() -> dict[str, tuple[int, int, str]]:
     `clinosim/codes/data/frequency-tokens.yaml`, consolidated under
     post-#1880 review (hardcoded-audit Finding 20) from the parallel
     `_FREQ_PER_DAY` (`clinosim/modules/order/engine.py`) and
-    `_FREQ_LABEL_TIMING` (`clinosim/modules/output/fhir_r4/lib/common.py`)
+    `_FREQ_LABEL_TIMING` (`clinosim/modules/output/fhir_r4/lib/dosage.py`)
     dicts.
     """
     raw = data_table("frequency-tokens")

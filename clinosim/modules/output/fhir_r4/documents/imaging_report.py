@@ -40,7 +40,9 @@ from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (  # type: ig
     RADIOLOGY_REPORT_ID_PREFIX,
     V2_0074_SYSTEM,
 )
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, _escape_html, dual_slot_concept, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import _escape_html, dual_slot_concept
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
+from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 
 # LOINC "画像検査報告書" — the canonical Composition.type for radiology
 # reports, verified via JP-CLINS eImaging / JP Core radiology profile.

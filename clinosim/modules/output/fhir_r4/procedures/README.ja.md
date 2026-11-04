@@ -88,7 +88,7 @@ from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import (
 ## 依存
 
 - `clinosim.modules._shared` — `is_jp`, `countries.lang_for`。
-- `clinosim.modules.output.fhir_r4.lib.common` — `BundleContext`,
+- `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`,
   `survey_category`, `to_fhir_datetime`、fragment helper。
   `lib.ids` — opaque id。
 - `clinosim.modules.output.fhir_r4.conditions.primary_ref` —

@@ -86,7 +86,7 @@ Procedure, Practitioner)、
 - `clinosim.modules.newborn.fhir_emit` — registry 内の 7 つの
   `_bb_newborn_*` builder。
 - `clinosim.simulator.log` — export 進捗 event。
-- 各 domain subpackage は `lib.common.BundleContext` + 共有 fragment
+- 各 domain subpackage は `lib.context.BundleContext` + 共有 fragment
   helper を import。`lib/common.py` 自体は domain を import しないが、
   `lib/inline_bb.py` は domain subpackage の builder helper を
   (`lib/ed_reattribution.py` は `encounters/` を) import するため、
@@ -109,14 +109,14 @@ Procedure, Practitioner)、
   ([`clinosim.modules.document`](../../document/README.ja.md) の
   `DOC_REFERENCE_ID_PREFIX` 等、`labs/service_request.py` の
   `SR_ID_PREFIX` / `PLACER_ORDER_NUMBER_SYSTEM` 等)。
-- **`BundleContext`** (`lib/common.py`): 各 `_bb_*` builder に
+- **`BundleContext`** (`lib/context.py`): 各 `_bb_*` builder に
   渡される read-only context。field: `record`, `country`,
   `roster_map`, `hospital_config`, `patient_data`, `patient_id`,
   `is_readmission`, `prior_encounter_id`, `primary_dx_code`,
   `admit_dx_code`, `admit_dx_system`, `primary_enc_id`,
   `patient_sex`, `encounter_resource_index`, `snapshot_date`,
   `emitted_mr_ids`。
-- **JP-CLINS extension** (`lib/common.py`):
+- **JP-CLINS extension** (`lib/ecs_extensions.py`):
   `build_ecs_institution_extension`,
   `build_ecs_department_extension`,
   `attach_ecs_institutional_extensions` — JP-CLINS Composition

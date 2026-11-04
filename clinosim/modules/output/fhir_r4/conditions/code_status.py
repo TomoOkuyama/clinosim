@@ -11,7 +11,8 @@ from clinosim.modules._shared import is_jp
 from clinosim.modules.code_status.engine import load_reference
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, survey_category
+from clinosim.modules.output.fhir_r4.lib.common import survey_category
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,

@@ -23,12 +23,8 @@ from clinosim.locale.i18n import t
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import _sdoh_effective_datetime
-from clinosim.modules.output.fhir_r4.lib.common import (
-    BundleContext,
-    _social_category,
-    display_entry,
-    dual_slot_concept,
-)
+from clinosim.modules.output.fhir_r4.lib.common import _social_category, display_entry, dual_slot_concept
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,

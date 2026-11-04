@@ -16,10 +16,7 @@ Unknown routes yield the empty string so the caller drops
 
 from __future__ import annotations
 
-from clinosim.modules.output.fhir_r4.lib.common import (
-    _resolve_patient_instruction_ja,
-    build_dosage_instruction,
-)
+from clinosim.modules.output.fhir_r4.lib.dosage import _resolve_patient_instruction_ja, build_dosage_instruction
 
 # --- route resolver directly ---
 

@@ -76,7 +76,7 @@ def test_pick_reason_text_empty_both_fields_returns_empty() -> None:
 
 def _ctx_with_lab_order(order: Order, country: str = "JP") -> Any:
     """Minimal BundleContext-shape fixture for _bb_service_requests."""
-    from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+    from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 
     record = {"orders": [order]}
     return BundleContext(

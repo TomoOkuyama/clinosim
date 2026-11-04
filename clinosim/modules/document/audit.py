@@ -827,7 +827,7 @@ def _build_document_proof() -> dict[str, Any]:
     from clinosim.modules.output.fhir_r4.documents.composition import _bb_compositions
     from clinosim.modules.output.fhir_r4.documents.documents import _bb_document_references
     from clinosim.modules.output.fhir_r4.encounters.care_team import _bb_care_teams
-    from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+    from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 
     # Synthetic free-text ClinicalDocument (PROGRESS_NOTE, LOINC 11506-3).
     # This is the actual production free_text format (DocumentReference path).

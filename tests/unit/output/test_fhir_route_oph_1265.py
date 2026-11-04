@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import pytest
 
-from clinosim.modules.output.fhir_r4.lib.common import build_route_concept
+from clinosim.modules.output.fhir_r4.lib.dosage import build_route_concept
 from clinosim.modules.output.fhir_r4.lib.localization import ROUTE_TEXT
 from clinosim.modules.output.fhir_r4.lib.reference_data import _ROUTE_SNOMED
 

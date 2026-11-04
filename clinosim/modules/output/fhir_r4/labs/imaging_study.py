@@ -45,7 +45,9 @@ from clinosim.modules.imaging.engine import (  # canonical owners; re-exported b
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs.service_request import _resolve_service_request_id
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, display_entry, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.common import display_entry
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
+from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,

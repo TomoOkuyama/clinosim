@@ -40,7 +40,8 @@ from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.observation.engine import canonical_lab_name
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext, to_fhir_datetime
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
+from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,

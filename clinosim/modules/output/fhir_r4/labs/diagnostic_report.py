@@ -52,12 +52,8 @@ from clinosim.modules.output.fhir_r4.labs.service_request import (
     build_panel_counter,
     order_to_sr_id,
 )
-from clinosim.modules.output.fhir_r4.lib.common import (
-    _escape_html,
-    build_presented_form,
-    dual_slot_concept,
-    to_fhir_datetime,
-)
+from clinosim.modules.output.fhir_r4.lib.common import _escape_html, build_presented_form, dual_slot_concept
+from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,
@@ -608,7 +604,7 @@ def build_dr_resource(
     # 実運用では検査値確定+ラボ承認時刻が入るが、CIF 相当時刻無いため
     # effectiveDateTime を近似として emit(100% coverage 実現)。
     # feedback FB-F1: instant 型は 秒精度 + TZ 必須
-    from clinosim.modules.output.fhir_r4.lib.common import to_fhir_instant
+    from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_instant
 
     if issued:
         res["issued"] = to_fhir_instant(issued)

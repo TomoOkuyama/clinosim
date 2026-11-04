@@ -25,7 +25,7 @@ import re
 
 import pytest
 
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.procedures.device import (
     DEVICE_KEY_SYSTEM,
     DEVICE_USE_STATEMENT_KEY_SYSTEM,

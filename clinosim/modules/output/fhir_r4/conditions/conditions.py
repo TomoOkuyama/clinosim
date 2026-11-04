@@ -14,6 +14,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import map_diagnosis_code
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
@@ -38,11 +39,9 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     display_entry,
     dual_slot_concept,
     infer_severity,
-    map_diagnosis_code,
     severity_coding,
-    to_fhir_date,
-    to_fhir_datetime,
 )
+from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_date, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 
 # Condition.stage.summary SNOMED coding for staging systems with an unambiguous,

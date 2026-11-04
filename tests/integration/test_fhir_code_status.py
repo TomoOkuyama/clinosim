@@ -2,7 +2,7 @@ import pytest
 
 from clinosim.modules.output.fhir_r4.conditions.code_status import _bb_code_status
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 
 pytestmark = pytest.mark.integration
 

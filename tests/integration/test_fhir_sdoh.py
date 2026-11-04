@@ -4,7 +4,7 @@ from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (
     _bb_alcohol_use,
     _bb_smoking_status,
 )
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 
 pytestmark = pytest.mark.integration
 

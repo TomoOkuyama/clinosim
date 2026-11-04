@@ -74,7 +74,7 @@ the emitted NDJSON by resource id so line order is deterministic.
 
 - `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
   `countries.lang_for`.
-- `clinosim.modules.output.fhir_r4.lib.common` — fragment helpers
+- `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — fragment helpers
   (`system_coding`, `build_diagnosis_codeable_concept`,
   `infer_severity`, `map_diagnosis_code`, `severity_coding`,
   `to_fhir_date`, `survey_category`, `BundleContext`).

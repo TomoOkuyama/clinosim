@@ -38,14 +38,9 @@ from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
     lab_observation_id,
 )
 from clinosim.modules.output.fhir_r4.labs.service_request import build_panel_counter, order_to_sr_id
-from clinosim.modules.output.fhir_r4.lib.common import (
-    BundleContext,
-    build_reference_range,
-    dual_slot_concept,
-    entry,
-    survey_category,
-    to_fhir_datetime,
-)
+from clinosim.modules.output.fhir_r4.lib.common import build_reference_range, dual_slot_concept, entry, survey_category
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
+from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
     structural_key_system,

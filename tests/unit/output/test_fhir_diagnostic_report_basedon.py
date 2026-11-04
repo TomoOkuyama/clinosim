@@ -10,7 +10,7 @@ from datetime import datetime
 
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import build_lab_panel_reports
 from clinosim.modules.output.fhir_r4.labs.service_request import _resolve_service_request_id
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
 
 # CBC components matching lab_panels.yaml
