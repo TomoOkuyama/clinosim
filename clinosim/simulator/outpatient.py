@@ -22,6 +22,7 @@ from clinosim.modules.observation.engine import (
     determine_flag,
     generate_lab_result,
     get_lab_unit,
+    is_qualitative_test,
 )
 from clinosim.modules.order.engine import enrich_medication_order
 from clinosim.modules.staff.engine import (
@@ -449,8 +450,10 @@ def _simulate_outpatient_visit(
     for i, test_name in enumerate(lab_tests):
         # Skip non-quantitative diagnostics (e.g. ECG) misfiled under labs — they are
         # not lab analytes and must not get a fabricated value (AD-57 cleanup).
+        # Qualitative tests (urinalysis, ...) have no numeric baseline but are
+        # real results (Issue #2138 in the ED; Issue #2527 here).
         canon = canonical_lab_name(test_name)
-        if canon not in _true_labs and canon not in baseline_values:
+        if canon not in _true_labs and canon not in baseline_values and not is_qualitative_test(canon):
             continue
         order_id = f"ORD-{encounter.encounter_id}-OPD-L{i:02d}"
         lab_rng = determinism.default_rng(individual_lab_seed(order_id))
