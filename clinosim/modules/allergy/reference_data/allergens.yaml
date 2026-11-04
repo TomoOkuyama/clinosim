@@ -2,7 +2,7 @@
 # Each entry: allergen_code (SNOMED CT) + display + prevalence (age-group reference)
 #             + criticality + common_reactions
 # Sampling: 15% patient overall_prob gate → category-weighted single allergy
-# 6-layer validator is applied in engine.py (_validate_allergens)
+# validated by the AllergenConfig Pydantic model in engine.py
 #
 # SCOPE (B-4 2026-08-28): the 15% overall_prob reflects the fraction of
 # patients with a CLINICALLY DOCUMENTED AllergyIntolerance record in an

@@ -34,7 +34,7 @@ baseline ~15.3 % に一致)、gate 不成立の患者には「既知のアレル
   `manifestation_snomed` を `code_exists(..., exact=True)` で
   [`clinosim/codes/data/snomed-ct.yaml`](../../codes/data/snomed-ct.yaml)
   membership に対して cross-check。`nka` / `polyallergy` /
-  `cross_reactivity` block は `_validate_nka_and_polyallergy` で検証。
+  `cross_reactivity` block も `AllergenConfig` Pydantic model で検証。
 - **データのみ (他 module が消費)**: `allergens.yaml` の `aging:` block
   (小児食物アレルギー寛解、成人発症の薬剤過敏) は
   `clinosim.modules.population.aging._allergy_drift` が読む。
@@ -143,7 +143,7 @@ defensible 値で、pre-refactor patient activator baseline (~15.3%) に
   [`clinosim/codes/data/snomed-ct.yaml`](../../codes/data/snomed-ct.yaml)
   に存在するか cross-check し、未知コードは空表示に fall-through させず
   raise する (AD-30 chain、`clinosim.codes.code_exists`)。
-- 6-layer validator (`_validate_allergens`) は以下を reject:
+- `AllergenConfig` model は以下を reject:
   (1) 空 top-level、(2) `allergens` 欠落 / 非 dict、
   (3) `SUPPORTED_ALLERGEN_CATEGORIES` との双方向キー drift、
   (4) per-category list が空、(5) 必須 entry field 欠落、

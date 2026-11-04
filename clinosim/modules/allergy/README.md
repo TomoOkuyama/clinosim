@@ -36,8 +36,8 @@ up to three secondary allergens.
   `allergens.yaml` including `allergen_code` and every reaction's
   `manifestation_snomed` cross-checked against
   [`clinosim/codes/data/snomed-ct.yaml`](../../codes/data/snomed-ct.yaml)
-  membership via `code_exists(..., exact=True)`, plus `_validate_nka_and_polyallergy`
-  for the `nka` / `polyallergy` / `cross_reactivity` blocks.
+  membership via `code_exists(..., exact=True)`, plus the `nka` / `polyallergy` /
+  `cross_reactivity` blocks — all checked by the `AllergenConfig` Pydantic model.
 - **Data only (consumed elsewhere)**: the `aging:` block of
   `allergens.yaml` (childhood food-allergy resolution, late-onset drug
   sensitivity) is read by
@@ -152,7 +152,7 @@ for the correct audit metric (this benchmark note is cross-referenced there).
   at import time — an unknown code raises rather than falling
   through to the empty-display case (AD-30 chain, sibling of the
   `clinosim.codes.code_exists` pattern).
-- 6-layer validator (`_validate_allergens`) rejects: (1) empty
+- The `AllergenConfig` model rejects: (1) empty
   top-level, (2) missing / non-dict `allergens`, (3) key drift vs
   `SUPPORTED_ALLERGEN_CATEGORIES` (both directions), (4) empty
   per-category list, (5) missing required entry fields, (6)

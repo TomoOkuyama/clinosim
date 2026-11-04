@@ -11,7 +11,7 @@ from __future__ import annotations
 import pytest
 
 from clinosim.codes import lookup as code_lookup
-from clinosim.modules.allergy.engine import _validate_allergens, load_allergens
+from clinosim.modules.allergy.engine import AllergenConfig, load_allergen_config, load_allergens
 
 
 def test_allergens_yaml_loads():
@@ -118,7 +118,7 @@ def test_validate_allergens_raises_on_unregistered_allergen_code():
         }
     }
     with pytest.raises(ValueError, match="99999999999"):
-        _validate_allergens(data)
+        AllergenConfig.model_validate(data)
 
 
 def test_validate_allergens_raises_on_unregistered_manifestation_snomed():
@@ -142,4 +142,41 @@ def test_validate_allergens_raises_on_unregistered_manifestation_snomed():
         }
     }
     with pytest.raises(ValueError, match="99999999999"):
-        _validate_allergens(data)
+        AllergenConfig.model_validate(data)
+
+
+def _shipped() -> dict:
+    import copy
+
+    return copy.deepcopy(load_allergen_config())
+
+
+@pytest.mark.parametrize(
+    ("break_it", "message"),
+    [
+        (lambda d: d.clear(), "empty top-level"),
+        (lambda d: d["allergens"].pop("food"), "SUPPORTED_ALLERGEN_CATEGORIES drift"),
+        (lambda d: d["allergens"].update({"food": []}), "empty list"),
+        (lambda d: d["allergens"]["medication"][0].pop("criticality"), "criticality"),
+        (lambda d: d["allergens"]["medication"][0]["prevalence"].update({"adult": 1.5}), "0..1 expected"),
+        (lambda d: d["allergens"]["medication"][0]["prevalence"].pop("adult"), "adult"),
+        (lambda d: d["allergens"]["medication"][0].update({"common_reactions": []}), "common_reactions"),
+        (
+            lambda d: d["allergens"]["medication"][0]["common_reactions"][0].update({"manifestation_snomed": ""}),
+            "missing manifestation_snomed",
+        ),
+        (lambda d: d.pop("nka"), "nka"),
+        (lambda d: d["nka"].update({"allergen_code": "99999999999"}), "99999999999"),
+        (lambda d: d["polyallergy"]["probability_given_any_allergy"].pop("elderly"), "elderly"),
+        (lambda d: d["polyallergy"]["probability_given_any_allergy"].update({"child": 2}), "0..1 expected"),
+        (lambda d: d["polyallergy"].update({"additional_count_weights": {}}), "additional_count_weights"),
+        (lambda d: d["polyallergy"]["additional_count_weights"].update({"9": -1}), "non-negative"),
+        (lambda d: d.update({"cross_reactivity": {}}), "cross_reactivity"),
+        (lambda d: d["cross_reactivity"][0].pop("boost_category"), "boost_category"),
+    ],
+)
+def test_validator_rejects_each_broken_shape(break_it, message):
+    data = _shipped()
+    break_it(data)
+    with pytest.raises(ValueError, match=message):
+        AllergenConfig.model_validate(data)
