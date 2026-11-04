@@ -832,21 +832,21 @@ def _simulate_patient(
     )
 
     # Unpack results
-    all_orders = loop_result["orders"]
-    all_lab_results = loop_result["lab_results"]
-    all_vitals = loop_result["vitals"]
-    all_mars = loop_result["mars"]
-    all_io = loop_result.get("io_records", [])
-    all_adl = loop_result.get("adl_assessments", [])
-    state_history = loop_result["state_history"]
-    complications_occurred = loop_result["complications"]
-    death_occurred = loop_result["death_occurred"]
-    icu_transferred = loop_result["icu_transferred"]
+    all_orders = loop_result.orders
+    all_lab_results = loop_result.lab_results
+    all_vitals = loop_result.vitals
+    all_mars = loop_result.mars
+    all_io = loop_result.io_records
+    all_adl = loop_result.adl_assessments
+    state_history = loop_result.state_history
+    complications_occurred = loop_result.complications
+    death_occurred = loop_result.death_occurred
+    icu_transferred = loop_result.icu_transferred
     # Issue #2091: intubation performed when the state crossed the airway threshold.
-    procedures.extend(loop_result.get("escalation_procedures", []))
-    icu_transferred_day = loop_result.get("icu_transferred_day", -1)
-    differential = loop_result["differential"]
-    actual_los = loop_result["actual_los"]
+    procedures.extend(loop_result.escalation_procedures)
+    icu_transferred_day = loop_result.icu_transferred_day
+    differential = loop_result.differential
+    actual_los = loop_result.actual_los
 
     clinical_diagnosis, dx_name = _derive_final_diagnosis(
         differential=differential,
