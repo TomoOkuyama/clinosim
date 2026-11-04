@@ -38,7 +38,7 @@ def test_synth_encounter_shape() -> None:
     # Issue #1215: encounter carries its own Z23 visit-reason so the FHIR
     # emit's reasonCode is not polluted by the record's primary IMP dx.
     assert enc.admission_diagnosis_code == "Z23"
-    assert enc.admission_diagnosis_system == "icd-10-cm"
+    assert enc.admission_diagnosis_system == "icd-10-mhlw"  # the JP diagnosis system (Issue #2562)
 
 
 def test_synth_encounter_id_is_deterministic() -> None:
@@ -91,6 +91,7 @@ def test_synth_encounter_us_has_no_ja_chief() -> None:
     imm = ImmunizationRecord(vaccine_cvx="140", occurrence_date=date(2026, 10, 1))
     enc = _synthesize_vaccination_encounter(imm, "pt-us-1", "US")
     assert enc.chief_complaint_ja == ""
+    assert enc.admission_diagnosis_system == "icd-10-cm"
 
 
 @dataclass

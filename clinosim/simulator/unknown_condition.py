@@ -75,10 +75,10 @@ from clinosim.simulator._unknown_condition_thresholds import (
     UNK_WARD_CAPACITY_DEFAULT,
 )
 from clinosim.simulator.diagnosis_rules import unknown_condition_codes
-from clinosim.simulator.encounter_setup import attach_orders
+from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis
 from clinosim.simulator.hospital_ops import pick_ward, resolve_department
 from clinosim.simulator.lab_pipeline import patient_true_labs
-from clinosim.types.clinical import ClinicalDiagnosis, ConditionEvent
+from clinosim.types.clinical import ConditionEvent
 from clinosim.types.config import HealthcareSystemConfig, SimulatorConfig
 from clinosim.types.encounter import (
     EncounterStatus,
@@ -382,11 +382,10 @@ def _simulate_unknown_condition(
         condition_event=ConditionEvent(
             condition_id=f"COND-{patient.patient_id}-UNK", condition_type="unknown", symptom_pattern=event.disease_id
         ),
-        clinical_diagnosis=ClinicalDiagnosis(
-            admission_diagnosis_code=dx_codes.admission,
-            admission_diagnosis_system="icd-10-cm",
-            discharge_diagnosis_code=discharge_code,
-            discharge_diagnosis_system="icd-10-cm",
+        clinical_diagnosis=encounter_diagnosis(
+            dx_codes.admission,
+            config.country if config else "US",
+            discharge_code=discharge_code,
             diagnosis_correct=False,
         ),
         physiological_states=state_history,
