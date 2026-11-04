@@ -7,7 +7,7 @@
 >
 > - There is no `LLMRequest` / `llm_service.request()`. Entry points are
 >   `LLMService.generate(task_type, event, variables=None)` (template
->   fallback on failure) and `LLMService.complete_prompt(system, user, *,
+>   fallback on failure; deprecated, Issue #2541) and `LLMService.complete_prompt(system, user, *,
 >   language, task_type, ...)` (raises `LLMCompletionError`, no
 >   fallback; used by the Stage 2 narrative pass).
 > - `LLMService.__init__` takes `mode`, `judgment_provider`,

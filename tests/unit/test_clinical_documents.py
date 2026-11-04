@@ -37,6 +37,8 @@ from clinosim.modules.output.hospital_course_extractor import (
     extract_hospital_course,
 )
 
+pytestmark = pytest.mark.filterwarnings("ignore:LLMService.generate is deprecated:DeprecationWarning")
+
 # ---------------------------------------------------------------------------
 # PromptRegistry
 # ---------------------------------------------------------------------------
