@@ -4,7 +4,8 @@
   "url": "https://www.ssk.or.jp/seikyushiharai/tensuhyo/kihonmasta/kihonmasta_01.html",
   "retrieved": "2026-11-01",
   "key": "点数表区分番号 (column 117) or 区分番号-枝番 (columns 85, 92, 93)",
-  "note": "Names of the master rows for each code registered in codes/data/k-codes.yaml (additions excluded); at most 8 per code."
+  "note": "Names of the master rows for each code registered in codes/data/k-codes.yaml (additions excluded); at most 8 per code.",
+  "note_d206": "D206 rows (Issue #2655) taken from s_ALL20261102.csv, retrieved 2026-11-06."
  },
  "codes": {
   "K0004": [
@@ -240,6 +241,10 @@
    "ＭＲＩ撮影（３テスラ以上の機器）（その他）（画診共同）",
    "ＭＲＩ撮影（１．５テスラ以上３テスラ未満の機器）（画診共同）",
    "ＭＲＩ撮影（１又は２以外）（画診共同）"
+  ],
+  "D206": [
+   "心カテ（右心）",
+   "心カテ（左心）"
   ]
  }
 }

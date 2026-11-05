@@ -188,3 +188,66 @@ body_sites:
         loinc: "37925-5"
         cpt: "73100"                             # X-ray wrist 2 views — AMA
         jp_k_code: "E001"
+
+  # === Issue #2655: sites that were folded into the nearest defined one ===
+  # (ankle / foot -> leg, shoulder -> hand, echocardiography -> chest,
+  # coronary angiography -> chest, carotid ultrasound -> spine; MRCP and
+  # bladder ultrasound were not resolved at all). SNOMED and LOINC codes
+  # checked with tx.fhir.org. CPT codes are the AMA codes for these studies
+  # (not checkable against a public terminology server).
+  ankle:
+    snomed: "70258002"                           # Ankle joint structure
+    procedure_codes:
+      CR_AP_Lateral_Oblique:                     # 3-view ankle (AP, mortise, lateral)
+        loinc: "36294-7"                         # XR Ankle 3 Views
+        cpt: "73610"
+        jp_k_code: "E001"
+  foot:
+    snomed: "56459004"                           # Foot structure
+    procedure_codes:
+      CR_AP_Lateral_Oblique:                     # 3-view foot
+        loinc: "36305-1"                         # XR Foot 3 Views
+        cpt: "73630"
+        jp_k_code: "E001"
+  shoulder:
+    snomed: "16982005"                           # Shoulder region structure
+    procedure_codes:
+      CR_AP_Lateral:                             # 2-view shoulder (incl. post-reduction check)
+        loinc: "37840-6"                         # XR Shoulder 2 Views
+        cpt: "73030"
+        jp_k_code: "E001"
+  heart:
+    snomed: "80891009"                           # Heart structure
+    procedure_codes:
+      US:                                        # transthoracic echocardiography
+        loinc: "59281-6"                         # US Heart Transthoracic
+        cpt: "93306"
+        jp_k_code: "D215"                        # 超音波検査 (心臓超音波)
+  coronary_artery:
+    snomed: "41801008"                           # Coronary artery structure
+    procedure_codes:
+      XA_contrast:                               # coronary angiography (intra-arterial contrast)
+        loinc: "37174-0"                         # RFA Coronary arteries Views W contrast IA
+        cpt: "93454"
+        jp_k_code: "D206"                        # 心臓カテーテル法による諸検査
+  carotid_artery:
+    snomed: "69105007"                           # Carotid artery structure
+    procedure_codes:
+      US:                                        # carotid duplex
+        loinc: "24616-5"                         # US Carotid arteries
+        cpt: "93880"
+        jp_k_code: "D215"
+  biliary_tract:
+    snomed: "34707002"                           # Biliary tract structure
+    procedure_codes:
+      MR_non_contrast:                           # MRCP
+        loinc: "58740-2"                         # MRCP Abdomen WO contrast
+        cpt: "74181"
+        jp_k_code: "E202"
+  urinary_bladder:
+    snomed: "89837001"                           # Urinary bladder structure
+    procedure_codes:
+      US:
+        loinc: "25019-1"                         # US Urinary bladder
+        cpt: "76857"
+        jp_k_code: "D215"

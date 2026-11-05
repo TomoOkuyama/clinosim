@@ -894,6 +894,31 @@ codes:
   44198-0:
     en: XR Knee 1 or 2 Views
     ja: 膝関節単純X線撮影 正面・側面
+  # Issue #2655: imaging procedure codes (tx.fhir.org $expand 2026-11-06).
+  36294-7:
+    en: XR Ankle 3 Views
+    ja: 足関節単純X線撮影 3方向
+  36305-1:
+    en: XR Foot 3 Views
+    ja: 足部単純X線撮影 3方向
+  37840-6:
+    en: XR Shoulder 2 Views
+    ja: 肩関節単純X線撮影 2方向
+  59281-6:
+    en: US Heart Transthoracic
+    ja: 経胸壁心臓超音波検査
+  37174-0:
+    en: RFA Coronary arteries Views W contrast IA
+    ja: 冠動脈造影
+  24616-5:
+    en: US Carotid arteries
+    ja: 頸動脈超音波検査
+  58740-2:
+    en: MRCP Abdomen WO contrast
+    ja: MR胆管膵管撮影 (MRCP)
+  25019-1:
+    en: US Urinary bladder
+    ja: 膀胱超音波検査
   44203-8:
     en: Portable XR Cervical and thoracic and lumbar spine Views
     ja: 脊椎単純X線撮影 正面・側面

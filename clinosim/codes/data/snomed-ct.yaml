@@ -747,6 +747,20 @@ codes:
   '818982008':
     en: Abdominopelvic cross-sectional segment
     ja: 腹部・骨盤
+  # Issue #2655: body sites of ankle / shoulder radiographs, carotid ultrasound
+  # and MRCP (tx.fhir.org $expand 2026-11-06).
+  '70258002':
+    en: Ankle joint structure
+    ja: 足関節
+  '16982005':
+    en: Shoulder region structure
+    ja: 肩関節部
+  '69105007':
+    en: Carotid artery structure
+    ja: 頸動脈
+  '34707002':
+    en: Biliary tract structure
+    ja: 胆道
   '260385009':
     en: Negative
     ja: 陰性
