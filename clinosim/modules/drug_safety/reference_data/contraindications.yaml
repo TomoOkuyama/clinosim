@@ -59,6 +59,17 @@ rules:
     substitution_hint: hypertension_or_rate_control
     source: "ACC/AHA 2019 chronic coronary disease; JCS 2018 心不全"
 
+  # Issue #2707: dual RAAS blockade.
+  - id: acei-plus-arb
+    lhs: acei
+    rhs: arb
+    severity: contraindicated
+    rationale:
+      en: "ACE inhibitor + ARB (dual RAAS blockade) adds hyperkalemia, hypotension and acute kidney injury without cardiovascular or renal benefit; use one agent."
+      ja: "ACE 阻害薬と ARB の併用 (RAS 二重阻害) は心血管・腎保護の上乗せなく高 K 血症・低血圧・急性腎障害を増やす。いずれか一剤とする。"
+    substitution_hint: null
+    source: "ONTARGET (NEJM 2008;358:1547); VA NEPHRON-D (NEJM 2013;369:1892); KDIGO 2021 BP in CKD"
+
   - id: acei-arb-plus-potassium
     lhs: acei_arb
     rhs: potassium_supplement
