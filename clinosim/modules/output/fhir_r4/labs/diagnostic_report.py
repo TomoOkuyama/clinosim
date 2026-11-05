@@ -212,6 +212,9 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
     # below). Issue #854 Bucket A row 4: switched from pre-computed obs_id
     # strings to raw indices so the id-emit format lives at one point.
     by_bucket: dict[str, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
+    # Issue #2634: each order's effective time, so a report is effective at
+    # its own components' draw, not at another order placed later that day.
+    effective_by_idx: dict[int, str] = {}
     # Issue #821 (N-7): track the max (latest) full timestamp per bucket
     # so DR.effectiveDateTime can carry time precision (was date-only bucket).
     #
@@ -246,6 +249,7 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
         if not lab_name:
             continue
         by_bucket[when][lab_name].append(idx)
+        effective_by_idx[idx] = dt_full
         # Track max full datetime per bucket. String compare is safe here since
         # `dt_full` is a normalized ISO-8601 form (both dataclass str() and
         # JSON-dict str values sort chronologically as strings).
@@ -284,7 +288,8 @@ def group_lab_orders(orders: list[Any], encounter_id: str) -> list[_GroupedPanel
                     panel_name=panel_name,
                     bucket=bucket,
                     obs_idxs=obs_idxs,
-                    effective_datetime=bucket_max_dt.get(bucket, ""),
+                    effective_datetime=max((effective_by_idx[i] for i in obs_idxs), default="")
+                    or bucket_max_dt.get(bucket, ""),
                 )
             )
     return groups
@@ -829,6 +834,21 @@ def build_single_test_report(
     )
 
 
+def panel_report_issued(group: _GroupedPanel, orders: list[Any]) -> str:
+    """When a panel report is released: its latest component result (Issue #2634).
+
+    Naive ISO string; the day bucket at midnight only when no component
+    carries a result time.
+    """
+    times = [
+        _to_naive_iso(_o(_o(orders[idx], "result"), "result_datetime"))
+        for idx in group.obs_idxs
+        if idx < len(orders) and _o(orders[idx], "result")
+    ]
+    times = [t for t in times if t]
+    return max(times) if times else f"{group.bucket[:10]}T00:00:00"
+
+
 def _sr_ids_for_group(
     group: _GroupedPanel,
     orders: list[Any],
@@ -910,7 +930,7 @@ def build_lab_panel_reports(ctx) -> list[dict]:
             enc_id,
             ctx.country,
             performer_ref=_lab_performer_ref or None,
-            issued=None,
+            issued=panel_report_issued(g, orders),
             seq=seq,
             orders=orders,
         )

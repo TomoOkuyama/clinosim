@@ -248,9 +248,11 @@ def _clamp_authored_to_earliest_report(authored_naive: str, earliest_dr_issued: 
     ``(min DR.issued − 1 minute)`` so the temporal invariant
     ``SR.authoredOn ≤ min(DR.issued)`` holds.
 
-    Root cause (parallel to #967 for MR ↔ MA):
+    Since Issue #2634 a lab panel DR is issued at its latest component result,
+    so the clamp only fires when a result precedes its order. Original root
+    cause (parallel to #967 for MR ↔ MA):
 
-    - Lab-panel DRs default ``DR.issued`` to ``group.bucket + T00:00:00``
+    - Lab-panel DRs defaulted ``DR.issued`` to ``group.bucket + T00:00:00``
       (date-only, derived from ``result_datetime[:10]``) because ``clinosim``
       has no separate report-signing timestamp for lab panels — see
       ``build_dr_resource(..., issued=None, ...)`` in ``diagnostic_report.py``.
@@ -297,10 +299,9 @@ def _build_earliest_issued_by_sr(record: dict, primary_enc_id: str) -> dict[str,
     Issue #971 helper. Mirrors the DR emit paths in ``diagnostic_report.py``
     so the clamp compares like-for-like with what will actually be emitted:
 
-    - Lab panel DRs (``build_dr_resource``): ``issued`` fallback (the
-      ``issued=None`` caller path) → ``to_fhir_instant(group.bucket)`` =
-      ``YYYY-MM-DDT00:00:00 + TZ``. Naive equivalent = ``bucket + T00:00:00``.
-      SR ids per group via ``_sr_ids_for_group`` (same helper the DR writer
+    - Lab panel DRs (``build_dr_resource``): ``issued`` =
+      ``panel_report_issued(group, orders)``, the latest component result
+      time (Issue #2634). SR ids per group via ``_sr_ids_for_group`` (same helper the DR writer
       uses, so the map keys match by construction).
     - Radiology DRs (``_build_radiology_dr``): ``issued = started_datetime``
       (ImagingStudyRecord field). SR id via ``_resolve_service_request_id
@@ -317,6 +318,7 @@ def _build_earliest_issued_by_sr(record: dict, primary_enc_id: str) -> dict[str,
     from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
         _sr_ids_for_group,
         group_lab_orders,
+        panel_report_issued,
         single_test_report_groups,
     )
 
@@ -330,10 +332,10 @@ def _build_earliest_issued_by_sr(record: dict, primary_enc_id: str) -> dict[str,
             panel_counter = build_panel_counter(lab_orders)
             groups = group_lab_orders(orders, primary_enc_id)
             for g in groups:
-                # bucket is "YYYY-MM-DD"; DR.issued fallback carries midnight.
                 if not g.bucket or len(g.bucket) < 10:
                     continue
-                issued_naive = f"{g.bucket[:10]}T00:00:00"
+                # Issue #2634: the same release time the panel report carries.
+                issued_naive = panel_report_issued(g, orders)
                 for sid in _sr_ids_for_group(g, orders, panel_counter, primary_enc_id):
                     prev = out.get(sid)
                     if prev is None or issued_naive < prev:
