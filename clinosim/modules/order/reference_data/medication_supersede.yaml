@@ -1,0 +1,23 @@
+# Medication orders that supersede an earlier active order (Issue #2615).
+#
+# A second order for the same drug in an encounter replaces the first (a
+# dose or frequency change ends the previous order). Besides that, an
+# escalation to a drug of `new_class` stops any active order whose drug is
+# in one of `stops` (the earlier agent's administrations end at the switch).
+# Only escalations clinicians make as a replacement are listed here: an
+# intentional combination (e.g. ampicillin added to ceftriaxone for
+# Listeria cover) is not a switch and is left alone.
+metadata:
+  kind: reference
+  name: medication_supersede
+  source: clinosim
+
+class_switches:
+  # Escalation to a carbapenem replaces the earlier broad beta-lactam
+  # (e.g. piperacillin/tazobactam -> meropenem).
+  - new_class: antibiotic.carbapenem
+    stops: [antibiotic.penicillin, antibiotic.cephalosporin]
+
+# Markers of an as-needed order (frequency or order text). A PRN order next to
+# a scheduled order for the same drug is breakthrough dosing, not a replacement.
+prn_markers: ["PRN", "頓用"]

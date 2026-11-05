@@ -1,0 +1,125 @@
+"""Supersede earlier medication orders (Issue #2615).
+
+A POST_ENCOUNTER enricher: within each record, a medication order for a drug
+that already has an active order (or a class switch listed in
+``reference_data/medication_supersede.yaml``) stops the earlier order at the
+new order's time, drops the earlier order's administrations from then on, and
+links the new order to it (``Order.prior_order_id`` →
+``MedicationRequest.priorPrescription``).
+
+Runs after the daily loop, like ``discontinue_flip``: the per-day MAR
+generation has finished, so stopping an order here moves no random draw
+(AD-16). RNG-free.
+"""
+
+from __future__ import annotations
+
+from functools import cache
+from pathlib import Path
+from typing import Any
+
+from clinosim.codes.drugs import drug_ref, get_drug
+from clinosim.datafiles import load_data_yaml
+from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER
+from clinosim.types.encounter import OrderStatus, OrderType
+
+_REF = Path(__file__).parent / "reference_data" / "medication_supersede.yaml"
+_INACTIVE = (OrderStatus.STOPPED, OrderStatus.CANCELLED)
+
+
+@cache
+def _class_switches() -> tuple[tuple[str, frozenset[str]], ...]:
+    rules = (load_data_yaml(_REF) or {}).get("class_switches") or []
+    return tuple((str(r["new_class"]), frozenset(str(c) for c in r["stops"])) for r in rules)
+
+
+@cache
+def _prn_markers() -> tuple[str, ...]:
+    return tuple(str(m) for m in (load_data_yaml(_REF) or {}).get("prn_markers") or ("PRN",))
+
+
+def _drug_id(order: Any) -> str:
+    return str(getattr(order, "drug_id", "") or "") or drug_ref(str(getattr(order, "display_name", "") or ""))
+
+
+def _classes(drug_id: str) -> frozenset[str]:
+    drug = get_drug(drug_id) if drug_id else None
+    return frozenset(drug.classes) if drug is not None else frozenset()
+
+
+def _supersedes(new_id: str, old_id: str) -> bool:
+    """True when an order for ``new_id`` replaces an active order for ``old_id``."""
+    if new_id == old_id:
+        return True
+    new_classes, old_classes = _classes(new_id), _classes(old_id)
+    return any(new in new_classes and old_classes & stops for new, stops in _class_switches())
+
+
+def _is_prescription(order: Any) -> bool:
+    if getattr(order, "order_type", None) != OrderType.MEDICATION:
+        return False
+    if MED_STOP_ORDER_ID_MARKER in str(getattr(order, "order_id", "")):
+        return False
+    return not str(getattr(order, "display_name", "") or "").startswith("DISCONTINUE:")
+
+
+def _is_prn(order: Any) -> bool:
+    """An as-needed order: ``frequency`` or the order text carries a ``prn_markers`` entry."""
+    text = f"{getattr(order, 'frequency', '') or ''} {getattr(order, 'display_name', '') or ''}".upper()
+    return any(marker.upper() in text for marker in _prn_markers())
+
+
+def supersede_orders(orders: list[Any], administrations: list[Any]) -> list[Any]:
+    """Stop superseded orders in place; return the administrations kept."""
+    meds = sorted(
+        (o for o in orders if _is_prescription(o) and getattr(o, "ordered_datetime", None) is not None),
+        key=lambda o: o.ordered_datetime,
+    )
+    # The switch happens when the new drug is first given, which can precede
+    # the order's recorded time (an administration charted before the order).
+    first_given: dict[str, Any] = {}
+    for mar in administrations:
+        when = getattr(mar, "actual_datetime", None) or getattr(mar, "scheduled_datetime", None)
+        oid = getattr(mar, "order_id", "")
+        if when is not None and (oid not in first_given or when < first_given[oid]):
+            first_given[oid] = when
+    stopped_at: dict[str, Any] = {}
+    for i, new in enumerate(meds):
+        new_id = _drug_id(new)
+        if not new_id:
+            continue
+        for old in meds[:i]:
+            if (
+                old.status in _INACTIVE
+                or old.encounter_id != new.encounter_id
+                or old.ordered_datetime >= new.ordered_datetime
+                # A PRN order alongside a scheduled one (breakthrough dosing)
+                # is a combination, not a replacement.
+                or _is_prn(old) != _is_prn(new)
+            ):
+                continue
+            old_id = _drug_id(old)
+            if old_id and _supersedes(new_id, old_id):
+                old.status = OrderStatus.STOPPED
+                switch = min(new.ordered_datetime, first_given.get(new.order_id, new.ordered_datetime))
+                stopped_at[old.order_id] = min(stopped_at.get(old.order_id, switch), switch)
+                if old_id == new_id and not getattr(new, "prior_order_id", ""):
+                    new.prior_order_id = old.order_id
+    if not stopped_at:
+        return administrations
+    kept = []
+    for mar in administrations:
+        cut = stopped_at.get(getattr(mar, "order_id", ""))
+        when = getattr(mar, "actual_datetime", None) or getattr(mar, "scheduled_datetime", None)
+        if cut is not None and when is not None and when >= cut:
+            continue
+        kept.append(mar)
+    return kept
+
+
+def enrich_supersede_orders(ctx: Any) -> None:
+    """POST_ENCOUNTER enricher entry point."""
+    for record in ctx.records:
+        orders = getattr(record, "orders", None) or []
+        mars = getattr(record, "medication_administrations", None) or []
+        record.medication_administrations = supersede_orders(orders, mars)
