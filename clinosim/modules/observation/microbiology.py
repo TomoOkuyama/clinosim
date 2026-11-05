@@ -7,6 +7,7 @@ main simulation random stream (and golden files) is unperturbed (AD-16).
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
@@ -107,6 +108,8 @@ class MicrobiologyConfig(BaseModel):
     organisms: dict[str, _Organism] = Field(default_factory=dict)
     specimens: dict[str, _Specimen] = Field(default_factory=dict)
     culture_order_match_window_hours: float = 6.0
+    repeat_culture_persistence_prob: float = Field(default=0.0, ge=0.0, le=1.0)
+    workup_culture_window_hours: float = 24.0
     diseases: dict[str, _DiseaseProfile] = Field(default_factory=dict)
 
     @model_validator(mode="before")
@@ -182,28 +185,87 @@ def culture_order_match_window_hours() -> float:
     return float(_load().get("culture_order_match_window_hours", 6.0))
 
 
+def workup_culture_window_hours() -> float:
+    """How soon after admission a protocol culture counts as the workup culture (Issue #2640)."""
+    return float(_load().get("workup_culture_window_hours", 24.0))
+
+
 def has_microbiology(disease_id: str) -> bool:
     """Whether the disease has a microbiology profile (i.e. is a culture-relevant infection)."""
     return disease_id in (_load().get("diseases") or {})
 
 
-def generate_microbiology(
+def specimen_for_order(display_name: str) -> str:
+    """The specimen a lab order cultures (Issue #2640), or "" for any other order."""
+    from clinosim.modules.observation.engine import canonical_lab_name
+
+    canon = canonical_lab_name(display_name or "")
+    for spec_key, spec in (_load().get("specimens") or {}).items():
+        if canon in (spec.get("culture_orders") or ()):
+            return str(spec_key)
+    return ""
+
+
+def workup_culture_order(specimen: str) -> str:
+    """The order name the admission workup places for a ``specimen`` culture."""
+    spec = (_load().get("specimens") or {}).get(specimen) or {}
+    return str((spec.get("culture_orders") or [""])[0])
+
+
+def culture_draws(orders: list[Any], encounter_id: str) -> list[tuple[str, datetime]]:
+    """One (specimen, collection time) per culture draw among an encounter's
+    orders (Issue #2640). Orders of one specimen placed at the same time are
+    one draw (two blood-culture sets); cancelled orders draw nothing."""
+    draws: set[tuple[str, datetime]] = set()
+    for order in orders:
+        get = order.get if isinstance(order, dict) else lambda k, d=None, o=order: getattr(o, k, d)
+        if str(getattr(get("order_type"), "value", get("order_type"))) != "lab":
+            continue
+        if encounter_id and (get("encounter_id", "") or "") not in ("", encounter_id):
+            continue
+        if str(getattr(get("status"), "value", get("status"))) == "cancelled":
+            continue
+        spec = specimen_for_order(str(get("display_name", "") or ""))
+        when = get("ordered_datetime")
+        if spec and isinstance(when, datetime):
+            draws.add((spec, when))
+    return sorted(draws, key=lambda d: (d[1], d[0]))
+
+
+def workup_culture_specimens(disease_id: str, encounter_id: str, master_seed: int) -> list[str]:
+    """The specimens the disease's admission workup cultures (``order_prob``)."""
+    disease = (_load().get("diseases") or {}).get(disease_id) or {}
+    rng = determinism.default_rng(
+        derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["microbiology"], f"{encounter_id}:workup")
+    )
+    return [
+        str(c.get("specimen", ""))
+        for c in disease.get("cultures") or []
+        if rng.random() <= float(c.get("order_prob", 1.0))
+    ]
+
+
+def culture_results(
     disease_id: str,
-    collected_datetime: datetime | None,
+    draws: Sequence[tuple[str, datetime | None]],
     encounter_id: str,
     master_seed: int,
 ) -> list[MicrobiologyResult]:
-    """Generate culture results (+ susceptibilities) for an infection encounter."""
-    data = _load()
-    disease = (data.get("diseases") or {}).get(disease_id)
-    if not disease:
-        return []
+    """One culture result per draw (Issue #2640).
 
+    The first draw of a specimen the disease's profile cultures grows with
+    the profile's ``growth_prob``; a later draw of that specimen grows the
+    same organism again with ``repeat_culture_persistence_prob`` when an
+    earlier one grew, and is no growth otherwise. A specimen the profile does
+    not culture (or a disease with no profile) is no growth.
+    """
+    data = _load()
+    disease = (data.get("diseases") or {}).get(disease_id) or {}
     specimens = data.get("specimens") or {}
     antibiotics = data.get("antibiotics") or {}
     organisms = data.get("organisms") or {}
-
-    rng = determinism.default_rng(derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["microbiology"], encounter_id))
+    persistence = float(data.get("repeat_culture_persistence_prob", 0.0))
+    profile = {str(c.get("specimen", "")): c for c in disease.get("cultures") or []}
 
     org_dist = disease.get("organisms") or {}
     org_ids = list(org_dist.keys())
@@ -214,23 +276,38 @@ def generate_microbiology(
     )
 
     results: list[MicrobiologyResult] = []
-    for culture in disease.get("cultures") or []:
-        if rng.random() > float(culture.get("order_prob", 1.0)):
-            continue
-        spec_key = str(culture.get("specimen", ""))
+    first_of: dict[str, MicrobiologyResult] = {}
+    for n, (spec_key, collected) in enumerate(draws):
+        rng = determinism.default_rng(
+            derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["microbiology"], f"{encounter_id}:{spec_key}:{n}")
+        )
         spec = specimens.get(spec_key, {})
-        grows = bool(rng.random() < float(culture.get("growth_prob", 0.0)))
-        reported = collected_datetime + timedelta(days=int(rng.integers(2, 4))) if collected_datetime else None
+        culture = profile.get(spec_key)
+        reported = collected + timedelta(days=int(rng.integers(2, 4))) if collected else None
         result = MicrobiologyResult(
             encounter_id=encounter_id,
             specimen=spec_key,
             specimen_snomed=str(spec.get("snomed", "")),
             test_loinc=str(spec.get("test_loinc", "")),
-            collected_datetime=collected_datetime,
+            collected_datetime=collected,
             reported_datetime=reported,
-            growth=grows,
+            growth=False,
         )
-        if grows and org_ids:
+        earlier = first_of.get(spec_key)
+        if earlier is not None:
+            if earlier.growth and rng.random() < persistence:
+                result.growth = True
+                result.organism_snomed = earlier.organism_snomed
+                result.quantitation = earlier.quantitation
+                result.susceptibilities = [
+                    SusceptibilityResult(antibiotic_loinc=x.antibiotic_loinc, interpretation=x.interpretation)
+                    for x in earlier.susceptibilities
+                ]
+            results.append(result)
+            continue
+        first_of[spec_key] = result
+        if culture is not None and rng.random() < float(culture.get("growth_prob", 0.0)) and org_ids:
+            result.growth = True
             org_id = str(rng.choice(org_ids, p=org_probs))
             org = organisms.get(org_id, {})
             result.organism_snomed = str(org.get("snomed", ""))

@@ -737,3 +737,6 @@ _.morse_iv  # types/encounter.py NursingRiskAssessment (Issue #2692)
 _.morse_gait  # types/encounter.py NursingRiskAssessment (Issue #2692)
 _.morse_mental  # types/encounter.py NursingRiskAssessment (Issue #2692)
 _.laterality  # types/imaging.py ImagingStudyRecord (read by key in fhir_r4/labs/imaging_study.py, Issue #2657)
+_.repeat_culture_persistence_prob  # observation/microbiology.py MicrobiologyConfig field (validated yaml key, Issue #2640)
+_.has_microbiology  # observation/microbiology.py public API (README), used by tests after Issue #2640
+_.collected_datetime  # types/microbiology.py MicrobiologyResult (read by key in fhir_r4/labs/microbiology.py)

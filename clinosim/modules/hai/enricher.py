@@ -226,3 +226,34 @@ def _append_hai_culture(
         interp = _SIR[int(rng.choice(len(_SIR), p=probs))]
         micro.susceptibilities.append(SusceptibilityResult(antibiotic_loinc=str(loinc), interpretation=interp))
     get_or_create_container(rec, "microbiology", list).append(micro)
+    # Issue #2640: the culture drawn for the suspected HAI is a culture order.
+    from clinosim.locale.i18n import t
+    from clinosim.modules.observation.microbiology import workup_culture_order
+    from clinosim.types.encounter import Order, OrderStatus, OrderType
+
+    name = workup_culture_order(str(spec_cfg["specimen"]))
+    if name:
+        encounters = _get(rec, "encounters", []) or []
+        attending = next(
+            (
+                _get(e, "attending_physician_id", "")
+                for e in encounters
+                if _get(e, "encounter_id", "") == hai.encounter_id
+            ),
+            "",
+        )
+        get_or_create_container(rec, "orders", list).append(
+            Order(
+                order_id=f"ORD-{hai.encounter_id}-HAI-{hai.hai_id}",
+                encounter_id=hai.encounter_id,
+                patient_id=str(_get(_get(rec, "patient", None), "patient_id", "") or ""),
+                order_type=OrderType.LAB,
+                display_name=name,
+                urgency="stat",
+                clinical_intent=t("encounter_intent.hai_culture", "en", test=name),
+                clinical_intent_ja=t("encounter_intent.hai_culture", "ja", test=name),
+                ordered_datetime=onset_dt,
+                ordered_by=str(attending or ""),
+                status=OrderStatus.PLACED,
+            )
+        )

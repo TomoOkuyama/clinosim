@@ -19,12 +19,28 @@ metadata:
 # within culture_order_match_window_hours. A fungal culture is a different
 # test and is not matched.
 specimens:
-  blood:  { snomed: "119297000", test_loinc: "600-7", culture_orders: [Blood_culture, Blood_culture_x2] }   # Blood specimen / Bacteria id'd in Blood by Culture
+  blood:  { snomed: "119297000", test_loinc: "600-7", culture_orders: [Blood_culture_x2, Blood_culture] }   # Blood specimen / Bacteria id'd in Blood by Culture
   urine:  { snomed: "122575003", test_loinc: "630-4", culture_orders: [Urine_culture] }   # Urine specimen / Bacteria id'd in Urine by Culture
   sputum: { snomed: "119334006", test_loinc: "619-7", culture_orders: [Sputum_culture] }   # Sputum specimen / Bacteria id'd in Sputum by Culture
+  # Issue #2640: a fungal blood culture is its own test; with no fungal
+  # profile it reports no growth.
+  blood_fungal: { snomed: "119297000", test_loinc: "601-5", culture_orders: [Fungal_culture] }   # Blood specimen / Fungus identified in Blood by Culture (tx.fhir.org 2026-11-06)
   wound:  { snomed: "257261003", test_loinc: "634-6", culture_orders: [Wound_culture, wound_culture, order_wound_culture] }   # Swab / Bacteria id'd in Wound by Culture
 
 culture_order_match_window_hours: 6
+
+# Issue #2640: culture results come from culture orders, one per draw. A
+# later draw of a specimen that grew (a repeat blood culture after 48-72 h of
+# active therapy) grows the same organism again with this probability;
+# repeat draws after a negative culture are no growth. Persistent
+# bacteraemia at 48-72 h: ~10-20% of positive blood cultures (S. aureus
+# higher), e.g. Canzoneri, Clin Infect Dis 2017;65:1776.
+repeat_culture_persistence_prob: 0.15
+
+# Issue #2640: a profile culture the protocol did not order is placed by the
+# admission workup within this many hours of admission (the first order name
+# of the specimen's culture_orders).
+workup_culture_window_hours: 24
 
 # Antibiotics: key -> LOINC "<drug> [Susceptibility]" test code.
 # All LOINCs verified at NLM clinicaltables.nlm.nih.gov/api/loinc_items/v3/search
@@ -155,6 +171,16 @@ diseases:
       klebsiella_pneumoniae: 0.12
       proteus_mirabilis: 0.10
       enterococcus_faecalis: 0.08
+  # Issue #2640: ED / clinic uncomplicated cystitis (encounter condition
+  # uti_uncomplicated). Was a categorical lab value: E. coli 65%, Klebsiella
+  # 10%, mixed flora 15%, no growth 10%. A mixed-flora (contaminated) culture
+  # is reported without an identified pathogen (no growth here).
+  uti_uncomplicated:
+    cultures:
+      - { specimen: urine, order_prob: 1.0, growth_prob: 0.75, quantitation: ">100,000 CFU/mL" }
+    organisms:
+      escherichia_coli: 0.87
+      klebsiella_pneumoniae: 0.13
   cellulitis:
     cultures:
       - { specimen: wound, order_prob: 0.5, growth_prob: 0.45 }

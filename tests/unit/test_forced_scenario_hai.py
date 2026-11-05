@@ -54,6 +54,7 @@ def _make_ctx_with_device(device_type: str, force_hai_event: dict | None):
         patient=SimpleNamespace(patient_id="p1"),
         extensions={"device": [dev]},
         microbiology=[],
+        orders=[],
     )
     forced = SimpleNamespace(
         disease_id="urinary_tract_infection",
@@ -341,6 +342,7 @@ def test_enrich_hai_force_short_line_days_skips_no_drain():
             patient=SimpleNamespace(patient_id="p1"),
             extensions={"device": [dev]},
             microbiology=[],
+            orders=[],
         )
         forced = SimpleNamespace(
             disease_id="x",

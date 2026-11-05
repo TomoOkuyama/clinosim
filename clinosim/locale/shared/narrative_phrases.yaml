@@ -2142,6 +2142,10 @@ encounter_intent:
   admission_workup:
     ja: "入院時精査: {test}"
     en: "Admission workup: {test}"
+  # Issue #2640: the culture drawn for a suspected healthcare-associated infection.
+  hai_culture:
+    ja: "院内感染疑い: {test}"
+    en: "Suspected healthcare-associated infection: {test}"
   first_line:
     ja: "初期治療: {drug}"
     en: "First-line treatment: {drug}"

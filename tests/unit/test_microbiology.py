@@ -12,12 +12,21 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.modules.observation.microbiology import (
     _load,
-    generate_microbiology,
+    culture_results,
     has_microbiology,
+    workup_culture_specimens,
 )
 from clinosim.modules.output.fhir_r4.demographics.patient import resolve_patient_id
 
 _DT = datetime(2024, 3, 1, 10, 0)
+
+
+def _admission_cultures(disease_id, collected, encounter_id, seed):
+    """The admission-workup cultures of a disease, all collected at ``collected``."""
+    if not has_microbiology(disease_id):
+        return []
+    specimens = workup_culture_specimens(disease_id, encounter_id, seed)
+    return culture_results(disease_id, [(s, collected) for s in specimens], encounter_id, seed)
 
 
 @pytest.mark.unit
@@ -29,25 +38,23 @@ class TestGenerator:
         assert not has_microbiology("")
 
     def test_non_infection_returns_empty(self):
-        assert generate_microbiology("acute_mi", _DT, "ENC-1", 42) == []
+        assert _admission_cultures("acute_mi", _DT, "ENC-1", 42) == []
 
     def test_deterministic(self):
-        a = generate_microbiology("sepsis", _DT, "ENC-X", 42)
-        b = generate_microbiology("sepsis", _DT, "ENC-X", 42)
+        a = _admission_cultures("sepsis", _DT, "ENC-X", 42)
+        b = _admission_cultures("sepsis", _DT, "ENC-X", 42)
         assert [asdict(x) for x in a] == [asdict(x) for x in b]
 
     def test_different_encounter_differs_seed(self):
         # Different encounter ids should generally not be identical across many draws.
         results = {
-            tuple(
-                (m.specimen, m.growth, m.organism_snomed) for m in generate_microbiology("sepsis", _DT, f"ENC-{i}", 42)
-            )
+            tuple((m.specimen, m.growth, m.organism_snomed) for m in _admission_cultures("sepsis", _DT, f"ENC-{i}", 42))
             for i in range(20)
         }
         assert len(results) > 1
 
     def test_uti_produces_urine_culture(self):
-        mb = generate_microbiology("urinary_tract_infection", _DT, "ENC-U", 42)
+        mb = _admission_cultures("urinary_tract_infection", _DT, "ENC-U", 42)
         assert len(mb) == 1
         assert mb[0].specimen == "urine"
         assert mb[0].test_loinc and mb[0].specimen_snomed
@@ -58,7 +65,7 @@ class TestGenerator:
         valid_abx = set(data["antibiotics"].values())
         seen_growth = False
         for i in range(50):
-            for m in generate_microbiology("sepsis", _DT, f"E{i}", 7):
+            for m in _admission_cultures("sepsis", _DT, f"E{i}", 7):
                 if m.growth:
                     seen_growth = True
                     assert m.organism_snomed in valid_org
@@ -89,7 +96,7 @@ class TestCodesResolve:
 @pytest.mark.unit
 class TestFhirBuilder:
     def _bundle(self, disease_id, country="JP"):
-        mb = generate_microbiology(disease_id, _DT, "ENC-T", 3)
+        mb = _admission_cultures(disease_id, _DT, "ENC-T", 3)
         rec = {
             "patient": {"patient_id": "POP-1", "sex": "F"},
             "encounters": [{"encounter_id": "ENC-T"}],
@@ -119,7 +126,7 @@ class TestFhirBuilder:
     def test_no_growth_is_coded(self):
         # cellulitis often no growth; find a no-growth culture deterministically across seeds
         for i in range(30):
-            mb = generate_microbiology("cellulitis", _DT, f"NG-{i}", 1)
+            mb = _admission_cultures("cellulitis", _DT, f"NG-{i}", 1)
             no_growth = [m for m in mb if m.growth is False]
             if no_growth:
                 rec = {
