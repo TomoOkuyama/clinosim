@@ -244,6 +244,9 @@ class Order:
     # Issue #2615: the order this one replaces (same drug, new dose or
     # frequency); emitted as MedicationRequest.priorPrescription.
     prior_order_id: str = ""
+    # Issue #2611: a one-time dose (e.g. a 30 mL/kg fluid bolus) — given once
+    # on the day it is ordered, not on every day of the stay.
+    single_dose: bool = False
     # Issue #2606: when a medication order ended (its last administration, or
     # discharge when it was never given); set once the stay is over.
     end_datetime: datetime | None = None

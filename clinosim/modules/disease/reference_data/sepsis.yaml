@@ -180,7 +180,9 @@ order_protocols:
       - {test: "Chest_Xray_PA_Lateral", urgency: "stat"}
       - {test: "CT_abdomen_pelvis", urgency: "stat", probability: 0.50, note: "if source unclear"}
     supportive:
-      - {type: "IV_fluid", detail: "Crystalloid 30 mL/kg bolus within 3 hours"}
+      # Issue #2611: a named balanced crystalloid (SSC 2021 suggests balanced
+      # crystalloids over saline), one weight-based bolus.
+      - {type: "IV_fluid", detail: "Lactated Ringer 30 mL/kg bolus within 3 hours"}
       - {type: "O2", detail: "Target SpO2 >= 94%"}
       - {type: "antipyretic", detail: "Acetaminophen 1000mg IV q6h PRN temp >= 38.5"}
       - {type: "DVT_prophylaxis", detail: "Enoxaparin 2000IU SC daily (hold if coagulopathy)"}

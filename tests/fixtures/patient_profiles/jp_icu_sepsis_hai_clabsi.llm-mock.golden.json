@@ -32,7 +32,7 @@
         "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "常用薬なし",
         "past_medical_history": "慢性腎臓病，詳細不明 [N18.9]",
-        "physical_examination": "バイタルサイン: BP 104/63 mmHg, HR 115/min, T 39.4°C, SpO2 92% (RA), RR 20/min。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "physical_examination": "バイタルサイン: BP 104/62 mmHg, HR 119/min, T 38.5°C, SpO2 95%, RR 20/min。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: その他"
       },
       "text": ""
@@ -78,11 +78,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 104/63 mmHg, HR 115 回/分, RR 20 回/分, SpO2 92%, T 39.4°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 104/62 mmHg, HR 119 回/分, RR 20 回/分, SpO2 95%, T 38.5°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 104/63 mmHg, HR 115 回/分, RR 20 回/分, SpO2 92%, T 39.4°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
+      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 104/62 mmHg, HR 119 回/分, RR 20 回/分, SpO2 95%, T 38.5°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-03": {
@@ -125,11 +125,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "BP 102/64 mmHg, HR 119 回/分, RR 20 回/分, SpO2 97%, T 39.4°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 104/62 mmHg, HR 124 回/分, RR 20 回/分, SpO2 97%, T 38.3°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 102/64 mmHg, HR 119 回/分, RR 20 回/分, SpO2 97%, T 39.4°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
+      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 104/62 mmHg, HR 124 回/分, RR 20 回/分, SpO2 97%, T 38.3°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-04": {
@@ -172,11 +172,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 99/58 mmHg, HR 129 回/分, RR 20 回/分, SpO2 94%, T 39.0°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "T 39.4°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 99/58 mmHg, HR 129 回/分, RR 20 回/分, SpO2 94%, T 39.0°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
+      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） T 39.4°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-05": {
@@ -186,6 +186,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_3",
+        "avpu_pe_consistency:consciousness",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -219,11 +220,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 102/65 mmHg, HR 118 回/分, RR 17 回/分, SpO2 92%, T 38.7°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 103/62 mmHg, HR 122 回/分, RR 24 回/分, SpO2 97%, T 39.3°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 102/65 mmHg, HR 118 回/分, RR 17 回/分, SpO2 92%, T 38.7°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
+      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 103/62 mmHg, HR 122 回/分, RR 24 回/分, SpO2 97%, T 39.3°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-06": {
@@ -266,11 +267,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #6 — assessment]",
-        "objective": "BP 102/65 mmHg, HR 118 回/分, RR 21 回/分, SpO2 94%, T 38.4°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 105/65 mmHg, HR 117 回/分, RR 28 回/分, SpO2 94%, T 39.8°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #6 — plan]",
         "subjective": "[Mock LLM response #6 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 102/65 mmHg, HR 118 回/分, RR 21 回/分, SpO2 94%, T 38.4°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
+      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 105/65 mmHg, HR 117 回/分, RR 28 回/分, SpO2 94%, T 39.8°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-07": {
@@ -313,11 +314,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #7 — assessment]",
-        "objective": "BP 102/63 mmHg, HR 118 回/分, RR 19 回/分, SpO2 98%, T 38.8°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 105/61 mmHg, HR 120 回/分, RR 22 回/分, SpO2 97%, T 38.9°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #7 — plan]",
         "subjective": "[Mock LLM response #7 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 102/63 mmHg, HR 118 回/分, RR 19 回/分, SpO2 98%, T 38.8°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
+      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 105/61 mmHg, HR 120 回/分, RR 22 回/分, SpO2 97%, T 38.9°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-08": {
@@ -327,6 +328,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_6",
+        "avpu_pe_consistency:consciousness",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -360,11 +362,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #8 — assessment]",
-        "objective": "BP 103/66 mmHg, HR 118 回/分, RR 21 回/分, SpO2 94%, T 39.3°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 105/64 mmHg, HR 112 回/分, RR 25 回/分, SpO2 98%, T 39.9°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #8 — plan]",
         "subjective": "[Mock LLM response #8 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 103/66 mmHg, HR 118 回/分, RR 21 回/分, SpO2 94%, T 39.3°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
+      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 105/64 mmHg, HR 112 回/分, RR 25 回/分, SpO2 98%, T 39.9°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-09": {
@@ -407,11 +409,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #9 — assessment]",
-        "objective": "BP 108/63 mmHg, HR 112 回/分, RR 20 回/分, SpO2 94%, T 38.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 107/65 mmHg, HR 115 回/分, RR 20 回/分, SpO2 92%, T 39.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #9 — plan]",
         "subjective": "[Mock LLM response #9 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 108/63 mmHg, HR 112 回/分, RR 20 回/分, SpO2 94%, T 38.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
+      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 107/65 mmHg, HR 115 回/分, RR 20 回/分, SpO2 92%, T 39.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-10": {
@@ -454,11 +456,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #10 — assessment]",
-        "objective": "BP 106/63 mmHg, HR 115 回/分, RR 19 回/分, SpO2 92%, T 38.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 109/65 mmHg, HR 114 回/分, RR 19 回/分, SpO2 97%, T 39.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #10 — plan]",
         "subjective": "[Mock LLM response #10 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 106/63 mmHg, HR 115 回/分, RR 19 回/分, SpO2 92%, T 38.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
+      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 109/65 mmHg, HR 114 回/分, RR 19 回/分, SpO2 97%, T 39.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-100-night": {
@@ -481,7 +483,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 23 日目 / 入院予定 32 日間\n患者状態: BP 116/67, HR 108, SpO2 94%, T 38.5°C。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 23 日目 / 入院予定 31 日間\n患者状態: BP 115/69, HR 106, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-101-day": {
@@ -504,7 +506,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 23 日目 / 入院予定 32 日間\n患者状態: BP 116/67, HR 108, SpO2 94%, T 38.5°C。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 23 日目 / 入院予定 31 日間\n患者状態: BP 115/69, HR 106, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-102-evening": {
@@ -527,7 +529,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 23 日目 / 入院予定 32 日間\n患者状態: BP 116/67, HR 108, SpO2 94%, T 38.5°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 23 日目 / 入院予定 31 日間\n患者状態: BP 115/69, HR 106, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-103-night": {
@@ -550,7 +552,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 24 日目 / 入院予定 32 日間\n患者状態: BP 112/70, HR 104, SpO2 92%, T 39.2°C。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 24 日目 / 入院予定 31 日間\n患者状態: BP 116/66, HR 104, SpO2 95%, T 38.8°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-104-day": {
@@ -573,7 +575,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 24 日目 / 入院予定 32 日間\n患者状態: BP 112/70, HR 104, SpO2 92%, T 39.2°C。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 24 日目 / 入院予定 31 日間\n患者状態: BP 116/66, HR 104, SpO2 95%, T 38.8°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-105-evening": {
@@ -596,7 +598,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 24 日目 / 入院予定 32 日間\n患者状態: BP 112/70, HR 104, SpO2 92%, T 39.2°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 24 日目 / 入院予定 31 日間\n患者状態: BP 116/66, HR 104, SpO2 95%, T 38.8°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-106-night": {
@@ -619,7 +621,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 25 日目 / 入院予定 32 日間\n患者状態: BP 116/66, HR 104, SpO2 95%, T 39.0°C、酸素投与: 経鼻カニューレ 2.6 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 25 日目 / 入院予定 31 日間\n患者状態: BP 114/70, HR 108, SpO2 93%, T 39.3°C、酸素投与: 経鼻カニューレ 3.3 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-107-day": {
@@ -642,7 +644,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 25 日目 / 入院予定 32 日間\n患者状態: BP 116/66, HR 104, SpO2 95%, T 39.0°C、酸素投与: 経鼻カニューレ 2.6 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 25 日目 / 入院予定 31 日間\n患者状態: BP 114/70, HR 108, SpO2 93%, T 39.3°C、酸素投与: 経鼻カニューレ 3.3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-108-evening": {
@@ -665,7 +667,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 25 日目 / 入院予定 32 日間\n患者状態: BP 116/66, HR 104, SpO2 95%, T 39.0°C、酸素投与: 経鼻カニューレ 2.6 L/min。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 25 日目 / 入院予定 31 日間\n患者状態: BP 114/70, HR 108, SpO2 93%, T 39.3°C、酸素投与: 経鼻カニューレ 3.3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-109-night": {
@@ -688,7 +690,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 26 日目 / 入院予定 32 日間\n患者状態: BP 115/69, HR 103, SpO2 95%, T 38.5°C、酸素投与: 経鼻カニューレ 3.3 L/min。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 26 日目 / 入院予定 31 日間\n患者状態: BP 114/68, HR 106, SpO2 95%, T 38.5°C、酸素投与: 経鼻カニューレ 3.1 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-11": {
@@ -732,11 +734,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #11 — assessment]",
-        "objective": "BP 111/70 mmHg, HR 115 回/分, RR 21 回/分, SpO2 98%, T 39.7°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 108/65 mmHg, HR 108 回/分, RR 24 回/分, SpO2 98%, T 39.4°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #11 — plan]",
         "subjective": "[Mock LLM response #11 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 111/70 mmHg, HR 115 回/分, RR 21 回/分, SpO2 98%, T 39.7°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
+      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 108/65 mmHg, HR 108 回/分, RR 24 回/分, SpO2 98%, T 39.4°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-110-day": {
@@ -759,7 +761,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 26 日目 / 入院予定 32 日間\n患者状態: BP 115/69, HR 103, SpO2 95%, T 38.5°C、酸素投与: 経鼻カニューレ 3.3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 26 日目 / 入院予定 31 日間\n患者状態: BP 114/68, HR 106, SpO2 95%, T 38.5°C、酸素投与: 経鼻カニューレ 3.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-111-evening": {
@@ -782,7 +784,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 26 日目 / 入院予定 32 日間\n患者状態: BP 115/69, HR 103, SpO2 95%, T 38.5°C、酸素投与: 経鼻カニューレ 3.3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 26 日目 / 入院予定 31 日間\n患者状態: BP 114/68, HR 106, SpO2 95%, T 38.5°C、酸素投与: 経鼻カニューレ 3.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-112-night": {
@@ -805,7 +807,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 27 日目 / 入院予定 32 日間\n患者状態: BP 117/70, HR 104, SpO2 96%, T 38.7°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 27 日目 / 入院予定 31 日間\n患者状態: BP 117/71, HR 108, SpO2 95%, T 39.3°C、酸素投与: 経鼻カニューレ 3.8 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-113-day": {
@@ -828,7 +830,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 27 日目 / 入院予定 32 日間\n患者状態: BP 117/70, HR 104, SpO2 96%, T 38.7°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 27 日目 / 入院予定 31 日間\n患者状態: BP 117/71, HR 108, SpO2 95%, T 39.3°C、酸素投与: 経鼻カニューレ 3.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-114-evening": {
@@ -851,7 +853,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 27 日目 / 入院予定 32 日間\n患者状態: BP 117/70, HR 104, SpO2 96%, T 38.7°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 27 日目 / 入院予定 31 日間\n患者状態: BP 117/71, HR 108, SpO2 95%, T 39.3°C、酸素投与: 経鼻カニューレ 3.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-115-night": {
@@ -861,7 +863,6 @@
       "facts_used": [
         "ctx.shift",
         "ctx.vitals.today",
-        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -874,7 +875,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 28 日目 / 入院予定 32 日間\n患者状態: BP 109/66, HR 115, SpO2 93%, T 38.8°C。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 28 日目 / 入院予定 31 日間\n患者状態: BP 116/70, HR 106, SpO2 96%, T 38.8°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-116-day": {
@@ -897,7 +898,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 28 日目 / 入院予定 32 日間\n患者状態: BP 109/66, HR 115, SpO2 93%, T 38.8°C。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 28 日目 / 入院予定 31 日間\n患者状態: BP 116/70, HR 106, SpO2 96%, T 38.8°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-117-evening": {
@@ -920,7 +921,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 28 日目 / 入院予定 32 日間\n患者状態: BP 109/66, HR 115, SpO2 93%, T 38.8°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 28 日目 / 入院予定 31 日間\n患者状態: BP 116/70, HR 106, SpO2 96%, T 38.8°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-118-night": {
@@ -943,7 +944,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 29 日目 / 入院予定 32 日間\n患者状態: BP 110/64, HR 112, SpO2 93%, T 39.4°C、酸素投与: 経鼻カニューレ 2.5 L/min。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 29 日目 / 入院予定 31 日間\n患者状態: BP 116/73, HR 103, SpO2 94%, T 38.3°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-119-day": {
@@ -966,7 +967,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 29 日目 / 入院予定 32 日間\n患者状態: BP 110/64, HR 112, SpO2 93%, T 39.4°C、酸素投与: 経鼻カニューレ 2.5 L/min。\n投薬継続: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 29 日目 / 入院予定 31 日間\n患者状態: BP 116/73, HR 103, SpO2 94%, T 38.3°C。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-12": {
@@ -1009,11 +1010,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #12 — assessment]",
-        "objective": "BP 108/64 mmHg, HR 110 回/分, RR 16 回/分, SpO2 94%, T 38.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 110/66 mmHg, HR 110 回/分, RR 20 回/分, SpO2 95%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #12 — plan]",
         "subjective": "[Mock LLM response #12 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 108/64 mmHg, HR 110 回/分, RR 16 回/分, SpO2 94%, T 38.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
+      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 110/66 mmHg, HR 110 回/分, RR 20 回/分, SpO2 95%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-120-evening": {
@@ -1036,7 +1037,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 29 日目 / 入院予定 32 日間\n患者状態: BP 110/64, HR 112, SpO2 93%, T 39.4°C、酸素投与: 経鼻カニューレ 2.5 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 29 日目 / 入院予定 31 日間\n患者状態: BP 116/73, HR 103, SpO2 94%, T 38.3°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-121-night": {
@@ -1059,7 +1060,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 30 日目 / 入院予定 32 日間\n患者状態: BP 113/67, HR 112, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 4.9 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 30 日目 / 入院予定 31 日間\n患者状態: BP 115/72, HR 104, SpO2 98%, T 38.9°C、酸素投与: リザーバーマスク 8.2 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-122-day": {
@@ -1082,7 +1083,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 30 日目 / 入院予定 32 日間\n患者状態: BP 113/67, HR 112, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 4.9 L/min。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 30 日目 / 入院予定 31 日間\n患者状態: BP 115/72, HR 104, SpO2 98%, T 38.9°C、酸素投与: リザーバーマスク 8.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-123-evening": {
@@ -1105,7 +1106,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 30 日目 / 入院予定 32 日間\n患者状態: BP 113/67, HR 112, SpO2 98%, T 37.9°C、酸素投与: 酸素マスク 4.9 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 30 日目 / 入院予定 31 日間\n患者状態: BP 115/72, HR 104, SpO2 98%, T 38.9°C、酸素投与: リザーバーマスク 8.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-124-night": {
@@ -1128,7 +1129,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 31 日目 / 入院予定 32 日間\n患者状態: BP 109/65, HR 111, SpO2 98%, T 39.5°C、酸素投与: 酸素マスク 7.9 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 31 日目 / 入院予定 31 日間\n患者状態: BP 117/71, HR 106, SpO2 93%, T 38.5°C。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-125-day": {
@@ -1151,7 +1152,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 31 日目 / 入院予定 32 日間\n患者状態: BP 109/65, HR 111, SpO2 98%, T 39.5°C、酸素投与: 酸素マスク 7.9 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 31 日目 / 入院予定 31 日間\n患者状態: BP 117/71, HR 106, SpO2 93%, T 38.5°C。\n投薬継続: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-126-evening": {
@@ -1174,76 +1175,101 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 31 日目 / 入院予定 32 日間\n患者状態: BP 109/65, HR 111, SpO2 98%, T 39.5°C、酸素投与: 酸素マスク 7.9 L/min。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 31 日目 / 入院予定 31 日間\n患者状態: BP 117/71, HR 106, SpO2 93%, T 38.5°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-127-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-127-night",
+  "doc-ENC-FORCED-0001-013699914137-127": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-127",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.los_days",
+        "ctx.complications_occurred",
+        "ctx.intake_output_records",
+        "ctx.patient.chronic_conditions",
+        "ctx.adl_assessments[-1]"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 31,
         "generator": "template",
-        "lang": "ja",
-        "shift": "night"
+        "lang": "ja"
       },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 32 日目 / 入院予定 32 日間\n患者状態: BP 110/64, HR 111, SpO2 96%, T 38.6°C、酸素投与: 経鼻カニューレ 2.7 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "sections": {
+        "admission_status": "入院期間: 31日間。入院理由: 発熱・意識変容・低血圧。経過中の合併症: ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害。退院基準を満たし退院となった。",
+        "discharge_readiness": "退院準備: 退院時 Barthel 100/100。",
+        "nursing_interventions_provided": "入院期間合計 IN 55751 mL / OUT 14954 mL (差 +40797 mL)。",
+        "patient_education": "患者教育: 腎機能保護、蛋白制限。"
+      },
+      "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-128-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-128-day",
+  "doc-ENC-FORCED-0001-013699914137-128": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-128",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "encounter.ward_id",
+        "encounter.bed_number",
+        "ctx.diagnoses",
+        "ctx.encounter.chief_complaint_ja",
+        "chief_complaint_variants.sepsis[3]",
+        "disease_protocol.target_los"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 31,
         "generator": "template",
-        "lang": "ja",
-        "shift": "day"
+        "lang": "ja"
       },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 32 日目 / 入院予定 32 日間\n患者状態: BP 110/64, HR 111, SpO2 96%, T 38.6°C、酸素投与: 経鼻カニューレ 2.7 L/min。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "sections": {
+        "diagnosis": "敗血症，詳細不明（A41.9）",
+        "estimated_los": "推定入院期間：約35日間",
+        "other_plans": "その他：看護計画・リハビリテーション等の計画については看護記録を参照。",
+        "other_staff": "担当なし",
+        "special_nutrition_management": "特別な栄養管理の必要性：無",
+        "surgery_schedule": "手術：予定なし",
+        "symptoms": "3日前より倦怠感・本日ぐったり",
+        "test_schedule": "検査：担当医の判断により決定",
+        "treatment_plan": "【評価】主訴「発熱・意識変容・低血圧」で入院。 病態: 敗血症 (重度)。 併存疾患: 慢性腎臓病，詳細不明。\n【方針】予定入院期間: 約35日。 薬物療法: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。",
+        "ward_and_room": "病棟：4E　病室：4E-04"
+      },
+      "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-129-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-129-evening",
+  "doc-ENC-FORCED-0001-013699914137-129": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-129",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "encounter.ward_id",
+        "encounter.attending_physician_id",
+        "patient.bmi",
+        "patient.bmi",
+        "ctx.patient.chronic_conditions",
+        "patient.weight_kg"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 31,
         "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
+        "lang": "ja"
       },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 32 日目 / 入院予定 32 日間\n患者状態: BP 110/64, HR 111, SpO2 96%, T 38.6°C、酸素投与: 経鼻カニューレ 2.7 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "sections": {
+        "dietary_content": "食事内容：常食",
+        "dietitian": "担当なし",
+        "discharge_evaluation": "退院時及び終了時の総合的評価：退院時に評価予定",
+        "dysphagia_diet": "嚥下調整食の必要性：なし",
+        "nutrition_assessment": "栄養状態評価: BMI 22.0 (普通)、要注意: CKD 蛋白制限。",
+        "nutrition_counseling": "栄養食事相談：必要に応じて実施",
+        "nutrition_goals": "栄養管理計画の目標：現在の栄養状態を維持",
+        "nutrition_risk": "低栄養リスク：低（BMI 22.0、リスクなし）",
+        "nutrition_supply": "エネルギー：1524kcal／日　たんぱく質：60.9g／日　補給方法：経口",
+        "other_issues": "その他栄養管理上の課題：特記事項なし",
+        "reassessment_timing": "栄養状態の再評価：入院後1週間を目安に実施",
+        "ward_and_physician": "病棟：4E　担当医師：石山 ミツ"
+      },
+      "text": ""
     }
   },
   "doc-ENC-FORCED-0001-013699914137-13": {
@@ -1286,177 +1312,15 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #13 — assessment]",
-        "objective": "BP 112/68 mmHg, HR 110 回/分, RR 19 回/分, SpO2 96%, T 37.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 105/58 mmHg, HR 109 回/分, RR 23 回/分, SpO2 98%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #13 — plan]",
         "subjective": "[Mock LLM response #13 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 112/68 mmHg, HR 110 回/分, RR 19 回/分, SpO2 96%, T 37.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
+      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 105/58 mmHg, HR 109 回/分, RR 23 回/分, SpO2 98%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-130": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-130",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.los_days",
-        "ctx.complications_occurred",
-        "ctx.intake_output_records",
-        "ctx.patient.chronic_conditions",
-        "ctx.adl_assessments[-1]"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "generator": "template",
-        "lang": "ja"
-      },
-      "sections": {
-        "admission_status": "入院期間: 32日間。入院理由: 発熱・意識変容・低血圧。経過中の合併症: たこつぼ型心筋症、肝機能障害、ICU せん妄。退院基準を満たし退院となった。",
-        "discharge_readiness": "退院準備: 退院時 Barthel 95/100。",
-        "nursing_interventions_provided": "入院期間合計 IN 55644 mL / OUT 25587 mL (差 +30057 mL)。",
-        "patient_education": "患者教育: 腎機能保護、蛋白制限。"
-      },
-      "text": ""
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-131": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-131",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "encounter.ward_id",
-        "encounter.bed_number",
-        "ctx.diagnoses",
-        "ctx.encounter.chief_complaint_ja",
-        "chief_complaint_variants.sepsis[3]",
-        "disease_protocol.target_los"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "generator": "template",
-        "lang": "ja"
-      },
-      "sections": {
-        "diagnosis": "敗血症，詳細不明（A41.9）",
-        "estimated_los": "推定入院期間：約35日間",
-        "other_plans": "その他：看護計画・リハビリテーション等の計画については看護記録を参照。",
-        "other_staff": "担当なし",
-        "special_nutrition_management": "特別な栄養管理の必要性：無",
-        "surgery_schedule": "手術：予定なし",
-        "symptoms": "3日前より倦怠感・本日ぐったり",
-        "test_schedule": "検査：担当医の判断により決定",
-        "treatment_plan": "【評価】主訴「発熱・意識変容・低血圧」で入院。 病態: 敗血症 (重度)。 併存疾患: 慢性腎臓病，詳細不明。\n【方針】予定入院期間: 約35日。 薬物療法: メロペネム、バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。",
-        "ward_and_room": "病棟：4E　病室：4E-04"
-      },
-      "text": ""
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-132": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-132",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "encounter.ward_id",
-        "encounter.attending_physician_id",
-        "patient.bmi",
-        "patient.bmi",
-        "ctx.patient.chronic_conditions",
-        "patient.weight_kg"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "generator": "template",
-        "lang": "ja"
-      },
-      "sections": {
-        "dietary_content": "食事内容：常食",
-        "dietitian": "担当なし",
-        "discharge_evaluation": "退院時及び終了時の総合的評価：退院時に評価予定",
-        "dysphagia_diet": "嚥下調整食の必要性：なし",
-        "nutrition_assessment": "栄養状態評価: BMI 22.0 (普通)、要注意: CKD 蛋白制限。",
-        "nutrition_counseling": "栄養食事相談：必要に応じて実施",
-        "nutrition_goals": "栄養管理計画の目標：現在の栄養状態を維持",
-        "nutrition_risk": "低栄養リスク：低（BMI 22.0、リスクなし）",
-        "nutrition_supply": "エネルギー：1524kcal／日　たんぱく質：60.9g／日　補給方法：経口",
-        "other_issues": "その他栄養管理上の課題：特記事項なし",
-        "reassessment_timing": "栄養状態の再評価：入院後1週間を目安に実施",
-        "ward_and_physician": "病棟：4E　担当医師：石山 ミツ"
-      },
-      "text": ""
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-133": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-133",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.diagnoses[0].discharge_diagnosis_code",
-        "ctx.los_days",
-        "ctx.diagnoses[0].discharge_diagnosis_code",
-        "ctx.diagnoses[0].discharge_diagnosis_code",
-        "ctx.patient.chronic_conditions",
-        "ctx.complications_occurred",
-        "encounter.id::autopsy_sample"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "generator": "llm",
-        "lang": "ja"
-      },
-      "sections": {
-        "autopsy_status": "解剖の有無: 有（病理解剖）。",
-        "contributing_conditions": "[Mock LLM response #35 — contributing_conditions]",
-        "duration_of_immediate_cause": "[Mock LLM response #35 — duration_of_immediate_cause]",
-        "immediate_cause_of_death": "直接死因: 敗血症性ショック（R65.21）。",
-        "manner_of_death": "死因の種類: 病死及び自然死。",
-        "underlying_cause_of_death": "原死因: 敗血症性ショック（R65）。"
-      },
-      "text": ""
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-134": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-134",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.diagnoses[0].admission_diagnosis_code",
-        "ctx.encounter.admission_datetime",
-        "ctx.los_days",
-        "ctx.medications",
-        "ctx.procedures",
-        "ctx.encounter.discharge_datetime",
-        "ctx.diagnoses[0].discharge_diagnosis_code",
-        "ctx.procedures",
-        "ctx.diagnoses[0].discharge_diagnosis_code",
-        "ctx.patient.chronic_conditions",
-        "ctx.complications_occurred",
-        "ctx.los_days",
-        "encounter.id::autopsy_sample"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "generator": "llm",
-        "lang": "ja"
-      },
-      "sections": {
-        "admission_state": "[Mock LLM response #36 — admission_state]",
-        "autopsy_status_and_findings": "[Mock LLM response #36 — autopsy_status_and_findings]",
-        "cause_of_death": "死因: 敗血症性ショック（R65.21）。",
-        "circumstances_of_death": "[Mock LLM response #36 — circumstances_of_death]",
-        "complications_and_comorbidities": "[Mock LLM response #36 — complications_and_comorbidities]",
-        "family_communication": "[Mock LLM response #36 — family_communication]",
-        "terminal_course": "[Mock LLM response #36 — terminal_course]",
-        "treatment_course": "[Mock LLM response #36 — treatment_course]"
-      },
-      "text": ""
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-135-pn": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-135-pn",
+  "doc-ENC-FORCED-0001-013699914137-130-pn": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-130-pn",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1475,6 +1339,88 @@
         "ctx.procedures[PROC-FORCED-0001-002]",
         "ctx.procedures.specimens_sent",
         "ctx.procedures[PROC-FORCED-0001-002]",
+        "ctx.procedures.outcome_code"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "generator": "llm",
+        "lang": "ja"
+      },
+      "sections": {
+        "pn_analgesia": "麻酔・鎮静: 局所麻酔下に施行。",
+        "pn_complications": "[Mock LLM response #35 — pn_complications]",
+        "pn_consent": "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。",
+        "pn_course": "[Mock LLM response #35 — pn_course]",
+        "pn_performer": "実施者: 記録なし。",
+        "pn_postop_plan": "[Mock LLM response #35 — pn_postop_plan]",
+        "pn_procedure_name": "処置名: 留置カテーテル設置（J063）／術式区分: 尿道カテーテル挿入。",
+        "pn_specimens": "検体の有無: 検体採取なし。"
+      },
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-013699914137-131-pn": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-131-pn",
+    "encounter_id": "ENC-FORCED-0001-013699914137",
+    "narrative": {
+      "facts_used": [
+        "ctx.procedures[PROC-FORCED-0001-003]",
+        "ctx.procedures.procedure_code",
+        "ctx.procedures[PROC-FORCED-0001-003]",
+        "ctx.procedures[PROC-FORCED-0001-003]",
+        "ctx.procedures.primary_surgeon_id",
+        "ctx.procedures[PROC-FORCED-0001-003]",
+        "ctx.procedures.anesthesia_type",
+        "ctx.procedures[PROC-FORCED-0001-003]",
+        "ctx.procedures.duration_minutes",
+        "ctx.procedures.outcome_code",
+        "ctx.procedures[PROC-FORCED-0001-003]",
+        "ctx.procedures.intraop_complications",
+        "ctx.procedures[PROC-FORCED-0001-003]",
+        "ctx.procedures.specimens_sent",
+        "ctx.procedures[PROC-FORCED-0001-003]",
+        "ctx.procedures.outcome_code"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "generator": "llm",
+        "lang": "ja"
+      },
+      "sections": {
+        "pn_analgesia": "麻酔・鎮静: 局所麻酔下に施行。",
+        "pn_complications": "[Mock LLM response #36 — pn_complications]",
+        "pn_consent": "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。",
+        "pn_course": "[Mock LLM response #36 — pn_course]",
+        "pn_performer": "実施者: 記録なし。",
+        "pn_postop_plan": "[Mock LLM response #36 — pn_postop_plan]",
+        "pn_procedure_name": "処置名: 中心静脈注射用カテーテル挿入（G005-2）／術式区分: 中心静脈カテーテル挿入。",
+        "pn_specimens": "検体の有無: 検体採取なし。"
+      },
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-013699914137-132-pn": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-132-pn",
+    "encounter_id": "ENC-FORCED-0001-013699914137",
+    "narrative": {
+      "facts_used": [
+        "ctx.procedures[PROC-FORCED-0001-004]",
+        "ctx.procedures.procedure_code",
+        "ctx.procedures[PROC-FORCED-0001-004]",
+        "ctx.procedures[PROC-FORCED-0001-004]",
+        "ctx.procedures.primary_surgeon_id",
+        "ctx.procedures[PROC-FORCED-0001-004]",
+        "ctx.procedures.anesthesia_type",
+        "ctx.procedures[PROC-FORCED-0001-004]",
+        "ctx.procedures.duration_minutes",
+        "ctx.procedures.outcome_code",
+        "ctx.procedures[PROC-FORCED-0001-004]",
+        "ctx.procedures.intraop_complications",
+        "ctx.procedures[PROC-FORCED-0001-004]",
+        "ctx.procedures.specimens_sent",
+        "ctx.procedures[PROC-FORCED-0001-004]",
         "ctx.procedures.outcome_code"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -1490,88 +1436,6 @@
         "pn_course": "[Mock LLM response #37 — pn_course]",
         "pn_performer": "実施者: 記録なし。",
         "pn_postop_plan": "[Mock LLM response #37 — pn_postop_plan]",
-        "pn_procedure_name": "処置名: 留置カテーテル設置（J063）／術式区分: 尿道カテーテル挿入。",
-        "pn_specimens": "検体の有無: 検体採取なし。"
-      },
-      "text": ""
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-136-pn": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-136-pn",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.procedures[PROC-FORCED-0001-003]",
-        "ctx.procedures.procedure_code",
-        "ctx.procedures[PROC-FORCED-0001-003]",
-        "ctx.procedures[PROC-FORCED-0001-003]",
-        "ctx.procedures.primary_surgeon_id",
-        "ctx.procedures[PROC-FORCED-0001-003]",
-        "ctx.procedures.anesthesia_type",
-        "ctx.procedures[PROC-FORCED-0001-003]",
-        "ctx.procedures.duration_minutes",
-        "ctx.procedures.outcome_code",
-        "ctx.procedures[PROC-FORCED-0001-003]",
-        "ctx.procedures.intraop_complications",
-        "ctx.procedures[PROC-FORCED-0001-003]",
-        "ctx.procedures.specimens_sent",
-        "ctx.procedures[PROC-FORCED-0001-003]",
-        "ctx.procedures.outcome_code"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "generator": "llm",
-        "lang": "ja"
-      },
-      "sections": {
-        "pn_analgesia": "麻酔・鎮静: 局所麻酔下に施行。",
-        "pn_complications": "[Mock LLM response #38 — pn_complications]",
-        "pn_consent": "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。",
-        "pn_course": "[Mock LLM response #38 — pn_course]",
-        "pn_performer": "実施者: 記録なし。",
-        "pn_postop_plan": "[Mock LLM response #38 — pn_postop_plan]",
-        "pn_procedure_name": "処置名: 中心静脈注射用カテーテル挿入（G005-2）／術式区分: 中心静脈カテーテル挿入。",
-        "pn_specimens": "検体の有無: 検体採取なし。"
-      },
-      "text": ""
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-137-pn": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-137-pn",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.procedures[PROC-FORCED-0001-004]",
-        "ctx.procedures.procedure_code",
-        "ctx.procedures[PROC-FORCED-0001-004]",
-        "ctx.procedures[PROC-FORCED-0001-004]",
-        "ctx.procedures.primary_surgeon_id",
-        "ctx.procedures[PROC-FORCED-0001-004]",
-        "ctx.procedures.anesthesia_type",
-        "ctx.procedures[PROC-FORCED-0001-004]",
-        "ctx.procedures.duration_minutes",
-        "ctx.procedures.outcome_code",
-        "ctx.procedures[PROC-FORCED-0001-004]",
-        "ctx.procedures.intraop_complications",
-        "ctx.procedures[PROC-FORCED-0001-004]",
-        "ctx.procedures.specimens_sent",
-        "ctx.procedures[PROC-FORCED-0001-004]",
-        "ctx.procedures.outcome_code"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "generator": "llm",
-        "lang": "ja"
-      },
-      "sections": {
-        "pn_analgesia": "麻酔・鎮静: 局所麻酔下に施行。",
-        "pn_complications": "[Mock LLM response #39 — pn_complications]",
-        "pn_consent": "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。",
-        "pn_course": "[Mock LLM response #39 — pn_course]",
-        "pn_performer": "実施者: 記録なし。",
-        "pn_postop_plan": "[Mock LLM response #39 — pn_postop_plan]",
         "pn_procedure_name": "処置名: 観血的動脈圧測定（D225）／術式区分: 動脈ライン挿入。",
         "pn_specimens": "検体の有無: 検体採取なし。"
       },
@@ -1618,11 +1482,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #14 — assessment]",
-        "objective": "BP 111/65 mmHg, HR 110 回/分, RR 20 回/分, SpO2 96%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 107/61 mmHg, HR 110 回/分, RR 21 回/分, SpO2 98%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #14 — plan]",
         "subjective": "[Mock LLM response #14 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 111/65 mmHg, HR 110 回/分, RR 20 回/分, SpO2 96%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
+      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 107/61 mmHg, HR 110 回/分, RR 21 回/分, SpO2 98%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-15": {
@@ -1665,11 +1529,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #15 — assessment]",
-        "objective": "BP 112/65 mmHg, HR 105 回/分, RR 22 回/分, SpO2 94%, T 38.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 103/63 mmHg, HR 118 回/分, RR 23 回/分, SpO2 92%, T 39.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #15 — plan]",
         "subjective": "[Mock LLM response #15 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 112/65 mmHg, HR 105 回/分, RR 22 回/分, SpO2 94%, T 38.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
+      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 103/63 mmHg, HR 118 回/分, RR 23 回/分, SpO2 92%, T 39.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-16": {
@@ -1712,11 +1576,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #16 — assessment]",
-        "objective": "BP 114/68 mmHg, HR 107 回/分, RR 19 回/分, SpO2 92%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 103/64 mmHg, HR 113 回/分, RR 22 回/分, SpO2 97%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #16 — plan]",
         "subjective": "[Mock LLM response #16 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 114/68 mmHg, HR 107 回/分, RR 19 回/分, SpO2 92%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
+      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 103/64 mmHg, HR 113 回/分, RR 22 回/分, SpO2 97%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-17": {
@@ -1759,11 +1623,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #17 — assessment]",
-        "objective": "BP 115/69 mmHg, HR 104 回/分, RR 17 回/分, SpO2 93%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 107/61 mmHg, HR 115 回/分, RR 26 回/分, SpO2 93%, T 40.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #17 — plan]",
         "subjective": "[Mock LLM response #17 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #17 — subjective]\nO（客観） BP 115/69 mmHg, HR 104 回/分, RR 17 回/分, SpO2 93%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #17 — assessment]\nP（計画） [Mock LLM response #17 — plan]"
+      "text": "S（主観） [Mock LLM response #17 — subjective]\nO（客観） BP 107/61 mmHg, HR 115 回/分, RR 26 回/分, SpO2 93%, T 40.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #17 — assessment]\nP（計画） [Mock LLM response #17 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-18": {
@@ -1806,11 +1670,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #18 — assessment]",
-        "objective": "BP 117/76 mmHg, HR 104 回/分, RR 20 回/分, SpO2 95%, T 37.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 111/65 mmHg, HR 110 回/分, RR 19 回/分, SpO2 95%, T 39.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #18 — plan]",
         "subjective": "[Mock LLM response #18 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #18 — subjective]\nO（客観） BP 117/76 mmHg, HR 104 回/分, RR 20 回/分, SpO2 95%, T 37.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #18 — assessment]\nP（計画） [Mock LLM response #18 — plan]"
+      "text": "S（主観） [Mock LLM response #18 — subjective]\nO（客観） BP 111/65 mmHg, HR 110 回/分, RR 19 回/分, SpO2 95%, T 39.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #18 — assessment]\nP（計画） [Mock LLM response #18 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-19": {
@@ -1853,11 +1717,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #19 — assessment]",
-        "objective": "BP 122/68 mmHg, HR 102 回/分, RR 18 回/分, SpO2 94%, T 38.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 112/67 mmHg, HR 109 回/分, RR 21 回/分, SpO2 94%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #19 — plan]",
         "subjective": "[Mock LLM response #19 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #19 — subjective]\nO（客観） BP 122/68 mmHg, HR 102 回/分, RR 18 回/分, SpO2 94%, T 38.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #19 — assessment]\nP（計画） [Mock LLM response #19 — plan]"
+      "text": "S（主観） [Mock LLM response #19 — subjective]\nO（客観） BP 112/67 mmHg, HR 109 回/分, RR 21 回/分, SpO2 94%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #19 — assessment]\nP（計画） [Mock LLM response #19 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-20": {
@@ -1900,11 +1764,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #20 — assessment]",
-        "objective": "BP 124/70 mmHg, HR 102 回/分, RR 21 回/分, SpO2 92%, T 38.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 111/65 mmHg, HR 110 回/分, RR 22 回/分, SpO2 94%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #20 — plan]",
         "subjective": "[Mock LLM response #20 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #20 — subjective]\nO（客観） BP 124/70 mmHg, HR 102 回/分, RR 21 回/分, SpO2 92%, T 38.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #20 — assessment]\nP（計画） [Mock LLM response #20 — plan]"
+      "text": "S（主観） [Mock LLM response #20 — subjective]\nO（客観） BP 111/65 mmHg, HR 110 回/分, RR 22 回/分, SpO2 94%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #20 — assessment]\nP（計画） [Mock LLM response #20 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-21": {
@@ -1947,11 +1811,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #21 — assessment]",
-        "objective": "BP 119/69 mmHg, HR 102 回/分, RR 21 回/分, SpO2 92%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 110/67 mmHg, HR 108 回/分, RR 22 回/分, SpO2 91%, T 39.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #21 — plan]",
         "subjective": "[Mock LLM response #21 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #21 — subjective]\nO（客観） BP 119/69 mmHg, HR 102 回/分, RR 21 回/分, SpO2 92%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #21 — assessment]\nP（計画） [Mock LLM response #21 — plan]"
+      "text": "S（主観） [Mock LLM response #21 — subjective]\nO（客観） BP 110/67 mmHg, HR 108 回/分, RR 22 回/分, SpO2 91%, T 39.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #21 — assessment]\nP（計画） [Mock LLM response #21 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-22": {
@@ -1994,11 +1858,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #22 — assessment]",
-        "objective": "BP 116/69 mmHg, HR 105 回/分, RR 21 回/分, SpO2 97%, T 39.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 112/68 mmHg, HR 110 回/分, RR 23 回/分, SpO2 95%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #22 — plan]",
         "subjective": "[Mock LLM response #22 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #22 — subjective]\nO（客観） BP 116/69 mmHg, HR 105 回/分, RR 21 回/分, SpO2 97%, T 39.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #22 — assessment]\nP（計画） [Mock LLM response #22 — plan]"
+      "text": "S（主観） [Mock LLM response #22 — subjective]\nO（客観） BP 112/68 mmHg, HR 110 回/分, RR 23 回/分, SpO2 95%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #22 — assessment]\nP（計画） [Mock LLM response #22 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-23": {
@@ -2041,11 +1905,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #23 — assessment]",
-        "objective": "BP 112/69 mmHg, HR 103 回/分, RR 17 回/分, SpO2 92%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 111/68 mmHg, HR 108 回/分, RR 22 回/分, SpO2 98%, T 38.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #23 — plan]",
         "subjective": "[Mock LLM response #23 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #23 — subjective]\nO（客観） BP 112/69 mmHg, HR 103 回/分, RR 17 回/分, SpO2 92%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #23 — assessment]\nP（計画） [Mock LLM response #23 — plan]"
+      "text": "S（主観） [Mock LLM response #23 — subjective]\nO（客観） BP 111/68 mmHg, HR 108 回/分, RR 22 回/分, SpO2 98%, T 38.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #23 — assessment]\nP（計画） [Mock LLM response #23 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-24": {
@@ -2088,11 +1952,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #24 — assessment]",
-        "objective": "BP 116/67 mmHg, HR 108 回/分, RR 18 回/分, SpO2 94%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 115/69 mmHg, HR 106 回/分, RR 21 回/分, SpO2 98%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #24 — plan]",
         "subjective": "[Mock LLM response #24 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #24 — subjective]\nO（客観） BP 116/67 mmHg, HR 108 回/分, RR 18 回/分, SpO2 94%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #24 — assessment]\nP（計画） [Mock LLM response #24 — plan]"
+      "text": "S（主観） [Mock LLM response #24 — subjective]\nO（客観） BP 115/69 mmHg, HR 106 回/分, RR 21 回/分, SpO2 98%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #24 — assessment]\nP（計画） [Mock LLM response #24 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-25": {
@@ -2135,11 +1999,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #25 — assessment]",
-        "objective": "BP 112/70 mmHg, HR 104 回/分, RR 18 回/分, SpO2 92%, T 39.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 116/66 mmHg, HR 104 回/分, RR 21 回/分, SpO2 95%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #25 — plan]",
         "subjective": "[Mock LLM response #25 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #25 — subjective]\nO（客観） BP 112/70 mmHg, HR 104 回/分, RR 18 回/分, SpO2 92%, T 39.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #25 — assessment]\nP（計画） [Mock LLM response #25 — plan]"
+      "text": "S（主観） [Mock LLM response #25 — subjective]\nO（客観） BP 116/66 mmHg, HR 104 回/分, RR 21 回/分, SpO2 95%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #25 — assessment]\nP（計画） [Mock LLM response #25 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-26": {
@@ -2182,11 +2046,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #26 — assessment]",
-        "objective": "BP 116/66 mmHg, HR 104 回/分, RR 25 回/分, SpO2 95%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 114/70 mmHg, HR 108 回/分, RR 22 回/分, SpO2 93%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #26 — plan]",
         "subjective": "[Mock LLM response #26 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #26 — subjective]\nO（客観） BP 116/66 mmHg, HR 104 回/分, RR 25 回/分, SpO2 95%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #26 — assessment]\nP（計画） [Mock LLM response #26 — plan]"
+      "text": "S（主観） [Mock LLM response #26 — subjective]\nO（客観） BP 114/70 mmHg, HR 108 回/分, RR 22 回/分, SpO2 93%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #26 — assessment]\nP（計画） [Mock LLM response #26 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-27": {
@@ -2229,11 +2093,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #27 — assessment]",
-        "objective": "BP 115/69 mmHg, HR 103 回/分, RR 17 回/分, SpO2 95%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 114/68 mmHg, HR 106 回/分, RR 23 回/分, SpO2 95%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #27 — plan]",
         "subjective": "[Mock LLM response #27 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #27 — subjective]\nO（客観） BP 115/69 mmHg, HR 103 回/分, RR 17 回/分, SpO2 95%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #27 — assessment]\nP（計画） [Mock LLM response #27 — plan]"
+      "text": "S（主観） [Mock LLM response #27 — subjective]\nO（客観） BP 114/68 mmHg, HR 106 回/分, RR 23 回/分, SpO2 95%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #27 — assessment]\nP（計画） [Mock LLM response #27 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-28": {
@@ -2276,11 +2140,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #28 — assessment]",
-        "objective": "BP 117/70 mmHg, HR 104 回/分, RR 21 回/分, SpO2 96%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 117/71 mmHg, HR 108 回/分, RR 24 回/分, SpO2 95%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #28 — plan]",
         "subjective": "[Mock LLM response #28 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #28 — subjective]\nO（客観） BP 117/70 mmHg, HR 104 回/分, RR 21 回/分, SpO2 96%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #28 — assessment]\nP（計画） [Mock LLM response #28 — plan]"
+      "text": "S（主観） [Mock LLM response #28 — subjective]\nO（客観） BP 117/71 mmHg, HR 108 回/分, RR 24 回/分, SpO2 95%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #28 — assessment]\nP（計画） [Mock LLM response #28 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-29": {
@@ -2323,11 +2187,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #29 — assessment]",
-        "objective": "BP 109/66 mmHg, HR 115 回/分, RR 18 回/分, SpO2 93%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 116/70 mmHg, HR 106 回/分, RR 19 回/分, SpO2 96%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #29 — plan]",
         "subjective": "[Mock LLM response #29 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #29 — subjective]\nO（客観） BP 109/66 mmHg, HR 115 回/分, RR 18 回/分, SpO2 93%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #29 — assessment]\nP（計画） [Mock LLM response #29 — plan]"
+      "text": "S（主観） [Mock LLM response #29 — subjective]\nO（客観） BP 116/70 mmHg, HR 106 回/分, RR 19 回/分, SpO2 96%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #29 — assessment]\nP（計画） [Mock LLM response #29 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-30": {
@@ -2370,11 +2234,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #30 — assessment]",
-        "objective": "BP 110/64 mmHg, HR 112 回/分, RR 22 回/分, SpO2 93%, T 39.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 116/73 mmHg, HR 103 回/分, RR 24 回/分, SpO2 94%, T 38.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #30 — plan]",
         "subjective": "[Mock LLM response #30 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #30 — subjective]\nO（客観） BP 110/64 mmHg, HR 112 回/分, RR 22 回/分, SpO2 93%, T 39.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #30 — assessment]\nP（計画） [Mock LLM response #30 — plan]"
+      "text": "S（主観） [Mock LLM response #30 — subjective]\nO（客観） BP 116/73 mmHg, HR 103 回/分, RR 24 回/分, SpO2 94%, T 38.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #30 — assessment]\nP（計画） [Mock LLM response #30 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-31": {
@@ -2417,11 +2281,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #31 — assessment]",
-        "objective": "BP 113/67 mmHg, HR 112 回/分, RR 19 回/分, SpO2 98%, T 37.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 115/72 mmHg, HR 104 回/分, RR 20 回/分, SpO2 98%, T 38.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #31 — plan]",
         "subjective": "[Mock LLM response #31 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #31 — subjective]\nO（客観） BP 113/67 mmHg, HR 112 回/分, RR 19 回/分, SpO2 98%, T 37.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #31 — assessment]\nP（計画） [Mock LLM response #31 — plan]"
+      "text": "S（主観） [Mock LLM response #31 — subjective]\nO（客観） BP 115/72 mmHg, HR 104 回/分, RR 20 回/分, SpO2 98%, T 38.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #31 — assessment]\nP（計画） [Mock LLM response #31 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-32": {
@@ -2464,11 +2328,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #32 — assessment]",
-        "objective": "BP 109/65 mmHg, HR 111 回/分, RR 20 回/分, SpO2 98%, T 39.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 117/71 mmHg, HR 106 回/分, RR 23 回/分, SpO2 93%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #32 — plan]",
         "subjective": "[Mock LLM response #32 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #32 — subjective]\nO（客観） BP 109/65 mmHg, HR 111 回/分, RR 20 回/分, SpO2 98%, T 39.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #32 — assessment]\nP（計画） [Mock LLM response #32 — plan]"
+      "text": "S（主観） [Mock LLM response #32 — subjective]\nO（客観） BP 117/71 mmHg, HR 106 回/分, RR 23 回/分, SpO2 93%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #32 — assessment]\nP（計画） [Mock LLM response #32 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-33": {
@@ -2476,46 +2340,44 @@
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_31",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
+        "ctx.diagnoses[0].admission_diagnosis_code",
+        "ctx.encounter.admission_datetime",
+        "ctx.diagnoses",
+        "ctx.encounter.chief_complaint_ja",
+        "chief_complaint_variants.sepsis[3]",
+        "disease_protocol.narrative.hpi_template.onset_pattern.severe",
+        "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "ctx.patient.demographics",
+        "ctx.encounter.chief_complaint",
+        "ctx.patient.chronic_conditions",
+        "ctx.complications_occurred",
+        "ctx.working_diagnoses",
+        "ctx.los_days",
+        "ctx.encounter.discharge_datetime",
+        "ctx.diagnoses",
+        "ctx.discharge_medications",
+        "discharge_instructions.baseline",
+        "discharge_instructions.disease_specific.sepsis"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
       "generator_metadata": {
-        "day_index": 31,
         "generator": "llm",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
+        "lang": "ja"
       },
       "sections": {
-        "assessment": "[Mock LLM response #33 — assessment]",
-        "objective": "BP 110/64 mmHg, HR 111 回/分, RR 17 回/分, SpO2 96%, T 38.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "[Mock LLM response #33 — plan]",
-        "subjective": "[Mock LLM response #33 — subjective]"
+        "admission_details": "2024-06-15に入院した。",
+        "admission_diagnoses": "1. 敗血症，詳細不明（A41.9）",
+        "admission_reason": "敗血症，詳細不明のため入院となった。",
+        "chief_complaint": "3日前より倦怠感・本日ぐったり",
+        "discharge_details": "2024-07-16自宅退院となった。",
+        "discharge_diagnoses": "敗血症性ショック（R65.21）",
+        "discharge_instructions": "[Mock LLM response #33 — discharge_instructions]",
+        "discharge_medications": "レボフロキサシン 500mg 経口 1日1回",
+        "hospital_course": "[Mock LLM response #33 — hospital_course]",
+        "present_illness": "[Mock LLM response #33 — present_illness]"
       },
-      "text": "S（主観） [Mock LLM response #33 — subjective]\nO（客観） BP 110/64 mmHg, HR 111 回/分, RR 17 回/分, SpO2 96%, T 38.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #33 — assessment]\nP（計画） [Mock LLM response #33 — plan]"
+      "text": ""
     }
   },
   "doc-ENC-FORCED-0001-013699914137-34": {
@@ -2536,7 +2398,7 @@
         "lang": "ja"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 95/100 → 自立（食事10、入浴5、移動15、排泄10）",
+        "adl_assessment": "Barthel Index 100/100 → 自立（食事10、入浴5、移動15、排泄10）",
         "care_plan": "看護計画: 尿量・浮腫観察、電解質モニタ。",
         "nursing_diagnosis": "看護診断: 腎機能低下・電解質異常のリスク。",
         "nursing_history": "入院目的: 発熱・意識変容・低血圧。既往: 慢性腎臓病。",
@@ -2565,7 +2427,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 32 日間\n患者状態: BP 104/63, HR 115, SpO2 92%, T 39.4°C。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 31 日間\n患者状態: BP 104/62, HR 119, SpO2 95%, T 38.5°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-36-evening": {
@@ -2588,7 +2450,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 32 日間\n患者状態: BP 104/63, HR 115, SpO2 92%, T 39.4°C。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 31 日間\n患者状態: BP 104/62, HR 119, SpO2 95%, T 38.5°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-37-night": {
@@ -2611,7 +2473,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 32 日間\n患者状態: BP 102/64, HR 119, SpO2 97%, T 39.4°C、酸素投与: 酸素マスク 7.3 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 31 日間\n患者状態: BP 104/62, HR 124, SpO2 97%, T 38.3°C、酸素投与: 経鼻カニューレ 3.5 L/min。\n投薬継続: メロペネム、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-38-day": {
@@ -2634,7 +2496,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 32 日間\n患者状態: BP 102/64, HR 119, SpO2 97%, T 39.4°C、酸素投与: 酸素マスク 7.3 L/min。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 31 日間\n患者状態: BP 104/62, HR 124, SpO2 97%, T 38.3°C、酸素投与: 経鼻カニューレ 3.5 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-39-evening": {
@@ -2657,7 +2519,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 32 日間\n患者状態: BP 102/64, HR 119, SpO2 97%, T 39.4°C、酸素投与: 酸素マスク 7.3 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 31 日間\n患者状態: BP 104/62, HR 124, SpO2 97%, T 38.3°C、酸素投与: 経鼻カニューレ 3.5 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-40-night": {
@@ -2680,7 +2542,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 32 日間\n患者状態: BP 99/58, HR 129, SpO2 94%, T 39.0°C、酸素投与: 経鼻カニューレ 3.5 L/min。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 31 日間\n患者状態: T 39.4°C。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-41-day": {
@@ -2703,7 +2565,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 32 日間\n患者状態: BP 99/58, HR 129, SpO2 94%, T 39.0°C、酸素投与: 経鼻カニューレ 3.5 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 31 日間\n患者状態: T 39.4°C。\n投薬継続: メロペネム、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-42-evening": {
@@ -2726,7 +2588,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 32 日間\n患者状態: BP 99/58, HR 129, SpO2 94%, T 39.0°C、酸素投与: 経鼻カニューレ 3.5 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 31 日間\n患者状態: T 39.4°C。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-43-night": {
@@ -2749,7 +2611,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 32 日間\n患者状態: BP 102/65, HR 118, SpO2 92%, T 38.7°C。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 31 日間\n患者状態: BP 103/62, HR 122, SpO2 97%, T 39.3°C、酸素投与: 酸素マスク 6.6 L/min。\n投薬継続: メロペネム、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-44-day": {
@@ -2772,7 +2634,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 32 日間\n患者状態: BP 102/65, HR 118, SpO2 92%, T 38.7°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 31 日間\n患者状態: BP 103/62, HR 122, SpO2 97%, T 39.3°C、酸素投与: 酸素マスク 6.6 L/min。\n投薬継続: バンコマイシン、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-45-evening": {
@@ -2795,7 +2657,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 32 日間\n患者状態: BP 102/65, HR 118, SpO2 92%, T 38.7°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 31 日間\n患者状態: BP 103/62, HR 122, SpO2 97%, T 39.3°C、酸素投与: 酸素マスク 6.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-46-night": {
@@ -2818,7 +2680,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 32 日間\n患者状態: BP 102/65, HR 118, SpO2 94%, T 38.4°C、酸素投与: 経鼻カニューレ 2.5 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 31 日間\n患者状態: BP 105/65, HR 117, SpO2 94%, T 39.8°C、酸素投与: 経鼻カニューレ 2.2 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-47-day": {
@@ -2841,7 +2703,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 32 日間\n患者状態: BP 102/65, HR 118, SpO2 94%, T 38.4°C、酸素投与: 経鼻カニューレ 2.5 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 31 日間\n患者状態: BP 105/65, HR 117, SpO2 94%, T 39.8°C、酸素投与: 経鼻カニューレ 2.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-48-evening": {
@@ -2864,7 +2726,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 32 日間\n患者状態: BP 102/65, HR 118, SpO2 94%, T 38.4°C、酸素投与: 経鼻カニューレ 2.5 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 31 日間\n患者状態: BP 105/65, HR 117, SpO2 94%, T 39.8°C、酸素投与: 経鼻カニューレ 2.2 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-49-night": {
@@ -2887,7 +2749,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 32 日間\n患者状態: BP 102/63, HR 118, SpO2 98%, T 38.8°C、酸素投与: リザーバーマスク 9.5 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 31 日間\n患者状態: BP 105/61, HR 120, SpO2 97%, T 38.9°C、酸素投与: 酸素マスク 4.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-50-day": {
@@ -2910,7 +2772,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 32 日間\n患者状態: BP 102/63, HR 118, SpO2 98%, T 38.8°C、酸素投与: リザーバーマスク 9.5 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 31 日間\n患者状態: BP 105/61, HR 120, SpO2 97%, T 38.9°C、酸素投与: 酸素マスク 4.2 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-51-evening": {
@@ -2933,7 +2795,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 32 日間\n患者状態: BP 102/63, HR 118, SpO2 98%, T 38.8°C、酸素投与: リザーバーマスク 9.5 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 31 日間\n患者状態: BP 105/61, HR 120, SpO2 97%, T 38.9°C、酸素投与: 酸素マスク 4.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-52-night": {
@@ -2956,7 +2818,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 32 日間\n患者状態: BP 103/66, HR 118, SpO2 94%, T 39.3°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: 解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 31 日間\n患者状態: BP 105/64, HR 112, SpO2 98%, T 39.9°C、酸素投与: リザーバーマスク 9 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-53-day": {
@@ -2979,7 +2841,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 32 日間\n患者状態: BP 103/66, HR 118, SpO2 94%, T 39.3°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 31 日間\n患者状態: BP 105/64, HR 112, SpO2 98%, T 39.9°C、酸素投与: リザーバーマスク 9 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-54-evening": {
@@ -3002,7 +2864,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 32 日間\n患者状態: BP 103/66, HR 118, SpO2 94%, T 39.3°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 31 日間\n患者状態: BP 105/64, HR 112, SpO2 98%, T 39.9°C、酸素投与: リザーバーマスク 9 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-55-night": {
@@ -3025,7 +2887,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 32 日間\n患者状態: BP 108/63, HR 112, SpO2 94%, T 38.4°C、酸素投与: 酸素マスク 4 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 31 日間\n患者状態: BP 107/65, HR 115, SpO2 92%, T 39.4°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-56-day": {
@@ -3048,7 +2910,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 32 日間\n患者状態: BP 108/63, HR 112, SpO2 94%, T 38.4°C、酸素投与: 酸素マスク 4 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 31 日間\n患者状態: BP 107/65, HR 115, SpO2 92%, T 39.4°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-57-evening": {
@@ -3071,7 +2933,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 32 日間\n患者状態: BP 108/63, HR 112, SpO2 94%, T 38.4°C、酸素投与: 酸素マスク 4 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 31 日間\n患者状態: BP 107/65, HR 115, SpO2 92%, T 39.4°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-58-night": {
@@ -3094,7 +2956,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 32 日間\n患者状態: BP 106/63, HR 115, SpO2 92%, T 38.3°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 31 日間\n患者状態: BP 109/65, HR 114, SpO2 97%, T 39.1°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-59-day": {
@@ -3117,7 +2979,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 32 日間\n患者状態: BP 106/63, HR 115, SpO2 92%, T 38.3°C。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 31 日間\n患者状態: BP 109/65, HR 114, SpO2 97%, T 39.1°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-60-evening": {
@@ -3140,7 +3002,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 32 日間\n患者状態: BP 106/63, HR 115, SpO2 92%, T 38.3°C。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 31 日間\n患者状態: BP 109/65, HR 114, SpO2 97%, T 39.1°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-61-night": {
@@ -3163,7 +3025,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 32 日間\n患者状態: BP 111/70, HR 115, SpO2 98%, T 39.7°C、酸素投与: リザーバーマスク 8.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 31 日間\n患者状態: BP 108/65, HR 108, SpO2 98%, T 39.4°C、酸素投与: リザーバーマスク 9.3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-62-day": {
@@ -3186,7 +3048,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 32 日間\n患者状態: BP 111/70, HR 115, SpO2 98%, T 39.7°C、酸素投与: リザーバーマスク 8.8 L/min。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 31 日間\n患者状態: BP 108/65, HR 108, SpO2 98%, T 39.4°C、酸素投与: リザーバーマスク 9.3 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-63-evening": {
@@ -3209,7 +3071,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 32 日間\n患者状態: BP 111/70, HR 115, SpO2 98%, T 39.7°C、酸素投与: リザーバーマスク 8.8 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 31 日間\n患者状態: BP 108/65, HR 108, SpO2 98%, T 39.4°C、酸素投与: リザーバーマスク 9.3 L/min。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-64-night": {
@@ -3232,7 +3094,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 11 日目 / 入院予定 32 日間\n患者状態: BP 108/64, HR 110, SpO2 94%, T 38.2°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 11 日目 / 入院予定 31 日間\n患者状態: BP 110/66, HR 110, SpO2 95%, T 39.3°C、酸素投与: 経鼻カニューレ 3.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-65-day": {
@@ -3255,7 +3117,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 11 日目 / 入院予定 32 日間\n患者状態: BP 108/64, HR 110, SpO2 94%, T 38.2°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 11 日目 / 入院予定 31 日間\n患者状態: BP 110/66, HR 110, SpO2 95%, T 39.3°C、酸素投与: 経鼻カニューレ 3.6 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-66-evening": {
@@ -3278,7 +3140,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 11 日目 / 入院予定 32 日間\n患者状態: BP 108/64, HR 110, SpO2 94%, T 38.2°C、酸素投与: 経鼻カニューレ 3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 11 日目 / 入院予定 31 日間\n患者状態: BP 110/66, HR 110, SpO2 95%, T 39.3°C、酸素投与: 経鼻カニューレ 3.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-67-night": {
@@ -3301,7 +3163,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 12 日目 / 入院予定 32 日間\n患者状態: BP 112/68, HR 110, SpO2 96%, T 37.9°C、酸素投与: 経鼻カニューレ 2.9 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 12 日目 / 入院予定 31 日間\n患者状態: BP 105/58, HR 109, SpO2 98%, T 39.0°C、酸素投与: リザーバーマスク 8.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-68-day": {
@@ -3324,7 +3186,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 12 日目 / 入院予定 32 日間\n患者状態: BP 112/68, HR 110, SpO2 96%, T 37.9°C、酸素投与: 経鼻カニューレ 2.9 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 12 日目 / 入院予定 31 日間\n患者状態: BP 105/58, HR 109, SpO2 98%, T 39.0°C、酸素投与: リザーバーマスク 8.6 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-69-evening": {
@@ -3347,7 +3209,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 12 日目 / 入院予定 32 日間\n患者状態: BP 112/68, HR 110, SpO2 96%, T 37.9°C、酸素投与: 経鼻カニューレ 2.9 L/min。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 12 日目 / 入院予定 31 日間\n患者状態: BP 105/58, HR 109, SpO2 98%, T 39.0°C、酸素投与: リザーバーマスク 8.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-70-night": {
@@ -3370,7 +3232,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 13 日目 / 入院予定 32 日間\n患者状態: BP 111/65, HR 110, SpO2 96%, T 38.7°C、酸素投与: 酸素マスク 4.4 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 13 日目 / 入院予定 31 日間\n患者状態: BP 107/61, HR 110, SpO2 98%, T 38.7°C、酸素投与: リザーバーマスク 9.1 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-71-day": {
@@ -3393,7 +3255,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 13 日目 / 入院予定 32 日間\n患者状態: BP 111/65, HR 110, SpO2 96%, T 38.7°C、酸素投与: 酸素マスク 4.4 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 13 日目 / 入院予定 31 日間\n患者状態: BP 107/61, HR 110, SpO2 98%, T 38.7°C、酸素投与: リザーバーマスク 9.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-72-evening": {
@@ -3416,7 +3278,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 13 日目 / 入院予定 32 日間\n患者状態: BP 111/65, HR 110, SpO2 96%, T 38.7°C、酸素投与: 酸素マスク 4.4 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 13 日目 / 入院予定 31 日間\n患者状態: BP 107/61, HR 110, SpO2 98%, T 38.7°C、酸素投与: リザーバーマスク 9.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-73-night": {
@@ -3439,7 +3301,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 14 日目 / 入院予定 32 日間\n患者状態: BP 112/65, HR 105, SpO2 94%, T 38.6°C、酸素投与: 酸素マスク 4 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 14 日目 / 入院予定 31 日間\n患者状態: BP 103/63, HR 118, SpO2 92%, T 39.6°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-74-day": {
@@ -3462,7 +3324,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 14 日目 / 入院予定 32 日間\n患者状態: BP 112/65, HR 105, SpO2 94%, T 38.6°C、酸素投与: 酸素マスク 4 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 14 日目 / 入院予定 31 日間\n患者状態: BP 103/63, HR 118, SpO2 92%, T 39.6°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-75-evening": {
@@ -3485,7 +3347,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 14 日目 / 入院予定 32 日間\n患者状態: BP 112/65, HR 105, SpO2 94%, T 38.6°C、酸素投与: 酸素マスク 4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 14 日目 / 入院予定 31 日間\n患者状態: BP 103/63, HR 118, SpO2 92%, T 39.6°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-76-night": {
@@ -3508,7 +3370,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 15 日目 / 入院予定 32 日間\n患者状態: BP 114/68, HR 107, SpO2 92%, T 38.7°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 15 日目 / 入院予定 31 日間\n患者状態: BP 103/64, HR 113, SpO2 97%, T 38.7°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-77-day": {
@@ -3531,7 +3393,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 15 日目 / 入院予定 32 日間\n患者状態: BP 114/68, HR 107, SpO2 92%, T 38.7°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 15 日目 / 入院予定 31 日間\n患者状態: BP 103/64, HR 113, SpO2 97%, T 38.7°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-78-evening": {
@@ -3554,7 +3416,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 15 日目 / 入院予定 32 日間\n患者状態: BP 114/68, HR 107, SpO2 92%, T 38.7°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 15 日目 / 入院予定 31 日間\n患者状態: BP 103/64, HR 113, SpO2 97%, T 38.7°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-79-night": {
@@ -3577,7 +3439,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 16 日目 / 入院予定 32 日間\n患者状態: BP 115/69, HR 104, SpO2 93%, T 38.5°C。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 16 日目 / 入院予定 31 日間\n患者状態: BP 107/61, HR 115, SpO2 93%, T 40.1°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-80-day": {
@@ -3600,7 +3462,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 16 日目 / 入院予定 32 日間\n患者状態: BP 115/69, HR 104, SpO2 93%, T 38.5°C。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 16 日目 / 入院予定 31 日間\n患者状態: BP 107/61, HR 115, SpO2 93%, T 40.1°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-81-evening": {
@@ -3623,7 +3485,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 16 日目 / 入院予定 32 日間\n患者状態: BP 115/69, HR 104, SpO2 93%, T 38.5°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 16 日目 / 入院予定 31 日間\n患者状態: BP 107/61, HR 115, SpO2 93%, T 40.1°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-82-night": {
@@ -3646,7 +3508,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 17 日目 / 入院予定 32 日間\n患者状態: BP 117/76, HR 104, SpO2 95%, T 37.1°C、酸素投与: 経鼻カニューレ 3.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 17 日目 / 入院予定 31 日間\n患者状態: BP 111/65, HR 110, SpO2 95%, T 39.4°C、酸素投与: 経鼻カニューレ 3.4 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-83-day": {
@@ -3669,7 +3531,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 17 日目 / 入院予定 32 日間\n患者状態: BP 117/76, HR 104, SpO2 95%, T 37.1°C、酸素投与: 経鼻カニューレ 3.1 L/min。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 17 日目 / 入院予定 31 日間\n患者状態: BP 111/65, HR 110, SpO2 95%, T 39.4°C、酸素投与: 経鼻カニューレ 3.4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-84-evening": {
@@ -3692,7 +3554,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 17 日目 / 入院予定 32 日間\n患者状態: BP 117/76, HR 104, SpO2 95%, T 37.1°C、酸素投与: 経鼻カニューレ 3.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 17 日目 / 入院予定 31 日間\n患者状態: BP 111/65, HR 110, SpO2 95%, T 39.4°C、酸素投与: 経鼻カニューレ 3.4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-85-night": {
@@ -3715,7 +3577,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 18 日目 / 入院予定 32 日間\n患者状態: BP 122/68, HR 102, SpO2 94%, T 38.6°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 18 日目 / 入院予定 31 日間\n患者状態: BP 112/67, HR 109, SpO2 94%, T 38.7°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-86-day": {
@@ -3738,7 +3600,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 18 日目 / 入院予定 32 日間\n患者状態: BP 122/68, HR 102, SpO2 94%, T 38.6°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 18 日目 / 入院予定 31 日間\n患者状態: BP 112/67, HR 109, SpO2 94%, T 38.7°C。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-87-evening": {
@@ -3761,7 +3623,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 18 日目 / 入院予定 32 日間\n患者状態: BP 122/68, HR 102, SpO2 94%, T 38.6°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 18 日目 / 入院予定 31 日間\n患者状態: BP 112/67, HR 109, SpO2 94%, T 38.7°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-88-night": {
@@ -3784,7 +3646,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 19 日目 / 入院予定 32 日間\n患者状態: BP 124/70, HR 102, SpO2 92%, T 38.6°C。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 19 日目 / 入院予定 31 日間\n患者状態: BP 111/65, HR 110, SpO2 94%, T 39.0°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-89-day": {
@@ -3807,7 +3669,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 19 日目 / 入院予定 32 日間\n患者状態: BP 124/70, HR 102, SpO2 92%, T 38.6°C。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 19 日目 / 入院予定 31 日間\n患者状態: BP 111/65, HR 110, SpO2 94%, T 39.0°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-90-evening": {
@@ -3830,7 +3692,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 19 日目 / 入院予定 32 日間\n患者状態: BP 124/70, HR 102, SpO2 92%, T 38.6°C。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 19 日目 / 入院予定 31 日間\n患者状態: BP 111/65, HR 110, SpO2 94%, T 39.0°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-91-night": {
@@ -3853,7 +3715,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 20 日目 / 入院予定 32 日間\n患者状態: BP 119/69, HR 102, SpO2 92%, T 39.0°C、酸素投与: 経鼻カニューレ 2.2 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 20 日目 / 入院予定 31 日間\n患者状態: BP 110/67, HR 108, SpO2 91%, T 39.8°C、酸素投与: 経鼻カニューレ 2.1 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-92-day": {
@@ -3876,7 +3738,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 20 日目 / 入院予定 32 日間\n患者状態: BP 119/69, HR 102, SpO2 92%, T 39.0°C、酸素投与: 経鼻カニューレ 2.2 L/min。\n投薬継続: バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 20 日目 / 入院予定 31 日間\n患者状態: BP 110/67, HR 108, SpO2 91%, T 39.8°C、酸素投与: 経鼻カニューレ 2.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-93-evening": {
@@ -3899,7 +3761,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 20 日目 / 入院予定 32 日間\n患者状態: BP 119/69, HR 102, SpO2 92%, T 39.0°C、酸素投与: 経鼻カニューレ 2.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 20 日目 / 入院予定 31 日間\n患者状態: BP 110/67, HR 108, SpO2 91%, T 39.8°C、酸素投与: 経鼻カニューレ 2.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-94-night": {
@@ -3922,7 +3784,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 21 日目 / 入院予定 32 日間\n患者状態: BP 116/69, HR 105, SpO2 97%, T 39.5°C、酸素投与: 経鼻カニューレ 3.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 21 日目 / 入院予定 31 日間\n患者状態: BP 112/68, HR 110, SpO2 95%, T 39.0°C、酸素投与: 経鼻カニューレ 3.8 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-95-day": {
@@ -3945,7 +3807,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 21 日目 / 入院予定 32 日間\n患者状態: BP 116/69, HR 105, SpO2 97%, T 39.5°C、酸素投与: 経鼻カニューレ 3.6 L/min。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 21 日目 / 入院予定 31 日間\n患者状態: BP 112/68, HR 110, SpO2 95%, T 39.0°C、酸素投与: 経鼻カニューレ 3.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-96-evening": {
@@ -3968,7 +3830,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 21 日目 / 入院予定 32 日間\n患者状態: BP 116/69, HR 105, SpO2 97%, T 39.5°C、酸素投与: 経鼻カニューレ 3.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 21 日目 / 入院予定 31 日間\n患者状態: BP 112/68, HR 110, SpO2 95%, T 39.0°C、酸素投与: 経鼻カニューレ 3.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-97-night": {
@@ -3991,7 +3853,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 22 日目 / 入院予定 32 日間\n患者状態: BP 112/69, HR 103, SpO2 92%, T 39.0°C、酸素投与: 経鼻カニューレ 2.9 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 22 日目 / 入院予定 31 日間\n患者状態: BP 111/68, HR 108, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 5 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-98-day": {
@@ -4014,7 +3876,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 22 日目 / 入院予定 32 日間\n患者状態: BP 112/69, HR 103, SpO2 92%, T 39.0°C、酸素投与: 経鼻カニューレ 2.9 L/min。\n投薬継続: 輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 22 日目 / 入院予定 31 日間\n患者状態: BP 111/68, HR 108, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 5 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-99-evening": {
@@ -4037,11 +3899,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 22 日目 / 入院予定 32 日間\n患者状態: BP 112/69, HR 103, SpO2 92%, T 39.0°C、酸素投与: 経鼻カニューレ 2.9 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 22 日目 / 入院予定 31 日間\n患者状態: BP 111/68, HR 108, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 5 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-ED-138": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-ED-138",
+  "doc-ENC-FORCED-0001-013699914137-ED-133": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-ED-133",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -4063,16 +3925,16 @@
         "assessment": "[Mock LLM response #34 — assessment]",
         "chief_complaint": "3日前より倦怠感・本日ぐったり",
         "disposition": "[Mock LLM response #34 — disposition]",
-        "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、血液培養 (セット 1)、血液培養 (セット 2)、乳酸、CRP、PCT、クレアチニン。画像: 胸部レントゲン (正面・側面)、腹部・骨盤 CT、胸部レントゲン (臥位正面)、胸部ポータブルレントゲン。投薬: メロペネム、バンコマイシン、輸液: 晶質液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。異常値: WBC 12282.0 /uL [H]、アルブミン 2.4 g/dL [L]、乳酸 3.4 mmol/L [H]、CRP 337.7 mg/L [H]",
+        "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、血液培養 (セット 1)、血液培養 (セット 2)、乳酸、CRP、PCT、クレアチニン。画像: 胸部レントゲン (正面・側面)、腹部・骨盤 CT、胸部レントゲン (臥位正面)、胸部ポータブルレントゲン。投薬: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。異常値: WBC 12282.0 /uL [H]、アルブミン 2.4 g/dL [L]、乳酸 3.4 mmol/L [H]、CRP 337.7 mg/L [H]",
         "hpi": "[Mock LLM response #34 — hpi]",
-        "physical_exam": "来院時所見: BP 104/63 mmHg, HR 115 回/分, RR 20 回/分, SpO2 92%, T 39.4°C。特記の身体所見なし。",
+        "physical_exam": "来院時所見: BP 104/62 mmHg, HR 119 回/分, RR 20 回/分, SpO2 95%, T 38.5°C。特記の身体所見なし。",
         "triage_details": "トリアージ情報：未記録"
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-ED-139": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-ED-139",
+  "doc-ENC-FORCED-0001-013699914137-ED-134": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-ED-134",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [],

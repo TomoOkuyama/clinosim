@@ -684,6 +684,8 @@ def _simulate_patient(
         # (mirrors the enricher-side gate that already covers the
         # prophylaxis-engine emit).
         patient_age=int(getattr(patient, "age", 0) or 0),
+        # Issue #2611: weight-based fluid boluses (30 mL/kg).
+        patient_weight_kg=float(getattr(patient, "weight_kg", 0) or 0) or None,
     )
 
     # Imaging orders from disease YAML imaging_orders[] (Tier 1 #2 PR1).

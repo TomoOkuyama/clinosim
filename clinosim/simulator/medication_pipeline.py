@@ -691,6 +691,29 @@ def _generate_mar(
         # anaphylaxis epinephrine, etc.) prepend an ad-hoc dose 30-60min
         # after admission on Day-0 so the empirical response window is
         # respected. Subsequent doses continue on the scheduled q6/8h grid.
+        # Issue #2611: a one-time dose is given once, shortly after it is
+        # ordered (or after admission), on the day it is ordered only.
+        if getattr(order, "single_dose", False):
+            ordered = getattr(order, "ordered_datetime", None) or admission_time
+            if (ordered.date() - admission_time.date()).days != day:
+                continue
+            given = max(ordered, admission_time) + timedelta(
+                minutes=int(rng.integers(MAR_STAT_FIRST_DOSE_DELAY_MIN, MAR_STAT_FIRST_DOSE_DELAY_MAX_EXCLUSIVE))
+            )
+            mars.append(
+                MedicationAdministration(
+                    order_id=order.order_id,
+                    drug_name=drug_name,
+                    scheduled_datetime=given,
+                    actual_datetime=given,
+                    status="given",
+                    dose=f"{order.dose_quantity}{order.dose_unit}" if order.dose_quantity else order.display_name,
+                    route=route,
+                    administered_by=nurse_id,
+                )
+            )
+            continue
+
         stat_first_dose_time = None
         if day == 0 and str(getattr(order, "urgency", "")).lower() == "stat":
             stat_first_dose_time = admission_time + timedelta(
