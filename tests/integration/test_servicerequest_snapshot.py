@@ -99,9 +99,18 @@ def test_snapshot_inprogress_encounters_have_srs():
         ]
         # Verify in-progress encounters actually have at least one SR.
         assert sr_for_inprogress, f"No ServiceRequests linked to {len(in_progress_ids)} in-progress Encounters"
-        # Spot-check: SRs for in-progress encounters should include some 'active' status.
-        active_for_inprogress = [s for s in sr_for_inprogress if s.get("status") == "active"]
-        assert active_for_inprogress, "Expected at least one 'active' SR for in-progress encounters"
+        # Issue #2640: an SR of an open stay is active only while its result is
+        # still pending at the snapshot. Cultures are resulted from their orders
+        # (2-3 days later), so whether any is pending depends on the cohort;
+        # a culture SR whose result is in the bundle is never left active.
+        assert {s.get("status") for s in sr_for_inprogress} <= {"active", "completed", "revoked"}
+        reported = {
+            ref.get("reference", "").removeprefix("ServiceRequest/")
+            for dr in load_ndjson(find_ndjson(out, "DiagnosticReport.ndjson"))
+            for ref in dr.get("basedOn") or []
+        }
+        stale = [s["id"] for s in sr_for_inprogress if s.get("status") == "active" and s["id"] in reported]
+        assert not stale, f"Active SRs that already have a report: {stale}"
 
 
 @pytest.mark.integration

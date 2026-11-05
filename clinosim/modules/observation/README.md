@@ -48,7 +48,7 @@ every previously-inline scalar so a single edit propagates.
   `compute_morse_fall_risk` (nursing scores);
   `enrich_nursing` POST_RECORDS enricher (fills NEWS2/GCS on each
   vital, generates daily Braden/Morse);
-  `has_microbiology(disease_id)` + `generate_microbiology(...)` +
+  `has_microbiology(disease_id)` + `culture_draws(...)` / `culture_results(...)` +
   `antibiotic_loinc_lookup()`; the threshold sub-modules with
   clinical citations.
 - **Out of scope**: physiology state that drives lab values
@@ -91,7 +91,8 @@ from clinosim.modules.observation.nursing_enricher import enrich_nursing
 # Microbiology
 from clinosim.modules.observation.microbiology import (
     has_microbiology,                    # (disease_id) -> bool
-    generate_microbiology,               # (disease_id, collected_datetime, encounter_id, master_seed) -> list[MicrobiologyResult]
+    culture_draws,                       # (orders, encounter_id) -> list[(specimen, collected)]  (Issue #2640)
+    culture_results,                     # (disease_id, draws, encounter_id, master_seed) -> list[MicrobiologyResult]
     antibiotic_loinc_lookup,             # () -> dict[antibiotic_key, LOINC code]
 )
 ```
@@ -110,7 +111,7 @@ from clinosim.modules.observation.microbiology import (
   does not conflict.
 - Microbiology sampling uses an **encounter-scoped** sub-seed
   `derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["microbiology"]
-  (770_077), encounter_id)`, so `generate_microbiology` can be
+  (770_077), encounter_id:specimen:n)` per draw, so `culture_results` can be
   extended with new organisms without shifting unrelated patients'
   streams.
 - Lab-result variability is called with a **per-order** RNG
@@ -226,7 +227,7 @@ and run in different stages, so there is no conflict.
 | Enricher registry | [`clinosim/simulator/enrichers.py:228`](../../simulator/enrichers.py) | POST_RECORDS `nursing` registration. |
 | Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) | Calls `generate_lab_result` per placed lab order. |
 | Vitals pipeline | [`clinosim/simulator/vitals_pipeline.py`](../../simulator/vitals_pipeline.py) | Consumes `fluid_balance.py` + `oxygenation.py` thresholds. |
-| Inpatient / outpatient / emergency / daily_loop / unknown_condition | [`clinosim/simulator/*.py`](../../simulator/) | Consume lab canonicalisation / result generation; `inpatient.py` calls `generate_microbiology`. |
+| Inpatient / outpatient / emergency / daily_loop / unknown_condition | [`clinosim/simulator/*.py`](../../simulator/) | Consume lab canonicalisation / result generation; `inpatient.py` / `emergency.py` result each culture order with `culture_results`. |
 | Order module | [`clinosim/modules/order/panel_grouping.py`](../order/panel_grouping.py) | Reads the same `lab_panels.yaml` for FHIR DiagnosticReport grouping (LOINC, display, minimum components; Issue #2332). |
 | HAI lab lift | [`clinosim/modules/hai/lab_lift.py`](../hai/lab_lift.py) | Re-flags / re-rounds lifted WBC / CRP values via `determine_flag` + `round_to_precision`. |
 | Monitoring enricher | [`clinosim/modules/monitoring/enricher.py`](../monitoring/enricher.py) | Uses `canonical_lab_name`, `generate_lab_result`, `get_lab_unit`, `determine_flag` for injected monitoring labs. |

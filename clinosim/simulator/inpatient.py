@@ -83,6 +83,8 @@ from clinosim.types.clinical import (
 from clinosim.types.config import HealthcareSystemConfig, SimulatorConfig
 from clinosim.types.encounter import (
     EncounterStatus,
+    Order,
+    OrderStatus,
     OrderType,
 )
 from clinosim.types.output import CIFPatientRecord
@@ -281,28 +283,53 @@ def _derive_microbiology(
     encounter: Any,
     config: SimulatorConfig,
     snapshot_dt: datetime | None,
+    orders: list[Order],
 ) -> list:
-    """Produce the encounter's microbiology culture + susceptibility
-    records for infection-class diseases, truncated at the snapshot
-    date.
+    """The encounter's culture results, one per culture draw (Issue #2640).
 
-    AD-55 Base: ``has_microbiology`` gates which disease_ids emit;
-    ``generate_microbiology`` is seeded off the config master seed,
-    so the main simulation RNG stream is not consumed (AD-16). An
-    empty list is returned for non-infection disease_ids.
-
-    Extracted from ``_simulate_patient`` per META #1633 P6.
+    Every culture order of the stay (protocol workup, repeat or escalation)
+    is a draw and gets a result. A culture the disease's admission workup
+    calls for (``microbiology.yaml`` ``cultures``) that no protocol order
+    placed near admission is ordered at admission (appended to ``orders``).
+    Seeded off the config master seed per draw, so the main simulation RNG
+    stream is not consumed (AD-16).
     """
-    from clinosim.modules.observation.microbiology import generate_microbiology, has_microbiology
-
-    if not has_microbiology(disease_id):
-        return []
-    microbiology = generate_microbiology(
-        disease_id,
-        admission_time,
-        encounter.encounter_id,
-        config.random_seed,
+    from clinosim.locale.i18n import t
+    from clinosim.modules.observation.microbiology import (
+        culture_draws,
+        culture_results,
+        workup_culture_order,
+        workup_culture_specimens,
+        workup_culture_window_hours,
     )
+
+    enc_id = encounter.encounter_id
+    draws = culture_draws(orders, enc_id)
+    window = timedelta(hours=workup_culture_window_hours())
+    for spec in workup_culture_specimens(disease_id, enc_id, config.random_seed):
+        if any(s == spec and abs(when - admission_time) <= window for s, when in draws):
+            continue
+        name = workup_culture_order(spec)
+        if not name:
+            continue
+        orders.append(
+            Order(
+                order_id=f"ORD-{enc_id}-ADM-MB-{spec}",
+                encounter_id=enc_id,
+                patient_id=encounter.patient_id,
+                order_type=OrderType.LAB,
+                display_name=name,
+                urgency="stat",
+                clinical_intent=t("encounter_intent.admission_workup", "en", test=name),
+                clinical_intent_ja=t("encounter_intent.admission_workup", "ja", test=name),
+                ordered_datetime=admission_time,
+                ordered_by=encounter.attending_physician_id,
+                status=OrderStatus.PLACED,
+            )
+        )
+        draws.append((spec, admission_time))
+    draws.sort(key=lambda d: (d[1], d[0]))
+    microbiology = culture_results(disease_id, list(draws), enc_id, config.random_seed)
     if snapshot_dt:
         # drop cultures not yet resulted as of snapshot
         microbiology = [m for m in microbiology if m.reported_datetime is None or m.reported_datetime <= snapshot_dt]
@@ -935,6 +962,7 @@ def _simulate_patient(
         encounter=encounter,
         config=config,
         snapshot_dt=snapshot_dt,
+        orders=all_orders,
     )
 
     _attach_implied_chronic_conditions(

@@ -42,7 +42,7 @@ previously-inline scalar を全て lift し、単一 edit が全経路に伝播�
   / `compute_morse_fall_risk` (看護スコア)、`enrich_nursing`
   POST_RECORDS enricher (各 vital record に NEWS2/GCS を埋め、
   日次 Braden/Morse を生成)、`has_microbiology(disease_id)` +
-  `generate_microbiology(...)` + `antibiotic_loinc_lookup()`、
+  `culture_draws(...)` / `culture_results(...)` + `antibiotic_loinc_lookup()`、
   臨床引用付きの threshold sub-module 群。
 - **Out of scope**: lab 値を駆動する physiology state
   ([`physiology`](../physiology/README.ja.md))、order placement
@@ -83,7 +83,8 @@ from clinosim.modules.observation.nursing_enricher import enrich_nursing
 # Microbiology
 from clinosim.modules.observation.microbiology import (
     has_microbiology,                    # (disease_id) -> bool
-    generate_microbiology,               # (disease_id, collected_datetime, encounter_id, master_seed) -> list[MicrobiologyResult]
+    culture_draws,                       # (orders, encounter_id) -> list[(specimen, collected)]  (Issue #2640)
+    culture_results,                     # (disease_id, draws, encounter_id, master_seed) -> list[MicrobiologyResult]
     antibiotic_loinc_lookup,             # () -> dict[antibiotic_key, LOINC code]
 )
 ```
@@ -100,7 +101,7 @@ from clinosim.modules.observation.microbiology import (
   `encounter_id` を key にするため、共有 offset は衝突しない。
 - Microbiology サンプリングは **encounter 単位**の sub-seed
   `derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["microbiology"]
-  (770_077), encounter_id)` を使う。`generate_microbiology` に新
+  (770_077), encounter_id)` を使う。`culture_results` に新
   organism を追加しても無関係な患者 stream を shift しない。
 - Lab 結果 variability は **per-order** RNG
   (`clinosim/seeding.py:panel_specimen_seed` /
@@ -211,7 +212,7 @@ clinosim/modules/observation/
 | Enricher registry | [`clinosim/simulator/enrichers.py:228`](../../simulator/enrichers.py) | POST_RECORDS `nursing` 登録。 |
 | Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) | 発注 lab ごとに `generate_lab_result` を呼び出す。 |
 | Vitals pipeline | [`clinosim/simulator/vitals_pipeline.py`](../../simulator/vitals_pipeline.py) | `fluid_balance.py` + `oxygenation.py` 閾値を消費。 |
-| Inpatient / outpatient / emergency / daily_loop / unknown_condition | [`clinosim/simulator/*.py`](../../simulator/) | lab canonicalisation / 結果生成を消費。`inpatient.py` が `generate_microbiology` を呼ぶ。 |
+| Inpatient / outpatient / emergency / daily_loop / unknown_condition | [`clinosim/simulator/*.py`](../../simulator/) | lab canonicalisation / 結果生成を消費。`inpatient.py` / `emergency.py` が培養オーダーごとに `culture_results` で結果を出す。 |
 | Order module | [`clinosim/modules/order/panel_grouping.py`](../order/panel_grouping.py) | 同じ `lab_panels.yaml` を FHIR DiagnosticReport のグルーピング (LOINC・表示名・最小 component 数) に使う (Issue #2332)。 |
 | HAI lab lift | [`clinosim/modules/hai/lab_lift.py`](../hai/lab_lift.py) | lift した WBC / CRP 値を `determine_flag` + `round_to_precision` で再 flag / 再 rounding。 |
 | Monitoring enricher | [`clinosim/modules/monitoring/enricher.py`](../monitoring/enricher.py) | 注入 monitoring lab に `canonical_lab_name`, `generate_lab_result`, `get_lab_unit`, `determine_flag` を使用。 |

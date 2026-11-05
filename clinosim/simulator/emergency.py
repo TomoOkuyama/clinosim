@@ -358,6 +358,7 @@ def _simulate_ed_visit(
         generate_lab_result,
         is_qualitative_test,
     )
+    from clinosim.modules.observation.microbiology import culture_draws, culture_results, specimen_for_order
     from clinosim.modules.physiology.engine import (
         apply_disease_onset,
         derive_observed_vitals,
@@ -526,6 +527,10 @@ def _simulate_ed_visit(
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
         )
+        # Issue #2640: a culture is reported by its microbiology result (below), not a lab value.
+        if specimen_for_order(test):
+            orders.append(order)
+            continue
         true_val = ed_lab_true_value(lab_spec, severity, _true_labs.get(canon, baseline_values.get(canon, 1.0)))
         dist = lab_spec.get("result_distribution")
         observed: float | str
@@ -763,12 +768,23 @@ def _simulate_ed_visit(
         else []
     )
 
+    # Issue #2640: each culture drawn in the visit gets its microbiology
+    # result, from the condition's microbiology.yaml profile.
+    _mb_cond = str((protocol or condition).get("condition_id") or cond_name)
+    microbiology = culture_results(
+        _mb_cond,
+        culture_draws(orders, encounter.encounter_id),
+        encounter.encounter_id,
+        int(getattr(config, "random_seed", 0) or 0),
+    )
+
     record = CIFPatientRecord(
         patient=patient,
         encounters=[encounter],
         orders=orders,
         vital_signs=vitals,
         lab_results=lab_results,
+        microbiology=microbiology,
         procedures=ed_procedures,
         discharge_prescription=discharge_rx,
         condition_event=ConditionEvent(
