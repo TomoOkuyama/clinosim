@@ -859,10 +859,13 @@ def _build_panel_sr(
         priority=_PRIORITY_MAP.get(_o(anchor, "urgency", "routine"), "routine"),
         loinc_code=panel_loinc,
         loinc_display=panel_display,
-        loinc_text=_o(anchor, "panel_key", ""),
+        # Issue #2632: the panel's name (as on its DiagnosticReport), not its key.
+        loinc_text=localized_field(panel_def, "display", lang),
         anchor=anchor,
         lang=lang,
         country=country,
+        # JLAC10 codes analytes only: a panel is coded in LOINC on every locale.
+        code_system_override_key="loinc",
         earliest_dr_issued=earliest_dr_issued,
     )
 
