@@ -1963,6 +1963,10 @@ llm_template:
 # Daily ClinicalImpression of an inpatient stay (clinosim/modules/document/engine.py,
 # Issue #2401): encounter label, phase and description; CIF stores both languages.
 clinical_impression:
+  # Issue #2652: ClinicalImpression.summary of a day with no abnormal lab result.
+  no_abnormal_results:
+    ja: "本日の検査で参照範囲外の結果なし。"
+    en: "No laboratory results out of reference range today."
   enc_label:
     inpatient:
       ja: "入院"
