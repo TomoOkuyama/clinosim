@@ -818,6 +818,13 @@ codes:
   36424-0:
     en: CT Abdomen WO contrast
     ja: 腹部CT 単純
+  # Issue #2654: CT abdomen and pelvis (tx.fhir.org $lookup 2026-11-05).
+  36952-0:
+    en: CT Abdomen and Pelvis WO contrast
+    ja: 腹部・骨盤CT（単純）
+  36813-4:
+    en: CT Abdomen and Pelvis W contrast IV
+    ja: 腹部・骨盤CT（造影）
   79103-8:
     en: CT Abdomen W contrast IV
     ja: 腹部CT 造影

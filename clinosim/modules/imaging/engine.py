@@ -56,6 +56,7 @@ SUPPORTED_BODY_SITES: frozenset[str] = frozenset(
         "chest",
         "head",
         "abdomen",
+        "abdomen_pelvis",  # Issue #2654
         "kidney",
         "leg",
         "skin",
@@ -375,7 +376,7 @@ def _resolve_imaging_procedure_code_key(
             return "CR_PA_Lateral_Oblique" if len(views) >= 3 else "CR_PA_Lateral"
     # CT — contrast is the discriminator; non-contrast is the default
     if modality == "CT":
-        if body_site in ("chest", "abdomen"):
+        if body_site in ("chest", "abdomen", "abdomen_pelvis"):
             return "CT_contrast" if contrast else "CT_non_contrast"
         if body_site == "head":
             return "CT_non_contrast" if not contrast else "CT"
@@ -528,7 +529,10 @@ def _select_report_template(
     """
     templates = load_impression_templates()
     disease_templates = templates.get(disease_id, {})
-    key = f"{modality}_{body_site_key}"
+    # Issue #2654: a site may read with another site's templates
+    # (abdomen + pelvis uses the abdomen reports).
+    template_site = (load_body_sites().get(body_site_key) or {}).get("report_template_site") or body_site_key
+    key = f"{modality}_{template_site}"
     bucket = disease_templates.get(key, {})
     if not bucket:
         raise ValueError(
@@ -636,6 +640,7 @@ def imaging_enricher(ctx: Any) -> None:
             # order lacks it. On failure, emit a minimal ImagingStudy
             # with ``stub_only=True`` (see below).
             stub_only = False
+            inferred: dict | None = None
             if not (modality and body_site_snomed):
                 inferred = infer_imaging_metadata(_o(order, "display_name", "") or "")
                 if inferred:
@@ -752,7 +757,11 @@ def imaging_enricher(ctx: Any) -> None:
             # (set by place_imaging_orders, Task 3 Step 5 + I-2 fix 2026-06-30).
             spec_meta: dict[str, Any] = _o(order, "imaging_spec_meta", {}) or {}
             abnormal_rate: dict[str, float] = spec_meta.get("abnormal_rate_by_severity", {})
-            contrast: bool = bool(spec_meta.get("contrast", False))
+            # Issue #2654: an order without a structured spec (free-text
+            # workup entry) takes the contrast from its name.
+            contrast: bool = bool(
+                spec_meta["contrast"] if "contrast" in spec_meta else (inferred or {}).get("contrast", False)
+            )
 
             # Case-D fix: if the template lookup fails (empty
             # disease_id + an unregistered modality_body_site

@@ -81,8 +81,10 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     (rf"頭部{_SEP}ct|脳{_SEP}ct", "CT", "head", []),
     (rf"(?:chest|thoracic){_SEP}ct|ct{_SEP}(?:chest|thorax)", "CT", "chest", []),
     (rf"胸部{_SEP}ct", "CT", "chest", []),
+    # Issue #2654: abdomen + pelvis is its own study (not an abdomen-only CT).
+    (rf"ct{_SEP}(?:abdomen|abd){_SEP}(?:and{_SEP}|/{_SEP})?pelvis", "CT", "abdomen_pelvis", []),
     (
-        rf"abdominal?{_SEP}ct|ct{_SEP}(?:abdomen|abd)(?:{_SEP}pelvis)?(?:{_SEP}(?:with|no)n?{_SEP}?contrast)?",
+        rf"abdominal?{_SEP}ct|ct{_SEP}(?:abdomen|abd)(?:{_SEP}(?:with|no)n?{_SEP}?contrast)?",
         "CT",
         "abdomen",
         [],
@@ -195,5 +197,17 @@ def infer_imaging_metadata(display_name: str) -> dict | None:
                 "body_site_snomed": snomed,
                 "body_site_key": body_key,
                 "views": list(views),
+                "contrast": _ordered_with_contrast(txt),
             }
     return None
+
+
+# Issue #2654: "contrast" in the (English, protocol) order name, but not a
+# non-contrast order ("noncontrast", "non-contrast", "without contrast", "wo contrast").
+_NO_CONTRAST = re.compile(rf"non{_SEP}contrast|without{_SEP}contrast|\bwo{_SEP}contrast")
+_CONTRAST = re.compile(r"contrast")
+
+
+def _ordered_with_contrast(txt: str) -> bool:
+    """True when the order name asks for a contrast study."""
+    return bool(_CONTRAST.search(txt)) and not _NO_CONTRAST.search(txt)

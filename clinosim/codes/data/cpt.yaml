@@ -210,6 +210,10 @@ codes:
   '74160':
     en: Computed tomography, abdomen; with contrast material(s)
     ja: 腹部CT（造影あり）
+  # Issue #2654: CT abdomen and pelvis with contrast (AMA CPT; 74176 is above).
+  '74177':
+    en: Computed tomography, abdomen and pelvis; with contrast material(s)
+    ja: 腹部・骨盤CT（造影あり）
   '76700':
     en: Ultrasound, abdominal, real time with image documentation; complete
     ja: 腹部超音波検査
