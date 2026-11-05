@@ -48,7 +48,7 @@ def test_jp_culture_and_susceptibility_use_jlac10_columns(tmp_path):
                     "growth": True,
                     "organism_snomed": "3092008",
                     "quantitation": "",
-                    "susceptibilities": [{"antibiotic_loinc": "18862-3", "interpretation": "S"}],
+                    "susceptibilities": [{"antibiotic_loinc": "18864-9", "interpretation": "S"}],
                     "hai_event_id": "",
                 }
             ]
@@ -83,7 +83,7 @@ def test_us_culture_and_susceptibility_use_loinc_columns(tmp_path):
                     "growth": True,
                     "organism_snomed": "3092008",
                     "quantitation": "",
-                    "susceptibilities": [{"antibiotic_loinc": "18862-3", "interpretation": "S"}],
+                    "susceptibilities": [{"antibiotic_loinc": "18864-9", "interpretation": "S"}],
                     "hai_event_id": "",
                 }
             ]
@@ -95,7 +95,7 @@ def test_us_culture_and_susceptibility_use_loinc_columns(tmp_path):
     row = rows[0]
     assert row["test_code"] == "600-7"
     assert row["test_code_system"] == "loinc"
-    assert row["antibiotic_code"] == "18862-3"
+    assert row["antibiotic_code"] == "18864-9"
     assert row["antibiotic_code_system"] == "loinc"
 
 

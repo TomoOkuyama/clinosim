@@ -538,11 +538,13 @@ codes:
     en: Bacteria identified in Specimen by Aerobe culture
     ja: 創部培養（細菌同定）
   # === Microbiology: antibiotic susceptibility tests ===
-  18862-3:
-    en: Amoxicillin+Clavulanate [Susceptibility]
+  # Issue #2658: tx.fhir.org $lookup 2026-11-05 (the former 18862-3 / 18866-4
+  # / 18908-4 are Amoxicillin+Clavulanate / Azithromycin / Clindamycin).
+  18864-9:
+    en: Ampicillin [Susceptibility]
     ja: アンピシリン感受性
-  18866-4:
-    en: Azithromycin [Susceptibility]
+  18878-9:
+    en: ceFAZolin [Susceptibility]
     ja: セファゾリン感受性
   18895-3:
     en: Ceftriaxone [Susceptibility]
@@ -553,8 +555,8 @@ codes:
   18906-8:
     en: Ciprofloxacin [Susceptibility]
     ja: シプロフロキサシン感受性
-  18908-4:
-    en: Clindamycin [Susceptibility]
+  18928-2:
+    en: Gentamicin [Susceptibility]
     ja: ゲンタマイシン感受性
   # session 58 Issue #264: 18991-2 / 18949-0 / 18943-3 / 18996-1 were retired
   # from LOINC. Replaced with the corresponding LOINC 2.82 ACTIVE codes.
