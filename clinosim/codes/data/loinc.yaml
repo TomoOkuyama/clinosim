@@ -980,3 +980,121 @@ codes:
   9272-6:
     en: "1 minute Apgar Score"
     ja: "1分後アプガースコア"
+  # Issue #2583: lab orders the protocols place by name (verified via tx.fhir.org $lookup, LOINC 2.83, ACTIVE).
+  17351-8:
+    en: "Neutrophil cytoplasmic Ab [Presence] in Serum"
+    ja: 抗好中球細胞質抗体 (ANCA)
+  3274-8:
+    en: "Heparin unfractionated [Units/volume] in Platelet poor plasma by Chromogenic method"
+    ja: 抗Xa活性 (未分画ヘパリン)
+  42176-8:
+    en: "1,3 beta glucan [Mass/volume] in Serum"
+    ja: β-D-グルカン
+  2143-6:
+    en: "Cortisol [Mass/volume] in Serum or Plasma"
+    ja: コルチゾール
+  1968-7:
+    en: "Bilirubin.direct [Mass/volume] in Serum or Plasma"
+    ja: 直接ビリルビン
+  711-2:
+    en: "Eosinophils [#/volume] in Blood by Automated count"
+    ja: 好酸球数
+  49135-7:
+    en: "Fractional excretion of sodium [Ratio] in Urine and Serum or Plasma"
+    ja: ナトリウム排泄分画 (FENa)
+  3024-7:
+    en: "Thyroxine (T4) free [Mass/volume] in Serum or Plasma"
+    ja: 遊離サイロキシン (FT4)
+  2276-4:
+    en: "Ferritin [Mass/volume] in Serum or Plasma"
+    ja: フェリチン
+  601-5:
+    en: Fungus identified in Blood by Culture
+    ja: 血液真菌培養
+  44357-2:
+    en: "Galactomannan Ag [Units/volume] in Serum or Plasma by Immunoassay"
+    ja: アスペルギルス ガラクトマンナン抗原
+  57761-9:
+    en: "Heparin induced platelet Ab [Presence] in Serum or Plasma by Immunoassay"
+    ja: HIT抗体
+  32637-1:
+    en: "Urease [Presence] in Tissue"
+    ja: 迅速ウレアーゼ試験
+  4542-7:
+    en: "Haptoglobin [Mass/volume] in Serum or Plasma"
+    ja: ハプトグロビン
+  2692-2:
+    en: Osmolality of Serum or Plasma
+    ja: 血清浸透圧
+  47255-5:
+    en: "Procollagen type I.N-terminal propeptide [Mass/volume] in Serum or Plasma"
+    ja: I型プロコラーゲン-N-プロペプチド (P1NP)
+  2731-8:
+    en: "Parathyrin.intact [Mass/volume] in Serum or Plasma"
+    ja: インタクトPTH
+  14338-8:
+    en: "Prealbumin [Mass/volume] in Serum or Plasma"
+    ja: プレアルブミン
+  2106-3:
+    en: "Choriogonadotropin [Presence] in Urine"
+    ja: 尿中hCG (妊娠反応)
+  80381-7:
+    en: Influenza virus A and B Ag panel - Upper respiratory specimen by Rapid immunoassay
+    ja: インフルエンザウイルス抗原迅速検査
+  78012-2:
+    en: "Streptococcus pyogenes Ag [Presence] in Throat by Rapid immunoassay"
+    ja: A群溶連菌迅速抗原検査
+  17849-1:
+    en: Reticulocytes/Erythrocytes in Blood by Automated count
+    ja: 網状赤血球
+  6460-0:
+    en: Bacteria identified in Sputum by Culture
+    ja: 喀痰培養（細菌同定）
+  17837-6:
+    en: "Acid phosphatase tartrate resistant [Enzymatic activity/volume] in Serum"
+    ja: 酒石酸抵抗性酸ホスファターゼ
+  4049-3:
+    en: "Theophylline [Mass/volume] in Serum or Plasma"
+    ja: テオフィリン血中濃度
+  2161-8:
+    en: "Creatinine [Mass/volume] in Urine"
+    ja: 尿中クレアチニン
+  2955-3:
+    en: "Sodium [Moles/volume] in Urine"
+    ja: 尿中ナトリウム
+  62292-8:
+    en: "25-Hydroxyvitamin D3+25-Hydroxyvitamin D2 [Mass/volume] in Serum or Plasma"
+    ja: 25-ヒドロキシビタミンD
+  49774-3:
+    en: "Glomerular basement membrane Ab [Units/volume] in Serum"
+    ja: 抗GBM抗体
+  24351-9:
+    en: Protein electrophoresis panel - Serum or Plasma
+    ja: 血清蛋白分画
+  34544-7:
+    en: "Complement C3 and C4 panel [Mass/volume] - Serum or Plasma"
+    ja: 補体 C3・C4
+  50190-8:
+    en: Iron and Iron binding capacity panel - Serum or Plasma
+    ja: 血清鉄・鉄結合能
+  34532-2:
+    en: Blood type and Indirect antibody screen panel - Blood
+    ja: 血液型・不規則抗体スクリーニング
+  1250-0:
+    en: "Major crossmatch [Interpretation]"
+    ja: 交差適合試験 (主試験)
+  34558-7:
+    en: Cell count panel - Peritoneal fluid
+    ja: 腹水細胞数
+  1749-1:
+    en: Albumin [Mass/volume] in Peritoneal fluid
+    ja: 腹水アルブミン
+  2883-7:
+    en: Protein [Mass/volume] in Peritoneal fluid
+    ja: 腹水総蛋白
+  8061-4:
+    en: Nuclear Ab [Presence] in Serum
+    ja: 抗核抗体
+  11572-5:
+    en: Rheumatoid factor [Units/volume] in Serum or Plasma
+    ja: リウマトイド因子

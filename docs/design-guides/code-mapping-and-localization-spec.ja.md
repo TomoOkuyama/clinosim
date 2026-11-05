@@ -192,6 +192,13 @@ occupation:
 
 疾患 YAML は、自分が持つコードを `icd_codes` (primary / variants / `by_chronic_prefix`)、`implied_chronic_codes`、`sequela_code` で参照する。薬は `drug_id` で、患者状態は value set 名で参照する。表示する文字列 (主訴、注記) はプロトコル自身の中で言語マップとして持つ。encounter condition の YAML も同じ規則に従う。
 
+lab リストの各要素 (`labs`、`add_labs`、`additional_labs`、薬剤モニタリング項目の `test`) は内部のオーダー名で、2 段階で解決する。
+
+1. `observation/reference_data/order_routing.yaml` が、単一の検査でない名前を振り分ける。バイタルサインと問診項目はオーダーしない。画像検査は指定の検査名で画像オーダーにする。名前付きの組 (例: `DIC_panel`) は構成検査ごとのオーダーにする。
+2. それ以外は 1 つの検査。`lab_aliases.yaml` が表記 (`K_stat`、`Basic_metabolic_panel`、`Blood_culture_set_1`) を canonical な検査名またはパネルに対応づけ、国のコードマッピングがコードを与える。`_stat` の名前はオーダーの緊急度をそのまま持ち、`_repeat` / `_set_N` は同じ検査の再オーダーである。
+
+プロトコルがオーダーする検査はすべて US コードを持つかパネルである (`tests/unit/modules/observation/test_order_routing.py`)。`ServiceRequest.code.text` は検査の表示名 (`lab_display`、`style="formal"`) で、オーダー名は出さない。
+
 ## 4. 解決関数
 
 利用側は、名称をこれらの関数でのみ解決する。
@@ -234,6 +241,7 @@ occupation:
 |---|---|
 | `load_code_mapping(domain, country)` | その国の内部名 → コード |
 | `lab_code(lab_name, country)` / `lab_codes(lab_name)` | `(system_key, code)` / 全ロケールのコード |
+| `lab_order_targets(name)` (`clinosim.modules.observation.order_routing`) | プロトコルの lab リスト要素が出すオーダー (§3.9) |
 | `map_diagnosis_code(code, country, sex)` | 内部の診断基本コード → その国の ICD コード (`code_mapping_diagnosis.yaml`、性別で分かれる leaf を含む)。対応が無ければコード自身 |
 | `vocab_display(vocab, slug, lang, *, fallback)` | 語彙の表示名 (`vocabulary.yaml`) |
 | `narrative_label(section, key, lang, fallback)` | narrative のラベル |
@@ -400,6 +408,7 @@ occupation:
 | 第三国を米国扱いしない | `tests/unit/test_third_country_fallbacks_2203.py` |
 | `CodeSystem` / `LocalizedTable` の処理を上書きしない。表示表のすべてのエントリが英語を持つ | `tests/unit/codes/test_code_system_base_2470.py`、`tests/unit/locale/test_localized_table_2471.py` |
 | すべてのデータ YAML が置き場所に合った `metadata.kind` を持ち、`clinosim.datafiles` で読まれる (設定ファイルは除く) | `tests/unit/test_data_yaml_conventions_2465.py` |
+| プロトコルがオーダーする検査はコードを持つかパネル (§3.9) | `tests/unit/modules/observation/test_order_routing.py` |
 
 ## 11. 既知の逸脱
 

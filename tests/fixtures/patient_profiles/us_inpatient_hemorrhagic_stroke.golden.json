@@ -75,12 +75,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H].",
+        "assessment": "Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H], albumin 3.2 g/dL [L].",
         "objective": "BP 132/78 mmHg, HR 94/min, T 37.6°C, SpO2 92% (RA), RR 20/min",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.",
         "subjective": "Hospital day 1. Pain persists (NRS 5). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 1. Pain persists (NRS 5). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 132/78 mmHg, HR 94/min, T 37.6°C, SpO2 92% (RA), RR 20/min\nA: Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h."
+      "text": "S: Hospital day 1. Pain persists (NRS 5). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 132/78 mmHg, HR 94/min, T 37.6°C, SpO2 92% (RA), RR 20/min\nA: Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H], albumin 3.2 g/dL [L].\nP: Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-03": {

@@ -34,7 +34,7 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
 from clinosim.countries import lang_for
-from clinosim.locale.loader import load_code_mapping
+from clinosim.locale.loader import lab_display, load_code_mapping
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.observation.engine import canonical_lab_name
@@ -894,8 +894,10 @@ def _build_standalone_sr(o: Any, lang: str, country: str, earliest_dr_issued: st
     # `{system:"jlac10",code:"CBC",display:"CBC"}` = spec-invalid JLAC10.
     if not resolved_code:
         panels = load_panel_definitions()
-        if display_name in panels:
-            resolved_code = panels[display_name].get("loinc", "")
+        # Issue #2583: an alias of a panel (``Basic_metabolic_panel`` → BMP) too.
+        panel_key = display_name if display_name in panels else lab_key
+        if panel_key in panels:
+            resolved_code = panels[panel_key].get("loinc", "")
             used_loinc_fallback = True
 
     resolved_code = resolved_code or raw_code
@@ -918,7 +920,8 @@ def _build_standalone_sr(o: Any, lang: str, country: str, earliest_dr_issued: st
         priority=_PRIORITY_MAP.get(_o(o, "urgency", "routine"), "routine"),
         loinc_code=resolved_code,
         loinc_display=loinc_display,
-        loinc_text=display_name,
+        # Issue #2583: a readable name, never the protocol's internal order name.
+        loinc_text=lab_display(lab_key, lang, style="formal"),
         anchor=o,
         lang=lang,
         country=country,

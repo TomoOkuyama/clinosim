@@ -33,6 +33,7 @@ from clinosim.modules.clinical_course.engine import (
 from clinosim.modules.diagnosis.engine import update_differential
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.observation.engine import lab_panel_components, medications_in_effect
+from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.order.engine import (
     place_daily_lab_orders,
     place_imaging_orders,
@@ -609,24 +610,34 @@ def _apply_archetype_modifications(stay: _Stay, run: _Run, day: int) -> None:
 def _add_archetype_workup(stay: _Stay, run: _Run, day: int, mod: dict) -> None:
     encounter_id, archetype = stay.encounter_id, stay.archetype
     ordered_at = stay.admission_time + timedelta(days=day, hours=10)
-    # Add labs
+    # Add labs. An entry may route to imaging, to several component labs, or
+    # to nothing (a vital sign) — see observation/order_routing.py (Issue #2583).
     for lab_name in mod.get("add_labs", []):
-        run.orders.append(
-            Order(
-                order_id=f"ORD-{encounter_id}-MOD-D{day}-{sanitize_id_token(lab_name, 5)}",
-                patient_id=stay.patient.patient_id,
-                order_type=OrderType.LAB,
-                display_name=lab_name,
-                urgency="stat",
-                clinical_intent=t("order_intent.archetype_workup", "en", day=day, archetype=archetype),
-                # Issue #871: JA display for JP SR reasonCode.text.
-                # `archetype` is a code identifier (sepsis/ards/etc.) —
-                # kept as-is; the shell is translated.
-                clinical_intent_ja=t("order_intent.archetype_workup", "ja", day=day, archetype=archetype),
-                ordered_datetime=ordered_at,
-                status=OrderStatus.PLACED,
+        lab_token = sanitize_id_token(lab_name, 5)
+        targets = lab_order_targets(lab_name)
+        for idx, target in enumerate(targets):
+            if target.order_type == OrderType.IMAGING:
+                order_id = f"ORD-{encounter_id}-MOD-D{day}-IMG-L{lab_token}"
+                intent_key = "order_intent.archetype_imaging"
+            else:
+                order_id = f"ORD-{encounter_id}-MOD-D{day}-{lab_token}" + (f"-{idx}" if len(targets) > 1 else "")
+                intent_key = "order_intent.archetype_workup"
+            run.orders.append(
+                Order(
+                    order_id=order_id,
+                    patient_id=stay.patient.patient_id,
+                    order_type=target.order_type,
+                    display_name=target.name,
+                    urgency="stat",
+                    clinical_intent=t(intent_key, "en", day=day, archetype=archetype),
+                    # Issue #871: JA display for JP SR reasonCode.text.
+                    # `archetype` is a code identifier (sepsis/ards/etc.) —
+                    # kept as-is; the shell is translated.
+                    clinical_intent_ja=t(intent_key, "ja", day=day, archetype=archetype),
+                    ordered_datetime=ordered_at,
+                    status=OrderStatus.PLACED,
+                )
             )
-        )
     # Add imaging
     for img_idx, img_name in enumerate(mod.get("add_imaging", [])):
         run.orders.append(
