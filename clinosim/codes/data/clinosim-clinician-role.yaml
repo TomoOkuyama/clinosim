@@ -30,6 +30,9 @@ metadata:
 # Issue #2270: each role carries its display title (PractitionerRole code /
 # specialty text) and the English qualification display; read through
 # `clinosim.locale.loader.role_display(role, lang, facet=...)`.
+# Issue #2625: `practitioner_role` is the HL7 practitioner-role code where that
+# CodeSystem has the occupation; otherwise `occupation_snomed` is the SNOMED CT
+# occupation (tx.fhir.org $lookup 2026-11-05). Every role has one of the two.
 roles:
   physician:
     title: {en: "Physician", ja: "医師"}
@@ -51,16 +54,19 @@ roles:
 
   certified_nurse:
     title: {en: "Certified nurse", ja: "認定看護師"}
+    practitioner_role: nurse
     staff_prefix: CN
     suffix: {en: nurse, ja: 看護師}
 
   respiratory_therapist:
     title: {en: "Respiratory therapist", ja: "呼吸療法士"}
+    occupation_snomed: "442867008"
     staff_prefix: RT
     suffix: {en: respiratory therapist, ja: 呼吸療法士}
 
   physical_therapist:
     title: {en: "Physical therapist", ja: "理学療法士"}
+    occupation_snomed: "36682004"
     staff_prefix: PT
     suffix: {en: physical therapist, ja: 理学療法士}
     qualification:
@@ -69,6 +75,7 @@ roles:
 
   occupational_therapist:
     title: {en: "Occupational therapist", ja: "作業療法士"}
+    occupation_snomed: "80546007"
     staff_prefix: OT
     suffix: {en: occupational therapist, ja: 作業療法士}
     qualification:
@@ -77,6 +84,7 @@ roles:
 
   speech_therapist:
     title: {en: "Speech-language therapist", ja: "言語聴覚士"}
+    occupation_snomed: "159026005"
     staff_prefix: ST
     suffix: {en: speech therapist, ja: 言語聴覚士}
     qualification:
@@ -94,7 +102,7 @@ roles:
 
   lab_technician:
     title: {en: "Laboratory technician", ja: "臨床検査技師"}
-    practitioner_role: ict
+    occupation_snomed: "159282002"  # HL7 practitioner-role "ict" is an ICT professional
     qualification:
       code: MT
       display: {en: Medical Technologist, ja: 臨床検査技師}
@@ -108,12 +116,14 @@ roles:
 
   medical_social_worker:
     title: {en: "Medical social worker", ja: "医療ソーシャルワーカー"}
+    occupation_snomed: "106328005"
     qualification:
       code: MSW
       display: {en: Medical Social Worker, ja: 医療ソーシャルワーカー}
 
   dietitian:
     title: {en: "Registered dietitian", ja: "管理栄養士"}
+    occupation_snomed: "159033005"
     qualification:
       code: RD
       display: {en: Registered Dietitian, ja: 管理栄養士}

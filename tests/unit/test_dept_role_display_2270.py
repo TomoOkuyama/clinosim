@@ -15,7 +15,6 @@ from clinosim.locale.loader import (
     department_specialty_snomed,
     load_clinician_roles,
     load_department_display,
-    role_display,
 )
 from clinosim.modules._shared import practitioner_name
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
@@ -55,9 +54,10 @@ def test_specialty_follows_the_department_table(country: str) -> None:
         if code:
             assert spec["coding"][0]["code"] == code
         else:
-            # No title-cased slug: the role title from the role table.
+            # No title-cased slug and no profession name (Issue #2625): the
+            # department's display.
             lang = "ja" if country == "JP" else "en"
-            assert spec["text"] == role_display(s["role"], lang)
+            assert spec["text"] == department_display(s["department"], lang)
 
 
 def test_department_display_never_title_cases() -> None:

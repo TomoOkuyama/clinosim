@@ -22,7 +22,7 @@ from clinosim.locale.loader import (
 )
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import is_jp, is_us
-from clinosim.modules.output.fhir_r4.lib.common import system_coding
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding
 from clinosim.modules.output.fhir_r4.lib.localization import _ROLE_PREFIX_MAP_JA
 
 # Issue #1986: US Core 6.1.0 Practitioner profile marks the NPI
@@ -395,10 +395,12 @@ def _build_practitioner_role(
     # specialty come from the role and department tables
     # (codes/data/clinosim-clinician-role.yaml, department_display.yaml).
     lang = lang_for(country)
-    role_code = str((load_clinician_roles().get(role) or {}).get("practitioner_role") or "")
-    # Allied-health roles without an HL7 practitioner-role code get a
-    # text-only PractitionerRole.code (C5-25; FHIR R4 allows text-only).
-    _text_only_display = role_display(role, lang) if role and not role_code else ""
+    _role_entry = load_clinician_roles().get(role) or {}
+    role_code = str(_role_entry.get("practitioner_role") or "")
+    # Issue #2625: an occupation the HL7 practitioner-role CodeSystem lacks is
+    # coded in SNOMED CT; text-only only for a role with neither.
+    occupation_snomed = "" if role_code else str(_role_entry.get("occupation_snomed") or "")
+    _text_only_display = role_display(role, lang) if role and not role_code and not occupation_snomed else ""
     _snomed_code = department_specialty_snomed(specialty)
 
     resource: dict[str, Any] = {
@@ -465,6 +467,8 @@ def _build_practitioner_role(
                 ],
             }
         ]
+    elif occupation_snomed:
+        resource["code"] = [dual_slot_concept("snomed-ct", occupation_snomed, lang)]
     elif _text_only_display:
         resource["code"] = [{"text": _text_only_display}]
 
@@ -486,8 +490,13 @@ def _build_practitioner_role(
     else:
         # CY8-05 fix:allied-health / nurse など
         # SNOMED specialty 未マッピングの staff にも text-only specialty
-        # を emit(42.3% → 100%)。role table から derive、無ければ role 名。
-        _spec_text = role_display(role, lang) if role else ""
+        # を emit(42.3% → 100%)。Issue #2625: the department (the role
+        # title names the profession, not a specialty); the role title only
+        # for staff with no department.
+        if department:
+            _spec_text = department_display(specialty, lang)
+        else:
+            _spec_text = role_display(role, lang) if role else ""
         if _spec_text:
             resource["specialty"] = [{"text": _spec_text}]
 
