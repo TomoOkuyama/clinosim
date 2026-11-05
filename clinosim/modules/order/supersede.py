@@ -25,6 +25,7 @@ from clinosim.types.encounter import OrderStatus, OrderType
 
 _REF = Path(__file__).parent / "reference_data" / "medication_supersede.yaml"
 _INACTIVE = (OrderStatus.STOPPED, OrderStatus.CANCELLED)
+_STAY_TYPES = frozenset({"inpatient", "icu", "rehab_inpatient"})
 
 
 @cache
@@ -117,9 +118,47 @@ def supersede_orders(orders: list[Any], administrations: list[Any]) -> list[Any]
     return kept
 
 
+def _finished_stays(encounters: list[Any]) -> dict[str, Any]:
+    out = {}
+    for enc in encounters:
+        etype = str(getattr(getattr(enc, "encounter_type", ""), "value", getattr(enc, "encounter_type", "")))
+        status = str(getattr(getattr(enc, "status", ""), "value", getattr(enc, "status", "")))
+        if etype in _STAY_TYPES and status == "completed" and getattr(enc, "discharge_datetime", None):
+            out[str(enc.encounter_id)] = enc.discharge_datetime
+    return out
+
+
+def close_orders_at_discharge(encounters: list[Any], orders: list[Any], administrations: list[Any]) -> None:
+    """Close the medication orders of a finished stay (Issue #2606).
+
+    Each prescription of a completed inpatient stay gets ``end_datetime``:
+    its last administration, or the discharge when it was never given. The
+    FHIR MedicationRequest of an order with an end is ``completed`` (or keeps
+    ``stopped``) and its timing carries ``boundsPeriod.end``. An ongoing stay
+    keeps its orders open. RNG-free.
+    """
+    discharge = _finished_stays(encounters)
+    if not discharge:
+        return
+    last_given: dict[str, Any] = {}
+    for mar in administrations:
+        when = getattr(mar, "actual_datetime", None) or getattr(mar, "scheduled_datetime", None)
+        oid = str(getattr(mar, "order_id", "") or "")
+        if when is not None and (oid not in last_given or when > last_given[oid]):
+            last_given[oid] = when
+    for order in orders:
+        if not _is_prescription(order) or getattr(order, "end_datetime", None) is not None:
+            continue
+        end = discharge.get(str(getattr(order, "encounter_id", "") or ""))
+        if end is None or getattr(order, "status", None) == OrderStatus.CANCELLED:
+            continue
+        order.end_datetime = last_given.get(str(order.order_id), end)
+
+
 def enrich_supersede_orders(ctx: Any) -> None:
     """POST_ENCOUNTER enricher entry point."""
     for record in ctx.records:
         orders = getattr(record, "orders", None) or []
         mars = getattr(record, "medication_administrations", None) or []
         record.medication_administrations = supersede_orders(orders, mars)
+        close_orders_at_discharge(getattr(record, "encounters", None) or [], orders, record.medication_administrations)
