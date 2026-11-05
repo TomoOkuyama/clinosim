@@ -266,3 +266,11 @@ codes:
   '70544':
     en: Magnetic resonance angiography, head; without contrast material(s)
     ja: 頭部MRアンギオグラフィ（造影剤なし）
+  # Issue #2657 (AMA CPT descriptors; licensed, not checked on a public server).
+  '72040':
+    en: Radiologic examination, spine, cervical; 2 or 3 views
+    ja: 頸椎X線撮影（2-3方向）
+  '72100':
+    en: Radiologic examination, spine, lumbosacral; 2 or 3 views
+    ja: 腰仙椎X線撮影（2-3方向）
+

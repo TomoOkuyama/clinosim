@@ -32,6 +32,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.snomed import snomed_for
 from clinosim.countries import lang_for
 from clinosim.locale.loader import imaging_exam_display
 from clinosim.locale.localized import localized_field
@@ -169,6 +170,15 @@ def _build_imaging_study(
 
     series_list = _o(study, "series", []) or []
     series_resources = [_build_series(s, lang) for s in series_list]
+    # Issue #2657: a study of a paired structure images one side.
+    _side_code = snomed_for("laterality", str(_o(study, "laterality", "") or "")) or ""
+    if _side_code:
+        for _series in series_resources:
+            _series["laterality"] = {
+                "system": get_system_uri("snomed-ct"),
+                "code": _side_code,
+                **display_entry(code_lookup("snomed-ct", _side_code, lang)),
+            }
     total_instances = sum(_o(s, "instance_count", 0) for s in series_list)
 
     # 案 D stub 対応: modality_code 空なら modality array 空 emit

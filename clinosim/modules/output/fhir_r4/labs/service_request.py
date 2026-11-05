@@ -691,6 +691,14 @@ def _build_imaging_service_requests(
     return out
 
 
+def _imaging_side(encounter_id: str, body_site_snomed: str) -> str:
+    """The side the order's study images (Issue #2657), or ""."""
+    from clinosim.modules.imaging.engine import imaging_laterality, load_body_sites
+
+    key = next((k for k, v in load_body_sites().items() if v.get("snomed") == body_site_snomed), "")
+    return imaging_laterality(str(encounter_id or ""), key) if key else ""
+
+
 def _infer_imaging_procedure(display_name: str) -> tuple[str, str, str]:
     """``(modality, body-site SNOMED, procedure LOINC)`` for an imaging order
     name, as the ImagingStudy and radiology report resolve it (Issue #2621);
@@ -859,6 +867,13 @@ def _build_imaging_sr(
                 ],
             }
         ]
+        # Issue #2657: the side of a paired structure, as on the study.
+        side = _imaging_side(_o(order, "encounter_id", ""), body_site_snomed)
+        if side:
+            from clinosim.locale.i18n import t as _t
+
+            _lower = body_site_display[:1].lower() + body_site_display[1:]
+            sr["bodySite"][0]["text"] = _t(f"imaging_side.{side}", lang, site=body_site_display, site_lower=_lower)
 
     # Optional fields
     dt = _o(order, "ordered_datetime")

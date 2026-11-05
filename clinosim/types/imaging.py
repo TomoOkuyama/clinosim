@@ -75,6 +75,8 @@ class ImagingStudyRecord:
     # Issue #2699: the views acquired (e.g. ["PA", "Lateral"], ["AP"],
     # ["angiography"]) — they decide the procedure code with modality and site.
     views: list[str] = field(default_factory=list)
+    # Issue #2657: "left" / "right" for a study of a paired structure, else "".
+    laterality: str = ""
     report: RadiologyReport | None = None  # snapshot mid-study = None
     # Issue #822 (N-9): Order-level display for stub-only studies (where the
     # normal metadata-inference path fails so `_proc_display` is not

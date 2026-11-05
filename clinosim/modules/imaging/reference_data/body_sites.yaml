@@ -130,6 +130,7 @@ body_sites:
 
   leg:
     snomed: "61685007"                           # Lower extremity
+    paired: true                                 # Issue #2657: a study images one side
     procedure_codes:
       US_Doppler:                                # US doppler leg (DVT workup)
         loinc: "99607-4"                         # US Doppler Lower extremity vein bilateral — NLM verified
@@ -146,6 +147,7 @@ body_sites:
 
   hand:
     snomed: "85562004"                           # Hand
+    paired: true                                 # Issue #2657: a study images one side
     procedure_codes:
       CR_PA_Oblique_Lateral:                     # 3-view hand
         loinc: "24722-1"                         # XR Hand 3 Views — NLM verified
@@ -154,6 +156,7 @@ body_sites:
 
   hip:
     snomed: "29836001"                           # Hip region
+    paired: true                                 # Issue #2657: a study images one side
     procedure_codes:
       CR_AP_Lateral:                             # 2-view hip
         loinc: "36663-3"                         # XR Hip 2 Views — NLM verified
@@ -170,6 +173,7 @@ body_sites:
 
   knee:
     snomed: "72696002"                           # Knee region structure — tx.fhir.org verified
+    paired: true                                 # Issue #2657: a study images one side
     procedure_codes:
       CR_AP_Lateral:                             # 2-view knee (post-arthroplasty check)
         loinc: "44198-0"                         # XR Knee 1 or 2 Views — NLM verified
@@ -194,6 +198,7 @@ body_sites:
 
   wrist:
     snomed: "8205005"                            # Wrist region
+    paired: true                                 # Issue #2657: a study images one side
     procedure_codes:
       CR_PA_Lateral_Oblique:                     # 3-view wrist
         # #1851 split from the generic 24619-9 (XR Wrist Views) to the
@@ -215,6 +220,7 @@ body_sites:
   # (not checkable against a public terminology server).
   ankle:
     snomed: "70258002"                           # Ankle joint structure
+    paired: true                                 # Issue #2657: a study images one side
     procedure_codes:
       CR_AP_Lateral_Oblique:                     # 3-view ankle (AP, mortise, lateral)
         loinc: "36294-7"                         # XR Ankle 3 Views
@@ -222,6 +228,7 @@ body_sites:
         jp_k_code: "E001"
   foot:
     snomed: "56459004"                           # Foot structure
+    paired: true                                 # Issue #2657: a study images one side
     procedure_codes:
       CR_AP_Lateral_Oblique:                     # 3-view foot
         loinc: "36305-1"                         # XR Foot 3 Views
@@ -229,6 +236,7 @@ body_sites:
         jp_k_code: "E001"
   shoulder:
     snomed: "16982005"                           # Shoulder region structure
+    paired: true                                 # Issue #2657: a study images one side
     procedure_codes:
       CR_AP_Lateral:                             # 2-view shoulder (incl. post-reduction check)
         loinc: "37840-6"                         # XR Shoulder 2 Views
@@ -269,3 +277,26 @@ body_sites:
         loinc: "25019-1"                         # US Urinary bladder
         cpt: "76857"
         jp_k_code: "D215"
+
+  # === Issue #2657: spine studies name their region ===
+  cervical_spine:
+    snomed: "122494005"                          # Structure of cervical vertebral column
+    report_template_site: spine                  # reads with the spine report templates
+    procedure_codes:
+      CR_AP_Lateral:
+        loinc: "36669-0"                         # XR Cervical spine 2 Views (tx.fhir.org 2026-11-06)
+        cpt: "72040"                             # X-ray cervical spine 2 or 3 views — AMA (licensed, not checkable)
+        jp_k_code: "E001"
+  lumbar_spine:
+    snomed: "122496007"                          # Lumbar spine structure
+    report_template_site: spine                  # reads with the spine report templates
+    procedure_codes:
+      CR_AP_Lateral:
+        loinc: "36670-8"                         # XR Lumbar spine 2 Views (tx.fhir.org 2026-11-06)
+        cpt: "72100"                             # X-ray lumbar spine 2 or 3 views — AMA (licensed, not checkable)
+        jp_k_code: "E001"
+      MR_non_contrast:
+        loinc: "24968-0"                         # MR Lumbar spine
+        cpt: "72148"
+        jp_k_code: "E202"
+
