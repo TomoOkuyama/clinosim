@@ -499,6 +499,25 @@ codes:
   38227-5:
     en: Braden scale total score
     ja: ブレーデンスケール合計スコア
+  # Issue #2647: Braden subscales (tx.fhir.org $lookup 2026-11-05).
+  38222-6:
+    en: Sensory perception Braden scale
+    ja: ブレーデンスケール知覚の認知
+  38229-1:
+    en: Moisture exposure Braden scale
+    ja: ブレーデンスケール湿潤
+  38223-4:
+    en: Physical activity Braden scale
+    ja: ブレーデンスケール活動性
+  38224-2:
+    en: Physical mobility Braden scale
+    ja: ブレーデンスケール可動性
+  38225-9:
+    en: Nutrition intake pattern Braden scale
+    ja: ブレーデンスケール栄養状態
+  38226-7:
+    en: Friction and shear Braden scale
+    ja: ブレーデンスケール摩擦とずれ
   59460-6:
     en: Fall risk total [Morse Fall Scale]
     ja: 転倒リスク合計 [モールス転倒スケール]
