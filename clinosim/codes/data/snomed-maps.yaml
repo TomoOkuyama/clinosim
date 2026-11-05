@@ -120,6 +120,7 @@ order_category:
 # Specimen.type of the specimens the lab path emits (Issue #2379).
 specimen_type:
   blood: "119297000"
+  arterial_blood: "122552005"  # blood gases (Issue #2582)
   urine: "122575003"
 
 # Newborn screening procedures (Issue #2379).

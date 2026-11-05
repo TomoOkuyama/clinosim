@@ -207,6 +207,9 @@ codes:
   '119297000':
     en: Blood specimen
     ja: 血液検体
+  '122552005':
+    en: Arterial blood specimen
+    ja: 動脈血検体
   '122575003':
     en: Urine specimen
     ja: 尿検体

@@ -32,7 +32,7 @@ from clinosim.modules.clinical_course.engine import (
 )
 from clinosim.modules.diagnosis.engine import update_differential
 from clinosim.modules.disease.protocol import DiseaseProtocol
-from clinosim.modules.observation.engine import lab_panel_components, medications_in_effect
+from clinosim.modules.observation.engine import canonical_lab_name, lab_panel_components, medications_in_effect
 from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.order.engine import (
     place_daily_lab_orders,
@@ -295,6 +295,9 @@ class _Run:
     intubated_day: int | None = None  # Issue #2101: complication context
     escalation_procedures: list = field(default_factory=list)  # Issue #2091: state-driven intubation records
     prev_diet: str = ""  # last diet ordered for this patient
+    # Admission orders, including the components an admission panel order
+    # was expanded into (Issue #2582); the drug-safety gate checks the rest.
+    admission_order_ids: set[str] = field(default_factory=set)
     lab_time: datetime | None = None  # the most recent morning lab draw (none before day 1)
 
 
@@ -457,11 +460,13 @@ def _expand_panel_orders(orders: list[Order]) -> dict[str, list[Order]]:
     """Expand placed panel orders (e.g. ABG → pH/pCO2/pO2/HCO3; CBC →
     WBC/Hb/Hct/Plt) into component child lab orders, keyed by parent id.
 
-    The parent is marked RESULTED (no scalar result → no duplicate
-    Observation). Children are kept *separate* from the master parent stream
-    so their RNG draws can run on a per-parent isolated sub-RNG (see Pass 2 in
-    lab_pipeline), preventing panel-registry edits from cascading into
-    unrelated patients' cohorts (AD-16).
+    The children carry the panel as ``panel_key``, so the FHIR builder emits
+    them as one panel ServiceRequest with the component results under it; the
+    caller drops the parent order, which would otherwise be a second, empty
+    order for the same specimen (Issue #2582). Children are kept *separate*
+    from the master parent stream so their RNG draws can run on a per-parent
+    isolated sub-RNG (see Pass 2 in lab_pipeline), preventing panel-registry
+    edits from cascading into unrelated patients' cohorts (AD-16).
     """
     children_by_parent: dict[str, list[Order]] = {}
     for order in orders:
@@ -485,6 +490,7 @@ def _expand_panel_orders(orders: list[Order]) -> dict[str, list[Order]]:
                         ordered_by=order.ordered_by,
                         encounter_id=order.encounter_id,
                         status=OrderStatus.PLACED,
+                        panel_key=canonical_lab_name(order.display_name),
                     )
                 )
             children_by_parent[order.order_id] = children
@@ -536,7 +542,12 @@ def _result_labs(stay: _Stay, run: _Run, day: int, lab_state_pre_update: Physiol
     # The flat list (preserves insertion order so downstream serialisers, e.g.
     # _bb_labs in fhir_r4_adapter, retain a stable index for `lab-{enc}-{idx:04d}`).
     panel_children: list[Order] = [c for kids in panel_children_by_parent.values() for c in kids]
-    run.orders.extend(panel_children)
+    if panel_children_by_parent:
+        # Each expanded panel order is replaced in place by its components.
+        run.orders = [c for o in run.orders for c in panel_children_by_parent.get(o.order_id, [o])]
+        for parent_id, children in panel_children_by_parent.items():
+            if parent_id in run.admission_order_ids:
+                run.admission_order_ids.update(c.order_id for c in children)
     panel_child_ids = {c.order_id for c in panel_children}
 
     # Two-pass lab-result generation (Pass 1 scalar/non-panel + Pass 2
@@ -954,7 +965,9 @@ def _dies_today(stay: _Stay, run: _Run, day: int, expected_mortality_multiplier:
     )
 
 
-def _gate_new_medication_orders(stay: _Stay, admission_orders: list[Order], orders: list[Order]) -> list[Order]:
+def _gate_new_medication_orders(
+    stay: _Stay, admission_orders: list[Order], orders: list[Order], admission_ids: set[str]
+) -> list[Order]:
     """C7b (#1100): drug_safety gate on post-admission MEDICATION Orders.
 
     ``admission_orders`` were gated at admission time; anything the
@@ -969,9 +982,10 @@ def _gate_new_medication_orders(stay: _Stay, admission_orders: list[Order], orde
         apply_drug_safety_gate_to_orders,
     )
 
-    admission_len = len(admission_orders)
-    pre_new = orders[:admission_len]
-    new_orders = orders[admission_len:]
+    # By id: an expanded admission panel order is replaced in place by its
+    # components, which count as admission orders (Issue #2582).
+    pre_new = [o for o in orders if o.order_id in admission_ids]
+    new_orders = [o for o in orders if o.order_id not in admission_ids]
     if not new_orders:
         return orders
     accepted = [o.display_name for o in pre_new if o.order_type == OrderType.MEDICATION and o.display_name]
@@ -1056,6 +1070,7 @@ def _run_daily_loop(
         state=state,
         differential=differential,
         orders=list(admission_orders),
+        admission_order_ids={o.order_id for o in admission_orders},
         state_history=[deepcopy(state)],
         dvt_prophylaxis_planned=False,
     )
@@ -1117,7 +1132,7 @@ def _run_daily_loop(
             los_ceiling += 1
 
     return DailyLoopResult(
-        orders=_gate_new_medication_orders(stay, admission_orders, run.orders),
+        orders=_gate_new_medication_orders(stay, admission_orders, run.orders, run.admission_order_ids),
         lab_results=run.lab_results,
         vitals=run.vitals,
         mars=run.mars,
