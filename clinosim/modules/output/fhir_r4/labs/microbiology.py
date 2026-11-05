@@ -568,8 +568,7 @@ def _mb_conclusion_text(mb: dict, lang: str) -> str:
     if not sus_list:
         return t("microbiology_fhir.isolated_pending_sus", lang, org=org_disp)
 
-    # Compact sensitivity summary — pick up to 4 sensitivities to keep the
-    # line readable. Prefer the payload's ``antibiotic_display`` when
+    # Sensitivity summary. Prefer the payload's ``antibiotic_display`` when
     # provided; otherwise resolve the LOINC display and strip the trailing
     # ``[Susceptibility]`` suffix / JA ``感受性`` suffix so the reader
     # sees the drug name ("Ceftriaxone=S") rather than a bare LOINC code.
@@ -590,14 +589,14 @@ def _mb_conclusion_text(mb: dict, lang: str) -> str:
                 break
         return disp.strip() or loinc
 
+    # Issue #2659: every tested antibiotic (a panel is at most a handful);
+    # the conclusion is never cut off with an ellipsis.
     parts: list[str] = []
-    for sus in sus_list[:4]:
+    for sus in sus_list:
         ab = _ab_label(sus)
         interp = str(sus.get("interpretation") or "?")
         parts.append(f"{ab}={interp}")
     tail = ", ".join(parts)
-    if len(sus_list) > 4:
-        tail += " …"
     return t("microbiology_fhir.isolated_with_sus", lang, org=org_disp, tail=tail)
 
 
