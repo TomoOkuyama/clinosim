@@ -13,16 +13,33 @@ generator instance.
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules.document.narrative._narrative_utils import _filter_vitals_for_day
+from clinosim.modules.document.engine import SHIFT_HOURS, SHIFT_SCHEDULE
+from clinosim.modules.document.narrative._narrative_utils import _filter_vitals_for_day, _parse_iso_datetime
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
 from clinosim.modules.document.narrative._vitals_line import NURSING_SHIFT, format_vitals_line
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.types.document import NarrativeContext, NarrativeOutput
+
+
+def _shift_window(encounter: Any, day_index: int, shift_key: str) -> tuple[datetime, datetime] | None:
+    """[start, end) of the note's shift on hospital day ``day_index`` (calendar
+    day ``day_index`` after admission); the whole day when ``shift_key`` is
+    empty or unknown. ``None`` without an admission time."""
+    adm = _parse_iso_datetime(_o(encounter, "admission_datetime", None) if encounter is not None else None)
+    if adm is None:
+        return None
+    day_start = datetime.combine(adm.date() + timedelta(days=day_index), datetime.min.time())
+    starts = dict(SHIFT_SCHEDULE)
+    if shift_key in starts:
+        start = day_start + timedelta(hours=starts[shift_key])
+        return (start, start + timedelta(hours=SHIFT_HOURS))
+    return (day_start, day_start + timedelta(days=1))
 
 
 def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
@@ -94,12 +111,18 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
                 status_bits.append(t("nursing.supplemental_o2", lang))
         facts.append("ctx.vitals.today")
 
-    # Today's meds (limit 3 for shift-note brevity)
+    # Issue #2651: the drugs given in this shift (the 8-hour shift window of
+    # this hospital day; the whole calendar day for a note with no shift),
+    # from the MAR — never the stay's first administrations. Limit 3 for
+    # shift-note brevity.
     med_names: list[str] = []
     seen: set[str] = set()
-    for m in (ctx.medications or [])[:12]:
-        d = _o(m, "day", None)
-        if d is not None and d != ctx.day_index:
+    window = _shift_window(ctx.encounter, ctx.day_index, shift_key)
+    for m in ctx.medications or []:
+        if str(_o(m, "status", "given") or "given") != "given":
+            continue
+        when = _parse_iso_datetime(_o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None))
+        if window is None or when is None or not (window[0] <= when < window[1]):
             continue
         n = _o(m, "drug_name", None) or _o(m, "medication", None)
         if not n or n in seen:

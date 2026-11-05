@@ -164,6 +164,7 @@ SHIFT_SCHEDULE: tuple[tuple[str, int], ...] = (
     ("day", 8),
     ("evening", 16),
 )
+SHIFT_HOURS = 8  # length of each shift in SHIFT_SCHEDULE (Issue #2651: MAR window)
 
 
 # P2-13 PR2b: JP-CLINS 診療情報提供書 emission rate.
