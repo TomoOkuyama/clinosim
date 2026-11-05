@@ -132,3 +132,29 @@ def test_order_caller_category_byte_neutral(encounter_type: str, clinical_intent
     is_discharge_intent = "discharge" in ci_lower
     code, _display = _derive_mr_category(encounter_type, is_home_med, is_episodic, is_discharge_intent)
     assert code == expected_code
+
+
+@pytest.mark.parametrize(
+    "encounter_type,is_home_med,is_episodic,expected_code",
+    [
+        # Issue #2609: a home medication continued and given during a stay.
+        ("inpatient", True, False, "inpatient"),
+        # Chemotherapy given in clinic (outpatient, non-episodic intent).
+        ("outpatient", False, False, "outpatient"),
+        ("outpatient", True, False, "outpatient"),
+        ("emergency", False, True, "outpatient"),
+        ("inpatient", False, True, "inpatient"),
+    ],
+)
+def test_administered_medication_is_categorised_by_where_it_was_given(
+    encounter_type: str, is_home_med: bool, is_episodic: bool, expected_code: str
+) -> None:
+    code, _display = _derive_mr_category(
+        encounter_type, is_home_med, is_episodic, is_discharge_intent=False, administered_in_facility=True
+    )
+    assert code == expected_code
+
+
+def test_a_held_home_medication_stays_community() -> None:
+    """Not administered in hospital: still the patient's home medication."""
+    assert _derive_mr_category("inpatient", True, False, False, administered_in_facility=False)[0] == "community"
