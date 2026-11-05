@@ -211,6 +211,8 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                     }
                 ],
             },
+            # Issue #2624: every area, ward and room sits in the hospital building.
+            "partOf": {"reference": "Location/loc-hospital-main"},
             "managingOrganization": {"reference": f"Organization/dept-{dept.replace('_', '-')}"},
         }
         entries.append(entry(dept_loc))
@@ -281,6 +283,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                         }
                     ],
                 },
+                "partOf": {"reference": "Location/loc-hospital-main"},
                 "managingOrganization": {"reference": org_ref},
             }
             entries.append(entry(ward_loc))
@@ -363,6 +366,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 # Location.type binding は preferred strength = coding
                 # 無くても spec-valid。
                 "type": [{"text": vocab_display("care_location", "operating_room", lang_for(country))}],
+                "partOf": {"reference": "Location/loc-hospital-main"},
                 "managingOrganization": {"reference": or_org_ref},
             }
             entries.append(entry(or_loc))
