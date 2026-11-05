@@ -1277,6 +1277,10 @@ codes:
   34532-2:
     en: Blood type and Indirect antibody screen panel - Blood
     ja: 血液型・不規則抗体スクリーニング
+  # Issue #2587 (tx.fhir.org $lookup 2026-11-06).
+  890-4:
+    en: Blood group antibody screen [Presence] in Serum or Plasma
+    ja: 不規則抗体スクリーニング
   1250-0:
     en: "Major crossmatch [Interpretation]"
     ja: 交差適合試験 (主試験)

@@ -18,6 +18,8 @@ anthropometric:
 blood_group:
   abo: "883-9"                   # ABO group [Type] in Blood
   rh: "10331-7"                  # Rh [Type] in Blood
+  antibody_screen: "890-4"       # Blood group antibody screen [Presence] in Serum or Plasma (Issue #2587)
+  type_and_screen: "34532-2"     # Blood type and Indirect antibody screen panel - Blood (Issue #2587)
 
 care_level:
   level_of_care: "80391-6"       # Level of care [Type]

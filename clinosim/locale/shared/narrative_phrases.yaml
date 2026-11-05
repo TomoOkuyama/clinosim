@@ -2355,6 +2355,12 @@ fhir_obs_text:
   rh_group:
     ja: "Rh血液型"
     en: "Rh blood group"
+  antibody_screen:
+    ja: "不規則抗体スクリーニング"
+    en: "Blood group antibody screen"
+  blood_type_from_history:
+    ja: "既往の検査記録による (今回の検査ではない)"
+    en: "Recorded from a previous typing (not tested this stay)"
   automated_method:
     ja: "自動分析器測定"
     en: "Automated laboratory measurement"

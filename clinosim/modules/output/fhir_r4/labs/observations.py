@@ -820,6 +820,8 @@ def _bb_labs(ctx: BundleContext) -> list[dict[str, Any]]:
         result_data = _o(order, "result")
         if not result_data:
             continue
+        if _o(order, "display_name", "") == "Type_and_screen":
+            continue  # Issue #2587: emitted as ABO / RhD / antibody screen by blood_type.py
 
         if isinstance(order, Order):
             # Order dataclass path (tests + future direct-object pipeline).
