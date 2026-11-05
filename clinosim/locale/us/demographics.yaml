@@ -672,6 +672,7 @@ ed_visit_not_admitted:
 occupation_distribution:
   age_thresholds:
     student_max_age:          14
+    high_school_max_age:      17   # Issue #2674: 15-17 are high school students
     young_adult_max_age:      21
     young_adult_student_prob: 0.70
     retirement_min_age:       65
