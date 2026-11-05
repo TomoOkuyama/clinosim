@@ -70,6 +70,8 @@ def _resolve_specimen_id(structural_key: str) -> str:
 #     (CBC / chem panel / LFT / cardiac markers / coagulation / ...).
 #   122575003 → Urine specimen / 尿検体 — Urinalysis / urine dipstick tests.
 _SPECIMEN_SNOMED_BLOOD: str = snomed_for("specimen_type", "blood") or ""
+#   122552005 → Arterial blood specimen / 動脈血検体 — blood gases (Issue #2582).
+_SPECIMEN_SNOMED_ARTERIAL_BLOOD: str = snomed_for("specimen_type", "arterial_blood") or ""
 _SPECIMEN_SNOMED_URINE: str = snomed_for("specimen_type", "urine") or ""
 
 
@@ -92,7 +94,8 @@ def _lab_observation_needs_specimen(resource: dict) -> bool:
 
 def _pick_specimen_type_for_lab(observation: dict) -> str:
     """Pick the Specimen.type SNOMED code for a lab Observation. Blood is
-    the default; Urinalysis-style tests get urine specimen.
+    the default; Urinalysis-style tests get urine specimen, and analytes
+    coded "in Arterial blood" (the blood gas) get arterial blood.
 
     The rule is intentionally conservative — only names that clearly indicate
     a non-blood specimen switch away from blood. Anything else stays blood so
@@ -106,6 +109,8 @@ def _pick_specimen_type_for_lab(observation: dict) -> str:
             return _SPECIMEN_SNOMED_URINE
     if "urin" in text or "urine" in text:
         return _SPECIMEN_SNOMED_URINE
+    if any("arterial blood" in str(c.get("display", "") or "").lower() for c in code_field.get("coding", []) or []):
+        return _SPECIMEN_SNOMED_ARTERIAL_BLOOD
     return _SPECIMEN_SNOMED_BLOOD
 
 
