@@ -377,10 +377,22 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
     #     Anticoagulant). Runs after exact-duplicate dedup because a same-
     #     class collision may include an exact duplicate; running exact
     #     first keeps the class guard's key stable.
-    return _dedup_same_class_orders(_dedup_medication_requests(out))
+    # Issue #2608: a request whose order was administered is never dropped as a
+    # same-class duplicate (the drug was given), and an exact duplicate
+    # hands its administrations to the request kept in its place.
+    _administered = {
+        _resolve_mr_id(str(m.get("order_id", "") or ""))
+        for m in ctx.record.get("medication_administrations", []) or []
+        if m.get("order_id")
+    }
+    _unique = _dedup_medication_requests(out, aliases=ctx.mr_aliases)
+    # The request kept in place of an administered duplicate carries those
+    # administrations, so it is protected too.
+    _administered |= {ctx.mr_aliases[i] for i in list(_administered) if i in ctx.mr_aliases}
+    return _dedup_same_class_orders(_unique, protected=_administered)
 
 
-def _dedup_medication_requests(mrs: list[dict]) -> list[dict]:
+def _dedup_medication_requests(mrs: list[dict], aliases: dict[str, str] | None = None) -> list[dict]:
     """Drop MedicationRequests that are byte-identical duplicates on
     (drug text, authoredOn date, first-dosage text, first-route code).
 
@@ -398,7 +410,7 @@ def _dedup_medication_requests(mrs: list[dict]) -> list[dict]:
     coalesces different-formulation entries (different dose OR route
     OR authoredOn day = distinct key, retained). No RNG involvement.
     """
-    seen: set[tuple[str, str, str, str]] = set()
+    seen: dict[tuple[str, str, str, str], str] = {}
     out: list[dict] = []
     for mr in mrs:
         med_text = ""
@@ -425,8 +437,10 @@ def _dedup_medication_requests(mrs: list[dict]) -> list[dict]:
             out.append(mr)
             continue
         if key in seen:
+            if aliases is not None and mr.get("id"):
+                aliases[str(mr["id"])] = seen[key]
             continue
-        seen.add(key)
+        seen[key] = str(mr.get("id", "") or "")
         out.append(mr)
     return out
 
@@ -650,7 +664,12 @@ def _bb_medication_admins(ctx: BundleContext) -> list[dict]:
                 # it (unit tests exercising this builder in isolation) so
                 # the pre-fix baseline is preserved for those callers.
                 _gate = ctx.emitted_mr_ids if ctx.emitted_mr_ids is not None else _mr_ids
-                if _target not in _gate:
+                _alias = ctx.mr_aliases.get(_target, "")
+                if _target not in _gate and _alias in _gate:
+                    # Issue #2608: the order was emitted as an exact duplicate
+                    # of another request; this administration carries that one.
+                    _resource["request"] = {"reference": f"MedicationRequest/{_alias}"}
+                elif _target not in _gate:
                     _resource.pop("request", None)  # drop the dangling ref
         out.append(_resource)
     return _dedup_medication_admins(out)

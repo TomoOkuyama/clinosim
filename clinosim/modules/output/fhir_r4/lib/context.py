@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 __all__ = [
@@ -63,3 +63,7 @@ class BundleContext:
     # falls back to the pre-#1217 order-set gate, matching the pre-fix
     # baseline for backwards compatibility.
     emitted_mr_ids: set[str] | None = None
+    # Issue #2608: MedicationRequest ids dropped as exact duplicates → the id
+    # of the request kept in their place; the MedicationAdministrations of
+    # the dropped order reference the kept one instead of losing ``request``.
+    mr_aliases: dict[str, str] = field(default_factory=dict)

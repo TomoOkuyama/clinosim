@@ -1869,7 +1869,7 @@ def _classify_medication(med_text: str) -> str:
     return ""
 
 
-def _dedup_same_class_orders(mrs: list[dict]) -> list[dict]:
+def _dedup_same_class_orders(mrs: list[dict], protected: set[str] | None = None) -> list[dict]:
     """Drop later MedicationRequest orders that duplicate the therapeutic
     class of an earlier order authored on the same day for the same patient.
 
@@ -1904,7 +1904,9 @@ def _dedup_same_class_orders(mrs: list[dict]) -> list[dict]:
             out.append(mr)
             continue
         key = (subject_ref, authored, cls)
-        if key in seen:
+        # Issue #2608: an administered request (``protected``) is kept even
+        # when it shares the class of an earlier one — the drug was given.
+        if key in seen and not (protected and mr.get("id") in protected):
             continue
         seen.add(key)
         out.append(mr)

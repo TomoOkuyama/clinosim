@@ -123,6 +123,9 @@ def enrich_newborn(ctx: Any) -> None:
                 _set(record, "medication_administrations", list(new_oph))
             else:
                 existing_mars.extend(new_oph)
+        # Issue #2608: the vitamin K and eye prophylaxis are given on an
+        # order, so every newborn MAR resolves to a MedicationRequest.
+        _add_orders_for_administrations(record, [*(new_mars or []), *(new_oph or [])])
         new_procs = [p for p in (new_hearing, new_metabolic) if p is not None]
         if new_procs:
             existing_procs = _get(record, "procedures", None)
@@ -152,3 +155,46 @@ def enrich_newborn(ctx: Any) -> None:
                 _set(record, "vital_signs", list(new_vitals))
             else:
                 existing_vs.extend(new_vitals)
+
+
+def _add_orders_for_administrations(record: Any, mars: list[Any]) -> None:
+    """Add the standing order behind each newborn prophylaxis MAR (Issue #2608).
+
+    One order per ``order_id``, placed at the birth admission by the birth
+    encounter's attending, with the MAR's dose and route. No RNG.
+    """
+    from clinosim.types.encounter import Order, OrderStatus, OrderType
+
+    encs = _get(record, "encounters", None) or []
+    enc = encs[0] if encs else None
+    if enc is None or not mars:
+        return
+    orders = _get(record, "orders", None)
+    if orders is None:
+        orders = []
+        _set(record, "orders", orders)
+    have = {str(_get(o, "order_id", "") or "") for o in orders}
+    for mar in mars:
+        oid = str(_get(mar, "order_id", "") or "")
+        if not oid or oid in have:
+            continue
+        have.add(oid)
+        admitted = _get(enc, "admission_datetime", None)
+        given = _get(mar, "actual_datetime", None) or _get(mar, "scheduled_datetime", None)
+        orders.append(
+            Order(
+                order_id=oid,
+                encounter_id=str(_get(enc, "encounter_id", "") or ""),
+                patient_id=str(_get(_get(record, "patient", None), "patient_id", "") or ""),
+                order_type=OrderType.MEDICATION,
+                display_name=str(_get(mar, "drug_name", "") or ""),
+                urgency="routine",
+                ordered_datetime=admitted or given,
+                ordered_by=str(_get(enc, "attending_physician_id", "") or ""),
+                status=OrderStatus.PLACED,
+                frequency="once",
+                frequency_per_day=1,
+                route=str(_get(mar, "route", "") or ""),
+                end_datetime=given,
+            )
+        )
