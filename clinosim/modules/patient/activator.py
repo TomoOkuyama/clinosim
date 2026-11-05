@@ -6,6 +6,7 @@ with physiological parameters, baseline vitals, and detailed medical history.
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 from datetime import date, timedelta
 from functools import lru_cache
@@ -696,6 +697,30 @@ def activate_patient(
             continue
         current_meds.append(_hm)
         _seen.add(_hm.drug_name)
+    # Issue #2717: an anticoagulated patient with chronic coronary disease is
+    # not kept on dual antiplatelet therapy as well (no triple therapy).
+    from clinosim.simulator.discharge_rx import limit_triple_antithrombotic
+
+    _as_items: list[dict] = [
+        {"drug_name": m.drug_name, "drug_name_ja": m.drug_name_ja, "dose": m.dose, "duration_days": 28}
+        for m in current_meds
+    ]
+    limit_triple_antithrombotic(_as_items, home_medications=[])
+    _kept = []
+    for _m, _it in zip(current_meds, _as_items):
+        if _it.get("duration_days") != 28:
+            continue  # aspirin made a short course: not a home medication
+        if _it["drug_name"] != _m.drug_name:
+            _m = dataclasses.replace(
+                _m,
+                drug_name=str(_it["drug_name"]),
+                drug_name_ja=str(_it.get("drug_name_ja", "") or ""),
+                dose=str(_it.get("dose", _m.dose) or ""),
+                frequency="daily",
+                drug_id="",
+            )
+        _kept.append(_m)
+    current_meds = _kept
 
     # Address and contact from Layer 1
     from clinosim.types.patient import Address, ContactInfo
