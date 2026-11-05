@@ -141,6 +141,35 @@ def _log_discharge_hold(
     )
 
 
+def limit_triple_antithrombotic(items: list[dict], home_medications: list[str]) -> None:
+    """Issue #2717: with an oral anticoagulant (on this prescription or at
+    home), dual antiplatelet therapy becomes the anticoagulant + clopidogrel,
+    and aspirin a short course (not carried into the home medications)."""
+    from clinosim.codes.drugs import resolve_drug
+    from clinosim.datafiles import load_data_yaml
+    from clinosim.modules import drug_safety
+    from clinosim.modules.drug_safety.engine import _CONTRAINDICATIONS_YAML
+
+    def classes(name: str) -> set[str]:
+        return set(drug_safety.resolve_classes(name) or ())
+
+    names = [str(i.get("drug_name", "") or "") for i in items]
+    on_oac = any({"anticoagulant.doac", "anticoagulant.vka"} & classes(n) for n in [*names, *home_medications] if n)
+    p2y12 = [i for i in items if "antiplatelet.p2y12" in classes(str(i.get("drug_name", "")))]
+    aspirin = [i for i in items if "antiplatelet.cox_inhibitor" in classes(str(i.get("drug_name", "")))]
+    if not (on_oac and p2y12 and aspirin):
+        return
+    plan = (load_data_yaml(_CONTRAINDICATIONS_YAML) or {}).get("triple_therapy_after_acs") or {}
+    keep = resolve_drug(str(plan.get("p2y12_with_oac", "clopidogrel")))
+    for item in p2y12:
+        if item["drug_name"] != keep.names.get("en"):
+            item["drug_name"] = keep.names.get("en", item["drug_name"])
+            item["drug_name_ja"] = keep.names.get("ja", item.get("drug_name_ja", ""))
+            item["dose"] = str(plan.get("p2y12_dose", item.get("dose", "")))
+    for item in aspirin:
+        item["duration_days"] = int(plan.get("aspirin_days", 7))
+
+
 def build_discharge_rx(
     patient: PatientProfile,
     disease_id: str,
@@ -499,6 +528,7 @@ def build_discharge_rx(
                 continue
             _append_item(picked, chronic_continuation=True)
 
+    limit_triple_antithrombotic(items, home_medications=[m.drug_name for m in patient.current_medications])
     return PrescriptionRecord(
         prescription_id=f"RX-{patient.patient_id}-DC",
         patient_id=patient.patient_id,

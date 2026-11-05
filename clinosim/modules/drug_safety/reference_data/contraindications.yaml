@@ -244,3 +244,13 @@ discharge_reconciliation_rules:
   - doac-plus-vka
   - statin-plus-statin
 
+# Issue #2717: antithrombotic plan when an anticoagulated patient (DOAC /
+# warfarin) leaves on dual antiplatelet therapy after an ACS / PCI. Aspirin
+# for at most a week, then the anticoagulant plus clopidogrel (the P2Y12
+# inhibitor studied with OAC; ticagrelor / prasugrel are switched).
+# AUGUSTUS (NEJM 2019;380:1509); ACC 2020 expert consensus; ESC 2023 ACS.
+triple_therapy_after_acs:
+  aspirin_days: 7
+  p2y12_with_oac: clopidogrel
+  p2y12_dose: "75mg PO daily"
+
