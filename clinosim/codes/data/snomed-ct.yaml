@@ -741,6 +741,57 @@ codes:
   '106328005':
     en: Social worker
     ja: 医療ソーシャルワーカー
+  '159282002':
+    en: Laboratory technician
+    ja: 臨床検査技師
+  '442867008':
+    en: Respiratory therapist
+    ja: 呼吸療法士
+  # === Department specialties (department_display.yaml specialty_snomed;
+  # Issue #2625). en: SNOMED CT preferred term, tx.fhir.org $lookup
+  # 2026-11-05; ja: the department's 標榜診療科名. ===
+  '394591006':
+    en: Neurology
+    ja: 神経内科
+  '394609007':
+    en: General surgery
+    ja: 外科
+  '394801008':
+    en: Trauma & orthopedics
+    ja: 整形外科
+  '394610002':
+    en: Neurosurgery
+    ja: 脳神経外科
+  '773568002':
+    en: Emergency medicine
+    ja: 救急科
+  '394577000':
+    en: Anesthetics
+    ja: 麻酔科
+  '394814009':
+    en: General practice (specialty)
+    ja: 総合診療科
+  '394585009':
+    en: Obstetrics and gynecology
+    ja: 産婦人科
+  '394537008':
+    en: Pediatric specialty
+    ja: 小児科
+  '394594003':
+    en: Ophthalmology
+    ja: 眼科
+  '394587001':
+    en: Psychiatry
+    ja: 精神科
+  '394602003':
+    en: Rehabilitation specialty
+    ja: リハビリテーション科
+  '1256115008':
+    en: Clinical nutrition
+    ja: 栄養管理科
+  '394593009':
+    en: Medical oncology
+    ja: 腫瘍内科
   # 309360001 replaces 309362007, which is not a SNOMED CT concept.
   '309360001':
     en: Rehabilitation physician

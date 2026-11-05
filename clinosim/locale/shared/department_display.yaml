@@ -9,6 +9,9 @@
 # `specialty_snomed` is the SNOMED CT specialty of the department, used for
 # PractitionerRole.specialty (display from codes/data/snomed-ct.yaml), so the
 # service type and the specialty of the same department agree (Issue #2270).
+# Codes are SNOMED CT specialties (isa 394658006), tx.fhir.org $lookup
+# 2026-11-05 (Issue #2625). trauma_surgery and medical_social_work have no
+# specialty concept and carry none.
 # Read through `department_display()`; a missing language falls back to
 # English and a missing key is humanised (never title-cased).
 metadata:
@@ -23,29 +26,29 @@ departments:
   gastroenterology: {en: "Gastroenterology", ja: "消化器内科", specialty_snomed: "394584008"}
   nephrology: {en: "Nephrology", ja: "腎臓内科", specialty_snomed: "394589003"}
   endocrinology: {en: "Endocrinology", ja: "内分泌・代謝内科", specialty_snomed: "394583003"}
-  neurology: {en: "Neurology", ja: "神経内科"}
-  general_surgery: {en: "General Surgery", ja: "外科"}
-  orthopedics: {en: "Orthopedic Surgery", ja: "整形外科"}
-  neurosurgery: {en: "Neurosurgery", ja: "脳神経外科"}
+  neurology: {en: "Neurology", ja: "神経内科", specialty_snomed: "394591006"}
+  general_surgery: {en: "General Surgery", ja: "外科", specialty_snomed: "394609007"}
+  orthopedics: {en: "Orthopedic Surgery", ja: "整形外科", specialty_snomed: "394801008"}
+  neurosurgery: {en: "Neurosurgery", ja: "脳神経外科", specialty_snomed: "394610002"}
   trauma_surgery: {en: "Trauma Surgery", ja: "外傷外科"}
-  emergency_medicine: {en: "Emergency Medicine", ja: "救急科"}
-  anesthesiology: {en: "Anesthesiology", ja: "麻酔科"}
-  primary_care: {en: "Primary Care", ja: "総合診療科"}
-  obstetrics_gynecology: {en: "Obstetrics and Gynecology", ja: "産婦人科"}
-  pediatrics: {en: "Pediatrics", ja: "小児科"}
-  ophthalmology: {en: "Ophthalmology", ja: "眼科"}
-  psychiatry: {en: "Psychiatry", ja: "精神科"}
+  emergency_medicine: {en: "Emergency Medicine", ja: "救急科", specialty_snomed: "773568002"}
+  anesthesiology: {en: "Anesthesiology", ja: "麻酔科", specialty_snomed: "394577000"}
+  primary_care: {en: "Primary Care", ja: "総合診療科", specialty_snomed: "394814009"}
+  obstetrics_gynecology: {en: "Obstetrics and Gynecology", ja: "産婦人科", specialty_snomed: "394585009"}
+  pediatrics: {en: "Pediatrics", ja: "小児科", specialty_snomed: "394537008"}
+  ophthalmology: {en: "Ophthalmology", ja: "眼科", specialty_snomed: "394594003"}
+  psychiatry: {en: "Psychiatry", ja: "精神科", specialty_snomed: "394587001"}
   radiology: {en: "Radiology", ja: "放射線科", specialty_snomed: "394914008"}
-  rehabilitation: {en: "Rehabilitation", ja: "リハビリテーション科"}
+  rehabilitation: {en: "Rehabilitation", ja: "リハビリテーション科", specialty_snomed: "394602003"}
   # CY6-01 (Chain-6, session 44 backfill): allied-health service lines added
   # so PractitionerRole.organization refs to allied-health staff resolve.
-  nutrition: {en: "Clinical Nutrition", ja: "栄養管理科"}
+  nutrition: {en: "Clinical Nutrition", ja: "栄養管理科", specialty_snomed: "1256115008"}
   medical_social_work: {en: "Medical Social Work", ja: "医療社会事業科"}
   # Issue #1280 Sub-A: oncology service line (chronic cancer follow-up
   # + chemo infusion visits now route here). Sub-lines are rollup-mapped
   # to this bucket at hospitals without dedicated radiation-oncology /
   # medical-oncology facilities.
-  oncology: {en: "Oncology", ja: "腫瘍内科"}
+  oncology: {en: "Oncology", ja: "腫瘍内科", specialty_snomed: "394593009"}
   # Issue #2270: support departments that staff are assigned to.
   laboratory: {en: "Laboratory", ja: "検査科", specialty_snomed: "722414000"}
   pharmacy: {en: "Pharmacy", ja: "薬剤科", specialty_snomed: "405623001"}
