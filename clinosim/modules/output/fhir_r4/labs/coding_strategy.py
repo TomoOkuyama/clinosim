@@ -259,10 +259,15 @@ class LegacyLOINCStrategy:
             code_value = code_map[lab_name]
             code_system_key = system_key_for("lab", "US")
         else:
-            code_value = order.get("order_code", "")
+            # Unmapped: the order_code goes under LOINC only when it is a
+            # registered LOINC code, never an internal name (Issue #2584).
+            order_code = str(order.get("order_code", "") or "")
+            code_value = order_code if order_code and code_exists("loinc", order_code, exact=True) else ""
             code_system_key = "loinc"
+        if not code_value:
+            return []
         lang = lang_for("US")
-        display_name = code_lookup(code_system_key, code_value, lang) if code_value else None
+        display_name = code_lookup(code_system_key, code_value, lang)
         if not display_name or display_name == code_value:
             display_name = lab_name
         return [
