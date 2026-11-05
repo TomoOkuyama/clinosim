@@ -717,6 +717,10 @@ codes:
   '264868006':
     en: No growth
     ja: 発育なし
+  # Issue #2644: NEWS2 total (tx.fhir.org $lookup 2026-11-05).
+  '1287358002':
+    en: National Early Warning Score
+    ja: 早期警告スコア（NEWS）
   '260385009':
     en: Negative
     ja: 陰性

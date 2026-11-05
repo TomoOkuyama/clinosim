@@ -29,6 +29,8 @@ def test_us_news2_has_loinc_and_keeps_local_code() -> None:
     assert any(c["code"] == "NEWS2" for c in codings)
 
 
-def test_jp_news2_unchanged() -> None:
+def test_jp_news2_has_no_loinc() -> None:
+    # JP validators pin an older LOINC, so no 115635-5; the SNOMED CT concept
+    # is added on every locale (Issue #2644).
     codings = _news2_obs("JP")["code"]["coding"]
-    assert [c["code"] for c in codings] == ["NEWS2"]
+    assert [c["code"] for c in codings] == ["NEWS2", "1287358002"]
