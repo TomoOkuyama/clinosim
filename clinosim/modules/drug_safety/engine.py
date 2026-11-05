@@ -54,6 +54,12 @@ _ALLOWED = SafetyVerdict(
 
 
 @lru_cache(maxsize=1)
+def discharge_reconciliation_rules() -> frozenset[str]:
+    """Rule ids the discharge prescription reconciles (Issue #2713)."""
+    data = load_data_yaml(_CONTRAINDICATIONS_YAML)
+    return frozenset(str(r) for r in data.get("discharge_reconciliation_rules") or [])
+
+
 def _load_rules() -> list[dict[str, Any]]:
     data = load_data_yaml(_CONTRAINDICATIONS_YAML)
     return list(data.get("rules", []))

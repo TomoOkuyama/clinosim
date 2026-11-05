@@ -17,6 +17,7 @@ from clinosim.modules.drug_safety.engine import (
     check_candidate_against_active,
     check_candidate_against_disease_state,
     check_pair,
+    discharge_reconciliation_rules,
     suggest_alternative,
 )
 from clinosim.modules.drug_safety.verdict import (
@@ -38,6 +39,7 @@ __all__ = [
     "check_candidate_against_disease_state",
     "check_demographic_gate",
     "check_pair",
+    "discharge_reconciliation_rules",
     "japanese_display",
     "resolve_classes",
     "suggest_alternative",
