@@ -18,7 +18,7 @@ import re
 import tempfile
 import uuid
 from collections.abc import Callable
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from clinosim.codes.hl7_encounter import DischargeDisposition
@@ -283,6 +283,13 @@ def convert_cif_to_fhir(
         # inpatient-loop cadence: a stdout print + sim_log event every
         # 1000 patients so `tail -f simulator.log` + the terminal both
         # see steady progress.
+        # Issue #2610: renewals and run-out supplies close take-home
+        # prescriptions across a patient's records, as of the snapshot.
+        from clinosim.modules.order.prescription_supersede import prescription_closures
+
+        rx_closures = prescription_closures(
+            reader.iter_patients(), date.fromisoformat(snapshot_date) if snapshot_date else None
+        )
         for record in reader.iter_patients():
             n_patients += 1
             bundle = _build_bundle(
@@ -292,6 +299,7 @@ def convert_cif_to_fhir(
                 hospital_config,
                 snapshot_date,
                 snapshot_drop_counter=snapshot_drop_counter,
+                rx_closures=rx_closures,
             )
             for entry in bundle.get("entry", []):
                 write(entry["resource"])
@@ -733,6 +741,7 @@ def _build_bundle(
     hospital_config: dict | None = None,
     snapshot_date: str | None = None,
     snapshot_drop_counter: dict[str, int] | None = None,
+    rx_closures: dict[tuple[str, int], dict] | None = None,
 ) -> dict:
     """Build a FHIR R4 Bundle from a CIF patient record by running the builder registry."""
     if roster_map is None:
@@ -779,6 +788,7 @@ def _build_bundle(
         primary_enc_id=encounters[0].get("encounter_id", "") if encounters else "",
         patient_sex=patient_data.get("sex", ""),
         snapshot_date=snapshot_date,
+        rx_closures=rx_closures or {},
     )
 
     entries: list[dict] = []
