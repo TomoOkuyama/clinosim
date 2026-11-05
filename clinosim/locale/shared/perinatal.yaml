@@ -28,7 +28,7 @@ encounter:
   length_of_stay_days:
     jp: 5                               # JSOG normal delivery LOS ~4-5 days
     us: 2                               # US Medicare/HEDIS ~2 days (48h stay)
-  department: "obstetrics_gynecology"   # rolls up via department_rollup (primary_care in the bundled hospitals)
+  department: "obstetrics_gynecology"   # its own department with a maternity ward in the bundled hospitals (Issue #2641)
 
 # ---------------------------------------------------------------------------
 # Delivery Procedure — emitted on the encounter with the JP/US billing code.

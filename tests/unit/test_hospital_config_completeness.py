@@ -20,7 +20,8 @@ _EXPECTED_SCALE = {"hospital_small.yaml": "small", "hospital_operations.yaml": "
 def test_shipped_config_is_complete(path: Path) -> None:
     ops = _load_hospital_ops(str(path))
     assert ops["hospital_scale"] == _EXPECTED_SCALE[path.name]
-    beds = ops["resource_capacity"]["inpatient_beds"]
+    # Issue #2641: maternity beds and nursery bassinets are counted apart.
+    beds = ops["resource_capacity"]["inpatient_beds"] + ops["resource_capacity"].get("perinatal_beds", 0)
     assert sum(ops["ward_capacity"].values()) == beds
 
 
@@ -38,7 +39,7 @@ def test_incomplete_config_fails_loudly(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="wards"):
         validate_hospital_ops(missing, "test")
     bad_sum = {**good, "ward_capacity": {**good["ward_capacity"], "4E": good["ward_capacity"]["4E"] + 5}}
-    with pytest.raises(ValueError, match="200"):
+    with pytest.raises(ValueError, match="not 236 beds"):  # 200 general + 36 perinatal (Issue #2641)
         validate_hospital_ops(bad_sum, "test")
     stray = {**good, "wards": {**good["wards"], "cardiology": ["5E", "9Z"]}}
     with pytest.raises(ValueError, match="9Z"):

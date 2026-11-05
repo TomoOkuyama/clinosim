@@ -102,6 +102,9 @@ def _gen_email(staff_id: str) -> str:
 
 
 # Department code prefix for staff IDs (for readability)
+APPENDED_DEPARTMENTS: frozenset[str] = frozenset({"obstetrics_gynecology"})
+"""Departments whose staff are generated after the rest of the roster (Issue #2641)."""
+
 _DEPT_PREFIX: dict[str, str] = {
     "internal_medicine": "IM",
     "cardiology": "CA",
@@ -211,7 +214,7 @@ def generate_roster(
 
     physician_counters: dict[str, int] = {}
     for dept in available:
-        if dept in _physician_skip_depts:
+        if dept in _physician_skip_depts or dept in APPENDED_DEPARTMENTS:
             continue
         count = doctors_per_dept.get(dept, DEFAULT_DOCTORS_PER_DEPT)
         physician_counters[dept] = 0
@@ -225,7 +228,7 @@ def generate_roster(
     for dept, ward_list in wards_map.items():
         if dept in ("emergency_medicine", "primary_care"):
             continue
-        if dept not in available:
+        if dept not in available or dept in APPENDED_DEPARTMENTS:
             continue
         for w in ward_list:
             if w not in ("ER", "OPD"):
@@ -351,6 +354,20 @@ def generate_roster(
         operating_rooms = int(hospital_config.get("resource_capacity", {}).get("operating_rooms", 0) or 0)
         for idx in range(1, max(MIN_ANESTHESIOLOGISTS, operating_rooms) + 1):
             _add_physician("anesthesiology", idx)
+
+    # Departments added after the roster layout was fixed (Issue #2641:
+    # obstetrics). Generated last, like anesthesiology, so every draw above —
+    # and every existing staff member — is unchanged.
+    for dept in (d for d in available if d in APPENDED_DEPARTMENTS):
+        physician_counters[dept] = 0
+        for _ in range(doctors_per_dept.get(dept, DEFAULT_DOCTORS_PER_DEPT)):
+            physician_counters[dept] += 1
+            _add_physician(dept, physician_counters[dept])
+        nurse_counters.setdefault(dept, 0)
+        for ward in (w for w in wards_map.get(dept, []) if w not in ("ER", "OPD")):
+            for _ in range(nurses_per_ward):
+                nurse_counters[dept] += 1
+                _add_nurse(dept, nurse_counters[dept], ward)
 
     return roster
 

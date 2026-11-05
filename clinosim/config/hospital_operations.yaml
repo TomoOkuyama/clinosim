@@ -52,6 +52,9 @@ available_departments:
   # medical_oncology) back to this bucket so specialised generators
   # still resolve to a real department.
   - oncology             # 腫瘍内科 / 化学療法室
+  # Issue #2641: delivery service — maternity ward + newborn nursery (wards below).
+  # Listed last: its staff are generated after everyone else's.
+  - obstetrics_gynecology  # 産婦人科
 
 # Map granular specialties to the available departments at this hospital
 department_rollup:
@@ -75,7 +78,6 @@ department_rollup:
   # these names, so behavior for inpatient/unknown_condition is
   # unchanged.
   pediatrics: primary_care
-  obstetrics_gynecology: primary_care
   dermatology: primary_care
   # Issue #1280 Sub-A: oncology sub-lines fold to the general
   # oncology bucket the hospital does staff.
@@ -101,6 +103,7 @@ wards:
   orthopedics: ["3W"]
   emergency_medicine: ["ER"]
   primary_care: ["OPD"]
+  obstetrics_gynecology: ["2E", "NBN"]  # maternity ward (産科病棟), newborn nursery (新生児室)
   # Oncology infusion/outpatient service line — no dedicated ward at
   # this 50-bed hospital; oncology inpatients admit to internal_medicine
   # wards. The bare "OPD-ONC" key satisfies the ward-lookup contract
@@ -115,6 +118,8 @@ ward_capacity:
   "5W": 8
   "3E": 8
   "3W": 6
+  "2E": 6   # maternity beds (Issue #2641; counted in perinatal_beds)
+  "NBN": 6   # nursery bassinets (Issue #2641; counted in perinatal_beds)
 
 # Resource capacity (number of units)
 resource_capacity:
@@ -126,6 +131,9 @@ resource_capacity:
   operating_rooms: 2
   ed_beds: 8
   inpatient_beds: 50
+  # Issue #2641: maternity beds + nursery bassinets, outside the general-ward
+  # occupancy model (deliveries never entered it).
+  perinatal_beds: 12
 
 # Staffing levels by shift (fraction of full capacity, 0.0-1.0)
 staffing:
@@ -180,3 +188,8 @@ base_processing_time:
 reporting_time:
   stat: 20
   routine: 150
+
+# Issue #2641: wards the perinatal pathway admits to.
+perinatal_wards:
+  maternity: "2E"
+  nursery: "NBN"
