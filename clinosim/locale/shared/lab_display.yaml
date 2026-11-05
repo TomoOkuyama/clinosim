@@ -59,6 +59,7 @@ lab_names:
   ck_mb: {en: CK-MB, ja: CK-MB}
   ckmb: {en: CK-MB, ja: CK-MB}
   cl: {en: Cl, ja: Cl}
+  co2: {en: total CO2, ja: 総CO2, formal: {en: Carbon dioxide, total, ja: 総二酸化炭素}}
   coag: {en: coagulation studies, ja: 凝固検査}
   coags: {en: coagulation studies, ja: 凝固検査}
   coagulation: {en: coagulation studies, ja: 凝固検査}

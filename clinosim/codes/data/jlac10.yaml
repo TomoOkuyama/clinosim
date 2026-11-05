@@ -129,6 +129,12 @@ codes:
   3H030:
     en: Calcium
     ja: カルシウム
+  3H025:
+    en: Magnesium
+    ja: マグネシウム
+  3H040:
+    en: Inorganic phosphate
+    ja: 無機リン
   3H050:
     en: pH, arterial blood
     ja: 動脈血pH

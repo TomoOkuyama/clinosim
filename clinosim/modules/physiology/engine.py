@@ -76,6 +76,7 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     CL_HCO3_DEFICIT_REFERENCE,
     CL_NON_AG_FRACTION_MAX,
     CL_SODIUM_LINKAGE_SCALE,
+    CO2_DISSOLVED_PER_MMHG,
     CREATININE_BASE_FEMALE,
     CREATININE_BASE_MALE,
     CREATININE_LOW_RENAL_SLOPE,
@@ -137,6 +138,9 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     LDH_HEPATIC_SCALE,
     LDL_BASELINE_MG_DL,
     LDL_DYSLIPIDEMIA_SCALE,
+    MG_BASELINE_MG_DL,
+    MG_CLAMP,
+    MG_RENAL_SCALE,
     PCO2_BASELINE_MMHG,
     PCO2_CLAMP_MAX,
     PCO2_CLAMP_MIN,
@@ -151,6 +155,9 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     PH_CLAMP_MIN,
     PH_HENDERSON_HASSELBALCH_CONSTANT,
     PH_HENDERSON_PCO2_COEFF,
+    PHOSPHATE_BASELINE_MG_DL,
+    PHOSPHATE_CLAMP,
+    PHOSPHATE_RENAL_SCALE,
     PLT_BASELINE,
     PLT_COAGULATION_SCALE,
     PLT_FLOOR,
@@ -1026,6 +1033,13 @@ def _add_electrolyte_labs(labs: dict[str, float], state: PhysiologicalState) -> 
         + state.sodium_status * CA_SODIUM_LIFT
     )
     labs["Ca"] = clamp(ca, CA_CLAMP_MIN, CA_CLAMP_MAX)
+    # Issue #2687: total CO2 is bicarbonate plus dissolved CO2; phosphate and
+    # magnesium accumulate as renal excretion falls.
+    labs["CO2"] = labs["HCO3"] + CO2_DISSOLVED_PER_MMHG * labs["pCO2"]
+    labs["Phosphate"] = clamp(
+        PHOSPHATE_BASELINE_MG_DL + (1.0 - state.renal_function) * PHOSPHATE_RENAL_SCALE, *PHOSPHATE_CLAMP
+    )
+    labs["Mg"] = clamp(MG_BASELINE_MG_DL + (1.0 - state.renal_function) * MG_RENAL_SCALE, *MG_CLAMP)
 
 
 def _add_glucose(labs: dict[str, float], state: PhysiologicalState, has_diabetes: bool, hour: int) -> None:
