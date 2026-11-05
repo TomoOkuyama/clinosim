@@ -34,6 +34,7 @@ __all__ = [
     "OUTPATIENT_LABS_QUARTERLY_PROBABILITY",
     "OUTPATIENT_MINUTE_JITTER_MAX_EXCLUSIVE",
     "OUTPATIENT_MINUTE_JITTER_MIN",
+    "OUTPATIENT_SAME_DAY_GAP_MIN",
 ]
 
 
@@ -58,6 +59,11 @@ OUTPATIENT_MINUTE_JITTER_MAX_EXCLUSIVE: int = 45
 
 45 minutes keeps visits within the mid-morning-to-just-before-lunch
 window, matching a realistic outpatient scheduling grid."""
+
+OUTPATIENT_SAME_DAY_GAP_MIN: int = 15
+"""Minutes between the end of one clinic visit and the start of the patient's
+next same-day visit in another department (Issue #2645): walking to the next
+clinic and checking in."""
 
 OUTPATIENT_LABS_QUARTERLY_PROBABILITY: float = 0.25
 """Probability that a follow-up spec's ``labs_quarterly`` list adds a
