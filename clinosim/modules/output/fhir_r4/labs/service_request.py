@@ -653,11 +653,28 @@ def _build_imaging_service_requests(
     lang = lang_for(ctx.country)
     country = ctx.country.lower()
     _issued_map = earliest_dr_issued_by_sr or {}
+    # Issue #2653: the order's status follows its study. CIF imaging orders
+    # stay "placed"; a performed study completes the order, and an order of a
+    # discharged stay that was never performed is revoked.
+    performed = {
+        _o(s, "order_id", "")
+        for s in (_o(ctx.record, "extensions", {}) or {}).get("imaging") or []
+        if _o(s, "status", "available") not in ("registered", "cancelled", "entered-in-error")
+    }
+    discharged = {
+        _o(e, "encounter_id", "") for e in ctx.record.get("encounters", []) or [] if _o(e, "discharge_datetime")
+    }
     out: list[dict[str, Any]] = []
     for o in sorted(orders, key=lambda x: _o(x, "order_id", "")):
         # imaging SR id = _resolve_service_request_id(order_id) (1 Order = 1 SR).
         _sr_id = _resolve_service_request_id(_o(o, "order_id", ""))
-        out.append(_build_imaging_sr(o, lang, country, earliest_dr_issued=_issued_map.get(_sr_id, "")))
+        sr = _build_imaging_sr(o, lang, country, earliest_dr_issued=_issued_map.get(_sr_id, ""))
+        if sr["status"] == "active":
+            if _o(o, "order_id", "") in performed:
+                sr["status"] = "completed"
+            elif _o(o, "encounter_id", "") in discharged:
+                sr["status"] = "revoked"
+        out.append(sr)
     return out
 
 
