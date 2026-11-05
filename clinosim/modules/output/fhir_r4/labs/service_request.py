@@ -26,6 +26,7 @@ Compliance:
 
 from __future__ import annotations
 
+import dataclasses
 from collections import defaultdict
 from typing import Any, NamedTuple
 
@@ -34,7 +35,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
 from clinosim.countries import lang_for
-from clinosim.locale.loader import lab_display, load_code_mapping
+from clinosim.locale.loader import load_code_mapping
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.observation.engine import canonical_lab_name
@@ -915,6 +916,7 @@ def standalone_lab_order_code(o: Any, lang: str, country: str) -> LabOrderCode:
             resolved_code = us_resolved
             used_loinc_fallback = True
 
+    panel_def: dict[str, Any] | None = None
     # C5-01: also treat display_name as a panel key.
     # Orders emitted at panel granularity (order.display_name == "CBC" /
     # "ABG" / "BMP") have no JLAC10 code — JLAC10 vocabulary is analyte-
@@ -925,7 +927,8 @@ def standalone_lab_order_code(o: Any, lang: str, country: str) -> LabOrderCode:
         # Issue #2583: an alias of a panel (``Basic_metabolic_panel`` → BMP) too.
         panel_key = display_name if display_name in panels else lab_key
         if panel_key in panels:
-            resolved_code = panels[panel_key].get("loinc", "")
+            panel_def = panels[panel_key]
+            resolved_code = panel_def.get("loinc", "")
             used_loinc_fallback = True
 
     # Issue #2584: an order code is used only when it is a registered LOINC
@@ -946,11 +949,23 @@ def standalone_lab_order_code(o: Any, lang: str, country: str) -> LabOrderCode:
     loinc_display = registry_display(code_system_key, resolved_code, lang) or display_name
     if loinc_display == resolved_code:  # no translation found
         loinc_display = display_name
+    # Issue #2636: titled like the Observation the order produces (coded
+    # display, or the analyte's name when uncoded), never the prose short form.
+    from clinosim.modules.output.fhir_r4.labs.observations import lab_observation_coding
+
+    order = o if isinstance(o, dict) else dataclasses.asdict(o)
+    result = order.get("result") or {}
+    if panel_def is not None:
+        # A panel ordered by an alias is titled like the panel (Issue #2632).
+        text = localized_field(panel_def, "display", lang)
+    else:
+        _codings, text = lab_observation_coding(
+            result.get("lab_name") or canonical_lab_name(display_name), order, result, country_code
+        )
     return LabOrderCode(
         code=resolved_code,
         display=loinc_display,
-        # Issue #2583: a readable name, never the protocol's internal order name.
-        text=lab_display(lab_key, lang, style="formal"),
+        text=text,
         system_key=code_system_key,
         loinc_fallback=used_loinc_fallback,
     )

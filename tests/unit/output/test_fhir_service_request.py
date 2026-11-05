@@ -407,8 +407,8 @@ def test_bb_service_requests_standalone_resolves_internal_name_via_code_map():
     assert coding["code"] != coding["display"], (
         f"SR.code.coding display must not equal code. Got display={coding['display']!r}"
     )
-    # text field carries the human-readable internal name
-    assert code_obj["text"] == "WBC"
+    # Issue #2636: text is the title of the Observation the order produces
+    assert code_obj["text"] == "Leukocytes [#/volume] in Blood by Automated count"
 
 
 def test_bb_service_requests_standalone_unregistered_order_code_emits_text_only():
@@ -462,8 +462,8 @@ def test_bb_service_requests_standalone_resolves_internal_name_via_code_map_jp()
     assert coding["code"] != coding["display"], (
         f"SR.code.coding display must not equal code. Got display={coding['display']!r}"
     )
-    # text field carries the human-readable internal name
-    assert code_obj["text"] == "WBC"
+    # Issue #2636: text is the title of the Observation the order produces
+    assert code_obj["text"] == "白血球数"
 
 
 def test_bb_service_requests_jp_falls_back_to_loinc_when_jlac10_missing():
