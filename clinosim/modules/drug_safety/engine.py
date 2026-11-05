@@ -60,6 +60,7 @@ def discharge_reconciliation_rules() -> frozenset[str]:
     return frozenset(str(r) for r in data.get("discharge_reconciliation_rules") or [])
 
 
+@lru_cache(maxsize=1)
 def _load_rules() -> list[dict[str, Any]]:
     data = load_data_yaml(_CONTRAINDICATIONS_YAML)
     return list(data.get("rules", []))
