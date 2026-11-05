@@ -215,6 +215,9 @@ def test_imaging_sr_no_body_site_when_code_empty():
     `bodySite: [{"coding": [{"code": "", ...}]}]` = FHIR-invalid)."""
     o = _imaging_order()
     o.imaging_body_site_code = ""
+    # Issue #2621: a recognised order name now supplies the body site, so use
+    # a name the imaging inference does not resolve.
+    o.display_name = "Slit_lamp_exam"
     ctx = _make_ctx([o])
     sr = _bb_service_requests(ctx)[0]
     assert "bodySite" not in sr

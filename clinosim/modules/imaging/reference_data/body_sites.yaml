@@ -38,6 +38,10 @@ body_sites:
         loinc: "24628-0"                         # CT Chest W contrast IV (LOINC 2.82 ACTIVE)
         cpt: "71260"
         jp_k_code: "E200"
+      ECG:                                       # Issue #2621: 12-lead electrocardiogram (not imaging)
+        loinc: "11524-6"                         # EKG study (tx.fhir.org $lookup 2026-11-06)
+        cpt: "93000"
+        jp_k_code: "D208"
 
   head:
     snomed: "69536005"

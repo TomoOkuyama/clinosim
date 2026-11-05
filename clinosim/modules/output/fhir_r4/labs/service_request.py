@@ -179,6 +179,10 @@ NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES: tuple[str, ...] = (
 IMAGING_CATEGORY_SNOMED: str = snomed_for("order_category", "imaging") or ""
 # HL7 v2-0074 "Radiology" — owner: this file.
 IMAGING_CATEGORY_V2_0074 = "RAD"
+# Issue #2621: ECG orders (SNOMED "Evaluation procedure", v2-0074 "Electrocardiac").
+EVALUATION_CATEGORY_SNOMED: str = snomed_for("order_category", "evaluation") or ""
+ELECTROCARDIAC_V2_0074 = "EC"
+ELECTROCARDIAC_V2_0074_DISPLAY = "Electrocardiac (e.g., EKG,  EEC, Holter)"  # tx.fhir.org display, verbatim
 # System URIs derived from the canonical registry (never hardcode per CLAUDE.md).
 V2_0203_SYSTEM = get_system_uri("hl7-v2-0203")
 V2_0074_SYSTEM = get_system_uri("hl7-diagnostic-service-section")
@@ -687,6 +691,25 @@ def _build_imaging_service_requests(
     return out
 
 
+def _infer_imaging_procedure(display_name: str) -> tuple[str, str, str]:
+    """``(modality, body-site SNOMED, procedure LOINC)`` for an imaging order
+    name, as the ImagingStudy and radiology report resolve it (Issue #2621);
+    empty strings when the name or the combination is not resolved."""
+    from clinosim.modules.imaging.engine import _resolve_imaging_procedure_code_key, load_body_sites
+    from clinosim.modules.imaging.inference import infer_imaging_metadata
+
+    meta = infer_imaging_metadata(display_name or "")
+    if not meta:
+        return "", "", ""
+    modality, site_key = str(meta.get("modality", "")), str(meta.get("body_site_key", ""))
+    try:
+        key = _resolve_imaging_procedure_code_key(modality, site_key, [], bool(meta.get("contrast")))
+        code = str(load_body_sites()[site_key]["procedure_codes"][key]["loinc"])
+    except (KeyError, ValueError):
+        code = ""
+    return modality, str(meta.get("body_site_snomed", "")), code
+
+
 def _build_imaging_sr(
     order: Any,
     lang: str,
@@ -715,6 +738,12 @@ def _build_imaging_sr(
     body_sites = load_body_sites()
     body_site_snomed = _o(order, "imaging_body_site_code", "")
     loinc_code = _o(order, "order_code", "")
+    # Issue #2621: an order placed by name only (ED work-up, archetype and
+    # daily imaging) takes its modality, body site and procedure code from
+    # the same inference the ImagingStudy / report use.
+    modality, inferred_site, inferred_code = _infer_imaging_procedure(_o(order, "display_name", ""))
+    body_site_snomed = body_site_snomed or inferred_site
+    loinc_code = loinc_code or inferred_code
 
     body_site_display = ""
     for bs_def in body_sites.values():
@@ -746,6 +775,22 @@ def _build_imaging_sr(
     snomed_imaging_display = registry_display("snomed-ct", IMAGING_CATEGORY_SNOMED, lang) or (
         localize_fixed_label("Imaging procedure", country)
     )
+    category_coding = [
+        {"system": SNOMED_CT_SYSTEM, "code": IMAGING_CATEGORY_SNOMED, "display": snomed_imaging_display},
+        {"system": V2_0074_SYSTEM, "code": IMAGING_CATEGORY_V2_0074, "display": "Radiology"},
+    ]
+    category_text = snomed_imaging_display
+    if modality == "ECG":
+        # Issue #2621: an electrocardiogram is not an imaging study.
+        category_text = registry_display("snomed-ct", EVALUATION_CATEGORY_SNOMED, lang) or "Evaluation procedure"
+        category_coding = [
+            {"system": SNOMED_CT_SYSTEM, "code": EVALUATION_CATEGORY_SNOMED, "display": category_text},
+            {
+                "system": V2_0074_SYSTEM,
+                "code": ELECTROCARDIAC_V2_0074,
+                "display": ELECTROCARDIAC_V2_0074_DISPLAY,
+            },
+        ]
 
     # Fail-loud on empty subject/encounter (PR-90 lesson: "Patient/" is FHIR-invalid).
     patient_id = _o(order, "patient_id", "")
@@ -777,24 +822,13 @@ def _build_imaging_sr(
         "intent": _sr_intent_from_clinical_intent(_o(order, "clinical_intent", "") or ""),
         "category": [
             {
-                "coding": [
-                    {
-                        "system": SNOMED_CT_SYSTEM,
-                        "code": IMAGING_CATEGORY_SNOMED,
-                        "display": snomed_imaging_display,
-                    },
-                    {
-                        "system": V2_0074_SYSTEM,
-                        "code": IMAGING_CATEGORY_V2_0074,
-                        "display": "Radiology",
-                    },
-                ],
+                "coding": category_coding,
                 # Preserve the human-readable localized label in `text` even
                 # after the P2 A post-emit walker strips the Japanese `display`
                 # from the SNOMED coding on JP output (JP display + SNOMED URI
                 # combination is rejected by HAPI Validator as "Wrong Display
                 # Name" — feedback Option 1 keeps the label in `text`).
-                "text": snomed_imaging_display,
+                "text": category_text,
             }
         ],
         "priority": _PRIORITY_MAP.get(_o(order, "urgency", "routine"), "routine"),
@@ -808,7 +842,8 @@ def _build_imaging_sr(
             system=get_system_uri("loinc"),
             code=loinc_code,
             display=loinc_display,
-            text=_o(order, "display_name", ""),
+            # Issue #2621: the readable study name when the code resolves.
+            text=loinc_display if loinc_code else _o(order, "display_name", ""),
         ),
         "subject": patient_ref(patient_id),
         "encounter": encounter_ref(encounter_id_val),

@@ -403,6 +403,10 @@ def _resolve_imaging_procedure_code_key(
             return "US_Doppler"
         if body_site in ("abdomen", "kidney", "skin", "heart", "carotid_artery", "urinary_bladder"):
             return "US"
+    # ECG — a 12-lead electrocardiogram (Issue #2621); the waveform is
+    # filed against the chest.
+    if modality == "ECG" and body_site == "chest":
+        return "ECG"
     # XA — coronary angiography is always a contrast study (Issue #2655)
     if modality == "XA" and body_site == "coronary_artery":
         return "XA_contrast"
