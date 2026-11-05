@@ -713,6 +713,10 @@ codes:
   '368208006':
     en: Left upper arm structure
     ja: 左上腕
+  # Issue #2660: negative culture result (tx.fhir.org $lookup 2026-11-05).
+  '264868006':
+    en: No growth
+    ja: 発育なし
   '260385009':
     en: Negative
     ja: 陰性

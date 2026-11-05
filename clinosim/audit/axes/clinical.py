@@ -25,6 +25,7 @@ import statistics
 from clinosim.audit.registry import ModuleAuditSpec
 from clinosim.audit.types import AuditFinding, AxisResult, Cohort, Severity
 from clinosim.codes import get_system_uri
+from clinosim.codes.snomed_concepts import NO_GROWTH
 from clinosim.locale.loader import lab_codes
 from clinosim.modules.antibiotic.engine import ABX_ORDER_ID_PREFIX
 from clinosim.modules.output.fhir_r4.labs.microbiology import (
@@ -109,7 +110,7 @@ def _organism_per_encounter(cohort: Cohort, country: str) -> dict[str, set[str]]
 
     Walks Observation.ndjson once, filters to mb-org-* organism observations
     that carry a valueCodeableConcept SNOMED code (growth observations).
-    No-growth observations (valueString="No growth"/"発育なし"), non-mb
+    No-growth observations (SNOMED CT 264868006, Issue #2660), non-mb
     Observations, missing encounter refs, and non-SNOMED valueCodeableConcept
     codings are skipped.
 
@@ -132,7 +133,7 @@ def _organism_per_encounter(cohort: Cohort, country: str) -> dict[str, set[str]]
             sys_uri = c.get("system", "") or ""
             if sys_uri == _SNOMED_URI:
                 code = c.get("code", "") or ""
-                if code:
+                if code and code != NO_GROWTH:  # Issue #2660: a negative culture is coded too
                     out.setdefault(eid, set()).add(code)
     return out
 
@@ -187,7 +188,7 @@ def _organism_per_specimen(cohort: Cohort, country: str) -> dict[str, str]:
             sys_uri = c.get("system", "") or ""
             if sys_uri == _SNOMED_URI:
                 code = c.get("code", "") or ""
-                if code:
+                if code and code != NO_GROWTH:
                     out[spec_id] = code
                     break
     return out
