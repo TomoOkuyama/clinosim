@@ -207,6 +207,16 @@ def _resolve_output_observation_id(structural_key: str) -> str:
 # Glasgow coma score eye opening / verbal / motor (tx.fhir.org $lookup 2026-11-05).
 _GCS_COMPONENT_LOINC = ("9267-6", "9270-0", "9268-4")
 
+# Braden subscales (LOINC; tx.fhir.org $lookup 2026-11-05) ↔ CIF fields.
+_BRADEN_ITEMS = (
+    ("38222-6", "braden_sensory"),
+    ("38229-1", "braden_moisture"),
+    ("38223-4", "braden_activity"),
+    ("38224-2", "braden_mobility"),
+    ("38225-9", "braden_nutrition"),
+    ("38226-7", "braden_friction"),
+)
+
 _NEWS2_SETTINGS = frozenset({"inpatient", "emergency", "icu"})
 
 
@@ -347,6 +357,13 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 "text": registry_display("loinc", "38227-5", lang) or "Braden scale total score",
             }
             obs["valueInteger"] = int(braden)
+            # Issue #2647: the six subscales, which sum to the total.
+            items = [(code, nra.get(field)) for code, field in _BRADEN_ITEMS]
+            if all(value is not None for _code, value in items):
+                obs["component"] = [
+                    {"code": {"coding": [loinc_coding(code, lang)]}, "valueInteger": int(value)}
+                    for code, value in items
+                ]
             out.append(obs)
 
         morse = nra.get("morse_total")
