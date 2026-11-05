@@ -261,7 +261,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 3 days\nPatient status: BP 108/67, HR 113, SpO2 100%, T 35.6°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 3 days\nPatient status: BP 108/67, HR 113, SpO2 100%, T 35.6°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, IV_fluid: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-08-evening": {
@@ -284,7 +284,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 3 days\nPatient status: BP 108/67, HR 113, SpO2 100%, T 35.6°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 3 days\nPatient status: BP 108/67, HR 113, SpO2 100%, T 35.6°C.\nMeds administered: Insulin, Regular, Human, Potassium Chloride, IV_insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3).\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-09-night": {
@@ -307,7 +307,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 3 days\nPatient status: BP 117/74, HR 106, SpO2 98%, T 36.3°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 3 days\nPatient status: BP 117/74, HR 106, SpO2 98%, T 36.3°C.\nMeds administered: Insulin, Regular, Human, Potassium Chloride, IV_insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3).\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-10-day": {
@@ -353,7 +353,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 3 days\nPatient status: BP 117/74, HR 106, SpO2 98%, T 36.3°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 3 days\nPatient status: BP 117/74, HR 106, SpO2 98%, T 36.3°C.\nMeds administered: Insulin, Regular, Human, IV_insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), Potassium Chloride.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-12-night": {
@@ -399,7 +399,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 3 days\nPatient status: BP 117/73, HR 104, SpO2 95%, T 36.4°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 3 days\nPatient status: BP 117/73, HR 104, SpO2 95%, T 36.4°C.\nMeds administered: Insulin, Regular, Human, IV_fluid: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV_insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3).\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-14-evening": {
@@ -422,7 +422,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 3 days\nPatient status: BP 117/73, HR 104, SpO2 95%, T 36.4°C.\nMeds administered: Insulin, Regular, Human, Normal Saline, Potassium Chloride.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 3 days\nPatient status: BP 117/73, HR 104, SpO2 95%, T 36.4°C.\nMeds administered: Insulin, Regular, Human, Potassium Chloride, IV_insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3).\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-15": {
