@@ -204,6 +204,17 @@ def _build_imaging_report_composition(
     if attending_id:
         resource["author"] = [{"reference": f"Practitioner/{attending_id}"}]
     if sections:
+        # Issue #2656: the document and the DiagnosticReport are one report;
+        # each section points at the report and the study it describes.
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import radiology_report_id
+        from clinosim.modules.output.fhir_r4.labs.imaging_study import imaging_study_id_for_cif_study_id
+
+        entry = [{"reference": f"DiagnosticReport/{radiology_report_id(_o(report, 'report_id', '') or '')}"}]
+        study_id = _o(study, "study_id", "") or ""
+        if study_id:
+            entry.append({"reference": f"ImagingStudy/{imaging_study_id_for_cif_study_id(study_id)}"})
+        for section in sections:
+            section["entry"] = list(entry)
         resource["section"] = sections
     return resource
 

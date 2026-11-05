@@ -119,6 +119,21 @@ def _resolve_mb_dr_id(structural_key: str) -> str:
     return derive_opaque_id(MB_DR_ID_PREFIX_FHIR, structural_key)
 
 
+def _radiology_dr_structural_key(report_id: str) -> str:
+    """The radiology DR structural key: the CIF report id without ``imgrpt-``."""
+    return (
+        report_id.removeprefix(RADIOLOGY_REPORT_ID_PREFIX)
+        if report_id.startswith(RADIOLOGY_REPORT_ID_PREFIX)
+        else report_id
+    )
+
+
+def radiology_report_id(report_id: str) -> str:
+    """The FHIR DiagnosticReport.id of CIF radiology report ``report_id``
+    (Issue #2656: shared with the imaging report Composition)."""
+    return _resolve_radiology_dr_id(_radiology_dr_structural_key(report_id))
+
+
 def _resolve_radiology_dr_id(structural_key: str) -> str:
     """Return the FHIR DR.id for a radiology DiagnosticReport."""
     return derive_opaque_id(RADIOLOGY_DR_ID_PREFIX, structural_key)
@@ -1139,9 +1154,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     # remaining body under the same `imgrpt-` prefix. The `.identifier[]`
     # entry carries the stripped structural key so consumers can recover
     # the CIF report_id verbatim from the opaque DR.id.
-    _rad_dr_structural_key = (
-        rep_id.removeprefix(RADIOLOGY_REPORT_ID_PREFIX) if rep_id.startswith(RADIOLOGY_REPORT_ID_PREFIX) else rep_id
-    )
+    _rad_dr_structural_key = _radiology_dr_structural_key(rep_id)
     dr: dict = {
         "resourceType": "DiagnosticReport",
         "id": _resolve_radiology_dr_id(_rad_dr_structural_key),
