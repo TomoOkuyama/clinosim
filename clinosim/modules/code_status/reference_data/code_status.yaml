@@ -15,4 +15,6 @@ tiers:
   # (Not for resuscitation) is reused intentionally, with the DNI distinction carried
   # only in the clinosim tier label/text (verified: no distinct active DNI finding).
   - {key: "dnr_dni",   snomed: "304253006", en: "Not for resuscitation, not for intubation", ja: "蘇生・挿管を行わない"}
-  - {key: "comfort",   snomed: "103735009", en: "Comfort care (palliative)", ja: "緩和ケア（コンフォート）"}  # TODO: verify
+  # Issue #2649: comfort care is a not-for-resuscitation status; 103735009
+  # Palliative care is a procedure, not a resuscitation status value.
+  - {key: "comfort",   snomed: "304253006", en: "Comfort care (palliative)", ja: "緩和ケア（コンフォート）"}

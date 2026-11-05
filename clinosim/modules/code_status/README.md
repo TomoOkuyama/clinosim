@@ -79,8 +79,9 @@ wraps it with the gate + sub-seed derivation described below.
     - `dnr_dni` — **also 304253006**; SNOMED CT International has no
       distinct active concept for the DNR + DNI combination, so the
       tier label carries the DNI distinction while the code is shared.
-    - `comfort` — 103735009 ("Comfort care / palliative"), marked
-      `TODO: verify` pending re-check against a live SNOMED release.
+    - `comfort` — **also 304253006** (Issue #2649): comfort care is a
+      not-for-resuscitation status; 103735009 Palliative care is a
+      procedure, not a resuscitation status value.
   - Observable + resuscitation codes were $lookup-verified active
     against `tx.fhir.org` on 2026-06-22 (see file comment for the
     exact procedure).

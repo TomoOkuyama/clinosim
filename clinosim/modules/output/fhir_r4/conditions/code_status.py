@@ -66,6 +66,10 @@ def _bb_code_status(ctx: BundleContext) -> list[dict]:
     }
     if enc:
         obs["encounter"] = encounter_ref(enc)
+    # Issue #2649: the attending who set the status with the patient.
+    attending = (encs[0].get("attending_physician_id") if encs else "") or ""
+    if attending:
+        obs["performer"] = [{"reference": f"Practitioner/{attending}"}]
     if isinstance(admit, str):
         obs["effectiveDateTime"] = admit
     return [obs]
