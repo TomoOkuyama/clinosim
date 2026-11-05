@@ -20,6 +20,7 @@ from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules.observation.nursing import gcs_components
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, survey_category, system_coding
@@ -203,6 +204,9 @@ def _resolve_output_observation_id(structural_key: str) -> str:
     return derive_opaque_id(OUTPUT_OBSERVATION_ID_PREFIX, structural_key)
 
 
+# Glasgow coma score eye opening / verbal / motor (tx.fhir.org $lookup 2026-11-05).
+_GCS_COMPONENT_LOINC = ("9267-6", "9270-0", "9268-4")
+
 _NEWS2_SETTINGS = frozenset({"inpatient", "emergency", "icu"})
 
 
@@ -318,6 +322,11 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 "text": registry_display("loinc", "9269-2", lang) or "Glasgow coma score total",
             }
             obs["valueInteger"] = int(gcs)
+            # Issue #2646: eye / verbal / motor components summing to the total.
+            obs["component"] = [
+                {"code": {"coding": [loinc_coding(code, lang)]}, "valueInteger": value}
+                for code, value in zip(_GCS_COMPONENT_LOINC, gcs_components(int(gcs)), strict=True)
+            ]
             out.append(obs)
 
     # --- Nursing risk assessments: Braden and Morse ---

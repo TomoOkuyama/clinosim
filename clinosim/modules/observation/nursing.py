@@ -88,6 +88,12 @@ def compute_gcs(consciousness_level: str, perfusion_status: float, rng: np.rando
     return max(cfg["min"], min(cfg["max"], score))
 
 
+def gcs_components(total: int) -> tuple[int, int, int]:
+    """The (eye, verbal, motor) components of a GCS ``total`` (Issue #2646)."""
+    eye, verbal, motor = _scores()["gcs"]["components"][int(total)]
+    return (int(eye), int(verbal), int(motor))
+
+
 def _barthel_to_subscale(barthel: int) -> int:
     table = _scores()["braden"]["barthel_to_subscale"]
     sub = 1
