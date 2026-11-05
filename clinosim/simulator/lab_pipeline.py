@@ -36,6 +36,7 @@ from typing import Any
 from clinosim import determinism
 from clinosim.codes.valuesets import has_condition
 from clinosim.modules.observation.engine import (
+    BASELINE_LAB_NORMALS,
     canonical_lab_name,
     clamp_to_physiologic_limits,
     determine_flag,
@@ -117,6 +118,10 @@ def _run_lab_result_pipeline(
     produced: list[OrderResult] = []
     if medications is None:
         medications = patient.current_medications
+    # Issue #2661: an analyte the physiology does not model (TSH, tumour
+    # markers, drug levels) is resulted around its reference normal, as the ED
+    # and outpatient paths already do, instead of staying unresulted.
+    true_labs = {**BASELINE_LAB_NORMALS, **true_labs}
 
     # === Pass 1: scalar + non-panel orders, drawn from a per-order isolated
     # sub-RNG (individual_lab_seed). This mirrors the panel-children Pass 2

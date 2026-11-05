@@ -591,6 +591,11 @@ def _build_lab_service_requests(
 
     _issued_map = earliest_dr_issued_by_sr or {}
     resources: list[dict[str, Any]] = []
+    # Issue #2661: a lab order still unresulted when its stay was discharged
+    # was not done; it is revoked rather than left active.
+    discharged = {
+        _o(e, "encounter_id", "") for e in ctx.record.get("encounters", []) or [] if _o(e, "discharge_datetime")
+    }
     for sr_id, members in sorted(panel_buckets.items()):
         anchor = members[0]
         panel_def = panels[_o(anchor, "panel_key", "")]
@@ -604,6 +609,8 @@ def _build_lab_service_requests(
             counter,
             earliest_dr_issued=_issued_map.get(sr_id, ""),
         )
+        if sr["status"] == "active" and _o(anchor, "encounter_id", "") in discharged:
+            sr["status"] = "revoked"
         resources.append(sr)
     # Issue #2585: a culture order is reported by its microbiology result,
     # not by a lab value, so it is completed when a culture reports it.
@@ -615,6 +622,8 @@ def _build_lab_service_requests(
         sr = _build_standalone_sr(o, lang, country, earliest_dr_issued=_issued_map.get(_sr_id, ""))
         if _o(o, "order_id", "") in culture_reported and sr["status"] == "active":
             sr["status"] = "completed"
+        elif sr["status"] == "active" and _o(o, "encounter_id", "") in discharged:
+            sr["status"] = "revoked"
         resources.append(sr)
     return resources
 
