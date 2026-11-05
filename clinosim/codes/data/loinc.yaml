@@ -894,6 +894,10 @@ codes:
   44198-0:
     en: XR Knee 1 or 2 Views
     ja: 膝関節単純X線撮影 正面・側面
+  # Issue #2621: electrocardiogram (tx.fhir.org $lookup 2026-11-06).
+  11524-6:
+    en: EKG study
+    ja: 心電図検査
   # Issue #2655: imaging procedure codes (tx.fhir.org $expand 2026-11-06).
   36294-7:
     en: XR Ankle 3 Views

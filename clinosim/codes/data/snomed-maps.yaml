@@ -116,6 +116,7 @@ procedure_category:
 order_category:
   laboratory: "108252007"
   imaging: "363679005"
+  evaluation: "386053000"   # Issue #2621: ECG orders (Evaluation procedure)
 
 # Specimen.type of the specimens the lab path emits (Issue #2379).
 specimen_type:
