@@ -21,7 +21,6 @@ Panel YAML + canonical loader live in ``clinosim.modules.order.panel_grouping``
 
 from __future__ import annotations
 
-import dataclasses
 from collections import defaultdict
 from functools import cache
 from pathlib import Path
@@ -788,22 +787,16 @@ def _single_test_report_code(anchor: Any, country: str) -> tuple[dict, str]:
             "text": localized_field(panel, "display", lang),
         }
         return (code, display)
-    # The coding is the order's (as on its ServiceRequest); the text is the
-    # Observation's, so the report is titled like the result it carries.
-    from clinosim.modules.output.fhir_r4.labs.observations import lab_observation_coding
-
+    # The order's coding and title, as on its ServiceRequest (whose title is
+    # the Observation's, Issue #2636).
     resolved = standalone_lab_order_code(anchor, lang, country.lower())
-    order = anchor if isinstance(anchor, dict) else dataclasses.asdict(anchor)
-    result = order.get("result") or {}
-    lab_name = result.get("lab_name") or order.get("display_name", "")
-    _codings, text = lab_observation_coding(lab_name, order, result, country)
     code = _build_sr_code_field(
         system=get_system_uri(resolved.system_key),
         code=resolved.code,
         display=resolved.display,
-        text=text,
+        text=resolved.text,
     )
-    return (code, text)
+    return (code, resolved.text)
 
 
 def build_single_test_report(

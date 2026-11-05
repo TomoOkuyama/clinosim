@@ -29,13 +29,14 @@ def _sr(name: str, country: str = "us") -> dict:
 @pytest.mark.parametrize(
     ("name", "code", "text"),
     [
-        ("K_stat", "2823-3", "K"),
-        ("Sputum_culture", "6460-0", "sputum culture"),
-        ("Basic_metabolic_panel", "24321-2", "BMP"),
-        ("Lipid_panel", "57698-3", "lipid panel"),
-        ("Blood_culture_set_1", "600-7", "blood culture"),
-        ("ANA", "8061-4", "ANA"),  # the unknown-condition autoimmune screen
-        ("RF", "11572-5", "RF"),
+        # Issue #2636: titled like the result (the coded display); a panel by its panel display.
+        ("K_stat", "2823-3", "Potassium [Moles/volume] in Serum or Plasma"),
+        ("Sputum_culture", "6460-0", "Bacteria identified in Sputum by Culture"),
+        ("Basic_metabolic_panel", "24321-2", "Basic metabolic 2000 panel - Serum or Plasma"),
+        ("Lipid_panel", "57698-3", "Lipid panel with direct LDL - Serum or Plasma"),
+        ("Blood_culture_set_1", "600-7", "Bacteria identified in Blood by Culture"),
+        ("ANA", "8061-4", "Nuclear Ab [Presence] in Serum"),  # the unknown-condition autoimmune screen
+        ("RF", "11572-5", "Rheumatoid factor [Units/volume] in Serum or Plasma"),
     ],
 )
 def test_internal_order_names_get_the_loinc_code_and_a_readable_text(name: str, code: str, text: str) -> None:
