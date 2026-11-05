@@ -92,10 +92,11 @@ def load_nursing_assessment() -> dict[str, Any]:
 
 
 def assign_primary_nurse(encounter: Any, roster: StaffRoster | None, rng: np.random.Generator) -> str:
-    """Pick a primary nurse from roster uniformly at random.
+    """Pick a primary nurse uniformly from the encounter's ward (Issue #2700).
 
     Args:
-        encounter: encounter object (dataclass or dict-like, unused except for type annotation)
+        encounter: encounter object (dataclass or dict-like); its ``ward_id`` /
+            ``department_id`` scope the nurse pool
         roster: StaffRoster with members; filters by role="nurse". None returns "" (no-roster
                 fallback used when EnricherContext does not carry a roster, e.g. tests or
                 enricher call sites that have not yet been wired with a roster).
@@ -106,7 +107,14 @@ def assign_primary_nurse(encounter: Any, roster: StaffRoster | None, rng: np.ran
     """
     if roster is None:
         return ""
-    nurses = roster.get_by_role("nurse")
+    from clinosim.modules.staff.engine import scoped_nurses
+
+    # Issue #2700: a nurse of the encounter's ward, else its department.
+    nurses = scoped_nurses(
+        roster,
+        ward=str(_o(encounter, "ward_id", "") or ""),
+        department=str(_o(encounter, "department_id", "") or ""),
+    )
     if not nurses:
         return ""
     nurse_ids = [n.staff_id for n in nurses]
