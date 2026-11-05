@@ -43,9 +43,19 @@ CANONICAL_OBSERVATION_CATEGORY_CODES = frozenset(
 CANONICAL_OBSERVATION_CATEGORY_SYSTEM = "http://terminology.hl7.org/CodeSystem/observation-category"
 
 
+_TYPE_AND_SCREEN = {
+    "order_id": "ORD-enc1-L01",
+    "encounter_id": "enc1",
+    "order_type": "lab",
+    "display_name": "Type_and_screen",
+    "ordered_datetime": "2025-03-01T10:00:00",
+    "result": {"result_datetime": "2025-03-01T10:50:00", "lab_name": "Type_and_screen", "value": "A+"},
+}  # Issue #2587: the typing of a stay is reported on its type-and-screen order
+
+
 def _ctx(patient_data: dict, country: str = "US"):
     return SimpleNamespace(
-        record={"encounters": []},
+        record={"encounters": [], "orders": [_TYPE_AND_SCREEN]},
         country=country,
         patient_data=patient_data,
         patient_id="POP-000001",
@@ -70,7 +80,9 @@ def test_blood_type_observation_category_uses_canonical_system(country: str):
     resources = _bb_blood_type(ctx)
     assert resources, "blood-type builder should emit at least one Observation"
     for r in resources:
-        for cat in r["category"]:
+        if r["resourceType"] != "Observation":
+            continue
+        for cat in r.get("category", []):
             for coding in cat["coding"]:
                 assert coding["system"] == CANONICAL_OBSERVATION_CATEGORY_SYSTEM, (
                     f"Observation.category.coding.system must be the canonical "
@@ -87,7 +99,9 @@ def test_blood_type_observation_category_code_is_laboratory(country: str):
     ctx = _ctx({"blood_type": "A", "rh_factor": "+"}, country=country)
     resources = _bb_blood_type(ctx)
     for r in resources:
-        for cat in r["category"]:
+        if r["resourceType"] != "Observation":
+            continue
+        for cat in r.get("category", []):
             for coding in cat["coding"]:
                 assert coding["code"] != "LAB", (
                     f"Observation.category.coding.code regressed to the "
@@ -99,8 +113,11 @@ def test_blood_type_observation_category_code_is_laboratory(country: str):
                     f"canonical HL7 Observation Category value-set, got "
                     f"{coding['code']!r} in resource {r.get('id')!r}"
                 )
-        # The ABO + RhD Observations are lab results, so the laboratory
-        # member of the canonical value-set is the one expected here.
+        # The ABO + RhD Observations of a typed stay are lab results, so the
+        # laboratory member of the canonical value-set is the one expected
+        # here (Issue #2587: a typing from history carries no category).
+        if not r.get("basedOn"):
+            continue
         laboratory_codings = [c for cat in r["category"] for c in cat["coding"] if c.get("code") == "laboratory"]
         assert laboratory_codings, (
             f"blood-type Observation {r.get('id')!r} must carry the canonical 'laboratory' category coding"

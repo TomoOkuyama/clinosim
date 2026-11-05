@@ -84,6 +84,9 @@ def patient_true_labs(
     )
 
 
+TYPE_AND_SCREEN = "Type_and_screen"  # Issue #2587
+
+
 def _run_lab_result_pipeline(
     all_orders: list[Order],
     panel_children_by_parent: dict[str, list[Order]],
@@ -136,6 +139,25 @@ def _run_lab_result_pipeline(
         if order.order_id in panel_child_ids:
             continue
         canon = canonical_lab_name(order.display_name)
+        if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and canon == TYPE_AND_SCREEN:
+            # Issue #2587: a type and screen reports the ABO / RhD typing (the
+            # patient's blood group) and an antibody screen (negative); the
+            # FHIR output emits them on this order.
+            lab_rng = determinism.default_rng(individual_lab_seed(order.order_id))
+            if lab_rng.random() < SPECIMEN_REJECTION_RATE:
+                order.status = OrderStatus.CANCELLED
+                continue
+            order.result = OrderResult(
+                result_datetime=calculate_result_time_from_state(order, hospital_state, hospital_ops or {}, lab_rng),
+                performed_by=assign_staff("lab_result", "", roster, lab_rng).get(
+                    "performing_technician", FALLBACK_TECH_ID
+                ),
+                lab_name=canon,
+                value=f"{patient.blood_type}{patient.rh_factor}; antibody screen negative",
+            )
+            order.status = OrderStatus.RESULTED
+            produced.append(order.result)
+            continue
         if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and canon in true_labs:
             lab_rng = determinism.default_rng(individual_lab_seed(order.order_id))
             # Pre-analytical issues (constants in observation/pre_analytical.py):

@@ -19,14 +19,25 @@ from clinosim.modules.output.fhir_r4.labs.blood_type import _bb_blood_type
 pytestmark = pytest.mark.unit
 
 
+_TYPE_AND_SCREEN = {
+    "order_id": "ORD-enc1-L01",
+    "encounter_id": "enc1",
+    "order_type": "lab",
+    "display_name": "Type_and_screen",
+    "ordered_datetime": "2025-03-01T10:00:00",
+    "result": {"result_datetime": "2025-03-01T10:50:00", "lab_name": "Type_and_screen", "value": "A+"},
+}  # Issue #2587: the typing of a stay is reported on its type-and-screen order
+
+
 def _ctx(
     patient_data: dict,
     country: str = "JP",
     encounters: list | None = None,
     patient_id: str = "POP-000001",
+    orders: list | None = None,
 ):
     return SimpleNamespace(
-        record={"encounters": encounters or []},
+        record={"encounters": encounters or [], "orders": orders or []},
         country=country,
         patient_data=patient_data,
         patient_id=patient_id,
@@ -53,9 +64,10 @@ def _ctx(
 )
 def test_abo_observation_shape(abo: str, expected_snomed: str):
     """Every ABO type maps to the canonical SNOMED CT finding concept."""
-    ctx = _ctx({"blood_type": abo, "rh_factor": "+"})
+    ctx = _ctx({"blood_type": abo, "rh_factor": "+"}, orders=[_TYPE_AND_SCREEN])
     resources = _bb_blood_type(ctx)
-    abo_obs = next(r for r in resources if "abo" in r["id"])
+    # Issue #2587: the stay's typing (on its type-and-screen order) is the lab result.
+    abo_obs = next(r for r in resources if "abo" in r["id"] and r.get("basedOn"))
     assert abo_obs["resourceType"] == "Observation"
     assert abo_obs["code"]["coding"][0] == {
         "system": "http://loinc.org",
@@ -165,8 +177,8 @@ def test_unknown_rh_yields_no_rh_observation():
 
 def test_jp_carries_labresult_profile():
     """JP output carries the JP_Observation_LabResult profile in meta."""
-    ctx = _ctx({"blood_type": "A", "rh_factor": "+"}, country="JP")
-    r = _bb_blood_type(ctx)[0]
+    ctx = _ctx({"blood_type": "A", "rh_factor": "+"}, country="JP", orders=[_TYPE_AND_SCREEN])
+    r = next(o for o in _bb_blood_type(ctx) if o.get("basedOn") and o["resourceType"] == "Observation")
     assert "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult" in r["meta"]["profile"]
 
 

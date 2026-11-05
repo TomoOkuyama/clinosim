@@ -218,6 +218,93 @@ def _build_blood_type_obs(
     }
 
 
+_TYPE_AND_SCREEN = "Type_and_screen"
+_LOINC_ANTIBODY_SCREEN = loinc_for("blood_group", "antibody_screen")
+_LOINC_TYPE_AND_SCREEN = loinc_for("blood_group", "type_and_screen")
+_ANTIBODY_SCREEN_NEGATIVE = snomed_for("antibody_screen", "negative") or ""
+BLOOD_TS_DR_ID_PREFIX = "dr-ts-"
+_BLOOD_TS_DR_KEY_KIND = "blood-type-and-screen-report-key"
+BLOOD_TS_DR_KEY_SYSTEM = structural_key_system(_BLOOD_TS_DR_KEY_KIND)
+
+
+def _type_and_screen_orders(ctx: BundleContext) -> list[Any]:
+    """The resulted type-and-screen orders of this record (Issue #2587)."""
+    return [
+        o
+        for o in (_o(ctx.record, "orders", []) or [])
+        if str(_o(o, "display_name", "") or "") == _TYPE_AND_SCREEN and _o(o, "result")
+    ]
+
+
+def _typed_stay_resources(ctx: BundleContext, order: Any, abo_snomed: str, rh_snomed: str) -> list[dict]:
+    """ABO, RhD and antibody-screen Observations of one type-and-screen order,
+    ``basedOn`` its ServiceRequest, and the DiagnosticReport grouping them."""
+    from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
+    from clinosim.modules.output.fhir_r4.labs.service_request import (
+        LAB_CATEGORY_V2_0074,
+        V2_0074_SYSTEM,
+        order_to_sr_id,
+    )
+
+    lang = lang_for(ctx.country)
+    oid = str(_o(order, "order_id", "") or "")
+    based_on = [{"reference": f"ServiceRequest/{order_to_sr_id(order, {})}"}]
+    result = _o(order, "result") or {}
+    when = to_fhir_datetime(_o(result, "result_datetime", None) or _o(order, "ordered_datetime", None))
+    enc_id = str(_o(order, "encounter_id", "") or ctx.primary_enc_id)
+    performer = _blood_type_performer_ref(ctx)
+    specs = [
+        (_resolve_blood_abo_id(oid), BLOOD_ABO_KEY_SYSTEM, _LOINC_ABO_GROUP, "fhir_obs_text.abo_group", abo_snomed),
+        (_resolve_blood_rh_id(oid), BLOOD_RH_KEY_SYSTEM, _LOINC_RH_GROUP, "fhir_obs_text.rh_group", rh_snomed),
+        (
+            derive_opaque_id("blood-abs-", f"blood-antibody-screen-key:{oid}"),
+            structural_key_system("blood-antibody-screen-key"),
+            _LOINC_ANTIBODY_SCREEN,
+            "fhir_obs_text.antibody_screen",
+            _ANTIBODY_SCREEN_NEGATIVE,
+        ),
+    ]
+    out: list[dict] = []
+    for obs_id, key_system, loinc_code, text_key, value_snomed in specs:
+        if not value_snomed:
+            continue
+        o = _build_blood_type_obs(obs_id, ctx.country, loinc_code, t(text_key, lang), value_snomed)
+        o["identifier"] = [wrap_as_identifier(oid, key_system)]
+        o["subject"] = patient_ref(ctx.patient_id)
+        o["encounter"] = encounter_ref(enc_id)
+        o["basedOn"] = based_on
+        if when:
+            o["effectiveDateTime"] = when
+        if performer:
+            o["performer"] = [{"reference": performer}]
+        out.append(o)
+    report: dict[str, Any] = {
+        "resourceType": "DiagnosticReport",
+        "id": derive_opaque_id(BLOOD_TS_DR_ID_PREFIX, f"{_BLOOD_TS_DR_KEY_KIND}:{oid}"),
+        "identifier": [wrap_as_identifier(oid, BLOOD_TS_DR_KEY_SYSTEM)],
+        "status": "final",
+        "category": [{"coding": [{"system": V2_0074_SYSTEM, "code": LAB_CATEGORY_V2_0074, "display": "Laboratory"}]}],
+        "code": {
+            "coding": [
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": _LOINC_TYPE_AND_SCREEN,
+                    **display_entry(registry_display("loinc", _LOINC_TYPE_AND_SCREEN, "en") or ""),
+                }
+            ],
+            "text": registry_display("loinc", _LOINC_TYPE_AND_SCREEN, lang) or _LOINC_TYPE_AND_SCREEN,
+        },
+        "subject": patient_ref(ctx.patient_id),
+        "encounter": encounter_ref(enc_id),
+        "basedOn": based_on,
+        "result": [{"reference": f"Observation/{o['id']}"} for o in out],
+    }
+    if when:
+        report["effectiveDateTime"] = when
+        report["issued"] = when
+    return [*out, report]
+
+
 def _bb_blood_type(ctx: BundleContext) -> list[dict]:
     """Emit ABO + RhD blood-type Observation resources for the patient.
 
@@ -276,4 +363,13 @@ def _bb_blood_type(ctx: BundleContext) -> list[dict]:
             o["performer"] = [{"reference": perf}]
         resources.append(o)
 
+    # Issue #2587: the patient's known blood group is a typing on record, not
+    # a result of this stay — no laboratory category or lab-result profile.
+    for o in resources:
+        o.pop("category", None)
+        o.pop("meta", None)
+        o["note"] = [{"text": t("fhir_obs_text.blood_type_from_history", "ja" if is_jp_out else "en")}]
+    # A stay that orders a type and screen reports its own typing on that order.
+    for order in _type_and_screen_orders(ctx):
+        resources.extend(_typed_stay_resources(ctx, order, abo_snomed or "", rh_snomed or ""))
     return resources

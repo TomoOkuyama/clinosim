@@ -45,6 +45,10 @@ rh:
   positive: '165747007'
   negative: '165746003'
 
+# Blood group antibody screen (LOINC 890-4) result (Issue #2587).
+antibody_screen:
+  negative: '260385009'
+
 # Newborn CCHD pulse-oximetry screening site → body-site concept (#1815).
 cchd_site:
   right_hand: '368209003'  # Right upper arm structure

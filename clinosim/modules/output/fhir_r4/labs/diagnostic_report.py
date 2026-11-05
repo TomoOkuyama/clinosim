@@ -770,6 +770,8 @@ def single_test_report_groups(
     for idx, order in enumerate(orders):
         if idx in covered or _o(order, "order_type") not in (OrderType.LAB, "lab"):
             continue
+        if _o(order, "display_name", "") == "Type_and_screen":
+            continue  # Issue #2587: reported by blood_type.py
         result = _o(order, "result")
         if not result or _o(result, "value") is None:
             continue
