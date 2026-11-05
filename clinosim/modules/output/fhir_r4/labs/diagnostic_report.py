@@ -21,6 +21,7 @@ Panel YAML + canonical loader live in ``clinosim.modules.order.panel_grouping``
 
 from __future__ import annotations
 
+import dataclasses
 from collections import defaultdict
 from functools import cache
 from pathlib import Path
@@ -48,9 +49,13 @@ from clinosim.modules.output.fhir_r4.labs.imaging_study import imaging_study_id_
 from clinosim.modules.output.fhir_r4.labs.service_request import (
     LAB_CATEGORY_V2_0074,
     V2_0074_SYSTEM,
+    _build_sr_code_field,
+    _order_to_sr_structural_key,
     _resolve_service_request_id,
+    _to_naive_iso,
     build_panel_counter,
     order_to_sr_id,
+    standalone_lab_order_code,
 )
 from clinosim.modules.output.fhir_r4.lib.common import _escape_html, build_presented_form, dual_slot_concept
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
@@ -100,6 +105,9 @@ MB_DR_ID_PREFIX_FHIR = "dr-mb-"  # aliased on labs/microbiology.py::MB_DR_ID_PRE
 LAB_PANEL_DR_KEY_SYSTEM = structural_key_system("lab-panel-diagnostic-report-key")
 MB_DR_KEY_SYSTEM = structural_key_system("mb-diagnostic-report-key")
 RADIOLOGY_DR_KEY_SYSTEM = structural_key_system("radiology-diagnostic-report-key")
+# Issue #2586: a report for one order that no panel report covers; the key is
+# the order's ServiceRequest structural key.
+LAB_ORDER_DR_KEY_SYSTEM = structural_key_system("lab-order-diagnostic-report-key")
 
 
 def _resolve_lab_panel_dr_id(structural_key: str) -> str:
@@ -538,12 +546,59 @@ def build_dr_resource(
     # (95.8% of JP DR had null `.text` in baseline).
     text_display = localized_field(panel, "display", lang_for(country))
 
+    _summary = _lab_panel_presented_text(panel, display, group, lang)
+    return _lab_report_resource(
+        structural_key=f"{group.panel_name.lower()}-{encounter_id}-{seq}",
+        key_system=LAB_PANEL_DR_KEY_SYSTEM,
+        code={
+            "coding": [
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": panel["loinc"],
+                    "display": display,
+                }
+            ],
+            "text": text_display,
+        },
+        group=group,
+        patient_id=patient_id,
+        encounter_id=encounter_id,
+        country=country,
+        performer_ref=performer_ref,
+        issued=issued,
+        orders=orders,
+        presented_text=_summary,
+        presented_title=display,
+    )
+
+
+def _lab_report_resource(
+    *,
+    structural_key: str,
+    key_system: str,
+    code: dict,
+    group: _GroupedPanel,
+    patient_id: str,
+    encounter_id: str,
+    country: str,
+    performer_ref: str | None,
+    issued: str | None,
+    orders: list[Any] | None,
+    presented_text: str,
+    presented_title: str,
+) -> dict:
+    """The lab DiagnosticReport shared by panel and single-test reports.
+
+    ``group.obs_idxs`` are the reported Observations; ``issued`` falls back
+    to ``group.bucket`` when the caller has no report time.
+    """
+    lang = lang_for(country)
     # Issue #854 Bucket B (PR-diagnostic-report): opaque lab-panel DR.id.
-    _lab_dr_structural_key = f"{group.panel_name.lower()}-{encounter_id}-{seq}"
+    _lab_dr_structural_key = structural_key
     res: dict[str, object] = {
         "resourceType": "DiagnosticReport",
         "id": _resolve_lab_panel_dr_id(_lab_dr_structural_key),
-        "identifier": [wrap_as_identifier(_lab_dr_structural_key, LAB_PANEL_DR_KEY_SYSTEM)],
+        "identifier": [wrap_as_identifier(_lab_dr_structural_key, key_system)],
         # chain #2: JP Core DiagnosticReport_LabResult profile.
         **(
             {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_LabResult"]}}
@@ -576,16 +631,7 @@ def build_dr_resource(
                 ],
             }
         ],
-        "code": {
-            "coding": [
-                {
-                    "system": get_system_uri("loinc"),
-                    "code": panel["loinc"],
-                    "display": display,
-                }
-            ],
-            "text": text_display,
-        },
+        "code": code,
         "subject": patient_ref(patient_id),
         "encounter": encounter_ref(encounter_id),
         # Issue #821 (N-7): DR.effectiveDateTime carries the latest component
@@ -657,8 +703,7 @@ def build_dr_resource(
     # sufficient without inflating the attachment with per-analyte lines;
     # downstream systems render the full lab result grid from Observation
     # refs. Titled after the panel.
-    _summary = _lab_panel_presented_text(panel, display, group, lang)
-    _pf = build_presented_form(_summary, display, lang)
+    _pf = build_presented_form(presented_text, presented_title, lang)
     if _pf:
         res["presentedForm"] = _pf
     return res
@@ -678,6 +723,110 @@ def _lab_panel_presented_text(panel: dict, display: str, group: _GroupedPanel, l
         n_obs=len(group.obs_idxs),
     )
     return f"{header}\n\n{body}\n"
+
+
+class _OrderReport(NamedTuple):
+    """Resulted orders of one ServiceRequest that no panel report covers."""
+
+    sr_structural_key: str
+    group: _GroupedPanel  # panel_name "" — obs_idxs are the order's results
+    issued: str  # latest result time of the order's results
+
+
+def single_test_report_groups(
+    orders: list[Any],
+    panel_groups: list[_GroupedPanel],
+    panel_counter: dict,
+) -> list[_OrderReport]:
+    """Group the resulted lab orders no panel report covers, per ServiceRequest.
+
+    Issue #2586: a real LIS returns one report per order, so a stand-alone
+    test (troponin, lactate, a lone creatinine) and a panel order whose
+    results did not make up its panel report each get a report of their own.
+    Only results with a value count — those are the ones that become an
+    Observation (``_build_lab_observation`` skips a ``None`` value).
+    """
+    covered = {idx for g in panel_groups for idx in g.obs_idxs}
+    by_sr: dict[str, list[int]] = defaultdict(list)
+    for idx, order in enumerate(orders):
+        if idx in covered or _o(order, "order_type") not in (OrderType.LAB, "lab"):
+            continue
+        result = _o(order, "result")
+        if not result or _o(result, "value") is None:
+            continue
+        by_sr[_order_to_sr_structural_key(order, panel_counter)].append(idx)
+    out: list[_OrderReport] = []
+    for key in sorted(by_sr):
+        idxs = by_sr[key]
+        anchor = orders[idxs[0]]
+        issued = max(_to_naive_iso(_o(_o(orders[i], "result"), "result_datetime")) for i in idxs)
+        effective = _to_naive_iso(_o(anchor, "ordered_datetime")) or issued
+        group = _GroupedPanel(panel_name="", bucket=issued[:10], obs_idxs=idxs, effective_datetime=effective)
+        out.append(_OrderReport(sr_structural_key=key, group=group, issued=issued))
+    return out
+
+
+def _single_test_report_code(anchor: Any, country: str) -> tuple[dict, str]:
+    """The report's ``code`` and its title: the order's own code.
+
+    A panel order is coded by its panel; a stand-alone test by the same
+    resolution its ServiceRequest uses.
+    """
+    lang = lang_for(country)
+    panel_key = _o(anchor, "panel_key", "")
+    panels = load_panel_definitions()
+    if panel_key in panels:
+        panel = panels[panel_key]
+        display = registry_display("loinc", panel["loinc"], lang) or language_slot(panel["display"], "en")
+        code = {
+            "coding": [{"system": get_system_uri("loinc"), "code": panel["loinc"], "display": display}],
+            "text": localized_field(panel, "display", lang),
+        }
+        return (code, display)
+    # The coding is the order's (as on its ServiceRequest); the text is the
+    # Observation's, so the report is titled like the result it carries.
+    from clinosim.modules.output.fhir_r4.labs.observations import lab_observation_coding
+
+    resolved = standalone_lab_order_code(anchor, lang, country.lower())
+    order = anchor if isinstance(anchor, dict) else dataclasses.asdict(anchor)
+    result = order.get("result") or {}
+    lab_name = result.get("lab_name") or order.get("display_name", "")
+    _codings, text = lab_observation_coding(lab_name, order, result, country)
+    code = _build_sr_code_field(
+        system=get_system_uri(resolved.system_key),
+        code=resolved.code,
+        display=resolved.display,
+        text=text,
+    )
+    return (code, text)
+
+
+def build_single_test_report(
+    report: _OrderReport,
+    orders: list[Any],
+    patient_id: str,
+    encounter_id: str,
+    country: str,
+    performer_ref: str | None,
+) -> dict:
+    """Build the DiagnosticReport for one order that no panel report covers."""
+    anchor = orders[report.group.obs_idxs[0]]
+    code, title = _single_test_report_code(anchor, country)
+    lang = lang_for(country)
+    return _lab_report_resource(
+        structural_key=report.sr_structural_key,
+        key_system=LAB_ORDER_DR_KEY_SYSTEM,
+        code=code,
+        group=report.group,
+        patient_id=patient_id,
+        encounter_id=encounter_id,
+        country=country,
+        performer_ref=performer_ref,
+        issued=report.issued,
+        orders=orders,
+        presented_text=_lab_panel_presented_text({}, title, report.group, lang),
+        presented_title=title,
+    )
 
 
 def _sr_ids_for_group(
@@ -772,6 +921,13 @@ def build_lab_panel_reports(ctx) -> list[dict]:
         # order_to_sr_id + panel_counter.
         sr_ids = _sr_ids_for_group(g, orders, panel_counter, enc_id)
         report["basedOn"] = [{"reference": f"ServiceRequest/{sid}"} for sid in sr_ids]
+        out.append(report)
+    # Issue #2586: every other resulted order is reported on its own.
+    for single in single_test_report_groups(orders, groups, panel_counter):
+        report = build_single_test_report(
+            single, orders, ctx.patient_id, enc_id, ctx.country, performer_ref=_lab_performer_ref or None
+        )
+        report["basedOn"] = [{"reference": f"ServiceRequest/{_resolve_service_request_id(single.sr_structural_key)}"}]
         out.append(report)
     return out
 
