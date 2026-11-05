@@ -141,29 +141,57 @@ def compute_braden(adl: dict, consciousness_level: str, volume_status: float, rn
     }
 
 
+def morse_fall_history(age: int, unit: float) -> bool:
+    """Whether the patient fell in the 3 months before the stay (Issue #2692),
+    from a stable uniform ``unit`` and the age-banded probability."""
+    prob = 0.0
+    for low, p in _scores()["morse"].get("fall_history_probability_by_age") or []:
+        if age >= int(low):
+            prob = float(p)
+    return unit < prob
+
+
 def compute_morse_fall_risk(
-    age: int, adl: dict, consciousness_level: str, has_iv: bool, rng: np.random.Generator
-) -> tuple[int, str]:
+    age: int,
+    adl: dict,
+    consciousness_level: str,
+    has_iv: bool,
+    rng: np.random.Generator,
+    has_secondary_diagnosis: bool = False,
+    fell_recently: bool | None = None,
+) -> tuple[int, str, dict[str, int]]:
+    """Morse Fall Scale: ``(total, risk level, items)`` (Issue #2692).
+
+    The six published items are scored and the total is their sum, so it is
+    always a valid Morse score (a multiple of 5). The former ±5 jitter draw
+    is still taken, and discarded, so the RNG stream is consumed as before.
+    """
     cfg = _scores()["morse"]
     barthel = adl.get("barthel_score", BARTHEL_DEFAULT) if adl else BARTHEL_DEFAULT
-    score = 0
-    if age >= MORSE_HISTORY_AGE_THRESHOLD:
-        score += cfg["history_of_falling"]
-    if has_iv:
-        score += cfg["iv_access"]
-    if barthel < MORSE_GAIT_IMPAIRED_MAX_EXCLUSIVE:
-        score += cfg["gait_impaired"]
-    elif barthel < MORSE_GAIT_WEAK_MAX_EXCLUSIVE:
-        score += cfg["gait_weak"]
-    if consciousness_level != "A":
-        score += cfg["mental_status_forgets_limits"]
-    # small deterministic jitter
-    score = max(
-        MORSE_SCORE_MIN,
-        min(MORSE_SCORE_MAX, score + int(rng.integers(MORSE_JITTER_LOW, MORSE_JITTER_HIGH, endpoint=True))),
-    )
+    items = {
+        # ``fell_recently`` comes from the stay (Issue #2692); without it the
+        # age proxy applies.
+        "morse_history": cfg["history_of_falling"]
+        if (fell_recently if fell_recently is not None else age >= MORSE_HISTORY_AGE_THRESHOLD)
+        else 0,
+        "morse_secondary_dx": cfg["secondary_diagnosis"] if has_secondary_diagnosis else 0,
+        "morse_ambulatory_aid": int(
+            (cfg.get("ambulatory_aid_by_barthel_mobility") or {}).get(int((adl or {}).get("mobility", 15)), 0)
+        ),
+        "morse_iv": cfg["iv_access"] if has_iv else 0,
+        "morse_gait": (
+            cfg["gait_impaired"]
+            if barthel < MORSE_GAIT_IMPAIRED_MAX_EXCLUSIVE
+            else cfg["gait_weak"]
+            if barthel < MORSE_GAIT_WEAK_MAX_EXCLUSIVE
+            else 0
+        ),
+        "morse_mental": cfg["mental_status_forgets_limits"] if consciousness_level != "A" else 0,
+    }
+    rng.integers(MORSE_JITTER_LOW, MORSE_JITTER_HIGH, endpoint=True)  # kept for stream shape
+    score = max(MORSE_SCORE_MIN, min(MORSE_SCORE_MAX, sum(items.values())))
     level = "low"
     for low, lvl in cfg["risk_levels"]:
         if score >= low:
             level = lvl
-    return score, level
+    return score, level, items

@@ -75,7 +75,7 @@ def test_braden_total_in_range_and_monotone():
 def test_morse_levels():
     from clinosim.modules.observation.nursing import compute_morse_fall_risk
 
-    score, level = compute_morse_fall_risk(85, {"barthel_score": 20}, "P", True, _rng())
+    score, level, _items = compute_morse_fall_risk(85, {"barthel_score": 20}, "P", True, _rng())
     assert 0 <= score <= 125 and level in ("low", "moderate", "high")
 
 

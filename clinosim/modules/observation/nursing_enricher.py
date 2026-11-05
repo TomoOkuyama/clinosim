@@ -84,6 +84,16 @@ def enrich_nursing(ctx) -> None:
             if _AVPU_SEVERITY.get(clvl, 0) > _AVPU_SEVERITY.get(prev, 0):
                 consciousness_by_date[day_key] = clvl
 
+        # Issue #2692: Morse "secondary diagnosis" — a medical diagnosis besides
+        # the reason for this stay (any chronic condition on the problem list).
+        has_secondary = bool(_get(patient, "chronic_conditions", None))
+        # Morse "history of falling": once per stay, from a hash (no RNG).
+        from clinosim.modules.observation.nursing import morse_fall_history
+        from clinosim.seeding import morse_fall_history_unit
+
+        _encs = _get(rec, "encounters", []) or []
+        _enc_id = str(_get(_encs[0], "encounter_id", "") or "") if _encs else ""
+        fell_recently = morse_fall_history(age, morse_fall_history_unit(pid or "x", _enc_id))
         out = []
         for adl in adls:
             adld = adl if isinstance(adl, dict) else adl.__dict__
@@ -92,8 +102,16 @@ def enrich_nursing(ctx) -> None:
             # volume_status is not persisted to CIF — always 0.0 (known limitation).
             loc = consciousness_by_date.get(str(d), "A")
             braden = compute_braden(adld, loc, volume_status=0.0, rng=rng)
-            morse, level = compute_morse_fall_risk(age, adld, loc, has_iv=str(d) in iv_dates, rng=rng)
+            morse, level, morse_items = compute_morse_fall_risk(
+                age,
+                adld,
+                loc,
+                has_iv=str(d) in iv_dates,
+                rng=rng,
+                has_secondary_diagnosis=has_secondary,
+                fell_recently=fell_recently,
+            )
             if d is None:
                 continue
-            out.append(NursingRiskAssessment(date=d, morse_total=morse, fall_risk_level=level, **braden))
+            out.append(NursingRiskAssessment(date=d, morse_total=morse, fall_risk_level=level, **braden, **morse_items))
         _set(rec, "nursing_risk_assessments", out)
