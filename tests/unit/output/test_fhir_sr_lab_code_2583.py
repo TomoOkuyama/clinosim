@@ -31,7 +31,7 @@ def _sr(name: str, country: str = "us") -> dict:
     [
         ("K_stat", "2823-3", "K"),
         ("Sputum_culture", "6460-0", "sputum culture"),
-        ("Basic_metabolic_panel", "51990-0", "BMP"),
+        ("Basic_metabolic_panel", "24321-2", "BMP"),
         ("Lipid_panel", "57698-3", "lipid panel"),
         ("Blood_culture_set_1", "600-7", "blood culture"),
         ("ANA", "8061-4", "ANA"),  # the unknown-condition autoimmune screen

@@ -275,7 +275,7 @@ order_protocols:
       - {test: "CBC", code_loinc: "58410-2", code_jlac10: "2A010", urgency: "stat"}
       - {test: "CRP", code_loinc: "1988-5", code_jlac10: "5C070", urgency: "stat"}
       - {test: "Procalcitonin", code_loinc: "75241-0", urgency: "stat"}
-      - {test: "BMP", code_loinc: "51990-0", urgency: "stat"}       # Na, K, Cl, CO2, BUN, Cr, Glucose
+      - {test: "BMP", code_loinc: "24321-2", urgency: "stat"}       # Na, K, Cl, CO2, BUN, Cr, Glucose
       - {test: "Blood_culture_x2", code_loinc: "600-7", urgency: "stat", note: "before antibiotics"}
       - {test: "Sputum_culture", code_loinc: "624-7", urgency: "routine"}
       - {test: "Urinary_antigen_pneumococcus", code_loinc: "31971-3", urgency: "stat"}

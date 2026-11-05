@@ -30,7 +30,7 @@ CK: "2157-6"
 CK_MB: "13969-1"
 Troponin_I: "10839-9"
 PCT: "75241-0"
-BNP: "42637-9"
+BNP: "30934-4"  # Issue #2603: in Serum or Plasma (42637-9 is in Blood)
 Lactate: "2524-7"
 PT_INR: "6301-6"
 PT: "5902-2"

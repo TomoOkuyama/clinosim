@@ -25,11 +25,14 @@ metadata:
 
 panels:
   ABG:
-    loinc: "24338-6"
+    loinc: "24336-0"  # Issue #2603: Gas panel - Arterial blood (24338-6 is Blood)
     display:
       en: "Gas panel - Arterial blood"
       ja: "動脈血ガス分析"  # Issue #783: JP primary label for code.text
     components: [pH, pCO2, pO2, HCO3]
+    # Issue #2603: a component whose analyte code depends on the specimen;
+    # bicarbonate of a blood gas is the arterial one (1963-8 is serum).
+    component_loinc: {HCO3: "1960-4"}
     min_components: 3
 
   CBC:
@@ -46,7 +49,7 @@ panels:
     min_components: 3
 
   BMP:
-    loinc: "51990-0"
+    loinc: "24321-2"  # Issue #2603: Basic metabolic 2000 panel - Serum or Plasma (51990-0 is Blood)
     display:
       en: "Basic metabolic 2000 panel - Serum or Plasma"
       ja: "生化学基本パネル (BMP)"

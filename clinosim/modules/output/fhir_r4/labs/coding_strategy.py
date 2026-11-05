@@ -121,6 +121,22 @@ def _sanitize_localcode_code(name: str) -> str:
 # Kind enum — finalized in PR 1, extended only with matching strategy.
 
 
+def lab_loinc(lab_name: str, order: dict) -> str:
+    """The US LOINC of analyte ``lab_name`` as resulted in ``order`` (``""`` if none).
+
+    Issue #2603: a panel may name the specimen-specific code of a component
+    (``lab_panels.yaml`` ``component_loinc``; the bicarbonate of a blood gas
+    is the arterial one, not the serum one the analyte maps to by default).
+    """
+    from clinosim.modules.order.panel_grouping import load_panel_definitions
+
+    panel = load_panel_definitions().get(str(order.get("panel_key") or "")) or {}
+    override = (panel.get("component_loinc") or {}).get(lab_name)
+    if override:
+        return str(override)
+    return str(load_code_mapping("lab", "US").get(lab_name) or "")
+
+
 class LabCodingKind(StrEnum):
     """Which JP-CLINS lab coding strategy applies to a given
     (analyte, country) pair. See module docstring for stability policy."""
@@ -221,8 +237,7 @@ class LegacyJSLMStrategy:
             codings.append({"system": get_system_uri(code_system_key), "code": code_value, "display": display_name})
         # JP dual coding: append LOINC secondary when a US-side mapping exists
         # and it differs from the primary code_value.
-        us_code_map = load_code_mapping("lab", "US")
-        loinc_code = us_code_map.get(lab_name)
+        loinc_code = lab_loinc(lab_name, order)
         if loinc_code and loinc_code != code_value:
             loinc_display = registry_display("loinc", loinc_code, "en") or lab_name
             codings.append(
@@ -254,9 +269,8 @@ class LegacyLOINCStrategy:
         result: dict,
         country: str,
     ) -> list[dict]:
-        code_map = load_code_mapping("lab", "US")
-        if lab_name in code_map:
-            code_value = code_map[lab_name]
+        code_value = lab_loinc(lab_name, order)
+        if code_value:
             code_system_key = system_key_for("lab", "US")
         else:
             # Unmapped: the order_code goes under LOINC only when it is a
@@ -333,8 +347,7 @@ class UncodedStrategy:
         # LOINC secondary — Uncoded analytes typically do have a LOINC
         # code (they were classified Uncoded because CoreLabo lacks a
         # slice, not because LOINC is missing). Preserves interop.
-        us_code_map = load_code_mapping("lab", "US")
-        loinc_code = us_code_map.get(lab_name)
+        loinc_code = lab_loinc(lab_name, order)
         if loinc_code:
             loinc_display = registry_display("loinc", loinc_code, "en") or lab_name
             codings.append({"system": get_system_uri("loinc"), "code": loinc_code, "display": loinc_display})
@@ -463,8 +476,7 @@ class CoreLaboStrategy:
         codings: list[dict] = [primary]
         # JP dual coding: keep LOINC secondary (mirrors LegacyJSLM's
         # dual-emit; PR 4 will formalize the retain decision as an ADR).
-        us_code_map = load_code_mapping("lab", "US")
-        loinc_code = us_code_map.get(lab_name)
+        loinc_code = lab_loinc(lab_name, order)
         if loinc_code:
             loinc_display = registry_display("loinc", loinc_code, "en") or lab_name
             codings.append(

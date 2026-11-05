@@ -52,4 +52,4 @@ def test_the_components_are_one_gas_panel_service_request() -> None:
     )
     srs = _build_lab_service_requests(children, ctx)
     assert len(srs) == 1
-    assert [c["code"] for c in srs[0]["code"]["coding"]] == ["24338-6"]
+    assert [c["code"] for c in srs[0]["code"]["coding"]] == ["24336-0"]
