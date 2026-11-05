@@ -372,6 +372,22 @@ def generate_roster(
     return roster
 
 
+def scoped_nurses(roster: StaffRoster, *, ward: str = "", department: str = "") -> list[StaffMember]:
+    """Nurses of ``ward``, else of ``department``, else every nurse (Issue #2700).
+
+    Scoping keeps a patient's nurse on the patient's own ward / clinic, and
+    keeps assignments stable when another department's staff are added.
+    """
+    nurses = roster.get_by_role("nurse")
+    for match in (
+        [m for m in nurses if ward and m.ward == ward],
+        [m for m in nurses if department and m.department == department],
+    ):
+        if match:
+            return match
+    return nurses
+
+
 def assign_staff(
     event_type: str,
     department: str,

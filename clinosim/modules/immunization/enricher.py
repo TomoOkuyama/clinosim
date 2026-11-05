@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 from datetime import date, datetime
+from typing import Any
 
 from clinosim import determinism
 from clinosim.codes import system_key_for
@@ -64,6 +65,26 @@ def _as_of(ctx, rec) -> date:
         "any record is processed, so this indicates a caller/test setup gap, "
         "not a real simulation path."
     )
+
+
+def _give_stay_doses_by_ward_nurse(imm_recs: list, encounters: list, roster: Any, pid: str) -> None:
+    """A dose bound to an inpatient stay is given by a nurse of that stay's
+    ward (Issue #2700): the hepatitis B birth dose by a nursery nurse.
+    Stable per patient (no rng)."""
+    from clinosim.modules.staff.engine import scoped_nurses
+
+    wards = {
+        str(_get(e, "encounter_id", "")): (str(_get(e, "ward_id", "") or ""), str(_get(e, "department_id", "") or ""))
+        for e in encounters
+        if str(_get(e, "encounter_type", "") or "").lower().endswith("inpatient") or _get(e, "ward_id", "")
+    }
+    for imm in imm_recs:
+        ward_dept = wards.get(str(_get(imm, "encounter_id", "") or ""))
+        if not ward_dept or not ward_dept[0] or ward_dept[0] in ("OPD", "ER"):
+            continue
+        nurses = sorted(m.staff_id for m in scoped_nurses(roster, ward=ward_dept[0], department=ward_dept[1]))
+        if nurses:
+            _set(imm, "administered_by", nurses[sum(ord(c) for c in pid) % len(nurses)])
 
 
 def _align_to_encounters(imm_recs: list, encounters: list) -> list:
@@ -280,7 +301,12 @@ def enrich_immunizations(ctx) -> None:
     # Fallback to any physician when the primary_care department is unstaffed.
     primary_care_physician_ids: list[str] = []
     if roster and hasattr(roster, "members"):
-        nurse_ids = sorted(m.staff_id for m in roster.members if getattr(m, "role", "") == "nurse")
+        # Issue #2700: routine vaccinations are given by the outpatient
+        # (primary-care) nurses; a dose given during a stay by that ward's
+        # nurses (see _ward_nurse_for below).
+        from clinosim.modules.staff.engine import scoped_nurses
+
+        nurse_ids = sorted(m.staff_id for m in scoped_nurses(roster, department="primary_care"))
         primary_care_physician_ids = sorted(
             m.staff_id
             for m in roster.members
@@ -349,6 +375,8 @@ def enrich_immunizations(ctx) -> None:
         # Issue #1197 align — cross-record encounter pool.
         pool = _all_encs_by_patient.get(pid) or (_get(rec, "encounters", []) or [])
         recs = _align_to_encounters(recs, pool)
+        if roster is not None and hasattr(roster, "members"):
+            _give_stay_doses_by_ward_nurse(recs, pool, roster, pid)
         # Companion synthesis for the residual in-window orphans.
         rec_encounters = _get(rec, "encounters", []) or []
         hosted = _vax_hosted_by_patient.setdefault(pid, set())
