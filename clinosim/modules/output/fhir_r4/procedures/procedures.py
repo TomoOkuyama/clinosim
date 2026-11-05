@@ -18,7 +18,7 @@ from clinosim.codes.snomed import snomed_for_phrase
 from clinosim.countries import lang_for
 from clinosim.locale.free_text import localize_procedure_name
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import is_jp, is_us
+from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding
@@ -197,11 +197,12 @@ def _build_procedure(
             # Issue #2363); the localized name is code.text.
             coding_entries.append(system_coding("snomed-ct", _sct_code, lang_for(country)))
 
-    # Secondary coding: the OTHER country's code system for international interop.
+    # Secondary coding on JP output: the CPT code for international interop.
     # Phase 4d.2: skip the secondary CPT entry when the primary coding is
     # already under the CPT system URI (CPT-only JP output case above) —
     # otherwise two identical ``{system: CPT, code: X, display: ...}``
-    # entries would land in ``coding[]``.
+    # entries would land in ``coding[]``. Issue #2626: US output carries no
+    # Japanese 診療行為 code (a US record would not hold one).
     if is_jp(country) and proc_code_us and _primary_system != get_system_uri("cpt"):
         us_display = _procedure_display(proc_code_us, "en", fallback)
         coding_entries.append(
@@ -209,16 +210,6 @@ def _build_procedure(
                 "system": get_system_uri("cpt"),
                 "code": proc_code_us,
                 "display": us_display,
-            }
-        )
-    elif is_us(country) and proc_code_jp:
-        # Secondary K-code for interop — use ENGLISH display (not Japanese)
-        jp_en_display = _procedure_display(proc_code_jp, "en", fallback)
-        coding_entries.append(
-            {
-                "system": get_system_uri("k-codes"),
-                "code": proc_code_jp,
-                "display": jp_en_display,
             }
         )
 
