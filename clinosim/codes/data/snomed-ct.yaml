@@ -721,6 +721,28 @@ codes:
   '1287358002':
     en: National Early Warning Score
     ja: 早期警告スコア（NEWS）
+  # Issue #2627: bedside procedures (tx.fhir.org $lookup 2026-11-05).
+  '365958005':
+    en: Packing of anterior nasal cavity
+    ja: 前鼻腔パッキング
+  '50015006':
+    en: Closure by staple
+    ja: ステープルによる閉鎖
+  '79321009':
+    en: Application of splint
+    ja: シーネ固定
+  '439535000':
+    en: Application of short arm splint
+    ja: 前腕シーネ固定
+  '438409006':
+    en: Application of short arm cast
+    ja: 前腕ギプス固定
+  '135871000':
+    en: Silver nitrate cautery
+    ja: 硝酸銀焼灼
+  '233520008':
+    en: Insertion of peripheral venous cannula into peripheral vein
+    ja: 末梢静脈カテーテル留置
   '260385009':
     en: Negative
     ja: 陰性
