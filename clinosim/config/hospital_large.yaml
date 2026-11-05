@@ -32,6 +32,9 @@ available_departments:
   - medical_social_work  # 医療社会事業科 (MSW)
   - oncology             # 腫瘍内科 / 化学療法室
   - psychiatry           # 精神科 (inpatient unit, Issue #2132)
+  # Issue #2641: delivery service — maternity ward + newborn nursery (wards below).
+  # Listed last: its staff are generated after everyone else's.
+  - obstetrics_gynecology  # 産婦人科
 
 department_rollup:
   endocrinology: internal_medicine
@@ -43,7 +46,6 @@ department_rollup:
   # Outpatient-only lines without a dedicated service (as at the 50-bed
   # hospital; the perinatal / pediatric pathways run separately).
   pediatrics: primary_care
-  obstetrics_gynecology: primary_care
   dermatology: primary_care
   oncology_infusion: oncology
   radiation_oncology: oncology
@@ -62,6 +64,7 @@ wards:
   orthopedics: ["3W"]
   emergency_medicine: ["ER"]
   primary_care: ["OPD"]
+  obstetrics_gynecology: ["2E", "NBN"]  # maternity ward (産科病棟), newborn nursery (新生児室)
   oncology: ["OPD-ONC"]
   psychiatry: ["8E"]
 
@@ -81,6 +84,8 @@ ward_capacity:
   "7W": 8
   "3W": 16
   "8E": 16  # psychiatric unit
+  "2E": 20   # maternity beds (Issue #2641; counted in perinatal_beds)
+  "NBN": 16   # nursery bassinets (Issue #2641; counted in perinatal_beds)
 
 resource_capacity:
   lab_analyzers: 5
@@ -91,6 +96,9 @@ resource_capacity:
   operating_rooms: 4
   ed_beds: 20
   inpatient_beds: 200
+  # Issue #2641: maternity beds + nursery bassinets, outside the general-ward
+  # occupancy model (deliveries never entered it).
+  perinatal_beds: 36
 
 staffing:
   day:
@@ -146,3 +154,8 @@ base_processing_time:
 reporting_time:
   stat: 15
   routine: 120
+
+# Issue #2641: wards the perinatal pathway admits to.
+perinatal_wards:
+  maternity: "2E"
+  nursery: "NBN"

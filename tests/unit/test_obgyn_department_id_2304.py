@@ -28,6 +28,8 @@ def test_perinatal_department_has_a_display() -> None:
 
 
 @pytest.mark.parametrize("config", ["hospital_operations", "hospital_large", "hospital_small"])
-def test_obstetrics_rolls_up_in_every_bundled_hospital(config: str) -> None:
+def test_obstetrics_is_its_own_department_in_every_bundled_hospital(config: str) -> None:
+    """Issue #2641: every bundled hospital runs a delivery service, so obstetrics
+    no longer rolls up to the primary-care outpatient department."""
     ops = yaml.safe_load(Path(f"clinosim/config/{config}.yaml").read_text(encoding="utf-8"))
-    assert resolve_department("obstetrics_gynecology", ops) == "primary_care"
+    assert resolve_department("obstetrics_gynecology", ops) == "obstetrics_gynecology"

@@ -16,6 +16,9 @@ available_departments:
   - internal_medicine
   - emergency_medicine
   - primary_care
+  # Issue #2641: delivery service — maternity ward + newborn nursery (wards below).
+  # Listed last: its staff are generated after everyone else's.
+  - obstetrics_gynecology  # 産婦人科
 
 # All sub-specialties and surgical specialties fall back to internal_medicine
 # (a tiny clinic doesn't have specialists)
@@ -36,7 +39,6 @@ department_rollup:
   # Consumed by simulator/outpatient_dept for follow-up visits (well-
   # child, immunization, mammography screening).
   pediatrics: primary_care
-  obstetrics_gynecology: primary_care
   dermatology: primary_care
   # Issue #1280 Sub-A: tiny clinic doesn't run oncology; cancer
   # follow-up visits fall back to internal_medicine here (real world:
@@ -55,9 +57,12 @@ wards:
   internal_medicine: ["1F"]              # single ward
   emergency_medicine: ["ER"]
   primary_care: ["OPD"]
+  obstetrics_gynecology: ["2F", "NBN"]  # maternity ward (産科病棟), newborn nursery (新生児室)
 
 ward_capacity:
   "1F": 10
+  "2F": 4   # maternity beds (Issue #2641; counted in perinatal_beds)
+  "NBN": 4   # nursery bassinets (Issue #2641; counted in perinatal_beds)
 
 resource_capacity:
   lab_analyzers: 1
@@ -68,6 +73,9 @@ resource_capacity:
   operating_rooms: 1
   ed_beds: 3
   inpatient_beds: 10
+  # Issue #2641: maternity beds + nursery bassinets, outside the general-ward
+  # occupancy model (deliveries never entered it).
+  perinatal_beds: 8
 
 staffing:
   day:
@@ -116,3 +124,8 @@ base_processing_time:
 reporting_time:
   stat: 25
   routine: 180
+
+# Issue #2641: wards the perinatal pathway admits to.
+perinatal_wards:
+  maternity: "2F"
+  nursery: "NBN"

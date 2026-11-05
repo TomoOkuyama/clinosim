@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import hashlib
 from datetime import date, datetime, timedelta
+from typing import Any
 
 import numpy as np
 
@@ -39,11 +40,26 @@ from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.staff.engine import FALLBACK_PHYSICIAN_ID, StaffRoster, assign_staff
 from clinosim.seeding import text_seed
 from clinosim.simulator.encounter_setup import encounter_diagnosis, finalize_encounter
-from clinosim.simulator.hospital_ops import resolve_department
+from clinosim.simulator.hospital_ops import perinatal_ward, resolve_department
 from clinosim.types.clinical import ConditionEvent
 from clinosim.types.encounter import EncounterStatus, EncounterType
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import ChronicCondition, PatientProfile
+
+
+def _assign_perinatal_bed(encounter: Any, role: str, hospital_ops: dict | None, key: str) -> None:
+    """Admit to the hospital's maternity ward / newborn nursery (Issue #2641).
+
+    The bed comes from a key-scoped sub-RNG so no other stream moves. A
+    hospital config without ``perinatal_wards`` leaves the encounter as before.
+    """
+    ward = perinatal_ward(hospital_ops, role)
+    if not ward:
+        return
+    capacity = int(((hospital_ops or {}).get("ward_capacity") or {}).get(ward, 1) or 1)
+    bed_rng = determinism.default_rng(_newborn_sub_seed(key))
+    encounter.ward_id = ward
+    encounter.bed_number = f"{ward}-{int(bed_rng.integers(1, capacity + 1)):02d}"
 
 
 def _newborn_sub_seed(mother_id: str) -> int:
@@ -606,6 +622,7 @@ def simulate_delivery_encounter(
 
     staff = assign_staff("rounds", dept, roster, rng)
     encounter.attending_physician_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
+    _assign_perinatal_bed(encounter, "maternity", hospital_ops, f"maternity-bed|{patient.patient_id}")
     finalize_encounter(
         encounter, admit_source=AdmitSource.OUTP, disposition=DischargeDisposition.HOME, priority=ActPriority.R
     )
@@ -1030,6 +1047,7 @@ def simulate_delivery_encounter(
     # FHIR mother→baby link via Encounter.partOf on the newborn's encounter.
     newborn_encounter.admit_source_encounter_id = encounter.encounter_id
     newborn_encounter.attending_physician_id = encounter.attending_physician_id
+    _assign_perinatal_bed(newborn_encounter, "nursery", hospital_ops, f"nursery-bed|{newborn.patient_id}")
     finalize_encounter(
         newborn_encounter, admit_source=AdmitSource.BORN, disposition=DischargeDisposition.HOME, priority=ActPriority.R
     )

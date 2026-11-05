@@ -45,10 +45,17 @@ def pick_ward(department: str, hospital_ops: dict | None, rng: Any) -> str:
     """Pick a ``ward_id`` for the given department from hospital config."""
     if hospital_ops:
         wards_map = hospital_ops.get("wards", {}) or {}
-        options = wards_map.get(department, [])
+        # Issue #2641: the newborn nursery admits only inborn newborns.
+        nursery = (hospital_ops.get("perinatal_wards") or {}).get("nursery")
+        options = [w for w in wards_map.get(department, []) if w != nursery]
         if options:
             return str(rng.choice(options)) if len(options) > 1 else options[0]
     return "4E"
+
+
+def perinatal_ward(hospital_ops: dict | None, role: str) -> str:
+    """The ward the perinatal pathway admits to (``maternity`` / ``nursery``), or ""."""
+    return str(((hospital_ops or {}).get("perinatal_wards") or {}).get(role) or "")
 
 
 def inpatient_departments(hospital_ops: dict | None) -> frozenset[str]:
@@ -89,9 +96,15 @@ def validate_hospital_ops(hospital_ops: dict[str, Any], source: str) -> None:
             f"hospital config {source}: wards without capacity {sorted(inpatient_wards - set(capacity))}, "
             f"capacity without ward {sorted(set(capacity) - inpatient_wards)}"
         )
+    # Issue #2641: maternity beds and nursery bassinets are counted apart from
+    # the general-ward beds (``perinatal_beds``).
     beds = int(hospital_ops["resource_capacity"].get("inpatient_beds", 0))
+    beds += int(hospital_ops["resource_capacity"].get("perinatal_beds", 0))
     if sum(capacity.values()) != beds:
         raise ValueError(f"hospital config {source}: ward capacities sum to {sum(capacity.values())}, not {beds} beds")
+    for role, ward in (hospital_ops.get("perinatal_wards") or {}).items():
+        if ward not in capacity:
+            raise ValueError(f"hospital config {source}: perinatal {role} ward {ward!r} has no capacity")
     bad_rollup = sorted(k for k, v in hospital_ops["department_rollup"].items() if v not in available)
     if bad_rollup:
         raise ValueError(f"hospital config {source}: rollup to unavailable departments for {bad_rollup}")
