@@ -29,8 +29,8 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
+from clinosim.codes import code_exists, get_system_uri, system_key_for
 from clinosim.codes import display as registry_display
-from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
 from clinosim.countries import lang_for
@@ -900,7 +900,13 @@ def _build_standalone_sr(o: Any, lang: str, country: str, earliest_dr_issued: st
             resolved_code = panels[panel_key].get("loinc", "")
             used_loinc_fallback = True
 
-    resolved_code = resolved_code or raw_code
+    # Issue #2584: an order code is used only when it is a registered LOINC
+    # code; an internal name never goes under the LOINC system (the SR then
+    # carries ``code.text`` only).
+    if not resolved_code and raw_code and code_exists("loinc", raw_code, exact=True):
+        resolved_code = raw_code
+        used_loinc_fallback = True
+    resolved_code = resolved_code or ""
 
     # Display text comes from the code system (LOINC for US, JLAC10 for JP).
     # When we fall back to LOINC (used_loinc_fallback=True), also override

@@ -15,7 +15,6 @@ from datetime import datetime
 
 import pytest
 
-from clinosim.codes import get_system_uri
 from clinosim.modules.output.fhir_r4.labs.observations import _bb_labs
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.types.encounter import Order, OrderResult, OrderStatus, OrderType
@@ -116,15 +115,14 @@ def test_jp_unmapped_lab_routes_to_uncoded_after_pr3c():
     assert coding["code"] == "99999999999999999"
 
 
-def test_us_unmapped_lab_still_loinc():
-    """US has no jlac10 involved at all — unaffected by this fix, still loinc throughout."""
+def test_us_unmapped_lab_with_unregistered_order_code_has_no_loinc_coding():
+    """US: an unmapped analyte whose order code is not a registered LOINC code
+    gets no coding rather than a fabricated one under LOINC (Issue #2584)."""
     t = datetime(2026, 7, 4, 8, 0)
     o = _make_lab_order("O1", "NotARealLabName", "99999-9", 1.0, t)
     ctx = _make_ctx([o], "US")
     obs = _bb_labs(ctx)
-    coding = obs[0]["code"]["coding"][0]
-    assert coding["system"] == get_system_uri("loinc")
-    assert coding["code"] == "99999-9"
+    assert not obs[0]["code"].get("coding")
 
 
 # Issue #777: code.text should carry a human-readable primary label

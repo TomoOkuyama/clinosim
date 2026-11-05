@@ -411,12 +411,10 @@ def test_bb_service_requests_standalone_resolves_internal_name_via_code_map():
     assert code_obj["text"] == "WBC"
 
 
-def test_bb_service_requests_standalone_code_map_not_found_falls_back_to_order_code():
-    """Stand-alone SR with display_name not in code_map falls back to order_code.
-
-    Defensive: if a new analyte isn't yet in code_mapping_lab.yaml, the SR
-    uses the raw order_code rather than crashing.
-    """
+def test_bb_service_requests_standalone_unregistered_order_code_emits_text_only():
+    """Stand-alone SR with display_name not in code_map and an order_code that
+    is not a registered LOINC code emits ``code.text`` only — never the raw
+    order_code under the LOINC system (Issue #2584)."""
     orders = [
         _make_dict_order(
             order_id="ORD-pt1-ADM-L11",
@@ -428,10 +426,8 @@ def test_bb_service_requests_standalone_code_map_not_found_falls_back_to_order_c
     ctx = _make_ctx(orders, country="us")  # type: ignore[arg-type]
     resources = _bb_service_requests(ctx)
     assert len(resources) == 1
-    sr = resources[0]
-    coding = sr["code"]["coding"][0]
-    # Falls back to order_code when display_name not in code_map
-    assert coding["code"] == "999-UNKNOWN"
+    assert "coding" not in resources[0]["code"]
+    assert resources[0]["code"]["text"]
 
 
 def test_bb_service_requests_standalone_resolves_internal_name_via_code_map_jp():
