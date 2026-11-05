@@ -184,7 +184,7 @@ def test_bb_service_requests_panel_emits_single_sr():
     assert sr["resourceType"] == "ServiceRequest"
     assert sr["id"] == _resolve_service_request_id("enc1-CBC-1")
     assert sr["intent"] == "order"
-    assert sr["code"]["text"] == "CBC"
+    assert sr["code"]["text"] == "Complete blood count (hemogram) panel - Blood by Automated count"  # Issue #2632
     assert sr["code"]["coding"][0]["code"] == "58410-2"  # CBC LOINC panel code
 
 
@@ -301,7 +301,7 @@ def test_bb_service_requests_dict_input_panel():
     assert len(resources) == 1
     assert resources[0]["resourceType"] == "ServiceRequest"
     assert resources[0]["id"] == _resolve_service_request_id("enc1-CBC-1")
-    assert resources[0]["code"]["text"] == "CBC"
+    assert resources[0]["code"]["text"] == "Complete blood count (hemogram) panel - Blood by Automated count"
 
 
 def test_bb_service_requests_dict_input_standalone():
