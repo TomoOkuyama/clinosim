@@ -132,3 +132,9 @@ specimen_type:
 newborn_screen:
   hearing_aabr: "413083006"
   metabolic: "428447008"
+
+# Series laterality of a study of a paired structure (Issue #2657).
+laterality:
+  left: '7771000'
+  right: '24028007'
+

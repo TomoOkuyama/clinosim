@@ -927,6 +927,13 @@ codes:
   36484-4:
     en: CT Hip WO contrast
     ja: 股関節CT 単純
+  # Issue #2657 (tx.fhir.org $expand 2026-11-06).
+  36669-0:
+    en: XR Cervical spine 2 Views
+    ja: 頸椎単純X線撮影 2方向
+  36670-8:
+    en: XR Lumbar spine 2 Views
+    ja: 腰椎単純X線撮影 2方向
   # Issue #2699 (tx.fhir.org $lookup 2026-11-06).
   36554-4:
     en: XR Chest Single view

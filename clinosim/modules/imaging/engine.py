@@ -74,6 +74,9 @@ SUPPORTED_BODY_SITES: frozenset[str] = frozenset(
         "carotid_artery",
         "biliary_tract",
         "urinary_bladder",
+        # Issue #2657
+        "cervical_spine",
+        "lumbar_spine",
     }
 )
 
@@ -383,7 +386,7 @@ def _resolve_imaging_procedure_code_key(
             return "CR_Supine_Upright" if len(views) >= 2 else "CR_AP"
         if body_site == "hand":
             return "CR_PA_Oblique_Lateral"
-        if body_site in ("hip", "knee", "spine", "shoulder"):
+        if body_site in ("hip", "knee", "spine", "shoulder", "cervical_spine", "lumbar_spine"):
             return "CR_AP_Lateral"
         if body_site in ("ankle", "foot"):
             return "CR_AP_Lateral_Oblique"
@@ -403,7 +406,7 @@ def _resolve_imaging_procedure_code_key(
     if modality == "MR":
         if body_site == "head" and "angiography" in views:  # Issue #2699: MR angiography
             return "MRA"
-        if body_site in ("head", "spine", "biliary_tract"):
+        if body_site in ("head", "spine", "biliary_tract", "lumbar_spine"):
             return "MR_non_contrast"
     # US — single procedure per body site (doppler for leg, generic for the rest)
     if modality == "US":
@@ -421,6 +424,19 @@ def _resolve_imaging_procedure_code_key(
     raise ValueError(
         f"Unsupported imaging combination: modality={modality} body_site={body_site} views={views} contrast={contrast}"
     )
+
+
+def imaging_laterality(encounter_id: str, body_site: str) -> str:
+    """The side ("left" / "right") a study of a paired structure images, or ""
+    (Issue #2657). The orders carry no side, so one side is drawn per stay from
+    a hash of the encounter (no RNG): every paired study of a stay images the
+    same side."""
+    if not (load_body_sites().get(body_site) or {}).get("paired"):
+        return ""
+    import hashlib
+
+    digest = hashlib.sha256(f"clinosim:imaging-side:v1|{encounter_id}".encode()).digest()
+    return "left" if digest[0] % 2 == 0 else "right"
 
 
 def imaging_procedure_loinc(modality: str, body_site: str, views: list[str], contrast: bool) -> str:
@@ -859,6 +875,7 @@ def imaging_enricher(ctx: Any) -> None:
                 endpoint_id=f"{ENDPOINT_ID_PREFIX}{study_uid}",
                 contrast=contrast,
                 views=list(views),
+                laterality=imaging_laterality(encounter_id, body_site_key),
                 report=report,
                 description=_non_stub_display,
             )

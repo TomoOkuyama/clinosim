@@ -74,7 +74,12 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
         "shoulder",
         [],
     ),
-    (rf"spine{_SEP}x{_SEP}?ray|(?:lumbar|cervical|thoracic){_SEP}(?:spine{_SEP})?x{_SEP}?ray", "CR", "spine", ["AP"]),
+    # Issue #2657: a spine study names its region. An unspecified "spine
+    # X-ray" is read as lumbar (the thoracolumbar compression-fracture and
+    # back-pain work-ups that order it); a thoracic film stays vertebral column.
+    (rf"cervical{_SEP}(?:spine{_SEP})?x{_SEP}?ray|c{_SEP}spine{_SEP}x{_SEP}?ray", "CR", "cervical_spine", []),
+    (rf"thoracic{_SEP}(?:spine{_SEP})?x{_SEP}?ray", "CR", "spine", ["AP"]),
+    (rf"spine{_SEP}x{_SEP}?ray|lumbar{_SEP}(?:spine{_SEP})?x{_SEP}?ray", "CR", "lumbar_spine", []),
     (rf"脊椎{_SEP}x{_SEP}(?:線|p)|(?:腰椎|頸椎|胸椎){_SEP}x{_SEP}(?:線|p)", "CR", "spine", ["AP"]),
     # ---- CT ----
     (rf"(?:head|brain|cranial){_SEP}ct|ct{_SEP}(?:head|brain)(?:{_SEP}noncontrast|{_SEP}stat)?", "CT", "head", []),
@@ -107,12 +112,9 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     (rf"(?:head|brain|cranial){_SEP}mri|mri{_SEP}(?:head|brain)(?:{_SEP}dwi)?", "MR", "head", []),
     (rf"mra{_SEP}intracranial", "MR", "head", ["angiography"]),
     (rf"頭部{_SEP}mri|脳{_SEP}mri", "MR", "head", []),
-    (
-        rf"spine{_SEP}mri|(?:lumbar|cervical|thoracic){_SEP}mri|mri{_SEP}(?:spine|lumbar|cervical|thoracic)",
-        "MR",
-        "spine",
-        [],
-    ),
+    # Issue #2657: a spine or lumbar MRI images the lumbar spine.
+    (rf"spine{_SEP}mri|lumbar{_SEP}mri|mri{_SEP}(?:spine|lumbar)", "MR", "lumbar_spine", []),
+    (rf"(?:cervical|thoracic){_SEP}mri|mri{_SEP}(?:cervical|thoracic)", "MR", "spine", []),
     (rf"脊椎{_SEP}mri|(?:腰椎|頸椎|胸椎){_SEP}mri", "MR", "spine", []),
     (rf"abdominal?{_SEP}mri|mri{_SEP}abdomen", "MR", "abdomen", []),
     (rf"腹部{_SEP}mri", "MR", "abdomen", []),

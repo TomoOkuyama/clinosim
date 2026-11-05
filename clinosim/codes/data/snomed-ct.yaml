@@ -747,6 +747,19 @@ codes:
   '818982008':
     en: Abdominopelvic cross-sectional segment
     ja: 腹部・骨盤
+  # Issue #2657: spine regions and laterality (tx.fhir.org 2026-11-06).
+  '122494005':
+    en: Structure of cervical vertebral column
+    ja: 頸椎
+  '122496007':
+    en: Lumbar spine structure
+    ja: 腰椎
+  '7771000':
+    en: Left
+    ja: 左
+  '24028007':
+    en: Right
+    ja: 右
   # Issue #2655: body sites of ankle / shoulder radiographs, carotid ultrasound
   # and MRCP (tx.fhir.org $expand 2026-11-06).
   '70258002':

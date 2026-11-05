@@ -28,6 +28,8 @@ modalities:
       ankle: ["AP", "Mortise", "Lateral"]        # Issue #2655
       foot: ["AP", "Oblique", "Lateral"]         # Issue #2655
       shoulder: ["AP", "Lateral"]                # Issue #2655 (incl. post-reduction)
+      cervical_spine: ["AP", "Lateral"]          # Issue #2657
+      lumbar_spine: ["AP", "Lateral"]            # Issue #2657
 
   CT:                                            # Computed Tomography
     dicom_code: "CT"
@@ -57,11 +59,13 @@ modalities:
       spine: [120, 200]
       abdomen: [150, 280]                        # T1/T2/DWI abdomen protocol
       biliary_tract: [40, 120]                   # Issue #2655: MRCP 3D + thick-slab series
+      lumbar_spine: [120, 200]                   # Issue #2657
     default_views_by_body_site:
       head: ["axial", "sagittal"]
       spine: ["sagittal", "axial"]
       abdomen: ["axial", "coronal"]
       biliary_tract: ["coronal", "axial"]        # Issue #2655: MRCP (thick-slab coronal + axial)
+      lumbar_spine: ["sagittal", "axial"]        # Issue #2657
 
   US:                                            # Ultrasound
     dicom_code: "US"

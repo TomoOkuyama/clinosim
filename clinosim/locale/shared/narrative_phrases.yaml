@@ -2583,3 +2583,13 @@ punct:
   sentence_end:
     en: "."
     ja: "。"
+
+# Issue #2657: the side of an imaging order's body site (ServiceRequest.bodySite.text).
+imaging_side:
+  left:
+    en: "Left {site_lower}"
+    ja: "左{site}"
+  right:
+    en: "Right {site_lower}"
+    ja: "右{site}"
+
