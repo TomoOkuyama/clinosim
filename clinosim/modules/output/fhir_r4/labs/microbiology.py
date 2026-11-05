@@ -542,6 +542,26 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     return out
 
 
+def _antibiotic_name(sus: dict, lang: str) -> str:
+    """The tested antibiotic's name in ``lang`` (LOINC display without the
+    "[Susceptibility]" / 感受性 tail); shared by the conclusion and the text form."""
+    if sus.get("antibiotic_display"):
+        return str(sus["antibiotic_display"])
+    loinc = str(sus.get("antibiotic_loinc") or "")
+    if not loinc:
+        return "?"
+    disp = registry_display("loinc", loinc, lang) or ""
+    if not disp:
+        return loinc
+    # Trim the "[Susceptibility]" / "感受性" tail — the header
+    # of the summary already establishes we are listing sensitivities.
+    for tail_marker in (" [Susceptibility]", t("mb_text.susceptibility_tail", "ja")):
+        if disp.endswith(tail_marker):
+            disp = disp[: -len(tail_marker)]
+            break
+    return disp.strip() or loinc
+
+
 def _mb_conclusion_text(mb: dict, lang: str) -> str:
     """One-line ``DiagnosticReport.conclusion`` text (Issue #1343).
 
@@ -572,28 +592,12 @@ def _mb_conclusion_text(mb: dict, lang: str) -> str:
     # provided; otherwise resolve the LOINC display and strip the trailing
     # ``[Susceptibility]`` suffix / JA ``感受性`` suffix so the reader
     # sees the drug name ("Ceftriaxone=S") rather than a bare LOINC code.
-    def _ab_label(sus: dict) -> str:
-        if sus.get("antibiotic_display"):
-            return str(sus["antibiotic_display"])
-        loinc = str(sus.get("antibiotic_loinc") or "")
-        if not loinc:
-            return "?"
-        disp = registry_display("loinc", loinc, lang) or ""
-        if not disp:
-            return loinc
-        # Trim the "[Susceptibility]" / "感受性" tail — the header
-        # of the summary already establishes we are listing sensitivities.
-        for tail_marker in (" [Susceptibility]", t("mb_text.susceptibility_tail", "ja")):
-            if disp.endswith(tail_marker):
-                disp = disp[: -len(tail_marker)]
-                break
-        return disp.strip() or loinc
 
     # Issue #2659: every tested antibiotic (a panel is at most a handful);
     # the conclusion is never cut off with an ellipsis.
     parts: list[str] = []
     for sus in sus_list:
-        ab = _ab_label(sus)
+        ab = _antibiotic_name(sus, lang)
         interp = str(sus.get("interpretation") or "?")
         parts.append(f"{ab}={interp}")
     tail = ", ".join(parts)
@@ -604,7 +608,11 @@ def _mb_presented_text(mb: dict, lang: str) -> str:
     """Text/plain culture + susceptibility summary for presentedForm, in
     ``lang``: the same lines in every language, worded by the phrase
     catalog (``mb_text``; Issue #2457)."""
-    specimen = mb.get("specimen", "") or "unknown"
+    # Issue #2664: the specimen's name, not the CIF key.
+    specimen_code = mb.get("specimen_snomed", "") or ""
+    specimen = (registry_display("snomed-ct", specimen_code, lang) if specimen_code else "") or (
+        mb.get("specimen", "") or "unknown"
+    )
     organism = mb.get("organism_snomed", "") or ""
     growth = t("mb_text.growth_detected" if mb.get("growth") else "mb_text.growth_none", lang)
     lines = [t("mb_text.specimen", lang, value=specimen), t("mb_text.growth", lang, value=growth)]
@@ -617,7 +625,8 @@ def _mb_presented_text(mb: dict, lang: str) -> str:
     if sus_list:
         lines.append(t("mb_text.susceptibility_header", lang))
         for sus in sus_list:
-            ab = sus.get("antibiotic_loinc", "?")
-            interp = sus.get("interpretation", "?")
+            ab = _antibiotic_name(sus, lang)
+            code = str(sus.get("interpretation") or "?")
+            interp = registry_display("hl7-observation-interpretation", code, lang) or code
             lines.append(f"  {ab}: {interp}")
     return "\n".join(lines) + "\n"
