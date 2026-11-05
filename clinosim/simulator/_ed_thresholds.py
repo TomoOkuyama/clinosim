@@ -49,6 +49,7 @@ __all__ = [
     "ED_LAB_ORDER_OFFSET_STD_MIN",
     "ED_LAB_RESULT_OFFSET_MEAN_MIN",
     "ED_LAB_RESULT_OFFSET_STD_MIN",
+    "ED_LAB_MIN_TURNAROUND_MIN",
     "ED_PAIN_INFLAMMATION_SCALE",
     "ED_PAIN_MAX",
     "ED_PAIN_MIN",
@@ -113,6 +114,14 @@ ED_LAB_RESULT_OFFSET_STD_MIN: float = 15.0
 """Standard deviation for the ED lab-result timing draw. 15 min
 captures the practical spread of core-lab throughput at different
 times of day (staffing / instrument queue)."""
+
+ED_LAB_MIN_TURNAROUND_MIN: int = 15
+"""Shortest minutes from an ED lab order to its result (Issue #2635).
+
+The order and result offsets are drawn independently from ``visit_time``,
+so a late order with an early result draw would be resulted before it was
+ordered. A STAT specimen still has to be drawn, sent and run: the result
+comes no sooner than this after the order."""
 
 ED_IMAGING_ORDER_OFFSET_MEAN_MIN: float = 20.0
 """Mean minutes from ``visit_time`` at which an ED imaging order is
