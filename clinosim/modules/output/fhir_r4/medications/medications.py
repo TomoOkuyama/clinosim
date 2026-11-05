@@ -937,6 +937,11 @@ def _build_medication_request(
             str(order.get("ordered_datetime", "") or ""), earliest_admin_dt
         ),
     }
+    # Issue #2615: a new dose / frequency of the same drug replaces the earlier order.
+    if order.get("prior_order_id"):
+        resource["priorPrescription"] = {
+            "reference": f"MedicationRequest/{_resolve_mr_id(str(order['prior_order_id']))}"
+        }
     # CY6-22 (Chain-6): MedicationRequest.category — HL7 medicationrequest-
     # category (inpatient / outpatient / community / discharge). Issue #548:
     # canonical decision tree extracted to `_derive_mr_category` — shared with

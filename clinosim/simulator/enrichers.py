@@ -468,6 +468,23 @@ def register_builtin_enrichers() -> None:
         )
     )
 
+    # Superseded medication orders (Issue #2615): a second order for the same
+    # drug, or a listed class switch (beta-lactam -> carbapenem), stops the
+    # earlier order at the new order's time and drops its later MAR entries.
+    # POST_ENCOUNTER after discontinue_flip (same order 91, sorted by name),
+    # so no per-day MAR draw moves. RNG-free.
+    from clinosim.modules.order.supersede import enrich_supersede_orders
+
+    register_enricher(
+        Enricher(
+            name="supersede_orders",
+            stage=POST_ENCOUNTER,
+            order=91,
+            enabled=lambda c: True,
+            run=enrich_supersede_orders,
+        )
+    )
+
     # Lab-derived complication diagnosis (Issue #1326). Scans an inpatient
     # encounter's Creatinine lab_results for KDIGO Stage 3 absolute crossings
     # (Cr >= 4.0 mg/dL) and appends a working_diagnoses N17.9 entry when the

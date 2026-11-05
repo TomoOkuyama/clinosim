@@ -241,6 +241,9 @@ class Order:
     route: str = ""  # "PO" | "IV" | "SC" | "IM" | "SL" | "topical"
     duration_days: int | None = None
     reason_condition: str = ""  # ICD code or condition reference
+    # Issue #2615: the order this one replaces (same drug, new dose or
+    # frequency); emitted as MedicationRequest.priorPrescription.
+    prior_order_id: str = ""
     # PR1: Panel-aware grouping for ServiceRequest emission.
     # Empty = stand-alone test (1 SR per Order). Non-empty = panel name
     # ("CBC"/"BMP"/"LFT"/"ABG"/"Lipid"/"Coag"/"UA") — Orders sharing the same
