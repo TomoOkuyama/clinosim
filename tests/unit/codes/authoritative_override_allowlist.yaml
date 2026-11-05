@@ -302,14 +302,6 @@ loinc:
       short form of LOINC LONG_COMMON_NAME 'Glucose [Mass/volume] in Serum or Plasma'
       (specimen / units / method suffix elided for readability).
     registered_at: 2026-07-19
-  24338-6:
-    lang: en
-    clinosim_display: Gas panel - Arterial blood
-    authoritative_display: Gas panel - Blood
-    rationale: Clinical shorthand. Curated 'Gas panel - Arterial blood' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Gas panel - Blood' (specimen
-      / units / method suffix elided for readability).
-    registered_at: 2026-07-19
   24357-6:
     lang: en
     clinosim_display: Urinalysis panel
@@ -424,15 +416,6 @@ loinc:
       equivalent short form of LOINC LONG_COMMON_NAME 'Erythrocyte [Sedimentation
       Rate] in Blood' (specimen / units / method suffix elided for readability).
     registered_at: 2026-07-19
-  30934-4:
-    lang: en
-    clinosim_display: Brain natriuretic peptide [Mass/volume] in Plasma
-    authoritative_display: Natriuretic peptide B [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Brain natriuretic peptide [Mass/volume]
-      in Plasma' is a semantically equivalent short form of LOINC LONG_COMMON_NAME
-      'Natriuretic peptide B [Mass/volume] in Serum or Plasma' (specimen / units /
-      method suffix elided for readability).
-    registered_at: 2026-07-19
   3094-0:
     lang: en
     clinosim_display: Blood urea nitrogen
@@ -467,14 +450,6 @@ loinc:
       is a semantically equivalent short form of LOINC LONG_COMMON_NAME 'Glomerular
       filtration rate [Volume Rate/Area] in Serum or Plasma by Creatinine-based formula
       (MDRD)/1.73 sq M' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  42637-9:
-    lang: en
-    clinosim_display: B-type natriuretic peptide
-    authoritative_display: Natriuretic peptide B [Mass/volume] in Blood
-    rationale: Clinical shorthand. Curated 'B-type natriuretic peptide' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Natriuretic peptide B [Mass/volume]
-      in Blood' (specimen / units / method suffix elided for readability).
     registered_at: 2026-07-19
   4537-7:
     lang: en
@@ -529,14 +504,6 @@ loinc:
       short form of LOINC LONG_COMMON_NAME 'Glomerular filtration rate [Volume Rate/Area]
       in Serum, Plasma or Blood by Creatinine-based formula (MDRD)/1.73 sq M among
       non black population' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  51990-0:
-    lang: en
-    clinosim_display: Basic metabolic 2000 panel - Serum or Plasma
-    authoritative_display: Basic metabolic panel - Blood
-    rationale: Clinical shorthand. Curated 'Basic metabolic 2000 panel - Serum or
-      Plasma' is a semantically equivalent short form of LOINC LONG_COMMON_NAME 'Basic
-      metabolic panel - Blood' (specimen / units / method suffix elided for readability).
     registered_at: 2026-07-19
   55418-8:
     lang: en

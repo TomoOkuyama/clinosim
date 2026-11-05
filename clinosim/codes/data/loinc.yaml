@@ -299,6 +299,10 @@ codes:
   1963-8:
     en: Bicarbonate [Moles/volume] in Serum or Plasma
     ja: HCO3
+  # Issue #2603: the blood-gas bicarbonate (tx.fhir.org $lookup 2026-11-05).
+  1960-4:
+    en: Bicarbonate [Moles/volume] in Arterial blood
+    ja: HCO3
   1975-2:
     en: Total bilirubin
     ja: 総ビリルビン
@@ -365,9 +369,9 @@ codes:
   3040-3:
     en: Lipase [Enzymatic activity/volume] in Serum or Plasma
     ja: リパーゼ
-  30934-4:
-    en: Brain natriuretic peptide [Mass/volume] in Plasma
-    ja: BNP（血漿）
+  30934-4:  # Issue #2603: LOINC display (tx.fhir.org $lookup 2026-11-05)
+    en: Natriuretic peptide B [Mass/volume] in Serum or Plasma
+    ja: BNP
   3094-0:
     en: Urea nitrogen [Mass/volume] in Serum or Plasma
     ja: 尿素窒素
@@ -398,9 +402,6 @@ codes:
   33914-3:
     en: Glomerular filtration rate/1.73 sq M.predicted
     ja: 推算糸球体濾過量（eGFR）
-  42637-9:
-    en: Natriuretic peptide B [Mass/volume] in Blood
-    ja: BNP
   4544-3:
     en: Hematocrit
     ja: ヘマトクリット
@@ -601,7 +602,7 @@ codes:
   58410-2:
     en: Complete blood count (hemogram) panel - Blood by Automated count
     ja: 全血球計算パネル
-  51990-0:
+  24321-2:
     en: Basic metabolic 2000 panel - Serum or Plasma
     ja: 基本代謝パネル
   24325-3:
@@ -613,7 +614,7 @@ codes:
   24356-8:
     en: Urinalysis complete panel - Urine
     ja: 尿検査パネル
-  24338-6:
+  24336-0:
     en: Gas panel - Arterial blood
     ja: 動脈血ガスパネル
   # NLM Clinical Tables verified (clinicaltables.nlm.nih.gov/api/loinc_items).
