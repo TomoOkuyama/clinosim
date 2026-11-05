@@ -75,8 +75,9 @@ from clinosim.modules.code_status.enricher import enrich_code_status
     - `dnr_dni` — **同じく 304253006**。SNOMED CT International には
       DNR + DNI 組合せに対する独立 active concept が存在しないため、
       tier ラベル側で DNI を区別しコードは共用する。
-    - `comfort` — 103735009 (「緩和ケア (コンフォート)」)。将来 SNOMED
-      release に対する再確認待ちで `TODO: verify` が付いている。
+    - `comfort` — **同じく 304253006** (Issue #2649)。緩和ケア方針は蘇生
+      しない方針であり、103735009 Palliative care は処置の概念で蘇生方針の
+      値ではない。
   - observable + 蘇生関連コードは 2026-06-22 に `tx.fhir.org` の $lookup
     で active を確認済み (詳細手順は YAML 冒頭コメント)。
 - [`clinosim/locale/us/code_status_rates.yaml`](../../locale/us/code_status_rates.yaml)
