@@ -253,7 +253,9 @@ def _build_imaging_study(
     if _bs_key is not None:
         try:
             _contrast = bool(_o(study, "contrast", False))
-            _ck = _resolve_imaging_procedure_code_key(modality_code, _bs_key, [], _contrast)
+            _ck = _resolve_imaging_procedure_code_key(
+                modality_code, _bs_key, list(_o(study, "views", []) or []), _contrast
+            )
             _proc = (body_sites[_bs_key].get("procedure_codes") or {}).get(_ck, {})
             _proc_loinc = _proc.get("loinc", "")
             # META #1805 Phase B.2 Part 2: display resolves via the LOINC

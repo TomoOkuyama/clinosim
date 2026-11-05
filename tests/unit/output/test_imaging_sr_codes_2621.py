@@ -27,7 +27,7 @@ def _order(name: str) -> dict:
 @pytest.mark.parametrize(
     ("name", "loinc", "site"),
     [
-        ("Chest_Xray", "36572-6", "51185008"),
+        ("Chest_Xray", "42272-5", "51185008"),  # Issue #2699: 2 views (PA + lateral) by default
         ("CT_Head", "30799-1", "69536005"),
         ("Ankle_Xray", "36294-7", "70258002"),
         ("CT_abdomen_pelvis_with_contrast", "36813-4", "818982008"),

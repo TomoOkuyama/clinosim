@@ -102,7 +102,8 @@ class TestInferImagingMetadata:
         assert infer_imaging_metadata("Shoulder_Xray_AP_Lateral") is not None
         assert infer_imaging_metadata("Cervical_Spine_Xray") is not None
         assert infer_imaging_metadata("Wrist_Xray_AP_Lateral") is not None
-        assert infer_imaging_metadata("Xray_Affected_Area") is not None
+        # Issue #2699: "affected area" names no site — no longer guessed as chest.
+        assert infer_imaging_metadata("Xray_Affected_Area") is None
 
     def test_ecg_and_angiography_infer_dicom_modalities(self):
         """Session 52 fix 4: ECG(DICOM waveform modality)+ XA(coronary

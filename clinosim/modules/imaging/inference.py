@@ -35,12 +35,13 @@ from clinosim.modules.imaging.engine import load_body_sites, load_modalities
 _SEP = r"[\s\-_]*"  # Separator (any)
 _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     # ---- CR / plain X-ray ----
-    (
-        rf"chest{_SEP}x{_SEP}?ray(?:{_SEP}pa{_SEP}lateral)?{_SEP}(?:pa|portable|lateral)?|chest{_SEP}film|chest{_SEP}cr|cxr",
-        "CR",
-        "chest",
-        ["PA"],
-    ),
+    # Issue #2699: the views decide the study — a portable AP film, PA and
+    # lateral, or a single PA view; a plain "chest X-ray" takes the
+    # modality's default views (PA + lateral).
+    (rf"chest{_SEP}x{_SEP}?ray{_SEP}(?:portable|ap)\b", "CR", "chest", ["AP"]),
+    (rf"chest{_SEP}x{_SEP}?ray{_SEP}pa{_SEP}(?:and{_SEP})?lateral", "CR", "chest", ["PA", "Lateral"]),
+    (rf"chest{_SEP}x{_SEP}?ray{_SEP}pa\b", "CR", "chest", ["PA"]),
+    (rf"chest{_SEP}x{_SEP}?ray|chest{_SEP}film|chest{_SEP}cr|cxr", "CR", "chest", []),
     (
         rf"胸部{_SEP}x[\s\-_]*(?:線|ray|p)|胸部{_SEP}単純{_SEP}(?:x{_SEP}(?:線|ray|p)|レ|レントゲン)|胸写|胸{_SEP}x{_SEP}p",
         "CR",
@@ -75,8 +76,6 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     ),
     (rf"spine{_SEP}x{_SEP}?ray|(?:lumbar|cervical|thoracic){_SEP}(?:spine{_SEP})?x{_SEP}?ray", "CR", "spine", ["AP"]),
     (rf"脊椎{_SEP}x{_SEP}(?:線|p)|(?:腰椎|頸椎|胸椎){_SEP}x{_SEP}(?:線|p)", "CR", "spine", ["AP"]),
-    # Freetext fallback: "Xray Affected Area" and similar map to chest provisionally.
-    (rf"xray{_SEP}affected{_SEP}area", "CR", "chest", ["AP"]),
     # ---- CT ----
     (rf"(?:head|brain|cranial){_SEP}ct|ct{_SEP}(?:head|brain)(?:{_SEP}noncontrast|{_SEP}stat)?", "CT", "head", []),
     (rf"頭部{_SEP}ct|脳{_SEP}ct", "CT", "head", []),
@@ -94,7 +93,7 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     (rf"(?:kidney|renal){_SEP}ct", "CT", "kidney", []),
     (rf"腎{_SEP}ct|腎臓{_SEP}ct", "CT", "kidney", []),
     # CT angiography — head/neck に routed
-    (rf"ct{_SEP}angiography{_SEP}head{_SEP}neck", "CT", "head", []),
+    (rf"ct{_SEP}angiography{_SEP}head{_SEP}neck", "CT", "head", ["angiography"]),
     # Soft-tissue CT with/without contrast (cellulitis / abscess /
     # tissue-injury workup). Folded into ``leg`` for the same
     # anatomic-most-common reason as Soft_tissue_ultrasound above.
@@ -106,7 +105,7 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     ),
     # ---- MR / MRA ----
     (rf"(?:head|brain|cranial){_SEP}mri|mri{_SEP}(?:head|brain)(?:{_SEP}dwi)?", "MR", "head", []),
-    (rf"mra{_SEP}intracranial", "MR", "head", []),
+    (rf"mra{_SEP}intracranial", "MR", "head", ["angiography"]),
     (rf"頭部{_SEP}mri|脳{_SEP}mri", "MR", "head", []),
     (
         rf"spine{_SEP}mri|(?:lumbar|cervical|thoracic){_SEP}mri|mri{_SEP}(?:spine|lumbar|cervical|thoracic)",

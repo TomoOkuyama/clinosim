@@ -258,4 +258,11 @@ codes:
   '93880':
     en: Duplex scan of extracranial arteries; complete bilateral study
     ja: 頸部動脈デュプレックス超音波検査（両側）
-
+  # Issue #2699: angiography of the head (AMA CPT descriptors; licensed, not
+  # checked against a public terminology server).
+  '70496':
+    en: Computed tomographic angiography, head, with contrast material(s), including noncontrast images, if performed, and image postprocessing
+    ja: 頭部CTアンギオグラフィ（造影）
+  '70544':
+    en: Magnetic resonance angiography, head; without contrast material(s)
+    ja: 頭部MRアンギオグラフィ（造影剤なし）
