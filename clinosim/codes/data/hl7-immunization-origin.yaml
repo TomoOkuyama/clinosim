@@ -1,0 +1,13 @@
+# HL7 Immunization Origin Codes. Authoritative source: HL7 Terminology (THO),
+# CodeSystem immunization-origin
+# (http://terminology.hl7.org/CodeSystem/immunization-origin).
+# Issue #2628: Immunization.reportOrigin of a dose not given at this hospital
+# (primarySource false). Displays checked with tx.fhir.org $lookup 2026-11-05.
+# Only the codes clinosim emits are registered.
+metadata:
+  kind: code-system
+  name: HL7 Immunization Origin Codes
+  uri: http://terminology.hl7.org/CodeSystem/immunization-origin
+  source: "HL7 Terminology (THO)"
+codes:
+  record:      {en: "Written Record",          ja: "接種記録"}
