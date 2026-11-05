@@ -486,6 +486,16 @@ codes:
   9269-2:
     en: Glasgow coma score total
     ja: グラスゴー昏睡スケール合計
+  # Issue #2646: GCS components (tx.fhir.org $lookup 2026-11-05).
+  9267-6:
+    en: Glasgow coma score eye opening
+    ja: グラスゴー昏睡スケール開眼反応
+  9270-0:
+    en: Glasgow coma score verbal
+    ja: グラスゴー昏睡スケール言語反応
+  9268-4:
+    en: Glasgow coma score motor
+    ja: グラスゴー昏睡スケール運動反応
   38227-5:
     en: Braden scale total score
     ja: ブレーデンスケール合計スコア
