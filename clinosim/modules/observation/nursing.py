@@ -47,6 +47,12 @@ def _scores() -> dict:
     return load_data_yaml(_REF_DIR / "nursing_scores.yaml") or {}
 
 
+def barthel_items() -> list[dict]:
+    """The ten Barthel Index items: CIF field, item LOINC and the LOINC answer
+    per score (Issue #2693)."""
+    return list(_scores().get("barthel_items") or [])
+
+
 def _band_points(value, bands) -> int:
     """bands: list of [low|null, high|null, points]; inclusive bounds."""
     if value is None:

@@ -1312,7 +1312,7 @@
       },
       "sections": {
         "admission_status": "入院期間: 32日間。入院理由: 発熱・意識変容・低血圧。経過中の合併症: たこつぼ型心筋症、肝機能障害、ICU せん妄。退院基準を満たし退院となった。",
-        "discharge_readiness": "退院準備: 退院時 Barthel 96/100。",
+        "discharge_readiness": "退院準備: 退院時 Barthel 95/100。",
         "nursing_interventions_provided": "入院期間合計 IN 55644 mL / OUT 25587 mL (差 +30057 mL)。",
         "patient_education": "患者教育: 腎機能保護、蛋白制限。"
       },
@@ -2536,7 +2536,7 @@
         "lang": "ja"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 96/100 → 自立（食事10、入浴4、移動14、排泄9）",
+        "adl_assessment": "Barthel Index 95/100 → 自立（食事10、入浴5、移動15、排泄10）",
         "care_plan": "看護計画: 尿量・浮腫観察、電解質モニタ。",
         "nursing_diagnosis": "看護診断: 腎機能低下・電解質異常のリスク。",
         "nursing_history": "入院目的: 発熱・意識変容・低血圧。既往: 慢性腎臓病。",

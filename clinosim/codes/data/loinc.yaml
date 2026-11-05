@@ -540,6 +540,106 @@ codes:
   59460-6:
     en: Fall risk total [Morse Fall Scale]
     ja: 転倒リスク合計 [モールス転倒スケール]
+  # Issue #2693: Barthel Index items and answers (tx.fhir.org $lookup 2026-11-06).
+  83184-2:
+    en: Feeding or eating - functional ability
+    ja: 食事 (機能)
+  83181-8:
+    en: Bathing - functional ability
+    ja: 入浴 (機能)
+  96767-9:
+    en: Grooming - functional ability
+    ja: 整容 (機能)
+  83182-6:
+    en: Dressing - functional ability
+    ja: 更衣 (機能)
+  96759-6:
+    en: Bowel control - functional ability
+    ja: 排便コントロール (機能)
+  96760-4:
+    en: Bladder control - functional ability
+    ja: 排尿コントロール (機能)
+  83183-4:
+    en: Toileting - functional ability
+    ja: トイレ動作 (機能)
+  83185-9:
+    en: Transferring - functional ability
+    ja: 移乗 (機能)
+  83186-7:
+    en: Ambulation - functional ability
+    ja: 歩行 (機能)
+  96758-8:
+    en: Stairs - functional ability
+    ja: 階段昇降 (機能)
+  LA24937-7:
+    en: "Unable"
+    ja: "不能"
+  LA31630-9:
+    en: "Needs help cutting, spreading butter, etc., or requires modified diet"
+    ja: "切る・塗るなどに介助、または形態調整食が必要"
+  LA12302-8:
+    en: "Independent"
+    ja: "自立"
+  LA12304-4:
+    en: "Dependent"
+    ja: "全介助"
+  LA31636-6:
+    en: "Independent (or in shower)"
+    ja: "自立 (シャワー含む)"
+  LA31643-2:
+    en: "Needs help with personal care"
+    ja: "整容に介助が必要"
+  LA31644-0:
+    en: "Independent face/hair/teeth/shaving (implements provided)"
+    ja: "洗面・整髪・歯磨き・髭剃り自立 (用具準備あり)"
+  LA31637-4:
+    en: "Needs help but can do about half unaided"
+    ja: "介助が必要だが半分程度は自分で可能"
+  LA31638-2:
+    en: "Independent (including buttons, zips, laces, etc.)"
+    ja: "自立 (ボタン・ファスナー・靴紐含む)"
+  LA31627-5:
+    en: "Incontinent (or needs to be given enemas)"
+    ja: "失禁 (または浣腸が必要)"
+  LA31626-7:
+    en: "Occasional accident"
+    ja: "時に失禁"
+  LA31625-9:
+    en: "Continent"
+    ja: "失禁なし"
+  LA31628-3:
+    en: "Incontinent, or catheterized and unable to manage alone"
+    ja: "失禁、またはカテーテル留置で自己管理不能"
+  LA31631-7:
+    en: "Needs some help, but can do something alone"
+    ja: "一部介助、一部は自分で可能"
+  LA31632-5:
+    en: "Independent (on and off, dressing, wiping)"
+    ja: "自立 (移動・衣服・後始末)"
+  LA31633-3:
+    en: "Unable, no sitting balance"
+    ja: "不能、座位保持不可"
+  LA31634-1:
+    en: "Major help (one or two people, physical), can sit"
+    ja: "大部分介助 (1-2 人の身体介助)、座位可"
+  LA31635-8:
+    en: "Minor help (verbal or physical)"
+    ja: "軽度介助 (声かけまたは身体介助)"
+  LA31639-0:
+    en: "Immobile or <50 yards"
+    ja: "移動不能または 50 ヤード未満"
+  LA31640-8:
+    en: "Wheelchair independent, including corners, >50 yards"
+    ja: "車椅子で自立 (角の通過含む、50 ヤード以上)"
+  LA31641-6:
+    en: "Walks with help of one person (verbal or physical) >50 yards"
+    ja: "1 人の介助 (声かけまたは身体介助) で 50 ヤード以上歩行"
+  LA31642-4:
+    en: "Independent (but may use any aid; for example, stick) >50 yards"
+    ja: "自立 (杖など補助具使用可、50 ヤード以上)"
+  LA31629-1:
+    en: "Needs help (verbal, physical, carrying aid)"
+    ja: "介助が必要 (声かけ・身体介助・補助具運搬)"
   96761-2:
     en: Total score Barthel Index
     ja: バーセルインデックス合計スコア

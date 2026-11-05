@@ -481,7 +481,7 @@
         "lang": "en"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 97/100 → independent (feeding=10, bathing=4, mobility=14, toilet_use=9)",
+        "adl_assessment": "Barthel Index 95/100 → independent (feeding=10, bathing=5, mobility=15, toilet_use=10)",
         "care_plan": "Care plan: monitor BP AM/PM; escalate to MD if goal not met.",
         "nursing_diagnosis": "Nursing diagnoses: risk for inadequate BP control.",
         "nursing_history": "Admission reason: Sudden severe headache, vomiting, altered consciousness. PMH: Hypertension (HTN), Atrial fibrillation (AF).",
@@ -1027,7 +1027,7 @@
       },
       "sections": {
         "admission_status": "Hospital stay: 8 days. Admission reason: Sudden severe headache, vomiting, altered consciousness. Discharge criteria met.",
-        "discharge_readiness": "Discharge readiness: Discharge Barthel 97/100.",
+        "discharge_readiness": "Discharge readiness: Discharge Barthel 95/100.",
         "nursing_interventions_provided": "Cumulative IN 10583 mL / OUT 9095 mL (net +1488 mL).",
         "patient_education": "Patient education: home BP monitoring + low-salt diet."
       },
