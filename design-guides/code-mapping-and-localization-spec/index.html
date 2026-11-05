@@ -3090,6 +3090,12 @@
 </ul>
 <h3 id="39-disease-and-encounter-protocols">3.9 Disease and encounter protocols<a class="headerlink" href="#39-disease-and-encounter-protocols" title="Permanent link">&para;</a></h3>
 <p>A disease YAML refers to codes it owns through its own fields: <code>icd_codes</code> (primary, variants, <code>by_chronic_prefix</code>), <code>implied_chronic_codes</code> and <code>sequela_code</code>. It refers to drugs by <code>drug_id</code> and to patient conditions by value-set name. Text it shows (chief complaints, notes) is a language map in the protocol itself. Encounter-condition YAMLs follow the same rules.</p>
+<p>A lab-list entry (<code>labs</code>, <code>add_labs</code>, <code>additional_labs</code>, and the <code>test</code> of a medication-monitoring entry) is an internal order name. It resolves in two steps:</p>
+<ol>
+<li><code>observation/reference_data/order_routing.yaml</code> routes the names that are not one lab test. A vital sign or a history item places no order. An imaging study is ordered as imaging under the given study name. A named group (e.g. <code>DIC_panel</code>) is ordered as its component labs.</li>
+<li>Every other name is one lab. <code>lab_aliases.yaml</code> maps the spelling (<code>K_stat</code>, <code>Basic_metabolic_panel</code>, <code>Blood_culture_set_1</code>) to a canonical lab name or panel, and the country code mapping gives its code. A <code>_stat</code> name keeps its urgency on the order; a <code>_repeat</code> or <code>_set_N</code> name is the same test again.</li>
+</ol>
+<p>Every lab a protocol orders has a US code or is a panel (<code>tests/unit/modules/observation/test_order_routing.py</code>). <code>ServiceRequest.code.text</code> is the lab's display (<code>lab_display</code>, <code>style="formal"</code>), never the order name.</p>
 <h2 id="4-resolution-functions">4. Resolution functions<a class="headerlink" href="#4-resolution-functions" title="Permanent link">&para;</a></h2>
 <p>Consumers resolve names only through these functions.</p>
 <h3 id="41-code-systems-clinosimcodes">4.1 Code systems (<code>clinosim.codes</code>)<a class="headerlink" href="#41-code-systems-clinosimcodes" title="Permanent link">&para;</a></h3>
@@ -3246,6 +3252,10 @@
 <tr>
 <td><code>lab_code(lab_name, country)</code> / <code>lab_codes(lab_name)</code></td>
 <td><code>(system_key, code)</code> / the codes of every locale</td>
+</tr>
+<tr>
+<td><code>lab_order_targets(name)</code> (<code>clinosim.modules.observation.order_routing</code>)</td>
+<td>the orders a protocol lab-list entry places (§3.9)</td>
 </tr>
 <tr>
 <td><code>map_diagnosis_code(code, country, sex)</code></td>
@@ -3569,6 +3579,10 @@
 <tr>
 <td>Every data YAML has a <code>metadata.kind</code> that belongs where it lives; data YAML is parsed by <code>clinosim.datafiles</code> (configuration files excepted)</td>
 <td><code>tests/unit/test_data_yaml_conventions_2465.py</code></td>
+</tr>
+<tr>
+<td>Every lab a protocol orders has a code or is a panel (§3.9)</td>
+<td><code>tests/unit/modules/observation/test_order_routing.py</code></td>
 </tr>
 </tbody>
 </table>

@@ -3090,6 +3090,12 @@
 </ul>
 <h3 id="39-疾患encounter-プロトコル">3.9 疾患・encounter プロトコル<a class="headerlink" href="#39-疾患encounter-プロトコル" title="Permanent link">&para;</a></h3>
 <p>疾患 YAML は、自分が持つコードを <code>icd_codes</code> (primary / variants / <code>by_chronic_prefix</code>)、<code>implied_chronic_codes</code>、<code>sequela_code</code> で参照する。薬は <code>drug_id</code> で、患者状態は value set 名で参照する。表示する文字列 (主訴、注記) はプロトコル自身の中で言語マップとして持つ。encounter condition の YAML も同じ規則に従う。</p>
+<p>lab リストの各要素 (<code>labs</code>、<code>add_labs</code>、<code>additional_labs</code>、薬剤モニタリング項目の <code>test</code>) は内部のオーダー名で、2 段階で解決する。</p>
+<ol>
+<li><code>observation/reference_data/order_routing.yaml</code> が、単一の検査でない名前を振り分ける。バイタルサインと問診項目はオーダーしない。画像検査は指定の検査名で画像オーダーにする。名前付きの組 (例: <code>DIC_panel</code>) は構成検査ごとのオーダーにする。</li>
+<li>それ以外は 1 つの検査。<code>lab_aliases.yaml</code> が表記 (<code>K_stat</code>、<code>Basic_metabolic_panel</code>、<code>Blood_culture_set_1</code>) を canonical な検査名またはパネルに対応づけ、国のコードマッピングがコードを与える。<code>_stat</code> の名前はオーダーの緊急度をそのまま持ち、<code>_repeat</code> / <code>_set_N</code> は同じ検査の再オーダーである。</li>
+</ol>
+<p>プロトコルがオーダーする検査はすべて US コードを持つかパネルである (<code>tests/unit/modules/observation/test_order_routing.py</code>)。<code>ServiceRequest.code.text</code> は検査の表示名 (<code>lab_display</code>、<code>style="formal"</code>) で、オーダー名は出さない。</p>
 <h2 id="4-解決関数">4. 解決関数<a class="headerlink" href="#4-解決関数" title="Permanent link">&para;</a></h2>
 <p>利用側は、名称をこれらの関数でのみ解決する。</p>
 <h3 id="41-コード体系-clinosimcodes">4.1 コード体系 (<code>clinosim.codes</code>)<a class="headerlink" href="#41-コード体系-clinosimcodes" title="Permanent link">&para;</a></h3>
@@ -3246,6 +3252,10 @@
 <tr>
 <td><code>lab_code(lab_name, country)</code> / <code>lab_codes(lab_name)</code></td>
 <td><code>(system_key, code)</code> / 全ロケールのコード</td>
+</tr>
+<tr>
+<td><code>lab_order_targets(name)</code> (<code>clinosim.modules.observation.order_routing</code>)</td>
+<td>プロトコルの lab リスト要素が出すオーダー (§3.9)</td>
 </tr>
 <tr>
 <td><code>map_diagnosis_code(code, country, sex)</code></td>
@@ -3569,6 +3579,10 @@
 <tr>
 <td>すべてのデータ YAML が置き場所に合った <code>metadata.kind</code> を持ち、<code>clinosim.datafiles</code> で読まれる (設定ファイルは除く)</td>
 <td><code>tests/unit/test_data_yaml_conventions_2465.py</code></td>
+</tr>
+<tr>
+<td>プロトコルがオーダーする検査はコードを持つかパネル (§3.9)</td>
+<td><code>tests/unit/modules/observation/test_order_routing.py</code></td>
 </tr>
 </tbody>
 </table>
