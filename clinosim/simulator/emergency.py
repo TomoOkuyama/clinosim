@@ -27,6 +27,7 @@ from clinosim.simulator._ed_thresholds import (
     DEFAULT_TRIAGE_LAB_PROBABILITY,
     ED_IMAGING_ORDER_OFFSET_MEAN_MIN,
     ED_IMAGING_ORDER_OFFSET_STD_MIN,
+    ED_LAB_MIN_TURNAROUND_MIN,
     ED_LAB_ORDER_OFFSET_MEAN_MIN,
     ED_LAB_ORDER_OFFSET_STD_MIN,
     ED_LAB_RESULT_OFFSET_MEAN_MIN,
@@ -129,6 +130,16 @@ def ed_diagnosis_code(spec: dict, patient: PatientProfile) -> str:
     protocols' ``icd_codes.by_chronic_prefix`` (Issue #2290)."""
     refined = code_by_chronic_prefix(spec.get("by_chronic_prefix"), patient)
     return refined or str(spec.get("icd10_code", "R69"))  # R69 = Illness, unspecified
+
+
+def ed_lab_result_time(visit_time: datetime, ordered_datetime: datetime, result_offset_min: int) -> datetime:
+    """When an ED lab is resulted: the drawn offset, never before order + turnaround.
+
+    Issue #2635: both offsets are drawn from ``visit_time`` independently, so
+    the result is held to at least ``ED_LAB_MIN_TURNAROUND_MIN`` after the order.
+    """
+    drawn = visit_time + timedelta(minutes=result_offset_min)
+    return max(drawn, ordered_datetime + timedelta(minutes=ED_LAB_MIN_TURNAROUND_MIN))
 
 
 def ed_lab_true_value(lab_spec: dict, severity: str, derived: float) -> float:
@@ -519,8 +530,11 @@ def _simulate_ed_visit(
             canon, observed, sex=patient.sex, country=country, medications=patient.current_medications, age=patient.age
         )
         order.result = OrderResult(
-            result_datetime=visit_time
-            + timedelta(minutes=int(lab_rng.normal(ED_LAB_RESULT_OFFSET_MEAN_MIN, ED_LAB_RESULT_OFFSET_STD_MIN))),
+            result_datetime=ed_lab_result_time(
+                visit_time,
+                order.ordered_datetime,
+                int(lab_rng.normal(ED_LAB_RESULT_OFFSET_MEAN_MIN, ED_LAB_RESULT_OFFSET_STD_MIN)),
+            ),
             performed_by=lab_tech_id,
             lab_name=canon,
             value=observed,
