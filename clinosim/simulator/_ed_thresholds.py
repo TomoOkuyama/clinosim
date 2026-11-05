@@ -58,6 +58,8 @@ __all__ = [
     "ED_TREATMENT_ORDER_OFFSET_MEAN_MIN",
     "ED_TREATMENT_ORDER_OFFSET_STD_MIN",
     "ED_VITALS_OFFSET_MIN",
+    "ED_DEPARTMENT_ID",
+    "ED_WARD_ID",
 ]
 
 
@@ -139,6 +141,13 @@ placed. Treatment follows diagnosis, so ~30 min matches the workflow
 
 ED_TREATMENT_ORDER_OFFSET_STD_MIN: float = 10.0
 """Standard deviation for the ED treatment-order timing draw."""
+
+ED_DEPARTMENT_ID: str = "emergency_medicine"
+"""Department of an ED visit (Issue #2623). Every hospital config has it, with
+the ED area as its one ward (``wards.emergency_medicine: ["ER"]``)."""
+
+ED_WARD_ID: str = "ER"
+"""Care area of an ED visit (Issue #2623): the ``loc-ward-ER`` Location."""
 
 ED_VITALS_OFFSET_MIN: int = 5
 """Fixed minutes from ``visit_time`` at which ED vitals are captured.
