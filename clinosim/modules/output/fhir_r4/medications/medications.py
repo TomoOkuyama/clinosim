@@ -137,42 +137,43 @@ def _derive_mr_category(
     is_home_med: bool,
     is_episodic: bool,
     is_discharge_intent: bool,
+    administered_in_facility: bool = False,
 ) -> tuple[str, str]:
     """Derive the ``medicationrequest-category`` (code, display) tuple for
     a FHIR MedicationRequest emission (Issue #548 unification).
 
-    Single source of truth for the 5-way decision tree previously
-    duplicated across the order path (5-branch) and the discharge path
-    (2-branch, which silently omitted episodic / discharge-intent
-    awareness).
+    Single source of truth for the decision tree shared by the order path
+    and the discharge path.
 
-    HL7 CodeSystem: ``medicationrequest-category``
-      * ``community``  — chronic home-medication or outpatient renewal
-      * ``outpatient`` — episodic outpatient / emergency-department order
-      * ``inpatient``  — inpatient order that is NOT a take-home
+    HL7 CodeSystem: ``medicationrequest-category`` — where the medication
+    is administered or consumed:
+      * ``inpatient``  — administered during an inpatient stay
+      * ``outpatient`` — administered in an outpatient / emergency setting
+      * ``community``  — consumed at home (chronic home medication, renewal)
       * ``discharge``  — inpatient take-home script (Rx at discharge)
 
     Decision rule (evaluated in order):
 
-    1. ``is_home_med`` OR (``encounter_type=="outpatient"`` AND NOT ``is_episodic``)
+    1. ``encounter_type == "inpatient"`` AND ``is_discharge_intent`` → ``discharge``
+    2. ``administered_in_facility`` (the order has administrations): inpatient
+       encounter → ``inpatient``; outpatient / emergency → ``outpatient``.
+       A home medication continued and given in hospital, or chemotherapy
+       given in clinic, is not ``community`` (Issue #2609).
+    3. ``is_home_med`` OR (``encounter_type=="outpatient"`` AND NOT ``is_episodic``)
        → ``community`` — chronic maintenance / outpatient renewal
-    2. ``encounter_type`` in ("outpatient", "emergency")
-       → ``outpatient`` — episodic OP / ED order
-    3. ``encounter_type == "inpatient"`` AND ``is_discharge_intent``
-       → ``discharge`` — inpatient take-home
-    4. ``encounter_type == "inpatient"``
-       → ``inpatient`` — in-house prescription
-    5. otherwise (encounter_type empty / unknown)
-       → ``inpatient`` — safe fallback (intent already indicates an order was authored)
+    4. ``encounter_type`` in ("outpatient", "emergency") → ``outpatient``
+    5. otherwise (inpatient, empty or unknown) → ``inpatient``
     """
+    if encounter_type == "inpatient" and is_discharge_intent:
+        return "discharge", "Discharge"
+    if administered_in_facility and encounter_type in ("inpatient", "outpatient", "emergency"):
+        if encounter_type == "inpatient":
+            return "inpatient", "Inpatient"
+        return "outpatient", "Outpatient"
     if is_home_med or (encounter_type == "outpatient" and not is_episodic):
         return "community", "Community"
     if encounter_type in ("outpatient", "emergency"):
         return "outpatient", "Outpatient"
-    if encounter_type == "inpatient" and is_discharge_intent:
-        return "discharge", "Discharge"
-    if encounter_type == "inpatient":
-        return "inpatient", "Inpatient"
     return "inpatient", "Inpatient"
 
 
@@ -946,6 +947,7 @@ def _build_medication_request(
         is_home_med=_is_home_med,
         is_episodic=_is_episodic,
         is_discharge_intent=_is_discharge_intent,
+        administered_in_facility=bool(earliest_admin_dt),
     )
     resource["category"] = _build_category_block(_cat_code, _cat_display)
 
