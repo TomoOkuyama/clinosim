@@ -883,6 +883,31 @@ CA_CLAMP_MAX: float = 13.0
 """Physiologic maximum serum Ca (mg/dL) — matches severe hypercalcemia
 ceiling."""
 
+# Issue #2687: total CO2, phosphate, magnesium.
+CO2_DISSOLVED_PER_MMHG: float = 0.0307
+"""Dissolved CO2 (mmol/L per mmHg pCO2) — total CO2 = HCO3 + 0.0307 x pCO2
+(Henderson-Hasselbalch solubility coefficient), ~1.2 mmol/L at 40 mmHg."""
+
+PHOSPHATE_BASELINE_MG_DL: float = 3.5
+"""Baseline serum inorganic phosphate (mg/dL) — mid adult reference (2.5-4.5)."""
+
+PHOSPHATE_RENAL_SCALE: float = 2.5
+"""Phosphate rise (mg/dL per unit ``(1 - renal_function)``) — reduced
+renal phosphate excretion; ~6 mg/dL in severe AKI (AKI protocol median 5.5, IQR 4.0-7.5)."""
+
+PHOSPHATE_CLAMP: tuple[float, float] = (1.0, 12.0)
+"""Serum phosphate bounds (mg/dL) for the derived true value."""
+
+MG_BASELINE_MG_DL: float = 2.0
+"""Baseline serum magnesium (mg/dL) — mid adult reference (1.7-2.3)."""
+
+MG_RENAL_SCALE: float = 0.4
+"""Mg rise (mg/dL per unit ``(1 - renal_function)``) — reduced renal Mg
+excretion in advanced kidney failure."""
+
+MG_CLAMP: tuple[float, float] = (1.0, 4.5)
+"""Serum magnesium bounds (mg/dL) for the derived true value."""
+
 
 # ---------------------------------------------------------------------------
 # Glucose (inline scalars — module-level GLU_DM_* / GLYCEMIC_CONTROL_DEFAULT

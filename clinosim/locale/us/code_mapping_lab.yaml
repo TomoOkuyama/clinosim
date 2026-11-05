@@ -57,7 +57,7 @@ Phosphate: "2777-1"          # Phosphate [Mass/volume] in Serum or Plasma
 Beta_hydroxybutyrate: "104816-4"  # Beta hydroxybutyrate [Moles/volume] in Blood (LOINC 2.82 ACTIVE, session 58 Issue #264 — 32340-6 was retired)
 Anion_gap: "1863-0"          # Anion gap in Serum or Plasma
 Peak_Expiratory_Flow: "33452-4"  # Peak expiratory flow
-CO2: "20565-8"               # Carbon dioxide, total [Moles/volume] in Serum or Plasma
+CO2: "2028-9"                # Carbon dioxide, total [Moles/volume] in Serum or Plasma (tx.fhir.org 2026-11-06; Issue #2687: was 20565-8, "in Blood")
 Ammonia: "6295-0"            # Ammonium in Serum or Plasma
 Blood_culture: "600-7"       # Bacteria identified in Blood by Aerobe culture
 Blood_culture_x2: "600-7"    # Same LOINC for two-set culture

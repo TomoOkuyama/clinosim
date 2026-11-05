@@ -53,6 +53,10 @@ biological_cv:
   Lactate: 0.278
   "pH": 0.002
   HCO3: 0.040
+  # Issue #2687: EFLM biological variation database (within-subject CVI).
+  CO2: 0.040
+  Phosphate: 0.078
+  Mg: 0.032
   pCO2: 0.046
   eGFR: 0.056
   PT_INR: 0.040
@@ -104,6 +108,9 @@ analytical_cv:
   Lactate: 0.040
   "pH": 0.001
   HCO3: 0.025
+  CO2: 0.025
+  Phosphate: 0.020
+  Mg: 0.020
   pCO2: 0.025
   eGFR: 0.030
   PT_INR: 0.035
@@ -141,6 +148,9 @@ precision:
   Lactate: 1
   "pH": 2
   HCO3: 1
+  CO2: 0
+  Phosphate: 1
+  Mg: 1
   pCO2: 1
   PT_INR: 1
   HbA1c: 1
@@ -206,6 +216,9 @@ units:
   Lactate: "mmol/L"
   "pH": "[pH]"
   HCO3: "mmol/L"
+  CO2: "mmol/L"
+  Phosphate: "mg/dL"
+  Mg: "mg/dL"
   pCO2: "mm[Hg]"
   "pO2": "mm[Hg]"
   PT_INR: "{INR}"
@@ -293,6 +306,9 @@ physiologic_limits:
   "pH": [6.8, 7.8]  # survivable acid-base extremes
   pCO2: [10.0, 130.0]  # mm[Hg]
   HCO3: [3.0, 50.0]  # mmol/L
+  CO2: [3.0, 52.0]  # mmol/L — HCO3 plus dissolved CO2
+  Phosphate: [0.5, 20.0]  # mg/dL — refeeding nadir to uremic hyperphosphatemia
+  Mg: [0.3, 10.0]  # mg/dL
   Troponin_I: [0.0, 200.0]  # ng/mL — massive MI
   CK_MB: [0.0, 500.0]  # ng/mL
   BNP: [0.0, 5000.0]  # pg/mL — assay reporting ceiling

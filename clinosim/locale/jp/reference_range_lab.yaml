@@ -131,6 +131,13 @@ ranges:
     - {low: 80, high: 100, unit: "mm[Hg]", text: "動脈血ガス基準値"}
   HCO3:
     - {low: 22, high: 26, unit: "mmol/L", text: "動脈血ガス基準値"}
+  # Issue #2687: 無機リンは JCCLS 共用基準範囲、Mg・総CO2 は共用基準範囲に無く一般基準値。
+  Phosphate:
+    - {low: 2.7, high: 4.6, unit: "mg/dL", text: "JCCLS共用基準範囲2022"}
+  Mg:
+    - {low: 1.8, high: 2.4, unit: "mg/dL", text: "一般基準値"}
+  CO2:
+    - {low: 22, high: 29, unit: "mmol/L", text: "一般基準値"}
   Lactate:
     - {low: 0.5, high: 1.6, unit: "mmol/L", text: "一般基準値"}
 

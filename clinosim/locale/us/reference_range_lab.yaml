@@ -122,6 +122,13 @@ ranges:
     - {low: 80, high: 100, unit: "mm[Hg]", text: "Arterial blood gas reference"}
   HCO3:
     - {low: 22, high: 26, unit: "mmol/L", text: "Arterial blood gas reference"}
+  # Issue #2687: serum chemistries (Mayo Clinic Laboratories reference values).
+  CO2:
+    - {low: 22, high: 29, unit: "mmol/L", text: "Standard reference interval"}
+  Phosphate:
+    - {low: 2.5, high: 4.5, unit: "mg/dL", text: "Standard reference interval"}
+  Mg:
+    - {low: 1.7, high: 2.3, unit: "mg/dL", text: "Standard reference interval"}
   Lactate:
     - {low: 0.5, high: 2.0, unit: "mmol/L", text: "Standard reference interval"}
 
