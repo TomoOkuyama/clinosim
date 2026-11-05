@@ -235,3 +235,27 @@ codes:
   '95810':
     en: Polysomnography; age 6 years or older, sleep staging with 4 or more additional parameters of sleep, attended by a technologist
     ja: 終夜睡眠ポリグラフィー（6歳以上、技師監視下）
+  # Issue #2655: imaging studies (AMA CPT descriptors; CPT is licensed and was
+  # not checked against a public terminology server).
+  '73030':
+    en: Radiologic examination, shoulder; complete, minimum of 2 views
+    ja: 肩関節X線撮影（2方向以上）
+  '73610':
+    en: Radiologic examination, ankle; complete, minimum of 3 views
+    ja: 足関節X線撮影（3方向以上）
+  '73630':
+    en: Radiologic examination, foot; complete, minimum of 3 views
+    ja: 足部X線撮影（3方向以上）
+  '74181':
+    en: Magnetic resonance (eg, proton) imaging, abdomen; without contrast material(s)
+    ja: 腹部MRI（造影剤なし）
+  '76857':
+    en: Ultrasound, pelvic (nonobstetric), real time with image documentation; limited or follow-up
+    ja: 骨盤部超音波検査（限定）
+  '93454':
+    en: Catheter placement in coronary artery(s) for coronary angiography, including intraprocedural injection(s) for coronary angiography, imaging supervision and interpretation
+    ja: 冠動脈造影（カテーテル挿入・造影・読影）
+  '93880':
+    en: Duplex scan of extracranial arteries; complete bilateral study
+    ja: 頸部動脈デュプレックス超音波検査（両側）
+

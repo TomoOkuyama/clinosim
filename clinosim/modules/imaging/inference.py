@@ -62,16 +62,17 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     (rf"股関節{_SEP}x{_SEP}(?:線|p)", "CR", "hip", ["AP"]),
     (rf"leg{_SEP}x{_SEP}?ray|lower{_SEP}extremity{_SEP}x{_SEP}?ray", "CR", "leg", ["AP"]),
     (rf"下肢{_SEP}x{_SEP}(?:線|p)", "CR", "leg", ["AP"]),
-    # ankle / knee / foot / shoulder are folded into ``leg`` (i.e.
-    # 下肢 / 骨・軟部). No dedicated body_site is defined yet — that
-    # is out of scope for the current CIF-VS-FHIR-01 fix.
-    (rf"ankle{_SEP}x{_SEP}?ray|foot{_SEP}x{_SEP}?ray|knee{_SEP}x{_SEP}?ray", "CR", "leg", ["AP"]),
+    # Issue #2655: ankle, foot and shoulder have their own body sites (views
+    # from modalities.yaml). Knee stays folded into ``leg`` here.
+    (rf"ankle{_SEP}x{_SEP}?ray", "CR", "ankle", []),
+    (rf"foot{_SEP}x{_SEP}?ray", "CR", "foot", []),
+    (rf"knee{_SEP}x{_SEP}?ray", "CR", "leg", ["AP"]),
     (
         rf"shoulder{_SEP}x{_SEP}?ray(?:{_SEP}ap)?(?:{_SEP}lateral)?(?:{_SEP}post{_SEP}reduction)?",
         "CR",
-        "hand",
-        ["AP"],
-    ),  # No upper-limb (上肢) body_site defined yet — folded into ``hand`` provisionally.
+        "shoulder",
+        [],
+    ),
     (rf"spine{_SEP}x{_SEP}?ray|(?:lumbar|cervical|thoracic){_SEP}(?:spine{_SEP})?x{_SEP}?ray", "CR", "spine", ["AP"]),
     (rf"脊椎{_SEP}x{_SEP}(?:線|p)|(?:腰椎|頸椎|胸椎){_SEP}x{_SEP}(?:線|p)", "CR", "spine", ["AP"]),
     # Freetext fallback: "Xray Affected Area" and similar map to chest provisionally.
@@ -121,12 +122,13 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     (rf"腹部{_SEP}(?:超音波|エコー|us)", "US", "abdomen", []),
     (rf"(?:kidney|renal){_SEP}(?:ultrasound|us)", "US", "kidney", []),
     (rf"腎{_SEP}(?:超音波|エコー|us)", "US", "kidney", []),
-    # Carotid → cervical vasculature; folded into ``spine`` because no
-    # dedicated body_site exists for it (cervical spine is the closest match).
-    (rf"carotid{_SEP}(?:ultrasound|us)", "US", "spine", []),
-    # Echocardiogram (TTE) is a cardiac US. Folded into ``chest``
-    # because no ``heart`` body_site is defined.
-    (rf"echocardiog(?:ram|raphy)(?:{_SEP}(?:tte|complete|bedside))?", "US", "chest", []),
+    # Issue #2655: carotid duplex images the carotid arteries, an
+    # echocardiogram (TTE) the heart; a bladder scan the urinary bladder.
+    (rf"carotid{_SEP}(?:ultrasound|us)", "US", "carotid_artery", []),
+    (rf"echocardiog(?:ram|raphy)(?:{_SEP}(?:tte|complete|bedside))?", "US", "heart", []),
+    (rf"bladder{_SEP}(?:ultrasound|us|scan)", "US", "urinary_bladder", []),
+    # MRCP: MR cholangiopancreatography of the biliary tract.
+    (rf"mrcp|mr{_SEP}cholangio", "MR", "biliary_tract", []),
     # Lower-extremity venous US (DVT workup); ``US`` + ``leg`` has
     # Doppler views registered.
     (
@@ -142,9 +144,8 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     # echo → chest above).
     (rf"soft{_SEP}tissue{_SEP}(?:ultrasound|us)|軟部{_SEP}(?:超音波|エコー|us)", "US", "leg", []),
     # ---- XA / angiography ----
-    # Coronary angiography → XA. Folded into ``chest`` (same precision
-    # as the echocardiogram folding) because no ``heart`` body_site is defined.
-    (rf"coronary{_SEP}angio(?:graphy|gram)|冠動脈{_SEP}造影", "XA", "chest", []),
+    # Coronary angiography → XA of the coronary arteries (Issue #2655).
+    (rf"coronary{_SEP}angio(?:graphy|gram)|冠動脈{_SEP}造影", "XA", "coronary_artery", []),
     # CT pulmonary angiography (PE workup) → CT + chest.
     (rf"ct{_SEP}pulmonary{_SEP}angio(?:graphy|gram)|ctpa|肺動脈{_SEP}ct", "CT", "chest", []),
     # ---- ECG ----

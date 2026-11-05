@@ -25,6 +25,9 @@ modalities:
       knee: ["AP", "Lateral"]
       spine: ["AP", "Lateral"]
       wrist: ["PA", "Lateral"]
+      ankle: ["AP", "Mortise", "Lateral"]        # Issue #2655
+      foot: ["AP", "Oblique", "Lateral"]         # Issue #2655
+      shoulder: ["AP", "Lateral"]                # Issue #2655 (incl. post-reduction)
 
   CT:                                            # Computed Tomography
     dicom_code: "CT"
@@ -53,10 +56,12 @@ modalities:
       head: [140, 220]                           # DWI/FLAIR/T1/T2 typical
       spine: [120, 200]
       abdomen: [150, 280]                        # T1/T2/DWI abdomen protocol
+      biliary_tract: [40, 120]                   # Issue #2655: MRCP 3D + thick-slab series
     default_views_by_body_site:
       head: ["axial", "sagittal"]
       spine: ["sagittal", "axial"]
       abdomen: ["axial", "coronal"]
+      biliary_tract: ["coronal", "axial"]        # Issue #2655: MRCP (thick-slab coronal + axial)
 
   US:                                            # Ultrasound
     dicom_code: "US"
@@ -67,6 +72,9 @@ modalities:
       skin: [6, 15]
       chest: [30, 90]                            # echocardiography (TTE) clip frames
       spine: [15, 40]                            # carotid duplex (頸部; spine 集約 per session 48)
+      heart: [30, 90]                            # Issue #2655: echocardiography (TTE) clip frames
+      carotid_artery: [15, 40]                   # Issue #2655: carotid duplex
+      urinary_bladder: [6, 15]                   # Issue #2655
     default_views_by_body_site:
       abdomen: ["longitudinal", "transverse"]
       kidney: ["longitudinal", "transverse"]
@@ -74,13 +82,18 @@ modalities:
       skin: ["longitudinal"]
       chest: ["parasternal_long_axis", "apical_4_chamber"]
       spine: ["longitudinal", "transverse", "doppler"]
+      heart: ["parasternal_long_axis", "apical_4_chamber"]   # Issue #2655
+      carotid_artery: ["longitudinal", "transverse", "doppler"]  # Issue #2655
+      urinary_bladder: ["longitudinal", "transverse"]        # Issue #2655
 
   XA:                                            # X-Ray Angiography (coronary angiography)
     dicom_code: "XA"
     typical_instances_per_series_range:
       chest: [300, 800]                          # cine runs, multiple projections
+      coronary_artery: [300, 800]                # Issue #2655
     default_views_by_body_site:
       chest: ["LAO", "RAO"]
+      coronary_artery: ["LAO", "RAO"]            # Issue #2655
 
   ECG:                                           # Electrocardiography (DICOM waveform)
     dicom_code: "ECG"

@@ -119,7 +119,6 @@ class TestInferImagingMetadata:
         # 非 DICOM order(眼科診察等)は引き続き stub 落ちが正
         assert infer_imaging_metadata("Slit_lamp_exam") is None
         assert infer_imaging_metadata("Fluorescein_stain") is None
-        assert infer_imaging_metadata("Bladder_ultrasound") is None
 
 
 @pytest.mark.unit

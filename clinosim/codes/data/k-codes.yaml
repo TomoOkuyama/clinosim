@@ -84,6 +84,11 @@ codes:
     en: Blood transfusion
     ja: 輸血
   # --- D: Examinations (検査) ---
+  # Issue #2655: coronary angiography is billed as left-heart catheterization
+  # (診療報酬点数表 D206; master row name).
+  D206:
+    en: Cardiac catheterization (left heart)
+    ja: 心カテ（左心）
   D208:
     en: Electrocardiogram
     ja: 心電図検査

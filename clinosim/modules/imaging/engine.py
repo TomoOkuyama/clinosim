@@ -65,6 +65,15 @@ SUPPORTED_BODY_SITES: frozenset[str] = frozenset(
         "knee",
         "spine",
         "wrist",
+        # Issue #2655
+        "ankle",
+        "foot",
+        "shoulder",
+        "heart",
+        "coronary_artery",
+        "carotid_artery",
+        "biliary_tract",
+        "urinary_bladder",
     }
 )
 
@@ -370,8 +379,10 @@ def _resolve_imaging_procedure_code_key(
             return "CR_Supine_Upright" if len(views) >= 2 else "CR_AP"
         if body_site == "hand":
             return "CR_PA_Oblique_Lateral"
-        if body_site in ("hip", "knee", "spine"):
+        if body_site in ("hip", "knee", "spine", "shoulder"):
             return "CR_AP_Lateral"
+        if body_site in ("ankle", "foot"):
+            return "CR_AP_Lateral_Oblique"
         if body_site == "wrist":
             return "CR_PA_Lateral_Oblique" if len(views) >= 3 else "CR_PA_Lateral"
     # CT — contrast is the discriminator; non-contrast is the default
@@ -384,14 +395,17 @@ def _resolve_imaging_procedure_code_key(
             return "CT_non_contrast"
     # MR — non-contrast is the standard variant (contrast MR reserved for future)
     if modality == "MR":
-        if body_site in ("head", "spine"):
+        if body_site in ("head", "spine", "biliary_tract"):
             return "MR_non_contrast"
     # US — single procedure per body site (doppler for leg, generic for the rest)
     if modality == "US":
         if body_site == "leg":
             return "US_Doppler"
-        if body_site in ("abdomen", "kidney", "skin"):
+        if body_site in ("abdomen", "kidney", "skin", "heart", "carotid_artery", "urinary_bladder"):
             return "US"
+    # XA — coronary angiography is always a contrast study (Issue #2655)
+    if modality == "XA" and body_site == "coronary_artery":
+        return "XA_contrast"
     raise ValueError(
         f"Unsupported imaging combination: modality={modality} body_site={body_site} views={views} contrast={contrast}"
     )
