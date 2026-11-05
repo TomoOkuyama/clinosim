@@ -27,6 +27,7 @@ def _ctx() -> SimpleNamespace:
         hospital_ops={},
         config=SimpleNamespace(country="US"),
         followup_data={},
+        outpatient_day_ends={},  # Issue #2690
     )
 
 
