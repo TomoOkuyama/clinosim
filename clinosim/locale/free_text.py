@@ -237,12 +237,17 @@ def _localize_drug_name(drug_name: str, country: str) -> str:
 def localize_drug_name(drug_name: str, lang: str) -> str:
     """``drug_name`` (a drug name or medication order string) in ``lang``
     over the drug table: catalog names and aliases plus admin-form variants
-    (Issue #2458). Unchanged for English and for a language with no entries —
+    (Issue #2458). English keeps the name except that a protocol slug is
+    spelled out (Issue #2650); unchanged for a language with no entries —
     a new language is a ``names.<lang>`` / ``<lang>:`` column in the tables,
     with no code change."""
     target = _target_lang(lang)
-    if not drug_name or target is None:
+    if not drug_name:
         return drug_name
+    if target is None:
+        # Issue #2650: English keeps the name but spells out a protocol slug
+        # ("IV_fluid: NS" -> "IV fluids: NS") from the med_terms ``en`` slots.
+        return _localize_dosage_terms(drug_name, normalize_lang(lang))
     return _translate(drug_name, _load_drug_display_dict(target), target)
 
 
