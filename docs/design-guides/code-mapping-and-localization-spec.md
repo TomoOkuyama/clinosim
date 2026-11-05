@@ -192,6 +192,13 @@ occupation:
 
 A disease YAML refers to codes it owns through its own fields: `icd_codes` (primary, variants, `by_chronic_prefix`), `implied_chronic_codes` and `sequela_code`. It refers to drugs by `drug_id` and to patient conditions by value-set name. Text it shows (chief complaints, notes) is a language map in the protocol itself. Encounter-condition YAMLs follow the same rules.
 
+A lab-list entry (`labs`, `add_labs`, `additional_labs`, and the `test` of a medication-monitoring entry) is an internal order name. It resolves in two steps:
+
+1. `observation/reference_data/order_routing.yaml` routes the names that are not one lab test. A vital sign or a history item places no order. An imaging study is ordered as imaging under the given study name. A named group (e.g. `DIC_panel`) is ordered as its component labs.
+2. Every other name is one lab. `lab_aliases.yaml` maps the spelling (`K_stat`, `Basic_metabolic_panel`, `Blood_culture_set_1`) to a canonical lab name or panel, and the country code mapping gives its code. A `_stat` name keeps its urgency on the order; a `_repeat` or `_set_N` name is the same test again.
+
+Every lab a protocol orders has a US code or is a panel (`tests/unit/modules/observation/test_order_routing.py`). `ServiceRequest.code.text` is the lab's display (`lab_display`, `style="formal"`), never the order name.
+
 ## 4. Resolution functions
 
 Consumers resolve names only through these functions.
@@ -234,6 +241,7 @@ Consumers resolve names only through these functions.
 |---|---|
 | `load_code_mapping(domain, country)` | internal name → code for that country |
 | `lab_code(lab_name, country)` / `lab_codes(lab_name)` | `(system_key, code)` / the codes of every locale |
+| `lab_order_targets(name)` (`clinosim.modules.observation.order_routing`) | the orders a protocol lab-list entry places (§3.9) |
 | `map_diagnosis_code(code, country, sex)` | internal diagnosis base code → the country's ICD code (`code_mapping_diagnosis.yaml`; sex-conditional leaves), the code itself when unmapped |
 | `vocab_display(vocab, slug, lang, *, fallback)` | vocabulary display (`vocabulary.yaml`) |
 | `narrative_label(section, key, lang, fallback)` | narrative label |
@@ -400,6 +408,7 @@ These rules are common to every resolver in §4, in both layers.
 | A third country is not treated as the US | `tests/unit/test_third_country_fallbacks_2203.py` |
 | `CodeSystem` / `LocalizedTable` operations not overridden; every display-table entry has English | `tests/unit/codes/test_code_system_base_2470.py`, `tests/unit/locale/test_localized_table_2471.py` |
 | Every data YAML has a `metadata.kind` that belongs where it lives; data YAML is parsed by `clinosim.datafiles` (configuration files excepted) | `tests/unit/test_data_yaml_conventions_2465.py` |
+| Every lab a protocol orders has a code or is a panel (§3.9) | `tests/unit/modules/observation/test_order_routing.py` |
 
 ## 11. Known deviations
 

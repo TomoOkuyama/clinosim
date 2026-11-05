@@ -138,6 +138,7 @@ from clinosim.modules.observation.microbiology import (
 - **Reference data** ([`reference_data/`](reference_data/)):
   - `lab_aliases.yaml` — canonical lab-name resolution
     (`canonical_lab_name`).
+  - `order_routing.yaml` — protocol lab-list entries that are not one lab test (vital signs, history items, imaging studies, named groups), read by `order_routing.lab_order_targets` (Issue #2583)
   - `lab_panels.yaml` — panel → component-lab lists
     (`lab_panel_components`).
   - `microbiology.yaml` — culture organism catalog + susceptibility
@@ -182,6 +183,7 @@ clinosim/modules/observation/
   nursing.py                         NEWS2 / GCS / Braden / Morse compute_* functions
   nursing_enricher.py                POST_RECORDS enricher (enrich_nursing)
   microbiology.py                    culture + susceptibility + antibiogram
+  order_routing.py                   what a protocol lab-list entry orders (Issue #2583)
   fluid_balance.py                   IV regimen + urine-output thresholds (Issue #561)
   oxygenation.py                     SpO₂ escalation triggers (Issue #561)
   pre_analytical.py                  specimen-error rates (Issue #561)
@@ -190,6 +192,7 @@ clinosim/modules/observation/
   _variability_defaults.py           default CVs + qualitative distributions (Issue #637)
   reference_data/
     lab_aliases.yaml                 canonical lab-name aliases
+    order_routing.yaml               lab-list entries routed to imaging / components / no order
     lab_constants.yaml               per-lab units / CVs / precision / limits / normals / panic (Issue #2302)
     lab_panels.yaml                  panel → components
     microbiology.yaml                organism + susceptibility catalog

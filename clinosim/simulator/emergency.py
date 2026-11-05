@@ -14,6 +14,7 @@ from clinosim.locale.i18n import t
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
+from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.order.treatment_classifier import classify_encounter_treatment
 from clinosim.modules.physiology._vital_signs_thresholds import PAIN_SCORE_SCALE
 from clinosim.modules.staff.engine import (
@@ -480,6 +481,9 @@ def _simulate_ed_visit(
         lab_rng = determinism.default_rng(individual_lab_seed(order_id))
         prob = lab_spec.get("probability", 1.0)
         if lab_rng.random() > prob:
+            continue
+        # A vital sign or a history item (tetanus status) is not a lab order (Issue #2583).
+        if not lab_order_targets(test):
             continue
         # Skip non-quantitative diagnostics (e.g. ECG) misfiled under labs — not lab
         # analytes, must not get a fabricated value (AD-57 cleanup).

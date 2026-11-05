@@ -182,3 +182,73 @@ lab_names:
   vitamin_b12: {en: vitamin B12, ja: ビタミン B12}
   wbc: {en: WBC, ja: WBC}
   white_blood_cell: {en: white blood cell, ja: 白血球}
+  # Issue #2583: labs the protocols order that had no display entry.
+  anca: {en: ANCA, ja: ANCA}
+  anti_xa: {en: anti-Xa, ja: 抗Xa活性}
+  beta_d_glucan: {en: beta-D-glucan, ja: β-D-グルカン}
+  eosinophils: {en: eosinophils, ja: 好酸球数}
+  fena: {en: FENa, ja: FENa}
+  fungal_culture: {en: fungal blood culture, ja: 血液真菌培養}
+  galactomannan: {en: galactomannan, ja: ガラクトマンナン抗原}
+  hit_antibody: {en: HIT antibody, ja: HIT抗体}
+  h_pylori_urease: {en: rapid urease test, ja: 迅速ウレアーゼ試験}
+  serum_osmolality: {en: serum osmolality, ja: 血清浸透圧}
+  p1np: {en: P1NP, ja: P1NP}
+  pth: {en: intact PTH, ja: インタクトPTH}
+  prealbumin: {en: prealbumin, ja: プレアルブミン}
+  hcg_urine: {en: urine hCG, ja: 尿中hCG}
+  rapid_influenza_ag: {en: rapid influenza antigen, ja: インフルエンザ迅速抗原}
+  rapid_strep_ag: {en: rapid strep antigen, ja: 溶連菌迅速抗原}
+  reticulocytes: {en: reticulocytes, ja: 網状赤血球}
+  sputum_culture: {en: sputum culture, ja: 喀痰培養}
+  tracp_5b: {en: TRACP-5b, ja: TRACP-5b}
+  theophylline: {en: theophylline level, ja: テオフィリン血中濃度}
+  urine_cr: {en: urine creatinine, ja: 尿中クレアチニン}
+  urine_na: {en: urine sodium, ja: 尿中ナトリウム}
+  vitamin_d_25oh: {en: 25-OH vitamin D, ja: 25-OHビタミンD}
+  anti_gbm: {en: anti-GBM antibody, ja: 抗GBM抗体}
+  spep: {en: serum protein electrophoresis, ja: 血清蛋白分画}
+  complement_c3_c4: {en: complement C3/C4, ja: 補体C3・C4}
+  iron_studies: {en: iron studies, ja: 血清鉄・鉄結合能}
+  type_and_screen: {en: type and screen, ja: 血液型・不規則抗体スクリーニング}
+  type_and_crossmatch: {en: type and crossmatch, ja: 交差適合試験}
+  ascitic_fluid_cell_count: {en: ascitic fluid cell count, ja: 腹水細胞数}
+  ascitic_fluid_albumin: {en: ascitic fluid albumin, ja: 腹水アルブミン}
+  ascitic_fluid_total_protein: {en: ascitic fluid total protein, ja: 腹水総蛋白}
+  ascitic_fluid_culture: {en: ascitic fluid culture, ja: 腹水培養}
+  blood_culture: {en: blood culture, ja: 血液培養}
+  blood_culture_x2: {en: blood cultures x2, ja: 血液培養2セット}
+  # Issue #2583: the other order names in lab_aliases.yaml.
+  abg_or_vbg: {en: ABG or VBG, ja: 血液ガス (動脈または静脈)}
+  albumin_post_paracentesis: {en: albumin, ja: アルブミン}
+  bnp_repeat: {en: BNP (repeat), ja: BNP (再検)}
+  basic_metabolic_panel: {en: BMP, ja: BMP (基本代謝パネル)}
+  blood_culture_repeat: {en: blood culture (repeat), ja: 血液培養 (再検)}
+  blood_culture_repeat_x2: {en: blood cultures x2 (repeat), ja: 血液培養2セット (再検)}
+  glucose_stat: {en: glucose (stat), ja: 血糖 (至急)}
+  hb_stat: {en: Hb (stat), ja: Hb (至急)}
+  k_stat: {en: K (stat), ja: K (至急)}
+  pt-inr: {en: PT-INR, ja: PT-INR}
+  pt_inr_stat: {en: PT-INR (stat), ja: PT-INR (至急)}
+  aptt_stat: {en: APTT (stat), ja: APTT (至急)}
+  lipid_panel: {en: lipid panel, ja: 脂質検査}
+  liver_function: {en: LFT, ja: LFT (肝機能パネル)}
+  p: {en: phosphate, ja: リン}
+  repeat_coagulation_panel: {en: coagulation studies (repeat), ja: 凝固検査 (再検)}
+  total_cholesterol: {en: TC, ja: TC}
+  urinalysis_microscopy: {en: urinalysis, ja: 尿検査}
+  eosinophil_count: {en: eosinophils, ja: 好酸球数}
+  osmolality: {en: serum osmolality, ja: 血清浸透圧}
+  pregnancy_test: {en: urine hCG, ja: 尿中hCG}
+  reticulocyte_count: {en: reticulocytes, ja: 網状赤血球}
+  tracp-5b: {en: TRACP-5b, ja: TRACP-5b}
+  theophylline_level: {en: theophylline level, ja: テオフィリン血中濃度}
+  anti_xa_level: {en: anti-Xa, ja: 抗Xa活性}
+  h_pylori: {en: rapid urease test, ja: 迅速ウレアーゼ試験}
+  protein_electrophoresis: {en: serum protein electrophoresis, ja: 血清蛋白分画}
+  sputum_culture_repeat: {en: sputum culture (repeat), ja: 喀痰培養 (再検)}
+  urine_culture_repeat: {en: urine culture (repeat), ja: 尿培養 (再検)}
+  blood_type_and_screen: {en: type and screen, ja: 血液型・不規則抗体スクリーニング}
+  blood_type_crossmatch: {en: type and crossmatch, ja: 交差適合試験}
+  ana: {en: ANA, ja: 抗核抗体}
+  rf: {en: RF, ja: RF}

@@ -36,6 +36,7 @@ from clinosim.countries import lang_for
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized, localized_field
+from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.physiology.renal_thresholds import (
     METFORMIN_ADMISSION_HOLD_THRESHOLD,
     METFORMIN_RENAL_RESERVE_THRESHOLD,
@@ -405,6 +406,9 @@ def _place_chronic_monitoring_orders(
     orders: list[Order] = []
 
     for i, mon in enumerate(monitoring):
+        # A vital sign (SpO2) is recorded with the vitals, not ordered (Issue #2583).
+        if not lab_order_targets(mon["test"]):
+            continue
         freq = mon.get("frequency", "daily")
 
         # Frequency-based scheduling

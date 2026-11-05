@@ -1,0 +1,36 @@
+# What a protocol lab-list entry orders (Issue #2583).
+#
+# Disease and encounter YAML list everything a clinician asks for at a step
+# under `labs` / `add_labs`. Most entries are lab tests and resolve through
+# lab_aliases.yaml to a canonical lab with a code in the country mapping. The
+# entries below are not a single lab test, so they are routed here instead:
+#
+# - vital_signs: measured with the vital signs, never ordered.
+# - history: asked at the visit (e.g. tetanus immunization status), never ordered.
+# - imaging: an imaging study listed among the labs; ordered as imaging under
+#   the given study name.
+# - expansions: a group the protocol names as one item, ordered as its
+#   component labs (each a canonical lab name with a code).
+#
+# Validated at load by the OrderRouting model in order_routing.py.
+metadata:
+  kind: reference
+  name: order_routing
+  source: clinosim
+
+vital_signs: [SpO2]
+
+history: [Tetanus_status]
+
+imaging:
+  Chest_Xray: Chest_Xray
+  ECG: ECG
+  CT_head_noncontrast_repeat: CT_head_noncontrast
+  ECG_12lead: ECG_12lead
+  Repeat_compression_ultrasound: Compression_Ultrasound_Lower_Extremity
+
+expansions:
+  # ISTH DIC score inputs plus PT-INR.
+  DIC_panel: [PT, PT_INR, APTT, Fibrinogen, D_dimer, Plt]
+  K_Mg_stat: [K, Mg]
+  Ascitic_fluid_analysis: [Ascitic_fluid_cell_count, Ascitic_fluid_albumin, Ascitic_fluid_total_protein, Ascitic_fluid_culture]

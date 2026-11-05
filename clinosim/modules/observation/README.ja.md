@@ -126,6 +126,7 @@ from clinosim.modules.observation.microbiology import (
 - **Reference data** ([`reference_data/`](reference_data/)):
   - `lab_aliases.yaml` — canonical lab-name 解決
     (`canonical_lab_name`)。
+  - `order_routing.yaml` — 単一の検査でないプロトコルの lab リスト要素 (バイタル、問診項目、画像検査、名前付きの組) の振り分け。`order_routing.lab_order_targets` が読む (Issue #2583)
   - `lab_panels.yaml` — panel → component lab list
     (`lab_panel_components`)。
   - `microbiology.yaml` — culture organism カタログ + susceptibility
@@ -169,6 +170,7 @@ clinosim/modules/observation/
   nursing.py                         NEWS2 / GCS / Braden / Morse compute_* 関数
   nursing_enricher.py                POST_RECORDS enricher (enrich_nursing)
   microbiology.py                    culture + susceptibility + antibiogram
+  order_routing.py                   プロトコルの lab リスト要素が出すオーダー (Issue #2583)
   fluid_balance.py                   IV regimen + urine-output 閾値 (Issue #561)
   oxygenation.py                     SpO₂ escalation trigger (Issue #561)
   pre_analytical.py                  specimen error rate (Issue #561)
@@ -177,6 +179,7 @@ clinosim/modules/observation/
   _variability_defaults.py           default CV + qualitative 分布 (Issue #637)
   reference_data/
     lab_aliases.yaml                 canonical lab-name alias
+    order_routing.yaml               lab リスト要素の画像 / 構成検査 / オーダーなしへの振り分け
     lab_constants.yaml               検査ごとの単位 / CV / 桁数 / 限界値 / 基準値 / パニック値 (Issue #2302)
     lab_panels.yaml                  panel → components
     microbiology.yaml                organism + susceptibility カタログ
