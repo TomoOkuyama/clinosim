@@ -602,9 +602,16 @@ def _build_lab_service_requests(
             earliest_dr_issued=_issued_map.get(sr_id, ""),
         )
         resources.append(sr)
+    # Issue #2585: a culture order is reported by its microbiology result,
+    # not by a lab value, so it is completed when a culture reports it.
+    from clinosim.modules.output.fhir_r4.labs.microbiology import culture_reported_order_ids
+
+    culture_reported = culture_reported_order_ids(ctx.record)
     for o in sorted(standalone_orders, key=lambda x: _o(x, "order_id", "")):
         _sr_id = order_to_sr_id(o, counter)
         sr = _build_standalone_sr(o, lang, country, earliest_dr_issued=_issued_map.get(_sr_id, ""))
+        if _o(o, "order_id", "") in culture_reported and sr["status"] == "active":
+            sr["status"] = "completed"
         resources.append(sr)
     return resources
 

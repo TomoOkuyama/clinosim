@@ -729,3 +729,4 @@ _.order_code_system  # types/encounter.py Order (CIF field naming the code syste
 _.asa_class  # types/procedure.py ProcedureRecord (CIF field; read by key into the operative-note event data)
 _.display_ja  # labs/_reference_ranges.py specs (read through locale.localized.localized_field, Issue #2397)
 _.FINAL_OPERATIONS  # codes/loader.py CodeSystem (the operations subclasses must not override; read by tests/unit/codes/test_code_system_base_2470.py, Issue #2470)
+_.culture_orders  # modules/observation/microbiology.py _Specimen (Pydantic field; read from the YAML dict by culture_order_names, Issue #2585)

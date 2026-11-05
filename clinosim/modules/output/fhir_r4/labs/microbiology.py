@@ -9,6 +9,7 @@ through the adapter (no cycle).
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 from typing import Any
 
 from clinosim.codes import display as registry_display
@@ -19,13 +20,16 @@ from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping, load_narrative_labels, resolve_localized_display
-from clinosim.modules._shared import is_jp
+from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules.observation.engine import canonical_lab_name
+from clinosim.modules.observation.microbiology import culture_order_match_window_hours, culture_order_names
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
     MB_DR_KEY_SYSTEM,
     _resolve_mb_dr_id,
 )
+from clinosim.modules.output.fhir_r4.labs.service_request import build_panel_counter, order_to_sr_id
 from clinosim.modules.output.fhir_r4.lib.common import build_presented_form, dual_slot_concept, system_coding
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -38,6 +42,7 @@ from clinosim.modules.output.fhir_r4.post_process.specimen import (
     SPECIMEN_KEY_SYSTEM,
     _resolve_specimen_id,
 )
+from clinosim.types.encounter import OrderType
 
 # Canonical id prefixes for microbiology resources. Imported by readers
 # (e.g. clinosim.audit.axes.clinical._organism_per_encounter) to avoid the
@@ -156,6 +161,57 @@ def resolve_susceptibility_code(antibiotic_loinc: str, country: str) -> tuple[st
     return antibiotic_loinc, "loinc"
 
 
+def _as_datetime(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(str(value)) if value else None
+    except ValueError:
+        return None
+
+
+def culture_orders_for(culture: Any, orders: list[Any]) -> list[Any]:
+    """The lab orders a culture result reports (Issue #2585).
+
+    The orders that request a culture of the result's specimen, in its
+    encounter, drawn nearest its collection time (within the configured
+    window). Every order of that draw is returned (two blood-culture sets are
+    one draw). ``[]`` when no such order was placed.
+    """
+    names = culture_order_names(get_attr_or_key(culture, "specimen", "") or "")
+    collected = _as_datetime(get_attr_or_key(culture, "collected_datetime"))
+    if not names or collected is None:
+        return []
+    enc_id = get_attr_or_key(culture, "encounter_id", "") or ""
+    window = timedelta(hours=culture_order_match_window_hours())
+    candidates: list[tuple[timedelta, datetime, Any]] = []
+    for order in orders:
+        if get_attr_or_key(order, "order_type") not in (OrderType.LAB, "lab"):
+            continue
+        if enc_id and get_attr_or_key(order, "encounter_id", "") != enc_id:
+            continue
+        if canonical_lab_name(get_attr_or_key(order, "display_name", "") or "") not in names:
+            continue
+        ordered = _as_datetime(get_attr_or_key(order, "ordered_datetime"))
+        if ordered is None or abs(ordered - collected) > window:
+            continue
+        candidates.append((abs(ordered - collected), ordered, order))
+    if not candidates:
+        return []
+    nearest = min(candidates, key=lambda c: c[0])[1]
+    return [order for _gap, ordered, order in candidates if ordered == nearest]
+
+
+def culture_reported_order_ids(record: Any) -> set[str]:
+    """Order ids of the culture orders some culture result reports."""
+    orders = get_attr_or_key(record, "orders", []) or []
+    return {
+        get_attr_or_key(o, "order_id", "")
+        for culture in get_attr_or_key(record, "microbiology", []) or []
+        for o in culture_orders_for(culture, orders)
+    }
+
+
 def _bb_microbiology(ctx: BundleContext) -> list[dict]:
     """Microbiology cultures → Specimen + Observation(s) + DiagnosticReport (AD-55)."""
     cultures = ctx.record.get("microbiology") or []
@@ -188,9 +244,18 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 _mb_performer_ref = f"Practitioner/{_att}"
             break
     out: list[dict] = []
+    orders = ctx.record.get("orders", []) or []
+    panel_counter = build_panel_counter(
+        [o for o in orders if get_attr_or_key(o, "order_type") in (OrderType.LAB, "lab")]
+    )
 
     for i, mb in enumerate(cultures):
         base = f"{ctx.primary_enc_id or ctx.patient_id}-{i}"
+        # Issue #2585: the culture order(s) this result reports.
+        based_on = [
+            {"reference": f"ServiceRequest/{sid}"}
+            for sid in sorted({order_to_sr_id(o, panel_counter) for o in culture_orders_for(mb, orders)})
+        ]
         # Issue #854 Bucket B (PR-specimen): opaque Specimen.id.
         # Structural key = pre-#854 id body (without ``spec-`` prefix) =
         # ``{enc or patient_id}-{i}``; identifier round-trip carries it
@@ -286,6 +351,8 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         # identifier prepended when the culture belongs to a HAI event so
         # PR3b-5's audit reader can still find it via HAI_EVENT_ID_SYSTEM.
         org_obs["identifier"] = [*hai_identifier, _mb_org_identifier]
+        if based_on:
+            org_obs["basedOn"] = based_on
         if enc_ref:
             org_obs["encounter"] = enc_ref
         if mb.get("reported_datetime"):
@@ -309,6 +376,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             org_obs["valueString"] = localize_fixed_label("No growth", ctx.country)
         out.append(org_obs)
         result_refs.append({"reference": f"Observation/{org_id}"})
+        member_refs: list[dict] = []
 
         for j, sus in enumerate(mb.get("susceptibilities") or []):
             interp = sus.get("interpretation", "")
@@ -352,6 +420,10 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 ),
             }
             sus_obs["identifier"] = [*hai_identifier, _mb_sus_identifier]
+            if based_on:
+                sus_obs["basedOn"] = based_on
+            # Issue #2585: the susceptibility is of this isolate.
+            sus_obs["derivedFrom"] = [{"reference": f"Observation/{org_id}"}]
             if enc_ref:
                 sus_obs["encounter"] = enc_ref
             # C1-13: pin effectiveDateTime to match the
@@ -360,6 +432,9 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 sus_obs["effectiveDateTime"] = mb["reported_datetime"]
             out.append(sus_obs)
             result_refs.append({"reference": f"Observation/{sus_id}"})
+            member_refs.append({"reference": f"Observation/{sus_id}"})
+        if member_refs:
+            org_obs["hasMember"] = member_refs
 
         # chain B: for JP output, the microbiology DR routes through
         # JP_DiagnosticReport_Microbiology (chain #2 originally used
@@ -419,6 +494,8 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         # Structural-key identifier always present; HAI identifier prepended
         # when the culture belongs to a HAI event (byte-preserves PR3b-5).
         report["identifier"] = [*hai_identifier, _mb_dr_identifier]
+        if based_on:
+            report["basedOn"] = based_on
         if enc_ref:
             report["encounter"] = enc_ref
         if mb.get("reported_datetime"):

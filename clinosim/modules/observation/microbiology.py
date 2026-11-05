@@ -37,6 +37,7 @@ class _Specimen(BaseModel):
 
     snomed: str
     test_loinc: str
+    culture_orders: list[str] = Field(default_factory=list)
 
     @field_validator("snomed")
     @classmethod
@@ -105,6 +106,7 @@ class MicrobiologyConfig(BaseModel):
     antibiotics: dict[str, str] = Field(default_factory=dict)
     organisms: dict[str, _Organism] = Field(default_factory=dict)
     specimens: dict[str, _Specimen] = Field(default_factory=dict)
+    culture_order_match_window_hours: float = 6.0
     diseases: dict[str, _DiseaseProfile] = Field(default_factory=dict)
 
     @model_validator(mode="before")
@@ -167,6 +169,17 @@ def antibiotic_loinc_lookup() -> dict[str, str]:
     and validated by ``_load`` / ``MicrobiologyConfig``.
     """
     return {str(k): str(v) for k, v in (_load().get("antibiotics") or {}).items()}
+
+
+def culture_order_names(specimen: str) -> frozenset[str]:
+    """Canonical lab-order names that request a culture of ``specimen`` (Issue #2585)."""
+    spec = (_load().get("specimens") or {}).get(specimen) or {}
+    return frozenset(spec.get("culture_orders") or ())
+
+
+def culture_order_match_window_hours() -> float:
+    """How far a culture order may be from the culture's collection time (Issue #2585)."""
+    return float(_load().get("culture_order_match_window_hours", 6.0))
 
 
 def has_microbiology(disease_id: str) -> bool:
