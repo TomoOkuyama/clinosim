@@ -743,6 +743,10 @@ codes:
   '233520008':
     en: Insertion of peripheral venous cannula into peripheral vein
     ja: 末梢静脈カテーテル留置
+  # Issue #2654: body site of a CT abdomen and pelvis (tx.fhir.org $lookup 2026-11-05).
+  '818982008':
+    en: Abdominopelvic cross-sectional segment
+    ja: 腹部・骨盤
   '260385009':
     en: Negative
     ja: 陰性

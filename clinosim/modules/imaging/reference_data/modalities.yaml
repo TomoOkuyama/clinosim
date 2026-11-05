@@ -32,6 +32,7 @@ modalities:
       head: [180, 280]                           # axial 5mm ≈ ~200 slices
       chest: [220, 340]                          # axial 1mm ≈ ~280 slices
       abdomen: [280, 420]                        # thin section abdomen
+      abdomen_pelvis: [380, 560]                 # Issue #2654: abdomen + pelvis coverage
       hip: [180, 260]
       spine: [220, 320]
       kidney: [280, 420]                         # CT urography ≈ abdomen coverage
@@ -40,6 +41,7 @@ modalities:
       head: ["axial"]
       chest: ["axial"]
       abdomen: ["axial"]
+      abdomen_pelvis: ["axial"]
       hip: ["axial"]
       spine: ["axial"]
       kidney: ["axial"]

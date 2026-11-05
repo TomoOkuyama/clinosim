@@ -85,6 +85,23 @@ body_sites:
         cpt: "76700"                             # US abdomen complete — AMA
         jp_k_code: "D215"                        # 超音波検査
 
+  # Issue #2654: CT of abdomen and pelvis (the common acute-abdomen study),
+  # distinct from an abdomen-only CT. LOINC codes checked with tx.fhir.org;
+  # CPT 74176 / 74177 are the AMA codes for CT abdomen and pelvis without /
+  # with contrast. Reports use the abdomen templates (report_template_site).
+  abdomen_pelvis:
+    snomed: "818982008"                          # Abdominopelvic cross-sectional segment
+    report_template_site: abdomen
+    procedure_codes:
+      CT_non_contrast:
+        loinc: "36952-0"                         # CT Abdomen and Pelvis WO contrast
+        cpt: "74176"
+        jp_k_code: "E200"
+      CT_contrast:
+        loinc: "36813-4"                         # CT Abdomen and Pelvis W contrast IV
+        cpt: "74177"
+        jp_k_code: "E200"
+
   kidney:
     snomed: "64033007"                           # Kidney (structure)
     procedure_codes:
