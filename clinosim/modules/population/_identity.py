@@ -83,6 +83,7 @@ def _sample_occupation(demo: dict, age: int, sex: str, rng: np.random.Generator)
     occ_cfg = demo.get("occupation_distribution") or {}
     thresholds = occ_cfg.get("age_thresholds") or {}
     student_max = int(thresholds.get("student_max_age", 14))
+    high_school_max = int(thresholds.get("high_school_max_age", 17))
     young_max = int(thresholds.get("young_adult_max_age", 21))
     young_prob = float(thresholds.get("young_adult_student_prob", 0.70))
     retirement = int(thresholds.get("retirement_min_age", 65))
@@ -101,10 +102,16 @@ def _sample_occupation(demo: dict, age: int, sex: str, rng: np.random.Generator)
     if not dist:
         return "other"
     if age <= young_max and rng.random() < young_prob:
-        return "student"
-    keys = list(dist.keys())
-    weights = normalize_probabilities([dist[k] for k in keys], fallback="raise")
-    return str(rng.choice(keys, p=weights))
+        occupation = "student"
+    else:
+        keys = list(dist.keys())
+        weights = normalize_probabilities([dist[k] for k in keys], fallback="raise")
+        occupation = str(rng.choice(keys, p=weights))
+    # Issue #2674: a 15-17-year-old is in upper secondary school. The draws
+    # above still run so the stream is consumed exactly as before.
+    if age <= high_school_max:
+        return "high_school_student"
+    return occupation
 
 
 def _sample_given_name(name_data: dict, sex: str, rng: np.random.Generator) -> dict:
