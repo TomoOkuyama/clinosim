@@ -37,7 +37,7 @@ workup:
     - {test: "WBC", probability: 0.3}
     - {test: "Creatinine", probability: 0.3}
   imaging:
-    - {test: "Xray_Affected_Area", probability: 0.7}
+    - {test: "Hip_Xray_AP_Lateral", probability: 0.7}  # Issue #2699: the hip, the injury an older adult's fall most often needs imaged
     - {test: "CT_Head", probability: 0.3}
 
 treatment:

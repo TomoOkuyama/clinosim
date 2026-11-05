@@ -927,6 +927,16 @@ codes:
   36484-4:
     en: CT Hip WO contrast
     ja: 股関節CT 単純
+  # Issue #2699 (tx.fhir.org $lookup 2026-11-06).
+  36554-4:
+    en: XR Chest Single view
+    ja: 胸部単純X線撮影 1方向
+  37498-3:
+    en: CTA Head vessels and Neck vessels W contrast IV
+    ja: 頭頸部CTアンギオグラフィ (造影)
+  36881-1:
+    en: MRA Head vessels WO contrast
+    ja: 頭部MRアンギオグラフィ (非造影)
   36572-6:
     # LOINC 36572-6 is `XR Chest AP` — a single AP (anteroposterior)
     # projection, typically portable/supine. The JA was authored as

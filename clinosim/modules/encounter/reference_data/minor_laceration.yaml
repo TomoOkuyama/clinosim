@@ -35,7 +35,7 @@ workup:
   labs:
     - {test: "Tetanus_status", probability: 0.6}
   imaging:
-    - {test: "Xray_affected_area", probability: 0.15}  # foreign body or fracture concern
+    - {test: "Hand_Xray", probability: 0.15}  # Issue #2699: the hand, the most common laceration site  # foreign body or fracture concern
 
 treatment:
   - {name: "Lidocaine 1% local infiltration", probability: 0.9, route: "infiltration", intent: "local anesthesia"}

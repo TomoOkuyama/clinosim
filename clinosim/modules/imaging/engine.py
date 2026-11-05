@@ -374,7 +374,11 @@ def _resolve_imaging_procedure_code_key(
     # CR (X-ray) — per-body-site view combinations
     if modality == "CR":
         if body_site == "chest":
-            return "CR_PA_Lateral" if "Lateral" in views else "CR_PA"
+            # Issue #2699: two views (PA + lateral), a portable AP film, or a
+            # single standing PA view are different studies.
+            if "Lateral" in views:
+                return "CR_PA_Lateral"
+            return "CR_AP" if "AP" in views else "CR_PA"
         if body_site == "abdomen":
             return "CR_Supine_Upright" if len(views) >= 2 else "CR_AP"
         if body_site == "hand":
@@ -390,11 +394,15 @@ def _resolve_imaging_procedure_code_key(
         if body_site in ("chest", "abdomen", "abdomen_pelvis"):
             return "CT_contrast" if contrast else "CT_non_contrast"
         if body_site == "head":
+            if "angiography" in views:  # Issue #2699: CT angiography of head and neck
+                return "CTA"
             return "CT_non_contrast" if not contrast else "CT"
         if body_site in ("hip", "spine"):
             return "CT_non_contrast"
     # MR — non-contrast is the standard variant (contrast MR reserved for future)
     if modality == "MR":
+        if body_site == "head" and "angiography" in views:  # Issue #2699: MR angiography
+            return "MRA"
         if body_site in ("head", "spine", "biliary_tract"):
             return "MR_non_contrast"
     # US — single procedure per body site (doppler for leg, generic for the rest)
@@ -413,6 +421,16 @@ def _resolve_imaging_procedure_code_key(
     raise ValueError(
         f"Unsupported imaging combination: modality={modality} body_site={body_site} views={views} contrast={contrast}"
     )
+
+
+def imaging_procedure_loinc(modality: str, body_site: str, views: list[str], contrast: bool) -> str:
+    """The procedure LOINC of a study, or "" when the combination has none
+    (Issue #2699: shared by the ServiceRequest, ImagingStudy and report)."""
+    try:
+        key = _resolve_imaging_procedure_code_key(modality, body_site, list(views or []), contrast)
+        return str(load_body_sites()[body_site]["procedure_codes"][key]["loinc"])
+    except (KeyError, ValueError):
+        return ""
 
 
 # ---------------------------------------------------------------------------
@@ -840,6 +858,7 @@ def imaging_enricher(ctx: Any) -> None:
                 series=series,
                 endpoint_id=f"{ENDPOINT_ID_PREFIX}{study_uid}",
                 contrast=contrast,
+                views=list(views),
                 report=report,
                 description=_non_stub_display,
             )

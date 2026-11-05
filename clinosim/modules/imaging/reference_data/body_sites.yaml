@@ -24,8 +24,12 @@ body_sites:
         loinc: "42272-5"
         cpt: "71046"                             # AMA verified
         jp_k_code: "E001"                        # MHLW 単純撮影
-      CR_PA:                                     # 1-view chest X-ray (portable / bed-side AP)
+      CR_AP:                                     # 1-view chest X-ray (portable / bed-side AP)
         loinc: "36572-6"                         # XR Chest AP — portable supine, NLM verified
+        cpt: "71045"
+        jp_k_code: "E001"
+      CR_PA:                                     # Issue #2699: 1-view standing PA chest X-ray
+        loinc: "36554-4"                         # XR Chest Single view (tx.fhir.org 2026-11-06)
         cpt: "71045"
         jp_k_code: "E001"
       CT_non_contrast:
@@ -58,6 +62,16 @@ body_sites:
         loinc: "30657-1"                         # "MR Brain WO contrast" — NLM verified
         cpt: "70551"
         jp_k_code: "E202"                        # MHLW MRI撮影
+      # Issue #2699: angiography of the head (and neck). LOINC checked with
+      # tx.fhir.org; CPT (AMA, licensed) not checkable on a public server.
+      CTA:
+        loinc: "37498-3"                         # CTA Head vessels and Neck vessels W contrast IV
+        cpt: "70496"                             # CTA head
+        jp_k_code: "E200"
+      MRA:
+        loinc: "36881-1"                         # MRA Head vessels WO contrast
+        cpt: "70544"                             # MRA head without contrast
+        jp_k_code: "E202"
 
   # === CO-1 continuation (session 43) — new body sites ===
 

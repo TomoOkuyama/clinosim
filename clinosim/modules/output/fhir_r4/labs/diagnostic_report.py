@@ -1033,7 +1033,9 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     if _body_site_key is not None:
         try:
             contrast: bool = bool(get_attr_or_key(study, "contrast", False))
-            code_key = _resolve_imaging_procedure_code_key(modality_code, _body_site_key, [], contrast)
+            code_key = _resolve_imaging_procedure_code_key(
+                modality_code, _body_site_key, list(get_attr_or_key(study, "views", []) or []), contrast
+            )
             _proc = (body_sites[_body_site_key].get("procedure_codes") or {}).get(code_key, {})
             proc_code = _proc.get("loinc", "")
             # META #1805 Phase B.2 Part 2: display resolves via the LOINC

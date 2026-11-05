@@ -695,18 +695,15 @@ def _infer_imaging_procedure(display_name: str) -> tuple[str, str, str]:
     """``(modality, body-site SNOMED, procedure LOINC)`` for an imaging order
     name, as the ImagingStudy and radiology report resolve it (Issue #2621);
     empty strings when the name or the combination is not resolved."""
-    from clinosim.modules.imaging.engine import _resolve_imaging_procedure_code_key, load_body_sites
+    from clinosim.modules.imaging.engine import imaging_procedure_loinc
     from clinosim.modules.imaging.inference import infer_imaging_metadata
 
     meta = infer_imaging_metadata(display_name or "")
     if not meta:
         return "", "", ""
     modality, site_key = str(meta.get("modality", "")), str(meta.get("body_site_key", ""))
-    try:
-        key = _resolve_imaging_procedure_code_key(modality, site_key, [], bool(meta.get("contrast")))
-        code = str(load_body_sites()[site_key]["procedure_codes"][key]["loinc"])
-    except (KeyError, ValueError):
-        code = ""
+    # Issue #2699: the same views-aware resolution as the study and report.
+    code = imaging_procedure_loinc(modality, site_key, list(meta.get("views") or []), bool(meta.get("contrast")))
     return modality, str(meta.get("body_site_snomed", "")), code
 
 
