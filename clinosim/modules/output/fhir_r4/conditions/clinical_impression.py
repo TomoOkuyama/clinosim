@@ -25,6 +25,7 @@ from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.countries import lang_for
+from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document import CLINICAL_IMPRESSION_ID_PREFIX
@@ -37,6 +38,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.types.encounter import OrderType
 
 # === Issue #854 Bucket B (PR-clinical-impression): opaque ClinicalImpression.id ===
 # Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
@@ -66,10 +68,33 @@ def _bb_clinical_impressions(ctx: BundleContext) -> list[dict[str, Any]]:
     impressions = _o(ext, "clinical_impressions", []) or []
     if not impressions:
         return []
-    return [_build_clinical_impression(imp, ctx.patient_id, ctx.country) for imp in impressions]
+    return [_build_clinical_impression(imp, ctx.patient_id, ctx.country, record=ctx.record) for imp in impressions]
 
 
-def _build_clinical_impression(imp: Any, patient_id: str, country: str = "US") -> dict[str, Any]:
+def _day_abnormal_lab_idxs(record: dict, encounter_id: str, day: Any) -> list[int]:
+    """Order-list indices of the lab results flagged abnormal on ``day``'s date."""
+    from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _ABNORMAL_LAB_FLAGS
+
+    day_str = str(to_fhir_datetime(day) or "")[:10]
+    out: list[int] = []
+    for idx, order in enumerate(record.get("orders") or []):
+        if _o(order, "order_type") not in (OrderType.LAB, "lab"):
+            continue
+        if encounter_id and (_o(order, "encounter_id", "") or "") != encounter_id:
+            continue
+        result = _o(order, "result")
+        if not result or _o(result, "value") is None:
+            continue
+        if str(_o(result, "flag") or "").upper() not in _ABNORMAL_LAB_FLAGS:
+            continue
+        if str(to_fhir_datetime(_o(result, "result_datetime")) or "")[:10] == day_str:
+            out.append(idx)
+    return out
+
+
+def _build_clinical_impression(
+    imp: Any, patient_id: str, country: str = "US", record: dict | None = None
+) -> dict[str, Any]:
     """Build one FHIR R4 ClinicalImpression from a ClinicalImpressionRecord.
 
     Issue #360 G4 (iris4h-ai 2026-07-22 feedback): JP output picks the
@@ -158,5 +183,38 @@ def _build_clinical_impression(imp: Any, patient_id: str, country: str = "US") -
 
     if prognosis:
         res["prognosisCodeableConcept"] = [{"text": prognosis}]
+
+    # Issue #2652: the problem assessed (the encounter's primary diagnosis),
+    # the day's abnormal lab results as findings, and a fact-only summary of
+    # them (the panel-report conclusion format), when the CIF carries none.
+    if record is not None and encounter_id:
+        from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
+        from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
+            _build_lab_panel_conclusion,
+            _GroupedPanel,
+            lab_observation_id,
+        )
+
+        lang = lang_for(country)
+        if record.get("clinical_diagnosis"):
+            res["problem"] = [{"reference": f"Condition/{primary_condition_ref(record, patient_id, encounter_id)}"}]
+        idxs = _day_abnormal_lab_idxs(record, encounter_id, date_val)
+        if idxs and "finding" not in res:
+            res["finding"] = [
+                {"itemReference": {"reference": f"Observation/{lab_observation_id(encounter_id, i)}"}} for i in idxs
+            ]
+        if "summary" not in res:
+            # One value per analyte (the day's latest), in order of first appearance.
+            orders = record.get("orders") or []
+            latest: dict[str, int] = {}
+            for i in idxs:
+                name = str(_o(_o(orders[i], "result"), "lab_name") or _o(orders[i], "display_name") or "")
+                prev = latest.get(name)
+                when = str(_o(_o(orders[i], "result"), "result_datetime") or "")
+                if prev is None or when >= str(_o(_o(orders[prev], "result"), "result_datetime") or ""):
+                    latest[name] = i
+            group = _GroupedPanel(panel_name="", bucket="", obs_idxs=sorted(latest.values()))
+            text, _abnormal = _build_lab_panel_conclusion(group, record.get("orders") or [], encounter_id, lang)
+            res["summary"] = text or t("clinical_impression.no_abnormal_results", lang)
 
     return res
