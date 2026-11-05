@@ -18,3 +18,6 @@ PROCEDURE_UNSUCCESSFUL = "385671000"
 # DiagnosticReport.conclusionCode
 FINDING_NORMAL = "17621005"
 FINDING_ABNORMAL = "263654008"
+
+# Organism Observation value of a negative culture (Issue #2660)
+NO_GROWTH = "264868006"

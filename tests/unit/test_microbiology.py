@@ -116,7 +116,7 @@ class TestFhirBuilder:
                     assert ref["reference"] in ids
                 assert r["subject"]["reference"] == f"Patient/{resolve_patient_id('POP-1')}"
 
-    def test_no_growth_uses_value_string(self):
+    def test_no_growth_is_coded(self):
         # cellulitis often no growth; find a no-growth culture deterministically across seeds
         for i in range(30):
             mb = generate_microbiology("cellulitis", _DT, f"NG-{i}", 1)
@@ -130,7 +130,9 @@ class TestFhirBuilder:
                 }
                 bundle = fhir._build_bundle(rec, "US")
                 org = next(e["resource"] for e in bundle["entry"] if e["resource"]["id"].startswith("mb-org"))
-                assert org.get("valueString") == "No growth"
+                # Issue #2660: SNOMED CT 264868006 No growth, not free text.
+                assert "valueString" not in org
+                assert org["valueCodeableConcept"]["coding"][0]["code"] == "264868006"
                 return
         pytest.skip("no no-growth culture sampled")
 

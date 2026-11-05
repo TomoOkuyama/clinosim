@@ -16,7 +16,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loinc import loinc_for
-from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
+from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL, NO_GROWTH
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping, load_narrative_labels, resolve_localized_display
@@ -373,7 +373,10 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             if mb.get("quantitation"):
                 org_obs["note"] = [{"text": mb["quantitation"]}]
         else:
-            org_obs["valueString"] = localize_fixed_label("No growth", ctx.country)
+            # Issue #2660: SNOMED CT 264868006 No growth (tx.fhir.org $lookup).
+            org_obs["valueCodeableConcept"] = dual_slot_concept(
+                "snomed-ct", NO_GROWTH, lang, text=localize_fixed_label("No growth", ctx.country)
+            )
         out.append(org_obs)
         result_refs.append({"reference": f"Observation/{org_id}"})
         member_refs: list[dict] = []
