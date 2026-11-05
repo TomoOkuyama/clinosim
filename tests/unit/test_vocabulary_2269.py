@@ -14,6 +14,7 @@ from clinosim.modules.document.narrative._patient_info_renderers import _localiz
 from clinosim.modules.document.narrative._replacement_localization import _localize_arrival_mode_ja
 from clinosim.modules.newborn.fhir_emit import _label as newborn_label
 from clinosim.modules.output.fhir_r4.demographics.patient import _build_occupation_observation
+from clinosim.modules.population._identity import DEVELOPMENTAL_STAGES
 
 pytestmark = pytest.mark.unit
 
@@ -62,7 +63,7 @@ def test_narrative_llm_and_fhir_show_the_same_string(vocab: str, lang: str) -> N
             assert _localize_token(slug, vocab, lang).casefold() == expected.casefold()
         if vocab == "arrival_mode" and lang == "ja":
             assert _localize_arrival_mode_ja(slug) == expected
-        if vocab == "occupation":
+        if vocab == "occupation" and slug not in DEVELOPMENTAL_STAGES:  # Issue #2630: no Observation for these
             obs = _build_occupation_observation(slug, "p1", "JP" if lang == "ja" else "US")
             assert obs is not None and expected in str(obs)
 

@@ -53,6 +53,12 @@ def _sample_surname(name_data: dict, rng: np.random.Generator) -> dict:
     return surnames[idx]
 
 
+# The developmental-stage labels a child below working age gets in place of an
+# occupation (ages <= ``student_max_age``). They are not occupations: the
+# FHIR occupation Observation is not emitted for them (Issue #2630).
+DEVELOPMENTAL_STAGES: frozenset[str] = frozenset({"infant", "preschool", "elementary_student", "middle_school_student"})
+
+
 def _sample_occupation(demo: dict, age: int, sex: str, rng: np.random.Generator) -> str:
     """Sample occupation category from demographics occupation_distribution.
 
