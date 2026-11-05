@@ -21,7 +21,7 @@
       },
       "sections": {
         "allergies": "No known drug allergies (NKDA)",
-        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Sudden severe headache, vomiting, altered consciousness. Working diagnosis: hemorrhagic stroke (severity: severe). Comorbidities: Essential (primary) hypertension, Unspecified atrial fibrillation. Plan: Estimated length of stay: ~14 days. Initial medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.",
+        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Sudden severe headache, vomiting, altered consciousness. Working diagnosis: hemorrhagic stroke (severity: severe). Comorbidities: Essential (primary) hypertension, Unspecified atrial fibrillation. Plan: Estimated length of stay: ~14 days. Initial medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
         "family_history": "No significant family history",
         "hpi": "Patient reports rapid symptom worsening prompting today's presentation.",
@@ -77,10 +77,10 @@
       "sections": {
         "assessment": "Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H], albumin 3.2 g/dL [L].",
         "objective": "BP 132/78 mmHg, HR 94/min, T 37.6°C, SpO2 92% (RA), RR 20/min",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.",
+        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.",
         "subjective": "Hospital day 1. Pain persists (NRS 5). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 1. Pain persists (NRS 5). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 132/78 mmHg, HR 94/min, T 37.6°C, SpO2 92% (RA), RR 20/min\nA: Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H], albumin 3.2 g/dL [L].\nP: Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h."
+      "text": "S: Hospital day 1. Pain persists (NRS 5). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 132/78 mmHg, HR 94/min, T 37.6°C, SpO2 92% (RA), RR 20/min\nA: Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H], albumin 3.2 g/dL [L].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-03": {
@@ -127,10 +127,10 @@
       "sections": {
         "assessment": "Notable labs today: glucose 116.0 mg/dL [H], WBC 12000.0 /uL [H].",
         "objective": "BP 132/80 mmHg, HR 99/min, T 38.2°C, SpO2 96% (RA), RR 16/min",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.",
+        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.",
         "subjective": "Hospital day 2. New-onset fever 38.2°C. Pain worsening (NRS 5 → 8). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 2. New-onset fever 38.2°C. Pain worsening (NRS 5 → 8). Level of consciousness remains decreased (AVPU V).\nO: BP 132/80 mmHg, HR 99/min, T 38.2°C, SpO2 96% (RA), RR 16/min\nA: Notable labs today: glucose 116.0 mg/dL [H], WBC 12000.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h."
+      "text": "S: Hospital day 2. New-onset fever 38.2°C. Pain worsening (NRS 5 → 8). Level of consciousness remains decreased (AVPU V).\nO: BP 132/80 mmHg, HR 99/min, T 38.2°C, SpO2 96% (RA), RR 16/min\nA: Notable labs today: glucose 116.0 mg/dL [H], WBC 12000.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-04": {
@@ -177,10 +177,10 @@
       "sections": {
         "assessment": "Notable labs today: glucose 114.0 mg/dL [H], WBC 13045.0 /uL [H].",
         "objective": "BP 134/84 mmHg, HR 100/min, T 37.0°C, SpO2 94% (RA), RR 19/min",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.",
+        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.",
         "subjective": "Hospital day 3. Fever trending down (prev 38.2°C → today 37.0°C). Pain persists (NRS 7). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 3. Fever trending down (prev 38.2°C → today 37.0°C). Pain persists (NRS 7). Level of consciousness remains decreased (AVPU V).\nO: BP 134/84 mmHg, HR 100/min, T 37.0°C, SpO2 94% (RA), RR 19/min\nA: Notable labs today: glucose 114.0 mg/dL [H], WBC 13045.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h."
+      "text": "S: Hospital day 3. Fever trending down (prev 38.2°C → today 37.0°C). Pain persists (NRS 7). Level of consciousness remains decreased (AVPU V).\nO: BP 134/84 mmHg, HR 100/min, T 37.0°C, SpO2 94% (RA), RR 19/min\nA: Notable labs today: glucose 114.0 mg/dL [H], WBC 13045.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-05": {
@@ -227,10 +227,10 @@
       "sections": {
         "assessment": "Notable labs today: glucose 122.0 mg/dL [H].",
         "objective": "BP 133/81 mmHg, HR 102/min, T 36.7°C, SpO2 96%, RR 19/min",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
+        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
         "subjective": "Hospital day 4. Pain improving (NRS 7 → 5). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 4. Pain improving (NRS 7 → 5). Level of consciousness remains decreased (AVPU V).\nO: BP 133/81 mmHg, HR 102/min, T 36.7°C, SpO2 96%, RR 19/min\nA: Notable labs today: glucose 122.0 mg/dL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
+      "text": "S: Hospital day 4. Pain improving (NRS 7 → 5). Level of consciousness remains decreased (AVPU V).\nO: BP 133/81 mmHg, HR 102/min, T 36.7°C, SpO2 96%, RR 19/min\nA: Notable labs today: glucose 122.0 mg/dL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-06": {
@@ -277,10 +277,10 @@
       "sections": {
         "assessment": "Notable labs today: glucose 117.0 mg/dL [H], WBC 12310.0 /uL [H].",
         "objective": "BP 136/80 mmHg, HR 100/min, T 37.2°C, SpO2 93% (RA), RR 19/min",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
+        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
         "subjective": "Hospital day 5. Pain persists (NRS 6). Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 5. Pain persists (NRS 6). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 136/80 mmHg, HR 100/min, T 37.2°C, SpO2 93% (RA), RR 19/min\nA: Notable labs today: glucose 117.0 mg/dL [H], WBC 12310.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
+      "text": "S: Hospital day 5. Pain persists (NRS 6). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 136/80 mmHg, HR 100/min, T 37.2°C, SpO2 93% (RA), RR 19/min\nA: Notable labs today: glucose 117.0 mg/dL [H], WBC 12310.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-07": {
@@ -327,10 +327,10 @@
       "sections": {
         "assessment": "Notable labs today: glucose 119.0 mg/dL [H], WBC 11222.0 /uL [H].",
         "objective": "BP 136/81 mmHg, HR 101/min, T 37.0°C, SpO2 95% (RA), RR 19/min",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
+        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
         "subjective": "Hospital day 6. Pain persists (NRS 5)."
       },
-      "text": "S: Hospital day 6. Pain persists (NRS 5).\nO: BP 136/81 mmHg, HR 101/min, T 37.0°C, SpO2 95% (RA), RR 19/min\nA: Notable labs today: glucose 119.0 mg/dL [H], WBC 11222.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
+      "text": "S: Hospital day 6. Pain persists (NRS 5).\nO: BP 136/81 mmHg, HR 101/min, T 37.0°C, SpO2 95% (RA), RR 19/min\nA: Notable labs today: glucose 119.0 mg/dL [H], WBC 11222.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-08": {
@@ -377,10 +377,10 @@
       "sections": {
         "assessment": "Notable labs today: glucose 117.0 mg/dL [H], WBC 13983.0 /uL [H].",
         "objective": "BP 137/79 mmHg, HR 99/min, T 36.8°C, SpO2 93% (RA), RR 19/min",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
+        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
         "subjective": "Hospital day 7. Pain persists (NRS 4). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 7. Pain persists (NRS 4). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 137/79 mmHg, HR 99/min, T 36.8°C, SpO2 93% (RA), RR 19/min\nA: Notable labs today: glucose 117.0 mg/dL [H], WBC 13983.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
+      "text": "S: Hospital day 7. Pain persists (NRS 4). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 137/79 mmHg, HR 99/min, T 36.8°C, SpO2 93% (RA), RR 19/min\nA: Notable labs today: glucose 117.0 mg/dL [H], WBC 13983.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-09": {
@@ -427,10 +427,10 @@
       "sections": {
         "assessment": "Notable labs today: glucose 123.0 mg/dL [H], WBC 10984.0 /uL [H].",
         "objective": "BP 131/81 mmHg, HR 99/min, T 38.1°C, SpO2 94% (RA), RR 22/min",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
+        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
         "subjective": "Hospital day 8. New-onset fever 38.1°C. Pain well controlled (NRS 4 → 2). Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 8. New-onset fever 38.1°C. Pain well controlled (NRS 4 → 2). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 131/81 mmHg, HR 99/min, T 38.1°C, SpO2 94% (RA), RR 22/min\nA: Notable labs today: glucose 123.0 mg/dL [H], WBC 10984.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
+      "text": "S: Hospital day 8. New-onset fever 38.1°C. Pain well controlled (NRS 4 → 2). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 131/81 mmHg, HR 99/min, T 38.1°C, SpO2 94% (RA), RR 22/min\nA: Notable labs today: glucose 123.0 mg/dL [H], WBC 10984.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-10": {
@@ -510,7 +510,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 8 days\nPatient status: BP 132/78, HR 94, SpO2 92%, T 37.6°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 8 days\nPatient status: BP 132/78, HR 94, SpO2 92%, T 37.6°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-13-evening": {
@@ -577,7 +577,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 8 days\nPatient status: BP 132/80, HR 99, SpO2 96%, T 38.2°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 8 days\nPatient status: BP 132/80, HR 99, SpO2 96%, T 38.2°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-16-evening": {
@@ -644,7 +644,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 8 days\nPatient status: BP 134/84, HR 100, SpO2 94%, T 37.0°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 8 days\nPatient status: BP 134/84, HR 100, SpO2 94%, T 37.0°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-19-evening": {
@@ -689,7 +689,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 8 days\nPatient status: BP 133/81, HR 102, SpO2 96%, T 36.7°C; nasal cannula 3.2 L/min.\nMeds administered: Nicardipine, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 8 days\nPatient status: BP 133/81, HR 102, SpO2 96%, T 36.7°C; nasal cannula 3.2 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-21-day": {
@@ -780,7 +780,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5 / LOS 8 days\nPatient status: BP 136/80, HR 100, SpO2 93%, T 37.2°C.\nMeds administered: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 5 / LOS 8 days\nPatient status: BP 136/80, HR 100, SpO2 93%, T 37.2°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-25-evening": {
@@ -825,7 +825,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 6 / LOS 8 days\nPatient status: BP 136/81, HR 101, SpO2 95%, T 37.0°C.\nMeds administered: IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 6 / LOS 8 days\nPatient status: BP 136/81, HR 101, SpO2 95%, T 37.0°C.\nMeds administered: IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-27-day": {
@@ -916,7 +916,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 8 days\nPatient status: BP 137/79, HR 99, SpO2 93%, T 36.8°C.\nMeds administered: Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 8 days\nPatient status: BP 137/79, HR 99, SpO2 93%, T 36.8°C.\nMeds administered: Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-31-evening": {
@@ -961,7 +961,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8 / LOS 8 days\nPatient status: BP 131/81, HR 99, SpO2 94%, T 38.1°C.\nMeds administered: IV_fluid: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 8 / LOS 8 days\nPatient status: BP 131/81, HR 99, SpO2 94%, T 38.1°C.\nMeds administered: IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-33-day": {
@@ -1091,7 +1091,7 @@
         "assessment": "Encounter reason: Sudden severe headache, vomiting, altered consciousness",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
         "disposition": "Discharged home (ESI level 2, Sudden severe headache, vomiting, altered consciousness)",
-        "ed_workup": "Labs: CBC, PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast), head CT (repeat). Medications: Nicardipine, Labetalol, IV_fluid: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line. Abnormal: glucose 119.0 mg/dL [H]",
+        "ed_workup": "Labs: CBC, PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast), head CT (repeat). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line. Abnormal: glucose 119.0 mg/dL [H]",
         "hpi": "Patient presented with severe symptoms.",
         "physical_exam": "On arrival: BP 132/78 mmHg, HR 94 bpm, RR 20 /min, SpO2 92%, T 37.6°C. No focal findings on exam.",
         "triage_details": "Triage information: not recorded"

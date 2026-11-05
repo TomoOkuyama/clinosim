@@ -49,7 +49,7 @@ def test_med_terms_tables_loaded():
     # Sizes match the current YAML. Update these counts intentionally when
     # editing med_terms_ja.yaml — a diff here is the load-bearing signal
     # that the localization table changed.
-    assert len(tables["categories"]) == 25
+    assert len(tables["categories"]) == 26  # Issue #2650: k_replace
     # Phase 1c-7 (2026-09-23): count bumped from 158 → 206 after
     # extending the terms table with the ed_workup composite vocabulary
     # (Ice pack / Wound irrigation / Elastic bandage / Suture closure /

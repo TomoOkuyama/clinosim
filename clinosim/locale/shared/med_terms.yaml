@@ -10,11 +10,12 @@
 # longest-key-first per section, all-uppercase keys stay case-sensitive
 # to avoid tail-of-word collisions like ``po`` inside ``clopidogrel``).
 #
-# EN slots are intentionally omitted for now: the source-language for
-# dosage / route / category text is English, so ``lang=en`` output is
-# a pass-through (the substitution loop finds no ``en`` slot per
-# entry and leaves the raw English token in place). Add ``en: ...``
-# only if you want to override casing / expand an abbreviation.
+# EN slots are omitted for ordinary English terms: the source language for
+# dosage / route / category text is English, so ``lang=en`` output is a
+# pass-through for them. Issue #2650: a protocol slug (``iv_fluid``,
+# ``pain_management``) carries an ``en`` slot so English text names the
+# treatment for a reader; ``localize_drug_name(..., "en")`` applies only the
+# entries that have one.
 #
 # Loader: ``clinosim.locale.loader.load_med_terms``.
 
@@ -25,29 +26,30 @@ metadata:
 
 categories:
   dvt prophylaxis: {ja: DVT予防}
-  dvt_prophylaxis: {ja: DVT予防}
+  dvt_prophylaxis: {en: DVT prophylaxis, ja: DVT予防}
   antipyretic: {ja: 解熱剤}
   bronchodilator: {ja: 気管支拡張薬}
   steroid: {ja: ステロイド}
   iv fluid: {ja: 輸液}
-  iv_fluid: {ja: 輸液}
-  iv_insulin: {ja: インスリン持続静注}
+  iv_fluid: {en: IV fluids, ja: 輸液}
+  iv_insulin: {en: IV insulin, ja: インスリン持続静注}
   iv insulin: {ja: インスリン持続静注}
-  k_replacement: {ja: カリウム補充}
+  k_replacement: {en: potassium replacement, ja: カリウム補充}
+  k_replace: {en: potassium replacement, ja: カリウム補充}
   k replacement: {ja: カリウム補充}
-  pain_management: {ja: 疼痛管理}
+  pain_management: {en: pain management, ja: 疼痛管理}
   pain management: {ja: 疼痛管理}
   ppi: {ja: PPI}
   nsaid: {ja: NSAIDs}
   antibiotic: {ja: 抗菌薬}
   o2: {ja: 酸素投与}
-  continuous_telemetry: {ja: 心電図モニター}
+  continuous_telemetry: {en: continuous telemetry, ja: 心電図モニター}
   continuous telemetry: {ja: 心電図モニター}
-  nutritional_support: {ja: 栄養サポート}
+  nutritional_support: {en: nutritional support, ja: 栄養サポート}
   nutritional support: {ja: 栄養サポート}
-  respiratory_support: {ja: 呼吸補助}
+  respiratory_support: {en: respiratory support, ja: 呼吸補助}
   respiratory support: {ja: 呼吸補助}
-  fluid_resuscitation: {ja: 輸液蘇生}
+  fluid_resuscitation: {en: fluid resuscitation, ja: 輸液蘇生}
   fluid resuscitation: {ja: 輸液蘇生}
 terms:
   PRN: {ja: 頓用}
@@ -227,7 +229,7 @@ terms:
   Foley: {ja: フォーリー}
   hourly urine output measurement: {ja: 時間尿量測定}
   urine output monitoring: {ja: 尿量モニタリング}
-  urine_output_monitoring: {ja: 尿量モニタリング}
+  urine_output_monitoring: {en: urine output monitoring, ja: 尿量モニタリング}
   CRRT: {ja: 持続的腎代替療法 (CRRT)}
   irrigation: {ja: 洗浄}
   application: {ja: 貼付}
