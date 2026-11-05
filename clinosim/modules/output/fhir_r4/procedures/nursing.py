@@ -208,6 +208,14 @@ def _resolve_output_observation_id(structural_key: str) -> str:
 _GCS_COMPONENT_LOINC = ("9267-6", "9270-0", "9268-4")
 
 # Braden subscales (LOINC; tx.fhir.org $lookup 2026-11-05) ↔ CIF fields.
+_MORSE_ITEMS = (
+    ("59454-9", "morse_history"),
+    ("59455-6", "morse_secondary_dx"),
+    ("59456-4", "morse_ambulatory_aid"),
+    ("59457-2", "morse_iv"),
+    ("59458-0", "morse_gait"),
+    ("59459-8", "morse_mental"),
+)
 _BRADEN_ITEMS = (
     ("38222-6", "braden_sensory"),
     ("38229-1", "braden_moisture"),
@@ -377,6 +385,13 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 "text": morse_text,
             }
             obs["valueInteger"] = int(morse)
+            # Issue #2692: the six items, emitted when they sum to the total.
+            m_items = [(code, nra.get(field)) for code, field in _MORSE_ITEMS]
+            if all(v is not None for _c, v in m_items) and sum(int(v) for _c, v in m_items) == int(morse):
+                obs["component"] = [
+                    {"code": {"coding": [loinc_coding(code, lang)]}, "valueInteger": int(value)}
+                    for code, value in m_items
+                ]
             fall_level = nra.get("fall_risk_level")
             if fall_level:
                 # Clinosim Morse risk bands ("low"/"moderate"/"high") → HL7 v3

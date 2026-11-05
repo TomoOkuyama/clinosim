@@ -518,6 +518,25 @@ codes:
   38226-7:
     en: Friction and shear Braden scale
     ja: ブレーデンスケール摩擦とずれ
+  # Issue #2692: Morse Fall Scale items (tx.fhir.org $lookup 2026-11-06).
+  59454-9:
+    en: History of falling; immediate or within 3 months [Morse Fall Scale]
+    ja: 転倒歴 (直近または 3 か月以内) [モールス転倒スケール]
+  59455-6:
+    en: Secondary diagnosis is present
+    ja: 複数の医学的診断あり
+  59456-4:
+    en: Ambulatory aid [Morse Fall Scale]
+    ja: 歩行補助 [モールス転倒スケール]
+  59457-2:
+    en: Intravenous apparatus [Morse Fall Scale]
+    ja: 静脈ライン [モールス転倒スケール]
+  59458-0:
+    en: Gait [Morse Fall Scale]
+    ja: 歩行 [モールス転倒スケール]
+  59459-8:
+    en: Mental status [Morse Fall Scale]
+    ja: 精神状態 [モールス転倒スケール]
   59460-6:
     en: Fall risk total [Morse Fall Scale]
     ja: 転倒リスク合計 [モールス転倒スケール]

@@ -404,3 +404,12 @@ def rendezvous_pick(key: str, ids: Sequence[str], hashes: np.ndarray | None = No
     z = (z ^ (z >> np.uint64(27))) * np.uint64(0x94D049BB133111EB)
     z = z ^ (z >> np.uint64(31))
     return int(np.argmin(z))
+
+
+def morse_fall_history_unit(patient_id: str, encounter_id: str) -> float:
+    """A stable uniform [0, 1) per (patient, stay) for the Morse "history of
+    falling" item (Issue #2692): drawn from a hash, so it consumes no RNG
+    stream and is the same on every day of the stay."""
+    salt = "clinosim:morse-fall-history:v1"
+    digest = hashlib.sha256(f"{salt}|{patient_id}|{encounter_id}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") / float(2**48)

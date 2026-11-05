@@ -86,6 +86,21 @@ morse:
   gait_impaired: 20
   gait_weak: 10
   mental_status_forgets_limits: 15
+  # Issue #2692: share of inpatients with a fall in the 3 months before the
+  # stay, by age (lower bound inclusive). Calibration choice: CDC reports
+  # about 1 in 4 adults aged 65+ fall each year, and admitted older adults
+  # are enriched for recent falls. Drawn once per stay from a hash (no RNG).
+  fall_history_probability_by_age:
+    - [0, 0.08]
+    - [65, 0.18]
+    - [75, 0.30]
+  # Issue #2692: the two items not scored before.
+  secondary_diagnosis: 15          # more than one medical diagnosis
+  # Ambulatory aid from the Barthel mobility item: independent walking needs
+  # none (0); walking with help or a walking aid = crutches / cane / walker
+  # (15); wheelchair-level mobility clutches furniture to move (30); immobile
+  # (bed rest, nurse assist) = 0.
+  ambulatory_aid_by_barthel_mobility: {15: 0, 10: 15, 5: 30, 0: 0}
   risk_levels:           # [score_low_inclusive, level]
     - [0, "low"]
     - [25, "moderate"]

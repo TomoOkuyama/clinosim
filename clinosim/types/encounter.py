@@ -348,6 +348,13 @@ class NursingRiskAssessment:
     braden_nutrition: int = 4  # 1-4
     braden_friction: int = 3  # 1-3
     morse_total: int = 0  # 0-125
+    # Issue #2692: the six Morse items (sum = morse_total).
+    morse_history: int = 0  # 0/25
+    morse_secondary_dx: int = 0  # 0/15
+    morse_ambulatory_aid: int = 0  # 0/15/30
+    morse_iv: int = 0  # 0/20
+    morse_gait: int = 0  # 0/10/20
+    morse_mental: int = 0  # 0/15
     fall_risk_level: str = "low"  # "low" | "moderate" | "high"
 
 
