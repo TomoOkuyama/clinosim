@@ -390,6 +390,22 @@ def protocol_drug_order_code(spec: dict, country: str) -> str:
     return jp_drug_code_for_name(drug, route or _determine_route(drug, "")) or ""
 
 
+_PER_KG_BOLUS = re.compile(r"(\d+(?:\.\d+)?)\s*mL/kg\s+bolus", re.IGNORECASE)
+
+
+def _apply_weight_based_bolus(order: Order, detail: str, weight_kg: float | None) -> None:
+    """A "N mL/kg bolus" supportive order (Issue #2611) is one dose of N mL per
+    kg of the patient's weight, given once — not N mL every day."""
+    m = _PER_KG_BOLUS.search(detail or "")
+    if not m or not weight_kg:
+        return
+    order.dose_quantity = float(round(float(m.group(1)) * float(weight_kg)))
+    order.dose_unit = "mL"
+    order.frequency = "once"
+    order.frequency_per_day = 1
+    order.single_dose = True
+
+
 def place_admission_orders(
     protocol: dict,
     patient_id: str,
@@ -399,6 +415,7 @@ def place_admission_orders(
     rng: np.random.Generator,
     ordered_by: str = "",
     patient_age: int | None = None,
+    patient_weight_kg: float | None = None,
 ) -> list[Order]:
     """Expand protocol admission orders into concrete Order instances.
 
@@ -612,6 +629,7 @@ def place_admission_orders(
         # so dose_quantity / dose_unit are correctly set (not display_name).
         if order_type == OrderType.MEDICATION:
             enrich_medication_order(order, dose_str=detail_raw)
+            _apply_weight_based_bolus(order, detail_raw, patient_weight_kg)
         # Issue #1342 (and #1306 pediatric): DVT_prophylaxis is emitted
         # by the ``modules/prophylaxis/enricher.enrich_prophylaxis``
         # POST_ENCOUNTER enricher — the single canonical path with

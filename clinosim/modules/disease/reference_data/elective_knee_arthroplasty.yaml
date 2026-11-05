@@ -166,7 +166,11 @@ order_protocols:
       - {test: "Chest_Xray_preop", urgency: "routine"}
     supportive:
       - {type: "IV_fluid", detail: "Lactated Ringer's 75-100 mL/h until oral intake"}
-      - {type: "pain_management", detail: "Multimodal analgesia: acetaminophen scheduled + celecoxib + PRN opioid"}
+      # Issue #2611: multimodal analgesia as its component orders (TKA ERAS:
+      # scheduled acetaminophen + COX-2 inhibitor + PRN opioid).
+      - {type: "pain_management", detail: "Acetaminophen 1000mg PO q6h"}
+      - {type: "pain_management", detail: "Celecoxib 200mg PO BID"}
+      - {type: "pain_management", detail: "Oxycodone 5mg PO q4h PRN"}
       - {type: "DVT_prophylaxis", detail: "Enoxaparin SC or aspirin starting post-op day 1"}
   daily_monitoring:
     labs:

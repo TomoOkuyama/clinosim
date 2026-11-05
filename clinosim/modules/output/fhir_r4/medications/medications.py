@@ -602,6 +602,21 @@ def _resolve_medication_concept(
                 if hit:
                     code_value, base_name = hit
                     break
+    if not code_value and drug_name_clean:
+        # Issue #2611: a name the code table spells differently ("Lactated
+        # Ringer's" vs the "Lactated Ringer" key) resolves through the drug
+        # catalog's identity to the table entry of the same drug.
+        # A per-locale code-mapping key (product level) is preferred over the
+        # catalog's canonical-name entry (ingredient level; #2614).
+        from clinosim.codes.drugs import drug_ref, get_drug
+
+        _identity = drug_ref(drug_name_clean)
+        if _identity:
+            _record = get_drug(_identity)
+            _canonical = (_record.names.get("en", "") if _record else "").lower()
+            _hits = [(k.lower() == _canonical, k, c) for k, c in drug_codes.items() if drug_ref(k) == _identity]
+            if _hits:
+                code_value = sorted(_hits)[0][2]
     # Issue #852: extend base_name to the longest multi-word prefix that has
     # a JA-dict entry (``Cefcapene pivoxil`` / ``Magnesium Sulfate`` /
     # ``Regular insulin`` / ``ICS/LABA inhaler`` / …), so ``.text``
