@@ -245,6 +245,20 @@ _SUPPLY_DURATION_UNIT_US = "d"
 _SUPPLY_DURATION_CODE = "d"
 
 
+def _apply_order_end(resource: dict[str, Any], order: dict, authored: str) -> None:
+    """Bound the dosage timing by the order's end (Issue #2606): an inpatient
+    order closed at discharge states when it ran."""
+    from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
+
+    end_iso = to_fhir_datetime(order.get("end_datetime"))
+    if not end_iso:
+        return
+    for dosage in resource.get("dosageInstruction") or []:
+        repeat = (dosage.get("timing") or {}).get("repeat")
+        if isinstance(repeat, dict) and "boundsPeriod" not in repeat and "boundsDuration" not in repeat:
+            repeat["boundsPeriod"] = {"start": authored, "end": end_iso} if authored else {"end": end_iso}
+
+
 def _resolve_mr_id(order_id: str) -> str:
     """Return the FHIR MedicationRequest.id for a CIF Order (Issue #853).
 
@@ -803,7 +817,10 @@ def _build_mr_dispense_request(
     acute / 0 inpatient-ED), and `expectedSupplyDuration` for home-
     med / outpatient Rx windows (Issue #1175 JP-CLINS eCS fix).
     """
-    _end = order.get("end_datetime", "") or ""
+    from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
+
+    # Issue #2606: inpatient orders now carry a CIF end; emit it as a FHIR dateTime.
+    _end = to_fhir_datetime(order.get("end_datetime")) if order.get("end_datetime") else ""
     disp: dict[str, Any] = {}
     if authored and _end:
         disp["validityPeriod"] = {"start": str(authored), "end": str(_end)}
@@ -1003,6 +1020,7 @@ def _build_medication_request(
             dosage["text"] = f"{existing} ({rate_note_localized})".strip() if existing else rate_note_localized
     if dosage:
         resource["dosageInstruction"] = [dosage]
+    _apply_order_end(resource, order, str(resource.get("authoredOn", "") or ""))
 
     # Reason reference (link to primary diagnosis Condition). Chronic-primary
     # encounters resolve to the patient-scoped chronic Condition; acute
