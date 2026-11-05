@@ -123,12 +123,12 @@ class TestMicrobiologySusceptibilityJLAC10Integrity:
         # dict (the join key SusceptibilityResult already carries — no CIF schema
         # change needed, mirrors the culture-code fix's use of `specimen`).
         assert set(_JP_MICRO_SUS_MAP) == {
-            "18862-3",
-            "18866-4",
+            "18864-9",
+            "18878-9",
             "18895-3",
             "18879-7",
             "18906-8",
-            "18908-4",
+            "18928-2",
             # session 58 Issue #264: 18991-2 / 18949-0 / 18943-3 / 18996-1 were
             # retired from LOINC. Substitutes are the corresponding real
             # active LOINCs (verified against LOINC 2.82).

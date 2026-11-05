@@ -30,12 +30,12 @@ culture_order_match_window_hours: 6
 # All LOINCs verified at NLM clinicaltables.nlm.nih.gov/api/loinc_items/v3/search
 # and tx.fhir.org $lookup (Task 0 §6.1, 2026-06-26).
 antibiotics:
-  ampicillin: "18862-3"
-  cefazolin: "18866-4"
+  ampicillin: "18864-9"  # Issue #2658: was 18862-3 (Amoxicillin+Clavulanate)
+  cefazolin: "18878-9"  # Issue #2658: was 18866-4 (Azithromycin)
   ceftriaxone: "18895-3"
   cefepime: "18879-7"  # Verified NLM + tx.fhir.org $lookup 2026-06-26 (Task 0 §6.1)
   ciprofloxacin: "18906-8"  # Verified NLM + tx.fhir.org 2026-06-26 (was incorrectly 18879-7 = Cefepime)
-  gentamicin: "18908-4"
+  gentamicin: "18928-2"  # Issue #2658: was 18908-4 (Clindamycin)
   # session 58 Issue #264: 18943-3 / 18949-0 / 18991-2 / 18996-1 were retired
   # from LOINC. Substitutes are real active LOINCs verified against LOINC 2.82:
   #   meropenem            18943-3 → 18943-1 (Meropenem Susc Isolate)
