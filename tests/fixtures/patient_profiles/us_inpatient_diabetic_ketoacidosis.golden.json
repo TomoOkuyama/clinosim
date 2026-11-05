@@ -445,7 +445,7 @@
       "sections": {
         "admission_status": "Hospital stay: 3 days. Admission reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Complications: hypokalemia. Discharge criteria met.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 86/100.",
-        "nursing_interventions_provided": "Cumulative IN 7412 mL / OUT 3227 mL (net +4185 mL).",
+        "nursing_interventions_provided": "Cumulative IN 7412 mL / OUT 3372 mL (net +4040 mL).",
         "patient_education": "Patient education: sick-day rules (insulin dose + when to seek care during illness); self blood-glucose monitoring + urine-ketone strips; hypoglycemia recognition + rescue (glucose tabs / glucagon); importance of routine follow-up + insulin adherence."
       },
       "text": ""

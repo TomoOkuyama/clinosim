@@ -70,6 +70,7 @@ from clinosim.modules.physiology._vital_signs_thresholds import (
     PAIN_SCORE_SCALE,
 )
 from clinosim.modules.physiology.engine import derive_observed_vitals
+from clinosim.seeding import daily_output_seed
 from clinosim.simulator._adl_thresholds import (
     ADL_ASSESSMENT_INTERVAL_DAYS,
     ADL_BARTHEL_MAX,
@@ -110,6 +111,10 @@ from clinosim.simulator._daily_io_thresholds import (
     IO_ORAL_RECOVERING_MEAN_ML,
     IO_ORAL_RECOVERING_STD_ML,
     IO_POOR_APPETITE_INFLAMMATION_THRESHOLD,
+    IO_STOOL_DAILY_PROBABILITY,
+    IO_STOOL_DAY0_PROBABILITY,
+    IO_STOOL_MEAN_ML,
+    IO_STOOL_SD_ML,
     IO_URINE_BASE_ML_PER_UNIT_RENAL,
     IO_URINE_SD_FLOOR_ML,
     IO_URINE_SD_RATIO,
@@ -280,10 +285,16 @@ def _generate_daily_io(
     # Drain (post-surgical only, simplified)
     drain = 0
 
+    # Issue #2648: stool charted on the I/O sheet, drawn from a per-patient,
+    # per-day sub-stream so the stay RNG (and every later draw) is unchanged.
+    other_rng = determinism.default_rng(daily_output_seed(patient.patient_id, day))
+    stool_p = IO_STOOL_DAY0_PROBABILITY if day == 0 else IO_STOOL_DAILY_PROBABILITY
+    other = int(max(0.0, other_rng.normal(IO_STOOL_MEAN_ML, IO_STOOL_SD_ML))) if other_rng.random() < stool_p else 0
+
     iv = max(0, iv)
     oral = max(0, oral)
     total_in = iv + oral
-    total_out = urine + drain
+    total_out = urine + drain + other
     net = total_in - total_out
 
     io_date = (admission_time + timedelta(days=day)).date()
@@ -293,6 +304,7 @@ def _generate_daily_io(
         intake_oral_ml=oral,
         output_urine_ml=urine,
         output_drain_ml=drain,
+        output_other_ml=other,
         net_balance_ml=net,
     )
 

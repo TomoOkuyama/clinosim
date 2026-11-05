@@ -1028,7 +1028,7 @@
       "sections": {
         "admission_status": "Hospital stay: 8 days. Admission reason: Sudden severe headache, vomiting, altered consciousness. Discharge criteria met.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 97/100.",
-        "nursing_interventions_provided": "Cumulative IN 10583 mL / OUT 8441 mL (net +2142 mL).",
+        "nursing_interventions_provided": "Cumulative IN 10583 mL / OUT 9095 mL (net +1488 mL).",
         "patient_education": "Patient education: home BP monitoring + low-salt diet."
       },
       "text": ""

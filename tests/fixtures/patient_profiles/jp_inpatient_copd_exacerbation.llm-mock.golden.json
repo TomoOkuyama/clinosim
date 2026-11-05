@@ -1840,7 +1840,7 @@
       "sections": {
         "admission_status": "入院期間: 15日間。入院理由: 呼吸困難増悪・喀痰増加・喘鳴。経過中の合併症: 心不整脈。退院基準を満たし退院となった。",
         "discharge_readiness": "退院準備: 退院時 Barthel 100/100。",
-        "nursing_interventions_provided": "入院期間合計 IN 22621 mL / OUT 15245 mL (差 +7376 mL)。",
+        "nursing_interventions_provided": "入院期間合計 IN 22621 mL / OUT 16553 mL (差 +6068 mL)。",
         "patient_education": "患者教育: 吸入器手技の再確認 (定量吸入・スペーサ使用法)、増悪の早期サイン認識 (痰の色調変化・SpO2 低下)、禁煙継続支援と受動喫煙回避、呼吸リハビリの継続方法。"
       },
       "text": ""
