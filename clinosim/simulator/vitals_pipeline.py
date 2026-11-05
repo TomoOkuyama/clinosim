@@ -199,6 +199,27 @@ _NEURO_DISEASES = {
 }
 
 
+def _barthel_items(raw: dict[str, tuple[float, int]], target: int) -> dict[str, int]:
+    """Barthel item scores (multiples of 5 within each item's maximum) for the
+    proportional ``raw`` values, apportioned by largest remainder so they sum
+    to ``target`` as far as the item maxima allow (Issue #2693). No RNG."""
+    items = {k: int(max(0, min(m, 5 * (v // 5)))) for k, (v, m) in raw.items()}
+    order = sorted(raw, key=lambda k: (-(raw[k][0] - items[k]), k))
+    remaining = target - sum(items.values())
+    while remaining >= 5:
+        progressed = False
+        for k in order:
+            if remaining < 5:
+                break
+            if items[k] + 5 <= raw[k][1]:
+                items[k] += 5
+                remaining -= 5
+                progressed = True
+        if not progressed:
+            break
+    return items
+
+
 def _generate_adl_assessment(
     state: PhysiologicalState,
     patient: PatientProfile,
@@ -235,21 +256,28 @@ def _generate_adl_assessment(
     total = int(rng.normal(total, ADL_BARTHEL_NOISE_SD))
     total = max(ADL_BARTHEL_MIN, min(ADL_BARTHEL_MAX, total))
 
-    # Distribute across components proportionally
+    # Distribute across components proportionally (Issue #2693): each item
+    # takes a score on its published scale (0/5/10[/15]; 0/5 for bathing and
+    # grooming), apportioned by largest remainder so the items sum to the
+    # target total rounded to 5. The total is that sum.
     ratio = total / ADL_BARTHEL_MAX
+    raw = {
+        "feeding": (ADL_COMP_FEEDING_MAX * min(1, ratio + ADL_RATIO_OFFSET_FEEDING), ADL_COMP_FEEDING_MAX),
+        "bathing": (ADL_COMP_BATHING_MAX * ratio, ADL_COMP_BATHING_MAX),
+        "grooming": (ADL_COMP_GROOMING_MAX * min(1, ratio + ADL_RATIO_OFFSET_GROOMING), ADL_COMP_GROOMING_MAX),
+        "dressing": (ADL_COMP_DRESSING_MAX * ratio, ADL_COMP_DRESSING_MAX),
+        "bowel_control": (ADL_COMP_BOWEL_MAX * min(1, ratio + ADL_RATIO_OFFSET_BOWEL), ADL_COMP_BOWEL_MAX),
+        "bladder_control": (ADL_COMP_BLADDER_MAX * min(1, ratio + ADL_RATIO_OFFSET_BLADDER), ADL_COMP_BLADDER_MAX),
+        "toilet_use": (ADL_COMP_TOILET_MAX * ratio, ADL_COMP_TOILET_MAX),
+        "transfers": (ADL_COMP_TRANSFERS_MAX * ratio, ADL_COMP_TRANSFERS_MAX),
+        "mobility": (ADL_COMP_MOBILITY_MAX * ratio, ADL_COMP_MOBILITY_MAX),
+        "stairs": (ADL_COMP_STAIRS_MAX * max(0, ratio - ADL_RATIO_OFFSET_STAIRS_DEFICIT), ADL_COMP_STAIRS_MAX),
+    }
+    items = _barthel_items(raw, 5 * round(total / 5))
     return ADLAssessment(
         date=(admission_time + timedelta(days=day)).date(),
-        barthel_score=total,
-        feeding=int(ADL_COMP_FEEDING_MAX * min(1, ratio + ADL_RATIO_OFFSET_FEEDING)),
-        bathing=int(ADL_COMP_BATHING_MAX * ratio),
-        grooming=int(ADL_COMP_GROOMING_MAX * min(1, ratio + ADL_RATIO_OFFSET_GROOMING)),
-        dressing=int(ADL_COMP_DRESSING_MAX * ratio),
-        bowel_control=int(ADL_COMP_BOWEL_MAX * min(1, ratio + ADL_RATIO_OFFSET_BOWEL)),
-        bladder_control=int(ADL_COMP_BLADDER_MAX * min(1, ratio + ADL_RATIO_OFFSET_BLADDER)),
-        toilet_use=int(ADL_COMP_TOILET_MAX * ratio),
-        transfers=int(ADL_COMP_TRANSFERS_MAX * ratio),
-        mobility=int(ADL_COMP_MOBILITY_MAX * ratio),
-        stairs=int(ADL_COMP_STAIRS_MAX * max(0, ratio - ADL_RATIO_OFFSET_STAIRS_DEFICIT)),
+        barthel_score=sum(items.values()),
+        **items,
     )
 
 

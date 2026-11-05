@@ -105,3 +105,19 @@ morse:
     - [0, "low"]
     - [25, "moderate"]
     - [45, "high"]
+
+# Issue #2693: the ten Barthel Index items as LOINC panel 96762-0 records them
+# (item code, and the LOINC answer for each item score). Codes from the LOINC
+# answer lists LL5766-2 ... LL5790-2 (answers-for), checked with tx.fhir.org;
+# scores per Mahoney & Barthel 1965. Keys are the CIF ADLAssessment fields.
+barthel_items:
+  - {field: feeding, loinc: "83184-2", answers: {0: "LA24937-7", 5: "LA31630-9", 10: "LA12302-8"}}
+  - {field: bathing, loinc: "83181-8", answers: {0: "LA12304-4", 5: "LA31636-6"}}
+  - {field: grooming, loinc: "96767-9", answers: {0: "LA31643-2", 5: "LA31644-0"}}
+  - {field: dressing, loinc: "83182-6", answers: {0: "LA12304-4", 5: "LA31637-4", 10: "LA31638-2"}}
+  - {field: bowel_control, loinc: "96759-6", answers: {0: "LA31627-5", 5: "LA31626-7", 10: "LA31625-9"}}
+  - {field: bladder_control, loinc: "96760-4", answers: {0: "LA31628-3", 5: "LA31626-7", 10: "LA31625-9"}}
+  - {field: toilet_use, loinc: "83183-4", answers: {0: "LA12304-4", 5: "LA31631-7", 10: "LA31632-5"}}
+  - {field: transfers, loinc: "83185-9", answers: {0: "LA31633-3", 5: "LA31634-1", 10: "LA31635-8", 15: "LA12302-8"}}
+  - {field: mobility, loinc: "83186-7", answers: {0: "LA31639-0", 5: "LA31640-8", 10: "LA31641-6", 15: "LA31642-4"}}
+  - {field: stairs, loinc: "96758-8", answers: {0: "LA24937-7", 5: "LA31629-1", 10: "LA12302-8"}}

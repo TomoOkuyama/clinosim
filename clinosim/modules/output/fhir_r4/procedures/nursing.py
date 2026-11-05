@@ -208,6 +208,41 @@ def _resolve_output_observation_id(structural_key: str) -> str:
 _GCS_COMPONENT_LOINC = ("9267-6", "9270-0", "9268-4")
 
 # Braden subscales (LOINC; tx.fhir.org $lookup 2026-11-05) ↔ CIF fields.
+ORDINAL_VALUE_EXTENSION = "http://hl7.org/fhir/StructureDefinition/ordinalValue"
+
+
+def barthel_components(adl: dict, lang: str) -> list[dict[str, Any]]:
+    """The ten Barthel items as Observation components (Issue #2693): each
+    item's LOINC code with its LOINC answer and the item score
+    (``ordinalValue``). Empty when an item is missing, off its scale, or the
+    items do not sum to the total."""
+    from clinosim.modules.observation.nursing import barthel_items
+
+    out: list[dict[str, Any]] = []
+    total = 0
+    for spec in barthel_items():
+        score = adl.get(spec["field"])
+        if not isinstance(score, int):
+            return []
+        answer = (spec.get("answers") or {}).get(score)
+        if answer is None:
+            return []
+        total += score
+        coding = {
+            **loinc_coding(str(answer), lang),
+            "extension": [{"url": ORDINAL_VALUE_EXTENSION, "valueDecimal": score}],
+        }
+        out.append(
+            {
+                "code": {"coding": [loinc_coding(str(spec["loinc"]), lang)]},
+                "valueCodeableConcept": {"coding": [coding]},
+            }
+        )
+    if adl.get("barthel_score") is not None and total != int(adl["barthel_score"]):
+        return []
+    return out
+
+
 _MORSE_ITEMS = (
     ("59454-9", "morse_history"),
     ("59455-6", "morse_secondary_dx"),
@@ -424,6 +459,10 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 "text": registry_display("loinc", "96761-2", lang) or "Total score Barthel Index",
             }
             obs["valueInteger"] = int(barthel)
+            # Issue #2693: the ten items (LOINC panel 96762-0), when they sum to the total.
+            components = barthel_components(adl, lang)
+            if components:
+                obs["component"] = components
             out.append(obs)
 
     # --- Intake and output records ---

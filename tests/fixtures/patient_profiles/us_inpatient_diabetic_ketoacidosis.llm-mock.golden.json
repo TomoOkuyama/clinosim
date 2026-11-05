@@ -232,7 +232,7 @@
         "lang": "en"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 86/100 → minimal assistance (feeding=9, bathing=4, mobility=12, toilet_use=8)",
+        "adl_assessment": "Barthel Index 85/100 → minimal assistance (feeding=10, bathing=5, mobility=10, toilet_use=10)",
         "care_plan": "Care plan: hourly I/O, coordinate IV rate titration with MD; q1-2h glucose + serum K monitoring, early hypoglycemia / hypokalemia recognition; continuous mental-status + Kussmaul-respiration assessment; infection source workup (urine / LRT) + temperature trending.",
         "nursing_diagnosis": "Nursing diagnoses: deficient fluid volume, risk for electrolyte imbalance, unstable glycemic control, risk for infection.",
         "nursing_history": "Admission reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. PMH: Type 2 diabetes (DM), Dyslipidemia.",
@@ -444,7 +444,7 @@
       },
       "sections": {
         "admission_status": "Hospital stay: 3 days. Admission reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Complications: hypokalemia. Discharge criteria met.",
-        "discharge_readiness": "Discharge readiness: Discharge Barthel 86/100.",
+        "discharge_readiness": "Discharge readiness: Discharge Barthel 85/100.",
         "nursing_interventions_provided": "Cumulative IN 7412 mL / OUT 3372 mL (net +4040 mL).",
         "patient_education": "Patient education: sick-day rules (insulin dose + when to seek care during illness); self blood-glucose monitoring + urine-ketone strips; hypoglycemia recognition + rescue (glucose tabs / glucagon); importance of routine follow-up + insulin adherence."
       },
