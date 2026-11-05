@@ -389,7 +389,20 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
     # The request kept in place of an administered duplicate carries those
     # administrations, so it is protected too.
     _administered |= {ctx.mr_aliases[i] for i in list(_administered) if i in ctx.mr_aliases}
-    return _dedup_same_class_orders(_unique, protected=_administered)
+    _kept = _dedup_same_class_orders(_unique, protected=_administered)
+    # A priorPrescription (Issue #2615) to a request dropped as an exact
+    # duplicate points at the kept one; to a request not emitted, it is dropped.
+    _kept_ids = {m.get("id") for m in _kept}
+    for _mr in _kept:
+        _prior = str((_mr.get("priorPrescription") or {}).get("reference", "")).split("/")[-1]
+        if not _prior:
+            continue
+        _prior = ctx.mr_aliases.get(_prior, _prior)
+        if _prior in _kept_ids and _prior != _mr.get("id"):
+            _mr["priorPrescription"] = {"reference": f"MedicationRequest/{_prior}"}
+        else:
+            _mr.pop("priorPrescription", None)
+    return _kept
 
 
 def _dedup_medication_requests(mrs: list[dict], aliases: dict[str, str] | None = None) -> list[dict]:
@@ -540,6 +553,10 @@ def _bb_discharge_medication_requests(ctx: BundleContext) -> list[dict]:
         if not str(get_attr_or_key(item, "drug_name", "") or "").strip():
             continue  # blank drug name (CIF data quality) — same skip as _bb_medication_requests
         seq += 1
+        # Issue #2610: a renewed / run-out prescription is closed as of the snapshot.
+        _closure = ctx.rx_closures.get((str(enc_id), seq))
+        if _closure and isinstance(item, dict):
+            item = {**item, **_closure}
         out.append(
             _build_discharge_medication_request(
                 item,

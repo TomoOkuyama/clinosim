@@ -1262,7 +1262,8 @@ def _build_discharge_medication_request(
             "2" if encounter_type in ("inpatient", "emergency") else "1",
             str(seq),
         ),
-        "status": "active",
+        # Issue #2610: a renewed or run-out prescription is closed in the CIF.
+        "status": str(get_attr_or_key(item, "status", "") or "active"),
         "intent": "order",
         "medicationCodeableConcept": med_concept,
         "subject": patient_ref(patient_id),
@@ -1303,6 +1304,16 @@ def _build_discharge_medication_request(
     # dispenseRequest — composed by _build_discharge_rx_dispense.
     # `numberOfRepeatsAllowed` intentionally absent (CIF carries no refill count).
     dispense = _build_discharge_rx_dispense(authored_on, duration_days, country_code)
+    # Issue #2610: a closed prescription states when it ended, and a renewal
+    # points at the prescription it replaces.
+    _end_date = str(get_attr_or_key(item, "end_date", "") or "")
+    if _end_date and "validityPeriod" in dispense:
+        dispense["validityPeriod"]["end"] = _end_date
+    _prior = get_attr_or_key(item, "prior_rx", None)
+    if isinstance(_prior, dict) and _prior.get("encounter_id"):
+        _prior_key = f"{_prior['encounter_id']}-{int(_prior.get('seq', 0)):02d}"
+        _prior_resolve = _resolve_dc_rx_id if _prior.get("encounter_type") == "inpatient" else _resolve_opd_rx_id
+        resource["priorPrescription"] = {"reference": f"MedicationRequest/{_prior_resolve(_prior_key)}"}
     if dispense:
         resource["dispenseRequest"] = dispense
 

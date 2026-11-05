@@ -67,3 +67,7 @@ class BundleContext:
     # of the request kept in their place; the MedicationAdministrations of
     # the dropped order reference the kept one instead of losing ``request``.
     mr_aliases: dict[str, str] = field(default_factory=dict)
+    # Issue #2610: closure of each take-home prescription item as of the
+    # snapshot ({(encounter_id, seq): {status, end_date, prior_rx}}), computed
+    # across the patient's records before the per-record bundles are built.
+    rx_closures: dict[tuple[str, int], dict[str, Any]] = field(default_factory=dict)
