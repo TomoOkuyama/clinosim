@@ -101,6 +101,37 @@ def _resolve_vital_sign_observation_id(structural_key: str) -> str:
 _QUESTIONNAIRE_SCORE_ANALYTES = frozenset({"PHQ-9", "GAD-7", "C-SSRS"})
 
 
+def lab_observation_coding(lab_name: str, order: dict, result: dict, country: str) -> tuple[list[dict], str]:
+    """A lab result's ``code.coding`` and ``code.text``.
+
+    Shared with the single-test DiagnosticReport (Issue #2586) so a report
+    is titled exactly like the Observation it carries.
+    """
+    _strategy = select_lab_coding_strategy(lab_name, country)
+    _strategy_kwargs: dict[str, Any] = {"lab_name": lab_name, "order": order, "result": result, "country": country}
+    codings = _strategy.emit_codings(**_strategy_kwargs)
+    _localcode = _strategy.emit_localcode_coding(**_strategy_kwargs)
+    if _localcode is not None:
+        codings.append(_localcode)
+    # Issue #777: `code.text` should carry a human-readable primary label,
+    # not the standard-code display (which for CoreLabo_CS is an English
+    # abbreviation like "AST" / "Na"). The LocalCode_CS coding is authored
+    # specifically for display (e.g. "AST(GOT)" / "ナトリウム(Na)") and is
+    # the JP Core / JP-CLINS convention: `.text` reflects the LocalCode's
+    # display when present, otherwise falls through to the first coding's
+    # display (pre-fix behaviour preserved for cohorts / countries without
+    # a LocalCode coding).
+    if _localcode is not None and _localcode.get("display"):
+        display_name = _localcode["display"]
+    elif codings and not (is_jp(country) and codings[0].get("system") == get_system_uri("loinc")):
+        display_name = codings[0]["display"]
+    else:
+        # No JP code (only the English LOINC interop coding, Issue #2300) or
+        # no standard code at all (Issue #2138): the analyte name, in Japanese on JP.
+        display_name = uncoded_analyte_display(lab_name, lang_for(country))
+    return (codings, display_name)
+
+
 def _build_lab_observation(
     order: dict,
     result: dict,
@@ -129,28 +160,7 @@ def _build_lab_observation(
     # emit_localcode_coding returns None on every strategy in PR 1 —
     # PR 3 will begin activating LocalCode emission on the CoreLabo /
     # Uncoded paths without protocol churn.
-    _strategy = select_lab_coding_strategy(lab_name, country)
-    _strategy_kwargs = {"lab_name": lab_name, "order": order, "result": result, "country": country}
-    codings = _strategy.emit_codings(**_strategy_kwargs)
-    _localcode = _strategy.emit_localcode_coding(**_strategy_kwargs)
-    if _localcode is not None:
-        codings.append(_localcode)
-    # Issue #777: `code.text` should carry a human-readable primary label,
-    # not the standard-code display (which for CoreLabo_CS is an English
-    # abbreviation like "AST" / "Na"). The LocalCode_CS coding is authored
-    # specifically for display (e.g. "AST(GOT)" / "ナトリウム(Na)") and is
-    # the JP Core / JP-CLINS convention: `.text` reflects the LocalCode's
-    # display when present, otherwise falls through to the first coding's
-    # display (pre-fix behaviour preserved for cohorts / countries without
-    # a LocalCode coding).
-    if _localcode is not None and _localcode.get("display"):
-        display_name = _localcode["display"]
-    elif codings and not (is_jp(country) and codings[0].get("system") == get_system_uri("loinc")):
-        display_name = codings[0]["display"]
-    else:
-        # No JP code (only the English LOINC interop coding, Issue #2300) or
-        # no standard code at all (Issue #2138): the analyte name, in Japanese on JP.
-        display_name = uncoded_analyte_display(lab_name, lang_for(country))
+    codings, display_name = lab_observation_coding(lab_name, order, result, country)
 
     # encounter_id must be non-empty: the production path always provides
     # ctx.primary_enc_id, and it participates in the opaque-id structural key

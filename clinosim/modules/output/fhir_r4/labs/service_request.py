@@ -27,7 +27,7 @@ Compliance:
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Any
+from typing import Any, NamedTuple
 
 from clinosim.codes import code_exists, get_system_uri, system_key_for
 from clinosim.codes import display as registry_display
@@ -317,6 +317,7 @@ def _build_earliest_issued_by_sr(record: dict, primary_enc_id: str) -> dict[str,
     from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
         _sr_ids_for_group,
         group_lab_orders,
+        single_test_report_groups,
     )
 
     out: dict[str, str] = {}
@@ -337,6 +338,15 @@ def _build_earliest_issued_by_sr(record: dict, primary_enc_id: str) -> dict[str,
                     prev = out.get(sid)
                     if prev is None or issued_naive < prev:
                         out[sid] = issued_naive
+            # Issue #2586: single-test reports are issued at the result time.
+            for single in single_test_report_groups(orders, groups, panel_counter):
+                issued_naive = _to_naive_iso(single.issued)
+                if not issued_naive:
+                    continue
+                sid = _resolve_service_request_id(single.sr_structural_key)
+                prev = out.get(sid)
+                if prev is None or issued_naive < prev:
+                    out[sid] = issued_naive
 
     # Imaging side — radiology DRs (issued = study.started_datetime).
     studies = (get_attr_or_key(record, "extensions", {}) or {}).get("imaging") or []
@@ -850,23 +860,29 @@ def _build_panel_sr(
     )
 
 
-def _build_standalone_sr(o: Any, lang: str, country: str, earliest_dr_issued: str = "") -> dict[str, Any]:
-    """Build one ServiceRequest resource for a stand-alone test.
+class LabOrderCode(NamedTuple):
+    """How a stand-alone lab order is coded (ServiceRequest and its report)."""
+
+    code: str  # "" when the order resolves to no standard code
+    display: str
+    text: str
+    system_key: str  # code-system key the coding is emitted under
+    loinc_fallback: bool  # True when a JP order fell back to LOINC
+
+
+def standalone_lab_order_code(o: Any, lang: str, country: str) -> LabOrderCode:
+    """Resolve a stand-alone lab order's code, display and text.
 
     Applies the same internal-name → standard-code resolution as
     ``_build_lab_observation``: looks up ``display_name`` in the locale
     code mapping (code_mapping_lab.yaml) so that an order whose
     ``order_code`` is an internal test name (e.g. ``"WBC"``) resolves to
-    the real LOINC / JLAC10 code (e.g. ``"6690-2"``).
+    the real LOINC / JLAC10 code (e.g. ``"6690-2"``). Shared by the
+    ServiceRequest and the single-test DiagnosticReport (Issue #2586) so
+    an order and its report never disagree on the code.
 
     Accepts both Order dataclass instances and JSON-deserialized dicts.
     """
-    order_id = _o(o, "order_id", "")
-    # Issue #854 Bucket A: opaque SR.id via the shared resolver. Structural
-    # key = pre-#854 id body (``order_id`` for stand-alone lab orders).
-    sr_id = _resolve_service_request_id(order_id)
-    placer_value = order_id
-    status = aggregate_panel_status([o])
     raw_code = _o(o, "order_code", "")
     display_name = _o(o, "display_name", "")
 
@@ -918,20 +934,42 @@ def _build_standalone_sr(o: Any, lang: str, country: str, earliest_dr_issued: st
     loinc_display = registry_display(code_system_key, resolved_code, lang) or display_name
     if loinc_display == resolved_code:  # no translation found
         loinc_display = display_name
+    return LabOrderCode(
+        code=resolved_code,
+        display=loinc_display,
+        # Issue #2583: a readable name, never the protocol's internal order name.
+        text=lab_display(lab_key, lang, style="formal"),
+        system_key=code_system_key,
+        loinc_fallback=used_loinc_fallback,
+    )
 
+
+def _build_standalone_sr(o: Any, lang: str, country: str, earliest_dr_issued: str = "") -> dict[str, Any]:
+    """Build one ServiceRequest resource for a stand-alone test.
+
+    The code comes from :func:`standalone_lab_order_code`.
+
+    Accepts both Order dataclass instances and JSON-deserialized dicts.
+    """
+    order_id = _o(o, "order_id", "")
+    # Issue #854 Bucket A: opaque SR.id via the shared resolver. Structural
+    # key = pre-#854 id body (``order_id`` for stand-alone lab orders).
+    sr_id = _resolve_service_request_id(order_id)
+    placer_value = order_id
+    status = aggregate_panel_status([o])
+    code = standalone_lab_order_code(o, lang, country)
     return _build_sr_skeleton(
         sr_id=sr_id,
         placer_value=placer_value,
         status=status,
         priority=_PRIORITY_MAP.get(_o(o, "urgency", "routine"), "routine"),
-        loinc_code=resolved_code,
-        loinc_display=loinc_display,
-        # Issue #2583: a readable name, never the protocol's internal order name.
-        loinc_text=lab_display(lab_key, lang, style="formal"),
+        loinc_code=code.code,
+        loinc_display=code.display,
+        loinc_text=code.text,
         anchor=o,
         lang=lang,
         country=country,
-        code_system_override_key=code_system_key if used_loinc_fallback else None,
+        code_system_override_key=code.system_key if code.loinc_fallback else None,
         earliest_dr_issued=earliest_dr_issued,
     )
 
