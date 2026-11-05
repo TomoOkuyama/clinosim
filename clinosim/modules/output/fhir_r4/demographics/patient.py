@@ -1058,6 +1058,11 @@ def _build_occupation_observation(
     """
     if not occupation:
         return None
+    # Issue #2630: a child below working age has no occupation.
+    from clinosim.modules.population._identity import DEVELOPMENTAL_STAGES
+
+    if occupation in DEVELOPMENTAL_STAGES:
+        return None
     # Issue #2269: the occupation vocabulary shared with narrative and LLM
     # prompts; an unknown slug is humanised (a test keeps every generated
     # slug in the table).
