@@ -946,10 +946,24 @@ def simulate_delivery_encounter(
         items=_mother_rx_items,
     )
 
+    # Issue #2607: the intrapartum / intraoperative bundle is given at its
+    # ordered time (the order times above are the administration anchors).
+    from clinosim.modules.order.placed_order_mar import administrations_for, stable_nurse
+
+    _bundle_nurse = stable_nurse(roster, encounter.encounter_id, ward=encounter.ward_id or "", department=dept)
+    # An order anchored before admission (labor IV, pre-incision antibiotic)
+    # is given no earlier than the admission, inside the encounter period.
+    _bundle_mars = [
+        m
+        for o in orders
+        for m in administrations_for(o, [max(o.ordered_datetime, encounter.admission_datetime)], _bundle_nurse)
+    ]
+
     mother_record = CIFPatientRecord(
         patient=patient,
         encounters=[encounter],
         orders=orders,
+        medication_administrations=_bundle_mars,
         vital_signs=[],
         lab_results=[],
         procedures=[procedure],

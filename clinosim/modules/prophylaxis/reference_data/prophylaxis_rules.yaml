@@ -19,6 +19,7 @@ dvt_prophylaxis:
   dose_unit: "mg"
   route: "SC"
   frequency: "daily"
+  administration_hour: 21          # Issue #2607: evening dose (given daily from the order until discharge)
   min_los_hours: 48
   # Rationale citation
   guideline: "CHEST 2018 antithrombotic therapy for VTE + ACCP 2022"
