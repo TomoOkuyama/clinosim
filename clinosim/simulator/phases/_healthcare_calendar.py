@@ -56,6 +56,24 @@ def next_visit_start(previous_end: datetime) -> datetime:
     return previous_end + timedelta(minutes=OUTPATIENT_SAME_DAY_GAP_MIN)
 
 
+def place_outpatient_visit(day_ends: dict, patient_id: str, start: datetime) -> datetime:
+    """Start of a visit planned at ``start``: after the patient's previous
+    visit that day when they would overlap (Issue #2690). No RNG."""
+    end = day_ends.get((patient_id, start.date()))
+    return max(start, next_visit_start(end)) if end else start
+
+
+def note_outpatient_visit(day_ends: dict, patient_id: str, record: Any) -> None:
+    """Remember when the visit in ``record`` ends (Issue #2690)."""
+    encs = getattr(record, "encounters", None) or []
+    end = getattr(encs[0], "discharge_datetime", None) if encs else None
+    if not isinstance(end, datetime):
+        return
+    key = (patient_id, end.date())
+    if key not in day_ends or end > day_ends[key]:
+        day_ends[key] = end
+
+
 def calendar_events_for_year(population: Any, year: int, ctx: ForwardContext) -> list[LifeEvent]:
     """The year's calendar (chronic follow-up, pediatric, screening, delivery,
     chemo, ...) for everyone in the population at some point of the year.
@@ -109,6 +127,10 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
         OUTPATIENT_CALENDAR_VISIT_HOUR,
         int(ev_rng.integers(OUTPATIENT_MINUTE_JITTER_MIN, OUTPATIENT_MINUTE_JITTER_MAX_EXCLUSIVE)),
     )
+    # Issue #2690: a patient is in one clinic at a time — a visit that would
+    # overlap an earlier same-day visit starts after it (the minute draw above
+    # is unchanged, so no stream moves).
+    visit_time = place_outpatient_visit(ctx.outpatient_day_ends, event.person_id, visit_time)
 
     if event.event_type == "chronic_visit":
         spec = ctx.followup_data.get(event.disease_id, {})
@@ -173,6 +195,7 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
             _post_hoc_overlap = _handle_overlap_via_merge(ctx.patient_records, _r, event.disease_id)
             if _post_hoc_overlap is None:
                 ctx.patient_records.append(_r)
+                note_outpatient_visit(ctx.outpatient_day_ends, event.person_id, _r)
         return
     elif event.event_type == "delivery":
         from clinosim.simulator.perinatal import simulate_delivery_encounter
@@ -248,6 +271,7 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
         return
 
     ctx.patient_records.append(opd_record)
+    note_outpatient_visit(ctx.outpatient_day_ends, event.person_id, opd_record)
 
     if event.event_type == "chronic_visit":
         from clinosim.locale.loader import department_display, load_specialty_routing
@@ -296,5 +320,6 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
                 department_id=specialty_dept,
             )
             ctx.patient_records.append(specialty_record)
+            note_outpatient_visit(ctx.outpatient_day_ends, event.person_id, specialty_record)
             if specialty_record.encounters:
                 slot_end = specialty_record.encounters[0].discharge_datetime

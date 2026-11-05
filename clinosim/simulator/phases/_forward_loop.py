@@ -109,6 +109,10 @@ class ForwardContext:
     window: tuple[date, date]
     cutoff: date
     dispatch_state: _DispatchState = field(default_factory=_DispatchState)
+    # Issue #2690: end of each patient's last outpatient visit per day, so a
+    # later same-day visit (another calendar event, a post-discharge
+    # follow-up) starts after it instead of overlapping.
+    outpatient_day_ends: dict = field(default_factory=dict)
     n_life_events: int = 0
     n_hospital_events: int = 0
 

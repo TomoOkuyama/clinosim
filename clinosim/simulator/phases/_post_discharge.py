@@ -52,6 +52,11 @@ def dispatch_post_discharge(record: CIFPatientRecord, followup_date: datetime, c
     opd_key = f"{pid}|post_discharge|{followup_date.isoformat()}"
     opd_rng = derive_phase_rng(ctx.master_seed, PHASE_OUTPATIENT_CAL, opd_key)
     opd_dept = resolve_outpatient_department("post_discharge", disease_id, enc.department_id, ctx.hospital_ops)
+    # Issue #2690: after any visit the patient already has that day. The RNG
+    # key above keeps the planned date, so no stream moves.
+    from clinosim.simulator.phases._healthcare_calendar import note_outpatient_visit, place_outpatient_visit
+
+    visit_time = place_outpatient_visit(ctx.outpatient_day_ends, pid, followup_date)
     ctx.patient_records.append(
         _simulate_outpatient_visit(
             _activate_cached_person(
@@ -62,7 +67,7 @@ def dispatch_post_discharge(record: CIFPatientRecord, followup_date: datetime, c
                 demo=ctx.demo,
             ),
             "post_discharge",
-            followup_date,
+            visit_time,
             ctx.roster,
             opd_rng,
             followup_spec=merged_spec,
@@ -72,3 +77,4 @@ def dispatch_post_discharge(record: CIFPatientRecord, followup_date: datetime, c
             department_id=opd_dept,
         )
     )
+    note_outpatient_visit(ctx.outpatient_day_ends, pid, ctx.patient_records[-1])
