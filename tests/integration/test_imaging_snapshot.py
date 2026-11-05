@@ -131,7 +131,10 @@ def test_snapshot_imaging_srs_valid_structure() -> None:
             pytest.skip("No imaging SRs in snapshot cohort n=200")
         for sr in imaging_srs:
             sr_id = sr.get("id", "?")
-            assert sr.get("status") in {"active", "completed"}, f"SR/{sr_id} has unexpected status {sr.get('status')!r}"
+            # Issue #2653: an order never performed by discharge is revoked.
+            assert sr.get("status") in {"active", "completed", "revoked"}, (
+                f"SR/{sr_id} has unexpected status {sr.get('status')!r}"
+            )
             # C1-16 (session 41 cycle 1): SR.intent is now context-derived from
             # order.clinical_intent — ED imaging orders map to "original-order"
             # (fresh order authored by ED clinician). Both are valid FHIR R4
