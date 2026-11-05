@@ -640,27 +640,27 @@ codes:
     ja: 人工呼吸器
 
   # Blood group findings (ABO + RhD) — used by blood-type Observation
-  # emit path (LOINC 883-9 for ABO, 10331-7 for Rh). Codes are the
-  # widely-used SNOMED CT "finding" concepts recognized by JP Core /
-  # US Core downstream consumers.
+  # emit path (LOINC 883-9 for ABO, 10331-7 for Rh). Codes and English
+  # displays are the SNOMED CT International preferred terms (Issue #2622,
+  # checked with tx.fhir.org CodeSystem/$lookup).
   '112144000':
     en: Blood group A
     ja: A型
-  '165743006':
+  '112149005':
     en: Blood group B
     ja: B型
-  '165744000':
+  '58460004':
     en: Blood group O
     ja: O型
-  '165742001':
+  '165743006':
     en: Blood group AB
     ja: AB型
   '165747007':
-    en: Rh positive
-    ja: Rh陽性
-  '165748002':
-    en: Rh negative
-    ja: Rh陰性
+    en: RhD positive
+    ja: RhD陽性
+  '165746003':
+    en: RhD negative
+    ja: RhD陰性
 
   # CCHD pulse-oximetry screening body sites (#1815 fix). Right upper
   # arm = pre-ductal; foot = post-ductal (either foot per AAP/AHA 2011

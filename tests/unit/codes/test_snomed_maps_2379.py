@@ -25,9 +25,9 @@ def test_every_mapped_code_is_registered_with_english(kind: str) -> None:
 @pytest.mark.parametrize(
     ("kind", "key", "code"),
     [
-        ("abo", "AB", "165742001"),
+        ("abo", "AB", "165743006"),
         ("rh", "positive", "165747007"),
-        ("rh", "-", "165748002"),
+        ("rh", "-", "165746003"),
         ("cchd_site", "right_hand", "368209003"),  # right, not left (#1815)
         ("cchd_site", "foot", "56459004"),
         ("encounter_type", "outpatient", "270427003"),
