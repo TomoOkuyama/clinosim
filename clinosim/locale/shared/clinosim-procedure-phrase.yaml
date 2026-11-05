@@ -52,6 +52,7 @@ procedures:
   Heat pack application: {ja: "温罨法"}
   Suture closure: {ja: "縫合閉創"}
   Skin staples: {ja: "スキンステープル"}
+  Peripheral IV line: {ja: "末梢静脈ライン確保"}  # Issue #2627 (protocol "IV_access: Peripheral IV line")
   Tissue adhesive: {ja: "組織接着剤"}
   Nasal packing: {ja: "鼻腔パッキング"}
   Cervical collar application: {ja: "頸椎カラー装着"}

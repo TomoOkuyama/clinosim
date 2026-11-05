@@ -200,6 +200,23 @@ entries:
   - match: "skin closure"
     snomed: "746011009"
 
+  # Issue #2627: bedside procedures that were emitted with text only
+  # (tx.fhir.org $lookup 2026-11-05, all active). More specific phrases first.
+  - match: "nasal packing"
+    snomed: "365958005"
+  - match: "skin staple"
+    snomed: "50015006"
+  - match: "short arm splint"
+    snomed: "439535000"
+  - match: "short arm cast"
+    snomed: "438409006"
+  - match: "posterior splint"
+    snomed: "79321009"
+  - match: "silver nitrate"
+    snomed: "135871000"
+  - match: "peripheral iv line"
+    snomed: "233520008"
+
   # Fracture management — closed reduction (specific) and immobilization.
   - match: "closed reduction"
     snomed: "86052008"

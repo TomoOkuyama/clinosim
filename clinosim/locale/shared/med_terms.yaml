@@ -32,6 +32,7 @@ categories:
   steroid: {ja: ステロイド}
   iv fluid: {ja: 輸液}
   iv_fluid: {en: IV fluids, ja: 輸液}
+  iv_access: {en: IV access, ja: 静脈路確保}
   iv_insulin: {en: IV insulin, ja: インスリン持続静注}
   iv insulin: {ja: インスリン持続静注}
   k_replacement: {en: potassium replacement, ja: カリウム補充}

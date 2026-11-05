@@ -254,10 +254,15 @@ def localize_drug_name(drug_name: str, lang: str) -> str:
 def localize_procedure_name(name: str, lang: str) -> str:
     """``name`` of a procedure or examination in ``lang``: the procedure /
     imaging table's entry, else (a composite order string such as "O2: Nasal
-    cannula SpO2 >= 94%") the free-text translator. Unchanged for English."""
+    cannula SpO2 >= 94%") the free-text translator. English keeps the name but
+    spells out a protocol slug (Issue #2627)."""
     target = _target_lang(lang)
-    if not name or target is None:
+    if not name:
         return name
+    if target is None:
+        # Issue #2627: English spells out a protocol slug ("IV_access: ..." ->
+        # "IV access: ...") like drug names do (Issue #2650).
+        return _localize_dosage_terms(name, normalize_lang(lang))
     table = _load_procedure_display_dict(target)
     normalized = name.replace("_", " ").strip().lower()
     hit = table.get(normalized) or table.get(normalized.split(":", 1)[1].strip() if ":" in normalized else "")
