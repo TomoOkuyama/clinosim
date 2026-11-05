@@ -86,17 +86,16 @@ def test_positive_culture_no_organism_pending_ja():
     assert "同定中" in txt
 
 
-def test_more_than_four_sensitivities_truncated_with_ellipsis():
+def test_more_than_four_sensitivities_are_all_listed():
+    # Issue #2659: the conclusion is never cut off with an ellipsis.
     mb = {
         "growth": True,
         "organism_snomed": "9861002",
         "susceptibilities": [{"antibiotic_display": f"AB{i}", "interpretation": "S"} for i in range(6)],
     }
     txt = _mb_conclusion_text(mb, "en")
-    assert "…" in txt
-    # First four included; last two not.
-    assert "AB0=S" in txt and "AB3=S" in txt
-    assert "AB5=S" not in txt
+    assert "…" not in txt
+    assert all(f"AB{i}=S" in txt for i in range(6))
 
 
 def test_growth_off_but_organism_labeled_contaminant_en():
