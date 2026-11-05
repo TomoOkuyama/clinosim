@@ -108,6 +108,9 @@ def test_salbutamol_yaml_entry_carries_prn_frequency():
     ]
     assert salbutamol_entries, "J44 chronic block must list Salbutamol"
     for m in salbutamol_entries:
-        assert m.get("frequency", "").lower() == "prn", (
-            f"J44 Salbutamol entry must have frequency=prn, got {m.get('frequency')!r}"
+        # Issue #2613: an as-needed frequency with its interval ("q4-6h PRN").
+        from clinosim.modules.output.fhir_r4.lib.dosage import resolve_timing_repeat
+
+        assert resolve_timing_repeat(m.get("frequency", ""))[1], (
+            f"J44 Salbutamol entry must be as-needed, got {m.get('frequency')!r}"
         )

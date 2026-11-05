@@ -107,7 +107,7 @@ E78:  # Dyslipidemia
 J44:  # COPD
   medications:
     - {drug_id: tiotropium, dose: "18mcg", route: "INH", frequency: "daily"}
-    - {drug_id: albuterol, dose: "100mcg", route: "INH", frequency: "prn"}
+    - {drug_id: albuterol, dose: "100mcg", route: "INH", frequency: "q4-6h PRN"}
   monitoring:
     - {test: "SpO2", frequency: "tid", intent: "COPD SpO2 monitoring (target 88-92%)"}
   vital_adjustments:
@@ -279,7 +279,7 @@ J45:  # Asthma
     - {drug_id: fluticasone_salmeterol, dose: "250mcg", route: "INH", frequency: "bid"}
     # Salbutamol pMDI (サルタノール / ベネトリン): 1 puff = 100 μg salbutamol、
     # 発作時 1-2 puff 頓用 (成人)、添付文書: サルタノールインヘラー 100μg.
-    - {drug_id: albuterol, dose: "100mcg", route: "INH", frequency: "prn"}
+    - {drug_id: albuterol, dose: "100mcg", route: "INH", frequency: "q4-6h PRN"}
   monitoring:
     - {test: "SpO2", frequency: "tid", intent: "SpO2 monitoring if respiratory complaint"}
 
@@ -580,8 +580,8 @@ F41.1:  # Generalized anxiety disorder — SSRI + SNRI both first-line
     # classes`` already contains ssri + snri; the new benzo class
     # is a THIRD exclusive bucket (at most one benzodiazepine per
     # patient) emitted only on GAD-7 severe cohort.
-    - {drug_id: lorazepam, dose: "0.5mg", drug_class: "benzodiazepine", route: "PO", frequency: "as needed", probability: 0.25, requires_stage_in: ["GAD-7 severe"], age_max: 64}
-    - {drug_id: alprazolam, dose: "0.25mg", drug_class: "benzodiazepine", route: "PO", frequency: "as needed", probability: 0.20, requires_stage_in: ["GAD-7 severe"], age_max: 64}
+    - {drug_id: lorazepam, dose: "0.5mg", drug_class: "benzodiazepine", route: "PO", frequency: "PRN up to 3x/day", probability: 0.25, requires_stage_in: ["GAD-7 severe"], age_max: 64}
+    - {drug_id: alprazolam, dose: "0.25mg", drug_class: "benzodiazepine", route: "PO", frequency: "PRN up to 3x/day", probability: 0.20, requires_stage_in: ["GAD-7 severe"], age_max: 64}
 
 Z34:  # Encounter for supervision of normal pregnancy
   medications:

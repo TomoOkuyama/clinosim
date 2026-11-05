@@ -61,7 +61,7 @@ discharge_instructions:
 
 discharge_prescriptions:
   - {drug: "Ondansetron 4mg", route: "PO", frequency: "q8h PRN", duration_days: 3, probability: 0.5}
-  - {drug: "Loperamide 2mg", route: "PO", frequency: "PRN after each loose stool (max 8mg/day)", duration_days: 3, probability: 0.2}
+  - {drug: "Loperamide 2mg", route: "PO", frequency: "PRN after each loose stool (max 4/day)", duration_days: 3, probability: 0.2}
 
 scenarios:
   mild_dehydration:
