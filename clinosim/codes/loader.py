@@ -503,6 +503,8 @@ _BUILTIN_URIS: dict[str, str] = {
     "hl7-v3-actpriority": "http://terminology.hl7.org/CodeSystem/v3-ActPriority",
     # C1-19: Immunization.statusReason for status="not-done".
     "hl7-v3-actreason": "http://terminology.hl7.org/CodeSystem/v3-ActReason",
+    # Issue #2628: Immunization.reportOrigin of a reported dose.
+    "hl7-immunization-origin": "http://terminology.hl7.org/CodeSystem/immunization-origin",
     "hl7-v2-0360": "http://terminology.hl7.org/CodeSystem/v2-0360",
     "hl7-v2-0203": "http://terminology.hl7.org/CodeSystem/v2-0203",
     "hl7-v2-0131": "http://terminology.hl7.org/CodeSystem/v2-0131",

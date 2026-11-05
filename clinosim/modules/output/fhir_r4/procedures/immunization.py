@@ -222,7 +222,11 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
         if lot:
             resource["lotNumber"] = lot
         admin_by = get_attr_or_key(imm, "administered_by", "") or ""
-        if admin_by:
+        # Issue #2628: only a dose given at this hospital has one of its staff
+        # as performer; a reported dose states where the record came from.
+        if not primary_source:
+            resource["reportOrigin"] = dual_slot_concept("hl7-immunization-origin", "record", lang)
+        elif admin_by:
             resource["performer"] = [
                 {
                     "actor": {"reference": f"Practitioner/{admin_by}"},
