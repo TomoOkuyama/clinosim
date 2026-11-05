@@ -15,13 +15,14 @@ from typing import Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.codes.loinc import loinc_coding
+from clinosim.codes.snomed_concepts import NEWS2_SCALE
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import is_jp
+from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, survey_category
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, survey_category, system_coding
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -202,6 +203,9 @@ def _resolve_output_observation_id(structural_key: str) -> str:
     return derive_opaque_id(OUTPUT_OBSERVATION_ID_PREFIX, structural_key)
 
 
+_NEWS2_SETTINGS = frozenset({"inpatient", "emergency", "icu"})
+
+
 def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
     """Build FHIR Observation resources for nursing flowsheet data (category=survey).
 
@@ -255,6 +259,13 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             resource["performer"] = [{"reference": f"Practitioner/{performer_id}"}]
         return resource
 
+    # Issue #2644: NEWS2 is an acute-illness early-warning score (Royal College
+    # of Physicians), scored in hospital and the ED, not at a clinic visit.
+    _enc_types = {str(get_attr_or_key(e, "encounter_type", "") or "") for e in ctx.record.get("encounters") or []} - {
+        ""
+    }  # an encounter of unknown type does not rule NEWS2 out
+    score_news2 = not _enc_types or bool(_enc_types & _NEWS2_SETTINGS)
+
     # --- Vital signs: NEWS2 and GCS ---
     for i, vs in enumerate(ctx.record.get("vital_signs") or []):
         ts = vs.get("timestamp")
@@ -262,7 +273,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
 
         performer_id = vs.get("measured_by", "") or ""
         news2 = vs.get("news2_score")
-        if news2 is not None:
+        if news2 is not None and score_news2:
             # Issue #854 Bucket A row 4 (PR-obs-vs): opaque NEWS2 Observation.id.
             _news2_structural_key = f"{enc or ctx.patient_id}-{i}"
             obs = _obs_base(_resolve_news2_score_id(_news2_structural_key), effective, performer_id)
@@ -290,6 +301,9 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             # second coding. JP is left as-is: JP validators pin older LOINC.
             if not is_jp(ctx.country):
                 obs["code"]["coding"].append(loinc_coding("115635-5", lang))
+            # Issue #2644: SNOMED CT International 1287358002 National Early
+            # Warning Score (tx.fhir.org $lookup 2026-11-05).
+            obs["code"]["coding"].append(system_coding("snomed-ct", NEWS2_SCALE, lang_for(ctx.country)))
             obs["valueInteger"] = int(news2)
             out.append(obs)
 

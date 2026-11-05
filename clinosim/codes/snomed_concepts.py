@@ -21,3 +21,6 @@ FINDING_ABNORMAL = "263654008"
 
 # Organism Observation value of a negative culture (Issue #2660)
 NO_GROWTH = "264868006"
+
+# National Early Warning Score (assessment scale), coding the NEWS2 total (Issue #2644)
+NEWS2_SCALE = "1287358002"
