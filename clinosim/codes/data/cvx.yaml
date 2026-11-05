@@ -1,7 +1,10 @@
 # CVX — Vaccine Administered codes.
 # AUTHORITATIVE SOURCE: CDC IIS (https://www2.cdc.gov/vaccines/iis/iisstandards/vaccines.asp?rpt=cvx).
 # Verified 2026-06 against the CDC CVX list (https://www2.cdc.gov/vaccines/iis/iisstandards/downloads/cvx.txt).
-# Only Active-status codes are included. Do not add a code without verifying against CDC (no fabrication).
+# Only Active-status codes are included, plus (Issue #2629) the earlier products a
+# historical dose is coded with in its era (CVX 140 / 208 / 300; displays checked
+# with tx.fhir.org $lookup 2026-11-05). Do not add a code without verifying
+# against CDC (no fabrication).
 metadata:
   kind: code-system
   name: CVX
@@ -14,6 +17,9 @@ codes:
   "150":
     en: "Influenza, split virus, quadrivalent, PF"
     ja: "インフルエンザ（分割・4価・保存剤なし）"
+  "140":
+    en: "Influenza, split virus, trivalent, PF"
+    ja: "インフルエンザ（分割・3価・保存剤なし）"
 
   # === Pneumococcal ===
   "33":
@@ -43,6 +49,12 @@ codes:
     ja: "帯状疱疹（組換え型, RZV/Shingrix）"
 
   # === COVID-19 ===
+  "208":
+    en: "COVID-19, mRNA, LNP-S, PF, 30 mcg/0.3 mL dose"
+    ja: "COVID-19（mRNA・Pfizer従来型, 30mcg/0.3mL）"
+  "300":
+    en: "COVID-19, mRNA, LNP-S, bivalent, PF, 30 mcg/0.3 mL dose"
+    ja: "COVID-19（mRNA・Pfizer 2価, 30mcg/0.3mL）"
   "309":
     en: "COVID-19, mRNA, LNP-S, PF, tris-sucrose, 30 mcg/0.3 mL"
     ja: "COVID-19（mRNA・Pfizer季節性, 30mcg/0.3mL）"

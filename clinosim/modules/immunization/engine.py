@@ -291,6 +291,20 @@ def _pick_wave_epoch_date(
     return date(first_valid.year, first_valid.month, day)
 
 
+def product_cvx(vaccine: dict, on: date) -> str:
+    """The CVX of the product of ``vaccine`` in use on ``on`` (Issue #2629).
+
+    A schedule entry may list ``products`` with ``from`` / ``until`` dates
+    (inclusive); the first one covering ``on`` wins, else the entry's ``cvx``.
+    """
+    for product in vaccine.get("products") or []:
+        start = product.get("from")
+        end = product.get("until")
+        if (start is None or _parse(str(start)) <= on) and (end is None or on <= _parse(str(end))):
+            return str(product["cvx"])
+    return str(vaccine["cvx"])
+
+
 def generate_immunizations(
     patient, schedule: dict, as_of: date, rng: np.random.Generator, nurse_ids: list[str] | None = None
 ) -> list:
@@ -391,7 +405,7 @@ def generate_immunizations(
                 if rng.random() < _coverage(cov, age_at, sex):
                     out.append(
                         ImmunizationRecord(
-                            vaccine_cvx=cvx,
+                            vaccine_cvx=product_cvx(v, occ),
                             occurrence_date=occ,
                             administered_by=default_nurse,
                             lot_number=_synthetic_lot(occ),
@@ -400,7 +414,7 @@ def generate_immunizations(
                 elif rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE:
                     out.append(
                         ImmunizationRecord(
-                            vaccine_cvx=cvx,
+                            vaccine_cvx=product_cvx(v, occ),
                             occurrence_date=occ,
                             status="not-done",
                         )
@@ -414,7 +428,7 @@ def generate_immunizations(
                 if rng.random() < _coverage(cov, age_at, sex):
                     out.append(
                         ImmunizationRecord(
-                            vaccine_cvx=cvx,
+                            vaccine_cvx=product_cvx(v, occ),
                             occurrence_date=occ,
                             administered_by=default_nurse,
                             lot_number=_synthetic_lot(occ),
@@ -423,7 +437,7 @@ def generate_immunizations(
                 elif rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE:
                     out.append(
                         ImmunizationRecord(
-                            vaccine_cvx=cvx,
+                            vaccine_cvx=product_cvx(v, occ),
                             occurrence_date=occ,
                             status="not-done",
                         )
@@ -493,7 +507,7 @@ def generate_immunizations(
                 if rng.random() < cov_val:
                     out.append(
                         ImmunizationRecord(
-                            vaccine_cvx=cvx,
+                            vaccine_cvx=product_cvx(v, occ),
                             occurrence_date=occ,
                             administered_by=default_nurse,
                             lot_number=_synthetic_lot(occ),
@@ -503,7 +517,7 @@ def generate_immunizations(
                 elif rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE:
                     out.append(
                         ImmunizationRecord(
-                            vaccine_cvx=cvx,
+                            vaccine_cvx=product_cvx(v, occ),
                             occurrence_date=occ,
                             status="not-done",
                             dose_number=dose_num,
@@ -535,7 +549,7 @@ def generate_immunizations(
                     occ = date.fromordinal(start.toordinal() + offset)
                 out.append(
                     ImmunizationRecord(
-                        vaccine_cvx=cvx,
+                        vaccine_cvx=product_cvx(v, occ),
                         occurrence_date=occ,
                         administered_by=default_nurse,
                         lot_number=_synthetic_lot(occ),
@@ -546,10 +560,11 @@ def generate_immunizations(
                 # refusal is charted at a uniform point of the eligible span.
                 span = (as_of - start).days
                 offset = int(rng.integers(0, span + 1)) if span > 0 else 0
+                declined_on = date.fromordinal(start.toordinal() + offset)
                 out.append(
                     ImmunizationRecord(
-                        vaccine_cvx=cvx,
-                        occurrence_date=date.fromordinal(start.toordinal() + offset),
+                        vaccine_cvx=product_cvx(v, declined_on),
+                        occurrence_date=declined_on,
                         status="not-done",
                     )
                 )
