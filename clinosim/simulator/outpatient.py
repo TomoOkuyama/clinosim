@@ -620,10 +620,27 @@ def _renewal_prescription(
             prescription_id=f"RX-{patient.patient_id}-OPD",
             prescriber_id=encounter.attending_physician_id,
             issue_date=visit_date,
-            items=[_apply_pregnancy_substitution(med) for med in patient.current_medications if not _is_prn(med)],
+            # Issue #2710: two pregnancy-unsafe drugs substituted by the same
+            # drug (Methyldopa) are one item.
+            items=unique_items_by_drug(
+                [_apply_pregnancy_substitution(med) for med in patient.current_medications if not _is_prn(med)]
+            ),
         )
 
     return rx
+
+
+def unique_items_by_drug(items: list[dict]) -> list[dict]:
+    """Keep the first prescription item per drug (Issue #2710)."""
+    seen: set[str] = set()
+    out = []
+    for item in items:
+        key = str(item.get("drug_name", "") or "").strip().lower()
+        if key and key in seen:
+            continue
+        seen.add(key)
+        out.append(item)
+    return out
 
 
 def _visit_diagnosis_code(chronic_code: str, post_discharge_disease: str, visit_type: str) -> str:
