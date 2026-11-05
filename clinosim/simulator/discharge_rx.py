@@ -319,6 +319,9 @@ def build_discharge_rx(
                 "drug_name": drug_name,
                 "drug_name_ja": drug_name_ja,
                 "dose": drug_spec.get("dose", ""),
+                # Issue #2613: an entry whose dose text carries no cadence
+                # (warfarin "Titrate to INR ...") states it in `frequency`.
+                "frequency": drug_spec.get("frequency", ""),
                 "duration_days": drug_spec.get("duration_days", default_duration),
                 "route": drug_spec.get("route", "PO"),
                 "dose_ja": language_slot(drug_spec.get("dose_text"), "ja"),

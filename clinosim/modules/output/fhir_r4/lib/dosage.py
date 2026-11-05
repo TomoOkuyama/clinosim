@@ -509,6 +509,29 @@ def _freq_label_timing() -> dict[str, tuple[int, int, str]]:
     return dict(load_frequency_tokens())
 
 
+# Issue #2613: interval ranges ("q4-6h") and PRN caps ("(max 2/day)",
+# "up to 3x/day") in a frequency label.
+_INTERVAL_RANGE = re.compile(r"q(\d+)\s*-\s*(\d+)\s*h")
+_MAX_PER_DAY = re.compile(r"\(\s*max\s+(\d+)\s*(?:x\s*)?/\s*day\s*\)")
+_UP_TO_PER_DAY = re.compile(r"up\s+to\s+(\d+)\s*(?:x\s*)?/\s*day")
+
+
+def frequency_in_text(text: str) -> str:
+    """The frequency label written inside a dose text ("70mg PO weekly" →
+    "weekly"), or "" (Issue #2613). Interval ranges first, then the
+    frequency-token table, longest token first; a trailing PRN is kept."""
+    if not text:
+        return ""
+    m = re.search(r"q\d+\s*-\s*\d+\s*h(?:\s+prn)?", text, re.IGNORECASE)
+    if m:
+        return m.group(0)
+    for token in sorted(_freq_label_timing(), key=len, reverse=True):
+        m = re.search(rf"(?<![\w-]){re.escape(token)}(?![\w-])(?:\s+prn)?", text, re.IGNORECASE)
+        if m:
+            return m.group(0)
+    return ""
+
+
 def _split_prn_suffix(flow: str) -> tuple[str, bool]:
     """Strip a trailing ` prn` / ` as needed` suffix so `q6h PRN` splits into
     (`q6h`, True). The cadence still emits a `timing.repeat`, and PRN sets
@@ -546,8 +569,30 @@ def resolve_timing_repeat(
         return {"frequency": int(freq_per_day), "period": 1, "periodUnit": "d"}, False
     if not freq_raw:
         return None, False
-    _flow, _prn = _split_prn_suffix(freq_raw.lower().strip())
+    # Issue #2613: "(max N/day)" / "up to Nx/day" cap a PRN regimen.
+    _flow = freq_raw.lower().strip()
+    _max_per_day: int | None = None
+    for _cap in (_MAX_PER_DAY, _UP_TO_PER_DAY):
+        _m = _cap.search(_flow)
+        if _m:
+            _max_per_day = int(_m.group(1))
+            _flow = (_flow[: _m.start()] + _flow[_m.end() :]).strip()
+    _flow = " ".join(_flow.split())
+    _flow, _prn = _split_prn_suffix(_flow)
+    if _flow == "prn" or _flow.startswith("prn "):
+        # "PRN" / "PRN after each loose stool": as needed, no fixed cadence.
+        _flow, _prn = "", True
+    _range = _INTERVAL_RANGE.fullmatch(_flow)
+    if _range:
+        return {
+            "frequency": 1,
+            "period": int(_range.group(1)),
+            "periodMax": int(_range.group(2)),
+            "periodUnit": "h",
+        }, _prn
     if _flow in ("prn", "as needed", "when required", ""):
+        if _max_per_day:
+            return {"frequency": 1, "frequencyMax": _max_per_day, "period": 1, "periodUnit": "d"}, True
         return None, True
     _timing = _freq_label_timing().get(_flow)
     if _timing is None:

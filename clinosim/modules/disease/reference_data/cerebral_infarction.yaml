@@ -517,6 +517,7 @@ drugs:
         probability: 0.2
         dose: "Titrate to INR 2.0-3.0 (1.6-2.6 if age >= 70)"
         route: PO
+        frequency: "daily"                 # Issue #2613: once daily, dose titrated to INR
         note: "Used if mechanical valve or DOAC contraindicated (JCS 2019)"
     us:
       - drug_id: apixaban
@@ -530,6 +531,7 @@ drugs:
         probability: 0.2
         dose: "Titrate to INR 2.0-3.0"
         route: PO
+        frequency: "daily"                 # Issue #2613: once daily, dose titrated to INR
         note: "Used if mechanical valve or DOAC contraindicated (AHA/ASA 2021)"
 
   # High-intensity statin therapy is a Class I recommendation for all

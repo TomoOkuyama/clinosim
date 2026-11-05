@@ -1154,18 +1154,21 @@ def _build_discharge_rx_dosage(
     # same dose/frequency fields. Skipped when authored_text is set so
     # instruction-only prescriptions (e.g. "既存のインスリンレジメン
     # どおり") don't get an inferred numeric dose.
-    if not authored_text and dose:
+    if not authored_text:
         from clinosim.modules.order.engine import parse_dose_string
-        from clinosim.modules.output.fhir_r4.lib.dosage import resolve_timing_repeat
+        from clinosim.modules.output.fhir_r4.lib.dosage import frequency_in_text, resolve_timing_repeat
 
-        _parsed = parse_dose_string(dose)
+        _parsed = parse_dose_string(dose) if dose else {}
         _qty = _parsed.get("dose_quantity")
         _unit = _parsed.get("dose_unit", "")
         if _qty is not None and _unit:
             dosage["doseAndRate"] = [{"doseQuantity": ucum_quantity(_qty, _unit)}]
+        # Issue #2613: the timing comes from the item's frequency even when it
+        # has no dose, and a frequency written in the dose text ("70mg PO
+        # weekly", "5mg PO q4-6h PRN") is used when the item has none.
         _freq_raw = str(get_attr_or_key(item, "frequency", "") or "").strip()
-        if not _freq_raw and _parsed.get("frequency"):
-            _freq_raw = str(_parsed["frequency"])
+        if not _freq_raw:
+            _freq_raw = frequency_in_text(dose) or str(_parsed.get("frequency") or "")
         _freq_per_day = _parsed.get("frequency_per_day")
         _repeat, _is_prn = resolve_timing_repeat(_freq_raw, _freq_per_day)
         if _repeat:
