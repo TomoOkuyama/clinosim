@@ -18,7 +18,7 @@ from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import map_diagnosis_code
+from clinosim.locale.loader import map_diagnosis_code, vocab_display
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import is_jp
 from clinosim.modules.diagnosis.nonspecific_codes import is_never_principal_dx, is_visit_reason_zcode
@@ -576,13 +576,15 @@ def _set_locations(resource: dict[str, Any], enc: dict, country: str, department
                 "status": "completed" if enc.get("discharge_datetime") else "active",
             }
         )
-    # Secondary: Ward Location
+    # Secondary: Ward Location (the ER / OPD care areas are named, not numbered)
     if ward_id:
         locations.append(
             {
                 "location": {
                     "reference": f"Location/loc-ward-{ward_id}",
-                    "display": t("fhir_emit_text.ward", lang_for(country), n=ward_id),
+                    "display": vocab_display("care_location", ward_id, lang_for(country))
+                    if ward_id in ("ER", "OPD")
+                    else t("fhir_emit_text.ward", lang_for(country), n=ward_id),
                 },
                 "status": "completed" if enc.get("discharge_datetime") else "active",
             }
@@ -603,6 +605,13 @@ def _set_locations(resource: dict[str, Any], enc: dict, country: str, department
                 "status": "completed" if enc.get("discharge_datetime") else "active",
             }
         )
+    # Issue #2623: the patient was at each location for the stay.
+    if enc.get("admission_datetime"):
+        period = {"start": enc["admission_datetime"]}
+        if enc.get("discharge_datetime"):
+            period["end"] = enc["discharge_datetime"]
+        for loc in locations:
+            loc["period"] = dict(period)
     if locations:
         resource["location"] = locations
 

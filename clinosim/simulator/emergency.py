@@ -25,6 +25,7 @@ from clinosim.modules.staff.engine import (
 from clinosim.simulator._ed_thresholds import (
     DEFAULT_TRIAGE_LAB_PANEL,
     DEFAULT_TRIAGE_LAB_PROBABILITY,
+    ED_DEPARTMENT_ID,
     ED_IMAGING_ORDER_OFFSET_MEAN_MIN,
     ED_IMAGING_ORDER_OFFSET_STD_MIN,
     ED_LAB_MIN_TURNAROUND_MIN,
@@ -48,6 +49,7 @@ from clinosim.simulator._ed_thresholds import (
     ED_TREATMENT_ORDER_OFFSET_STD_MIN,
     ED_TREATMENT_RESPONSE_FACTOR,
     ED_VITALS_OFFSET_MIN,
+    ED_WARD_ID,
 )
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
 from clinosim.simulator.lab_pipeline import patient_true_labs
@@ -393,6 +395,13 @@ def _simulate_ed_visit(
     proto_enc_type = (protocol or condition).get("encounter_type", "emergency")
     encounter.encounter_type = EncounterType.OUTPATIENT if proto_enc_type == "outpatient" else EncounterType.EMERGENCY
     encounter.status = EncounterStatus.COMPLETED
+    if encounter.encounter_type == EncounterType.EMERGENCY:
+        # Issue #2623: an ED visit takes place in the ED. Set after creation:
+        # the department is part of the encounter-id hash, so creating with
+        # it would change every ED encounter id (and the per-order lab seeds
+        # derived from it).
+        encounter.department_id = ED_DEPARTMENT_ID
+        encounter.ward_id = ED_WARD_ID
 
     # Issue #915: ED encounters must draw the attending physician from the
     # emergency-medicine pool (DR-EM-*), not the internal-medicine pool. The
