@@ -19,6 +19,13 @@
 vaccines:
   influenza:
     cvx: "150"
+    # Issue #2629: the product in use on the dose date (US influenza vaccines
+    # were trivalent before the 2013-14 season, quadrivalent through 2023-24,
+    # and trivalent again from 2024-25). `cvx` is the fallback.
+    products:
+      - {cvx: "140", until: "2013-06-30"}
+      - {cvx: "150", from: "2013-07-01", until: "2024-06-30"}
+      - {cvx: "140", from: "2024-07-01"}
     min_age: 18
     frequency: annual
     season_month: 10   # legacy fallback; seasonal_distribution below takes precedence
@@ -40,6 +47,13 @@ vaccines:
   covid19:
     # 309 is the current active CVX representing a COVID-19 mRNA vaccination; availability anchors the program start.
     cvx: "309"
+    # Issue #2629: the mRNA product in use on the dose date: original
+    # monovalent (EUA 2020-12-11), bivalent (authorized 2022-08-31), 2023-2024
+    # formula onward (approved 2023-09-11).
+    products:
+      - {cvx: "208", until: "2022-08-30"}
+      - {cvx: "300", from: "2022-08-31", until: "2023-09-10"}
+      - {cvx: "309", from: "2023-09-11"}
     min_age: 18
     frequency: once
     available_from: "2020-12-14"
@@ -307,6 +321,11 @@ vaccines:
   # infants is a minor over-approximation, acceptable for realism).
   pediatric_influenza:
     cvx: "158"
+    # Issue #2629: trivalent before 2013-14 and from 2024-25 (see influenza).
+    products:
+      - {cvx: "141", until: "2013-06-30"}
+      - {cvx: "158", from: "2013-07-01", until: "2024-06-30"}
+      - {cvx: "141", from: "2024-07-01"}
     min_age: 0
     frequency: annual
     season_month: 10
