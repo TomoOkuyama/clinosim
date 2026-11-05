@@ -2189,7 +2189,7 @@
       "sections": {
         "admission_status": "入院期間: 18日間。入院理由: 発熱・咳嗽・呼吸困難。退院基準を満たし退院となった。",
         "discharge_readiness": "退院準備: 退院時 Barthel 100/100。",
-        "nursing_interventions_provided": "入院期間合計 IN 20105 mL / OUT 20355 mL (差 -250 mL)。",
+        "nursing_interventions_provided": "入院期間合計 IN 20105 mL / OUT 21819 mL (差 -1714 mL)。",
         "patient_education": "患者教育: 抗菌薬の内服完遂 (症状改善後も指示日数まで)、咳嗽・喀痰・呼吸困難再燃時の早期受診、手指衛生と咳エチケット、家族への感染予防、肺炎球菌・インフルエンザワクチン推奨。"
       },
       "text": ""

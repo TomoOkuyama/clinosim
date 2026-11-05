@@ -27,6 +27,10 @@ __all__ = [
     "IO_URINE_BASE_ML_PER_UNIT_RENAL",
     "IO_URINE_SD_FLOOR_ML",
     "IO_URINE_SD_RATIO",
+    "IO_STOOL_DAY0_PROBABILITY",
+    "IO_STOOL_DAILY_PROBABILITY",
+    "IO_STOOL_MEAN_ML",
+    "IO_STOOL_SD_ML",
 ]
 
 
@@ -116,3 +120,30 @@ Empirical tuning for the synthetic simulator: 100 mL floor prevents
 the proportional SD from collapsing to near-zero at very low renal
 function (where measurement noise would otherwise disappear entirely
 — unrealistic given real urine-catch measurement precision)."""
+
+
+# ---------------------------------------------------------------------------
+# Stool output (Issue #2648)
+# ---------------------------------------------------------------------------
+
+IO_STOOL_DAY0_PROBABILITY: float = 0.2
+"""Chance that a bowel movement is charted on the admission day.
+
+Empirical tuning for the synthetic simulator: patients are often NPO or
+have just been admitted, so a charted stool on day 0 is uncommon."""
+
+IO_STOOL_DAILY_PROBABILITY: float = 0.6
+"""Chance that a bowel movement is charted on a later hospital day.
+
+Empirical tuning for the synthetic simulator: hospitalized adults pass
+stool on most but not all days (reduced mobility and intake slow the
+bowel), so the measured output total exceeds urine output on most days."""
+
+IO_STOOL_MEAN_ML: int = 150
+"""Mean charted stool volume (mL) on a day with a bowel movement.
+
+Empirical tuning for the synthetic simulator: a formed adult stool is on
+the order of 100-200 g, charted as mL on the intake / output sheet."""
+
+IO_STOOL_SD_ML: int = 50
+"""Standard deviation of the charted stool volume (mL)."""

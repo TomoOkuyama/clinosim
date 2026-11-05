@@ -1766,7 +1766,7 @@
       "sections": {
         "admission_status": "Hospital stay: 14 days. Admission reason: Chest pain, diaphoresis, dyspnea. Discharge criteria met.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 100/100.",
-        "nursing_interventions_provided": "Cumulative IN 24114 mL / OUT 9095 mL (net +15019 mL).",
+        "nursing_interventions_provided": "Cumulative IN 24114 mL / OUT 10268 mL (net +13846 mL).",
         "patient_education": "Patient education: home BP monitoring + low-salt diet."
       },
       "text": ""

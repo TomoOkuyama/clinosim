@@ -243,6 +243,14 @@ def chemotherapy_regimen_seed(patient_id: str, cancer_code: str) -> int:
     return int.from_bytes(digest, "big") % (2**32)
 
 
+def daily_output_seed(patient_id: str, day: int) -> int:
+    """Per-patient, per-day sub-seed in ``[0, 2**32)`` for measured output other
+    than urine (Issue #2648), so adding it does not shift the stay stream."""
+    salt = "clinosim:daily-other-output:v1"
+    digest = hashlib.sha256(f"{salt}|{patient_id}|{day}".encode()).digest()[:6]
+    return int.from_bytes(digest, "big") % (2**32)
+
+
 def individual_lab_seed(order_id: str) -> int:
     """Per-individual-lab-order deterministic sub-seed in ``[0, 2**32)``.
 
