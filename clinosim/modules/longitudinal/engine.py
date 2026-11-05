@@ -149,11 +149,21 @@ def _add_base_chronic_meds_for_new_icd(person: PersonRecord, new_icd: str) -> No
     )
     if not sampled:
         return
+    from clinosim.modules import drug_safety
+
+    # Issue #2713: a new condition's medication that duplicates the class of
+    # one the person already takes (DOAC + warfarin, two P2Y12 inhibitors,
+    # ACE inhibitor + ARB) is not added; the existing agent stays.
+    reconcile = drug_safety.discharge_reconciliation_rules()
     existing_drug_names = {hm.drug_name for hm in person.current_medications if hm.drug_name}
     for hm in sampled:
-        if hm.drug_name and hm.drug_name not in existing_drug_names:
-            person.current_medications.append(hm)
-            existing_drug_names.add(hm.drug_name)
+        if not hm.drug_name or hm.drug_name in existing_drug_names:
+            continue
+        verdicts = drug_safety.check_candidate_against_active(hm.drug_name, sorted(existing_drug_names))
+        if any(v.rule_id in reconcile for v in verdicts):
+            continue
+        person.current_medications.append(hm)
+        existing_drug_names.add(hm.drug_name)
 
 
 def _apply_pattern(

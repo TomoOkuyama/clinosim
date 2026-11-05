@@ -214,6 +214,28 @@ def build_discharge_rx(
     # dose/formulation differences are clinically meaningful and belong in
     # separate line items.
 
+    def _reconcile_conflict(drug_name: str, drug_name_ja: str) -> bool:
+        """Issue #2713: True (and logged) when ``drug_name`` duplicates the
+        class of an item already on this prescription (ACE inhibitor + ARB,
+        two P2Y12 inhibitors, DOAC + warfarin); the earlier item is kept."""
+        from clinosim.modules import drug_safety
+
+        rules = drug_safety.discharge_reconciliation_rules()
+        on_rx = [it["drug_name"] for it in items if it.get("drug_name")]
+        for verdict in drug_safety.check_candidate_against_active(drug_name, on_rx):
+            if verdict.rule_id in rules:
+                _log_discharge_hold(
+                    patient,
+                    encounter_id=encounter_id,
+                    held_drug_name=drug_name,
+                    held_drug_name_ja=drug_name_ja,
+                    hold_reason=verdict.rationale_en or str(verdict.rule_id),
+                    hold_reason_ja=verdict.rationale_ja or str(verdict.rule_id),
+                    timestamp=admission_time,
+                )
+                return True
+        return False
+
     def _append_item(drug_spec: dict, chronic_continuation: bool = False) -> None:
         """Renal-check + dedup + narrow drug_safety triple-antithrombotic
         gate + append. Shared by exclusive & independent paths.
@@ -307,6 +329,8 @@ def build_discharge_rx(
                 v = drug_safety.check_pair(drug_name, active)
                 if v.rule_id == "doac-plus-p2y12" and not v.is_allowed:
                     return  # drop the P2Y12 candidate that would form the triple
+        if _reconcile_conflict(drug_name, drug_name_ja or drug_name):
+            return
         seen_dedup_keys.add(key)
         default_duration = 28 if chronic_continuation else 7
         # Issue #476: propagate authored localized dose instructions
@@ -377,14 +401,27 @@ def build_discharge_rx(
     baseline = list(patient.baseline_chronic_medications) if patient.baseline_chronic_medications else []
     baseline_keys = {_dedup_key(m.drug_name) for m in baseline if m.drug_name}
     combined = list(baseline) + [m for m in patient.current_medications if _dedup_key(m.drug_name) not in baseline_keys]
+    # Issue #2713: a baseline-only drug that an escalation replaced (e.g.
+    # Atorvastatin after the Rosuvastatin switch) yields to the current agent.
+    from clinosim.modules import drug_safety as _ds
+
+    _reconcile = _ds.discharge_reconciliation_rules()
+    _current_names = [m.drug_name for m in patient.current_medications if m.drug_name]
+    _current_keys = {_dedup_key(n) for n in _current_names}
     for med in combined:
         drug_name = med.drug_name
         if not drug_name:
+            continue
+        if _dedup_key(drug_name) not in _current_keys and any(
+            v.rule_id in _reconcile for v in _ds.check_candidate_against_active(drug_name, _current_names)
+        ):
             continue
         if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and drug_key(drug_name) in renal_hold_drugs():
             continue  # do not restart nephrotoxic drug at discharge
         key = _dedup_key(drug_name)
         if key in seen_dedup_keys:
+            continue
+        if _reconcile_conflict(drug_name, med.drug_name_ja or drug_name):
             continue
         seen_dedup_keys.add(key)
         items.append(

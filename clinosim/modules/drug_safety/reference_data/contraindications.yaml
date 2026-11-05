@@ -59,6 +59,37 @@ rules:
     substitution_hint: hypertension_or_rate_control
     source: "ACC/AHA 2019 chronic coronary disease; JCS 2018 心不全"
 
+  # Issue #2713: two drugs of a class given as one agent.
+  - id: p2y12-plus-p2y12
+    lhs: antiplatelet.p2y12
+    rhs: antiplatelet.p2y12
+    severity: contraindicated
+    rationale:
+      en: "Two P2Y12 inhibitors are never combined; switching (e.g. clopidogrel to ticagrelor) replaces the first."
+      ja: "P2Y12 阻害薬の二剤併用は行わない。切替 (クロピドグレル→チカグレロル等) は前剤を置き換える。"
+    substitution_hint: null
+    source: "ACC/AHA 2016 DAPT focused update; ESC 2023 ACS guidelines"
+
+  - id: statin-plus-statin
+    lhs: statin
+    rhs: statin
+    severity: contraindicated
+    rationale:
+      en: "Two statins are a therapeutic duplication (more myopathy risk, no added LDL lowering); intensification switches the agent or the dose."
+      ja: "スタチン二剤は治療重複 (筋障害リスク増、LDL 低下の上乗せなし)。強化は薬剤変更または増量で行う。"
+    substitution_hint: null
+    source: "ACC/AHA 2018 Cholesterol Guideline (statin intensity); JAS 2022 動脈硬化性疾患予防ガイドライン"
+
+  - id: doac-plus-vka
+    lhs: anticoagulant.doac
+    rhs: anticoagulant.vka
+    severity: contraindicated
+    rationale:
+      en: "A DOAC and warfarin are not given together; a switch stops one when the other starts (per INR)."
+      ja: "DOAC とワルファリンは併用しない。切替時は INR を見て一方を中止してから他方を開始する。"
+    substitution_hint: null
+    source: "EHRA 2021 practical guide on NOAC use in AF"
+
   # Issue #2707: dual RAAS blockade.
   - id: acei-plus-arb
     lhs: acei
@@ -201,3 +232,15 @@ rules:
       ja: "NSAID は腎血流とリチウムクリアランスを低下させ血中濃度を上昇させる。血中リチウム濃度を頻回に測定し用量を調整するか、アセトアミノフェンを選択する。"
     substitution_hint: pain_management
     source: "FDA lithium carbonate label, section 7 Drug Interactions"
+
+# Issue #2713: rules that the discharge prescription reconciles against the
+# items already on it (the earlier item — the stay's new regimen — is kept,
+# the later one is dropped and logged). Unambiguous class duplications only;
+# combinations whose appropriateness depends on the indication (e.g. warfarin
+# with an antiplatelet after PCI in AF) are not reconciled here.
+discharge_reconciliation_rules:
+  - acei-plus-arb
+  - p2y12-plus-p2y12
+  - doac-plus-vka
+  - statin-plus-statin
+

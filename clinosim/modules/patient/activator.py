@@ -681,11 +681,21 @@ def activate_patient(
         skip_log_out=_home_med_skip_log,
         patient_age=age,
     )
+    from clinosim.modules import drug_safety as _ds
+
+    # Issue #2713: a re-derived drug that duplicates the class of one the
+    # person already takes (an earlier pick, or an escalation's substitute —
+    # Rosuvastatin for Atorvastatin) is not added back; the existing agent
+    # stays. Filtering only: the derivation's draws are unchanged.
+    _reconcile = _ds.discharge_reconciliation_rules()
     _seen = {m.drug_name for m in current_meds if m.drug_name}
     for _hm in _derived_meds:
-        if _hm.drug_name and _hm.drug_name not in _seen:
-            current_meds.append(_hm)
-            _seen.add(_hm.drug_name)
+        if not _hm.drug_name or _hm.drug_name in _seen:
+            continue
+        if any(v.rule_id in _reconcile for v in _ds.check_candidate_against_active(_hm.drug_name, sorted(_seen))):
+            continue
+        current_meds.append(_hm)
+        _seen.add(_hm.drug_name)
 
     # Address and contact from Layer 1
     from clinosim.types.patient import Address, ContactInfo
