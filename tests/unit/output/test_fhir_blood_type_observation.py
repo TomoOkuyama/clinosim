@@ -46,9 +46,9 @@ def _ctx(
     "abo,expected_snomed",
     [
         ("A", "112144000"),
-        ("B", "165743006"),
-        ("O", "165744000"),
-        ("AB", "165742001"),
+        ("B", "112149005"),
+        ("O", "58460004"),
+        ("AB", "165743006"),
     ],
 )
 def test_abo_observation_shape(abo: str, expected_snomed: str):
@@ -74,9 +74,9 @@ def test_abo_observation_shape(abo: str, expected_snomed: str):
     "rh,expected_snomed",
     [
         ("+", "165747007"),
-        ("-", "165748002"),
+        ("-", "165746003"),
         ("positive", "165747007"),
-        ("negative", "165748002"),
+        ("negative", "165746003"),
     ],
 )
 def test_rh_observation_shape(rh: str, expected_snomed: str):
@@ -205,3 +205,25 @@ def test_performer_from_earliest_encounter_attending():
     resources = _bb_blood_type(ctx)
     for r in resources:
         assert r["performer"] == [{"reference": "Practitioner/DR-IM-001"}]
+
+
+# Issue #2622: SNOMED CT International preferred terms, checked with
+# tx.fhir.org CodeSystem/$lookup. A code must name the group its display states.
+_SNOMED_PREFERRED_TERMS = {
+    "112144000": "Blood group A",
+    "112149005": "Blood group B",
+    "58460004": "Blood group O",
+    "165743006": "Blood group AB",
+    "165747007": "RhD positive",
+    "165746003": "RhD negative",
+}
+
+
+@pytest.mark.parametrize("map_name", ["abo", "rh"])
+def test_blood_group_codes_carry_their_snomed_preferred_term(map_name: str) -> None:
+    from clinosim.codes import display as registry_display
+    from clinosim.codes.snomed import snomed_map
+
+    for value, code in snomed_map(map_name).items():
+        assert code in _SNOMED_PREFERRED_TERMS, (map_name, value, code)
+        assert registry_display("snomed-ct", code, "en") == _SNOMED_PREFERRED_TERMS[code], (map_name, value)

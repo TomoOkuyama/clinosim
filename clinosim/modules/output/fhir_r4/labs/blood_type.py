@@ -22,11 +22,11 @@ Two observations per patient (matches the way hospital lab systems
 report ABO and RhD as separate rows):
 
 - **ABO**: `code = LOINC 883-9 "ABO group [Type] in Blood"`,
-  `valueCodeableConcept = SNOMED CT` (`112144000` A / `165743006` B /
-  `165744000` O / `165742001` AB).
+  `valueCodeableConcept = SNOMED CT` (`112144000` A / `112149005` B /
+  `58460004` O / `165743006` AB).
 - **RhD**: `code = LOINC 10331-7 "Rh [Type] in Blood"`,
   `valueCodeableConcept = SNOMED CT` (`165747007` positive /
-  `165748002` negative).
+  `165746003` negative).
 
 `effectiveDateTime` = the patient's earliest inpatient admission
 datetime when one exists (Type & Screen is a routine admission order),

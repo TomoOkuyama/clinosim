@@ -34,16 +34,16 @@ severity:
 # ABO blood type letter (patient activator) → finding concept (LOINC 883-9 value).
 abo:
   A: '112144000'
-  B: '165743006'
-  O: '165744000'
-  AB: '165742001'
+  B: '112149005'
+  O: '58460004'
+  AB: '165743006'
 
 # Rh factor glyph → finding concept (LOINC 10331-7 value).
 rh:
   '+': '165747007'
-  '-': '165748002'
+  '-': '165746003'
   positive: '165747007'
-  negative: '165748002'
+  negative: '165746003'
 
 # Newborn CCHD pulse-oximetry screening site → body-site concept (#1815).
 cchd_site:
