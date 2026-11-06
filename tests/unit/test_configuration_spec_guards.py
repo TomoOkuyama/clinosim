@@ -23,7 +23,6 @@ _NO_MODEL_YET = frozenset(
         "llm_service",
         "monitoring",
         "patient",
-        "pediatric",
         "physiology",
         "population",
     }

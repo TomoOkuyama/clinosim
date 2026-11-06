@@ -23,14 +23,57 @@ from __future__ import annotations
 from datetime import date
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import random_day_of_month
 
 _YAML_PATH = Path(__file__).parent / "reference_data" / "pediatric_schedule.yaml"
+
+
+class _Visit(BaseModel):
+    """One scheduled pediatric visit type."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    age_min: int = Field(ge=0)
+    age_max: int = Field(ge=0)
+    visits_per_year: list[int] = Field(min_length=1)
+    encounter_type: Literal["outpatient"]
+    disease_id: str = Field(min_length=1)
+    visit_reason: dict[str, str] | str = ""
+
+    @field_validator("visits_per_year")
+    @classmethod
+    def _non_negative(cls, counts: list[int]) -> list[int]:
+        if any(c < 0 for c in counts):
+            raise ValueError("visits_per_year must be non-negative counts")
+        return counts
+
+    @field_validator("visit_reason")
+    @classmethod
+    def _english(cls, reason: dict[str, str] | str) -> dict[str, str] | str:
+        if isinstance(reason, dict) and not reason.get("en"):
+            raise ValueError("visit_reason needs an English label")
+        return reason
+
+    @model_validator(mode="after")
+    def _ordered(self) -> _Visit:
+        if self.age_min > self.age_max:
+            raise ValueError("age_min > age_max")
+        return self
+
+
+class _PediatricSchedule(BaseModel):
+    """Shape of pediatric_schedule.yaml (validated at load)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    encounters: dict[str, _Visit] = Field(default_factory=dict)
 
 
 @lru_cache(maxsize=8)
@@ -44,20 +87,11 @@ def load_pediatric_schedule(path: Path | None = None) -> dict[str, dict[str, Any
     """
     p = path or _YAML_PATH
     raw = load_data_yaml(p) or {}
-    encounters = raw.get("encounters") or {}
-    if not isinstance(encounters, dict):
-        raise ValueError(f"pediatric_schedule.yaml at {p}: top-level 'encounters' must be a mapping")
-    for key, entry in encounters.items():
-        if not isinstance(entry, dict):
-            raise ValueError(f"pediatric_schedule.yaml: encounter '{key}' entry must be a dict")
-        for required in ("age_min", "age_max", "visits_per_year", "encounter_type", "disease_id"):
-            if required not in entry:
-                raise ValueError(f"pediatric_schedule.yaml: encounter '{key}' missing required '{required}'")
-        if not isinstance(entry["visits_per_year"], list) or not entry["visits_per_year"]:
-            raise ValueError(f"pediatric_schedule.yaml: encounter '{key}' 'visits_per_year' must be a non-empty list")
-        if int(entry["age_min"]) > int(entry["age_max"]):
-            raise ValueError(f"pediatric_schedule.yaml: encounter '{key}' age_min > age_max")
-    return encounters
+    try:
+        config = _PediatricSchedule.model_validate(raw)
+    except ValidationError as exc:
+        raise ValueError(f"pediatric_schedule.yaml at {p}: {exc}") from exc
+    return {key: entry.model_dump(exclude_none=True) for key, entry in config.encounters.items()}
 
 
 def generate_pediatric_events(
