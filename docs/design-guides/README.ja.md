@@ -21,4 +21,5 @@ clinosim にモジュールを追加する新規開発者/実装 AI 向けの索
 | 0g | [`narrative-and-document-generation-spec.md`](narrative-and-document-generation-spec.ja.md) | **文書を計画する・セクションを足す・臨床事実を言い表す変更の前に必読。** 文書 planner・セクション登録表・安全事象/バイタル/BMI の共通の言い表しの規範仕様。 |
 | 0h | [`configuration-and-reference-data-spec.md`](configuration-and-reference-data-spec.ja.md) | **参照データ YAML・年齢区分の表・定数を足す/読む前に必読。** 読み込みと検証・共有の表(年齢区分・フォローアップ・名前付き病態)・定数の置き場所の規範仕様。 |
 | 0i | [`lab-orders-and-results-spec.md`](lab-orders-and-results-spec.ja.md) | **検査をオーダー・導出・フラグ付け・結び付けする変更の前に必読。** 検査の真値・同一性とパネル・結果とオーダー・評価範囲の規範仕様。 |
+| 0j | [`encounter-lifecycle-and-export-spec.md`](encounter-lifecycle-and-export-spec.ja.md) | **受診を作る/終える・スナップショットを当てる・FHIR リソースを仕上げる変更の前に必読。** 受診の設定・月次ループ・死亡記録・出力時のスナップショット・FHIR の仕上げの規範仕様。 |
 | 8 | [`data-model-and-completeness-conventions.md`](data-model-and-completeness-conventions.ja.md) | FHIR completeness fix-point(重症度統合 / 孤児 YAML キー / `extra="forbid"` / I10 stage / person.age / course_archetypes)を実装するときのみ。C1/C2/C3 不完全状態の禁止規約と as-of-age パターン。台帳 = `docs/design-notes/2026-07-06-fix-point-registry.md` |
