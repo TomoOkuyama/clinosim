@@ -1,4 +1,4 @@
-# Issue #2789: orders placed on the imaging or lab path that are bedside
+# Issue #2789: orders placed on the lab path that are bedside
 # evaluation procedures, not imaging studies or specimen tests. Their
 # ServiceRequest.category is SNOMED CT 386053000 "Evaluation procedure"
 # (snomed-maps.yaml order_category.evaluation), as for the ECG (Issue #2621),
@@ -9,13 +9,11 @@ metadata:
   kind: reference
   name: Evaluation-procedure orders
   description: >
-    Imaging- and lab-path orders whose ServiceRequest.category is
+    Lab-path orders whose ServiceRequest.category is
     SNOMED CT 386053000 Evaluation procedure (Issue #2789).
 
-# Imaging-path orders, keyed by order display_name.
-imaging_orders:
-  Slit_lamp_exam: {}      # slit-lamp examination of the eye
-  Fluorescein_stain: {}   # corneal fluorescein staining
+# Imaging-path bedside examinations are listed by the imaging module
+# (modules/imaging/reference_data/bedside_examinations.yaml, Issue #2796).
 
 # Lab-path orders, keyed by the internal lab name (order_code / display_name).
 lab_orders:

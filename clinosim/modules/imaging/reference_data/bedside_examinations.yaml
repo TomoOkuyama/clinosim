@@ -1,0 +1,16 @@
+# Issue #2796: work-up orders placed on the imaging list that are bedside
+# examinations by the treating physician, not imaging studies. They get no
+# ImagingStudy and no radiology report (the report would assert a reading
+# nobody made); their ServiceRequest.category is SNOMED CT 386053000
+# "Evaluation procedure" (Issue #2789).
+
+metadata:
+  kind: reference
+  name: Bedside examinations on the imaging work-up list
+  description: >
+    Order names on the imaging work-up list that are bedside examinations,
+    not imaging studies (Issues #2789 / #2796).
+
+examinations:
+  - Slit_lamp_exam      # slit-lamp examination of the eye
+  - Fluorescein_stain   # corneal fluorescein staining

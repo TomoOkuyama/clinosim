@@ -61,3 +61,22 @@ def test_a_specimen_test_stays_a_laboratory_order() -> None:
 def test_an_imaging_study_stays_an_imaging_order() -> None:
     sr = _build_imaging_sr(_imaging_order("Chest_Xray"), "en", "US")
     assert [c["code"] for c in sr["category"][0]["coding"]] == ["363679005", "RAD"]
+
+
+def test_a_bedside_examination_order_is_completed_without_a_study() -> None:
+    """Issue #2796: no ImagingStudy is made for a bedside examination; its
+    order is completed (done at the bedside), not revoked at discharge."""
+    from types import SimpleNamespace
+
+    from clinosim.modules.output.fhir_r4.labs.service_request import _build_imaging_service_requests
+
+    ctx = SimpleNamespace(
+        country="US",
+        record={"extensions": {"imaging": []}, "encounters": [{"encounter_id": "ENC-1", "discharge_datetime": "x"}]},
+    )
+    orders = [
+        {**_imaging_order("Slit_lamp_exam"), "status": "placed"},
+        {**_imaging_order("CT_Head"), "status": "placed"},
+    ]
+    status = {sr["identifier"][0]["value"]: sr["status"] for sr in _build_imaging_service_requests(orders, ctx)}
+    assert status == {"ORD-Slit_lamp_exam": "completed", "ORD-CT_Head": "revoked"}
