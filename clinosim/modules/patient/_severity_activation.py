@@ -34,6 +34,9 @@ deterministic modulo the ``p=`` values it sees.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from clinosim.datafiles import load_data_yaml
 
@@ -113,9 +116,34 @@ def _stage_weights(attribute_id: str) -> tuple[float, ...]:
 
 _STAGE_SEVERITY_YAML = Path(__file__).resolve().parent / "reference_data" / "stage_severity.yaml"
 
+
+class _StageSeverityConfig(BaseModel):
+    """Shape of stage_severity.yaml (validated at load): per ICD base code, the
+    scale's stages in order with a severity score in [0, 1] that does not
+    decrease from one stage to the next."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    stage_severity: dict[str, dict[str, float]] = Field(min_length=1)
+
+    @field_validator("stage_severity")
+    @classmethod
+    def _scales(cls, table: dict[str, dict[str, float]]) -> dict[str, dict[str, float]]:
+        for code, stages in table.items():
+            scores = list(stages.values())
+            if not scores:
+                raise ValueError(f"stage_severity.yaml {code}: no stages")
+            if any(not 0.0 <= v <= 1.0 for v in scores):
+                raise ValueError(f"stage_severity.yaml {code}: scores must lie in [0, 1]")
+            if any(b < a for a, b in zip(scores, scores[1:])):
+                raise ValueError(f"stage_severity.yaml {code}: scores decrease along the scale")
+        return table
+
+
 STAGE_SEVERITY: dict[str, dict[str, float]] = {
     str(code): {str(stage): float(score) for stage, score in stages.items()}
-    for code, stages in load_data_yaml(_STAGE_SEVERITY_YAML)["stage_severity"].items()
+    for code, stages in _StageSeverityConfig.model_validate(load_data_yaml(_STAGE_SEVERITY_YAML)).stage_severity.items()
 }
 
 
