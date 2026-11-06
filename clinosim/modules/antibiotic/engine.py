@@ -15,6 +15,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import sanitize_id_token
 from clinosim.modules.antibiotic import ANTIBIOTIC_DRUGS, ANTIBIOTIC_LOINC_LOOKUP
@@ -115,12 +117,56 @@ def _validate_narrow_ladder(data: dict[str, dict[str, list[str]]]) -> None:
             )
 
 
+class _NarrowLadderFile(BaseModel):
+    """Shape of narrow_ladder.yaml; the cross-references are checked by
+    ``_validate_narrow_ladder``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    narrow_ladder: dict[str, dict[str, list[str]]]
+
+
+class _EmpiricalDrug(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    drug_key: str
+    dose: str = Field(min_length=1)
+    route: str = Field(min_length=1)
+    frequency: str
+
+    @field_validator("frequency")
+    @classmethod
+    def _known_frequency(cls, freq: str) -> str:
+        if freq not in FREQ_PER_DAY:
+            raise ValueError(f"hai_empirical.yaml: frequency {freq!r} not in {sorted(FREQ_PER_DAY)}")
+        return freq
+
+
+class _EmpiricalRegimen(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    duration_days: int = Field(gt=0)
+    drugs: list[_EmpiricalDrug] = Field(min_length=1)
+
+
+class _HaiEmpiricalFile(BaseModel):
+    """Shape of hai_empirical.yaml; HAI types and drug keys are cross-checked
+    by ``load_hai_empirical``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    hai_empirical: dict[str, _EmpiricalRegimen]
+
+
 @lru_cache(maxsize=1)
 def load_narrow_ladder() -> dict[str, dict[str, list[str]]]:
     """Load + 3-way validate the PR3b-3 narrow ladder. Returns
     ``{hai_type: {organism_snomed: [drug_key, ...]}}`` where the list is the
     narrow→broad preference order."""
     raw = load_data_yaml(_NARROW_LADDER_YAML)
+    _NarrowLadderFile.model_validate(raw)
     data = {k: dict(v) for k, v in dict(raw["narrow_ladder"]).items()}
     _validate_narrow_ladder(data)
     return data
@@ -135,6 +181,7 @@ def load_hai_empirical() -> dict[str, dict[str, Any]]:
     keys violate ``HAI_TYPES`` or any drug_key violates ``ANTIBIOTIC_DRUGS``.
     """
     raw = load_data_yaml(_HAI_EMPIRICAL_YAML)
+    _HaiEmpiricalFile.model_validate(raw)
     data = dict(raw["hai_empirical"])
 
     unknown_hai = set(data) - set(HAI_TYPES)
