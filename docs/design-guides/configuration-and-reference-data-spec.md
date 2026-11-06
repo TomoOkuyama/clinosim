@@ -21,7 +21,7 @@ Related specs, linked rather than restated:
 | Rule | Canonical code | Guard |
 |---|---|---|
 | Every data YAML is parsed by the one reader and declares its `metadata.kind`. | `clinosim/datafiles.py::load_data_yaml`, `data_metadata` | `tests/unit/test_data_yaml_conventions_2465.py` |
-| A module's reference YAML is validated at load by a Pydantic model (`ConfigDict(extra="forbid")`), so an unknown key or a missing required key fails at import. Codes the YAML names are checked to exist through `clinosim.codes`. A new key is added to the model first (AD-69). | per module: `modules/<module>/` models (allergy, antibiotic, care_level, clinical_course, code_status, device, diagnosis, disease, document, encounter, family_history, hai, imaging, newborn, nursing, observation, order, patient, pediatric, procedure, prophylaxis, sdoh, triage) | `tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model` (ratchet), per-module model tests |
+| A module's reference YAML is validated at load by a Pydantic model (`ConfigDict(extra="forbid")`), so an unknown key or a missing required key fails at import. Codes the YAML names are checked to exist through `clinosim.codes`. A new key is added to the model first (AD-69). | per module: `modules/<module>/` models (allergy, antibiotic, care_level, clinical_course, code_status, device, diagnosis, disease, document, encounter, family_history, hai, imaging, newborn, nursing, observation, order, patient, pediatric, physiology, procedure, prophylaxis, sdoh, triage) | `tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model` (ratchet), per-module model tests |
 | A cached loader's return value is shared and read-only. | `@lru_cache` loaders | `implementation-rules.md` §3 (review) |
 
 ## 3. Shared tables
@@ -43,5 +43,5 @@ Related specs, linked rather than restated:
 
 | Gap | Where |
 |---|---|
-| Modules whose reference YAML has no Pydantic model (some validate with hand-written checks, some not at all): drug_safety, llm_service, monitoring, physiology, population. The guard allows exactly these; the list may only shrink. | `tests/unit/test_configuration_spec_guards.py::_NO_MODEL_YET` |
+| Modules whose reference YAML has no Pydantic model (some validate with hand-written checks, some not at all): drug_safety, llm_service, monitoring, population. The guard allows exactly these; the list may only shrink. | `tests/unit/test_configuration_spec_guards.py::_NO_MODEL_YET` |
 | The constants-placement policy has no automatic guard. | review |
