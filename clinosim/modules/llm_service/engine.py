@@ -58,7 +58,7 @@ class LLMTaskType(StrEnum):
     ADMISSION_HP = "admission_hp"  # LOINC 34117-2
     PROGRESS_NOTE = "progress_note"  # LOINC 11506-3
     DISCHARGE_SUMMARY = "discharge_summary"  # LOINC 18842-5
-    DEATH_SUMMARY = "death_summary"  # LOINC 69730-0
+    DEATH_SUMMARY = "death_summary"  # LOINC 47046-8 Summary of Death Note (Issue #2807)
     OPERATIVE_NOTE = "operative_note"  # LOINC 11504-8
     PROCEDURE_NOTE = "procedure_note"  # LOINC 28570-0
     # α-min-2/3 document types (N-3 enum sync; coarse NURSING_NOTE removed)

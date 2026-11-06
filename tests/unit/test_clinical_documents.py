@@ -248,7 +248,7 @@ class TestDocumentLoinc:
 
     def test_known_loinc_codes(self):
         assert DOCUMENT_LOINC[LLMTaskType.DISCHARGE_SUMMARY] == "18842-5"
-        assert DOCUMENT_LOINC[LLMTaskType.DEATH_SUMMARY] == "69730-0"
+        assert DOCUMENT_LOINC[LLMTaskType.DEATH_SUMMARY] == "47046-8"  # Issue #2807
         assert DOCUMENT_LOINC[LLMTaskType.OPERATIVE_NOTE] == "11504-8"
         assert DOCUMENT_LOINC[LLMTaskType.ADMISSION_HP] == "34117-2"
         assert DOCUMENT_LOINC[LLMTaskType.PROCEDURE_NOTE] == "28570-0"

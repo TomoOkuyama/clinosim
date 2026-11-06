@@ -275,7 +275,7 @@ description: |
       physician names / numeric values). Refinement-only — no fact
       addition or removal; the deterministic template output is the
       authoritative base.
-    - No LOINC 69730-0 death_summary block — tracked separately (#1000).
+    - No LOINC 47046-8 death_summary block — tracked separately (#1000).
 
   v12 changes (2026-08-30, prompt audit — chore/llm-prompt-audit-2026-08-30):
     - Fixed stale cross-reference in Context contract:

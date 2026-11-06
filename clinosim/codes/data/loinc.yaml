@@ -88,9 +88,11 @@ codes:
   53576-5:
     en: Personal Health Monitoring Report
     ja: 検診・健診報告書
-  69730-0:
-    en: Instructions
-    ja: 死亡時記録
+  # Issue #2807: death summary (template-only task). Was 69730-0, which is
+  # "Instructions" (tx.fhir.org $lookup, 2026-11-06).
+  47046-8:
+    en: Summary of Death Note
+    ja: 死亡時要約
   # Issue #961: Death certificate (死亡診断書).
   # 医師法第 20 条 requires the attending physician to issue a 死亡診断書
   # whenever certifying a patient's death. Emitted as a distinct
