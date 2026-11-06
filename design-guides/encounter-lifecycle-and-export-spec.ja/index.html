@@ -2409,7 +2409,7 @@
 <tr>
 <td>どの受診シミュレータ(救急・入院・外来・周産期・不明疾患)も、<code>ClinicalDiagnosis</code> を <code>encounter_diagnosis</code> で作り、受診の無いオーダーを <code>attach_orders</code> で結び付ける。種別で経路が決まる受診(救急・外来・周産期)は、入院経路・転帰・優先度・入退院担当医を <code>finalize_encounter</code> で設定する。入院(入院・不明疾患)は、入院経路と退院判断からそれらを導く。</td>
 <td><code>simulator/encounter_setup.py</code>(<code>attach_orders</code>, <code>finalize_encounter</code>, <code>encounter_diagnosis</code>)</td>
-<td><code>tests/unit/test_encounter_setup.py</code>, <code>tests/unit/test_encounter_export_spec_guards.py</code>(<code>…builds_its_diagnosis_through_encounter_setup</code>, <code>…clinical_diagnosis_is_constructed_only_in_encounter_setup</code>)</td>
+<td><code>tests/unit/test_encounter_setup.py</code>, <code>tests/unit/test_encounter_export_spec_guards.py</code>(<code>…builds_its_diagnosis_through_encounter_setup</code>, <code>…links_its_orders_through_encounter_setup</code>, <code>…clinical_diagnosis_is_constructed_only_in_encounter_setup</code>)</td>
 </tr>
 <tr>
 <td>シミュレーションは一つのループで月ごとに進む: 年の境目(人口の前進、医療カレンダー)、月次のライフイベント、救急枠、その月に積まれた事象の日付順の実行。</td>
@@ -2499,8 +2499,8 @@
 </thead>
 <tbody>
 <tr>
-<td>周産期は <code>attach_orders</code> を呼ばず各オーダーに自分で受診を設定する。<code>attach_orders</code> の規則を確かめるガードは無い。入院・不明疾患の入院は経路の項目を自前のコードで設定し、共通の補助関数は無い。</td>
-<td><code>simulator/perinatal.py</code>, <code>simulator/inpatient.py</code>, <code>simulator/unknown_condition.py</code></td>
+<td>入院・不明疾患の入院は経路の項目を自前のコードで設定し、共通の補助関数は無い。</td>
+<td><code>simulator/inpatient.py</code>, <code>simulator/unknown_condition.py</code></td>
 </tr>
 </tbody>
 </table>

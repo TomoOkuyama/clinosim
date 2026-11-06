@@ -2409,7 +2409,7 @@
 <tr>
 <td>Every encounter simulator (ED, inpatient, outpatient, perinatal, unknown condition) builds its <code>ClinicalDiagnosis</code> through <code>encounter_diagnosis</code>, and links orders that have no encounter through <code>attach_orders</code>. A visit whose route is fixed by its kind (ED, outpatient, perinatal) sets admit source, disposition, priority and the admitting / discharging physician through <code>finalize_encounter</code>; an admission (inpatient, unknown condition) derives them from its admission route and discharge decision.</td>
 <td><code>simulator/encounter_setup.py</code> (<code>attach_orders</code>, <code>finalize_encounter</code>, <code>encounter_diagnosis</code>)</td>
-<td><code>tests/unit/test_encounter_setup.py</code>, <code>tests/unit/test_encounter_export_spec_guards.py</code> (<code>…builds_its_diagnosis_through_encounter_setup</code>, <code>…clinical_diagnosis_is_constructed_only_in_encounter_setup</code>)</td>
+<td><code>tests/unit/test_encounter_setup.py</code>, <code>tests/unit/test_encounter_export_spec_guards.py</code> (<code>…builds_its_diagnosis_through_encounter_setup</code>, <code>…links_its_orders_through_encounter_setup</code>, <code>…clinical_diagnosis_is_constructed_only_in_encounter_setup</code>)</td>
 </tr>
 <tr>
 <td>The simulation advances month by month in one loop: year boundary (population advance, healthcare calendar), monthly life events, ED slots, then dispatch of the month's queued events in date order.</td>
@@ -2499,8 +2499,8 @@
 </thead>
 <tbody>
 <tr>
-<td>Perinatal sets the encounter on each of its orders itself instead of calling <code>attach_orders</code>; no guard checks the <code>attach_orders</code> rule. Inpatient and unknown-condition admissions set their route fields in their own code, with no shared helper.</td>
-<td><code>simulator/perinatal.py</code>, <code>simulator/inpatient.py</code>, <code>simulator/unknown_condition.py</code></td>
+<td>Inpatient and unknown-condition admissions set their route fields in their own code, with no shared helper.</td>
+<td><code>simulator/inpatient.py</code>, <code>simulator/unknown_condition.py</code></td>
 </tr>
 </tbody>
 </table>
