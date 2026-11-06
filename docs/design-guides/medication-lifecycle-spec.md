@@ -75,5 +75,4 @@ discharge prescription (§6) ──► home medications ──► next encounter
 
 | Gap | Where |
 |---|---|
-| The MedicationAdministration builder resolves its drug code with its own copy of the name-matching steps instead of calling `_resolve_medication_concept`. | `fhir_r4/medications/medications.py::_build_medication_admin` |
 | The discharge carry-forward of finite courses keys on `duration_days` with a constant in Python and has no test of its own. | `simulator/helpers.py` |

@@ -75,5 +75,4 @@
 
 | 未対応 | 場所 |
 |---|---|
-| MedicationAdministration の作成側は `_resolve_medication_concept` を呼ばず、名前照合の手順の写しで薬剤コードを解決している。 | `fhir_r4/medications/medications.py::_build_medication_admin` |
 | 有限投与期間の在宅薬への引き継ぎ除外は、Python 内の定数で `duration_days` を判定しており、専用のテストが無い。 | `simulator/helpers.py` |

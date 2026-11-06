@@ -1614,122 +1614,20 @@ def _build_medication_admin(
     encounter 内で MR と同じ per-order 連番を割当てる。
     """
     drug_name_raw = mar.get("drug_name", "")
-    drug_name_clean, protocol_category = strip_protocol_prefix(drug_name_raw)
-    # peel off rate-adjustment suffix (see _build_medication_request).
+    drug_name_clean, _protocol_category = strip_protocol_prefix(drug_name_raw)
     drug_name_clean, rate_adjustment_note = _split_rate_adjustment_suffix(drug_name_clean)
     drug_name = _localize_drug_name(drug_name_clean, country)
-    base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
     country_code = "JP" if is_jp(country) else "US"
-    lang = lang_for(country_code)
-    drug_codes = _drug_code_table(country_code, str(mar.get("route", "") or ""))
-    # C3-10: longest-match-wins for multi-word keys.
-    # CO-8 (Chain 4 2026-07-11): normalize underscores + honor the MAR-carried
-    # order code for the US. JP codes come from the catalog by drug and route
-    # (Issue #2347), never from a MAR-carried code.
-    code_value = "" if is_jp(country_code) else (mar.get("code_yj", "") or "")
-    # Hoisted (Issue #852 follow-up): tokens are needed by BOTH the
-    # code_mapping lookup and the JA multi-word extension below (which
-    # must run regardless of code_value — see MR builder for full rationale).
-    normalized = drug_name_clean.replace("_", " ") if drug_name_clean else ""
-    tokens = normalized.split(" ") if normalized else []
-    if not code_value and drug_name_clean:
-        for n_tokens in range(len(tokens), 0, -1):
-            candidate = " ".join(tokens[:n_tokens])
-            if candidate in drug_codes:
-                code_value = drug_codes[candidate]
-                base_name = candidate
-                break
-        # suffix-match fallback for qualifier-prefixed aliases.
-        if not code_value and len(tokens) > 1:
-            for n_tokens in range(len(tokens) - 1, 0, -1):
-                candidate = " ".join(tokens[-n_tokens:])
-                if candidate in drug_codes:
-                    code_value = drug_codes[candidate]
-                    base_name = candidate
-                    break
-        if not code_value:
-            code_value = drug_codes.get(base_name.replace("_", " "), "")
-        if not code_value:
-            # Issue #2134: chronic medications carry lowercase drug ids
-            # ("sertraline"); fall back to a case-insensitive match when it
-            # names exactly one code (exact-case keys still win above).
-            for n_tokens in range(len(tokens), 0, -1):
-                hit = _case_insensitive_code(drug_codes, " ".join(tokens[:n_tokens]))
-                if hit:
-                    code_value, base_name = hit
-                    break
-    # Issue #852: extend base_name to the longest multi-word prefix that has
-    # a JA-dict entry so ``.text`` localization hits multi-word product-family
-    # names even when Order.order_code was pre-set from the disease YAML
-    # (Magnesium Sulfate = MHLW HOT7 2355002 etc.) and the code_mapping block
-    # above was skipped. Only prefixes that BEGIN with the already-chosen
-    # ``base_name`` token are considered so dose / route / freq tails do not
-    # leak into ``.text`` (Issue #775 invariant).
-    if tokens:
-        from clinosim.locale.loader import load_drug_display_dict as _load_ja_dict
-
-        _ja_dict = _load_ja_dict()
-        _first_token = tokens[0]
-        for n_tokens in range(len(tokens), 1, -1):
-            candidate = " ".join(tokens[:n_tokens])
-            if candidate.lower() in _ja_dict and _first_token and candidate.startswith(_first_token):
-                base_name = candidate
-                break
-    # C6-C7 residual sweep: same protocol_category fallback as MR builder.
-    if not code_value and protocol_category:
-        _pc = protocol_category.strip().lower().replace("_", " ").rstrip(":")
-        for cand in (protocol_category, _pc, _pc.capitalize(), _pc.title()):
-            if cand and cand in drug_codes:
-                code_value = drug_codes[cand]
-                break
-    drug_system_key = system_key_for("drug", country_code)
-    # F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch
-    # (MR builder と同じ helper)。US は RxNorm URI。
-    if is_jp(country_code) and drug_system_key == "yj" and code_value:
-        code_system = _resolve_jp_drug_system_uri(code_value)
-    else:
-        code_system = get_system_uri(drug_system_key)
-
-    # Issue #775: MAR also emits clean drug name in medicationCodeableConcept.text
-    # (dose/route/freq belong in `dosage` below). Same rationale as MR builder.
-    # ``base_name`` above resolved to the ``drug_codes`` key that matched, or,
-    # per the Issue #852 extension, the longest multi-word JA-dict-mappable
-    # prefix — either way the value is dose-free and safe for ``.text``.
-    clean_drug_name = _localize_drug_name(base_name, country) if base_name else drug_name
-    med_concept: dict[str, Any] = {"text": clean_drug_name}
-    # #283 MR builder と同 gate — tx-server 未収録 JP YJ code は
-    # nocoded fallback にダウングレード(薬剤名は text field で保持)。
-    # #283:downgrade は YJ-code URI 経由の code だけ対象。同 drug_system_key
-    # ="yj" でも `_resolve_jp_drug_system_uri` が HOT7/HOT9/HOT13 に dispatch
-    # した場合(全 HOT 系は別 CodeSystem)は対象外 = 通常 emit。
-    _jp_yj_unverified = (
-        is_jp(country_code)
-        and drug_system_key == "yj"
-        and bool(code_value)
-        and code_system == _JP_YJ_CODE_URI
-        and not _is_yj_code_valid(code_value)
+    # Issue #2749: an administration's drug is coded by the one resolver its
+    # MedicationRequest uses (name matching, catalog identity, JP product by
+    # route, display rules, eCS no-code slice). The MAR-carried code is the
+    # order's code (US only; JP codes come from the catalog by route).
+    med_concept, _ = _resolve_medication_concept(
+        drug_name_raw,
+        str(mar.get("code_yj", "") or ""),
+        country,
+        route=str(mar.get("route", "") or ""),
     )
-    if code_value and not _jp_yj_unverified:
-        display = code_lookup(drug_system_key, code_value, lang)
-        # Issue #2614: the US display is the RxNorm name, without the trade
-        # name our tables decorate it with (as on the MedicationRequest).
-        if not is_jp(country_code) and display:
-            display = _TRADE_NAME_SUFFIX_RE.sub("", display).strip()
-        coding: dict[str, Any] = {"system": code_system, "code": code_value}
-        if display and display != code_value:
-            coding["display"] = display
-        med_concept["coding"] = [coding]
-    elif is_jp(country_code):
-        # #305 display は権威 CodeSystem 定義通り
-        # "標準コードなし" 固定。薬剤名は med_concept["text"] で保持
-        # (MR builder と同じ理由、v6 で MAR も同 mismatch 発生)。
-        med_concept["coding"] = [
-            {
-                "system": _JP_MEDICATION_CODE_NOCODED_CS,
-                "code": _JP_MEDICATION_CODE_NOCODED_CODE,
-                "display": _JP_MEDICATION_CODE_NOCODED_DISPLAY,
-            }
-        ]
 
     # Issue #854 (PR-medication-administration): opaque MA.id + structural
     # key round-trip. See MEDICATION_ADMINISTRATION_KEY_SYSTEM docstring.
