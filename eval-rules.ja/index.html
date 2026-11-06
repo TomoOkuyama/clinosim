@@ -2644,8 +2644,11 @@
 </table>
 <p>ペアリングは
 <a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/eval/reference_data/condition-lab-pairings.yaml"><code>clinosim/eval/reference_data/condition-lab-pairings.yaml</code></a>
-から読み込まれる (<code>lab_values_physiological_range</code> の範囲も同様に
-<code>clinosim/eval/reference_data/lab-plausibility-bounds.yaml</code> から)。ペアリング
+から読み込まれる。<code>lab_values_physiological_range</code> の範囲は、clinosim が出す単位については
+生成側の <code>physiologic_limits</code>(<code>clinosim/modules/observation/reference_data/lab_constants.yaml</code>)を
+US の検査コード対応で LOINC に写したもので、
+<code>clinosim/eval/reference_data/lab-plausibility-bounds.yaml</code> はそれ以外の単位表記(他社コホートの採点用)だけを足す
+(<a href="../design-guides/lab-orders-and-results-spec.ja/">検査オーダーと結果の仕様</a> 参照)。ペアリング
 追加はこの yaml の <code>pairings:</code> 配下にエントリを追加し、このページに
 ソースを引用。</p>
 <h3 id="medication_lab_coherence_warfarin-major"><code>medication_lab_coherence_warfarin</code> (MAJOR)<a class="headerlink" href="#medication_lab_coherence_warfarin-major" title="Permanent link">&para;</a></h3>

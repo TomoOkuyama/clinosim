@@ -2850,8 +2850,13 @@ from the diagnosis label.</p>
 </table>
 <p>The pairings are loaded from
 <a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/eval/reference_data/condition-lab-pairings.yaml"><code>clinosim/eval/reference_data/condition-lab-pairings.yaml</code></a>
-(the <code>lab_values_physiological_range</code> bounds likewise from
-<code>clinosim/eval/reference_data/lab-plausibility-bounds.yaml</code>). To add a pairing,
+The <code>lab_values_physiological_range</code> bounds of the units clinosim emits are the
+generator's own <code>physiologic_limits</code>
+(<code>clinosim/modules/observation/reference_data/lab_constants.yaml</code>), mapped to
+LOINC through the US lab code mapping;
+<code>clinosim/eval/reference_data/lab-plausibility-bounds.yaml</code> adds only the other
+unit spellings, used to score third-party cohorts (see the
+<a href="../design-guides/lab-orders-and-results-spec/">lab orders and results spec</a>). To add a pairing,
 add an entry under <code>pairings:</code> in that yaml and cite the source here.</p>
 <h3 id="medication_lab_coherence_warfarin-major"><code>medication_lab_coherence_warfarin</code> (MAJOR)<a class="headerlink" href="#medication_lab_coherence_warfarin-major" title="Permanent link">&para;</a></h3>
 <p>When a patient carries a MedicationRequest for warfarin (RxNorm
