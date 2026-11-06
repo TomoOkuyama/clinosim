@@ -35,6 +35,11 @@ def test_every_encounter_simulator_builds_its_diagnosis_through_encounter_setup(
     assert "encounter_diagnosis(" in (_PKG / "simulator" / name).read_text(encoding="utf-8")
 
 
+@pytest.mark.parametrize("name", _ENCOUNTER_SIMULATORS)
+def test_every_encounter_simulator_links_its_orders_through_encounter_setup(name: str) -> None:
+    assert "attach_orders(" in (_PKG / "simulator" / name).read_text(encoding="utf-8")
+
+
 def test_clinical_diagnosis_is_constructed_only_in_encounter_setup() -> None:
     offenders = [
         f"{p.name}:{i}"

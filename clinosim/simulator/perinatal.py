@@ -39,7 +39,7 @@ from clinosim.modules._shared import is_jp
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.staff.engine import FALLBACK_PHYSICIAN_ID, StaffRoster, assign_staff
 from clinosim.seeding import text_seed
-from clinosim.simulator.encounter_setup import encounter_diagnosis, finalize_encounter
+from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
 from clinosim.simulator.hospital_ops import perinatal_ward, resolve_department
 from clinosim.types.clinical import ConditionEvent
 from clinosim.types.encounter import EncounterStatus, EncounterType
@@ -959,6 +959,7 @@ def simulate_delivery_encounter(
         for m in administrations_for(o, [max(o.ordered_datetime, encounter.admission_datetime)], _bundle_nurse)
     ]
 
+    attach_orders(orders, encounter)  # every encounter kind links its orders the same way
     mother_record = CIFPatientRecord(
         patient=patient,
         encounters=[encounter],

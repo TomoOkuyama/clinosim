@@ -18,7 +18,7 @@
 
 | 規則 | 正準コード | ガード |
 |---|---|---|
-| どの受診シミュレータ(救急・入院・外来・周産期・不明疾患)も、`ClinicalDiagnosis` を `encounter_diagnosis` で作り、受診の無いオーダーを `attach_orders` で結び付ける。種別で経路が決まる受診(救急・外来・周産期)は、入院経路・転帰・優先度・入退院担当医を `finalize_encounter` で設定する。入院(入院・不明疾患)は、入院経路と退院判断からそれらを導く。 | `simulator/encounter_setup.py`(`attach_orders`, `finalize_encounter`, `encounter_diagnosis`) | `tests/unit/test_encounter_setup.py`, `tests/unit/test_encounter_export_spec_guards.py`(`…builds_its_diagnosis_through_encounter_setup`, `…clinical_diagnosis_is_constructed_only_in_encounter_setup`) |
+| どの受診シミュレータ(救急・入院・外来・周産期・不明疾患)も、`ClinicalDiagnosis` を `encounter_diagnosis` で作り、受診の無いオーダーを `attach_orders` で結び付ける。種別で経路が決まる受診(救急・外来・周産期)は、入院経路・転帰・優先度・入退院担当医を `finalize_encounter` で設定する。入院(入院・不明疾患)は、入院経路と退院判断からそれらを導く。 | `simulator/encounter_setup.py`(`attach_orders`, `finalize_encounter`, `encounter_diagnosis`) | `tests/unit/test_encounter_setup.py`, `tests/unit/test_encounter_export_spec_guards.py`(`…builds_its_diagnosis_through_encounter_setup`, `…links_its_orders_through_encounter_setup`, `…clinical_diagnosis_is_constructed_only_in_encounter_setup`) |
 | シミュレーションは一つのループで月ごとに進む: 年の境目(人口の前進、医療カレンダー)、月次のライフイベント、救急枠、その月に積まれた事象の日付順の実行。 | `simulator/phases/_forward_loop.py` | `tests/unit/simulator/test_forward_loop_2169.py` |
 | 死亡は一つのメソッドで一度だけ記録し、最も早いものを採る(後日の事前抽選の地域死亡は、それより早い院内死亡で置き換える)。 | `types/population.py::PersonRecord.record_death` | `tests/unit/test_death_record_2166.py` |
 
@@ -47,4 +47,4 @@
 
 | 未対応 | 場所 |
 |---|---|
-| 周産期は `attach_orders` を呼ばず各オーダーに自分で受診を設定する。`attach_orders` の規則を確かめるガードは無い。入院・不明疾患の入院は経路の項目を自前のコードで設定し、共通の補助関数は無い。 | `simulator/perinatal.py`, `simulator/inpatient.py`, `simulator/unknown_condition.py` |
+| 入院・不明疾患の入院は経路の項目を自前のコードで設定し、共通の補助関数は無い。 | `simulator/inpatient.py`, `simulator/unknown_condition.py` |

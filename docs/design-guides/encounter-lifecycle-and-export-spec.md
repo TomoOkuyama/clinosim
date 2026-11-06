@@ -18,7 +18,7 @@ Related specs: medication and lab state at export ([`medication-lifecycle-spec.m
 
 | Rule | Canonical code | Guard |
 |---|---|---|
-| Every encounter simulator (ED, inpatient, outpatient, perinatal, unknown condition) builds its `ClinicalDiagnosis` through `encounter_diagnosis`, and links orders that have no encounter through `attach_orders`. A visit whose route is fixed by its kind (ED, outpatient, perinatal) sets admit source, disposition, priority and the admitting / discharging physician through `finalize_encounter`; an admission (inpatient, unknown condition) derives them from its admission route and discharge decision. | `simulator/encounter_setup.py` (`attach_orders`, `finalize_encounter`, `encounter_diagnosis`) | `tests/unit/test_encounter_setup.py`, `tests/unit/test_encounter_export_spec_guards.py` (`…builds_its_diagnosis_through_encounter_setup`, `…clinical_diagnosis_is_constructed_only_in_encounter_setup`) |
+| Every encounter simulator (ED, inpatient, outpatient, perinatal, unknown condition) builds its `ClinicalDiagnosis` through `encounter_diagnosis`, and links orders that have no encounter through `attach_orders`. A visit whose route is fixed by its kind (ED, outpatient, perinatal) sets admit source, disposition, priority and the admitting / discharging physician through `finalize_encounter`; an admission (inpatient, unknown condition) derives them from its admission route and discharge decision. | `simulator/encounter_setup.py` (`attach_orders`, `finalize_encounter`, `encounter_diagnosis`) | `tests/unit/test_encounter_setup.py`, `tests/unit/test_encounter_export_spec_guards.py` (`…builds_its_diagnosis_through_encounter_setup`, `…links_its_orders_through_encounter_setup`, `…clinical_diagnosis_is_constructed_only_in_encounter_setup`) |
 | The simulation advances month by month in one loop: year boundary (population advance, healthcare calendar), monthly life events, ED slots, then dispatch of the month's queued events in date order. | `simulator/phases/_forward_loop.py` | `tests/unit/simulator/test_forward_loop_2169.py` |
 | A person's death is recorded once, through one method; the earliest recorded death wins (an in-hospital death replaces a later pre-sampled community death). | `types/population.py::PersonRecord.record_death` | `tests/unit/test_death_record_2166.py` |
 
@@ -47,4 +47,4 @@ Related specs: medication and lab state at export ([`medication-lifecycle-spec.m
 
 | Gap | Where |
 |---|---|
-| Perinatal sets the encounter on each of its orders itself instead of calling `attach_orders`; no guard checks the `attach_orders` rule. Inpatient and unknown-condition admissions set their route fields in their own code, with no shared helper. | `simulator/perinatal.py`, `simulator/inpatient.py`, `simulator/unknown_condition.py` |
+| Inpatient and unknown-condition admissions set their route fields in their own code, with no shared helper. | `simulator/inpatient.py`, `simulator/unknown_condition.py` |
