@@ -146,9 +146,8 @@ def limit_triple_antithrombotic(items: list[dict], home_medications: list[str]) 
     home), dual antiplatelet therapy becomes the anticoagulant + clopidogrel,
     and aspirin a short course (not carried into the home medications)."""
     from clinosim.codes.drugs import resolve_drug
-    from clinosim.datafiles import load_data_yaml
     from clinosim.modules import drug_safety
-    from clinosim.modules.drug_safety.engine import _CONTRAINDICATIONS_YAML
+    from clinosim.modules.drug_safety.engine import triple_therapy_after_acs_plan
 
     def classes(name: str) -> set[str]:
         return set(drug_safety.resolve_classes(name) or ())
@@ -159,7 +158,7 @@ def limit_triple_antithrombotic(items: list[dict], home_medications: list[str]) 
     aspirin = [i for i in items if "antiplatelet.cox_inhibitor" in classes(str(i.get("drug_name", "")))]
     if not (on_oac and p2y12 and aspirin):
         return
-    plan = (load_data_yaml(_CONTRAINDICATIONS_YAML) or {}).get("triple_therapy_after_acs") or {}
+    plan = triple_therapy_after_acs_plan()
     keep = resolve_drug(str(plan.get("p2y12_with_oac", "clopidogrel")))
     for item in p2y12:
         if item["drug_name"] != keep.names.get("en"):

@@ -12,8 +12,13 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.localized import language_slot
+from clinosim.modules.drug_safety._models import (
+    ContraindicationsFile,
+    DiseaseContraindicationsFile,
+    DrugSubstitutionFile,
+)
 from clinosim.modules.drug_safety.classifier import (
     canonical_name,
     japanese_display,
@@ -54,16 +59,26 @@ _ALLOWED = SafetyVerdict(
 
 
 @lru_cache(maxsize=1)
+def _contraindications_file() -> dict[str, Any]:
+    """``contraindications.yaml``, validated by ``ContraindicationsFile``."""
+    return load_validated_yaml(_CONTRAINDICATIONS_YAML, ContraindicationsFile)
+
+
+@lru_cache(maxsize=1)
 def discharge_reconciliation_rules() -> frozenset[str]:
     """Rule ids the discharge prescription reconciles (Issue #2713)."""
-    data = load_data_yaml(_CONTRAINDICATIONS_YAML)
-    return frozenset(str(r) for r in data.get("discharge_reconciliation_rules") or [])
+    return frozenset(str(r) for r in _contraindications_file().get("discharge_reconciliation_rules") or [])
+
+
+def triple_therapy_after_acs_plan() -> dict[str, Any]:
+    """The antithrombotic plan for a patient on an anticoagulant who leaves on
+    DAPT after ACS (``contraindications.yaml`` ``triple_therapy_after_acs``)."""
+    return dict(_contraindications_file()["triple_therapy_after_acs"])
 
 
 @lru_cache(maxsize=1)
 def _load_rules() -> list[dict[str, Any]]:
-    data = load_data_yaml(_CONTRAINDICATIONS_YAML)
-    return list(data.get("rules", []))
+    return list(_contraindications_file().get("rules", []))
 
 
 def _match_rule(classes_a: list[str], classes_b: list[str]) -> SafetyVerdict:
@@ -145,9 +160,7 @@ def _load_disease_rules() -> list[dict[str, Any]]:
 
     Cached — the YAML never changes at runtime; a test that needs to
     reload should clear this cache directly."""
-    if not _DISEASE_CONTRAINDICATIONS_YAML.exists():
-        return []
-    data = load_data_yaml(_DISEASE_CONTRAINDICATIONS_YAML) or {}
+    data = load_validated_yaml(_DISEASE_CONTRAINDICATIONS_YAML, DiseaseContraindicationsFile)
     return list(data.get("rules", []))
 
 
@@ -259,7 +272,7 @@ def check_candidate_against_disease_state(
 
 @lru_cache(maxsize=1)
 def _load_shared_substitutions() -> dict[str, dict[str, Any]]:
-    data = load_data_yaml(_SHARED_SUBSTITUTION_YAML)
+    data = load_validated_yaml(_SHARED_SUBSTITUTION_YAML, DrugSubstitutionFile)
     return data.get("indications", {}) or {}
 
 

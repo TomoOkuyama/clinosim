@@ -16,7 +16,6 @@ _PKG = Path(__file__).resolve().parents[2] / "clinosim"
 # new module with reference data needs a model.
 _NO_MODEL_YET = frozenset(
     {
-        "drug_safety",
         "llm_service",
         "population",
     }
