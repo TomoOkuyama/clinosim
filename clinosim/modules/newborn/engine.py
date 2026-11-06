@@ -22,8 +22,10 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from clinosim import determinism
+from clinosim.codes import code_exists
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.snomed import snomed_for, snomed_map
 from clinosim.datafiles import load_data_yaml
@@ -38,10 +40,93 @@ from clinosim.types.procedure import ProcedureRecord
 _HERE = Path(__file__).resolve().parent
 
 
+def _code(system: str, code: str) -> str:
+    if not code_exists(system, code, exact=True):
+        raise ValueError(f"newborn_screening.yaml {system} code {code!r} is not registered in codes/data/")
+    return code
+
+
+class _Strict(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class _Bilirubin(_Strict):
+    schedule_days: list[int] = Field(min_length=1)
+    hour_of_day: int = Field(ge=0, le=23)
+    mean_by_day: dict[int, float]
+    std_by_day: dict[int, float]
+    clamp_min: float
+    clamp_max: float
+
+
+class _PulseOx(_Strict):
+    hours_after_admission: int = Field(ge=0)
+    right_hand_spo2_mean: float
+    right_hand_spo2_std: float = Field(ge=0)
+    foot_spo2_mean: float
+    foot_spo2_std: float = Field(ge=0)
+    clamp_min: float
+    clamp_max: float = Field(le=100)
+
+
+class _Dose(_Strict):
+    drug_name: str
+    dose: str = ""
+    route: str = ""
+    within_hours_of_birth: int | None = Field(default=None, ge=0)
+    schedule_days: list[int] = Field(default_factory=list)
+
+
+class _Screen(_Strict):
+    result_weights: dict[str, float]
+    procedure_code: str
+    category_code: str
+    outcome_pass: str
+    outcome_refer: str
+    hours_after_admission: int | None = Field(default=None, ge=0)
+    schedule_day: dict[str, int] = Field(default_factory=dict)
+    service_request: dict[str, Any] = Field(default_factory=dict)
+    specimen: dict[str, Any] = Field(default_factory=dict)
+    diagnostic_report: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("procedure_code", "category_code", "outcome_pass", "outcome_refer")
+    @classmethod
+    def _snomed(cls, code: str) -> str:
+        return _code("snomed-ct", code)
+
+    @field_validator("result_weights")
+    @classmethod
+    def _weights(cls, weights: dict[str, float]) -> dict[str, float]:
+        if set(weights) != {"pass", "refer"} or any(w < 0 for w in weights.values()) or sum(weights.values()) <= 0:
+            raise ValueError("newborn_screening.yaml result_weights must be non-negative pass / refer weights")
+        return weights
+
+
+class _Apgar(_Strict):
+    minute_1_score_weights: dict[int, float]
+    minute_5_score_weights: dict[int, float]
+
+
+class _NewbornConfig(_Strict):
+    """Shape of newborn_screening.yaml (validated at load)."""
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    bilirubin: _Bilirubin
+    cchd_pulse_ox: _PulseOx
+    ophthalmic_prophylaxis: dict[str, _Dose]
+    metabolic_screen: _Screen
+    hearing_screen: _Screen
+    apgar: _Apgar
+    shift_vitals: dict[str, list[int]]
+    vitamin_k: dict[str, _Dose]
+
+
 @lru_cache(maxsize=1)
 def load_newborn_config() -> dict[str, Any]:
-    """Load + cache `newborn_screening.yaml`. Cached singleton."""
-    return load_data_yaml(_HERE / "reference_data" / "newborn_screening.yaml") or {}
+    """Load + cache `newborn_screening.yaml` (validated). Cached singleton."""
+    data = load_data_yaml(_HERE / "reference_data" / "newborn_screening.yaml") or {}
+    _NewbornConfig.model_validate(data)
+    return data
 
 
 # Issue #1736 — once-per-newborn baseline-screen dedup tracker. Mirrors

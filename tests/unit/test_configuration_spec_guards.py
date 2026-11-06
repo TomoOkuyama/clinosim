@@ -22,7 +22,6 @@ _NO_MODEL_YET = frozenset(
         "drug_safety",
         "llm_service",
         "monitoring",
-        "newborn",
         "patient",
         "pediatric",
         "physiology",
