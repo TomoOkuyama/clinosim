@@ -99,3 +99,12 @@ def test_has_topic_matches_registry_keys():
     assert has_topic("complication")
     assert has_topic("chronic_status")
     assert not has_topic("not_a_topic")
+
+
+def test_a_determinism_generator_picks_a_phrase() -> None:
+    """Issue #2754: the clinosim generator, not the stdlib class, is the RNG it takes."""
+    from clinosim import determinism
+
+    a = hedged_phrase("symptom", "chest pain", confirmed=True, lang="en", rng=determinism.default_rng(7))
+    b = hedged_phrase("symptom", "chest pain", confirmed=True, lang="en", rng=determinism.default_rng(7))
+    assert a and a == b
