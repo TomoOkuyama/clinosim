@@ -80,7 +80,6 @@ ophthalmic_prophylaxis:
     # catalog directly, not this field, so the bad code was silently
     # dead — but it's now the authoritative single source of truth
     # any future emit path can key on).
-    rxnorm_code: "310149"
   jp:                            # not administered in JP standard care
     drug_name: ""
 
@@ -250,7 +249,6 @@ vitamin_k:
     # syrup 0.2 %. Not read by the engine at this scope; downstream
     # FHIR MedicationAdministration.medicationCodeableConcept catalog
     # will resolve the display via the existing drug_names_ja.yaml.
-    yj_code: "3160009S1024"
   us:
     drug_name: "Vitamin K1 (phytonadione) 1 mg IM"
     dose: "1 mg"
@@ -263,4 +261,3 @@ vitamin_k:
     # (#1264). Replaces the fabricated 977786 declared at #1256 (never
     # resolved through emit prior to #1264; see the ophthalmic block
     # above for the same rationale).
-    rxnorm_code: "312424"
