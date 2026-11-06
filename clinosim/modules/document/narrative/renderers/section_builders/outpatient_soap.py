@@ -48,14 +48,13 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
-    NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD,
-    NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD,
     NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD,
     NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD,
     NARRATIVE_HBA1C_DIABETES_THRESHOLD,
     NARRATIVE_LDL_BORDERLINE_THRESHOLD,
     NARRATIVE_LDL_ELEVATED_THRESHOLD,
     NARRATIVE_LDL_HIGH_THRESHOLD,
+    bp_band,
 )
 from clinosim.modules.document.narrative._narrative_utils import _age_at
 from clinosim.modules.document.narrative._template_helpers import (
@@ -635,12 +634,14 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
 
         # ── I10: Essential hypertension ────────────────────────────
         if code_prefix.startswith("I10") and sbp and dbp:
-            if sbp >= NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD or dbp >= NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD:
-                ctrl = t("control_status.poorly_controlled", lang)
-            elif sbp >= NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD or dbp >= NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD:
-                ctrl = t("control_status.high_normal", lang)
-            else:
-                ctrl = t("control_status.at_goal", lang)
+            ctrl = t(
+                {
+                    "hypertension": "control_status.poorly_controlled",
+                    "high_normal": "control_status.high_normal",
+                    "normal": "control_status.at_goal",
+                }[bp_band(sbp, dbp)],
+                lang,
+            )
             target = t(
                 "chronic_assessment.bp_target",
                 lang,

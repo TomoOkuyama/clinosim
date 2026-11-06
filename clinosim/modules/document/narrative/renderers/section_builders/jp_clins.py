@@ -29,16 +29,13 @@ from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
-    NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD,
-    NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD,
-    NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD,
-    NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD,
     NARRATIVE_HBA1C_BORDERLINE_THRESHOLD,
     NARRATIVE_HBA1C_DIABETES_THRESHOLD,
     NARRATIVE_LDL_BORDERLINE_THRESHOLD,
     NARRATIVE_LDL_ELEVATED_THRESHOLD,
     NARRATIVE_LDL_HIGH_THRESHOLD,
     bmi_band,
+    bp_band,
 )
 from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
@@ -416,11 +413,12 @@ def build_checkup_lab_results(generator: TemplateNarrativeGenerator, ctx: Narrat
         if sys_v is None or dia_v is None:
             return ("checkup_lab_results.bp_unmeasured", {}, "A")
         kw = {"sbp": sys_v, "dbp": dia_v}
-        if sys_v >= NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD or dia_v >= NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD:
-            return ("checkup_lab_results.bp_hypertension", kw, "D")
-        if sys_v >= NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD or dia_v >= NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD:
-            return ("checkup_lab_results.bp_high_normal", kw, "B")
-        return ("checkup_lab_results.bp_reference", kw, "A")
+        key, grade = {
+            "hypertension": ("bp_hypertension", "D"),
+            "high_normal": ("bp_high_normal", "B"),
+            "normal": ("bp_reference", "A"),
+        }[bp_band(sys_v, dia_v)]
+        return (f"checkup_lab_results.{key}", kw, grade)
 
     def _judge_hba1c(v: float | None) -> tuple[str, dict, str]:
         if v is None:

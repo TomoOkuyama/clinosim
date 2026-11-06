@@ -31,7 +31,7 @@
 | 薬剤安全上の事象(回避・保留・代替・切替・de-escalation)は、両経路とも一つの関数が言い表す。テンプレートでは計画の行(`safety_skips.*`)、LLM プロンプトでは箇条(`safety_skips_prompt.*`)になる。 | `clinosim/modules/document/narrative/_safety_skips.py::safety_skip_line` | `tests/unit/modules/document/narrative/test_safety_skip_line_2519.py`, `test_safety_skip_event_types.py` |
 | バイタルの一行要約(身体所見、経過記録の O、看護記録、LLM の来院時・日々の事実)はすべて一つのフォーマッタで描く。各記述面はスタイル(項目順・区切り・単位・整数か生値か・室内気の表記)を名指しする。新しい記述面はスタイルを足し、フォーマッタを足さない。 | `clinosim/modules/document/narrative/_vitals_line.py::format_vitals_line`(スタイル `PHYSICAL_EXAM`, `PROGRESS_OBJECTIVE`, `NURSING_SHIFT`, `LLM_ARRIVAL`, `LLM_DAY`) | `tests/unit/modules/document/narrative/test_vitals_line_2523.py` |
 | BMI の区分(やせ・普通・過体重・肥満。WHO / 日本肥満学会の境界 18.5 / 25 / 30、境界値は上の区分)は、表示する値で一つの関数が決める。 | `clinosim/modules/document/narrative/_narrative_interpretation_thresholds.py::bmi_band` | `tests/unit/modules/document/narrative/test_narrative_spec_guards.py::test_bmi_bands_only_through_bmi_band`, `test_template_generator_nutrition_care_plan.py` |
-| ナラティブの解釈の閾値(血圧・BMI …)は `_narrative_interpretation_thresholds.py` の名前付き定数とし、描画側にリテラルを書かない。 | 同モジュール | `test_narrative_spec_guards.py::test_bmi_bands_only_through_bmi_band`(BMI)、他はレビュー |
+| 血圧の区分(高血圧・正常高値・正常。JSH 2019 の診察室閾値 140/90 と 130/85、どちらか一方で判定)は一つの関数が決める。ナラティブの解釈の閾値は `_narrative_interpretation_thresholds.py` の名前付き定数とし、比較はそこでだけ行う。 | `_narrative_interpretation_thresholds.py::bp_band` | `test_narrative_spec_guards.py::test_blood_pressure_bands_only_through_bp_band`, `test_each_bp_boundary_belongs_to_the_upper_band` |
 | ナラティブの表示名(薬剤・検査・診断・診療科・文書種別)は、コードマッピング仕様の表示関数で解決する。 | `clinosim.codes.display`, `clinosim.locale.loader.lab_display` など | コードマッピング仕様 §10 |
 
 ## 4. 本書の対象外
@@ -43,4 +43,3 @@
 | 未対応 | 場所 |
 |---|---|
 | 描画側がバイタルを `format_vitals_line` だけで言い表すことを確かめるガードが無い。`BP {sbp}/{dbp}` を自前で書く描画も通ってしまう。 | `clinosim/modules/document/narrative/` |
-| 血圧の解釈閾値にソース走査ガードが無い。 | `_narrative_interpretation_thresholds.py` |
