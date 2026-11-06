@@ -157,6 +157,19 @@ def chronic_code_from_discharge(dx_code: str, sex: str) -> str | None:
     return base if base in _chronic_propagatable() else None
 
 
+def is_finite_course(item: dict) -> bool:
+    """Whether a discharge-prescription item is a finite course (Issue #2757):
+    1 to ``ACUTE_COURSE_MAX_DAYS`` days. ``duration_days`` 0 or absent means
+    indefinite (chronic secondary prevention), which is carried forward."""
+    from clinosim.simulator._stay_thresholds import ACUTE_COURSE_MAX_DAYS
+
+    try:
+        days = int(item.get("duration_days"))  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return False
+    return 0 < days <= ACUTE_COURSE_MAX_DAYS
+
+
 def _deactivate_to_layer1(
     person: Any,
     record: CIFPatientRecord,
@@ -224,7 +237,6 @@ def _deactivate_to_layer1(
     # would drop lifelong secondary-prevention drugs from the persistent
     # home-medication list — the exact regression this filter was meant
     # to avoid, in reverse.
-    _ACUTE_COURSE_MAX_DAYS = 14
     if record.discharge_prescription and record.discharge_prescription.items:
         new_meds: list[HomeMedication] = []
         for item in record.discharge_prescription.items:
@@ -237,14 +249,8 @@ def _deactivate_to_layer1(
             # home-medication carry-forward. The discharge Rx itself still
             # emits (the patient did receive the 7-day antibiotic), only
             # the chronic-med list is guarded.
-            _dur = item.get("duration_days")
-            if _dur is not None:
-                try:
-                    d = int(_dur)
-                    if 0 < d <= _ACUTE_COURSE_MAX_DAYS:
-                        continue
-                except (TypeError, ValueError):
-                    pass
+            if is_finite_course(item):
+                continue
             dq = item.get("dose_quantity")
             try:
                 dose_qty = float(dq) if dq is not None and dq != "" else None
