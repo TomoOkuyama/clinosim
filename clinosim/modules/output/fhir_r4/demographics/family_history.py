@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import map_diagnosis_code
 from clinosim.modules._shared import get_attr_or_key as _get
-from clinosim.modules.family_history.engine import load_reference
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import build_diagnosis_codeable_concept
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
@@ -36,7 +36,7 @@ def _resolve_family_member_history_id(structural_key: str) -> str:
     return derive_opaque_id(FAMILY_MEMBER_HISTORY_ID_PREFIX, structural_key)
 
 
-def _build_relationship_codeable(rel: str, disp: dict[str, str], lang: str) -> dict[str, Any]:
+def _build_relationship_codeable(rel: str, lang: str) -> dict[str, Any]:
     """Build FamilyMemberHistory.relationship as a fully-populated CodeableConcept.
 
     Issue #360 G2 (iris4h-ai feedback 2026-07-22): the previous emission had
@@ -61,8 +61,9 @@ def _build_relationship_codeable(rel: str, disp: dict[str, str], lang: str) -> d
     pattern for other English-only-CS CodeableConcepts (Issue #360
     tracking).
     """
-    en_display = disp.get("en", rel)
-    target_display = disp.get(lang, en_display)
+    # Issue #2764: displays come from the v3-RoleCode registry.
+    en_display = registry_display("hl7-v3-rolecode", rel, "en") or rel
+    target_display = registry_display("hl7-v3-rolecode", rel, lang) or en_display
     result: dict[str, Any] = {
         "coding": [
             {
@@ -107,11 +108,9 @@ def _bb_family_history(ctx: BundleContext) -> list[dict]:
         return []
     lang = lang_for(ctx.country)
     icd_system_key = system_key_for("diagnosis", ctx.country)
-    rel_display = load_reference()["relationships"]
     out: list[dict] = []
     for i, fam in enumerate(fams):
         rel = _get(fam, "relationship", "")
-        disp = rel_display.get(rel, {})
         _fmh_structural_key = f"{ctx.patient_id}-{i:02d}"
         res: dict[str, Any] = {
             "resourceType": "FamilyMemberHistory",
@@ -119,7 +118,7 @@ def _bb_family_history(ctx: BundleContext) -> list[dict]:
             "identifier": [wrap_as_identifier(_fmh_structural_key, FAMILY_MEMBER_HISTORY_KEY_SYSTEM)],
             "status": "completed",
             "patient": patient_ref(ctx.patient_id),
-            "relationship": _build_relationship_codeable(rel, disp, lang),
+            "relationship": _build_relationship_codeable(rel, lang),
             "deceasedBoolean": bool(_get(fam, "deceased", False)),
         }
         # Apply the locale diagnosis map (fix): family_history condition

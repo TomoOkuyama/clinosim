@@ -34,13 +34,6 @@ SIBLING_SEX_MALE_PROBABILITY: float = 0.5
 to two decimal places)."""
 
 
-class _Relationship(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    en: str = Field(min_length=1)
-    ja: str = ""
-
-
 class _Offset(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -67,7 +60,6 @@ class _FamilyHistoryConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     metadata: dict[str, Any] = Field(default_factory=dict)
-    relationships: dict[str, _Relationship] = Field(min_length=1)
     sibling_count_weights: list[float] = Field(min_length=1)
     parent_age_offset: _Offset
     sibling_age_offset: _Offset
