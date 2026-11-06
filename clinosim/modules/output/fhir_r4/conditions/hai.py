@@ -20,9 +20,7 @@ from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import map_diagnosis_code
 from clinosim.modules._shared import get_attr_or_key
-from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
-from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 
 
@@ -66,46 +64,42 @@ def _bb_hai_conditions(ctx: BundleContext) -> list[dict]:
                     "display": snomed_disp,
                 }
             )
-        resource: dict[str, Any] = {
-            "resourceType": "Condition",
-            "id": hai_id,
-            # C2-02/03: use system_coding so status displays
-            # are populated from codes/data/hl7-condition-{clinical,ver-status}.yaml.
-            # Also fixes wrong system key `hl7-condition-verification` (never
-            # registered; canonical URI ends in `condition-ver-status`).
-            "clinicalStatus": dual_slot_concept("hl7-condition-clinical", "active", lang_for(ctx.country)),
-            "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", lang_for(ctx.country)),
-            "category": [dual_slot_concept("hl7-condition-category", "encounter-diagnosis", lang)],
-            "code": {"coding": coding, "text": icd_disp or snomed_disp},
-            "subject": patient_ref(ctx.patient_id),
-            "encounter": encounter_ref(enc_id),
-            "onsetDateTime": onset_date,
-            # cycle 8 cross-seed verify fix (C6-Cond-ev regression): HAI
-            # Condition にも evidence を emit(CY6-19 と同型式)。院内感染は
-            # 培養+臨床像から診断された感染症であることを示す text-only 記述。
-            "evidence": [
-                {
-                    "code": [{"text": t("condition_evidence.hai", lang_for(ctx.country))}],
-                }
-            ],
-        }
-        # CY8-21/22 polish: HAI Condition にも recorder /
-        # asserter を emit(hospital-main の感染管理チーム相当)。encounter に
-        # attending が居れば優先、無ければ hospital-main を fallback。
+        # Issue #2742: every Condition starts from the shared skeleton
+        # (identifier, JP Core profile, JP eCS diagnosis type, status, category).
+        from clinosim.modules.output.fhir_r4.conditions.conditions import _condition_skeleton, _ConditionContext
+        from clinosim.modules.output.fhir_r4.labs.microbiology import HAI_EVENT_ID_SYSTEM
+
+        cctx = _ConditionContext(
+            patient_id=ctx.patient_id,
+            country=ctx.country,
+            encounters=list(get_attr_or_key(ctx.record, "encounters", []) or []),
+            deceased=bool(get_attr_or_key(ctx.record, "deceased", False)),
+            patient_sex="",
+        )
+        resource: dict[str, Any] = _condition_skeleton(
+            cctx,
+            condition_id=hai_id,
+            structural_key=hai_id,
+            diagnosis_type="clinical",
+            clinical_status="active",
+            category="encounter-diagnosis",
+            mapped_code=icd_country,
+        )
+        resource["identifier"].append({"system": HAI_EVENT_ID_SYSTEM, "value": hai_id})
+        resource["code"] = {"coding": coding, "text": icd_disp or snomed_disp}
+        resource["encounter"] = encounter_ref(enc_id)
+        resource["onsetDateTime"] = onset_date
+        # Text-only evidence (CY6-19): an infection diagnosed from culture and course.
+        resource["evidence"] = [{"code": [{"text": t("condition_evidence.hai", lang_for(ctx.country))}]}]
+        # The encounter's attending records and asserts the diagnosis; no
+        # recorder is stated when the encounter has none.
         _att = ""
-        for _enc in ctx.record.get("encounters", []) or []:
-            if (_enc.get("encounter_id") if isinstance(_enc, dict) else getattr(_enc, "encounter_id", "")) == enc_id:
-                _att = (
-                    _enc.get("attending_physician_id")
-                    if isinstance(_enc, dict)
-                    else getattr(_enc, "attending_physician_id", "")
-                ) or ""
+        for _enc in get_attr_or_key(ctx.record, "encounters", []) or []:
+            if get_attr_or_key(_enc, "encounter_id", "") == enc_id:
+                _att = str(get_attr_or_key(_enc, "attending_physician_id", "") or "")
                 break
         if _att:
             resource["recorder"] = {"reference": f"Practitioner/{_att}"}
             resource["asserter"] = {"reference": f"Practitioner/{_att}"}
-        else:
-            resource["recorder"] = {"reference": "Practitioner/DR-IM-001"}
-            resource["asserter"] = {"reference": "Practitioner/DR-IM-001"}
         out.append(resource)
     return out
