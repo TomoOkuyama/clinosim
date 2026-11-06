@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Any, Literal
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from clinosim.age_bands import lookup_age_band
 from clinosim.datafiles import load_data_yaml
@@ -32,9 +34,61 @@ SIBLING_SEX_MALE_PROBABILITY: float = 0.5
 to two decimal places)."""
 
 
+class _Relationship(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    en: str = Field(min_length=1)
+    ja: str = ""
+
+
+class _Offset(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    min: int
+    max: int
+
+    @model_validator(mode="after")
+    def _ordered(self) -> _Offset:
+        if self.min > self.max:
+            raise ValueError(f"family_history.yaml offset min {self.min} > max {self.max}")
+        return self
+
+
+class _Heritable(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    heritability: float = Field(gt=0)
+    sex: Literal["female", "male"] | None = None
+
+
+class _FamilyHistoryConfig(BaseModel):
+    """Shape of family_history.yaml (Issue #2763)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    relationships: dict[str, _Relationship] = Field(min_length=1)
+    sibling_count_weights: list[float] = Field(min_length=1)
+    parent_age_offset: _Offset
+    sibling_age_offset: _Offset
+    parent_deceased_base_age: int = Field(ge=0)
+    parent_deceased_span: int = Field(gt=0)
+    parent_deceased_max: float = Field(ge=0, le=1)
+    conditions: dict[str, _Heritable] = Field(min_length=1)
+
+    @field_validator("sibling_count_weights")
+    @classmethod
+    def _weights(cls, weights: list[float]) -> list[float]:
+        if any(w < 0 for w in weights) or sum(weights) <= 0:
+            raise ValueError("family_history.yaml sibling_count_weights must be non-negative with a positive sum")
+        return weights
+
+
 @lru_cache(maxsize=1)
 def load_reference() -> dict:
-    return load_data_yaml(_REF_DIR / "family_history.yaml") or {}
+    data = load_data_yaml(_REF_DIR / "family_history.yaml") or {}
+    _FamilyHistoryConfig.model_validate(data)
+    return data
 
 
 @lru_cache(maxsize=2)
