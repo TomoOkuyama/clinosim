@@ -128,7 +128,10 @@ nka:
   # EN+JA displays live there (716186003 → "No known allergy" / "アレルギー歴なし")
   # and resolve via code_lookup("snomed-ct", code, lang) at emit time.
   allergen_code: "716186003"    # SNOMED CT: No known allergy
-  clinical_status: "resolved"    # per Issue #942 spec (NKA is not an active problem)
+  # Issue #2790: a current NKA assertion is active (HL7 R4 example
+  # allergyintolerance-nka); "resolved" would say the assertion no longer holds.
+  # Reverses the Issue #942 choice of "resolved".
+  clinical_status: "active"
   verification_status: "confirmed"
 
 # ---------------------------------------------------------------------------

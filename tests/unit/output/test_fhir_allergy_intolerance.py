@@ -409,7 +409,7 @@ def _nka_allergy() -> Allergy:
         category="",
         criticality="unable-to-assess",
         verification_status="confirmed",
-        clinical_status="resolved",
+        clinical_status="active",
         onset_date=None,
         reactions=[],
         is_nka=True,
@@ -452,5 +452,5 @@ def test_nka_record_clinical_and_verification_status():
     ctx = _make_ctx([_nka_allergy()], country="jp")
     resources = _bb_allergy_intolerances(ctx)
     r = resources[0]
-    assert r["clinicalStatus"]["coding"][0]["code"] == "resolved"
+    assert r["clinicalStatus"]["coding"][0]["code"] == "active"  # Issue #2790
     assert r["verificationStatus"]["coding"][0]["code"] == "confirmed"

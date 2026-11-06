@@ -133,7 +133,7 @@ def test_enricher_emits_nka_for_no_allergy_patients():
         a = p.allergies[0]
         assert a.allergen_code == "716186003"
         assert a.verification_status == "confirmed"
-        assert a.clinical_status == "resolved"
+        assert a.clinical_status == "active"  # Issue #2790
         assert a.category == ""
         assert a.reactions == []
 
