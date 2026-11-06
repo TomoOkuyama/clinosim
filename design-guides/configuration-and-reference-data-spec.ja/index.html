@@ -2404,7 +2404,7 @@
 </tr>
 <tr>
 <td>モジュールの参照 YAML は、読み込み時に Pydantic モデル(<code>ConfigDict(extra="forbid")</code>)で検証する。未知のキーや欠けた必須キーは import 時に失敗する。YAML が名指すコードは <code>clinosim.codes</code> で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。</td>
-<td>モジュールごとのモデル(allergy, care_level, code_status, device, disease, document, encounter, hai, imaging, nursing, observation, order, triage)</td>
+<td>モジュールごとのモデル(allergy, care_level, code_status, device, disease, document, encounter, family_history, hai, imaging, nursing, observation, order, sdoh, triage)</td>
 <td><code>tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model</code>(ラチェット)、各モジュールのモデルのテスト</td>
 </tr>
 <tr>
@@ -2473,7 +2473,7 @@
 </thead>
 <tbody>
 <tr>
-<td>参照 YAML に Pydantic モデルが無いモジュールがある。手書きの検査で検証するもの、検証していないものがある: antibiotic, clinical_course, diagnosis, drug_safety, family_history, llm_service, monitoring, newborn, patient, pediatric, physiology, population, procedure, prophylaxis, sdoh。ガードはちょうどこれらを許可し、この一覧は減らす方向にしか変えない。</td>
+<td>参照 YAML に Pydantic モデルが無いモジュールがある。手書きの検査で検証するもの、検証していないものがある: antibiotic, clinical_course, diagnosis, drug_safety, llm_service, monitoring, newborn, patient, pediatric, physiology, population, procedure, prophylaxis。ガードはちょうどこれらを許可し、この一覧は減らす方向にしか変えない。</td>
 <td><code>tests/unit/test_configuration_spec_guards.py::_NO_MODEL_YET</code></td>
 </tr>
 <tr>

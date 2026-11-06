@@ -2404,7 +2404,7 @@
 </tr>
 <tr>
 <td>A module's reference YAML is validated at load by a Pydantic model (<code>ConfigDict(extra="forbid")</code>), so an unknown key or a missing required key fails at import. Codes the YAML names are checked to exist through <code>clinosim.codes</code>. A new key is added to the model first (AD-69).</td>
-<td>per module: <code>modules/&lt;module&gt;/</code> models (allergy, care_level, code_status, device, disease, document, encounter, hai, imaging, nursing, observation, order, triage)</td>
+<td>per module: <code>modules/&lt;module&gt;/</code> models (allergy, care_level, code_status, device, disease, document, encounter, family_history, hai, imaging, nursing, observation, order, sdoh, triage)</td>
 <td><code>tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model</code> (ratchet), per-module model tests</td>
 </tr>
 <tr>
@@ -2473,7 +2473,7 @@
 </thead>
 <tbody>
 <tr>
-<td>Modules whose reference YAML has no Pydantic model (some validate with hand-written checks, some not at all): antibiotic, clinical_course, diagnosis, drug_safety, family_history, llm_service, monitoring, newborn, patient, pediatric, physiology, population, procedure, prophylaxis, sdoh. The guard allows exactly these; the list may only shrink.</td>
+<td>Modules whose reference YAML has no Pydantic model (some validate with hand-written checks, some not at all): antibiotic, clinical_course, diagnosis, drug_safety, llm_service, monitoring, newborn, patient, pediatric, physiology, population, procedure, prophylaxis. The guard allows exactly these; the list may only shrink.</td>
 <td><code>tests/unit/test_configuration_spec_guards.py::_NO_MODEL_YET</code></td>
 </tr>
 <tr>
