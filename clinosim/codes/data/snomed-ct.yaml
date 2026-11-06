@@ -391,6 +391,11 @@ codes:
     en: No known allergy   # FSN: No known allergy (situation)
     ja: アレルギー歴なし
 
+  # Issue #2788: past birth without a recorded complication. tx.fhir.org $lookup, 2026-11-06.
+  '271903000':
+    en: History of pregnancy
+    ja: 妊娠歴
+
   # === CareTeam category (Tier 1 #3 α-min-2 Task 11) ===
   # Verified via SNOMED International browser (https://browser.ihtsdotools.org/), 2026-07-01.
   '424535000':

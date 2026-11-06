@@ -629,10 +629,30 @@ def _chronic_conditions(ctx: _ConditionContext, chronic_list: list, seen_codes: 
     return conditions
 
 
+# SNOMED CT 271903000 "History of pregnancy" (tx.fhir.org $lookup, 2026-11-06).
+_HISTORY_OF_PREGNANCY_SNOMED = "271903000"
+
+
+def _history_of_pregnancy_code(lang: str) -> dict[str, Any]:
+    """Issue #2788: the code of a past birth with no recorded complication."""
+    display = code_lookup("snomed-ct", _HISTORY_OF_PREGNANCY_SNOMED, lang)
+    return {
+        "coding": [
+            {
+                "system": get_system_uri("snomed-ct"),
+                "code": _HISTORY_OF_PREGNANCY_SNOMED,
+                **display_entry(code_lookup("snomed-ct", _HISTORY_OF_PREGNANCY_SNOMED, "en")),
+            }
+        ],
+        **({"text": display} if display else {}),
+    }
+
+
 def _past_birth_conditions(ctx: _ConditionContext, record: dict, seen_codes: set[str]) -> list[dict]:
-    """META #957 / #1092: one Z87.59 (personal history of complications of
-    pregnancy, childbirth and the puerperium) problem-list-item per delivered
-    pregnancy, anchored at the delivery date. Z37.x belongs only on the
+    """META #957 / #1092: one problem-list-item per delivered pregnancy,
+    anchored at the delivery date: Z87.59 (personal history of complications
+    of pregnancy, childbirth and the puerperium) when the pregnancy recorded a
+    complication, otherwise SNOMED CT 271903000 History of pregnancy (Issue #2788). Z37.x belongs only on the
     delivery encounter's own Condition."""
     conditions: list[dict] = []
     # A dict on the FHIR emit path; a live TemporalStatePeriod in tests.
@@ -657,6 +677,11 @@ def _past_birth_conditions(ctx: _ConditionContext, record: dict, seen_codes: set
             category="problem-list-item",
             mapped_code=ctx.mapped("Z87.59"),
         )
+        # Issue #2788: Z87.59 asserts a complication; a birth without a
+        # recorded pregnancy complication is a history of pregnancy.
+        metadata = get_attr_or_key(period, "metadata", {}) or {}
+        if not (metadata.get("complications") or []):
+            cond["code"] = _history_of_pregnancy_code(ctx.lang)
         cond["onsetDateTime"] = to_fhir_date(end_date)
         cond["evidence"] = _evidence(ctx, "condition_evidence.problem_list_prior")
         _set_recorder(cond, ctx.encounter.get("attending_physician_id", "") or _FALLBACK_RECORDER_ID)
