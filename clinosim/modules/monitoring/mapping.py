@@ -6,12 +6,10 @@ minimal:
 
 - No caching decorator — the enricher is called once per POST_RECORDS pass
   per run, and the file is small (<10 KB expected for the full pair set).
-- Parses into plain dicts (not Pydantic / dataclass) to keep the module's
-  external surface small and match the sibling `sdoh.load_social_history`
-  loader style.
-- Validates schema at load time (fail-loud on missing required keys) so
-  a typo in the YAML surfaces immediately rather than as a silent "drug
-  never matched" downstream.
+- Returns plain dicts, validated at load against the ``extra="forbid"``
+  Pydantic model ``_MonitoringFile`` (configuration spec), so a typo in the
+  YAML fails loud instead of surfacing as a silent "drug never matched"
+  downstream.
 """
 
 from __future__ import annotations
@@ -19,61 +17,70 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, model_validator
+
 from clinosim.codes.drugs import drug_display, medication_matches
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.loaders.demographics import load_code_mapping
 
 _YAML_PATH = Path(__file__).parent / "reference_data" / "medication_monitoring.yaml"
 
 
+class _Rationale(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    en: str = Field(min_length=1)
+    ja: str = Field(min_length=1)
+
+
+class _MonitoringLab(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    lab: str = Field(min_length=1)
+    interval_months: StrictInt = Field(ge=1)  # Issue #2143
+    rationale: _Rationale
+
+    @model_validator(mode="after")
+    def _lab_has_a_code(self) -> _MonitoringLab:
+        # The order and its result carry the same code (Issue #2301).
+        if not monitoring_lab_code(self.lab):
+            raise ValueError(f"lab {self.lab!r} has no code in locale/us/code_mapping_lab.yaml")
+        return self
+
+
+class _MonitoringRule(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    # The chronic follow-up gate (Issue #2786).
+    per_visit_probability: StrictFloat | StrictInt = Field(ge=0, le=1)
+    drugs: list[str] = []
+    classes: list[str] = []
+    monitoring: list[_MonitoringLab] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _selects_catalog_drugs(self) -> _MonitoringRule:
+        _validate_drug_selector("monitoring rule", {"drugs": self.drugs, "classes": self.classes})
+        return self
+
+
+class _MonitoringFile(BaseModel):
+    """Shape of ``medication_monitoring.yaml``, the one drug → monitoring-lab
+    table of both monitoring paths (Issue #2786)."""
+
+    model_config = ConfigDict(extra="forbid")
+    mappings: dict[str, _MonitoringRule] = Field(min_length=1)
+
+
 def load_medication_monitoring(path: Path | None = None) -> dict[str, Any]:
     """Load and validate the drug → monitoring-labs mapping.
 
-    Returns a dict keyed by canonical drug name (as declared in YAML) whose
-    value is `{"drugs": [...], "classes": [...], "monitoring": [{lab, rationale}, ...]}`.
-    Tests can override the file path via the optional `path` argument.
+    Returns a dict keyed by rule name (as declared in YAML) whose value is
+    ``{"per_visit_probability", "drugs", "classes", "monitoring": [{lab,
+    interval_months, rationale}, ...]}``. Tests can override the file path
+    via the optional ``path`` argument.
 
-    Raises `ValueError` on schema violations (missing `mappings`, missing
-    per-drug `monitoring` list, missing per-lab `lab`, or a `lab` with no
-    code in the lab code mapping). No
-    silent failure — invalid YAML fails loud at load time rather than
-    producing a mysterious "no drugs matched" runtime signature.
+    Raises ``ValueError`` (``pydantic.ValidationError``) on any shape
+    violation, an unknown key, a drug or class not in the drug catalog, or a
+    lab with no code in the lab code mapping.
     """
-    p = path or _YAML_PATH
-    raw = load_data_yaml(p) or {}
-    mappings = raw.get("mappings")
-    if not isinstance(mappings, dict):
-        raise ValueError(f"medication_monitoring.yaml at {p}: missing or non-dict top-level 'mappings' key")
-    for drug, entry in mappings.items():
-        if not isinstance(entry, dict):
-            raise ValueError(f"medication_monitoring.yaml: drug '{drug}' entry must be a dict")
-        _validate_drug_selector(f"medication_monitoring.yaml: drug '{drug}'", entry)
-        prob = entry.get("per_visit_probability")
-        if not isinstance(prob, int | float) or isinstance(prob, bool) or not 0.0 <= float(prob) <= 1.0:
-            raise ValueError(
-                f"medication_monitoring.yaml: drug '{drug}' needs a 'per_visit_probability' in [0, 1] "
-                f"(the chronic follow-up gate, Issue #2786), got {prob!r}"
-            )
-        monitoring = entry.get("monitoring")
-        if not isinstance(monitoring, list) or not monitoring:
-            raise ValueError(f"medication_monitoring.yaml: drug '{drug}' must declare a non-empty 'monitoring' list")
-        for i, m in enumerate(monitoring):
-            if not isinstance(m, dict):
-                raise ValueError(f"medication_monitoring.yaml: drug '{drug}' monitoring[{i}] must be a dict")
-            if not m.get("lab"):
-                raise ValueError(f"medication_monitoring.yaml: drug '{drug}' monitoring[{i}] missing required 'lab'")
-            if not monitoring_lab_code(str(m["lab"])):
-                raise ValueError(
-                    f"medication_monitoring.yaml: drug '{drug}' monitoring[{i}] lab {m['lab']!r} has no code "
-                    "in locale/us/code_mapping_lab.yaml (Issue #2301)"
-                )
-            interval = m.get("interval_months")
-            if not isinstance(interval, int) or isinstance(interval, bool) or interval < 1:
-                raise ValueError(
-                    f"medication_monitoring.yaml: drug '{drug}' monitoring[{i}] needs an integer "
-                    f"'interval_months' >= 1 (Issue #2143), got {interval!r}"
-                )
-    return mappings
+    return load_validated_yaml(path or _YAML_PATH, _MonitoringFile)["mappings"]
 
 
 def monitoring_lab_code(lab: str) -> str:
