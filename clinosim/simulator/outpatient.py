@@ -892,6 +892,11 @@ def _chemo_cycle(
             # via ``clinosim.codes.ucum.ucum_quantity``.
             enrich_medication_order(_order, dose_str=_dose)
             orders.append(_order)
+            # Issue #2750: the administration records the absolute amount given
+            # (per-m² dose x body surface area); the order keeps the prescribed dose.
+            from clinosim.modules.order.absolute_dose import absolute_dose
+
+            _given = absolute_dose(_order.dose_quantity, _order.dose_unit, patient.height_cm, patient.weight_kg)
             chemo_mars.append(
                 MedicationAdministration(
                     order_id=_order_id,
@@ -899,7 +904,7 @@ def _chemo_cycle(
                     scheduled_datetime=_admin_time,
                     actual_datetime=_admin_time,
                     status="given",
-                    dose=_dose,
+                    dose=f"{_given[0]:g}{_given[1]}" if _given else _dose,
                     route=_route,
                     administered_by=chemo_admin_nurse,
                 )
