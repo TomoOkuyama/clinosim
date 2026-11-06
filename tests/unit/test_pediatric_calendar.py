@@ -104,7 +104,7 @@ class TestLoadPediatricSchedule:
     # missing disease_id
 """
         )
-        with pytest.raises(ValueError, match="missing required 'disease_id'"):
+        with pytest.raises(ValueError, match="disease_id"):  # model error names the missing field
             load_pediatric_schedule(p)
 
     def test_empty_visits_per_year_raises(self, tmp_path):
@@ -286,3 +286,16 @@ class TestGeneratePediatricEvents:
         # Adult: zero events (out of every age band).
         assert generate_pediatric_events(self._person(40), 2025, np.random.default_rng(0)) == []
         assert generate_pediatric_events(self._person(90), 2025, np.random.default_rng(0)) == []
+
+
+def test_an_unknown_key_on_a_visit_fails(tmp_path) -> None:
+    """The schedule is validated by a model: a typo'd key is rejected at load."""
+    from clinosim.modules.pediatric.calendar import load_pediatric_schedule
+
+    p = tmp_path / "typo.yaml"
+    p.write_text(
+        "encounters:\n  v:\n    age_min: 0\n    age_max: 1\n    visits_per_year: [1]\n"
+        "    encounter_type: outpatient\n    disease_id: x\n    vists_per_year: [2]\n"
+    )
+    with pytest.raises(ValueError, match="vists_per_year"):
+        load_pediatric_schedule(p)

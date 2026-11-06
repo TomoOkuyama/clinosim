@@ -21,7 +21,7 @@
 | 規則 | 正準コード | ガード |
 |---|---|---|
 | データ YAML はすべて一つの読み手で解析し、`metadata.kind` を宣言する。 | `clinosim/datafiles.py::load_data_yaml`, `data_metadata` | `tests/unit/test_data_yaml_conventions_2465.py` |
-| モジュールの参照 YAML は、読み込み時に Pydantic モデル(`ConfigDict(extra="forbid")`)で検証する。未知のキーや欠けた必須キーは import 時に失敗する。YAML が名指すコードは `clinosim.codes` で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。 | モジュールごとのモデル(allergy, care_level, code_status, device, disease, document, encounter, family_history, hai, imaging, newborn, nursing, observation, order, procedure, prophylaxis, sdoh, triage) | `tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model`(ラチェット)、各モジュールのモデルのテスト |
+| モジュールの参照 YAML は、読み込み時に Pydantic モデル(`ConfigDict(extra="forbid")`)で検証する。未知のキーや欠けた必須キーは import 時に失敗する。YAML が名指すコードは `clinosim.codes` で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。 | モジュールごとのモデル(allergy, care_level, code_status, device, disease, document, encounter, family_history, hai, imaging, newborn, nursing, observation, order, pediatric, procedure, prophylaxis, sdoh, triage) | `tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model`(ラチェット)、各モジュールのモデルのテスト |
 | キャッシュ付きローダーの戻り値は共有物で、読み取り専用。 | `@lru_cache` ローダー | `implementation-rules.ja.md` §3(レビュー) |
 
 ## 3. 共有の表
@@ -43,5 +43,5 @@
 
 | 未対応 | 場所 |
 |---|---|
-| 参照 YAML に Pydantic モデルが無いモジュールがある。手書きの検査で検証するもの、検証していないものがある: antibiotic, clinical_course, diagnosis, drug_safety, llm_service, monitoring, patient, pediatric, physiology, population。ガードはちょうどこれらを許可し、この一覧は減らす方向にしか変えない。 | `tests/unit/test_configuration_spec_guards.py::_NO_MODEL_YET` |
+| 参照 YAML に Pydantic モデルが無いモジュールがある。手書きの検査で検証するもの、検証していないものがある: antibiotic, clinical_course, diagnosis, drug_safety, llm_service, monitoring, patient, physiology, population。ガードはちょうどこれらを許可し、この一覧は減らす方向にしか変えない。 | `tests/unit/test_configuration_spec_guards.py::_NO_MODEL_YET` |
 | 定数の置き場所の方針には自動のガードが無い。 | レビュー |
