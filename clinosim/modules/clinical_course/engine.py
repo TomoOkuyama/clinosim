@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from clinosim.codes.valuesets import has_condition
 from clinosim.datafiles import load_data_yaml
@@ -279,10 +280,51 @@ def _validate_archetype_modifiers(disease_id: str, modifiers: list[dict[str, Any
 # `_FALLBACK_PROBABILITIES` from this module — stays unchanged.
 
 
+class _Archetype(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    probability: float = Field(ge=0, le=1)
+    trajectory: dict[str, dict[int, float]] = Field(min_length=1)
+
+    @field_validator("trajectory")
+    @classmethod
+    def _state_variables(cls, trajectory: dict[str, dict[int, float]]) -> dict[str, dict[int, float]]:
+        from dataclasses import fields
+
+        from clinosim.types.clinical import PhysiologicalState
+
+        known = {f.name for f in fields(PhysiologicalState)}
+        unknown = sorted(set(trajectory) - known)
+        if unknown:
+            raise ValueError(f"fallback_archetypes.yaml: unknown state variables {unknown}")
+        if any(day < 0 for points in trajectory.values() for day in points):
+            raise ValueError("fallback_archetypes.yaml: trajectory days must be non-negative")
+        return trajectory
+
+
+class _FallbackArchetypes(BaseModel):
+    """Shape of fallback_archetypes.yaml (validated at load)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    archetypes: dict[str, _Archetype] = Field(min_length=1)
+
+    @field_validator("archetypes")
+    @classmethod
+    def _probabilities_sum_to_one(cls, archetypes: dict[str, _Archetype]) -> dict[str, _Archetype]:
+        total = sum(a.probability for a in archetypes.values())
+        if abs(total - 1.0) > 1e-6:
+            raise ValueError(f"fallback_archetypes.yaml: probabilities sum to {total}, not 1")
+        return archetypes
+
+
 @cache
 def _fallback_archetypes_raw() -> dict[str, Any]:
     path = Path(__file__).resolve().parent / "reference_data" / "fallback_archetypes.yaml"
-    return load_data_yaml(path) or {}
+    data = load_data_yaml(path) or {}
+    _FallbackArchetypes.model_validate(data)
+    return data
 
 
 def _fallback_trajectories_from_yaml() -> dict[str, dict[str, dict[int, float]]]:
