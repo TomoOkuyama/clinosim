@@ -11,6 +11,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.localized import language_slot, localized_field
 
@@ -18,9 +20,42 @@ _HERE = Path(__file__).resolve().parent
 _YAML_PATH = _HERE / "reference_data" / "prophylaxis_rules.yaml"
 
 
+class _SkipRule(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    description: str = Field(min_length=1)
+    drug_classes: list[str] = Field(default_factory=list)
+    infusion_drug_classes: list[str] = Field(default_factory=list)
+    icd_prefixes: list[str] = Field(default_factory=list)
+    pediatric_age_ceiling: int | None = Field(default=None, ge=0)
+
+    @field_validator("drug_classes", "infusion_drug_classes")
+    @classmethod
+    def _known_classes(cls, classes: list[str]) -> list[str]:
+        from clinosim.codes.drugs import all_drug_ids, drug_classes
+
+        known = {c for d in all_drug_ids() for c in drug_classes(d)}
+        unknown = sorted(set(classes) - known)
+        if unknown:
+            raise ValueError(f"prophylaxis_rules.yaml: drug classes {unknown} name no catalog drug")
+        return classes
+
+
+class _ProphylaxisRules(BaseModel):
+    """Shape of prophylaxis_rules.yaml (Issue #2762)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    dvt_prophylaxis: dict[str, Any]
+    skip_conditions: dict[str, _SkipRule] = Field(min_length=1)
+
+
 @lru_cache(maxsize=1)
 def _load_rules() -> dict[str, Any]:
-    return load_data_yaml(_YAML_PATH) or {}
+    data = load_data_yaml(_YAML_PATH) or {}
+    _ProphylaxisRules.model_validate(data)
+    return data
 
 
 def _dvt_rule() -> dict[str, Any]:
@@ -40,12 +75,28 @@ def _skip_conditions() -> dict[str, dict[str, Any]]:
 # The public shim was removed here (vulture / dead-code CI gate).
 
 
+def _is_therapeutic_anticoagulant(med: Any, rule: dict[str, Any]) -> bool:
+    """Whether an active medication (record or name) is a therapeutic
+    anticoagulant under ``rule`` (``drug_classes`` / ``infusion_drug_classes``)."""
+    from clinosim.codes.drugs import medication_matches
+    from clinosim.modules.order.absolute_dose import is_continuous_infusion
+
+    if medication_matches(med, classes=tuple(rule.get("drug_classes") or ())):
+        return True
+    if not medication_matches(med, classes=tuple(rule.get("infusion_drug_classes") or ())):
+        return False
+    if isinstance(med, str):
+        return is_continuous_infusion("", med)
+    get = med.get if isinstance(med, dict) else lambda k, d=None: getattr(med, k, d)
+    return is_continuous_infusion(str(get("frequency", "") or ""), str(get("drug_name", "") or ""))
+
+
 def should_skip_dvt_prophylaxis(
     *,
     patient: Any,
     encounter: Any,
     admission_dx_code: str = "",
-    active_medications: list[str] | None = None,
+    active_medications: list[Any] | None = None,
     candidate_drug: str = "",
 ) -> tuple[bool, str]:
     """Return ``(skip, reason)`` — the enricher records ``reason`` in the
@@ -96,19 +147,17 @@ def should_skip_dvt_prophylaxis(
         if isinstance(pat_age, int) and pat_age < int(peds_ceiling):
             return True, "pediatric_age_gate"
 
-    # Rule 1: therapeutic anticoagulant on board.
-    if active_medications is None:
-        active_medications = [
-            getattr(m, "drug_name", None) or getattr(m, "drug", None) or ""
-            for m in (getattr(patient, "current_medications", None) or [])
-        ]
-    active_lower = [str(m).lower() for m in active_medications if m]
-
+    # Rule 1: therapeutic anticoagulant on board, decided by drug class
+    # (Issue #2762): an oral anticoagulant, or a heparin given as a continuous
+    # infusion (prophylactic SC heparin is not therapeutic).
+    meds: list[Any] = (
+        list(active_medications)
+        if active_medications is not None
+        else list(getattr(patient, "current_medications", None) or [])
+    )
     ac_rule = conditions.get("therapeutic_anticoagulant_active", {}) or {}
-    for needle in ac_rule.get("drug_needles", []) or []:
-        n = str(needle).lower()
-        if any(n in m for m in active_lower):
-            return True, "therapeutic_anticoagulant_active"
+    if any(_is_therapeutic_anticoagulant(m, ac_rule) for m in meds if m):
+        return True, "therapeutic_anticoagulant_active"
 
     # Rule 2/3/4: ICD-prefix conditions on admission dx.
     if admission_dx_code:
@@ -128,13 +177,17 @@ def should_skip_dvt_prophylaxis(
     # already-active med (chronic aspirin, in-encounter NSAID, etc.).
     if not candidate_drug:
         candidate_drug = _dvt_rule().get("drug", "Enoxaparin") or "Enoxaparin"
-    if active_medications:
+    active_names = [
+        m if isinstance(m, str) else str(getattr(m, "drug_name", None) or getattr(m, "drug", None) or "") for m in meds
+    ]
+    active_names = [n for n in active_names if n]
+    if active_names:
         try:
             from clinosim.modules.drug_safety.engine import (
                 check_candidate_against_active,
             )
 
-            verdicts = check_candidate_against_active(candidate_drug, active_medications)
+            verdicts = check_candidate_against_active(candidate_drug, active_names)
         except Exception:  # pragma: no cover — defensive: never let a
             # drug_safety failure block prophylaxis.
             verdicts = []

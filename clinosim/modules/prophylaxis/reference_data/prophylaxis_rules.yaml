@@ -36,15 +36,11 @@ skip_conditions:
   # Patient already on therapeutic anticoagulation — prophylaxis would double up.
   therapeutic_anticoagulant_active:
     description: "Patient's active medications include a therapeutic anticoagulant (warfarin / DOAC / therapeutic heparin drip)."
-    drug_needles:
-      - "warfarin"
-      - "apixaban"
-      - "rivaroxaban"
-      - "dabigatran"
-      - "edoxaban"
-      - "argatroban"
-      - "heparin drip"
-      - "heparin infusion"
+    # Issue #2762: decided by drug class through the catalog, not name
+    # substrings. Argatroban appears in protocols only as an action token
+    # (switch for HIT) and is not prescribed by the simulator.
+    drug_classes: [anticoagulant.vka, anticoagulant.doac]
+    infusion_drug_classes: [anticoagulant.heparin]   # a heparin drip, not SC prophylactic heparin
 
   # Disease conditions where anticoagulation is contraindicated or the
   # admission's own therapy already covers DVT prevention.
