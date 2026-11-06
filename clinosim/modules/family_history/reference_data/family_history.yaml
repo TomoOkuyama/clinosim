@@ -7,25 +7,8 @@ metadata:
   name: family_history
   source: clinosim
 
-relationships:
-  # Issue #369 revised (2026-07-22 v23 regression): v3-RoleCode canonical
-  # ja displays are per-code, NOT a uniform "natural <role>" pattern:
-  #   MTH  = "mother"  (all lowercase — validator strict-rejected "Mother"
-  #                     as well as the erroneously-inferred "natural mother")
-  #   FTH  = "father"  (same as MTH)
-  #   NSIB = "natural sibling"  (this ONE has the "natural" qualifier)
-  # PR #372 (session 65) speculatively applied the NSIB "natural" prefix
-  # pattern to MTH/FTH, introducing 1,164 new "Wrong Display Name" errors
-  # under strict HAPI validation. Lesson: v3-RoleCode canonicals must be
-  # verified code-by-code against the CodeSystem's ja translation table,
-  # never inferred from a sibling. `text` field (JP UI label) unchanged.
-  MTH: {en: "mother", ja: "母"}
-  FTH: {en: "father", ja: "父"}
-  # Issue #369: v3-RoleCode NSIB canonical display in ja lookup is "natural sibling"
-  # ("natural" qualifier = biological, not step/adopted). Strict FHIR validators
-  # reject the short form "Sibling". `coding.display` carries the CodeSystem
-  # canonical EN; `text` field (built at emit time) carries the JP UI label.
-  NSIB: {en: "natural sibling", ja: "兄弟姉妹"}
+# Issue #2764: the relationship codes (HL7 v3-RoleCode MTH / FTH / NSIB) and
+# their displays live in clinosim/codes/data/hl7-v3-rolecode.yaml.
 
 # Sibling count distribution (weights for 0, 1, 2).
 sibling_count_weights: [0.4, 0.4, 0.2]

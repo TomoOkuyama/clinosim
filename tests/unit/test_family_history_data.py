@@ -24,9 +24,13 @@ def test_reference_data_shape():
     #   NSIB = "natural sibling"  (this ONE has the "natural" qualifier)
     # PR #372 (session 65) speculatively applied NSIB's "natural" prefix
     # to MTH/FTH → 1,164 strict-validator errors → reverted here.
-    assert d["relationships"]["MTH"]["en"] == "mother"
-    assert d["relationships"]["FTH"]["en"] == "father"
-    assert d["relationships"]["NSIB"]["en"] == "natural sibling"
+    # Issue #2764: the displays live in the v3-RoleCode registry.
+    from clinosim.codes import display
+
+    assert "relationships" not in d
+    assert display("hl7-v3-rolecode", "MTH", "en") == "mother"
+    assert display("hl7-v3-rolecode", "FTH", "en") == "father"
+    assert display("hl7-v3-rolecode", "NSIB", "en") == "natural sibling"
     assert d["conditions"]["C61"]["sex"] == "male"  # prostate
     assert d["conditions"]["C50"]["sex"] == "female"  # breast
 

@@ -53,7 +53,7 @@ def test_jp_relationship_emits_english_display_and_japanese_text() -> None:
     """The Issue #360 G2 core assertion: JP output has ``coding[0].display``
     in English (survives the JP English-only-CS strip walker) AND ``text``
     in Japanese (source of truth for JP UI human-readable label)."""
-    result = _build_relationship_codeable("FTH", _FATHER_DISPLAYS, "ja")
+    result = _build_relationship_codeable("FTH", "ja")
     assert result["coding"][0]["system"] == "http://terminology.hl7.org/CodeSystem/v3-RoleCode"
     assert result["coding"][0]["code"] == "FTH"
     assert result["coding"][0]["display"] == "father"
@@ -69,7 +69,7 @@ def test_jp_relationship_display_is_never_japanese() -> None:
         ("MTH", _MOTHER_DISPLAYS),
         ("NSIB", _SIBLING_DISPLAYS),
     ]:
-        result = _build_relationship_codeable(rel, disp, "ja")
+        result = _build_relationship_codeable(rel, "ja")
         display = result["coding"][0]["display"]
         assert not any(ord(ch) > 0x7F for ch in display), (
             f"code {rel}: coding[0].display {display!r} contains non-ASCII "
@@ -87,7 +87,7 @@ def test_jp_relationship_text_is_japanese_for_known_codes() -> None:
         ("MTH", _MOTHER_DISPLAYS, "母"),
         ("NSIB", _SIBLING_DISPLAYS, "兄弟姉妹"),
     ]:
-        result = _build_relationship_codeable(rel, disp, "ja")
+        result = _build_relationship_codeable(rel, "ja")
         assert result.get("text") == expected_text
 
 
@@ -98,7 +98,7 @@ def test_us_relationship_omits_text_when_it_equals_english_display() -> None:
     """US output keeps the leaner two-field shape: coding[0].display carries
     the English string; ``text`` is omitted to avoid duplication (there is
     no target-language string that would add information)."""
-    result = _build_relationship_codeable("FTH", _FATHER_DISPLAYS, "en")
+    result = _build_relationship_codeable("FTH", "en")
     assert result["coding"][0]["display"] == "father"
     assert "text" not in result
 
@@ -107,7 +107,7 @@ def test_us_relationship_still_has_valid_coding_shape() -> None:
     """Regression pin: US output must still carry the full FHIR coding
     (system + code + display) — the shape guarantees consumer parsing
     stays uniform across locales."""
-    result = _build_relationship_codeable("MTH", _MOTHER_DISPLAYS, "en")
+    result = _build_relationship_codeable("MTH", "en")
     coding = result["coding"][0]
     assert set(coding.keys()) == {"system", "code", "display"}
     assert coding["display"] == "mother"
@@ -116,22 +116,19 @@ def test_us_relationship_still_has_valid_coding_shape() -> None:
 # === Defensive: missing English display / missing target-lang display ===
 
 
-def test_relationship_falls_back_to_code_when_english_missing() -> None:
-    """Defensive: if the reference data somehow omits the English display,
-    fall back to the code itself rather than emitting a Japanese string
-    into ``coding[0].display`` (which would then be stripped)."""
-    disp_ja_only: dict[str, str] = {"ja": "父"}
-    result = _build_relationship_codeable("FTH", disp_ja_only, "ja")
-    assert result["coding"][0]["display"] == "FTH"
-    assert result["text"] == "父"
+def test_relationship_falls_back_to_code_when_unregistered() -> None:
+    """Defensive: a relationship code missing from the v3-RoleCode registry
+    (Issue #2764) shows the code itself, never a Japanese string, in
+    ``coding[0].display``."""
+    result = _build_relationship_codeable("XYZ", "ja")
+    assert result["coding"][0]["display"] == "XYZ"
+    assert "text" not in result
 
 
 def test_relationship_omits_text_when_target_lang_missing() -> None:
-    """If the target-language string is missing, ``text`` is not emitted —
-    consumers should render the English coding display instead of an
-    empty ``text``."""
-    disp_en_only: dict[str, str] = {"en": "father"}
-    result = _build_relationship_codeable("FTH", disp_en_only, "ja")
+    """A language with no label falls back to English, so no ``text`` is
+    emitted — consumers render the English coding display."""
+    result = _build_relationship_codeable("FTH", "fr")
     assert result["coding"][0]["display"] == "father"
     assert "text" not in result
 
