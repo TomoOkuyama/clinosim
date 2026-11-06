@@ -26,6 +26,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping, map_diagnosis_code
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, get_attr_or_key, is_jp
+from clinosim.modules.order.absolute_dose import is_continuous_infusion
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.dosage import (
@@ -1453,7 +1454,7 @@ def _build_ma_dosage_block(
         rate_note_localized = _localize_rate_adjustment(rate_adjustment_note, country)
         dose_text = f"{dose_text} ({rate_note_localized})".strip() if dose_text.strip() else rate_note_localized
     # Issue #472: localize at the assignment only — `dose_text` itself stays English
-    # because the continuous-infusion detection below matches on "CONTINUOUS" / "DRIP".
+    # because the continuous-infusion detection below (is_continuous_infusion) matches English markers.
     dosage: dict[str, Any] = {"text": _localize_dosage_terms(dose_text, lang_for(country))}
     from clinosim.modules.output.fhir_r4.lib.dosage import is_rate_unit
 
@@ -1464,7 +1465,8 @@ def _build_ma_dosage_block(
         if parsed.get("dose_quantity") is not None and parsed.get("dose_unit"):
             dosage["dose"] = ucum_quantity(parsed["dose_quantity"], parsed["dose_unit"])
         # Rate for continuous infusions
-        if "CONTINUOUS" in dose_text.upper() or "DRIP" in dose_text.upper() or "/h" in dose_text:
+        # Issue #2810: the shared continuous-infusion predicate.
+        if is_continuous_infusion(dose_text):
             rate_value = parsed.get("dose_quantity") or 1
             rate_unit = parsed.get("dose_unit", "mL") + "/h"
             dosage["rateQuantity"] = ucum_quantity(rate_value, rate_unit)
@@ -1551,10 +1553,8 @@ def _build_ma_device_block(
     #479 dual-slot rationale in the original inline comment.
     """
     _canonical_route = canonicalize_route(mar.get("route") or parsed_route)
-    _dose_text_up = (mar.get("dose") or "").upper()
-    _is_infusion = _canonical_route == "IV" and (
-        "CONTINUOUS" in _dose_text_up or "DRIP" in _dose_text_up or "/H" in _dose_text_up
-    )
+    # Issue #2810: the shared continuous-infusion predicate.
+    _is_infusion = _canonical_route == "IV" and is_continuous_infusion(mar.get("dose") or "")
     if not _is_infusion:
         return None
     return [
