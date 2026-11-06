@@ -17,7 +17,7 @@ from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditi
 pytestmark = pytest.mark.unit
 
 
-def _record_with_delivered_pregnancy(country_note: str = "US") -> dict:
+def _record_with_delivered_pregnancy(country_note: str = "US", complications: list[str] | None = None) -> dict:
     return {
         "patient": {
             "patient_id": "P1",
@@ -29,7 +29,7 @@ def _record_with_delivered_pregnancy(country_note: str = "US") -> dict:
                     "start_date": "2025-01-01",
                     "end_date": "2025-10-01",
                     "outcome": "delivered",
-                    "metadata": {"delivery_date": "2025-10-01"},
+                    "metadata": {"delivery_date": "2025-10-01", "complications": complications or []},
                     "period_seq": 0,
                 }
             ],
@@ -53,7 +53,7 @@ def _past_birth(conds: list[dict]) -> dict:
 
 
 def test_us_past_birth_marker_is_z87_59_not_z37_9() -> None:
-    conds = _build_conditions(_record_with_delivered_pregnancy(), "P1", "US")
+    conds = _build_conditions(_record_with_delivered_pregnancy(complications=["O14"]), "P1", "US")
     c = _past_birth(conds)
     codes = [cd.get("code") for cd in c["code"]["coding"]]
     # New: Z87.59 (personal history)
@@ -65,7 +65,7 @@ def test_us_past_birth_marker_is_z87_59_not_z37_9() -> None:
 
 
 def test_jp_past_birth_marker_is_z87_59_not_z37() -> None:
-    conds = _build_conditions(_record_with_delivered_pregnancy(), "P1", "JP")
+    conds = _build_conditions(_record_with_delivered_pregnancy(complications=["O14"]), "P1", "JP")
     c = _past_birth(conds)
     codes = [cd.get("code") for cd in c["code"]["coding"]]
     assert "Z87.59" in codes, f"JP past-birth marker should be Z87.59, got codes={codes}"
@@ -99,9 +99,10 @@ def test_past_birth_display_is_personal_history_wording() -> None:
     )
 
 
-def test_multi_parity_gets_z87_59_per_period() -> None:
-    """Two delivered pregnancies → two past-birth Conditions, both Z87.59."""
-    rec = _record_with_delivered_pregnancy()
+def test_multi_parity_codes_each_period_by_its_own_complications() -> None:
+    """Two delivered pregnancies → two past-birth Conditions; the complicated
+    one is Z87.59, the uncomplicated one SNOMED 271903000 (Issue #2788)."""
+    rec = _record_with_delivered_pregnancy(complications=["O14"])
     rec["patient"]["state_periods"].append(
         {
             "state_type": "pregnancy",
@@ -115,6 +116,16 @@ def test_multi_parity_gets_z87_59_per_period() -> None:
     conds = _build_conditions(rec, "P1", "US")
     past = [c for c in conds if "past-birth" in c.get("id", "")]
     assert len(past) == 2, f"expected 2 past-birth Conditions, got {len(past)}"
-    for c in past:
-        codes = [cd.get("code") for cd in c["code"]["coding"]]
-        assert "Z87.59" in codes
+    codes = [[cd.get("code") for cd in c["code"]["coding"]] for c in past]
+    assert "Z87.59" in codes[0]
+    assert codes[1] == ["271903000"]
+
+
+@pytest.mark.parametrize("country", ["US", "JP"])
+def test_uncomplicated_past_birth_is_history_of_pregnancy(country: str) -> None:
+    """Issue #2788: no recorded complication -> SNOMED 271903000, not Z87.59."""
+    c = _past_birth(_build_conditions(_record_with_delivered_pregnancy(), "P1", country))
+    coding = c["code"]["coding"]
+    assert [(cd["system"], cd["code"]) for cd in coding] == [("http://snomed.info/sct", "271903000")]
+    assert coding[0]["display"] == "History of pregnancy"
+    assert c["code"]["text"] == ("妊娠歴" if country == "JP" else "History of pregnancy")
