@@ -851,3 +851,2425 @@ codes:
   '1795250':
     en: 1000 ML glucose 50 MG/ML / sodium chloride 4.5 MG/ML Injection
     ja: 5%ブドウ糖加0.45%食塩液 1000 mL
+  # BEGIN generated RxNorm SCD (scripts/refresh_rxnorm_scd.py, Issue #2614) — do not edit by hand
+  '104020':
+    en: "sodium bicarbonate 600 MG Oral Tablet"
+  '104021':
+    en: "sodium bicarbonate 500 MG Oral Capsule"
+  '104208':
+    en: "2 ML digoxin 0.25 MG/ML Injection"
+  '104474':
+    en: "aspirin 75 MG Oral Tablet"
+  '104514':
+    en: "albuterol 0.4 MG Inhalation Powder"
+  '105408':
+    en: "prednisolone 2.5 MG Delayed Release Oral Tablet"
+  '105584':
+    en: "fluorouracil 250 MG Oral Capsule"
+  '105650':
+    en: "ferrous fumarate 305 MG Oral Capsule"
+  '105711':
+    en: "sodium chloride 300 MG Oral Tablet"
+  '105733':
+    en: "calcium gluconate 600 MG Oral Tablet"
+  '108860':
+    en: "ferrous fumarate 322 MG Oral Tablet"
+  '141992':
+    en: "alfacalcidol 0.001 MG Oral Capsule"
+  '142118':
+    en: "sulfamethoxazole 100 MG / trimethoprim 20 MG Oral Tablet"
+  '150921':
+    en: "thiamine 50 MG Oral Tablet"
+  '150923':
+    en: "calcium carbonate 1250 MG / cholecalciferol 0.005 MG Oral Tablet"
+  '152770':
+    en: "calcium carbonate 1250 MG / cholecalciferol 0.01 MG Oral Tablet"
+  '153791':
+    en: "risperidone 6 MG Oral Tablet"
+  '153822':
+    en: "candesartan cilexetil 4 MG Oral Tablet"
+  '153823':
+    en: "candesartan cilexetil 8 MG Oral Tablet"
+  '197316':
+    en: "albuterol 2 MG Oral Tablet"
+  '197318':
+    en: "albuterol 4 MG Oral Tablet"
+  '197321':
+    en: "alprazolam 1 MG Oral Tablet"
+  '197322':
+    en: "alprazolam 2 MG Oral Tablet"
+  '197361':
+    en: "amlodipine 5 MG Oral Tablet"
+  '197443':
+    en: "carbidopa 10 MG / levodopa 100 MG Oral Tablet"
+  '197444':
+    en: "carbidopa 25 MG / levodopa 100 MG Oral Tablet"
+  '197445':
+    en: "carbidopa 25 MG / levodopa 250 MG Oral Tablet"
+  '197448':
+    en: "levocarnitine 330 MG Oral Tablet"
+  '197454':
+    en: "cephalexin 500 MG Oral Tablet"
+  '197511':
+    en: "ciprofloxacin 250 MG Oral Tablet"
+  '197512':
+    en: "ciprofloxacin 750 MG Oral Tablet"
+  '197604':
+    en: "digoxin 0.125 MG Oral Tablet"
+  '197605':
+    en: "digoxin 0.2 MG Oral Capsule"
+  '197606':
+    en: "digoxin 0.25 MG Oral Tablet"
+  '197623':
+    en: "disulfiram 250 MG Oral Tablet"
+  '197624':
+    en: "disulfiram 500 MG Oral Tablet"
+  '197650':
+    en: "erythromycin 500 MG Oral Tablet"
+  '197698':
+    en: "fluconazole 100 MG Oral Tablet"
+  '197699':
+    en: "fluconazole 150 MG Oral Tablet"
+  '197700':
+    en: "fluconazole 200 MG Oral Tablet"
+  '197701':
+    en: "fluconazole 50 MG Oral Tablet"
+  '197732':
+    en: "furosemide 80 MG Oral Tablet"
+  '197736':
+    en: "50 ML gentamicin 2 MG/ML Injection"
+  '197754':
+    en: "haloperidol 20 MG Oral Tablet"
+  '197770':
+    en: "hydrochlorothiazide 50 MG Oral Tablet"
+  '197782':
+    en: "hydrocortisone 10 MG Oral Tablet"
+  '197783':
+    en: "hydrocortisone 20 MG Oral Tablet"
+  '197787':
+    en: "hydrocortisone 5 MG Oral Tablet"
+  '197804':
+    en: "ibuprofen 300 MG Oral Tablet"
+  '197805':
+    en: "ibuprofen 400 MG Oral Tablet"
+  '197806':
+    en: "ibuprofen 600 MG Oral Tablet"
+  '197807':
+    en: "ibuprofen 800 MG Oral Tablet"
+  '197860':
+    en: "leucovorin 10 MG Oral Tablet"
+  '197861':
+    en: "leucovorin 15 MG Oral Tablet"
+  '197862':
+    en: "leucovorin 25 MG Oral Tablet"
+  '197863':
+    en: "leucovorin 5 MG Oral Tablet"
+  '197884':
+    en: "lisinopril 40 MG Oral Tablet"
+  '197890':
+    en: "lithium carbonate 300 MG Oral Tablet"
+  '197892':
+    en: "lithium carbonate 450 MG Extended Release Oral Tablet"
+  '197893':
+    en: "lithium carbonate 600 MG Oral Capsule"
+  '197900':
+    en: "lorazepam 0.5 MG Oral Tablet"
+  '197901':
+    en: "lorazepam 1 MG Oral Tablet"
+  '197902':
+    en: "lorazepam 2 MG Oral Tablet"
+  '197955':
+    en: "methyldopa 125 MG Oral Tablet"
+  '197956':
+    en: "methyldopa 250 MG Oral Tablet"
+  '197958':
+    en: "methyldopa 500 MG Oral Tablet"
+  '197969':
+    en: "methylprednisolone 2 MG Oral Tablet"
+  '197971':
+    en: "methylprednisolone 32 MG Oral Tablet"
+  '197973':
+    en: "methylprednisolone 8 MG Oral Tablet"
+  '198012':
+    en: "naproxen 375 MG Oral Tablet"
+  '198013':
+    en: "naproxen 250 MG Oral Tablet"
+  '198014':
+    en: "naproxen 500 MG Oral Tablet"
+  '198038':
+    en: "nitroglycerin 0.3 MG Sublingual Tablet"
+  '198039':
+    en: "nitroglycerin 0.4 MG Sublingual Tablet"
+  '198040':
+    en: "nitroglycerin 0.6 MG Sublingual Tablet"
+  '198048':
+    en: "ofloxacin 200 MG Oral Tablet"
+  '198049':
+    en: "ofloxacin 300 MG Oral Tablet"
+  '198050':
+    en: "ofloxacin 400 MG Oral Tablet"
+  '198052':
+    en: "ondansetron 4 MG Oral Tablet"
+  '198102':
+    en: "vitamin K1 5 MG Oral Tablet"
+  '198142':
+    en: "prednisolone 5 MG Oral Tablet"
+  '198144':
+    en: "prednisone 1 MG Oral Tablet"
+  '198145':
+    en: "prednisone 10 MG Oral Tablet"
+  '198146':
+    en: "prednisone 2.5 MG Oral Tablet"
+  '198148':
+    en: "prednisone 50 MG Oral Tablet"
+  '198211':
+    en: "simvastatin 40 MG Oral Tablet"
+  '198222':
+    en: "spironolactone 100 MG Oral Tablet"
+  '198223':
+    en: "spironolactone 50 MG Oral Tablet"
+  '198240':
+    en: "tamoxifen 10 MG Oral Tablet"
+  '198334':
+    en: "sulfamethoxazole 400 MG / trimethoprim 80 MG Oral Tablet"
+  '198335':
+    en: "sulfamethoxazole 800 MG / trimethoprim 160 MG Oral Tablet"
+  '198405':
+    en: "ibuprofen 100 MG Oral Tablet"
+  '198427':
+    en: "lamotrigine 100 MG Oral Tablet"
+  '198428':
+    en: "lamotrigine 150 MG Oral Tablet"
+  '198429':
+    en: "lamotrigine 200 MG Oral Tablet"
+  '198440':
+    en: "acetaminophen 500 MG Oral Tablet"
+  '198444':
+    en: "acetaminophen 650 MG Oral Tablet"
+  '198471':
+    en: "aspirin 500 MG Oral Tablet"
+  '198475':
+    en: "aspirin 650 MG Oral Tablet"
+  '198477':
+    en: "aspirin 162 MG Delayed Release Oral Tablet"
+  '198527':
+    en: "calcium carbonate 250 MG Oral Tablet"
+  '198529':
+    en: "calcium carbonate 420 MG Oral Tablet"
+  '198533':
+    en: "calcium carbonate 650 MG Oral Tablet"
+  '198547':
+    en: "calcium gluconate 650 MG Oral Tablet"
+  '198561':
+    en: "levocarnitine 250 MG Oral Capsule"
+  '198624':
+    en: "ferrous fumarate 325 MG Oral Tablet"
+  '198635':
+    en: "ferrous sulfate 300 MG Oral Tablet"
+  '198640':
+    en: "folic acid 0.4 MG Oral Tablet"
+  '198641':
+    en: "folic acid 0.8 MG Oral Tablet"
+  '198859':
+    en: "sodium bicarbonate 325 MG Oral Tablet"
+  '198861':
+    en: "sodium bicarbonate 650 MG Oral Tablet"
+  '198899':
+    en: "vitamin K 0.1 MG Oral Tablet"
+  '198999':
+    en: "ferrous sulfate 159 MG Extended Release Oral Tablet"
+  '199047':
+    en: "famotidine 10 MG Oral Tablet"
+  '199055':
+    en: "metronidazole 375 MG Oral Capsule"
+  '199123':
+    en: "bicalutamide 50 MG Oral Tablet"
+  '199178':
+    en: "ferrous fumarate 300 MG Oral Tablet"
+  '199224':
+    en: "anastrozole 1 MG Oral Tablet"
+  '199275':
+    en: "lorazepam 2.5 MG Oral Tablet"
+  '199281':
+    en: "aspirin 300 MG Oral Tablet"
+  '199318':
+    en: "folic acid 5 MG Oral Tablet"
+  '199319':
+    en: "haloperidol 1.5 MG Oral Tablet"
+  '199322':
+    en: "lamotrigine 50 MG Oral Tablet"
+  '199324':
+    en: "lithium carbonate 250 MG Oral Tablet"
+  '199326':
+    en: "metronidazole 200 MG Oral Tablet"
+  '199327':
+    en: "metronidazole 400 MG Oral Tablet"
+  '199343':
+    en: "prednisolone 1 MG Oral Tablet"
+  '199362':
+    en: "cholecalciferol 0.025 MG Oral Tablet"
+  '199370':
+    en: "ciprofloxacin 100 MG Oral Tablet"
+  '199442':
+    en: "butylscopolamine bromide 10 MG Oral Tablet"
+  '199610':
+    en: "furosemide 500 MG Oral Tablet"
+  '199730':
+    en: "disopyramide 250 MG Extended Release Oral Tablet"
+  '199731':
+    en: "disulfiram 200 MG Oral Tablet"
+  '199739':
+    en: "50 ML famotidine 0.4 MG/ML Injection"
+  '199762':
+    en: "lithium carbonate 400 MG Extended Release Oral Tablet"
+  '199771':
+    en: "methylprednisolone 100 MG Oral Tablet"
+  '199884':
+    en: "levofloxacin 250 MG Oral Tablet"
+  '199885':
+    en: "levofloxacin 500 MG Oral Tablet"
+  '199967':
+    en: "prednisolone 25 MG Oral Tablet"
+  '200031':
+    en: "carvedilol 6.25 MG Oral Tablet"
+  '200032':
+    en: "carvedilol 12.5 MG Oral Tablet"
+  '200033':
+    en: "carvedilol 25 MG Oral Tablet"
+  '200034':
+    en: "olanzapine 2.5 MG Oral Tablet"
+  '200076':
+    en: "ferrous fumarate 89 MG Oral Tablet"
+  '200143':
+    en: "ferrous sulfate 90 MG Oral Tablet"
+  '200327':
+    en: "capecitabine 150 MG Oral Tablet"
+  '200328':
+    en: "capecitabine 500 MG Oral Tablet"
+  '200345':
+    en: "simvastatin 80 MG Oral Tablet"
+  '200371':
+    en: "citalopram 20 MG Oral Tablet"
+  '204466':
+    en: "50 ML penicillin G potassium 40000 UNT/ML Injection"
+  '204504':
+    en: "1 ML digoxin 0.1 MG/ML Injection"
+  '204632':
+    en: "ferrous sulfate 200 MG Oral Tablet"
+  '204844':
+    en: "azithromycin 600 MG Oral Tablet"
+  '205322':
+    en: "celecoxib 100 MG Oral Capsule"
+  '205326':
+    en: "lisinopril 30 MG Oral Tablet"
+  '207390':
+    en: "50 ML penicillin G potassium 20000 UNT/ML Injection"
+  '207391':
+    en: "50 ML penicillin G potassium 60000 UNT/ML Injection"
+  '212033':
+    en: "aspirin 325 MG Oral Tablet"
+  '212470':
+    en: "thiamine 500 MG Oral Tablet"
+  '237165':
+    en: "digoxin 0.05 MG Oral Capsule"
+  '237166':
+    en: "digoxin 0.1 MG Oral Capsule"
+  '237205':
+    en: "10 ML nitroglycerin 5 MG/ML Injection"
+  '237420':
+    en: "calcium carbonate 1500 MG Oral Tablet"
+  '237788':
+    en: "leucovorin 350 MG Injection"
+  '238755':
+    en: "hydrocortisone 100 MG Injection"
+  '242969':
+    en: "4 ML norepinephrine 1 MG/ML Injection"
+  '243670':
+    en: "aspirin 81 MG Oral Tablet"
+  '244052':
+    en: "sodium chloride 600 MG Extended Release Oral Tablet"
+  '244206':
+    en: "ferrous sulfate 250 MG Extended Release Oral Tablet"
+  '245014':
+    en: "ferrous sulfate 168 MG Extended Release Oral Tablet"
+  '245273':
+    en: "digoxin 0.0625 MG Oral Tablet"
+  '245318':
+    en: "aminophylline 350 MG Extended Release Oral Tablet"
+  '246008':
+    en: "alfacalcidol 0.00025 MG Oral Capsule"
+  '246313':
+    en: "vitamin K1 10 MG Oral Tablet"
+  '246461':
+    en: "aspirin 100 MG Oral Tablet"
+  '248306':
+    en: "lithium carbonate 200 MG Extended Release Oral Tablet"
+  '248506':
+    en: "cholecalciferol 0.25 MG Oral Tablet"
+  '248630':
+    en: "midazolam 15 MG Oral Tablet"
+  '248642':
+    en: "fluoxetine 20 MG Oral Tablet"
+  '248656':
+    en: "azithromycin 500 MG Oral Tablet"
+  '248657':
+    en: "furosemide 50 MG Oral Tablet"
+  '249329':
+    en: "lamotrigine 250 MG Oral Tablet"
+  '249767':
+    en: "nitroglycerin 0.5 MG Sublingual Tablet"
+  '250423':
+    en: "tamoxifen 40 MG Oral Tablet"
+  '250432':
+    en: "carbidopa 12.5 MG / levodopa 50 MG Oral Tablet"
+  '250712':
+    en: "metoclopramide 15 MG Extended Release Oral Tablet"
+  '251201':
+    en: "sertraline 200 MG Oral Capsule"
+  '251872':
+    en: "pantoprazole 20 MG Delayed Release Oral Tablet"
+  '252298':
+    en: "albuterol 0.1 MG Inhalation Powder"
+  '252487':
+    en: "alfacalcidol 0.0005 MG Oral Capsule"
+  '259176':
+    en: "ferrous fumarate 75 MG Oral Tablet"
+  '259255':
+    en: "atorvastatin 80 MG Oral Tablet"
+  '259586':
+    en: "ferrous sulfate 134 MG Oral Tablet"
+  '259966':
+    en: "methylprednisolone 4 MG Oral Tablet"
+  '260002':
+    en: "folic acid 20 MG Oral Capsule"
+  '282401':
+    en: "lamotrigine 25 MG Oral Tablet"
+  '282464':
+    en: "acetaminophen 160 MG Oral Tablet"
+  '282465':
+    en: "calcium carbonate 1250 MG Oral Tablet"
+  '283589':
+    en: "sodium bicarbonate 520 MG Oral Tablet"
+  '283639':
+    en: "olanzapine 20 MG Oral Tablet"
+  '283669':
+    en: "pantoprazole 40 MG Injection"
+  '283672':
+    en: "citalopram 10 MG Oral Tablet"
+  '284202':
+    en: "ferrous fumarate 324 MG Oral Tablet"
+  '284215':
+    en: "clindamycin 300 MG Oral Capsule"
+  '284245':
+    en: "famotidine 40 MG Oral Tablet"
+  '307695':
+    en: "acetaminophen 80 MG Oral Capsule"
+  '307779':
+    en: "albuterol 0.2 MG Inhalation Powder"
+  '308047':
+    en: "alprazolam 0.25 MG Oral Tablet"
+  '308048':
+    en: "alprazolam 0.5 MG Oral Tablet"
+  '308119':
+    en: "aminophylline 200 MG Oral Tablet"
+  '308135':
+    en: "amlodipine 10 MG Oral Tablet"
+  '308136':
+    en: "amlodipine 2.5 MG Oral Tablet"
+  '308182':
+    en: "amoxicillin 250 MG Oral Capsule"
+  '308192':
+    en: "amoxicillin 500 MG Oral Tablet"
+  '308194':
+    en: "amoxicillin 875 MG Oral Tablet"
+  '308207':
+    en: "ampicillin 125 MG Injection"
+  '308212':
+    en: "ampicillin 500 MG Oral Capsule"
+  '308403':
+    en: "aspirin 165 MG Delayed Release Oral Tablet"
+  '308460':
+    en: "azithromycin 250 MG Oral Tablet"
+  '308989':
+    en: "carbidopa 50 MG / levodopa 200 MG Extended Release Oral Tablet"
+  '309068':
+    en: "cefotaxime 500 MG Injection"
+  '309092':
+    en: "ceftriaxone 250 MG Injection"
+  '309115':
+    en: "cephalexin 250 MG Oral Tablet"
+  '309263':
+    en: "cholecalciferol 0.01 MG Oral Tablet"
+  '309309':
+    en: "ciprofloxacin 500 MG Oral Tablet"
+  '309314':
+    en: "citalopram 40 MG Oral Tablet"
+  '309335':
+    en: "50 ML clindamycin 12 MG/ML Injection"
+  '309336':
+    en: "50 ML clindamycin 18 MG/ML Injection"
+  '309339':
+    en: "50 ML clindamycin 6 MG/ML Injection"
+  '309362':
+    en: "clopidogrel 75 MG Oral Tablet"
+  '309958':
+    en: "disopyramide 100 MG Oral Capsule"
+  '309960':
+    en: "disopyramide 150 MG Oral Capsule"
+  '309985':
+    en: "250 ML dobutamine 1 MG/ML Injection"
+  '309986':
+    en: "250 ML dobutamine 2 MG/ML Injection"
+  '309987':
+    en: "250 ML dobutamine 4 MG/ML Injection"
+  '310273':
+    en: "famotidine 20 MG Oral Tablet"
+  '310318':
+    en: "ferrous sulfate 160 MG Extended Release Oral Tablet"
+  '310325':
+    en: "ferrous sulfate 325 MG Oral Tablet"
+  '310410':
+    en: "folic acid 1 MG Oral Tablet"
+  '310429':
+    en: "furosemide 20 MG Oral Tablet"
+  '310473':
+    en: "100 ML gentamicin 0.8 MG/ML Injection"
+  '310670':
+    en: "haloperidol 0.5 MG Oral Tablet"
+  '310671':
+    en: "haloperidol 1 MG Oral Tablet"
+  '310672':
+    en: "haloperidol 5 MG Oral Tablet"
+  '310798':
+    en: "hydrochlorothiazide 25 MG Oral Tablet"
+  '310965':
+    en: "ibuprofen 200 MG Oral Tablet"
+  '311277':
+    en: "lansoprazole 30 MG Delayed Release Oral Capsule"
+  '311288':
+    en: "levetiracetam 250 MG Oral Tablet"
+  '311289':
+    en: "levetiracetam 500 MG Oral Tablet"
+  '311290':
+    en: "levetiracetam 750 MG Oral Tablet"
+  '311296':
+    en: "levofloxacin 750 MG Oral Tablet"
+  '311353':
+    en: "lisinopril 2.5 MG Oral Tablet"
+  '311354':
+    en: "lisinopril 5 MG Oral Tablet"
+  '311355':
+    en: "lithium carbonate 150 MG Oral Capsule"
+  '311447':
+    en: "1000 ML mannitol 100 MG/ML Injection"
+  '311448':
+    en: "500 ML mannitol 150 MG/ML Injection"
+  '311450':
+    en: "50 ML mannitol 250 MG/ML Injection"
+  '311452':
+    en: "1000 ML mannitol 50 MG/ML Injection"
+  '311659':
+    en: "methylprednisolone 40 MG Injection"
+  '311666':
+    en: "metoclopramide 10 MG Oral Tablet"
+  '311668':
+    en: "metoclopramide 5 MG Oral Tablet"
+  '311670':
+    en: "2 ML metoclopramide 5 MG/ML Injection"
+  '311681':
+    en: "metronidazole 500 MG Oral Tablet"
+  '311683':
+    en: "100 ML metronidazole 5 MG/ML Injection"
+  '311725':
+    en: "mirtazapine 15 MG Oral Tablet"
+  '311726':
+    en: "mirtazapine 45 MG Oral Tablet"
+  '311787':
+    en: "moxifloxacin 400 MG Oral Tablet"
+  '311988':
+    en: "nitrofurantoin 100 MG Oral Tablet"
+  '311991':
+    en: "nitrofurantoin 50 MG Oral Tablet"
+  '311994':
+    en: "nitrofurantoin, macrocrystals 25 MG Oral Capsule"
+  '312013':
+    en: "nitroglycerin 2.5 MG Extended Release Oral Capsule"
+  '312068':
+    en: "1 ML octreotide 0.05 MG/ML Injection"
+  '312069':
+    en: "1 ML octreotide 0.1 MG/ML Injection"
+  '312070':
+    en: "1 ML octreotide 0.5 MG/ML Injection"
+  '312077':
+    en: "olanzapine 15 MG Oral Tablet"
+  '312078':
+    en: "olanzapine 5 MG Oral Tablet"
+  '312079':
+    en: "olanzapine 7.5 MG Oral Tablet"
+  '312084':
+    en: "ondansetron 24 MG Oral Tablet"
+  '312086':
+    en: "ondansetron 8 MG Oral Tablet"
+  '312122':
+    en: "oseltamivir 75 MG Oral Capsule"
+  '312505':
+    en: "potassium chloride 10 MEQ Oral Tablet"
+  '312507':
+    en: "100 ML potassium chloride 0.1 MEQ/ML Injection"
+  '312517':
+    en: "potassium chloride 25 MEQ Oral Tablet"
+  '312615':
+    en: "prednisone 20 MG Oral Tablet"
+  '312617':
+    en: "prednisone 5 MG Oral Tablet"
+  '312743':
+    en: "quetiapine 100 MG Oral Tablet"
+  '312744':
+    en: "quetiapine 25 MG Oral Tablet"
+  '312745':
+    en: "quetiapine 300 MG Oral Tablet"
+  '312828':
+    en: "risperidone 0.25 MG Oral Tablet"
+  '312829':
+    en: "risperidone 0.5 MG Oral Tablet"
+  '312830':
+    en: "risperidone 1 MG Oral Tablet"
+  '312831':
+    en: "risperidone 2 MG Oral Tablet"
+  '312832':
+    en: "risperidone 3 MG Oral Tablet"
+  '312938':
+    en: "sertraline 100 MG Oral Tablet"
+  '312940':
+    en: "sertraline 25 MG Oral Tablet"
+  '312941':
+    en: "sertraline 50 MG Oral Tablet"
+  '312961':
+    en: "simvastatin 20 MG Oral Tablet"
+  '312962':
+    en: "simvastatin 5 MG Oral Tablet"
+  '312973':
+    en: "5 ML sodium bicarbonate 40 MG/ML Injection"
+  '313009':
+    en: "sodium chloride 1000 MG Oral Tablet"
+  '313096':
+    en: "spironolactone 25 MG Oral Tablet"
+  '313160':
+    en: "sumatriptan 100 MG Oral Tablet"
+  '313161':
+    en: "sumatriptan 50 MG Oral Tablet"
+  '313165':
+    en: "0.5 ML sumatriptan 12 MG/ML Injection"
+  '313195':
+    en: "tamoxifen 20 MG Oral Tablet"
+  '313209':
+    en: "temozolomide 20 MG Oral Capsule"
+  '313210':
+    en: "temozolomide 250 MG Oral Capsule"
+  '313211':
+    en: "temozolomide 5 MG Oral Capsule"
+  '313323':
+    en: "thiamine 100 MG Oral Tablet"
+  '313326':
+    en: "thiamine 250 MG Oral Tablet"
+  '313570':
+    en: "vancomycin 125 MG Oral Capsule"
+  '313571':
+    en: "vancomycin 250 MG Oral Capsule"
+  '313580':
+    en: "venlafaxine 100 MG Oral Tablet"
+  '313582':
+    en: "venlafaxine 25 MG Oral Tablet"
+  '313584':
+    en: "venlafaxine 37.5 MG Oral Tablet"
+  '313586':
+    en: "venlafaxine 75 MG Oral Tablet"
+  '313782':
+    en: "acetaminophen 325 MG Oral Tablet"
+  '313794':
+    en: "aminophylline 100 MG Oral Tablet"
+  '313800':
+    en: "ampicillin 250 MG Oral Capsule"
+  '313988':
+    en: "furosemide 40 MG Oral Tablet"
+  '313989':
+    en: "fluoxetine 40 MG Oral Capsule"
+  '313990':
+    en: "fluoxetine 10 MG Oral Tablet"
+  '313995':
+    en: "fluoxetine 90 MG Delayed Release Oral Capsule"
+  '314034':
+    en: "haloperidol 2 MG Oral Tablet"
+  '314035':
+    en: "haloperidol 10 MG Oral Tablet"
+  '314076':
+    en: "lisinopril 10 MG Oral Tablet"
+  '314077':
+    en: "lisinopril 20 MG Oral Tablet"
+  '314106':
+    en: "metronidazole 250 MG Oral Tablet"
+  '314111':
+    en: "mirtazapine 30 MG Oral Tablet"
+  '314154':
+    en: "olanzapine 10 MG Oral Tablet"
+  '314163':
+    en: "potassium chloride 8 MEQ Oral Tablet"
+  '314200':
+    en: "pantoprazole 40 MG Delayed Release Oral Tablet"
+  '314211':
+    en: "risperidone 4 MG Oral Tablet"
+  '314231':
+    en: "simvastatin 10 MG Oral Tablet"
+  '314277':
+    en: "venlafaxine 50 MG Oral Tablet"
+  '315090':
+    en: "erythromycin 333 MG Delayed Release Oral Tablet"
+  '315135':
+    en: "levocarnitine 500 MG Oral Tablet"
+  '315223':
+    en: "sumatriptan 25 MG Oral Tablet"
+  '317160':
+    en: "temozolomide 100 MG Oral Capsule"
+  '317174':
+    en: "quetiapine 200 MG Oral Tablet"
+  '318076':
+    en: "calcium carbonate 500 MG Oral Tablet"
+  '328161':
+    en: "methylprednisolone 16 MG Oral Tablet"
+  '343050':
+    en: "potassium chloride 20 MEQ Oral Tablet"
+  '348428':
+    en: "prednisolone 50 MG Oral Tablet"
+  '348978':
+    en: "acetaminophen 300 MG Oral Tablet"
+  '349332':
+    en: "escitalopram 10 MG Oral Tablet"
+  '349406':
+    en: "bicalutamide 150 MG Oral Tablet"
+  '349490':
+    en: "aripiprazole 15 MG Oral Tablet"
+  '349514':
+    en: "celecoxib 400 MG Oral Capsule"
+  '349516':
+    en: "aspirin 800 MG Oral Tablet"
+  '349545':
+    en: "aripiprazole 10 MG Oral Tablet"
+  '349547':
+    en: "aripiprazole 30 MG Oral Tablet"
+  '349553':
+    en: "aripiprazole 20 MG Oral Tablet"
+  '349556':
+    en: "ezetimibe 10 MG Oral Tablet"
+  '351127':
+    en: "cefditoren pivoxil 200 MG Oral Tablet"
+  '351156':
+    en: "250 ML moxifloxacin 1.6 MG/ML Injection"
+  '351249':
+    en: "escitalopram 5 MG Oral Tablet"
+  '351250':
+    en: "escitalopram 20 MG Oral Tablet"
+  '351266':
+    en: "buprenorphine 2 MG / naloxone 0.5 MG Sublingual Tablet"
+  '351267':
+    en: "buprenorphine 8 MG / naloxone 2 MG Sublingual Tablet"
+  '387003':
+    en: "levetiracetam 1000 MG Oral Tablet"
+  '389171':
+    en: "omeprazole 10 MG Oral Tablet"
+  '389172':
+    en: "omeprazole 20 MG Oral Tablet"
+  '389173':
+    en: "omeprazole 40 MG Oral Tablet"
+  '389201':
+    en: "quetiapine 150 MG Oral Tablet"
+  '389231':
+    en: "ferrous fumarate 210 MG Oral Tablet"
+  '391875':
+    en: "lamotrigine 2 MG Oral Tablet"
+  '391930':
+    en: "aspirin 975 MG Oral Tablet"
+  '392151':
+    en: "amoxicillin 200 MG Oral Tablet"
+  '392152':
+    en: "amoxicillin 400 MG Oral Tablet"
+  '392173':
+    en: "nitroglycerin 6.5 MG Oral Capsule"
+  '392174':
+    en: "nitroglycerin 9 MG Oral Capsule"
+  '392321':
+    en: "albuterol 8 MG Oral Tablet"
+  '402010':
+    en: "risperidone 25 MG Injection"
+  '402011':
+    en: "risperidone 37.5 MG Injection"
+  '402012':
+    en: "risperidone 50 MG Injection"
+  '402131':
+    en: "aripiprazole 5 MG Oral Tablet"
+  '403888':
+    en: "Microencapsulated potassium chloride 15 MEQ Extended Release Oral Tablet"
+  '403921':
+    en: "24 HR ciprofloxacin 1000 MG Extended Release Oral Tablet"
+  '410584':
+    en: "sertraline 150 MG Oral Capsule"
+  '428485':
+    en: "calcium carbonate 1500 MG / cholecalciferol 0.01 MG Oral Tablet"
+  '428971':
+    en: "sodium bicarbonate 1000 MG Oral Tablet"
+  '429199':
+    en: "prednisolone 20 MG Oral Tablet"
+  '429503':
+    en: "hydrochlorothiazide 12.5 MG Oral Tablet"
+  '429662':
+    en: "rifaximin 200 MG Oral Tablet"
+  '430837':
+    en: "acetaminophen 1000 MG Oral Tablet"
+  '430890':
+    en: "celecoxib 200 MG Oral Tablet"
+  '433773':
+    en: "clindamycin 150 MG Oral Tablet"
+  '433801':
+    en: "24 HR alprazolam 3 MG Extended Release Oral Tablet"
+  '439841':
+    en: "folic acid 0.1 MG Oral Tablet"
+  '476809':
+    en: "mirtazapine 7.5 MG Oral Tablet"
+  '483017':
+    en: "100 ML acetaminophen 10 MG/ML Injection"
+  '483438':
+    en: "pregabalin 100 MG Oral Capsule"
+  '483440':
+    en: "pregabalin 150 MG Oral Capsule"
+  '483442':
+    en: "pregabalin 25 MG Oral Capsule"
+  '483444':
+    en: "pregabalin 300 MG Oral Capsule"
+  '483446':
+    en: "pregabalin 200 MG Oral Capsule"
+  '483448':
+    en: "pregabalin 50 MG Oral Capsule"
+  '483450':
+    en: "pregabalin 75 MG Oral Capsule"
+  '485032':
+    en: "tiotropium 0.018 MG Inhalation Powder"
+  '485709':
+    en: "12 HR dextromethorphan hydrobromide 30 MG / guaifenesin 835 MG Extended Release Oral Tablet"
+  '485968':
+    en: "olanzapine 10 MG Injection"
+  '562251':
+    en: "amoxicillin 250 MG / clavulanate 125 MG Oral Tablet"
+  '562508':
+    en: "amoxicillin 875 MG / clavulanate 125 MG Oral Tablet"
+  '577040':
+    en: "calcium carbonate 648 MG Oral Tablet"
+  '577127':
+    en: "pregabalin 225 MG Oral Capsule"
+  '577776':
+    en: "candesartan cilexetil 16 MG Oral Tablet"
+  '583214':
+    en: "paclitaxel 100 MG Injection"
+  '596843':
+    en: "lansoprazole 15 MG Delayed Release Oral Capsule"
+  '596926':
+    en: "duloxetine 20 MG Delayed Release Oral Capsule"
+  '596930':
+    en: "duloxetine 30 MG Delayed Release Oral Capsule"
+  '596934':
+    en: "duloxetine 60 MG Delayed Release Oral Capsule"
+  '597747':
+    en: "sorafenib 200 MG Oral Tablet"
+  '598006':
+    en: "erythromycin 250 MG Oral Tablet"
+  '602964':
+    en: "aripiprazole 2 MG Oral Tablet"
+  '616402':
+    en: "duloxetine 40 MG Delayed Release Oral Capsule"
+  '616483':
+    en: "quetiapine 400 MG Oral Tablet"
+  '616487':
+    en: "quetiapine 50 MG Oral Tablet"
+  '617296':
+    en: "amoxicillin 500 MG / clavulanate 125 MG Oral Tablet"
+  '617310':
+    en: "atorvastatin 20 MG Oral Tablet"
+  '617311':
+    en: "atorvastatin 40 MG Oral Tablet"
+  '617312':
+    en: "atorvastatin 10 MG Oral Tablet"
+  '617995':
+    en: "12 HR amoxicillin 1000 MG / clavulanate 62.5 MG Extended Release Oral Tablet"
+  '617996':
+    en: "amoxicillin 800 MG / clavulanate 125 MG Oral Tablet"
+  '630032':
+    en: "furosemide 12.5 MG Oral Tablet"
+  '636559':
+    en: "24 HR metronidazole 750 MG Extended Release Oral Tablet"
+  '637173':
+    en: "cephalexin 750 MG Oral Capsule"
+  '637213':
+    en: "naltrexone 380 MG Injection"
+  '639536':
+    en: "candesartan cilexetil 2 MG Oral Tablet"
+  '639537':
+    en: "candesartan cilexetil 32 MG Oral Tablet"
+  '645617':
+    en: "cephalexin 333 MG Oral Capsule"
+  '647121':
+    en: "5 ML levetiracetam 100 MG/ML Injection"
+  '668292':
+    en: "calcium carbonate 600 MG / cholecalciferol 0.01 MG Oral Tablet"
+  '672356':
+    en: "1.3 ML aripiprazole 7.5 MG/ML Injection"
+  '686379':
+    en: "celecoxib 50 MG Oral Capsule"
+  '686405':
+    en: "erythromycin ethylsuccinate 400 MG Oral Tablet"
+  '686924':
+    en: "carvedilol 3.125 MG Oral Tablet"
+  '692695':
+    en: "ondansetron 16 MG Oral Tablet"
+  '700883':
+    en: "temozolomide 140 MG Oral Capsule"
+  '700885':
+    en: "temozolomide 180 MG Oral Capsule"
+  '706822':
+    en: "risperidone 12.5 MG Injection"
+  '728109':
+    en: "oseltamivir 30 MG Oral Capsule"
+  '728113':
+    en: "oseltamivir 45 MG Oral Capsule"
+  '730782':
+    en: "500 ML sodium chloride 50 MG/ML Injection"
+  '731564':
+    en: "1 ML penicillin G benzathine 600000 UNT/ML Prefilled Syringe"
+  '745286':
+    en: "penicillin G potassium 250000 UNT Oral Tablet"
+  '745292':
+    en: "penicillin G potassium 400000 UNT Oral Tablet"
+  '749196':
+    en: "clopidogrel 300 MG Oral Tablet"
+  '752884':
+    en: "0.375 ML leuprolide acetate 120 MG/ML Prefilled Syringe"
+  '752889':
+    en: "0.5 ML leuprolide acetate 60 MG/ML Prefilled Syringe"
+  '752899':
+    en: "0.25 ML leuprolide acetate 30 MG/ML Prefilled Syringe"
+  '791939':
+    en: "amoxicillin 100 MG Oral Tablet"
+  '791947':
+    en: "amoxicillin 50 MG Oral Tablet"
+  '800531':
+    en: "ferrous sulfate 27 MG Oral Tablet"
+  '801663':
+    en: "cholecalciferol 0.05 MG Oral Tablet"
+  '802550':
+    en: "amoxicillin 775 MG Extended Release Oral Tablet"
+  '807284':
+    en: "50 ML sodium bicarbonate 75 MG/ML Injection"
+  '808744':
+    en: "24 HR venlafaxine 150 MG Extended Release Oral Tablet"
+  '808748':
+    en: "24 HR venlafaxine 225 MG Extended Release Oral Tablet"
+  '828299':
+    en: "cyclobenzaprine hydrochloride 7.5 MG Oral Tablet"
+  '828320':
+    en: "cyclobenzaprine hydrochloride 5 MG Oral Tablet"
+  '828348':
+    en: "cyclobenzaprine hydrochloride 10 MG Oral Tablet"
+  '828353':
+    en: "24 HR cyclobenzaprine hydrochloride 30 MG Extended Release Oral Capsule"
+  '828358':
+    en: "24 HR cyclobenzaprine hydrochloride 15 MG Extended Release Oral Capsule"
+  '829734':
+    en: "50 ML magnesium sulfate 80 MG/ML Injection"
+  '829757':
+    en: "100 ML magnesium sulfate 10 MG/ML Injection"
+  '830877':
+    en: "24 HR diltiazem hydrochloride 180 MG Extended Release Oral Tablet"
+  '830882':
+    en: "24 HR diltiazem hydrochloride 300 MG Extended Release Oral Tablet"
+  '830897':
+    en: "24 HR diltiazem hydrochloride 360 MG Extended Release Oral Tablet"
+  '830900':
+    en: "24 HR diltiazem hydrochloride 420 MG Extended Release Oral Tablet"
+  '831054':
+    en: "diltiazem hydrochloride 120 MG Oral Tablet"
+  '831102':
+    en: "diltiazem hydrochloride 90 MG Oral Tablet"
+  '831103':
+    en: "diltiazem hydrochloride 60 MG Oral Tablet"
+  '833135':
+    en: "milnacipran hydrochloride 100 MG Oral Tablet"
+  '833141':
+    en: "milnacipran hydrochloride 12.5 MG Oral Tablet"
+  '833144':
+    en: "milnacipran hydrochloride 50 MG Oral Tablet"
+  '833147':
+    en: "milnacipran hydrochloride 25 MG Oral Tablet"
+  '833217':
+    en: "diltiazem hydrochloride 30 MG Oral Tablet"
+  '833528':
+    en: "amiodarone hydrochloride 200 MG Oral Tablet"
+  '833711':
+    en: "24 HR tramadol hydrochloride 200 MG Extended Release Oral Tablet"
+  '833713':
+    en: "24 HR tramadol hydrochloride 300 MG Extended Release Oral Tablet"
+  '834022':
+    en: "ketorolac tromethamine 10 MG Oral Tablet"
+  '834348':
+    en: "amiodarone hydrochloride 400 MG Oral Tablet"
+  '835603':
+    en: "tramadol hydrochloride 50 MG Oral Tablet"
+  '835726':
+    en: "acamprosate calcium 333 MG Delayed Release Oral Tablet"
+  '835945':
+    en: "temozolomide 100 MG Injection"
+  '835956':
+    en: "amiodarone hydrochloride 100 MG Oral Tablet"
+  '835960':
+    en: "amiodarone hydrochloride 300 MG Oral Tablet"
+  '836343':
+    en: "200 ACTUAT ipratropium bromide 0.017 MG/ACTUAT Metered Dose Inhaler"
+  '846994':
+    en: "amoxicillin 150 MG Oral Tablet"
+  '847360':
+    en: "cefditoren pivoxil 400 MG Oral Tablet"
+  '848934':
+    en: "levocarnitine 400 MG Oral Capsule"
+  '849398':
+    en: "naproxen sodium 275 MG Oral Tablet"
+  '849431':
+    en: "naproxen sodium 550 MG Oral Tablet"
+  '849561':
+    en: "12 HR tramadol hydrochloride 150 MG Extended Release Oral Tablet"
+  '849574':
+    en: "naproxen sodium 220 MG Oral Tablet"
+  '849860':
+    en: "diltiazem malate 240 MG Oral Tablet"
+  '849876':
+    en: "200 ML amiodarone hydrochloride 1.8 MG/ML Injection"
+  '854183':
+    en: "8 ML ibuprofen 100 MG/ML Injection"
+  '854228':
+    en: "0.3 ML enoxaparin sodium 100 MG/ML Prefilled Syringe"
+  '854235':
+    en: "0.4 ML enoxaparin sodium 100 MG/ML Prefilled Syringe"
+  '854238':
+    en: "0.6 ML enoxaparin sodium 100 MG/ML Prefilled Syringe"
+  '854241':
+    en: "0.8 ML enoxaparin sodium 100 MG/ML Prefilled Syringe"
+  '854245':
+    en: "0.8 ML enoxaparin sodium 150 MG/ML Prefilled Syringe"
+  '854248':
+    en: "1 ML enoxaparin sodium 100 MG/ML Prefilled Syringe"
+  '854252':
+    en: "1 ML enoxaparin sodium 150 MG/ML Prefilled Syringe"
+  '854901':
+    en: "bisoprolol fumarate 10 MG Oral Tablet"
+  '854905':
+    en: "bisoprolol fumarate 5 MG Oral Tablet"
+  '855288':
+    en: "warfarin sodium 1 MG Oral Tablet"
+  '855296':
+    en: "warfarin sodium 10 MG Oral Tablet"
+  '855302':
+    en: "warfarin sodium 2 MG Oral Tablet"
+  '855312':
+    en: "warfarin sodium 2.5 MG Oral Tablet"
+  '855318':
+    en: "warfarin sodium 3 MG Oral Tablet"
+  '855324':
+    en: "warfarin sodium 4 MG Oral Tablet"
+  '855332':
+    en: "warfarin sodium 5 MG Oral Tablet"
+  '855338':
+    en: "warfarin sodium 6 MG Oral Tablet"
+  '855344':
+    en: "warfarin sodium 7.5 MG Oral Tablet"
+  '855350':
+    en: "warfarin sodium 0.5 MG Oral Tablet"
+  '855657':
+    en: "24 HR diclofenac sodium 100 MG Extended Release Oral Tablet"
+  '855942':
+    en: "diclofenac potassium 50 MG Oral Tablet"
+  '856664':
+    en: "rifaximin 550 MG Oral Tablet"
+  '857466':
+    en: "cholecalciferol 0.125 MG Oral Tablet"
+  '857702':
+    en: "diclofenac potassium 25 MG Oral Tablet"
+  '858580':
+    en: "12 HR nicardipine hydrochloride 45 MG Extended Release Oral Capsule"
+  '858599':
+    en: "200 ML nicardipine hydrochloride 0.1 MG/ML Injection"
+  '858603':
+    en: "200 ML nicardipine hydrochloride 0.2 MG/ML Injection"
+  '858607':
+    en: "10 ML nicardipine hydrochloride 2.5 MG/ML Injection"
+  '858613':
+    en: "nicardipine hydrochloride 20 MG Oral Capsule"
+  '858616':
+    en: "nicardipine hydrochloride 30 MG Oral Capsule"
+  '858804':
+    en: "enalapril maleate 2.5 MG Oral Tablet"
+  '858810':
+    en: "enalapril maleate 20 MG Oral Tablet"
+  '858813':
+    en: "enalapril maleate 5 MG Oral Tablet"
+  '858817':
+    en: "enalapril maleate 10 MG Oral Tablet"
+  '859203':
+    en: "2.5 ML sodium chloride 9 MG/ML Prefilled Syringe"
+  '859419':
+    en: "rosuvastatin calcium 40 MG Oral Tablet"
+  '859424':
+    en: "rosuvastatin calcium 5 MG Oral Tablet"
+  '859747':
+    en: "rosuvastatin calcium 10 MG Oral Tablet"
+  '859751':
+    en: "rosuvastatin calcium 20 MG Oral Tablet"
+  '860092':
+    en: "1 ML ketorolac tromethamine 15 MG/ML Injection"
+  '860510':
+    en: "24 HR carvedilol phosphate 10 MG Extended Release Oral Capsule"
+  '860516':
+    en: "24 HR carvedilol phosphate 20 MG Extended Release Oral Capsule"
+  '860522':
+    en: "24 HR carvedilol phosphate 40 MG Extended Release Oral Capsule"
+  '860532':
+    en: "24 HR carvedilol phosphate 80 MG Extended Release Oral Capsule"
+  '861004':
+    en: "metformin hydrochloride 1000 MG Oral Tablet"
+  '861007':
+    en: "metformin hydrochloride 500 MG Oral Tablet"
+  '861010':
+    en: "metformin hydrochloride 850 MG Oral Tablet"
+  '861021':
+    en: "metformin hydrochloride 625 MG Oral Tablet"
+  '861379':
+    en: "micafungin 50 MG Injection"
+  '861383':
+    en: "micafungin 100 MG Injection"
+  '863669':
+    en: "tamsulosin hydrochloride 0.4 MG Oral Capsule"
+  '864706':
+    en: "methadone hydrochloride 10 MG Oral Tablet"
+  '864718':
+    en: "methadone hydrochloride 5 MG Oral Tablet"
+  '865154':
+    en: "bisoprolol fumarate 1.25 MG Oral Tablet"
+  '865155':
+    en: "bisoprolol fumarate 2.5 MG Oral Tablet"
+  '865157':
+    en: "bisoprolol fumarate 3.75 MG Oral Tablet"
+  '865159':
+    en: "bisoprolol fumarate 7.5 MG Oral Tablet"
+  '866406':
+    en: "cholecalciferol 0.075 MG Oral Tablet"
+  '866412':
+    en: "24 HR metoprolol succinate 100 MG Extended Release Oral Tablet"
+  '866419':
+    en: "24 HR metoprolol succinate 200 MG Extended Release Oral Tablet"
+  '866427':
+    en: "24 HR metoprolol succinate 25 MG Extended Release Oral Tablet"
+  '866436':
+    en: "24 HR metoprolol succinate 50 MG Extended Release Oral Tablet"
+  '866508':
+    en: "5 ML metoprolol tartrate 1 MG/ML Injection"
+  '866511':
+    en: "metoprolol tartrate 100 MG Oral Tablet"
+  '866514':
+    en: "metoprolol tartrate 50 MG Oral Tablet"
+  '866924':
+    en: "metoprolol tartrate 25 MG Oral Tablet"
+  '883806':
+    en: "270 ACTUAT epinephrine 0.22 MG/ACTUAT Metered Dose Inhaler"
+  '884173':
+    en: "clonidine hydrochloride 0.1 MG Oral Tablet"
+  '884185':
+    en: "clonidine hydrochloride 0.2 MG Oral Tablet"
+  '884189':
+    en: "clonidine hydrochloride 0.3 MG Oral Tablet"
+  '884221':
+    en: "10 ML clonidine hydrochloride 0.1 MG/ML Injection"
+  '884225':
+    en: "10 ML clonidine hydrochloride 0.5 MG/ML Injection"
+  '885578':
+    en: "24 HR ferrous sulfate 142 MG Extended Release Oral Tablet"
+  '885880':
+    en: "24 HR clonidine 0.17 MG Extended Release Oral Tablet"
+  '891134':
+    en: "aspirin 15600 MG Oral Tablet"
+  '891136':
+    en: "aspirin 31200 MG Oral Tablet"
+  '891874':
+    en: "morphine sulfate 100 MG Extended Release Oral Tablet"
+  '892160':
+    en: "aspirin 3900 MG Oral Tablet"
+  '892246':
+    en: "levothyroxine sodium 0.1 MG Oral Tablet"
+  '892251':
+    en: "levothyroxine sodium 0.2 MG Oral Tablet"
+  '892255':
+    en: "levothyroxine sodium 0.3 MG Oral Tablet"
+  '892259':
+    en: "levothyroxine sodium 0.4 MG Oral Tablet"
+  '892263':
+    en: "levothyroxine sodium 0.5 MG Oral Tablet"
+  '892267':
+    en: "levothyroxine sodium 0.6 MG Oral Tablet"
+  '892271':
+    en: "levothyroxine sodium 0.7 MG Oral Tablet"
+  '892275':
+    en: "levothyroxine sodium 0.8 MG Oral Tablet"
+  '892279':
+    en: "levothyroxine sodium 1 MG Oral Tablet"
+  '892297':
+    en: "24 HR morphine sulfate 120 MG Extended Release Oral Capsule"
+  '892355':
+    en: "24 HR morphine sulfate 90 MG Extended Release Oral Capsule"
+  '892582':
+    en: "morphine sulfate 15 MG Oral Tablet"
+  '892672':
+    en: "morphine sulfate 30 MG Oral Tablet"
+  '892791':
+    en: "clonidine hydrochloride 0.025 MG Oral Tablet"
+  '892795':
+    en: "clonidine hydrochloride 0.25 MG Extended Release Oral Capsule"
+  '894814':
+    en: "morphine sulfate 80 MG Extended Release Oral Capsule"
+  '894911':
+    en: "0.7 ML morphine sulfate 14.3 MG/ML Auto-Injector"
+  '894942':
+    en: "24 HR morphine sulfate 45 MG Extended Release Oral Capsule"
+  '894970':
+    en: "24 HR morphine sulfate 75 MG Extended Release Oral Capsule"
+  '895014':
+    en: "morphine sulfate 10 MG Oral Tablet"
+  '895201':
+    en: "morphine sulfate 20 MG Oral Tablet"
+  '895206':
+    en: "morphine sulfate 200 MG Oral Tablet"
+  '895217':
+    en: "morphine sulfate 5 MG Extended Release Oral Tablet"
+  '895221':
+    en: "morphine sulfate 50 MG Oral Tablet"
+  '895247':
+    en: "morphine sulfate 60 MG Oral Tablet"
+  '896184':
+    en: "60 ACTUAT fluticasone propionate 0.1 MG/ACTUAT / salmeterol 0.05 MG/ACTUAT Dry Powder Inhaler"
+  '896209':
+    en: "60 ACTUAT fluticasone propionate 0.25 MG/ACTUAT / salmeterol 0.05 MG/ACTUAT Dry Powder Inhaler"
+  '896228':
+    en: "60 ACTUAT fluticasone propionate 0.5 MG/ACTUAT / salmeterol 0.05 MG/ACTUAT Dry Powder Inhaler"
+  '896236':
+    en: "120 ACTUAT fluticasone propionate 0.045 MG/ACTUAT / salmeterol 0.021 MG/ACTUAT Metered Dose Inhaler"
+  '896244':
+    en: "120 ACTUAT fluticasone propionate 0.115 MG/ACTUAT / salmeterol 0.021 MG/ACTUAT Metered Dose Inhaler"
+  '896272':
+    en: "120 ACTUAT fluticasone propionate 0.23 MG/ACTUAT / salmeterol 0.021 MG/ACTUAT Metered Dose Inhaler"
+  '896758':
+    en: "labetalol hydrochloride 100 MG Oral Tablet"
+  '896762':
+    en: "labetalol hydrochloride 200 MG Oral Tablet"
+  '896766':
+    en: "labetalol hydrochloride 300 MG Oral Tablet"
+  '896983':
+    en: "labetalol hydrochloride 400 MG Oral Tablet"
+  '896987':
+    en: "labetalol hydrochloride 50 MG Oral Tablet"
+  '897653':
+    en: "1 ML hydromorphone hydrochloride 1 MG/ML Injection"
+  '897696':
+    en: "hydromorphone hydrochloride 2 MG Oral Tablet"
+  '897702':
+    en: "hydromorphone hydrochloride 4 MG Oral Tablet"
+  '897710':
+    en: "hydromorphone hydrochloride 8 MG Oral Tablet"
+  '897753':
+    en: "1 ML hydromorphone hydrochloride 4 MG/ML Injection"
+  '897771':
+    en: "hydromorphone hydrochloride 1 MG Oral Tablet"
+  '898004':
+    en: "hydromorphone hydrochloride 1.3 MG Oral Capsule"
+  '898138':
+    en: "hydromorphone hydrochloride 2.6 MG Oral Capsule"
+  '898139':
+    en: "hydromorphone hydrochloride 3 MG Oral Tablet"
+  '898589':
+    en: "octreotide 20 MG Injection"
+  '898601':
+    en: "octreotide 30 MG Injection"
+  '898605':
+    en: "octreotide 10 MG Injection"
+  '900391':
+    en: "clindamycin 25 MG Oral Tablet"
+  '900460':
+    en: "clindamycin 75 MG Oral Tablet"
+  '902729':
+    en: "24 HR hydromorphone hydrochloride 12 MG Extended Release Oral Tablet"
+  '902736':
+    en: "24 HR hydromorphone hydrochloride 16 MG Extended Release Oral Tablet"
+  '903879':
+    en: "24 HR fluvoxamine maleate 150 MG Extended Release Oral Capsule"
+  '903884':
+    en: "fluvoxamine maleate 100 MG Oral Tablet"
+  '903887':
+    en: "fluvoxamine maleate 25 MG Oral Tablet"
+  '903891':
+    en: "fluvoxamine maleate 50 MG Oral Tablet"
+  '904238':
+    en: "potassium chloride 2.42 MEQ Oral Tablet"
+  '904396':
+    en: "alendronic acid 35 MG Oral Tablet"
+  '904405':
+    en: "alendronic acid 40 MG Oral Tablet"
+  '904419':
+    en: "alendronic acid 10 MG Oral Tablet"
+  '904425':
+    en: "alendronic acid 5 MG Oral Tablet"
+  '904431':
+    en: "alendronic acid 70 MG Oral Tablet"
+  '966219':
+    en: "levothyroxine sodium 0.5 MG Injection"
+  '966220':
+    en: "levothyroxine sodium 0.025 MG Oral Tablet"
+  '966221':
+    en: "levothyroxine sodium 0.05 MG Oral Tablet"
+  '966222':
+    en: "levothyroxine sodium 0.075 MG Oral Tablet"
+  '966224':
+    en: "levothyroxine sodium 0.125 MG Oral Tablet"
+  '966225':
+    en: "levothyroxine sodium 0.15 MG Oral Tablet"
+  '966248':
+    en: "levothyroxine sodium 0.112 MG Oral Tablet"
+  '966249':
+    en: "levothyroxine sodium 0.175 MG Oral Tablet"
+  '966253':
+    en: "levothyroxine sodium 0.088 MG Oral Tablet"
+  '966270':
+    en: "levothyroxine sodium 0.137 MG Oral Tablet"
+  '966280':
+    en: "levothyroxine sodium 0.0125 MG Oral Tablet"
+  '966412':
+    en: "levothyroxine sodium 0.013 MG Oral Capsule"
+  '978010':
+    en: "loperamide hydrochloride 2 MG Oral Tablet"
+  '979480':
+    en: "losartan potassium 100 MG Oral Tablet"
+  '979485':
+    en: "losartan potassium 25 MG Oral Tablet"
+  '979492':
+    en: "losartan potassium 50 MG Oral Tablet"
+  '993462':
+    en: "midodrine hydrochloride 10 MG Oral Tablet"
+  '993466':
+    en: "midodrine hydrochloride 2.5 MG Oral Tablet"
+  '993470':
+    en: "midodrine hydrochloride 5 MG Oral Tablet"
+  '993770':
+    en: "acetaminophen 300 MG / codeine phosphate 15 MG Oral Tablet"
+  '993781':
+    en: "acetaminophen 300 MG / codeine phosphate 30 MG Oral Tablet"
+  '993890':
+    en: "acetaminophen 300 MG / codeine phosphate 60 MG Oral Tablet"
+  '994043':
+    en: "acetaminophen 500 MG / codeine phosphate 15 MG Oral Tablet"
+  '994046':
+    en: "acetaminophen 500 MG / codeine phosphate 30 MG Oral Tablet"
+  '995218':
+    en: "hydroxyzine hydrochloride 10 MG Oral Tablet"
+  '995235':
+    en: "hydroxyzine hydrochloride 100 MG Oral Tablet"
+  '995258':
+    en: "hydroxyzine hydrochloride 25 MG Oral Tablet"
+  '995270':
+    en: "1 ML hydroxyzine hydrochloride 25 MG/ML Injection"
+  '995281':
+    en: "hydroxyzine hydrochloride 50 MG Oral Tablet"
+  '995624':
+    en: "meclizine hydrochloride 12.5 MG Oral Tablet"
+  '995666':
+    en: "meclizine hydrochloride 25 MG Oral Tablet"
+  '995682':
+    en: "meclizine hydrochloride 30 MG Oral Tablet"
+  '995686':
+    en: "meclizine hydrochloride 50 MG Oral Tablet"
+  '996976':
+    en: "acetaminophen 500 MG / codeine phosphate 12.8 MG Oral Tablet"
+  '996978':
+    en: "acetaminophen 500 MG / codeine phosphate 13.5 MG Oral Tablet"
+  '996982':
+    en: "acetaminophen 500 MG / codeine phosphate 8 MG Oral Tablet"
+  '997169':
+    en: "codeine phosphate 15 MG Oral Tablet"
+  '997223':
+    en: "donepezil hydrochloride 10 MG Oral Tablet"
+  '997229':
+    en: "donepezil hydrochloride 5 MG Oral Tablet"
+  '997285':
+    en: "codeine phosphate 30 MG Oral Tablet"
+  '997296':
+    en: "codeine sulfate 60 MG Oral Tablet"
+  '1010844':
+    en: "5 ML lidocaine hydrochloride 40 MG/ML Injection"
+  '1011093':
+    en: "2 ML lidocaine hydrochloride 50 MG/ML Injection"
+  '1014599':
+    en: "acetaminophen 300 MG / oxycodone hydrochloride 10 MG Oral Tablet"
+  '1014615':
+    en: "acetaminophen 300 MG / oxycodone hydrochloride 5 MG Oral Tablet"
+  '1014632':
+    en: "acetaminophen 300 MG / oxycodone hydrochloride 7.5 MG Oral Tablet"
+  '1014676':
+    en: "cetirizine hydrochloride 5 MG Oral Tablet"
+  '1014678':
+    en: "cetirizine hydrochloride 10 MG Oral Tablet"
+  '1037259':
+    en: "acetaminophen 300 MG / oxycodone hydrochloride 2.5 MG Oral Tablet"
+  '1046398':
+    en: "1.7 ML denosumab 70 MG/ML Injection"
+  '1046406':
+    en: "100 ML amiodarone hydrochloride 1.5 MG/ML Injection"
+  '1049214':
+    en: "acetaminophen 325 MG / oxycodone hydrochloride 10 MG Oral Tablet"
+  '1049221':
+    en: "acetaminophen 325 MG / oxycodone hydrochloride 5 MG Oral Tablet"
+  '1049225':
+    en: "acetaminophen 325 MG / oxycodone hydrochloride 7.5 MG Oral Tablet"
+  '1049233':
+    en: "acetaminophen 500 MG / oxycodone hydrochloride 7.5 MG Oral Tablet"
+  '1049267':
+    en: "acetaminophen 400 MG / oxycodone hydrochloride 7.5 MG Oral Tablet"
+  '1049270':
+    en: "acetaminophen 650 MG / oxycodone hydrochloride 10 MG Oral Tablet"
+  '1049584':
+    en: "12 HR oxycodone hydrochloride 40 MG Extended Release Oral Tablet"
+  '1049593':
+    en: "12 HR oxycodone hydrochloride 60 MG Extended Release Oral Tablet"
+  '1049599':
+    en: "12 HR oxycodone hydrochloride 80 MG Extended Release Oral Tablet"
+  '1049611':
+    en: "oxycodone hydrochloride 15 MG Oral Tablet"
+  '1049618':
+    en: "oxycodone hydrochloride 30 MG Oral Tablet"
+  '1049621':
+    en: "oxycodone hydrochloride 5 MG Oral Tablet"
+  '1049630':
+    en: "diphenhydramine hydrochloride 25 MG Oral Tablet"
+  '1049635':
+    en: "acetaminophen 325 MG / oxycodone hydrochloride 2.5 MG Oral Tablet"
+  '1049651':
+    en: "acetaminophen 500 MG / oxycodone hydrochloride 10 MG Oral Tablet"
+  '1049658':
+    en: "acetaminophen 500 MG / oxycodone hydrochloride 5 MG Oral Capsule"
+  '1049683':
+    en: "oxycodone hydrochloride 10 MG Oral Tablet"
+  '1049686':
+    en: "oxycodone hydrochloride 20 MG Oral Tablet"
+  '1053647':
+    en: "fentanyl 0.1 MG Sublingual Tablet"
+  '1053652':
+    en: "fentanyl 0.2 MG Sublingual Tablet"
+  '1053655':
+    en: "fentanyl 0.3 MG Sublingual Tablet"
+  '1053658':
+    en: "fentanyl 0.4 MG Sublingual Tablet"
+  '1053661':
+    en: "fentanyl 0.6 MG Sublingual Tablet"
+  '1053664':
+    en: "fentanyl 0.8 MG Sublingual Tablet"
+  '1085945':
+    en: "diphenhydramine hydrochloride 50 MG Oral Tablet"
+  '1089780':
+    en: "vitamin K1 1 MG Oral Capsule"
+  '1094104':
+    en: "phenazopyridine hydrochloride 200 MG Oral Tablet"
+  '1094107':
+    en: "phenazopyridine hydrochloride 100 MG Oral Tablet"
+  '1094126':
+    en: "phenazopyridine hydrochloride 95 MG Oral Tablet"
+  '1094147':
+    en: "phenazopyridine hydrochloride 99.5 MG Oral Tablet"
+  '1094160':
+    en: "phenazopyridine hydrochloride 97.2 MG Oral Tablet"
+  '1094351':
+    en: "phenazopyridine hydrochloride 150 MG Oral Tablet"
+  '1094357':
+    en: "phenazopyridine hydrochloride 97.5 MG Oral Tablet"
+  '1095421':
+    en: "ferrous sulfate 140 MG Extended Release Oral Tablet"
+  '1098608':
+    en: "24 HR lamotrigine 300 MG Extended Release Oral Tablet"
+  '1098865':
+    en: "ferrous sulfate 88 MG Oral Tablet"
+  '1098910':
+    en: "ferrous sulfate 143 MG Extended Release Oral Tablet"
+  '1099074':
+    en: "12 HR dextromethorphan hydrobromide 60 MG / guaifenesin 1200 MG Extended Release Oral Tablet"
+  '1099648':
+    en: "5 ML valproic acid 100 MG/ML Injection"
+  '1099656':
+    en: "valproic acid 125 MG Delayed Release Oral Capsule"
+  '1099681':
+    en: "valproic acid 250 MG Oral Capsule"
+  '1099691':
+    en: "valproic acid 500 MG Delayed Release Oral Capsule"
+  '1099703':
+    en: "valproic acid 100 MG Oral Tablet"
+  '1099766':
+    en: "valproic acid 150 MG Delayed Release Oral Capsule"
+  '1099772':
+    en: "valproic acid 200 MG Delayed Release Oral Tablet"
+  '1099878':
+    en: "calcium carbonate 1625 MG Oral Tablet"
+  '1100184':
+    en: "donepezil hydrochloride 23 MG Oral Tablet"
+  '1113314':
+    en: "oxycodone hydrochloride 7.5 MG Oral Tablet"
+  '1114198':
+    en: "rivaroxaban 10 MG Oral Tablet"
+  '1115267':
+    en: "levothyroxine sodium 0.1 MG Injection"
+  '1115269':
+    en: "levothyroxine sodium 0.2 MG Injection"
+  '1115447':
+    en: "1 ML leuprolide acetate 11.25 MG/ML Prefilled Syringe"
+  '1115454':
+    en: "1 ML leuprolide acetate 15 MG/ML Prefilled Syringe"
+  '1115457':
+    en: "1 ML leuprolide acetate 3.75 MG/ML Prefilled Syringe"
+  '1115877':
+    en: "cholecalciferol 0.1 MG Oral Tablet"
+  '1116349':
+    en: "24 HR naproxen 750 MG Extended Release Oral Tablet"
+  '1116635':
+    en: "ticagrelor 90 MG Oral Tablet"
+  '1147685':
+    en: "dextromethorphan hydrobromide 20 MG / guaifenesin 400 MG Oral Tablet"
+  '1149629':
+    en: "1000 ML sodium chloride 72 MG/ML Injection"
+  '1150266':
+    en: "cholecalciferol 0.625 MG Oral Capsule"
+  '1190110':
+    en: "fluoxetine 60 MG Oral Tablet"
+  '1190536':
+    en: "0.3 ML atropine sulfate 0.833 MG/ML Auto-Injector"
+  '1190538':
+    en: "0.7 ML atropine sulfate 0.714 MG/ML Auto-Injector"
+  '1190540':
+    en: "0.7 ML atropine sulfate 1.43 MG/ML Auto-Injector"
+  '1190542':
+    en: "0.7 ML atropine sulfate 2.86 MG/ML Auto-Injector"
+  '1190551':
+    en: "5 ML atropine sulfate 0.05 MG/ML Prefilled Syringe"
+  '1190552':
+    en: "5 ML atropine sulfate 0.1 MG/ML Prefilled Syringe"
+  '1190556':
+    en: "5 ML atropine sulfate 0.4 MG/ML Prefilled Syringe"
+  '1190692':
+    en: "atropine sulfate 0.4 MG Oral Tablet"
+  '1190783':
+    en: "atropine sulfate 0.6 MG Oral Tablet"
+  '1190795':
+    en: "1 ML atropine sulfate 1 MG/ML Injection"
+  '1191250':
+    en: "2 ML naloxone hydrochloride 1 MG/ML Prefilled Syringe"
+  '1191508':
+    en: "20 ML bupivacaine liposome 13.3 MG/ML Injection"
+  '1193358':
+    en: "100 ML levetiracetam 10 MG/ML Injection"
+  '1193360':
+    en: "100 ML levetiracetam 15 MG/ML Injection"
+  '1232082':
+    en: "rivaroxaban 15 MG Oral Tablet"
+  '1232086':
+    en: "rivaroxaban 20 MG Oral Tablet"
+  '1291276':
+    en: "cholecalciferol 1.25 MG Oral Tablet"
+  '1298324':
+    en: "12 HR dextromethorphan hydrobromide 30 MG / guaifenesin 600 MG Extended Release Oral Tablet"
+  '1300539':
+    en: "dextromethorphan hydrobromide 10 MG / guaifenesin 100 MG Oral Tablet"
+  '1302195':
+    en: "potassium chloride 1.33 MEQ Oral Tablet"
+  '1303132':
+    en: "prednisone 2 MG Delayed Release Oral Tablet"
+  '1303736':
+    en: "morphine sulfate 40 MG Extended Release Oral Capsule"
+  '1306898':
+    en: "24 HR hydromorphone hydrochloride 32 MG Extended Release Oral Tablet"
+  '1310475':
+    en: "diphenhydramine hydrochloride 10 MG Oral Tablet"
+  '1310483':
+    en: "diphenhydramine hydrochloride 30 MG Oral Tablet"
+  '1357886':
+    en: "methylprednisolone 2000 MG Injection"
+  '1357923':
+    en: "12 HR dextromethorphan hydrobromide 57.5 MG / guaifenesin 775 MG Extended Release Oral Tablet"
+  '1361607':
+    en: "500 ML heparin sodium, porcine 40 UNT/ML Injection"
+  '1362060':
+    en: "2 ML heparin sodium, porcine 100 UNT/ML Prefilled Syringe"
+  '1362062':
+    en: "3 ML heparin sodium, porcine 100 UNT/ML Prefilled Syringe"
+  '1362067':
+    en: "3 ML heparin sodium, porcine 2000 UNT/ML Prefilled Syringe"
+  '1364435':
+    en: "apixaban 2.5 MG Oral Tablet"
+  '1364445':
+    en: "apixaban 5 MG Oral Tablet"
+  '1374807':
+    en: "folic acid 2 MG Oral Capsule"
+  '1430122':
+    en: "paroxetine mesylate 7.5 MG Oral Capsule"
+  '1431076':
+    en: "buprenorphine 1.4 MG / naloxone 0.36 MG Sublingual Tablet"
+  '1431102':
+    en: "buprenorphine 5.7 MG / naloxone 1.4 MG Sublingual Tablet"
+  '1433251':
+    en: "0.5 ML hydromorphone hydrochloride 1 MG/ML Prefilled Syringe"
+  '1442116':
+    en: "diclofenac 18 MG Oral Capsule"
+  '1442128':
+    en: "diclofenac 35 MG Oral Capsule"
+  '1483744':
+    en: "naltrexone hydrochloride 50 MG Oral Tablet"
+  '1483774':
+    en: "naltrexone hydrochloride 100 MG Oral Tablet"
+  '1483780':
+    en: "naltrexone hydrochloride 25 MG Oral Tablet"
+  '1488569':
+    en: "dapagliflozin 10 MG Oral Tablet"
+  '1488574':
+    en: "dapagliflozin 5 MG Oral Tablet"
+  '1540845':
+    en: "ferrous fumarate 456 MG Oral Tablet"
+  '1543202':
+    en: "insulin, regular, human 4 UNT Inhalation Powder"
+  '1544488':
+    en: "insulin, regular, human 8 UNT Inhalation Powder"
+  '1545658':
+    en: "empagliflozin 10 MG Oral Tablet"
+  '1545666':
+    en: "empagliflozin 25 MG Oral Tablet"
+  '1552002':
+    en: "60 ACTUAT tiotropium 0.0025 MG/ACTUAT Inhalation Spray"
+  '1597568':
+    en: "buprenorphine 11.4 MG / naloxone 2.9 MG Sublingual Tablet"
+  '1597573':
+    en: "buprenorphine 8.6 MG / naloxone 2.1 MG Sublingual Tablet"
+  '1598082':
+    en: "20 ML peramivir 10 MG/ML Injection"
+  '1599543':
+    en: "edoxaban 15 MG Oral Tablet"
+  '1599551':
+    en: "edoxaban 30 MG Oral Tablet"
+  '1599555':
+    en: "edoxaban 60 MG Oral Tablet"
+  '1600773':
+    en: "8 HR carbidopa 23.75 MG / levodopa 95 MG Extended Release Oral Capsule"
+  '1600775':
+    en: "8 HR carbidopa 36.25 MG / levodopa 145 MG Extended Release Oral Capsule"
+  '1600914':
+    en: "8 HR carbidopa 48.75 MG / levodopa 195 MG Extended Release Oral Capsule"
+  '1600916':
+    en: "8 HR carbidopa 61.25 MG / levodopa 245 MG Extended Release Oral Capsule"
+  '1604345':
+    en: "lenvatinib 10 MG Oral Capsule"
+  '1604348':
+    en: "lenvatinib 4 MG Oral Capsule"
+  '1605372':
+    en: "24 HR levetiracetam 1500 MG Extended Release Oral Tablet"
+  '1606347':
+    en: "metoprolol tartrate 37.5 MG Oral Tablet"
+  '1606349':
+    en: "metoprolol tartrate 75 MG Oral Tablet"
+  '1608797':
+    en: "naproxen 200 MG Oral Tablet"
+  '1649560':
+    en: "200 ACTUAT albuterol 0.09 MG/ACTUAT Dry Powder Inhaler"
+  '1652644':
+    en: "3 ML insulin lispro 100 UNT/ML Cartridge"
+  '1653196':
+    en: "3 ML insulin aspart, human 100 UNT/ML Cartridge"
+  '1653579':
+    en: "BCG, live, Tice strain 50 MG Injection"
+  '1654910':
+    en: "insulin, regular, human 12 UNT Inhalation Powder"
+  '1656313':
+    en: "cefotaxime 1000 MG Injection"
+  '1656318':
+    en: "cefotaxime 2000 MG Injection"
+  '1657010':
+    en: "0.5 ML sumatriptan 8 MG/ML Injection"
+  '1658084':
+    en: "ado-trastuzumab emtansine 100 MG Injection"
+  '1658089':
+    en: "ado-trastuzumab emtansine 160 MG Injection"
+  '1658236':
+    en: "20 ML magnesium sulfate 500 MG/ML Injection"
+  '1658244':
+    en: "10 ML magnesium sulfate 500 MG/ML Injection"
+  '1658245':
+    en: "50 ML magnesium sulfate 500 MG/ML Injection"
+  '1658259':
+    en: "50 ML magnesium sulfate 40 MG/ML Injection"
+  '1658264':
+    en: "500 ML magnesium sulfate 40 MG/ML Injection"
+  '1658265':
+    en: "1000 ML magnesium sulfate 40 MG/ML Injection"
+  '1658634':
+    en: "0.5 ML heparin sodium, porcine 10000 UNT/ML Injection"
+  '1658637':
+    en: "1 ML heparin sodium, porcine 10000 UNT/ML Injection"
+  '1658647':
+    en: "2 ML heparin sodium, porcine 1000 UNT/ML Injection"
+  '1658659':
+    en: "1 ML heparin sodium, porcine 1000 UNT/ML Injection"
+  '1658717':
+    en: "250 ML heparin sodium, porcine 100 UNT/ML Injection"
+  '1659131':
+    en: "piperacillin 2000 MG / tazobactam 250 MG Injection"
+  '1659137':
+    en: "piperacillin 3000 MG / tazobactam 375 MG Injection"
+  '1659149':
+    en: "piperacillin 4000 MG / tazobactam 500 MG Injection"
+  '1659197':
+    en: "250 ML heparin sodium, porcine 50 UNT/ML Injection"
+  '1659592':
+    en: "ampicillin 1000 MG / sulbactam 500 MG Injection"
+  '1659598':
+    en: "ampicillin 2000 MG / sulbactam 1000 MG Injection"
+  '1659812':
+    en: "aripiprazole 400 MG Injection"
+  '1659816':
+    en: "aripiprazole 300 MG Injection"
+  '1659929':
+    en: "1 ML naloxone hydrochloride 0.4 MG/ML Injection"
+  '1660014':
+    en: "1 ML epinephrine 1 MG/ML Injection"
+  '1661427':
+    en: "3 ML sodium chloride 9 MG/ML Cartridge"
+  '1663244':
+    en: "9 ML amiodarone hydrochloride 50 MG/ML Injection"
+  '1663248':
+    en: "18 ML amiodarone hydrochloride 50 MG/ML Injection"
+  '1664981':
+    en: "aztreonam 1000 MG Injection"
+  '1664986':
+    en: "aztreonam 2000 MG Injection"
+  '1665005':
+    en: "ceftriaxone 500 MG Injection"
+  '1665021':
+    en: "ceftriaxone 1000 MG Injection"
+  '1665046':
+    en: "ceftriaxone 2000 MG Injection"
+  '1665050':
+    en: "cefazolin 1000 MG Injection"
+  '1665052':
+    en: "cefazolin 500 MG Injection"
+  '1665060':
+    en: "cefazolin 2000 MG Injection"
+  '1665088':
+    en: "cefepime 2000 MG Injection"
+  '1665093':
+    en: "cefepime 1000 MG Injection"
+  '1665097':
+    en: "cefepime 500 MG Injection"
+  '1665188':
+    en: "1 ML lorazepam 2 MG/ML Injection"
+  '1665210':
+    en: "100 ML ciprofloxacin 2 MG/ML Injection"
+  '1665212':
+    en: "200 ML ciprofloxacin 2 MG/ML Injection"
+  '1665326':
+    en: "1 ML lorazepam 4 MG/ML Injection"
+  '1665356':
+    en: "24 HR aspirin 162.5 MG Extended Release Oral Capsule"
+  '1665459':
+    en: "2 ML ketorolac tromethamine 30 MG/ML Injection"
+  '1665461':
+    en: "1 ML ketorolac tromethamine 30 MG/ML Injection"
+  '1665497':
+    en: "50 ML levofloxacin 5 MG/ML Injection"
+  '1665507':
+    en: "100 ML levofloxacin 5 MG/ML Injection"
+  '1665515':
+    en: "150 ML levofloxacin 5 MG/ML Injection"
+  '1666332':
+    en: "ticagrelor 60 MG Oral Tablet"
+  '1666338':
+    en: "buprenorphine 2.9 MG / naloxone 0.71 MG Sublingual Tablet"
+  '1666549':
+    en: "magnesium sulfate 100 MG Oral Capsule"
+  '1666781':
+    en: "1 ML atropine sulfate 0.4 MG/ML Injection"
+  '1666798':
+    en: "2 ML midazolam 1 MG/ML Injection"
+  '1666800':
+    en: "5 ML midazolam 1 MG/ML Injection"
+  '1666823':
+    en: "2 ML midazolam 5 MG/ML Injection"
+  '1667880':
+    en: "60 ACTUAT tiotropium 0.00125 MG/ACTUAT Inhalation Spray"
+  '1668238':
+    en: "azithromycin 500 MG Injection"
+  '1668248':
+    en: "50 ML calcium gluconate 100 MG/ML Injection"
+  '1668250':
+    en: "10 ML calcium gluconate 100 MG/ML Injection"
+  '1668264':
+    en: "erythromycin lactobionate 500 MG Injection"
+  '1670192':
+    en: "1 ML vitamin K1 10 MG/ML Injection"
+  '1670387':
+    en: "factor IX complex 1 UNT Injection"
+  '1716195':
+    en: "50 ML idarucizumab 50 MG/ML Injection"
+  '1718925':
+    en: "olanzapine 405 MG Injection"
+  '1718930':
+    en: "olanzapine 300 MG Injection"
+  '1718934':
+    en: "olanzapine 210 MG Injection"
+  '1719000':
+    en: "gemcitabine 200 MG Injection"
+  '1719003':
+    en: "gemcitabine 1000 MG Injection"
+  '1719005':
+    en: "gemcitabine 2000 MG Injection"
+  '1719286':
+    en: "10 ML furosemide 10 MG/ML Injection"
+  '1719290':
+    en: "2 ML furosemide 10 MG/ML Injection"
+  '1719291':
+    en: "4 ML furosemide 10 MG/ML Injection"
+  '1719646':
+    en: "1 ML haloperidol 5 MG/ML Injection"
+  '1719772':
+    en: "10 ML irinotecan hydrochloride liposome 4.3 MG/ML Injection"
+  '1719803':
+    en: "1 ML haloperidol decanoate 100 MG/ML Injection"
+  '1719862':
+    en: "1 ML haloperidol decanoate 50 MG/ML Injection"
+  '1720960':
+    en: "26.3 ML gemcitabine 38 MG/ML Injection"
+  '1720975':
+    en: "52.6 ML gemcitabine 38 MG/ML Injection"
+  '1720977':
+    en: "5.26 ML gemcitabine 38 MG/ML Injection"
+  '1721310':
+    en: "50 ML fluconazole 2 MG/ML Injection"
+  '1721314':
+    en: "200 ML fluconazole 2 MG/ML Injection"
+  '1721315':
+    en: "100 ML fluconazole 2 MG/ML Injection"
+  '1721473':
+    en: "ampicillin 250 MG Injection"
+  '1721474':
+    en: "ampicillin 500 MG Injection"
+  '1721475':
+    en: "ampicillin 1000 MG Injection"
+  '1721476':
+    en: "ampicillin 2000 MG Injection"
+  '1721565':
+    en: "osimertinib 40 MG Oral Tablet"
+  '1721581':
+    en: "osimertinib 80 MG Oral Tablet"
+  '1722934':
+    en: "meropenem 500 MG Injection"
+  '1722939':
+    en: "meropenem 1000 MG Injection"
+  '1723740':
+    en: "1 ML diphenhydramine hydrochloride 50 MG/ML Injection"
+  '1724276':
+    en: "1 ML hydromorphone hydrochloride 2 MG/ML Injection"
+  '1724338':
+    en: "1 ML hydromorphone hydrochloride 10 MG/ML Injection"
+  '1724340':
+    en: "5 ML hydromorphone hydrochloride 10 MG/ML Injection"
+  '1724341':
+    en: "50 ML hydromorphone hydrochloride 10 MG/ML Injection"
+  '1724666':
+    en: "20 ML aminophylline 25 MG/ML Injection"
+  '1724668':
+    en: "10 ML aminophylline 25 MG/ML Injection"
+  '1724784':
+    en: "2 ML bupivacaine hydrochloride 7.5 MG/ML Injection"
+  '1724786':
+    en: "30 ML bupivacaine hydrochloride 7.5 MG/ML Injection"
+  '1724787':
+    en: "10 ML bupivacaine hydrochloride 7.5 MG/ML Injection"
+  '1724880':
+    en: "10 ML bupivacaine hydrochloride 5 MG/ML Injection"
+  '1724884':
+    en: "30 ML bupivacaine hydrochloride 5 MG/ML Injection"
+  '1725078':
+    en: "10 ML bupivacaine hydrochloride 2.5 MG/ML Injection"
+  '1726204':
+    en: "cilastatin 250 MG / imipenem 250 MG Injection"
+  '1726214':
+    en: "cilastatin 500 MG / imipenem 500 MG Injection"
+  '1726319':
+    en: "2 ML irinotecan hydrochloride 20 MG/ML Injection"
+  '1726324':
+    en: "5 ML irinotecan hydrochloride 20 MG/ML Injection"
+  '1726333':
+    en: "15 ML irinotecan hydrochloride 20 MG/ML Injection"
+  '1726492':
+    en: "25 ML irinotecan hydrochloride 20 MG/ML Injection"
+  '1728072':
+    en: "pemetrexed 500 MG Injection"
+  '1728077':
+    en: "pemetrexed 100 MG Injection"
+  '1728783':
+    en: "10 ML morphine sulfate 0.5 MG/ML Injection"
+  '1728791':
+    en: "2 ML morphine sulfate 0.5 MG/ML Injection"
+  '1728800':
+    en: "10 ML morphine sulfate 1 MG/ML Injection"
+  '1728805':
+    en: "2 ML morphine sulfate 1 MG/ML Injection"
+  '1728999':
+    en: "30 ML morphine sulfate 1 MG/ML Injection"
+  '1731520':
+    en: "4 ML morphine sulfate 25 MG/ML Injection"
+  '1731522':
+    en: "20 ML morphine sulfate 25 MG/ML Injection"
+  '1731537':
+    en: "20 ML morphine sulfate 50 MG/ML Injection"
+  '1731545':
+    en: "50 ML morphine sulfate 50 MG/ML Injection"
+  '1731990':
+    en: "1.5 ML morphine sulfate liposomal 10 MG/ML Injection"
+  '1731998':
+    en: "20 ML morphine sulfate 10 MG/ML Injection"
+  '1732006':
+    en: "1 ML morphine sulfate 4 MG/ML Injection"
+  '1732011':
+    en: "1 ML morphine sulfate 8 MG/ML Injection"
+  '1732138':
+    en: "30 ML morphine sulfate 5 MG/ML Injection"
+  '1735003':
+    en: "2 ML fentanyl 0.05 MG/ML Injection"
+  '1735006':
+    en: "10 ML fentanyl 0.05 MG/ML Injection"
+  '1735007':
+    en: "5 ML fentanyl 0.05 MG/ML Injection"
+  '1735008':
+    en: "20 ML fentanyl 0.05 MG/ML Injection"
+  '1735013':
+    en: "50 ML fentanyl 0.05 MG/ML Injection"
+  '1736776':
+    en: "10 ML oxaliplatin 5 MG/ML Injection"
+  '1736781':
+    en: "20 ML oxaliplatin 5 MG/ML Injection"
+  '1737343':
+    en: "50 ML lidocaine hydrochloride 5 MG/ML Injection"
+  '1737562':
+    en: "30 ML lidocaine hydrochloride 10 MG/ML Injection"
+  '1737566':
+    en: "5 ML lidocaine hydrochloride 10 MG/ML Injection"
+  '1737568':
+    en: "2 ML lidocaine hydrochloride 10 MG/ML Injection"
+  '1737640':
+    en: "10 ML lidocaine hydrochloride 15 MG/ML Injection"
+  '1737723':
+    en: "250 ML lidocaine hydrochloride 8 MG/ML Injection"
+  '1737735':
+    en: "500 ML lidocaine hydrochloride 8 MG/ML Injection"
+  '1737742':
+    en: "250 ML lidocaine hydrochloride 4 MG/ML Injection"
+  '1737757':
+    en: "2 ML lidocaine hydrochloride 20 MG/ML Injection"
+  '1738483':
+    en: "paroxetine hydrochloride 10 MG Oral Tablet"
+  '1738495':
+    en: "paroxetine hydrochloride 20 MG Oral Tablet"
+  '1738503':
+    en: "paroxetine hydrochloride 30 MG Oral Tablet"
+  '1738511':
+    en: "paroxetine hydrochloride 40 MG Oral Tablet"
+  '1738576':
+    en: "0.5 ML sumatriptan 6 MG/ML Auto-Injector"
+  '1738586':
+    en: "hydrocortisone 1000 MG Injection"
+  '1738590':
+    en: "hydrocortisone 250 MG Injection"
+  '1738594':
+    en: "hydrocortisone 500 MG Injection"
+  '1738803':
+    en: "24 HR paroxetine hydrochloride 12.5 MG Extended Release Oral Tablet"
+  '1738805':
+    en: "24 HR paroxetine hydrochloride 25 MG Extended Release Oral Tablet"
+  '1738807':
+    en: "24 HR paroxetine hydrochloride 37.5 MG Extended Release Oral Tablet"
+  '1740467':
+    en: "2 ML ondansetron 2 MG/ML Injection"
+  '1741290':
+    en: "50 ML albumin human, USP 200 MG/ML Injection"
+  '1741295':
+    en: "100 ML albumin human, USP 200 MG/ML Injection"
+  '1741375':
+    en: "50 ML albumin human, USP 250 MG/ML Injection"
+  '1741380':
+    en: "100 ML albumin human, USP 250 MG/ML Injection"
+  '1741403':
+    en: "50 ML albumin human, USP 50 MG/ML Injection"
+  '1741410':
+    en: "100 ML albumin human, USP 50 MG/ML Injection"
+  '1743704':
+    en: "methylprednisolone 125 MG Injection"
+  '1743720':
+    en: "methylprednisolone 500 MG Injection"
+  '1743726':
+    en: "methylprednisolone 1000 MG Injection"
+  '1743855':
+    en: "1 ML methylprednisolone acetate 80 MG/ML Injection"
+  '1745061':
+    en: "10 ML bupivacaine liposome 13.3 MG/ML Injection"
+  '1747294':
+    en: "2 ML ibuprofen 10 MG/ML Injection"
+  '1790527':
+    en: "Abuse-Deterrent 12 HR oxycodone 9 MG Extended Release Oral Capsule"
+  '1791229':
+    en: "5 ML diltiazem hydrochloride 5 MG/ML Injection"
+  '1791232':
+    en: "10 ML diltiazem hydrochloride 5 MG/ML Injection"
+  '1791233':
+    en: "25 ML diltiazem hydrochloride 5 MG/ML Injection"
+  '1791240':
+    en: "diltiazem hydrochloride 100 MG Injection"
+  '1791371':
+    en: "5 ML levocarnitine 200 MG/ML Injection"
+  '1791558':
+    en: "Abuse-Deterrent 12 HR oxycodone 13.5 MG Extended Release Oral Capsule"
+  '1791567':
+    en: "Abuse-Deterrent 12 HR oxycodone 18 MG Extended Release Oral Capsule"
+  '1791574':
+    en: "Abuse-Deterrent 12 HR oxycodone 27 MG Extended Release Oral Capsule"
+  '1791580':
+    en: "Abuse-Deterrent 12 HR oxycodone 36 MG Extended Release Oral Capsule"
+  '1791701':
+    en: "10 ML fluorouracil 50 MG/ML Injection"
+  '1791721':
+    en: "1 ML oxytocin 10 UNT/ML Injection"
+  '1791736':
+    en: "20 ML fluorouracil 50 MG/ML Injection"
+  '1792327':
+    en: "cholecalciferol 0.35 MG Oral Capsule"
+  '1794552':
+    en: "2 ML hydroxyzine hydrochloride 50 MG/ML Injection"
+  '1794554':
+    en: "1 ML hydroxyzine hydrochloride 50 MG/ML Injection"
+  '1797528':
+    en: "40 ML oxaliplatin 5 MG/ML Injection"
+  '1803930':
+    en: "leucovorin 50 MG Injection"
+  '1803932':
+    en: "leucovorin 100 MG Injection"
+  '1803937':
+    en: "leucovorin 200 MG Injection"
+  '1804799':
+    en: "alteplase 100 MG Injection"
+  '1804804':
+    en: "alteplase 50 MG Injection"
+  '1807508':
+    en: "200 ML vancomycin 5 MG/ML Injection"
+  '1807510':
+    en: "150 ML vancomycin 5 MG/ML Injection"
+  '1807511':
+    en: "100 ML vancomycin 5 MG/ML Injection"
+  '1807548':
+    en: "50 ML sodium chloride 4.5 MG/ML Injection"
+  '1807549':
+    en: "100 ML sodium chloride 4.5 MG/ML Injection"
+  '1807550':
+    en: "250 ML sodium chloride 4.5 MG/ML Injection"
+  '1807551':
+    en: "500 ML sodium chloride 4.5 MG/ML Injection"
+  '1807552':
+    en: "1000 ML sodium chloride 4.5 MG/ML Injection"
+  '1807571':
+    en: "30 ML sodium chloride 234 MG/ML Injection"
+  '1807578':
+    en: "20 ML sodium chloride 146 MG/ML Injection"
+  '1807580':
+    en: "40 ML sodium chloride 146 MG/ML Injection"
+  '1807627':
+    en: "150 ML sodium chloride 9 MG/ML Injection"
+  '1807632':
+    en: "100 ML sodium chloride 9 MG/ML Injection"
+  '1807636':
+    en: "2 ML sodium chloride 9 MG/ML Injection"
+  '1807637':
+    en: "10 ML sodium chloride 9 MG/ML Injection"
+  '1807638':
+    en: "20 ML sodium chloride 9 MG/ML Injection"
+  '1807639':
+    en: "1000 ML sodium chloride 9 MG/ML Injection"
+  '1807646':
+    en: "5 ML sodium chloride 9 MG/ML Injection"
+  '1808217':
+    en: "100 ML propofol 10 MG/ML Injection"
+  '1808222':
+    en: "50 ML propofol 10 MG/ML Injection"
+  '1808224':
+    en: "20 ML propofol 10 MG/ML Injection"
+  '1808234':
+    en: "10 ML propofol 10 MG/ML Injection"
+  '1809083':
+    en: "5 ML sulfamethoxazole 80 MG/ML / trimethoprim 16 MG/ML Injection"
+  '1810268':
+    en: "amoxicillin 50 MG / clavulanate 12.5 MG Oral Tablet"
+  '1810270':
+    en: "amoxicillin 200 MG / clavulanate 50 MG Oral Tablet"
+  '1810273':
+    en: "amoxicillin 300 MG / clavulanate 75 MG Oral Tablet"
+  '1860100':
+    en: "ferrous sulfate 324 MG Delayed Release Oral Tablet"
+  '1860136':
+    en: "10 ML potassium chloride 2 MEQ/ML Injection"
+  '1860139':
+    en: "20 ML potassium chloride 2 MEQ/ML Injection"
+  '1861926':
+    en: "dextromethorphan hydrobromide 15 MG / guaifenesin 400 MG Oral Tablet"
+  '1864412':
+    en: "buprenorphine 0.7 MG / naloxone 0.18 MG Sublingual Tablet"
+  '1868469':
+    en: "5 ML sodium bicarbonate 42 MG/ML Injection"
+  '1868482':
+    en: "1.7 ML sodium bicarbonate 84 MG/ML Cartridge"
+  '1868485':
+    en: "2.7 ML sodium bicarbonate 84 MG/ML Cartridge"
+  '1868486':
+    en: "50 ML sodium bicarbonate 84 MG/ML Injection"
+  '1868494':
+    en: "250 ML nitroglycerin 0.4 MG/ML Injection"
+  '1868562':
+    en: "250 ML nitroglycerin 0.1 MG/ML Injection"
+  '1870631':
+    en: "100 ML gentamicin 1.2 MG/ML Injection"
+  '1870633':
+    en: "50 ML gentamicin 1.2 MG/ML Injection"
+  '1870676':
+    en: "2 ML gentamicin 10 MG/ML Injection"
+  '1918194':
+    en: "60 ACTUAT fluticasone propionate 0.113 MG/ACTUAT / salmeterol 0.014 MG/ACTUAT Dry Powder Inhaler"
+  '1918203':
+    en: "60 ACTUAT fluticasone propionate 0.232 MG/ACTUAT / salmeterol 0.014 MG/ACTUAT Dry Powder Inhaler"
+  '1918209':
+    en: "60 ACTUAT fluticasone propionate 0.055 MG/ACTUAT / salmeterol 0.014 MG/ACTUAT Dry Powder Inhaler"
+  '1922509':
+    en: "trastuzumab 150 MG Injection"
+  '1923355':
+    en: "vitamin K1 0.5 MG Sublingual Tablet"
+  '1923484':
+    en: "10 ML sodium bicarbonate 84 MG/ML Injection"
+  '1988974':
+    en: "24 HR pregabalin 165 MG Extended Release Oral Tablet"
+  '1988977':
+    en: "24 HR pregabalin 330 MG Extended Release Oral Tablet"
+  '1988980':
+    en: "24 HR pregabalin 82.5 MG Extended Release Oral Tablet"
+  '1989112':
+    en: "0.3 ML epinephrine 1 MG/ML Prefilled Syringe"
+  '2049888':
+    en: "vancomycin 1250 MG Injection"
+  '2049890':
+    en: "vancomycin 1500 MG Injection"
+  '2049891':
+    en: "vancomycin 250 MG Injection"
+  '2055036':
+    en: "leucovorin 500 MG Injection"
+  '2055667':
+    en: "0.8 ML risperidone 150 MG/ML Prefilled Syringe"
+  '2055675':
+    en: "0.6 ML risperidone 150 MG/ML Prefilled Syringe"
+  '2058858':
+    en: "120 ML gemcitabine 10 MG/ML Injection"
+  '2058866':
+    en: "140 ML gemcitabine 10 MG/ML Injection"
+  '2058880':
+    en: "150 ML gemcitabine 10 MG/ML Injection"
+  '2058882':
+    en: "160 ML gemcitabine 10 MG/ML Injection"
+  '2058890':
+    en: "170 ML gemcitabine 10 MG/ML Injection"
+  '2058892':
+    en: "180 ML gemcitabine 10 MG/ML Injection"
+  '2058894':
+    en: "190 ML gemcitabine 10 MG/ML Injection"
+  '2058912':
+    en: "130 ML gemcitabine 10 MG/ML Injection"
+  '2058933':
+    en: "220 ML gemcitabine 10 MG/ML Injection"
+  '2059015':
+    en: "rivaroxaban 2.5 MG Oral Tablet"
+  '2103182':
+    en: "1 ML vasopressin (USP) 20 UNT/ML Injection"
+  '2105776':
+    en: "amoxicillin 100 MG / clavulanate 25 MG Oral Tablet"
+  '2108128':
+    en: "coagulation factor Xa (recombinant), inactivated-zhzo 200 MG Injection"
+  '2109083':
+    en: "160 ACTUAT epinephrine 0.125 MG/ACTUAT Metered Dose Inhaler"
+  '2117608':
+    en: "100 ML calcium gluconate 20 MG/ML Injection"
+  '2118449':
+    en: "400 ML vancomycin 5 MG/ML Injection"
+  '2123165':
+    en: "ferrous sulfate 144 MG Extended Release Oral Tablet"
+  '2168270':
+    en: "1 ML fentanyl 0.05 MG/ML Injection"
+  '2173726':
+    en: "dextromethorphan hydrobromide 10 MG / guaifenesin 200 MG Oral Tablet"
+  '2178759':
+    en: "5 ML bupivacaine hydrochloride 2.5 MG/ML Injection"
+  '2178790':
+    en: "0.3 ML epinephrine 0.5 MG/ML Prefilled Syringe"
+  '2179635':
+    en: "tramadol hydrochloride 100 MG Oral Tablet"
+  '2179744':
+    en: "100 ML insulin, regular, human 1 UNT/ML Injection"
+  '2197110':
+    en: "100 ML sodium chloride 72 MG/ML Injection"
+  '2198792':
+    en: "10 ML sodium bicarbonate 42 MG/ML Injection"
+  '2200084':
+    en: "cholecalciferol 0.325 MG Oral Capsule"
+  '2200644':
+    en: "semaglutide 14 MG Oral Tablet"
+  '2200652':
+    en: "semaglutide 3 MG Oral Tablet"
+  '2200656':
+    en: "semaglutide 7 MG Oral Tablet"
+  '2261746':
+    en: "1 ML cetirizine hydrochloride 10 MG/ML Injection"
+  '2263077':
+    en: "100 ML mannitol 200 MG/ML Injection"
+  '2263078':
+    en: "100 ML sodium bicarbonate 84 MG/ML Injection"
+  '2277368':
+    en: "1 ML hydromorphone hydrochloride 0.2 MG/ML Prefilled Syringe"
+  '2370234':
+    en: "100 ML propofol lipid emulsion 20 MG/ML Injection"
+  '2380611':
+    en: "octreotide 20 MG Delayed Release Oral Capsule"
+  '2387079':
+    en: "350 ML vancomycin 5 MG/ML Injection"
+  '2387545':
+    en: "sodium chloride 500 MG Oral Tablet"
+  '2399907':
+    en: "100 ML vasopressin (USP) 0.4 UNT/ML Injection"
+  '2475340':
+    en: "250 ML norepinephrine 0.032 MG/ML Injection"
+  '2475835':
+    en: "mannitol 40 MG Inhalation Powder"
+  '2477889':
+    en: "4 ML labetalol hydrochloride 5 MG/ML Injection"
+  '2479564':
+    en: "200 ML labetalol hydrochloride 1 MG/ML Injection"
+  '2479566':
+    en: "100 ML labetalol hydrochloride 1 MG/ML Injection"
+  '2479567':
+    en: "300 ML labetalol hydrochloride 1 MG/ML Injection"
+  '2480095':
+    en: "50 ML acetaminophen 10 MG/ML Injection"
+  '2541170':
+    en: "50 ML midazolam 1 MG/ML Injection"
+  '2541171':
+    en: "100 ML midazolam 1 MG/ML Injection"
+  '2553501':
+    en: "0.5 ML semaglutide 0.5 MG/ML Auto-Injector"
+  '2553601':
+    en: "0.5 ML semaglutide 1 MG/ML Auto-Injector"
+  '2553802':
+    en: "0.5 ML semaglutide 2 MG/ML Auto-Injector"
+  '2553901':
+    en: "0.75 ML semaglutide 2.27 MG/ML Auto-Injector"
+  '2554102':
+    en: "0.75 ML semaglutide 3.2 MG/ML Auto-Injector"
+  '2563412':
+    en: "5 ML bupivacaine 132 MG/ML Injection"
+  '2569577':
+    en: "24 HR lorazepam 3 MG Extended Release Oral Capsule"
+  '2585478':
+    en: "50 ML levetiracetam 5 MG/ML Injection"
+  '2586036':
+    en: "250 ML diltiazem hydrochloride 1 MG/ML Injection"
+  '2589612':
+    en: "0.5 ML naloxone hydrochloride 10 MG/ML Prefilled Syringe"
+  '2591786':
+    en: "citalopram 30 MG Oral Capsule"
+  '2594600':
+    en: "24 HR lorazepam 1.5 MG Extended Release Oral Capsule"
+  '2595044':
+    en: "leuprolide 42 MG Prefilled Syringe"
+  '2596175':
+    en: "0.4 ML naloxone hydrochloride 25 MG/ML Auto-Injector"
+  '2598343':
+    en: "2 ML labetalol hydrochloride 5 MG/ML Prefilled Syringe"
+  '2601728':
+    en: "pemetrexed 1000 MG Injection"
+  '2602136':
+    en: "pemetrexed 750 MG Injection"
+  '2605341':
+    en: "34 ML pemetrexed 25 MG/ML Injection"
+  '2605950':
+    en: "24 HR venlafaxine 112.5 MG Extended Release Oral Tablet"
+  '2606516':
+    en: "leuprolide acetate 22.5 MG Injection"
+  '2608698':
+    en: "0.7 ML midazolam 14.3 MG/ML Auto-Injector"
+  '2612431':
+    en: "terlipressin 0.85 MG Injection"
+  '2619579':
+    en: "250 ML norepinephrine 0.064 MG/ML Injection"
+  '2629337':
+    en: "0.5 ML fentanyl 0.05 MG/ML Prefilled Syringe"
+  '2630738':
+    en: "levothyroxine sodium 0.0375 MG Oral Capsule"
+  '2630742':
+    en: "levothyroxine sodium 0.044 MG Oral Capsule"
+  '2630746':
+    en: "levothyroxine sodium 0.0625 MG Oral Capsule"
+  '2630753':
+    en: "cefazolin 3000 MG Injection"
+  '2636033':
+    en: "0.28 ML risperidone 357 MG/ML Prefilled Syringe"
+  '2636041':
+    en: "0.35 ML risperidone 357 MG/ML Prefilled Syringe"
+  '2636043':
+    en: "0.42 ML risperidone 357 MG/ML Prefilled Syringe"
+  '2636045':
+    en: "0.56 ML risperidone 357 MG/ML Prefilled Syringe"
+  '2636047':
+    en: "0.7 ML risperidone 357 MG/ML Prefilled Syringe"
+  '2636049':
+    en: "0.14 ML risperidone 357 MG/ML Prefilled Syringe"
+  '2636051':
+    en: "0.21 ML risperidone 357 MG/ML Prefilled Syringe"
+  '2636637':
+    en: "2.4 ML aripiprazole 300 MG/ML Prefilled Syringe"
+  '2636645':
+    en: "3.2 ML aripiprazole 300 MG/ML Prefilled Syringe"
+  '2642808':
+    en: "1.6 ML insulin aspart, human 100 UNT/ML Cartridge"
+  '2644396':
+    en: "0.5 ML tirzepatide 15 MG/ML Injection"
+  '2644401':
+    en: "0.5 ML tirzepatide 10 MG/ML Injection"
+  '2644405':
+    en: "0.5 ML tirzepatide 5 MG/ML Injection"
+  '2644409':
+    en: "0.5 ML tirzepatide 30 MG/ML Injection"
+  '2644413':
+    en: "0.5 ML tirzepatide 25 MG/ML Injection"
+  '2644417':
+    en: "0.5 ML tirzepatide 20 MG/ML Injection"
+  '2664894':
+    en: "meropenem 2000 MG Injection"
+  '2667652':
+    en: "150 ML micafungin 1 MG/ML Injection"
+  '2667850':
+    en: "ferrous sulfate 137 MG Extended Release Oral Tablet"
+  '2670390':
+    en: "tramadol hydrochloride 25 MG Oral Tablet"
+  '2671687':
+    en: "penicillin G benzathine 1200000 UNT Injection"
+  '2671695':
+    en: "penicillin G benzathine 2400000 UNT Injection"
+  '2673428':
+    en: "20 ML levocarnitine 200 MG/ML Injection"
+  '2675350':
+    en: "0.5 ML hydromorphone hydrochloride 0.5 MG/ML Prefilled Syringe"
+  '2675786':
+    en: "100 ML pantoprazole 0.8 MG/ML Injection"
+  '2683305':
+    en: "50 ML furosemide 10 MG/ML Injection"
+  '2683306':
+    en: "100 ML furosemide 10 MG/ML Injection"
+  '2690259':
+    en: "carbidopa 35 MG / levodopa 140 MG Extended Release Oral Capsule"
+  '2690279':
+    en: "carbidopa 52.5 MG / levodopa 210 MG Extended Release Oral Capsule"
+  '2690284':
+    en: "carbidopa 70 MG / levodopa 280 MG Extended Release Oral Capsule"
+  '2690290':
+    en: "carbidopa 87.5 MG / levodopa 350 MG Extended Release Oral Capsule"
+  '2692878':
+    en: "tramadol hydrochloride 75 MG Oral Tablet"
+  '2695029':
+    en: "250 ML epinephrine 0.016 MG/ML Injection"
+  '2695782':
+    en: "10 ML foscarbidopa 12 MG/ML / foslevodopa 240 MG/ML Injection"
+  '2699658':
+    en: "3000 ML sodium chloride 9 MG/ML Injection"
+  '2702348':
+    en: "metronidazole 125 MG Oral Tablet"
+  '2703582':
+    en: "metformin hydrochloride 750 MG Oral Tablet"
+  '2707356':
+    en: "250 ML epinephrine 0.032 MG/ML Injection"
+  '2707547':
+    en: "semaglutide 1.5 MG Oral Tablet"
+  '2707551':
+    en: "semaglutide 4 MG Oral Tablet"
+  '2707555':
+    en: "semaglutide 9 MG Oral Tablet"
+  '2707568':
+    en: "250 ML epinephrine 0.064 MG/ML Injection"
+  '2708844':
+    en: "5000 ML sodium chloride 9 MG/ML Injection"
+  '2713737':
+    en: "250 ML epinephrine 0.02 MG/ML Injection"
+  '2713796':
+    en: "0.1 ML sodium bicarbonate 84 MG/ML Cartridge"
+  '2715604':
+    en: "65 ML acetaminophen 10 MG/ML Injection"
+  '2719203':
+    en: "250 ML epinephrine 0.04 MG/ML Injection"
+  '2719206':
+    en: "250 ML epinephrine 0.008 MG/ML Injection"
+  '2723025':
+    en: "metoprolol tartrate 12.5 MG Oral Tablet"
+  '2723106':
+    en: "cyclobenzaprine hydrochloride 2.8 MG Sublingual Tablet"
+  '2723913':
+    en: "10 ML ketamine 10 MG/ML Prefilled Syringe"
+  '2725159':
+    en: "escitalopram 15 MG Oral Capsule"
+  '2725542':
+    en: "2.67 ML furosemide 30 MG/ML Cartridge"
+  '2725549':
+    en: "calcium gluconate 50 MG Oral Capsule"
+  '2725614':
+    en: "250 ML norepinephrine 0.128 MG/ML Injection"
+  '2725905':
+    en: "1 ML denosumab-nxxp 60 MG/ML Injection"
+  '2730163':
+    en: "semaglutide 25 MG Oral Tablet"
+  '2731632':
+    en: "100 ML magnesium sulfate 30 MG/ML Injection"
+  '2738666':
+    en: "10 ML fluorouracil 25 MG/ML Injection"
+  '2739768':
+    en: "0.75 ML semaglutide 9.6 MG/ML Auto-Injector"
+  '2740803':
+    en: "clonidine hydrochloride 0.05 MG Oral Tablet"
+  '2745865':
+    en: "duloxetine 80 MG Delayed Release Oral Capsule"
+  '2745867':
+    en: "duloxetine 90 MG Delayed Release Oral Capsule"
+  '2745869':
+    en: "duloxetine 120 MG Delayed Release Oral Capsule"
+  '2747138':
+    en: "1000 ML sodium bicarbonate 12.6 MG/ML Injection"
+  '2747765':
+    en: "1 ML furosemide 80 MG/ML Auto-Injector"
+  '2753518':
+    en: "diclofenac potassium 75 MG Oral Tablet"
+  # END generated RxNorm SCD

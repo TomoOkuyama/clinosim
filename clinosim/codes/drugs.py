@@ -447,6 +447,83 @@ def all_drug_ids() -> tuple[str, ...]:
 # Drug code systems (Issue #2262). The JP formats (YJ / HOT) and the YJ
 # master live in `clinosim.codes.yj` (Issue #2463); re-exported here.
 
+_SCD_FILE = Path(__file__).parent / "data" / "rxnorm_scd.yaml"
+
+
+@cache
+def _scd_table() -> dict[str, Any]:
+    return (load_data_yaml(_SCD_FILE) or {}).get("drugs") or {} if _SCD_FILE.exists() else {}
+
+
+@cache
+def _scd_drug_dose_units(drug_id: str) -> dict[str, Any]:
+    """A drug's own dose-unit conversions for SCD selection (vitamin D IU -> mg)."""
+    body = (_raw_catalog().get("drugs") or {}).get(drug_id) or {}
+    return dict(body.get("rxnorm_scd_dose_units") or {})
+
+
+@cache
+def _scd_selection() -> dict[str, Any]:
+    return dict(_raw_catalog().get("rxnorm_scd_selection") or {})
+
+
+def rxnorm_scd_codes(drug_id: str) -> tuple[str, ...]:
+    """Every RxNorm SCD listed for a catalog drug (Issue #2614)."""
+    routes = _scd_table().get(drug_id) or {}
+    return tuple(str(e["rxcui"]) for entries in routes.values() for e in entries)
+
+
+def rxnorm_scd_code(drug: str, route: str, dose_quantity: Any, dose_unit: str) -> str | None:
+    """The RxNorm SCD a dose of ``drug`` by ``route`` is given as (Issue #2614).
+
+    ``rxnorm_scd.yaml`` lists the drug's clinical drugs per route class and
+    strength; the dose must be 1..``max_units`` units of one strength (the
+    fewest units win). A combination product matches on its first
+    ingredient's strength, else on its total, and only when one product fits. None when no product
+    fits the dose (weight / BSA-based doses, rates, a strength not marketed).
+    """
+    record = find_drug(drug) if drug else None
+    if record is None:
+        return None
+    entries = (_scd_table().get(record.drug_id) or {}).get(route_class(route)) or []
+    sel = _scd_selection()
+    unit_map = {**(sel.get("dose_units") or {}), **_scd_drug_dose_units(record.drug_id)}
+    try:
+        value = float(dose_quantity)
+    except (TypeError, ValueError):
+        return None
+    conv = unit_map.get(str(dose_unit or "").strip())
+    if not entries or not conv or value <= 0:
+        return None
+    unit, factor = str(conv[0]), float(conv[1])
+    dose = value * factor
+    max_units = int(sel.get("max_units", 4))
+    tol = float(sel.get("tolerance", 0.02))
+    # A combination product matches on its first ingredient's strength; only
+    # when none does, on its total (piperacillin 4 g / tazobactam 0.5 g = 4.5 g).
+    for pick in ("single_or_first", "total"):
+        best: dict[int, set[str]] = {}
+        for entry in entries:
+            if entry.get("unit") != unit:
+                continue
+            strength = entry.get("strength")
+            combo = isinstance(strength, list)
+            if pick == "total" and not combo:
+                continue
+            s = float(strength[0] if combo and pick == "single_or_first" else sum(strength) if combo else strength)
+            if s <= 0:
+                continue
+            k = round(dose / s)
+            if 1 <= k <= max_units and abs(dose / s - k) <= tol * k:
+                best.setdefault(k, set()).add(str(entry["rxcui"]))
+        if best:
+            break
+    if not best:
+        return None
+    fewest = best[min(best)]
+    return next(iter(fewest)) if len(fewest) == 1 else None
+
+
 from clinosim.codes.yj import _verified_yj_codes as _verified_yj_codes  # noqa: E402
 from clinosim.codes.yj import is_verified_yj as is_verified_yj  # noqa: E402
 from clinosim.codes.yj import jp_drug_system_key as jp_drug_system_key  # noqa: E402

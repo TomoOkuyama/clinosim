@@ -102,6 +102,27 @@ metadata:
 
 # Order route → route class used to pick a JP YJ product (Issue #2347).
 # Matched case-insensitively; an unknown route has no class.
+# Issue #2614: how an order's dose selects the RxNorm SCD of
+# rxnorm_scd.yaml. dose (converted to the strength unit) = n x strength with
+# n = 1..max_units within tolerance (fraction of n); the fewest units win and
+# an ambiguous combination product is left at the ingredient code.
+rxnorm_scd_selection:
+  max_units: 4
+  tolerance: 0.02
+  dose_units:            # order dose unit -> [strength unit, factor]
+    mg: [mg, 1.0]
+    g: [mg, 1000.0]
+    mcg: [mg, 0.001]
+    ug: [mg, 0.001]
+    "µg": [mg, 0.001]
+    U: [unit, 1.0]
+    IU: [unit, 1.0]
+    unit: [unit, 1.0]
+    units: [unit, 1.0]
+    "[iU]": [unit, 1.0]
+    mEq: [meq, 1.0]
+    "meq": [meq, 1.0]
+
 route_classes:
   oral: [PO, oral, SL, sublingual, NG, per os, 経口, 舌下]
   injection: [IV, IVPB, IV push, IV infusion, SC, SQ, subcutaneous, IM, intramuscular, IT, intrathecal, injection, epidural, infiltration, intra-articular, 静注, 点滴静注, 皮下注, 筋注, 髄注]
@@ -237,6 +258,11 @@ drugs:
     names: {en: "Vitamin D", ja: "ビタミンD"}
     codes:
       rxnorm: "11253"
+    # Issue #2614: "Vitamin D" (11253) has no clinical drugs of its own; the
+    # products are cholecalciferol (vitamin D3, RxCUI 2418).
+    rxnorm_scd_ingredient: "2418"
+    # RxNorm states cholecalciferol strengths by mass: 1 microgram = 40 IU.
+    rxnorm_scd_dose_units: {IU: [mg, 0.000025]}
     classes: []
   warfarin:
     names: {en: "Warfarin", ja: "ワルファリン"}

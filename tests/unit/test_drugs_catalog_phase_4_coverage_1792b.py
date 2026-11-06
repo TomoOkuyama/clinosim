@@ -84,6 +84,10 @@ def test_catalog_covers_every_rxnorm_entry():
     assert rxnorm_system is not None
     catalog_rxcuis = {resolve_drug(d).codes.get("rxnorm") for d in all_drug_ids()}
     catalog_rxcuis.discard(None)
+    # Issue #2614: a drug's clinical drugs (SCD) are reached through it.
+    from clinosim.codes.drugs import rxnorm_scd_codes
+
+    catalog_rxcuis |= {c for d in all_drug_ids() for c in rxnorm_scd_codes(d)}
     orphan_rxcuis = set(rxnorm_system.codes.keys()) - catalog_rxcuis
     assert not orphan_rxcuis, (
         f"{len(orphan_rxcuis)} RxCUIs in rxnorm.yaml have no drug_id in "

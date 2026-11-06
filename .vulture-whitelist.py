@@ -740,3 +740,4 @@ _.laterality  # types/imaging.py ImagingStudyRecord (read by key in fhir_r4/labs
 _.repeat_culture_persistence_prob  # observation/microbiology.py MicrobiologyConfig field (validated yaml key, Issue #2640)
 _.has_microbiology  # observation/microbiology.py public API (README), used by tests after Issue #2640
 _.collected_datetime  # types/microbiology.py MicrobiologyResult (read by key in fhir_r4/labs/microbiology.py)
+_.rxnorm_scd_codes  # codes/drugs.py — used by tests/unit/test_drugs_catalog_phase_4_coverage_1792b.py (Issue #2614)
