@@ -70,3 +70,15 @@ def test_hai_condition_uses_mhlw_icd10_system_for_jp_any_case(country):
     resources = _bb_hai_conditions(_ctx(country))
     assert resources, "expected one HAI Condition"
     assert _icd_system(resources) == get_system_uri("icd-10-mhlw")
+
+
+@pytest.mark.parametrize("country", ["JP", "US"])
+def test_hai_condition_starts_from_the_condition_skeleton(country: str) -> None:
+    """Issue #2742: identifier (+ JP profile and diagnosis type) like every Condition."""
+    cond = _bb_hai_conditions(_ctx(country))[0]
+    systems = [i["system"] for i in cond["identifier"]]
+    assert any(s.endswith("condition-key") for s in systems) and any(s.endswith("hai-event-id") for s in systems)
+    if country == "JP":
+        assert cond["meta"]["profile"] == ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"]
+        assert cond["extension"]
+    assert "recorder" not in cond  # the stub encounter list names no attending
