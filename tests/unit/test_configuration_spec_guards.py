@@ -17,10 +17,7 @@ _PKG = Path(__file__).resolve().parents[2] / "clinosim"
 _NO_MODEL_YET = frozenset(
     {
         "antibiotic",
-        "care_level",
         "clinical_course",
-        "code_status",
-        "device",
         "diagnosis",
         "drug_safety",
         "family_history",
