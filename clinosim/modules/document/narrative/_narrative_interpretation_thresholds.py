@@ -108,6 +108,20 @@ NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD: int = 85
 — paired with :data:`NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD`."""
 
 
+BpBand = Literal["hypertension", "high_normal", "normal"]
+
+
+def bp_band(sbp: float, dbp: float) -> BpBand:
+    """JSH 2019 office band of a blood pressure (Issue #2751): hypertension
+    when either reading reaches its hypertension threshold, high-normal when
+    either reaches its high-normal threshold, normal otherwise."""
+    if sbp >= NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD or dbp >= NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD:
+        return "hypertension"
+    if sbp >= NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD or dbp >= NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD:
+        return "high_normal"
+    return "normal"
+
+
 # ---------------------------------------------------------------------------
 # HbA1c interpretation — JDS diabetes diagnostic criteria
 # ---------------------------------------------------------------------------
