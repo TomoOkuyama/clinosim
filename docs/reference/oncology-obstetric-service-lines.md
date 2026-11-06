@@ -398,7 +398,7 @@ outpatient visit, the dispatch block in
 `monitoring_labs_for_patient(patient.current_medications, ev_rng)`
 and merges the returned labs into the visit's `visit_labs`.
 
-Current mappings (in `modules/monitoring/reference_data/med_lab_mapping.yaml`):
+Current mappings (in `modules/monitoring/reference_data/medication_monitoring.yaml`):
 
 | Medication | Monitoring lab | Cadence |
 |---|---|---|
@@ -451,7 +451,7 @@ for the AD-16 pattern that motivates these.
 | Tune age-banded conception rate | `locale/shared/perinatal.yaml::lifecycle.annual_conception_rate.{jp,us}` |
 | Change prenatal visit cadence / postpartum offsets | `locale/shared/perinatal.yaml::lifecycle.prenatal_visit_gestational_weeks` / `::postpartum_visit_offsets_days` |
 | Activate an opposite-sex augmentation on a currently-single-sex chronic code | Convert the entry to `by_sex` form in `demographics.yaml`; check sibling `code_mapping_diagnosis.yaml` for sex-conditional billing codes (see §3.2) |
-| Add a chronic-med monitoring rule | `modules/monitoring/reference_data/med_lab_mapping.yaml` — no Python change |
+| Add a chronic-med monitoring rule | `modules/monitoring/reference_data/medication_monitoring.yaml` — no Python change |
 | Change the acute-course cutoff | `simulator/helpers.py::_ACUTE_COURSE_MAX_DAYS` (single constant) |
 | Force a specific drug class to always carry forward | Add to a disease YAML's `continue_at_discharge` category block; the discharge-Rx builder defaults its `duration_days` to 28 so the acute filter never fires |
 

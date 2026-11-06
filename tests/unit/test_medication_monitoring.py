@@ -74,8 +74,8 @@ class TestMappingLoader:
         labs = [m["lab"] for m in mapping["Candesartan"]["monitoring"]]
         assert "K" in labs
         assert "Creatinine" in labs
-        # Aliases cover the ARB drug family.
-        assert mapping["Candesartan"]["classes"] == ["arb"]  # every catalog ARB (Issue #2371)
+        # Every RAAS blocker and diuretic (Issue #2786; was ARB only on this path).
+        assert mapping["Candesartan"]["classes"] == ["acei_arb", "diuretic"]
 
 
 class TestMatchDrugs:

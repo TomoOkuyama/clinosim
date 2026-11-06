@@ -6,7 +6,7 @@ on the patient's ``current_medications`` list. Complements the disease-YAML
 follow-up is for hypertension still needs INR checks that the HTN visit
 schedule doesn't specify.
 
-Data-driven from ``reference_data/med_lab_mapping.yaml`` (medication name
+Data-driven from ``reference_data/medication_monitoring.yaml`` (medication name
 patterns → monitoring labs + per-visit probability). Consumers call
 :func:`monitoring_labs_for_patient` from the visit-schedule dispatch.
 """

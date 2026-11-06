@@ -46,7 +46,7 @@ from clinosim.modules.monitoring.mapping import (
     match_drugs,                     # (current_medications, mapping) -> list[str] canonical drug names
 )
 
-# 2. Chronic-visit lab-list path (med_lab_mapping.yaml), re-exported from __init__.py
+# 2. Chronic-visit lab-list path (the same medication_monitoring.yaml, Issue #2786), re-exported from __init__.py
 from clinosim.modules.monitoring import (
     load_medication_lab_mapping,     # () -> {entry: {drugs, classes, labs, per_visit_probability}} (lru_cache)
     monitoring_labs_for_patient,     # (current_medications, rng) -> list[str] lab names
@@ -118,7 +118,6 @@ Callers: `clinosim/simulator/enrichers.py` (enricher registration) and
   required keys so a YAML typo surfaces at load time rather than
   as a silent "drug never matched" downstream (`lab`, `loinc` and an
   integer `interval_months >= 1` are required per monitoring row).
-- [`reference_data/med_lab_mapping.yaml`](reference_data/med_lab_mapping.yaml)
   — chronic-visit mapping for `monitoring_labs_for_patient`, under a
   top-level `medication_lab_mapping:` key; each entry has `drugs` / `classes`
   (substring patterns over `drug_name` / `drug_name_ja`), `labs`
@@ -135,7 +134,6 @@ clinosim/modules/monitoring/
   mapping.py                         load_medication_monitoring + match_drugs
   reference_data/
     medication_monitoring.yaml       drug → monitoring-labs mapping (enricher)
-    med_lab_mapping.yaml             medication → chronic-visit labs mapping (engine)
 ```
 
 The module has **no `audit.py`**.

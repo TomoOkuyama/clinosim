@@ -10,7 +10,8 @@ schedule) do not fire every time.
 
 ## Design
 
-- **Data-driven**: mapping lives in ``reference_data/med_lab_mapping.yaml``
+- **Data-driven**: mapping lives in ``reference_data/medication_monitoring.yaml``
+  (one table for both monitoring paths, Issue #2786)
   so adding a new (medication, lab) pair requires only a YAML edit,
   never a code change.
 - **Post-hoc composition**: the returned labs are merged INTO the
@@ -19,11 +20,10 @@ schedule) do not fire every time.
   the ``BASELINE_LAB_NORMALS`` / ``derive_lab_values`` gate that
   silent-drops unknown analytes (rule that #957 slice 1 also
   respected).
-- **Deterministic under a supplied rng**: the caller
-  (``simulator/phases/_healthcare_calendar.py``) passes the visit's
-  ``ev_rng``, a per-event ``derive_phase_rng`` sub-seed, so the same seed
-  yields the same lab set. The ``per_visit_probability`` draws consume
-  that visit's stream only; no shared master RNG is read.
+- **Draw-free**: the caller (``simulator/phases/_healthcare_calendar.py``)
+  passes a stable visit key; the ``per_visit_probability`` gate is a hash
+  of the key and the mapping (``determinism.sha_bernoulli``), so it consumes
+  no random stream and adding a mapping shifts no other draw (Issue #2786).
 
 ## Scope of this path
 
@@ -44,11 +44,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
 from clinosim.codes.drugs import medication_matches
-from clinosim.datafiles import load_data_yaml
-from clinosim.modules.monitoring.mapping import _validate_drug_selector
+from clinosim.determinism import sha_bernoulli
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -56,37 +53,27 @@ _REF_DIR = _HERE / "reference_data"
 
 @lru_cache(maxsize=1)
 def load_medication_lab_mapping() -> dict[str, dict[str, Any]]:
-    """Load ``med_lab_mapping.yaml`` (cached singleton).
+    """The drug → monitoring-lab table of the chronic follow-up path, read from
+    the one monitoring table, ``medication_monitoring.yaml``, that the
+    POST_RECORDS enricher also reads (Issue #2786). Each entry's
+    ``per_visit_probability`` gates the follow-up visit; its labs are the
+    entry's monitoring labs."""
+    from clinosim.modules.monitoring.mapping import load_medication_monitoring
 
-    Fail-loud on missing / malformed structure so misconfigurations
-    surface at import time rather than at emit time (silent-no-op
-    defense; same pattern as ``imaging/engine.py::ImagingModalities``).
-    """
-    path = _REF_DIR / "med_lab_mapping.yaml"
-    if not path.exists():
-        raise FileNotFoundError(f"medication-lab mapping YAML missing: {path}")
-    data = load_data_yaml(path) or {}
-    mapping = data.get("medication_lab_mapping")
-    if not mapping or not isinstance(mapping, dict):
-        raise ValueError(f"{path.name}: missing or empty 'medication_lab_mapping' key")
-    for key, entry in mapping.items():
-        if not isinstance(entry, dict):
-            raise ValueError(f"{path.name}[{key}]: entry must be a dict")
-        for field in ("labs", "per_visit_probability"):
-            if field not in entry:
-                raise ValueError(f"{path.name}[{key}]: missing required field {field!r}")
-        _validate_drug_selector(f"{path.name}[{key}]", entry)
-        if not isinstance(entry["labs"], list) or not entry["labs"]:
-            raise ValueError(f"{path.name}[{key}].labs: non-empty list required")
-        prob = entry["per_visit_probability"]
-        if not isinstance(prob, int | float) or not 0.0 <= float(prob) <= 1.0:
-            raise ValueError(f"{path.name}[{key}].per_visit_probability: must be in [0.0, 1.0]")
-    return mapping
+    return {
+        key: {
+            "drugs": list(entry.get("drugs") or []),
+            "classes": list(entry.get("classes") or []),
+            "labs": [str(m["lab"]) for m in entry["monitoring"]],
+            "per_visit_probability": float(entry["per_visit_probability"]),
+        }
+        for key, entry in load_medication_monitoring().items()
+    }
 
 
 def monitoring_labs_for_patient(
     current_medications: list[Any],
-    rng: np.random.Generator,
+    visit_key: str,
 ) -> list[str]:
     """Return the monitoring-lab list for a patient's ``current_medications``.
 
@@ -94,10 +81,11 @@ def monitoring_labs_for_patient(
         current_medications: iterable of ``HomeMedication``-like objects
             with ``drug_name`` / ``drug_name_ja`` string attributes. May
             also be ``dict`` entries (JSON-deserialized CIF).
-        rng: visit-scoped rng consumed for each mapping's
-            ``per_visit_probability`` gate. The caller should pass the
-            visit's ``ev_rng`` so the same seed reproduces the same
-            monitoring-lab set.
+        visit_key: stable key of the visit (patient and visit time). Each
+            mapping's ``per_visit_probability`` gate is a hash of the key
+            and the mapping, so it draws nothing from the visit's random
+            stream and adding a mapping shifts no other draw (Issue #2786;
+            determinism spec §4).
 
     Returns:
         List of canonical lab names in mapping-key order, deduplicated.
@@ -109,14 +97,14 @@ def monitoring_labs_for_patient(
     mapping = load_medication_lab_mapping()
     out: list[str] = []
     seen: set[str] = set()
-    for entry in mapping.values():
+    for key, entry in mapping.items():
         # Catalog identity, not name substrings (Issue #2371).
         if not any(
             medication_matches(med, entry.get("drugs") or (), entry.get("classes") or ()) for med in current_medications
         ):
             continue
         prob = float(entry["per_visit_probability"])
-        if prob < 1.0 and rng.random() >= prob:
+        if not sha_bernoulli(f"monitoring:{visit_key}:{key}", prob):
             continue
         for lab in entry["labs"]:
             if lab not in seen:

@@ -48,6 +48,12 @@ def load_medication_monitoring(path: Path | None = None) -> dict[str, Any]:
         if not isinstance(entry, dict):
             raise ValueError(f"medication_monitoring.yaml: drug '{drug}' entry must be a dict")
         _validate_drug_selector(f"medication_monitoring.yaml: drug '{drug}'", entry)
+        prob = entry.get("per_visit_probability")
+        if not isinstance(prob, int | float) or isinstance(prob, bool) or not 0.0 <= float(prob) <= 1.0:
+            raise ValueError(
+                f"medication_monitoring.yaml: drug '{drug}' needs a 'per_visit_probability' in [0, 1] "
+                f"(the chronic follow-up gate, Issue #2786), got {prob!r}"
+            )
         monitoring = entry.get("monitoring")
         if not isinstance(monitoring, list) or not monitoring:
             raise ValueError(f"medication_monitoring.yaml: drug '{drug}' must declare a non-empty 'monitoring' list")
