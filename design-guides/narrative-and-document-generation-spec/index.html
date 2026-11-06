@@ -2440,9 +2440,9 @@
 <td><code>tests/unit/modules/document/narrative/test_narrative_spec_guards.py::test_bmi_bands_only_through_bmi_band</code>, <code>test_template_generator_nutrition_care_plan.py</code></td>
 </tr>
 <tr>
-<td>Interpretation thresholds of narrative wording (blood pressure, BMI, ...) are named constants in <code>_narrative_interpretation_thresholds.py</code>, not literals in renderers.</td>
-<td>same module</td>
-<td><code>test_narrative_spec_guards.py::test_bmi_bands_only_through_bmi_band</code> (BMI); review for the others</td>
+<td>A blood pressure is classified (hypertension / high-normal / normal, JSH 2019 office thresholds 140/90 and 130/85, either reading) by one function. Interpretation thresholds of narrative wording are named constants in <code>_narrative_interpretation_thresholds.py</code>, compared only there.</td>
+<td><code>_narrative_interpretation_thresholds.py::bp_band</code></td>
+<td><code>test_narrative_spec_guards.py::test_blood_pressure_bands_only_through_bp_band</code>, <code>test_each_bp_boundary_belongs_to_the_upper_band</code></td>
 </tr>
 <tr>
 <td>Every displayed name in a narrative (drug, lab, diagnosis, department, document type) is resolved through the display functions of the code-mapping spec.</td>
@@ -2467,10 +2467,6 @@
 <tr>
 <td>No guard checks that renderers word vital signs only through <code>format_vitals_line</code>. A renderer that formats <code>BP {sbp}/{dbp}</code> itself would pass.</td>
 <td><code>clinosim/modules/document/narrative/</code></td>
-</tr>
-<tr>
-<td>The blood-pressure interpretation thresholds have no source-scan guard.</td>
-<td><code>_narrative_interpretation_thresholds.py</code></td>
 </tr>
 </tbody>
 </table>
