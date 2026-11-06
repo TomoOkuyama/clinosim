@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from clinosim.codes.drugs import same_drug
 from clinosim.codes.valuesets import concept_group
@@ -384,10 +385,91 @@ def initialize_state(
 # imports HBA1C_NONDM_BASE) stays unchanged.
 
 
+class _HbA1c(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    nondm_base: float
+    best: float
+    span: float = Field(gt=0)
+    measurement_noise_sd: float = Field(ge=0)
+    clamp_min: float
+    clamp_max: float
+
+    @model_validator(mode="after")
+    def _ordered(self) -> _HbA1c:
+        if not self.clamp_min <= self.nondm_base <= self.best <= self.clamp_max:
+            raise ValueError(
+                "chronic_glycemic_thresholds.yaml hba1c: expected clamp_min <= nondm_base <= best <= clamp_max"
+            )
+        return self
+
+
+class _Glucose(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    dm_best: float = Field(gt=0)
+    dm_span: float = Field(gt=0)
+    default_glycemic_control: float = Field(ge=0, le=1)
+
+
+class _GlycemicThresholds(BaseModel):
+    """Shape of chronic_glycemic_thresholds.yaml (validated at load)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    hba1c: _HbA1c
+    glucose: _Glucose
+    acid_base_respiratory_fraction: dict[str, float]
+
+    @field_validator("acid_base_respiratory_fraction")
+    @classmethod
+    def _fractions(cls, table: dict[str, float]) -> dict[str, float]:
+        if any(not 0.0 <= v <= 1.0 for v in table.values()):
+            raise ValueError("chronic_glycemic_thresholds.yaml: respiratory fractions must lie in [0, 1]")
+        return table
+
+
+class _Range(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    min: float
+    max: float
+
+    @model_validator(mode="after")
+    def _ordered(self) -> _Range:
+        if self.min >= self.max:
+            raise ValueError("state_variable_ranges.yaml: min must be below max")
+        return self
+
+
+class _StateVariableRanges(BaseModel):
+    """Shape of state_variable_ranges.yaml: every variable is a field of
+    ``PhysiologicalState`` (validated at load)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    variables: dict[str, _Range] = Field(min_length=1)
+
+    @field_validator("variables")
+    @classmethod
+    def _state_fields(cls, variables: dict[str, _Range]) -> dict[str, _Range]:
+        from dataclasses import fields
+
+        known = {f.name for f in fields(PhysiologicalState)}
+        unknown = sorted(set(variables) - known)
+        if unknown:
+            raise ValueError(f"state_variable_ranges.yaml: unknown state variables {unknown}")
+        return variables
+
+
 @cache
 def _chronic_glycemic_thresholds_raw() -> dict[str, Any]:
     path = Path(__file__).resolve().parent / "reference_data" / "chronic_glycemic_thresholds.yaml"
-    return load_data_yaml(path) or {}
+    data = load_data_yaml(path) or {}
+    _GlycemicThresholds.model_validate(data)
+    return data
 
 
 _HBA1C_YAML = _chronic_glycemic_thresholds_raw().get("hba1c", {}) or {}
@@ -1294,6 +1376,7 @@ def derive_observed_vitals(
 def _state_variable_ranges_from_yaml() -> dict[str, tuple[float, float]]:
     path = Path(__file__).resolve().parent / "reference_data" / "state_variable_ranges.yaml"
     raw = load_data_yaml(path) or {}
+    _StateVariableRanges.model_validate(raw)
     out: dict[str, tuple[float, float]] = {}
     for name, row in (raw.get("variables", {}) or {}).items():
         if isinstance(row, dict) and "min" in row and "max" in row:
