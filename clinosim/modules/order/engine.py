@@ -280,17 +280,31 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
     #    routes them through unchanged.
     # 2. Plain-unit dose (e.g. "500mg", "1.5g", "1000IU", "0.4mg") —
     #    fallback for non-BSA doses; also catches "3.75mg" (Leuprorelin).
-    m = re.search(
-        r"(\d+(?:\.\d+)?)\s*(mg/m2|mg/kg|mcg/kg|mcg/m2|ug/kg)\b",
-        s,
-        re.IGNORECASE,
+    # 0. Issue #2752: a rate ("0.3ug/kg/min", "12U/kg/h", "5mg/h") keeps its
+    #    per-time unit when it is the order's first quantity; the dose of a
+    #    "bolus then infusion" order is its leading bolus amount.
+    first = re.search(r"\d+(?:\.\d+)?\s*(?:mg|g|mcg|ug|mL|ml|L|IU|U|unit|units|%)", s, re.IGNORECASE)
+    m = (
+        re.match(
+            r"(\d+(?:\.\d+)?)\s*((?:mg|mcg|ug|mL|U|units|IU|mEq)\s*/\s*(?:kg/)?(?:min|hr|h))\b",
+            s[first.start() :],
+            re.IGNORECASE,
+        )
+        if first
+        else None
     )
+    if not m:
+        m = re.search(
+            r"(\d+(?:\.\d+)?)\s*(mg/m2|mg/kg|mcg/kg|mcg/m2|ug/kg)\b",
+            s,
+            re.IGNORECASE,
+        )
     if not m:
         m = re.search(r"(\d+(?:\.\d+)?)\s*(mg|g|mcg|ug|mL|ml|L|IU|U|unit|units|%)", s, re.IGNORECASE)
     if m:
         try:
             result["dose_quantity"] = float(m.group(1))
-            result["dose_unit"] = m.group(2)
+            result["dose_unit"] = re.sub(r"\s+", "", m.group(2)).replace("/hr", "/h")
         except ValueError:
             pass
 

@@ -1455,13 +1455,19 @@ def _build_ma_dosage_block(
     # Issue #472: localize at the assignment only — `dose_text` itself stays English
     # because the continuous-infusion detection below matches on "CONTINUOUS" / "DRIP".
     dosage: dict[str, Any] = {"text": _localize_dosage_terms(dose_text, lang_for(country))}
-    if parsed.get("dose_quantity") is not None and parsed.get("dose_unit"):
-        dosage["dose"] = ucum_quantity(parsed["dose_quantity"], parsed["dose_unit"])
-    # Rate for continuous infusions
-    if "CONTINUOUS" in dose_text.upper() or "DRIP" in dose_text.upper() or "/h" in dose_text:
-        rate_value = parsed.get("dose_quantity") or 1
-        rate_unit = parsed.get("dose_unit", "mL") + "/h"
-        dosage["rateQuantity"] = ucum_quantity(rate_value, rate_unit)
+    from clinosim.modules.output.fhir_r4.lib.dosage import is_rate_unit
+
+    if parsed.get("dose_quantity") is not None and is_rate_unit(str(parsed.get("dose_unit") or "")):
+        # Issue #2752: an infusion rate is stated as the rate given, not a dose.
+        dosage["rateQuantity"] = ucum_quantity(parsed["dose_quantity"], parsed["dose_unit"])
+    else:
+        if parsed.get("dose_quantity") is not None and parsed.get("dose_unit"):
+            dosage["dose"] = ucum_quantity(parsed["dose_quantity"], parsed["dose_unit"])
+        # Rate for continuous infusions
+        if "CONTINUOUS" in dose_text.upper() or "DRIP" in dose_text.upper() or "/h" in dose_text:
+            rate_value = parsed.get("dose_quantity") or 1
+            rate_unit = parsed.get("dose_unit", "mL") + "/h"
+            dosage["rateQuantity"] = ucum_quantity(rate_value, rate_unit)
 
     # Issue #1067 B2: IV-route drugs missing a structured dose get the same
     # catalog-based rate/duration augmentation the MR builder gets.
