@@ -2538,9 +2538,9 @@
 <td><code>tests/unit/test_limit_triple_therapy_2717.py</code></td>
 </tr>
 <tr>
-<td>A finite course (≤ 14 days) on the discharge prescription is not carried into the home medications.</td>
-<td><code>simulator/helpers.py</code> (<code>_ACUTE_COURSE_MAX_DAYS</code>)</td>
-<td>none (§8)</td>
+<td>A finite course (1-14 days) on the discharge prescription is not carried into the home medications; 0 or no duration means indefinite and is carried.</td>
+<td><code>simulator/helpers.py::is_finite_course</code>, <code>simulator/_stay_thresholds.py::ACUTE_COURSE_MAX_DAYS</code></td>
+<td><code>tests/unit/test_finite_course_2757.py</code></td>
 </tr>
 <tr>
 <td>The status of a take-home prescription (active, completed, stopped), its end date and the prescription it replaced are computed once, across all the patient's records and the snapshot, before the bundles are built.</td>
@@ -2572,20 +2572,7 @@
 </tbody>
 </table>
 <h2 id="8-gaps">8. Gaps<a class="headerlink" href="#8-gaps" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Gap</th>
-<th>Where</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>The discharge carry-forward of finite courses keys on <code>duration_days</code> with a constant in Python and has no test of its own.</td>
-<td><code>simulator/helpers.py</code></td>
-</tr>
-</tbody>
-</table>
+<p>None known. A new exception is listed here with the guard that allows it.</p>
 
 
 
