@@ -74,7 +74,7 @@ card_holding_rate:
   "50-59": 0.82
   "60-69": 0.90
   "70-79": 0.91
-  "80-": 0.72
+  "80+": 0.72
 
 # マイナ保険証 利用登録率 (age-banded; conditional on card holding in the model).
 mynumber_insurance_rate:
@@ -84,7 +84,7 @@ mynumber_insurance_rate:
   "50-59": 0.55
   "60-69": 0.62
   "70-79": 0.60
-  "80-": 0.40
+  "80+": 0.40
 
 # Intra-household correlation of card/insurance holding (0 = independent, 1 = identical).
 # Real intra-household statistics are sparse; exposed as a tunable parameter.

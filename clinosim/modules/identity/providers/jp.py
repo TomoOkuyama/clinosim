@@ -19,20 +19,15 @@ from typing import Any
 import numpy as np
 
 import clinosim.modules.identity.generators as generators
+from clinosim.age_bands import lookup_age_band
 from clinosim.types import InsuranceEnrollment, NationalIdentity
 
 _NORM = NormalDist()
 
 
 def _rate_for_age(table: dict[str, float], age: int) -> float:
-    """Look up an age-banded rate. Band keys are 'lo-hi' or open-ended 'lo-'."""
-    for key, val in table.items():
-        lo_s, _, hi_s = key.partition("-")
-        lo = int(lo_s)
-        hi = int(hi_s) if hi_s else 200
-        if lo <= age <= hi:
-            return float(val)
-    return 0.0
+    """An age-banded rate, through the shared age-band helper (Issue #2738)."""
+    return float(lookup_age_band(table, age, 0.0))
 
 
 class JPIdentityProvider:
@@ -172,10 +167,5 @@ class JPIdentityProvider:
 
 
 def _rate_table_for_age(table: dict[str, dict[str, float]], age: int) -> dict[str, float]:
-    for key, val in table.items():
-        lo_s, _, hi_s = key.partition("-")
-        lo = int(lo_s)
-        hi = int(hi_s) if hi_s else 200
-        if lo <= age <= hi:
-            return val
-    return {}
+    """An age-banded distribution, through the shared age-band helper (Issue #2738)."""
+    return dict(lookup_age_band(table, age, {}))
