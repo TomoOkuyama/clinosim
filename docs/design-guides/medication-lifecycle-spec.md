@@ -61,7 +61,7 @@ discharge prescription (§6) ──► home medications ──► next encounter
 | The discharge prescription is built from the protocol's discharge medications and the continued home medications, without the drugs held for renal function. | `simulator/discharge_rx.py::build_discharge_rx` | `tests/unit/test_build_discharge_rx_continue_at_discharge.py`, `tests/unit/test_discharge_rx_drug_safety_1334.py`, `tests/unit/test_discharge_oral_route_integrity.py` |
 | Discharge, activation of home medications and the longitudinal history reconcile against one rule list: a second agent of a class a listed rule names is not added (one statin, one P2Y12 inhibitor, one anticoagulant, no ACE inhibitor with an ARB). | `modules/drug_safety/engine.py::discharge_reconciliation_rules`; callers `discharge_rx.py`, `modules/patient/activator.py`, `modules/longitudinal/engine.py` | `tests/unit/test_discharge_reconciliation_2713.py` |
 | With an oral anticoagulant, dual antiplatelet therapy becomes the anticoagulant + clopidogrel and aspirin a short course, at discharge and at activation of home medications. | `discharge_rx.py::limit_triple_antithrombotic`; plan `contraindications.yaml` `triple_therapy_after_acs` | `tests/unit/test_limit_triple_therapy_2717.py` |
-| A finite course (≤ 14 days) on the discharge prescription is not carried into the home medications. | `simulator/helpers.py` (`_ACUTE_COURSE_MAX_DAYS`) | none (§8) |
+| A finite course (1-14 days) on the discharge prescription is not carried into the home medications; 0 or no duration means indefinite and is carried. | `simulator/helpers.py::is_finite_course`, `simulator/_stay_thresholds.py::ACUTE_COURSE_MAX_DAYS` | `tests/unit/test_finite_course_2757.py` |
 | The status of a take-home prescription (active, completed, stopped), its end date and the prescription it replaced are computed once, across all the patient's records and the snapshot, before the bundles are built. | `modules/order/prescription_supersede.py::prescription_closures`, passed as `BundleContext.rx_closures` | `tests/unit/test_prescription_renewal_2610.py` |
 
 ## 7. Product coding
@@ -73,6 +73,4 @@ discharge prescription (§6) ──► home medications ──► next encounter
 
 ## 8. Gaps
 
-| Gap | Where |
-|---|---|
-| The discharge carry-forward of finite courses keys on `duration_days` with a constant in Python and has no test of its own. | `simulator/helpers.py` |
+None known. A new exception is listed here with the guard that allows it.

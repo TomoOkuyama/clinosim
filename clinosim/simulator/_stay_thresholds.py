@@ -217,3 +217,14 @@ PLANNED_DISCHARGE_HOUR_MAX: int = 16
 """Inclusive upper clamp for the planned-discharge hour. Discharges
 after 4 PM shift into evening / next-day territory that this
 day-shift pattern does not model."""
+
+
+# ---------------------------------------------------------------------------
+# Home-medication carry-forward (Issue #2757)
+# ---------------------------------------------------------------------------
+
+ACUTE_COURSE_MAX_DAYS: int = 14
+"""Longest discharge-prescription course (days) treated as finite: a 1 to 14
+day course (antibiotics, a short aspirin course) is not carried into the home
+medications, so later visits do not renew it. 0 or no duration means
+indefinite and is carried (Issue #914 Bucket B)."""
