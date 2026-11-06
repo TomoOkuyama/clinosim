@@ -16,7 +16,9 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-from clinosim.datafiles import load_data_yaml
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from clinosim.datafiles import load_data_yaml, load_validated_yaml
 from clinosim.locale.i18n import t
 
 # Re-export ProviderResponse from the new providers subpackage so existing
@@ -88,10 +90,35 @@ class LLMTaskType(StrEnum):
 # without a corresponding yaml row raises ImportError.
 
 
+class _TaskCategoriesFile(BaseModel):
+    """Shape of ``task_categories.yaml``: each task type's dispatch category
+    (configuration spec; coverage of every task type is checked below)."""
+
+    model_config = ConfigDict(extra="forbid")
+    categories: dict[str, LLMTaskCategory] = Field(min_length=1)
+
+
+class _TaskLoincsFile(BaseModel):
+    """Shape of ``task_loincs.yaml``: the LOINC of each template-only task."""
+
+    model_config = ConfigDict(extra="forbid")
+    loincs: dict[str, str]
+
+    @field_validator("loincs")
+    @classmethod
+    def _registered(cls, loincs: dict[str, str]) -> dict[str, str]:
+        from clinosim.codes import lookup
+
+        unknown = sorted(code for code in loincs.values() if lookup("loinc", code, "en") in ("", code))
+        if unknown:
+            raise ValueError(f"LOINC codes not in clinosim/codes/data/loinc.yaml: {unknown}")
+        return loincs
+
+
 @cache
 def _task_categories_raw() -> dict[str, str]:
     path = Path(__file__).resolve().parent / "reference_data" / "task_categories.yaml"
-    data = load_data_yaml(path) or {}
+    data = load_validated_yaml(path, _TaskCategoriesFile)
     return {str(k): str(v) for k, v in (data.get("categories", {}) or {}).items()}
 
 
@@ -140,7 +167,7 @@ TASK_CATEGORY: dict[LLMTaskType, LLMTaskCategory] = _task_category_from_yaml()
 @cache
 def _task_loincs_raw() -> dict[str, str]:
     path = Path(__file__).resolve().parent / "reference_data" / "task_loincs.yaml"
-    data = load_data_yaml(path) or {}
+    data = load_validated_yaml(path, _TaskLoincsFile)
     return {str(k): str(v) for k, v in (data.get("loincs", {}) or {}).items()}
 
 
