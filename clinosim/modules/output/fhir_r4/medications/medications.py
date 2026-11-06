@@ -881,6 +881,37 @@ def _build_mr_notes(order: dict, is_stop_order: bool) -> list[dict[str, Any]]:
     return notes
 
 
+def _apply_rxnorm_scd(resource: dict[str, Any], country: str) -> None:
+    """Issue #2614: put the RxNorm SCD of the dose given first in the US
+    ``medicationCodeableConcept.coding``, ahead of the ingredient code.
+
+    The SCD is chosen from what the resource states: the drug, the route and
+    the dose quantity (``dosageInstruction[0]`` / ``dosage``). No SCD is
+    added when no single product fits that dose.
+    """
+    if is_jp(country):
+        return
+    concept = resource.get("medicationCodeableConcept") or {}
+    codings = concept.get("coding") or []
+    rx_uri = get_system_uri("rxnorm")
+    if not codings or codings[0].get("system") != rx_uri:
+        return
+    if resource.get("resourceType") == "MedicationAdministration":
+        dosage = resource.get("dosage") or {}
+        dose = dosage.get("dose") or {}
+    else:
+        dosage = (resource.get("dosageInstruction") or [{}])[0]
+        dose = ((dosage.get("doseAndRate") or [{}])[0] or {}).get("doseQuantity") or {}
+    route = str((dosage.get("route") or {}).get("text") or "")
+    from clinosim.codes.drugs import drug_ref, rxnorm_scd_code
+
+    drug = drug_ref(str(concept.get("text") or "")) or drug_ref(str(codings[0].get("display") or ""))
+    scd = rxnorm_scd_code(drug, route, dose.get("value"), str(dose.get("unit") or dose.get("code") or ""))
+    if not scd or any(c.get("code") == scd for c in codings):
+        return
+    codings.insert(0, {"system": rx_uri, "code": scd, "display": code_lookup("rxnorm", scd, "en")})
+
+
 def _build_medication_request(
     order: dict,
     patient_id: str,
@@ -1075,6 +1106,7 @@ def _build_medication_request(
     if _notes:
         resource["note"] = _notes
 
+    _apply_rxnorm_scd(resource, country)
     return resource
 
 
@@ -1344,6 +1376,7 @@ def _build_discharge_medication_request(
     if dosage:
         resource["dosageInstruction"] = [dosage]
 
+    _apply_rxnorm_scd(resource, country)
     return resource
 
 
@@ -1678,6 +1711,10 @@ def _build_medication_admin(
     )
     if code_value and not _jp_yj_unverified:
         display = code_lookup(drug_system_key, code_value, lang)
+        # Issue #2614: the US display is the RxNorm name, without the trade
+        # name our tables decorate it with (as on the MedicationRequest).
+        if not is_jp(country_code) and display:
+            display = _TRADE_NAME_SUFFIX_RE.sub("", display).strip()
         coding: dict[str, Any] = {"system": code_system, "code": code_value}
         if display and display != code_value:
             coding["display"] = display
@@ -1816,6 +1853,7 @@ def _build_medication_admin(
     if device_block is not None:
         resource["device"] = device_block
 
+    _apply_rxnorm_scd(resource, country)
     return resource
 
 

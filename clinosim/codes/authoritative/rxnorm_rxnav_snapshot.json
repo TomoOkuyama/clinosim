@@ -2,7 +2,8 @@
  "metadata": {
   "source": "RxNav (NLM) /REST/rxcui/{code}/historystatus",
   "fetched_at": "2026-10-28",
-  "note": "RxNorm status / name / term type for every RxCUI clinosim ships (rxnorm.yaml, drugs.yaml, US drug mapping). Used offline by tests/unit/codes/test_rxnorm_codes_name_their_drug.py (Issue #2150)."
+  "note": "RxNorm status / name / term type for every RxCUI clinosim ships (rxnorm.yaml, drugs.yaml, US drug mapping). Used offline by tests/unit/codes/test_rxnorm_codes_name_their_drug.py (Issue #2150).",
+  "scd_fetched_at": "2026-11-06"
  },
  "concept": [
   {
@@ -1407,6 +1408,7260 @@
    "code": "1795250",
    "status": "Active",
    "name": "1000 ML glucose 50 MG/ML / sodium chloride 4.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "104020",
+   "status": "Active",
+   "name": "sodium bicarbonate 600 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "104021",
+   "status": "Active",
+   "name": "sodium bicarbonate 500 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "104208",
+   "status": "Active",
+   "name": "2 ML digoxin 0.25 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "104474",
+   "status": "Active",
+   "name": "aspirin 75 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "104514",
+   "status": "Active",
+   "name": "albuterol 0.4 MG Inhalation Powder",
+   "tty": "SCD"
+  },
+  {
+   "code": "105408",
+   "status": "Active",
+   "name": "prednisolone 2.5 MG Delayed Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "105584",
+   "status": "Active",
+   "name": "fluorouracil 250 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "105650",
+   "status": "Active",
+   "name": "ferrous fumarate 305 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "105711",
+   "status": "Active",
+   "name": "sodium chloride 300 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "105733",
+   "status": "Active",
+   "name": "calcium gluconate 600 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "108860",
+   "status": "Active",
+   "name": "ferrous fumarate 322 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "141992",
+   "status": "Active",
+   "name": "alfacalcidol 0.001 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "142118",
+   "status": "Active",
+   "name": "sulfamethoxazole 100 MG / trimethoprim 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "150921",
+   "status": "Active",
+   "name": "thiamine 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "150923",
+   "status": "Active",
+   "name": "calcium carbonate 1250 MG / cholecalciferol 0.005 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "152770",
+   "status": "Active",
+   "name": "calcium carbonate 1250 MG / cholecalciferol 0.01 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "153791",
+   "status": "Active",
+   "name": "risperidone 6 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "153822",
+   "status": "Active",
+   "name": "candesartan cilexetil 4 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "153823",
+   "status": "Active",
+   "name": "candesartan cilexetil 8 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197316",
+   "status": "Active",
+   "name": "albuterol 2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197318",
+   "status": "Active",
+   "name": "albuterol 4 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197321",
+   "status": "Active",
+   "name": "alprazolam 1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197322",
+   "status": "Active",
+   "name": "alprazolam 2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197361",
+   "status": "Active",
+   "name": "amlodipine 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197443",
+   "status": "Active",
+   "name": "carbidopa 10 MG / levodopa 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197444",
+   "status": "Active",
+   "name": "carbidopa 25 MG / levodopa 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197445",
+   "status": "Active",
+   "name": "carbidopa 25 MG / levodopa 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197448",
+   "status": "Active",
+   "name": "levocarnitine 330 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197454",
+   "status": "Active",
+   "name": "cephalexin 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197511",
+   "status": "Active",
+   "name": "ciprofloxacin 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197512",
+   "status": "Active",
+   "name": "ciprofloxacin 750 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197604",
+   "status": "Active",
+   "name": "digoxin 0.125 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197605",
+   "status": "Active",
+   "name": "digoxin 0.2 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "197606",
+   "status": "Active",
+   "name": "digoxin 0.25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197623",
+   "status": "Active",
+   "name": "disulfiram 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197624",
+   "status": "Active",
+   "name": "disulfiram 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197650",
+   "status": "Active",
+   "name": "erythromycin 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197698",
+   "status": "Active",
+   "name": "fluconazole 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197699",
+   "status": "Active",
+   "name": "fluconazole 150 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197700",
+   "status": "Active",
+   "name": "fluconazole 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197701",
+   "status": "Active",
+   "name": "fluconazole 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197732",
+   "status": "Active",
+   "name": "furosemide 80 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197736",
+   "status": "Active",
+   "name": "50 ML gentamicin 2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "197754",
+   "status": "Active",
+   "name": "haloperidol 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197770",
+   "status": "Active",
+   "name": "hydrochlorothiazide 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197782",
+   "status": "Active",
+   "name": "hydrocortisone 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197783",
+   "status": "Active",
+   "name": "hydrocortisone 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197787",
+   "status": "Active",
+   "name": "hydrocortisone 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197804",
+   "status": "Active",
+   "name": "ibuprofen 300 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197805",
+   "status": "Active",
+   "name": "ibuprofen 400 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197806",
+   "status": "Active",
+   "name": "ibuprofen 600 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197807",
+   "status": "Active",
+   "name": "ibuprofen 800 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197860",
+   "status": "Active",
+   "name": "leucovorin 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197861",
+   "status": "Active",
+   "name": "leucovorin 15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197862",
+   "status": "Active",
+   "name": "leucovorin 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197863",
+   "status": "Active",
+   "name": "leucovorin 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197884",
+   "status": "Active",
+   "name": "lisinopril 40 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197890",
+   "status": "Active",
+   "name": "lithium carbonate 300 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197892",
+   "status": "Active",
+   "name": "lithium carbonate 450 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197893",
+   "status": "Active",
+   "name": "lithium carbonate 600 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "197900",
+   "status": "Active",
+   "name": "lorazepam 0.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197901",
+   "status": "Active",
+   "name": "lorazepam 1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197902",
+   "status": "Active",
+   "name": "lorazepam 2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197955",
+   "status": "Active",
+   "name": "methyldopa 125 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197956",
+   "status": "Active",
+   "name": "methyldopa 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197958",
+   "status": "Active",
+   "name": "methyldopa 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197969",
+   "status": "Active",
+   "name": "methylprednisolone 2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197971",
+   "status": "Active",
+   "name": "methylprednisolone 32 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "197973",
+   "status": "Active",
+   "name": "methylprednisolone 8 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198012",
+   "status": "Active",
+   "name": "naproxen 375 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198013",
+   "status": "Active",
+   "name": "naproxen 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198014",
+   "status": "Active",
+   "name": "naproxen 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198038",
+   "status": "Active",
+   "name": "nitroglycerin 0.3 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198039",
+   "status": "Active",
+   "name": "nitroglycerin 0.4 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198040",
+   "status": "Active",
+   "name": "nitroglycerin 0.6 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198048",
+   "status": "Active",
+   "name": "ofloxacin 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198049",
+   "status": "Active",
+   "name": "ofloxacin 300 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198050",
+   "status": "Active",
+   "name": "ofloxacin 400 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198102",
+   "status": "Active",
+   "name": "vitamin K1 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198142",
+   "status": "Active",
+   "name": "prednisolone 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198144",
+   "status": "Active",
+   "name": "prednisone 1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198145",
+   "status": "Active",
+   "name": "prednisone 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198146",
+   "status": "Active",
+   "name": "prednisone 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198148",
+   "status": "Active",
+   "name": "prednisone 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198211",
+   "status": "Active",
+   "name": "simvastatin 40 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198222",
+   "status": "Active",
+   "name": "spironolactone 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198223",
+   "status": "Active",
+   "name": "spironolactone 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198240",
+   "status": "Active",
+   "name": "tamoxifen 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198334",
+   "status": "Active",
+   "name": "sulfamethoxazole 400 MG / trimethoprim 80 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198335",
+   "status": "Active",
+   "name": "sulfamethoxazole 800 MG / trimethoprim 160 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198405",
+   "status": "Active",
+   "name": "ibuprofen 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198427",
+   "status": "Active",
+   "name": "lamotrigine 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198428",
+   "status": "Active",
+   "name": "lamotrigine 150 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198429",
+   "status": "Active",
+   "name": "lamotrigine 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198440",
+   "status": "Active",
+   "name": "acetaminophen 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198444",
+   "status": "Active",
+   "name": "acetaminophen 650 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198471",
+   "status": "Active",
+   "name": "aspirin 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198475",
+   "status": "Active",
+   "name": "aspirin 650 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198477",
+   "status": "Active",
+   "name": "aspirin 162 MG Delayed Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198527",
+   "status": "Active",
+   "name": "calcium carbonate 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198529",
+   "status": "Active",
+   "name": "calcium carbonate 420 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198533",
+   "status": "Active",
+   "name": "calcium carbonate 650 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198547",
+   "status": "Active",
+   "name": "calcium gluconate 650 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198561",
+   "status": "Active",
+   "name": "levocarnitine 250 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "198624",
+   "status": "Active",
+   "name": "ferrous fumarate 325 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198635",
+   "status": "Active",
+   "name": "ferrous sulfate 300 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198640",
+   "status": "Active",
+   "name": "folic acid 0.4 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198641",
+   "status": "Active",
+   "name": "folic acid 0.8 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198859",
+   "status": "Active",
+   "name": "sodium bicarbonate 325 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198861",
+   "status": "Active",
+   "name": "sodium bicarbonate 650 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198899",
+   "status": "Active",
+   "name": "vitamin K 0.1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "198999",
+   "status": "Active",
+   "name": "ferrous sulfate 159 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199047",
+   "status": "Active",
+   "name": "famotidine 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199055",
+   "status": "Active",
+   "name": "metronidazole 375 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "199123",
+   "status": "Active",
+   "name": "bicalutamide 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199178",
+   "status": "Active",
+   "name": "ferrous fumarate 300 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199224",
+   "status": "Active",
+   "name": "anastrozole 1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199275",
+   "status": "Active",
+   "name": "lorazepam 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199281",
+   "status": "Active",
+   "name": "aspirin 300 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199318",
+   "status": "Active",
+   "name": "folic acid 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199319",
+   "status": "Active",
+   "name": "haloperidol 1.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199322",
+   "status": "Active",
+   "name": "lamotrigine 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199324",
+   "status": "Active",
+   "name": "lithium carbonate 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199326",
+   "status": "Active",
+   "name": "metronidazole 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199327",
+   "status": "Active",
+   "name": "metronidazole 400 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199343",
+   "status": "Active",
+   "name": "prednisolone 1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199362",
+   "status": "Active",
+   "name": "cholecalciferol 0.025 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199370",
+   "status": "Active",
+   "name": "ciprofloxacin 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199442",
+   "status": "Active",
+   "name": "butylscopolamine bromide 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199610",
+   "status": "Active",
+   "name": "furosemide 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199730",
+   "status": "Active",
+   "name": "disopyramide 250 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199731",
+   "status": "Active",
+   "name": "disulfiram 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199739",
+   "status": "Active",
+   "name": "50 ML famotidine 0.4 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "199762",
+   "status": "Active",
+   "name": "lithium carbonate 400 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199771",
+   "status": "Active",
+   "name": "methylprednisolone 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199884",
+   "status": "Active",
+   "name": "levofloxacin 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199885",
+   "status": "Active",
+   "name": "levofloxacin 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "199967",
+   "status": "Active",
+   "name": "prednisolone 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "200031",
+   "status": "Active",
+   "name": "carvedilol 6.25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "200032",
+   "status": "Active",
+   "name": "carvedilol 12.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "200033",
+   "status": "Active",
+   "name": "carvedilol 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "200034",
+   "status": "Active",
+   "name": "olanzapine 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "200076",
+   "status": "Active",
+   "name": "ferrous fumarate 89 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "200143",
+   "status": "Active",
+   "name": "ferrous sulfate 90 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "200327",
+   "status": "Active",
+   "name": "capecitabine 150 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "200328",
+   "status": "Active",
+   "name": "capecitabine 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "200345",
+   "status": "Active",
+   "name": "simvastatin 80 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "200371",
+   "status": "Active",
+   "name": "citalopram 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "204466",
+   "status": "Active",
+   "name": "50 ML penicillin G potassium 40000 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "204504",
+   "status": "Active",
+   "name": "1 ML digoxin 0.1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "204632",
+   "status": "Active",
+   "name": "ferrous sulfate 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "204844",
+   "status": "Active",
+   "name": "azithromycin 600 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "205322",
+   "status": "Active",
+   "name": "celecoxib 100 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "205326",
+   "status": "Active",
+   "name": "lisinopril 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "207390",
+   "status": "Active",
+   "name": "50 ML penicillin G potassium 20000 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "207391",
+   "status": "Active",
+   "name": "50 ML penicillin G potassium 60000 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "212033",
+   "status": "Active",
+   "name": "aspirin 325 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "212470",
+   "status": "Active",
+   "name": "thiamine 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "237165",
+   "status": "Active",
+   "name": "digoxin 0.05 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "237166",
+   "status": "Active",
+   "name": "digoxin 0.1 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "237205",
+   "status": "Active",
+   "name": "10 ML nitroglycerin 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "237420",
+   "status": "Active",
+   "name": "calcium carbonate 1500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "237788",
+   "status": "Active",
+   "name": "leucovorin 350 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "238755",
+   "status": "Active",
+   "name": "hydrocortisone 100 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "242969",
+   "status": "Active",
+   "name": "4 ML norepinephrine 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "243670",
+   "status": "Active",
+   "name": "aspirin 81 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "244052",
+   "status": "Active",
+   "name": "sodium chloride 600 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "244206",
+   "status": "Active",
+   "name": "ferrous sulfate 250 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "245014",
+   "status": "Active",
+   "name": "ferrous sulfate 168 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "245273",
+   "status": "Active",
+   "name": "digoxin 0.0625 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "245318",
+   "status": "Active",
+   "name": "aminophylline 350 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "246008",
+   "status": "Active",
+   "name": "alfacalcidol 0.00025 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "246313",
+   "status": "Active",
+   "name": "vitamin K1 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "246461",
+   "status": "Active",
+   "name": "aspirin 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "248306",
+   "status": "Active",
+   "name": "lithium carbonate 200 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "248506",
+   "status": "Active",
+   "name": "cholecalciferol 0.25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "248630",
+   "status": "Active",
+   "name": "midazolam 15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "248642",
+   "status": "Active",
+   "name": "fluoxetine 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "248656",
+   "status": "Active",
+   "name": "azithromycin 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "248657",
+   "status": "Active",
+   "name": "furosemide 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "249329",
+   "status": "Active",
+   "name": "lamotrigine 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "249767",
+   "status": "Active",
+   "name": "nitroglycerin 0.5 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "250423",
+   "status": "Active",
+   "name": "tamoxifen 40 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "250432",
+   "status": "Active",
+   "name": "carbidopa 12.5 MG / levodopa 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "250712",
+   "status": "Active",
+   "name": "metoclopramide 15 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "251201",
+   "status": "Active",
+   "name": "sertraline 200 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "251872",
+   "status": "Active",
+   "name": "pantoprazole 20 MG Delayed Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "252298",
+   "status": "Active",
+   "name": "albuterol 0.1 MG Inhalation Powder",
+   "tty": "SCD"
+  },
+  {
+   "code": "252487",
+   "status": "Active",
+   "name": "alfacalcidol 0.0005 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "259176",
+   "status": "Active",
+   "name": "ferrous fumarate 75 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "259255",
+   "status": "Active",
+   "name": "atorvastatin 80 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "259586",
+   "status": "Active",
+   "name": "ferrous sulfate 134 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "259966",
+   "status": "Active",
+   "name": "methylprednisolone 4 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "260002",
+   "status": "Active",
+   "name": "folic acid 20 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "282401",
+   "status": "Active",
+   "name": "lamotrigine 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "282464",
+   "status": "Active",
+   "name": "acetaminophen 160 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "282465",
+   "status": "Active",
+   "name": "calcium carbonate 1250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "283589",
+   "status": "Active",
+   "name": "sodium bicarbonate 520 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "283639",
+   "status": "Active",
+   "name": "olanzapine 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "283669",
+   "status": "Active",
+   "name": "pantoprazole 40 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "283672",
+   "status": "Active",
+   "name": "citalopram 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "284202",
+   "status": "Active",
+   "name": "ferrous fumarate 324 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "284215",
+   "status": "Active",
+   "name": "clindamycin 300 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "284245",
+   "status": "Active",
+   "name": "famotidine 40 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "307695",
+   "status": "Active",
+   "name": "acetaminophen 80 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "307779",
+   "status": "Active",
+   "name": "albuterol 0.2 MG Inhalation Powder",
+   "tty": "SCD"
+  },
+  {
+   "code": "308047",
+   "status": "Active",
+   "name": "alprazolam 0.25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "308048",
+   "status": "Active",
+   "name": "alprazolam 0.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "308119",
+   "status": "Active",
+   "name": "aminophylline 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "308135",
+   "status": "Active",
+   "name": "amlodipine 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "308136",
+   "status": "Active",
+   "name": "amlodipine 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "308182",
+   "status": "Active",
+   "name": "amoxicillin 250 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "308192",
+   "status": "Active",
+   "name": "amoxicillin 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "308194",
+   "status": "Active",
+   "name": "amoxicillin 875 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "308207",
+   "status": "Active",
+   "name": "ampicillin 125 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "308212",
+   "status": "Active",
+   "name": "ampicillin 500 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "308403",
+   "status": "Active",
+   "name": "aspirin 165 MG Delayed Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "308460",
+   "status": "Active",
+   "name": "azithromycin 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "308989",
+   "status": "Active",
+   "name": "carbidopa 50 MG / levodopa 200 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "309068",
+   "status": "Active",
+   "name": "cefotaxime 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "309092",
+   "status": "Active",
+   "name": "ceftriaxone 250 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "309115",
+   "status": "Active",
+   "name": "cephalexin 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "309263",
+   "status": "Active",
+   "name": "cholecalciferol 0.01 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "309309",
+   "status": "Active",
+   "name": "ciprofloxacin 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "309314",
+   "status": "Active",
+   "name": "citalopram 40 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "309335",
+   "status": "Active",
+   "name": "50 ML clindamycin 12 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "309336",
+   "status": "Active",
+   "name": "50 ML clindamycin 18 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "309339",
+   "status": "Active",
+   "name": "50 ML clindamycin 6 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "309362",
+   "status": "Active",
+   "name": "clopidogrel 75 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "309958",
+   "status": "Active",
+   "name": "disopyramide 100 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "309960",
+   "status": "Active",
+   "name": "disopyramide 150 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "309985",
+   "status": "Active",
+   "name": "250 ML dobutamine 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "309986",
+   "status": "Active",
+   "name": "250 ML dobutamine 2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "309987",
+   "status": "Active",
+   "name": "250 ML dobutamine 4 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "310273",
+   "status": "Active",
+   "name": "famotidine 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "310318",
+   "status": "Active",
+   "name": "ferrous sulfate 160 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "310325",
+   "status": "Active",
+   "name": "ferrous sulfate 325 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "310410",
+   "status": "Active",
+   "name": "folic acid 1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "310429",
+   "status": "Active",
+   "name": "furosemide 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "310473",
+   "status": "Active",
+   "name": "100 ML gentamicin 0.8 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "310670",
+   "status": "Active",
+   "name": "haloperidol 0.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "310671",
+   "status": "Active",
+   "name": "haloperidol 1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "310672",
+   "status": "Active",
+   "name": "haloperidol 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "310798",
+   "status": "Active",
+   "name": "hydrochlorothiazide 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "310965",
+   "status": "Active",
+   "name": "ibuprofen 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311277",
+   "status": "Active",
+   "name": "lansoprazole 30 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "311288",
+   "status": "Active",
+   "name": "levetiracetam 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311289",
+   "status": "Active",
+   "name": "levetiracetam 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311290",
+   "status": "Active",
+   "name": "levetiracetam 750 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311296",
+   "status": "Active",
+   "name": "levofloxacin 750 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311353",
+   "status": "Active",
+   "name": "lisinopril 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311354",
+   "status": "Active",
+   "name": "lisinopril 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311355",
+   "status": "Active",
+   "name": "lithium carbonate 150 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "311447",
+   "status": "Active",
+   "name": "1000 ML mannitol 100 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "311448",
+   "status": "Active",
+   "name": "500 ML mannitol 150 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "311450",
+   "status": "Active",
+   "name": "50 ML mannitol 250 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "311452",
+   "status": "Active",
+   "name": "1000 ML mannitol 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "311659",
+   "status": "Active",
+   "name": "methylprednisolone 40 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "311666",
+   "status": "Active",
+   "name": "metoclopramide 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311668",
+   "status": "Active",
+   "name": "metoclopramide 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311670",
+   "status": "Active",
+   "name": "2 ML metoclopramide 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "311681",
+   "status": "Active",
+   "name": "metronidazole 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311683",
+   "status": "Active",
+   "name": "100 ML metronidazole 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "311725",
+   "status": "Active",
+   "name": "mirtazapine 15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311726",
+   "status": "Active",
+   "name": "mirtazapine 45 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311787",
+   "status": "Active",
+   "name": "moxifloxacin 400 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311988",
+   "status": "Active",
+   "name": "nitrofurantoin 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311991",
+   "status": "Active",
+   "name": "nitrofurantoin 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "311994",
+   "status": "Active",
+   "name": "nitrofurantoin, macrocrystals 25 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "312013",
+   "status": "Active",
+   "name": "nitroglycerin 2.5 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "312068",
+   "status": "Active",
+   "name": "1 ML octreotide 0.05 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "312069",
+   "status": "Active",
+   "name": "1 ML octreotide 0.1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "312070",
+   "status": "Active",
+   "name": "1 ML octreotide 0.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "312077",
+   "status": "Active",
+   "name": "olanzapine 15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312078",
+   "status": "Active",
+   "name": "olanzapine 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312079",
+   "status": "Active",
+   "name": "olanzapine 7.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312084",
+   "status": "Active",
+   "name": "ondansetron 24 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312086",
+   "status": "Active",
+   "name": "ondansetron 8 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312122",
+   "status": "Active",
+   "name": "oseltamivir 75 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "312505",
+   "status": "Active",
+   "name": "potassium chloride 10 MEQ Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312507",
+   "status": "Active",
+   "name": "100 ML potassium chloride 0.1 MEQ/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "312517",
+   "status": "Active",
+   "name": "potassium chloride 25 MEQ Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312615",
+   "status": "Active",
+   "name": "prednisone 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312617",
+   "status": "Active",
+   "name": "prednisone 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312743",
+   "status": "Active",
+   "name": "quetiapine 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312744",
+   "status": "Active",
+   "name": "quetiapine 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312745",
+   "status": "Active",
+   "name": "quetiapine 300 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312828",
+   "status": "Active",
+   "name": "risperidone 0.25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312829",
+   "status": "Active",
+   "name": "risperidone 0.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312830",
+   "status": "Active",
+   "name": "risperidone 1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312831",
+   "status": "Active",
+   "name": "risperidone 2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312832",
+   "status": "Active",
+   "name": "risperidone 3 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312938",
+   "status": "Active",
+   "name": "sertraline 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312940",
+   "status": "Active",
+   "name": "sertraline 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312941",
+   "status": "Active",
+   "name": "sertraline 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312961",
+   "status": "Active",
+   "name": "simvastatin 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312962",
+   "status": "Active",
+   "name": "simvastatin 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "312973",
+   "status": "Active",
+   "name": "5 ML sodium bicarbonate 40 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "313009",
+   "status": "Active",
+   "name": "sodium chloride 1000 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313096",
+   "status": "Active",
+   "name": "spironolactone 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313160",
+   "status": "Active",
+   "name": "sumatriptan 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313161",
+   "status": "Active",
+   "name": "sumatriptan 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313165",
+   "status": "Active",
+   "name": "0.5 ML sumatriptan 12 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "313195",
+   "status": "Active",
+   "name": "tamoxifen 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313209",
+   "status": "Active",
+   "name": "temozolomide 20 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "313210",
+   "status": "Active",
+   "name": "temozolomide 250 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "313211",
+   "status": "Active",
+   "name": "temozolomide 5 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "313323",
+   "status": "Active",
+   "name": "thiamine 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313326",
+   "status": "Active",
+   "name": "thiamine 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313570",
+   "status": "Active",
+   "name": "vancomycin 125 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "313571",
+   "status": "Active",
+   "name": "vancomycin 250 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "313580",
+   "status": "Active",
+   "name": "venlafaxine 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313582",
+   "status": "Active",
+   "name": "venlafaxine 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313584",
+   "status": "Active",
+   "name": "venlafaxine 37.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313586",
+   "status": "Active",
+   "name": "venlafaxine 75 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313782",
+   "status": "Active",
+   "name": "acetaminophen 325 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313794",
+   "status": "Active",
+   "name": "aminophylline 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313800",
+   "status": "Active",
+   "name": "ampicillin 250 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "313988",
+   "status": "Active",
+   "name": "furosemide 40 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313989",
+   "status": "Active",
+   "name": "fluoxetine 40 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "313990",
+   "status": "Active",
+   "name": "fluoxetine 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "313995",
+   "status": "Active",
+   "name": "fluoxetine 90 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "314034",
+   "status": "Active",
+   "name": "haloperidol 2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "314035",
+   "status": "Active",
+   "name": "haloperidol 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "314076",
+   "status": "Active",
+   "name": "lisinopril 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "314077",
+   "status": "Active",
+   "name": "lisinopril 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "314106",
+   "status": "Active",
+   "name": "metronidazole 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "314111",
+   "status": "Active",
+   "name": "mirtazapine 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "314154",
+   "status": "Active",
+   "name": "olanzapine 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "314163",
+   "status": "Active",
+   "name": "potassium chloride 8 MEQ Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "314200",
+   "status": "Active",
+   "name": "pantoprazole 40 MG Delayed Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "314211",
+   "status": "Active",
+   "name": "risperidone 4 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "314231",
+   "status": "Active",
+   "name": "simvastatin 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "314277",
+   "status": "Active",
+   "name": "venlafaxine 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "315090",
+   "status": "Active",
+   "name": "erythromycin 333 MG Delayed Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "315135",
+   "status": "Active",
+   "name": "levocarnitine 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "315223",
+   "status": "Active",
+   "name": "sumatriptan 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "317160",
+   "status": "Active",
+   "name": "temozolomide 100 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "317174",
+   "status": "Active",
+   "name": "quetiapine 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "318076",
+   "status": "Active",
+   "name": "calcium carbonate 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "328161",
+   "status": "Active",
+   "name": "methylprednisolone 16 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "343050",
+   "status": "Active",
+   "name": "potassium chloride 20 MEQ Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "348428",
+   "status": "Active",
+   "name": "prednisolone 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "348978",
+   "status": "Active",
+   "name": "acetaminophen 300 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "349332",
+   "status": "Active",
+   "name": "escitalopram 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "349406",
+   "status": "Active",
+   "name": "bicalutamide 150 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "349490",
+   "status": "Active",
+   "name": "aripiprazole 15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "349514",
+   "status": "Active",
+   "name": "celecoxib 400 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "349516",
+   "status": "Active",
+   "name": "aspirin 800 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "349545",
+   "status": "Active",
+   "name": "aripiprazole 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "349547",
+   "status": "Active",
+   "name": "aripiprazole 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "349553",
+   "status": "Active",
+   "name": "aripiprazole 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "349556",
+   "status": "Active",
+   "name": "ezetimibe 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "351127",
+   "status": "Active",
+   "name": "cefditoren pivoxil 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "351156",
+   "status": "Active",
+   "name": "250 ML moxifloxacin 1.6 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "351249",
+   "status": "Active",
+   "name": "escitalopram 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "351250",
+   "status": "Active",
+   "name": "escitalopram 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "351266",
+   "status": "Active",
+   "name": "buprenorphine 2 MG / naloxone 0.5 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "351267",
+   "status": "Active",
+   "name": "buprenorphine 8 MG / naloxone 2 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "387003",
+   "status": "Active",
+   "name": "levetiracetam 1000 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "389171",
+   "status": "Active",
+   "name": "omeprazole 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "389172",
+   "status": "Active",
+   "name": "omeprazole 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "389173",
+   "status": "Active",
+   "name": "omeprazole 40 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "389201",
+   "status": "Active",
+   "name": "quetiapine 150 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "389231",
+   "status": "Active",
+   "name": "ferrous fumarate 210 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "391875",
+   "status": "Active",
+   "name": "lamotrigine 2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "391930",
+   "status": "Active",
+   "name": "aspirin 975 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "392151",
+   "status": "Active",
+   "name": "amoxicillin 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "392152",
+   "status": "Active",
+   "name": "amoxicillin 400 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "392173",
+   "status": "Active",
+   "name": "nitroglycerin 6.5 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "392174",
+   "status": "Active",
+   "name": "nitroglycerin 9 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "392321",
+   "status": "Active",
+   "name": "albuterol 8 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "402010",
+   "status": "Active",
+   "name": "risperidone 25 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "402011",
+   "status": "Active",
+   "name": "risperidone 37.5 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "402012",
+   "status": "Active",
+   "name": "risperidone 50 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "402131",
+   "status": "Active",
+   "name": "aripiprazole 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "403888",
+   "status": "Active",
+   "name": "Microencapsulated potassium chloride 15 MEQ Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "403921",
+   "status": "Active",
+   "name": "24 HR ciprofloxacin 1000 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "410584",
+   "status": "Active",
+   "name": "sertraline 150 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "428485",
+   "status": "Active",
+   "name": "calcium carbonate 1500 MG / cholecalciferol 0.01 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "428971",
+   "status": "Active",
+   "name": "sodium bicarbonate 1000 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "429199",
+   "status": "Active",
+   "name": "prednisolone 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "429503",
+   "status": "Active",
+   "name": "hydrochlorothiazide 12.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "429662",
+   "status": "Active",
+   "name": "rifaximin 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "430837",
+   "status": "Active",
+   "name": "acetaminophen 1000 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "430890",
+   "status": "Active",
+   "name": "celecoxib 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "433773",
+   "status": "Active",
+   "name": "clindamycin 150 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "433801",
+   "status": "Active",
+   "name": "24 HR alprazolam 3 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "439841",
+   "status": "Active",
+   "name": "folic acid 0.1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "476809",
+   "status": "Active",
+   "name": "mirtazapine 7.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "483017",
+   "status": "Active",
+   "name": "100 ML acetaminophen 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "483438",
+   "status": "Active",
+   "name": "pregabalin 100 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "483440",
+   "status": "Active",
+   "name": "pregabalin 150 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "483442",
+   "status": "Active",
+   "name": "pregabalin 25 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "483444",
+   "status": "Active",
+   "name": "pregabalin 300 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "483446",
+   "status": "Active",
+   "name": "pregabalin 200 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "483448",
+   "status": "Active",
+   "name": "pregabalin 50 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "483450",
+   "status": "Active",
+   "name": "pregabalin 75 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "485032",
+   "status": "Active",
+   "name": "tiotropium 0.018 MG Inhalation Powder",
+   "tty": "SCD"
+  },
+  {
+   "code": "485709",
+   "status": "Active",
+   "name": "12 HR dextromethorphan hydrobromide 30 MG / guaifenesin 835 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "485968",
+   "status": "Active",
+   "name": "olanzapine 10 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "562251",
+   "status": "Active",
+   "name": "amoxicillin 250 MG / clavulanate 125 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "562508",
+   "status": "Active",
+   "name": "amoxicillin 875 MG / clavulanate 125 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "577040",
+   "status": "Active",
+   "name": "calcium carbonate 648 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "577127",
+   "status": "Active",
+   "name": "pregabalin 225 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "577776",
+   "status": "Active",
+   "name": "candesartan cilexetil 16 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "583214",
+   "status": "Active",
+   "name": "paclitaxel 100 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "596843",
+   "status": "Active",
+   "name": "lansoprazole 15 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "596926",
+   "status": "Active",
+   "name": "duloxetine 20 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "596930",
+   "status": "Active",
+   "name": "duloxetine 30 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "596934",
+   "status": "Active",
+   "name": "duloxetine 60 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "597747",
+   "status": "Active",
+   "name": "sorafenib 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "598006",
+   "status": "Active",
+   "name": "erythromycin 250 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "602964",
+   "status": "Active",
+   "name": "aripiprazole 2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "616402",
+   "status": "Active",
+   "name": "duloxetine 40 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "616483",
+   "status": "Active",
+   "name": "quetiapine 400 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "616487",
+   "status": "Active",
+   "name": "quetiapine 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "617296",
+   "status": "Active",
+   "name": "amoxicillin 500 MG / clavulanate 125 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "617310",
+   "status": "Active",
+   "name": "atorvastatin 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "617311",
+   "status": "Active",
+   "name": "atorvastatin 40 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "617312",
+   "status": "Active",
+   "name": "atorvastatin 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "617995",
+   "status": "Active",
+   "name": "12 HR amoxicillin 1000 MG / clavulanate 62.5 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "617996",
+   "status": "Active",
+   "name": "amoxicillin 800 MG / clavulanate 125 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "630032",
+   "status": "Active",
+   "name": "furosemide 12.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "636559",
+   "status": "Active",
+   "name": "24 HR metronidazole 750 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "637173",
+   "status": "Active",
+   "name": "cephalexin 750 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "637213",
+   "status": "Active",
+   "name": "naltrexone 380 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "639536",
+   "status": "Active",
+   "name": "candesartan cilexetil 2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "639537",
+   "status": "Active",
+   "name": "candesartan cilexetil 32 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "645617",
+   "status": "Active",
+   "name": "cephalexin 333 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "647121",
+   "status": "Active",
+   "name": "5 ML levetiracetam 100 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "668292",
+   "status": "Active",
+   "name": "calcium carbonate 600 MG / cholecalciferol 0.01 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "672356",
+   "status": "Active",
+   "name": "1.3 ML aripiprazole 7.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "686379",
+   "status": "Active",
+   "name": "celecoxib 50 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "686405",
+   "status": "Active",
+   "name": "erythromycin ethylsuccinate 400 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "686924",
+   "status": "Active",
+   "name": "carvedilol 3.125 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "692695",
+   "status": "Active",
+   "name": "ondansetron 16 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "700883",
+   "status": "Active",
+   "name": "temozolomide 140 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "700885",
+   "status": "Active",
+   "name": "temozolomide 180 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "706822",
+   "status": "Active",
+   "name": "risperidone 12.5 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "728109",
+   "status": "Active",
+   "name": "oseltamivir 30 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "728113",
+   "status": "Active",
+   "name": "oseltamivir 45 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "730782",
+   "status": "Active",
+   "name": "500 ML sodium chloride 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "731564",
+   "status": "Active",
+   "name": "1 ML penicillin G benzathine 600000 UNT/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "745286",
+   "status": "Active",
+   "name": "penicillin G potassium 250000 UNT Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "745292",
+   "status": "Active",
+   "name": "penicillin G potassium 400000 UNT Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "749196",
+   "status": "Active",
+   "name": "clopidogrel 300 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "752884",
+   "status": "Active",
+   "name": "0.375 ML leuprolide acetate 120 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "752889",
+   "status": "Active",
+   "name": "0.5 ML leuprolide acetate 60 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "752899",
+   "status": "Active",
+   "name": "0.25 ML leuprolide acetate 30 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "791939",
+   "status": "Active",
+   "name": "amoxicillin 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "791947",
+   "status": "Active",
+   "name": "amoxicillin 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "800531",
+   "status": "Active",
+   "name": "ferrous sulfate 27 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "801663",
+   "status": "Active",
+   "name": "cholecalciferol 0.05 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "802550",
+   "status": "Active",
+   "name": "amoxicillin 775 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "807284",
+   "status": "Active",
+   "name": "50 ML sodium bicarbonate 75 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "808744",
+   "status": "Active",
+   "name": "24 HR venlafaxine 150 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "808748",
+   "status": "Active",
+   "name": "24 HR venlafaxine 225 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "828299",
+   "status": "Active",
+   "name": "cyclobenzaprine hydrochloride 7.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "828320",
+   "status": "Active",
+   "name": "cyclobenzaprine hydrochloride 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "828348",
+   "status": "Active",
+   "name": "cyclobenzaprine hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "828353",
+   "status": "Active",
+   "name": "24 HR cyclobenzaprine hydrochloride 30 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "828358",
+   "status": "Active",
+   "name": "24 HR cyclobenzaprine hydrochloride 15 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "829734",
+   "status": "Active",
+   "name": "50 ML magnesium sulfate 80 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "829757",
+   "status": "Active",
+   "name": "100 ML magnesium sulfate 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "830877",
+   "status": "Active",
+   "name": "24 HR diltiazem hydrochloride 180 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "830882",
+   "status": "Active",
+   "name": "24 HR diltiazem hydrochloride 300 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "830897",
+   "status": "Active",
+   "name": "24 HR diltiazem hydrochloride 360 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "830900",
+   "status": "Active",
+   "name": "24 HR diltiazem hydrochloride 420 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "831054",
+   "status": "Active",
+   "name": "diltiazem hydrochloride 120 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "831102",
+   "status": "Active",
+   "name": "diltiazem hydrochloride 90 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "831103",
+   "status": "Active",
+   "name": "diltiazem hydrochloride 60 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "833135",
+   "status": "Active",
+   "name": "milnacipran hydrochloride 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "833141",
+   "status": "Active",
+   "name": "milnacipran hydrochloride 12.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "833144",
+   "status": "Active",
+   "name": "milnacipran hydrochloride 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "833147",
+   "status": "Active",
+   "name": "milnacipran hydrochloride 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "833217",
+   "status": "Active",
+   "name": "diltiazem hydrochloride 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "833528",
+   "status": "Active",
+   "name": "amiodarone hydrochloride 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "833711",
+   "status": "Active",
+   "name": "24 HR tramadol hydrochloride 200 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "833713",
+   "status": "Active",
+   "name": "24 HR tramadol hydrochloride 300 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "834022",
+   "status": "Active",
+   "name": "ketorolac tromethamine 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "834348",
+   "status": "Active",
+   "name": "amiodarone hydrochloride 400 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "835603",
+   "status": "Active",
+   "name": "tramadol hydrochloride 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "835726",
+   "status": "Active",
+   "name": "acamprosate calcium 333 MG Delayed Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "835945",
+   "status": "Active",
+   "name": "temozolomide 100 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "835956",
+   "status": "Active",
+   "name": "amiodarone hydrochloride 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "835960",
+   "status": "Active",
+   "name": "amiodarone hydrochloride 300 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "836343",
+   "status": "Active",
+   "name": "200 ACTUAT ipratropium bromide 0.017 MG/ACTUAT Metered Dose Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "846994",
+   "status": "Active",
+   "name": "amoxicillin 150 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "847360",
+   "status": "Active",
+   "name": "cefditoren pivoxil 400 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "848934",
+   "status": "Active",
+   "name": "levocarnitine 400 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "849398",
+   "status": "Active",
+   "name": "naproxen sodium 275 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "849431",
+   "status": "Active",
+   "name": "naproxen sodium 550 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "849561",
+   "status": "Active",
+   "name": "12 HR tramadol hydrochloride 150 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "849574",
+   "status": "Active",
+   "name": "naproxen sodium 220 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "849860",
+   "status": "Active",
+   "name": "diltiazem malate 240 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "849876",
+   "status": "Active",
+   "name": "200 ML amiodarone hydrochloride 1.8 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "854183",
+   "status": "Active",
+   "name": "8 ML ibuprofen 100 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "854228",
+   "status": "Active",
+   "name": "0.3 ML enoxaparin sodium 100 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "854235",
+   "status": "Active",
+   "name": "0.4 ML enoxaparin sodium 100 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "854238",
+   "status": "Active",
+   "name": "0.6 ML enoxaparin sodium 100 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "854241",
+   "status": "Active",
+   "name": "0.8 ML enoxaparin sodium 100 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "854245",
+   "status": "Active",
+   "name": "0.8 ML enoxaparin sodium 150 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "854248",
+   "status": "Active",
+   "name": "1 ML enoxaparin sodium 100 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "854252",
+   "status": "Active",
+   "name": "1 ML enoxaparin sodium 150 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "854901",
+   "status": "Active",
+   "name": "bisoprolol fumarate 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "854905",
+   "status": "Active",
+   "name": "bisoprolol fumarate 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "855288",
+   "status": "Active",
+   "name": "warfarin sodium 1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "855296",
+   "status": "Active",
+   "name": "warfarin sodium 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "855302",
+   "status": "Active",
+   "name": "warfarin sodium 2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "855312",
+   "status": "Active",
+   "name": "warfarin sodium 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "855318",
+   "status": "Active",
+   "name": "warfarin sodium 3 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "855324",
+   "status": "Active",
+   "name": "warfarin sodium 4 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "855332",
+   "status": "Active",
+   "name": "warfarin sodium 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "855338",
+   "status": "Active",
+   "name": "warfarin sodium 6 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "855344",
+   "status": "Active",
+   "name": "warfarin sodium 7.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "855350",
+   "status": "Active",
+   "name": "warfarin sodium 0.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "855657",
+   "status": "Active",
+   "name": "24 HR diclofenac sodium 100 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "855942",
+   "status": "Active",
+   "name": "diclofenac potassium 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "856664",
+   "status": "Active",
+   "name": "rifaximin 550 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "857466",
+   "status": "Active",
+   "name": "cholecalciferol 0.125 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "857702",
+   "status": "Active",
+   "name": "diclofenac potassium 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "858580",
+   "status": "Active",
+   "name": "12 HR nicardipine hydrochloride 45 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "858599",
+   "status": "Active",
+   "name": "200 ML nicardipine hydrochloride 0.1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "858603",
+   "status": "Active",
+   "name": "200 ML nicardipine hydrochloride 0.2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "858607",
+   "status": "Active",
+   "name": "10 ML nicardipine hydrochloride 2.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "858613",
+   "status": "Active",
+   "name": "nicardipine hydrochloride 20 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "858616",
+   "status": "Active",
+   "name": "nicardipine hydrochloride 30 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "858804",
+   "status": "Active",
+   "name": "enalapril maleate 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "858810",
+   "status": "Active",
+   "name": "enalapril maleate 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "858813",
+   "status": "Active",
+   "name": "enalapril maleate 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "858817",
+   "status": "Active",
+   "name": "enalapril maleate 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "859203",
+   "status": "Active",
+   "name": "2.5 ML sodium chloride 9 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "859419",
+   "status": "Active",
+   "name": "rosuvastatin calcium 40 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "859424",
+   "status": "Active",
+   "name": "rosuvastatin calcium 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "859747",
+   "status": "Active",
+   "name": "rosuvastatin calcium 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "859751",
+   "status": "Active",
+   "name": "rosuvastatin calcium 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "860092",
+   "status": "Active",
+   "name": "1 ML ketorolac tromethamine 15 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "860510",
+   "status": "Active",
+   "name": "24 HR carvedilol phosphate 10 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "860516",
+   "status": "Active",
+   "name": "24 HR carvedilol phosphate 20 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "860522",
+   "status": "Active",
+   "name": "24 HR carvedilol phosphate 40 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "860532",
+   "status": "Active",
+   "name": "24 HR carvedilol phosphate 80 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "861004",
+   "status": "Active",
+   "name": "metformin hydrochloride 1000 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "861007",
+   "status": "Active",
+   "name": "metformin hydrochloride 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "861010",
+   "status": "Active",
+   "name": "metformin hydrochloride 850 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "861021",
+   "status": "Active",
+   "name": "metformin hydrochloride 625 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "861379",
+   "status": "Active",
+   "name": "micafungin 50 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "861383",
+   "status": "Active",
+   "name": "micafungin 100 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "863669",
+   "status": "Active",
+   "name": "tamsulosin hydrochloride 0.4 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "864706",
+   "status": "Active",
+   "name": "methadone hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "864718",
+   "status": "Active",
+   "name": "methadone hydrochloride 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "865154",
+   "status": "Active",
+   "name": "bisoprolol fumarate 1.25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "865155",
+   "status": "Active",
+   "name": "bisoprolol fumarate 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "865157",
+   "status": "Active",
+   "name": "bisoprolol fumarate 3.75 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "865159",
+   "status": "Active",
+   "name": "bisoprolol fumarate 7.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "866406",
+   "status": "Active",
+   "name": "cholecalciferol 0.075 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "866412",
+   "status": "Active",
+   "name": "24 HR metoprolol succinate 100 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "866419",
+   "status": "Active",
+   "name": "24 HR metoprolol succinate 200 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "866427",
+   "status": "Active",
+   "name": "24 HR metoprolol succinate 25 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "866436",
+   "status": "Active",
+   "name": "24 HR metoprolol succinate 50 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "866508",
+   "status": "Active",
+   "name": "5 ML metoprolol tartrate 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "866511",
+   "status": "Active",
+   "name": "metoprolol tartrate 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "866514",
+   "status": "Active",
+   "name": "metoprolol tartrate 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "866924",
+   "status": "Active",
+   "name": "metoprolol tartrate 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "883806",
+   "status": "Active",
+   "name": "270 ACTUAT epinephrine 0.22 MG/ACTUAT Metered Dose Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "884173",
+   "status": "Active",
+   "name": "clonidine hydrochloride 0.1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "884185",
+   "status": "Active",
+   "name": "clonidine hydrochloride 0.2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "884189",
+   "status": "Active",
+   "name": "clonidine hydrochloride 0.3 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "884221",
+   "status": "Active",
+   "name": "10 ML clonidine hydrochloride 0.1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "884225",
+   "status": "Active",
+   "name": "10 ML clonidine hydrochloride 0.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "885578",
+   "status": "Active",
+   "name": "24 HR ferrous sulfate 142 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "885880",
+   "status": "Active",
+   "name": "24 HR clonidine 0.17 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "891134",
+   "status": "Active",
+   "name": "aspirin 15600 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "891136",
+   "status": "Active",
+   "name": "aspirin 31200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "891874",
+   "status": "Active",
+   "name": "morphine sulfate 100 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892160",
+   "status": "Active",
+   "name": "aspirin 3900 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892246",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892251",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892255",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.3 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892259",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.4 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892263",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892267",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.6 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892271",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.7 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892275",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.8 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892279",
+   "status": "Active",
+   "name": "levothyroxine sodium 1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892297",
+   "status": "Active",
+   "name": "24 HR morphine sulfate 120 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "892355",
+   "status": "Active",
+   "name": "24 HR morphine sulfate 90 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "892582",
+   "status": "Active",
+   "name": "morphine sulfate 15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892672",
+   "status": "Active",
+   "name": "morphine sulfate 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892791",
+   "status": "Active",
+   "name": "clonidine hydrochloride 0.025 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "892795",
+   "status": "Active",
+   "name": "clonidine hydrochloride 0.25 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "894814",
+   "status": "Active",
+   "name": "morphine sulfate 80 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "894911",
+   "status": "Active",
+   "name": "0.7 ML morphine sulfate 14.3 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "894942",
+   "status": "Active",
+   "name": "24 HR morphine sulfate 45 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "894970",
+   "status": "Active",
+   "name": "24 HR morphine sulfate 75 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "895014",
+   "status": "Active",
+   "name": "morphine sulfate 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "895201",
+   "status": "Active",
+   "name": "morphine sulfate 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "895206",
+   "status": "Active",
+   "name": "morphine sulfate 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "895217",
+   "status": "Active",
+   "name": "morphine sulfate 5 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "895221",
+   "status": "Active",
+   "name": "morphine sulfate 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "895247",
+   "status": "Active",
+   "name": "morphine sulfate 60 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "896184",
+   "status": "Active",
+   "name": "60 ACTUAT fluticasone propionate 0.1 MG/ACTUAT / salmeterol 0.05 MG/ACTUAT Dry Powder Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "896209",
+   "status": "Active",
+   "name": "60 ACTUAT fluticasone propionate 0.25 MG/ACTUAT / salmeterol 0.05 MG/ACTUAT Dry Powder Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "896228",
+   "status": "Active",
+   "name": "60 ACTUAT fluticasone propionate 0.5 MG/ACTUAT / salmeterol 0.05 MG/ACTUAT Dry Powder Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "896236",
+   "status": "Active",
+   "name": "120 ACTUAT fluticasone propionate 0.045 MG/ACTUAT / salmeterol 0.021 MG/ACTUAT Metered Dose Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "896244",
+   "status": "Active",
+   "name": "120 ACTUAT fluticasone propionate 0.115 MG/ACTUAT / salmeterol 0.021 MG/ACTUAT Metered Dose Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "896272",
+   "status": "Active",
+   "name": "120 ACTUAT fluticasone propionate 0.23 MG/ACTUAT / salmeterol 0.021 MG/ACTUAT Metered Dose Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "896758",
+   "status": "Active",
+   "name": "labetalol hydrochloride 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "896762",
+   "status": "Active",
+   "name": "labetalol hydrochloride 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "896766",
+   "status": "Active",
+   "name": "labetalol hydrochloride 300 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "896983",
+   "status": "Active",
+   "name": "labetalol hydrochloride 400 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "896987",
+   "status": "Active",
+   "name": "labetalol hydrochloride 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "897653",
+   "status": "Active",
+   "name": "1 ML hydromorphone hydrochloride 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "897696",
+   "status": "Active",
+   "name": "hydromorphone hydrochloride 2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "897702",
+   "status": "Active",
+   "name": "hydromorphone hydrochloride 4 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "897710",
+   "status": "Active",
+   "name": "hydromorphone hydrochloride 8 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "897753",
+   "status": "Active",
+   "name": "1 ML hydromorphone hydrochloride 4 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "897771",
+   "status": "Active",
+   "name": "hydromorphone hydrochloride 1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "898004",
+   "status": "Active",
+   "name": "hydromorphone hydrochloride 1.3 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "898138",
+   "status": "Active",
+   "name": "hydromorphone hydrochloride 2.6 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "898139",
+   "status": "Active",
+   "name": "hydromorphone hydrochloride 3 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "898589",
+   "status": "Active",
+   "name": "octreotide 20 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "898601",
+   "status": "Active",
+   "name": "octreotide 30 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "898605",
+   "status": "Active",
+   "name": "octreotide 10 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "900391",
+   "status": "Active",
+   "name": "clindamycin 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "900460",
+   "status": "Active",
+   "name": "clindamycin 75 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "902729",
+   "status": "Active",
+   "name": "24 HR hydromorphone hydrochloride 12 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "902736",
+   "status": "Active",
+   "name": "24 HR hydromorphone hydrochloride 16 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "903879",
+   "status": "Active",
+   "name": "24 HR fluvoxamine maleate 150 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "903884",
+   "status": "Active",
+   "name": "fluvoxamine maleate 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "903887",
+   "status": "Active",
+   "name": "fluvoxamine maleate 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "903891",
+   "status": "Active",
+   "name": "fluvoxamine maleate 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "904238",
+   "status": "Active",
+   "name": "potassium chloride 2.42 MEQ Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "904396",
+   "status": "Active",
+   "name": "alendronic acid 35 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "904405",
+   "status": "Active",
+   "name": "alendronic acid 40 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "904419",
+   "status": "Active",
+   "name": "alendronic acid 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "904425",
+   "status": "Active",
+   "name": "alendronic acid 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "904431",
+   "status": "Active",
+   "name": "alendronic acid 70 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "966219",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.5 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "966220",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.025 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "966221",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.05 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "966222",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.075 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "966224",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.125 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "966225",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "966248",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.112 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "966249",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.175 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "966253",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.088 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "966270",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.137 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "966280",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.0125 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "966412",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.013 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "978010",
+   "status": "Active",
+   "name": "loperamide hydrochloride 2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "979480",
+   "status": "Active",
+   "name": "losartan potassium 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "979485",
+   "status": "Active",
+   "name": "losartan potassium 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "979492",
+   "status": "Active",
+   "name": "losartan potassium 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "993462",
+   "status": "Active",
+   "name": "midodrine hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "993466",
+   "status": "Active",
+   "name": "midodrine hydrochloride 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "993470",
+   "status": "Active",
+   "name": "midodrine hydrochloride 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "993770",
+   "status": "Active",
+   "name": "acetaminophen 300 MG / codeine phosphate 15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "993781",
+   "status": "Active",
+   "name": "acetaminophen 300 MG / codeine phosphate 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "993890",
+   "status": "Active",
+   "name": "acetaminophen 300 MG / codeine phosphate 60 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "994043",
+   "status": "Active",
+   "name": "acetaminophen 500 MG / codeine phosphate 15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "994046",
+   "status": "Active",
+   "name": "acetaminophen 500 MG / codeine phosphate 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "995218",
+   "status": "Active",
+   "name": "hydroxyzine hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "995235",
+   "status": "Active",
+   "name": "hydroxyzine hydrochloride 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "995258",
+   "status": "Active",
+   "name": "hydroxyzine hydrochloride 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "995270",
+   "status": "Active",
+   "name": "1 ML hydroxyzine hydrochloride 25 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "995281",
+   "status": "Active",
+   "name": "hydroxyzine hydrochloride 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "995624",
+   "status": "Active",
+   "name": "meclizine hydrochloride 12.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "995666",
+   "status": "Active",
+   "name": "meclizine hydrochloride 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "995682",
+   "status": "Active",
+   "name": "meclizine hydrochloride 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "995686",
+   "status": "Active",
+   "name": "meclizine hydrochloride 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "996976",
+   "status": "Active",
+   "name": "acetaminophen 500 MG / codeine phosphate 12.8 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "996978",
+   "status": "Active",
+   "name": "acetaminophen 500 MG / codeine phosphate 13.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "996982",
+   "status": "Active",
+   "name": "acetaminophen 500 MG / codeine phosphate 8 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "997169",
+   "status": "Active",
+   "name": "codeine phosphate 15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "997223",
+   "status": "Active",
+   "name": "donepezil hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "997229",
+   "status": "Active",
+   "name": "donepezil hydrochloride 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "997285",
+   "status": "Active",
+   "name": "codeine phosphate 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "997296",
+   "status": "Active",
+   "name": "codeine sulfate 60 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1010844",
+   "status": "Active",
+   "name": "5 ML lidocaine hydrochloride 40 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1011093",
+   "status": "Active",
+   "name": "2 ML lidocaine hydrochloride 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1014599",
+   "status": "Active",
+   "name": "acetaminophen 300 MG / oxycodone hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1014615",
+   "status": "Active",
+   "name": "acetaminophen 300 MG / oxycodone hydrochloride 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1014632",
+   "status": "Active",
+   "name": "acetaminophen 300 MG / oxycodone hydrochloride 7.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1014676",
+   "status": "Active",
+   "name": "cetirizine hydrochloride 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1014678",
+   "status": "Active",
+   "name": "cetirizine hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1037259",
+   "status": "Active",
+   "name": "acetaminophen 300 MG / oxycodone hydrochloride 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1046398",
+   "status": "Active",
+   "name": "1.7 ML denosumab 70 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1046406",
+   "status": "Active",
+   "name": "100 ML amiodarone hydrochloride 1.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049214",
+   "status": "Active",
+   "name": "acetaminophen 325 MG / oxycodone hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049221",
+   "status": "Active",
+   "name": "acetaminophen 325 MG / oxycodone hydrochloride 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049225",
+   "status": "Active",
+   "name": "acetaminophen 325 MG / oxycodone hydrochloride 7.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049233",
+   "status": "Active",
+   "name": "acetaminophen 500 MG / oxycodone hydrochloride 7.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049267",
+   "status": "Active",
+   "name": "acetaminophen 400 MG / oxycodone hydrochloride 7.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049270",
+   "status": "Active",
+   "name": "acetaminophen 650 MG / oxycodone hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049584",
+   "status": "Active",
+   "name": "12 HR oxycodone hydrochloride 40 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049593",
+   "status": "Active",
+   "name": "12 HR oxycodone hydrochloride 60 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049599",
+   "status": "Active",
+   "name": "12 HR oxycodone hydrochloride 80 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049611",
+   "status": "Active",
+   "name": "oxycodone hydrochloride 15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049618",
+   "status": "Active",
+   "name": "oxycodone hydrochloride 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049621",
+   "status": "Active",
+   "name": "oxycodone hydrochloride 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049630",
+   "status": "Active",
+   "name": "diphenhydramine hydrochloride 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049635",
+   "status": "Active",
+   "name": "acetaminophen 325 MG / oxycodone hydrochloride 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049651",
+   "status": "Active",
+   "name": "acetaminophen 500 MG / oxycodone hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049658",
+   "status": "Active",
+   "name": "acetaminophen 500 MG / oxycodone hydrochloride 5 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049683",
+   "status": "Active",
+   "name": "oxycodone hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1049686",
+   "status": "Active",
+   "name": "oxycodone hydrochloride 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1053647",
+   "status": "Active",
+   "name": "fentanyl 0.1 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1053652",
+   "status": "Active",
+   "name": "fentanyl 0.2 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1053655",
+   "status": "Active",
+   "name": "fentanyl 0.3 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1053658",
+   "status": "Active",
+   "name": "fentanyl 0.4 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1053661",
+   "status": "Active",
+   "name": "fentanyl 0.6 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1053664",
+   "status": "Active",
+   "name": "fentanyl 0.8 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1085945",
+   "status": "Active",
+   "name": "diphenhydramine hydrochloride 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1089780",
+   "status": "Active",
+   "name": "vitamin K1 1 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1094104",
+   "status": "Active",
+   "name": "phenazopyridine hydrochloride 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1094107",
+   "status": "Active",
+   "name": "phenazopyridine hydrochloride 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1094126",
+   "status": "Active",
+   "name": "phenazopyridine hydrochloride 95 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1094147",
+   "status": "Active",
+   "name": "phenazopyridine hydrochloride 99.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1094160",
+   "status": "Active",
+   "name": "phenazopyridine hydrochloride 97.2 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1094351",
+   "status": "Active",
+   "name": "phenazopyridine hydrochloride 150 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1094357",
+   "status": "Active",
+   "name": "phenazopyridine hydrochloride 97.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1095421",
+   "status": "Active",
+   "name": "ferrous sulfate 140 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1098608",
+   "status": "Active",
+   "name": "24 HR lamotrigine 300 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1098865",
+   "status": "Active",
+   "name": "ferrous sulfate 88 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1098910",
+   "status": "Active",
+   "name": "ferrous sulfate 143 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1099074",
+   "status": "Active",
+   "name": "12 HR dextromethorphan hydrobromide 60 MG / guaifenesin 1200 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1099648",
+   "status": "Active",
+   "name": "5 ML valproic acid 100 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1099656",
+   "status": "Active",
+   "name": "valproic acid 125 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1099681",
+   "status": "Active",
+   "name": "valproic acid 250 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1099691",
+   "status": "Active",
+   "name": "valproic acid 500 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1099703",
+   "status": "Active",
+   "name": "valproic acid 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1099766",
+   "status": "Active",
+   "name": "valproic acid 150 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1099772",
+   "status": "Active",
+   "name": "valproic acid 200 MG Delayed Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1099878",
+   "status": "Active",
+   "name": "calcium carbonate 1625 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1100184",
+   "status": "Active",
+   "name": "donepezil hydrochloride 23 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1113314",
+   "status": "Active",
+   "name": "oxycodone hydrochloride 7.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1114198",
+   "status": "Active",
+   "name": "rivaroxaban 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1115267",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.1 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1115269",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.2 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1115447",
+   "status": "Active",
+   "name": "1 ML leuprolide acetate 11.25 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "1115454",
+   "status": "Active",
+   "name": "1 ML leuprolide acetate 15 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "1115457",
+   "status": "Active",
+   "name": "1 ML leuprolide acetate 3.75 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "1115877",
+   "status": "Active",
+   "name": "cholecalciferol 0.1 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1116349",
+   "status": "Active",
+   "name": "24 HR naproxen 750 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1116635",
+   "status": "Active",
+   "name": "ticagrelor 90 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1147685",
+   "status": "Active",
+   "name": "dextromethorphan hydrobromide 20 MG / guaifenesin 400 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1149629",
+   "status": "Active",
+   "name": "1000 ML sodium chloride 72 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1150266",
+   "status": "Active",
+   "name": "cholecalciferol 0.625 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1190110",
+   "status": "Active",
+   "name": "fluoxetine 60 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1190536",
+   "status": "Active",
+   "name": "0.3 ML atropine sulfate 0.833 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "1190538",
+   "status": "Active",
+   "name": "0.7 ML atropine sulfate 0.714 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "1190540",
+   "status": "Active",
+   "name": "0.7 ML atropine sulfate 1.43 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "1190542",
+   "status": "Active",
+   "name": "0.7 ML atropine sulfate 2.86 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "1190551",
+   "status": "Active",
+   "name": "5 ML atropine sulfate 0.05 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "1190552",
+   "status": "Active",
+   "name": "5 ML atropine sulfate 0.1 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "1190556",
+   "status": "Active",
+   "name": "5 ML atropine sulfate 0.4 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "1190692",
+   "status": "Active",
+   "name": "atropine sulfate 0.4 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1190783",
+   "status": "Active",
+   "name": "atropine sulfate 0.6 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1190795",
+   "status": "Active",
+   "name": "1 ML atropine sulfate 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1191250",
+   "status": "Active",
+   "name": "2 ML naloxone hydrochloride 1 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "1191508",
+   "status": "Active",
+   "name": "20 ML bupivacaine liposome 13.3 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1193358",
+   "status": "Active",
+   "name": "100 ML levetiracetam 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1193360",
+   "status": "Active",
+   "name": "100 ML levetiracetam 15 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1232082",
+   "status": "Active",
+   "name": "rivaroxaban 15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1232086",
+   "status": "Active",
+   "name": "rivaroxaban 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1291276",
+   "status": "Active",
+   "name": "cholecalciferol 1.25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1298324",
+   "status": "Active",
+   "name": "12 HR dextromethorphan hydrobromide 30 MG / guaifenesin 600 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1300539",
+   "status": "Active",
+   "name": "dextromethorphan hydrobromide 10 MG / guaifenesin 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1302195",
+   "status": "Active",
+   "name": "potassium chloride 1.33 MEQ Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1303132",
+   "status": "Active",
+   "name": "prednisone 2 MG Delayed Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1303736",
+   "status": "Active",
+   "name": "morphine sulfate 40 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1306898",
+   "status": "Active",
+   "name": "24 HR hydromorphone hydrochloride 32 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1310475",
+   "status": "Active",
+   "name": "diphenhydramine hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1310483",
+   "status": "Active",
+   "name": "diphenhydramine hydrochloride 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1357886",
+   "status": "Active",
+   "name": "methylprednisolone 2000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1357923",
+   "status": "Active",
+   "name": "12 HR dextromethorphan hydrobromide 57.5 MG / guaifenesin 775 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1361607",
+   "status": "Active",
+   "name": "500 ML heparin sodium, porcine 40 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1362060",
+   "status": "Active",
+   "name": "2 ML heparin sodium, porcine 100 UNT/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "1362062",
+   "status": "Active",
+   "name": "3 ML heparin sodium, porcine 100 UNT/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "1362067",
+   "status": "Active",
+   "name": "3 ML heparin sodium, porcine 2000 UNT/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "1364435",
+   "status": "Active",
+   "name": "apixaban 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1364445",
+   "status": "Active",
+   "name": "apixaban 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1374807",
+   "status": "Active",
+   "name": "folic acid 2 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1430122",
+   "status": "Active",
+   "name": "paroxetine mesylate 7.5 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1431076",
+   "status": "Active",
+   "name": "buprenorphine 1.4 MG / naloxone 0.36 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1431102",
+   "status": "Active",
+   "name": "buprenorphine 5.7 MG / naloxone 1.4 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1433251",
+   "status": "Active",
+   "name": "0.5 ML hydromorphone hydrochloride 1 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "1442116",
+   "status": "Active",
+   "name": "diclofenac 18 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1442128",
+   "status": "Active",
+   "name": "diclofenac 35 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1483744",
+   "status": "Active",
+   "name": "naltrexone hydrochloride 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1483774",
+   "status": "Active",
+   "name": "naltrexone hydrochloride 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1483780",
+   "status": "Active",
+   "name": "naltrexone hydrochloride 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1488569",
+   "status": "Active",
+   "name": "dapagliflozin 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1488574",
+   "status": "Active",
+   "name": "dapagliflozin 5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1540845",
+   "status": "Active",
+   "name": "ferrous fumarate 456 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1543202",
+   "status": "Active",
+   "name": "insulin, regular, human 4 UNT Inhalation Powder",
+   "tty": "SCD"
+  },
+  {
+   "code": "1544488",
+   "status": "Active",
+   "name": "insulin, regular, human 8 UNT Inhalation Powder",
+   "tty": "SCD"
+  },
+  {
+   "code": "1545658",
+   "status": "Active",
+   "name": "empagliflozin 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1545666",
+   "status": "Active",
+   "name": "empagliflozin 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1552002",
+   "status": "Active",
+   "name": "60 ACTUAT tiotropium 0.0025 MG/ACTUAT Inhalation Spray",
+   "tty": "SCD"
+  },
+  {
+   "code": "1597568",
+   "status": "Active",
+   "name": "buprenorphine 11.4 MG / naloxone 2.9 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1597573",
+   "status": "Active",
+   "name": "buprenorphine 8.6 MG / naloxone 2.1 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1598082",
+   "status": "Active",
+   "name": "20 ML peramivir 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1599543",
+   "status": "Active",
+   "name": "edoxaban 15 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1599551",
+   "status": "Active",
+   "name": "edoxaban 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1599555",
+   "status": "Active",
+   "name": "edoxaban 60 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1600773",
+   "status": "Active",
+   "name": "8 HR carbidopa 23.75 MG / levodopa 95 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1600775",
+   "status": "Active",
+   "name": "8 HR carbidopa 36.25 MG / levodopa 145 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1600914",
+   "status": "Active",
+   "name": "8 HR carbidopa 48.75 MG / levodopa 195 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1600916",
+   "status": "Active",
+   "name": "8 HR carbidopa 61.25 MG / levodopa 245 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1604345",
+   "status": "Active",
+   "name": "lenvatinib 10 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1604348",
+   "status": "Active",
+   "name": "lenvatinib 4 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1605372",
+   "status": "Active",
+   "name": "24 HR levetiracetam 1500 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1606347",
+   "status": "Active",
+   "name": "metoprolol tartrate 37.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1606349",
+   "status": "Active",
+   "name": "metoprolol tartrate 75 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1608797",
+   "status": "Active",
+   "name": "naproxen 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1649560",
+   "status": "Active",
+   "name": "200 ACTUAT albuterol 0.09 MG/ACTUAT Dry Powder Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "1652644",
+   "status": "Active",
+   "name": "3 ML insulin lispro 100 UNT/ML Cartridge",
+   "tty": "SCD"
+  },
+  {
+   "code": "1653196",
+   "status": "Active",
+   "name": "3 ML insulin aspart, human 100 UNT/ML Cartridge",
+   "tty": "SCD"
+  },
+  {
+   "code": "1653579",
+   "status": "Active",
+   "name": "BCG, live, Tice strain 50 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1654910",
+   "status": "Active",
+   "name": "insulin, regular, human 12 UNT Inhalation Powder",
+   "tty": "SCD"
+  },
+  {
+   "code": "1656313",
+   "status": "Active",
+   "name": "cefotaxime 1000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1656318",
+   "status": "Active",
+   "name": "cefotaxime 2000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1657010",
+   "status": "Active",
+   "name": "0.5 ML sumatriptan 8 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658084",
+   "status": "Active",
+   "name": "ado-trastuzumab emtansine 100 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658089",
+   "status": "Active",
+   "name": "ado-trastuzumab emtansine 160 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658236",
+   "status": "Active",
+   "name": "20 ML magnesium sulfate 500 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658244",
+   "status": "Active",
+   "name": "10 ML magnesium sulfate 500 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658245",
+   "status": "Active",
+   "name": "50 ML magnesium sulfate 500 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658259",
+   "status": "Active",
+   "name": "50 ML magnesium sulfate 40 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658264",
+   "status": "Active",
+   "name": "500 ML magnesium sulfate 40 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658265",
+   "status": "Active",
+   "name": "1000 ML magnesium sulfate 40 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658634",
+   "status": "Active",
+   "name": "0.5 ML heparin sodium, porcine 10000 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658637",
+   "status": "Active",
+   "name": "1 ML heparin sodium, porcine 10000 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658647",
+   "status": "Active",
+   "name": "2 ML heparin sodium, porcine 1000 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658659",
+   "status": "Active",
+   "name": "1 ML heparin sodium, porcine 1000 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1658717",
+   "status": "Active",
+   "name": "250 ML heparin sodium, porcine 100 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1659131",
+   "status": "Active",
+   "name": "piperacillin 2000 MG / tazobactam 250 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1659137",
+   "status": "Active",
+   "name": "piperacillin 3000 MG / tazobactam 375 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1659149",
+   "status": "Active",
+   "name": "piperacillin 4000 MG / tazobactam 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1659197",
+   "status": "Active",
+   "name": "250 ML heparin sodium, porcine 50 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1659592",
+   "status": "Active",
+   "name": "ampicillin 1000 MG / sulbactam 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1659598",
+   "status": "Active",
+   "name": "ampicillin 2000 MG / sulbactam 1000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1659812",
+   "status": "Active",
+   "name": "aripiprazole 400 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1659816",
+   "status": "Active",
+   "name": "aripiprazole 300 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1659929",
+   "status": "Active",
+   "name": "1 ML naloxone hydrochloride 0.4 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1660014",
+   "status": "Active",
+   "name": "1 ML epinephrine 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1661427",
+   "status": "Active",
+   "name": "3 ML sodium chloride 9 MG/ML Cartridge",
+   "tty": "SCD"
+  },
+  {
+   "code": "1663244",
+   "status": "Active",
+   "name": "9 ML amiodarone hydrochloride 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1663248",
+   "status": "Active",
+   "name": "18 ML amiodarone hydrochloride 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1664981",
+   "status": "Active",
+   "name": "aztreonam 1000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1664986",
+   "status": "Active",
+   "name": "aztreonam 2000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665005",
+   "status": "Active",
+   "name": "ceftriaxone 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665021",
+   "status": "Active",
+   "name": "ceftriaxone 1000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665046",
+   "status": "Active",
+   "name": "ceftriaxone 2000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665050",
+   "status": "Active",
+   "name": "cefazolin 1000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665052",
+   "status": "Active",
+   "name": "cefazolin 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665060",
+   "status": "Active",
+   "name": "cefazolin 2000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665088",
+   "status": "Active",
+   "name": "cefepime 2000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665093",
+   "status": "Active",
+   "name": "cefepime 1000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665097",
+   "status": "Active",
+   "name": "cefepime 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665188",
+   "status": "Active",
+   "name": "1 ML lorazepam 2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665210",
+   "status": "Active",
+   "name": "100 ML ciprofloxacin 2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665212",
+   "status": "Active",
+   "name": "200 ML ciprofloxacin 2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665326",
+   "status": "Active",
+   "name": "1 ML lorazepam 4 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665356",
+   "status": "Active",
+   "name": "24 HR aspirin 162.5 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665459",
+   "status": "Active",
+   "name": "2 ML ketorolac tromethamine 30 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665461",
+   "status": "Active",
+   "name": "1 ML ketorolac tromethamine 30 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665497",
+   "status": "Active",
+   "name": "50 ML levofloxacin 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665507",
+   "status": "Active",
+   "name": "100 ML levofloxacin 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1665515",
+   "status": "Active",
+   "name": "150 ML levofloxacin 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1666332",
+   "status": "Active",
+   "name": "ticagrelor 60 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1666338",
+   "status": "Active",
+   "name": "buprenorphine 2.9 MG / naloxone 0.71 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1666549",
+   "status": "Active",
+   "name": "magnesium sulfate 100 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1666781",
+   "status": "Active",
+   "name": "1 ML atropine sulfate 0.4 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1666798",
+   "status": "Active",
+   "name": "2 ML midazolam 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1666800",
+   "status": "Active",
+   "name": "5 ML midazolam 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1666823",
+   "status": "Active",
+   "name": "2 ML midazolam 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1667880",
+   "status": "Active",
+   "name": "60 ACTUAT tiotropium 0.00125 MG/ACTUAT Inhalation Spray",
+   "tty": "SCD"
+  },
+  {
+   "code": "1668238",
+   "status": "Active",
+   "name": "azithromycin 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1668248",
+   "status": "Active",
+   "name": "50 ML calcium gluconate 100 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1668250",
+   "status": "Active",
+   "name": "10 ML calcium gluconate 100 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1668264",
+   "status": "Active",
+   "name": "erythromycin lactobionate 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1670192",
+   "status": "Active",
+   "name": "1 ML vitamin K1 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1670387",
+   "status": "Active",
+   "name": "factor IX complex 1 UNT Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1716195",
+   "status": "Active",
+   "name": "50 ML idarucizumab 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1718925",
+   "status": "Active",
+   "name": "olanzapine 405 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1718930",
+   "status": "Active",
+   "name": "olanzapine 300 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1718934",
+   "status": "Active",
+   "name": "olanzapine 210 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1719000",
+   "status": "Active",
+   "name": "gemcitabine 200 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1719003",
+   "status": "Active",
+   "name": "gemcitabine 1000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1719005",
+   "status": "Active",
+   "name": "gemcitabine 2000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1719286",
+   "status": "Active",
+   "name": "10 ML furosemide 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1719290",
+   "status": "Active",
+   "name": "2 ML furosemide 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1719291",
+   "status": "Active",
+   "name": "4 ML furosemide 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1719646",
+   "status": "Active",
+   "name": "1 ML haloperidol 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1719772",
+   "status": "Active",
+   "name": "10 ML irinotecan hydrochloride liposome 4.3 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1719803",
+   "status": "Active",
+   "name": "1 ML haloperidol decanoate 100 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1719862",
+   "status": "Active",
+   "name": "1 ML haloperidol decanoate 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1720960",
+   "status": "Active",
+   "name": "26.3 ML gemcitabine 38 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1720975",
+   "status": "Active",
+   "name": "52.6 ML gemcitabine 38 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1720977",
+   "status": "Active",
+   "name": "5.26 ML gemcitabine 38 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1721310",
+   "status": "Active",
+   "name": "50 ML fluconazole 2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1721314",
+   "status": "Active",
+   "name": "200 ML fluconazole 2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1721315",
+   "status": "Active",
+   "name": "100 ML fluconazole 2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1721473",
+   "status": "Active",
+   "name": "ampicillin 250 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1721474",
+   "status": "Active",
+   "name": "ampicillin 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1721475",
+   "status": "Active",
+   "name": "ampicillin 1000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1721476",
+   "status": "Active",
+   "name": "ampicillin 2000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1721565",
+   "status": "Active",
+   "name": "osimertinib 40 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1721581",
+   "status": "Active",
+   "name": "osimertinib 80 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1722934",
+   "status": "Active",
+   "name": "meropenem 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1722939",
+   "status": "Active",
+   "name": "meropenem 1000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1723740",
+   "status": "Active",
+   "name": "1 ML diphenhydramine hydrochloride 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1724276",
+   "status": "Active",
+   "name": "1 ML hydromorphone hydrochloride 2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1724338",
+   "status": "Active",
+   "name": "1 ML hydromorphone hydrochloride 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1724340",
+   "status": "Active",
+   "name": "5 ML hydromorphone hydrochloride 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1724341",
+   "status": "Active",
+   "name": "50 ML hydromorphone hydrochloride 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1724666",
+   "status": "Active",
+   "name": "20 ML aminophylline 25 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1724668",
+   "status": "Active",
+   "name": "10 ML aminophylline 25 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1724784",
+   "status": "Active",
+   "name": "2 ML bupivacaine hydrochloride 7.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1724786",
+   "status": "Active",
+   "name": "30 ML bupivacaine hydrochloride 7.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1724787",
+   "status": "Active",
+   "name": "10 ML bupivacaine hydrochloride 7.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1724880",
+   "status": "Active",
+   "name": "10 ML bupivacaine hydrochloride 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1724884",
+   "status": "Active",
+   "name": "30 ML bupivacaine hydrochloride 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1725078",
+   "status": "Active",
+   "name": "10 ML bupivacaine hydrochloride 2.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1726204",
+   "status": "Active",
+   "name": "cilastatin 250 MG / imipenem 250 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1726214",
+   "status": "Active",
+   "name": "cilastatin 500 MG / imipenem 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1726319",
+   "status": "Active",
+   "name": "2 ML irinotecan hydrochloride 20 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1726324",
+   "status": "Active",
+   "name": "5 ML irinotecan hydrochloride 20 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1726333",
+   "status": "Active",
+   "name": "15 ML irinotecan hydrochloride 20 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1726492",
+   "status": "Active",
+   "name": "25 ML irinotecan hydrochloride 20 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1728072",
+   "status": "Active",
+   "name": "pemetrexed 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1728077",
+   "status": "Active",
+   "name": "pemetrexed 100 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1728783",
+   "status": "Active",
+   "name": "10 ML morphine sulfate 0.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1728791",
+   "status": "Active",
+   "name": "2 ML morphine sulfate 0.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1728800",
+   "status": "Active",
+   "name": "10 ML morphine sulfate 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1728805",
+   "status": "Active",
+   "name": "2 ML morphine sulfate 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1728999",
+   "status": "Active",
+   "name": "30 ML morphine sulfate 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1731520",
+   "status": "Active",
+   "name": "4 ML morphine sulfate 25 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1731522",
+   "status": "Active",
+   "name": "20 ML morphine sulfate 25 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1731537",
+   "status": "Active",
+   "name": "20 ML morphine sulfate 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1731545",
+   "status": "Active",
+   "name": "50 ML morphine sulfate 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1731990",
+   "status": "Active",
+   "name": "1.5 ML morphine sulfate liposomal 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1731998",
+   "status": "Active",
+   "name": "20 ML morphine sulfate 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1732006",
+   "status": "Active",
+   "name": "1 ML morphine sulfate 4 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1732011",
+   "status": "Active",
+   "name": "1 ML morphine sulfate 8 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1732138",
+   "status": "Active",
+   "name": "30 ML morphine sulfate 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1735003",
+   "status": "Active",
+   "name": "2 ML fentanyl 0.05 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1735006",
+   "status": "Active",
+   "name": "10 ML fentanyl 0.05 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1735007",
+   "status": "Active",
+   "name": "5 ML fentanyl 0.05 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1735008",
+   "status": "Active",
+   "name": "20 ML fentanyl 0.05 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1735013",
+   "status": "Active",
+   "name": "50 ML fentanyl 0.05 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1736776",
+   "status": "Active",
+   "name": "10 ML oxaliplatin 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1736781",
+   "status": "Active",
+   "name": "20 ML oxaliplatin 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1737343",
+   "status": "Active",
+   "name": "50 ML lidocaine hydrochloride 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1737562",
+   "status": "Active",
+   "name": "30 ML lidocaine hydrochloride 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1737566",
+   "status": "Active",
+   "name": "5 ML lidocaine hydrochloride 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1737568",
+   "status": "Active",
+   "name": "2 ML lidocaine hydrochloride 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1737640",
+   "status": "Active",
+   "name": "10 ML lidocaine hydrochloride 15 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1737723",
+   "status": "Active",
+   "name": "250 ML lidocaine hydrochloride 8 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1737735",
+   "status": "Active",
+   "name": "500 ML lidocaine hydrochloride 8 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1737742",
+   "status": "Active",
+   "name": "250 ML lidocaine hydrochloride 4 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1737757",
+   "status": "Active",
+   "name": "2 ML lidocaine hydrochloride 20 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1738483",
+   "status": "Active",
+   "name": "paroxetine hydrochloride 10 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1738495",
+   "status": "Active",
+   "name": "paroxetine hydrochloride 20 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1738503",
+   "status": "Active",
+   "name": "paroxetine hydrochloride 30 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1738511",
+   "status": "Active",
+   "name": "paroxetine hydrochloride 40 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1738576",
+   "status": "Active",
+   "name": "0.5 ML sumatriptan 6 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "1738586",
+   "status": "Active",
+   "name": "hydrocortisone 1000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1738590",
+   "status": "Active",
+   "name": "hydrocortisone 250 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1738594",
+   "status": "Active",
+   "name": "hydrocortisone 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1738803",
+   "status": "Active",
+   "name": "24 HR paroxetine hydrochloride 12.5 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1738805",
+   "status": "Active",
+   "name": "24 HR paroxetine hydrochloride 25 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1738807",
+   "status": "Active",
+   "name": "24 HR paroxetine hydrochloride 37.5 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1740467",
+   "status": "Active",
+   "name": "2 ML ondansetron 2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1741290",
+   "status": "Active",
+   "name": "50 ML albumin human, USP 200 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1741295",
+   "status": "Active",
+   "name": "100 ML albumin human, USP 200 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1741375",
+   "status": "Active",
+   "name": "50 ML albumin human, USP 250 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1741380",
+   "status": "Active",
+   "name": "100 ML albumin human, USP 250 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1741403",
+   "status": "Active",
+   "name": "50 ML albumin human, USP 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1741410",
+   "status": "Active",
+   "name": "100 ML albumin human, USP 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1743704",
+   "status": "Active",
+   "name": "methylprednisolone 125 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1743720",
+   "status": "Active",
+   "name": "methylprednisolone 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1743726",
+   "status": "Active",
+   "name": "methylprednisolone 1000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1743855",
+   "status": "Active",
+   "name": "1 ML methylprednisolone acetate 80 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1745061",
+   "status": "Active",
+   "name": "10 ML bupivacaine liposome 13.3 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1747294",
+   "status": "Active",
+   "name": "2 ML ibuprofen 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1790527",
+   "status": "Active",
+   "name": "Abuse-Deterrent 12 HR oxycodone 9 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1791229",
+   "status": "Active",
+   "name": "5 ML diltiazem hydrochloride 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1791232",
+   "status": "Active",
+   "name": "10 ML diltiazem hydrochloride 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1791233",
+   "status": "Active",
+   "name": "25 ML diltiazem hydrochloride 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1791240",
+   "status": "Active",
+   "name": "diltiazem hydrochloride 100 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1791371",
+   "status": "Active",
+   "name": "5 ML levocarnitine 200 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1791558",
+   "status": "Active",
+   "name": "Abuse-Deterrent 12 HR oxycodone 13.5 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1791567",
+   "status": "Active",
+   "name": "Abuse-Deterrent 12 HR oxycodone 18 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1791574",
+   "status": "Active",
+   "name": "Abuse-Deterrent 12 HR oxycodone 27 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1791580",
+   "status": "Active",
+   "name": "Abuse-Deterrent 12 HR oxycodone 36 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1791701",
+   "status": "Active",
+   "name": "10 ML fluorouracil 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1791721",
+   "status": "Active",
+   "name": "1 ML oxytocin 10 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1791736",
+   "status": "Active",
+   "name": "20 ML fluorouracil 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1792327",
+   "status": "Active",
+   "name": "cholecalciferol 0.35 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "1794552",
+   "status": "Active",
+   "name": "2 ML hydroxyzine hydrochloride 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1794554",
+   "status": "Active",
+   "name": "1 ML hydroxyzine hydrochloride 50 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1797528",
+   "status": "Active",
+   "name": "40 ML oxaliplatin 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1803930",
+   "status": "Active",
+   "name": "leucovorin 50 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1803932",
+   "status": "Active",
+   "name": "leucovorin 100 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1803937",
+   "status": "Active",
+   "name": "leucovorin 200 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1804799",
+   "status": "Active",
+   "name": "alteplase 100 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1804804",
+   "status": "Active",
+   "name": "alteplase 50 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807508",
+   "status": "Active",
+   "name": "200 ML vancomycin 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807510",
+   "status": "Active",
+   "name": "150 ML vancomycin 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807511",
+   "status": "Active",
+   "name": "100 ML vancomycin 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807548",
+   "status": "Active",
+   "name": "50 ML sodium chloride 4.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807549",
+   "status": "Active",
+   "name": "100 ML sodium chloride 4.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807550",
+   "status": "Active",
+   "name": "250 ML sodium chloride 4.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807551",
+   "status": "Active",
+   "name": "500 ML sodium chloride 4.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807552",
+   "status": "Active",
+   "name": "1000 ML sodium chloride 4.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807571",
+   "status": "Active",
+   "name": "30 ML sodium chloride 234 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807578",
+   "status": "Active",
+   "name": "20 ML sodium chloride 146 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807580",
+   "status": "Active",
+   "name": "40 ML sodium chloride 146 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807627",
+   "status": "Active",
+   "name": "150 ML sodium chloride 9 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807632",
+   "status": "Active",
+   "name": "100 ML sodium chloride 9 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807636",
+   "status": "Active",
+   "name": "2 ML sodium chloride 9 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807637",
+   "status": "Active",
+   "name": "10 ML sodium chloride 9 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807638",
+   "status": "Active",
+   "name": "20 ML sodium chloride 9 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807639",
+   "status": "Active",
+   "name": "1000 ML sodium chloride 9 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1807646",
+   "status": "Active",
+   "name": "5 ML sodium chloride 9 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1808217",
+   "status": "Active",
+   "name": "100 ML propofol 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1808222",
+   "status": "Active",
+   "name": "50 ML propofol 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1808224",
+   "status": "Active",
+   "name": "20 ML propofol 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1808234",
+   "status": "Active",
+   "name": "10 ML propofol 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1809083",
+   "status": "Active",
+   "name": "5 ML sulfamethoxazole 80 MG/ML / trimethoprim 16 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1810268",
+   "status": "Active",
+   "name": "amoxicillin 50 MG / clavulanate 12.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1810270",
+   "status": "Active",
+   "name": "amoxicillin 200 MG / clavulanate 50 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1810273",
+   "status": "Active",
+   "name": "amoxicillin 300 MG / clavulanate 75 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1860100",
+   "status": "Active",
+   "name": "ferrous sulfate 324 MG Delayed Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1860136",
+   "status": "Active",
+   "name": "10 ML potassium chloride 2 MEQ/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1860139",
+   "status": "Active",
+   "name": "20 ML potassium chloride 2 MEQ/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1861926",
+   "status": "Active",
+   "name": "dextromethorphan hydrobromide 15 MG / guaifenesin 400 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1864412",
+   "status": "Active",
+   "name": "buprenorphine 0.7 MG / naloxone 0.18 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1868469",
+   "status": "Active",
+   "name": "5 ML sodium bicarbonate 42 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1868482",
+   "status": "Active",
+   "name": "1.7 ML sodium bicarbonate 84 MG/ML Cartridge",
+   "tty": "SCD"
+  },
+  {
+   "code": "1868485",
+   "status": "Active",
+   "name": "2.7 ML sodium bicarbonate 84 MG/ML Cartridge",
+   "tty": "SCD"
+  },
+  {
+   "code": "1868486",
+   "status": "Active",
+   "name": "50 ML sodium bicarbonate 84 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1868494",
+   "status": "Active",
+   "name": "250 ML nitroglycerin 0.4 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1868562",
+   "status": "Active",
+   "name": "250 ML nitroglycerin 0.1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1870631",
+   "status": "Active",
+   "name": "100 ML gentamicin 1.2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1870633",
+   "status": "Active",
+   "name": "50 ML gentamicin 1.2 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1870676",
+   "status": "Active",
+   "name": "2 ML gentamicin 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1918194",
+   "status": "Active",
+   "name": "60 ACTUAT fluticasone propionate 0.113 MG/ACTUAT / salmeterol 0.014 MG/ACTUAT Dry Powder Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "1918203",
+   "status": "Active",
+   "name": "60 ACTUAT fluticasone propionate 0.232 MG/ACTUAT / salmeterol 0.014 MG/ACTUAT Dry Powder Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "1918209",
+   "status": "Active",
+   "name": "60 ACTUAT fluticasone propionate 0.055 MG/ACTUAT / salmeterol 0.014 MG/ACTUAT Dry Powder Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "1922509",
+   "status": "Active",
+   "name": "trastuzumab 150 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1923355",
+   "status": "Active",
+   "name": "vitamin K1 0.5 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1923484",
+   "status": "Active",
+   "name": "10 ML sodium bicarbonate 84 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "1988974",
+   "status": "Active",
+   "name": "24 HR pregabalin 165 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1988977",
+   "status": "Active",
+   "name": "24 HR pregabalin 330 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1988980",
+   "status": "Active",
+   "name": "24 HR pregabalin 82.5 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "1989112",
+   "status": "Active",
+   "name": "0.3 ML epinephrine 1 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2049888",
+   "status": "Active",
+   "name": "vancomycin 1250 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2049890",
+   "status": "Active",
+   "name": "vancomycin 1500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2049891",
+   "status": "Active",
+   "name": "vancomycin 250 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2055036",
+   "status": "Active",
+   "name": "leucovorin 500 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2055667",
+   "status": "Active",
+   "name": "0.8 ML risperidone 150 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2055675",
+   "status": "Active",
+   "name": "0.6 ML risperidone 150 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2058858",
+   "status": "Active",
+   "name": "120 ML gemcitabine 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2058866",
+   "status": "Active",
+   "name": "140 ML gemcitabine 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2058880",
+   "status": "Active",
+   "name": "150 ML gemcitabine 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2058882",
+   "status": "Active",
+   "name": "160 ML gemcitabine 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2058890",
+   "status": "Active",
+   "name": "170 ML gemcitabine 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2058892",
+   "status": "Active",
+   "name": "180 ML gemcitabine 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2058894",
+   "status": "Active",
+   "name": "190 ML gemcitabine 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2058912",
+   "status": "Active",
+   "name": "130 ML gemcitabine 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2058933",
+   "status": "Active",
+   "name": "220 ML gemcitabine 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2059015",
+   "status": "Active",
+   "name": "rivaroxaban 2.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2103182",
+   "status": "Active",
+   "name": "1 ML vasopressin (USP) 20 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2105776",
+   "status": "Active",
+   "name": "amoxicillin 100 MG / clavulanate 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2108128",
+   "status": "Active",
+   "name": "coagulation factor Xa (recombinant), inactivated-zhzo 200 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2109083",
+   "status": "Active",
+   "name": "160 ACTUAT epinephrine 0.125 MG/ACTUAT Metered Dose Inhaler",
+   "tty": "SCD"
+  },
+  {
+   "code": "2117608",
+   "status": "Active",
+   "name": "100 ML calcium gluconate 20 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2118449",
+   "status": "Active",
+   "name": "400 ML vancomycin 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2123165",
+   "status": "Active",
+   "name": "ferrous sulfate 144 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2168270",
+   "status": "Active",
+   "name": "1 ML fentanyl 0.05 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2173726",
+   "status": "Active",
+   "name": "dextromethorphan hydrobromide 10 MG / guaifenesin 200 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2178759",
+   "status": "Active",
+   "name": "5 ML bupivacaine hydrochloride 2.5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2178790",
+   "status": "Active",
+   "name": "0.3 ML epinephrine 0.5 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2179635",
+   "status": "Active",
+   "name": "tramadol hydrochloride 100 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2179744",
+   "status": "Active",
+   "name": "100 ML insulin, regular, human 1 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2197110",
+   "status": "Active",
+   "name": "100 ML sodium chloride 72 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2198792",
+   "status": "Active",
+   "name": "10 ML sodium bicarbonate 42 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2200084",
+   "status": "Active",
+   "name": "cholecalciferol 0.325 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2200644",
+   "status": "Active",
+   "name": "semaglutide 14 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2200652",
+   "status": "Active",
+   "name": "semaglutide 3 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2200656",
+   "status": "Active",
+   "name": "semaglutide 7 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2261746",
+   "status": "Active",
+   "name": "1 ML cetirizine hydrochloride 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2263077",
+   "status": "Active",
+   "name": "100 ML mannitol 200 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2263078",
+   "status": "Active",
+   "name": "100 ML sodium bicarbonate 84 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2277368",
+   "status": "Active",
+   "name": "1 ML hydromorphone hydrochloride 0.2 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2370234",
+   "status": "Active",
+   "name": "100 ML propofol lipid emulsion 20 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2380611",
+   "status": "Active",
+   "name": "octreotide 20 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2387079",
+   "status": "Active",
+   "name": "350 ML vancomycin 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2387545",
+   "status": "Active",
+   "name": "sodium chloride 500 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2399907",
+   "status": "Active",
+   "name": "100 ML vasopressin (USP) 0.4 UNT/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2475340",
+   "status": "Active",
+   "name": "250 ML norepinephrine 0.032 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2475835",
+   "status": "Active",
+   "name": "mannitol 40 MG Inhalation Powder",
+   "tty": "SCD"
+  },
+  {
+   "code": "2477889",
+   "status": "Active",
+   "name": "4 ML labetalol hydrochloride 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2479564",
+   "status": "Active",
+   "name": "200 ML labetalol hydrochloride 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2479566",
+   "status": "Active",
+   "name": "100 ML labetalol hydrochloride 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2479567",
+   "status": "Active",
+   "name": "300 ML labetalol hydrochloride 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2480095",
+   "status": "Active",
+   "name": "50 ML acetaminophen 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2541170",
+   "status": "Active",
+   "name": "50 ML midazolam 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2541171",
+   "status": "Active",
+   "name": "100 ML midazolam 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2553501",
+   "status": "Active",
+   "name": "0.5 ML semaglutide 0.5 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "2553601",
+   "status": "Active",
+   "name": "0.5 ML semaglutide 1 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "2553802",
+   "status": "Active",
+   "name": "0.5 ML semaglutide 2 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "2553901",
+   "status": "Active",
+   "name": "0.75 ML semaglutide 2.27 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "2554102",
+   "status": "Active",
+   "name": "0.75 ML semaglutide 3.2 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "2563412",
+   "status": "Active",
+   "name": "5 ML bupivacaine 132 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2569577",
+   "status": "Active",
+   "name": "24 HR lorazepam 3 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2585478",
+   "status": "Active",
+   "name": "50 ML levetiracetam 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2586036",
+   "status": "Active",
+   "name": "250 ML diltiazem hydrochloride 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2589612",
+   "status": "Active",
+   "name": "0.5 ML naloxone hydrochloride 10 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2591786",
+   "status": "Active",
+   "name": "citalopram 30 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2594600",
+   "status": "Active",
+   "name": "24 HR lorazepam 1.5 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2595044",
+   "status": "Active",
+   "name": "leuprolide 42 MG Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2596175",
+   "status": "Active",
+   "name": "0.4 ML naloxone hydrochloride 25 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "2598343",
+   "status": "Active",
+   "name": "2 ML labetalol hydrochloride 5 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2601728",
+   "status": "Active",
+   "name": "pemetrexed 1000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2602136",
+   "status": "Active",
+   "name": "pemetrexed 750 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2605341",
+   "status": "Active",
+   "name": "34 ML pemetrexed 25 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2605950",
+   "status": "Active",
+   "name": "24 HR venlafaxine 112.5 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2606516",
+   "status": "Active",
+   "name": "leuprolide acetate 22.5 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2608698",
+   "status": "Active",
+   "name": "0.7 ML midazolam 14.3 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "2612431",
+   "status": "Active",
+   "name": "terlipressin 0.85 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2619579",
+   "status": "Active",
+   "name": "250 ML norepinephrine 0.064 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2629337",
+   "status": "Active",
+   "name": "0.5 ML fentanyl 0.05 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2630738",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.0375 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2630742",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.044 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2630746",
+   "status": "Active",
+   "name": "levothyroxine sodium 0.0625 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2630753",
+   "status": "Active",
+   "name": "cefazolin 3000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2636033",
+   "status": "Active",
+   "name": "0.28 ML risperidone 357 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2636041",
+   "status": "Active",
+   "name": "0.35 ML risperidone 357 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2636043",
+   "status": "Active",
+   "name": "0.42 ML risperidone 357 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2636045",
+   "status": "Active",
+   "name": "0.56 ML risperidone 357 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2636047",
+   "status": "Active",
+   "name": "0.7 ML risperidone 357 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2636049",
+   "status": "Active",
+   "name": "0.14 ML risperidone 357 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2636051",
+   "status": "Active",
+   "name": "0.21 ML risperidone 357 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2636637",
+   "status": "Active",
+   "name": "2.4 ML aripiprazole 300 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2636645",
+   "status": "Active",
+   "name": "3.2 ML aripiprazole 300 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2642808",
+   "status": "Active",
+   "name": "1.6 ML insulin aspart, human 100 UNT/ML Cartridge",
+   "tty": "SCD"
+  },
+  {
+   "code": "2644396",
+   "status": "Active",
+   "name": "0.5 ML tirzepatide 15 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2644401",
+   "status": "Active",
+   "name": "0.5 ML tirzepatide 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2644405",
+   "status": "Active",
+   "name": "0.5 ML tirzepatide 5 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2644409",
+   "status": "Active",
+   "name": "0.5 ML tirzepatide 30 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2644413",
+   "status": "Active",
+   "name": "0.5 ML tirzepatide 25 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2644417",
+   "status": "Active",
+   "name": "0.5 ML tirzepatide 20 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2664894",
+   "status": "Active",
+   "name": "meropenem 2000 MG Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2667652",
+   "status": "Active",
+   "name": "150 ML micafungin 1 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2667850",
+   "status": "Active",
+   "name": "ferrous sulfate 137 MG Extended Release Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2670390",
+   "status": "Active",
+   "name": "tramadol hydrochloride 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2671687",
+   "status": "Active",
+   "name": "penicillin G benzathine 1200000 UNT Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2671695",
+   "status": "Active",
+   "name": "penicillin G benzathine 2400000 UNT Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2673428",
+   "status": "Active",
+   "name": "20 ML levocarnitine 200 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2675350",
+   "status": "Active",
+   "name": "0.5 ML hydromorphone hydrochloride 0.5 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2675786",
+   "status": "Active",
+   "name": "100 ML pantoprazole 0.8 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2683305",
+   "status": "Active",
+   "name": "50 ML furosemide 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2683306",
+   "status": "Active",
+   "name": "100 ML furosemide 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2690259",
+   "status": "Active",
+   "name": "carbidopa 35 MG / levodopa 140 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2690279",
+   "status": "Active",
+   "name": "carbidopa 52.5 MG / levodopa 210 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2690284",
+   "status": "Active",
+   "name": "carbidopa 70 MG / levodopa 280 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2690290",
+   "status": "Active",
+   "name": "carbidopa 87.5 MG / levodopa 350 MG Extended Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2692878",
+   "status": "Active",
+   "name": "tramadol hydrochloride 75 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2695029",
+   "status": "Active",
+   "name": "250 ML epinephrine 0.016 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2695782",
+   "status": "Active",
+   "name": "10 ML foscarbidopa 12 MG/ML / foslevodopa 240 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2699658",
+   "status": "Active",
+   "name": "3000 ML sodium chloride 9 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2702348",
+   "status": "Active",
+   "name": "metronidazole 125 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2703582",
+   "status": "Active",
+   "name": "metformin hydrochloride 750 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2707356",
+   "status": "Active",
+   "name": "250 ML epinephrine 0.032 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2707547",
+   "status": "Active",
+   "name": "semaglutide 1.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2707551",
+   "status": "Active",
+   "name": "semaglutide 4 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2707555",
+   "status": "Active",
+   "name": "semaglutide 9 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2707568",
+   "status": "Active",
+   "name": "250 ML epinephrine 0.064 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2708844",
+   "status": "Active",
+   "name": "5000 ML sodium chloride 9 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2713737",
+   "status": "Active",
+   "name": "250 ML epinephrine 0.02 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2713796",
+   "status": "Active",
+   "name": "0.1 ML sodium bicarbonate 84 MG/ML Cartridge",
+   "tty": "SCD"
+  },
+  {
+   "code": "2715604",
+   "status": "Active",
+   "name": "65 ML acetaminophen 10 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2719203",
+   "status": "Active",
+   "name": "250 ML epinephrine 0.04 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2719206",
+   "status": "Active",
+   "name": "250 ML epinephrine 0.008 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2723025",
+   "status": "Active",
+   "name": "metoprolol tartrate 12.5 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2723106",
+   "status": "Active",
+   "name": "cyclobenzaprine hydrochloride 2.8 MG Sublingual Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2723913",
+   "status": "Active",
+   "name": "10 ML ketamine 10 MG/ML Prefilled Syringe",
+   "tty": "SCD"
+  },
+  {
+   "code": "2725159",
+   "status": "Active",
+   "name": "escitalopram 15 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2725542",
+   "status": "Active",
+   "name": "2.67 ML furosemide 30 MG/ML Cartridge",
+   "tty": "SCD"
+  },
+  {
+   "code": "2725549",
+   "status": "Active",
+   "name": "calcium gluconate 50 MG Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2725614",
+   "status": "Active",
+   "name": "250 ML norepinephrine 0.128 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2725905",
+   "status": "Active",
+   "name": "1 ML denosumab-nxxp 60 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2730163",
+   "status": "Active",
+   "name": "semaglutide 25 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2731632",
+   "status": "Active",
+   "name": "100 ML magnesium sulfate 30 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2738666",
+   "status": "Active",
+   "name": "10 ML fluorouracil 25 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2739768",
+   "status": "Active",
+   "name": "0.75 ML semaglutide 9.6 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "2740803",
+   "status": "Active",
+   "name": "clonidine hydrochloride 0.05 MG Oral Tablet",
+   "tty": "SCD"
+  },
+  {
+   "code": "2745865",
+   "status": "Active",
+   "name": "duloxetine 80 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2745867",
+   "status": "Active",
+   "name": "duloxetine 90 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2745869",
+   "status": "Active",
+   "name": "duloxetine 120 MG Delayed Release Oral Capsule",
+   "tty": "SCD"
+  },
+  {
+   "code": "2747138",
+   "status": "Active",
+   "name": "1000 ML sodium bicarbonate 12.6 MG/ML Injection",
+   "tty": "SCD"
+  },
+  {
+   "code": "2747765",
+   "status": "Active",
+   "name": "1 ML furosemide 80 MG/ML Auto-Injector",
+   "tty": "SCD"
+  },
+  {
+   "code": "2753518",
+   "status": "Active",
+   "name": "diclofenac potassium 75 MG Oral Tablet",
    "tty": "SCD"
   }
  ]
