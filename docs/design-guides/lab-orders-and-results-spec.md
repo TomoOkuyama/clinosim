@@ -37,7 +37,7 @@ Related specs, linked rather than restated:
 | Rule | Canonical code | Guard |
 |---|---|---|
 | A culture result comes from a culture order: one result per draw of the stay's culture orders, and a profile culture that no protocol order placed is ordered at admission. FHIR links each culture result to its order(s) through one matcher. | `observation/microbiology.py` (`culture_draws`, `culture_results`), `fhir_r4/labs/microbiology.py::culture_orders_for` | `tests/unit/test_cultures_from_orders_2640.py` |
-| A lab ServiceRequest is completed by its result (a DiagnosticReport or a culture), and revoked when its stay ends without one. | `fhir_r4/labs/service_request.py` | `tests/integration/test_servicerequest_snapshot.py` |
+| A lab ServiceRequest is completed by its result (a DiagnosticReport or a culture), and revoked when its stay ends without one. | `fhir_r4/labs/service_request.py` | `tests/unit/test_lab_orders_resulted_or_cancelled_2661.py::test_an_unresulted_order_of_a_discharged_stay_is_revoked`, `tests/unit/output/test_fhir_microbiology_links_2585.py::test_the_orders_a_culture_reports_are_completed_and_the_others_are_not`, `tests/integration/test_servicerequest_snapshot.py` |
 | A type-and-screen order is resulted by the blood group and antibody screen it reports. | `simulator/lab_pipeline.py::TYPE_AND_SCREEN`, `fhir_r4/labs/blood_type.py` | `tests/unit/output/test_type_and_screen_2587.py` |
 
 ## 5. Eval bounds
@@ -48,6 +48,4 @@ Related specs, linked rather than restated:
 
 ## 6. Gaps
 
-| Gap | Where |
-|---|---|
-| The order-status rule (§4, second row) is guarded by an integration test only. | `fhir_r4/labs/service_request.py` |
+None known. A new exception is listed here with the guard that allows it.

@@ -37,7 +37,7 @@
 | 規則 | 正準コード | ガード |
 |---|---|---|
 | 培養の結果は培養オーダーから生む。入院中の培養オーダーの採取 1 回ごとに結果が一つ出る。どのプロトコルのオーダーも置いていないプロファイル上の培養は、入院時にオーダーする。FHIR は一つの照合関数で各培養結果をそのオーダーに結び付ける。 | `observation/microbiology.py`(`culture_draws`, `culture_results`)、`fhir_r4/labs/microbiology.py::culture_orders_for` | `tests/unit/test_cultures_from_orders_2640.py` |
-| 検査の ServiceRequest は結果(DiagnosticReport または培養)で完了し、結果の無いまま入院が終われば取り消す。 | `fhir_r4/labs/service_request.py` | `tests/integration/test_servicerequest_snapshot.py` |
+| 検査の ServiceRequest は結果(DiagnosticReport または培養)で完了し、結果の無いまま入院が終われば取り消す。 | `fhir_r4/labs/service_request.py` | `tests/unit/test_lab_orders_resulted_or_cancelled_2661.py::test_an_unresulted_order_of_a_discharged_stay_is_revoked`, `tests/unit/output/test_fhir_microbiology_links_2585.py::test_the_orders_a_culture_reports_are_completed_and_the_others_are_not`, `tests/integration/test_servicerequest_snapshot.py` |
 | 輸血前検査(type and screen)のオーダーは、それが報告する血液型と不規則抗体スクリーニングで結果とする。 | `simulator/lab_pipeline.py::TYPE_AND_SCREEN`, `fhir_r4/labs/blood_type.py` | `tests/unit/output/test_type_and_screen_2587.py` |
 
 ## 5. 評価の範囲
@@ -48,6 +48,4 @@
 
 ## 6. 未対応
 
-| 未対応 | 場所 |
-|---|---|
-| オーダー状態の規則(§4 の 2 行目)は結合テストでしか守られていない。 | `fhir_r4/labs/service_request.py` |
+既知のものは無い。新たな例外は、それを許すガードとともにここに記す。
