@@ -26,7 +26,6 @@ _NO_MODEL_YET = frozenset(
         "pediatric",
         "physiology",
         "population",
-        "procedure",
     }
 )
 

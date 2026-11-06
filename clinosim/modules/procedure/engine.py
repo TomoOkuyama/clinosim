@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from clinosim import determinism
 from clinosim.codes import data_table
@@ -375,26 +376,56 @@ _BEDSIDE_PROCEDURES: list[tuple[str, str, str, str, str, str]] = [
 _ProcedureRules = list[tuple[list[str], list[tuple[str, float]]]]
 
 
+class _Rule(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    diseases: list[str] = Field(min_length=1)
+    procedures: dict[str, float] = Field(min_length=1)
+
+    @field_validator("diseases")
+    @classmethod
+    def _known_diseases(cls, diseases: list[str]) -> list[str]:
+        # Matching is exact, so an unknown id would never fire (Issue #2526).
+        modules = Path(__file__).resolve().parents[1]
+        known = {p.stem for d in ("disease", "encounter") for p in (modules / d / "reference_data").glob("*.yaml")}
+        unknown = sorted(set(diseases) - known)
+        if unknown:
+            raise ValueError(f"procedure_rules.yaml: unknown disease / ED condition ids {unknown}")
+        return diseases
+
+    @field_validator("procedures")
+    @classmethod
+    def _known_procedures(cls, procedures: dict[str, float]) -> dict[str, float]:
+        known = {p[0] for p in _BEDSIDE_PROCEDURES}
+        unknown = sorted(set(procedures) - known)
+        if unknown:
+            raise ValueError(f"procedure_rules.yaml: unknown procedures {unknown}")
+        bad = sorted(k for k, v in procedures.items() if not 0.0 <= v <= 1.0)
+        if bad:
+            raise ValueError(f"procedure_rules.yaml: probabilities outside [0, 1] for {bad}")
+        return procedures
+
+
+class _ProcedureRulesConfig(BaseModel):
+    """Shape of procedure_rules.yaml (validated at load)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    bedside_rules: list[_Rule]
+    isolated_rules: list[_Rule]
+
+
 def _load_procedure_rules() -> tuple[_ProcedureRules, _ProcedureRules]:
-    """Both rule tables, validated: every disease names a disease or ED
-    condition YAML (matching is exact, so an unknown id would never fire,
-    Issue #2526) and every procedure is in the bedside catalog."""
+    """Both rule tables, validated by ``_ProcedureRulesConfig``: every disease
+    names a disease or ED condition YAML, every procedure is in the bedside
+    catalog, and every probability lies in [0, 1]."""
     data = load_data_yaml(Path(__file__).resolve().parent / "reference_data" / "procedure_rules.yaml")
-    modules = Path(__file__).resolve().parents[1]
-    known_ids = {p.stem for d in ("disease", "encounter") for p in (modules / d / "reference_data").glob("*.yaml")}
-    known_procedures = {p[0] for p in _BEDSIDE_PROCEDURES}
-    tables = []
-    for section in ("bedside_rules", "isolated_rules"):
-        rules: _ProcedureRules = []
-        for rule in data[section]:
-            diseases = [str(d) for d in rule["diseases"]]
-            procedures = [(str(k), float(v)) for k, v in rule["procedures"].items()]
-            unknown = sorted(set(diseases) - known_ids) + sorted({k for k, _ in procedures} - known_procedures)
-            if unknown:
-                raise ValueError(f"procedure_rules.yaml {section}: unknown ids {unknown}")
-            rules.append((diseases, procedures))
-        tables.append(rules)
-    return tables[0], tables[1]
+    config = _ProcedureRulesConfig.model_validate(data)
+    return (
+        [(list(r.diseases), list(r.procedures.items())) for r in config.bedside_rules],
+        [(list(r.diseases), list(r.procedures.items())) for r in config.isolated_rules],
+    )
 
 
 _PROCEDURE_RULES, _ISSUE939_PROCEDURE_RULES = _load_procedure_rules()
