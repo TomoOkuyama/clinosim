@@ -2581,10 +2581,6 @@
 </thead>
 <tbody>
 <tr>
-<td>MedicationAdministration の作成側は <code>_resolve_medication_concept</code> を呼ばず、名前照合の手順の写しで薬剤コードを解決している。</td>
-<td><code>fhir_r4/medications/medications.py::_build_medication_admin</code></td>
-</tr>
-<tr>
 <td>有限投与期間の在宅薬への引き継ぎ除外は、Python 内の定数で <code>duration_days</code> を判定しており、専用のテストが無い。</td>
 <td><code>simulator/helpers.py</code></td>
 </tr>
