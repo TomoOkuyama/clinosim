@@ -2750,6 +2750,7 @@ fit</strong>.</p>
 </tbody>
 </table>
 <h2 id="3-determinism-ad-16--ad-59--absolute-rules">3. Determinism (AD-16 / AD-59) — absolute rules<a class="headerlink" href="#3-determinism-ad-16--ad-59--absolute-rules" title="Permanent link">&para;</a></h2>
+<p><strong>Normative spec:</strong> <a href="../determinism-and-rng-spec/"><code>determinism-and-rng-spec.md</code></a> defines the generator factory, seed derivation, RNG-neutral changes and clock rules, with their guards. Below is a summary.</p>
 <ul>
 <li><code>random.random()</code> is forbidden. The RNG must always derive from a
   sub-seed of <code>numpy.random.Generator</code> (<code>clinosim/seeding.py</code>:

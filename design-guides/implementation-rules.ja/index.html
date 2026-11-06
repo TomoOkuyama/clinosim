@@ -2535,6 +2535,7 @@
 </tbody>
 </table>
 <h2 id="3-決定性ad-16--ad-59-絶対規則">3. 決定性(AD-16 / AD-59)— 絶対規則<a class="headerlink" href="#3-決定性ad-16--ad-59-絶対規則" title="Permanent link">&para;</a></h2>
+<p><strong>規範仕様:</strong> <a href="../determinism-and-rng-spec.ja/"><code>determinism-and-rng-spec.ja.md</code></a> が生成器の生成元・シード導出・乱数をずらさない変更・時計の規則とそのガードを定める。以下は要約。</p>
 <ul>
 <li><code>random.random()</code> 禁止。RNG は必ず sub-seed 由来の <code>numpy.random.Generator</code>
   (<code>clinosim/seeding.py</code>: <code>derive_sub_seed(master_seed, module_offset, key)</code> + <code>ENRICHER_SEED_OFFSETS</code> (16-bit hex-ASCII) 登録、
