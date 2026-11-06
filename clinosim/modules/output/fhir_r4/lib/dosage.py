@@ -294,6 +294,11 @@ _IV_RATE_TEXT_RE = re.compile(
 )
 
 
+def is_rate_unit(unit: str) -> bool:
+    """Whether a dose unit is a rate (per minute / per hour; Issue #2752)."""
+    return bool(re.search(r"/\s*(min|h|hr)\s*$", unit or "", re.IGNORECASE))
+
+
 def _canonicalize_iv_rate_unit(numerator: str, denominator: str) -> str:
     """Normalize the (numerator, denominator) match into a UCUM rate string.
 
@@ -656,9 +661,11 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
     # Dose quantity — route through ucum_quantity so `code` is populated
     # (JP-CLINS eCS profiles require it).
     if dose_qty is not None and dose_unit:
+        # Issue #2752: a per-time unit is a rate, stated as rateQuantity.
+        _field = "rateQuantity" if is_rate_unit(dose_unit) else "doseQuantity"
         dosage["doseAndRate"] = [
             {
-                "doseQuantity": ucum_quantity(dose_qty, dose_unit),
+                _field: ucum_quantity(dose_qty, dose_unit),
             }
         ]
         # Issue #781: `dosageInstruction[].text` is human-readable, so drop
