@@ -2466,7 +2466,7 @@
 <tr>
 <td>検査の ServiceRequest は結果(DiagnosticReport または培養)で完了し、結果の無いまま入院が終われば取り消す。</td>
 <td><code>fhir_r4/labs/service_request.py</code></td>
-<td><code>tests/integration/test_servicerequest_snapshot.py</code></td>
+<td><code>tests/unit/test_lab_orders_resulted_or_cancelled_2661.py::test_an_unresulted_order_of_a_discharged_stay_is_revoked</code>, <code>tests/unit/output/test_fhir_microbiology_links_2585.py::test_the_orders_a_culture_reports_are_completed_and_the_others_are_not</code>, <code>tests/integration/test_servicerequest_snapshot.py</code></td>
 </tr>
 <tr>
 <td>輸血前検査(type and screen)のオーダーは、それが報告する血液型と不規則抗体スクリーニングで結果とする。</td>
@@ -2493,20 +2493,7 @@
 </tbody>
 </table>
 <h2 id="6-未対応">6. 未対応<a class="headerlink" href="#6-未対応" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>未対応</th>
-<th>場所</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>オーダー状態の規則(§4 の 2 行目)は結合テストでしか守られていない。</td>
-<td><code>fhir_r4/labs/service_request.py</code></td>
-</tr>
-</tbody>
-</table>
+<p>既知のものは無い。新たな例外は、それを許すガードとともにここに記す。</p>
 
 
 
