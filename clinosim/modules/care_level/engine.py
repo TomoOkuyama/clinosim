@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from clinosim.age_bands import find_age_band
+from clinosim.age_bands import find_age_band, parse_closed_age_band
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import is_jp, normalize_probabilities
 
@@ -16,9 +18,44 @@ _REF_DIR = _HERE / "reference_data"
 _LOCALE = _HERE.parents[1] / "locale"
 
 
+class _EligibilityGates(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    primary_insured_min_age: int = Field(ge=0)
+    secondary_insured_min_age: int = Field(ge=0)
+    secondary_designated_condition_codes: list[str] = Field(min_length=1)
+
+    @field_validator("secondary_designated_condition_codes")
+    @classmethod
+    def _prefixes(cls, codes: list[str]) -> list[str]:
+        if any(not str(c).strip() for c in codes):
+            raise ValueError("care_level.yaml: empty ICD prefix in secondary_designated_condition_codes")
+        return codes
+
+
+class _CareLevelConfig(BaseModel):
+    """Shape of care_level.yaml (Issue #2760)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    levels: list[str] = Field(min_length=1)
+    age_bands: list[str] = Field(min_length=1)
+    eligibility_gates: _EligibilityGates
+
+    @field_validator("age_bands")
+    @classmethod
+    def _bands(cls, bands: list[str]) -> list[str]:
+        for band in bands:
+            parse_closed_age_band(band)
+        return bands
+
+
 @lru_cache(maxsize=1)
 def load_reference() -> dict:
-    return load_data_yaml(_REF_DIR / "care_level.yaml") or {}
+    data = load_data_yaml(_REF_DIR / "care_level.yaml") or {}
+    _CareLevelConfig.model_validate(data)
+    return data
 
 
 @lru_cache(maxsize=2)

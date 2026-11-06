@@ -18,6 +18,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from clinosim.codes import code_exists
 from clinosim.datafiles import load_data_yaml
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.device import DeviceRecord
@@ -28,10 +31,53 @@ _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 
 
+# Indication tokens ``_evaluate_indications`` can return; placement criteria
+# in devices.yaml may name only these (Issue #2760).
+INDICATION_TOKENS = frozenset({"severity_moderate_plus", "altered_consciousness", "hypoxia", "intubated"})
+
+
+class _Criterion(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    any: list[str] = Field(min_length=1)
+
+    @field_validator("any")
+    @classmethod
+    def _known(cls, tokens: list[str]) -> list[str]:
+        unknown = sorted(set(tokens) - INDICATION_TOKENS)
+        if unknown:
+            raise ValueError(f"devices.yaml: unknown placement tokens {unknown}; expected {sorted(INDICATION_TOKENS)}")
+        return tokens
+
+
+class _Device(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    snomed_code: str
+    placement_criteria: list[_Criterion] = Field(min_length=1)
+
+    @field_validator("snomed_code")
+    @classmethod
+    def _registered(cls, code: str) -> str:
+        if not code_exists("snomed-ct", code, exact=True):
+            raise ValueError(f"devices.yaml SNOMED {code!r} not in codes/data/snomed-ct.yaml")
+        return code
+
+
+class _DevicesConfig(BaseModel):
+    """Shape of devices.yaml (Issue #2760)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    devices: dict[str, _Device] = Field(min_length=1)
+
+
 @lru_cache(maxsize=1)
 def load_devices_config() -> dict[str, Any]:
-    """Load device reference data from devices.yaml (cached)."""
+    """Load device reference data from devices.yaml (cached, validated)."""
     data = load_data_yaml(_REF_DIR / "devices.yaml")
+    _DevicesConfig.model_validate(data)
     return data
 
 

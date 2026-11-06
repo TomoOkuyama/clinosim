@@ -741,3 +741,13 @@ _.repeat_culture_persistence_prob  # observation/microbiology.py MicrobiologyCon
 _.has_microbiology  # observation/microbiology.py public API (README), used by tests after Issue #2640
 _.collected_datetime  # types/microbiology.py MicrobiologyResult (read by key in fhir_r4/labs/microbiology.py)
 _.rxnorm_scd_codes  # codes/drugs.py — used by tests/unit/test_drugs_catalog_phase_4_coverage_1792b.py (Issue #2614)
+_.age_bands  # code_status/engine.py _CodeStatusConfig / care_level _CareLevelConfig model fields (Issue #2760)
+_.placement_criteria  # device/engine.py _Device model field (Issue #2760)
+_.eligibility_gates  # reference-YAML model field (Issue #2760)
+_.observable_snomed  # reference-YAML model field (Issue #2760)
+_.primary_insured_min_age  # reference-YAML model field (Issue #2760)
+_.secondary_insured_min_age  # reference-YAML model field (Issue #2760)
+_.secondary_designated_condition_codes  # reference-YAML model field (Issue #2760)
+_.levels  # reference-YAML model field (Issue #2760)
+_.tiers  # reference-YAML model field (Issue #2760)
+_.devices  # reference-YAML model field (Issue #2760)
