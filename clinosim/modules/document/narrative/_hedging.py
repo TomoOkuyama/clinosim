@@ -13,11 +13,10 @@ Callers reach for :func:`hedged_phrase` — one shot in, one string out.
 
 from __future__ import annotations
 
-import random
 from functools import lru_cache
 from importlib import resources
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 from clinosim.datafiles import load_data_yaml
 
@@ -31,13 +30,20 @@ def _load_registry() -> dict[str, Any]:
     return load_data_yaml(Path(str(resources.files(_REGISTRY_PACKAGE).joinpath(_REGISTRY_FILENAME)))) or {}
 
 
+class _Chooser(Protocol):
+    """A generator that can pick one of several phrases (e.g.
+    ``clinosim.determinism.default_rng(seed)``; Issue #2754)."""
+
+    def choice(self, a: Any) -> Any: ...
+
+
 def hedged_phrase(
     topic: str,
     value: str,
     *,
     confirmed: bool,
     lang: str = "en",
-    rng: random.Random | None = None,
+    rng: _Chooser | None = None,
     **placeholders: str,
 ) -> str:
     """Return one hedging phrase for ``topic`` with ``value`` interpolated.
@@ -70,7 +76,7 @@ def hedged_phrase(
     if not phrases:
         return ""
     if rng is not None:
-        phrase = rng.choice(phrases)
+        phrase = str(rng.choice(phrases))
     else:
         # Deterministic default: first entry. Template renders MUST be
         # deterministic across runs; call sites needing variation should

@@ -62,6 +62,4 @@ When a change must alter outcomes (a model change), the PR states which streams 
 
 ## 8. Gaps
 
-| Gap | Where |
-|---|---|
-| `hedged_phrase(rng: random.Random)` types its optional generator as the stdlib class. It has no caller in the package. | `clinosim/modules/document/narrative/_hedging.py` (allowed by name in the stdlib-random guard) |
+None known. A new exception is added here with its guard allow-list entry.

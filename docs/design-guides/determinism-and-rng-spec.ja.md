@@ -62,6 +62,4 @@
 
 ## 8. 未対応
 
-| 未対応 | 場所 |
-|---|---|
-| `hedged_phrase(rng: random.Random)` は省略可能な生成器を標準ライブラリのクラスで型付けしている。パッケージ内に呼び出し元は無い。 | `clinosim/modules/document/narrative/_hedging.py`(標準 random ガードで名指しで許可) |
+既知のものは無い。新たな例外は、ガードの許可リストへの追加とともにここに記す。

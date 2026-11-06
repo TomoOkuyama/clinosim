@@ -17,8 +17,8 @@ pytestmark = pytest.mark.unit
 
 _PKG = Path(__file__).resolve().parents[2] / "clinosim"
 
-# Spec §8: known gap, typed but unused.
-_STDLIB_RANDOM_ALLOWED = {"modules/document/narrative/_hedging.py"}
+# Spec §8: no known exception.
+_STDLIB_RANDOM_ALLOWED: set[str] = set()
 
 # Spec §5: run metadata, CLI defaults and reports — not generation.
 _CLOCK_ALLOWED = {
