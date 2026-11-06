@@ -2432,7 +2432,7 @@
 <tr>
 <td>Every vital-signs one-liner (physical exam, progress note objective, nursing shift note, LLM arrival and day facts) is rendered by one formatter. Each surface names its style (field order, separators, units, integer or raw values, room-air marker). A new surface adds a style, not a formatter.</td>
 <td><code>clinosim/modules/document/narrative/_vitals_line.py::format_vitals_line</code> with the styles <code>PHYSICAL_EXAM</code>, <code>PROGRESS_OBJECTIVE</code>, <code>NURSING_SHIFT</code>, <code>LLM_ARRIVAL</code>, <code>LLM_DAY</code></td>
-<td><code>tests/unit/modules/document/narrative/test_vitals_line_2523.py</code></td>
+<td><code>tests/unit/modules/document/narrative/test_vitals_line_2523.py</code>, <code>test_narrative_spec_guards.py::test_vitals_lines_only_through_format_vitals_line</code> (no other formatted string holds three or more vital signs; a single-vital interpretation such as the hypertension control line, and the LLM's min-max range summary, are not vitals lines)</td>
 </tr>
 <tr>
 <td>A BMI is classified (underweight / normal / overweight / obese, WHO and Japan Society for the Study of Obesity boundaries 18.5 / 25 / 30, each boundary in the upper band) by one function, on the value as displayed.</td>
@@ -2456,20 +2456,7 @@
 <li><strong>Clinical coding from a measurement</strong> — e.g. the E66 overweight / obesity code from BMI (<code>modules/metabolic/engine.py</code>) — is a diagnosis rule, not narrative wording, and follows its module's own thresholds.</li>
 </ul>
 <h2 id="5-gaps">5. Gaps<a class="headerlink" href="#5-gaps" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Gap</th>
-<th>Where</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>No guard checks that renderers word vital signs only through <code>format_vitals_line</code>. A renderer that formats <code>BP {sbp}/{dbp}</code> itself would pass.</td>
-<td><code>clinosim/modules/document/narrative/</code></td>
-</tr>
-</tbody>
-</table>
+<p>None known. A new exception is listed here with the guard that allows it.</p>
 
 
 

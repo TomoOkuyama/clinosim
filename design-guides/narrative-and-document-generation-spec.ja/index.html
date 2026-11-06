@@ -2432,7 +2432,7 @@
 <tr>
 <td>バイタルの一行要約(身体所見、経過記録の O、看護記録、LLM の来院時・日々の事実)はすべて一つのフォーマッタで描く。各記述面はスタイル(項目順・区切り・単位・整数か生値か・室内気の表記)を名指しする。新しい記述面はスタイルを足し、フォーマッタを足さない。</td>
 <td><code>clinosim/modules/document/narrative/_vitals_line.py::format_vitals_line</code>(スタイル <code>PHYSICAL_EXAM</code>, <code>PROGRESS_OBJECTIVE</code>, <code>NURSING_SHIFT</code>, <code>LLM_ARRIVAL</code>, <code>LLM_DAY</code>)</td>
-<td><code>tests/unit/modules/document/narrative/test_vitals_line_2523.py</code></td>
+<td><code>tests/unit/modules/document/narrative/test_vitals_line_2523.py</code>, <code>test_narrative_spec_guards.py::test_vitals_lines_only_through_format_vitals_line</code>(他の書式文字列が 3 つ以上のバイタルを含まない。高血圧の管理状況のような単一バイタルの解釈と、LLM 向けの最小〜最大の範囲要約はバイタルの一行要約ではない)</td>
 </tr>
 <tr>
 <td>BMI の区分(やせ・普通・過体重・肥満。WHO / 日本肥満学会の境界 18.5 / 25 / 30、境界値は上の区分)は、表示する値で一つの関数が決める。</td>
@@ -2456,20 +2456,7 @@
 <li><strong>測定値からの臨床コード付け</strong>(BMI から E66 過体重・肥満コード、<code>modules/metabolic/engine.py</code> など)は診断の規則で、ナラティブの言い表しではない。そのモジュール自身の閾値に従う。</li>
 </ul>
 <h2 id="5-未対応">5. 未対応<a class="headerlink" href="#5-未対応" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>未対応</th>
-<th>場所</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>描画側がバイタルを <code>format_vitals_line</code> だけで言い表すことを確かめるガードが無い。<code>BP {sbp}/{dbp}</code> を自前で書く描画も通ってしまう。</td>
-<td><code>clinosim/modules/document/narrative/</code></td>
-</tr>
-</tbody>
-</table>
+<p>既知のものは無い。新たな例外は、それを許すガードとともにここに記す。</p>
 
 
 
