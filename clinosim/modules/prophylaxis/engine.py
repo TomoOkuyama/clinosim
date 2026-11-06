@@ -243,19 +243,18 @@ def build_dvt_prophylaxis_orders(
     if not encounter_id:
         return []
 
+    # An order is placed at a time of the stay: with no admission time there
+    # is no order (the wall clock is never a generation input; determinism spec).
     adm_dt = getattr(enc, "admission_datetime", None)
     if isinstance(adm_dt, str):
         try:
             ordered_dt = datetime.fromisoformat(adm_dt) + timedelta(hours=6)
         except (TypeError, ValueError):
-            # Fall back to now — Order dataclass requires a real datetime
-            ordered_dt = datetime.now()
+            return []
     elif isinstance(adm_dt, datetime):
         ordered_dt = adm_dt + timedelta(hours=6)
     else:
-        # No admission_datetime available — Order dataclass requires a
-        # datetime; use now as a safe fallback (test paths always supply one).
-        ordered_dt = datetime.now()
+        return []
 
     # Emit as a real Order dataclass so downstream CLI debug printers and
     # any consumer expecting attribute access work uniformly.

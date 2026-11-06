@@ -65,6 +65,8 @@ fit**.
 
 ## 3. Determinism (AD-16 / AD-59) — absolute rules
 
+**Normative spec:** [`determinism-and-rng-spec.md`](determinism-and-rng-spec.md) defines the generator factory, seed derivation, RNG-neutral changes and clock rules, with their guards. Below is a summary.
+
 - `random.random()` is forbidden. The RNG must always derive from a
   sub-seed of `numpy.random.Generator` (`clinosim/seeding.py`:
   `derive_sub_seed(master_seed, module_offset, key)` + registration

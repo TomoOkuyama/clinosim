@@ -49,6 +49,8 @@
 
 ## 3. 決定性(AD-16 / AD-59)— 絶対規則
 
+**規範仕様:** [`determinism-and-rng-spec.ja.md`](determinism-and-rng-spec.ja.md) が生成器の生成元・シード導出・乱数をずらさない変更・時計の規則とそのガードを定める。以下は要約。
+
 - `random.random()` 禁止。RNG は必ず sub-seed 由来の `numpy.random.Generator`
   (`clinosim/seeding.py`: `derive_sub_seed(master_seed, module_offset, key)` + `ENRICHER_SEED_OFFSETS` (16-bit hex-ASCII) 登録、
   lab は `panel_specimen_seed` / `individual_lab_seed`)。
