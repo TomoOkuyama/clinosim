@@ -143,7 +143,8 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
                 visit_labs.append(lab)
         from clinosim.modules.monitoring import monitoring_labs_for_patient
 
-        for lab in monitoring_labs_for_patient(patient.current_medications, ev_rng):
+        _visit_key = f"{patient.patient_id}:{visit_time.isoformat()}"
+        for lab in monitoring_labs_for_patient(patient.current_medications, _visit_key):
             if lab not in visit_labs:
                 visit_labs.append(lab)
         merged_spec = dict(spec)

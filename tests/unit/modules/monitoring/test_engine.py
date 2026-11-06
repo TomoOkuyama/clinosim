@@ -32,9 +32,10 @@ def _rng() -> np.random.Generator:
 
 def test_loader_returns_dict_with_expected_keys() -> None:
     mapping = load_medication_lab_mapping()
-    assert "warfarin" in mapping, "warfarin mapping required (closes #736)"
-    assert set(mapping["warfarin"]["labs"]) == {"PT_INR"}
-    assert mapping["warfarin"]["per_visit_probability"] == 1.0
+    # Issue #2786: keyed like the one monitoring table (medication_monitoring.yaml).
+    assert "Warfarin" in mapping, "warfarin mapping required (closes #736)"
+    assert set(mapping["Warfarin"]["labs"]) == {"PT_INR"}
+    assert mapping["Warfarin"]["per_visit_probability"] == 1.0
 
 
 def test_loader_all_entries_have_required_fields() -> None:
@@ -50,39 +51,42 @@ def test_loader_all_entries_have_required_fields() -> None:
 
 
 def test_no_meds_returns_empty() -> None:
-    assert monitoring_labs_for_patient([], _rng()) == []
+    assert monitoring_labs_for_patient([], "P1:2025-03-01T09:00:00") == []
 
 
 def test_warfarin_english_name_matches() -> None:
-    labs = monitoring_labs_for_patient([_Med(drug_name="Warfarin 5mg PO")], _rng())
+    labs = monitoring_labs_for_patient([_Med(drug_name="Warfarin 5mg PO")], "P1:2025-03-01T09:00:00")
     assert "PT_INR" in labs
 
 
 def test_warfarin_japanese_name_matches() -> None:
-    labs = monitoring_labs_for_patient([_Med(drug_name_ja="ワルファリン 3mg 経口")], _rng())
+    labs = monitoring_labs_for_patient([_Med(drug_name_ja="ワルファリン 3mg 経口")], "P1:2025-03-01T09:00:00")
     assert "PT_INR" in labs
 
 
 def test_coumadin_trade_name_matches() -> None:
-    labs = monitoring_labs_for_patient([_Med(drug_name="Coumadin 5mg")], _rng())
+    labs = monitoring_labs_for_patient([_Med(drug_name="Coumadin 5mg")], "P1:2025-03-01T09:00:00")
     assert "PT_INR" in labs
 
 
 def test_unrelated_med_no_match() -> None:
-    labs = monitoring_labs_for_patient([_Med(drug_name="Amlodipine 5mg")], _rng())
+    labs = monitoring_labs_for_patient([_Med(drug_name="Amlodipine 5mg")], "P1:2025-03-01T09:00:00")
     assert labs == []
 
 
 def test_multiple_monitored_meds_labs_deduplicated() -> None:
     # Both metformin AND insulin request HbA1c — must appear only once.
-    labs = monitoring_labs_for_patient([_Med(drug_name="Metformin"), _Med(drug_name="Insulin lispro")], _rng())
-    assert labs.count("HbA1c") == 1
+    meds = [_Med(drug_name="Metformin"), _Med(drug_name="Insulin lispro")]
+    # The per-visit gate is a hash of the visit key; check across visits.
+    visits = [monitoring_labs_for_patient(meds, f"P1:visit-{i}") for i in range(40)]
+    assert any("HbA1c" in labs for labs in visits)
+    assert all(labs.count("HbA1c") <= 1 for labs in visits)
 
 
 def test_dict_med_shape_supported() -> None:
     """CIF JSON-deserialized medications are dicts, not dataclasses. Both
     shapes must resolve identically (feedback_o_dual_access pattern)."""
-    labs = monitoring_labs_for_patient([{"drug_name": "Warfarin", "drug_name_ja": ""}], _rng())
+    labs = monitoring_labs_for_patient([{"drug_name": "Warfarin", "drug_name_ja": ""}], "P1:2025-03-01T09:00:00")
     assert "PT_INR" in labs
 
 
@@ -95,7 +99,7 @@ def test_per_visit_probability_gate_fires_under_seed() -> None:
     fires = 0
     total = 200
     for seed in range(total):
-        labs = monitoring_labs_for_patient([_Med(drug_name="Levothyroxine 50mcg")], np.random.default_rng(seed))
+        labs = monitoring_labs_for_patient([_Med(drug_name="Levothyroxine 50mcg")], f"P1:visit-{seed}")
         if "TSH" in labs:
             fires += 1
     # 40-60 % expected for prob=0.5 over 200 draws
@@ -106,7 +110,7 @@ def test_warfarin_probability_1_always_fires() -> None:
     """PT_INR is per_visit_probability=1.0 (every-visit standard-of-care).
     Must fire every time for any seed (closes #736 root cause)."""
     for seed in range(30):
-        labs = monitoring_labs_for_patient([_Med(drug_name="Warfarin 5mg")], np.random.default_rng(seed))
+        labs = monitoring_labs_for_patient([_Med(drug_name="Warfarin 5mg")], f"P1:visit-{seed}")
         assert "PT_INR" in labs, f"seed={seed} failed to fire PT_INR"
 
 
@@ -123,5 +127,5 @@ def test_integration_shape_matches_patientprofile_current_medications() -> None:
             SimpleNamespace(drug_name="Amlodipine 5mg", drug_name_ja=""),
         ]
     )
-    labs = monitoring_labs_for_patient(patient.current_medications, _rng())
+    labs = monitoring_labs_for_patient(patient.current_medications, "P1:2025-03-01T09:00:00")
     assert "PT_INR" in labs

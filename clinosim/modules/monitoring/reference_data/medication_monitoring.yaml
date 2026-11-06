@@ -1,5 +1,8 @@
 # Chronic-medication → standard-of-care monitoring lab mapping (Issue #757).
 #
+# One table for both monitoring paths (Issue #2786): the POST_RECORDS enricher
+# (interval_months per lab) and the chronic follow-up visit (per_visit_probability).
+#
 # Schema (per drug entry):
 #   <Rule label>:
 #     drugs:          [<catalog drug_id>, ...]     (codes/data/drugs.yaml)
@@ -39,6 +42,7 @@ metadata:
 
 mappings:
   Warfarin:
+    per_visit_probability: 1.0
     drugs: [warfarin]
     monitoring:
       - lab: PT_INR
@@ -48,6 +52,7 @@ mappings:
           ja: "抗凝固療法の治療域モニタリング — INR 目標 2.0-3.0 (機械弁は 2.5-3.5)。"
 
   Levothyroxine:
+    per_visit_probability: 0.5
     drugs: [levothyroxine]
     monitoring:
       - lab: TSH
@@ -65,6 +70,7 @@ mappings:
   # DM patients emit realistic values (6-10% range typical); non-DM patients
   # accidentally on a DM drug would emit the ~5.5% age-adjusted non-DM baseline.
   Metformin:
+    per_visit_probability: 0.5
     drugs: [metformin]
     monitoring:
       - lab: HbA1c
@@ -74,6 +80,7 @@ mappings:
           ja: "慢性血糖コントロールモニタリング — HbA1c 目標 <7% (ADA/JDS 個別化)。ガイドライン: 安定治療下は 3-6 か月毎、用量調整期は 3 か月毎。"
 
   Insulin:
+    per_visit_probability: 0.5
     drugs: [insulin, insulin_aspart, insulin_glargine, insulin_lispro, insulin_regular_human, sliding_scale_insulin]
     monitoring:
       - lab: HbA1c
@@ -90,6 +97,7 @@ mappings:
   # gap. AST + ALT are both physiology-modeled in
   # observation/engine.py (BIOLOGICAL_CV 0.120 / 0.195 respectively).
   Atorvastatin:
+    per_visit_probability: 0.25
     classes: [statin]
     monitoring:
       - lab: AST
@@ -112,7 +120,9 @@ mappings:
   # `Cr` alias covered because the mapping enricher matches on Order's
   # display_name (which we emit as the YAML `lab` value, `Creatinine`).
   Candesartan:
-    classes: [arb]
+    per_visit_probability: 0.4
+    # Issue #2786: every RAAS blocker and diuretic, as the follow-up path had (was arb only).
+    classes: [acei_arb, diuretic]
     monitoring:
       - lab: K
         interval_months: 6
@@ -135,6 +145,7 @@ mappings:
   # the gap so DOAC + monitoring appears in the FHIR record the way real
   # anticoagulation clinics chart it.
   Apixaban:
+    per_visit_probability: 0.4
     drugs: [apixaban]
     monitoring:
       - lab: eGFR
@@ -144,6 +155,7 @@ mappings:
           ja: "DOAC (アピキサバン) の腎排泄モニタリング — CrCl <30 で減量 (5 mg 1日2回 → 2.5 mg 1日2回)。Chest 2018 / JCS 2020 に基づき安定期は 6 か月毎の測定を最低推奨。"
 
   Rivaroxaban:
+    per_visit_probability: 0.4
     drugs: [rivaroxaban]
     monitoring:
       - lab: eGFR
@@ -153,6 +165,7 @@ mappings:
           ja: "DOAC (リバーロキサバン) の腎排泄モニタリング — CrCl <15 で禁忌、CrCl 15-49 で減量 (20 mg 1日1回 → 15 mg 1日1回)。Chest 2018 に基づき 6 か月毎測定を最低推奨。"
 
   Dabigatran:
+    per_visit_probability: 0.4
     drugs: [dabigatran]
     monitoring:
       - lab: eGFR
@@ -162,6 +175,7 @@ mappings:
           ja: "DOAC (ダビガトラン) の腎排泄モニタリング — 4 剤中最も腎依存 (約 80% 腎排泄)。CrCl <30 で禁忌、CrCl 30-50 で減量 (150 mg 1日2回 → 110 mg 1日2回)。3-6 か月毎に再検。"
 
   Edoxaban:
+    per_visit_probability: 0.4
     drugs: [edoxaban]
     monitoring:
       - lab: eGFR
@@ -172,6 +186,7 @@ mappings:
 
   # Issue #2142: mood stabilizers (CANMAT / ISBD 2018 safety monitoring).
   Lithium carbonate:
+    per_visit_probability: 0.35
     drugs: [lithium_carbonate]
     monitoring:
       - lab: Lithium
@@ -190,6 +205,7 @@ mappings:
           en: "Lithium nephrotoxicity — renal function every 6-12 months."
           ja: "リチウムの腎毒性 — 腎機能を 6-12 か月毎。"
   Valproic acid:
+    per_visit_probability: 0.4
     drugs: [valproic_acid]
     monitoring:
       - lab: AST
@@ -211,6 +227,7 @@ mappings:
   # Issue #2146: agonist MOUD — urine drug screen to confirm adherence and
   # detect other substance use (SAMHSA TIP 63).
   Buprenorphine/Naloxone:
+    per_visit_probability: 1.0
     drugs: [buprenorphine_naloxone]
     monitoring:
       - lab: Urine_drug_screen
@@ -219,6 +236,7 @@ mappings:
           en: "Urine drug screen — adherence to buprenorphine and other substance use (SAMHSA TIP 63)."
           ja: "尿中薬物スクリーニング — ブプレノルフィンの服薬確認と他物質の使用確認。"
   Methadone:
+    per_visit_probability: 1.0
     drugs: [methadone]
     monitoring:
       - lab: Urine_drug_screen
@@ -227,3 +245,64 @@ mappings:
           en: "Urine drug screen — opioid treatment program monitoring (SAMHSA TIP 63)."
           ja: "尿中薬物スクリーニング — オピオイド治療プログラムでの確認。"
 
+  # Issue #2786: drugs the chronic follow-up path monitored and this table did
+  # not (the two paths kept separate tables).
+  Digoxin:
+    per_visit_probability: 0.5
+    drugs: [digoxin]
+    monitoring:
+      - lab: Digoxin
+        interval_months: 12
+        rationale:
+          en: "Digoxin level when toxicity is suspected or renal function changes; narrow therapeutic window (0.5-0.9 ng/mL in heart failure)."
+          ja: "ジゴキシン血中濃度 — 中毒疑い・腎機能変化時に測定。治療域が狭い(心不全で 0.5-0.9 ng/mL)。"
+      - lab: K
+        interval_months: 6
+        rationale:
+          en: "Hypokalaemia potentiates digoxin toxicity."
+          ja: "低カリウム血症はジゴキシン中毒を増強する。"
+      - lab: Creatinine
+        interval_months: 6
+        rationale:
+          en: "Digoxin is renally cleared; dose follows renal function."
+          ja: "ジゴキシンは腎排泄。腎機能に応じて用量調整。"
+
+  Tacrolimus:
+    per_visit_probability: 1.0
+    drugs: [tacrolimus]
+    monitoring:
+      - lab: Tacrolimus
+        interval_months: 1
+        rationale:
+          en: "Trough-level monitoring of the calcineurin inhibitor (narrow therapeutic window)."
+          ja: "カルシニューリン阻害薬のトラフ濃度モニタリング(治療域が狭い)。"
+      - lab: Creatinine
+        interval_months: 1
+        rationale:
+          en: "Calcineurin-inhibitor nephrotoxicity."
+          ja: "カルシニューリン阻害薬の腎毒性。"
+      - lab: K
+        interval_months: 1
+        rationale:
+          en: "Calcineurin inhibitors cause hyperkalaemia."
+          ja: "カルシニューリン阻害薬は高カリウム血症を起こす。"
+
+  Ciclosporin:
+    per_visit_probability: 1.0
+    drugs: [ciclosporin]
+    monitoring:
+      - lab: Ciclosporin
+        interval_months: 1
+        rationale:
+          en: "Trough-level monitoring of the calcineurin inhibitor (narrow therapeutic window)."
+          ja: "カルシニューリン阻害薬のトラフ濃度モニタリング(治療域が狭い)。"
+      - lab: Creatinine
+        interval_months: 1
+        rationale:
+          en: "Calcineurin-inhibitor nephrotoxicity."
+          ja: "カルシニューリン阻害薬の腎毒性。"
+      - lab: K
+        interval_months: 1
+        rationale:
+          en: "Calcineurin inhibitors cause hyperkalaemia."
+          ja: "カルシニューリン阻害薬は高カリウム血症を起こす。"

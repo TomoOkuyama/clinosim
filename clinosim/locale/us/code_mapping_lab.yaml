@@ -79,7 +79,7 @@ PSA: "2857-1"                # Prostate specific Ag [Mass/volume] in Serum or Pl
 # Therapeutic drug monitoring (Issue #757 remaining) — LOINC codes
 # verified via clinicaltables.nlm.nih.gov v3 LOINC API. Emitted for
 # chronic-followup encounters where the patient carries the drug in
-# ``current_medications`` (med_lab_mapping.yaml routes them here).
+# ``current_medications`` (medication_monitoring.yaml routes them here).
 Digoxin: "10535-3"           # Digoxin [Mass/volume] in Serum or Plasma
 Lithium: "14334-7"           # Lithium [Mass/volume] in Serum or Plasma
 Tacrolimus: "27069-5"        # Tacrolimus [Mass/volume] in Serum or Plasma

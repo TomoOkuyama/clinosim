@@ -46,7 +46,7 @@ from clinosim.modules.monitoring.mapping import (
     match_drugs,                     # (current_medications, mapping) -> list[str] canonical drug 名
 )
 
-# 2. 慢性外来 lab リスト経路 (med_lab_mapping.yaml)、__init__.py から re-export
+# 2. 慢性外来 lab リスト経路 (同じ medication_monitoring.yaml、Issue #2786)、__init__.py から re-export
 from clinosim.modules.monitoring import (
     load_medication_lab_mapping,     # () -> {entry: {drugs, classes, labs, per_visit_probability}} (lru_cache)
     monitoring_labs_for_patient,     # (current_medications, rng) -> list[str] lab 名
@@ -113,7 +113,6 @@ event ごとに呼ばれ、返り値の lab を visit の `visit_labs` に merge
   loader style)。必須 key 欠落は fail-loud — YAML typo は load 時に
   顕在化し「drug never matched」の silent 症状にならない (monitoring 行ごとに
   `lab`, `loinc`, 整数 `interval_months >= 1` が必須)。
-- [`reference_data/med_lab_mapping.yaml`](reference_data/med_lab_mapping.yaml)
   — `monitoring_labs_for_patient` 用の慢性外来 mapping (top-level
   `medication_lab_mapping:` key 配下)。各 entry は `drugs` / `classes`
   (`drug_name` / `drug_name_ja` への部分一致 pattern)、`labs`
@@ -130,7 +129,6 @@ clinosim/modules/monitoring/
   mapping.py                         load_medication_monitoring + match_drugs
   reference_data/
     medication_monitoring.yaml       drug → monitoring-labs mapping (enricher)
-    med_lab_mapping.yaml             薬剤 → 慢性外来 lab mapping (engine)
 ```
 
 **`audit.py` は存在しない**。
