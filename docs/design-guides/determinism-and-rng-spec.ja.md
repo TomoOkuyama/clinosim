@@ -65,4 +65,3 @@
 | 未対応 | 場所 |
 |---|---|
 | `hedged_phrase(rng: random.Random)` は省略可能な生成器を標準ライブラリのクラスで型付けしている。パッケージ内に呼び出し元は無い。 | `clinosim/modules/document/narrative/_hedging.py`(標準 random ガードで名指しで許可) |
-| 評価は患者年齢をコホートの基準日でなく当日で計算するため、評価レポートが実行日に依存する。 | `clinosim/eval/axes/clinical.py::_patient_ages`(時計ガードで名指しで許可) |
