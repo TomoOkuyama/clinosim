@@ -31,4 +31,4 @@ metadata:
 loincs:
   # Document types take their code from document_type_specs.yaml (Issue
   # #2344); only tasks outside the document pipeline are listed here.
-  death_summary: '69730-0'                # Death note (template-only)
+  death_summary: '47046-8'                # Summary of Death Note (template-only, Issue #2807)

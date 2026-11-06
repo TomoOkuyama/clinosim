@@ -4,7 +4,7 @@
 # Keep in sync with the corresponding _build_* template output shape
 # if a downstream consumer wires it. Audit reference:
 # docs/reviews/2026-08-30-llm-prompt-audit.md
-# NOTE: LOINC 69730-0 (death_summary) is not currently registered as a
+# NOTE: LOINC 47046-8 (death_summary) is not currently registered as a
 # DocumentType — the JP death-narrative chain uses death_certificate
 # (LOINC 64297-5) + death_discharge_summary (LOINC 18842-5). Retained
 # for a possible future short-stay/autopsy-only death summary variant.
@@ -14,7 +14,7 @@ version: 1
 max_tokens: 1500
 temperature: 0.3
 description: |
-  FHIR DocumentReference with LOINC 69730-0 (死亡時記録).
+  FHIR DocumentReference with LOINC 47046-8 (死亡時要約).
   院内死亡時の法定・臨床記録。
 
 system: |
