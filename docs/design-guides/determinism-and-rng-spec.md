@@ -65,4 +65,3 @@ When a change must alter outcomes (a model change), the PR states which streams 
 | Gap | Where |
 |---|---|
 | `hedged_phrase(rng: random.Random)` types its optional generator as the stdlib class. It has no caller in the package. | `clinosim/modules/document/narrative/_hedging.py` (allowed by name in the stdlib-random guard) |
-| Eval computes patient ages against today's date instead of the cohort's reference date, so an eval report depends on the day it runs. | `clinosim/eval/axes/clinical.py::_patient_ages` (allowed by name in the clock guard) |

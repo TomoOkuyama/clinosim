@@ -351,18 +351,19 @@ def _check_lab_values_physiological_range(cohort: Cohort, country: str) -> EvalC
 def _check_age_condition_consistency(cohort: Cohort, country: str) -> EvalCheck:
     """Adult-only conditions must not appear on pediatric patients (< 12 y),
     pediatric-only conditions must not appear on adults (> 18 y)."""
-    # Build Patient.id → age (years) map from birthDate + any death or
-    # first-encounter reference.
-    ages_by_patient = _patient_ages(cohort, country)
+    # Issue #2747: the age at the Condition (its onset or recorded date), so the
+    # score does not depend on the day eval runs.
+    births = _patient_birth_dates(cohort, country)
 
     peds_only_prefixes: set[str] = set()  # Reserved — clinosim does not model peds diseases yet.
 
     problems: list[str] = []
     for row in cohort.ndjson(country, "Condition", skip_malformed=True):
         pid = (row.get("subject") or {}).get("reference", "").split("/", 1)[-1]
-        age = ages_by_patient.get(pid)
-        if age is None:
+        birth, when = births.get(pid), _condition_date(row)
+        if birth is None or when is None:
             continue
+        age = _age_on(birth, when)
         codes = (row.get("code") or {}).get("coding") or []
         for c in codes:
             code = c.get("code", "")
@@ -489,20 +490,31 @@ def _first_code_for_system(coding: list, system: str) -> str | None:
     return None
 
 
-def _patient_ages(cohort: Cohort, country: str) -> dict[str, int]:
-    today = date.today()
-    ages: dict[str, int] = {}
+def _patient_birth_dates(cohort: Cohort, country: str) -> dict[str, date]:
+    """Patient.id → birth date."""
+    births: dict[str, date] = {}
     for row in cohort.ndjson(country, "Patient", skip_malformed=True):
-        pid = row.get("id")
-        birth = row.get("birthDate")
+        pid, birth = row.get("id"), row.get("birthDate")
         if not (pid and birth):
             continue
         try:
-            b = date.fromisoformat(birth[:10])
-            ages[pid] = today.year - b.year - int((today.month, today.day) < (b.month, b.day))
+            births[pid] = date.fromisoformat(str(birth)[:10])
         except ValueError:
             continue
-    return ages
+    return births
+
+
+def _condition_date(row: dict) -> date | None:
+    """The date a Condition applies from: onset, else the date it was recorded."""
+    raw = row.get("onsetDateTime") or (row.get("onsetPeriod") or {}).get("start") or row.get("recordedDate")
+    try:
+        return date.fromisoformat(str(raw)[:10]) if raw else None
+    except ValueError:
+        return None
+
+
+def _age_on(birth: date, when: date) -> int:
+    return when.year - birth.year - int((when.month, when.day) < (birth.month, birth.day))
 
 
 def _bounds_summary() -> dict[str, dict[str, str]]:

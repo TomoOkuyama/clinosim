@@ -20,10 +20,8 @@ _PKG = Path(__file__).resolve().parents[2] / "clinosim"
 # Spec §8: known gap, typed but unused.
 _STDLIB_RANDOM_ALLOWED = {"modules/document/narrative/_hedging.py"}
 
-# Spec §5: run metadata, CLI defaults and reports — not generation. The eval
-# ages entry is the §8 gap.
+# Spec §5: run metadata, CLI defaults and reports — not generation.
 _CLOCK_ALLOWED = {
-    "eval/axes/clinical.py",
     "eval/engine.py",
     "modules/document/audit.py",
     "modules/document/narrative/passes.py",
