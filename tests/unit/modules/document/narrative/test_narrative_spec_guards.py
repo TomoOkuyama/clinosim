@@ -66,3 +66,27 @@ def test_blood_pressure_bands_only_through_bp_band() -> None:
 )
 def test_each_bp_boundary_belongs_to_the_upper_band(sbp: int, dbp: int, band: str) -> None:
     assert bp_band(sbp, dbp) == band
+
+
+_VITAL_FIELDS = {
+    "bp": re.compile(r"\{[^}]*\b(sbp|systolic\w*)\b[^}]*\}"),
+    "hr": re.compile(r"\{[^}]*\b(hr|heart_rate|pulse)\b[^}]*\}"),
+    "rr": re.compile(r"\{[^}]*\b(rr|resp\w*)\b[^}]*\}"),
+    "spo2": re.compile(r"\{[^}]*\bspo2\w*\b[^}]*\}"),
+    "temp": re.compile(r"\{[^}]*\b(temp\w*|bt)\b[^}]*\}"),
+}
+
+
+def test_vitals_lines_only_through_format_vitals_line() -> None:
+    """Spec §3: a one-line vitals summary (three or more vital signs in one
+    formatted string) is rendered only by ``format_vitals_line``."""
+    offenders = []
+    for p in sorted(_DOC.rglob("*.py")):
+        if p.name == "_vitals_line.py":
+            continue
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            if not re.search(r"\bf[\"']", line):
+                continue
+            if sum(1 for rx in _VITAL_FIELDS.values() if rx.search(line)) >= 3:
+                offenders.append(f"{p.relative_to(_DOC)}:{i}")
+    assert not offenders, offenders
