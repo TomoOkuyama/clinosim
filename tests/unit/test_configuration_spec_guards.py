@@ -20,7 +20,6 @@ _NO_MODEL_YET = frozenset(
         "clinical_course",
         "diagnosis",
         "drug_safety",
-        "family_history",
         "llm_service",
         "monitoring",
         "newborn",
@@ -30,7 +29,6 @@ _NO_MODEL_YET = frozenset(
         "population",
         "procedure",
         "prophylaxis",
-        "sdoh",
     }
 )
 
