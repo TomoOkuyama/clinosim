@@ -18,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, field
 
 from clinosim import determinism
 from clinosim.codes import code_exists
-from clinosim.datafiles import load_validated_yaml
+from clinosim.datafiles import load_data_yaml, load_validated_yaml
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -335,6 +335,30 @@ class ImpressionTemplates(BaseModel):
         if empty:
             raise ValueError(f"impression_templates.yaml{empty}: empty modality bucket")
         return templates
+
+
+class _BedsideExaminations(BaseModel):
+    """Shape of ``bedside_examinations.yaml`` (Issue #2796)."""
+
+    model_config = ConfigDict(extra="forbid")
+    examinations: list[str] = Field(min_length=1)
+
+    @field_validator("examinations")
+    @classmethod
+    def _named(cls, names: list[str]) -> list[str]:
+        if not all(n.strip() for n in names) or len(set(names)) != len(names):
+            raise ValueError("examinations must be distinct, non-empty order names")
+        return names
+
+
+@lru_cache(maxsize=1)
+def bedside_examination_names() -> frozenset[str]:
+    """Order names on the imaging work-up list that are bedside examinations,
+    not imaging studies (``reference_data/bedside_examinations.yaml``,
+    Issue #2796). They get no ImagingStudy and no radiology report."""
+    return frozenset(
+        _BedsideExaminations.model_validate(load_data_yaml(_REF_DIR / "bedside_examinations.yaml")).examinations
+    )
 
 
 @lru_cache(maxsize=1)
@@ -668,6 +692,8 @@ def imaging_enricher(ctx: Any) -> None:
             for o in orders
             if _o(o, "order_type") in (OrderType.IMAGING, "imaging")
             and _o(o, "status") not in (OrderStatus.CANCELLED, "cancelled")
+            # Issue #2796: a bedside eye examination is not an imaging study.
+            and (_o(o, "display_name", "") or "") not in bedside_examination_names()
         ]
         if not imaging_orders:
             continue

@@ -190,14 +190,15 @@ _V2_0074_DISPLAYS = {"PF": "Pulmonary Function"}
 
 @lru_cache(maxsize=1)
 def _evaluation_orders() -> dict[str, dict[str, Any]]:
-    """Issue #2789: imaging- and lab-path orders that are evaluation procedures
-    (``reference_data/evaluation-orders.yaml``)."""
+    """Issue #2789: lab-path orders that are evaluation procedures
+    (``reference_data/evaluation-orders.yaml``). Imaging-path bedside
+    examinations are the imaging module's ``bedside_examination_names()``."""
     from pathlib import Path
 
     from clinosim.datafiles import load_data_yaml
 
     data = load_data_yaml(Path(__file__).resolve().parents[1] / "reference_data" / "evaluation-orders.yaml")
-    out = {"imaging_orders": dict(data.get("imaging_orders") or {}), "lab_orders": dict(data.get("lab_orders") or {})}
+    out = {"lab_orders": dict(data.get("lab_orders") or {})}
     for table in out.values():
         for key, entry in table.items():
             section = (entry or {}).get("v2_0074")
@@ -699,6 +700,8 @@ def _build_imaging_service_requests(
     lang = lang_for(ctx.country)
     country = ctx.country.lower()
     _issued_map = earliest_dr_issued_by_sr or {}
+    from clinosim.modules.imaging.engine import bedside_examination_names
+
     # Issue #2653: the order's status follows its study. CIF imaging orders
     # stay "placed"; a performed study completes the order, and an order of a
     # discharged stay that was never performed is revoked.
@@ -716,7 +719,8 @@ def _build_imaging_service_requests(
         _sr_id = _resolve_service_request_id(_o(o, "order_id", ""))
         sr = _build_imaging_sr(o, lang, country, earliest_dr_issued=_issued_map.get(_sr_id, ""))
         if sr["status"] == "active":
-            if _o(o, "order_id", "") in performed:
+            # Issue #2796: a bedside examination has no study; it is done at the bedside.
+            if _o(o, "order_id", "") in performed or (_o(o, "display_name", "") or "") in bedside_examination_names():
                 sr["status"] = "completed"
             elif _o(o, "encounter_id", "") in discharged:
                 sr["status"] = "revoked"
@@ -818,6 +822,8 @@ def _build_imaging_sr(
         {"system": V2_0074_SYSTEM, "code": IMAGING_CATEGORY_V2_0074, "display": "Radiology"},
     ]
     category_text = snomed_imaging_display
+    from clinosim.modules.imaging.engine import bedside_examination_names
+
     if modality == "ECG":
         # Issue #2621: an electrocardiogram is not an imaging study.
         category_text = registry_display("snomed-ct", EVALUATION_CATEGORY_SNOMED, lang) or "Evaluation procedure"
@@ -829,11 +835,10 @@ def _build_imaging_sr(
                 "display": ELECTROCARDIAC_V2_0074_DISPLAY,
             },
         ]
-    elif (_o(order, "display_name", "") or "") in _evaluation_orders()["imaging_orders"]:
-        # Issue #2789: a bedside eye examination is not an imaging study.
-        category_coding, category_text = _evaluation_category(
-            _evaluation_orders()["imaging_orders"][_o(order, "display_name", "")], lang
-        )
+    elif (_o(order, "display_name", "") or "") in bedside_examination_names():
+        # Issue #2789: a bedside eye examination is not an imaging study
+        # (the list is the imaging module's, Issue #2796).
+        category_coding, category_text = _evaluation_category(None, lang)
 
     # Fail-loud on empty subject/encounter (PR-90 lesson: "Patient/" is FHIR-invalid).
     patient_id = _o(order, "patient_id", "")
