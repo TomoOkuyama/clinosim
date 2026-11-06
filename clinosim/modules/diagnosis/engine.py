@@ -7,8 +7,11 @@ updates via likelihood ratios as test results arrive.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
-from clinosim.codes import lookup
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from clinosim.codes import code_exists, lookup
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules.diagnosis._diagnosis_thresholds import (
     DEFAULT_CONFIRMATION_THRESHOLD,
@@ -24,6 +27,55 @@ _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 
 
+def _icd(code: str) -> str:
+    """An internal ICD-10 code (WHO ICD-10 or an ICD-10-CM leaf)."""
+    if not (code_exists("icd-10", code) or code_exists("icd-10-cm", code)):
+        raise ValueError(f"builtin_differentials.yaml: ICD code {code!r} is not registered")
+    return code
+
+
+class _Candidate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    disease: str = Field(min_length=1)
+    icd: str
+    prior: float = Field(ge=0, le=1)
+
+    @field_validator("icd")
+    @classmethod
+    def _registered(cls, code: str) -> str:
+        return _icd(code)
+
+
+class _LikelihoodRatio(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    pos: float = Field(gt=0)
+    neg: float = Field(gt=0)
+
+
+class _DifferentialsConfig(BaseModel):
+    """Shape of builtin_differentials.yaml (validated at load)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    differentials: dict[str, list[_Candidate]]
+    diagnosis_progression: dict[str, list[tuple[float, str]]]
+    lr_table: dict[str, dict[str, _LikelihoodRatio]]
+
+    @field_validator("diagnosis_progression")
+    @classmethod
+    def _steps(cls, table: dict[str, list[tuple[float, str]]]) -> dict[str, list[tuple[float, str]]]:
+        for dx, steps in table.items():
+            thresholds = [t for t, _ in steps]
+            if any(not 0.0 <= t <= 1.0 for t in thresholds) or thresholds != sorted(thresholds):
+                raise ValueError(f"builtin_differentials.yaml {dx}: progression thresholds must rise within [0, 1]")
+            for _, code in steps:
+                _icd(code)
+        return table
+
+
 def _load_reference_data() -> tuple[
     dict[str, list[dict[str, object]]],
     dict[str, list[tuple[float, str]]],
@@ -34,16 +86,12 @@ def _load_reference_data() -> tuple[
     Display names are not stored; they are resolved at use time via clinosim.codes.
     """
     data = load_data_yaml(_REF_DIR / "builtin_differentials.yaml") or {}
+    _DifferentialsConfig.model_validate(data)
     differentials = data.get("differentials", {})
     progression = {
         dx: [(float(row[0]), str(row[1])) for row in rows] for dx, rows in data.get("diagnosis_progression", {}).items()
     }
     lr_table = data.get("lr_table", {})
-    # Sanity: every differential entry must carry disease/icd/prior
-    for dx, rows in differentials.items():
-        for e in rows:
-            if not {"disease", "icd", "prior"} <= e.keys():
-                raise ValueError(f"builtin_differentials.yaml: bad entry in {dx!r}: {e!r}")
     return differentials, progression, lr_table
 
 
