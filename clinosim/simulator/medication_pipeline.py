@@ -598,6 +598,24 @@ def generate_prn_administrations(
     return out
 
 
+def _given_dose_text(order: Order, patient: PatientProfile) -> str:
+    """The dose an administration records: the order's dose, or for a per-kg /
+    per-m² order the absolute amount given (Issue #2750)."""
+    from clinosim.modules.order.absolute_dose import absolute_dose, is_continuous_infusion
+
+    if is_continuous_infusion(order.frequency or "", order.display_name or ""):
+        return f"{order.dose_quantity}{order.dose_unit}"
+    given = absolute_dose(
+        order.dose_quantity,
+        order.dose_unit,
+        float(getattr(patient, "height_cm", 0.0) or 0.0),
+        float(getattr(patient, "weight_kg", 0.0) or 0.0),
+    )
+    if given is not None:
+        return f"{given[0]:g}{given[1]}"
+    return f"{order.dose_quantity}{order.dose_unit}"
+
+
 def _generate_mar(
     patient: PatientProfile,
     orders: list[Order],
@@ -707,7 +725,7 @@ def _generate_mar(
                     scheduled_datetime=given,
                     actual_datetime=given,
                     status="given",
-                    dose=f"{order.dose_quantity}{order.dose_unit}" if order.dose_quantity else order.display_name,
+                    dose=_given_dose_text(order, patient) if order.dose_quantity else order.display_name,
                     route=route,
                     administered_by=nurse_id,
                 )
@@ -796,7 +814,7 @@ def _generate_mar(
 
             # Build dose text from structured fields if available, else fall back to display_name
             if order.dose_quantity is not None and order.dose_unit:
-                dose_text = f"{order.dose_quantity}{order.dose_unit}"
+                dose_text = _given_dose_text(order, patient)
                 if order.frequency:
                     dose_text += f" {order.frequency}"
             else:

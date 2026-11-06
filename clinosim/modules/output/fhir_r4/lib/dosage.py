@@ -813,8 +813,12 @@ def _parse_dose_for_mar(text: str) -> dict[str, Any]:
     result: dict[str, Any] = {}
     if not text:
         return result
-    m = re.search(r"(\d+(?:\.\d+)?)\s*(mg|g|mcg|ug|mL|ml|L|IU|U|unit|units|%)", text, re.IGNORECASE)
-    if m:
+    m = re.search(
+        r"(\d+(?:\.\d+)?)\s*(mg|g|mcg|ug|mL|ml|L|IU|U|unit|units|%)\b(\s*/\s*[A-Za-z0-9²]+)?", text, re.IGNORECASE
+    )
+    # Issue #2750: a per-kg / per-m² dose or a rate ("mg/m2", "mg/kg/h") is not
+    # an absolute amount given; state no dose rather than the truncated number.
+    if m and not m.group(3):
         try:
             result["dose_quantity"] = float(m.group(1))
             result["dose_unit"] = m.group(2)
