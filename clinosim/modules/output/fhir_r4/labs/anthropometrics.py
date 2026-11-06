@@ -56,15 +56,12 @@ from __future__ import annotations
 
 import hashlib
 from datetime import date, datetime
-from functools import lru_cache
-from pathlib import Path
 from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
-from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -128,15 +125,12 @@ def _resolve_anthropometric_id(structural_key: str) -> str:
 # Reference-table loader.
 # ---------------------------------------------------------------------------
 
-_REFERENCE_YAML_PATH = (
-    Path(__file__).resolve().parents[4] / "modules" / "population" / "reference_data" / "anthropometric_reference.yaml"
-)
 
-
-@lru_cache(maxsize=1)
 def _load_reference() -> dict[str, Any]:
-    """Load anthropometric_reference.yaml (cached)."""
-    return load_data_yaml(_REFERENCE_YAML_PATH) or {}
+    """anthropometric_reference.yaml through the population module's validated loader."""
+    from clinosim.modules.population._pediatric_anthropometry import load_anthropometric_reference
+
+    return load_anthropometric_reference()
 
 
 # ---------------------------------------------------------------------------

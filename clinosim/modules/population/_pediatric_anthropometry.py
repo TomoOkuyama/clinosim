@@ -25,7 +25,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from clinosim.datafiles import load_data_yaml
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, model_validator
+
+from clinosim.datafiles import load_validated_yaml
 from clinosim.modules._shared import is_jp
 
 _REFERENCE_PATH = Path(__file__).resolve().parent / "reference_data" / "anthropometric_reference.yaml"
@@ -43,9 +45,103 @@ _FALLBACK_HEIGHT_SD_CM = 3.0
 _FALLBACK_BMI_SD = 1.0
 
 
+class _Range(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    min: StrictFloat | StrictInt
+    max: StrictFloat | StrictInt
+
+    @model_validator(mode="after")
+    def _ordered(self) -> _Range:
+        if not self.min < self.max:
+            raise ValueError(f"range min {self.min} must be below max {self.max}")
+        return self
+
+
+class _Clamps(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    height_cm: _Range
+    weight_kg: _Range
+    bmi: _Range
+    head_circumference_cm: _Range
+
+
+class _EncounterNoise(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    weight_kg_sd: StrictFloat | StrictInt = Field(ge=0)
+    head_circumference_cm_sd: StrictFloat | StrictInt = Field(ge=0)
+
+
+class _GrowthRow(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    height: StrictFloat | StrictInt = Field(gt=0)
+    weight: StrictFloat | StrictInt = Field(gt=0)
+    # Recorded up to head_circumference_max_age_years (checked by the file model).
+    head_circumference: StrictFloat | StrictInt | None = Field(default=None, gt=0)
+
+
+class _BySex(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    male: dict[int, _GrowthRow] = Field(min_length=1)
+    female: dict[int, _GrowthRow] = Field(min_length=1)
+
+
+class _Sampling(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    height_cm_sd: StrictFloat | StrictInt = Field(gt=0)
+    bmi_sd: StrictFloat | StrictInt = Field(gt=0)
+
+
+class _AnthropometricReference(BaseModel):
+    """Shape of ``anthropometric_reference.yaml`` (configuration spec): the
+    yearly growth medians cover every pediatric age of both countries and
+    sexes, and each median lies inside the clamps."""
+
+    model_config = ConfigDict(extra="forbid")
+    clamps: _Clamps
+    per_encounter_noise: _EncounterNoise
+    pediatric_growth_infant: _BySex  # keyed by age in months
+    pediatric_growth: dict[str, _BySex]  # country -> keyed by age in years
+    head_circumference_max_age_years: StrictInt = Field(ge=0)
+    adult_path_min_age_years: StrictInt = Field(gt=0)
+    pediatric_sampling: _Sampling
+
+    @model_validator(mode="after")
+    def _covers_pediatric_ages(self) -> _AnthropometricReference:
+        if set(self.pediatric_growth) != {"US", "JP"}:
+            raise ValueError(f"pediatric_growth countries must be US and JP, got {sorted(self.pediatric_growth)}")
+        ages = set(range(self.adult_path_min_age_years))
+        c = self.clamps
+        tables = [(f"pediatric_growth.{k}", v, True) for k, v in self.pediatric_growth.items()]
+        tables.append(("pediatric_growth_infant", self.pediatric_growth_infant, False))
+        for where, by_sex, yearly in tables:
+            for sex in ("male", "female"):
+                rows = getattr(by_sex, sex)
+                if yearly and set(rows) != ages:
+                    raise ValueError(f"{where}.{sex}: ages must be 0..{max(ages)}")
+                for age, r in rows.items():
+                    if yearly and age <= self.head_circumference_max_age_years and r.head_circumference is None:
+                        raise ValueError(f"{where}.{sex} age {age}: head_circumference required")
+                    hc_ok = r.head_circumference is None or (
+                        c.head_circumference_cm.min <= r.head_circumference <= c.head_circumference_cm.max
+                    )
+                    if not (
+                        c.height_cm.min <= r.height <= c.height_cm.max
+                        and c.weight_kg.min <= r.weight <= c.weight_kg.max
+                        and hc_ok
+                    ):
+                        raise ValueError(f"{where}.{sex} age {age}: growth median lies outside the clamps")
+        return self
+
+
 @lru_cache(maxsize=1)
+def load_anthropometric_reference() -> dict[str, Any]:
+    """``anthropometric_reference.yaml``, validated by ``_AnthropometricReference``.
+    The one loader of the file (the FHIR anthropometrics builder reads it too)."""
+    return load_validated_yaml(_REFERENCE_PATH, _AnthropometricReference)
+
+
 def _load_reference() -> dict[str, Any]:
-    return load_data_yaml(_REFERENCE_PATH) or {}
+    return load_anthropometric_reference()
 
 
 def pediatric_upper_age() -> int:
