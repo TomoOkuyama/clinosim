@@ -37,7 +37,6 @@ import numpy as np
 
 from clinosim import determinism
 from clinosim.codes.drugs import drug_display
-from clinosim.codes.valuesets import has_condition
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import language_slot, localized_field
 from clinosim.modules._shared import get_attr_or_key as _get
@@ -138,7 +137,7 @@ def _inject_for_record(
         derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS["medication_monitoring"], pid or "x")
     )
 
-    true_labs = _derive_true_labs_for_patient(patient, matched_drugs)
+    true_labs = _derive_true_labs_for_patient(patient, enc_dt)
     from clinosim.modules.monitoring.mapping import matched_medication_names, monitoring_lab_code
 
     patient_drug_names = matched_medication_names(meds, mapping)
@@ -213,43 +212,31 @@ def _existing_analytes(record: Any) -> set[str]:
     return seen
 
 
-def _derive_true_labs_for_patient(patient: Any, matched_drugs: list[str]) -> dict[str, float]:
-    """Physiology-derived lab true-values with the appropriate medication flags on,
-    merged with the BASELINE_LAB_NORMALS reference-normal fallback.
+def _derive_true_labs_for_patient(patient: Any, at: Any) -> dict[str, float]:
+    """Baseline monitoring lab true values: the shared true-lab function
+    (``simulator.lab_pipeline.patient_true_labs``, Issue #2735) on the healthy
+    default state with the patient's medication flags, at the encounter time.
 
-    Delegates to ``physiology.engine.derive_lab_values`` and
-    ``medication_flags_from_context`` so the emitted PT_INR (warfarin case)
-    lands in the therapeutic 2.0-3.0 band exactly as it would for a
-    warfarin patient on a sepsis / AF encounter. Analytes that physiology
-    does not model (e.g. TSH — no ``on_levothyroxine`` flag exists yet)
-    fall through to ``BASELINE_LAB_NORMALS`` — matches the outpatient
-    call site pattern (``simulator/outpatient.py``:229 uses the same
-    ``true_labs.get(canon, baseline_values.get(canon, 1.0))`` chain).
-    Physiological state is the default-constructed healthy state; the
-    enricher's job is a baseline monitoring lab, not an acute-illness
-    reflection.
+    The medication flags put a warfarin patient's PT_INR in the therapeutic
+    band, and the patient's longitudinal HbA1c of that year is used.
+    Analytes that physiology does not model (TSH, ...) fall through to
+    ``BASELINE_LAB_NORMALS``, as on outpatient visits.
     """
+    from datetime import datetime
+
     from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
-    from clinosim.modules.physiology.engine import (
-        derive_lab_values,
-        medication_flags_from_context,
-        scenario_flags_from_protocol,
-    )
+    from clinosim.modules.physiology.engine import medication_flags_from_context, scenario_flags_from_protocol
+    from clinosim.simulator.lab_pipeline import patient_true_labs
     from clinosim.types.clinical import PhysiologicalState
 
-    state = PhysiologicalState()
     flags = {
         **scenario_flags_from_protocol(None),
         **medication_flags_from_context(patient),
     }
-    sex = getattr(patient, "sex", "M") or "M"
-    age = int(getattr(patient, "age", 0) or 0)
-    has_dm = has_condition(patient, "diabetes")  # Issue #2281: every diabetes type
-    has_dyslip = any("E78" in (getattr(c, "code", "") or "") for c in getattr(patient, "chronic_conditions", []) or [])
-    labs = dict(derive_lab_values(state, sex=sex, age=age, has_diabetes=has_dm, has_dyslipidemia=has_dyslip, **flags))
-    # Merge baseline normals for analytes physiology does not model (e.g. TSH,
-    # LDL, HDL, TG, TC, ESR, Ca). Physiology values win when both exist so a
-    # medication_flags-driven value (like warfarin PT_INR) is never overwritten.
+    when = at if isinstance(at, datetime) else datetime(1970, 1, 1)
+    labs = dict(patient_true_labs(PhysiologicalState(), patient, when, flags))
+    # Physiology values win when both exist so a medication-flag-driven value
+    # (warfarin PT_INR) is never overwritten by a reference normal.
     for lab_name, ref_val in BASELINE_LAB_NORMALS.items():
         labs.setdefault(lab_name, ref_val)
     return labs
