@@ -81,8 +81,13 @@ from the diagnosis label.
 
 The pairings are loaded from
 [`clinosim/eval/reference_data/condition-lab-pairings.yaml`](https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/eval/reference_data/condition-lab-pairings.yaml)
-(the `lab_values_physiological_range` bounds likewise from
-`clinosim/eval/reference_data/lab-plausibility-bounds.yaml`). To add a pairing,
+The `lab_values_physiological_range` bounds of the units clinosim emits are the
+generator's own `physiologic_limits`
+(`clinosim/modules/observation/reference_data/lab_constants.yaml`), mapped to
+LOINC through the US lab code mapping;
+`clinosim/eval/reference_data/lab-plausibility-bounds.yaml` adds only the other
+unit spellings, used to score third-party cohorts (see the
+[lab orders and results spec](design-guides/lab-orders-and-results-spec.md)). To add a pairing,
 add an entry under `pairings:` in that yaml and cite the source here.
 
 ### `medication_lab_coherence_warfarin` (MAJOR)

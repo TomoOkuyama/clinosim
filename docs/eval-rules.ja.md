@@ -75,8 +75,11 @@
 
 ペアリングは
 [`clinosim/eval/reference_data/condition-lab-pairings.yaml`](https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/eval/reference_data/condition-lab-pairings.yaml)
-から読み込まれる (`lab_values_physiological_range` の範囲も同様に
-`clinosim/eval/reference_data/lab-plausibility-bounds.yaml` から)。ペアリング
+から読み込まれる。`lab_values_physiological_range` の範囲は、clinosim が出す単位については
+生成側の `physiologic_limits`(`clinosim/modules/observation/reference_data/lab_constants.yaml`)を
+US の検査コード対応で LOINC に写したもので、
+`clinosim/eval/reference_data/lab-plausibility-bounds.yaml` はそれ以外の単位表記(他社コホートの採点用)だけを足す
+([検査オーダーと結果の仕様](design-guides/lab-orders-and-results-spec.ja.md) 参照)。ペアリング
 追加はこの yaml の `pairings:` 配下にエントリを追加し、このページに
 ソースを引用。
 
