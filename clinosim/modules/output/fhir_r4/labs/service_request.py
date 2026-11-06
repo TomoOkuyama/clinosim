@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import dataclasses
 from collections import defaultdict
+from functools import lru_cache
 from typing import Any, NamedTuple
 
 from clinosim.codes import code_exists, get_system_uri, system_key_for
@@ -183,6 +184,38 @@ IMAGING_CATEGORY_V2_0074 = "RAD"
 EVALUATION_CATEGORY_SNOMED: str = snomed_for("order_category", "evaluation") or ""
 ELECTROCARDIAC_V2_0074 = "EC"
 ELECTROCARDIAC_V2_0074_DISPLAY = "Electrocardiac (e.g., EKG,  EEC, Holter)"  # tx.fhir.org display, verbatim
+# Issue #2789: v2-0074 sections an evaluation order may carry (tx.fhir.org displays, verbatim).
+_V2_0074_DISPLAYS = {"PF": "Pulmonary Function"}
+
+
+@lru_cache(maxsize=1)
+def _evaluation_orders() -> dict[str, dict[str, Any]]:
+    """Issue #2789: imaging- and lab-path orders that are evaluation procedures
+    (``reference_data/evaluation-orders.yaml``)."""
+    from pathlib import Path
+
+    from clinosim.datafiles import load_data_yaml
+
+    data = load_data_yaml(Path(__file__).resolve().parents[1] / "reference_data" / "evaluation-orders.yaml")
+    out = {"imaging_orders": dict(data.get("imaging_orders") or {}), "lab_orders": dict(data.get("lab_orders") or {})}
+    for table in out.values():
+        for key, entry in table.items():
+            section = (entry or {}).get("v2_0074")
+            if section and section not in _V2_0074_DISPLAYS:
+                raise ValueError(f"evaluation-orders.yaml: {key!r} has unknown v2-0074 section {section!r}")
+    return out
+
+
+def _evaluation_category(entry: dict[str, Any] | None, lang: str) -> tuple[list[dict[str, Any]], str]:
+    """``(category coding, text)`` of an evaluation-procedure order (Issue #2789)."""
+    text = registry_display("snomed-ct", EVALUATION_CATEGORY_SNOMED, lang) or "Evaluation procedure"
+    coding: list[dict[str, Any]] = [{"system": SNOMED_CT_SYSTEM, "code": EVALUATION_CATEGORY_SNOMED, "display": text}]
+    section = (entry or {}).get("v2_0074")
+    if section:
+        coding.append({"system": V2_0074_SYSTEM, "code": section, "display": _V2_0074_DISPLAYS[section]})
+    return coding, text
+
+
 # System URIs derived from the canonical registry (never hardcode per CLAUDE.md).
 V2_0203_SYSTEM = get_system_uri("hl7-v2-0203")
 V2_0074_SYSTEM = get_system_uri("hl7-diagnostic-service-section")
@@ -796,6 +829,11 @@ def _build_imaging_sr(
                 "display": ELECTROCARDIAC_V2_0074_DISPLAY,
             },
         ]
+    elif (_o(order, "display_name", "") or "") in _evaluation_orders()["imaging_orders"]:
+        # Issue #2789: a bedside eye examination is not an imaging study.
+        category_coding, category_text = _evaluation_category(
+            _evaluation_orders()["imaging_orders"][_o(order, "display_name", "")], lang
+        )
 
     # Fail-loud on empty subject/encounter (PR-90 lesson: "Patient/" is FHIR-invalid).
     patient_id = _o(order, "patient_id", "")
@@ -1103,6 +1141,19 @@ def _build_sr_skeleton(
     snomed_display = registry_display("snomed-ct", LAB_CATEGORY_SNOMED, lang) or (
         localize_fixed_label("Laboratory procedure", country)
     )
+    lab_category_coding: list[dict[str, Any]] = [
+        {"system": SNOMED_CT_SYSTEM, "code": LAB_CATEGORY_SNOMED, "display": snomed_display},
+        {"system": V2_0074_SYSTEM, "code": LAB_CATEGORY_V2_0074, "display": "Laboratory"},
+    ]
+    lab_category_text = snomed_display
+    _eval_lab = _evaluation_orders()["lab_orders"]
+    _eval_key = next(
+        (c for c in (_o(anchor, "order_code", "") or "", _o(anchor, "display_name", "") or "") if c in _eval_lab),
+        None,
+    )
+    if _eval_key:
+        # Issue #2789: a bedside respiratory function test is not a specimen test.
+        lab_category_coding, lab_category_text = _evaluation_category(_eval_lab[_eval_key], lang)
     # ordered_datetime may arrive as a datetime object (dataclass path) or an
     # ISO string (JSON-deserialized dict path). If None, authoredOn is omitted.
     # Issue #971: clamp authoredOn back to (min linked DR.issued − 1 min) so
@@ -1149,21 +1200,10 @@ def _build_sr_skeleton(
         "intent": _sr_intent_from_clinical_intent(_o(anchor, "clinical_intent", "") or ""),
         "category": [
             {
-                "coding": [
-                    {
-                        "system": SNOMED_CT_SYSTEM,
-                        "code": LAB_CATEGORY_SNOMED,
-                        "display": snomed_display,
-                    },
-                    {
-                        "system": V2_0074_SYSTEM,
-                        "code": LAB_CATEGORY_V2_0074,
-                        "display": "Laboratory",
-                    },
-                ],
+                "coding": lab_category_coding,
                 # Preserve the localized label in `text` (see the imaging SR
                 # `text` sibling above for the P2 A rationale).
-                "text": snomed_display,
+                "text": lab_category_text,
             }
         ],
         "priority": priority,

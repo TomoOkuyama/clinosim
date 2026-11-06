@@ -1,0 +1,23 @@
+# Issue #2789: orders placed on the imaging or lab path that are bedside
+# evaluation procedures, not imaging studies or specimen tests. Their
+# ServiceRequest.category is SNOMED CT 386053000 "Evaluation procedure"
+# (snomed-maps.yaml order_category.evaluation), as for the ECG (Issue #2621),
+# plus an HL7 v2-0074 diagnostic service section when one fits
+# (codes verified with tx.fhir.org $lookup, 2026-11-06).
+
+metadata:
+  kind: reference
+  name: Evaluation-procedure orders
+  description: >
+    Imaging- and lab-path orders whose ServiceRequest.category is
+    SNOMED CT 386053000 Evaluation procedure (Issue #2789).
+
+# Imaging-path orders, keyed by order display_name.
+imaging_orders:
+  Slit_lamp_exam: {}      # slit-lamp examination of the eye
+  Fluorescein_stain: {}   # corneal fluorescein staining
+
+# Lab-path orders, keyed by the internal lab name (order_code / display_name).
+lab_orders:
+  Peak_Expiratory_Flow:   # LOINC 33452-4 Peak expiratory flow
+    v2_0074: PF           # Pulmonary Function
