@@ -17,4 +17,5 @@ clinosim にモジュールを追加する新規開発者/実装 AI 向けの索
 | 7 | [`SCENARIO_FLAGS.md`](../../SCENARIO_FLAGS.ja.md) | lab 値や scenario / medication flag(`causes_X` / `on_warfarin`)を触るときのみ。flag の一覧と追加手順 |
 | 0d | [`code-mapping-and-localization-spec.md`](code-mapping-and-localization-spec.ja.md) | **コードに関わる変更の前に必読。** コード体系・コード対応・名称解決関数・多言語対応・フォールバック規則の規範仕様。 |
 | 0e | [`determinism-and-rng-spec.md`](determinism-and-rng-spec.ja.md) | **乱数を引く・シードを導く・時計を読む変更の前に必読。** 生成器の生成元・シード導出・乱数をずらさない変更・時計の規範仕様。 |
+| 0g | [`narrative-and-document-generation-spec.md`](narrative-and-document-generation-spec.ja.md) | **文書を計画する・セクションを足す・臨床事実を言い表す変更の前に必読。** 文書 planner・セクション登録表・安全事象/バイタル/BMI の共通の言い表しの規範仕様。 |
 | 8 | [`data-model-and-completeness-conventions.md`](data-model-and-completeness-conventions.ja.md) | FHIR completeness fix-point(重症度統合 / 孤児 YAML キー / `extra="forbid"` / I10 stage / person.age / course_archetypes)を実装するときのみ。C1/C2/C3 不完全状態の禁止規約と as-of-age パターン。台帳 = `docs/design-notes/2026-07-06-fix-point-registry.md` |
