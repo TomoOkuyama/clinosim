@@ -26,9 +26,23 @@ def test_impaired_avpu_rewrites_alert_clause(avpu: str, marker: str) -> None:
     text, facts = apply_cc_pe_consistency(_TEXT, _ctx(["A", avpu]))
     assert "意識清明" not in text and marker in text
     assert "肺音清明" in text
-    assert "avpu_pe_consistency:consciousness" in facts
+    assert "ctx.vitals.consciousness_level:pe_consciousness" in facts
 
 
 def test_alert_day_keeps_clause() -> None:
     text, facts = apply_cc_pe_consistency(_TEXT, _ctx(["A", "A"]))
     assert text == _TEXT and not facts
+
+
+def test_every_consistency_tag_is_in_the_facts_vocabulary() -> None:
+    """Issue #2819: check-narratives rejects a facts_used tag outside the
+    structural-CIF prefixes."""
+    import re
+    from pathlib import Path
+
+    from clinosim.modules.document.narrative.semantic_check import _ALLOWED_FACT_PREFIXES
+
+    src = Path(apply_cc_pe_consistency.__code__.co_filename).read_text(encoding="utf-8")
+    tags = re.findall(r'facts\.append\("([^"]+)"\)', src)
+    assert tags
+    assert all(tag.startswith(_ALLOWED_FACT_PREFIXES) for tag in tags), tags

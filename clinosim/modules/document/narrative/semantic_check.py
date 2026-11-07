@@ -100,6 +100,14 @@ _ALLOWED_FACT_PREFIXES: tuple[str, ...] = (
     # chief_complaint_variants.yaml. Sourced from static reference data
     # (like disease_protocol), fact-neutral (no fabricated patient value).
     "chief_complaint_variants.",
+    # Issue #2819: the template generator's own provenance families, already
+    # written by the renderers. ``composed:`` marks text composed from the
+    # structural CIF state (no LLM, no static phrase); ``generic:`` and
+    # ``outpatient_soap_template.`` mark static template text keyed by a
+    # fact-neutral category (severity, section), like disease_protocol.
+    "composed:",
+    "generic:",
+    "outpatient_soap_template.",
 )
 
 #: Builtin forbidden patterns (axis 3): meta/AI responses, mock markers,

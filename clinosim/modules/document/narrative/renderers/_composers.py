@@ -422,7 +422,7 @@ def apply_cc_pe_consistency(text: str, ctx: NarrativeContext) -> tuple[str, list
         if pool:
             new_text = _rewrite_pe_clause(text, ("意識清明",), _pick_from_pool_by_encounter(pool, enc_id, "pe_avpu"))
             if new_text != text:
-                facts.append("avpu_pe_consistency:consciousness")
+                facts.append("ctx.vitals.consciousness_level:pe_consciousness")
                 text = new_text
 
     cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) or ""
@@ -434,14 +434,14 @@ def apply_cc_pe_consistency(text: str, ctx: NarrativeContext) -> tuple[str, list
         replacement = _pick_from_pool_by_encounter(_pe_altered_consciousness_pool_ja(), enc_id, "pe_consciousness")
         new_text = _rewrite_pe_clause(text, ("意識清明",), replacement)
         if new_text != text:
-            facts.append("cc_pe_consistency:consciousness")
+            facts.append("encounter.chief_complaint:pe_consciousness")
             text = new_text
 
     if _cc_keyword_positively_present(cc, _cc_severe_dyspnea_keywords()):
         replacement = _pick_from_pool_by_encounter(_pe_severe_dyspnea_pool_ja(), enc_id, "pe_respiratory")
         new_text = _rewrite_pe_clause(text, ("呼吸音清明",), replacement)
         if new_text != text:
-            facts.append("cc_pe_consistency:respiratory")
+            facts.append("encounter.chief_complaint:pe_respiratory")
             text = new_text
 
     return text, facts

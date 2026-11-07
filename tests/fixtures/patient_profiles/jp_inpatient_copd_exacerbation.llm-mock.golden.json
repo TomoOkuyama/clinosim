@@ -16,7 +16,7 @@
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
         "physical_exam_findings.dip_then_recovery.day_0",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.vitals[day_0]"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -46,7 +46,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_0",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -94,7 +94,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_1",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -142,7 +142,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_2",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -190,7 +190,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_3",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -238,7 +238,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_4",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -286,7 +286,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_5",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -334,7 +334,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_6",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -382,7 +382,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_7",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -430,7 +430,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_8",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -478,8 +478,8 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_9",
-        "avpu_pe_consistency:consciousness",
-        "cc_pe_consistency:respiratory",
+        "ctx.vitals.consciousness_level:pe_consciousness",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -527,7 +527,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_10",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -575,7 +575,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_11",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -623,7 +623,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_12",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -671,7 +671,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_13",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -719,7 +719,7 @@
       "facts_used": [
         "ctx.vitals.today",
         "physical_exam_findings.dip_then_recovery.day_14",
-        "cc_pe_consistency:respiratory",
+        "encounter.chief_complaint:pe_respiratory",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],

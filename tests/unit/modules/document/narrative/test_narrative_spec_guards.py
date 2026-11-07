@@ -90,3 +90,22 @@ def test_vitals_lines_only_through_format_vitals_line() -> None:
             if sum(1 for rx in _VITAL_FIELDS.values() if rx.search(line)) >= 3:
                 offenders.append(f"{p.relative_to(_DOC)}:{i}")
     assert not offenders, offenders
+
+
+def test_every_facts_tag_literal_is_in_the_facts_vocabulary() -> None:
+    """Spec §3 (Issue #2819): every facts_used tag the renderers write starts
+    with a prefix of the check-narratives facts vocabulary."""
+    import re
+    from pathlib import Path
+
+    from clinosim.modules.document.narrative.semantic_check import _ALLOWED_FACT_PREFIXES
+
+    root = Path(__file__).resolve().parents[5] / "clinosim" / "modules" / "document"
+    pattern = re.compile(r'facts(?:_used)?\s*(?:\.append|\.extend|\+=)\s*\(\s*\[?\s*f?"([^"{]+)')
+    bad = [
+        f"{p.relative_to(root)}: {m.group(1)}"
+        for p in sorted(root.rglob("*.py"))
+        for m in pattern.finditer(p.read_text(encoding="utf-8"))
+        if not m.group(1).startswith(_ALLOWED_FACT_PREFIXES)
+    ]
+    assert not bad, bad
