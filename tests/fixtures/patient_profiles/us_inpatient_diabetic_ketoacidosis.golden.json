@@ -284,7 +284,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 3 days\nPatient status: BP 107/67, HR 113, SpO2 94%, T 36.3°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), Enoxaparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 3 days\nPatient status: BP 107/67, HR 113, SpO2 94%, T 36.3°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), Enoxaparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-09-night": {
@@ -330,7 +330,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 3 days\nPatient status: BP 112/75, HR 107, SpO2 97%, T 36.6°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 3 days\nPatient status: BP 112/75, HR 107, SpO2 97%, T 36.6°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-11-evening": {
@@ -353,7 +353,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 3 days\nPatient status: BP 112/75, HR 107, SpO2 97%, T 36.6°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 3 days\nPatient status: BP 112/75, HR 107, SpO2 97%, T 36.6°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-12-night": {
@@ -376,7 +376,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 3 days\nPatient status: BP 113/74, HR 104, SpO2 98%, T 36.1°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 3 days\nPatient status: BP 113/74, HR 104, SpO2 98%, T 36.1°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-13-day": {
@@ -422,7 +422,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 3 days\nPatient status: BP 113/74, HR 104, SpO2 98%, T 36.1°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 3 days\nPatient status: BP 113/74, HR 104, SpO2 98%, T 36.1°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-15": {
