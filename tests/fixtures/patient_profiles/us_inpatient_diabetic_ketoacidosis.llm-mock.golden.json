@@ -27,7 +27,7 @@
         "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "No home medications",
         "past_medical_history": "Type 2 diabetes mellitus without complications [E11.9]; Hyperlipidemia, unspecified [E78.5]",
-        "physical_examination": "Vital signs: BP 106/69 mmHg, HR 116/min, T 35.1°C, SpO2 96% (RA), RR 16/min. General: no additional exam findings recorded.",
+        "physical_examination": "Vital signs: BP 107/67 mmHg, HR 113/min, T 36.3°C, SpO2 94% (RA), RR 22/min. General: no additional exam findings recorded.",
         "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: Other"
       },
       "text": ""
@@ -76,11 +76,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 106/69 mmHg, HR 116/min, T 35.1°C, SpO2 96% (RA), RR 16/min",
+        "objective": "BP 107/67 mmHg, HR 113/min, T 36.3°C, SpO2 94% (RA), RR 22/min",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 106/69 mmHg, HR 116/min, T 35.1°C, SpO2 96% (RA), RR 16/min\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
+      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 107/67 mmHg, HR 113/min, T 36.3°C, SpO2 94% (RA), RR 22/min\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-710895237827-03": {
@@ -126,11 +126,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "BP 114/70 mmHg, HR 105/min, T 35.8°C, SpO2 95% (RA), RR 16/min",
+        "objective": "BP 112/75 mmHg, HR 107/min, T 36.6°C, SpO2 97% (RA), RR 21/min",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 114/70 mmHg, HR 105/min, T 35.8°C, SpO2 95% (RA), RR 16/min\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
+      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 112/75 mmHg, HR 107/min, T 36.6°C, SpO2 97% (RA), RR 21/min\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-710895237827-04": {
@@ -176,11 +176,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 116/68 mmHg, HR 101/min, T 35.9°C, SpO2 98% (RA), RR 18/min",
+        "objective": "BP 113/74 mmHg, HR 104/min, T 36.1°C, SpO2 98% (RA), RR 19/min",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 116/68 mmHg, HR 101/min, T 35.9°C, SpO2 98% (RA), RR 18/min\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
+      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 113/74 mmHg, HR 104/min, T 36.1°C, SpO2 98% (RA), RR 19/min\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-710895237827-05": {
@@ -261,7 +261,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 3 days\nPatient status: BP 106/69, HR 116, SpO2 96%, T 35.1°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 3 days\nPatient status: BP 107/67, HR 113, SpO2 94%, T 36.3°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-08-evening": {
@@ -284,7 +284,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 3 days\nPatient status: BP 106/69, HR 116, SpO2 96%, T 35.1°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), Enoxaparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 3 days\nPatient status: BP 107/67, HR 113, SpO2 94%, T 36.3°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), Enoxaparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-09-night": {
@@ -307,7 +307,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 3 days\nPatient status: BP 114/70, HR 105, SpO2 95%, T 35.8°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 3 days\nPatient status: BP 112/75, HR 107, SpO2 97%, T 36.6°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-10-day": {
@@ -330,7 +330,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 3 days\nPatient status: BP 114/70, HR 105, SpO2 95%, T 35.8°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 3 days\nPatient status: BP 112/75, HR 107, SpO2 97%, T 36.6°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-11-evening": {
@@ -353,7 +353,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 3 days\nPatient status: BP 114/70, HR 105, SpO2 95%, T 35.8°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 3 days\nPatient status: BP 112/75, HR 107, SpO2 97%, T 36.6°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-12-night": {
@@ -376,7 +376,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 3 days\nPatient status: BP 116/68, HR 101, SpO2 98%, T 35.9°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 3 days\nPatient status: BP 113/74, HR 104, SpO2 98%, T 36.1°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-13-day": {
@@ -399,7 +399,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 3 days\nPatient status: BP 116/68, HR 101, SpO2 98%, T 35.9°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 3 days\nPatient status: BP 113/74, HR 104, SpO2 98%, T 36.1°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-14-evening": {
@@ -422,7 +422,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 3 days\nPatient status: BP 116/68, HR 101, SpO2 98%, T 35.9°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 3 days\nPatient status: BP 113/74, HR 104, SpO2 98%, T 36.1°C.\nMeds administered: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-15": {
@@ -443,9 +443,9 @@
         "lang": "en"
       },
       "sections": {
-        "admission_status": "Hospital stay: 3 days. Admission reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Complications: hypokalemia, rhabdomyolysis. Discharge criteria met.",
+        "admission_status": "Hospital stay: 3 days. Admission reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Complications: aspiration pneumonia, DVT. Discharge criteria met.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 80/100.",
-        "nursing_interventions_provided": "Cumulative IN 7123 mL / OUT 2554 mL (net +4569 mL).",
+        "nursing_interventions_provided": "Cumulative IN 8243 mL / OUT 4006 mL (net +4237 mL).",
         "patient_education": "Patient education: sick-day rules (insulin dose + when to seek care during illness); self blood-glucose monitoring + urine-ketone strips; hypoglycemia recognition + rescue (glucose tabs / glucagon); importance of routine follow-up + insulin adherence."
       },
       "text": ""
@@ -475,7 +475,7 @@
         "disposition": "[Mock LLM response #6 — disposition]",
         "ed_workup": "Labs: glucose, ABG, β-hydroxybutyrate, BMP, Na, K, Cl, HCO3. Imaging: chest X-ray PA, ECG, chest X-ray AP. Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0. Abnormal: glucose 551.0 mg/dL [critical], K 5.3 mmol/L [H], HCO3 5.8 mmol/L [L], BUN 31.2 mg/dL [H]",
         "hpi": "[Mock LLM response #6 — hpi]",
-        "physical_exam": "On arrival: BP 106/69 mmHg, HR 116 bpm, RR 16 /min, SpO2 96%, T 35.1°C. No focal findings on exam.",
+        "physical_exam": "On arrival: BP 107/67 mmHg, HR 113 bpm, RR 22 /min, SpO2 94%, T 36.3°C. No focal findings on exam.",
         "triage_details": "Triage information: not recorded"
       },
       "text": ""

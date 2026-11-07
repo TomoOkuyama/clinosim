@@ -33,7 +33,7 @@
         "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "常用薬なし",
         "past_medical_history": "慢性閉塞性肺疾患，詳細不明 [J44.9]",
-        "physical_examination": "バイタルサイン: BP 129/76 mmHg, HR 96/min, T 37.9°C, SpO2 90% (RA), RR 24/min。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "physical_examination": "バイタルサイン: BP 126/79 mmHg, HR 95/min, T 37.5°C, SpO2 89%, RR 25/min。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: その他"
       },
       "text": ""
@@ -80,11 +80,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 129/76 mmHg, HR 96 回/分, RR 24 回/分, SpO2 90%, T 37.9°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 126/79 mmHg, HR 95 回/分, RR 25 回/分, SpO2 89%, T 37.5°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 129/76 mmHg, HR 96 回/分, RR 24 回/分, SpO2 90%, T 37.9°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
+      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 126/79 mmHg, HR 95 回/分, RR 25 回/分, SpO2 89%, T 37.5°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-03": {
@@ -852,7 +852,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 15 日間\n患者状態: BP 129/76, HR 96, SpO2 90%, T 37.9°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 15 日間\n患者状態: BP 126/79, HR 95, SpO2 89%, T 37.5°C、酸素投与: 経鼻カニューレ 2.5 L/min。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-20-night": {
@@ -1939,7 +1939,7 @@
         "disposition": "[Mock LLM response #18 — disposition]",
         "ed_workup": "検査: CBC (全血球算定)、CRP、ABG (動脈血ガス)、PCT、クレアチニン、BUN、Na、K。画像: 胸部レントゲン (正面・側面)、胸部 CT、胸部レントゲン (正面・側面)、胸部ポータブルレントゲン。投薬: サルブタモール、イプラトロピウム、プレドニゾロン、ステロイド: プレドニゾロン 40mg 経口 1日1回 x5 日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、セフトリアキソン 1g 静注 1日1回。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (1時間毎 頓用 急性期)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎。異常値: WBC 10583.0 /uL [H]、CRP 2.8 mg/L [H]、PCT 0.38 ng/mL [H]、クレアチニン 1.18 mg/dL [H]",
         "hpi": "[Mock LLM response #18 — hpi]",
-        "physical_exam": "来院時所見: BP 129/76 mmHg, HR 96 回/分, RR 24 回/分, SpO2 90%, T 37.9°C。特記の身体所見なし。",
+        "physical_exam": "来院時所見: BP 126/79 mmHg, HR 95 回/分, RR 25 回/分, SpO2 89%, T 37.5°C。特記の身体所見なし。",
         "triage_details": "トリアージ情報：未記録"
       },
       "text": ""
