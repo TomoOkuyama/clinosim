@@ -79,7 +79,7 @@ dev = [
     # surfaced only after push. Mirror the ruff pin strategy: bumping this
     # line is an intentional, reviewable change (sync with the local toolchain
     # by `uv pip install -e .[dev]` after the bump).
-    "mypy==2.4.0",
+    "mypy==2.4.1",
     "types-PyYAML>=6.0",  # mypy stubs for pyyaml (P0-2, session 46)
     "build>=1.0",         # sdist/wheel build (P0-2, used by CI packaging job)
 ]
