@@ -335,7 +335,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_6",
-        "avpu_pe_consistency:consciousness",
+        "ctx.vitals.consciousness_level:pe_consciousness",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -480,7 +480,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_9",
-        "avpu_pe_consistency:consciousness",
+        "ctx.vitals.consciousness_level:pe_consciousness",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
