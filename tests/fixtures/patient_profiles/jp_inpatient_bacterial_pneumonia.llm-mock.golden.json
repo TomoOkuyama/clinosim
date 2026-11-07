@@ -33,7 +33,7 @@
         "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "常用薬なし",
         "past_medical_history": "慢性閉塞性肺疾患，詳細不明 [J44.9]",
-        "physical_examination": "バイタルサイン: BP 121/72 mmHg, HR 109/min, T 38.6°C, SpO2 93%, RR 22/min。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "physical_examination": "バイタルサイン: BP 121/72 mmHg, HR 102/min, T 38.0°C, SpO2 95%, RR 19/min。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: その他"
       },
       "text": ""
@@ -80,11 +80,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 121/72 mmHg, HR 109 回/分, RR 22 回/分, SpO2 93%, T 38.6°C。バイタル安定、検査所見あり。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 121/72 mmHg, HR 102 回/分, RR 19 回/分, SpO2 95%, T 38.0°C。バイタル安定、検査所見あり。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 121/72 mmHg, HR 109 回/分, RR 22 回/分, SpO2 93%, T 38.6°C。バイタル安定、検査所見あり。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
+      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 121/72 mmHg, HR 102 回/分, RR 19 回/分, SpO2 95%, T 38.0°C。バイタル安定、検査所見あり。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-03": {
@@ -128,11 +128,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "BP 121/71 mmHg, HR 102 回/分, RR 22 回/分, SpO2 97%, T 38.6°C。バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 116/72 mmHg, HR 99 回/分, RR 19 回/分, SpO2 93%, T 38.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 121/71 mmHg, HR 102 回/分, RR 22 回/分, SpO2 97%, T 38.6°C。バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
+      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 116/72 mmHg, HR 99 回/分, RR 19 回/分, SpO2 93%, T 38.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-04": {
@@ -176,11 +176,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 120/72 mmHg, HR 98 回/分, RR 17 回/分, SpO2 96%, T 37.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 118/78 mmHg, HR 94 回/分, RR 19 回/分, SpO2 97%, T 37.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 120/72 mmHg, HR 98 回/分, RR 17 回/分, SpO2 96%, T 37.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
+      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 118/78 mmHg, HR 94 回/分, RR 19 回/分, SpO2 97%, T 37.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-05": {
@@ -224,11 +224,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 122/75 mmHg, HR 95 回/分, RR 15 回/分, SpO2 96%, T 37.6°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 119/73 mmHg, HR 95 回/分, RR 20 回/分, SpO2 95%, T 38.2°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 122/75 mmHg, HR 95 回/分, RR 15 回/分, SpO2 96%, T 37.6°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
+      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 119/73 mmHg, HR 95 回/分, RR 20 回/分, SpO2 95%, T 38.2°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-06": {
@@ -272,11 +272,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #6 — assessment]",
-        "objective": "BP 120/74 mmHg, HR 94 回/分, RR 18 回/分, SpO2 94%, T 37.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 121/75 mmHg, HR 100 回/分, RR 14 回/分, SpO2 92%, T 38.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #6 — plan]",
         "subjective": "[Mock LLM response #6 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 120/74 mmHg, HR 94 回/分, RR 18 回/分, SpO2 94%, T 37.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
+      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 121/75 mmHg, HR 100 回/分, RR 14 回/分, SpO2 92%, T 38.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-07": {
@@ -320,11 +320,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #7 — assessment]",
-        "objective": "BP 119/72 mmHg, HR 94 回/分, RR 14 回/分, SpO2 96%, T 37.3°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 121/73 mmHg, HR 93 回/分, RR 19 回/分, SpO2 95%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #7 — plan]",
         "subjective": "[Mock LLM response #7 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 119/72 mmHg, HR 94 回/分, RR 14 回/分, SpO2 96%, T 37.3°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
+      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 121/73 mmHg, HR 93 回/分, RR 19 回/分, SpO2 95%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-08": {
@@ -368,11 +368,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #8 — assessment]",
-        "objective": "BP 121/72 mmHg, HR 95 回/分, RR 19 回/分, SpO2 96%, T 37.1°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 120/75 mmHg, HR 90 回/分, RR 19 回/分, SpO2 96%, T 37.6°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #8 — plan]",
         "subjective": "[Mock LLM response #8 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 121/72 mmHg, HR 95 回/分, RR 19 回/分, SpO2 96%, T 37.1°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
+      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 120/75 mmHg, HR 90 回/分, RR 19 回/分, SpO2 96%, T 37.6°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-09": {
@@ -416,11 +416,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #9 — assessment]",
-        "objective": "BP 120/69 mmHg, HR 92 回/分, RR 17 回/分, SpO2 92%, T 38.1°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 123/75 mmHg, HR 94 回/分, RR 16 回/分, SpO2 93%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #9 — plan]",
         "subjective": "[Mock LLM response #9 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 120/69 mmHg, HR 92 回/分, RR 17 回/分, SpO2 92%, T 38.1°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
+      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 123/75 mmHg, HR 94 回/分, RR 16 回/分, SpO2 93%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-10": {
@@ -464,11 +464,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #10 — assessment]",
-        "objective": "BP 121/72 mmHg, HR 95 回/分, RR 19 回/分, SpO2 94%, T 37.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 122/72 mmHg, HR 95 回/分, RR 15 回/分, SpO2 98%, T 37.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #10 — plan]",
         "subjective": "[Mock LLM response #10 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 121/72 mmHg, HR 95 回/分, RR 19 回/分, SpO2 94%, T 37.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
+      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 122/72 mmHg, HR 95 回/分, RR 15 回/分, SpO2 98%, T 37.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-11": {
@@ -512,11 +512,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #11 — assessment]",
-        "objective": "BP 120/71 mmHg, HR 96 回/分, RR 19 回/分, SpO2 95%, T 37.8°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 121/77 mmHg, HR 93 回/分, RR 17 回/分, SpO2 98%, T 38.1°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #11 — plan]",
         "subjective": "[Mock LLM response #11 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 120/71 mmHg, HR 96 回/分, RR 19 回/分, SpO2 95%, T 37.8°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
+      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 121/77 mmHg, HR 93 回/分, RR 17 回/分, SpO2 98%, T 38.1°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-12": {
@@ -560,11 +560,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #12 — assessment]",
-        "objective": "BP 120/78 mmHg, HR 96 回/分, RR 13 回/分, SpO2 98%, T 39.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 119/71 mmHg, HR 93 回/分, RR 18 回/分, SpO2 98%, T 38.3°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #12 — plan]",
         "subjective": "[Mock LLM response #12 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 120/78 mmHg, HR 96 回/分, RR 13 回/分, SpO2 98%, T 39.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
+      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 119/71 mmHg, HR 93 回/分, RR 18 回/分, SpO2 98%, T 38.3°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-13": {
@@ -608,11 +608,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #13 — assessment]",
-        "objective": "BP 123/77 mmHg, HR 92 回/分, RR 18 回/分, SpO2 98%, T 37.6°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 125/73 mmHg, HR 95 回/分, RR 17 回/分, SpO2 98%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #13 — plan]",
         "subjective": "[Mock LLM response #13 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 123/77 mmHg, HR 92 回/分, RR 18 回/分, SpO2 98%, T 37.6°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
+      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 125/73 mmHg, HR 95 回/分, RR 17 回/分, SpO2 98%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-14": {
@@ -656,11 +656,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #14 — assessment]",
-        "objective": "BP 125/74 mmHg, HR 98 回/分, RR 19 回/分, SpO2 97%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 122/75 mmHg, HR 94 回/分, RR 16 回/分, SpO2 96%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #14 — plan]",
         "subjective": "[Mock LLM response #14 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 125/74 mmHg, HR 98 回/分, RR 19 回/分, SpO2 97%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
+      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 122/75 mmHg, HR 94 回/分, RR 16 回/分, SpO2 96%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-15": {
@@ -704,11 +704,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #15 — assessment]",
-        "objective": "BP 119/75 mmHg, HR 96 回/分, RR 18 回/分, SpO2 97%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 120/75 mmHg, HR 95 回/分, RR 13 回/分, SpO2 92%, T 37.9°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #15 — plan]",
         "subjective": "[Mock LLM response #15 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 119/75 mmHg, HR 96 回/分, RR 18 回/分, SpO2 97%, T 37.7°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
+      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 120/75 mmHg, HR 95 回/分, RR 13 回/分, SpO2 92%, T 37.9°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-16": {
@@ -752,11 +752,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #16 — assessment]",
-        "objective": "BP 122/74 mmHg, HR 95 回/分, RR 16 回/分, SpO2 92%, T 37.6°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 122/73 mmHg, HR 94 回/分, RR 17 回/分, SpO2 97%, T 37.2°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #16 — plan]",
         "subjective": "[Mock LLM response #16 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 122/74 mmHg, HR 95 回/分, RR 16 回/分, SpO2 92%, T 37.6°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
+      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 122/73 mmHg, HR 94 回/分, RR 17 回/分, SpO2 97%, T 37.2°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-17": {
@@ -800,11 +800,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #17 — assessment]",
-        "objective": "BP 120/76 mmHg, HR 98 回/分, RR 15 回/分, SpO2 94%, T 37.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 122/74 mmHg, HR 101 回/分, RR 21 回/分, SpO2 94%, T 38.5°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #17 — plan]",
         "subjective": "[Mock LLM response #17 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #17 — subjective]\nO（客観） BP 120/76 mmHg, HR 98 回/分, RR 15 回/分, SpO2 94%, T 37.0°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #17 — assessment]\nP（計画） [Mock LLM response #17 — plan]"
+      "text": "S（主観） [Mock LLM response #17 — subjective]\nO（客観） BP 122/74 mmHg, HR 101 回/分, RR 21 回/分, SpO2 94%, T 38.5°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #17 — assessment]\nP（計画） [Mock LLM response #17 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-18": {
@@ -848,11 +848,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #18 — assessment]",
-        "objective": "BP 119/72 mmHg, HR 97 回/分, RR 18 回/分, SpO2 94%, T 38.6°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 119/72 mmHg, HR 100 回/分, RR 19 回/分, SpO2 95%, T 38.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #18 — plan]",
         "subjective": "[Mock LLM response #18 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #18 — subjective]\nO（客観） BP 119/72 mmHg, HR 97 回/分, RR 18 回/分, SpO2 94%, T 38.6°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #18 — assessment]\nP（計画） [Mock LLM response #18 — plan]"
+      "text": "S（主観） [Mock LLM response #18 — subjective]\nO（客観） BP 119/72 mmHg, HR 100 回/分, RR 19 回/分, SpO2 95%, T 38.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #18 — assessment]\nP（計画） [Mock LLM response #18 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-19": {
@@ -896,11 +896,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #19 — assessment]",
-        "objective": "BP 116/71 mmHg, HR 95 回/分, RR 16 回/分, SpO2 93%, T 37.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 119/73 mmHg, HR 106 回/分, RR 17 回/分, SpO2 96%, T 37.8°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし",
         "plan": "[Mock LLM response #19 — plan]",
         "subjective": "[Mock LLM response #19 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #19 — subjective]\nO（客観） BP 116/71 mmHg, HR 95 回/分, RR 16 回/分, SpO2 93%, T 37.4°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #19 — assessment]\nP（計画） [Mock LLM response #19 — plan]"
+      "text": "S（主観） [Mock LLM response #19 — subjective]\nO（客観） BP 119/73 mmHg, HR 106 回/分, RR 17 回/分, SpO2 96%, T 37.8°C。バイタル安定、検査所見改善。一般状態: 意識清明、苦痛軽減。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #19 — assessment]\nP（計画） [Mock LLM response #19 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-20": {
@@ -918,6 +918,7 @@
         "ctx.patient.demographics",
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
+        "ctx.complications_occurred",
         "ctx.los_days",
         "ctx.encounter.discharge_datetime",
         "ctx.diagnoses",
@@ -994,7 +995,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 18 日間\n患者状態: BP 121/72, HR 109, SpO2 93%, T 38.6°C、酸素投与: 経鼻カニューレ 2.1 L/min。\n投薬継続: アンピシリン/スルバクタム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 18 日間\n患者状態: BP 121/72, HR 102, SpO2 95%, T 38.0°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: アンピシリン/スルバクタム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-23-night": {
@@ -1017,7 +1018,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 18 日間\n患者状態: BP 121/71, HR 102, SpO2 97%, T 38.6°C、酸素投与: 酸素マスク 4.8 L/min。\n投薬継続: アンピシリン/スルバクタム。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 18 日間\n患者状態: BP 116/72, HR 99, SpO2 93%, T 38.0°C。\n投薬継続: アンピシリン/スルバクタム。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-24-day": {
@@ -1040,7 +1041,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 18 日間\n患者状態: BP 121/71, HR 102, SpO2 97%, T 38.6°C、酸素投与: 酸素マスク 4.8 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 18 日間\n患者状態: BP 116/72, HR 99, SpO2 93%, T 38.0°C。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-25-evening": {
@@ -1063,7 +1064,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 18 日間\n患者状態: BP 121/71, HR 102, SpO2 97%, T 38.6°C、酸素投与: 酸素マスク 4.8 L/min。\n投薬継続: アンピシリン/スルバクタム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 18 日間\n患者状態: BP 116/72, HR 99, SpO2 93%, T 38.0°C。\n投薬継続: アンピシリン/スルバクタム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-26-night": {
@@ -1086,7 +1087,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 18 日間\n患者状態: BP 120/72, HR 98, SpO2 96%, T 37.0°C。\n投薬継続: アンピシリン/スルバクタム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 18 日間\n患者状態: BP 118/78, HR 94, SpO2 97%, T 37.4°C、酸素投与: 酸素マスク 4.3 L/min。\n投薬継続: アンピシリン/スルバクタム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-27-day": {
@@ -1109,7 +1110,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 18 日間\n患者状態: BP 120/72, HR 98, SpO2 96%, T 37.0°C。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 18 日間\n患者状態: BP 118/78, HR 94, SpO2 97%, T 37.4°C、酸素投与: 酸素マスク 4.3 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-28-evening": {
@@ -1132,7 +1133,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 18 日間\n患者状態: BP 120/72, HR 98, SpO2 96%, T 37.0°C。\n投薬継続: アンピシリン/スルバクタム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 18 日間\n患者状態: BP 118/78, HR 94, SpO2 97%, T 37.4°C、酸素投与: 酸素マスク 4.3 L/min。\n投薬継続: アンピシリン/スルバクタム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-29-night": {
@@ -1155,7 +1156,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 18 日間\n患者状態: BP 122/75, HR 95, SpO2 96%, T 37.6°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 18 日間\n患者状態: BP 119/73, HR 95, SpO2 95%, T 38.2°C。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-30-day": {
@@ -1165,7 +1166,6 @@
       "facts_used": [
         "ctx.shift",
         "ctx.vitals.today",
-        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -1178,7 +1178,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 18 日間\n患者状態: BP 122/75, HR 95, SpO2 96%, T 37.6°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 18 日間\n患者状態: BP 119/73, HR 95, SpO2 95%, T 38.2°C。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-31-evening": {
@@ -1201,7 +1201,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 18 日間\n患者状態: BP 122/75, HR 95, SpO2 96%, T 37.6°C。\n投薬継続: エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 18 日間\n患者状態: BP 119/73, HR 95, SpO2 95%, T 38.2°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-32-night": {
@@ -1224,7 +1224,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 18 日間\n患者状態: BP 120/74, HR 94, SpO2 94%, T 37.4°C、酸素投与: 経鼻カニューレ 3.3 L/min。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 18 日間\n患者状態: BP 121/75, HR 100, SpO2 92%, T 38.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-33-day": {
@@ -1247,7 +1247,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 18 日間\n患者状態: BP 120/74, HR 94, SpO2 94%, T 37.4°C、酸素投与: 経鼻カニューレ 3.3 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 18 日間\n患者状態: BP 121/75, HR 100, SpO2 92%, T 38.4°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-34-evening": {
@@ -1270,7 +1270,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 18 日間\n患者状態: BP 120/74, HR 94, SpO2 94%, T 37.4°C、酸素投与: 経鼻カニューレ 3.3 L/min。\n投薬継続: エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 18 日間\n患者状態: BP 121/75, HR 100, SpO2 92%, T 38.4°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-35-night": {
@@ -1280,7 +1280,6 @@
       "facts_used": [
         "ctx.shift",
         "ctx.vitals.today",
-        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -1293,7 +1292,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 18 日間\n患者状態: BP 119/72, HR 94, SpO2 96%, T 37.3°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 93, SpO2 95%, T 37.7°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-36-day": {
@@ -1316,7 +1315,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 18 日間\n患者状態: BP 119/72, HR 94, SpO2 96%, T 37.3°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 93, SpO2 95%, T 37.7°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-37-evening": {
@@ -1339,7 +1338,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 18 日間\n患者状態: BP 119/72, HR 94, SpO2 96%, T 37.3°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 93, SpO2 95%, T 37.7°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-38-night": {
@@ -1362,7 +1361,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 18 日間\n患者状態: BP 121/72, HR 95, SpO2 96%, T 37.1°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 18 日間\n患者状態: BP 120/75, HR 90, SpO2 96%, T 37.6°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-39-day": {
@@ -1385,7 +1384,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 18 日間\n患者状態: BP 121/72, HR 95, SpO2 96%, T 37.1°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 18 日間\n患者状態: BP 120/75, HR 90, SpO2 96%, T 37.6°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-40-evening": {
@@ -1408,7 +1407,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 18 日間\n患者状態: BP 121/72, HR 95, SpO2 96%, T 37.1°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 18 日間\n患者状態: BP 120/75, HR 90, SpO2 96%, T 37.6°C。\n投薬継続: エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-41-night": {
@@ -1431,7 +1430,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 18 日間\n患者状態: BP 120/69, HR 92, SpO2 92%, T 38.1°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 18 日間\n患者状態: BP 123/75, HR 94, SpO2 93%, T 37.7°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-42-day": {
@@ -1454,7 +1453,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 18 日間\n患者状態: BP 120/69, HR 92, SpO2 92%, T 38.1°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 18 日間\n患者状態: BP 123/75, HR 94, SpO2 93%, T 37.7°C。\n投薬継続: メロペネム 1g 静注 8時間毎、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-43-evening": {
@@ -1477,7 +1476,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 18 日間\n患者状態: BP 120/69, HR 92, SpO2 92%, T 38.1°C。\n投薬継続: エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 18 日間\n患者状態: BP 123/75, HR 94, SpO2 93%, T 37.7°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-44-night": {
@@ -1500,7 +1499,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 18 日間\n患者状態: BP 121/72, HR 95, SpO2 94%, T 37.0°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 18 日間\n患者状態: BP 122/72, HR 95, SpO2 98%, T 37.4°C、酸素投与: 経鼻カニューレ 4 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-45-day": {
@@ -1523,7 +1522,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 18 日間\n患者状態: BP 121/72, HR 95, SpO2 94%, T 37.0°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 18 日間\n患者状態: BP 122/72, HR 95, SpO2 98%, T 37.4°C、酸素投与: 経鼻カニューレ 4 L/min。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-46-evening": {
@@ -1546,7 +1545,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 18 日間\n患者状態: BP 121/72, HR 95, SpO2 94%, T 37.0°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 18 日間\n患者状態: BP 122/72, HR 95, SpO2 98%, T 37.4°C、酸素投与: 経鼻カニューレ 4 L/min。\n投薬継続: エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-47-night": {
@@ -1569,7 +1568,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 18 日間\n患者状態: BP 120/71, HR 96, SpO2 95%, T 37.8°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 18 日間\n患者状態: BP 121/77, HR 93, SpO2 98%, T 38.1°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-48-day": {
@@ -1592,7 +1591,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 18 日間\n患者状態: BP 120/71, HR 96, SpO2 95%, T 37.8°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 18 日間\n患者状態: BP 121/77, HR 93, SpO2 98%, T 38.1°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-49-evening": {
@@ -1615,7 +1614,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 18 日間\n患者状態: BP 120/71, HR 96, SpO2 95%, T 37.8°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 18 日間\n患者状態: BP 121/77, HR 93, SpO2 98%, T 38.1°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-50-night": {
@@ -1638,7 +1637,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 11 日目 / 入院予定 18 日間\n患者状態: BP 120/78, HR 96, SpO2 98%, T 39.0°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 11 日目 / 入院予定 18 日間\n患者状態: BP 119/71, HR 93, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-51-day": {
@@ -1661,7 +1660,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 11 日目 / 入院予定 18 日間\n患者状態: BP 120/78, HR 96, SpO2 98%, T 39.0°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 11 日目 / 入院予定 18 日間\n患者状態: BP 119/71, HR 93, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-52-evening": {
@@ -1684,7 +1683,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 11 日目 / 入院予定 18 日間\n患者状態: BP 120/78, HR 96, SpO2 98%, T 39.0°C。\n投薬継続: エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 11 日目 / 入院予定 18 日間\n患者状態: BP 119/71, HR 93, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-53-night": {
@@ -1707,7 +1706,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 12 日目 / 入院予定 18 日間\n患者状態: BP 123/77, HR 92, SpO2 98%, T 37.6°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 12 日目 / 入院予定 18 日間\n患者状態: BP 125/73, HR 95, SpO2 98%, T 37.7°C。\n投薬継続: メロペネム 1g 静注 8時間毎、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-54-day": {
@@ -1730,7 +1729,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 12 日目 / 入院予定 18 日間\n患者状態: BP 123/77, HR 92, SpO2 98%, T 37.6°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 12 日目 / 入院予定 18 日間\n患者状態: BP 125/73, HR 95, SpO2 98%, T 37.7°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-55-evening": {
@@ -1753,7 +1752,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 12 日目 / 入院予定 18 日間\n患者状態: BP 123/77, HR 92, SpO2 98%, T 37.6°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 12 日目 / 入院予定 18 日間\n患者状態: BP 125/73, HR 95, SpO2 98%, T 37.7°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-56-night": {
@@ -1776,7 +1775,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 13 日目 / 入院予定 18 日間\n患者状態: BP 125/74, HR 98, SpO2 97%, T 37.7°C、酸素投与: 経鼻カニューレ 3.9 L/min。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 13 日目 / 入院予定 18 日間\n患者状態: BP 122/75, HR 94, SpO2 96%, T 37.7°C、酸素投与: 経鼻カニューレ 3.5 L/min。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-57-day": {
@@ -1799,7 +1798,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 13 日目 / 入院予定 18 日間\n患者状態: BP 125/74, HR 98, SpO2 97%, T 37.7°C、酸素投与: 経鼻カニューレ 3.9 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 13 日目 / 入院予定 18 日間\n患者状態: BP 122/75, HR 94, SpO2 96%, T 37.7°C、酸素投与: 経鼻カニューレ 3.5 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-58-evening": {
@@ -1822,7 +1821,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 13 日目 / 入院予定 18 日間\n患者状態: BP 125/74, HR 98, SpO2 97%, T 37.7°C、酸素投与: 経鼻カニューレ 3.9 L/min。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 13 日目 / 入院予定 18 日間\n患者状態: BP 122/75, HR 94, SpO2 96%, T 37.7°C、酸素投与: 経鼻カニューレ 3.5 L/min。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-59-night": {
@@ -1845,7 +1844,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 14 日目 / 入院予定 18 日間\n患者状態: BP 119/75, HR 96, SpO2 97%, T 37.7°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 14 日目 / 入院予定 18 日間\n患者状態: BP 120/75, HR 95, SpO2 92%, T 37.9°C。\n投薬継続: 解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-60-day": {
@@ -1868,7 +1867,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 14 日目 / 入院予定 18 日間\n患者状態: BP 119/75, HR 96, SpO2 97%, T 37.7°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 14 日目 / 入院予定 18 日間\n患者状態: BP 120/75, HR 95, SpO2 92%, T 37.9°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-61-evening": {
@@ -1891,7 +1890,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 14 日目 / 入院予定 18 日間\n患者状態: BP 119/75, HR 96, SpO2 97%, T 37.7°C。\n投薬継続: エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 14 日目 / 入院予定 18 日間\n患者状態: BP 120/75, HR 95, SpO2 92%, T 37.9°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-62-night": {
@@ -1914,7 +1913,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 15 日目 / 入院予定 18 日間\n患者状態: BP 122/74, HR 95, SpO2 92%, T 37.6°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 15 日目 / 入院予定 18 日間\n患者状態: BP 122/73, HR 94, SpO2 97%, T 37.2°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-63-day": {
@@ -1924,6 +1923,7 @@
       "facts_used": [
         "ctx.shift",
         "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -1936,7 +1936,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 15 日目 / 入院予定 18 日間\n患者状態: BP 122/74, HR 95, SpO2 92%, T 37.6°C。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 15 日目 / 入院予定 18 日間\n患者状態: BP 122/73, HR 94, SpO2 97%, T 37.2°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-64-evening": {
@@ -1959,7 +1959,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 15 日目 / 入院予定 18 日間\n患者状態: BP 122/74, HR 95, SpO2 92%, T 37.6°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 15 日目 / 入院予定 18 日間\n患者状態: BP 122/73, HR 94, SpO2 97%, T 37.2°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-65-night": {
@@ -1982,7 +1982,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 16 日目 / 入院予定 18 日間\n患者状態: BP 120/76, HR 98, SpO2 94%, T 37.0°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 16 日目 / 入院予定 18 日間\n患者状態: BP 122/74, HR 101, SpO2 94%, T 38.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-66-day": {
@@ -2005,7 +2005,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 16 日目 / 入院予定 18 日間\n患者状態: BP 120/76, HR 98, SpO2 94%, T 37.0°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 16 日目 / 入院予定 18 日間\n患者状態: BP 122/74, HR 101, SpO2 94%, T 38.5°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-67-evening": {
@@ -2028,7 +2028,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 16 日目 / 入院予定 18 日間\n患者状態: BP 120/76, HR 98, SpO2 94%, T 37.0°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 16 日目 / 入院予定 18 日間\n患者状態: BP 122/74, HR 101, SpO2 94%, T 38.5°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-68-night": {
@@ -2051,7 +2051,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 17 日目 / 入院予定 18 日間\n患者状態: BP 119/72, HR 97, SpO2 94%, T 38.6°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 17 日目 / 入院予定 18 日間\n患者状態: BP 119/72, HR 100, SpO2 95%, T 38.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-69-day": {
@@ -2061,6 +2061,7 @@
       "facts_used": [
         "ctx.shift",
         "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -2073,7 +2074,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 17 日目 / 入院予定 18 日間\n患者状態: BP 119/72, HR 97, SpO2 94%, T 38.6°C。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 17 日目 / 入院予定 18 日間\n患者状態: BP 119/72, HR 100, SpO2 95%, T 38.4°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-70-evening": {
@@ -2096,7 +2097,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 17 日目 / 入院予定 18 日間\n患者状態: BP 119/72, HR 97, SpO2 94%, T 38.6°C。\n投薬継続: メロペネム 1g 静注 8時間毎、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 17 日目 / 入院予定 18 日間\n患者状態: BP 119/72, HR 100, SpO2 95%, T 38.4°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-71-night": {
@@ -2119,7 +2120,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 18 日目 / 入院予定 18 日間\n患者状態: BP 116/71, HR 95, SpO2 93%, T 37.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 18 日目 / 入院予定 18 日間\n患者状態: BP 119/73, HR 106, SpO2 96%, T 37.8°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-72-day": {
@@ -2142,7 +2143,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 18 日目 / 入院予定 18 日間\n患者状態: BP 116/71, HR 95, SpO2 93%, T 37.4°C。\n投薬継続: メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 18 日目 / 入院予定 18 日間\n患者状態: BP 119/73, HR 106, SpO2 96%, T 37.8°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-73-evening": {
@@ -2165,7 +2166,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 18 日目 / 入院予定 18 日間\n患者状態: BP 116/71, HR 95, SpO2 93%, T 37.4°C。\n投薬継続: メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 18 日目 / 入院予定 18 日間\n患者状態: BP 119/73, HR 106, SpO2 96%, T 37.8°C。\n投薬継続: 解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-74": {
@@ -2174,6 +2175,7 @@
     "narrative": {
       "facts_used": [
         "ctx.los_days",
+        "ctx.complications_occurred",
         "ctx.intake_output_records",
         "ctx.disease_protocol.disease_id",
         "ctx.adl_assessments[-1]"
@@ -2185,9 +2187,9 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_status": "入院期間: 18日間。入院理由: 発熱・咳嗽・呼吸困難。退院基準を満たし退院となった。",
+        "admission_status": "入院期間: 18日間。入院理由: 発熱・咳嗽・呼吸困難。経過中の合併症: クロストリジウム・ディフィシル腸炎。退院基準を満たし退院となった。",
         "discharge_readiness": "退院準備: 退院時 Barthel 100/100。",
-        "nursing_interventions_provided": "入院期間合計 IN 20105 mL / OUT 21819 mL (差 -1714 mL)。",
+        "nursing_interventions_provided": "入院期間合計 IN 22576 mL / OUT 20849 mL (差 +1727 mL)。",
         "patient_education": "患者教育: 抗菌薬の内服完遂 (症状改善後も指示日数まで)、咳嗽・喀痰・呼吸困難再燃時の早期受診、手指衛生と咳エチケット、家族への感染予防、肺炎球菌・インフルエンザワクチン推奨。"
       },
       "text": ""
@@ -2327,7 +2329,7 @@
         "disposition": "[Mock LLM response #21 — disposition]",
         "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、CRP、PCT、クレアチニン、BUN、Na、K。画像: 胸部レントゲン (正面・側面)、胸部レントゲン (正面・側面)、胸部 CT (単純)。投薬: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、メロペネム 1g 静注 8時間毎、エノキサパリン。処置指示: 酸素投与: 経鼻カニューラ SpO2 >= 94%。異常値: WBC 12275.0 /uL [H]、アルブミン 3.5 g/dL [L]、AST 31.0 U/L [H]、CRP 89.2 mg/L [H]",
         "hpi": "[Mock LLM response #21 — hpi]",
-        "physical_exam": "来院時所見: BP 121/72 mmHg, HR 109 回/分, RR 22 回/分, SpO2 93%, T 38.6°C。特記の身体所見なし。",
+        "physical_exam": "来院時所見: BP 121/72 mmHg, HR 102 回/分, RR 19 回/分, SpO2 95%, T 38.0°C。特記の身体所見なし。",
         "triage_details": "トリアージ情報：未記録"
       },
       "text": ""
