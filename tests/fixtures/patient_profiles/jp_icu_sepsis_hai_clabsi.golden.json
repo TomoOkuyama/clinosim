@@ -26,13 +26,13 @@
       },
       "sections": {
         "allergies": "薬物アレルギーなし（NKDA）",
-        "assessment_and_plan": "【評価】主訴「発熱・意識変容・低血圧」で入院。 病態: 敗血症 (重度)。 併存疾患: 慢性腎臓病，詳細不明。\n【方針】予定入院期間: 約35日。 薬物療法: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。",
+        "assessment_and_plan": "【評価】主訴「発熱・意識変容・低血圧」で入院。 病態: 敗血症 (重度)。 併存疾患: 慢性腎臓病，詳細不明。\n【方針】予定入院期間: 約35日。 薬物療法: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
         "chief_complaint": "3日前より倦怠感・本日ぐったり",
         "family_history": "特記家族歴なし",
         "hpi": "症状急速に増悪、本日受診。 急性発症 74歳男性患者。主訴: 発熱・意識変容・低血圧。既往: 慢性腎臓病。ROS: 頭痛なし、痙攣なし。",
         "medications_at_home": "常用薬なし",
         "past_medical_history": "慢性腎臓病，詳細不明 [N18.9]",
-        "physical_examination": "バイタルサイン: BP 104/62 mmHg, HR 119/min, T 38.5°C, SpO2 95%, RR 20/min。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "physical_examination": "バイタルサイン: BP 107/65 mmHg, HR 118/min, T 39.4°C, SpO2 94%, RR 21/min。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: その他"
       },
       "text": ""
@@ -77,12 +77,12 @@
         }
       },
       "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: WBC 12282.0 /uL [H]、アルブミン 2.4 g/dL [L]、乳酸 3.4 mmol/L [H]、CRP 337.7 mg/L [H]。",
-        "objective": "BP 104/62 mmHg, HR 119 回/分, RR 20 回/分, SpO2 95%, T 38.5°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "assessment": "本日の検査所見: WBC 12282.0 /uL [H]、アルブミン 2.4 g/dL [L]、乳酸 3.4 mmol/L [H]、CRP 337.7 mg/L [H]。",
+        "objective": "BP 107/65 mmHg, HR 118 回/分, RR 21 回/分, SpO2 94%, T 39.4°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "薬物療法継続: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院1日目。 発熱 38.5°C 持続。 疼痛持続 (NRS 8)。"
+        "subjective": "入院1日目。 発熱 39.4°C 持続。 疼痛持続 (NRS 8)。"
       },
-      "text": "S（主観） 入院1日目。 発熱 38.5°C 持続。 疼痛持続 (NRS 8)。\nO（客観） BP 104/62 mmHg, HR 119 回/分, RR 20 回/分, SpO2 95%, T 38.5°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: WBC 12282.0 /uL [H]、アルブミン 2.4 g/dL [L]、乳酸 3.4 mmol/L [H]、CRP 337.7 mg/L [H]。\nP（計画） 薬物療法継続: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
+      "text": "S（主観） 入院1日目。 発熱 39.4°C 持続。 疼痛持続 (NRS 8)。\nO（客観） BP 107/65 mmHg, HR 118 回/分, RR 21 回/分, SpO2 94%, T 39.4°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 本日の検査所見: WBC 12282.0 /uL [H]、アルブミン 2.4 g/dL [L]、乳酸 3.4 mmol/L [H]、CRP 337.7 mg/L [H]。\nP（計画） 薬物療法継続: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-03": {
@@ -124,12 +124,12 @@
         }
       },
       "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: AST 37.0 U/L [H]、CRP 500.0 mg/L [H]、WBC 10132.0 /uL [H]、クレアチニン 2.55 mg/dL [H]。",
-        "objective": "BP 104/62 mmHg, HR 124 回/分, RR 20 回/分, SpO2 97%, T 38.3°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "assessment": "本日の検査所見: AST 31.0 U/L [H]、CRP 500.0 mg/L [H]、WBC 10191.0 /uL [H]、クレアチニン 2.6 mg/dL [H]。",
+        "objective": "BP 105/67 mmHg, HR 124 回/分, RR 18 回/分, SpO2 95%, T 39.3°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "薬物療法継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院2日目。 発熱 38.3°C 持続。 疼痛持続 (NRS 9)。 意識レベル低下あり (AVPU V)、見当識の確認を継続。"
+        "subjective": "入院2日目。 発熱 39.3°C 持続。 疼痛改善傾向 (NRS 前日 8 → 本日 6)。"
       },
-      "text": "S（主観） 入院2日目。 発熱 38.3°C 持続。 疼痛持続 (NRS 9)。 意識レベル低下あり (AVPU V)、見当識の確認を継続。\nO（客観） BP 104/62 mmHg, HR 124 回/分, RR 20 回/分, SpO2 97%, T 38.3°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: AST 37.0 U/L [H]、CRP 500.0 mg/L [H]、WBC 10132.0 /uL [H]、クレアチニン 2.55 mg/dL [H]。\nP（計画） 薬物療法継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
+      "text": "S（主観） 入院2日目。 発熱 39.3°C 持続。 疼痛改善傾向 (NRS 前日 8 → 本日 6)。\nO（客観） BP 105/67 mmHg, HR 124 回/分, RR 18 回/分, SpO2 95%, T 39.3°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 本日の検査所見: AST 31.0 U/L [H]、CRP 500.0 mg/L [H]、WBC 10191.0 /uL [H]、クレアチニン 2.6 mg/dL [H]。\nP（計画） 薬物療法継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-04": {
@@ -171,12 +171,12 @@
         }
       },
       "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: AST 42.0 U/L [H]、CRP 70.0 mg/L [H]、WBC 10864.0 /uL [H]、クレアチニン 2.58 mg/dL [H]。",
-        "objective": "T 39.4°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "assessment": "本日の検査所見: AST 40.0 U/L [H]、CRP 69.4 mg/L [H]、WBC 11162.0 /uL [H]、クレアチニン 2.71 mg/dL [H]。",
+        "objective": "T 38.9°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "薬物療法継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院3日目。 発熱 39.4°C 上昇傾向。 疼痛持続 (NRS 9)。 意識レベル低下持続 (AVPU V)。"
+        "subjective": "入院3日目。 発熱 38.9°C 持続。 疼痛持続 (NRS 7)。"
       },
-      "text": "S（主観） 入院3日目。 発熱 39.4°C 上昇傾向。 疼痛持続 (NRS 9)。 意識レベル低下持続 (AVPU V)。\nO（客観） T 39.4°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: AST 42.0 U/L [H]、CRP 70.0 mg/L [H]、WBC 10864.0 /uL [H]、クレアチニン 2.58 mg/dL [H]。\nP（計画） 薬物療法継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
+      "text": "S（主観） 入院3日目。 発熱 38.9°C 持続。 疼痛持続 (NRS 7)。\nO（客観） T 38.9°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） 本日の検査所見: AST 40.0 U/L [H]、CRP 69.4 mg/L [H]、WBC 11162.0 /uL [H]、クレアチニン 2.71 mg/dL [H]。\nP（計画） 薬物療法継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-05": {
@@ -184,287 +184,30 @@
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_3",
-        "avpu_pe_consistency:consciousness",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
+        "ctx.encounter.chief_complaint",
+        "ctx.patient.chronic_conditions",
+        "ctx.adl_assessments[-1]",
+        "ctx.patient.chronic_conditions",
+        "ctx.patient.chronic_conditions"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 3,
         "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
+        "lang": "ja"
       },
       "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: AST 45.0 U/L [H]、CRP 332.6 mg/L [H]、WBC 9966.0 /uL [H]、クレアチニン 2.83 mg/dL [H]。",
-        "objective": "BP 103/62 mmHg, HR 122 回/分, RR 24 回/分, SpO2 97%, T 39.3°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
-        "plan": "薬物療法継続: メロペネム、バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院4日目。 発熱 39.3°C 持続。 疼痛改善傾向 (NRS 前日 9 → 本日 5)。 意識レベル低下持続 (AVPU V)。"
+        "adl_assessment": "Barthel Index 50/100 → 中等度介助（食事5、入浴5、移動5、排泄5）",
+        "care_plan": "看護計画: 尿量・浮腫観察、電解質モニタ。",
+        "nursing_diagnosis": "看護診断: 腎機能低下・電解質異常のリスク。",
+        "nursing_history": "入院目的: 発熱・意識変容・低血圧。既往: 慢性腎臓病。",
+        "risk_assessments": "転倒・褥瘡リスク：評価中"
       },
-      "text": "S（主観） 入院4日目。 発熱 39.3°C 持続。 疼痛改善傾向 (NRS 前日 9 → 本日 5)。 意識レベル低下持続 (AVPU V)。\nO（客観） BP 103/62 mmHg, HR 122 回/分, RR 24 回/分, SpO2 97%, T 39.3°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: AST 45.0 U/L [H]、CRP 332.6 mg/L [H]、WBC 9966.0 /uL [H]、クレアチニン 2.83 mg/dL [H]。\nP（計画） 薬物療法継続: メロペネム、バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
+      "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-06": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-06",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_4",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 4,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: AST 36.0 U/L [H]、CRP 313.0 mg/L [H]、クレアチニン 4.23 mg/dL [H]、乳酸 3.6 mmol/L [H]。",
-        "objective": "BP 105/65 mmHg, HR 117 回/分, RR 28 回/分, SpO2 94%, T 39.8°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院5日目。 発熱 39.8°C 上昇傾向。 疼痛持続 (NRS 5)。 意識レベル改善、清明 (前日 AVPU V)。"
-      },
-      "text": "S（主観） 入院5日目。 発熱 39.8°C 上昇傾向。 疼痛持続 (NRS 5)。 意識レベル改善、清明 (前日 AVPU V)。\nO（客観） BP 105/65 mmHg, HR 117 回/分, RR 28 回/分, SpO2 94%, T 39.8°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: AST 36.0 U/L [H]、CRP 313.0 mg/L [H]、クレアチニン 4.23 mg/dL [H]、乳酸 3.6 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-07": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-07",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_5",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 5,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 168.5 mg/L [H]、WBC 12222.0 /uL [H]、クレアチニン 3.86 mg/dL [H]、乳酸 3.0 mmol/L [H]。",
-        "objective": "BP 105/61 mmHg, HR 120 回/分, RR 22 回/分, SpO2 97%, T 38.9°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院6日目。 発熱 38.9°C 持続。 疼痛持続 (NRS 6)。"
-      },
-      "text": "S（主観） 入院6日目。 発熱 38.9°C 持続。 疼痛持続 (NRS 6)。\nO（客観） BP 105/61 mmHg, HR 120 回/分, RR 22 回/分, SpO2 97%, T 38.9°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 168.5 mg/L [H]、WBC 12222.0 /uL [H]、クレアチニン 3.86 mg/dL [H]、乳酸 3.0 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-08": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-08",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_6",
-        "avpu_pe_consistency:consciousness",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 6,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 291.6 mg/L [H]、WBC 11077.0 /uL [H]、クレアチニン 4.19 mg/dL [H]、乳酸 4.4 mmol/L [H]。",
-        "objective": "BP 105/64 mmHg, HR 112 回/分, RR 25 回/分, SpO2 98%, T 39.9°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院7日目。 発熱 39.9°C 上昇傾向。 疼痛持続 (NRS 5)。 意識レベル低下あり (AVPU V)、見当識の確認を継続。"
-      },
-      "text": "S（主観） 入院7日目。 発熱 39.9°C 上昇傾向。 疼痛持続 (NRS 5)。 意識レベル低下あり (AVPU V)、見当識の確認を継続。\nO（客観） BP 105/64 mmHg, HR 112 回/分, RR 25 回/分, SpO2 98%, T 39.9°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 291.6 mg/L [H]、WBC 11077.0 /uL [H]、クレアチニン 4.19 mg/dL [H]、乳酸 4.4 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-09": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-09",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_7",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 7,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 462.1 mg/L [H]、WBC 12291.0 /uL [H]、クレアチニン 3.88 mg/dL [H]、乳酸 1.8 mmol/L [H]。",
-        "objective": "BP 107/65 mmHg, HR 115 回/分, RR 20 回/分, SpO2 92%, T 39.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院8日目。 発熱 39.4°C 持続。 疼痛持続 (NRS 5)。 意識レベル改善、清明 (前日 AVPU V)。"
-      },
-      "text": "S（主観） 入院8日目。 発熱 39.4°C 持続。 疼痛持続 (NRS 5)。 意識レベル改善、清明 (前日 AVPU V)。\nO（客観） BP 107/65 mmHg, HR 115 回/分, RR 20 回/分, SpO2 92%, T 39.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 462.1 mg/L [H]、WBC 12291.0 /uL [H]、クレアチニン 3.88 mg/dL [H]、乳酸 1.8 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-10": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-10",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_8",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 8,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 321.2 mg/L [H]、WBC 13003.0 /uL [H]、クレアチニン 3.98 mg/dL [H]、乳酸 2.5 mmol/L [H]。",
-        "objective": "BP 109/65 mmHg, HR 114 回/分, RR 19 回/分, SpO2 97%, T 39.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院9日目。 発熱 39.1°C 持続。 疼痛持続 (NRS 4)。"
-      },
-      "text": "S（主観） 入院9日目。 発熱 39.1°C 持続。 疼痛持続 (NRS 4)。\nO（客観） BP 109/65 mmHg, HR 114 回/分, RR 19 回/分, SpO2 97%, T 39.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 321.2 mg/L [H]、WBC 13003.0 /uL [H]、クレアチニン 3.98 mg/dL [H]、乳酸 2.5 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-100-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-100-night",
+  "doc-ENC-FORCED-0001-013699914137-06-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-06-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -477,40 +220,17 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 22,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 23 日目 / 入院予定 31 日間\n患者状態: BP 115/69, HR 106, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-101-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-101-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 22,
+        "day_index": 0,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 23 日目 / 入院予定 31 日間\n患者状態: BP 115/69, HR 106, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 3 日間\n患者状態: BP 107/65, HR 118, SpO2 94%, T 39.4°C、酸素投与: 経鼻カニューレ 3.6 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-102-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-102-evening",
+  "doc-ENC-FORCED-0001-013699914137-07-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-07-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -523,17 +243,17 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 22,
+        "day_index": 0,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 23 日目 / 入院予定 31 日間\n患者状態: BP 115/69, HR 106, SpO2 98%, T 39.0°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 3 日間\n患者状態: BP 107/65, HR 118, SpO2 94%, T 39.4°C、酸素投与: 経鼻カニューレ 3.6 L/min。\n投薬継続: メロペネム、バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-103-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-103-night",
+  "doc-ENC-FORCED-0001-013699914137-08-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-08-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -546,17 +266,17 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 23,
+        "day_index": 1,
         "generator": "template",
         "lang": "ja",
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 24 日目 / 入院予定 31 日間\n患者状態: BP 116/66, HR 104, SpO2 95%, T 38.8°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 3 日間\n患者状態: BP 105/67, HR 124, SpO2 95%, T 39.3°C、酸素投与: 酸素マスク 6 L/min。\n投薬継続: メロペネム、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-104-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-104-day",
+  "doc-ENC-FORCED-0001-013699914137-09-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-09-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -569,17 +289,17 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 23,
+        "day_index": 1,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 24 日目 / 入院予定 31 日間\n患者状態: BP 116/66, HR 104, SpO2 95%, T 38.8°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 3 日間\n患者状態: BP 105/67, HR 124, SpO2 95%, T 39.3°C、酸素投与: 酸素マスク 6 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-105-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-105-evening",
+  "doc-ENC-FORCED-0001-013699914137-10-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-10-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -592,17 +312,17 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 23,
+        "day_index": 1,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 24 日目 / 入院予定 31 日間\n患者状態: BP 116/66, HR 104, SpO2 95%, T 38.8°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 3 日間\n患者状態: BP 105/67, HR 124, SpO2 95%, T 39.3°C、酸素投与: 酸素マスク 6 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-106-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-106-night",
+  "doc-ENC-FORCED-0001-013699914137-11-night": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-11-night",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -615,17 +335,17 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 24,
+        "day_index": 2,
         "generator": "template",
         "lang": "ja",
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 25 日目 / 入院予定 31 日間\n患者状態: BP 114/70, HR 108, SpO2 93%, T 39.3°C、酸素投与: 経鼻カニューレ 3.3 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 3 日間\n患者状態: T 38.9°C。\n投薬継続: メロペネム、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-107-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-107-day",
+  "doc-ENC-FORCED-0001-013699914137-12-day": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-12-day",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -638,17 +358,17 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 24,
+        "day_index": 2,
         "generator": "template",
         "lang": "ja",
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 25 日目 / 入院予定 31 日間\n患者状態: BP 114/70, HR 108, SpO2 93%, T 39.3°C、酸素投与: 経鼻カニューレ 3.3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 3 日間\n患者状態: T 38.9°C。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-108-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-108-evening",
+  "doc-ENC-FORCED-0001-013699914137-13-evening": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-13-evening",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -661,530 +381,21 @@
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 24,
+        "day_index": 2,
         "generator": "template",
         "lang": "ja",
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 25 日目 / 入院予定 31 日間\n患者状態: BP 114/70, HR 108, SpO2 93%, T 39.3°C、酸素投与: 経鼻カニューレ 3.3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 3 日間\n患者状態: T 38.9°C。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-109-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-109-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 25,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 26 日目 / 入院予定 31 日間\n患者状態: BP 114/68, HR 106, SpO2 95%, T 38.5°C、酸素投与: 経鼻カニューレ 3.1 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-11": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-11",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_9",
-        "avpu_pe_consistency:consciousness",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 9,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 237.9 mg/L [H]、WBC 14624.0 /uL [H]、クレアチニン 3.61 mg/dL [H]、PT-INR 1.6 [H]。",
-        "objective": "BP 108/65 mmHg, HR 108 回/分, RR 24 回/分, SpO2 98%, T 39.4°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院10日目。 発熱 39.4°C 持続。 疼痛持続 (NRS 4)。 意識レベル低下あり (AVPU V)、見当識の確認を継続。"
-      },
-      "text": "S（主観） 入院10日目。 発熱 39.4°C 持続。 疼痛持続 (NRS 4)。 意識レベル低下あり (AVPU V)、見当識の確認を継続。\nO（客観） BP 108/65 mmHg, HR 108 回/分, RR 24 回/分, SpO2 98%, T 39.4°C。特記事項なし。一般状態: 傾眠傾向、呼びかけで開眼 (JCS I-2)。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 237.9 mg/L [H]、WBC 14624.0 /uL [H]、クレアチニン 3.61 mg/dL [H]、PT-INR 1.6 [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-110-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-110-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 25,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 26 日目 / 入院予定 31 日間\n患者状態: BP 114/68, HR 106, SpO2 95%, T 38.5°C、酸素投与: 経鼻カニューレ 3.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-111-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-111-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 25,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 26 日目 / 入院予定 31 日間\n患者状態: BP 114/68, HR 106, SpO2 95%, T 38.5°C、酸素投与: 経鼻カニューレ 3.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-112-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-112-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 26,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 27 日目 / 入院予定 31 日間\n患者状態: BP 117/71, HR 108, SpO2 95%, T 39.3°C、酸素投与: 経鼻カニューレ 3.8 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-113-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-113-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 26,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 27 日目 / 入院予定 31 日間\n患者状態: BP 117/71, HR 108, SpO2 95%, T 39.3°C、酸素投与: 経鼻カニューレ 3.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-114-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-114-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 26,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 27 日目 / 入院予定 31 日間\n患者状態: BP 117/71, HR 108, SpO2 95%, T 39.3°C、酸素投与: 経鼻カニューレ 3.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-115-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-115-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 27,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 28 日目 / 入院予定 31 日間\n患者状態: BP 116/70, HR 106, SpO2 96%, T 38.8°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-116-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-116-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 27,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 28 日目 / 入院予定 31 日間\n患者状態: BP 116/70, HR 106, SpO2 96%, T 38.8°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-117-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-117-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 27,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 28 日目 / 入院予定 31 日間\n患者状態: BP 116/70, HR 106, SpO2 96%, T 38.8°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-118-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-118-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 28,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 29 日目 / 入院予定 31 日間\n患者状態: BP 116/73, HR 103, SpO2 94%, T 38.3°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-119-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-119-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 28,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 29 日目 / 入院予定 31 日間\n患者状態: BP 116/73, HR 103, SpO2 94%, T 38.3°C。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-12": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-12",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_10",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 10,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 218.7 mg/L [H]、WBC 12814.0 /uL [H]、クレアチニン 3.57 mg/dL [H]、乳酸 3.3 mmol/L [H]。",
-        "objective": "BP 110/66 mmHg, HR 110 回/分, RR 20 回/分, SpO2 95%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院11日目。 発熱 39.3°C 持続。 疼痛増強 (NRS 前日 4 → 本日 6)。 意識レベル改善、清明 (前日 AVPU V)。"
-      },
-      "text": "S（主観） 入院11日目。 発熱 39.3°C 持続。 疼痛増強 (NRS 前日 4 → 本日 6)。 意識レベル改善、清明 (前日 AVPU V)。\nO（客観） BP 110/66 mmHg, HR 110 回/分, RR 20 回/分, SpO2 95%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 218.7 mg/L [H]、WBC 12814.0 /uL [H]、クレアチニン 3.57 mg/dL [H]、乳酸 3.3 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-120-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-120-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 28,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 29 日目 / 入院予定 31 日間\n患者状態: BP 116/73, HR 103, SpO2 94%, T 38.3°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-121-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-121-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 29,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 30 日目 / 入院予定 31 日間\n患者状態: BP 115/72, HR 104, SpO2 98%, T 38.9°C、酸素投与: リザーバーマスク 8.2 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-122-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-122-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 29,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 30 日目 / 入院予定 31 日間\n患者状態: BP 115/72, HR 104, SpO2 98%, T 38.9°C、酸素投与: リザーバーマスク 8.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-123-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-123-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 29,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 30 日目 / 入院予定 31 日間\n患者状態: BP 115/72, HR 104, SpO2 98%, T 38.9°C、酸素投与: リザーバーマスク 8.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-124-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-124-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 30,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 31 日目 / 入院予定 31 日間\n患者状態: BP 117/71, HR 106, SpO2 93%, T 38.5°C。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-125-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-125-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 30,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 31 日目 / 入院予定 31 日間\n患者状態: BP 117/71, HR 106, SpO2 93%, T 38.5°C。\n投薬継続: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-126-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-126-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 30,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 31 日目 / 入院予定 31 日間\n患者状態: BP 117/71, HR 106, SpO2 93%, T 38.5°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-127": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-127",
+  "doc-ENC-FORCED-0001-013699914137-14": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-14",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
         "ctx.los_days",
-        "ctx.complications_occurred",
         "ctx.intake_output_records",
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments[-1]"
@@ -1196,16 +407,16 @@
         "lang": "ja"
       },
       "sections": {
-        "admission_status": "入院期間: 31日間。入院理由: 発熱・意識変容・低血圧。経過中の合併症: ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害。退院基準を満たし退院となった。",
-        "discharge_readiness": "退院準備: 退院時 Barthel 100/100。",
-        "nursing_interventions_provided": "入院期間合計 IN 55751 mL / OUT 14954 mL (差 +40797 mL)。",
+        "admission_status": "入院期間: 3日間。入院理由: 発熱・意識変容・低血圧。退院基準を満たし退院となった。",
+        "discharge_readiness": "退院準備: 退院時 Barthel 50/100。",
+        "nursing_interventions_provided": "入院期間合計 IN 5568 mL / OUT 1548 mL (差 +4020 mL)。",
         "patient_education": "患者教育: 腎機能保護、蛋白制限。"
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-128": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-128",
+  "doc-ENC-FORCED-0001-013699914137-15": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-15",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1231,23 +442,23 @@
         "surgery_schedule": "手術：予定なし",
         "symptoms": "3日前より倦怠感・本日ぐったり",
         "test_schedule": "検査：担当医の判断により決定",
-        "treatment_plan": "【評価】主訴「発熱・意識変容・低血圧」で入院。 病態: 敗血症 (重度)。 併存疾患: 慢性腎臓病，詳細不明。\n【方針】予定入院期間: 約35日。 薬物療法: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。",
+        "treatment_plan": "【評価】主訴「発熱・意識変容・低血圧」で入院。 病態: 敗血症 (重度)。 併存疾患: 慢性腎臓病，詳細不明。\n【方針】予定入院期間: 約35日。 薬物療法: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
         "ward_and_room": "病棟：4E　病室：4E-04"
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-129": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-129",
+  "doc-ENC-FORCED-0001-013699914137-16": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-16",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
-        "encounter.ward_id",
-        "encounter.attending_physician_id",
-        "patient.bmi",
-        "patient.bmi",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.los_days",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
         "ctx.patient.chronic_conditions",
-        "patient.weight_kg"
+        "encounter.id::autopsy_sample"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
@@ -1256,71 +467,55 @@
         "lang": "ja"
       },
       "sections": {
-        "dietary_content": "食事内容：常食",
-        "dietitian": "担当なし",
-        "discharge_evaluation": "退院時及び終了時の総合的評価：退院時に評価予定",
-        "dysphagia_diet": "嚥下調整食の必要性：なし",
-        "nutrition_assessment": "栄養状態評価: BMI 22.0 (普通)、要注意: CKD 蛋白制限。",
-        "nutrition_counseling": "栄養食事相談：必要に応じて実施",
-        "nutrition_goals": "栄養管理計画の目標：現在の栄養状態を維持",
-        "nutrition_risk": "低栄養リスク：低（BMI 22.0、リスクなし）",
-        "nutrition_supply": "エネルギー：1524kcal／日　たんぱく質：60.9g／日　補給方法：経口",
-        "other_issues": "その他栄養管理上の課題：特記事項なし",
-        "reassessment_timing": "栄養状態の再評価：入院後1週間を目安に実施",
-        "ward_and_physician": "病棟：4E　担当医師：石山 ミツ"
+        "autopsy_status": "解剖の有無: 有（病理解剖）。",
+        "contributing_conditions": "影響を及ぼした傷病名: 慢性腎臓病（N18）を併存疾患として有し、死亡に至る臨床経過に影響したと考えられる。",
+        "duration_of_immediate_cause": "直接死因までの期間: 入院より約3日の経過で死亡（敗血症，詳細不明）。入院前の経過は本記録範囲外。",
+        "immediate_cause_of_death": "直接死因: 敗血症，詳細不明（A41.9）。",
+        "manner_of_death": "死因の種類: 病死及び自然死。",
+        "underlying_cause_of_death": "原死因: 敗血症，詳細不明（A41）。"
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-13": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-13",
+  "doc-ENC-FORCED-0001-013699914137-17": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-17",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_11",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
+        "ctx.diagnoses[0].admission_diagnosis_code",
+        "ctx.encounter.admission_datetime",
+        "ctx.los_days",
+        "ctx.medications",
+        "ctx.procedures",
+        "ctx.encounter.discharge_datetime",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.procedures",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.patient.chronic_conditions",
+        "ctx.los_days",
+        "encounter.id::autopsy_sample"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "template",
       "generator_metadata": {
-        "day_index": 11,
         "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
+        "lang": "ja"
       },
       "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 241.8 mg/L [H]、WBC 10185.0 /uL [H]、クレアチニン 3.23 mg/dL [H]、乳酸 1.8 mmol/L [H]。",
-        "objective": "BP 105/58 mmHg, HR 109 回/分, RR 23 回/分, SpO2 98%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院12日目。 発熱 39.0°C 持続。 疼痛持続 (NRS 5)。"
+        "admission_state": "患者は2024-06-15 02:31に敗血症，詳細不明（A41.9）にて当院に緊急入院となった。入院時の全身状態は重症の所見を呈していた。",
+        "autopsy_status_and_findings": "剖検の有無・所見: 病理解剖を施行。臨床診断と主要臓器の病理所見に大きな乖離は認めなかった。",
+        "cause_of_death": "死因: 敗血症，詳細不明（A41.9）。",
+        "circumstances_of_death": "入院中の病棟にて、担当医の看取りのもと自然な経過にて死亡確認となった。",
+        "complications_and_comorbidities": "合併症・併存症: 既往の慢性疾患として慢性腎臓病（N18）を有していた。",
+        "family_communication": "家族への説明経過: 入院早期より病状進行の可能性について家族に説明し、経過に応じて随時追加説明を行い、死亡時には家族立会いのもと死亡確認を行った。",
+        "terminal_course": "死亡直前の数時間、急速な循環動態悪化を呈し、敗血症，詳細不明を主因として2024-06-18 00:31に死亡確認となった。",
+        "treatment_course": "入院期間3日間において、薬剤29件の投与、処置3件を実施し、集学的治療を継続したが救命に至らなかった。"
       },
-      "text": "S（主観） 入院12日目。 発熱 39.0°C 持続。 疼痛持続 (NRS 5)。\nO（客観） BP 105/58 mmHg, HR 109 回/分, RR 23 回/分, SpO2 98%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 241.8 mg/L [H]、WBC 10185.0 /uL [H]、クレアチニン 3.23 mg/dL [H]、乳酸 1.8 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
+      "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-130-pn": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-130-pn",
+  "doc-ENC-FORCED-0001-013699914137-18-pn": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-18-pn",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1360,8 +555,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-131-pn": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-131-pn",
+  "doc-ENC-FORCED-0001-013699914137-19-pn": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-19-pn",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1401,8 +596,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-132-pn": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-132-pn",
+  "doc-ENC-FORCED-0001-013699914137-20-pn": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-20-pn",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -1442,2468 +637,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-14": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-14",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_12",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 12,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 500.0 mg/L [H]、WBC 12079.0 /uL [H]、クレアチニン 3.61 mg/dL [H]、乳酸 2.5 mmol/L [H]。",
-        "objective": "BP 107/61 mmHg, HR 110 回/分, RR 21 回/分, SpO2 98%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院13日目。 発熱 38.7°C 持続。 疼痛持続 (NRS 6)。"
-      },
-      "text": "S（主観） 入院13日目。 発熱 38.7°C 持続。 疼痛持続 (NRS 6)。\nO（客観） BP 107/61 mmHg, HR 110 回/分, RR 21 回/分, SpO2 98%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 500.0 mg/L [H]、WBC 12079.0 /uL [H]、クレアチニン 3.61 mg/dL [H]、乳酸 2.5 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-15": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-15",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_13",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 13,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: WBC 9492.0 /uL [H]、クレアチニン 3.27 mg/dL [H]、乳酸 4.1 mmol/L [H]、PT-INR 1.4 [H]。",
-        "objective": "BP 103/63 mmHg, HR 118 回/分, RR 23 回/分, SpO2 92%, T 39.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院14日目。 発熱 39.6°C 上昇傾向。 疼痛改善傾向 (NRS 前日 6 → 本日 4)。"
-      },
-      "text": "S（主観） 入院14日目。 発熱 39.6°C 上昇傾向。 疼痛改善傾向 (NRS 前日 6 → 本日 4)。\nO（客観） BP 103/63 mmHg, HR 118 回/分, RR 23 回/分, SpO2 92%, T 39.6°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: WBC 9492.0 /uL [H]、クレアチニン 3.27 mg/dL [H]、乳酸 4.1 mmol/L [H]、PT-INR 1.4 [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-16": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-16",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_14",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 14,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 468.2 mg/L [H]、WBC 10458.0 /uL [H]、クレアチニン 2.93 mg/dL [H]、乳酸 3.6 mmol/L [H]。",
-        "objective": "BP 103/64 mmHg, HR 113 回/分, RR 22 回/分, SpO2 97%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院15日目。 発熱 38.7°C 持続。 疼痛持続 (NRS 4)。"
-      },
-      "text": "S（主観） 入院15日目。 発熱 38.7°C 持続。 疼痛持続 (NRS 4)。\nO（客観） BP 103/64 mmHg, HR 113 回/分, RR 22 回/分, SpO2 97%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 468.2 mg/L [H]、WBC 10458.0 /uL [H]、クレアチニン 2.93 mg/dL [H]、乳酸 3.6 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-17": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-17",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_15",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 15,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 476.7 mg/L [H]、WBC 11036.0 /uL [H]、クレアチニン 2.97 mg/dL [H]、乳酸 2.9 mmol/L [H]。",
-        "objective": "BP 107/61 mmHg, HR 115 回/分, RR 26 回/分, SpO2 93%, T 40.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院16日目。 発熱 40.1°C 上昇傾向。 疼痛増強 (NRS 前日 4 → 本日 6)。"
-      },
-      "text": "S（主観） 入院16日目。 発熱 40.1°C 上昇傾向。 疼痛増強 (NRS 前日 4 → 本日 6)。\nO（客観） BP 107/61 mmHg, HR 115 回/分, RR 26 回/分, SpO2 93%, T 40.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 476.7 mg/L [H]、WBC 11036.0 /uL [H]、クレアチニン 2.97 mg/dL [H]、乳酸 2.9 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-18": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-18",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_16",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 16,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 380.9 mg/L [H]、WBC 10396.0 /uL [H]、クレアチニン 3.21 mg/dL [H]、乳酸 3.2 mmol/L [H]。",
-        "objective": "BP 111/65 mmHg, HR 110 回/分, RR 19 回/分, SpO2 95%, T 39.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院17日目。 発熱 39.4°C 持続。 疼痛持続 (NRS 6)。"
-      },
-      "text": "S（主観） 入院17日目。 発熱 39.4°C 持続。 疼痛持続 (NRS 6)。\nO（客観） BP 111/65 mmHg, HR 110 回/分, RR 19 回/分, SpO2 95%, T 39.4°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 380.9 mg/L [H]、WBC 10396.0 /uL [H]、クレアチニン 3.21 mg/dL [H]、乳酸 3.2 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-19": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-19",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_17",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 17,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 201.2 mg/L [H]、WBC 12605.0 /uL [H]、クレアチニン 2.88 mg/dL [H]、乳酸 3.2 mmol/L [H]。",
-        "objective": "BP 112/67 mmHg, HR 109 回/分, RR 21 回/分, SpO2 94%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院18日目。 発熱 38.7°C 持続。 疼痛改善傾向 (NRS 前日 6 → 本日 4)。"
-      },
-      "text": "S（主観） 入院18日目。 発熱 38.7°C 持続。 疼痛改善傾向 (NRS 前日 6 → 本日 4)。\nO（客観） BP 112/67 mmHg, HR 109 回/分, RR 21 回/分, SpO2 94%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 201.2 mg/L [H]、WBC 12605.0 /uL [H]、クレアチニン 2.88 mg/dL [H]、乳酸 3.2 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-20": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-20",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_18",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 18,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 364.1 mg/L [H]、WBC 13645.0 /uL [H]、クレアチニン 2.7 mg/dL [H]、乳酸 3.7 mmol/L [H]。",
-        "objective": "BP 111/65 mmHg, HR 110 回/分, RR 22 回/分, SpO2 94%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院19日目。 発熱 39.0°C 持続。 疼痛持続 (NRS 4)。"
-      },
-      "text": "S（主観） 入院19日目。 発熱 39.0°C 持続。 疼痛持続 (NRS 4)。\nO（客観） BP 111/65 mmHg, HR 110 回/分, RR 22 回/分, SpO2 94%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 364.1 mg/L [H]、WBC 13645.0 /uL [H]、クレアチニン 2.7 mg/dL [H]、乳酸 3.7 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-21": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-21",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_19",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 19,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 407.9 mg/L [H]、WBC 13854.0 /uL [H]、クレアチニン 3.05 mg/dL [H]、乳酸 4.0 mmol/L [H]。",
-        "objective": "BP 110/67 mmHg, HR 108 回/分, RR 22 回/分, SpO2 91%, T 39.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院20日目。 発熱 39.8°C 上昇傾向。 SpO2 91% と悪化傾向。 疼痛持続 (NRS 5)。"
-      },
-      "text": "S（主観） 入院20日目。 発熱 39.8°C 上昇傾向。 SpO2 91% と悪化傾向。 疼痛持続 (NRS 5)。\nO（客観） BP 110/67 mmHg, HR 108 回/分, RR 22 回/分, SpO2 91%, T 39.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 407.9 mg/L [H]、WBC 13854.0 /uL [H]、クレアチニン 3.05 mg/dL [H]、乳酸 4.0 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-22": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-22",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_20",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 20,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 400.8 mg/L [H]、WBC 12962.0 /uL [H]、クレアチニン 2.59 mg/dL [H]、乳酸 2.5 mmol/L [H]。",
-        "objective": "BP 112/68 mmHg, HR 110 回/分, RR 23 回/分, SpO2 95%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院21日目。 発熱 39.0°C 持続。 SpO2 改善 (前日 91% → 本日 95%)。 疼痛持続 (NRS 5)。"
-      },
-      "text": "S（主観） 入院21日目。 発熱 39.0°C 持続。 SpO2 改善 (前日 91% → 本日 95%)。 疼痛持続 (NRS 5)。\nO（客観） BP 112/68 mmHg, HR 110 回/分, RR 23 回/分, SpO2 95%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 400.8 mg/L [H]、WBC 12962.0 /uL [H]、クレアチニン 2.59 mg/dL [H]、乳酸 2.5 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-23": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-23",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_21",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 21,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 90.0 mg/L [H]、WBC 12047.0 /uL [H]、クレアチニン 2.63 mg/dL [H]、乳酸 1.8 mmol/L [H]。",
-        "objective": "BP 111/68 mmHg, HR 108 回/分, RR 22 回/分, SpO2 98%, T 38.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院22日目。 発熱 38.3°C 持続。 疼痛持続 (NRS 6)。"
-      },
-      "text": "S（主観） 入院22日目。 発熱 38.3°C 持続。 疼痛持続 (NRS 6)。\nO（客観） BP 111/68 mmHg, HR 108 回/分, RR 22 回/分, SpO2 98%, T 38.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 90.0 mg/L [H]、WBC 12047.0 /uL [H]、クレアチニン 2.63 mg/dL [H]、乳酸 1.8 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-24": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-24",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_22",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 22,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 329.7 mg/L [H]、WBC 14602.0 /uL [H]、PT-INR 1.6 [H]、pH 7.3 [L]。",
-        "objective": "BP 115/69 mmHg, HR 106 回/分, RR 21 回/分, SpO2 98%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院23日目。 発熱 39.0°C 上昇傾向。 疼痛改善傾向 (NRS 前日 6 → 本日 4)。"
-      },
-      "text": "S（主観） 入院23日目。 発熱 39.0°C 上昇傾向。 疼痛改善傾向 (NRS 前日 6 → 本日 4)。\nO（客観） BP 115/69 mmHg, HR 106 回/分, RR 21 回/分, SpO2 98%, T 39.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 329.7 mg/L [H]、WBC 14602.0 /uL [H]、PT-INR 1.6 [H]、pH 7.3 [L]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-25": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-25",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_23",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 23,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 64.8 mg/L [H]、WBC 15677.0 /uL [H]、クレアチニン 2.37 mg/dL [H]、乳酸 3.2 mmol/L [H]。",
-        "objective": "BP 116/66 mmHg, HR 104 回/分, RR 21 回/分, SpO2 95%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院24日目。 発熱 38.8°C 持続。 疼痛増強 (NRS 前日 4 → 本日 8)。"
-      },
-      "text": "S（主観） 入院24日目。 発熱 38.8°C 持続。 疼痛増強 (NRS 前日 4 → 本日 8)。\nO（客観） BP 116/66 mmHg, HR 104 回/分, RR 21 回/分, SpO2 95%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 64.8 mg/L [H]、WBC 15677.0 /uL [H]、クレアチニン 2.37 mg/dL [H]、乳酸 3.2 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-26": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-26",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_24",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 24,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 262.6 mg/L [H]、WBC 15064.0 /uL [H]、クレアチニン 2.89 mg/dL [H]、乳酸 3.3 mmol/L [H]。",
-        "objective": "BP 114/70 mmHg, HR 108 回/分, RR 22 回/分, SpO2 93%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院25日目。 発熱 39.3°C 上昇傾向。 疼痛改善傾向 (NRS 前日 8 → 本日 6)。"
-      },
-      "text": "S（主観） 入院25日目。 発熱 39.3°C 上昇傾向。 疼痛改善傾向 (NRS 前日 8 → 本日 6)。\nO（客観） BP 114/70 mmHg, HR 108 回/分, RR 22 回/分, SpO2 93%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 262.6 mg/L [H]、WBC 15064.0 /uL [H]、クレアチニン 2.89 mg/dL [H]、乳酸 3.3 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-27": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-27",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_25",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 25,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 176.8 mg/L [H]、WBC 12956.0 /uL [H]、クレアチニン 2.62 mg/dL [H]、PT-INR 1.6 [H]。",
-        "objective": "BP 114/68 mmHg, HR 106 回/分, RR 23 回/分, SpO2 95%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院26日目。 発熱 38.5°C 持続。 疼痛改善傾向 (NRS 前日 6 → 本日 4)。"
-      },
-      "text": "S（主観） 入院26日目。 発熱 38.5°C 持続。 疼痛改善傾向 (NRS 前日 6 → 本日 4)。\nO（客観） BP 114/68 mmHg, HR 106 回/分, RR 23 回/分, SpO2 95%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 176.8 mg/L [H]、WBC 12956.0 /uL [H]、クレアチニン 2.62 mg/dL [H]、PT-INR 1.6 [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-28": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-28",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_26",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 26,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 71.4 mg/L [H]、WBC 14325.0 /uL [H]、クレアチニン 2.65 mg/dL [H]、PT-INR 1.5 [H]。",
-        "objective": "BP 117/71 mmHg, HR 108 回/分, RR 24 回/分, SpO2 95%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院27日目。 発熱 39.3°C 上昇傾向。 疼痛持続 (NRS 4)。"
-      },
-      "text": "S（主観） 入院27日目。 発熱 39.3°C 上昇傾向。 疼痛持続 (NRS 4)。\nO（客観） BP 117/71 mmHg, HR 108 回/分, RR 24 回/分, SpO2 95%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 71.4 mg/L [H]、WBC 14325.0 /uL [H]、クレアチニン 2.65 mg/dL [H]、PT-INR 1.5 [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-29": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-29",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_27",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 27,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 116.0 mg/L [H]、WBC 13985.0 /uL [H]、クレアチニン 2.35 mg/dL [H]、乳酸 2.5 mmol/L [H]。",
-        "objective": "BP 116/70 mmHg, HR 106 回/分, RR 19 回/分, SpO2 96%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、エノキサパリン。",
-        "subjective": "入院28日目。 発熱 38.8°C 持続。 疼痛コントロール良好 (NRS 4 → 3)。"
-      },
-      "text": "S（主観） 入院28日目。 発熱 38.8°C 持続。 疼痛コントロール良好 (NRS 4 → 3)。\nO（客観） BP 116/70 mmHg, HR 106 回/分, RR 19 回/分, SpO2 96%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 116.0 mg/L [H]、WBC 13985.0 /uL [H]、クレアチニン 2.35 mg/dL [H]、乳酸 2.5 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-30": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-30",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_28",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 28,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 301.4 mg/L [H]、WBC 13587.0 /uL [H]、クレアチニン 2.69 mg/dL [H]、乳酸 3.8 mmol/L [H]。",
-        "objective": "BP 116/73 mmHg, HR 103 回/分, RR 24 回/分, SpO2 94%, T 38.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院29日目。 発熱 38.3°C 持続。 疼痛増強 (NRS 前日 3 → 本日 5)。"
-      },
-      "text": "S（主観） 入院29日目。 発熱 38.3°C 持続。 疼痛増強 (NRS 前日 3 → 本日 5)。\nO（客観） BP 116/73 mmHg, HR 103 回/分, RR 24 回/分, SpO2 94%, T 38.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 301.4 mg/L [H]、WBC 13587.0 /uL [H]、クレアチニン 2.69 mg/dL [H]、乳酸 3.8 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-31": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-31",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_29",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 29,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 322.3 mg/L [H]、WBC 13845.0 /uL [H]、クレアチニン 2.21 mg/dL [H]、乳酸 2.7 mmol/L [H]。",
-        "objective": "BP 115/72 mmHg, HR 104 回/分, RR 20 回/分, SpO2 98%, T 38.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院30日目。 発熱 38.9°C 上昇傾向。 疼痛持続 (NRS 4)。"
-      },
-      "text": "S（主観） 入院30日目。 発熱 38.9°C 上昇傾向。 疼痛持続 (NRS 4)。\nO（客観） BP 115/72 mmHg, HR 104 回/分, RR 20 回/分, SpO2 98%, T 38.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 322.3 mg/L [H]、WBC 13845.0 /uL [H]、クレアチニン 2.21 mg/dL [H]、乳酸 2.7 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-32": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-32",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.vitals.today",
-        "physical_exam_findings.dip_then_recovery.day_30",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 30,
-        "generator": "template",
-        "lang": "ja",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S（主観）",
-              "subjective"
-            ],
-            [
-              "O（客観）",
-              "objective"
-            ],
-            [
-              "A（評価）",
-              "assessment"
-            ],
-            [
-              "P（計画）",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 161.2 mg/L [H]、WBC 14540.0 /uL [H]、クレアチニン 2.43 mg/dL [H]、乳酸 2.6 mmol/L [H]。",
-        "objective": "BP 117/71 mmHg, HR 106 回/分, RR 23 回/分, SpO2 93%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
-        "plan": "薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。",
-        "subjective": "入院31日目。 発熱 38.5°C 持続。 疼痛持続 (NRS 5)。"
-      },
-      "text": "S（主観） 入院31日目。 発熱 38.5°C 持続。 疼痛持続 (NRS 5)。\nO（客観） BP 117/71 mmHg, HR 106 回/分, RR 23 回/分, SpO2 93%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） 合併症 ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害 を認識、対応継続中。 本日の検査所見: CRP 161.2 mg/L [H]、WBC 14540.0 /uL [H]、クレアチニン 2.43 mg/dL [H]、乳酸 2.6 mmol/L [H]。\nP（計画） 薬物療法継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-33": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-33",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.diagnoses[0].admission_diagnosis_code",
-        "ctx.encounter.admission_datetime",
-        "ctx.diagnoses",
-        "ctx.encounter.chief_complaint_ja",
-        "chief_complaint_variants.sepsis[3]",
-        "disease_protocol.narrative.hpi_template.onset_pattern.severe",
-        "disease_protocol.narrative.hpi_template.trigger_options[0]",
-        "ctx.patient.demographics",
-        "ctx.encounter.chief_complaint",
-        "ctx.patient.chronic_conditions",
-        "ctx.complications_occurred",
-        "ctx.working_diagnoses",
-        "ctx.los_days",
-        "ctx.encounter.discharge_datetime",
-        "ctx.diagnoses",
-        "ctx.discharge_medications",
-        "discharge_instructions.baseline",
-        "discharge_instructions.disease_specific.sepsis"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "generator": "template",
-        "lang": "ja"
-      },
-      "sections": {
-        "admission_details": "2024-06-15に入院した。",
-        "admission_diagnoses": "1. 敗血症，詳細不明（A41.9）",
-        "admission_reason": "敗血症，詳細不明のため入院となった。",
-        "chief_complaint": "3日前より倦怠感・本日ぐったり",
-        "discharge_details": "2024-07-16自宅退院となった。",
-        "discharge_diagnoses": "敗血症性ショック（R65.21）",
-        "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 1-2 週間以内に外来受診をお願いします。 処方された薬を指示通り内服してください。 症状悪化があれば速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。 1 日 2 回体温測定。体調に合わせた休息・食事を心がけ、抗菌薬は最後まで内服してください。 発熱 38℃ 以上、悪寒、意識障害、頻脈、尿量減少、新たな疼痛出現時は救急受診してください。 徐々に通常活動を再開してください。 バランスの良い食事と十分な水分摂取を心がけてください。",
-        "discharge_medications": "レボフロキサシン 500mg 経口 1日1回",
-        "hospital_course": "入院期間 31 日間（主病名/主訴: 発熱・意識変容・低血圧）。 経過中の合併症: ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害、中心静脈カテーテル関連血流感染症、クロストリジウム・ディフィシル腸炎。",
-        "present_illness": "症状急速に増悪、本日受診。 急性発症 74歳男性患者。主訴: 発熱・意識変容・低血圧。既往: 慢性腎臓病。ROS: 頭痛なし、痙攣なし。"
-      },
-      "text": ""
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-34": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-34",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.encounter.chief_complaint",
-        "ctx.patient.chronic_conditions",
-        "ctx.adl_assessments[-1]",
-        "ctx.patient.chronic_conditions",
-        "ctx.patient.chronic_conditions"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "generator": "template",
-        "lang": "ja"
-      },
-      "sections": {
-        "adl_assessment": "Barthel Index 100/100 → 自立（食事10、入浴5、移動15、排泄10）",
-        "care_plan": "看護計画: 尿量・浮腫観察、電解質モニタ。",
-        "nursing_diagnosis": "看護診断: 腎機能低下・電解質異常のリスク。",
-        "nursing_history": "入院目的: 発熱・意識変容・低血圧。既往: 慢性腎臓病。",
-        "risk_assessments": "転倒・褥瘡リスク：評価中"
-      },
-      "text": ""
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-35-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-35-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 0,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 1 日目 / 入院予定 31 日間\n患者状態: BP 104/62, HR 119, SpO2 95%, T 38.5°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-36-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-36-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 0,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 31 日間\n患者状態: BP 104/62, HR 119, SpO2 95%, T 38.5°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-37-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-37-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 1,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 31 日間\n患者状態: BP 104/62, HR 124, SpO2 97%, T 38.3°C、酸素投与: 経鼻カニューレ 3.5 L/min。\n投薬継続: メロペネム、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-38-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-38-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 1,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 31 日間\n患者状態: BP 104/62, HR 124, SpO2 97%, T 38.3°C、酸素投与: 経鼻カニューレ 3.5 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-39-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-39-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 1,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 31 日間\n患者状態: BP 104/62, HR 124, SpO2 97%, T 38.3°C、酸素投与: 経鼻カニューレ 3.5 L/min。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-40-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-40-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 2,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 31 日間\n患者状態: T 39.4°C。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-41-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-41-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 2,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 31 日間\n患者状態: T 39.4°C。\n投薬継続: メロペネム、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-42-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-42-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 2,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 31 日間\n患者状態: T 39.4°C。\n投薬継続: メロペネム、バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-43-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-43-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 3,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 31 日間\n患者状態: BP 103/62, HR 122, SpO2 97%, T 39.3°C、酸素投与: 酸素マスク 6.6 L/min。\n投薬継続: メロペネム、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-44-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-44-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 3,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 31 日間\n患者状態: BP 103/62, HR 122, SpO2 97%, T 39.3°C、酸素投与: 酸素マスク 6.6 L/min。\n投薬継続: バンコマイシン、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-45-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-45-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 3,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 31 日間\n患者状態: BP 103/62, HR 122, SpO2 97%, T 39.3°C、酸素投与: 酸素マスク 6.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-46-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-46-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 4,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 31 日間\n患者状態: BP 105/65, HR 117, SpO2 94%, T 39.8°C、酸素投与: 経鼻カニューレ 2.2 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-47-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-47-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 4,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 31 日間\n患者状態: BP 105/65, HR 117, SpO2 94%, T 39.8°C、酸素投与: 経鼻カニューレ 2.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-48-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-48-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 4,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 31 日間\n患者状態: BP 105/65, HR 117, SpO2 94%, T 39.8°C、酸素投与: 経鼻カニューレ 2.2 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-49-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-49-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 5,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 31 日間\n患者状態: BP 105/61, HR 120, SpO2 97%, T 38.9°C、酸素投与: 酸素マスク 4.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-50-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-50-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 5,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 31 日間\n患者状態: BP 105/61, HR 120, SpO2 97%, T 38.9°C、酸素投与: 酸素マスク 4.2 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-51-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-51-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 5,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 31 日間\n患者状態: BP 105/61, HR 120, SpO2 97%, T 38.9°C、酸素投与: 酸素マスク 4.2 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-52-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-52-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 6,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 31 日間\n患者状態: BP 105/64, HR 112, SpO2 98%, T 39.9°C、酸素投与: リザーバーマスク 9 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-53-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-53-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 6,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 31 日間\n患者状態: BP 105/64, HR 112, SpO2 98%, T 39.9°C、酸素投与: リザーバーマスク 9 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-54-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-54-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 6,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 31 日間\n患者状態: BP 105/64, HR 112, SpO2 98%, T 39.9°C、酸素投与: リザーバーマスク 9 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-55-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-55-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 7,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 31 日間\n患者状態: BP 107/65, HR 115, SpO2 92%, T 39.4°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-56-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-56-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 7,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 31 日間\n患者状態: BP 107/65, HR 115, SpO2 92%, T 39.4°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-57-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-57-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 7,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 31 日間\n患者状態: BP 107/65, HR 115, SpO2 92%, T 39.4°C、酸素投与: 経鼻カニューレ 2.3 L/min。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-58-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-58-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 8,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 31 日間\n患者状態: BP 109/65, HR 114, SpO2 97%, T 39.1°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-59-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-59-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 8,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 31 日間\n患者状態: BP 109/65, HR 114, SpO2 97%, T 39.1°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-60-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-60-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 8,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 31 日間\n患者状態: BP 109/65, HR 114, SpO2 97%, T 39.1°C、酸素投与: 酸素マスク 4.7 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-61-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-61-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 9,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 31 日間\n患者状態: BP 108/65, HR 108, SpO2 98%, T 39.4°C、酸素投与: リザーバーマスク 9.3 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-62-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-62-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 9,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 31 日間\n患者状態: BP 108/65, HR 108, SpO2 98%, T 39.4°C、酸素投与: リザーバーマスク 9.3 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-63-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-63-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 9,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 31 日間\n患者状態: BP 108/65, HR 108, SpO2 98%, T 39.4°C、酸素投与: リザーバーマスク 9.3 L/min。\n投薬継続: バンコマイシン、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-64-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-64-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 10,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 11 日目 / 入院予定 31 日間\n患者状態: BP 110/66, HR 110, SpO2 95%, T 39.3°C、酸素投与: 経鼻カニューレ 3.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-65-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-65-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 10,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 11 日目 / 入院予定 31 日間\n患者状態: BP 110/66, HR 110, SpO2 95%, T 39.3°C、酸素投与: 経鼻カニューレ 3.6 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-66-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-66-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 10,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 11 日目 / 入院予定 31 日間\n患者状態: BP 110/66, HR 110, SpO2 95%, T 39.3°C、酸素投与: 経鼻カニューレ 3.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-67-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-67-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 11,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 12 日目 / 入院予定 31 日間\n患者状態: BP 105/58, HR 109, SpO2 98%, T 39.0°C、酸素投与: リザーバーマスク 8.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-68-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-68-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 11,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 12 日目 / 入院予定 31 日間\n患者状態: BP 105/58, HR 109, SpO2 98%, T 39.0°C、酸素投与: リザーバーマスク 8.6 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-69-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-69-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 11,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 12 日目 / 入院予定 31 日間\n患者状態: BP 105/58, HR 109, SpO2 98%, T 39.0°C、酸素投与: リザーバーマスク 8.6 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-70-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-70-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 12,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 13 日目 / 入院予定 31 日間\n患者状態: BP 107/61, HR 110, SpO2 98%, T 38.7°C、酸素投与: リザーバーマスク 9.1 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-71-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-71-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 12,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 13 日目 / 入院予定 31 日間\n患者状態: BP 107/61, HR 110, SpO2 98%, T 38.7°C、酸素投与: リザーバーマスク 9.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-72-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-72-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 12,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 13 日目 / 入院予定 31 日間\n患者状態: BP 107/61, HR 110, SpO2 98%, T 38.7°C、酸素投与: リザーバーマスク 9.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-73-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-73-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 13,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 14 日目 / 入院予定 31 日間\n患者状態: BP 103/63, HR 118, SpO2 92%, T 39.6°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-74-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-74-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 13,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 14 日目 / 入院予定 31 日間\n患者状態: BP 103/63, HR 118, SpO2 92%, T 39.6°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-75-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-75-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 13,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 14 日目 / 入院予定 31 日間\n患者状態: BP 103/63, HR 118, SpO2 92%, T 39.6°C、酸素投与: 経鼻カニューレ 2.4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-76-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-76-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 14,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 15 日目 / 入院予定 31 日間\n患者状態: BP 103/64, HR 113, SpO2 97%, T 38.7°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-77-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-77-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 14,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 15 日目 / 入院予定 31 日間\n患者状態: BP 103/64, HR 113, SpO2 97%, T 38.7°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-78-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-78-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 14,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 15 日目 / 入院予定 31 日間\n患者状態: BP 103/64, HR 113, SpO2 97%, T 38.7°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-79-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-79-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 15,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 16 日目 / 入院予定 31 日間\n患者状態: BP 107/61, HR 115, SpO2 93%, T 40.1°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-80-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-80-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 15,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 16 日目 / 入院予定 31 日間\n患者状態: BP 107/61, HR 115, SpO2 93%, T 40.1°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-81-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-81-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 15,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 16 日目 / 入院予定 31 日間\n患者状態: BP 107/61, HR 115, SpO2 93%, T 40.1°C、酸素投与: 経鼻カニューレ 2.8 L/min。\n投薬継続: バンコマイシン、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-82-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-82-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 16,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 17 日目 / 入院予定 31 日間\n患者状態: BP 111/65, HR 110, SpO2 95%, T 39.4°C、酸素投与: 経鼻カニューレ 3.4 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-83-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-83-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 16,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 17 日目 / 入院予定 31 日間\n患者状態: BP 111/65, HR 110, SpO2 95%, T 39.4°C、酸素投与: 経鼻カニューレ 3.4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-84-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-84-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 16,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 17 日目 / 入院予定 31 日間\n患者状態: BP 111/65, HR 110, SpO2 95%, T 39.4°C、酸素投与: 経鼻カニューレ 3.4 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-85-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-85-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 17,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 18 日目 / 入院予定 31 日間\n患者状態: BP 112/67, HR 109, SpO2 94%, T 38.7°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-86-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-86-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 17,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 18 日目 / 入院予定 31 日間\n患者状態: BP 112/67, HR 109, SpO2 94%, T 38.7°C。\n投薬継続: メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-87-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-87-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 17,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 18 日目 / 入院予定 31 日間\n患者状態: BP 112/67, HR 109, SpO2 94%, T 38.7°C。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-88-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-88-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 18,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 19 日目 / 入院予定 31 日間\n患者状態: BP 111/65, HR 110, SpO2 94%, T 39.0°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-89-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-89-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 18,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 19 日目 / 入院予定 31 日間\n患者状態: BP 111/65, HR 110, SpO2 94%, T 39.0°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-90-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-90-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 18,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 19 日目 / 入院予定 31 日間\n患者状態: BP 111/65, HR 110, SpO2 94%, T 39.0°C、酸素投与: 酸素マスク 4.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-91-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-91-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 19,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 20 日目 / 入院予定 31 日間\n患者状態: BP 110/67, HR 108, SpO2 91%, T 39.8°C、酸素投与: 経鼻カニューレ 2.1 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-92-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-92-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 19,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 20 日目 / 入院予定 31 日間\n患者状態: BP 110/67, HR 108, SpO2 91%, T 39.8°C、酸素投与: 経鼻カニューレ 2.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-93-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-93-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 19,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 20 日目 / 入院予定 31 日間\n患者状態: BP 110/67, HR 108, SpO2 91%, T 39.8°C、酸素投与: 経鼻カニューレ 2.1 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-94-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-94-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 20,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 21 日目 / 入院予定 31 日間\n患者状態: BP 112/68, HR 110, SpO2 95%, T 39.0°C、酸素投与: 経鼻カニューレ 3.8 L/min。\n投薬継続: メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-95-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-95-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 20,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 21 日目 / 入院予定 31 日間\n患者状態: BP 112/68, HR 110, SpO2 95%, T 39.0°C、酸素投与: 経鼻カニューレ 3.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-96-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-96-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 20,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 21 日目 / 入院予定 31 日間\n患者状態: BP 112/68, HR 110, SpO2 95%, T 39.0°C、酸素投与: 経鼻カニューレ 3.8 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-97-night": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-97-night",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 21,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "【看護記録(深夜)】 入院 22 日目 / 入院予定 31 日間\n患者状態: BP 111/68, HR 108, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 5 L/min。\n投薬継続: ミカファンギン 100mg 静注 1日1回、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-98-day": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-98-day",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 21,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "【看護記録(日勤)】 入院 22 日目 / 入院予定 31 日間\n患者状態: BP 111/68, HR 108, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 5 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-99-evening": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-99-evening",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 21,
-        "generator": "template",
-        "lang": "ja",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "【看護記録(準夜)】 入院 22 日目 / 入院予定 31 日間\n患者状態: BP 111/68, HR 108, SpO2 98%, T 38.3°C、酸素投与: 酸素マスク 5 L/min。\n投薬継続: バンコマイシン、メロペネム 2g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
-    }
-  },
-  "doc-ENC-FORCED-0001-013699914137-ED-133": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-ED-133",
+  "doc-ENC-FORCED-0001-013699914137-ED-21": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-ED-21",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [
@@ -3922,19 +657,19 @@
         "lang": "ja"
       },
       "sections": {
-        "assessment": "救急対応中の疾患: 急性腎不全，詳細不明。合併症: ICU せん妄、播種性血管内凝固症候群 (DIC)、急性腎障害。",
+        "assessment": "来院理由: 発熱・意識変容・低血圧",
         "chief_complaint": "3日前より倦怠感・本日ぐったり",
-        "disposition": "自宅退院（JTAS レベル 2、発熱・意識変容・低血圧）",
-        "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、血液培養 (セット 1)、血液培養 (セット 2)、乳酸、CRP、PCT、クレアチニン。画像: 胸部レントゲン (正面・側面)、腹部・骨盤 CT、胸部レントゲン (臥位正面)、胸部ポータブルレントゲン。投薬: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回。異常値: WBC 12282.0 /uL [H]、アルブミン 2.4 g/dL [L]、乳酸 3.4 mmol/L [H]、CRP 337.7 mg/L [H]",
+        "disposition": "救急室内死亡（家族への説明済み）",
+        "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、血液培養 (セット 1)、血液培養 (セット 2)、乳酸、CRP、PCT、クレアチニン。画像: 胸部レントゲン (正面・側面)、腹部・骨盤 CT、胸部レントゲン (臥位正面)、胸部ポータブルレントゲン。投薬: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、エノキサパリン。異常値: WBC 12282.0 /uL [H]、アルブミン 2.4 g/dL [L]、乳酸 3.4 mmol/L [H]、CRP 337.7 mg/L [H]",
         "hpi": "重度の症状で受診。",
-        "physical_exam": "来院時所見: BP 104/62 mmHg, HR 119 回/分, RR 20 回/分, SpO2 95%, T 38.5°C。特記の身体所見なし。",
+        "physical_exam": "来院時所見: BP 107/65 mmHg, HR 118 回/分, RR 21 回/分, SpO2 94%, T 39.4°C。特記の身体所見なし。",
         "triage_details": "トリアージ情報：未記録"
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-013699914137-ED-134": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-ED-134",
+  "doc-ENC-FORCED-0001-013699914137-ED-22": {
+    "document_id": "doc-ENC-FORCED-0001-013699914137-ED-22",
     "encounter_id": "ENC-FORCED-0001-013699914137",
     "narrative": {
       "facts_used": [],

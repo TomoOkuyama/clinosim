@@ -27,7 +27,7 @@
         "hpi": "Patient reports rapid symptom worsening prompting today's presentation.",
         "medications_at_home": "No home medications",
         "past_medical_history": "Essential (primary) hypertension [I10]; Unspecified atrial fibrillation [I48.91]",
-        "physical_examination": "Vital signs: BP 132/78 mmHg, HR 94/min, T 37.6°C, SpO2 92% (RA), RR 20/min. General: no additional exam findings recorded.",
+        "physical_examination": "Vital signs: BP 135/84 mmHg, HR 93/min, T 38.0°C, SpO2 95% (RA), RR 20/min. General: no additional exam findings recorded.",
         "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: Other"
       },
       "text": ""
@@ -75,12 +75,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H], albumin 3.2 g/dL [L].",
-        "objective": "BP 132/78 mmHg, HR 94/min, T 37.6°C, SpO2 92% (RA), RR 20/min",
+        "assessment": "Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H], albumin 3.2 g/dL [L].",
+        "objective": "BP 135/84 mmHg, HR 93/min, T 38.0°C, SpO2 95% (RA), RR 20/min",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.",
-        "subjective": "Hospital day 1. Pain persists (NRS 5). New decrease in level of consciousness (AVPU V); orientation being monitored."
+        "subjective": "Hospital day 1. Persistent fever 38.0°C. Pain persists (NRS 5). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 1. Pain persists (NRS 5). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 132/78 mmHg, HR 94/min, T 37.6°C, SpO2 92% (RA), RR 20/min\nA: Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H], albumin 3.2 g/dL [L].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h."
+      "text": "S: Hospital day 1. Persistent fever 38.0°C. Pain persists (NRS 5). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 135/84 mmHg, HR 93/min, T 38.0°C, SpO2 95% (RA), RR 20/min\nA: Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H], albumin 3.2 g/dL [L].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-03": {
@@ -125,12 +125,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs today: glucose 116.0 mg/dL [H], WBC 12000.0 /uL [H].",
-        "objective": "BP 132/80 mmHg, HR 99/min, T 38.2°C, SpO2 96% (RA), RR 16/min",
+        "assessment": "Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: glucose 118.0 mg/dL [H], WBC 12149.0 /uL [H].",
+        "objective": "BP 133/82 mmHg, HR 99/min, T 38.2°C, SpO2 96% (RA), RR 19/min",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.",
-        "subjective": "Hospital day 2. New-onset fever 38.2°C. Pain worsening (NRS 5 → 8). Level of consciousness remains decreased (AVPU V)."
+        "subjective": "Hospital day 2. Persistent fever 38.2°C. Pain persists (NRS 5). Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 2. New-onset fever 38.2°C. Pain worsening (NRS 5 → 8). Level of consciousness remains decreased (AVPU V).\nO: BP 132/80 mmHg, HR 99/min, T 38.2°C, SpO2 96% (RA), RR 16/min\nA: Notable labs today: glucose 116.0 mg/dL [H], WBC 12000.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h."
+      "text": "S: Hospital day 2. Persistent fever 38.2°C. Pain persists (NRS 5). Level of consciousness remains decreased (AVPU V).\nO: BP 133/82 mmHg, HR 99/min, T 38.2°C, SpO2 96% (RA), RR 19/min\nA: Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: glucose 118.0 mg/dL [H], WBC 12149.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-04": {
@@ -175,12 +175,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs today: glucose 114.0 mg/dL [H], WBC 13045.0 /uL [H].",
-        "objective": "BP 134/84 mmHg, HR 100/min, T 37.0°C, SpO2 94% (RA), RR 19/min",
+        "assessment": "Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: glucose 114.0 mg/dL [H], WBC 13175.0 /uL [H].",
+        "objective": "BP 132/78 mmHg, HR 99/min, T 37.4°C, SpO2 92% (RA), RR 21/min",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.",
-        "subjective": "Hospital day 3. Fever trending down (prev 38.2°C → today 37.0°C). Pain persists (NRS 7). Level of consciousness remains decreased (AVPU V)."
+        "subjective": "Hospital day 3. Fever trending down (prev 38.2°C → today 37.4°C). Pain worsening (NRS 5 → 7). Level of consciousness remains decreased (AVPU P)."
       },
-      "text": "S: Hospital day 3. Fever trending down (prev 38.2°C → today 37.0°C). Pain persists (NRS 7). Level of consciousness remains decreased (AVPU V).\nO: BP 134/84 mmHg, HR 100/min, T 37.0°C, SpO2 94% (RA), RR 19/min\nA: Notable labs today: glucose 114.0 mg/dL [H], WBC 13045.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h."
+      "text": "S: Hospital day 3. Fever trending down (prev 38.2°C → today 37.4°C). Pain worsening (NRS 5 → 7). Level of consciousness remains decreased (AVPU P).\nO: BP 132/78 mmHg, HR 99/min, T 37.4°C, SpO2 92% (RA), RR 21/min\nA: Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: glucose 114.0 mg/dL [H], WBC 13175.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-05": {
@@ -225,12 +225,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs today: glucose 122.0 mg/dL [H].",
-        "objective": "BP 133/81 mmHg, HR 102/min, T 36.7°C, SpO2 96%, RR 19/min",
+        "assessment": "Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: glucose 123.0 mg/dL [H], WBC 10618.0 /uL [H].",
+        "objective": "T 38.1°C",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
-        "subjective": "Hospital day 4. Pain improving (NRS 7 → 5). Level of consciousness remains decreased (AVPU V)."
+        "subjective": "Hospital day 4. New-onset fever 38.1°C. Pain improving (NRS 7 → 4). Level of consciousness remains decreased (AVPU P)."
       },
-      "text": "S: Hospital day 4. Pain improving (NRS 7 → 5). Level of consciousness remains decreased (AVPU V).\nO: BP 133/81 mmHg, HR 102/min, T 36.7°C, SpO2 96%, RR 19/min\nA: Notable labs today: glucose 122.0 mg/dL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
+      "text": "S: Hospital day 4. New-onset fever 38.1°C. Pain improving (NRS 7 → 4). Level of consciousness remains decreased (AVPU P).\nO: T 38.1°C\nA: Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: glucose 123.0 mg/dL [H], WBC 10618.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-06": {
@@ -275,12 +275,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs today: glucose 117.0 mg/dL [H], WBC 12310.0 /uL [H].",
-        "objective": "BP 136/80 mmHg, HR 100/min, T 37.2°C, SpO2 93% (RA), RR 19/min",
+        "assessment": "Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: glucose 117.0 mg/dL [H], WBC 12420.0 /uL [H].",
+        "objective": "T 37.5°C",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
-        "subjective": "Hospital day 5. Pain persists (NRS 6). Level of consciousness improved, now alert (prev AVPU V)."
+        "subjective": "Hospital day 5. Pain persists (NRS 5). Level of consciousness remains decreased (AVPU P)."
       },
-      "text": "S: Hospital day 5. Pain persists (NRS 6). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 136/80 mmHg, HR 100/min, T 37.2°C, SpO2 93% (RA), RR 19/min\nA: Notable labs today: glucose 117.0 mg/dL [H], WBC 12310.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
+      "text": "S: Hospital day 5. Pain persists (NRS 5). Level of consciousness remains decreased (AVPU P).\nO: T 37.5°C\nA: Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: glucose 117.0 mg/dL [H], WBC 12420.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-07": {
@@ -325,12 +325,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs today: glucose 119.0 mg/dL [H], WBC 11222.0 /uL [H].",
-        "objective": "BP 136/81 mmHg, HR 101/min, T 37.0°C, SpO2 95% (RA), RR 19/min",
+        "assessment": "Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: glucose 143.0 mg/dL [H], WBC 15973.0 /uL [H].",
+        "objective": "BP 127/75 mmHg, HR 106/min, T 38.9°C, SpO2 98%, RR 18/min",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
-        "subjective": "Hospital day 6. Pain persists (NRS 5)."
+        "subjective": "Hospital day 6. New-onset fever 38.9°C. Pain persists (NRS 5). Level of consciousness remains decreased (AVPU U)."
       },
-      "text": "S: Hospital day 6. Pain persists (NRS 5).\nO: BP 136/81 mmHg, HR 101/min, T 37.0°C, SpO2 95% (RA), RR 19/min\nA: Notable labs today: glucose 119.0 mg/dL [H], WBC 11222.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
+      "text": "S: Hospital day 6. New-onset fever 38.9°C. Pain persists (NRS 5). Level of consciousness remains decreased (AVPU U).\nO: BP 127/75 mmHg, HR 106/min, T 38.9°C, SpO2 98%, RR 18/min\nA: Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: glucose 143.0 mg/dL [H], WBC 15973.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-08": {
@@ -375,96 +375,16 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs today: glucose 117.0 mg/dL [H], WBC 13983.0 /uL [H].",
-        "objective": "BP 137/79 mmHg, HR 99/min, T 36.8°C, SpO2 93% (RA), RR 19/min",
+        "assessment": "Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: PT-INR 1.2 [H], glucose 127.0 mg/dL [H], WBC 16576.0 /uL [H].",
+        "objective": "BP 132/81 mmHg, HR 107/min, T 38.3°C, SpO2 96%, RR 23/min",
         "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
-        "subjective": "Hospital day 7. Pain persists (NRS 4). New decrease in level of consciousness (AVPU V); orientation being monitored."
+        "subjective": "Hospital day 7. Persistent fever 38.3°C. Pain persists (NRS 4). Level of consciousness remains decreased (AVPU U)."
       },
-      "text": "S: Hospital day 7. Pain persists (NRS 4). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 137/79 mmHg, HR 99/min, T 36.8°C, SpO2 93% (RA), RR 19/min\nA: Notable labs today: glucose 117.0 mg/dL [H], WBC 13983.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
+      "text": "S: Hospital day 7. Persistent fever 38.3°C. Pain persists (NRS 4). Level of consciousness remains decreased (AVPU U).\nO: BP 132/81 mmHg, HR 107/min, T 38.3°C, SpO2 96%, RR 23/min\nA: Complications noted (hematoma expansion, cerebral edema, aspiration pneumonia); management ongoing. Notable labs today: PT-INR 1.2 [H], glucose 127.0 mg/dL [H], WBC 16576.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-09": {
     "document_id": "doc-ENC-FORCED-0001-160487169457-09",
-    "encounter_id": "ENC-FORCED-0001-160487169457",
-    "narrative": {
-      "facts_used": [
-        "composed:progress_note_soap_en",
-        "ctx.progress_subjective.state_composed.en",
-        "ctx.vitals[day_7].en",
-        "ctx.progress_assessment.state_composed.en",
-        "ctx.progress_plan.state_composed.en",
-        "ctx.day_index",
-        "ctx.clinical_course_archetype"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 7,
-        "generator": "template",
-        "lang": "en",
-        "raw_text_rejoin": {
-          "order": [
-            [
-              "S:",
-              "subjective"
-            ],
-            [
-              "O:",
-              "objective"
-            ],
-            [
-              "A:",
-              "assessment"
-            ],
-            [
-              "P:",
-              "plan"
-            ]
-          ],
-          "separator": "\n"
-        }
-      },
-      "sections": {
-        "assessment": "Notable labs today: glucose 123.0 mg/dL [H], WBC 10984.0 /uL [H].",
-        "objective": "BP 131/81 mmHg, HR 99/min, T 38.1°C, SpO2 94% (RA), RR 22/min",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.",
-        "subjective": "Hospital day 8. New-onset fever 38.1°C. Pain well controlled (NRS 4 → 2). Level of consciousness improved, now alert (prev AVPU V)."
-      },
-      "text": "S: Hospital day 8. New-onset fever 38.1°C. Pain well controlled (NRS 4 → 2). Level of consciousness improved, now alert (prev AVPU V).\nO: BP 131/81 mmHg, HR 99/min, T 38.1°C, SpO2 94% (RA), RR 22/min\nA: Notable labs today: glucose 123.0 mg/dL [H], WBC 10984.0 /uL [H].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line."
-    }
-  },
-  "doc-ENC-FORCED-0001-160487169457-10": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-10",
-    "encounter_id": "ENC-FORCED-0001-160487169457",
-    "narrative": {
-      "facts_used": [
-        "ctx.encounter.chief_complaint",
-        "ctx.los_days",
-        "ctx.diagnoses",
-        "ctx.discharge_medications",
-        "discharge_instructions.baseline",
-        "discharge_instructions.disease_specific.hemorrhagic_stroke",
-        "discharge_instructions.follow_up"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "generator": "template",
-        "lang": "en"
-      },
-      "sections": {
-        "admission_summary": "Chief complaint: Sudden severe headache, vomiting, altered consciousness. Admitted for inpatient care.",
-        "discharge_diagnoses": "Nontraumatic intracerebral hemorrhage, unspecified (I61.9)",
-        "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Neurology/neurosurgery follow-up within 2-4 weeks. Repeat imaging per plan. Strict blood pressure control is essential. Do NOT restart anticoagulants without specialist approval. Return to ER immediately for: sudden severe headache, new or worsening weakness/speech difficulty, altered consciousness. Resume a normal diet gradually as tolerated. Strict blood pressure control (BP <140/90 target). Continue rehabilitation. Call ambulance immediately for severe headache, vomiting, weakness recurrence, or consciousness change. Activity restrictions per neurologist. Early rehabilitation as tolerated. Low-sodium diet. Blood pressure home monitoring twice daily.",
-        "discharge_medications": "Amlodipine 5-10mg PO daily; Levetiracetam 500mg PO BID",
-        "follow_up": "Neurology/neurosurgery follow-up within 2-4 weeks. Repeat imaging per plan.",
-        "hospital_course": "Length of stay: 8 days (primary reason: Sudden severe headache, vomiting, altered consciousness)."
-      },
-      "text": ""
-    }
-  },
-  "doc-ENC-FORCED-0001-160487169457-11": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-11",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -481,7 +401,7 @@
         "lang": "en"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 95/100 → independent (feeding=10, bathing=5, mobility=15, toilet_use=10)",
+        "adl_assessment": "Barthel Index 65/100 → minimal assistance (feeding=5, bathing=5, mobility=10, toilet_use=5)",
         "care_plan": "Care plan: monitor BP AM/PM; escalate to MD if goal not met.",
         "nursing_diagnosis": "Nursing diagnoses: risk for inadequate BP control.",
         "nursing_history": "Admission reason: Sudden severe headache, vomiting, altered consciousness. PMH: Hypertension (HTN), Atrial fibrillation (AF).",
@@ -490,8 +410,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-12-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-12-day",
+  "doc-ENC-FORCED-0001-160487169457-10-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-10-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -510,11 +430,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 8 days\nPatient status: BP 132/78, HR 94, SpO2 92%, T 37.6°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 7 days\nPatient status: BP 135/84, HR 93, SpO2 95%, T 38.0°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-13-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-13-evening",
+  "doc-ENC-FORCED-0001-160487169457-11-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-11-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -532,16 +452,17 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 8 days\nPatient status: BP 132/78, HR 94, SpO2 92%, T 37.6°C.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 7 days\nPatient status: BP 135/84, HR 93, SpO2 95%, T 38.0°C.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-14-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-14-night",
+  "doc-ENC-FORCED-0001-160487169457-12-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-12-night",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
         "ctx.shift",
         "ctx.vitals.today",
+        "ctx.medications.today",
         "ctx.day_index",
         "ctx.los_days"
       ],
@@ -554,11 +475,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 8 days\nPatient status: BP 132/80, HR 99, SpO2 96%, T 38.2°C.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 7 days\nPatient status: BP 133/82, HR 99, SpO2 96%, T 38.2°C.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-15-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-15-day",
+  "doc-ENC-FORCED-0001-160487169457-13-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-13-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -577,11 +498,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 8 days\nPatient status: BP 132/80, HR 99, SpO2 96%, T 38.2°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 7 days\nPatient status: BP 133/82, HR 99, SpO2 96%, T 38.2°C.\nMeds administered: IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-16-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-16-evening",
+  "doc-ENC-FORCED-0001-160487169457-14-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-14-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -599,11 +520,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 8 days\nPatient status: BP 132/80, HR 99, SpO2 96%, T 38.2°C.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 7 days\nPatient status: BP 133/82, HR 99, SpO2 96%, T 38.2°C.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-17-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-17-night",
+  "doc-ENC-FORCED-0001-160487169457-15-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-15-night",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -621,11 +542,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 8 days\nPatient status: BP 134/84, HR 100, SpO2 94%, T 37.0°C.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 7 days\nPatient status: BP 132/78, HR 99, SpO2 92%, T 37.4°C.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-18-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-18-day",
+  "doc-ENC-FORCED-0001-160487169457-16-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-16-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -644,11 +565,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 8 days\nPatient status: BP 134/84, HR 100, SpO2 94%, T 37.0°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 7 days\nPatient status: BP 132/78, HR 99, SpO2 92%, T 37.4°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-19-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-19-evening",
+  "doc-ENC-FORCED-0001-160487169457-17-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-17-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -666,11 +587,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 8 days\nPatient status: BP 134/84, HR 100, SpO2 94%, T 37.0°C.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 7 days\nPatient status: BP 132/78, HR 99, SpO2 92%, T 37.4°C.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-20-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-20-night",
+  "doc-ENC-FORCED-0001-160487169457-18-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-18-night",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -689,11 +610,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 8 days\nPatient status: BP 133/81, HR 102, SpO2 96%, T 36.7°C; nasal cannula 3.2 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 7 days\nPatient status: T 38.1°C.\nMeds administered: Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-21-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-21-day",
+  "doc-ENC-FORCED-0001-160487169457-19-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-19-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -712,11 +633,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 8 days\nPatient status: BP 133/81, HR 102, SpO2 96%, T 36.7°C; nasal cannula 3.2 L/min.\nMeds administered: Labetalol.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 7 days\nPatient status: T 38.1°C.\nMeds administered: Nicardipine, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-22-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-22-evening",
+  "doc-ENC-FORCED-0001-160487169457-20-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-20-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -734,11 +655,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4 / LOS 8 days\nPatient status: BP 133/81, HR 102, SpO2 96%, T 36.7°C; nasal cannula 3.2 L/min.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 4 / LOS 7 days\nPatient status: T 38.1°C.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-23-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-23-night",
+  "doc-ENC-FORCED-0001-160487169457-21-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-21-night",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -757,11 +678,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5 / LOS 8 days\nPatient status: BP 136/80, HR 100, SpO2 93%, T 37.2°C.\nMeds administered: Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 5 / LOS 7 days\nPatient status: T 37.5°C.\nMeds administered: IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-24-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-24-day",
+  "doc-ENC-FORCED-0001-160487169457-22-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-22-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -780,11 +701,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5 / LOS 8 days\nPatient status: BP 136/80, HR 100, SpO2 93%, T 37.2°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 5 / LOS 7 days\nPatient status: T 37.5°C.\nMeds administered: Nicardipine, Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-25-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-25-evening",
+  "doc-ENC-FORCED-0001-160487169457-23-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-23-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -802,11 +723,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5 / LOS 8 days\nPatient status: BP 136/80, HR 100, SpO2 93%, T 37.2°C.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 5 / LOS 7 days\nPatient status: T 37.5°C.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-26-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-26-night",
+  "doc-ENC-FORCED-0001-160487169457-24-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-24-night",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -825,11 +746,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 6 / LOS 8 days\nPatient status: BP 136/81, HR 101, SpO2 95%, T 37.0°C.\nMeds administered: IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 6 / LOS 7 days\nPatient status: BP 127/75, HR 106, SpO2 98%, T 38.9°C; simple face mask 4.6 L/min.\nMeds administered: Labetalol.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-27-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-27-day",
+  "doc-ENC-FORCED-0001-160487169457-25-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-25-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -848,11 +769,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 6 / LOS 8 days\nPatient status: BP 136/81, HR 101, SpO2 95%, T 37.0°C.\nMeds administered: Nicardipine, Labetalol, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 6 / LOS 7 days\nPatient status: BP 127/75, HR 106, SpO2 98%, T 38.9°C; simple face mask 4.6 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-28-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-28-evening",
+  "doc-ENC-FORCED-0001-160487169457-26-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-26-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -870,11 +791,11 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6 / LOS 8 days\nPatient status: BP 136/81, HR 101, SpO2 95%, T 37.0°C.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 6 / LOS 7 days\nPatient status: BP 127/75, HR 106, SpO2 98%, T 38.9°C; simple face mask 4.6 L/min.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-29-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-29-night",
+  "doc-ENC-FORCED-0001-160487169457-27-night": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-27-night",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -893,11 +814,11 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 7 / LOS 8 days\nPatient status: BP 137/79, HR 99, SpO2 93%, T 36.8°C.\nMeds administered: Nicardipine.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 7 / LOS 7 days\nPatient status: BP 132/81, HR 107, SpO2 96%, T 38.3°C; simple face mask 4.8 L/min.\nMeds administered: Labetalol, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-30-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-30-day",
+  "doc-ENC-FORCED-0001-160487169457-28-day": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-28-day",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -916,11 +837,11 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 8 days\nPatient status: BP 137/79, HR 99, SpO2 93%, T 36.8°C.\nMeds administered: Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 7 days\nPatient status: BP 132/81, HR 107, SpO2 96%, T 38.3°C; simple face mask 4.8 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-31-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-31-evening",
+  "doc-ENC-FORCED-0001-160487169457-29-evening": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-29-evening",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -938,83 +859,16 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7 / LOS 8 days\nPatient status: BP 137/79, HR 99, SpO2 93%, T 36.8°C.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 7 / LOS 7 days\nPatient status: BP 132/81, HR 107, SpO2 96%, T 38.3°C; simple face mask 4.8 L/min.\nObservation and care ongoing, no significant findings."
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-32-night": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-32-night",
-    "encounter_id": "ENC-FORCED-0001-160487169457",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 7,
-        "generator": "template",
-        "lang": "en",
-        "shift": "night"
-      },
-      "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8 / LOS 8 days\nPatient status: BP 131/81, HR 99, SpO2 94%, T 38.1°C.\nMeds administered: IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-160487169457-33-day": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-33-day",
-    "encounter_id": "ENC-FORCED-0001-160487169457",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 7,
-        "generator": "template",
-        "lang": "en",
-        "shift": "day"
-      },
-      "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 8 / LOS 8 days\nPatient status: BP 131/81, HR 99, SpO2 94%, T 38.1°C.\nMeds administered: Nicardipine, Labetalol, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-160487169457-34-evening": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-34-evening",
-    "encounter_id": "ENC-FORCED-0001-160487169457",
-    "narrative": {
-      "facts_used": [
-        "ctx.shift",
-        "ctx.vitals.today",
-        "ctx.day_index",
-        "ctx.los_days"
-      ],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "day_index": 7,
-        "generator": "template",
-        "lang": "en",
-        "shift": "evening"
-      },
-      "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 8 / LOS 8 days\nPatient status: BP 131/81, HR 99, SpO2 94%, T 38.1°C.\nObservation and care ongoing, no significant findings."
-    }
-  },
-  "doc-ENC-FORCED-0001-160487169457-35": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-35",
+  "doc-ENC-FORCED-0001-160487169457-30": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-30",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
         "ctx.los_days",
+        "ctx.complications_occurred",
         "ctx.intake_output_records",
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments[-1]"
@@ -1026,16 +880,84 @@
         "lang": "en"
       },
       "sections": {
-        "admission_status": "Hospital stay: 8 days. Admission reason: Sudden severe headache, vomiting, altered consciousness. Discharge criteria met.",
-        "discharge_readiness": "Discharge readiness: Discharge Barthel 95/100.",
-        "nursing_interventions_provided": "Cumulative IN 10583 mL / OUT 9095 mL (net +1488 mL).",
+        "admission_status": "Hospital stay: 7 days. Admission reason: Sudden severe headache, vomiting, altered consciousness. Complications: hematoma expansion, cerebral edema, aspiration pneumonia. Discharge criteria met.",
+        "discharge_readiness": "Discharge readiness: Discharge Barthel 65/100.",
+        "nursing_interventions_provided": "Cumulative IN 9464 mL / OUT 9033 mL (net +431 mL).",
         "patient_education": "Patient education: home BP monitoring + low-salt diet."
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-36": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-36",
+  "doc-ENC-FORCED-0001-160487169457-31": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-31",
+    "encounter_id": "ENC-FORCED-0001-160487169457",
+    "narrative": {
+      "facts_used": [
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.los_days",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.patient.chronic_conditions",
+        "ctx.complications_occurred",
+        "encounter.id::autopsy_sample"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {
+        "autopsy_status": "Autopsy performed: no.",
+        "contributing_conditions": "Contributing conditions: Essential (primary) hypertension (I10); Atrial fibrillation and flutter (I48) as comorbid conditions, which plausibly contributed to the terminal course. In-hospital complication(s) — hematoma expansion, cerebral edema, aspiration pneumonia — also affected the clinical course.",
+        "duration_of_immediate_cause": "Time from onset of immediate cause to death: died approximately 7 days into the admission from Nontraumatic intracerebral hemorrhage, unspecified. Pre-admission course not captured in this record.",
+        "immediate_cause_of_death": "Immediate cause of death: Nontraumatic intracerebral hemorrhage, unspecified (I61.9).",
+        "manner_of_death": "Manner of death: natural / disease-related.",
+        "underlying_cause_of_death": "Underlying cause of death: Nontraumatic intracerebral hemorrhage, unspecified (I61)."
+      },
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-160487169457-32": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-32",
+    "encounter_id": "ENC-FORCED-0001-160487169457",
+    "narrative": {
+      "facts_used": [
+        "ctx.diagnoses[0].admission_diagnosis_code",
+        "ctx.encounter.admission_datetime",
+        "ctx.los_days",
+        "ctx.medications",
+        "ctx.procedures",
+        "ctx.encounter.discharge_datetime",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.procedures",
+        "ctx.diagnoses[0].discharge_diagnosis_code",
+        "ctx.patient.chronic_conditions",
+        "ctx.complications_occurred",
+        "ctx.los_days",
+        "encounter.id::autopsy_sample"
+      ],
+      "generated_at": "2020-01-01T00:00:42Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {
+        "admission_state": "The patient was admitted urgently on 2024-06-15 04:16 with Nontraumatic intracerebral hemorrhage, unspecified (I61.9). On admission the overall clinical status was assessed as severe.",
+        "autopsy_status_and_findings": "Autopsy status and findings: autopsy not performed (no family consent).",
+        "cause_of_death": "Cause of death: Nontraumatic intracerebral hemorrhage, unspecified (I61.9).",
+        "circumstances_of_death": "On the ward, the patient died naturally under the attending physician's palliative bedside care, and death was confirmed.",
+        "complications_and_comorbidities": "Complications and comorbidities: The patient had a chronic-disease history including Essential (primary) hypertension (I10), Atrial fibrillation and flutter (I48). During admission the following complication(s) developed: hematoma expansion, cerebral edema, aspiration pneumonia.",
+        "family_communication": "Family communication: The family was informed early in the admission about the possibility of clinical deterioration, and updated as the course evolved, and the family was present at the bedside at the time of death confirmation.",
+        "terminal_course": "In the final hours the patient developed acute hemodynamic deterioration, attributed to Nontraumatic intracerebral hemorrhage, unspecified, and death was confirmed at 2024-06-22 00:16.",
+        "treatment_course": "Over the 7-day admission, 27 medication order(s) were administered, 6 procedure(s) were performed, Multidisciplinary treatment was continued, but the patient could not be saved."
+      },
+      "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-160487169457-33": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-33",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -1069,8 +991,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-ED-37": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-ED-37",
+  "doc-ENC-FORCED-0001-160487169457-ED-34": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-ED-34",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [
@@ -1090,17 +1012,17 @@
       "sections": {
         "assessment": "Encounter reason: Sudden severe headache, vomiting, altered consciousness",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
-        "disposition": "Discharged home (ESI level 2, Sudden severe headache, vomiting, altered consciousness)",
+        "disposition": "Died in the ED (family informed)",
         "ed_workup": "Labs: CBC, PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast), head CT (repeat). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line. Abnormal: glucose 119.0 mg/dL [H]",
         "hpi": "Patient presented with severe symptoms.",
-        "physical_exam": "On arrival: BP 132/78 mmHg, HR 94 bpm, RR 20 /min, SpO2 92%, T 37.6°C. No focal findings on exam.",
+        "physical_exam": "On arrival: BP 135/84 mmHg, HR 93 bpm, RR 20 /min, SpO2 95%, T 38.0°C. No focal findings on exam.",
         "triage_details": "Triage information: not recorded"
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-160487169457-ED-38": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-ED-38",
+  "doc-ENC-FORCED-0001-160487169457-ED-35": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-ED-35",
     "encounter_id": "ENC-FORCED-0001-160487169457",
     "narrative": {
       "facts_used": [],

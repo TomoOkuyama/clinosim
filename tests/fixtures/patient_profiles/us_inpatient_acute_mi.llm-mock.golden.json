@@ -27,7 +27,7 @@
         "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "No home medications",
         "past_medical_history": "Atherosclerotic heart disease of native coronary artery without angina pectoris [I25.10]; Essential (primary) hypertension [I10]; Hyperlipidemia, unspecified [E78.5]",
-        "physical_examination": "Vital signs: BP 116/72 mmHg, HR 111/min, T 37.5°C, SpO2 96% (RA), RR 18/min. General: no additional exam findings recorded.",
+        "physical_examination": "Vital signs: BP 116/74 mmHg, HR 109/min, T 36.6°C, SpO2 93% (RA), RR 17/min. General: no additional exam findings recorded.",
         "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: Other"
       },
       "text": ""
@@ -77,11 +77,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 116/72 mmHg, HR 111/min, T 37.5°C, SpO2 96% (RA), RR 18/min",
+        "objective": "BP 116/74 mmHg, HR 109/min, T 36.6°C, SpO2 93% (RA), RR 17/min",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 116/72 mmHg, HR 111/min, T 37.5°C, SpO2 96% (RA), RR 18/min\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
+      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 116/74 mmHg, HR 109/min, T 36.6°C, SpO2 93% (RA), RR 17/min\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-03": {
@@ -128,11 +128,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "BP 117/74 mmHg, HR 109/min, T 36.9°C, SpO2 94% (RA), RR 22/min",
+        "objective": "BP 116/67 mmHg, HR 110/min, T 37.9°C, SpO2 96% (RA), RR 19/min",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 117/74 mmHg, HR 109/min, T 36.9°C, SpO2 94% (RA), RR 22/min\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
+      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 116/67 mmHg, HR 110/min, T 37.9°C, SpO2 96% (RA), RR 19/min\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-04": {
@@ -179,11 +179,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 112/70 mmHg, HR 104/min, T 37.4°C, SpO2 93% (RA), RR 18/min",
+        "objective": "BP 112/71 mmHg, HR 103/min, T 36.8°C, SpO2 97% (RA), RR 15/min",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 112/70 mmHg, HR 104/min, T 37.4°C, SpO2 93% (RA), RR 18/min\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
+      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 112/71 mmHg, HR 103/min, T 36.8°C, SpO2 97% (RA), RR 15/min\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-05": {
@@ -230,11 +230,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 114/67 mmHg, HR 108/min, T 37.1°C, SpO2 96% (RA), RR 18/min",
+        "objective": "BP 110/71 mmHg, HR 108/min, T 37.8°C, SpO2 99% (RA), RR 21/min",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "text": "S: [Mock LLM response #5 — subjective]\nO: BP 114/67 mmHg, HR 108/min, T 37.1°C, SpO2 96% (RA), RR 18/min\nA: [Mock LLM response #5 — assessment]\nP: [Mock LLM response #5 — plan]"
+      "text": "S: [Mock LLM response #5 — subjective]\nO: BP 110/71 mmHg, HR 108/min, T 37.8°C, SpO2 99% (RA), RR 21/min\nA: [Mock LLM response #5 — assessment]\nP: [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-06": {
@@ -281,11 +281,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #6 — assessment]",
-        "objective": "BP 113/71 mmHg, HR 106/min, T 37.0°C, SpO2 97% (RA), RR 18/min",
+        "objective": "BP 113/70 mmHg, HR 104/min, T 37.1°C, SpO2 94% (RA), RR 23/min",
         "plan": "[Mock LLM response #6 — plan]",
         "subjective": "[Mock LLM response #6 — subjective]"
       },
-      "text": "S: [Mock LLM response #6 — subjective]\nO: BP 113/71 mmHg, HR 106/min, T 37.0°C, SpO2 97% (RA), RR 18/min\nA: [Mock LLM response #6 — assessment]\nP: [Mock LLM response #6 — plan]"
+      "text": "S: [Mock LLM response #6 — subjective]\nO: BP 113/70 mmHg, HR 104/min, T 37.1°C, SpO2 94% (RA), RR 23/min\nA: [Mock LLM response #6 — assessment]\nP: [Mock LLM response #6 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-07": {
@@ -332,11 +332,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #7 — assessment]",
-        "objective": "BP 111/73 mmHg, HR 100/min, T 37.1°C, SpO2 95% (RA), RR 18/min",
+        "objective": "BP 114/70 mmHg, HR 101/min, T 35.7°C, SpO2 96% (RA), RR 18/min",
         "plan": "[Mock LLM response #7 — plan]",
         "subjective": "[Mock LLM response #7 — subjective]"
       },
-      "text": "S: [Mock LLM response #7 — subjective]\nO: BP 111/73 mmHg, HR 100/min, T 37.1°C, SpO2 95% (RA), RR 18/min\nA: [Mock LLM response #7 — assessment]\nP: [Mock LLM response #7 — plan]"
+      "text": "S: [Mock LLM response #7 — subjective]\nO: BP 114/70 mmHg, HR 101/min, T 35.7°C, SpO2 96% (RA), RR 18/min\nA: [Mock LLM response #7 — assessment]\nP: [Mock LLM response #7 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-08": {
@@ -383,11 +383,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #8 — assessment]",
-        "objective": "BP 115/69 mmHg, HR 101/min, T 36.8°C, SpO2 98% (RA), RR 18/min",
+        "objective": "BP 112/71 mmHg, HR 101/min, T 37.3°C, SpO2 95% (RA), RR 17/min",
         "plan": "[Mock LLM response #8 — plan]",
         "subjective": "[Mock LLM response #8 — subjective]"
       },
-      "text": "S: [Mock LLM response #8 — subjective]\nO: BP 115/69 mmHg, HR 101/min, T 36.8°C, SpO2 98% (RA), RR 18/min\nA: [Mock LLM response #8 — assessment]\nP: [Mock LLM response #8 — plan]"
+      "text": "S: [Mock LLM response #8 — subjective]\nO: BP 112/71 mmHg, HR 101/min, T 37.3°C, SpO2 95% (RA), RR 17/min\nA: [Mock LLM response #8 — assessment]\nP: [Mock LLM response #8 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-09": {
@@ -434,11 +434,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #9 — assessment]",
-        "objective": "BP 110/68 mmHg, HR 107/min, T 37.4°C, SpO2 96% (RA), RR 18/min",
+        "objective": "BP 112/70 mmHg, HR 101/min, T 37.7°C, SpO2 95% (RA), RR 14/min",
         "plan": "[Mock LLM response #9 — plan]",
         "subjective": "[Mock LLM response #9 — subjective]"
       },
-      "text": "S: [Mock LLM response #9 — subjective]\nO: BP 110/68 mmHg, HR 107/min, T 37.4°C, SpO2 96% (RA), RR 18/min\nA: [Mock LLM response #9 — assessment]\nP: [Mock LLM response #9 — plan]"
+      "text": "S: [Mock LLM response #9 — subjective]\nO: BP 112/70 mmHg, HR 101/min, T 37.7°C, SpO2 95% (RA), RR 14/min\nA: [Mock LLM response #9 — assessment]\nP: [Mock LLM response #9 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-10": {
@@ -485,11 +485,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #10 — assessment]",
-        "objective": "BP 116/69 mmHg, HR 104/min, T 37.4°C, SpO2 98% (RA), RR 19/min",
+        "objective": "BP 113/69 mmHg, HR 98/min, T 36.5°C, SpO2 98% (RA), RR 19/min",
         "plan": "[Mock LLM response #10 — plan]",
         "subjective": "[Mock LLM response #10 — subjective]"
       },
-      "text": "S: [Mock LLM response #10 — subjective]\nO: BP 116/69 mmHg, HR 104/min, T 37.4°C, SpO2 98% (RA), RR 19/min\nA: [Mock LLM response #10 — assessment]\nP: [Mock LLM response #10 — plan]"
+      "text": "S: [Mock LLM response #10 — subjective]\nO: BP 113/69 mmHg, HR 98/min, T 36.5°C, SpO2 98% (RA), RR 19/min\nA: [Mock LLM response #10 — assessment]\nP: [Mock LLM response #10 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-11": {
@@ -536,11 +536,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #11 — assessment]",
-        "objective": "BP 115/71 mmHg, HR 102/min, T 37.1°C, SpO2 96% (RA), RR 15/min",
+        "objective": "BP 114/70 mmHg, HR 101/min, T 36.6°C, SpO2 95% (RA), RR 19/min",
         "plan": "[Mock LLM response #11 — plan]",
         "subjective": "[Mock LLM response #11 — subjective]"
       },
-      "text": "S: [Mock LLM response #11 — subjective]\nO: BP 115/71 mmHg, HR 102/min, T 37.1°C, SpO2 96% (RA), RR 15/min\nA: [Mock LLM response #11 — assessment]\nP: [Mock LLM response #11 — plan]"
+      "text": "S: [Mock LLM response #11 — subjective]\nO: BP 114/70 mmHg, HR 101/min, T 36.6°C, SpO2 95% (RA), RR 19/min\nA: [Mock LLM response #11 — assessment]\nP: [Mock LLM response #11 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-12": {
@@ -587,11 +587,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #12 — assessment]",
-        "objective": "BP 115/69 mmHg, HR 100/min, T 36.1°C, SpO2 98% (RA), RR 16/min",
+        "objective": "BP 117/71 mmHg, HR 104/min, T 36.7°C, SpO2 92% (RA), RR 17/min",
         "plan": "[Mock LLM response #12 — plan]",
         "subjective": "[Mock LLM response #12 — subjective]"
       },
-      "text": "S: [Mock LLM response #12 — subjective]\nO: BP 115/69 mmHg, HR 100/min, T 36.1°C, SpO2 98% (RA), RR 16/min\nA: [Mock LLM response #12 — assessment]\nP: [Mock LLM response #12 — plan]"
+      "text": "S: [Mock LLM response #12 — subjective]\nO: BP 117/71 mmHg, HR 104/min, T 36.7°C, SpO2 92% (RA), RR 17/min\nA: [Mock LLM response #12 — assessment]\nP: [Mock LLM response #12 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-13": {
@@ -638,11 +638,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #13 — assessment]",
-        "objective": "BP 117/73 mmHg, HR 101/min, T 36.6°C, SpO2 97% (RA), RR 14/min",
+        "objective": "BP 116/71 mmHg, HR 100/min, T 37.5°C, SpO2 97% (RA), RR 20/min",
         "plan": "[Mock LLM response #13 — plan]",
         "subjective": "[Mock LLM response #13 — subjective]"
       },
-      "text": "S: [Mock LLM response #13 — subjective]\nO: BP 117/73 mmHg, HR 101/min, T 36.6°C, SpO2 97% (RA), RR 14/min\nA: [Mock LLM response #13 — assessment]\nP: [Mock LLM response #13 — plan]"
+      "text": "S: [Mock LLM response #13 — subjective]\nO: BP 116/71 mmHg, HR 100/min, T 37.5°C, SpO2 97% (RA), RR 20/min\nA: [Mock LLM response #13 — assessment]\nP: [Mock LLM response #13 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-14": {
@@ -689,11 +689,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #14 — assessment]",
-        "objective": "BP 119/72 mmHg, HR 101/min, T 36.7°C, SpO2 96% (RA), RR 18/min",
+        "objective": "BP 116/68 mmHg, HR 98/min, T 37.0°C, SpO2 98% (RA), RR 17/min",
         "plan": "[Mock LLM response #14 — plan]",
         "subjective": "[Mock LLM response #14 — subjective]"
       },
-      "text": "S: [Mock LLM response #14 — subjective]\nO: BP 119/72 mmHg, HR 101/min, T 36.7°C, SpO2 96% (RA), RR 18/min\nA: [Mock LLM response #14 — assessment]\nP: [Mock LLM response #14 — plan]"
+      "text": "S: [Mock LLM response #14 — subjective]\nO: BP 116/68 mmHg, HR 98/min, T 37.0°C, SpO2 98% (RA), RR 17/min\nA: [Mock LLM response #14 — assessment]\nP: [Mock LLM response #14 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-15": {
@@ -740,11 +740,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #15 — assessment]",
-        "objective": "BP 116/72 mmHg, HR 102/min, T 36.1°C, SpO2 98% (RA), RR 17/min",
+        "objective": "BP 118/71 mmHg, HR 96/min, T 36.6°C, SpO2 93% (RA), RR 14/min",
         "plan": "[Mock LLM response #15 — plan]",
         "subjective": "[Mock LLM response #15 — subjective]"
       },
-      "text": "S: [Mock LLM response #15 — subjective]\nO: BP 116/72 mmHg, HR 102/min, T 36.1°C, SpO2 98% (RA), RR 17/min\nA: [Mock LLM response #15 — assessment]\nP: [Mock LLM response #15 — plan]"
+      "text": "S: [Mock LLM response #15 — subjective]\nO: BP 118/71 mmHg, HR 96/min, T 36.6°C, SpO2 93% (RA), RR 14/min\nA: [Mock LLM response #15 — assessment]\nP: [Mock LLM response #15 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-16": {
@@ -795,7 +795,7 @@
         "lang": "en"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 100/100 → independent (feeding=10, bathing=5, mobility=15, toilet_use=10)",
+        "adl_assessment": "Barthel Index 95/100 → independent (feeding=10, bathing=5, mobility=15, toilet_use=10)",
         "care_plan": "Care plan: monitor BP AM/PM; escalate to MD if goal not met.",
         "nursing_diagnosis": "Nursing diagnoses: risk for inadequate BP control.",
         "nursing_history": "Admission reason: Chest pain, diaphoresis, dyspnea. PMH: Chronic ischemic heart disease (IHD), Hypertension (HTN), Dyslipidemia.",
@@ -824,7 +824,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 14 days\nPatient status: BP 116/72, HR 111, SpO2 96%, T 37.5°C.\nMeds administered: Acetaminophen.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 14 days\nPatient status: BP 116/74, HR 109, SpO2 93%, T 36.6°C.\nMeds administered: Nitroglycerin, Acetaminophen.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-19-evening": {
@@ -847,7 +847,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 14 days\nPatient status: BP 116/72, HR 111, SpO2 96%, T 37.5°C.\nMeds administered: Ticagrelor, Acetaminophen.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 14 days\nPatient status: BP 116/74, HR 109, SpO2 93%, T 36.6°C.\nMeds administered: Ticagrelor, Acetaminophen.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-20-night": {
@@ -870,7 +870,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 14 days\nPatient status: BP 117/74, HR 109, SpO2 94%, T 36.9°C.\nMeds administered: Acetaminophen.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 14 days\nPatient status: BP 116/67, HR 110, SpO2 96%, T 37.9°C.\nMeds administered: Acetaminophen.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-21-day": {
@@ -893,7 +893,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 14 days\nPatient status: BP 117/74, HR 109, SpO2 94%, T 36.9°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 14 days\nPatient status: BP 116/67, HR 110, SpO2 96%, T 37.9°C.\nMeds administered: Aspirin, Ticagrelor, Acetaminophen.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-22-evening": {
@@ -916,7 +916,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 14 days\nPatient status: BP 117/74, HR 109, SpO2 94%, T 36.9°C.\nMeds administered: Ticagrelor, Acetaminophen.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 14 days\nPatient status: BP 116/67, HR 110, SpO2 96%, T 37.9°C.\nMeds administered: Ticagrelor, Acetaminophen.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-23-night": {
@@ -939,7 +939,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 14 days\nPatient status: BP 112/70, HR 104, SpO2 93%, T 37.4°C.\nMeds administered: Acetaminophen.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 14 days\nPatient status: BP 112/71, HR 103, SpO2 97%, T 36.8°C.\nMeds administered: Aspirin, Ticagrelor, Acetaminophen.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-24-day": {
@@ -962,7 +962,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 14 days\nPatient status: BP 112/70, HR 104, SpO2 93%, T 37.4°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 14 days\nPatient status: BP 112/71, HR 103, SpO2 97%, T 36.8°C.\nMeds administered: Nitroglycerin, Acetaminophen.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-25-evening": {
@@ -985,7 +985,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 14 days\nPatient status: BP 112/70, HR 104, SpO2 93%, T 37.4°C.\nMeds administered: Ticagrelor, Acetaminophen, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 14 days\nPatient status: BP 112/71, HR 103, SpO2 97%, T 36.8°C.\nMeds administered: Ticagrelor, Acetaminophen, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-26-night": {
@@ -1008,7 +1008,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 14 days\nPatient status: BP 114/67, HR 108, SpO2 96%, T 37.1°C.\nMeds administered: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 14 days\nPatient status: BP 110/71, HR 108, SpO2 99%, T 37.8°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-27-day": {
@@ -1031,7 +1031,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 14 days\nPatient status: BP 114/67, HR 108, SpO2 96%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 14 days\nPatient status: BP 110/71, HR 108, SpO2 99%, T 37.8°C.\nMeds administered: Aspirin, Ticagrelor, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-28-evening": {
@@ -1054,7 +1054,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4 / LOS 14 days\nPatient status: BP 114/67, HR 108, SpO2 96%, T 37.1°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 4 / LOS 14 days\nPatient status: BP 110/71, HR 108, SpO2 99%, T 37.8°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-29-night": {
@@ -1077,7 +1077,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 97%, T 37.0°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 5 / LOS 14 days\nPatient status: BP 113/70, HR 104, SpO2 94%, T 37.1°C.\nMeds administered: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-30-day": {
@@ -1100,7 +1100,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 97%, T 37.0°C.\nMeds administered: Aspirin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 5 / LOS 14 days\nPatient status: BP 113/70, HR 104, SpO2 94%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-31-evening": {
@@ -1123,7 +1123,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 97%, T 37.0°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 5 / LOS 14 days\nPatient status: BP 113/70, HR 104, SpO2 94%, T 37.1°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-32-night": {
@@ -1146,7 +1146,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 6 / LOS 14 days\nPatient status: BP 111/73, HR 100, SpO2 95%, T 37.1°C.\nMeds administered: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 6 / LOS 14 days\nPatient status: BP 114/70, HR 101, SpO2 96%, T 35.7°C.\nMeds administered: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-33-day": {
@@ -1169,7 +1169,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 6 / LOS 14 days\nPatient status: BP 111/73, HR 100, SpO2 95%, T 37.1°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 6 / LOS 14 days\nPatient status: BP 114/70, HR 101, SpO2 96%, T 35.7°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-34-evening": {
@@ -1192,7 +1192,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6 / LOS 14 days\nPatient status: BP 111/73, HR 100, SpO2 95%, T 37.1°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 6 / LOS 14 days\nPatient status: BP 114/70, HR 101, SpO2 96%, T 35.7°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-35-night": {
@@ -1215,7 +1215,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 7 / LOS 14 days\nPatient status: BP 115/69, HR 101, SpO2 98%, T 36.8°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 7 / LOS 14 days\nPatient status: BP 112/71, HR 101, SpO2 95%, T 37.3°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-36-day": {
@@ -1238,7 +1238,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 14 days\nPatient status: BP 115/69, HR 101, SpO2 98%, T 36.8°C.\nMeds administered: Aspirin, Ticagrelor, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 14 days\nPatient status: BP 112/71, HR 101, SpO2 95%, T 37.3°C.\nMeds administered: Aspirin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-37-evening": {
@@ -1261,7 +1261,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7 / LOS 14 days\nPatient status: BP 115/69, HR 101, SpO2 98%, T 36.8°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 7 / LOS 14 days\nPatient status: BP 112/71, HR 101, SpO2 95%, T 37.3°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-38-night": {
@@ -1284,7 +1284,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8 / LOS 14 days\nPatient status: BP 110/68, HR 107, SpO2 96%, T 37.4°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 8 / LOS 14 days\nPatient status: BP 112/70, HR 101, SpO2 95%, T 37.7°C.\nMeds administered: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-39-day": {
@@ -1307,7 +1307,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 8 / LOS 14 days\nPatient status: BP 110/68, HR 107, SpO2 96%, T 37.4°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 8 / LOS 14 days\nPatient status: BP 112/70, HR 101, SpO2 95%, T 37.7°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-40-evening": {
@@ -1330,7 +1330,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 8 / LOS 14 days\nPatient status: BP 110/68, HR 107, SpO2 96%, T 37.4°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 8 / LOS 14 days\nPatient status: BP 112/70, HR 101, SpO2 95%, T 37.7°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-41-night": {
@@ -1353,7 +1353,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 9 / LOS 14 days\nPatient status: BP 116/69, HR 104, SpO2 98%, T 37.4°C.\nMeds administered: Aspirin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 9 / LOS 14 days\nPatient status: BP 113/69, HR 98, SpO2 98%, T 36.5°C.\nMeds administered: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-42-day": {
@@ -1376,7 +1376,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 9 / LOS 14 days\nPatient status: BP 116/69, HR 104, SpO2 98%, T 37.4°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 9 / LOS 14 days\nPatient status: BP 113/69, HR 98, SpO2 98%, T 36.5°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-43-evening": {
@@ -1399,7 +1399,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 9 / LOS 14 days\nPatient status: BP 116/69, HR 104, SpO2 98%, T 37.4°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 9 / LOS 14 days\nPatient status: BP 113/69, HR 98, SpO2 98%, T 36.5°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-44-night": {
@@ -1422,7 +1422,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 10 / LOS 14 days\nPatient status: BP 115/71, HR 102, SpO2 96%, T 37.1°C.\nMeds administered: Aspirin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 10 / LOS 14 days\nPatient status: BP 114/70, HR 101, SpO2 95%, T 36.6°C.\nMeds administered: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-45-day": {
@@ -1445,7 +1445,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 10 / LOS 14 days\nPatient status: BP 115/71, HR 102, SpO2 96%, T 37.1°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 10 / LOS 14 days\nPatient status: BP 114/70, HR 101, SpO2 95%, T 36.6°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-46-evening": {
@@ -1468,7 +1468,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 10 / LOS 14 days\nPatient status: BP 115/71, HR 102, SpO2 96%, T 37.1°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 10 / LOS 14 days\nPatient status: BP 114/70, HR 101, SpO2 95%, T 36.6°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-47-night": {
@@ -1491,7 +1491,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 11 / LOS 14 days\nPatient status: BP 115/69, HR 100, SpO2 98%, T 36.1°C.\nMeds administered: Aspirin, Ticagrelor, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 11 / LOS 14 days\nPatient status: BP 117/71, HR 104, SpO2 92%, T 36.7°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-48-day": {
@@ -1514,7 +1514,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 11 / LOS 14 days\nPatient status: BP 115/69, HR 100, SpO2 98%, T 36.1°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 11 / LOS 14 days\nPatient status: BP 117/71, HR 104, SpO2 92%, T 36.7°C.\nMeds administered: Aspirin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-49-evening": {
@@ -1537,7 +1537,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 11 / LOS 14 days\nPatient status: BP 115/69, HR 100, SpO2 98%, T 36.1°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 11 / LOS 14 days\nPatient status: BP 117/71, HR 104, SpO2 92%, T 36.7°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-50-night": {
@@ -1560,7 +1560,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 12 / LOS 14 days\nPatient status: BP 117/73, HR 101, SpO2 97%, T 36.6°C.\nMeds administered: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 12 / LOS 14 days\nPatient status: BP 116/71, HR 100, SpO2 97%, T 37.5°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-51-day": {
@@ -1583,7 +1583,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 12 / LOS 14 days\nPatient status: BP 117/73, HR 101, SpO2 97%, T 36.6°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 12 / LOS 14 days\nPatient status: BP 116/71, HR 100, SpO2 97%, T 37.5°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-52-evening": {
@@ -1606,7 +1606,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 12 / LOS 14 days\nPatient status: BP 117/73, HR 101, SpO2 97%, T 36.6°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 12 / LOS 14 days\nPatient status: BP 116/71, HR 100, SpO2 97%, T 37.5°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-53-night": {
@@ -1629,7 +1629,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 13 / LOS 14 days\nPatient status: BP 119/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 13 / LOS 14 days\nPatient status: BP 116/68, HR 98, SpO2 98%, T 37.0°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-54-day": {
@@ -1652,7 +1652,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 13 / LOS 14 days\nPatient status: BP 119/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: Aspirin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 13 / LOS 14 days\nPatient status: BP 116/68, HR 98, SpO2 98%, T 37.0°C.\nMeds administered: Aspirin, Ticagrelor, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-55-evening": {
@@ -1675,7 +1675,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 13 / LOS 14 days\nPatient status: BP 119/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 13 / LOS 14 days\nPatient status: BP 116/68, HR 98, SpO2 98%, T 37.0°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-56-night": {
@@ -1698,7 +1698,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 14 / LOS 14 days\nPatient status: BP 116/72, HR 102, SpO2 98%, T 36.1°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 14 / LOS 14 days\nPatient status: BP 118/71, HR 96, SpO2 93%, T 36.6°C.\nMeds administered: Aspirin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-57-day": {
@@ -1721,7 +1721,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 14 / LOS 14 days\nPatient status: BP 116/72, HR 102, SpO2 98%, T 36.1°C.\nMeds administered: Aspirin, Ticagrelor, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 14 / LOS 14 days\nPatient status: BP 118/71, HR 96, SpO2 93%, T 36.6°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-58-evening": {
@@ -1744,7 +1744,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 14 / LOS 14 days\nPatient status: BP 116/72, HR 102, SpO2 98%, T 36.1°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 14 / LOS 14 days\nPatient status: BP 118/71, HR 96, SpO2 93%, T 36.6°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-59": {
@@ -1765,8 +1765,8 @@
       },
       "sections": {
         "admission_status": "Hospital stay: 14 days. Admission reason: Chest pain, diaphoresis, dyspnea. Discharge criteria met.",
-        "discharge_readiness": "Discharge readiness: Discharge Barthel 100/100.",
-        "nursing_interventions_provided": "Cumulative IN 24114 mL / OUT 10268 mL (net +13846 mL).",
+        "discharge_readiness": "Discharge readiness: Discharge Barthel 95/100.",
+        "nursing_interventions_provided": "Cumulative IN 21216 mL / OUT 10434 mL (net +10782 mL).",
         "patient_education": "Patient education: home BP monitoring + low-salt diet."
       },
       "text": ""
@@ -1830,7 +1830,7 @@
         "disposition": "[Mock LLM response #17 — disposition]",
         "ed_workup": "Labs: CBC, coagulation studies, LFT, lipid panel, troponin I, troponin I (6 h repeat), CK-MB, BNP. Imaging: 12-lead ECG, echocardiogram, chest X-ray PA, coronary angiography, chest X-ray AP. Medications: Aspirin, Ticagrelor, Acetaminophen, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip. Procedures ordered: O2: Nasal cannula SpO2 >= 94%",
         "hpi": "[Mock LLM response #17 — hpi]",
-        "physical_exam": "On arrival: BP 116/72 mmHg, HR 111 bpm, RR 18 /min, SpO2 96%, T 37.5°C. No focal findings on exam.",
+        "physical_exam": "On arrival: BP 116/74 mmHg, HR 109 bpm, RR 17 /min, SpO2 93%, T 36.6°C. No focal findings on exam.",
         "triage_details": "Triage information: not recorded"
       },
       "text": ""

@@ -302,6 +302,18 @@ def sha_bernoulli(salt: str, probability: float) -> bool:
     return sha_quantile(salt) < probability
 
 
+def sha_normal(salt: str, mean: float = 0.0, sd: float = 1.0) -> float:
+    """Return a deterministic normal variate from a SHA-256 hash of ``salt``
+    (Box-Muller on two independent :func:`sha_quantile` slots, through the
+    cross-platform ``_log`` / ``_cos``). RNG-neutral like the other ``sha_*``
+    helpers (Issue #2815)."""
+    u1 = sha_quantile(salt, 0)
+    u2 = sha_quantile(salt, 8)
+    if u1 <= 0.0:
+        u1 = 1e-300
+    return mean + sd * math.sqrt(-2.0 * _log(u1)) * _cos(_TWO_PI_FLOAT * u2)
+
+
 def sha_weighted_choice(salt: str, choices: tuple[str, ...], weights: tuple[float, ...]) -> str:
     """Deterministic weighted choice from a SHA-salted quantile.
 

@@ -31,6 +31,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.codes.drugs import drug_classes, drug_key, drug_ref, get_drug, same_drug
 from clinosim.countries import lang_for
 from clinosim.datafiles import load_data_yaml
@@ -801,13 +802,18 @@ def _generate_mar(
             if vital_hold:
                 status, hold_reason = "held", vital_hold
 
-            # Patient refusal (~1.5%)
-            if rng.random() < MAR_PATIENT_REFUSAL_PROBABILITY:
+            # Patient refusal (~1.5%) and timing jitter: hashes of the
+            # administration, not draws from the stay's stream, so the number
+            # of administrations shifts no other draw (Issue #2815).
+            _mar_salt = f"mar|{patient.patient_id}|{order.order_id}|{scheduled.isoformat()}"
+            if determinism.sha_bernoulli(f"{_mar_salt}|refusal", MAR_PATIENT_REFUSAL_PROBABILITY):
                 status = "refused"
 
-            # Jitter
             actual = (
-                scheduled + timedelta(minutes=float(rng.normal(MAR_JITTER_MEAN_MIN, MAR_JITTER_STD_MIN)))
+                scheduled
+                + timedelta(
+                    minutes=determinism.sha_normal(f"{_mar_salt}|jitter", MAR_JITTER_MEAN_MIN, MAR_JITTER_STD_MIN)
+                )
                 if status == "given"
                 else None
             )
