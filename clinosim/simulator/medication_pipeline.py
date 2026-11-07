@@ -617,6 +617,17 @@ def _given_dose_text(order: Order, patient: PatientProfile) -> str:
     return f"{order.dose_quantity}{order.dose_unit}"
 
 
+def _first_dose_delay_min(patient_id: str, order_id: str, kind: str) -> int:
+    """Minutes from the order (or admission) to a first dose: a hash of the
+    patient, the order and the kind of dose (``single`` / ``stat`` / ``day0``)
+    in ``[MAR_STAT_FIRST_DOSE_DELAY_MIN, MAR_STAT_FIRST_DOSE_DELAY_MAX_EXCLUSIVE)``.
+    Draws nothing from the stay's stream, so an order's frequency shifts no
+    other draw (Issue #2817; determinism spec §4)."""
+    span = MAR_STAT_FIRST_DOSE_DELAY_MAX_EXCLUSIVE - MAR_STAT_FIRST_DOSE_DELAY_MIN
+    q = determinism.sha_quantile(f"mar-first-dose|{patient_id}|{order_id}|{kind}")
+    return MAR_STAT_FIRST_DOSE_DELAY_MIN + min(int(q * span), span - 1)
+
+
 def _generate_mar(
     patient: PatientProfile,
     orders: list[Order],
@@ -717,7 +728,7 @@ def _generate_mar(
             if (ordered.date() - admission_time.date()).days != day:
                 continue
             given = max(ordered, admission_time) + timedelta(
-                minutes=int(rng.integers(MAR_STAT_FIRST_DOSE_DELAY_MIN, MAR_STAT_FIRST_DOSE_DELAY_MAX_EXCLUSIVE))
+                minutes=_first_dose_delay_min(patient.patient_id, order.order_id, "single")
             )
             mars.append(
                 MedicationAdministration(
@@ -736,7 +747,7 @@ def _generate_mar(
         stat_first_dose_time = None
         if day == 0 and str(getattr(order, "urgency", "")).lower() == "stat":
             stat_first_dose_time = admission_time + timedelta(
-                minutes=int(rng.integers(MAR_STAT_FIRST_DOSE_DELAY_MIN, MAR_STAT_FIRST_DOSE_DELAY_MAX_EXCLUSIVE))
+                minutes=_first_dose_delay_min(patient.patient_id, order.order_id, "stat")
             )
 
         scheduled_times = []
@@ -766,11 +777,7 @@ def _generate_mar(
             if all(s < admission_time for s in day0_slots):
                 scheduled_times.append(
                     admission_time
-                    + timedelta(
-                        minutes=int(
-                            rng.integers(MAR_STAT_FIRST_DOSE_DELAY_MIN, MAR_STAT_FIRST_DOSE_DELAY_MAX_EXCLUSIVE)
-                        )
-                    )
+                    + timedelta(minutes=_first_dose_delay_min(patient.patient_id, order.order_id, "day0"))
                 )
 
         for hour in admin_hours:
