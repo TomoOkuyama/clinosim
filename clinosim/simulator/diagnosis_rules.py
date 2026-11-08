@@ -13,7 +13,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-from clinosim.codes import code_exists
+from clinosim.codes import code_exists, system_key_for
 from clinosim.datafiles import load_data_yaml
 
 _YAML = Path(__file__).resolve().parent / "reference_data" / "diagnosis_rules.yaml"
@@ -57,6 +57,16 @@ def _unknown_codes(entry: dict[str, Any]) -> UnknownConditionCodes:
     )
 
 
+def _registered_in_both_locales(code: str) -> bool:
+    """Whether ``code``, mapped for each country, is registered in that
+    country's diagnosis code system (US ICD-10-CM, JP WHO ICD-10)."""
+    from clinosim.locale.loader import map_diagnosis_code
+
+    return all(
+        code_exists(system_key_for("diagnosis", country), map_diagnosis_code(code, country)) for country in ("US", "JP")
+    )
+
+
 def _check(rules: _DiagnosisRules) -> None:
     """Every ICD code is registered, every visit / disease id names a real
     pediatric schedule entry or disease YAML, every pattern has a label in the
@@ -73,7 +83,7 @@ def _check(rules: _DiagnosisRules) -> None:
         *rules.visit_codes.values(),
         *(c for u in unknown_codes for c in (u.admission, u.unresolved, u.partially_resolved)),
     }
-    problems = [f"unregistered ICD-10 code {c}" for c in sorted(codes) if not code_exists("icd-10", c)]
+    problems = [f"unregistered ICD-10 code {c}" for c in sorted(codes) if not _registered_in_both_locales(c)]
     pediatric_ids = {str(e.get("disease_id", "")) for e in load_pediatric_schedule().values()}
     problems += [
         f"unknown pediatric visit {visit}"

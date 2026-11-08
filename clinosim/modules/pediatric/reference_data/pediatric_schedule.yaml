@@ -228,3 +228,64 @@ encounters:
     visit_reason:
       en: "Adolescent behavioural / mental health follow-up (anxiety / mood / ADHD screening positive)"
       ja: "思春期メンタルヘルスフォローアップ (不安・気分障害・ADHD スクリーニング陽性)"
+
+# ---- Clinical picture of the acute visits (Issue #2873) ----
+# Keyed by the `disease_id` of the acute entries above; the visit's ICD-10
+# code is in simulator/reference_data/diagnosis_rules.yaml
+# (`visit_purpose_codes.by_visit_type.pediatric_visit.by_visit`).
+#
+#   vitals:              measured vital signs (temp / hr / bp / rr / spo2).
+#   febrile_probability: share of visits with a fever at the visit (a
+#                        stream-free draw per encounter); the rest are
+#                        afebrile at the visit.
+#   state_impact:        physiological-state deltas (canonical state vars) of
+#                        a `febrile` / `afebrile` visit. Temperature is
+#                        baseline (about 36.4 °C) + 3.0 x inflammation_level
+#                        (physiology engine), so 0.75 reads about 38.6 °C and
+#                        0.10 about 36.7 °C before measurement noise.
+#   prescriptions:       take-home prescription items (a short course). `dose`
+#                        is per dose; `duration_days` is keyed by age band
+#                        (years, clinosim.age_bands keys).
+presentations:
+  # AAP 2014 bronchiolitis guideline (Ralston, Pediatrics 2014;134:e1474):
+  # supportive care only — no bronchodilator, steroid or antibiotic. Fever is
+  # usually low-grade and present in a minority of infants.
+  pediatric_bronchiolitis:
+    vitals: [temp, hr, rr, spo2]
+    febrile_probability: 0.3
+    state_impact:
+      febrile: {inflammation_level: 0.75}
+      afebrile: {inflammation_level: 0.10}
+
+  # Acute otitis media: fever in about half of children. AAP 2013 AOM
+  # guideline (Lieberthal, Pediatrics 2013;131:e964): amoxicillin
+  # 80-90 mg/kg/day in 2 divided doses, i.e. 45 mg/kg per dose BID; 10 days
+  # under 2 years, 7 days at 2-5 years.
+  pediatric_otitis_media:
+    vitals: [temp, hr, rr, spo2]
+    febrile_probability: 0.5
+    state_impact:
+      febrile: {inflammation_level: 0.75}
+      afebrile: {inflammation_level: 0.10}
+    prescriptions:
+      - drug_id: amoxicillin
+        dose: "45mg/kg"
+        route: PO
+        frequency: BID
+        duration_days: {"0-1": 10, "2+": 7}
+
+  # The visit reason is "upper respiratory infection with fever"; most are
+  # febrile at the visit. Supportive care (no antibiotic for a viral URI).
+  pediatric_uri:
+    vitals: [temp, hr, rr, spo2]
+    febrile_probability: 0.7
+    state_impact:
+      febrile: {inflammation_level: 0.75}
+      afebrile: {inflammation_level: 0.10}
+
+  # Minor injury: afebrile, mild pain (pain score about 3/10).
+  pediatric_injury:
+    vitals: [temp, hr, bp]
+    febrile_probability: 0.0
+    state_impact:
+      afebrile: {pain_level: 0.3}

@@ -24,6 +24,7 @@ from clinosim.modules.observation.engine import (
     is_qualitative_test,
 )
 from clinosim.modules.order.engine import enrich_medication_order
+from clinosim.modules.pediatric.calendar import Presentation, pediatric_presentation
 from clinosim.modules.staff.engine import (
     FALLBACK_PHYSICIAN_ID,
     StaffRoster,
@@ -48,6 +49,7 @@ from clinosim.simulator.lab_pipeline import patient_true_labs
 from clinosim.types.clinical import ConditionEvent, PhysiologicalState
 from clinosim.types.config import SimulatorConfig
 from clinosim.types.encounter import (
+    ACUTE_COURSE,
     Encounter,
     EncounterStatus,
     EncounterType,
@@ -365,9 +367,14 @@ def _record_visit_vitals(
     visit_date: datetime,
     roster: StaffRoster,
     rng: np.random.Generator,
+    presentation: Presentation | None = None,
+    encounter_id: str = "",
 ) -> tuple[VitalSignRecord, PhysiologicalState, str]:
     """The visit's vital-sign set, the comorbidity-adjusted state it was
-    derived from (reused for labs) and the measuring nurse."""
+    derived from (reused for labs) and the measuring nurse.
+
+    An acute pediatric visit (``presentation``, Issue #2873) measures its own
+    vital set from a state carrying the illness (fever on a febrile visit)."""
     # Vitals (subset depends on visit type and chronic condition). The
     # follow-up set is the condition's `vitals` list in chronic_followup.yaml
     # (Issue #2287); default profile: BP + HR.
@@ -379,6 +386,8 @@ def _record_visit_vitals(
         fields = set(followup_vitals)
     elif visit_type == "health_screening":
         fields = {"temp", "hr", "bp", "rr", "spo2"}
+    elif presentation is not None:
+        fields = set(presentation.vitals)
     elif visit_type == "pediatric_visit":
         # #760 pass 2 — well-child visits measure growth-chart vitals
         # (temperature + heart rate; weight/height are typed elsewhere on
@@ -392,6 +401,7 @@ def _record_visit_vitals(
     # measured subset (`fields`) still depends on visit type / chronic condition.
     from clinosim.modules.physiology._vital_signs_thresholds import PAIN_SCORE_SCALE
     from clinosim.modules.physiology.engine import (
+        apply_disease_onset,
         derive_observed_vitals,
         initialize_state,
     )
@@ -399,6 +409,9 @@ def _record_visit_vitals(
     baseline = patient.baseline_vitals
     _state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
     _state.timestamp = visit_date
+    if presentation is not None:
+        # The fever draw is stream-free, so the visit's RNG draws are unchanged.
+        _state = apply_disease_onset(_state, presentation.visit_state(encounter_id), presentation.state_impact)
     vit_time = visit_date + timedelta(minutes=OUTPATIENT_VITALS_OFFSET_MIN)
     raw = derive_observed_vitals(_state, baseline, vit_time, rng)
     opd_nurse_id = assign_staff("medication_administration", "primary_care", roster, rng).get("administering_nurse", "")
@@ -634,6 +647,50 @@ def _renewal_prescription(
         )
 
     return rx
+
+
+def _acute_visit_prescription(
+    patient: PatientProfile, presentation: Presentation, encounter: Encounter, visit_date: datetime
+) -> PrescriptionRecord | None:
+    """The take-home short course of an acute pediatric visit (Issue #2873):
+    each ``prescriptions`` item of the presentation, its course length by the
+    child's age at the visit. The dose is per kg of body weight."""
+    if not presentation.prescriptions:
+        return None
+    from clinosim.codes.drugs import resolve_drug
+
+    age = _age_on(patient, visit_date)
+    items = []
+    for spec in presentation.prescriptions:
+        names = resolve_drug(spec.drug_id).names
+        items.append(
+            {
+                "drug_name": names.get("en", ""),
+                "drug_name_ja": names.get("ja", "") or names.get("en", ""),
+                "drug_id": spec.drug_id,
+                "dose": spec.dose,
+                "route": spec.route,
+                "frequency": spec.frequency,
+                "duration_days": spec.course_days(age),
+                "course": ACUTE_COURSE,
+            }
+        )
+    return PrescriptionRecord(
+        prescription_id=f"RX-{patient.patient_id}-{encounter.encounter_id}",
+        patient_id=patient.patient_id,
+        prescriber_id=encounter.attending_physician_id,
+        issue_date=visit_date,
+        items=items,
+    )
+
+
+def _age_on(patient: PatientProfile, when: datetime) -> int:
+    """The patient's age in completed years on ``when`` (the profile age when
+    the date of birth is unknown)."""
+    dob = patient.date_of_birth
+    if dob is None:
+        return int(patient.age)
+    return when.year - dob.year - ((when.month, when.day) < (dob.month, dob.day))
 
 
 def unique_items_by_drug(items: list[dict]) -> list[dict]:
@@ -992,7 +1049,10 @@ def _simulate_outpatient_visit(
     staff = assign_staff("rounds", department_id, roster, rng)
     encounter.attending_physician_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
 
-    vital, visit_state, opd_nurse_id = _record_visit_vitals(patient, visit_type, chronic_code, visit_date, roster, rng)
+    presentation = pediatric_presentation(chronic_code) if visit_type == "pediatric_visit" else None
+    vital, visit_state, opd_nurse_id = _record_visit_vitals(
+        patient, visit_type, chronic_code, visit_date, roster, rng, presentation, encounter.encounter_id
+    )
     vitals: list[VitalSignRecord] = [vital]
 
     # Pre-assign a lab tech for outpatient labs
@@ -1008,6 +1068,8 @@ def _simulate_outpatient_visit(
     if statin_monitored:
         statin_monitoring.note_lipid_panel(patient, visit_date, lab_results)
     rx = _renewal_prescription(patient, spec, encounter, visit_date)
+    if rx is None and presentation is not None:
+        rx = _acute_visit_prescription(patient, presentation, encounter, visit_date)
     statin_monitoring.annotate_titration(rx, titration)
 
     attach_orders(orders, encounter)

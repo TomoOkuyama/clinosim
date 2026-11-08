@@ -19,11 +19,19 @@ from clinosim.simulator.diagnosis_rules import (
 )
 
 
-def test_pediatric_vaccination_visits_get_z23_and_other_pediatric_visits_z00() -> None:
+def test_pediatric_vaccination_visits_get_z23_acute_visits_their_illness_and_others_z00() -> None:
+    from clinosim.modules.pediatric.calendar import pediatric_presentation
+
     for entry in load_pediatric_schedule().values():
         visit = entry["disease_id"]
-        expected = "Z23" if "immuniz" in visit or "vaccin" in visit else "Z00"
-        assert visit_purpose_code("pediatric_visit", visit) == expected, visit
+        code = visit_purpose_code("pediatric_visit", visit)
+        if "immuniz" in visit or "vaccin" in visit:
+            assert code == "Z23", visit
+        elif pediatric_presentation(visit) is not None:
+            # Issue #2873: an acute visit is coded with its illness, never Z00.
+            assert not code.startswith("Z"), (visit, code)
+        else:
+            assert code == "Z00", visit
     assert visit_purpose_code("pediatric_visit", "pediatric_visit") == "Z00"
 
 

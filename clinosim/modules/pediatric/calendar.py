@@ -28,10 +28,15 @@ from typing import Any, Literal
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
+from clinosim.age_bands import find_age_band_or_last, parse_age_band
 from clinosim.datafiles import load_data_yaml
+from clinosim.determinism import sha_bernoulli
 from clinosim.modules._shared import random_day_of_month
 
 _YAML_PATH = Path(__file__).parent / "reference_data" / "pediatric_schedule.yaml"
+
+# Vital-sign fields an outpatient visit can measure (``VitalSignRecord``).
+VitalField = Literal["temp", "hr", "bp", "rr", "spo2"]
 
 
 class _Visit(BaseModel):
@@ -67,6 +72,78 @@ class _Visit(BaseModel):
         return self
 
 
+class PrescriptionSpec(BaseModel):
+    """One take-home prescription item of an acute visit (a short course)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    drug_id: str = Field(min_length=1)
+    dose: str = Field(min_length=1)
+    route: str = Field(min_length=1)
+    frequency: str = Field(min_length=1)
+    # Age band (years) -> course length in days.
+    duration_days: dict[str, int] = Field(min_length=1)
+
+    @field_validator("drug_id")
+    @classmethod
+    def _catalogued(cls, drug_id: str) -> str:
+        from clinosim.codes.drugs import get_drug
+
+        if get_drug(drug_id) is None:
+            raise ValueError(f"drug {drug_id!r} is not in the drug catalog")
+        return drug_id
+
+    @field_validator("duration_days")
+    @classmethod
+    def _bands(cls, table: dict[str, int]) -> dict[str, int]:
+        for band, days in table.items():
+            parse_age_band(band)
+            if days <= 0:
+                raise ValueError(f"duration_days[{band!r}] must be positive")
+        return table
+
+    def course_days(self, age: int) -> int:
+        """Course length for a child aged ``age`` (the last band when none covers it)."""
+        return self.duration_days[find_age_band_or_last(list(self.duration_days), age)]
+
+
+class Presentation(BaseModel):
+    """Clinical picture of an acute pediatric visit (Issue #2873)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    vitals: list[VitalField] = Field(min_length=1)
+    febrile_probability: float = Field(ge=0.0, le=1.0)
+    # Visit state ("febrile" / "afebrile") -> state-var deltas.
+    state_impact: dict[str, dict[str, float]] = Field(default_factory=dict)
+    prescriptions: list[PrescriptionSpec] = Field(default_factory=list)
+
+    @field_validator("state_impact")
+    @classmethod
+    def _canonical_state_vars(cls, impact: dict[str, dict[str, float]]) -> dict[str, dict[str, float]]:
+        from clinosim.modules.physiology.engine import canonical_state_vars
+
+        bad_states = sorted(set(impact) - {"febrile", "afebrile"})
+        if bad_states:
+            raise ValueError(f"state_impact keys must be febrile / afebrile, got {bad_states}")
+        unknown = sorted({var for deltas in impact.values() for var in deltas} - canonical_state_vars())
+        if unknown:
+            raise ValueError(f"state_impact names non-canonical state vars {unknown}")
+        return impact
+
+    @model_validator(mode="after")
+    def _febrile_needs_impact(self) -> Presentation:
+        if self.febrile_probability > 0 and "febrile" not in self.state_impact:
+            raise ValueError("febrile_probability > 0 needs a state_impact.febrile block")
+        return self
+
+    def visit_state(self, encounter_id: str) -> Literal["febrile", "afebrile"]:
+        """Whether the visit ``encounter_id`` is febrile — a stream-free draw,
+        so no simulation RNG stream moves."""
+        febrile = sha_bernoulli(f"pediatric-fever|{encounter_id}", self.febrile_probability)
+        return "febrile" if febrile else "afebrile"
+
+
 class _PediatricSchedule(BaseModel):
     """Shape of pediatric_schedule.yaml (validated at load)."""
 
@@ -74,6 +151,24 @@ class _PediatricSchedule(BaseModel):
 
     metadata: dict[str, Any] = Field(default_factory=dict)
     encounters: dict[str, _Visit] = Field(default_factory=dict)
+    presentations: dict[str, Presentation] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _presentations_name_visits(self) -> _PediatricSchedule:
+        visit_ids = {entry.disease_id for entry in self.encounters.values()}
+        unknown = sorted(set(self.presentations) - visit_ids)
+        if unknown:
+            raise ValueError(f"presentations for unscheduled visits {unknown}")
+        return self
+
+
+@lru_cache(maxsize=8)
+def _load_schedule(path: Path = _YAML_PATH) -> _PediatricSchedule:
+    raw = load_data_yaml(path) or {}
+    try:
+        return _PediatricSchedule.model_validate(raw)
+    except ValidationError as exc:
+        raise ValueError(f"pediatric_schedule.yaml at {path}: {exc}") from exc
 
 
 @lru_cache(maxsize=8)
@@ -85,13 +180,14 @@ def load_pediatric_schedule(path: Path | None = None) -> dict[str, dict[str, Any
     default). Raises `ValueError` on schema violations so a malformed
     edit surfaces at load time, not as a mysterious runtime miss.
     """
-    p = path or _YAML_PATH
-    raw = load_data_yaml(p) or {}
-    try:
-        config = _PediatricSchedule.model_validate(raw)
-    except ValidationError as exc:
-        raise ValueError(f"pediatric_schedule.yaml at {p}: {exc}") from exc
+    config = _load_schedule(path) if path is not None else _load_schedule()
     return {key: entry.model_dump(exclude_none=True) for key, entry in config.encounters.items()}
+
+
+def pediatric_presentation(visit_id: str) -> Presentation | None:
+    """The clinical picture of the acute pediatric visit ``visit_id`` (a
+    schedule ``disease_id``), or None for a preventive visit."""
+    return _load_schedule().presentations.get(visit_id)
 
 
 def generate_pediatric_events(
