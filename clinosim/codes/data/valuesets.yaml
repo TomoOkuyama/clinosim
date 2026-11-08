@@ -59,3 +59,10 @@ groups:
   prior_depression: {space: internal, match: prefix, members: [F32, F33]}
   severe_osteoporosis: {space: internal, match: prefix, members: [M80, M81]}
   alcohol_etiology: {space: internal, match: prefix, members: [F10]}
+  # --- Statin titration (simulator/statin_monitoring.py, Issue #2877) ---
+  # Clinical ASCVD of the 2018 ACC/AHA cholesterol guideline: coronary heart
+  # disease, ischaemic stroke and its sequelae, atherosclerosis and peripheral
+  # arterial disease.
+  clinical_ascvd: {space: internal, match: prefix, members: [I20, I21, I22, I24, I25, I63, I69.3, I70, I73]}
+  # Coronary heart disease: JAS 2022 secondary prevention.
+  coronary_heart_disease: {space: internal, match: prefix, members: [I20, I21, I22, I24, I25]}

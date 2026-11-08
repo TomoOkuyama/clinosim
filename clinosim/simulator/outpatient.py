@@ -30,6 +30,7 @@ from clinosim.modules.staff.engine import (
     assign_staff,
 )
 from clinosim.seeding import ambulatory_visit_length_seed
+from clinosim.simulator import statin_monitoring
 from clinosim.simulator._outpatient_thresholds import (
     OUTPATIENT_LAB_ORDER_OFFSET_MIN,
     OUTPATIENT_LAB_RESULT_OFFSET_HOURS,
@@ -992,8 +993,17 @@ def _simulate_outpatient_visit(
     # Pre-assign a lab tech for outpatient labs
     lab_tech_assignment = assign_staff("lab_collection", "laboratory", roster, rng)
     lab_tech_id = lab_tech_assignment.get("performing_technician", "")
+    # Issue #2877: statin monitoring — titrate on the last lipid panel, then
+    # order the panel when due. RNG-free (lab noise is per order id).
+    statin_monitored = statin_monitoring.is_statin_monitoring_visit(patient, visit_type, spec)
+    titration = statin_monitoring.titrate_statin(patient, visit_date, country) if statin_monitored else None
+    if statin_monitored and statin_monitoring.lipid_panel_due(patient, visit_date):
+        spec = {**spec, "labs": statin_monitoring.lipid_panel_labs(list(spec.get("labs", [])))}
     orders, lab_results = _result_followup_labs(patient, spec, encounter, visit_date, visit_state, lab_tech_id, country)
+    if statin_monitored:
+        statin_monitoring.note_lipid_panel(patient, visit_date, lab_results)
     rx = _renewal_prescription(patient, spec, encounter, visit_date)
+    statin_monitoring.annotate_titration(rx, titration)
 
     attach_orders(orders, encounter)
     finalize_encounter(

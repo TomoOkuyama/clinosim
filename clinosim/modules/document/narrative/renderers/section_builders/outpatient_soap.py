@@ -912,6 +912,10 @@ def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeC
             # condition, index rotated deterministically off
             # (patient_id, encounter_id)). Preserves the YAML content
             # as the baseline; only adds a new tail line.
+            titration = _compose_statin_titration_line(ctx)
+            if titration:
+                text = f"{text}\n{titration}"
+                facts.append("ctx.discharge_medications.titration")
             tail = _compose_follow_up_line(ctx)
             if tail:
                 facts.append("encounter_protocol.next_visit_interval")
@@ -920,6 +924,10 @@ def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeC
 
     # v9 multi-line composition (density fix)
     lines: list[str] = []
+    titration = _compose_statin_titration_line(ctx)
+    if titration:
+        lines.append(titration)
+        facts.append("ctx.discharge_medications.titration")
     continuation = _compose_current_medications_line(ctx)
     if continuation:
         lines.append(continuation)
@@ -952,6 +960,28 @@ def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeC
         return "\n".join(lines), facts
 
     return fallback, facts
+
+
+def _compose_statin_titration_line(ctx: NarrativeContext) -> str:
+    """The statin stepped up at this visit and the LDL that called for it
+    (Issue #2877); empty when none was."""
+    from clinosim.locale.free_text import localize_drug_name
+
+    for m in getattr(ctx, "discharge_medications", None) or []:
+        from_dose = _o(m, "titrated_from_dose", "")
+        if not from_dose:
+            continue
+        ldl = _o(m, "titration_ldl", None)
+        return t(
+            "prescription.statin_titrated",
+            ctx.target_lang,
+            med=localize_drug_name(str(_o(m, "drug_name", "")), ctx.target_lang),
+            from_dose=from_dose,
+            to_dose=_o(m, "dose", ""),
+            ldl=f"{float(ldl):g}" if ldl is not None else "",
+            date=_o(m, "titration_panel_on", ""),
+        )
+    return ""
 
 
 def _compose_today_prescription_line(ctx: NarrativeContext) -> str:

@@ -390,6 +390,10 @@ prescription:
   medication_inhalation_continue:
     ja: "{med} 吸入継続"
     en: "{med} inhalation continue"
+  # Issue #2877: a statin stepped up on the last lipid panel's LDL.
+  statin_titrated:
+    ja: "{med} を {from_dose} から {to_dose} に増量 (LDL {ldl} mg/dL、{date})。"
+    en: "{med} increased from {from_dose} to {to_dose} (LDL {ldl} mg/dL on {date})."
 
 # O2 / oxygen device narrative fragments.
 oxygen:
