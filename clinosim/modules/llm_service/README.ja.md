@@ -26,7 +26,8 @@ prompt cache、provider 選択を所有する。
 - **Out of scope**: narrative content 組立 / template rendering
   ([`clinosim.modules.document.narrative`](../document/narrative/README.ja.md)
   が 2-pass narrative を所有し `LLMService` を import する)、
-  cost tracking / accounting、FHIR emission
+  cost tracking / 予算管理 (`LLMService.cost_report()` は call /
+  token / cache-hit の件数を返すだけ)、FHIR emission
   ([`clinosim.modules.output`](../output/README.ja.md))。
 
 ## Public API

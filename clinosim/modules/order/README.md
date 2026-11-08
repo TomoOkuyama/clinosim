@@ -145,6 +145,9 @@ from clinosim.modules.order.placed_order_mar import (
 
 # Take-home prescription renewals, computed at FHIR export (Issue #2610)
 from clinosim.modules.order.prescription_supersede import prescription_closures  # (records, run_end) -> {(encounter_id, seq): Closure}
+
+# Weight-based ED doses for children (Issue #2857)
+from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg) -> re-dosed name (unchanged for adults / unlisted drugs) | None (below minimum age)
 ```
 
 ## Determinism
@@ -231,6 +234,12 @@ from clinosim.modules.order.prescription_supersede import prescription_closures 
   matching so the same tables cover English encounter-YAML names
   and English disease-YAML detail strings. Localisation to JP is
   intentionally deferred to the FHIR builder.
+- **Pediatric dosing** ([`reference_data/pediatric_dosing.yaml`](reference_data/pediatric_dosing.yaml),
+  read by `pediatric_dose.py`, validated by `PediatricDosingFile`,
+  `extra="forbid"`): `adult_age_years` plus per-drug `mg_per_kg`,
+  `max_mg`, `min_age_months`. An ED order for a listed drug given to a
+  patient under `adult_age_years` is re-dosed from the weight, and not
+  given below its minimum age.
 
 ## Directory contents
 
@@ -245,6 +254,7 @@ clinosim/modules/order/
   prescription_supersede.py          prescription_closures — renewal / supply-end closure of take-home prescriptions at FHIR export (Issue #2610)
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — RNG-free MAR for orders placed outside the daily loop (Issue #2607)
   absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion — per-kg / per-m2 dose amounts (Issue #2750)
+  pediatric_dose.py                  pediatric_order_name — weight-based ED doses for children (Issue #2857)
   audit.py                           AD-60 audit plug-in (per-module) — 7-check lift_firing_proof + basedon_coverage
   _lab_result_timing.py              STAT / routine / night-shift constants (Issue #637)
   _imaging_result_timing.py          scheduling + reporting delay constants (Issue #637)
@@ -252,6 +262,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay constants (Issue #637)
   reference_data/
     medication_supersede.yaml        class switches + PRN markers read by supersede.py (Issue #2615)
+    pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age read by pediatric_dose.py (Issue #2857)
   SPEC.md                            extended design reference (not runtime)
 ```
 
@@ -279,7 +290,7 @@ The `audit.py` module is registered with the audit framework
 | Consumer | Where | Role |
 |---|---|---|
 | Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | Calls `place_admission_orders` (which classifies `supportive[]` via `classify_inpatient_supportive` internally) + `place_imaging_orders` + `enrich_medication_order`. |
-| Emergency encounter | [`clinosim/simulator/emergency.py`](../../simulator/emergency.py) | `classify_encounter_treatment` for `treatment[]`, `enrich_medication_order`, `individual_lab_seed` for ED labs. |
+| Emergency encounter | [`clinosim/simulator/emergency.py`](../../simulator/emergency.py) | `classify_encounter_treatment` for `treatment[]`, `enrich_medication_order`, `individual_lab_seed` for ED labs, `pediatric_order_name` for children's treatment / discharge doses. |
 | Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py) | `enrich_medication_order` (incl. chemo `cycle_orders`) + `individual_lab_seed`. |
 | Daily loop | [`clinosim/simulator/daily_loop.py`](../../simulator/daily_loop.py) | `place_daily_lab_orders` + `place_imaging_orders`, plus `classify_encounter_treatment` / `classify_escalation_treatment` for treatment and escalation orders. |
 | Unknown-condition walkthrough | [`clinosim/simulator/unknown_condition.py`](../../simulator/unknown_condition.py) | `calculate_result_time_from_state` for its lab results. |

@@ -20,8 +20,11 @@
 
 - **In scope**: `EncounterConditionProtocol` Pydantic schema + child
   model (`OutpatientSoapTemplate`, `EdNoteTemplate`, `EdPhysicalExam`,
-  `EdTriageTemplate`, `EncounterNarrativeSpec`)、per-protocol loader
-  + 全 registry loader (共に `@lru_cache`)、F1 cross-cursor 安定 id
+  `EdTriageTemplate`, `EncounterNarrativeSpec`, `SymptomOnset`,
+  `ScreeningSchedule`, `ScreeningLab`, `VisitProcedure`、および型付きの
+  workup / treatment / prescription / scenario 節)、per-protocol loader
+  + 全 registry loader (共に `@lru_cache`)、`screening_schedule` と
+  `protocol_min_age` / `AGE_DISTRIBUTION_MIN_AGE`、F1 cross-cursor 安定 id
   式付き `create_inpatient_encounter`、`generate_daily_cycle`
   (日次 event 骨格、日本の中規模病院 cadence — morning vitals
   06:00、morning labs 06:30、rounds 09:00、afternoon vitals
@@ -50,8 +53,10 @@
   `department_rollup` で集約 (同梱の病院設定では `primary_care`)。delivery Procedure
   US CPT `59400`、JP は正常分娩が保険外のため K コードなし)。
 - **新生児 Encounter** (IMP admission、`admit_source = "born"` —
-  [`clinosim/types/encounter.py`](../../types/encounter.py) の
-  `Encounter.admit_source` の文字列値 (enum ではない)、`admit_source_encounter_id` が母親の
+  [`clinosim/codes/hl7_encounter.py`](../../codes/hl7_encounter.py) の
+  `AdmitSource.BORN` の値で、
+  [`clinosim/types/encounter.py`](../../types/encounter.py) の `str` 型
+  `Encounter.admit_source` に格納、`admit_source_encounter_id` が母親の
   分娩 encounter を指し新生児側の FHIR `Encounter.partOf` に emit、
   LOS は母親から継承、discharge dx `Z38.0`)。
 - **産褥 (postpartum) 外来 encounter × 2** — 分娩後 ~1 週間 / ~4 週間の
@@ -89,6 +94,14 @@ from clinosim.modules.encounter.protocol import (
     EdTriageTemplate,                # ED triage sub-model
     load_encounter_condition,        # (condition_id) -> dict  (@lru_cache=64)
     load_all_encounter_conditions,   # () -> dict[condition_id, dict]  (@lru_cache=1)
+    SymptomOnset,                    # 症状の発症時期 (unit + range)
+    DEFAULT_SYMPTOM_ONSET,           # onset 未指定時の既定値 (days, 1-3)
+    ScreeningSchedule,               # screening の受診間隔 / 対象年齢 / 受診率
+    ScreeningLab,                    # 年齢 / 性別 / BMI で追加する検査
+    VisitProcedure,                  # 受診ごとに実施する処置 (code / SNOMED / 名称 / 所要時間)
+    AGE_DISTRIBUTION_MIN_AGE,        # age_distribution → 最低年齢
+    protocol_min_age,                # (spec) -> int | None  (min_age、なければ age_distribution の下限)
+    screening_schedule,              # (condition_id) -> ScreeningSchedule  (screening protocol の schedule (無ければ ValueError))
 )
 ```
 
@@ -120,8 +133,13 @@ from clinosim.modules.encounter.protocol import (
   `EncounterType`。
 - `hashlib.sha256` — encounter-id 導出。
 - `clinosim.modules.output.fhir_r4.lib.reference_data.validate_yaml_route_value`
-  — loader 内で lazy import (`route:` 語彙検査)。それ以外の
-  `clinosim.modules.*` には依存しない。
+  — loader 内で lazy import (`route:` 語彙検査)。
+- `clinosim.modules.observation.engine` — `canonical_lab_name`、
+  `lab_panel_components` (lazy。`ScreeningLab` の検査名検証)。
+- `clinosim.codes.code_exists` (lazy。`VisitProcedure` の code 検証)、
+  `clinosim.locale.loader.load_code_mapping` (lazy)、
+  `clinosim.age_bands.parse_closed_age_band` (lazy)、
+  `clinosim.datafiles.load_data_yaml`。
 
 ## 定数と設定
 

@@ -32,10 +32,12 @@ and applies day-scale deltas requested by clinical_course.
   `medication_flags_from_context(patient, medication_orders,
   admission_date, current_day)` — the canonical single edit points
   for scenario / medication-driven lab lifts (AD-57 sibling J5
-  pattern), `derive_lab_values(**flags, …)` covering 40 analytes,
+  pattern), `derive_lab_values(**flags, …)` covering 43 analytes,
   `derive_vital_signs` (deterministic baseline + physiology delta),
   `derive_observed_vitals` (adds circadian + measurement noise),
-  `canonical_state_vars()` for cross-module reflection.
+  `canonical_state_vars()` for cross-module reflection, and the
+  lipid panel (`lipid_panel` / `patient_lipid_panel`) with the statin /
+  ezetimibe LDL reduction from `statin_response.py`.
 - **Out of scope**: temporal trajectory selection
   ([`clinical_course`](../clinical_course/README.md)); the observed
   values as they land in CIF ([`observation`](../observation/README.md));
@@ -69,7 +71,9 @@ from clinosim.modules.physiology.engine import (
 
     # Derivations
     derive_lab_values,                # (state, sex, age, has_diabetes=False, rng=None, hour=6, **flags,
-                                      #  hba1c_latent=None) -> dict[analyte, float]
+                                      #  hba1c_latent=None, ldl_reduction=0.0) -> dict[analyte, float]
+    lipid_panel,                      # (sex, has_diabetes, has_dyslipidemia, ldl_reduction=0.0) -> {"TC", "HDL", "TG", "LDL"}
+    patient_lipid_panel,              # (patient) -> lipid_panel(...) from home medications (health checkup)
     derive_vital_signs,               # (state, baseline: BaselineVitals, timestamp, *, age_months=None) -> dict[str, float]
     derive_observed_vitals,           # (state, baseline: BaselineVitals, timestamp, rng, *, age_months=None) -> dict[str, float]
 )
@@ -101,7 +105,7 @@ from clinosim.modules.physiology.engine import (
   (`CKD_RENAL_COUPLING`, `HF_CARDIAC_COUPLING`,
   `CIRRHOSIS_HEPATIC_COUPLING`, `IHD_CARDIAC_COUPLING`, …).
 - `clinosim.modules.physiology._lab_derivation_thresholds` — every
-  scalar constant that shapes `derive_lab_values` for the 40
+  scalar constant that shapes `derive_lab_values` for the 43
   analytes (baselines, coupling scales, physiologic min / max
   ranges, noise SDs).
 - `clinosim.modules.physiology._state_coupling_thresholds` — the
@@ -117,6 +121,17 @@ from clinosim.modules.physiology.engine import (
 - `reference_data/chronic_glycemic_thresholds.yaml` (HbA1c / glucose /
   acid-base scalars) and `reference_data/state_variable_ranges.yaml`
   (per-state-variable min / max), each loaded once via `@cache`.
+- `clinosim.modules.physiology.statin_response` — LDL reduction of the
+  patient's statin (by intensity) and ezetimibe, from
+  `reference_data/statin_ldl_response.yaml` (validated by
+  `StatinLdlResponse`); uses `clinosim.codes.drugs` and
+  `clinosim.determinism`.
+- `clinosim.modules.observation.engine` — `medication_name`,
+  `medications_in_effect` (medication flag detection);
+  `clinosim.modules.observation.pediatric_ranges` — pediatric lab /
+  vital scaling (lazy import).
+- `clinosim.codes.drugs` (`same_drug`), `clinosim.codes.valuesets`
+  (`concept_group`, `has_condition`).
 - `clinosim.modules.longitudinal.engine` — `state_at` (lazy, inside
   `hba1c_latent_at`).
 - `clinosim.types.clinical` — `PhysiologicalState`,
@@ -168,7 +183,9 @@ from clinosim.modules.physiology.engine import (
   `chronic_glycemic_thresholds.yaml` (HbA1c / glucose / acid-base
   scalars) and `state_variable_ranges.yaml` (min / max range per
   delta-driven state variable; unlisted variables default to
-  `(0.0, 1.0)`).
+  `(0.0, 1.0)`), and `statin_ldl_response.yaml` (LDL reduction per
+  statin intensity plus the ezetimibe add-on, read by
+  `statin_response.py`).
 - Validators `_validate_complications_state_impact` +
   `_validate_initial_state_impact` (in `engine.py`, called from
   `disease/protocol.py` at protocol load) catch YAML entries that
@@ -179,16 +196,18 @@ from clinosim.modules.physiology.engine import (
 ```
 clinosim/modules/physiology/
   __init__.py                        empty
-  engine.py                          initialize_state / apply_* / derive_* / flag helpers (~1340 LOC)
+  engine.py                          initialize_state / apply_* / derive_* / flag helpers (~1570 LOC)
   _coupling_coefficients.py          per-chronic-condition coupling (Issue #637 PR-B)
   _lab_derivation_thresholds.py      analyte-formula constants (Issue #637)
   _state_coupling_thresholds.py      apply_coupling_rules constants (Issue #637)
   _vital_signs_thresholds.py         derive_vital_signs constants (Issue #637)
   dehydration_thresholds.py          canonical volume_status cutoffs (Issue #561)
   renal_thresholds.py                canonical renal_function cutoffs (Issue #561)
+  statin_response.py                 statin / ezetimibe LDL reduction (Issues #2917, #2947)
   reference_data/
     chronic_glycemic_thresholds.yaml HbA1c / glucose / acid-base scalars
     state_variable_ranges.yaml       per-state-variable min / max ranges
+    statin_ldl_response.yaml         LDL reduction by statin intensity + add-on (StatinLdlResponse)
   SPEC.md                            extended design reference (not runtime)
 ```
 
@@ -212,7 +231,7 @@ offset in `ENRICHER_SEED_OFFSETS`.
 | Vitals pipeline | [`clinosim/simulator/vitals_pipeline.py`](../../simulator/vitals_pipeline.py) | Emits vitals via `derive_observed_vitals`; reads AVPU / pain constants from `_vital_signs_thresholds.py`. |
 | Medication pipeline | [`clinosim/simulator/medication_pipeline.py`](../../simulator/medication_pipeline.py) | Consults `renal_thresholds` (`METFORMIN_*`) for metformin holds. |
 | Monitoring enricher | [`clinosim/modules/monitoring/enricher.py`](../monitoring/enricher.py) | Flag helpers + `derive_lab_values` for chronic-med monitoring labs. |
-| Health checkup | [`clinosim/modules/health_checkup/engine.py`](../health_checkup/engine.py) | `hba1c_latent_at`, `hba1c_from_glycemic_control`, `HBA1C_NONDM_BASE`. |
+| Health checkup | [`clinosim/modules/health_checkup/engine.py`](../health_checkup/engine.py) | `hba1c_latent_at`, `hba1c_from_glycemic_control`, `HBA1C_NONDM_BASE`; `patient_lipid_panel` for the checkup LDL. |
 | HAI lab lift | [`clinosim/modules/hai/lab_lift.py`](../hai/lab_lift.py) | Re-uses the `WBC_*` constants from `_lab_derivation_thresholds.py`. |
 | Clinical course | [`clinosim/modules/clinical_course/engine.py`](../clinical_course/engine.py) | `canonical_state_vars`. |
 | Discharge rx | [`clinosim/simulator/discharge_rx.py`](../../simulator/discharge_rx.py) | Same renal-hold gate for discharge medication. |
@@ -231,7 +250,7 @@ Individual files:
 - [`tests/unit/test_i10_stage_physiology.py`](../../../tests/unit/test_i10_stage_physiology.py)
   — I10 (hypertension) stage → physiology coupling regression.
 
-Coverage gap: the 40 analyte derivations in `derive_lab_values` are
+Coverage gap: the 43 analyte derivations in `derive_lab_values` are
 covered end-to-end via integration tests rather than per-analyte
 unit tests today. When adding a new analyte, extend
 `test_physiology.py` with a focused check that the analyte's

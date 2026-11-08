@@ -127,8 +127,13 @@ class PersonRecord:
     address_line: str = ""
     phone_home: str = ""
     phone_mobile: str = ""
+    guardian_contact_name: str = ""        # newborn: the mother as guardian contact
+    guardian_contact_phone: str = ""
+    guardian_contact_relationship: str = ""
     # Health summary
     chronic_conditions: list[str]          # ICD codes only
+    chronic_tracked_from: int | None = None   # first simulated year the aging step ran
+    chronic_first_year: dict[str, int]     # code → first simulated year it was held
     current_medications: list[HomeMedication]
     occupation: str = "other"
     bmi: float = 22.0
@@ -152,6 +157,7 @@ class PersonRecord:
     last_disease_id: str | None = None
     hospitalization_history: list[HospitalizationSummary]
     identity: IdentityTimeline | None = None
+    visit_ledger: OutpatientVisitLedger    # outpatient bookkeeping shared across yearly profiles
 
     # Derived / methods
     is_alive -> bool                       # read-only property: date_of_death is None
@@ -159,6 +165,7 @@ class PersonRecord:
     def is_alive_at(self, when: date) -> bool
     def in_population_at(self, when: date) -> bool           # alive and enrolled
     def in_population_during(self, start: date, end: date) -> bool
+    def note_chronic_conditions(self, year: int) -> None     # fills chronic_first_year
     def get_active_state(...), has_active_state(...), state_history(...)
 ```
 

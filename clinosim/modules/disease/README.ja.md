@@ -61,7 +61,7 @@ slice list):
   `ImagingOrderSpec`, `DailyTrajectoryEntry`)、per-disease と
   全 registry の 2 loader (共に `@lru_cache`)、条件ベース modifier +
   最低クランプ付きの重症度分布サンプリング、canonical な重症度
-  category ↔ score mapping、canonical 3 acuity-tier 疾患集合
+  category ↔ score mapping、canonical acuity-tier 疾患集合
   (`EMERGENCY_PRIORITY_DISEASES`, `CRITICAL_MONITORING_DISEASES`)、薬剤ブロック route + 期間
   validation (Issue #455 / #437 系)、chief-complaint /
   target-LOS / 部門の localization helper。
@@ -195,11 +195,11 @@ schema / validation 失敗時に `ValueError` / Pydantic
   - `EVALUABLE_CONDITIONS` — `person` に対して評価可能な modifier
     条件 (ICD prefix 集合 + 年齢閾値集合); `RESERVED_INTRINSIC_CONDITIONS`
     — caller 側に評価を委ねる予約 token (例
-    `is_covid_variant_delta`); `KNOWN_MODIFIER_CONDITIONS =
+    `anterior_wall_MI`); `KNOWN_MODIFIER_CONDITIONS =
     EVALUABLE_CONDITIONS | RESERVED_INTRINSIC_CONDITIONS`。YAML
     modifier key がこの union 外なら load 時に raise。
 - **Acuity 別 canonical 集合** (`acuity.py`, Issue #563):
-  重複を含む 3 `frozenset[str]` — 疾患 ID の集合参加は load-bearing
+  重複を含む 2 つの `frozenset[str]` — 疾患 ID の集合参加は load-bearing
   な臨床事実。追加 / 削除は data-quality PR (refactor ではない)。
   以前の `subdural_hematoma` inconsistency
   (`EMERGENCY_PRIORITY_DISEASES` に居るが
@@ -231,7 +231,7 @@ clinosim/modules/disease/
   __init__.py                     空
   protocol.py                     DiseaseProtocol + child model + loader + 薬剤 validator
   severity.py                     重症度 category / range / sampler / modifier 評価
-  acuity.py                       EMERGENCY_PRIORITY / CRITICAL_MONITORING / NEURO_LOC 集合
+  acuity.py                       EMERGENCY_PRIORITY / CRITICAL_MONITORING 集合 (neuro-LOC 集合は vitals_pipeline._NEURO_DISEASES)
   localization.py                 国 → YAML key + chief complaint + 部門 + target_los
   reference_data/
     <disease_id>.yaml             36 file (疾患 1 file)
@@ -277,7 +277,7 @@ pytest tests/unit -k disease -q
 - [`tests/unit/test_cli_test_disease_format.py`](../../../tests/unit/test_cli_test_disease_format.py)
   — CLI disease-format helper。
 - [`tests/unit/modules/test_disease_acuity_sets.py`](../../../tests/unit/modules/test_disease_acuity_sets.py)
-  — 3 acuity 集合の consistency (Issue #563 guard)。
+  — 2 つの acuity 集合の consistency (Issue #563 guard)。
 - [`tests/unit/modules/disease/`](../../../tests/unit/modules/disease/)
   — module-scoped unit test (重症度 sampler、薬剤 validator、
   localization helper)。

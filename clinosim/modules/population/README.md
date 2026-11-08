@@ -102,6 +102,8 @@ from clinosim.modules.population import (
     BMI_OVERWEIGHT_THRESHOLD,           # float constants (_population_thresholds)
     BMI_OBESE_THRESHOLD,
     BMI_MORBID_OBESITY_THRESHOLD,
+    FLU_VAX_MONTHS,                     # flu-vaccination months (_population_workflow_thresholds)
+    is_flu_vaccination_candidate,       # (age, chronic_condition_count) -> bool
 )
 ```
 
@@ -325,7 +327,7 @@ engine and will be reverted in a follow-up recalibration PR (B-3 phase 2).
 
 ```
 clinosim/modules/population/
-  __init__.py                          re-exports Person/Life/Hospitalization + 3 generators + BMI thresholds
+  __init__.py                          re-exports Person/Life/Hospitalization + 3 generators + BMI thresholds + flu-vaccination helpers
   engine.py                            registry construction + monthly events + calendar
   aging.py                             advance_population — yearly mortality draw + aging passes + longitudinal step
   mortality.py                         forward community mortality (life-table qx × relative SMR × community share)

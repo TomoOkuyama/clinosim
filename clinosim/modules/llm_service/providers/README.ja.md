@@ -5,7 +5,7 @@
 [`clinosim.modules.llm_service`](../README.ja.md) が dispatch する具体的
 LLM backend 群。各 provider は `LLMProvider` Protocol を実装しており
 `LLMService` は config だけで backend を差し替えられる (AD-11 /
-AD-24)。親パッケージが orchestration (prompt cache、cost accounting、
+AD-24)。親パッケージが orchestration (prompt cache、call / token 件数集計、
 task-type dispatch) を所有、本 subpackage は実装 + registry を所有する。
 
 ## Scope
@@ -79,7 +79,7 @@ provider builder を map:
   method 2 つ: `complete(prompt, model, max_tokens, system_prompt,
   temperature, stop_sequences) -> ProviderResponse` と
   `health_check() -> bool` (raise しない)。実装は error 時に
-  raise、caller (`LLMService`) が retry / fallback / cost tally を扱う。
+  raise、caller (`LLMService`) が retry / fallback / token 件数集計を扱う。
 - **`ProviderResponse` field** — `text`, `input_tokens`,
   `output_tokens`, `model`, `latency_ms`, `metadata`
   (`dict[str, Any] | None`、provider 固有 field 例: stop reason、

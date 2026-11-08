@@ -30,10 +30,12 @@ clinical_course が要求する day-scale delta を適用する。
   `scenario_flags_from_protocol(protocol)` /
   `medication_flags_from_context(patient, medication_orders,
   admission_date, current_day)` (AD-57 J5 sibling pattern)、
-  40 analyte をカバーする `derive_lab_values(**flags, …)`、
+  43 analyte をカバーする `derive_lab_values(**flags, …)`、
   `derive_vital_signs` (決定論 baseline + physiology delta)、
   `derive_observed_vitals` (circadian + 測定 noise 付与)、
-  cross-module reflection 用 `canonical_state_vars()`。
+  cross-module reflection 用 `canonical_state_vars()`、
+  `statin_response.py` の statin / ezetimibe による LDL 低下を反映した
+  lipid panel (`lipid_panel` / `patient_lipid_panel`)。
 - **Out of scope**: 時間軸 trajectory 選択
   ([`clinical_course`](../clinical_course/README.ja.md))、CIF に着地
   する観測値 ([`observation`](../observation/README.ja.md))、疾患定義
@@ -67,7 +69,9 @@ from clinosim.modules.physiology.engine import (
 
     # 導出
     derive_lab_values,                # (state, sex, age, has_diabetes=False, rng=None, hour=6, **flags,
-                                      #  hba1c_latent=None) -> dict[analyte, float]
+                                      #  hba1c_latent=None, ldl_reduction=0.0) -> dict[analyte, float]
+    lipid_panel,                      # (sex, has_diabetes, has_dyslipidemia, ldl_reduction=0.0) -> {"TC", "HDL", "TG", "LDL"}
+    patient_lipid_panel,              # (patient) -> 在宅薬から求めた lipid_panel(...) (健診用)
     derive_vital_signs,               # (state, baseline: BaselineVitals, timestamp, *, age_months=None) -> dict[str, float]
     derive_observed_vitals,           # (state, baseline: BaselineVitals, timestamp, rng, *, age_months=None) -> dict[str, float]
 )
@@ -99,7 +103,7 @@ from clinosim.modules.physiology.engine import (
   `HF_CARDIAC_COUPLING`, `CIRRHOSIS_HEPATIC_COUPLING`,
   `IHD_CARDIAC_COUPLING` 等)。
 - `clinosim.modules.physiology._lab_derivation_thresholds` —
-  `derive_lab_values` の 40 analyte を形作る全 scalar 定数
+  `derive_lab_values` の 43 analyte を形作る全 scalar 定数
   (baseline / coupling scale / physiologic min-max / noise SD)。
 - `clinosim.modules.physiology._state_coupling_thresholds` —
   `apply_coupling_rules` が適用する coupling-rule 定数。
@@ -114,6 +118,16 @@ from clinosim.modules.physiology.engine import (
 - `reference_data/chronic_glycemic_thresholds.yaml` (HbA1c /
   glucose / acid-base scalar) と `reference_data/state_variable_ranges.yaml`
   (state 変数ごとの min / max)。いずれも `@cache` で 1 回 load。
+- `clinosim.modules.physiology.statin_response` — 患者の statin
+  (強度別) と ezetimibe による LDL 低下率。
+  `reference_data/statin_ldl_response.yaml` (`StatinLdlResponse` で
+  検証) を読み、`clinosim.codes.drugs` と `clinosim.determinism` を使う。
+- `clinosim.modules.observation.engine` — `medication_name`、
+  `medications_in_effect` (薬剤 flag 判定)。
+  `clinosim.modules.observation.pediatric_ranges` — 小児の lab /
+  vital scaling (遅延 import)。
+- `clinosim.codes.drugs` (`same_drug`)、`clinosim.codes.valuesets`
+  (`concept_group`, `has_condition`)。
 - `clinosim.modules.longitudinal.engine` — `state_at`
   (`hba1c_latent_at` 内で遅延 import)。
 - `clinosim.types.clinical` — `PhysiologicalState`,
@@ -162,7 +176,9 @@ from clinosim.modules.physiology.engine import (
 - **YAML data** ([`reference_data/`](reference_data/)):
   `chronic_glycemic_thresholds.yaml` (HbA1c / glucose / acid-base
   scalar) と `state_variable_ranges.yaml` (delta 駆動 state 変数ごとの
-  min / max。未記載の変数は `(0.0, 1.0)`)。
+  min / max。未記載の変数は `(0.0, 1.0)`)、`statin_ldl_response.yaml`
+  (statin 強度ごとの LDL 低下率と ezetimibe 追加分。
+  `statin_response.py` が読む)。
 - validator `_validate_complications_state_impact` +
   `_validate_initial_state_impact` (`engine.py`、protocol load 時に
   `disease/protocol.py` から呼ばれる) が非 canonical state 変数を
@@ -173,16 +189,18 @@ from clinosim.modules.physiology.engine import (
 ```
 clinosim/modules/physiology/
   __init__.py                        空
-  engine.py                          initialize_state / apply_* / derive_* / flag helper (~1340 LOC)
+  engine.py                          initialize_state / apply_* / derive_* / flag helper (~1570 LOC)
   _coupling_coefficients.py          慢性疾患ごとの coupling (Issue #637 PR-B)
   _lab_derivation_thresholds.py      analyte 式定数 (Issue #637)
   _state_coupling_thresholds.py      apply_coupling_rules 定数 (Issue #637)
   _vital_signs_thresholds.py         derive_vital_signs 定数 (Issue #637)
   dehydration_thresholds.py          canonical volume_status 閾値 (Issue #561)
   renal_thresholds.py                canonical renal_function 閾値 (Issue #561)
+  statin_response.py                 statin / ezetimibe による LDL 低下 (Issue #2917, #2947)
   reference_data/
     chronic_glycemic_thresholds.yaml HbA1c / glucose / acid-base scalar
     state_variable_ranges.yaml       state 変数ごとの min / max range
+    statin_ldl_response.yaml         statin 強度別 + 追加薬の LDL 低下率 (StatinLdlResponse)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 
@@ -205,7 +223,7 @@ encounter simulator が直接呼び、`ModuleAuditSpec` も登録していない
 | Vitals pipeline | [`clinosim/simulator/vitals_pipeline.py`](../../simulator/vitals_pipeline.py) | `derive_observed_vitals` で vitals を emit。AVPU / pain 定数を `_vital_signs_thresholds.py` から読む。 |
 | Medication pipeline | [`clinosim/simulator/medication_pipeline.py`](../../simulator/medication_pipeline.py) | `renal_thresholds` (`METFORMIN_*`) を参照して metformin hold を判定。 |
 | Monitoring enricher | [`clinosim/modules/monitoring/enricher.py`](../monitoring/enricher.py) | 慢性薬 monitoring lab 用に flag helper + `derive_lab_values`。 |
-| Health checkup | [`clinosim/modules/health_checkup/engine.py`](../health_checkup/engine.py) | `hba1c_latent_at`, `hba1c_from_glycemic_control`, `HBA1C_NONDM_BASE`。 |
+| Health checkup | [`clinosim/modules/health_checkup/engine.py`](../health_checkup/engine.py) | `hba1c_latent_at`, `hba1c_from_glycemic_control`, `HBA1C_NONDM_BASE`。健診 LDL には `patient_lipid_panel`。 |
 | HAI lab lift | [`clinosim/modules/hai/lab_lift.py`](../hai/lab_lift.py) | `_lab_derivation_thresholds.py` の `WBC_*` 定数を再利用。 |
 | Clinical course | [`clinosim/modules/clinical_course/engine.py`](../clinical_course/engine.py) | `canonical_state_vars`。 |
 | Discharge rx | [`clinosim/simulator/discharge_rx.py`](../../simulator/discharge_rx.py) | 退院処方に対する同 renal-hold gate。 |
@@ -224,7 +242,7 @@ pytest tests/unit -k "physiology or i10_stage_physiology" -q
 - [`tests/unit/test_i10_stage_physiology.py`](../../../tests/unit/test_i10_stage_physiology.py)
   — I10 (高血圧) stage → physiology coupling の regression。
 
-**coverage gap**: `derive_lab_values` の 40 analyte 導出は現状
+**coverage gap**: `derive_lab_values` の 43 analyte 導出は現状
 per-analyte 単体 test ではなく integration test で end-to-end に
 カバーしている。新 analyte 追加時は `test_physiology.py` を拡張し、
 その analyte の baseline / coupling / clamp 定数が想定方向に発火する

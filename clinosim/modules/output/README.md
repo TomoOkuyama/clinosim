@@ -5,8 +5,9 @@
 The output layer that consumes generated CIF and emits every supported
 downstream format. Owns the pluggable adapter registry (AD-58), the
 CIF writer + reader, the built-in `csv` and `fhir-r4` adapters, and
-the `hospital_course_extractor` helper the narrative pipeline uses to
-build discharge-summary facts. FHIR R4 emission itself lives in the
+the `hospital_course_extractor` discharge-summary fact helper (used by
+the CSV adapter and the A/B prompt scripts; the runtime narrative
+pipeline does not import it). FHIR R4 emission itself lives in the
 [`fhir_r4/`](fhir_r4/README.md) subpackage.
 
 ## Scope

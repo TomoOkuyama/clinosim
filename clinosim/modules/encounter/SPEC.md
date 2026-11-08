@@ -1,5 +1,12 @@
 # encounter — Encounter Types & Workflow State Machines
 
+> **Status: design document.** Most of this file is the original design.
+> The implemented API, files and consumers are in [`README.md`](README.md);
+> the encounter flow itself is implemented in `clinosim/simulator/`.
+> Symbols named only here — `DiseaseEvent`, `HospitalProfile`,
+> `EncounterEvent`, `EncounterTransition`, `DocumentationRequirement`,
+> `ConsentRecord`, `LLMClinicalContext` — do not exist.
+
 ## Purpose
 Define the types of clinical encounters (outpatient, ED, inpatient, ICU, day surgery, rehab) and manage their workflow as state machines. Each encounter type determines the sequence of events, documentation requirements, and transitions to other encounter types.
 
@@ -859,7 +866,7 @@ US note: Informed consent must document that the patient understood risks, benef
 - **Adherence pattern**: Affects post-discharge readmission risk. "good_when_symptomatic" pattern → high readmission for HF/COPD. "cost_skipping" → medication-related readmission
 
 ### LLM integration points
-All LLM calls below are made via `llm_service.request()`. See `llm_service/SPEC.md` for the centralized LLM interface.
+All LLM calls go through `LLMService.complete_prompt` in the Stage 2 narrative pass (`clinosim narrate`); see `llm_service/README.md`. The items below are design notes.
 - **Admission H&P note** (model: large): Generates the initial History & Physical document from structured patient data. The LLM receives `LLMClinicalContext` + presenting symptoms + referral data and produces a realistic narrative in the style of the assigned physician's country/department.
 - **Daily progress notes (key days only)** (model: medium): LLM generates notes for clinically significant days (admission, treatment change, major result, discharge). Intermediate stable days use template-based notes with deliberate repetitiveness — real physicians write nearly identical notes for unchanged patients ("Day 8: Stable. CRP improving. Continue current antibiotics. Plan: observe."). This repetitiveness is a realism feature, not a bug.
 - **Discharge summary** (model: large): Generates a comprehensive discharge summary from the full encounter timeline. This is the highest-value LLM call — discharge summaries are the most-read clinical documents.

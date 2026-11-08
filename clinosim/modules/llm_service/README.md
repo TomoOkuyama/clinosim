@@ -26,7 +26,8 @@ response validation, prompt caching, and provider selection.
 - **Out of scope**: narrative-content assembly / template rendering
   ([`clinosim.modules.document.narrative`](../document/narrative/README.md)
   owns the two-pass narrative generation and imports `LLMService`);
-  cost tracking / accounting; FHIR emission
+  cost tracking / budgets (`LLMService.cost_report()` only returns
+  call / token / cache-hit counters); FHIR emission
   ([`clinosim.modules.output`](../output/README.md)).
 
 ## Public API

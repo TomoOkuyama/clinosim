@@ -4,8 +4,9 @@
 
 生成された CIF を消費し全 downstream フォーマットに emit する出力層。
 pluggable adapter registry (AD-58)、CIF writer + reader、bundled
-`csv` + `fhir-r4` adapter、narrative pipeline が discharge summary
-の fact 構築に使う `hospital_course_extractor` helper を所有する。
+`csv` + `fhir-r4` adapter、discharge summary の fact を抽出する
+`hospital_course_extractor` helper (CSV adapter と A/B prompt script が
+使用。runtime の narrative pipeline は import しない) を所有する。
 FHIR R4 emission 本体は [`fhir_r4/`](fhir_r4/README.ja.md) subpackage に。
 
 ## Scope

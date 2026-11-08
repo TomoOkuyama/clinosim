@@ -1,5 +1,13 @@
 # physiology — Physiological State Variables & State Space
 
+> **Status: design document.** Parts of this file are the original design
+> and describe more than the code implements. The implemented API, files
+> and consumers are in [`README.md`](README.md). Symbols named only here —
+> `InterventionEffect`, `DerivedLabValues`, `DerivedVitalSigns`, a
+> `treatment` module — do not exist: `derive_lab_values` /
+> `derive_vital_signs` return plain dicts, and medication effects on labs
+> come from `medication_flags_from_context`.
+
 ## Purpose
 Define the hidden physiological state variables that represent a patient's clinical condition, manage their evolution over time, and provide the mapping from state variables to observable values (lab results, vital signs). This is the core realism engine — all clinical observations are derived from this state, not generated independently.
 
@@ -87,7 +95,8 @@ The four symptom axes default to 0, are clamped to their range by `state_variabl
 > `_coupling_coefficients.py`, there is no `apply_chronic_condition`),
 > `derive_lab_values(state, sex, age, has_diabetes=False, rng=None,
 > hour=6, myocardial_injury=False, causes_vte=False, on_warfarin=False,
-> hai_inflammation_lift=0.0, has_dyslipidemia=False, hba1c_latent=None)`
+> hai_inflammation_lift=0.0, has_dyslipidemia=False, hba1c_latent=None,
+> ldl_reduction=0.0)`
 > (circadian variation is applied inside it), `derive_vital_signs(state,
 > baseline, timestamp)` and `derive_observed_vitals(state, baseline,
 > timestamp, rng)`. `apply_circadian_variation`, `apply_intervention`,
@@ -643,7 +652,7 @@ The diseases that bring children to the hospital are fundamentally different:
 | Appendicitis | 5-15y | Surgical |
 | Fractures | All (peak 10-14y) | Sports/play injuries |
 
-These require separate disease protocol YAMLs under `disease/protocols/pediatric/`.
+These would require pediatric disease protocol YAMLs; none exist yet (disease YAMLs are flat files in `disease/reference_data/`, with no sub-directories).
 
 #### Pediatric encounter differences
 - Parent/guardian always present (consent, history, decision-making)

@@ -92,6 +92,8 @@ from clinosim.modules.population import (
     BMI_OVERWEIGHT_THRESHOLD,           # float 定数 (_population_thresholds)
     BMI_OBESE_THRESHOLD,
     BMI_MORBID_OBESITY_THRESHOLD,
+    FLU_VAX_MONTHS,                     # インフルエンザ予防接種の月 (_population_workflow_thresholds)
+    is_flu_vaccination_candidate,       # (age, chronic_condition_count) -> bool
 )
 ```
 
@@ -298,7 +300,7 @@ population marginal は `base_prev` に収束し、multiplier は「どの患者
 
 ```
 clinosim/modules/population/
-  __init__.py                          Person/Life/Hospitalization + 3 generator + BMI 閾値を再 export
+  __init__.py                          Person/Life/Hospitalization + 3 generator + BMI 閾値 + インフルエンザ予防接種 helper を再 export
   engine.py                            registry 構築 + 月次 event + calendar
   aging.py                             advance_population — 年次死亡判定 + 加齢パス + 経年ステップ
   mortality.py                         前進型院外死亡 (生命表 qx × 相対 SMR × community share)
