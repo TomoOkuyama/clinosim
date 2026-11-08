@@ -1,52 +1,78 @@
 # clinosim Implementation Rules — invariants every implementer must know
 
-**Status:** Active (2026-07-03, established in session 32).
-**Audience:** every implementer or implementation agent (Opus 4.7,
-etc.) writing or modifying clinosim code.
-**Positioning:** the **distilled version** of CLAUDE.md (full text)
-and `docs/CONTRIBUTING-modules.md` (detailed HOW-TO). The rules
-below apply without exception. Details, rationale, and precise
-procedures live in the linked documents. When in doubt, apply the
-four judgment axes: **data quality, clinical coherence,
-maintainability (responsibility-decomposition points), conceptual
-fit**.
+**Status:** Active.
+**Audience:** every person or coding agent writing or modifying
+clinosim code.
+**Positioning:** the entry point for the coding rules. The rules
+below apply without exception; each domain's detailed rules live in
+a binding spec (table below), the shared helpers the rules refer to
+are listed in [`shared-helpers-catalog.md`](shared-helpers-catalog.md),
+and the module HOW-TO is `docs/CONTRIBUTING-modules.md`. When in
+doubt, apply the four judgment axes: **data quality, clinical
+coherence, maintainability (responsibility-decomposition points),
+conceptual fit**.
+
+### Where each rule lives
+
+| Concern | Read |
+|---|---|
+| Rules that apply to every change (this page) | `implementation-rules.md` |
+| Which shared helper to use for X | [`shared-helpers-catalog.md`](shared-helpers-catalog.md) |
+| Documentation language, comments, constants placement, dead code | [`documentation-and-code-quality-policy.md`](documentation-and-code-quality-policy.md) |
+| Code systems, display text, localization, fallback | [`code-mapping-and-localization-spec.md`](code-mapping-and-localization-spec.md) |
+| Random draws, seeds, clocks | [`determinism-and-rng-spec.md`](determinism-and-rng-spec.md) |
+| Reference-data YAML, age bands, constants | [`configuration-and-reference-data-spec.md`](configuration-and-reference-data-spec.md) |
+| Medication orders, holds, administrations, discharge prescriptions | [`medication-lifecycle-spec.md`](medication-lifecycle-spec.md) |
+| Lab values, orders, results | [`lab-orders-and-results-spec.md`](lab-orders-and-results-spec.md) |
+| Document planning and narrative wording | [`narrative-and-document-generation-spec.md`](narrative-and-document-generation-spec.md) |
+| Encounter setup, snapshot, FHIR finishing | [`encounter-lifecycle-and-export-spec.md`](encounter-lifecycle-and-export-spec.md) |
+| FHIR completeness (C1 / C2 / C3) | [`data-model-and-completeness-conventions.md`](data-model-and-completeness-conventions.md) |
+| Writing a FHIR builder | [`fhir-data-generation-logic.md`](fhir-data-generation-logic.md) |
 
 ---
 
 ## 0. Workflow discipline (before you write any code)
 
-1. **Chain workflow (established, do not deviate)**: recon → design
-   spec commit (`docs/history/specs-archive/`) → TDD implementation
-   (test first) → independent verification → PR → compact
-   adversarial review (5-lens, findings must be evidenced) → fix →
-   whole suite green → merge.
-2. **Scope discipline (★★★)**: no scope expansion after the spec is
+1. **Workflow**: one GitHub Issue per PR → read the code and the
+   binding spec → TDD implementation (test first) → verification on
+   a generated cohort → PR → review (findings must be evidenced) →
+   fix → whole suite green → merge. Larger designs get a design note
+   first (`docs/history/specs-archive/`).
+2. **Scope discipline**: no scope expansion after the spec is
    finalised. Findings outside scope are addressed only when they
    are "essential to data quality or clinical coherence"; otherwise
    they become **formal entries on the GitHub Issues board** (see
    `docs/roadmap.md`; the pre-Issues `TODO.md` ledger has been
    retired) with context, file:line, and a fix proposal.
 3. **Pre-work status audit**: do not take TODO / doc claims at face
-   value; **verify empirically before implementing** (a concrete
-   example: the α-min-3 "CRITICAL wiring gap" turned out to have
-   been resolved two generations back. Counting the cohort output
-   avoided a whole PR of wasted work).
+   value; **verify empirically before implementing** (count the
+   behaviour in a generated cohort first — reported gaps are often
+   already fixed).
 4. **Do not narrate before observing**: never write "success" before
    you see the tool result. Show verification via execution output
    (test output, real-cohort grep, sha256).
-5. **Commit conventions**: `feat(<chain>): ...` / `fix(<chain>
-   adv-1): ...` / `refactor: ...` / `docs: ...`. Commit per task.
-   Push and open the PR after verification is green.
+5. **Commit conventions**: `<type>(<module>): <summary>` with type
+   `feat` / `fix` / `refactor` / `docs` / `test` / `chore`, signed
+   off (`git commit --signoff`, DCO). Push and open the PR after
+   verification is green.
 
 ## 1. Coding standards
 
-- Python 3.11+ / ruff / mypy strict / line length 100.
-- **In-code comments and docstrings are English.** User-facing docs
-  follow each file's declared language (CONTRIBUTING and
-  design-guides mix Japanese with English technical terms).
-- **Types live only in `clinosim/types/`.** Defining a new dataclass
-  or BaseModel inside module code is forbidden (YAML config =
-  Pydantic BaseModel (AD-18); runtime = `@dataclass`).
+- Python 3.11+ / ruff (line length 120) / mypy (`mypy clinosim/`
+  must pass locally; CI runs it as informational only) / vulture
+  (unused code; framework-read members go in `.vulture-whitelist.py`).
+- **In-code comments and docstrings are English**, except the
+  Japanese-spec categories listed in the documentation policy §4.
+  Documentation is English in
+  `*.md` with a Japanese counterpart in `*.ja.md`
+  ([`documentation-and-code-quality-policy.md`](documentation-and-code-quality-policy.md) §1).
+- **Types shared between modules, and the CIF types, live only in
+  `clinosim/types/`** (YAML config = Pydantic BaseModel (AD-18);
+  runtime = `@dataclass`). A module may define private types that
+  never leave it: the Pydantic models that validate its own
+  reference YAML (`_models.py` or next to the loader) and internal
+  helper bundles. Once a second module needs the type, move it to
+  `clinosim/types/`.
 - **Public API = only what a module's `__init__.py` exports.**
 - Comments describe only "constraints the code cannot show". Do not
   write change history or self-evident explanations.
@@ -56,7 +82,7 @@ fit**.
 | Invariant | Content |
 |---|---|
 | AD-17 | **CIF is the sole simulation output.** Format adapters (FHIR / CSV) read only from CIF. |
-| AD-30 | **CIF holds codes only; no display text.** Display is resolved at output time via `clinosim.codes.lookup()`. |
+| AD-30 | **CIF holds codes only; no display text.** Display is resolved at output time via `clinosim.codes.display(...)` with an explicit fallback. |
 | AD-65 | **Two-file separation: structural / narrative.** Stage 1 emits only the `ClinicalDocument` stub (`narrative=None`); the post-simulation `NarrativePass` writes into `narratives/<version>/`. Mixing narrative inline is forbidden. |
 | AD-31 | FHIR is Bulk Data NDJSON (resource id is globally unique within its type; references resolve within one export). |
 | AD-32 | `--end` = snapshot date. No event generation past that date; honour the in-progress-encounter semantics. |
@@ -67,14 +93,21 @@ fit**.
 
 **Normative spec:** [`determinism-and-rng-spec.md`](determinism-and-rng-spec.md) defines the generator factory, seed derivation, RNG-neutral changes and clock rules, with their guards. Below is a summary.
 
-- `random.random()` is forbidden. The RNG must always derive from a
-  sub-seed of `numpy.random.Generator` (`clinosim/seeding.py`:
-  `derive_sub_seed(master_seed, module_offset, key)` + registration
-  under `ENRICHER_SEED_OFFSETS` (16-bit hex-ASCII); labs use
-  `panel_specimen_seed` / `individual_lab_seed`).
+- `random` and `numpy.random.default_rng` are forbidden. Every
+  generator comes from `clinosim.determinism.default_rng(seed)` with
+  a seed derived in `clinosim/seeding.py`
+  (`derive_sub_seed(master_seed, module_offset, key)` + registration
+  under `ENRICHER_SEED_OFFSETS` (16-bit hex-ASCII), or a named
+  per-entity seed function such as `panel_specimen_seed` /
+  `individual_lab_seed`). Never hash a seed at the call site.
+- A draw that must not shift any other draw (an RNG-neutral change)
+  uses the stream-free `sha_quantile` / `sha_bernoulli` /
+  `sha_normal` / `sha_weighted_choice` from `clinosim.determinism`,
+  never an inline `hashlib.sha256` formula.
 - **`datetime.now()` / `date.today()` do not appear on the
-  generation path.** (The remaining occurrences are TODOs in the
-  determinism chain — adding more is forbidden.) Narrative
+  generation path.** The files allowed to read a clock are pinned
+  in `tests/unit/test_determinism_spec_guards.py`; adding more is
+  forbidden. Narrative
   timestamps use the `_deterministic_timestamp` family.
 - **The return value of an `@lru_cache`d loader is a shared
   instance — never mutate it** (`load_disease_protocol` /
@@ -87,30 +120,31 @@ fit**.
 
 ## 4. Canonical single-source helpers (re-implementation and inlining absolutely forbidden)
 
-The same logic in two or more places is a violation. Always import
-and use the helpers below:
+The same logic in two or more places is a violation. Every shared
+helper, with its path and the spec that governs it, is listed in
+[`shared-helpers-catalog.md`](shared-helpers-catalog.md); look there
+before writing any small utility. The rules that most often go wrong:
 
-| Purpose | Helper (definition site) |
+| Concern | Rule |
 |---|---|
-| JP / US decision / display language | `is_jp(country)` / `is_us(country)` / `lang_for(country)` (`modules/_shared.py`). Hand-written `country == "JP"` comparisons are forbidden. |
-| Country → code-system selection | `system_key_for(kind, country)` (`clinosim.codes`). Inline jlac10 / loinc branching is forbidden. |
-| System URI | `get_system_uri(key)` (`clinosim.codes`). Hard-coding URI strings is forbidden. |
-| code → display | `code_lookup(system, code, lang)`. Hard-coding display strings is forbidden. |
-| Dict / dataclass dual read | `get_attr_or_key` (`_shared.py`) / `_o()` in FHIR builders. Adding new `isinstance(x, dict)` branches is forbidden. **Applies to every read path — cache keys, comparisons, branching** (lesson from C-1: `getattr` was used on a dict, so the whole cohort shared a single cache entry). |
-| Dict / dataclass dual write | `set_attr_or_key(obj, name, value)` (single-field assignment) / `get_or_create_container(obj, name, factory)` (obtain-or-create a nested container and mutate directly). Adding new `isinstance(rec, dict): rec["x"]=v else: rec.x=v` branches is forbidden (session 37 dual-access sweep). |
-| Probability vectors | `normalize_probabilities(p, fallback="raise")` (`_shared.py`) on every YAML-sourced `rng.choice(p=)`. |
-| Lab-order classification | `classify_lab_specs` (`order/panel_grouping.py`). |
-| Scenario / medication flags | Merge `scenario_flags_from_protocol` + `medication_flags_from_context` and pass **`**flags`**. Adding named-arg parameters is forbidden (J5 lesson). |
-| **Severity sampling** | `sample_severity(protocol, person, rng)` / `sample_severity_category(...)` / `category_from_score(score)` (`disease/severity.py`, AD-67). Severity's canonical source is disease-YAML `severity.distribution × modifiers`. The locale-side `severity_beta` / `severity_minimum` have been removed — do not resurrect. Hard-coding the 0.3 / 0.7 category-↔-score boundaries at call sites is forbidden (`SEVERITY_SCORE_RANGES` is the single definition). |
-| **JP Core / JP-CLINS profile URIs** (lesson from session 50 adv-1) | Quote the `Element.system.fixedUri` / `Element.fixedUri` in the spec's `StructureDefinition-*.json` directly. **Do not guess.** In session 50 we set `_JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/observation-category"` (a guess); the real spec is `http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS`, so the URIs mismatched → the HAPI validator silent-no-op'd, invalidating a profile-slice-compliance fix over 2.47M records completely. Procedure: (1) `grep -A2 fixedUri` the relevant `StructureDefinition-*.json` under `iris4h-ai/jp_core/package/` (or a jpfhir.jp fetch) to find the slice's system URI, (2) define it as a module-level constant, (3) **always add a unit test that pins the URI, as in `tests/unit/output/test_fhir_jp_core_p14_slices.py`** (the guess-URI regression guard). The same rule applies to JP-eCheckup / SS-MIX2 profile URIs. |
-| Imaging orders | `place_imaging_orders` (`order/engine.py`). |
-| Drug protocol prefix stripping | `strip_protocol_prefix` (`_shared.py`; shared between FHIR and narrative). |
-| LOS computation | `document/engine._compute_los_days` (including the in-progress proxy). |
-| Locale display tables | The cached loaders in `locale/loaders/` (re-exported from `locale/loader.py` façade): `medical_display.py:load_med_terms_ja`, `narrative.py:load_narrative_display_dict`, `clinical.py`, `demographics.py`, `fhir_identity.py`. Opening raw YAML in Layer 4 is forbidden. |
+| Country decisions | `is_jp(country)` / `is_us(country)` (`clinosim/countries.py`) for country rules only. Hand-written `country == "JP"` comparisons are forbidden. The display language comes from `lang_for(country)`, never from `is_jp`. |
+| Code system per country | `system_key_for(kind, country)` / `drug_system_key(code, country)` (`clinosim.codes`). Inline jlac10 / loinc or yj / rxnorm branching is forbidden. |
+| System URI | `get_system_uri(key)` (`clinosim.codes`). Hard-coded code-system URIs are forbidden; a profile or identifier URI used in more than one file is one module-level constant. |
+| code → display | `display(system, code, lang) or <explicit fallback>` (`clinosim.codes`); FHIR codings via `dual_slot_concept` / `system_coding`. `lookup(...)` is legacy and not used in new code; hard-coded display strings are forbidden. |
+| Dict / dataclass dual read | `get_attr_or_key` (`modules/_shared.py`). New `isinstance(x, dict)` branches and local `_get` helpers are forbidden. **Applies to every read path — cache keys, comparisons, branching** (a `getattr` on a dict once made a whole cohort share one cache entry). |
+| Dict / dataclass dual write | `set_attr_or_key(obj, name, value)` / `get_or_create_container(obj, name, factory)`. |
+| Hash-based draws and seeds | `clinosim.determinism.sha_*` and named functions in `clinosim/seeding.py`; never `hashlib.sha256` + `int.from_bytes` at the call site (§3). |
+| Age bands | `clinosim.age_bands` over a YAML table keyed by bands; hard-coded `if age < 18` cut-offs are forbidden. |
+| Probability vectors | `normalize_probabilities(p, fallback="raise")` on every YAML-sourced `rng.choice(p=)`. |
+| Scenario / medication flags | Merge `scenario_flags_from_protocol` + `medication_flags_from_context` and pass **`**flags`**. Adding named-arg parameters is forbidden (a flag read in only one venue silently disables it in the others). |
+| Severity | `sample_severity` / `sample_severity_category` / `category_from_score` (`disease/severity.py`, AD-67). The disease YAML `severity.distribution × modifiers` is the only source; hard-coding the 0.3 / 0.7 boundaries is forbidden (`SEVERITY_SCORE_RANGES` is the single definition). |
+| JP Core / JP-CLINS profile URIs | Quote the `fixedUri` from the spec's `StructureDefinition-*.json`; **do not guess**. Define it as a module-level constant and pin it with a unit test (`tests/unit/output/test_fhir_jp_core_p14_slices.py` is the model). A guessed URI makes validators silently ignore the slice. The same rule applies to JP-eCheckup / SS-MIX2 URIs. |
+| Locale display tables | The cached loaders in `locale/loaders/` (re-exported by `locale/loader.py`). Opening raw YAML in Layer 4 is forbidden. |
 
 If the same shared logic is needed in a second module, define it
-once in `_shared.py` or the owner module and import from both.
-**When a third consumer appears, import it — do not redefine.**
+once in `_shared.py` or the owner module, import it from both, and
+add it to the catalog. **When a third consumer appears, import it —
+do not redefine.**
 
 ## 5. Loader / reference-data conventions
 
@@ -122,8 +156,10 @@ once in `_shared.py` or the owner module and import from both.
   `observation.microbiology.antibiotic_loinc_lookup`).
 - `@lru_cache`: no-param → `maxsize=1`; `(country)` → 2. Hand-rolled
   sentinel caches are forbidden.
-- **Fail-loud validation at import / load time (`_validate_*`) is
-  mandatory.** A YAML that references external IDs (SNOMED, LOINC,
+- **Fail-loud validation at import / load time is mandatory**:
+  every module reference YAML is loaded through
+  `load_validated_yaml(path, Model)` (or validated by a Pydantic
+  model at load). A YAML that references external IDs (SNOMED, LOINC,
   ICD, drug key), probability weights, or enum values
   (`generation_frequency`, `stage2_strategy`, etc.) must **raise at
   load time** on unknown keys or contradictions detected against
@@ -162,7 +198,7 @@ once in `_shared.py` or the owner module and import from both.
   fabrication of codes** — verify a new code against the NLM API /
   WHO browser before registering.
 - When adding a diagnosis code, follow the "Diagnosis code
-  coverage" procedure (CLAUDE.md) and confirm
+  coverage" procedure (`AGENTS.md`) and confirm
   `pytest tests/unit/test_diagnosis_code_coverage.py` is green.
 - **JP output: every display / text / name is Japanese; US output:
   zero Japanese characters.** (The known exception is
@@ -176,16 +212,16 @@ once in `_shared.py` or the owner module and import from both.
 
 ## 6.5 Cross-cutting-logic location map (4 axes)
 
-A one-page lookup for a new session asking "where does X live and
+A one-page lookup for anyone asking "where does X live and
 what is the entry point?". Each cross-cutting axis has a **single
 canonical entry point** and is not re-implemented at call sites
 (the §4 principle applied).
 
 | Cross-cutting axis | Canonical entry (owner) | Convention / data source |
 |---|---|---|
-| **Data reference** (YAML / reference-data load) | Each module's `load_X()` (`@lru_cache` + `_HERE / _REF_DIR / _LOCALE` path constants + `_validate_X` at import). Reach other-module `reference_data` through the owner's accessor only (§5). | Layer 1 = `modules/*/reference_data/` / `locale/` / `config/`. A cached loader's return value is a shared read-only object (mutation forbidden). |
-| **Data generation** (RNG / physiology / severity) | RNG = `derive_sub_seed` + `ENRICHER_SEED_OFFSETS` (labs = `panel_specimen_seed` / `individual_lab_seed`). Severity = `disease.severity.sample_severity`. Course = `clinical_course.select_archetype`. Physiology = `physiology.engine` (`initialize_state` / `derive_lab_values`). | Every RNG is seed-derived and deterministic (AD-16). Clinical values are driven from disease / lab YAML — never hard-coded in Python. `rng.choice(p=)` goes through `normalize_probabilities(p, fallback="raise")`. |
-| **Code mapping** (internal name → standard code → display) | Internal name → standard code = `locale/<country>/code_mapping_*.yaml`. Country → code system = `system_key_for(kind, country)`. code → display = `code_lookup(system, code, lang)`. System URI = `get_system_uri(key)`. | `codes/data/*.yaml` (`en` required, international standards, locale-independent). Hard-coding or fabricating display strings / URIs / codes is forbidden. CIF holds codes only (AD-30). |
+| **Data reference** (YAML / reference-data load) | Each module's `load_X()` (`@lru_cache` + `_HERE / _REF_DIR / _LOCALE` path constants + a Pydantic model checked at load via `load_validated_yaml`). Reach other-module `reference_data` through the owner's accessor only (§5). | Layer 1 = `modules/*/reference_data/` / `locale/` / `config/`. A cached loader's return value is a shared read-only object (mutation forbidden). |
+| **Data generation** (RNG / physiology / severity) | RNG = `determinism.default_rng` seeded by `derive_sub_seed` + `ENRICHER_SEED_OFFSETS` or a named `seeding.py` function (labs = `panel_specimen_seed` / `individual_lab_seed`); stream-free draws = `determinism.sha_*`. Severity = `disease.severity.sample_severity`. Course = `clinical_course.select_archetype`. Physiology = `physiology.engine` (`initialize_state` / `derive_lab_values`). | Every RNG is seed-derived and deterministic (AD-16). Clinical values are driven from disease / lab YAML — never hard-coded in Python. `rng.choice(p=)` goes through `normalize_probabilities(p, fallback="raise")`. |
+| **Code mapping** (internal name → standard code → display) | Internal name → standard code = `locale/<country>/code_mapping_*.yaml`. Country → code system = `system_key_for(kind, country)`. code → display = `display(system, code, lang) or <fallback>`. System URI = `get_system_uri(key)`. | `codes/data/*.yaml` (`en` required, international standards, locale-independent). Hard-coding or fabricating display strings / URIs / codes is forbidden. CIF holds codes only (AD-30). |
 | **Multilingual** (i18n) | Country decision = `is_jp` / `is_us`; display language = `countries.lang_for(country)`. Display resolution follows the [code mapping and localization spec](code-mapping-and-localization-spec.md): `display(...)` for codes, `dual_slot_concept` / `system_coding` for FHIR codings, `vocab_display` for vocabularies. | Conversion is language-neutral (AD-44): enrichment produces English structured data; the LLM handles translation. **JP output: every display Japanese; US output: zero Japanese** (enforced by the audit's jp_language axis). |
 
 The judgment of "is this unified?" runs through
@@ -216,9 +252,10 @@ The end-to-end implementation picture is in
 
 ## 8. Golden / test / verification gates
 
-- Markers: `pytest -m unit` (~15 s) / `integration` (~12 min) /
-  `e2e` (~4 min) / `regression` (opt-in; goldens byte-diff —
-  template ×6 + llm-mock ×6).
+- Test suites: `pytest tests/unit` (not `-m unit` — not every unit
+  file carries the marker) / `pytest -m integration` / `-m e2e` /
+  `pytest tests/regression -m regression` (opt-in; narrative goldens
+  byte-diff for every canonical profile, template + llm-mock).
 - **AD-66 Rule 1**: whenever profile YAML or generation logic
   changes, run `regenerate-goldens` and **commit the YAML and
   goldens together**.
@@ -239,7 +276,7 @@ The end-to-end implementation picture is in
 - `clinosim audit run -d <cohort>` (AD-60, the 4-axis audit) is the
   primary gate for new-feature PRs.
 
-## 9. Silent-no-op defense (the PR-90 class) checklist
+## 9. Silent-no-op defense checklist
 
 Structurally prove that a new feature or fix "actually fires":
 
@@ -256,12 +293,12 @@ Structurally prove that a new feature or fix "actually fires":
 5. **No aspirational scaffolding**: registered-but-unconsumed code
    (a seed offset, a config field, a strategy value) must be
    **wired or removed**. Do not ship it "for later".
-6. Named precedents (mnemonic phrases to prevent recurrence):
-   **J5** (a flag read in one venue only) / **PR-90** (a case-
-   sensitivity mismatch on a YAML key silently no-op'd the whole
-   lift) / **C-1** (`getattr` on a dict → degenerate cache key) /
-   **Call 119 / ICU drip** (clinical errors baked into a golden) /
-   **stale TODO** (starting work without measuring).
+6. Precedents to remember: a flag read in only one venue; a
+   case mismatch on a YAML key that silently disabled a whole
+   feature; `getattr` on a dict producing one shared cache key;
+   clinical errors baked into a golden ("Call 119" in English text,
+   ICU drips as discharge prescriptions); starting work from a stale
+   TODO without measuring.
 
 ## 10. FHIR builder (Layer 4) headlines
 
@@ -273,19 +310,13 @@ integrity must hold (no dangling references).
 
 ---
 
-## Reading order (for a new implementation agent)
+## Reading order (for a new implementer)
 
-1. This document (invariants).
-2. [`README.md`](README.md) (reading path) → `MODULES.md` (project
-   map).
-3. `docs/CONTRIBUTING-modules.md` (Layers 1-3 detailed HOW-TO).
-4. `fhir-data-generation-logic.md` (Layer 4, when writing a
-   builder).
-5. `clinosim/modules/output/SPEC.md` (two-pass narrative — when you
-   touch Stage 2).
-6. The most recent chain context: `.resume-prompt.md` (latest
-   session hand-off at repo root) + the GitHub Issues board (see
-   `docs/roadmap.md`; the pre-Issues `TODO.md` `deferred` sections
-   have been retired).
+1. This document (rules) and [`shared-helpers-catalog.md`](shared-helpers-catalog.md) (where the helpers are).
+2. [`README.md`](README.md) (reading path) → `MODULES.md` (project map).
+3. The binding spec of the domain you are changing (table at the top).
+4. `docs/CONTRIBUTING-modules.md` (module HOW-TO).
+5. `fhir-data-generation-logic.md` when writing a FHIR builder; `clinosim/modules/output/SPEC.md` when touching Stage 2 narratives.
+6. The GitHub Issues board (see `docs/roadmap.md`) for open work.
 
 Japanese counterpart: [`implementation-rules.ja.md`](implementation-rules.ja.md).
