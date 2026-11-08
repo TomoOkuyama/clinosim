@@ -1,6 +1,6 @@
 # Data Generation Walkthrough — 「データはどう生まれるか」
 
-**Status:** Active(2026-07-06、session 38 で確立)
+**Status:** Active(2026-07-06 から)
 **Audience:** clinosim に初めて触れる開発者/実装 AI。**このプロジェクトが 1 件の患者データを
 どう組み立てるか**を、実際のファイル名・関数名・データ構造つきで end-to-end に追う。
 **読む順:** `README.md`(索引)→ `project-concept-and-design.md`(コンセプト)→ **本書**
@@ -146,7 +146,7 @@ Incr 1 前 master を検証済み。
 Layer 1 → Layer 2 `PatientProfile` に厚くなる:身長/体重、**慢性疾患の staging**
 (`_generate_stage`:CKD G3a / NYHA II / 高血圧 Stage 2 …)、**ステージ由来の生理パラメータ**
 (`STAGE_SEVERITY` が stage → severity_score、それが baseline vitals や physiology を駆動 —
-例:高血圧 Stage 2 → 高い baseline 血圧、FP-I10)、常用薬、アレルギー、baseline vitals。
+例:高血圧 Stage 2 → 高い baseline 血圧)、常用薬、アレルギー、baseline vitals。
 
 ### 1d. 受診シミュレーション(daily loop)— `simulator/inpatient.py` ほか
 
@@ -227,7 +227,7 @@ encounter binding、`narrative=None`)を作る。実際の自然文は Stage 2 �
 `encounters/`、`documents/` …)が FHIR resource を組む。
 
 - **Bulk Data Access**(AD-31): resource type ごとに 1 NDJSON + `manifest.json`。Bundle でラップしない。
-- builder は **CIF を読むだけ**。display は `code_lookup(system, code, lang)`、URI は
+- builder は **CIF を読むだけ**。display は `display(system, code, lang)` + 明示的な fallback(code-mapping spec §9)、URI は
   `get_system_uri`、国→コード体系は `system_key_for` で解決(ハードコード禁止)。
 - FHIR resource を足す = `register_bundle_builder` で builder を登録(AD-56、dispatch は編集しない)。
 - 出力形式を足す = `register_output_adapter`(CSV が実例)。
@@ -287,7 +287,7 @@ run_beta(config)                                   # simulator/engine.py
 | 新しい FHIR resource | `modules/output/fhir_r4/<theme>/` に builder + `register_bundle_builder`(§3) |
 | 新しい出力形式 | `OutputAdapter` + `register_output_adapter` |
 | 新しいデータ種(モジュール) | `modules/<name>/` + enricher 登録(§1e)+ `extensions[<name>]` に書く |
-| コード → 表示名 | `codes/data/<system>.yaml`(EN 必須、JA 任意)。`code_lookup` で解決 |
+| コード → 表示名 | `codes/data/<system>.yaml`(EN 必須、JA 任意)。`display(...)` + 明示的な fallback で解決 |
 
 **必ず守る不変則**(詳細 `implementation-rules.md`):決定性(全乱数 seed 由来)/ CIF は code のみ
 (display は出力時解決)/ 疾患 YAML の未知キーは `extra="forbid"` で load 時 raise / 重症度・

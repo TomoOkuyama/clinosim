@@ -1,6 +1,6 @@
 # Data-Model & Completeness Conventions — 別セッション遵守規約
 
-**Status:** Active(2026-07-06、session 38 で確立)
+**Status:** Active(2026-07-06 から)
 **Audience:** FHIR completeness fix-point registry(`docs/design-notes/2026-07-06-fix-point-registry.md`)の
 各 chain を実装するセッション/実装 AI。
 **位置づけ:** 既存の [`implementation-rules.md`](implementation-rules.ja.md)(全域の不変則)と
@@ -43,7 +43,7 @@ completeness 修正に固有の新規約だけを書く — 既存規約は**再
 
 - `PatientProfile`(`config.py:101`)が前例。新しい YAML-loaded `BaseModel` は
   `model_config = ConfigDict(extra="forbid")` を**最初から**付ける。
-- 既存の `extra="ignore"`(= silent-drop)を持つモデルは撤廃対象(FP-YAML-3 が `DiseaseProtocol` を移行)。
+- `extra="ignore"`(= silent-drop)は使わない。`DiseaseProtocol` は `extra="forbid"`。
 - `extra="allow"`(`EncounterConditionProtocol`)+ 生 dict 返しは「意図的無検証」だが、この経路も
   将来 canonical constants 照合(`SUPPORTED_*` 差分検出、`implementation-rules.md` §9-2)で塞ぐのが望ましい。
 
@@ -80,7 +80,7 @@ completeness 修正に固有の新規約だけを書く — 既存規約は**再
 
 ### 4.1 stage / severity は生理消費者とセットで配線
 
-graded-stage 疾患(CKD/HF/COPD/asthma/IHD は session 37 で配線済、I10 は未 = FP-I10)は、
+graded-stage 疾患(CKD/HF/COPD/asthma/IHD/I10、`modules/patient/reference_data/stage_severity.yaml` 参照)は、
 `STAGE_SEVERITY` エントリ**単独追加を禁止**。必ず (1) stage → severity_score マッピング、
 (2) `physiology/engine.py:initialize_state` の消費分岐、(3) vitals/labs/処方への波及、
 (4) FHIR resource の適切な code、まで一貫させる。「誰も読まない severity_score」は C2。
@@ -146,7 +146,7 @@ call-site は event 日(`event.timestamp`)を渡す。
 | 疾患 YAML → simulation | `reference_data/*.yaml` | `DiseaseProtocol`(属性)/ 生 dict(order) | `load_disease_protocol`(A)/ owner accessor(B、FP-YAML-3 で整備) |
 | severity 決定 | `event.severity`(float)/ protocol 分布 | `"mild |moderate |severe"` + score | `sample_severity` / `category_from_score`(`disease/severity.py`、FP-SEV-MODEL) |
 | age 参照 | `dob` + event 日 | as-of age(int) | `_age_on`(`immunization/engine.py`、FP-AGE) |
-| code → display | (system, code, lang) | display 文字列 | `code_lookup` / `system_key_for`(既存) |
+| code → display | (system, code, lang) | display 文字列 | `display(system, code, lang)` + 明示的な fallback / `system_key_for`(code-mapping spec §9) |
 | CIF → FHIR | structural + narrative CIF | FHIR R4 NDJSON | `fhir_r4/<theme>/` builders(registry 登録、既存) |
 | completeness 検証 | CIF / reference data | test 結果 | `tests/unit/test_completeness_invariants.py`(FP-COMPLETENESS-GATE。cohort 統計の audit 軸は未実装) |
 </content>

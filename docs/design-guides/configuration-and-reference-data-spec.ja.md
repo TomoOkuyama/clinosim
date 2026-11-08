@@ -21,7 +21,7 @@
 | 規則 | 正準コード | ガード |
 |---|---|---|
 | データ YAML はすべて一つの読み手で解析し、`metadata.kind` を宣言する。 | `clinosim/datafiles.py::load_data_yaml`, `data_metadata` | `tests/unit/test_data_yaml_conventions_2465.py` |
-| モジュールの参照 YAML は、読み込み時に Pydantic モデル(`ConfigDict(extra="forbid")`)で検証する。未知のキーや欠けた必須キーは import 時に失敗する。YAML が名指すコードは `clinosim.codes` で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。 | モジュールごとのモデル(allergy, antibiotic, care_level, clinical_course, code_status, device, diagnosis, disease, document, drug_safety, encounter, family_history, hai, imaging, llm_service, monitoring, newborn, nursing, observation, order, patient, pediatric, physiology, population, procedure, prophylaxis, sdoh, triage) | `tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model`、各モジュールのモデルのテスト |
+| モジュールの参照 YAML は、読み込み時に Pydantic モデルで検証する。欠けた必須キーや型の誤りは import 時に失敗する。ガードは、参照 YAML を持つすべてのモジュールにこのモデルがあることを確かめる。モデルは未知のキーも拒否するべきである(`ConfigDict(extra="forbid")`)。まだ受け入れるモデルは §5 に挙げる。YAML が名指すコードは `clinosim.codes` で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。 | モジュールごとのモデル(allergy, antibiotic, care_level, clinical_course, code_status, device, diagnosis, disease, document, drug_safety, encounter, family_history, hai, imaging, llm_service, monitoring, newborn, nursing, observation, order, patient, pediatric, physiology, population, procedure, prophylaxis, sdoh, triage) | `tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model`、各モジュールのモデルのテスト |
 | キャッシュ付きローダーの戻り値は共有物で、読み取り専用。 | `@lru_cache` ローダー | `implementation-rules.ja.md` §3(レビュー) |
 
 ## 3. 共有の表
@@ -44,3 +44,4 @@
 | 未対応 | 場所 |
 |---|---|
 | 定数の置き場所の方針には自動のガードが無い。 | レビュー |
+| 一部のモジュールの参照 YAML モデルはまだ未知のキーを受け入れる(`ConfigDict(extra="allow")`)ため、綴り誤りのキーが読み込み時に検出されない。すべてを `extra="forbid"` に移すことは issue #2845 で追跡している。 | `extra="allow"` を持つ `modules/<module>/` のモデル |

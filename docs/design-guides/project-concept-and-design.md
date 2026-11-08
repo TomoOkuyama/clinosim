@@ -1,8 +1,8 @@
 # clinosim Project Concept & Design — catch-up doc
 
-**Status:** Active (2026-07-03, established in session 32).
-**Audience:** any new developer or implementation agent (Opus 4.7,
-etc.) reading their first "what is this project and how is it built"
+**Status:** Active (since 2026-07-03).
+**Audience:** any new developer or implementation agent reading
+their first "what is this project and how is it built"
 overview. The rulebook lives in
 [`implementation-rules.md`](implementation-rules.md); the detailed
 architecture lives in `DESIGN.md` (the full ADR set).
@@ -71,7 +71,7 @@ design review):
   That is the concrete embodiment of requirement 6 (swappability).
 - **Determinism (AD-16)**: every random draw comes from a hierarchical
   sub-seed. Same seed = byte-identical output (wall-clock reads were
-  eliminated project-wide in the determinism chain, session 34).
+  eliminated project-wide in the determinism chain).
 - **★ For the detailed version of this diagram** (an end-to-end
   trace with actual file and function names), see
   [`data-generation-walkthrough.md`](data-generation-walkthrough.md).
@@ -153,7 +153,8 @@ design review):
   locale-independent, EN required) and `locale/<country>/` (names /
   addresses / reference intervals / code_mapping) — AD-35.
 - CIF is language-neutral (codes only, AD-30). Display is resolved
-  at output time via `code_lookup(system, code, lang)`.
+  at output time via `display(system, code, lang)` with an explicit
+  fallback (code-mapping spec §9).
 - Country dispatch goes through `is_jp()` / `lang_for()`;
   country → code-system dispatch through `system_key_for()` (single
   source).
@@ -195,22 +196,21 @@ validation, canonical constants, and firing counters. Details:
   (conception → prenatal visits at gestational weeks 12/24/36 →
   delivery encounter → postpartum) × newborn Patient chain × abortion
   outcome × Z37 past-birth problem-list-item (state_history-derived))
-  landed with META #957 Incr 1 (session 97, PR #1051); see
+  landed with META #957 Incr 1 (PR #1051); see
   `docs/reference/oncology-obstetric-service-lines.md` + AD-71
   `docs/architecture/architecture-notes.md` §9.
-- **β-JP-1 chain 2 (MHLW forms) is complete** (sessions 33-36): the
+- **β-JP-1 chain 2 (MHLW forms) is complete**: the
   4-of-4 documents — inpatient care plan / nursing-need A, B, C
   evaluation forms (there is officially no "D table" form; the
-  wording was corrected in session 36) / nutrition-management plan
+  wording was corrected) / nutrition-management plan
   / rehabilitation-implementation plan — have all landed.
 - **Shared-logic unification, determinism chain, AD-30 chain, and
-  display-dict → codes-YAML migration are complete** (sessions
-  31-37): unified narrative IF (N-chain), context wiring, LLM
+  display-dict → codes-YAML migration are complete**: unified narrative IF (N-chain), context wiring, LLM
   goldens + semantic check, elimination of every wall-clock read,
   removal of display-in-CIF vestiges, 8 new codes YAMLs + dual-
   access write-side unification (`set_attr_or_key` /
   `get_or_create_container`).
-- **★ FHIR completeness chain complete** (session 38, AD-67 / 68 /
+- **★ FHIR completeness chain complete** (AD-67 / 68 /
   69): under the goal of "drive the number of incompleteness states
   in the final FHIR output (C1 silent-drop / C2 degenerate / C3
   missing-structure) to zero", 9 chains were digested — severity
@@ -237,8 +237,7 @@ validation, canonical constants, and firing counters. Details:
   §4, though the completed parts above take precedence): β-2
   (surgical / anaesthetic) → γ / δ / ε → SS-MIX2.
 - **The canonical source for deferred items**: the GitHub Issues
-  board (see `docs/roadmap.md`). Before starting work, always read
-  `.resume-prompt.md` (the latest session hand-off).
+  board (see `docs/roadmap.md`).
 
 ## 8. Glossary
 
