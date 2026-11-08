@@ -482,6 +482,8 @@ def rxnorm_scd_code(drug: str, route: str, dose_quantity: Any, dose_unit: str) -
     fewest units win). A combination product matches on its first
     ingredient's strength, else on its total, and only when one product fits. None when no product
     fits the dose (weight / BSA-based doses, rates, a strength not marketed).
+    A combination's other ingredients are tried after the first (orders may
+    list the ingredients in another order than RxNorm).
     """
     record = find_drug(drug) if drug else None
     if record is None:
@@ -500,23 +502,33 @@ def rxnorm_scd_code(drug: str, route: str, dose_quantity: Any, dose_unit: str) -
     dose = value * factor
     max_units = int(sel.get("max_units", 4))
     tol = float(sel.get("tolerance", 0.02))
-    # A combination product matches on its first ingredient's strength; only
-    # when none does, on its total (piperacillin 4 g / tazobactam 0.5 g = 4.5 g).
-    for pick in ("single_or_first", "total"):
-        best: dict[int, set[str]] = {}
+    # A combination product matches on its first ingredient's strength, then on
+    # another ingredient's (an order may name the ingredients in a different
+    # order than RxNorm: "Trimethoprim/Sulfamethoxazole 160/800mg" is RxNorm's
+    # sulfamethoxazole 800 / trimethoprim 160, Issue #2861); only when none
+    # does, on its total (piperacillin 4 g / tazobactam 0.5 g = 4.5 g).
+    best: dict[int, set[str]] = {}
+    for pick in ("single_or_first", "other_component", "total"):
+        best = {}
         for entry in entries:
             if entry.get("unit") != unit:
                 continue
             strength = entry.get("strength")
             combo = isinstance(strength, list)
-            if pick == "total" and not combo:
+            if pick != "single_or_first" and not combo:
                 continue
-            s = float(strength[0] if combo and pick == "single_or_first" else sum(strength) if combo else strength)
-            if s <= 0:
-                continue
-            k = round(dose / s)
-            if 1 <= k <= max_units and abs(dose / s - k) <= tol * k:
-                best.setdefault(k, set()).add(str(entry["rxcui"]))
+            if pick == "single_or_first":
+                candidates = [float(strength[0] if combo else strength)]
+            elif pick == "other_component":
+                candidates = [float(x) for x in strength[1:]]
+            else:
+                candidates = [float(sum(strength))]
+            for s in candidates:
+                if s <= 0:
+                    continue
+                k = round(dose / s)
+                if 1 <= k <= max_units and abs(dose / s - k) <= tol * k:
+                    best.setdefault(k, set()).add(str(entry["rxcui"]))
         if best:
             break
     if not best:
