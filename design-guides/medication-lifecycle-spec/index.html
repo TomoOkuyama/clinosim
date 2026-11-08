@@ -2578,7 +2578,7 @@
 <td><code>tests/unit/test_finite_course_2757.py</code></td>
 </tr>
 <tr>
-<td>A dyslipidemia patient's statin is stepped up one dose at the renewal visit after a lipid panel whose LDL is at or above the country's threshold (US 2018 ACC/AHA: 190 mg/dL, 70 with clinical ASCVD; JP JAS 2022: the LDL target), and renewed at the new dose, which replaces the previous prescription of the drug. The titrated dose is kept in later years' profiles.</td>
+<td>A dyslipidemia patient's statin is stepped up one dose at the renewal visit after a lipid panel whose LDL is at or above the country's threshold (US 2018 ACC/AHA: 190 mg/dL, 70 with clinical ASCVD; JP JAS 2022: the LDL target), and renewed at the new dose, which replaces the previous prescription of the drug. The titrated dose is kept in later years' profiles. This is the only statin step-up: the longitudinal history does not switch statins on its untreated LDL latent (<code>lipid_escalate_high_intensity_e78</code> is retired at rate 0, keeping its yearly draw).</td>
 <td><code>simulator/statin_monitoring.py</code> (<code>titrate_statin</code>, <code>restore_titrated_statin</code>); data <code>simulator/reference_data/statin_monitoring.yaml</code></td>
 <td><code>tests/unit/simulator/test_statin_monitoring_2877.py</code></td>
 </tr>

@@ -2601,7 +2601,7 @@ compose from one engine against per-attribute yaml declarations under
 <tr>
 <td><strong>Treatment escalation event</strong></td>
 <td><code>med/&lt;regimen&gt;.yaml</code></td>
-<td>HTN third- + fourth-agent step-up (<code>htn_escalate_third_agent_i10</code>, <code>htn_escalate_fourth_agent_i10</code>), lipid high-intensity + ezetimibe step-up (<code>lipid_escalate_high_intensity_e78</code>, <code>lipid_escalate_ezetimibe_e78</code>), DM SGLT2i and insulin step-up (<code>dm_escalate_sglt2i_e11</code>, <code>dm_escalate_insulin_e11</code>). Fires on guideline-trigger (e.g. HbA1c above target for ≥N years). Phase 4a scopes DM complications to T2DM (E11) only — T1DM (E10) is excluded.</td>
+<td>HTN third- + fourth-agent step-up (<code>htn_escalate_third_agent_i10</code>, <code>htn_escalate_fourth_agent_i10</code>), lipid ezetimibe add-on (<code>lipid_escalate_ezetimibe_e78</code>; the high-intensity statin switch <code>lipid_escalate_high_intensity_e78</code> is retired at rate 0 — statins are stepped up on the measured LDL by <code>simulator/statin_monitoring.py</code>), DM SGLT2i and insulin step-up (<code>dm_escalate_sglt2i_e11</code>, <code>dm_escalate_insulin_e11</code>). Fires on guideline-trigger (e.g. HbA1c above target for ≥N years). Phase 4a scopes DM complications to T2DM (E11) only — T1DM (E10) is excluded.</td>
 </tr>
 </tbody>
 </table>
