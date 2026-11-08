@@ -2460,9 +2460,9 @@
 <td><code>tests/unit/test_troponin_chronic_calibration_2903.py</code>、<code>tests/unit/test_blood_markers.py</code></td>
 </tr>
 <tr>
-<td>小児(18 歳未満)は年齢帯の基準範囲で判定し、表は 1 つ: CIF フラグ、FHIR referenceRange とその text、真値(クレアチニン・Hb / Hct・WBC・ALP は年齢の基準範囲の中央に置く)。小児のバイタルサインも同じ表の年齢帯範囲を referenceRange・interpretation・text に使い、ベースラインバイタルは年齢帯の中央値に置く。NEWS2 は 16 歳未満では算出しない。</td>
-<td><code>observation/pediatric_ranges.py</code>、<code>observation/reference_data/pediatric_reference_ranges.yaml</code>、<code>physiology/engine.py::pediatric_lab_scale</code></td>
-<td><code>tests/unit/test_pediatric_reference_ranges_2872.py</code></td>
+<td>小児(18 歳未満)は年齢帯の基準範囲で判定し、表は 1 つ: CIF フラグ、FHIR referenceRange とその text、真値(クレアチニン・Hb / Hct・WBC・ALP は年齢の基準範囲の中央に置く)。小児のバイタルサインも同じ表の年齢帯範囲を referenceRange・interpretation・text に使い、ベースラインバイタルは年齢帯の中央値に置く。小児の生成呼吸数の上限は成人の 45 ではなく同じ表の年齢帯上限(<code>physiological_max</code>: 1 歳未満 80 /分、5 歳まで 60、11 歳まで 50)。NEWS2 は 16 歳未満では算出しない。</td>
+<td><code>observation/pediatric_ranges.py</code>、<code>observation/reference_data/pediatric_reference_ranges.yaml</code>、<code>physiology/engine.py::pediatric_lab_scale</code>、<code>physiology/engine.py::rr_clamp_max</code></td>
+<td><code>tests/unit/test_pediatric_reference_ranges_2872.py</code>、<code>tests/unit/test_rr_clamp_by_age_2926.py</code></td>
 </tr>
 </tbody>
 </table>
