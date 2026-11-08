@@ -323,7 +323,6 @@ class EncounterConditionProtocol(BaseModel):
     prescriptions_renewed: bool = False
 
     # Declared but not read by the simulator (reported in Issue #2845).
-    age_distribution: str | None = None
     sex_ratio_female: float | None = None
     incidence_modifier: float | None = None
     followup_instructions: list[str] = []
