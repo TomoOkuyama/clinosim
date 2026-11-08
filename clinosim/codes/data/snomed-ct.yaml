@@ -322,6 +322,10 @@ codes:
   '51185008':
     en: Thoracic structure
     ja: 胸部
+  # Issue #2870: imaged body site of a mammogram (tx.fhir.org $lookup 2026-11-08).
+  '76752008':
+    en: Breast structure
+    ja: 乳房
   '69536005':
     en: Head structure
     ja: 頭部

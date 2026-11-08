@@ -39,3 +39,6 @@ codes:
   ECG:
     en: Electrocardiography
     ja: 心電図検査
+  MG:                                   # Issue #2870 (tx.fhir.org $lookup 2026-11-08)
+    en: Mammography
+    ja: マンモグラフィ

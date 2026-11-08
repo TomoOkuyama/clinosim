@@ -240,6 +240,103 @@ class _Scenario(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Scheduled (healthcare-calendar) visit blocks — Issue #2870
+# ---------------------------------------------------------------------------
+
+_Sex = Literal["any", "F", "M"]
+
+
+def _closed_band(value: str) -> str:
+    from clinosim.age_bands import parse_closed_age_band
+
+    parse_closed_age_band(value)
+    return value
+
+
+class ScreeningSchedule(BaseModel):
+    """Who is offered a calendar screening and how often: the persons of
+    ``sex`` whose age in the year is in ``eligible_age``, in the years the
+    screening is due (every ``interval_years``), attending with probability
+    ``annual_uptake`` in a due year."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    eligible_age: str
+    sex: _Sex = "any"
+    interval_years: int = Field(ge=1)
+    annual_uptake: float = Field(ge=0.0, le=1.0)
+
+    @field_validator("eligible_age")
+    @classmethod
+    def _band(cls, value: str) -> str:
+        return _closed_band(value)
+
+
+class ScreeningLab(BaseModel):
+    """A test the visit adds for the persons it is recommended for: age in
+    ``age``, of ``sex``, with a BMI of at least ``min_bmi`` when given, in
+    ``countries`` when given."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    test: str = Field(min_length=1)
+    age: str
+    sex: _Sex = "any"
+    min_bmi: float | None = None
+    countries: list[Literal["US", "JP"]] = []
+
+    @field_validator("age")
+    @classmethod
+    def _band(cls, value: str) -> str:
+        return _closed_band(value)
+
+    @field_validator("test")
+    @classmethod
+    def _known_test(cls, value: str) -> str:
+        """A panel (ordered as its components) or a lab with a US code."""
+        from clinosim.locale.loader import load_code_mapping
+        from clinosim.modules.observation.engine import canonical_lab_name, lab_panel_components
+
+        if not lab_panel_components(value) and canonical_lab_name(value) not in load_code_mapping("lab", "US"):
+            raise ValueError(f"screening_labs: {value!r} is neither a lab panel nor a coded lab")
+        return value
+
+
+class _ProcedureName(BaseModel):
+    """The procedure's English and Japanese names (both required)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    en: str = Field(min_length=1)
+    ja: str = Field(min_length=1)
+
+
+class VisitProcedure(BaseModel):
+    """A procedure performed at every visit of the protocol: CPT, SNOMED CT
+    and, when one is registered, the JP 診療行為 code."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    code: str = Field(min_length=1)
+    jp_code: str = ""
+    snomed: str = Field(min_length=1)
+    name: _ProcedureName
+    duration_minutes: int = Field(ge=1)
+
+    @model_validator(mode="after")
+    def _registered(self) -> VisitProcedure:
+        from clinosim.codes import code_exists
+
+        if not code_exists("cpt", self.code, exact=True):
+            raise ValueError(f"procedures: CPT {self.code!r} not in codes/data/cpt.yaml")
+        if self.jp_code and not code_exists("k-codes", self.jp_code, exact=True):
+            raise ValueError(f"procedures: JP code {self.jp_code!r} not in codes/data/k-codes.yaml")
+        if not code_exists("snomed-ct", self.snomed, exact=True):
+            raise ValueError(f"procedures: SNOMED {self.snomed!r} not in codes/data/snomed-ct.yaml")
+        return self
+
+
+# ---------------------------------------------------------------------------
 # Protocol model
 # ---------------------------------------------------------------------------
 
@@ -329,6 +426,11 @@ class EncounterConditionProtocol(BaseModel):
     prescriptions: list[_Prescription] = []
     visit_duration_minutes: _MeanSd | None = None
     scenarios: dict[str, _Scenario] = {}
+    # Healthcare-calendar visits (Issue #2870): the screening's schedule, the
+    # tests added by age / sex / BMI, and the procedures every visit performs.
+    screening_schedule: ScreeningSchedule | None = None
+    screening_labs: list[ScreeningLab] = []
+    procedures: list[VisitProcedure] = []
 
     # Narrative spec (Tier 1 #3 α-min-2 Task 6): per-encounter-type narrative
     # templates.  Optional default = None so existing encounter YAMLs without a
@@ -412,3 +514,13 @@ def load_all_encounter_conditions() -> dict[str, dict[str, Any]]:
         _validate_encounter_route_vocabulary(cid, data)
         conditions[cid] = data
     return conditions
+
+
+@lru_cache(maxsize=8)
+def screening_schedule(condition_id: str) -> ScreeningSchedule:
+    """The calendar schedule of a screening protocol (Issue #2870); raises
+    ``ValueError`` when the protocol has none."""
+    schedule = EncounterConditionProtocol.model_validate(load_encounter_condition(condition_id)).screening_schedule
+    if schedule is None:
+        raise ValueError(f"encounter protocol {condition_id!r} has no screening_schedule")
+    return schedule

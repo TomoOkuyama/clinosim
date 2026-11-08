@@ -34,6 +34,7 @@ from clinosim.simulator._setup import (
 )
 from clinosim.simulator.outpatient import _simulate_outpatient_visit
 from clinosim.simulator.outpatient_dept import resolve_outpatient_department
+from clinosim.simulator.screening_visit import screening_visit_spec
 
 if TYPE_CHECKING:
     from clinosim.simulator.phases._forward_loop import ForwardContext
@@ -250,21 +251,23 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
             department_id=chemo_dept,
         )
     elif event.event_type == "health_screening":
+        screening_id = event.disease_id or "annual_health_screening"
         screening_reason = _HEALTH_SCREENING_VISIT_REASON.get(event.disease_id, _HEALTH_SCREENING_VISIT_REASON_FALLBACK)
-        screening_dept = resolve_outpatient_department(
-            "health_screening", event.disease_id or "annual_health_screening", None, ctx.hospital_ops
-        )
+        screening_dept = resolve_outpatient_department("health_screening", screening_id, None, ctx.hospital_ops)
+        # Issue #2870: the visit runs its own protocol (labs, imaging,
+        # procedure, sedation), drawn on a stream of its own so the visit's
+        # other draws (staff, vitals) keep theirs.
+        workup_rng = derive_phase_rng(ctx.master_seed, PHASE_OUTPATIENT_CAL, f"{ev_key}|workup")
+        screening_spec = screening_visit_spec(screening_id, patient, ctx.config.country, workup_rng)
+        screening_spec["visit_reason"] = screening_reason
         opd_record = _simulate_outpatient_visit(
             patient,
             "health_screening",
             visit_time,
             ctx.roster,
             ev_rng,
-            chronic_code=event.disease_id or "annual_health_screening",
-            followup_spec={
-                "labs": ["WBC", "Hb", "Glucose", "Creatinine", "AST", "ALT", "TP"],
-                "visit_reason": screening_reason,
-            },
+            chronic_code=screening_id,
+            followup_spec=screening_spec,
             country=ctx.config.country,
             config=ctx.config,
             department_id=screening_dept,

@@ -38,9 +38,24 @@ workup:
     - {test: "Na", probability: 0.5}
     - {test: "K", probability: 0.5}
     - {test: "CRP", probability: 0.5}
+  # JP periodic health examinations (労働安全衛生規則 第44条) include a chest
+  # X-ray and an ECG; USPSTF recommends against screening ECGs in low-risk
+  # adults and a routine chest X-ray is not part of a US annual exam.
   imaging:
-    - {test: "Chest_Xray", probability: 0.8}
-    - {test: "ECG", probability: 0.6}
+    - {test: "Chest_Xray", probability: 0.8, countries: [JP]}
+    - {test: "ECG", probability: 0.6, countries: [JP]}
+
+# Tests added for the persons they are recommended for (Issue #2870).
+# US: USPSTF 2022 statin primary prevention (lipid panel for the CVD risk
+# estimate, adults 40-75) and USPSTF 2021 prediabetes / type 2 diabetes
+# screening (adults 35-70 with overweight or obesity, BMI >= 25).
+# JP: 特定健康診査 (ages 40-74) always measures lipids and HbA1c.
+screening_labs:
+  - {test: "Lipid", age: "40-75", countries: [US]}
+  - {test: "HbA1c", age: "35-70", min_bmi: 25, countries: [US]}
+  - {test: "Glucose", age: "35-70", min_bmi: 25, countries: [US]}
+  - {test: "Lipid", age: "40-74", countries: [JP]}
+  - {test: "HbA1c", age: "40-74", countries: [JP]}
 
 treatment: []
 

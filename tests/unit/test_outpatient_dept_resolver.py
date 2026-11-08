@@ -131,10 +131,22 @@ def test_screening_annual_routes_to_primary_care(hospital_ops):
     assert dept == "primary_care"
 
 
-def test_screening_mammography_falls_back_to_primary_care(hospital_ops):
-    """obstetrics_gynecology is not staffed here → rollup → primary_care."""
-    dept = resolve_outpatient_department("health_screening", "mammography_screening", None, hospital_ops)
-    assert dept == "primary_care"
+def test_screening_mammography_routes_to_radiology(hospital_ops):
+    """Issue #2870: the protocol's department (radiology), when the hospital has it."""
+    with_radiology = {**hospital_ops, "available_departments": [*hospital_ops["available_departments"], "radiology"]}
+    dept = resolve_outpatient_department("health_screening", "mammography_screening", None, with_radiology)
+    assert dept == "radiology"
+
+
+def test_screening_departments_come_from_the_protocols():
+    """Issue #2870: every configured hospital runs a screening in its protocol's department."""
+    from clinosim.modules.encounter.protocol import load_encounter_condition
+    from clinosim.modules.facility.hospital_state import load_hospital_operations
+
+    ops = load_hospital_operations()
+    for screening in ("annual_health_screening", "colonoscopy_screening", "mammography_screening"):
+        expected = load_encounter_condition(screening)["department"]
+        assert resolve_outpatient_department("health_screening", screening, None, ops) == expected
 
 
 def test_pediatric_visit_falls_back_to_primary_care(hospital_ops):

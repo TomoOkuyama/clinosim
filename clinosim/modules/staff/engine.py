@@ -210,7 +210,10 @@ def generate_roster(
     # ``rehabilitation`` keeps its 2 rehab MDs (リハビリテーション科医 do
     # exist as attending clinicians in JP hospitals) — they get
     # referenced via the CareTeam allied-health / rehab expansion.
-    _physician_skip_depts = frozenset({"nutrition", "medical_social_work"})
+    #
+    # ``radiology`` (Issue #2870) is staffed by the radiologists generated
+    # below, not by ward physicians.
+    _physician_skip_depts = frozenset({"nutrition", "medical_social_work", "radiology"})
 
     physician_counters: dict[str, int] = {}
     for dept in available:
@@ -400,7 +403,9 @@ def assign_staff(
     match event_type:
         case "admission" | "rounds" | "discharge":
             # Try specialty-specific match first, then specialty match, then any physician
-            physicians = roster.get_by_role("physician", department)
+            # A radiology visit (screening mammogram, Issue #2870) is the
+            # radiologist's.
+            physicians = roster.get_by_role("physician", department) or roster.get_by_role("radiologist", department)
             if not physicians:
                 # Match by specialty (e.g., cardiology → physician with specialty=cardiology)
                 physicians = [

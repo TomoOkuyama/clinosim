@@ -104,3 +104,10 @@ modalities:
     typical_instances_per_view_range: [1, 1]     # 1 waveform object
     default_views_by_body_site:
       chest: ["12-lead"]
+
+  MG:                                            # Mammography (Issue #2870)
+    dicom_code: "MG"
+    typical_instances_per_view_range: [1, 1]     # 1 image per view
+    default_views_by_body_site:
+      # Screening mammogram: craniocaudal + mediolateral oblique of each breast.
+      breast: ["RCC", "LCC", "RMLO", "LMLO"]

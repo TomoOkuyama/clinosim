@@ -29,9 +29,6 @@ from __future__ import annotations
 __all__ = [
     "CHRONIC_VISIT_INITIAL_MONTH_CAP_EXCLUSIVE",
     "CHRONIC_VISITS_MAX_PER_YEAR",
-    "COLONOSCOPY_MAX_AGE",
-    "COLONOSCOPY_MIN_AGE",
-    "COLONOSCOPY_PROBABILITY",
     "DIABETIC_RETINOPATHY_ICD10_CODE",
     "DIABETIC_RETINOPATHY_PROBABILITY",
     "EVENT_MID_OF_MONTH_DAY",
@@ -44,9 +41,6 @@ __all__ = [
     "HEALTH_SCREENING_MIN_AGE",
     "HEALTH_SCREENING_MONTH_END_EXCLUSIVE",
     "HEALTH_SCREENING_MONTH_START",
-    "MAMMOGRAPHY_MAX_AGE",
-    "MAMMOGRAPHY_MIN_AGE",
-    "MAMMOGRAPHY_PROBABILITY",
     "MIXED_CONDITIONS_MIN_AGE_DEFAULT",
     "MIXED_CONDITIONS_MIN_CHRONIC_DEFAULT",
     "MIXED_CONDITIONS_PROBABILITY_DEFAULT",
@@ -300,64 +294,6 @@ def is_flu_vaccination_candidate(age: int, chronic_condition_count: int) -> bool
     enricher, which lets these visits decide the season's flu dose for the
     people they are offered to (Issue #2868)."""
     return age >= FLU_VAX_ADULT_AGE_THRESHOLD or chronic_condition_count >= FLU_VAX_COMORBIDITY_MIN
-
-
-# ---------------------------------------------------------------------------
-# Healthcare calendar — cancer screening
-# ---------------------------------------------------------------------------
-
-COLONOSCOPY_MIN_AGE: int = 50
-"""Age at or above which colonoscopy screening is offered.
-
-50 is the historical USPSTF colorectal-cancer screening age. (More
-recent USPSTF guidance lowered this to 45; the simulator sticks with
-50 as the median long-established target.)"""
-
-COLONOSCOPY_MAX_AGE: int = 75
-"""Age above which colonoscopy screening is no longer routinely
-offered.
-
-USPSTF (2021) sets the routine colorectal cancer screening upper
-bound at 75; ages 76-85 are individualized. Above 85 screening is
-not recommended. The simulator uses 75 as the hard cap so
-population-level Bernoulli sampling stops emitting age-inappropriate
-screening events (Issue #1189 F3 sibling — mammography at 100 y/o
-was the visible instance)."""
-
-COLONOSCOPY_PROBABILITY: float = 0.08
-"""Per-year probability of receiving a colonoscopy screening among
-eligible persons.
-
-Empirical tuning for the synthetic simulator: 8% approximates the
-"once every ~10-12 years" recommended screening interval spread as a
-per-year Bernoulli."""
-
-MAMMOGRAPHY_MIN_AGE: int = 40
-"""Age at or above which mammography screening is offered to female
-patients.
-
-40 covers both the USPSTF (40-74) and JP MHLW (40+) mammography
-recommendation windows."""
-
-MAMMOGRAPHY_MAX_AGE: int = 74
-"""Age above which mammography screening is no longer routinely
-offered.
-
-USPSTF (2024) recommends mammography for ages 40-74. Japanese MHLW
-guidance similarly targets 40-74 with no recommendation above 74.
-Issue #1189 F3: a 100-year-old with 4-year active pancreatic cancer
-received two mammography_screening events over the sim window
-because the sampler had no upper age cap — clinically inappropriate
-and inconsistent with goals of care in an active-malignancy elder."""
-
-MAMMOGRAPHY_PROBABILITY: float = 0.4
-"""Per-year probability of receiving a mammography screening among
-eligible women.
-
-Empirical tuning for the synthetic simulator: 40% approximates
-observed 2-year screening uptake (~60%) spread as an annualized
-Bernoulli — reflecting the ~2-year screening interval used by both
-US and JP programs."""
 
 
 # ---------------------------------------------------------------------------

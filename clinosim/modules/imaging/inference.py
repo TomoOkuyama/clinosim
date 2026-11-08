@@ -149,6 +149,9 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     (rf"coronary{_SEP}angio(?:graphy|gram)|冠動脈{_SEP}造影", "XA", "coronary_artery", []),
     # CT pulmonary angiography (PE workup) → CT + chest.
     (rf"ct{_SEP}pulmonary{_SEP}angio(?:graphy|gram)|ctpa|肺動脈{_SEP}ct", "CT", "chest", []),
+    # ---- MG ----
+    # Issue #2870: a (bilateral, screening) mammogram.
+    (rf"(?:bilateral{_SEP})?mammogra(?:m|phy)", "MG", "breast", []),
     # ---- ECG ----
     # Electrocardiogram orders that the ED / cardiac workup places via
     # ``OrderType.IMAGING``. DICOM waveform modality ``ECG``; the

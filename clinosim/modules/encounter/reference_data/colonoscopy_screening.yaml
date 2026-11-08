@@ -29,10 +29,31 @@ workup:
     - {test: "Plt", probability: 0.5}
   imaging: []
 
+# Moderate sedation for the procedure. ``drug_id`` + ``dose`` make the
+# scheduled visit order and administer the drug (Issue #2870).
 treatment:
-  - {name: "midazolam IV sedation", route: "IV", probability: 0.95}
-  - {name: "fentanyl IV sedation", route: "IV", probability: 0.95}
-  - {name: "polypectomy", probability: 0.3}
+  - {name: "Midazolam", drug_id: midazolam, dose: "2 mg", route: "IV", probability: 0.95}
+  - {name: "Fentanyl", drug_id: fentanyl, dose: "50 mcg", route: "IV", probability: 0.95}
+
+# Performed at every scheduled visit (Issue #2870). CPT 45378 (diagnostic
+# colonoscopy); SNOMED 73761001 Colonoscopy (tx.fhir.org $lookup
+# 2026-11-08). No JP 診療行為 code until one is registered in k-codes.yaml
+# against the 支払基金 master; JP output codes it with CPT + SNOMED.
+procedures:
+  - code: "45378"
+    snomed: "73761001"
+    name: {en: "Colonoscopy", ja: "大腸内視鏡検査"}
+    duration_minutes: 30
+
+# USPSTF 2021: colorectal cancer screening at 45-75; after a normal
+# colonoscopy the next one is due in 10 years. Polyp surveillance (shorter
+# intervals after an adenoma) is not modelled. ``annual_uptake`` is the
+# probability of attending in a year the colonoscopy is due (~65% of
+# eligible US adults are up to date with colonoscopy screening; NHIS 2021).
+screening_schedule:
+  eligible_age: "45-75"
+  interval_years: 10
+  annual_uptake: 0.65
 
 discharge_instructions:
   - "No driving for 24 hours after sedation"

@@ -35,6 +35,9 @@ available_departments:
   # Issue #2641: delivery service — maternity ward + newborn nursery (wards below).
   # Listed last: its staff are generated after everyone else's.
   - obstetrics_gynecology  # 産婦人科
+  # Issue #2870: radiology runs the screening mammograms. Its staff are the
+  # radiologists every roster has (no physicians or wards of its own).
+  - radiology              # 放射線科
 
 department_rollup:
   endocrinology: internal_medicine

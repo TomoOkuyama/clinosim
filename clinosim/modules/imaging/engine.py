@@ -44,6 +44,7 @@ SUPPORTED_MODALITIES: frozenset[str] = frozenset(
         # modality values; without them these orders stub-fell with no modality.
         "XA",
         "ECG",
+        "MG",  # Issue #2870: screening mammography
     }
 )
 
@@ -77,6 +78,7 @@ SUPPORTED_BODY_SITES: frozenset[str] = frozenset(
         # Issue #2657
         "cervical_spine",
         "lumbar_spine",
+        "breast",  # Issue #2870
     }
 )
 
@@ -121,6 +123,8 @@ SUPPORTED_IMAGING_DISEASES: frozenset[str] = frozenset(
         "urinary_tract_infection",
         "vertebral_compression_fracture",
         "wrist_fracture_surgical",
+        # Issue #2870: the screening mammogram of the healthcare calendar.
+        "mammography_screening",
     }
 )
 
@@ -451,6 +455,9 @@ def _resolve_imaging_procedure_code_key(
     # XA — coronary angiography is always a contrast study (Issue #2655)
     if modality == "XA" and body_site == "coronary_artery":
         return "XA_contrast"
+    # MG — a bilateral screening mammogram (Issue #2870)
+    if modality == "MG" and body_site == "breast":
+        return "MG_screening"
     raise ValueError(
         f"Unsupported imaging combination: modality={modality} body_site={body_site} views={views} contrast={contrast}"
     )

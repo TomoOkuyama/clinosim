@@ -97,6 +97,10 @@ def _emitted_codes() -> set[tuple[str, str]]:
                 walk_followup(v)
 
     walk_followup(followup)
+    # Procedures of the scheduled-visit protocols (Issue #2870).
+    for path in (_ROOT / "modules/encounter/reference_data").glob("*.yaml"):
+        for proc in load_data_yaml(path).get("procedures") or []:
+            out |= {("US", str(proc.get("code") or "")), ("JP", str(proc.get("jp_code") or ""))}
     return {(c, code) for c, code in out if code}
 
 
