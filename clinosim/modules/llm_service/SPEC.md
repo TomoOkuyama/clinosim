@@ -5,11 +5,12 @@
 > code disagree, the code (and [`README.md`](README.md)) wins. Known
 > divergences:
 >
-> - There is no `LLMRequest` / `llm_service.request()`. Entry points are
->   `LLMService.generate(task_type, event, variables=None)` (template
->   fallback on failure; deprecated, Issue #2541) and `LLMService.complete_prompt(system, user, *,
->   language, task_type, ...)` (raises `LLMCompletionError`, no
->   fallback; used by the Stage 2 narrative pass).
+> - There is no `LLMRequest` / `llm_service.request()`. The one entry
+>   point is `LLMService.complete_prompt(system, user, *, language,
+>   task_type, ...)` (raises `LLMCompletionError`, no fallback; used by
+>   the Stage 2 narrative pass). The `generate` / `ClinicalEventData`
+>   design below was implemented as a template path and removed in
+>   Issue #2556.
 > - `LLMService.__init__` takes `mode`, `judgment_provider`,
 >   `narrative_provider`, `judgment_model_map`, `narrative_model_map`,
 >   `prompt_registry`, `cache`, `retry_attempts`, `retry_backoff_seconds`
@@ -98,25 +99,17 @@ modules/llm_service/
 ├── engine.py / factory.py / prompt_registry.py / cache.py
 ├── prompts/
 │   ├── en/                            ← one YAML per prompt, per language
-│   │   ├── admission_hp.yaml
-│   │   ├── discharge_summary.yaml
-│   │   ├── death_summary.yaml
-│   │   ├── operative_note.yaml
-│   │   ├── procedure_note.yaml
-│   │   ├── referral_note.yaml
-│   │   ├── narrative_seed.yaml / narrative_seed_bundle.yaml
-│   │   ├── death_certificate_*.yaml
-│   │   └── death_discharge_summary_*.yaml
-│   └── ja/                            ← same 17 files
+│   │   └── narrative_seed.yaml / narrative_seed_bundle.yaml
+│   └── ja/                            ← same 2 files (Issue #2556)
 ├── reference_data/
 │   ├── task_categories.yaml           ← TASK_CATEGORY
 │   └── task_loincs.yaml               ← DOCUMENT_LOINC
 └── providers/
 ```
 
-Template-mode text is produced by Python builders in `engine.py`
-(`_template_generate` → `_progress_note`, `_discharge_summary`, ...);
-there is no `templates/` directory.
+Template text of documents is produced by the narrative template
+generator (`modules/document/narrative/`), not by this service; there is
+no `templates/` directory.
 
 ### API — Responsibility split
 

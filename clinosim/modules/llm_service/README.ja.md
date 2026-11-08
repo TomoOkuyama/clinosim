@@ -14,14 +14,9 @@ prompt cache、provider 選択を所有する。
   concurrency-safe な call 面)、`LLMTaskType` / `LLMTaskCategory`
   (StrEnum task 一覧)、`TASK_CATEGORY` (task → category map)、
   `DOCUMENT_LOINC` / `document_task_loinc(task_type)` (document 生成 task ごとの
-  LOINC コード)、`PatientSummary` + `ClinicalEventData` (入力 DTO)、
+  LOINC コード)、
   `LLMResponse` + `LLMCompletionError`、document-task validation
-  (`_validate_document_task_sync`)、task 別 prompt builder
-  (`_build_prompt` dispatch と言語別
-  `_jp_chief_complaint`, `_en_chief_complaint`, `_progress_note`,
-  `_discharge_summary`, `_admission_hp`, `_diagnostic_reasoning`,
-  `_treatment_decision`, `_death_summary_template`,
-  `_operative_note_template`, `_procedure_note_template`)、
+  (`_validate_document_task_sync`)、
   `PromptRegistry` + `PromptSpec` (task 別 prompt manifest)、
   `PromptCache` (再現性 + Stage 2 再実行の economy のための
   SHA-256 keyed disk cache)、`build_from_config` +
@@ -54,8 +49,6 @@ from clinosim.modules.llm_service import (
     document_task_loinc,                   # (task_type) -> LOINC | None
 
     # 入力 DTO
-    PatientSummary,
-    ClinicalEventData,
 
     # Factory + registry
     build_from_config,           # (config_dict) -> LLMService
@@ -73,11 +66,11 @@ from clinosim.modules.llm_service import (
 
 ## 決定論
 
-- `LLMService.generate(...)` は非推奨 (Issue #2541)。文書は narrative
-  パイプライン (`clinosim narrate`) が `LLMService.complete_prompt(...)` を
-  通じて生成する。`generate`・`PatientSummary`・`ClinicalEventData` は次以降の
-  minor リリースで削除する。
-- `LLMService.generate(...)` / `LLMService.complete_prompt(...)` 経路は
+- 呼び出し経路は `LLMService.complete_prompt(...)` の一つ。文書は narrative
+  パイプライン (`clinosim narrate`) が生成する。旧 `LLMService.generate(...)`
+  のテンプレート経路と `PatientSummary`・`ClinicalEventData` は削除した
+  (Issue #2556、#2541 で非推奨化)。
+- `LLMService.complete_prompt(...)` 経路は
   `PromptCache` 有効かつ underlying provider が `MockProvider` または
   `temperature=0` の実 provider のときに決定論的。cache key は
   `sha256(system_prompt + user_prompt + model)` (`PromptCache._hash`。
@@ -184,8 +177,6 @@ pytest tests/unit -k "llm" -q
 
 個別ファイル:
 
-- [`tests/unit/test_llm_service.py`](../../../tests/unit/test_llm_service.py)
-  — `LLMService.generate` orchestration。
 - [`tests/unit/test_llm_service_complete_prompt.py`](../../../tests/unit/test_llm_service_complete_prompt.py)
   — `LLMService.complete_prompt` (retry、PromptCache、template fallback なし)。
 - [`tests/unit/test_llm_task_enum_sync.py`](../../../tests/unit/test_llm_task_enum_sync.py)

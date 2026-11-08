@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from clinosim.countries import lang_name
-from clinosim.modules.llm_service.engine import _output_language_instruction
+from clinosim.countries import output_language_instruction as _output_language_instruction
 
 pytestmark = pytest.mark.unit
 

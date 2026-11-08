@@ -567,9 +567,6 @@ _.population_size  # simulator/memoize.py:118
 _.clinosim_git_commit  # simulator/enumerate.py:439
 _.total_patients  # simulator/enumerate.py:444
 _.cache_hit  # llm_service/engine.py:206
-_.fallback_reason  # llm_service/engine.py:207 (also :361, :379, :402)
-_.chosen_option  # llm_service/engine.py:208
-_.reasoning  # llm_service/engine.py:209
 _.alt_arch  # modules/document/narrative/template_generator.py:2534
 _.identifier  # fhir_r4/labs/coding_package.py:201
 _.result_id  # fhir_r4/labs/coding_package.py:204
@@ -837,3 +834,7 @@ _.height_cm_sd  # reference-YAML model field (Issue #2804)
 _.pediatric_sampling  # reference-YAML model field (Issue #2804)
 _.per_encounter_noise  # reference-YAML model field (Issue #2804)
 _.weight_kg_sd  # reference-YAML model field (Issue #2804)
+_.DIAGNOSTIC_REASONING  # LLMTaskType inventory member, mapped by value in llm_service/reference_data/task_categories.yaml (Issue #2556)
+_.TREATMENT_DECISION  # LLMTaskType inventory member, mapped by value in llm_service/reference_data/task_categories.yaml (Issue #2556)
+_.CHIEF_COMPLAINT  # LLMTaskType inventory member, mapped by value in llm_service/reference_data/task_categories.yaml (Issue #2556)
+_.DEATH_SUMMARY  # LLMTaskType inventory member, mapped by value in llm_service/reference_data/task_categories.yaml (Issue #2556)
