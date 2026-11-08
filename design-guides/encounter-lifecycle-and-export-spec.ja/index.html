@@ -2442,6 +2442,11 @@
 <td><code>tests/unit/test_encounter_setup.py</code>, <code>tests/unit/test_encounter_export_spec_guards.py</code>(<code>…builds_its_diagnosis_through_encounter_setup</code>, <code>…links_its_orders_through_encounter_setup</code>, <code>…clinical_diagnosis_is_constructed_only_in_encounter_setup</code>)</td>
 </tr>
 <tr>
+<td>受診中に行う処置は、その受診の期間内に収める。外来受診は最後の処置が終わるまで続く(<code>extend_visit_to_procedures</code>)。入院は処置を入院から退院までの間に収め、救急受診は処置を受診自体の流れに沿って置いたうえで(到着時の処置はトリアージのバイタルと同時、静脈路は最初の静注薬オーダーより前、骨折の処置は画像の読影後)滞在内に収める(<code>fit_procedures_in_stay</code>)。</td>
+<td><code>simulator/encounter_setup.py</code>(<code>extend_visit_to_procedures</code>, <code>fit_procedures_in_stay</code>), <code>simulator/ed_procedures.py::time_ed_procedures</code></td>
+<td><code>tests/unit/simulator/test_procedures_in_encounter_2863.py</code></td>
+</tr>
+<tr>
 <td>シミュレーションは一つのループで月ごとに進む: 年の境目(人口の前進、医療カレンダー)、月次のライフイベント、救急枠、その月に積まれた事象の日付順の実行。</td>
 <td><code>simulator/phases/_forward_loop.py</code></td>
 <td><code>tests/unit/simulator/test_forward_loop_2169.py</code></td>

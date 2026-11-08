@@ -2442,6 +2442,11 @@
 <td><code>tests/unit/test_encounter_setup.py</code>, <code>tests/unit/test_encounter_export_spec_guards.py</code> (<code>…builds_its_diagnosis_through_encounter_setup</code>, <code>…links_its_orders_through_encounter_setup</code>, <code>…clinical_diagnosis_is_constructed_only_in_encounter_setup</code>)</td>
 </tr>
 <tr>
+<td>A procedure performed in an encounter lies inside its period. A clinic visit lasts until its last procedure ends (<code>extend_visit_to_procedures</code>); an admission holds its procedures between admission and discharge, and an ED visit places its procedures on its own workflow (arrival procedures with the triage vitals and IV access before the first IV drug order, fracture care after the imaging read) inside its stay (<code>fit_procedures_in_stay</code>).</td>
+<td><code>simulator/encounter_setup.py</code> (<code>extend_visit_to_procedures</code>, <code>fit_procedures_in_stay</code>), <code>simulator/ed_procedures.py::time_ed_procedures</code></td>
+<td><code>tests/unit/simulator/test_procedures_in_encounter_2863.py</code></td>
+</tr>
+<tr>
 <td>The simulation advances month by month in one loop: year boundary (population advance, healthcare calendar), monthly life events, ED slots, then dispatch of the month's queued events in date order.</td>
 <td><code>simulator/phases/_forward_loop.py</code></td>
 <td><code>tests/unit/simulator/test_forward_loop_2169.py</code></td>
