@@ -2475,8 +2475,8 @@
 </tr>
 <tr>
 <td>A choice that needs no stream (a stable "random-looking" pick of a nurse, a side, a time) uses a hash, not a generator. These helpers draw nothing, so adding them never shifts a stream.</td>
-<td><code>determinism.sha_quantile</code> / <code>sha_bernoulli</code> / <code>sha_normal</code> / <code>sha_weighted_choice</code>; <code>seeding.rendezvous_pick</code> / <code>id_hashes</code>; <code>seeding.morse_fall_history_unit</code></td>
-<td><code>tests/unit/test_seeding.py</code></td>
+<td><code>determinism.sha_quantile</code> / <code>sha_bernoulli</code> / <code>sha_normal</code> / <code>sha_weighted_choice</code> / <code>sha_index</code>; <code>seeding.rendezvous_pick</code> / <code>id_hashes</code>; <code>seeding.morse_fall_history_unit</code></td>
+<td><code>tests/unit/test_seeding.py</code>, <code>tests/unit/test_hash_draws_use_determinism_2837.py</code> (no inline <code>sha256</code> → <code>int.from_bytes</code> draw outside <code>determinism.py</code> / <code>seeding.py</code>, ratchet list)</td>
 </tr>
 </tbody>
 </table>

@@ -2475,8 +2475,8 @@
 </tr>
 <tr>
 <td>ストリームを要さない選択(看護師・左右・時刻などの安定した「ランダム風」の選択)は生成器でなくハッシュを使う。乱数を消費しないので、足してもストリームはずれない。</td>
-<td><code>determinism.sha_quantile</code> / <code>sha_bernoulli</code> / <code>sha_normal</code> / <code>sha_weighted_choice</code>、<code>seeding.rendezvous_pick</code> / <code>id_hashes</code>、<code>seeding.morse_fall_history_unit</code></td>
-<td><code>tests/unit/test_seeding.py</code></td>
+<td><code>determinism.sha_quantile</code> / <code>sha_bernoulli</code> / <code>sha_normal</code> / <code>sha_weighted_choice</code> / <code>sha_index</code>、<code>seeding.rendezvous_pick</code> / <code>id_hashes</code>、<code>seeding.morse_fall_history_unit</code></td>
+<td><code>tests/unit/test_seeding.py</code>、<code>tests/unit/test_hash_draws_use_determinism_2837.py</code>(<code>determinism.py</code> / <code>seeding.py</code> の外で <code>sha256</code> → <code>int.from_bytes</code> の抽選を書かない、ratchet リスト)</td>
 </tr>
 </tbody>
 </table>
