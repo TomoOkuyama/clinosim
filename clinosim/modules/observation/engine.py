@@ -12,7 +12,8 @@ from typing import Any
 
 import numpy as np
 
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_data_yaml, load_validated_yaml
+from clinosim.modules.observation._reference_models import LabAliases, LabConstants
 from clinosim.modules.observation._variability_defaults import (
     DEFAULT_ANALYTICAL_CV,
     DEFAULT_BIOLOGICAL_CV,
@@ -31,7 +32,7 @@ _REF_DIR = _HERE / "reference_data"
 def _lab_aliases() -> dict[str, str]:
     path = _REF_DIR / "lab_aliases.yaml"
     if path.exists():
-        return load_data_yaml(path) or {}
+        return load_validated_yaml(path, LabAliases) or {}
     return {}
 
 
@@ -55,7 +56,7 @@ def lab_panel_components(name: str) -> list[str]:
 
 # Per-analyte constants live in reference_data/lab_constants.yaml (Issue #2302),
 # keyed by canonical lab name; see that file for the sources and units.
-_LAB_CONSTANTS: dict[str, dict[str, Any]] = load_data_yaml(_REF_DIR / "lab_constants.yaml")
+_LAB_CONSTANTS: dict[str, dict[str, Any]] = load_validated_yaml(_REF_DIR / "lab_constants.yaml", LabConstants)
 
 BIOLOGICAL_CV: dict[str, float] = dict(_LAB_CONSTANTS["biological_cv"])
 
