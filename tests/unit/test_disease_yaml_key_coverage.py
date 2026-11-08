@@ -274,6 +274,12 @@ ENCOUNTER_TOP_KEYS = frozenset(
         # length-N `slot_rng.choice` draw.
         "min_age",
         "max_age",
+        # Healthcare-calendar screening visits (Issue #2870): the schedule is
+        # read by population/engine.py, the screening labs and procedures by
+        # simulator/screening_visit.py.
+        "screening_schedule",
+        "screening_labs",
+        "procedures",
     }
 )
 

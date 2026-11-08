@@ -93,20 +93,17 @@ _CHRONIC_DISEASE_SPECIALTY: dict[str, str] = {
     "F41.9": "psychiatry",  # Anxiety disorder, unspecified
 }
 
-# Screening event_type → clinical specialty.
-_SCREENING_SPECIALTY: dict[str, str] = {
-    "annual_health_screening": "primary_care",
-    "colonoscopy_screening": "gastroenterology",
-    "mammography_screening": "obstetrics_gynecology",
-}
-
 
 def _specialty_for_visit(visit_type: str, code: str) -> str:
     """Return the clinical specialty that would normally handle this visit."""
     if visit_type == "pediatric_visit":
         return "pediatrics"
     if visit_type == "health_screening":
-        return _SCREENING_SPECIALTY.get(code, "primary_care")
+        # Issue #2870: the screening protocol's own department (radiology for
+        # a mammogram, gastroenterology for a colonoscopy).
+        from clinosim.modules.encounter.protocol import load_encounter_condition
+
+        return str(load_encounter_condition(code)["department"])
     if visit_type in ("chemo_visit", "chemo_infusion"):
         # Issue #957 Tier-3-A: chemo infusion attaches to oncology when the
         # hospital offers it; ``resolve_department`` (hospital_ops) handles

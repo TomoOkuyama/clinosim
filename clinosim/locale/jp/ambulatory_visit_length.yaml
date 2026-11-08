@@ -35,6 +35,15 @@ visit_types:
     min: 20
     mode: 30
     max: 45
+  # Issue #2870: a screening protocol's own length, ahead of its visit_type.
+  mammography_screening:  # 乳がん検診 (マンモグラフィ)
+    min: 10
+    mode: 15
+    max: 30
+  colonoscopy_screening:  # 大腸内視鏡検査 (前処置確認・鎮静・回復を含む)
+    min: 60
+    mode: 90
+    max: 150
 
 # Fallback for any visit_type not enumerated above.
 default:

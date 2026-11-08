@@ -2199,6 +2199,13 @@ encounter_intent:
   chemo_cycle:
     ja: "化学療法サイクル: {drug} {dose}"
     en: "Chemotherapy cycle: {drug} {dose}"
+  # Issue #2870: tests and drugs of a scheduled screening visit.
+  screening_workup:
+    ja: "検診: {test}"
+    en: "Screening: {test}"
+  procedural_sedation:
+    ja: "処置時鎮静: {drug} {dose}"
+    en: "Procedural sedation: {drug} {dose}"
 
 # Safety-skip conflicts and rationales written by the simulator (Issue #2406).
 safety_text:

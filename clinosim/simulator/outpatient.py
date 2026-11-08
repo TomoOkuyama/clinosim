@@ -22,6 +22,7 @@ from clinosim.modules.observation.engine import (
     generate_lab_result,
     get_lab_unit,
     is_qualitative_test,
+    lab_panel_components,
 )
 from clinosim.modules.order.engine import enrich_medication_order
 from clinosim.modules.pediatric.calendar import Presentation, pediatric_presentation
@@ -36,6 +37,7 @@ from clinosim.simulator._outpatient_thresholds import (
     OUTPATIENT_LAB_ORDER_OFFSET_MIN,
     OUTPATIENT_LAB_RESULT_OFFSET_HOURS,
     OUTPATIENT_PRESCRIPTION_DURATION_DAYS,
+    OUTPATIENT_PROCEDURE_DEFAULT_MIN,
     OUTPATIENT_VITALS_OFFSET_MIN,
 )
 from clinosim.simulator.diagnosis_rules import fallback_visit_code, post_discharge_visit_code, visit_purpose_code
@@ -215,6 +217,7 @@ def _sample_ambulatory_visit_length_minutes(
     visit_type: str,
     country: str,
     encounter_id: str,
+    length_key: str = "",
 ) -> int:
     """Sample an outpatient (AMB) encounter length in minutes (Issue #927).
 
@@ -239,7 +242,10 @@ def _sample_ambulatory_visit_length_minutes(
     for the transcendental-only rationale).
     """
     cfg = load_ambulatory_visit_length(country)
-    bucket = cfg.get("visit_types", {}).get(visit_type) or cfg["default"]
+    # Issue #2870: a screening protocol may have its own length (a
+    # colonoscopy with recovery takes longer than an annual exam).
+    visit_types = cfg.get("visit_types", {})
+    bucket = (visit_types.get(length_key) if length_key else None) or visit_types.get(visit_type) or cfg["default"]
     lo = float(bucket["min"])
     mode = float(bucket["mode"])
     hi = float(bucket["max"])
@@ -323,6 +329,7 @@ def _open_visit_encounter(
     raw_chief: str | dict,
     department_id: str,
     country: str,
+    length_key: str = "",
 ) -> Encounter:
     from clinosim.locale.text import resolve_text
 
@@ -355,7 +362,7 @@ def _open_visit_encounter(
     # opd_rng — every downstream draw (staff, vitals, labs, prescription)
     # keeps its pre-fix byte-shape.
     encounter.discharge_datetime = visit_date + timedelta(
-        minutes=_sample_ambulatory_visit_length_minutes(visit_type, country, encounter.encounter_id)
+        minutes=_sample_ambulatory_visit_length_minutes(visit_type, country, encounter.encounter_id, length_key)
     )
 
     return encounter
@@ -445,6 +452,7 @@ def _result_followup_labs(
     state: PhysiologicalState,
     lab_tech_id: str,
     country: str,
+    screening: bool = False,
 ) -> tuple[list[Order], list[OrderResult]]:
     orders: list[Order] = []
     lab_results: list[OrderResult] = []
@@ -479,7 +487,19 @@ def _result_followup_labs(
     # unrelated patients' cohorts whenever derive_lab_values gains an analyte.
     from clinosim.seeding import individual_lab_seed
 
-    for i, test_name in enumerate(lab_tests):
+    # Issue #2870: a panel (e.g. "Lipid") is ordered as its component labs,
+    # grouped under the panel; a screening visit's orders say so.
+    intent_key = "encounter_intent.screening_workup" if screening else "encounter_intent.outpatient_followup"
+    lab_items: list[tuple[str, str, str]] = []
+    for i, name in enumerate(lab_tests):
+        components = lab_panel_components(name)
+        if components:
+            panel = canonical_lab_name(name)
+            lab_items.extend((f"OPD-L{i:02d}-{comp}", comp, panel) for comp in components)
+        else:
+            lab_items.append((f"OPD-L{i:02d}", name, ""))
+
+    for order_suffix, test_name, panel_key in lab_items:
         # Skip non-quantitative diagnostics (e.g. ECG) misfiled under labs — they are
         # not lab analytes and must not get a fabricated value (AD-57 cleanup).
         # Qualitative tests (urinalysis, ...) have no numeric baseline but are
@@ -487,7 +507,7 @@ def _result_followup_labs(
         canon = canonical_lab_name(test_name)
         if canon not in _true_labs and canon not in baseline_values and not is_qualitative_test(canon):
             continue
-        order_id = f"ORD-{encounter.encounter_id}-OPD-L{i:02d}"
+        order_id = f"ORD-{encounter.encounter_id}-{order_suffix}"
         lab_rng = determinism.default_rng(individual_lab_seed(order_id))
         order = Order(
             order_id=order_id,
@@ -495,14 +515,15 @@ def _result_followup_labs(
             order_type=OrderType.LAB,
             display_name=test_name,
             urgency="routine",
-            clinical_intent=t("encounter_intent.outpatient_followup", "en", test=test_name),
+            clinical_intent=t(intent_key, "en", test=test_name),
             # Issue #871: JA display for the JP `reasonCode.text` emit path.
             # `test_name` is the analyte name (e.g. "Creatinine") — kept as-is
             # so consumers can still string-match; the shell is translated.
-            clinical_intent_ja=t("encounter_intent.outpatient_followup", "ja", test=test_name),
+            clinical_intent_ja=t(intent_key, "ja", test=test_name),
             ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
+            panel_key=panel_key,
         )
         orders.append(order)
 
@@ -755,7 +776,13 @@ def _visit_diagnosis_code(chronic_code: str, post_discharge_disease: str, visit_
 
 
 def _followup_procedures(
-    patient: PatientProfile, spec: dict, chronic_code: str, visit_type: str, encounter: Encounter, visit_date: datetime
+    patient: PatientProfile,
+    spec: dict,
+    chronic_code: str,
+    visit_type: str,
+    encounter: Encounter,
+    visit_date: datetime,
+    country: str = "US",
 ) -> list:
     procedures_list: list = []
 
@@ -827,6 +854,8 @@ def _followup_procedures(
             if _frequency == "semi_annual" and _visit_half_key in _semi_annual_map.get(_snomed, set()):
                 continue
             _code_us = str(_proc.get("code") or "")
+            # Issue #2870: a protocol procedure carries its JP code and length.
+            _code_jp = str(_proc.get("jp_code") or "")
             _proc_start = visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN)
             procedures_list.append(
                 ProcedureRecord(
@@ -834,10 +863,12 @@ def _followup_procedures(
                     patient_id=patient.patient_id,
                     encounter_id=encounter.encounter_id,
                     procedure_type=localized(_proc.get("name") or {}, "en"),
-                    procedure_code=_code_us,
+                    procedure_code=_code_jp if (_code_jp and is_jp(country)) else _code_us,
+                    procedure_code_jp=_code_jp,
                     procedure_code_us=_code_us,
                     start_datetime=_proc_start,
-                    end_datetime=_proc_start + timedelta(minutes=15),
+                    end_datetime=_proc_start
+                    + timedelta(minutes=int(_proc.get("duration_minutes") or OUTPATIENT_PROCEDURE_DEFAULT_MIN)),
                     primary_surgeon_id=encounter.attending_physician_id,
                 )
             )
@@ -1028,6 +1059,102 @@ def _radiation_therapy(
     return procedures_list
 
 
+def _visit_imaging_orders(
+    patient: PatientProfile, spec: dict, encounter: Encounter, visit_date: datetime
+) -> list[Order]:
+    """The imaging studies of a screening visit (Issue #2870): one order per
+    ``spec["imaging"]`` entry, read by the imaging enricher (modality and body
+    site from the study name, report from the visit protocol's templates)."""
+    orders: list[Order] = []
+    for i, item in enumerate(spec.get("imaging") or []):
+        test = str(item["test"])
+        orders.append(
+            Order(
+                order_id=f"ORD-{encounter.encounter_id}-OPD-I{i:02d}",
+                encounter_id=encounter.encounter_id,
+                patient_id=patient.patient_id,
+                order_type=OrderType.IMAGING,
+                display_name=test,
+                urgency="routine",
+                clinical_intent=t("encounter_intent.screening_workup", "en", test=test),
+                clinical_intent_ja=t("encounter_intent.screening_workup", "ja", test=test),
+                ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
+                ordered_by=encounter.attending_physician_id,
+                status=OrderStatus.PLACED,
+                imaging_spec_meta={"abnormal_rate_by_severity": dict(item.get("abnormal_rate_by_severity") or {})},
+            )
+        )
+    return orders
+
+
+def _procedural_sedation(
+    patient: PatientProfile,
+    spec: dict,
+    encounter: Encounter,
+    visit_date: datetime,
+    department_id: str,
+    roster: StaffRoster,
+    rng: np.random.Generator,
+    opd_nurse_id: str,
+) -> tuple[list[Order], list]:
+    """The sedation drugs of a procedure visit (Issue #2870): one order and
+    one administration per ``spec["procedural_sedation"]`` entry, given when
+    the procedure starts. Draws the administering nurse only when there is
+    sedation."""
+    from clinosim.codes.drugs import resolve_drug
+    from clinosim.types.encounter import MedicationAdministration
+
+    drugs = spec.get("procedural_sedation") or []
+    if not drugs:
+        return [], []
+    nurse = assign_staff("medication_administration", department_id, roster, rng).get(
+        "administering_nurse", opd_nurse_id
+    )
+    given_at = visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN)
+    orders: list[Order] = []
+    mars: list = []
+    for i, drug in enumerate(drugs):
+        rec = resolve_drug(drug["drug_id"])
+        name = rec.names.get("en", "") or drug["drug_id"]
+        name_ja = rec.names.get("ja", "") or name
+        dose, route = str(drug.get("dose") or ""), str(drug["route"])
+        order_id = f"ORD-{encounter.encounter_id}-OPD-M{i:02d}"
+        order = Order(
+            order_id=order_id,
+            encounter_id=encounter.encounter_id,
+            patient_id=patient.patient_id,
+            order_type=OrderType.MEDICATION,
+            display_name=name,
+            urgency="routine",
+            clinical_intent=t("encounter_intent.procedural_sedation", "en", drug=name, dose=dose).strip(),
+            clinical_intent_ja=t("encounter_intent.procedural_sedation", "ja", drug=name_ja, dose=dose).strip(),
+            ordered_datetime=given_at,
+            ordered_by=encounter.attending_physician_id,
+            status=OrderStatus.RESULTED,
+            dose_text_en=dose,
+            dose_text_ja=dose,
+            route=route,
+            frequency="once",
+            frequency_per_day=1,
+            duration_days=1,
+        )
+        enrich_medication_order(order, dose_str=dose)
+        orders.append(order)
+        mars.append(
+            MedicationAdministration(
+                order_id=order_id,
+                drug_name=name,
+                scheduled_datetime=given_at,
+                actual_datetime=given_at,
+                status="given",
+                dose=dose,
+                route=route,
+                administered_by=nurse,
+            )
+        )
+    return orders, mars
+
+
 def _simulate_outpatient_visit(
     patient: PatientProfile,
     visit_type: str,
@@ -1055,7 +1182,16 @@ def _simulate_outpatient_visit(
     """
     spec = followup_spec or {}
     chief, raw_chief = _visit_chief_complaint(spec, chronic_code, post_discharge_disease, country)
-    encounter = _open_visit_encounter(patient, visit_type, visit_date, chief, raw_chief, department_id, country)
+    encounter = _open_visit_encounter(
+        patient,
+        visit_type,
+        visit_date,
+        chief,
+        raw_chief,
+        department_id,
+        country,
+        str(spec.get("visit_length_key") or ""),
+    )
 
     staff = assign_staff("rounds", department_id, roster, rng)
     encounter.attending_physician_id = staff.get("attending_physician", FALLBACK_PHYSICIAN_ID)
@@ -1064,7 +1200,9 @@ def _simulate_outpatient_visit(
     vital, visit_state, opd_nurse_id = _record_visit_vitals(
         patient, visit_type, chronic_code, visit_date, roster, rng, presentation, encounter.encounter_id
     )
-    vitals: list[VitalSignRecord] = [vital]
+    # Issue #2870: a visit whose protocol takes no vital signs (a screening
+    # mammogram) records none; the state still drives its labs.
+    vitals: list[VitalSignRecord] = [vital] if spec.get("vitals", True) else []
 
     # Pre-assign a lab tech for outpatient labs
     lab_tech_assignment = assign_staff("lab_collection", "laboratory", roster, rng)
@@ -1075,7 +1213,17 @@ def _simulate_outpatient_visit(
     titration = statin_monitoring.titrate_statin(patient, visit_date, country) if statin_monitored else None
     if statin_monitored and statin_monitoring.lipid_panel_due(patient, visit_date):
         spec = {**spec, "labs": statin_monitoring.lipid_panel_labs(list(spec.get("labs", [])))}
-    orders, lab_results = _result_followup_labs(patient, spec, encounter, visit_date, visit_state, lab_tech_id, country)
+    orders, lab_results = _result_followup_labs(
+        patient,
+        spec,
+        encounter,
+        visit_date,
+        visit_state,
+        lab_tech_id,
+        country,
+        screening=visit_type == "health_screening",
+    )
+    orders.extend(_visit_imaging_orders(patient, spec, encounter, visit_date))
     if statin_monitored:
         statin_monitoring.note_lipid_panel(patient, visit_date, lab_results)
     rx = _renewal_prescription(patient, spec, encounter, visit_date)
@@ -1096,7 +1244,11 @@ def _simulate_outpatient_visit(
     )
     clinical_diagnosis = encounter_diagnosis(dx_code, country)
 
-    procedures_list = _followup_procedures(patient, spec, chronic_code, visit_type, encounter, visit_date)
+    procedures_list = _followup_procedures(patient, spec, chronic_code, visit_type, encounter, visit_date, country)
+    sedation_orders, sedation_mars = _procedural_sedation(
+        patient, spec, encounter, visit_date, department_id, roster, rng, opd_nurse_id
+    )
+    orders.extend(sedation_orders)
     chemo_procedures, chemo_orders, chemo_mars = _chemo_cycle(
         patient, spec, visit_type, encounter, visit_date, country, department_id, roster, rng, opd_nurse_id
     )
@@ -1116,7 +1268,7 @@ def _simulate_outpatient_visit(
         # Issue #957 Tier-3-A per-cycle chemo MAR emit — only populated on
         # chemo_visit encounters; other outpatient visits keep the default
         # empty list.
-        medication_administrations=list(chemo_mars),
+        medication_administrations=list(chemo_mars) + sedation_mars,
         condition_event=condition_event,
         clinical_diagnosis=clinical_diagnosis,
         discharge_prescription=rx,
@@ -1133,15 +1285,22 @@ def _simulate_outpatient_visit(
             run_stage,
         )
 
-        run_stage(
-            POST_ENCOUNTER,
-            EnricherContext(
-                config=config,
-                master_seed=config.random_seed,
-                records=[record],
-                roster=roster,
-            ),
-        )
+        # Issue #2870: a screening's imaging reads with its protocol's report
+        # templates (the imaging enricher's transient ``_disease_id`` key).
+        if spec.get("imaging"):
+            record.extensions["_disease_id"] = chronic_code
+        try:
+            run_stage(
+                POST_ENCOUNTER,
+                EnricherContext(
+                    config=config,
+                    master_seed=config.random_seed,
+                    records=[record],
+                    roster=roster,
+                ),
+            )
+        finally:
+            record.extensions.pop("_disease_id", None)
 
     return record
 

@@ -767,3 +767,22 @@ templates:
           en: 'Distal radius fracture with dorsal displacement.'
           ja: '橈骨遠位端骨折、背側転位あり。'
 
+
+  # Issue #2870: screening mammogram (ACR BI-RADS 5th edition assessment
+  # categories). Abnormal = BI-RADS 0, recalled for additional imaging.
+  mammography_screening:
+    MG_breast:
+      normal:
+        findings:
+          en: "Bilateral CC and MLO views. No suspicious mass, architectural distortion or suspicious calcifications."
+          ja: "両側CC・MLO撮影。腫瘤、構築の乱れ、悪性を疑う石灰化を認めない。"
+        impression:
+          en: "Negative screening mammogram (BI-RADS 1). Routine screening recommended."
+          ja: "異常所見なし（BI-RADS カテゴリー1）。定期検診を推奨。"
+      abnormal:
+        findings:
+          en: "Bilateral CC and MLO views. A focal asymmetry is seen in one breast, not clearly characterized on the screening views."
+          ja: "両側CC・MLO撮影。片側乳房に局所的非対称性陰影を認め、スクリーニング撮影のみでは評価困難。"
+        impression:
+          en: "Incomplete (BI-RADS 0). Recall for diagnostic mammography and ultrasound."
+          ja: "判定保留（BI-RADS カテゴリー0）。精密検査（診断的マンモグラフィ・超音波）を推奨。"

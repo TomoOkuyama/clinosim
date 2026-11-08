@@ -25,7 +25,10 @@ workup:
   vitals: false
   labs: []
   imaging:
-    - {test: "Bilateral_Mammography", probability: 1.0}
+    # ``abnormal_rate_by_severity``: share of screens read as BI-RADS 0
+    # (recall for additional imaging) — ~10% in US screening programmes
+    # (BCSC benchmarks).
+    - {test: "Bilateral_Mammography", probability: 1.0, abnormal_rate_by_severity: {any: 0.10}}
 
 treatment: []
 
@@ -36,6 +39,14 @@ discharge_instructions:
   - "Schedule next screening mammogram in 1-2 years as recommended"
 
 discharge_prescriptions: []
+
+# USPSTF 2024: women 40-74. ``annual_uptake`` spreads the ~2-yearly
+# screening (~60-70% of eligible women up to date) over the years.
+screening_schedule:
+  eligible_age: "40-74"
+  sex: F
+  interval_years: 1
+  annual_uptake: 0.4
 
 incidence_modifier: 1.0
 age_distribution: women_40plus

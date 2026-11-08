@@ -23,6 +23,7 @@ __all__ = [
     "OUTPATIENT_LAB_ORDER_OFFSET_MIN",
     "OUTPATIENT_LAB_RESULT_OFFSET_HOURS",
     "OUTPATIENT_PRESCRIPTION_DURATION_DAYS",
+    "OUTPATIENT_PROCEDURE_DEFAULT_MIN",
     "OUTPATIENT_VITALS_OFFSET_MIN",
 ]
 
@@ -82,3 +83,8 @@ pharmacies) and JP (30-day 処方せん is the default for stable chronic
 patients under 特定疾患療養管理料 monitoring). Longer intervals
 (60 / 90 days) exist but are not modeled today — every outpatient
 renewal in ``current_medications`` gets this fixed duration."""
+
+OUTPATIENT_PROCEDURE_DEFAULT_MIN: int = 15
+"""Length in minutes of an outpatient procedure whose entry gives none
+(``chronic_followup.yaml`` surveillance procedures). A protocol procedure
+states its own ``duration_minutes`` (Issue #2870)."""

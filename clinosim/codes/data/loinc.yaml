@@ -1008,6 +1008,10 @@ codes:
   42272-5:
     en: XR Chest PA and Lateral
     ja: 胸部単純X線撮影 PA・側面
+  # Issue #2870: screening mammography (tx.fhir.org $lookup 2026-11-08).
+  24606-6:
+    en: MG Breast Screening
+    ja: 乳房X線撮影（スクリーニング）
   # #1851 wrist view-count split. body_sites.yaml used 24619-9 (XR Wrist
   # Views, no view-count qualifier) for both 2-view and 3-view variants.
   # Distinct LOINCs now carry the view-count semantic.

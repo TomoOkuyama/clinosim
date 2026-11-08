@@ -34,6 +34,15 @@ visit_types:
     min: 25
     mode: 35
     max: 55
+  # Issue #2870: a screening protocol's own length, ahead of its visit_type.
+  mammography_screening:  # Screening mammogram (check-in, 4 views)
+    min: 15
+    mode: 20
+    max: 35
+  colonoscopy_screening:  # Screening colonoscopy with sedation and recovery
+    min: 90
+    mode: 120
+    max: 180
 
 # Fallback for any visit_type not enumerated above.
 default:

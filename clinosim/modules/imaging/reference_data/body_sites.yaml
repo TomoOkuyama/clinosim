@@ -300,3 +300,12 @@ body_sites:
         cpt: "72148"
         jp_k_code: "E202"
 
+
+  # === Issue #2870: screening mammography ===
+  breast:
+    snomed: "76752008"                           # Breast structure (tx.fhir.org 2026-11-08)
+    procedure_codes:
+      MG_screening:
+        loinc: "24606-6"                         # MG Breast Screening (tx.fhir.org 2026-11-08)
+        cpt: "77067"                             # Screening mammography, bilateral (codes/data/cpt.yaml)
+        jp_k_code: "E001"                        # 写真診断 (k-codes.yaml)

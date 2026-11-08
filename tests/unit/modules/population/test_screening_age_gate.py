@@ -5,9 +5,10 @@ received two mammography_screening events over the sim window
 because the sampler had no upper age cap. Similarly, annual health
 screening was scheduled up through age 110+.
 
-S14 adds:
-  - `MAMMOGRAPHY_MAX_AGE = 74` (USPSTF 2024 / JP MHLW 40-74 window)
-  - `COLONOSCOPY_MAX_AGE = 75` (USPSTF 2021 routine upper bound)
+S14 adds the upper bounds; Issue #2870 moved the cancer-screening bands to
+the protocols' ``screening_schedule``:
+  - mammography 40-74 (USPSTF 2024 / JP MHLW 40-74 window)
+  - colonoscopy 45-75 (USPSTF 2021)
   - `HEALTH_SCREENING_MAX_AGE = 89` (routine annual physical upper bound)
 
 The gates are RNG-neutral: the prng draw at or above the lower age
@@ -20,26 +21,21 @@ from __future__ import annotations
 import numpy as np
 
 
-def _thresholds_have_upper_bounds() -> None:
-    from clinosim.modules.population import _population_workflow_thresholds as t
+def _band(condition_id: str) -> tuple[int, int]:
+    from clinosim.age_bands import parse_closed_age_band
+    from clinosim.modules.encounter.protocol import screening_schedule
 
-    assert t.COLONOSCOPY_MIN_AGE < t.COLONOSCOPY_MAX_AGE
-    assert t.MAMMOGRAPHY_MIN_AGE < t.MAMMOGRAPHY_MAX_AGE
-    assert t.HEALTH_SCREENING_MIN_AGE < t.HEALTH_SCREENING_MAX_AGE
+    return parse_closed_age_band(screening_schedule(condition_id).eligible_age)
 
 
 def test_uspstf_aligned_bounds() -> None:
-    from clinosim.modules.population._population_workflow_thresholds import (
-        COLONOSCOPY_MAX_AGE,
-        HEALTH_SCREENING_MAX_AGE,
-        MAMMOGRAPHY_MAX_AGE,
-    )
+    from clinosim.modules.population._population_workflow_thresholds import HEALTH_SCREENING_MAX_AGE
 
-    # USPSTF 2024 mammography = 40-74; 2021 colonoscopy = up to 75.
+    # USPSTF 2024 mammography = 40-74; 2021 colorectal = 45-75.
     # Annual health screening upper bound tuned to allow 85-89
     # individualized screening but stop >=90.
-    assert MAMMOGRAPHY_MAX_AGE == 74
-    assert COLONOSCOPY_MAX_AGE == 75
+    assert _band("mammography_screening") == (40, 74)
+    assert _band("colonoscopy_screening") == (45, 75)
     assert HEALTH_SCREENING_MAX_AGE == 89
 
 
@@ -55,23 +51,15 @@ def test_health_screening_dropped_for_age_100() -> None:
 
 
 def test_mammography_dropped_for_age_100() -> None:
-    from clinosim.modules.population._population_workflow_thresholds import (
-        MAMMOGRAPHY_MAX_AGE,
-        MAMMOGRAPHY_MIN_AGE,
-    )
-
-    assert not (MAMMOGRAPHY_MIN_AGE <= 100 <= MAMMOGRAPHY_MAX_AGE)
-    assert MAMMOGRAPHY_MIN_AGE <= 55 <= MAMMOGRAPHY_MAX_AGE
+    lo, hi = _band("mammography_screening")
+    assert not (lo <= 100 <= hi)
+    assert lo <= 55 <= hi
 
 
 def test_colonoscopy_dropped_for_age_100() -> None:
-    from clinosim.modules.population._population_workflow_thresholds import (
-        COLONOSCOPY_MAX_AGE,
-        COLONOSCOPY_MIN_AGE,
-    )
-
-    assert not (COLONOSCOPY_MIN_AGE <= 100 <= COLONOSCOPY_MAX_AGE)
-    assert COLONOSCOPY_MIN_AGE <= 62 <= COLONOSCOPY_MAX_AGE
+    lo, hi = _band("colonoscopy_screening")
+    assert not (lo <= 100 <= hi)
+    assert lo <= 62 <= hi
 
 
 def test_rng_neutrality_marker() -> None:

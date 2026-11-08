@@ -12,6 +12,7 @@ from datetime import date
 import numpy as np
 
 from clinosim import determinism
+from clinosim.age_bands import parse_closed_age_band
 from clinosim.modules._shared import normalize_probabilities, random_day_of_month
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.disease.severity import sample_severity
@@ -126,9 +127,6 @@ from clinosim.modules.population._population_thresholds import (
 from clinosim.modules.population._population_workflow_thresholds import (
     CHRONIC_VISIT_INITIAL_MONTH_CAP_EXCLUSIVE,
     CHRONIC_VISITS_MAX_PER_YEAR,
-    COLONOSCOPY_MAX_AGE,
-    COLONOSCOPY_MIN_AGE,
-    COLONOSCOPY_PROBABILITY,
     DIABETIC_RETINOPATHY_ICD10_CODE,
     DIABETIC_RETINOPATHY_PROBABILITY,
     EVENT_MID_OF_MONTH_DAY,
@@ -139,9 +137,6 @@ from clinosim.modules.population._population_workflow_thresholds import (
     HEALTH_SCREENING_MONTH_END_EXCLUSIVE,
     HEALTH_SCREENING_MONTH_START,
     LEGAL_ADULT_AGE,
-    MAMMOGRAPHY_MAX_AGE,
-    MAMMOGRAPHY_MIN_AGE,
-    MAMMOGRAPHY_PROBABILITY,
     MIXED_CONDITIONS_MIN_AGE_DEFAULT,
     MIXED_CONDITIONS_MIN_CHRONIC_DEFAULT,
     MIXED_CONDITIONS_PROBABILITY_DEFAULT,
@@ -1002,6 +997,41 @@ def generate_monthly_events(
     return events
 
 
+_CALENDAR_SCREENINGS: tuple[str, ...] = ("colonoscopy_screening", "mammography_screening")
+"""Cancer screenings the healthcare calendar schedules, in draw order."""
+
+
+def _calendar_screening_offered(
+    condition_id: str, person: PersonRecord, age: int, year: int, prng: np.random.Generator
+) -> bool:
+    """Whether ``person`` attends the screening ``condition_id`` in ``year``
+    (Issue #2870), per the protocol's ``screening_schedule``.
+
+    Draws one uptake roll for every person of the screening's sex at or above
+    its lower age bound (the S14 RNG-neutral upper cap: above the band the
+    roll is drawn but no visit is made). The screening is due once every
+    ``interval_years``: each person's cycle phase is a stream-free hash, so a
+    10-yearly colonoscopy falls in the same decade slot every cycle and two
+    colonoscopies are never closer than the interval.
+    """
+    from clinosim.modules.encounter.protocol import screening_schedule
+
+    schedule = screening_schedule(condition_id)
+    lo, hi = parse_closed_age_band(schedule.eligible_age)
+    if schedule.sex != "any" and person.sex != schedule.sex:
+        return False
+    if age < lo:
+        return False
+    roll = prng.random()
+    if age > hi or roll >= schedule.annual_uptake:
+        return False
+    interval = schedule.interval_years
+    if interval == 1:
+        return True
+    phase = determinism.sha_index(f"clinosim:screening-cycle:v1|{condition_id}|{person.person_id}", interval)
+    return (year + phase) % interval == 0
+
+
 def generate_healthcare_calendar(
     registry: PopulationRegistry,
     year: int,
@@ -1021,8 +1051,8 @@ def generate_healthcare_calendar(
       immunization schedule's per-season coverage for the person's age / sex
       (``immunization.engine.seasonal_flu_coverage``), else the locale's
       ``preventive_care.flu_vaccination_probability``
-    - Colonoscopy screening (age 50-75) and mammography screening
-      (women 40-74)
+    - Colonoscopy screening (age 45-75, every 10 years) and mammography
+      screening (women 40-74), per their protocols' ``screening_schedule``
     - Diabetic retinopathy screening (persons with E11.9)
     - Chemotherapy cycle visits for cancer patients on a cycle-based regimen
 
@@ -1184,52 +1214,24 @@ def generate_healthcare_calendar(
                     )
                 )
 
-        # --- Colonoscopy screening (age 50+, every 10 years → ~10% per year) ---
-        # RNG-neutral upper-age cap (S14): keep the prng.random() draw for
-        # any age >= COLONOSCOPY_MIN_AGE so RNG shape is unchanged for
-        # populations below the cap; drop the emit when age > MAX.
-        _colonoscopy_roll = prng.random() if _age_at_year >= COLONOSCOPY_MIN_AGE else None
-        if (
-            COLONOSCOPY_MIN_AGE <= _age_at_year <= COLONOSCOPY_MAX_AGE
-            and _colonoscopy_roll is not None
-            and _colonoscopy_roll < COLONOSCOPY_PROBABILITY
-        ):
-            events.append(
-                LifeEvent(
-                    person_id=person.person_id,
-                    event_type="health_screening",
-                    timestamp=_random_date_in_year(prng, year),
-                    severity=0.0,
-                    condition_type="screening",
-                    disease_id="colonoscopy_screening",
-                    encounter_type="outpatient",
-                    protocol_source="encounter:colonoscopy_screening",
+        # --- Cancer screening (Issue #2870): colonoscopy, then mammography ---
+        # Each screening's age band, sex, interval and uptake come from its
+        # protocol's ``screening_schedule``; ``_CALENDAR_SCREENINGS`` fixes the
+        # order of their draws on the person's stream.
+        for _screening_id in _CALENDAR_SCREENINGS:
+            if _calendar_screening_offered(_screening_id, person, _age_at_year, year, prng):
+                events.append(
+                    LifeEvent(
+                        person_id=person.person_id,
+                        event_type="health_screening",
+                        timestamp=_random_date_in_year(prng, year),
+                        severity=0.0,
+                        condition_type="screening",
+                        disease_id=_screening_id,
+                        encounter_type="outpatient",
+                        protocol_source=f"encounter:{_screening_id}",
+                    )
                 )
-            )
-
-        # --- Mammography screening (women 40+, annual → ~60% participation) ---
-        # RNG-neutral upper-age cap (S14): keep the prng.random() draw for
-        # any eligible-sex person >= MAMMOGRAPHY_MIN_AGE so RNG shape is
-        # unchanged for populations below the cap; drop emit when > MAX.
-        _mammography_roll = prng.random() if (person.sex == "F" and _age_at_year >= MAMMOGRAPHY_MIN_AGE) else None
-        if (
-            person.sex == "F"
-            and MAMMOGRAPHY_MIN_AGE <= _age_at_year <= MAMMOGRAPHY_MAX_AGE
-            and _mammography_roll is not None
-            and _mammography_roll < MAMMOGRAPHY_PROBABILITY
-        ):
-            events.append(
-                LifeEvent(
-                    person_id=person.person_id,
-                    event_type="health_screening",
-                    timestamp=_random_date_in_year(prng, year),
-                    severity=0.0,
-                    condition_type="screening",
-                    disease_id="mammography_screening",
-                    encounter_type="outpatient",
-                    protocol_source="encounter:mammography_screening",
-                )
-            )
 
         # --- Diabetic retinopathy screening (DM patients, annual) ---
         if (
