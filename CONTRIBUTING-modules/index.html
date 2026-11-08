@@ -1800,10 +1800,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#first-adrs-to-read-curated-full-set-in-designmd" class="md-nav__link">
+  <a href="#first-adrs-to-read-curated-full-set-in-docsarchitecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        First ADRs to read (curated; full set in DESIGN.md)
+        First ADRs to read (curated; full set in docs/architecture/)
       
     </span>
   </a>
@@ -2992,10 +2992,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#first-adrs-to-read-curated-full-set-in-designmd" class="md-nav__link">
+  <a href="#first-adrs-to-read-curated-full-set-in-docsarchitecture" class="md-nav__link">
     <span class="md-ellipsis">
       
-        First ADRs to read (curated; full set in DESIGN.md)
+        First ADRs to read (curated; full set in docs/architecture/)
       
     </span>
   </a>
@@ -3688,9 +3688,12 @@ vs. 3-axis DQR" section below. For the whole reading order, see
 - Shared types: <code>clinosim/types/</code>
 - Code systems: <code>clinosim/codes/</code>
 - Locale data: <code>clinosim/locale/</code></p>
-<h2 id="first-adrs-to-read-curated-full-set-in-designmd">First ADRs to read (curated; full set in <code>DESIGN.md</code>)<a class="headerlink" href="#first-adrs-to-read-curated-full-set-in-designmd" title="Permanent link">&para;</a></h2>
-<p><code>DESIGN.md</code> contains 55+ ADRs, but a new module author should grasp
-these 9 first:</p>
+<h2 id="first-adrs-to-read-curated-full-set-in-docsarchitecture">First ADRs to read (curated; full set in <code>docs/architecture/</code>)<a class="headerlink" href="#first-adrs-to-read-curated-full-set-in-docsarchitecture" title="Permanent link">&para;</a></h2>
+<p>The ADRs (AD-1 through AD-71) live under
+<a href="../architecture/"><code>docs/architecture/</code></a> — summary tables in
+<code>design-principles.md</code> and <code>architecture-notes.md</code>, full per-ADR
+sections in <code>adr-history.md</code> (<code>DESIGN.md</code> is a landing pointer to
+them). A new module author should grasp these 9 first:</p>
 <table>
 <thead>
 <tr>
@@ -3766,8 +3769,8 @@ roadmap = <a href="../design-notes/2026-06-30-tier1-document-and-event-density-m
   sampling in <code>activator.py</code>.
 - <code>document</code> (Tier 1 #3, AD-63): template-driven clinical-document
   emission from Stage 1 (POST_ENCOUNTER order=95). Writes
-  <code>ClinicalDocument</code> / <code>ClinicalImpressionRecord</code> into
-  <code>extensions["document"]</code> + <code>extensions["clinical_impressions"]</code>;
+  <code>ClinicalDocument</code> stubs into <code>record.documents</code> and
+  <code>ClinicalImpressionRecord</code> into <code>extensions["clinical_impressions"]</code>;
   three FHIR builders emit them
   (<code>fhir_r4/documents/documents.py</code> /
   <code>fhir_r4/documents/composition.py</code> /
@@ -4049,16 +4052,18 @@ Precedents:</p>
 <li><code>clinosim/modules/hai/__init__.py:load_hai_antibiogram</code> — 3-way
   validation of <code>HAI_TYPES</code> × <code>hai_organisms.yaml</code> SNOMED ×
   <code>ANTIBIOTIC_LOINC_LOOKUP</code>.</li>
-<li><code>clinosim/modules/observation/microbiology.py:_validate_microbiology</code>
-  — cross-checks the organism antibiogram key against the
-  <code>antibiotics</code> set (migrated from silent skip to <code>ValueError</code> in
-  PR-A 2026-06-26; expanded to 7 cross-refs by Fix #100 / #101).</li>
+<li><code>clinosim/modules/observation/microbiology.py:MicrobiologyConfig</code>
+  — Pydantic model; its <code>_references_resolve</code> model validator
+  cross-checks organism antibiogram keys and disease-profile
+  references against the <code>antibiotics</code> / <code>organisms</code> / <code>specimens</code>
+  sections.</li>
 <li><code>clinosim/modules/antibiotic/audit.py:_validate_nhsn_resistance_bands</code>
   — validates the cohort / antibiotic in <code>_NHSN_RESISTANCE_BANDS</code>
   against the canonical set.</li>
-<li><code>clinosim/modules/hai/engine.py:_validate_hai_organisms</code> —
-  validates <code>hai_organisms.yaml</code> on <code>HAI_TYPES</code> × SNOMED-non-empty
-  × non-negative-weight × non-zero-sum (this PR 2026-06-27).</li>
+<li><code>clinosim/modules/hai/engine.py:HaiOrganisms</code> — Pydantic model
+  (loaded via <code>load_validated_yaml</code>) validating <code>hai_organisms.yaml</code>
+  on <code>HAI_TYPES</code> × SNOMED-non-empty × non-negative-weight ×
+  non-zero-sum.</li>
 <li><code>clinosim/locale/loaders/demographics.py:_validate_demographics</code> /
   <code>_validate_names</code> / <code>_validate_addresses</code> — validate
   <code>demographics.yaml</code>'s <code>lifestyle_distribution</code>, <code>names.yaml</code>'s
@@ -4076,24 +4081,23 @@ Precedents:</p>
   (per-hai_type only, no slash) + required keys + range [0, 1] +
   empty-list rejection (PR3b-3 adversarial-1 / 2; a cohort-string-
   typo defense).</li>
-<li><code>clinosim/modules/hai/engine.py:_validate_hai_rates</code> —
-  <code>per_day_risk ∈ [0, 1]</code> + <code>source_device_type ∈ load_devices_config()["devices"]</code>
-  (HAI sibling sweep 2026-06-29).</li>
-<li><code>clinosim/modules/hai/engine.py:_validate_hai_codes</code> —
+<li><code>clinosim/modules/hai/engine.py:HaiRates</code> — Pydantic model:
+  <code>per_day_risk ∈ [0, 1]</code> + <code>source_device_type ∈ load_devices_config()["devices"]</code>.</li>
+<li><code>clinosim/modules/hai/engine.py:HaiCodes</code> — Pydantic model:
   <code>icd10_us_billable</code> / <code>icd10_jp_who</code> / <code>snomed</code> verified for
-  membership directly against authoritative <code>cs.codes</code> via
-  <code>_code_in_data()</code> (HAI sibling sweep 2026-06-29).</li>
-<li><code>clinosim/modules/hai/engine.py:_validate_hai_specimens</code> —
-  <code>specimen_snomed</code> / <code>test_loinc</code> authoritatively verified via
-  <code>_code_in_data()</code> (HAI sibling sweep 2026-06-29).</li>
-<li><code>clinosim/modules/hai/lab_lift.py:_validate_hai_lab_lift_config</code>
-  — <code>ramp_peak_days &gt; 0</code> + lift values ∈ [0, 1] + HAI_TYPES
-  forward-coverage (HAI sibling sweep 2026-06-29; refactored from
-  an inline check).</li>
+  exact membership in the authoritative <code>codes/data/*.yaml</code> via
+  <code>_registered()</code>.</li>
+<li><code>clinosim/modules/hai/engine.py:HaiSpecimens</code> — Pydantic model:
+  <code>specimen_snomed</code> / <code>test_loinc</code> verified the same way.</li>
+<li><code>clinosim/modules/hai/lab_lift.py:load_hai_lab_lift_config</code> —
+  its validator checks <code>ramp_peak_days &gt; 0</code> + lift values ∈ [0, 1]</li>
+<li>HAI_TYPES forward-coverage.</li>
 </ul>
 <p>When a new module creates an external-ID-referencing YAML or a
-probability-weight YAML, adopt the same pattern (wire <code>_validate_X(data)</code>
-inside <code>load_X</code>; combine with <code>fallback="raise"</code> for symmetric
+probability-weight YAML, adopt the same pattern (validate inside
+<code>load_X</code> — preferably with a Pydantic model passed to
+<code>clinosim.datafiles.load_validated_yaml</code>, or a <code>_validate_X(data)</code>
+function; combine with <code>fallback="raise"</code> for symmetric
 downstream defense). Do not forget <strong>reverse-coverage</strong> (canonical
 set ⊆ data set) either — as revealed by the adv-1 stage-2 sibling
 sweep, forward-only validation cannot prevent silent-no-op when a
@@ -4131,11 +4135,11 @@ validators + reverse-coverage validators, obey these 3 principles:</p>
 <ol>
 <li><strong>All validators MUST run BEFORE <code>register_audit_module</code></strong>: this
    guarantees a stale spec never enters the registry on validator
-   failure. Precedent
-   <code>clinosim/modules/antibiotic/audit.py:656-658</code>, where
+   failure. Precedent: the module tail of
+   <code>clinosim/modules/antibiotic/audit.py</code>, where
    <code>_validate_narrow_rate_bands</code> + <code>_validate_nhsn_resistance_bands</code></li>
-<li><code>_validate_narrow_ladder_at_import</code> are all invoked before
-   <code>register</code>.</li>
+<li><code>_validate_narrow_ladder_at_import</code> are all invoked before the
+   <code>register_audit_module(...)</code> call.</li>
 <li><strong>Symmetry of forward-coverage + reverse-coverage</strong>: when a band
    set requires "every (dim1, dim2) in the canonical YAML is covered
    or explicitly exempt" (reverse), require also "every canonical
@@ -4203,11 +4207,11 @@ registration). Registration in <code>ENRICHER_SEED_OFFSETS</code> is also
 <strong>not needed</strong> (no RNG draw).</p>
 <h3 id="canonical-pure-function-engine-mod-13-is-the-reference">Canonical "pure-function engine" (MOD-13 is the reference)<a class="headerlink" href="#canonical-pure-function-engine-mod-13-is-the-reference" title="Permanent link">&para;</a></h3>
 <p><code>observation/engine.py</code> has <strong>zero cross-module imports</strong> and takes
-all context — physiology values, reference ranges, etc. — as
-function arguments. Use it as the reference for new engines.</p>
+all per-call context — physiology values, the RNG, sex / country —
+as function arguments. Use it as the reference for new engines.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Good: take context as arguments. Do not import clinosim.modules.*</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_lab_result</span><span class="p">(</span><span class="n">canon</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">true_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">rng</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span><span class="p">,</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>                        <span class="n">reference_ranges</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_lab_result</span><span class="p">(</span><span class="n">lab_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">true_value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>                        <span class="n">rng</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span><span class="p">:</span>
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="o">...</span>
 </span></code></pre></div>
 <h3 id="types-live-in-clinosimtypes-not-defined-inside-the-engine">Types live in <code>clinosim/types/</code> (not defined inside the engine)<a class="headerlink" href="#types-live-in-clinosimtypes-not-defined-inside-the-engine" title="Permanent link">&para;</a></h3>
@@ -4220,37 +4224,32 @@ AGENTS.md: "All types defined in <code>clinosim/types/</code>").</p>
   <code>clinosim/types/config.py</code>).</li>
 </ul>
 <blockquote>
-<p><strong>Known debt (MOD-2..6, TYP-2):</strong> <code>PersonRecord</code> / <code>LifeEvent</code> /
-<code>HospitalizationSummary</code> (population/engine.py), <code>StaffMember</code> /
-<code>StaffRoster</code> (staff/engine.py), <code>ProcedureRecord</code> /
-<code>RehabSession</code> (procedure/engine.py), <code>HospitalState</code>
-(facility/hospital_state.py), and <code>DiseaseProtocol</code>
-(disease/protocol.py) still live in engines. <strong>Do not repeat that
-mistake — define new types under <code>clinosim/types/&lt;name&gt;.py</code> from
-the start and export them from <code>clinosim/types/__init__.py</code> via
-<code>__all__</code>.</strong> Loader functions (<code>load_disease_protocol</code>, etc.)
-stay on the module side, and the types are imported from <code>types</code>.</p>
+<p><strong>Known debt:</strong> <code>HospitalState</code> (facility/hospital_state.py) and
+<code>DiseaseProtocol</code> (disease/protocol.py) still live in their
+modules. <strong>Do not repeat that — define new types under
+<code>clinosim/types/&lt;name&gt;.py</code> from the start and declare their
+public names in that file's <code>__all__</code>.</strong> Loader functions
+(<code>load_disease_protocol</code>, etc.) stay on the module side, and the
+types are imported from <code>types</code>.</p>
 </blockquote>
 <h3 id="yaml-is-validated-with-pydantic">YAML is validated with Pydantic<a class="headerlink" href="#yaml-is-validated-with-pydantic" title="Permanent link">&para;</a></h3>
 <p><code>disease/protocol.py</code> is the correct reference:
 <code>DiseaseProtocol(BaseModel)</code> is loaded via
-<code>load_disease_protocol()</code> with <code>model_validate()</code>.</p>
-<blockquote>
-<p><strong>Anti-pattern (ENC-1):</strong> <code>encounter/protocol.py</code> returns 46
-YAMLs as bare <code>dict[str, Any]</code> and swallows parse errors with
-<code>except Exception: pass</code>. <strong>Wrap every new YAML protocol in
-Pydantic</strong> and adopt gradually via <code>extra="allow"</code>. <code>bare
-except</code> is forbidden.</p>
-</blockquote>
+<code>load_disease_protocol()</code> with <code>model_validate()</code>.
+<code>encounter/protocol.py</code> follows the same pattern for the 51
+encounter-condition YAMLs (<code>EncounterConditionProtocol</code>, permissive
+via <code>extra="allow"</code>; a validation failure is re-raised with the
+offending filename). <strong>Wrap every new YAML protocol in Pydantic</strong>;
+<code>extra="allow"</code> is acceptable for gradual adoption. <code>bare except</code>
+is forbidden.</p>
 <h3 id="publish-the-public-api-via-__init__py">Publish the public API via <code>__init__.py</code><a class="headerlink" href="#publish-the-public-api-via-__init__py" title="Permanent link">&para;</a></h3>
 <blockquote>
-<p><strong>Known debt (MOD-1, TYP-1):</strong> 17 of 18 module <code>__init__.py</code>
-files are empty (0 bytes), and callers reach internals directly
-(<code>from clinosim.modules.population.engine import LifeEvent</code>).
-Only <code>identity/__init__.py</code> correctly exports via <code>__all__</code>.
-<strong>New modules re-export the public surface from <code>__init__.py</code></strong>
-and callers use <code>from clinosim.modules.&lt;name&gt; import X</code> rather
-than <code>.engine</code>.</p>
+<p><strong>Known debt:</strong> 14 of the 38 module <code>__init__.py</code> files are
+still empty, so callers of those modules reach into submodules
+directly. <strong>New modules re-export the public surface from
+<code>__init__.py</code> via <code>__all__</code></strong> (as the other 24 do), and callers
+use <code>from clinosim.modules.&lt;name&gt; import X</code> rather than
+<code>.engine</code>.</p>
 </blockquote>
 <h3 id="write--dependencies-in-the-readme">Write <code>## Dependencies</code> in the README<a class="headerlink" href="#write--dependencies-in-the-readme" title="Permanent link">&para;</a></h3>
 <p>Declare permitted dependencies (<code>clinosim/types/</code>, <code>clinosim/codes/</code>,
@@ -4264,8 +4263,8 @@ README) under <code>## Dependencies</code> (English heading, matching
 <li><strong>CIF is the sole simulation output</strong> (AD-17). A venue simulator
   only <strong>returns</strong> a record via <code>return CIFPatientRecord(...)</code>. It
   does not write into a shared collection directly, nor call an
-  output adapter (DET-7 reference: <code>inpatient.py:402</code> and similar
-  return-based flows).</li>
+  output adapter (DET-7 reference: <code>inpatient.py::_simulate_patient</code>
+  and its ED / outpatient siblings are return-based).</li>
 <li><strong><code>random.random()</code> / stdlib <code>random</code> are forbidden</strong> (AD-16,
   DET-8). Always use the <code>np.random.Generator</code> passed as an argument.
   Module-level mutable global state is also forbidden.</li>
@@ -4290,7 +4289,7 @@ JP-localization quality.</p>
 <tbody>
 <tr>
 <td><strong>Pure mechanical refactor</strong> (e.g. internal restructure, helper unification, registry centralisation, file split)</td>
-<td><strong>byte-diff</strong> — the 11 NDJSONs generated at the same seed / config on master and branch are sha256 IDENTICAL</td>
+<td><strong>byte-diff</strong> — every NDJSON generated at the same seed / config on master and branch is sha256 IDENTICAL</td>
 <td><strong>The output has not changed at all</strong> before / after the refactor — a no-regression gate.</td>
 </tr>
 <tr>
@@ -4328,43 +4327,54 @@ JP-localization quality.</p>
   name, etc.</li>
 </ul>
 <h4 id="byte-diff-procedure">byte-diff procedure<a class="headerlink" href="#byte-diff-procedure" title="Permanent link">&para;</a></h4>
-<ol>
-<li>On master HEAD run
-   <code>python -m clinosim.simulator.cli generate -p 2000 -s 42 --country US --format fhir-r4 -o scratchpad/&lt;topic&gt;_byte_diff/master/us</code>
-   (and the same for JP).</li>
-<li>On branch HEAD run the same command into
-   <code>scratchpad/&lt;topic&gt;_byte_diff/branch/us</code>.</li>
-<li>Run the sha256-comparison script (use
-   <code>scratchpad/refactor_pr*_byte_diff/compare.py</code> from PR1 / PR2 as
-   a template).</li>
-<li>Confirm all 11 NDJSONs are IDENTICAL (the refactor-PR gate).</li>
-<li>Save the results as <code>scratchpad/&lt;topic&gt;_byte_diff_results.md</code>
-   and commit them into the PR.</li>
-</ol>
+<p>The committed <code>scripts/engine-fingerprint.sh &lt;label&gt;</code> generates a
+fixed US + JP p=500 cohort (CIF + FHIR R4) and writes a sha256
+listing with a <code>TOTAL</code> line to
+<code>$OUT_ROOT/&lt;label&gt;/FINGERPRINT.txt</code> (default <code>OUT_ROOT=/tmp/engine-fingerprint</code>):</p>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>git<span class="w"> </span>switch<span class="w"> </span>master<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>scripts/engine-fingerprint.sh<span class="w"> </span>master
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>git<span class="w"> </span>switch<span class="w"> </span>&lt;branch&gt;<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>scripts/engine-fingerprint.sh<span class="w"> </span>branch
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>diff<span class="w"> </span>/tmp/engine-fingerprint/master/FINGERPRINT.txt<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">     </span>/tmp/engine-fingerprint/branch/FINGERPRINT.txt<span class="w">   </span><span class="c1"># empty = byte-identical</span>
+</span></code></pre></div>
+<p>For a larger or differently-configured cohort, run the same
+comparison by hand (repeat for JP with <code>--country JP</code>):</p>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">2000</span><span class="w"> </span>-s<span class="w"> </span><span class="m">42</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>fhir-r4<span class="w"> </span>-o<span class="w"> </span>/tmp/&lt;topic&gt;-master/us<span class="w">   </span><span class="c1"># on master</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">2000</span><span class="w"> </span>-s<span class="w"> </span><span class="m">42</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>fhir-r4<span class="w"> </span>-o<span class="w"> </span>/tmp/&lt;topic&gt;-branch/us<span class="w">   </span><span class="c1"># on the branch</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="k">for</span><span class="w"> </span>d<span class="w"> </span><span class="k">in</span><span class="w"> </span>master<span class="w"> </span>branch<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="o">(</span><span class="nb">cd</span><span class="w"> </span>/tmp/&lt;topic&gt;-<span class="nv">$d</span>/us<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>find<span class="w"> </span>.<span class="w"> </span>-name<span class="w"> </span><span class="s1">'*.ndjson'</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sort<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>shasum<span class="w"> </span>-a<span class="w"> </span><span class="m">256</span><span class="o">)</span><span class="w"> </span>&gt;<span class="w"> </span>/tmp/&lt;topic&gt;-<span class="nv">$d</span>.sha256
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="k">done</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>diff<span class="w"> </span>/tmp/&lt;topic&gt;-master.sha256<span class="w"> </span>/tmp/&lt;topic&gt;-branch.sha256<span class="w">   </span><span class="c1"># empty = byte-identical</span>
+</span></code></pre></div>
+<p>Every NDJSON must be IDENTICAL (the refactor-PR gate). Paste the
+<code>TOTAL</code> hash or the diff output into the PR description.</p>
 <h4 id="3-axis-dqr-procedure">3-axis DQR procedure<a class="headerlink" href="#3-axis-dqr-procedure" title="Permanent link">&para;</a></h4>
+<p>The original 3-axis DQR is now built into <code>clinosim audit run</code>
+(AD-60), which adds the silent_no_op axis:</p>
 <ol>
-<li>Generate at US p≥10000 + JP p≥5000 (a large cohort to catch
-   cohort-emergent phenomena).</li>
-<li>Run the 3-axis audit script (use
-   <code>scratchpad/phase2*_dqr/dqr_audit.py</code> from Phase 2a / 2b as a
-   template):</li>
-<li><strong>Structural</strong>: <code>refRange</code> 100 %, <code>interpretation</code> 100 %,
-     <code>display ≠ code</code> 100 %, zero id duplicates.</li>
-<li><strong>Clinical</strong>: expected per-disease lab-value ranges (DKA HCO3
-     / ACS Troponin / VTE D-dimer / AF chronic INR therapeutic,
-     etc.).</li>
-<li><strong>JP language</strong>: zero Japanese leakage into US, JP display
-     strings conforming to authoritative sources (JCCLS-JSLM /
-     MHLW etc.).</li>
-<li>Confirm every axis PASSes.</li>
-<li>Save the results as <code>docs/reviews/&lt;date&gt;-&lt;topic&gt;-data-quality-review.md</code>
-   and commit them into the PR.</li>
+<li>Generate a large cohort to catch cohort-emergent phenomena
+   (US p≥10000 + JP p≥5000), e.g.
+   <code>clinosim simulate -p 10000 -s 42 --country US --format cif fhir-r4 -o /tmp/&lt;topic&gt;-us</code>.</li>
+<li>Run <code>clinosim audit run -d /tmp/&lt;topic&gt;-us --report docs/reviews/&lt;date&gt;-&lt;topic&gt;-audit.md</code>
+   (and the same for JP). The axes cover:</li>
+<li><strong>Structural</strong>: 100 % <code>referenceRange</code> + <code>interpretation</code>
+     coverage for the module's <code>structural_obs_codes</code>,
+     <code>display ≠ code</code>, zero id duplicates.</li>
+<li><strong>Clinical</strong>: the module's <code>clinical_acceptance</code> bands (e.g.
+     DKA HCO3 / ACS Troponin / VTE D-dimer / AF chronic INR
+     therapeutic).</li>
+<li><strong>JP language</strong>: zero Japanese leakage into US output and no
+     English-only text in JP output.</li>
+<li><strong>silent_no_op</strong>: canonical-constants cross-check +
+     lift-firing proof.</li>
+<li>Confirm every axis PASSes, and commit the report with the PR.
+   Conformance of JP display strings to authoritative sources
+   (JCCLS-JSLM / MHLW etc.) is still checked by hand.</li>
 </ol>
 <h3 id="derive-from-physiological-state">Derive from physiological state<a class="headerlink" href="#derive-from-physiological-state" title="Permanent link">&para;</a></h3>
 <p>Whenever possible, derive labs / vitals from the patient's
 physiological state (<code>true_value</code>). Funnel the generation chain
 through:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>order → canonical_lab_name → generate_lab_result(true_value, rng) → determine_flag(canon, observed, sex, reference_ranges)
+<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>order → canonical_lab_name → generate_lab_result(canon, true_value, rng) → determine_flag(canon, observed, sex=, country=)
 </span></code></pre></div>
 <p>When a disease or a drug lifts a specific lab, use <code>derive_lab_values</code>'s
 scenario flags (<code>causes_X</code>) or medication flags (<code>on_warfarin</code>,
@@ -4372,16 +4382,12 @@ etc.) — see <a href="../SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a> 
 list, addition procedure, and the design that prevents the J5
 pattern.</p>
 <blockquote>
-<p><strong>Note (OBS-3):</strong> pass the locale reference range into
-<code>determine_flag()</code>. The current call sites (<code>inpatient.py:604</code>,
-<code>outpatient.py:178</code>, <code>emergency.py:146</code>, etc.) do not pass
-<code>reference_ranges=</code>, so interpretation on JP output is computed
-against the US default — an inconsistency. New calls must pass
-<code>reference_ranges=load_reference_ranges(country).get("ranges", {})</code>.</p>
-<p><strong>Note (DET-6):</strong> do not define fallback baseline lab values
-per-venue (WBC 6500 in <code>outpatient.py</code> diverging from WBC 7500 in
-<code>emergency.py</code>). Import the single constant on the
-<code>observation/engine.py</code> side.</p>
+<p><strong>Note:</strong> always pass <code>country=</code> to <code>determine_flag()</code> — it loads
+the locale reference ranges itself
+(<code>locale/&lt;country&gt;/reference_range_lab.yaml</code>), the same source the
+FHIR <code>Observation.interpretation</code> uses. Fallback baseline lab
+values come from the single <code>BASELINE_LAB_NORMALS</code> constant in
+<code>observation/engine.py</code>; do not define per-venue copies.</p>
 </blockquote>
 <h3 id="sub-seed-derivation-rules-the-exact-pattern-to-copy">Sub-seed derivation rules (the exact pattern to copy)<a class="headerlink" href="#sub-seed-derivation-rules-the-exact-pattern-to-copy" title="Permanent link">&para;</a></h3>
 <p>Each enricher / module <strong>derives its own sub-stream from the master
@@ -4389,12 +4395,12 @@ seed</strong> and never touches the main random stream. The derivation
 formula is centralised in
 <code>clinosim/seeding.py:derive_sub_seed(master, module_offset, key)</code>
 (AD-16 / AD-59).</p>
-<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.seeding</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">,</span> <span class="n">derive_sub_seed</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="c1"># a fresh Generator per patient / encounter</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="n">derive_sub_seed</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">master_seed</span><span class="p">,</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">[</span><span class="s2">"my_module"</span><span class="p">],</span> <span class="n">patient_id</span><span class="p">)</span>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.seeding</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">,</span> <span class="n">derive_sub_seed</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1"># a fresh Generator per patient / encounter</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="n">derive_sub_seed</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">master_seed</span><span class="p">,</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">[</span><span class="s2">"my_module"</span><span class="p">],</span> <span class="n">patient_id</span><span class="p">)</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="p">)</span>
 </span></code></pre></div>
 <p><code>key</code> must always mix in a <strong>per-entity unique key</strong> such as
 patient_id / household_id / encounter_id (DET-3: the identity module
@@ -4405,18 +4411,18 @@ register the sub-seed numeric offset in
 <strong><code>clinosim/seeding.py:ENRICHER_SEED_OFFSETS</code></strong>. The
 convention is <strong>16-bit hex ASCII (2 characters)</strong> — pick two
 letters mnemonic for the module name:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">ENRICHER_SEED_OFFSETS</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="s2">"identity"</span><span class="p">:</span>       <span class="mi">540_054</span><span class="p">,</span>    <span class="c1"># exception: legacy decimal (grandfathered)</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="s2">"microbiology"</span><span class="p">:</span>   <span class="mi">770_077</span><span class="p">,</span>    <span class="c1"># exception: legacy decimal (grandfathered)</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="s2">"immunization"</span><span class="p">:</span>   <span class="mh">0x494D</span><span class="p">,</span>     <span class="c1"># "IM"</span>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="s2">"code_status"</span><span class="p">:</span>    <span class="mh">0x4353</span><span class="p">,</span>     <span class="c1"># "CS"</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="s2">"family_history"</span><span class="p">:</span> <span class="mh">0x4648</span><span class="p">,</span>     <span class="c1"># "FH"</span>
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>    <span class="s2">"care_level"</span><span class="p">:</span>     <span class="mh">0x434C</span><span class="p">,</span>     <span class="c1"># "CL"</span>
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>    <span class="s2">"nursing"</span><span class="p">:</span>        <span class="mh">0x4E55</span><span class="p">,</span>     <span class="c1"># "NU"</span>
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>    <span class="s2">"device"</span><span class="p">:</span>         <span class="mh">0x4445</span><span class="p">,</span>     <span class="c1"># "DE"</span>
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>    <span class="s2">"hai"</span><span class="p">:</span>            <span class="mh">0x4841</span><span class="p">,</span>     <span class="c1"># "HA"</span>
-</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    <span class="c1"># ... (see clinosim/seeding.py for the full list)</span>
-</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">ENRICHER_SEED_OFFSETS</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="s2">"identity"</span><span class="p">:</span>       <span class="mi">540_054</span><span class="p">,</span>    <span class="c1"># exception: legacy decimal (grandfathered)</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="s2">"microbiology"</span><span class="p">:</span>   <span class="mi">770_077</span><span class="p">,</span>    <span class="c1"># exception: legacy decimal (grandfathered)</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="s2">"immunization"</span><span class="p">:</span>   <span class="mh">0x494D</span><span class="p">,</span>     <span class="c1"># "IM"</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="s2">"code_status"</span><span class="p">:</span>    <span class="mh">0x4353</span><span class="p">,</span>     <span class="c1"># "CS"</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    <span class="s2">"family_history"</span><span class="p">:</span> <span class="mh">0x4648</span><span class="p">,</span>     <span class="c1"># "FH"</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="s2">"care_level"</span><span class="p">:</span>     <span class="mh">0x434C</span><span class="p">,</span>     <span class="c1"># "CL"</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>    <span class="s2">"nursing"</span><span class="p">:</span>        <span class="mh">0x4E55</span><span class="p">,</span>     <span class="c1"># "NU"</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>    <span class="s2">"device"</span><span class="p">:</span>         <span class="mh">0x4445</span><span class="p">,</span>     <span class="c1"># "DE"</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>    <span class="s2">"hai"</span><span class="p">:</span>            <span class="mh">0x4841</span><span class="p">,</span>     <span class="c1"># "HA"</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>    <span class="c1"># ... (see clinosim/seeding.py for the full list)</span>
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="p">}</span>
 </span></code></pre></div>
 <p>Modules do not carry a local constant — they import from the
 registry. The <code>assert len(set(...values())) == len(...)</code> at the end
@@ -4489,11 +4495,11 @@ activator updates existing fields like
 If a new module does not need to write into CIF, skip this
 decision flow entirely.</p>
 </blockquote>
-<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># inside an opt-in module enricher</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">rec</span><span class="o">.</span><span class="n">extensions</span><span class="p">[</span><span class="s2">"my_module"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">asdict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">my_records</span><span class="p">]</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># inside an always-on Base enricher (exception: TYP-4)</span>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="n">rec</span><span class="o">.</span><span class="n">my_typed_field</span> <span class="o">=</span> <span class="p">[</span><span class="n">asdict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">my_records</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># inside an opt-in module enricher</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">rec</span><span class="o">.</span><span class="n">extensions</span><span class="p">[</span><span class="s2">"my_module"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">asdict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">my_records</span><span class="p">]</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># inside an always-on Base enricher (exception: TYP-4)</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="n">rec</span><span class="o">.</span><span class="n">my_typed_field</span> <span class="o">=</span> <span class="p">[</span><span class="n">asdict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">my_records</span><span class="p">]</span>
 </span></code></pre></div>
 <hr />
 <h2 id="using-the-extension-points">Using the extension points<a class="headerlink" href="#using-the-extension-points" title="Permanent link">&para;</a></h2>
@@ -4507,17 +4513,17 @@ builder returns). Built-in builders are listed in <code>_BUNDLE_BUILDERS</code>
 in <code>clinosim/modules/output/fhir_r4/builder.py</code> (list order = emission
 order); <code>register_bundle_builder()</code> appends an external builder after
 them.</p>
-<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_bundle_builder</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_my_resource</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="c1"># ctx fields: record, country, roster_map, hospital_config, patient_data,</span>
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    <span class="c1">#             patient_id, primary_dx_code, admit_dx_code, primary_enc_id, patient_sex, ...</span>
-</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span> <span class="o">!=</span> <span class="s2">"JP"</span><span class="p">:</span>          <span class="c1"># country gating happens inside the builder</span>
-</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>        <span class="k">return</span> <span class="p">[]</span>
-</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>    <span class="k">return</span> <span class="p">[{</span><span class="s2">"resourceType"</span><span class="p">:</span> <span class="s2">"..."</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"...-</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">primary_enc_id</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="o">...</span><span class="p">}]</span>
-</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
-</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_my_resource</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_bundle_builder</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_my_resource</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    <span class="c1"># ctx fields: record, country, roster_map, hospital_config, patient_data,</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>    <span class="c1">#             patient_id, primary_dx_code, admit_dx_code, primary_enc_id, patient_sex, ...</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>    <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span> <span class="o">!=</span> <span class="s2">"JP"</span><span class="p">:</span>          <span class="c1"># country gating happens inside the builder</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>        <span class="k">return</span> <span class="p">[]</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>    <span class="k">return</span> <span class="p">[{</span><span class="s2">"resourceType"</span><span class="p">:</span> <span class="s2">"..."</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"...-</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">primary_enc_id</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="o">...</span><span class="p">}]</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_my_resource</span><span class="p">)</span>
 </span></code></pre></div>
 <ul>
 <li>Naming is unified with the <code>_bb_*</code> prefix (EXT-6); the prefix is
@@ -4530,22 +4536,22 @@ them.</p>
 </ul>
 <p><strong>Canonical example — <code>_bb_service_requests</code> (PR1, 2026-06-29,
 <code>fhir_r4/labs/service_request.py</code>):</strong></p>
-<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/labs/service_request.py (simplified)</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_service_requests</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">    </span><span class="sd">"""Emit ServiceRequest resources for LAB + IMAGING orders."""</span>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="n">orders</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"orders"</span><span class="p">,</span> <span class="p">[])</span> <span class="ow">or</span> <span class="p">[]</span>
-</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="n">resources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="n">lab_orders</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">orders</span> <span class="k">if</span> <span class="n">_o</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="s2">"order_type"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">OrderType</span><span class="o">.</span><span class="n">LAB</span><span class="p">,</span> <span class="s2">"lab"</span><span class="p">)]</span>
-</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="k">if</span> <span class="n">lab_orders</span><span class="p">:</span>   <span class="c1"># panel-aware grouping: 1 SR per panel instance + 1 per stand-alone order</span>
-</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>        <span class="n">resources</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_build_lab_service_requests</span><span class="p">(</span><span class="n">lab_orders</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="o">...</span><span class="p">))</span>
-</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>    <span class="n">imaging_orders</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">orders</span> <span class="k">if</span> <span class="n">_o</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="s2">"order_type"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">OrderType</span><span class="o">.</span><span class="n">IMAGING</span><span class="p">,</span> <span class="s2">"imaging"</span><span class="p">)]</span>
-</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>    <span class="k">if</span> <span class="n">imaging_orders</span><span class="p">:</span>   <span class="c1"># 1 Order = 1 SR</span>
-</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>        <span class="n">resources</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_build_imaging_service_requests</span><span class="p">(</span><span class="n">imaging_orders</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="o">...</span><span class="p">))</span>
-</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>    <span class="k">return</span> <span class="n">resources</span>
-</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>
-</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="c1"># built-in: listed in _BUNDLE_BUILDERS in fhir_r4/builder.py</span>
+<div class="highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/labs/service_request.py (simplified)</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_service_requests</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="sd">"""Emit ServiceRequest resources for LAB + IMAGING orders."""</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="n">orders</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"orders"</span><span class="p">,</span> <span class="p">[])</span> <span class="ow">or</span> <span class="p">[]</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="n">resources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="n">lab_orders</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">orders</span> <span class="k">if</span> <span class="n">_o</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="s2">"order_type"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">OrderType</span><span class="o">.</span><span class="n">LAB</span><span class="p">,</span> <span class="s2">"lab"</span><span class="p">)]</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>    <span class="k">if</span> <span class="n">lab_orders</span><span class="p">:</span>   <span class="c1"># panel-aware grouping: 1 SR per panel instance + 1 per stand-alone order</span>
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>        <span class="n">resources</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_build_lab_service_requests</span><span class="p">(</span><span class="n">lab_orders</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="o">...</span><span class="p">))</span>
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>    <span class="n">imaging_orders</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">orders</span> <span class="k">if</span> <span class="n">_o</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="s2">"order_type"</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="n">OrderType</span><span class="o">.</span><span class="n">IMAGING</span><span class="p">,</span> <span class="s2">"imaging"</span><span class="p">)]</span>
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>    <span class="k">if</span> <span class="n">imaging_orders</span><span class="p">:</span>   <span class="c1"># 1 Order = 1 SR</span>
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>        <span class="n">resources</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_build_imaging_service_requests</span><span class="p">(</span><span class="n">imaging_orders</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="o">...</span><span class="p">))</span>
+</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>    <span class="k">return</span> <span class="n">resources</span>
+</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>
+</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a><span class="c1"># built-in: listed in _BUNDLE_BUILDERS in fhir_r4/builder.py</span>
 </span></code></pre></div>
 <p>Key patterns illustrated:
 - <code>ctx.record</code> is the <code>CIFPatientRecord</code> (a dict on the production
@@ -4567,47 +4573,47 @@ for the full implementation.</p>
 satisfies the <code>OutputAdapter</code> Protocol, following the
 <code>adapters_builtin.py</code> pattern. An adapter may depend <strong>only on CIF
 + <code>clinosim.codes</code> + <code>clinosim.locale</code></strong>.</p>
-<div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># clinosim/modules/output/adapter.py Protocol:</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="c1">#   format_id: str / description: str / subdir: str</span>
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="c1">#   def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -&gt; None</span>
-</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyFormatAdapter</span><span class="p">:</span>
-</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    <span class="n">format_id</span> <span class="o">=</span> <span class="s2">"my-format"</span>
-</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>    <span class="n">description</span> <span class="o">=</span> <span class="s2">"My export format"</span>
-</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>    <span class="n">subdir</span> <span class="o">=</span> <span class="s2">"my_format"</span>
-</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
-</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cif_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">OutputContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.my_converter</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_cif_to_myformat</span>
-</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>        <span class="n">convert_cif_to_myformat</span><span class="p">(</span><span class="n">cif_dir</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">country</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>  <span class="c1"># pass ctx.country</span>
-</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>
-</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="n">register_output_adapter</span><span class="p">(</span><span class="n">MyFormatAdapter</span><span class="p">())</span>
+<div class="highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># clinosim/modules/output/adapter.py Protocol:</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="c1">#   format_id: str / description: str / subdir: str</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="c1">#   def convert(self, cif_dir: str, out_dir: str, ctx: OutputContext) -&gt; None</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyFormatAdapter</span><span class="p">:</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>    <span class="n">format_id</span> <span class="o">=</span> <span class="s2">"my-format"</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>    <span class="n">description</span> <span class="o">=</span> <span class="s2">"My export format"</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>    <span class="n">subdir</span> <span class="o">=</span> <span class="s2">"my_format"</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cif_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">OutputContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.my_converter</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_cif_to_myformat</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>        <span class="n">convert_cif_to_myformat</span><span class="p">(</span><span class="n">cif_dir</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">country</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>  <span class="c1"># pass ctx.country</span>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="n">register_output_adapter</span><span class="p">(</span><span class="n">MyFormatAdapter</span><span class="p">())</span>
 </span></code></pre></div>
 <p>For built-in adapters, <code>_ensure_builtins()</code> imports <code>adapters_builtin</code>
 which self-registers. Add <code>register_output_adapter(...)</code> there for
 a new built-in.</p>
 <blockquote>
-<p><strong>Note (FA-9):</strong> always use <code>ctx.country</code>. The CSV adapter has a
-known debt of dropping <code>ctx.country</code>.</p>
+<p><strong>Note:</strong> always pass <code>ctx.country</code> through to the converter, as
+the built-in CSV and FHIR adapters do.</p>
 </blockquote>
 <h3 id="c-add-a-post-pass-enricher-ad-56">C. Add a post-pass (Enricher, AD-56)<a class="headerlink" href="#c-add-a-post-pass-enricher-ad-56" title="Permanent link">&para;</a></h3>
 <p>Do not inline into <code>run_beta</code>. Register the <code>Enricher</code> in
 <code>register_builtin_enrichers()</code> (<code>enrichers.py</code>).</p>
-<div class="highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># clinosim/simulator/enrichers.py</span>
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="nd">@dataclass</span>  <span class="c1"># the actual definition is the existing Enricher dataclass</span>
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1"># Enricher(name, stage, run: Callable[[EnricherContext], None], order=100, enabled=lambda c: True)</span>
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_my_pass</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">EnricherContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="c1"># ctx fields: config, master_seed, population, records, roster</span>
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="n">rng_seed</span> <span class="o">=</span> <span class="n">derive_sub_seed</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">master_seed</span><span class="p">,</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">[</span><span class="s2">"my_module"</span><span class="p">],</span> <span class="n">key</span><span class="p">)</span>  <span class="c1"># own sub-seed (do not touch the main stream)</span>
-</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">records</span><span class="p">:</span>
-</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>        <span class="n">rec</span><span class="o">.</span><span class="n">extensions</span><span class="p">[</span><span class="s2">"my_module"</span><span class="p">]</span> <span class="o">=</span> <span class="o">...</span>
-</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
-</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="n">register_enricher</span><span class="p">(</span><span class="n">Enricher</span><span class="p">(</span>
-</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"my_module"</span><span class="p">,</span>
-</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>    <span class="n">stage</span><span class="o">=</span><span class="n">POST_RECORDS</span><span class="p">,</span>                 <span class="c1"># or POST_POPULATION / POST_ENCOUNTER</span>
-</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>    <span class="n">run</span><span class="o">=</span><span class="n">run_my_pass</span><span class="p">,</span>
-</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>    <span class="n">order</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>                          <span class="c1"># ascending execution. Fixed order = determinism.</span>
-</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>    <span class="n">enabled</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">module_enabled</span><span class="p">(</span><span class="s2">"my_module"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
-</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># clinosim/simulator/enrichers.py</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="nd">@dataclass</span>  <span class="c1"># the actual definition is the existing Enricher dataclass</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="c1"># Enricher(name, stage, run: Callable[[EnricherContext], None], order=100, enabled=lambda c: True)</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_my_pass</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">EnricherContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>    <span class="c1"># ctx fields: config, master_seed, population, records, roster</span>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>    <span class="n">rng_seed</span> <span class="o">=</span> <span class="n">derive_sub_seed</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">master_seed</span><span class="p">,</span> <span class="n">ENRICHER_SEED_OFFSETS</span><span class="p">[</span><span class="s2">"my_module"</span><span class="p">],</span> <span class="n">key</span><span class="p">)</span>  <span class="c1"># own sub-seed (do not touch the main stream)</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>    <span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">records</span><span class="p">:</span>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>        <span class="n">rec</span><span class="o">.</span><span class="n">extensions</span><span class="p">[</span><span class="s2">"my_module"</span><span class="p">]</span> <span class="o">=</span> <span class="o">...</span>
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="n">register_enricher</span><span class="p">(</span><span class="n">Enricher</span><span class="p">(</span>
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"my_module"</span><span class="p">,</span>
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>    <span class="n">stage</span><span class="o">=</span><span class="n">POST_RECORDS</span><span class="p">,</span>                 <span class="c1"># or POST_POPULATION / POST_ENCOUNTER</span>
+</span><span id="__span-18-14"><a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>    <span class="n">run</span><span class="o">=</span><span class="n">run_my_pass</span><span class="p">,</span>
+</span><span id="__span-18-15"><a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>    <span class="n">order</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>                          <span class="c1"># ascending execution. Fixed order = determinism.</span>
+</span><span id="__span-18-16"><a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a>    <span class="n">enabled</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">module_enabled</span><span class="p">(</span><span class="s2">"my_module"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+</span><span id="__span-18-17"><a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="p">))</span>
 </span></code></pre></div>
 <ul>
 <li><code>stage</code> is <code>POST_POPULATION</code> (after population generation, before
@@ -4635,19 +4641,18 @@ known debt of dropping <code>ctx.country</code>.</p>
 </ul>
 <h3 id="resolve-display-via-lookup-ad-30">Resolve display via <code>lookup()</code> (AD-30)<a class="headerlink" href="#resolve-display-via-lookup-ad-30" title="Permanent link">&para;</a></h3>
 <p>CIF holds <strong>codes only</strong>. Display is resolved at output time.</p>
-<div class="highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">lookup</span> <span class="k">as</span> <span class="n">code_lookup</span>
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="n">name</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">"icd-10-cm"</span><span class="p">,</span> <span class="s2">"I50.9"</span><span class="p">,</span> <span class="s2">"en"</span><span class="p">)</span>  <span class="c1"># returns code itself / EN fallback on miss</span>
+<div class="highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">lookup</span> <span class="k">as</span> <span class="n">code_lookup</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="n">name</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">"icd-10-cm"</span><span class="p">,</span> <span class="s2">"I50.9"</span><span class="p">,</span> <span class="s2">"en"</span><span class="p">)</span>  <span class="c1"># returns code itself / EN fallback on miss</span>
 </span></code></pre></div>
 <blockquote>
-<p><strong>Anti-pattern (DUP-3, FA-4, DIAG-1):</strong> do not create a new
-display dict like <code>CONDITION_NAMES</code> (patient/activator.py). Fields
-like <code>admission_diagnosis_name</code> in <code>csv_adapter.py</code> /
-<code>narrative_generator.py</code> are ghost fields absent from CIF and
-always empty. Use <code>code_lookup(system, code, lang)</code> for new code.</p>
+<p><strong>Anti-pattern:</strong> do not create a hand-maintained display dict
+(code → name). Resolve names at output time with
+<code>code_lookup(system, code, lang)</code>, as <code>csv_adapter.py</code> does for
+<code>admission_diagnosis_name</code>.</p>
 </blockquote>
 <h3 id="resolve-uri-via-get_system_uri">Resolve URI via <code>get_system_uri()</code><a class="headerlink" href="#resolve-uri-via-get_system_uri" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_system_uri</span>
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="n">uri</span> <span class="o">=</span> <span class="n">get_system_uri</span><span class="p">(</span><span class="s2">"snomed-ct"</span><span class="p">)</span>  <span class="c1"># do not embed FHIR system URIs as string literals</span>
+<div class="highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_system_uri</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="n">uri</span> <span class="o">=</span> <span class="n">get_system_uri</span><span class="p">(</span><span class="s2">"snomed-ct"</span><span class="p">)</span>  <span class="c1"># do not embed FHIR system URIs as string literals</span>
 </span></code></pre></div>
 <blockquote>
 <p><strong>Anti-pattern (URI-1, CODES-4, FA-2):</strong> do not embed
@@ -4660,12 +4665,12 @@ HL7 URI in <code>_BUILTIN_URIS</code> in <code>codes/loader.py</code> before usi
 uses LOINC / ICD-10-CM / RxNorm / CPT" mapping must always go
 through <code>clinosim.codes.system_key_for(kind, country)</code> (single
 source of truth):</p>
-<div class="highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">system_key_for</span>
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
-</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="n">system</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">"lab"</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>        <span class="c1"># JP → "jlac10", else → "loinc"</span>
-</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="n">system</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">"diagnosis"</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>  <span class="c1"># JP → "icd-10", else → "icd-10-cm"</span>
-</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="n">system</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">"drug"</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>       <span class="c1"># JP → "yj",     else → "rxnorm"</span>
-</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="n">system</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">"procedure"</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>  <span class="c1"># JP → "k-codes", else → "cpt"</span>
+<div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">system_key_for</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="n">system</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">"lab"</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>        <span class="c1"># JP → "jlac10", else → "loinc"</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="n">system</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">"diagnosis"</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>  <span class="c1"># JP → "icd-10", else → "icd-10-cm"</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="n">system</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">"drug"</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>       <span class="c1"># JP → "yj",     else → "rxnorm"</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="n">system</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">"procedure"</span><span class="p">,</span> <span class="n">country</span><span class="p">)</span>  <span class="c1"># JP → "k-codes", else → "cpt"</span>
 </span></code></pre></div>
 <ul>
 <li><code>kind</code> is one of <code>"lab"</code> / <code>"diagnosis"</code> / <code>"drug"</code> /
@@ -4723,12 +4728,12 @@ similarly, and have consumers import it.</p>
   <code>icd_codes</code> (primary + variants), encounter <code>icd10_code</code>,
   <code>builtin_differentials.yaml</code> <code>differentials[*].icd</code> +
   <code>diagnosis_progression</code>. US billable in <code>icd-10-cm.yaml</code>;
-  non-billable in <code>code_mapping_diagnosis/us.yaml</code> folded to a
-  billable leaf. JP puts WHO 3-4 digit codes into <code>icd-10.yaml</code>
+  non-billable in <code>locale/us/code_mapping_diagnosis.yaml</code> folded to
+  a billable leaf. JP puts WHO 3-4 digit codes into <code>icd-10.yaml</code>
   (CM-grained codes fold into WHO parents via
-  <code>code_mapping_diagnosis/jp.yaml</code>). After addition, always run:</li>
+  <code>locale/jp/code_mapping_diagnosis.yaml</code>). After addition, always run:</li>
 </ul>
-<div class="highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>pytest<span class="w"> </span>tests/unit/test_diagnosis_code_coverage.py
+<div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>pytest<span class="w"> </span>tests/unit/test_diagnosis_code_coverage.py
 </span></code></pre></div>
 <blockquote>
 <p>There is no equivalent coverage test yet for RxNorm / YJ / CPT /
@@ -4742,8 +4747,8 @@ manually verify that the mapping → codes existence chain resolves.</p>
 <li><strong>Read the target module's <code>README.md</code></strong> (grasp Dependencies
    and existing API).</li>
 <li><strong>Define shared types in <code>clinosim/types/&lt;name&gt;.py</code></strong> and
-   export them from <code>types/__init__.py</code> via <code>__all__</code> (do not
-   define types inside the engine). <code>@dataclass</code> = runtime,
+   list them in that file's <code>__all__</code> (do not define types inside
+   the engine). <code>@dataclass</code> = runtime,
    Pydantic = config (AD-18).</li>
 <li><strong>If data-driven, <code>reference_data/*.yaml</code> + Pydantic
    validation</strong> (<code>model_validate</code>). <code>bare except</code> is forbidden.</li>
@@ -4834,8 +4839,8 @@ pass structural / narrative CIF separation is
 <ol>
 <li>
 <p><strong>Diagnose</strong> via <code>test-disease</code> (structural CIF only):
-   <div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>clinosim<span class="w"> </span>test-disease<span class="w"> </span>acute_mi<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>-o<span class="w"> </span>/tmp/test
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="c1"># Verify structural CIF has correct encounter/patient data</span>
+   <div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>clinosim<span class="w"> </span>test-disease<span class="w"> </span>acute_mi<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>-o<span class="w"> </span>/tmp/test
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="c1"># Verify structural CIF has correct encounter/patient data</span>
 </span></code></pre></div></p>
 </li>
 <li>
@@ -4848,17 +4853,17 @@ pass structural / narrative CIF separation is
 </li>
 <li>
 <p><strong>Verify fix</strong> via fast Stage 2 regen (skip expensive full cohort):
-   <div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Reuse structural CIF from step 1</span>
-</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test/cif<span class="w"> </span>--version-id<span class="w"> </span>template
-</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test/cif
-</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># Check output Composition resource's text field has zero Japanese</span>
+   <div class="highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># Reuse structural CIF from step 1</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test/cif<span class="w"> </span>--version-id<span class="w"> </span>template
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/test/cif
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="c1"># Check output Composition resource's text field has zero Japanese</span>
 </span></code></pre></div></p>
 </li>
 <li>
 <p><strong>Full validation</strong> (once confident):
-   <div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>fhir-r4<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
-</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>/tmp/us500
-</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># Gate: "us_admission_hp_zero_ja_chars" = 0</span>
+   <div class="highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>fhir-r4<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>/tmp/us500
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="c1"># Gate: "us_admission_hp_zero_ja_chars" = 0</span>
 </span></code></pre></div></p>
 </li>
 </ol>
@@ -4870,8 +4875,8 @@ pass structural / narrative CIF separation is
 <ol>
 <li>
 <p><strong>Diagnose</strong> via unit test:
-   <div class="highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>pytest<span class="w"> </span>tests/unit/test_document_author_selection.py<span class="w"> </span>-xvs
-</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="c1"># Verify _pick_document_author(spec, encounter) returns correct id</span>
+   <div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>pytest<span class="w"> </span>tests/unit/test_document_author_selection.py<span class="w"> </span>-xvs
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="c1"># Verify _pick_document_author(spec, encounter) returns correct id</span>
 </span></code></pre></div></p>
 </li>
 <li>
@@ -4884,16 +4889,16 @@ pass structural / narrative CIF separation is
 </li>
 <li>
 <p><strong>Verify fix</strong> via <code>test-disease --format all</code> (includes structural + narrative + FHIR):
-   <div class="highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>clinosim<span class="w"> </span>test-disease<span class="w"> </span>acute_mi<span class="w"> </span>-n<span class="w"> </span><span class="m">3</span><span class="w"> </span>--format<span class="w"> </span>all<span class="w"> </span>-o<span class="w"> </span>/tmp/verify
-</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="c1"># Check FHIR Composition.author field</span>
-</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="c1"># Check CIF Composition.subject.type has nursing LOINC + author is nurse_id</span>
+   <div class="highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>clinosim<span class="w"> </span>test-disease<span class="w"> </span>acute_mi<span class="w"> </span>-n<span class="w"> </span><span class="m">3</span><span class="w"> </span>--format<span class="w"> </span>all<span class="w"> </span>-o<span class="w"> </span>/tmp/verify
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="c1"># Check FHIR Composition.author field</span>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="c1"># Check CIF Composition.subject.type has nursing LOINC + author is nurse_id</span>
 </span></code></pre></div></p>
 </li>
 <li>
 <p><strong>Integration test</strong> on production cohort:
-   <div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>fhir-r4<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
-</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>/tmp/us500
-</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="c1"># Gate: "nursing_doc_author_is_nurse_ratio" = 1.0</span>
+   <div class="highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>clinosim<span class="w"> </span>simulate<span class="w"> </span>-p<span class="w"> </span><span class="m">500</span><span class="w"> </span>--country<span class="w"> </span>US<span class="w"> </span>--format<span class="w"> </span>cif<span class="w"> </span>fhir-r4<span class="w"> </span>-o<span class="w"> </span>/tmp/us500
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>clinosim<span class="w"> </span>audit<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>/tmp/us500
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="c1"># Gate: "nursing_doc_author_is_nurse_ratio" = 1.0</span>
 </span></code></pre></div></p>
 </li>
 </ol>
@@ -4905,8 +4910,8 @@ pass structural / narrative CIF separation is
 <ol>
 <li>
 <p><strong>Diagnose</strong> via unit test on builder:
-   <div class="highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>pytest<span class="w"> </span>tests/unit/output/test_fhir_composition.py<span class="w"> </span>-xvs<span class="w"> </span>-k<span class="w"> </span><span class="s2">"section"</span>
-</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="c1"># Unit test on builder logic</span>
+   <div class="highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>pytest<span class="w"> </span>tests/unit/output/test_fhir_composition.py<span class="w"> </span>-xvs<span class="w"> </span>-k<span class="w"> </span><span class="s2">"section"</span>
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="c1"># Unit test on builder logic</span>
 </span></code></pre></div></p>
 </li>
 <li>
@@ -4918,15 +4923,15 @@ pass structural / narrative CIF separation is
 </li>
 <li>
 <p><strong>Quick structural check</strong> (FHIR builder doesn't change structural CIF):
-   <div class="highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># Reuse existing /tmp/us500 CIF from case 2</span>
-</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500/cif
-</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="c1"># Inspect Composition.ndjson for correct section[] content</span>
+   <div class="highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="c1"># Reuse existing /tmp/us500 CIF from case 2</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>clinosim<span class="w"> </span>export-fhir<span class="w"> </span>--cif-dir<span class="w"> </span>/tmp/us500/cif
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="c1"># Inspect Composition.ndjson for correct section[] content</span>
 </span></code></pre></div></p>
 </li>
 <li>
 <p><strong>Validation</strong>:
-   <div class="highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>pytest<span class="w"> </span>tests/unit/output/test_fhir_composition.py<span class="w"> </span>-xvs
-</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>/tmp/us500<span class="w"> </span>--only-axes<span class="w"> </span>structural<span class="w">   </span><span class="c1"># includes the reference-integrity check</span>
+   <div class="highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>pytest<span class="w"> </span>tests/unit/output/test_fhir_composition.py<span class="w"> </span>-xvs
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>/tmp/us500<span class="w"> </span>--only-axes<span class="w"> </span>structural<span class="w">   </span><span class="c1"># includes the reference-integrity check</span>
 </span></code></pre></div></p>
 </li>
 </ol>
@@ -4966,18 +4971,17 @@ pass structural / narrative CIF separation is
   case).
 - ❌ Do not edit the core dispatch (<code>_build_bundle</code>, <code>run_beta</code>,
   CLI <code>--format</code>) — extend via the registry.
-- ❌ Do not define shared types inside an engine (MOD-2..6). Do not
-  leave <code>__init__.py</code> empty — export the public API
-  (MOD-1 / TYP-1).
+- ❌ Do not define shared types inside an engine. Do not leave a new
+  module's <code>__init__.py</code> empty — export the public API.
 - ❌ Do not import private functions (<code>_sample_given_name</code> etc.)
   from another module (MOD-7 / TYP-5) — promote them to the
   locale's public utility.
 - ❌ Do not fabricate codes; do not swallow YAML errors with
-  <code>except Exception: pass</code> (CODES-7, ENC-1).
-- ❌ Do not drop <code>ctx.country</code> (FA-9). Do not forget to pass the
-  locale reference range into <code>determine_flag()</code> (OBS-3).
+  <code>except Exception: pass</code> (CODES-7).
+- ❌ Do not drop <code>ctx.country</code> in an output adapter, or <code>country=</code>
+  when calling <code>determine_flag()</code>.
 - ❌ Do not define per-venue baseline values or lookup tables that
-  drift (DET-6, DUP-1).</p>
+  drift (DUP-1).</p>
 <h2 id="adding-a-new-patient-profile-fixture-ad-66">Adding a new patient profile fixture (AD-66)<a class="headerlink" href="#adding-a-new-patient-profile-fixture-ad-66" title="Permanent link">&para;</a></h2>
 <p>See <code>tests/fixtures/patient_profiles/README.md</code> for the full workflow.
 Quick summary:</p>
@@ -4997,21 +5001,21 @@ Quick summary:</p>
 <code>axes/</code> sub-package, one module per axis. The runners are wired into
 an explicit table in each engine — there is no auto-discovery, so a
 new axis file must also be registered there:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>clinosim/audit/axes/         # audit axes (registered in clinosim/audit/engine.py)
-</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>├── __init__.py
-</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>├── clinical.py              # one axis per file
-</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>├── jp_language.py
-</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>├── silent_no_op.py
-</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>└── structural.py
-</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a>
-</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>clinosim/eval/axes/          # eval axes (registered in clinosim/eval/engine.py::EvalEngine)
-</span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>├── __init__.py
-</span><span id="__span-30-10"><a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a>├── clinical.py
-</span><span id="__span-30-11"><a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a>├── jp_clins_lab_compliance.py
-</span><span id="__span-30-12"><a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a>├── jp_core_compliance.py
-</span><span id="__span-30-13"><a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a>├── locale.py
-</span><span id="__span-30-14"><a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a>├── structural.py
-</span><span id="__span-30-15"><a id="__codelineno-30-15" name="__codelineno-30-15" href="#__codelineno-30-15"></a>└── us_core_compliance.py
+<div class="highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>clinosim/audit/axes/         # audit axes (registered in clinosim/audit/engine.py)
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>├── __init__.py
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>├── clinical.py              # one axis per file
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>├── jp_language.py
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>├── silent_no_op.py
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>└── structural.py
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>
+</span><span id="__span-32-8"><a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a>clinosim/eval/axes/          # eval axes (registered in clinosim/eval/engine.py::EvalEngine)
+</span><span id="__span-32-9"><a id="__codelineno-32-9" name="__codelineno-32-9" href="#__codelineno-32-9"></a>├── __init__.py
+</span><span id="__span-32-10"><a id="__codelineno-32-10" name="__codelineno-32-10" href="#__codelineno-32-10"></a>├── clinical.py
+</span><span id="__span-32-11"><a id="__codelineno-32-11" name="__codelineno-32-11" href="#__codelineno-32-11"></a>├── jp_clins_lab_compliance.py
+</span><span id="__span-32-12"><a id="__codelineno-32-12" name="__codelineno-32-12" href="#__codelineno-32-12"></a>├── jp_core_compliance.py
+</span><span id="__span-32-13"><a id="__codelineno-32-13" name="__codelineno-32-13" href="#__codelineno-32-13"></a>├── locale.py
+</span><span id="__span-32-14"><a id="__codelineno-32-14" name="__codelineno-32-14" href="#__codelineno-32-14"></a>├── structural.py
+</span><span id="__span-32-15"><a id="__codelineno-32-15" name="__codelineno-32-15" href="#__codelineno-32-15"></a>└── us_core_compliance.py
 </span></code></pre></div>
 <h3 id="convention">Convention<a class="headerlink" href="#convention" title="Permanent link">&para;</a></h3>
 <ul>
@@ -5030,18 +5034,18 @@ new axis file must also be registered there:</p>
   summary; keep these current when adding a new axis.</li>
 </ul>
 <h3 id="adding-a-new-axis">Adding a new axis<a class="headerlink" href="#adding-a-new-axis" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># 1. Add the axis file</span>
-</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>touch<span class="w"> </span>clinosim/eval/axes/my_new_axis.py
-</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
-</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="c1"># 2. Implement `run(cohort, country) -&gt; list[EvalCheck]`</span>
-</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>
-</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="c1"># 3. Register it in the axes dict in clinosim/eval/engine.py::EvalEngine</span>
-</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>
-</span><span id="__span-31-8"><a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a><span class="c1"># 4. Add a one-line entry to clinosim/eval/axes/README.md +</span>
-</span><span id="__span-31-9"><a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a><span class="c1">#    README.ja.md</span>
-</span><span id="__span-31-10"><a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a>
-</span><span id="__span-31-11"><a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a><span class="c1"># 5. Run the pipeline</span>
-</span><span id="__span-31-12"><a id="__codelineno-31-12" name="__codelineno-31-12" href="#__codelineno-31-12"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>--cohort-dir<span class="w"> </span>./out
+<div class="highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># 1. Add the axis file</span>
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>touch<span class="w"> </span>clinosim/eval/axes/my_new_axis.py
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>
+</span><span id="__span-33-4"><a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="c1"># 2. Implement `run(cohort, country) -&gt; list[EvalCheck]`</span>
+</span><span id="__span-33-5"><a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>
+</span><span id="__span-33-6"><a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a><span class="c1"># 3. Register it in the axes dict in clinosim/eval/engine.py::EvalEngine</span>
+</span><span id="__span-33-7"><a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a>
+</span><span id="__span-33-8"><a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a><span class="c1"># 4. Add a one-line entry to clinosim/eval/axes/README.md +</span>
+</span><span id="__span-33-9"><a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a><span class="c1">#    README.ja.md</span>
+</span><span id="__span-33-10"><a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a>
+</span><span id="__span-33-11"><a id="__codelineno-33-11" name="__codelineno-33-11" href="#__codelineno-33-11"></a><span class="c1"># 5. Run the pipeline</span>
+</span><span id="__span-33-12"><a id="__codelineno-33-12" name="__codelineno-33-12" href="#__codelineno-33-12"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>--cohort-dir<span class="w"> </span>./out
 </span></code></pre></div>
 <p>The audit path is the same with <code>audit/axes/</code>, <code>AxisResult</code>, and the
 runner tables in <code>clinosim/audit/engine.py</code>.</p>

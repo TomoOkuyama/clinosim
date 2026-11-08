@@ -2439,29 +2439,30 @@ load-bearing verification gate that protects this goal.</p>
 </span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>│  antibiotic(85)   HAI empirical + narrow de-escalation   │
 </span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>│  imaging(90)      ImagingStudy metadata chain (AD-62)    │
 </span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>│  discontinue_flip(91)  DISCONTINUE marker → STOPPED      │
-</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>│  newborn(92)      birth-admission workup (Vit K, screens)│
-</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>│  triage(93)       JTAS/ESI level + arrival_mode (ED-only)│
-</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>│  lab_derived_dx(94)  KDIGO-3 Cr → N17.9 working dx       │
-</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>│  nursing_assignment(94)   primary nurse                  │
-</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>│  document(95)     ClinicalDocument stubs + ClinicalImpression│
-</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>│                                                          │
-</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>│  POST_RECORDS stage (cross-record, post-all):            │
-</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>│  nursing(20)      NEWS2 / GCS / Braden / Morse           │
-</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>│                   (this is observation-layer nursing_flowsheets,│
-</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>│                   NOT nursing_assignment)                │
-</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>│  immunization(30) CVX vaccine history                    │
-</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>│  family_history(40) first-degree relative history        │
-</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>│  code_status(50)  DNR / Full Code resuscitation status   │
-</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>│  care_level(60)   JP 要介護度 (JP only)                  │
-</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>│  medication_monitoring(65) chronic-med → labs (Issue #757)│
-</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│  health_checkup(70) JP 事業者健診 (JP only, opt-in)      │
-</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>└──────────────────────────────────────────────────────────┘
-</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>            ↓                ↓               ↓
-</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>┌─ Output ─────────────────────────────────────────────────┐
-</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>│  output       CIF → FHIR R4 NDJSON / CSV adapters        │
-</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>│  llm_service  optional narrative generation (Stage 2)    │
-</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│  validator    realism benchmarks + consistency checks    │
-</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>└──────────────────────────────────────────────────────────┘
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>│  supersede_orders(91)  superseded order → STOPPED        │
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>│  newborn(92)      birth-admission workup (Vit K, screens)│
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>│  triage(93)       JTAS/ESI level + arrival_mode (ED-only)│
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>│  lab_derived_dx(94)  KDIGO-3 Cr → N17.9 working dx       │
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>│  nursing_assignment(94)   primary nurse                  │
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>│  document(95)     ClinicalDocument stubs + ClinicalImpression│
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>│                                                          │
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>│  POST_RECORDS stage (cross-record, post-all):            │
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>│  nursing(20)      NEWS2 / GCS / Braden / Morse           │
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a>│                   (this is observation-layer nursing_flowsheets,│
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>│                   NOT nursing_assignment)                │
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>│  immunization(30) CVX vaccine history                    │
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>│  family_history(40) first-degree relative history        │
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>│  code_status(50)  DNR / Full Code resuscitation status   │
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>│  care_level(60)   JP 要介護度 (JP only)                  │
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>│  medication_monitoring(65) chronic-med → labs (Issue #757)│
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>│  health_checkup(70) JP 事業者健診 (JP only, opt-in)      │
+</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>└──────────────────────────────────────────────────────────┘
+</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>            ↓                ↓               ↓
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>┌─ Output ─────────────────────────────────────────────────┐
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>│  output       CIF → FHIR R4 NDJSON / CSV adapters        │
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>│  llm_service  optional narrative generation (Stage 2)    │
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>│  validator    realism benchmarks + consistency checks    │
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>└──────────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <h2 id="module-inventory">Module inventory<a class="headerlink" href="#module-inventory" title="Permanent link">&para;</a></h2>
 <p>38 modules total (top-level packages under <code>clinosim/modules/</code>; the
@@ -2512,7 +2513,7 @@ the canonical 11-section structure).</p>
 <td>lab / medication / imaging order placement + AD-60 audit</td>
 <td>simulation</td>
 <td>— (per-order via AD-59)</td>
-<td>POST_ENCOUNTER 91 (<code>discontinue_flip</code>) + audit registered</td>
+<td>POST_ENCOUNTER 91 (<code>discontinue_flip</code> + <code>supersede_orders</code>) + audit registered</td>
 </tr>
 <tr>
 <td><a href="../../clinosim/modules/clinical_course/README.md">clinical_course</a></td>

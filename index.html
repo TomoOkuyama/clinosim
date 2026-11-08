@@ -2501,7 +2501,7 @@ distributions. <strong>clinosim runs the disease.</strong> Every patient carries
 hidden 19-variable physiological state
 (<code>clinosim/types/clinical.py::PhysiologicalState</code>), and every lab /
 vital / medication is derived from that state.</p>
-<p>Three concrete differentiators:</p>
+<p>Four concrete differentiators:</p>
 <ul>
 <li><strong>Clinical coherence by construction.</strong> Not a post-hoc filter — the
   physiology model makes incoherent labs impossible.</li>
@@ -2518,8 +2518,8 @@ vital / medication is derived from that state.</p>
 </ul>
 <hr />
 <h2 id="get-started-in-30-seconds">Get started in 30 seconds<a class="headerlink" href="#get-started-in-30-seconds" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>clinosim<span class="w">                                     </span><span class="c1"># (PyPI upload pending)</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># or: pip install "git+https://github.com/TomoOkuyama/clinosim.git@master"</span>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>clinosim<span class="w">                                     </span><span class="c1"># latest release from PyPI</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># or, for unreleased master: pip install "git+https://github.com/TomoOkuyama/clinosim.git@master"</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>jp-100<span class="w"> </span>--output<span class="w"> </span>./jp-100<span class="w">          </span><span class="c1"># ~30 s</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>./jp-100<span class="w">                                </span><span class="c1"># score it</span>

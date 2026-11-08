@@ -2429,6 +2429,8 @@ README は GitHub フォルダビュー用の伴走ファイル — 各サブデ
   ワークフロー、DCO サインオフ、CI マトリクス。</li>
 <li><strong><a href="../CONTRIBUTING-modules.ja/">CONTRIBUTING-modules.md</a></strong> — 新規
   モジュールが従うべきモジュール境界ルール (AD-55/AD-56)。</li>
+<li><strong><a href="architecture/">architecture/</a></strong> — 設計原則、モジュール別
+  アーキテクチャノート、ADR 履歴 (<code>DESIGN.md</code> から分割)。</li>
 <li><strong><a href="design-guides/">design-guides/</a></strong> — 長文の設計ガイド。
   <code>AGENTS.md</code> が深掘りとしてリンクする project-concept と
   implementation-rules を含む。</li>
@@ -2461,14 +2463,16 @@ README は GitHub フォルダビュー用の伴走ファイル — 各サブデ
 <h2 id="このフォルダに-ない-もの">このフォルダに <strong>ない</strong> もの<a class="headerlink" href="#このフォルダに-ない-もの" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Root README</strong> — <code>../README.md</code> / <code>../CHANGELOG.md</code> / <code>../DESIGN.md</code>
-  (大規模、mixed audience — 分割中、Issue #568 参照)</li>
+  (設計原則・アーキテクチャノート・ADR 履歴を置く
+  <a href="architecture/">architecture/</a> への短い landing pointer)</li>
 <li><strong>モジュール別ドキュメント</strong> — <code>../clinosim/modules/</code> 配下の各
   モジュールは独自の <code>README.md</code> を持ち、入出力とモジュール固有の
   不変条件を記述。</li>
 <li><strong>テスト規約</strong> — <code>../tests/README.md</code> (Issue #566 で追加)。</li>
 </ul>
 <h2 id="このドキュメントへの貢献">このドキュメントへの貢献<a class="headerlink" href="#このドキュメントへの貢献" title="Permanent link">&para;</a></h2>
-<p><code>AGENTS.md § Documentation naming rule</code> のファイル接尾辞規則に従う:
+<p><a href="../design-guides/documentation-and-code-quality-policy.ja/"><code>design-guides/documentation-and-code-quality-policy.md</code></a>
+§1 のファイル接尾辞規則に従う:
 英語がデフォルト (接尾辞なし)、日本語 variant は <code>*.ja.md</code>。新規
 ユーザー向けドキュメントは <code>reference/</code> 配下、新規設計ノートは
 <code>design-notes/</code> 配下、新規アーキテクチャガイドは <code>design-guides/</code>

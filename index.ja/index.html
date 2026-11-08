@@ -2394,7 +2394,7 @@ PII を取り込み・参照・再現しません。出力は <strong>臨床用�
 します。<strong>clinosim は疾患を走らせます。</strong> 各患者は隠れた 19 変数の
 生理学状態 (<code>clinosim/types/clinical.py::PhysiologicalState</code>) を保持
 し、あらゆる検査 / vital / 薬剤はその状態から導出されます。</p>
-<p>3 つの具体的な差別化ポイント:</p>
+<p>4 つの具体的な差別化ポイント:</p>
 <ul>
 <li><strong>構造による臨床整合性。</strong> post-hoc フィルタではなく、生理学モデル
   が矛盾した検査値を不可能にします。</li>
@@ -2410,8 +2410,8 @@ PII を取り込み・参照・再現しません。出力は <strong>臨床用�
 </ul>
 <hr />
 <h2 id="30-秒で開始">30 秒で開始<a class="headerlink" href="#30-秒で開始" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>clinosim<span class="w">                                     </span><span class="c1"># (PyPI 公開準備中)</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># または: pip install "git+https://github.com/TomoOkuyama/clinosim.git@master"</span>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>clinosim<span class="w">                                     </span><span class="c1"># PyPI の最新リリース</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1"># 未リリースの master を使う場合: pip install "git+https://github.com/TomoOkuyama/clinosim.git@master"</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>clinosim<span class="w"> </span>dataset<span class="w"> </span>build<span class="w"> </span>jp-100<span class="w"> </span>--output<span class="w"> </span>./jp-100<span class="w">          </span><span class="c1"># 約 30 秒</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>clinosim<span class="w"> </span><span class="nb">eval</span><span class="w"> </span>-d<span class="w"> </span>./jp-100<span class="w">                                </span><span class="c1"># 評価</span>
