@@ -129,7 +129,7 @@ event of that person.
 
 ### Why these boundaries (vs the original proposal)
 
-The pre-C2 plan at [`../design-guides/p6-god-function-split-plan.md`](../design-guides/p6-god-function-split-plan.md)
+The pre-C2 plan at [`../history/plans-archive/p6-god-function-split-plan.md`](../history/plans-archive/p6-god-function-split-plan.md)
 proposed phase names `_run_beta_prepare` / `_run_beta_month_tick` /
 `_run_beta_dispatch_window` / `_run_beta_writeback`. The actual split
 chose `_setup` + `_dispatch` + the four per-phase runners instead, which
@@ -211,5 +211,5 @@ read never cascade into unrelated patients' calendars.
 ## 7. Where to look next
 
 - [`module-architecture.md`](module-architecture.md) — top-level package tree, now reflects the post-C2 simulator layout.
-- [`../design-guides/p6-god-function-split-plan.md`](../design-guides/p6-god-function-split-plan.md) — the original pre-execution plan with the shipped-execution callouts added inline.
+- [`../history/plans-archive/p6-god-function-split-plan.md`](../history/plans-archive/p6-god-function-split-plan.md) — the original pre-execution plan with the shipped-execution callouts added inline.
 - Each extracted module's own file-level docstring — carries the "RNG-neutrality contract", "cross-year state" invariants, and other per-cluster design notes verbatim lifted from the engine original.
