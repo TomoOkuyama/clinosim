@@ -838,3 +838,7 @@ _.DIAGNOSTIC_REASONING  # LLMTaskType inventory member, mapped by value in llm_s
 _.TREATMENT_DECISION  # LLMTaskType inventory member, mapped by value in llm_service/reference_data/task_categories.yaml (Issue #2556)
 _.CHIEF_COMPLAINT  # LLMTaskType inventory member, mapped by value in llm_service/reference_data/task_categories.yaml (Issue #2556)
 _.DEATH_SUMMARY  # LLMTaskType inventory member, mapped by value in llm_service/reference_data/task_categories.yaml (Issue #2556)
+_.pediatric_growth_variation  # reference-YAML model field (Issue #2876)
+_.pediatric_height_cm_sd  # reference-YAML model field (Issue #2876)
+_.pediatric_weight_cv  # reference-YAML model field (Issue #2876)
+_.shared_size_correlation  # reference-YAML model field (Issue #2876)
