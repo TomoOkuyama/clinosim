@@ -2465,9 +2465,9 @@
 </thead>
 <tbody>
 <tr>
-<td>A drug-safety event (avoided, held, substituted, switched, de-escalated) is worded by one function for both paths: the template's plan line (<code>safety_skips.*</code> phrases) and the LLM prompt bullet (<code>safety_skips_prompt.*</code> phrases).</td>
+<td>A drug-safety event (avoided, held, substituted, switched, de-escalated) is worded by one function for both paths: the template's plan line (<code>safety_skips.*</code> phrases) and the LLM prompt bullet (<code>safety_skips_prompt.*</code> phrases). An avoided drug is worded by the kind of rule that dropped it (<code>drug_safety.rule_kind</code> of the verdict's rule id): a recorded allergy reads as an allergy (<code>avoid_allergy_*</code>, "not given: Penicillin allergy" / 「ペニシリンアレルギーのため…は投与せず」), never as a co-administration conflict; drug-drug and drug-disease skips keep the <code>avoid_*</code> phrases.</td>
 <td><code>clinosim/modules/document/narrative/_safety_skips.py::safety_skip_line</code></td>
-<td><code>tests/unit/modules/document/narrative/test_safety_skip_line_2519.py</code>, <code>test_safety_skip_event_types.py</code></td>
+<td><code>tests/unit/modules/document/narrative/test_safety_skip_line_2519.py</code>, <code>test_safety_skip_event_types.py</code>, <code>test_allergy_skip_wording_2930.py</code></td>
 </tr>
 <tr>
 <td>Every vital-signs one-liner (physical exam, progress note objective, nursing shift note, LLM arrival and day facts) is rendered by one formatter. Each surface names its style (field order, separators, units, integer or raw values, room-air marker). A new surface adds a style, not a formatter.</td>
