@@ -26,6 +26,7 @@ __all__ = [
     "BASELINE_DBP_AGE_SCALE",
     "BASELINE_DBP_BASE",
     "BASELINE_DBP_SAMPLE_SD",
+    "PEDIATRIC_BASELINE_MID_YEAR_MONTHS",
     "BASELINE_HR_BASE_FEMALE",
     "BASELINE_HR_BASE_MALE",
     "BASELINE_HR_SAMPLE_SD",
@@ -383,6 +384,11 @@ sample uses a gentler slope than SBP)."""
 
 BASELINE_DBP_SAMPLE_SD: int = 7
 """Standard deviation (mmHg) of the baseline DBP draw."""
+
+PEDIATRIC_BASELINE_MID_YEAR_MONTHS: int = 6
+"""Months added to ``age * 12`` to place a child within their year of age
+when looking up the pediatric baseline-vital median (Issue #2872): a child
+of completed age N is on average N years and 6 months old."""
 
 BASELINE_RR_MEAN: int = 16
 """Baseline respiratory rate (breaths/min) — matches the healthy

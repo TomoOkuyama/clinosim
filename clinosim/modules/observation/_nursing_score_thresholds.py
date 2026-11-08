@@ -38,6 +38,7 @@ __all__ = [
     "MORSE_JITTER_LOW",
     "MORSE_SCORE_MAX",
     "MORSE_SCORE_MIN",
+    "NEWS2_MIN_AGE_YEARS",
     "NEWS2_SCORE_MAX",
     "NEWS2_SCORE_MIN",
 ]
@@ -46,6 +47,12 @@ __all__ = [
 # ---------------------------------------------------------------------------
 # NEWS2 aggregate bounds
 # ---------------------------------------------------------------------------
+
+NEWS2_MIN_AGE_YEARS: int = 16
+"""Youngest age at which NEWS2 is scored. NEWS2 is validated for adults
+aged 16 and over and is not for children (Royal College of Physicians,
+National Early Warning Score 2, 2017); younger patients get no NEWS2
+(Issue #2872)."""
 
 NEWS2_SCORE_MIN: int = 0
 """Lower clamp for the aggregated NEWS2 score. NEWS2 by definition

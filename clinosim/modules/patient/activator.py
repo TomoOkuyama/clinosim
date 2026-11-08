@@ -103,6 +103,7 @@ from clinosim.modules.patient._patient_activator_thresholds import (
     MARITAL_STATUS_YOUNG_ADULT_AGE_MAX_EXCLUSIVE,
     MARITAL_STATUS_YOUNG_ADULT_CODES,
     MARITAL_STATUS_YOUNG_ADULT_WEIGHTS,
+    PEDIATRIC_BASELINE_MID_YEAR_MONTHS,
     RESERVE_FLOOR,
     SYMPTOM_REPORTING_BIAS_MEAN,
     SYMPTOM_REPORTING_BIAS_SD,
@@ -513,6 +514,14 @@ def _derive_chronic_conditions(
     return conditions
 
 
+def _pediatric_median(vital: str, age_months: int, adult: float) -> float:
+    """The age-band median of ``vital`` for a child, else the ``adult`` value (Issue #2872)."""
+    from clinosim.modules.observation.pediatric_ranges import pediatric_vital_range
+
+    band = pediatric_vital_range(vital, age_months)
+    return adult if band is None else band.median
+
+
 def activate_patient(
     person: PersonRecord,
     rng: np.random.Generator,
@@ -602,15 +611,23 @@ def activate_patient(
         allergies = []
 
     # Baseline vitals
-    hr_base = BASELINE_HR_BASE_MALE if sex == "M" else BASELINE_HR_BASE_FEMALE
+    hr_base: float = BASELINE_HR_BASE_MALE if sex == "M" else BASELINE_HR_BASE_FEMALE
     sbp_base = BASELINE_SBP_BASE + max(0, (age - BASELINE_SBP_AGE_REFERENCE)) * BASELINE_SBP_AGE_SCALE
     dbp_base = BASELINE_DBP_BASE + max(0, (age - BASELINE_DBP_AGE_REFERENCE)) * BASELINE_DBP_AGE_SCALE
+    rr_base: float = BASELINE_RR_MEAN
+    # Issue #2872: a child's baseline centres on the median for their age
+    # (Fleming 2011 HR / RR, PALS 2020 BP); same draws, so the stream is unchanged.
+    _age_months = age * 12 + PEDIATRIC_BASELINE_MID_YEAR_MONTHS
+    hr_base = _pediatric_median("heart_rate", _age_months, hr_base)
+    sbp_base = _pediatric_median("systolic_bp", _age_months, sbp_base)
+    dbp_base = _pediatric_median("diastolic_bp", _age_months, dbp_base)
+    rr_base = _pediatric_median("respiratory_rate", _age_months, rr_base)
     vitals = BaselineVitals(
         temperature=round(float(rng.normal(BASELINE_TEMPERATURE_MEAN, BASELINE_TEMPERATURE_SD)), 1),
         heart_rate=int(rng.normal(hr_base, BASELINE_HR_SAMPLE_SD)),
         systolic_bp=int(rng.normal(sbp_base, BASELINE_SBP_SAMPLE_SD)),
         diastolic_bp=int(rng.normal(dbp_base, BASELINE_DBP_SAMPLE_SD)),
-        respiratory_rate=int(rng.normal(BASELINE_RR_MEAN, BASELINE_RR_SD)),
+        respiratory_rate=int(rng.normal(rr_base, BASELINE_RR_SD)),
         spo2=round(float(min(BASELINE_SPO2_CEILING, rng.normal(BASELINE_SPO2_MEAN, BASELINE_SPO2_SD))), 1),
     )
 

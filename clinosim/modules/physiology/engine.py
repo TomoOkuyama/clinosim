@@ -152,6 +152,7 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     PCO2_WINTERS_INTERCEPT,
     PCT_BASE_NG_ML,
     PCT_INFLAMMATION_EXPONENT_SCALE,
+    PEDIATRIC_LAB_ADULT_CENTERS,
     PH_CLAMP_MAX,
     PH_CLAMP_MIN,
     PH_HENDERSON_HASSELBALCH_CONSTANT,
@@ -1237,7 +1238,34 @@ def derive_lab_values(
     # The only random draw (HbA1c measurement noise).
     _add_hba1c(labs, state, age, has_diabetes, rng, hba1c_latent)
     _apply_wbc_circadian(labs, hour)
+    _apply_pediatric_scaling(labs, age, sex)
     return labs
+
+
+def pediatric_lab_scale(lab_name: str, age: int | None, sex: str) -> float:
+    """Factor from the adult to the child's true value of ``lab_name``
+    (Issue #2872): pediatric interval midpoint / adult center, or 1.0 when
+    no pediatric interval covers the age or the analyte is not scaled."""
+    from clinosim.modules.observation.pediatric_ranges import pediatric_lab_center
+
+    adult = PEDIATRIC_LAB_ADULT_CENTERS.get(lab_name)
+    if adult is None:
+        return 1.0
+    center = pediatric_lab_center(lab_name, age, sex)
+    if center is None:
+        return 1.0
+    return center / adult.get(sex, adult["F"])
+
+
+def _apply_pediatric_scaling(labs: dict[str, float], age: int, sex: str) -> None:
+    """A child's creatinine, Hb (and Hct with it), WBC and ALP centre on the
+    interval for their age instead of the adult value."""
+    for lab_name in PEDIATRIC_LAB_ADULT_CENTERS:
+        scale = pediatric_lab_scale(lab_name, age, sex)
+        if scale != 1.0 and lab_name in labs:
+            labs[lab_name] *= scale
+            if lab_name == "Hb":
+                labs["Hct"] = labs["Hb"] * HCT_HB_RATIO
 
 
 # ---------------------------------------------------------------------------

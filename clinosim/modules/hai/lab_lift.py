@@ -60,6 +60,7 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     WBC_INFLAMMATION_SCALE,
     WBC_LEUKOPENIA_FLOOR,
 )
+from clinosim.modules.physiology.engine import pediatric_lab_scale
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -236,6 +237,7 @@ def apply_hai_lab_lift(
     if patient is None:
         return 0
     sex = getattr(patient, "sex", "M")
+    age = getattr(patient, "age", None)
     admission_date = admission_time.date()
 
     # Map OrderResult id -> Order so the WBC circadian uses the ORDER's
@@ -287,12 +289,15 @@ def apply_hai_lab_lift(
             # mismatched delta.
             draw_hour = 6
 
+        # Issue #2872: a child's WBC is derived on the pediatric scale.
         delta = _hai_lift_delta(state_snap, lab_name, effective_lift, draw_hour)
+        if delta and age is not None:
+            delta *= pediatric_lab_scale(lab_name, age, sex)
         if delta == 0:
             continue
 
         new_val = round_to_precision(lab_name, float(val) + delta)
         obs.value = new_val
-        obs.flag = determine_flag(lab_name, new_val, sex=sex, country=country)
+        obs.flag = determine_flag(lab_name, new_val, sex=sex, country=country, age=age)
         modified += 1
     return modified

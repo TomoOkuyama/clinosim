@@ -434,6 +434,15 @@ def build_reference_range(
     ranges = ref_data.get("ranges", {}).get(lab_name)
     if not ranges:
         return None
+    # Issue #2872: a child gets the interval for their age (the same one
+    # ``determine_flag`` judges the CIF flag against) instead of the adult one.
+    from clinosim.modules.observation.pediatric_ranges import pediatric_lab_range, pediatric_lab_range_text
+
+    pediatric = pediatric_lab_range(lab_name, age, patient_sex)
+    if pediatric is not None:
+        p_low, p_high, p_unit, p_band = pediatric
+        p_text = pediatric_lab_range_text(p_band, lang_for(country_code))
+        ranges = [{"low": p_low, "high": p_high, "unit": p_unit, "text": p_text}]
 
     # NOTE: `ref_data["source_url"]` was previously read into a
     # `referenceRangeSource` extension per range; the extension has been

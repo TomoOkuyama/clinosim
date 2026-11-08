@@ -1,0 +1,147 @@
+# Pediatric vital-sign ranges and lab reference intervals (Issue #2872).
+#
+# Children are judged against ranges for their age, not the adult ranges in
+# fhir_r4/labs/_reference_ranges.py (vital signs) and
+# locale/<cc>/reference_range_lab.yaml (labs). A child whose age no band
+# covers (18 years and older, or a vital / analyte not listed here) keeps the
+# adult range. Validated at load by the PediatricReferenceRanges model in
+# modules/observation/pediatric_ranges.py.
+#
+# vital_signs: bands are keyed by age in completed MONTHS ("lo-hi", inclusive,
+#   clinosim.age_bands). Each band gives the normal range (low / high), the
+#   median the generator centres a child's baseline on, and the critical
+#   (panic) bounds; a null critical bound is not flagged critical. The
+#   interpretation is LL / HH at or beyond a critical bound, L / H outside the
+#   normal range. A published strict threshold ("< 60", "> 60") is stored as
+#   the nearest value flagged at-or-beyond (59, 61).
+# labs: bands are keyed by age in completed YEARS, optionally per sex. The
+#   same intervals are used for US and JP output: the JCCLS 共用基準範囲 2022
+#   (JP adult source) covers adults only. The generator centres a child's
+#   true value on the interval midpoint (physiology engine, scaled from the
+#   adult baseline), so disease effects keep their relative size.
+metadata:
+  kind: reference
+  name: pediatric_reference_ranges
+  source: "Fleming S et al., Lancet 2011;377:1011-8; AHA PALS Provider Manual 2020; AAP Clinical Practice Guideline for High Blood Pressure in Children (Flynn JT et al., Pediatrics 2017;140:e20171904); The Harriet Lane Handbook, 22nd ed. (Johns Hopkins Hospital, 2021)"
+
+# Vital signs whose normal range does not depend on age: a child keeps the
+# adult bounds, labelled as the range for all ages instead of the adult range.
+# SpO2 95-100 % on room air and an afebrile temperature (fever >= 38.0 °C at
+# any age) apply to children as to adults (PALS 2020).
+age_independent_vital_signs: [temperature_celsius, spo2]
+
+vital_signs:
+  heart_rate:
+    # Normal = 1st-99th centile, median = 50th centile of Fleming et al. 2011
+    # (systematic review of 69 studies, 143,346 HR observations). Fleming
+    # bands are 0-<3, 3-<6, ... months; keyed here in completed months.
+    # Critical: PALS 2020 — HR < 60 /min with poor perfusion is the CPR
+    # threshold in infants and children (critical_low 59 while the 1st centile
+    # stays above 60; from 6 years on the 1st centile falls below 60 and the
+    # adult panic bound 40 applies); SVT is HR >= 220 in infants and >= 180
+    # in children.
+    "0-2":     {low: 107, median: 143, high: 181, critical_low: 59, critical_high: 220}
+    "3-5":     {low: 104, median: 140, high: 175, critical_low: 59, critical_high: 220}
+    "6-8":     {low: 98,  median: 134, high: 168, critical_low: 59, critical_high: 220}
+    "9-11":    {low: 93,  median: 128, high: 161, critical_low: 59, critical_high: 220}
+    "12-17":   {low: 88,  median: 123, high: 156, critical_low: 59, critical_high: 180}
+    "18-23":   {low: 82,  median: 116, high: 149, critical_low: 59, critical_high: 180}
+    "24-35":   {low: 76,  median: 110, high: 142, critical_low: 59, critical_high: 180}
+    "36-47":   {low: 70,  median: 104, high: 136, critical_low: 59, critical_high: 180}
+    "48-71":   {low: 65,  median: 98,  high: 131, critical_low: 59, critical_high: 180}
+    "72-95":   {low: 59,  median: 91,  high: 123, critical_low: 40, critical_high: 180}
+    "96-143":  {low: 52,  median: 84,  high: 115, critical_low: 40, critical_high: 180}
+    "144-179": {low: 47,  median: 78,  high: 108, critical_low: 40, critical_high: 180}
+    "180-215": {low: 43,  median: 73,  high: 104, critical_low: 40, critical_high: 180}
+  respiratory_rate:
+    # Normal = 1st-99th centile, median = 50th centile of Fleming et al. 2011
+    # (3,881 children, 7,565 RR observations). Critical: PALS 2020 — a rate
+    # below 10 or above 60 /min is abnormal at any age (critical_low 9,
+    # critical_high 61); under 9 months the 99th centile itself exceeds 60, so
+    # no critical-high bound is set there.
+    "0-2":     {low: 25, median: 43, high: 66, critical_low: 9, critical_high: null}
+    "3-5":     {low: 24, median: 41, high: 64, critical_low: 9, critical_high: null}
+    "6-8":     {low: 23, median: 39, high: 61, critical_low: 9, critical_high: null}
+    "9-11":    {low: 22, median: 37, high: 58, critical_low: 9, critical_high: 61}
+    "12-17":   {low: 21, median: 35, high: 53, critical_low: 9, critical_high: 61}
+    "18-23":   {low: 19, median: 31, high: 46, critical_low: 9, critical_high: 61}
+    "24-35":   {low: 18, median: 28, high: 38, critical_low: 9, critical_high: 61}
+    "36-47":   {low: 17, median: 25, high: 33, critical_low: 9, critical_high: 61}
+    "48-71":   {low: 17, median: 23, high: 29, critical_low: 9, critical_high: 61}
+    "72-95":   {low: 16, median: 21, high: 27, critical_low: 9, critical_high: 61}
+    "96-143":  {low: 14, median: 19, high: 25, critical_low: 9, critical_high: 61}
+    "144-179": {low: 12, median: 18, high: 23, critical_low: 9, critical_high: 61}
+    "180-215": {low: 11, median: 16, high: 22, critical_low: 9, critical_high: 61}
+  systolic_bp:
+    # Normal = PALS 2020 normal blood pressure ranges by age group (neonate,
+    # infant, toddler, preschooler, school-age, preadolescent, adolescent
+    # 12-15 years); median = the range midpoint. From 16 years the adult
+    # range applies (AAP 2017 uses adult thresholds from 13 years).
+    # critical_low: PALS 2020 hypotension, SBP < 60 (term neonate), < 70
+    # (infant), < 70 + 2 x age in years (1-10 years, at the band's youngest
+    # age), < 90 (10 years and older); stored as threshold - 1 because the
+    # interpretation flags a value at or below critical_low.
+    # critical_high: AAP 2017 — BP more than 30 mmHg above the 95th
+    # centile warrants immediate (emergency) evaluation; normal high + 31.
+    "0-0":     {low: 67,  median: 76,  high: 84,  critical_low: 59, critical_high: 115}
+    "1-11":    {low: 72,  median: 88,  high: 104, critical_low: 69, critical_high: 135}
+    "12-35":   {low: 86,  median: 96,  high: 106, critical_low: 71, critical_high: 137}
+    "36-71":   {low: 89,  median: 100, high: 112, critical_low: 75, critical_high: 143}
+    "72-119":  {low: 97,  median: 106, high: 115, critical_low: 81, critical_high: 146}
+    "120-143": {low: 102, median: 111, high: 120, critical_low: 89, critical_high: 151}
+    "144-191": {low: 110, median: 120, high: 131, critical_low: 89, critical_high: 162}
+  diastolic_bp:
+    # Normal = PALS 2020 normal diastolic ranges (same age groups as
+    # systolic_bp); median = the range midpoint. No pediatric critical-low
+    # diastolic threshold is published; critical_high is normal high + 31
+    # (AAP 2017, as for systolic_bp).
+    "0-0":     {low: 35, median: 44, high: 53, critical_low: null, critical_high: 84}
+    "1-11":    {low: 37, median: 46, high: 56, critical_low: null, critical_high: 87}
+    "12-35":   {low: 42, median: 52, high: 63, critical_low: null, critical_high: 94}
+    "36-71":   {low: 46, median: 59, high: 72, critical_low: null, critical_high: 103}
+    "72-119":  {low: 57, median: 66, high: 76, critical_low: null, critical_high: 107}
+    "120-143": {low: 61, median: 70, high: 80, critical_low: null, critical_high: 111}
+    "144-191": {low: 64, median: 74, high: 83, critical_low: null, critical_high: 114}
+
+labs:
+  # Harriet Lane Handbook 22nd ed.: hematology normal values (Hb, Hct: mean
+  # and mean - 2 SD; the upper bound here is mean + 2 SD, mirrored) and
+  # white-cell counts (mean and range); blood chemistry reference values
+  # (creatinine, alkaline phosphatase). Units match reference_range_lab.yaml.
+  WBC:
+    unit: "/uL"
+    bands:
+      "0-1":   {all: [6000, 17500]}   # 6 months and 1 year: 6.0-17.5 x10^3/uL
+      "2-3":   {all: [6000, 17000]}   # 2 years
+      "4-5":   {all: [5500, 15500]}   # 4 years
+      "6-7":   {all: [5000, 14500]}   # 6 years
+      "8-15":  {all: [4500, 13500]}   # 8 and 10 years
+      "16-17": {all: [4500, 13000]}   # 16 years
+  Hb:
+    unit: "g/dL"
+    bands:
+      "0-0":   {all: [9.4, 14.1]}     # 2 months (-2 SD 9.4) to 6 months (mean 12.6 + 2 SD)
+      "1-1":   {all: [10.5, 13.5]}    # 6 months-2 years: mean 12.0, -2 SD 10.5
+      "2-5":   {all: [11.5, 13.5]}    # 2-6 years: mean 12.5, -2 SD 11.5
+      "6-11":  {all: [11.5, 15.5]}    # 6-12 years: mean 13.5, -2 SD 11.5
+      "12-17": {M: [13.0, 16.0], F: [12.0, 16.0]}   # 12-18 years: M 14.5 (13.0), F 14.0 (12.0)
+  Hct:
+    unit: "%"
+    bands:
+      "0-0":   {all: [28, 41]}        # 2 months (-2 SD 28) to 6 months (mean 36 + 2 SD)
+      "1-1":   {all: [33, 39]}        # 6 months-2 years: mean 36, -2 SD 33
+      "2-5":   {all: [34, 40]}        # 2-6 years: mean 37, -2 SD 34
+      "6-11":  {all: [35, 45]}        # 6-12 years: mean 40, -2 SD 35
+      "12-17": {M: [36, 50], F: [36, 46]}           # 12-18 years: M 43 (36), F 41 (36)
+  Creatinine:
+    unit: "mg/dL"
+    bands:
+      "0-0":   {all: [0.2, 0.4]}      # infant
+      "1-12":  {all: [0.3, 0.7]}      # child
+      "13-17": {all: [0.5, 1.0]}      # adolescent
+  ALP:
+    unit: "U/L"
+    bands:
+      "0-0":   {all: [150, 420]}      # infant
+      "1-10":  {all: [100, 320]}      # 2-10 years
+      "11-17": {M: [100, 390], F: [100, 320]}       # 11-18 years

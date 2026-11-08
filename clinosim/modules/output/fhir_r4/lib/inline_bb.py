@@ -292,8 +292,17 @@ def _bb_vitals(ctx: BundleContext) -> list[dict]:
     # _build_vital_observations returns already-wrapped Bundle entries; unwrap to raw
     # resources so the registry's single entry() wrap applies uniformly.
     out: list[dict] = []
+    patient = ctx.patient_data or {}
     for i, vs in enumerate(ctx.record.get("vital_signs", [])):
-        for bundle_entry in _build_vital_observations(vs, ctx.patient_id, i, ctx.country, ctx.primary_enc_id):
+        for bundle_entry in _build_vital_observations(
+            vs,
+            ctx.patient_id,
+            i,
+            ctx.country,
+            ctx.primary_enc_id,
+            birth_date=patient.get("date_of_birth"),
+            age_years=patient.get("age"),
+        ):
             out.append(bundle_entry["resource"])
     return out
 

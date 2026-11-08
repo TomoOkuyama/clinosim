@@ -9,6 +9,7 @@ from __future__ import annotations
 from clinosim import determinism
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
+from clinosim.modules.observation._nursing_score_thresholds import NEWS2_MIN_AGE_YEARS
 from clinosim.modules.observation.nursing import (
     compute_braden,
     compute_gcs,
@@ -28,6 +29,10 @@ def enrich_nursing(ctx) -> None:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
         age = int(_get(patient, "age", 70) or 70)
+        # Issue #2872: NEWS2 is an adult score (RCP 2017: age >= 16). The
+        # recorded age is read as is here (``age`` above maps 0 to 70).
+        _recorded_age = _get(patient, "age", None) if patient else None
+        news2_applies = _recorded_age is None or int(_recorded_age) >= NEWS2_MIN_AGE_YEARS
         seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["nursing"], pid or "x")
         rng = determinism.default_rng(seed)
 
@@ -49,15 +54,17 @@ def enrich_nursing(ctx) -> None:
         # scale is not authored for the other to contradict.
         for vs in _get(rec, "vital_signs", []) or []:
             vsd = vs if isinstance(vs, dict) else vs.__dict__
-            news2 = compute_news2(vsd)
+            news2 = compute_news2(vsd) if news2_applies else None
             loc_val = vsd.get("consciousness_level", "") or ""
             gcs = compute_gcs(loc_val, perfusion_status=1.0, rng=rng) if loc_val else None
             if isinstance(vs, dict):
-                vs["news2_score"] = news2
+                if news2 is not None:
+                    vs["news2_score"] = news2
                 if gcs is not None:
                     vs["gcs_score"] = gcs
             else:
-                vs.news2_score = news2
+                if news2 is not None:
+                    vs.news2_score = news2
                 if gcs is not None:
                     vs.gcs_score = gcs
 
