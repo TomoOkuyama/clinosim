@@ -55,7 +55,7 @@ CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rul
 | 4 | resource skeleton 関数を実装(`dual_slot_concept` / `display` / `get_system_uri` 経由) | Section B.4 |
 | 5 | builder entry point `_bb_<topic>(ctx: BundleContext) -> list[dict]` を実装 | Section B.5 |
 | 6 | `clinosim/modules/output/fhir_r4/builder.py:_BUNDLE_BUILDERS` に登録 OR `register_bundle_builder()` で追加 | Section B.6 |
-| 7 | 単体 + integration + e2e golden + audit lift_firing_proof を追加 | Section C |
+| 7 | 単体 + integration テスト + audit lift_firing_proof を追加し、出力の変化を byte-diff で確認 | Section C |
 
 ### B.2 ファイル雛形
 
@@ -297,7 +297,7 @@ def test_<topic>_ndjson_emitted_with_proper_references():
             assert r["subject"]["reference"].removeprefix("Patient/") in patient_ids
 ```
 
-`basedOn` 等の cross-resource reference は必ず integrity check(memory `feedback_xhigh_review_lessons`)。
+`basedOn` 等の cross-resource reference は必ず integrity check。
 
 ### C.3 Determinism test(AD-16)
 
@@ -346,11 +346,16 @@ register_audit_module(ModuleAuditSpec(
 ))
 ```
 
-詳細 = `docs/CONTRIBUTING-modules.md` § "AD-60 audit framework" 参照。
+詳細 = `docs/CONTRIBUTING-modules.ja.md` § "3-axis DQR の実施手順"(AD-60 の `clinosim audit run` gate)参照。
 
-### C.5 E2E golden(`tests/e2e/golden/`)
+### C.5 golden と byte-diff
 
-新 resource 追加で golden NDJSON が増える → golden 再生成必要(byte-diff の意図的変化)。詳細 = `docs/CONTRIBUTING-modules.md` § "PR 検証ガイド: byte-diff vs 3-axis DQR" 参照。
+リポジトリに FHIR NDJSON の golden は無い。新 resource は出力 NDJSON を変えるので、同じ seed の出力を PR の前後で byte-diff し、差分が意図したものだけであることを確認する。存在する golden は次の 2 つ:
+
+- `tests/e2e/test_alpha_golden.py` — seed 42 の forced 患者 1 人の構造件数をテスト内に直接持つ。シミュレータの挙動を意図的に変えたときだけ更新する。
+- `tests/fixtures/patient_profiles/*.golden.json`(と `*.llm-mock.golden.json`)— canonical patient profile の narrative golden(AD-66、`pytest -m regression`)。`clinosim regenerate-goldens` で再生成する。
+
+詳細 = `docs/CONTRIBUTING-modules.md` § "PR 検証ガイド: byte-diff vs 3-axis DQR" 参照。
 
 ---
 
@@ -583,13 +588,14 @@ Condition / Procedure / ServiceRequest 等で dual coding(local primary + intero
 
 ## 関連
 
-- [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.ja.md) — CIF 生成側(Layers 1-3)の design rule 全集(日本語)
+- [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.ja.md) — CIF 生成側(Layers 1-3)の design rule 全集
 - `DESIGN.md` — ADRs AD-17 / AD-25 / AD-30 / AD-31 / AD-46 / AD-47 / AD-55 / AD-56 / AD-58 / AD-59 / AD-60 / AD-61
-- `AGENTS.md` — § "FHIR output rules(must follow for all resource builders)" / § "FHIR R4 output" / § "Enrichment architecture (narrative prompts)" / § "Common pitfalls" (`CLAUDE.md` は AGENTS.md への薄い pointer として残存)
+- `AGENTS.md` — § "FHIR R4 output" / § "Common pitfalls" (`CLAUDE.md` は AGENTS.md への薄い pointer として残存)
 - `.github/TEMPLATE_MODULE_README.md` — 新 module README boilerplate
-- memory `feedback_unify_data_logic` — session 24 で本 guide が確立された経緯
 
 ## Application precedents(FHIR builder layer)
+
+履歴の記録: ファイル名は各 PR 当時のもの。`_fhir_*.py` は現在 `clinosim/modules/output/fhir_r4/<domain>/` に移っており(例: `_fhir_localization.py` → `fhir_r4/lib/localization.py`)、下の `Composition.author` の TODO は解消済み(現在は `author_practitioner_id` から出力する)。
 
 | PR | FHIR builder layer の wins |
 | --- | --- |
