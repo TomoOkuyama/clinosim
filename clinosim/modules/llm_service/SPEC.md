@@ -473,16 +473,12 @@ class LLMTaskType(StrEnum):
 @dataclass
 class LLMResponse:
     text: str | None = None
-    source: str = "none"            # "llm" | "template" | "cache" | "none"
+    source: str = "none"            # "llm" | "cache" ("none" = default, never returned on success)
     model: str | None = None
     provider: str | None = None
     input_tokens: int = 0
     output_tokens: int = 0
-    prompt_version: int = 0
     cache_hit: bool = False
-    fallback_reason: str = ""
-    chosen_option: str | None = None   # reserved for judgment tasks
-    reasoning: str | None = None
     finish_reason: str | None = None   # from ProviderResponse.metadata["finish_reason"]
 ```
 
@@ -885,8 +881,14 @@ JUDGMENT and NARRATIVE can use **different providers, different models, or even 
 - JUDGMENT on one region's Bedrock + NARRATIVE on another
 - Both on the same provider but different model tiers
 
+> **Design only — not shipped.** The block below is the original design.
+> No shipped config has a `judgment:` section, the `bedrock_gateway` /
+> `anthropic_direct` providers are not bundled, and `budget` /
+> `cache.persist_to_disk` are not read by `build_from_config`. See the
+> shipped default below.
+
 ```yaml
-# config/llm_service.yaml
+# design sketch (not a shipped file)
 
 # === JUDGMENT configuration (used during simulation, Stage 1) ===
 judgment:
@@ -940,12 +942,20 @@ cache:
   persist_to_disk: true                  # save cache in CIF for reproducibility
 ```
 
-#### Default configuration (v0.1: local Ollama)
+#### Default configuration (shipped `clinosim/config/llm_service.yaml`)
+
+The bundled default (local Ollama; no API key needed). `build_from_config`
+(`factory.py`) reads, per section, `mode`, `provider`, the provider
+sub-block named after the provider key, `model_map` and (narrative)
+`retry_attempts` / `retry_backoff_seconds`; plus `cache.enabled`,
+`cache.directory` (or `cache_dir`), `cache.max_entries` and
+`prompts.registry_path`. Other keys in the file (`timeout_seconds`,
+`max_tokens_per_run`, `fallback_on_budget_exceeded`) are not read.
 
 ```yaml
-# config/llm_service.yaml — DEFAULT (no cloud API needed)
-judgment:
-  mode: "llm"
+# clinosim/config/llm_service.yaml
+narrative:
+  mode: "llm"               # "llm" | "template" | "none"
   provider: "local"
   local:
     endpoint: "http://localhost:11434"
@@ -954,31 +964,30 @@ judgment:
     small: "llama3.1:8b"
     medium: "llama3.1:8b"
     large: "llama3.1:8b"
-  timeout_seconds: 120
+  timeout_seconds: 180
   retry_attempts: 2
-
-narrative:
-  mode: "llm"
-  provider: "local"
-  local:
-    endpoint: "http://localhost:11434"
-    model: "llama3.1:8b"
-  model_map:
-    small: "llama3.1:8b"
-    medium: "llama3.1:8b"
-    large: "llama3.1:8b"           # upgrade to 70b if VRAM available
-  timeout_seconds: 180              # narrative generation can be slow locally
-  retry_attempts: 2
+  retry_backoff_seconds: 2
+  max_tokens_per_run: 10000000
+  fallback_on_budget_exceeded: "template"
 
 cache:
   enabled: true
+  directory: "./.llm_cache/local"
   max_entries: 5000
-  persist_to_disk: true
 ```
+
+There is no `judgment:` section in the shipped file. Other bundled
+examples: `clinosim/config/llm_service.bedrock.yaml` and
+`clinosim/config/llm_service.sakura.yaml`.
 
 **To use this default**: just install Ollama and `ollama pull llama3.1:8b`. No API keys, no cloud accounts.
 
 #### Example configurations
+
+Design examples (not shipped): `judgment:` sections and the
+`bedrock_gateway` provider below are not implemented; the bundled
+provider keys are `local` / `ollama`, `bedrock`, `vllm` /
+`openai_compatible` and `mock`.
 
 ```yaml
 # Config 1: Local model for JUDGMENT, cloud for NARRATIVE

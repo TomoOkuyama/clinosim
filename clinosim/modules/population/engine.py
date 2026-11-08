@@ -466,8 +466,8 @@ def _sample_chronic_conditions(
         scaled_base = base_prev / e_compound if e_compound > 0.0 else base_prev
         return min(1.0, scaled_base * corr_mult * life_mult)
 
-    # base_prev in yaml is the TARGET MARGINAL prevalence in the emitted
-    # cohort (B-3). Rescale by the population-expected compound
+    # base_prev in yaml is the TARGET MARGINAL prevalence in the sampled
+    # population (B-3). Rescale by the population-expected compound
     # multiplier so per-patient sampling preserves that marginal while
     # comorbidity + lifestyle multipliers still shape WHICH patients
     # get the condition. See population/README.md

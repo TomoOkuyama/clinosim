@@ -22,8 +22,12 @@ Owns two related concerns for inpatient / ED / outpatient encounters:
 
 - **In scope**: `EncounterConditionProtocol` Pydantic schema + child
   models (`OutpatientSoapTemplate`, `EdNoteTemplate`, `EdPhysicalExam`,
-  `EdTriageTemplate`, `EncounterNarrativeSpec`); per-protocol
+  `EdTriageTemplate`, `EncounterNarrativeSpec`, `SymptomOnset`,
+  `ScreeningSchedule`, `ScreeningLab`, `VisitProcedure`, and the typed
+  workup / treatment / prescription / scenario sections); per-protocol
   loader + full-registry loader (both `@lru_cache`);
+  `screening_schedule` and `protocol_min_age` /
+  `AGE_DISTRIBUTION_MIN_AGE`;
   `create_inpatient_encounter` with the F1 cross-cursor stable id
   formula; `generate_daily_cycle` (per-day event skeleton at the
   Japan medium-hospital cadence — morning vitals 06:00, morning labs
@@ -53,9 +57,11 @@ and
   admit dx `O80`, discharge dx `Z37.0`, LOS 5 days JP / 2 days US,
   department `obstetrics_gynecology`, rolled up via `department_rollup`
   (`primary_care` in the bundled hospitals), delivery Procedure US CPT `59400`; JP has no K-code, 正常分娩 being uninsured).
-- **Newborn Encounter** (IMP admission, `admit_source = "born"` — a plain string value of
-  `Encounter.admit_source` in
-  [`clinosim/types/encounter.py`](../../types/encounter.py) (no enum),
+- **Newborn Encounter** (IMP admission, `admit_source = "born"` — the
+  `AdmitSource.BORN` value from
+  [`clinosim/codes/hl7_encounter.py`](../../codes/hl7_encounter.py), stored in the
+  `str`-typed `Encounter.admit_source` of
+  [`clinosim/types/encounter.py`](../../types/encounter.py),
   `admit_source_encounter_id` → mother's delivery encounter →
   FHIR `Encounter.partOf` on newborn side; LOS inherited from mother;
   discharge dx `Z38.0`).
@@ -96,6 +102,14 @@ from clinosim.modules.encounter.protocol import (
     EdTriageTemplate,                # ED triage sub-model
     load_encounter_condition,        # (condition_id) -> dict  (@lru_cache=64)
     load_all_encounter_conditions,   # () -> dict[condition_id, dict]  (@lru_cache=1)
+    SymptomOnset,                    # symptom onset (unit + range)
+    DEFAULT_SYMPTOM_ONSET,           # default onset (days, 1-3)
+    ScreeningSchedule,               # screening interval / eligible age / uptake
+    ScreeningLab,                    # tests added by age / sex / BMI
+    VisitProcedure,                  # per-visit procedure (code / SNOMED / name / duration)
+    AGE_DISTRIBUTION_MIN_AGE,        # age_distribution → youngest age
+    protocol_min_age,                # (spec) -> int | None  (min_age, else the age_distribution floor)
+    screening_schedule,              # (condition_id) -> ScreeningSchedule  (a screening protocol's schedule (ValueError if none))
 )
 ```
 
@@ -130,7 +144,12 @@ from clinosim.modules.encounter.protocol import (
 - `hashlib.sha256` — encounter-id derivation.
 - `clinosim.modules.output.fhir_r4.lib.reference_data.validate_yaml_route_value`
   — lazy import in the loaders for the `route:` vocabulary check.
-  No other `clinosim.modules.*` dependency.
+- `clinosim.modules.observation.engine` — `canonical_lab_name`,
+  `lab_panel_components` (lazy; `ScreeningLab` test-name validation).
+- `clinosim.codes.code_exists` (lazy; `VisitProcedure` code
+  validation), `clinosim.locale.loader.load_code_mapping` (lazy),
+  `clinosim.age_bands.parse_closed_age_band` (lazy),
+  `clinosim.datafiles.load_data_yaml`.
 
 ## Constants and configuration
 

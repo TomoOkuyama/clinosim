@@ -633,11 +633,11 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
 # `dict`); `_bb_X` marks a bundle-builder (returning `list[dict]`). Mixing the
 # two on this list would silently break grep-by-role and let a stray
 # single-resource builder slip in without a type error. See
-# `modules/output/README.md` for the full convention.
+# `modules/output/fhir_r4/README.md` for the full convention.
 assert all(cb.__name__.startswith("_bb_") for cb in _BUNDLE_BUILDERS), (
     "Bundle builders must use the _bb_ prefix. Offenders: "
     f"{[cb.__name__ for cb in _BUNDLE_BUILDERS if not cb.__name__.startswith('_bb_')]}. "
-    "See modules/output/README.md."
+    "See modules/output/fhir_r4/README.md."
 )
 
 
@@ -651,7 +651,9 @@ def register_bundle_builder(builder: Callable[[BundleContext], list[dict]]) -> N
     honour the same convention as the built-in registry above.
     """
     if not builder.__name__.startswith("_bb_"):
-        raise ValueError(f"Bundle builder {builder.__name__!r} must use the _bb_ prefix. See modules/output/README.md.")
+        raise ValueError(
+            f"Bundle builder {builder.__name__!r} must use the _bb_ prefix. See modules/output/fhir_r4/README.md."
+        )
     if builder.__name__ not in {b.__name__ for b in _BUNDLE_BUILDERS}:
         _BUNDLE_BUILDERS.append(builder)
 

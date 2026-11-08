@@ -69,6 +69,8 @@ from clinosim.modules.observation.engine import (
     generate_lab_result,                 # (lab_name, true_value, rng) -> float | str
     determine_flag,                      # (lab_name, value, sex="F", country="US", *, medications=None, age=None) -> "L" | "H" | "critical" | None
     therapeutic_range,                   # (lab_name, country, *, medications, age) -> (low, high, text) | None
+    medication_name,                     # (med) -> drug name of a home medication / order
+    medications_in_effect,               # (home_medications, medication_orders=None, admission_date=None, current_day=None) -> list
 )
 
 # 看護 flowsheet
@@ -76,9 +78,19 @@ from clinosim.modules.observation.nursing import (
     compute_news2,                       # (vs: dict) -> int
     compute_gcs,                         # (consciousness_level, perfusion_status, rng) -> int
     compute_braden,                      # (adl, consciousness_level, volume_status, rng) -> dict
-    compute_morse_fall_risk,             # (age, adl, consciousness_level, has_iv, rng) -> (score, risk_level)
+    compute_morse_fall_risk,             # (age, adl, consciousness_level, has_iv, rng, has_secondary_diagnosis=False,
+                                         #  fell_recently=None) -> (score, risk_level, item_scores)
 )
 from clinosim.modules.observation.nursing_enricher import enrich_nursing
+
+# 小児基準範囲
+from clinosim.modules.observation.pediatric_ranges import (
+    age_in_completed_months,             # (birth, when) -> int | None
+    pediatric_vital_range,               # (vital, age_months) -> PediatricVitalRange | None
+    pediatric_vital_max,                 # (vital, age_months) -> float | None
+    pediatric_lab_range,                 # (lab_name, age_years, sex) -> (low, high, unit, band) | None
+    pediatric_lab_center,                # (lab_name, age_years, sex) -> float | None
+)
 
 # Microbiology
 from clinosim.modules.observation.microbiology import (
@@ -140,6 +152,14 @@ from clinosim.modules.observation.microbiology import (
   - `nursing_scores.yaml` — NEWS2 / GCS / Braden / Morse の
     authoritative 公表 instrument band (`_scores` が load し
     `compute_*` が消費)。
+  - `lab_constants.yaml` — lab ごとの単位 / CV / 精度 / limit /
+    正常値 / panic 値。
+  - `pediatric_reference_ranges.yaml` — 年齢帯別の小児 vital / lab
+    範囲。`pediatric_ranges.py` が読み `PediatricReferenceRanges` で検証。
+    `physiology` が小児 lab の scaling と小児 vital の上限に使う。
+  - `lab_aliases.yaml`、`lab_constants.yaml`、`nursing_scores.yaml` は
+    `_reference_models.py` の `LabAliases` / `LabConstants` /
+    `NursingScores` model で検証される。
 - **Threshold sub-module**:
   - [`fluid_balance.py`](fluid_balance.py) (Issue #561) — 日次
     intake / output balance 閾値: aggressive IV / maintenance /
@@ -149,7 +169,7 @@ from clinosim.modules.observation.microbiology import (
     escalation の SpO₂ トリガー
     (`SPO2_HYPOXEMIA_TRIGGER = 92 %`、`SPO2_SEVERE_HYPOXEMIA = 88 %`)。
   - [`pre_analytical.py`](pre_analytical.py) (Issue #561) —
-    specimen-rejection / hemolysis / technician-error rate。
+    specimen-rejection と K / LDH の hemolysis rate。
     `simulator/lab_pipeline.py` が消費。
   - [`vitals_thresholds.py`](vitals_thresholds.py) (Issue #561) —
     発熱判定と発熱時再検 cadence (`FEVER_THRESHOLD_C = 38.0`、
@@ -178,6 +198,8 @@ clinosim/modules/observation/
   vitals_thresholds.py               発熱 / 再検閾値 (Issue #561)
   _nursing_score_thresholds.py       スコア band 境界 (Issue #637)
   _variability_defaults.py           default CV + qualitative 分布 (Issue #637)
+  pediatric_ranges.py                年齢帯別の小児 vital / lab 基準範囲
+  _reference_models.py               lab_aliases / lab_constants / nursing_scores の Pydantic model
   reference_data/
     lab_aliases.yaml                 canonical lab-name alias
     order_routing.yaml               lab リスト要素の画像 / 構成検査 / オーダーなしへの振り分け
@@ -185,6 +207,7 @@ clinosim/modules/observation/
     lab_panels.yaml                  panel → components
     microbiology.yaml                organism + susceptibility カタログ
     nursing_scores.yaml              NEWS2 / GCS / Braden / Morse band
+    pediatric_reference_ranges.yaml  年齢帯別の小児 vital + lab 範囲
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 

@@ -138,6 +138,9 @@ from clinosim.modules.order.placed_order_mar import (
 
 # 持ち帰り処方の更新、FHIR export 時に計算 (Issue #2610)
 from clinosim.modules.order.prescription_supersede import prescription_closures  # (records, run_end) -> {(encounter_id, seq): Closure}
+
+# 小児 ED 投与量の体重換算 (Issue #2857)
+from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg) -> 再計算した名称 (成人 / 非掲載薬はそのまま) | None (最低年齢未満)
 ```
 
 ## 決定論
@@ -218,6 +221,11 @@ from clinosim.modules.order.prescription_supersede import prescription_closures 
   frozenset (`MEDICATION_TYPE_HINTS`, `CARE_PLAN_TYPE_HINTS`)。text-based 部分文字列 match で、英語
   encounter-YAML 名と英語 disease-YAML detail の両方をカバー。
   JP への localization は FHIR builder に意図的に deferred。
+- **小児投与量** ([`reference_data/pediatric_dosing.yaml`](reference_data/pediatric_dosing.yaml)、
+  `pediatric_dose.py` が読み、`PediatricDosingFile` (`extra="forbid"`) で
+  検証): `adult_age_years` と薬剤ごとの `mg_per_kg` / `max_mg` /
+  `min_age_months`。`adult_age_years` 未満の患者への ED 処方は、掲載薬なら
+  体重から用量を再計算し、最低年齢未満なら投与しない。
 
 ## ディレクトリ構造
 
@@ -232,6 +240,7 @@ clinosim/modules/order/
   prescription_supersede.py          prescription_closures — FHIR export 時に持ち帰り処方の更新 / 供給終了で終了を決定 (Issue #2610)
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — 日次 loop 外で発注された order の RNG-free MAR (Issue #2607)
   absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion — per-kg / per-m2 投与量の絶対量 (Issue #2750)
+  pediatric_dose.py                  pediatric_order_name — 小児 ED 投与量の体重換算 (Issue #2857)
   audit.py                           AD-60 audit plug-in (per-module) — 7-check lift_firing_proof + basedon_coverage
   _lab_result_timing.py              STAT / routine / 夜勤 定数 (Issue #637)
   _imaging_result_timing.py          scheduling + reporting delay 定数 (Issue #637)
@@ -239,6 +248,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay 定数 (Issue #637)
   reference_data/
     medication_supersede.yaml        supersede.py が読む class 切替 + PRN marker (Issue #2615)
+    pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢 (Issue #2857)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 
@@ -264,7 +274,7 @@ RNG を使わないため `ENRICHER_SEED_OFFSETS` entry なし) として、
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
 | Inpatient encounter | [`clinosim/simulator/inpatient.py`](../../simulator/inpatient.py) | `place_admission_orders` (内部で `supportive[]` を `classify_inpatient_supportive` で分類) + `place_imaging_orders` + `enrich_medication_order` を呼ぶ。 |
-| Emergency encounter | [`clinosim/simulator/emergency.py`](../../simulator/emergency.py) | `treatment[]` に `classify_encounter_treatment`、`enrich_medication_order`、ED lab に `individual_lab_seed`。 |
+| Emergency encounter | [`clinosim/simulator/emergency.py`](../../simulator/emergency.py) | `treatment[]` に `classify_encounter_treatment`、`enrich_medication_order`、ED lab に `individual_lab_seed`、小児の治療 / 退院処方用量に `pediatric_order_name`。 |
 | Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py) | `enrich_medication_order` (chemo `cycle_orders` 含む) + `individual_lab_seed`。 |
 | Daily loop | [`clinosim/simulator/daily_loop.py`](../../simulator/daily_loop.py) | `place_daily_lab_orders` + `place_imaging_orders`、treatment / escalation 発注に `classify_encounter_treatment` / `classify_escalation_treatment`。 |
 | Unknown-condition walkthrough | [`clinosim/simulator/unknown_condition.py`](../../simulator/unknown_condition.py) | lab 結果に `calculate_result_time_from_state`。 |

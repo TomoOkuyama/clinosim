@@ -77,6 +77,8 @@ from clinosim.modules.observation.engine import (
     generate_lab_result,                 # (lab_name, true_value, rng) -> float | str
     determine_flag,                      # (lab_name, value, sex="F", country="US", *, medications=None, age=None) -> "L" | "H" | "critical" | None
     therapeutic_range,                   # (lab_name, country, *, medications, age) -> (low, high, text) | None
+    medication_name,                     # (med) -> drug name of a home medication / order
+    medications_in_effect,               # (home_medications, medication_orders=None, admission_date=None, current_day=None) -> list
 )
 
 # Nursing flowsheet
@@ -84,9 +86,19 @@ from clinosim.modules.observation.nursing import (
     compute_news2,                       # (vs: dict) -> int
     compute_gcs,                         # (consciousness_level, perfusion_status, rng) -> int
     compute_braden,                      # (adl, consciousness_level, volume_status, rng) -> dict
-    compute_morse_fall_risk,             # (age, adl, consciousness_level, has_iv, rng) -> (score, risk_level)
+    compute_morse_fall_risk,             # (age, adl, consciousness_level, has_iv, rng, has_secondary_diagnosis=False,
+                                         #  fell_recently=None) -> (score, risk_level, item_scores)
 )
 from clinosim.modules.observation.nursing_enricher import enrich_nursing
+
+# Pediatric reference ranges
+from clinosim.modules.observation.pediatric_ranges import (
+    age_in_completed_months,             # (birth, when) -> int | None
+    pediatric_vital_range,               # (vital, age_months) -> PediatricVitalRange | None
+    pediatric_vital_max,                 # (vital, age_months) -> float | None
+    pediatric_lab_range,                 # (lab_name, age_years, sex) -> (low, high, unit, band) | None
+    pediatric_lab_center,                # (lab_name, age_years, sex) -> float | None
+)
 
 # Microbiology
 from clinosim.modules.observation.microbiology import (
@@ -152,6 +164,15 @@ from clinosim.modules.observation.microbiology import (
   - `nursing_scores.yaml` — authoritative published-instrument
     bands for NEWS2, GCS, Braden, Morse (loaded by `_scores`,
     consumed by the `compute_*` functions).
+  - `lab_constants.yaml` — per-lab units / CVs / precision / limits /
+    normals / panic values.
+  - `pediatric_reference_ranges.yaml` — age-banded pediatric vital and
+    lab ranges, read by `pediatric_ranges.py` (validated by
+    `PediatricReferenceRanges`); `physiology` uses it to scale child labs
+    and cap child vitals.
+  - `lab_aliases.yaml`, `lab_constants.yaml` and `nursing_scores.yaml` are
+    validated by the `LabAliases` / `LabConstants` / `NursingScores` models
+    in `_reference_models.py`.
 - **Threshold sub-modules**:
   - [`fluid_balance.py`](fluid_balance.py) (Issue #561) — daily
     intake / output balance thresholds: aggressive-IV / maintenance
@@ -162,7 +183,7 @@ from clinosim.modules.observation.microbiology import (
     (`SPO2_HYPOXEMIA_TRIGGER = 92 %`,
     `SPO2_SEVERE_HYPOXEMIA = 88 %`).
   - [`pre_analytical.py`](pre_analytical.py) (Issue #561) —
-    specimen-rejection / hemolysis / technician-error rates, consumed
+    specimen-rejection and K / LDH hemolysis rates, consumed
     by `simulator/lab_pipeline.py`.
   - [`vitals_thresholds.py`](vitals_thresholds.py) (Issue #561) —
     fever detection and febrile-recheck cadence
@@ -191,6 +212,8 @@ clinosim/modules/observation/
   vitals_thresholds.py               fever / febrile-recheck thresholds (Issue #561)
   _nursing_score_thresholds.py       score-band boundaries (Issue #637)
   _variability_defaults.py           default CVs + qualitative distributions (Issue #637)
+  pediatric_ranges.py                pediatric vital / lab reference ranges by age band
+  _reference_models.py               Pydantic models for lab_aliases / lab_constants / nursing_scores
   reference_data/
     lab_aliases.yaml                 canonical lab-name aliases
     order_routing.yaml               lab-list entries routed to imaging / components / no order
@@ -198,6 +221,7 @@ clinosim/modules/observation/
     lab_panels.yaml                  panel → components
     microbiology.yaml                organism + susceptibility catalog
     nursing_scores.yaml              NEWS2 / GCS / Braden / Morse bands
+    pediatric_reference_ranges.yaml  age-banded pediatric vital + lab ranges
   SPEC.md                            extended design reference (not runtime)
 ```
 

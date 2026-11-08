@@ -1,5 +1,11 @@
 # order — Order Lifecycle Management
 
+> **Status: design document.** Most of this file is the original design.
+> The implemented API, files and consumers are in [`README.md`](README.md)
+> (see also the "Implementation status" note under "Internal Design").
+> Symbols named only here — `DiagnosticDecision`, `TreatmentPlan`,
+> `EncounterEvent`, `HospitalProfile`, `OrderEvent` — do not exist.
+
 ## Purpose
 Manage the full lifecycle of clinical orders: from order entry through execution to result reporting. Provides a unified model for lab orders, imaging orders, medication orders, procedure orders, and consultation requests — each with appropriate timing, delays, and status tracking.
 

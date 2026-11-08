@@ -204,11 +204,11 @@ any schema or validation failure.
     how to evaluate against a `person` (ICD-prefix membership +
     age-threshold set); `RESERVED_INTRINSIC_CONDITIONS` — modifier
     tokens intentionally left to the caller
-    (e.g. `is_covid_variant_delta`); `KNOWN_MODIFIER_CONDITIONS =
+    (e.g. `anterior_wall_MI`); `KNOWN_MODIFIER_CONDITIONS =
     EVALUABLE_CONDITIONS | RESERVED_INTRINSIC_CONDITIONS`. YAML
     modifier keys outside this union raise at load time.
 - **Acuity-tier canonical sets** (`acuity.py`, Issue #563):
-  three overlapping `frozenset[str]` — presence of a disease id in
+  two overlapping `frozenset[str]` — presence of a disease id in
   one of these sets is a load-bearing clinical fact. Adding /
   removing an entry is a data-quality PR, not a refactor. The prior
   `subdural_hematoma` inconsistency (in `EMERGENCY_PRIORITY_DISEASES`
@@ -241,7 +241,7 @@ clinosim/modules/disease/
   __init__.py                     empty
   protocol.py                     DiseaseProtocol + child models + loaders + drug validators
   severity.py                     severity categories / ranges / sampler / modifier evaluator
-  acuity.py                       EMERGENCY_PRIORITY / CRITICAL_MONITORING / NEURO_LOC sets
+  acuity.py                       EMERGENCY_PRIORITY / CRITICAL_MONITORING sets (the neuro-LOC set is vitals_pipeline._NEURO_DISEASES)
   localization.py                 country → YAML key + chief complaint + department + target_los
   reference_data/
     <disease_id>.yaml             36 files (one per disease)
@@ -289,7 +289,7 @@ Individual files:
 - [`tests/unit/test_cli_test_disease_format.py`](../../../tests/unit/test_cli_test_disease_format.py)
   — CLI disease-format helper.
 - [`tests/unit/modules/test_disease_acuity_sets.py`](../../../tests/unit/modules/test_disease_acuity_sets.py)
-  — the three acuity sets stay consistent (Issue #563 guard).
+  — the two acuity sets stay consistent (Issue #563 guard).
 - [`tests/unit/modules/disease/`](../../../tests/unit/modules/disease/)
   — module-scoped unit tests (severity sampler, drug validators, and
   localization helpers).

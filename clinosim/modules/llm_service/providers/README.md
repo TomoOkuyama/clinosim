@@ -6,7 +6,7 @@ Concrete LLM backends that
 [`clinosim.modules.llm_service`](../README.md) dispatches to. Every
 provider implements the `LLMProvider` Protocol so `LLMService` can
 swap backends purely from config (AD-11 / AD-24). The parent package
-owns orchestration (prompt cache, cost accounting, task-type
+owns orchestration (prompt cache, call / token counters, task-type
 dispatch); this subpackage owns implementations + the registry.
 
 ## Scope
@@ -83,7 +83,7 @@ via `register_provider("anthropic_direct", builder)`.
   temperature, stop_sequences) -> ProviderResponse` and
   `health_check() -> bool` (must not raise). Implementations
   raise on error; the caller (`LLMService`) handles retry / fallback
-  / cost tallying.
+  / token counting.
 - **`ProviderResponse` fields** — `text`, `input_tokens`,
   `output_tokens`, `model`, `latency_ms`, `metadata`
   (`dict[str, Any] | None` for arbitrary provider-specific fields
