@@ -138,12 +138,7 @@ def check_demographic_gate(
             continue
         # Age gates
         min_age = rule.get("min_age")
-        max_age = rule.get("max_age")
-        age_fail = False
-        if min_age is not None and patient_age is not None and patient_age < int(min_age):
-            age_fail = True
-        if max_age is not None and patient_age is not None and patient_age > int(max_age):
-            age_fail = True
+        age_fail = min_age is not None and patient_age is not None and patient_age < int(min_age)
         # Sex gate
         rule_sex = rule.get("sex")
         sex_fail = (
