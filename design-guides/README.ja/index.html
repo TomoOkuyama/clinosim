@@ -24,7 +24,7 @@
     
     
       
-        <title>Design Guides — 新規モジュール著者のための読書パス - clinosim</title>
+        <title>Design Guides — 規則と仕様の所在 - clinosim</title>
       
     
     
@@ -75,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#design-guides--新規モジュール著者のための読書パス" class="md-skip">
+        <a href="#design-guides--規則と仕様の所在" class="md-skip">
           Skip to content
         </a>
       
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Design Guides — 新規モジュール著者のための読書パス
+              Design Guides — 規則と仕様の所在
             
           </span>
         </div>
@@ -2317,6 +2317,47 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-コーディング規則コードを書く前に読む" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. コーディング規則(コードを書く前に読む)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-binding-specs変更する領域の-spec-を読む" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Binding specs(変更する領域の spec を読む)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-背景とオンボーディング" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 背景とオンボーディング
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2340,110 +2381,128 @@
   
 
 
-<h1 id="design-guides--新規モジュール著者のための読書パス">Design Guides — 新規モジュール著者のための読書パス<a class="headerlink" href="#design-guides--新規モジュール著者のための読書パス" title="Permanent link">&para;</a></h1>
-<p>clinosim にモジュールを追加する新規開発者/実装 AI 向けの索引です。以下の順に読んでください。
-(0)〜(4) は全員必読、(5)〜(7) は触る領域に応じて読みます。</p>
+<h1 id="design-guides--規則と仕様の所在">Design Guides — 規則と仕様の所在<a class="headerlink" href="#design-guides--規則と仕様の所在" title="Permanent link">&para;</a></h1>
+<p>人とエージェントを問わず、すべての貢献者のための design guides の索引。3 部構成で、すべての変更に適用されるコーディング規則、シミュレータの領域ごとの binding spec、オンボーディング用の背景資料からなる。ガイドとコードが食い違ったら同じ PR でどちらかを直す — ガイドは正しくあるべきものである。</p>
+<h2 id="1-コーディング規則コードを書く前に読む">1. コーディング規則(コードを書く前に読む)<a class="headerlink" href="#1-コーディング規則コードを書く前に読む" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>#</th>
-<th>ドキュメント</th>
+<th>文書</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../implementation-rules.ja/"><code>implementation-rules.ja.md</code></a></td>
+<td><strong>ここから読む。</strong> すべての変更が従う規則(workflow・コーディング標準・アーキテクチャ不変則・決定性・正準ヘルパー・loader・検証 gate・silent-no-op 防御)と、関心事ごとの binding spec への対応表。</td>
+</tr>
+<tr>
+<td><a href="../shared-helpers-catalog.ja/"><code>shared-helpers-catalog.ja.md</code></a></td>
+<td>X にどの共通ヘルパーを使うか。モジュール横断のヘルパーを関心事別に、パスと governing spec 付きで一覧にしたもの。小さな処理を書く前に引く。</td>
+</tr>
+<tr>
+<td><a href="../documentation-and-code-quality-policy.ja/"><code>documentation-and-code-quality-policy.ja.md</code></a></td>
+<td>文書の言語と EN/JA の対、自己完結した OSS 品質、ソースコメントの言語、定数の置き場所、dead code の扱い。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-binding-specs変更する領域の-spec-を読む">2. Binding specs(変更する領域の spec を読む)<a class="headerlink" href="#2-binding-specs変更する領域の-spec-を読む" title="Permanent link">&para;</a></h2>
+<p>各 spec は規則・それを実装する正準コード・それを強制するガードテストを示す。その領域の変更は spec に従うか、同じ PR で spec を改める。</p>
+<table>
+<thead>
+<tr>
+<th>こういう変更の前に</th>
+<th>Spec</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>コード・表示名・コード対応・名称解決関数・多言語化・fallback を足す/変える</td>
+<td><a href="../code-mapping-and-localization-spec.ja/"><code>code-mapping-and-localization-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>乱数を引く・シードを導く・時計を読む</td>
+<td><a href="../determinism-and-rng-spec.ja/"><code>determinism-and-rng-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>参照データ YAML・年齢区分の表・定数を足す/読む</td>
+<td><a href="../configuration-and-reference-data-spec.ja/"><code>configuration-and-reference-data-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>薬剤をオーダー・保留・投与・中止・処方・コード化する</td>
+<td><a href="../medication-lifecycle-spec.ja/"><code>medication-lifecycle-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>検査をオーダー・導出・フラグ付け・結び付けする</td>
+<td><a href="../lab-orders-and-results-spec.ja/"><code>lab-orders-and-results-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>文書を計画する・セクションを足す・臨床事実を言い表す</td>
+<td><a href="../narrative-and-document-generation-spec.ja/"><code>narrative-and-document-generation-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>受診を作る/終える・スナップショットを当てる・FHIR リソースを仕上げる</td>
+<td><a href="../encounter-lifecycle-and-export-spec.ja/"><code>encounter-lifecycle-and-export-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>FHIR 完全性の修正(読まれない YAML キー・消費されない要素・<code>extra="forbid"</code>・病期・as-of 年齢)を実装する</td>
+<td><a href="../data-model-and-completeness-conventions.ja/"><code>data-model-and-completeness-conventions.ja.md</code></a></td>
+</tr>
+<tr>
+<td>コード表示名を権威ある出典(LOINC・YJ・ICD-10・厚労省の表)と同期する</td>
+<td><a href="../code-display-authoritative-sync.ja/"><code>code-display-authoritative-sync.ja.md</code></a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-背景とオンボーディング">3. 背景とオンボーディング<a class="headerlink" href="#3-背景とオンボーディング" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>文書</th>
 <th>いつ読むか</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>0a</td>
-<td><a href="../project-concept-and-design.ja/"><code>project-concept-and-design.md</code></a></td>
-<td><strong>一番最初</strong>。プロジェクトのコンセプト(9 要求)・パイプライン全体像・ナラティブ 2 層設計・現在地とロードマップのキャッチアップ</td>
+<td><a href="../project-concept-and-design.ja/"><code>project-concept-and-design.ja.md</code></a></td>
+<td>最初に。プロジェクトのコンセプト(9 要求)・パイプライン全体像・ナラティブ 2 層設計。</td>
 </tr>
 <tr>
-<td>0b</td>
-<td><a href="../implementation-rules.ja/"><code>implementation-rules.md</code></a></td>
-<td><strong>コードを書く前に必ず</strong>。全実装者が守る不変則の蒸留版(workflow 規律 / 決定性 / canonical helpers / silent-no-op 防御 / 検証 gate)</td>
+<td><a href="../data-generation-walkthrough.ja/"><code>data-generation-walkthrough.ja.md</code></a></td>
+<td>コンセプトの次に。1 件の患者データが population から CIF・FHIR まで生まれる流れを、実ファイル/関数名つきで追う。</td>
 </tr>
 <tr>
-<td>0c</td>
-<td><a href="../data-generation-walkthrough.ja/"><code>data-generation-walkthrough.md</code></a></td>
-<td><strong>コンセプトの次に</strong>。「1 件の患者データがどう生まれるか」を population → イベント → 受診シミュレーション → CIF → FHIR まで実ファイル/関数名つきで end-to-end に追う。3 段 CLI・enricher・拡張の入口も。新規貢献者のオンボーディング用</td>
+<td><a href="../../MODULES.ja.md"><code>MODULES.ja.md</code></a></td>
+<td>モジュールの地図。<code>clinosim/modules/</code> 配下の全 package・依存関係・データフロー・enricher の順序。</td>
 </tr>
 <tr>
-<td>1</td>
-<td><a href="../../MODULES.ja.md"><code>MODULES.md</code></a></td>
-<td>全 38 module(<code>clinosim/modules/</code> 配下の package)の俯瞰・依存関係・データフローを 1 ページで把握する</td>
+<td><a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.ja.md</code></a></td>
+<td>モジュールを足す前に。Base / Module 判定・正準 layout・loader / sub-seed / registry の使い方・検証(byte-diff と audit)。</td>
 </tr>
 <tr>
-<td>2</td>
-<td><a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a></td>
-<td>実装前に。Base/Module 判定、正準 layout、loader / sub-seed / registry / 検証 (byte-diff vs DQR) の実践 playbook</td>
-</tr>
-<tr>
-<td>3</td>
 <td><a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a></td>
-<td>モジュールの skeleton を作るとき。README + パス定数などの boilerplate をここからコピーする</td>
+<td>モジュールの skeleton を作るとき。README とパス定数の boilerplate。</td>
 </tr>
 <tr>
-<td>4</td>
-<td><a href="../../DESIGN.ja.md"><code>DESIGN.md</code></a> の curated ADR</td>
-<td>設計判断の背景が必要なとき。まず AD-16 / AD-17 / AD-25 / AD-30 / AD-55 / AD-56 / AD-59 / AD-60 / AD-65 の 9 つ(一言サマリは CONTRIBUTING-modules.md「最初に読む ADR」参照)</td>
+<td><a href="../fhir-data-generation-logic.ja/"><code>fhir-data-generation-logic.ja.md</code></a></td>
+<td>FHIR builder(<code>clinosim/modules/output/fhir_r4/&lt;theme&gt;/</code>)を足す・拡張するとき。表示の規則は code-mapping spec が優先。</td>
 </tr>
 <tr>
-<td>5</td>
 <td><a href="../../clinosim/modules/output/SPEC.md"><code>clinosim/modules/output/SPEC.md</code></a></td>
-<td>臨床文書 / narrative を触るときのみ。two-pass CIF(structural + narrative 分離、AD-65)の canonical spec</td>
+<td>臨床文書・narrative を触るとき。two-pass CIF(structural + narrative、AD-65)。</td>
 </tr>
 <tr>
-<td>6</td>
-<td><a href="../fhir-data-generation-logic.ja/"><code>docs/design-guides/fhir-data-generation-logic.md</code></a></td>
-<td>FHIR builder(<code>clinosim/modules/output/fhir_r4/&lt;theme&gt;/</code>、Layer 4)を追加・拡張するときのみ。code_lookup / URI / multilingual / anti-patterns</td>
+<td><a href="../../SCENARIO_FLAGS.ja.md"><code>SCENARIO_FLAGS.ja.md</code></a></td>
+<td>検査値や scenario / medication flag(<code>causes_X</code>、<code>on_warfarin</code>)を触るとき。</td>
 </tr>
 <tr>
-<td>7</td>
-<td><a href="../../SCENARIO_FLAGS.ja.md"><code>SCENARIO_FLAGS.md</code></a></td>
-<td>lab 値や scenario / medication flag(<code>causes_X</code> / <code>on_warfarin</code>)を触るときのみ。flag の一覧と追加手順</td>
-</tr>
-<tr>
-<td>0d</td>
-<td><a href="../code-mapping-and-localization-spec.ja/"><code>code-mapping-and-localization-spec.md</code></a></td>
-<td><strong>コードに関わる変更の前に必読。</strong> コード体系・コード対応・名称解決関数・多言語対応・フォールバック規則の規範仕様。</td>
-</tr>
-<tr>
-<td>0e</td>
-<td><a href="../determinism-and-rng-spec.ja/"><code>determinism-and-rng-spec.md</code></a></td>
-<td><strong>乱数を引く・シードを導く・時計を読む変更の前に必読。</strong> 生成器の生成元・シード導出・乱数をずらさない変更・時計の規範仕様。</td>
-</tr>
-<tr>
-<td>0f</td>
-<td><a href="../medication-lifecycle-spec.ja/"><code>medication-lifecycle-spec.md</code></a></td>
-<td><strong>薬剤をオーダー・保留・投与・中止・処方・コード化する変更の前に必読。</strong> 安全ゲート・保留・投与・置換中止と退院時終了・退院時突合・製品コードの規範仕様。</td>
-</tr>
-<tr>
-<td>0g</td>
-<td><a href="../narrative-and-document-generation-spec.ja/"><code>narrative-and-document-generation-spec.md</code></a></td>
-<td><strong>文書を計画する・セクションを足す・臨床事実を言い表す変更の前に必読。</strong> 文書 planner・セクション登録表・安全事象/バイタル/BMI の共通の言い表しの規範仕様。</td>
-</tr>
-<tr>
-<td>0h</td>
-<td><a href="../configuration-and-reference-data-spec.ja/"><code>configuration-and-reference-data-spec.md</code></a></td>
-<td><strong>参照データ YAML・年齢区分の表・定数を足す/読む前に必読。</strong> 読み込みと検証・共有の表(年齢区分・フォローアップ・名前付き病態)・定数の置き場所の規範仕様。</td>
-</tr>
-<tr>
-<td>0i</td>
-<td><a href="../lab-orders-and-results-spec.ja/"><code>lab-orders-and-results-spec.md</code></a></td>
-<td><strong>検査をオーダー・導出・フラグ付け・結び付けする変更の前に必読。</strong> 検査の真値・同一性とパネル・結果とオーダー・評価範囲の規範仕様。</td>
-</tr>
-<tr>
-<td>0j</td>
-<td><a href="../encounter-lifecycle-and-export-spec.ja/"><code>encounter-lifecycle-and-export-spec.md</code></a></td>
-<td><strong>受診を作る/終える・スナップショットを当てる・FHIR リソースを仕上げる変更の前に必読。</strong> 受診の設定・月次ループ・死亡記録・出力時のスナップショット・FHIR の仕上げの規範仕様。</td>
-</tr>
-<tr>
-<td>8</td>
-<td><a href="../data-model-and-completeness-conventions.ja/"><code>data-model-and-completeness-conventions.md</code></a></td>
-<td>FHIR completeness fix-point(重症度統合 / 孤児 YAML キー / <code>extra="forbid"</code> / I10 stage / person.age / course_archetypes)を実装するときのみ。C1/C2/C3 不完全状態の禁止規約と as-of-age パターン。台帳 = <code>docs/design-notes/2026-07-06-fix-point-registry.md</code></td>
+<td><a href="../../architecture/adr-history/"><code>docs/architecture/adr-history.md</code></a></td>
+<td>設計判断の背景が必要なとき(ADR AD-1〜AD-71)。</td>
 </tr>
 </tbody>
 </table>
+<p>現行でなくなった過去の計画は <a href="../history/"><code>docs/history/</code></a> にある。</p>
+<p>English counterpart: <a href="../"><code>README.md</code></a>.</p>
 
 
 
