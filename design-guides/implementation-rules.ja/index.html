@@ -24,7 +24,7 @@
     
     
       
-        <title>clinosim Implementation Rules — 実装モデル必読の不変則集 - clinosim</title>
+        <title>clinosim Implementation Rules — 実装者必読の不変則集 - clinosim</title>
       
     
     
@@ -75,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#clinosim-implementation-rules--実装モデル必読の不変則集" class="md-skip">
+        <a href="#clinosim-implementation-rules--実装者必読の不変則集" class="md-skip">
           Skip to content
         </a>
       
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              clinosim Implementation Rules — 実装モデル必読の不変則集
+              clinosim Implementation Rules — 実装者必読の不変則集
             
           </span>
         </div>
@@ -697,6 +697,8 @@
       
         
       
+        
+      
     
     
     
@@ -815,6 +817,34 @@
     
   
     Implementation rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shared-helpers-catalog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared helpers catalog
   
 
     
@@ -2294,6 +2324,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#規則の所在" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        規則の所在
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#0-workflow-規律コードを書く前に" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2404,10 +2445,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-silent-no-op-防御pr-90-classチェックリスト" class="md-nav__link">
+  <a href="#9-silent-no-op-防御チェックリスト" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. Silent-no-op 防御(PR-90 class)チェックリスト
+        9. Silent-no-op 防御チェックリスト
       
     </span>
   </a>
@@ -2426,10 +2467,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#読む順序新規参加の実装-ai-向け" class="md-nav__link">
+  <a href="#読む順序新規参加の実装者向け" class="md-nav__link">
     <span class="md-ellipsis">
       
-        読む順序(新規参加の実装 AI 向け)
+        読む順序(新規参加の実装者向け)
       
     </span>
   </a>
@@ -2461,37 +2502,98 @@
   
 
 
-<h1 id="clinosim-implementation-rules--実装モデル必読の不変則集">clinosim Implementation Rules — 実装モデル必読の不変則集<a class="headerlink" href="#clinosim-implementation-rules--実装モデル必読の不変則集" title="Permanent link">&para;</a></h1>
-<p><strong>Status:</strong> Active(2026-07-03、session 32 で確立)
-<strong>Audience:</strong> clinosim のコードを書く・直す全ての実装者/実装 AI(Opus 4.7 等)。
-<strong>位置づけ:</strong> CLAUDE.md(全文)と <code>docs/CONTRIBUTING-modules.md</code>(詳細 HOW-TO)の<strong>蒸留版</strong>。
-ここに書かれた規則は例外なく適用される。詳細・根拠・精密な手順は各リンク先が正。
+<h1 id="clinosim-implementation-rules--実装者必読の不変則集">clinosim Implementation Rules — 実装者必読の不変則集<a class="headerlink" href="#clinosim-implementation-rules--実装者必読の不変則集" title="Permanent link">&para;</a></h1>
+<p><strong>Status:</strong> Active
+<strong>Audience:</strong> clinosim のコードを書く・直す全ての人とコーディングエージェント。
+<strong>位置づけ:</strong> コーディング規則の入口。ここに書かれた規則は例外なく適用される。ドメインごとの詳細規則は binding spec (下表)、規則が指す共通ヘルパーは <a href="../shared-helpers-catalog.ja/"><code>shared-helpers-catalog.ja.md</code></a>、モジュール作成の HOW-TO は <code>docs/CONTRIBUTING-modules.ja.md</code> にある。
 迷ったら判断 4 軸:<strong>データ品質 / 臨床整合性 / メンテ性(責任分解点)/ コンセプト適切性</strong>。</p>
+<h3 id="規則の所在">規則の所在<a class="headerlink" href="#規則の所在" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>関心事</th>
+<th>読む文書</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>すべての変更に適用される規則 (本書)</td>
+<td><code>implementation-rules.ja.md</code></td>
+</tr>
+<tr>
+<td>X にどの共通ヘルパーを使うか</td>
+<td><a href="../shared-helpers-catalog.ja/"><code>shared-helpers-catalog.ja.md</code></a></td>
+</tr>
+<tr>
+<td>文書の言語・コメント・定数の置き場所・dead code</td>
+<td><a href="../documentation-and-code-quality-policy.ja/"><code>documentation-and-code-quality-policy.ja.md</code></a></td>
+</tr>
+<tr>
+<td>コード体系・表示名・多言語化・fallback</td>
+<td><a href="../code-mapping-and-localization-spec.ja/"><code>code-mapping-and-localization-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>乱数・シード・時計</td>
+<td><a href="../determinism-and-rng-spec.ja/"><code>determinism-and-rng-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>参照データ YAML・年齢帯・定数</td>
+<td><a href="../configuration-and-reference-data-spec.ja/"><code>configuration-and-reference-data-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>薬剤オーダー・保留・投与・退院処方</td>
+<td><a href="../medication-lifecycle-spec.ja/"><code>medication-lifecycle-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>検査値・オーダー・結果</td>
+<td><a href="../lab-orders-and-results-spec.ja/"><code>lab-orders-and-results-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>文書計画と narrative の文言</td>
+<td><a href="../narrative-and-document-generation-spec.ja/"><code>narrative-and-document-generation-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>encounter の設定・スナップショット・FHIR 仕上げ</td>
+<td><a href="../encounter-lifecycle-and-export-spec.ja/"><code>encounter-lifecycle-and-export-spec.ja.md</code></a></td>
+</tr>
+<tr>
+<td>FHIR 完全性 (C1 / C2 / C3)</td>
+<td><a href="../data-model-and-completeness-conventions.ja/"><code>data-model-and-completeness-conventions.ja.md</code></a></td>
+</tr>
+<tr>
+<td>FHIR builder を書く</td>
+<td><a href="../fhir-data-generation-logic.ja/"><code>fhir-data-generation-logic.ja.md</code></a></td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="0-workflow-規律コードを書く前に">0. Workflow 規律(コードを書く前に)<a class="headerlink" href="#0-workflow-規律コードを書く前に" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Chain workflow(確立済、逸脱禁止)</strong>: recon → design spec commit
-   (<code>docs/history/specs-archive/</code>)→ TDD 実装(test first)→ 独立検証 → PR →
-   compact adversarial review(5-lens、finding は実証必須)→ fix → 全 suite green → merge。</li>
-<li><strong>Scope discipline(★★★)</strong>: spec 確定後の scope 拡大禁止。scope 外の発見は
+<li><strong>Workflow</strong>: 1 GitHub Issue = 1 PR → コードと binding spec を読む → TDD 実装(test first)→
+   生成コホートでの検証 → PR → レビュー(finding は実証必須)→ fix → 全 suite green → merge。
+   大きな設計は先に設計ノートを書く(<code>docs/history/specs-archive/</code>)。</li>
+<li><strong>Scope discipline</strong>: spec 確定後の scope 拡大禁止。scope 外の発見は
    「データ品質/臨床整合性に必須」の場合のみ対応、それ以外は
    <strong>GitHub Issues board に formal entry 化</strong> (<code>docs/roadmap.ja.md</code> 参照;
    旧 <code>TODO.md</code> は Issues 化に伴い廃止) — 文脈・file:line・修正案つきで。</li>
 <li><strong>着手前 status audit</strong>: TODO/ドキュメントの記述を鵜呑みにせず、<strong>実装前に実測で検証</strong>
-   (実例: α-min-3 の「CRITICAL 配線 gap」は 2 世代前に解決済みだった。cohort 出力を
-   数えるだけで 1 PR 分の無駄を回避)。</li>
+   (先に生成コホートで挙動を数える — 報告された gap は既に直っていることが多い)。</li>
 <li><strong>観測前に語らない</strong>: ツール結果を見る前に「成功した」と書かない。検証は実行結果
    (test 出力・実 cohort の grep・sha256)で示す。</li>
-<li><strong>Commit 規約</strong>: <code>feat(&lt;chain&gt;): ...</code> / <code>fix(&lt;chain&gt; adv-1): ...</code> / <code>refactor: ...</code> /
-   <code>docs: ...</code>。task 単位でコミット。push と PR 作成は検証 green 後。</li>
+<li><strong>Commit 規約</strong>: <code>&lt;type&gt;(&lt;module&gt;): &lt;要約&gt;</code>、type は <code>feat</code> / <code>fix</code> / <code>refactor</code> / <code>docs</code> /
+   <code>test</code> / <code>chore</code>。<code>git commit --signoff</code> で署名する (DCO)。push と PR 作成は検証 green 後。</li>
 </ol>
 <h2 id="1-コーディング標準">1. コーディング標準<a class="headerlink" href="#1-コーディング標準" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Python 3.11+ / ruff / mypy strict / line length 100。</li>
-<li><strong>コード内コメント・docstring は英語</strong>。ユーザー向け docs は各ファイルの既存言語に従う
-  (CONTRIBUTING と design-guides は日本語+英語技術用語)。</li>
-<li><strong>型は <code>clinosim/types/</code> にのみ定義</strong>(module コード内での dataclass/BaseModel 新設禁止。
-  YAML config = Pydantic BaseModel(AD-18)、runtime = <code>@dataclass</code>)。</li>
+<li>Python 3.11+ / ruff (line length 120) / mypy (<code>mypy clinosim/</code> をローカルで通す。CI では
+  informational) / vulture (未使用コード。フレームワークが読むメンバーは <code>.vulture-whitelist.py</code> へ)。</li>
+<li><strong>コード内コメント・docstring は英語</strong>。例外は文書ポリシー §4 の日本の仕様に関するカテゴリのみ。
+  ドキュメントは <code>*.md</code> が英語、日本語版は <code>*.ja.md</code>
+  (<a href="../documentation-and-code-quality-policy.ja/"><code>documentation-and-code-quality-policy.ja.md</code></a> §1)。</li>
+<li><strong>モジュール間で共有する型と CIF の型は <code>clinosim/types/</code> にのみ定義</strong>(YAML config = Pydantic
+  BaseModel(AD-18)、runtime = <code>@dataclass</code>)。モジュールの外に出ない private な型 (自モジュールの
+  参照 YAML を検証する Pydantic モデル (<code>_models.py</code> か loader の隣) と内部用の補助型) はモジュール内に
+  置いてよい。2 つ目のモジュールが必要とした時点で <code>clinosim/types/</code> に移す。</li>
 <li><strong>Public API = module <code>__init__.py</code> で export したものだけ</strong>。</li>
 <li>コメントは「コードが示せない制約」だけを書く。変更の経緯説明・自明な説明は書かない。</li>
 </ul>
@@ -2510,7 +2612,7 @@
 </tr>
 <tr>
 <td>AD-30</td>
-<td><strong>CIF は code のみ、display text 禁止</strong>。表示解決は出力時に <code>clinosim.codes.lookup()</code></td>
+<td><strong>CIF は code のみ、display text 禁止</strong>。表示解決は出力時に <code>clinosim.codes.display(...)</code> と明示的な fallback</td>
 </tr>
 <tr>
 <td>AD-65</td>
@@ -2537,11 +2639,16 @@
 <h2 id="3-決定性ad-16--ad-59-絶対規則">3. 決定性(AD-16 / AD-59)— 絶対規則<a class="headerlink" href="#3-決定性ad-16--ad-59-絶対規則" title="Permanent link">&para;</a></h2>
 <p><strong>規範仕様:</strong> <a href="../determinism-and-rng-spec.ja/"><code>determinism-and-rng-spec.ja.md</code></a> が生成器の生成元・シード導出・乱数をずらさない変更・時計の規則とそのガードを定める。以下は要約。</p>
 <ul>
-<li><code>random.random()</code> 禁止。RNG は必ず sub-seed 由来の <code>numpy.random.Generator</code>
-  (<code>clinosim/seeding.py</code>: <code>derive_sub_seed(master_seed, module_offset, key)</code> + <code>ENRICHER_SEED_OFFSETS</code> (16-bit hex-ASCII) 登録、
-  lab は <code>panel_specimen_seed</code> / <code>individual_lab_seed</code>)。</li>
-<li><strong><code>datetime.now()</code> / <code>date.today()</code> を生成経路に書かない</strong>(既存の残存は determinism
-  chain の TODO — 増やすのは禁止)。narrative の時刻は <code>_deterministic_timestamp</code> 系。</li>
+<li><code>random</code> と <code>numpy.random.default_rng</code> 禁止。生成器は必ず <code>clinosim.determinism.default_rng(seed)</code> で作り、
+  seed は <code>clinosim/seeding.py</code> で導出する(<code>derive_sub_seed(master_seed, module_offset, key)</code> +
+  <code>ENRICHER_SEED_OFFSETS</code> (16-bit hex-ASCII) 登録、または <code>panel_specimen_seed</code> / <code>individual_lab_seed</code>
+  などの実体ごとの名前付き関数)。call site でシードをハッシュしない。</li>
+<li>他の抽選をずらしてはいけない抽選 (RNG 中立な変更) は <code>clinosim.determinism</code> のストリーム非消費の
+  <code>sha_quantile</code> / <code>sha_bernoulli</code> / <code>sha_normal</code> / <code>sha_weighted_choice</code> を使い、<code>hashlib.sha256</code> の式を
+  inline で書かない。</li>
+<li><strong><code>datetime.now()</code> / <code>date.today()</code> を生成経路に書かない</strong>。時計を読んでよいファイルは
+  <code>tests/unit/test_determinism_spec_guards.py</code> に固定されており、増やすのは禁止。narrative の時刻は
+  <code>_deterministic_timestamp</code> 系。</li>
 <li><strong><code>@lru_cache</code> 済み loader の戻り値は shared instance — mutate 絶対禁止</strong>
   (<code>load_disease_protocol</code> / <code>load_encounter_condition</code> / <code>load_healthcare_config</code> /
   <code>load_hospital_operations</code> / ほか全 cached loader)。</li>
@@ -2551,79 +2658,73 @@
   prompt-cache 最適化のため<strong>変更禁止</strong>。</li>
 </ul>
 <h2 id="4-canonical-single-source-helpers再実装inline-化-絶対禁止">4. Canonical single-source helpers(再実装・inline 化 絶対禁止)<a class="headerlink" href="#4-canonical-single-source-helpers再実装inline-化-絶対禁止" title="Permanent link">&para;</a></h2>
-<p>同じロジックが 2 箇所以上 = 違反。以下は必ず import して使う:</p>
+<p>同じロジックが 2 箇所以上 = 違反。共通ヘルパーはパスと governing spec 付きで
+<a href="../shared-helpers-catalog.ja/"><code>shared-helpers-catalog.ja.md</code></a> に一覧がある。小さな処理を書く前に必ず引く。
+特に誤りやすい規則:</p>
 <table>
 <thead>
 <tr>
-<th>用途</th>
-<th>Helper(定義場所)</th>
+<th>関心事</th>
+<th>規則</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>JP 判定 / 表示言語</td>
-<td><code>is_jp(country)</code> / <code>is_us(country)</code> / <code>lang_for(country)</code>(<code>modules/_shared.py</code>)。<code>country == "JP"</code> 等の手書き比較禁止</td>
+<td>国判定</td>
+<td><code>is_jp(country)</code> / <code>is_us(country)</code>(<code>clinosim/countries.py</code>)は国ごとの規則にだけ使う。<code>country == "JP"</code> 等の手書き比較禁止。表示言語は <code>lang_for(country)</code> で決め、<code>is_jp</code> では決めない</td>
 </tr>
 <tr>
-<td>国→コード体系選択</td>
-<td><code>system_key_for(kind, country)</code>(<code>clinosim.codes</code>)。jlac10/loinc 等の inline 分岐禁止</td>
+<td>国→コード体系</td>
+<td><code>system_key_for(kind, country)</code> / <code>drug_system_key(code, country)</code>(<code>clinosim.codes</code>)。jlac10/loinc や yj/rxnorm の inline 分岐禁止</td>
 </tr>
 <tr>
 <td>system URI</td>
-<td><code>get_system_uri(key)</code>(<code>clinosim.codes</code>)。URI 文字列 hardcode 禁止</td>
+<td><code>get_system_uri(key)</code>(<code>clinosim.codes</code>)。コード体系 URI の hardcode 禁止。複数ファイルで使う profile / identifier URI はモジュールレベル定数 1 つにする</td>
 </tr>
 <tr>
 <td>code→display</td>
-<td><code>code_lookup(system, code, lang)</code>。display 文字列 hardcode 禁止</td>
+<td><code>display(system, code, lang) or &lt;明示的な fallback&gt;</code>(<code>clinosim.codes</code>)、FHIR の coding は <code>dual_slot_concept</code> / <code>system_coding</code>。<code>lookup(...)</code> は旧 API で新規コードでは使わない。display 文字列の hardcode 禁止</td>
 </tr>
 <tr>
 <td>dict/dataclass 双対 read</td>
-<td><code>get_attr_or_key</code>(<code>_shared.py</code>)/ FHIR builder では <code>_o()</code>。<code>isinstance(x, dict)</code> 分岐の新設禁止。<strong>cache key・比較・分岐などデータを読む全経路に適用</strong>(C-1 教訓: <code>getattr</code> を dict に使い cohort 全体が同一 cache entry を共有した)</td>
+<td><code>get_attr_or_key</code>(<code>modules/_shared.py</code>)。<code>isinstance(x, dict)</code> 分岐やローカル <code>_get</code> の新設禁止。<strong>cache key・比較・分岐などデータを読む全経路に適用</strong>(dict に <code>getattr</code> を使い cohort 全体が同一 cache entry を共有した前例)</td>
 </tr>
 <tr>
 <td>dict/dataclass 双対 write</td>
-<td><code>set_attr_or_key(obj, name, value)</code>(単一フィールド代入)/ <code>get_or_create_container(obj, name, factory)</code>(ネストしたコンテナを取得 or 生成して直接 mutate)。<code>isinstance(rec, dict): rec["x"]=v else: rec.x=v</code> 分岐の新設禁止(session 37 dual-access sweep)</td>
+<td><code>set_attr_or_key(obj, name, value)</code> / <code>get_or_create_container(obj, name, factory)</code></td>
+</tr>
+<tr>
+<td>ハッシュ抽選とシード</td>
+<td><code>clinosim.determinism.sha_*</code> と <code>clinosim/seeding.py</code> の名前付き関数。call site で <code>hashlib.sha256</code> + <code>int.from_bytes</code> を書かない(§3)</td>
+</tr>
+<tr>
+<td>年齢帯</td>
+<td>年齢帯キーの YAML 表を <code>clinosim.age_bands</code> で引く。<code>if age &lt; 18</code> 等の境界 hardcode 禁止</td>
 </tr>
 <tr>
 <td>確率ベクトル</td>
-<td><code>normalize_probabilities(p, fallback="raise")</code>(<code>_shared.py</code>)を YAML 由来の全 <code>rng.choice(p=)</code> に</td>
-</tr>
-<tr>
-<td>lab order 分類</td>
-<td><code>classify_lab_specs</code>(<code>order/panel_grouping.py</code>)</td>
+<td>YAML 由来の全 <code>rng.choice(p=)</code> に <code>normalize_probabilities(p, fallback="raise")</code></td>
 </tr>
 <tr>
 <td>scenario/medication flags</td>
-<td><code>scenario_flags_from_protocol</code> + <code>medication_flags_from_context</code> を <strong>merge して <code>**flags</code> 渡し</strong>。named-arg 追加禁止(J5 教訓)</td>
+<td><code>scenario_flags_from_protocol</code> + <code>medication_flags_from_context</code> を <strong>merge して <code>**flags</code> 渡し</strong>。named-arg 追加禁止(1 か所でしか読まれない flag は他の経路で無効になる)</td>
 </tr>
 <tr>
-<td><strong>重症度サンプリング</strong></td>
-<td><code>sample_severity(protocol, person, rng)</code> / <code>sample_severity_category(...)</code> / <code>category_from_score(score)</code>(<code>disease/severity.py</code>、AD-67)。重症度は疾患 YAML <code>severity.distribution × modifiers</code> が canonical。locale <code>severity_beta</code>/<code>severity_minimum</code> は撤廃済 — 復活禁止。0.3/0.7 のカテゴリ↔score 境界を call-site に hardcode 禁止(<code>SEVERITY_SCORE_RANGES</code> が唯一定義)</td>
+<td>重症度</td>
+<td><code>sample_severity</code> / <code>sample_severity_category</code> / <code>category_from_score</code>(<code>disease/severity.py</code>、AD-67)。疾患 YAML <code>severity.distribution × modifiers</code> が唯一の源。0.3/0.7 境界の hardcode 禁止(<code>SEVERITY_SCORE_RANGES</code> が唯一定義)</td>
 </tr>
 <tr>
-<td><strong>JP Core / JP-CLINS profile URI</strong>(session 50 adv-1 教訓)</td>
-<td>spec の <code>StructureDefinition-*.json</code> の <code>Element.system.fixedUri</code> / <code>Element.fixedUri</code> を直接引用。<strong>推測禁止</strong>。session 50 で <code>_JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/observation-category"</code>(推測)としてしまい、実 spec は <code>http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS</code> で不一致 → HAPI validator が silent-no-op、2.47M records の profile slice compliance fix が完全に無効化された。手順:①<code>iris4h-ai/jp_core/package/StructureDefinition-*.json</code>(or jpfhir.jp fetch)を <code>grep -A2 fixedUri</code> で該当 slice の system URI を確認、②module-level 定数として定義、③<strong><code>tests/unit/output/test_fhir_jp_core_p14_slices.py</code> のように URI を pin する unit test を必ず追加</strong>(推測 URI 差し戻し規制)。同じ規則が JP-eCheckup / SS-MIX2 の profile URI にも適用。</td>
-</tr>
-<tr>
-<td>imaging orders</td>
-<td><code>place_imaging_orders</code>(<code>order/engine.py</code>)</td>
-</tr>
-<tr>
-<td>薬剤 protocol prefix 除去</td>
-<td><code>strip_protocol_prefix</code>(<code>_shared.py</code>。FHIR と narrative の共用)</td>
-</tr>
-<tr>
-<td>LOS 計算</td>
-<td><code>document/engine._compute_los_days</code>(in-progress proxy 込み)</td>
+<td>JP Core / JP-CLINS profile URI</td>
+<td>spec の <code>StructureDefinition-*.json</code> の <code>fixedUri</code> を引用し、<strong>推測しない</strong>。モジュールレベル定数として定義し unit test で pin する(<code>tests/unit/output/test_fhir_jp_core_p14_slices.py</code> が手本)。推測 URI は validator に slice を無視させる。JP-eCheckup / SS-MIX2 の URI も同じ</td>
 </tr>
 <tr>
 <td>locale 表示テーブル</td>
-<td><code>locale/loaders/</code> の cached loaders(<code>locale/loader.py</code> 経由で後方互換 re-export)。<code>medical_display.py:load_med_terms_ja</code>、<code>narrative.py:load_narrative_display_dict</code>、<code>clinical.py</code>、<code>demographics.py</code>、<code>fhir_identity.py</code>。Layer 4 での raw YAML open 禁止</td>
+<td><code>locale/loaders/</code> の cached loaders(<code>locale/loader.py</code> が re-export)。Layer 4 での raw YAML open 禁止</td>
 </tr>
 </tbody>
 </table>
 <p>新しい共通処理が 2 module に必要になったら <code>_shared.py</code> か owner module に 1 箇所定義し
-双方 import。<strong>第三の消費者が現れても import、再定義しない。</strong></p>
+双方 import し、カタログに追加する。<strong>第三の消費者が現れても import、再定義しない。</strong></p>
 <h2 id="5-loader--reference-data-規約">5. Loader / reference data 規約<a class="headerlink" href="#5-loader--reference-data-規約" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Path 定数正規形: <code>_HERE = Path(__file__).resolve().parent</code> / <code>_REF_DIR = _HERE /
@@ -2631,7 +2732,8 @@
   <code>.parent.parent.parent</code> 禁止。他 module の reference_data への直接 path 禁止
   (owner module に accessor を作る。例: <code>observation.microbiology.antibiotic_loinc_lookup</code>)。</li>
 <li><code>@lru_cache</code>: no-param → maxsize=1、<code>(country)</code> → 2。hand-rolled sentinel cache 禁止。</li>
-<li><strong>import/load 時 fail-loud validation(<code>_validate_*</code>)必須</strong>: 外部 ID(SNOMED/LOINC/ICD/
+<li><strong>import/load 時 fail-loud validation 必須</strong>: モジュール参照 YAML はすべて
+  <code>load_validated_yaml(path, Model)</code> で読む(または load 時に Pydantic モデルで検証する)。外部 ID(SNOMED/LOINC/ICD/
   drug key)・確率重み・enum 値(<code>generation_frequency</code> / <code>stage2_strategy</code> 等)を参照する
   YAML は、canonical 集合との照合で未知キー・矛盾を <strong>load 時に raise</strong>。
   <code>dict.get()</code> の silent fall-through 禁止。</li>
@@ -2662,7 +2764,7 @@
   referenceRange + interpretation を両方 emit し出力時に再計算。</li>
 </ul>
 <h2 id="65-共通ロジック所在マップ4-横断ロジック">6.5 共通ロジック所在マップ(4 横断ロジック)<a class="headerlink" href="#65-共通ロジック所在マップ4-横断ロジック" title="Permanent link">&para;</a></h2>
-<p>新規セッションが「◯◯のロジックはどこで、どの入口で書くか」を即引くための一覧。各ロジックは
+<p>誰でも「◯◯のロジックはどこで、どの入口で書くか」を即引くための一覧。各ロジックは
 <strong>単一の canonical 入口</strong>を持ち、call-site で再実装しない(§4 の原則の適用)。</p>
 <table>
 <thead>
@@ -2675,17 +2777,17 @@
 <tbody>
 <tr>
 <td><strong>データ参照</strong>(YAML/参照データの load)</td>
-<td>各 module の <code>load_X()</code>(<code>@lru_cache</code> + <code>_HERE/_REF_DIR/_LOCALE</code> path 定数 + import 時 <code>_validate_X</code>)。他 module の reference_data は owner の accessor 経由(§5)</td>
+<td>各 module の <code>load_X()</code>(<code>@lru_cache</code> + <code>_HERE/_REF_DIR/_LOCALE</code> path 定数 + <code>load_validated_yaml</code> による load 時の Pydantic モデル検証)。他 module の reference_data は owner の accessor 経由(§5)</td>
 <td>Layer 1 = <code>modules/*/reference_data/</code>・<code>locale/</code>・<code>config/</code>。cached loader の戻り値は shared read-only(mutate 禁止)</td>
 </tr>
 <tr>
 <td><strong>データ生成</strong>(乱数・生理・重症度)</td>
-<td>乱数 = <code>derive_sub_seed</code> + <code>ENRICHER_SEED_OFFSETS</code>(lab は <code>panel_specimen_seed</code>/<code>individual_lab_seed</code>)。重症度 = <code>disease.severity.sample_severity</code>。course = <code>clinical_course.select_archetype</code>。生理 = <code>physiology.engine</code>(initialize_state / derive_lab_values)</td>
+<td>乱数 = <code>derive_sub_seed</code> + <code>ENRICHER_SEED_OFFSETS</code> か <code>seeding.py</code> の名前付き関数で seed した <code>determinism.default_rng</code>(lab は <code>panel_specimen_seed</code>/<code>individual_lab_seed</code>)、ストリーム非消費の抽選 = <code>determinism.sha_*</code>。重症度 = <code>disease.severity.sample_severity</code>。course = <code>clinical_course.select_archetype</code>。生理 = <code>physiology.engine</code>(initialize_state / derive_lab_values)</td>
 <td>全乱数 seed 由来で決定的(AD-16)。臨床値は疾患/検査 YAML 駆動、Python にハードコードしない。<code>rng.choice(p=)</code> は <code>normalize_probabilities(p, fallback="raise")</code> 経由</td>
 </tr>
 <tr>
 <td><strong>コードマッピング</strong>(内部名→標準コード→表示)</td>
-<td>内部名→標準コード = <code>locale/&lt;country&gt;/code_mapping_*.yaml</code>。国→コード体系 = <code>system_key_for(kind, country)</code>。code→display = <code>code_lookup(system, code, lang)</code>。system URI = <code>get_system_uri(key)</code></td>
+<td>内部名→標準コード = <code>locale/&lt;country&gt;/code_mapping_*.yaml</code>。国→コード体系 = <code>system_key_for(kind, country)</code>。code→display = <code>display(system, code, lang) or &lt;fallback&gt;</code>。system URI = <code>get_system_uri(key)</code></td>
 <td><code>codes/data/*.yaml</code>(EN 必須、国際標準、locale 非依存)。display 文字列・URI・コードの hardcode/捏造禁止。CIF は code のみ(AD-30)</td>
 </tr>
 <tr>
@@ -2716,8 +2818,9 @@
 </ul>
 <h2 id="8-golden--テスト--検証-gate">8. Golden / テスト / 検証 gate<a class="headerlink" href="#8-golden--テスト--検証-gate" title="Permanent link">&para;</a></h2>
 <ul>
-<li>markers: <code>pytest -m unit</code>(~15s)/ <code>integration</code>(~12min)/ <code>e2e</code>(~4min)/
-  <code>regression</code>(opt-in、goldens byte-diff。template 6 + llm-mock 6)。</li>
+<li>テストスイート: <code>pytest tests/unit</code>(<code>-m unit</code> ではない — marker の無い unit ファイルがある)/
+  <code>pytest -m integration</code> / <code>-m e2e</code> / <code>pytest tests/regression -m regression</code>(opt-in、全 canonical
+  profile の narrative golden byte-diff、template + llm-mock)。</li>
 <li><strong>AD-66 Rule 1</strong>: profile YAML か生成ロジックを変えたら <code>regenerate-goldens</code> +
   <strong>YAML と golden を同一 commit</strong>。</li>
 <li><strong>AD-66 Rule 2 + 臨床内容レビュー</strong>: golden diff は「期待した種類の変化か」の categorize
@@ -2730,7 +2833,7 @@
   実 cohort で grep(破綻文・placeholder 残骸・locale 混入の検出)。test green だけでは不十分。</li>
 <li><code>clinosim audit run -d &lt;cohort&gt;</code>(AD-60 4 軸)= 新機能 PR の一次 gate。</li>
 </ul>
-<h2 id="9-silent-no-op-防御pr-90-classチェックリスト">9. Silent-no-op 防御(PR-90 class)チェックリスト<a class="headerlink" href="#9-silent-no-op-防御pr-90-classチェックリスト" title="Permanent link">&para;</a></h2>
+<h2 id="9-silent-no-op-防御チェックリスト">9. Silent-no-op 防御チェックリスト<a class="headerlink" href="#9-silent-no-op-防御チェックリスト" title="Permanent link">&para;</a></h2>
 <p>新機能・修正が「実際に発火している」ことを構造的に証明する:</p>
 <ol>
 <li><strong>canonical constants</strong> を単一定義し writer/reader 双方が import(ID prefix、URI、
@@ -2741,25 +2844,25 @@
   (例: <code>generator_fallback_docs</code>、eligible&gt;0 かつ fired=0 で WARN)。</li>
 <li><strong>aspirational scaffold 禁止</strong>: 登録したが未消費のコード(seed offset、config field、
    strategy 値)は <strong>wire するか削除</strong>。「後で使う」で ship しない。</li>
-<li>既知の named precedents(再発防止の合言葉):
-   <strong>J5</strong>(flag が 1 venue でしか読まれない)/ <strong>PR-90</strong>(YAML キー大文字小文字不一致で
-   lift 全体が無音 no-op)/ <strong>C-1</strong>(dict に getattr で cache key 退化)/
-   <strong>Call 119 / ICU drip</strong>(golden に臨床誤りが焼き込み)/ <strong>stale TODO</strong>(実測せず着手)。</li>
+<li>覚えておく前例: 1 か所でしか読まれない flag / YAML キーの大文字小文字不一致で機能全体が
+   無音で無効化 / dict に <code>getattr</code> して cache key が 1 つに退化 / golden に臨床誤りが焼き込み
+   (英語文中の「Call 119」、退院処方に ICU の drip)/ 古い TODO を実測せず着手。</li>
 </ol>
 <h2 id="10-fhir-builderlayer-4の要点">10. FHIR builder(Layer 4)の要点<a class="headerlink" href="#10-fhir-builderlayer-4の要点" title="Permanent link">&para;</a></h2>
 <p>詳細 = <a href="../fhir-data-generation-logic.ja/"><code>fhir-data-generation-logic.md</code></a>。最低限:
 CIF は read-only / display・URI・ID prefix は canonical source から / builder 登録は
 registry 経由 / dict+dataclass 両 path のテスト必須 / reference integrity(dangling 禁止)。</p>
 <hr />
-<h2 id="読む順序新規参加の実装-ai-向け">読む順序(新規参加の実装 AI 向け)<a class="headerlink" href="#読む順序新規参加の実装-ai-向け" title="Permanent link">&para;</a></h2>
+<h2 id="読む順序新規参加の実装者向け">読む順序(新規参加の実装者向け)<a class="headerlink" href="#読む順序新規参加の実装者向け" title="Permanent link">&para;</a></h2>
 <ol>
-<li>本書(不変則)</li>
-<li><a href="../README.ja/"><code>README.md</code></a>(読了パス)→ <code>MODULES.md</code>(全体地図)</li>
-<li><code>docs/CONTRIBUTING-modules.md</code>(Layers 1-3 詳細 HOW-TO)</li>
-<li><code>fhir-data-generation-logic.md</code>(Layer 4、builder を書くとき)</li>
-<li><code>clinosim/modules/output/SPEC.md</code>(two-pass narrative、Stage 2 を触るとき)</li>
-<li>直近の chain 文脈: <code>.resume-prompt.md</code> (最新セッション引き継ぎ) + GitHub Issues board (<code>docs/roadmap.ja.md</code> 参照)。旧 <code>TODO.md</code> は Issues 化に伴い廃止</li>
+<li>本書(規則)と <a href="../shared-helpers-catalog.ja/"><code>shared-helpers-catalog.ja.md</code></a>(ヘルパーの所在)</li>
+<li><a href="../README.ja/"><code>README.ja.md</code></a>(読了パス)→ <code>MODULES.md</code>(全体地図)</li>
+<li>変更するドメインの binding spec(冒頭の表)</li>
+<li><code>docs/CONTRIBUTING-modules.ja.md</code>(モジュール HOW-TO)</li>
+<li>FHIR builder を書くときは <code>fhir-data-generation-logic.ja.md</code>、Stage 2 narrative を触るときは <code>clinosim/modules/output/SPEC.md</code></li>
+<li>未着手の作業は GitHub Issues board(<code>docs/roadmap.ja.md</code> 参照)</li>
 </ol>
+<p>English counterpart: <a href="../implementation-rules/"><code>implementation-rules.md</code></a>.</p>
 
 
 

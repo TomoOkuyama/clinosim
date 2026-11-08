@@ -17,7 +17,7 @@
         <link rel="prev" href="../data-generation-walkthrough/">
       
       
-        <link rel="next" href="../documentation-and-code-quality-policy/">
+        <link rel="next" href="../shared-helpers-catalog/">
       
       
         
@@ -705,6 +705,8 @@
       
         
       
+        
+      
     
     
     
@@ -876,6 +878,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#where-each-rule-lives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where each rule lives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#0-workflow-discipline-before-you-write-any-code" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -986,10 +999,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-silent-no-op-defense-the-pr-90-class-checklist" class="md-nav__link">
+  <a href="#9-silent-no-op-defense-checklist" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. Silent-no-op defense (the PR-90 class) checklist
+        9. Silent-no-op defense checklist
       
     </span>
   </a>
@@ -1008,10 +1021,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reading-order-for-a-new-implementation-agent" class="md-nav__link">
+  <a href="#reading-order-for-a-new-implementer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reading order (for a new implementation agent)
+        Reading order (for a new implementer)
       
     </span>
   </a>
@@ -1022,6 +1035,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shared-helpers-catalog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared helpers catalog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2493,6 +2534,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#where-each-rule-lives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where each rule lives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#0-workflow-discipline-before-you-write-any-code" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2603,10 +2655,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-silent-no-op-defense-the-pr-90-class-checklist" class="md-nav__link">
+  <a href="#9-silent-no-op-defense-checklist" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. Silent-no-op defense (the PR-90 class) checklist
+        9. Silent-no-op defense checklist
       
     </span>
   </a>
@@ -2625,10 +2677,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reading-order-for-a-new-implementation-agent" class="md-nav__link">
+  <a href="#reading-order-for-a-new-implementer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reading order (for a new implementation agent)
+        Reading order (for a new implementer)
       
     </span>
   </a>
@@ -2661,51 +2713,119 @@
 
 
 <h1 id="clinosim-implementation-rules--invariants-every-implementer-must-know">clinosim Implementation Rules — invariants every implementer must know<a class="headerlink" href="#clinosim-implementation-rules--invariants-every-implementer-must-know" title="Permanent link">&para;</a></h1>
-<p><strong>Status:</strong> Active (2026-07-03, established in session 32).
-<strong>Audience:</strong> every implementer or implementation agent (Opus 4.7,
-etc.) writing or modifying clinosim code.
-<strong>Positioning:</strong> the <strong>distilled version</strong> of CLAUDE.md (full text)
-and <code>docs/CONTRIBUTING-modules.md</code> (detailed HOW-TO). The rules
-below apply without exception. Details, rationale, and precise
-procedures live in the linked documents. When in doubt, apply the
-four judgment axes: <strong>data quality, clinical coherence,
-maintainability (responsibility-decomposition points), conceptual
-fit</strong>.</p>
+<p><strong>Status:</strong> Active.
+<strong>Audience:</strong> every person or coding agent writing or modifying
+clinosim code.
+<strong>Positioning:</strong> the entry point for the coding rules. The rules
+below apply without exception; each domain's detailed rules live in
+a binding spec (table below), the shared helpers the rules refer to
+are listed in <a href="../shared-helpers-catalog/"><code>shared-helpers-catalog.md</code></a>,
+and the module HOW-TO is <code>docs/CONTRIBUTING-modules.md</code>. When in
+doubt, apply the four judgment axes: <strong>data quality, clinical
+coherence, maintainability (responsibility-decomposition points),
+conceptual fit</strong>.</p>
+<h3 id="where-each-rule-lives">Where each rule lives<a class="headerlink" href="#where-each-rule-lives" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Read</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rules that apply to every change (this page)</td>
+<td><code>implementation-rules.md</code></td>
+</tr>
+<tr>
+<td>Which shared helper to use for X</td>
+<td><a href="../shared-helpers-catalog/"><code>shared-helpers-catalog.md</code></a></td>
+</tr>
+<tr>
+<td>Documentation language, comments, constants placement, dead code</td>
+<td><a href="../documentation-and-code-quality-policy/"><code>documentation-and-code-quality-policy.md</code></a></td>
+</tr>
+<tr>
+<td>Code systems, display text, localization, fallback</td>
+<td><a href="../code-mapping-and-localization-spec/"><code>code-mapping-and-localization-spec.md</code></a></td>
+</tr>
+<tr>
+<td>Random draws, seeds, clocks</td>
+<td><a href="../determinism-and-rng-spec/"><code>determinism-and-rng-spec.md</code></a></td>
+</tr>
+<tr>
+<td>Reference-data YAML, age bands, constants</td>
+<td><a href="../configuration-and-reference-data-spec/"><code>configuration-and-reference-data-spec.md</code></a></td>
+</tr>
+<tr>
+<td>Medication orders, holds, administrations, discharge prescriptions</td>
+<td><a href="../medication-lifecycle-spec/"><code>medication-lifecycle-spec.md</code></a></td>
+</tr>
+<tr>
+<td>Lab values, orders, results</td>
+<td><a href="../lab-orders-and-results-spec/"><code>lab-orders-and-results-spec.md</code></a></td>
+</tr>
+<tr>
+<td>Document planning and narrative wording</td>
+<td><a href="../narrative-and-document-generation-spec/"><code>narrative-and-document-generation-spec.md</code></a></td>
+</tr>
+<tr>
+<td>Encounter setup, snapshot, FHIR finishing</td>
+<td><a href="../encounter-lifecycle-and-export-spec/"><code>encounter-lifecycle-and-export-spec.md</code></a></td>
+</tr>
+<tr>
+<td>FHIR completeness (C1 / C2 / C3)</td>
+<td><a href="../data-model-and-completeness-conventions/"><code>data-model-and-completeness-conventions.md</code></a></td>
+</tr>
+<tr>
+<td>Writing a FHIR builder</td>
+<td><a href="../fhir-data-generation-logic/"><code>fhir-data-generation-logic.md</code></a></td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="0-workflow-discipline-before-you-write-any-code">0. Workflow discipline (before you write any code)<a class="headerlink" href="#0-workflow-discipline-before-you-write-any-code" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Chain workflow (established, do not deviate)</strong>: recon → design
-   spec commit (<code>docs/history/specs-archive/</code>) → TDD implementation
-   (test first) → independent verification → PR → compact
-   adversarial review (5-lens, findings must be evidenced) → fix →
-   whole suite green → merge.</li>
-<li><strong>Scope discipline (★★★)</strong>: no scope expansion after the spec is
+<li><strong>Workflow</strong>: one GitHub Issue per PR → read the code and the
+   binding spec → TDD implementation (test first) → verification on
+   a generated cohort → PR → review (findings must be evidenced) →
+   fix → whole suite green → merge. Larger designs get a design note
+   first (<code>docs/history/specs-archive/</code>).</li>
+<li><strong>Scope discipline</strong>: no scope expansion after the spec is
    finalised. Findings outside scope are addressed only when they
    are "essential to data quality or clinical coherence"; otherwise
    they become <strong>formal entries on the GitHub Issues board</strong> (see
    <code>docs/roadmap.md</code>; the pre-Issues <code>TODO.md</code> ledger has been
    retired) with context, file:line, and a fix proposal.</li>
 <li><strong>Pre-work status audit</strong>: do not take TODO / doc claims at face
-   value; <strong>verify empirically before implementing</strong> (a concrete
-   example: the α-min-3 "CRITICAL wiring gap" turned out to have
-   been resolved two generations back. Counting the cohort output
-   avoided a whole PR of wasted work).</li>
+   value; <strong>verify empirically before implementing</strong> (count the
+   behaviour in a generated cohort first — reported gaps are often
+   already fixed).</li>
 <li><strong>Do not narrate before observing</strong>: never write "success" before
    you see the tool result. Show verification via execution output
    (test output, real-cohort grep, sha256).</li>
-<li><strong>Commit conventions</strong>: <code>feat(&lt;chain&gt;): ...</code> / <code>fix(&lt;chain&gt;
-   adv-1): ...</code> / <code>refactor: ...</code> / <code>docs: ...</code>. Commit per task.
-   Push and open the PR after verification is green.</li>
+<li><strong>Commit conventions</strong>: <code>&lt;type&gt;(&lt;module&gt;): &lt;summary&gt;</code> with type
+   <code>feat</code> / <code>fix</code> / <code>refactor</code> / <code>docs</code> / <code>test</code> / <code>chore</code>, signed
+   off (<code>git commit --signoff</code>, DCO). Push and open the PR after
+   verification is green.</li>
 </ol>
 <h2 id="1-coding-standards">1. Coding standards<a class="headerlink" href="#1-coding-standards" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Python 3.11+ / ruff / mypy strict / line length 100.</li>
-<li><strong>In-code comments and docstrings are English.</strong> User-facing docs
-  follow each file's declared language (CONTRIBUTING and
-  design-guides mix Japanese with English technical terms).</li>
-<li><strong>Types live only in <code>clinosim/types/</code>.</strong> Defining a new dataclass
-  or BaseModel inside module code is forbidden (YAML config =
-  Pydantic BaseModel (AD-18); runtime = <code>@dataclass</code>).</li>
+<li>Python 3.11+ / ruff (line length 120) / mypy (<code>mypy clinosim/</code>
+  must pass locally; CI runs it as informational only) / vulture
+  (unused code; framework-read members go in <code>.vulture-whitelist.py</code>).</li>
+<li><strong>In-code comments and docstrings are English</strong>, except the
+  Japanese-spec categories listed in the documentation policy §4.
+  Documentation is English in
+  <code>*.md</code> with a Japanese counterpart in <code>*.ja.md</code>
+  (<a href="../documentation-and-code-quality-policy/"><code>documentation-and-code-quality-policy.md</code></a> §1).</li>
+<li><strong>Types shared between modules, and the CIF types, live only in
+  <code>clinosim/types/</code></strong> (YAML config = Pydantic BaseModel (AD-18);
+  runtime = <code>@dataclass</code>). A module may define private types that
+  never leave it: the Pydantic models that validate its own
+  reference YAML (<code>_models.py</code> or next to the loader) and internal
+  helper bundles. Once a second module needs the type, move it to
+  <code>clinosim/types/</code>.</li>
 <li><strong>Public API = only what a module's <code>__init__.py</code> exports.</strong></li>
 <li>Comments describe only "constraints the code cannot show". Do not
   write change history or self-evident explanations.</li>
@@ -2725,7 +2845,7 @@ fit</strong>.</p>
 </tr>
 <tr>
 <td>AD-30</td>
-<td><strong>CIF holds codes only; no display text.</strong> Display is resolved at output time via <code>clinosim.codes.lookup()</code>.</td>
+<td><strong>CIF holds codes only; no display text.</strong> Display is resolved at output time via <code>clinosim.codes.display(...)</code> with an explicit fallback.</td>
 </tr>
 <tr>
 <td>AD-65</td>
@@ -2752,14 +2872,21 @@ fit</strong>.</p>
 <h2 id="3-determinism-ad-16--ad-59--absolute-rules">3. Determinism (AD-16 / AD-59) — absolute rules<a class="headerlink" href="#3-determinism-ad-16--ad-59--absolute-rules" title="Permanent link">&para;</a></h2>
 <p><strong>Normative spec:</strong> <a href="../determinism-and-rng-spec/"><code>determinism-and-rng-spec.md</code></a> defines the generator factory, seed derivation, RNG-neutral changes and clock rules, with their guards. Below is a summary.</p>
 <ul>
-<li><code>random.random()</code> is forbidden. The RNG must always derive from a
-  sub-seed of <code>numpy.random.Generator</code> (<code>clinosim/seeding.py</code>:
-  <code>derive_sub_seed(master_seed, module_offset, key)</code> + registration
-  under <code>ENRICHER_SEED_OFFSETS</code> (16-bit hex-ASCII); labs use
-  <code>panel_specimen_seed</code> / <code>individual_lab_seed</code>).</li>
+<li><code>random</code> and <code>numpy.random.default_rng</code> are forbidden. Every
+  generator comes from <code>clinosim.determinism.default_rng(seed)</code> with
+  a seed derived in <code>clinosim/seeding.py</code>
+  (<code>derive_sub_seed(master_seed, module_offset, key)</code> + registration
+  under <code>ENRICHER_SEED_OFFSETS</code> (16-bit hex-ASCII), or a named
+  per-entity seed function such as <code>panel_specimen_seed</code> /
+  <code>individual_lab_seed</code>). Never hash a seed at the call site.</li>
+<li>A draw that must not shift any other draw (an RNG-neutral change)
+  uses the stream-free <code>sha_quantile</code> / <code>sha_bernoulli</code> /
+  <code>sha_normal</code> / <code>sha_weighted_choice</code> from <code>clinosim.determinism</code>,
+  never an inline <code>hashlib.sha256</code> formula.</li>
 <li><strong><code>datetime.now()</code> / <code>date.today()</code> do not appear on the
-  generation path.</strong> (The remaining occurrences are TODOs in the
-  determinism chain — adding more is forbidden.) Narrative
+  generation path.</strong> The files allowed to read a clock are pinned
+  in <code>tests/unit/test_determinism_spec_guards.py</code>; adding more is
+  forbidden. Narrative
   timestamps use the <code>_deterministic_timestamp</code> family.</li>
 <li><strong>The return value of an <code>@lru_cache</code>d loader is a shared
   instance — never mutate it</strong> (<code>load_disease_protocol</code> /
@@ -2771,81 +2898,76 @@ fit</strong>.</p>
   patients</code>) is optimised for the prompt cache; <strong>do not change it</strong>.</li>
 </ul>
 <h2 id="4-canonical-single-source-helpers-re-implementation-and-inlining-absolutely-forbidden">4. Canonical single-source helpers (re-implementation and inlining absolutely forbidden)<a class="headerlink" href="#4-canonical-single-source-helpers-re-implementation-and-inlining-absolutely-forbidden" title="Permanent link">&para;</a></h2>
-<p>The same logic in two or more places is a violation. Always import
-and use the helpers below:</p>
+<p>The same logic in two or more places is a violation. Every shared
+helper, with its path and the spec that governs it, is listed in
+<a href="../shared-helpers-catalog/"><code>shared-helpers-catalog.md</code></a>; look there
+before writing any small utility. The rules that most often go wrong:</p>
 <table>
 <thead>
 <tr>
-<th>Purpose</th>
-<th>Helper (definition site)</th>
+<th>Concern</th>
+<th>Rule</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>JP / US decision / display language</td>
-<td><code>is_jp(country)</code> / <code>is_us(country)</code> / <code>lang_for(country)</code> (<code>modules/_shared.py</code>). Hand-written <code>country == "JP"</code> comparisons are forbidden.</td>
+<td>Country decisions</td>
+<td><code>is_jp(country)</code> / <code>is_us(country)</code> (<code>clinosim/countries.py</code>) for country rules only. Hand-written <code>country == "JP"</code> comparisons are forbidden. The display language comes from <code>lang_for(country)</code>, never from <code>is_jp</code>.</td>
 </tr>
 <tr>
-<td>Country → code-system selection</td>
-<td><code>system_key_for(kind, country)</code> (<code>clinosim.codes</code>). Inline jlac10 / loinc branching is forbidden.</td>
+<td>Code system per country</td>
+<td><code>system_key_for(kind, country)</code> / <code>drug_system_key(code, country)</code> (<code>clinosim.codes</code>). Inline jlac10 / loinc or yj / rxnorm branching is forbidden.</td>
 </tr>
 <tr>
 <td>System URI</td>
-<td><code>get_system_uri(key)</code> (<code>clinosim.codes</code>). Hard-coding URI strings is forbidden.</td>
+<td><code>get_system_uri(key)</code> (<code>clinosim.codes</code>). Hard-coded code-system URIs are forbidden; a profile or identifier URI used in more than one file is one module-level constant.</td>
 </tr>
 <tr>
 <td>code → display</td>
-<td><code>code_lookup(system, code, lang)</code>. Hard-coding display strings is forbidden.</td>
+<td><code>display(system, code, lang) or &lt;explicit fallback&gt;</code> (<code>clinosim.codes</code>); FHIR codings via <code>dual_slot_concept</code> / <code>system_coding</code>. <code>lookup(...)</code> is legacy and not used in new code; hard-coded display strings are forbidden.</td>
 </tr>
 <tr>
 <td>Dict / dataclass dual read</td>
-<td><code>get_attr_or_key</code> (<code>_shared.py</code>) / <code>_o()</code> in FHIR builders. Adding new <code>isinstance(x, dict)</code> branches is forbidden. <strong>Applies to every read path — cache keys, comparisons, branching</strong> (lesson from C-1: <code>getattr</code> was used on a dict, so the whole cohort shared a single cache entry).</td>
+<td><code>get_attr_or_key</code> (<code>modules/_shared.py</code>). New <code>isinstance(x, dict)</code> branches and local <code>_get</code> helpers are forbidden. <strong>Applies to every read path — cache keys, comparisons, branching</strong> (a <code>getattr</code> on a dict once made a whole cohort share one cache entry).</td>
 </tr>
 <tr>
 <td>Dict / dataclass dual write</td>
-<td><code>set_attr_or_key(obj, name, value)</code> (single-field assignment) / <code>get_or_create_container(obj, name, factory)</code> (obtain-or-create a nested container and mutate directly). Adding new <code>isinstance(rec, dict): rec["x"]=v else: rec.x=v</code> branches is forbidden (session 37 dual-access sweep).</td>
+<td><code>set_attr_or_key(obj, name, value)</code> / <code>get_or_create_container(obj, name, factory)</code>.</td>
+</tr>
+<tr>
+<td>Hash-based draws and seeds</td>
+<td><code>clinosim.determinism.sha_*</code> and named functions in <code>clinosim/seeding.py</code>; never <code>hashlib.sha256</code> + <code>int.from_bytes</code> at the call site (§3).</td>
+</tr>
+<tr>
+<td>Age bands</td>
+<td><code>clinosim.age_bands</code> over a YAML table keyed by bands; hard-coded <code>if age &lt; 18</code> cut-offs are forbidden.</td>
 </tr>
 <tr>
 <td>Probability vectors</td>
-<td><code>normalize_probabilities(p, fallback="raise")</code> (<code>_shared.py</code>) on every YAML-sourced <code>rng.choice(p=)</code>.</td>
-</tr>
-<tr>
-<td>Lab-order classification</td>
-<td><code>classify_lab_specs</code> (<code>order/panel_grouping.py</code>).</td>
+<td><code>normalize_probabilities(p, fallback="raise")</code> on every YAML-sourced <code>rng.choice(p=)</code>.</td>
 </tr>
 <tr>
 <td>Scenario / medication flags</td>
-<td>Merge <code>scenario_flags_from_protocol</code> + <code>medication_flags_from_context</code> and pass <strong><code>**flags</code></strong>. Adding named-arg parameters is forbidden (J5 lesson).</td>
+<td>Merge <code>scenario_flags_from_protocol</code> + <code>medication_flags_from_context</code> and pass <strong><code>**flags</code></strong>. Adding named-arg parameters is forbidden (a flag read in only one venue silently disables it in the others).</td>
 </tr>
 <tr>
-<td><strong>Severity sampling</strong></td>
-<td><code>sample_severity(protocol, person, rng)</code> / <code>sample_severity_category(...)</code> / <code>category_from_score(score)</code> (<code>disease/severity.py</code>, AD-67). Severity's canonical source is disease-YAML <code>severity.distribution × modifiers</code>. The locale-side <code>severity_beta</code> / <code>severity_minimum</code> have been removed — do not resurrect. Hard-coding the 0.3 / 0.7 category-↔-score boundaries at call sites is forbidden (<code>SEVERITY_SCORE_RANGES</code> is the single definition).</td>
+<td>Severity</td>
+<td><code>sample_severity</code> / <code>sample_severity_category</code> / <code>category_from_score</code> (<code>disease/severity.py</code>, AD-67). The disease YAML <code>severity.distribution × modifiers</code> is the only source; hard-coding the 0.3 / 0.7 boundaries is forbidden (<code>SEVERITY_SCORE_RANGES</code> is the single definition).</td>
 </tr>
 <tr>
-<td><strong>JP Core / JP-CLINS profile URIs</strong> (lesson from session 50 adv-1)</td>
-<td>Quote the <code>Element.system.fixedUri</code> / <code>Element.fixedUri</code> in the spec's <code>StructureDefinition-*.json</code> directly. <strong>Do not guess.</strong> In session 50 we set <code>_JP_OBSERVATION_CATEGORY_SYSTEM = "http://jpfhir.jp/fhir/observation-category"</code> (a guess); the real spec is <code>http://jpfhir.jp/fhir/core/CodeSystem/JP_SimpleObservationCategory_CS</code>, so the URIs mismatched → the HAPI validator silent-no-op'd, invalidating a profile-slice-compliance fix over 2.47M records completely. Procedure: (1) <code>grep -A2 fixedUri</code> the relevant <code>StructureDefinition-*.json</code> under <code>iris4h-ai/jp_core/package/</code> (or a jpfhir.jp fetch) to find the slice's system URI, (2) define it as a module-level constant, (3) <strong>always add a unit test that pins the URI, as in <code>tests/unit/output/test_fhir_jp_core_p14_slices.py</code></strong> (the guess-URI regression guard). The same rule applies to JP-eCheckup / SS-MIX2 profile URIs.</td>
-</tr>
-<tr>
-<td>Imaging orders</td>
-<td><code>place_imaging_orders</code> (<code>order/engine.py</code>).</td>
-</tr>
-<tr>
-<td>Drug protocol prefix stripping</td>
-<td><code>strip_protocol_prefix</code> (<code>_shared.py</code>; shared between FHIR and narrative).</td>
-</tr>
-<tr>
-<td>LOS computation</td>
-<td><code>document/engine._compute_los_days</code> (including the in-progress proxy).</td>
+<td>JP Core / JP-CLINS profile URIs</td>
+<td>Quote the <code>fixedUri</code> from the spec's <code>StructureDefinition-*.json</code>; <strong>do not guess</strong>. Define it as a module-level constant and pin it with a unit test (<code>tests/unit/output/test_fhir_jp_core_p14_slices.py</code> is the model). A guessed URI makes validators silently ignore the slice. The same rule applies to JP-eCheckup / SS-MIX2 URIs.</td>
 </tr>
 <tr>
 <td>Locale display tables</td>
-<td>The cached loaders in <code>locale/loaders/</code> (re-exported from <code>locale/loader.py</code> façade): <code>medical_display.py:load_med_terms_ja</code>, <code>narrative.py:load_narrative_display_dict</code>, <code>clinical.py</code>, <code>demographics.py</code>, <code>fhir_identity.py</code>. Opening raw YAML in Layer 4 is forbidden.</td>
+<td>The cached loaders in <code>locale/loaders/</code> (re-exported by <code>locale/loader.py</code>). Opening raw YAML in Layer 4 is forbidden.</td>
 </tr>
 </tbody>
 </table>
 <p>If the same shared logic is needed in a second module, define it
-once in <code>_shared.py</code> or the owner module and import from both.
-<strong>When a third consumer appears, import it — do not redefine.</strong></p>
+once in <code>_shared.py</code> or the owner module, import it from both, and
+add it to the catalog. <strong>When a third consumer appears, import it —
+do not redefine.</strong></p>
 <h2 id="5-loader--reference-data-conventions">5. Loader / reference-data conventions<a class="headerlink" href="#5-loader--reference-data-conventions" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Canonical path constants: <code>_HERE = Path(__file__).resolve().parent</code>
@@ -2856,8 +2978,10 @@ once in <code>_shared.py</code> or the owner module and import from both.
   <code>observation.microbiology.antibiotic_loinc_lookup</code>).</li>
 <li><code>@lru_cache</code>: no-param → <code>maxsize=1</code>; <code>(country)</code> → 2. Hand-rolled
   sentinel caches are forbidden.</li>
-<li><strong>Fail-loud validation at import / load time (<code>_validate_*</code>) is
-  mandatory.</strong> A YAML that references external IDs (SNOMED, LOINC,
+<li><strong>Fail-loud validation at import / load time is mandatory</strong>:
+  every module reference YAML is loaded through
+  <code>load_validated_yaml(path, Model)</code> (or validated by a Pydantic
+  model at load). A YAML that references external IDs (SNOMED, LOINC,
   ICD, drug key), probability weights, or enum values
   (<code>generation_frequency</code>, <code>stage2_strategy</code>, etc.) must <strong>raise at
   load time</strong> on unknown keys or contradictions detected against
@@ -2895,7 +3019,7 @@ once in <code>_shared.py</code> or the owner module and import from both.
   fabrication of codes</strong> — verify a new code against the NLM API /
   WHO browser before registering.</li>
 <li>When adding a diagnosis code, follow the "Diagnosis code
-  coverage" procedure (CLAUDE.md) and confirm
+  coverage" procedure (<code>AGENTS.md</code>) and confirm
   <code>pytest tests/unit/test_diagnosis_code_coverage.py</code> is green.</li>
 <li><strong>JP output: every display / text / name is Japanese; US output:
   zero Japanese characters.</strong> (The known exception is
@@ -2908,7 +3032,7 @@ once in <code>_shared.py</code> or the owner module and import from both.
   <code>interpretation</code>, and they are recomputed at output time.</li>
 </ul>
 <h2 id="65-cross-cutting-logic-location-map-4-axes">6.5 Cross-cutting-logic location map (4 axes)<a class="headerlink" href="#65-cross-cutting-logic-location-map-4-axes" title="Permanent link">&para;</a></h2>
-<p>A one-page lookup for a new session asking "where does X live and
+<p>A one-page lookup for anyone asking "where does X live and
 what is the entry point?". Each cross-cutting axis has a <strong>single
 canonical entry point</strong> and is not re-implemented at call sites
 (the §4 principle applied).</p>
@@ -2923,17 +3047,17 @@ canonical entry point</strong> and is not re-implemented at call sites
 <tbody>
 <tr>
 <td><strong>Data reference</strong> (YAML / reference-data load)</td>
-<td>Each module's <code>load_X()</code> (<code>@lru_cache</code> + <code>_HERE / _REF_DIR / _LOCALE</code> path constants + <code>_validate_X</code> at import). Reach other-module <code>reference_data</code> through the owner's accessor only (§5).</td>
+<td>Each module's <code>load_X()</code> (<code>@lru_cache</code> + <code>_HERE / _REF_DIR / _LOCALE</code> path constants + a Pydantic model checked at load via <code>load_validated_yaml</code>). Reach other-module <code>reference_data</code> through the owner's accessor only (§5).</td>
 <td>Layer 1 = <code>modules/*/reference_data/</code> / <code>locale/</code> / <code>config/</code>. A cached loader's return value is a shared read-only object (mutation forbidden).</td>
 </tr>
 <tr>
 <td><strong>Data generation</strong> (RNG / physiology / severity)</td>
-<td>RNG = <code>derive_sub_seed</code> + <code>ENRICHER_SEED_OFFSETS</code> (labs = <code>panel_specimen_seed</code> / <code>individual_lab_seed</code>). Severity = <code>disease.severity.sample_severity</code>. Course = <code>clinical_course.select_archetype</code>. Physiology = <code>physiology.engine</code> (<code>initialize_state</code> / <code>derive_lab_values</code>).</td>
+<td>RNG = <code>determinism.default_rng</code> seeded by <code>derive_sub_seed</code> + <code>ENRICHER_SEED_OFFSETS</code> or a named <code>seeding.py</code> function (labs = <code>panel_specimen_seed</code> / <code>individual_lab_seed</code>); stream-free draws = <code>determinism.sha_*</code>. Severity = <code>disease.severity.sample_severity</code>. Course = <code>clinical_course.select_archetype</code>. Physiology = <code>physiology.engine</code> (<code>initialize_state</code> / <code>derive_lab_values</code>).</td>
 <td>Every RNG is seed-derived and deterministic (AD-16). Clinical values are driven from disease / lab YAML — never hard-coded in Python. <code>rng.choice(p=)</code> goes through <code>normalize_probabilities(p, fallback="raise")</code>.</td>
 </tr>
 <tr>
 <td><strong>Code mapping</strong> (internal name → standard code → display)</td>
-<td>Internal name → standard code = <code>locale/&lt;country&gt;/code_mapping_*.yaml</code>. Country → code system = <code>system_key_for(kind, country)</code>. code → display = <code>code_lookup(system, code, lang)</code>. System URI = <code>get_system_uri(key)</code>.</td>
+<td>Internal name → standard code = <code>locale/&lt;country&gt;/code_mapping_*.yaml</code>. Country → code system = <code>system_key_for(kind, country)</code>. code → display = <code>display(system, code, lang) or &lt;fallback&gt;</code>. System URI = <code>get_system_uri(key)</code>.</td>
 <td><code>codes/data/*.yaml</code> (<code>en</code> required, international standards, locale-independent). Hard-coding or fabricating display strings / URIs / codes is forbidden. CIF holds codes only (AD-30).</td>
 </tr>
 <tr>
@@ -2970,9 +3094,10 @@ The end-to-end implementation picture is in
 </ul>
 <h2 id="8-golden--test--verification-gates">8. Golden / test / verification gates<a class="headerlink" href="#8-golden--test--verification-gates" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Markers: <code>pytest -m unit</code> (~15 s) / <code>integration</code> (~12 min) /
-  <code>e2e</code> (~4 min) / <code>regression</code> (opt-in; goldens byte-diff —
-  template ×6 + llm-mock ×6).</li>
+<li>Test suites: <code>pytest tests/unit</code> (not <code>-m unit</code> — not every unit
+  file carries the marker) / <code>pytest -m integration</code> / <code>-m e2e</code> /
+  <code>pytest tests/regression -m regression</code> (opt-in; narrative goldens
+  byte-diff for every canonical profile, template + llm-mock).</li>
 <li><strong>AD-66 Rule 1</strong>: whenever profile YAML or generation logic
   changes, run <code>regenerate-goldens</code> and <strong>commit the YAML and
   goldens together</strong>.</li>
@@ -2993,7 +3118,7 @@ The end-to-end implementation picture is in
 <li><code>clinosim audit run -d &lt;cohort&gt;</code> (AD-60, the 4-axis audit) is the
   primary gate for new-feature PRs.</li>
 </ul>
-<h2 id="9-silent-no-op-defense-the-pr-90-class-checklist">9. Silent-no-op defense (the PR-90 class) checklist<a class="headerlink" href="#9-silent-no-op-defense-the-pr-90-class-checklist" title="Permanent link">&para;</a></h2>
+<h2 id="9-silent-no-op-defense-checklist">9. Silent-no-op defense checklist<a class="headerlink" href="#9-silent-no-op-defense-checklist" title="Permanent link">&para;</a></h2>
 <p>Structurally prove that a new feature or fix "actually fires":</p>
 <ol>
 <li><strong>Canonical constants</strong> are defined once and imported by both
@@ -3009,12 +3134,12 @@ The end-to-end implementation picture is in
 <li><strong>No aspirational scaffolding</strong>: registered-but-unconsumed code
    (a seed offset, a config field, a strategy value) must be
    <strong>wired or removed</strong>. Do not ship it "for later".</li>
-<li>Named precedents (mnemonic phrases to prevent recurrence):
-   <strong>J5</strong> (a flag read in one venue only) / <strong>PR-90</strong> (a case-
-   sensitivity mismatch on a YAML key silently no-op'd the whole
-   lift) / <strong>C-1</strong> (<code>getattr</code> on a dict → degenerate cache key) /
-   <strong>Call 119 / ICU drip</strong> (clinical errors baked into a golden) /
-   <strong>stale TODO</strong> (starting work without measuring).</li>
+<li>Precedents to remember: a flag read in only one venue; a
+   case mismatch on a YAML key that silently disabled a whole
+   feature; <code>getattr</code> on a dict producing one shared cache key;
+   clinical errors baked into a golden ("Call 119" in English text,
+   ICU drips as discharge prescriptions); starting work from a stale
+   TODO without measuring.</li>
 </ol>
 <h2 id="10-fhir-builder-layer-4-headlines">10. FHIR builder (Layer 4) headlines<a class="headerlink" href="#10-fhir-builder-layer-4-headlines" title="Permanent link">&para;</a></h2>
 <p>Detail: <a href="../fhir-data-generation-logic/"><code>fhir-data-generation-logic.md</code></a>.
@@ -3023,20 +3148,14 @@ from a canonical source; builder registration goes through the
 registry; both dict and dataclass paths must be tested; reference
 integrity must hold (no dangling references).</p>
 <hr />
-<h2 id="reading-order-for-a-new-implementation-agent">Reading order (for a new implementation agent)<a class="headerlink" href="#reading-order-for-a-new-implementation-agent" title="Permanent link">&para;</a></h2>
+<h2 id="reading-order-for-a-new-implementer">Reading order (for a new implementer)<a class="headerlink" href="#reading-order-for-a-new-implementer" title="Permanent link">&para;</a></h2>
 <ol>
-<li>This document (invariants).</li>
-<li><a href="../"><code>README.md</code></a> (reading path) → <code>MODULES.md</code> (project
-   map).</li>
-<li><code>docs/CONTRIBUTING-modules.md</code> (Layers 1-3 detailed HOW-TO).</li>
-<li><code>fhir-data-generation-logic.md</code> (Layer 4, when writing a
-   builder).</li>
-<li><code>clinosim/modules/output/SPEC.md</code> (two-pass narrative — when you
-   touch Stage 2).</li>
-<li>The most recent chain context: <code>.resume-prompt.md</code> (latest
-   session hand-off at repo root) + the GitHub Issues board (see
-   <code>docs/roadmap.md</code>; the pre-Issues <code>TODO.md</code> <code>deferred</code> sections
-   have been retired).</li>
+<li>This document (rules) and <a href="../shared-helpers-catalog/"><code>shared-helpers-catalog.md</code></a> (where the helpers are).</li>
+<li><a href="../"><code>README.md</code></a> (reading path) → <code>MODULES.md</code> (project map).</li>
+<li>The binding spec of the domain you are changing (table at the top).</li>
+<li><code>docs/CONTRIBUTING-modules.md</code> (module HOW-TO).</li>
+<li><code>fhir-data-generation-logic.md</code> when writing a FHIR builder; <code>clinosim/modules/output/SPEC.md</code> when touching Stage 2 narratives.</li>
+<li>The GitHub Issues board (see <code>docs/roadmap.md</code>) for open work.</li>
 </ol>
 <p>Japanese counterpart: <a href="../implementation-rules.ja/"><code>implementation-rules.ja.md</code></a>.</p>
 
@@ -3091,13 +3210,13 @@ integrity must hold (no dangling references).</p>
         
         
           
-          <a href="../documentation-and-code-quality-policy/" class="md-footer__link md-footer__link--next" aria-label="Next: Documentation + code-quality policy">
+          <a href="../shared-helpers-catalog/" class="md-footer__link md-footer__link--next" aria-label="Next: Shared helpers catalog">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Documentation + code-quality policy
+                Shared helpers catalog
               </div>
             </div>
             <div class="md-footer__button md-icon">
