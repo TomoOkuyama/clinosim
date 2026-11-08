@@ -21,7 +21,12 @@ If you're going to work on the code, please also read:
   practical playbook for adding a new module / plugin / FHIR builder
   (Base vs Module classification, enricher stages, registry usage, PR
   verification via `clinosim audit run`).
-- [`DESIGN.md`](DESIGN.md) — 55+ architecture decision records.
+- [`DESIGN.md`](DESIGN.md) — landing pointer to the architecture docs
+  under `docs/architecture/`; the architecture decision records
+  (AD-1 through AD-71) are in
+  [`docs/architecture/adr-history.md`](docs/architecture/adr-history.md)
+  plus the summary tables in `design-principles.md` and
+  `architecture-notes.md`.
 - [`AGENTS.md`](AGENTS.md) — repo-wide conventions and invariants
   (canonical AI-agent instructions per the [AGENTS.md convention](https://agentmd.dev);
   `CLAUDE.md` is a thin pointer to this file).

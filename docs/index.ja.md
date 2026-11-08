@@ -22,7 +22,7 @@
 生理学状態 (`clinosim/types/clinical.py::PhysiologicalState`) を保持
 し、あらゆる検査 / vital / 薬剤はその状態から導出されます。
 
-3 つの具体的な差別化ポイント:
+4 つの具体的な差別化ポイント:
 
 - **構造による臨床整合性。** post-hoc フィルタではなく、生理学モデル
   が矛盾した検査値を不可能にします。
@@ -41,8 +41,8 @@
 ## 30 秒で開始
 
 ```bash
-pip install clinosim                                     # (PyPI 公開準備中)
-# または: pip install "git+https://github.com/TomoOkuyama/clinosim.git@master"
+pip install clinosim                                     # PyPI の最新リリース
+# 未リリースの master を使う場合: pip install "git+https://github.com/TomoOkuyama/clinosim.git@master"
 
 clinosim dataset build jp-100 --output ./jp-100          # 約 30 秒
 clinosim eval -d ./jp-100                                # 評価

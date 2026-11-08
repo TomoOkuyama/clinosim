@@ -47,6 +47,8 @@ Start here if you're evaluating or using clinosim:
   workflow, DCO sign-off, CI matrix.
 - **[CONTRIBUTING-modules.md](CONTRIBUTING-modules.md)** — the
   module-boundary rules (AD-55/AD-56) that new modules must follow.
+- **[architecture/](architecture/)** — design principles, per-module
+  architecture notes, and the ADR history (split out of `DESIGN.md`).
 - **[design-guides/](design-guides/)** — long-form design guides,
   including the project-concept and implementation-rules docs that
   `AGENTS.md` links to for depth.
@@ -80,7 +82,8 @@ should NOT start here.
 ## Not in this folder
 
 - **Root READMEs** — `../README.md`, `../CHANGELOG.md`, `../DESIGN.md`
-  (large, mixed audience — being split, see Issue #568)
+  (a short landing pointer to [architecture/](architecture/), where
+  the design principles, architecture notes and ADR history live)
 - **Per-module docs** — every module under `../clinosim/modules/`
   has its own `README.md` describing its inputs/outputs and any
   invariants specific to that module.
@@ -88,7 +91,8 @@ should NOT start here.
 
 ## Contributing to these docs
 
-Follow the file-suffix rule in `AGENTS.md § Documentation naming rule`:
-English default (no suffix), Japanese variant `*.ja.md`. Add new user-
+Follow the file-suffix rule in
+[`design-guides/documentation-and-code-quality-policy.md`](design-guides/documentation-and-code-quality-policy.md)
+§1: English default (no suffix), Japanese variant `*.ja.md`. Add new user-
 facing docs under `reference/`, new design notes under `design-notes/`,
 new architecture guides under `design-guides/`.

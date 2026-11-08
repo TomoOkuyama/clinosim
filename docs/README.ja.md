@@ -47,6 +47,8 @@ clinosim の評価・利用を検討中ならここから:
   ワークフロー、DCO サインオフ、CI マトリクス。
 - **[CONTRIBUTING-modules.md](CONTRIBUTING-modules.ja.md)** — 新規
   モジュールが従うべきモジュール境界ルール (AD-55/AD-56)。
+- **[architecture/](architecture/)** — 設計原則、モジュール別
+  アーキテクチャノート、ADR 履歴 (`DESIGN.md` から分割)。
 - **[design-guides/](design-guides/)** — 長文の設計ガイド。
   `AGENTS.md` が深掘りとしてリンクする project-concept と
   implementation-rules を含む。
@@ -80,7 +82,8 @@ clinosim の評価・利用を検討中ならここから:
 ## このフォルダに **ない** もの
 
 - **Root README** — `../README.md` / `../CHANGELOG.md` / `../DESIGN.md`
-  (大規模、mixed audience — 分割中、Issue #568 参照)
+  (設計原則・アーキテクチャノート・ADR 履歴を置く
+  [architecture/](architecture/) への短い landing pointer)
 - **モジュール別ドキュメント** — `../clinosim/modules/` 配下の各
   モジュールは独自の `README.md` を持ち、入出力とモジュール固有の
   不変条件を記述。
@@ -88,7 +91,8 @@ clinosim の評価・利用を検討中ならここから:
 
 ## このドキュメントへの貢献
 
-`AGENTS.md § Documentation naming rule` のファイル接尾辞規則に従う:
+[`design-guides/documentation-and-code-quality-policy.md`](design-guides/documentation-and-code-quality-policy.ja.md)
+§1 のファイル接尾辞規則に従う:
 英語がデフォルト (接尾辞なし)、日本語 variant は `*.ja.md`。新規
 ユーザー向けドキュメントは `reference/` 配下、新規設計ノートは
 `design-notes/` 配下、新規アーキテクチャガイドは `design-guides/`
