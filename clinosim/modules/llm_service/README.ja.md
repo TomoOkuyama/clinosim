@@ -31,7 +31,7 @@ prompt cache、provider 選択を所有する。
 
 ## Public API
 
-全 downstream module は package root から import する。下記 18
+全 downstream module は package root から import する。下記 16
 symbol (`__all__`) が公開 surface の全て:
 
 ```python
@@ -92,10 +92,21 @@ from clinosim.modules.llm_service import (
   mock)。
 - Provider SDK (`llm_service` 自体ではなく各 provider file で遅延
   load): `boto3` (bedrock)、`httpx` (ollama + vllm)。
+- `clinosim.datafiles` — `load_data_yaml`, `load_validated_yaml`
+  (`reference_data/task_categories.yaml` と `task_loincs.yaml` は
+  `engine.py` の Pydantic model `_TaskCategoriesFile` /
+  `_TaskLoincsFile` で検証)。
+- `clinosim.codes` — `lookup` (task の LOINC code が登録済みか検証)。
+- `clinosim.types.document` — `DocumentType` (task と文書種別の同期
+  検査)。
 - `hashlib.sha256` — cache key 導出。
-- `yaml` — `factory.py` の config file loader。
-- 他の `clinosim.modules.*` には依存しない (本モジュールは全 module が
-  依存できる leaf)。
+- `yaml` — `factory.py` の config file loader と `prompt_registry.py`
+  の prompt manifest、`pydantic` — reference YAML model。
+- 他の `clinosim.modules.*` は import しない (本モジュールは全 module
+  が依存できる leaf)。`engine.py` は `DOCUMENT_LOINC` のために
+  `modules/document/reference_data/document_type_specs.yaml` をデータ
+  ファイルとして直接読むが、`document` package (本モジュールを import
+  する) は import しない。
 
 ## 定数と設定
 
@@ -139,8 +150,8 @@ from clinosim.modules.llm_service import (
 
 ```
 clinosim/modules/llm_service/
-  __init__.py                    公開 API surface (18 symbol)
-  engine.py                      LLMService + task enum + prompt builder (~950 LOC)
+  __init__.py                    公開 API surface (16 symbol)
+  engine.py                      LLMService + task enum + task metadata loader (task_categories / task_loincs YAML model)
   factory.py                     build_from_config + build_from_config_file
   prompt_registry.py             PromptRegistry + PromptSpec
   cache.py                       PromptCache (SHA-256 keyed disk cache)

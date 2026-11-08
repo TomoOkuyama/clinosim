@@ -102,7 +102,12 @@ from clinosim.modules.imaging.inference import (
 - `clinosim.types.encounter` — `OrderType`, `OrderStatus`.
 - `clinosim.types.imaging` — `ImagingSeries`, `ImagingStudyRecord`,
   `RadiologyReport` (re-exported via `__init__.py`).
-- `numpy`, `yaml`.
+- `clinosim.datafiles` — `load_data_yaml`, `load_validated_yaml`.
+- `clinosim.determinism` — per-patient sub-RNG construction.
+- `clinosim.locale` — `i18n.t`, `localized.localized`.
+- `clinosim.codes.snomed_concepts` (via `audit.py`) —
+  `FINDING_NORMAL`, `FINDING_ABNORMAL`.
+- `numpy`, `pydantic` (reference-YAML models in `engine.py`).
 
 ## Constants and configuration
 
@@ -143,6 +148,8 @@ clinosim/modules/imaging/
     modalities.yaml                modality + default_views_by_body_site
     body_sites.yaml                SNOMED body-site catalog
     impression_templates.yaml      per-(modality × body_site) report templates
+    bedside_examinations.yaml      work-up order names that are bedside examinations, not imaging (bedside_examination_names, Issue #2796)
+    imaging-impression-keywords.yaml  normal / abnormal impression phrases for the radiology DiagnosticReport conclusionCode (read by output/fhir_r4/labs/diagnostic_report.py)
 ```
 
 The module has **no `enricher.py`** — the enricher entry lives in
@@ -152,7 +159,7 @@ The module has **no `enricher.py`** — the enricher entry lives in
 
 Registered in
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`~L380-391`):
+(`register_builtin_enrichers`):
 
 - `name="imaging"`, `stage=POST_ENCOUNTER`, `order=90`,
   `enabled=lambda c: True`. Runs after `antibiotic` (order=85) and
@@ -165,7 +172,7 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| Enricher registry | [`clinosim/simulator/enrichers.py:385`](../../simulator/enrichers.py) | POST_ENCOUNTER order=90 registration. |
+| Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) `register_builtin_enrichers` | POST_ENCOUNTER order=90 registration. |
 | Audit registry | [`clinosim/modules/imaging/audit.py`](audit.py) | AD-60 audit plug-in. |
 | FHIR `ImagingStudy` / `Endpoint` / radiology `DiagnosticReport` / `ServiceRequest` builders | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | Emit the four resource families from `extensions["imaging"]`. |
 | Order module | [`clinosim/modules/order/engine.py`](../order/engine.py) | `place_imaging_orders` reads modality catalog's `default_views_by_body_site` for empty-views fallback. |

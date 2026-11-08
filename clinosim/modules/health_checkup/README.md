@@ -90,9 +90,21 @@ age-tier thresholds (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
   `EncounterType`, `Order`, `OrderResult`, `OrderStatus`, `OrderType`.
 - `clinosim.types.output` — `CIFPatientRecord` (the new checkup
   record).
+- `clinosim.modules.document.narrative.registry` — `document_loinc`
+  (LOINC of the checkup-report document stub).
+- `clinosim.modules.observation.engine` — `get_lab_unit`.
+- `clinosim.modules.order.panel_grouping` — `load_panel_definitions`
+  (lazy import; checkup lab panel).
+- `clinosim.modules.physiology.engine` — `HBA1C_NONDM_BASE`,
+  `hba1c_from_glycemic_control`, `hba1c_latent_at` (lazy imports;
+  HbA1c derivation).
+- `clinosim.determinism` — RNG construction for the measurement-noise
+  sub-RNG.
+- `clinosim.codes.drugs` — `has_drug`; `clinosim.codes.valuesets` —
+  `concept_group`.
+- `clinosim.locale` — `i18n.t`, `loader.load_reference_ranges`.
 - `hashlib.sha256` — patient selection.
 - `numpy` — `np.random.Generator` for measurement noise.
-- No dependency on any other `clinosim.modules.*`.
 
 ## Constants and configuration
 
@@ -131,7 +143,7 @@ in `engine.py` and reference values are constants, not YAML.
 
 Registered in
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`~L510-540`) under `register_builtin_enrichers`:
+under `register_builtin_enrichers`:
 
 - `name="health_checkup"`, `stage=POST_RECORDS`, `order=70`.
 - `enabled=_health_checkup_enabled` — requires
@@ -147,7 +159,7 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| Enricher registry | [`clinosim/simulator/enrichers.py:534`](../../simulator/enrichers.py) | POST_RECORDS order=70 registration. |
+| Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) `register_builtin_enrichers` | POST_RECORDS order=70 registration. |
 | FHIR Composition builder | [`clinosim/modules/output/fhir_r4/documents/jp_clins/echeckup_general.py`](../output/fhir_r4/documents/jp_clins/echeckup_general.py) (via `documents/composition.py`) | Emits the populated `HEALTH_CHECKUP_REPORT` as a JP-eCheckup General `Composition`. |
 | FHIR DocumentReference builder | [`clinosim/modules/output/fhir_r4/documents/document_reference_checkup.py`](../output/fhir_r4/documents/document_reference_checkup.py) | Emits a companion `DocumentReference` (`drf-<document_id>`) that references the Composition; skipped while `narrative` is `None`. |
 | Narrative Stage 2 | [`clinosim/modules/document/narrative/`](../document/narrative/README.md) (`registry.py`, `template_generator.py`) | Fills the stub's `narrative.sections` with the per-value interpretation + Q4-summary text. |

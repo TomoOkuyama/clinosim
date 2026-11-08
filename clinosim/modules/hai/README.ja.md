@@ -55,18 +55,19 @@ HAI cascade の中核。
 ## Public API
 
 ```python
+# パッケージ __all__ (9 名)
 from clinosim.modules.hai import (
     HAI_TYPES,                                     # ("clabsi", "cauti", "vap")
     load_hai_antibiogram,                          # () -> dict (@lru_cache, validated)
-)
-from clinosim.modules.hai.engine import (
     sample_hai_onset,                              # (device, rate_cfg, rng) -> (occurred, onset_day_offset | None)
     load_hai_rates,                                # () -> dict (@lru_cache)
+    hai_icd10_code,                                # (hai_type) -> HAI 種別の ICD-10 code
     load_hai_codes,                                # () -> dict (@lru_cache)
     load_hai_organisms,                            # () -> dict (@lru_cache)
     load_hai_specimens,                            # () -> dict (@lru_cache)
+    enrich_hai,                                    # POST_ENCOUNTER entry (enricher.py から)
 )
-from clinosim.modules.hai.enricher import enrich_hai   # POST_ENCOUNTER entry
+# パッケージからは再 export されない:
 from clinosim.modules.hai.lab_lift import (
     apply_hai_lab_lift,                            # (record, encounter, state_history, admission_time, country="US")
                                                    #   -> int (変更した observation 数。lab_results を mutate)
@@ -102,11 +103,22 @@ from clinosim.modules.hai.lab_lift import (
   `load_hai_antibiogram` が検証時に消費)。
 - `clinosim.modules.observation.engine` — `round_to_precision`,
   `determine_flag` (lift 後に再適用)。
+- `clinosim.modules.observation.microbiology` —
+  `workup_culture_order` (enricher で lazy import)。
+- `clinosim.modules.device.engine` — `load_devices_config`
+  (`engine.py` で lazy import。`hai_rates.yaml` の各
+  `source_device_type` が `devices.yaml` の device を指すことを検証)。
 - `clinosim.audit.registry` (`audit.py` 経由) — AD-60 audit 登録。
+- `clinosim.determinism` — 患者単位 sub-RNG 用の `default_rng`。
+- `clinosim.codes` — `code_exists` (YAML model での code 検証)。
+- `clinosim.datafiles` — `load_data_yaml`, `load_validated_yaml`。
+- `clinosim.locale` — `loader.load_code_mapping` (`engine.py`)、
+  `loader.lab_codes` (`audit.py`)、`i18n.t` (enricher)。
 - `clinosim.types.device` — `DeviceRecord`、`clinosim.types.hai` —
   `HAIEvent`、`clinosim.types.microbiology` — `MicrobiologyResult`,
-  `SusceptibilityResult`。
-- `numpy`, `yaml`。
+  `SusceptibilityResult`、`clinosim.types.encounter` — `Order`,
+  `OrderStatus`, `OrderType`。
+- `numpy`, `pydantic` (`engine.py` の reference YAML model)。
 
 ## 定数と設定
 
@@ -134,7 +146,7 @@ from clinosim.modules.hai.lab_lift import (
 
 ```
 clinosim/modules/hai/
-  __init__.py                    HAI_TYPES canonical 定数 + load_hai_antibiogram
+  __init__.py                    HAI_TYPES canonical 定数 + load_hai_antibiogram + engine loader / enrich_hai の再 export
   engine.py                      sample_hai_onset + loader + validator + _sample_organism
   enricher.py                    POST_ENCOUNTER enrich_hai
   lab_lift.py                    apply_hai_lab_lift + _hai_lift_delta (Phase 3a)

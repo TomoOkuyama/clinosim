@@ -97,6 +97,9 @@ offset).
 
 ## Constants and configuration
 
+- Reference YAML validated by model `_DifferentialsConfig` in
+  `engine.py` (`_load_reference_data`); a malformed
+  `builtin_differentials.yaml` raises at load.
 - **Thresholds** ([`_diagnosis_thresholds.py`](_diagnosis_thresholds.py),
   Issue #637 sweep):
   - Family 1 — working / confirmed cutoffs

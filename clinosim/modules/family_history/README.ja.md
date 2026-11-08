@@ -69,6 +69,9 @@ uppercase + `.` 分割で ICD ベースを抽出する。与えられた `rng` �
 
 ## 定数と設定
 
+- reference YAML は `engine.py` の model `_FamilyHistoryConfig`
+  (`load_reference`) で検証される。不正な `family_history.yaml` は load
+  時に例外となる。
 - [`reference_data/family_history.yaml`](reference_data/family_history.yaml)
   — country-neutral な生物学:
   - `relationships` — `MTH` / `FTH` / `NSIB` の v3-RoleCode エントリと

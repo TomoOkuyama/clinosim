@@ -2,9 +2,15 @@
 
 YAML schemas for the drug_safety module. All four files
 (`contraindications.yaml`, `disease_contraindications.yaml`,
-`demographic_gates.yaml` here, plus `modules/drug_safety/reference_data/drug_substitution.yaml`)
-are consumed via
-`PyYAML.safe_load` on first use (cached via `functools.lru_cache`).
+`demographic_gates.yaml`, `drug_substitution.yaml`) are loaded on
+first use (cached via `functools.lru_cache`) through
+`clinosim.datafiles.load_validated_yaml`, which drops the `metadata`
+header and validates the content against an `extra="forbid"` Pydantic
+model in [`../_models.py`](../_models.py): `ContraindicationsFile`,
+`DiseaseContraindicationsFile`, `DemographicGatesFile`,
+`DrugSubstitutionFile`. A typo, an unknown key, a class or drug id
+missing from the drug catalog, or a duplicate rule id raises
+`pydantic.ValidationError` at load.
 
 ## Drug classes
 
@@ -47,14 +53,26 @@ Class × class contraindication rules. Adding a rule = pure YAML edit.
 ```yaml
 rules:
   - id: <kebab-case unique identifier>
-    lhs: <class expression>
-    rhs: <class expression>
-    severity: allowed | minor | moderate | major | contraindicated
-    rationale_en: "<one-sentence clinical justification>"
-    rationale_ja: "<Japanese translation>"
+    lhs: <catalog class tag>
+    rhs: <catalog class tag>
+    severity: minor | moderate | major | contraindicated
+    rationale:
+      en: "<one-sentence clinical justification>"
+      ja: "<Japanese translation>"
     substitution_hint: <optional indication tag; null if no substitute>
     source: "<citation: guideline / DDI database / textbook>"
+
+discharge_reconciliation_rules: [<rule id>, ...]   # rules the discharge Rx reconciles (Issue #2713)
+
+triple_therapy_after_acs:          # antithrombotic plan: anticoagulant + DAPT after ACS
+  aspirin_days: <int >= 1>
+  p2y12_with_oac: <catalog drug id>
+  p2y12_dose: "<dose string>"
 ```
+
+`discharge_reconciliation_rules` must name rule ids defined in
+`rules` (read by `discharge_reconciliation_rules()`);
+`triple_therapy_after_acs` is read by `triple_therapy_after_acs_plan()`.
 
 Matching:
 - **Order-independent**: `check_pair(A, B) == check_pair(B, A)`.
@@ -62,10 +80,11 @@ Matching:
 
 `substitution_hint` names an indication tag that `suggest_alternative`
 uses as a prior when picking a replacement drug from
-`../../../modules/drug_safety/reference_data/drug_substitution.yaml` or from the
-disease YAML `alternative_*` blocks.
+`drug_substitution.yaml` or from the disease YAML `alternative_*`
+blocks.
 
-Severity → default action:
+Severity → default action (`allowed` is the verdict when no rule
+matches; a rule cannot assert it):
 | severity          | default_action    | narrative surface           |
 |-------------------|-------------------|-----------------------------|
 | `allowed`         | `emit`            | —                           |
@@ -84,12 +103,13 @@ rules:
   - id: <kebab-case unique identifier>
     drug_class: <catalog class tag (codes/data/drugs.yaml)>
     disease_predicate:
-      icd_prefix: [<ICD-10 prefixes>]      # required
+      icd_prefix: [<ICD-10 prefixes>]      # required, non-empty
       stage_in: [<stage strings>]          # optional (Issue #1769); entry must carry a matching stage
-    severity: allowed | minor | moderate | major | contraindicated
+    severity: minor | moderate | major | contraindicated
     substitution_hint: <optional indication tag>
-    rationale_en: "..."
-    rationale_ja: "..."
+    rationale:
+      en: "..."
+      ja: "..."
     source: "..."
 ```
 
@@ -106,19 +126,24 @@ Age / sex "prescribe at all?" rules, consumed by
 rules:
   - id: <kebab-case unique identifier>
     drug_names: [<case-insensitive substring aliases — EN / JA / brand>]
-    min_age: <int>                 # optional — patient must be >= this
-    max_age: <int>                 # optional — patient must be <= this
+    min_age: <int >= 0>            # optional — patient must be >= this
     sex: male | female             # optional
     exception_indications: [<ICD-10 prefixes>]   # optional bypass
-    severity: contraindicated | major
-    rationale_en: "..."
-    rationale_ja: "..."
+    severity: minor | moderate | major | contraindicated
+    rationale:
+      en: "..."
+      ja: "..."
+    references: "<citation>"
 ```
+
+A rule must gate at least one of `min_age` / `sex`.
+`check_demographic_gate` also honours a `max_age` key, but the schema
+does not define one, so a YAML rule cannot set it today.
 
 When several rules fire, the highest-severity verdict wins (ties: first
 rule).
 
-## `../../../modules/drug_safety/reference_data/drug_substitution.yaml`
+## `drug_substitution.yaml`
 
 Generic indication → alternative drug pool. Consulted after
 disease-YAML `alternative_*` blocks (via `_indication_tag`) and before
@@ -130,7 +155,6 @@ indications:
     description: "<one-line explanation>"
     alternatives:
       - drug_id: <id in clinosim/codes/data/drugs.yaml>   # display (en + ja) resolved via the catalog
-        # legacy alternative to drug_id: drug: "<EN name>" (Japanese name from the drug catalog)
         default_dose: "<neutral dose string>"
         default_route: "<PO | IV | SC | INH>"
         default_frequency: "<daily | bid | tid | qid | prn | q6h_prn>"
@@ -146,11 +170,12 @@ re-checks each candidate against the caller's active meds via
 2. Add the rule to `contraindications.yaml`, citing the source
    guideline. Set `substitution_hint` when a natural indication tag
    exists.
-3. If the substitution_hint is new, add it to
-   `modules/drug_safety/reference_data/drug_substitution.yaml` (or add an
-   `_indication_tag` marker to a disease YAML `alternative_*` block
-   if one exists for the disease scope).
+3. If the substitution_hint is new, add it to `drug_substitution.yaml`
+   (or add an `_indication_tag` marker to a disease YAML
+   `alternative_*` block if one exists for the disease scope).
 4. Add a unit test asserting `check_pair(drug_a, drug_b).severity ==
    <expected>`.
 5. Cohort-verify: run `verify_medical_stats.py` on a p=1000 sim and
    confirm `contraindicated_pair_count` stays at 0.
+
+Japanese counterpart: [`README.ja.md`](README.ja.md).

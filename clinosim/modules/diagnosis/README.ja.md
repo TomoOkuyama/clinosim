@@ -91,6 +91,9 @@ seed offset 無し)。
 
 ## 定数と設定
 
+- reference YAML は `engine.py` の model `_DifferentialsConfig`
+  (`_load_reference_data`) で検証される。不正な
+  `builtin_differentials.yaml` は load 時に例外となる。
 - **Threshold** ([`_diagnosis_thresholds.py`](_diagnosis_thresholds.py)、
   Issue #637 sweep):
   - Family 1 — working / confirmed cutoff

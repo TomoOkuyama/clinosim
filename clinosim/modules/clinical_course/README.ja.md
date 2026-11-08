@@ -95,6 +95,9 @@ from clinosim.modules.clinical_course._complication_risk_conditions import (
 
 ## 定数と設定
 
+- reference YAML は `engine.py` の model `_FallbackArchetypes`
+  (`_fallback_archetypes_raw`) で検証される。不正な
+  `fallback_archetypes.yaml` は load 時に例外となる。
 - **Fallback archetype 表**
   ([`reference_data/fallback_archetypes.yaml`](reference_data/fallback_archetypes.yaml)、
   `engine._FALLBACK_TRAJECTORIES` / `_FALLBACK_PROBABILITIES` に load):

@@ -60,18 +60,19 @@ HAI cascade.
 ## Public API
 
 ```python
+# Package __all__ (9 names)
 from clinosim.modules.hai import (
     HAI_TYPES,                                     # ("clabsi", "cauti", "vap")
     load_hai_antibiogram,                          # () -> dict (@lru_cache, validated)
-)
-from clinosim.modules.hai.engine import (
     sample_hai_onset,                              # (device, rate_cfg, rng) -> (occurred, onset_day_offset | None)
     load_hai_rates,                                # () -> dict (@lru_cache)
+    hai_icd10_code,                                # (hai_type) -> ICD-10 code for the HAI type
     load_hai_codes,                                # () -> dict (@lru_cache)
     load_hai_organisms,                            # () -> dict (@lru_cache)
     load_hai_specimens,                            # () -> dict (@lru_cache)
+    enrich_hai,                                    # POST_ENCOUNTER entry (from enricher.py)
 )
-from clinosim.modules.hai.enricher import enrich_hai   # POST_ENCOUNTER entry
+# Not re-exported by the package:
 from clinosim.modules.hai.lab_lift import (
     apply_hai_lab_lift,                            # (record, encounter, state_history, admission_time, country="US")
                                                    #   -> int (# observations modified; mutates lab_results)
@@ -108,12 +109,24 @@ from clinosim.modules.hai.lab_lift import (
   susceptibilities, and by `load_hai_antibiogram` validation).
 - `clinosim.modules.observation.engine` — `round_to_precision`,
   `determine_flag` (re-applied post-lift).
+- `clinosim.modules.observation.microbiology` —
+  `workup_culture_order` (lazy import in the enricher).
+- `clinosim.modules.device.engine` — `load_devices_config` (lazy
+  import in `engine.py`; each `hai_rates.yaml` `source_device_type`
+  must name a device in `devices.yaml`).
 - `clinosim.audit.registry` (via `audit.py`) — AD-60 audit
   registration.
+- `clinosim.determinism` — `default_rng` for the per-patient sub-RNG.
+- `clinosim.codes` — `code_exists` (code validation in the YAML
+  models).
+- `clinosim.datafiles` — `load_data_yaml`, `load_validated_yaml`.
+- `clinosim.locale` — `loader.load_code_mapping` (`engine.py`),
+  `loader.lab_codes` (`audit.py`), `i18n.t` (enricher).
 - `clinosim.types.device` — `DeviceRecord`; `clinosim.types.hai` —
   `HAIEvent`; `clinosim.types.microbiology` — `MicrobiologyResult`,
-  `SusceptibilityResult`.
-- `numpy`, `yaml`.
+  `SusceptibilityResult`; `clinosim.types.encounter` — `Order`,
+  `OrderStatus`, `OrderType`.
+- `numpy`, `pydantic` (reference-YAML models in `engine.py`).
 
 ## Constants and configuration
 
@@ -144,7 +157,7 @@ from clinosim.modules.hai.lab_lift import (
 
 ```
 clinosim/modules/hai/
-  __init__.py                    HAI_TYPES canonical constant + load_hai_antibiogram
+  __init__.py                    HAI_TYPES canonical constant + load_hai_antibiogram + re-exports engine loaders / enrich_hai
   engine.py                      sample_hai_onset + loaders + validators + _sample_organism
   enricher.py                    POST_ENCOUNTER enrich_hai
   lab_lift.py                    apply_hai_lab_lift + _hai_lift_delta (Phase 3a)

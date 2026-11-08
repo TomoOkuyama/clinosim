@@ -23,12 +23,12 @@ from clinosim.modules.longitudinal import (
 )
 ```
 
-Internals under `patterns/` (`ar1.py`, `markov.py`, `event.py`, dispatched through `PATTERN_REGISTRY`), `loader.py` (yaml → `AttributeSpec`), `med_lookup.py` (event `emits_meds` drug name → `HomeMedication` from `chronic_medications.yaml`), and `snapshot.py` (dataclass + serialisation) are not part of the public surface — the engine's three entry points are the stable contract.
+Internals under `patterns/` (`ar1.py`, `markov.py`, `event.py`, dispatched through `PATTERN_REGISTRY`), `loader.py` (yaml → `AttributeSpec`), `med_lookup.py` (event `emits_meds` drug name → `HomeMedication` from `chronic_medications.yaml`), and `snapshot.py` (re-export of the `YearSnapshot` dataclass + deserialiser defined in `clinosim.types.longitudinal`) are not part of the public surface — the engine's three entry points are the stable contract.
 
 ## Determinism
 
 - Each year, the engine is called with a single `np.random.Generator` passed by `advance_population` and `generate_population`. Draws per attribute execute in topological order of `depends_on` edges. Event yamls flagged `rng_isolated: true` draw from their own `seeding.longitudinal_event_seed(person_id, year, event_name)` generator instead of the shared per-person-year stream; base home meds added for a newly acquired ICD use the patient-scoped `chronic_medication_seed`.
-- `aging_sub_seed(person_id, year, "longitudinal")` seeds the per-person per-year generator for `advance_one_year`; `aging_sub_seed(person_id, base_year, "longitudinal:init")` seeds the Layer-1 `initial_snapshot` call.
+- `population.aging.aging_sub_seed(person_id, year, "longitudinal")` seeds the per-person per-year generator for `advance_one_year`; `aging_sub_seed(person_id, base_year, "longitudinal:init")` seeds the Layer-1 `initial_snapshot` call.
 - `state_at(person, when)` is pure (no RNG; scans `longitudinal_history` for the matching year and raises `IndexError` when absent).
 - `advance_one_year` raises `ValueError` on empty history, duplicate year or backward year; forward year gaps are permitted.
 
@@ -36,7 +36,13 @@ Internals under `patterns/` (`ar1.py`, `markov.py`, `event.py`, dispatched throu
 
 - `clinosim.modules.longitudinal.patterns` — the pattern registry.
 - `clinosim.modules.longitudinal.loader` — yaml → `AttributeSpec`.
-- `clinosim.types.population.PersonRecord` — the mutation target.
+- `clinosim.types.population.PersonRecord` — the mutation target; `clinosim.types.longitudinal` — `YearSnapshot`; `clinosim.types.patient` — `ChronicCondition`, `HomeMedication`.
+- `clinosim.seeding` — `longitudinal_event_seed` (isolated event streams); `clinosim.determinism` — `default_rng`.
+- `clinosim.modules.patient.activator` — `_derive_home_medications` (lazy import; base home meds for a newly acquired ICD).
+- `clinosim.modules.drug_safety` — `discharge_reconciliation_rules`, `check_candidate_against_active` (lazy import; a new med that duplicates a held class is not added).
+- `clinosim.modules.population.condition_mutex` — `apply_depression_mutex` (lazy import; F33 onset drops F32).
+- `clinosim.locale.loader` — `load_chronic_medications`; `clinosim.codes.drugs` — `drug_key`, `find_drug`.
+- `clinosim.datafiles` — `load_data_yaml` (loader).
 - `clinosim.locale.shared.longitudinal/` — per-attribute yaml data.
 - `pydantic` — yaml schema validation.
 - `numpy` — RNG + math.
@@ -50,6 +56,28 @@ Per-attribute yaml under `clinosim/locale/shared/longitudinal/` (the loader glob
 - `stage/*.yaml` — 19 Markov stage attributes.
 - `event/*.yaml` — 35 event attributes (32 `*_onset.yaml` chronic-onset events + 3 DM complication events).
 - `med/*.yaml` — 6 treatment-escalation events (DM / HTN / lipid).
+
+## Directory contents
+
+```
+clinosim/modules/longitudinal/
+  __init__.py      re-exports the five public names
+  engine.py        advance_one_year / state_at / initial_snapshot + event side effects (base meds, depression mutex)
+  loader.py        yaml → AttributeSpec + depends_on topological sort
+  med_lookup.py    resolve_med_name — event emits_meds drug name → HomeMedication
+  snapshot.py      re-export of YearSnapshot / yearsnapshot_from_dict (clinosim.types.longitudinal)
+  patterns/
+    __init__.py    PATTERN_REGISTRY
+    ar1.py         AR(1) continuous latent
+    markov.py      Markov stage transition
+    event.py       event firing
+```
+
+The module has no `enricher.py`, no `audit.py` and no `reference_data/`; its yaml lives under `clinosim/locale/shared/longitudinal/`.
+
+## Enricher wiring
+
+Not applicable — the engine is not registered in `register_builtin_enrichers` ([`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)) and has no `ENRICHER_SEED_OFFSETS` entry in [`clinosim/seeding.py`](../../seeding.py). It runs inside population generation and aging (see Caller integration), seeded by `aging_sub_seed` and `longitudinal_event_seed`.
 
 ## Caller integration
 
@@ -76,7 +104,7 @@ Per-attribute yaml under `clinosim/locale/shared/longitudinal/` (the loader glob
 - `tests/modules/longitudinal/test_physiology_hba1c_emit.py` — physiology.engine HbA1c migration.
 - `tests/modules/longitudinal/test_activator_dm_stage.py` — activator stage-string migration.
 - `tests/modules/longitudinal/test_glycemic_control_retirement.py` — sweep gate.
-- Later-phase coverage (39 test files in total) includes `test_markov_step.py`, `test_event_step.py`, `test_engine_markov_dispatch.py`, `test_engine_event_dispatch.py`, `test_engine_med_dispatch.py`, `test_med_lookup.py` and the `test_*_yamls_load.py` schema gates.
+- Later-phase coverage (38 test files in total) includes `test_markov_step.py`, `test_event_step.py`, `test_engine_markov_dispatch.py`, `test_engine_event_dispatch.py`, `test_engine_med_dispatch.py`, `test_med_lookup.py` and the `test_*_yamls_load.py` schema gates.
 
 ## Design document
 

@@ -31,7 +31,7 @@ response validation, prompt caching, and provider selection.
 
 ## Public API
 
-Every downstream module imports from the package root; the 18
+Every downstream module imports from the package root; the 16
 symbols below (`__all__`) are the entire public surface:
 
 ```python
@@ -92,10 +92,21 @@ from clinosim.modules.llm_service import (
   mock).
 - Provider SDKs (loaded lazily by each provider file, not by
   `llm_service` itself): `boto3` (bedrock), `httpx` (ollama + vllm).
+- `clinosim.datafiles` — `load_data_yaml`, `load_validated_yaml`
+  (`reference_data/task_categories.yaml` and `task_loincs.yaml` are
+  validated by the Pydantic models `_TaskCategoriesFile` /
+  `_TaskLoincsFile` in `engine.py`).
+- `clinosim.codes` — `lookup` (task LOINC codes must be registered).
+- `clinosim.types.document` — `DocumentType` (task / document-type
+  sync check).
 - `hashlib.sha256` — cache key derivation.
-- `yaml` — config-file loader in `factory.py`.
-- No dependency on any other `clinosim.modules.*` (this module is
-  a leaf that every other module may depend on).
+- `yaml` — config-file loader in `factory.py` and prompt manifests in
+  `prompt_registry.py`; `pydantic` — reference-YAML models.
+- No import of any other `clinosim.modules.*` (this module is a leaf
+  that every other module may depend on). `engine.py` reads
+  `modules/document/reference_data/document_type_specs.yaml` as a
+  data file for `DOCUMENT_LOINC`, without importing the `document`
+  package (which imports this one).
 
 ## Constants and configuration
 
@@ -140,8 +151,8 @@ from clinosim.modules.llm_service import (
 
 ```
 clinosim/modules/llm_service/
-  __init__.py                    public API surface (18 symbols)
-  engine.py                      LLMService + task enums + prompt builders (~950 LOC)
+  __init__.py                    public API surface (16 symbols)
+  engine.py                      LLMService + task enums + task-metadata loaders (task_categories / task_loincs YAML models)
   factory.py                     build_from_config + build_from_config_file
   prompt_registry.py             PromptRegistry + PromptSpec
   cache.py                       PromptCache (SHA-256 keyed disk cache)

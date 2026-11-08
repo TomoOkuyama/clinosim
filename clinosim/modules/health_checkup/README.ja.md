@@ -84,9 +84,20 @@ tier 閾値 (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
 - `clinosim.types.encounter` — `Encounter`, `EncounterStatus`,
   `EncounterType`, `Order`, `OrderResult`, `OrderStatus`, `OrderType`。
 - `clinosim.types.output` — `CIFPatientRecord` (新規健診 record)。
+- `clinosim.modules.document.narrative.registry` — `document_loinc`
+  (健診結果文書 stub の LOINC)。
+- `clinosim.modules.observation.engine` — `get_lab_unit`。
+- `clinosim.modules.order.panel_grouping` — `load_panel_definitions`
+  (lazy import。健診検査 panel)。
+- `clinosim.modules.physiology.engine` — `HBA1C_NONDM_BASE`,
+  `hba1c_from_glycemic_control`, `hba1c_latent_at` (lazy import。
+  HbA1c 導出)。
+- `clinosim.determinism` — 測定ノイズ用 sub-RNG の生成。
+- `clinosim.codes.drugs` — `has_drug`、`clinosim.codes.valuesets` —
+  `concept_group`。
+- `clinosim.locale` — `i18n.t`, `loader.load_reference_ranges`。
 - `hashlib.sha256` — 患者選定。
 - `numpy` — 測定ノイズ用 `np.random.Generator`。
-- 他の `clinosim.modules.*` には依存しない。
 
 ## 定数と設定
 
@@ -124,7 +135,7 @@ enricher entry は `engine.py` の `enrich_health_checkup`、reference
 ## Enricher 配線
 
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`L510-540` 付近) の `register_builtin_enrichers` で登録:
+の `register_builtin_enrichers` で登録:
 
 - `name="health_checkup"`, `stage=POST_RECORDS`, `order=70`。
 - `enabled=_health_checkup_enabled` —
@@ -141,7 +152,7 @@ enricher entry は `engine.py` の `enrich_health_checkup`、reference
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Enricher registry | [`clinosim/simulator/enrichers.py:534`](../../simulator/enrichers.py) | POST_RECORDS order=70 登録。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) `register_builtin_enrichers` | POST_RECORDS order=70 登録。 |
 | FHIR Composition builder | [`clinosim/modules/output/fhir_r4/documents/jp_clins/echeckup_general.py`](../output/fhir_r4/documents/jp_clins/echeckup_general.py) (`documents/composition.py` 経由) | populate 済み `HEALTH_CHECKUP_REPORT` を JP-eCheckup General `Composition` として emit。 |
 | FHIR DocumentReference builder | [`clinosim/modules/output/fhir_r4/documents/document_reference_checkup.py`](../output/fhir_r4/documents/document_reference_checkup.py) | Composition を参照する付随 `DocumentReference` (`drf-<document_id>`) を emit。`narrative` が `None` の間は skip。 |
 | Narrative Stage 2 | [`clinosim/modules/document/narrative/`](../document/narrative/README.ja.md) (`registry.py`、`template_generator.py`) | stub の `narrative.sections` を per-value 解釈 + Q4 summary で埋める。 |

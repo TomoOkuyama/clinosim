@@ -26,8 +26,8 @@ encounter に対して ICU デバイス (中心静脈カテーテル、
 
 ```python
 from clinosim.modules.device import (
-    load_devices_config,             # () -> dict (@lru_cache)
-    place_devices_for_encounter,     # (record, encounter, rng, devices_config) -> list[DeviceRecord]
+    load_devices_config,             # () -> dict (@lru_cache, Pydantic 検証済み)
+    place_devices_for_encounter,     # (record, encounter, devices_config) -> list[DeviceRecord]
 )
 from clinosim.modules.device.enricher import enrich_device
 ```
@@ -38,26 +38,27 @@ from clinosim.modules.device.enricher import enrich_device
 
 ## 決定論
 
-- サブ seed オフセット `0x4445` (`"DE"`, PR-A) —
+- 配置は決定論的で RNG を draw しない — device 集合は record の
+  純関数。enricher も RNG を作らないので、患者主 RNG は乱さない
+  (AD-16)。
+- サブ seed オフセット `0x4445` (`"DE"`, PR-A) は
   [`clinosim/seeding.py`](../../seeding.py) の
-  `ENRICHER_SEED_OFFSETS["device"]` に登録済み。
-- enricher は患者単位 RNG
-  (`derive_sub_seed(master_seed, offset, patient_id)`) を作り
-  `place_devices_for_encounter` に渡すが、現状の配置処理はそこから
-  draw しない — device 集合は record の決定論的関数。患者主 RNG は
-  乱さない (AD-16)。
+  `ENRICHER_SEED_OFFSETS["device"]` に予約されたまま (#2208) で、
+  消費されない。
 
 ## 依存
 
 - `clinosim.modules._shared` — `get_attr_or_key`,
   `get_or_create_container`。
-- `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
+- `clinosim.codes` — `code_exists` (`devices.yaml` の SNOMED code が
+  登録済みであることを検証)。
+- `clinosim.datafiles` — `load_data_yaml`。
 - `clinosim.types.device` — `DeviceRecord`。
 - `clinosim.types.encounter` — `Encounter`, `EncounterType`。
 - `clinosim.types.output` — `CIFPatientRecord`。
 - `clinosim.types.clinical` — `PhysiologicalState` (peak state
   評価入力)。
-- `numpy`, `yaml`。
+- `pydantic` — `devices.yaml` のスキーマ検証。
 
 ## 定数と設定
 
@@ -69,14 +70,19 @@ from clinosim.modules.device.enricher import enrich_device
   成立すれば配置)。現状の条件: CVC ← `severity_moderate_plus`、
   膀胱留置カテーテル ← `severity_moderate_plus` または
   `altered_consciousness`、人工呼吸器 ← `intubated`。配置確率や
-  line-days 分布は持たない。
+  line-days 分布は持たない。`load_devices_config` は `engine.py` の
+  Pydantic model `_DevicesConfig` でファイルを検証する (未知キー、
+  未登録 SNOMED code、`INDICATION_TOKENS` 外の条件 token は load 時に
+  失敗)。
 - indication token (`_evaluate_indications`):
   `severity_moderate_plus` (gate 通過時は常に真)、
   `altered_consciousness` (encounter の vital に GCS < 13 がある)、
   `hypoxia` (最悪 perfusion < 0.4 または oxygenation impairment ≥ 0.6)、
   `intubated` (encounter に `intubation` procedure がある)、
   `high_respiratory_demand` (respiratory fraction > 0.7)。`hypoxia` と
-  `high_respiratory_demand` は算出されるが現状どの yaml 条件も使わない。
+  `high_respiratory_demand` は算出されるが現状どの yaml 条件も使わない
+  (`high_respiratory_demand` は `INDICATION_TOKENS` に無いため
+  `devices.yaml` ではスキーマが拒否する)。
 - Gate: `record.icu_transferred` が真かつ encounter type が
   `EncounterType.INPATIENT` の場合のみ発火。
 
@@ -96,7 +102,7 @@ clinosim/modules/device/
 ## Enricher 配線
 
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`L310-320` 付近) で登録:
+の `register_builtin_enrichers` で登録:
 
 - `name="device"`, `stage=POST_ENCOUNTER`, `order=70`,
   `enabled=lambda c: True`。
@@ -107,7 +113,7 @@ clinosim/modules/device/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Enricher registry | [`clinosim/simulator/enrichers.py:316`](../../simulator/enrichers.py) | POST_ENCOUNTER order=70 登録。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) `register_builtin_enrichers` | POST_ENCOUNTER order=70 登録。 |
 | HAI enricher | [`clinosim/modules/hai/enricher.py`](../hai/enricher.py) | `extensions["device"]` の line-days を CDC NHSN per-line-day HAI onset サンプリングに使用 (Phase 2)。 |
 | FHIR `Device` builder | [`clinosim/modules/output/fhir_r4/procedures/device.py`](../output/fhir_r4/procedures/device.py) | `extensions["device"]` の entry ごとに `Device` + `DeviceUseStatement` を 1 件ずつ emit (id は `DeviceRecord.device_id` から導出した opaque id)。 |
 

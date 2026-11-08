@@ -64,6 +64,9 @@ from clinosim.modules.code_status.enricher import enrich_code_status
 
 ## 定数と設定
 
+- reference YAML は `engine.py` の model `_CodeStatusConfig`
+  (`load_reference`) で検証される。不正な `code_status.yaml` は load 時に
+  例外となる。
 - [`reference_data/code_status.yaml`](reference_data/code_status.yaml)
   — country-neutral。以下を定義:
   - `observable_snomed: "304251008"` — SNOMED CT observable

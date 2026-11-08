@@ -105,6 +105,9 @@ from clinosim.modules.clinical_course._complication_risk_conditions import (
 
 ## Constants and configuration
 
+- Reference YAML validated by model `_FallbackArchetypes` in
+  `engine.py` (`_fallback_archetypes_raw`); a malformed
+  `fallback_archetypes.yaml` raises at load.
 - **Fallback archetype table**
   ([`reference_data/fallback_archetypes.yaml`](reference_data/fallback_archetypes.yaml),
   loaded into `engine._FALLBACK_TRAJECTORIES` /

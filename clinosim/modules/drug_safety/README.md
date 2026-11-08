@@ -75,11 +75,24 @@ dv = drug_safety.check_demographic_gate(
     "Aspirin 325mg", patient_age=8, patient_sex="M", indication_codes=None,
 )  # → DemographicVerdict(severity="contraindicated", rule_id="aspirin-pediatric-reyes", ...)
 
+# Rule ids the discharge prescription reconciles (contraindications.yaml)
+drug_safety.discharge_reconciliation_rules()  # → frozenset[str]
+
 # Utility
 drug_safety.resolve_classes("warfarin")   # → ["anticoagulant.vka", "anticoagulant"]
 drug_safety.canonical_name("ワルファリン")  # → "Warfarin"
 drug_safety.japanese_display("Aspirin")   # → "アスピリン"
 ```
+
+The full `__all__`: functions `check_pair`,
+`check_candidate_against_active`,
+`check_candidate_against_disease_state`, `check_demographic_gate`,
+`suggest_alternative`, `discharge_reconciliation_rules`,
+`resolve_classes`, `canonical_name`, `japanese_display`; types
+`SafetyVerdict`, `SafetySkipEntry`, `Severity`, `SEVERITY_RANK`
+(re-exported from `clinosim.types.drug_safety` via `verdict.py`),
+`AlternativeDrug` (`engine.py`) and `DemographicVerdict`
+(`demographic.py`).
 
 ## 4. Determinism
 
@@ -98,12 +111,18 @@ drug_safety.japanese_display("Aspirin")   # → "アスピリン"
 
 ## 5. Dependencies
 
-- `clinosim.locale/` (reads `modules/drug_safety/reference_data/drug_substitution.yaml`)
-- `clinosim.codes` drug catalog (`codes.drugs.drug_display` gives display
-  names)
+- `clinosim.codes.drugs` — drug catalog (`drug_classes`,
+  `drug_display`, `identify_drug`, `resolve_drug`; `_models.py` also
+  checks classes / drug ids against `all_drug_ids` / `get_drug`).
+- `clinosim.datafiles` — `load_validated_yaml` (every reference YAML is
+  loaded through a Pydantic model in `_models.py`).
+- `clinosim.locale.localized` — `language_slot`.
+- `clinosim.types.drug_safety` — `SafetyVerdict`, `SafetySkipEntry`,
+  `Severity`, `SEVERITY_RANK`, `EventType` (re-exported by
+  `verdict.py`).
 - `clinosim.modules.disease.protocol` (lazy import for
-  `alternatives_by_indication` — only when disease_ctx is passed)
-- Third-party: `PyYAML` only.
+  `alternatives_by_indication` — only when disease_ctx is passed).
+- Third-party: `pydantic` (YAML schema validation).
 - **No other cross-clinosim runtime deps.**
 
 ## 6. Constants and configuration
@@ -113,13 +132,17 @@ Four YAML files plus the drug catalog:
 - Drug classes and aliases: the drug catalog
   (`clinosim/codes/data/drugs.yaml`, read through `clinosim.codes.drugs`).
 - `reference_data/contraindications.yaml` — class × class rules
-  (11 rules: VKA+antiplatelet, DOAC+P2Y12, anticoagulant+NSAID,
-  BB+non-DHP CCB, ACEi/ARB+K, ACEi/ARB+K-sparing, statin+strong
-  CYP3A4 inhibitor, allopurinol+thiopurine, SSRI+MAOI, SSRI+SNRI,
-  NSAID stacking).
+  (18 rules: VKA+antiplatelet, DOAC+P2Y12, anticoagulant+NSAID,
+  BB+non-DHP CCB, P2Y12+P2Y12, statin+statin, DOAC+VKA, ACEi+ARB,
+  ACEi/ARB+K, ACEi/ARB+K-sparing, statin+strong CYP3A4 inhibitor,
+  allopurinol+thiopurine, SSRI+MAOI, SSRI+SNRI, NSAID stacking,
+  lithium+diuretic, lithium+ACEi/ARB, lithium+NSAID), plus the
+  `discharge_reconciliation_rules` list and the
+  `triple_therapy_after_acs` antithrombotic plan.
 - `reference_data/disease_contraindications.yaml` — drug class ×
-  chronic-disease rules (4 rules: NSAID in heart failure / cirrhosis /
-  CKD stage 4-5, metformin in CKD stage 3b-5).
+  chronic-disease rules (5 rules: NSAID in heart failure / cirrhosis /
+  CKD stage 4-5 by ICD prefix / CKD stage 4-5 by stage, metformin in
+  CKD stage 3b-5).
 - `reference_data/demographic_gates.yaml` — age / sex rules (3 rules:
   aspirin pediatric (Reye's), nitroglycerin adult-only, tamsulosin
   adult male).
@@ -127,6 +150,13 @@ Four YAML files plus the drug catalog:
   alternative pool keyed by catalog `drug_id` (pain_management →
   acetaminophen; hypertension_or_rate_control → amlodipine /
   candesartan).
+
+Each file is validated at load by an `extra="forbid"` Pydantic model
+in `_models.py` (`ContraindicationsFile`,
+`DiseaseContraindicationsFile`, `DemographicGatesFile`,
+`DrugSubstitutionFile`); drug classes / drug ids are checked against
+the catalog, rule ids must be unique, and the reconciliation list
+must name existing rules.
 
 Also lifts the Issue #437 dead-data `alternative_*` blocks in 15
 disease YAMLs via `_indication_tag` markers.
@@ -138,14 +168,17 @@ clinosim/modules/drug_safety/
 ├── __init__.py            # public API re-export
 ├── verdict.py             # SafetyVerdict + SafetySkipEntry + Severity + SEVERITY_RANK
 ├── classifier.py          # drug-name → class[] resolver
-├── engine.py              # check_pair / check_candidate_against_active / check_candidate_against_disease_state / suggest_alternative
+├── engine.py              # check_pair / check_candidate_against_active / check_candidate_against_disease_state / suggest_alternative / discharge_reconciliation_rules
 ├── demographic.py         # check_demographic_gate + DemographicVerdict
+├── _models.py             # Pydantic models of the four reference YAMLs
 ├── audit.py               # audit_drug_safety(patients) → list[AuditFinding]
 ├── reference_data/
 │   ├── contraindications.yaml
 │   ├── disease_contraindications.yaml
 │   ├── demographic_gates.yaml
-│   └── README.md          # YAML schemas
+│   ├── drug_substitution.yaml
+│   ├── README.md          # YAML schemas
+│   └── README.ja.md
 ├── README.md              # this file
 └── README.ja.md
 ```
@@ -167,6 +200,12 @@ clinosim/modules/drug_safety/
 - `clinosim.simulator.discharge_rx` — `check_pair` against active meds.
 - `clinosim.modules.prophylaxis.engine` — VTE prophylaxis candidate
   vs active meds.
+- `clinosim.modules.longitudinal.engine` — reconciles carried-over
+  home meds (`discharge_reconciliation_rules` +
+  `check_candidate_against_active`).
+- `clinosim.simulator.outpatient` and
+  `clinosim.modules.order.discontinue_flip` — import the verdict types
+  to record safety-skip entries.
 
 ## 9. Output surfaces
 

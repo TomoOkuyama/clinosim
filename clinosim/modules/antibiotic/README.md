@@ -110,6 +110,10 @@ from clinosim.modules.antibiotic.enricher import enrich_antibiotic  # POST_ENCOU
 
 ## Constants and configuration
 
+- Reference YAML validated by model `_NarrowLadderFile`
+  (`narrow_ladder.yaml`, in `load_narrow_ladder`) and
+  `_HaiEmpiricalFile` (`hai_empirical.yaml`, in `load_hai_empirical`)
+  in `engine.py`; a malformed file raises at load.
 - **`ANTIBIOTIC_DRUGS`** (`__init__.py`) — canonical drug-key dict.
   Keys are lowercase snake_case (`vancomycin`, `piperacillin_tazobactam`,
   `ceftriaxone`, `ampicillin`, `cefazolin`, `gentamicin`,

@@ -28,8 +28,8 @@ risk).
 
 ```python
 from clinosim.modules.device import (
-    load_devices_config,             # () -> dict (@lru_cache)
-    place_devices_for_encounter,     # (record, encounter, rng, devices_config) -> list[DeviceRecord]
+    load_devices_config,             # () -> dict (@lru_cache, Pydantic-validated)
+    place_devices_for_encounter,     # (record, encounter, devices_config) -> list[DeviceRecord]
 )
 from clinosim.modules.device.enricher import enrich_device
 ```
@@ -40,26 +40,26 @@ Internal helpers (in `engine.py`): `_evaluate_indications`,
 
 ## Determinism
 
-- Sub-seed offset `0x4445` (`"DE"`, PR-A) — registered in
-  [`clinosim/seeding.py`](../../seeding.py) via
-  `ENRICHER_SEED_OFFSETS["device"]`.
-- The enricher builds a per-patient RNG
-  (`derive_sub_seed(master_seed, offset, patient_id)`) and passes it
-  to `place_devices_for_encounter`, but placement currently draws
-  nothing from it: the device set is a deterministic function of the
-  record. The main patient RNG is untouched (AD-16).
+- Placement is deterministic and draws no RNG: the device set is a
+  pure function of the record. The enricher builds no RNG, so the
+  main patient RNG is untouched (AD-16).
+- Sub-seed offset `0x4445` (`"DE"`, PR-A) stays reserved in
+  [`clinosim/seeding.py`](../../seeding.py) as
+  `ENRICHER_SEED_OFFSETS["device"]` (#2208) but is not consumed.
 
 ## Dependencies
 
 - `clinosim.modules._shared` — `get_attr_or_key`,
   `get_or_create_container`.
-- `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`.
+- `clinosim.codes` — `code_exists` (SNOMED codes in `devices.yaml`
+  must be registered).
+- `clinosim.datafiles` — `load_data_yaml`.
 - `clinosim.types.device` — `DeviceRecord`.
 - `clinosim.types.encounter` — `Encounter`, `EncounterType`.
 - `clinosim.types.output` — `CIFPatientRecord`.
 - `clinosim.types.clinical` — `PhysiologicalState` (peak state
   evaluation input).
-- `numpy`, `yaml`.
+- `pydantic` — `devices.yaml` schema validation.
 
 ## Constants and configuration
 
@@ -72,7 +72,10 @@ Internal helpers (in `engine.py`): `_evaluate_indications`,
   `severity_moderate_plus`; urinary catheter ←
   `severity_moderate_plus` or `altered_consciousness`; ventilator ←
   `intubated`. There is no placement probability or line-day
-  distribution.
+  distribution. `load_devices_config` validates the file against the
+  Pydantic model `_DevicesConfig` in `engine.py` (unknown keys,
+  unregistered SNOMED codes and criterion tokens outside
+  `INDICATION_TOKENS` fail at load time).
 - Indication tokens (`_evaluate_indications`):
   `severity_moderate_plus` (always true once the gate passes),
   `altered_consciousness` (any encounter vital with GCS < 13),
@@ -80,7 +83,8 @@ Internal helpers (in `engine.py`): `_evaluate_indications`,
   `intubated` (an `intubation` procedure on the encounter),
   `high_respiratory_demand` (respiratory fraction > 0.7). `hypoxia`
   and `high_respiratory_demand` are computed but no yaml criterion
-  uses them today.
+  uses them today (`high_respiratory_demand` is not in
+  `INDICATION_TOKENS`, so the schema rejects it in `devices.yaml`).
 - Gate: only fires when `record.icu_transferred` is true and the
   encounter's type is `EncounterType.INPATIENT`.
 
@@ -102,7 +106,7 @@ below.
 
 Registered in
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`~L310-320`):
+(`register_builtin_enrichers`):
 
 - `name="device"`, `stage=POST_ENCOUNTER`, `order=70`,
   `enabled=lambda c: True`.
@@ -113,7 +117,7 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| Enricher registry | [`clinosim/simulator/enrichers.py:316`](../../simulator/enrichers.py) | POST_ENCOUNTER order=70 registration. |
+| Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) `register_builtin_enrichers` | POST_ENCOUNTER order=70 registration. |
 | HAI enricher | [`clinosim/modules/hai/enricher.py`](../hai/enricher.py) | Reads `extensions["device"]` line-days for CDC NHSN per-line-day HAI onset sampling (Phase 2). |
 | FHIR `Device` builder | [`clinosim/modules/output/fhir_r4/procedures/device.py`](../output/fhir_r4/procedures/device.py) | Emits one `Device` + one `DeviceUseStatement` per `extensions["device"]` entry (opaque ids derived from `DeviceRecord.device_id`). |
 
