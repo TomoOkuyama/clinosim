@@ -264,6 +264,41 @@ def build_discharge_rx(
                 return True
         return False
 
+    def _allergy_conflict(drug_name: str, chronic_continuation: bool) -> bool:
+        """Issue #2924: True when the patient's active allergies rule out
+        ``drug_name``; the skip is logged and the alternative
+        ``suggest_alternative`` finds for the rule's indication, if any, is
+        prescribed in its place."""
+        from clinosim.modules import drug_safety
+
+        verdict = drug_safety.allergy_skip_verdict(drug_name, getattr(patient, "allergies", None) or [])
+        if verdict is None:
+            return False
+        alt = drug_safety.suggest_alternative(
+            drug_name,
+            verdict.substitution_hint,
+            active_meds=[it["drug_name"] for it in items if it.get("drug_name")],
+            disease_ctx=protocol,
+            country=country_key,
+            allergen_codes=drug_safety.allergy_entries(getattr(patient, "allergies", None) or []),
+        )
+        from clinosim.simulator.medication_pipeline import log_allergy_skip
+
+        log_allergy_skip(
+            patient,
+            drug_name,
+            verdict,
+            encounter_id=encounter_id,
+            timestamp=admission_time,
+            substituted_with=alt.drug if alt else None,
+        )
+        if alt is not None and (alt.default_route or "PO").upper() == "PO":
+            _append_item(
+                {"drug": alt.drug, "dose": alt.default_dose, "frequency": alt.default_frequency, "route": "PO"},
+                chronic_continuation=chronic_continuation,
+            )
+        return True
+
     def _append_item(drug_spec: dict, chronic_continuation: bool = False) -> None:
         """Renal-check + dedup + narrow drug_safety triple-antithrombotic
         gate + append. Shared by exclusive & independent paths.
@@ -295,6 +330,8 @@ def build_discharge_rx(
             drug_name = drug_spec.get("drug", "")
             drug_name_ja = drug_display(drug_name, "ja") or drug_name
         if not drug_name:
+            return
+        if _allergy_conflict(drug_name, chronic_continuation):
             return
         if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and drug_key(drug_name) in renal_hold_drugs():
             # Issue #1403: log renal-driven hold for narrative surface
@@ -446,6 +483,8 @@ def build_discharge_rx(
             continue
         if final_renal_function < DISCHARGE_RENAL_HOLD_THRESHOLD and drug_key(drug_name) in renal_hold_drugs():
             continue  # do not restart nephrotoxic drug at discharge
+        if _dedup_key(drug_name) not in seen_dedup_keys and _allergy_conflict(drug_name, True):
+            continue  # Issue #2924: not continued against a recorded allergy
         key = _dedup_key(drug_name)
         if key in seen_dedup_keys:
             continue

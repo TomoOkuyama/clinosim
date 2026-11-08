@@ -1,14 +1,15 @@
 # `clinosim/modules/drug_safety/reference_data/`
 
-YAML schemas for the drug_safety module. All four files
+YAML schemas for the drug_safety module. All five files
 (`contraindications.yaml`, `disease_contraindications.yaml`,
-`demographic_gates.yaml`, `drug_substitution.yaml`) are loaded on
+`demographic_gates.yaml`, `allergy_contraindications.yaml`,
+`drug_substitution.yaml`) are loaded on
 first use (cached via `functools.lru_cache`) through
 `clinosim.datafiles.load_validated_yaml`, which drops the `metadata`
 header and validates the content against an `extra="forbid"` Pydantic
 model in [`../_models.py`](../_models.py): `ContraindicationsFile`,
 `DiseaseContraindicationsFile`, `DemographicGatesFile`,
-`DrugSubstitutionFile`. A typo, an unknown key, a class or drug id
+`AllergyContraindicationsFile`, `DrugSubstitutionFile`. A typo, an unknown key, a class or drug id
 missing from the drug catalog, or a duplicate rule id raises
 `pydantic.ValidationError` at load.
 
@@ -141,6 +142,33 @@ age gate.
 
 When several rules fire, the highest-severity verdict wins (ties: first
 rule).
+
+## `allergy_contraindications.yaml`
+
+Drug class × recorded-allergy rules (Issue #2924), read by
+`engine.check_candidate_against_allergies`.
+
+```yaml
+rules:
+  - id: <kebab-case unique identifier>
+    allergen_code: "<SNOMED code of a medication allergen in modules/allergy/reference_data/allergens.yaml>"
+    drug_classes: [<catalog class tag>, ...]     # the candidate belongs to one of these
+    exclude_classes: [<catalog class tag>, ...]  # optional: and to none of these
+    severity: minor | moderate | major | contraindicated
+    rationale: {en: "...", ja: "..."}
+    substitution_hint: <optional indication tag for suggest_alternative>
+    source: "<citation>"
+```
+
+A rule fires when the patient has an active allergy record (clinical
+status `active`, not refuted, not the "No known allergy" assertion) to
+`allergen_code`. `contraindicated` / `major` drop the drug (logged on
+`safety_skip_log`, substituted when `suggest_alternative` finds an
+alternative for `substitution_hint`); `moderate` / `minor` keep it with a
+caution note. Cross-reactive classes that current evidence treats as low
+risk (cephalosporins in penicillin allergy, selective COX-2 inhibitors in
+aspirin allergy, sulfonamide non-antibiotics in sulfonamide antibiotic
+allergy) are `moderate`.
 
 ## `drug_substitution.yaml`
 

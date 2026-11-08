@@ -866,7 +866,8 @@ def apply_drug_safety_gate_to_orders(
     already_accepted_meds: list[str] | None = None,
 ) -> list[Order]:
     """Filter a stream of candidate medication Orders through
-    ``drug_safety.check_pair``.
+    ``drug_safety.check_pair``, the drug-vs-disease rules and the
+    drug-vs-allergy rules (``patient.allergies``, Issue #2924).
 
     C7b / Issue #1100 generalization: this is the shared per-order gate
     used by every issuance path (admission, daily_loop step-up,
@@ -923,6 +924,9 @@ def apply_drug_safety_gate_to_orders(
     out: list[Order] = []
     accepted_med_names: list[str] = seed
     substitute_seq = 0
+    # Issue #2924: the patient's active allergies rule out drugs too.
+    allergen_codes = drug_safety.allergy_entries(getattr(patient, "allergies", None) or [])
+    condition_codes = drug_safety.condition_entries(patient.chronic_conditions or [])
 
     for order in candidate_orders:
         if order.order_type != OrderType.MEDICATION:
@@ -952,8 +956,16 @@ def apply_drug_safety_gate_to_orders(
         verdicts = drug_safety.check_candidate_against_active(candidate, accepted_med_names)
         # Issue #2855: drug-vs-disease rules (e.g. oxidant drugs in G6PD
         # deficiency) apply to every new order, not only to chronic sampling.
-        verdicts = list(verdicts) + drug_safety.check_candidate_against_disease_state(
-            candidate, drug_safety.condition_entries(patient.chronic_conditions or [])
+        # Issue #2924: and the patient's allergies, except on a "DISCONTINUE: X"
+        # marker, which stops a drug rather than giving it.
+        verdicts = (
+            list(verdicts)
+            + drug_safety.check_candidate_against_disease_state(candidate, condition_codes)
+            + (
+                []
+                if candidate.startswith("DISCONTINUE:")
+                else drug_safety.check_candidate_against_allergies(candidate, allergen_codes)
+            )
         )
         worst = max(
             (v for v in verdicts if not v.is_allowed),
@@ -969,17 +981,16 @@ def apply_drug_safety_gate_to_orders(
                 active_meds=accepted_med_names,
                 disease_ctx=protocol,
                 country=country,
+                allergen_codes=allergen_codes,
             )
+            conflict_en, conflict_ja = drug_safety.conflict_display(worst)
             patient.safety_skip_log.append(
                 SafetySkipEntry(
                     encounter_id=encounter_id,
                     candidate_drug=candidate,
                     candidate_drug_ja=(drug_safety.japanese_display(candidate) or candidate),
-                    active_conflict=worst.matched_active_drug or "",
-                    active_conflict_ja=(
-                        drug_safety.japanese_display(worst.matched_active_drug or "")
-                        or (worst.matched_active_drug or "")
-                    ),
+                    active_conflict=conflict_en,
+                    active_conflict_ja=conflict_ja,
                     verdict=worst,
                     substituted_with=alt.drug if alt else None,
                     substituted_with_ja=(alt.drug_ja if alt else None),
@@ -1033,6 +1044,62 @@ def apply_drug_safety_gate_to_orders(
         accepted_med_names.append(candidate)
 
     return out
+
+
+def log_allergy_skip(
+    patient: PatientProfile,
+    drug_name: str,
+    verdict: Any,
+    *,
+    encounter_id: str,
+    timestamp: datetime,
+    substituted_with: str | None = None,
+) -> None:
+    """Issue #2924: record a prescription item dropped for a recorded allergy
+    (``verdict``, from ``drug_safety.allergy_skip_verdict``) on
+    ``patient.safety_skip_log``, with the substitute drug when there is one."""
+    from clinosim.modules import drug_safety
+    from clinosim.modules.drug_safety.verdict import SafetySkipEntry
+
+    conflict_en, conflict_ja = drug_safety.conflict_display(verdict)
+    patient.safety_skip_log.append(
+        SafetySkipEntry(
+            encounter_id=encounter_id,
+            candidate_drug=drug_name,
+            candidate_drug_ja=drug_safety.japanese_display(drug_name) or drug_name,
+            active_conflict=conflict_en,
+            active_conflict_ja=conflict_ja,
+            verdict=verdict,
+            substituted_with=substituted_with,
+            substituted_with_ja=(
+                (drug_safety.japanese_display(substituted_with) or substituted_with) if substituted_with else None
+            ),
+            context_hint=verdict.substitution_hint,
+            timestamp=timestamp.isoformat(),
+        )
+    )
+
+
+def allergy_blocked(
+    patient: PatientProfile,
+    drug_name: str,
+    *,
+    encounter_id: str,
+    timestamp: datetime,
+    substituted_with: str | None = None,
+) -> bool:
+    """Issue #2924: True when the patient's active allergies rule out
+    ``drug_name`` for a prescription that has no alternative to offer (a
+    renewal, a fixed bundle item); the skip is logged."""
+    from clinosim.modules import drug_safety
+
+    verdict = drug_safety.allergy_skip_verdict(drug_name, getattr(patient, "allergies", None) or [])
+    if verdict is None:
+        return False
+    log_allergy_skip(
+        patient, drug_name, verdict, encounter_id=encounter_id, timestamp=timestamp, substituted_with=substituted_with
+    )
+    return True
 
 
 def apply_drug_safety_gate_to_admission_orders(

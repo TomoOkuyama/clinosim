@@ -1,14 +1,15 @@
 # `clinosim/modules/drug_safety/reference_data/`
 
-drug_safety モジュールの YAML スキーマ。4 ファイル
+drug_safety モジュールの YAML スキーマ。5 ファイル
 (`contraindications.yaml`, `disease_contraindications.yaml`,
-`demographic_gates.yaml`, `drug_substitution.yaml`) は初回利用時に
+`demographic_gates.yaml`, `allergy_contraindications.yaml`,
+`drug_substitution.yaml`) は初回利用時に
 (`functools.lru_cache` でキャッシュ)
 `clinosim.datafiles.load_validated_yaml` 経由で load される。同関数は
 `metadata` header を除き、[`../_models.py`](../_models.py) の
 `extra="forbid"` Pydantic model (`ContraindicationsFile`,
 `DiseaseContraindicationsFile`, `DemographicGatesFile`,
-`DrugSubstitutionFile`) で内容を検証する。typo、未知キー、薬剤
+`AllergyContraindicationsFile`, `DrugSubstitutionFile`) で内容を検証する。typo、未知キー、薬剤
 カタログに無い class / drug id、rule id の重複は load 時に
 `pydantic.ValidationError` となる。
 
@@ -142,6 +143,33 @@ rule は `min_age` / `sex` の少なくとも一方で gate する必要があ�
 
 複数 rule が発火した場合は最も高い severity の判定を採用 (同順位は
 先頭の rule)。
+
+## `allergy_contraindications.yaml`
+
+薬剤 class × 記録済みアレルギー rule (Issue #2924)。
+`engine.check_candidate_against_allergies` が読む。
+
+```yaml
+rules:
+  - id: <kebab-case の一意な識別子>
+    allergen_code: "<modules/allergy/reference_data/allergens.yaml の医薬品アレルゲンの SNOMED code>"
+    drug_classes: [<カタログ class tag>, ...]     # 候補薬がいずれかに属する
+    exclude_classes: [<カタログ class tag>, ...]  # 任意: かつ、いずれにも属さない
+    severity: minor | moderate | major | contraindicated
+    rationale: {en: "...", ja: "..."}
+    substitution_hint: <任意: suggest_alternative の indication tag>
+    source: "<出典>"
+```
+
+患者に `allergen_code` の有効なアレルギー記録 (clinical status
+`active`、refuted でない、「アレルギー歴なし」でない) があると rule が
+発火する。`contraindicated` / `major` は薬剤を出さない
+(`safety_skip_log` に記録し、`substitution_hint` の代替を
+`suggest_alternative` が見つければ置換)。`moderate` / `minor` は注意
+note 付きで出す。現行エビデンスで低リスクとされる交差反応 class
+(ペニシリンアレルギーでのセフェム系、アスピリンアレルギーでの選択的
+COX-2 阻害薬、サルファ剤系抗菌薬アレルギーでの非抗菌薬スルホンアミド)
+は `moderate`。
 
 ## `drug_substitution.yaml`
 

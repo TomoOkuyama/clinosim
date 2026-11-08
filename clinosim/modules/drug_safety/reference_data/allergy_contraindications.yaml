@@ -1,0 +1,110 @@
+# clinosim/modules/drug_safety/reference_data/allergy_contraindications.yaml
+#
+# Drug-class × recorded-allergy rules (Issue #2924) — the drug-vs-allergy
+# companion to ``contraindications.yaml`` (drug-vs-drug) and
+# ``disease_contraindications.yaml`` (drug-vs-disease). Consumed by
+# ``clinosim.modules.drug_safety.engine.check_candidate_against_allergies``.
+#
+# A rule fires when the patient has an active allergy record (clinical
+# status ``active``, not refuted, not the "No known allergy" assertion) to
+# ``allergen_code`` (a medication allergen of
+# ``modules/allergy/reference_data/allergens.yaml``) AND the candidate drug
+# belongs to one of ``drug_classes`` (catalog classes, ``codes/data/drugs.yaml``,
+# with their dotted ancestors) and to none of ``exclude_classes``.
+#
+# Severity taxonomy is shared with the other rule files:
+#   contraindicated / major -> the drug is not ordered (logged on
+#     ``safety_skip_log``; ``substitution_hint`` names the indication
+#     ``suggest_alternative`` substitutes from)
+#   moderate / minor        -> the drug is ordered with a caution note
+#
+# Cross-reactivity follows current evidence:
+#   - Penicillin allergy: every penicillin (aminopenicillins included) is
+#     avoided. Cephalosporins are a caution, not a block: the risk of a
+#     reaction is low (<2 %) and driven by shared R1 side chains (Khan DA et
+#     al., Drug allergy: a 2022 practice parameter update, J Allergy Clin
+#     Immunol 2022;150:1333-1393). Carbapenems may be given without testing
+#     or precautions (same parameter) and carry no rule.
+#   - Aspirin / NSAID hypersensitivity: cross-reactive NSAID hypersensitivity
+#     is driven by COX-1 inhibition, so every non-selective and preferential
+#     COX-2 NSAID is avoided; selective COX-2 inhibitors are generally
+#     tolerated and are a caution (Kowalski ML et al., EAACI/ENDA
+#     classification of NSAID hypersensitivity, Allergy 2013;68:1219-1232;
+#     Khan 2022). Aspirin given as an antiplatelet is a separate rule because
+#     its substitute is not an analgesic.
+#   - Sulfonamide antibiotic allergy: sulfonamide antibiotics are avoided;
+#     sulfonamide non-antibiotics (thiazide and loop diuretics, celecoxib)
+#     show no meaningful cross-reactivity and are a caution only (Strom BL
+#     et al., N Engl J Med 2003;349:1628-1635; Khan 2022).
+
+metadata:
+  kind: reference
+  name: allergy_contraindications
+  source: clinosim
+
+rules:
+  - id: penicillin-allergy-penicillins
+    allergen_code: "764146007"   # Penicillin
+    drug_classes: [antibiotic.penicillin]
+    severity: contraindicated
+    substitution_hint: antimicrobial_penicillin_class
+    rationale:
+      en: "Recorded penicillin allergy: every penicillin, including the aminopenicillins (amoxicillin, ampicillin), shares the beta-lactam/thiazolidine core and is avoided."
+      ja: "ペニシリンアレルギーの記録あり。アミノペニシリン (アモキシシリン、アンピシリン) を含む全ペニシリン系は共通の β-ラクタム/チアゾリジン骨格をもつため回避。"
+    source: "Khan DA et al. Drug allergy: a 2022 practice parameter update. J Allergy Clin Immunol 2022;150:1333-1393"
+
+  - id: penicillin-allergy-cephalosporins
+    allergen_code: "764146007"   # Penicillin
+    drug_classes: [antibiotic.cephalosporin]
+    severity: moderate
+    rationale:
+      en: "Recorded penicillin allergy: cephalosporin cross-reactivity is low (<2%) and side-chain dependent; may be given, preferring a dissimilar side chain after a severe reaction."
+      ja: "ペニシリンアレルギーの記録あり。セフェム系との交差反応は低率 (<2%) で側鎖依存。投与可だが、重症反応歴では側鎖の異なる薬剤を選択。"
+    source: "Khan DA et al. Drug allergy: a 2022 practice parameter update. J Allergy Clin Immunol 2022;150:1333-1393"
+
+  - id: aspirin-allergy-nsaids
+    allergen_code: "387458008"   # Aspirin
+    drug_classes: [nsaid.non_selective, nsaid.preferential_cox2]
+    exclude_classes: [antiplatelet.cox_inhibitor]
+    severity: contraindicated
+    substitution_hint: pain_management
+    rationale:
+      en: "Recorded aspirin allergy: cross-reactive NSAID hypersensitivity follows COX-1 inhibition, so non-selective and preferential COX-2 NSAIDs are avoided."
+      ja: "アスピリンアレルギーの記録あり。NSAID 過敏症の交差反応は COX-1 阻害に起因するため、非選択的および COX-2 優先的 NSAID は回避。"
+    source: "Kowalski ML et al. Classification and practical approach to NSAID hypersensitivity (EAACI/ENDA). Allergy 2013;68:1219-1232; Khan DA et al. J Allergy Clin Immunol 2022;150:1333-1393"
+
+  - id: aspirin-allergy-aspirin
+    allergen_code: "387458008"   # Aspirin
+    drug_classes: [antiplatelet.cox_inhibitor]
+    severity: contraindicated
+    rationale:
+      en: "Recorded aspirin allergy: aspirin is not given; antiplatelet therapy continues with a P2Y12 inhibitor (or after aspirin desensitization)."
+      ja: "アスピリンアレルギーの記録あり。アスピリンは投与せず、抗血小板療法は P2Y12 阻害薬で継続 (またはアスピリン脱感作後)。"
+    source: "Khan DA et al. J Allergy Clin Immunol 2022;150:1333-1393; 2014 AHA/ACC NSTE-ACS guideline (clopidogrel when aspirin cannot be taken because of hypersensitivity)"
+
+  - id: aspirin-allergy-cox2-selective
+    allergen_code: "387458008"   # Aspirin
+    drug_classes: [nsaid.cox2_selective]
+    severity: moderate
+    rationale:
+      en: "Recorded aspirin allergy: selective COX-2 inhibitors are generally tolerated in cross-reactive NSAID hypersensitivity; give with caution."
+      ja: "アスピリンアレルギーの記録あり。選択的 COX-2 阻害薬は交差反応型 NSAID 過敏症でも概ね忍容されるが、慎重投与。"
+    source: "Kowalski ML et al. Allergy 2013;68:1219-1232; Khan DA et al. J Allergy Clin Immunol 2022;150:1333-1393"
+
+  - id: sulfonamide-allergy-sulfonamide-antibiotics
+    allergen_code: "115556009"   # Sulfonamide
+    drug_classes: [antibiotic.sulfonamide]
+    severity: contraindicated
+    rationale:
+      en: "Recorded sulfonamide allergy: sulfonamide antibiotics (trimethoprim-sulfamethoxazole) are avoided."
+      ja: "サルファ剤アレルギーの記録あり。サルファ剤系抗菌薬 (ST 合剤) は回避。"
+    source: "Khan DA et al. Drug allergy: a 2022 practice parameter update. J Allergy Clin Immunol 2022;150:1333-1393"
+
+  - id: sulfonamide-allergy-nonantibiotic-sulfonamides
+    allergen_code: "115556009"   # Sulfonamide
+    drug_classes: [diuretic.thiazide, diuretic.loop, nsaid.cox2_selective]
+    severity: moderate
+    rationale:
+      en: "Recorded sulfonamide allergy: sulfonamide non-antibiotics (thiazide and loop diuretics, celecoxib) show no meaningful cross-reactivity with sulfonamide antibiotics; give with caution."
+      ja: "サルファ剤アレルギーの記録あり。非抗菌薬スルホンアミド (サイアザイド系・ループ利尿薬、セレコキシブ) とサルファ剤系抗菌薬の交差反応はほぼないが、慎重投与。"
+    source: "Strom BL et al. Absence of cross-reactivity between sulfonamide antibiotics and sulfonamide nonantibiotics. N Engl J Med 2003;349:1628-1635; Khan DA et al. J Allergy Clin Immunol 2022;150:1333-1393"

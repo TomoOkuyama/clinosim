@@ -46,6 +46,7 @@ from clinosim.simulator.encounter_setup import (
     finalize_encounter,
 )
 from clinosim.simulator.lab_pipeline import patient_true_labs
+from clinosim.simulator.medication_pipeline import allergy_blocked
 from clinosim.types.clinical import ConditionEvent, PhysiologicalState
 from clinosim.types.config import SimulatorConfig
 from clinosim.types.encounter import (
@@ -642,7 +643,14 @@ def _renewal_prescription(
             # Issue #2710: two pregnancy-unsafe drugs substituted by the same
             # drug (Methyldopa) are one item.
             items=unique_items_by_drug(
-                [_apply_pregnancy_substitution(med) for med in patient.current_medications if not _is_prn(med)]
+                [
+                    _apply_pregnancy_substitution(med)
+                    for med in patient.current_medications
+                    if not _is_prn(med)
+                    and not allergy_blocked(
+                        patient, med.drug_name, encounter_id=encounter.encounter_id, timestamp=visit_date
+                    )
+                ]
             ),
         )
 

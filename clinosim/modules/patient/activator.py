@@ -725,6 +725,7 @@ def activate_patient(
         country=country,
         skip_log_out=_home_med_skip_log,
         patient_age=age,
+        allergies=allergies,
     )
     from clinosim.modules import drug_safety as _ds
 
@@ -741,6 +742,9 @@ def activate_patient(
             continue
         current_meds.append(_hm)
         _seen.add(_hm.drug_name)
+    # Issue #2924: a carried-over medication the person is now allergic to
+    # (an allergy recorded after it was started) is stopped. Filtering only.
+    current_meds = [_m for _m in current_meds if not _log_allergy_skip(_m.drug_name, allergies, _home_med_skip_log)]
     # Issue #2717: an anticoagulated patient with chronic coronary disease is
     # not kept on dual antiplatelet therapy as well (no triple therapy).
     from clinosim.simulator.discharge_rx import limit_triple_antithrombotic
@@ -952,6 +956,33 @@ def activate_patient(
     )
 
 
+def _log_allergy_skip(drug_name: str, allergies: list, skip_log: list) -> bool:
+    """True (and logged on ``skip_log``) when the patient's active
+    ``allergies`` rule out the home medication ``drug_name`` (Issue #2924)."""
+    from clinosim.modules import drug_safety
+    from clinosim.modules.drug_safety.verdict import SafetySkipEntry
+
+    verdict = drug_safety.allergy_skip_verdict(drug_name, allergies)
+    if verdict is None:
+        return False
+    conflict_en, conflict_ja = drug_safety.conflict_display(verdict)
+    skip_log.append(
+        SafetySkipEntry(
+            encounter_id="__home_med_derivation__",
+            candidate_drug=drug_name,
+            candidate_drug_ja=drug_safety.japanese_display(drug_name) or drug_name,
+            active_conflict=conflict_en,
+            active_conflict_ja=conflict_ja,
+            verdict=verdict,
+            substituted_with=None,
+            substituted_with_ja=None,
+            context_hint="home_med_allergy",
+            timestamp="",
+        )
+    )
+    return True
+
+
 def _derive_home_medications(
     chronic_conditions: list,
     rng: np.random.Generator | None = None,
@@ -960,8 +991,13 @@ def _derive_home_medications(
     patient_id: str = "",
     skip_log_out: list | None = None,
     patient_age: int | None = None,
+    allergies: list | None = None,
 ) -> list[HomeMedication]:
     """Derive home medications from chronic conditions via chronic_medications.yaml.
+
+    A candidate is dropped (and logged on ``skip_log_out``) when it conflicts
+    with an already-picked drug, a chronic condition or one of the patient's
+    active ``allergies`` (Issue #2924) at major / contraindicated severity.
 
     Per-ICD block ``exclusive_classes`` (Issue #432) lists ``drug_class``
     tags whose drugs must be selected via a mutually-exclusive categorical
@@ -1166,7 +1202,11 @@ def _derive_home_medications(
             disease_verdicts = drug_safety.check_candidate_against_disease_state(
                 candidate_drug, active_condition_entries
             )
-            verdicts = list(drug_verdicts) + list(disease_verdicts)
+            # Issue #2924: and against the patient's recorded allergies.
+            allergy_verdicts = drug_safety.check_candidate_against_allergies(
+                candidate_drug, drug_safety.allergy_entries(allergies or [])
+            )
+            verdicts = list(drug_verdicts) + list(disease_verdicts) + allergy_verdicts
             worst = max(
                 (v for v in verdicts if not v.is_allowed),
                 key=lambda v: SEVERITY_RANK[v.severity],
@@ -1174,6 +1214,7 @@ def _derive_home_medications(
             )
             if worst is not None and worst.default_action == "skip":
                 if skip_log_out is not None:
+                    conflict_en, conflict_ja = drug_safety.conflict_display(worst)
                     skip_log_out.append(
                         SafetySkipEntry(
                             encounter_id="__home_med_derivation__",
@@ -1181,11 +1222,8 @@ def _derive_home_medications(
                             candidate_drug_ja=(
                                 drug_safety.japanese_display(candidate_drug) or drug_ja or candidate_drug
                             ),
-                            active_conflict=worst.matched_active_drug or "",
-                            active_conflict_ja=(
-                                drug_safety.japanese_display(worst.matched_active_drug or "")
-                                or (worst.matched_active_drug or "")
-                            ),
+                            active_conflict=conflict_en,
+                            active_conflict_ja=conflict_ja,
                             verdict=worst,
                             substituted_with=None,
                             substituted_with_ja=None,

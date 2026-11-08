@@ -12,9 +12,10 @@ pairs per 10 000 US patients (warfarin+aspirin, warfarin+NSAID,
 β-blocker + non-DHP CCB, ACEi/ARB + K supplement), the gate reduces
 that count to zero via a class-based rule engine invoked from the
 simulator's order-entry paths (admission / daily-loop / ED / discharge
-Rx / prophylaxis) and the `patient` activator. Two companion gates
-cover drug-vs-disease-state (`check_candidate_against_disease_state`)
-and drug-vs-age/sex (`check_demographic_gate`) contraindications.
+Rx / prophylaxis) and the `patient` activator. Three companion gates
+cover drug-vs-disease-state (`check_candidate_against_disease_state`),
+drug-vs-age/sex (`check_demographic_gate`) and drug-vs-recorded-allergy
+(`check_candidate_against_allergies`, Issue #2924) contraindications.
 
 ## 2. Scope
 
@@ -25,6 +26,11 @@ and drug-vs-age/sex (`check_demographic_gate`) contraindications.
   Issue #1392 / #1350, staged `stage_in` predicate Issue #1769).
 - Demographic (age / sex) gate (`demographic_gates.yaml`, Issues
   #1316 / #1328) with ICD-prefix `exception_indications` bypass.
+- Drug-class × recorded-allergy rules (`allergy_contraindications.yaml`,
+  Issue #2924): each medication allergen of
+  `modules/allergy/reference_data/allergens.yaml` maps to the classes it
+  rules out (block) or flags (caution), with cross-reactivity per current
+  evidence.
 - Alternative substitution: revives Issue #437 dead-data `alternative_*`
   blocks in disease YAML + new `modules/drug_safety/reference_data/drug_substitution.yaml`
   generic pool.
@@ -63,12 +69,21 @@ verdicts = drug_safety.check_candidate_against_active(
 alt = drug_safety.suggest_alternative(
     "Ibuprofen", "pain_management",
     active_meds=["Warfarin"], disease_ctx=protocol, country="us",
+    allergen_codes=codes,  # an alternative the patient is allergic to is skipped
 )  # → AlternativeDrug(drug="Acetaminophen", ...)
 
 # Drug-vs-chronic-disease-state — entries are ICD strings or (code, stage) tuples
 verdicts = drug_safety.check_candidate_against_disease_state(
     "Ibuprofen", ["I50.9"],
 )  # → [SafetyVerdict(rule_id="nsaid-in-heart-failure", ...)]
+
+# Drug-vs-recorded-allergy — entries are the allergen codes of the
+# patient's active allergy records (NKA, resolved and refuted left out)
+codes = drug_safety.allergy_entries(patient.allergies)   # → ["764146007"]
+verdicts = drug_safety.check_candidate_against_allergies("Amoxicillin", codes)
+# → [SafetyVerdict(rule_id="penicillin-allergy-penicillins", severity="contraindicated", ...)]
+drug_safety.allergy_skip_verdict("Ibuprofen", patient.allergies)  # blocking verdict or None
+drug_safety.conflict_display(verdict)  # → ("Penicillin allergy", "ペニシリンアレルギー")
 
 # Demographic (age / sex) gate
 dv = drug_safety.check_demographic_gate(
@@ -87,6 +102,8 @@ drug_safety.japanese_display("Aspirin")   # → "アスピリン"
 The full `__all__`: functions `check_pair`,
 `check_candidate_against_active`,
 `check_candidate_against_disease_state`, `check_demographic_gate`,
+`check_candidate_against_allergies`, `allergy_entries`,
+`allergy_skip_verdict`, `conflict_display`, `condition_entries`,
 `suggest_alternative`, `discharge_reconciliation_rules`,
 `resolve_classes`, `canonical_name`, `japanese_display`; types
 `SafetyVerdict`, `SafetySkipEntry`, `Severity`, `SEVERITY_RANK`
@@ -127,7 +144,7 @@ The full `__all__`: functions `check_pair`,
 
 ## 6. Constants and configuration
 
-Four YAML files plus the drug catalog:
+Five YAML files plus the drug catalog:
 
 - Drug classes and aliases: the drug catalog
   (`clinosim/codes/data/drugs.yaml`, read through `clinosim.codes.drugs`).
@@ -149,6 +166,16 @@ Four YAML files plus the drug catalog:
 - `reference_data/demographic_gates.yaml` — age / sex rules (3 rules:
   aspirin pediatric (Reye's), nitroglycerin adult-only, tamsulosin
   adult male).
+- `reference_data/allergy_contraindications.yaml` — drug class ×
+  recorded-allergy rules (7 rules, Issue #2924). Penicillin allergy
+  blocks every penicillin (aminopenicillins included) and only cautions
+  cephalosporins; carbapenems carry no rule (AAAAI/ACAAI drug allergy
+  practice parameter 2022). Aspirin allergy blocks non-selective and
+  preferential COX-2 NSAIDs (substitute: `pain_management`) and aspirin
+  itself (no analgesic substitute), and cautions selective COX-2
+  inhibitors (EAACI/ENDA NSAID hypersensitivity classification).
+  Sulfonamide allergy blocks sulfonamide antibiotics and only cautions
+  thiazide / loop diuretics and celecoxib (Strom, NEJM 2003).
 - `modules/drug_safety/reference_data/drug_substitution.yaml` — generic indication →
   alternative pool keyed by catalog `drug_id` (pain_management →
   acetaminophen; hypertension_or_rate_control → amlodipine /
@@ -157,9 +184,10 @@ Four YAML files plus the drug catalog:
 Each file is validated at load by an `extra="forbid"` Pydantic model
 in `_models.py` (`ContraindicationsFile`,
 `DiseaseContraindicationsFile`, `DemographicGatesFile`,
-`DrugSubstitutionFile`); drug classes / drug ids are checked against
-the catalog, rule ids must be unique, and the reconciliation list
-must name existing rules.
+`DrugSubstitutionFile`, `AllergyContraindicationsFile`); drug classes /
+drug ids are checked against the catalog, rule ids must be unique, the
+reconciliation list must name existing rules, and an allergy rule's
+`allergen_code` must be a medication allergen of `allergens.yaml`.
 
 Also lifts the Issue #437 dead-data `alternative_*` blocks in 15
 disease YAMLs via `_indication_tag` markers.
@@ -171,14 +199,15 @@ clinosim/modules/drug_safety/
 ├── __init__.py            # public API re-export
 ├── verdict.py             # SafetyVerdict + SafetySkipEntry + Severity + SEVERITY_RANK
 ├── classifier.py          # drug-name → class[] resolver
-├── engine.py              # check_pair / check_candidate_against_active / check_candidate_against_disease_state / suggest_alternative / discharge_reconciliation_rules
+├── engine.py              # check_pair / check_candidate_against_active / check_candidate_against_disease_state / check_candidate_against_allergies / suggest_alternative / discharge_reconciliation_rules
 ├── demographic.py         # check_demographic_gate + DemographicVerdict
-├── _models.py             # Pydantic models of the four reference YAMLs
+├── _models.py             # Pydantic models of the five reference YAMLs
 ├── audit.py               # audit_drug_safety(patients) → list[AuditFinding]
 ├── reference_data/
 │   ├── contraindications.yaml
 │   ├── disease_contraindications.yaml
 │   ├── demographic_gates.yaml
+│   ├── allergy_contraindications.yaml
 │   ├── drug_substitution.yaml
 │   ├── README.md          # YAML schemas
 │   └── README.ja.md
@@ -191,21 +220,28 @@ clinosim/modules/drug_safety/
 **None** — this is a library, not an enricher. Invoked synchronously by:
 
 - `clinosim.simulator.medication_pipeline.apply_drug_safety_gate_to_orders`
-  — DDI gate + substitution; called on the merged admission orders
-  from `simulator/inpatient.py` (via the
+  — DDI + disease-state + allergy gate + substitution; called on the
+  merged admission orders from `simulator/inpatient.py` (via the
   `apply_drug_safety_gate_to_admission_orders` wrapper) and on newly
-  placed daily-loop orders from `simulator/daily_loop.py`.
+  placed daily-loop orders from `simulator/daily_loop.py`. Its
+  `allergy_blocked` / `log_allergy_skip` helpers gate prescriptions that
+  have no alternative to offer (outpatient renewal, the postpartum
+  take-home bundle and C-section analgesic in `simulator/perinatal.py`).
 - `clinosim.modules.patient.activator._derive_home_medications`
-  — chronic-med selection loop (DDI + disease-state gates); skip-only,
-  no substitution.
-- `clinosim.simulator.emergency` — ED order dispatch
-  (`check_demographic_gate` + `check_candidate_against_active`).
-- `clinosim.simulator.discharge_rx` — `check_pair` against active meds.
+  — chronic-med selection loop (DDI + disease-state + allergy gates);
+  skip-only, no substitution. The activator also stops a carried-over
+  home medication the person is now allergic to.
+- `clinosim.simulator.emergency` — ED order dispatch and take-home
+  prescriptions (`check_demographic_gate` +
+  `check_candidate_against_active` + disease-state + allergy rules).
+- `clinosim.simulator.discharge_rx` — `check_pair` against active meds;
+  allergy check (with substitution) on protocol and continued items.
 - `clinosim.modules.prophylaxis.engine` — VTE prophylaxis candidate
   vs active meds.
 - `clinosim.modules.longitudinal.engine` — reconciles carried-over
   home meds (`discharge_reconciliation_rules` +
-  `check_candidate_against_active`).
+  `check_candidate_against_active`) and skips additions a recorded
+  allergy rules out.
 - `clinosim.simulator.outpatient` and
   `clinosim.modules.order.discontinue_flip` — import the verdict types
   to record safety-skip entries.
@@ -264,6 +300,9 @@ clinosim/modules/drug_safety/
   `tests/unit/modules/drug_safety/test_demographic_gate.py`,
   `tests/unit/test_ed_order_drug_safety_1347.py`,
   `tests/unit/test_discharge_rx_drug_safety_1334.py`.
+- Allergy gate: `tests/unit/modules/drug_safety/test_allergy_gate_2924.py`
+  (rules, NKA / unrelated allergies, order / ED / discharge / activator
+  wiring, YAML model).
 
 Cohort verification runs through `scripts/verify_medical_stats.py`
 which reports `contraindicated_pair_count` (target: 0).

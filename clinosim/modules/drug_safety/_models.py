@@ -173,3 +173,43 @@ class DrugSubstitutionFile(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     indications: dict[str, _Indication] = Field(min_length=1)
+
+
+def _medication_allergen_codes() -> set[str]:
+    from clinosim.modules.allergy.engine import load_allergens
+
+    return {str(e["allergen_code"]) for e in load_allergens().get("medication", [])}
+
+
+class _AllergyRule(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(min_length=1)
+    allergen_code: str
+    drug_classes: list[str] = Field(min_length=1)
+    exclude_classes: list[str] = []
+    severity: _RuleSeverity
+    rationale: _Rationale
+    source: str = Field(min_length=1)
+    substitution_hint: str | None = None
+
+    @field_validator("allergen_code")
+    @classmethod
+    def _medication_allergen(cls, v: str) -> str:
+        if v not in _medication_allergen_codes():
+            raise ValueError(f"allergen_code {v!r} is not a medication allergen of allergens.yaml")
+        return v
+
+    @field_validator("drug_classes", "exclude_classes")
+    @classmethod
+    def _classes(cls, v: list[str]) -> list[str]:
+        return [_check_class(c) for c in v]
+
+
+class AllergyContraindicationsFile(BaseModel):
+    """Shape of ``allergy_contraindications.yaml`` (Issue #2924): each rule
+    names a medication allergen of ``allergens.yaml`` and catalog classes."""
+
+    model_config = ConfigDict(extra="forbid")
+    rules: list[_AllergyRule] = Field(min_length=1)
+
+    _ids = field_validator("rules")(classmethod(lambda cls, v: _unique_ids(v)))
