@@ -2448,7 +2448,7 @@
 </tr>
 <tr>
 <td>保留規則は入院時・投与時・退院時で一つの出所から読む(薬剤ごとの腎機能対応、バイタルの保留条件、メトホルミンの腎機能閾値)。</td>
-<td><code>medication_pipeline.py</code>(<code>renal_medication_rules</code>, <code>mar_vital_hold_reason</code>, <code>metformin_admission_hold_threshold</code>)、<code>discharge_rx.py::renal_hold_drugs</code>。データ <code>locale/shared/renal_medication_rules.yaml</code>, <code>chronic_medications.yaml</code></td>
+<td><code>medication_pipeline.py</code>(<code>renal_medication_rules</code>, <code>mar_vital_hold_reason</code>, <code>metformin_admission_hold_threshold</code>)、<code>discharge_rx.py::renal_hold_drugs</code>。データ <code>simulator/reference_data/renal_medication_rules.yaml</code>, <code>locale/shared/chronic_medications.yaml</code></td>
 <td><code>tests/unit/test_hold_rules_one_source_2296.py</code>, <code>tests/unit/test_medication_holds_acute_illness_1335.py</code></td>
 </tr>
 <tr>
@@ -2566,7 +2566,7 @@
 </tr>
 <tr>
 <td>US: RxNorm の臨床薬(SCD)は、薬剤・投与経路区分・用量で選ぶ(用量 = 一つの規格の 1〜4 単位)。成分コードをその後に続ける。用量に合う製品が一つに決まらなければ SCD は付けない。</td>
-<td><code>codes/drugs.py::rxnorm_scd_code</code>、表 <code>codes/data/rxnorm_scd.yaml</code>(<code>scripts/refresh_rxnorm_scd.py</code> で生成)。適用は <code>fhir_r4/medications/medications.py::_apply_rxnorm_scd</code></td>
+<td><code>codes/drugs.py::rxnorm_scd_code</code>、表 <code>codes/data/rxnorm_scd.yaml</code>(NLM RxNav から取得。取得元と取得日は同ファイルの <code>metadata</code> に記載。更新スクリプトはリポジトリに無い)。適用は <code>fhir_r4/medications/medications.py::_apply_rxnorm_scd</code></td>
 <td><code>tests/unit/codes/test_rxnorm_scd_2614.py</code></td>
 </tr>
 </tbody>

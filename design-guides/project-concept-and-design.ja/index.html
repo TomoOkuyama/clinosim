@@ -2407,8 +2407,8 @@
 
 
 <h1 id="clinosim-project-concept--design--キャッチアップ文書">clinosim Project Concept &amp; Design — キャッチアップ文書<a class="headerlink" href="#clinosim-project-concept--design--キャッチアップ文書" title="Permanent link">&para;</a></h1>
-<p><strong>Status:</strong> Active(2026-07-03、session 32 で確立)
-<strong>Audience:</strong> 新規参加の開発者/実装 AI(Opus 4.7 等)が最初に読む「このプロジェクトは
+<p><strong>Status:</strong> Active(2026-07-03 から)
+<strong>Audience:</strong> 新規参加の開発者/実装 AI が最初に読む「このプロジェクトは
 何で、どう作られているか」の全体像。規則集は
 <a href="../implementation-rules.ja/"><code>implementation-rules.md</code></a>、詳細アーキテクチャは <code>DESIGN.md</code>(ADR 全集)。</p>
 <hr />
@@ -2455,7 +2455,7 @@
   --provider template |mock |ollama |bedrock |vllm |openai_compatible</code>(→ narratives/<version>/)→
   <code>clinosim export-fhir --narrative-version X</code>。これがコンセプト 6(差し替え)の実体。</li>
 <li><strong>決定性(AD-16)</strong>: 全乱数は階層 sub-seed。同 seed = byte 同一出力(wall-clock は
-  determinism chain で全除去済、session 34)。</li>
+  determinism chain で全除去済)。</li>
 <li><strong>★ この図の詳細版</strong>(実ファイル/関数名つきの end-to-end トレース)=
   <a href="../data-generation-walkthrough.ja/"><code>data-generation-walkthrough.md</code></a>。新規貢献者はまず本節で
   全体像を掴み、walkthrough で 1 患者の生成を具体的に追う。</li>
@@ -2540,7 +2540,7 @@
 <ul>
 <li><code>codes/</code>(国際標準、locale 非依存、EN 必須)と <code>locale/&lt;country&gt;/</code>(名前・住所・
   基準値・code_mapping)を厳密分離(AD-35)。</li>
-<li>CIF は言語中立(code のみ、AD-30)。表示は出力時に <code>code_lookup(system, code, lang)</code>。</li>
+<li>CIF は言語中立(code のみ、AD-30)。表示は出力時に <code>display(system, code, lang)</code> + 明示的な fallback で解決(code-mapping spec §9)。</li>
 <li>国判定は <code>is_jp()</code> / <code>lang_for()</code>、国→コード体系は <code>system_key_for()</code>(単一 source)。</li>
 <li>JP 固有: 保険/マイナンバー(identity module, opt-in)、要介護度、JLAC10/YJ/K-code、
   JP Core 準拠 FHIR。<strong>US 出力に日本語 0 / JP 出力は全 display 日本語</strong>が監査される。</li>
@@ -2586,16 +2586,16 @@
 の 3 層防御が全域に張られている。詳細 = <code>implementation-rules.md</code> §9。</p>
 <h2 id="7-現在地とロードマップ2026-09-02-時点">7. 現在地とロードマップ(2026-09-02 時点)<a class="headerlink" href="#7-現在地とロードマップ2026-09-02-時点" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>version</strong>: v0.5.0 (v0.6.0 release-gate — 3 META Issue (#914 / #957 / #757) 全 close、tag 待ち)。US p=10k / JP p=5k の production cohort が audit 全 PASS で生成可能。32 疾患 + 46 外来 / ED 病態、33 モジュール、25+ FHIR R4 resource 型 emit。縦断サービスライン (腫瘍 + 産科 — がん chronic marker × 化学療法 regimen サイクル + per-cycle drug MedicationRequest/Administration × 放射線治療 Procedure × <strong>時限 <code>TemporalStatePeriod</code> 妊娠 lifecycle</strong> (受精 → 妊婦健診 12/24/36 週 → 分娩 encounter → 産褥) × 新生児 Patient chain × 妊娠中絶 outcome × Z37 過去出産 problem-list-item (state_history 由来)) は META #957 Incr 1 (session 97、PR #1051) で完成 — 詳細は <code>docs/reference/oncology-obstetric-service-lines.ja.md</code> + AD-71 <code>docs/architecture/architecture-notes.ja.md</code> §9。
+<li><strong>version</strong>: v0.5.0 (v0.6.0 release-gate — 3 META Issue (#914 / #957 / #757) 全 close、tag 待ち)。US p=10k / JP p=5k の production cohort が audit 全 PASS で生成可能。32 疾患 + 46 外来 / ED 病態、33 モジュール、25+ FHIR R4 resource 型 emit。縦断サービスライン (腫瘍 + 産科 — がん chronic marker × 化学療法 regimen サイクル + per-cycle drug MedicationRequest/Administration × 放射線治療 Procedure × <strong>時限 <code>TemporalStatePeriod</code> 妊娠 lifecycle</strong> (受精 → 妊婦健診 12/24/36 週 → 分娩 encounter → 産褥) × 新生児 Patient chain × 妊娠中絶 outcome × Z37 過去出産 problem-list-item (state_history 由来)) は META #957 Incr 1 (PR #1051) で完成 — 詳細は <code>docs/reference/oncology-obstetric-service-lines.ja.md</code> + AD-71 <code>docs/architecture/architecture-notes.ja.md</code> §9。
   32 疾患 + 46 外来/ED 条件、33 modules、FHIR R4 で 25+ resource type を emit。</li>
-<li><strong>β-JP-1 chain 2(厚労省帳票)は完了</strong>(session 33-36): 入院診療計画書 / 看護必要度
-  A・B・C 項目評価票(公式には「D 表」という帳票は存在しない、名称は session 36 で訂正
+<li><strong>β-JP-1 chain 2(厚労省帳票)は完了</strong>: 入院診療計画書 / 看護必要度
+  A・B・C 項目評価票(公式には「D 表」という帳票は存在しない、名称は訂正
   済み)/ 栄養管理計画書 / リハビリテーション実施計画書 の 4/4 文書が完了。</li>
-<li><strong>共通ロジック統一・determinism chain・AD-30 chain・display-dict → codes YAML 移行は完了</strong>
-  (session 31-37): narrative IF 統一(N-chain)、context 配線、LLM golden + semantic
+<li><strong>共通ロジック統一・determinism chain・AD-30 chain・display-dict → codes YAML 移行は完了</strong>:
+  narrative IF 統一(N-chain)、context 配線、LLM golden + semantic
   check、wall-clock 全除去、display-in-CIF 残骸除去、8 codes YAML 新設 + dual-access
   write-side 統一(<code>set_attr_or_key</code> / <code>get_or_create_container</code>)。</li>
-<li><strong>★ FHIR completeness chain 完了</strong>(session 38、AD-67/68/69): 「最終 FHIR 出力の不完全
+<li><strong>★ FHIR completeness chain 完了</strong>(AD-67/68/69): 「最終 FHIR 出力の不完全
   状態(C1 silent-drop / C2 degenerate / C3 missing-structure)をゼロにする」ゴールの下、
   9 チェーンを消化。重症度 single source(疾患YAML canonical、<code>disease/severity.py</code>、
   <code>severity_beta</code> 撤廃)/ <code>archetype_modifiers</code> 配線 / <code>DiseaseProtocol</code> <code>extra="forbid"</code> /
@@ -2609,7 +2609,7 @@
   follow-up)。詳細は fix-point registry と GitHub Issues board (<code>docs/roadmap.ja.md</code> 参照)。旧 <code>TODO.md</code> の deferred section は Issues 化に伴い廃止。</li>
 <li><strong>その後の chain</strong>(優先順、<code>docs/design-notes/2026-07-02-grand-design-review-and-roadmap.md</code> §4
   ただし上記完了分は本節が最新): β-2(手術/麻酔)→ γ/δ/ε → SS-MIX2。</li>
-<li><strong>deferred の正</strong>: GitHub Issues board (see <code>docs/roadmap.ja.md</code>)。旧 <code>TODO.md</code> は Issues 化に伴い廃止。作業開始前に必ず <code>.resume-prompt.md</code> (最新 session hand-off) を読む。</li>
+<li><strong>deferred の正</strong>: GitHub Issues board (see <code>docs/roadmap.ja.md</code>)。旧 <code>TODO.md</code> は Issues 化に伴い廃止。</li>
 </ul>
 <h2 id="8-用語ミニ辞書">8. 用語ミニ辞書<a class="headerlink" href="#8-用語ミニ辞書" title="Permanent link">&para;</a></h2>
 <table>

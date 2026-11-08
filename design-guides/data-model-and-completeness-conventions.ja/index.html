@@ -2524,7 +2524,7 @@
 
 
 <h1 id="data-model--completeness-conventions--別セッション遵守規約">Data-Model &amp; Completeness Conventions — 別セッション遵守規約<a class="headerlink" href="#data-model--completeness-conventions--別セッション遵守規約" title="Permanent link">&para;</a></h1>
-<p><strong>Status:</strong> Active(2026-07-06、session 38 で確立)
+<p><strong>Status:</strong> Active(2026-07-06 から)
 <strong>Audience:</strong> FHIR completeness fix-point registry(<code>docs/design-notes/2026-07-06-fix-point-registry.md</code>)の
 各 chain を実装するセッション/実装 AI。
 <strong>位置づけ:</strong> 既存の <a href="../implementation-rules.ja/"><code>implementation-rules.md</code></a>(全域の不変則)と
@@ -2558,7 +2558,7 @@ completeness 修正に固有の新規約だけを書く — 既存規約は<stro
 <ul>
 <li><code>PatientProfile</code>(<code>config.py:101</code>)が前例。新しい YAML-loaded <code>BaseModel</code> は
   <code>model_config = ConfigDict(extra="forbid")</code> を<strong>最初から</strong>付ける。</li>
-<li>既存の <code>extra="ignore"</code>(= silent-drop)を持つモデルは撤廃対象(FP-YAML-3 が <code>DiseaseProtocol</code> を移行)。</li>
+<li><code>extra="ignore"</code>(= silent-drop)は使わない。<code>DiseaseProtocol</code> は <code>extra="forbid"</code>。</li>
 <li><code>extra="allow"</code>(<code>EncounterConditionProtocol</code>)+ 生 dict 返しは「意図的無検証」だが、この経路も
   将来 canonical constants 照合(<code>SUPPORTED_*</code> 差分検出、<code>implementation-rules.md</code> §9-2)で塞ぐのが望ましい。</li>
 </ul>
@@ -2587,7 +2587,7 @@ completeness 修正に固有の新規約だけを書く — 既存規約は<stro
 <hr />
 <h2 id="4-生成したが機能しないを作らないc2-対策">4. 「生成したが機能しない」を作らない(C2 対策)<a class="headerlink" href="#4-生成したが機能しないを作らないc2-対策" title="Permanent link">&para;</a></h2>
 <h3 id="41-stage--severity-は生理消費者とセットで配線">4.1 stage / severity は生理消費者とセットで配線<a class="headerlink" href="#41-stage--severity-は生理消費者とセットで配線" title="Permanent link">&para;</a></h3>
-<p>graded-stage 疾患(CKD/HF/COPD/asthma/IHD は session 37 で配線済、I10 は未 = FP-I10)は、
+<p>graded-stage 疾患(CKD/HF/COPD/asthma/IHD/I10、<code>modules/patient/reference_data/stage_severity.yaml</code> 参照)は、
 <code>STAGE_SEVERITY</code> エントリ<strong>単独追加を禁止</strong>。必ず (1) stage → severity_score マッピング、
 (2) <code>physiology/engine.py:initialize_state</code> の消費分岐、(3) vitals/labs/処方への波及、
 (4) FHIR resource の適切な code、まで一貫させる。「誰も読まない severity_score」は C2。</p>
@@ -2665,7 +2665,7 @@ call-site は event 日(<code>event.timestamp</code>)を渡す。</p>
 <td>code → display</td>
 <td>(system, code, lang)</td>
 <td>display 文字列</td>
-<td><code>code_lookup</code> / <code>system_key_for</code>(既存)</td>
+<td><code>display(system, code, lang)</code> + 明示的な fallback / <code>system_key_for</code>(code-mapping spec §9)</td>
 </tr>
 <tr>
 <td>CIF → FHIR</td>

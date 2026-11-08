@@ -2695,7 +2695,7 @@
 
 
 <h1 id="data-generation-walkthrough--how-a-patient-record-is-born">Data Generation Walkthrough — "how a patient record is born"<a class="headerlink" href="#data-generation-walkthrough--how-a-patient-record-is-born" title="Permanent link">&para;</a></h1>
-<p><strong>Status:</strong> Active (2026-07-06, established in session 38).
+<p><strong>Status:</strong> Active (since 2026-07-06).
 <strong>Audience:</strong> developers and implementation agents new to clinosim.
 Traces <strong>how the project assembles one patient record</strong> end-to-end
 with actual file names, function names, and data structures.
@@ -2921,7 +2921,7 @@ height / weight, <strong>chronic-condition staging</strong> (<code>_generate_sta
 CKD G3a, NYHA II, hypertension stage 2, …), <strong>stage-derived
 physiology parameters</strong> (<code>STAGE_SEVERITY</code> maps stage → severity_score,
 which drives baseline vitals and physiology — e.g. hypertension
-stage 2 → high baseline blood pressure, FP-I10), routine
+stage 2 → high baseline blood pressure), routine
 medications, allergies, baseline vitals.</p>
 <h3 id="1d-encounter-simulation-daily-loop--simulatorinpatientpy-and-siblings">1d. Encounter simulation (daily loop) — <code>simulator/inpatient.py</code> and siblings<a class="headerlink" href="#1d-encounter-simulation-daily-loop--simulatorinpatientpy-and-siblings" title="Permanent link">&para;</a></h3>
 <p>Dispatch by visit type:
@@ -3022,7 +3022,8 @@ via <code>CIFReader</code>, and the per-theme builders under
 <li><strong>Bulk Data Access</strong> (AD-31): 1 NDJSON per resource type +
   <code>manifest.json</code>. Not wrapped in a Bundle.</li>
 <li>Builders <strong>read CIF only</strong>. Display is resolved via
-  <code>code_lookup(system, code, lang)</code>; URIs via <code>get_system_uri</code>;
+  <code>display(system, code, lang)</code> with an explicit fallback
+  (code-mapping spec §9); URIs via <code>get_system_uri</code>;
   country → code system via <code>system_key_for</code> (hard-coding
   forbidden).</li>
 <li>Adding a FHIR resource = register a builder with
@@ -3106,7 +3107,7 @@ PractitionerRole / Endpoint / …).</p>
 </tr>
 <tr>
 <td>Code → display name</td>
-<td><code>codes/data/&lt;system&gt;.yaml</code> (<code>en</code> required, <code>ja</code> optional). Resolve via <code>code_lookup</code>.</td>
+<td><code>codes/data/&lt;system&gt;.yaml</code> (<code>en</code> required, <code>ja</code> optional). Resolve via <code>display(...)</code> with an explicit fallback.</td>
 </tr>
 </tbody>
 </table>

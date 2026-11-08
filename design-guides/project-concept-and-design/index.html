@@ -2551,9 +2551,9 @@
 
 
 <h1 id="clinosim-project-concept--design--catch-up-doc">clinosim Project Concept &amp; Design — catch-up doc<a class="headerlink" href="#clinosim-project-concept--design--catch-up-doc" title="Permanent link">&para;</a></h1>
-<p><strong>Status:</strong> Active (2026-07-03, established in session 32).
-<strong>Audience:</strong> any new developer or implementation agent (Opus 4.7,
-etc.) reading their first "what is this project and how is it built"
+<p><strong>Status:</strong> Active (since 2026-07-03).
+<strong>Audience:</strong> any new developer or implementation agent reading
+their first "what is this project and how is it built"
 overview. The rulebook lives in
 <a href="../implementation-rules/"><code>implementation-rules.md</code></a>; the detailed
 architecture lives in <code>DESIGN.md</code> (the full ADR set).</p>
@@ -2616,7 +2616,7 @@ design review):</p>
   That is the concrete embodiment of requirement 6 (swappability).</li>
 <li><strong>Determinism (AD-16)</strong>: every random draw comes from a hierarchical
   sub-seed. Same seed = byte-identical output (wall-clock reads were
-  eliminated project-wide in the determinism chain, session 34).</li>
+  eliminated project-wide in the determinism chain).</li>
 <li><strong>★ For the detailed version of this diagram</strong> (an end-to-end
   trace with actual file and function names), see
   <a href="../data-generation-walkthrough/"><code>data-generation-walkthrough.md</code></a>.
@@ -2724,7 +2724,8 @@ design review):</p>
   locale-independent, EN required) and <code>locale/&lt;country&gt;/</code> (names /
   addresses / reference intervals / code_mapping) — AD-35.</li>
 <li>CIF is language-neutral (codes only, AD-30). Display is resolved
-  at output time via <code>code_lookup(system, code, lang)</code>.</li>
+  at output time via <code>display(system, code, lang)</code> with an explicit
+  fallback (code-mapping spec §9).</li>
 <li>Country dispatch goes through <code>is_jp()</code> / <code>lang_for()</code>;
   country → code-system dispatch through <code>system_key_for()</code> (single
   source).</li>
@@ -2789,22 +2790,21 @@ validation, canonical constants, and firing counters. Details:
   (conception → prenatal visits at gestational weeks 12/24/36 →
   delivery encounter → postpartum) × newborn Patient chain × abortion
   outcome × Z37 past-birth problem-list-item (state_history-derived))
-  landed with META #957 Incr 1 (session 97, PR #1051); see
+  landed with META #957 Incr 1 (PR #1051); see
   <code>docs/reference/oncology-obstetric-service-lines.md</code> + AD-71
   <code>docs/architecture/architecture-notes.md</code> §9.</li>
-<li><strong>β-JP-1 chain 2 (MHLW forms) is complete</strong> (sessions 33-36): the
+<li><strong>β-JP-1 chain 2 (MHLW forms) is complete</strong>: the
   4-of-4 documents — inpatient care plan / nursing-need A, B, C
   evaluation forms (there is officially no "D table" form; the
-  wording was corrected in session 36) / nutrition-management plan
+  wording was corrected) / nutrition-management plan
   / rehabilitation-implementation plan — have all landed.</li>
 <li><strong>Shared-logic unification, determinism chain, AD-30 chain, and
-  display-dict → codes-YAML migration are complete</strong> (sessions
-  31-37): unified narrative IF (N-chain), context wiring, LLM
+  display-dict → codes-YAML migration are complete</strong>: unified narrative IF (N-chain), context wiring, LLM
   goldens + semantic check, elimination of every wall-clock read,
   removal of display-in-CIF vestiges, 8 new codes YAMLs + dual-
   access write-side unification (<code>set_attr_or_key</code> /
   <code>get_or_create_container</code>).</li>
-<li><strong>★ FHIR completeness chain complete</strong> (session 38, AD-67 / 68 /
+<li><strong>★ FHIR completeness chain complete</strong> (AD-67 / 68 /
   69): under the goal of "drive the number of incompleteness states
   in the final FHIR output (C1 silent-drop / C2 degenerate / C3
   missing-structure) to zero", 9 chains were digested — severity
@@ -2831,8 +2831,7 @@ validation, canonical constants, and firing counters. Details:
   §4, though the completed parts above take precedence): β-2
   (surgical / anaesthetic) → γ / δ / ε → SS-MIX2.</li>
 <li><strong>The canonical source for deferred items</strong>: the GitHub Issues
-  board (see <code>docs/roadmap.md</code>). Before starting work, always read
-  <code>.resume-prompt.md</code> (the latest session hand-off).</li>
+  board (see <code>docs/roadmap.md</code>).</li>
 </ul>
 <h2 id="8-glossary">8. Glossary<a class="headerlink" href="#8-glossary" title="Permanent link">&para;</a></h2>
 <table>

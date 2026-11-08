@@ -2785,7 +2785,7 @@
 
 
 <h1 id="data-model--completeness-conventions--cross-session-compliance-rules">Data-Model &amp; Completeness Conventions — cross-session compliance rules<a class="headerlink" href="#data-model--completeness-conventions--cross-session-compliance-rules" title="Permanent link">&para;</a></h1>
-<p><strong>Status:</strong> Active (2026-07-06, established in session 38).
+<p><strong>Status:</strong> Active (since 2026-07-06).
 <strong>Audience:</strong> any session or implementation agent working on one of
 the chains in the FHIR completeness fix-point registry
 (<code>docs/design-notes/2026-07-06-fix-point-registry.md</code>).
@@ -2838,8 +2838,8 @@ new C1 / C2 / C3 (see the §5 checklist).</p>
 <li><code>PatientProfile</code> (<code>config.py:101</code>) is the reference. Every new
   YAML-loaded <code>BaseModel</code> gets <code>model_config = ConfigDict(extra="forbid")</code>
   <strong>from the start</strong>.</li>
-<li>Existing models with <code>extra="ignore"</code> (i.e. silent-drop) are
-  scheduled for removal (FP-YAML-3 migrates <code>DiseaseProtocol</code>).</li>
+<li><code>extra="ignore"</code> (i.e. silent-drop) is not used; <code>DiseaseProtocol</code>
+  is <code>extra="forbid"</code>.</li>
 <li><code>extra="allow"</code> (as in <code>EncounterConditionProtocol</code>) combined with
   raw-dict returns is "deliberately unvalidated", but that path
   should also be closed in the future by cross-checking against
@@ -2887,8 +2887,8 @@ intent behind the data asset disappear.</p>
 <hr />
 <h2 id="4-do-not-create-generated-but-non-functional-c2-defense">4. Do not create "generated but non-functional" (C2 defense)<a class="headerlink" href="#4-do-not-create-generated-but-non-functional-c2-defense" title="Permanent link">&para;</a></h2>
 <h3 id="41-wire-stage--severity-together-with-the-physiology-consumer">4.1 Wire stage / severity together with the physiology consumer<a class="headerlink" href="#41-wire-stage--severity-together-with-the-physiology-consumer" title="Permanent link">&para;</a></h3>
-<p>Graded-stage diseases (CKD / HF / COPD / asthma / IHD wired in
-session 37; I10 not yet = FP-I10) <strong>may not</strong> add a
+<p>Graded-stage diseases (CKD / HF / COPD / asthma / IHD / I10, see
+<code>modules/patient/reference_data/stage_severity.yaml</code>) <strong>may not</strong> add a
 <code>STAGE_SEVERITY</code> entry alone. You must land all four together:
 (1) the stage → severity_score mapping,
 (2) the <code>physiology/engine.py:initialize_state</code> consumer branch,
@@ -2994,7 +2994,7 @@ output").</p>
 <td>code → display</td>
 <td><code>(system, code, lang)</code></td>
 <td>display string</td>
-<td><code>code_lookup</code> / <code>system_key_for</code> (existing)</td>
+<td><code>display(system, code, lang)</code> + an explicit fallback / <code>system_key_for</code> (code-mapping spec §9)</td>
 </tr>
 <tr>
 <td>CIF → FHIR</td>

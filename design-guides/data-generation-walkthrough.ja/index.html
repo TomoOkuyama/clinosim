@@ -2479,7 +2479,7 @@
 
 
 <h1 id="data-generation-walkthrough--データはどう生まれるか">Data Generation Walkthrough — 「データはどう生まれるか」<a class="headerlink" href="#data-generation-walkthrough--データはどう生まれるか" title="Permanent link">&para;</a></h1>
-<p><strong>Status:</strong> Active(2026-07-06、session 38 で確立)
+<p><strong>Status:</strong> Active(2026-07-06 から)
 <strong>Audience:</strong> clinosim に初めて触れる開発者/実装 AI。<strong>このプロジェクトが 1 件の患者データを
 どう組み立てるか</strong>を、実際のファイル名・関数名・データ構造つきで end-to-end に追う。
 <strong>読む順:</strong> <code>README.md</code>(索引)→ <code>project-concept-and-design.md</code>(コンセプト)→ <strong>本書</strong>
@@ -2654,7 +2654,7 @@ Incr 1 前 master を検証済み。</p>
 Layer 1 → Layer 2 <code>PatientProfile</code> に厚くなる:身長/体重、<strong>慢性疾患の staging</strong>
 (<code>_generate_stage</code>:CKD G3a / NYHA II / 高血圧 Stage 2 …)、<strong>ステージ由来の生理パラメータ</strong>
 (<code>STAGE_SEVERITY</code> が stage → severity_score、それが baseline vitals や physiology を駆動 —
-例:高血圧 Stage 2 → 高い baseline 血圧、FP-I10)、常用薬、アレルギー、baseline vitals。</p>
+例:高血圧 Stage 2 → 高い baseline 血圧)、常用薬、アレルギー、baseline vitals。</p>
 <h3 id="1d-受診シミュレーションdaily-loop-simulatorinpatientpy-ほか">1d. 受診シミュレーション(daily loop)— <code>simulator/inpatient.py</code> ほか<a class="headerlink" href="#1d-受診シミュレーションdaily-loop-simulatorinpatientpy-ほか" title="Permanent link">&para;</a></h3>
 <p>受診タイプ別に分岐:
 - <strong>入院</strong>: <code>inpatient.py:_simulate_patient()</code> → <code>_run_daily_loop()</code>。
@@ -2723,7 +2723,7 @@ encounter binding、<code>narrative=None</code>)を作る。実際の自然文�
 <code>encounters/</code>、<code>documents/</code> …)が FHIR resource を組む。</p>
 <ul>
 <li><strong>Bulk Data Access</strong>(AD-31): resource type ごとに 1 NDJSON + <code>manifest.json</code>。Bundle でラップしない。</li>
-<li>builder は <strong>CIF を読むだけ</strong>。display は <code>code_lookup(system, code, lang)</code>、URI は
+<li>builder は <strong>CIF を読むだけ</strong>。display は <code>display(system, code, lang)</code> + 明示的な fallback(code-mapping spec §9)、URI は
   <code>get_system_uri</code>、国→コード体系は <code>system_key_for</code> で解決(ハードコード禁止)。</li>
 <li>FHIR resource を足す = <code>register_bundle_builder</code> で builder を登録(AD-56、dispatch は編集しない)。</li>
 <li>出力形式を足す = <code>register_output_adapter</code>(CSV が実例)。</li>
@@ -2802,7 +2802,7 @@ Practitioner / PractitionerRole / Endpoint …)。</p>
 </tr>
 <tr>
 <td>コード → 表示名</td>
-<td><code>codes/data/&lt;system&gt;.yaml</code>(EN 必須、JA 任意)。<code>code_lookup</code> で解決</td>
+<td><code>codes/data/&lt;system&gt;.yaml</code>(EN 必須、JA 任意)。<code>display(...)</code> + 明示的な fallback で解決</td>
 </tr>
 </tbody>
 </table>

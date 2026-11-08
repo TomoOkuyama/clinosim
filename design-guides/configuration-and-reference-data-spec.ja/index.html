@@ -2403,7 +2403,7 @@
 <td><code>tests/unit/test_data_yaml_conventions_2465.py</code></td>
 </tr>
 <tr>
-<td>モジュールの参照 YAML は、読み込み時に Pydantic モデル(<code>ConfigDict(extra="forbid")</code>)で検証する。未知のキーや欠けた必須キーは import 時に失敗する。YAML が名指すコードは <code>clinosim.codes</code> で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。</td>
+<td>モジュールの参照 YAML は、読み込み時に Pydantic モデルで検証する。欠けた必須キーや型の誤りは import 時に失敗する。ガードは、参照 YAML を持つすべてのモジュールにこのモデルがあることを確かめる。モデルは未知のキーも拒否するべきである(<code>ConfigDict(extra="forbid")</code>)。まだ受け入れるモデルは §5 に挙げる。YAML が名指すコードは <code>clinosim.codes</code> で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。</td>
 <td>モジュールごとのモデル(allergy, antibiotic, care_level, clinical_course, code_status, device, diagnosis, disease, document, drug_safety, encounter, family_history, hai, imaging, llm_service, monitoring, newborn, nursing, observation, order, patient, pediatric, physiology, population, procedure, prophylaxis, sdoh, triage)</td>
 <td><code>tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model</code>、各モジュールのモデルのテスト</td>
 </tr>
@@ -2475,6 +2475,10 @@
 <tr>
 <td>定数の置き場所の方針には自動のガードが無い。</td>
 <td>レビュー</td>
+</tr>
+<tr>
+<td>一部のモジュールの参照 YAML モデルはまだ未知のキーを受け入れる(<code>ConfigDict(extra="allow")</code>)ため、綴り誤りのキーが読み込み時に検出されない。すべてを <code>extra="forbid"</code> に移すことは issue #2845 で追跡している。</td>
+<td><code>extra="allow"</code> を持つ <code>modules/&lt;module&gt;/</code> のモデル</td>
 </tr>
 </tbody>
 </table>
