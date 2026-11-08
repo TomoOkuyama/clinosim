@@ -1273,12 +1273,27 @@ def _apply_pediatric_scaling(labs: dict[str, float], age: int, sex: str) -> None
 # ---------------------------------------------------------------------------
 
 
+def rr_clamp_max(age_months: int | None) -> float:
+    """Highest respiratory rate the generator allows at ``age_months``
+    (Issue #2926): the pediatric ceiling for a young child, else the adult
+    ``RR_CLAMP_MAX`` (also when the age is unknown)."""
+    from clinosim.modules.observation.pediatric_ranges import pediatric_vital_max
+
+    ceiling = pediatric_vital_max("respiratory_rate", age_months)
+    return RR_CLAMP_MAX if ceiling is None else ceiling
+
+
 def derive_vital_signs(
     state: PhysiologicalState,
     baseline: BaselineVitals,
     timestamp: datetime,
+    *,
+    age_months: int | None = None,
 ) -> dict[str, float]:
-    """Derive vital signs from physiological state + baseline."""
+    """Derive vital signs from physiological state + baseline.
+
+    ``age_months`` (completed months at ``timestamp``) selects the
+    age-dependent respiratory-rate ceiling; ``None`` keeps the adult one."""
     infl = state.inflammation_level
     perf = state.perfusion_status
     vol = state.volume_status
@@ -1344,7 +1359,7 @@ def derive_vital_signs(
         rr += oxy * OXYGENATION_RR_SCALE
     if state.respiratory_depression:
         rr -= state.respiratory_depression * RESPIRATORY_DEPRESSION_RR_SCALE
-    rr = clamp(rr, RR_CLAMP_MIN, RR_CLAMP_MAX)
+    rr = clamp(rr, RR_CLAMP_MIN, rr_clamp_max(age_months))
 
     # SpO2
     spo2 = room_air_saturation(state, baseline.spo2)
@@ -1374,6 +1389,8 @@ def derive_observed_vitals(
     baseline: BaselineVitals,
     timestamp: datetime,
     rng: np.random.Generator,
+    *,
+    age_months: int | None = None,
 ) -> dict[str, float]:
     """Physiology-derived vitals + realistic measurement noise.
 
@@ -1382,13 +1399,17 @@ def derive_observed_vitals(
     models device/observer variation. Every field is re-clamped to its physiological
     range after noise so that outlier draws (e.g. RR floor 8 with SD=2 negative tail)
     cannot cross into non-physiological territory (Issue #1040 — agonal RR 3-5 on
-    non-terminal patients).
+    non-terminal patients). The respiratory-rate ceiling follows ``age_months``
+    (Issue #2926, see :func:`derive_vital_signs`); only the bound moves, the
+    draws are the same.
     """
-    raw = derive_vital_signs(state, baseline, timestamp)
+    raw = derive_vital_signs(state, baseline, timestamp, age_months=age_months)
     for key in raw:
         noise_sd = OBSERVED_TEMPERATURE_NOISE_SD if key == "temperature" else OBSERVED_VITALS_NOISE_SD_DEFAULT
         raw[key] += float(rng.normal(0, noise_sd))
         lo, hi = _OBSERVED_VITAL_CLAMPS[key]
+        if key == "respiratory_rate":
+            hi = rr_clamp_max(age_months)
         raw[key] = min(hi, max(lo, raw[key]))
     return raw
 

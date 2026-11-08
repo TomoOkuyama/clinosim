@@ -470,6 +470,7 @@ def _simulate_ed_visit(
         is_qualitative_test,
     )
     from clinosim.modules.observation.microbiology import culture_draws, culture_results, specimen_for_order
+    from clinosim.modules.observation.pediatric_ranges import age_in_completed_months
     from clinosim.modules.physiology.engine import (
         apply_disease_onset,
         derive_observed_vitals,
@@ -784,7 +785,13 @@ def _simulate_ed_visit(
         "administering_nurse", ""
     )  # noqa: E501
     vit_time = visit_time + timedelta(minutes=ED_VITALS_OFFSET_MIN)
-    raw = derive_observed_vitals(_state, patient.baseline_vitals, vit_time, rng)
+    raw = derive_observed_vitals(
+        _state,
+        patient.baseline_vitals,
+        vit_time,
+        rng,
+        age_months=age_in_completed_months(patient.date_of_birth, vit_time),
+    )
     # ED presentations are acute → pain skews higher, scaled by inflammation.
     _pain_mean = _state.inflammation_level * ED_PAIN_INFLAMMATION_SCALE + ED_PAIN_BASELINE
     pain = int(max(ED_PAIN_MIN, min(ED_PAIN_MAX, rng.normal(_pain_mean, ED_PAIN_NOISE_STD))))
@@ -824,7 +831,13 @@ def _simulate_ed_visit(
         for _round in range(ED_OBSERVATION_MAX_EXTENSIONS + 1):
             _t = encounter.discharge_datetime - timedelta(minutes=ED_REASSESS_BEFORE_DISCHARGE_MIN)
             _t = max(_t, vit_time + timedelta(minutes=ED_REASSESS_BEFORE_DISCHARGE_MIN))
-            _raw = derive_observed_vitals(_reassess, patient.baseline_vitals, _t, rng)
+            _raw = derive_observed_vitals(
+                _reassess,
+                patient.baseline_vitals,
+                _t,
+                rng,
+                age_months=age_in_completed_months(patient.date_of_birth, _t),
+            )
             _pain = int(min(ED_PAIN_MAX, max(ED_PAIN_MIN, round(_reassess.pain_level * PAIN_SCORE_SCALE))))
             _avpu = _loc_for(_reassess, "", 0, rng)
             vitals.append(

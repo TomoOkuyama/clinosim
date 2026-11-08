@@ -10,8 +10,9 @@ caller keeps its adult range.
 
 Readers: the FHIR vital-sign and lab Observation builders (referenceRange,
 interpretation), :func:`clinosim.modules.observation.engine.determine_flag`
-(CIF lab flag), the physiology lab derivation (a child's true value) and
-the patient activator (a child's baseline vitals).
+(CIF lab flag), the physiology lab derivation (a child's true value), the
+physiology vital-sign derivation (a child's respiratory-rate ceiling,
+Issue #2926) and the patient activator (a child's baseline vitals).
 """
 
 from __future__ import annotations
@@ -39,6 +40,7 @@ __all__ = [
     "pediatric_lab_range",
     "pediatric_lab_range_text",
     "pediatric_vital_range",
+    "pediatric_vital_max",
     "pediatric_vital_range_text",
 ]
 
@@ -120,6 +122,7 @@ class PediatricReferenceRanges(BaseModel):
 
     age_independent_vital_signs: list[str]
     vital_signs: dict[str, dict[str, _VitalBand]]
+    physiological_max: dict[str, dict[str, float]]
     labs: dict[str, _LabAnalyte]
 
     @model_validator(mode="after")
@@ -138,6 +141,25 @@ class PediatricReferenceRanges(BaseModel):
         for bands in vitals.values():
             _check_bands(bands)
         return vitals
+
+    @model_validator(mode="after")
+    def _max_above_normal(self) -> PediatricReferenceRanges:
+        """Each ceiling is a known vital sign and lies above the normal high
+        of every vital-sign band it overlaps (the normal range stays reachable)."""
+        for vital, ceilings in self.physiological_max.items():
+            if vital not in PEDIATRIC_VITAL_SIGNS:
+                raise ValueError(f"physiological_max: unknown vital sign {vital!r}")
+            _check_bands(ceilings)
+            for key, ceiling in ceilings.items():
+                lo, hi = parse_closed_age_band(key)
+                for band_key, band in (self.vital_signs.get(vital) or {}).items():
+                    b_lo, b_hi = parse_closed_age_band(band_key)
+                    if b_lo <= hi and lo <= b_hi and ceiling <= band.high:
+                        raise ValueError(
+                            f"physiological_max {vital} {key}: {ceiling} is not above the normal high "
+                            f"{band.high} of band {band_key}"
+                        )
+        return self
 
     @field_validator("labs")
     @classmethod
@@ -208,6 +230,16 @@ def pediatric_vital_range(vital: str, age_months: int | None) -> PediatricVitalR
         critical_low=None if row.get("critical_low") is None else float(row["critical_low"]),
         critical_high=None if row.get("critical_high") is None else float(row["critical_high"]),
     )
+
+
+def pediatric_vital_max(vital: str, age_months: int | None) -> float | None:
+    """The highest value the generator lets ``vital`` reach at ``age_months``
+    (Issue #2926), or ``None`` when no band covers the age (adult clamp applies)."""
+    if age_months is None:
+        return None
+    ceilings = (_table().get("physiological_max") or {}).get(vital) or {}
+    key = find_age_band(ceilings, age_months)
+    return None if key is None else float(ceilings[key])
 
 
 def age_independent_vital_range_text(vital: str, age_months: int | None, lang: str) -> str | None:
