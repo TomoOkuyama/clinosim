@@ -202,6 +202,16 @@ def _condition_matches_predicate(condition_entry: Any, predicate: dict[str, Any]
     return True
 
 
+def condition_entries(conditions: Sequence[Any]) -> list[tuple[str, str]]:
+    """``(code, stage)`` entries of chronic conditions for
+    :func:`check_candidate_against_disease_state` — the code as stored
+    (base form such as ``N18``) and the staged severity (``"CKD G4"``) or
+    ``""``. Conditions without a code are left out."""
+    return [
+        (str(cond.code), str(getattr(cond, "stage", "") or "")) for cond in conditions if getattr(cond, "code", None)
+    ]
+
+
 def check_candidate_against_disease_state(
     candidate: str,
     active_conditions: Sequence[Any],

@@ -1565,7 +1565,7 @@ drugs:
     names: {en: "Nitrofurantoin", ja: "ニトロフラントイン"}
     codes:
       rxnorm: "7454"
-    classes: ["antibiotic"]
+    classes: ["antibiotic.nitrofuran"]
   lactulose:
     names: {en: "Lactulose", ja: "ラクツロース"}
     codes:

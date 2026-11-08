@@ -220,6 +220,11 @@ def _ed_medication_skipped(
     # a SafetySkipEntry so downstream verification can prove the
     # gate fired instead of the drug silently disappearing.
     _ddi_verdicts = drug_safety.check_candidate_against_active(drug_name, active_drugs)
+    # Issue #2855: drug-vs-disease rules (oxidant drugs in G6PD deficiency,
+    # NSAIDs in heart failure, ...) apply to ED orders and take-home scripts.
+    _ddi_verdicts = list(_ddi_verdicts) + drug_safety.check_candidate_against_disease_state(
+        drug_name, drug_safety.condition_entries(patient.chronic_conditions or [])
+    )
     _ddi_worst = max(
         (v for v in _ddi_verdicts if not v.is_allowed),
         key=lambda v: SEVERITY_RANK[v.severity],

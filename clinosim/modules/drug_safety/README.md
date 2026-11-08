@@ -140,9 +140,12 @@ Four YAML files plus the drug catalog:
   `discharge_reconciliation_rules` list and the
   `triple_therapy_after_acs` antithrombotic plan.
 - `reference_data/disease_contraindications.yaml` — drug class ×
-  chronic-disease rules (5 rules: NSAID in heart failure / cirrhosis /
+  chronic-disease rules (7 rules: NSAID in heart failure / cirrhosis /
   CKD stage 4-5 by ICD prefix / CKD stage 4-5 by stage, metformin in
-  CKD stage 3b-5).
+  CKD stage 3b-5, sulfonamide and nitrofurantoin in G6PD deficiency).
+  Applied when chronic medications are sampled and, since Issue #2855,
+  on every new order (`apply_drug_safety_gate_to_orders`) and every ED
+  order or take-home prescription.
 - `reference_data/demographic_gates.yaml` — age / sex rules (3 rules:
   aspirin pediatric (Reye's), nitroglycerin adult-only, tamsulosin
   adult male).
