@@ -35,7 +35,7 @@
 | 規則 | 正準コード | ガード |
 |---|---|---|
 | 日次ループと入院時の薬剤オーダー候補は、置く前に薬剤安全ゲート(禁忌・相互作用・属性ゲート)を通る。 | `simulator/medication_pipeline.py::apply_drug_safety_gate_to_orders`(入院時は `apply_drug_safety_gate_to_admission_orders`)。規則は `modules/drug_safety/reference_data/contraindications.yaml`, `demographic_gates.yaml` | `tests/unit/modules/drug_safety/`, `tests/integration/test_drug_safety_gate_post_admission.py` |
-| 保留規則は入院時・投与時・退院時で一つの出所から読む(薬剤ごとの腎機能対応、バイタルの保留条件、メトホルミンの腎機能閾値)。 | `medication_pipeline.py`(`renal_medication_rules`, `mar_vital_hold_reason`, `metformin_admission_hold_threshold`)、`discharge_rx.py::renal_hold_drugs`。データ `locale/shared/renal_medication_rules.yaml`, `chronic_medications.yaml` | `tests/unit/test_hold_rules_one_source_2296.py`, `tests/unit/test_medication_holds_acute_illness_1335.py` |
+| 保留規則は入院時・投与時・退院時で一つの出所から読む(薬剤ごとの腎機能対応、バイタルの保留条件、メトホルミンの腎機能閾値)。 | `medication_pipeline.py`(`renal_medication_rules`, `mar_vital_hold_reason`, `metformin_admission_hold_threshold`)、`discharge_rx.py::renal_hold_drugs`。データ `simulator/reference_data/renal_medication_rules.yaml`, `locale/shared/chronic_medications.yaml` | `tests/unit/test_hold_rules_one_source_2296.py`, `tests/unit/test_medication_holds_acute_illness_1335.py` |
 | 薬剤の判断はカタログ上の同一性で行い、名前の部分文字列では行わない。 | `clinosim/codes/drugs.py`(コードマッピング仕様参照) | `tests/unit/test_has_drug_logic_2377.py` |
 
 ## 4. 投与
@@ -69,7 +69,7 @@
 | 規則 | 正準コード | ガード |
 |---|---|---|
 | JP: YJ 製品コードは、オーダーの投与経路区分で薬剤カタログ(経路区分ごとの `codes.yj`)から選ぶ。その経路の製品が無い薬剤は eCS のコードなしスライスにする。 | `codes/drugs.py::jp_drug_code`, `jp_drug_code_table` | `tests/unit/test_jp_drug_codes_2347.py` |
-| US: RxNorm の臨床薬(SCD)は、薬剤・投与経路区分・用量で選ぶ(用量 = 一つの規格の 1〜4 単位)。成分コードをその後に続ける。用量に合う製品が一つに決まらなければ SCD は付けない。 | `codes/drugs.py::rxnorm_scd_code`、表 `codes/data/rxnorm_scd.yaml`(`scripts/refresh_rxnorm_scd.py` で生成)。適用は `fhir_r4/medications/medications.py::_apply_rxnorm_scd` | `tests/unit/codes/test_rxnorm_scd_2614.py` |
+| US: RxNorm の臨床薬(SCD)は、薬剤・投与経路区分・用量で選ぶ(用量 = 一つの規格の 1〜4 単位)。成分コードをその後に続ける。用量に合う製品が一つに決まらなければ SCD は付けない。 | `codes/drugs.py::rxnorm_scd_code`、表 `codes/data/rxnorm_scd.yaml`(NLM RxNav から取得。取得元と取得日は同ファイルの `metadata` に記載。更新スクリプトはリポジトリに無い)。適用は `fhir_r4/medications/medications.py::_apply_rxnorm_scd` | `tests/unit/codes/test_rxnorm_scd_2614.py` |
 
 ## 8. 未対応
 

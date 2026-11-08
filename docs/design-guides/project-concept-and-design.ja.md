@@ -1,7 +1,7 @@
 # clinosim Project Concept & Design — キャッチアップ文書
 
-**Status:** Active(2026-07-03、session 32 で確立)
-**Audience:** 新規参加の開発者/実装 AI(Opus 4.7 等)が最初に読む「このプロジェクトは
+**Status:** Active(2026-07-03 から)
+**Audience:** 新規参加の開発者/実装 AI が最初に読む「このプロジェクトは
 何で、どう作られているか」の全体像。規則集は
 [`implementation-rules.md`](implementation-rules.ja.md)、詳細アーキテクチャは `DESIGN.md`(ADR 全集)。
 
@@ -54,7 +54,7 @@
   --provider template |mock |ollama |bedrock |vllm |openai_compatible`(→ narratives/<version>/)→
   `clinosim export-fhir --narrative-version X`。これがコンセプト 6(差し替え)の実体。
 - **決定性(AD-16)**: 全乱数は階層 sub-seed。同 seed = byte 同一出力(wall-clock は
-  determinism chain で全除去済、session 34)。
+  determinism chain で全除去済)。
 - **★ この図の詳細版**(実ファイル/関数名つきの end-to-end トレース)=
   [`data-generation-walkthrough.md`](data-generation-walkthrough.ja.md)。新規貢献者はまず本節で
   全体像を掴み、walkthrough で 1 患者の生成を具体的に追う。
@@ -113,7 +113,7 @@
 
 - `codes/`(国際標準、locale 非依存、EN 必須)と `locale/<country>/`(名前・住所・
   基準値・code_mapping)を厳密分離(AD-35)。
-- CIF は言語中立(code のみ、AD-30)。表示は出力時に `code_lookup(system, code, lang)`。
+- CIF は言語中立(code のみ、AD-30)。表示は出力時に `display(system, code, lang)` + 明示的な fallback で解決(code-mapping spec §9)。
 - 国判定は `is_jp()` / `lang_for()`、国→コード体系は `system_key_for()`(単一 source)。
 - JP 固有: 保険/マイナンバー(identity module, opt-in)、要介護度、JLAC10/YJ/K-code、
   JP Core 準拠 FHIR。**US 出力に日本語 0 / JP 出力は全 display 日本語**が監査される。
@@ -136,16 +136,16 @@
 
 ## 7. 現在地とロードマップ(2026-09-02 時点)
 
-- **version**: v0.5.0 (v0.6.0 release-gate — 3 META Issue (#914 / #957 / #757) 全 close、tag 待ち)。US p=10k / JP p=5k の production cohort が audit 全 PASS で生成可能。32 疾患 + 46 外来 / ED 病態、33 モジュール、25+ FHIR R4 resource 型 emit。縦断サービスライン (腫瘍 + 産科 — がん chronic marker × 化学療法 regimen サイクル + per-cycle drug MedicationRequest/Administration × 放射線治療 Procedure × **時限 `TemporalStatePeriod` 妊娠 lifecycle** (受精 → 妊婦健診 12/24/36 週 → 分娩 encounter → 産褥) × 新生児 Patient chain × 妊娠中絶 outcome × Z37 過去出産 problem-list-item (state_history 由来)) は META #957 Incr 1 (session 97、PR #1051) で完成 — 詳細は `docs/reference/oncology-obstetric-service-lines.ja.md` + AD-71 `docs/architecture/architecture-notes.ja.md` §9。
+- **version**: v0.5.0 (v0.6.0 release-gate — 3 META Issue (#914 / #957 / #757) 全 close、tag 待ち)。US p=10k / JP p=5k の production cohort が audit 全 PASS で生成可能。32 疾患 + 46 外来 / ED 病態、33 モジュール、25+ FHIR R4 resource 型 emit。縦断サービスライン (腫瘍 + 産科 — がん chronic marker × 化学療法 regimen サイクル + per-cycle drug MedicationRequest/Administration × 放射線治療 Procedure × **時限 `TemporalStatePeriod` 妊娠 lifecycle** (受精 → 妊婦健診 12/24/36 週 → 分娩 encounter → 産褥) × 新生児 Patient chain × 妊娠中絶 outcome × Z37 過去出産 problem-list-item (state_history 由来)) は META #957 Incr 1 (PR #1051) で完成 — 詳細は `docs/reference/oncology-obstetric-service-lines.ja.md` + AD-71 `docs/architecture/architecture-notes.ja.md` §9。
   32 疾患 + 46 外来/ED 条件、33 modules、FHIR R4 で 25+ resource type を emit。
-- **β-JP-1 chain 2(厚労省帳票)は完了**(session 33-36): 入院診療計画書 / 看護必要度
-  A・B・C 項目評価票(公式には「D 表」という帳票は存在しない、名称は session 36 で訂正
+- **β-JP-1 chain 2(厚労省帳票)は完了**: 入院診療計画書 / 看護必要度
+  A・B・C 項目評価票(公式には「D 表」という帳票は存在しない、名称は訂正
   済み)/ 栄養管理計画書 / リハビリテーション実施計画書 の 4/4 文書が完了。
-- **共通ロジック統一・determinism chain・AD-30 chain・display-dict → codes YAML 移行は完了**
-  (session 31-37): narrative IF 統一(N-chain)、context 配線、LLM golden + semantic
+- **共通ロジック統一・determinism chain・AD-30 chain・display-dict → codes YAML 移行は完了**:
+  narrative IF 統一(N-chain)、context 配線、LLM golden + semantic
   check、wall-clock 全除去、display-in-CIF 残骸除去、8 codes YAML 新設 + dual-access
   write-side 統一(`set_attr_or_key` / `get_or_create_container`)。
-- **★ FHIR completeness chain 完了**(session 38、AD-67/68/69): 「最終 FHIR 出力の不完全
+- **★ FHIR completeness chain 完了**(AD-67/68/69): 「最終 FHIR 出力の不完全
   状態(C1 silent-drop / C2 degenerate / C3 missing-structure)をゼロにする」ゴールの下、
   9 チェーンを消化。重症度 single source(疾患YAML canonical、`disease/severity.py`、
   `severity_beta` 撤廃)/ `archetype_modifiers` 配線 / `DiseaseProtocol` `extra="forbid"` /
@@ -159,7 +159,7 @@
   follow-up)。詳細は fix-point registry と GitHub Issues board (`docs/roadmap.ja.md` 参照)。旧 `TODO.md` の deferred section は Issues 化に伴い廃止。
 - **その後の chain**(優先順、`docs/design-notes/2026-07-02-grand-design-review-and-roadmap.md` §4
   ただし上記完了分は本節が最新): β-2(手術/麻酔)→ γ/δ/ε → SS-MIX2。
-- **deferred の正**: GitHub Issues board (see `docs/roadmap.ja.md`)。旧 `TODO.md` は Issues 化に伴い廃止。作業開始前に必ず `.resume-prompt.md` (最新 session hand-off) を読む。
+- **deferred の正**: GitHub Issues board (see `docs/roadmap.ja.md`)。旧 `TODO.md` は Issues 化に伴い廃止。
 
 ## 8. 用語ミニ辞書
 

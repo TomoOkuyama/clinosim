@@ -1,6 +1,6 @@
 # Data-Model & Completeness Conventions — cross-session compliance rules
 
-**Status:** Active (2026-07-06, established in session 38).
+**Status:** Active (since 2026-07-06).
 **Audience:** any session or implementation agent working on one of
 the chains in the FHIR completeness fix-point registry
 (`docs/design-notes/2026-07-06-fix-point-registry.md`).
@@ -62,8 +62,8 @@ When you add a new YAML key, either wire the consumer code in the
 - `PatientProfile` (`config.py:101`) is the reference. Every new
   YAML-loaded `BaseModel` gets `model_config = ConfigDict(extra="forbid")`
   **from the start**.
-- Existing models with `extra="ignore"` (i.e. silent-drop) are
-  scheduled for removal (FP-YAML-3 migrates `DiseaseProtocol`).
+- `extra="ignore"` (i.e. silent-drop) is not used; `DiseaseProtocol`
+  is `extra="forbid"`.
 - `extra="allow"` (as in `EncounterConditionProtocol`) combined with
   raw-dict returns is "deliberately unvalidated", but that path
   should also be closed in the future by cross-checking against
@@ -119,8 +119,8 @@ intent behind the data asset disappear.
 
 ### 4.1 Wire stage / severity together with the physiology consumer
 
-Graded-stage diseases (CKD / HF / COPD / asthma / IHD wired in
-session 37; I10 not yet = FP-I10) **may not** add a
+Graded-stage diseases (CKD / HF / COPD / asthma / IHD / I10, see
+`modules/patient/reference_data/stage_severity.yaml`) **may not** add a
 `STAGE_SEVERITY` entry alone. You must land all four together:
 (1) the stage → severity_score mapping,
 (2) the `physiology/engine.py:initialize_state` consumer branch,
@@ -214,7 +214,7 @@ In addition to the chain workflow in `implementation-rules.md` §0:
 | Disease YAML → simulation | `reference_data/*.yaml` | `DiseaseProtocol` (attribute) / raw dict (order) | `load_disease_protocol` (A) / owner accessor (B, cleaned up in FP-YAML-3) |
 | Severity decision | `event.severity` (float) / protocol distribution | `"mild|moderate|severe"` + score | `sample_severity` / `category_from_score` (`disease/severity.py`, FP-SEV-MODEL) |
 | Age reference | `dob` + event date | as-of age (int) | `_age_on` (`immunization/engine.py`, FP-AGE) |
-| code → display | `(system, code, lang)` | display string | `code_lookup` / `system_key_for` (existing) |
+| code → display | `(system, code, lang)` | display string | `display(system, code, lang)` + an explicit fallback / `system_key_for` (code-mapping spec §9) |
 | CIF → FHIR | structural + narrative CIF | FHIR R4 NDJSON | `fhir_r4/<theme>/` builders (registry-registered, existing) |
 | Completeness verification | CIF / reference data | test result | `tests/unit/test_completeness_invariants.py` (FP-COMPLETENESS-GATE; the cohort-statistics audit axis is not implemented) |
 

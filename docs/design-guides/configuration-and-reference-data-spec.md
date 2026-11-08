@@ -21,7 +21,7 @@ Related specs, linked rather than restated:
 | Rule | Canonical code | Guard |
 |---|---|---|
 | Every data YAML is parsed by the one reader and declares its `metadata.kind`. | `clinosim/datafiles.py::load_data_yaml`, `data_metadata` | `tests/unit/test_data_yaml_conventions_2465.py` |
-| A module's reference YAML is validated at load by a Pydantic model (`ConfigDict(extra="forbid")`), so an unknown key or a missing required key fails at import. Codes the YAML names are checked to exist through `clinosim.codes`. A new key is added to the model first (AD-69). | per module: `modules/<module>/` models (allergy, antibiotic, care_level, clinical_course, code_status, device, diagnosis, disease, document, drug_safety, encounter, family_history, hai, imaging, llm_service, monitoring, newborn, nursing, observation, order, patient, pediatric, physiology, population, procedure, prophylaxis, sdoh, triage) | `tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model`, per-module model tests |
+| A module's reference YAML is validated at load by a Pydantic model, so a missing required key or a wrong type fails at import. The guard checks that every module with reference YAML has such a model. A model should also reject unknown keys (`ConfigDict(extra="forbid")`); models that still accept them are listed in §5. Codes the YAML names are checked to exist through `clinosim.codes`. A new key is added to the model first (AD-69). | per module: `modules/<module>/` models (allergy, antibiotic, care_level, clinical_course, code_status, device, diagnosis, disease, document, drug_safety, encounter, family_history, hai, imaging, llm_service, monitoring, newborn, nursing, observation, order, patient, pediatric, physiology, population, procedure, prophylaxis, sdoh, triage) | `tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model`, per-module model tests |
 | A cached loader's return value is shared and read-only. | `@lru_cache` loaders | `implementation-rules.md` §3 (review) |
 
 ## 3. Shared tables
@@ -44,3 +44,4 @@ Related specs, linked rather than restated:
 | Gap | Where |
 |---|---|
 | The constants-placement policy has no automatic guard. | review |
+| Some module reference YAML models still accept unknown keys (`ConfigDict(extra="allow")`), so a misspelled key is not caught at load. Moving every such model to `extra="forbid"` is tracked in issue #2845. | `modules/<module>/` models with `extra="allow"` |

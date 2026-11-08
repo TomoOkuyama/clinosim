@@ -1,6 +1,6 @@
 # Data Generation Walkthrough — "how a patient record is born"
 
-**Status:** Active (2026-07-06, established in session 38).
+**Status:** Active (since 2026-07-06).
 **Audience:** developers and implementation agents new to clinosim.
 Traces **how the project assembles one patient record** end-to-end
 with actual file names, function names, and data structures.
@@ -197,7 +197,7 @@ height / weight, **chronic-condition staging** (`_generate_stage`:
 CKD G3a, NYHA II, hypertension stage 2, …), **stage-derived
 physiology parameters** (`STAGE_SEVERITY` maps stage → severity_score,
 which drives baseline vitals and physiology — e.g. hypertension
-stage 2 → high baseline blood pressure, FP-I10), routine
+stage 2 → high baseline blood pressure), routine
 medications, allergies, baseline vitals.
 
 ### 1d. Encounter simulation (daily loop) — `simulator/inpatient.py` and siblings
@@ -310,7 +310,8 @@ via `CIFReader`, and the per-theme builders under
 - **Bulk Data Access** (AD-31): 1 NDJSON per resource type +
   `manifest.json`. Not wrapped in a Bundle.
 - Builders **read CIF only**. Display is resolved via
-  `code_lookup(system, code, lang)`; URIs via `get_system_uri`;
+  `display(system, code, lang)` with an explicit fallback
+  (code-mapping spec §9); URIs via `get_system_uri`;
   country → code system via `system_key_for` (hard-coding
   forbidden).
 - Adding a FHIR resource = register a builder with
@@ -375,7 +376,7 @@ run_beta(config)                                   # simulator/engine.py
 | New FHIR resource | builder in `modules/output/fhir_r4/<theme>/` + `register_bundle_builder` (§3) |
 | New output format | `OutputAdapter` + `register_output_adapter` |
 | New data kind (module) | `modules/<name>/` + enricher registration (§1e) + write into `extensions[<name>]` |
-| Code → display name | `codes/data/<system>.yaml` (`en` required, `ja` optional). Resolve via `code_lookup`. |
+| Code → display name | `codes/data/<system>.yaml` (`en` required, `ja` optional). Resolve via `display(...)` with an explicit fallback. |
 
 **Invariants you must obey** (see `implementation-rules.md` for
 detail): determinism (every RNG is seed-derived) / CIF holds codes
