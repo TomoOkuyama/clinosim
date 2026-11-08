@@ -125,6 +125,7 @@ Governing specs: [`medication-lifecycle-spec.md`](medication-lifecycle-spec.md),
 | `clinosim/modules/observation/engine.py` `canonical_lab_name(name)` / `get_lab_unit(name)` | The canonical lab name and its standard unit. |
 | `clinosim/modules/observation/engine.py` `medications_in_effect(home_medications, medication_orders, admission_date, current_day)` | The medications acting on lab values on a given day of a stay. |
 | `clinosim/modules/physiology/statin_response.py` `statin_intensity(med)` / `statin_ldl_reduction(patient_id, medications)` / `statin_treated_ldl(untreated_ldl, reduction)` | A statin's intensity from the drug and dose, the per-patient fraction of the untreated LDL the patient's statins remove, and the LDL after that reduction. Every LDL a statin lowers (lab derivation, health checkup) goes through these. |
+| `clinosim/modules/physiology/engine.py` `lipid_panel(sex, has_diabetes, has_dyslipidemia, statin_ldl_reduction)` / `patient_lipid_panel(patient)` | The true TC / HDL / TG / LDL of a lipid state, and of a patient from its conditions and home medications. Encounter labs and the health checkup both read it, so a patient has one untreated LDL. |
 | `clinosim/modules/order/panel_grouping.py` `classify_lab_specs(...)` | Grouping lab orders into panels and individual tests. |
 | `clinosim/modules/order/engine.py` `place_imaging_orders(...)` | Imaging orders. |
 | `clinosim/modules/order/absolute_dose.py` `is_continuous_infusion(text)` | Whether a dose or order text describes a continuous infusion. |

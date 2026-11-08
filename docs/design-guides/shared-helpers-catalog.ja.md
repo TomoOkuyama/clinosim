@@ -125,6 +125,7 @@ Governing specs: [`medication-lifecycle-spec.ja.md`](medication-lifecycle-spec.j
 | `clinosim/modules/observation/engine.py` `canonical_lab_name(name)` / `get_lab_unit(name)` | 検査の正準名と標準単位。 |
 | `clinosim/modules/observation/engine.py` `medications_in_effect(home_medications, medication_orders, admission_date, current_day)` | 入院中のある日に検査値へ作用している薬剤。 |
 | `clinosim/modules/physiology/statin_response.py` `statin_intensity(med)` / `statin_ldl_reduction(patient_id, medications)` / `statin_treated_ldl(untreated_ldl, reduction)` | 薬剤と用量から決まるスタチンの強度、患者のスタチンが未治療 LDL から除く患者ごとの割合、その低下後の LDL。スタチンで下がる LDL (検査値導出、健診) はすべてこれを通す。 |
+| `clinosim/modules/physiology/engine.py` `lipid_panel(sex, has_diabetes, has_dyslipidemia, statin_ldl_reduction)` / `patient_lipid_panel(patient)` | 脂質状態の TC / HDL / TG / LDL 真値、および患者の疾患と常用薬から得るその値。入院・外来の検査値と健診の両方が読み、患者ごとの未治療 LDL は一つになる。 |
 | `clinosim/modules/order/panel_grouping.py` `classify_lab_specs(...)` | 検査オーダーをパネルと単項目に分ける。 |
 | `clinosim/modules/order/engine.py` `place_imaging_orders(...)` | 画像検査オーダー。 |
 | `clinosim/modules/order/absolute_dose.py` `is_continuous_infusion(text)` | 用量・オーダー文字列が持続投与を表すか。 |
