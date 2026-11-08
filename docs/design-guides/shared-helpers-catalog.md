@@ -42,9 +42,11 @@ Governing spec: [`configuration-and-reference-data-spec.md`](configuration-and-r
 | `clinosim/datafiles.py` `load_data_yaml(path)` | The one YAML reader: returns the content without the `metadata` header. |
 | `clinosim/datafiles.py` `load_validated_yaml(path, model)` | Read a YAML and validate it against a Pydantic model — the default for module reference data. |
 | `clinosim/datafiles.py` `data_metadata(path)` | The `metadata` header (source, version, licence) of a data YAML. |
+| `clinosim/modules/document/reference_data_loaders.py` `load_document_data_yaml(filename)` | Cached read of a `document/reference_data/` YAML by file name (registries whose reader owns their shape). |
 | `clinosim/reference_data.py` `load_reference_yaml(path)` | Cached reader that returns a copy, for callers that reshape the data. |
 | `clinosim/age_bands.py` `parse_age_band` / `parse_closed_age_band` / `age_band_covers` | Parse and test age-band keys such as `"18-49"` and `"85+"`. |
 | `clinosim/age_bands.py` `find_age_band(keys, age)` / `lookup_age_band(table, age, default)` | Resolve an age to its band key or value. Hard-coded `if age < 18` cut-offs are forbidden. |
+| `clinosim/age_bands.py` `find_age_band_or_last(keys, age)` | The band covering `age`, else the last band (tables whose last band is the catch-all). |
 | `clinosim/codes/valuesets.py` `has_condition(person, group)` / `concept_group(name)` / `group_names()` / `patient_condition_names()` | Named condition groups (value sets) instead of hand-written ICD prefix lists. |
 | `clinosim/codes/valuesets.py` `has_icd_prefix(items, prefixes)` / `code_by_chronic_prefix(mapping, person)` / `iter_chronic_codes(items)` | Matching chronic-condition items of any shape by ICD prefix. |
 | `clinosim/codes/valuesets.py` `normalize_icd(code)` / `icd_base(code)` | Canonical ICD formatting and the category part before the dot. |
@@ -137,6 +139,7 @@ Governing guide: [`fhir-data-generation-logic.md`](fhir-data-generation-logic.md
 | `clinosim/modules/output/fhir_r4/lib/common.py` `display_entry(text)` | `{"display": text}` or `{}` — a Coding never carries an empty display. |
 | `clinosim/modules/output/fhir_r4/lib/common.py` `build_diagnosis_codeable_concept`, `severity_coding`, `survey_category`, `make_participant`, `build_reference_range`, `build_address`, `build_telecom`, `build_presented_form`, `map_encounter_status`, `entry` | The standard pieces of Condition, Observation, Encounter, Patient and DiagnosticReport resources. |
 | `clinosim/modules/output/fhir_r4/lib/dosage.py` `build_dosage_instruction`, `build_route_concept`, `canonicalize_route`, `resolve_timing_repeat`, `frequency_in_text`, `is_rate_unit`, `augment_iv_dosage_with_rate`, `map_mar_status` | Dosage, route, timing and administration status. |
+| `clinosim/modules/output/fhir_r4/lib/reference_data.py` `iter_route_values(data)` / `validate_yaml_route_value(...)` | Walk and validate every route value of a protocol YAML. |
 | `clinosim/modules/output/fhir_r4/lib/fhir_time.py` `to_fhir_datetime` / `to_fhir_instant` / `to_fhir_date` / `to_fhir_deceased_datetime` / `tz_suffix_for_country` / `derive_meta_last_updated` | Every FHIR date, dateTime and instant, with the country's time zone. |
 | `clinosim/modules/output/fhir_r4/lib/ids.py` `derive_opaque_id` / `structural_key_system` / `wrap_as_identifier` | Resource ids and the identifiers that round-trip structural keys. |
 | `clinosim/modules/output/fhir_r4/lib/ecs_extensions.py` `attach_ecs_institutional_extensions` / `build_ecs_institution_extension` / `build_ecs_department_extension` | JP eCS institution and department extensions. |
