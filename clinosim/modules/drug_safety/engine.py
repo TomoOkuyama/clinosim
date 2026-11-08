@@ -294,6 +294,33 @@ def _allergy_rule_ids() -> frozenset[str]:
     return frozenset(str(r["id"]) for r in _load_allergy_rules())
 
 
+def rule_kind(rule_id: str | None) -> str | None:
+    """What kind of rule ``rule_id`` (a ``SafetyVerdict.rule_id``) is:
+    ``"allergy"`` (drug x recorded allergy), ``"disease"`` (drug x disease
+    state), ``"interaction"`` (drug x drug), or None for any other id (a
+    protocol hold, a demographic gate, ...). Issue #2930: the narrative words
+    an allergy skip as an allergy, not as a co-administration conflict."""
+    if not rule_id:
+        return None
+    if rule_id in _allergy_rule_ids():
+        return "allergy"
+    if rule_id in _disease_rule_ids():
+        return "disease"
+    if rule_id in _pair_rule_ids():
+        return "interaction"
+    return None
+
+
+@lru_cache(maxsize=1)
+def _disease_rule_ids() -> frozenset[str]:
+    return frozenset(str(r["id"]) for r in _load_disease_rules() if r.get("id"))
+
+
+@lru_cache(maxsize=1)
+def _pair_rule_ids() -> frozenset[str]:
+    return frozenset(str(r["id"]) for r in _load_rules() if r.get("id"))
+
+
 def allergy_entries(allergies: Sequence[Any]) -> list[str]:
     """Allergen codes of the patient's active allergy records for
     :func:`check_candidate_against_allergies`: clinical status ``active``,

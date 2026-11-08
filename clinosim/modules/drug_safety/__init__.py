@@ -23,6 +23,7 @@ from clinosim.modules.drug_safety.engine import (
     condition_entries,
     conflict_display,
     discharge_reconciliation_rules,
+    rule_kind,
     suggest_alternative,
 )
 from clinosim.modules.drug_safety.verdict import (
@@ -52,5 +53,6 @@ __all__ = [
     "discharge_reconciliation_rules",
     "japanese_display",
     "resolve_classes",
+    "rule_kind",
     "suggest_alternative",
 ]

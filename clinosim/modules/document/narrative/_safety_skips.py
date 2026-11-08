@@ -41,6 +41,9 @@ def safety_skip_line(
     localization); identity when None."""
     event = str(skip.get("event_type") or "avoid").lower()
     stem = _EVENT_STEMS.get(event, "avoid")
+    if stem == "avoid" and skip.get("conflict_kind") == "allergy":
+        # Issue #2930: an allergy is not a co-administration conflict.
+        stem = "avoid_allergy"
     localize = drug_name or (lambda name: name)
     considered = localize(localized_field(skip, "considered", lang))
     conflict = localized_field(skip, "avoided_due_to", lang)
