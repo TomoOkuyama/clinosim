@@ -2445,12 +2445,12 @@ the baseline itself reproducible.</p>
 <tbody>
 <tr>
 <td><code>sepsis</code></td>
-<td><code>condition_event.disease_id == "sepsis"</code> OR ICD <code>A41.*</code> / <code>R65.2*</code></td>
+<td><code>condition_event.disease_id == "sepsis"</code> OR admission dx exactly in <code>sepsis.yaml</code> <code>icd_codes</code> (A40.0, A41.01/.02/.51/.52/.9, R65.20/.21)</td>
 <td>Peak Lactate over the encounter record (mmol/L)</td>
 </tr>
 <tr>
 <td><code>aki</code></td>
-<td><code>condition_event.disease_id == "acute_kidney_injury"</code> OR ICD <code>N17.*</code> / <code>N19</code></td>
+<td><code>condition_event.disease_id == "acute_kidney_injury"</code> OR admission dx exactly in <code>acute_kidney_injury.yaml</code> <code>icd_codes</code> (N17.0/.1/.2/.8/.9)</td>
 <td>Peak SCr − baseline SCr (mg/dL)</td>
 </tr>
 </tbody>

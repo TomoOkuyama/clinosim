@@ -2535,10 +2535,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#タスク別利用可能変数" class="md-nav__link">
+  <a href="#プロンプト変数" class="md-nav__link">
     <span class="md-ellipsis">
       
-        タスク別利用可能変数
+        プロンプト変数
       
     </span>
   </a>
@@ -2818,53 +2818,86 @@ eReferral / 臨床ワークフロー要件を反映。Progress Note (LOINC 11506
 </tbody>
 </table>
 <h3 id="procedure-note-allowlist">Procedure Note allowlist<a class="headerlink" href="#procedure-note-allowlist" title="Permanent link">&para;</a></h3>
-<p>実世界の文書化慣習に合わせ、<strong>8 つの侵襲的ベッドサイド手技</strong> のみが
-正式な Procedure Note を生成:</p>
+<p>Procedure Note は、<code>procedure_code</code> が
+<code>clinosim/modules/document/reference_data/bedside_procedure_codes.yaml</code>
+の <code>procedure_note_codes</code> (正本、現在 16 コード) に含まれる
+<code>ProcedureRecord</code> ごとに生成される。<code>operative_note_codes</code> に含まれる
+手術コードには代わりに Operative Note が生成される:</p>
 <table>
 <thead>
 <tr>
-<th><code>procedure_type</code></th>
-<th>根拠</th>
+<th><code>procedure_code</code></th>
+<th>処置</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>central_line</code></td>
-<td>挿入部位、血管、確認要</td>
+<td><code>D225</code></td>
+<td>観血的動脈圧測定 (Arterial line)</td>
 </tr>
 <tr>
-<td><code>lumbar_puncture</code></td>
-<td>開放圧、CSF 性状、tube 採取</td>
+<td><code>D302</code></td>
+<td>気管支ファイバースコピー (Bronchoscopy)</td>
 </tr>
 <tr>
-<td><code>thoracentesis</code></td>
-<td>液量と性状、処置後画像</td>
+<td><code>D403</code></td>
+<td>腰椎穿刺 (Lumbar puncture)</td>
 </tr>
 <tr>
-<td><code>paracentesis</code></td>
-<td>液量と性状、適応</td>
+<td><code>G005-2</code></td>
+<td>中心静脈カテーテル挿入 (Central venous catheter insertion)</td>
 </tr>
 <tr>
-<td><code>chest_tube</code></td>
-<td>挿入部位、初期ドレナージ、確認</td>
+<td><code>J008</code></td>
+<td>胸腔穿刺 (Thoracentesis)</td>
 </tr>
 <tr>
-<td><code>intubation</code></td>
-<td>Cormack-Lehane grade、tube サイズ、ETCO₂ 確認</td>
+<td><code>J010</code></td>
+<td>腹腔穿刺 (Paracentesis)</td>
 </tr>
 <tr>
-<td><code>bronchoscopy</code></td>
-<td>所見、BAL 結果、biopsy 検体</td>
+<td><code>J019</code></td>
+<td>持続的胸腔ドレナージ (Chest tube insertion)</td>
 </tr>
 <tr>
-<td><code>cardioversion</code></td>
-<td>エネルギー、成否、rhythm before/after</td>
+<td><code>J034</code></td>
+<td>イレウス用ロングチューブ挿入法 (Long tube for bowel obstruction)</td>
+</tr>
+<tr>
+<td><code>J034-2</code></td>
+<td>経鼻栄養・薬剤投与用チューブ挿入術 (Nasogastric tube insertion)</td>
+</tr>
+<tr>
+<td><code>J038</code></td>
+<td>人工腎臓 (Acute hemodialysis)</td>
+</tr>
+<tr>
+<td><code>J044</code></td>
+<td>救命のための気管挿管 (Endotracheal intubation)</td>
+</tr>
+<tr>
+<td><code>J047</code></td>
+<td>カウンターショック (Electrical cardioversion)</td>
+</tr>
+<tr>
+<td><code>J063</code></td>
+<td>留置カテーテル設置 (Urinary catheter insertion)</td>
+</tr>
+<tr>
+<td><code>K546</code></td>
+<td>経皮的冠動脈形成術 (PCI)</td>
+</tr>
+<tr>
+<td><code>K597</code></td>
+<td>ペースメーカー移植術 (Pacemaker implantation)</td>
+</tr>
+<tr>
+<td><code>K920</code></td>
+<td>輸血 (Blood transfusion)</td>
 </tr>
 </tbody>
 </table>
-<p>このリストにない処置 (尿カテーテル、NG チューブ、心エコー、輸血、
-透析、動脈ライン、創傷 debridement) は nursing record や補助
-レポートに折り込まれ、独立した DocumentReference は生成されない。</p>
+<p>どちらのリストにも無い処置コードには処置単位の文書は生成されない。</p>
 <h3 id="生成しないもの-意図的"><strong>生成しないもの</strong> (意図的)<a class="headerlink" href="#生成しないもの-意図的" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3069,48 +3102,31 @@ GitHub Release tarball (<code>clinosim-vX.Y.Z-*-*-narrative.tar.gz</code> asset)
 <p>つまり discharge summary プロンプトが
 <code>"discharge_medications": ["Amoxicillin 500mg PO BID x 7 days"]</code> を
 渡せば、テンプレートは自動的に bullet リストとしてレンダリングする。</p>
-<h3 id="タスク別利用可能変数">タスク別利用可能変数<a class="headerlink" href="#タスク別利用可能変数" title="Permanent link">&para;</a></h3>
-<p>変数名はプロンプト yaml の <code>variables:</code> ブロック
-(<code>clinosim/modules/llm_service/prompts/&lt;lang&gt;/&lt;task&gt;.yaml</code>) と、
-narrative pipeline の入力ビルダー
-(<code>clinosim/modules/document/narrative/</code> — <code>renderers/section_builders/</code>
-配下の per-section ビルダー + composition dispatcher) で宣言される。
-現 master 時点のタスク別完全リスト (ライブ宣言は各プロンプト yaml 参照):</p>
-<p><strong>discharge_summary</strong>:
-<code>age, sex, admission_date, discharge_date, los_days, disposition,
-attending_physician, chief_complaint, past_medical_history,
-admission_diagnosis, discharge_diagnoses, hospital_course_bullets,
-procedures_performed, discharge_medications</code></p>
-<p><strong>death_summary</strong>:
-<code>age, sex, admission_date, death_datetime, los_days,
-attending_physician, admission_diagnosis, primary_diagnosis,
-past_medical_history, hospital_course_bullets, terminal_findings,
-complications</code></p>
-<p><strong>operative_note</strong>:
-<code>surgery_date, procedure_name, procedure_code, preop_diagnosis,
-postop_diagnosis, surgeon, assistants, anesthesiologist,
-anesthesia_type, asa_class, duration_minutes,
-estimated_blood_loss_ml, body_site, approach, implants_used,
-specimens_sent, intraop_complications, outcome</code></p>
-<p><strong>admission_hp</strong>:
-<code>age, sex, admission_datetime, admitting_physician, department,
-chief_complaint, hpi_summary, past_medical_history,
-home_medications, allergies, admission_vitals, initial_labs,
-admission_diagnosis</code></p>
-<p><strong>procedure_note</strong>:
-<code>procedure_date, procedure_name, procedure_code, operator, indication,
-body_site, anesthesia_type, duration_minutes, findings,
-specimens_obtained, complications, outcome</code></p>
+<h3 id="プロンプト変数">プロンプト変数<a class="headerlink" href="#プロンプト変数" title="Permanent link">&para;</a></h3>
+<p>各プロンプトが参照する変数は <code>apply_replacement_strategy</code>
+(<code>clinosim/modules/document/narrative/replacement_strategy.py</code>) が渡す。
+タスク別の変数リストは存在しない。文書ごとの臨床内容は、テンプレート
+セクションと <code>_build_extra_context</code>
+(<code>narrative/_extra_context_builder.py</code>) から組み立てた JSON ブロックの
+中で LLM に渡る。</p>
+<p><strong>narrative_seed</strong> (1 セクション、<code>template_seed</code> strategy):
+<code>section, template_text, severity, day_index, context_json_block</code></p>
+<p><strong>narrative_seed_bundle</strong> (1 文書の <code>llm_enabled_sections</code> 全体、
+<code>template_seed_bundle</code> strategy):
+<code>document_type, target_language, severity, day_index,
+sections_json_block, context_json_block, output_schema_block</code></p>
+<p>文書種別ごとの指示は bundle プロンプトの <code>system:</code> テキスト内に、
+文書種別ごと 1 つの <code>### &lt;type_key&gt;</code> ブロック (例: <code>### admission_hp</code>、
+<code>### referral_note</code>) として置かれている。</p>
 <h3 id="プロンプト編集">プロンプト編集<a class="headerlink" href="#プロンプト編集" title="Permanent link">&para;</a></h3>
 <p>プロンプトテンプレートを改善するとき:</p>
 <ol>
 <li><strong><code>version:</code> フィールドを bump。</strong> version 番号は各生成文書
    (<code>ClinicalDocument.prompt_version</code>) に記録され、どの version が
    各 note を生成したかを監査可能。</li>
-<li><strong>変数名変更禁止</strong> — <code>clinosim/modules/document/narrative/</code> 内の
-   対応する入力ビルダーとプロンプト yaml の <code>variables:</code> ブロック
-   両方を更新しないと使えない。生成器はテンプレートがコードの
-   提供しない変数を参照すると <code>KeyError</code> を発生させる。</li>
+<li><strong>変数名変更禁止</strong> — <code>replacement_strategy.py</code> が渡す変数 dict も
+   同時に更新すること。テンプレートがコードの提供しない変数を参照
+   すると registry が <code>KeyError</code> を発生させる。</li>
 <li><strong>LLM token を消費せずレンダリング検証するためテンプレートモード
    で先にテスト</strong>:
    <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>clinosim<span class="w"> </span>narrate<span class="w"> </span>--cif-dir<span class="w"> </span>./output/cif<span class="w"> </span>--version-id<span class="w"> </span>prompt_v2_test
@@ -3234,10 +3250,14 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
    <code>content.attachment.data</code> に収めた <code>DocumentReference</code> を emit。</p>
 </li>
 <li>
-<p><strong>英語プロンプト YAML 作成</strong>
-   <code>clinosim/modules/llm_service/prompts/en/consultation_note.yaml</code>
-   を上述テンプレートに従って作成。プロンプトが参照する変数は
-   yaml の <code>variables:</code> ブロックに全て宣言する。</p>
+<p><strong>bundle プロンプトに LLM 指示を追加</strong> — 文書種別ごとの
+   プロンプトファイルは存在しない (Issue #2556 で削除)。
+   <code>clinosim/modules/llm_service/prompts/&lt;lang&gt;/narrative_seed_bundle.yaml</code>
+   (<code>en/</code> と <code>ja/</code> の両方) の <code>system:</code> テキストに
+   <code>### consultation_note</code> ブロックを追加し、<code>llm_enabled_sections</code> に
+   挙げた各セクションの書き方を記述して、ファイルの <code>version:</code> を
+   bump する。<code>llm_enabled_sections</code> に無いセクションはテンプレート
+   テキストのまま残る。</p>
 </li>
 <li>
 <p><strong>Section builder を実装</strong> —
@@ -3272,9 +3292,10 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
 </span></code></pre></div></p>
 </li>
 <li>
-<p><code>clinosim/modules/llm_service/prompts/&lt;lang&gt;/</code> の下にタスク別
-   プロンプト YAML ファイルを作成。対象言語のネイティブスピーカー
-   の臨床医が各テンプレートを review すべき。</p>
+<p><code>clinosim/modules/llm_service/prompts/&lt;lang&gt;/</code> を作成し、2 つの
+   narrative プロンプト <code>narrative_seed.yaml</code> と
+   <code>narrative_seed_bundle.yaml</code> の翻訳を置く。対象言語のネイティブ
+   スピーカーの臨床医が各テンプレートを review すべき。</p>
 </li>
 <li>
 <p><code>clinosim narrate --cif-dir &lt;cif&gt; --country &lt;XX&gt;</code> で新規プロンプトをテスト。
@@ -3292,8 +3313,8 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
 <li><a href="../README.ja.md">README.md</a> — メインユーザガイド</li>
 <li><a href="../bedrock_setup.ja/">bedrock_setup.ja.md</a> — EC2 + AWS Bedrock
   デプロイ</li>
-<li><a href="../DESIGN.ja.md">../DESIGN.md</a> Section 7 — 臨床文書のアーキテクチャ
-  判断 (AD-36〜AD-41)</li>
+<li><a href="../architecture/architecture-notes.ja/">architecture-notes.ja.md</a> —
+  臨床文書のアーキテクチャ判断 (AD-36〜AD-41)</li>
 <li><code>clinosim/modules/llm_service/README.ja.md</code> — LLM サービスモジュール
   リファレンス</li>
 <li><code>clinosim/modules/output/README.ja.md</code> — 出力アダプタモジュール

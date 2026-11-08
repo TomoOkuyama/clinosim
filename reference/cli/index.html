@@ -2772,9 +2772,11 @@ deprecated alias for <code>simulate</code>.</p>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│ structured CIF │  │ narrative CIF  │  │ FHIR R4 NDJSON   │
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>└────────────────┘  └────────────────┘  └──────────────────┘
 </span></code></pre></div>
-<p>The full authoritative source is
-<a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/simulator/cli.py"><code>clinosim/simulator/cli.py</code></a>;
-run <code>clinosim &lt;subcommand&gt; --help</code> for the up-to-date option list.</p>
+<p>The full authoritative source is the per-subcommand
+<code>clinosim/simulator/cli_&lt;command&gt;.py</code> modules
+(<a href="https://github.com/TomoOkuyama/clinosim/tree/master/clinosim/simulator"><code>clinosim/simulator/</code></a>; <code>cli.py</code> only
+registers and dispatches them) plus <code>clinosim/{audit,eval,benchmarks}/cli.py</code>
+and <code>clinosim/dataset/__init__.py</code>; run <code>clinosim &lt;subcommand&gt; --help</code> for the up-to-date option list.</p>
 <h2 id="clinosim-simulate--stage-1-structural-simulation"><code>clinosim simulate</code> — Stage 1 (structural simulation)<a class="headerlink" href="#clinosim-simulate--stage-1-structural-simulation" title="Permanent link">&para;</a></h2>
 <p>Population-driven simulation. Produces the structural CIF; the
 template Stage 2 narrative pass runs automatically at the end so a
@@ -3292,9 +3294,10 @@ byte-diff does not apply. Exit 0 = pass, 1 = findings.</p>
 </tbody>
 </table>
 <h2 id="clinosim-audit--per-module-pr-gate"><code>clinosim audit</code> — per-Module PR gate<a class="headerlink" href="#clinosim-audit--per-module-pr-gate" title="Permanent link">&para;</a></h2>
-<p>AD-60 audit framework — seven per-module plug-ins today
-(<code>antibiotic</code>, <code>document</code>, <code>drug_safety</code>, <code>hai</code>, <code>imaging</code>, <code>order</code>,
-<code>triage</code>). See
+<p>AD-60 audit framework — six registered per-module plug-ins today
+(<code>antibiotic</code>, <code>document_chain</code>, <code>hai</code>, <code>imaging_chain</code>,
+<code>order_service_request</code>, <code>triage_chain</code>; <code>clinosim audit list</code> prints
+the live set). <code>drug_safety</code> is not an audit plug-in. See
 <code>clinosim/audit/README.md</code> and <a href="../../audit-cycles/"><code>../audit-cycles/</code></a>
 for the workflow.</p>
 <h2 id="clinosim-dataset--named-preset-dataset-builder"><code>clinosim dataset</code> — named-preset dataset builder<a class="headerlink" href="#clinosim-dataset--named-preset-dataset-builder" title="Permanent link">&para;</a></h2>

@@ -2539,9 +2539,11 @@ structural CIF を生成、Stage 2 (<code>narrate</code>) と Stage 3 (<code>exp
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│ structured CIF │  │ narrative CIF  │  │ FHIR R4 NDJSON   │
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>└────────────────┘  └────────────────┘  └──────────────────┘
 </span></code></pre></div>
-<p>権威 source は
-<a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/simulator/cli.py"><code>clinosim/simulator/cli.py</code></a>
-。最新オプション一覧は <code>clinosim &lt;subcommand&gt; --help</code> で確認。</p>
+<p>権威 source はサブコマンドごとの
+<code>clinosim/simulator/cli_&lt;command&gt;.py</code> モジュール
+(<a href="https://github.com/TomoOkuyama/clinosim/tree/master/clinosim/simulator"><code>clinosim/simulator/</code></a>。<code>cli.py</code> は
+登録と dispatch のみ) と、<code>clinosim/{audit,eval,benchmarks}/cli.py</code>
+および <code>clinosim/dataset/__init__.py</code>。最新オプション一覧は <code>clinosim &lt;subcommand&gt; --help</code> で確認。</p>
 <h2 id="clinosim-simulate--stage-1-structural-シミュレーション"><code>clinosim simulate</code> — Stage 1 (structural シミュレーション)<a class="headerlink" href="#clinosim-simulate--stage-1-structural-シミュレーション" title="Permanent link">&para;</a></h2>
 <p>集団駆動シミュレーション。structural CIF を生成し、末尾で
 template Stage 2 narrative pass を自動実行するので
@@ -3056,9 +3058,10 @@ day-N vs day-M 追記)。export 済み FHIR ディレクトリで実行。</p>
 </tbody>
 </table>
 <h2 id="clinosim-audit--per-module-pr-ゲート"><code>clinosim audit</code> — per-Module PR ゲート<a class="headerlink" href="#clinosim-audit--per-module-pr-ゲート" title="Permanent link">&para;</a></h2>
-<p>AD-60 audit フレームワーク — 現在 7 つの per-module プラグイン
-(<code>antibiotic</code>、<code>document</code>、<code>drug_safety</code>、<code>hai</code>、<code>imaging</code>、<code>order</code>、
-<code>triage</code>)。
+<p>AD-60 audit フレームワーク — 現在登録済みの per-module プラグインは
+6 つ (<code>antibiotic</code>、<code>document_chain</code>、<code>hai</code>、<code>imaging_chain</code>、
+<code>order_service_request</code>、<code>triage_chain</code>。最新の一覧は
+<code>clinosim audit list</code> で確認)。<code>drug_safety</code> は audit プラグインではない。
 <code>clinosim/audit/README.ja.md</code> と
 <a href="../../audit-cycles/README.ja/"><code>../audit-cycles/</code></a> の workflow 参照。</p>
 <h2 id="clinosim-dataset--名前付きプリセット-dataset-builder"><code>clinosim dataset</code> — 名前付きプリセット dataset builder<a class="headerlink" href="#clinosim-dataset--名前付きプリセット-dataset-builder" title="Permanent link">&para;</a></h2>

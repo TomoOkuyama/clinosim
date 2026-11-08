@@ -2445,12 +2445,12 @@
 <tbody>
 <tr>
 <td><code>sepsis</code></td>
-<td><code>condition_event.disease_id == "sepsis"</code> または ICD <code>A41.*</code> / <code>R65.2*</code></td>
+<td><code>condition_event.disease_id == "sepsis"</code> または入院時診断が <code>sepsis.yaml</code> の <code>icd_codes</code> に完全一致 (A40.0、A41.01/.02/.51/.52/.9、R65.20/.21)</td>
 <td>encounter 記録中の Lactate 最大値 (mmol/L)</td>
 </tr>
 <tr>
 <td><code>aki</code></td>
-<td><code>condition_event.disease_id == "acute_kidney_injury"</code> または ICD <code>N17.*</code> / <code>N19</code></td>
+<td><code>condition_event.disease_id == "acute_kidney_injury"</code> または入院時診断が <code>acute_kidney_injury.yaml</code> の <code>icd_codes</code> に完全一致 (N17.0/.1/.2/.8/.9)</td>
 <td>peak SCr − baseline SCr (mg/dL)</td>
 </tr>
 </tbody>

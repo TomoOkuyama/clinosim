@@ -2069,10 +2069,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#available-variables-per-task" class="md-nav__link">
+  <a href="#prompt-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Available variables per task
+        Prompt variables
       
     </span>
   </a>
@@ -2873,10 +2873,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#available-variables-per-task" class="md-nav__link">
+  <a href="#prompt-variables" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Available variables per task
+        Prompt variables
       
     </span>
   </a>
@@ -3156,54 +3156,86 @@ Tier C in earlier releases — is emitted end-to-end as of v0.6.x.</p>
 </tbody>
 </table>
 <h3 id="procedure-note-allowlist">Procedure Note allowlist<a class="headerlink" href="#procedure-note-allowlist" title="Permanent link">&para;</a></h3>
-<p>Only <strong>eight invasive bedside procedures</strong> produce a formal Procedure Note,
-matching real-world documentation practice:</p>
+<p>A Procedure Note is emitted per <code>ProcedureRecord</code> whose <code>procedure_code</code>
+is listed under <code>procedure_note_codes</code> in
+<code>clinosim/modules/document/reference_data/bedside_procedure_codes.yaml</code>
+(the source of truth; 16 codes today). Surgical codes listed under
+<code>operative_note_codes</code> get an Operative Note instead:</p>
 <table>
 <thead>
 <tr>
-<th><code>procedure_type</code></th>
-<th>Rationale</th>
+<th><code>procedure_code</code></th>
+<th>Procedure</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>central_line</code></td>
-<td>Insertion site, vessel, confirmation required</td>
+<td><code>D225</code></td>
+<td>Arterial line</td>
 </tr>
 <tr>
-<td><code>lumbar_puncture</code></td>
-<td>Opening pressure, CSF appearance, tube collection</td>
+<td><code>D302</code></td>
+<td>Bronchoscopy</td>
 </tr>
 <tr>
-<td><code>thoracentesis</code></td>
-<td>Fluid volume and character, post-procedure imaging</td>
+<td><code>D403</code></td>
+<td>Lumbar puncture</td>
 </tr>
 <tr>
-<td><code>paracentesis</code></td>
-<td>Fluid volume and character, indication</td>
+<td><code>G005-2</code></td>
+<td>Central venous catheter insertion</td>
 </tr>
 <tr>
-<td><code>chest_tube</code></td>
-<td>Insertion site, initial drainage, confirmation</td>
+<td><code>J008</code></td>
+<td>Thoracentesis</td>
 </tr>
 <tr>
-<td><code>intubation</code></td>
-<td>Cormack-Lehane grade, tube size, ETCO₂ confirmation</td>
+<td><code>J010</code></td>
+<td>Paracentesis</td>
 </tr>
 <tr>
-<td><code>bronchoscopy</code></td>
-<td>Findings, BAL results, biopsy specimens</td>
+<td><code>J019</code></td>
+<td>Chest tube insertion</td>
 </tr>
 <tr>
-<td><code>cardioversion</code></td>
-<td>Energy delivered, success, rhythm before/after</td>
+<td><code>J034</code></td>
+<td>Long tube for bowel obstruction</td>
+</tr>
+<tr>
+<td><code>J034-2</code></td>
+<td>Nasogastric tube insertion</td>
+</tr>
+<tr>
+<td><code>J038</code></td>
+<td>Acute hemodialysis</td>
+</tr>
+<tr>
+<td><code>J044</code></td>
+<td>Endotracheal intubation</td>
+</tr>
+<tr>
+<td><code>J047</code></td>
+<td>Electrical cardioversion</td>
+</tr>
+<tr>
+<td><code>J063</code></td>
+<td>Urinary catheter insertion</td>
+</tr>
+<tr>
+<td><code>K546</code></td>
+<td>PCI</td>
+</tr>
+<tr>
+<td><code>K597</code></td>
+<td>Pacemaker implantation</td>
+</tr>
+<tr>
+<td><code>K920</code></td>
+<td>Blood transfusion</td>
 </tr>
 </tbody>
 </table>
-<p>Procedures not on this list (urinary catheter, NG tube, echocardiography,
-blood transfusion, dialysis, arterial line, wound debridement) are folded into
-nursing records or ancillary reports and do not produce a separate
-DocumentReference.</p>
+<p>Procedure codes in neither list get no per-procedure document.</p>
 <h3 id="what-is-not-generated-by-design">What is <strong>not</strong> generated (by design)<a class="headerlink" href="#what-is-not-generated-by-design" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3407,45 +3439,30 @@ prompts of the removed <code>LLMService.generate</code> path were deleted
 <p>This means a discharge summary prompt can pass
 <code>"discharge_medications": ["Amoxicillin 500mg PO BID x 7 days"]</code> and the
 template will render it as a bullet list automatically.</p>
-<h3 id="available-variables-per-task">Available variables per task<a class="headerlink" href="#available-variables-per-task" title="Permanent link">&para;</a></h3>
-<p>Variable names are declared in the prompt yaml's <code>variables:</code> block
-(<code>clinosim/modules/llm_service/prompts/&lt;lang&gt;/&lt;task&gt;.yaml</code>) and the
-matching input builder in the narrative pipeline
-(<code>clinosim/modules/document/narrative/</code> — the per-section builders
-under <code>renderers/section_builders/</code> plus the composition dispatcher).
-The complete lists per task (as of the current master; see each prompt
-yaml for the live declaration):</p>
-<p><strong>discharge_summary</strong>:
-<code>age, sex, admission_date, discharge_date, los_days, disposition,
-attending_physician, chief_complaint, past_medical_history, admission_diagnosis,
-discharge_diagnoses, hospital_course_bullets, procedures_performed,
-discharge_medications</code></p>
-<p><strong>death_summary</strong>:
-<code>age, sex, admission_date, death_datetime, los_days, attending_physician,
-admission_diagnosis, primary_diagnosis, past_medical_history,
-hospital_course_bullets, terminal_findings, complications</code></p>
-<p><strong>operative_note</strong>:
-<code>surgery_date, procedure_name, procedure_code, preop_diagnosis,
-postop_diagnosis, surgeon, assistants, anesthesiologist, anesthesia_type,
-asa_class, duration_minutes, estimated_blood_loss_ml, body_site, approach,
-implants_used, specimens_sent, intraop_complications, outcome</code></p>
-<p><strong>admission_hp</strong>:
-<code>age, sex, admission_datetime, admitting_physician, department,
-chief_complaint, hpi_summary, past_medical_history, home_medications,
-allergies, admission_vitals, initial_labs, admission_diagnosis</code></p>
-<p><strong>procedure_note</strong>:
-<code>procedure_date, procedure_name, procedure_code, operator, indication,
-body_site, anesthesia_type, duration_minutes, findings, specimens_obtained,
-complications, outcome</code></p>
+<h3 id="prompt-variables">Prompt variables<a class="headerlink" href="#prompt-variables" title="Permanent link">&para;</a></h3>
+<p>The variables each prompt references are supplied by
+<code>apply_replacement_strategy</code>
+(<code>clinosim/modules/document/narrative/replacement_strategy.py</code>); there
+is no per-task variable list. Per-document clinical content reaches the
+LLM inside the JSON blocks, built from the template sections and
+<code>_build_extra_context</code> (<code>narrative/_extra_context_builder.py</code>).</p>
+<p><strong>narrative_seed</strong> (one section, <code>template_seed</code> strategy):
+<code>section, template_text, severity, day_index, context_json_block</code></p>
+<p><strong>narrative_seed_bundle</strong> (all <code>llm_enabled_sections</code> of one document,
+<code>template_seed_bundle</code> strategy):
+<code>document_type, target_language, severity, day_index,
+sections_json_block, context_json_block, output_schema_block</code></p>
+<p>Per-document instructions live in the bundle prompt's <code>system:</code> text
+as one <code>### &lt;type_key&gt;</code> block per document type (e.g.
+<code>### admission_hp</code>, <code>### referral_note</code>).</p>
 <h3 id="editing-prompts">Editing prompts<a class="headerlink" href="#editing-prompts" title="Permanent link">&para;</a></h3>
 <p>When you improve a prompt template:</p>
 <ol>
 <li><strong>Bump the <code>version:</code> field.</strong> The version number is recorded on every
    generated document (<code>ClinicalDocument.prompt_version</code>) so you can audit
    which version produced each note.</li>
-<li><strong>Do not rename variables</strong> without updating the matching input
-   builder in <code>clinosim/modules/document/narrative/</code> + the
-   <code>variables:</code> block in the prompt yaml. The generator raises
+<li><strong>Do not rename variables</strong> without updating the variable dict
+   passed by <code>replacement_strategy.py</code>. The registry raises
    <code>KeyError</code> if a template references a variable the code does
    not provide.</li>
 <li><strong>Test in template mode first</strong> to verify rendering without spending LLM
@@ -3568,10 +3585,13 @@ FHIR export.</p>
    <code>DocumentReference</code> with the full body in <code>content.attachment.data</code>.</p>
 </li>
 <li>
-<p><strong>Create the English prompt YAML</strong>
-   <code>clinosim/modules/llm_service/prompts/en/consultation_note.yaml</code>
-   following the template above. Declare every variable the prompt
-   references in the yaml's <code>variables:</code> block.</p>
+<p><strong>Add the LLM instructions to the bundle prompt</strong> — there is no
+   per-document prompt file (removed in Issue #2556). Add a
+   <code>### consultation_note</code> block to the <code>system:</code> text of
+   <code>clinosim/modules/llm_service/prompts/&lt;lang&gt;/narrative_seed_bundle.yaml</code>
+   (both <code>en/</code> and <code>ja/</code>) describing each section listed in
+   <code>llm_enabled_sections</code>, and bump the file's <code>version:</code>. Sections not
+   in <code>llm_enabled_sections</code> keep their template text.</p>
 </li>
 <li>
 <p><strong>Implement the section builder(s)</strong> under
@@ -3607,9 +3627,10 @@ FHIR export.</p>
 </span></code></pre></div></p>
 </li>
 <li>
-<p>Create the per-task prompt YAML files under
-   <code>clinosim/modules/llm_service/prompts/&lt;lang&gt;/</code>. A clinician who is a native
-   speaker of the target language should review each template.</p>
+<p>Create <code>clinosim/modules/llm_service/prompts/&lt;lang&gt;/</code> with translations of
+   the two narrative prompts, <code>narrative_seed.yaml</code> and
+   <code>narrative_seed_bundle.yaml</code>. A clinician who is a native speaker of the
+   target language should review each template.</p>
 </li>
 <li>
 <p>Test the new prompts with <code>clinosim narrate --cif-dir &lt;cif&gt; --country &lt;XX&gt;</code>.
@@ -3626,7 +3647,7 @@ FHIR export.</p>
 <ul>
 <li><a href="../README.md">README.md</a> — main user guide</li>
 <li><a href="../bedrock_setup/">bedrock_setup.md</a> — EC2 + AWS Bedrock deployment</li>
-<li><a href="../DESIGN.md">../DESIGN.md</a> Section 7 — architecture decisions for clinical documents (AD-36 to AD-41)</li>
+<li><a href="../architecture/architecture-notes/">architecture-notes.md</a> — architecture decisions for clinical documents (AD-36 to AD-41)</li>
 <li><code>clinosim/modules/llm_service/README.md</code> — LLM service module reference</li>
 <li><code>clinosim/modules/output/README.md</code> — output adapter module reference</li>
 </ul>

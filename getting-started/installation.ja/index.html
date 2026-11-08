@@ -2424,7 +2424,8 @@
   JLAC10 コードを出力する。<a href="../../jp-clins.ja/">JP-CLINS</a> 参照。</li>
 <li><strong>オプション:</strong><ul>
 <li>ローカル LLM narrative 生成用 Ollama</li>
-<li>CIF Parquet 出力: <code>pip install "clinosim[parquet]"</code></li>
+<li><code>clinosim[parquet]</code> extra (pyarrow + pandas) は予約のみ: CIF の
+  Parquet 出力は未実装 (設計段階) で、CIF は JSON で書き出される</li>
 <li><code>mkdocs serve</code> でこの文書サイトをローカルビルド:
   <code>pip install "clinosim[docs]"</code></li>
 </ul>

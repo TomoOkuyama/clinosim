@@ -3288,8 +3288,8 @@ master population RNG stream:</p>
 <td><code>(patient_id, year)</code></td>
 </tr>
 <tr>
-<td>Abortion outcome (spontaneous vs induced split)</td>
-<td><code>_abortion_outcome_sub_seed</code></td>
+<td>Pregnancy outcome (delivery vs abortion, spontaneous vs induced split)</td>
+<td><code>pregnancy_outcome_seed</code></td>
 <td><code>(mother_id, year)</code></td>
 </tr>
 <tr>
@@ -3309,7 +3309,7 @@ master population RNG stream:</p>
 </tr>
 <tr>
 <td>Radiation-therapy per-visit trigger</td>
-<td>ad-hoc <code>sha256("rt:&lt;encounter_id&gt;")</code></td>
+<td><code>radiation_therapy_seed</code></td>
 <td><code>encounter_id</code></td>
 </tr>
 </tbody>

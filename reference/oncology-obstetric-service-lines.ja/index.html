@@ -3042,8 +3042,8 @@ cascade しないことを保証する:</p>
 <td><code>(patient_id, year)</code></td>
 </tr>
 <tr>
-<td>中絶 outcome (自然 / 人工 split)</td>
-<td><code>_abortion_outcome_sub_seed</code></td>
+<td>妊娠 outcome (分娩 / 中絶、自然 / 人工 split)</td>
+<td><code>pregnancy_outcome_seed</code></td>
 <td><code>(mother_id, year)</code></td>
 </tr>
 <tr>
@@ -3063,7 +3063,7 @@ cascade しないことを保証する:</p>
 </tr>
 <tr>
 <td>放射線治療 per-visit trigger</td>
-<td>ad-hoc <code>sha256("rt:&lt;encounter_id&gt;")</code></td>
+<td><code>radiation_therapy_seed</code></td>
 <td><code>encounter_id</code></td>
 </tr>
 </tbody>
