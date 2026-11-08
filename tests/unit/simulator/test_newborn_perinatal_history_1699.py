@@ -100,3 +100,11 @@ def test_perinatal_p_codes_route_to_perinatal_history():
     assert "L22" in persistent_codes
     assert "L20.9" in persistent_codes
     assert persistent_codes.isdisjoint(peri_codes)
+
+
+def test_shipped_newborn_conditions_do_not_carry_diaper_dermatitis() -> None:
+    """Issue #2879: diaper dermatitis is episodic, not a chronic problem present at birth."""
+    from clinosim.locale.loader import load_perinatal_config
+
+    codes = [str(e.get("code")) for e in load_perinatal_config().get("newborn_conditions") or []]
+    assert "L22" not in codes

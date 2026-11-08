@@ -276,11 +276,9 @@ newborn_conditions:
         conditional_probability: 0.35   # ~35 % of preterm 28-37wk newborns develop RDS
 
   # First-year chronic conditions the newborn carries onto the problem
-  # list (persist beyond the birth encounter). Diaper dermatitis is
-  # near-universal at some point but the "carries" rate is lower.
-  - code: L22                           # Diaper dermatitis
-    probability: 0.30                   # per-newborn carrier rate; on-and-off through infancy
-
+  # list (persist beyond the birth encounter). Diaper dermatitis (L22) is
+  # not listed: it is an episodic problem of later infancy that resolves in
+  # days to weeks, not a chronic condition present at birth (Issue #2879).
   - code: L20.9                         # Atopic dermatitis, unspecified
     probability: 0.15                   # ~10-20 % of infants per MHLW allergy survey (JP higher than US)
 

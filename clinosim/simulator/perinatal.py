@@ -190,7 +190,7 @@ def _is_perinatal_code(code: str) -> bool:
     Issue #1699: codes starting with ``P`` (ICD-10 chapter XVI "Certain
     conditions originating in the perinatal period") and ``Z38`` (liveborn
     birth admission) are one-time episode codes that do not persist as
-    chronic. Everything else (L22 diaper dermatitis, L20.9 atopic dermatitis,
+    chronic. Everything else (L20.9 atopic dermatitis and any
     future first-year chronic additions) stays in ``chronic_conditions``.
     """
     return code.startswith("P") or code.startswith("Z38")
@@ -482,7 +482,7 @@ def _build_newborn_patient(
         # P-chapter codes (P07 preterm, P22 RDS, P59 jaundice) are
         # one-time episode codes — not chronic. They route to
         # ``perinatal_history`` instead. First-year chronic entries
-        # (L22 diaper dermatitis, L20.9 atopic dermatitis) land on
+        # (L20.9 atopic dermatitis) land on
         # ``chronic_conditions`` as before. Z38 remains on the delivery
         # Encounter.diagnosis via the ClinicalDiagnosis emit below, so
         # FHIR output preserves the birth lineage without stamping it
