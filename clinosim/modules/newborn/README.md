@@ -85,9 +85,13 @@ the ServiceRequest / Specimen / DiagnosticReport payload.
 ## Enricher registration
 
 Registered in `clinosim/simulator/enrichers.py` as
-`POST_ENCOUNTER order=92`, always-on for JP and US locales:
+`POST_ENCOUNTER order=90`, always-on for JP and US locales:
 
-- After `imaging` (90) so the module sees a fully-populated encounter.
+- After `imaging` (same order 90, ties sort by name) so the module sees a
+  fully-populated encounter.
+- Before `supersede_orders` (91), which closes the medication orders of a
+  finished stay, so the vitamin K / ophthalmic orders this module adds are
+  closed at the newborn's discharge (Issue #2951).
 - Before `triage` (93) and `document` (95), so any narrative that
   surfaces the Vitamin K administration finds the MAR entry already
   in place.

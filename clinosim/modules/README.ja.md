@@ -89,7 +89,7 @@ Cross-module invariant:
 | [`procedure/`](procedure/README.ja.md) | 手術 + bedside 処置 + rehab セッション生成。 |
 | [`imaging/`](imaging/README.ja.md) | Imaging study + series + radiology report (Tier 1 #2 chain、AD-60 audit)。 |
 | [`device/`](device/README.ja.md) | ICU デバイス配置 (CVC / catheter / ventilator、POST_ENCOUNTER order=70)。 |
-| [`newborn/`](newborn/README.ja.md) | 新生児の出生入院中の臨床 workup (POST_ENCOUNTER order=92、Issue #1252)。 |
+| [`newborn/`](newborn/README.ja.md) | 新生児の出生入院中の臨床 workup (POST_ENCOUNTER order=90、Issue #1252)。 |
 
 ### 観測 & 治療
 

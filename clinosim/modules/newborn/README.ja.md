@@ -88,10 +88,13 @@ ServiceRequest / Specimen / DiagnosticReport の payload を構築する。
 ## Enricher 登録
 
 `clinosim/simulator/enrichers.py` に
-`POST_ENCOUNTER order=92` として登録され、JP / US locale で always-on:
+`POST_ENCOUNTER order=90` として登録され、JP / US locale で always-on:
 
-- `imaging` (90) の後に実行し、module が完全に埋まった encounter を
-  参照できるようにする。
+- `imaging` (同じ order 90、同 order は名前順) の後に実行し、module が
+  完全に埋まった encounter を参照できるようにする。
+- 終了した入院の薬剤オーダーを閉じる `supersede_orders` (91) の前に実行し、
+  この module が追加するビタミン K / 点眼予防のオーダーが新生児の退院時に
+  閉じられるようにする (Issue #2951)。
 - `triage` (93) と `document` (95) の前に実行し、ビタミン K 投与に
   言及する narrative が MAR エントリを既に参照できるようにする。
 

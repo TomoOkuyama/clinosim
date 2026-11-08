@@ -96,7 +96,7 @@ Cross-module invariants:
 | [`procedure/`](procedure/README.md) | Surgical + bedside procedure + rehab session generation. |
 | [`imaging/`](imaging/README.md) | Imaging study + series + radiology report (Tier 1 #2 chain, AD-60 audit). |
 | [`device/`](device/README.md) | ICU device placement (CVC / catheter / ventilator, POST_ENCOUNTER order=70). |
-| [`newborn/`](newborn/README.md) | Newborn birth-admission clinical workup (POST_ENCOUNTER order=92, Issue #1252). |
+| [`newborn/`](newborn/README.md) | Newborn birth-admission clinical workup (POST_ENCOUNTER order=90, Issue #1252). |
 
 ### Observations & therapy
 

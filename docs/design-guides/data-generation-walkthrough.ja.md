@@ -187,7 +187,7 @@ Base の受診シミュレーションの前後に、**opt-in / always-on モジ
   マイナンバー/保険)/ `e66_bmi(15)` / `e88_81_syndrome(16)` / `k76_0_nafld(17)` / `g47_30_osa(18)`。
 - **POST_ENCOUNTER**(1 受診の daily loop 完了直後、encounter simulator の内側): 臨床カスケード。
   順序固定 `device(70) → prophylaxis(75) → hai(80) → antibiotic(85) → imaging(90) →
-  discontinue_flip(91) → newborn(92) → triage(93) → lab_derived_dx(94) → nursing_assignment(94)
+  newborn(90) → discontinue_flip(91) → supersede_orders(91) → triage(93) → lab_derived_dx(94) → nursing_assignment(94)
   → document(95)`(同 order は名前順)。前段の `extensions[X]` を読んで次段が動く
   (device なしに HAI なし等)。
 - **POST_RECORDS**(全患者シミュレーション後): cross-record。`nursing(20)` flowsheet /
