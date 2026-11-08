@@ -74,6 +74,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_COMMON_PROFILE
 
 # ---------------------------------------------------------------------------
 # LOINC + display metadata for the four emitted body measurements.
@@ -429,11 +430,7 @@ def _build_one_observation(
         "resourceType": "Observation",
         "id": _resolve_anthropometric_id(structural_key),
         "identifier": [wrap_as_identifier(structural_key, ANTHROPOMETRIC_OBSERVATION_KEY_SYSTEM)],
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
-            if is_jp(country)
-            else {}
-        ),
+        **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
         "status": "final",
         "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
         "code": {

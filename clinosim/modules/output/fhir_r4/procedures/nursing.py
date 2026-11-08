@@ -31,6 +31,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_COMMON_PROFILE
 
 # Nurse-shift-plausible clock time for post-admission assessments
 # (Issue #1437). Day-0 assessments emit at the encounter's actual
@@ -299,11 +300,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             "resourceType": "Observation",
             "id": obs_id,
             # Chain #2: JP Core Observation_Common profile.
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
-                if is_jp(ctx.country)
-                else {}
-            ),
+            **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(ctx.country) else {}),
             "status": "final",
             "category": survey_category(lang_for(ctx.country)),
             "subject": subject,

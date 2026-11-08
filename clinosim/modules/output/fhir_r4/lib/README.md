@@ -39,6 +39,11 @@ rename).
     `primary_care` department) + extension URLs
     (`_JP_ECS_INSTITUTION_NUMBER_EXT_URL`,
     `_JP_ECS_DEPARTMENT_EXT_URL`, `_JP_ECS_INSTITUTION_ID_SYSTEM`).
+  - `jp_profiles.py` — JP Core / JP-CLINS profile and
+    identifier-system URIs used in more than one place (`JP_*_PROFILE`,
+    `JP_*_SYSTEM`); every builder imports these instead of writing the
+    literal (Issue #2842, guarded by
+    `tests/unit/output/test_jp_uri_constants_2842.py`).
   - `dosage.py` — MedicationRequest / MedicationAdministration
     Dosage helpers (`build_dosage_instruction`, `build_route_concept`,
     `canonicalize_route`, `augment_iv_dosage_with_rate`,

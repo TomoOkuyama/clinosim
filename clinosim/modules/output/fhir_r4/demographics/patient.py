@@ -39,6 +39,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_COMMON_PROFILE
 
 # === Issue #1344: US Core Patient extensions ===
 # https://hl7.org/fhir/us/core/StructureDefinition-us-core-race.html
@@ -1073,11 +1074,7 @@ def _build_occupation_observation(
         "id": _resolve_occupation_id(_occupation_key),
         "identifier": [wrap_as_identifier(_occupation_key, OCCUPATION_KEY_SYSTEM)],
         # chain #2: JP Core Observation_Common profile.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
-            if is_jp(country)
-            else {}
-        ),
+        **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
         "status": "final",
         "category": _social_category(country),
         "code": {

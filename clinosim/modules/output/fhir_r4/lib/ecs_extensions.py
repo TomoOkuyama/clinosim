@@ -7,6 +7,7 @@ from typing import Any
 
 from clinosim.locale.loaders.medical_display import department_display
 from clinosim.modules._shared import is_jp
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM
 
 __all__ = [
     "attach_ecs_institutional_extensions",
@@ -40,7 +41,7 @@ _JP_ECS_INSTITUTION_NUMBER_EXT_URL = (
     "http://jpfhir.jp/fhir/clins/Extension/StructureDefinition/JP_eCS_InstitutionNumber"
 )
 _JP_ECS_DEPARTMENT_EXT_URL = "http://jpfhir.jp/fhir/eCS/Extension/StructureDefinition/JP_eCS_Department"
-_JP_ECS_INSTITUTION_ID_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/insurance-medical-institution-no"
+_JP_ECS_INSTITUTION_ID_SYSTEM = JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM
 _JP_ECS_INSTITUTION_PLACEHOLDER = "1300000000"
 _JP_ECS_DEPARTMENT_PLACEHOLDER = department_display("primary_care", "ja")
 

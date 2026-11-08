@@ -37,6 +37,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_LAB_RESULT_PROFILE
 from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
 from clinosim.modules.output.fhir_r4.post_process.specimen import (
     SPECIMEN_KEY_SYSTEM,
@@ -335,11 +336,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             "resourceType": "Observation",
             "id": org_id,
             # chain #2: JP Core Observation_LabResult profile.
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"]}}
-                if is_jp(ctx.country)
-                else {}
-            ),
+            **({"meta": {"profile": [JP_OBSERVATION_LAB_RESULT_PROFILE]}} if is_jp(ctx.country) else {}),
             "status": "final",
             "category": lab_category,
             "code": culture_code,
@@ -404,11 +401,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 "resourceType": "Observation",
                 "id": sus_id,
                 # chain #2: JP Core Observation_LabResult profile.
-                **(
-                    {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"]}}
-                    if is_jp(ctx.country)
-                    else {}
-                ),
+                **({"meta": {"profile": [JP_OBSERVATION_LAB_RESULT_PROFILE]}} if is_jp(ctx.country) else {}),
                 "status": "final",
                 "category": lab_category,
                 "code": {"coding": [_sus_c], "text": _sus_code_text},

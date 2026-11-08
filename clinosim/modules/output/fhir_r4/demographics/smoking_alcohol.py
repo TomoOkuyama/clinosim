@@ -29,6 +29,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_COMMON_PROFILE
 from clinosim.modules.sdoh import load_social_history
 
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque SDOH ids ===
@@ -66,11 +67,7 @@ def _obs(obs_id: str, country: str, loinc: str, loinc_text: str, value_system: s
         "resourceType": "Observation",
         "id": obs_id,
         # chain #2: JP Core Observation_Common profile.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
-            if is_jp(country)
-            else {}
-        ),
+        **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
         "status": "final",
         "category": _social_category(country),
         "code": {

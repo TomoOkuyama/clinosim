@@ -27,12 +27,13 @@ from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 from clinosim.modules.output.fhir_r4.lib.common import _escape_html
 from clinosim.modules.output.fhir_r4.lib.fhir_time import derive_meta_last_updated
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_COMPOSITION_EDISCHARGE_SUMMARY_PROFILE
 
 # ---------------------------------------------------------------------------
 # JP-CLINS eDS constants — the per-profile URIs / codes dispatched by the
 # builder. Kept co-located with the function that uses them.
 # ---------------------------------------------------------------------------
-_JP_CLINS_DS_PROFILE = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
+_JP_CLINS_DS_PROFILE = JP_COMPOSITION_EDISCHARGE_SUMMARY_PROFILE
 _JPFHIR_DOC_TYPECODES_SYSTEM = get_system_uri("jpfhir-doc-typecodes")
 _JP_EDS_VERSION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/composition-clinicaldocument-versionNumber"
 _JPFHIR_DOC_SUBTYPECODES_SYSTEM = get_system_uri("jpfhir-doc-subtypecodes")
