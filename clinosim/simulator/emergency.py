@@ -240,9 +240,10 @@ def _ed_medication_skipped(
     cond_name: str,
     hint: str,
 ) -> bool:
-    """Demographic and drug-drug gates for an ED medication (ED treatment
-    orders and, Issue #2155, discharge prescriptions). Logs the skip on
-    ``patient.safety_skip_log`` and returns True when the drug is dropped."""
+    """Demographic, drug-drug, drug-disease and drug-allergy gates for an ED
+    medication (ED treatment orders and, Issue #2155, discharge
+    prescriptions). Logs the skip on ``patient.safety_skip_log`` and returns
+    True when the drug is dropped."""
     from clinosim.modules import drug_safety
     from clinosim.modules.drug_safety import check_demographic_gate
     from clinosim.modules.drug_safety.verdict import SEVERITY_RANK, SafetySkipEntry, SafetyVerdict
@@ -301,22 +302,25 @@ def _ed_medication_skipped(
     _ddi_verdicts = list(_ddi_verdicts) + drug_safety.check_candidate_against_disease_state(
         drug_name, drug_safety.condition_entries(patient.chronic_conditions or [])
     )
+    # Issue #2924: a drug the patient is allergic to (or cross-reactive with)
+    # is not ordered or prescribed.
+    _ddi_verdicts += drug_safety.check_candidate_against_allergies(
+        drug_name, drug_safety.allergy_entries(getattr(patient, "allergies", None) or [])
+    )
     _ddi_worst = max(
         (v for v in _ddi_verdicts if not v.is_allowed),
         key=lambda v: SEVERITY_RANK[v.severity],
         default=None,
     )
     if _ddi_worst is not None and _ddi_worst.default_action == "skip":
+        _conflict_en, _conflict_ja = drug_safety.conflict_display(_ddi_worst)
         patient.safety_skip_log.append(
             SafetySkipEntry(
                 encounter_id=encounter_id,
                 candidate_drug=drug_name,
                 candidate_drug_ja=(drug_safety.japanese_display(drug_name) or drug_name),
-                active_conflict=_ddi_worst.matched_active_drug or "",
-                active_conflict_ja=(
-                    drug_safety.japanese_display(_ddi_worst.matched_active_drug or "")
-                    or (_ddi_worst.matched_active_drug or "")
-                ),
+                active_conflict=_conflict_en,
+                active_conflict_ja=_conflict_ja,
                 verdict=_ddi_worst,
                 substituted_with=None,
                 substituted_with_ja=None,

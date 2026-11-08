@@ -146,6 +146,8 @@ def _add_base_chronic_meds_for_new_icd(person: PersonRecord, new_icd: str) -> No
         [ChronicCondition(code=new_icd, system="icd-10-cm")],
         patient_id=person.person_id,
         country="US",
+        # Issue #2924: not a drug the person is allergic to.
+        allergies=list(getattr(person, "allergies", None) or []),
     )
     if not sampled:
         return
@@ -314,9 +316,14 @@ def _apply_pattern(
                 from clinosim.modules.longitudinal.med_lookup import resolve_med_name
 
                 existing = {hm.drug_id or drug_key(hm.drug_name or "") for hm in person.current_medications}
+                from clinosim.modules import drug_safety
+
+                allergies = list(getattr(person, "allergies", None) or [])
                 for drug_name in result.med_additions:
                     if drug_key(drug_name) in existing:
                         continue
+                    if drug_safety.allergy_skip_verdict(drug_name, allergies) is not None:
+                        continue  # Issue #2924: ruled out by a recorded allergy
                     person.current_medications.append(resolve_med_name(drug_name))
                     existing.add(drug_key(drug_name))
     else:  # pragma: no cover — guarded by _IMPLEMENTED_PATTERNS

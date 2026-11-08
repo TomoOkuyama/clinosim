@@ -40,6 +40,7 @@ from clinosim.modules.staff.engine import FALLBACK_PHYSICIAN_ID, StaffRoster, as
 from clinosim.seeding import newborn_conditions_seed, newborn_seed, pregnancy_outcome_seed, text_seed
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
 from clinosim.simulator.hospital_ops import perinatal_ward, resolve_department
+from clinosim.simulator.medication_pipeline import allergy_blocked
 from clinosim.types.clinical import ConditionEvent
 from clinosim.types.encounter import EncounterStatus, EncounterType
 from clinosim.types.output import CIFPatientRecord
@@ -709,6 +710,13 @@ def simulate_delivery_encounter(
         from clinosim.types.encounter import Order, OrderStatus, OrderType
 
         _attending = encounter.attending_physician_id
+        _acetaminophen_slot = is_jp(country) or allergy_blocked(
+            patient,
+            "Ketorolac",
+            encounter_id=encounter.encounter_id,
+            timestamp=visit_date,
+            substituted_with="Acetaminophen",
+        )
         _cs_ord_specs: list[tuple[str, str, str, str, float, str, str, timedelta]] = [
             # (id_suffix, display_name, intent_en, intent_ja, dose, unit, route, timing_delta)
             (
@@ -771,12 +779,14 @@ def simulate_delivery_encounter(
             # US uses the pre-#1315 suffix "CSKT" so US CIF Order ids +
             # downstream opaque FHIR ids are byte-preserved; JP gets a
             # distinct "CSAM" suffix per its drug identity.
+            # Issue #2924: a mother with an NSAID-ruling allergy (aspirin
+            # allergy) gets the IV Acetaminophen slot instead of Ketorolac.
             (
-                "CSAM" if is_jp(country) else "CSKT",
-                "Acetaminophen" if is_jp(country) else "Ketorolac",
-                (t("perinatal_intent.CSAM", "en") if is_jp(country) else t("perinatal_intent.CSKT", "en")),
-                (t("perinatal_intent.CSAM", "ja") if is_jp(country) else t("perinatal_intent.CSKT", "ja")),
-                1000.0 if is_jp(country) else 30.0,
+                "CSAM" if _acetaminophen_slot else "CSKT",
+                "Acetaminophen" if _acetaminophen_slot else "Ketorolac",
+                (t("perinatal_intent.CSAM", "en") if _acetaminophen_slot else t("perinatal_intent.CSKT", "en")),
+                (t("perinatal_intent.CSAM", "ja") if _acetaminophen_slot else t("perinatal_intent.CSKT", "ja")),
+                1000.0 if _acetaminophen_slot else 30.0,
                 "mg",
                 "IV",
                 timedelta(minutes=60),
@@ -906,6 +916,17 @@ def simulate_delivery_encounter(
             "frequency": "tid" if is_cesarean else "q6h PRN",
             "duration_days": 5 if is_cesarean else 3,
         },
+    ]
+    # Issue #2924: an item the mother's allergies rule out is not prescribed.
+    _mother_rx_items = [
+        item
+        for item in _mother_rx_items
+        if not allergy_blocked(
+            patient,
+            str(item["drug_name"]),
+            encounter_id=encounter.encounter_id,
+            timestamp=encounter.discharge_datetime or visit_date,
+        )
     ]
     from clinosim.types.encounter import PrescriptionRecord as _PrescriptionRecord
 

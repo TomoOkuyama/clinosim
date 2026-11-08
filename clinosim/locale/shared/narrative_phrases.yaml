@@ -2151,6 +2151,9 @@ safety_text:
   demographic_conflict:
     ja: "適応外:年齢={age},性別={sex}"
     en: "demographic:age={age},sex={sex}"
+  allergy_conflict:
+    ja: "{allergen}アレルギー"
+    en: "{allergen} allergy"
   pregnancy_substitution:
     ja: "妊娠中の胎児安全性代替"
     en: "pregnancy-safe substitution"

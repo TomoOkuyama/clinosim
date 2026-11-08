@@ -11,8 +11,9 @@
 が発生していたが、simulator の処方経路 (入院時 / daily loop / ED /
 退院処方 / 予防投与) と `patient` activator から呼び出される class ベースの
 rule engine によって 0 件に低減する。薬剤 × 疾患状態
-(`check_candidate_against_disease_state`) と薬剤 × 年齢/性別
-(`check_demographic_gate`) の禁忌 gate も併せて提供する。
+(`check_candidate_against_disease_state`)、薬剤 × 年齢/性別
+(`check_demographic_gate`)、薬剤 × 記録済みアレルギー
+(`check_candidate_against_allergies`、Issue #2924) の禁忌 gate も併せて提供する。
 
 ## 2. スコープ
 
@@ -23,6 +24,10 @@ rule engine によって 0 件に低減する。薬剤 × 疾患状態
   Issue #1392 / #1350、stage 条件 `stage_in` は Issue #1769)。
 - 年齢 / 性別 gate (`demographic_gates.yaml`、Issue #1316 / #1328)、
   ICD prefix の `exception_indications` で bypass。
+- 薬剤 class × 記録済みアレルギー rule (`allergy_contraindications.yaml`、
+  Issue #2924): `modules/allergy/reference_data/allergens.yaml` の各医薬品
+  アレルゲンを、回避 (block) または注意 (caution) とする class に対応付け、
+  交差反応は現行エビデンスに従う。
 - 代替薬 substitution: Issue #437 の dead-data `alternative_*` block
   を revive + 新規 `modules/drug_safety/reference_data/drug_substitution.yaml`。
 - CIF trace (`PatientProfile.safety_skip_log`)。
@@ -56,12 +61,21 @@ verdicts = drug_safety.check_candidate_against_active(
 alt = drug_safety.suggest_alternative(
     "Ibuprofen", "pain_management",
     active_meds=["Warfarin"], disease_ctx=protocol, country="us",
+    allergen_codes=codes,  # アレルギーのある代替薬は選ばない
 )  # → AlternativeDrug(drug="Acetaminophen", ...)
 
 # 薬剤 × 慢性疾患状態 — entry は ICD 文字列または (code, stage) tuple
 verdicts = drug_safety.check_candidate_against_disease_state(
     "Ibuprofen", ["I50.9"],
 )  # → [SafetyVerdict(rule_id="nsaid-in-heart-failure", ...)]
+
+# 薬剤 × 記録済みアレルギー — entry は有効なアレルギー記録の allergen code
+# (NKA、resolved、refuted は除く)
+codes = drug_safety.allergy_entries(patient.allergies)   # → ["764146007"]
+verdicts = drug_safety.check_candidate_against_allergies("Amoxicillin", codes)
+# → [SafetyVerdict(rule_id="penicillin-allergy-penicillins", severity="contraindicated", ...)]
+drug_safety.allergy_skip_verdict("Ibuprofen", patient.allergies)  # 回避 verdict か None
+drug_safety.conflict_display(verdict)  # → ("Penicillin allergy", "ペニシリンアレルギー")
 
 # 年齢 / 性別 gate
 dv = drug_safety.check_demographic_gate(
@@ -80,6 +94,8 @@ drug_safety.japanese_display("Aspirin")   # → "アスピリン"
 `__all__` の全体: 関数 `check_pair`,
 `check_candidate_against_active`,
 `check_candidate_against_disease_state`, `check_demographic_gate`,
+`check_candidate_against_allergies`, `allergy_entries`,
+`allergy_skip_verdict`, `conflict_display`, `condition_entries`,
 `suggest_alternative`, `discharge_reconciliation_rules`,
 `resolve_classes`, `canonical_name`, `japanese_display`、型
 `SafetyVerdict`, `SafetySkipEntry`, `Severity`, `SEVERITY_RANK`
@@ -138,6 +154,15 @@ YAML 4 ファイル + 薬剤カタログ:
 - `reference_data/demographic_gates.yaml` — 年齢 / 性別 rule (3 rule:
   aspirin 小児 (Reye 症候群)、nitroglycerin 成人のみ、tamsulosin
   成人男性)。
+- `reference_data/allergy_contraindications.yaml` — 薬剤 class ×
+  記録済みアレルギー rule (7 rule、Issue #2924)。ペニシリンアレルギーは
+  全ペニシリン系 (アミノペニシリン含む) を回避、セフェム系は注意のみ、
+  カルバペネムは rule なし (AAAAI/ACAAI 薬物アレルギー practice
+  parameter 2022)。アスピリンアレルギーは非選択的・COX-2 優先的 NSAID
+  (代替: `pain_management`) とアスピリン自体 (鎮痛薬の代替なし) を回避し、
+  選択的 COX-2 阻害薬は注意 (EAACI/ENDA NSAID 過敏症分類)。サルファ剤
+  アレルギーはサルファ剤系抗菌薬を回避し、サイアザイド系・ループ利尿薬と
+  セレコキシブは注意のみ (Strom, NEJM 2003)。
 - `modules/drug_safety/reference_data/drug_substitution.yaml` — 汎用
   indication → 代替薬 pool (カタログ `drug_id` で key 付け。
   pain_management → acetaminophen、hypertension_or_rate_control →
@@ -145,9 +170,11 @@ YAML 4 ファイル + 薬剤カタログ:
 
 各ファイルは load 時に `_models.py` の `extra="forbid"` Pydantic
 model (`ContraindicationsFile`, `DiseaseContraindicationsFile`,
-`DemographicGatesFile`, `DrugSubstitutionFile`) で検証される。薬剤
-class / drug id はカタログと照合、rule id は一意、reconciliation
-list は既存 rule を指す必要がある。
+`DemographicGatesFile`, `DrugSubstitutionFile`,
+`AllergyContraindicationsFile`) で検証される。薬剤 class / drug id は
+カタログと照合、rule id は一意、reconciliation list は既存 rule を指し、
+アレルギー rule の `allergen_code` は `allergens.yaml` の医薬品
+アレルゲンである必要がある。
 
 また Issue #437 の dead-data `alternative_*` block を 15 疾患 YAML
 で `_indication_tag` marker 経由で活用する。
@@ -159,14 +186,15 @@ clinosim/modules/drug_safety/
 ├── __init__.py            # 公開 API 再 export
 ├── verdict.py             # SafetyVerdict + SafetySkipEntry + Severity + SEVERITY_RANK
 ├── classifier.py          # 薬剤名 → class[] resolver
-├── engine.py              # check_pair / check_candidate_against_active / check_candidate_against_disease_state / suggest_alternative / discharge_reconciliation_rules
+├── engine.py              # check_pair / check_candidate_against_active / check_candidate_against_disease_state / check_candidate_against_allergies / suggest_alternative / discharge_reconciliation_rules
 ├── demographic.py         # check_demographic_gate + DemographicVerdict
-├── _models.py             # reference YAML 4 種の Pydantic model
+├── _models.py             # reference YAML 5 種の Pydantic model
 ├── audit.py               # audit_drug_safety(patients) → list[AuditFinding]
 ├── reference_data/
 │   ├── contraindications.yaml
 │   ├── disease_contraindications.yaml
 │   ├── demographic_gates.yaml
+│   ├── allergy_contraindications.yaml
 │   ├── drug_substitution.yaml
 │   ├── README.md          # YAML スキーマ
 │   └── README.ja.md
@@ -179,20 +207,26 @@ clinosim/modules/drug_safety/
 **なし** — enricher ではなく library。以下から同期的に呼ばれる:
 
 - `clinosim.simulator.medication_pipeline.apply_drug_safety_gate_to_orders`
-  — DDI gate + substitution。`simulator/inpatient.py` から
+  — DDI + 疾患状態 + アレルギー gate + substitution。`simulator/inpatient.py` から
   (`apply_drug_safety_gate_to_admission_orders` wrapper 経由で) 統合
   済み入院時 order に、`simulator/daily_loop.py` から新規 daily-loop
-  order に適用。
+  order に適用。同モジュールの `allergy_blocked` / `log_allergy_skip`
+  は代替を出さない処方 (外来 renewal、`simulator/perinatal.py` の産後
+  持ち帰り処方と帝王切開の鎮痛薬) をアレルギーで gate する。
 - `clinosim.modules.patient.activator._derive_home_medications`
-  — 慢性薬選択 loop (DDI + 疾患状態 gate)。skip-only、substitution
-  なし。
-- `clinosim.simulator.emergency` — ED order dispatch
-  (`check_demographic_gate` + `check_candidate_against_active`)。
-- `clinosim.simulator.discharge_rx` — active 薬に対する `check_pair`。
+  — 慢性薬選択 loop (DDI + 疾患状態 + アレルギー gate)。skip-only、
+  substitution なし。activator は、持ち越した常用薬のうち現在
+  アレルギーのあるものも中止する。
+- `clinosim.simulator.emergency` — ED order dispatch と持ち帰り処方
+  (`check_demographic_gate` + `check_candidate_against_active` +
+  疾患状態 + アレルギー rule)。
+- `clinosim.simulator.discharge_rx` — active 薬に対する `check_pair`、
+  プロトコル薬・継続薬へのアレルギー check (substitution あり)。
 - `clinosim.modules.prophylaxis.engine` — VTE 予防投与候補 vs active 薬。
 - `clinosim.modules.longitudinal.engine` — 持ち越した常用薬の
   reconcile (`discharge_reconciliation_rules` +
-  `check_candidate_against_active`)。
+  `check_candidate_against_active`)、記録済みアレルギーで禁忌となる
+  追加薬は追加しない。
 - `clinosim.simulator.outpatient` と
   `clinosim.modules.order.discontinue_flip` — safety-skip entry 記録
   のため verdict 型を import。
@@ -251,6 +285,9 @@ clinosim/modules/drug_safety/
   `tests/unit/modules/drug_safety/test_demographic_gate.py`,
   `tests/unit/test_ed_order_drug_safety_1347.py`,
   `tests/unit/test_discharge_rx_drug_safety_1334.py`。
+- アレルギー gate: `tests/unit/modules/drug_safety/test_allergy_gate_2924.py`
+  (rule、NKA / 無関係アレルギー、order / ED / 退院処方 / activator 配線、
+  YAML model)。
 
 コホート検証は `scripts/verify_medical_stats.py` で行い、
 `contraindicated_pair_count` (目標: 0) を報告する。

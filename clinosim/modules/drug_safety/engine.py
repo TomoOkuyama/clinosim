@@ -15,6 +15,7 @@ from typing import Any
 from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.localized import language_slot
 from clinosim.modules.drug_safety._models import (
+    AllergyContraindicationsFile,
     ContraindicationsFile,
     DiseaseContraindicationsFile,
     DrugSubstitutionFile,
@@ -34,6 +35,7 @@ _HERE = Path(__file__).resolve().parent
 _CONTRAINDICATIONS_YAML = _HERE / "reference_data" / "contraindications.yaml"
 _DISEASE_CONTRAINDICATIONS_YAML = _HERE / "reference_data" / "disease_contraindications.yaml"
 _SHARED_SUBSTITUTION_YAML = _HERE / "reference_data" / "drug_substitution.yaml"
+_ALLERGY_CONTRAINDICATIONS_YAML = _HERE / "reference_data" / "allergy_contraindications.yaml"
 
 
 @dataclass(frozen=True)
@@ -276,6 +278,102 @@ def check_candidate_against_disease_state(
 
 
 # ---------------------------------------------------------------------------
+# Recorded-allergy check (Issue #2924)
+# ---------------------------------------------------------------------------
+
+
+@lru_cache(maxsize=1)
+def _load_allergy_rules() -> list[dict[str, Any]]:
+    """Drug-class × allergen rules of ``allergy_contraindications.yaml``."""
+    data = load_validated_yaml(_ALLERGY_CONTRAINDICATIONS_YAML, AllergyContraindicationsFile)
+    return list(data.get("rules", []))
+
+
+@lru_cache(maxsize=1)
+def _allergy_rule_ids() -> frozenset[str]:
+    return frozenset(str(r["id"]) for r in _load_allergy_rules())
+
+
+def allergy_entries(allergies: Sequence[Any]) -> list[str]:
+    """Allergen codes of the patient's active allergy records for
+    :func:`check_candidate_against_allergies`: clinical status ``active``,
+    not refuted, not the "No known allergy" assertion."""
+    out: list[str] = []
+    for allergy in allergies or ():
+        if getattr(allergy, "is_nka", False):
+            continue
+        if str(getattr(allergy, "clinical_status", "active") or "active") != "active":
+            continue
+        if str(getattr(allergy, "verification_status", "") or "") in {"refuted", "entered-in-error"}:
+            continue
+        code = str(getattr(allergy, "allergen_code", "") or "")
+        if code and code not in out:
+            out.append(code)
+    return out
+
+
+def check_candidate_against_allergies(candidate: str, allergen_codes: Sequence[str]) -> list[SafetyVerdict]:
+    """Non-allowed verdicts of ``candidate`` against the patient's active
+    allergen codes (:func:`allergy_entries`). A rule fires when its
+    ``allergen_code`` is recorded and the candidate belongs to one of its
+    ``drug_classes`` and to none of its ``exclude_classes``.
+    ``matched_classes`` is ``(drug class, allergen code)``."""
+    if not allergen_codes:
+        return []
+    classes = set(resolve_classes(candidate))
+    if not classes:
+        return []
+    codes = set(allergen_codes)
+    out: list[SafetyVerdict] = []
+    for rule in _load_allergy_rules():
+        if str(rule["allergen_code"]) not in codes:
+            continue
+        if classes & set(rule.get("exclude_classes") or ()):
+            continue
+        matched = next((c for c in rule["drug_classes"] if c in classes), None)
+        if matched is None:
+            continue
+        severity: Severity = rule["severity"]
+        out.append(
+            SafetyVerdict(
+                severity=severity,
+                rule_id=rule["id"],
+                matched_classes=(str(matched), str(rule["allergen_code"])),
+                matched_active_drug=None,
+                rationale_en=language_slot(rule.get("rationale"), "en") or None,
+                rationale_ja=language_slot(rule.get("rationale"), "ja") or None,
+                substitution_hint=rule.get("substitution_hint"),
+            )
+        )
+    return out
+
+
+def conflict_display(verdict: SafetyVerdict) -> tuple[str, str]:
+    """(English, Japanese) text of what ``verdict`` conflicts with, for a
+    ``SafetySkipEntry``: the recorded allergy of an allergy rule ("Penicillin
+    allergy"), otherwise the active drug that triggered it."""
+    if verdict.rule_id in _allergy_rule_ids() and verdict.matched_classes:
+        from clinosim.codes import lookup
+        from clinosim.locale.i18n import t
+
+        code = verdict.matched_classes[1]
+        en = t("safety_text.allergy_conflict", "en", allergen=lookup("snomed-ct", code, "en"))
+        ja = t("safety_text.allergy_conflict", "ja", allergen=lookup("snomed-ct", code, "ja"))
+        return en, ja
+    active = verdict.matched_active_drug or ""
+    return active, (japanese_display(active) or active)
+
+
+def allergy_skip_verdict(candidate: str, allergies: Sequence[Any]) -> SafetyVerdict | None:
+    """The highest-severity allergy verdict that drops ``candidate`` for a
+    patient with ``allergies`` (allergy records), or None when it may be
+    given (a caution-level verdict does not drop it)."""
+    verdicts = check_candidate_against_allergies(candidate, allergy_entries(allergies))
+    worst = max(verdicts, key=lambda v: SEVERITY_RANK[v.severity], default=None)
+    return worst if worst is not None and worst.default_action == "skip" else None
+
+
+# ---------------------------------------------------------------------------
 # Alternative substitution
 # ---------------------------------------------------------------------------
 
@@ -286,8 +384,11 @@ def _load_shared_substitutions() -> dict[str, dict[str, Any]]:
     return data.get("indications", {}) or {}
 
 
-def _alt_is_safe(alt_drug: str, active_meds: Sequence[str]) -> bool:
-    return not check_candidate_against_active(alt_drug, active_meds)
+def _alt_is_safe(alt_drug: str, active_meds: Sequence[str], allergen_codes: Sequence[str] = ()) -> bool:
+    if check_candidate_against_active(alt_drug, active_meds):
+        return False
+    # Issue #2924: an alternative the patient is allergic to is no alternative.
+    return not any(v.default_action == "skip" for v in check_candidate_against_allergies(alt_drug, allergen_codes))
 
 
 def _resolve_substitution_display(entry: dict[str, Any]) -> tuple[str, str]:
@@ -312,14 +413,16 @@ def _resolve_substitution_display(entry: dict[str, Any]) -> tuple[str, str]:
     return legacy_en, drug_display(legacy_en, "ja") or legacy_en
 
 
-def _shared_pool_pick(indication: str, active_meds: Sequence[str]) -> AlternativeDrug | None:
+def _shared_pool_pick(
+    indication: str, active_meds: Sequence[str], allergen_codes: Sequence[str] = ()
+) -> AlternativeDrug | None:
     shared = _load_shared_substitutions()
     block = shared.get(indication)
     if not block:
         return None
     for idx, entry in enumerate(block.get("alternatives", []) or []):
         drug_en, drug_ja = _resolve_substitution_display(entry)
-        if not drug_en or not _alt_is_safe(drug_en, active_meds):
+        if not drug_en or not _alt_is_safe(drug_en, active_meds, allergen_codes):
             continue
         return AlternativeDrug(
             drug=drug_en,
@@ -350,6 +453,7 @@ def suggest_alternative(
     active_meds: Sequence[str] = (),
     disease_ctx: Any | None = None,
     country: str = "us",
+    allergen_codes: Sequence[str] = (),
 ) -> AlternativeDrug | None:
     """Pick a conflict-free alternative for ``candidate`` given ``indication``.
 
@@ -359,7 +463,9 @@ def suggest_alternative(
       3. None (fully skipped — caller must handle)
 
     Every returned alternative has been re-checked via check_pair against
-    every entry in ``active_meds`` and is guaranteed conflict-free.
+    every entry in ``active_meds`` and is guaranteed conflict-free; it is
+    also not one the patient's ``allergen_codes`` (:func:`allergy_entries`)
+    rule out (Issue #2924).
     """
     if indication is None:
         return None
@@ -376,7 +482,7 @@ def suggest_alternative(
             # Disease YAMLs name the alternative by catalog `drug_id`
             # (protocol drugs are catalog ids); `drug` is the legacy name key.
             drug = _alternative_name(entry)
-            if not drug or not _alt_is_safe(drug, active_meds):
+            if not drug or not _alt_is_safe(drug, active_meds, allergen_codes):
                 continue
             disease_id = getattr(disease_ctx, "disease_id", "unknown")
             return AlternativeDrug(
@@ -389,4 +495,4 @@ def suggest_alternative(
             )
 
     # Shared-pool fallback
-    return _shared_pool_pick(indication, active_meds)
+    return _shared_pool_pick(indication, active_meds, allergen_codes)
