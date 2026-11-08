@@ -18,6 +18,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_COMMON_PROFILE
 
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque code-status id ===
 # Structural key = pre-#854 id body: ``{enc or patient_id}``.
@@ -53,11 +54,7 @@ def _bb_code_status(ctx: BundleContext) -> list[dict]:
         "id": _resolve_code_status_id(_cs_structural_key),
         "identifier": [wrap_as_identifier(_cs_structural_key, CODE_STATUS_KEY_SYSTEM)],
         # chain #2: JP Core Observation_Common profile.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
-            if is_jp(ctx.country)
-            else {}
-        ),
+        **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(ctx.country) else {}),
         "status": "final",
         "category": survey_category(lang_for(ctx.country)),
         "code": {"coding": [_coding(observable)]},

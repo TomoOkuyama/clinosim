@@ -36,6 +36,10 @@ module から直接 import する (Issue #545 rename)。
     `_JP_ECS_DEPARTMENT_PLACEHOLDER` = `primary_care` 診療科の JA
     表示) と extension URL (`_JP_ECS_INSTITUTION_NUMBER_EXT_URL`、
     `_JP_ECS_DEPARTMENT_EXT_URL`、`_JP_ECS_INSTITUTION_ID_SYSTEM`)。
+  - `jp_profiles.py` — 複数箇所で使う JP Core / JP-CLINS の
+    profile / identifier system URI (`JP_*_PROFILE`、`JP_*_SYSTEM`)。
+    各 builder はリテラルを書かずこれを import する (Issue #2842、
+    `tests/unit/output/test_jp_uri_constants_2842.py` で guard)。
   - `dosage.py` — MedicationRequest / MedicationAdministration の
     Dosage helper (`build_dosage_instruction`、`build_route_concept`、
     `canonicalize_route`、`augment_iv_dosage_with_rate`、

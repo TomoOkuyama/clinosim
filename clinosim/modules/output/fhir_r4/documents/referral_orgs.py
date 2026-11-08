@@ -37,15 +37,20 @@ from clinosim.determinism import sha_index
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_external_organizations
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
+    JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM,
+    JP_ORGANIZATION_ECS_PROFILE,
+    JP_ORGANIZATION_PROFILE,
+)
 
 # eCS `identifier:medicalInstitutionCode` slice fixedUri — identical to the
 # system that ``facility.py`` pins on ``hospital-main``. Extracted here so
 # the external-org resources stay byte-identical in shape to the emitting
 # hospital and the JP-CLINS slice discriminator accepts either as a valid
 # JP_Organization_eCS target.
-_JP_INSURANCE_MED_INST_NO_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/insurance-medical-institution-no"
-_JP_ORGANIZATION_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"
-_JP_ORGANIZATION_ECS_PROFILE = "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Organization_eCS"
+_JP_INSURANCE_MED_INST_NO_SYSTEM = JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM
+_JP_ORGANIZATION_PROFILE = JP_ORGANIZATION_PROFILE
+_JP_ORGANIZATION_ECS_PROFILE = JP_ORGANIZATION_ECS_PROFILE
 # Static lastUpdated — external catalog is versioned with the release, not
 # per-run; matches the ``hospital-main`` static value pattern (facility.py).
 _JP_ORG_STATIC_LAST_UPDATED = "2026-01-01T00:00:00+09:00"

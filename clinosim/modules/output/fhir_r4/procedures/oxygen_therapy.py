@@ -85,6 +85,7 @@ from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_PROCEDURE_PROFILE
 from clinosim.modules.output.fhir_r4.procedures.procedures import (
     PROCEDURE_KEY_SYSTEM,
     _resolve_procedure_id,
@@ -403,11 +404,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
             "resourceType": "Procedure",
             "id": proc_id,
             "identifier": [wrap_as_identifier(proc_structural_key, PROCEDURE_KEY_SYSTEM)],
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"]}}
-                if is_jp_out
-                else {}
-            ),
+            **({"meta": {"profile": [JP_PROCEDURE_PROFILE]}} if is_jp_out else {}),
             "status": "completed",
             # SNOMED Therapeutic procedure — matches _bb_procedures default.
             "category": dual_slot_concept("snomed-ct", "277132007", lang),

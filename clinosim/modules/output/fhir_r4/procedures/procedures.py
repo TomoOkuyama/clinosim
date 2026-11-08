@@ -28,6 +28,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_PROCEDURE_PROFILE
 from clinosim.modules.output.fhir_r4.lib.localization import _procedure_display
 
 # Issue #854 Bucket A: opaque id + identifier[] round-trip for Procedure
@@ -218,11 +219,7 @@ def _build_procedure(
         "id": resource_id,
         "identifier": [wrap_as_identifier(structural_key, PROCEDURE_KEY_SYSTEM)],
         # Chain #2: JP Core Procedure profile.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"]}}
-            if is_jp(country)
-            else {}
-        ),
+        **({"meta": {"profile": [JP_PROCEDURE_PROFILE]}} if is_jp(country) else {}),
         "status": "completed",
         "code": {
             **({"coding": coding_entries} if coding_entries else {}),

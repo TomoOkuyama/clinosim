@@ -42,6 +42,10 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
+    JP_MEDICATION_ADMINISTRATION_INDEX_SYSTEM,
+    JP_MEDICATION_RP_GROUP_NUMBER_SYSTEM,
+)
 from clinosim.modules.output.fhir_r4.lib.localization import (
     _localize_dosage_terms,
     _localize_drug_name,
@@ -359,11 +363,11 @@ def _build_medication_request_identifiers(
         entries.extend(
             [
                 {
-                    "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
+                    "system": JP_MEDICATION_RP_GROUP_NUMBER_SYSTEM,
                     "value": rp_number,
                 },
                 {
-                    "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
+                    "system": JP_MEDICATION_ADMINISTRATION_INDEX_SYSTEM,
                     "value": order_in_rp,
                 },
             ]
@@ -1647,11 +1651,11 @@ def _build_medication_admin(
         ma_identifiers.extend(
             [
                 {
-                    "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
+                    "system": JP_MEDICATION_RP_GROUP_NUMBER_SYSTEM,
                     "value": rp_number,
                 },
                 {
-                    "system": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
+                    "system": JP_MEDICATION_ADMINISTRATION_INDEX_SYSTEM,
                     "value": order_in_rp,
                 },
             ]

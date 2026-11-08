@@ -46,6 +46,10 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
+    JP_OBSERVATION_COMMON_PROFILE,
+    JP_OBSERVATION_LAB_RESULT_PROFILE,
+)
 from clinosim.types.encounter import Order, OrderType
 
 
@@ -184,7 +188,7 @@ def _build_lab_observation(
 
     _profiles: list[str] = []
     if is_jp(country):
-        _profiles.append("http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult")
+        _profiles.append(JP_OBSERVATION_LAB_RESULT_PROFILE)
     _profiles.extend(_extra_profiles)
 
     # Issue #854 Bucket A row 4 (PR-obs-lab): opaque Observation.id.
@@ -443,11 +447,7 @@ def _build_vital_observations(
             "id": _resolve_vital_sign_observation_id(_vs_structural_key),
             "identifier": [wrap_as_identifier(_vs_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
             # chain #2: JP Core Observation_Common profile for vitals.
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
-                if is_jp(country)
-                else {}
-            ),
+            **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
             "status": "final",
             "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
@@ -549,11 +549,7 @@ def _build_vital_observations(
             "resourceType": "Observation",
             "id": _resolve_vital_sign_observation_id(_bp_structural_key),
             "identifier": [wrap_as_identifier(_bp_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
-                if is_jp(country)
-                else {}
-            ),
+            **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
             "status": "final",
             "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
@@ -600,11 +596,7 @@ def _build_vital_observations(
             "id": _resolve_vital_sign_observation_id(_loc_structural_key),
             "identifier": [wrap_as_identifier(_loc_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
             # chain #2: JP Core Observation_Common profile for vitals.
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
-                if is_jp(country)
-                else {}
-            ),
+            **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
             "status": "final",
             "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
@@ -663,11 +655,7 @@ def _build_vital_observations(
             "resourceType": "Observation",
             "id": _resolve_vital_sign_observation_id(_pain_structural_key),
             "identifier": [wrap_as_identifier(_pain_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
-                if is_jp(country)
-                else {}
-            ),
+            **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
             "status": "final",
             "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
@@ -703,11 +691,7 @@ def _build_vital_observations(
             "id": _resolve_vital_sign_observation_id(_o2_structural_key),
             "identifier": [wrap_as_identifier(_o2_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
             # chain #2: JP Core Observation_Common profile for vitals.
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
-                if is_jp(country)
-                else {}
-            ),
+            **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
             "status": "final",
             "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {

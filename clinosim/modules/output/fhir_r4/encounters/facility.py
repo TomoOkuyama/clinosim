@@ -12,6 +12,12 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import vocab_display
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, entry
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
+    JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM,
+    JP_LOCATION_PROFILE,
+    JP_ORGANIZATION_ECS_PROFILE,
+    JP_ORGANIZATION_PROFILE,
+)
 from clinosim.modules.output.fhir_r4.lib.localization import _dept_display
 from clinosim.modules.staff.engine import roster_departments
 
@@ -72,8 +78,8 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         # institutional metadata lands.
         root_org["meta"] = {
             "profile": [
-                "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization",
-                "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Organization_eCS",
+                JP_ORGANIZATION_PROFILE,
+                JP_ORGANIZATION_ECS_PROFILE,
             ],
             "lastUpdated": "2026-01-01T00:00:00+09:00",
         }
@@ -84,7 +90,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 # JP_Organization_eCS. Placeholder 10-digit value stands in
                 # for a real MHLW-assigned code until hospital_config
                 # carries one.
-                "system": "http://jpfhir.jp/fhir/core/IdSystem/insurance-medical-institution-no",
+                "system": JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM,
                 "value": "1300000000",
             }
         ]
@@ -99,11 +105,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     main_loc = {
         "resourceType": "Location",
         "id": "loc-hospital-main",
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
-            if is_jp(country)
-            else {}
-        ),
+        **({"meta": {"profile": [JP_LOCATION_PROFILE]}} if is_jp(country) else {}),
         "status": "active",
         "name": hosp_name,
         "type": [
@@ -156,11 +158,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     # Department Organizations (one per available_department)
     # Department orgs use base JP_Organization only (JP output) — they are
     # not JP-CLINS eCS institutions, only intra-hospital sub-organizations.
-    _dept_jp_profile = (
-        {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"]}}
-        if is_jp(country)
-        else {}
-    )
+    _dept_jp_profile = {"meta": {"profile": [JP_ORGANIZATION_PROFILE]}} if is_jp(country) else {}
     for dept in available:
         display = _dept_display(dept, country)
         dept_org = {
@@ -181,11 +179,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             "resourceType": "Location",
             "id": f"loc-dept-{dept.replace('_', '-')}",
             # chain #2: JP Core Location profile.
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
-                if is_jp(country)
-                else {}
-            ),
+            **({"meta": {"profile": [JP_LOCATION_PROFILE]}} if is_jp(country) else {}),
             "status": "active",
             "name": display,
             # C4-14: Location.type per FHIR spec
@@ -254,11 +248,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 "resourceType": "Location",
                 "id": f"loc-ward-{ward}",
                 # chain #2: JP Core Location profile.
-                **(
-                    {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
-                    if is_jp(country)
-                    else {}
-                ),
+                **({"meta": {"profile": [JP_LOCATION_PROFILE]}} if is_jp(country) else {}),
                 "status": "active",
                 "name": t("fhir_emit_text.ward", lang_for(country), n=ward)
                 if ward not in ("ER", "OPD")
@@ -297,11 +287,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                         "resourceType": "Location",
                         "id": f"loc-bed-{bed_id}",
                         # chain #2: JP Core Location profile.
-                        **(
-                            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
-                            if is_jp(country)
-                            else {}
-                        ),
+                        **({"meta": {"profile": [JP_LOCATION_PROFILE]}} if is_jp(country) else {}),
                         "status": "active",
                         "name": t("fhir_emit_text.bed", lang_for(country), n=bed_id),
                         # C4-14: Location.type per HL7 v3-RoleCode.
@@ -342,11 +328,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 "resourceType": "Location",
                 "id": f"loc-or-{i}",
                 # chain #2: JP Core Location profile.
-                **(
-                    {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"]}}
-                    if is_jp(country)
-                    else {}
-                ),
+                **({"meta": {"profile": [JP_LOCATION_PROFILE]}} if is_jp(country) else {}),
                 "status": "active",
                 "name": t("fhir_emit_text.operating_room", lang_for(country), n=i),
                 "physicalType": {

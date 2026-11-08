@@ -30,6 +30,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_COMMON_PROFILE
 
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque care-level id ===
 # Structural key = pre-#854 id body (patient id).
@@ -67,11 +68,7 @@ def _bb_care_level(ctx: BundleContext) -> list[dict]:
         "id": _resolve_care_level_id(_cl_structural_key),
         "identifier": [wrap_as_identifier(_cl_structural_key, CARE_LEVEL_KEY_SYSTEM)],
         # chain #2: JP Core Observation_Common profile.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"]}}
-            if is_jp(ctx.country)
-            else {}
-        ),
+        **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(ctx.country) else {}),
         "status": "final",
         "category": _social_category(ctx.country),
         "code": {

@@ -25,6 +25,7 @@ from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import is_jp, practitioner_name
 from clinosim.modules.output.fhir_r4.lib.fhir_time import derive_meta_last_updated
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_RESOURCE_INSTANCE_IDENTIFIER_SYSTEM
 from clinosim.modules.output.fhir_r4.post_process.profile import (
     _HL7_OBSERVATION_CATEGORY_SYSTEM,
     _HL7_OBSERVATION_CATEGORY_SYSTEMS,
@@ -50,7 +51,7 @@ _CLINOSIM_OBSERVATION_ID_SYSTEM = "urn:clinosim:observation-id"
 # canonical spec URI; the internal urn is preserved as a secondary
 # identifier so downstream consumers can still round-trip clinosim
 # resources.
-_JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
+_JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM = JP_RESOURCE_INSTANCE_IDENTIFIER_SYSTEM
 
 
 # HL7 v3 substanceAdminSubstitution CodeSystem (used by JP MR eCS walker to

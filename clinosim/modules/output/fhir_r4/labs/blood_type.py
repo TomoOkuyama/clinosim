@@ -64,6 +64,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_LAB_RESULT_PROFILE
 
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque blood-type ids ===
 # ABO / RhD blood-type Observations. Structural key = pre-#854 id body
@@ -188,11 +189,7 @@ def _build_blood_type_obs(
         "id": obs_id,
         # JP Core Observation_LabResult profile so downstream JP-CLINS
         # validators pick these up alongside other lab Observations.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"]}}
-            if is_jp(country)
-            else {}
-        ),
+        **({"meta": {"profile": [JP_OBSERVATION_LAB_RESULT_PROFILE]}} if is_jp(country) else {}),
         "status": "final",
         "category": [dual_slot_concept("hl7-observation-category", _LAB_CATEGORY_CODE, lang)],
         "code": {

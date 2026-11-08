@@ -95,6 +95,10 @@ from clinosim.modules.output.fhir_r4.lib.common import _escape_html, display_ent
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.fhir_time import derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.lib.ids import derive_opaque_id
+from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
+    JP_COMPOSITION_EDISCHARGE_SUMMARY_PROFILE,
+    JP_RESOURCE_INSTANCE_IDENTIFIER_SYSTEM,
+)
 from clinosim.modules.output.fhir_r4.lib.localization import _clinician_role_rows
 
 # === Issue #854 Bucket B (PR-composition): opaque Composition.id ===
@@ -915,7 +919,7 @@ def _build_composition_generic(
 # P2-13 PR2a:JP-CLINS 退院時サマリー用 Composition builder
 # ============================================================
 
-_JP_CLINS_DS_PROFILE = "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
+_JP_CLINS_DS_PROFILE = JP_COMPOSITION_EDISCHARGE_SUMMARY_PROFILE
 _JPFHIR_DOC_TYPECODES_SYSTEM = get_system_uri("jpfhir-doc-typecodes")
 
 # JP-CLINS eDS / eReferral pin
@@ -923,7 +927,7 @@ _JPFHIR_DOC_TYPECODES_SYSTEM = get_system_uri("jpfhir-doc-typecodes")
 # `clinical-information-sharing#1.13.0/package/StructureDefinition-JP-Composition-
 # {eDischargeSummary,eReferral}.json`). Same URI as identifier
 # slices on Observation / Condition / AI / MR.
-_JP_COMPOSITION_IDENTIFIER_SYSTEM = "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
+_JP_COMPOSITION_IDENTIFIER_SYSTEM = JP_RESOURCE_INSTANCE_IDENTIFIER_SYSTEM
 
 # JP-CLINS eDS Composition required elements.
 # Extension URL for `Composition.extension:version` (spec `fixedUri` on the
