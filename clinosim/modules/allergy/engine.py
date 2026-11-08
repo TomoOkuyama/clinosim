@@ -12,6 +12,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, field_validator, model_validator
 
 from clinosim import determinism
+from clinosim.age_bands import lookup_age_band, parse_age_band
 from clinosim.codes import code_exists
 from clinosim.datafiles import load_validated_yaml
 from clinosim.modules._shared import normalize_probabilities
@@ -117,24 +118,33 @@ class _NoKnownAllergy(BaseModel):
         return _registered_snomed(code, "nka.allergen_code")
 
 
-class _AgeBucketProbabilities(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-    child: _Number
-    adult: _Number
-    elderly: _Number
-
-    @field_validator("child", "adult", "elderly")
-    @classmethod
-    def _is_a_probability(cls, value: _Number) -> _Number:
-        return _probability(value, "polyallergy.probability_given_any_allergy")
+def _age_banded_probabilities(table: dict[str, _Number]) -> dict[str, _Number]:
+    """Age-band keys ("0-17", "18-64", "65+") that cover every age from 0
+    once, the last band open-ended; values are probabilities (Issue #2843)."""
+    field = "polyallergy.probability_given_any_allergy"
+    if not table:
+        raise ValueError(f"{field}: at least one age band expected")
+    bands = sorted(((parse_age_band(k), k) for k in table), key=lambda b: b[0][0])
+    expected_lo = 0
+    for i, ((lo, hi), key) in enumerate(bands):
+        if lo != expected_lo:
+            raise ValueError(f"{field}: band {key!r} starts at {lo}, expected {expected_lo} (gap or overlap)")
+        _probability(table[key], field)
+        if hi is None:
+            if i != len(bands) - 1:
+                raise ValueError(f"{field}: open-ended band {key!r} must be the last one")
+            return table
+        expected_lo = hi + 1
+    raise ValueError(f"{field}: the last age band must be open-ended (e.g. '65+')")
 
 
 class _Polyallergy(BaseModel):
     model_config = ConfigDict(extra="allow")
 
-    probability_given_any_allergy: _AgeBucketProbabilities
+    probability_given_any_allergy: dict[str, _Number]
     additional_count_weights: dict[Any, _Number] = Field(min_length=1)
+
+    _bands = field_validator("probability_given_any_allergy")(classmethod(lambda cls, v: _age_banded_probabilities(v)))
 
     @field_validator("additional_count_weights")
     @classmethod
@@ -210,15 +220,6 @@ def load_allergen_config() -> dict[str, Any]:
     view.
     """
     return load_validated_yaml(_REF_DIR / "allergens.yaml", AllergenConfig)
-
-
-def _age_bucket(age: int) -> str:
-    """Map integer age to polyallergy age bucket key."""
-    if age < 18:
-        return "child"
-    if age < 65:
-        return "adult"
-    return "elderly"
 
 
 def _make_nka(nka_cfg: dict[str, Any]) -> Allergy:
@@ -332,7 +333,7 @@ def allergy_enricher(ctx: Any) -> None:
 
         # ---- Polyallergy gate (age + chronic-illness conditional) ----
         age = int(getattr(patient, "age", 0) or 0)
-        poly_prob = float(poly_probs[_age_bucket(age)])
+        poly_prob = float(lookup_age_band(poly_probs, age, 0.0))
         chronic_list = getattr(patient, "chronic_conditions", []) or []
         if chronic_prefixes and any(isinstance(c, str) and c.startswith(chronic_prefixes) for c in chronic_list):
             poly_prob = min(0.85, poly_prob + chronic_bonus)
