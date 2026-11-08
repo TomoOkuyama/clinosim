@@ -950,6 +950,11 @@ def apply_drug_safety_gate_to_orders(
             continue
 
         verdicts = drug_safety.check_candidate_against_active(candidate, accepted_med_names)
+        # Issue #2855: drug-vs-disease rules (e.g. oxidant drugs in G6PD
+        # deficiency) apply to every new order, not only to chronic sampling.
+        verdicts = list(verdicts) + drug_safety.check_candidate_against_disease_state(
+            candidate, drug_safety.condition_entries(patient.chronic_conditions or [])
+        )
         worst = max(
             (v for v in verdicts if not v.is_allowed),
             key=lambda v: drug_safety.SEVERITY_RANK[v.severity],

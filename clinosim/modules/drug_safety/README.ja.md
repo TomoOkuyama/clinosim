@@ -130,9 +130,11 @@ YAML 4 ファイル + 薬剤カタログ:
   加えて `discharge_reconciliation_rules` list と
   `triple_therapy_after_acs` 抗血栓療法 plan。
 - `reference_data/disease_contraindications.yaml` — 薬剤 class ×
-  慢性疾患 rule (5 rule: 心不全 / 肝硬変 / CKD stage 4-5 (ICD prefix) /
+  慢性疾患 rule (7 rule: 心不全 / 肝硬変 / CKD stage 4-5 (ICD prefix) /
   CKD stage 4-5 (stage 指定) での NSAID、CKD stage 3b-5 での
-  metformin)。
+  metformin、G6PD 欠乏症でのスルホンアミドとニトロフラントイン)。
+  慢性薬の抽選時に加え、Issue #2855 以降はすべての新規オーダー
+  (`apply_drug_safety_gate_to_orders`) と ED のオーダー・持ち帰り処方にも適用。
 - `reference_data/demographic_gates.yaml` — 年齢 / 性別 rule (3 rule:
   aspirin 小児 (Reye 症候群)、nitroglycerin 成人のみ、tamsulosin
   成人男性)。

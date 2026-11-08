@@ -25,10 +25,10 @@
 #
 # Rules: NSAID vs HF / cirrhosis / CKD stage 4-5 (Cluster A of Issue #1392,
 # from the Issue #1350 random-sample review) and Metformin vs CKD G3b-G5
-# (Issue #1769). Wire-up covers chronic-med sampling; acute-illness
-# gates (ACE-I in AKI, Alendronate PO in dysphagic stroke — Issue #1335)
-# require order/discharge_rx path integration and are deferred to a
-# follow-up PR in the same Cluster A family.
+# (Issue #1769), and the oxidant drugs in G6PD deficiency (Issue #2855).
+# The rules apply when chronic medications are sampled, on every new order
+# (``simulator/medication_pipeline.apply_drug_safety_gate_to_orders``) and
+# on ED orders and take-home prescriptions (``simulator/emergency``).
 #
 # Severity taxonomy is shared with ``contraindications.yaml``:
 #   contraindicated > major > moderate > minor > allowed
@@ -108,3 +108,23 @@ rules:
       en: "Metformin is contraindicated at eGFR < 30 (CKD stage 4-5) per the FDA label (lactic acidosis risk) and discouraged at CKD stage 3b (eGFR 30-44); KDIGO 2024 preferred strategy is to substitute with a renal-safe DM agent (DPP-4 inhibitor like linagliptin, basal insulin, or repaglinide)."
       ja: "メトホルミンは eGFR < 30 (CKD ステージ 4-5) で禁忌 (FDA 添付文書、乳酸アシドーシスリスク)。eGFR 30-44 (CKD ステージ 3b) でも推奨されない (KDIGO 2024)。腎機能障害時は DPP-4 阻害薬 (リナグリプチン等)・基礎インスリン・レパグリニドへの切替を推奨。"
     source: "FDA Metformin label (contraindication at eGFR < 30); KDIGO 2024 Diabetes Management in CKD; 日本糖尿病学会 糖尿病診療ガイドライン 2024"
+
+  # Issue #2855: oxidant drugs trigger acute haemolysis in G6PD deficiency
+  # (D55.0, carried on the chronic list by the single-gene sampler).
+  - id: sulfonamide-in-g6pd-deficiency
+    drug_class: antibiotic.sulfonamide
+    disease_predicate: {icd_prefix: ["D55.0"]}
+    severity: contraindicated
+    rationale:
+      en: "Sulfonamides (sulfamethoxazole) can cause acute haemolytic anaemia in G6PD deficiency. Use a non-oxidant antibiotic."
+      ja: "スルホンアミド系 (スルファメトキサゾール) は G6PD 欠乏症で急性溶血性貧血を起こしうる。酸化ストレスを起こさない抗菌薬を選択。"
+    source: "FDA Bactrim label (G6PD deficiency warning); CPIC Guideline for G6PD genotype and drug use (2022)"
+
+  - id: nitrofurantoin-in-g6pd-deficiency
+    drug_class: antibiotic.nitrofuran
+    disease_predicate: {icd_prefix: ["D55.0"]}
+    severity: contraindicated
+    rationale:
+      en: "Nitrofurantoin can cause haemolytic anaemia in G6PD deficiency. Use a non-oxidant antibiotic."
+      ja: "ニトロフラントインは G6PD 欠乏症で溶血性貧血を起こしうる。酸化ストレスを起こさない抗菌薬を選択。"
+    source: "FDA Macrobid label (G6PD deficiency warning); CPIC Guideline for G6PD genotype and drug use (2022)"

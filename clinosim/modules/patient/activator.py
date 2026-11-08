@@ -1110,11 +1110,7 @@ def _derive_home_medications(
             # severity bands. Bare-string code is retained for conditions
             # without a staged ``.stage`` attribute (fail-closed on
             # ``stage_in`` rules, no behavior change for others).
-            active_condition_entries = [
-                (cond.code, getattr(cond, "stage", "") or "")
-                for cond in chronic_conditions
-                if hasattr(cond, "code") and cond.code
-            ]
+            active_condition_entries = drug_safety.condition_entries(chronic_conditions)
             disease_verdicts = drug_safety.check_candidate_against_disease_state(
                 candidate_drug, active_condition_entries
             )
