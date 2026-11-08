@@ -510,7 +510,8 @@ def _set_hospitalization(
     # "hosp-trans" (which has the specific meaning of transfer-from-another-
     # hospital and would misinform DPC consumers).
     _defaults = _encounter_disposition_defaults()
-    if _emit_hospitalization and not hosp.get("admitSource"):
+    # Only an admission needs an admit source; an ED visit has none (Issue #2878).
+    if _emit_hospitalization and class_code == "IMP" and not hosp.get("admitSource"):
         _admit_defaults = _defaults["admit_source"]
         hosp["admitSource"] = dual_slot_concept(_admit_defaults["system_key"], _admit_defaults["fallback_code"], _lang)
     # C4-20: CIF encounter status is "completed" (mapped to FHIR

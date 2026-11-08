@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import numpy as np
 
 from clinosim import determinism
-from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
+from clinosim.codes.hl7_encounter import ActPriority, DischargeDisposition
 from clinosim.codes.valuesets import code_by_chronic_prefix
 from clinosim.countries import country_slot
 from clinosim.locale.i18n import t
@@ -835,9 +835,11 @@ def _simulate_ed_visit(
         if o.order_type == OrderType.MEDICATION:
             enrich_medication_order(o)
     attach_orders(orders, encounter)
+    # An ED visit is not an admission: it has no admit source (Issue #2878;
+    # a via-ED admission's inpatient encounter carries ``emd``).
     finalize_encounter(
         encounter,
-        admit_source=AdmitSource.OUTP,
+        admit_source="",
         disposition=ed_disposition(protocol, severity),
         priority=ActPriority.EM,
     )

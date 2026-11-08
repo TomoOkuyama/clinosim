@@ -57,7 +57,7 @@ cchd_site:
 # Internal encounter type → Encounter.type concept.
 encounter_type:
   inpatient: '32485007'
-  emergency: '50849002'
+  emergency: '4525004'  # Emergency department patient visit (Issue #2878; 50849002 is an admission)
   outpatient: '270427003'
   icu: '183452005'
 

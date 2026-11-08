@@ -28,7 +28,6 @@ from unittest.mock import patch
 
 import pytest
 
-from clinosim.codes import lookup as code_lookup
 from clinosim.modules.output.fhir_r4.encounters.encounter import (
     ENCOUNTER_KEY_SYSTEM,
     _build_encounter,
@@ -135,23 +134,14 @@ def test_synth_ed_omits_discharge_disposition(country: str) -> None:
     assert "dischargeDisposition" not in hosp, f"synth-ED must NOT emit dischargeDisposition (spec DD2). Got: {hosp!r}"
 
 
-@pytest.mark.parametrize("country,lang", [("JP", "ja"), ("US", "en")])
-def test_synth_ed_admit_source_uses_registry_display(country: str, lang: str) -> None:
-    """Single-source-of-truth: synth-ED's admitSource CodeableConcept
-    displays match the CS registry lookup, not bespoke hardcoded strings.
-
-    Issue #941 dual-slot: ``coding[0].display`` is always the EN canonical
-    (survives HAPI validation on the English-only HL7 CS and the JP
-    display-strip walker), and ``.text`` is the locale-appropriate label
-    (JP for JP output, EN for US output).
-    """
+@pytest.mark.parametrize("country", ["JP", "US"])
+def test_synth_ed_has_no_admit_source(country: str) -> None:
+    """Issue #2878: the ED part of a via-ED admission is not itself an
+    admission, so the synth-ED bridge Encounter carries no admitSource (the
+    inpatient Encounter it is ``partOf`` carries ``emd``)."""
     ctx = _make_ctx(country)
     synth_ed = _synth_ed_resource(_bb_encounters(ctx))
-    admit_concept = synth_ed["hospitalization"]["admitSource"]
-    # coding.display is always the EN canonical
-    assert admit_concept["coding"][0]["display"] == code_lookup("hl7-admit-source", "outp", "en")
-    # .text is the locale-resolved label (JP for JP, EN for US)
-    assert admit_concept["text"] == code_lookup("hl7-admit-source", "outp", lang)
+    assert "admitSource" not in (synth_ed.get("hospitalization") or {})
 
 
 def test_synth_ed_reason_code_text_is_ja_on_jp_when_imp_has_chief_complaint_ja() -> None:
