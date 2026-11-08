@@ -25,6 +25,7 @@
 | 生理モデルが扱わない項目は基準値(`baseline_normals`)にフォールバックする。 | `observation/engine.py::BASELINE_LAB_NORMALS` | `tests/unit/test_phosphate_magnesium_co2_2687.py` |
 | ワルファリン服用中かどうかは一度だけ判断し、それが INR の値・フラグ・治療域を決める。 | `observation/engine.py`(`medications_in_effect`, `therapeutic_range`)、`physiology/engine.py::medication_flags_from_context` | `tests/unit/test_warfarin_status_2293.py` |
 | 急性冠症候群でない患者のトロポニン I は、健常成人では正常に留まる(加齢による予備能低下だけでは上昇しない)。慢性的な上昇は心不全・CKD ステージ 4-5・超高齢から生じ、MI レベルの値は ACS フラグのときだけになる。 | `physiology/engine.py::_add_cardiac_labs`、`physiology/_lab_derivation_thresholds.py`(`TROPONIN_*`) | `tests/unit/test_troponin_chronic_calibration_2903.py`、`tests/unit/test_blood_markers.py` |
+| 小児(18 歳未満)は年齢帯の基準範囲で判定し、表は 1 つ: CIF フラグ、FHIR referenceRange とその text、真値(クレアチニン・Hb / Hct・WBC・ALP は年齢の基準範囲の中央に置く)。小児のバイタルサインも同じ表の年齢帯範囲を referenceRange・interpretation・text に使い、ベースラインバイタルは年齢帯の中央値に置く。NEWS2 は 16 歳未満では算出しない。 | `observation/pediatric_ranges.py`、`observation/reference_data/pediatric_reference_ranges.yaml`、`physiology/engine.py::pediatric_lab_scale` | `tests/unit/test_pediatric_reference_ranges_2872.py` |
 
 ## 3. 同一性とパネル
 

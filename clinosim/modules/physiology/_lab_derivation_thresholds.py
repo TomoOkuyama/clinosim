@@ -31,6 +31,7 @@ does exactly.
 from __future__ import annotations
 
 __all__ = [
+    "PEDIATRIC_LAB_ADULT_CENTERS",
     "CA_BASELINE_MG_DL",
     "CA_CLAMP_MAX",
     "CA_CLAMP_MIN",
@@ -1137,3 +1138,24 @@ TG_DIABETES_SCALE: int = 40
 """TG additional elevation (mg/dL) for E11 patients — reflects the
 metabolic-syndrome / insulin-resistance TG rise even without formal
 dyslipidemia diagnosis."""
+
+
+# ---------------------------------------------------------------------------
+# Pediatric true values (Issue #2872)
+# ---------------------------------------------------------------------------
+
+PEDIATRIC_LAB_ADULT_CENTERS: dict[str, dict[str, float]] = {
+    "Creatinine": {"M": 0.86, "F": 0.625},
+    "Hb": {"M": HB_BASELINE_MALE_G_DL, "F": HB_BASELINE_FEMALE_G_DL},
+    "WBC": {"M": WBC_BASE, "F": WBC_BASE},
+    "ALP": {"M": ALP_BASELINE_U_L, "F": ALP_BASELINE_U_L},
+}
+"""Healthy adult value (by sex) each analyte's derivation is calibrated to.
+
+A child's true value is the adult derivation scaled by
+``pediatric interval midpoint / adult center`` (observation
+``pediatric_reference_ranges.yaml``), so a healthy child sits at the centre
+of the interval for their age and disease effects keep their relative size.
+Creatinine: the JCCLS 共用基準範囲 2022 centres 0.86 (M) / 0.625 (F) that
+``CREATININE_BASE_*`` are reverse-derived from (Issue #416); Hb, WBC and
+ALP: the derivation baselines. Hct follows Hb through ``HCT_HB_RATIO``."""

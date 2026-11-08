@@ -2319,6 +2319,28 @@ fhir_obs_text:
   normal_adult_range:
     ja: "成人正常範囲"
     en: "Normal adult range"
+  # Pediatric ranges (Issue #2872): {age} is one of the age_* labels below.
+  normal_range_for_age:
+    ja: "{age}の正常範囲"
+    en: "Normal range for age {age}"
+  normal_range_all_ages:
+    ja: "全年齢共通の正常範囲"
+    en: "Normal range for all ages"
+  pediatric_lab_range:
+    ja: "小児基準範囲 ({age})"
+    en: "Pediatric reference interval, age {age}"
+  age_months_single:
+    ja: "{n}か月"
+    en: "{n} months"
+  age_months_range:
+    ja: "{lo}〜{hi}か月"
+    en: "{lo}–{hi} months"
+  age_years_single:
+    ja: "{n}歳"
+    en: "{n} years"
+  age_years_range:
+    ja: "{lo}〜{hi}歳"
+    en: "{lo}–{hi} years"
   critical_range:
     ja: "パニック値"
     en: "Critical range"

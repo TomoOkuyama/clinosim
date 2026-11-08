@@ -338,6 +338,12 @@ def determine_flag(
         return None
 
     low, high = range_entry.get(sex, range_entry.get("all", (0.0, 9999.0)))
+    # Issue #2872: a child is judged against the interval for their age.
+    from clinosim.modules.observation.pediatric_ranges import pediatric_lab_range
+
+    pediatric = pediatric_lab_range(lab_name, age, sex)
+    if pediatric is not None:
+        low, high = pediatric[0], pediatric[1]
     # Issue #2205: a patient on e.g. warfarin is judged against the
     # therapeutic range, so a therapeutic INR is not flagged high.
     therapeutic = therapeutic_range(lab_name, country, medications=medications, age=age)

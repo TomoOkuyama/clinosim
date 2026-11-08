@@ -23,6 +23,13 @@ from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
 from clinosim.modules.observation.engine import medications_in_effect
+from clinosim.modules.observation.pediatric_ranges import (
+    PediatricVitalRange,
+    age_in_completed_months,
+    age_independent_vital_range_text,
+    pediatric_vital_range,
+    pediatric_vital_range_text,
+)
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
@@ -329,6 +336,7 @@ def _build_bp_component(
     spec: BloodPressureComponentReferenceRange,
     value: float,
     country: str,
+    pediatric: PediatricVitalRange | None = None,
 ) -> dict[str, Any]:
     """Build one `component[]` entry inside the BP-panel Observation (#210).
 
@@ -340,56 +348,112 @@ def _build_bp_component(
     """
     display = localized_field(spec, "display", lang_for(country))
     unit = "mm[Hg]"
-    interp_code = "N"
-    if value <= spec.critical_low:
-        interp_code = "LL"
-    elif value >= spec.critical_high:
-        interp_code = "HH"
-    elif value < spec.normal_low:
-        interp_code = "L"
-    elif value > spec.normal_high:
-        interp_code = "H"
-
-    normal_text = t("fhir_obs_text.normal_adult_range", lang_for(country))
-    crit_text = t("fhir_obs_text.critical_range", lang_for(country))
+    low, high, crit_low, crit_high, normal_text = _vital_bounds(
+        spec.normal_low, spec.normal_high, spec.critical_low, spec.critical_high, pediatric, country
+    )
     return {
         "code": {
             "coding": [{"system": get_system_uri("loinc"), "code": spec.loinc, "display": display}],
             "text": display,
         },
         "valueQuantity": ucum_quantity(value, unit),
-        "referenceRange": [
-            {
-                "low": ucum_quantity(spec.normal_low, unit),
-                "high": ucum_quantity(spec.normal_high, unit),
-                "type": {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-referencerange-meaning"),
-                            "code": "normal",
-                            "display": registry_display("hl7-referencerange-meaning", "normal", lang_for(country)),
-                        }
-                    ],
-                },
-                "text": normal_text,
-            },
-            {
-                "low": ucum_quantity(spec.critical_low, unit),
-                "high": ucum_quantity(spec.critical_high, unit),
-                "type": {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-referencerange-meaning"),
-                            "code": "treatment",
-                            "display": registry_display("hl7-referencerange-meaning", "treatment", lang_for(country)),
-                        }
-                    ],
-                },
-                "text": crit_text,
-            },
+        "referenceRange": _vital_reference_ranges(
+            low, high, crit_low, crit_high, unit, normal_text, country, critical_bounds_first=True
+        ),
+        "interpretation": [
+            dual_slot_concept(
+                "hl7-observation-interpretation",
+                _vital_interpretation(value, low, high, crit_low, crit_high),
+                lang_for(country),
+            )
         ],
-        "interpretation": [dual_slot_concept("hl7-observation-interpretation", interp_code, lang_for(country))],
     }
+
+
+def _vital_bounds(
+    normal_low: float,
+    normal_high: float,
+    critical_low: float | None,
+    critical_high: float | None,
+    pediatric: PediatricVitalRange | None,
+    country: str,
+) -> tuple[float, float, float | None, float | None, str]:
+    """``(low, high, critical_low, critical_high, normal text)`` of a vital sign:
+    the child's age-band range when one applies (Issue #2872), else the adult range."""
+    if pediatric is not None:
+        return (
+            pediatric.low,
+            pediatric.high,
+            pediatric.critical_low,
+            pediatric.critical_high,
+            pediatric_vital_range_text(pediatric, lang_for(country)),
+        )
+    adult_text = t("fhir_obs_text.normal_adult_range", lang_for(country))
+    return normal_low, normal_high, critical_low, critical_high, adult_text
+
+
+def _vital_interpretation(
+    value: float, low: float, high: float, critical_low: float | None, critical_high: float | None
+) -> str:
+    """LL / HH at or beyond a critical bound, L / H outside the normal range, else N."""
+    if critical_low is not None and value <= critical_low:
+        return "LL"
+    if critical_high is not None and value >= critical_high:
+        return "HH"
+    if value < low:
+        return "L"
+    if value > high:
+        return "H"
+    return "N"
+
+
+def _range_meaning(code: str, country: str) -> dict[str, Any]:
+    return {
+        "coding": [
+            {
+                "system": get_system_uri("hl7-referencerange-meaning"),
+                "code": code,
+                "display": registry_display("hl7-referencerange-meaning", code, lang_for(country)),
+            }
+        ],
+    }
+
+
+def _vital_reference_ranges(
+    low: float,
+    high: float,
+    critical_low: float | None,
+    critical_high: float | None,
+    unit: str,
+    normal_text: str,
+    country: str,
+    *,
+    critical_bounds_first: bool,
+) -> list[dict[str, Any]]:
+    """The normal range, then the critical (panic) range when it has a bound.
+
+    ``critical_bounds_first`` keeps each emitter's historical key order
+    (BP components put low / high before type / text in the critical range).
+    """
+    ranges: list[dict[str, Any]] = [
+        {
+            "low": ucum_quantity(low, unit),
+            "high": ucum_quantity(high, unit),
+            "type": _range_meaning("normal", country),
+            "text": normal_text,
+        }
+    ]
+    if critical_low is None and critical_high is None:
+        return ranges
+    bounds: dict[str, Any] = {}
+    if critical_low is not None:
+        bounds["low"] = ucum_quantity(critical_low, unit)
+    if critical_high is not None:
+        bounds["high"] = ucum_quantity(critical_high, unit)
+    crit_text = t("fhir_obs_text.critical_range", lang_for(country))
+    meaning = {"type": _range_meaning("treatment", country), "text": crit_text}
+    ranges.append({**bounds, **meaning} if critical_bounds_first else {**meaning, **bounds})
+    return ranges
 
 
 def _build_vital_observations(
@@ -398,6 +462,9 @@ def _build_vital_observations(
     index: int,
     country: str = "US",
     encounter_id: str = "",
+    *,
+    birth_date: Any = None,
+    age_years: int | None = None,
 ) -> list[dict]:
     """Build FHIR Observation resources for vital signs (one per parameter).
 
@@ -412,6 +479,13 @@ def _build_vital_observations(
     fhir-jp-validator 2026-07-17 report (§【最優先 7】).
     """
     entries = []
+
+    # Issue #2872: the patient's age in completed months when the set was
+    # measured (from the birth date, else the record's age in years) picks
+    # a child's age-band range; ``None`` keeps the adult range.
+    age_months = age_in_completed_months(birth_date, vs.get("timestamp"))
+    if age_months is None and age_years is not None:
+        age_months = int(age_years) * 12
 
     # Vital-sign reference/critical ranges live in `_reference_ranges.py`
     # (Issue #637 PR-C); iterate the canonical `STANDALONE_VITAL_SIGNS`
@@ -479,56 +553,17 @@ def _build_vital_observations(
         if performer_id:
             obs["performer"] = [{"reference": f"Practitioner/{performer_id}"}]
 
-        # Reference range — normal range (always) + critical range (when defined)
-        range_text = t("fhir_obs_text.normal_adult_range", lang_for(country))
-        crit_text = t("fhir_obs_text.critical_range", lang_for(country))
-        ref_ranges = [
-            {
-                "low": ucum_quantity(low, unit),
-                "high": ucum_quantity(high, unit),
-                "type": {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-referencerange-meaning"),
-                            "code": "normal",
-                            "display": registry_display("hl7-referencerange-meaning", "normal", lang_for(country)),
-                        }
-                    ],
-                },
-                "text": range_text,
-            }
-        ]
-        # Add critical range as separate entry (panic values)
-        if crit_low is not None or crit_high is not None:
-            crit_range: dict[str, Any] = {
-                "type": {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-referencerange-meaning"),
-                            "code": "treatment",
-                            "display": registry_display("hl7-referencerange-meaning", "treatment", lang_for(country)),
-                        }
-                    ],
-                },
-                "text": crit_text,
-            }
-            if crit_low is not None:
-                crit_range["low"] = ucum_quantity(crit_low, unit)
-            if crit_high is not None:
-                crit_range["high"] = ucum_quantity(crit_high, unit)
-            ref_ranges.append(crit_range)
-        obs["referenceRange"] = ref_ranges
-
-        # Interpretation (compute from value vs reference range — always consistent)
-        interp_code = "N"
-        if crit_low is not None and value <= crit_low:
-            interp_code = "LL"
-        elif crit_high is not None and value >= crit_high:
-            interp_code = "HH"
-        elif value < low:
-            interp_code = "L"
-        elif value > high:
-            interp_code = "H"
+        # Reference range — normal range (always) + critical range (when
+        # defined); a child is judged against the range for their age
+        # (Issue #2872). The interpretation is computed from the same bounds.
+        low, high, crit_low, crit_high, range_text = _vital_bounds(
+            low, high, crit_low, crit_high, pediatric_vital_range(field, age_months), country
+        )
+        range_text = age_independent_vital_range_text(field, age_months, lang_for(country)) or range_text
+        obs["referenceRange"] = _vital_reference_ranges(
+            low, high, crit_low, crit_high, unit, range_text, country, critical_bounds_first=False
+        )
+        interp_code = _vital_interpretation(value, low, high, crit_low, crit_high)
         obs["interpretation"] = [dual_slot_concept("hl7-observation-interpretation", interp_code, lang_for(country))]
 
         entries.append(entry(obs))
@@ -558,8 +593,8 @@ def _build_vital_observations(
             },
             "subject": patient_ref(patient_id),
             "component": [
-                _build_bp_component(BP_SYSTOLIC, sbp, country),
-                _build_bp_component(BP_DIASTOLIC, dbp, country),
+                _build_bp_component(BP_SYSTOLIC, sbp, country, pediatric_vital_range("systolic_bp", age_months)),
+                _build_bp_component(BP_DIASTOLIC, dbp, country, pediatric_vital_range("diastolic_bp", age_months)),
             ],
         }
         # Timestamp — BP + HR share the same measurement cycle (offset 0)
