@@ -107,13 +107,14 @@ from clinosim.modules.encounter.protocol import (
   (06:00 / 06:30 / 09:00 / 14:00 / 18:00 / 18:30 / 22:00) は固定。
 - Protocol loader は pure。`EncounterConditionProtocol` は必須 field
   (`condition_id`, `icd10_code`, `chief_complaint`, `encounter_type`,
-  `department`) と型付き optional key のみ検証し、`extra="allow"` で
-  condition 固有 section を素通しする。load 時に全 `route:` 値を共有
+  `department`) を求め、optional section (workup, treatment, discharge
+  prescriptions, narrative 等) をすべて型付き field で宣言し、未知の
+  key を拒否する (`extra="forbid"`)。load 時に全 `route:` 値を共有
   route 語彙でも検査する。
 
 ## 依存
 
-- `pydantic` — schema (`extra="allow"`)。
+- `pydantic` — schema (`extra="forbid"`)。
 - `yaml` — YAML パーサ。
 - `clinosim.types.encounter` — `Encounter`, `EncounterStatus`,
   `EncounterType`。
@@ -181,7 +182,7 @@ pytest tests/unit -k encounter -q
 個別ファイル:
 
 - [`tests/unit/test_encounter_protocol_validation.py`](../../../tests/unit/test_encounter_protocol_validation.py)
-  — 51 YAML 全体に対する Pydantic schema 検証 (必須 field、`extra="allow"`)。
+  — 51 YAML 全体に対する Pydantic schema 検証 (必須 field、未知 key の拒否)。
 - [`tests/unit/test_encounter_archetype_severity.py`](../../../tests/unit/test_encounter_archetype_severity.py)
   — archetype × severity coverage。
 - [`tests/unit/test_encounter_features.py`](../../../tests/unit/test_encounter_features.py)

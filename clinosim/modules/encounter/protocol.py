@@ -23,6 +23,8 @@ class OutpatientSoapTemplate(BaseModel):
     """Outpatient SOAP note template fields for narrative generation. Each
     field is a language map (Issue #2507)."""
 
+    model_config = ConfigDict(extra="forbid")
+
     subjective: dict[str, str] = Field(default_factory=dict)
     objective: dict[str, str] = Field(default_factory=dict)
     assessment: dict[str, str] = Field(default_factory=dict)
@@ -30,7 +32,12 @@ class OutpatientSoapTemplate(BaseModel):
 
 
 class EdPhysicalExam(BaseModel):
-    """ED physical exam section templates."""
+    """ED physical exam section templates.
+
+    Still ignores unknown keys: opioid_overdose / opioid_withdrawal carry a
+    ``neuro`` line that the ED note never renders (it reads ``neurological``);
+    renaming it changes the generated note, so it is left to a behaviour fix.
+    """
 
     general: str = ""
     cardiovascular: str = ""
@@ -43,6 +50,8 @@ class EdPhysicalExam(BaseModel):
 
 class EdNoteTemplate(BaseModel):
     """ED physician note template fields for narrative generation."""
+
+    model_config = ConfigDict(extra="forbid")
 
     # Language maps (Issue #2507); `physical_exam` maps a language to the
     # per-body-system findings.
@@ -58,6 +67,8 @@ class EdTriageTemplate(BaseModel):
     triaged at (they bound the triage draw) and the treatment orders that mark
     an ESI v4 high-risk presentation (level 2, e.g. IM epinephrine for
     anaphylaxis)."""
+
+    model_config = ConfigDict(extra="forbid")
 
     common_triage_levels: list[str] = Field(default_factory=list)
     high_risk_orders: list[str] = Field(default_factory=list)
@@ -85,9 +96,114 @@ class EncounterNarrativeSpec(BaseModel):
     - emergency: ``ed_note_template`` + ``ed_triage_template``
     """
 
+    model_config = ConfigDict(extra="forbid")
+
     outpatient_soap_template: OutpatientSoapTemplate | None = None
     ed_note_template: EdNoteTemplate | None = None
     ed_triage_template: EdTriageTemplate | None = None
+
+
+# ---------------------------------------------------------------------------
+# Protocol sections (Issue #2845: every YAML key is declared)
+# ---------------------------------------------------------------------------
+
+
+class _MeanSd(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    mean: float
+    sd: float
+
+
+class _ResultDistribution(BaseModel):
+    """Condition-specific categorical result of a qualitative lab (Issue #2138)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    options: list[str] = Field(min_length=1)
+    weights: list[float] = Field(min_length=1)
+
+
+class _WorkupLab(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    test: str
+    probability: float = Field(default=1.0, ge=0.0, le=1.0)
+    note: str | None = None  # authoring note, not read
+    # Repeat the test (serial troponin etc.) ``interval_hours`` later.
+    serial: bool = False
+    interval_hours: float | None = None
+    # Severity -> true value of the test for this presentation.
+    value_by_severity: dict[str, float] = Field(default_factory=dict)
+    result_distribution: _ResultDistribution | None = None
+
+
+class _WorkupImaging(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    test: str
+    probability: float = Field(default=1.0, ge=0.0, le=1.0)
+    note: str | None = None  # authoring note, not read
+
+
+class _Workup(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    labs: list[_WorkupLab] = Field(default_factory=list)
+    imaging: list[_WorkupImaging] = Field(default_factory=list)
+    vitals: bool = False  # not read: ED vitals are always generated
+
+
+class _Treatment(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    probability: float = Field(default=1.0, ge=0.0, le=1.0)
+    route: str | None = None
+    intent: str | None = None
+    locale_name: dict[str, str] = Field(default_factory=dict)
+    locale_exclude: list[str] = Field(default_factory=list)
+
+
+class _Prescription(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    drug: str
+    dose: str | None = None
+    route: str | None = None
+    frequency: str | None = None
+    duration_days: int | None = None
+    probability: float = Field(default=1.0, ge=0.0, le=1.0)
+    locale_name: dict[str, str] = Field(default_factory=dict)
+    locale_exclude: list[str] = Field(default_factory=list)
+
+
+class _ScenarioOrder(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    test: str
+    probability: float = Field(default=1.0, ge=0.0, le=1.0)
+
+
+class _ScenarioTreatment(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    probability: float = Field(default=1.0, ge=0.0, le=1.0)
+
+
+class _Scenario(BaseModel):
+    """A presentation variant (not read by the simulator yet; Issue #2845)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    description: str = ""
+    probability: float = Field(default=0.0, ge=0.0, le=1.0)
+    duration_modifier: float = 1.0
+    discharge_note: str = ""
+    additional_labs: list[str | _ScenarioOrder] = Field(default_factory=list)
+    additional_imaging: list[str | _ScenarioOrder] = Field(default_factory=list)
+    additional_treatment: list[str | _ScenarioTreatment] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -99,12 +215,12 @@ class EncounterConditionProtocol(BaseModel):
     """Loaded encounter (ED/outpatient) condition protocol from YAML.
 
     Validated by Pydantic (AD-18), mirroring DiseaseProtocol's in-module
-    placement. Only the structurally essential fields are declared required;
-    everything else is accepted permissively via ``extra="allow"`` so the rich,
-    condition-specific sections (workup, treatment, etc.) pass through untouched.
+    placement. Every key a condition YAML may carry is declared, and an
+    unknown (e.g. misspelled) key is rejected (Issue #2845). Callers read the
+    validated raw dict, not this model.
     """
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     condition_id: str
     icd10_code: str
@@ -118,6 +234,7 @@ class EncounterConditionProtocol(BaseModel):
 
     # Per-severity disposition (``discharge_home`` / ``transfer_psychiatric``)
     # and per-chronic-prefix diagnosis code overrides (Issue #2124).
+    disposition: str | None = None
     disposition_by_severity: dict[str, Literal["discharge_home", "transfer_psychiatric"]] = {}
     by_chronic_prefix: dict[str, str] = {}
     # Severities a hospital with an inpatient unit of ``department`` admits
@@ -127,6 +244,32 @@ class EncounterConditionProtocol(BaseModel):
     # floor (ESI / JTAS 1-5).
     triage_level_min: int | None = Field(default=None, ge=1, le=5)
     triage_level_max: int | None = Field(default=None, ge=1, le=5)
+
+    # ED draw: base weight, age gate and month multipliers (phases/_ed_slot.py).
+    probability: float = Field(default=0.05, ge=0.0)
+    min_age: int | None = None
+    max_age: int | None = None
+    seasonal: dict[int, float] = {}
+    severity_distribution: dict[str, float] = {}
+    # Visit content (simulator/emergency.py).
+    ed_stay_hours: dict[str, _MeanSd] = {}
+    initial_state_impact: dict[str, dict[str, float]] = {}
+    acid_base_type: str | None = None
+    workup: _Workup | None = None
+    treatment: list[_Treatment] = []
+    discharge_prescriptions: list[_Prescription] = []
+    # Outpatient renewal visits re-issue the current medications.
+    prescriptions_renewed: bool = False
+
+    # Declared but not read by the simulator (reported in Issue #2845).
+    age_distribution: str | None = None
+    sex_ratio_female: float | None = None
+    incidence_modifier: float | None = None
+    discharge_instructions: list[str] = []
+    followup_instructions: list[str] = []
+    prescriptions: list[_Prescription] = []
+    visit_duration_minutes: _MeanSd | None = None
+    scenarios: dict[str, _Scenario] = {}
 
     # Narrative spec (Tier 1 #3 α-min-2 Task 6): per-encounter-type narrative
     # templates.  Optional default = None so existing encounter YAMLs without a

@@ -180,9 +180,9 @@ def test_hai_codes_rejects_empty_top_level(monkeypatch) -> None:
 @pytest.mark.unit
 def test_hai_codes_rejects_unknown_hai_type(monkeypatch) -> None:
     base = {
-        "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "T80.2", "snomed": "736442006"},
-        "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5", "snomed": "68566005"},
-        "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8", "snomed": "429271009"},
+        "clabsi": {"icd10_us_billable": "T80.211A", "snomed": "736442006"},
+        "cauti": {"icd10_us_billable": "T83.511A", "snomed": "68566005"},
+        "vap": {"icd10_us_billable": "J95.851", "snomed": "429271009"},
     }
     monkeypatch.setattr(yaml, "safe_load", lambda f: {"hai_codes": {**base, "INVALID": base["clabsi"]}})
     with pytest.raises(ValueError, match="unknown hai_type 'INVALID'"):
@@ -196,7 +196,7 @@ def test_hai_codes_rejects_missing_hai_type_forward_coverage(monkeypatch) -> Non
         "safe_load",
         lambda f: {
             "hai_codes": {
-                "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "T80.2", "snomed": "736442006"},
+                "clabsi": {"icd10_us_billable": "T80.211A", "snomed": "736442006"},
             }
         },
     )
@@ -211,9 +211,9 @@ def test_hai_codes_rejects_unknown_icd10_us(monkeypatch) -> None:
         "safe_load",
         lambda f: {
             "hai_codes": {
-                "clabsi": {"icd10_us_billable": "BOGUS.99", "icd10_jp_who": "T80.2", "snomed": "736442006"},
-                "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5", "snomed": "68566005"},
-                "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8", "snomed": "429271009"},
+                "clabsi": {"icd10_us_billable": "BOGUS.99", "snomed": "736442006"},
+                "cauti": {"icd10_us_billable": "T83.511A", "snomed": "68566005"},
+                "vap": {"icd10_us_billable": "J95.851", "snomed": "429271009"},
             }
         },
     )
@@ -231,8 +231,8 @@ def test_hai_codes_rejects_unknown_icd10_jp(monkeypatch) -> None:
         lambda f: {
             "hai_codes": {
                 "clabsi": {"icd10_us_billable": "F10.20", "snomed": "736442006"},
-                "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5", "snomed": "68566005"},
-                "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8", "snomed": "429271009"},
+                "cauti": {"icd10_us_billable": "T83.511A", "snomed": "68566005"},
+                "vap": {"icd10_us_billable": "J95.851", "snomed": "429271009"},
             }
         },
     )
@@ -247,9 +247,9 @@ def test_hai_codes_rejects_unknown_snomed(monkeypatch) -> None:
         "safe_load",
         lambda f: {
             "hai_codes": {
-                "clabsi": {"icd10_us_billable": "T80.211A", "icd10_jp_who": "T80.2", "snomed": "9999999999"},
-                "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5", "snomed": "68566005"},
-                "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8", "snomed": "429271009"},
+                "clabsi": {"icd10_us_billable": "T80.211A", "snomed": "9999999999"},
+                "cauti": {"icd10_us_billable": "T83.511A", "snomed": "68566005"},
+                "vap": {"icd10_us_billable": "J95.851", "snomed": "429271009"},
             }
         },
     )
@@ -491,9 +491,9 @@ def test_hai_codes_rejects_missing_icd10_us_field(monkeypatch) -> None:
         "safe_load",
         lambda f: {
             "hai_codes": {
-                "clabsi": {"icd10_jp_who": "T80.2", "snomed": "736442006"},  # us missing
-                "cauti": {"icd10_us_billable": "T83.511A", "icd10_jp_who": "T83.5", "snomed": "68566005"},
-                "vap": {"icd10_us_billable": "J95.851", "icd10_jp_who": "J95.8", "snomed": "429271009"},
+                "clabsi": {"snomed": "736442006"},  # us missing
+                "cauti": {"icd10_us_billable": "T83.511A", "snomed": "68566005"},
+                "vap": {"icd10_us_billable": "J95.851", "snomed": "429271009"},
             }
         },
     )

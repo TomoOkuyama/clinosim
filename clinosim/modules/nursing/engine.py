@@ -33,7 +33,7 @@ def _is_list_map(value: object) -> bool:
 class _NursingFocus(BaseModel):
     """A nursing focus with its interventions, each language mapped to a list."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     focus: Any
     interventions: dict[str, Any]
@@ -50,7 +50,7 @@ class NursingAssessment(BaseModel):
     """Shape of nursing_assessment.yaml: exactly the supported ADL categories
     and risk assessments, a baseline focus, and per-disease foci."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     adl_categories: dict[str, Any]
     risk_assessments: dict[str, Any]

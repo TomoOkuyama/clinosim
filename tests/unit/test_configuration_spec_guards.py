@@ -191,6 +191,63 @@ def test_guard_sees_the_issue_2844_files(rel: str) -> None:
     assert (module, name) in covered
 
 
+# Module models that may still accept unknown keys (spec §5). Shrink-only:
+# a fixed entry must be removed, and no entry may be added (Issue #2845).
+_EXTRA_FORBID_RATCHET: dict[str, str] = {
+    # opioid_overdose / opioid_withdrawal carry a ``neuro`` line the ED note
+    # never renders; renaming it to ``neurological`` changes generated notes.
+    "encounter/protocol.py::EdPhysicalExam": "YAML key `neuro` awaits a behaviour fix",
+}
+
+
+def _forbids_extra(cls: ast.ClassDef) -> bool:
+    for stmt in cls.body:
+        if not (isinstance(stmt, ast.Assign) and any(getattr(t, "id", "") == "model_config" for t in stmt.targets)):
+            continue
+        call = stmt.value
+        return isinstance(call, ast.Call) and any(
+            kw.arg == "extra" and isinstance(kw.value, ast.Constant) and kw.value.value == "forbid"
+            for kw in call.keywords
+        )
+    return False
+
+
+def _module_models_accepting_unknown_keys() -> set[str]:
+    found = set()
+    for path in sorted((_PKG / "modules").rglob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if (
+                isinstance(node, ast.ClassDef)
+                and any(getattr(b, "id", "") == "BaseModel" for b in node.bases)
+                and not _forbids_extra(node)
+            ):
+                found.add(f"{path.relative_to(_PKG / 'modules').as_posix()}::{node.name}")
+    return found
+
+
+def test_module_models_forbid_unknown_keys() -> None:
+    """Spec §2: a module model rejects unknown keys (``ConfigDict(extra="forbid")``),
+    so a misspelled YAML key fails at load instead of being silently ignored."""
+    found = _module_models_accepting_unknown_keys()
+    new = sorted(found - set(_EXTRA_FORBID_RATCHET))
+    fixed = sorted(set(_EXTRA_FORBID_RATCHET) - found)
+    assert not new, f"module models accepting unknown keys (declare the fields, then forbid): {new}"
+    assert not fixed, f"now forbid unknown keys — remove from _EXTRA_FORBID_RATCHET: {fixed}"
+
+
+def test_no_extra_allow_models() -> None:
+    """No Pydantic model in the package opts into ``extra="allow"``; an open map
+    is a typed ``dict[str, X]`` field instead (Issue #2845)."""
+    pattern = re.compile(r"""extra\s*=\s*["']allow["']""")
+    offenders = [
+        f"{p.relative_to(_PKG)}:{i}"
+        for p in sorted(_PKG.rglob("*.py"))
+        for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1)
+        if pattern.search(line)
+    ]
+    assert not offenders, offenders
+
+
 def test_no_ad_hoc_age_band_parsing() -> None:
     """Age-band keys are parsed only by clinosim/age_bands.py."""
     pattern = re.compile(r'key\.partition\("-"\)|band\w*\.endswith\("\+"\)|band\w*\.split\("-"\)')

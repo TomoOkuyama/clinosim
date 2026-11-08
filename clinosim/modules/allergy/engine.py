@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, field_validator, model_validator
 
@@ -70,9 +70,10 @@ def _probability(value: _Number, where: str) -> _Number:
 
 
 class _Reaction(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     manifestation_snomed: str
+    severity: Literal["mild", "moderate", "severe"]
 
     @field_validator("manifestation_snomed")
     @classmethod
@@ -83,7 +84,7 @@ class _Reaction(BaseModel):
 
 
 class _Allergen(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     allergen_code: str
     prevalence: dict[str, Any]
@@ -106,7 +107,7 @@ class _Allergen(BaseModel):
 
 
 class _NoKnownAllergy(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     allergen_code: str
     clinical_status: Any
@@ -139,10 +140,12 @@ def _age_banded_probabilities(table: dict[str, _Number]) -> dict[str, _Number]:
 
 
 class _Polyallergy(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     probability_given_any_allergy: dict[str, _Number]
     additional_count_weights: dict[Any, _Number] = Field(min_length=1)
+    chronic_ill_bonus: _Number = 0.0
+    chronic_ill_conditions: list[str] = Field(default_factory=list)
 
     _bands = field_validator("probability_given_any_allergy")(classmethod(lambda cls, v: _age_banded_probabilities(v)))
 
@@ -156,11 +159,37 @@ class _Polyallergy(BaseModel):
 
 
 class _CrossReactivityRule(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     trigger_allergen_codes: Any
     boost_category: Any
     boost_weight_bonus: Any
+
+
+class _ChildhoodFoodResolution(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    child_age_cutoff: StrictInt
+    annual_rate_child: _Number
+    annual_rate_adult: _Number
+
+
+class _LateOnsetDrugSensitivity(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    adult_age_floor: StrictInt
+    elderly_age_floor: StrictInt
+    annual_rate_adult: _Number
+    annual_rate_elderly: _Number
+
+
+class _Aging(BaseModel):
+    """Yearly allergy drift (read by ``population.aging._allergy_drift``)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    childhood_food_resolution: _ChildhoodFoodResolution | None = None
+    late_onset_drug_sensitivity: _LateOnsetDrugSensitivity | None = None
 
 
 class AllergenConfig(BaseModel):
@@ -170,12 +199,13 @@ class AllergenConfig(BaseModel):
     manifestations; the ``nka`` / ``polyallergy`` blocks (Issue #942); and an
     optional well-formed ``cross_reactivity`` list."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     allergens: dict[str, list[_Allergen]]
     nka: _NoKnownAllergy
     polyallergy: _Polyallergy
     cross_reactivity: list[_CrossReactivityRule] | None = None
+    aging: _Aging | None = None
 
     @model_validator(mode="before")
     @classmethod

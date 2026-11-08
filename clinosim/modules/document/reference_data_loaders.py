@@ -86,7 +86,7 @@ class PhysicalExamFindings(BaseModel):
     recognised body system (the fallback every disease relies on), and the
     per-disease ``findings`` section must be present (it may be empty)."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     baseline: dict[str, dict[str, Any]] = Field(min_length=1)
     findings: Any
@@ -130,7 +130,7 @@ def load_physical_exam_findings() -> dict[str, Any]:
 
 
 class _BilingualText(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     en: Any
     ja: Any
@@ -142,7 +142,7 @@ class DischargeInstructions(BaseModel):
     section (possibly empty, entries possibly null); every instruction has
     an ``en`` and a ``ja`` text."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     baseline: dict[str, _BilingualText] = Field(min_length=1)
     disease_specific: dict[str, dict[str, _BilingualText] | None] | None
@@ -214,7 +214,7 @@ class ChiefComplaintVariants(BaseModel):
     """Shape of chief_complaint_variants.yaml: per disease, a non-empty list
     of non-empty JP chief-complaint strings."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     variants: dict[str, Annotated[list[_Text], Field(min_length=1)]] = Field(min_length=1)
 
@@ -246,7 +246,7 @@ class BedsideProcedureCodes(BaseModel):
     code in both (a Procedure resolves to exactly one document type — an
     overlap would double-emit)."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     procedure_note_codes: list[_Text] = Field(min_length=1)
     operative_note_codes: list[_Text] = Field(min_length=1)
@@ -297,14 +297,14 @@ _TextList = Annotated[list[_Text], Field(min_length=1)]
 
 
 class _NursingTexts(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     ja: _TextList
     en: _TextList
 
 
 class _NursingContentEntry(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     nursing_diagnoses: _NursingTexts
     care_plan: _NursingTexts
@@ -317,7 +317,7 @@ class NursingContent(BaseModel):
     mapping whose entries carry nursing diagnoses, care plan and patient
     education as non-empty ``ja`` and ``en`` string lists."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     acute_disease: dict[str, _NursingContentEntry] | None = Field(default=None, min_length=1)
     chronic_icd10: dict[str, _NursingContentEntry] | None = Field(default=None, min_length=1)

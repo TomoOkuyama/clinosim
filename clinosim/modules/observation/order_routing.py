@@ -34,7 +34,7 @@ class OrderRouting(BaseModel):
     """Shape of order_routing.yaml: each routed name appears in one section,
     and every expansion component is a lab with a US code."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     vital_signs: list[str]
     history: list[str]

@@ -17,11 +17,13 @@ from __future__ import annotations
 import math
 
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AR1Spec(BaseModel):
     """Parameters for an AR(1) continuous-latent attribute."""
+
+    model_config = ConfigDict(extra="forbid")
 
     latent_name: str
     phi: float = Field(..., ge=0.0, le=1.0)
