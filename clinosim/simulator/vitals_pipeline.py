@@ -38,7 +38,6 @@ Supporting sets:
 
 from __future__ import annotations
 
-import hashlib
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -70,7 +69,7 @@ from clinosim.modules.physiology._vital_signs_thresholds import (
     PAIN_SCORE_SCALE,
 )
 from clinosim.modules.physiology.engine import derive_observed_vitals
-from clinosim.seeding import daily_output_seed
+from clinosim.seeding import avpu_day_seed, daily_output_seed
 from clinosim.simulator._adl_thresholds import (
     ADL_ASSESSMENT_INTERVAL_DAYS,
     ADL_BARTHEL_MAX,
@@ -473,11 +472,7 @@ def _generate_vitals(
     # simply substitutes the cached day-stable AVPU for the returned
     # value. See ``feedback_rng_neutral_additive_field`` /
     # ``feedback_rng_shift_patient_cache_cascade`` — same pattern.
-    _avpu_day_seed = int.from_bytes(
-        hashlib.sha256(f"avpu:{patient.patient_id}:{day}".encode()).digest()[:8],
-        "big",
-    )
-    _stable_day_avpu = _loc_for(state, disease_id, day, determinism.default_rng(_avpu_day_seed))
+    _stable_day_avpu = _loc_for(state, disease_id, day, determinism.default_rng(avpu_day_seed(patient.patient_id, day)))
 
     # Routine full-vitals schedule by acuity
     # Critically unstable (septic shock, acute MI, hemorrhagic stroke, subdural

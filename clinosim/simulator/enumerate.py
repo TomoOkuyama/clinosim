@@ -32,7 +32,6 @@ tracked separately as a follow-up.
 from __future__ import annotations
 
 import glob
-import hashlib
 import json
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
@@ -41,6 +40,7 @@ from typing import Any, Literal
 
 from clinosim import determinism
 from clinosim.datafiles import load_data_yaml
+from clinosim.seeding import enumeration_case_seed
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DISEASE_REFERENCE_DIR = _REPO_ROOT / "clinosim" / "modules" / "disease" / "reference_data"
@@ -386,9 +386,7 @@ def derive_case_seed(base_seed: int, case: EnumerationCase) -> int:
     Same (base_seed, case) always yields the same sub-seed; rerunning the
     enumeration produces byte-identical output.
     """
-    payload = f"enumerate:{base_seed}:{case.case_key}".encode()
-    digest = hashlib.sha256(payload).digest()
-    return int.from_bytes(digest[:4], "big")
+    return enumeration_case_seed(base_seed, case.case_key)
 
 
 # ---------------------------------------------------------------------------
