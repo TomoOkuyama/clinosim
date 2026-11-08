@@ -2465,9 +2465,9 @@
 <td><code>tests/unit/test_pediatric_reference_ranges_2872.py</code>, <code>tests/unit/test_rr_clamp_by_age_2926.py</code></td>
 </tr>
 <tr>
-<td>A statin lowers the untreated LDL by its intensity (2018 ACC/AHA Table 3: low &lt; 30 %, moderate 30-49 %, high ≥ 50 %), at a fixed per-patient position in the range (SHA-256 quantile of the patient id, no RNG draw); TC falls by the same mg/dL. The intensity comes from the statin and its dose, the same table in both countries.</td>
-<td><code>physiology/statin_response.py::statin_ldl_reduction</code> via <code>physiology/engine.py::medication_flags_from_context</code> (<code>statin_ldl_reduction</code>) and <code>_add_lipid_labs</code>; data <code>physiology/reference_data/statin_ldl_response.yaml</code></td>
-<td><code>tests/unit/modules/test_statin_ldl_response_2917.py</code></td>
+<td>A statin lowers the untreated LDL by its intensity (2018 ACC/AHA Table 3: low &lt; 30 %, moderate 30-49 %, high ≥ 50 %), at a fixed per-patient position in the range (SHA-256 quantile of the patient id, no RNG draw); TC falls by the same mg/dL. The intensity comes from the statin and its dose, the same table in both countries. The health checkup's LDL uses the same reduction for the same patient and statin.</td>
+<td><code>physiology/statin_response.py</code> (<code>statin_ldl_reduction</code>, <code>statin_treated_ldl</code>) via <code>physiology/engine.py::medication_flags_from_context</code> (<code>statin_ldl_reduction</code>) and <code>_add_lipid_labs</code>, and <code>health_checkup/engine.py::_derive_checkup_values</code>; data <code>physiology/reference_data/statin_ldl_response.yaml</code></td>
+<td><code>tests/unit/modules/test_statin_ldl_response_2917.py</code>, <code>tests/unit/test_checkup_statin_response_2928.py</code></td>
 </tr>
 </tbody>
 </table>

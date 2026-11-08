@@ -2948,6 +2948,10 @@
 <td>The medications acting on lab values on a given day of a stay.</td>
 </tr>
 <tr>
+<td><code>clinosim/modules/physiology/statin_response.py</code> <code>statin_intensity(med)</code> / <code>statin_ldl_reduction(patient_id, medications)</code> / <code>statin_treated_ldl(untreated_ldl, reduction)</code></td>
+<td>A statin's intensity from the drug and dose, the per-patient fraction of the untreated LDL the patient's statins remove, and the LDL after that reduction. Every LDL a statin lowers (lab derivation, health checkup) goes through these.</td>
+</tr>
+<tr>
 <td><code>clinosim/modules/order/panel_grouping.py</code> <code>classify_lab_specs(...)</code></td>
 <td>Grouping lab orders into panels and individual tests.</td>
 </tr>

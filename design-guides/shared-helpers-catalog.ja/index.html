@@ -2793,6 +2793,10 @@
 <td>入院中のある日に検査値へ作用している薬剤。</td>
 </tr>
 <tr>
+<td><code>clinosim/modules/physiology/statin_response.py</code> <code>statin_intensity(med)</code> / <code>statin_ldl_reduction(patient_id, medications)</code> / <code>statin_treated_ldl(untreated_ldl, reduction)</code></td>
+<td>薬剤と用量から決まるスタチンの強度、患者のスタチンが未治療 LDL から除く患者ごとの割合、その低下後の LDL。スタチンで下がる LDL (検査値導出、健診) はすべてこれを通す。</td>
+</tr>
+<tr>
 <td><code>clinosim/modules/order/panel_grouping.py</code> <code>classify_lab_specs(...)</code></td>
 <td>検査オーダーをパネルと単項目に分ける。</td>
 </tr>
