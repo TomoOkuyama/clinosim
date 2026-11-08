@@ -2805,6 +2805,54 @@
 <td>用量・オーダー文字列が持続投与を表すか。</td>
 </tr>
 <tr>
+<td><code>clinosim/modules/drug_safety/engine.py</code> <code>allergy_entries(allergies)</code></td>
+<td>患者のアレルギー記録から有効なアレルゲンコードを取り出す (非活動・否定・「アレルギーなし」は除外)。<code>check_candidate_against_allergies</code> の入力。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/drug_safety/engine.py</code> <code>check_candidate_against_allergies(candidate, allergen_codes)</code></td>
+<td>候補薬を患者のアレルゲンコードと照合した、許可されない判定。処方経路はアレルギー照合を自作せず、これ (または <code>allergy_skip_verdict</code>) を呼ぶ。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/drug_safety/engine.py</code> <code>allergy_skip_verdict(candidate, allergies)</code></td>
+<td>患者のアレルギー記録で候補薬を除外する最も重い判定。投与可能なら None。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/drug_safety/engine.py</code> <code>conflict_display(verdict)</code></td>
+<td>判定が何と競合したかの (英語, 日本語) 表示。<code>SafetySkipEntry</code> 用で、記録されたアレルギーまたは有効薬を返す。</td>
+</tr>
+<tr>
+<td><code>clinosim/simulator/medication_pipeline.py</code> <code>allergy_blocked(patient, drug_name, ...)</code></td>
+<td>代替薬を出せない処方 (継続処方・固定バンドル項目) で、アレルギーにより除外なら True (スキップを記録)。</td>
+</tr>
+<tr>
+<td><code>clinosim/simulator/medication_pipeline.py</code> <code>log_allergy_skip(patient, drug_name, verdict, ...)</code></td>
+<td>アレルギーで除外した処方項目を、代替薬があればそれも添えて <code>patient.safety_skip_log</code> に記録する。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/order/pediatric_dose.py</code> <code>pediatric_order_name(name, age_months, weight_kg)</code></td>
+<td>成人固定用量のオーダーを小児の体重から再計算する。最小月齢未満なら None。</td>
+</tr>
+<tr>
+<td><code>clinosim/simulator/encounter_setup.py</code> <code>extend_visit_to_procedures(encounter, procedures)</code></td>
+<td>受診が最後の処置の終了まで続くよう延長する。</td>
+</tr>
+<tr>
+<td><code>clinosim/simulator/encounter_setup.py</code> <code>fit_procedures_in_stay(procedures, start, end)</code></td>
+<td>各処置を在院期間内に収める (<code>end</code> が None なら在院中)。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/observation/pediatric_ranges.py</code> <code>age_in_completed_months(birth, when)</code></td>
+<td>小児の満月齢 (日付不明なら None)。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/observation/pediatric_ranges.py</code> <code>pediatric_vital_range(vital, age_months)</code> / <code>pediatric_vital_range_text</code> / <code>age_independent_vital_range_text</code></td>
+<td>月齢に応じた小児バイタル基準範囲と <code>referenceRange.text</code>。None は成人範囲を使う。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/observation/pediatric_ranges.py</code> <code>pediatric_lab_range(lab_name, age_years, sex)</code> / <code>pediatric_lab_center</code> / <code>pediatric_lab_band</code> / <code>pediatric_lab_range_text</code></td>
+<td>小児の検査基準範囲 (中点・年齢帯・表示文を含む)。None は成人範囲を使う。</td>
+</tr>
+<tr>
 <td><code>clinosim/modules/staff/engine.py</code> <code>scoped_nurses(roster, ward=, department=)</code></td>
 <td>病棟の看護師、無ければ診療科、それも無ければ全看護師。</td>
 </tr>

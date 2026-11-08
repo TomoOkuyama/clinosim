@@ -2960,6 +2960,54 @@
 <td>Whether a dose or order text describes a continuous infusion.</td>
 </tr>
 <tr>
+<td><code>clinosim/modules/drug_safety/engine.py</code> <code>allergy_entries(allergies)</code></td>
+<td>The active allergen codes of a patient's allergy records (drops inactive, refuted and "no known allergy" entries) — the input of <code>check_candidate_against_allergies</code>.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/drug_safety/engine.py</code> <code>check_candidate_against_allergies(candidate, allergen_codes)</code></td>
+<td>The non-allowed verdicts of a candidate drug against the patient's allergen codes. Every prescribing path calls this (or <code>allergy_skip_verdict</code>) instead of re-implementing an allergy check.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/drug_safety/engine.py</code> <code>allergy_skip_verdict(candidate, allergies)</code></td>
+<td>The worst allergy verdict that drops a candidate drug for a patient's allergy records, or None when it may be given.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/drug_safety/engine.py</code> <code>conflict_display(verdict)</code></td>
+<td>The (English, Japanese) text of what a verdict conflicts with, for a <code>SafetySkipEntry</code>: the recorded allergy or the active drug.</td>
+</tr>
+<tr>
+<td><code>clinosim/simulator/medication_pipeline.py</code> <code>allergy_blocked(patient, drug_name, ...)</code></td>
+<td>A prescription with no alternative to offer (a renewal, a fixed bundle item): True, with the skip logged, when the patient's allergies rule the drug out.</td>
+</tr>
+<tr>
+<td><code>clinosim/simulator/medication_pipeline.py</code> <code>log_allergy_skip(patient, drug_name, verdict, ...)</code></td>
+<td>Recording a prescription item dropped for an allergy on <code>patient.safety_skip_log</code>, with the substitute drug when there is one.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/order/pediatric_dose.py</code> <code>pediatric_order_name(name, age_months, weight_kg)</code></td>
+<td>Re-dosing an adult fixed-strength order for a child from the weight; None when the child is below the drug's minimum age.</td>
+</tr>
+<tr>
+<td><code>clinosim/simulator/encounter_setup.py</code> <code>extend_visit_to_procedures(encounter, procedures)</code></td>
+<td>Extending a visit so it lasts at least until its last procedure ends.</td>
+</tr>
+<tr>
+<td><code>clinosim/simulator/encounter_setup.py</code> <code>fit_procedures_in_stay(procedures, start, end)</code></td>
+<td>Holding each procedure inside the stay window (<code>end</code> None: still in progress).</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/observation/pediatric_ranges.py</code> <code>age_in_completed_months(birth, when)</code></td>
+<td>A child's age in completed months (None when a date is unknown).</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/observation/pediatric_ranges.py</code> <code>pediatric_vital_range(vital, age_months)</code> / <code>pediatric_vital_range_text</code> / <code>age_independent_vital_range_text</code></td>
+<td>The pediatric vital-sign range for the age and its <code>referenceRange.text</code>; None means the adult range applies.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/observation/pediatric_ranges.py</code> <code>pediatric_lab_range(lab_name, age_years, sex)</code> / <code>pediatric_lab_center</code> / <code>pediatric_lab_band</code> / <code>pediatric_lab_range_text</code></td>
+<td>The pediatric lab reference interval (and its midpoint, band and text) for a child; None means the adult interval applies.</td>
+</tr>
+<tr>
 <td><code>clinosim/modules/staff/engine.py</code> <code>scoped_nurses(roster, ward=, department=)</code></td>
 <td>The nurses of a ward, else of the department, else every nurse.</td>
 </tr>
