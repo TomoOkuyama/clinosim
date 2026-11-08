@@ -757,17 +757,3 @@ def _parse_bundle_response(raw: str, expected_keys: list[str]) -> dict[str, str]
             raise ValueError(f"section {k!r} value is empty")
         result[k] = v
     return result
-
-
-# ─────────────────────────────────────────────────────────────────
-# Session-88j v3: per-doc-type CIF context enrichment
-# ─────────────────────────────────────────────────────────────────
-
-
-def _get(obj, key, default=None):
-    """dict / dataclass agnostic getter (mirrors `_shared.get_attr_or_key`)."""
-    if obj is None:
-        return default
-    if isinstance(obj, dict):
-        return obj.get(key, default)
-    return getattr(obj, key, default)

@@ -11,12 +11,13 @@ layer can use it.
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from typing import TypeVar
 
 __all__ = [
     "age_band_covers",
     "find_age_band",
+    "find_age_band_or_last",
     "lookup_age_band",
     "parse_age_band",
     "parse_closed_age_band",
@@ -68,6 +69,16 @@ def find_age_band(keys: Iterable[_K], age: int, *, skip_malformed: bool = False)
         if covers:
             return key
     return None
+
+
+def find_age_band_or_last(keys: Sequence[_K], age: int) -> _K:
+    """The first key whose band covers ``age``, else the last key.
+
+    For tables whose last band is the catch-all for ages no band covers.
+    ``keys`` must be non-empty; a malformed key raises ``ValueError``.
+    """
+    band = find_age_band(keys, age)
+    return band if band is not None else keys[-1]
 
 
 def lookup_age_band(

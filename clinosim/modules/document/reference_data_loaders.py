@@ -49,6 +49,17 @@ _PHYSICAL_EXAM_BODY_SYSTEMS = frozenset(
 _DISCHARGE_BASELINE_REQUIRED_KEYS = ("hydrate", "rest", "follow_up")
 
 
+@lru_cache(maxsize=8)
+def load_document_data_yaml(filename: str) -> dict[str, Any]:
+    """Load ``reference_data/<filename>`` of the document module, cached per file.
+
+    For the small unvalidated registries (``chronic_soap_templates.yaml``,
+    ``hedging_phrases.yaml``) whose reader owns their shape. Returns ``{}``
+    for an empty file. The returned dict is shared: callers must not mutate it.
+    """
+    return load_data_yaml(_REF_DIR / filename) or {}
+
+
 # ─────────────────────────────────────────────────────────────────
 # physical_exam_findings.yaml
 # ─────────────────────────────────────────────────────────────────

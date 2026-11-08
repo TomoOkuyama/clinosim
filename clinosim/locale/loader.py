@@ -38,7 +38,6 @@ from clinosim.locale._io import (
 # Re-exported at module scope so every historical
 # `from clinosim.locale.loader import load_narrative_X` keeps working.
 from clinosim.locale.loaders.clinical import (
-    _iter_route_values,
     _validate_chronic_medications_route_vocabulary,
     chronic_followup_interval_months,
     chronic_followup_vitals,
@@ -122,7 +121,6 @@ from clinosim.locale.loaders.narrative import (
 
 __all__ = [
     "_country_dir",
-    "_iter_route_values",
     "_load_country_language_map",
     "_load_demographics_cached",
     "_validate_addresses",

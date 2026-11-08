@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from clinosim.age_bands import find_age_band, parse_closed_age_band
+from clinosim.age_bands import find_age_band_or_last, parse_closed_age_band
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import is_jp, normalize_probabilities
 
@@ -69,11 +69,6 @@ def load_rates(country: str = "JP") -> dict:
     return (load_data_yaml(_LOCALE / "jp" / "care_level_rates.yaml") or {}).get("weights", {})
 
 
-def _age_band(age: int, bands: list[str]) -> str:
-    band = find_age_band(bands, age)
-    return band if band is not None else bands[-1]
-
-
 def patient_qualifies_for_secondary_ltci(chronic_condition_codes: list[str]) -> bool:
     """Return True when at least one code matches a 第2号被保険者 相当疾病 prefix.
 
@@ -108,7 +103,7 @@ def assign_care_level(age: int, country: str, rng: np.random.Generator) -> str:
         return ""
     ref = load_reference()
     levels = ref["levels"]
-    weights = list(load_rates().get(_age_band(int(age), ref["age_bands"]), []))
+    weights = list(load_rates().get(find_age_band_or_last(ref["age_bands"], int(age)), []))
     if not weights or sum(weights) <= 0:
         return ""
     # fallback="raise" is defense-in-depth; the early-exit above guards zero-sum first

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterator
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
@@ -105,24 +104,6 @@ def dose_contradicts_fallback(dose: str, fallback: str) -> bool:
     return bool(named) and (fallback or "").upper() not in named
 
 
-def _iter_route_values(data: Any) -> Iterator[str]:
-    """Yield every `route:` string found anywhere in a nested YAML structure.
-
-    Walks lists and dicts recursively; only picks up the value keyed exactly
-    `route`. Sibling to `_validate_drug_route_consistency` — feeds the
-    Issue #458 vocabulary check without hard-coding which drug blocks exist.
-    """
-    if isinstance(data, dict):
-        for k, v in data.items():
-            if k == "route" and isinstance(v, str):
-                yield v
-            else:
-                yield from _iter_route_values(v)
-    elif isinstance(data, list):
-        for item in data:
-            yield from _iter_route_values(item)
-
-
 def _validate_drug_route_vocabulary(disease_id: str, data: dict[str, Any]) -> None:
     """Fail loudly when a disease YAML author uses a route value that isn't in
     the canonical / alias / by-design set (Issue #458).
@@ -136,9 +117,9 @@ def _validate_drug_route_vocabulary(disease_id: str, data: dict[str, Any]) -> No
     Delegates to `validate_yaml_route_value` so the recognized set stays
     single-sourced in `fhir_r4/lib/reference_data.py`.
     """
-    from clinosim.modules.output.fhir_r4.lib.reference_data import validate_yaml_route_value
+    from clinosim.modules.output.fhir_r4.lib.reference_data import iter_route_values, validate_yaml_route_value
 
-    for raw in _iter_route_values(data):
+    for raw in iter_route_values(data):
         validate_yaml_route_value(raw, source=f"disease {disease_id!r}")
 
 

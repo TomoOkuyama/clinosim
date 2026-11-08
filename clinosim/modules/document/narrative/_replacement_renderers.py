@@ -25,22 +25,13 @@ from clinosim.codes.ucum import ucum_prose
 from clinosim.locale.free_text import localize_free_text
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
+from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.document.narrative._replacement_localization import (
     localize_oxygen_device,
     localize_token,
 )
 from clinosim.modules.document.narrative._vitals_line import LLM_ARRIVAL, LLM_DAY, format_vitals_line
 from clinosim.modules.document.narrative.template_generator import _filter_vitals_for_day
-
-
-def _get(obj, key, default=None):
-    """Safe getattr-or-dict-get for either a Pydantic / dataclass
-    instance or a plain dict shape (CIF JSON re-read)."""
-    if obj is None:
-        return default
-    if isinstance(obj, dict):
-        return obj.get(key, default)
-    return getattr(obj, key, default)
 
 
 def _render_chronic_list(chronic: list, lang: str = "en") -> str:

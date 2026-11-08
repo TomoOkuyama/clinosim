@@ -17,21 +17,11 @@ primary chronic condition matches a registry entry, so
 
 from __future__ import annotations
 
-from functools import lru_cache
-from importlib import resources
-from pathlib import Path
 from typing import Any
 
-from clinosim.datafiles import load_data_yaml
+from clinosim.modules.document.reference_data_loaders import load_document_data_yaml
 
-_REGISTRY_PACKAGE = "clinosim.modules.document.reference_data"
 _REGISTRY_FILENAME = "chronic_soap_templates.yaml"
-
-
-@lru_cache(maxsize=1)
-def _load_registry() -> dict[str, dict[str, str]]:
-    """Load the chronic-SOAP registry once."""
-    return load_data_yaml(Path(str(resources.files(_REGISTRY_PACKAGE).joinpath(_REGISTRY_FILENAME)))) or {}
 
 
 def resolve_chronic_soap(chronic_conditions: list[Any] | None) -> dict[str, str] | None:
@@ -50,7 +40,7 @@ def resolve_chronic_soap(chronic_conditions: list[Any] | None) -> dict[str, str]
     """
     if not chronic_conditions:
         return None
-    registry = _load_registry()
+    registry = load_document_data_yaml(_REGISTRY_FILENAME)
     for c in chronic_conditions:
         code: str | None
         if isinstance(c, str):

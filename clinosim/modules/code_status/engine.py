@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from clinosim.age_bands import find_age_band, parse_closed_age_band
+from clinosim.age_bands import find_age_band_or_last, parse_closed_age_band
 from clinosim.codes import code_exists
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import is_jp, is_us, normalize_probabilities
@@ -80,11 +80,6 @@ def load_rates(country: str) -> dict:
     return (load_data_yaml(_LOCALE / key / "code_status_rates.yaml") or {}).get("weights", {})
 
 
-def _age_band(age: int, bands: list[str]) -> str:
-    band = find_age_band(bands, age)
-    return band if band is not None else bands[-1]
-
-
 def assign_code_status(age: int, context: str, country: str, rng: np.random.Generator) -> str:
     """Return the SNOMED code of the sampled tier for (age, context).
 
@@ -96,7 +91,7 @@ def assign_code_status(age: int, context: str, country: str, rng: np.random.Gene
     if not rates:
         return ""
     tiers = ref["tiers"]
-    band = _age_band(int(age), ref["age_bands"])
+    band = find_age_band_or_last(ref["age_bands"], int(age))
     weights = rates.get(context, rates["routine"]).get(band)
     if not weights:
         weights = rates["routine"][ref["age_bands"][-1]]

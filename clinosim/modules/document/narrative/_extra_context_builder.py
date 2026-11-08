@@ -20,6 +20,7 @@ from pathlib import Path
 from clinosim.codes.icd10 import condition_label
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
+from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.document.narrative._patient_info_renderers import (
     _WRITING_DAY_SCOPE,
     _health_literacy_tag,
@@ -30,7 +31,6 @@ from clinosim.modules.document.narrative._replacement_localization import (
     localize_token,
 )
 from clinosim.modules.document.narrative._replacement_renderers import (
-    _get,
     _render_abnormal_labs,
     _render_active_meds,
     _render_chronic_list,

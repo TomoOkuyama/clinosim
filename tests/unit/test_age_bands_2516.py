@@ -7,6 +7,7 @@ import pytest
 from clinosim.age_bands import (
     age_band_covers,
     find_age_band,
+    find_age_band_or_last,
     lookup_age_band,
     parse_age_band,
     parse_closed_age_band,
@@ -51,3 +52,11 @@ def test_malformed_keys_raise_unless_skipped() -> None:
     with pytest.raises(ValueError):
         lookup_age_band(table, 30, 0.0)
     assert lookup_age_band(table, 30, 0.0, skip_malformed=True) == 0.2
+
+
+def test_find_age_band_or_last_falls_back_to_last_band() -> None:
+    bands = ["0-17", "18-64", "65-120"]
+    assert find_age_band_or_last(bands, 30) == "18-64"
+    assert find_age_band_or_last(bands, 0) == "0-17"
+    assert find_age_band_or_last(bands, 130) == "65-120"
+    assert find_age_band_or_last(["18-64", "65+"], 5) == "65+"

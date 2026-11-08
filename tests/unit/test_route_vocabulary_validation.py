@@ -23,13 +23,7 @@ import pytest
 
 from clinosim.locale.loader import load_chronic_medications
 from clinosim.modules.disease.protocol import (
-    _iter_route_values as disease_iter_routes,
-)
-from clinosim.modules.disease.protocol import (
     load_all_disease_protocols,
-)
-from clinosim.modules.encounter.protocol import (
-    _iter_route_values as encounter_iter_routes,
 )
 from clinosim.modules.encounter.protocol import (
     load_all_encounter_conditions,
@@ -39,6 +33,7 @@ from clinosim.modules.output.fhir_r4.lib.reference_data import (
     _ROUTE_SNOMED,
     _ROUTE_TEXT_ONLY_BY_DESIGN,
     KNOWN_ROUTE_VOCABULARY,
+    iter_route_values,
     validate_yaml_route_value,
 )
 
@@ -70,7 +65,7 @@ def test_all_disease_yaml_route_values_are_recognized():
             import yaml
 
             data = yaml.safe_load(f)
-        for raw in disease_iter_routes(data):
+        for raw in iter_route_values(data):
             # A raise here would be a regression in the validator + the loader
             # (loader path already returned) — the tests catch either.
             validate_yaml_route_value(raw, source=f"disease {disease_id!r}")
@@ -80,16 +75,14 @@ def test_all_encounter_yaml_route_values_are_recognized():
     """Sibling of the disease test — same guard for encounter YAMLs."""
     conditions = load_all_encounter_conditions()
     for cid, data in conditions.items():
-        for raw in encounter_iter_routes(data):
+        for raw in iter_route_values(data):
             validate_yaml_route_value(raw, source=f"encounter {cid!r}")
 
 
 def test_chronic_medications_route_values_are_recognized():
     """Same guard for the chronic-medications YAML (single file)."""
-    from clinosim.locale.loader import _iter_route_values as chronic_iter_routes
-
     data = load_chronic_medications()
-    for raw in chronic_iter_routes(data):
+    for raw in iter_route_values(data):
         validate_yaml_route_value(raw, source="chronic_medications.yaml")
 
 
@@ -116,3 +109,17 @@ def test_validator_accepts_by_design_text_only_values():
     validation just because they lack a SNOMED code."""
     for value in _ROUTE_TEXT_ONLY_BY_DESIGN:
         validate_yaml_route_value(value, source="test")
+
+
+def test_iter_route_values_walks_nested_dicts_and_lists():
+    """The walker yields every string ``route`` value at any depth and
+    ignores non-string ``route`` values and other keys."""
+    data = {
+        "route": "PO",
+        "drugs": [{"route": "IV", "dose": "1 g"}, {"nested": {"route": "SC"}}],
+        "other": {"route": 3, "items": [[{"route": "IM"}]]},
+        "routes": "TOPICAL",
+    }
+    assert list(iter_route_values(data)) == ["PO", "IV", "SC", "IM"]
+    assert list(iter_route_values("PO")) == []
+    assert list(iter_route_values(None)) == []

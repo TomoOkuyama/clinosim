@@ -7,6 +7,9 @@ other adapter symbols) and are re-exported by fhir_r4_adapter as a facade.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from typing import Any
+
 from clinosim.codes import display, get_system_uri
 from clinosim.codes.snomed import snomed_display, snomed_map
 
@@ -131,6 +134,24 @@ the canonical SNOMED-coded set (`_ROUTE_SNOMED`), the author-abbreviation
 aliases (`_ROUTE_ALIASES`), and the by-design text-only allowlist
 (`_ROUTE_TEXT_ONLY_BY_DESIGN`). Consumed by `validate_yaml_route_value` — the
 import-time guard added in Issue #458."""
+
+
+def iter_route_values(data: Any) -> Iterator[str]:
+    """Yield every ``route:`` string found anywhere in a nested YAML structure.
+
+    Walks dicts and lists recursively and picks up only string values keyed
+    exactly ``route``. The one walker feeding :func:`validate_yaml_route_value`
+    for the disease, encounter and chronic-medications YAMLs (Issue #458).
+    """
+    if isinstance(data, dict):
+        for k, v in data.items():
+            if k == "route" and isinstance(v, str):
+                yield v
+            else:
+                yield from iter_route_values(v)
+    elif isinstance(data, list):
+        for item in data:
+            yield from iter_route_values(item)
 
 
 def validate_yaml_route_value(raw_route: str, source: str) -> None:

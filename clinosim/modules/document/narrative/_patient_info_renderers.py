@@ -18,7 +18,7 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim.locale.i18n import t
-from clinosim.modules.document.narrative._replacement_renderers import _get
+from clinosim.modules._shared import get_attr_or_key as _get
 
 
 def _localize_token(token: str, section: str, lang: str) -> str:
