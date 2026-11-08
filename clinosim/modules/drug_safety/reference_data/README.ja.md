@@ -138,8 +138,7 @@ rules:
 ```
 
 rule は `min_age` / `sex` の少なくとも一方で gate する必要がある。
-`check_demographic_gate` は `max_age` key も参照するが、スキーマに
-定義が無いため現状 YAML の rule では指定できない。
+上限年齢の gate は無い。
 
 複数 rule が発火した場合は最も高い severity の判定を採用 (同順位は
 先頭の rule)。

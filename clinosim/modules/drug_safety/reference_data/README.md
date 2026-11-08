@@ -136,9 +136,8 @@ rules:
     references: "<citation>"
 ```
 
-A rule must gate at least one of `min_age` / `sex`.
-`check_demographic_gate` also honours a `max_age` key, but the schema
-does not define one, so a YAML rule cannot set it today.
+A rule must gate at least one of `min_age` / `sex`; there is no upper
+age gate.
 
 When several rules fire, the highest-severity verdict wins (ties: first
 rule).

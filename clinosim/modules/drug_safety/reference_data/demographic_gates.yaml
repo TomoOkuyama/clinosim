@@ -19,7 +19,6 @@
 #                              display string (mirrors classifier.canonical_name
 #                              substring fallback). Include EN / JA / brand.
 #   min_age       (optional) — patient must be >= this age
-#   max_age       (optional) — patient must be <= this age
 #   sex           (optional) — "male" | "female" (matches PatientProfile.sex
 #                              "M"/"F" or FHIR gender lowercase)
 #   exception_indications (optional) — list of ICD-10 code prefixes; if any
