@@ -2640,6 +2640,10 @@
 <td>Stream-free yes/no, normal and weighted-choice draws built on <code>sha_quantile</code>.</td>
 </tr>
 <tr>
+<td><code>clinosim/determinism.py</code> <code>sha_index(salt, n, byte_count)</code></td>
+<td>A stream-free index in <code>[0, n)</code> — pick one entry of a fixed list (a phrase variant, a catalog row).</td>
+</tr>
+<tr>
 <td><code>clinosim/seeding.py</code> <code>derive_sub_seed(master_seed, module_offset, key)</code> + <code>ENRICHER_SEED_OFFSETS</code></td>
 <td>Per-module, per-key sub-seeds for enrichers. Register a new offset; never hash a seed inline.</td>
 </tr>
@@ -2648,7 +2652,7 @@
 <td>Independent generator per simulation phase and key.</td>
 </tr>
 <tr>
-<td><code>clinosim/seeding.py</code> <code>text_seed</code>, <code>panel_specimen_seed</code>, <code>individual_lab_seed</code>, <code>chronic_medication_seed</code>, <code>discharge_prescription_seed</code>, <code>ambulatory_visit_length_seed</code>, <code>issue939_procedure_seed</code>, <code>chronic_augment_sex_seed</code>, <code>chronic_isolated_seed</code>, <code>longitudinal_event_seed</code>, <code>perinatal_delivery_seed</code>, <code>chemotherapy_regimen_seed</code>, <code>daily_output_seed</code></td>
+<td><code>clinosim/seeding.py</code> <code>text_seed</code>, <code>panel_specimen_seed</code>, <code>individual_lab_seed</code>, <code>chronic_medication_seed</code>, <code>discharge_prescription_seed</code>, <code>ambulatory_visit_length_seed</code>, <code>issue939_procedure_seed</code>, <code>chronic_augment_sex_seed</code>, <code>chronic_isolated_seed</code>, <code>longitudinal_event_seed</code>, <code>perinatal_delivery_seed</code>, <code>chemotherapy_regimen_seed</code>, <code>daily_output_seed</code>, <code>radiation_therapy_seed</code>, <code>avpu_day_seed</code>, <code>newborn_seed</code>, <code>pregnancy_outcome_seed</code>, <code>newborn_conditions_seed</code>, <code>enumeration_case_seed</code>, <code>identity_person_seed</code></td>
 <td>Named per-entity seeds. Add a new named function here rather than deriving a seed at the call site.</td>
 </tr>
 <tr>
@@ -2742,6 +2746,10 @@
 <tr>
 <td><code>clinosim/countries.py</code> <code>lang_for(country)</code> / <code>normalize_lang(lang)</code></td>
 <td>The output language of a country, and the one normalisation of a language argument.</td>
+</tr>
+<tr>
+<td><code>clinosim/countries.py</code> <code>country_code(country)</code></td>
+<td><code>"JP"</code> / <code>"US"</code> from any spelling (<code>"jp"</code>, the legacy locale key <code>"japan"</code>, ...) for helpers that take the upper-case code. <code>is_jp</code> accepts the same spellings.</td>
 </tr>
 <tr>
 <td><code>clinosim/countries.py</code> <code>country_slot(country, scheme=...)</code></td>

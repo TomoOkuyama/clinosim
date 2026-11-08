@@ -2485,6 +2485,10 @@
 <td><code>sha_quantile</code> 上に作ったストリーム非消費の 2 値・正規・重み付き選択。</td>
 </tr>
 <tr>
+<td><code>clinosim/determinism.py</code> <code>sha_index(salt, n, byte_count)</code></td>
+<td>ストリーム非消費の <code>[0, n)</code> の添字。固定リストから 1 件を選ぶ (文言の変種、カタログの行)。</td>
+</tr>
+<tr>
 <td><code>clinosim/seeding.py</code> <code>derive_sub_seed(master_seed, module_offset, key)</code> + <code>ENRICHER_SEED_OFFSETS</code></td>
 <td>enricher ごと・キーごとのサブシード。新しい offset を登録し、シードをその場でハッシュしない。</td>
 </tr>
@@ -2493,7 +2497,7 @@
 <td>シミュレーションのフェーズとキーごとに独立した生成器。</td>
 </tr>
 <tr>
-<td><code>clinosim/seeding.py</code> <code>text_seed</code>, <code>panel_specimen_seed</code>, <code>individual_lab_seed</code>, <code>chronic_medication_seed</code>, <code>discharge_prescription_seed</code>, <code>ambulatory_visit_length_seed</code>, <code>issue939_procedure_seed</code>, <code>chronic_augment_sex_seed</code>, <code>chronic_isolated_seed</code>, <code>longitudinal_event_seed</code>, <code>perinatal_delivery_seed</code>, <code>chemotherapy_regimen_seed</code>, <code>daily_output_seed</code></td>
+<td><code>clinosim/seeding.py</code> <code>text_seed</code>, <code>panel_specimen_seed</code>, <code>individual_lab_seed</code>, <code>chronic_medication_seed</code>, <code>discharge_prescription_seed</code>, <code>ambulatory_visit_length_seed</code>, <code>issue939_procedure_seed</code>, <code>chronic_augment_sex_seed</code>, <code>chronic_isolated_seed</code>, <code>longitudinal_event_seed</code>, <code>perinatal_delivery_seed</code>, <code>chemotherapy_regimen_seed</code>, <code>daily_output_seed</code>, <code>radiation_therapy_seed</code>, <code>avpu_day_seed</code>, <code>newborn_seed</code>, <code>pregnancy_outcome_seed</code>, <code>newborn_conditions_seed</code>, <code>enumeration_case_seed</code>, <code>identity_person_seed</code></td>
 <td>実体ごとの名前付きシード。呼び出し側でシードを導出せず、ここに名前付き関数を足す。</td>
 </tr>
 <tr>
@@ -2587,6 +2591,10 @@
 <tr>
 <td><code>clinosim/countries.py</code> <code>lang_for(country)</code> / <code>normalize_lang(lang)</code></td>
 <td>国の出力言語と、言語引数の唯一の正規化。</td>
+</tr>
+<tr>
+<td><code>clinosim/countries.py</code> <code>country_code(country)</code></td>
+<td>どの表記 (<code>"jp"</code>、旧来の locale キー <code>"japan"</code> など) からも <code>"JP"</code> / <code>"US"</code> を返す。大文字コードを取るヘルパー向け。<code>is_jp</code> も同じ表記を受け付ける。</td>
 </tr>
 <tr>
 <td><code>clinosim/countries.py</code> <code>country_slot(country, scheme=...)</code></td>
