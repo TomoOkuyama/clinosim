@@ -63,6 +63,9 @@ __all__ = [
     "ED_VITALS_OFFSET_MIN",
     "ED_DEPARTMENT_ID",
     "ED_WARD_ID",
+    "ED_ARRIVAL_PROCEDURES",
+    "ED_POST_IMAGING_PROCEDURES",
+    "ED_IMAGING_READ_MIN",
 ]
 
 
@@ -172,6 +175,20 @@ ED_VITALS_OFFSET_MIN: int = 5
 No variance — the triage nurse always records vital signs immediately
 upon patient rooming, so a fixed 5-minute offset from visit_time is
 the deterministic pattern."""
+
+ED_ARRIVAL_PROCEDURES: frozenset[str] = frozenset({"ecg_12lead", "iv_line", "oxygen_therapy"})
+"""ED procedures started at rooming, with the triage vitals (Issue #2863):
+door-to-ECG, IV access for the blood draw and IV drugs, supplemental oxygen.
+Every other ED procedure follows the treatment orders (or imaging, below)."""
+
+ED_POST_IMAGING_PROCEDURES: frozenset[str] = frozenset({"reduction_closed", "short_arm_splint"})
+"""ED procedures performed once the visit's imaging has been read (Issue
+#2863): a fracture is reduced and splinted after its X-ray, never before."""
+
+ED_IMAGING_READ_MIN: int = 30
+"""Minutes from an ED imaging order to the read that a post-imaging
+procedure waits for (Issue #2863): portable / ED X-ray acquisition plus a
+preliminary read."""
 
 
 # ---------------------------------------------------------------------------

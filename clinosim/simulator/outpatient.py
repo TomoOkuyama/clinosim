@@ -37,7 +37,12 @@ from clinosim.simulator._outpatient_thresholds import (
     OUTPATIENT_VITALS_OFFSET_MIN,
 )
 from clinosim.simulator.diagnosis_rules import fallback_visit_code, post_discharge_visit_code, visit_purpose_code
-from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
+from clinosim.simulator.encounter_setup import (
+    attach_orders,
+    encounter_diagnosis,
+    extend_visit_to_procedures,
+    finalize_encounter,
+)
 from clinosim.simulator.lab_pipeline import patient_true_labs
 from clinosim.types.clinical import ConditionEvent, PhysiologicalState
 from clinosim.types.config import SimulatorConfig
@@ -1015,6 +1020,8 @@ def _simulate_outpatient_visit(
     procedures_list.extend(chemo_procedures)
     orders.extend(chemo_orders)
     procedures_list.extend(_radiation_therapy(patient, spec, chronic_code, encounter, visit_date, country))
+    # Issue #2863: a visit that includes a procedure lasts until it is done.
+    extend_visit_to_procedures(encounter, procedures_list)
 
     record = CIFPatientRecord(
         patient=patient,

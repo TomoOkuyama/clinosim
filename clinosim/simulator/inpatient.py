@@ -74,7 +74,7 @@ from clinosim.simulator._stay_thresholds import (
 from clinosim.simulator.daily_loop import SYMPTOM_AXES, _run_daily_loop
 from clinosim.simulator.discharge_gate import discharge_disposition_for
 from clinosim.simulator.discharge_rx import build_discharge_rx
-from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis
+from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, fit_procedures_in_stay
 from clinosim.simulator.medication_pipeline import _generate_home_medication_orders
 from clinosim.types.clinical import (
     ClinicalDiagnosis,
@@ -955,6 +955,9 @@ def _simulate_patient(
         # workaround (fhir_r4_adapter.py `_bb_discharge_medication_requests`).
         if discharge_rx is not None:
             discharge_rx.issue_date = planned_discharge
+
+    # Issue #2863: procedures lie between admission and discharge (or death).
+    fit_procedures_in_stay(procedures, encounter.admission_datetime, encounter.discharge_datetime)
 
     microbiology = _derive_microbiology(
         disease_id=disease_id,

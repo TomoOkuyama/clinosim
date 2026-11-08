@@ -879,6 +879,10 @@ def _simulate_ed_visit(
         if severity in ("moderate", "severe")
         else []
     )
+    # Issue #2863: on the visit's own workflow, inside the ED stay.
+    from clinosim.simulator.ed_procedures import time_ed_procedures
+
+    time_ed_procedures(ed_procedures, orders, encounter)
 
     # Issue #2640: each culture drawn in the visit gets its microbiology
     # result, from the condition's microbiology.yaml profile.
