@@ -43,9 +43,11 @@ Governing spec: [`configuration-and-reference-data-spec.ja.md`](configuration-an
 | `clinosim/datafiles.py` `load_data_yaml(path)` | 唯一の YAML 読み込み。`metadata` ヘッダを除いた内容を返す。 |
 | `clinosim/datafiles.py` `load_validated_yaml(path, model)` | YAML を読み Pydantic モデルで検証する。モジュール参照データの標準。 |
 | `clinosim/datafiles.py` `data_metadata(path)` | データ YAML の `metadata` ヘッダ (出典・版・ライセンス)。 |
+| `clinosim/modules/document/reference_data_loaders.py` `load_document_data_yaml(filename)` | `document/reference_data/` の YAML をファイル名でキャッシュ付きで読む (形を読み手が持つ登録表向け)。 |
 | `clinosim/reference_data.py` `load_reference_yaml(path)` | コピーを返すキャッシュ付き読み込み。データを組み替える呼び出し側向け。 |
 | `clinosim/age_bands.py` `parse_age_band` / `parse_closed_age_band` / `age_band_covers` | `"18-49"`、`"85+"` などの年齢帯キーの解析と判定。 |
 | `clinosim/age_bands.py` `find_age_band(keys, age)` / `lookup_age_band(table, age, default)` | 年齢から年齢帯キーまたは値を引く。`if age < 18` のような境界のハードコードは禁止。 |
+| `clinosim/age_bands.py` `find_age_band_or_last(keys, age)` | `age` を含む年齢帯、無ければ最後の帯 (最後の帯が受け皿の表向け)。 |
 | `clinosim/codes/valuesets.py` `has_condition(person, group)` / `concept_group(name)` / `group_names()` / `patient_condition_names()` | 手書きの ICD 接頭辞リストではなく、名前付きの疾患グループ (value set) を使う。 |
 | `clinosim/codes/valuesets.py` `has_icd_prefix(items, prefixes)` / `code_by_chronic_prefix(mapping, person)` / `iter_chronic_codes(items)` | どの形の慢性疾患項目でも ICD 接頭辞で照合する。 |
 | `clinosim/codes/valuesets.py` `normalize_icd(code)` / `icd_base(code)` | ICD の正準表記と、ドット前のカテゴリ部分。 |
@@ -139,6 +141,7 @@ Governing guide: [`fhir-data-generation-logic.ja.md`](fhir-data-generation-logic
 | `clinosim/modules/output/fhir_r4/lib/common.py` `display_entry(text)` | `{"display": text}` または `{}`。Coding に空の display を入れない。 |
 | `clinosim/modules/output/fhir_r4/lib/common.py` `build_diagnosis_codeable_concept`, `severity_coding`, `survey_category`, `make_participant`, `build_reference_range`, `build_address`, `build_telecom`, `build_presented_form`, `map_encounter_status`, `entry` | Condition・Observation・Encounter・Patient・DiagnosticReport の定型部品。 |
 | `clinosim/modules/output/fhir_r4/lib/dosage.py` `build_dosage_instruction`, `build_route_concept`, `canonicalize_route`, `resolve_timing_repeat`, `frequency_in_text`, `is_rate_unit`, `augment_iv_dosage_with_rate`, `map_mar_status` | 用法・経路・タイミング・投与ステータス。 |
+| `clinosim/modules/output/fhir_r4/lib/reference_data.py` `iter_route_values(data)` / `validate_yaml_route_value(...)` | プロトコル YAML の投与経路値をすべてたどり検証する。 |
 | `clinosim/modules/output/fhir_r4/lib/fhir_time.py` `to_fhir_datetime` / `to_fhir_instant` / `to_fhir_date` / `to_fhir_deceased_datetime` / `tz_suffix_for_country` / `derive_meta_last_updated` | すべての FHIR の date・dateTime・instant (国のタイムゾーン付き)。 |
 | `clinosim/modules/output/fhir_r4/lib/ids.py` `derive_opaque_id` / `structural_key_system` / `wrap_as_identifier` | リソース id と、構造キーを往復できる identifier。 |
 | `clinosim/modules/output/fhir_r4/lib/ecs_extensions.py` `attach_ecs_institutional_extensions` / `build_ecs_institution_extension` / `build_ecs_department_extension` | JP eCS の医療機関・診療科 extension。 |
