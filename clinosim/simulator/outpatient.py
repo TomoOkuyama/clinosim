@@ -925,15 +925,10 @@ def _radiation_therapy(
     # deterministic sub-rng from the encounter id so downstream RNG is
     # untouched (feedback_rng_neutral_additive_field pattern).
     if chronic_code and spec.get("radiation_therapy_eligible"):
-        import hashlib
-
+        from clinosim.seeding import radiation_therapy_seed
         from clinosim.types.procedure import ProcedureRecord
 
-        _rt_seed = int.from_bytes(
-            hashlib.sha256(f"rt:{encounter.encounter_id}".encode()).digest()[:8],
-            "big",
-        )
-        _rt_rng = determinism.default_rng(_rt_seed)
+        _rt_rng = determinism.default_rng(radiation_therapy_seed(encounter.encounter_id))
         # Fire on ~40 % of follow-up visits (approximate: active RT course
         # is a subset of the follow-up window, real cadence is 5x/week for
         # 5-7 weeks then off, folded into a per-visit probability here).

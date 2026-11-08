@@ -413,3 +413,56 @@ def morse_fall_history_unit(patient_id: str, encounter_id: str) -> float:
     salt = "clinosim:morse-fall-history:v1"
     digest = hashlib.sha256(f"{salt}|{patient_id}|{encounter_id}".encode()).digest()[:6]
     return int.from_bytes(digest, "big") / float(2**48)
+
+
+# ---------------------------------------------------------------------------
+# Named per-entity seeds moved here from their call sites (Issue #2839).
+# Each keeps its original salt, digest slice and modulus, so the streams
+# they seed are unchanged.
+# ---------------------------------------------------------------------------
+
+
+def _digest_int(text: str, n_bytes: int) -> int:
+    return int.from_bytes(hashlib.sha256(text.encode()).digest()[:n_bytes], "big")
+
+
+def radiation_therapy_seed(encounter_id: str) -> int:
+    """Per-encounter seed of the oncology follow-up radiation-therapy draw (64-bit)."""
+    return _digest_int(f"rt:{encounter_id}", 8)
+
+
+def avpu_day_seed(patient_id: str, day: int) -> int:
+    """Per-(patient, hospital day) seed of the day-stable AVPU level (64-bit)."""
+    return _digest_int(f"avpu:{patient_id}:{day}", 8)
+
+
+def newborn_seed(key: str) -> int:
+    """Per-mother (or per-key) seed for newborn attributes, bed and delivery
+    mode draws, in ``[0, 2**32)``."""
+    return _digest_int(f"clinosim:newborn:v1|{key}", 6) % (2**32)
+
+
+def pregnancy_outcome_seed(mother_id: str, year: int) -> int:
+    """Per-(mother, year) seed of the pregnancy-outcome roll (delivery vs
+    abortion), in ``[0, 2**32)``; separate from :func:`newborn_seed`."""
+    return _digest_int(f"clinosim:pregnancy-outcome:v1|{mother_id}|{year}", 6) % (2**32)
+
+
+def newborn_conditions_seed(mother_id: str) -> int:
+    """Per-mother seed of the newborn condition roll (jaundice, preterm,
+    dermatitis, RDS), in ``[0, 2**32)``; separate from :func:`newborn_seed`."""
+    return _digest_int(f"clinosim:newborn-conditions:v1|{mother_id}", 6) % (2**32)
+
+
+def enumeration_case_seed(base_seed: int, case_key: str) -> int:
+    """Seed of one ``clinosim enumerate`` case, in ``[0, 2**32)``."""
+    return _digest_int(f"enumerate:{base_seed}:{case_key}", 4)
+
+
+def identity_person_seed(master_seed: int, person_id: str) -> int:
+    """Seed of a person's identity / insurance assignment draw."""
+    return (
+        _digest_int(f"{master_seed}|identity_person|{person_id}|v1", 4)
+        + master_seed
+        + ENRICHER_SEED_OFFSETS["identity"]
+    )

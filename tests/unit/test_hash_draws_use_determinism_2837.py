@@ -22,12 +22,6 @@ pytestmark = pytest.mark.unit
 _ROOT = Path(__file__).resolve().parents[2] / "clinosim"
 _CANONICAL = {"determinism.py", "seeding.py"}
 _RATCHET = {
-    # Seed derivations; they move to clinosim/seeding.py (Issue #2839).
-    "simulator/outpatient.py": "seed",
-    "simulator/perinatal.py": "seed",
-    "simulator/vitals_pipeline.py": "seed",
-    "simulator/enumerate.py": "seed",
-    "modules/identity/assign.py": "seed",
     # Identifiers built from a hash, not draws.
     "modules/imaging/engine.py": "DICOM UID integer",
     "modules/encounter/engine.py": "encounter id suffix",

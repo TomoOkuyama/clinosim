@@ -23,9 +23,10 @@ Governing spec: [`determinism-and-rng-spec.ja.md`](determinism-and-rng-spec.ja.m
 | `clinosim/determinism.py` `normal` / `beta` / `exponential` | 生成器からのビット再現な連続分布の値。 |
 | `clinosim/determinism.py` `sha_quantile(salt, byte_offset, byte_count)` | salt から得るストリーム非消費の一様 [0, 1) 値。抽選を足しても他の抽選をずらしてはいけないとき (RNG 中立な変更) に使う。 |
 | `clinosim/determinism.py` `sha_bernoulli(salt, p)` / `sha_normal(salt, mean, sd)` / `sha_weighted_choice(salt, choices, weights)` | `sha_quantile` 上に作ったストリーム非消費の 2 値・正規・重み付き選択。 |
+| `clinosim/determinism.py` `sha_index(salt, n, byte_count)` | ストリーム非消費の `[0, n)` の添字。固定リストから 1 件を選ぶ (文言の変種、カタログの行)。 |
 | `clinosim/seeding.py` `derive_sub_seed(master_seed, module_offset, key)` + `ENRICHER_SEED_OFFSETS` | enricher ごと・キーごとのサブシード。新しい offset を登録し、シードをその場でハッシュしない。 |
 | `clinosim/seeding.py` `derive_phase_rng(master_seed, phase_salt, key)` | シミュレーションのフェーズとキーごとに独立した生成器。 |
-| `clinosim/seeding.py` `text_seed`, `panel_specimen_seed`, `individual_lab_seed`, `chronic_medication_seed`, `discharge_prescription_seed`, `ambulatory_visit_length_seed`, `issue939_procedure_seed`, `chronic_augment_sex_seed`, `chronic_isolated_seed`, `longitudinal_event_seed`, `perinatal_delivery_seed`, `chemotherapy_regimen_seed`, `daily_output_seed` | 実体ごとの名前付きシード。呼び出し側でシードを導出せず、ここに名前付き関数を足す。 |
+| `clinosim/seeding.py` `text_seed`, `panel_specimen_seed`, `individual_lab_seed`, `chronic_medication_seed`, `discharge_prescription_seed`, `ambulatory_visit_length_seed`, `issue939_procedure_seed`, `chronic_augment_sex_seed`, `chronic_isolated_seed`, `longitudinal_event_seed`, `perinatal_delivery_seed`, `chemotherapy_regimen_seed`, `daily_output_seed`, `radiation_therapy_seed`, `avpu_day_seed`, `newborn_seed`, `pregnancy_outcome_seed`, `newborn_conditions_seed`, `enumeration_case_seed`, `identity_person_seed` | 実体ごとの名前付きシード。呼び出し側でシードを導出せず、ここに名前付き関数を足す。 |
 | `clinosim/seeding.py` `rendezvous_pick(key, ids, hashes)` / `id_hashes(ids)` | プール (職員・病室) から 1 人を一様かつ安定に選ぶ。プールが増えても選択が動かない。 |
 | `clinosim/seeding.py` `morse_fall_history_unit(patient_id, encounter_id)` | Morse 転倒歴項目が使う、入院ごとに安定な単位値。 |
 | `clinosim/modules/_shared.py` `normalize_probabilities(p, fallback="raise")` | YAML 由来の確率ベクトルを `rng.choice(p=...)` に渡す前に必ず通す。 |

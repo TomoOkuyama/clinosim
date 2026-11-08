@@ -7,13 +7,12 @@ Generator, so the main simulation random stream (and golden files) is untouched
 
 from __future__ import annotations
 
-import hashlib
 from typing import Any
 
 from clinosim import determinism
 from clinosim.locale.loader import load_identity_config
 from clinosim.modules.identity.registry import get_provider
-from clinosim.seeding import ENRICHER_SEED_OFFSETS
+from clinosim.seeding import ENRICHER_SEED_OFFSETS, identity_person_seed
 from clinosim.types import IdentityTimeline
 
 
@@ -97,9 +96,7 @@ def assign_identity_for_person(
     household_latent = float(getattr(household, "identity_latent", None) or 0.0)
 
     pid = getattr(person, "person_id", "")
-    salt = hashlib.sha256(f"{master_seed}|identity_person|{pid}|v1".encode()).digest()
-    sub_seed = int.from_bytes(salt[:4], "big") + master_seed + ENRICHER_SEED_OFFSETS["identity"]
-    rng = determinism.default_rng(sub_seed)
+    rng = determinism.default_rng(identity_person_seed(master_seed, pid))
 
     enrollments = provider.assign_household([person], rng, config)
     identity = provider.assign_personal(person, household_latent, rng, config)

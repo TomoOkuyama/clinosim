@@ -23,7 +23,6 @@ obstetrics_gynecology via ``_CHRONIC_DISEASE_SPECIALTY``.
 
 from __future__ import annotations
 
-import hashlib
 from datetime import date, datetime, timedelta
 from typing import Any
 
@@ -38,7 +37,7 @@ from clinosim.locale.loader import load_perinatal_config
 from clinosim.modules._shared import is_jp
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.staff.engine import FALLBACK_PHYSICIAN_ID, StaffRoster, assign_staff
-from clinosim.seeding import text_seed
+from clinosim.seeding import newborn_conditions_seed, newborn_seed, pregnancy_outcome_seed, text_seed
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
 from clinosim.simulator.hospital_ops import perinatal_ward, resolve_department
 from clinosim.types.clinical import ConditionEvent
@@ -57,28 +56,9 @@ def _assign_perinatal_bed(encounter: Any, role: str, hospital_ops: dict | None, 
     if not ward:
         return
     capacity = int(((hospital_ops or {}).get("ward_capacity") or {}).get(ward, 1) or 1)
-    bed_rng = determinism.default_rng(_newborn_sub_seed(key))
+    bed_rng = determinism.default_rng(newborn_seed(key))
     encounter.ward_id = ward
     encounter.bed_number = f"{ward}-{int(bed_rng.integers(1, capacity + 1)):02d}"
-
-
-def _newborn_sub_seed(mother_id: str) -> int:
-    """Per-mother deterministic sub-seed for newborn attribute sampling
-    (sex, minor details). Isolated so mother→baby linkage is stable
-    across runs and independent of the calendar's master RNG."""
-    salt = "clinosim:newborn:v1"
-    digest = hashlib.sha256(f"{salt}|{mother_id}".encode()).digest()[:6]
-    return int.from_bytes(digest, "big") % (2**32)
-
-
-def _abortion_outcome_sub_seed(mother_id: str, year: int) -> int:
-    """Per-(mother, year) sub-seed for the pregnancy-outcome roll (delivery
-    vs abortion, and if abortion then spontaneous vs induced). Isolated
-    from the newborn-attribute seeds so tuning abortion rates does not
-    shift a delivered baby's sex or condition draws."""
-    salt = "clinosim:pregnancy-outcome:v1"
-    digest = hashlib.sha256(f"{salt}|{mother_id}|{year}".encode()).digest()[:6]
-    return int.from_bytes(digest, "big") % (2**32)
 
 
 def _lookup_age_band(table: dict, age: int) -> float:
@@ -106,7 +86,7 @@ def resolve_pregnancy_outcome(mother_id: str, mother_age: int, year: int) -> tup
     p_abort = _lookup_age_band(ab_cfg.get("probability_by_age") or {}, mother_age)
     if p_abort <= 0.0:
         return ("delivery", "Z37.0")
-    rng = determinism.default_rng(_abortion_outcome_sub_seed(mother_id, year))
+    rng = determinism.default_rng(pregnancy_outcome_seed(mother_id, year))
     if float(rng.random()) >= p_abort:
         return ("delivery", "Z37.0")
     # Abortion outcome — split induced vs spontaneous.
@@ -204,16 +184,6 @@ def simulate_abortion_encounter(
     ]
 
 
-def _newborn_conditions_sub_seed(mother_id: str) -> int:
-    """Sibling sub-seed for the newborn's condition roll (jaundice,
-    preterm, atopic dermatitis, diaper dermatitis, and the preterm-
-    gated RDS). Isolated from ``_newborn_sub_seed`` so tuning the
-    condition probabilities does not shift the newborn's sex draw."""
-    salt = "clinosim:newborn-conditions:v1"
-    digest = hashlib.sha256(f"{salt}|{mother_id}".encode()).digest()[:6]
-    return int.from_bytes(digest, "big") % (2**32)
-
-
 def _is_perinatal_code(code: str) -> bool:
     """Classify newborn condition code as perinatal-only vs persistent.
 
@@ -237,7 +207,7 @@ def _sample_newborn_conditions(
     ``PatientProfile.perinatal_history`` (one-time episode codes:
     P-chapter + Z38, per Issue #1699).
 
-    Per-mother sub-RNG (``_newborn_conditions_sub_seed``) makes the
+    Per-mother sub-RNG (``newborn_conditions_seed``) makes the
     outcome deterministic per birth and RNG-neutral against every
     other patient in the cohort.
     """
@@ -247,7 +217,7 @@ def _sample_newborn_conditions(
     perinatal: list[ChronicCondition] = []
     if not entries:
         return persistent, perinatal
-    rng = determinism.default_rng(_newborn_conditions_sub_seed(mother_id))
+    rng = determinism.default_rng(newborn_conditions_seed(mother_id))
     onset = delivery_date
 
     def _route(cond: ChronicCondition) -> None:
@@ -585,7 +555,7 @@ def simulate_delivery_encounter(
     # patient).
     cs_cfg = cfg.get("cesarean") or {}
     cs_prob = float((cs_cfg.get("probability") or {}).get("jp" if is_jp(country) else "us") or 0.0)
-    cs_rng = determinism.default_rng(_newborn_sub_seed(f"cesarean|{patient.patient_id}"))
+    cs_rng = determinism.default_rng(newborn_seed(f"cesarean|{patient.patient_id}"))
     is_cesarean = float(cs_rng.random()) < cs_prob
 
     dept = resolve_department(enc_cfg.get("department") or "obstetrics_gynecology", hospital_ops)
@@ -978,7 +948,7 @@ def simulate_delivery_encounter(
     # Per-mother sub-RNG for newborn sex (isolated from calendar RNG
     # so activating newborn emission does not shift any other patient's
     # stream).
-    baby_rng = determinism.default_rng(_newborn_sub_seed(patient.patient_id))
+    baby_rng = determinism.default_rng(newborn_seed(patient.patient_id))
     baby_sex = "M" if float(baby_rng.random()) < 0.514 else "F"  # ~51.4% male at birth (JP MHLW / US CDC)
     delivery_date = visit_date.date()
     # Issue #1247: pass snapshot_date so `_build_newborn_patient` decides
