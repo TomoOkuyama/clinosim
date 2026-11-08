@@ -30,8 +30,7 @@ FHIR プロファイル準拠** を優先する。
 4. サイクルに対して **正確に 30 issue** が列挙されるまで 2 + 3 を
    繰り返す (by-design 確認は 30 にカウントしない)。
 5. 30 issue 全てを fix。**FHIR 整合性の矛盾が追加なしに解決できない
-   場合のみ新規追加を行う** (memory `feedback_cif_fhir_quality_focus.md`
-   参照)。
+   場合のみ新規追加を行う**。
 6. 同 seed / 集団で CIF/FHIR を再生成。
 7. Issue 単位で解決を検証 (resolved / not resolved / newly discovered)。
 8. **サイクル終了 fix レビュー** (必須、2026-07-08 ユーザ指示で追加):
@@ -50,7 +49,7 @@ FHIR プロファイル準拠** を優先する。
    - warranted な場合は新 FP エントリを
      `docs/design-notes/2026-07-06-fix-point-registry.md` に追加。
    - gitignore 済みの `.resume-prompt.md` を refresh、現サイクル状態 (cycle N
-     progress n/20、carry-over リスト、master HEAD、次アクション) が
+     progress n/30、carry-over リスト、master HEAD、次アクション) が
      別 session の cold-start に十分となるように。
    - GitHub Issues board (`docs/roadmap.ja.md` 参照) 上の該当 META /
      scope issue に現サイクル進捗を反映。旧 `TODO.md` 台帳は Issues 化
@@ -96,13 +95,22 @@ resolved X / carried-over Y / newly discovered Z を表示。
 
 ## Index
 
-_(サイクル進行に伴い populate される — session 41 が cycle 1 を開く)_
-
-- [Cycle 1](cycle-1.md) — CLOSED 2026-07-07 (session 41): 20 issue
+- [Cycle 1](cycle-1.md) — CLOSED 2026-07-07: 20 issue
   対応 (13 resolved / 5 not-a-bug / 2 carry-over to cycle 2)。
   US p=10000 + JP p=10000 監査; 検証用に JP p=10000 再生成。
-- Cycle 2 — 未開始。Carry-over: C1-09 rules 拡張、
-  C1-10 ImagingStudy density、C1-18 JP chronic conditions 根本原因。
+- [Cycle 2](cycle-2.md) — CLOSED 2026-07-07: 20 resolved / 4 partial /
+  3 not-a-bug / 3 carry-over。
+- [Cycle 3](cycle-3.md) — CLOSED 2026-07-08: 18 resolved / 4 partial /
+  6 in-cycle attempted / 2 reverted post-review。
+- [Cycle 4](cycle-4.md) — CLOSED 2026-07-09: 22 fully resolved / 3 partial /
+  5 deferred。
+- [Cycle 5](cycle-5.md) — CLOSED 2026-07-09: 8 fully resolved / 2 by-design /
+  20 件を cycle 6 以降に持ち越し。
+- [Cycle 6](cycle-6.md) — CLOSED 2026-07-11: 30 fixed / by-design 3 件を新規登録。
+- [Cycle 7](cycle-7.md) — CLOSED 2026-07-11: 29/30 fully resolved / 1 partial /
+  by-design 1 件を新規登録。
+- [Cycle 8](cycle-8.md) — CLOSED 2026-07-13: 30 件 resolved (24 件 100%、
+  by-design selective 5 件、by-design 登録 1 件)。
 
 ## 関連文書
 
@@ -111,7 +119,3 @@ _(サイクル進行に伴い populate される — session 41 が cycle 1 を�
   作業からの背景)。
 - `docs/design-guides/data-model-and-completeness-conventions.md` —
   codebase 横断で共有される C1/C2/C3 completeness convention。
-- Memory `feedback_audit_cycle_workflow.md` — durable ワークフロー
-  ルール。
-- Memory `feedback_cif_fhir_quality_focus.md` — cycle 5 (fix) 判断を
-  gate する「厳密に required な場合のみ追加」ルール。

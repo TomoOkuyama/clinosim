@@ -29,8 +29,9 @@ module's own `README.md`.
   cross-reference each other.
 - [`data-flow.md`](data-flow.md) — end-to-end data flow across population,
   simulation, and FHIR export.
-- [`module-dependency-graph.md`](module-dependency-graph.md) — top-level
-  package import graph.
+- [`module-dependency-graph.md`](module-dependency-graph.md) — conceptual
+  data-flow diagram between the main modules (not the literal import graph:
+  the modules are wired together by `clinosim/simulator/`).
 
 ## Related
 

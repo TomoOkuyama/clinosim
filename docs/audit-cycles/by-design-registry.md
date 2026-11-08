@@ -59,17 +59,17 @@ Each entry has six fields:
 
 - **id**: `inpatient-mr-substitution-omitted`
 - **observation**: Some fraction (roughly 45–55%) of `MedicationRequest.ndjson` records are missing `substitution.allowedBoolean`.
-- **by_design_reason**: JP inpatient dispensing practice = brand-specified, generic substitution not allowed. `fhir_r4/medications/medications.py` only emits `substitution` for `intent == "instance-order"` (chronic outpatient prescriptions); it intentionally omits it for `intent == "order"` (inpatient orders). FHIR R4 `MedicationRequest.substitution` has cardinality 0..1.
-- **signature**: Aggregate the `intent` field of missing-substitution MRs; **all must be `"order"`** (equivalently, every MR with `intent == "instance-order"` has substitution attached, 100%).
+- **by_design_reason**: JP inpatient dispensing practice = brand-specified, generic substitution not allowed. `fhir_r4/medications/medications.py::_build_medication_request` emits `substitution` (`allowedBoolean: true`) only when the order belongs to an outpatient encounter or is a chronic home medication; it intentionally omits it for the other inpatient / ED orders. The rule is keyed on encounter type + home-med status, not on `intent`. FHIR R4 `MedicationRequest.substitution` has cardinality 0..1.
+- **signature**: Every MR missing substitution references an `IMP` / `EMER` Encounter (equivalently, every MR whose Encounter has `class.code == "AMB"` has substitution attached, 100%). Home medications listed on an IMP / EMER encounter also carry substitution, which is expected.
 - **established_session**: session 44, 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d`
-- **revalidation_check**: 0 MRs with `intent == "instance-order"` missing substitution; 0 MRs with `intent == "order"` carrying substitution.
+- **revalidation_check**: 0 MRs on an `AMB` Encounter missing substitution; every MR missing substitution is on an `IMP` / `EMER` Encounter.
 
 ### coverage-class-plan-omitted-for-late-elderly-insurer
 
 - **id**: `coverage-class-plan-omitted-for-late-elderly-insurer`
 - **observation**: Some fraction (roughly 15–25%) of `Coverage.ndjson` records lack an entry with `class[].type.coding[].code == "plan"`.
-- **by_design_reason**: JP late-elderly medical care insurers (後期高齢者医療広域連合, age ≥ 75) only have an insurer number (group) and **do not have a symbol (plan)** by statutory design. `fhir_r4/demographics/patient.py:170-200` emits the plan entry only when `symbol` is truthy, so late-elderly Coverage records have no plan.
+- **by_design_reason**: JP late-elderly medical care insurers (後期高齢者医療広域連合, age ≥ 75) only have an insurer number (group) and **do not have a symbol (plan)** by statutory design. `fhir_r4/demographics/patient.py` (`_build_coverage_resources`, the `use_symbol` branch) emits the plan entry only when `symbol` is truthy, so late-elderly Coverage records have no plan.
 - **signature**: Extract all Coverage records missing plan; every one must have `payor` / `class[0].name` containing "後期高齢者医療広域連合". Missing plan on any other insurer type is out of scope for this registry.
 - **established_session**: session 44, 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d`
@@ -79,7 +79,7 @@ Each entry has six fields:
 
 - **id**: `fmh-onsetstring-omitted-for-healthy-relatives`
 - **observation**: Some fraction (roughly 15–20%) of `FamilyMemberHistory.ndjson` records are missing `condition[].onsetString`.
-- **by_design_reason**: `fhir_r4/demographics/family_history.py:81-91` does not emit `condition[]` when the relative's `condition_codes` is empty, so there is no target to attach onsetString to. Healthy relatives (no disease history) = clinically realistic. FHIR R4 `FamilyMemberHistory.condition` has cardinality 0..*.
+- **by_design_reason**: `fhir_r4/demographics/family_history.py` (`_bb_family_history`, the `if conditions:` guard) does not emit `condition[]` when the relative's `condition_codes` is empty, so there is no target to attach onsetString to. Healthy relatives (no disease history) = clinically realistic. FHIR R4 `FamilyMemberHistory.condition` has cardinality 0..*.
 - **signature**: For every FMH missing onsetString, `"condition" not in resource` (i.e., the condition array does not exist at all). If the condition array is present but onsetString is missing, that is a real bug (out of scope for this registry).
 - **established_session**: session 44, 2026-07-11 (Chain 2 verify)
 - **established_pr**: `1481306d2f`
@@ -159,7 +159,7 @@ Each entry has six fields:
 
 - **id**: `care-team-inactive-for-completed-encounter`
 - **observation**: Many records have `CareTeam.status = "inactive"` (CTs attached to discharged encounters). A review expected "active".
-- **by_design_reason**: The FHIR R4 `CareTeam.status` valueSet includes `active | inactive | suspended | entered-in-error`. Discharged encounter = the team is no longer providing care = `inactive` is the spec-correct value (`fhir_r4/encounters/care_team.py:88-89`). Confirmed at C1-14 (cycle 1).
+- **by_design_reason**: The FHIR R4 `CareTeam.status` valueSet includes `active | inactive | suspended | entered-in-error`. Discharged encounter = the team is no longer providing care = `inactive` is the spec-correct value (`fhir_r4/encounters/care_team.py`: `status = "active" if discharge_dt is None else "inactive"`). Confirmed at C1-14 (cycle 1).
 - **signature**: Every CT with `status = "inactive"` has `encounter.discharge_datetime` non-null.
 - **established_session**: session 41, 2026-07-07 (cycle 1)
 - **established_pr**: cycle 1 close
@@ -179,7 +179,7 @@ Each entry has six fields:
 
 - **id**: `coverage-type-text-only-no-fabrication`
 - **observation**: `Coverage.type` has only `{"text": "..."}` and no `coding`.
-- **by_design_reason**: No authoritative FHIR CodeSystem has been finalized for JP insurance types (公費 / 社保 / 国保 etc.). Following the no-fabrication policy, text-only is preserved (`fhir_r4/demographics/patient.py:152-155`). Confirmed at C2-12 (cycle 2).
+- **by_design_reason**: No authoritative FHIR CodeSystem has been finalized for JP insurance types (公費 / 社保 / 国保 etc.). Following the no-fabrication policy, text-only is preserved (`fhir_r4/demographics/patient.py`: `coverage["type"] = {"text": label}`). Confirmed at C2-12 (cycle 2).
 - **signature**: `Coverage.type.coding` is omitted on every Coverage (no fabricated code exists in `fhir_r4/demographics/patient.py`).
 - **established_session**: session 42, 2026-07-07 (cycle 2)
 - **established_pr**: cycle 2 close
@@ -294,11 +294,11 @@ Each entry has six fields:
 
 - **id**: `cy8-23-condition-bodysite-selective`
 - **observation**: Some fraction (≈ 92%) of `Condition.ndjson` records lack `bodySite`.
-- **by_design_reason**: The bodySite emit introduced in session 48 cycle 8 is limited to a selective set of 15 disease prefixes (respiratory J13/J14/J15/J18/J44/J45 + cardiovascular I21/I25/I50 + cerebrovascular I60/I61/I63 + urologic N10/N17/N30/N39 + skin L03). Non-anatomic diseases (I10 hypertension, E11 diabetes, E78 dyslipidemia etc.) have no anatomic bodySite, so not emitting one is clinically correct. Fabrication avoided.
-- **signature**: The primary ICD prefix (first segment before `.`) of a Condition missing bodySite is NOT in the 15 prefixes above. Missing bodySite for a Condition matching the 15 prefixes = a real bug (out of scope for this registry).
+- **by_design_reason**: The bodySite emit introduced in session 48 cycle 8 is limited to a selective set of 17 disease prefixes (respiratory J13/J14/J15/J18/J44/J45 + cardiovascular I21/I25/I50 + cerebrovascular I60/I61/I63 + urologic N10/N17/N30/N39 + skin L03). Non-anatomic diseases (I10 hypertension, E11 diabetes, E78 dyslipidemia etc.) have no anatomic bodySite, so not emitting one is clinically correct. Fabrication avoided.
+- **signature**: The primary ICD prefix (first segment before `.`) of a Condition missing bodySite is NOT in the 17 prefixes above. Missing bodySite for a Condition matching the 17 prefixes = a real bug (out of scope for this registry).
 - **established_session**: session 48, 2026-07-13 (Cycle 8)
 - **established_pr**: cycle 8 close
-- **revalidation_check**: Aggregate ICD prefixes across Conditions missing bodySite; confirm none contain the 15 prefixes. When a new anatomic-site disease is added to `disease`, update `_CONDITION_BODY_SITE` (`fhir_r4/conditions/conditions.py`) + this signature.
+- **revalidation_check**: Aggregate ICD prefixes across Conditions missing bodySite; confirm none contain the 17 prefixes. When a new anatomic-site disease is added to `disease`, update the crosswalk `clinosim/codes/data/icd10-condition-bodysite-crosswalk.yaml` (loaded by `fhir_r4/conditions/conditions.py::_icd10_condition_bodysite_map`) + this signature.
 
 ### cy8-24-condition-abatement-finished-encounter-only
 
@@ -340,15 +340,17 @@ Each entry has six fields:
 - **established_pr**: #1034 (issue) — comment thread + registry entry. Incr-1 refactor: this branch.
 - **revalidation_check**: For every Z37 with `onset < recorded - 30d`, confirm category is `problem-list-item`. Also verify Z39 postpartum encounter dates > mother's delivery encounter's `period.start` (Z39 scheduler now reads `state_period.metadata.delivered_on` derived from the same delivery event, so no cascade risk).
 
-### s118-prior-admit-cache-encounter-start-before-window
+### s118-prior-admit-cache-encounter-start-before-window [RETIRED]
 
 - **id**: `s118-prior-admit-cache-encounter-start-before-window`
-- **observation**: A small fraction (~0.06% at US p=10000 — 142/234,425 Encounters) of `Encounter.ndjson` records have `period.start` strictly before the input `--start` (window-open) date. Example: window `2021-10-27 → 2026-10-27` yields 142 encounters with `period.start` as early as `2021-10-01` (26 days before window-open). All such records have `period.end` inside the window.
-- **by_design_reason**: `clinosim/simulator/_setup.py::_load_prev_admission_cache` seeds a prior-admission cache so that patients who are already admitted at window-open are not born in-admission on day 1. `clinosim/simulator/_dispatch.py::_replay_cached_admission_queue` then emits those admissions with their real (pre-window) admission date and the in-window discharge date. This mirrors real EHR snapshots at an index date — admissions in-flight at the snapshot carry their true `period.start`, not a clipped one. Clipping to `max(period.start, window_start)` would destroy the actual admission date and under-represent length-of-stay for the carry-over cohort, so the sim intentionally preserves pre-window `period.start`. The affected population is bounded by the first-year inpatient cache (no cache replay in later years), so the fraction stays well under 1% of total encounters.
-- **signature**: Every Encounter with `period.start < window_start` has `class.code in {"IMP", "EMER"}`, `period.end >= window_start`, and originates from the prior-admit cache replay path. The count is bounded by `prior_admit_cache_size` which empirically runs at ≤ 1% of total encounters (0.06% observed on US p=10000 seed=342). An encounter with `period.start < window_start` AND `class.code == "AMB"` (outpatient), or an encounter where `period.end < window_start` (fully pre-window), is a real bug (out of scope for this registry).
+- **status**: **RETIRED — 2026-11-09**
+- **retirement_reason**: Retired: the mechanism this entry relies on does not exist in the current code, 2026-11-09. `_load_prev_admission_cache` is the F4 memoize cache of a previous snapshot (it returns an empty index unless `clinosim simulate --cache-dir` is given), and `_replay_cached_admission_queue` only replays a cached admission's lab / imaging queue increments onto `hospital_state` — neither emits admissions. The forward loop drops every event outside the window (`clinosim/simulator/phases/_forward_loop.py::in_window`). An Encounter with `period.start` before the window-open date is therefore no longer covered by this registry: treat it as a real bug and investigate.
+- **original_observation**: A small fraction (~0.06% at US p=10000 — 142/234,425 Encounters) of `Encounter.ndjson` records have `period.start` strictly before the input `--start` (window-open) date. Example: window `2021-10-27 → 2026-10-27` yields 142 encounters with `period.start` as early as `2021-10-01` (26 days before window-open). All such records have `period.end` inside the window.
+- **original_by_design_reason**: `clinosim/simulator/_setup.py::_load_prev_admission_cache` seeds a prior-admission cache so that patients who are already admitted at window-open are not born in-admission on day 1. `clinosim/simulator/_dispatch.py::_replay_cached_admission_queue` then emits those admissions with their real (pre-window) admission date and the in-window discharge date. This mirrors real EHR snapshots at an index date — admissions in-flight at the snapshot carry their true `period.start`, not a clipped one. Clipping to `max(period.start, window_start)` would destroy the actual admission date and under-represent length-of-stay for the carry-over cohort, so the sim intentionally preserves pre-window `period.start`. The affected population is bounded by the first-year inpatient cache (no cache replay in later years), so the fraction stays well under 1% of total encounters.
+- **original_signature**: Every Encounter with `period.start < window_start` has `class.code in {"IMP", "EMER"}`, `period.end >= window_start`, and originates from the prior-admit cache replay path. The count empirically ran at ≤ 1% of total encounters (0.06% observed on US p=10000 seed=342). An encounter with `period.start < window_start` AND `class.code == "AMB"` (outpatient), or an encounter where `period.end < window_start` (fully pre-window), is a real bug (out of scope for this registry).
 - **established_session**: session 118, 2026-10-27 (Issue #2005)
 - **established_pr**: #2005 (issue) — this PR (`docs/prior-admit-cache-by-design` branch).
-- **revalidation_check**: Count Encounters with `period.start < window_start` and confirm (a) count / total encounters ≤ 1%, (b) every such encounter has `class.code in {"IMP", "EMER"}`, (c) every such encounter has `period.end >= window_start`. If any of these fails, the prior-admit cache has drifted or an unrelated path is emitting pre-window starts.
+- **retired_on**: 2026-11-09 (doc–code drift review)
 
 ### s118-patient-emit-requires-encounter
 
@@ -395,3 +397,4 @@ The following are **not eligible for registration**. If detected during audit, r
 - 2026-09-13 (session 113, Issue #1353): added `s112-n10-pyelonephritis-vs-ain-single-code`. Random-sample review flagged an antibiotic-escalated N10 case as an AIN mistreatment; clarified in-YAML that WHO N10 spans both etiologies and the sim's N10 path is pyelonephritis by design. The AKI YAML `interstitial_nephritis` differential row renamed to `N14.1` (ICD-10-CM drug-induced) so the two codes are now disjoint at the emit layer. Distinct AIN modeling as its own disease branch is deferred. Total **27 entries**.
 - 2026-10-27 (session 118, Issue #2005): added `s118-prior-admit-cache-encounter-start-before-window`. Aggregate QA on US `s=342 p=10000 2021-10-27..2026-10-27` flagged 142/234,425 Encounters (0.06%) with `period.start` before the window-open date. Confirmed as the intended output of the prior-admit cache (`clinosim/simulator/_setup.py::_load_prev_admission_cache` + `clinosim/simulator/_dispatch.py::_replay_cached_admission_queue`), which preserves the true admission date of patients already admitted at window-open. Total **28 entries**.
 - 2026-10-27 (session 118, Issue #2004): added `s118-patient-emit-requires-encounter`. Aggregate QA flagged `Patient.ndjson` at 9,832 against `-p 10000`; confirmed that only residents with at least one encounter in the window get a chart (9,206 residents + 626 newborns), and deceased patients remain emitted with `deceasedDateTime`. Total **29 entries**.
+- 2026-11-09 (doc–code drift review): `s118-prior-admit-cache-encounter-start-before-window` → RETIRED. The cited code (`_load_prev_admission_cache` / `_replay_cached_admission_queue`) does not emit pre-window admissions — the former is the `--cache-dir` memoize cache, the latter replays lab / imaging queue increments — and the forward loop drops out-of-window events. A pre-window `period.start` is now treated as a real bug. Total **29 entries** (1 retired).

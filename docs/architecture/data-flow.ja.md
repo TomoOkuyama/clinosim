@@ -12,12 +12,12 @@ flowchart TD
         act["patient activator<br/>Layer 1 → Layer 2"]
         enc["encounter creation<br/>disease YAML → department<br/>staff / ward / bed / OR"]
         loop["daily simulation loop<br/>clinical_course → physiology<br/>→ orders → diagnosis<br/>→ procedure + MAR<br/>→ discharge readiness?"]
+        gen2["document_enricher (document module)<br/>POST_ENCOUNTER enricher: DR + Composition + ClinicalImpression<br/>template ベース、完全決定的"]
         cif_s["CIF structural/<br/>immutable, encounter ごとに 1 JSON"]
-        pop --> act --> enc --> loop --> cif_s
+        pop --> act --> enc --> loop --> gen2 --> cif_s
     end
 
     subgraph stage2["Stage 2 — clinosim narrate"]
-        gen2["document_enricher (document module)<br/>Stage 1 built-in: DR + Composition + ClinicalImpression<br/>template ベース、完全決定的"]
         llm2["clinosim narrate (cli_narrate.py)<br/>structural CIF に対するオプション LLM narrative pass<br/>cif/narratives/&lt;version&gt;/ を emit"]
     end
 

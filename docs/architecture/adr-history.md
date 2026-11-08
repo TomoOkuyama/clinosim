@@ -99,6 +99,12 @@ Condition and Procedure resources emit dual `coding[]` entries:
 `_build_diagnosis_codeable_concept()` tries `icd-10` → falls back to `icd-10-cm` → `"(display unavailable)"`.
 `code.text` uses `_CONDITION_SHORT_NAME` for search-friendly abbreviations (AD-49).
 
+> **As shipped:** the builder is now `build_diagnosis_codeable_concept()` in
+> `clinosim/modules/output/fhir_r4/lib/common.py`. It emits a single coding (the
+> localized name goes in `code.text`, Issue #2375), never emits the
+> `"(display unavailable)"` placeholder (an unresolved display is omitted, Issue #1766),
+> and reads short names from `clinosim/codes/data/condition-short-name.yaml`.
+
 ### AD-47: Observation referenceRange + interpretation consistency
 
 Per FHIR R5 Note 5: "The interpretation should be consistent with the reference range when both
@@ -292,12 +298,13 @@ as device/hai/antibiotic/imaging precedents):
   (1:1 with inpatient encounters) enforced via lift_firing_proof equality_checks 18-25
 - AD-55 always-on Module count increases to 8 (device, hai, antibiotic, imaging, triage,
   nursing_assignment, allergy, document). POST_ENCOUNTER ordering: 70/80/85/90/93/94/95
-- **Known production gap**: outpatient.py + emergency.py do NOT invoke POST_ENCOUNTER enrichers
-  (only inpatient.py does). OUTPATIENT_SOAP / ED_NOTE / ED_TRIAGE_NOTE produce 0 resources in
-  production. Dispatch logic is correct (verified by audit proof checks 22-25); fix requires
-  adding `run_stage(POST_ENCOUNTER, ...)` to outpatient.py + emergency.py (targeted for α-min-3).
-- **Naming collision guard**: `modules/nursing/` contains both `nursing_enricher` (POST_ENCOUNTER
-  order=94, primary_nurse assignment) and `nursery_enricher` (POST_RECORDS observation).
+- **Production gap at the time (since resolved)**: outpatient.py + emergency.py did NOT invoke
+  POST_ENCOUNTER enrichers (only inpatient.py did), so OUTPATIENT_SOAP / ED_NOTE / ED_TRIAGE_NOTE
+  produced 0 resources in production. Both now call `run_stage(POST_ENCOUNTER, ...)`
+  (α-min-2 Task 14 fix).
+- **Naming collision guard**: `modules/nursing/engine.py::nursing_enricher` (POST_ENCOUNTER
+  order=94, primary_nurse assignment) and `modules/observation/nursing_enricher.py::enrich_nursing`
+  (POST_RECORDS observation) have near-identical names.
   Always specify the enricher name when referencing. `nursing_assignment` = POST_ENCOUNTER.
   `nursing` (observation) = POST_RECORDS.
 - **CareTeam 2-name scope**: β-JP-1 will expand to 6-name multi-disciplinary team
@@ -670,7 +677,6 @@ single responsibility) / AD-58 (output adapter registration pattern)
 **Related documents:**
 - Migration PRs: #396 (dispatcher refactor) / #398 (shared pkg loader) / #400 (analyte classifier)
   / #402 (CoreLabo emit) / #404 (Uncoded + LocalCode + sanitize)
-- Session notes: `project_session_67_end_state.md` (axis completion, decision B adoption)
 
 ---
 

@@ -60,14 +60,14 @@ clinosim/
 │   ├── staff/                # Hospital staff roster + assignment
 │   ├── facility/             # Hospital state + M/M/1 queueing
 │   ├── healthcare_system/    # Country-specific parameters (JP / US)
-│   ├── identity/             # Resident identifier & insurance numbering (JP, opt-in)
+│   ├── identity/             # Resident identifier & insurance numbering (on by default; JP opt-out)
 │   ├── output/               # CIF / FHIR R4 / CSV + clinical documents
 │   │   ├── cif_writer.py              # CIF structural writer
 │   │   ├── fhir_r4/                   # FHIR R4 Bulk NDJSON (incl. DocumentReference)
 │   │   ├── csv_adapter.py             # CSV tables
 │   │   └── hospital_course_extractor.py  # ★ deterministic event extraction
 │   ├── llm_service/          # All LLM access (AD-11)
-│   │   ├── engine.py                  # LLMService, LLMTaskType, PatientSummary
+│   │   ├── engine.py                  # LLMService, LLMTaskType, LLMResponse
 │   │   ├── factory.py                 # YAML → LLMService
 │   │   ├── prompt_registry.py         # ★ YAML-based prompt templates
 │   │   ├── cache.py                   # ★ SHA256 disk cache
@@ -77,23 +77,11 @@ clinosim/
 │   │   │   ├── bedrock.py             # AWS Bedrock (boto3 lazy import)
 │   │   │   ├── vllm.py                # vLLM OpenAI-compatible server
 │   │   │   └── mock.py                # Deterministic test provider
-│   │   └── prompts/                   # ★ Prompt template YAML tree
-│   │       ├── ja/                    # Japanese prompts (same 17 template names)
-│   │       └── en/                    # English prompts (17 templates —
-│   │           │                      #   admission H&P, discharge/death
-│   │           │                      #   summaries, operative + procedure
-│   │           │                      #   notes, referral note, death
-│   │           │                      #   certificate contributing +
-│   │           │                      #   duration, per-section death
-│   │           │                      #   discharge summary pieces,
-│   │           │                      #   narrative_seed + bundle)
-│   │           ├── admission_hp.yaml
-│   │           ├── discharge_summary.yaml
-│   │           ├── death_summary.yaml
-│   │           ├── operative_note.yaml
-│   │           ├── procedure_note.yaml
-│   │           ├── referral_note.yaml
-│   │           └── ... (see clinosim/modules/llm_service/prompts/en/)
+│   │   └── prompts/                   # ★ Prompt template YAML tree (ja/ + en/, same file names)
+│   │       ├── ja/
+│   │       └── en/
+│   │           ├── narrative_seed.yaml          # per-section fallback prompt
+│   │           └── narrative_seed_bundle.yaml   # primary: all sections of one document per call
 │   └── validator/            # Comparison against published benchmarks
 │
 ├── simulator/                # Top-level orchestration (~50 files split by phase / pipeline / dispatch)

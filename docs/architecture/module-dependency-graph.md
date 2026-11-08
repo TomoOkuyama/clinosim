@@ -2,6 +2,9 @@
 
 # Module Dependency Graph
 
+Conceptual data-flow view of the main modules. It is not the literal import graph:
+modules rarely import each other directly; `clinosim/simulator/` calls them in turn.
+
 ```mermaid
 flowchart TD
     codes["codes<br/>(international code systems)"]
@@ -14,7 +17,7 @@ flowchart TD
     population["population"]
     staff["staff"]
     healthcare["healthcare_system"]
-    identity["identity<br/>(JP insurance, opt-in)"]
+    identity["identity<br/>(insurance numbering)"]
 
     subgraph loop["daily simulation loop"]
         cc["clinical_course"] --> phys["physiology"]
@@ -43,7 +46,8 @@ flowchart TD
 ```
 
 `llm_service` and `validator` are cross-cutting (used in dedicated phases).
-`identity` is an opt-in enricher (AD-54): it runs as a post-population pass via the
+`identity` is an enricher (AD-54) that is on by default (JP can opt out with
+`--no-jp-insurance`; US always runs it): it runs as a post-population pass via the
 enricher registry (AD-56) and its data is emitted as FHIR `Coverage` by `output`.
 
 See each module's `clinosim/modules/<module>/README.md` for details.

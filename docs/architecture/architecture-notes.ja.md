@@ -379,7 +379,8 @@ clinosim/
 │   │                                       antibiotic、imaging、
 │   │                                       discontinue_flip、newborn、
 │   │                                       triage、lab_derived_dx、
-│   │                                       nursing_assignment、document
+│   │                                       nursing_assignment、
+│   │                                       supersede_orders、document
 │   │                       POST_RECORDS:  nursing、immunization、
 │   │                                      family_history、code_status、
 │   │                                      care_level、monitoring、
@@ -491,7 +492,7 @@ observation から計算可能。
 | AD-53 | 2026-04-10 | Narrative プロンプトでのスタッフ名前解決 (hospital.json roster → display 名) |
 | AD-54 | 2026-06-15 | 国プラグイン可能な住民識別子 & 保険番号モジュール (`modules/identity/`) |
 | AD-55 | 2026-06-15 | EHR データ enrichment 分割: near-essential データは Base (always-on、core 拡張)、専門的 / optional データは opt-in モジュール。**2026-06-25 PR3b-1 補足** — 第 3 カテゴリが正式追加: **always-on Module = near-essential 臨床カスケード**。省略すると臨床的に不整合な状態 (例: `HAI 発生かつ抗生剤治療なし`) を生じ CLAUDE.md 臨床整合性原則に反するモジュール。これらは `enabled=lambda c: True` で登録され、上流の `extensions[X]` スロットが空のときのみ no-op となる。例: `device` (PR-A)、`hai` (PR-B)、`antibiotic` (PR3b-1)。真に optional なデータ (例: JP `identity` — JP 保険番号が必要な場合のみ) 向けの **opt-in パターン** および core レコード型の typed フィールドを使う元の **Base パターン** とは区別される。新モジュール追加時の選定規則: 上流カスケードから常に期待されるデータなら always-on、simulator レベルの設定フラグ (国、地域、業務取極め) に依存するなら opt-in、ほぼ普遍的に emit される FHIR resource 型を拡張するなら Base typed-field を優先。**2026-06-26 PR3b-2 = HAI 培養 S/I/R 感受性チェイン**: Phase 3b シリーズの 2 番目。`modules/hai/_append_hai_culture()` を `load_hai_antibiogram()` (`modules/hai/__init__` の新 export) を使った antibiogram 駆動感受性サンプリングに拡張。データソース: `reference_data/hai_antibiogram.yaml` (CDC NHSN AR 2018-2020)、形式 `{hai_type: {organism_snomed: {antibiotic_key: [S, I, R]}}}`、import 時に `HAI_TYPES` + `hai_organisms.yaml` + `ANTIBIOTIC_LOINC_LOOKUP` に対して検証。RNG は既存の HAI per-patient sub-rng を使用 (新 RNG stream なし; AD-16 維持)。Forward-compat: `MicrobiologyResult.hai_event_id` backref (培養を PR3b-3 クロスリファレンス用に HAIEvent へリンク) と `AntibioticRegimen.discontinuation_datetime` (PR3b-3 de-escalation 用予約) を typed フィールドとして追加。`ANTIBIOTIC_DRUGS` を tuple → `dict[str, dict[str, str]]` にリファクタし `ANTIBIOTIC_LOINC_LOOKUP` を新 LOINC-lookup 相方として追加。LOINC orphan 修正: `microbiology.yaml` の `ciprofloxacin: "18879-7"` は実際は Cefepime だった → `18906-8` に訂正 (NLM 検証済); `loinc.yaml` 相方修正で Ciprofloxacin `18879-7` を正しいラベルで追加 + Cefepime `18906-8`。`simulator/engine.py` の `run_forced` は `force_hai_event is not None` のとき `config.forced_scenarios` へ `scenario` を注入するよう変更、Task 6 で発見された silent-no-op ギャップを閉じた。DQR: `docs/reviews/2026-06-26-phase-3b-2-hai-susceptibility-data-quality-review.md`。 |
-| AD-56 | 2026-06-15 | 拡張性基盤 (Phase 0): FHIR resource-builder registry、simulator enricher registry、モジュール用 CIF extensions スロット、config モジュール有効化マップ。**PR1 2026-06-24 foundation refactor** で `clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS` を全 enricher sub-seed オフセットの中央 registry として追加 (7 モジュール: identity + microbiology は decimals として grandfathered; immunization / code_status / family_history / care_level / nursing は 16-bit hex ASCII 慣習を使用)。モジュールレベル assert が偶発的重複オフセットを import 時に catch。新 enricher はここに登録し `ENRICHER_SEED_OFFSETS["my_module"]` 経由で import。CLAUDE.md「AD-55 enricher patterns」節 + `docs/CONTRIBUTING-modules.md` の contributor プレイブック参照。**PR2 2026-06-24 G2 SDOH integrity refactor** で「データ専用モジュール (variant)」パターン (`modules/sdoh/` — reference データ + loader のみ、enricher なし / ENRICHER_SEED_OFFSETS エントリなし — `clinosim/codes/` が既存の先例) を確立。また `_fhir_sdoh.py` を単一責務分離のため `_fhir_smoking_alcohol.py` + `_fhir_care_level.py` に分割し、将来の SDOH builder 再利用のため `_social_category` / `_value` helper を `_fhir_common.py` に昇格。**PR_docs 2026-06-24 包括的ドキュメント更新** で `MODULES.md` (22 モジュール inventory + 依存ツリー + 典型的呼び出しチェーン付きの top-level モジュールマップ)、`SCENARIO_FLAGS.md` (`derive_lab_values` を通じてルーティングされる scenario + medication フラグの中央参照)、`.github/TEMPLATE_MODULE_README.md` (標準化モジュール README テンプレート)、および全 22 モジュール README への「Consumers」節 (逆依存可視化用) を追加。`docs/CONTRIBUTING-modules.md` に PR 検証ガイド (byte-diff vs 3-axis DQR 判定マトリクス; プロジェクトの TRUE 目標は FHIR R4 + JP Core 準拠 + 臨床整合性 + JP language 品質、byte-diff は refactor-PR 手法のみ) を拡張し、元の G4 typed-field-vs-extensions 判定ツリーを吸収。**PR3 2026-06-24 G3 Observation-family split** (foundation refactor シリーズの最終構造ピース) で `_fhir_observations.py` (727 行 / 31 KB) 内の 4 つの無関係 builder を PR2 の先例に沿った 3 つの新テーマ別ファイルに抽出: `_fhir_microbiology.py` (Specimen + Observation + DiagnosticReport)、`_fhir_nursing.py` (NEWS2/GCS/Braden/Morse/Barthel/I&O サーベイ Observation)、`_fhir_immunization.py` (CVX Immunization)。残余 `_fhir_observations.py` (~380 行) は canonical な数値 Observation builder となる (lab helper + vital builder)。純粋機械的リファクタ — US p=2000 + JP p=2000、seed=42 の全 33 NDJSON ファイル (US 16 + JP 17) が master と byte-identical。device + HAI 特徴 builder が multi-theme blob を継承せずクリーンなテーマ別ファイル (`_fhir_device.py` / `_fhir_hai.py`) に landing する道筋を開いた。**PR-A device module 2026-06-24** で device + HAI 4-PR シリーズの Phase 1 を追加: `modules/device/` (AD-55 Module post_records enricher、inpatient ICU encounter に対し state-based 配置基準で CVC + 留置カテーテル + 人工呼吸器を emit)、`_fhir_device.py` builder ファイル (Device + DeviceUseStatement)、`clinosim/types/device.py` (`extensions["device"]` 配下の `DeviceRecord` dataclass)、`ENRICHER_SEED_OFFSETS["device"] = 0x4445`。SNOMED CT コード (`52124006` CVC / `23973005` 留置尿カテーテル / `706172005` Ventilator) は tx.fhir.org `$expand` テキスト検索で検証; spec の暫定 `467021000` は検証済 `23973005` に置換 (PR #80 LOINC `2B010` 捏造前例を適用)。3-axis DQR PASS at US p=10000 + JP p=5000: それぞれ 353 + 20 device、全構造チェック 100%、line-days は妥当なバンド内。byte-diff 補足で既存 NDJSON への回帰ゼロを確認 (AD-16 invariant)。Phase 2 PR-B (`modules/hai`) は `extensions["device"]` を消費して CLABSI/CAUTI/VAP onset サンプリングを行う。**PR-B hai module 2026-06-24** で device + HAI 4-PR シリーズの Phase 2 を追加: `modules/hai/` (AD-55 Module post_records enricher order=80、PR-A `extensions["device"]` line-days を消費し CDC NHSN baseline per-line-day リスクレート 0.0010/0.0014/0.0015 で CLABSI/CAUTI/VAP onset をサンプリング)、`_fhir_hai.py` builder (HAI Condition のみ — 培養は既存 `_fhir_microbiology.py` builder 経由で `record.microbiology.append(...)` で emit、新規配線ゼロ)、`clinosim/types/hai.py` (`extensions["hai"]` 配下の `HAIEvent` dataclass)、`ENRICHER_SEED_OFFSETS["hai"] = 0x4841`。コード検証: 3 ICD-10-CM (T80.211A / T83.511A / J95.851) を NLM API で; 3 WHO ICD-10 (T80.2 / T83.5 / J95.8); 3 HAI SNOMED (736442006 CLABSI / 68566005 UTI generic / 429271009 VAP — spec の暫定 433142000 + 425500004 は SNOMED CT International に存在せず、$expand 検証済の置換)。3-axis DQR PASS at US p=10000 + JP p=5000: US 4 HAI (3 CAUTI + 1 VAP) は expected ~3.2 の Poisson 2σ 内; JP 0 HAI は許容可能な rare-event。cross-module enricher 消費パターンの最初のクリーンな例。**Phase 3a 2026-06-25 POST_ENCOUNTER stage** で `clinosim/simulator/enrichers.py` に第 3 の enricher stage (`POST_POPULATION` および `POST_RECORDS` と並ぶ) を導入: **encounter ごとに、日次ループ完了直後、ただし encounter simulator 内** で実行される。`device` (order=70) と `hai` (order=80) を `POST_RECORDS` から `POST_ENCOUNTER` に移行、これは彼らのサンプリングが日次ループ後にしか分からない完全な clinical course アウトカム (`record.icu_transferred`、GCS、perfusion) に依存し、彼らの出力 (HAI event) が同 encounter の後処理から可視である必要があるため。AD-55 Module 分類は **「encounter-bound Module」** (device/hai — POST_ENCOUNTER) と **「cross-record Module」** (nursing/immunization/family_history/code_status/care_level/sdoh — POST_RECORDS) を区別するようになった。Phase 3a はさらに `clinosim/modules/hai/lab_lift.apply_hai_lab_lift` を追加、これは日次ループ後に `extensions["hai"]` を walk し per-day state_history snapshot を使って既存の WBC + CRP `obs.value` に forward-delta lift を追加; 元の noise + circadian を保持しつつ deterministic HAI 炎症効果を注入。byte-diff PASS: US p=2000 + JP p=2000 で全 37 NDJSON ファイル byte-identical (HAI はこのサイズでは Poisson rare-event); lift は p=10000 DQR で expected 臨床相対デルタで発火。forward-delta パターンは Phase 3b (antibiotic-day decay) と Phase 3c (Lactate / Plt / Temp / SBP sepsis cascade) で再利用可能。 |
+| AD-56 | 2026-06-15 | 拡張性基盤 (Phase 0): FHIR resource-builder registry、simulator enricher registry、モジュール用 CIF extensions スロット、config モジュール有効化マップ。**PR1 2026-06-24 foundation refactor** で `clinosim/simulator/seeding.py:ENRICHER_SEED_OFFSETS` を全 enricher sub-seed オフセットの中央 registry として追加 (7 モジュール: identity + microbiology は decimals として grandfathered; immunization / code_status / family_history / care_level / nursing は 16-bit hex ASCII 慣習を使用)。モジュールレベル assert が偶発的重複オフセットを import 時に catch。新 enricher は `ENRICHER_SEED_OFFSETS` (現在は `clinosim/seeding.py`、AD-59 参照) にオフセットを登録し `ENRICHER_SEED_OFFSETS["my_module"]` 経由で import。contributor プレイブックは `docs/CONTRIBUTING-modules.md` 参照。**PR2 2026-06-24 G2 SDOH integrity refactor** で「データ専用モジュール (variant)」パターン (`modules/sdoh/` — reference データ + loader のみ、enricher なし / ENRICHER_SEED_OFFSETS エントリなし — `clinosim/codes/` が既存の先例) を確立。また `_fhir_sdoh.py` を単一責務分離のため `_fhir_smoking_alcohol.py` + `_fhir_care_level.py` に分割し、将来の SDOH builder 再利用のため `_social_category` / `_value` helper を `_fhir_common.py` に昇格。**PR_docs 2026-06-24 包括的ドキュメント更新** で `MODULES.md` (22 モジュール inventory + 依存ツリー + 典型的呼び出しチェーン付きの top-level モジュールマップ)、`SCENARIO_FLAGS.md` (`derive_lab_values` を通じてルーティングされる scenario + medication フラグの中央参照)、`.github/TEMPLATE_MODULE_README.md` (標準化モジュール README テンプレート)、および全 22 モジュール README への「Consumers」節 (逆依存可視化用) を追加。`docs/CONTRIBUTING-modules.md` に PR 検証ガイド (byte-diff vs 3-axis DQR 判定マトリクス; プロジェクトの TRUE 目標は FHIR R4 + JP Core 準拠 + 臨床整合性 + JP language 品質、byte-diff は refactor-PR 手法のみ) を拡張し、元の G4 typed-field-vs-extensions 判定ツリーを吸収。**PR3 2026-06-24 G3 Observation-family split** (foundation refactor シリーズの最終構造ピース) で `_fhir_observations.py` (727 行 / 31 KB) 内の 4 つの無関係 builder を PR2 の先例に沿った 3 つの新テーマ別ファイルに抽出: `_fhir_microbiology.py` (Specimen + Observation + DiagnosticReport)、`_fhir_nursing.py` (NEWS2/GCS/Braden/Morse/Barthel/I&O サーベイ Observation)、`_fhir_immunization.py` (CVX Immunization)。残余 `_fhir_observations.py` (~380 行) は canonical な数値 Observation builder となる (lab helper + vital builder)。純粋機械的リファクタ — US p=2000 + JP p=2000、seed=42 の全 33 NDJSON ファイル (US 16 + JP 17) が master と byte-identical。device + HAI 特徴 builder が multi-theme blob を継承せずクリーンなテーマ別ファイル (`_fhir_device.py` / `_fhir_hai.py`) に landing する道筋を開いた。**PR-A device module 2026-06-24** で device + HAI 4-PR シリーズの Phase 1 を追加: `modules/device/` (AD-55 Module post_records enricher、inpatient ICU encounter に対し state-based 配置基準で CVC + 留置カテーテル + 人工呼吸器を emit)、`_fhir_device.py` builder ファイル (Device + DeviceUseStatement)、`clinosim/types/device.py` (`extensions["device"]` 配下の `DeviceRecord` dataclass)、`ENRICHER_SEED_OFFSETS["device"] = 0x4445`。SNOMED CT コード (`52124006` CVC / `23973005` 留置尿カテーテル / `706172005` Ventilator) は tx.fhir.org `$expand` テキスト検索で検証; spec の暫定 `467021000` は検証済 `23973005` に置換 (PR #80 LOINC `2B010` 捏造前例を適用)。3-axis DQR PASS at US p=10000 + JP p=5000: それぞれ 353 + 20 device、全構造チェック 100%、line-days は妥当なバンド内。byte-diff 補足で既存 NDJSON への回帰ゼロを確認 (AD-16 invariant)。Phase 2 PR-B (`modules/hai`) は `extensions["device"]` を消費して CLABSI/CAUTI/VAP onset サンプリングを行う。**PR-B hai module 2026-06-24** で device + HAI 4-PR シリーズの Phase 2 を追加: `modules/hai/` (AD-55 Module post_records enricher order=80、PR-A `extensions["device"]` line-days を消費し CDC NHSN baseline per-line-day リスクレート 0.0010/0.0014/0.0015 で CLABSI/CAUTI/VAP onset をサンプリング)、`_fhir_hai.py` builder (HAI Condition のみ — 培養は既存 `_fhir_microbiology.py` builder 経由で `record.microbiology.append(...)` で emit、新規配線ゼロ)、`clinosim/types/hai.py` (`extensions["hai"]` 配下の `HAIEvent` dataclass)、`ENRICHER_SEED_OFFSETS["hai"] = 0x4841`。コード検証: 3 ICD-10-CM (T80.211A / T83.511A / J95.851) を NLM API で; 3 WHO ICD-10 (T80.2 / T83.5 / J95.8); 3 HAI SNOMED (736442006 CLABSI / 68566005 UTI generic / 429271009 VAP — spec の暫定 433142000 + 425500004 は SNOMED CT International に存在せず、$expand 検証済の置換)。3-axis DQR PASS at US p=10000 + JP p=5000: US 4 HAI (3 CAUTI + 1 VAP) は expected ~3.2 の Poisson 2σ 内; JP 0 HAI は許容可能な rare-event。cross-module enricher 消費パターンの最初のクリーンな例。**Phase 3a 2026-06-25 POST_ENCOUNTER stage** で `clinosim/simulator/enrichers.py` に第 3 の enricher stage (`POST_POPULATION` および `POST_RECORDS` と並ぶ) を導入: **encounter ごとに、日次ループ完了直後、ただし encounter simulator 内** で実行される。`device` (order=70) と `hai` (order=80) を `POST_RECORDS` から `POST_ENCOUNTER` に移行、これは彼らのサンプリングが日次ループ後にしか分からない完全な clinical course アウトカム (`record.icu_transferred`、GCS、perfusion) に依存し、彼らの出力 (HAI event) が同 encounter の後処理から可視である必要があるため。AD-55 Module 分類は **「encounter-bound Module」** (device/hai — POST_ENCOUNTER) と **「cross-record Module」** (nursing/immunization/family_history/code_status/care_level/sdoh — POST_RECORDS) を区別するようになった。Phase 3a はさらに `clinosim/modules/hai/lab_lift.apply_hai_lab_lift` を追加、これは日次ループ後に `extensions["hai"]` を walk し per-day state_history snapshot を使って既存の WBC + CRP `obs.value` に forward-delta lift を追加; 元の noise + circadian を保持しつつ deterministic HAI 炎症効果を注入。byte-diff PASS: US p=2000 + JP p=2000 で全 37 NDJSON ファイル byte-identical (HAI はこのサイズでは Poisson rare-event); lift は p=10000 DQR で expected 臨床相対デルタで発火。forward-delta パターンは Phase 3b (antibiotic-day decay) と Phase 3c (Lactate / Plt / Temp / SBP sepsis cascade) で再利用可能。 |
 | AD-57 | 2026-06-16 | 検査 / vital 生成を venue (inpatient/ED/outpatient) 横断で 1 つの生理駆動サービスに統一 (計画); hardcoded ED/outpatient baseline を置換。**Phase 3a 2026-06-25 forward-delta 拡張** — `modules/hai/lab_lift.apply_hai_lab_lift` が BNP パターン surgical 式アプローチの 4 例目 (BNP 壁ストレス、D-dimer Phase 2a、PT_INR Phase 2b の後): `state` を mutate したり `derive_lab_values` を影響日で再実行するのではなく、encounter 後ステップが per-day state_history snapshot に対して `delta = derive(state_snap, lift>0) - derive(state_snap, lift=0)` を計算し既存 `obs.value` に delta を追加、元の noise + circadian を保持。同 forward-delta パターンで Phase 3b/c sepsis cascade (Lactate / Plt / Temp / SBP) と antibiotic-day decay を future-proof 化。 |
 | AD-58 | 2026-06-17 | **出力形式アダプタ registry。** CIF→形式アダプタは `register_output_adapter` (`clinosim/modules/output/adapter.py`) 経由で自己登録; CLI は registry 駆動 (`available_formats()` / `get_adapter()`)。形式追加 (SS-MIX、FHIR R3、HL7 v2) = `OutputAdapter` (`format_id`/`description`/`subdir`/`convert`) を 1 つ追加 — CLI や core の編集なし。組み込み CSV/FHIR-R4 は薄いラッパー (出力不変)。アダプタは CIF + `clinosim.codes` + `clinosim.locale` (AD-17/AD-25) にのみ依存。進化パス: 外部プラグインパッケージ用の setuptools entry-point 発見。 |
 | AD-59 | 2026-06-23 | **Per-order lab RNG 分離。** すべての lab order — panel children も個別スカラ order も — specimen-rejection / hemolysis / technician-assignment / observation-noise RNG を patient-scoped master RNG からではなく per-order sub-stream から draw する。Panel children は `panel_specimen_seed(parent_order_id)` を使用 (「parent order 1 つに検体 1 つ」をモデル化); 個別 non-panel order は `individual_lab_seed(order_id)` を使用 (order 1 つに検体 1 つ)。両者とも `clinosim/seeding.py` に存在 (Issue #553 で `clinosim/simulator/seeding.py` から上位層に移動; 旧 path の deprecation shim 自体は session 96 で削除済のため、必ず `clinosim.seeding` から import すること)。維持される構造的性質: 疾患 / encounter YAML の `{test:"X"}` 行を編集、または `derive_lab_values` を新しい分析対象を produce するよう拡張しても、無関係患者の cohort を master stream 経由で **shift できない** — `inpatient.py` Pass 1、`emergency.py`、`outpatient.py` の全 lab path で AD-16 が要求するものを完遂。段階的に確立: PR #74 で panel children 用の `panel_specimen_seed` を導入; PR #78 で残りの個別 lab path 用に `individual_lab_seed` を追加; Coag panel PR (2026-06-24) がこの分離を通じて新しい分析対象 (APTT / PT / Fibrinogen) を追加する最初のフォローアップ — master @ p=2000 seed=42 vs byte-diff で US と JP 両方で無関係 NDJSON にゼロ shift を確認。Phase 2a (2026-06-24、D-dimer + `causes_vte`) は 2 番目のフォローアップ: byte-diff で 9 個の無関係 NDJSON にゼロ shift を再確認、加えて同 PR で全 `derive_lab_values` scenario-flag read を中央化する `scenario_flags_from_protocol(protocol)` helper を導入し、将来のフラグが 1 つの helper 編集で全 `derive_lab_values` call site (inpatient Pass-1 + lagged + emergency + outpatient) に到達するようにした。Phase 2b (2026-06-24、`on_warfarin` PT_INR 治療域オーバーライド) は flag-helper パターンを兄弟の `medication_flags_from_context(patient, medication_orders, admission_date, current_day)` で拡張、これは慢性 + 入院中のワルファリン使用を RNG draw なしで検出 — AD-59 分離を保持しつつ再利用可能パターンとして薬剤 → lab カップリングを追加 (将来: ステロイド → glucose、利尿薬 → K、抗生剤 → CRP)。Call site は `{**scenario_flags, **medication_flags}` で両 helper dict をマージし、フラグ追加を 1-edit-safe に保つ (J5-prevention を拡張)。master @ p=2000 seed=42 vs byte-diff で 9 個の NDJSON のうち 8 個が sha256-identical; Observation のみ変化 (同カウント、warfarin-detected 患者のみ PT_INR/PT 値 shift)。Integration guards: `tests/integration/test_individual_lab_isolation.py` (analyte) + `tests/integration/test_medication_flags_isolation.py` (medication flag)。 |
@@ -794,10 +795,12 @@ Procedure Note スコープは正式なノートを要求する **8 つの侵襲
 debridement) は看護または補助レコードに文書化され、独立した
 DocumentReference を produce しない。
 
-Progress Note (LOINC 11506-3) は **将来の Tier C スコープ用に予約**、
-なぜなら実世界の progress note は構造化 vitals/labs/MAR データと
+Progress Note (LOINC 11506-3) は当初 **将来の Tier C スコープ用に予約**
+されていた。実世界の progress note は構造化 vitals/labs/MAR データと
 ~80% 重複し、全入院日で生成すると最小限の追加研究価値のために
-token コストを 1 桁膨張させる。
+token コストを 1 桁膨張させるため。(実装: progress note は現在テンプレート
+経路で生成される — `clinosim/modules/document/reference_data/document_type_specs.yaml`
+の `progress_note`。)
 
 ### 保存形式: narrative CIF
 
@@ -829,7 +832,7 @@ document_generator は各 encounter に対して決定的な事実リストを
 ```
 DocumentReference.id          = <document_id>
   .status                     = "current"
-  .docStatus                  = "final" (template fallback には "preliminary")
+  .docStatus                  = "final"
   .type.coding                = LOINC コード + display (clinosim.codes 経由で解決)
   .category                   = us-core-documentreference-category: clinical-note
   .subject                    = Patient/<patient_id>
@@ -891,7 +894,9 @@ Bedrock を使わないユーザは install する必要がない。
 
 **AD-40 — 言語別 YAML ファイルとしてのプロンプトテンプレート。**
 プロンプトは `clinosim/modules/llm_service/prompts/<language>/<task_type>.yaml`
-配下に存在:
+配下に存在 (実装では文書別プロンプトは言語ごとに 2 ファイル —
+`narrative_seed_bundle.yaml` と section 単位 fallback の `narrative_seed.yaml` —
+に統合済。以下の例は当初設計):
 
 ```yaml
 task_type: discharge_summary
@@ -947,27 +952,33 @@ Cache 位置はデフォルトで `<cif>/narratives/<version>/cache/` また
 は YAML config の明示的 `cache.directory`。Cache は template と
 mock モードで無効化。
 
-### データモデル: LLMService.generate
+### データモデル: LLMService.complete_prompt
 
-`LLMService.generate(task_type, event, variables=None)` は全モジュ
-ール用の単一エントリポイント。`variables` は PromptRegistry に
-ルーティングする新パラメータ; None のとき、レガシー `_build_prompt`
-hardcoded path を使用 (admission H&P / 退院サマリテンプレート
-コードとの後方互換性のため保持)。
+> **実装:** 当初の `LLMService.generate(task_type, event, variables=None)`
+> エントリポイント、そのレガシー `_build_prompt` テンプレート経路、および
+> レスポンスの `prompt_version` / `fallback_reason` フィールドは削除済
+> (Issue #2556)。
 
-返される `LLMResponse` は現在以下を carry:
-- `source` — `llm` | `template` | `cache` | `none`
+`LLMService.complete_prompt(system, user, *, language, task_type,
+max_tokens=None, temperature=None)` が唯一の公開呼び出し経路。呼び出し側
+(`clinosim narrate` の narrative パイプライン) が
+`prompts/<language>/narrative_seed_bundle.yaml` / `narrative_seed.yaml`
+から自前でプロンプトを組み立て、サービスはタスク区分による provider 選択、
+リトライ、`PromptCache`、token 計上を担う。テンプレートへの fallback は
+行わず、失敗時は `LLMCompletionError` を送出し、fallback は呼び出し側が
+判断する。
+
+返される `LLMResponse` は以下を carry:
+- `text`
+- `source` — `llm` | `cache`
+- `model` / `provider` — provenance
 - `input_tokens` / `output_tokens`
-- `prompt_version` — PromptSpec から
 - `cache_hit` — `PromptCache` から serve されたとき True
-- `fallback_reason` — テンプレート fallback 時に短いエラータグ
-  で populate
-- `provider` — provenance 用の configured プロバイダキー
-  (例: `bedrock`)
+- `finish_reason` — provider の停止理由 (切り詰め時は `length` 等)
 
-これら全ては `ClinicalDocument.generation` ブロックに記録され、
-narrative CIF manifest に伝播、per-document コスト分析と audit を
-可能にする。
+narrative パイプラインは各文書を生成した generator を
+`ClinicalDocument.narrative.generator` / `generator_metadata` に記録し、
+narrative CIF manifest が実行単位の generator 設定を持つ。
 
 ---
 
