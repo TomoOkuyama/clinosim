@@ -68,8 +68,8 @@ from clinosim.modules.physiology.engine import (
     # 導出
     derive_lab_values,                # (state, sex, age, has_diabetes=False, rng=None, hour=6, **flags,
                                       #  hba1c_latent=None) -> dict[analyte, float]
-    derive_vital_signs,               # (state, baseline: BaselineVitals, timestamp) -> dict[str, float]
-    derive_observed_vitals,           # (state, baseline: BaselineVitals, timestamp, rng) -> dict[str, float]
+    derive_vital_signs,               # (state, baseline: BaselineVitals, timestamp, *, age_months=None) -> dict[str, float]
+    derive_observed_vitals,           # (state, baseline: BaselineVitals, timestamp, rng, *, age_months=None) -> dict[str, float]
 )
 ```
 

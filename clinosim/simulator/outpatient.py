@@ -400,6 +400,7 @@ def _record_visit_vitals(
     # Vitals — physiology-driven via the same derivation path as inpatient/ED (AD-57):
     # true values from the comorbidity-adjusted state, then measurement noise. The
     # measured subset (`fields`) still depends on visit type / chronic condition.
+    from clinosim.modules.observation.pediatric_ranges import age_in_completed_months
     from clinosim.modules.physiology._vital_signs_thresholds import PAIN_SCORE_SCALE
     from clinosim.modules.physiology.engine import (
         apply_disease_onset,
@@ -414,7 +415,9 @@ def _record_visit_vitals(
         # The fever draw is stream-free, so the visit's RNG draws are unchanged.
         _state = apply_disease_onset(_state, presentation.visit_state(encounter_id), presentation.state_impact)
     vit_time = visit_date + timedelta(minutes=OUTPATIENT_VITALS_OFFSET_MIN)
-    raw = derive_observed_vitals(_state, baseline, vit_time, rng)
+    raw = derive_observed_vitals(
+        _state, baseline, vit_time, rng, age_months=age_in_completed_months(patient.date_of_birth, vit_time)
+    )
     opd_nurse_id = assign_staff("medication_administration", "primary_care", roster, rng).get("administering_nurse", "")
     vital = VitalSignRecord(
         timestamp=vit_time,

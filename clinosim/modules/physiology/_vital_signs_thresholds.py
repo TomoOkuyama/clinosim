@@ -239,7 +239,10 @@ depression floor."""
 
 RR_CLAMP_MAX: int = 45
 """Physiologic maximum RR (breaths/min) — matches severe
-distress ceiling before mechanical ventilation is initiated."""
+distress ceiling before mechanical ventilation is initiated. Adults and
+children from 12 years; younger children get the higher age-banded ceiling
+of ``pediatric_reference_ranges.yaml::physiological_max`` (Issue #2926,
+``engine.rr_clamp_max``)."""
 
 
 # ---------------------------------------------------------------------------

@@ -55,6 +55,7 @@ from clinosim.modules.observation.fluid_balance import (
     MAINTENANCE_IV_SD,
 )
 from clinosim.modules.observation.oxygenation import SPO2_HYPOXEMIA_TRIGGER, SPO2_SEVERE_HYPOXEMIA
+from clinosim.modules.observation.pediatric_ranges import age_in_completed_months
 from clinosim.modules.observation.vitals_thresholds import (
     FEBRILE_RECHECK_PROB,
     FEBRILE_RECHECK_WINDOW_MIN,
@@ -337,7 +338,8 @@ def _generate_daily_io(
 
 
 def _make_raw(state, patient, vit_time, rng):
-    return derive_observed_vitals(state, patient.baseline_vitals, vit_time, rng)
+    age_months = age_in_completed_months(patient.date_of_birth, vit_time)
+    return derive_observed_vitals(state, patient.baseline_vitals, vit_time, rng, age_months=age_months)
 
 
 def _o2_for(spo2, disease_id, rng):

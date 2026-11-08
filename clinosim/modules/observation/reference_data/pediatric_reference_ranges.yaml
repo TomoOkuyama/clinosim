@@ -103,6 +103,23 @@ vital_signs:
     "120-143": {low: 61, median: 70, high: 80, critical_low: null, critical_high: 111}
     "144-191": {low: 64, median: 74, high: 83, critical_low: null, critical_high: 114}
 
+# physiological_max: the highest value the generator lets a child's vital sign
+#   reach (Issue #2926), keyed by age in completed MONTHS like vital_signs. A
+#   child whose age no band covers keeps the adult clamp of the physiology
+#   engine (_vital_signs_thresholds.py, respiratory rate 45 /min).
+physiological_max:
+  respiratory_rate:
+    # The adult ceiling of 45 /min lies below the healthy 99th centile of
+    # infants (66 /min at 0-2 months, 61 at 6-8 months; Fleming et al. 2011),
+    # so it is raised for the young child. PALS 2020 calls a rate above
+    # 60 /min abnormal at any age; distressed infants (bronchiolitis, sepsis)
+    # breathe well above that, so the infant ceiling is 80. From 1 year the
+    # 99th centile is <= 53 and the ceiling is the PALS 60; from 6 years it is
+    # <= 27 and the ceiling is 50, above the adult 45 that applies from 12.
+    "0-11":    80
+    "12-71":   60
+    "72-143":  50
+
 labs:
   # Harriet Lane Handbook 22nd ed.: hematology normal values (Hb, Hct: mean
   # and mean - 2 SD; the upper bound here is mean + 2 SD, mirrored) and
