@@ -93,8 +93,9 @@ tier 閾値 (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
   `hba1c_from_glycemic_control`, `hba1c_latent_at` (lazy import。
   HbA1c 導出)。
 - `clinosim.determinism` — 測定ノイズ用 sub-RNG の生成。
-- `clinosim.codes.drugs` — `has_drug`、`clinosim.codes.valuesets` —
-  `concept_group`。
+- `clinosim.modules.physiology.statin_response` —
+  `statin_ldl_reduction`, `statin_treated_ldl` (検査値導出と共通のスタチン
+  LDL 応答、Issue #2928)、`clinosim.codes.valuesets` — `concept_group`。
 - `clinosim.locale` — `i18n.t`, `loader.load_reference_ranges`。
 - `hashlib.sha256` — 患者選定。
 - `numpy` — 測定ノイズ用 `np.random.Generator`。
@@ -113,7 +114,8 @@ tier 閾値 (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
 - Threshold 表: [`_checkup_thresholds.py`](_checkup_thresholds.py)
   — analyte 別の physiologic min / max、測定ノイズ SD、reference-range
   文字列、high cutoff、DM / non-DM の HbA1c 分岐、性別 × 年齢 の
-  LDL base + scaling、statin reduction 係数、dyslipidemia lift、および
+  LDL base + scaling、dyslipidemia lift (スタチンの低下率は
+  `physiology/statin_response.py`)、および
   上記 2 つの年齢 tier 閾値を保持。
 - checkup type 別 chief-complaint テキスト
   (`health_checkup.<type>` in `locale/shared/narrative_phrases.yaml`): `occupational → "事業者健診"`,

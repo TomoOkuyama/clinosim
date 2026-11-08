@@ -28,7 +28,6 @@ from typing import Any
 import numpy as np
 
 from clinosim import determinism
-from clinosim.codes.drugs import has_drug
 from clinosim.codes.valuesets import concept_group
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -61,13 +60,13 @@ from clinosim.modules.health_checkup._checkup_thresholds import (
     LDL_MEASUREMENT_NOISE_SD,
     LDL_PHYSIOLOGIC_MAX,
     LDL_PHYSIOLOGIC_MIN,
-    LDL_STATIN_REDUCTION,
     SBP_MEASUREMENT_NOISE_SD,
     SBP_PHYSIOLOGIC_MAX,
     SBP_PHYSIOLOGIC_MIN,
     SBP_VITALS_FALLBACK,
 )
 from clinosim.modules.observation.engine import get_lab_unit
+from clinosim.modules.physiology.statin_response import statin_ldl_reduction, statin_treated_ldl
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.clinical import ClinicalDocument
 from clinosim.types.encounter import (
@@ -133,7 +132,8 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
       ``hba1c_from_glycemic_control`` を再利用(条件側未設定なら中央値 0.5)。
       非糖尿病は 5.1 + 年齢係数 0.003(HBA1C_NONDM_BASE パターンを踏襲)。
     - LDL:年齢/性別 baseline に脂質異常症(E78)の上乗せ、薬物制御は
-      current_medications にスタチン系薬名が含まれる場合に -30 mg/dL。
+      current_medications のスタチンの強度 (薬剤 + 用量) に応じた低下率を
+      ``statin_response`` で適用 (検査値導出と同じモデル、Issue #2928)。
 
     RNG は per-patient sub-seed 由来(``derive_sub_seed``)、AD-16 準拠。
     測定ノイズは grade 境界を跨がない小さめの値に留める。
@@ -211,11 +211,11 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
     )
     if has_dyslipidemia:
         ldl_base += LDL_DYSLIPIDEMIA_LIFT  # 未治療脂質異常症の相対上昇
-    # スタチン系薬 (カタログの分類 statin) 服用で薬理制御。
-    # Issue #452 PR 3: read `m.drug_name` directly (readers migrated off the __str__ shim).
-    on_statin = has_drug(meds, "statin")  # catalog class (Issue #2377)
-    if on_statin:
-        ldl_base -= LDL_STATIN_REDUCTION
+    # スタチンの強度 (薬剤 + 用量) と患者ごとの位置で未治療 LDL を下げる。
+    # 入院・外来の検査値導出 (_add_lipid_labs) と同じ statin_response モデル
+    # (Issue #2928)。
+    patient_id = str(_o(patient, "patient_id", "") or "")
+    ldl_base = statin_treated_ldl(ldl_base, statin_ldl_reduction(patient_id, list(meds)))
     ldl = float(np.clip(ldl_base + rng.normal(0.0, LDL_MEASUREMENT_NOISE_SD), LDL_PHYSIOLOGIC_MIN, LDL_PHYSIOLOGIC_MAX))
 
     return {"BMI": bmi, "SBP": sbp, "DBP": dbp, "HbA1c": hba1c, "LDL": ldl}

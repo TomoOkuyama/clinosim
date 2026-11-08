@@ -44,7 +44,6 @@ __all__ = [
     "LDL_MEASUREMENT_NOISE_SD",
     "LDL_PHYSIOLOGIC_MAX",
     "LDL_PHYSIOLOGIC_MIN",
-    "LDL_STATIN_REDUCTION",
     "SBP_MEASUREMENT_NOISE_SD",
     "SBP_PHYSIOLOGIC_MAX",
     "SBP_PHYSIOLOGIC_MIN",
@@ -170,11 +169,6 @@ LDL_DYSLIPIDEMIA_LIFT: float = 40.0
 """LDL lift (mg/dL) applied to untreated dyslipidemia (E78 codes) —
 matches the observed relative elevation in undiagnosed / untreated
 dyslipidemia patients."""
-
-LDL_STATIN_REDUCTION: float = 30.0
-"""LDL reduction (mg/dL) applied when the patient is on a statin
-(drug name ending in "-statin") — approximates the average LDL
-reduction from moderate-intensity statin therapy (~30-35%)."""
 
 LDL_MEASUREMENT_NOISE_SD: float = 10.0
 """Measurement-day LDL noise SD (mg/dL) — reflects assay + biological

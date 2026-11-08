@@ -7,8 +7,10 @@ a deterministic per-patient quantile, so it draws no randomness. Data:
 ``reference_data/statin_ldl_response.yaml``.
 
 ``statin_ldl_reduction`` is read through
-``engine.medication_flags_from_context`` and applied by
-``engine._add_lipid_labs``.
+``engine.medication_flags_from_context`` and applied by ``statin_treated_ldl``
+in ``engine._add_lipid_labs`` and in the health checkup's LDL
+(``health_checkup.engine._derive_checkup_values``, Issue #2928), so one
+statin model sets both the encounter and the checkup LDL.
 """
 
 from __future__ import annotations
@@ -27,6 +29,9 @@ from clinosim.datafiles import load_data_yaml
 _YAML = Path(__file__).resolve().parent / "reference_data" / "statin_ldl_response.yaml"
 _STATIN_CLASS = "statin"
 _DOSE_MG = re.compile(r"(\d+(?:\.\d+)?)\s*mg\b", re.IGNORECASE)
+
+# Lowest LDL (mg/dL) a statin brings the untreated LDL down to.
+STATIN_TREATED_LDL_FLOOR = 30.0
 
 Intensity = Literal["low", "moderate", "high"]
 _ORDER: tuple[Intensity, ...] = ("low", "moderate", "high")
@@ -120,3 +125,11 @@ def statin_ldl_reduction(patient_id: str, medications: list[Any]) -> float:
     level = max(levels, key=_ORDER.index)
     lo, hi = statin_ldl_response().ldl_reduction[level]
     return lo + (hi - lo) * determinism.sha_quantile(f"statin-ldl-response|{patient_id}")
+
+
+def statin_treated_ldl(untreated_ldl: float, reduction: float) -> float:
+    """The LDL (mg/dL) after a statin removes ``reduction`` (from
+    :func:`statin_ldl_reduction`) of ``untreated_ldl``; unchanged at 0.0."""
+    if reduction <= 0.0:
+        return untreated_ldl
+    return max(STATIN_TREATED_LDL_FLOOR, untreated_ldl * (1.0 - reduction))

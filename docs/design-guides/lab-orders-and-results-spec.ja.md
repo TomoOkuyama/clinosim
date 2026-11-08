@@ -24,6 +24,7 @@
 | あらゆる受診種別(入院の日次ループ・救急・外来・不明疾患・薬剤モニタリング)は、一つの関数から検査の真値を得る。関数には性別・年齢・糖尿病と脂質異常症(値集合)・その年の経年 HbA1c・シナリオと薬剤のフラグを渡す。 | `simulator/lab_pipeline.py::patient_true_labs`(内部で `physiology/engine.py::derive_lab_values`) | `tests/unit/test_lab_spec_guards.py::test_true_lab_values_only_through_patient_true_labs`, `tests/unit/modules/monitoring/test_monitoring_true_labs_2735.py` |
 | 生理モデルが扱わない項目は基準値(`baseline_normals`)にフォールバックする。 | `observation/engine.py::BASELINE_LAB_NORMALS` | `tests/unit/test_phosphate_magnesium_co2_2687.py` |
 | ワルファリン服用中かどうかは一度だけ判断し、それが INR の値・フラグ・治療域を決める。 | `observation/engine.py`(`medications_in_effect`, `therapeutic_range`)、`physiology/engine.py::medication_flags_from_context` | `tests/unit/test_warfarin_status_2293.py` |
+| スタチンは強度に応じて未治療 LDL を下げる(2018 ACC/AHA Table 3: 低強度 < 30 %、中強度 30-49 %、高強度 ≥ 50 %)。範囲内の位置は患者ごとに固定(患者 id の SHA-256 分位、RNG を引かない)、TC は同じ mg/dL だけ下がる。強度はスタチンとその用量から決まり、両国で同じ表。健診の LDL も同じ患者・同じスタチンに同じ低下率を使う。 | `physiology/statin_response.py`(`statin_ldl_reduction`, `statin_treated_ldl`)を `physiology/engine.py::medication_flags_from_context`(`statin_ldl_reduction`)と `_add_lipid_labs`、および `health_checkup/engine.py::_derive_checkup_values` で使う。データ `physiology/reference_data/statin_ldl_response.yaml` | `tests/unit/modules/test_statin_ldl_response_2917.py`, `tests/unit/test_checkup_statin_response_2928.py` |
 | 急性冠症候群でない患者のトロポニン I は、健常成人では正常に留まる(加齢による予備能低下だけでは上昇しない)。慢性的な上昇は心不全・CKD ステージ 4-5・超高齢から生じ、MI レベルの値は ACS フラグのときだけになる。 | `physiology/engine.py::_add_cardiac_labs`、`physiology/_lab_derivation_thresholds.py`(`TROPONIN_*`) | `tests/unit/test_troponin_chronic_calibration_2903.py`、`tests/unit/test_blood_markers.py` |
 | 小児(18 歳未満)は年齢帯の基準範囲で判定し、表は 1 つ: CIF フラグ、FHIR referenceRange とその text、真値(クレアチニン・Hb / Hct・WBC・ALP は年齢の基準範囲の中央に置く)。小児のバイタルサインも同じ表の年齢帯範囲を referenceRange・interpretation・text に使い、ベースラインバイタルは年齢帯の中央値に置く。小児の生成呼吸数の上限は成人の 45 ではなく同じ表の年齢帯上限(`physiological_max`: 1 歳未満 80 /分、5 歳まで 60、11 歳まで 50)。NEWS2 は 16 歳未満では算出しない。 | `observation/pediatric_ranges.py`、`observation/reference_data/pediatric_reference_ranges.yaml`、`physiology/engine.py::pediatric_lab_scale`、`physiology/engine.py::rr_clamp_max` | `tests/unit/test_pediatric_reference_ranges_2872.py`、`tests/unit/test_rr_clamp_by_age_2926.py` |
 
@@ -53,4 +54,4 @@
 
 | 未対応 | 場所 |
 |---|---|
-| 脂質の真値はスタチン治療に依存しないため、スタチンを増量しても以後のパネルの LDL は下がらない(Issue #2877 はパネルのオーダーと増量のみ)。 | `physiology/engine.py::_add_lipid_labs` |
+| スタチンの LDL 効果は初日から全量で効く。完全な効果までの 4〜6 週は模していない(変更後のパネルは 4 週以上後に採る)。 | `physiology/statin_response.py` |

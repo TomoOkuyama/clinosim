@@ -100,7 +100,9 @@ age-tier thresholds (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
   HbA1c derivation).
 - `clinosim.determinism` — RNG construction for the measurement-noise
   sub-RNG.
-- `clinosim.codes.drugs` — `has_drug`; `clinosim.codes.valuesets` —
+- `clinosim.modules.physiology.statin_response` —
+  `statin_ldl_reduction`, `statin_treated_ldl` (the statin LDL response
+  shared with lab derivation, Issue #2928); `clinosim.codes.valuesets` —
   `concept_group`.
 - `clinosim.locale` — `i18n.t`, `loader.load_reference_ranges`.
 - `hashlib.sha256` — patient selection.
@@ -120,8 +122,8 @@ age-tier thresholds (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
 - Threshold table: [`_checkup_thresholds.py`](_checkup_thresholds.py)
   — per-analyte physiologic min / max, measurement-noise SDs,
   reference-range strings, high-threshold cutoffs, DM- vs non-DM
-  HbA1c branches, sex-and-age LDL base + scaling, statin reduction
-  factor, dyslipidemia lift, plus the two age-tier thresholds above.
+  HbA1c branches, sex-and-age LDL base + scaling, dyslipidemia lift
+  (the statin reduction comes from `physiology/statin_response.py`), plus the two age-tier thresholds above.
 - Chief-complaint text per checkup type
   (`health_checkup.<type>` in `locale/shared/narrative_phrases.yaml`): `occupational → "事業者健診"`,
   `specific → "特定健診"`, `regional_union → "広域連合健診"`.

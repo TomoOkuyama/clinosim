@@ -125,7 +125,7 @@ def test_ldl_elevated_for_dyslipidemia_patient():
 
 @pytest.mark.unit
 def test_ldl_lowered_by_statin_medication():
-    """スタチン系服薬中は LDL が薬理的に低下(-30 mg/dL)。"""
+    """スタチン系服薬中は LDL が強度に応じて薬理的に低下 (Issue #2928)。"""
     from clinosim.types.patient import ChronicCondition
 
     pid = _find_selected_pid()
@@ -140,7 +140,7 @@ def test_ldl_lowered_by_statin_medication():
         current_medications=["Atorvastatin"],
     )
     labs_st = _run_and_extract_labs([dyslip_statin])
-    # -30 baseline + ±10 noise、明確に低下(統計的余裕あり)
+    # 中強度 30-49 % 低下 + ±10 noise、明確に低下(統計的余裕あり)
     assert labs_no["LDL"] - labs_st["LDL"] > 15.0
 
 

@@ -295,6 +295,7 @@ from clinosim.modules.physiology.dehydration_thresholds import (
     HYPERNATREMIA_THRESHOLD,
 )
 from clinosim.modules.physiology.statin_response import statin_ldl_reduction as _statin_ldl_reduction
+from clinosim.modules.physiology.statin_response import statin_treated_ldl
 from clinosim.types.clinical import PhysiologicalState, StateChangeDirective
 from clinosim.types.patient import BaselineVitals, ChronicCondition, PatientPhysiologicalProfile
 
@@ -972,10 +973,9 @@ def _add_lipid_labs(
     # Issue #2917: a statin removes ``statin_ldl_reduction`` of the untreated
     # LDL (2018 ACC/AHA Table 3 by intensity); total cholesterol falls by the
     # same mg/dL, so the Friedewald identity still holds.
-    if statin_ldl_reduction > 0.0:
-        treated = max(30.0, labs["LDL"] * (1.0 - statin_ldl_reduction))
-        labs["TC"] -= labs["LDL"] - treated
-        labs["LDL"] = treated
+    treated = statin_treated_ldl(labs["LDL"], statin_ldl_reduction)
+    labs["TC"] -= labs["LDL"] - treated
+    labs["LDL"] = treated
 
 
 def _add_pt_inr(labs: dict[str, float], state: PhysiologicalState, on_warfarin: bool) -> None:
