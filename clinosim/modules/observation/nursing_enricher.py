@@ -28,10 +28,11 @@ def enrich_nursing(ctx) -> None:
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
-        age = int(_get(patient, "age", 70) or 70)
-        # Issue #2872: NEWS2 is an adult score (RCP 2017: age >= 16). The
-        # recorded age is read as is here (``age`` above maps 0 to 70).
+        # Issue #2925: a recorded age of 0 (an infant) stays 0; the adult
+        # default applies only when no age is recorded.
         _recorded_age = _get(patient, "age", None) if patient else None
+        age = int(_recorded_age) if _recorded_age is not None else 70
+        # Issue #2872: NEWS2 is an adult score (RCP 2017: age >= 16).
         news2_applies = _recorded_age is None or int(_recorded_age) >= NEWS2_MIN_AGE_YEARS
         seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["nursing"], pid or "x")
         rng = determinism.default_rng(seed)
