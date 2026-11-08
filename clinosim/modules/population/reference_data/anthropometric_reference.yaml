@@ -79,14 +79,14 @@ clamps:
 # without crossing clinical grade boundaries.
 per_encounter_noise:
   weight_kg_sd: 0.6           # adults: ± ~1.2 kg 95% interval — day-to-day fluid shift
-  head_circumference_cm_sd: 0.1  # measurement-technique noise only
   # Children (Issue #2876): weight noise is relative (a 0.6 kg SD is 15 %
   # of a 4 kg infant). The WHO MGRS protocol weighs to 0.1 kg (de Onis et
   # al., Food Nutr Bull 2004;25(1 Suppl):S27-36); ~1 % covers the scale
-  # plus clothing and feeding state. Height carries no per-visit noise: the
-  # child's length follows the smooth reference curve, so it never
-  # decreases between visits (a decrease is a charting red flag, not a
-  # growth signal).
+  # plus clothing and feeding state. Height and head circumference carry
+  # no per-visit noise: they follow the smooth reference curve, so they
+  # never decrease between visits (a decrease is a charting red flag, not
+  # a growth signal).
+  head_circumference_cm_sd: 0.0
   pediatric_weight_cv: 0.01
   pediatric_height_cm_sd: 0.0
 
