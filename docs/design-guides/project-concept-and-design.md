@@ -137,9 +137,12 @@ design review):
   (`types/document.py`), injected into the Pass.
 - **Document type** is defined in `document_type_specs.yaml`
   (YAML-driven: LOINC / sections / encounter_types_supported /
-  generation_frequency / stage2_strategy). Currently 9 doc types
+  generation_frequency / stage2_strategy). Currently 18 doc types
   (H&P, progress, discharge, three nursing types including the
-  3-shift shift note, outpatient SOAP, two ED types).
+  3-shift shift note, outpatient SOAP, two ED types, admission care
+  plan, nutrition care plan, rehabilitation plan, referral note,
+  death certificate, death discharge summary, health checkup report,
+  operative note, procedure note).
 - **Verification**: template / mock = golden byte-diff (AD-66).
   Real LLM = `check-narratives` (a 5-axis semantic check: structure
   / facts_used / prohibited patterns / expected phrases / numbers).
@@ -170,7 +173,7 @@ design review):
 
 | Mechanism | Role |
 |---|---|
-| `pytest -m unit / integration / e2e` | Three ordinary test tiers (1000+ / 264 / 35) |
+| `pytest -m unit / integration / e2e` | Three ordinary test tiers |
 | `pytest -m regression` (opt-in) | Narrative goldens byte-diff for the 6 canonical patient profiles (template + llm-mock, AD-66) |
 | byte-diff | The merge gate for refactor PRs (FHIR NDJSON + narratives sha256 match) |
 | `clinosim audit run` (AD-60) | 4-axis audit: structural / clinical / jp_language / **silent_no_op** (`lift_firing_proof` = proof that the feature actually fired) |

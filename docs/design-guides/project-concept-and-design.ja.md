@@ -102,8 +102,9 @@
   materialized_facts)。Stage 2 が structural CIF から組み立てる(chain 1a で実 schema 配線済)。
 - **generator 契約** = `NarrativeGenerator` Protocol(`types/document.py`)、Pass へ注入。
 - **document type** は `document_type_specs.yaml`(YAML 駆動、LOINC / sections /
-  encounter_types_supported / generation_frequency / stage2_strategy)。現在 9 doc type
-  (H&P、progress、discharge、看護 3 種(3 交代 shift note 含む)、外来 SOAP、ED 2 種)。
+  encounter_types_supported / generation_frequency / stage2_strategy)。現在 18 doc type
+  (H&P、progress、discharge、看護 3 種(3 交代 shift note 含む)、外来 SOAP、ED 2 種、入院時ケアプラン、
+  栄養ケアプラン、リハビリテーション計画、紹介状、死亡診断書、死亡退院サマリー、健診結果報告、手術記録、処置記録)。
 - **検証**: template/mock = golden byte-diff(AD-66)。実 LLM = `check-narratives`
   (semantic check 5 軸: 構造 / facts_used / 禁止 pattern / 期待 phrase / 数値)。
 - **実 LLM 生成は別サーバで実行する運用**(2026-07-03 決定)。手順書 =
@@ -123,7 +124,7 @@
 
 | 仕組み | 役割 |
 | --- | --- |
-| `pytest -m unit / integration / e2e` | 通常のテスト 3 層(1000+ / 264 / 35) |
+| `pytest -m unit / integration / e2e` | 通常のテスト 3 層 |
 | `pytest -m regression`(opt-in) | 6 canonical patient profile の narrative goldens byte-diff(template + llm-mock、AD-66) |
 | byte-diff | refactor PR の gate(FHIR NDJSON + narratives sha256 一致) |
 | `clinosim audit run`(AD-60) | 4 軸監査: structural / clinical / jp_language / **silent_no_op**(lift_firing_proof = 「機能が実際に発火した」証明) |

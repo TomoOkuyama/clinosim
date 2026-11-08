@@ -76,7 +76,7 @@ reference material.
 | 4 | Implement resource-skeleton functions (via `dual_slot_concept` / `display` / `get_system_uri`) | Section B.4 |
 | 5 | Implement the builder entry point `_bb_<topic>(ctx: BundleContext) -> list[dict]` | Section B.5 |
 | 6 | Register in `clinosim/modules/output/fhir_r4/builder.py:_BUNDLE_BUILDERS` OR add via `register_bundle_builder()` | Section B.6 |
-| 7 | Add unit + integration + e2e golden + audit `lift_firing_proof` | Section C |
+| 7 | Add unit + integration tests + audit `lift_firing_proof`, and verify the output change by byte-diff | Section C |
 
 ### B.2 File template
 
@@ -356,7 +356,7 @@ def test_<topic>_ndjson_emitted_with_proper_references():
 ```
 
 Always run an integrity check on cross-resource references such as
-`basedOn` (memory `feedback_xhigh_review_lessons`).
+`basedOn`.
 
 ### C.3 Determinism test (AD-16)
 
@@ -406,15 +406,27 @@ register_audit_module(ModuleAuditSpec(
 ))
 ```
 
-Detail: see `docs/CONTRIBUTING-modules.md` § "AD-60 audit
-framework".
+Detail: see `docs/CONTRIBUTING-modules.md` § "3-axis DQR
+procedure" (the AD-60 `clinosim audit run` gate).
 
-### C.5 E2E golden (`tests/e2e/golden/`)
+### C.5 Goldens and byte-diff
 
-Adding a new resource grows the golden NDJSON → regenerate the
-golden (intentional byte-diff change). Detail:
-`docs/CONTRIBUTING-modules.md` § "PR verification guide: byte-diff
-vs 3-axis DQR".
+There is no golden FHIR NDJSON in the repository. A new resource
+changes the exported NDJSON, and that change is verified by
+byte-diffing the same seed's export before and after the PR (the
+difference must be exactly the intended one). The goldens that do
+exist are:
+
+- `tests/e2e/test_alpha_golden.py` — structural counts of one forced
+  seed-42 patient, held inline in the test; update them only when
+  the simulator's behaviour changes intentionally.
+- `tests/fixtures/patient_profiles/*.golden.json` (and
+  `*.llm-mock.golden.json`) — the narrative goldens of the canonical
+  patient profiles (AD-66, `pytest -m regression`), regenerated with
+  `clinosim regenerate-goldens`.
+
+Detail: `docs/CONTRIBUTING-modules.md` § "PR verification guide:
+byte-diff vs 3-axis DQR".
 
 ---
 
@@ -738,20 +750,22 @@ classic silent-no-op (PR-90 class): no audit gate → downstream NLP
 ## Related
 
 - [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md) —
-  full set of CIF-generation-side (Layers 1-3) design rules
-  (Japanese).
+  full set of CIF-generation-side (Layers 1-3) design rules.
 - `DESIGN.md` — ADRs AD-17 / AD-25 / AD-30 / AD-31 / AD-46 /
   AD-47 / AD-55 / AD-56 / AD-58 / AD-59 / AD-60 / AD-61.
-- `AGENTS.md` — § "FHIR output rules (must follow for all resource
-  builders)" / § "FHIR R4 output" / § "Enrichment architecture
-  (narrative prompts)" / § "Common pitfalls". (`CLAUDE.md` remains
+- `AGENTS.md` — § "FHIR R4 output" / § "Common pitfalls".
+  (`CLAUDE.md` remains
   as a thin pointer to `AGENTS.md` for older Claude Code sessions.)
 - `.github/TEMPLATE_MODULE_README.md` — boilerplate for a new
   module README.
-- Memory `feedback_unify_data_logic` — how this guide came to be
-  established in session 24.
 
 ## Application precedents (FHIR builder layer)
+
+Historical record: file names are as of each PR. The `_fhir_*.py`
+modules have since moved to `clinosim/modules/output/fhir_r4/<domain>/`
+(e.g. `_fhir_localization.py` → `fhir_r4/lib/localization.py`), and
+the `Composition.author` TODO below has since been closed (it is now
+emitted from `author_practitioner_id`).
 
 | PR | Wins on the FHIR builder layer |
 |---|---|
