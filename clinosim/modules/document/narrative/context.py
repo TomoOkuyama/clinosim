@@ -6,6 +6,7 @@ from typing import Any
 
 from clinosim.countries import lang_for
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.drug_safety import rule_kind
 from clinosim.simulator.complications import complication_names, normalized_complications
 from clinosim.types.document import DocumentType, NarrativeContext
 
@@ -298,6 +299,9 @@ def _build_safety_skips(patient: Any, encounter: Any) -> list[dict[str, Any]]:
                 # legacy pair-conflict interpretation for older logs.
                 "event_type": _o(entry, "event_type", "avoid"),
                 "stopped_on_day": _o(entry, "stopped_on_day", None),
+                # Issue #2930: allergy / disease / interaction, read from the
+                # verdict's rule id, so an allergy skip is worded as an allergy.
+                "conflict_kind": rule_kind(_o(verdict, "rule_id", None)),
             }
         )
     return out

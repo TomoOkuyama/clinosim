@@ -1370,6 +1370,14 @@ safety_skips:
   avoid_no_sub:
     ja: "・{considered} は {conflict} との併用禁忌のため処方せず。"
     en: "- {considered} avoided due to concurrent {conflict}; no alternative selected."
+  # Issue #2930: drug skipped for the patient's recorded allergy ({conflict}
+  # is the allergy, e.g. "Penicillin allergy" / 「ペニシリンアレルギー」).
+  avoid_allergy_with_sub:
+    ja: "・{conflict}のため{considered}は投与せず、{substituted}を処方。"
+    en: "- {considered} not given: {conflict}; {substituted} prescribed instead."
+  avoid_allergy_no_sub:
+    ja: "・{conflict}のため{considered}は投与せず。"
+    en: "- {considered} not given: {conflict}; no alternative selected."
   day_phrase_specific:
     ja: "第{day}病日"
     en: "on day {day}"
@@ -1413,6 +1421,12 @@ safety_skips_prompt:
   avoid_no_sub:
     ja: "- avoid: {considered} ({conflict} との併用のため回避、代替薬は選択せず)"
     en: "- avoid: {considered} (avoided due to concurrent {conflict}); no alternative selected"
+  avoid_allergy_with_sub:
+    ja: "- avoid: {considered} ({conflict}のため投与せず); 代替として {substituted} を処方"
+    en: "- avoid: {considered} (not given: {conflict}); substituted with {substituted}"
+  avoid_allergy_no_sub:
+    ja: "- avoid: {considered} ({conflict}のため投与せず、代替薬は選択せず)"
+    en: "- avoid: {considered} (not given: {conflict}); no alternative selected"
 
 # Checkup lab-results section (Phase 1d-47). From
 # _build_checkup_lab_results — 4 measured items (BMI / BP / HbA1c /

@@ -429,6 +429,10 @@ system: |
        Cadence by event type:
          · avoid — "~ was avoided due to concurrent ~; ~ was prescribed
            instead." (JA: "〜との併用禁忌のため〜を回避し、〜を選択した。")
+           When the payload reason is an allergy ("not given: ~ allergy"),
+           word it as an allergy, not a co-administration conflict:
+           "~ was not given because of ~ allergy; ~ was prescribed
+           instead." (JA: "〜アレルギーのため〜は投与せず、〜を処方した。")
          · hold  — "~ was held during this admission because of ~;
            resume after ~ resolves." (JA: "〜のため〜を今回入院中は
            保留とし、〜の改善後に再開予定。")
