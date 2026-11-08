@@ -17,9 +17,16 @@ from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
 from clinosim.modules.immunization.engine import (
+    flu_season_of,
     generate_immunizations,
     generate_pregnancy_tdap,
     load_schedule,
+)
+from clinosim.modules.immunization.visits import (
+    bind_to_vaccination_visits,
+    flu_season_months,
+    is_flu_visit_candidate,
+    vaccination_visits_by_patient,
 )
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.encounter import Encounter, EncounterStatus, EncounterType
@@ -87,7 +94,33 @@ def _give_stay_doses_by_ward_nurse(imm_recs: list, encounters: list, roster: Any
             _set(imm, "administered_by", nurses[sum(ord(c) for c in pid) % len(nurses)])
 
 
-def _align_to_encounters(imm_recs: list, encounters: list) -> list:
+def _bind_stay_doses(imm_recs: list, encounters: list) -> None:
+    """Issue #2168: a dose that falls inside an inpatient stay is given
+    during that stay (the hepatitis B birth dose in the nursery), so it
+    binds to the stay and keeps its date."""
+    _stays: list[tuple[date, date, str]] = []
+    for enc in encounters:
+        _et = _get(enc, "encounter_type", "")
+        if str(getattr(_et, "value", _et)).lower() not in ("inpatient", "imp"):
+            continue
+        _adm = _get(enc, "admission_datetime", None)
+        _dis = _get(enc, "discharge_datetime", None)
+        _eid = _get(enc, "encounter_id", "") or ""
+        if isinstance(_adm, datetime) and isinstance(_dis, datetime) and _eid:
+            _stays.append((_adm.date(), _dis.date(), _eid))
+    for imm in imm_recs:
+        occ = _get(imm, "occurrence_date", None)
+        if not isinstance(occ, date) or _get(imm, "encounter_id", ""):
+            continue
+        for _lo, _hi, _eid in _stays:
+            if _lo <= occ <= _hi:
+                _set(imm, "encounter_id", _eid)
+                break
+
+
+def _align_to_encounters(
+    imm_recs: list, encounters: list, season_months: dict[str, frozenset[int]] | None = None
+) -> list:
     """Snap each immunization's occurrence_date to a nearby pediatric_visit
     encounter and stamp the encounter_id.
 
@@ -112,27 +145,7 @@ def _align_to_encounters(imm_recs: list, encounters: list) -> list:
     """
     if not imm_recs or not encounters:
         return imm_recs
-    # Issue #2168: a dose that falls inside an inpatient stay is given
-    # during that stay (the hepatitis B birth dose in the nursery), so it
-    # binds to the stay and keeps its date.
-    _stays: list[tuple[date, date, str]] = []
-    for enc in encounters:
-        _et = _get(enc, "encounter_type", "")
-        if str(getattr(_et, "value", _et)).lower() not in ("inpatient", "imp"):
-            continue
-        _adm = _get(enc, "admission_datetime", None)
-        _dis = _get(enc, "discharge_datetime", None)
-        _eid = _get(enc, "encounter_id", "") or ""
-        if isinstance(_adm, datetime) and isinstance(_dis, datetime) and _eid:
-            _stays.append((_adm.date(), _dis.date(), _eid))
-    for imm in imm_recs:
-        occ = _get(imm, "occurrence_date", None)
-        if not isinstance(occ, date) or _get(imm, "encounter_id", ""):
-            continue
-        for _lo, _hi, _eid in _stays:
-            if _lo <= occ <= _hi:
-                _set(imm, "encounter_id", _eid)
-                break
+    _bind_stay_doses(imm_recs, encounters)
     # Collect eligible encounter dates once.
     _enc_days: list[tuple[date, str]] = []
     for enc in encounters:
@@ -167,9 +180,14 @@ def _align_to_encounters(imm_recs: list, encounters: list) -> list:
         best_delta: int | None = None
         best_day: date | None = None
         best_eid: str = ""
+        # Issue #2868: a flu dose stays inside its own season's vaccination
+        # months (not snapped onto a July or March visit).
+        _months = (season_months or {}).get(str(_get(imm, "vaccine_cvx", "") or ""))
         for _day, _eid in _enc_days:
             _delta = abs((_day - occ).days)
             if _delta > 60:
+                continue
+            if _months is not None and (_day.month not in _months or flu_season_of(_day) != flu_season_of(occ)):
                 continue
             if best_delta is None or _delta < best_delta:
                 best_delta = _delta
@@ -323,13 +341,24 @@ def enrich_immunizations(ctx) -> None:
     # per-patient encounter union up-front so alignment finds any nearby
     # encounter across the patient's full record set.
     _all_encs_by_patient: dict[str, list] = {}
+    # Issue #2868: every record of a patient carries the same vaccine list,
+    # generated from the patient's latest record (its snapshot knows every
+    # pregnancy for the maternal Tdap). Lists that differed by record gave
+    # the same dose two FHIR ids.
+    _latest_rec: dict[str, Any] = {}
+    _latest_at: dict[str, datetime] = {}
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
         if not pid:
             continue
+        _latest_rec.setdefault(pid, rec)
         for enc in _get(rec, "encounters", []) or []:
             _all_encs_by_patient.setdefault(pid, []).append(enc)
+            adm = _get(enc, "admission_datetime", None)
+            if isinstance(adm, datetime) and (pid not in _latest_at or adm > _latest_at[pid]):
+                _latest_at[pid] = adm
+                _latest_rec[pid] = rec
     # Issue #1197 companion-encounter synthesis (verify Pass 5 gap): for
     # in-sim-window immunizations that could not be aligned to an
     # existing encounter (~25-39% of in-window doses, per Pass 5 verify),
@@ -338,6 +367,8 @@ def enrich_immunizations(ctx) -> None:
     # unlinked — a real visit was not simulated, so honesty > fabrication.
     country_upper = str(country or "US").upper()
     sim_start = _sim_window_start(ctx)
+    visits_by_patient = vaccination_visits_by_patient(ctx.records)
+    season_months = flu_season_months(schedule)
     # Issue #1245: a patient with N record files (per-encounter CIF sharding)
     # produced N copies of every synth VAX encounter — `generate_immunizations`
     # is deterministic per patient (same imm list on every call), so each
@@ -349,10 +380,13 @@ def enrich_immunizations(ctx) -> None:
     for rec in ctx.records:
         patient = _get(rec, "patient")
         pid = _get(patient, "patient_id", "") if patient else ""
+        source = _latest_rec.get(pid, rec)
+        patient = _get(source, "patient") or patient
         rng = determinism.default_rng(
             derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["immunization"], pid or "x")
         )
-        recs = generate_immunizations(patient, schedule, _as_of(ctx, rec), rng, nurse_ids=nurse_ids)
+        as_of = _as_of(ctx, source)
+        recs = generate_immunizations(patient, schedule, as_of, rng, nurse_ids=nurse_ids)
         # Issue #1283: append US maternal Tdap (CVX 115) for each
         # pregnancy period whose 27-36-week window overlaps the sim.
         # Uses the same per-patient sub-RNG the schedule pass just
@@ -365,7 +399,7 @@ def enrich_immunizations(ctx) -> None:
         recs.extend(
             generate_pregnancy_tdap(
                 patient,
-                _as_of(ctx, rec),
+                as_of,
                 rng,
                 country_upper,
                 default_nurse=_default_nurse,
@@ -374,7 +408,20 @@ def enrich_immunizations(ctx) -> None:
         recs.sort(key=lambda r: r.occurrence_date)
         # Issue #1197 align — cross-record encounter pool.
         pool = _all_encs_by_patient.get(pid) or (_get(rec, "encounters", []) or [])
-        recs = _align_to_encounters(recs, pool)
+        # Issue #2868: doses given at the patient's vaccination visits are
+        # bound there before the nearest-encounter alignment.
+        _bind_stay_doses(recs, pool)
+        recs = bind_to_vaccination_visits(
+            recs,
+            visits_by_patient.get(pid, []),
+            patient,
+            schedule,
+            as_of=as_of,
+            sim_start=sim_start,
+            flu_visit_candidate=is_flu_visit_candidate(patient),
+            nurse=_default_nurse,
+        )
+        recs = _align_to_encounters(recs, pool, season_months)
         if roster is not None and hasattr(roster, "members"):
             _give_stay_doses_by_ward_nurse(recs, pool, roster, pid)
         # Companion synthesis for the residual in-window orphans.

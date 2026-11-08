@@ -128,12 +128,26 @@ during in-progress snapshots is not back-dated.
 ## Encounter binding
 
 `enrich_immunizations` pools each patient's encounters across all of
-their records, then `_align_to_encounters` (deterministic, no rng):
+their records, then binds each dose (deterministic, no rng):
 
-1. binds a dose dated inside an inpatient stay to that stay and keeps
+1. a dose dated inside an inpatient stay binds to that stay and keeps
    its date (e.g. the hepatitis B birth dose in the nursery);
-2. otherwise snaps the dose to the nearest outpatient encounter within
-   ±60 days and records its `encounter_id`.
+2. `visits.bind_to_vaccination_visits` (Issue #2868): an outpatient
+   visit with reason `Z23` records the doses given at it, re-dated to the
+   visit. The season's flu dose goes to the season's first flu
+   vaccination visit (`flu_vaccination` encounter condition; a new dose
+   when the engine drew none) and no other flu record of that season is
+   kept. For a person the healthcare calendar offers flu visits to
+   (`population.is_flu_vaccination_candidate`), a season the calendar
+   covered without a visit keeps no flu dose: the visit draw is the
+   season's decision, so the engine's draw does not add to it. Any season
+   keeps at most one flu record. A pediatric immunization visit records
+   the `pediatric_series` doses whose age window holds the visit age
+   (the engine's dose moved there, or a new one when the series is on
+   track: dose 1, or the previous dose given);
+3. otherwise snaps the dose to the nearest outpatient encounter within
+   ±60 days and records its `encounter_id`; a flu dose only to an
+   encounter in its own season and vaccination months.
 
 A dose still unbound and dated before the simulation window start
 (`config.time_range[0]`) is marked `primary_source=False` and left
@@ -213,6 +227,7 @@ clinosim/modules/immunization/
   __init__.py                     empty (see Public API note)
   engine.py                       generate_immunizations + load_schedule + helpers
   enricher.py                     POST_RECORDS enrichment (patient-scoped sub-RNG)
+  visits.py                       doses given at vaccination (Z23) visits
 ```
 
 The module has **no `reference_data/` directory and no `audit.py`** —
@@ -259,7 +274,7 @@ Individual files:
 - [`tests/unit/modules/immunization/`](../../../tests/unit/modules/immunization/)
   — encounter alignment, companion vaccination encounter, same-day
   merge, document dispatch, well-child bundling, US paediatric
-  schedule, pregnancy Tdap.
+  schedule, pregnancy Tdap, doses given at vaccination visits.
 
 ## Ownership
 

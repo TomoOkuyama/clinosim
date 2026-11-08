@@ -292,6 +292,16 @@ October-December aligns with both US and JP flu-vaccination campaign
 windows (US: mid-September onward, JP: October-December MHLW push)."""
 
 
+def is_flu_vaccination_candidate(age: int, chronic_condition_count: int) -> bool:
+    """Whether the healthcare calendar offers a person a seasonal flu
+    vaccination visit: age 65+ or at least two chronic conditions.
+
+    The single definition shared by the calendar and the immunization
+    enricher, which lets these visits decide the season's flu dose for the
+    people they are offered to (Issue #2868)."""
+    return age >= FLU_VAX_ADULT_AGE_THRESHOLD or chronic_condition_count >= FLU_VAX_COMORBIDITY_MIN
+
+
 # ---------------------------------------------------------------------------
 # Healthcare calendar — cancer screening
 # ---------------------------------------------------------------------------

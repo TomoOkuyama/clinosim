@@ -18,7 +18,7 @@ _SCHEDULE = {
         "min_age": 65,
         "available_from": "2000-01-01",
         "frequency": "once",
-        "coverage_by_age_sex": {},  # coverage 0 -> every patient declines or skips
+        "coverage_by_age_sex": {"65-99": {"M": 0.5, "F": 0.5}},
     }
 }
 
@@ -29,8 +29,16 @@ def test_once_vaccine_emits_not_done_at_the_documented_rate() -> None:
     not_done = 0
     for seed in range(n):
         recs = generate_immunizations(patient, _SCHEDULE, date(2025, 6, 1), np.random.default_rng(seed))
-        assert all(r.status == "not-done" for r in recs)
-        not_done += len(recs)
-    expected = n * IMMUNIZATION_NOT_DONE_RECORDING_RATE
+        not_done += sum(1 for r in recs if r.status == "not-done")
+    # Half the patients skip the dose; 2 % of those chart a refusal.
+    expected = n * 0.5 * IMMUNIZATION_NOT_DONE_RECORDING_RATE
     assert abs(not_done - expected) < 4 * expected**0.5
     assert not_done > 0
+
+
+def test_no_refusal_of_a_vaccine_the_patient_is_not_eligible_for() -> None:
+    """Issue #2868: coverage 0 at this age means not eligible, never declined."""
+    patient = SimpleNamespace(date_of_birth=date(1950, 5, 1), age=75, sex="F", patient_id="P1")
+    schedule = {"ppsv23": {**_SCHEDULE["ppsv23"], "coverage_by_age_sex": {}}}
+    for seed in range(500):
+        assert generate_immunizations(patient, schedule, date(2025, 6, 1), np.random.default_rng(seed)) == []
