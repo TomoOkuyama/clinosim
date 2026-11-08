@@ -11,7 +11,7 @@ Related specs, linked rather than restated:
 
 ## 1. Principles
 
-1. **One reader, one shape check.** Reference data is read through its owner module's loader, and its shape is checked when it is loaded, not when a key is first missed. A malformed or unknown key fails loudly at load time.
+1. **One reader, one shape check.** Reference data is read through its owner module's loader, and its shape is checked when it is loaded, not when a key is first missed. For a module's reference YAML (`clinosim/modules/<module>/reference_data/*.yaml`) a Pydantic model with `extra="forbid"` does this, so a malformed or unknown key fails loudly at load time. The other data YAMLs are not yet model-validated (§5).
 2. **One table per fact.** A value used by several stages (a follow-up interval, a named condition, an age-banded rate) lives in one table, and every stage reads that table through one accessor.
 3. **One interpretation of a key format.** Shared key formats (age bands, code groups) are parsed by one helper, so every table spells and reads them the same way.
 4. **Every rule has a guard.** Each rule names the test that enforces it; a rule without one is listed in §5.
@@ -44,3 +44,5 @@ Related specs, linked rather than restated:
 | Gap | Where |
 |---|---|
 | The constants-placement policy has no automatic guard. | review |
+| The data YAMLs outside `clinosim/modules/*/reference_data/` are not validated by a Pydantic model, and the §2 guard does not look at them: `clinosim/simulator/reference_data/*.yaml` (only `statin_monitoring.yaml` has a model), `clinosim/locale/**` (some files have hand-written checks in `clinosim/locale/loader.py`) and `clinosim/codes/data/*.yaml`. An unknown key in these files is not rejected at load. | `tests/unit/test_configuration_spec_guards.py` globs `modules/*/reference_data/` only |
+| A cached loader's return value is never mutated (§2). | review |

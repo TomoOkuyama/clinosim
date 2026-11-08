@@ -43,7 +43,7 @@ Governing spec: [`configuration-and-reference-data-spec.ja.md`](configuration-an
 | `clinosim/datafiles.py` `load_data_yaml(path)` | 唯一の YAML 読み込み。`metadata` ヘッダを除いた内容を返す。 |
 | `clinosim/datafiles.py` `load_validated_yaml(path, model)` | YAML を読み Pydantic モデルで検証する。モジュール参照データの標準。 |
 | `clinosim/datafiles.py` `data_metadata(path)` | データ YAML の `metadata` ヘッダ (出典・版・ライセンス)。 |
-| `clinosim/modules/document/reference_data_loaders.py` `load_document_data_yaml(filename)` | `document/reference_data/` の YAML をファイル名でキャッシュ付きで読む (形を読み手が持つ登録表向け)。 |
+| `clinosim/modules/document/reference_data_loaders.py` `load_document_data_yaml(filename)` | document の小さな登録表 2 つ(`chronic_soap_templates.yaml` と `hedging_phrases.yaml`)を、モデルで検証してキャッシュ付きで読む (他のファイル名は `KeyError`。他の document の YAML は同じモジュールに専用のローダーがある)。 |
 | `clinosim/reference_data.py` `load_reference_yaml(path)` | コピーを返すキャッシュ付き読み込み。データを組み替える呼び出し側向け。 |
 | `clinosim/age_bands.py` `parse_age_band` / `parse_closed_age_band` / `age_band_covers` | `"18-49"`、`"85+"` などの年齢帯キーの解析と判定。 |
 | `clinosim/age_bands.py` `find_age_band(keys, age)` / `lookup_age_band(table, age, default)` | 年齢から年齢帯キーまたは値を引く。`if age < 18` のような境界のハードコードは禁止。 |
@@ -128,7 +128,7 @@ Governing specs: [`medication-lifecycle-spec.ja.md`](medication-lifecycle-spec.j
 | `clinosim/modules/physiology/engine.py` `lipid_panel(sex, has_diabetes, has_dyslipidemia, ldl_reduction)` / `patient_lipid_panel(patient)` | 脂質状態の TC / HDL / TG / LDL 真値、および患者の疾患と常用薬から得るその値。入院・外来の検査値と健診の両方が読み、患者ごとの未治療 LDL は一つになる。 |
 | `clinosim/modules/order/panel_grouping.py` `classify_lab_specs(...)` | 検査オーダーをパネルと単項目に分ける。 |
 | `clinosim/modules/order/engine.py` `place_imaging_orders(...)` | 画像検査オーダー。 |
-| `clinosim/modules/order/absolute_dose.py` `is_continuous_infusion(text)` | 用量・オーダー文字列が持続投与を表すか。 |
+| `clinosim/modules/order/absolute_dose.py` `is_continuous_infusion(frequency, name="")` | オーダーが持続投与(用量が速度)かを、頻度と名前から判定する。 |
 | `clinosim/modules/drug_safety/engine.py` `allergy_entries(allergies)` | 患者のアレルギー記録から有効なアレルゲンコードを取り出す (非活動・否定・「アレルギーなし」は除外)。`check_candidate_against_allergies` の入力。 |
 | `clinosim/modules/drug_safety/engine.py` `check_candidate_against_allergies(candidate, allergen_codes)` | 候補薬を患者のアレルゲンコードと照合した、許可されない判定。処方経路はアレルギー照合を自作せず、これ (または `allergy_skip_verdict`) を呼ぶ。 |
 | `clinosim/modules/drug_safety/engine.py` `allergy_skip_verdict(candidate, allergies)` | 患者のアレルギー記録で候補薬を除外する最も重い判定。投与可能なら None。 |

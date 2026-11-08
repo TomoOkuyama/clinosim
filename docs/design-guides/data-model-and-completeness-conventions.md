@@ -45,7 +45,7 @@ introduced anew:
   the disease / encounter definition and not emitted is disallowed.
 
 Every new feature or fix must prove for itself that it introduces no
-new C1 / C2 / C3 (see the §5 checklist).
+new C1 / C2 / C3 (see the §6 checklist).
 
 ---
 
@@ -169,7 +169,8 @@ complications = discrete events). Trauma / post-op diseases have a
 fallback trajectory tuned for inflammatory internal medicine that
 is clinically incoherent for them, so write **`complications`
 first, or together with `course_archetypes`** — never after. Template:
-`bacterial_pneumonia.yaml:581-655`.
+the `course_archetypes:` and `complications:` blocks of
+`bacterial_pneumonia.yaml`.
 
 ### 5.2 Per-disease verification for disease authoring
 

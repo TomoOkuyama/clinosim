@@ -20,15 +20,15 @@
 | 生成器は `determinism.default_rng(seed)` だけで作る。numpy PCG64 のプロキシで、`normal` / `standard_normal` / `beta` / `exponential` をビット再現なアルゴリズム(固定精度の `mpmath`)で引き、それ以外(`random`, `integers`, `choice` …)は整数演算がどこでも同一な numpy に委ねる。 | `clinosim/determinism.py`(`default_rng`, `normal`, `beta`, `exponential`) | `tests/unit/test_rng_through_determinism_2529.py`(`determinism.py` 以外に `np.random.default_rng` が無い)、`tests/unit/test_determinism.py` |
 | 生成経路で Python の `random` モジュールを import しない。 | — | `tests/unit/test_determinism_spec_guards.py::test_no_stdlib_random` |
 | YAML 由来の確率ベクトルは `rng.choice(p=...)` の前に `normalize_probabilities(p, fallback="raise")` を通す。 | `clinosim/modules/_shared.py::normalize_probabilities` | `implementation-rules.ja.md` §4(レビュー) |
-| ストリームを要さない選択(看護師・左右・時刻などの安定した「ランダム風」の選択)は生成器でなくハッシュを使う。乱数を消費しないので、足してもストリームはずれない。 | `determinism.sha_quantile` / `sha_bernoulli` / `sha_normal` / `sha_weighted_choice` / `sha_index`、`seeding.rendezvous_pick` / `id_hashes`、`seeding.morse_fall_history_unit` | `tests/unit/test_seeding.py`、`tests/unit/test_hash_draws_use_determinism_2837.py`(`determinism.py` / `seeding.py` の外で `sha256` → `int.from_bytes` の抽選を書かない、ratchet リスト) |
+| ストリームを要さない選択(看護師・左右・時刻などの安定した「ランダム風」の選択)は生成器でなくハッシュを使う。乱数を消費しないので、足してもストリームはずれない。 | `determinism.sha_quantile` / `sha_bernoulli` / `sha_normal` / `sha_weighted_choice` / `sha_index`、`seeding.rendezvous_pick` / `id_hashes`、`seeding.morse_fall_history_unit` | `tests/unit/test_hash_draws_use_determinism_2837.py`(`determinism.py` / `seeding.py` の外で `sha256` → `int.from_bytes` の抽選を書かない、ratchet リスト。`sha_index` / `sha_quantile` の式)、`tests/unit/test_mar_hash_draws_2815.py`(`sha_*` の抽選)、`tests/unit/simulator/test_ed_slot_stable_pick_2357.py`(`rendezvous_pick`)、`tests/unit/test_morse_items_2692.py`(`morse_fall_history_unit`) |
 
 ## 3. シードを導く
 
 | 規則 | 正準コード | ガード |
 |---|---|---|
-| モジュールのストリームは `derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS[<モジュール>], <対象キー>)`。オフセットはモジュール名の 16 進 ASCII(4 バイト)で一度だけ登録し、モジュール間で重複しない。`identity` と `microbiology` は既存の 10 進値を維持する。 | `seeding.derive_sub_seed`, `seeding.ENRICHER_SEED_OFFSETS` | `tests/unit/test_enricher_seed_offsets.py`, `tests/unit/test_seeding.py` |
+| モジュールのストリームは `derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS[<モジュール>], <対象キー>)`。オフセットはモジュール名を表す 2 文字の ASCII 略号を 16 ビット値にしたもの(`"IM"` → `0x494D`、`0x10000` 未満)で一度だけ登録し、モジュール間で重複しない。`identity` と `microbiology` は既存の 10 進値を維持する。 | `seeding.derive_sub_seed`, `seeding.ENRICHER_SEED_OFFSETS` | `tests/unit/test_enricher_seed_offsets.py`(重複なし・16 ビット・既存値の維持)、`tests/unit/test_seeding.py`(`derive_sub_seed` の式を固定) |
 | シミュレーションフェーズのストリームは `derive_phase_rng(master_seed, PHASE_<名>, key)`。フェーズの salt は `_PHASE_OFFSETS` に登録する。 | `seeding.derive_phase_rng`, `PHASE_LIFE_EVENT` / `PHASE_INPATIENT_SIM` / `PHASE_READMISSION` / `PHASE_OUTPATIENT_CAL` / `PHASE_ED_VISIT` | `tests/unit/test_seeding.py` |
-| 繰り返し使う対象ごとのストリームには名前付きシード関数があり、呼び出し側はみな同じ導き方をする。 | `seeding.py`: `panel_specimen_seed`(検査パネル)、`individual_lab_seed`(検査オーダー)、`chronic_medication_seed`, `discharge_prescription_seed`, `ambulatory_visit_length_seed`, `issue939_procedure_seed`, `chronic_augment_sex_seed`, `chronic_isolated_seed`, `longitudinal_event_seed`, `perinatal_delivery_seed`, `chemotherapy_regimen_seed`, `daily_output_seed`, `text_seed` | `tests/unit/test_seeding.py`(検査シードは式を固定) |
+| 繰り返し使う対象ごとのストリームには名前付きシード関数があり、呼び出し側はみな同じ導き方をする。 | `seeding.py`: `panel_specimen_seed`(検査パネル)、`individual_lab_seed`(検査オーダー)、`chronic_medication_seed`, `discharge_prescription_seed`, `ambulatory_visit_length_seed`, `issue939_procedure_seed`, `chronic_augment_sex_seed`, `chronic_isolated_seed`, `longitudinal_event_seed`, `perinatal_delivery_seed`, `chemotherapy_regimen_seed`, `daily_output_seed`, `text_seed`, `radiation_therapy_seed`, `avpu_day_seed`, `newborn_seed`, `pregnancy_outcome_seed`, `newborn_conditions_seed`, `enumeration_case_seed`, `identity_person_seed` | `tests/unit/test_seeding.py`(`panel_specimen_seed` の式を固定)、`tests/unit/test_rng_through_determinism_2529.py`(`text_seed` の式を固定)。他の名前付きシードは呼び出し側のテストでのみ確かめる(§8) |
 | シードは `hashlib.sha256` で計算し、`hash()`(`PYTHONHASHSEED` でプロセスごとに変わる)は使わない。 | `seeding.derive_sub_seed`, `seeding.text_seed` | `tests/unit/test_determinism_spec_guards.py::test_no_builtin_hash_call` |
 
 ## 4. 変更で乱数をずらさない
@@ -62,4 +62,11 @@
 
 ## 8. 未対応
 
-既知のものは無い。新たな例外は、ガードの許可リストへの追加とともにここに記す。
+既知の例外と、テストが強制していない規則。新たな例外は、ガードの許可リストへの追加とともにここに記す。
+
+| 未対応 | 場所 |
+|---|---|
+| `sha_*` 補助関数より前からある 3 つのインラインのハッシュ抽選は、切り替えると既存の出力が変わるため独自の式のまま残す: `modules/output/fhir_r4/labs/anthropometrics.py`、`modules/document/narrative/_narrative_utils.py`、`modules/population/_demographics.py`。ratchet の残り 2 件(`modules/imaging/engine.py`、`modules/encounter/engine.py`)はハッシュから識別子を作るだけで、抽選はしない。 | `tests/unit/test_hash_draws_use_determinism_2837.py` の `_RATCHET`(縮小のみ) |
+| YAML 由来の全ベクトルに `normalize_probabilities(p, fallback="raise")` を通す規則(§2)には完全なガードが無い。`tests/unit/test_fallback_raise_callsites.py` は既知の 10 か所を確かめ、新しい呼び出し箇所はレビューで確かめる。 | レビュー |
+| `panel_specimen_seed` と `text_seed` 以外の名前付きシード関数(§3)は式を固定していない。 | レビュー |
+| キャッシュ付きローダーの戻り値を書き換えない(§7)。 | レビュー |

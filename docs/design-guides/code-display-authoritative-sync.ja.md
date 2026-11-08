@@ -1,7 +1,8 @@
 # コード display の権威ソース同期
 
-**Status**: Framework は session 58 Phase 1 (YJ code テンプレート)
-で導入。残る code system の移行は follow-up PR で追跡。
+**Status**: 稼働中。display の cross-check は YJ、ICD-10 (WHO、英語)、
+ICD-10 (MHLW、日本語)、LOINC を対象とする (「Migration plan」参照)。
+残る code system の移行は follow-up PR で追跡。
 
 ## なぜ
 
@@ -39,14 +40,19 @@ clinosim/codes/
   data/*.yaml                           # curated source of truth
   authoritative/
     README.md                           # index + fetch provenance
-    yj_tx_fragment.json                 # ← framework の最初の住民
-    <system>_<source>.json              # snapshot は PR ごとにここへ
+    yj_tx_fragment.json                 # YJ (framework の最初の住民)
+    icd10_who_tx.json                   # ICD-10 WHO、英語 display
+    icd10_mhlw_2013_ja.json             # ICD-10 MHLW、日本語 display
+    loinc_2_82_tx.json                  # LOINC
+    <system>_<source>.json              # その他の snapshot (一覧は README.md)
   loader.py                             # lookup() は不変
 tests/unit/codes/
   test_display_matches_authoritative.py # silent-no-op 防御の 5 層目
   authoritative_override_allowlist.yaml # 臨床略記 override
 scripts/
   refresh_authoritative_yj.py           # 抽出スクリプト (system ごと)
+  refresh_authoritative_yj_full.py
+  refresh_authoritative_loinc.py
 ```
 
 ## Snapshot 形式
@@ -107,9 +113,10 @@ refresh を跨いでカバレッジの成長を追える。
   スタイルガイド、または具体的な臨床慣習を引用。
 - `registered_at`: override がレビューされた日付 (ISO YYYY-MM-DD)。
 
-Framework 起動時 allowlist は空。1 次充填が期待されるのは、SNOMED CT
-の preferred term が JP 臨床略記と衝突する場合 (例: 心筋梗塞 vs.
-Myocardial infarction (disorder))。
+Framework 起動時 allowlist は空だった。現在のエントリは、LOINC の long
+common name の代わりに臨床略記を保つ LOINC display (と追跡中の意味の
+不一致)。今後の充填が期待されるのは、SNOMED CT の preferred term が JP
+臨床略記と衝突する場合 (例: 心筋梗塞 vs. Myocardial infarction (disorder))。
 
 ## Refresh workflow (maintainer)
 
@@ -131,20 +138,27 @@ Myocardial infarction (disorder))。
 
 ## Migration plan
 
-| System        | Source                                          | Migration PR   |
-| --------------- | ------------------------------------------------- | ----------------- |
-| YJ            | `jpfhir-terminology 2.2606.0` YJ-code CS         | Phase 1 (本 PR) |
-| SNOMED CT     | tx-server SNOMED International fragment           | Phase 2         |
-| ICD-10 (WHO)  | `codes/data/icd-10.yaml` vs WHO ICD-10 browser    | Phase 2         |
-| ICD-10-CM     | `codes/data/icd-10-cm.yaml` vs NLM CM master       | Phase 3         |
-| MEDIS keyNo   | `medis-codesystem-diseasekanricodes`              | Phase 3         |
-| BCP-47        | HL7 terminology `urn:ietf:bcp:47`                  | Phase 2         |
-| LOINC         | Regenstrief LOINC master                          | Phase 3         |
-| RxNorm        | NLM RxNorm                                        | Phase 4         |
-| MHLW / JLAC10 | JCCLS + MHLW masters                              | Phase 4         |
+| System        | Source                                          | Phase   | 状態 |
+| --------------- | ------------------------------------------------- | --------- | ------ |
+| YJ            | `jpfhir-terminology 2.2606.0` YJ-code CS (`yj_tx_fragment.json`) | Phase 1 | cross-check 済 |
+| ICD-10 (WHO)  | `fhir.tx.support.r4` ICD-10 CS (`icd10_who_tx.json`)、`en` display | Phase 2 | cross-check 済 |
+| ICD-10 (MHLW) | 厚労省 基本分類表 2013 (`icd10_mhlw_2013_ja.json`)、`ja` display | — | cross-check 済 |
+| LOINC         | LOINC 2.82 master (`loinc_2_82_tx.json`)          | Phase 3 | cross-check 済 |
+| SNOMED CT     | tx-server SNOMED International fragment           | Phase 2 | 予定 |
+| BCP-47        | HL7 terminology `urn:ietf:bcp:47`                  | Phase 2 | 予定 |
+| ICD-10-CM     | `codes/data/icd-10-cm.yaml` vs NLM CM master       | Phase 3 | 予定 |
+| MEDIS keyNo   | `medis-codesystem-diseasekanricodes`              | Phase 3 | 予定 |
+| RxNorm        | NLM RxNorm                                        | Phase 4 | 予定 |
+| MHLW / JLAC10 | JCCLS + MHLW masters                              | Phase 4 | 予定 |
 
-Phase 順は v4 で観測された drift を持つ code system を優先 (Phase 2
-は SNOMED、ICD-10、MEDIS、BCP-47)。system 追加ごとに必要となるもの:
+「cross-check 済」は `_SYSTEMS_UNDER_CROSS_CHECK`
+(`tests/unit/codes/test_display_matches_authoritative.py`) に登録済みという意味。
+`clinosim/codes/authoritative/` の他の snapshot (RxNorm、厚労省 YJ マスター、
+YJ CodeSystem 全体、医科診療行為マスター) は、この cross-check ではなく
+それぞれの code system のテストが読む。
+
+Phase 順は v4 で観測された drift を持つ code system を優先 (SNOMED、
+ICD-10、MEDIS、BCP-47)。system 追加ごとに必要となるもの:
 1 つの `authoritative/<system>_<source>.json`、
 `_SYSTEMS_UNDER_CROSS_CHECK` へのエントリ、および (スキーマが異なる
 場合) `_build_authoritative_display_map` への小さな拡張。
