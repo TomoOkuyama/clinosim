@@ -453,6 +453,9 @@ class SeedManager:
 
 #### Seed 階層
 
+(当初設計のスケッチ。実装の sub-stream は上の注記にある
+`clinosim/seeding.py` の helper。)
+
 master_seed から派生する sub-seed (population_seed、disease_seed、
 staff_seed、encounter_seed、physiology_seed、order_seed、
 nursing_seed、observation_seed、llm_cache_key)。各モジュールは
@@ -679,6 +682,17 @@ Layer 4: Narrative テキスト -- llm_service により Stage 2 で生成 (対�
 
 名前はアイデンティティの一部 — 作成時に一度生成、CIF に保存。
 
+```
+clinosim/locale/jp/names.yaml   # 姓 (重み付き)、名 (男女別、世代相応)
+clinosim/locale/us/names.yaml   # 姓 (国勢調査)、名 (男女別、年代相応)
+```
+
+集団とスタッフの名前サンプリングは同じ locale yaml から引く
+(`modules/*/names/` のような別ディレクトリは無い — データは
+`clinosim/locale/<country>/names.yaml` にあり、
+`clinosim/locale/loaders/demographics.py` と `clinosim/modules/staff/`
+のローダが読む)。
+
 国別名前構造:
 
 | 国 | 構造 | 姓の位置 | 正式表示 | 例 |
@@ -783,16 +797,16 @@ Ground truth          臨床プロセス          EHR レコード
   既知疾患       -->    症状 / 徴候      -->    "Pneumonia, unspecified"
   混合原因       -->    重複症状          -->    "Pneumonia" (誤りかも)
   未知原因       -->    非特異的症状       -->    "Fever, unspecified"
-|
+                            |
                         Workup:
                           labs、imaging
-|
+                            |
                         Differential:
                           結果で更新
-|
+                            |
                         Working Dx:            Progress notes:
                           変わりうる           "Pneumonia suspected"
-|
+                            |
                         Final Dx:              Discharge Dx:
                           ground truth と      "Pneumonia due to S. pneumoniae"
                           異なりうる           (または 10% で "Fever, unresolved")
@@ -865,8 +879,12 @@ class ClinicalDiagnosis:
 
 #### 診断精度パラメータ
 
-実世界診断精度は変動する。clinosim は tunable パラメータとして
-モデル化:
+実世界診断精度は変動する。clinosim はこれを tunable パラメータとして
+モデル化する計画。
+
+> **未実装 (計画)。** 以下のパラメータは現在コードにも `SimulatorConfig`
+> にも存在しない。表は設計目標を記録したもの。
+
 
 | パラメータ | デフォルト | 意味 |
 | --- | --- | --- |
@@ -887,7 +905,7 @@ class ClinicalDiagnosis:
 | AD | 判断 |
 | --- | --- |
 | AD-28 | Condition-first モデル: 患者は診断ではなく症状で呈示する。Ground truth (hidden) は臨床診断 (記録) と異なりうる。3 condition タイプ: known-disease、mixed-cause、unknown-cause。 |
-| AD-29 | 診断精度は tunable パラメータ。デフォルトは実世界レート (~85% 正しい) と一致。異なる用途のために調整可能。 |
+| AD-29 | 診断精度は tunable パラメータ。デフォルトは実世界レート (~85% 正しい) と一致。異なる用途のために調整可能。(未実装 — 計画。) |
 
 ---
 
@@ -974,6 +992,18 @@ clinosim アプローチ:   集団 → ライフイベント → 病院訪問 �
 - フル臨床シミュレーション: 生理、診断、治療、観察
 - 退院 + フォローアップ完了後、人は Layer 1 に戻る (履歴は保持)
 - 次の病院訪問で再アクティブ化 (全前データ intact で)
+
+```
+集団レジストリ (Layer 1)
+  │
+  │ ← ライフイベントが受診行動を誘発
+  ↓
+アクティブ患者 (Layer 2) ──→ Encounter ──→ 臨床シミュレーション ──→ レコード
+  │
+  │ ← 退院 + フォローアップ完了
+  ↓
+集団レジストリ (Layer 1) [健康状態を更新]
+```
 
 ### 世帯ベース生成
 

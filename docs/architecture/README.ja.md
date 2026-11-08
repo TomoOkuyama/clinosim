@@ -29,8 +29,9 @@ clinosim のアーキテクチャリファレンス。モジュール境界や c
   相互参照。
 - [`data-flow.md`](data-flow.ja.md) — 集団、シミュレーション、FHIR
   export のエンドツーエンドデータフロー。
-- [`module-dependency-graph.md`](module-dependency-graph.ja.md) — トップ
-  レベルパッケージ import グラフ。
+- [`module-dependency-graph.md`](module-dependency-graph.ja.md) — 主要
+  モジュール間の概念的なデータフロー図 (実際の import グラフではない。
+  モジュール同士は `clinosim/simulator/` が結線する)。
 
 ## 関連
 

@@ -61,14 +61,14 @@ clinosim/
 │   ├── staff/                # 病院スタッフ roster + 割り当て
 │   ├── facility/             # 病院 state + M/M/1 queueing
 │   ├── healthcare_system/    # 国別パラメータ (JP / US)
-│   ├── identity/             # 住民識別子 & 保険番号 (JP、opt-in)
+│   ├── identity/             # 住民識別子 & 保険番号 (既定で有効; JP は opt-out 可)
 │   ├── output/               # CIF / FHIR R4 / CSV + 臨床文書
 │   │   ├── cif_writer.py              # CIF structural writer
 │   │   ├── fhir_r4/                   # FHIR R4 Bulk NDJSON (DocumentReference 含む)
 │   │   ├── csv_adapter.py             # CSV テーブル
 │   │   └── hospital_course_extractor.py  # ★ 決定的イベント抽出
 │   ├── llm_service/          # LLM アクセス全部 (AD-11)
-│   │   ├── engine.py                  # LLMService, LLMTaskType, PatientSummary
+│   │   ├── engine.py                  # LLMService, LLMTaskType, LLMResponse
 │   │   ├── factory.py                 # YAML → LLMService
 │   │   ├── prompt_registry.py         # ★ YAML ベースプロンプトテンプレート
 │   │   ├── cache.py                   # ★ SHA256 disk cache
@@ -78,22 +78,11 @@ clinosim/
 │   │   │   ├── bedrock.py             # AWS Bedrock (boto3 遅延 import)
 │   │   │   ├── vllm.py                # vLLM (OpenAI 互換サーバ)
 │   │   │   └── mock.py                # 決定的テスト provider
-│   │   └── prompts/                   # ★ プロンプトテンプレート YAML tree
-│   │       ├── ja/                    # 日本語プロンプト (同名 17 テンプレート)
-│   │       └── en/                    # 英語プロンプト (17 テンプレート —
-│   │           │                      #   入院時 H&P、退院・死亡サマリ、
-│   │           │                      #   手術・処置ノート、紹介状、
-│   │           │                      #   死亡証明書 contributing +
-│   │           │                      #   duration、死亡退院サマリの
-│   │           │                      #   section 別断片、
-│   │           │                      #   narrative_seed + bundle)
-│   │           ├── admission_hp.yaml
-│   │           ├── discharge_summary.yaml
-│   │           ├── death_summary.yaml
-│   │           ├── operative_note.yaml
-│   │           ├── procedure_note.yaml
-│   │           ├── referral_note.yaml
-│   │           └── … (clinosim/modules/llm_service/prompts/en/ 参照)
+│   │   └── prompts/                   # ★ プロンプトテンプレート YAML tree (ja/ + en/、同名ファイル)
+│   │       ├── ja/
+│   │       └── en/
+│   │           ├── narrative_seed.yaml          # section 単位の fallback プロンプト
+│   │           └── narrative_seed_bundle.yaml   # 主経路: 1 文書の全 section を 1 呼び出しで生成
 │   └── validator/            # 公開ベンチマークとの比較
 │
 ├── simulator/                # トップレベルオーケストレーション (〜50 ファイルを phase / pipeline / dispatch 別に分割)

@@ -57,19 +57,21 @@
 - **id**: `inpatient-mr-substitution-omitted`
 - **observation**: `MedicationRequest.ndjson` で `substitution.allowedBoolean` が 一部(概ね 45–55%)欠落。
 - **by_design_reason**: JP 病棟 dispensing 慣行 = 銘柄指定・後発品置換不可。
-  `fhir_r4/medications/medications.py` は `intent == "instance-order"` (慢性外来処方) のみ
-  `substitution` を emit、`intent == "order"` (入院オーダー) では意図的に
-  omit。FHIR R4 `MedicationRequest.substitution` は 0..1。
-- **signature**: 欠落した MR の `intent` field を全数集計し、**全て `"order"`**(すなわち `"instance-order"` を持つ MR は 100% substitution 付き)であること。
+  `fhir_r4/medications/medications.py::_build_medication_request` は外来 encounter の
+  オーダー、または慢性の持参薬 (home medication) の場合のみ `substitution`
+  (`allowedBoolean: true`) を emit し、それ以外の入院 / ED オーダーでは意図的に
+  omit する。判定は encounter 種別 + 持参薬かどうかで行い、`intent` には依らない。
+  FHIR R4 `MedicationRequest.substitution` は 0..1。
+- **signature**: substitution 欠落 MR はすべて `IMP` / `EMER` Encounter を参照すること(すなわち Encounter の `class.code == "AMB"` の MR は 100% substitution 付き)。IMP / EMER encounter 上の持参薬にも substitution が付くのは想定通り。
 - **established_session**: session 44, 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d`
-- **revalidation_check**: `intent == "instance-order"` の MR で substitution 欠落 = 0 件、`intent == "order"` の MR で substitution 有 = 0 件。
+- **revalidation_check**: `AMB` Encounter の MR で substitution 欠落 = 0 件、substitution 欠落 MR はすべて `IMP` / `EMER` Encounter 上。
 
 ### coverage-class-plan-omitted-for-late-elderly-insurer
 
 - **id**: `coverage-class-plan-omitted-for-late-elderly-insurer`
 - **observation**: `Coverage.ndjson` の一部 (概ね 15–25%) が `class[].type.coding[].code == "plan"` の entry を持たない。
-- **by_design_reason**: JP 後期高齢者医療広域連合 (75 歳以上) は保険者番号 (group) のみで **記号 (symbol / plan) を持たない**(制度上)。`fhir_r4/demographics/patient.py:170-200` は `symbol` が truthy の時のみ plan entry を emit するため、後期高齢者 coverage には plan が付かない。
+- **by_design_reason**: JP 後期高齢者医療広域連合 (75 歳以上) は保険者番号 (group) のみで **記号 (symbol / plan) を持たない**(制度上)。`fhir_r4/demographics/patient.py`(`_build_coverage_resources` の `use_symbol` 分岐)は `symbol` が truthy の時のみ plan entry を emit するため、後期高齢者 coverage には plan が付かない。
 - **signature**: plan 欠落の Coverage を全数抽出し、その `payor` / class[0].name が「後期高齢者医療広域連合」を含むこと。他の insurer type で plan 欠落があれば本レジストリ対象外。
 - **established_session**: session 44, 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d`
@@ -79,7 +81,7 @@
 
 - **id**: `fmh-onsetstring-omitted-for-healthy-relatives`
 - **observation**: `FamilyMemberHistory.ndjson` の一部 (概ね 15–20%) で `condition[].onsetString` が欠落。
-- **by_design_reason**: `fhir_r4/demographics/family_history.py:81-91` は relative の `condition_codes` が空の場合 `condition[]` を emit しない。従って onsetString を attach する対象自体がない。健常な relative(疾患履歴無し) = clinically-realistic。FHIR R4 `FamilyMemberHistory.condition` は 0..*。
+- **by_design_reason**: `fhir_r4/demographics/family_history.py`(`_bb_family_history` の `if conditions:` ガード)は relative の `condition_codes` が空の場合 `condition[]` を emit しない。従って onsetString を attach する対象自体がない。健常な relative(疾患履歴無し) = clinically-realistic。FHIR R4 `FamilyMemberHistory.condition` は 0..*。
 - **signature**: onsetString 欠落 FMH で `"condition" not in resource`(そもそも condition array が存在しない)であること。`condition` array があるのに onsetString が欠落 = 真のバグ(本レジストリ対象外)。
 - **established_session**: session 44, 2026-07-11 (Chain 2 verify)
 - **established_pr**: `1481306d2f`
@@ -159,7 +161,7 @@
 
 - **id**: `care-team-inactive-for-completed-encounter`
 - **observation**: `CareTeam.status = "inactive"` の record が多い(退院済 encounter に紐付く CT)。"active" を期待するレビューあり。
-- **by_design_reason**: FHIR R4 `CareTeam.status` valueSet includes `active | inactive | suspended | entered-in-error`。退院済 encounter = team が現在ケアを提供していない = inactive が spec 正解(`fhir_r4/encounters/care_team.py:88-89`)。C1-14 で確認済(cycle 1)。
+- **by_design_reason**: FHIR R4 `CareTeam.status` valueSet includes `active | inactive | suspended | entered-in-error`。退院済 encounter = team が現在ケアを提供していない = inactive が spec 正解(`fhir_r4/encounters/care_team.py`: `status = "active" if discharge_dt is None else "inactive"`)。C1-14 で確認済(cycle 1)。
 - **signature**: `status = "inactive"` の CT に紐付く `encounter.discharge_datetime` が non-null であること。
 - **established_session**: session 41, 2026-07-07 (cycle 1)
 - **established_pr**: cycle 1 close
@@ -179,7 +181,7 @@
 
 - **id**: `coverage-type-text-only-no-fabrication`
 - **observation**: `Coverage.type` が `{"text": "..."}` のみで `coding` を持たない。
-- **by_design_reason**: JP 保険 type (公費 / 社保 / 国保 等) に authoritative FHIR CodeSystem が確定していない。fabrication 禁止 policy に従い text-only 維持(`fhir_r4/demographics/patient.py:152-155`)。C2-12 で確認済(cycle 2)。
+- **by_design_reason**: JP 保険 type (公費 / 社保 / 国保 等) に authoritative FHIR CodeSystem が確定していない。fabrication 禁止 policy に従い text-only 維持(`fhir_r4/demographics/patient.py`: `coverage["type"] = {"text": label}`)。C2-12 で確認済(cycle 2)。
 - **signature**: `Coverage.type.coding` が全 Coverage で omit されていること(`fhir_r4/demographics/patient.py` に fabricated code が入っていない)。
 - **established_session**: session 42, 2026-07-07 (cycle 2)
 - **established_pr**: cycle 2 close
@@ -324,19 +326,20 @@
 
 - **id**: `cy8-23-condition-bodysite-selective`
 - **observation**: `Condition.ndjson` の一部(≈ 92%)で `bodySite` が欠落。
-- **by_design_reason**: session 48 cycle 8 で導入した bodySite emit は 15
+- **by_design_reason**: session 48 cycle 8 で導入した bodySite emit は 17
   疾患 prefix(呼吸器 J13/J14/J15/J18/J44/J45 + 心血管 I21/I25/I50 + 脳
   血管 I60/I61/I63 + 泌尿器 N10/N17/N30/N39 + 皮膚 L03)に限定 selective。
   非部位性疾患(I10 高血圧、E11 糖尿病、E78 脂質異常症 等)には解剖学的
   bodySite が無いので emit しないのが臨床的に正しい。fabrication 回避。
 - **signature**: bodySite 欠落 Condition の primary ICD prefix(`.` の前の
-  最初のセグメント)が上記 15 prefix 以外であること。15 prefix に該当する
+  最初のセグメント)が上記 17 prefix 以外であること。17 prefix に該当する
   Condition で bodySite 欠落 = 真のバグ(本レジストリ対象外)。
 - **established_session**: session 48, 2026-07-13 (Cycle 8)
 - **established_pr**: cycle 8 close
 - **revalidation_check**: bodySite 欠落 Condition の ICD prefix を集計、上記
-  15 prefix を含まないことを確認。新規部位性疾患を disease に追加した場合
-  は `_CONDITION_BODY_SITE`(`fhir_r4/conditions/conditions.py`)+ 本 signature を update。
+  17 prefix を含まないことを確認。新規部位性疾患を disease に追加した場合
+  は crosswalk `clinosim/codes/data/icd10-condition-bodysite-crosswalk.yaml`
+  (`fhir_r4/conditions/conditions.py::_icd10_condition_bodysite_map` が読む)+ 本 signature を update。
 
 ### cy8-24-condition-abatement-finished-encounter-only
 
@@ -375,6 +378,16 @@
 - **revalidation_check**: device 欠落 MAR の route + dose_text を集計、上記
   条件を満たすことを確認。IV 持続点滴での device 100% 発火を保証。
 
+### s112-n10-pyelonephritis-vs-ain-single-code
+
+- **id**: `s112-n10-pyelonephritis-vs-ain-single-code`
+- **observation**: ED / IMP 入院で `N10` Condition を持つ症例に多剤抗菌薬 escalation (UTI 分類の単一診断に対し Ceftriaxone → Ciprofloxacin → Meropenem) が行われる。ランダムサンプル review で N10 を薬剤性急性間質性腎炎 (AIN) と解釈し、抗菌薬治療を臨床的に誤り (AIN ならステロイド + 被疑薬中止が正) と指摘されうる。
+- **by_design_reason**: WHO ICD-10 `N10` = "Acute tubulo-interstitial nephritis" は細菌感染型 (急性腎盂腎炎、抗菌薬治療) と薬剤 / 免疫性 AIN 型 (ステロイド + 被疑薬中止) の両方を含むコード。sim は腎盂腎炎経路のみを `urinary_tract_infection.yaml` (primary code `N10`、抗菌薬 protocol) でモデル化しており、その病因に対しては臨床的に正しい。AKI YAML の `interstitial_nephritis` 鑑別行は Issue #1353 で `N14.1` (ICD-10-CM "Nephropathy induced by other drugs, medicaments and biological substances") に改名し、2 コードを意味的に分離した。AIN を独立した疾患分岐 (ステロイド + 被疑薬中止治療) としてモデル化するのは見送り (DEFERRED) — AKI cohort の件数が別 disease YAML を正当化するほど無く、AKI YAML のベイズ鑑別行で診断の不確実性は表現できる。de-escalation なしの抗菌薬 escalation という別の懸念は Issue #1346 (真のバグ、別途追跡) で扱う。
+- **signature**: 出力 cohort の `N10` Condition はすべて `urinary_tract_infection.yaml` (腎盂腎炎) 由来であること — Issue #1353 の改名以降 `acute_kidney_injury.yaml` 由来は無い。grep 確認: `grep -R "'N10'" clinosim/modules/disease/reference_data/` は `urinary_tract_infection.yaml` (primary `N10` + variant `N10` prob 0.35) のみを示すこと。AKI 分岐のコード経路が `N10` を emit したら回帰であり、再登録が必要。
+- **established_session**: session 112, 2026-09-13.
+- **established_pr**: #1353 (issue) — this PR (`fix/1353-n10-differential-taxonomy` branch、両 disease YAML のコメントブロック + AKI 鑑別の改名)。
+- **revalidation_check**: cohort 再生成ごとに、disease source として `acute_kidney_injury` を引く `N10` Condition が 0 件であることを確認 (FHIR bundle の Condition.evidence または CIF の condition_source field のうち、現リリースで使われている方を検索)。
+
 ### s95-z37-past-birth-marker-stale-onset
 
 - **id**: `s95-z37-past-birth-marker-stale-onset`
@@ -402,15 +415,17 @@
   delivery encounter `period.start` 以降であることを確認(Z39 scheduler は同じ
   delivery event に由来する `state_period.metadata.delivered_on` を読むため cascade 無し)。
 
-### s118-prior-admit-cache-encounter-start-before-window
+### s118-prior-admit-cache-encounter-start-before-window [RETIRED]
 
 - **id**: `s118-prior-admit-cache-encounter-start-before-window`
-- **observation**: `Encounter.ndjson` のごく一部 (US p=10000 で 142/234,425 = 0.06%) が、入力 `--start` (window 開始日) より前の `period.start` を持つ。例: window `2021-10-27 → 2026-10-27` で `period.start` が最も早いもので `2021-10-01` (window 開始の 26 日前)。該当レコードの `period.end` はすべて window 内。
-- **by_design_reason**: `clinosim/simulator/_setup.py::_load_prev_admission_cache` が prior-admission cache を作り、window 開始時点で既に入院中の患者が初日に「入院中の状態で発生」しないようにしている。`clinosim/simulator/_dispatch.py::_replay_cached_admission_queue` はその入院を本来の (window 前の) 入院日と window 内の退院日で emit する。index date 時点の実際の EHR スナップショットと同じく、進行中の入院は切り詰めない本来の `period.start` を持つ。`max(period.start, window_start)` で切ると実入院日が失われ、持ち越し患者の在院日数を過小評価するため、意図的に保持している。対象は初年度の入院 cache のみで、総 encounter の 1% を十分下回る。
-- **signature**: `period.start < window_start` の Encounter はすべて `class.code in {"IMP", "EMER"}` かつ `period.end >= window_start` で、prior-admit cache replay 経路由来。件数は総 encounter の 1% 以下 (US p=10000 seed=342 で 0.06%)。`class.code == "AMB"` で `period.start < window_start`、または `period.end < window_start` (完全に window 前) のものは真のバグ。
+- **status**: **RETIRED — 2026-11-09**
+- **retirement_reason**: Retired: 本 entry が前提とする仕組みは現行コードに存在しない、2026-11-09。`_load_prev_admission_cache` は前回 snapshot の F4 memoize cache (`clinosim simulate --cache-dir` を指定しない限り空の index を返す) であり、`_replay_cached_admission_queue` は cache hit した入院の検査 / 画像キュー加算を `hospital_state` に再適用するだけで、どちらも入院を emit しない。forward loop は window 外のイベントをすべて落とす (`clinosim/simulator/phases/_forward_loop.py::in_window`)。したがって window 開始前の `period.start` を持つ Encounter は本レジストリの対象外であり、真のバグとして調査する。
+- **original_observation**: `Encounter.ndjson` のごく一部 (US p=10000 で 142/234,425 = 0.06%) が、入力 `--start` (window 開始日) より前の `period.start` を持つ。例: window `2021-10-27 → 2026-10-27` で `period.start` が最も早いもので `2021-10-01` (window 開始の 26 日前)。該当レコードの `period.end` はすべて window 内。
+- **original_by_design_reason**: `clinosim/simulator/_setup.py::_load_prev_admission_cache` が prior-admission cache を作り、window 開始時点で既に入院中の患者が初日に「入院中の状態で発生」しないようにしている。`clinosim/simulator/_dispatch.py::_replay_cached_admission_queue` はその入院を本来の (window 前の) 入院日と window 内の退院日で emit する。index date 時点の実際の EHR スナップショットと同じく、進行中の入院は切り詰めない本来の `period.start` を持つ。`max(period.start, window_start)` で切ると実入院日が失われ、持ち越し患者の在院日数を過小評価するため、意図的に保持している。対象は初年度の入院 cache のみで、総 encounter の 1% を十分下回る。
+- **original_signature**: `period.start < window_start` の Encounter はすべて `class.code in {"IMP", "EMER"}` かつ `period.end >= window_start` で、prior-admit cache replay 経路由来。件数は総 encounter の 1% 以下 (US p=10000 seed=342 で 0.06%)。`class.code == "AMB"` で `period.start < window_start`、または `period.end < window_start` (完全に window 前) のものは真のバグ。
 - **established_session**: session 118, 2026-10-27 (Issue #2005)
 - **established_pr**: #2007
-- **revalidation_check**: `period.start < window_start` の Encounter を数え、(a) 総数比 1% 以下、(b) すべて `class.code in {"IMP", "EMER"}`、(c) すべて `period.end >= window_start` を確認。いずれかが崩れたら prior-admit cache の drift か別経路の混入。
+- **retired_on**: 2026-11-09 (doc–code drift review)
 
 ### s118-patient-emit-requires-encounter
 
@@ -478,5 +493,7 @@
   delivery date が過去になりうる)が、emit path と population semantic が
   変化: delivered pregnancy period 毎に Z37 problem-list-item 1 件。
   合計 **26 entries**(in-place 更新、add/remove なし)。
+- 2026-09-13 (session 113, Issue #1353): `s112-n10-pyelonephritis-vs-ain-single-code` を追加。ランダムサンプル review で抗菌薬 escalation された N10 症例が AIN の誤治療と指摘されたため、WHO N10 が両病因を含むこと、sim の N10 経路は意図的に腎盂腎炎であることを YAML 内に明記。AKI YAML の `interstitial_nephritis` 鑑別行は `N14.1` (ICD-10-CM 薬剤性) に改名し、emit 層で 2 コードを分離。AIN を独立した疾患分岐としてモデル化するのは見送り。合計 **27 entries**。
 - 2026-10-27 (session 118, Issue #2005): `s118-prior-admit-cache-encounter-start-before-window` を追加。US `s=342 p=10000 2021-10-27..2026-10-27` の aggregate QA で window 開始前の `period.start` を持つ Encounter 142/234,425 件 (0.06%) を検出し、prior-admit cache の意図した出力と確認。
 - 2026-10-27 (session 118, Issue #2004): `s118-patient-emit-requires-encounter` を追加。`Patient.ndjson` が `-p 10000` に対し 9,832 件である件を調査し、window 内に 1 回以上 encounter がある住民のみカルテを持つ (住民 9,206 人 + 新生児 626 人) こと、死亡者は `deceasedDateTime` 付きで残ることを確認。
+- 2026-11-09 (doc–code drift review): `s118-prior-admit-cache-encounter-start-before-window` → RETIRED。引用先コード (`_load_prev_admission_cache` / `_replay_cached_admission_queue`) は window 前の入院を emit しない — 前者は `--cache-dir` の memoize cache、後者は検査 / 画像キュー加算の再適用 — うえ、forward loop は window 外イベントを落とす。window 前の `period.start` は今後真のバグとして扱う。合計 **29 entries** (うち 1 retired)。

@@ -30,15 +30,18 @@ US p=500 seed=42 + JP p=500 seed=17 で byte-identical 検証済
 ## 2. C1 — narrative template 分割 (12 section builder + 4 共有 helper)
 
 **Façade**: `clinosim/modules/document/narrative/template_generator.py`
-(分割後 1399 LOC)。以下の全シンボルは façade から re-export される。
-歴史的 caller (`generator._build_<section>`、
-`TemplateNarrativeGenerator()._compose_<name>()`、free function の直接
-import) は全て動作し続ける。
+(分割後 1399 LOC)。cascade 時点では以下の全シンボルが façade から
+re-export されていた。Issue #2531 以降、section builder は re-export も
+ラップもされず、section registry に自己登録する (下の「パターン」参照)。
+façade は一部の共有 helper について `_` 付きの薄い delegator メソッド
+(`TemplateNarrativeGenerator()._compose_<name>()`、`_resolve_*`、`_ed_*`)
+を残している。
 
 ### Section builders — `renderers/section_builders/`
 
-12 ファイル。各ファイルは free function `build_<section>(generator, ctx)`
-を export。
+12 ファイル。各ファイルは free function `(generator, ctx) -> (text, facts)`
+を定義し、`section_builders/_registry.py` の `@section("<name>")`
+デコレータで登録する。
 
 | ファイル | 内容 | Phase |
 |---|---|---|
@@ -58,14 +61,15 @@ import) は全て動作し続ける。
 ### 共有 helper — `renderers/`
 
 C1p-s 以降の 4 本の共有クラスタモジュール。section builder の後ろ盾。
-`template_generator.py` から re-export 済。
+モジュールレベルの関数名は公開名 (先頭 `_` なし) で、
+`template_generator.py` は大半について `_` 付きの delegator メソッドを持つ。
 
 | ファイル | 内容 |
 |---|---|
-| `_resolvers.py` | `_resolve_physical_exam`、`_resolve_daily_trajectory`、`_resolve_daily_trajectory_with_source`、`_generic_trajectory`、`_resolve_discharge_instructions` |
-| `_composers.py` | `_compose_progress_subjective_from_state`、`_compose_progress_assessment_from_state`、`_compose_progress_plan_from_state`、`_pick_stable_progress_phrase`、`_compose_today_vitals_line`、`_compose_pe_vitals_line`、`_apply_cc_pe_consistency`、`_compose_vital_signs_line` |
-| `_ed_helpers.py` | `_get_ed_note_template`、`_ed_disposition_reason`、`_ed_triage_level` |
-| `_shared_helpers.py` | `_pydantic_day_findings_to_dict`、`_format_physical_exam`、`_primary_surgical_procedure`、`_resolve_procedure_display` |
+| `_resolvers.py` | `resolve_physical_exam`、`resolve_daily_trajectory`、`resolve_daily_trajectory_with_source`、`generic_trajectory`、`resolve_discharge_instructions` |
+| `_composers.py` | `compose_progress_subjective_from_state`、`compose_progress_assessment_from_state`、`compose_progress_plan_from_state`、`pick_stable_progress_phrase`、`compose_today_vitals_line`、`compose_pe_vitals_line`、`apply_cc_pe_consistency`、`compose_vital_signs_line` |
+| `_ed_helpers.py` | `get_ed_note_template`、`ed_disposition_reason`、`ed_triage_level` |
+| `_shared_helpers.py` | `pydantic_day_findings_to_dict`、`format_physical_exam`、`primary_surgical_procedure`、`resolve_procedure_display` |
 
 B8 pilot + C1a-c の pre-section-builder 時代の renderer も
 `renderers/` 配下に居る: `ed_triage_note.py`、`nursing_shift_note.py`、
@@ -74,22 +78,22 @@ B8 pilot + C1a-c の pre-section-builder 時代の renderer も
 ### パターン
 
 ```python
-# template_generator.py (façade)
-from clinosim.modules.document.narrative.renderers.section_builders.hpi import (
-    build_hpi as build_hpi,
-    _build_hpi_core as _build_hpi_core,
-)
-# ...他 11 本の section builder re-export
+# renderers/section_builders/hpi.py
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 
-class TemplateNarrativeGenerator:
-    def _build_hpi(self, ctx):
-        # composition_sections.py の generator._build_<section> lookup が
-        # 引き続き resolve できるよう薄い lazy-import delegator
-        from clinosim.modules.document.narrative.renderers.section_builders.hpi import (
-            build_hpi,
-        )
-        return build_hpi(self, ctx)
+
+@section("hpi")
+def build_hpi(generator, ctx):
+    ...
+    return text, facts
 ```
+
+`renderers/composition_sections.py` は文書 spec の各 section 名を registry
+で引き (まず `@section(name, document_type=...)` で登録された
+`document_section_builders()`、次に `section_builders()`)、generator と
+context を渡して builder を呼ぶ。未登録の section には汎用 fallback 文言が
+入る。section の追加はデコレータ付き関数 1 つで済み、`template_generator.py`
+には何も足さない。
 
 直接 free-function import も動作:
 
@@ -99,9 +103,10 @@ from clinosim.modules.document.narrative.renderers.section_builders.hpi import (
 )
 ```
 
-**narrative バグ修正時**: `template_generator.py` の薄い delegator から
-該当の `renderers/section_builders/<section>.py` に辿る。delegator は
-2 行の shim で、本体は per-section ファイルにある。
+**narrative バグ修正時**: 該当 section の `@section("<name>")` 関数を
+`renderers/section_builders/<file>.py` で探す — それが本体。(Issue #2531
+以前は façade に section ごとの 2 行 `_build_<section>` delegator があったが、
+削除済。)
 
 ## 3. C2 — simulator engine 分割 (setup + dispatch + 4 phase)
 
@@ -112,7 +117,7 @@ from clinosim.modules.document.narrative.renderers.section_builders.hpi import (
 
 | ファイル | 内容 | Phase |
 |---|---|---|
-| `clinosim/simulator/_setup.py` | 9 helper — `_load_health_screening_visit_reason`、`_HEALTH_SCREENING_VISIT_REASON`、`_HEALTH_SCREENING_VISIT_REASON_FALLBACK`、`_pediatric_visit_reason`、`_parse_time_range_bound`、`_TimeRangeBounds`、`_activate_cached_person`、`_derive_time_range_bounds`、`_load_hospital_ops`、`_resolve_pop_size`、`_load_prev_admission_cache` | C2a |
+| `clinosim/simulator/_setup.py` | 11 シンボル — `_load_health_screening_visit_reason`、`_HEALTH_SCREENING_VISIT_REASON`、`_HEALTH_SCREENING_VISIT_REASON_FALLBACK`、`_pediatric_visit_reason`、`_parse_time_range_bound`、`_TimeRangeBounds`、`_activate_cached_person`、`_derive_time_range_bounds`、`_load_hospital_ops`、`_resolve_pop_size`、`_load_prev_admission_cache` | C2a |
 | `clinosim/simulator/_dispatch.py` | 病院イベント dispatcher + overlap 処理 — `_find_active_inpatient_record`、`_find_overlapping_inpatient_record`、`_verify_no_actual_overlap`、`_handle_overlap_via_merge`、`_merge_disease_into_active_encounter`、`_replay_cached_admission_queue`、`_DispatchState`、`_dispatch_hospital_events` | C2b |
 | `clinosim/simulator/phases/_healthcare_calendar.py` | `calendar_events_for_year`、`newborn_calendar_events`、`dispatch_calendar_event` | C2c |
 | `clinosim/simulator/phases/_post_discharge.py` | `schedule_post_discharge`、`dispatch_post_discharge` | C2d |

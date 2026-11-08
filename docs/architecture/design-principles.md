@@ -378,6 +378,8 @@ class SeedManager:
 | **Level 2: Structural + cached LLM** | Level 1 + identical narrative text | LLM outputs cached to disk (keyed by task_type + event_data hash). On re-run, cache is loaded instead of calling LLM. |
 | **Level 3: Full fresh** | Structural data identical. LLM text may vary slightly. | LLM called fresh (no cache). Structural data still deterministic. |
 
+(Superseded sketch — the shipped cache is `PromptCache`, see the note above.)
+
 ```python
 class LLMResponseCache:
     """Persistent cache for LLM responses, enabling reproducible runs."""
@@ -402,6 +404,9 @@ class LLMResponseCache:
 
 #### Seed hierarchy
 
+(Superseded sketch — the original design. The shipped sub-streams are the
+`clinosim/seeding.py` helpers listed in the note above.)
+
 ```
 master_seed (user-provided, e.g., 42)
   |
@@ -419,6 +424,9 @@ master_seed (user-provided, e.g., 42)
 Each module creates its own `numpy.random.Generator` from its sub-seed at initialization and uses only that generator. No module shares random state with another. This ensures that adding a new module or changing one module's random usage does not affect other modules' outputs.
 
 #### Validation of reproducibility
+
+(Superseded sketch — there is no `Simulator` class; reproducibility is checked
+by the shipped unit / e2e suites and byte-diff of generated cohorts.)
 
 ```python
 def test_reproducibility():
@@ -516,7 +524,7 @@ tests/e2e/
     # all benchmarks pass (within ±20% of expected)
 ```
 
-Golden file update process:
+Golden file update process (original plan):
 1. Run simulation with new code
 2. If test fails: diff against golden file
 3. If changes are intentional: update golden file, commit with explanation
@@ -894,7 +902,11 @@ class ClinicalDiagnosis:
 
 #### Diagnostic accuracy parameters
 
-Real-world diagnostic accuracy varies. clinosim models this as a tunable parameter:
+Real-world diagnostic accuracy varies. clinosim plans to model this as a tunable parameter.
+
+> **Not implemented (planned).** None of the parameters below exists in the code or in
+> `SimulatorConfig` today; the table records the design target.
+
 
 | Parameter | Default | Meaning |
 |---|---|---|
@@ -914,7 +926,7 @@ These can be adjusted to generate data at different "clinical quality" levels:
 | AD | Decision |
 |---|---|
 | AD-28 | Condition-first model: patients present with symptoms, not diagnoses. Ground truth (hidden) may differ from clinical diagnosis (recorded). Three condition types: known-disease, mixed-cause, unknown-cause. |
-| AD-29 | Diagnostic accuracy is a tunable parameter. Default matches real-world rates (~85% correct). Can be adjusted for different use cases. |
+| AD-29 | Diagnostic accuracy is a tunable parameter. Default matches real-world rates (~85% correct). Can be adjusted for different use cases. (Not implemented yet — planned.) |
 
 ---
 
@@ -1324,3 +1336,6 @@ This part documents major architectural decisions made after the initial v0.1-al
 foundation. They are integrated into the live codebase but recorded here as ADRs for
 historical reference.
 
+Detailed per-topic discussion for Part 6 lives in the §6.1–§6.11 sections of
+[`architecture-notes.md`](architecture-notes.md). For the full ADR list see
+[`adr-history.md`](adr-history.md).

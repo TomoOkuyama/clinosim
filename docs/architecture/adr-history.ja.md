@@ -117,6 +117,12 @@ Condition + Procedure リソースは dual `coding[]` エントリを emit:
 `_CONDITION_SHORT_NAME` を用いて search-friendly な省略形にする
 (AD-49)。
 
+> **実装:** builder は現在 `clinosim/modules/output/fhir_r4/lib/common.py`
+> の `build_diagnosis_codeable_concept()`。coding は 1 つのみ (現地語名は
+> `code.text` に入れる、Issue #2375)、`"(display unavailable)"` placeholder
+> は出さず (解決できない display は省略、Issue #1766)、短縮名は
+> `clinosim/codes/data/condition-short-name.yaml` から読む。
+
 ### AD-47: Observation referenceRange + interpretation 一貫性
 
 FHIR R5 Note 5 より: "the interpretation should be consistent with
@@ -356,16 +362,15 @@ primary team allocation を要求。
 - AD-55 always-on Module 数は 8 に増加 (device、hai、antibiotic、
   imaging、triage、nursing_assignment、allergy、document)。
   POST_ENCOUNTER ordering: 70/80/85/90/93/94/95
-- **既知のプロダクションギャップ**: outpatient.py + emergency.py
-  は POST_ENCOUNTER enricher を **invoke しない** (inpatient.py
-  のみ実施)。OUTPATIENT_SOAP / ED_NOTE / ED_TRIAGE_NOTE は
-  プロダクションで 0 リソースしか生成しない。dispatch ロジックは
-  正しい (audit proof checks 22-25 で検証済); fix は outpatient.py
-  + emergency.py に `run_stage(POST_ENCOUNTER, ...)` を追加すること
-  (α-min-3 に予定)。
-- **命名衝突ガード**: `modules/nursing/` は `nursing_enricher`
+- **当時のプロダクションギャップ (解消済)**: outpatient.py +
+  emergency.py は POST_ENCOUNTER enricher を **invoke していなかった**
+  (inpatient.py のみ実施) ため、OUTPATIENT_SOAP / ED_NOTE /
+  ED_TRIAGE_NOTE はプロダクションで 0 リソースだった。現在は両者とも
+  `run_stage(POST_ENCOUNTER, ...)` を呼ぶ (α-min-2 Task 14 fix)。
+- **命名衝突ガード**: `modules/nursing/engine.py::nursing_enricher`
   (POST_ENCOUNTER order=94、primary_nurse assign) と
-  `nursery_enricher` (POST_RECORDS observation) の両方を含む。
+  `modules/observation/nursing_enricher.py::enrich_nursing`
+  (POST_RECORDS observation) は名前が紛らわしい。
   参照時は必ず enricher 名を指定。`nursing_assignment` =
   POST_ENCOUNTER。`nursing` (observation) = POST_RECORDS。
 - **CareTeam 2 名 scope**: β-JP-1 で 6 名の多職種チーム (薬剤師 /
@@ -802,8 +807,6 @@ Alternative deferred:
 - Migration PR: #396 (dispatcher refactor) / #398 (shared pkg
   loader) / #400 (analyte classifier) / #402 (CoreLabo emit) /
   #404 (Uncoded + LocalCode + sanitize)
-- Session note: `project_session_67_end_state.md` (axis completion、
-  decision B 採用)
 
 ---
 

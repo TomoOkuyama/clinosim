@@ -30,14 +30,18 @@ on US p=500 seed=42 + JP p=500 seed=17 (full-cohort sha256
 ## 2. C1 — narrative template split (12 section builders + 4 shared helpers)
 
 **Façade**: `clinosim/modules/document/narrative/template_generator.py`
-(1399 LOC post-split). Every symbol below is re-exported from the
-façade; historical callers (`generator._build_<section>`,
-`TemplateNarrativeGenerator()._compose_<name>()`, direct free-function
-imports) all keep working.
+(1399 LOC post-split). At the time of the cascade every symbol below was
+re-exported from the façade. Since Issue #2531 the section builders are no
+longer re-exported or wrapped: they register themselves in a section
+registry (see *Pattern* below). The façade keeps thin `_`-prefixed
+delegator methods for several shared helpers
+(`TemplateNarrativeGenerator()._compose_<name>()`, `_resolve_*`, `_ed_*`).
 
 ### Section builders — `renderers/section_builders/`
 
-Twelve files; each exports free functions `build_<section>(generator, ctx)`.
+Twelve files; each defines free functions `(generator, ctx) -> (text, facts)`
+registered with the `@section("<name>")` decorator from
+`section_builders/_registry.py`.
 
 | File | Covers | Phase |
 |---|---|---|
@@ -57,14 +61,16 @@ Twelve files; each exports free functions `build_<section>(generator, ctx)`.
 ### Shared helpers — `renderers/`
 
 Four shared-cluster modules (post C1p-s) that back the section builders.
-Still re-exported from `template_generator.py`.
+Their module-level functions use public names (no leading `_`);
+`template_generator.py` keeps `_`-prefixed delegator methods for most of
+them.
 
 | File | Content |
 |---|---|
-| `_resolvers.py` | `_resolve_physical_exam`, `_resolve_daily_trajectory`, `_resolve_daily_trajectory_with_source`, `_generic_trajectory`, `_resolve_discharge_instructions` |
-| `_composers.py` | `_compose_progress_subjective_from_state`, `_compose_progress_assessment_from_state`, `_compose_progress_plan_from_state`, `_pick_stable_progress_phrase`, `_compose_today_vitals_line`, `_compose_pe_vitals_line`, `_apply_cc_pe_consistency`, `_compose_vital_signs_line` |
-| `_ed_helpers.py` | `_get_ed_note_template`, `_ed_disposition_reason`, `_ed_triage_level` |
-| `_shared_helpers.py` | `_pydantic_day_findings_to_dict`, `_format_physical_exam`, `_primary_surgical_procedure`, `_resolve_procedure_display` |
+| `_resolvers.py` | `resolve_physical_exam`, `resolve_daily_trajectory`, `resolve_daily_trajectory_with_source`, `generic_trajectory`, `resolve_discharge_instructions` |
+| `_composers.py` | `compose_progress_subjective_from_state`, `compose_progress_assessment_from_state`, `compose_progress_plan_from_state`, `pick_stable_progress_phrase`, `compose_today_vitals_line`, `compose_pe_vitals_line`, `apply_cc_pe_consistency`, `compose_vital_signs_line` |
+| `_ed_helpers.py` | `get_ed_note_template`, `ed_disposition_reason`, `ed_triage_level` |
+| `_shared_helpers.py` | `pydantic_day_findings_to_dict`, `format_physical_exam`, `primary_surgical_procedure`, `resolve_procedure_display` |
 
 Earlier non-section renderers (B8 pilot + C1a-c, pre-section-builder era)
 also live under `renderers/`: `ed_triage_note.py`, `nursing_shift_note.py`,
@@ -73,22 +79,22 @@ also live under `renderers/`: `ed_triage_note.py`, `nursing_shift_note.py`,
 ### Pattern
 
 ```python
-# template_generator.py (façade)
-from clinosim.modules.document.narrative.renderers.section_builders.hpi import (
-    build_hpi as build_hpi,
-    _build_hpi_core as _build_hpi_core,
-)
-# ...and 11 more section-builder re-exports.
+# renderers/section_builders/hpi.py
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 
-class TemplateNarrativeGenerator:
-    def _build_hpi(self, ctx):
-        # thin lazy-import delegator so composition_sections.py's
-        # generator._build_<section> lookup keeps resolving
-        from clinosim.modules.document.narrative.renderers.section_builders.hpi import (
-            build_hpi,
-        )
-        return build_hpi(self, ctx)
+
+@section("hpi")
+def build_hpi(generator, ctx):
+    ...
+    return text, facts
 ```
+
+`renderers/composition_sections.py` looks each section name of the
+document spec up in the registry (`document_section_builders()` first, for
+a builder registered with `@section(name, document_type=...)`, then
+`section_builders()`) and calls the builder with the generator and context.
+An unregistered section gets the generic fallback phrase. Adding a section
+is one decorated function; nothing is added to `template_generator.py`.
 
 Direct free-function imports also work:
 
@@ -98,9 +104,10 @@ from clinosim.modules.document.narrative.renderers.section_builders.hpi import (
 )
 ```
 
-**When fixing a narrative bug**: trace from the thin delegator in
-`template_generator.py` into its backing `renderers/section_builders/<section>.py`.
-The delegator is a 2-line shim; the real body is in the per-section file.
+**When fixing a narrative bug**: find the `@section("<name>")` function for
+the section in `renderers/section_builders/<file>.py` — that is the real
+body. (Before Issue #2531 the façade carried a 2-line `_build_<section>`
+delegator per section; those were removed.)
 
 ## 3. C2 — simulator engine split (setup + dispatch + 4 phases)
 
@@ -111,7 +118,7 @@ The delegator is a 2-line shim; the real body is in the per-section file.
 
 | File | Content | Phase |
 |---|---|---|
-| `clinosim/simulator/_setup.py` | 9 helpers — `_load_health_screening_visit_reason`, `_HEALTH_SCREENING_VISIT_REASON`, `_HEALTH_SCREENING_VISIT_REASON_FALLBACK`, `_pediatric_visit_reason`, `_parse_time_range_bound`, `_TimeRangeBounds`, `_activate_cached_person`, `_derive_time_range_bounds`, `_load_hospital_ops`, `_resolve_pop_size`, `_load_prev_admission_cache` | C2a |
+| `clinosim/simulator/_setup.py` | 11 symbols — `_load_health_screening_visit_reason`, `_HEALTH_SCREENING_VISIT_REASON`, `_HEALTH_SCREENING_VISIT_REASON_FALLBACK`, `_pediatric_visit_reason`, `_parse_time_range_bound`, `_TimeRangeBounds`, `_activate_cached_person`, `_derive_time_range_bounds`, `_load_hospital_ops`, `_resolve_pop_size`, `_load_prev_admission_cache` | C2a |
 | `clinosim/simulator/_dispatch.py` | Hospital-event dispatcher + overlap handling — `_find_active_inpatient_record`, `_find_overlapping_inpatient_record`, `_verify_no_actual_overlap`, `_handle_overlap_via_merge`, `_merge_disease_into_active_encounter`, `_replay_cached_admission_queue`, `_DispatchState`, `_dispatch_hospital_events` | C2b |
 | `clinosim/simulator/phases/_healthcare_calendar.py` | `calendar_events_for_year`, `newborn_calendar_events`, `dispatch_calendar_event` | C2c |
 | `clinosim/simulator/phases/_post_discharge.py` | `schedule_post_discharge`, `dispatch_post_discharge` | C2d |

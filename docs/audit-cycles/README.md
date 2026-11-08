@@ -29,8 +29,7 @@ clinical integrity / realism.
 4. Repeat 2 + 3 until **exactly 30 issues** are listed for the cycle
    (by-design confirmations do NOT count toward the 30).
 5. Fix all 30 issues. **New additions are made only when the FHIR-consistency
-   contradiction cannot be resolved without adding** (see memory
-   `feedback_cif_fhir_quality_focus.md`).
+   contradiction cannot be resolved without adding**.
 6. Regenerate CIF/FHIR at the same seed / population.
 7. Verify per-issue resolution (resolved / not resolved / newly discovered).
 8. **Cycle-end fix review** (mandatory, added 2026-07-08 by user directive):
@@ -49,7 +48,7 @@ clinical integrity / realism.
    - Add new FP entries to `docs/design-notes/2026-07-06-fix-point-registry.md`
      when warranted.
    - Refresh the gitignored `.resume-prompt.md` so the current cycle state
-     (cycle N progress n/20, carry-over list, master HEAD, next action)
+     (cycle N progress n/30, carry-over list, master HEAD, next action)
      is sufficient for a cold-start in a different session.
    - Reflect the current cycle progress on the GitHub Issues board
      (see `docs/roadmap.md`). The pre-Issues `TODO.md` ledger has been
@@ -97,13 +96,21 @@ Each cycle has its own file, `cycle-<N>.md`, with:
 
 ## Index
 
-_(populated as cycles run — session 41 will open cycle 1)_
-
-- [Cycle 1](cycle-1.md) — CLOSED 2026-07-07 (session 41): 20 issues addressed
+- [Cycle 1](cycle-1.md) — CLOSED 2026-07-07: 20 issues addressed
   (13 resolved / 5 not-a-bug / 2 carry-over to cycle 2). US p=10000 + JP p=10000
   audit; JP p=10000 regeneration for verification.
-- Cycle 2 — not yet started. Carry-over: C1-09 rules expansion, C1-10 ImagingStudy density,
-  C1-18 JP chronic conditions root cause.
+- [Cycle 2](cycle-2.md) — CLOSED 2026-07-07: 20 resolved / 4 partial / 3 not-a-bug /
+  3 carry-over.
+- [Cycle 3](cycle-3.md) — CLOSED 2026-07-08: 18 resolved / 4 partial / 6 in-cycle
+  attempted / 2 reverted post-review.
+- [Cycle 4](cycle-4.md) — CLOSED 2026-07-09: 22 fully resolved / 3 partial / 5 deferred.
+- [Cycle 5](cycle-5.md) — CLOSED 2026-07-09: 8 fully resolved / 2 by-design / 20 deferred
+  to cycle 6+.
+- [Cycle 6](cycle-6.md) — CLOSED 2026-07-11: 30 fixed / 3 new by-design entries registered.
+- [Cycle 7](cycle-7.md) — CLOSED 2026-07-11: 29/30 fully resolved / 1 partial / 1 new
+  by-design entry.
+- [Cycle 8](cycle-8.md) — CLOSED 2026-07-13: 30 findings resolved (24 at 100%, 5 by-design
+  selective, 1 registered by-design).
 
 ## Related documents
 
@@ -112,6 +119,3 @@ _(populated as cycles run — session 41 will open cycle 1)_
   audit-cycle workflow).
 - `docs/design-guides/data-model-and-completeness-conventions.md` — the C1/
   C2/C3 completeness convention shared across the codebase.
-- Memory `feedback_audit_cycle_workflow.md` — the durable workflow rule.
-- Memory `feedback_cif_fhir_quality_focus.md` — the "additions only when
-  strictly required" rule that gates cycle 5 (fix) decisions.

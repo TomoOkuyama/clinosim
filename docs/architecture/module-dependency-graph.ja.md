@@ -2,6 +2,9 @@
 
 # モジュール依存グラフ
 
+主要モジュール間の概念的なデータフロー図。実際の import グラフではない:
+モジュール同士が直接 import することは少なく、`clinosim/simulator/` が順に呼び出す。
+
 ```mermaid
 flowchart TD
     codes["codes<br/>(国際コードシステム)"]
@@ -14,7 +17,7 @@ flowchart TD
     population["population"]
     staff["staff"]
     healthcare["healthcare_system"]
-    identity["identity<br/>(JP 保険、opt-in)"]
+    identity["identity<br/>(保険番号)"]
 
     subgraph loop["daily simulation loop"]
         cc["clinical_course"] --> phys["physiology"]
@@ -43,7 +46,8 @@ flowchart TD
 ```
 
 `llm_service` と `validator` は cross-cutting (専用フェーズで使用)。
-`identity` は opt-in enricher (AD-54): enricher registry (AD-56) 経由
+`identity` は既定で有効な enricher (AD-54。JP は `--no-jp-insurance` で
+無効化でき、US は常に実行): enricher registry (AD-56) 経由
 の post-population pass として走行、そのデータは `output` が FHIR
 `Coverage` として emit。
 
