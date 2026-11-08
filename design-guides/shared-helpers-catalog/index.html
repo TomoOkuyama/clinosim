@@ -2948,11 +2948,11 @@
 <td>The medications acting on lab values on a given day of a stay.</td>
 </tr>
 <tr>
-<td><code>clinosim/modules/physiology/statin_response.py</code> <code>statin_intensity(med)</code> / <code>statin_ldl_reduction(patient_id, medications)</code> / <code>statin_treated_ldl(untreated_ldl, reduction)</code></td>
-<td>A statin's intensity from the drug and dose, the per-patient fraction of the untreated LDL the patient's statins remove, and the LDL after that reduction. Every LDL a statin lowers (lab derivation, health checkup) goes through these.</td>
+<td><code>clinosim/modules/physiology/statin_response.py</code> <code>statin_intensity(med)</code> / <code>statin_ldl_reduction(patient_id, medications)</code> / <code>ldl_reduction(patient_id, medications)</code> / <code>statin_treated_ldl(untreated_ldl, reduction)</code></td>
+<td>A statin's intensity from the drug and dose, the per-patient fraction of the untreated LDL the patient's statins remove, that fraction with the non-statin add-ons (ezetimibe) applied after it, and the LDL after that reduction. Every LDL a lipid-lowering drug lowers (lab derivation, health checkup) goes through these.</td>
 </tr>
 <tr>
-<td><code>clinosim/modules/physiology/engine.py</code> <code>lipid_panel(sex, has_diabetes, has_dyslipidemia, statin_ldl_reduction)</code> / <code>patient_lipid_panel(patient)</code></td>
+<td><code>clinosim/modules/physiology/engine.py</code> <code>lipid_panel(sex, has_diabetes, has_dyslipidemia, ldl_reduction)</code> / <code>patient_lipid_panel(patient)</code></td>
 <td>The true TC / HDL / TG / LDL of a lipid state, and of a patient from its conditions and home medications. Encounter labs and the health checkup both read it, so a patient has one untreated LDL.</td>
 </tr>
 <tr>

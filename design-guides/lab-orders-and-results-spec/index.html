@@ -2465,12 +2465,12 @@
 <td><code>tests/unit/test_pediatric_reference_ranges_2872.py</code>, <code>tests/unit/test_rr_clamp_by_age_2926.py</code></td>
 </tr>
 <tr>
-<td>A statin lowers the untreated LDL by its intensity (2018 ACC/AHA Table 3: low &lt; 30 %, moderate 30-49 %, high ≥ 50 %), at a fixed per-patient position in the range (SHA-256 quantile of the patient id, no RNG draw); TC falls by the same mg/dL. The intensity comes from the statin and its dose, the same table in both countries. The health checkup's LDL uses the same reduction for the same patient and statin.</td>
-<td><code>physiology/statin_response.py</code> (<code>statin_ldl_reduction</code>, <code>statin_treated_ldl</code>) via <code>physiology/engine.py::medication_flags_from_context</code> (<code>statin_ldl_reduction</code>) and <code>lipid_panel</code>, and <code>health_checkup/engine.py::_derive_checkup_values</code>; data <code>physiology/reference_data/statin_ldl_response.yaml</code></td>
-<td><code>tests/unit/modules/test_statin_ldl_response_2917.py</code>, <code>tests/unit/test_checkup_statin_response_2928.py</code></td>
+<td>A statin lowers the untreated LDL by its intensity (2018 ACC/AHA Table 3: low &lt; 30 %, moderate 30-49 %, high ≥ 50 %), at a fixed per-patient position in the range (SHA-256 quantile of the patient id, no RNG draw); TC falls by the same mg/dL. The intensity comes from the statin and its dose, the same table in both countries. An active ezetimibe (detected by drug class) removes a further fraction of the LDL left: 20-26 % on a statin (IMPROVE-IT), 16-21 % alone (Pandor 2009 meta-analysis), at the same per-patient position. The health checkup's LDL uses the same reduction for the same patient and medications.</td>
+<td><code>physiology/statin_response.py</code> (<code>statin_ldl_reduction</code>, <code>ldl_reduction</code>, <code>statin_treated_ldl</code>) via <code>physiology/engine.py::medication_flags_from_context</code> (<code>ldl_reduction</code>) and <code>lipid_panel</code>, and <code>health_checkup/engine.py::_derive_checkup_values</code>; data <code>physiology/reference_data/statin_ldl_response.yaml</code> (<code>ldl_reduction</code>, <code>add_on</code>)</td>
+<td><code>tests/unit/modules/test_statin_ldl_response_2917.py</code>, <code>tests/unit/modules/test_ezetimibe_ldl_response_2947.py</code>, <code>tests/unit/test_checkup_statin_response_2928.py</code></td>
 </tr>
 <tr>
-<td>The health checkup's true LDL is the patient's lipid state (sex, diabetes, dyslipidemia, statin reduction) through the same lipid panel as encounter labs, so the checkup and clinic LDL of one patient differ only by measurement noise; the checkup adds its own noise and clamps.</td>
+<td>The health checkup's true LDL is the patient's lipid state (sex, diabetes, dyslipidemia, statin and ezetimibe reduction) through the same lipid panel as encounter labs, so the checkup and clinic LDL of one patient differ only by measurement noise; the checkup adds its own noise and clamps.</td>
 <td><code>physiology/engine.py</code> (<code>lipid_panel</code>, <code>patient_lipid_panel</code>), <code>health_checkup/engine.py::_derive_checkup_values</code></td>
 <td><code>tests/unit/test_checkup_ldl_lipid_state_2941.py</code></td>
 </tr>
@@ -2557,7 +2557,7 @@
 </thead>
 <tbody>
 <tr>
-<td>The statin's LDL effect is in full from the first day; the 4-6 weeks to the full response are not modelled (the panels after a change are drawn 4 weeks or more later).</td>
+<td>The statin's and ezetimibe's LDL effect is in full from the first day; the 4-6 weeks to the full response are not modelled (the panels after a change are drawn 4 weeks or more later).</td>
 <td><code>physiology/statin_response.py</code></td>
 </tr>
 </tbody>
