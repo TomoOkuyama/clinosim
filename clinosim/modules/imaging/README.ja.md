@@ -96,7 +96,12 @@ from clinosim.modules.imaging.inference import (
 - `clinosim.types.encounter` — `OrderType`, `OrderStatus`。
 - `clinosim.types.imaging` — `ImagingSeries`, `ImagingStudyRecord`,
   `RadiologyReport` (`__init__.py` 経由で再 export)。
-- `numpy`, `yaml`。
+- `clinosim.datafiles` — `load_data_yaml`, `load_validated_yaml`。
+- `clinosim.determinism` — 患者単位 sub-RNG の生成。
+- `clinosim.locale` — `i18n.t`, `localized.localized`。
+- `clinosim.codes.snomed_concepts` (`audit.py` 経由) —
+  `FINDING_NORMAL`, `FINDING_ABNORMAL`。
+- `numpy`, `pydantic` (`engine.py` の reference YAML model)。
 
 ## 定数と設定
 
@@ -137,6 +142,8 @@ clinosim/modules/imaging/
     modalities.yaml                modality + default_views_by_body_site
     body_sites.yaml                SNOMED body-site カタログ
     impression_templates.yaml      (modality × body_site) 別 report template
+    bedside_examinations.yaml      画像検査ではなくベッドサイド診察である work-up order 名 (bedside_examination_names、Issue #2796)
+    imaging-impression-keywords.yaml  放射線 DiagnosticReport conclusionCode 用の正常 / 異常 impression 語句 (output/fhir_r4/labs/diagnostic_report.py が読む)
 ```
 
 **`enricher.py` は存在しない** — enricher entry は `engine.py`、
@@ -145,7 +152,7 @@ clinosim/modules/imaging/
 ## Enricher 配線
 
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`L380-391` 付近) で登録:
+の `register_builtin_enrichers` で登録:
 
 - `name="imaging"`, `stage=POST_ENCOUNTER`, `order=90`,
   `enabled=lambda c: True`。`antibiotic` (order=85) の後、
@@ -157,7 +164,7 @@ clinosim/modules/imaging/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Enricher registry | [`clinosim/simulator/enrichers.py:385`](../../simulator/enrichers.py) | POST_ENCOUNTER order=90 登録。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) `register_builtin_enrichers` | POST_ENCOUNTER order=90 登録。 |
 | Audit registry | [`clinosim/modules/imaging/audit.py`](audit.py) | AD-60 audit plug-in。 |
 | FHIR `ImagingStudy` / `Endpoint` / radiology `DiagnosticReport` / `ServiceRequest` builder | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | `extensions["imaging"]` から 4 リソースファミリを emit。 |
 | Order module | [`clinosim/modules/order/engine.py`](../order/engine.py) | `place_imaging_orders` が modality カタログの `default_views_by_body_site` を empty-views fallback として read。 |

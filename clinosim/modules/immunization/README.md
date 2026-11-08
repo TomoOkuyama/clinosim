@@ -152,14 +152,21 @@ those encounters get their document stubs.
 - `clinosim.types.encounter` — `ImmunizationRecord` (imported
   lazily inside the engine functions); `Encounter` /
   `EncounterStatus` / `EncounterType` for companion encounters.
-- `clinosim.codes` (indirect, via the FHIR builder) — CVX display
-  lookup.
+- `clinosim.codes` — `system_key_for` (enricher); CVX display lookup
+  happens in the FHIR builder.
+- `clinosim.countries` — `is_jp` (enricher); `clinosim.locale.i18n`
+  — `t`.
+- `clinosim.age_bands` — `lookup_age_band`.
+- `clinosim.datafiles` — `load_data_yaml` (schedule YAML).
+- `clinosim.determinism` — per-patient sub-RNG construction.
 - `numpy` — `np.random.Generator` for coverage sampling.
 - `hashlib.sha256` — via `_det_hash`, for lot-number determinism.
 
-The only other module dependency is a lazy import of
-`clinosim.modules.document.engine.document_enricher` for companion
-encounter documents.
+Other module dependencies are lazy imports in the enricher:
+`clinosim.modules.staff.engine.scoped_nurses` (the primary-care and
+ward nurse pools that `administered_by` is chosen from) and
+`clinosim.modules.document.engine.document_enricher` (companion
+encounter documents).
 
 ## Constants and configuration
 
@@ -230,9 +237,9 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`~L327`, `~L417`) | Writes `immunizations.csv` from `record["immunizations"]`. |
+| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`convert_cif_to_csv`) | Writes `immunizations.csv` from `record["immunizations"]`. |
 | FHIR `Immunization` builder | [`clinosim/modules/output/fhir_r4/procedures/immunization.py`](../output/fhir_r4/procedures/immunization.py) | Emits one FHIR R4 `Immunization` per record; id `imm-<12hex>` derived from the structural key `{patient_id}-{index}` (kept as an identifier). `vaccineCode` = CVX + locale display, `occurrenceDateTime` = the record date, `primarySource` from the record (`false` for pre-window doses), `encounter` from `encounter_id` (emit-time keyword match as fallback), `statusReason` PATOBJ for `not-done`, `protocolApplied[0].doseNumberPositiveInt` from `dose_number`, `performer` populated from `administered_by` when non-empty, `lotNumber` from `_synthetic_lot` when present. |
-| Enricher registry | [`clinosim/simulator/enrichers.py:241`](../../simulator/enrichers.py) | POST_RECORDS registration. |
+| Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) `register_builtin_enrichers` | POST_RECORDS registration. |
 
 ## Testing
 

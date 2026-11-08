@@ -86,6 +86,8 @@ as `"support1"` or `"care3"`.
 
 ## Constants and configuration
 
+- Reference YAML validated by model `_CareLevelConfig` in `engine.py`
+  (`load_reference`); a malformed `care_level.yaml` raises at load.
 - [`reference_data/care_level.yaml`](reference_data/care_level.yaml)
   — country-neutral shape:
   - `levels: ["independent", "support1", "support2", "care1", "care2", "care3", "care4", "care5"]`

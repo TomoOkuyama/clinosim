@@ -23,12 +23,12 @@ from clinosim.modules.longitudinal import (
 )
 ```
 
-`patterns/` (`ar1.py` / `markov.py` / `event.py`、`PATTERN_REGISTRY` で dispatch)、`loader.py` (yaml → `AttributeSpec`)、`med_lookup.py` (event の `emits_meds` 薬剤名 → `chronic_medications.yaml` 由来の `HomeMedication`)、`snapshot.py` (dataclass) は内部実装で、3 つの entry 関数が安定した契約。
+`patterns/` (`ar1.py` / `markov.py` / `event.py`、`PATTERN_REGISTRY` で dispatch)、`loader.py` (yaml → `AttributeSpec`)、`med_lookup.py` (event の `emits_meds` 薬剤名 → `chronic_medications.yaml` 由来の `HomeMedication`)、`snapshot.py` (`clinosim.types.longitudinal` で定義された `YearSnapshot` dataclass と deserialiser の再 export) は内部実装で、3 つの entry 関数が安定した契約。
 
 ## 決定性
 
 - 毎年 1 本の `np.random.Generator` を caller が渡す (`advance_population` / `generate_population`)。属性は `depends_on` の topological order で逐次 draw。`rng_isolated: true` の event yaml は共有 stream を消費せず `seeding.longitudinal_event_seed(person_id, year, event_name)` の専用 generator を使う。新規 ICD 獲得時の base 常用薬追加は patient 単位の `chronic_medication_seed` を使う。
-- `aging_sub_seed(person_id, year, "longitudinal")` が年次 generator を seed、`aging_sub_seed(person_id, base_year, "longitudinal:init")` が Layer-1 init を seed。
+- `population.aging.aging_sub_seed(person_id, year, "longitudinal")` が年次 generator を seed、`aging_sub_seed(person_id, base_year, "longitudinal:init")` が Layer-1 init を seed。
 - `state_at(person, when)` は純関数 (RNG なし、`longitudinal_history` を走査して該当年を返し、無ければ `IndexError`)。
 - `advance_one_year` は空 history / duplicate year / backward year で `ValueError`。前方への年 gap は許容。
 
@@ -36,7 +36,13 @@ from clinosim.modules.longitudinal import (
 
 - `clinosim.modules.longitudinal.patterns` — pattern registry。
 - `clinosim.modules.longitudinal.loader` — yaml → `AttributeSpec`。
-- `clinosim.types.population.PersonRecord` — mutation target。
+- `clinosim.types.population.PersonRecord` — mutation target、`clinosim.types.longitudinal` — `YearSnapshot`、`clinosim.types.patient` — `ChronicCondition`, `HomeMedication`。
+- `clinosim.seeding` — `longitudinal_event_seed` (分離 event stream)、`clinosim.determinism` — `default_rng`。
+- `clinosim.modules.patient.activator` — `_derive_home_medications` (lazy import。新規 ICD 獲得時の base 常用薬)。
+- `clinosim.modules.drug_safety` — `discharge_reconciliation_rules`, `check_candidate_against_active` (lazy import。既に服用中の class と重複する新規薬は追加しない)。
+- `clinosim.modules.population.condition_mutex` — `apply_depression_mutex` (lazy import。F33 onset で F32 を除去)。
+- `clinosim.locale.loader` — `load_chronic_medications`、`clinosim.codes.drugs` — `drug_key`, `find_drug`。
+- `clinosim.datafiles` — `load_data_yaml` (loader)。
 - `clinosim.locale.shared.longitudinal/` — 属性別 yaml。
 - `pydantic` — yaml schema 検証。
 - `numpy` — RNG + math。
@@ -50,6 +56,28 @@ from clinosim.modules.longitudinal import (
 - `stage/*.yaml` — Markov stage 属性 19 件。
 - `event/*.yaml` — event 属性 35 件 (慢性疾患 onset `*_onset.yaml` 32 件 + DM 合併症 3 件)。
 - `med/*.yaml` — 治療エスカレーション event 6 件 (DM / HTN / 脂質)。
+
+## ディレクトリ構造
+
+```
+clinosim/modules/longitudinal/
+  __init__.py      公開 5 名を再 export
+  engine.py        advance_one_year / state_at / initial_snapshot + event の副作用 (base 常用薬、うつ病 mutex)
+  loader.py        yaml → AttributeSpec + depends_on の topological sort
+  med_lookup.py    resolve_med_name — event の emits_meds 薬剤名 → HomeMedication
+  snapshot.py      YearSnapshot / yearsnapshot_from_dict の再 export (clinosim.types.longitudinal)
+  patterns/
+    __init__.py    PATTERN_REGISTRY
+    ar1.py         AR(1) 連続 latent
+    markov.py      Markov stage transition
+    event.py       event firing
+```
+
+`enricher.py`・`audit.py`・`reference_data/` は存在しない。yaml は `clinosim/locale/shared/longitudinal/` 配下にある。
+
+## Enricher 配線
+
+該当なし — engine は `register_builtin_enrichers` ([`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)) に登録されず、[`clinosim/seeding.py`](../../seeding.py) の `ENRICHER_SEED_OFFSETS` にも entry を持たない。population 生成と aging の中で実行され (caller 統合を参照)、`aging_sub_seed` と `longitudinal_event_seed` で seed される。
 
 ## caller 統合
 
@@ -66,7 +94,7 @@ from clinosim.modules.longitudinal import (
 
 ## テスト
 
-`tests/modules/longitudinal/` 配下 (39 ファイル)。詳細は英語 README 参照。
+`tests/modules/longitudinal/` 配下 (38 ファイル)。詳細は英語 README 参照。
 
 ## 設計ドキュメント
 

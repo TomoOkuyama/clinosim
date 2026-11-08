@@ -79,6 +79,9 @@ the ICD base by uppercase-splitting on `.`. Deterministic for a given
 
 ## Constants and configuration
 
+- Reference YAML validated by model `_FamilyHistoryConfig` in
+  `engine.py` (`load_reference`); a malformed `family_history.yaml`
+  raises at load.
 - [`reference_data/family_history.yaml`](reference_data/family_history.yaml)
   — country-neutral biology:
   - `relationships` — v3-RoleCode entries for `MTH`, `FTH`, `NSIB`

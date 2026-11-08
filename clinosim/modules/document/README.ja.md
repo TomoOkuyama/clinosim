@@ -106,20 +106,31 @@ from clinosim.modules.document.engine import document_enricher
 
 ## 依存
 
-- `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
-  `countries.lang_for`。
+- `clinosim.modules._shared` — `get_attr_or_key`。
+- `clinosim.countries` — `lang_for`、`clinosim.locale.i18n` — `t`。
+- `clinosim.codes.loinc` — `loinc_display`、
+  `clinosim.codes.snomed_concepts` — `SURGICAL_PROCEDURE`。
 - `clinosim.modules.document.narrative.registry` — spec loader +
-  filter。
+  filter + `document_loinc`。
 - `clinosim.modules.document.reference_data_loaders` — physical
-  exam finding + discharge instruction。
-- `clinosim.audit.registry` (`audit.py` 経由) — AD-60 audit 登録。
+  exam finding + discharge instruction + 他の cached loader。
+- `clinosim.datafiles` — `load_data_yaml`, `load_validated_yaml`、
+  `clinosim.reference_data` — `load_reference_yaml`。
 - `clinosim.types.document` — `DocumentType`, `FormatType`,
   `NarrativeContext`, `NarrativeOutput`。
 - `clinosim.types.clinical` — `ClinicalDocument`,
   `ClinicalImpressionRecord`。
 - `clinosim.types.encounter` — encounter 型 + `primary_nurse_id`
   / `attending_physician_id` field。
-- `yaml`。
+- `pydantic` — reference-data YAML model。
+- `audit.py` のみ: `clinosim.audit.registry` (AD-60 audit 登録)、
+  `clinosim.modules.output.cif_reader`
+  (`resolve_current_narrative_dir`)、`clinosim.modules.output.cif_writer`、
+  `clinosim.modules.output.fhir_r4.*` (`CARE_TEAM_ID_PREFIX` と
+  CIF → FHIR no-drop matrix 用の `_bb_*` bundle builder)、
+  `clinosim.modules.triage.audit` (`_build_triage_severity_proof`)、
+  `clinosim.modules.document.narrative.passes`
+  (`TemplateNarrativePass`)。
 
 ## 定数と設定
 
@@ -169,8 +180,10 @@ clinosim/modules/document/
     document_type_specs.yaml         文書種別 registry
     section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
     physical_exam_findings.yaml      per-disease PE 所見 (baseline + override)
-    # discharge_instructions.yaml は META #1805 Phase E (#1862) で
-    # `clinosim/modules/document/reference_data/clinosim-discharge-instruction.yaml` に移動
+    clinosim-discharge-instruction.yaml  退院指導 (load_discharge_instructions、旧 discharge_instructions.yaml、#1862)
+    clinosim-nursing-content.yaml    急性疾患 / 慢性 ICD-10 別の看護記録内容 (load_nursing_content)
+    cc-pe-consistency-keywords.yaml  主訴 ↔ 身体所見の整合 rail (narrative/_narrative_utils.py)
+    chronic-med-class-hints.yaml     慢性疾患 assessment の薬効分類 hint (narrative/renderers/section_builders/outpatient_soap.py)
     hpi_pertinent_negatives.yaml     HPI pertinent negative (load_hpi_pertinent_negatives)
     bedside_procedure_codes.yaml     bedside procedure code (load_bedside_procedure_codes)
     narrative_extras_whitelists.yaml narrative extra-context whitelist (narrative/_extra_context_builder.py)
@@ -183,7 +196,7 @@ clinosim/modules/document/
 ## Enricher 配線
 
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`L497-508` 付近) で登録:
+の `register_builtin_enrichers` で登録:
 
 - `name="document"`, `stage=POST_ENCOUNTER`, `order=95`,
   `enabled=lambda c: True`。POST_ENCOUNTER 最後 (imaging=90、
@@ -195,7 +208,7 @@ clinosim/modules/document/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Enricher registry | [`clinosim/simulator/enrichers.py:503`](../../simulator/enrichers.py) | POST_ENCOUNTER order=95 登録。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) `register_builtin_enrichers` | POST_ENCOUNTER order=95 登録。 |
 | Audit registry | [`clinosim/modules/document/audit.py`](audit.py) | AD-60 audit plug-in — 49-check lift_firing_proof + clinical_acceptance。 |
 | Narrative Stage 2 | [`clinosim/modules/document/narrative/passes.py`](narrative/passes.py) | 本モジュールが emit した全 stub に `narrative.sections` を populate。 |
 | FHIR document builder | [`clinosim/modules/output/fhir_r4/documents/`](../output/fhir_r4/documents/README.ja.md) | stub + populate 済み narrative から `DocumentReference` / `Composition` / `ClinicalImpression` を emit。 |

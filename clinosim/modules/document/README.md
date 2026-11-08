@@ -108,21 +108,31 @@ from clinosim.modules.document.engine import document_enricher
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
-  `countries.lang_for`.
+- `clinosim.modules._shared` — `get_attr_or_key`.
+- `clinosim.countries` — `lang_for`; `clinosim.locale.i18n` — `t`.
+- `clinosim.codes.loinc` — `loinc_display`;
+  `clinosim.codes.snomed_concepts` — `SURGICAL_PROCEDURE`.
 - `clinosim.modules.document.narrative.registry` — spec loaders +
-  filters.
+  filters + `document_loinc`.
 - `clinosim.modules.document.reference_data_loaders` — physical
-  exam findings + discharge instructions.
-- `clinosim.audit.registry` (via `audit.py`) — AD-60 audit
-  registration.
+  exam findings + discharge instructions + other cached loaders.
+- `clinosim.datafiles` — `load_data_yaml`, `load_validated_yaml`;
+  `clinosim.reference_data` — `load_reference_yaml`.
 - `clinosim.types.document` — `DocumentType`, `FormatType`,
   `NarrativeContext`, `NarrativeOutput`.
 - `clinosim.types.clinical` — `ClinicalDocument`,
   `ClinicalImpressionRecord`.
 - `clinosim.types.encounter` — encounter types + primary_nurse_id
   / attending_physician_id fields.
-- `yaml`.
+- `pydantic` — reference-data YAML models.
+- `audit.py` only: `clinosim.audit.registry` (AD-60 audit
+  registration), `clinosim.modules.output.cif_reader`
+  (`resolve_current_narrative_dir`), `clinosim.modules.output.cif_writer`,
+  `clinosim.modules.output.fhir_r4.*` (`CARE_TEAM_ID_PREFIX` and the
+  `_bb_*` bundle builders for the CIF → FHIR no-drop matrix),
+  `clinosim.modules.triage.audit` (`_build_triage_severity_proof`),
+  `clinosim.modules.document.narrative.passes`
+  (`TemplateNarrativePass`).
 
 ## Constants and configuration
 
@@ -178,8 +188,10 @@ clinosim/modules/document/
     bedside_procedure_codes.yaml     bedside procedure codes (load_bedside_procedure_codes)
     narrative_extras_whitelists.yaml narrative extra-context whitelists (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   sections exempt from the US H&P JA-char audit (audit.py)
-    # discharge_instructions.yaml moved to `clinosim/modules/document/reference_data/clinosim-discharge-instruction.yaml`
-    # under META #1805 Phase E (#1862) — the file lives beside the other `clinosim-*` catalogs.
+    clinosim-discharge-instruction.yaml  discharge instructions (load_discharge_instructions; was discharge_instructions.yaml, #1862)
+    clinosim-nursing-content.yaml    nursing-note content per acute disease / chronic ICD-10 (load_nursing_content)
+    cc-pe-consistency-keywords.yaml  chief-complaint ↔ physical-exam consistency rails (narrative/_narrative_utils.py)
+    chronic-med-class-hints.yaml     chronic-assessment medication-class hints (narrative/renderers/section_builders/outpatient_soap.py)
     chronic_soap_templates.yaml      chronic-condition SOAP note templates
     hedging_phrases.yaml             narrative hedging phrase pool
   narrative/                         narrative subpackage (Stage 2 pipeline) — see narrative/README.md
@@ -189,7 +201,7 @@ clinosim/modules/document/
 
 Registered in
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`~L497-508`):
+(`register_builtin_enrichers`):
 
 - `name="document"`, `stage=POST_ENCOUNTER`, `order=95`,
   `enabled=lambda c: True`. Runs LAST in POST_ENCOUNTER (after
@@ -202,7 +214,7 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| Enricher registry | [`clinosim/simulator/enrichers.py:503`](../../simulator/enrichers.py) | POST_ENCOUNTER order=95 registration. |
+| Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) `register_builtin_enrichers` | POST_ENCOUNTER order=95 registration. |
 | Audit registry | [`clinosim/modules/document/audit.py`](audit.py) | AD-60 audit plug-in — 49-check lift_firing_proof + clinical_acceptance. |
 | Narrative Stage 2 | [`clinosim/modules/document/narrative/passes.py`](narrative/passes.py) | Fills `narrative.sections` on every stub emitted here. |
 | FHIR document builders | [`clinosim/modules/output/fhir_r4/documents/`](../output/fhir_r4/documents/README.md) | Emit `DocumentReference` / `Composition` / `ClinicalImpression` from the stubs + populated narratives. |

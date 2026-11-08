@@ -79,6 +79,9 @@ tier が `independent` の場合に `""` を返す。それ以外は `jp-care-le
 
 ## 定数と設定
 
+- reference YAML は `engine.py` の model `_CareLevelConfig`
+  (`load_reference`) で検証される。不正な `care_level.yaml` は load 時に
+  例外となる。
 - [`reference_data/care_level.yaml`](reference_data/care_level.yaml)
   — country-neutral。
   - `levels: ["independent", "support1", "support2", "care1", "care2", "care3", "care4", "care5"]`

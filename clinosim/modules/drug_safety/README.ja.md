@@ -40,24 +40,222 @@ rule engine によって 0 件に低減する。薬剤 × 疾患状態
 
 ## 3. 公開 API
 
-`README.md` の Section 3 を参照。
+```python
+from clinosim.modules import drug_safety
+
+# ペア判定 — 順序非依存、RNG 非消費
+verdict = drug_safety.check_pair("Warfarin", "Aspirin")
+# → SafetyVerdict(severity="contraindicated", rule_id="vka-plus-antiplatelet", ...)
+
+# 複数 active 薬との判定 — caller の loop から使用
+verdicts = drug_safety.check_candidate_against_active(
+    "Ibuprofen", ["Warfarin", "Amlodipine"],
+)  # → [SafetyVerdict(...)] (allowed 以外のペアごとに 1 件)
+
+# 代替薬選択 — disease_ctx 優先、次に共有 pool
+alt = drug_safety.suggest_alternative(
+    "Ibuprofen", "pain_management",
+    active_meds=["Warfarin"], disease_ctx=protocol, country="us",
+)  # → AlternativeDrug(drug="Acetaminophen", ...)
+
+# 薬剤 × 慢性疾患状態 — entry は ICD 文字列または (code, stage) tuple
+verdicts = drug_safety.check_candidate_against_disease_state(
+    "Ibuprofen", ["I50.9"],
+)  # → [SafetyVerdict(rule_id="nsaid-in-heart-failure", ...)]
+
+# 年齢 / 性別 gate
+dv = drug_safety.check_demographic_gate(
+    "Aspirin 325mg", patient_age=8, patient_sex="M", indication_codes=None,
+)  # → DemographicVerdict(severity="contraindicated", rule_id="aspirin-pediatric-reyes", ...)
+
+# 退院処方で reconcile する rule id (contraindications.yaml)
+drug_safety.discharge_reconciliation_rules()  # → frozenset[str]
+
+# Utility
+drug_safety.resolve_classes("warfarin")   # → ["anticoagulant.vka", "anticoagulant"]
+drug_safety.canonical_name("ワルファリン")  # → "Warfarin"
+drug_safety.japanese_display("Aspirin")   # → "アスピリン"
+```
+
+`__all__` の全体: 関数 `check_pair`,
+`check_candidate_against_active`,
+`check_candidate_against_disease_state`, `check_demographic_gate`,
+`suggest_alternative`, `discharge_reconciliation_rules`,
+`resolve_classes`, `canonical_name`, `japanese_display`、型
+`SafetyVerdict`, `SafetySkipEntry`, `Severity`, `SEVERITY_RANK`
+(`clinosim.types.drug_safety` を `verdict.py` 経由で再 export)、
+`AlternativeDrug` (`engine.py`)、`DemographicVerdict`
+(`demographic.py`)。
 
 ## 4. Determinism
 
-- 判定は pure YAML lookup、RNG 非消費。
-- Substitution は YAML 順で最初の conflict-free 候補を選ぶ。
-- RNG shape shift はコホート規模の変化として MINOR bump 対象。
-- Cross-platform bit-reproducibility 保証 (`_DeterministicRngProxy`
-  regime 下で安全)。
+- **判定は pure YAML lookup** — RNG 非消費、超越関数・libm 呼び出し
+  なし。
+- **Substitution は YAML 順で最初の conflict-free 候補を選ぶ** —
+  seed に依らず決定論的。選択を変えるには YAML の順序を入れ替える。
+- **RNG shape shift**: skip された候補は通常の MR emit が消費した
+  はずの RNG を消費せず、代替薬は別の site で emit される。影響患者の
+  RNG stream がずれるコホート規模の変化として文書化済み。Version
+  bump = MINOR。
+- **Cross-platform bit-reproducibility**: `_DeterministicRngProxy`
+  regime 下で安全 — dict lookup と文字列比較のみ。
 
-## 5-11
+## 5. 依存
 
-`README.md` (英語版) を参照。日本語ミラーは 1-4 のみ独立記述、以降の
-セクションは README.md と 1 対 1 対応。
+- `clinosim.codes.drugs` — 薬剤カタログ (`drug_classes`,
+  `drug_display`, `identify_drug`, `resolve_drug`。`_models.py` は
+  class / drug id を `all_drug_ids` / `get_drug` でも検証)。
+- `clinosim.datafiles` — `load_validated_yaml` (全 reference YAML を
+  `_models.py` の Pydantic model 経由で load)。
+- `clinosim.locale.localized` — `language_slot`。
+- `clinosim.types.drug_safety` — `SafetyVerdict`, `SafetySkipEntry`,
+  `Severity`, `SEVERITY_RANK`, `EventType` (`verdict.py` が再 export)。
+- `clinosim.modules.disease.protocol` (`alternatives_by_indication`
+  の lazy import — disease_ctx を渡した場合のみ)。
+- サードパーティ: `pydantic` (YAML スキーマ検証)。
+- **それ以外の clinosim 内 runtime 依存はなし。**
 
-## Ownership
+## 6. 定数と設定
+
+YAML 4 ファイル + 薬剤カタログ:
+
+- 薬剤 class と alias: 薬剤カタログ
+  (`clinosim/codes/data/drugs.yaml`、`clinosim.codes.drugs` 経由で読む)。
+- `reference_data/contraindications.yaml` — class × class rule
+  (18 rule: VKA+抗血小板薬、DOAC+P2Y12、抗凝固薬+NSAID、
+  β遮断薬+非DHP CCB、P2Y12+P2Y12、statin+statin、DOAC+VKA、
+  ACEi+ARB、ACEi/ARB+K、ACEi/ARB+K 保持性利尿薬、statin+強力
+  CYP3A4 阻害薬、allopurinol+thiopurine、SSRI+MAOI、SSRI+SNRI、
+  NSAID 重複、lithium+利尿薬、lithium+ACEi/ARB、lithium+NSAID)、
+  加えて `discharge_reconciliation_rules` list と
+  `triple_therapy_after_acs` 抗血栓療法 plan。
+- `reference_data/disease_contraindications.yaml` — 薬剤 class ×
+  慢性疾患 rule (5 rule: 心不全 / 肝硬変 / CKD stage 4-5 (ICD prefix) /
+  CKD stage 4-5 (stage 指定) での NSAID、CKD stage 3b-5 での
+  metformin)。
+- `reference_data/demographic_gates.yaml` — 年齢 / 性別 rule (3 rule:
+  aspirin 小児 (Reye 症候群)、nitroglycerin 成人のみ、tamsulosin
+  成人男性)。
+- `modules/drug_safety/reference_data/drug_substitution.yaml` — 汎用
+  indication → 代替薬 pool (カタログ `drug_id` で key 付け。
+  pain_management → acetaminophen、hypertension_or_rate_control →
+  amlodipine / candesartan)。
+
+各ファイルは load 時に `_models.py` の `extra="forbid"` Pydantic
+model (`ContraindicationsFile`, `DiseaseContraindicationsFile`,
+`DemographicGatesFile`, `DrugSubstitutionFile`) で検証される。薬剤
+class / drug id はカタログと照合、rule id は一意、reconciliation
+list は既存 rule を指す必要がある。
+
+また Issue #437 の dead-data `alternative_*` block を 15 疾患 YAML
+で `_indication_tag` marker 経由で活用する。
+
+## 7. ディレクトリ構造
+
+```
+clinosim/modules/drug_safety/
+├── __init__.py            # 公開 API 再 export
+├── verdict.py             # SafetyVerdict + SafetySkipEntry + Severity + SEVERITY_RANK
+├── classifier.py          # 薬剤名 → class[] resolver
+├── engine.py              # check_pair / check_candidate_against_active / check_candidate_against_disease_state / suggest_alternative / discharge_reconciliation_rules
+├── demographic.py         # check_demographic_gate + DemographicVerdict
+├── _models.py             # reference YAML 4 種の Pydantic model
+├── audit.py               # audit_drug_safety(patients) → list[AuditFinding]
+├── reference_data/
+│   ├── contraindications.yaml
+│   ├── disease_contraindications.yaml
+│   ├── demographic_gates.yaml
+│   ├── drug_substitution.yaml
+│   ├── README.md          # YAML スキーマ
+│   └── README.ja.md
+├── README.md
+└── README.ja.md           # 本ファイル
+```
+
+## 8. Enricher 配線
+
+**なし** — enricher ではなく library。以下から同期的に呼ばれる:
+
+- `clinosim.simulator.medication_pipeline.apply_drug_safety_gate_to_orders`
+  — DDI gate + substitution。`simulator/inpatient.py` から
+  (`apply_drug_safety_gate_to_admission_orders` wrapper 経由で) 統合
+  済み入院時 order に、`simulator/daily_loop.py` から新規 daily-loop
+  order に適用。
+- `clinosim.modules.patient.activator._derive_home_medications`
+  — 慢性薬選択 loop (DDI + 疾患状態 gate)。skip-only、substitution
+  なし。
+- `clinosim.simulator.emergency` — ED order dispatch
+  (`check_demographic_gate` + `check_candidate_against_active`)。
+- `clinosim.simulator.discharge_rx` — active 薬に対する `check_pair`。
+- `clinosim.modules.prophylaxis.engine` — VTE 予防投与候補 vs active 薬。
+- `clinosim.modules.longitudinal.engine` — 持ち越した常用薬の
+  reconcile (`discharge_reconciliation_rules` +
+  `check_candidate_against_active`)。
+- `clinosim.simulator.outpatient` と
+  `clinosim.modules.order.discontinue_flip` — safety-skip entry 記録
+  のため verdict 型を import。
+
+## 9. Output surface
+
+- **FHIR MedicationRequest.note[]**: moderate DDI caution を
+  `authorReference.display = "clinosim drug_safety v1"` で付与。
+  それ以外は空。DetectedIssue リソースは emit しない。
+- **CIF `PatientProfile.safety_skip_log`**: 内部 / audit trace。
+  FHIR 構造化リソースには emit しない — 却下された CPOE order が
+  カルテに痕跡を残さない実 EHR に合わせる。
+- **Narrative (Layer 2)**:
+  `clinosim/modules/document/narrative/_template_helpers.py::_render_safety_skips_line`
+  が A&P / Plan section に決定論的な bullet 文を追記。
+- **Narrative (Layer 3)**: `narrative_seed_bundle.yaml` (v14 以降) が
+  `considered_but_not_prescribed` context key
+  (`document/narrative/_extra_context_builder.py::_build_extra_context`
+  が構築) と REQUIRED INCLUSION rule を持つ。
+- **Narrative (Layer 4)**: 予約済み個別 prompt 6 本に将来昇格用の
+  sync note を記載。
+
+## 10. テスト
+
+- `tests/modules/drug_safety/test_verdict.py` — SafetyVerdict +
+  severity ranking + default_action mapping (8 tests)。
+- `tests/modules/drug_safety/test_classifier.py` — alias / 大小文字 /
+  JA / 用量 suffix / class 体系 (13 tests)。
+- `tests/modules/drug_safety/test_ssri_snri_serotonin_gate.py` —
+  SSRI+SNRI / SSRI+MAOI セロトニン gate (28 tests)。
+- `tests/modules/drug_safety/test_engine_check_pair.py` — rule hit +
+  順序非依存 + RNG 非消費 gate (13 tests)。
+- `tests/modules/drug_safety/test_engine_suggest_alternative.py` —
+  共有 pool + disease_ctx 分岐 + JP country (10 tests)。
+- `tests/modules/drug_safety/test_cif_field_flow.py` — dataclass
+  field + narrative context filter (5 tests)。
+- `tests/modules/drug_safety/test_audit.py` — AD-60 audit plug-in
+  (5 tests)。
+- `tests/integration/test_drug_safety_order_hook.py` — order module
+  gate + substitution (6 tests)。
+- `tests/integration/test_drug_safety_patient_hook.py` — activator
+  gate skip-only (3 tests)。
+- `tests/integration/test_drug_safety_gate_post_admission.py` —
+  daily-loop order gate (5 tests)。
+- `tests/integration/test_drug_safety_fhir_emit.py` — MR.note
+  passthrough (3 tests)。
+- `tests/integration/test_narrative_avoidance_template.py` — Layer 2
+  renderer (5 tests)。
+- `tests/integration/test_narrative_avoidance_consistency.py` —
+  CIF↔narrative 名称追跡 (2 tests)。
+- `tests/integration/test_llm_prompt_seed_bundle.py` — Layer 3 prompt
+  version + rule + `_build_extra_context` (13 tests)。
+- 疾患状態 / 年齢性別 gate と caller 配線:
+  `tests/unit/test_drug_safety_disease_state_1350.py`,
+  `tests/unit/drug_safety/test_metformin_ckd_contraindication_1769.py`,
+  `tests/unit/modules/drug_safety/test_demographic_gate.py`,
+  `tests/unit/test_ed_order_drug_safety_1347.py`,
+  `tests/unit/test_discharge_rx_drug_safety_1334.py`。
+
+コホート検証は `scripts/verify_medical_stats.py` で行い、
+`contraindicated_pair_count` (目標: 0) を報告する。
+
+## 11. Ownership
 
 - session 99 (2026-09-03) — 初期実装。
-- Spec: `docs/superpowers/specs/2026-09-03-drug-safety-module-design.md`
-- Plan: `docs/superpowers/plans/2026-09-03-drug-safety-module.md`
-- Issue: #1066
+- Spec: `docs/superpowers/specs/2026-09-03-drug-safety-module-design.md`。
+- Plan: `docs/superpowers/plans/2026-09-03-drug-safety-module.md`。
+- Issue: #1066。

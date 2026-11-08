@@ -68,6 +68,9 @@ wraps it with the gate + sub-seed derivation described below.
 
 ## Constants and configuration
 
+- Reference YAML validated by model `_CodeStatusConfig` in
+  `engine.py` (`load_reference`); a malformed `code_status.yaml` raises
+  at load.
 - [`reference_data/code_status.yaml`](reference_data/code_status.yaml)
   — country-neutral. Declares:
   - `observable_snomed: "304251008"` — SNOMED CT observable

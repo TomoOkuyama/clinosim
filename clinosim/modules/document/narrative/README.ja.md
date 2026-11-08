@@ -113,7 +113,21 @@ from clinosim.modules.document.narrative.semantic_check import check_narratives,
 - `clinosim.modules.llm_service` — `LLMService.complete_prompt` +
   `LLMTaskType` / `LLMResponse` (LLM path のみ)。
 - `clinosim.modules.document` — `specs_for_country`、`DocumentType`
-  再 export、`reference_data_loaders` (enricher 本体は import しない)。
+  再 export、`reference_data_loaders`、`engine` の一部 helper
+  (`SHIFT_HOURS` / `SHIFT_SCHEDULE`、`_compute_los_days`。
+  `document_enricher` 本体は import しない)、`audit` の JA 文字定数
+  (`semantic_check.py`)。
+- `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
+  `practitioner_name`。
+- `clinosim.modules.health_checkup.engine` — `checkup_lab_names`
+  (`renderers/section_builders/jp_clins.py` で lazy import)。
+- `clinosim.simulator` — `log` (`passes.py`) と
+  `simulator.complications` (`complication_names`,
+  `normalized_complications`。`passes.py`, `context.py`)。
+- `clinosim.locale` (`i18n.t`, `loader`, `localized`, `free_text`)、
+  `clinosim.countries`、`clinosim.codes` — 多言語化と code 表示名 lookup。
+- `clinosim.datafiles` — `load_data_yaml`、
+  `clinosim.reference_data` — `load_reference_yaml`。
 - `clinosim.modules.disease.protocol` — scenario spine 抽出用の
   `load_disease_protocol`。
 - `clinosim.modules.encounter.protocol` — 外来 / ED template 用の
@@ -204,18 +218,20 @@ clinosim/modules/document/narrative/
   scenario_spine.py                        build_narrative_spine (protocol → NarrativeSpine, AD-65 E1)
   fact_extractor.py                        extract_all_facts (FactTag list, AD-65 E2)
   section_extractor.py                     extract_for_composition (per-COMPOSITION section, AD-65 E3)
-  template_generator.py                    TemplateNarrativeGenerator + placeholder engine (~1400 LOC; per-document rendering split into renderers/)
+  template_generator.py                    TemplateNarrativeGenerator + placeholder engine (per-document rendering split into renderers/)
   renderers/                               per-document renderers (progress_note / nursing_shift_note / ed_triage_note / composition_sections + shared helpers) and section_builders/ (one module per Composition section family)
   lab_timeseries.py                        lab time-series helpers for narrative rendering
   _localization.py                         JA/EN narrative-token localization helpers (META #1633 P6 slice 1)
   _template_helpers.py                     Template-rendering primitives (_label / _resolve_staff_name / _render_home_med_name / _pick_localized / _fill_template_placeholders / vital-placeholder resolution / fallback constants — META #1633 P6 slice 2)
   _narrative_utils.py                      Miscellaneous narrative helpers (nursing-content lookup / vitals-for-day / SHA-driven autopsy gate / age-at / ISO-datetime parse / chief-complaint keyword / encounter-salted pool pickers / PE clause rewrite — META #1633 P6 slice 3)
   llm_generator.py                         LLMNarrativeGenerator (template base + per-section LLM replacement)
-  replacement_strategy.py                  apply_replacement_strategy dispatch (~790 LOC — strategy applicators only; helpers extracted to the four files below)
+  replacement_strategy.py                  apply_replacement_strategy dispatch (strategy applicators only; helpers extracted to the four files below)
   _replacement_localization.py             Severity / oxygen-device / arrival-mode / Barthel-band JA token lookups + LLM-output EN→JA post-processors (lab names from `lab_display.yaml`) (META #1633 P6 replacement slice 1)
   _replacement_renderers.py                Per-section rendering helpers (chronic list / newborn workup / vitals-for-day / supplemental-O2 / med lists / abnormal labs / lab trend / lab carry-forward / key procedures / stay-phase — META #1633 P6 replacement slice 2)
   _patient_info_renderers.py               Patient demographics / biometrics / health-literacy renderers + _localize_token enum lookup (META #1633 P6 replacement slice 3)
   _extra_context_builder.py                _build_extra_context + _writing_day_of — composes every renderer into the LLM-prompt context dict (META #1633 P6 replacement slice 4)
+  _safety_skips.py                         safety_skip_line — 薬剤安全 skip event の文言を template / LLM path で共通化 (Issue #2519)
+  _vitals_line.py                          format_vitals_line — narrative 各 style のバイタル 1 行要約を 1 つの formatter に集約 (Issue #2523)
   cache.py                                 NarrativeCache (layer-1 in-memory, seed_hash keyed)
   semantic_check.py                        check_narratives (β-JP-1 verification gate)
   _hedging.py                              hedging phrase pool

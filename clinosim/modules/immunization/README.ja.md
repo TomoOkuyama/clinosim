@@ -134,13 +134,21 @@ attending は primary-care 医師 roster から決定論選出) を合成し、�
 - `clinosim.types.encounter` — `ImmunizationRecord` (engine 関数内で
   遅延 import)、付随 encounter 用の `Encounter` / `EncounterStatus` /
   `EncounterType`。
-- `clinosim.codes` (間接、FHIR builder 経由) — CVX 表示 lookup。
+- `clinosim.codes` — `system_key_for` (enricher)。CVX 表示 lookup は
+  FHIR builder 側で行う。
+- `clinosim.countries` — `is_jp` (enricher)、`clinosim.locale.i18n`
+  — `t`。
+- `clinosim.age_bands` — `lookup_age_band`。
+- `clinosim.datafiles` — `load_data_yaml` (schedule YAML)。
+- `clinosim.determinism` — 患者単位 sub-RNG の生成。
 - `numpy` — coverage サンプリングの `np.random.Generator`。
 - `hashlib.sha256` — `_det_hash` 経由、lot number 決定論化。
 
-他 module への依存は、付随 encounter の文書生成用に
-`clinosim.modules.document.engine.document_enricher` を遅延 import する
-のみ。
+他 module への依存は enricher 内の遅延 import のみ:
+`clinosim.modules.staff.engine.scoped_nurses` (`administered_by` を
+選ぶ外来 (primary care) / 病棟の看護師 pool) と
+`clinosim.modules.document.engine.document_enricher` (付随 encounter
+の文書生成)。
 
 ## 定数と設定
 
@@ -206,9 +214,9 @@ clinosim/modules/immunization/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`L327` 付近, `L417` 付近) | `record["immunizations"]` から `immunizations.csv` を書き出し。 |
+| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`convert_cif_to_csv`) | `record["immunizations"]` から `immunizations.csv` を書き出し。 |
 | FHIR `Immunization` builder | [`clinosim/modules/output/fhir_r4/procedures/immunization.py`](../output/fhir_r4/procedures/immunization.py) | 記録ごとに FHIR R4 `Immunization` を 1 件出力。id は structural key `{patient_id}-{index}` (identifier に保持) から導出した `imm-<12hex>`、`vaccineCode` = CVX + locale 表示、`occurrenceDateTime` = 接種日、`primarySource` は記録値 (window 前の接種は `false`)、`encounter` は `encounter_id` から (emit 時キーワード照合が fallback)、`not-done` は `statusReason` PATOBJ、`dose_number` を `protocolApplied[0].doseNumberPositiveInt` に、`administered_by` が非空なら `performer` に反映、`_synthetic_lot` を `lotNumber` に emit。 |
-| Enricher registry | [`clinosim/simulator/enrichers.py:241`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) `register_builtin_enrichers` | POST_RECORDS 登録。 |
 
 ## テスト
 
