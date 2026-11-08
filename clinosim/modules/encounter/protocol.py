@@ -174,6 +174,8 @@ class _Prescription(BaseModel):
     frequency: str | None = None
     duration_days: int | None = None
     probability: float = Field(default=1.0, ge=0.0, le=1.0)
+    # Prescriptions sharing a group name are alternatives: one is written.
+    choose_one: str | None = None
     locale_name: dict[str, str] = Field(default_factory=dict)
     locale_exclude: list[str] = Field(default_factory=list)
 
@@ -282,9 +284,9 @@ class EncounterConditionProtocol(BaseModel):
         if not triage or not triage.high_risk_orders:
             return self
         names: set[str] = set()
-        for tx in (self.model_extra or {}).get("treatment") or []:
-            names.add(str(tx.get("name", "")))
-            names.update(str(v) for v in (tx.get("locale_name") or {}).values())
+        for tx in self.treatment:
+            names.add(tx.name)
+            names.update(tx.locale_name.values())
         unknown = sorted(set(triage.high_risk_orders) - names)
         if unknown:
             raise ValueError(f"{self.condition_id}: high_risk_orders {unknown} are not treatment names")
