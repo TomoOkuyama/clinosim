@@ -2317,7 +2317,6 @@
         "chief_complaint_variants.bacterial_pneumonia[1]",
         "ctx.vitals[0]",
         "ctx.orders.ed",
-        "ctx.lab_results.abnormal",
         "ctx.ed_assessment.state_composed",
         "ctx.encounter.disposition"
       ],
@@ -2330,8 +2329,8 @@
       "sections": {
         "assessment": "来院理由: 発熱・咳嗽・呼吸困難",
         "chief_complaint": "3日前より発熱・湿性咳嗽・胸痛",
-        "disposition": "自宅退院（JTAS レベル 3、発熱・咳嗽・呼吸困難）",
-        "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、CRP、PCT、クレアチニン、BUN、Na、K。画像: 胸部レントゲン (正面・側面)、胸部レントゲン (正面・側面)、胸部 CT (単純)。投薬: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、メロペネム 1g 静注 8時間毎、エノキサパリン。処置指示: 酸素投与: 経鼻カニューラ SpO2 >= 94%。異常値: WBC 12275.0 /uL [H]、アルブミン 3.5 g/dL [L]、AST 31.0 U/L [H]、CRP 89.2 mg/L [H]",
+        "disposition": "入院適応（発熱・咳嗽・呼吸困難）",
+        "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、CRP、PCT、クレアチニン、BUN、Na、K。画像: 胸部レントゲン (正面・側面)、胸部レントゲン (正面・側面)、胸部 CT (単純)。投薬: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、メロペネム 1g 静注 8時間毎、エノキサパリン。処置指示: 酸素投与: 経鼻カニューラ SpO2 >= 94%",
         "hpi": "中等度の症状で受診。",
         "physical_exam": "来院時所見: BP 118/71 mmHg, HR 103 回/分, RR 19 回/分, SpO2 96%, T 38.2°C。特記の身体所見なし。",
         "triage_details": "トリアージ情報：未記録"

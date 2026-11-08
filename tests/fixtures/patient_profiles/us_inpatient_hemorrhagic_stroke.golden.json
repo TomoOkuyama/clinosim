@@ -1087,7 +1087,6 @@
         "ctx.encounter.chief_complaint",
         "ctx.vitals[0]",
         "ctx.orders.ed",
-        "ctx.lab_results.abnormal",
         "ctx.ed_assessment.state_composed",
         "ctx.encounter.disposition"
       ],
@@ -1100,8 +1099,8 @@
       "sections": {
         "assessment": "Encounter reason: Sudden severe headache, vomiting, altered consciousness",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
-        "disposition": "Discharged home (ESI level 2, Sudden severe headache, vomiting, altered consciousness)",
-        "ed_workup": "Labs: CBC, PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast), head CT (repeat). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line. Abnormal: glucose 119.0 mg/dL [H]",
+        "disposition": "Admitted (Sudden severe headache, vomiting, altered consciousness)",
+        "ed_workup": "Labs: CBC, PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast), head CT (repeat). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line",
         "hpi": "Patient presented with severe symptoms.",
         "physical_exam": "On arrival: BP 135/81 mmHg, HR 93 bpm, RR 19 /min, SpO2 95%, T 36.9°C. No focal findings on exam.",
         "triage_details": "Triage information: not recorded"

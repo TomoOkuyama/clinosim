@@ -1827,7 +1827,7 @@
       "sections": {
         "assessment": "Encounter reason: Chest pain, diaphoresis, dyspnea",
         "chief_complaint": "Chest pain, diaphoresis, dyspnea",
-        "disposition": "Transferred to another facility (Chest pain, diaphoresis, dyspnea)",
+        "disposition": "Admitted (Chest pain, diaphoresis, dyspnea)",
         "ed_workup": "Labs: CBC, coagulation studies, LFT, lipid panel, troponin I, troponin I (6 h repeat), CK-MB, BNP. Imaging: 12-lead ECG, echocardiogram, chest X-ray PA, coronary angiography, chest X-ray AP. Medications: Aspirin, Ticagrelor, Acetaminophen, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip. Procedures ordered: O2: Nasal cannula SpO2 >= 94%",
         "hpi": "Patient presented with severe symptoms.",
         "physical_exam": "On arrival: BP 116/72 mmHg, HR 111 bpm, RR 15 /min, SpO2 96%, T 36.2°C. No focal findings on exam.",
