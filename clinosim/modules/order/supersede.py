@@ -16,10 +16,12 @@ from __future__ import annotations
 
 from functools import cache
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
-from clinosim.codes.drugs import drug_ref, get_drug
-from clinosim.datafiles import load_data_yaml
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
+
+from clinosim.codes.drugs import all_drug_ids, drug_classes, drug_ref, get_drug
+from clinosim.datafiles import load_validated_yaml
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER
 from clinosim.types.encounter import OrderStatus, OrderType
 
@@ -28,15 +30,53 @@ _INACTIVE = (OrderStatus.STOPPED, OrderStatus.CANCELLED)
 _STAY_TYPES = frozenset({"inpatient", "icu", "rehab_inpatient"})
 
 
+def _check_class(name: str) -> str:
+    """``name`` is a class of some catalog drug (else the rule never fires)."""
+    if name not in {c for d in all_drug_ids() for c in drug_classes(d)}:
+        raise ValueError(f"drug class {name!r} is not a class of any catalog drug")
+    return name
+
+
+class _ClassSwitch(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    new_class: StrictStr
+    stops: list[StrictStr] = Field(min_length=1)
+
+    @field_validator("new_class")
+    @classmethod
+    def _new_class_known(cls, v: str) -> str:
+        return _check_class(v)
+
+    @field_validator("stops")
+    @classmethod
+    def _stops_known(cls, v: list[str]) -> list[str]:
+        return [_check_class(c) for c in v]
+
+
+class MedicationSupersede(BaseModel):
+    """Shape of ``medication_supersede.yaml``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    class_switches: list[_ClassSwitch] = []
+    prn_markers: list[Annotated[StrictStr, Field(min_length=1)]] = Field(min_length=1)
+
+
+@cache
+def _supersede_config() -> dict[str, Any]:
+    return load_validated_yaml(_REF, MedicationSupersede)
+
+
 @cache
 def _class_switches() -> tuple[tuple[str, frozenset[str]], ...]:
-    rules = (load_data_yaml(_REF) or {}).get("class_switches") or []
+    rules = (_supersede_config() or {}).get("class_switches") or []
     return tuple((str(r["new_class"]), frozenset(str(c) for c in r["stops"])) for r in rules)
 
 
 @cache
 def _prn_markers() -> tuple[str, ...]:
-    return tuple(str(m) for m in (load_data_yaml(_REF) or {}).get("prn_markers") or ("PRN",))
+    return tuple(str(m) for m in (_supersede_config() or {}).get("prn_markers") or ("PRN",))
 
 
 def _drug_id(order: Any) -> str:

@@ -11,7 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_validated_yaml
 from clinosim.modules.observation._nursing_score_thresholds import (
     AVPU_TO_BRADEN_SENSORY,
     BARTHEL_DEFAULT,
@@ -37,6 +37,7 @@ from clinosim.modules.observation._nursing_score_thresholds import (
     NEWS2_SCORE_MAX,
     NEWS2_SCORE_MIN,
 )
+from clinosim.modules.observation._reference_models import NursingScores
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -44,7 +45,7 @@ _REF_DIR = _HERE / "reference_data"
 
 @lru_cache(maxsize=1)
 def _scores() -> dict:
-    return load_data_yaml(_REF_DIR / "nursing_scores.yaml") or {}
+    return load_validated_yaml(_REF_DIR / "nursing_scores.yaml", NursingScores) or {}
 
 
 def barthel_items() -> list[dict]:
