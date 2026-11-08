@@ -62,7 +62,10 @@ from clinosim.locale.text import (
 ```
 
 The list above is a commonly used subset: `clinosim.locale.loader`
-re-exports 46 `load_*` functions, implemented in
+re-exports 73 names in its `__all__` — 49 `load_*` functions plus
+display / code-lookup helpers (`drug_code`, `lab_code`,
+`map_diagnosis_code`, `department_display`, `lab_display`, …) —
+implemented in
 `clinosim/locale/loaders/` (`clinical.py`, `demographics.py`,
 `fhir_identity.py`, `medical_display.py`, `narrative.py`).
 
@@ -82,14 +85,20 @@ via `yaml.safe_load`, which is deterministic byte-in → dict-out.
 
 ## Dependencies
 
-- `pyyaml` for YAML loading.
-- Standard library `pathlib`, `functools`, `typing`.
-- **No dependency on other `clinosim.*` packages** at import time.
-  Two loaders import lazily inside the function body:
-  `clinosim.codes.drugs` (drug catalog union) and
-  `clinosim.modules.output.fhir_r4.lib.reference_data` (route
-  vocabulary validation of `chronic_medications.yaml`). Consumers pass
-  the returned dicts into their own types.
+- `pyyaml` for YAML loading (via `clinosim.datafiles.load_data_yaml`
+  in `_io.py`; `i18n.py` imports it directly).
+- Standard library `pathlib`, `functools`, `typing`, `re`,
+  `dataclasses`.
+- Import-time `clinosim.*` dependencies: `clinosim.datafiles`
+  (`_io.py`), `clinosim.countries` (`lang_for` / `normalize_lang` /
+  `is_jp` in `text.py`, `free_text.py`, `localized.py`,
+  `loaders/demographics.py`) and `clinosim.codes` (`data_table` in
+  `loaders/medical_display.py`).
+- Lazy imports inside function bodies: `clinosim.codes.drugs` and
+  `clinosim.codes.system_key_for` (drug catalog union / drug code
+  lookup) and `clinosim.modules.output.fhir_r4.lib.reference_data`
+  (route vocabulary validation of `chronic_medications.yaml`).
+  Consumers pass the returned dicts into their own types.
 
 ## Constants and configuration
 
@@ -118,8 +127,8 @@ via `yaml.safe_load`, which is deterministic byte-in → dict-out.
 clinosim/locale/
   __init__.py                     (empty by design — import direct
                                    from .loader / .text)
-  loader.py                       re-export facade (46 public load_*
-                                   functions)
+  loader.py                       re-export facade (73 names, 49 of
+                                   them public load_* functions)
   _io.py                          shared YAML primitives (_LOCALE_DIR,
                                    _COUNTRY_DIR_MAP, _country_dir,
                                    _load_yaml, fallback defaults)
@@ -131,6 +140,13 @@ clinosim/locale/
   i18n.py                         t(key, lang, **params) phrase
                                    translator over the shared phrase
                                    catalogs
+  localized.py                    localized / localized_field / label /
+                                   language_slot — the one retrieval
+                                   API for localized strings and fields
+  table.py                        LocalizedTable base class for display
+                                   and translation tables
+  free_text.py                    free-text medication / procedure /
+                                   allergen name translator
   us/                             US-specific bundle (15 YAMLs):
                                    addresses, ambulatory_visit_length,
                                    ckd_under60_prevalence,
@@ -139,24 +155,24 @@ clinosim/locale/
                                    family_history_prevalence, formatting,
                                    identity, immunization_schedule, names,
                                    reference_range_lab
-  jp/                             JP-specific bundle (20 YAMLs — the US
-                                   set minus ckd_under60_prevalence, plus
+  jp/                             JP-specific bundle (19 YAMLs — the US
+                                   set minus ckd_under60_prevalence and
+                                   code_mapping_drug, plus
                                    care_level_rates,
                                    code_mapping_microbiology,
                                    code_mapping_microbiology_susceptibility,
                                    external_organizations,
                                    patient_instructions_ja,
                                    practitioner_qualifications)
-  shared/                         cross-locale data (37 YAMLs), e.g.
+  shared/                         cross-locale data (38 YAMLs), e.g.
                                    actuarial_life_table, chemo_regimens
                                    (chemo regimen library), chronic_followup,
                                    chronic_medications, chronic_onset_min_age,
                                    condition_mortality_smr, country_language,
                                    department_display,
                                    encounter_disposition_defaults,
-                                   fallback_defaults, icd10_sex_restrictions,
-                                   iv_infusion_defaults, med_terms,
-                                   naming_rules, narrative_* (10 files),
+                                   fallback_defaults, iv_infusion_defaults, med_terms,
+                                   naming_rules, narrative_* (9 files),
                                    perinatal, specialty_routing
   shared/longitudinal/            longitudinal attribute catalog (64
                                    YAMLs; see its README)

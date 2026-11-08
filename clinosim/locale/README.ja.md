@@ -57,8 +57,10 @@ from clinosim.locale.text import (
 )
 ```
 
-上記はよく使う部分集合: `clinosim.locale.loader` は 46 個の `load_*`
-関数を再 export しており、実装は `clinosim/locale/loaders/`
+上記はよく使う部分集合: `clinosim.locale.loader` は `__all__` に 73 名
+— `load_*` 関数 49 個と表示 / コード lookup ヘルパー (`drug_code` /
+`lab_code` / `map_diagnosis_code` / `department_display` /
+`lab_display` 等) — を再 export しており、実装は `clinosim/locale/loaders/`
 (`clinical.py` / `demographics.py` / `fhir_identity.py` /
 `medical_display.py` / `narrative.py`) にある。
 
@@ -78,11 +80,18 @@ from clinosim.locale.text import (
 
 ## 依存
 
-- `pyyaml` — YAML ロード用。
-- 標準ライブラリ `pathlib` / `functools` / `typing`。
-- **import 時に他の `clinosim.*` パッケージへの依存なし**。2 つの
-  ローダーが関数内で遅延 import する: `clinosim.codes.drugs` (薬剤
-  カタログ union) と `clinosim.modules.output.fhir_r4.lib.reference_data`
+- `pyyaml` — YAML ロード用 (`_io.py` では
+  `clinosim.datafiles.load_data_yaml` 経由、`i18n.py` は直接 import)。
+- 標準ライブラリ `pathlib` / `functools` / `typing` / `re` /
+  `dataclasses`。
+- import 時の `clinosim.*` 依存: `clinosim.datafiles` (`_io.py`)、
+  `clinosim.countries` (`text.py` / `free_text.py` / `localized.py` /
+  `loaders/demographics.py` で `lang_for` / `normalize_lang` /
+  `is_jp`)、`clinosim.codes` (`loaders/medical_display.py` で
+  `data_table`)。
+- 関数内の遅延 import: `clinosim.codes.drugs` と
+  `clinosim.codes.system_key_for` (薬剤カタログ union / 薬剤コード
+  lookup)、`clinosim.modules.output.fhir_r4.lib.reference_data`
   (`chronic_medications.yaml` の route 語彙検証)。consumer 側が返却
   dict を自身の型に渡します。
 
@@ -111,7 +120,8 @@ from clinosim.locale.text import (
 clinosim/locale/
   __init__.py                     (意図的に空 — .loader / .text から
                                    直接 import)
-  loader.py                       再 export facade (公開 load_* 関数 46)
+  loader.py                       再 export facade (73 名、うち公開
+                                   load_* 関数 49)
   _io.py                          共有 YAML プリミティブ (_LOCALE_DIR /
                                    _COUNTRY_DIR_MAP / _country_dir /
                                    _load_yaml / fallback 既定値)
@@ -122,6 +132,13 @@ clinosim/locale/
                                    ヘルパー)
   i18n.py                         共有 phrase カタログに対する
                                    t(key, lang, **params) 翻訳器
+  localized.py                    localized / localized_field / label /
+                                   language_slot — 多言語文字列・
+                                   フィールドの唯一の取得 API
+  table.py                        表示・翻訳テーブルの基底クラス
+                                   LocalizedTable
+  free_text.py                    薬剤 / 処置 / アレルゲン名の
+                                   自由記述翻訳器
   us/                             US 固有バンドル (15 YAML):
                                    addresses / ambulatory_visit_length /
                                    ckd_under60_prevalence /
@@ -130,15 +147,16 @@ clinosim/locale/
                                    family_history_prevalence / formatting
                                    / identity / immunization_schedule /
                                    names / reference_range_lab
-  jp/                             JP 固有バンドル (20 YAML — US 集合から
-                                   ckd_under60_prevalence を除き、
+  jp/                             JP 固有バンドル (19 YAML — US 集合から
+                                   ckd_under60_prevalence と
+                                   code_mapping_drug を除き、
                                    care_level_rates /
                                    code_mapping_microbiology /
                                    code_mapping_microbiology_susceptibility
                                    / external_organizations /
                                    patient_instructions_ja /
                                    practitioner_qualifications を追加)
-  shared/                         locale 間共有データ (37 YAML)。例:
+  shared/                         locale 間共有データ (38 YAML)。例:
                                    actuarial_life_table / chemo_regimens
                                    (化学療法 regimen ライブラリ) /
                                    chronic_followup / chronic_medications
@@ -147,9 +165,8 @@ clinosim/locale/
                                    country_language / department_display
                                    / encounter_disposition_defaults /
                                    fallback_defaults /
-                                   icd10_sex_restrictions /
                                    iv_infusion_defaults / med_terms /
-                                   naming_rules / narrative_* (10 ファイル)
+                                   naming_rules / narrative_* (9 ファイル)
                                    / perinatal / specialty_routing
   shared/longitudinal/            縦断属性カタログ (64 YAML。同ディレク
                                    トリの README 参照)

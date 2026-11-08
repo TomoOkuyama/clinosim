@@ -17,7 +17,7 @@ CIF (Clinosim Intermediate Format) はコードのみを保持し、表示テキ
 
 - **In scope**: clinosim が出力する全臨床コードシステムの統一 lookup、
   多言語表示解決、canonical FHIR system-URI マッピング
-  (`_BUILTIN_URIS` に 49 URI 登録)、curated コードデータ YAML、
+  (`_BUILTIN_URIS` に 79 URI 登録)、curated コードデータ YAML、
   Encounter リソース向け HL7 v2/v3 語彙 StrEnum、再現性のために
   キャプチャした authoritative-source JSON 断片 (`authoritative/`)。
 - **Out of scope**: locale-scoped データ (氏名 / 住所 / フォーマット
@@ -26,19 +26,36 @@ CIF (Clinosim Intermediate Format) はコードのみを保持し、表示テキ
 
 ## 公開 API
 
+`clinosim.codes.__all__` は 16 名:
+
 ```python
 from clinosim.codes import (
-    lookup,             # (system, code, lang="en") -> str
-    get_display,        # (system, code, country="US") -> str
-    get_system_uri,     # (system) -> str
-    system_key_for,     # (kind, country) -> str  (例: ("diagnosis","JP")→"icd-10-mhlw")
-    slug_to_code,       # (system) -> dict[str, str]  (yaml の `slug_to_code:` ブロック)
-    has_icd_prefix,     # (chronic_items, prefixes) -> bool
-    CodeSystem,         # dataclass: key / name / uri / version / codes
+    # loader.py — レジストリ lookup
+    lookup,                        # (system, code, lang="en") -> str  (None を返さずコード自身へフォールバック)
+    display,                       # (system, code, lang="en") -> str | None  (未登録なら None)
+    code_exists,                   # (system, code, *, exact=False) -> bool
+    code_system,                   # (system_key) -> CodeSystem | None
+    system_keys,                   # () -> tuple[str, ...]
+    get_system_uri,                # (system) -> str
+    system_key_for_uri,            # (uri) -> str | None  (get_system_uri の逆引き)
+    system_key_for,                # (kind, country) -> str  (例: ("diagnosis","JP")→"icd-10-mhlw")
+    slug_to_code,                  # (system_key) -> dict[str, str]  (yaml の `slug_to_code:` ブロック)
+    data_table,                    # (name) -> dict  (codes/data/<name>.yaml のコピー)
+    is_english_only_system,        # (system_key_or_uri) -> bool
+    ENGLISH_ONLY_SYSTEM_PREFIXES,  # 英語のみの CodeSystem の URI プレフィックス tuple
+    CodeSystem,                    # dataclass: key / name / uri / version / codes / siblings
+    # jlac10.py — JP 検査コード
+    jlac10_display,                # (code, lang) -> str | None
+    jp_clins_lab_system,           # (kind) -> str  (JP 検査 CodeSystem URI)
+    # valuesets.py
+    has_icd_prefix,                # (chronic_items, prefixes) -> bool
 )
 ```
 
-パッケージレベル未再エクスポートだが `clinosim.codes.loader` から
+システム別アクセサモジュール (`bcp47` / `drugs` / `icd10` / `loinc` /
+`medis` / `prefectures` / `procedures` / `snomed` / `snomed_concepts` /
+`ucum` / `yj` / `valuesets` の残り) はモジュールパスで import する
+(例: `from clinosim.codes.drugs import resolve_drug`)。
 
 Encounter リソース向け HL7 語彙 StrEnum (Issue #562) —
 `clinosim.codes.hl7_encounter` から import:
@@ -67,16 +84,20 @@ Encounter が本値と `admit_source_encounter_id` (母親の分娩 Encounter �
 
 ## 依存
 
-- `pyyaml` — YAML ロード用。
-- 標準ライブラリ `pathlib` / `functools` / `dataclasses` / `enum`。
-- **他の `clinosim.*` パッケージへの依存なし。**
+- `clinosim.datafiles` (`load_data_yaml` / `data_metadata`) — YAML
+  ロード用 (内部で `pyyaml`)。
+- `clinosim.countries` (`normalize_lang` / `lang_for`) — 言語キー正規化。
+- `clinosim.locale.localized` (`localized`) — `drugs.py` /
+  `procedures.py` の多言語名フォールバック (関数内で遅延 import)。
+- 標準ライブラリ `pathlib` / `functools` / `dataclasses` / `enum` /
+  `json` / `re` / `copy`。
 
 ## 定数と設定
 
 - **`_DATA_DIR`** = `Path(__file__).parent / "data"` — per-system
   YAML ファイル配置場所。
 - **`_BUILTIN_URIS`** — clinosim が出力する全コードシステムの
-  short-key → canonical URI マッピング (49: ICD variants / LOINC /
+  short-key → canonical URI マッピング (79: ICD variants / LOINC /
   SNOMED CT / RxNorm / JLAC10 / YJ / HOT7/9/13 / K-codes / JP-Core
   NamingSystem / HL7 v2/v3/FHIR terminology CodeSystem / JP-CLINS eCS
   Nocoded / gap-fill 用の clinosim-owned CodeSystem — URI ごとの
@@ -95,28 +116,41 @@ Encounter が本値と `admit_source_encounter_id` (母親の分娩 Encounter �
 
 ```
 clinosim/codes/
-  __init__.py                     公開 API (7 export)
-  loader.py                       CodeSystem dataclass、lookup /
-                                  get_display / get_system_uri /
-                                  system_key_for / slug_to_code、
+  __init__.py                     公開 API (16 export)
+  loader.py                       CodeSystem dataclass、lookup / display /
+                                  code_exists / code_system / system_keys /
+                                  get_system_uri / system_key_for(_uri) /
+                                  slug_to_code / data_table、
                                   _BUILTIN_URIS、_SYSTEM_DATA_ALIASES
-  match.py                        has_icd_prefix
+  valuesets.py                    判断ロジック用の共有 value set
+                                  (コード群)、has_icd_prefix
   hl7_encounter.py                AdmitSource / DischargeDisposition /
                                   ActPriority StrEnum
   drugs.py                        薬剤 identity カタログローダー
                                   (data/drugs.yaml。resolve_drug /
                                   all_drug_ids)
+  bcp47.py                        BCP 47 言語タグ表示
+  icd10.py                        ICD-10 表示、病名短縮名、MEDIS
+                                  クロスウォーク
+  jlac10.py                       JLAC10 / JP-CLINS 検査アクセサ
+  loinc.py                        LOINC 表示と coding
+  medis.py                        MEDIS 標準病名マスター 病名管理番号
+  prefectures.py                  JIS X 0401 都道府県コード
+  procedures.py                   処置コードと名称
+  snomed.py                       SNOMED CT 表示と内部キー map
+  snomed_concepts.py              名前付き SNOMED CT 概念定数
+  ucum.py                         FHIR Quantity 用 UCUM 単位
+  yj.py                           YJ / HOT の JP 薬剤コード形式と
+                                  YJ マスター
   data/                           YAML 72 件: コードシステム (下の
                                   「対応コードシステム」参照) と curated
                                   カタログ (drugs / frequency tokens /
-                                  FHIR profile map / plausibility
-                                  bounds 等)
-  authoritative/                  再現性のためにキャプチャした
-                                  authoritative-source JSON 断片
-                                  (icd10_who_tx.json、loinc_2_82_tx.json、
-                                  yj_tx_fragment.json、
-                                  rxnorm_rxnav_snapshot.json、
-                                  JP_MedicationCodeYJ_CS_full.json + README)
+                                  FHIR profile map / value set /
+                                  クロスウォーク等)
+  authoritative/                  curated 表示の検証に使う
+                                  authoritative-source スナップショット
+                                  (ファイル別一覧は
+                                  authoritative/README.ja.md 参照)
 ```
 
 ## テスト

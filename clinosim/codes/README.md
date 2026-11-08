@@ -20,7 +20,7 @@ resolved at output time through this module. That gives:
 
 - **In scope**: unified lookup for every clinical code system clinosim
   emits, multi-language display resolution, canonical FHIR system-URI
-  mapping (49 URIs registered in `_BUILTIN_URIS`), curated code data
+  mapping (79 URIs registered in `_BUILTIN_URIS`), curated code data
   YAMLs, HL7 v2/v3 vocabulary StrEnums for the Encounter resource,
   authoritative-source JSON fragments captured for reproducibility
   (see `authoritative/`).
@@ -31,18 +31,36 @@ resolved at output time through this module. That gives:
 
 ## Public API
 
+`clinosim.codes.__all__` lists 16 names:
+
 ```python
 from clinosim.codes import (
-    lookup,             # (system, code, lang="en") -> str
-    get_display,        # (system, code, country="US") -> str
-    get_system_uri,     # (system) -> str
-    system_key_for,     # (kind, country) -> str  (e.g. ("diagnosis","JP")→"icd-10-mhlw")
-    slug_to_code,       # (system) -> dict[str, str]  (yaml `slug_to_code:` block)
-    has_icd_prefix,     # (chronic_items, prefixes) -> bool
-    CodeSystem,         # dataclass: key, name, uri, version, codes
+    # loader.py — registry lookup
+    lookup,                        # (system, code, lang="en") -> str  (never None; falls back to the code)
+    display,                       # (system, code, lang="en") -> str | None  (None when unregistered)
+    code_exists,                   # (system, code, *, exact=False) -> bool
+    code_system,                   # (system_key) -> CodeSystem | None
+    system_keys,                   # () -> tuple[str, ...]
+    get_system_uri,                # (system) -> str
+    system_key_for_uri,            # (uri) -> str | None  (inverse of get_system_uri)
+    system_key_for,                # (kind, country) -> str  (e.g. ("diagnosis","JP")→"icd-10-mhlw")
+    slug_to_code,                  # (system_key) -> dict[str, str]  (yaml `slug_to_code:` block)
+    data_table,                    # (name) -> dict  (copy of codes/data/<name>.yaml)
+    is_english_only_system,        # (system_key_or_uri) -> bool
+    ENGLISH_ONLY_SYSTEM_PREFIXES,  # tuple of URI prefixes of English-only CodeSystems
+    CodeSystem,                    # dataclass: key, name, uri, version, codes, siblings
+    # jlac10.py — JP lab codes
+    jlac10_display,                # (code, lang) -> str | None
+    jp_clins_lab_system,           # (kind) -> str  (JP lab CodeSystem URI)
+    # valuesets.py
+    has_icd_prefix,                # (chronic_items, prefixes) -> bool
 )
 ```
 
+The per-system accessor modules (`bcp47`, `drugs`, `icd10`, `loinc`,
+`medis`, `prefectures`, `procedures`, `snomed`, `snomed_concepts`,
+`ucum`, `yj`, the rest of `valuesets`) are imported by module path, e.g.
+`from clinosim.codes.drugs import resolve_drug`.
 
 HL7 vocabulary StrEnums for the Encounter resource (Issue #562) —
 importable from `clinosim.codes.hl7_encounter`:
@@ -72,15 +90,21 @@ same `(system, code, lang)` triple always resolves to the same string.
 
 ## Dependencies
 
-- `pyyaml` for YAML loading.
-- Standard library `pathlib`, `functools`, `dataclasses`, `enum`.
-- **No dependency on other `clinosim.*` packages.**
+- `clinosim.datafiles` (`load_data_yaml`, `data_metadata`) for YAML
+  loading (`pyyaml` underneath).
+- `clinosim.countries` (`normalize_lang`, `lang_for`) for language-key
+  normalisation.
+- `clinosim.locale.localized` (`localized`) for the multi-language name
+  fallback in `drugs.py` and `procedures.py` (imported lazily inside
+  functions).
+- Standard library `pathlib`, `functools`, `dataclasses`, `enum`,
+  `json`, `re`, `copy`.
 
 ## Constants and configuration
 
 - **`_DATA_DIR`** = `Path(__file__).parent / "data"` — where the
   per-system YAML files live.
-- **`_BUILTIN_URIS`** — 49 short-key → canonical URI mappings for
+- **`_BUILTIN_URIS`** — 79 short-key → canonical URI mappings for
   every code system clinosim emits (ICD variants, LOINC, SNOMED CT,
   RxNorm, JLAC10, YJ, HOT7/9/13, K-codes, JP-Core NamingSystems, HL7
   v2/v3/FHIR terminology CodeSystems, JP-CLINS eCS Nocoded, clinosim-
@@ -99,28 +123,41 @@ same `(system, code, lang)` triple always resolves to the same string.
 
 ```
 clinosim/codes/
-  __init__.py                     public API (7 exports)
-  loader.py                       CodeSystem dataclass, lookup /
-                                  get_display / get_system_uri /
-                                  system_key_for / slug_to_code,
+  __init__.py                     public API (16 exports)
+  loader.py                       CodeSystem dataclass, lookup / display /
+                                  code_exists / code_system / system_keys /
+                                  get_system_uri / system_key_for(_uri) /
+                                  slug_to_code / data_table,
                                   _BUILTIN_URIS, _SYSTEM_DATA_ALIASES
-  match.py                        has_icd_prefix
+  valuesets.py                    shared value sets (code groups) for
+                                  decision logic; has_icd_prefix
   hl7_encounter.py                AdmitSource / DischargeDisposition /
                                   ActPriority StrEnums
   drugs.py                        drug identity catalog loader
                                   (data/drugs.yaml; resolve_drug /
                                   all_drug_ids)
+  bcp47.py                        BCP 47 language-tag display
+  icd10.py                        ICD-10 displays, condition short names,
+                                  MEDIS crosswalk
+  jlac10.py                       JLAC10 / JP-CLINS lab accessor
+  loinc.py                        LOINC display and coding
+  medis.py                        MEDIS disease-name key numbers
+  prefectures.py                  JIS X 0401 prefecture codes
+  procedures.py                   procedure codes and names
+  snomed.py                       SNOMED CT displays and internal-key maps
+  snomed_concepts.py              named SNOMED CT concept constants
+  ucum.py                         UCUM units for FHIR Quantities
+  yj.py                           YJ / HOT JP drug code formats and the
+                                  YJ master
   data/                           72 YAMLs: code systems (see
                                   "Supported code systems" below) plus
                                   curated catalogs (drugs, frequency
-                                  tokens, FHIR profile maps,
-                                  plausibility bounds, …)
-  authoritative/                  authoritative-source JSON fragments
-                                  captured for reproducibility
-                                  (icd10_who_tx.json, loinc_2_82_tx.json,
-                                  yj_tx_fragment.json,
-                                  rxnorm_rxnav_snapshot.json,
-                                  JP_MedicationCodeYJ_CS_full.json + README)
+                                  tokens, FHIR profile maps, value
+                                  sets, crosswalks, …)
+  authoritative/                  authoritative-source snapshots used
+                                  to verify the curated displays (see
+                                  authoritative/README.md for the
+                                  per-file table)
 ```
 
 ## Testing
