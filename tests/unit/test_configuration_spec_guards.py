@@ -193,11 +193,7 @@ def test_guard_sees_the_issue_2844_files(rel: str) -> None:
 
 # Module models that may still accept unknown keys (spec §5). Shrink-only:
 # a fixed entry must be removed, and no entry may be added (Issue #2845).
-_EXTRA_FORBID_RATCHET: dict[str, str] = {
-    # opioid_overdose / opioid_withdrawal carry a ``neuro`` line the ED note
-    # never renders; renaming it to ``neurological`` changes generated notes.
-    "encounter/protocol.py::EdPhysicalExam": "YAML key `neuro` awaits a behaviour fix",
-}
+_EXTRA_FORBID_RATCHET: dict[str, str] = {}
 
 
 def _forbids_extra(cls: ast.ClassDef) -> bool:

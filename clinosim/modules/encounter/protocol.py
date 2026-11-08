@@ -33,12 +33,9 @@ class OutpatientSoapTemplate(BaseModel):
 
 
 class EdPhysicalExam(BaseModel):
-    """ED physical exam section templates.
+    """ED physical exam section templates."""
 
-    Still ignores unknown keys: opioid_overdose / opioid_withdrawal carry a
-    ``neuro`` line that the ED note never renders (it reads ``neurological``);
-    renaming it changes the generated note, so it is left to a behaviour fix.
-    """
+    model_config = ConfigDict(extra="forbid")
 
     general: str = ""
     cardiovascular: str = ""

@@ -21,7 +21,7 @@
 | 規則 | 正準コード | ガード |
 |---|---|---|
 | データ YAML はすべて一つの読み手で解析し、`metadata.kind` を宣言する。 | `clinosim/datafiles.py::load_data_yaml`, `data_metadata` | `tests/unit/test_data_yaml_conventions_2465.py` |
-| モジュールの参照 YAML は、読み込み時に Pydantic モデルで検証する。欠けた必須キーや型の誤りは import 時に失敗する。ガードは、参照 YAML を持つすべてのモジュールにこのモデルがあることを確かめる。モデルは未知のキーも拒否する(`ConfigDict(extra="forbid")`)。開いたマップは型付きの `dict[str, X]` フィールドにし、`extra="allow"` は使わない。まだ未知のキーを受け入れる唯一のモデルは §5 に挙げる。YAML が名指すコードは `clinosim.codes` で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。 | モジュールごとのモデル(allergy, antibiotic, care_level, clinical_course, code_status, device, diagnosis, disease, document, drug_safety, encounter, family_history, hai, imaging, llm_service, monitoring, newborn, nursing, observation, order, patient, pediatric, physiology, population, procedure, prophylaxis, sdoh, triage) | `tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model`、`::test_module_models_forbid_unknown_keys`(縮小のみのラチェット)、`::test_no_extra_allow_models`、各モジュールのモデルのテスト |
+| モジュールの参照 YAML は、読み込み時に Pydantic モデルで検証する。欠けた必須キーや型の誤りは import 時に失敗する。ガードは、参照 YAML を持つすべてのモジュールにこのモデルがあることを確かめる。モデルは未知のキーも拒否する(`ConfigDict(extra="forbid")`)。開いたマップは型付きの `dict[str, X]` フィールドにし、`extra="allow"` は使わない。YAML が名指すコードは `clinosim.codes` で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。 | モジュールごとのモデル(allergy, antibiotic, care_level, clinical_course, code_status, device, diagnosis, disease, document, drug_safety, encounter, family_history, hai, imaging, llm_service, monitoring, newborn, nursing, observation, order, patient, pediatric, physiology, population, procedure, prophylaxis, sdoh, triage) | `tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model`、`::test_module_models_forbid_unknown_keys`(縮小のみのラチェット)、`::test_no_extra_allow_models`、各モジュールのモデルのテスト |
 | キャッシュ付きローダーの戻り値は共有物で、読み取り専用。 | `@lru_cache` ローダー | `implementation-rules.ja.md` §3(レビュー) |
 
 ## 3. 共有の表
@@ -44,4 +44,3 @@
 | 未対応 | 場所 |
 |---|---|
 | 定数の置き場所の方針には自動のガードが無い。 | レビュー |
-| ED の身体所見テンプレートのモデルはまだ未知のキーを無視する。2 つの ED 疾患が `neuro` 行を持つが、ED ノートは `neurological` を読むため描画されない。名前を直すと生成ノートが変わる。 | `modules/encounter/protocol.py::EdPhysicalExam`(`test_module_models_forbid_unknown_keys` のラチェット) |
