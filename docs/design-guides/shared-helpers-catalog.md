@@ -127,6 +127,18 @@ Governing specs: [`medication-lifecycle-spec.md`](medication-lifecycle-spec.md),
 | `clinosim/modules/order/panel_grouping.py` `classify_lab_specs(...)` | Grouping lab orders into panels and individual tests. |
 | `clinosim/modules/order/engine.py` `place_imaging_orders(...)` | Imaging orders. |
 | `clinosim/modules/order/absolute_dose.py` `is_continuous_infusion(text)` | Whether a dose or order text describes a continuous infusion. |
+| `clinosim/modules/drug_safety/engine.py` `allergy_entries(allergies)` | The active allergen codes of a patient's allergy records (drops inactive, refuted and "no known allergy" entries) — the input of `check_candidate_against_allergies`. |
+| `clinosim/modules/drug_safety/engine.py` `check_candidate_against_allergies(candidate, allergen_codes)` | The non-allowed verdicts of a candidate drug against the patient's allergen codes. Every prescribing path calls this (or `allergy_skip_verdict`) instead of re-implementing an allergy check. |
+| `clinosim/modules/drug_safety/engine.py` `allergy_skip_verdict(candidate, allergies)` | The worst allergy verdict that drops a candidate drug for a patient's allergy records, or None when it may be given. |
+| `clinosim/modules/drug_safety/engine.py` `conflict_display(verdict)` | The (English, Japanese) text of what a verdict conflicts with, for a `SafetySkipEntry`: the recorded allergy or the active drug. |
+| `clinosim/simulator/medication_pipeline.py` `allergy_blocked(patient, drug_name, ...)` | A prescription with no alternative to offer (a renewal, a fixed bundle item): True, with the skip logged, when the patient's allergies rule the drug out. |
+| `clinosim/simulator/medication_pipeline.py` `log_allergy_skip(patient, drug_name, verdict, ...)` | Recording a prescription item dropped for an allergy on `patient.safety_skip_log`, with the substitute drug when there is one. |
+| `clinosim/modules/order/pediatric_dose.py` `pediatric_order_name(name, age_months, weight_kg)` | Re-dosing an adult fixed-strength order for a child from the weight; None when the child is below the drug's minimum age. |
+| `clinosim/simulator/encounter_setup.py` `extend_visit_to_procedures(encounter, procedures)` | Extending a visit so it lasts at least until its last procedure ends. |
+| `clinosim/simulator/encounter_setup.py` `fit_procedures_in_stay(procedures, start, end)` | Holding each procedure inside the stay window (`end` None: still in progress). |
+| `clinosim/modules/observation/pediatric_ranges.py` `age_in_completed_months(birth, when)` | A child's age in completed months (None when a date is unknown). |
+| `clinosim/modules/observation/pediatric_ranges.py` `pediatric_vital_range(vital, age_months)` / `pediatric_vital_range_text` / `age_independent_vital_range_text` | The pediatric vital-sign range for the age and its `referenceRange.text`; None means the adult range applies. |
+| `clinosim/modules/observation/pediatric_ranges.py` `pediatric_lab_range(lab_name, age_years, sex)` / `pediatric_lab_center` / `pediatric_lab_band` / `pediatric_lab_range_text` | The pediatric lab reference interval (and its midpoint, band and text) for a child; None means the adult interval applies. |
 | `clinosim/modules/staff/engine.py` `scoped_nurses(roster, ward=, department=)` | The nurses of a ward, else of the department, else every nurse. |
 | `clinosim/modules/diagnosis/nonspecific_codes.py` `is_visit_reason_zcode(code)` | Whether a Z code is a visit reason rather than a diagnosis. |
 | `clinosim/modules/document/engine.py` `_compute_los_days` *(module-internal, also used by the narrative pass)* | Length of stay, including the in-progress proxy. |

@@ -127,6 +127,18 @@ Governing specs: [`medication-lifecycle-spec.ja.md`](medication-lifecycle-spec.j
 | `clinosim/modules/order/panel_grouping.py` `classify_lab_specs(...)` | 検査オーダーをパネルと単項目に分ける。 |
 | `clinosim/modules/order/engine.py` `place_imaging_orders(...)` | 画像検査オーダー。 |
 | `clinosim/modules/order/absolute_dose.py` `is_continuous_infusion(text)` | 用量・オーダー文字列が持続投与を表すか。 |
+| `clinosim/modules/drug_safety/engine.py` `allergy_entries(allergies)` | 患者のアレルギー記録から有効なアレルゲンコードを取り出す (非活動・否定・「アレルギーなし」は除外)。`check_candidate_against_allergies` の入力。 |
+| `clinosim/modules/drug_safety/engine.py` `check_candidate_against_allergies(candidate, allergen_codes)` | 候補薬を患者のアレルゲンコードと照合した、許可されない判定。処方経路はアレルギー照合を自作せず、これ (または `allergy_skip_verdict`) を呼ぶ。 |
+| `clinosim/modules/drug_safety/engine.py` `allergy_skip_verdict(candidate, allergies)` | 患者のアレルギー記録で候補薬を除外する最も重い判定。投与可能なら None。 |
+| `clinosim/modules/drug_safety/engine.py` `conflict_display(verdict)` | 判定が何と競合したかの (英語, 日本語) 表示。`SafetySkipEntry` 用で、記録されたアレルギーまたは有効薬を返す。 |
+| `clinosim/simulator/medication_pipeline.py` `allergy_blocked(patient, drug_name, ...)` | 代替薬を出せない処方 (継続処方・固定バンドル項目) で、アレルギーにより除外なら True (スキップを記録)。 |
+| `clinosim/simulator/medication_pipeline.py` `log_allergy_skip(patient, drug_name, verdict, ...)` | アレルギーで除外した処方項目を、代替薬があればそれも添えて `patient.safety_skip_log` に記録する。 |
+| `clinosim/modules/order/pediatric_dose.py` `pediatric_order_name(name, age_months, weight_kg)` | 成人固定用量のオーダーを小児の体重から再計算する。最小月齢未満なら None。 |
+| `clinosim/simulator/encounter_setup.py` `extend_visit_to_procedures(encounter, procedures)` | 受診が最後の処置の終了まで続くよう延長する。 |
+| `clinosim/simulator/encounter_setup.py` `fit_procedures_in_stay(procedures, start, end)` | 各処置を在院期間内に収める (`end` が None なら在院中)。 |
+| `clinosim/modules/observation/pediatric_ranges.py` `age_in_completed_months(birth, when)` | 小児の満月齢 (日付不明なら None)。 |
+| `clinosim/modules/observation/pediatric_ranges.py` `pediatric_vital_range(vital, age_months)` / `pediatric_vital_range_text` / `age_independent_vital_range_text` | 月齢に応じた小児バイタル基準範囲と `referenceRange.text`。None は成人範囲を使う。 |
+| `clinosim/modules/observation/pediatric_ranges.py` `pediatric_lab_range(lab_name, age_years, sex)` / `pediatric_lab_center` / `pediatric_lab_band` / `pediatric_lab_range_text` | 小児の検査基準範囲 (中点・年齢帯・表示文を含む)。None は成人範囲を使う。 |
 | `clinosim/modules/staff/engine.py` `scoped_nurses(roster, ward=, department=)` | 病棟の看護師、無ければ診療科、それも無ければ全看護師。 |
 | `clinosim/modules/diagnosis/nonspecific_codes.py` `is_visit_reason_zcode(code)` | Z コードが診断ではなく受診理由か。 |
 | `clinosim/modules/document/engine.py` `_compute_los_days` *(モジュール内部、narrative pass も使用)* | 在院日数 (入院中の代替値を含む)。 |
