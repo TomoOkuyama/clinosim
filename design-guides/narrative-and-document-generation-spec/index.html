@@ -2433,9 +2433,9 @@
 <td><code>tests/unit/modules/document/test_document_planners_2532.py</code></td>
 </tr>
 <tr>
-<td>Each Composition section is built by exactly one function registered with <code>@section(name)</code>; registering a name twice fails at import. The composition renderer looks sections up in the registry.</td>
-<td><code>clinosim/modules/document/narrative/renderers/section_builders/_registry.py</code> (<code>section</code>, <code>section_builder</code>, <code>section_builders</code>)</td>
-<td><code>tests/unit/modules/document/narrative/test_section_registry_2531.py</code></td>
+<td>Each Composition section is built by exactly one function registered with <code>@section(name)</code>; registering a name twice fails at import. A section that one document type writes differently registers that type's builder with <code>@section(name, document_type=...)</code> (one per document type and section, e.g. the ED note's assessment), and the renderer prefers it over the shared builder. The composition renderer looks sections up in the registry.</td>
+<td><code>clinosim/modules/document/narrative/renderers/section_builders/_registry.py</code> (<code>section</code>, <code>section_builder</code>, <code>section_builders</code>, <code>document_section_builders</code>)</td>
+<td><code>tests/unit/modules/document/narrative/test_section_registry_2531.py</code>, <code>test_ed_note_protocol_2871.py::test_document_type_builders_name_a_section_of_that_document</code></td>
 </tr>
 <tr>
 <td>A document's context holds only the data recorded at its own encounter. A record's vitals, lab results, orders, administrations, procedures and closing prescription belong to the record's encounter (<code>encounters[0]</code>); for any other encounter of the record (the vaccination visit the immunization enricher appends) they are kept only when they carry that encounter's id or a timestamp inside its period, so its note never prints another visit's vitals or prescription.</td>
