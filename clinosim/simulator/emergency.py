@@ -13,6 +13,7 @@ from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisp
 from clinosim.codes.valuesets import code_by_chronic_prefix
 from clinosim.countries import country_slot
 from clinosim.locale.i18n import t
+from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
@@ -357,23 +358,47 @@ def _ed_discharge_prescription(
     country_key = country_slot(country)
     active = [m.drug_name for m in (patient.current_medications or []) if m.drug_name]
     items: list[dict] = []
+
+    def _marketed(spec: dict) -> bool:
+        return country.upper() not in {str(c).upper() for c in spec.get("locale_exclude") or []}
+
+    def _name(spec: dict) -> str:
+        return str((spec.get("locale_name") or {}).get(country_key) or spec.get("drug", ""))
+
+    def _skipped(name: str) -> bool:
+        return not name or _ed_medication_skipped(
+            name, patient, indication_codes, active, encounter.encounter_id, issued, cond_name, "ed_discharge_rx"
+        )
+
+    done_groups: set[str] = set()
     for spec in specs:
-        if rng.random() > spec.get("probability", 1.0):
-            continue
-        if country.upper() in {str(c).upper() for c in spec.get("locale_exclude") or []}:
-            continue  # not marketed in this country; drawn above to keep the stream
-        name = str((spec.get("locale_name") or {}).get(country_key) or spec.get("drug", ""))
-        if not name or _ed_medication_skipped(
-            name,
-            patient,
-            indication_codes,
-            active,
-            encounter.encounter_id,
-            issued,
-            cond_name,
-            "ed_discharge_rx",
-        ):
-            continue
+        group = str(spec.get("choose_one") or "")
+        if group:
+            # Issue #2865: alternatives of one required class (the UTI
+            # antibiotics) — exactly one is prescribed, weighted by
+            # ``probability``; a drug the gates drop yields to the next one.
+            if group in done_groups:
+                continue
+            done_groups.add(group)
+            members = [m for m in specs if m.get("choose_one") == group and _marketed(m)]
+            weights = [float(m.get("probability", 1.0)) for m in members]
+            if not members or sum(weights) <= 0:
+                continue
+            first = int(rng.choice(len(members), p=normalize_probabilities(weights, fallback="raise")))
+            order = sorted(range(len(members)), key=lambda i: (i != first, -weights[i], i))
+            chosen = next((members[i] for i in order if not _skipped(_name(members[i]))), None)
+            if chosen is None:
+                continue
+            spec = chosen
+            name = _name(spec)
+        else:
+            if rng.random() > spec.get("probability", 1.0):
+                continue
+            if not _marketed(spec):
+                continue  # not marketed in this country; drawn above to keep the stream
+            name = _name(spec)
+            if _skipped(name):
+                continue
         active.append(name)
         # Item shape of the inpatient discharge prescription: the drug name
         # without its strength, which goes in ``dose``.
