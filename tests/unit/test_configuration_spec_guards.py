@@ -15,23 +15,11 @@ _PKG = Path(__file__).resolve().parents[2] / "clinosim"
 
 _YAML_NAME = re.compile(r"(?:^|/)([\w.-]+\.ya?ml)$")
 
-# Module reference YAMLs that no Pydantic model validates yet. Each is still
-# read as a plain dict (some with a hand-written check); the list only
+# Module reference YAMLs that no Pydantic model validates yet. The list only
 # shrinks: an entry that gains a model must be removed (see the stale check).
-_NOT_YET_MODELED: dict[str, str] = {
-    "document/reference_data/document_type_specs.yaml": "hand-written check (registry._validate_document_type_specs)",
-    "document/reference_data/hpi_pertinent_negatives.yaml": "plain dict (reference_data_loaders.py)",
-    "hai/reference_data/hai_antibiogram.yaml": "hand-written check (hai.load_hai_antibiogram)",
-    "document/reference_data/cc-pe-consistency-keywords.yaml": "plain dict (narrative/_narrative_utils.py)",
-    "document/reference_data/chronic-med-class-hints.yaml": "plain dict (narrative section builder outpatient_soap.py)",
-    "document/reference_data/chronic_soap_templates.yaml": "plain dict (narrative/_chronic_soap.py)",
-    "document/reference_data/hedging_phrases.yaml": "plain dict (narrative/_hedging.py)",
-    "document/reference_data/ja_only_fallback_sections.yaml": "plain dict (document/audit.py)",
-    "document/reference_data/narrative_extras_whitelists.yaml": "plain dict (narrative/_extra_context_builder.py)",
-    "document/reference_data/section_catalog.yaml": "hand-written check (registry._validate_section_catalog)",
-    "hai/reference_data/hai_lab_lift.yaml": "hand-written check (lab_lift._validate_hai_lab_lift_config)",
-    "imaging/reference_data/imaging-impression-keywords.yaml": "plain dict (output/fhir_r4/labs/diagnostic_report.py)",
-}
+# Empty since Issue #2896 (every module reference YAML has a model), and it
+# stays empty (test_not_yet_modeled_stays_empty).
+_NOT_YET_MODELED: dict[str, str] = {}
 
 # Modules whose loader discovers its reference YAML by pattern (``*.yaml``
 # glob or ``f"{id}.yaml"``) and validates each file; every YAML in those
@@ -173,6 +161,12 @@ def test_module_reference_yaml_has_a_model() -> None:
     assert not missing, f"module reference YAML loaded without a Pydantic model: {missing}"
     stale = sorted(set(_NOT_YET_MODELED) - set(unvalidated))
     assert not stale, f"now validated (or removed); drop from _NOT_YET_MODELED: {stale}"
+
+
+def test_not_yet_modeled_stays_empty() -> None:
+    """Shrink-only ratchet at zero: a new reference YAML gets a model, not an
+    allow-list entry (Issue #2896)."""
+    assert not _NOT_YET_MODELED
 
 
 @pytest.mark.parametrize(

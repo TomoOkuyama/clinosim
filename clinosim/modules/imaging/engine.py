@@ -168,6 +168,16 @@ def _instance_range(value: list[_Number], where: str) -> list[_Number]:
     return value
 
 
+class ImagingImpressionKeywords(BaseModel):
+    """Shape of imaging-impression-keywords.yaml: the radiology impression
+    phrases that commit a report to Normal, and those that flag it Abnormal."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    normal: list[str]
+    abnormal: list[str]
+
+
 class _Modality(BaseModel):
     """CR uses a per-view instance range, CT a per-series range per body site.
     Displays resolve from codes/data/dicom-modality.yaml (META #1805 Phase C)."""

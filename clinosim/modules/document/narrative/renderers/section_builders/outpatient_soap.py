@@ -59,6 +59,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _render_safety_skips_line,
 )
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
+from clinosim.modules.document.reference_data_loaders import ChronicMedClassHints
 from clinosim.reference_data import load_reference_yaml
 from clinosim.types.document import DocumentType, NarrativeContext
 
@@ -83,6 +84,7 @@ def _chronic_med_class_hints_raw() -> dict[str, dict[str, Any]]:
     raw = load_reference_yaml(
         Path(__file__).resolve().parents[4] / "document" / "reference_data" / "chronic-med-class-hints.yaml"
     )
+    ChronicMedClassHints.model_validate(raw)
     classes = raw.get("classes") or {}
     out: dict[str, dict[str, Any]] = {}
     for class_key, row in classes.items():

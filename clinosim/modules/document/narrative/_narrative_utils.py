@@ -28,6 +28,7 @@ from typing import Any
 
 from clinosim.codes.hl7_encounter import DischargeDisposition
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.reference_data_loaders import CcPeConsistencyKeywords
 from clinosim.reference_data import load_reference_yaml
 from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext
@@ -296,9 +297,11 @@ def _age_at(ctx: NarrativeContext) -> int | None:
 def _cc_pe_consistency_keywords() -> dict[str, Any]:
     """Load `reference_data/cc-pe-consistency-keywords.yaml`."""
 
-    return load_reference_yaml(
+    data = load_reference_yaml(
         Path(__file__).resolve().parents[1] / "reference_data" / "cc-pe-consistency-keywords.yaml"
     )
+    CcPeConsistencyKeywords.model_validate(data)
+    return data
 
 
 def _cc_altered_consciousness_keywords() -> tuple[str, ...]:

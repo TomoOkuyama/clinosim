@@ -111,7 +111,7 @@ from typing import Any
 
 from clinosim import __version__ as _clinosim_version
 from clinosim.audit.registry import ModuleAuditSpec, register_audit_module
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_validated_yaml
 from clinosim.modules.document import (
     ALLERGY_ID_PREFIX,
     CLINICAL_IMPRESSION_ID_PREFIX,
@@ -120,6 +120,7 @@ from clinosim.modules.document import (
     NURSING_LOINCS,
 )
 from clinosim.modules.document.narrative.registry import document_loinc
+from clinosim.modules.document.reference_data_loaders import JaOnlyFallbackSections
 from clinosim.modules.output.cif_reader import resolve_current_narrative_dir
 from clinosim.modules.output.fhir_r4.encounters.care_team import CARE_TEAM_ID_PREFIX
 
@@ -143,7 +144,7 @@ _JA_CHAR_RE = re.compile(r"[぀-ゟ゠-ヿ一-鿿]")
 def _ja_only_fallback_sections() -> frozenset[str]:
     """Load the KNOWN_JA_ONLY_FALLBACK_SECTIONS registry from yaml."""
     path = Path(__file__).resolve().parent / "reference_data" / "ja_only_fallback_sections.yaml"
-    data = load_data_yaml(path) or {}
+    data = load_validated_yaml(path, JaOnlyFallbackSections) or {}
     sections = data.get("sections", []) or []
     return frozenset(str(s) for s in sections)
 

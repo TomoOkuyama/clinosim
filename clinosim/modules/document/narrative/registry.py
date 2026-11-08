@@ -10,7 +10,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from clinosim.datafiles import load_data_yaml
+from pydantic import BaseModel, ConfigDict, RootModel, model_validator
+
+from clinosim.datafiles import load_validated_yaml
 
 # DocumentTypeSpec moved to clinosim/types/document.py (N-chain, types rule);
 # re-exported here so all historical imports keep working.
@@ -227,11 +229,42 @@ def _validate_document_type_specs(data: dict[str, Any]) -> None:
                 )
 
 
+class _DocumentTypeSpecEntry(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    loinc_code: str
+    format_type: FormatType
+    countries_supported: list[str]
+    generation_frequency: str
+    encounter_types_supported: list[str] = []
+    composition_sections: list[str] = []
+    composition_sections_jp: list[str] = []
+    stage2_strategy: str = "template_only"
+    llm_enabled_sections: list[str] = []
+    llm_enabled_sections_jp: list[str] = []
+    structured_form_yaml: str | None = None
+
+
+class DocumentTypeSpecs(BaseModel):
+    """Shape of document_type_specs.yaml: one entry per supported document
+    type; the cross-field checks of ``_validate_document_type_specs`` run
+    first."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    specs: dict[DocumentType, _DocumentTypeSpecEntry]
+
+    @model_validator(mode="before")
+    @classmethod
+    def _checked(cls, data: Any) -> Any:
+        _validate_document_type_specs(data)
+        return data
+
+
 @lru_cache(maxsize=1)
 def load_document_type_specs() -> dict[DocumentType, DocumentTypeSpec]:
     """Load + validate document_type_specs.yaml. Cached singleton."""
-    data = load_data_yaml(_REF_DIR / "document_type_specs.yaml")
-    _validate_document_type_specs(data)
+    data = load_validated_yaml(_REF_DIR / "document_type_specs.yaml", DocumentTypeSpecs)
     result: dict[DocumentType, DocumentTypeSpec] = {}
     for key, entry in data["specs"].items():
         result[DocumentType(key)] = DocumentTypeSpec(
@@ -378,11 +411,30 @@ def _validate_section_catalog(catalog: dict[str, dict[str, Any]]) -> None:
         )
 
 
+class _SectionCatalogRow(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: dict[str, str]
+    loinc: str
+    description: str = ""
+
+
+class SectionCatalog(RootModel[dict[str, _SectionCatalogRow]]):
+    """Shape of section_catalog.yaml: per section slug, its title language map,
+    LOINC section code and an optional maintainer note; the completeness and
+    coverage checks of ``_validate_section_catalog`` run first."""
+
+    @model_validator(mode="before")
+    @classmethod
+    def _checked(cls, data: Any) -> Any:
+        _validate_section_catalog(data)
+        return data
+
+
 @lru_cache(maxsize=1)
 def load_section_catalog() -> dict[str, SectionCatalogEntry]:
     """Load + validate `section_catalog.yaml`. Cached singleton."""
-    data = load_data_yaml(_REF_DIR / "section_catalog.yaml") or {}
-    _validate_section_catalog(data)
+    data = load_validated_yaml(_REF_DIR / "section_catalog.yaml", SectionCatalog) or {}
     out: dict[str, SectionCatalogEntry] = {}
     for slug, entry in data.items():
         out[slug] = SectionCatalogEntry(

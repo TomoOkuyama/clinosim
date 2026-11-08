@@ -22,9 +22,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Any
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, RootModel, field_validator, model_validator
 
-from clinosim.datafiles import load_data_yaml, load_validated_yaml
+from clinosim.datafiles import load_validated_yaml
 from clinosim.reference_data import load_reference_yaml
 
 _HERE = Path(__file__).resolve().parent
@@ -49,15 +49,58 @@ _PHYSICAL_EXAM_BODY_SYSTEMS = frozenset(
 _DISCHARGE_BASELINE_REQUIRED_KEYS = ("hydrate", "rest", "follow_up")
 
 
+# ─────────────────────────────────────────────────────────────────
+# chronic_soap_templates.yaml / hedging_phrases.yaml (shared registry loader)
+# ─────────────────────────────────────────────────────────────────
+
+# A language map: language code -> text (or phrase list).
+_LangText = dict[str, str]
+_LangPhrases = dict[str, list[str]]
+
+
+class _ChronicSoapTemplate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    subjective: _LangText
+    objective: _LangText
+    assessment: _LangText
+    plan: _LangText
+
+
+class ChronicSoapTemplates(RootModel[dict[str, _ChronicSoapTemplate]]):
+    """Shape of chronic_soap_templates.yaml: per ICD-10 category, the four
+    SOAP sections as language maps."""
+
+
+class _HedgingTopic(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    confirmed: _LangPhrases
+    unconfirmed: _LangPhrases
+
+
+class HedgingPhrases(RootModel[dict[str, _HedgingTopic]]):
+    """Shape of hedging_phrases.yaml: per topic, the confirmed and the
+    unconfirmed phrase lists of each language."""
+
+
+# The registries ``load_document_data_yaml`` serves, with their models.
+_REGISTRY_MODELS: dict[str, type[BaseModel]] = {
+    "chronic_soap_templates.yaml": ChronicSoapTemplates,
+    "hedging_phrases.yaml": HedgingPhrases,
+}
+
+
 @lru_cache(maxsize=8)
 def load_document_data_yaml(filename: str) -> dict[str, Any]:
     """Load ``reference_data/<filename>`` of the document module, cached per file.
 
-    For the small unvalidated registries (``chronic_soap_templates.yaml``,
-    ``hedging_phrases.yaml``) whose reader owns their shape. Returns ``{}``
-    for an empty file. The returned dict is shared: callers must not mutate it.
+    For the small registries (``chronic_soap_templates.yaml``,
+    ``hedging_phrases.yaml``) whose reader owns their shape; each is checked
+    against its model in ``_REGISTRY_MODELS``. Returns ``{}`` for an empty
+    file. The returned dict is shared: callers must not mutate it.
     """
-    return load_data_yaml(_REF_DIR / filename) or {}
+    return load_validated_yaml(_REF_DIR / filename, _REGISTRY_MODELS[filename]) or {}
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -179,6 +222,11 @@ def load_discharge_instructions() -> dict[str, Any]:
 # ─────────────────────────────────────────────────────────────────
 
 
+class HpiPertinentNegatives(RootModel[dict[str, list[str]]]):
+    """Shape of hpi_pertinent_negatives.yaml: per disease, the JP pertinent
+    negative phrases."""
+
+
 @lru_cache(maxsize=1)
 def load_hpi_pertinent_negatives() -> dict[str, list[str]]:
     """Load hpi_pertinent_negatives.yaml. Cached singleton.
@@ -192,7 +240,7 @@ def load_hpi_pertinent_negatives() -> dict[str, list[str]]:
     path = _REF_DIR / "hpi_pertinent_negatives.yaml"
     if not path.exists():
         return {}
-    data = load_data_yaml(path) or {}
+    data = load_validated_yaml(path, HpiPertinentNegatives) or {}
     out: dict[str, list[str]] = {}
     if not isinstance(data, dict):
         return out
@@ -352,3 +400,73 @@ def load_nursing_content() -> dict[str, Any]:
     data: dict[str, Any] = load_reference_yaml(_REF_DIR / "clinosim-nursing-content.yaml")
     NursingContent.model_validate(data)
     return data
+
+
+# ─────────────────────────────────────────────────────────────────
+# Narrative keyword tables read by their own narrative helpers
+# (cc-pe-consistency-keywords, chronic-med-class-hints,
+# ja_only_fallback_sections, narrative_extras_whitelists)
+# ─────────────────────────────────────────────────────────────────
+
+
+class _CcConditionLists(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    altered_consciousness: list[str]
+    severe_dyspnea: list[str]
+
+
+class _NegationTokens(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    right: list[str]
+
+
+class CcPeConsistencyKeywords(BaseModel):
+    """Shape of cc-pe-consistency-keywords.yaml: the chief-complaint keywords
+    and their right-adjacent negation tokens, and the JP physical-exam
+    replacement pools (per condition, and per recorded AVPU level)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    cc_keywords: _CcConditionLists
+    negation_tokens: _NegationTokens
+    pe_replacement_pool: _CcConditionLists
+    pe_replacement_pool_by_avpu: dict[str, list[str]]
+
+
+class _ChronicMedClassHint(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    prefix: str
+    en: list[str]
+    ja: list[str]
+
+
+class ChronicMedClassHints(BaseModel):
+    """Shape of chronic-med-class-hints.yaml: per chronic-condition class, the
+    medication-name hints in English and Japanese (and the ICD-10 prefix the
+    class documents)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    classes: dict[str, _ChronicMedClassHint]
+
+
+class JaOnlyFallbackSections(BaseModel):
+    """Shape of ja_only_fallback_sections.yaml: the section slugs excused from
+    the US Japanese-character gate."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    sections: list[str]
+
+
+class NarrativeExtrasWhitelists(BaseModel):
+    """Shape of narrative_extras_whitelists.yaml: the document types that
+    receive the biometrics and the health-literacy prompt extras."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    biometrics: list[str]
+    health_literacy: list[str]
