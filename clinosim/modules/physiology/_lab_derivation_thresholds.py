@@ -133,9 +133,10 @@ __all__ = [
     "PT_INR_WARFARIN_TARGET_CENTER",
     "TROPONIN_ACS_INJURY_SQ_SCALE",
     "TROPONIN_BASELINE_NG_ML",
-    "TROPONIN_RENAL_LIFT_SCALE",
+    "TROPONIN_RENAL_IMPAIRMENT_CUBE_SCALE",
     "TROPONIN_TYPE2_CAP",
     "TROPONIN_TYPE2_INJURY_CUBE_SCALE",
+    "TROPONIN_TYPE2_INJURY_ONSET",
     "T_BIL_BASELINE_MG_DL",
     "T_BIL_HEPATIC_SCALE",
     "HEPATIC_INJURY_FLOOR",
@@ -426,13 +427,31 @@ TROPONIN_BASELINE_NG_ML: float = 0.01
 """Baseline serum troponin I (ng/mL) at zero cardiac injury — well
 below the ACS rule-out (0.04 ng/mL) and matching healthy reference."""
 
+TROPONIN_TYPE2_INJURY_ONSET: float = 0.12
+"""Cardiac injury (``1 - cardiac_function``) below which the type-2
+term adds nothing (Issue #2903): ``tnt += min(8.0 * max(0, injury -
+0.12)**3, cap)``.
+
+The age penalty on ``cardiac_reserve`` alone puts a healthy 60-year-old
+at injury ~0.16 and an 80-year-old at ~0.26. Without an onset, the cubic
+term lifted every adult over ~60 above the 0.04 ng/mL limit, so 42% of
+ED troponins in a US cohort (p=2,000, seed 500) were high, mostly in
+patients with no cardiac or renal disease. With the onset, a healthy
+adult under 60 reads normal, and chronic elevation is concentrated where
+it is described clinically: heart failure (injury ~0.35-0.50), CKD
+stage 4-5 and very old age (Fourth Universal Definition of Myocardial
+Infarction, 2018, "chronic myocardial injury"; Mueller C et al., Eur
+Heart J Acute Cardiovasc Care 2016). Acute dysfunction from sepsis, PE
+or stroke (injury ~0.35-0.5) still gives a mild type-2 rise
+(~0.1-0.4 ng/mL)."""
+
 TROPONIN_TYPE2_INJURY_CUBE_SCALE: float = 8.0
-"""Cubic scale for type-2 (demand-ischemia) troponin elevation:
-``tnt += min(injury**3 * 8.0, cap)``.
+"""Cubic scale for type-2 (demand-ischemia) troponin elevation above
+:data:`TROPONIN_TYPE2_INJURY_ONSET`.
 
 Empirical tuning for the synthetic simulator: cubic gain restricts
-elevation to meaningful dysfunction only (~cardiac < 0.6 starts
-lifting), matching type-2 MI clinical patterns."""
+elevation to meaningful dysfunction only, matching type-2 MI clinical
+patterns."""
 
 TROPONIN_TYPE2_CAP: float = 3.0
 """Cap on type-2 troponin elevation (ng/mL).
@@ -442,10 +461,18 @@ end of the "mild elevation" band typical of non-necrosis dysfunction
 (sepsis, PE, AF, stroke). ACS elevations must go through the primary-
 necrosis branch below."""
 
-TROPONIN_RENAL_LIFT_SCALE: float = 0.10
-"""Additional troponin (ng/mL per unit ``(1 - renal_function)``)
-reflecting reduced renal clearance in CKD — chronic mild elevation
-that clinicians recognize as a CKD confounder."""
+TROPONIN_RENAL_IMPAIRMENT_CUBE_SCALE: float = 0.07
+"""Troponin lift from reduced renal clearance (Issue #2903):
+``tnt += 0.07 * (1 - renal_function)**3`` (ng/mL).
+
+Cubic so the lift stays negligible for the age-reduced renal reserve and
+CKD stage 3 (renal impairment ~0.5 -> ~0.009 ng/mL) and grows in CKD
+stage 4 (~0.7 -> ~0.024) and stage 5 (~0.85 -> ~0.043). Contemporary
+troponin I is above the 99th-percentile limit in a minority of CKD 3
+patients and in roughly half or more of CKD 4-5 / dialysis patients
+(cTnI less often than cTnT; Fourth Universal Definition of MI, 2018).
+The previous linear 0.10 scale lifted CKD 3 and many healthy older
+adults above the limit."""
 
 TROPONIN_ACS_INJURY_SQ_SCALE: float = 120.0
 """Squared scale for ACS primary-necrosis troponin release, applied

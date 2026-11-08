@@ -194,9 +194,10 @@ from clinosim.modules.physiology._lab_derivation_thresholds import (
     TP_HEPATIC_SCALE,
     TROPONIN_ACS_INJURY_SQ_SCALE,
     TROPONIN_BASELINE_NG_ML,
-    TROPONIN_RENAL_LIFT_SCALE,
+    TROPONIN_RENAL_IMPAIRMENT_CUBE_SCALE,
     TROPONIN_TYPE2_CAP,
     TROPONIN_TYPE2_INJURY_CUBE_SCALE,
+    TROPONIN_TYPE2_INJURY_ONSET,
     WBC_BASE,
     WBC_CIRCADIAN_AMPLITUDE,
     WBC_CIRCADIAN_HOUR_OFFSET,
@@ -897,9 +898,15 @@ def _add_cardiac_labs(labs: dict[str, float], state: PhysiologicalState, myocard
     # MILD, capped type-2/demand elevation; only true myocardial necrosis (ACS, flagged by
     # the disease scenario) releases MI-level troponin. Renal impairment reduces clearance →
     # chronic mild elevation (CKD confounder). Keeps non-cardiac labs clinically coherent.
-    renal_tnt = (1 - renal) * TROPONIN_RENAL_LIFT_SCALE
+    # Issue #2903: both chronic terms start above the age-reduced reserve of a healthy
+    # adult (type-2 onset, cubic renal term), so chronic elevation concentrates in heart
+    # failure, CKD 4-5 and very old age instead of every adult over ~60.
+    renal_tnt = (1 - renal) ** 3 * TROPONIN_RENAL_IMPAIRMENT_CUBE_SCALE
+    type2_injury = max(0.0, injury - TROPONIN_TYPE2_INJURY_ONSET)
     tnt = (
-        TROPONIN_BASELINE_NG_ML + min(injury**3 * TROPONIN_TYPE2_INJURY_CUBE_SCALE, TROPONIN_TYPE2_CAP) + renal_tnt
+        TROPONIN_BASELINE_NG_ML
+        + min(type2_injury**3 * TROPONIN_TYPE2_INJURY_CUBE_SCALE, TROPONIN_TYPE2_CAP)
+        + renal_tnt
     )  # type-2 (mild, ≲3 ng/mL)
     ckmb = CK_MB_BASELINE_NG_ML + min(injury**3 * CK_MB_TYPE2_INJURY_CUBE_SCALE, CK_MB_TYPE2_CAP)
     if myocardial_injury:  # ACS → primary necrosis
