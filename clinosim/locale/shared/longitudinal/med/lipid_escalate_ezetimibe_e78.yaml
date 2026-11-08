@@ -1,14 +1,29 @@
-# Lipid Ezetimibe add-on — event pattern.
+# Lipid Ezetimibe add-on — retired event (Issue #2942).
 #
-# Phase 4b.1 of the longitudinal state-evolution subsystem (Issue #1697).
-# Base rate 30 %/yr under severe uncontrolled LDL (> 190 mg/dL), gated
-# OUT when LDL ≤ 190 via a factor-zero modifier. Independent of the
-# high-intensity statin escalation yaml — a patient at sustained
-# LDL > 190 accumulates both agents across sim years (matching
-# ACC-AHA 2018 §4.4.2 statin + non-statin add-on, not either/or).
+# Phase 4b.1 of the longitudinal state-evolution subsystem (Issue #1697)
+# added Ezetimibe to a dyslipidemia patient at 30 %/yr while the `ldl`
+# latent (labs/ldl_trajectory.yaml) was above 190 mg/dL. That latent is the
+# untreated LDL and never reflects the statin the patient takes, so patients
+# at goal on their statin were given Ezetimibe.
 #
-# Clinical basis: ACC-AHA 2018 Cholesterol Guideline (Grundy et al,
-# Circulation 2019) + IMPROVE-IT trial (Cannon et al, NEJM 2015).
+# Ezetimibe is now added only on the measured LDL: at the chronic follow-up
+# visit of simulator/statin_monitoring.py (`add_lipid_add_on`), for a patient
+# on maximal statin therapy whose last lipid panel is still above the add-on
+# threshold (simulator/reference_data/statin_monitoring.yaml — US 2018
+# ACC/AHA: LDL >= 70 mg/dL with clinical ASCVD, >= 100 otherwise; JP JAS
+# 2022: the LDL target of the patient's risk tier).
+#
+# The event is kept at base_annual_rate 0.0 rather than deleted, as
+# lipid_escalate_high_intensity_e78 (Issue #2927): the engine draws one
+# `year_rng` number per in-scope person-year for every event, and the
+# attributes after this one in the dispatch order draw from the same
+# generator. Keeping the draw leaves those unchanged for every patient who
+# was never given Ezetimibe here; only patients who were (and so stopped
+# drawing in later years under `one_shot`) see a later draw move.
+#
+# Clinical basis of the original add-on: ACC-AHA 2018 Cholesterol Guideline
+# (Grundy et al, Circulation 2019) + IMPROVE-IT trial (Cannon et al, NEJM
+# 2015).
 
 attribute_id: lipid_escalate_ezetimibe_e78
 pattern: event
@@ -21,10 +36,8 @@ event_name: lipid_escalate_ezetimibe_e78
 emits_icd: ""
 emits_meds: ["ezetimibe"]
 fire_marker: lipid_escalate_ezetimibe_e78
-base_annual_rate: 0.30
-rate_modifiers:
-  - when: {attribute: ldl, operator: "<=", value: 190.0}
-    factor: 0.0
+# Issue #2942: retired — never fires (see the header).
+base_annual_rate: 0.0
 one_shot: true
 narrative_label:
   en: "Lipid Ezetimibe add-on"

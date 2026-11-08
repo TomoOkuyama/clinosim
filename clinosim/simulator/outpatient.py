@@ -1211,6 +1211,10 @@ def _simulate_outpatient_visit(
     # order the panel when due. RNG-free (lab noise is per order id).
     statin_monitored = statin_monitoring.is_statin_monitoring_visit(patient, visit_type, spec)
     titration = statin_monitoring.titrate_statin(patient, visit_date, country) if statin_monitored else None
+    # Issue #2942: on maximal statin therapy with the LDL still above the
+    # add-on threshold, add ezetimibe (only when the statin was not stepped up).
+    if statin_monitored and titration is None:
+        statin_monitoring.add_lipid_add_on(patient, visit_date, country)
     if statin_monitored and statin_monitoring.lipid_panel_due(patient, visit_date):
         spec = {**spec, "labs": statin_monitoring.lipid_panel_labs(list(spec.get("labs", [])))}
     orders, lab_results = _result_followup_labs(

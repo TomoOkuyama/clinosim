@@ -110,7 +110,6 @@ class _LdlTargets(BaseModel):
     high: int = Field(gt=0)
     borderline: int = Field(gt=0)
     elevated: int = Field(gt=0)
-    target: int | None = None
 
     @model_validator(mode="after")
     def _ordered(self) -> _LdlTargets:

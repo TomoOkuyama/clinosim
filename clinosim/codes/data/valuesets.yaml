@@ -66,3 +66,6 @@ groups:
   clinical_ascvd: {space: internal, match: prefix, members: [I20, I21, I22, I24, I25, I63, I69.3, I70, I73]}
   # Coronary heart disease: JAS 2022 secondary prevention.
   coronary_heart_disease: {space: internal, match: prefix, members: [I20, I21, I22, I24, I25]}
+  # Prior ischaemic stroke (cerebral infarction and its sequelae): JAS 2022
+  # secondary prevention with coronary heart disease (Issue #2942).
+  prior_ischemic_stroke: {space: internal, match: prefix, members: [I63, I69.3]}
