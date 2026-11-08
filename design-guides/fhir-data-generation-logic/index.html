@@ -988,10 +988,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#b4-display-resolution--how-to-use-code_lookup-correctly" class="md-nav__link">
+  <a href="#b4-display-resolution--dual_slot_concept-and-display" class="md-nav__link">
     <span class="md-ellipsis">
       
-        B.4 Display resolution — how to use code_lookup correctly
+        B.4 Display resolution — dual_slot_concept and display
       
     </span>
   </a>
@@ -1270,10 +1270,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#e8--leaving-english-display-on-a-jp-cohort" class="md-nav__link">
+  <a href="#e8--japanese-in-an-english-only-coding-or-no-jp-label-in-text" class="md-nav__link">
     <span class="md-ellipsis">
       
-        E.8 ❌ Leaving English display on a JP cohort
+        E.8 ❌ Japanese in an English-only coding, or no JP label in text
       
     </span>
   </a>
@@ -2909,10 +2909,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#b4-display-resolution--how-to-use-code_lookup-correctly" class="md-nav__link">
+  <a href="#b4-display-resolution--dual_slot_concept-and-display" class="md-nav__link">
     <span class="md-ellipsis">
       
-        B.4 Display resolution — how to use code_lookup correctly
+        B.4 Display resolution — dual_slot_concept and display
       
     </span>
   </a>
@@ -3191,10 +3191,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#e8--leaving-english-display-on-a-jp-cohort" class="md-nav__link">
+  <a href="#e8--japanese-in-an-english-only-coding-or-no-jp-label-in-text" class="md-nav__link">
     <span class="md-ellipsis">
       
-        E.8 ❌ Leaving English display on a JP cohort
+        E.8 ❌ Japanese in an English-only coding, or no JP label in text
       
     </span>
   </a>
@@ -3388,12 +3388,14 @@ resource builder. Canonical layout: builders live under
 <code>conditions/</code>, <code>labs/</code>, <code>procedures/</code>, <code>documents/</code>, …); the
 <code>_BUNDLE_BUILDERS</code> registry + <code>register_bundle_builder()</code> are defined in
 <code>clinosim/modules/output/fhir_r4/builder.py</code> and re-exported from
-<code>clinosim/modules/output/fhir_r4/__init__.py</code>. The historical
-<code>clinosim/modules/output/fhir_r4_adapter.py</code> is now a thin
-compatibility re-export.
+<code>clinosim/modules/output/fhir_r4/__init__.py</code>.
 <strong>Scope:</strong> Layer 4 = FHIR R4 resource builders only. CIF generation
 (Layers 1-3) has a separate guide — see
-<a href="../../CONTRIBUTING-modules/"><code>docs/CONTRIBUTING-modules.md</code></a>.</p>
+<a href="../../CONTRIBUTING-modules/"><code>docs/CONTRIBUTING-modules.md</code></a>.
+<strong>Binding spec:</strong> code mapping, display resolution and localization
+are governed by
+<a href="../code-mapping-and-localization-spec/"><code>code-mapping-and-localization-spec.md</code></a>;
+where this guide and that spec disagree, the spec wins.</p>
 <p>clinosim FHIR generation is a <strong>thin conversion layer that takes CIF
 as input and emits FHIR R4 resource dicts</strong>. Its central concerns
 are FHIR-spec / US-Core / JP-Core compliance, multilingual display
@@ -3435,7 +3437,7 @@ reference material.</p>
 <td>Mutate CIF</td>
 </tr>
 <tr>
-<td>Resolve display via <code>code_lookup()</code></td>
+<td>Resolve display via <code>display(...) or &lt;fallback&gt;</code> and build coded concepts with <code>dual_slot_concept()</code></td>
 <td>Hard-code display strings</td>
 </tr>
 <tr>
@@ -3489,7 +3491,7 @@ reference material.</p>
 </tr>
 <tr>
 <td>4</td>
-<td>Implement resource-skeleton functions (via <code>code_lookup</code> / <code>get_system_uri</code>)</td>
+<td>Implement resource-skeleton functions (via <code>dual_slot_concept</code> / <code>display</code> / <code>get_system_uri</code>)</td>
 <td>Section B.4</td>
 </tr>
 <tr>
@@ -3521,42 +3523,47 @@ reference material.</p>
 </span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 </span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_system_uri</span><span class="p">,</span> <span class="n">lookup</span> <span class="k">as</span> <span class="n">code_lookup</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">lang_for</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="c1"># Canonical constants — single definition site, consumers import (Section B.3)</span>
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">TOPIC_ID_PREFIX</span> <span class="o">=</span> <span class="s2">"tp-"</span>
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="n">TOPIC_IDENTIFIER_SYSTEM</span> <span class="o">=</span> <span class="s2">"urn:clinosim:identifier:&lt;topic&gt;-id"</span>
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span><span class="p">,</span> <span class="n">get_system_uri</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.countries</span><span class="w"> </span><span class="kn">import</span> <span class="n">lang_for</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">dual_slot_concept</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="c1"># Canonical constants — single definition site, consumers import (Section B.3)</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="n">TOPIC_ID_PREFIX</span> <span class="o">=</span> <span class="s2">"tp-"</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="n">TOPIC_IDENTIFIER_SYSTEM</span> <span class="o">=</span> <span class="s2">"urn:clinosim:identifier:&lt;topic&gt;-id"</span>
 </span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">    </span><span class="sd">"""Builder entry point — emit &lt;ResourceType&gt; resources from CIF.</span>
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>
-</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="sd">    Returns an empty list when no relevant CIF data exists (clean no-op for</span>
-</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="sd">    cohorts that don't carry this topic). Audit framework verifies non-empty</span>
-</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="sd">    emission for cohorts that DO carry it.</span>
-</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="sd">    """</span>
-</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    <span class="n">items</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"extensions"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"&lt;topic&gt;"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
-</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">items</span><span class="p">:</span>
-</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>        <span class="k">return</span> <span class="p">[]</span>
-</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>    <span class="k">return</span> <span class="p">[</span><span class="n">_build_resource</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
-</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">    </span><span class="sd">"""Builder entry point — emit &lt;ResourceType&gt; resources from CIF.</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="sd">    Returns an empty list when no relevant CIF data exists (clean no-op for</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="sd">    cohorts that don't carry this topic). Audit framework verifies non-empty</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="sd">    emission for cohorts that DO carry it.</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="sd">    """</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    <span class="n">items</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"extensions"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"&lt;topic&gt;"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">items</span><span class="p">:</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>        <span class="k">return</span> <span class="p">[]</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>    <span class="k">return</span> <span class="p">[</span><span class="n">_build_resource</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
 </span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>
-</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="k">def</span><span class="w"> </span><span class="nf">_build_resource</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>    <span class="n">lang</span> <span class="o">=</span> <span class="n">lang_for</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>   <span class="c1"># canonical idiom — no inline branching (E.10)</span>
-</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>        <span class="s2">"resourceType"</span><span class="p">:</span> <span class="s2">"&lt;ResourceType&gt;"</span><span class="p">,</span>
-</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">TOPIC_ID_PREFIX</span><span class="si">}{</span><span class="n">item</span><span class="o">.</span><span class="n">id_field</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>        <span class="s2">"identifier"</span><span class="p">:</span> <span class="p">[{</span>
-</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>            <span class="s2">"system"</span><span class="p">:</span> <span class="n">TOPIC_IDENTIFIER_SYSTEM</span><span class="p">,</span>
-</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>            <span class="s2">"value"</span><span class="p">:</span> <span class="n">item</span><span class="o">.</span><span class="n">id_field</span><span class="p">,</span>
-</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>        <span class="p">}],</span>
-</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>        <span class="s2">"subject"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"reference"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Patient/</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">patient_id</span><span class="si">}</span><span class="s2">"</span><span class="p">},</span>
-</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>        <span class="c1"># ... use code_lookup() for any display, get_system_uri() for any system</span>
-</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>    <span class="p">}</span>
-</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>    <span class="c1"># Encounter ref, requester, dates, code, category, etc. per the FHIR profile.</span>
-</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>    <span class="k">return</span> <span class="n">res</span>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="k">def</span><span class="w"> </span><span class="nf">_build_resource</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>    <span class="n">lang</span> <span class="o">=</span> <span class="n">lang_for</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>   <span class="c1"># canonical idiom — no inline branching (E.10)</span>
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>    <span class="n">res</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>        <span class="s2">"resourceType"</span><span class="p">:</span> <span class="s2">"&lt;ResourceType&gt;"</span><span class="p">,</span>
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">TOPIC_ID_PREFIX</span><span class="si">}{</span><span class="n">item</span><span class="o">.</span><span class="n">id_field</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>        <span class="s2">"identifier"</span><span class="p">:</span> <span class="p">[{</span>
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>            <span class="s2">"system"</span><span class="p">:</span> <span class="n">TOPIC_IDENTIFIER_SYSTEM</span><span class="p">,</span>
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>            <span class="s2">"value"</span><span class="p">:</span> <span class="n">item</span><span class="o">.</span><span class="n">id_field</span><span class="p">,</span>
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>        <span class="p">}],</span>
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>        <span class="s2">"subject"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"reference"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Patient/</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">patient_id</span><span class="si">}</span><span class="s2">"</span><span class="p">},</span>
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>        <span class="c1"># Coded concept: English-only systems (LOINC, SNOMED CT) keep the English</span>
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>        <span class="c1"># coding.display and carry the JP label in .text (code-mapping spec §5.3).</span>
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>        <span class="s2">"code"</span><span class="p">:</span> <span class="n">dual_slot_concept</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">loinc_code</span><span class="p">,</span> <span class="n">lang</span><span class="p">),</span>
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>        <span class="c1"># ... display(...) or &lt;explicit fallback&gt; for any other display,</span>
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>        <span class="c1"># get_system_uri() for any system</span>
+</span><span id="__span-1-50"><a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>    <span class="p">}</span>
+</span><span id="__span-1-51"><a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>    <span class="c1"># Encounter ref, requester, dates, code, category, etc. per the FHIR profile.</span>
+</span><span id="__span-1-52"><a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a>    <span class="k">return</span> <span class="n">res</span>
 </span></code></pre></div>
 <h3 id="b3-canonical-constants--single-definition-site">B.3 Canonical constants — single-definition site<a class="headerlink" href="#b3-canonical-constants--single-definition-site" title="Permanent link">&para;</a></h3>
 <p>Place canonical constants (ID prefix, identifier system, category
@@ -3574,17 +3581,33 @@ constants, etc.) inside the builder:</p>
 </span></code></pre></div>
 <p><strong>When a third consumer appears, import it as well</strong> — do not
 re-define.</p>
-<h3 id="b4-display-resolution--how-to-use-code_lookup-correctly">B.4 Display resolution — how to use <code>code_lookup</code> correctly<a class="headerlink" href="#b4-display-resolution--how-to-use-code_lookup-correctly" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">loinc_display</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="n">panel_loinc_code</span><span class="p">,</span> <span class="n">lang</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fallback_text</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">icd_display</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">"icd-10-cm"</span><span class="p">,</span> <span class="n">icd_code</span><span class="p">,</span> <span class="n">lang</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span>
+<h3 id="b4-display-resolution--dual_slot_concept-and-display">B.4 Display resolution — <code>dual_slot_concept</code> and <code>display</code><a class="headerlink" href="#b4-display-resolution--dual_slot_concept-and-display" title="Permanent link">&para;</a></h3>
+<p>A coded <code>CodeableConcept</code> is built at the emit site with
+<code>dual_slot_concept</code> (<code>clinosim/modules/output/fhir_r4/lib/common.py</code>);
+a <code>Coding</code>-typed element with no <code>text</code> slot (<code>Encounter.class</code>) uses
+<code>system_coding</code>. Both apply the dual-slot rule of code-mapping spec
+§5.3: for an English-only system (<code>is_english_only_system</code> — LOINC,
+SNOMED CT, HL7 terminology, DICOM, UCUM) <code>coding.display</code> stays the
+English canonical display in every locale, and the JP label goes in
+<code>CodeableConcept.text</code>. Other systems (JP Core, JP-CLINS, MEDIS, YJ,
+clinosim-owned) keep the display in the output language.</p>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">lang</span> <span class="o">=</span> <span class="n">lang_for</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">code</span> <span class="o">=</span> <span class="n">dual_slot_concept</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="n">panel_loinc_code</span><span class="p">,</span> <span class="n">lang</span><span class="p">,</span> <span class="n">fallback_display</span><span class="o">=</span><span class="n">fallback_text</span><span class="p">)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># JP: {"coding": [{"system": "http://loinc.org", "code": ..., "display": &lt;English&gt;}],</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1">#      "text": &lt;Japanese label&gt;}</span>
+</span></code></pre></div>
+<p>When only the display string is needed, call <code>display(...)</code> from
+<code>clinosim.codes</code> with an explicit fallback (code-mapping spec §4.1,
+§9 — <code>lookup(...)</code> is not used in new code):</p>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">icd_display</span> <span class="o">=</span> <span class="n">display</span><span class="p">(</span><span class="s2">"icd-10-cm"</span><span class="p">,</span> <span class="n">icd_code</span><span class="p">,</span> <span class="n">lang</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span>
 </span></code></pre></div>
 <ul>
-<li>2<sup>nd</sup> argument = the code-system key (<code>"loinc"</code> / <code>"icd-10-cm"</code> /
-  <code>"snomed"</code> / <code>"rxnorm"</code> / <code>"jlac10"</code> / <code>"k-codes"</code> / <code>"cpt"</code> /
+<li>1<sup>st</sup> argument = the code-system key (<code>"loinc"</code> / <code>"icd-10-cm"</code> /
+  <code>"snomed-ct"</code> / <code>"rxnorm"</code> / <code>"jlac10"</code> / <code>"k-codes"</code> / <code>"cpt"</code> /
   etc.).</li>
-<li>3<sup>rd</sup> argument = <code>"ja"</code> for JP cohort, <code>"en"</code> for US cohort — always
-  derived via <code>lang_for(ctx.country)</code> (<code>clinosim/modules/_shared.py</code>);
-  inline branching is forbidden (E.10).</li>
+<li>3<sup>rd</sup> argument = the output language, always derived via
+  <code>lang_for(ctx.country)</code> (<code>clinosim/countries.py</code>); inline branching
+  is forbidden (E.10).</li>
 <li>Return value = display string; <code>None</code> when absent (fall back with
   <code>or</code>).</li>
 <li>Using the code itself as display is AD-30 violation + multilingual
@@ -3596,17 +3619,17 @@ procedure = K-codes / CPT), pick the key with
 <code>clinosim.codes.system_key_for(kind, country)</code> (shared-logic
 unification 2026-07-02, single source of truth; unknown <code>kind</code>
 raises <code>KeyError</code> fail-loud):</p>
-<div class="highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">system_key_for</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">system_key</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">"lab"</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>      <span class="c1"># JP → "jlac10", else → "loinc"</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">display</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="n">system_key</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">lang_for</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">system_key_for</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">system_key</span> <span class="o">=</span> <span class="n">system_key_for</span><span class="p">(</span><span class="s2">"lab"</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>      <span class="c1"># JP → "jlac10", else → "loinc"</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">concept</span> <span class="o">=</span> <span class="n">dual_slot_concept</span><span class="p">(</span><span class="n">system_key</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">lang_for</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">))</span>
 </span></code></pre></div>
 <p>System URI:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"code"</span><span class="p">][</span><span class="s2">"coding"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"system"</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_system_uri</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"code"</span><span class="p">][</span><span class="s2">"coding"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"system"</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_system_uri</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">)</span>
 </span></code></pre></div>
 <ul>
 <li><code>get_system_uri("loinc")</code> → <code>"http://loinc.org"</code></li>
-<li><code>get_system_uri("snomed")</code> → <code>"http://snomed.info/sct"</code></li>
+<li><code>get_system_uri("snomed-ct")</code> → <code>"http://snomed.info/sct"</code></li>
 <li><code>get_system_uri("icd-10-cm")</code> → <code>"http://hl7.org/fhir/sid/icd-10-cm"</code></li>
 </ul>
 <p>Do not hard-code the string. Register a new system key's canonical
@@ -3614,9 +3637,9 @@ HL7 URI in <code>codes/loader.py:_BUILTIN_URIS</code> before using it (recent
 additions 2026-07-02: <code>hl7-endpoint-connection-type</code> /
 <code>hl7-endpoint-payload-type</code> / <code>hl7-subscriber-relationship</code>).</p>
 <h3 id="b5-builder-entry-point--bundlecontext-interface">B.5 Builder entry point + BundleContext interface<a class="headerlink" href="#b5-builder-entry-point--bundlecontext-interface" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">BundleContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 </span></code></pre></div>
-<p><code>BundleContext</code> (existing, <code>clinosim/modules/output/fhir_r4/lib/common.py</code>)
+<p><code>BundleContext</code> (existing, <code>clinosim/modules/output/fhir_r4/lib/context.py</code>)
 is the uniform input to a builder:</p>
 <table>
 <thead>
@@ -3632,7 +3655,7 @@ is the uniform input to a builder:</p>
 </tr>
 <tr>
 <td><code>ctx.country</code></td>
-<td><code>"US"</code> / <code>"JP"</code> — used for display-language selection</td>
+<td><code>"US"</code> / <code>"JP"</code> — passed to <code>lang_for</code> for the output language and to <code>is_jp</code> / <code>is_us</code> for country rules</td>
 </tr>
 <tr>
 <td><code>ctx.patient_id</code></td>
@@ -3665,14 +3688,14 @@ AD-16).</p>
 <h3 id="b6-registering-the-builder-ad-56">B.6 Registering the builder (AD-56)<a class="headerlink" href="#b6-registering-the-builder-ad-56" title="Permanent link">&para;</a></h3>
 <p><strong>Built-in resource (near-essential / always-on)</strong> = append to the
 <code>_BUNDLE_BUILDERS</code> list directly:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/builder.py</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">_BUNDLE_BUILDERS</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">BundleContext</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="n">_bb_patient</span><span class="p">,</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    <span class="c1"># ... existing</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">,</span>   <span class="c1"># ← insert in the right emission-order position</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># clinosim/modules/output/fhir_r4/builder.py</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="n">_BUNDLE_BUILDERS</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">BundleContext</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="n">_bb_patient</span><span class="p">,</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="c1"># ... existing</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>    <span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">,</span>   <span class="c1"># ← insert in the right emission-order position</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="p">]</span>
 </span></code></pre></div>
 <p>Emission-order guideline: order by <strong>reference resolution direction</strong>.
 Patient → Encounter → Observation → ServiceRequest (which
@@ -3681,10 +3704,10 @@ references Observations). Placing ServiceRequest before Observation
 keeps the intra-NDJSON references strictly forward-resolvable.</p>
 <p><strong>Opt-in module (AD-55 Module)</strong> = call <code>register_bundle_builder()</code>
 at import time:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># clinosim/modules/&lt;topic&gt;/__init__.py or a startup hook</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_bundle_builder</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># clinosim/modules/&lt;topic&gt;/__init__.py or a startup hook</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_bundle_builder</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">register_bundle_builder</span><span class="p">(</span><span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">)</span>
 </span></code></pre></div>
 <p><code>register_bundle_builder</code> deduplicates (double registration of the
 same-named builder is ignored).</p>
@@ -3693,101 +3716,104 @@ same-named builder is ignored).</p>
 <h3 id="c1-unit-test-pytest--m-unit">C.1 Unit test (<code>pytest -m unit</code>)<a class="headerlink" href="#c1-unit-test-pytest--m-unit" title="Permanent link">&para;</a></h3>
 <p>Call the builder function directly. Construct a minimal
 <code>BundleContext</code> fixture:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># tests/unit/output/test_fhir_&lt;topic&gt;.py</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">_make_ctx</span><span class="p">(</span><span class="n">extensions_topic_data</span><span class="p">,</span> <span class="n">country</span><span class="o">=</span><span class="s2">"us"</span><span class="p">):</span>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="k">return</span> <span class="n">BundleContext</span><span class="p">(</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>        <span class="n">record</span><span class="o">=</span><span class="p">{</span><span class="s2">"extensions"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"&lt;topic&gt;"</span><span class="p">:</span> <span class="n">extensions_topic_data</span><span class="p">}},</span>
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>        <span class="n">country</span><span class="o">=</span><span class="n">country</span><span class="p">,</span>
-</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>        <span class="n">roster_map</span><span class="o">=</span><span class="p">{},</span> <span class="n">hospital_config</span><span class="o">=</span><span class="p">{},</span> <span class="n">patient_data</span><span class="o">=</span><span class="p">{},</span>
-</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>        <span class="n">patient_id</span><span class="o">=</span><span class="s2">"pt1"</span><span class="p">,</span> <span class="n">is_readmission</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">prior_encounter_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>        <span class="n">primary_dx_code</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">admit_dx_code</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
-</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>    <span class="p">)</span>
-</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>
-</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_emits_resource_when_extension_present</span><span class="p">():</span>
-</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>    <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">build_test_item</span><span class="p">()]</span>
-</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>    <span class="n">resources</span> <span class="o">=</span> <span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_make_ctx</span><span class="p">(</span><span class="n">items</span><span class="p">))</span>
-</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">resources</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
-</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>    <span class="k">assert</span> <span class="n">resources</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"resourceType"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"&lt;ResourceType&gt;"</span>
-</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>
-</span><span id="__span-10-21"><a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_empty_extension_emits_zero_resources</span><span class="p">():</span>
-</span><span id="__span-10-22"><a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a>    <span class="k">assert</span> <span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_make_ctx</span><span class="p">([]))</span> <span class="o">==</span> <span class="p">[]</span>
-</span><span id="__span-10-23"><a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>
-</span><span id="__span-10-24"><a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_identifier_carries_canonical_system</span><span class="p">():</span>
-</span><span id="__span-10-25"><a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>    <span class="n">resources</span> <span class="o">=</span> <span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_make_ctx</span><span class="p">([</span><span class="n">build_test_item</span><span class="p">()]))</span>
-</span><span id="__span-10-26"><a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a>    <span class="k">assert</span> <span class="n">resources</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"identifier"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"system"</span><span class="p">]</span> <span class="o">==</span> <span class="n">TOPIC_IDENTIFIER_SYSTEM</span>
-</span><span id="__span-10-27"><a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a>
-</span><span id="__span-10-28"><a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_jp_locale_uses_ja_display</span><span class="p">():</span>
-</span><span id="__span-10-29"><a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a>    <span class="n">resources</span> <span class="o">=</span> <span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_make_ctx</span><span class="p">([</span><span class="n">build_test_item</span><span class="p">()],</span> <span class="n">country</span><span class="o">=</span><span class="s2">"jp"</span><span class="p">))</span>
-</span><span id="__span-10-30"><a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a>    <span class="n">coding</span> <span class="o">=</span> <span class="n">resources</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"code"</span><span class="p">][</span><span class="s2">"coding"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="__span-10-31"><a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a>    <span class="c1"># display should be Japanese text from code_lookup("loinc", code, "ja")</span>
-</span><span id="__span-10-32"><a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a>    <span class="k">assert</span> <span class="s2">"..."</span> <span class="ow">in</span> <span class="n">coding</span><span class="p">[</span><span class="s2">"display"</span><span class="p">]</span>   <span class="c1"># adapt to actual JP text</span>
+<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># tests/unit/output/test_fhir_&lt;topic&gt;.py</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.codes</span><span class="w"> </span><span class="kn">import</span> <span class="n">display</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.lib.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">BundleContext</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">_make_ctx</span><span class="p">(</span><span class="n">extensions_topic_data</span><span class="p">,</span> <span class="n">country</span><span class="o">=</span><span class="s2">"us"</span><span class="p">):</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>    <span class="k">return</span> <span class="n">BundleContext</span><span class="p">(</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>        <span class="n">record</span><span class="o">=</span><span class="p">{</span><span class="s2">"extensions"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"&lt;topic&gt;"</span><span class="p">:</span> <span class="n">extensions_topic_data</span><span class="p">}},</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>        <span class="n">country</span><span class="o">=</span><span class="n">country</span><span class="p">,</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>        <span class="n">roster_map</span><span class="o">=</span><span class="p">{},</span> <span class="n">hospital_config</span><span class="o">=</span><span class="p">{},</span> <span class="n">patient_data</span><span class="o">=</span><span class="p">{},</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>        <span class="n">patient_id</span><span class="o">=</span><span class="s2">"pt1"</span><span class="p">,</span> <span class="n">is_readmission</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">prior_encounter_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>        <span class="n">primary_dx_code</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">admit_dx_code</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>    <span class="p">)</span>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_emits_resource_when_extension_present</span><span class="p">():</span>
+</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>    <span class="n">items</span> <span class="o">=</span> <span class="p">[</span><span class="n">build_test_item</span><span class="p">()]</span>
+</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>    <span class="n">resources</span> <span class="o">=</span> <span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_make_ctx</span><span class="p">(</span><span class="n">items</span><span class="p">))</span>
+</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">resources</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a>    <span class="k">assert</span> <span class="n">resources</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"resourceType"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"&lt;ResourceType&gt;"</span>
+</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>
+</span><span id="__span-11-22"><a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_empty_extension_emits_zero_resources</span><span class="p">():</span>
+</span><span id="__span-11-23"><a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a>    <span class="k">assert</span> <span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_make_ctx</span><span class="p">([]))</span> <span class="o">==</span> <span class="p">[]</span>
+</span><span id="__span-11-24"><a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>
+</span><span id="__span-11-25"><a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_identifier_carries_canonical_system</span><span class="p">():</span>
+</span><span id="__span-11-26"><a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a>    <span class="n">resources</span> <span class="o">=</span> <span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_make_ctx</span><span class="p">([</span><span class="n">build_test_item</span><span class="p">()]))</span>
+</span><span id="__span-11-27"><a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a>    <span class="k">assert</span> <span class="n">resources</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"identifier"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"system"</span><span class="p">]</span> <span class="o">==</span> <span class="n">TOPIC_IDENTIFIER_SYSTEM</span>
+</span><span id="__span-11-28"><a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a>
+</span><span id="__span-11-29"><a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_jp_locale_keeps_english_coding_display_and_ja_text</span><span class="p">():</span>
+</span><span id="__span-11-30"><a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a>    <span class="n">item</span> <span class="o">=</span> <span class="n">build_test_item</span><span class="p">()</span>
+</span><span id="__span-11-31"><a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a>    <span class="n">resources</span> <span class="o">=</span> <span class="n">_bb_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_make_ctx</span><span class="p">([</span><span class="n">item</span><span class="p">],</span> <span class="n">country</span><span class="o">=</span><span class="s2">"jp"</span><span class="p">))</span>
+</span><span id="__span-11-32"><a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a>    <span class="n">concept</span> <span class="o">=</span> <span class="n">resources</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"code"</span><span class="p">]</span>
+</span><span id="__span-11-33"><a id="__codelineno-11-33" name="__codelineno-11-33" href="#__codelineno-11-33"></a>    <span class="c1"># LOINC is English-only: coding.display stays English, the JP label is in .text</span>
+</span><span id="__span-11-34"><a id="__codelineno-11-34" name="__codelineno-11-34" href="#__codelineno-11-34"></a>    <span class="k">assert</span> <span class="n">concept</span><span class="p">[</span><span class="s2">"coding"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"display"</span><span class="p">]</span> <span class="o">==</span> <span class="n">display</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">loinc_code</span><span class="p">,</span> <span class="s2">"en"</span><span class="p">)</span>
+</span><span id="__span-11-35"><a id="__codelineno-11-35" name="__codelineno-11-35" href="#__codelineno-11-35"></a>    <span class="k">assert</span> <span class="n">concept</span><span class="p">[</span><span class="s2">"text"</span><span class="p">]</span> <span class="o">==</span> <span class="n">display</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">loinc_code</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>
 </span></code></pre></div>
 <h3 id="c2-integration-test-pytest--m-integration">C.2 Integration test (<code>pytest -m integration</code>)<a class="headerlink" href="#c2-integration-test-pytest--m-integration" title="Permanent link">&para;</a></h3>
 <p>Generate a small cohort via <code>run_beta</code> and verify NDJSON:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">subprocess</span><span class="o">,</span><span class="w"> </span><span class="nn">tempfile</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">integration</span>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="n">_ndjson_emitted_with_proper_references</span><span class="p">():</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>        <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"out"</span>
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">"clinosim"</span><span class="p">,</span> <span class="s2">"run-beta"</span><span class="p">,</span> <span class="s2">"--country"</span><span class="p">,</span> <span class="s2">"us"</span><span class="p">,</span>
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>                        <span class="s2">"--population"</span><span class="p">,</span> <span class="s2">"100"</span><span class="p">,</span> <span class="s2">"--seed"</span><span class="p">,</span> <span class="s2">"42"</span><span class="p">,</span> <span class="s2">"--output"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">)],</span>
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>                       <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>        <span class="k">with</span> <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"&lt;ResourceType&gt;.ndjson"</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>            <span class="n">resources</span> <span class="o">=</span> <span class="p">[</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">f</span> <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
-</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">resources</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
-</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>        <span class="c1"># reference integrity:</span>
-</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>        <span class="n">patient_ids</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># load Patient.ndjson, build set</span>
-</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">resources</span><span class="p">:</span>
-</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>            <span class="k">assert</span> <span class="n">r</span><span class="p">[</span><span class="s2">"subject"</span><span class="p">][</span><span class="s2">"reference"</span><span class="p">]</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">"Patient/"</span><span class="p">)</span> <span class="ow">in</span> <span class="n">patient_ids</span>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">subprocess</span><span class="o">,</span><span class="w"> </span><span class="nn">tempfile</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">integration</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="n">_ndjson_emitted_with_proper_references</span><span class="p">():</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>        <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"out"</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">"clinosim"</span><span class="p">,</span> <span class="s2">"run-beta"</span><span class="p">,</span> <span class="s2">"--country"</span><span class="p">,</span> <span class="s2">"us"</span><span class="p">,</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>                        <span class="s2">"--population"</span><span class="p">,</span> <span class="s2">"100"</span><span class="p">,</span> <span class="s2">"--seed"</span><span class="p">,</span> <span class="s2">"42"</span><span class="p">,</span> <span class="s2">"--output"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">)],</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>                       <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>        <span class="k">with</span> <span class="p">(</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"&lt;ResourceType&gt;.ndjson"</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>            <span class="n">resources</span> <span class="o">=</span> <span class="p">[</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">f</span> <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">resources</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>        <span class="c1"># reference integrity:</span>
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>        <span class="n">patient_ids</span> <span class="o">=</span> <span class="o">...</span>  <span class="c1"># load Patient.ndjson, build set</span>
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">resources</span><span class="p">:</span>
+</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>            <span class="k">assert</span> <span class="n">r</span><span class="p">[</span><span class="s2">"subject"</span><span class="p">][</span><span class="s2">"reference"</span><span class="p">]</span><span class="o">.</span><span class="n">removeprefix</span><span class="p">(</span><span class="s2">"Patient/"</span><span class="p">)</span> <span class="ow">in</span> <span class="n">patient_ids</span>
 </span></code></pre></div>
 <p>Always run an integrity check on cross-resource references such as
 <code>basedOn</code> (memory <code>feedback_xhigh_review_lessons</code>).</p>
 <h3 id="c3-determinism-test-ad-16">C.3 Determinism test (AD-16)<a class="headerlink" href="#c3-determinism-test-ad-16" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">integration</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="n">_ndjson_byte_identical_across_runs</span><span class="p">():</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>    <span class="n">hashes</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>            <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"out"</span>
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>            <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">"clinosim"</span><span class="p">,</span> <span class="s2">"run-beta"</span><span class="p">,</span> <span class="s2">"--country"</span><span class="p">,</span> <span class="s2">"us"</span><span class="p">,</span>
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>                            <span class="s2">"--population"</span><span class="p">,</span> <span class="s2">"50"</span><span class="p">,</span> <span class="s2">"--seed"</span><span class="p">,</span> <span class="s2">"42"</span><span class="p">,</span> <span class="s2">"--output"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">)],</span>
-</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>                           <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>            <span class="n">hashes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">((</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"&lt;ResourceType&gt;.ndjson"</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">())</span>
-</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>    <span class="k">assert</span> <span class="n">hashes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">hashes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">integration</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_</span><span class="o">&lt;</span><span class="n">topic</span><span class="o">&gt;</span><span class="n">_ndjson_byte_identical_across_runs</span><span class="p">():</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="n">hashes</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>            <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"out"</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>            <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">"clinosim"</span><span class="p">,</span> <span class="s2">"run-beta"</span><span class="p">,</span> <span class="s2">"--country"</span><span class="p">,</span> <span class="s2">"us"</span><span class="p">,</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>                            <span class="s2">"--population"</span><span class="p">,</span> <span class="s2">"50"</span><span class="p">,</span> <span class="s2">"--seed"</span><span class="p">,</span> <span class="s2">"42"</span><span class="p">,</span> <span class="s2">"--output"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">)],</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>                           <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>            <span class="n">hashes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">((</span><span class="n">out</span> <span class="o">/</span> <span class="s2">"&lt;ResourceType&gt;.ndjson"</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">())</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>    <span class="k">assert</span> <span class="n">hashes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">hashes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 </span></code></pre></div>
 <h3 id="c4-audit-module--silent-no-op-gate-ad-60">C.4 Audit module (★ silent-no-op gate, AD-60)<a class="headerlink" href="#c4-audit-module--silent-no-op-gate-ad-60" title="Permanent link">&para;</a></h3>
 <p>Add a <strong><code>lift_firing_proof</code></strong> to <code>clinosim/modules/&lt;owner&gt;/audit.py</code>
 (5+ equality_checks):</p>
-<div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="p">(</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="n">TOPIC_ID_PREFIX</span><span class="p">,</span> <span class="n">TOPIC_IDENTIFIER_SYSTEM</span><span class="p">,</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="p">)</span>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="n">register_audit_module</span><span class="p">(</span><span class="n">ModuleAuditSpec</span><span class="p">(</span>
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"&lt;topic&gt;_fhir"</span><span class="p">,</span>
-</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="n">structural_checks</span><span class="o">=</span><span class="p">[</span>
-</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>        <span class="s2">"every &lt;ResourceType&gt;.identifier[0].system == TOPIC_IDENTIFIER_SYSTEM"</span><span class="p">,</span>
-</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>        <span class="s2">"every &lt;ResourceType&gt;.id starts with TOPIC_ID_PREFIX"</span><span class="p">,</span>
-</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>        <span class="s2">"every subject reference resolves in Patient.ndjson"</span><span class="p">,</span>
-</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>    <span class="p">],</span>
-</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>    <span class="n">clinical_acceptance</span><span class="o">=</span><span class="p">{</span><span class="s2">"emission_rate"</span><span class="p">:</span> <span class="s2">"...(n&lt;30 → WARN)"</span><span class="p">},</span>
-</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>    <span class="n">jp_language_checks</span><span class="o">=</span><span class="p">[</span>
-</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>        <span class="s2">"code.coding[].display in Japanese for JP locale (fallback warn list)"</span><span class="p">,</span>
-</span><span id="__span-13-15"><a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a>    <span class="p">],</span>
-</span><span id="__span-13-16"><a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a>    <span class="n">lift_firing_proof</span><span class="o">=</span><span class="p">{</span>
-</span><span id="__span-13-17"><a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>        <span class="s2">"equality_checks"</span><span class="p">:</span> <span class="p">[</span>
-</span><span id="__span-13-18"><a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>            <span class="sa">f</span><span class="s2">"TOPIC_IDENTIFIER_SYSTEM == '</span><span class="si">{</span><span class="n">TOPIC_IDENTIFIER_SYSTEM</span><span class="si">}</span><span class="s2">'"</span><span class="p">,</span>
-</span><span id="__span-13-19"><a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>            <span class="s2">"ResourceCount &gt; 0 when extensions['&lt;topic&gt;'] non-empty"</span><span class="p">,</span>
-</span><span id="__span-13-20"><a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>            <span class="s2">"ref integrity holds in NDJSON"</span><span class="p">,</span>
-</span><span id="__span-13-21"><a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a>            <span class="c1"># ... 5+ canonical-constant + emission proofs</span>
-</span><span id="__span-13-22"><a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a>        <span class="p">],</span>
-</span><span id="__span-13-23"><a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a>    <span class="p">},</span>
-</span><span id="__span-13-24"><a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a><span class="p">))</span>
+<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.output.fhir_r4.</span><span class="o">&lt;</span><span class="n">domain</span><span class="o">&gt;.&lt;</span><span class="n">topic</span><span class="o">&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="n">TOPIC_ID_PREFIX</span><span class="p">,</span> <span class="n">TOPIC_IDENTIFIER_SYSTEM</span><span class="p">,</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="p">)</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="n">register_audit_module</span><span class="p">(</span><span class="n">ModuleAuditSpec</span><span class="p">(</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">"&lt;topic&gt;_fhir"</span><span class="p">,</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="n">structural_checks</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>        <span class="s2">"every &lt;ResourceType&gt;.identifier[0].system == TOPIC_IDENTIFIER_SYSTEM"</span><span class="p">,</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>        <span class="s2">"every &lt;ResourceType&gt;.id starts with TOPIC_ID_PREFIX"</span><span class="p">,</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>        <span class="s2">"every subject reference resolves in Patient.ndjson"</span><span class="p">,</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>    <span class="p">],</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>    <span class="n">clinical_acceptance</span><span class="o">=</span><span class="p">{</span><span class="s2">"emission_rate"</span><span class="p">:</span> <span class="s2">"...(n&lt;30 → WARN)"</span><span class="p">},</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>    <span class="n">jp_language_checks</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>        <span class="s2">"code.text in Japanese for JP locale; code.coding[].display English for English-only systems"</span><span class="p">,</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>    <span class="p">],</span>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>    <span class="n">lift_firing_proof</span><span class="o">=</span><span class="p">{</span>
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>        <span class="s2">"equality_checks"</span><span class="p">:</span> <span class="p">[</span>
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>            <span class="sa">f</span><span class="s2">"TOPIC_IDENTIFIER_SYSTEM == '</span><span class="si">{</span><span class="n">TOPIC_IDENTIFIER_SYSTEM</span><span class="si">}</span><span class="s2">'"</span><span class="p">,</span>
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>            <span class="s2">"ResourceCount &gt; 0 when extensions['&lt;topic&gt;'] non-empty"</span><span class="p">,</span>
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>            <span class="s2">"ref integrity holds in NDJSON"</span><span class="p">,</span>
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>            <span class="c1"># ... 5+ canonical-constant + emission proofs</span>
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>        <span class="p">],</span>
+</span><span id="__span-14-23"><a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a>    <span class="p">},</span>
+</span><span id="__span-14-24"><a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a><span class="p">))</span>
 </span></code></pre></div>
 <p>Detail: see <code>docs/CONTRIBUTING-modules.md</code> § "AD-60 audit
 framework".</p>
@@ -3843,42 +3869,54 @@ vs 3-axis DQR".</p>
 <p>Prefixes live at the writer as <strong>canonical constants</strong>; readers
 import them.</p>
 <h3 id="d2-identifiersystem-uri-convention">D.2 <code>identifier.system</code> URI convention<a class="headerlink" href="#d2-identifiersystem-uri-convention" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>urn:clinosim:identifier:&lt;concept&gt;      # generic internal identifier
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>urn:clinosim:placer-order-number       # ServiceRequest placerOrderNumber (PR1)
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>urn:clinosim:identifier:hai-event-id   # HAI culture cross-ref (PR3b-5)
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>urn:clinosim:staff                     # staff / practitioner internal id
+<div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>urn:clinosim:identifier:&lt;concept&gt;      # generic internal identifier
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>urn:clinosim:placer-order-number       # ServiceRequest placerOrderNumber (PR1)
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>urn:clinosim:identifier:hai-event-id   # HAI culture cross-ref (PR3b-5)
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>urn:clinosim:staff                     # staff / practitioner internal id
 </span></code></pre></div>
 <p>New = add under the same namespace as a constant
 (<code>&lt;TOPIC&gt;_IDENTIFIER_SYSTEM</code> or <code>&lt;TOPIC&gt;_ID_SYSTEM</code>).</p>
 <h3 id="d3-multilingual-coding-ad-46">D.3 Multilingual coding (AD-46)<a class="headerlink" href="#d3-multilingual-coding-ad-46" title="Permanent link">&para;</a></h3>
 <p>Condition / Procedure / ServiceRequest etc. use <strong>dual coding — the
-primary language + an interop language</strong>:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="s2">"code"</span><span class="p">:</span> <span class="p">{</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>    <span class="s2">"coding"</span><span class="p">:</span> <span class="p">[</span>
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>        <span class="c1"># Primary: country's local code system (US = ICD-10-CM, JP = ICD-10 WHO + JP-K)</span>
-</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>        <span class="p">{</span><span class="s2">"system"</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span> <span class="s2">"code"</span><span class="p">:</span> <span class="n">local_code</span><span class="p">,</span> <span class="s2">"display"</span><span class="p">:</span> <span class="n">code_lookup</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">local_code</span><span class="p">,</span> <span class="n">lang</span><span class="p">)},</span>
-</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>        <span class="c1"># Interop: secondary system (e.g., SNOMED CT for international interop)</span>
-</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>        <span class="p">{</span><span class="s2">"system"</span><span class="p">:</span> <span class="s2">"http://snomed.info/sct"</span><span class="p">,</span> <span class="s2">"code"</span><span class="p">:</span> <span class="n">snomed_code</span><span class="p">,</span> <span class="s2">"display"</span><span class="p">:</span> <span class="o">...</span><span class="p">},</span>
-</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>    <span class="p">],</span>
-</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>    <span class="s2">"text"</span><span class="p">:</span> <span class="n">short_clinical_name</span><span class="p">,</span>   <span class="c1"># never == code; never raw enum</span>
-</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="p">}</span>
+country's local code system + an interop code system</strong>:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="s2">"code"</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>    <span class="s2">"coding"</span><span class="p">:</span> <span class="p">[</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>        <span class="c1"># Primary: country's local code system (US = ICD-10-CM, JP = ICD-10 WHO + JP-K)</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>        <span class="n">system_coding</span><span class="p">(</span><span class="n">local_key</span><span class="p">,</span> <span class="n">local_code</span><span class="p">,</span> <span class="n">lang</span><span class="p">),</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>        <span class="c1"># Interop: SNOMED CT is English-only, so its display stays English in every locale</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>        <span class="n">system_coding</span><span class="p">(</span><span class="s2">"snomed-ct"</span><span class="p">,</span> <span class="n">snomed_code</span><span class="p">,</span> <span class="n">lang</span><span class="p">),</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="p">],</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="s2">"text"</span><span class="p">:</span> <span class="n">short_clinical_name</span><span class="p">,</span>   <span class="c1"># label in the output language; never == code; never raw enum</span>
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="p">}</span>
 </span></code></pre></div>
+<p>Each coding follows the dual-slot rule (code-mapping spec §5.3); the
+output-language label lives in <code>text</code>.</p>
 <h3 id="d4-jp-localization-conventions">D.4 JP localization conventions<a class="headerlink" href="#d4-jp-localization-conventions" title="Permanent link">&para;</a></h3>
-<p>JP-cohort decision uses <strong><code>is_jp(ctx.country)</code></strong>; display language
-uses <strong><code>lang_for(ctx.country)</code></strong> (both are the canonical idioms
-in <code>clinosim/modules/_shared.py</code> — shared-logic unification
-2026-07-02. Do not write hand-rolled variants like
-<code>ctx.country.lower() == "jp"</code> — E.10). For a JP cohort:</p>
+<p>The output language comes from <strong><code>lang_for(ctx.country)</code></strong>;
+<strong><code>is_jp(ctx.country)</code></strong> / <strong><code>is_us(ctx.country)</code></strong> are for country
+rules only (reimbursement codes, profiles, JP-only sections), never
+for picking a display (code-mapping spec §5.1, §9). All three live
+in <code>clinosim/countries.py</code>. Do not write hand-rolled variants like
+<code>ctx.country.lower() == "jp"</code> — E.10. For a JP cohort:</p>
 <ul>
-<li>Every <code>display</code> / <code>text</code> / <code>name</code> field = Japanese (via
-  <code>code_lookup(..., lang_for(ctx.country))</code>).</li>
+<li><code>text</code> / <code>name</code> fields and the <code>coding.display</code> of non-English-only
+  systems (JP Core, JP-CLINS, MEDIS, YJ, clinosim-owned) = Japanese,
+  via <code>dual_slot_concept</code> / <code>system_coding</code> or
+  <code>display(..., lang_for(ctx.country)) or &lt;fallback&gt;</code>.</li>
+<li><code>coding.display</code> of English-only systems (LOINC, SNOMED CT, HL7
+  terminology, DICOM, UCUM) = English; the Japanese label goes in
+  <code>CodeableConcept.text</code> via <code>dual_slot_concept</code> (code-mapping spec
+  §5.3). A Japanese display inside such a coding is a validation
+  error.</li>
 <li>Country-dependent code-system selection (JLAC10 vs LOINC etc.) =
   <code>system_key_for(kind, ctx.country)</code> (E.11).</li>
 <li>Coded enum values (category / priority / interpretation etc.) = <code>dual_slot_concept()</code> over the code-keyed <code>codes/data/hl7-*.yaml</code> registry
   (existing helper, <code>clinosim/modules/output/fhir_r4/lib/common.py (localization helpers)</code>).</li>
-<li>Drug / procedure names = <code>code_lookup()</code> or the lang-aware
-  wrapper <code>localize_drug_name(name, lang)</code> from
-  <code>output/fhir_r4/lib/localization.py</code> (Phase 1d-61). The wrapper
+<li>Drug / procedure names = <code>display(...)</code> (or <code>drug_display</code> for a
+  catalog drug) when a code or catalog id is held, otherwise the
+  lang-aware free-text resolver <code>localize_drug_name(name, lang)</code> from
+  <code>clinosim/locale/free_text.py</code> (re-exported by
+  <code>output/fhir_r4/lib/localization.py</code>). The wrapper
   is a no-op for locales without a drug-name lookup table (today:
   any <code>lang != "ja"</code>), so callers stay single-code-path — no
   <code>if lang == "ja":</code> gate needed. Underlying <code>_localize_drug_name</code>
@@ -3897,39 +3935,41 @@ in <code>clinosim/modules/_shared.py</code> — shared-logic unification
 <h3 id="d5-referencerange--interpretation-consistency-ad-47">D.5 <code>referenceRange</code> + <code>interpretation</code> consistency (AD-47)<a class="headerlink" href="#d5-referencerange--interpretation-consistency-ad-47" title="Permanent link">&para;</a></h3>
 <p>A numeric Observation <strong>must</strong> emit both <code>referenceRange</code> <strong>and</strong>
 <code>interpretation</code>, and they must be consistent:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="n">obs</span><span class="p">[</span><span class="s2">"referenceRange"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{</span>
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>    <span class="s2">"low"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"value"</span><span class="p">:</span> <span class="n">low</span><span class="p">,</span> <span class="s2">"unit"</span><span class="p">:</span> <span class="n">unit</span><span class="p">},</span>
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>    <span class="s2">"high"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"value"</span><span class="p">:</span> <span class="n">high</span><span class="p">,</span> <span class="s2">"unit"</span><span class="p">:</span> <span class="n">unit</span><span class="p">},</span>
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="p">}]</span>
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="n">obs</span><span class="p">[</span><span class="s2">"interpretation"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{</span>
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="s2">"coding"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"system"</span><span class="p">:</span> <span class="s2">"http://hl7.org/fhir/v3/ObservationInterpretation"</span><span class="p">,</span>
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>                <span class="s2">"code"</span><span class="p">:</span> <span class="s2">"H"</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">high</span> <span class="k">else</span> <span class="s2">"L"</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="n">low</span> <span class="k">else</span> <span class="s2">"N"</span><span class="p">,</span>
-</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>                <span class="s2">"display"</span><span class="p">:</span> <span class="s2">"High"</span> <span class="k">if</span> <span class="o">...</span> <span class="k">else</span> <span class="s2">"Low"</span> <span class="k">if</span> <span class="o">...</span> <span class="k">else</span> <span class="s2">"Normal"</span><span class="p">}],</span>
-</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="p">}]</span>
+<div class="highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="n">obs</span><span class="p">[</span><span class="s2">"referenceRange"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>    <span class="s2">"low"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"value"</span><span class="p">:</span> <span class="n">low</span><span class="p">,</span> <span class="s2">"unit"</span><span class="p">:</span> <span class="n">unit</span><span class="p">},</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>    <span class="s2">"high"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"value"</span><span class="p">:</span> <span class="n">high</span><span class="p">,</span> <span class="s2">"unit"</span><span class="p">:</span> <span class="n">unit</span><span class="p">},</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="p">}]</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="n">obs</span><span class="p">[</span><span class="s2">"interpretation"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>    <span class="s2">"coding"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"system"</span><span class="p">:</span> <span class="s2">"http://hl7.org/fhir/v3/ObservationInterpretation"</span><span class="p">,</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>                <span class="s2">"code"</span><span class="p">:</span> <span class="s2">"H"</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">high</span> <span class="k">else</span> <span class="s2">"L"</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="n">low</span> <span class="k">else</span> <span class="s2">"N"</span><span class="p">,</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>                <span class="s2">"display"</span><span class="p">:</span> <span class="s2">"High"</span> <span class="k">if</span> <span class="o">...</span> <span class="k">else</span> <span class="s2">"Low"</span> <span class="k">if</span> <span class="o">...</span> <span class="k">else</span> <span class="s2">"Normal"</span><span class="p">}],</span>
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="p">}]</span>
 </span></code></pre></div>
 <p>Lab interpretation is <strong>recomputed</strong> from value vs. <code>referenceRange</code>
 at output time (do not blindly trust the CIF flag — verify
 consistency at output).</p>
 <h3 id="d6-reference-integrity">D.6 Reference integrity<a class="headerlink" href="#d6-reference-integrity" title="Permanent link">&para;</a></h3>
 <p>Every <code>reference</code> field resolves inside the same NDJSON export:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="s2">"subject"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"reference"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Patient/</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">patient_id</span><span class="si">}</span><span class="s2">"</span><span class="p">},</span>
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="s2">"encounter"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"reference"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Encounter/</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">primary_enc_id</span><span class="si">}</span><span class="s2">"</span><span class="p">},</span>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="s2">"basedOn"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"reference"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"ServiceRequest/</span><span class="si">{</span><span class="n">sr_id</span><span class="si">}</span><span class="s2">"</span><span class="p">}],</span>
+<div class="highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="s2">"subject"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"reference"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Patient/</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">patient_id</span><span class="si">}</span><span class="s2">"</span><span class="p">},</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="s2">"encounter"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"reference"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Encounter/</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">primary_enc_id</span><span class="si">}</span><span class="s2">"</span><span class="p">},</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="s2">"basedOn"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"reference"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"ServiceRequest/</span><span class="si">{</span><span class="n">sr_id</span><span class="si">}</span><span class="s2">"</span><span class="p">}],</span>
 </span></code></pre></div>
 <p>A dangling reference = fail-loud in the audit's <code>clinical</code> axis.</p>
 <hr />
 <h2 id="e-anti-patterns-fhir-builder-layer">E. Anti-patterns (FHIR builder layer)<a class="headerlink" href="#e-anti-patterns-fhir-builder-layer" title="Permanent link">&para;</a></h2>
 <h3 id="e1--hard-coding-display-strings">E.1 ❌ Hard-coding display strings<a class="headerlink" href="#e1--hard-coding-display-strings" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"code"</span><span class="p">][</span><span class="s2">"coding"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"display"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Complete blood count (hemogram) panel..."</span>  <span class="c1"># NG</span>
+<div class="highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"code"</span><span class="p">][</span><span class="s2">"coding"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"display"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Complete blood count (hemogram) panel..."</span>  <span class="c1"># NG</span>
 </span></code></pre></div>
-<p><strong>Fix</strong>: go through <code>code_lookup("loinc", code, lang)</code>.</p>
+<p><strong>Fix</strong>: build the concept with <code>dual_slot_concept("loinc", code, lang)</code>
+(or <code>display("loinc", code, lang) or &lt;fallback&gt;</code> when only the string
+is needed).</p>
 <h3 id="e2--hard-coding-system-uris">E.2 ❌ Hard-coding system URIs<a class="headerlink" href="#e2--hard-coding-system-uris" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"code"</span><span class="p">][</span><span class="s2">"coding"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"system"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"http://loinc.org"</span>  <span class="c1"># NG</span>
+<div class="highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"code"</span><span class="p">][</span><span class="s2">"coding"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"system"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"http://loinc.org"</span>  <span class="c1"># NG</span>
 </span></code></pre></div>
 <p><strong>Fix</strong>: <code>get_system_uri("loinc")</code>.</p>
 <h3 id="e3--opening-raw-yaml-inside-the-builder">E.3 ❌ Opening raw YAML inside the builder<a class="headerlink" href="#e3--opening-raw-yaml-inside-the-builder" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_foo</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>    <span class="n">panels</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">SOME_PATH</span><span class="p">))</span>  <span class="c1"># NG — Layer 4 directly reads Layer 1</span>
+<div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_bb_foo</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>    <span class="n">panels</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">SOME_PATH</span><span class="p">))</span>  <span class="c1"># NG — Layer 4 directly reads Layer 1</span>
 </span></code></pre></div>
 <p><strong>Fix</strong>: import the Layer-2 canonical loader
 (<code>from clinosim.modules.order.panel_grouping import load_panel_definitions</code>).</p>
@@ -3948,54 +3988,58 @@ are shared instances (mutation forbidden).</p>
 <h3 id="e4--writing-display-strings-into-cif-ad-30-violation">E.4 ❌ Writing display strings into CIF (AD-30 violation)<a class="headerlink" href="#e4--writing-display-strings-into-cif-ad-30-violation" title="Permanent link">&para;</a></h3>
 <p>An anti-pattern on the CIF-generation side, but the temptation to
 mutate CIF from a FHIR builder is the same:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_build_resource</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>    <span class="n">item</span><span class="o">.</span><span class="n">display_name_ja</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>   <span class="c1"># NG — mutating CIF</span>
+<div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">_build_resource</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>    <span class="n">item</span><span class="o">.</span><span class="n">display_name_ja</span> <span class="o">=</span> <span class="n">display</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>   <span class="c1"># NG — mutating CIF</span>
 </span></code></pre></div>
 <p><strong>Fix</strong>: treat CIF as read-only. Display resolution lives entirely
 inside the returned builder-dict.</p>
 <h3 id="e5--embedding-the-id-prefix-as-a-string-literal">E.5 ❌ Embedding the ID prefix as a string literal<a class="headerlink" href="#e5--embedding-the-id-prefix-as-a-string-literal" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"sr-</span><span class="si">{</span><span class="n">order</span><span class="o">.</span><span class="n">order_id</span><span class="si">}</span><span class="s2">"</span>  <span class="c1"># NG — "sr-" is a literal</span>
+<div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"sr-</span><span class="si">{</span><span class="n">order</span><span class="o">.</span><span class="n">order_id</span><span class="si">}</span><span class="s2">"</span>  <span class="c1"># NG — "sr-" is a literal</span>
 </span></code></pre></div>
 <p><strong>Fix</strong>: import the <code>SR_ID_PREFIX = "sr-"</code> constant +
 <code>f"{SR_ID_PREFIX}{order.order_id}"</code>.</p>
 <h3 id="e6--two-builders-re-computing-the-same-display">E.6 ❌ Two builders re-computing the same display<a class="headerlink" href="#e6--two-builders-re-computing-the-same-display" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># fhir_r4/labs/observations.py</span>
-</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="n">display_a</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="s2">"58410-2"</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>
-</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="c1"># fhir_r4/labs/diagnostic_report.py</span>
-</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="n">display_b</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="s2">"58410-2"</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># fhir_r4/labs/observations.py</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="n">display_a</span> <span class="o">=</span> <span class="n">display</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="s2">"58410-2"</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="c1"># fhir_r4/labs/diagnostic_report.py</span>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="n">display_b</span> <span class="o">=</span> <span class="n">display</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="s2">"58410-2"</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>
 </span></code></pre></div>
 <p>Technically fine, but if display post-processing (shortening,
 formatting) is needed in both builders, factor it out into a shared
 helper (e.g. in <code>fhir_r4/lib/common.py</code>).</p>
 <h3 id="e7--ignoring-resource-id-collisions">E.7 ❌ Ignoring Resource-id collisions<a class="headerlink" href="#e7--ignoring-resource-id-collisions" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"sr-</span><span class="si">{</span><span class="n">enc</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">panel</span><span class="si">}</span><span class="s2">-1"</span>   <span class="c1"># multiple panels in the same encounter all pinned to 1 = collision</span>
+<div class="highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"sr-</span><span class="si">{</span><span class="n">enc</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">panel</span><span class="si">}</span><span class="s2">-1"</span>   <span class="c1"># multiple panels in the same encounter all pinned to 1 = collision</span>
 </span></code></pre></div>
 <p><strong>Fix</strong>: derive N deterministically via a per-encounter counter
 (PR1 ServiceRequest <code>build_panel_counter</code> precedent).</p>
-<h3 id="e8--leaving-english-display-on-a-jp-cohort">E.8 ❌ Leaving English display on a JP cohort<a class="headerlink" href="#e8--leaving-english-display-on-a-jp-cohort" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"code"</span><span class="p">][</span><span class="s2">"coding"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"display"</span><span class="p">]</span> <span class="o">=</span> <span class="n">code_lookup</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="s2">"en"</span><span class="p">)</span>  <span class="c1"># NG for JP</span>
+<h3 id="e8--japanese-in-an-english-only-coding-or-no-jp-label-in-text">E.8 ❌ Japanese in an English-only coding, or no JP label in <code>text</code><a class="headerlink" href="#e8--japanese-in-an-english-only-coding-or-no-jp-label-in-text" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"code"</span><span class="p">][</span><span class="s2">"coding"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">"display"</span><span class="p">]</span> <span class="o">=</span> <span class="n">display</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="s2">"ja"</span><span class="p">)</span>  <span class="c1"># NG — LOINC is English-only</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"code"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"coding"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"system"</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span> <span class="s2">"code"</span><span class="p">:</span> <span class="n">code</span><span class="p">,</span>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>                          <span class="s2">"display"</span><span class="p">:</span> <span class="n">display</span><span class="p">(</span><span class="s2">"loinc"</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="s2">"en"</span><span class="p">)}]}</span>  <span class="c1"># NG for JP — no .text label</span>
 </span></code></pre></div>
-<p><strong>Fix</strong>: derive <code>lang = lang_for(ctx.country)</code> (the canonical
-idiom in E.10).</p>
+<p><strong>Fix</strong>: <code>sr["code"] = dual_slot_concept("loinc", code, lang_for(ctx.country))</code>
+— English <code>coding.display</code>, JP label in <code>text</code> (code-mapping spec
+§5.3). For a non-English-only system, <code>dual_slot_concept</code> puts the
+output-language display in the coding itself.</p>
 <h3 id="e9--ad-hoc-fields-outside-the-fhir-r4-spec">E.9 ❌ Ad-hoc fields outside the FHIR R4 spec<a class="headerlink" href="#e9--ad-hoc-fields-outside-the-fhir-r4-spec" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"my_custom_field"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"..."</span>   <span class="c1"># NG — adding free fields on a Resource violates the spec</span>
+<div class="highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="n">sr</span><span class="p">[</span><span class="s2">"my_custom_field"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"..."</span>   <span class="c1"># NG — adding free fields on a Resource violates the spec</span>
 </span></code></pre></div>
 <p><strong>Fix</strong>: put spec-external data on the <code>extension[]</code> array (FHIR R4
 <code>Extension</code> element) with a canonical URL.</p>
 <h3 id="e10--hand-rolled-country-decision--language-selection-idioms">E.10 ❌ Hand-rolled country decision / language selection idioms<a class="headerlink" href="#e10--hand-rolled-country-decision--language-selection-idioms" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span> <span class="o">==</span> <span class="s2">"JP"</span><span class="p">:</span> <span class="o">...</span>                              <span class="c1"># NG</span>
-</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"jp"</span><span class="p">:</span> <span class="o">...</span>                      <span class="c1"># NG</span>
-</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="n">lang</span> <span class="o">=</span> <span class="s2">"ja"</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"JP"</span> <span class="k">else</span> <span class="s2">"en"</span>  <span class="c1"># NG</span>
+<div class="highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span> <span class="o">==</span> <span class="s2">"JP"</span><span class="p">:</span> <span class="o">...</span>                              <span class="c1"># NG</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"jp"</span><span class="p">:</span> <span class="o">...</span>                      <span class="c1"># NG</span>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="n">lang</span> <span class="o">=</span> <span class="s2">"ja"</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"JP"</span> <span class="k">else</span> <span class="s2">"en"</span>  <span class="c1"># NG</span>
 </span></code></pre></div>
-<p><strong>Fix</strong>: <code>from clinosim.countries import lang_for
-from clinosim.modules._shared import is_jp</code>
-— use only <code>is_jp(ctx.country)</code> / <code>lang_for(ctx.country)</code>.
+<p><strong>Fix</strong>: <code>from clinosim.countries import is_jp, lang_for</code>
+— use only <code>lang_for(ctx.country)</code> for the output language and
+<code>is_jp(ctx.country)</code> for country rules.
 Before the shared-logic unification (2026-07-02), 5 divergent
 idioms coexisted, and case-normalization differences could silently
 disable JP gating (a PR-90-class risk). Both helpers are a single
 normalization point (case-insensitive + strip).</p>
 <h3 id="e11--inline-country--code-system-key-selection">E.11 ❌ Inline country → code-system-key selection<a class="headerlink" href="#e11--inline-country--code-system-key-selection" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="n">system_key</span> <span class="o">=</span> <span class="s2">"jlac10"</span> <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span> <span class="o">==</span> <span class="s2">"JP"</span> <span class="k">else</span> <span class="s2">"loinc"</span>   <span class="c1"># NG — inline branching</span>
+<div class="highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="n">system_key</span> <span class="o">=</span> <span class="s2">"jlac10"</span> <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">country</span> <span class="o">==</span> <span class="s2">"JP"</span> <span class="k">else</span> <span class="s2">"loinc"</span>   <span class="c1"># NG — inline branching</span>
 </span></code></pre></div>
 <p><strong>Fix</strong>: <code>from clinosim.codes import system_key_for</code> —
 <code>system_key_for("lab", ctx.country)</code>. Kinds = <code>"lab"</code> /
@@ -4007,7 +4051,7 @@ logic = <code>codes/loader.py:_COUNTRY_SYSTEM_KEYS</code>.</p>
 <h2 id="f-principles-reference-deep-dives">F. Principles (reference deep-dives)<a class="headerlink" href="#f-principles-reference-deep-dives" title="Permanent link">&para;</a></h2>
 <h3 id="f1-ad-30--cif-is-language-neutral">F.1 AD-30 — CIF is language-neutral<a class="headerlink" href="#f1-ad-30--cif-is-language-neutral" title="Permanent link">&para;</a></h3>
 <p>CIF holds codes only; display is resolved at output time (= Layer 4
-builder) via <code>code_lookup()</code>. <strong>Why</strong>: adding a language or
+builder) via <code>display()</code> / <code>dual_slot_concept()</code>. <strong>Why</strong>: adding a language or
 changing a locale is entirely a matter of editing the <code>ja:</code> field
 of <code>clinosim/codes/data/&lt;system&gt;.yaml</code> — zero ripple into the CIF
 or generation modules.</p>
@@ -4066,7 +4110,7 @@ classic silent-no-op (PR-90 class): no audit gate → downstream NLP
 <tbody>
 <tr>
 <td>FA-1 (PR #49–#59)</td>
-<td>Split <code>fhir_r4_adapter</code> into per-theme <code>_fhir_*</code> builders (3015 → 498 lines)</td>
+<td>Split the monolithic FHIR adapter module into per-theme <code>_fhir_*</code> builders (3015 → 498 lines)</td>
 </tr>
 <tr>
 <td>AD-46 (Multilingual coding)</td>
@@ -4102,7 +4146,7 @@ classic silent-no-op (PR-90 class): no audit gate → downstream NLP
 </tr>
 <tr>
 <td><strong>Tier 1 #3 AllergyIntolerance upgrade (2026-07-01)</strong></td>
-<td><strong><code>_fhir_allergy_intolerance.py</code></strong>: <code>ALLERGY_ID_PREFIX = "allergy-"</code>, reads <code>PersonRecord.allergies</code> (<code>list[Allergy]</code>). <code>code.coding[0]</code> = allergen SNOMED via <code>code_lookup("snomed-ct", allergen_code, lang)</code> (JP locale = ja display). <code>reaction[0].manifestation[0]</code> = reaction SNOMED. <code>criticality</code> / <code>category</code> / <code>clinicalStatus</code> / <code>verificationStatus</code> from <code>Allergy</code> dataclass fields. <code>_o()</code> dual-access for both the Allergy-dataclass (test fixture) and the dict (production) paths, per the CLAUDE.md rule.</td>
+<td><strong><code>_fhir_allergy_intolerance.py</code></strong>: <code>ALLERGY_ID_PREFIX = "allergy-"</code>, reads <code>PersonRecord.allergies</code> (<code>list[Allergy]</code>). <code>code.coding[0]</code> = allergen SNOMED via <code>system_coding("snomed-ct", allergen_code, lang)</code> (English display in every locale; the JP label goes in <code>code.text</code>). <code>reaction[0].manifestation[0]</code> = reaction SNOMED. <code>criticality</code> / <code>category</code> / <code>clinicalStatus</code> / <code>verificationStatus</code> from <code>Allergy</code> dataclass fields. <code>_o()</code> dual-access for both the Allergy-dataclass (test fixture) and the dict (production) paths, per the CLAUDE.md rule.</td>
 </tr>
 <tr>
 <td><strong>Tier 1 #3 <code>document_chain</code> audit (2026-07-01)</strong></td>
@@ -4138,7 +4182,7 @@ classic silent-no-op (PR-90 class): no audit gate → downstream NLP
 </tr>
 <tr>
 <td><strong>Common-logic unification (2026-07-02)</strong></td>
-<td><strong>Established <code>is_jp</code> / <code>lang_for</code> (<code>modules/_shared.py</code>) as the sole canonical idiom for JP-gating / display-language selection (replaced 5 divergent idioms — E.10) + <code>system_key_for(kind, country)</code> (<code>clinosim.codes</code>) = the single source of truth for country → code-system selection (E.11) + migrated <code>_fhir_localization.py</code>'s 3 inline YAML loaders to the canonical cached loaders in <code>clinosim/locale/loader.py</code> (<code>load_med_terms_ja</code> / <code>load_narrative_display_dict</code> / <code>load_department_display</code>; E.3 precedent) + added <code>hl7-endpoint-connection-type</code> / <code>hl7-endpoint-payload-type</code> / <code>hl7-subscriber-relationship</code> to <code>_BUILTIN_URIS</code> + moved aggregate loaders to their owner module (<code>load_all_disease_protocols</code> → <code>modules/disease/protocol.py</code>) + <code>@lru_cache</code>d the protocol / config loaders (shared instances = mutation forbidden)</strong></td>
+<td><strong>Established <code>is_jp</code> / <code>lang_for</code> (now in <code>clinosim/countries.py</code>) as the sole canonical idioms for JP country gating / output-language selection (replaced 5 divergent idioms — E.10) + <code>system_key_for(kind, country)</code> (<code>clinosim.codes</code>) = the single source of truth for country → code-system selection (E.11) + migrated <code>_fhir_localization.py</code>'s 3 inline YAML loaders to the canonical cached loaders in <code>clinosim/locale/loader.py</code> (<code>load_med_terms_ja</code> / <code>load_narrative_display_dict</code> / <code>load_department_display</code>; E.3 precedent) + added <code>hl7-endpoint-connection-type</code> / <code>hl7-endpoint-payload-type</code> / <code>hl7-subscriber-relationship</code> to <code>_BUILTIN_URIS</code> + moved aggregate loaders to their owner module (<code>load_all_disease_protocols</code> → <code>modules/disease/protocol.py</code>) + <code>@lru_cache</code>d the protocol / config loaders (shared instances = mutation forbidden)</strong></td>
 </tr>
 </tbody>
 </table>
