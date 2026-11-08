@@ -12,7 +12,7 @@ from datetime import date
 from typing import TYPE_CHECKING
 
 from clinosim.types.identity import IdentityTimeline
-from clinosim.types.patient import HomeMedication, TemporalStatePeriod
+from clinosim.types.patient import HomeMedication, OutpatientVisitLedger, TemporalStatePeriod
 
 if TYPE_CHECKING:
     from clinosim.types.longitudinal import YearSnapshot
@@ -156,6 +156,11 @@ class PersonRecord:
     # from ``chronic_conditions`` which stays for truly chronic diseases
     # (HTN, DM, CKD) that do not have a lifecycle.
     state_periods: list[TemporalStatePeriod] = field(default_factory=list)
+    # Outpatient bookkeeping shared by every per-year PatientProfile of this
+    # person (Issue #2862): the patient cache holds one profile per
+    # (person, year), so a ledger kept only on the profile restarted each
+    # year and a ``baseline_only`` procedure fired once per year.
+    visit_ledger: OutpatientVisitLedger = field(default_factory=OutpatientVisitLedger, compare=False, repr=False)
 
     def __post_init__(self) -> None:
         """Issue #452 PR 1 migration shim: accept legacy `list[str]` fixtures

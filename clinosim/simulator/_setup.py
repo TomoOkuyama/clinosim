@@ -147,7 +147,10 @@ def _activate_cached_person(
     key = (person.person_id, as_of_year)
     if key not in patient_cache:
         act_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, f"activate|{person.person_id}")
-        patient_cache[key] = activate_patient(person, act_rng, demo, as_of_year=as_of_year)
+        patient = activate_patient(person, act_rng, demo, as_of_year=as_of_year)
+        # One ledger per person across the per-year profiles (Issue #2862).
+        patient.visit_ledger = person.visit_ledger
+        patient_cache[key] = patient
     return patient_cache[key]
 
 
