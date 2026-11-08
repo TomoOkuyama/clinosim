@@ -22,7 +22,7 @@ from __future__ import annotations
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
-from clinosim.codes.hl7_encounter import ActPriority, AdmitSource
+from clinosim.codes.hl7_encounter import ActPriority
 from clinosim.codes.snomed import snomed_for_phrase
 from clinosim.countries import lang_for
 from clinosim.locale.free_text import localize_procedure_name
@@ -125,7 +125,7 @@ def _make_synth_ed_enc_dict(
         "encounter_type": "emergency",
         "status": "completed",
         "priority": ActPriority.EM.value,
-        "admit_source": AdmitSource.OUTP.value,
+        "admit_source": "",  # an ED visit is not an admission (Issue #2878)
         "admission_datetime": _ed_start_str,
         "discharge_datetime": _ed_end_str,
         "attending_physician_id": _att,

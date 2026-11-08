@@ -450,9 +450,9 @@ codes:
   '32485007':
     en: Hospital admission
     ja: 入院
-  '50849002':
-    en: Emergency hospital admission
-    ja: 救急入院
+  '4525004':
+    en: Emergency department patient visit
+    ja: 救急外来受診
   '270427003':
     en: Patient-initiated encounter
     ja: 外来受診

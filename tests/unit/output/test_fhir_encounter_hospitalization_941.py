@@ -205,3 +205,20 @@ def test_inprogress_imp_has_admit_source_but_no_discharge_disposition() -> None:
     r = _build_encounter(enc, patient_id="POP-000001", country="JP")
     assert _admit_concept(r), "in-progress IMP still needs admitSource (already admitted)"
     assert not _dispo_concept(r), "in-progress IMP MUST NOT have dischargeDisposition (not yet discharged)"
+
+
+# ---------- Issue #2878: an ED visit is not an admission ----------
+
+
+def test_ed_visit_without_admit_source_has_no_admit_source() -> None:
+    enc = _build_imp(encounter_type="emergency", admit_source="", discharge_disposition="home")
+    r = _build_encounter(enc, patient_id="POP-000001", country="US")
+    assert r["class"]["code"] == "EMER"
+    assert "admitSource" not in _hosp(r)
+    assert _dispo_concept(r)["coding"][0]["code"] == "home"
+    assert r["type"][0]["coding"][0]["code"] == "4525004"
+
+
+def test_inpatient_without_admit_source_still_gets_the_fallback() -> None:
+    r = _build_encounter(_build_imp(admit_source=""), patient_id="POP-000001", country="US")
+    assert _admit_concept(r), "an IMP encounter keeps the yaml fallback admit source"

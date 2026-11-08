@@ -16,7 +16,7 @@ pytestmark = pytest.mark.unit
     "enc_type,code,en",
     [
         ("inpatient", "32485007", "Hospital admission"),
-        ("emergency", "50849002", "Emergency hospital admission"),
+        ("emergency", "4525004", "Emergency department patient visit"),
         ("outpatient", "270427003", "Patient-initiated encounter"),
         ("icu", "183452005", "Emergency hospital admission"),
     ],
@@ -32,7 +32,7 @@ def test_encounter_type_display_us(enc_type, code, en):
     "enc_type,code,ja",
     [
         ("inpatient", "32485007", "入院"),
-        ("emergency", "50849002", "救急入院"),
+        ("emergency", "4525004", "救急外来受診"),
         ("outpatient", "270427003", "外来受診"),
         ("icu", "183452005", "救急入院"),
     ],
