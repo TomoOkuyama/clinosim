@@ -1,0 +1,26 @@
+# Weight-based single doses for patients under 18 (Issue #2857).
+#
+# ED in-department doses and ED take-home prescriptions written with an adult
+# fixed strength ("Acetaminophen 500mg") are re-dosed for a child from the
+# patient's weight: dose = min(mg_per_kg x weight, max_mg), rounded. A drug is
+# not given below min_age_months. Drugs not listed keep their written dose.
+# Sources: Lexicomp Pediatric & Neonatal Dosage Handbook (single-dose mg/kg and
+# maximum), AAP Clinical Report "Fever and Antipyretic Use in Children" (2011,
+# reaffirmed 2016) for acetaminophen / ibuprofen; FDA labels for age limits.
+metadata:
+  kind: reference
+  name: pediatric_dosing
+  source: clinosim
+
+adult_age_years: 18
+
+drugs:
+  acetaminophen: {mg_per_kg: 15, max_mg: 1000, min_age_months: 0}
+  ibuprofen: {mg_per_kg: 10, max_mg: 400, min_age_months: 6}
+  ondansetron: {mg_per_kg: 0.15, max_mg: 4, min_age_months: 1}
+  ketorolac: {mg_per_kg: 0.5, max_mg: 30, min_age_months: 6}
+  metoclopramide: {mg_per_kg: 0.1, max_mg: 10, min_age_months: 12}
+  diphenhydramine: {mg_per_kg: 1, max_mg: 50, min_age_months: 24}
+  famotidine: {mg_per_kg: 0.5, max_mg: 20, min_age_months: 3}
+  prednisone: {mg_per_kg: 1, max_mg: 40, min_age_months: 0}
+  prednisolone: {mg_per_kg: 1, max_mg: 40, min_age_months: 0}

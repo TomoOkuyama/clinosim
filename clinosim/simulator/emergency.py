@@ -18,6 +18,7 @@ from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
 from clinosim.modules.observation.order_routing import lab_order_targets
+from clinosim.modules.order.pediatric_dose import pediatric_order_name
 from clinosim.modules.order.treatment_classifier import classify_encounter_treatment
 from clinosim.modules.physiology._vital_signs_thresholds import PAIN_SCORE_SCALE
 from clinosim.modules.staff.engine import (
@@ -210,6 +211,15 @@ def _serial_repeat(
     return repeat
 
 
+def _age_months(patient: PatientProfile, when: datetime) -> int:
+    """Completed months of age at ``when`` (from the date of birth, else ``age``)."""
+    dob = getattr(patient, "date_of_birth", None)
+    if dob is None:
+        return int(patient.age or 0) * 12
+    months = (when.year - dob.year) * 12 + (when.month - dob.month)
+    return months - (1 if when.day < dob.day else 0)
+
+
 def ed_lab_true_value(lab_spec: dict, severity: str, derived: float) -> float:
     """True value of one ED workup analyte: the spec's ``value_by_severity``
     entry for the sampled severity (screening scores such as C-SSRS / PHQ-9
@@ -364,7 +374,9 @@ def _ed_discharge_prescription(
         return country.upper() not in {str(c).upper() for c in spec.get("locale_exclude") or []}
 
     def _name(spec: dict) -> str:
-        return str((spec.get("locale_name") or {}).get(country_key) or spec.get("drug", ""))
+        written = str((spec.get("locale_name") or {}).get(country_key) or spec.get("drug", ""))
+        # Issue #2857: a child's script is weight-based ("" when below the drug's minimum age).
+        return pediatric_order_name(written, _age_months(patient, issued), patient.weight_kg) or ""
 
     def _skipped(name: str) -> bool:
         return not name or _ed_medication_skipped(
@@ -719,6 +731,11 @@ def _simulate_ed_visit(
         _tx_name = str(_locale_name.get(_tx_country_key) or tx.get("name", ""))
         _order_type = classify_encounter_treatment(_tx_name)
         if _order_type == OrderType.MEDICATION:
+            # Issue #2857: a child gets a weight-based dose (or no dose below the drug's minimum age).
+            _ped_name = pediatric_order_name(_tx_name, _age_months(patient, visit_time), patient.weight_kg)
+            if _ped_name is None:
+                continue
+            _tx_name = _ped_name
             _active_ed = [m.drug_name for m in (patient.current_medications or []) if m.drug_name] + [
                 str(o.display_name) for o in orders if o.order_type == OrderType.MEDICATION and o.display_name
             ]
