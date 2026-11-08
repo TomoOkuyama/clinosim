@@ -21,6 +21,7 @@ data quality defect. The enricher pre-skips future-onset events.
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import get_or_create_container
@@ -79,6 +80,7 @@ def enrich_antibiotic(ctx) -> None:
     """POST_ENCOUNTER stage entry point — see module docstring."""
     snapshot = _resolve_snapshot(ctx.config)
     snapshot_date = snapshot.date()
+    roster = getattr(ctx, "roster", None)
     for rec in ctx.records:
         ext = _get(rec, "extensions", {}) or {}
         hai_events: list[HAIEvent] = list(ext.get("hai", []) or [])
@@ -127,13 +129,34 @@ def enrich_antibiotic(ctx) -> None:
                     order_id=order_id,
                     encounter_end_datetime=_enc_end,
                 )
+                _set_giving_nurse(mars, rec, regimen.encounter_id, roster, order_id)
                 get_or_create_container(rec, "medication_administrations", list).extend(mars)
                 regimens_out.append(regimen)
         if regimens_out:
             ext = get_or_create_container(rec, "extensions", dict)
             get_or_create_container(ext, "antibiotic", list).extend(regimens_out)
         # PR3b-3 Pass 2: narrow / de-escalation
-        _apply_pass2(rec, snapshot)
+        _apply_pass2(rec, snapshot, roster)
+
+
+def _set_giving_nurse(mars: list, record: Any, encounter_id: str, roster: Any, order_id: str) -> None:
+    """Name the giving nurse on each dose: a nurse of the encounter's ward,
+    picked stably by the order (no RNG), as for every order placed outside
+    the daily loop (medication-lifecycle spec; Issue #2823)."""
+    from clinosim.modules.order.placed_order_mar import stable_nurse
+
+    enc = next(
+        (e for e in _get(record, "encounters", []) or [] if str(_get(e, "encounter_id", "") or "") == encounter_id),
+        None,
+    )
+    nurse = stable_nurse(
+        roster,
+        order_id,
+        ward=str(_get(enc, "ward_id", "") or "") if enc is not None else "",
+        department=str(_get(enc, "department_id", "") or "") if enc is not None else "",
+    )
+    for m in mars:
+        m.administered_by = nurse
 
 
 def _lookup_encounter_end(record, encounter_id: str) -> datetime | None:
@@ -197,7 +220,7 @@ def _narrow_dose_frequency(drug_key: str) -> tuple[str, str]:
     return NARROW_DOSE_DEFAULTS.get(drug_key, DEFAULT_NARROW_REGIMEN)
 
 
-def _apply_pass2(rec, snapshot: datetime) -> None:
+def _apply_pass2(rec, snapshot: datetime, roster: Any = None) -> None:
     """PR3b-3 Pass 2: walk extensions['antibiotic'] empirical regimens, look
     up the HAI culture via MicrobiologyResult.hai_event_id, pick narrow target
     via ladder, dispatch one of the three outcomes (spec §2.4)."""
@@ -315,6 +338,7 @@ def _apply_pass2(rec, snapshot: datetime) -> None:
                 order_id=order_id,
                 encounter_end_datetime=_enc_end,
             )
+            _set_giving_nurse(mars, rec, new_regimen.encounter_id, roster, order_id)
             get_or_create_container(rec, "medication_administrations", list).extend(mars)
 
     if new_regimens:

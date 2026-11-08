@@ -43,7 +43,7 @@
 | 規則 | 正準コード | ガード |
 |---|---|---|
 | 日次ループが置いたオーダーの投与は、オーダーの頻度と患者状態(保留・拒否・頓用の契機)からループ内で作る。 | `medication_pipeline.py::_generate_mar`, `generate_prn_administrations`, `prn_category` | `tests/unit/test_prn_from_state.py`, `tests/unit/test_prn_inhaler_cadence_1318.py` |
-| ループ外で置いたオーダー(VTE 予防 enricher、分娩バンドル)の投与は、乱数を引かない一組の補助関数で作る。投与時刻は日次の固定時刻で、看護師は安定ハッシュで選ぶ。 | `modules/order/placed_order_mar.py`(`daily_times`, `stable_nurse`, `administrations_for`) | `tests/unit/modules/order/test_placed_order_mar_spec.py` |
+| ループ外で置いたオーダー(VTE 予防 enricher、分娩バンドル)の投与は、乱数を引かない一組の補助関数で作る。投与時刻は日次の固定時刻で、看護師は安定ハッシュで選ぶ。投与時刻を自前で決める enricher(HAI の抗菌薬)も、投与した看護師は同じ `stable_nurse` で名指す。 | `modules/order/placed_order_mar.py`(`daily_times`, `stable_nurse`, `administrations_for`) | `tests/unit/modules/order/test_placed_order_mar_spec.py`, `tests/unit/test_hai_abx_giving_nurse_2823.py` |
 | オーダーの FHIR timing は頻度を一度だけ述べる。範囲指定("q4-6h")と頓用の上限は一つの解決関数から得る。用量テキストに既にある頻度は繰り返さない。 | `modules/output/fhir_r4/lib/dosage.py`(`resolve_timing_repeat`, `frequency_in_text`) | `tests/unit/output/test_prn_timing_2613.py` |
 
 ## 5. オーダーの中止
