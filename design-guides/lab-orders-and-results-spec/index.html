@@ -2459,6 +2459,11 @@
 <td><code>physiology/engine.py::_add_cardiac_labs</code>, <code>physiology/_lab_derivation_thresholds.py</code> (<code>TROPONIN_*</code>)</td>
 <td><code>tests/unit/test_troponin_chronic_calibration_2903.py</code>, <code>tests/unit/test_blood_markers.py</code></td>
 </tr>
+<tr>
+<td>A child (under 18) is judged against the interval for their age, read from one table: the CIF flag, the FHIR referenceRange and its text, and the true value (creatinine, Hb / Hct, WBC and ALP centre on the interval for the age). Vital signs of a child use the age-band ranges of the same table for referenceRange, interpretation and text, and baseline vitals centre on the age-band median. NEWS2 is not scored under 16.</td>
+<td><code>observation/pediatric_ranges.py</code>, <code>observation/reference_data/pediatric_reference_ranges.yaml</code>, <code>physiology/engine.py::pediatric_lab_scale</code></td>
+<td><code>tests/unit/test_pediatric_reference_ranges_2872.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="3-identity-and-panels">3. Identity and panels<a class="headerlink" href="#3-identity-and-panels" title="Permanent link">&para;</a></h2>
