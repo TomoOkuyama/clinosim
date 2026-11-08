@@ -2870,7 +2870,7 @@ schedule cannot cascade into unrelated patients' timelines
 <tbody>
 <tr>
 <td><code>chronic_visit</code></td>
-<td>Anyone with a chronic condition present in <code>locale/shared/chronic_followup.yaml</code> (29 chronic codes, plus the Z34 / Z39 pregnancy entries) + flu vaccination (age ≥ 65 or ≥ 2 chronic conditions, 50 %, Oct-Dec) + diabetic retinopathy screening (60 %/yr)</td>
+<td>Anyone with a chronic condition present in <code>locale/shared/chronic_followup.yaml</code> (29 chronic codes, plus the Z34 / Z39 pregnancy entries) + flu vaccination (age ≥ 65 or ≥ 2 chronic conditions, Oct-Dec, at the immunization schedule's per-season coverage for the person's age / sex, else the locale's <code>preventive_care.flu_vaccination_probability</code>) + diabetic retinopathy screening (60 %/yr)</td>
 <td><code>follow_up_interval_months</code> per chronic entry; capped at 6/year</td>
 <td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code></td>
 </tr>
@@ -2882,8 +2882,8 @@ schedule cannot cascade into unrelated patients' timelines
 </tr>
 <tr>
 <td><code>health_screening</code></td>
-<td>Age 40-89 (annual) + age 50-75 colonoscopy (8 %/yr) + female age 40-74 mammography (40 %/yr)</td>
-<td>Population thresholds in <code>_population_workflow_thresholds</code></td>
+<td>Age 40-89 (annual, gated by the locale's <code>preventive_care.annual_screening_participation</code>) + colonoscopy age 45-75 (due every 10 years, 65 % uptake in a due year) + female age 40-74 mammography (yearly, 40 % uptake)</td>
+<td>Annual exam: population thresholds in <code>_population_workflow_thresholds</code>; colonoscopy / mammography: each protocol's <code>screening_schedule</code> (<code>modules/encounter/reference_data/colonoscopy_screening.yaml</code>, <code>mammography_screening.yaml</code>)</td>
 <td><code>_simulate_outpatient_visit(visit_type="health_screening")</code></td>
 </tr>
 <tr>

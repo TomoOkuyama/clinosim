@@ -2609,7 +2609,7 @@ hospital encounter に変換される。これにより疫学が人口レベル�
 <tbody>
 <tr>
 <td><code>chronic_visit</code></td>
-<td><code>locale/shared/chronic_followup.yaml</code> にある慢性疾患保有者 (29 の慢性コード、他に Z34 / Z39 の妊娠エントリ) + インフル予防接種 (65 歳以上または慢性疾患 2 つ以上、50 %、10-12 月) + 糖尿病網膜症スクリーニング (60 %/年)</td>
+<td><code>locale/shared/chronic_followup.yaml</code> にある慢性疾患保有者 (29 の慢性コード、他に Z34 / Z39 の妊娠エントリ) + インフル予防接種 (65 歳以上または慢性疾患 2 つ以上、10-12 月。接種率は予防接種スケジュールの年齢・性別ごとのシーズン接種率、無ければ locale の <code>preventive_care.flu_vaccination_probability</code>) + 糖尿病網膜症スクリーニング (60 %/年)</td>
 <td>慢性エントリ毎の <code>follow_up_interval_months</code>、年 6 回まで cap</td>
 <td><code>_simulate_outpatient_visit(visit_type="chronic_followup")</code></td>
 </tr>
@@ -2621,8 +2621,8 @@ hospital encounter に変換される。これにより疫学が人口レベル�
 </tr>
 <tr>
 <td><code>health_screening</code></td>
-<td>40-89 歳 (年 1 健診) + 50-75 歳 colonoscopy (8 %/年) + 女性 40-74 歳 mammography (40 %/年)</td>
-<td><code>_population_workflow_thresholds</code> の population 閾値</td>
+<td>40-89 歳 (年 1 健診、locale の <code>preventive_care.annual_screening_participation</code> で受診判定) + 45-75 歳 colonoscopy (10 年ごと、該当年の受診率 65 %) + 女性 40-74 歳 mammography (毎年、受診率 40 %)</td>
+<td>年 1 健診: <code>_population_workflow_thresholds</code> の population 閾値。colonoscopy / mammography: 各 protocol の <code>screening_schedule</code>(<code>modules/encounter/reference_data/colonoscopy_screening.yaml</code>, <code>mammography_screening.yaml</code>)</td>
 <td><code>_simulate_outpatient_visit(visit_type="health_screening")</code></td>
 </tr>
 <tr>

@@ -2738,9 +2738,12 @@ design review):</p>
   (<code>types/document.py</code>), injected into the Pass.</li>
 <li><strong>Document type</strong> is defined in <code>document_type_specs.yaml</code>
   (YAML-driven: LOINC / sections / encounter_types_supported /
-  generation_frequency / stage2_strategy). Currently 9 doc types
+  generation_frequency / stage2_strategy). Currently 18 doc types
   (H&amp;P, progress, discharge, three nursing types including the
-  3-shift shift note, outpatient SOAP, two ED types).</li>
+  3-shift shift note, outpatient SOAP, two ED types, admission care
+  plan, nutrition care plan, rehabilitation plan, referral note,
+  death certificate, death discharge summary, health checkup report,
+  operative note, procedure note).</li>
 <li><strong>Verification</strong>: template / mock = golden byte-diff (AD-66).
   Real LLM = <code>check-narratives</code> (a 5-axis semantic check: structure
   / facts_used / prohibited patterns / expected phrases / numbers).</li>
@@ -2778,7 +2781,7 @@ design review):</p>
 <tbody>
 <tr>
 <td><code>pytest -m unit / integration / e2e</code></td>
-<td>Three ordinary test tiers (1000+ / 264 / 35)</td>
+<td>Three ordinary test tiers</td>
 </tr>
 <tr>
 <td><code>pytest -m regression</code> (opt-in)</td>

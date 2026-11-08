@@ -2578,9 +2578,14 @@
 <td><code>tests/unit/test_finite_course_2757.py</code></td>
 </tr>
 <tr>
-<td>脂質異常症の患者のスタチンは、LDL が国の閾値以上(US 2018 ACC/AHA: 190 mg/dL、臨床的 ASCVD があれば 70。JP 動脈硬化性疾患予防ガイドライン 2022: LDL 管理目標値)だった脂質パネルの次の処方更新の受診で 1 段階増量し、新しい用量で更新する。新しい処方はその薬の前の処方を置き換える。増量した用量は翌年以降のプロファイルでも保つ。</td>
+<td>脂質異常症の患者のスタチンは、LDL が国の閾値以上(US 2018 ACC/AHA: 190 mg/dL、臨床的 ASCVD があれば 70。JP 動脈硬化性疾患予防ガイドライン 2022: 患者のリスク区分の LDL 管理目標値。下のエゼチミブ追加と同じ)だった脂質パネルの次の処方更新の受診で 1 段階増量し、新しい用量で更新する。新しい処方はその薬の前の処方を置き換える。増量した用量は翌年以降のプロファイルでも保つ。スタチンの増量はこれだけで、経年履歴は未治療 LDL の潜在値でスタチンを切り替えない(<code>lipid_escalate_high_intensity_e78</code> は年ごとの抽選を残したまま rate 0 で廃止)。</td>
 <td><code>simulator/statin_monitoring.py</code>(<code>titrate_statin</code>, <code>restore_titrated_statin</code>)。データ <code>simulator/reference_data/statin_monitoring.yaml</code></td>
 <td><code>tests/unit/simulator/test_statin_monitoring_2877.py</code></td>
+</tr>
+<tr>
+<td>スタチンを増量しない処方更新の受診で、最大スタチン療法中(US: 高強度、アトルバスタチン ≥ 40 mg / ロスバスタチン ≥ 20 mg。JP: 通常最大量、アトルバスタチン 20 mg / ロスバスタチン 10 mg)の脂質異常症の患者は、そのスタチン服用中に採った直近の脂質パネルの LDL が追加の閾値以上(US 2018 ACC/AHA: 臨床的 ASCVD があれば 70 mg/dL、それ以外は 100。JP 動脈硬化性疾患予防ガイドライン 2022: 患者のリスク区分の LDL 管理目標値 — 冠動脈疾患または虚血性脳卒中の既往で 100、糖尿病・CKD・末梢動脈疾患で 120、それ以外は 140)なら、エゼチミブ 10 mg 1 日 1 回を開始する。既に服用中か、記録済みのアレルギーで除外される場合は開始しない。4 週以上後にパネルを再検し、追加した薬は翌年以降のプロファイルでも保つ。エゼチミブの追加はこれだけで、<code>lipid_escalate_ezetimibe_e78</code> は年ごとの抽選を残したまま rate 0 で廃止。</td>
+<td><code>simulator/statin_monitoring.py</code>(<code>add_lipid_add_on</code>, <code>restore_lipid_add_on</code>)。データ <code>simulator/reference_data/statin_monitoring.yaml</code></td>
+<td><code>tests/unit/test_ezetimibe_measured_ldl_2942.py</code></td>
 </tr>
 <tr>
 <td>退院処方の状態(active / completed / stopped)、終了日、置き換えた処方は、その患者の全記録とスナップショットにわたって一度だけ計算する。計算はバンドル作成の前に行う。</td>

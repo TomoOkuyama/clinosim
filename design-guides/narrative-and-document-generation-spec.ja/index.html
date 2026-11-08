@@ -2465,9 +2465,9 @@
 </thead>
 <tbody>
 <tr>
-<td>薬剤安全上の事象(回避・保留・代替・切替・de-escalation)は、両経路とも一つの関数が言い表す。テンプレートでは計画の行(<code>safety_skips.*</code>)、LLM プロンプトでは箇条(<code>safety_skips_prompt.*</code>)になる。</td>
+<td>薬剤安全上の事象(回避・保留・代替・切替・de-escalation)は、両経路とも一つの関数が言い表す。テンプレートでは計画の行(<code>safety_skips.*</code>)、LLM プロンプトでは箇条(<code>safety_skips_prompt.*</code>)になる。回避した薬剤は、それを外した規則の種類(判定の規則 id の <code>drug_safety.rule_kind</code>)で言い表す。記録済みのアレルギーはアレルギーとして書き(<code>avoid_allergy_*</code>、"not given: Penicillin allergy" / 「ペニシリンアレルギーのため…は投与せず」)、併用の衝突としては書かない。薬物間・薬剤と疾患の回避は <code>avoid_*</code> のフレーズのまま。</td>
 <td><code>clinosim/modules/document/narrative/_safety_skips.py::safety_skip_line</code></td>
-<td><code>tests/unit/modules/document/narrative/test_safety_skip_line_2519.py</code>, <code>test_safety_skip_event_types.py</code></td>
+<td><code>tests/unit/modules/document/narrative/test_safety_skip_line_2519.py</code>, <code>test_safety_skip_event_types.py</code>, <code>test_allergy_skip_wording_2930.py</code></td>
 </tr>
 <tr>
 <td>バイタルの一行要約(身体所見、経過記録の O、看護記録、LLM の来院時・日々の事実)はすべて一つのフォーマッタで描く。各記述面はスタイル(項目順・区切り・単位・整数か生値か・室内気の表記)を名指しする。新しい記述面はスタイルを足し、フォーマッタを足さない。</td>
