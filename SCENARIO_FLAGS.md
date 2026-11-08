@@ -56,7 +56,8 @@ flags = {
     **scenario_flags_from_protocol(protocol),
     **medication_flags_from_context(patient, all_med_orders, admission_date, day),
 }
-true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, **flags)
+# simulator/lab_pipeline.py::patient_true_labs → derive_lab_values(state, ..., **flags)
+true_labs = patient_true_labs(state, patient, at, flags)
 ```
 
 **Phase 3a forward-delta path** (separate from the call-site merge):
@@ -72,7 +73,7 @@ apply_hai_lab_lift(record=record, encounter=encounter,
 
 `apply_hai_lab_lift` internally calls the closed-form `_hai_lift_delta` (NOT `derive_lab_values`) so the 30+ analyte pipeline isn't re-run for every (HAI event × obs) pair. Phase 3b/c should reuse the same forward-delta pattern — antibiotic_flags_from_record etc. should be built only if the Phase 3b coupling genuinely needs daily-loop visibility, not preemptively.
 
-**5 derive_lab_values call sites** (all using this pattern; the original Phase 2b set was 4, the monitoring enricher was added later):
+**5 lab call sites** (all using this pattern; the original Phase 2b set was 4, the monitoring enricher was added later). Each passes its merged `flags` to `simulator/lab_pipeline.py::patient_true_labs`, the single `derive_lab_values` call (Issue #2521):
 
 | Site | File | Purpose | medication context |
 |---|---|---|---|
@@ -95,7 +96,7 @@ apply_hai_lab_lift(record=record, encounter=encounter,
 5. **Implement formula change** in `derive_lab_values` (BNP-pattern surgical: no state mutation, formula-only)
 
 **NEVER** add `flag=value` directly at a call site — J5 prevention (see
-[AGENTS.md](AGENTS.md) "AD-55 enricher patterns"). The helper is the
+[AGENTS.md](AGENTS.md) "Module independence and extension points (AD-55 / AD-56 / AD-58)"). The helper is the
 single edit point so adding a new flag automatically reaches all 5 sites
 through the `**flags` splat.
 
@@ -111,7 +112,7 @@ PR #82 (Phase 2b) for the full rationale.
 ## Related
 
 - [DESIGN.md](DESIGN.md) AD-57 (BNP-pattern surgical) / AD-59 (per-order sub-rng) / AD-56 (enricher registry)
-- [AGENTS.md](AGENTS.md) "AD-55 enricher patterns"
+- [AGENTS.md](AGENTS.md) "Module independence and extension points (AD-55 / AD-56 / AD-58)"
 - [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.md) "PR verification guide" + "Sub-seed derivation rules"
 - [clinosim/modules/physiology/README.md](clinosim/modules/physiology/README.md) — helper API reference
 - spec / plan: `docs/history/specs-archive/2026-06-24-phase2a-vte-d-dimer-design.md` (causes_vte) + `docs/history/specs-archive/2026-06-24-phase2b-on-anticoagulation-design.md` (on_warfarin)

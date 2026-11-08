@@ -18,9 +18,11 @@ deprecated alias for `simulate`.
 └────────────────┘  └────────────────┘  └──────────────────┘
 ```
 
-The full authoritative source is
-[`clinosim/simulator/cli.py`](https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/simulator/cli.py);
-run `clinosim <subcommand> --help` for the up-to-date option list.
+The full authoritative source is the per-subcommand
+`clinosim/simulator/cli_<command>.py` modules
+([`clinosim/simulator/`](https://github.com/TomoOkuyama/clinosim/tree/master/clinosim/simulator); `cli.py` only
+registers and dispatches them) plus `clinosim/{audit,eval,benchmarks}/cli.py`
+and `clinosim/dataset/__init__.py`; run `clinosim <subcommand> --help` for the up-to-date option list.
 
 ## `clinosim simulate` — Stage 1 (structural simulation)
 
@@ -215,9 +217,10 @@ byte-diff does not apply. Exit 0 = pass, 1 = findings.
 
 ## `clinosim audit` — per-Module PR gate
 
-AD-60 audit framework — seven per-module plug-ins today
-(`antibiotic`, `document`, `drug_safety`, `hai`, `imaging`, `order`,
-`triage`). See
+AD-60 audit framework — six registered per-module plug-ins today
+(`antibiotic`, `document_chain`, `hai`, `imaging_chain`,
+`order_service_request`, `triage_chain`; `clinosim audit list` prints
+the live set). `drug_safety` is not an audit plug-in. See
 `clinosim/audit/README.md` and [`../audit-cycles/`](../audit-cycles/README.md)
 for the workflow.
 

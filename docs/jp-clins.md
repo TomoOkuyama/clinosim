@@ -98,7 +98,7 @@ For every `country=JP` inpatient / icu / rehab_inpatient discharge encounter, cl
 
 **US path unchanged.** The English 6-section discharge summary Composition (`admission_summary` / `hospital_course` / `discharge_diagnoses` / `discharge_medications` / `discharge_instructions` / `follow_up`, LOINC-only type coding, no JP-CLINS URL) is emitted unchanged for `country=US`.
 
-**Multi-locale isolation.** US NDJSON output contains no JP CodeSystem URIs, no `http://jpfhir.jp/fhir/*` URL prefix, and no Japanese text. Integration test `tests/integration/test_jp_clins_composition_ds_end_to_end.py::test_us_p50_has_no_japanese_language_leakage` scans every US NDJSON file byte-by-byte for JP signals — this is the check that surfaced the pre-existing `_build_reference_range` JP Core extension leak fixed in this PR.
+**Multi-locale isolation.** US NDJSON output contains no JP CodeSystem URIs, no `http://jpfhir.jp/fhir/*` URL prefix, and no Japanese text. Integration test `tests/integration/test_jp_clins_composition_ds_end_to_end.py::test_us_p50_has_no_japanese_language_leakage` scans every US NDJSON file byte-by-byte for JP signals — this is the check that surfaced the pre-existing `build_reference_range` JP Core extension leak fixed in this PR.
 
 ## JP-CLINS 診療情報提供書 Composition (PR2b)
 
@@ -178,11 +178,14 @@ the 3-digit JP-CLINS codes).
   - **SBP/DBP** = day-to-day variation around `patient.baseline_vitals`
     (sd 5.0/3.5 mmHg). Hypertension (I10) is already reflected in
     baseline_vitals
-  - **HbA1c** = for patients with diabetes (E10/E11), reuses
-    `hba1c_from_glycemic_control` (consistent with the physiology path);
-    for non-DM patients, `HBA1C_NONDM_BASE` + age coefficient 0.003 + noise
-  - **LDL** = age/sex baseline, +40 mg/dL for dyslipidemia (E78), and
-    -30 mg/dL for statins (drug name ending in `-statin`)
+  - **HbA1c** = for patients with diabetes (E10/E11), the year-matched
+    longitudinal HbA1c latent (`hba1c_latent_at`) + noise, falling back to
+    `hba1c_from_glycemic_control` only when the patient has no longitudinal
+    history; for non-DM patients, `HBA1C_NONDM_BASE` + age coefficient
+    0.003 + noise
+  - **LDL** = the patient's true LDL from `patient_lipid_panel` (the same
+    lipid state, statin effect included, that inpatient and outpatient labs
+    use) + measurement noise
   - The RNG is fixed per patient via
     `derive_sub_seed(master, offset, patient_id)` from
     `ENRICHER_SEED_OFFSETS["health_checkup"] = 0x4843`. The same seed and

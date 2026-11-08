@@ -62,7 +62,8 @@ flags = {
     **scenario_flags_from_protocol(protocol),
     **medication_flags_from_context(patient, all_med_orders, admission_date, day),
 }
-true_labs = derive_lab_values(state, sex=patient.sex, age=patient.age, **flags)
+# simulator/lab_pipeline.py::patient_true_labs → derive_lab_values(state, ..., **flags)
+true_labs = patient_true_labs(state, patient, at, flags)
 ```
 
 **Phase 3a 順方向 delta path** (call-site merge とは別):
@@ -83,8 +84,10 @@ apply_hai_lab_lift(record=record, encounter=encounter,
 等は Phase 3b coupling が日次 loop 可視性を本当に必要とする場合のみ
 作り、先回りしない。
 
-**5 つの `derive_lab_values` call site** (すべて本 pattern を使用。
-Phase 2b 時点は 4 site、monitoring enricher が後に追加):
+**5 つの lab call site** (すべて本 pattern を使用。
+Phase 2b 時点は 4 site、monitoring enricher が後に追加)。各 site は
+merge した `flags` を `simulator/lab_pipeline.py::patient_true_labs` に
+渡し、`derive_lab_values` の呼び出しはそこ 1 箇所のみ (Issue #2521):
 
 | Site | File | Purpose | medication context |
 | --- | --- | --- | --- |
@@ -111,7 +114,7 @@ Phase 2b 時点は 4 site、monitoring enricher が後に追加):
    state を mutate せず、公式のみ)。
 
 **call site で `flag=value` を直接指定してはならない** — J5 防止 (
-[AGENTS.md](AGENTS.md) 「AD-55 enricher patterns」参照)。helper が
+[AGENTS.md](AGENTS.md) 「Module independence and extension points (AD-55 / AD-56 / AD-58)」参照)。helper が
 単一 edit point であり、新 flag は `**flags` splat 経由で自動的に
 5 site すべてに届く。
 
@@ -127,7 +130,7 @@ Core compliance + 臨床整合」原則に反する。詳細は PR #82 (Phase 2b
 
 - [DESIGN.md](DESIGN.ja.md) AD-57 (BNP-pattern surgical) / AD-59
   (per-order sub-rng) / AD-56 (enricher registry)
-- [AGENTS.md](AGENTS.md) 「AD-55 enricher patterns」
+- [AGENTS.md](AGENTS.md) 「Module independence and extension points (AD-55 / AD-56 / AD-58)」
 - [docs/CONTRIBUTING-modules.md](docs/CONTRIBUTING-modules.ja.md)
   「PR 検証ガイド」+ 「sub-seed 導出ルール」
 - [clinosim/modules/physiology/README.ja.md](clinosim/modules/physiology/README.ja.md)

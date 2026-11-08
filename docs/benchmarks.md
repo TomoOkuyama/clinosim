@@ -14,8 +14,8 @@ the baseline itself reproducible.
 
 | Task | Positive definition | Continuous score for AUROC |
 |---|---|---|
-| `sepsis` | `condition_event.disease_id == "sepsis"` OR ICD `A41.*` / `R65.2*` | Peak Lactate over the encounter record (mmol/L) |
-| `aki` | `condition_event.disease_id == "acute_kidney_injury"` OR ICD `N17.*` / `N19` | Peak SCr − baseline SCr (mg/dL) |
+| `sepsis` | `condition_event.disease_id == "sepsis"` OR admission dx exactly in `sepsis.yaml` `icd_codes` (A40.0, A41.01/.02/.51/.52/.9, R65.20/.21) | Peak Lactate over the encounter record (mmol/L) |
+| `aki` | `condition_event.disease_id == "acute_kidney_injury"` OR admission dx exactly in `acute_kidney_injury.yaml` `icd_codes` (N17.0/.1/.2/.8/.9) | Peak SCr − baseline SCr (mg/dL) |
 
 ## Baselines shipped
 

@@ -73,7 +73,7 @@ from the diagnosis label.
 | `sepsis_lactate` | A41.* | 2524-7 (venous lactate) | **≥ 2.0 mmol/L** | [Surviving Sepsis 2021](https://www.sccm.org/SurvivingSepsisCampaign/Guidelines/Adult-Patients) |
 | `dka_hco3` | E10.10-11, E11.10-11 | 1963-8 (HCO₃) | **< 18 mEq/L** | [ADA DKA severity criteria](https://diabetesjournals.org/care/article/32/7/1335) |
 | `acute_mi_troponin` | I21, I22 | 10839-9 (Troponin I) | **> 0.04 ng/mL** (99th %ile URL) | [Fourth Universal Definition of MI](https://www.jacc.org/doi/10.1016/j.jacc.2018.08.1038) |
-| `ckd_stage_creatinine` | N18.3-N18.5 | 2160-0 (Cr) | **> 1.3 mg/dL** | [KDIGO 2012](https://kdigo.org/guidelines/ckd-evaluation-and-management/) |
+| `ckd_stage_creatinine` | N18 with `Condition.stage` CKD G3a–G5 | 2160-0 (Cr) | **> 1.3 mg/dL** | [KDIGO 2012](https://kdigo.org/guidelines/ckd-evaluation-and-management/) |
 | `t2dm_hba1c` | E11.9 (uncontrolled T2DM) | 4548-4 (HbA1c) | **≥ 6.5%** | [ADA diagnostic threshold](https://diabetesjournals.org/care/article/47/Supplement_1/S20/153954) |
 | `bacterial_pneumonia_wbc` | J13, J14, J15 | 6690-2 (WBC) | **> 11.0 × 10⁹/L** | SIRS / infection response |
 | `anemia_hgb` | D50–D64 (excluding D54–D61 uncommon) | 718-7 (Hb) | **< 12.0 g/dL** | [WHO anemia cutoffs](https://www.who.int/publications/i/item/9789240088542) |

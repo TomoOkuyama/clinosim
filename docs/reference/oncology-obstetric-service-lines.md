@@ -429,11 +429,11 @@ master population RNG stream:
 |---|---|---|
 | Chemo regimen selection + Day-1 offset | `chemotherapy_regimen_seed` | `(patient_id, cancer_code)` |
 | Pregnancy lifecycle (conception Bernoulli + LMP + jitter) | `perinatal_delivery_seed` | `(patient_id, year)` |
-| Abortion outcome (spontaneous vs induced split) | `_abortion_outcome_sub_seed` | `(mother_id, year)` |
+| Pregnancy outcome (delivery vs abortion, spontaneous vs induced split) | `pregnancy_outcome_seed` | `(mother_id, year)` |
 | Male C50 augmentation sampling | `chronic_augment_sex_seed` | `(patient_id, code)` |
 | Chronic-medication selection | `chronic_medication_seed` | `patient_id` |
 | Discharge-Rx categorical + Bernoulli | `discharge_prescription_seed` | `(patient_id, encounter_id)` |
-| Radiation-therapy per-visit trigger | ad-hoc `sha256("rt:<encounter_id>")` | `encounter_id` |
+| Radiation-therapy per-visit trigger | `radiation_therapy_seed` | `encounter_id` |
 
 All live in `clinosim/seeding.py`. See
 [`architecture/design-principles.md`](../architecture/design-principles.md)

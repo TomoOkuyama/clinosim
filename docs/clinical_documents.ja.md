@@ -70,23 +70,32 @@ eReferral / 臨床ワークフロー要件を反映。Progress Note (LOINC 11506
 
 ### Procedure Note allowlist
 
-実世界の文書化慣習に合わせ、**8 つの侵襲的ベッドサイド手技** のみが
-正式な Procedure Note を生成:
+Procedure Note は、`procedure_code` が
+`clinosim/modules/document/reference_data/bedside_procedure_codes.yaml`
+の `procedure_note_codes` (正本、現在 16 コード) に含まれる
+`ProcedureRecord` ごとに生成される。`operative_note_codes` に含まれる
+手術コードには代わりに Operative Note が生成される:
 
-| `procedure_type` | 根拠 |
+| `procedure_code` | 処置 |
 | --- | --- |
-| `central_line` | 挿入部位、血管、確認要 |
-| `lumbar_puncture` | 開放圧、CSF 性状、tube 採取 |
-| `thoracentesis` | 液量と性状、処置後画像 |
-| `paracentesis` | 液量と性状、適応 |
-| `chest_tube` | 挿入部位、初期ドレナージ、確認 |
-| `intubation` | Cormack-Lehane grade、tube サイズ、ETCO₂ 確認 |
-| `bronchoscopy` | 所見、BAL 結果、biopsy 検体 |
-| `cardioversion` | エネルギー、成否、rhythm before/after |
+| `D225` | 観血的動脈圧測定 (Arterial line) |
+| `D302` | 気管支ファイバースコピー (Bronchoscopy) |
+| `D403` | 腰椎穿刺 (Lumbar puncture) |
+| `G005-2` | 中心静脈カテーテル挿入 (Central venous catheter insertion) |
+| `J008` | 胸腔穿刺 (Thoracentesis) |
+| `J010` | 腹腔穿刺 (Paracentesis) |
+| `J019` | 持続的胸腔ドレナージ (Chest tube insertion) |
+| `J034` | イレウス用ロングチューブ挿入法 (Long tube for bowel obstruction) |
+| `J034-2` | 経鼻栄養・薬剤投与用チューブ挿入術 (Nasogastric tube insertion) |
+| `J038` | 人工腎臓 (Acute hemodialysis) |
+| `J044` | 救命のための気管挿管 (Endotracheal intubation) |
+| `J047` | カウンターショック (Electrical cardioversion) |
+| `J063` | 留置カテーテル設置 (Urinary catheter insertion) |
+| `K546` | 経皮的冠動脈形成術 (PCI) |
+| `K597` | ペースメーカー移植術 (Pacemaker implantation) |
+| `K920` | 輸血 (Blood transfusion) |
 
-このリストにない処置 (尿カテーテル、NG チューブ、心エコー、輸血、
-透析、動脈ライン、創傷 debridement) は nursing record や補助
-レポートに折り込まれ、独立した DocumentReference は生成されない。
+どちらのリストにも無い処置コードには処置単位の文書は生成されない。
 
 ### **生成しないもの** (意図的)
 
@@ -288,44 +297,26 @@ user_template: |          # ユーザープロンプト、${variable} プレー�
 `"discharge_medications": ["Amoxicillin 500mg PO BID x 7 days"]` を
 渡せば、テンプレートは自動的に bullet リストとしてレンダリングする。
 
-### タスク別利用可能変数
+### プロンプト変数
 
-変数名はプロンプト yaml の `variables:` ブロック
-(`clinosim/modules/llm_service/prompts/<lang>/<task>.yaml`) と、
-narrative pipeline の入力ビルダー
-(`clinosim/modules/document/narrative/` — `renderers/section_builders/`
-配下の per-section ビルダー + composition dispatcher) で宣言される。
-現 master 時点のタスク別完全リスト (ライブ宣言は各プロンプト yaml 参照):
+各プロンプトが参照する変数は `apply_replacement_strategy`
+(`clinosim/modules/document/narrative/replacement_strategy.py`) が渡す。
+タスク別の変数リストは存在しない。文書ごとの臨床内容は、テンプレート
+セクションと `_build_extra_context`
+(`narrative/_extra_context_builder.py`) から組み立てた JSON ブロックの
+中で LLM に渡る。
 
-**discharge_summary**:
-`age, sex, admission_date, discharge_date, los_days, disposition,
-attending_physician, chief_complaint, past_medical_history,
-admission_diagnosis, discharge_diagnoses, hospital_course_bullets,
-procedures_performed, discharge_medications`
+**narrative_seed** (1 セクション、`template_seed` strategy):
+`section, template_text, severity, day_index, context_json_block`
 
-**death_summary**:
-`age, sex, admission_date, death_datetime, los_days,
-attending_physician, admission_diagnosis, primary_diagnosis,
-past_medical_history, hospital_course_bullets, terminal_findings,
-complications`
+**narrative_seed_bundle** (1 文書の `llm_enabled_sections` 全体、
+`template_seed_bundle` strategy):
+`document_type, target_language, severity, day_index,
+sections_json_block, context_json_block, output_schema_block`
 
-**operative_note**:
-`surgery_date, procedure_name, procedure_code, preop_diagnosis,
-postop_diagnosis, surgeon, assistants, anesthesiologist,
-anesthesia_type, asa_class, duration_minutes,
-estimated_blood_loss_ml, body_site, approach, implants_used,
-specimens_sent, intraop_complications, outcome`
-
-**admission_hp**:
-`age, sex, admission_datetime, admitting_physician, department,
-chief_complaint, hpi_summary, past_medical_history,
-home_medications, allergies, admission_vitals, initial_labs,
-admission_diagnosis`
-
-**procedure_note**:
-`procedure_date, procedure_name, procedure_code, operator, indication,
-body_site, anesthesia_type, duration_minutes, findings,
-specimens_obtained, complications, outcome`
+文書種別ごとの指示は bundle プロンプトの `system:` テキスト内に、
+文書種別ごと 1 つの `### <type_key>` ブロック (例: `### admission_hp`、
+`### referral_note`) として置かれている。
 
 ### プロンプト編集
 
@@ -334,10 +325,9 @@ specimens_obtained, complications, outcome`
 1. **`version:` フィールドを bump。** version 番号は各生成文書
    (`ClinicalDocument.prompt_version`) に記録され、どの version が
    各 note を生成したかを監査可能。
-2. **変数名変更禁止** — `clinosim/modules/document/narrative/` 内の
-   対応する入力ビルダーとプロンプト yaml の `variables:` ブロック
-   両方を更新しないと使えない。生成器はテンプレートがコードの
-   提供しない変数を参照すると `KeyError` を発生させる。
+2. **変数名変更禁止** — `replacement_strategy.py` が渡す変数 dict も
+   同時に更新すること。テンプレートがコードの提供しない変数を参照
+   すると registry が `KeyError` を発生させる。
 3. **LLM token を消費せずレンダリング検証するためテンプレートモード
    で先にテスト**:
    ```bash
@@ -469,10 +459,14 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
    `Composition` を emit、`free_text` は本文全体を
    `content.attachment.data` に収めた `DocumentReference` を emit。
 
-5. **英語プロンプト YAML 作成**
-   `clinosim/modules/llm_service/prompts/en/consultation_note.yaml`
-   を上述テンプレートに従って作成。プロンプトが参照する変数は
-   yaml の `variables:` ブロックに全て宣言する。
+5. **bundle プロンプトに LLM 指示を追加** — 文書種別ごとの
+   プロンプトファイルは存在しない (Issue #2556 で削除)。
+   `clinosim/modules/llm_service/prompts/<lang>/narrative_seed_bundle.yaml`
+   (`en/` と `ja/` の両方) の `system:` テキストに
+   `### consultation_note` ブロックを追加し、`llm_enabled_sections` に
+   挙げた各セクションの書き方を記述して、ファイルの `version:` を
+   bump する。`llm_enabled_sections` に無いセクションはテンプレート
+   テキストのまま残る。
 
 6. **Section builder を実装** —
    `clinosim/modules/document/narrative/renderers/section_builders/<section>.py`
@@ -503,9 +497,10 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
      de: Arztbrief / Entlassungsbrief
    ```
 
-2. `clinosim/modules/llm_service/prompts/<lang>/` の下にタスク別
-   プロンプト YAML ファイルを作成。対象言語のネイティブスピーカー
-   の臨床医が各テンプレートを review すべき。
+2. `clinosim/modules/llm_service/prompts/<lang>/` を作成し、2 つの
+   narrative プロンプト `narrative_seed.yaml` と
+   `narrative_seed_bundle.yaml` の翻訳を置く。対象言語のネイティブ
+   スピーカーの臨床医が各テンプレートを review すべき。
 
 3. `clinosim narrate --cif-dir <cif> --country <XX>` で新規プロンプトをテスト。
    `narrate` に `--language` フラグは無い: 文書言語は国 (`--country`、
@@ -521,8 +516,8 @@ Consultation Note、シフト別追加 note) を追加する際は、スコー�
 - [README.md](../README.ja.md) — メインユーザガイド
 - [bedrock_setup.ja.md](bedrock_setup.ja.md) — EC2 + AWS Bedrock
   デプロイ
-- [../DESIGN.md](../DESIGN.ja.md) Section 7 — 臨床文書のアーキテクチャ
-  判断 (AD-36〜AD-41)
+- [architecture-notes.ja.md](architecture/architecture-notes.ja.md) —
+  臨床文書のアーキテクチャ判断 (AD-36〜AD-41)
 - `clinosim/modules/llm_service/README.ja.md` — LLM サービスモジュール
   リファレンス
 - `clinosim/modules/output/README.ja.md` — 出力アダプタモジュール

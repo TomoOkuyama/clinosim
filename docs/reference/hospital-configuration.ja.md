@@ -3,7 +3,7 @@
 # Hospital 設定
 
 `clinosim/config/hospital_*.yaml` は病院物理レイアウトと運用パラメー
-タを定義:
+タを定義。default の `hospital_operations.yaml` からの抜粋:
 
 ```yaml
 # 国別 catchment (CLI が --country で resolve、`default` は fallback)
@@ -27,11 +27,14 @@ available_departments:           # 利用可能な診療科 (50 床コミュニ�
   - nutrition                   # 栄養管理 (RD)
   - medical_social_work         # 医療社会事業 (MSW)
   - oncology                    # 化学療法 + 癌 follow-up のルーティング先 (Issue #1280 Sub-A)
+  - obstetrics_gynecology       # 妊婦健診 / 分娩 / 産褥
+  - radiology
 
 department_rollup:              # サブ専門科 → 利用可能な診療科
   pulmonology: internal_medicine
   neurology: internal_medicine
   neurosurgery: general_surgery
+  # ... ほか 14 行 (nephrology、pediatrics、psychiatry、腫瘍系サブ専門科 など)
 
 wards:                          # 診療科ごとの病棟
   internal_medicine: ["4E", "4W"]
@@ -41,6 +44,7 @@ wards:                          # 診療科ごとの病棟
   orthopedics: ["3W"]
   emergency_medicine: ["ER"]
   primary_care: ["OPD"]
+  obstetrics_gynecology: ["2E", "NBN"]
   oncology: ["OPD-ONC"]
 
 ward_capacity:                  # 病棟ごとのベッド数
@@ -50,17 +54,26 @@ ward_capacity:                  # 病棟ごとのベッド数
   "5W": 8
   "3E": 8
   "3W": 6
+  "2E": 6
+  "NBN": 6
 
 resource_capacity:              # 検査/画像 capacity
   lab_analyzers: 2
   ct_scanners: 1
   mri_scanners: 0
+  xray_rooms: 2
+  ultrasound_rooms: 1
+  operating_rooms: 2
+  ed_beds: 8
   inpatient_beds: 50
+  perinatal_beds: 12
 
 staffing:                       # シフトごとのスタッフ比率
   day:    {hours: [8, 16],  lab_staff: 1.0, nursing_staff: 1.0}
   evening:{hours: [16, 0],  lab_staff: 0.5, nursing_staff: 0.7}
   night:  {hours: [0, 8],   lab_staff: 0.2, nursing_staff: 0.5}
+  # 各シフトは radiology_staff / pharmacy_staff / or_staff も設定;
+  # weekend_modifier: 0.6
 ```
 
 これにより:

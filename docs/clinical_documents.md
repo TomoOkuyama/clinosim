@@ -70,24 +70,32 @@ Tier C in earlier releases — is emitted end-to-end as of v0.6.x.
 
 ### Procedure Note allowlist
 
-Only **eight invasive bedside procedures** produce a formal Procedure Note,
-matching real-world documentation practice:
+A Procedure Note is emitted per `ProcedureRecord` whose `procedure_code`
+is listed under `procedure_note_codes` in
+`clinosim/modules/document/reference_data/bedside_procedure_codes.yaml`
+(the source of truth; 16 codes today). Surgical codes listed under
+`operative_note_codes` get an Operative Note instead:
 
-| `procedure_type` | Rationale |
+| `procedure_code` | Procedure |
 |---|---|
-| `central_line` | Insertion site, vessel, confirmation required |
-| `lumbar_puncture` | Opening pressure, CSF appearance, tube collection |
-| `thoracentesis` | Fluid volume and character, post-procedure imaging |
-| `paracentesis` | Fluid volume and character, indication |
-| `chest_tube` | Insertion site, initial drainage, confirmation |
-| `intubation` | Cormack-Lehane grade, tube size, ETCO₂ confirmation |
-| `bronchoscopy` | Findings, BAL results, biopsy specimens |
-| `cardioversion` | Energy delivered, success, rhythm before/after |
+| `D225` | Arterial line |
+| `D302` | Bronchoscopy |
+| `D403` | Lumbar puncture |
+| `G005-2` | Central venous catheter insertion |
+| `J008` | Thoracentesis |
+| `J010` | Paracentesis |
+| `J019` | Chest tube insertion |
+| `J034` | Long tube for bowel obstruction |
+| `J034-2` | Nasogastric tube insertion |
+| `J038` | Acute hemodialysis |
+| `J044` | Endotracheal intubation |
+| `J047` | Electrical cardioversion |
+| `J063` | Urinary catheter insertion |
+| `K546` | PCI |
+| `K597` | Pacemaker implantation |
+| `K920` | Blood transfusion |
 
-Procedures not on this list (urinary catheter, NG tube, echocardiography,
-blood transfusion, dialysis, arterial line, wound debridement) are folded into
-nursing records or ancillary reports and do not produce a separate
-DocumentReference.
+Procedure codes in neither list get no per-procedure document.
 
 ### What is **not** generated (by design)
 
@@ -288,42 +296,26 @@ This means a discharge summary prompt can pass
 `"discharge_medications": ["Amoxicillin 500mg PO BID x 7 days"]` and the
 template will render it as a bullet list automatically.
 
-### Available variables per task
+### Prompt variables
 
-Variable names are declared in the prompt yaml's `variables:` block
-(`clinosim/modules/llm_service/prompts/<lang>/<task>.yaml`) and the
-matching input builder in the narrative pipeline
-(`clinosim/modules/document/narrative/` — the per-section builders
-under `renderers/section_builders/` plus the composition dispatcher).
-The complete lists per task (as of the current master; see each prompt
-yaml for the live declaration):
+The variables each prompt references are supplied by
+`apply_replacement_strategy`
+(`clinosim/modules/document/narrative/replacement_strategy.py`); there
+is no per-task variable list. Per-document clinical content reaches the
+LLM inside the JSON blocks, built from the template sections and
+`_build_extra_context` (`narrative/_extra_context_builder.py`).
 
-**discharge_summary**:
-`age, sex, admission_date, discharge_date, los_days, disposition,
-attending_physician, chief_complaint, past_medical_history, admission_diagnosis,
-discharge_diagnoses, hospital_course_bullets, procedures_performed,
-discharge_medications`
+**narrative_seed** (one section, `template_seed` strategy):
+`section, template_text, severity, day_index, context_json_block`
 
-**death_summary**:
-`age, sex, admission_date, death_datetime, los_days, attending_physician,
-admission_diagnosis, primary_diagnosis, past_medical_history,
-hospital_course_bullets, terminal_findings, complications`
+**narrative_seed_bundle** (all `llm_enabled_sections` of one document,
+`template_seed_bundle` strategy):
+`document_type, target_language, severity, day_index,
+sections_json_block, context_json_block, output_schema_block`
 
-**operative_note**:
-`surgery_date, procedure_name, procedure_code, preop_diagnosis,
-postop_diagnosis, surgeon, assistants, anesthesiologist, anesthesia_type,
-asa_class, duration_minutes, estimated_blood_loss_ml, body_site, approach,
-implants_used, specimens_sent, intraop_complications, outcome`
-
-**admission_hp**:
-`age, sex, admission_datetime, admitting_physician, department,
-chief_complaint, hpi_summary, past_medical_history, home_medications,
-allergies, admission_vitals, initial_labs, admission_diagnosis`
-
-**procedure_note**:
-`procedure_date, procedure_name, procedure_code, operator, indication,
-body_site, anesthesia_type, duration_minutes, findings, specimens_obtained,
-complications, outcome`
+Per-document instructions live in the bundle prompt's `system:` text
+as one `### <type_key>` block per document type (e.g.
+`### admission_hp`, `### referral_note`).
 
 ### Editing prompts
 
@@ -332,9 +324,8 @@ When you improve a prompt template:
 1. **Bump the `version:` field.** The version number is recorded on every
    generated document (`ClinicalDocument.prompt_version`) so you can audit
    which version produced each note.
-2. **Do not rename variables** without updating the matching input
-   builder in `clinosim/modules/document/narrative/` + the
-   `variables:` block in the prompt yaml. The generator raises
+2. **Do not rename variables** without updating the variable dict
+   passed by `replacement_strategy.py`. The registry raises
    `KeyError` if a template references a variable the code does
    not provide.
 3. **Test in template mode first** to verify rendering without spending LLM
@@ -465,10 +456,13 @@ FHIR export.
    named `section[]` entries; `free_text` lands on
    `DocumentReference` with the full body in `content.attachment.data`.
 
-5. **Create the English prompt YAML**
-   `clinosim/modules/llm_service/prompts/en/consultation_note.yaml`
-   following the template above. Declare every variable the prompt
-   references in the yaml's `variables:` block.
+5. **Add the LLM instructions to the bundle prompt** — there is no
+   per-document prompt file (removed in Issue #2556). Add a
+   `### consultation_note` block to the `system:` text of
+   `clinosim/modules/llm_service/prompts/<lang>/narrative_seed_bundle.yaml`
+   (both `en/` and `ja/`) describing each section listed in
+   `llm_enabled_sections`, and bump the file's `version:`. Sections not
+   in `llm_enabled_sections` keep their template text.
 
 6. **Implement the section builder(s)** under
    `clinosim/modules/document/narrative/renderers/section_builders/<section>.py`
@@ -500,9 +494,10 @@ FHIR export.
      de: Arztbrief / Entlassungsbrief
    ```
 
-2. Create the per-task prompt YAML files under
-   `clinosim/modules/llm_service/prompts/<lang>/`. A clinician who is a native
-   speaker of the target language should review each template.
+2. Create `clinosim/modules/llm_service/prompts/<lang>/` with translations of
+   the two narrative prompts, `narrative_seed.yaml` and
+   `narrative_seed_bundle.yaml`. A clinician who is a native speaker of the
+   target language should review each template.
 
 3. Test the new prompts with `clinosim narrate --cif-dir <cif> --country <XX>`.
    `narrate` has no `--language` flag: the document language follows
@@ -517,6 +512,6 @@ FHIR export.
 
 - [README.md](../README.md) — main user guide
 - [bedrock_setup.md](bedrock_setup.md) — EC2 + AWS Bedrock deployment
-- [../DESIGN.md](../DESIGN.md) Section 7 — architecture decisions for clinical documents (AD-36 to AD-41)
+- [architecture-notes.md](architecture/architecture-notes.md) — architecture decisions for clinical documents (AD-36 to AD-41)
 - `clinosim/modules/llm_service/README.md` — LLM service module reference
 - `clinosim/modules/output/README.md` — output adapter module reference
