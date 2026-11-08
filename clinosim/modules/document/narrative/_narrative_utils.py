@@ -26,9 +26,17 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+from clinosim.codes.hl7_encounter import DischargeDisposition
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.reference_data import load_reference_yaml
 from clinosim.types.document import NarrativeContext
+
+
+def encounter_died(encounter: Any) -> bool:
+    """True when the encounter ended in the patient's death (discharge
+    disposition ``exp``). The document planner and every narrative section
+    that words the end of a stay read this one test (Issue #2875)."""
+    return encounter is not None and _o(encounter, "discharge_disposition", "") == DischargeDisposition.EXP
 
 
 def _lookup_nursing_content(ctx: NarrativeContext, field: str, lang: str, cap: int) -> tuple[list[str], list[str]]:

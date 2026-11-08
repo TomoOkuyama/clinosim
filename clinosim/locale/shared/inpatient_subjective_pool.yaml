@@ -16,6 +16,9 @@
 #   mid   — days 3..(los-2)
 #   late  — penultimate day
 #   eve   — last inpatient day (near discharge)
+#   terminal — penultimate and last day of a stay that ended in death
+#              (discharge disposition exp; Issue #2875), in place of
+#              late / eve, which speak of discharge preparation
 #
 # Loader: ``clinosim.locale.loader.load_inpatient_subjective_pool()``.
 
@@ -57,3 +60,11 @@ eve:
     en: "Day before planned discharge; symptoms stable, discharge instructions reviewed."
   - ja: "退院準備完了、家族への説明終了。"
     en: "Discharge readiness confirmed; family instructed."
+
+terminal:
+  - ja: "全身状態は重篤、厳重な経過観察を継続。"
+    en: "Condition remains critical; close monitoring continues."
+  - ja: "病状と治療方針についてご家族へ説明。"
+    en: "Family updated on the patient's condition and plan of care."
+  - ja: "予後不良、苦痛緩和を優先した対応を継続。"
+    en: "Prognosis guarded; comfort and symptom relief prioritised."

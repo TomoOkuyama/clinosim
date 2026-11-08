@@ -27,7 +27,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
-from clinosim.modules.document.narrative._narrative_utils import _lookup_nursing_content
+from clinosim.modules.document.narrative._narrative_utils import _lookup_nursing_content, encounter_died
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.types.document import NarrativeContext
@@ -294,7 +294,19 @@ def build_nursing_admission_status(
         sep = t("list_sep.serial", lang)
         parts.append(t("nursing_admission_status.complications_line", lang, list=sep.join(comp_labels)))
         facts.append("ctx.complications_occurred")
-    parts.append(t("nursing_admission_status.discharge_met_line", lang))
+    if encounter_died(ctx.encounter):
+        # Issue #2875: a stay that ended in death records the death, not
+        # discharge criteria.
+        facts.append("encounter.discharge_disposition")
+        died_at = _o(ctx.encounter, "discharge_datetime", None)
+        if died_at:
+            facts.append("encounter.discharge_datetime")
+            ts = str(died_at)[:16].replace("T", " ")
+            parts.append(t("nursing_admission_status.died_line_at", lang, ts=ts))
+        else:
+            parts.append(t("nursing_admission_status.died_line", lang))
+    else:
+        parts.append(t("nursing_admission_status.discharge_met_line", lang))
     return "".join(parts), facts
 
 
@@ -344,6 +356,9 @@ def build_patient_education(generator: TemplateNarrativeGenerator, ctx: Narrativ
     care_plan) — patient education is disease-driven only.
     """
     lang = ctx.target_lang
+    if encounter_died(ctx.encounter):
+        # Issue #2875: no self-care teaching for a patient who died.
+        return t("patient_education.after_death", lang), ["encounter.discharge_disposition"]
     topics, facts = _lookup_nursing_content(ctx, "patient_education", lang, cap=4)
     if not topics:
         return (t("fallback.patient_education_fallback", lang)), facts
@@ -354,9 +369,14 @@ def build_patient_education(generator: TemplateNarrativeGenerator, ctx: Narrativ
 
 @section("discharge_readiness")
 def build_discharge_readiness(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """Build discharge_readiness from latest ADL + risk. v9 density fix."""
+    """Build discharge_readiness from latest ADL + risk. v9 density fix.
+
+    A stay that ended in death records post-mortem care instead
+    (Issue #2875)."""
     facts: list[str] = []
     lang = ctx.target_lang
+    if encounter_died(ctx.encounter):
+        return t("discharge_readiness.after_death", lang), ["encounter.discharge_disposition"]
     adls = list(getattr(ctx, "adl_assessments", None) or [])
     risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
     parts: list[str] = []

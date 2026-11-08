@@ -744,11 +744,19 @@ patient_education:
   head:
     ja: "患者教育: "
     en: "Patient education: "
+  # Issue #2875: no patient instructions after an in-hospital death.
+  after_death:
+    ja: "該当なし（入院中死亡）。ご家族へ死亡を連絡し、死後の手続きを説明した。"
+    en: "Not applicable (died in hospital). Family notified of the death and post-mortem arrangements explained."
 
 discharge_readiness:
   head:
     ja: "退院準備: "
     en: "Discharge readiness: "
+  # Issue #2875: post-mortem care instead of discharge readiness.
+  after_death:
+    ja: "該当なし（入院中死亡）。死後の処置を実施し、ご遺体を霊安室へ搬送した。"
+    en: "Not applicable (died in hospital). Post-mortem care completed and the body transferred to the morgue."
   procedures_head:
     ja: "実施処置: "
     en: "Procedures: "
@@ -1163,6 +1171,14 @@ nursing_admission_status:
   discharge_met_line:
     ja: "退院基準を満たし退院となった。"
     en: "Discharge criteria met."
+  # Issue #2875: a stay that ended in death (discharge disposition exp)
+  # records the death instead of discharge criteria.
+  died_line_at:
+    ja: "{ts} 死亡確認、死亡退院となった。"
+    en: "Patient died in hospital; death pronounced {ts}."
+  died_line:
+    ja: "入院中に死亡、死亡退院となった。"
+    en: "Patient died in hospital."
 
 # Nursing interventions in/out line (Phase 1d-30).
 nursing_interventions:
