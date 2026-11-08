@@ -64,11 +64,10 @@ When you add a new YAML key, either wire the consumer code in the
   **from the start**.
 - `extra="ignore"` (i.e. silent-drop) is not used; `DiseaseProtocol`
   is `extra="forbid"`.
-- `extra="allow"` (as in `EncounterConditionProtocol`) combined with
-  raw-dict returns is "deliberately unvalidated", but that path
-  should also be closed in the future by cross-checking against
-  canonical constants (`SUPPORTED_*` diff detection,
-  `implementation-rules.md` §9-2).
+- `extra="allow"` is not used either: an open map is a typed
+  `dict[str, X]` field (`EncounterConditionProtocol` moved to
+  `extra="forbid"` in issue #2845; the guard is
+  `test_configuration_spec_guards.py::test_no_extra_allow_models`).
 
 ### 2.3 Defend the raw-dict path too
 

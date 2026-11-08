@@ -14,11 +14,13 @@ Spec: docs/superpowers/specs/2026-10-20-longitudinal-state-evolution-design.md
 from __future__ import annotations
 
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AgeBandDistribution(BaseModel):
     """Sim-start stage distribution for persons aged ``age_lo``..``age_hi``."""
+
+    model_config = ConfigDict(extra="forbid")
 
     age_lo: int
     age_hi: int
@@ -27,6 +29,8 @@ class AgeBandDistribution(BaseModel):
 
 class MarkovSpec(BaseModel):
     """Parameters for a discrete-stage Markov attribute."""
+
+    model_config = ConfigDict(extra="forbid")
 
     state_name: str
     icd_base: str

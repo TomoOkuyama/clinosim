@@ -41,8 +41,6 @@ metadata:
   name: clinosim-nursing-content
   source: clinosim
 
-version: 1
-
 acute_disease:
 
   copd_exacerbation:

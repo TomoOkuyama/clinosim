@@ -35,12 +35,16 @@ the ``LabPanels`` model (forward + reverse coverage and order against YAML keys)
 
 
 class _Panel(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     loinc: str
     display: Any
     components: list[Any] = Field(min_length=1)
     min_components: StrictInt = Field(ge=1)
+    # Component-name -> LOINC override inside this panel (coding_strategy).
+    component_loinc: dict[str, str] = Field(default_factory=dict)
+    # Drop the panel report when none of its components were resulted (diagnostic_report).
+    skip_if_no_components_present: bool = False
 
     @field_validator("loinc")
     @classmethod
@@ -64,7 +68,7 @@ class LabPanels(BaseModel):
     that order, each with a registered LOINC code, an English display, a
     non-empty component list and a positive ``min_components``."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     panels: dict[str, _Panel]
 

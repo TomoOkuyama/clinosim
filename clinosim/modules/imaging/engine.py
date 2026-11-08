@@ -168,11 +168,13 @@ class _Modality(BaseModel):
     """CR uses a per-view instance range, CT a per-series range per body site.
     Displays resolve from codes/data/dicom-modality.yaml (META #1805 Phase C)."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     dicom_code: str = Field(min_length=1)
     typical_instances_per_view_range: list[_Number] | None = None
     typical_instances_per_series_range: dict[str, list[_Number]] | None = None
+    # Body-site key -> the views ordered when a spec names none (order engine).
+    default_views_by_body_site: dict[str, list[str]] = Field(default_factory=dict)
 
     @field_validator("typical_instances_per_view_range")
     @classmethod
@@ -204,7 +206,7 @@ class ImagingModalities(BaseModel):
     """Shape of modalities.yaml: exactly the SUPPORTED_MODALITIES, each with a
     DICOM code and an instance-count range (silent-no-op defense Layer 3-6)."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     modalities: dict[str, _Modality] = Field(min_length=1)
 
@@ -225,7 +227,7 @@ class ImagingModalities(BaseModel):
 class _ProcedureCodes(BaseModel):
     """Displays resolve from the LOINC authority (META #1805 Phase B.2)."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     loinc: str = Field(min_length=1)
     cpt: str = Field(min_length=1)
@@ -233,10 +235,14 @@ class _ProcedureCodes(BaseModel):
 
 
 class _BodySite(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     snomed: str
     procedure_codes: dict[str, _ProcedureCodes] = Field(min_length=1)
+    # A left/right structure: the order picks a laterality.
+    paired: bool = False
+    # Body site whose impression template this one reuses (e.g. lumbar_spine -> spine).
+    report_template_site: str | None = None
 
     @field_validator("snomed")
     @classmethod
@@ -253,7 +259,7 @@ class ImagingBodySites(BaseModel):
     """Shape of body_sites.yaml: exactly the SUPPORTED_BODY_SITES, each with a
     registered SNOMED code and LOINC / CPT / JP K-code procedure codes."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     body_sites: dict[str, _BodySite] = Field(min_length=1)
 
@@ -274,21 +280,21 @@ class ImagingBodySites(BaseModel):
 class _LanguageText(BaseModel):
     """The CIF report has an English and a Japanese slot (Issue #2505)."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     en: str = Field(min_length=1)
     ja: str = Field(min_length=1)
 
 
 class _ReportText(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     findings: _LanguageText
     impression: _LanguageText
 
 
 class _ReportVariants(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     normal: _ReportText | None = None
     abnormal: _ReportText | None = None
@@ -305,7 +311,7 @@ class ImpressionTemplates(BaseModel):
     SUPPORTED_IMAGING_DISEASES (missing and stale entries both rejected), each
     modality x body site with a normal and/or abnormal findings + impression."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     templates: dict[str, dict[str, _ReportVariants]] = Field(min_length=1)
 

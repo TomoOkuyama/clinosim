@@ -594,11 +594,12 @@ AGENTS.md: "All types defined in `clinosim/types/`").
 `DiseaseProtocol(BaseModel)` is loaded via
 `load_disease_protocol()` with `model_validate()`.
 `encounter/protocol.py` follows the same pattern for the 51
-encounter-condition YAMLs (`EncounterConditionProtocol`, permissive
-via `extra="allow"`; a validation failure is re-raised with the
-offending filename). **Wrap every new YAML protocol in Pydantic**;
-`extra="allow"` is acceptable for gradual adoption. `bare except`
-is forbidden.
+encounter-condition YAMLs (`EncounterConditionProtocol`; a
+validation failure is re-raised with the offending filename). **Wrap
+every new YAML protocol in Pydantic** with
+`ConfigDict(extra="forbid")`, declaring every key the YAML carries
+(an open map is a typed `dict[str, X]` field, never `extra="allow"`).
+`bare except` is forbidden.
 
 ### Publish the public API via `__init__.py`
 

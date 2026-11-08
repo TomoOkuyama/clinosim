@@ -114,16 +114,16 @@ from clinosim.modules.encounter.protocol import (
 - Daily-cycle + timeline generation is pure: no `rng` argument, and
   the cadence hours (06:00 / 06:30 / 09:00 / 14:00 / 18:00 / 18:30 /
   22:00) are fixed.
-- Protocol loaders are pure. `EncounterConditionProtocol` validates
-  only the required fields (`condition_id`, `icd10_code`,
-  `chief_complaint`, `encounter_type`, `department`) plus the typed
-  optional keys; it uses `extra="allow"` so condition-specific sections
-  pass through. Every `route:` value is also checked against the shared
+- Protocol loaders are pure. `EncounterConditionProtocol` requires
+  `condition_id`, `icd10_code`, `chief_complaint`, `encounter_type` and
+  `department`, declares every optional section (workup, treatment,
+  discharge prescriptions, narrative, ...) as a typed field, and rejects
+  unknown keys (`extra="forbid"`). Every `route:` value is also checked against the shared
   route vocabulary at load time.
 
 ## Dependencies
 
-- `pydantic` — schema (`extra="allow"`).
+- `pydantic` — schema (`extra="forbid"`).
 - `yaml` — YAML parser.
 - `clinosim.types.encounter` — `Encounter`, `EncounterStatus`,
   `EncounterType`.
@@ -194,7 +194,7 @@ pytest tests/unit -k encounter -q
 Individual files:
 
 - [`tests/unit/test_encounter_protocol_validation.py`](../../../tests/unit/test_encounter_protocol_validation.py)
-  — Pydantic schema validation across all 51 YAMLs (required fields, `extra="allow"`).
+  — Pydantic schema validation across all 51 YAMLs (required fields, unknown keys rejected).
 - [`tests/unit/test_encounter_archetype_severity.py`](../../../tests/unit/test_encounter_archetype_severity.py)
   — archetype × severity coverage.
 - [`tests/unit/test_encounter_features.py`](../../../tests/unit/test_encounter_features.py)

@@ -34,7 +34,7 @@ def _non_empty_code(code: str, owner: str, what: str) -> str:
 
 
 class _Specimen(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     snomed: str
     test_loinc: str
@@ -52,7 +52,7 @@ class _Specimen(BaseModel):
 
 
 class _Organism(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     snomed: str
     antibiogram: dict[str, list[float]] | None = None
@@ -77,13 +77,16 @@ class _Organism(BaseModel):
 
 
 class _Culture(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     specimen: str | None = None
+    order_prob: float = Field(default=1.0, ge=0.0, le=1.0)
+    growth_prob: float = Field(default=0.0, ge=0.0, le=1.0)
+    quantitation: str | None = None
 
 
 class _DiseaseProfile(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     organisms: dict[str, Any] | None = None
     cultures: list[_Culture] | None = None
@@ -102,7 +105,7 @@ class MicrobiologyConfig(BaseModel):
     loader): antibiogram keys → ``antibiotics``, disease organisms →
     ``organisms``, culture specimens → ``specimens``; codes are non-empty."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     antibiotics: dict[str, str] = Field(default_factory=dict)
     organisms: dict[str, _Organism] = Field(default_factory=dict)

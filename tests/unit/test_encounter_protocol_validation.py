@@ -42,16 +42,28 @@ def test_malformed_dict_raises_not_silently_passes() -> None:
         EncounterConditionProtocol.model_validate(bad)
 
 
-def test_extra_fields_are_allowed() -> None:
-    """Permissive extra='allow' keeps condition-specific sections."""
+_MINIMAL = {
+    "condition_id": "x",
+    "icd10_code": "R10.9",
+    "chief_complaint": {"en": "pain"},
+    "encounter_type": "emergency",
+    "department": "emergency_medicine",
+}
+
+
+def test_condition_sections_are_typed() -> None:
+    """Condition-specific sections (workup, treatment, ...) are declared fields."""
     proto = EncounterConditionProtocol.model_validate(
-        {
-            "condition_id": "x",
-            "icd10_code": "R10.9",
-            "chief_complaint": {"en": "pain"},
-            "encounter_type": "emergency",
-            "department": "emergency_medicine",
-            "workup": {"labs": ["CBC"]},
-        }
+        {**_MINIMAL, "workup": {"labs": [{"test": "CBC", "probability": 0.5}]}}
     )
-    assert proto.model_dump()["workup"] == {"labs": ["CBC"]}
+    assert proto.workup is not None and proto.workup.labs[0].test == "CBC"
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [{"workupp": {}}, {"workup": {"labs": [{"test": "CBC", "probabilty": 0.5}]}}],
+)
+def test_unknown_keys_are_rejected(extra: dict) -> None:
+    """A misspelled key fails at load instead of being silently ignored (Issue #2845)."""
+    with pytest.raises(ValueError):
+        EncounterConditionProtocol.model_validate({**_MINIMAL, **extra})

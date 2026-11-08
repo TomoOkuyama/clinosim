@@ -15,7 +15,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules.longitudinal.patterns import PATTERN_REGISTRY
@@ -36,6 +36,8 @@ _IMPLEMENTED_PATTERNS: frozenset[str] = frozenset({"ar1", "markov", "event"})
 class ClinicalScope(BaseModel):
     """Which patients the attribute runs for."""
 
+    model_config = ConfigDict(extra="forbid")
+
     requires_chronic_codes: list[str] = Field(default_factory=list)
     requires_age_band: list[int] = Field(default_factory=lambda: [0, 120], min_length=2, max_length=2)
     # Phase 4b.2.β: sex-locked attributes (e.g. N40 BPH male-only, C61
@@ -47,7 +49,7 @@ class ClinicalScope(BaseModel):
 class AttributeSpec(BaseModel):
     """One longitudinal attribute's full spec (frontmatter + body)."""
 
-    model_config = {"arbitrary_types_allowed": True}
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
 
     attribute_id: str
     pattern: str

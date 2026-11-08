@@ -44,8 +44,9 @@ completeness 修正に固有の新規約だけを書く — 既存規約は**再
 - `PatientProfile`(`config.py:101`)が前例。新しい YAML-loaded `BaseModel` は
   `model_config = ConfigDict(extra="forbid")` を**最初から**付ける。
 - `extra="ignore"`(= silent-drop)は使わない。`DiseaseProtocol` は `extra="forbid"`。
-- `extra="allow"`(`EncounterConditionProtocol`)+ 生 dict 返しは「意図的無検証」だが、この経路も
-  将来 canonical constants 照合(`SUPPORTED_*` 差分検出、`implementation-rules.md` §9-2)で塞ぐのが望ましい。
+- `extra="allow"` も使わない。開いたマップは型付きの `dict[str, X]` フィールドにする
+  (`EncounterConditionProtocol` は issue #2845 で `extra="forbid"` に移行。ガードは
+  `test_configuration_spec_guards.py::test_no_extra_allow_models`)。
 
 ### 2.3 モデルを通さない生 dict 経路にも防御を効かせる
 

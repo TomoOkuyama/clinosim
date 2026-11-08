@@ -26,7 +26,7 @@ SUPPORTED_SEVERITIES: frozenset[str] = frozenset({"mild", "moderate", "severe"})
 
 
 class _TriageSystem(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     levels: dict[str, Any] = {}
 
@@ -54,13 +54,14 @@ class TriageProtocols(BaseModel):
     the supported arrival modes, and a severity → level distribution that
     sums to ~1.0 for each severity."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     triage_systems: dict[str, _TriageSystem]
     arrival_modes: list[str]
     severity_to_triage_distribution: dict[str, dict[str, float]]
     arrival_mode_base_distribution: dict[str, float]
     resource_rule: _ResourceRule
+    arrival_mode_severity_multipliers: dict[str, dict[str, float]]
 
     @model_validator(mode="before")
     @classmethod

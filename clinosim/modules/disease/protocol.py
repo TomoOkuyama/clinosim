@@ -429,6 +429,8 @@ class PhysicalExamSystemFindings(BaseModel):
     Use ``mild`` / ``moderate`` / ``severe`` for severity-specific wording.
     """
 
+    model_config = ConfigDict(extra="forbid")
+
     mild: str = ""
     moderate: str = ""
     severe: str = ""
@@ -437,6 +439,8 @@ class PhysicalExamSystemFindings(BaseModel):
 
 class PhysicalExamDayFindings(BaseModel):
     """Physical exam findings for a single clinical day grouped by organ system."""
+
+    model_config = ConfigDict(extra="forbid")
 
     general: PhysicalExamSystemFindings = Field(default_factory=PhysicalExamSystemFindings)
     cardiovascular: PhysicalExamSystemFindings = Field(default_factory=PhysicalExamSystemFindings)
@@ -450,12 +454,16 @@ class PhysicalExamDayFindings(BaseModel):
 class HpiTemplate(BaseModel):
     """HPI (history of present illness) template parameters."""
 
+    model_config = ConfigDict(extra="forbid")
+
     onset_pattern: dict[str, str] = Field(default_factory=dict)  # mild/moderate/severe → text
     trigger_options: list[str] = Field(default_factory=list)
 
 
 class DischargeInstructions(BaseModel):
     """Discharge instruction texts keyed by language (``en`` / ``ja``)."""
+
+    model_config = ConfigDict(extra="forbid")
 
     follow_up: dict[str, str] = Field(default_factory=dict)
     activity: dict[str, str] = Field(default_factory=dict)
@@ -483,6 +491,8 @@ class NarrativeSpec(BaseModel):
     fallback) can consume either uniformly.
     """
 
+    model_config = ConfigDict(extra="forbid")
+
     hpi_template: HpiTemplate = Field(default_factory=HpiTemplate)
     physical_exam_findings: dict[str, dict[str, PhysicalExamDayFindings]] = Field(default_factory=dict)
     discharge_instructions: DischargeInstructions = Field(default_factory=DischargeInstructions)
@@ -491,6 +501,8 @@ class NarrativeSpec(BaseModel):
 
 class DailyTrajectoryEntry(BaseModel):
     """SOAP-structured clinical note entry for a single inpatient day."""
+
+    model_config = ConfigDict(extra="forbid")
 
     subjective: str = ""
     objective: str = ""
@@ -505,6 +517,8 @@ class ImagingOrderSpec(BaseModel):
     The imaging enricher (Task 4) uses ``abnormal_rate_by_severity`` to sample
     whether the study is normal or abnormal and pick an impression template.
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     modality: str
     body_site: str

@@ -71,7 +71,7 @@ def _registered(system: str, code: str, file: str, field: str, authority: str) -
 
 
 class _HaiOrganism(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     snomed: str
     weight: float = 0.0
@@ -107,7 +107,7 @@ class HaiOrganisms(BaseModel):
     SNOMED codes and non-negative weights of positive sum (the precondition of
     ``normalize_probabilities(fallback="raise")``) for exactly the HAI_TYPES."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     hai_organisms: dict[str, list[_HaiOrganism]]
 
@@ -144,7 +144,7 @@ class HaiOrganisms(BaseModel):
 
 
 class _HaiRate(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     per_day_risk: Any
     source_device_type: Any = ""
@@ -178,7 +178,7 @@ class HaiRates(BaseModel):
     """Shape of hai_rates.yaml: for exactly the HAI_TYPES, a per-day risk in
     [0, 1] and a source device type from devices.yaml (the authority)."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     hai_rates: dict[str, _HaiRate]
 
@@ -201,7 +201,7 @@ class HaiRates(BaseModel):
 
 
 class _HaiCode(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     icd10_us_billable: Any = ""
     snomed: Any = ""
@@ -234,7 +234,7 @@ class HaiCodes(BaseModel):
     (whose JP crosswalk code is a WHO ICD-10 code) and a SNOMED code, all
     registered in clinosim/codes/data."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     hai_codes: dict[str, _HaiCode]
 
@@ -257,8 +257,10 @@ class HaiCodes(BaseModel):
 
 
 class _HaiSpecimen(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
+    # Microbiology specimen key (microbiology.yaml ``specimens``) of the culture.
+    specimen: str
     specimen_snomed: Any = ""
     test_loinc: Any = ""
 
@@ -278,7 +280,7 @@ class HaiSpecimens(BaseModel):
     """Shape of hai_specimens.yaml: for exactly the HAI_TYPES, a specimen
     SNOMED code and a culture LOINC code registered in clinosim/codes/data."""
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     hai_specimens: dict[str, _HaiSpecimen]
 
