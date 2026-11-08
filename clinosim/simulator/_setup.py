@@ -146,6 +146,10 @@ def _activate_cached_person(
     """
     key = (person.person_id, as_of_year)
     if key not in patient_cache:
+        # Issue #2867: a code added mid-year is first named by this year's
+        # profile, so its onset must fall before this year.
+        if as_of_year is not None:
+            person.note_chronic_conditions(as_of_year)
         act_rng = derive_phase_rng(master_seed, PHASE_INPATIENT_SIM, f"activate|{person.person_id}")
         patient = activate_patient(person, act_rng, demo, as_of_year=as_of_year)
         # One ledger per person across the per-year profiles (Issue #2862).

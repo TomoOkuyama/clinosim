@@ -64,6 +64,16 @@ class PersonRecord:
     phone_home: str = ""
     phone_mobile: str = ""
     chronic_conditions: list[str] = field(default_factory=list)
+    # Issue #2867: when each chronic code is first on the problem list.
+    # ``chronic_tracked_from`` is the first simulated year the yearly aging
+    # pass saw this person (``None`` outside a simulation run);
+    # ``chronic_first_year[code]`` is the first simulated year the code was
+    # on ``chronic_conditions`` (at a year boundary or at the person's first
+    # activation in that year). A code first seen after
+    # ``chronic_tracked_from`` is incident during the run; the activator
+    # dates its onset before that year so no visit precedes it.
+    chronic_tracked_from: int | None = None
+    chronic_first_year: dict[str, int] = field(default_factory=dict)
     current_medications: list[HomeMedication] = field(default_factory=list)  # active medications (see #452)
     # Occupation category (drives work-related injury risk); see PatientProfile.occupation
     occupation: str = "other"
@@ -235,6 +245,12 @@ class PersonRecord:
         """True when the person is in the population on any day of ``[start, end]``."""
         first = max(start, self.enrolled_from or self.date_of_birth, self.date_of_birth)
         return first <= end and self.is_alive_at(first)
+
+    def note_chronic_conditions(self, year: int) -> None:
+        """Record ``year`` as the first simulated year of every chronic code
+        not yet recorded (Issue #2867). Draws nothing."""
+        for code in self.chronic_conditions:
+            self.chronic_first_year.setdefault(code, year)
 
     def is_alive_at(self, when: date) -> bool:
         """Return True if the person is alive at ``when`` (Issue #1114 C11g-2).
