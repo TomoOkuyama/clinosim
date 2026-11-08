@@ -149,11 +149,12 @@ nka:
 # ---------------------------------------------------------------------------
 polyallergy:
   # Base conditional probability that a patient with ≥1 allergen has ≥1 more.
-  # Bucketed by age at simulation time.
+  # Keyed by age band at simulation time (read through clinosim.age_bands;
+  # the bands must cover every age once, the last one open-ended).
   probability_given_any_allergy:
-    child: 0.10        # < 18
-    adult: 0.25        # 18-64
-    elderly: 0.55      # >= 65
+    "0-17": 0.10
+    "18-64": 0.25
+    "65+": 0.55
   # Additive multiplier if the patient carries chronic illness that pushes
   # them into cancer / immunocompromised territory (many drug exposures →
   # more sensitizations). Applied on top of the age bucket, capped at 0.85.
