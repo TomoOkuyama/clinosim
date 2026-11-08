@@ -248,6 +248,9 @@ def register_newborn(
         address_line=address.line1,
         phone_home=contact.phone_home,
         phone_mobile="",  # newborns do not have a mobile line
+        guardian_contact_name=contact.emergency_contact_name,
+        guardian_contact_phone=contact.emergency_contact_phone,
+        guardian_contact_relationship=contact.emergency_contact_relationship,
         # Perinatal conditions sampled in `simulator/perinatal.py`
         # (`_sample_newborn_conditions`) land on `newborn.chronic_conditions`
         # as `ChronicCondition` objects; mirror their ICD codes here so

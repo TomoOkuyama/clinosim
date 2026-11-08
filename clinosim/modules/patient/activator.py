@@ -739,7 +739,15 @@ def activate_patient(
     emergency_name = ""
     emergency_phone = ""
     emergency_rel = ""
-    if age >= MARITAL_STATUS_ADULT_AGE_MIN:
+    guardian_name = str(getattr(person, "guardian_contact_name", "") or "")
+    guardian_phone = str(getattr(person, "guardian_contact_phone", "") or "")
+    if age < MARITAL_STATUS_ADULT_AGE_MIN and (guardian_name or guardian_phone):
+        # A child born in the simulation keeps its mother as the emergency
+        # contact on every activation (Issue #2880); no draw is consumed.
+        emergency_name = guardian_name
+        emergency_phone = guardian_phone
+        emergency_rel = str(getattr(person, "guardian_contact_relationship", "") or "")
+    elif age >= MARITAL_STATUS_ADULT_AGE_MIN:
         # Reuse home phone as a household contact for spouse/family
         emergency_phone = phone_home or phone_mobile
         if age >= EMERGENCY_CONTACT_ELDERLY_AGE_MIN:

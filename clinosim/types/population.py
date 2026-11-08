@@ -63,6 +63,12 @@ class PersonRecord:
     address_line: str = ""
     phone_home: str = ""
     phone_mobile: str = ""
+    # Guardian of a child born in the simulation (the mother), kept on the
+    # long-lived record so every later activation of the child carries the
+    # same emergency contact (Issue #2880).
+    guardian_contact_name: str = ""
+    guardian_contact_phone: str = ""
+    guardian_contact_relationship: str = ""
     chronic_conditions: list[str] = field(default_factory=list)
     current_medications: list[HomeMedication] = field(default_factory=list)  # active medications (see #452)
     # Occupation category (drives work-related injury risk); see PatientProfile.occupation
