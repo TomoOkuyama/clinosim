@@ -311,6 +311,11 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
             re.IGNORECASE,
         )
     if not m:
+        # Issue #2861: a combination strength ("875/125mg", "160/800mg") is one
+        # tablet of two ingredients; the dose is the first ingredient's amount
+        # (the plain pattern below would take the second number).
+        m = re.search(r"(\d+(?:\.\d+)?)\s*/\s*\d+(?:\.\d+)?\s*(mg|g|mcg|ug)\b", s, re.IGNORECASE)
+    if not m:
         m = re.search(r"(\d+(?:\.\d+)?)\s*(mg|g|mcg|ug|mL|ml|L|IU|U|unit|units|%)", s, re.IGNORECASE)
     if m:
         try:
