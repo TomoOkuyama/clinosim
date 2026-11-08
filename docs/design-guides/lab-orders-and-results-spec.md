@@ -24,6 +24,7 @@ Related specs, linked rather than restated:
 | Every encounter kind takes true lab values from one function, with the patient's sex, age, diabetes and dyslipidemia (value sets), longitudinal HbA1c of the year and the scenario + medication flags: inpatient daily loop, ED, outpatient, unknown condition, medication monitoring. | `simulator/lab_pipeline.py::patient_true_labs` (over `physiology/engine.py::derive_lab_values`) | `tests/unit/test_lab_spec_guards.py::test_true_lab_values_only_through_patient_true_labs`, `tests/unit/modules/monitoring/test_monitoring_true_labs_2735.py` |
 | An analyte physiology does not model falls back to its reference normal (`baseline_normals`). | `observation/engine.py::BASELINE_LAB_NORMALS` | `tests/unit/test_phosphate_magnesium_co2_2687.py` |
 | Whether a patient is on warfarin is decided once and drives the INR value, its flag and its therapeutic range. | `observation/engine.py` (`medications_in_effect`, `therapeutic_range`), `physiology/engine.py::medication_flags_from_context` | `tests/unit/test_warfarin_status_2293.py` |
+| Troponin I without an acute coronary syndrome stays normal for a healthy adult (the age-reduced reserve alone does not lift it); chronic elevation comes from heart failure, CKD stage 4-5 and very old age, and only the ACS flag gives MI-level values. | `physiology/engine.py::_add_cardiac_labs`, `physiology/_lab_derivation_thresholds.py` (`TROPONIN_*`) | `tests/unit/test_troponin_chronic_calibration_2903.py`, `tests/unit/test_blood_markers.py` |
 
 ## 3. Identity and panels
 
