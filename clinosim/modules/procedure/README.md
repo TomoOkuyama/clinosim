@@ -13,12 +13,12 @@ Owns per-encounter procedure emission for three families:
    physiology deltas the caller applies.
 2. **Bedside procedures** (`generate_bedside_procedures`) —
    disease/condition-matched procedures from `_PROCEDURE_RULES`
-   (e.g. urinary catheter, central / arterial line, LP,
+   (the `bedside_rules` of `reference_data/procedure_rules.yaml`; e.g. urinary catheter, central / arterial line, LP,
    thoracentesis, paracentesis, NG tube, chest tube, cardioversion,
    transfusion, acute dialysis, ECG, IV line, splint / closed
    reduction, wound care, oxygen therapy) with severity-scaled base
    probability + sampled post-admission time offset. A separate
-   `_ISSUE939_PROCEDURE_RULES` table (PCI, pacemaker, craniotomy,
+   `_ISSUE939_PROCEDURE_RULES` table (the yaml's `isolated_rules`; PCI, pacemaker, craniotomy,
    ileus tube, bowel resection; Issue #939) draws from its own
    per-(encounter, procedure) sub-RNG.
 3. **Post-op rehabilitation** (`generate_rehab_sessions`) — daily
@@ -104,8 +104,10 @@ Internal `ProcedureMeta` in `engine.py` carries the per-procedure
 SNOMED `category_code` + `body_site_code`, loaded (with the outcome
 and complication SNOMED codes) from
 [`clinosim/codes/data/procedure-snomed-metadata.yaml`](../../codes/data/procedure-snomed-metadata.yaml).
-CPT / K-code / names / anesthesia per bedside procedure live in the
-`_BEDSIDE_PROCEDURES` table in `engine.py`.
+CPT / K-code / names / anesthesia per bedside procedure come from the
+procedure catalog (`clinosim.codes.procedures.bedside_procedures()`
+over `codes/data/clinosim-procedure-catalog.yaml`, Issue #2263) and are
+projected into the `_BEDSIDE_PROCEDURES` tuple list in `engine.py`.
 
 ## Determinism
 
@@ -123,6 +125,10 @@ CPT / K-code / names / anesthesia per bedside procedure live in the
 ## Dependencies
 
 - `clinosim.modules._shared` — `is_jp`.
+- `clinosim.codes` — `data_table` (`procedure-snomed-metadata`);
+  `clinosim.codes.procedures.bedside_procedures` (procedure catalog).
+- `clinosim.datafiles` — `load_data_yaml` (`procedure_rules.yaml`);
+  `clinosim.locale.loader.load_code_mapping`.
 - `clinosim.determinism` + `clinosim.seeding.issue939_procedure_seed`
   — isolated sub-RNG for the Issue #939 rules.
 - `clinosim.modules.procedure._bedside_thresholds` — bedside
@@ -134,15 +140,15 @@ CPT / K-code / names / anesthesia per bedside procedure live in the
   timing, duration / EBL defaults, ASA, intra-op complication and
   state-impact constants (Issue #637).
 - `clinosim.types.procedure` — `ProcedureRecord`, `RehabSession`.
-- `numpy`, `yaml`.
+- `numpy`, `pydantic` (`_Rule`, `_ProcedureRulesConfig`).
 
 ## Constants and configuration
 
 - **Bedside thresholds** ([`_bedside_thresholds.py`](_bedside_thresholds.py),
   Issue #637): severity multipliers for probability scaling,
   post-admission hour-offset (floor + exponential mean), and
-  duration (floor / mean / SD). Per-procedure base probabilities sit
-  in `_PROCEDURE_RULES` / `_ISSUE939_PROCEDURE_RULES` in `engine.py`.
+  duration (floor / mean / SD). Per-procedure base probabilities are
+  data: see `reference_data/procedure_rules.yaml` below.
 - **Rehab thresholds** ([`_rehab_thresholds.py`](_rehab_thresholds.py),
   Issue #637): start POD, session hour, JP / US session duration,
   skip-day probability, phase cutoffs (early ≤ POD 3 / mid ≤ POD 14 /
@@ -154,8 +160,17 @@ CPT / K-code / names / anesthesia per bedside procedure live in the
   spinal-anesthesia probability, ASA class thresholds, intra-op
   complication probabilities, hip-fracture procedure split,
   post-op state-impact deltas.
-- **No `reference_data/`** — the module reads the disease protocol
-  passed in and the SNOMED metadata yaml under `clinosim/codes/data/`.
+- **Procedure rules** ([`reference_data/procedure_rules.yaml`](reference_data/procedure_rules.yaml),
+  Issue #2525): `bedside_rules` (drawn from the encounter RNG →
+  `_PROCEDURE_RULES`) and `isolated_rules` (drawn from
+  `issue939_procedure_seed` → `_ISSUE939_PROCEDURE_RULES`), each a list
+  of `{diseases, procedures: {type: base probability}}`. Loaded by
+  `_load_procedure_rules` and validated by the `_ProcedureRulesConfig` /
+  `_Rule` Pydantic models (known disease / ED-condition ids, known
+  procedure types, probabilities in `[0, 1]`). Rule order is
+  load-bearing (draw order).
+- The module also reads the disease protocol passed in, the SNOMED
+  metadata yaml and the procedure catalog under `clinosim/codes/data/`.
 
 ## Directory contents
 
@@ -166,11 +181,12 @@ clinosim/modules/procedure/
   _bedside_thresholds.py             bedside proc probability + timing (Issue #637)
   _rehab_thresholds.py               rehab session shape + pain model (Issue #637)
   _surgery_thresholds.py             surgery timing / duration / state-impact (Issue #637)
+  reference_data/
+    procedure_rules.yaml             bedside_rules + isolated_rules (disease → procedure base probability, Issue #2525)
   SPEC.md                            extended design reference (not runtime)
 ```
 
-The module has **no `enricher.py`, no `audit.py`, no
-`reference_data/`**.
+The module has **no `enricher.py` and no `audit.py`**.
 
 ## Enricher wiring
 

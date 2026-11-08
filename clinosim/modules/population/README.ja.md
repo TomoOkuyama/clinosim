@@ -272,8 +272,14 @@ population marginal は `base_prev` に収束し、multiplier は「どの患者
   - `_population_workflow_thresholds.py`: 月次 event 日 jitter、
     慢性 visit + screening スケジュール、`LEGAL_ADULT_AGE`、
     unknown-condition サンプリング、`PRIOR_HOSPITALIZATION_RECURRENCE_MULTIPLIER`。
-- **locale-driven data** (本モジュールには `reference_data/` 無し —
-  データ相当は全て `clinosim/locale/` 下):
+- **モジュール reference data**:
+  [`reference_data/anthropometric_reference.yaml`](reference_data/anthropometric_reference.yaml)
+  — 小児の身長 / BMI 成長曲線中央値 (US は CDC、JP は MHLW / MEXT)。
+  `_pediatric_anthropometry.load_anthropometric_reference` が load し
+  `_AnthropometricReference` Pydantic model で検証。FHIR の体格
+  Observation emit も同じ file を読む。
+- **locale-driven data** (それ以外のデータ相当は全て
+  `clinosim/locale/` 下):
   - `demographics.yaml` — 年齢分布、性比、慢性 prevalence (任意
     `sex` filter)、疾患 incidence、季節 modifier、疾患リスク乗数、
     lifestyle リスク乗数、unknown-condition pattern。
@@ -312,11 +318,13 @@ clinosim/modules/population/
   _household_thresholds.py             世帯 / 住所 / 電話 / 命名 default
   _population_thresholds.py            体格 + lifestyle + care-seeking default
   _population_workflow_thresholds.py   screening / 慢性 visit / event 日 スケジュール
+  reference_data/
+    anthropometric_reference.yaml      小児成長曲線中央値 (_AnthropometricReference で検証)
   SPEC.md                              拡張設計参考 (runtime data ではない)
 ```
 
-**`reference_data/` / `enricher.py` / `audit.py` は存在しない** —
-data source は locale YAML、pipeline 頭は
+**`enricher.py` / `audit.py` は存在しない** —
+data source は locale YAML と `reference_data/anthropometric_reference.yaml`、pipeline 頭は
 `register_builtin_enrichers` ではなく simulator が直接呼ぶ。
 
 ## Enricher 配線

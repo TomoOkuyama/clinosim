@@ -33,7 +33,7 @@ from clinosim.modules.metabolic import (
 - **軸 1**: E66 階層は BMI の純粋関数 (`_derive_e66_code`)。BMI 該当者が実際にコードを付与されるかは per-person SHA Bernoulli (`_is_e66_icd_coded`、salt `metabolic.e66.icd_coding.v1`、E66.3 は `_E66_ICD_CODING_RATE_OVERWEIGHT = 0.20`、E66.9 / E66.01 は `_E66_ICD_CODING_RATE_OBESITY = 0.65` — Issue #1773 実 EHR コーディング率)。RNG-neutral — マスターストリーム消費なし。
 - **軸 2**: BMI + chronic-condition set の純粋決定論的関数。RNG 消費ゼロ。E88.81 4 要素 AND を満たさない chronic-condition set を持つコホートについてバイト同一性を保持。
 - **軸 3-4**: `clinosim.determinism.sha_bernoulli` による SHA-256 per-person Bernoulli。各 enricher は `<module salt>|<person_id>` を 64-bit 分位点にハッシュし、BMI (+ DM / 性別) で重み付けた確率と比較。**RNG-neutral — マスターシミュレーションストリームを一切消費しない**ので、閾値を跨がないコホートではバイト同一性保持。別 salt (`metabolic.nafld.v1` vs `metabolic.osa.v1`) により同一患者の NAFLD / OSA 割り当ては完全相関ではなく統計的独立。
-- **軸 5**: chronic-medications activator パイプラインが提供し、共有 per-patient sub-RNG を使用。上流で `ENRICHER_SEED_OFFSETS["chronic_medications"]` に支配されており本モジュールは独自の sub-seed を登録しない。
+- **軸 5**: chronic-medications activator パイプラインが提供し、共有 per-patient sub-RNG を使用。この draw は `ENRICHER_SEED_OFFSETS` エントリではなく `clinosim.seeding.chronic_medication_seed(patient_id)` (`patient/activator.py::_derive_home_medications` から呼出) で患者ごとに seed され、本モジュールは独自の sub-seed を登録しない。
 
 軸 1-4 で `ENRICHER_SEED_OFFSETS` エントリは不要 (SHA ベースまたは RNG-free)。
 
@@ -41,7 +41,7 @@ from clinosim.modules.metabolic import (
 
 - `clinosim.types.population.PersonRecord` — `.bmi`, `.sex`, `.person_id` を読み `.chronic_conditions` を変更。
 - `clinosim.determinism.sha_bernoulli` — 軸 1 coding コインと軸 3 / 4 draw 用の SHA-256 per-person Bernoulli。
-- `clinosim.codes.has_icd_prefix` — chronic-condition リストの ICD prefix 照合。
+- `clinosim.codes.valuesets` — `has_icd_prefix` (chronic-condition リストの ICD prefix 照合)、`concept_group`、`iter_chronic_codes`。
 - `clinosim.modules.population` — WHO BMI 階層定数 (`BMI_OVERWEIGHT_THRESHOLD`, `BMI_OBESE_THRESHOLD`, `BMI_MORBID_OBESITY_THRESHOLD`、定義は `population/_population_thresholds.py`)。
 - 下流で軸 5 は `clinosim.modules.patient.activator` が patient activation 時に yaml エントリを読む点に依存。
 

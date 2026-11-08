@@ -50,7 +50,12 @@ ServiceRequest.
   `replay_order_to_state` (F4 cache-hit queue replay, used by
   `simulator/_dispatch.py`); `enrich_discontinue_flip`
   (`discontinue_flip.py`, the POST_ENCOUNTER enricher that flips the
-  original order of a `DISCONTINUE: X` marker to `STOPPED`); `classify_lab_specs` + `load_panel_definitions` +
+  original order of a `DISCONTINUE: X` marker to `STOPPED`);
+  `enrich_supersede_orders` (`supersede.py`, the POST_ENCOUNTER
+  enricher that stops an earlier medication order superseded by a
+  newer one); `prescription_closures` (`prescription_supersede.py`);
+  the placed-order MAR helpers (`placed_order_mar.py`); weight- /
+  BSA-based dose amounts (`absolute_dose.py`); `classify_lab_specs` + `load_panel_definitions` +
   `PANEL_PRIORITY_ORDER` (`("ABG", "CBC", "BMP", "LFT", "Lipid",
   "Coag", "UA", "Checkup")`); the three `classify_*` treatment
   classifiers.
@@ -97,7 +102,7 @@ from clinosim.modules.order import (
 
 # Order engine (imported directly by each simulator)
 from clinosim.modules.order.engine import (
-    place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None) -> list[Order]
+    place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None, patient_weight_kg=None) -> list[Order]
     place_daily_lab_orders,             # (protocol, patient_id, encounter_id, day_number, order_time, lab_frequency_multiplier, rng, ordered_by="") -> list[Order]
     place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter) -> list[Order]
     enrich_medication_order,            # (order, dose_str="") -> Order
@@ -116,8 +121,30 @@ from clinosim.modules.order.treatment_classifier import (
     classify_escalation_treatment,      # (esc_drug: object) -> OrderType
 )
 
-# POST_ENCOUNTER enricher (registered in simulator/enrichers.py)
+# POST_ENCOUNTER enrichers (registered in simulator/enrichers.py)
 from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (ctx) -> None
+from clinosim.modules.order.supersede import (
+    enrich_supersede_orders,            # (ctx) -> None
+    supersede_orders,                   # (orders, administrations) -> kept administrations (stops orders in place)
+    close_orders_at_discharge,          # (encounters, orders, administrations) -> None
+)
+
+# Weight- / BSA-based dose amounts (Issue #2750)
+from clinosim.modules.order.absolute_dose import (
+    absolute_dose,                      # (value, unit, height_cm, weight_kg) -> (amount, unit) | None
+    body_surface_area,                  # (height_cm, weight_kg) -> m2 (Mosteller)
+    is_continuous_infusion,             # (frequency, name="") -> bool
+)
+
+# Administrations for orders placed outside the daily MAR loop (Issue #2607), RNG-free
+from clinosim.modules.order.placed_order_mar import (
+    daily_times,                        # (start, end, hour) -> list[datetime]
+    stable_nurse,                       # (roster, key, *, ward="", department="") -> staff_id
+    administrations_for,                # (order, times, nurse_id) -> list[MedicationAdministration]
+)
+
+# Take-home prescription renewals, computed at FHIR export (Issue #2610)
+from clinosim.modules.order.prescription_supersede import prescription_closures  # (records, run_end) -> {(encounter_id, seq): Closure}
 ```
 
 ## Determinism
@@ -132,8 +159,10 @@ from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (
 - No sub-seed offset of this module's own in
   `ENRICHER_SEED_OFFSETS`; order construction is called imperatively
   by the encounter simulators, which pass their per-encounter RNG.
-  The `discontinue_flip` enricher is RNG-free (it only mutates
-  `record.orders` statuses).
+  The `discontinue_flip` and `supersede_orders` enrichers are
+  RNG-free (they mutate order statuses / drop later MAR entries after
+  the daily loop has finished), and `placed_order_mar.stable_nurse`
+  picks a nurse from a key hash, not an RNG.
 - Panel-priority classification is deterministic (dict lookup with
   the pinned `PANEL_PRIORITY_ORDER` tuple).
 
@@ -141,6 +170,19 @@ from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (
 
 - `clinosim.modules._shared` — `get_attr_or_key` (engine) and
   `MED_STOP_ORDER_ID_MARKER` (`discontinue_flip.py`).
+- `clinosim.codes.drugs` — `drug_ref`, `get_drug`,
+  `protocol_drug_name`, `jp_drug_code_for_name` (engine,
+  `supersede.py`, `prescription_supersede.py`);
+  `clinosim.codes.display`.
+- `clinosim.datafiles` — `load_validated_yaml` (panel YAML),
+  `load_data_yaml` (`medication_supersede.yaml`).
+- `clinosim.locale` — `i18n.t`, `localized.language_slot`,
+  `loader.load_frequency_tokens` / `load_narrative_archetypes` /
+  `resolve_localized_display`.
+- `clinosim.modules.drug_safety.verdict` (engine) and
+  `clinosim.simulator.helpers._determine_route`.
+- `clinosim.modules.staff.engine` — `scoped_nurses`
+  (`placed_order_mar.stable_nurse`).
 - `clinosim.modules.imaging.engine` — `load_modalities`,
   `load_body_sites`, `_resolve_imaging_procedure_code_key` for
   `place_imaging_orders`.
@@ -155,8 +197,9 @@ from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (
 - `clinosim.audit.registry` (via `audit.py`) — AD-60 audit
   registration; `audit.py` also imports the ServiceRequest builder
   and constants from `output/fhir_r4/labs/service_request.py`.
-- `clinosim.types.encounter` — `Order`, `OrderType`, `OrderStatus`.
-- `numpy`, `yaml`.
+- `clinosim.types.encounter` — `Order`, `OrderType`, `OrderStatus`,
+  `MedicationAdministration`.
+- `numpy`, `pydantic`.
 
 ## Constants and configuration
 
@@ -198,19 +241,24 @@ clinosim/modules/order/
   panel_grouping.py                  classify_lab_specs + load_panel_definitions + PANEL_PRIORITY_ORDER
   treatment_classifier.py            classify_{encounter,inpatient,escalation}_* keyword tables
   discontinue_flip.py                POST_ENCOUNTER enricher: DISCONTINUE marker → original order STOPPED (Issue #1346)
+  supersede.py                       POST_ENCOUNTER enricher: a newer order for the same drug / a listed class switch stops the earlier one (Issue #2615)
+  prescription_supersede.py          prescription_closures — renewal / supply-end closure of take-home prescriptions at FHIR export (Issue #2610)
+  placed_order_mar.py                daily_times + stable_nurse + administrations_for — RNG-free MAR for orders placed outside the daily loop (Issue #2607)
+  absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion — per-kg / per-m2 dose amounts (Issue #2750)
   audit.py                           AD-60 audit plug-in (per-module) — 7-check lift_firing_proof + basedon_coverage
   _lab_result_timing.py              STAT / routine / night-shift constants (Issue #637)
   _imaging_result_timing.py          scheduling + reporting delay constants (Issue #637)
   _order_placement_timing.py         placement offset constants (Issue #637)
   _state_delay_thresholds.py         hospital-state delay constants (Issue #637)
   reference_data/
+    medication_supersede.yaml        class switches + PRN markers read by supersede.py (Issue #2615)
   SPEC.md                            extended design reference (not runtime)
 ```
 
 The module has **no `enricher.py`** — order placement is called
 imperatively by every encounter simulator, not through
-`register_builtin_enrichers`. The one exception is
-`discontinue_flip.py` (see below).
+`register_builtin_enrichers`. The exceptions are
+`discontinue_flip.py` and `supersede.py` (see below).
 
 ## Enricher wiring
 
@@ -218,7 +266,10 @@ Order placement is not an enricher — it is called imperatively.
 `discontinue_flip.enrich_discontinue_flip` IS registered in
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) as
 `discontinue_flip` (stage `POST_ENCOUNTER`, order `91`, always
-enabled, no `ENRICHER_SEED_OFFSETS` entry because it draws no RNG).
+enabled, no `ENRICHER_SEED_OFFSETS` entry because it draws no RNG),
+and `supersede.enrich_supersede_orders` is registered as
+`supersede_orders` (stage `POST_ENCOUNTER`, order `91` — sorted by
+name after `discontinue_flip` — always enabled, RNG-free).
 The `audit.py` module is registered with the audit framework
 (`register_audit_module`) at import time under the name
 `order_service_request`, as the third AD-60 per-module plug-in.

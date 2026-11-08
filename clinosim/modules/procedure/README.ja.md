@@ -11,12 +11,12 @@ encounter 単位の procedure emission を 3 家族に対して所有:
    持つ `(ProcedureRecord, state_impacts)` を返す。`state_impacts` は
    呼び出し側が適用する physiology delta。
 2. **Bedside 処置** (`generate_bedside_procedures`) — `_PROCEDURE_RULES`
-   で疾患 / condition に一致した処置 (例: 尿道カテーテル、中心静脈 /
+   (`reference_data/procedure_rules.yaml` の `bedside_rules`) で疾患 / condition に一致した処置 (例: 尿道カテーテル、中心静脈 /
    動脈ライン、腰椎穿刺、胸腔穿刺、腹腔穿刺、NG チューブ、胸腔
    ドレーン、除細動、輸血、緊急透析、心電図、末梢ライン、シーネ /
    非観血的整復、創処置、酸素療法) を重症度 scale の base 確率 +
    入院後時刻 offset サンプリングで発火。別表
-   `_ISSUE939_PROCEDURE_RULES` (PCI、ペースメーカー、開頭血腫除去、
+   `_ISSUE939_PROCEDURE_RULES` (yaml の `isolated_rules`。PCI、ペースメーカー、開頭血腫除去、
    イレウス管、腸切除; Issue #939) は専用の (encounter, procedure)
    別サブ RNG で draw。
 3. **術後 rehab** (`generate_rehab_sessions`) — post-op day 1 から
@@ -96,8 +96,10 @@ from clinosim.modules.procedure.engine import (
 `category_code` + `body_site_code` を持ち、outcome / 合併症の SNOMED
 code とともに
 [`clinosim/codes/data/procedure-snomed-metadata.yaml`](../../codes/data/procedure-snomed-metadata.yaml)
-から読み込む。bedside 処置ごとの CPT / K-code / 名称 / 麻酔は
-`engine.py` の `_BEDSIDE_PROCEDURES` 表。
+から読み込む。bedside 処置ごとの CPT / K-code / 名称 / 麻酔は処置
+catalog (`codes/data/clinosim-procedure-catalog.yaml` を引く
+`clinosim.codes.procedures.bedside_procedures()`、Issue #2263) 由来で、
+`engine.py` の `_BEDSIDE_PROCEDURES` tuple list に射影される。
 
 ## 決定論
 
@@ -113,6 +115,10 @@ code とともに
 ## 依存
 
 - `clinosim.modules._shared` — `is_jp`。
+- `clinosim.codes` — `data_table` (`procedure-snomed-metadata`)。
+  `clinosim.codes.procedures.bedside_procedures` (処置 catalog)。
+- `clinosim.datafiles` — `load_data_yaml` (`procedure_rules.yaml`)。
+  `clinosim.locale.loader.load_code_mapping`。
 - `clinosim.determinism` + `clinosim.seeding.issue939_procedure_seed`
   — Issue #939 規則用の隔離サブ RNG。
 - `clinosim.modules.procedure._bedside_thresholds` — bedside 処置
@@ -123,14 +129,14 @@ code とともに
 - `clinosim.modules.procedure._surgery_thresholds` — 手術 timing,
   duration / EBL 既定値, ASA, 術中合併症, state-impact 定数 (Issue #637)。
 - `clinosim.types.procedure` — `ProcedureRecord`, `RehabSession`。
-- `numpy`, `yaml`。
+- `numpy`, `pydantic` (`_Rule`, `_ProcedureRulesConfig`)。
 
 ## 定数と設定
 
 - **Bedside threshold** ([`_bedside_thresholds.py`](_bedside_thresholds.py)、
   Issue #637): 重症度 multiplier、入院後時刻 offset (floor + 指数分布
-  平均)、duration (floor / mean / SD)。処置ごとの base 確率は
-  `engine.py` の `_PROCEDURE_RULES` / `_ISSUE939_PROCEDURE_RULES`。
+  平均)、duration (floor / mean / SD)。処置ごとの base 確率は data
+  (下記 `reference_data/procedure_rules.yaml`)。
 - **Rehab threshold** ([`_rehab_thresholds.py`](_rehab_thresholds.py)、
   Issue #637): 開始 POD、session 時刻、JP / US session 時間、skip-day
   確率、phase cutoff (early ≤ POD 3 / mid ≤ POD 14 / late)、疼痛
@@ -140,8 +146,16 @@ code とともに
   既定値 (protocol の `procedure` block が上書き)、脊椎麻酔確率、ASA
   class 閾値、術中合併症確率、大腿骨骨折術式の配分、術後 state-impact
   delta。
-- **`reference_data/` は無い** — 本モジュールは渡された disease
-  protocol と `clinosim/codes/data/` の SNOMED metadata yaml を読む。
+- **処置 rule** ([`reference_data/procedure_rules.yaml`](reference_data/procedure_rules.yaml)、
+  Issue #2525): `bedside_rules` (encounter RNG から draw →
+  `_PROCEDURE_RULES`) と `isolated_rules` (`issue939_procedure_seed`
+  から draw → `_ISSUE939_PROCEDURE_RULES`)。各 rule は
+  `{diseases, procedures: {type: base 確率}}`。`_load_procedure_rules`
+  が load し、`_ProcedureRulesConfig` / `_Rule` Pydantic model で検証
+  (既知の疾患 / ED condition id、既知の処置 type、確率は `[0, 1]`)。
+  rule 順序は draw 順なので load-bearing。
+- 本モジュールは他に、渡された disease protocol と
+  `clinosim/codes/data/` の SNOMED metadata yaml・処置 catalog を読む。
 
 ## ディレクトリ構造
 
@@ -152,10 +166,12 @@ clinosim/modules/procedure/
   _bedside_thresholds.py             bedside 処置確率 + timing (Issue #637)
   _rehab_thresholds.py               rehab session shape + 疼痛モデル (Issue #637)
   _surgery_thresholds.py             surgery timing / duration / state-impact (Issue #637)
+  reference_data/
+    procedure_rules.yaml             bedside_rules + isolated_rules (疾患 → 処置 base 確率、Issue #2525)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 
-**`enricher.py` / `audit.py` / `reference_data/` は存在しない**。
+**`enricher.py` / `audit.py` は存在しない**。
 
 ## Enricher 配線
 

@@ -15,12 +15,16 @@ Two orthogonal validators applied to a generated cohort:
   `anemia_level`), deceased status vs disposition, lab value ranges,
   medication holds (anticoagulant in ICH, metformin in DKA / sepsis /
   pancreatitis / AKI), surgery code / approach fields, LOS
-  consistency, vital ranges, sex-specific conditions.
+  consistency, vital ranges, sex-specific conditions, and the
+  ground-truth namespace (every `ground_truth_diseases` value has a
+  declared kind, Issue #2291).
 
-The only in-repo caller is the e2e test (see Output surfaces); the
-`clinosim validate` CLI subcommand runs its own checks
-(`simulator/cli_common._run_quality_checks`) and does not call this
-module. Validators report only — they do not fix issues.
+In-repo callers: the `clinosim validate` CLI subcommand
+(`simulator/cli_validate.run`), which runs its own quality checks
+(`simulator/cli_common._run_quality_checks`) and then
+`run_consistency_checks` (Issue #2208), and the e2e test that runs
+`run_benchmarks` (see Output surfaces). Validators report only — they
+do not fix issues.
 
 ## Scope
 
@@ -30,11 +34,11 @@ module. Validators report only — they do not fix issues.
   deviation %); `run_consistency_checks(dataset, country="US") -> ConsistencyReport`
   (`country` is currently unused)
   with per-issue `ConsistencyIssue` (`error` / `warning` severity);
-  eight private consistency helpers (`_check_discharge_hgb`,
+  nine private consistency helpers (`_check_discharge_hgb`,
   `_check_deceased_status`, `_check_lab_ranges`,
   `_check_medication_holds`, `_check_procedure_fields`,
   `_check_los_consistency`, `_check_vital_ranges`,
-  `_check_sex_specific_conditions`).
+  `_check_sex_specific_conditions`, `_check_ground_truth_namespace`).
 - **Out of scope**: PR-time module gating (that is
   [`clinosim.audit`](../../audit/README.md) — the AD-60 audit
   framework with per-module plug-ins); downstream cohort scoring
@@ -43,8 +47,8 @@ module. Validators report only — they do not fix issues.
 
 ## Public API
 
-`__init__.py` is empty; consumers import directly from the two
-submodules:
+`__init__.py` is empty (no `__all__`); consumers import directly
+from the two submodules:
 
 ```python
 from clinosim.modules.validator.benchmarks import (
@@ -76,6 +80,13 @@ reports.
   (benchmarks).
 - `clinosim.simulator.complications` — `complication_names`
   (consistency metformin-hold check).
+- `clinosim.simulator.event_refs` — `event_ref_kind`
+  (ground-truth namespace check).
+- `clinosim.modules.observation.engine` — `PHYSIOLOGIC_LIMITS`,
+  `canonical_lab_name` (lab / vital range checks).
+- `clinosim.codes.drugs` — `has_drug` (medication holds);
+  `clinosim.codes.snomed_concepts` — `SURGICAL_PROCEDURE`
+  (procedure-field check).
 - `clinosim.types.output` — `CIFDataset`, `CIFPatientRecord`.
 - Otherwise standard library only (no `numpy` / `yaml`).
 
@@ -94,7 +105,7 @@ reports.
 clinosim/modules/validator/
   __init__.py                    empty
   benchmarks.py                  BenchmarkResult / BenchmarkReport / run_benchmarks
-  consistency.py                 ConsistencyIssue / ConsistencyReport / run_consistency_checks + 8 helpers
+  consistency.py                 ConsistencyIssue / ConsistencyReport / run_consistency_checks + 9 helpers
   SPEC.md                        extended design reference (not runtime)
 ```
 
@@ -103,8 +114,8 @@ The module has **no `audit.py`, no `enricher.py`, no
 
 ## Enricher wiring
 
-Not applicable — this module is imported directly by its caller
-(currently only `tests/e2e/test_beta.py`), not registered with
+Not applicable — this module is imported directly by its callers
+(`simulator/cli_validate.py` and `tests/e2e/test_beta.py`), not registered with
 `register_builtin_enrichers`. It has no seed offset in
 `ENRICHER_SEED_OFFSETS`.
 
@@ -112,6 +123,7 @@ Not applicable — this module is imported directly by its caller
 
 | Consumer | Where | Role |
 |---|---|---|
+| `clinosim validate` CLI | [`clinosim/simulator/cli_validate.py`](../../simulator/cli_validate.py) (`run`) | Runs `run_consistency_checks` on the generated cohort and prints `ConsistencyReport.summary()`. |
 | E2E test | [`tests/e2e/test_beta.py`](../../../tests/e2e/test_beta.py) | Runs `run_benchmarks` on a real cohort to guard the realism envelope end-to-end. |
 
 ## Testing
@@ -120,8 +132,10 @@ Not applicable — this module is imported directly by its caller
 pytest tests/e2e -k test_beta -q     # runs run_benchmarks on a real cohort
 ```
 
-Coverage gap: there is no unit test for this module, and
-`run_consistency_checks` has no caller or test at all today. A per-check unit file (each of the eight
+`tests/unit/test_unused_code_cleanup_2208.py` checks that
+`clinosim validate` calls `run_consistency_checks` (with the checks
+monkeypatched). Coverage gap: the individual checks have no unit
+test. A per-check unit file (each of the nine
 `_check_*` helpers with fixture patients that trip each rule) would
 be a low-cost follow-up.
 

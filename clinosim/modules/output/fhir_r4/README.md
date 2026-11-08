@@ -37,21 +37,33 @@ adapter calls (the built-in `FhirR4Adapter` in
 
 ```python
 from clinosim.modules.output.fhir_r4 import (
-    convert_cif_to_fhir,             # (cif_dir, out_dir, country="US", narrative_version="current") -> None
+    convert_cif_to_fhir,             # (cif_dir, output_dir, country="US", narrative_version="current") -> None
     register_bundle_builder,         # (fn) — AD-56 plug-in registration
     available_builders,              # () -> list[str] of registered builder names
-    _fhir_id_is_spec_valid,          # (rid) -> bool  (guard used by tests + builders)
+)
+from clinosim.modules.output.fhir_r4.lib.context import (
+    BundleContext,                   # dataclass passed to every _bb_* builder
 )
 from clinosim.modules.output.fhir_r4.lib.common import (
-    BundleContext,                   # dataclass passed to every _bb_* builder
     entry,                           # (resource) -> Bundle entry dict
-    survey_category,                 # () -> [{coding: [...]}] survey category CodeableConcept
-    loinc_coding,                    # (code, lang) -> {system, code, display}
+    survey_category,                 # (lang) -> [{coding: [...]}] survey category CodeableConcept
+)
+from clinosim.modules.output.fhir_r4.lib.ecs_extensions import (
     build_ecs_institution_extension, # JP JP_Organization_eCS institution
     build_ecs_department_extension,
     attach_ecs_institutional_extensions,
 )
 ```
+
+`__all__` of `fhir_r4/__init__.py` is the three public names above
+plus private names re-exported from `builder.py` for tests
+(`_AFTER_DEATH_ALLOWED_RESOURCE_TYPES`,
+`_AFTER_DEATH_START_GATED_RESOURCE_TYPES`, `_BUNDLE_BUILDERS`,
+`_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES`, `_build_bundle`,
+`_drop_entries_after_death`, `_drop_entries_after_snapshot`,
+`_fhir_id_is_spec_valid` — the NDJSON-writer id guard). The `lib/`
+helper modules each declare their own `__all__`; see
+[`lib/README.md`](lib/README.md).
 
 Every `_bb_*` bundle-builder function implements the same signature:
 `_bb_<resource>(ctx: BundleContext) -> list[dict]`. The default
@@ -137,15 +149,16 @@ Domain-README files enumerate the per-family builders.
 clinosim/modules/output/fhir_r4/
   __init__.py                        thin re-export facade (public + back-compat private names)
   builder.py                         convert_cif_to_fhir + _BUNDLE_BUILDERS registry + _build_bundle + snapshot / death reconciliation + NDJSON sort
-  lib/                               shared FHIR fragment helpers (common / localization / reference_data / inline_bb / generator_metadata / ids / ed_reattribution)
+  lib/                               shared FHIR fragment helpers (common / context / dosage / ecs_extensions / fhir_time / localization / reference_data / inline_bb / generator_metadata / ids / ed_reattribution)
   demographics/                      Patient / Practitioner / FamilyMemberHistory / smoking + alcohol Observation
   encounters/                        Encounter / CareTeam / CareLevel / Location + Organization (facility) / Endpoint
   medications/                       MedicationRequest + MedicationAdministration
   labs/                              Observation (lab + vitals) / DiagnosticReport / ServiceRequest / microbiology / ImagingStudy / blood_type / anthropometrics / stage_scale_observations / _reference_ranges / coding_package + coding_strategy
-  procedures/                        Procedure / Immunization / Device + DeviceUseStatement / nursing (survey Observation) / oxygen_therapy / procedure_name_snomed (.py + .yaml)
+  procedures/                        Procedure / Immunization / Device + DeviceUseStatement / nursing (survey Observation) / oxygen_therapy
   conditions/                        Condition / AllergyIntolerance / ClinicalImpression / HAI Condition / CodeStatus (custom Observation) / primary_ref
   documents/                         Composition / DocumentReference / DocumentReference (checkup / eCheckup) / imaging_report / referral_orgs / jp_clins/ (per-document JP-CLINS section builders)
   post_process/                      bundle-level pipeline (datetime normalise / profile / specimen / strip / populate)
+  reference_data/                    FHIR-layer yaml: clinosim-drug-dosing-conventions + mhlw-ecs-non-oral-route-markers (post_process/populate.py), evaluation-orders (labs/service_request.py)
 ```
 
 ## FHIR resource → domain mapping (canonical table)

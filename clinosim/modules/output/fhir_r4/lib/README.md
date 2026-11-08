@@ -4,38 +4,55 @@
 
 Shared low-level fragment helpers imported by every clinical-domain
 builder subpackage under [`fhir_r4/`](../README.md). `common.py`,
+`context.py`, `dosage.py`, `ecs_extensions.py`, `fhir_time.py`,
 `localization.py`, `reference_data.py` and `ids.py` are the leaf
 layer — each helper produces a FHIR *fragment* (a Coding, a
-CodeableConcept, a Bundle entry, a UCUM quantity, a JP eCS
-extension) rather than a top-level resource, so resource-builder
-modules import from them without cycling back through the adapter
-facade. `inline_bb.py` is the exception: it imports builder helpers
-from the domain subpackages (see below).
+CodeableConcept, a Bundle entry, a UCUM quantity, a Dosage, a
+datetime string, a JP eCS extension) or the shared `BundleContext`
+rather than a top-level resource, so resource-builder modules import
+from them without cycling back through the adapter facade.
+`inline_bb.py` and `ed_reattribution.py` are the exceptions: they
+import builder helpers from the domain subpackages (see below).
 
 The former `_fhir_common` compat shim has been removed; import
-directly from `clinosim.modules.output.fhir_r4.lib.common` (Issue
-#545 rename).
+directly from the `lib` module that owns a helper (Issue #545
+rename).
 
 ## Scope
 
 - **In scope**:
-  - `common.py` — `BundleContext` dataclass (the read-only context
-    every `_bb_*` builder receives) + fragment helpers
-    (`system_coding`,
-    `_escape_html`, `survey_category`, `_social_category`,
-    `loinc_coding`, `to_fhir_date`, `entry`, plus many dosage /
-    route / diagnosis / datetime helpers), the eCS
-    institution / department extensions and
-    `attach_ecs_institutional_extensions`;
-    `_JST_TZ_SUFFIX = "+09:00"` / `_UTC_TZ_SUFFIX = "Z"`;
-    eCS placeholders (`_JP_ECS_INSTITUTION_PLACEHOLDER =
-    "1300000000"`, `_JP_ECS_DEPARTMENT_PLACEHOLDER = "総合診療科"`)
-    + extension URLs (`_JP_ECS_INSTITUTION_NUMBER_EXT_URL`,
-    `_JP_ECS_DEPARTMENT_EXT_URL`,
-    `_JP_ECS_INSTITUTION_ID_SYSTEM`).
-  - `localization.py` — EN / JA text localisation dispatch (also
-    handles the `_RATE_ADJUSTMENT_SUFFIX_RE` regex for lab-value
-    display normalisation).
+  - `context.py` — `BundleContext` dataclass (the read-only context
+    every `_bb_*` builder receives).
+  - `common.py` — fragment helpers: `entry`, `survey_category(lang)`,
+    `build_address`, `build_telecom`, `build_presented_form`,
+    `build_reference_range`, `build_diagnosis_codeable_concept`,
+    `iter_diagnosis_mapping_targets`, `infer_severity`,
+    `severity_coding`, `make_participant`, `map_encounter_status`,
+    plus non-exported helpers (`system_coding`, `dual_slot_concept`,
+    `display_entry`, `_escape_html`, `_social_category`).
+  - `ecs_extensions.py` — the JP-CLINS eCS institution / department
+    extensions (`build_ecs_institution_extension`,
+    `build_ecs_department_extension`,
+    `attach_ecs_institutional_extensions`); eCS placeholders
+    (`_JP_ECS_INSTITUTION_PLACEHOLDER = "1300000000"`,
+    `_JP_ECS_DEPARTMENT_PLACEHOLDER` = the JA display of the
+    `primary_care` department) + extension URLs
+    (`_JP_ECS_INSTITUTION_NUMBER_EXT_URL`,
+    `_JP_ECS_DEPARTMENT_EXT_URL`, `_JP_ECS_INSTITUTION_ID_SYSTEM`).
+  - `dosage.py` — MedicationRequest / MedicationAdministration
+    Dosage helpers (`build_dosage_instruction`, `build_route_concept`,
+    `canonicalize_route`, `augment_iv_dosage_with_rate`,
+    `resolve_iv_infusion_default`, `map_mar_status`, and the
+    re-exported `strip_protocol_prefix`).
+  - `fhir_time.py` — FHIR date / dateTime / instant formatting
+    (`to_fhir_date`, `to_fhir_datetime`, `to_fhir_instant`,
+    `tz_suffix_for_country`, `derive_meta_last_updated`) with
+    `_JST_TZ_SUFFIX = "+09:00"` / `_UTC_TZ_SUFFIX = "Z"`.
+  - `localization.py` — EN / JA text localisation dispatch
+    (`localize_drug_name`, `localize_fixed_label`, `code_lookup`,
+    and re-exports of the free-text translator, which now lives in
+    `clinosim.locale.free_text` together with the
+    `_RATE_ADJUSTMENT_SUFFIX_RE` regex).
   - `reference_data.py` — profile URIs, canonical URLs, code-system
     URLs including `_JP_CONDITION_SEVERITY_CS`.
   - `inline_bb.py` — legacy inline building-block builders that
@@ -47,8 +64,7 @@ directly from `clinosim.modules.output.fhir_r4.lib.common` (Issue
     `_bb_medication_admins`, `_bb_procedures`, `_bb_practitioners`)
     that the parent `builder.py` registers alongside the split
     builders. It imports `_build_*` helpers from the clinical-domain
-    subpackages and also carries its own copy of `_FHIR_ID_PATTERN`.
-    New builders MUST go into the clinical-domain
+    subpackages. New builders MUST go into the clinical-domain
     subpackages; do not extend `inline_bb.py`.
   - `generator_metadata.py` — sidecar `_generator_metadata.json`
     emission at cohort export time. Constants:
@@ -68,18 +84,31 @@ directly from `clinosim.modules.output.fhir_r4.lib.common` (Issue
 
 ## Public API
 
+`lib/__init__.py` is a namespace stub (`__all__ = []`); each module
+declares its own `__all__`. The most-used entry points:
+
 ```python
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext   # dataclass
 from clinosim.modules.output.fhir_r4.lib.common import (
-    BundleContext,                        # dataclass
     entry,                                # (resource) -> Bundle entry dict
-    survey_category,                      # () -> survey CodeableConcept
-    loinc_coding,                         # (code, lang) -> {system, code, display}
-    build_ecs_institution_extension,      # JP eCS institution
-    build_ecs_department_extension,
+    survey_category,                      # (lang) -> survey category CodeableConcept list
+)
+from clinosim.modules.output.fhir_r4.lib.ecs_extensions import (
+    build_ecs_institution_extension,      # () -> JP eCS institution extension
+    build_ecs_department_extension,       # (department_text="") -> extension
     attach_ecs_institutional_extensions,
 )
+from clinosim.modules.output.fhir_r4.lib.dosage import (
+    build_dosage_instruction,             # (order, country="US") -> Dosage | None
+    build_route_concept,                  # (raw_route, country) -> CodeableConcept | None
+    map_mar_status,                       # (status) -> MedicationAdministration.status
+)
+from clinosim.modules.output.fhir_r4.lib.fhir_time import (
+    to_fhir_date, to_fhir_datetime, to_fhir_instant,
+    tz_suffix_for_country, derive_meta_last_updated,
+)
 from clinosim.modules.output.fhir_r4.lib.localization import (
-    localize_drug_name,                   # (drug_name, lang) -> str
+    localize_drug_name,                   # re-exported from clinosim.locale.free_text
     localize_fixed_label,                 # (en_label, country) -> str
 )
 from clinosim.modules.output.fhir_r4.lib.inline_bb import (
@@ -108,32 +137,42 @@ scope (see `write_generator_metadata` docstring).
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `is_us`, `countries.lang_for`,
-  `strip_protocol_prefix`.
-- `clinosim.codes` — `get_system_uri`, `lookup`.
-- `clinosim.locale.loader` — locale display maps + code mappings.
-- `yaml`, `re`, `datetime`, `dataclasses` — YAML-backed lookup
-  tables + standard library.
+- `clinosim.modules._shared` — `is_jp`, `is_us`,
+  `strip_protocol_prefix`; `clinosim.countries` — `lang_for`.
+- `clinosim.codes` — `get_system_uri`, `lookup`, `display`,
+  `is_english_only_system`; `codes.icd10`, `codes.prefectures`,
+  `codes.ucum`, `codes.snomed`, `codes.procedures`, `codes.drugs`.
+- `clinosim.locale` — `loader` (display maps, code mappings,
+  reference ranges, frequency tokens, IV-infusion defaults),
+  `loaders.medical_display`, `localized`, `table`, `free_text`.
+- `clinosim.datafiles` — `load_data_yaml` (`dosage.py`).
+- `clinosim.modules.observation.engine` — `therapeutic_range`
+  (`common.build_reference_range`, lazy import).
+- `clinosim.simulator.log` and `clinosim.__version__`
+  (`generator_metadata.py`).
+- `re`, `datetime`, `dataclasses`, `hashlib`, `json`, `subprocess` —
+  standard library.
 - `inline_bb.py` / `ed_reattribution.py` import the clinical-domain
-  subpackages; nothing in `lib/` imports the `builder.py` facade.
+  subpackages (`ed_reattribution.py` also
+  `clinosim.modules.document.narrative.registry`); nothing in `lib/`
+  imports the `builder.py` facade.
 
 ## Constants and configuration
 
 - **`_FHIR_ID_PATTERN`** — the FHIR R4 spec-mandated id pattern
-  (`[A-Za-z0-9\-\.]{1,64}`). Not in `common.py`: it is defined in
+  (`[A-Za-z0-9\-\.]{1,64}`). Not in `lib/`: it is defined only in
   `../builder.py` (used by `_fhir_id_is_spec_valid`, a fail-soft
-  check in the NDJSON writer), with copies in `inline_bb.py` and
-  `../post_process/profile.py`.
-- **`_JST_TZ_SUFFIX = "+09:00"`** / **`_UTC_TZ_SUFFIX = "Z"`** —
-  timezone-suffix constants for `to_fhir_date` + downstream
-  post-processing.
+  check in the NDJSON writer).
+- **`_JST_TZ_SUFFIX = "+09:00"`** / **`_UTC_TZ_SUFFIX = "Z"`**
+  (`fhir_time.py`) — timezone-suffix constants for the `to_fhir_*`
+  formatters + downstream post-processing.
 - **`CLINOSIM_IDENTIFIER_SYSTEM_PREFIX = "urn:clinosim:identifier:"`**
   — namespace prefix for every clinosim-internal identifier system
   (`HAI_EVENT_ID_SYSTEM`, staff identifier system, etc.).
-- **eCS placeholders** — used when the cohort does not have a real
-  institution number / department code (JP eCS profile requires
-  the fields; the placeholders satisfy the cardinality without
-  claiming a real facility).
+- **eCS placeholders** (`ecs_extensions.py`) — used when the cohort
+  does not have a real institution number / department code (JP eCS
+  profile requires the fields; the placeholders satisfy the
+  cardinality without claiming a real facility).
 - **`_RECENT_MERGES_LIMIT = 30`** (`generator_metadata.py`) — cap on
   the number of recent-merge PR numbers recorded in the sidecar.
 
@@ -142,7 +181,11 @@ scope (see `write_generator_metadata` docstring).
 ```
 clinosim/modules/output/fhir_r4/lib/
   __init__.py                        namespace-only (no re-exports)
-  common.py                          BundleContext + fragment helpers + eCS extensions + tz suffix constants
+  common.py                          fragment helpers (entry, survey_category, address / telecom / reference range / diagnosis / severity ...)
+  context.py                         BundleContext dataclass
+  dosage.py                          Dosage / route / IV-rate / MAR-status helpers
+  ecs_extensions.py                  JP eCS institution / department extensions + placeholders
+  fhir_time.py                       to_fhir_date / datetime / instant + tz suffix constants
   localization.py                    en / ja text localisation dispatch
   reference_data.py                  profile URIs + code-system URIs
   inline_bb.py                       11 legacy _bb_* builders (do not extend — split to domain subpackages instead)

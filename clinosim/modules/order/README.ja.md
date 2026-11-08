@@ -45,6 +45,11 @@ ServiceRequest への `basedOn` を持つことを要求する
   `simulator/_dispatch.py` が使用)、`enrich_discontinue_flip`
   (`discontinue_flip.py`、`DISCONTINUE: X` marker の元 order を
   `STOPPED` に flip する POST_ENCOUNTER enricher)、
+  `enrich_supersede_orders` (`supersede.py`、新しい薬剤 order に
+  置き換えられた旧 order を停止する POST_ENCOUNTER enricher)、
+  `prescription_closures` (`prescription_supersede.py`)、日次 loop 外
+  発注の MAR helper (`placed_order_mar.py`)、体重 / 体表面積基準の
+  投与量 (`absolute_dose.py`)、
   `classify_lab_specs` + `load_panel_definitions` +
   `PANEL_PRIORITY_ORDER` (`("ABG", "CBC", "BMP", "LFT", "Lipid",
   "Coag", "UA", "Checkup")`)、3 種 `classify_*` treatment
@@ -90,7 +95,7 @@ from clinosim.modules.order import (
 
 # Order engine (各 simulator が直接 import)
 from clinosim.modules.order.engine import (
-    place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None) -> list[Order]
+    place_admission_orders,             # (protocol, patient_id, encounter_id, admission_time, country, rng, ordered_by="", patient_age=None, patient_weight_kg=None) -> list[Order]
     place_daily_lab_orders,             # (protocol, patient_id, encounter_id, day_number, order_time, lab_frequency_multiplier, rng, ordered_by="") -> list[Order]
     place_imaging_orders,               # (disease_protocol, encounter_id, patient_id, admission_dt, day_index, severity, rng, sequence_counter) -> list[Order]
     enrich_medication_order,            # (order, dose_str="") -> Order
@@ -111,6 +116,28 @@ from clinosim.modules.order.treatment_classifier import (
 
 # POST_ENCOUNTER enricher (simulator/enrichers.py で登録)
 from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (ctx) -> None
+from clinosim.modules.order.supersede import (
+    enrich_supersede_orders,            # (ctx) -> None
+    supersede_orders,                   # (orders, administrations) -> kept administrations (stops orders in place)
+    close_orders_at_discharge,          # (encounters, orders, administrations) -> None
+)
+
+# 体重 / 体表面積基準の投与量 (Issue #2750)
+from clinosim.modules.order.absolute_dose import (
+    absolute_dose,                      # (value, unit, height_cm, weight_kg) -> (amount, unit) | None
+    body_surface_area,                  # (height_cm, weight_kg) -> m2 (Mosteller)
+    is_continuous_infusion,             # (frequency, name="") -> bool
+)
+
+# 日次 MAR loop 外で発注された order の投与記録 (Issue #2607)、RNG-free
+from clinosim.modules.order.placed_order_mar import (
+    daily_times,                        # (start, end, hour) -> list[datetime]
+    stable_nurse,                       # (roster, key, *, ward="", department="") -> staff_id
+    administrations_for,                # (order, times, nurse_id) -> list[MedicationAdministration]
+)
+
+# 持ち帰り処方の更新、FHIR export 時に計算 (Issue #2610)
+from clinosim.modules.order.prescription_supersede import prescription_closures  # (records, run_end) -> {(encounter_id, seq): Closure}
 ```
 
 ## 決定論
@@ -123,8 +150,11 @@ from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (
   新 lab 追加は無関係な患者 stream を shift しない。
 - 本モジュール専用のサブ seed offset は `ENRICHER_SEED_OFFSETS` に
   存在しない。発注構築は encounter simulator が imperative に呼び、
-  per-encounter RNG を渡す。`discontinue_flip` enricher は RNG を
-  使わない (`record.orders` の status を書き換えるのみ)。
+  per-encounter RNG を渡す。`discontinue_flip` /
+  `supersede_orders` enricher は RNG を使わない (日次 loop 終了後に
+  order の status を書き換え / 以降の MAR を除くのみ)。
+  `placed_order_mar.stable_nurse` も RNG ではなく key の hash で
+  看護師を選ぶ。
 - Panel-priority 分類は決定論的 (pin された `PANEL_PRIORITY_ORDER`
   tuple の dict lookup)。
 
@@ -132,6 +162,18 @@ from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (
 
 - `clinosim.modules._shared` — `get_attr_or_key` (engine) と
   `MED_STOP_ORDER_ID_MARKER` (`discontinue_flip.py`)。
+- `clinosim.codes.drugs` — `drug_ref`, `get_drug`,
+  `protocol_drug_name`, `jp_drug_code_for_name` (engine、
+  `supersede.py`、`prescription_supersede.py`)、`clinosim.codes.display`。
+- `clinosim.datafiles` — `load_validated_yaml` (panel YAML)、
+  `load_data_yaml` (`medication_supersede.yaml`)。
+- `clinosim.locale` — `i18n.t`, `localized.language_slot`,
+  `loader.load_frequency_tokens` / `load_narrative_archetypes` /
+  `resolve_localized_display`。
+- `clinosim.modules.drug_safety.verdict` (engine) と
+  `clinosim.simulator.helpers._determine_route`。
+- `clinosim.modules.staff.engine` — `scoped_nurses`
+  (`placed_order_mar.stable_nurse`)。
 - `clinosim.modules.imaging.engine` — `place_imaging_orders` 用の
   `load_modalities`, `load_body_sites`,
   `_resolve_imaging_procedure_code_key`。
@@ -146,8 +188,9 @@ from clinosim.modules.order.discontinue_flip import enrich_discontinue_flip  # (
 - `clinosim.audit.registry` (`audit.py` 経由) — AD-60 audit 登録。
   `audit.py` は `output/fhir_r4/labs/service_request.py` の SR builder
   と定数も import する。
-- `clinosim.types.encounter` — `Order`, `OrderType`, `OrderStatus`。
-- `numpy`, `yaml`。
+- `clinosim.types.encounter` — `Order`, `OrderType`, `OrderStatus`,
+  `MedicationAdministration`。
+- `numpy`, `pydantic`。
 
 ## 定数と設定
 
@@ -185,18 +228,23 @@ clinosim/modules/order/
   panel_grouping.py                  classify_lab_specs + load_panel_definitions + PANEL_PRIORITY_ORDER
   treatment_classifier.py            classify_{encounter,inpatient,escalation}_* keyword 表
   discontinue_flip.py                POST_ENCOUNTER enricher: DISCONTINUE marker → 元 order を STOPPED に (Issue #1346)
+  supersede.py                       POST_ENCOUNTER enricher: 同一薬剤の新 order / 登録済 class 切替が旧 order を停止 (Issue #2615)
+  prescription_supersede.py          prescription_closures — FHIR export 時に持ち帰り処方の更新 / 供給終了で終了を決定 (Issue #2610)
+  placed_order_mar.py                daily_times + stable_nurse + administrations_for — 日次 loop 外で発注された order の RNG-free MAR (Issue #2607)
+  absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion — per-kg / per-m2 投与量の絶対量 (Issue #2750)
   audit.py                           AD-60 audit plug-in (per-module) — 7-check lift_firing_proof + basedon_coverage
   _lab_result_timing.py              STAT / routine / 夜勤 定数 (Issue #637)
   _imaging_result_timing.py          scheduling + reporting delay 定数 (Issue #637)
   _order_placement_timing.py         placement offset 定数 (Issue #637)
   _state_delay_thresholds.py         hospital-state delay 定数 (Issue #637)
   reference_data/
+    medication_supersede.yaml        supersede.py が読む class 切替 + PRN marker (Issue #2615)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 
 **`enricher.py` は存在しない** — 発注配置は encounter simulator が
 imperative に呼び出す (`register_builtin_enrichers` 経由でない)。
-唯一の例外が `discontinue_flip.py` (下記)。
+例外は `discontinue_flip.py` と `supersede.py` (下記)。
 
 ## Enricher 配線
 
@@ -204,8 +252,10 @@ imperative に呼び出す (`register_builtin_enrichers` 経由でない)。
 `discontinue_flip.enrich_discontinue_flip` は
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) に
 `discontinue_flip` (stage `POST_ENCOUNTER`、order `91`、常時有効、
-RNG を使わないため `ENRICHER_SEED_OFFSETS` entry なし) として登録
-される。`audit.py` module は import 時に audit framework に
+RNG を使わないため `ENRICHER_SEED_OFFSETS` entry なし) として、
+`supersede.enrich_supersede_orders` は `supersede_orders` (stage
+`POST_ENCOUNTER`、order `91` — 名前順で `discontinue_flip` の後 —
+常時有効、RNG-free) として登録される。`audit.py` module は import 時に audit framework に
 (`register_audit_module`) `order_service_request` の名前で登録される
 — 3 番目の AD-60 per-module plug-in。
 

@@ -4,35 +4,52 @@
 
 [`fhir_r4/`](../README.ja.md) 配下の全 clinical-domain builder
 subpackage が import する共有 low-level fragment helper。`common.py`、
+`context.py`、`dosage.py`、`ecs_extensions.py`、`fhir_time.py`、
 `localization.py`、`reference_data.py`、`ids.py` は leaf 層 — 各
 helper は top-level resource ではなく FHIR *fragment* (Coding,
-CodeableConcept, Bundle entry, UCUM quantity, JP eCS extension) を
-生成するため、resource-builder module は adapter facade を循環せず
-これらから import できる。例外は `inline_bb.py` で、domain
-subpackage の builder helper を import する (下記)。
+CodeableConcept, Bundle entry, UCUM quantity, Dosage, datetime 文字列,
+JP eCS extension) か共有 `BundleContext` を提供するため、
+resource-builder module は adapter facade を循環せずこれらから
+import できる。例外は `inline_bb.py` と `ed_reattribution.py` で、
+domain subpackage の builder helper を import する (下記)。
 
-旧 `_fhir_common` compat shim は削除済み。
-`clinosim.modules.output.fhir_r4.lib.common` を直接 import する
-(Issue #545 rename)。
+旧 `_fhir_common` compat shim は削除済み。helper を所有する `lib`
+module から直接 import する (Issue #545 rename)。
 
 ## Scope
 
 - **In scope**:
-  - `common.py` — `BundleContext` dataclass (各 `_bb_*` builder が
-    受け取る read-only context)、fragment helper
-    (`system_coding`,
-    `_escape_html`, `survey_category`, `_social_category`,
-    `loinc_coding`, `to_fhir_date`, `entry`、ほか dosage / route /
-    診断 / datetime helper 多数)、eCS 機関 / 部門
-    extension と `attach_ecs_institutional_extensions`、
-    `_JST_TZ_SUFFIX = "+09:00"` / `_UTC_TZ_SUFFIX = "Z"`、
-    eCS placeholder (`_JP_ECS_INSTITUTION_PLACEHOLDER =
-    "1300000000"`, `_JP_ECS_DEPARTMENT_PLACEHOLDER = "総合診療科"`)
-    と extension URL (`_JP_ECS_INSTITUTION_NUMBER_EXT_URL`,
-    `_JP_ECS_DEPARTMENT_EXT_URL`,
-    `_JP_ECS_INSTITUTION_ID_SYSTEM`)。
+  - `context.py` — `BundleContext` dataclass (各 `_bb_*` builder が
+    受け取る read-only context)。
+  - `common.py` — fragment helper: `entry`、`survey_category(lang)`、
+    `build_address`、`build_telecom`、`build_presented_form`、
+    `build_reference_range`、`build_diagnosis_codeable_concept`、
+    `iter_diagnosis_mapping_targets`、`infer_severity`、
+    `severity_coding`、`make_participant`、`map_encounter_status`、
+    ほか非 export helper (`system_coding`、`dual_slot_concept`、
+    `display_entry`、`_escape_html`、`_social_category`)。
+  - `ecs_extensions.py` — JP-CLINS eCS 機関 / 部門 extension
+    (`build_ecs_institution_extension`、
+    `build_ecs_department_extension`、
+    `attach_ecs_institutional_extensions`)、eCS placeholder
+    (`_JP_ECS_INSTITUTION_PLACEHOLDER = "1300000000"`、
+    `_JP_ECS_DEPARTMENT_PLACEHOLDER` = `primary_care` 診療科の JA
+    表示) と extension URL (`_JP_ECS_INSTITUTION_NUMBER_EXT_URL`、
+    `_JP_ECS_DEPARTMENT_EXT_URL`、`_JP_ECS_INSTITUTION_ID_SYSTEM`)。
+  - `dosage.py` — MedicationRequest / MedicationAdministration の
+    Dosage helper (`build_dosage_instruction`、`build_route_concept`、
+    `canonicalize_route`、`augment_iv_dosage_with_rate`、
+    `resolve_iv_infusion_default`、`map_mar_status`、再 export の
+    `strip_protocol_prefix`)。
+  - `fhir_time.py` — FHIR date / dateTime / instant 整形
+    (`to_fhir_date`、`to_fhir_datetime`、`to_fhir_instant`、
+    `tz_suffix_for_country`、`derive_meta_last_updated`)、
+    `_JST_TZ_SUFFIX = "+09:00"` / `_UTC_TZ_SUFFIX = "Z"`。
   - `localization.py` — EN / JA テキスト localisation dispatch
-    (lab 値表示正規化用の `_RATE_ADJUSTMENT_SUFFIX_RE` regex も所有)。
+    (`localize_drug_name`、`localize_fixed_label`、`code_lookup`、
+    および free-text 翻訳器の再 export。翻訳器本体と
+    `_RATE_ADJUSTMENT_SUFFIX_RE` regex は `clinosim.locale.free_text`
+    に移動済み)。
   - `reference_data.py` — profile URI、canonical URL、code-system
     URL。`_JP_CONDITION_SEVERITY_CS` を含む。
   - `inline_bb.py` — まだ 7 clinical-domain subpackage に split され
@@ -42,8 +59,7 @@ subpackage の builder helper を import する (下記)。
     `_bb_medication_requests`, `_bb_discharge_medication_requests`,
     `_bb_medication_admins`, `_bb_procedures`, `_bb_practitioners`)
     を export し、親 `builder.py` が split 済 builder と並列に登録する。
-    domain subpackage から `_build_*` helper を import し、
-    `_FHIR_ID_PATTERN` の独自 copy も持つ。
+    domain subpackage から `_build_*` helper を import する。
     新 builder は必ず clinical-domain subpackage に置き、
     `inline_bb.py` を拡張してはならない。
   - `generator_metadata.py` — cohort export 時の sidecar
@@ -63,18 +79,31 @@ subpackage の builder helper を import する (下記)。
 
 ## Public API
 
+`lib/__init__.py` は namespace stub (`__all__ = []`)。各 module が
+自前の `__all__` を宣言する。主な entry point:
+
 ```python
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext   # dataclass
 from clinosim.modules.output.fhir_r4.lib.common import (
-    BundleContext,                        # dataclass
     entry,                                # (resource) -> Bundle entry dict
-    survey_category,                      # () -> survey CodeableConcept
-    loinc_coding,                         # (code, lang) -> {system, code, display}
-    build_ecs_institution_extension,      # JP eCS 機関
-    build_ecs_department_extension,
+    survey_category,                      # (lang) -> survey category CodeableConcept list
+)
+from clinosim.modules.output.fhir_r4.lib.ecs_extensions import (
+    build_ecs_institution_extension,      # () -> JP eCS 機関 extension
+    build_ecs_department_extension,       # (department_text="") -> extension
     attach_ecs_institutional_extensions,
 )
+from clinosim.modules.output.fhir_r4.lib.dosage import (
+    build_dosage_instruction,             # (order, country="US") -> Dosage | None
+    build_route_concept,                  # (raw_route, country) -> CodeableConcept | None
+    map_mar_status,                       # (status) -> MedicationAdministration.status
+)
+from clinosim.modules.output.fhir_r4.lib.fhir_time import (
+    to_fhir_date, to_fhir_datetime, to_fhir_instant,
+    tz_suffix_for_country, derive_meta_last_updated,
+)
 from clinosim.modules.output.fhir_r4.lib.localization import (
-    localize_drug_name,                   # (drug_name, lang) -> str
+    localize_drug_name,                   # clinosim.locale.free_text からの再 export
     localize_fixed_label,                 # (en_label, country) -> str
 )
 from clinosim.modules.output.fhir_r4.lib.inline_bb import (
@@ -103,31 +132,41 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `is_us`, `countries.lang_for`,
-  `strip_protocol_prefix`。
-- `clinosim.codes` — `get_system_uri`, `lookup`。
-- `clinosim.locale.loader` — locale 表示 map + code mapping。
-- `yaml`, `re`, `datetime`, `dataclasses` — YAML 由来 lookup 表 +
+- `clinosim.modules._shared` — `is_jp`, `is_us`,
+  `strip_protocol_prefix`。`clinosim.countries` — `lang_for`。
+- `clinosim.codes` — `get_system_uri`, `lookup`, `display`,
+  `is_english_only_system`。`codes.icd10`、`codes.prefectures`、
+  `codes.ucum`、`codes.snomed`、`codes.procedures`、`codes.drugs`。
+- `clinosim.locale` — `loader` (表示 map、code mapping、基準範囲、
+  頻度 token、IV 持続投与 default)、`loaders.medical_display`、
+  `localized`、`table`、`free_text`。
+- `clinosim.datafiles` — `load_data_yaml` (`dosage.py`)。
+- `clinosim.modules.observation.engine` — `therapeutic_range`
+  (`common.build_reference_range`、lazy import)。
+- `clinosim.simulator.log` と `clinosim.__version__`
+  (`generator_metadata.py`)。
+- `re`, `datetime`, `dataclasses`, `hashlib`, `json`, `subprocess` —
   標準ライブラリ。
 - `inline_bb.py` / `ed_reattribution.py` は clinical-domain
-  subpackage を import する。`lib/` のどれも `builder.py` facade は
-  import しない。
+  subpackage を import する (`ed_reattribution.py` は
+  `clinosim.modules.document.narrative.registry` も)。`lib/` のどれも
+  `builder.py` facade は import しない。
 
 ## 定数と設定
 
 - **`_FHIR_ID_PATTERN`** — FHIR R4 仕様の id pattern
-  (`[A-Za-z0-9\-\.]{1,64}`)。`common.py` には無く、`../builder.py`
-  で定義 (`_fhir_id_is_spec_valid` が使用、NDJSON writer での
-  fail-soft 検査)。`inline_bb.py` と `../post_process/profile.py` に
-  copy がある。
-- **`_JST_TZ_SUFFIX = "+09:00"`** / **`_UTC_TZ_SUFFIX = "Z"`** —
-  `to_fhir_date` と下流 post-processing 用の timezone suffix 定数。
+  (`[A-Za-z0-9\-\.]{1,64}`)。`lib/` には無く、`../builder.py` に
+  のみ定義 (`_fhir_id_is_spec_valid` が使用、NDJSON writer での
+  fail-soft 検査)。
+- **`_JST_TZ_SUFFIX = "+09:00"`** / **`_UTC_TZ_SUFFIX = "Z"`**
+  (`fhir_time.py`) — `to_fhir_*` 整形と下流 post-processing 用の
+  timezone suffix 定数。
 - **`CLINOSIM_IDENTIFIER_SYSTEM_PREFIX = "urn:clinosim:identifier:"`**
   — clinosim 内部 identifier system の名前空間 prefix
   (`HAI_EVENT_ID_SYSTEM`、staff identifier system 等)。
-- **eCS placeholder** — cohort に実機関番号 / 部門コードが無いとき
-  に使う (JP eCS profile が field を要求するため、実 facility を
-  主張せず cardinality を満たす)。
+- **eCS placeholder** (`ecs_extensions.py`) — cohort に実機関番号 /
+  部門コードが無いときに使う (JP eCS profile が field を要求するため、
+  実 facility を主張せず cardinality を満たす)。
 - **`_RECENT_MERGES_LIMIT = 30`** (`generator_metadata.py`) —
   sidecar に記録する recent-merge PR 番号の上限。
 
@@ -136,7 +175,11 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
 ```
 clinosim/modules/output/fhir_r4/lib/
   __init__.py                        namespace のみ (再 export 無し)
-  common.py                          BundleContext + fragment helper + eCS extension + tz suffix 定数
+  common.py                          fragment helper (entry、survey_category、住所 / telecom / 基準範囲 / 診断 / 重症度 ...)
+  context.py                         BundleContext dataclass
+  dosage.py                          Dosage / route / IV 速度 / MAR status helper
+  ecs_extensions.py                  JP eCS 機関 / 部門 extension + placeholder
+  fhir_time.py                       to_fhir_date / datetime / instant + tz suffix 定数
   localization.py                    en / ja テキスト localisation dispatch
   reference_data.py                  profile URI + code-system URI
   inline_bb.py                       11 legacy _bb_* builder (拡張しない — 新規は domain subpackage へ)

@@ -27,10 +27,13 @@ POST_ENCOUNTER enricher (登録名 **`nursing_assignment`**) と、
     rehab-inpatient encounter に `primary_nurse_id` を割当。
     ctx `StaffRoster` から選出 (ctx に roster が無い / roster に
     nurse が居ないときは `""`)。
-  - `assign_primary_nurse` — `roster.get_by_role("nurse")` から
-    uniform sampling。RNG の seed は caller 責任。
+  - `assign_primary_nurse` —
+    `clinosim.modules.staff.engine.scoped_nurses(roster, ward=...,
+    department=...)` (encounter の病棟の看護師、無ければ診療科、
+    無ければ全看護師、Issue #2700) から uniform sampling。RNG の seed は
+    caller 責任。
   - `load_nursing_assessment` — `nursing_assessment.yaml` reference
-    データの loader (import 時 6-layer validator つき)。
+    データの loader (`NursingAssessment` Pydantic model で検証)。
   - 公開定数: `SUPPORTED_ADL_CATEGORIES` (5 ADL カテゴリ)、
     `SUPPORTED_RISK_ASSESSMENTS` (3 risk 種別)、
     `INPATIENT_ENCOUNTER_TYPES` (enricher が受理する 3 encounter 種別)。
@@ -52,7 +55,7 @@ from clinosim.modules.nursing import (
     SUPPORTED_ADL_CATEGORIES,    # frozenset {eating, bathing, dressing, toileting, mobility}
     SUPPORTED_RISK_ASSESSMENTS,  # frozenset {fall_risk, pressure_ulcer_risk, aspiration_risk}
     assign_primary_nurse,        # (encounter, roster|None, rng) -> staff_id (str、空可)
-    load_nursing_assessment,     # () -> dict (キャッシュ、6-layer 検証済)
+    load_nursing_assessment,     # () -> dict (キャッシュ、NursingAssessment 検証済)
 )
 ```
 
@@ -74,11 +77,14 @@ POST_ENCOUNTER エントリ `nursing_enricher(ctx) -> None` は `engine.py`
 ## 依存
 
 - `clinosim.modules._shared` — `get_attr_or_key`。
+- `clinosim.modules.staff.engine` — `scoped_nurses` (病棟 / 診療科で
+  絞った看護師 pool)。
+- `clinosim.determinism` — encounter 単位 RNG の構築。
+- `clinosim.datafiles` — `load_validated_yaml`。
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
-- `clinosim.types.staff` — `StaffRoster` (`get_by_role` インタフェース)。
+- `clinosim.types.staff` — `StaffRoster`。
 - `numpy` — `np.random.Generator`。
-- `yaml` — YAML パーサ。
-- 他の `clinosim.modules.*` には依存しない。
+- `pydantic` — `NursingAssessment` / `_NursingFocus` model。
 
 ## 定数と設定
 
@@ -96,17 +102,17 @@ POST_ENCOUNTER エントリ `nursing_enricher(ctx) -> None` は `engine.py`
     値は取り得る ADL 状態の順序付き list。
   - `risk_assessments` — `SUPPORTED_RISK_ASSESSMENTS` の各キー 1:1 対応、
     値は取り得るリスク状態の順序付き list。
-  - `disease_specific_nursing_focus` — `{disease_id: {focus: str,
-    interventions_ja: list[str]}}` (JP 看護 focus テキスト)。
-  - `baseline` — 疾患別が無いときの fallback。同 `{focus, interventions_ja}`
+  - `disease_specific_nursing_focus` — `{disease_id: {focus,
+    interventions: {<lang>: list[str]}}}` (看護 focus テキスト)。
+  - `baseline` — 疾患別が無いときの fallback。同 `{focus, interventions}`
     形状。
-- import 時 validator (`NursingAssessment` Pydantic model) が検出:
-  (1) 空 top-level、(2) top-level 必須キーの欠落、(3) baseline
-  必須フィールド欠落、(4) `adl_categories` ↔ `SUPPORTED_ADL_CATEGORIES`
-  の双方向 coverage drift、(4b) `risk_assessments` の同左、
-  (5) 疾患別エントリの必須フィールド欠落、(6) 型 check
-  (`interventions_ja` は `list`)。drift 検出時は load 時に
-  `ValueError` を raise — 標準 PR-90 silent-no-op 防御。
+- load 時検証は `NursingAssessment` Pydantic model (`baseline` と各疾患
+  エントリは `_NursingFocus`) を `load_validated_yaml` で適用する。
+  空 top-level、top-level キー欠落、`focus` / `interventions` の無い
+  focus、言語ごとに list でない `interventions`、
+  `SUPPORTED_ADL_CATEGORIES` / `SUPPORTED_RISK_ASSESSMENTS` と双方向に
+  ずれた `adl_categories` / `risk_assessments` キーを拒否する。drift は
+  load 時に raise — 標準 PR-90 silent-no-op 防御。
 - **scaffolding 注**: `load_nursing_assessment` には現在 live consumer
   が無く、data は自身の unit test からのみ load される。想定 reader は
   下流の narrative 作業 (β-JP-1)。
@@ -144,9 +150,9 @@ clinosim/modules/nursing/
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
 | FHIR `CareTeam` builder | [`clinosim/modules/output/fhir_r4/encounters/care_team.py`](../output/fhir_r4/encounters/care_team.py) | `primary_nurse_id` を `CareTeam.participant[1].member` として emit — 非空のときのみ (attending physician が participant[0])。 |
-| FHIR 看護 flowsheet performer fallback | [`clinosim/modules/output/fhir_r4/procedures/nursing.py`](../output/fhir_r4/procedures/nursing.py) (`L222` 付近) | RM-1: 看護 survey Observation に per-observation performer が無いときの default `performer` として `primary_nurse_id` を使用。 |
-| FHIR 看護 observation performer fallback | [`clinosim/modules/output/fhir_r4/lib/inline_bb.py`](../output/fhir_r4/lib/inline_bb.py) (`L1092` 付近) | inline 看護 observation builder における同 RM-1 fallback。 |
-| Enricher registry (`nursing_assignment`) | [`clinosim/simulator/enrichers.py:418`](../../simulator/enrichers.py) | POST_ENCOUNTER order=94 登録。 |
+| FHIR 看護 flowsheet performer fallback | [`clinosim/modules/output/fhir_r4/procedures/nursing.py`](../output/fhir_r4/procedures/nursing.py) (`_bb_nursing_observations`) | RM-1: 看護 survey Observation に per-observation performer が無いときの default `performer` として `primary_nurse_id` を使用。 |
+| FHIR Practitioner 出力 | [`clinosim/modules/output/fhir_r4/lib/inline_bb.py`](../output/fhir_r4/lib/inline_bb.py) (`_bb_practitioners`) | RM-1: 看護 Observation の performer 参照が解決するよう、各 encounter の `primary_nurse_id` を `Practitioner` として emit。 |
+| Enricher registry (`nursing_assignment`) | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) (`register_builtin_enrichers`) | POST_ENCOUNTER order=94 登録。 |
 
 ## テスト
 
@@ -162,7 +168,7 @@ pytest tests/integration -k nursing -q  # enricher + flowsheet FHIR 出力
 - [`tests/unit/modules/nursing/test_engine.py`](../../../tests/unit/modules/nursing/test_engine.py)
   — `assign_primary_nurse` + 定数 + `nursing_enricher` 決定論。
 - [`tests/unit/modules/nursing/test_nursing_assessment_yaml.py`](../../../tests/unit/modules/nursing/test_nursing_assessment_yaml.py)
-  — 6-layer validator coverage。
+  — `NursingAssessment` validator coverage。
 - [`tests/integration/test_nursing_enricher.py`](../../../tests/integration/test_nursing_enricher.py)
   — POST_ENCOUNTER enricher end-to-end。
 - [`tests/integration/test_fhir_nursing.py`](../../../tests/integration/test_fhir_nursing.py)

@@ -14,7 +14,10 @@ prophylaxis (US p=2000 seed=500 baseline: 40/103 uncovered).
 ## Scope
 
 **In scope**: DVT (VTE) chemoprophylaxis Order emission for IMP
-encounters ≥ 48 h, with rule-based skip when the patient is below the
+encounters ≥ 48 h, plus its daily MedicationAdministration rows
+(Issue #2607 — one dose at `administration_hour` from the order until
+discharge, given by a ward nurse picked with
+`order.placed_order_mar.stable_nurse`), with rule-based skip when the patient is below the
 pediatric age ceiling (default 15), is already on therapeutic
 anticoagulation (warfarin / DOAC / heparin drip), the admission dx is
 active bleeding / recent hemorrhagic stroke / GI bleed / delivery /
@@ -29,10 +32,6 @@ contraindicated pair with an active medication
 - Mechanical prophylaxis (intermittent pneumatic compression) fallback
   for bleeding-contraindicated patients — deferred; current design
   simply skips.
-- MedicationAdministration rows for the prophylaxis order — the
-  MedicationRequest alone is the load-bearing FHIR signal; MAR
-  generation runs through the existing daily-loop path when the sim
-  detail level warrants it.
 
 ## Public API
 
@@ -58,7 +57,9 @@ orders = build_dvt_prophylaxis_orders(record=cif_record)
 
 ## Determinism
 
-Pure YAML lookup + rule dispatch. No RNG consumption. Given a fixed
+Pure YAML lookup + rule dispatch. No RNG consumption — the MAR
+times are fixed (`daily_times`) and the giving nurse is a stable
+function of the order id (`stable_nurse`). Given a fixed
 (patient, encounter, admission_dx) tuple, the output is byte-identical
 across runs.
 
@@ -69,12 +70,20 @@ across runs.
 - `clinosim.modules.drug_safety.engine.check_candidate_against_active`
   (pair check against active medications; failures are swallowed so
   prophylaxis is never blocked by a drug_safety error)
-- Third-party: PyYAML only.
+- `clinosim.modules.order.placed_order_mar` — `daily_times`,
+  `stable_nurse`, `administrations_for` (enricher MAR rows);
+  `clinosim.modules.order.absolute_dose.is_continuous_infusion`
+- `clinosim.codes.drugs.medication_matches`,
+  `clinosim.datafiles.load_data_yaml`,
+  `clinosim.locale.localized` (`language_slot`, `localized_field`)
+- Third-party: pydantic (`_ProphylaxisRules`, `_SkipRule` validate the
+  rules yaml at load).
 
 ## Constants and configuration
 
 `reference_data/prophylaxis_rules.yaml`:
-- `dvt_prophylaxis` block: drug / dose / route / frequency / LOS threshold
+- `dvt_prophylaxis` block: drug / dose / route / frequency / LOS
+  threshold / `administration_hour` (MAR dose time, Issue #2607)
 - `skip_conditions` block: 5 rules (therapeutic AC / active bleed /
   perinatal delivery / active DVT-PE treatment / pediatric age gate)
   with drug needles, ICD prefixes, or `pediatric_age_ceiling` (15).
@@ -91,10 +100,11 @@ dispatch) — the yaml alone does not activate a rule.
 clinosim/modules/prophylaxis/
 ├── __init__.py            # public API re-export
 ├── engine.py              # rule loader + skip dispatch + order builder
-├── enricher.py            # POST_ENCOUNTER order 75 entrypoint
+├── enricher.py            # POST_ENCOUNTER order 75 entrypoint + daily MAR rows
 ├── reference_data/
 │   └── prophylaxis_rules.yaml
-└── README.md              # this file
+├── README.md              # this file
+└── README.ja.md
 ```
 
 ## Enricher wiring
@@ -113,6 +123,9 @@ Registered in `clinosim/simulator/enrichers.py` as:
 - `record.orders` gets one appended `Order` dataclass per eligible
   encounter. The order flows through the standard FHIR
   `MedicationRequest` builder without any new adapter.
+- `record.medication_administrations` gets the order's daily
+  `MedicationAdministration` rows (status `given`, `administered_by`
+  set), emitted as FHIR `MedicationAdministration`.
 
 ## Testing
 

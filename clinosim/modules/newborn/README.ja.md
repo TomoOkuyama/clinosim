@@ -74,6 +74,10 @@ ServiceRequest / Specimen / DiagnosticReport の payload を構築する。
 `enrich_newborn` は新生児レコードに以下を追記する:
 
 - `medication_administrations` — ビタミン K + 眼軟膏予防投与。
+  各投与の `administered_by` は投与看護師で、`enricher._set_giving_nurse`
+  が `clinosim.modules.order.placed_order_mar.stable_nurse` 経由で選ぶ —
+  出生 encounter の病棟 (無ければ診療科) の看護師を order id から RNG
+  なしで安定に選択 (Issue #2824)。
 - `vital_signs` — 勤務帯ごとのバイタル。
 - `procedures` — 聴覚 + 代謝スクリーニングの `ProcedureRecord`。
 - `extensions["newborn"]` — `apgar`、`bilirubin`、`cchd_pulse_ox`、
@@ -108,6 +112,20 @@ vitamin_k:
   us: {drug_name, dose, route, schedule_days, within_hours_of_birth, rxnorm_code}
 ```
 
+## ディレクトリ構造
+
+```
+clinosim/modules/newborn/
+├── __init__.py            # 公開 re-export (__all__)
+├── engine.py              # config loader、firing gate、イベント別 builder、perinatal baseline dedup tracker
+├── enricher.py            # enrich_newborn (POST_ENCOUNTER) + _set_giving_nurse
+├── fhir_emit.py           # output/fhir_r4/builder.py が import する _bb_newborn_* bundle-builder
+├── reference_data/
+│   └── newborn_screening.yaml   # locale 別プロトコルパラメータ
+├── README.md
+└── README.ja.md
+```
+
 ## 決定論
 
 master stream の RNG は消費しない。ビタミン K、眼軟膏予防投与、
@@ -118,7 +136,8 @@ master stream の RNG は消費しない。ビタミン K、眼軟膏予防投�
 ローカルの `np.random.default_rng` を用いる (例:
 `newborn-apgar|<pid>|…`、`newborn-hearing-screen|<pid>`)。そのため
 患者単位で再現可能で、caller の RNG から独立している。
-`ENRICHER_SEED_OFFSETS` のエントリは使わない。ビタミン K の
+`ENRICHER_SEED_OFFSETS` のエントリは使わない。投与看護師は order id の
+安定関数 (`stable_nurse`) なので、これも RNG を引かない。ビタミン K の
 coverage-miss / 拒否の経路はまだ無い。
 
 ## テスト
@@ -126,7 +145,8 @@ coverage-miss / 拒否の経路はまだ無い。
 `tests/unit/modules/newborn/` — `test_vitamin_k.py`、
 `test_shift_vitals.py`、`test_apgar.py`、`test_hearing_screen.py`、
 `test_metabolic_screen.py`、`test_bilirubin_cchd_ophthalmic.py`、
-`test_perinatal_baseline_dedup.py`。FHIR の shape は
+`test_perinatal_baseline_dedup.py`、`test_newborn_giving_nurse_2824.py`
+(出生入院中の投与の投与看護師、Issue #2824)。FHIR の shape は
 `tests/unit/output/test_newborn_metabolic_screen_fhir_shape.py`。
 
 ## 参考文献
