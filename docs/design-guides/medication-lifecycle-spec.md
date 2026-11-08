@@ -43,7 +43,7 @@ discharge prescription (§6) ──► home medications ──► next encounter
 | Rule | Canonical code | Guard |
 |---|---|---|
 | Orders placed by the daily loop get their administrations in the loop, from the order's frequency and the patient's state (holds, refusals, PRN triggers). | `medication_pipeline.py::_generate_mar`, `generate_prn_administrations`, `prn_category` | `tests/unit/test_prn_from_state.py`, `tests/unit/test_prn_inhaler_cadence_1318.py` |
-| Orders placed outside the loop (VTE prophylaxis enricher, delivery bundle) get administrations from one helper set that draws no RNG: fixed daily times and a nurse picked by a stable hash. | `modules/order/placed_order_mar.py` (`daily_times`, `stable_nurse`, `administrations_for`) | `tests/unit/modules/order/test_placed_order_mar_spec.py` |
+| Orders placed outside the loop (VTE prophylaxis enricher, delivery bundle) get administrations from one helper set that draws no RNG: fixed daily times and a nurse picked by a stable hash. Enrichers that schedule their own doses (HAI antibiotic regimens) still name the giving nurse through the same `stable_nurse`. | `modules/order/placed_order_mar.py` (`daily_times`, `stable_nurse`, `administrations_for`) | `tests/unit/modules/order/test_placed_order_mar_spec.py`, `tests/unit/test_hai_abx_giving_nurse_2823.py` |
 | The FHIR timing of an order states its frequency once: ranges ("q4-6h") and PRN caps come from one resolver, and a frequency already in the dose text is not repeated. | `modules/output/fhir_r4/lib/dosage.py` (`resolve_timing_repeat`, `frequency_in_text`) | `tests/unit/output/test_prn_timing_2613.py` |
 
 ## 5. Stopping orders
