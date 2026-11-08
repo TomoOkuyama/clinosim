@@ -21,7 +21,7 @@ format.
   translation (`DatasetPreset.as_simulate_args`), the `clinosim
   dataset list` / `clinosim dataset build <name>` CLI subcommands.
 - **Out of scope**: any generation capability of its own — the builder
-  delegates to `clinosim generate` by rewriting `sys.argv` and
+  delegates to `clinosim simulate` by rewriting `sys.argv` and
   invoking `clinosim.simulator.cli.main` in-process, so the generate
   code path stays single-sourced. Adding new simulation features
   never touches this package.

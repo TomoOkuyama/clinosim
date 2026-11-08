@@ -128,7 +128,7 @@ Cross-module invariants:
 | Module | Purpose |
 | --- | --- |
 | [`document/`](document/README.md) | Document-stub emission (POST_ENCOUNTER order=95) + AD-60 audit + canonical FHIR ID prefixes. |
-| [`llm_service/`](llm_service/README.md) | Single LLM gateway (AD-11) — Bedrock / Ollama / vLLM / Anthropic / mock via `providers/`. |
+| [`llm_service/`](llm_service/README.md) | Single LLM gateway (AD-11) — Bedrock / Ollama / vLLM (OpenAI-compatible) / mock via `providers/`. |
 
 ### Output & validation
 

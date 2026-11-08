@@ -57,7 +57,7 @@ from clinosim.locale.text import (
 )
 ```
 
-上記はよく使う部分集合: `clinosim.locale.loader` は `__all__` に 73 名
+上記はよく使う部分集合: `clinosim.locale.loader` は `__all__` に 72 名
 — `load_*` 関数 49 個と表示 / コード lookup ヘルパー (`drug_code` /
 `lab_code` / `map_diagnosis_code` / `department_display` /
 `lab_display` 等) — を再 export しており、実装は `clinosim/locale/loaders/`
@@ -120,7 +120,7 @@ from clinosim.locale.text import (
 clinosim/locale/
   __init__.py                     (意図的に空 — .loader / .text から
                                    直接 import)
-  loader.py                       再 export facade (73 名、うち公開
+  loader.py                       再 export facade (72 名、うち公開
                                    load_* 関数 49)
   _io.py                          共有 YAML プリミティブ (_LOCALE_DIR /
                                    _COUNTRY_DIR_MAP / _country_dir /

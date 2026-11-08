@@ -54,9 +54,11 @@ from clinosim.types import Encounter          # 便宜的な再エクスポー�
 | `device.py` | 医療機器型 | ❌ 直接 import |
 | `diagnosis.py` | 診断イベント型 | ❌ 直接 import |
 | `document.py` | 文書・ナラティブ型 | ❌ 直接 import |
+| `drug_safety.py` | `SafetyVerdict` / `SafetySkipEntry` / `Severity` (薬剤安全性判定) | ❌ 直接 import |
 | `family_history.py` | 家族歴型 | ❌ 直接 import |
 | `hai.py` | 医療関連感染型 | ❌ 直接 import |
 | `imaging.py` | 画像検査・レポート型 | ❌ 直接 import |
+| `longitudinal.py` | `YearSnapshot` (年次の縦断状態) | ❌ 直接 import |
 | `triage.py` | ED トリアージ型 | ❌ 直接 import |
 
 「非再エクスポート」集合は意図的です — これらのドメインは狭い呼出集合
@@ -78,17 +80,16 @@ from clinosim.types import Encounter          # 便宜的な再エクスポー�
   `HealthcareSystemConfig` / LLM 設定) は `BaseModel`。
 - **依存グラフの最下層であることを意図** — ここから
   `clinosim.simulator` や `clinosim.modules.*` を import すると循環の
-  恐れ。現状の例外: `document.py` が `clinosim.modules._shared.is_jp`、
-  `patient.py` が `clinosim.modules.drug_safety.verdict.SafetySkipEntry`
-  を import し、`population.py` は `TYPE_CHECKING` 下でのみ
-  `clinosim.modules.longitudinal.snapshot.YearSnapshot` を import。
+  恐れ。現状どのサブモジュールもこれらを import しません: 兄弟の
+  `clinosim.types.*` 以外で import する `clinosim` は `document.py` の
+  `clinosim.countries.is_jp` のみ。
 
 ## 定数と設定
 
 - **`_UNSET_DATETIME = datetime(1970, 1, 1)` と
   `_UNSET_DATE = date(1970, 1, 1)`** — `clinical.py` (ブロックレベル
-  コメント日付 2026-07-04) で定義し `encounter.py` / `procedure.py` /
-  `diagnosis.py` で再宣言。これらの sentinel は private (先頭アンダー
+  コメント日付 2026-07-04) で定義し、`encounter.py` は両方を、
+  `procedure.py` / `diagnosis.py` は `_UNSET_DATETIME` のみを再宣言。これらの sentinel は private (先頭アンダー
   スコア) で、`None` だと下流のシリアライズを壊す optional field の
   デフォルトにのみ使用。1970-01-01 epoch を意図的に選ぶことで下流の
   シリアライザが確実にフィルタ可能。
@@ -105,16 +106,17 @@ from clinosim.types import Encounter          # 便宜的な再エクスポー�
 clinosim/types/
   __init__.py           上表 10 サブモジュールを再エクスポート
   document.py           文書・ナラティブ型 (476 行 — 最大ファイル)
-  encounter.py          Encounter と隣接運用型 (359 行)
-  patient.py            PatientProfile / baseline vitals / chronic conditions (300 行)
-  population.py         集団生成中間型 (278 行)
+  encounter.py          Encounter と隣接運用型 (412 行)
+  patient.py            PatientProfile / baseline vitals / chronic conditions (343 行)
+  population.py         集団生成中間型 (305 行)
   config.py             SimulatorConfig と実行時設定モデル (254 行)
   clinical.py           臨床イベント・文書・所見 (252 行)
   output.py             コホートレベル出力メタデータ (149 行)
   procedure.py          手術・治療手技 (93 行)
-  imaging.py            画像検査・レポート (81 行)
+  imaging.py            画像検査・レポート (86 行)
   identity.py, staff.py, microbiology.py, allergy.py, antibiotic.py,
-  diagnosis.py, hai.py, device.py, triage.py, family_history.py
+  diagnosis.py, hai.py, device.py, triage.py, family_history.py,
+  drug_safety.py, longitudinal.py
                         臨床ドメインごとに 1 ファイル (上表参照)
 ```
 

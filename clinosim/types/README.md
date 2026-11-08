@@ -57,9 +57,11 @@ path:
 | `device.py` | Medical device types | ❌ import direct |
 | `diagnosis.py` | Diagnosis event types | ❌ import direct |
 | `document.py` | Document / narrative types | ❌ import direct |
+| `drug_safety.py` | `SafetyVerdict`, `SafetySkipEntry`, `Severity` (drug-safety verdicts) | ❌ import direct |
 | `family_history.py` | Family history types | ❌ import direct |
 | `hai.py` | Healthcare-associated infection types | ❌ import direct |
 | `imaging.py` | Imaging study / report types | ❌ import direct |
+| `longitudinal.py` | `YearSnapshot` (year-indexed longitudinal state) | ❌ import direct |
 | `triage.py` | ED triage types | ❌ import direct |
 
 The "not re-exported" set is intentional: those domains are consumed
@@ -82,18 +84,17 @@ identical dataclass instances.
   `HealthcareSystemConfig`, LLM config) are `BaseModel`s.
 - **Intended to sit at the bottom of the dependency graph** — importing
   from `clinosim.simulator` or `clinosim.modules.*` here risks a cycle.
-  Current exceptions: `document.py` imports
-  `clinosim.modules._shared.is_jp`, `patient.py` imports
-  `clinosim.modules.drug_safety.verdict.SafetySkipEntry`, and
-  `population.py` imports `clinosim.modules.longitudinal.snapshot.YearSnapshot`
-  under `TYPE_CHECKING` only.
+  No sub-module does so: besides sibling `clinosim.types.*`
+  modules, the only `clinosim` import is `clinosim.countries.is_jp`
+  in `document.py`.
 
 ## Constants and configuration
 
 - **`_UNSET_DATETIME = datetime(1970, 1, 1)` and
   `_UNSET_DATE = date(1970, 1, 1)`** — defined in `clinical.py`
-  (block-level comment dated 2026-07-04) and re-declared in
-  `encounter.py`, `procedure.py`, `diagnosis.py`. These sentinels are
+  (block-level comment dated 2026-07-04); `encounter.py` re-declares
+  both and `procedure.py` / `diagnosis.py` re-declare
+  `_UNSET_DATETIME`. These sentinels are
   private (leading underscore) and used only for optional fields where
   `None` would break downstream serialisation. The 1970-01-01 epoch
   is deliberately unambiguous so downstream serialisers can filter it.
@@ -112,16 +113,17 @@ identical dataclass instances.
 clinosim/types/
   __init__.py           re-exports the 10 curated sub-modules listed above
   document.py           document / narrative types (476 lines — largest file)
-  encounter.py          Encounter and adjacent operational types (359 lines)
-  patient.py            PatientProfile, baseline vitals, chronic conditions (300 lines)
-  population.py         population-generation intermediates (278 lines)
+  encounter.py          Encounter and adjacent operational types (412 lines)
+  patient.py            PatientProfile, baseline vitals, chronic conditions (343 lines)
+  population.py         population-generation intermediates (305 lines)
   config.py             SimulatorConfig and runtime config models (254 lines)
   clinical.py           clinical events, documents, findings (252 lines)
   output.py             cohort-level output metadata (149 lines)
   procedure.py          surgical / therapeutic procedures (93 lines)
-  imaging.py            imaging study / report (81 lines)
+  imaging.py            imaging study / report (86 lines)
   identity.py, staff.py, microbiology.py, allergy.py, antibiotic.py,
-  diagnosis.py, hai.py, device.py, triage.py, family_history.py
+  diagnosis.py, hai.py, device.py, triage.py, family_history.py,
+  drug_safety.py, longitudinal.py
                         one file per clinical domain (see table above)
 ```
 

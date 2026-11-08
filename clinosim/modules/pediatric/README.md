@@ -29,15 +29,24 @@ layer** by adding a per-age-band pediatric visit schedule.
 
 ## Public API
 
-`__init__.py` is a doc string only (`__all__ = []`). Consumers import the two
-functions directly from `calendar`:
+`__init__.py` is a doc string only (`__all__ = []`). Consumers import
+directly from `calendar`:
 
 ```python
 from clinosim.modules.pediatric.calendar import (
     load_pediatric_schedule,     # (path=None) -> {encounter_key: entry_dict}
     generate_pediatric_events,   # (person, year, prng, schedule=None) -> list[LifeEvent]
+    pediatric_presentation,      # (visit_id) -> Presentation | None (acute visits only)
+    Presentation,                # pydantic model of one acute-visit clinical picture
 )
 ```
+
+`pediatric_presentation(disease_id)` returns the acute visit's
+`Presentation` (or `None` for a preventive visit); the outpatient
+simulator uses it to pick the visit's vitals, a stream-free
+febrile / afebrile state (`Presentation.visit_state`, SHA Bernoulli on
+the encounter id), the matching state-variable impact, and the
+take-home prescriptions.
 
 `load_pediatric_schedule` validates the file at load time and raises
 `ValueError` on any schema violation (missing required field among
@@ -80,17 +89,28 @@ visits spaced evenly across the year with a day-of-month jitter.
 ## Constants and configuration
 
 [`reference_data/pediatric_schedule.yaml`](reference_data/pediatric_schedule.yaml)
-carries every registered encounter under a single `encounters:` map.
-Each entry:
+carries every registered encounter under an `encounters:` map and the
+clinical picture of the acute visits under a `presentations:` map.
+Each `encounters:` entry:
 
 | Key | Meaning |
 |---|---|
 | `age_min` | Inclusive lower bound (years). |
 | `age_max` | Inclusive upper bound (years). |
 | `visits_per_year` | Non-empty `list[int]` — uniformly sampled per patient per year to give inter-patient variance. |
-| `encounter_type` | `"outpatient"` / `"emergency"` / `"inpatient"` — copied onto `LifeEvent.encounter_type` (defaults to `"outpatient"`; every current entry is outpatient). |
+| `encounter_type` | Must be `"outpatient"` (the model rejects any other value) — copied onto `LifeEvent.encounter_type`. |
 | `disease_id` | Copied onto `LifeEvent.disease_id`; used for department resolution and the visit-reason lookup. |
 | `visit_reason` | Optional. Bilingual `{en, ja}` dict or string, read by `simulator/_setup.py::_pediatric_visit_reason` and emitted as the encounter's chief complaint. |
+
+Each `presentations:` entry is keyed by an `encounters:` `disease_id`
+(an unknown key fails at load):
+
+| Key | Meaning |
+|---|---|
+| `vitals` | Non-empty list of vital fields measured at the visit. |
+| `febrile_probability` | Probability (0–1) that the visit is febrile; > 0 requires a `state_impact.febrile` block. |
+| `state_impact` | Optional `{febrile, afebrile}` → `{state_var: delta}`; state-variable names must be canonical physiology state vars. |
+| `prescriptions` | Optional list of take-home items: `drug_id` (must be in the drug catalog), `dose`, `route`, `frequency`, `duration_days` (age band → positive day count). |
 
 Extending the schedule is a **pure YAML edit** — no code changes
 required. Adding a bad entry surfaces at load time as `ValueError`.
@@ -132,7 +152,7 @@ treats pediatric events like any other calendar event.
 | Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (inside `generate_healthcare_calendar`) | Calls `generate_pediatric_events(person, year, prng)` per (person, year) and extends the calendar's `events` list with the returned `LifeEvent` records. |
 | Healthcare-calendar dispatch | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | Routes `event_type == "pediatric_visit"` to an outpatient visit (department via `resolve_outpatient_department`, chief complaint via `_pediatric_visit_reason(disease_id)`). |
 | Visit-reason lookup | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_pediatric_visit_reason`) | Reads `visit_reason` from `load_pediatric_schedule()`. |
-| Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` branches. |
+| Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` branches; `pediatric_presentation` supplies the acute visit's vitals, febrile state and prescriptions. |
 
 ## Testing
 

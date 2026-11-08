@@ -124,7 +124,7 @@ clinosim test-disease bacterial_pneumonia --archetype treatment_resistant -n 5
 
 ## ディレクトリ構成
 
-シミュレーションオーケストレーション (18 ファイル):
+シミュレーションオーケストレーション (24 ファイル):
 
 ```
 clinosim/simulator/
@@ -148,6 +148,17 @@ clinosim/simulator/
   complications.py       合併症イベントスキーマヘルパー
   sex_gating.py          ICD-10 診断 dispatch の性別ゲート
   unknown_condition.py   疾患プロトコルを持たない慢性疾患のハンドリング
+  encounter_setup.py     エンカウンター構築・終了の共通手順 (オーダー紐付け、
+                         admit source / disposition / priority 設定)
+  ed_procedures.py       ED 受診内のベッドサイド処置のタイミング
+  screening_visit.py     エンカウンタープロトコルに基づく定期スクリーニング
+                         受診 (workup + スクリーニング検査)
+  statin_monitoring.py   慢性疾患フォローアップでの脂質モニタリング +
+                         スタチン調整
+  diagnosis_rules.py     エンカウンターシミュレータの診断コーディング規則表
+                         (reference_data/diagnosis_rules.yaml を読む)
+  event_refs.py          LifeEvent.disease_id / ConditionEvent.ground_truth_diseases
+                         の値の名前空間宣言
 ```
 
 forward ループとフェーズ (`phases/`、5 モジュール + `__init__.py`):
@@ -186,16 +197,30 @@ forward ループとフェーズ (`phases/`、5 モジュール + `__init__.py`)
   enumerate.py           網羅列挙モード (`clinosim enumerate`)
 ```
 
-CLI サブコマンドハンドラ (7 ファイル):
+CLI サブコマンドハンドラ (11 ファイル):
 
 ```
   cli_common.py          共有 CLI ユーティリティ
+  cli_simulate.py        `clinosim simulate` サブコマンド (+ `generate` エイリアス)
+  cli_validate.py        `clinosim validate` サブコマンド
+  cli_list_diseases.py   `clinosim list-diseases` サブコマンド
+  cli_diff.py            `clinosim diff` サブコマンド
   cli_enumerate.py       `clinosim enumerate` サブコマンド
   cli_export_fhir.py     `clinosim export-fhir` サブコマンド
-  cli_narrate.py         `clinosim narrate` サブコマンド
+  cli_narrate.py         `clinosim narrate` / `check-narratives` サブコマンド
   cli_regenerate.py      `clinosim regenerate-goldens` サブコマンド
   cli_test_disease.py    `clinosim test-disease` サブコマンド
   cli_test_encounter.py  `clinosim test-encounter` サブコマンド
+```
+
+リファレンスデータ (`reference_data/`、5 YAML):
+
+```
+  reference_data/chronic_propagation.yaml     慢性疾患の伝播 (helpers.py)
+  reference_data/diagnosis_rules.yaml         診断コーディング規則 (diagnosis_rules.py)
+  reference_data/icd10_sex_restrictions.yaml  ICD-10 の性別ゲート (sex_gating.py)
+  reference_data/renal_medication_rules.yaml  腎機能別投与規則 (medication_pipeline.py, discharge_rx.py)
+  reference_data/statin_monitoring.yaml       脂質モニタリング / スタチン調整 (statin_monitoring.py)
 ```
 
 抽出済閾値定数 (14 ファイル、`_<area>_thresholds.py`):

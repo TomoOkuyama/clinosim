@@ -14,13 +14,17 @@ override を許容する (下の allowlist に登録)。
 | File | Source | Fetched | Notes |
 | --- | --- | --- | --- |
 | `yj_tx_fragment.json` | `jpfhir-terminology 2.2606.0` / `CodeSystem-jp-medicationcodeyj-cs.json` (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`) | 2026-07-19 | Fragment (tx-server 上 2000 concept)、clinosim が現在 emit する 9 コードにフィルタ。 |
-| `loinc_2_82_tx.json` | LOINC 2.82 公式マスター (`Loinc_2.82/LoincTable/Loinc.csv`) を `tx-server-build/loinc-src/` 経由で | 2026-07-19 | clinosim emit の 172 コード; `display` (LONG_COMMON_NAME) + `short_display` (SHORTNAME) + `status` を含む。フル display cross-check は Issue #270 (Phase 3-b) で有効化 — 75 の正当略記 + 17 の追跡セマンティック mismatch override を allowlist に登録。 |
-| `icd10_who_tx.json` | `fhir.tx.support.r4 0.37.0` / `CodeSystem-icd-10.json` (`http://hl7.org/fhir/sid/icd-10`、content `complete`) | 2026-07-19 | clinosim emit の WHO ICD-10 319 コード (`metadata.clinosim_codes_missing_from_source` に upstream 不在の参照 1 コードを記録)。 |
-| `icd10_mhlw_2013_ja.json` | 厚労省 基本分類表 (ICD-10 2013年版準拠)、`https://www.mhlw.go.jp/toukei/sippei/xls/kihon2013.xlsx` (シート 基本分類表データ) | 2026-11-01 | `icd-10.yaml` の 367 コードの公式日本語名。`ja` はこれと完全一致する (Issue #2360)。 |
+| `loinc_2_82_tx.json` | LOINC 2.82 公式マスター (`Loinc_2.82/LoincTable/Loinc.csv`) を `tx-server-build/loinc-src/` 経由で | 2026-07-19 | clinosim が emit する LOINC コード; `display` (LONG_COMMON_NAME) + `short_display` (SHORTNAME) + `status` を含む。フル display cross-check は Issue #270 (Phase 3-b) で有効化 — 75 の正当略記 + 17 の追跡セマンティック mismatch override を allowlist に登録。 |
+| `icd10_who_tx.json` | `fhir.tx.support.r4 0.37.0` / `CodeSystem-icd-10.json` (`http://hl7.org/fhir/sid/icd-10`、content `complete`) | 2026-07-19 | clinosim が emit する WHO ICD-10 コード (`metadata.clinosim_codes_missing_from_source` に upstream 不在の参照コード数を記録)。 |
+| `icd10_mhlw_2013_ja.json` | 厚労省 基本分類表 (ICD-10 2013年版準拠)、`https://www.mhlw.go.jp/toukei/sippei/xls/kihon2013.xlsx` (シート 基本分類表データ) | 2026-11-01 | `icd-10.yaml` の ICD-10 コードの公式日本語名。`ja` はこれと完全一致する (Issue #2360)。 |
 | `shinryo_koui_ssk_20261013_ja.json` | 社会保険診療報酬支払基金 基本マスター 医科診療行為マスター (`s_ALL20261013.csv`)、`https://www.ssk.or.jp/seikyushiharai/tensuhyo/kihonmasta/kihonmasta_01.html` | 2026-11-01 | `k-codes.yaml` 登録コードのマスター名称 (点数表区分番号または区分番号-枝番で引く)。`ja` はそのいずれか、または名称が始まる区分名と一致する (Issue #2340)。 |
-| `rxnorm_rxnav_snapshot.json` | RxNav (NLM) `/REST/rxcui/{code}/historystatus` | 2026-10-28 | clinosim 同梱の 229 RxCUI (`rxnorm.yaml` / `drugs.yaml` / US 薬剤マッピング) の status / name / term type。`tests/unit/codes/test_rxnorm_codes_name_their_drug.py` がオフラインで読む。 |
+| `rxnorm_rxnav_snapshot.json` | RxNav (NLM) `/REST/rxcui/{code}/historystatus` | 2026-10-28 | clinosim 同梱の全 RxCUI (`rxnorm.yaml` / `drugs.yaml` / US 薬剤マッピング) の status / name / term type。`tests/unit/codes/test_rxnorm_codes_name_their_drug.py` がオフラインで読む。 |
 | `yj_mhlw_snapshot.json` | 厚労省 薬価基準収載品目リスト及び後発医薬品に関する情報 (令和8年6月12日適用)、`https://www.mhlw.go.jp/topics/2026/04/xls/tp20260612-01_05.xlsx` | 2026-10-31 | 薬剤カタログ (`drugs.yaml` の `codes.yj`) の YJ コードに対する厚労省の成分名・品名。JP 薬剤コードテスト (例: `tests/unit/codes/test_jp_yj_class_codes_name_their_drug.py`) がオフラインで読む (Issue #2347)。 |
 | `JP_MedicationCodeYJ_CS_full.json` | YJ-code CodeSystem 全体 (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`、version `2026.8.31`、content `complete`) | — | 23,923 concept。YJ full-CS テスト (例: `tests/unit/output/test_fhir_yj_full_cs_gate_1220.py`) が使用。 |
+
+snapshot の件数は clinosim の emit 範囲に合わせて増えるため上表には
+記載しません。件数は `len(json.load(open(path))["concept"])` で数えて
+ください。
 
 後続 snapshot (SNOMED / MEDIS / BCP-47 etc.) は
 design guide で追跡され、各 Chain がフレームワークに移行するたびに
