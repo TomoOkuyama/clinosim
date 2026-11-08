@@ -150,3 +150,58 @@ def test_health_checkup_deterministic_across_runs():
     assert len(records1) == 2 and len(records2) == 2
     assert records1[1].encounters[0].encounter_id == records2[1].encounters[0].encounter_id
     assert records1[1].documents[0].document_id == records2[1].documents[0].document_id
+
+
+def _selected_adult_id() -> str:
+    from clinosim.modules.health_checkup.engine import _patient_selected
+
+    return next(f"POP-{i:06d}" for i in range(100) if _patient_selected(f"POP-{i:06d}"))
+
+
+def _checkup_date_for(ctx) -> object:
+    from clinosim.modules.health_checkup.engine import _pick_checkup_date
+
+    return _pick_checkup_date(ctx.config.snapshot_date)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("death_offset_days", "expect_checkup"),
+    [(-400, False), (-1, False), (0, False), (1, True), (None, True)],
+)
+def test_health_checkup_none_on_or_after_profile_death(death_offset_days, expect_checkup):
+    """Issue #2940: no checkup on or after the profile's death date (no registry)."""
+    from datetime import timedelta
+
+    from clinosim.modules.health_checkup.engine import enrich_health_checkup
+
+    record = _make_record(_selected_adult_id(), age=60)
+    records = [record]
+    ctx = _make_ctx("JP", opt_in=True, records=records)
+    if death_offset_days is not None:
+        record.patient.date_of_death = _checkup_date_for(ctx) + timedelta(days=death_offset_days)
+    enrich_health_checkup(ctx)
+    assert (len(records) == 2) is expect_checkup
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(("death_offset_days", "expect_checkup"), [(-30, False), (0, False), (30, True)])
+def test_health_checkup_uses_population_registry_death(death_offset_days, expect_checkup):
+    """Issue #2940: with a population registry, the person's recorded death gates the checkup."""
+    from datetime import date, timedelta
+    from types import SimpleNamespace
+
+    from clinosim.modules.health_checkup.engine import enrich_health_checkup
+    from clinosim.types.population import PersonRecord
+
+    pid = _selected_adult_id()
+    record = _make_record(pid, age=60)
+    records = [record]
+    ctx = _make_ctx("JP", opt_in=True, records=records)
+    person = PersonRecord(person_id=pid, household_id="H1", age=60, sex="M", date_of_birth=date(1960, 1, 1))
+    person.record_death(_checkup_date_for(ctx) + timedelta(days=death_offset_days), "community")
+    ctx.population = SimpleNamespace(persons={pid: person})
+    # The profile does not carry the death: the registry is the source of truth.
+    assert record.patient.date_of_death is None
+    enrich_health_checkup(ctx)
+    assert (len(records) == 2) is expect_checkup
