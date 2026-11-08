@@ -10,8 +10,9 @@ metadata:
 
 # Outpatient visit diagnosis when neither the encounter condition YAML
 # (`icd10_code`) nor the chronic condition gives one (Issue #1186 F2 / #1189 F4):
-# each named visit purpose gets its Z-family code so Encounter.reasonCode
-# matches the chief complaint. `by_visit` keys are the visit ids
+# each named visit purpose gets its code so Encounter.reasonCode matches the
+# chief complaint — a Z-family code for a preventive visit, the illness's own
+# code for an acute visit (Issue #2873). `by_visit` keys are the visit ids
 # (pediatric schedule `disease_id`s); `default` covers the other visits of
 # that visit type. Anything else falls back to `fallback` (Z09, follow-up).
 visit_purpose_codes:
@@ -24,14 +25,20 @@ visit_purpose_codes:
     # general-examination fallback.
     health_screening:
       default: "Z00.0"
-    # Z23 only for vaccination visits; other well-child / pediatric visits
-    # get Z00 (general examination).
+    # Z23 for vaccination visits; an acute visit is coded with its illness
+    # (Issue #2873; its clinical picture is `presentations:` in
+    # modules/pediatric/reference_data/pediatric_schedule.yaml); well-child and
+    # other pediatric visits get Z00 (general examination).
     pediatric_visit:
       default: "Z00"
       by_visit:
         immunization_infant: "Z23"
         immunization_kindergarten: "Z23"
         immunization_adolescent: "Z23"
+        pediatric_bronchiolitis: "J21.9"   # Acute bronchiolitis, unspecified
+        pediatric_otitis_media: "H66.90"   # Otitis media, unspecified, unspecified ear (JP: H66.9)
+        pediatric_uri: "J06.9"             # Acute upper respiratory infection, unspecified
+        pediatric_injury: "T14.90"         # Injury, unspecified (US: T14.90XA, JP: T14.9)
 
 # Unknown-condition (undiagnosed) admissions, by sampled pattern slug
 # (`unknown_<pattern>`, locale demographics `unknown_condition.patterns`):

@@ -52,6 +52,7 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
     _localize_rate_adjustment,
     _split_rate_adjustment_suffix,
 )
+from clinosim.types.encounter import ACUTE_COURSE
 
 # HL7 CodeSystem URIs for MedicationRequest classification (both callers
 # emitted them inline before Issue #548 partial extraction).
@@ -125,15 +126,18 @@ def _course_for_order(is_home_med: bool, category_code: str) -> tuple[str, str]:
     return _COURSE_CONTINUOUS if (is_home_med or category_code == "community") else _COURSE_ACUTE
 
 
-def _course_for_discharge(is_discharge: bool, duration_days: int | None) -> tuple[str, str]:
+def _course_for_discharge(is_discharge: bool, duration_days: int | None, course: str = "") -> tuple[str, str]:
     """Rule used by ``_build_discharge_medication_request``.
 
-    A non-discharge script (i.e. an outpatient renewal) is continuous by
-    definition. A discharge script with an open-ended supply (no
-    ``duration_days``) is a maintenance therapy handed over at discharge
-    — continuous. A discharge script with an explicit duration is a short
-    course — acute.
+    An item marked as a short course for an acute illness (``course`` ==
+    ``ACUTE_COURSE``, Issue #2873) is acute. Otherwise a non-discharge
+    script (i.e. an outpatient renewal) is continuous by definition. A
+    discharge script with an open-ended supply (no ``duration_days``) is a
+    maintenance therapy handed over at discharge — continuous. A discharge
+    script with an explicit duration is a short course — acute.
     """
+    if course == ACUTE_COURSE and duration_days is not None:
+        return _COURSE_ACUTE
     return _COURSE_CONTINUOUS if ((not is_discharge) or duration_days is None) else _COURSE_ACUTE
 
 
@@ -1350,7 +1354,9 @@ def _build_discharge_medication_request(
     # lifelong anticoagulant does not become a short course by being
     # handed over at discharge. Sibling `_build_medication_request` uses
     # `_course_for_order` instead.
-    course_code, course_display = _course_for_discharge(_is_discharge, duration_days)
+    course_code, course_display = _course_for_discharge(
+        _is_discharge, duration_days, str(get_attr_or_key(item, "course", "") or "")
+    )
     resource["courseOfTherapyType"] = _build_course_of_therapy_block(course_code, course_display)
 
     # dispenseRequest — composed by _build_discharge_rx_dispense.

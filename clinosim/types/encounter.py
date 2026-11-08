@@ -185,6 +185,12 @@ class MedicationAdministration:
             self.drug_id = drug_ref(self.drug_name)
 
 
+# ``course`` of a prescription item that is a short course for an acute
+# illness (Issue #2873): it is not renewed by a later prescription of the same
+# drug and ends when its supply runs out.
+ACUTE_COURSE = "acute"
+
+
 @dataclass
 class PrescriptionRecord:
     """Discharge or outpatient prescription record."""
@@ -194,8 +200,9 @@ class PrescriptionRecord:
     prescriber_id: str = ""
     issue_date: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     items: list[dict] = field(default_factory=list)
-    # Each item: {drug_name, drug_id, dose, frequency, route, days_supply, generic_name};
-    # drug_id (catalog id) is filled from drug_name when missing (Issue #2297).
+    # Each item: {drug_name, drug_id, dose, frequency, route, days_supply, generic_name,
+    # course?}; drug_id (catalog id) is filled from drug_name when missing (Issue #2297);
+    # course is ACUTE_COURSE for a short course of an acute illness.
 
     def __post_init__(self) -> None:
         from clinosim.codes.drugs import drug_ref

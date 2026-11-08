@@ -331,6 +331,13 @@ codes:
     ja: 下肢のその他の深部静脈の急性塞栓症および血栓症
   J06.9:
     en: Acute upper respiratory infection, unspecified
+  # Issue #2873: pediatric acute clinic visits. Verified on the NLM
+  # ICD-10-CM API (clinicaltables.nlm.nih.gov/api/icd10cm), 2026-11-08.
+  J21.9:
+    en: Acute bronchiolitis, unspecified
+  H66.90:
+    en: Otitis media, unspecified, unspecified ear
+    ja: 中耳炎、詳細不明、患側不明
   J10:
     en: Influenza due to other identified influenza virus
   J10.0:

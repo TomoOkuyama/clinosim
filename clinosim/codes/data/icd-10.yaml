@@ -210,6 +210,14 @@ codes:
   J06.9:
     en: Acute upper respiratory infection, unspecified
     ja: "急性上気道感染症，詳細不明"
+  # Issue #2873: pediatric acute clinic visits. Verified on tx.fhir.org
+  # (http://hl7.org/fhir/sid/icd-10 $lookup), 2026-11-08.
+  J21.9:
+    en: Acute bronchiolitis, unspecified
+    ja: "急性細気管支炎，詳細不明"
+  H66.9:
+    en: Otitis media, unspecified
+    ja: "中耳炎，詳細不明"
   J10:
     en: Influenza due to identified seasonal influenza virus
     ja: "その他のインフルエンザウイルスが分離されたインフルエンザ"

@@ -11,7 +11,9 @@ in issue order, as of the export's snapshot date, and per drug:
   ``MedicationRequest.priorPrescription``);
 * the last prescription ends when its supply (``duration_days``) runs out
   before the end of the run, or ``stopped`` at the patient's death;
-* a prescription still in supply at the end of the run stays active.
+* a prescription still in supply at the end of the run stays active;
+* a short course for an acute illness (``course: acute``, Issue #2873) is
+  never a renewal: it ends when its supply runs out.
 
 The result depends on the snapshot date (a prescription active at one
 snapshot is completed at a later one), so it is computed at FHIR export time
@@ -30,6 +32,7 @@ from typing import Any
 
 from clinosim.codes.drugs import drug_ref
 from clinosim.modules._shared import get_attr_or_key as _get
+from clinosim.types.encounter import ACUTE_COURSE
 
 
 def _day(value: Any) -> date | None:
@@ -92,6 +95,12 @@ def prescription_closures(records: Iterable[Any], run_end: date | None) -> dict[
         # the later copy shares the first copy's closure and is never a link.
         copies: dict[tuple[str, str], list[tuple[str, int]]] = defaultdict(list)
         for entry in entries:
+            if entry[2].get("course") == ACUTE_COURSE:
+                # A short course is not renewed by a later course of the same
+                # drug; it ends when its supply runs out (Issue #2873).
+                key = (entry[3]["encounter_id"], entry[1])
+                out[key].update(_close_by_supply(entry[2], entry[0], entry[4], run_end))
+                continue
             name = str(entry[2].get("drug_name", ""))
             drug = drug_ref(name) or name.strip().lower()
             enc_key = (entry[3]["encounter_id"], drug)
