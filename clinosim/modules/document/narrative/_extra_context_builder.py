@@ -18,7 +18,7 @@ from functools import cache
 from pathlib import Path
 
 from clinosim.codes.icd10 import condition_label
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.document.narrative._patient_info_renderers import (
@@ -46,6 +46,7 @@ from clinosim.modules.document.narrative._replacement_renderers import (
     _stay_phase,
 )
 from clinosim.modules.document.narrative._safety_skips import safety_skip_line
+from clinosim.modules.document.reference_data_loaders import NarrativeExtrasWhitelists
 from clinosim.types.document import DocumentTypeSpec, NarrativeContext
 
 # Per-doc-type extras eligibility — biometrics (Ht/Wt/BMI/blood type) and
@@ -60,7 +61,7 @@ from clinosim.types.document import DocumentTypeSpec, NarrativeContext
 def _narrative_extras_whitelists() -> dict[str, frozenset[str]]:
 
     path = Path(__file__).resolve().parents[1] / "reference_data" / "narrative_extras_whitelists.yaml"
-    raw = load_data_yaml(path) or {}
+    raw = load_validated_yaml(path, NarrativeExtrasWhitelists) or {}
     out: dict[str, frozenset[str]] = {}
     for key in ("biometrics", "health_literacy"):
         rows = raw.get(key) or []

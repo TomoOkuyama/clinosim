@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
-from clinosim.datafiles import load_data_yaml
+from pydantic import BaseModel, ConfigDict, model_validator
+
+from clinosim.datafiles import load_validated_yaml
 
 # Canonical lowercase hai_type strings. MUST be defined BEFORE enricher
 # import to avoid circular import (enricher imports HAI_TYPES for validation).
@@ -41,19 +44,18 @@ def _organisms_by_hai_type() -> dict[str, set[str]]:
     return {hai_type: {str(entry["snomed"]) for entry in entries} for hai_type, entries in table.items()}
 
 
-@lru_cache(maxsize=1)
-def load_hai_antibiogram() -> dict:
-    """Load and validate hai_antibiogram.yaml.
+def _check_hai_antibiogram(raw: Any) -> None:
+    """Cross-checks of hai_antibiogram.yaml against HAI_TYPES,
+    hai_organisms.yaml and ANTIBIOTIC_LOINC_LOOKUP.
 
-    Validates at import time so a typo (uppercase hai_type, unknown organism,
-    unknown antibiotic, malformed probability triple) raises ValueError loudly
-    instead of silently producing a no-op antibiogram lookup at runtime.
+    A typo (uppercase hai_type, unknown organism, unknown antibiotic,
+    malformed probability triple) raises ValueError loudly instead of
+    silently producing a no-op antibiogram lookup at runtime.
     Lesson from PR-90 silent-no-op (xhigh review).
     """
     from clinosim.modules.antibiotic import ANTIBIOTIC_LOINC_LOOKUP
 
-    raw = load_data_yaml(_HAI_ANTIBIOGRAM_PATH) or {}
-    abg = raw.get("hai_antibiogram") or {}
+    abg = (raw.get("hai_antibiogram") if isinstance(raw, dict) else None) or {}
     # PR3b-3 stage-1 adversarial finding I2: empty top-level antibiogram would
     # silently disable downstream consumers (PR3b-3 D2 panel-eligible
     # filter — _panel_eligible_organisms returns {} → D2 skips all
@@ -108,6 +110,30 @@ def load_hai_antibiogram() -> dict:
                         f"hai_antibiogram.yaml: triple for {hai_type}/{snomed}/"
                         f"{abx_key} must sum to ~1.0, got {sum(triple):.3f}"
                     )
+
+
+class HaiAntibiogram(BaseModel):
+    """Shape of hai_antibiogram.yaml: per HAI type and organism SNOMED, the
+    ``[S, I, R]`` probability triple of each antibiotic; the cross-checks of
+    ``_check_hai_antibiogram`` run first."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    hai_antibiogram: dict[str, dict[str, dict[str, list[float]]]]
+
+    @model_validator(mode="before")
+    @classmethod
+    def _checked(cls, data: Any) -> Any:
+        _check_hai_antibiogram(data)
+        return data
+
+
+@lru_cache(maxsize=1)
+def load_hai_antibiogram() -> dict:
+    """Load and validate hai_antibiogram.yaml (``HaiAntibiogram``); returns
+    the ``hai_antibiogram`` table."""
+    raw = load_validated_yaml(_HAI_ANTIBIOGRAM_PATH, HaiAntibiogram)
+    abg: dict = raw["hai_antibiogram"]
     return abg
 
 

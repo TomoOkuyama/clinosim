@@ -38,6 +38,7 @@ from clinosim.locale.localized import language_slot, localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.imaging.engine import (
     RADIOLOGY_REPORT_ID_PREFIX,
+    ImagingImpressionKeywords,
     _resolve_imaging_procedure_code_key,
     load_body_sites,
 )
@@ -394,6 +395,7 @@ def _imaging_impression_keywords() -> dict[str, tuple[str, ...]]:
     raw = load_reference_yaml(
         Path(__file__).resolve().parents[3] / "imaging" / "reference_data" / "imaging-impression-keywords.yaml"
     )
+    ImagingImpressionKeywords.model_validate(raw)
     return {
         "normal": tuple(str(p) for p in (raw.get("normal") or []) if isinstance(p, str)),
         "abnormal": tuple(str(p) for p in (raw.get("abnormal") or []) if isinstance(p, str)),

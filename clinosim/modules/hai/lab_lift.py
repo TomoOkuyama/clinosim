@@ -47,7 +47,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from clinosim.datafiles import load_data_yaml
+from pydantic import BaseModel, ConfigDict, model_validator
+
+from clinosim.datafiles import load_validated_yaml
 from clinosim.modules.hai import HAI_TYPES
 from clinosim.modules.observation.engine import determine_flag, round_to_precision
 from clinosim.modules.physiology._lab_derivation_thresholds import (
@@ -101,6 +103,23 @@ def _validate_hai_lab_lift_config(data: dict) -> None:
         raise ValueError(f"hai_lab_lift.yaml missing HAI_TYPES: {sorted(missing)!r}")
 
 
+class HaiLabLift(BaseModel):
+    """Shape of hai_lab_lift.yaml: the ramp to peak lift (days) and the lift
+    of each HAI type; the checks of ``_validate_hai_lab_lift_config`` run
+    first."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    ramp_peak_days: float
+    hai_lift: dict[str, float]
+
+    @model_validator(mode="before")
+    @classmethod
+    def _checked(cls, data: Any) -> Any:
+        _validate_hai_lab_lift_config(data)
+        return data
+
+
 @lru_cache(maxsize=1)
 def load_hai_lab_lift_config() -> tuple[float, dict[str, float]]:
     """Load reference_data/hai_lab_lift.yaml once.
@@ -109,8 +128,7 @@ def load_hai_lab_lift_config() -> tuple[float, dict[str, float]]:
     ``_validate_hai_lab_lift_config`` covers the 6-layer silent-no-op
     defense pattern (sibling sweep, 2026-06-29).
     """
-    data = load_data_yaml(_REF_DIR / "hai_lab_lift.yaml")
-    _validate_hai_lab_lift_config(data)
+    data = load_validated_yaml(_REF_DIR / "hai_lab_lift.yaml", HaiLabLift)
     return float(data["ramp_peak_days"]), dict(data["hai_lift"])
 
 
