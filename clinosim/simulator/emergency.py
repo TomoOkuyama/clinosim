@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import replace
 from datetime import datetime, timedelta
 
 import numpy as np
@@ -46,6 +47,8 @@ from clinosim.simulator._ed_thresholds import (
     ED_RELEASE_SBP_MIN,
     ED_RELEASE_SPO2_MIN,
     ED_RELEASE_SPO2_MIN_COPD,
+    ED_REPEAT_ON_RAISED_LABS,
+    ED_SERIAL_LAB_INTERVAL_HOURS,
     ED_TREATMENT_ORDER_OFFSET_MEAN_MIN,
     ED_TREATMENT_ORDER_OFFSET_STD_MIN,
     ED_TREATMENT_RESPONSE_FACTOR,
@@ -143,6 +146,66 @@ def ed_lab_result_time(visit_time: datetime, ordered_datetime: datetime, result_
     """
     drawn = visit_time + timedelta(minutes=result_offset_min)
     return max(drawn, ordered_datetime + timedelta(minutes=ED_LAB_MIN_TURNAROUND_MIN))
+
+
+def _serial_repeat(
+    first: Order,
+    lab_spec: dict,
+    canon: str,
+    true_val: float,
+    patient: PatientProfile,
+    country: str,
+    encounter: Encounter,
+    lab_tech_id: str,
+    *,
+    flag: str | None,
+) -> Order | None:
+    """The second draw of a serial ED lab (Issue #2854), or None.
+
+    A lab is repeated ``interval_hours`` (default ``ED_SERIAL_LAB_INTERVAL_HOURS``)
+    after the first order when its protocol spec sets ``serial: true``, or when an
+    analyte in ``ED_REPEAT_ON_RAISED_LABS`` comes back flagged high. The repeat
+    has its own per-order sub-seed (no other stream moves) and the visit is
+    kept open until the repeat is resulted and reviewed.
+    """
+    raised = canon in ED_REPEAT_ON_RAISED_LABS and str(flag or "").upper() in ("H", "HH")
+    if not (lab_spec.get("serial") or raised):
+        return None
+    from clinosim.modules.observation.engine import determine_flag, generate_lab_result
+    from clinosim.seeding import individual_lab_seed
+
+    repeat_id = f"{first.order_id}-R"
+    rng = determinism.default_rng(individual_lab_seed(repeat_id))
+    interval = timedelta(hours=float(lab_spec.get("interval_hours") or ED_SERIAL_LAB_INTERVAL_HOURS))
+    ordered = first.ordered_datetime + interval
+    observed = generate_lab_result(canon, true_val, rng)
+    resulted = ed_lab_result_time(
+        ordered, ordered, int(rng.normal(ED_LAB_RESULT_OFFSET_MEAN_MIN, ED_LAB_RESULT_OFFSET_STD_MIN))
+    )
+    repeat = replace(
+        first,
+        order_id=repeat_id,
+        ordered_datetime=ordered,
+        result=OrderResult(
+            result_datetime=resulted,
+            performed_by=lab_tech_id,
+            lab_name=canon,
+            value=observed,
+            unit=get_lab_unit(canon),
+            flag=determine_flag(
+                canon,
+                observed,
+                sex=patient.sex,
+                country=country,
+                medications=patient.current_medications,
+                age=patient.age,
+            ),
+        ),
+    )
+    review_by = resulted + timedelta(minutes=ED_REASSESS_BEFORE_DISCHARGE_MIN)
+    if encounter.discharge_datetime is not None and encounter.discharge_datetime < review_by:
+        encounter.discharge_datetime = review_by
+    return repeat
 
 
 def ed_lab_true_value(lab_spec: dict, severity: str, derived: float) -> float:
@@ -564,6 +627,10 @@ def _simulate_ed_visit(
         order.status = OrderStatus.RESULTED
         orders.append(order)
         lab_results.append(order.result)
+        repeat = _serial_repeat(order, lab_spec, canon, true_val, patient, country, encounter, lab_tech_id, flag=flag)
+        if repeat is not None and repeat.result is not None:
+            orders.append(repeat)
+            lab_results.append(repeat.result)
 
     # Imaging from protocol
     for i, img_spec in enumerate(workup.get("imaging", [])):

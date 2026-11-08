@@ -50,6 +50,8 @@ __all__ = [
     "ED_LAB_RESULT_OFFSET_MEAN_MIN",
     "ED_LAB_RESULT_OFFSET_STD_MIN",
     "ED_LAB_MIN_TURNAROUND_MIN",
+    "ED_REPEAT_ON_RAISED_LABS",
+    "ED_SERIAL_LAB_INTERVAL_HOURS",
     "ED_PAIN_INFLAMMATION_SCALE",
     "ED_PAIN_MAX",
     "ED_PAIN_MIN",
@@ -124,6 +126,16 @@ The order and result offsets are drawn independently from ``visit_time``,
 so a late order with an early result draw would be resulted before it was
 ordered. A STAT specimen still has to be drawn, sent and run: the result
 comes no sooner than this after the order."""
+
+ED_SERIAL_LAB_INTERVAL_HOURS: float = 3.0
+"""Default hours between the two draws of a serial ED lab (Issue #2854) when
+the protocol's lab spec gives no ``interval_hours``: the 0 h / 3 h
+high-sensitivity troponin rule-out of the 2021 AHA/ACC chest pain guideline."""
+
+ED_REPEAT_ON_RAISED_LABS: tuple[str, ...] = ("Troponin_I",)
+"""Analytes repeated after ``ED_SERIAL_LAB_INTERVAL_HOURS`` whenever the first
+ED result is flagged high, even if the protocol did not ask for a serial draw:
+a raised troponin is not acted on (or dismissed) from one value (Issue #2854)."""
 
 ED_IMAGING_ORDER_OFFSET_MEAN_MIN: float = 20.0
 """Mean minutes from ``visit_time`` at which an ED imaging order is

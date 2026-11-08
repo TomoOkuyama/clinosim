@@ -56,7 +56,7 @@ treatment:
   - {name: "IV normal saline", probability: 0.3, route: "IV"}
 
 discharge_instructions:
-  - "Troponin negative x2, ECG unchanged — ACS ruled out"
+  - "Serial troponin without a significant change, ECG unchanged — ACS ruled out"
   - "Follow up with PCP within 1 week"
   - "Return immediately if chest pain recurs, worsens, or associated with dyspnea"
   - "Consider outpatient stress test if risk factors present"
