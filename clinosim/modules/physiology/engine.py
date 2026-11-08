@@ -294,7 +294,7 @@ from clinosim.modules.physiology.dehydration_thresholds import (
     BUN_ELEVATION_THRESHOLD,
     HYPERNATREMIA_THRESHOLD,
 )
-from clinosim.modules.physiology.statin_response import statin_ldl_reduction as _statin_ldl_reduction
+from clinosim.modules.physiology.statin_response import ldl_reduction as _ldl_reduction
 from clinosim.modules.physiology.statin_response import statin_treated_ldl
 from clinosim.types.clinical import PhysiologicalState, StateChangeDirective
 from clinosim.types.patient import BaselineVitals, ChronicCondition, PatientPhysiologicalProfile
@@ -717,9 +717,10 @@ def medication_flags_from_context(
     `derive_lab_values` parameter names so callers can spread with `**flags`.
 
     Phase 2b: returns `{"on_warfarin": bool}`. Issue #2917 adds
-    `statin_ldl_reduction` (float): the fraction of the untreated LDL the
-    patient's statin removes at its intensity (``statin_response``; 0.0
-    without a statin). Extend the dict for future couplings (steroid →
+    `ldl_reduction` (float): the fraction of the untreated LDL the patient's
+    statin removes at its intensity, and with Issue #2947 the further
+    fraction an active ezetimibe removes (``statin_response.ldl_reduction``;
+    0.0 without either), detected by drug class. Extend the dict for future couplings (steroid →
     glucose, diuretic → K, antibiotic → CRP).
 
     Detection (Issue #2293): ``observation.engine.medications_in_effect`` —
@@ -738,7 +739,7 @@ def medication_flags_from_context(
     only the chronic path runs.
     """
     if patient is None:
-        return {"on_warfarin": False, "statin_ldl_reduction": 0.0}
+        return {"on_warfarin": False, "ldl_reduction": 0.0}
     meds = medications_in_effect(
         getattr(patient, "current_medications", None),
         medication_orders,
@@ -747,7 +748,7 @@ def medication_flags_from_context(
     )
     return {
         "on_warfarin": any(same_drug(medication_name(m), "warfarin") for m in meds),
-        "statin_ldl_reduction": _statin_ldl_reduction(str(getattr(patient, "patient_id", "") or ""), meds),
+        "ldl_reduction": _ldl_reduction(str(getattr(patient, "patient_id", "") or ""), meds),
     }
 
 
@@ -947,10 +948,11 @@ def lipid_panel(
     sex: str,
     has_diabetes: bool,
     has_dyslipidemia: bool,
-    statin_ldl_reduction: float = 0.0,
+    ldl_reduction: float = 0.0,
 ) -> dict[str, float]:
     """True TC, HDL, TG and LDL (mg/dL) of a lipid state: sex, diabetes,
-    dyslipidemia and the statin's LDL reduction (Issue #2917). Encounter labs
+    dyslipidemia and the LDL reduction of the statin and ezetimibe (Issues
+    #2917, #2947). Encounter labs
     (``derive_lab_values``) and the health checkup (``patient_lipid_panel``,
     Issue #2941) both read it, so one patient has one untreated LDL."""
     # Issue #1073 B8: lipid panel — TC + LDL + HDL + TG. Baseline modulated by
@@ -973,10 +975,10 @@ def lipid_panel(
         labs["LDL"] = max(30.0, labs["TC"] - labs["HDL"] - labs["TG"] / 5)
     else:
         labs["LDL"] = max(30.0, LDL_BASELINE_MG_DL + _dyslip * LDL_DYSLIPIDEMIA_SCALE)
-    # Issue #2917: a statin removes ``statin_ldl_reduction`` of the untreated
-    # LDL (2018 ACC/AHA Table 3 by intensity); total cholesterol falls by the
-    # same mg/dL, so the Friedewald identity still holds.
-    treated = statin_treated_ldl(labs["LDL"], statin_ldl_reduction)
+    # Issues #2917, #2947: the statin (2018 ACC/AHA Table 3 by intensity) and
+    # ezetimibe remove ``ldl_reduction`` of the untreated LDL; total
+    # cholesterol falls by the same mg/dL, so the Friedewald identity holds.
+    treated = statin_treated_ldl(labs["LDL"], ldl_reduction)
     labs["TC"] -= labs["LDL"] - treated
     labs["LDL"] = treated
     return labs
@@ -992,7 +994,7 @@ def patient_lipid_panel(patient: Any) -> dict[str, float]:
         str(getattr(patient, "sex", "") or ""),
         has_condition(patient, "diabetes"),
         has_condition(patient, "dyslipidemia"),
-        float(medication_flags_from_context(patient)["statin_ldl_reduction"]),
+        float(medication_flags_from_context(patient)["ldl_reduction"]),
     )
 
 
@@ -1248,7 +1250,7 @@ def derive_lab_values(
     hai_inflammation_lift: float = 0.0,
     has_dyslipidemia: bool = False,
     hba1c_latent: float | None = None,
-    statin_ldl_reduction: float = 0.0,
+    ldl_reduction: float = 0.0,
 ) -> dict[str, float]:
     """Derive lab values from physiological state. Returns 'true' values before noise.
 
@@ -1266,7 +1268,7 @@ def derive_lab_values(
     _add_renal_labs(labs, state, sex)
     _add_cardiac_labs(labs, state, myocardial_injury)
     _add_hepatic_labs(labs, state, sex)
-    labs.update(lipid_panel(sex, has_diabetes, has_dyslipidemia, statin_ldl_reduction))
+    labs.update(lipid_panel(sex, has_diabetes, has_dyslipidemia, ldl_reduction))
     _add_pt_inr(labs, state, on_warfarin)
     _add_blood_count_labs(labs, state, sex)
     _add_coagulation_labs(labs, state, age, causes_vte)

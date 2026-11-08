@@ -65,7 +65,7 @@ from clinosim.modules.physiology.engine import (
 
     # Flag helpers (AD-57 canonical single edit points)
     scenario_flags_from_protocol,     # (protocol) -> {"causes_X": bool, ...}
-    medication_flags_from_context,    # (patient, medication_orders, admission_date, current_day) -> {"on_warfarin": bool, "statin_ldl_reduction": float}
+    medication_flags_from_context,    # (patient, medication_orders, admission_date, current_day) -> {"on_warfarin": bool, "ldl_reduction": float}
 
     # Derivations
     derive_lab_values,                # (state, sex, age, has_diabetes=False, rng=None, hour=6, **flags,
