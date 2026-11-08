@@ -45,7 +45,9 @@ discharge_instructions:
   - "Follow up with allergist if recurrent episodes"
 
 discharge_prescriptions:
-  - {drug: "Cetirizine 10mg", route: "PO", frequency: "daily", duration_days: 7, probability: 0.7}
+  # Urticaria / mild angioedema is discharged on an H1 antihistamine (AAAAI /
+  # ACAAI practice parameter): always one (choose_one group of one member).
+  - {drug: "Cetirizine 10mg", choose_one: h1_antihistamine, route: "PO", frequency: "daily", duration_days: 7, probability: 1.0}
   - {drug: "Prednisone 40mg", locale_name: {jp: "Prednisolone 30mg"}, route: "PO", frequency: "daily", duration_days: 5, probability: 0.3}
   - {drug: "Epinephrine auto-injector", route: "IM", frequency: "PRN emergency (max 2/day)", duration_days: 365, probability: 0.2}
 

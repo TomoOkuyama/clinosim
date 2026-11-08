@@ -66,9 +66,11 @@ discharge_instructions:
   - "Return if fever, flank pain, vomiting, or symptoms not improving after 48 hours"
 
 discharge_prescriptions:
-  - {drug: "Trimethoprim/Sulfamethoxazole 160/800mg", route: "PO", frequency: "bid", duration_days: 3, probability: 0.4}
-  - {drug: "Nitrofurantoin 100mg", locale_exclude: [JP], route: "PO", frequency: "bid", duration_days: 5, probability: 0.35}
-  - {drug: "Ciprofloxacin 500mg", route: "PO", frequency: "bid", duration_days: 3, probability: 0.15}
+  # Exactly one antibiotic (choose_one: probability = relative weight among
+  # the marketed alternatives; IDSA 2011 first-line agents first).
+  - {drug: "Trimethoprim/Sulfamethoxazole 160/800mg", choose_one: uti_antibiotic, route: "PO", frequency: "bid", duration_days: 3, probability: 0.4}
+  - {drug: "Nitrofurantoin 100mg", choose_one: uti_antibiotic, locale_exclude: [JP], route: "PO", frequency: "bid", duration_days: 5, probability: 0.35}
+  - {drug: "Ciprofloxacin 500mg", choose_one: uti_antibiotic, route: "PO", frequency: "bid", duration_days: 3, probability: 0.15}
   - {drug: "Phenazopyridine 200mg", locale_exclude: [JP], route: "PO", frequency: "tid", duration_days: 2, probability: 0.3}
 
 incidence_modifier: 1.0
