@@ -45,6 +45,20 @@ severity_to_triage_distribution:
     "2": 0.55
     "3": 0.25
 
+# ESI v4 resource rule (AHRQ ESI Implementation Handbook, decision point C;
+# Issue #2864). A draw of level 3-5 becomes the level for the number of
+# distinct resource types the ED visit orders: labs (any number) count as one,
+# imaging (incl. ECG) as one, IV fluids and IV / IM / nebulized medications
+# together as one, procedures as one. JTAS levels 3-5 follow the same rule.
+resource_rule:
+  # level for 0, 1 and >= 2 resource types
+  level_by_count: ["5", "4", "3"]
+  # medication routes that are a resource (PO / SL / topical ones are not)
+  parenteral_routes: [IV, IVPB, IV push, IV infusion, IM, intramuscular, INH, inhaled, inhalation, NEB, nebulized, nebulizer]
+  # procedure-order keywords that are not a resource (simple wound care,
+  # splints, slings, cold / heat packs, oxygen)
+  non_resource_procedures: [ice pack, heat pack, elastic bandage, splint, sling, cast, dressing, collar, irrigation, oxygen]
+
 # arrival_mode base rate(severity で修正、下記 severity_multipliers 適用)
 arrival_mode_base_distribution:
   walk-in: 0.55

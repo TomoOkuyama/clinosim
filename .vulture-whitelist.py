@@ -296,6 +296,10 @@ _.triage_systems  # triage/engine.py TriageProtocols
 _.arrival_modes  # triage/engine.py TriageProtocols
 _.severity_to_triage_distribution  # triage/engine.py TriageProtocols
 _.arrival_mode_base_distribution  # triage/engine.py TriageProtocols
+_.resource_rule  # reference-YAML model field (Issue #2864)
+_.level_by_count  # reference-YAML model field (Issue #2864)
+_.parenteral_routes  # reference-YAML model field (Issue #2864)
+_.non_resource_procedures  # reference-YAML model field (Issue #2864)
 
 # ----- clinosim/modules/nursing/engine.py (Pydantic BaseModel, Issue #2565) -----
 # Schema fields of the YAML validation model; callers read the raw dict.

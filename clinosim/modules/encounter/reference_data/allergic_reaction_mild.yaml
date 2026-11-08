@@ -101,6 +101,10 @@ narrative:
       en: '{disposition_display_en}'
       ja: '{disposition_display_ja}'
   ed_triage_template:
+    # ESI v4: anaphylaxis needing IM epinephrine is a high-risk presentation (level 2).
     common_triage_levels:
+    - '2'
     - '3'
     - '4'
+    high_risk_orders:
+    - Epinephrine 0.3mg

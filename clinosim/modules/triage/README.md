@@ -6,17 +6,35 @@ Tier 1 #3 α-min-2 always-on AD-55 Module. On every ED (emergency)
 encounter, samples a triage level (JTAS in JP / ESI in US) and an
 arrival mode (walk-in / ambulance / private_vehicle / police /
 helicopter), then writes the result to `Encounter.triage_data`
-(`acuity_score` is left `None`). The sampled level is clamped to the
-ED condition's `triage_level_min` / `triage_level_max` and capped by
-the arrival vitals (`triage_level_cap`, Issue #2082).
+(`acuity_score` is left `None`). The level follows ESI v4 (Issue
+#2864), and JTAS levels follow the same rule:
+
+1. The severity draw is restricted to the ED condition's bounds —
+   the range of `narrative.ed_triage_template.common_triage_levels`,
+   narrowed by `triage_level_min` / `triage_level_max`.
+2. A drawn 1 or 2 stands. A drawn 3–5 becomes the resource level
+   (decision point C): ≥ 2 resource types → 3, 1 → 4, 0 → 5. The
+   types are labs (any number), imaging (incl. ECG), parenteral
+   treatment (IV fluids, IV / IM / nebulized medications) and
+   procedures (except the simple ones in `resource_rule`), counted
+   from the visit's orders.
+3. A treatment listed in `ed_triage_template.high_risk_orders` (IM
+   epinephrine for anaphylaxis, empiric aspirin for possible ACS)
+   makes the level 2 at most (decision point B).
+4. The result is clamped into the bounds; then the arrival-vitals cap
+   (`triage_level_cap`, Issue #2082) applies and may go below them.
+
 Non-emergency encounters are a no-op.
 
 ## Scope
 
 - **In scope**: `triage_enricher` (POST_ENCOUNTER order=93,
   ED-only); `pick_triage_level(severity, level_system, rng)` —
-  YAML weight table by severity (shared by JTAS and ESI);
+  YAML weight table by severity (shared by JTAS and ESI), restricted
+  to the condition bounds;
   `pick_arrival_mode(severity, rng)`; `condition_triage_bounds(record)`;
+  `resource_count(orders)` / `resource_level(orders)`;
+  `has_high_risk_order(record, orders)`; `triage_level(record, enc, drawn)`;
   `triage_level_cap(vitals)`;
   `load_triage_protocols()` YAML loader validated by the
   `TriageProtocols` Pydantic model (silent-no-op defense).
@@ -35,9 +53,13 @@ Non-emergency encounters are a no-op.
 from clinosim.modules.triage import TriageData
 from clinosim.modules.triage.engine import (
     triage_enricher,             # POST_ENCOUNTER enricher entry
-    pick_triage_level,           # (severity, level_system, rng) -> str
+    pick_triage_level,           # (severity, level_system, rng, bounds=(1, 5)) -> str
     pick_arrival_mode,           # (severity, rng) -> str
     condition_triage_bounds,     # (record) -> (most, least) urgent level
+    resource_count,              # (orders) -> distinct ESI resource types
+    resource_level,              # (orders) -> 3 / 4 / 5
+    has_high_risk_order,         # (record, orders) -> bool
+    triage_level,                # (record, enc, drawn) -> final level
     triage_level_cap,            # (vitals) -> least-urgent level allowed
     load_triage_protocols,       # () -> dict (@lru_cache, TriageProtocols-validated)
 )
@@ -51,6 +73,9 @@ from clinosim.modules.triage.engine import (
 - Per-encounter RNG:
   `derive_sub_seed(master_seed, offset, encounter_id)` — main
   patient RNG untouched (AD-16).
+- Two draws per encounter (level, then arrival mode). The bounds
+  change which level the level draw maps to, not the number of draws,
+  so the arrival mode is unchanged by them (Issue #2864).
 
 ## Dependencies
 
@@ -59,7 +84,9 @@ from clinosim.modules.triage.engine import (
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`.
 - `clinosim.types.triage` — `TriageData`.
 - `clinosim.modules.encounter.protocol` — `load_all_encounter_conditions`
-  (per-condition `triage_level_min` / `triage_level_max`).
+  (per-condition `triage_level_min` / `triage_level_max`,
+  `narrative.ed_triage_template.common_triage_levels` /
+  `high_risk_orders`).
 - `yaml`, `numpy`.
 
 ## Constants and configuration
@@ -67,13 +94,18 @@ from clinosim.modules.triage.engine import (
 - [`reference_data/triage_protocols.yaml`](reference_data/triage_protocols.yaml)
   — `triage_systems` (JTAS / ESI level labels), `arrival_modes`,
   country-independent `severity_to_triage_distribution`,
-  `arrival_mode_base_distribution` and
-  `arrival_mode_severity_multipliers`. The `TriageProtocols` model
+  `arrival_mode_base_distribution`,
+  `arrival_mode_severity_multipliers` and the ESI v4 `resource_rule`
+  (`level_by_count`, `parenteral_routes`, `non_resource_procedures`). The `TriageProtocols` model
   (run by the first `load_triage_protocols()` call) checks: non-empty
   top level / `triage_systems` is exactly JTAS+ESI / each system has
   levels 1-5 / `arrival_modes` matches `SUPPORTED_ARRIVAL_MODES` /
   severity keys match and each distribution sums to ~1.0 /
-  base arrival-mode keys match.
+  base arrival-mode keys match / `resource_rule.level_by_count` is
+  three levels in 3–5. The encounter protocol model checks that
+  `common_triage_levels` are `"1"`–`"5"` and that every
+  `high_risk_orders` entry names a treatment of the condition and has
+  a level of 1 or 2 to reach.
 - Level systems: `JTAS` (JP), `ESI` (US), chosen from
   `ctx.config.country` (fallback `ctx.country`).
 - Vitals cap thresholds (`engine.py` constants, ESI v4 danger zone):
@@ -130,6 +162,8 @@ Individual files:
   — enricher gate, sampling determinism, ED-only behaviour.
 - [`tests/unit/modules/triage/test_triage_protocols_yaml.py`](../../../tests/unit/modules/triage/test_triage_protocols_yaml.py)
   — `TriageProtocols` validator coverage.
+- [`tests/unit/modules/triage/test_esi_bounds_2864.py`](../../../tests/unit/modules/triage/test_esi_bounds_2864.py)
+  — bounded draw, resource rule, high-risk orders, vitals cap.
 
 ## Ownership
 

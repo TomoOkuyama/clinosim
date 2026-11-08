@@ -124,6 +124,9 @@ narrative:
       en: 'ACS ruled out with serial negative troponins and no ECG changes. {disposition_display_en}. Internal medicine follow-up within 2 weeks.'
       ja: 連続トロポニン陰性・ECG変化なしにてACS除外。{disposition_display_ja}。2週間以内に内科外来受診。
   ed_triage_template:
+    # ESI v4: chest pain treated as possible ACS (empiric aspirin) is a high-risk presentation (level 2).
     common_triage_levels:
     - '2'
     - '3'
+    high_risk_orders:
+    - Aspirin 325mg
