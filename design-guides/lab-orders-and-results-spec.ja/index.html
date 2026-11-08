@@ -2472,6 +2472,11 @@
 <td><code>tests/unit/test_lab_identity_2299.py</code>, <code>tests/unit/test_checkup_canonical_labs_2300.py</code></td>
 </tr>
 <tr>
+<td>スタチン服用中の脂質異常症の患者は、処方更新の受診で脂質パネル全体(TC, LDL, HDL, TG)を測る(単独項目にしない)。最初のモニタリング受診、スタチン変更から 4 週以上後、それ以外は約 6 か月ごと(2018 ACC/AHA: 変更後 4〜12 週、以後 3〜12 か月ごと)。</td>
+<td><code>simulator/statin_monitoring.py</code>(<code>lipid_panel_due</code>, <code>lipid_panel_labs</code>)。データ <code>simulator/reference_data/statin_monitoring.yaml</code></td>
+<td><code>tests/unit/simulator/test_statin_monitoring_2877.py</code></td>
+</tr>
+<tr>
 <td>パネルは一度だけ定義し、オーダー時は一つの分類関数で検査をパネルと単独検査に分ける。</td>
 <td><code>observation/reference_data/lab_panels.yaml</code>, <code>order/panel_grouping.py::classify_lab_specs</code></td>
 <td><code>tests/unit/test_lab_bounds_panels_2332.py</code>, <code>tests/unit/test_lab_panel_registry.py</code></td>
@@ -2523,7 +2528,20 @@
 </tbody>
 </table>
 <h2 id="6-未対応">6. 未対応<a class="headerlink" href="#6-未対応" title="Permanent link">&para;</a></h2>
-<p>既知のものは無い。新たな例外は、それを許すガードとともにここに記す。</p>
+<table>
+<thead>
+<tr>
+<th>未対応</th>
+<th>場所</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>脂質の真値はスタチン治療に依存しないため、スタチンを増量しても以後のパネルの LDL は下がらない(Issue #2877 はパネルのオーダーと増量のみ)。</td>
+<td><code>physiology/engine.py::_add_lipid_labs</code></td>
+</tr>
+</tbody>
+</table>
 
 
 

@@ -2573,6 +2573,11 @@
 <td><code>tests/unit/test_finite_course_2757.py</code></td>
 </tr>
 <tr>
+<td>A dyslipidemia patient's statin is stepped up one dose at the renewal visit after a lipid panel whose LDL is at or above the country's threshold (US 2018 ACC/AHA: 190 mg/dL, 70 with clinical ASCVD; JP JAS 2022: the LDL target), and renewed at the new dose, which replaces the previous prescription of the drug. The titrated dose is kept in later years' profiles.</td>
+<td><code>simulator/statin_monitoring.py</code> (<code>titrate_statin</code>, <code>restore_titrated_statin</code>); data <code>simulator/reference_data/statin_monitoring.yaml</code></td>
+<td><code>tests/unit/simulator/test_statin_monitoring_2877.py</code></td>
+</tr>
+<tr>
 <td>The status of a take-home prescription (active, completed, stopped), its end date and the prescription it replaced are computed once, across all the patient's records and the snapshot, before the bundles are built.</td>
 <td><code>modules/order/prescription_supersede.py::prescription_closures</code>, passed as <code>BundleContext.rx_closures</code></td>
 <td><code>tests/unit/test_prescription_renewal_2610.py</code></td>

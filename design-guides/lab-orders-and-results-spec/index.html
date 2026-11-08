@@ -2472,6 +2472,11 @@
 <td><code>tests/unit/test_lab_identity_2299.py</code>, <code>tests/unit/test_checkup_canonical_labs_2300.py</code></td>
 </tr>
 <tr>
+<td>A dyslipidemia patient on a statin has the whole lipid panel (TC, LDL, HDL, TG), never a single analyte, at the renewal visit: at the first monitoring visit, 4 weeks or more after a statin change, else about 6-monthly (2018 ACC/AHA: 4-12 weeks after a change, then every 3-12 months).</td>
+<td><code>simulator/statin_monitoring.py</code> (<code>lipid_panel_due</code>, <code>lipid_panel_labs</code>); data <code>simulator/reference_data/statin_monitoring.yaml</code></td>
+<td><code>tests/unit/simulator/test_statin_monitoring_2877.py</code></td>
+</tr>
+<tr>
 <td>Panels are defined once, and ordering groups tests into panels and stand-alone tests through one classifier.</td>
 <td><code>observation/reference_data/lab_panels.yaml</code>, <code>order/panel_grouping.py::classify_lab_specs</code></td>
 <td><code>tests/unit/test_lab_bounds_panels_2332.py</code>, <code>tests/unit/test_lab_panel_registry.py</code></td>
@@ -2523,7 +2528,20 @@
 </tbody>
 </table>
 <h2 id="6-gaps">6. Gaps<a class="headerlink" href="#6-gaps" title="Permanent link">&para;</a></h2>
-<p>None known. A new exception is listed here with the guard that allows it.</p>
+<table>
+<thead>
+<tr>
+<th>Gap</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lipid true values do not depend on statin therapy, so a statin titration does not lower the LDL of later panels (Issue #2877 orders the panels and titrates only).</td>
+<td><code>physiology/engine.py::_add_lipid_labs</code></td>
+</tr>
+</tbody>
+</table>
 
 
 

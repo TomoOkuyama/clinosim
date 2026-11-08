@@ -2573,6 +2573,11 @@
 <td><code>tests/unit/test_finite_course_2757.py</code></td>
 </tr>
 <tr>
+<td>脂質異常症の患者のスタチンは、LDL が国の閾値以上(US 2018 ACC/AHA: 190 mg/dL、臨床的 ASCVD があれば 70。JP 動脈硬化性疾患予防ガイドライン 2022: LDL 管理目標値)だった脂質パネルの次の処方更新の受診で 1 段階増量し、新しい用量で更新する。新しい処方はその薬の前の処方を置き換える。増量した用量は翌年以降のプロファイルでも保つ。</td>
+<td><code>simulator/statin_monitoring.py</code>(<code>titrate_statin</code>, <code>restore_titrated_statin</code>)。データ <code>simulator/reference_data/statin_monitoring.yaml</code></td>
+<td><code>tests/unit/simulator/test_statin_monitoring_2877.py</code></td>
+</tr>
+<tr>
 <td>退院処方の状態(active / completed / stopped)、終了日、置き換えた処方は、その患者の全記録とスナップショットにわたって一度だけ計算する。計算はバンドル作成の前に行う。</td>
 <td><code>modules/order/prescription_supersede.py::prescription_closures</code>、<code>BundleContext.rx_closures</code> で渡す</td>
 <td><code>tests/unit/test_prescription_renewal_2610.py</code></td>
