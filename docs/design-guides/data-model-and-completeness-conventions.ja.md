@@ -28,7 +28,7 @@ completeness 修正に固有の新規約だけを書く — 既存規約は**再
 - **C2 Degenerate 禁止**: FHIR 要素が no-op / placeholder / 全患者同一の退化値を持つことを許さない。
 - **C3 Missing-structure 禁止**: 疾患/encounter が期待する resource / event の欠落を許さない。
 
-新機能・修正が新たな C1/C2/C3 を作らないことを、実装者は自分で証明する(§5 チェックリスト)。
+新機能・修正が新たな C1/C2/C3 を作らないことを、実装者は自分で証明する(§6 チェックリスト)。
 
 ---
 
@@ -114,7 +114,7 @@ call-site は event 日(`event.timestamp`)を渡す。
 急性期疾患に course_archetypes を追加するとき、悪化 event(ICU 転送・DVT・せん妄・SSI)の源は
 `complications:` ブロックである(course archetype は trajectory 形状、complications は離散 event)。
 外傷/術後系は fallback trajectory(炎症性内科向けチューニング)が臨床不整合なので、**course_archetypes
-より先に/併せて complications** を書く。テンプレート = `bacterial_pneumonia.yaml:581-655`。
+より先に/併せて complications** を書く。テンプレート = `bacterial_pneumonia.yaml` の `course_archetypes:` と `complications:` ブロック。
 
 ### 5.2 疾患 authoring の per-disease 検証
 

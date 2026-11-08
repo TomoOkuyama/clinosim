@@ -43,7 +43,7 @@ Governing spec: [`configuration-and-reference-data-spec.md`](configuration-and-r
 | `clinosim/datafiles.py` `load_data_yaml(path)` | The one YAML reader: returns the content without the `metadata` header. |
 | `clinosim/datafiles.py` `load_validated_yaml(path, model)` | Read a YAML and validate it against a Pydantic model — the default for module reference data. |
 | `clinosim/datafiles.py` `data_metadata(path)` | The `metadata` header (source, version, licence) of a data YAML. |
-| `clinosim/modules/document/reference_data_loaders.py` `load_document_data_yaml(filename)` | Cached read of a `document/reference_data/` YAML by file name (registries whose reader owns their shape). |
+| `clinosim/modules/document/reference_data_loaders.py` `load_document_data_yaml(filename)` | Cached, model-validated read of the two small document registries, `chronic_soap_templates.yaml` and `hedging_phrases.yaml` (any other file name raises `KeyError`; the other document YAMLs have their own loaders in the same module). |
 | `clinosim/reference_data.py` `load_reference_yaml(path)` | Cached reader that returns a copy, for callers that reshape the data. |
 | `clinosim/age_bands.py` `parse_age_band` / `parse_closed_age_band` / `age_band_covers` | Parse and test age-band keys such as `"18-49"` and `"85+"`. |
 | `clinosim/age_bands.py` `find_age_band(keys, age)` / `lookup_age_band(table, age, default)` | Resolve an age to its band key or value. Hard-coded `if age < 18` cut-offs are forbidden. |
@@ -128,7 +128,7 @@ Governing specs: [`medication-lifecycle-spec.md`](medication-lifecycle-spec.md),
 | `clinosim/modules/physiology/engine.py` `lipid_panel(sex, has_diabetes, has_dyslipidemia, ldl_reduction)` / `patient_lipid_panel(patient)` | The true TC / HDL / TG / LDL of a lipid state, and of a patient from its conditions and home medications. Encounter labs and the health checkup both read it, so a patient has one untreated LDL. |
 | `clinosim/modules/order/panel_grouping.py` `classify_lab_specs(...)` | Grouping lab orders into panels and individual tests. |
 | `clinosim/modules/order/engine.py` `place_imaging_orders(...)` | Imaging orders. |
-| `clinosim/modules/order/absolute_dose.py` `is_continuous_infusion(text)` | Whether a dose or order text describes a continuous infusion. |
+| `clinosim/modules/order/absolute_dose.py` `is_continuous_infusion(frequency, name="")` | Whether an order is a continuous infusion (its dose is a rate), from its frequency and name. |
 | `clinosim/modules/drug_safety/engine.py` `allergy_entries(allergies)` | The active allergen codes of a patient's allergy records (drops inactive, refuted and "no known allergy" entries) — the input of `check_candidate_against_allergies`. |
 | `clinosim/modules/drug_safety/engine.py` `check_candidate_against_allergies(candidate, allergen_codes)` | The non-allowed verdicts of a candidate drug against the patient's allergen codes. Every prescribing path calls this (or `allergy_skip_verdict`) instead of re-implementing an allergy check. |
 | `clinosim/modules/drug_safety/engine.py` `allergy_skip_verdict(candidate, allergies)` | The worst allergy verdict that drops a candidate drug for a patient's allergy records, or None when it may be given. |

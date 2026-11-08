@@ -1,7 +1,8 @@
 # Code display authoritative sync
 
-**Status**: Framework introduced in session 58 Phase 1 (YJ code template).
-Migration of remaining code systems tracked in follow-up PRs.
+**Status**: Active. The display cross-check covers YJ, ICD-10 (WHO,
+English), ICD-10 (MHLW, Japanese) and LOINC (see "Migration plan");
+the remaining code systems migrate in follow-up PRs.
 
 ## Why
 
@@ -38,14 +39,19 @@ clinosim/codes/
   data/*.yaml                           # curated source of truth
   authoritative/
     README.md                           # index + fetch provenance
-    yj_tx_fragment.json                 # ← first framework citizen
-    <system>_<source>.json              # snapshots land here per PR
+    yj_tx_fragment.json                 # YJ (first framework citizen)
+    icd10_who_tx.json                   # ICD-10 WHO, English displays
+    icd10_mhlw_2013_ja.json             # ICD-10 MHLW, Japanese displays
+    loinc_2_82_tx.json                  # LOINC
+    <system>_<source>.json              # further snapshots (index in README.md)
   loader.py                             # lookup() unchanged
 tests/unit/codes/
   test_display_matches_authoritative.py # 5th layer of silent-no-op defense
   authoritative_override_allowlist.yaml # clinical shorthand overrides
 scripts/
-  refresh_authoritative_yj.py           # extraction script (per system)
+  refresh_authoritative_yj.py           # extraction scripts (per system)
+  refresh_authoritative_yj_full.py
+  refresh_authoritative_loinc.py
 ```
 
 ## Snapshot format
@@ -105,9 +111,11 @@ Every allowlist entry MUST carry:
   a professional-society style guide, or a specific clinical convention.
 - `registered_at`: date the override was reviewed (ISO YYYY-MM-DD).
 
-The allowlist is empty at framework launch. First-order fills are expected
-when SNOMED CT preferred terms clash with JP clinical shorthand (e.g.
-心筋梗塞 vs. Myocardial infarction (disorder)).
+The allowlist was empty at framework launch. Its entries today are LOINC
+displays that keep clinical shorthand instead of the LOINC long common name
+(plus tracked semantic mismatches). Further fills are expected when SNOMED
+CT preferred terms clash with JP clinical shorthand (e.g. 心筋梗塞 vs.
+Myocardial infarction (disorder)).
 
 ## Refresh workflow (maintainer)
 
@@ -129,20 +137,27 @@ when SNOMED CT preferred terms clash with JP clinical shorthand (e.g.
 
 ## Migration plan
 
-| System        | Source                                          | Migration PR   |
-|---------------|-------------------------------------------------|-----------------|
-| YJ            | `jpfhir-terminology 2.2606.0` YJ-code CS         | Phase 1 (this) |
-| SNOMED CT     | tx-server SNOMED International fragment           | Phase 2         |
-| ICD-10 (WHO)  | `codes/data/icd-10.yaml` vs WHO ICD-10 browser    | Phase 2         |
-| ICD-10-CM     | `codes/data/icd-10-cm.yaml` vs NLM CM master       | Phase 3         |
-| MEDIS keyNo   | `medis-codesystem-diseasekanricodes`              | Phase 3         |
-| BCP-47        | HL7 terminology `urn:ietf:bcp:47`                  | Phase 2         |
-| LOINC         | Regenstrief LOINC master                          | Phase 3         |
-| RxNorm        | NLM RxNorm                                        | Phase 4         |
-| MHLW / JLAC10 | JCCLS + MHLW masters                              | Phase 4         |
+| System        | Source                                          | Phase   | Status |
+|---------------|-------------------------------------------------|---------|--------|
+| YJ            | `jpfhir-terminology 2.2606.0` YJ-code CS (`yj_tx_fragment.json`) | Phase 1 | cross-checked |
+| ICD-10 (WHO)  | `fhir.tx.support.r4` ICD-10 CS (`icd10_who_tx.json`), `en` displays | Phase 2 | cross-checked |
+| ICD-10 (MHLW) | MHLW 基本分類表 2013 (`icd10_mhlw_2013_ja.json`), `ja` displays | — | cross-checked |
+| LOINC         | LOINC 2.82 master (`loinc_2_82_tx.json`)          | Phase 3 | cross-checked |
+| SNOMED CT     | tx-server SNOMED International fragment           | Phase 2 | planned |
+| BCP-47        | HL7 terminology `urn:ietf:bcp:47`                  | Phase 2 | planned |
+| ICD-10-CM     | `codes/data/icd-10-cm.yaml` vs NLM CM master       | Phase 3 | planned |
+| MEDIS keyNo   | `medis-codesystem-diseasekanricodes`              | Phase 3 | planned |
+| RxNorm        | NLM RxNorm                                        | Phase 4 | planned |
+| MHLW / JLAC10 | JCCLS + MHLW masters                              | Phase 4 | planned |
+
+"Cross-checked" means the system is registered in
+`_SYSTEMS_UNDER_CROSS_CHECK` (`tests/unit/codes/test_display_matches_authoritative.py`).
+Other snapshots in `clinosim/codes/authoritative/` (RxNorm, the MHLW YJ
+master, the full YJ CodeSystem, the 医科診療行為 master) are read by their
+own code-system tests, not by this cross-check.
 
 Phase ordering prioritises code systems with observed v4 drift (SNOMED,
-ICD-10, MEDIS, BCP-47 in Phase 2). Every additional system entails: one
+ICD-10, MEDIS, BCP-47). Every additional system entails: one
 `authoritative/<system>_<source>.json`, an entry in
 `_SYSTEMS_UNDER_CROSS_CHECK`, and (if the schema differs) a small extension
 to `_build_authoritative_display_map`.

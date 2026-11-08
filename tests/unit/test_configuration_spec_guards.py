@@ -185,7 +185,7 @@ def test_guard_sees_the_issue_2844_files(rel: str) -> None:
     assert (module, name) in covered
 
 
-# Module models that may still accept unknown keys (spec §5). Shrink-only:
+# Module models that may still accept unknown keys (spec §2). Shrink-only:
 # a fixed entry must be removed, and no entry may be added (Issue #2845).
 _EXTRA_FORBID_RATCHET: dict[str, str] = {}
 
