@@ -65,7 +65,22 @@ def test_blood_pressure_bands_only_through_bp_band() -> None:
     ],
 )
 def test_each_bp_boundary_belongs_to_the_upper_band(sbp: int, dbp: int, band: str) -> None:
-    assert bp_band(sbp, dbp) == band
+    assert bp_band(sbp, dbp, "JP") == band
+
+
+@pytest.mark.parametrize(
+    ("sbp", "dbp", "band"),
+    [
+        (130, 70, "hypertension"),
+        (120, 80, "hypertension"),
+        (129, 79, "high_normal"),
+        (120, 70, "high_normal"),
+        (119, 79, "normal"),
+    ],
+)
+def test_us_bp_bands_follow_acc_aha_2017(sbp: int, dbp: int, band: str) -> None:
+    """Issue #2860: US notes band BP by the 2017 ACC/AHA guideline, not JSH 2019."""
+    assert bp_band(sbp, dbp, "US") == band
 
 
 _VITAL_FIELDS = {
