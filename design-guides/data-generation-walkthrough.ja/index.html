@@ -2720,7 +2720,7 @@ Layer 1 → Layer 2 <code>PatientProfile</code> に厚くなる:身長/体重、
   マイナンバー/保険)/ <code>e66_bmi(15)</code> / <code>e88_81_syndrome(16)</code> / <code>k76_0_nafld(17)</code> / <code>g47_30_osa(18)</code>。</li>
 <li><strong>POST_ENCOUNTER</strong>(1 受診の daily loop 完了直後、encounter simulator の内側): 臨床カスケード。
   順序固定 <code>device(70) → prophylaxis(75) → hai(80) → antibiotic(85) → imaging(90) →
-  discontinue_flip(91) → newborn(92) → triage(93) → lab_derived_dx(94) → nursing_assignment(94)
+  newborn(90) → discontinue_flip(91) → supersede_orders(91) → triage(93) → lab_derived_dx(94) → nursing_assignment(94)
   → document(95)</code>(同 order は名前順)。前段の <code>extensions[X]</code> を読んで次段が動く
   (device なしに HAI なし等)。</li>
 <li><strong>POST_RECORDS</strong>(全患者シミュレーション後): cross-record。<code>nursing(20)</code> flowsheet /
