@@ -2476,7 +2476,7 @@
 <tr>
 <td>A choice that needs no stream (a stable "random-looking" pick of a nurse, a side, a time) uses a hash, not a generator. These helpers draw nothing, so adding them never shifts a stream.</td>
 <td><code>determinism.sha_quantile</code> / <code>sha_bernoulli</code> / <code>sha_normal</code> / <code>sha_weighted_choice</code> / <code>sha_index</code>; <code>seeding.rendezvous_pick</code> / <code>id_hashes</code>; <code>seeding.morse_fall_history_unit</code></td>
-<td><code>tests/unit/test_seeding.py</code>, <code>tests/unit/test_hash_draws_use_determinism_2837.py</code> (no inline <code>sha256</code> → <code>int.from_bytes</code> draw outside <code>determinism.py</code> / <code>seeding.py</code>, ratchet list)</td>
+<td><code>tests/unit/test_hash_draws_use_determinism_2837.py</code> (no inline <code>sha256</code> → <code>int.from_bytes</code> draw outside <code>determinism.py</code> / <code>seeding.py</code>, ratchet list; <code>sha_index</code> / <code>sha_quantile</code> formulas), <code>tests/unit/test_mar_hash_draws_2815.py</code> (<code>sha_*</code> draws), <code>tests/unit/simulator/test_ed_slot_stable_pick_2357.py</code> (<code>rendezvous_pick</code>), <code>tests/unit/test_morse_items_2692.py</code> (<code>morse_fall_history_unit</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -2491,9 +2491,9 @@
 </thead>
 <tbody>
 <tr>
-<td>A module's stream is <code>derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS[&lt;module&gt;], &lt;entity key&gt;)</code>. The offset is registered once, as hex ASCII of the module name (4 bytes), unique across modules. <code>identity</code> and <code>microbiology</code> keep their grandfathered decimal values.</td>
+<td>A module's stream is <code>derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS[&lt;module&gt;], &lt;entity key&gt;)</code>. The offset is registered once, as a two-letter ASCII mnemonic of the module name stored as a 16-bit value (<code>"IM"</code> → <code>0x494D</code>, below <code>0x10000</code>), unique across modules. <code>identity</code> and <code>microbiology</code> keep their grandfathered decimal values.</td>
 <td><code>seeding.derive_sub_seed</code>, <code>seeding.ENRICHER_SEED_OFFSETS</code></td>
-<td><code>tests/unit/test_enricher_seed_offsets.py</code>, <code>tests/unit/test_seeding.py</code></td>
+<td><code>tests/unit/test_enricher_seed_offsets.py</code> (unique, 16-bit, grandfathered values), <code>tests/unit/test_seeding.py</code> (<code>derive_sub_seed</code> formula pinned)</td>
 </tr>
 <tr>
 <td>A simulation phase's stream is <code>derive_phase_rng(master_seed, PHASE_&lt;name&gt;, key)</code>. The phase salts are registered in <code>_PHASE_OFFSETS</code>.</td>
@@ -2502,8 +2502,8 @@
 </tr>
 <tr>
 <td>A recurring per-entity stream has a named seed function, so every caller derives it the same way.</td>
-<td><code>seeding.py</code>: <code>panel_specimen_seed</code> (lab panel), <code>individual_lab_seed</code> (lab order), <code>chronic_medication_seed</code>, <code>discharge_prescription_seed</code>, <code>ambulatory_visit_length_seed</code>, <code>issue939_procedure_seed</code>, <code>chronic_augment_sex_seed</code>, <code>chronic_isolated_seed</code>, <code>longitudinal_event_seed</code>, <code>perinatal_delivery_seed</code>, <code>chemotherapy_regimen_seed</code>, <code>daily_output_seed</code>, <code>text_seed</code></td>
-<td><code>tests/unit/test_seeding.py</code> (formula pinned for the lab seeds)</td>
+<td><code>seeding.py</code>: <code>panel_specimen_seed</code> (lab panel), <code>individual_lab_seed</code> (lab order), <code>chronic_medication_seed</code>, <code>discharge_prescription_seed</code>, <code>ambulatory_visit_length_seed</code>, <code>issue939_procedure_seed</code>, <code>chronic_augment_sex_seed</code>, <code>chronic_isolated_seed</code>, <code>longitudinal_event_seed</code>, <code>perinatal_delivery_seed</code>, <code>chemotherapy_regimen_seed</code>, <code>daily_output_seed</code>, <code>text_seed</code>, <code>radiation_therapy_seed</code>, <code>avpu_day_seed</code>, <code>newborn_seed</code>, <code>pregnancy_outcome_seed</code>, <code>newborn_conditions_seed</code>, <code>enumeration_case_seed</code>, <code>identity_person_seed</code></td>
+<td><code>tests/unit/test_seeding.py</code> (formula pinned for <code>panel_specimen_seed</code>), <code>tests/unit/test_rng_through_determinism_2529.py</code> (<code>text_seed</code> formula pinned); the other named seeds are exercised only by their callers' tests (§8)</td>
 </tr>
 <tr>
 <td>A seed is computed with <code>hashlib.sha256</code>, never with <code>hash()</code> (salted per process by <code>PYTHONHASHSEED</code>).</td>
@@ -2555,7 +2555,33 @@
 <li>Enricher order (<code>stage</code> + <code>order</code>) and the <code>NarrativePass</code> walk order are fixed; changing them is a stream change (§4).</li>
 </ul>
 <h2 id="8-gaps">8. Gaps<a class="headerlink" href="#8-gaps" title="Permanent link">&para;</a></h2>
-<p>None known. A new exception is added here with its guard allow-list entry.</p>
+<p>Known exceptions and rules that no test enforces. A new exception is added here with its guard allow-list entry.</p>
+<table>
+<thead>
+<tr>
+<th>Gap</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Three inline hash draws predate the <code>sha_*</code> helpers and keep their own formulas, because switching would change existing output: <code>modules/output/fhir_r4/labs/anthropometrics.py</code>, <code>modules/document/narrative/_narrative_utils.py</code>, <code>modules/population/_demographics.py</code>. Two more ratchet entries (<code>modules/imaging/engine.py</code>, <code>modules/encounter/engine.py</code>) build identifiers from a hash and draw nothing.</td>
+<td><code>_RATCHET</code> in <code>tests/unit/test_hash_draws_use_determinism_2837.py</code> (shrink-only)</td>
+</tr>
+<tr>
+<td><code>normalize_probabilities(p, fallback="raise")</code> on every YAML-sourced vector (§2) has no complete guard. <code>tests/unit/test_fallback_raise_callsites.py</code> covers ten known call sites; a new call site is checked in review.</td>
+<td>review</td>
+</tr>
+<tr>
+<td>The named seed functions other than <code>panel_specimen_seed</code> and <code>text_seed</code> (§3) have no pinned formula.</td>
+<td>review</td>
+</tr>
+<tr>
+<td>A cached loader's return value is never mutated (§7).</td>
+<td>review</td>
+</tr>
+</tbody>
+</table>
 
 
 

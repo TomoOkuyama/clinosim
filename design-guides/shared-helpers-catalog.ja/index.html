@@ -2550,7 +2550,7 @@
 </tr>
 <tr>
 <td><code>clinosim/modules/document/reference_data_loaders.py</code> <code>load_document_data_yaml(filename)</code></td>
-<td><code>document/reference_data/</code> の YAML をファイル名でキャッシュ付きで読む (形を読み手が持つ登録表向け)。</td>
+<td>document の小さな登録表 2 つ(<code>chronic_soap_templates.yaml</code> と <code>hedging_phrases.yaml</code>)を、モデルで検証してキャッシュ付きで読む (他のファイル名は <code>KeyError</code>。他の document の YAML は同じモジュールに専用のローダーがある)。</td>
 </tr>
 <tr>
 <td><code>clinosim/reference_data.py</code> <code>load_reference_yaml(path)</code></td>
@@ -2809,8 +2809,8 @@
 <td>画像検査オーダー。</td>
 </tr>
 <tr>
-<td><code>clinosim/modules/order/absolute_dose.py</code> <code>is_continuous_infusion(text)</code></td>
-<td>用量・オーダー文字列が持続投与を表すか。</td>
+<td><code>clinosim/modules/order/absolute_dose.py</code> <code>is_continuous_infusion(frequency, name="")</code></td>
+<td>オーダーが持続投与(用量が速度)かを、頻度と名前から判定する。</td>
 </tr>
 <tr>
 <td><code>clinosim/modules/drug_safety/engine.py</code> <code>allergy_entries(allergies)</code></td>

@@ -2705,7 +2705,7 @@
 </tr>
 <tr>
 <td><code>clinosim/modules/document/reference_data_loaders.py</code> <code>load_document_data_yaml(filename)</code></td>
-<td>Cached read of a <code>document/reference_data/</code> YAML by file name (registries whose reader owns their shape).</td>
+<td>Cached, model-validated read of the two small document registries, <code>chronic_soap_templates.yaml</code> and <code>hedging_phrases.yaml</code> (any other file name raises <code>KeyError</code>; the other document YAMLs have their own loaders in the same module).</td>
 </tr>
 <tr>
 <td><code>clinosim/reference_data.py</code> <code>load_reference_yaml(path)</code></td>
@@ -2964,8 +2964,8 @@
 <td>Imaging orders.</td>
 </tr>
 <tr>
-<td><code>clinosim/modules/order/absolute_dose.py</code> <code>is_continuous_infusion(text)</code></td>
-<td>Whether a dose or order text describes a continuous infusion.</td>
+<td><code>clinosim/modules/order/absolute_dose.py</code> <code>is_continuous_infusion(frequency, name="")</code></td>
+<td>Whether an order is a continuous infusion (its dose is a rate), from its frequency and name.</td>
 </tr>
 <tr>
 <td><code>clinosim/modules/drug_safety/engine.py</code> <code>allergy_entries(allergies)</code></td>

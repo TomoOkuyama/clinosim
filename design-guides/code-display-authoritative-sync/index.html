@@ -2448,8 +2448,9 @@
 
 
 <h1 id="code-display-authoritative-sync">Code display authoritative sync<a class="headerlink" href="#code-display-authoritative-sync" title="Permanent link">&para;</a></h1>
-<p><strong>Status</strong>: Framework introduced in session 58 Phase 1 (YJ code template).
-Migration of remaining code systems tracked in follow-up PRs.</p>
+<p><strong>Status</strong>: Active. The display cross-check covers YJ, ICD-10 (WHO,
+English), ICD-10 (MHLW, Japanese) and LOINC (see "Migration plan");
+the remaining code systems migrate in follow-up PRs.</p>
 <h2 id="why">Why<a class="headerlink" href="#why" title="Permanent link">&para;</a></h2>
 <p><code>clinosim/codes/data/*.yaml</code> ships curated <code>(code, en, ja, …)</code> mappings for
 every code the simulator emits. Prior to this framework, drift between the
@@ -2481,14 +2482,19 @@ which motivated a systematic verification framework.</p>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  data/*.yaml                           # curated source of truth
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  authoritative/
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    README.md                           # index + fetch provenance
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    yj_tx_fragment.json                 # ← first framework citizen
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    &lt;system&gt;_&lt;source&gt;.json              # snapshots land here per PR
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  loader.py                             # lookup() unchanged
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>tests/unit/codes/
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  test_display_matches_authoritative.py # 5th layer of silent-no-op defense
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  authoritative_override_allowlist.yaml # clinical shorthand overrides
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>scripts/
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  refresh_authoritative_yj.py           # extraction script (per system)
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    yj_tx_fragment.json                 # YJ (first framework citizen)
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    icd10_who_tx.json                   # ICD-10 WHO, English displays
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    icd10_mhlw_2013_ja.json             # ICD-10 MHLW, Japanese displays
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    loinc_2_82_tx.json                  # LOINC
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    &lt;system&gt;_&lt;source&gt;.json              # further snapshots (index in README.md)
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  loader.py                             # lookup() unchanged
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>tests/unit/codes/
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  test_display_matches_authoritative.py # 5th layer of silent-no-op defense
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  authoritative_override_allowlist.yaml # clinical shorthand overrides
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>scripts/
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>  refresh_authoritative_yj.py           # extraction scripts (per system)
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  refresh_authoritative_yj_full.py
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  refresh_authoritative_loinc.py
 </span></code></pre></div>
 <h2 id="snapshot-format">Snapshot format<a class="headerlink" href="#snapshot-format" title="Permanent link">&para;</a></h2>
 <p>Every snapshot is a JSON document with a <code>metadata</code> block and a <code>concept</code>
@@ -2539,9 +2545,11 @@ grow across snapshot refreshes.</p>
   a professional-society style guide, or a specific clinical convention.</li>
 <li><code>registered_at</code>: date the override was reviewed (ISO YYYY-MM-DD).</li>
 </ul>
-<p>The allowlist is empty at framework launch. First-order fills are expected
-when SNOMED CT preferred terms clash with JP clinical shorthand (e.g.
-心筋梗塞 vs. Myocardial infarction (disorder)).</p>
+<p>The allowlist was empty at framework launch. Its entries today are LOINC
+displays that keep clinical shorthand instead of the LOINC long common name
+(plus tracked semantic mismatches). Further fills are expected when SNOMED
+CT preferred terms clash with JP clinical shorthand (e.g. 心筋梗塞 vs.
+Myocardial infarction (disorder)).</p>
 <h2 id="refresh-workflow-maintainer">Refresh workflow (maintainer)<a class="headerlink" href="#refresh-workflow-maintainer" title="Permanent link">&para;</a></h2>
 <ol>
 <li><code>git pull</code> the latest <code>../fhir-jp-validator/</code> (or refresh the upstream
@@ -2566,59 +2574,80 @@ when SNOMED CT preferred terms clash with JP clinical shorthand (e.g.
 <tr>
 <th>System</th>
 <th>Source</th>
-<th>Migration PR</th>
+<th>Phase</th>
+<th>Status</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>YJ</td>
-<td><code>jpfhir-terminology 2.2606.0</code> YJ-code CS</td>
-<td>Phase 1 (this)</td>
+<td><code>jpfhir-terminology 2.2606.0</code> YJ-code CS (<code>yj_tx_fragment.json</code>)</td>
+<td>Phase 1</td>
+<td>cross-checked</td>
+</tr>
+<tr>
+<td>ICD-10 (WHO)</td>
+<td><code>fhir.tx.support.r4</code> ICD-10 CS (<code>icd10_who_tx.json</code>), <code>en</code> displays</td>
+<td>Phase 2</td>
+<td>cross-checked</td>
+</tr>
+<tr>
+<td>ICD-10 (MHLW)</td>
+<td>MHLW 基本分類表 2013 (<code>icd10_mhlw_2013_ja.json</code>), <code>ja</code> displays</td>
+<td>—</td>
+<td>cross-checked</td>
+</tr>
+<tr>
+<td>LOINC</td>
+<td>LOINC 2.82 master (<code>loinc_2_82_tx.json</code>)</td>
+<td>Phase 3</td>
+<td>cross-checked</td>
 </tr>
 <tr>
 <td>SNOMED CT</td>
 <td>tx-server SNOMED International fragment</td>
 <td>Phase 2</td>
-</tr>
-<tr>
-<td>ICD-10 (WHO)</td>
-<td><code>codes/data/icd-10.yaml</code> vs WHO ICD-10 browser</td>
-<td>Phase 2</td>
-</tr>
-<tr>
-<td>ICD-10-CM</td>
-<td><code>codes/data/icd-10-cm.yaml</code> vs NLM CM master</td>
-<td>Phase 3</td>
-</tr>
-<tr>
-<td>MEDIS keyNo</td>
-<td><code>medis-codesystem-diseasekanricodes</code></td>
-<td>Phase 3</td>
+<td>planned</td>
 </tr>
 <tr>
 <td>BCP-47</td>
 <td>HL7 terminology <code>urn:ietf:bcp:47</code></td>
 <td>Phase 2</td>
+<td>planned</td>
 </tr>
 <tr>
-<td>LOINC</td>
-<td>Regenstrief LOINC master</td>
+<td>ICD-10-CM</td>
+<td><code>codes/data/icd-10-cm.yaml</code> vs NLM CM master</td>
 <td>Phase 3</td>
+<td>planned</td>
+</tr>
+<tr>
+<td>MEDIS keyNo</td>
+<td><code>medis-codesystem-diseasekanricodes</code></td>
+<td>Phase 3</td>
+<td>planned</td>
 </tr>
 <tr>
 <td>RxNorm</td>
 <td>NLM RxNorm</td>
 <td>Phase 4</td>
+<td>planned</td>
 </tr>
 <tr>
 <td>MHLW / JLAC10</td>
 <td>JCCLS + MHLW masters</td>
 <td>Phase 4</td>
+<td>planned</td>
 </tr>
 </tbody>
 </table>
+<p>"Cross-checked" means the system is registered in
+<code>_SYSTEMS_UNDER_CROSS_CHECK</code> (<code>tests/unit/codes/test_display_matches_authoritative.py</code>).
+Other snapshots in <code>clinosim/codes/authoritative/</code> (RxNorm, the MHLW YJ
+master, the full YJ CodeSystem, the 医科診療行為 master) are read by their
+own code-system tests, not by this cross-check.</p>
 <p>Phase ordering prioritises code systems with observed v4 drift (SNOMED,
-ICD-10, MEDIS, BCP-47 in Phase 2). Every additional system entails: one
+ICD-10, MEDIS, BCP-47). Every additional system entails: one
 <code>authoritative/&lt;system&gt;_&lt;source&gt;.json</code>, an entry in
 <code>_SYSTEMS_UNDER_CROSS_CHECK</code>, and (if the schema differs) a small extension
 to <code>_build_authoritative_display_map</code>.</p>

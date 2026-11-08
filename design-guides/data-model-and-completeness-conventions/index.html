@@ -2856,7 +2856,7 @@ introduced anew:</p>
   the disease / encounter definition and not emitted is disallowed.</li>
 </ul>
 <p>Every new feature or fix must prove for itself that it introduces no
-new C1 / C2 / C3 (see the §5 checklist).</p>
+new C1 / C2 / C3 (see the §6 checklist).</p>
 <hr />
 <h2 id="2-yaml-key-lifecycle-rules-c1-defense">2. YAML key lifecycle rules (C1 defense)<a class="headerlink" href="#2-yaml-key-lifecycle-rules-c1-defense" title="Permanent link">&para;</a></h2>
 <h3 id="21-do-not-ship-a-yaml-key-that-is-never-read">2.1 "Do not ship a YAML key that is never read"<a class="headerlink" href="#21-do-not-ship-a-yaml-key-that-is-never-read" title="Permanent link">&para;</a></h3>
@@ -2959,7 +2959,8 @@ complications = discrete events). Trauma / post-op diseases have a
 fallback trajectory tuned for inflammatory internal medicine that
 is clinically incoherent for them, so write <strong><code>complications</code>
 first, or together with <code>course_archetypes</code></strong> — never after. Template:
-<code>bacterial_pneumonia.yaml:581-655</code>.</p>
+the <code>course_archetypes:</code> and <code>complications:</code> blocks of
+<code>bacterial_pneumonia.yaml</code>.</p>
 <h3 id="52-per-disease-verification-for-disease-authoring">5.2 Per-disease verification for disease authoring<a class="headerlink" href="#52-per-disease-verification-for-disease-authoring" title="Permanent link">&para;</a></h3>
 <p>Once you write new <code>course_archetypes</code> / <code>complications</code>, generate
 that disease's cohort and grep the real output for

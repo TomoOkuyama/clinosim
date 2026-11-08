@@ -2412,7 +2412,7 @@
 - Loader conventions (path constants, <code>@lru_cache</code>, owner accessors): <a href="../implementation-rules/"><code>implementation-rules.md</code></a> §5.</p>
 <h2 id="1-principles">1. Principles<a class="headerlink" href="#1-principles" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>One reader, one shape check.</strong> Reference data is read through its owner module's loader, and its shape is checked when it is loaded, not when a key is first missed. A malformed or unknown key fails loudly at load time.</li>
+<li><strong>One reader, one shape check.</strong> Reference data is read through its owner module's loader, and its shape is checked when it is loaded, not when a key is first missed. For a module's reference YAML (<code>clinosim/modules/&lt;module&gt;/reference_data/*.yaml</code>) a Pydantic model with <code>extra="forbid"</code> does this, so a malformed or unknown key fails loudly at load time. The other data YAMLs are not yet model-validated (§5).</li>
 <li><strong>One table per fact.</strong> A value used by several stages (a follow-up interval, a named condition, an age-banded rate) lives in one table, and every stage reads that table through one accessor.</li>
 <li><strong>One interpretation of a key format.</strong> Shared key formats (age bands, code groups) are parsed by one helper, so every table spells and reads them the same way.</li>
 <li><strong>Every rule has a guard.</strong> Each rule names the test that enforces it; a rule without one is listed in §5.</li>
@@ -2504,6 +2504,14 @@
 <tbody>
 <tr>
 <td>The constants-placement policy has no automatic guard.</td>
+<td>review</td>
+</tr>
+<tr>
+<td>The data YAMLs outside <code>clinosim/modules/*/reference_data/</code> are not validated by a Pydantic model, and the §2 guard does not look at them: <code>clinosim/simulator/reference_data/*.yaml</code> (only <code>statin_monitoring.yaml</code> has a model), <code>clinosim/locale/**</code> (some files have hand-written checks in <code>clinosim/locale/loader.py</code>) and <code>clinosim/codes/data/*.yaml</code>. An unknown key in these files is not rejected at load.</td>
+<td><code>tests/unit/test_configuration_spec_guards.py</code> globs <code>modules/*/reference_data/</code> only</td>
+</tr>
+<tr>
+<td>A cached loader's return value is never mutated (§2).</td>
 <td>review</td>
 </tr>
 </tbody>

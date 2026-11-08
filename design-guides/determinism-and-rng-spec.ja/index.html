@@ -2476,7 +2476,7 @@
 <tr>
 <td>ストリームを要さない選択(看護師・左右・時刻などの安定した「ランダム風」の選択)は生成器でなくハッシュを使う。乱数を消費しないので、足してもストリームはずれない。</td>
 <td><code>determinism.sha_quantile</code> / <code>sha_bernoulli</code> / <code>sha_normal</code> / <code>sha_weighted_choice</code> / <code>sha_index</code>、<code>seeding.rendezvous_pick</code> / <code>id_hashes</code>、<code>seeding.morse_fall_history_unit</code></td>
-<td><code>tests/unit/test_seeding.py</code>、<code>tests/unit/test_hash_draws_use_determinism_2837.py</code>(<code>determinism.py</code> / <code>seeding.py</code> の外で <code>sha256</code> → <code>int.from_bytes</code> の抽選を書かない、ratchet リスト)</td>
+<td><code>tests/unit/test_hash_draws_use_determinism_2837.py</code>(<code>determinism.py</code> / <code>seeding.py</code> の外で <code>sha256</code> → <code>int.from_bytes</code> の抽選を書かない、ratchet リスト。<code>sha_index</code> / <code>sha_quantile</code> の式)、<code>tests/unit/test_mar_hash_draws_2815.py</code>(<code>sha_*</code> の抽選)、<code>tests/unit/simulator/test_ed_slot_stable_pick_2357.py</code>(<code>rendezvous_pick</code>)、<code>tests/unit/test_morse_items_2692.py</code>(<code>morse_fall_history_unit</code>)</td>
 </tr>
 </tbody>
 </table>
@@ -2491,9 +2491,9 @@
 </thead>
 <tbody>
 <tr>
-<td>モジュールのストリームは <code>derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS[&lt;モジュール&gt;], &lt;対象キー&gt;)</code>。オフセットはモジュール名の 16 進 ASCII(4 バイト)で一度だけ登録し、モジュール間で重複しない。<code>identity</code> と <code>microbiology</code> は既存の 10 進値を維持する。</td>
+<td>モジュールのストリームは <code>derive_sub_seed(master_seed, ENRICHER_SEED_OFFSETS[&lt;モジュール&gt;], &lt;対象キー&gt;)</code>。オフセットはモジュール名を表す 2 文字の ASCII 略号を 16 ビット値にしたもの(<code>"IM"</code> → <code>0x494D</code>、<code>0x10000</code> 未満)で一度だけ登録し、モジュール間で重複しない。<code>identity</code> と <code>microbiology</code> は既存の 10 進値を維持する。</td>
 <td><code>seeding.derive_sub_seed</code>, <code>seeding.ENRICHER_SEED_OFFSETS</code></td>
-<td><code>tests/unit/test_enricher_seed_offsets.py</code>, <code>tests/unit/test_seeding.py</code></td>
+<td><code>tests/unit/test_enricher_seed_offsets.py</code>(重複なし・16 ビット・既存値の維持)、<code>tests/unit/test_seeding.py</code>(<code>derive_sub_seed</code> の式を固定)</td>
 </tr>
 <tr>
 <td>シミュレーションフェーズのストリームは <code>derive_phase_rng(master_seed, PHASE_&lt;名&gt;, key)</code>。フェーズの salt は <code>_PHASE_OFFSETS</code> に登録する。</td>
@@ -2502,8 +2502,8 @@
 </tr>
 <tr>
 <td>繰り返し使う対象ごとのストリームには名前付きシード関数があり、呼び出し側はみな同じ導き方をする。</td>
-<td><code>seeding.py</code>: <code>panel_specimen_seed</code>(検査パネル)、<code>individual_lab_seed</code>(検査オーダー)、<code>chronic_medication_seed</code>, <code>discharge_prescription_seed</code>, <code>ambulatory_visit_length_seed</code>, <code>issue939_procedure_seed</code>, <code>chronic_augment_sex_seed</code>, <code>chronic_isolated_seed</code>, <code>longitudinal_event_seed</code>, <code>perinatal_delivery_seed</code>, <code>chemotherapy_regimen_seed</code>, <code>daily_output_seed</code>, <code>text_seed</code></td>
-<td><code>tests/unit/test_seeding.py</code>(検査シードは式を固定)</td>
+<td><code>seeding.py</code>: <code>panel_specimen_seed</code>(検査パネル)、<code>individual_lab_seed</code>(検査オーダー)、<code>chronic_medication_seed</code>, <code>discharge_prescription_seed</code>, <code>ambulatory_visit_length_seed</code>, <code>issue939_procedure_seed</code>, <code>chronic_augment_sex_seed</code>, <code>chronic_isolated_seed</code>, <code>longitudinal_event_seed</code>, <code>perinatal_delivery_seed</code>, <code>chemotherapy_regimen_seed</code>, <code>daily_output_seed</code>, <code>text_seed</code>, <code>radiation_therapy_seed</code>, <code>avpu_day_seed</code>, <code>newborn_seed</code>, <code>pregnancy_outcome_seed</code>, <code>newborn_conditions_seed</code>, <code>enumeration_case_seed</code>, <code>identity_person_seed</code></td>
+<td><code>tests/unit/test_seeding.py</code>(<code>panel_specimen_seed</code> の式を固定)、<code>tests/unit/test_rng_through_determinism_2529.py</code>(<code>text_seed</code> の式を固定)。他の名前付きシードは呼び出し側のテストでのみ確かめる(§8)</td>
 </tr>
 <tr>
 <td>シードは <code>hashlib.sha256</code> で計算し、<code>hash()</code>(<code>PYTHONHASHSEED</code> でプロセスごとに変わる)は使わない。</td>
@@ -2555,7 +2555,33 @@
 <li>enricher の順序(<code>stage</code> + <code>order</code>)と <code>NarrativePass</code> の走査順は固定。変えるとストリーム変更になる(§4)。</li>
 </ul>
 <h2 id="8-未対応">8. 未対応<a class="headerlink" href="#8-未対応" title="Permanent link">&para;</a></h2>
-<p>既知のものは無い。新たな例外は、ガードの許可リストへの追加とともにここに記す。</p>
+<p>既知の例外と、テストが強制していない規則。新たな例外は、ガードの許可リストへの追加とともにここに記す。</p>
+<table>
+<thead>
+<tr>
+<th>未対応</th>
+<th>場所</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sha_*</code> 補助関数より前からある 3 つのインラインのハッシュ抽選は、切り替えると既存の出力が変わるため独自の式のまま残す: <code>modules/output/fhir_r4/labs/anthropometrics.py</code>、<code>modules/document/narrative/_narrative_utils.py</code>、<code>modules/population/_demographics.py</code>。ratchet の残り 2 件(<code>modules/imaging/engine.py</code>、<code>modules/encounter/engine.py</code>)はハッシュから識別子を作るだけで、抽選はしない。</td>
+<td><code>tests/unit/test_hash_draws_use_determinism_2837.py</code> の <code>_RATCHET</code>(縮小のみ)</td>
+</tr>
+<tr>
+<td>YAML 由来の全ベクトルに <code>normalize_probabilities(p, fallback="raise")</code> を通す規則(§2)には完全なガードが無い。<code>tests/unit/test_fallback_raise_callsites.py</code> は既知の 10 か所を確かめ、新しい呼び出し箇所はレビューで確かめる。</td>
+<td>レビュー</td>
+</tr>
+<tr>
+<td><code>panel_specimen_seed</code> と <code>text_seed</code> 以外の名前付きシード関数(§3)は式を固定していない。</td>
+<td>レビュー</td>
+</tr>
+<tr>
+<td>キャッシュ付きローダーの戻り値を書き換えない(§7)。</td>
+<td>レビュー</td>
+</tr>
+</tbody>
+</table>
 
 
 
