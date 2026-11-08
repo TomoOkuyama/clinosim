@@ -31,6 +31,24 @@ class _TriageSystem(BaseModel):
     levels: dict[str, Any] = {}
 
 
+class _ResourceRule(BaseModel):
+    """ESI v4 resource rule (decision point C): the level for 0 / 1 / >= 2
+    resource types, and which medication routes and procedure orders count."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    level_by_count: list[str]
+    parenteral_routes: list[str]
+    non_resource_procedures: list[str]
+
+    @field_validator("level_by_count")
+    @classmethod
+    def _three_levels(cls, levels: list[str]) -> list[str]:
+        if len(levels) != 3 or any(lv not in {"3", "4", "5"} for lv in levels):
+            raise ValueError(f"resource_rule.level_by_count must be 3 levels in 3-5, got {levels}")
+        return levels
+
+
 class TriageProtocols(BaseModel):
     """Shape of triage_protocols.yaml: both level systems with levels 1-5,
     the supported arrival modes, and a severity → level distribution that
@@ -42,6 +60,7 @@ class TriageProtocols(BaseModel):
     arrival_modes: list[str]
     severity_to_triage_distribution: dict[str, dict[str, float]]
     arrival_mode_base_distribution: dict[str, float]
+    resource_rule: _ResourceRule
 
     @model_validator(mode="before")
     @classmethod
@@ -101,15 +120,54 @@ def load_triage_protocols() -> dict[str, Any]:
     return load_validated_yaml(_REF_DIR / "triage_protocols.yaml", TriageProtocols)
 
 
-def pick_triage_level(severity: str, level_system: str, rng: np.random.Generator) -> str:
-    """Sample triage level given severity + system (JTAS or ESI use same distribution)."""
+def pick_triage_level(
+    severity: str, level_system: str, rng: np.random.Generator, bounds: tuple[int, int] = (1, 5)
+) -> str:
+    """Sample triage level given severity + system (JTAS or ESI use same
+    distribution), restricted to the ``bounds`` (most, least urgent) level
+    (Issue #2864). When the severity puts no weight inside the bounds, the
+    unrestricted draw is clamped into them. Either way one ``choice`` draw."""
     if level_system not in SUPPORTED_LEVEL_SYSTEMS:
         raise ValueError(f"unsupported level_system: {level_system}")
     protocols = load_triage_protocols()
     dist = protocols["severity_to_triage_distribution"][severity]
-    levels = list(dist.keys())
-    probs = normalize_probabilities([dist[k] for k in levels], fallback="raise")
-    return str(rng.choice(levels, p=probs))
+    lo, hi = bounds
+    inside = [k for k in dist if lo <= int(k) <= hi and dist[k] > 0]
+    if not inside:
+        levels = list(dist.keys())
+        probs = normalize_probabilities([dist[k] for k in levels], fallback="raise")
+        return str(min(max(int(rng.choice(levels, p=probs)), lo), hi))
+    probs = normalize_probabilities([dist[k] for k in inside], fallback="raise")
+    return str(rng.choice(inside, p=probs))
+
+
+def resource_count(orders: list[Any]) -> int:
+    """Number of distinct ESI v4 resource types among the ED orders (Issue
+    #2864): labs, imaging, parenteral treatment (IV fluids and IV / IM /
+    nebulized medications) and procedures each count once; PO / topical
+    medications, therapy orders and the simple procedures listed in
+    ``resource_rule.non_resource_procedures`` are not resources."""
+    rule = load_triage_protocols()["resource_rule"]
+    parenteral = {r.casefold() for r in rule["parenteral_routes"]}
+    simple = [k.casefold() for k in rule["non_resource_procedures"]]
+    kinds: set[str] = set()
+    for order in orders:
+        order_type = str(_o(order, "order_type", "") or "")
+        if order_type in ("lab", "imaging"):
+            kinds.add(order_type)
+        elif order_type == "medication" and str(_o(order, "route", "") or "").strip().casefold() in parenteral:
+            kinds.add("parenteral")
+        elif order_type == "procedure":
+            name = str(_o(order, "display_name", "") or "").casefold()
+            if not any(k in name for k in simple):
+                kinds.add("procedure")
+    return len(kinds)
+
+
+def resource_level(orders: list[Any]) -> int:
+    """ESI v4 level 3 / 4 / 5 for >= 2 / 1 / 0 resource types (Issue #2864)."""
+    by_count = load_triage_protocols()["resource_rule"]["level_by_count"]
+    return int(by_count[min(resource_count(orders), len(by_count) - 1)])
 
 
 # Issue #2082: physiological floor on top of the severity-based draw (ESI /
@@ -174,18 +232,59 @@ from clinosim.types.triage import TriageData  # noqa: E402
 ED_ENCOUNTER_TYPES: frozenset[str] = frozenset({"emergency"})
 
 
-def condition_triage_bounds(record: Any) -> tuple[int, int]:
-    """(most, least) urgent level the ED condition allows (Issue #2124): the
-    encounter YAML's ``triage_level_min`` / ``triage_level_max`` (suicidal
-    ideation is an ESI v4 high-risk situation, level 2 but not 1 without
-    unstable vitals); (1, 5) when unset or the condition is unknown."""
+def _condition_spec(record: Any) -> dict[str, Any]:
     from clinosim.modules.encounter.protocol import load_all_encounter_conditions
 
     event = _o(record, "condition_event", None)
     names = _o(event, "ground_truth_diseases", None) or []
-    spec = load_all_encounter_conditions().get(str(names[0])) if names else None
-    spec = spec or {}
-    return int(spec.get("triage_level_min") or 1), int(spec.get("triage_level_max") or 5)
+    return (load_all_encounter_conditions().get(str(names[0])) if names else None) or {}
+
+
+def _triage_template(spec: dict[str, Any]) -> dict[str, Any]:
+    return (spec.get("narrative") or {}).get("ed_triage_template") or {}
+
+
+def condition_triage_bounds(record: Any) -> tuple[int, int]:
+    """(most, least) urgent level the ED condition allows: the range of the
+    encounter YAML's ``narrative.ed_triage_template.common_triage_levels``
+    (Issue #2864), narrowed by ``triage_level_min`` / ``triage_level_max``
+    (Issue #2124: suicidal ideation is an ESI v4 high-risk situation, level 2
+    but not 1 without unstable vitals); (1, 5) when unset or the condition is
+    unknown."""
+    spec = _condition_spec(record)
+    common = [int(lv) for lv in _triage_template(spec).get("common_triage_levels") or []]
+    lo, hi = (min(common), max(common)) if common else (1, 5)
+    lo = max(lo, int(spec.get("triage_level_min") or 1))
+    hi = min(hi, int(spec.get("triage_level_max") or 5))
+    return (lo, hi) if lo <= hi else (hi, hi)
+
+
+def has_high_risk_order(record: Any, orders: list[Any]) -> bool:
+    """True when the visit orders a treatment the condition lists under
+    ``ed_triage_template.high_risk_orders`` (Issue #2864): an ESI v4 high-risk
+    presentation such as anaphylaxis treated with IM epinephrine."""
+    high_risk = set(_triage_template(_condition_spec(record)).get("high_risk_orders") or [])
+    return any(str(_o(o, "display_name", "") or "") in high_risk for o in orders)
+
+
+def triage_level(record: Any, enc: Any, drawn: int) -> int:
+    """Triage level of an ED encounter from the bounded severity draw (Issue
+    #2864): a drawn 1-2 stands; a drawn 3-5 becomes the ESI v4 resource level;
+    a high-risk order makes it 2 at most; the result stays inside the
+    condition bounds. The vitals cap (Issue #2082) applies last and may go
+    below the bounds."""
+    enc_id = _o(enc, "encounter_id", "")
+    orders = [o for o in (_o(record, "orders", []) or []) if _o(o, "encounter_id", "") in ("", enc_id)]
+    level = drawn if drawn <= 2 else resource_level(orders)
+    if has_high_risk_order(record, orders):
+        level = min(level, 2)
+    lo, hi = condition_triage_bounds(record)
+    level = min(max(level, lo), hi)
+    enc_vitals = [v for v in (_o(record, "vital_signs", []) or []) if _o(v, "timestamp", None) is not None]
+    if enc_vitals:
+        arrival = min(enc_vitals, key=lambda v: _o(v, "timestamp", None))
+        level = min(level, triage_level_cap(arrival))
+    return level
 
 
 def triage_enricher(ctx: Any) -> None:
@@ -220,14 +319,8 @@ def triage_enricher(ctx: Any) -> None:
             enc_id = _o(enc, "encounter_id", "")
             sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["triage"], enc_id)
             rng = determinism.default_rng(sub_seed)
-            level = pick_triage_level(severity, level_system, rng)
-            lo, hi = condition_triage_bounds(record)
-            level = str(min(max(int(level), lo), hi))
-            # Issue #2082: never less urgent than the arrival vitals allow.
-            enc_vitals = [v for v in (_o(record, "vital_signs", []) or []) if _o(v, "timestamp", None) is not None]
-            if enc_vitals:
-                arrival = min(enc_vitals, key=lambda v: _o(v, "timestamp", None))
-                level = str(min(int(level), triage_level_cap(arrival)))
+            drawn = pick_triage_level(severity, level_system, rng, condition_triage_bounds(record))
+            level = str(triage_level(record, enc, int(drawn)))
             arrival_mode = pick_arrival_mode(severity, rng)
             admission_dt = _o(enc, "admission_datetime", None)
             triage_time = admission_dt if isinstance(admission_dt, datetime) else None

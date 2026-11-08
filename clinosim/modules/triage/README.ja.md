@@ -6,17 +6,32 @@ Tier 1 #3 α-min-2 always-on AD-55 Module。全 ED (emergency) encounter に対�
 triage level (JP は JTAS / US は ESI) + arrival mode (walk-in /
 ambulance / private_vehicle / police / helicopter) をサンプリングし、
 `Encounter.triage_data` に書き込む (`acuity_score` は `None` のまま)。
-サンプルした level は ED condition の `triage_level_min` /
-`triage_level_max` で clamp し、来院時 vitals による上限
-(`triage_level_cap`、Issue #2082) を適用する。非 emergency encounter は
-no-op。
+level は ESI v4 に従い (Issue #2864)、JTAS の level も同じ規則に従う:
+
+1. severity による抽選を ED condition の範囲に制限する —
+   `narrative.ed_triage_template.common_triage_levels` の範囲を
+   `triage_level_min` / `triage_level_max` で狭めたもの。
+2. 抽選が 1 / 2 ならそのまま。3–5 なら resource level (decision
+   point C) に置き換える: resource 種別 2 以上 → 3、1 → 4、0 → 5。
+   種別は検査 (件数によらず 1)、画像 (ECG 含む)、非経口治療 (輸液、
+   IV / IM / ネブライザー投与) と処置 (`resource_rule` の単純処置を
+   除く) で、受診の order から数える。
+3. `ed_triage_template.high_risk_orders` に挙げた治療 (アナフィラキシー
+   への IM アドレナリン、ACS 疑いへの経験的アスピリン) があれば level を
+   2 以下にする (decision point B)。
+4. 結果を範囲内に clamp し、最後に来院時 vitals による上限
+   (`triage_level_cap`、Issue #2082) を適用する (範囲を下回りうる)。
+
+非 emergency encounter は no-op。
 
 ## Scope
 
 - **In scope**: `triage_enricher` (POST_ENCOUNTER order=93、ED
   限定)、`pick_triage_level(severity, level_system, rng)` — YAML
-  weight 表 (severity 別、JTAS と ESI で共通)、
+  weight 表 (severity 別、JTAS と ESI で共通、condition の範囲に制限)、
   `pick_arrival_mode(severity, rng)`、`condition_triage_bounds(record)`、
+  `resource_count(orders)` / `resource_level(orders)`、
+  `has_high_risk_order(record, orders)`、`triage_level(record, enc, drawn)`、
   `triage_level_cap(vitals)`、
   `load_triage_protocols()` YAML loader (`TriageProtocols` Pydantic
   model で検証、silent-no-op 防御)。
@@ -36,9 +51,13 @@ no-op。
 from clinosim.modules.triage import TriageData
 from clinosim.modules.triage.engine import (
     triage_enricher,             # POST_ENCOUNTER enricher entry
-    pick_triage_level,           # (severity, level_system, rng) -> str
+    pick_triage_level,           # (severity, level_system, rng, bounds=(1, 5)) -> str
     pick_arrival_mode,           # (severity, rng) -> str
     condition_triage_bounds,     # (record) -> (最緊急, 最非緊急) level
+    resource_count,              # (orders) -> ESI resource 種別数
+    resource_level,              # (orders) -> 3 / 4 / 5
+    has_high_risk_order,         # (record, orders) -> bool
+    triage_level,                # (record, enc, drawn) -> 最終 level
     triage_level_cap,            # (vitals) -> 許容される最非緊急 level
     load_triage_protocols,       # () -> dict (@lru_cache、TriageProtocols 検証済)
 )
@@ -52,6 +71,9 @@ from clinosim.modules.triage.engine import (
 - Per-encounter RNG:
   `derive_sub_seed(master_seed, offset, encounter_id)` — 患者主
   RNG は乱さない (AD-16)。
+- encounter あたり 2 draw (level → arrival mode)。範囲制限は level
+  draw の写像先を変えるだけで draw 数は変えないため、arrival mode は
+  影響を受けない (Issue #2864)。
 
 ## 依存
 
@@ -60,7 +82,9 @@ from clinosim.modules.triage.engine import (
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
 - `clinosim.types.triage` — `TriageData`。
 - `clinosim.modules.encounter.protocol` — `load_all_encounter_conditions`
-  (condition 別 `triage_level_min` / `triage_level_max`)。
+  (condition 別 `triage_level_min` / `triage_level_max`、
+  `narrative.ed_triage_template.common_triage_levels` /
+  `high_risk_orders`)。
 - `yaml`, `numpy`。
 
 ## 定数と設定
@@ -68,12 +92,17 @@ from clinosim.modules.triage.engine import (
 - [`reference_data/triage_protocols.yaml`](reference_data/triage_protocols.yaml)
   — `triage_systems` (JTAS / ESI の level ラベル)、`arrival_modes`、
   country 非依存の `severity_to_triage_distribution`、
-  `arrival_mode_base_distribution`、`arrival_mode_severity_multipliers`。
+  `arrival_mode_base_distribution`、`arrival_mode_severity_multipliers`、
+  ESI v4 の `resource_rule` (`level_by_count`、`parenteral_routes`、
+  `non_resource_procedures`)。
   `TriageProtocols` model (初回 `load_triage_protocols()` 呼出時に
   実行) の検査: top level 非空 / `triage_systems` が JTAS+ESI ちょうど /
   各 system の level が 1-5 / `arrival_modes` と
   `SUPPORTED_ARRIVAL_MODES` の一致 / severity key 一致かつ各分布の合計
-  ~1.0 / base arrival-mode key 一致。
+  ~1.0 / base arrival-mode key 一致 / `resource_rule.level_by_count` が
+  3–5 の 3 level。encounter protocol model は `common_triage_levels` が
+  `"1"`–`"5"` であること、`high_risk_orders` の各要素が condition の
+  治療名であり、到達できる level 1 か 2 があることを検査する。
 - Level system: `JTAS` (JP)、`ESI` (US)。`ctx.config.country`
   (fallback `ctx.country`) で選択。
 - vitals 上限の閾値 (`engine.py` 定数、ESI v4 danger zone):
@@ -128,6 +157,8 @@ clinosim audit run -d <cohort_dir> --module triage
   — enricher gate、サンプリング決定論、ED-only 挙動。
 - [`tests/unit/modules/triage/test_triage_protocols_yaml.py`](../../../tests/unit/modules/triage/test_triage_protocols_yaml.py)
   — `TriageProtocols` validator coverage。
+- [`tests/unit/modules/triage/test_esi_bounds_2864.py`](../../../tests/unit/modules/triage/test_esi_bounds_2864.py)
+  — 範囲制限付き抽選、resource 規則、high-risk order、vitals 上限。
 
 ## Ownership
 

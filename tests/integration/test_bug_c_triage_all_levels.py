@@ -17,9 +17,13 @@ Fix: `Encounter.severity: str = ""` field (`clinosim/types/encounter.py`)
 
 This test generates a real US cohort end to end via the CLI, reads the
 structural CIF, and asserts the triage_level distribution actually
-contains all 5 levels above a floor ratio -- verifying the fix at the
+contains levels 2-5 above a floor ratio -- verifying the fix at the
 full pipeline level, not just at the enricher-unit level (see the
-companion zero-arg audit proof in `clinosim/modules/triage/audit.py`).
+companion zero-arg audit proof in `clinosim/modules/triage/audit.py`,
+which still covers level 1). Since Issue #2864 the level is bounded by
+each condition's common_triage_levels, so level 1 is reached only by the
+conditions that allow it (opioid overdose) or by the AVPU U vitals cap,
+too rare in an 800-person cohort for a floor ratio.
 """
 
 from __future__ import annotations
@@ -77,7 +81,7 @@ def test_triage_all_5_levels_present(tmp_path: Path) -> None:
     if total < 30:
         pytest.skip(f"too few ED encounters with triage_data ({total}) to assert distribution")
 
-    for level in ("1", "2", "3", "4", "5"):
+    for level in ("2", "3", "4", "5"):
         ratio = tl_counts.get(level, 0) / total
         assert ratio > 0.005, (
             f"triage_level {level} ratio={ratio:.4f} <= 0.5% threshold "

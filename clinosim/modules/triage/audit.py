@@ -18,17 +18,19 @@ lift_firing_proof (_build_triage_severity_proof): a zero-arg factory
 (called with no arguments by `clinosim/audit/axes/silent_no_op.py:
 _check_proof`) that exercises the real production `triage_enricher`
 end-to-end against ~900 synthetic ED encounters spanning all 3
-severities. If `severity` ever silently collapses to a single value
-again (e.g. a future refactor drops the assignment or an enricher
+severities (mild visits with no orders, the others with labs + imaging,
+so the ESI resource rule of Issue #2864 keeps levels 3 and 5 reachable).
+If `severity` ever silently collapses to a single value again (e.g. a
+future refactor drops the assignment or an enricher
 starts reading the wrong attribute name), this proof fails immediately
 because severe-severity encounters would stop producing level "1" and
 mild-severity encounters would stop producing level "5".
 
 Companion real-cohort regression test:
 `tests/integration/test_bug_c_triage_all_levels.py` (generates a live
-US cohort and asserts triage_level 1-5 each exceed a 0.5% ratio among ED
-encounters — the end-to-end verification that the CLI-generated CIF, not
-just the enricher in isolation, restores the full L1-L5 distribution).
+US cohort and asserts triage_level 2-5 each exceed a 0.5% ratio among ED
+encounters — level 1 is bounded to the conditions that allow it since
+Issue #2864, so this proof covers it).
 """
 
 from __future__ import annotations
@@ -60,14 +62,22 @@ def _build_triage_severity_proof() -> dict[str, Any]:
         for sev in _SEVERITIES
         for i in range(_N_PER_SEVERITY)
     ]
-    record = SimpleNamespace(
-        patient=SimpleNamespace(patient_id="pt-proof-triage"),
-        encounters=encounters,
-    )
+    # Issue #2864: a drawn level 3-5 follows the ESI resource count, so the
+    # mild visits order nothing (level 5 reachable) and the others order labs
+    # and imaging (two resource types: a drawn 3-4 stays level 3).
+    workup = [SimpleNamespace(order_type="lab"), SimpleNamespace(order_type="imaging")]
+    records = [
+        SimpleNamespace(
+            patient=SimpleNamespace(patient_id=f"pt-proof-triage-{sev}"),
+            encounters=[e for e in encounters if e.severity == sev],
+            orders=[] if sev == "mild" else workup,
+        )
+        for sev in _SEVERITIES
+    ]
     ctx = SimpleNamespace(
         master_seed=42,
         config=SimpleNamespace(country="US"),
-        records=[record],
+        records=records,
     )
 
     triage_enricher(ctx)

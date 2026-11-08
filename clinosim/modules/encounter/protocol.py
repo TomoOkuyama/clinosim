@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from clinosim.datafiles import load_data_yaml
 
@@ -54,9 +54,27 @@ class EdNoteTemplate(BaseModel):
 
 
 class EdTriageTemplate(BaseModel):
-    """ED triage template — common ESI/JTAS triage levels for this condition."""
+    """ED triage template (Issue #2864): the ESI / JTAS levels the condition is
+    triaged at (they bound the triage draw) and the treatment orders that mark
+    an ESI v4 high-risk presentation (level 2, e.g. IM epinephrine for
+    anaphylaxis)."""
 
     common_triage_levels: list[str] = Field(default_factory=list)
+    high_risk_orders: list[str] = Field(default_factory=list)
+
+    @field_validator("common_triage_levels")
+    @classmethod
+    def _levels_one_to_five(cls, levels: list[str]) -> list[str]:
+        bad = [lv for lv in levels if lv not in {"1", "2", "3", "4", "5"}]
+        if bad:
+            raise ValueError(f"common_triage_levels must be '1'-'5', got {bad}")
+        return levels
+
+    @model_validator(mode="after")
+    def _high_risk_reaches_level_two(self) -> EdTriageTemplate:
+        if self.high_risk_orders and not any(int(lv) <= 2 for lv in self.common_triage_levels):
+            raise ValueError("high_risk_orders need a common_triage_levels entry of '1' or '2'")
+        return self
 
 
 class EncounterNarrativeSpec(BaseModel):
@@ -114,6 +132,20 @@ class EncounterConditionProtocol(BaseModel):
     # templates.  Optional default = None so existing encounter YAMLs without a
     # narrative: block continue to validate without error.
     narrative: EncounterNarrativeSpec | None = None
+
+    @model_validator(mode="after")
+    def _high_risk_orders_are_treatments(self) -> EncounterConditionProtocol:
+        triage = self.narrative.ed_triage_template if self.narrative else None
+        if not triage or not triage.high_risk_orders:
+            return self
+        names: set[str] = set()
+        for tx in (self.model_extra or {}).get("treatment") or []:
+            names.add(str(tx.get("name", "")))
+            names.update(str(v) for v in (tx.get("locale_name") or {}).values())
+        unknown = sorted(set(triage.high_risk_orders) - names)
+        if unknown:
+            raise ValueError(f"{self.condition_id}: high_risk_orders {unknown} are not treatment names")
+        return self
 
 
 def _validate_encounter_route_vocabulary(condition_id: str, data: Any) -> None:

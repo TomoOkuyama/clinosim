@@ -48,5 +48,5 @@ def test_suicidal_ideation_is_high_risk_triage() -> None:
     record = SimpleNamespace(condition_event=SimpleNamespace(ground_truth_diseases=[_COND]))
     assert condition_triage_bounds(record) == (2, 2)
     other = SimpleNamespace(condition_event=SimpleNamespace(ground_truth_diseases=["ankle_sprain"]))
-    assert condition_triage_bounds(other) == (1, 5)
+    assert condition_triage_bounds(other) == (4, 5)  # common_triage_levels (Issue #2864)
     assert condition_triage_bounds(SimpleNamespace(condition_event=None)) == (1, 5)
