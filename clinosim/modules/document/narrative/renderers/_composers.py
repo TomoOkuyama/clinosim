@@ -35,6 +35,7 @@ from clinosim.modules.document.narrative._narrative_utils import (
     _pe_severe_dyspnea_pool_ja,
     _pick_from_pool_by_encounter,
     _rewrite_pe_clause,
+    encounter_died,
 )
 from clinosim.modules.document.narrative._vitals_line import (
     PHYSICAL_EXAM,
@@ -217,6 +218,10 @@ def pick_stable_progress_phrase(ctx: NarrativeContext, *, lang: str) -> str:
         phase = "late"
     else:
         phase = "mid"
+    if phase in ("late", "eve") and encounter_died(ctx.encounter):
+        # Issue #2875: no discharge preparation in the last days of a stay
+        # that ended in death.
+        phase = "terminal"
 
     pool_data = load_inpatient_subjective_pool()
     pool = pool_data.get(phase) or pool_data.get("mid") or []

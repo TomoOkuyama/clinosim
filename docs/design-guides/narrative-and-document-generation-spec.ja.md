@@ -23,6 +23,7 @@
 | 受診ごとの文書は `_PLANNERS[spec.generation_frequency]` で決める。頻度ごとに planner が一つある(入院時 1 回、毎日、3 交代、退院時 1 回、手術ごと …)。新しい頻度は表に planner を足して表す。表の外で計画する文書種別は無い。 | `clinosim/modules/document/engine.py::_PLANNERS` | `tests/unit/modules/document/test_document_planners_2532.py` |
 | Composition の各セクションは `@section(name)` で登録した関数がちょうど一つ作る。同じ名前の二重登録は import 時に失敗する。Composition の描画はこの登録表からセクションを引く。 | `clinosim/modules/document/narrative/renderers/section_builders/_registry.py`(`section`, `section_builder`, `section_builders`) | `tests/unit/modules/document/narrative/test_section_registry_2531.py` |
 | 文書のコンテキストは、その文書の受診で記録されたデータだけを持つ。記録のバイタル・検査結果・オーダー・投与・処置・終了時処方は記録の受診 (`encounters[0]`) に属する。記録の他の受診(予防接種 enricher が追加する接種受診)では、その受診の ID を持つか受診期間内の時刻を持つものだけを残し、他の受診のバイタルや処方を記載しない。 | `clinosim/modules/document/narrative/passes.py::scope_record_to_encounter` | `tests/unit/modules/document/narrative/test_vaccination_visit_own_data_2869.py` |
+| 死亡で終わった入院(退院時転帰 `exp`)は一つの判定で見分け、planner(退院時サマリーに代えて死亡退院サマリーと死亡診断書)と、入院の終わりを言い表すすべてのセクションがそれを使う。この入院にも看護サマリーは残し、退院基準・患者指導・退院可能性の代わりに死亡確認時刻、家族への連絡、死後の処置を記す。最後の 2 日の経過記録の安定日フレーズは退院準備のプールではなく `terminal` プールから取る。 | `clinosim/modules/document/narrative/_narrative_utils.py::encounter_died` | `tests/unit/modules/document/narrative/test_death_stay_documents_2875.py` |
 | LLM には `LLMService.complete_prompt` を通してのみ届く(AD-11)。 | `clinosim/modules/llm_service/` | `implementation-rules.ja.md` §2(レビュー) |
 
 ## 3. 臨床事実の言い表し

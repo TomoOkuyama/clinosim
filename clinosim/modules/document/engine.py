@@ -72,6 +72,7 @@ from clinosim.modules.document import (
     specs_for_country,
     specs_for_encounter_type,
 )
+from clinosim.modules.document.narrative._narrative_utils import encounter_died
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.types.clinical import ClinicalDocument, ClinicalImpressionRecord
 from clinosim.types.document import DocumentType
@@ -377,7 +378,7 @@ def _plan_discharge_once(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
 
 
 def _died(f: _EncounterFacts) -> bool:
-    return _o(f.encounter, "discharge_disposition", "") == "exp"
+    return encounter_died(f.encounter)
 
 
 def _plan_discharge_once_if_alive(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
