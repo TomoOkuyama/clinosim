@@ -52,11 +52,6 @@ from clinosim.modules.health_checkup._checkup_thresholds import (
     HBA1C_NONDM_MEASUREMENT_NOISE_SD,
     HBA1C_NONDM_PHYSIOLOGIC_MAX,
     HBA1C_NONDM_PHYSIOLOGIC_MIN,
-    LDL_AGE_SCALE_FEMALE,
-    LDL_AGE_SCALE_MALE,
-    LDL_BASE_FEMALE,
-    LDL_BASE_MALE,
-    LDL_DYSLIPIDEMIA_LIFT,
     LDL_MEASUREMENT_NOISE_SD,
     LDL_PHYSIOLOGIC_MAX,
     LDL_PHYSIOLOGIC_MIN,
@@ -66,7 +61,7 @@ from clinosim.modules.health_checkup._checkup_thresholds import (
     SBP_VITALS_FALLBACK,
 )
 from clinosim.modules.observation.engine import get_lab_unit
-from clinosim.modules.physiology.statin_response import statin_ldl_reduction, statin_treated_ldl
+from clinosim.modules.physiology.engine import patient_lipid_panel
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.clinical import ClinicalDocument
 from clinosim.types.encounter import (
@@ -118,10 +113,6 @@ def checkup_lab_names() -> list[str]:
     return list(load_panel_definitions()["Checkup"]["components"])
 
 
-# 脂質異常症を示す ICD-10 code
-_DYSLIPIDEMIA_CODES = {"E78", "E78.0", "E78.1", "E78.2", "E78.4", "E78.5"}
-
-
 def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, float]:
     """患者プロファイルと chronic_conditions から健診 5 項目の実測値を導出。
 
@@ -131,9 +122,8 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
     - HbA1c:糖尿病(E10/E11)保有時は ``glycemic_control`` から
       ``hba1c_from_glycemic_control`` を再利用(条件側未設定なら中央値 0.5)。
       非糖尿病は 5.1 + 年齢係数 0.003(HBA1C_NONDM_BASE パターンを踏襲)。
-    - LDL:年齢/性別 baseline に脂質異常症(E78)の上乗せ、薬物制御は
-      current_medications のスタチンの強度 (薬剤 + 用量) に応じた低下率を
-      ``statin_response`` で適用 (検査値導出と同じモデル、Issue #2928)。
+    - LDL:入院・外来の検査値と同じ脂質状態から ``patient_lipid_panel``
+      (physiology) で真値を得る。スタチンの低下率も同じ (Issue #2928, #2941)。
 
     RNG は per-patient sub-seed 由来(``derive_sub_seed``)、AD-16 準拠。
     測定ノイズは grade 境界を跨がない小さめの値に留める。
@@ -144,9 +134,7 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
     )
 
     age = int(_o(patient, "age", 60) or 60)
-    sex = str(_o(patient, "sex", "M") or "M").upper()
     chronic = _o(patient, "chronic_conditions", []) or []
-    meds = _o(patient, "current_medications", []) or []
 
     # BMI:profile が持つ値に測定日変動を足す(patient.bmi は生成時決定)
     bmi_base = float(_o(patient, "bmi", BMI_PROFILE_FALLBACK) or BMI_PROFILE_FALLBACK)
@@ -199,23 +187,11 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
             )
         )
 
-    # LDL:年齢/性別 baseline + E78 modifier + statin 逆補正
-    # baseline は Framingham + JP 特定健診公表統計に基づく大まかな中央値
-    if sex == "F":
-        ldl_base = LDL_BASE_FEMALE + max(0, age - 40) * LDL_AGE_SCALE_FEMALE  # 女性は加齢で上昇強め(閉経後)
-    else:
-        ldl_base = LDL_BASE_MALE + max(0, age - 40) * LDL_AGE_SCALE_MALE
-    has_dyslipidemia = any(
-        (_o(c, "code", "") or "").split(".")[0] == "E78" or (_o(c, "code", "") or "") in _DYSLIPIDEMIA_CODES
-        for c in chronic
-    )
-    if has_dyslipidemia:
-        ldl_base += LDL_DYSLIPIDEMIA_LIFT  # 未治療脂質異常症の相対上昇
-    # スタチンの強度 (薬剤 + 用量) と患者ごとの位置で未治療 LDL を下げる。
-    # 入院・外来の検査値導出 (_add_lipid_labs) と同じ statin_response モデル
-    # (Issue #2928)。
-    patient_id = str(_o(patient, "patient_id", "") or "")
-    ldl_base = statin_treated_ldl(ldl_base, statin_ldl_reduction(patient_id, list(meds)))
+    # LDL:入院・外来の検査値と同じ患者の脂質状態 (性別・糖尿病・脂質異常症・
+    # スタチンの低下率) から真値を引き、健診の測定ノイズだけを乗せる。
+    # 健診だけの年齢/性別モデルは同じ患者の外来 LDL と系統的にずれていた
+    # (Issue #2941)。
+    ldl_base = patient_lipid_panel(patient)["LDL"]
     ldl = float(np.clip(ldl_base + rng.normal(0.0, LDL_MEASUREMENT_NOISE_SD), LDL_PHYSIOLOGIC_MIN, LDL_PHYSIOLOGIC_MAX))
 
     return {"BMI": bmi, "SBP": sbp, "DBP": dbp, "HbA1c": hba1c, "LDL": ldl}

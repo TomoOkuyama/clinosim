@@ -8,8 +8,8 @@ a deterministic per-patient quantile, so it draws no randomness. Data:
 
 ``statin_ldl_reduction`` is read through
 ``engine.medication_flags_from_context`` and applied by ``statin_treated_ldl``
-in ``engine._add_lipid_labs`` and in the health checkup's LDL
-(``health_checkup.engine._derive_checkup_values``, Issue #2928), so one
+in ``engine.lipid_panel``, the lipid panel of both the encounter labs and the
+health checkup (``engine.patient_lipid_panel``, Issues #2928, #2941), so one
 statin model sets both the encounter and the checkup LDL.
 """
 

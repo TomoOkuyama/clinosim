@@ -36,11 +36,6 @@ __all__ = [
     "HBA1C_NONDM_MEASUREMENT_NOISE_SD",
     "HBA1C_NONDM_PHYSIOLOGIC_MAX",
     "HBA1C_NONDM_PHYSIOLOGIC_MIN",
-    "LDL_AGE_SCALE_FEMALE",
-    "LDL_AGE_SCALE_MALE",
-    "LDL_BASE_FEMALE",
-    "LDL_BASE_MALE",
-    "LDL_DYSLIPIDEMIA_LIFT",
     "LDL_MEASUREMENT_NOISE_SD",
     "LDL_PHYSIOLOGIC_MAX",
     "LDL_PHYSIOLOGIC_MIN",
@@ -146,29 +141,9 @@ the clamp prevents narrative inconsistency."""
 
 
 # ---------------------------------------------------------------------------
-# LDL cholesterol — sex-specific base + age scale + disease/med modifiers
+# LDL cholesterol — measurement noise + clamps (the true value is the
+# patient's lipid state, ``physiology.engine.patient_lipid_panel``, Issue #2941)
 # ---------------------------------------------------------------------------
-
-LDL_BASE_FEMALE: float = 105.0
-"""Female LDL baseline (mg/dL) at age 40 — Framingham / JP 特定健診
-mid-range."""
-
-LDL_AGE_SCALE_FEMALE: float = 0.7
-"""Female LDL age-scaling (mg/dL per year past 40) — stronger age
-gradient reflects the post-menopausal LDL rise."""
-
-LDL_BASE_MALE: float = 115.0
-"""Male LDL baseline (mg/dL) at age 40 — Framingham / JP 特定健診
-mid-range."""
-
-LDL_AGE_SCALE_MALE: float = 0.3
-"""Male LDL age-scaling (mg/dL per year past 40) — gentler gradient
-than female (male LDL rises less steeply with age)."""
-
-LDL_DYSLIPIDEMIA_LIFT: float = 40.0
-"""LDL lift (mg/dL) applied to untreated dyslipidemia (E78 codes) —
-matches the observed relative elevation in undiagnosed / untreated
-dyslipidemia patients."""
 
 LDL_MEASUREMENT_NOISE_SD: float = 10.0
 """Measurement-day LDL noise SD (mg/dL) — reflects assay + biological

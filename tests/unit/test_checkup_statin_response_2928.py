@@ -2,7 +2,7 @@
 
 For the same patient and statin, the fraction of the untreated LDL removed at
 the checkup equals the fraction removed on the encounter lab path
-(``medication_flags_from_context`` -> ``_add_lipid_labs``).
+(``medication_flags_from_context`` -> ``lipid_panel``).
 """
 
 from __future__ import annotations
@@ -66,6 +66,4 @@ def test_checkup_reduction_equals_encounter_reduction(
 def test_checkup_without_statin_is_unchanged(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(checkup, "LDL_MEASUREMENT_NOISE_SD", 0.0)
     patient = _patient("pt-2928-none")
-    assert _checkup_ldl(patient) == pytest.approx(
-        checkup.LDL_BASE_MALE + 22 * checkup.LDL_AGE_SCALE_MALE + checkup.LDL_DYSLIPIDEMIA_LIFT
-    )
+    assert _checkup_ldl(patient) == pytest.approx(_encounter_ldl(patient))

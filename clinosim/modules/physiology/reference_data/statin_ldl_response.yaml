@@ -2,7 +2,7 @@
 #
 # Read by modules/physiology/statin_response.py. A patient taking a statin
 # has their LDL (and total cholesterol, by the same mg/dL) lowered from the
-# untreated value the physiology derives (`_add_lipid_labs`) by a fraction
+# untreated value the physiology derives (`engine.lipid_panel`) by a fraction
 # that depends on the intensity of the statin and dose they take.
 #
 # Intensity (2018 ACC/AHA cholesterol guideline, Grundy et al., Circulation

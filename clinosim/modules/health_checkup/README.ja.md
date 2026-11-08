@@ -93,9 +93,10 @@ tier 閾値 (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
   `hba1c_from_glycemic_control`, `hba1c_latent_at` (lazy import。
   HbA1c 導出)。
 - `clinosim.determinism` — 測定ノイズ用 sub-RNG の生成。
-- `clinosim.modules.physiology.statin_response` —
-  `statin_ldl_reduction`, `statin_treated_ldl` (検査値導出と共通のスタチン
-  LDL 応答、Issue #2928)、`clinosim.codes.valuesets` — `concept_group`。
+- `clinosim.modules.physiology.engine` — `patient_lipid_panel` (患者の
+  脂質状態 — 性別・糖尿病・脂質異常症・スタチンの低下率 — から得る LDL
+  真値。入院・外来の検査値導出と共通、Issue #2928, #2941)、
+  `clinosim.codes.valuesets` — `concept_group`。
 - `clinosim.locale` — `i18n.t`, `loader.load_reference_ranges`。
 - `hashlib.sha256` — 患者選定。
 - `numpy` — 測定ノイズ用 `np.random.Generator`。
@@ -113,9 +114,8 @@ tier 閾値 (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
   - 75 歳以上 → `"regional_union"` (広域連合健診、後期高齢者医療)。
 - Threshold 表: [`_checkup_thresholds.py`](_checkup_thresholds.py)
   — analyte 別の physiologic min / max、測定ノイズ SD、reference-range
-  文字列、high cutoff、DM / non-DM の HbA1c 分岐、性別 × 年齢 の
-  LDL base + scaling、dyslipidemia lift (スタチンの低下率は
-  `physiology/statin_response.py`)、および
+  文字列、high cutoff、DM / non-DM の HbA1c 分岐 (LDL の真値は
+  入院・外来の検査値と同じ `physiology/engine.py::patient_lipid_panel`)、および
   上記 2 つの年齢 tier 閾値を保持。
 - checkup type 別 chief-complaint テキスト
   (`health_checkup.<type>` in `locale/shared/narrative_phrases.yaml`): `occupational → "事業者健診"`,
@@ -171,8 +171,10 @@ pytest tests/unit -k "health_checkup or checkup" -q
   — enricher gating (opt-in、JP-only、age ≥ 40)、サブセット選定
   決定論、5 measurement emit、snapshot 基点日。
 - [`tests/unit/test_health_checkup_personalization.py`](../../../tests/unit/test_health_checkup_personalization.py)
-  — per-patient value 導出 (DM / non-DM 分岐、性別 × 年齢 LDL
-  scaling、dyslipidemia lift、statin reduction)。
+  — per-patient value 導出 (DM / non-DM 分岐、dyslipidemia lift、
+  statin reduction)。
+- [`tests/unit/test_checkup_ldl_lipid_state_2941.py`](../../../tests/unit/test_checkup_ldl_lipid_state_2941.py)
+  — 健診 LDL が同じ脂質状態の外来 LDL と一致。
 - [`tests/unit/test_checkup_renderer_personalization.py`](../../../tests/unit/test_checkup_renderer_personalization.py)
   — narrative 側 rendering 統合点。
 

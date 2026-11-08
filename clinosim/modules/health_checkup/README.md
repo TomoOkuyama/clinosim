@@ -100,10 +100,10 @@ age-tier thresholds (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
   HbA1c derivation).
 - `clinosim.determinism` — RNG construction for the measurement-noise
   sub-RNG.
-- `clinosim.modules.physiology.statin_response` —
-  `statin_ldl_reduction`, `statin_treated_ldl` (the statin LDL response
-  shared with lab derivation, Issue #2928); `clinosim.codes.valuesets` —
-  `concept_group`.
+- `clinosim.modules.physiology.engine` — `patient_lipid_panel` (the true
+  LDL from the patient's lipid state — sex, diabetes, dyslipidemia, statin
+  reduction — shared with encounter lab derivation, Issues #2928, #2941);
+  `clinosim.codes.valuesets` — `concept_group`.
 - `clinosim.locale` — `i18n.t`, `loader.load_reference_ranges`.
 - `hashlib.sha256` — patient selection.
 - `numpy` — `np.random.Generator` for measurement noise.
@@ -122,8 +122,7 @@ age-tier thresholds (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
 - Threshold table: [`_checkup_thresholds.py`](_checkup_thresholds.py)
   — per-analyte physiologic min / max, measurement-noise SDs,
   reference-range strings, high-threshold cutoffs, DM- vs non-DM
-  HbA1c branches, sex-and-age LDL base + scaling, dyslipidemia lift
-  (the statin reduction comes from `physiology/statin_response.py`), plus the two age-tier thresholds above.
+  HbA1c branches (the true LDL comes from `physiology/engine.py::patient_lipid_panel`, the same as encounter labs), plus the two age-tier thresholds above.
 - Chief-complaint text per checkup type
   (`health_checkup.<type>` in `locale/shared/narrative_phrases.yaml`): `occupational → "事業者健診"`,
   `specific → "特定健診"`, `regional_union → "広域連合健診"`.
@@ -178,8 +177,10 @@ Individual files:
   — enricher gating (opt-in, JP-only, age ≥ 40), subset selection
   determinism, five-measurement emission, snapshot-anchored date.
 - [`tests/unit/test_health_checkup_personalization.py`](../../../tests/unit/test_health_checkup_personalization.py)
-  — per-patient value derivation (DM/non-DM branching, sex/age LDL
-  scaling, dyslipidemia lift, statin reduction).
+  — per-patient value derivation (DM/non-DM branching, dyslipidemia
+  lift, statin reduction).
+- [`tests/unit/test_checkup_ldl_lipid_state_2941.py`](../../../tests/unit/test_checkup_ldl_lipid_state_2941.py)
+  — the checkup LDL equals the encounter LDL of the same lipid state.
 - [`tests/unit/test_checkup_renderer_personalization.py`](../../../tests/unit/test_checkup_renderer_personalization.py)
   — narrative-side rendering integration point.
 

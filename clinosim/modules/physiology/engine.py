@@ -16,7 +16,7 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from clinosim.codes.drugs import same_drug
-from clinosim.codes.valuesets import concept_group
+from clinosim.codes.valuesets import concept_group, has_condition
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules.observation.engine import medication_name, medications_in_effect
 from clinosim.modules.physiology._coupling_coefficients import (
@@ -943,19 +943,22 @@ def _add_hepatic_labs(labs: dict[str, float], state: PhysiologicalState, sex: st
     labs["LDH"] = LDH_BASELINE_U_L + hep_injury * LDH_HEPATIC_SCALE
 
 
-def _add_lipid_labs(
-    labs: dict[str, float],
+def lipid_panel(
     sex: str,
     has_diabetes: bool,
     has_dyslipidemia: bool,
     statin_ldl_reduction: float = 0.0,
-) -> None:
-    """TC, HDL, TG and LDL; a statin lowers LDL and TC (Issue #2917)."""
+) -> dict[str, float]:
+    """True TC, HDL, TG and LDL (mg/dL) of a lipid state: sex, diabetes,
+    dyslipidemia and the statin's LDL reduction (Issue #2917). Encounter labs
+    (``derive_lab_values``) and the health checkup (``patient_lipid_panel``,
+    Issue #2941) both read it, so one patient has one untreated LDL."""
     # Issue #1073 B8: lipid panel — TC + LDL + HDL + TG. Baseline modulated by
     # E78 (dyslipidemia chronic condition) via has_dyslipidemia flag from the
     # caller and by E11 (DM) for TG via has_diabetes.
     _dyslip = 1.0 if has_dyslipidemia else 0.0
     _dm = 1.0 if has_diabetes else 0.0
+    labs: dict[str, float] = {}
     labs["TC"] = TC_BASELINE_MG_DL + _dyslip * TC_DYSLIPIDEMIA_SCALE
     _hdl_base = HDL_BASELINE_MALE_MG_DL if sex == "M" else HDL_BASELINE_FEMALE_MG_DL
     labs["HDL"] = max(20, _hdl_base - _dyslip * HDL_DYSLIPIDEMIA_SCALE)
@@ -976,6 +979,21 @@ def _add_lipid_labs(
     treated = statin_treated_ldl(labs["LDL"], statin_ldl_reduction)
     labs["TC"] -= labs["LDL"] - treated
     labs["LDL"] = treated
+    return labs
+
+
+def patient_lipid_panel(patient: Any) -> dict[str, float]:
+    """True lipid panel of ``patient`` from its home medications: the lipid
+    state ``patient_true_labs`` passes to ``derive_lab_values`` (sex, the
+    diabetes and dyslipidemia value sets, ``medication_flags_from_context``),
+    for a measurement outside an encounter (the health checkup, Issue #2941).
+    Draws no randomness."""
+    return lipid_panel(
+        str(getattr(patient, "sex", "") or ""),
+        has_condition(patient, "diabetes"),
+        has_condition(patient, "dyslipidemia"),
+        float(medication_flags_from_context(patient)["statin_ldl_reduction"]),
+    )
 
 
 def _add_pt_inr(labs: dict[str, float], state: PhysiologicalState, on_warfarin: bool) -> None:
@@ -1248,7 +1266,7 @@ def derive_lab_values(
     _add_renal_labs(labs, state, sex)
     _add_cardiac_labs(labs, state, myocardial_injury)
     _add_hepatic_labs(labs, state, sex)
-    _add_lipid_labs(labs, sex, has_diabetes, has_dyslipidemia, statin_ldl_reduction)
+    labs.update(lipid_panel(sex, has_diabetes, has_dyslipidemia, statin_ldl_reduction))
     _add_pt_inr(labs, state, on_warfarin)
     _add_blood_count_labs(labs, state, sex)
     _add_coagulation_labs(labs, state, age, causes_vte)
