@@ -39,6 +39,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+from clinosim.countries import is_jp
 from clinosim.datafiles import load_data_yaml
 
 _DATA_FILE = Path(__file__).parent / "data" / "drugs.yaml"
@@ -532,7 +533,7 @@ from clinosim.codes.yj import jp_drug_system_key as jp_drug_system_key  # noqa: 
 def drug_system_key(code: str, country: str) -> str:
     """Registry key of a drug code emitted for ``country``: RxNorm for the US,
     the format-dispatched JP system for JP."""
-    return jp_drug_system_key(code) if str(country).strip().upper() == "JP" else "rxnorm"
+    return jp_drug_system_key(code) if is_jp(country) else "rxnorm"
 
 
 def drug_system_uri(code: str, country: str) -> str:

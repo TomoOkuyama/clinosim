@@ -10,6 +10,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.codes.valuesets import code_by_chronic_prefix
+from clinosim.countries import country_slot
 from clinosim.locale.i18n import t
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -290,7 +291,7 @@ def _ed_discharge_prescription(
         else encounter.admission_datetime
     )
     rng = determinism.default_rng(discharge_prescription_seed(patient.patient_id, encounter.encounter_id))
-    country_key = "jp" if str(country).lower() in ("jp", "japan") else "us"
+    country_key = country_slot(country)
     active = [m.drug_name for m in (patient.current_medications or []) if m.drug_name]
     items: list[dict] = []
     for spec in specs:
@@ -615,7 +616,7 @@ def _simulate_ed_visit(
     # Prednisone US for the same active corticosteroid). Old entries with
     # only ``name`` keep working unchanged. Country key mirrors the disease-
     # yaml supportive[] ``locale_detail`` split in modules/order/engine.py.
-    _tx_country_key = "jp" if str(country).lower() in ("jp", "japan") else "us"
+    _tx_country_key = country_slot(country)
     for i, tx in enumerate((protocol or {}).get("treatment", [])):
         if rng.random() > tx.get("probability", 1.0):
             continue

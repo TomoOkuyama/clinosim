@@ -58,6 +58,7 @@ Governing spec: [`code-mapping-and-localization-spec.ja.md`](code-mapping-and-lo
 |---|---|
 | `clinosim/countries.py` `is_jp(country)` / `is_us(country)` | 国固有の規則 (保険・プロファイル・コード体系)。国文字列を手で比較しない。表示言語の選択には使わない。 |
 | `clinosim/countries.py` `lang_for(country)` / `normalize_lang(lang)` | 国の出力言語と、言語引数の唯一の正規化。 |
+| `clinosim/countries.py` `country_code(country)` | どの表記 (`"jp"`、旧来の locale キー `"japan"` など) からも `"JP"` / `"US"` を返す。大文字コードを取るヘルパー向け。`is_jp` も同じ表記を受け付ける。 |
 | `clinosim/countries.py` `country_slot(country, scheme=...)` | 国別 YAML ブロックのセクションキー。 |
 | `clinosim/countries.py` `lang_name(lang, in_lang=)` / `output_language_instruction(lang)` / `has_authored_narrative(lang)` | 言語名、LLM への「この言語で書け」指示、その言語に記述済みの narrative があるか。 |
 | `clinosim/modules/_shared.py` `uses_jp_clins_profile(lang)` | FHIR リソースを JP-CLINS プロファイル系で出すかどうか。 |

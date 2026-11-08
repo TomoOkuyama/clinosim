@@ -19,6 +19,7 @@ from typing import Any
 import numpy as np
 
 from clinosim.codes.drugs import has_drug, protocol_drug_name
+from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import language_slot
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
@@ -268,7 +269,7 @@ class _Stay:
 
     @property
     def country(self) -> str:
-        return "JP" if self.country_key == "japan" else "US"
+        return country_code(self.country_key)
 
 
 @dataclass

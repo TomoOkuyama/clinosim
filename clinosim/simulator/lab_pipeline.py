@@ -35,6 +35,7 @@ from typing import Any
 
 from clinosim import determinism
 from clinosim.codes.valuesets import has_condition
+from clinosim.countries import country_code
 from clinosim.modules.observation.engine import (
     BASELINE_LAB_NORMALS,
     canonical_lab_name,
@@ -195,7 +196,7 @@ def _run_lab_result_pipeline(
                 canon,
                 observed,
                 sex=patient.sex,
-                country="JP" if country_key == "japan" else "US",
+                country=country_code(country_key),
                 medications=medications,
                 age=patient.age,
             )
@@ -258,7 +259,7 @@ def _run_lab_result_pipeline(
                     canon,
                     observed,
                     sex=patient.sex,
-                    country="JP" if country_key == "japan" else "US",
+                    country=country_code(country_key),
                     medications=medications,
                     age=patient.age,
                 )

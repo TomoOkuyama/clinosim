@@ -17,6 +17,7 @@ from typing import Any
 import numpy as np
 
 from clinosim.codes.hl7_encounter import DischargeDisposition
+from clinosim.countries import is_us
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.disease.severity import SEVERITY_SCORE_RANGES
 from clinosim.modules.population.engine import LifeEvent
@@ -208,7 +209,7 @@ def _check_discharge_ready(
     # Autonomic symptoms, oxygenation, consciousness and perfusion safe for home.
     symptoms_ok = not unsafe_for_home(state, symptom_floor)
 
-    if country_key == "us":
+    if is_us(country_key):
         return (
             state.inflammation_level < DISCHARGE_US_INFLAMMATION_MAX
             and state.perfusion_status > DISCHARGE_US_PERFUSION_MIN

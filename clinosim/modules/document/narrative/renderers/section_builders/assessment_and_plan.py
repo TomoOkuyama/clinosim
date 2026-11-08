@@ -28,7 +28,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from clinosim.codes import display as registry_display
-from clinosim.countries import has_authored_narrative
+from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -149,7 +149,7 @@ def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
     if conds:
         from clinosim.locale.loader import map_diagnosis_code as _map_diagnosis_code
 
-        country = "JP" if ctx.locale.lower() == "jp" else "US"
+        country = country_code(ctx.locale)
         key = _label("code_system_icd_display", "primary", lang)
 
         def _resolve_chronic_label(c: object) -> str:
