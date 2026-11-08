@@ -21,8 +21,11 @@
   新モジュール / plug-in / FHIR builder 追加の実務 playbook
   (Base vs Module 判別、enricher stage、registry 利用、
   `clinosim audit run` による PR 検証)。
-- [`DESIGN.md`](DESIGN.ja.md) — 55+ の architecture decision record
-  (`docs/architecture/` 配下 3 file に split 済み)。
+- [`DESIGN.md`](DESIGN.ja.md) — `docs/architecture/` 配下の
+  architecture 文書への landing pointer。architecture decision
+  record (AD-1 〜 AD-71) は
+  [`docs/architecture/adr-history.md`](docs/architecture/adr-history.ja.md)
+  と、`design-principles.md` / `architecture-notes.md` の要約表にある。
   日本語版: [`DESIGN.ja.md`](DESIGN.ja.md)。
 - [`AGENTS.md`](AGENTS.md) — repo 全体の規約と invariant
   ([AGENTS.md convention](https://agentmd.dev) 準拠の

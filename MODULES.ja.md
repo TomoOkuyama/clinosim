@@ -92,6 +92,7 @@ framework (現在 registry 登録済み 6 per-module plug-in: `antibiotic`,
 │  antibiotic(85)   HAI empirical + narrow de-escalation   │
 │  imaging(90)      ImagingStudy metadata chain (AD-62)    │
 │  discontinue_flip(91)  DISCONTINUE marker → STOPPED      │
+│  supersede_orders(91)  superseded order → STOPPED        │
 │  newborn(92)      出生入院ワークアップ (Vit K / screen)  │
 │  triage(93)       JTAS/ESI level + arrival_mode (ED-only)│
 │  lab_derived_dx(94)  KDIGO-3 Cr → N17.9 working dx       │
@@ -129,7 +130,7 @@ canonical 11-section 構造に従う per-module README にリンクする。
 | [locale](clinosim/locale/) | 国別データ (names / addresses / reference range / code_mapping) | foundation | — | — |
 | [physiology](clinosim/modules/physiology/README.ja.md) | 19 変数 physiology state + lab/vital 導出 | simulation | — (caller RNG) | — |
 | [observation](clinosim/modules/observation/README.ja.md) | lab / vital / microbiology + nursing flowsheet | simulation | nursing `0x4E55` (共有) | POST_RECORDS 20 (`nursing`) |
-| [order](clinosim/modules/order/README.ja.md) | lab / medication / imaging 発注 + AD-60 audit | simulation | — (per-order via AD-59) | POST_ENCOUNTER 91 (`discontinue_flip`) + audit 登録 |
+| [order](clinosim/modules/order/README.ja.md) | lab / medication / imaging 発注 + AD-60 audit | simulation | — (per-order via AD-59) | POST_ENCOUNTER 91 (`discontinue_flip` + `supersede_orders`) + audit 登録 |
 | [clinical_course](clinosim/modules/clinical_course/README.ja.md) | trajectory archetype + 日次 `StateChangeDirective` | simulation | — (caller RNG) | — |
 | [diagnosis](clinosim/modules/diagnosis/README.ja.md) | Bayesian 鑑別 + Issue #551 非特異コード | simulation | — | POST_ENCOUNTER 94 (`lab_derived_dx`、RNG なし) |
 | [procedure](clinosim/modules/procedure/README.ja.md) | 手術 + bedside + rehab 生成 | simulation | — (caller RNG) | — |

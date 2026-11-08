@@ -31,10 +31,13 @@ Canonical source-code paths:
 - Code systems: `clinosim/codes/`
 - Locale data: `clinosim/locale/`
 
-## First ADRs to read (curated; full set in `DESIGN.md`)
+## First ADRs to read (curated; full set in `docs/architecture/`)
 
-`DESIGN.md` contains 55+ ADRs, but a new module author should grasp
-these 9 first:
+The ADRs (AD-1 through AD-71) live under
+[`docs/architecture/`](architecture/README.md) — summary tables in
+`design-principles.md` and `architecture-notes.md`, full per-ADR
+sections in `adr-history.md` (`DESIGN.md` is a landing pointer to
+them). A new module author should grasp these 9 first:
 
 | ADR | One-line summary |
 |---|---|
@@ -80,8 +83,8 @@ roadmap = [`docs/design-notes/2026-06-30-tier1-document-and-event-density-master
   sampling in `activator.py`.
 - `document` (Tier 1 #3, AD-63): template-driven clinical-document
   emission from Stage 1 (POST_ENCOUNTER order=95). Writes
-  `ClinicalDocument` / `ClinicalImpressionRecord` into
-  `extensions["document"]` + `extensions["clinical_impressions"]`;
+  `ClinicalDocument` stubs into `record.documents` and
+  `ClinicalImpressionRecord` into `extensions["clinical_impressions"]`;
   three FHIR builders emit them
   (`fhir_r4/documents/documents.py` /
   `fhir_r4/documents/composition.py` /
@@ -385,16 +388,18 @@ Precedents:
 - `clinosim/modules/hai/__init__.py:load_hai_antibiogram` — 3-way
   validation of `HAI_TYPES` × `hai_organisms.yaml` SNOMED ×
   `ANTIBIOTIC_LOINC_LOOKUP`.
-- `clinosim/modules/observation/microbiology.py:_validate_microbiology`
-  — cross-checks the organism antibiogram key against the
-  `antibiotics` set (migrated from silent skip to `ValueError` in
-  PR-A 2026-06-26; expanded to 7 cross-refs by Fix #100 / #101).
+- `clinosim/modules/observation/microbiology.py:MicrobiologyConfig`
+  — Pydantic model; its `_references_resolve` model validator
+  cross-checks organism antibiogram keys and disease-profile
+  references against the `antibiotics` / `organisms` / `specimens`
+  sections.
 - `clinosim/modules/antibiotic/audit.py:_validate_nhsn_resistance_bands`
   — validates the cohort / antibiotic in `_NHSN_RESISTANCE_BANDS`
   against the canonical set.
-- `clinosim/modules/hai/engine.py:_validate_hai_organisms` —
-  validates `hai_organisms.yaml` on `HAI_TYPES` × SNOMED-non-empty
-  × non-negative-weight × non-zero-sum (this PR 2026-06-27).
+- `clinosim/modules/hai/engine.py:HaiOrganisms` — Pydantic model
+  (loaded via `load_validated_yaml`) validating `hai_organisms.yaml`
+  on `HAI_TYPES` × SNOMED-non-empty × non-negative-weight ×
+  non-zero-sum.
 - `clinosim/locale/loaders/demographics.py:_validate_demographics` /
   `_validate_names` / `_validate_addresses` — validate
   `demographics.yaml`'s `lifestyle_distribution`, `names.yaml`'s
@@ -412,24 +417,23 @@ Precedents:
   (per-hai_type only, no slash) + required keys + range [0, 1] +
   empty-list rejection (PR3b-3 adversarial-1 / 2; a cohort-string-
   typo defense).
-- `clinosim/modules/hai/engine.py:_validate_hai_rates` —
-  `per_day_risk ∈ [0, 1]` + `source_device_type ∈ load_devices_config()["devices"]`
-  (HAI sibling sweep 2026-06-29).
-- `clinosim/modules/hai/engine.py:_validate_hai_codes` —
+- `clinosim/modules/hai/engine.py:HaiRates` — Pydantic model:
+  `per_day_risk ∈ [0, 1]` + `source_device_type ∈ load_devices_config()["devices"]`.
+- `clinosim/modules/hai/engine.py:HaiCodes` — Pydantic model:
   `icd10_us_billable` / `icd10_jp_who` / `snomed` verified for
-  membership directly against authoritative `cs.codes` via
-  `_code_in_data()` (HAI sibling sweep 2026-06-29).
-- `clinosim/modules/hai/engine.py:_validate_hai_specimens` —
-  `specimen_snomed` / `test_loinc` authoritatively verified via
-  `_code_in_data()` (HAI sibling sweep 2026-06-29).
-- `clinosim/modules/hai/lab_lift.py:_validate_hai_lab_lift_config`
-  — `ramp_peak_days > 0` + lift values ∈ [0, 1] + HAI_TYPES
-  forward-coverage (HAI sibling sweep 2026-06-29; refactored from
-  an inline check).
+  exact membership in the authoritative `codes/data/*.yaml` via
+  `_registered()`.
+- `clinosim/modules/hai/engine.py:HaiSpecimens` — Pydantic model:
+  `specimen_snomed` / `test_loinc` verified the same way.
+- `clinosim/modules/hai/lab_lift.py:load_hai_lab_lift_config` —
+  its validator checks `ramp_peak_days > 0` + lift values ∈ [0, 1]
+  + HAI_TYPES forward-coverage.
 
 When a new module creates an external-ID-referencing YAML or a
-probability-weight YAML, adopt the same pattern (wire `_validate_X(data)`
-inside `load_X`; combine with `fallback="raise"` for symmetric
+probability-weight YAML, adopt the same pattern (validate inside
+`load_X` — preferably with a Pydantic model passed to
+`clinosim.datafiles.load_validated_yaml`, or a `_validate_X(data)`
+function; combine with `fallback="raise"` for symmetric
 downstream defense). Do not forget **reverse-coverage** (canonical
 set ⊆ data set) either — as revealed by the adv-1 stage-2 sibling
 sweep, forward-only validation cannot prevent silent-no-op when a
@@ -471,11 +475,11 @@ validators + reverse-coverage validators, obey these 3 principles:
 
 1. **All validators MUST run BEFORE `register_audit_module`**: this
    guarantees a stale spec never enters the registry on validator
-   failure. Precedent
-   `clinosim/modules/antibiotic/audit.py:656-658`, where
+   failure. Precedent: the module tail of
+   `clinosim/modules/antibiotic/audit.py`, where
    `_validate_narrow_rate_bands` + `_validate_nhsn_resistance_bands`
-   + `_validate_narrow_ladder_at_import` are all invoked before
-   `register`.
+   + `_validate_narrow_ladder_at_import` are all invoked before the
+   `register_audit_module(...)` call.
 2. **Symmetry of forward-coverage + reverse-coverage**: when a band
    set requires "every (dim1, dim2) in the canonical YAML is covered
    or explicitly exempt" (reverse), require also "every canonical
@@ -556,13 +560,13 @@ registration). Registration in `ENRICHER_SEED_OFFSETS` is also
 ### Canonical "pure-function engine" (MOD-13 is the reference)
 
 `observation/engine.py` has **zero cross-module imports** and takes
-all context — physiology values, reference ranges, etc. — as
-function arguments. Use it as the reference for new engines.
+all per-call context — physiology values, the RNG, sex / country —
+as function arguments. Use it as the reference for new engines.
 
 ```python
 # Good: take context as arguments. Do not import clinosim.modules.*
-def generate_lab_result(canon: str, true_value: float, rng: np.random.Generator,
-                        reference_ranges: dict | None = None) -> float:
+def generate_lab_result(lab_name: str, true_value: float,
+                        rng: np.random.Generator) -> float | str:
     ...
 ```
 
@@ -576,38 +580,34 @@ AGENTS.md: "All types defined in `clinosim/types/`").
 - Pydantic `BaseModel` → YAML-loaded config types (AD-18; e.g.
   `clinosim/types/config.py`).
 
-> **Known debt (MOD-2..6, TYP-2):** `PersonRecord` / `LifeEvent` /
-> `HospitalizationSummary` (population/engine.py), `StaffMember` /
-> `StaffRoster` (staff/engine.py), `ProcedureRecord` /
-> `RehabSession` (procedure/engine.py), `HospitalState`
-> (facility/hospital_state.py), and `DiseaseProtocol`
-> (disease/protocol.py) still live in engines. **Do not repeat that
-> mistake — define new types under `clinosim/types/<name>.py` from
-> the start and export them from `clinosim/types/__init__.py` via
-> `__all__`.** Loader functions (`load_disease_protocol`, etc.)
-> stay on the module side, and the types are imported from `types`.
+> **Known debt:** `HospitalState` (facility/hospital_state.py) and
+> `DiseaseProtocol` (disease/protocol.py) still live in their
+> modules. **Do not repeat that — define new types under
+> `clinosim/types/<name>.py` from the start and declare their
+> public names in that file's `__all__`.** Loader functions
+> (`load_disease_protocol`, etc.) stay on the module side, and the
+> types are imported from `types`.
 
 ### YAML is validated with Pydantic
 
 `disease/protocol.py` is the correct reference:
 `DiseaseProtocol(BaseModel)` is loaded via
 `load_disease_protocol()` with `model_validate()`.
-
-> **Anti-pattern (ENC-1):** `encounter/protocol.py` returns 46
-> YAMLs as bare `dict[str, Any]` and swallows parse errors with
-> `except Exception: pass`. **Wrap every new YAML protocol in
-> Pydantic** and adopt gradually via `extra="allow"`. `bare
-> except` is forbidden.
+`encounter/protocol.py` follows the same pattern for the 51
+encounter-condition YAMLs (`EncounterConditionProtocol`, permissive
+via `extra="allow"`; a validation failure is re-raised with the
+offending filename). **Wrap every new YAML protocol in Pydantic**;
+`extra="allow"` is acceptable for gradual adoption. `bare except`
+is forbidden.
 
 ### Publish the public API via `__init__.py`
 
-> **Known debt (MOD-1, TYP-1):** 17 of 18 module `__init__.py`
-> files are empty (0 bytes), and callers reach internals directly
-> (`from clinosim.modules.population.engine import LifeEvent`).
-> Only `identity/__init__.py` correctly exports via `__all__`.
-> **New modules re-export the public surface from `__init__.py`**
-> and callers use `from clinosim.modules.<name> import X` rather
-> than `.engine`.
+> **Known debt:** 14 of the 38 module `__init__.py` files are
+> still empty, so callers of those modules reach into submodules
+> directly. **New modules re-export the public surface from
+> `__init__.py` via `__all__`** (as the other 24 do), and callers
+> use `from clinosim.modules.<name> import X` rather than
+> `.engine`.
 
 ### Write `## Dependencies` in the README
 
@@ -625,8 +625,8 @@ README) under `## Dependencies` (English heading, matching
 - **CIF is the sole simulation output** (AD-17). A venue simulator
   only **returns** a record via `return CIFPatientRecord(...)`. It
   does not write into a shared collection directly, nor call an
-  output adapter (DET-7 reference: `inpatient.py:402` and similar
-  return-based flows).
+  output adapter (DET-7 reference: `inpatient.py::_simulate_patient`
+  and its ED / outpatient siblings are return-based).
 - **`random.random()` / stdlib `random` are forbidden** (AD-16,
   DET-8). Always use the `np.random.Generator` passed as an argument.
   Module-level mutable global state is also forbidden.
@@ -645,7 +645,7 @@ Different PR shapes call for different verification approaches:
 
 | PR shape | Verification | What it guarantees |
 |---|---|---|
-| **Pure mechanical refactor** (e.g. internal restructure, helper unification, registry centralisation, file split) | **byte-diff** — the 11 NDJSONs generated at the same seed / config on master and branch are sha256 IDENTICAL | **The output has not changed at all** before / after the refactor — a no-regression gate. |
+| **Pure mechanical refactor** (e.g. internal restructure, helper unification, registry centralisation, file split) | **byte-diff** — every NDJSON generated at the same seed / config on master and branch is sha256 IDENTICAL | **The output has not changed at all** before / after the refactor — a no-regression gate. |
 | **New feature / realism improvement** (e.g. new analyte, new scenario flag, new medication coupling, new disease) | **`clinosim audit run`** — a 4-axis (structural / clinical / jp_language / silent_no_op) batch check. The module author registers a `ModuleAuditSpec` in `clinosim/modules/<name>/audit.py`. Save the report as `docs/reviews/<date>-<topic>-audit.md`. | **FHIR R4 / JP Core compliance + clinical coherence + JP-language quality + silent-no-op gate** (prevents recurrence of PR-90-class bugs) — a goal-achievement gate. |
 | **Pure docs update** (e.g. README update, new doc) | Regression check (tests green) + manual link review. | No code has changed. |
 | **Mixed** (refactor + a small behavior change) | Confirm via byte-diff that only intended changes exist + confirm the goal is preserved via DQR. | Both. |
@@ -669,36 +669,56 @@ Different PR shapes call for different verification approaches:
 
 #### byte-diff procedure
 
-1. On master HEAD run
-   `python -m clinosim.simulator.cli generate -p 2000 -s 42 --country US --format fhir-r4 -o scratchpad/<topic>_byte_diff/master/us`
-   (and the same for JP).
-2. On branch HEAD run the same command into
-   `scratchpad/<topic>_byte_diff/branch/us`.
-3. Run the sha256-comparison script (use
-   `scratchpad/refactor_pr*_byte_diff/compare.py` from PR1 / PR2 as
-   a template).
-4. Confirm all 11 NDJSONs are IDENTICAL (the refactor-PR gate).
-5. Save the results as `scratchpad/<topic>_byte_diff_results.md`
-   and commit them into the PR.
+The committed `scripts/engine-fingerprint.sh <label>` generates a
+fixed US + JP p=500 cohort (CIF + FHIR R4) and writes a sha256
+listing with a `TOTAL` line to
+`$OUT_ROOT/<label>/FINGERPRINT.txt` (default `OUT_ROOT=/tmp/engine-fingerprint`):
+
+```bash
+git switch master && scripts/engine-fingerprint.sh master
+git switch <branch> && scripts/engine-fingerprint.sh branch
+diff /tmp/engine-fingerprint/master/FINGERPRINT.txt \
+     /tmp/engine-fingerprint/branch/FINGERPRINT.txt   # empty = byte-identical
+```
+
+For a larger or differently-configured cohort, run the same
+comparison by hand (repeat for JP with `--country JP`):
+
+```bash
+clinosim simulate -p 2000 -s 42 --country US --format cif fhir-r4 -o /tmp/<topic>-master/us   # on master
+clinosim simulate -p 2000 -s 42 --country US --format cif fhir-r4 -o /tmp/<topic>-branch/us   # on the branch
+for d in master branch; do
+  (cd /tmp/<topic>-$d/us && find . -name '*.ndjson' | sort | xargs shasum -a 256) > /tmp/<topic>-$d.sha256
+done
+diff /tmp/<topic>-master.sha256 /tmp/<topic>-branch.sha256   # empty = byte-identical
+```
+
+Every NDJSON must be IDENTICAL (the refactor-PR gate). Paste the
+`TOTAL` hash or the diff output into the PR description.
 
 #### 3-axis DQR procedure
 
-1. Generate at US p≥10000 + JP p≥5000 (a large cohort to catch
-   cohort-emergent phenomena).
-2. Run the 3-axis audit script (use
-   `scratchpad/phase2*_dqr/dqr_audit.py` from Phase 2a / 2b as a
-   template):
-   - **Structural**: `refRange` 100 %, `interpretation` 100 %,
-     `display ≠ code` 100 %, zero id duplicates.
-   - **Clinical**: expected per-disease lab-value ranges (DKA HCO3
-     / ACS Troponin / VTE D-dimer / AF chronic INR therapeutic,
-     etc.).
-   - **JP language**: zero Japanese leakage into US, JP display
-     strings conforming to authoritative sources (JCCLS-JSLM /
-     MHLW etc.).
-3. Confirm every axis PASSes.
-4. Save the results as `docs/reviews/<date>-<topic>-data-quality-review.md`
-   and commit them into the PR.
+The original 3-axis DQR is now built into `clinosim audit run`
+(AD-60), which adds the silent_no_op axis:
+
+1. Generate a large cohort to catch cohort-emergent phenomena
+   (US p≥10000 + JP p≥5000), e.g.
+   `clinosim simulate -p 10000 -s 42 --country US --format cif fhir-r4 -o /tmp/<topic>-us`.
+2. Run `clinosim audit run -d /tmp/<topic>-us --report docs/reviews/<date>-<topic>-audit.md`
+   (and the same for JP). The axes cover:
+   - **Structural**: 100 % `referenceRange` + `interpretation`
+     coverage for the module's `structural_obs_codes`,
+     `display ≠ code`, zero id duplicates.
+   - **Clinical**: the module's `clinical_acceptance` bands (e.g.
+     DKA HCO3 / ACS Troponin / VTE D-dimer / AF chronic INR
+     therapeutic).
+   - **JP language**: zero Japanese leakage into US output and no
+     English-only text in JP output.
+   - **silent_no_op**: canonical-constants cross-check +
+     lift-firing proof.
+3. Confirm every axis PASSes, and commit the report with the PR.
+   Conformance of JP display strings to authoritative sources
+   (JCCLS-JSLM / MHLW etc.) is still checked by hand.
 
 ### Derive from physiological state
 
@@ -707,7 +727,7 @@ physiological state (`true_value`). Funnel the generation chain
 through:
 
 ```
-order → canonical_lab_name → generate_lab_result(true_value, rng) → determine_flag(canon, observed, sex, reference_ranges)
+order → canonical_lab_name → generate_lab_result(canon, true_value, rng) → determine_flag(canon, observed, sex=, country=)
 ```
 
 When a disease or a drug lifts a specific lab, use `derive_lab_values`'s
@@ -716,17 +736,12 @@ etc.) — see [`SCENARIO_FLAGS.md`](../SCENARIO_FLAGS.md) for the flag
 list, addition procedure, and the design that prevents the J5
 pattern.
 
-> **Note (OBS-3):** pass the locale reference range into
-> `determine_flag()`. The current call sites (`inpatient.py:604`,
-> `outpatient.py:178`, `emergency.py:146`, etc.) do not pass
-> `reference_ranges=`, so interpretation on JP output is computed
-> against the US default — an inconsistency. New calls must pass
-> `reference_ranges=load_reference_ranges(country).get("ranges", {})`.
->
-> **Note (DET-6):** do not define fallback baseline lab values
-> per-venue (WBC 6500 in `outpatient.py` diverging from WBC 7500 in
-> `emergency.py`). Import the single constant on the
-> `observation/engine.py` side.
+> **Note:** always pass `country=` to `determine_flag()` — it loads
+> the locale reference ranges itself
+> (`locale/<country>/reference_range_lab.yaml`), the same source the
+> FHIR `Observation.interpretation` uses. Fallback baseline lab
+> values come from the single `BASELINE_LAB_NORMALS` constant in
+> `observation/engine.py`; do not define per-venue copies.
 
 ### Sub-seed derivation rules (the exact pattern to copy)
 
@@ -926,8 +941,8 @@ For built-in adapters, `_ensure_builtins()` imports `adapters_builtin`
 which self-registers. Add `register_output_adapter(...)` there for
 a new built-in.
 
-> **Note (FA-9):** always use `ctx.country`. The CSV adapter has a
-> known debt of dropping `ctx.country`.
+> **Note:** always pass `ctx.country` through to the converter, as
+> the built-in CSV and FHIR adapters do.
 
 ### C. Add a post-pass (Enricher, AD-56)
 
@@ -988,11 +1003,10 @@ from clinosim.codes import lookup as code_lookup
 name = code_lookup("icd-10-cm", "I50.9", "en")  # returns code itself / EN fallback on miss
 ```
 
-> **Anti-pattern (DUP-3, FA-4, DIAG-1):** do not create a new
-> display dict like `CONDITION_NAMES` (patient/activator.py). Fields
-> like `admission_diagnosis_name` in `csv_adapter.py` /
-> `narrative_generator.py` are ghost fields absent from CIF and
-> always empty. Use `code_lookup(system, code, lang)` for new code.
+> **Anti-pattern:** do not create a hand-maintained display dict
+> (code → name). Resolve names at output time with
+> `code_lookup(system, code, lang)`, as `csv_adapter.py` does for
+> `admission_diagnosis_name`.
 
 ### Resolve URI via `get_system_uri()`
 
@@ -1080,10 +1094,10 @@ similarly, and have consumers import it.
   `icd_codes` (primary + variants), encounter `icd10_code`,
   `builtin_differentials.yaml` `differentials[*].icd` +
   `diagnosis_progression`. US billable in `icd-10-cm.yaml`;
-  non-billable in `code_mapping_diagnosis/us.yaml` folded to a
-  billable leaf. JP puts WHO 3-4 digit codes into `icd-10.yaml`
+  non-billable in `locale/us/code_mapping_diagnosis.yaml` folded to
+  a billable leaf. JP puts WHO 3-4 digit codes into `icd-10.yaml`
   (CM-grained codes fold into WHO parents via
-  `code_mapping_diagnosis/jp.yaml`). After addition, always run:
+  `locale/jp/code_mapping_diagnosis.yaml`). After addition, always run:
 
 ```bash
 pytest tests/unit/test_diagnosis_code_coverage.py
@@ -1102,8 +1116,8 @@ Execute in order:
 1. **Read the target module's `README.md`** (grasp Dependencies
    and existing API).
 2. **Define shared types in `clinosim/types/<name>.py`** and
-   export them from `types/__init__.py` via `__all__` (do not
-   define types inside the engine). `@dataclass` = runtime,
+   list them in that file's `__all__` (do not define types inside
+   the engine). `@dataclass` = runtime,
    Pydantic = config (AD-18).
 3. **If data-driven, `reference_data/*.yaml` + Pydantic
    validation** (`model_validate`). `bare except` is forbidden.
@@ -1294,18 +1308,17 @@ pass structural / narrative CIF separation is
   case).
 - ❌ Do not edit the core dispatch (`_build_bundle`, `run_beta`,
   CLI `--format`) — extend via the registry.
-- ❌ Do not define shared types inside an engine (MOD-2..6). Do not
-  leave `__init__.py` empty — export the public API
-  (MOD-1 / TYP-1).
+- ❌ Do not define shared types inside an engine. Do not leave a new
+  module's `__init__.py` empty — export the public API.
 - ❌ Do not import private functions (`_sample_given_name` etc.)
   from another module (MOD-7 / TYP-5) — promote them to the
   locale's public utility.
 - ❌ Do not fabricate codes; do not swallow YAML errors with
-  `except Exception: pass` (CODES-7, ENC-1).
-- ❌ Do not drop `ctx.country` (FA-9). Do not forget to pass the
-  locale reference range into `determine_flag()` (OBS-3).
+  `except Exception: pass` (CODES-7).
+- ❌ Do not drop `ctx.country` in an output adapter, or `country=`
+  when calling `determine_flag()`.
 - ❌ Do not define per-venue baseline values or lookup tables that
-  drift (DET-6, DUP-1).
+  drift (DUP-1).
 
 ## Adding a new patient profile fixture (AD-66)
 

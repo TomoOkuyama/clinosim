@@ -23,7 +23,7 @@ hidden 19-variable physiological state
 (`clinosim/types/clinical.py::PhysiologicalState`), and every lab /
 vital / medication is derived from that state.
 
-Three concrete differentiators:
+Four concrete differentiators:
 
 - **Clinical coherence by construction.** Not a post-hoc filter — the
   physiology model makes incoherent labs impossible.
@@ -43,8 +43,8 @@ Three concrete differentiators:
 ## Get started in 30 seconds
 
 ```bash
-pip install clinosim                                     # (PyPI upload pending)
-# or: pip install "git+https://github.com/TomoOkuyama/clinosim.git@master"
+pip install clinosim                                     # latest release from PyPI
+# or, for unreleased master: pip install "git+https://github.com/TomoOkuyama/clinosim.git@master"
 
 clinosim dataset build jp-100 --output ./jp-100          # ~30 s
 clinosim eval -d ./jp-100                                # score it

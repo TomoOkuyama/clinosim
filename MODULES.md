@@ -94,6 +94,7 @@ load-bearing verification gate that protects this goal.
 │  antibiotic(85)   HAI empirical + narrow de-escalation   │
 │  imaging(90)      ImagingStudy metadata chain (AD-62)    │
 │  discontinue_flip(91)  DISCONTINUE marker → STOPPED      │
+│  supersede_orders(91)  superseded order → STOPPED        │
 │  newborn(92)      birth-admission workup (Vit K, screens)│
 │  triage(93)       JTAS/ESI level + arrival_mode (ED-only)│
 │  lab_derived_dx(94)  KDIGO-3 Cr → N17.9 working dx       │
@@ -132,7 +133,7 @@ the canonical 11-section structure).
 | [locale](clinosim/locale/) | country-specific data (names / addresses / reference ranges / code_mapping) | foundation | — | — |
 | [physiology](clinosim/modules/physiology/README.md) | 19-variable physiology state + lab/vital derivation | simulation | — (uses caller RNG) | — |
 | [observation](clinosim/modules/observation/README.md) | lab / vital / microbiology + nursing flowsheet (NEWS2/GCS/Braden/Morse) | simulation | nursing `0x4E55` (shared) | POST_RECORDS 20 (`nursing`) |
-| [order](clinosim/modules/order/README.md) | lab / medication / imaging order placement + AD-60 audit | simulation | — (per-order via AD-59) | POST_ENCOUNTER 91 (`discontinue_flip`) + audit registered |
+| [order](clinosim/modules/order/README.md) | lab / medication / imaging order placement + AD-60 audit | simulation | — (per-order via AD-59) | POST_ENCOUNTER 91 (`discontinue_flip` + `supersede_orders`) + audit registered |
 | [clinical_course](clinosim/modules/clinical_course/README.md) | trajectory archetype + daily `StateChangeDirective` | simulation | — (uses caller RNG) | — |
 | [diagnosis](clinosim/modules/diagnosis/README.md) | Bayesian differential + Issue #551 non-specific codes | simulation | — | POST_ENCOUNTER 94 (`lab_derived_dx`, RNG-free) |
 | [procedure](clinosim/modules/procedure/README.md) | surgery + bedside + rehab generation | simulation | — (uses caller RNG) | — |
