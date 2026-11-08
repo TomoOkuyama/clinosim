@@ -55,6 +55,66 @@ def _parse_dt(value: Any) -> datetime | None:
         return None
 
 
+def _naive(value: Any) -> datetime | None:
+    """``_parse_dt`` with the tzinfo dropped, so mixed values compare."""
+    dt = _parse_dt(value)
+    return dt.replace(tzinfo=None) if dt is not None else None
+
+
+def scope_record_to_encounter(patient_dict: dict[str, Any], encounter_dict: Any) -> dict[str, Any]:
+    """The record as seen from one of its encounters (Issue #2869).
+
+    A structural record's measurement lists (vitals, lab results, orders,
+    administrations, procedures, rehab sessions, the closing prescription)
+    belong to the record's own encounter, ``encounters[0]``. An encounter
+    appended to the record later — the vaccination visit the immunization
+    enricher adds to the patient's first record (``ENC-VAX-*``) — shares the
+    record but none of those measurements: its note must not print the
+    triage vitals or the prescription of the visit that hosts it.
+
+    For the record's own encounter the record is returned unchanged. For any
+    other encounter a shallow copy is returned in which every list keeps only
+    the entries of that encounter: by ``encounter_id`` where the entry has
+    one (orders, procedures, rehab sessions; administrations through their
+    order), otherwise by a timestamp inside the encounter period (vitals,
+    lab results, the prescription's issue date). A zero-length visit thus
+    keeps only what was measured at its own instant — usually nothing.
+    """
+    encounters = patient_dict.get("encounters") or []
+    primary_id = str(_o(encounters[0], "encounter_id", "") or "") if encounters else ""
+    enc_id = str(_o(encounter_dict, "encounter_id", "") or "")
+    if not enc_id or enc_id == primary_id:
+        return patient_dict
+
+    start = _naive(_o(encounter_dict, "admission_datetime", None))
+    end = _naive(_o(encounter_dict, "discharge_datetime", None)) or start
+
+    def _within(value: Any) -> bool:
+        ts = _naive(value)
+        return ts is not None and start is not None and end is not None and start <= ts <= end
+
+    def _own(key: str) -> list[Any]:
+        return [x for x in (patient_dict.get(key) or []) if str(_o(x, "encounter_id", "") or "") == enc_id]
+
+    scoped = dict(patient_dict)
+    scoped["vital_signs"] = [v for v in (patient_dict.get("vital_signs") or []) if _within(_o(v, "timestamp", None))]
+    scoped["lab_results"] = [
+        r for r in (patient_dict.get("lab_results") or []) if _within(_o(r, "result_datetime", None))
+    ]
+    scoped["orders"] = _own("orders")
+    order_ids = {str(_o(o, "order_id", "") or "") for o in scoped["orders"]}
+    scoped["medication_administrations"] = [
+        m
+        for m in (patient_dict.get("medication_administrations") or [])
+        if str(_o(m, "order_id", "") or "") in order_ids
+    ]
+    scoped["procedures"] = _own("procedures")
+    scoped["rehab_sessions"] = _own("rehab_sessions")
+    rx = patient_dict.get("discharge_prescription") or None
+    scoped["discharge_prescription"] = rx if rx is not None and _within(_o(rx, "issue_date", None)) else None
+    return scoped
+
+
 class NarrativePass(ABC):
     """Stage 2 base class: read structural CIF → write narrative-tree CIF.
 
@@ -472,9 +532,14 @@ class NarrativePass(ABC):
         ``day_index`` is a per-stub value: ``run()`` overrides it per stub
         (mirroring ``ctx.shift``) via ``_stub_day_index``; the value set here
         is only the day-0 base.
+
+        Issue #2869: the record's measurement lists are first scoped to
+        ``encounter_dict`` (``scope_record_to_encounter``), so a note of a
+        visit appended to the record prints only that visit's own data.
         """
         from clinosim.modules.document import DocumentType
 
+        patient_dict = scope_record_to_encounter(patient_dict, encounter_dict)
         condition_event = patient_dict.get("condition_event") or {}
         disease_protocol = self._resolve_disease_protocol(condition_event)
         encounter_protocol = self._resolve_encounter_protocol(condition_event)
