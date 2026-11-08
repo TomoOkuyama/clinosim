@@ -20,7 +20,7 @@
 | 生成器は `determinism.default_rng(seed)` だけで作る。numpy PCG64 のプロキシで、`normal` / `standard_normal` / `beta` / `exponential` をビット再現なアルゴリズム(固定精度の `mpmath`)で引き、それ以外(`random`, `integers`, `choice` …)は整数演算がどこでも同一な numpy に委ねる。 | `clinosim/determinism.py`(`default_rng`, `normal`, `beta`, `exponential`) | `tests/unit/test_rng_through_determinism_2529.py`(`determinism.py` 以外に `np.random.default_rng` が無い)、`tests/unit/test_determinism.py` |
 | 生成経路で Python の `random` モジュールを import しない。 | — | `tests/unit/test_determinism_spec_guards.py::test_no_stdlib_random` |
 | YAML 由来の確率ベクトルは `rng.choice(p=...)` の前に `normalize_probabilities(p, fallback="raise")` を通す。 | `clinosim/modules/_shared.py::normalize_probabilities` | `implementation-rules.ja.md` §4(レビュー) |
-| ストリームを要さない選択(看護師・左右・時刻などの安定した「ランダム風」の選択)は生成器でなくハッシュを使う。乱数を消費しないので、足してもストリームはずれない。 | `determinism.sha_quantile` / `sha_bernoulli` / `sha_normal` / `sha_weighted_choice`、`seeding.rendezvous_pick` / `id_hashes`、`seeding.morse_fall_history_unit` | `tests/unit/test_seeding.py` |
+| ストリームを要さない選択(看護師・左右・時刻などの安定した「ランダム風」の選択)は生成器でなくハッシュを使う。乱数を消費しないので、足してもストリームはずれない。 | `determinism.sha_quantile` / `sha_bernoulli` / `sha_normal` / `sha_weighted_choice` / `sha_index`、`seeding.rendezvous_pick` / `id_hashes`、`seeding.morse_fall_history_unit` | `tests/unit/test_seeding.py`、`tests/unit/test_hash_draws_use_determinism_2837.py`(`determinism.py` / `seeding.py` の外で `sha256` → `int.from_bytes` の抽選を書かない、ratchet リスト) |
 
 ## 3. シードを導く
 

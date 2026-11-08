@@ -22,7 +22,6 @@ Composition.section の text.div は narrative pass が入れる。
 
 from __future__ import annotations
 
-import hashlib
 from datetime import date, datetime, timedelta
 from typing import Any
 
@@ -224,9 +223,7 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
 
 def _patient_selected(patient_id: str) -> bool:
     """患者 id の SHA-256 hash で 30% サブセットに入るかを決定的判定。"""
-    digest = hashlib.sha256(patient_id.encode("utf-8")).digest()
-    frac = int.from_bytes(digest[:8], "big") / (1 << 64)
-    return frac < HEALTH_CHECKUP_SUBSET_RATE
+    return determinism.sha_bernoulli(patient_id, HEALTH_CHECKUP_SUBSET_RATE)
 
 
 def _pick_checkup_date(snapshot_date: date | str | None) -> date:

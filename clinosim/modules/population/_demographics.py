@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from clinosim.age_bands import lookup_age_band, parse_closed_age_band
+from clinosim.determinism import sha_quantile
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.population._household_thresholds import (
     BLOOD_TYPE_DEFAULT_DISTRIBUTION,
@@ -155,8 +156,7 @@ def _derive_race(person_id: str, demo: dict) -> str:
         return ""
     keys = list(dist.keys())
     weights = normalize_probabilities([float(dist[k]) for k in keys], fallback="raise")
-    h = hashlib.sha256(f"{person_id}|race|v1".encode()).digest()
-    quantile = int.from_bytes(h[:4], "big") / (2**32)
+    quantile = sha_quantile(f"{person_id}|race|v1", byte_count=4)
     acc = 0.0
     for key, weight in zip(keys, weights, strict=False):
         acc += float(weight)
@@ -175,8 +175,7 @@ def _derive_ethnicity(person_id: str, demo: dict) -> str:
         return ""
     keys = list(dist.keys())
     weights = normalize_probabilities([float(dist[k]) for k in keys], fallback="raise")
-    h = hashlib.sha256(f"{person_id}|ethnicity|v1".encode()).digest()
-    quantile = int.from_bytes(h[:4], "big") / (2**32)
+    quantile = sha_quantile(f"{person_id}|ethnicity|v1", byte_count=4)
     acc = 0.0
     for key, weight in zip(keys, weights, strict=False):
         acc += float(weight)

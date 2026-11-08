@@ -285,6 +285,19 @@ def sha_quantile(salt: str, byte_offset: int = 0, byte_count: int = 8) -> float:
     return int.from_bytes(slot, "big") / span
 
 
+def sha_index(salt: str, n: int, byte_count: int = 8) -> int:
+    """Return a deterministic index in ``[0, n)`` from a SHA-256 hash of
+    ``salt``: the first ``byte_count`` bytes of the digest, big-endian,
+    modulo ``n``. RNG-neutral like the other ``sha_*`` helpers; use it to
+    pick one entry of a fixed list (a phrase variant, a catalog row)."""
+    import hashlib
+
+    if n <= 0:
+        raise ValueError(f"sha_index needs n > 0, got {n}")
+    digest = hashlib.sha256(salt.encode()).digest()
+    return int.from_bytes(digest[:byte_count], "big") % n
+
+
 def sha_bernoulli(salt: str, probability: float) -> bool:
     """Return ``True`` iff :func:`sha_quantile` of ``salt`` falls
     below ``probability``.

@@ -30,10 +30,10 @@ Sampling constraints:
 
 from __future__ import annotations
 
-import hashlib
 from functools import lru_cache
 from typing import Any
 
+from clinosim.determinism import sha_index
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_external_organizations
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
@@ -80,10 +80,7 @@ def pick_external_hospital(
     catalog = _catalog(country)
     if not catalog:
         return None
-    key = f"{patient_id}::{encounter_id}::{_REFERRAL_SAMPLING_SALT}".encode()
-    digest = hashlib.sha256(key).digest()
-    idx = int.from_bytes(digest[:8], "big") % len(catalog)
-    return catalog[idx]
+    return catalog[sha_index(f"{patient_id}::{encounter_id}::{_REFERRAL_SAMPLING_SALT}", len(catalog))]
 
 
 def build_external_org_resource(entry: dict[str, Any]) -> dict[str, Any]:
