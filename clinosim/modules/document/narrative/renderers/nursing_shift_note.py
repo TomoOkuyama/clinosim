@@ -20,10 +20,11 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.engine import SHIFT_HOURS, SHIFT_SCHEDULE
-from clinosim.modules.document.narrative._narrative_utils import _filter_vitals_for_day, _parse_iso_datetime
+from clinosim.modules.document.narrative._narrative_utils import _filter_vitals_for_day
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
 from clinosim.modules.document.narrative._vitals_line import NURSING_SHIFT, format_vitals_line
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
+from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext, NarrativeOutput
 
 
@@ -31,7 +32,7 @@ def _shift_window(encounter: Any, day_index: int, shift_key: str) -> tuple[datet
     """[start, end) of the note's shift on hospital day ``day_index`` (calendar
     day ``day_index`` after admission); the whole day when ``shift_key`` is
     empty or unknown. ``None`` without an admission time."""
-    adm = _parse_iso_datetime(_o(encounter, "admission_datetime", None) if encounter is not None else None)
+    adm = parse_iso_datetime(_o(encounter, "admission_datetime", None) if encounter is not None else None, lenient=True)
     if adm is None:
         return None
     day_start = datetime.combine(adm.date() + timedelta(days=day_index), datetime.min.time())
@@ -121,7 +122,7 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
     for m in ctx.medications or []:
         if str(_o(m, "status", "given") or "given") != "given":
             continue
-        when = _parse_iso_datetime(_o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None))
+        when = parse_iso_datetime(_o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None), lenient=True)
         if window is None or when is None or not (window[0] <= when < window[1]):
             continue
         n = _o(m, "drug_name", None) or _o(m, "medication", None)

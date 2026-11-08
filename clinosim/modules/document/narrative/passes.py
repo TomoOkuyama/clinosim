@@ -34,6 +34,7 @@ from clinosim.modules.document.narrative.section_extractor import extract_for_co
 from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
 from clinosim.simulator import log as sim_log
 from clinosim.simulator.complications import complication_names, normalized_complications
+from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.clinical import (
     ClinicalDocumentNarrative,
     NarrativeVersionManifest,
@@ -43,21 +44,9 @@ from clinosim.types.document import NarrativeContext, NarrativeGenerator, Narrat
 logger = logging.getLogger(__name__)
 
 
-def _parse_dt(value: Any) -> datetime | None:
-    """Parse a structural-CIF datetime value (ISO string / datetime / None)."""
-    if value is None:
-        return None
-    if isinstance(value, datetime):
-        return value
-    try:
-        return datetime.fromisoformat(str(value))
-    except ValueError:
-        return None
-
-
 def _naive(value: Any) -> datetime | None:
-    """``_parse_dt`` with the tzinfo dropped, so mixed values compare."""
-    dt = _parse_dt(value)
+    """``parse_iso_datetime`` with the tzinfo dropped, so mixed values compare."""
+    dt = parse_iso_datetime(value)
     return dt.replace(tzinfo=None) if dt is not None else None
 
 
@@ -623,7 +612,7 @@ class NarrativePass(ABC):
 
         ``write_cif`` serializes ``RehabSession`` dataclasses (whose
         ``session_date`` field is a ``datetime``) to JSON, turning the value
-        into an ISO string — same lossy round trip that ``_parse_dt`` above
+        into an ISO string — same lossy round trip that ``parse_iso_datetime``
         already handles for ``admission_datetime``/``discharge_datetime``.
         The rehabilitation_plan section builders
         (``_build_rp_session_frequency`` / ``_build_rp_functional_status`` /
@@ -636,7 +625,7 @@ class NarrativePass(ABC):
         parsed_sessions = []
         for session in raw:
             session_date = _o(session, "session_date", None)
-            parsed_date = _parse_dt(session_date)
+            parsed_date = parse_iso_datetime(session_date)
             if parsed_date is not None and isinstance(session, dict):
                 session = {**session, "session_date": parsed_date}
             parsed_sessions.append(session)
@@ -744,10 +733,10 @@ class NarrativePass(ABC):
             _compute_los_days as _engine_los,
         )
 
-        admission_dt = _parse_dt(encounter_dict.get("admission_datetime"))
+        admission_dt = parse_iso_datetime(encounter_dict.get("admission_datetime"))
         if admission_dt is None:
             return 1
-        discharge_dt = _parse_dt(encounter_dict.get("discharge_datetime"))
+        discharge_dt = parse_iso_datetime(encounter_dict.get("discharge_datetime"))
         states = patient_dict.get("physiological_states", []) or []
         return _engine_los(admission_dt, discharge_dt, list(states))
 
@@ -760,8 +749,8 @@ class NarrativePass(ABC):
         unparseable dates → 0 (pre-1a behavior); negative deltas are clamped
         to 0 (defensive — stubs never precede admission in production).
         """
-        stub_dt = _parse_dt(stub.get("period_start")) or _parse_dt(stub.get("authored_datetime"))
-        admission_dt = _parse_dt(encounter_dict.get("admission_datetime"))
+        stub_dt = parse_iso_datetime(stub.get("period_start")) or parse_iso_datetime(stub.get("authored_datetime"))
+        admission_dt = parse_iso_datetime(encounter_dict.get("admission_datetime"))
         if stub_dt is None or admission_dt is None:
             return 0
         return max(0, (stub_dt.date() - admission_dt.date()).days)

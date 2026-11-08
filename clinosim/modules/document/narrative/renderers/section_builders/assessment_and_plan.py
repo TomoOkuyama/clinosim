@@ -33,7 +33,6 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
-from clinosim.modules.document.narrative._narrative_utils import _parse_iso_datetime
 from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_ASSESSMENT_EN,
     _GENERIC_ASSESSMENT_JA,
@@ -41,6 +40,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_PLAN_JA,
 )
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
+from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -196,7 +196,7 @@ def _compose_ap_plan_from_state(generator: TemplateNarrativeGenerator, ctx: Narr
     # (Issue #1154) so real CIF MedicationAdministration without a
     # ``day`` field still filters correctly.
     _adm_raw = _o(getattr(ctx, "encounter", None), "admission_datetime", None)
-    _adm_dt = _parse_iso_datetime(_adm_raw) if _adm_raw is not None else None
+    _adm_dt = parse_iso_datetime(_adm_raw, lenient=True) if _adm_raw is not None else None
     admins = list(ctx.medications or [])
     med_names: list[str] = []
     seen: set[str] = set()
@@ -204,7 +204,7 @@ def _compose_ap_plan_from_state(generator: TemplateNarrativeGenerator, ctx: Narr
         d = _o(m, "day", None)
         if d is None and _adm_dt is not None:
             _mts_raw = _o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None)
-            _mts = _parse_iso_datetime(_mts_raw) if _mts_raw is not None else None
+            _mts = parse_iso_datetime(_mts_raw, lenient=True) if _mts_raw is not None else None
             if _mts is not None:
                 # Session-104 Issue #1166: calendar-day bucket
                 # (sibling of _filter_vitals_for_day v7).

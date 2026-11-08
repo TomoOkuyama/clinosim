@@ -29,7 +29,6 @@ from clinosim.modules.document.narrative._narrative_utils import (
     _cc_keyword_positively_present,
     _cc_severe_dyspnea_keywords,
     _filter_vitals_for_day,
-    _parse_iso_datetime,
     _pe_altered_consciousness_pool_ja,
     _pe_consciousness_pool_by_avpu_ja,
     _pe_severe_dyspnea_pool_ja,
@@ -41,6 +40,7 @@ from clinosim.modules.document.narrative._vitals_line import (
     PROGRESS_OBJECTIVE,
     format_vitals_line,
 )
+from clinosim.timeutil import parse_iso_datetime
 
 if TYPE_CHECKING:
     from clinosim.types.document import NarrativeContext
@@ -250,7 +250,7 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
         parts.append(t("progress.complications_noted", ctx.target_lang, list=sep.join(localised)))
     _lab_enc = getattr(ctx, "encounter", None)
     _lab_adm_raw = _o(_lab_enc, "admission_datetime", None) if _lab_enc is not None else None
-    _lab_adm_dt = _parse_iso_datetime(_lab_adm_raw) if _lab_adm_raw is not None else None
+    _lab_adm_dt = parse_iso_datetime(_lab_adm_raw, lenient=True) if _lab_adm_raw is not None else None
     labs = list(ctx.lab_results or [])
     abn: list[str] = []
     for lab in labs:
@@ -259,7 +259,7 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
             continue
         d = _o(lab, "day", None)
         if d is None and _lab_adm_dt is not None:
-            _rdt = _parse_iso_datetime(_o(lab, "result_datetime", None))
+            _rdt = parse_iso_datetime(_o(lab, "result_datetime", None), lenient=True)
             if _rdt is not None:
                 d = (_rdt.date() - _lab_adm_dt.date()).days
         if d is not None and d != ctx.day_index:
@@ -302,14 +302,14 @@ def compose_progress_plan_from_state(ctx: NarrativeContext) -> str:
     admins = list(ctx.medications or [])
     _p_enc = getattr(ctx, "encounter", None)
     _adm_raw = _o(_p_enc, "admission_datetime", None) if _p_enc is not None else None
-    _adm_dt = _parse_iso_datetime(_adm_raw) if _adm_raw is not None else None
+    _adm_dt = parse_iso_datetime(_adm_raw, lenient=True) if _adm_raw is not None else None
     med_names: list[str] = []
     seen: set[str] = set()
     for m in admins:
         d = _o(m, "day", None)
         if d is None and _adm_dt is not None:
             _m_ts_raw = _o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None)
-            _m_ts = _parse_iso_datetime(_m_ts_raw) if _m_ts_raw is not None else None
+            _m_ts = parse_iso_datetime(_m_ts_raw, lenient=True) if _m_ts_raw is not None else None
             if _m_ts is not None:
                 d = (_m_ts.date() - _adm_dt.date()).days
         if d is not None and d != ctx.day_index:

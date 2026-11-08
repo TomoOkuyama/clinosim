@@ -43,6 +43,7 @@ from clinosim.modules.output.fhir_r4.post_process.specimen import (
     SPECIMEN_KEY_SYSTEM,
     _resolve_specimen_id,
 )
+from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.encounter import OrderType
 
 # Canonical id prefixes for microbiology resources. Imported by readers
@@ -162,15 +163,6 @@ def resolve_susceptibility_code(antibiotic_loinc: str, country: str) -> tuple[st
     return antibiotic_loinc, "loinc"
 
 
-def _as_datetime(value: Any) -> datetime | None:
-    if isinstance(value, datetime):
-        return value
-    try:
-        return datetime.fromisoformat(str(value)) if value else None
-    except ValueError:
-        return None
-
-
 def culture_orders_for(culture: Any, orders: list[Any]) -> list[Any]:
     """The lab orders a culture result reports (Issue #2585).
 
@@ -180,7 +172,7 @@ def culture_orders_for(culture: Any, orders: list[Any]) -> list[Any]:
     one draw). ``[]`` when no such order was placed.
     """
     names = culture_order_names(get_attr_or_key(culture, "specimen", "") or "")
-    collected = _as_datetime(get_attr_or_key(culture, "collected_datetime"))
+    collected = parse_iso_datetime(get_attr_or_key(culture, "collected_datetime"))
     if not names or collected is None:
         return []
     enc_id = get_attr_or_key(culture, "encounter_id", "") or ""
@@ -193,7 +185,7 @@ def culture_orders_for(culture: Any, orders: list[Any]) -> list[Any]:
             continue
         if canonical_lab_name(get_attr_or_key(order, "display_name", "") or "") not in names:
             continue
-        ordered = _as_datetime(get_attr_or_key(order, "ordered_datetime"))
+        ordered = parse_iso_datetime(get_attr_or_key(order, "ordered_datetime"))
         if ordered is None or abs(ordered - collected) > window:
             continue
         candidates.append((abs(ordered - collected), ordered, order))

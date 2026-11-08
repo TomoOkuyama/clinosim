@@ -19,6 +19,7 @@ from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.locale.localized import normalize_lang
 from clinosim.modules.observation.engine import canonical_lab_name, get_lab_unit
 from clinosim.simulator.complications import complication_names as _complication_names_from_cif
+from clinosim.timeutil import parse_iso_datetime
 
 __all__ = [
     "HospitalCourseFact",
@@ -64,8 +65,8 @@ def extract_hospital_course(
     """
     events: list[HospitalCourseFact] = []
     encounter = (record.get("encounters") or [{}])[0]
-    admission_dt = _parse_dt(encounter.get("admission_datetime"))
-    discharge_dt = _parse_dt(encounter.get("discharge_datetime"))
+    admission_dt = parse_iso_datetime(encounter.get("admission_datetime"))
+    discharge_dt = parse_iso_datetime(encounter.get("discharge_datetime"))
 
     # --- Admission ---
     events.append(_admission_event(record, encounter, admission_dt, language))
@@ -337,7 +338,7 @@ def _treatment_change_events(
         name = mar.get("drug_name") or ""
         if not name:
             continue
-        admin_dt = _parse_dt(
+        admin_dt = parse_iso_datetime(
             mar.get("actual_datetime") or mar.get("administered_datetime") or mar.get("administration_datetime")
         )
         day = _day_offset(admission_dt, admin_dt) if admin_dt else 0
@@ -390,7 +391,7 @@ def _lab_peak_events(
             value = float(result.get("value", 0))
         except (TypeError, ValueError):
             continue
-        result_dt = _parse_dt(result.get("result_datetime"))
+        result_dt = parse_iso_datetime(result.get("result_datetime"))
         if key not in peaks or value > peaks[key][1]:
             peaks[key] = (result_dt, value)
 
@@ -490,8 +491,8 @@ def extract_clinical_guidance(
 
 
 def _los_days_from_encounter(encounter: dict[str, Any]) -> int:
-    a = _parse_dt(encounter.get("admission_datetime"))
-    d = _parse_dt(encounter.get("discharge_datetime"))
+    a = parse_iso_datetime(encounter.get("admission_datetime"))
+    d = parse_iso_datetime(encounter.get("discharge_datetime"))
     return max(0, (d - a).days) if a and d else 0
 
 
@@ -519,7 +520,7 @@ def extract_lab_trends(
     """
     if admission_dt is None:
         enc = (record.get("encounters") or [{}])[0]
-        admission_dt = _parse_dt(enc.get("admission_datetime"))
+        admission_dt = parse_iso_datetime(enc.get("admission_datetime"))
 
     orders = record.get("orders") or []
     # Collect all values per lab
@@ -538,7 +539,7 @@ def extract_lab_trends(
             value = float(result.get("value", 0))
         except (TypeError, ValueError):
             continue
-        result_dt = _parse_dt(result.get("result_datetime"))
+        result_dt = parse_iso_datetime(result.get("result_datetime"))
         day = _day_offset(admission_dt, result_dt) if result_dt else 0
         series.setdefault(key, []).append((day, value))
 
@@ -612,7 +613,7 @@ def extract_treatment_timeline(
     """
     if admission_dt is None:
         enc = (record.get("encounters") or [{}])[0]
-        admission_dt = _parse_dt(enc.get("admission_datetime"))
+        admission_dt = parse_iso_datetime(enc.get("admission_datetime"))
 
     mars = record.get("medication_administrations") or []
     if not mars:
@@ -627,7 +628,7 @@ def extract_treatment_timeline(
         if not name:
             continue
         route = mar.get("route", "")
-        admin_dt = _parse_dt(
+        admin_dt = parse_iso_datetime(
             mar.get("actual_datetime") or mar.get("administered_datetime") or mar.get("administration_datetime")
         )  # noqa: E501
         day = _day_offset(admission_dt, admin_dt) if admin_dt else 0
@@ -673,7 +674,7 @@ def extract_vitals_snapshot(
     """
     if admission_dt is None:
         enc = (record.get("encounters") or [{}])[0]
-        admission_dt = _parse_dt(enc.get("admission_datetime"))
+        admission_dt = parse_iso_datetime(enc.get("admission_datetime"))
 
     vitals = record.get("vital_signs") or []
     if not vitals or admission_dt is None:
@@ -686,7 +687,7 @@ def extract_vitals_snapshot(
     for vs in vitals:
         if not isinstance(vs, dict):
             continue
-        vs_dt = _parse_dt(vs.get("timestamp") or vs.get("measured_datetime") or vs.get("datetime"))
+        vs_dt = parse_iso_datetime(vs.get("timestamp") or vs.get("measured_datetime") or vs.get("datetime"))
         if vs_dt is None:
             continue
         day = _day_offset(admission_dt, vs_dt)
@@ -751,27 +752,14 @@ def _event_order(event_type: str) -> int:
     return _EVENT_ORDER.get(event_type, 5)
 
 
-def _parse_dt(value: Any) -> datetime | None:
-    if not value:
-        return None
-    if isinstance(value, datetime):
-        return value
-    if isinstance(value, str):
-        try:
-            return datetime.fromisoformat(value)
-        except ValueError:
-            return None
-    return None
-
-
 def _format_dt(value: Any) -> str:
-    dt = _parse_dt(value)
+    dt = parse_iso_datetime(value)
     return dt.strftime("%Y-%m-%d %H:%M") if dt else ""
 
 
 def _day_offset(base: datetime | None, target: Any) -> int:
     """Return the hospital day (integer), 0 for same calendar day."""
-    target_dt = _parse_dt(target)
+    target_dt = parse_iso_datetime(target)
     if base is None or target_dt is None:
         return 0
     delta = target_dt - base

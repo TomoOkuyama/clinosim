@@ -32,20 +32,7 @@ from datetime import datetime
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _get
-
-
-def _parse_datetime(raw: Any) -> datetime | None:
-    if raw is None:
-        return None
-    if isinstance(raw, datetime):
-        return raw
-    if not isinstance(raw, str):
-        return None
-    try:
-        return datetime.fromisoformat(raw.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-
+from clinosim.timeutil import parse_iso_datetime
 
 # ---------------------------------------------------------------------------
 # Day-of-lab primitive
@@ -61,8 +48,8 @@ def day_of_lab(lab: Any, admission_datetime: Any) -> int | None:
     datetime is missing or unparseable, so callers can skip the lab
     rather than count it against the wrong day.
     """
-    lab_dt = _parse_datetime(_get(lab, "result_datetime"))
-    adm_dt = _parse_datetime(admission_datetime)
+    lab_dt = parse_iso_datetime(_get(lab, "result_datetime"))
+    adm_dt = parse_iso_datetime(admission_datetime)
     if lab_dt is None or adm_dt is None:
         return None
     return (lab_dt.date() - adm_dt.date()).days
@@ -115,8 +102,8 @@ def latest_by_lab_name(
         if existing is None:
             out[name] = lab
             continue
-        existing_dt = _parse_datetime(_get(existing, "result_datetime"))
-        new_dt = _parse_datetime(_get(lab, "result_datetime"))
+        existing_dt = parse_iso_datetime(_get(existing, "result_datetime"))
+        new_dt = parse_iso_datetime(_get(lab, "result_datetime"))
         if existing_dt is None or (new_dt is not None and new_dt > existing_dt):
             out[name] = lab
     return out
@@ -209,7 +196,7 @@ def lab_trend(
 
     for name in by_name:
         by_name[name].sort(
-            key=lambda pair: (pair[0], _parse_datetime(_get(pair[1], "result_datetime")) or datetime.min)
+            key=lambda pair: (pair[0], parse_iso_datetime(_get(pair[1], "result_datetime")) or datetime.min)
         )
 
     out: list[dict[str, Any]] = []
