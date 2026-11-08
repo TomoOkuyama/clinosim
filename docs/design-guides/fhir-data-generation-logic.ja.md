@@ -1,8 +1,9 @@
 # FHIR Data Generation — Logic Design Guide
 
 **Status:** Active(2026-06-29、PR1 ServiceRequest で確立)
-**Audience:** clinosim FHIR resource builder を追加・拡張する新規開発者。正規レイアウト: builder は `clinosim/modules/output/fhir_r4/` 配下 (`conditions/` / `labs/` / `procedures/` / `documents/` 等の domain sub-package) にあり、`_BUNDLE_BUILDERS` registry と `register_bundle_builder()` は `clinosim/modules/output/fhir_r4/builder.py` で定義され `clinosim/modules/output/fhir_r4/__init__.py` から re-export される。歴史的な `clinosim/modules/output/fhir_r4_adapter.py` は現在は薄い互換 re-export
+**Audience:** clinosim FHIR resource builder を追加・拡張する新規開発者。正規レイアウト: builder は `clinosim/modules/output/fhir_r4/` 配下 (`conditions/` / `labs/` / `procedures/` / `documents/` 等の domain sub-package) にあり、`_BUNDLE_BUILDERS` registry と `register_bundle_builder()` は `clinosim/modules/output/fhir_r4/builder.py` で定義され `clinosim/modules/output/fhir_r4/__init__.py` から re-export される。
 **Scope:** Layer 4 = FHIR R4 resource builder のみ。CIF 生成(Layers 1-3)は別 guide → [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.ja.md) を参照
+**Binding spec:** コードマッピング・display 解決・多言語化は [`code-mapping-and-localization-spec.md`](code-mapping-and-localization-spec.md) が規定する。本 guide と同 spec が食い違う場合は spec が優先する。
 
 clinosim FHIR 生成は **CIF を入力として、FHIR R4 resource dict を出力する** thin な変換層。FHIR 仕様 / US Core / JP Core 準拠 / 多言語 display 解決 / identifier 規約 が中心の関心事。
 
@@ -33,7 +34,7 @@ CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rul
 | Layer 4 がする | Layer 4 がしない |
 | --- | --- |
 | CIF を読む(record / extensions / orders / lab_results / etc.) | CIF を変更する |
-| `code_lookup()` で display 解決 | display 文字列を hardcode |
+| `display(...) or <fallback>` で display 解決、コード付き concept は `dual_slot_concept()` で構築 | display 文字列を hardcode |
 | `get_system_uri()` で system URI 解決 | system URI を hardcode |
 | canonical constant(`SR_ID_PREFIX` 等)を **owner module から import** | constant を builder 内で再定義 |
 | Layer 2 loader(`load_panel_definitions` 等)を import | builder 内で raw YAML を open |
@@ -51,7 +52,7 @@ CIF 側(Layers 1-3 = 参照 YAML、loader、CIF generation module)の design rul
 | 1 | CIF 側で必要な field / extensions を準備(完了済み前提) | CIF guide = `docs/CONTRIBUTING-modules.md` |
 | 2 | 新 builder file `clinosim/modules/output/fhir_r4/<domain>/<topic>.py` を作成 | Section B.2 |
 | 3 | builder 内 canonical constants(ID prefix / identifier system)を定義 | Section B.3 |
-| 4 | resource skeleton 関数を実装(`code_lookup` / `get_system_uri` 経由) | Section B.4 |
+| 4 | resource skeleton 関数を実装(`dual_slot_concept` / `display` / `get_system_uri` 経由) | Section B.4 |
 | 5 | builder entry point `_bb_<topic>(ctx: BundleContext) -> list[dict]` を実装 | Section B.5 |
 | 6 | `clinosim/modules/output/fhir_r4/builder.py:_BUNDLE_BUILDERS` に登録 OR `register_bundle_builder()` で追加 | Section B.6 |
 | 7 | 単体 + integration + e2e golden + audit lift_firing_proof を追加 | Section C |
@@ -70,9 +71,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from clinosim.codes import get_system_uri, lookup as code_lookup
-from clinosim.modules._shared import lang_for
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.codes import display, get_system_uri
+from clinosim.countries import lang_for
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 
 # Canonical constants — single definition site, consumers import (Section B.3)
 TOPIC_ID_PREFIX = "tp-"
@@ -102,7 +104,10 @@ def _build_resource(item, ctx: BundleContext) -> dict:
             "value": item.id_field,
         }],
         "subject": {"reference": f"Patient/{ctx.patient_id}"},
-        # ... use code_lookup() for any display, get_system_uri() for any system
+        # コード付き concept: 英語専用 system (LOINC, SNOMED CT) は coding.display を英語のまま、
+        # 日本語ラベルは .text に入れる (code-mapping spec §5.3)
+        "code": dual_slot_concept("loinc", item.loinc_code, lang),
+        # ... その他の display は display(...) or <明示 fallback>、system は get_system_uri()
     }
     # Encounter ref, requester, dates, code, category, etc. per the FHIR profile.
     return res
@@ -130,15 +135,25 @@ from clinosim.modules.output.fhir_r4.<domain>.<topic> import (
 
 **第三 consumer が出てきても、それも import する** — 再定義しない。
 
-### B.4 display 解決 — code_lookup の正しい使い方
+### B.4 display 解決 — `dual_slot_concept` と `display`
+
+コード付き `CodeableConcept` は emit site で `dual_slot_concept`(`clinosim/modules/output/fhir_r4/lib/common.py`)により構築する。`text` slot を持たない `Coding` 型要素(`Encounter.class`)は `system_coding` を使う。いずれも code-mapping spec §5.3 の dual-slot 規則に従う: 英語専用 system(`is_english_only_system` — LOINC、SNOMED CT、HL7 terminology、DICOM、UCUM)では `coding.display` は全 locale で英語の正準 display のまま、日本語ラベルは `CodeableConcept.text` に入る。その他の system(JP Core、JP-CLINS、MEDIS、YJ、clinosim 独自)は出力言語の display を持つ。
 
 ```python
-loinc_display = code_lookup("loinc", panel_loinc_code, lang) or fallback_text
-icd_display = code_lookup("icd-10-cm", icd_code, lang) or ""
+lang = lang_for(ctx.country)
+code = dual_slot_concept("loinc", panel_loinc_code, lang, fallback_display=fallback_text)
+# JP: {"coding": [{"system": "http://loinc.org", "code": ..., "display": <英語>}],
+#      "text": <日本語ラベル>}
 ```
 
-- 第二引数 = code system key(`"loinc"` / `"icd-10-cm"` / `"snomed"` / `"rxnorm"` / `"jlac10"` / `"k-codes"` / `"cpt"` / etc.)
-- 第三引数 = `"ja"` for JP cohort, `"en"` for US cohort — 必ず `lang_for(ctx.country)`(`clinosim/modules/_shared.py`)で導出、inline 分岐禁止(E.10)
+display 文字列だけが必要な場合は `clinosim.codes` の `display(...)` を明示 fallback 付きで呼ぶ(code-mapping spec §4.1、§9 — 新規コードで `lookup(...)` は使わない):
+
+```python
+icd_display = display("icd-10-cm", icd_code, lang) or ""
+```
+
+- 第一引数 = code system key(`"loinc"` / `"icd-10-cm"` / `"snomed-ct"` / `"rxnorm"` / `"jlac10"` / `"k-codes"` / `"cpt"` / etc.)
+- 第三引数 = 出力言語。必ず `lang_for(ctx.country)`(`clinosim/countries.py`)で導出、inline 分岐禁止(E.10)
 - 戻り値 = display string、不在時は `None`(`or` で fallback)
 - code 自体を display として使うのは AD-30 違反 + 多言語破綻 = NG
 
@@ -148,7 +163,7 @@ icd_display = code_lookup("icd-10-cm", icd_code, lang) or ""
 from clinosim.codes import system_key_for
 
 system_key = system_key_for("lab", ctx.country)      # JP → "jlac10", 他 → "loinc"
-display = code_lookup(system_key, code, lang_for(ctx.country))
+concept = dual_slot_concept(system_key, code, lang_for(ctx.country))
 ```
 
 system URI:
@@ -158,7 +173,7 @@ sr["code"]["coding"][0]["system"] = get_system_uri("loinc")
 ```
 
 - `get_system_uri("loinc")` → `"http://loinc.org"`
-- `get_system_uri("snomed")` → `"http://snomed.info/sct"`
+- `get_system_uri("snomed-ct")` → `"http://snomed.info/sct"`
 - `get_system_uri("icd-10-cm")` → `"http://hl7.org/fhir/sid/icd-10-cm"`
 
 文字列で hardcode しないこと。新規 system key は `codes/loader.py:_BUILTIN_URIS` に正準 HL7 URI を登録してから使用する(直近追加 2026-07-02: `hl7-endpoint-connection-type` / `hl7-endpoint-payload-type` / `hl7-subscriber-relationship`)。
@@ -169,12 +184,12 @@ sr["code"]["coding"][0]["system"] = get_system_uri("loinc")
 def _bb_<topic>(ctx: BundleContext) -> list[dict]:
 ```
 
-`BundleContext`(`clinosim/modules/output/fhir_r4/lib/common.py` 既存)は builder への uniform 入力:
+`BundleContext`(`clinosim/modules/output/fhir_r4/lib/context.py` 既存)は builder への uniform 入力:
 
 | Field | 用途 |
 | --- | --- |
 | `ctx.record` | CIF 患者 record(dict-like、`record.orders` / `record.lab_results` / `record.extensions[X]` 等) |
-| `ctx.country` | `"US"` / `"JP"` — display lang 選択に使用 |
+| `ctx.country` | `"US"` / `"JP"` — 出力言語は `lang_for`、国ルールは `is_jp` / `is_us` に渡す |
 | `ctx.patient_id` | `Patient/<id>` reference 解決 |
 | `ctx.primary_enc_id` | primary encounter id |
 | `ctx.roster_map` | staff roster lookup |
@@ -205,7 +220,7 @@ emission 順序の指針: **reference の解決順** に並べる。Patient → 
 
 ```python
 # clinosim/modules/<topic>/__init__.py or 起動 hook
-from clinosim.modules.output.fhir_r4_adapter import register_bundle_builder
+from clinosim.modules.output.fhir_r4 import register_bundle_builder
 from clinosim.modules.output.fhir_r4.<domain>.<topic> import _bb_<topic>
 register_bundle_builder(_bb_<topic>)
 ```
@@ -223,7 +238,8 @@ builder 関数を直接呼ぶ。`BundleContext` を最小 fixture で構築:
 ```python
 # tests/unit/output/test_fhir_<topic>.py
 from datetime import datetime
-from clinosim.modules.output.fhir_r4.lib.common import BundleContext
+from clinosim.codes import display
+from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.<domain>.<topic> import _bb_<topic>
 
 def _make_ctx(extensions_topic_data, country="us"):
@@ -248,11 +264,13 @@ def test_identifier_carries_canonical_system():
     resources = _bb_<topic>(_make_ctx([build_test_item()]))
     assert resources[0]["identifier"][0]["system"] == TOPIC_IDENTIFIER_SYSTEM
 
-def test_jp_locale_uses_ja_display():
-    resources = _bb_<topic>(_make_ctx([build_test_item()], country="jp"))
-    coding = resources[0]["code"]["coding"][0]
-    # display should be Japanese text from code_lookup("loinc", code, "ja")
-    assert "..." in coding["display"]   # adapt to actual JP text
+def test_jp_locale_keeps_english_coding_display_and_ja_text():
+    item = build_test_item()
+    resources = _bb_<topic>(_make_ctx([item], country="jp"))
+    concept = resources[0]["code"]
+    # LOINC は英語専用: coding.display は英語のまま、日本語ラベルは .text
+    assert concept["coding"][0]["display"] == display("loinc", item.loinc_code, "en")
+    assert concept["text"] == display("loinc", item.loinc_code, "ja")
 ```
 
 ### C.2 Integration test(`pytest -m integration`)
@@ -315,7 +333,7 @@ register_audit_module(ModuleAuditSpec(
     ],
     clinical_acceptance={"emission_rate": "...(n<30 → WARN)"},
     jp_language_checks=[
-        "code.coding[].display in Japanese for JP locale (fallback warn list)",
+        "code.text in Japanese for JP locale; code.coding[].display English for English-only systems",
     ],
     lift_firing_proof={
         "equality_checks": [
@@ -364,28 +382,31 @@ urn:clinosim:staff                     # staff/practitioner internal id
 
 ### D.3 Multilingual coding(AD-46)
 
-Condition / Procedure / ServiceRequest 等で **primary language + interop language の dual coding**:
+Condition / Procedure / ServiceRequest 等で **国の local code system + interop code system の dual coding**:
 
 ```python
 "code": {
     "coding": [
-        # Primary: country's local code system (US = ICD-10-CM, JP = ICD-10 WHO + JP-K)
-        {"system": ..., "code": local_code, "display": code_lookup(..., local_code, lang)},
-        # Interop: secondary system (e.g., SNOMED CT for international interop)
-        {"system": "http://snomed.info/sct", "code": snomed_code, "display": ...},
+        # Primary: 国の local code system (US = ICD-10-CM, JP = ICD-10 WHO + JP-K)
+        system_coding(local_key, local_code, lang),
+        # Interop: SNOMED CT は英語専用なので display は全 locale で英語
+        system_coding("snomed-ct", snomed_code, lang),
     ],
-    "text": short_clinical_name,   # never == code; never raw enum
+    "text": short_clinical_name,   # 出力言語のラベル。never == code; never raw enum
 }
 ```
 
+各 coding は dual-slot 規則(code-mapping spec §5.3)に従い、出力言語のラベルは `text` に置く。
+
 ### D.4 JP localization 規約
 
-JP cohort の判定は **`is_jp(ctx.country)`**、display 言語は **`lang_for(ctx.country)`**(いずれも `clinosim/modules/_shared.py` の正準 idiom、共通ロジック統一 2026-07-02。`ctx.country.lower() == "jp"` 等の hand-rolled 変種を書かない — E.10)。JP cohort で:
+出力言語は **`lang_for(ctx.country)`** で決める。**`is_jp(ctx.country)`** / **`is_us(ctx.country)`** は国ルール(診療報酬コード、profile、JP 専用 section)専用で、display の選択には使わない(code-mapping spec §5.1、§9)。3 つとも `clinosim/countries.py` にある。`ctx.country.lower() == "jp"` 等の hand-rolled 変種を書かない — E.10。JP cohort で:
 
-- 全 `display`, `text`, `name` field = 日本語(`code_lookup(..., lang_for(ctx.country))` 経由)
+- `text` / `name` field と、英語専用でない system(JP Core、JP-CLINS、MEDIS、YJ、clinosim 独自)の `coding.display` = 日本語(`dual_slot_concept` / `system_coding`、または `display(..., lang_for(ctx.country)) or <fallback>` 経由)
+- 英語専用 system(LOINC、SNOMED CT、HL7 terminology、DICOM、UCUM)の `coding.display` = 英語。日本語ラベルは `dual_slot_concept` で `CodeableConcept.text` に入れる(code-mapping spec §5.3)。こうした coding 内の日本語 display は validation error
 - 国依存の code system 選択(JLAC10 vs LOINC 等)= `system_key_for(kind, ctx.country)`(E.11)
 - コード付き enum 値(category / priority / interpretation 等)= コードをキーにした `codes/data/hl7-*.yaml` registry を引く `dual_slot_concept()`(`clinosim/modules/output/fhir_r4/lib/common.py`)
-- 薬剤 / 手技名 = `code_lookup()` または lang-aware wrapper `localize_drug_name(name, lang)` (`output/fhir_r4/lib/localization.py`、Phase 1d-61)。wrapper は lookup table を持たない locale では no-op なので、`if lang == "ja":` gate 不要で単一 code path。基底 `_localize_drug_name` (country 引数版) は country seam 経由の caller 用に残存。いずれも canonical cached loader (`clinosim/locale/loaders/narrative.py:load_narrative_display_dict()` / `clinosim/locale/loaders/medical_display.py:load_med_terms_ja()`、両者とも B1/B2b 分割後 `clinosim/locale/loader.py` 経由で後方互換 re-export) — builder 内 raw YAML read 禁止 (E.3)。
+- 薬剤 / 手技名 = code または catalog id を持つ場合は `display(...)`(catalog 薬剤は `drug_display`)、それ以外は lang-aware な free-text resolver `localize_drug_name(name, lang)`(`clinosim/locale/free_text.py`、`output/fhir_r4/lib/localization.py` から re-export)。wrapper は lookup table を持たない locale では no-op なので、`if lang == "ja":` gate 不要で単一 code path。基底 `_localize_drug_name` (country 引数版) は country seam 経由の caller 用に残存。いずれも canonical cached loader (`clinosim/locale/loaders/narrative.py:load_narrative_display_dict()` / `clinosim/locale/loaders/medical_display.py:load_med_terms_ja()`、両者とも B1/B2b 分割後 `clinosim/locale/loader.py` 経由で後方互換 re-export) — builder 内 raw YAML read 禁止 (E.3)。
 - 診療科 display = `_dept_display()`(裏側は `load_department_display()`)
 - 翻訳不在の場合 = en fallback + audit warn list
 
@@ -431,7 +452,7 @@ dangling reference = audit `clinical` axis で fail-loud。
 sr["code"]["coding"][0]["display"] = "Complete blood count (hemogram) panel..."  # NG
 ```
 
-**Fix**: `code_lookup("loinc", code, lang)` 経由。
+**Fix**: `dual_slot_concept("loinc", code, lang)` で concept を構築(文字列だけが必要なら `display("loinc", code, lang) or <fallback>`)。
 
 ### E.2 ❌ system URI の hardcode
 
@@ -458,7 +479,7 @@ CIF generation の anti-pattern だが、FHIR builder から CIF を変更する
 
 ```python
 def _build_resource(item, ctx):
-    item.display_name_ja = code_lookup(..., "ja")   # NG — CIF を書き換え
+    item.display_name_ja = display(..., "ja")   # NG — CIF を書き換え
 ```
 
 **Fix**: CIF は read-only で扱う。display 解決は builder の戻り値 dict 内で完結。
@@ -475,9 +496,9 @@ sr["id"] = f"sr-{order.order_id}"  # NG — "sr-" がリテラル
 
 ```python
 # fhir_r4/labs/observations.py
-display_a = code_lookup("loinc", "58410-2", "ja")
+display_a = display("loinc", "58410-2", "ja")
 # fhir_r4/labs/diagnostic_report.py
-display_b = code_lookup("loinc", "58410-2", "ja")
+display_b = display("loinc", "58410-2", "ja")
 ```
 
 技術的には問題ないが、もし display 加工(短縮 / 形式変換)が両 builder に必要なら共通 helper を `fhir_r4/lib/common.py` 等に抽出。
@@ -490,13 +511,15 @@ sr["id"] = f"sr-{enc}-{panel}-1"   # 同 encounter 内 panel 複数回でも 1 �
 
 **Fix**: per-encounter counter で N を deterministically 算出(PR1 ServiceRequest `build_panel_counter` precedent)。
 
-### E.8 ❌ JP cohort で英語 display を残す
+### E.8 ❌ 英語専用 coding に日本語、または `text` に日本語ラベルなし
 
 ```python
-sr["code"]["coding"][0]["display"] = code_lookup("loinc", code, "en")  # NG for JP
+sr["code"]["coding"][0]["display"] = display("loinc", code, "ja")  # NG — LOINC は英語専用
+sr["code"] = {"coding": [{"system": ..., "code": code,
+                          "display": display("loinc", code, "en")}]}  # NG for JP — .text ラベルなし
 ```
 
-**Fix**: `lang = lang_for(ctx.country)` で導出(E.10 の canonical idiom)。
+**Fix**: `sr["code"] = dual_slot_concept("loinc", code, lang_for(ctx.country))` — `coding.display` は英語、日本語ラベルは `text`(code-mapping spec §5.3)。英語専用でない system では `dual_slot_concept` が出力言語の display を coding 自体に入れる。
 
 ### E.9 ❌ FHIR R4 spec 外の field を ad-hoc 追加
 
@@ -514,8 +537,7 @@ if ctx.country.lower() == "jp": ...                      # NG
 lang = "ja" if str(ctx.country).upper() == "JP" else "en"  # NG
 ```
 
-**Fix**: `from clinosim.countries import lang_for
-from clinosim.modules._shared import is_jp` — `is_jp(ctx.country)` / `lang_for(ctx.country)` のみ使用。共通ロジック統一(2026-07-02)前は 5 種類の divergent idiom が混在し、case 正規化の差で JP gating が silent に外れる PR-90 class risk があった。両 helper が単一の正規化点(case-insensitive + strip)。
+**Fix**: `from clinosim.countries import is_jp, lang_for` — 出力言語には `lang_for(ctx.country)`、国ルールには `is_jp(ctx.country)` のみ使用。共通ロジック統一(2026-07-02)前は 5 種類の divergent idiom が混在し、case 正規化の差で JP gating が silent に外れる PR-90 class risk があった。両 helper が単一の正規化点(case-insensitive + strip)。
 
 ### E.11 ❌ 国→code system key の inline 選択
 
@@ -531,7 +553,7 @@ system_key = "jlac10" if ctx.country == "JP" else "loinc"   # NG — inline 分�
 
 ### F.1 AD-30 — CIF は language-neutral
 
-CIF は code のみ、display は output 時(= Layer 4 builder)に `code_lookup()` 経由で解決。**Why**: 言語追加 / locale 変更が `clinosim/codes/data/<system>.yaml` の `ja:` field 編集だけで完結、CIF / generation module への ripple ゼロ。
+CIF は code のみ、display は output 時(= Layer 4 builder)に `display()` / `dual_slot_concept()` 経由で解決。**Why**: 言語追加 / locale 変更が `clinosim/codes/data/<system>.yaml` の `ja:` field 編集だけで完結、CIF / generation module への ripple ゼロ。
 
 ### F.2 AD-31 — FHIR resource id type-内 globally unique
 
@@ -571,7 +593,7 @@ Condition / Procedure / ServiceRequest 等で dual coding(local primary + intero
 
 | PR | FHIR builder layer の wins |
 | --- | --- |
-| FA-1 (PR #49-#59) | `fhir_r4_adapter` を per-theme `_fhir_*` builder に分割(3015 行 → 498 行) |
+| FA-1 (PR #49-#59) | 単一の FHIR adapter module を per-theme `_fhir_*` builder に分割(3015 行 → 498 行) |
 | AD-46(Multilingual coding) | Condition / Procedure dual coding |
 | AD-47(refRange + interpretation) | Observation 整合性 |
 | PR-A 2026-06-26 | `_HERE / "reference_data"` canonical form を builder 側にも適用 |
@@ -580,7 +602,7 @@ Condition / Procedure / ServiceRequest 等で dual coding(local primary + intero
 | **Tier 1 #3 DocumentReference (2026-07-01)** | **`_fhir_document_reference.py`**: `DOC_REFERENCE_ID_PREFIX = "doc-"`, reads `ClinicalDocument.text` (base64-encode inline), `ClinicalDocument.loinc_code` → `type.coding[0].code`, `ClinicalDocument.format_type == "free_text"` gate; `_o()` dual-access on extensions dict; Patient + Encounter refs wired via `ctx.patient_id` / `ctx.primary_enc_id`. dict-path + dataclass-path tests required. |
 | **Tier 1 #3 Composition (2026-07-01)** | **`_fhir_composition.py`**: `COMPOSITION_ID_PREFIX = "comp-"`, dispatched on `ClinicalDocument.format_type == "composition"`, reads `ClinicalDocument.sections` dict (NOT re-parses raw_text — ClinicalDocument.sections field is authoritative per AD-63 Task 8 fix), emits `section[]` with LOINC `title` + `text.div` per section key. `Composition.author = []` TODO pending practitioner ref wiring (α-min-2). |
 | **Tier 1 #3 ClinicalImpression (2026-07-01)** | **`_fhir_clinical_impression.py`**: `CLINICAL_IMPRESSION_ID_PREFIX = "ci-"`, reads `extensions["clinical_impressions"]` list of `ClinicalImpressionRecord` (dataclass), `_o()` dual-access for dict path (production JSON-deserialized CIF), Patient + Encounter refs; `status = "completed"` for discharged encounters, `"in-progress"` for in-progress (AD-32 snapshot semantics). |
-| **Tier 1 #3 AllergyIntolerance upgrade (2026-07-01)** | **`_fhir_allergy_intolerance.py`**: `ALLERGY_ID_PREFIX = "allergy-"`, reads `PersonRecord.allergies` (list[Allergy]). `code.coding[0]` = allergen SNOMED via `code_lookup("snomed-ct", allergen_code, lang)` (JP locale = ja display). `reaction[0].manifestation[0]` = reaction SNOMED. `criticality` / `category` / `clinicalStatus` / `verificationStatus` from `Allergy` dataclass fields. `_o()` dual-access for both Allergy dataclass (test fixture) and dict (production) paths required per CLAUDE.md rule. |
+| **Tier 1 #3 AllergyIntolerance upgrade (2026-07-01)** | **`_fhir_allergy_intolerance.py`**: `ALLERGY_ID_PREFIX = "allergy-"`, reads `PersonRecord.allergies` (list[Allergy]). `code.coding[0]` = allergen SNOMED via `system_coding("snomed-ct", allergen_code, lang)` (全 locale で英語 display、日本語ラベルは `code.text`). `reaction[0].manifestation[0]` = reaction SNOMED. `criticality` / `category` / `clinicalStatus` / `verificationStatus` from `Allergy` dataclass fields. `_o()` dual-access for both Allergy dataclass (test fixture) and dict (production) paths required per CLAUDE.md rule. |
 | **Tier 1 #3 document_chain audit (2026-07-01)** | **`clinosim/modules/document/audit.py`**: `ModuleAuditSpec` with `canonical_constants` (4 ID prefix constants), `lift_firing_proof` callable (17 equality_checks), `clinical_acceptance` (5-key dict per spec §9.3). Follows `imaging/audit.py` precedent exactly. `discover()` auto-registers on import. |
 | **Tier 1 #3 α-min-2 CareTeam (2026-07-01)** | **`_fhir_care_team.py`**: `CARE_TEAM_ID_PREFIX = "ct-"`, 1:1 with encounter invariant, reads `extensions["nursing_assignment"]` (NursingAssignmentRecord dataclass), emits attending `participant[0]` (Practitioner ref via ctx.primary_attending_id) + nurse `participant[1]` (Practitioner ref from NursingAssignmentRecord.nurse_id). `subject = Patient/X`, `encounter = Encounter/Y`. `category[0]` = SNOMED 305048009 (Inpatient care team). `status = "active"` for in-progress / `"inactive"` for discharged encounters. AD-32: in-progress encounters emit CareTeam (no discharge gating needed). |
 | **Tier 1 #3 α-min-2 ADMISSION_NURSING_ASSESSMENT (2026-07-01)** | **LOINC 78390-2** (corrected from 47420-5 per LOINC DB query), DocumentReference (`doc-`) + Composition (`comp-`) format. Emitted by `document` module enricher from `document_type_specs.yaml` `encounter_types_supported: [inpatient, icu, rehabilitation]` allowlist gate. Sections: chief_complaint, vital_signs, pain_assessment, skin_assessment, fall_risk (Morse scale score from nursing flowsheet), functional_status, care_plan. |
@@ -589,4 +611,4 @@ Condition / Procedure / ServiceRequest 等で dual coding(local primary + intero
 | **Tier 1 #3 α-min-2 OUTPATIENT_SOAP (2026-07-01)** | **LOINC 34131-3** (corrected from 11488-4 per LOINC DB query). `encounter_types_supported: [outpatient]`. Production wiring: outpatient.py calls `run_stage(POST_ENCOUNTER)` (α-min-2 Task 14 fix; verified 2026-07-02 — 1,841 Composition at US p=500 seed=42). |
 | **Tier 1 #3 α-min-2 ED_NOTE + ED_TRIAGE_NOTE (2026-07-01)** | **ED_NOTE = LOINC 34878-9** (corrected from 51847-2), **ED_TRIAGE_NOTE = LOINC 54094-8** (corrected from 54094-8 confirmed correct). `encounter_types_supported: [emergency]`. Production wiring: emergency.py calls `run_stage(POST_ENCOUNTER)` (α-min-2 Task 14 fix; verified 2026-07-02 — ED_NOTE 210 Composition + ED_TRIAGE_NOTE 210 DocumentReference at US p=500 seed=42). |
 | **Tier 1 #2 Imaging (2026-06-30)** | **New `_fhir_imaging_study.py` + `_fhir_endpoint.py` + polymorphic `_fhir_service_request.py` imaging dispatch + radiology `_fhir_diagnostic_report.py` variant + canonical constants `IMAGING_CATEGORY_SNOMED` / `DICOM_UID_SYSTEM` / `ENDPOINT_ID_PREFIX` / `DICOM_WADO_RS_CONNECTION_TYPE` / `IMAGING_SR_ID_PREFIX` + CIF→FHIR no-drop invariant (1:1 ImagingStudyRecord → ImagingStudy + Endpoint + radiology DR + imaging SR) + AD-62 ADR + `encounter_id` invariant (all orders in CIFPatientRecord.orders must have non-empty encounter_id before FHIR export — inpatient.py unknown-condition fix 2026-06-30)** |
-| **Common-logic unification (2026-07-02)** | **`is_jp` / `lang_for`(`modules/_shared.py`)を JP-gating / display 言語選択の唯一の正準 idiom として確立(5 divergent idiom を置換、E.10)+ `system_key_for(kind, country)`(`clinosim.codes`)= 国→code system 選択の single source of truth(E.11)+ `_fhir_localization.py` の 3 inline YAML loader を `clinosim/locale/loader.py` canonical cached loader へ移設(`load_med_terms_ja` / `load_narrative_display_dict` / `load_department_display`、E.3 precedent)+ `_BUILTIN_URIS` に `hl7-endpoint-connection-type` / `hl7-endpoint-payload-type` / `hl7-subscriber-relationship` 追加 + aggregate loader owner-module 移設(`load_all_disease_protocols` → `modules/disease/protocol.py`)+ protocol / config loader `@lru_cache` 化(shared instance = mutate 禁止)** |
+| **Common-logic unification (2026-07-02)** | **`is_jp` / `lang_for`(現在は `clinosim/countries.py`)を JP 国判定 / 出力言語選択の唯一の正準 idiom として確立(5 divergent idiom を置換、E.10)+ `system_key_for(kind, country)`(`clinosim.codes`)= 国→code system 選択の single source of truth(E.11)+ `_fhir_localization.py` の 3 inline YAML loader を `clinosim/locale/loader.py` canonical cached loader へ移設(`load_med_terms_ja` / `load_narrative_display_dict` / `load_department_display`、E.3 precedent)+ `_BUILTIN_URIS` に `hl7-endpoint-connection-type` / `hl7-endpoint-payload-type` / `hl7-subscriber-relationship` 追加 + aggregate loader owner-module 移設(`load_all_disease_protocols` → `modules/disease/protocol.py`)+ protocol / config loader `@lru_cache` 化(shared instance = mutate 禁止)** |
