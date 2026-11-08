@@ -227,26 +227,21 @@ convention is fixed.
 
 Prompt templates live under
 `clinosim/modules/llm_service/prompts/<language>/<task_type>.yaml`.
-Each language directory contains ~17 prompts covering the individual
-narrative tasks plus the `narrative_seed_bundle.yaml` strategy prompt
-that drives the multi-document bundle path used at runtime:
+Each language directory holds the two prompts of the narrative pipeline:
+`narrative_seed.yaml` (one section) and `narrative_seed_bundle.yaml`
+(the multi-document bundle path used at runtime). The per-document
+prompts of the removed `LLMService.generate` path were deleted
+(Issue #2556):
 
 ```
 clinosim/modules/llm_service/prompts/
-└── en/
-    ├── narrative_seed_bundle.yaml      # bundle strategy (multi-doc call)
-    ├── admission_hp.yaml
-    ├── discharge_summary.yaml
-    ├── operative_note.yaml
-    ├── procedure_note.yaml
-    ├── death_certificate_*.yaml
-    ├── death_discharge_summary_*.yaml  # per-section prompts
-    ├── death_summary.yaml
-    ├── narrative_seed.yaml
-    └── referral_note.yaml
+├── en/
+│   ├── narrative_seed.yaml             # one section
+│   └── narrative_seed_bundle.yaml      # bundle strategy (multi-doc call)
+└── ja/                                 # same two files
 ```
 
-Each file has this structure:
+Each file has this structure (an example of the format):
 
 ```yaml
 task_type: discharge_summary

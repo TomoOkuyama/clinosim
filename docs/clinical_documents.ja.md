@@ -227,23 +227,17 @@ GitHub Release tarball (`clinosim-vX.Y.Z-*-*-narrative.tar.gz` asset)
 
 プロンプトテンプレートは
 `clinosim/modules/llm_service/prompts/<language>/<task_type>.yaml`
-に配置。各言語ディレクトリには ~17 個のプロンプトがあり、個別
-narrative タスク用に加えてランタイムで使用される
-`narrative_seed_bundle.yaml` (multi-document bundle 戦略) を含む:
+に配置。各言語ディレクトリには narrative パイプラインの 2 つのプロンプト
+`narrative_seed.yaml` (1 section) と `narrative_seed_bundle.yaml`
+(ランタイムの multi-document bundle 経路) がある。削除した
+`LLMService.generate` 経路の文書別プロンプトは削除した (Issue #2556):
 
 ```
 clinosim/modules/llm_service/prompts/
-└── en/
-    ├── narrative_seed_bundle.yaml      # bundle 戦略 (multi-doc 呼び出し)
-    ├── admission_hp.yaml
-    ├── discharge_summary.yaml
-    ├── operative_note.yaml
-    ├── procedure_note.yaml
-    ├── death_certificate_*.yaml
-    ├── death_discharge_summary_*.yaml  # section 別 prompt
-    ├── death_summary.yaml
-    ├── narrative_seed.yaml
-    └── referral_note.yaml
+├── en/
+│   ├── narrative_seed.yaml             # 1 section
+│   └── narrative_seed_bundle.yaml      # bundle 戦略 (multi-doc 呼び出し)
+└── ja/                                 # 同じ 2 ファイル
 ```
 
 各ファイルの構造:

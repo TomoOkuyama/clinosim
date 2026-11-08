@@ -9,13 +9,11 @@ from clinosim.modules.llm_service.cache import PromptCache
 from clinosim.modules.llm_service.engine import (
     DOCUMENT_LOINC,
     TASK_CATEGORY,
-    ClinicalEventData,
     LLMCompletionError,
     LLMResponse,
     LLMService,
     LLMTaskCategory,
     LLMTaskType,
-    PatientSummary,
     document_task_loinc,
 )
 from clinosim.modules.llm_service.factory import build_from_config, build_from_config_file
@@ -32,8 +30,6 @@ __all__ = [
     "LLMTaskCategory",
     "LLMResponse",
     "LLMCompletionError",
-    "ClinicalEventData",
-    "PatientSummary",
     "TASK_CATEGORY",
     "DOCUMENT_LOINC",
     "document_task_loinc",

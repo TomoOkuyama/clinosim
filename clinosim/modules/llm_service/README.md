@@ -15,14 +15,8 @@ response validation, prompt caching, and provider selection.
   `LLMTaskCategory` (StrEnum task inventory);
   `TASK_CATEGORY` (task → category map); `DOCUMENT_LOINC` /
   `document_task_loinc(task_type)` (LOINC code per document-generation task);
-  `PatientSummary` + `ClinicalEventData` (input DTOs);
   `LLMResponse` + `LLMCompletionError`; document-task validation
-  (`_validate_document_task_sync`); per-task prompt builders
-  (`_build_prompt` dispatch + language-specific
-  `_jp_chief_complaint`, `_en_chief_complaint`, `_progress_note`,
-  `_discharge_summary`, `_admission_hp`, `_diagnostic_reasoning`,
-  `_treatment_decision`, `_death_summary_template`,
-  `_operative_note_template`, `_procedure_note_template`);
+  (`_validate_document_task_sync`);
   `PromptRegistry` + `PromptSpec` (per-task prompt manifest);
   `PromptCache` (SHA-256 keyed disk cache for reproducibility +
   Stage 2 re-run economy); `build_from_config` +
@@ -54,10 +48,6 @@ from clinosim.modules.llm_service import (
     DOCUMENT_LOINC,              # {LLMTaskType: LOINC code}
     document_task_loinc,                   # (task_type) -> LOINC | None
 
-    # Input DTOs
-    PatientSummary,
-    ClinicalEventData,
-
     # Factory + registry
     build_from_config,           # (config_dict) -> LLMService
     build_from_config_file,      # (path) -> LLMService
@@ -74,12 +64,11 @@ from clinosim.modules.llm_service import (
 
 ## Determinism
 
-- `LLMService.generate(...)` is deprecated (Issue #2541): documents come
-  from the narrative pipeline (`clinosim narrate`), which calls
-  `LLMService.complete_prompt(...)`; `generate`, `PatientSummary` and
-  `ClinicalEventData` will be removed in a following minor release.
-- The `LLMService.generate(...)` / `LLMService.complete_prompt(...)`
-  paths are deterministic when `PromptCache` is enabled AND the
+- The one call path is `LLMService.complete_prompt(...)`; documents come
+  from the narrative pipeline (`clinosim narrate`). The legacy
+  `LLMService.generate(...)` template path, `PatientSummary` and
+  `ClinicalEventData` were removed (Issue #2556, deprecated in #2541).
+- `LLMService.complete_prompt(...)` is deterministic when `PromptCache` is enabled AND the
   underlying provider is either `MockProvider` or a real provider
   with `temperature=0`. Cache keys are
   `sha256(system_prompt + user_prompt + model)` (`PromptCache._hash`;
@@ -190,8 +179,6 @@ pytest tests/unit -k "llm" -q
 
 Individual files:
 
-- [`tests/unit/test_llm_service.py`](../../../tests/unit/test_llm_service.py)
-  — `LLMService.generate` orchestration.
 - [`tests/unit/test_llm_service_complete_prompt.py`](../../../tests/unit/test_llm_service_complete_prompt.py)
   — `LLMService.complete_prompt` (retry, PromptCache, no template fallback).
 - [`tests/unit/test_llm_task_enum_sync.py`](../../../tests/unit/test_llm_task_enum_sync.py)
