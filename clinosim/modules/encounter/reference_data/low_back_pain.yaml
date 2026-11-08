@@ -52,11 +52,11 @@ treatment:
   - {name: "Heat pack application", probability: 0.5, route: "topical", intent: "muscle relaxation"}
 
 discharge_instructions:
-  - "Continue activity as tolerated — bed rest not recommended"
-  - "Apply heat or ice for comfort"
-  - "Expected improvement within 2-4 weeks"
-  - "Physical therapy referral for strengthening"
-  - "Return if leg weakness, numbness, difficulty urinating, or worsening pain"
+  - {en: "Continue activity as tolerated; bed rest not recommended", ja: "痛みに応じて活動を続け、安静臥床は勧めない"}
+  - {en: "Apply heat or ice for comfort", ja: "温罨法または冷罨法で疼痛を緩和"}
+  - {en: "Expected improvement within 2-4 weeks", ja: "2〜4週間で改善する見込み"}
+  - {en: "Return if leg weakness, numbness, difficulty urinating, or worsening pain", ja: "下肢の脱力・しびれ、排尿困難、疼痛の増悪があれば再受診"}
+follow_up: {en: "physical therapy referral for strengthening", ja: "筋力強化のため理学療法へ紹介"}
 
 discharge_prescriptions:
   - {drug: "Ibuprofen 600mg", route: "PO", frequency: "tid", duration_days: 10, probability: 0.7}
@@ -96,18 +96,19 @@ sex_ratio_female: 0.9  # slightly more men
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: days, range: [1, 3]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Acute low back pain began {onset_en} after lifting. No leg weakness, numbness, or urinary difficulty."
+      ja: "{onset_ja}、物を持ち上げた際に急性腰痛が出現。下肢筋力低下・しびれ・排尿障害なし。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

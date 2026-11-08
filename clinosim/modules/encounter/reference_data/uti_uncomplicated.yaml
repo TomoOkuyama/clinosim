@@ -60,10 +60,11 @@ treatment:
   - {name: "IV normal saline 500mL", probability: 0.15, route: "IV", intent: "hydration"}
 
 discharge_instructions:
-  - "Complete full course of prescribed antibiotics"
-  - "Increase fluid intake"
-  - "Symptoms should improve within 24-48 hours of starting antibiotics"
-  - "Return if fever, flank pain, vomiting, or symptoms not improving after 48 hours"
+  - {en: "Complete full course of prescribed antibiotics", ja: "処方された抗菌薬を最後まで内服"}
+  - {en: "Increase fluid intake", ja: "水分摂取を増やす"}
+  - {en: "Symptoms should improve within 24-48 hours of starting antibiotics", ja: "抗菌薬開始後24〜48時間で症状は改善する見込み"}
+  - {en: "Return if fever, flank pain, vomiting, or symptoms not improving after 48 hours", ja: "発熱、側腹部痛、嘔吐、48時間で改善しない場合は再受診"}
+follow_up: {en: "primary care physician if symptoms persist", ja: "症状が続く場合はかかりつけ医を受診"}
 
 discharge_prescriptions:
   # Exactly one antibiotic (choose_one: probability = relative weight among
@@ -80,18 +81,19 @@ sex_ratio_female: 4.0  # much more common in women
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.1, 7: 1.2, 8: 1.2, 9: 1.1, 10: 1.0, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: days, range: [1, 4]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Dysuria, urinary frequency, and suprapubic discomfort began {onset_en}. No fever, flank pain, or vomiting."
+      ja: "{onset_ja}より排尿時痛・頻尿・恥骨上部不快感が出現。発熱・側腹部痛・嘔吐なし。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

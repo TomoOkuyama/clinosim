@@ -52,9 +52,10 @@ treatment:
   - {name: "Acetaminophen 500mg", probability: 0.3, route: "PO", intent: "antipyretic"}
 
 discharge_instructions:
-  - "Clear liquids for 24 hours, advance diet as tolerated"
-  - "Return if unable to keep fluids down for >12h"
-  - "Return if bloody stool or fever >39C"
+  - {en: "Clear liquids for 24 hours, advance diet as tolerated", ja: "24時間は水分中心とし、様子をみて食事を再開"}
+  - {en: "Return if unable to keep fluids down for more than 12 hours", ja: "12時間以上水分がとれなければ再受診"}
+  - {en: "Return if bloody stool or fever >39C", ja: "血便や39℃を超える発熱があれば再受診"}
+follow_up: {en: "primary care physician if not improving in 2-3 days", ja: "2〜3日で改善しなければかかりつけ医を受診"}
 
 discharge_prescriptions:
   - {drug: "Ondansetron 4mg", route: "PO", frequency: "q8h PRN", duration_days: 3, probability: 0.5}
@@ -67,18 +68,19 @@ sex_ratio_female: 1.0
 seasonal: {1: 1.3, 2: 1.2, 3: 1.1, 4: 0.9, 5: 0.8, 6: 0.8, 7: 0.9, 8: 0.9, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.3}
 
 narrative:
+  onset: {unit: days, range: [1, 2]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Nausea, vomiting, watery diarrhea, and abdominal cramps began {onset_en}. No blood in the stool."
+      ja: "{onset_ja}より嘔気・嘔吐・水様性下痢・腹部痙攣痛が出現。血便なし。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

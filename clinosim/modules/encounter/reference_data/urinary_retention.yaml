@@ -72,10 +72,10 @@ scenarios:
     discharge_note: "Infected retention. Antibiotics started, close urology follow-up."
 
 discharge_instructions:
-  - "Catheter care instructions provided"
-  - "Urology follow-up within 3-5 days for trial without catheter"
-  - "Return if fever, catheter blockage, or significant bleeding"
-  - "Increase fluid intake"
+  - {en: "Catheter care instructions provided", ja: "尿道カテーテルの管理方法を指導"}
+  - {en: "Return if fever, catheter blockage, or significant bleeding", ja: "発熱、カテーテル閉塞、多量の出血があれば再受診"}
+  - {en: "Increase fluid intake", ja: "水分摂取を増やす"}
+follow_up: {en: "urology within 3-5 days for a trial without catheter", ja: "3〜5日以内に泌尿器科でカテーテル抜去試験"}
 
 discharge_prescriptions:
   - {drug: "Tamsulosin 0.4mg", route: "PO", frequency: "daily", duration_days: 14, probability: 0.8}
@@ -88,18 +88,19 @@ sex_ratio_female: 0.1  # overwhelmingly male
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: hours, range: [6, 24]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Became unable to pass urine {onset_en}, with increasing suprapubic pain and distension. Voiding history and anticholinergic medications reviewed."
+      ja: "{onset_ja}より排尿できなくなり、恥骨上部痛・下腹部膨満が増強。排尿障害の既往・抗コリン薬内服を確認。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

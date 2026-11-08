@@ -24,12 +24,13 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from clinosim.codes import display
 from clinosim.codes.ucum import ucum_prose
 from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
 from clinosim.locale.loader import narrative_label as _label
-from clinosim.locale.localized import normalize_lang
+from clinosim.locale.localized import language_slot, localized, normalize_lang
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import (
     _localize_imaging,
@@ -41,8 +42,8 @@ from clinosim.modules.document.narrative._template_helpers import (
     _fill_template_placeholders,
     _pick_localized,
 )
-from clinosim.modules.document.narrative.renderers.section_builders._registry import section
-from clinosim.types.document import NarrativeContext
+from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
+from clinosim.types.document import DocumentType, NarrativeContext
 
 # An ED note rendered on an inpatient record is the ED part of a via-ED
 # admission (the ED-companion stub, Issue #2856): its encounter is the stay.
@@ -400,45 +401,107 @@ def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     lang = ctx.target_lang
     fallback = t("fallback.disposition_fallback", lang)
 
+    outcome, base = _encounter_disposition(generator, ctx, lang)
+    if outcome:
+        facts.append("ctx.encounter.disposition")
+    if outcome and outcome != "home":
+        # Admission / transfer / death: the outcome line alone (Issue #2856);
+        # the protocol's template and instructions are written for a patient
+        # sent home.
+        return base, facts
+
+    text = base
     ed_tmpl = generator._get_ed_note_template(ctx)
     if ed_tmpl is not None:
-        text = _pick_localized(ed_tmpl, "disposition", lang, ctx)
-        # Issue #981: same guard as ed_workup — unresolved
-        # `{disposition_display_ja}` placeholder in the ED protocol
-        # template returns the generic phrase, which short-circuited
-        # the encounter-field fallback. Treat it as "no real template
-        # text" and fall through.
-        if text and text not in {_GENERIC_FALLBACK_JA, _GENERIC_FALLBACK_EN, fallback}:
+        # The protocol's disposition template wraps the outcome line
+        # (`{disposition_display_<lang>}`) in its own clinical wording.
+        raw = language_slot(_o(ed_tmpl, "disposition", None), lang)
+        extra = {f"disposition_display_{lang}": base} if base else None
+        filled = _fill_template_placeholders(raw, ctx, lang, extra=extra) if raw else ""
+        if filled and filled not in {_GENERIC_FALLBACK_JA, _GENERIC_FALLBACK_EN, fallback}:
             facts.append(f"encounter_protocol.narrative.ed_note_template.disposition_{lang}")
-            return text, facts
+            text = filled
+    if not text:
+        return fallback, facts
+    if outcome != "home":
+        return text, facts
 
-    # v9 density fallback: infer from encounter fields
+    parts = [text.rstrip(t("list_sep.period", lang)) + t("list_sep.period", lang)]
+    proto = ctx.encounter_protocol
+    instructions = [localized(item, lang) for item in (_o(proto, "discharge_instructions", None) or [])]
+    instructions = [item for item in instructions if item]
+    if instructions:
+        sep = t("ed.instruction_sep", lang)
+        parts.append(t("ed.discharge_instructions", lang, list=sep.join(instructions)))
+        facts.append("encounter_protocol.discharge_instructions")
+    follow_up = localized(_o(proto, "follow_up", None), lang) if proto is not None else ""
+    if follow_up:
+        parts.append(t("ed.follow_up", lang, text=follow_up))
+        facts.append("encounter_protocol.follow_up")
+    # The instruction / follow-up phrases carry their own leading separator.
+    return "".join(parts), facts
+
+
+def _encounter_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeContext, lang: str) -> tuple[str, str]:
+    """``(outcome, line)`` of the ED visit from the encounter fields —
+    ``outcome`` is ``admitted`` / ``expired`` / ``psychiatric`` /
+    ``transfer`` / ``home``, or ``""`` (with ``line`` ``""``) when unknown.
+
+    v9 density / Issue #981: the line carries a reasoning phrase drawn from
+    the complaint / acuity ("Discharged home (ESI level 4, ...)").
+    """
     enc = ctx.encounter
-    if enc is not None:
-        dispo = str(_o(enc, "discharge_disposition", None) or _o(enc, "outcome", None) or "").lower()
-        adm = _o(enc, "admit_to_ward", None) or bool(_o(enc, "admitted", False))
-        facts.append("ctx.encounter.disposition")
-        reason = generator._ed_disposition_reason(ctx, lang)
-        jtas_level = generator._ed_triage_level(ctx)
+    if enc is None:
+        return "", ""
+    dispo = str(_o(enc, "discharge_disposition", None) or _o(enc, "outcome", None) or "").lower()
+    adm = _o(enc, "admit_to_ward", None) or bool(_o(enc, "admitted", False))
+    reason = generator._ed_disposition_reason(ctx, lang)
 
-        # Issue #2856: on an admitted patient's record the encounter is the
-        # stay, whose discharge disposition (home / exp) is not the ED's.
-        if adm or dispo == "hosp" or _admitted_from_ed(ctx):
-            # Deprecated `admit_to_ward` (used by legacy fixtures) is
-            # normalized to the same "admitted" path as an inbound
-            # transfer disposition.
-            tmpl = t("fallback.ed_disposition_admission", lang)
-            return tmpl.format(reason=reason), facts
-        if dispo == "exp":
-            return (t("fallback.ed_disposition_expired", lang)), facts
-        if dispo == "psy":
-            tmpl = t("fallback.ed_disposition_psychiatric_transfer", lang)
-            return tmpl.format(reason=reason), facts
-        if dispo in ("other-hcf", "snf"):
-            tmpl = t("fallback.ed_disposition_transfer", lang)
-            return tmpl.format(reason=reason), facts
-        if dispo == "home":
-            tmpl = t("fallback.ed_disposition_home", lang)
-            return tmpl.format(level=jtas_level, reason=reason), facts
+    # Issue #2856: on an admitted patient's record the encounter is the
+    # stay, whose discharge disposition (home / exp) is not the ED's.
+    # Deprecated `admit_to_ward` (legacy fixtures) is normalized to the same
+    # "admitted" path as an inbound transfer disposition.
+    if adm or dispo == "hosp" or _admitted_from_ed(ctx):
+        return "admitted", t("fallback.ed_disposition_admission", lang).format(reason=reason)
+    if dispo == "exp":
+        return "expired", t("fallback.ed_disposition_expired", lang)
+    if dispo == "psy":
+        return "psychiatric", t("fallback.ed_disposition_psychiatric_transfer", lang).format(reason=reason)
+    if dispo in ("other-hcf", "snf"):
+        return "transfer", t("fallback.ed_disposition_transfer", lang).format(reason=reason)
+    if dispo == "home":
+        level = generator._ed_triage_level(ctx)
+        return "home", t("fallback.ed_disposition_home", lang).format(level=level, reason=reason)
+    return "", ""
 
-    return fallback, facts
+
+@section("assessment", document_type=DocumentType.ED_NOTE)
+def build_ed_assessment(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """ED assessment: the visit's diagnosis and chief complaint (Issue #2871).
+
+    The diagnosis is the encounter's coded admission diagnosis (the ED
+    diagnosis; for a via-ED admission, the admitting diagnosis), displayed in
+    the note's language. Without one the shared assessment builder composes
+    the section.
+    """
+    lang = ctx.target_lang
+    dx = _ed_diagnosis_display(ctx, lang)
+    if not dx:
+        return section_builder("assessment")(generator, ctx)
+    facts = ["ctx.diagnoses.admission_diagnosis_code"]
+    enc = ctx.encounter
+    cc = str(_o(enc, f"chief_complaint_{lang}", "") or _o(enc, "chief_complaint", "") or "").strip() if enc else ""
+    if cc and cc.lower() != dx.lower():
+        facts.append("ctx.encounter.chief_complaint")
+        return t("ed.assessment_diagnosis", lang, dx=dx, cc=cc), facts
+    return t("ed.assessment_diagnosis_only", lang, dx=dx), facts
+
+
+def _ed_diagnosis_display(ctx: NarrativeContext, lang: str) -> str:
+    """Display of the encounter's admission diagnosis code, or ``""``."""
+    for diagnosis in ctx.diagnoses or []:
+        code = str(_o(diagnosis, "admission_diagnosis_code", "") or "")
+        system = str(_o(diagnosis, "admission_diagnosis_system", "") or "")
+        if code and system:
+            return display(system, code, lang) or ""
+    return ""

@@ -41,10 +41,10 @@ treatment:
   - {name: "IV normal saline", probability: 0.3, route: "IV", intent: "hydration"}
 
 discharge_instructions:
-  - "Symptoms consistent with peripheral vertigo (likely BPPV)"
-  - "Follow up with PCP within 1 week; consider ENT referral if persistent"
-  - "Return if severe headache, weakness, vision changes, or difficulty walking"
-  - "Perform Epley maneuver at home as instructed"
+  - {en: "Symptoms consistent with peripheral vertigo (likely BPPV)", ja: "末梢性めまい（良性発作性頭位めまい症の疑い）として矛盾しない"}
+  - {en: "Perform Epley maneuver at home as instructed", ja: "指導どおり自宅でエプリー法を行う"}
+  - {en: "Return if severe headache, weakness, vision changes, or difficulty walking", ja: "激しい頭痛、脱力、視覚異常、歩行困難があれば再受診"}
+follow_up: {en: "primary care physician within 1 week; ENT referral if persistent", ja: "1週間以内にかかりつけ医を受診、持続すれば耳鼻咽喉科へ紹介"}
 
 discharge_prescriptions:
   - {drug: "Meclizine 25mg", locale_name: {jp: "Betahistine 6mg"}, route: "PO", frequency: "TID PRN", duration_days: 7, probability: 0.6}
@@ -57,18 +57,19 @@ sex_ratio_female: 0.6
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: hours, range: [2, 12]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Room-spinning dizziness with nausea began {onset_en}, worse with head movement. No headache, weakness, speech, or vision change."
+      ja: "{onset_ja}より頭位変換で増悪する回転性めまいが出現し、嘔気を伴う。頭痛・脱力・構音障害・視覚異常なし。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

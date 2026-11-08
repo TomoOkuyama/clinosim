@@ -459,7 +459,8 @@
         "ctx.encounter.chief_complaint",
         "ctx.vitals[0]",
         "ctx.orders.ed",
-        "ctx.ed_assessment.state_composed",
+        "ctx.diagnoses.admission_diagnosis_code",
+        "ctx.encounter.chief_complaint",
         "ctx.encounter.disposition"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -469,7 +470,7 @@
         "lang": "en"
       },
       "sections": {
-        "assessment": "Encounter reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
+        "assessment": "ED diagnosis: Type 2 diabetes mellitus with ketoacidosis without coma. Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness.",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "disposition": "Admitted (Nausea, vomiting, abdominal pain, polyuria, altered consciousness)",
         "ed_workup": "Labs: glucose, ABG, β-hydroxybutyrate, BMP, Na, K, Cl, HCO3. Imaging: chest X-ray PA, ECG, chest X-ray AP. Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0",

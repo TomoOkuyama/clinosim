@@ -102,7 +102,9 @@ def test_ed_hpi_substitutes_onset_days_and_chief_complaint():
     hpi = out.sections["hpi"]
     assert "{" not in hpi and "}" not in hpi
     assert "Abdominal pain, nausea" in hpi
-    assert "3 day(s) ago" in hpi  # documented fixed default (module docstring)
+    # No `narrative.onset` declared → DEFAULT_SYMPTOM_ONSET (1-3 days), drawn
+    # per encounter (Issue #2871).
+    assert re.search(r"Onset [123] day\(s\) ago", hpi), hpi
 
 
 def test_ed_unknown_placeholder_falls_back_to_whole_section_generic():
@@ -196,7 +198,7 @@ def test_soap_subjective_substitutes_placeholders_ja():
     subj = out.sections["subjective"]
     assert "{" not in subj
     assert "健康診断" in subj
-    assert "3日前より" in subj
+    assert re.search(r"[123]日前より", subj), subj
     # unknown placeholder-only section → whole-section generic phrase (I-2)
     assert out.sections["assessment"] == "特記事項なし"
 

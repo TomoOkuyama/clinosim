@@ -49,10 +49,10 @@ treatment:
   - {name: "Tetanus toxoid booster", probability: 0.3, route: "IM", intent: "prophylaxis"}
 
 discharge_instructions:
-  - "眼帯の着用（1日）"
-  - "処方された点眼薬を指示通り使用"
-  - "翌日に眼科再診"
-  - "視力低下・強い痛み・膿性分泌があれば至急受診"
+  - {en: "Wear the eye patch for 1 day", ja: "眼帯の着用（1日）"}
+  - {en: "Use the prescribed eye drops as directed", ja: "処方された点眼薬を指示通り使用"}
+  - {en: "Seek care urgently for decreased vision, severe pain, or purulent discharge", ja: "視力低下・強い痛み・膿性分泌があれば至急受診"}
+follow_up: {en: "ophthalmology the next day", ja: "翌日に眼科再診"}
 
 discharge_prescriptions:
   - {drug: "Ofloxacin ophthalmic drops", route: "topical", frequency: "qid", duration_days: 5, probability: 0.9}
@@ -65,18 +65,19 @@ sex_ratio_female: 0.15  # primarily male industrial workers
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: hours, range: [2, 12]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Foreign body sensation in the eye began {onset_en} while working, with tearing and redness. Use of eye protection reviewed."
+      ja: "{onset_ja}に作業中に眼内異物感が出現し、流涙・充血を伴う。保護眼鏡の使用状況を確認。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

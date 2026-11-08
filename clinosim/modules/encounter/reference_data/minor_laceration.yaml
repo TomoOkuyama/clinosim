@@ -47,10 +47,10 @@ treatment:
   - {name: "Acetaminophen 500mg", probability: 0.4, route: "PO", intent: "analgesic"}
 
 discharge_instructions:
-  - "Keep wound clean and dry for 24 hours"
-  - "Return for suture removal in 7-10 days (face 5 days)"
-  - "Watch for signs of infection: increasing redness, swelling, warmth, drainage"
-  - "Return if fever or red streaking from wound"
+  - {en: "Keep wound clean and dry for 24 hours", ja: "24時間は創部を清潔・乾燥に保つ"}
+  - {en: "Watch for signs of infection: increasing redness, swelling, warmth, drainage", ja: "発赤・腫脹・熱感・排膿の増強など感染徴候に注意"}
+  - {en: "Return if fever or red streaking from wound", ja: "発熱や創部から広がる赤い線状の発赤があれば再受診"}
+follow_up: {en: "suture removal in 7-10 days (face 5 days)", ja: "7〜10日後に抜糸（顔面は5日後）"}
 
 discharge_prescriptions:
   - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid PRN", duration_days: 5, probability: 0.6}
@@ -63,18 +63,19 @@ sex_ratio_female: 0.7  # more men (occupational / recreational injuries)
 seasonal: {1: 0.9, 2: 0.9, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.2, 8: 1.2, 9: 1.1, 10: 1.0, 11: 0.9, 12: 0.9}
 
 narrative:
+  onset: {unit: hours, range: [1, 4]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Sustained a laceration {onset_en}; bleeding controlled with direct pressure. Mechanism, wound contamination, and tetanus status reviewed."
+      ja: "{onset_ja}に裂傷を受傷し、圧迫で止血。受傷機転・創汚染の有無・破傷風予防接種歴を確認。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

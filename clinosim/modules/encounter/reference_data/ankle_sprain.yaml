@@ -45,10 +45,10 @@ treatment:
   - {name: "Ibuprofen 400mg", probability: 0.6, route: "PO", intent: "anti-inflammatory"}
 
 discharge_instructions:
-  - "RICE: Rest, Ice, Compression, Elevation"
-  - "Weight bearing as tolerated with crutches if needed"
-  - "Follow up with orthopedics if not improving in 5-7 days"
-  - "Return if unable to bear weight or significant swelling increase"
+  - {en: "RICE: Rest, Ice, Compression, Elevation", ja: "RICE（安静・冷却・圧迫・挙上）"}
+  - {en: "Weight bearing as tolerated with crutches if needed", ja: "痛みに応じて荷重、必要時は松葉杖を使用"}
+  - {en: "Return if unable to bear weight or significant swelling increase", ja: "荷重不能、腫脹の著明な増強があれば再受診"}
+follow_up: {en: "orthopedics in 1 week if not improving", ja: "改善がなければ1週間後に整形外科を受診"}
 
 discharge_prescriptions:
   - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
@@ -61,23 +61,24 @@ sex_ratio_female: 1.1
 seasonal: {1: 1.1, 2: 1.0, 3: 0.9, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.2, 8: 1.1, 9: 1.1, 10: 1.0, 11: 1.0, 12: 1.1}
 
 narrative:
+  onset: {unit: hours, range: [1, 12]}
   ed_note_template:
     chief_complaint:
       en: Ankle sprain (after fall)
       ja: 足関節捻挫（転倒後）
     hpi:
-      en: 'Ankle sprain sustained {injury_time_en} via {mechanism_en}. Pain and swelling appeared immediately, with variable weight-bearing tolerance. Ottawa Ankle Rule: {ottawa_result_en}. No open wound or neurologic symptoms.'
-      ja: '{injury_time_ja}に{mechanism_ja}にて足関節を捻挫。直後より疼痛・腫脹出現、荷重不能〜可能。Ottawa足関節ルール：{ottawa_result_ja}。開放創・神経症状なし。'
+      en: "Twisted the ankle in a fall {onset_en}. Pain and swelling began immediately, with variable ability to bear weight. No open wound or numbness."
+      ja: "{onset_ja}に転倒し足関節を捻挫。直後より疼痛・腫脹が出現し、荷重は困難〜可能。開放創・しびれなし。"
     physical_exam:
       en:
-        general: Alert and oriented, mild distress
+        general: 'Alert and oriented, {appearance_en}'
         cardiovascular: Heart rate normal
         respiratory: Respiratory rate normal
         abdominal: 'Abdomen: assessment not indicated'
         musculoskeletal: 'Right/left ankle: swelling (+), ecchymosis ({ecchymosis_en}), tenderness over anterior talofibular ligament (+), malleolar/calcaneal tenderness ({bone_pain_en}). Limited ROM. Neurovascularly intact.'
         neurological: Distal neurovascular status intact
       ja:
-        general: 意識清明、軽度疼痛様
+        general: '意識清明、{appearance_ja}'
         cardiovascular: 心拍数正常
         respiratory: 呼吸数正常
         abdominal: 腹部：評価不要
@@ -87,8 +88,8 @@ narrative:
       en: 'Ankle X-ray ({xray_views_en}): {xray_result_en}. No fracture identified / fracture confirmed.'
       ja: 足関節X線（{xray_views_ja}）：{xray_result_ja}。骨折なし/骨折確認。
     disposition:
-      en: '{disposition_display_en}. RICE therapy instructed, {support_en} immobilization. Orthopedic follow-up in 1 week.'
-      ja: '{disposition_display_ja}。RICE療法指導・{support_ja}固定。整形外科外来1週間後受診。'
+      en: "{disposition_display_en}"
+      ja: "{disposition_display_ja}"
   ed_triage_template:
     common_triage_levels:
     - '4'

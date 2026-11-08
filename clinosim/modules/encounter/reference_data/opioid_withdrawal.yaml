@@ -61,10 +61,11 @@ treatment:
   - {name: "Referral for medication for opioid use disorder", probability: 0.8, route: "non-pharmacologic"}
 
 discharge_instructions:
-  - "Take buprenorphine as prescribed until your addiction medicine appointment"
-  - "Do not use other opioids, alcohol or sedatives with buprenorphine"
-  - "Carry naloxone"
-  - "Return for chest pain, fainting or inability to keep fluids down"
+  - {en: "Take buprenorphine as prescribed until your addiction medicine appointment", ja: "依存症外来の受診日まで処方どおりブプレノルフィンを服用"}
+  - {en: "Do not use other opioids, alcohol, or sedatives with buprenorphine", ja: "ブプレノルフィンと他のオピオイド・アルコール・鎮静薬を併用しない"}
+  - {en: "Carry naloxone", ja: "ナロキソンを携帯する"}
+  - {en: "Return for chest pain, fainting, or inability to keep fluids down", ja: "胸痛、失神、水分がとれない場合は再受診"}
+follow_up: {en: "addiction medicine appointment", ja: "依存症専門外来を受診"}
 
 discharge_prescriptions:
   - {drug: "Buprenorphine/Naloxone 8mg/2mg", locale_exclude: [JP], route: "SL", frequency: "daily", duration_days: 7, probability: 0.45}
@@ -82,13 +83,14 @@ sex_ratio_female: 0.45
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: days, range: [1, 3]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en}'
       ja: '{chief_complaint_ja}'
     hpi:
-      en: 'Body aches, vomiting, diarrhea, anxiety and insomnia starting about {onset_days} day(s) after last opioid use.'
-      ja: '最終使用から約{onset_days}日、全身痛・嘔吐・下痢・不安・不眠が出現'
+      en: "Last opioid use {onset_en}; body aches, vomiting, diarrhea, anxiety, and insomnia followed."
+      ja: "最終使用は{onset_ja}。その後、全身痛・嘔吐・下痢・不安・不眠が出現。"
     physical_exam:
       en:
         general: Restless and diaphoretic, yawning, lacrimation and rhinorrhea

@@ -76,9 +76,9 @@ treatment:
   - {name: "Lorazepam 2mg", probability: 0.5, route: "IM", intent: "acute agitation"}
 
 discharge_instructions:
-  - "Resume antipsychotic / mood stabilizer as prescribed"
-  - "Follow up with psychiatry within 7 days"
-  - "Return if agitation, hallucinations or thoughts of harm recur"
+  - {en: "Resume antipsychotic / mood stabilizer as prescribed", ja: "抗精神病薬／気分安定薬を処方どおり再開"}
+  - {en: "Return if agitation, hallucinations, or thoughts of harm recur", ja: "興奮・幻覚・他害または自傷の考えが再燃すれば再受診"}
+follow_up: {en: "psychiatry within 7 days", ja: "7日以内に精神科を受診"}
 
 incidence_modifier: 1.0
 probability: 0.0135  # ~0.75% of ED visits (weights sum to ~1.8)
@@ -87,13 +87,14 @@ sex_ratio_female: 1.0
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.05, 6: 1.05, 7: 1.05, 8: 1.0, 9: 1.0, 10: 1.0, 11: 0.95, 12: 0.95}
 
 narrative:
+  onset: {unit: days, range: [3, 14]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en}'
       ja: '{chief_complaint_ja}'
     hpi:
-      en: 'Escalating insomnia and agitation over {onset_days} day(s) with hallucinations, paranoid delusions and bizarre behavior.'
-      ja: '{onset_days}日前より不眠と興奮が増悪し、幻覚・被害妄想を伴う異常行動が出現'
+      en: "Insomnia and agitation began {onset_en} and escalated, with hallucinations, paranoid delusions, and bizarre behavior."
+      ja: "{onset_ja}より不眠と興奮が出現・増悪し、幻覚・被害妄想を伴う異常行動が出現。"
     physical_exam:
       en:
         general: Alert, agitated, restless

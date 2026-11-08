@@ -55,10 +55,10 @@ treatment:
   - {name: "IV normal saline 500mL", probability: 0.2, route: "IV"}
 
 discharge_instructions:
-  - "Cardiac workup negative — symptoms consistent with panic attack"
-  - "Follow up with PCP for anxiety management"
-  - "Consider cognitive behavioral therapy referral"
-  - "Return if chest pain recurs with exertion or new symptoms"
+  - {en: "Cardiac workup negative; symptoms consistent with panic attack", ja: "心精査で異常なく、パニック発作として矛盾しない"}
+  - {en: "Consider cognitive behavioral therapy referral", ja: "認知行動療法の紹介を検討"}
+  - {en: "Return if chest pain recurs with exertion or new symptoms", ja: "労作時の胸痛再発や新たな症状があれば再受診"}
+follow_up: {en: "primary care physician for anxiety management", ja: "不安症状の管理のためかかりつけ医を受診"}
 
 discharge_prescriptions:
   - {drug: "Hydroxyzine 25mg", route: "PO", frequency: "q8h PRN", duration_days: 7, probability: 0.3}
@@ -70,18 +70,19 @@ sex_ratio_female: 1.5
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: hours, range: [1, 3]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Sudden palpitations, shortness of breath, chest tightness, and intense fear began {onset_en} at rest and peaked within minutes. No exertional chest pain or syncope."
+      ja: "{onset_ja}より安静時に突然の動悸・呼吸困難・胸部圧迫感と強い不安が出現し、数分でピークに達した。労作時胸痛・失神なし。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

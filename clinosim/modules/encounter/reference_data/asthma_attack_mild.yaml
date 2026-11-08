@@ -55,11 +55,11 @@ treatment:
     intent: "anti-inflammatory"
 
 discharge_instructions:
-  - "Good response to bronchodilator therapy"
-  - "Continue rescue inhaler as needed"
-  - "Complete steroid course as prescribed"
-  - "Follow up with PCP or pulmonologist within 1 week"
-  - "Return if worsening dyspnea, inability to speak in full sentences, or no relief from inhaler"
+  - {en: "Good response to bronchodilator therapy", ja: "気管支拡張薬に良好に反応"}
+  - {en: "Continue rescue inhaler as needed", ja: "発作時は発作治療薬の吸入を継続"}
+  - {en: "Complete steroid course as prescribed", ja: "処方されたステロイドを最後まで内服"}
+  - {en: "Return if worsening dyspnea, inability to speak in full sentences, or no relief from inhaler", ja: "呼吸困難の増悪、会話困難、吸入で改善しない場合は再受診"}
+follow_up: {en: "primary care physician or pulmonologist within 1 week", ja: "1週間以内にかかりつけ医または呼吸器内科を受診"}
 
 discharge_prescriptions:
   - {drug: "Prednisone 40mg", locale_name: {jp: "Prednisolone 30mg"}, route: "PO", frequency: "daily", duration_days: 5, probability: 0.7}
@@ -78,18 +78,19 @@ sex_ratio_female: 0.55
 seasonal: {1: 1.3, 2: 1.2, 3: 1.0, 4: 0.9, 5: 0.8, 6: 0.8, 7: 0.8, 8: 0.9, 9: 1.0, 10: 1.1, 11: 1.2, 12: 1.3}
 
 narrative:
+  onset: {unit: days, range: [1, 2]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Wheezing, shortness of breath, and chest tightness began {onset_en}, with incomplete relief from the rescue inhaler. Known asthma."
+      ja: "{onset_ja}より喘鳴・呼吸困難・胸部絞扼感が出現し、発作治療薬の吸入で改善不十分。気管支喘息の既往あり。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

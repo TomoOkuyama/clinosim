@@ -1923,7 +1923,8 @@
         "chief_complaint_variants.copd_exacerbation[1]",
         "ctx.vitals[0]",
         "ctx.orders.ed",
-        "ctx.ed_assessment.state_composed",
+        "ctx.diagnoses.admission_diagnosis_code",
+        "ctx.encounter.chief_complaint",
         "ctx.encounter.disposition"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -1933,7 +1934,7 @@
         "lang": "ja"
       },
       "sections": {
-        "assessment": "来院理由: 呼吸困難増悪・喀痰増加・喘鳴",
+        "assessment": "救急外来診断: 急性増悪を伴う慢性閉塞性肺疾患，詳細不明。主訴: 呼吸困難増悪・喀痰増加・喘鳴。",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",
         "disposition": "入院適応（呼吸困難増悪・喀痰増加・喘鳴）",
         "ed_workup": "検査: CBC (全血球算定)、CRP、ABG (動脈血ガス)、PCT、クレアチニン、BUN、Na、K。画像: 胸部レントゲン (正面・側面)、胸部 CT、胸部レントゲン (正面・側面)、胸部ポータブルレントゲン。投薬: サルブタモール、イプラトロピウム、プレドニゾロン、ステロイド: プレドニゾロン 40mg 経口 1日1回 x5 日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、セフトリアキソン 1g 静注 1日1回。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (1時間毎 頓用 急性期)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎",

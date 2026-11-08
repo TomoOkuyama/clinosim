@@ -45,11 +45,11 @@ treatment:
   - {name: "Acetaminophen/codeine", probability: 0.2, route: "PO", intent: "pain management for moderate burns"}
 
 discharge_instructions:
-  - "Partial thickness burn — expected to heal in 10-14 days"
-  - "Change dressing daily; reapply topical cream"
-  - "Keep wound clean and covered"
-  - "Return if increasing redness beyond burn margin, fever, or foul-smelling drainage"
-  - "Follow up with PCP or burn clinic in 2-3 days"
+  - {en: "Partial thickness burn; expected to heal in 10-14 days", ja: "部分層熱傷で10〜14日で治癒する見込み"}
+  - {en: "Change dressing daily; reapply topical cream", ja: "被覆材を毎日交換し、外用薬を塗布"}
+  - {en: "Keep wound clean and covered", ja: "創部を清潔に保ち、覆っておく"}
+  - {en: "Return if increasing redness beyond burn margin, fever, or foul-smelling drainage", ja: "熱傷範囲を越える発赤、発熱、悪臭のある滲出液があれば再受診"}
+follow_up: {en: "primary care physician or burn clinic in 2-3 days", ja: "2〜3日後にかかりつけ医または熱傷外来を受診"}
 
 discharge_prescriptions:
   - {drug: "Silver sulfadiazine 1% cream", route: "topical", frequency: "BID", duration_days: 14, probability: 0.6}
@@ -62,18 +62,19 @@ sex_ratio_female: 0.4
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.1, 7: 1.2, 8: 1.1, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: hours, range: [1, 6]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Sustained a burn to the hand or arm {onset_en}. Mechanism (scald, contact, or flame) and first aid reviewed."
+      ja: "{onset_ja}に手または腕に熱傷を受傷。受傷機転（熱湯・接触・火炎）と応急処置の内容を確認。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

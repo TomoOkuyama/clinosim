@@ -88,16 +88,46 @@ class EdTriageTemplate(BaseModel):
         return self
 
 
+class SymptomOnset(BaseModel):
+    """How long before arrival the presenting problem began (Issue #2871).
+
+    ``unit`` is ``hours`` for an injury or an abrupt illness and ``days`` for
+    an illness that developed over days; ``range`` is the inclusive
+    ``[low, high]`` span the narrative draws the number from (RNG-neutral,
+    keyed on the encounter).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    unit: Literal["hours", "days"]
+    range: tuple[int, int]
+
+    @model_validator(mode="after")
+    def _check_range(self) -> SymptomOnset:
+        low, high = self.range
+        if not 1 <= low <= high:
+            raise ValueError(f"onset range must satisfy 1 <= low <= high, got {list(self.range)}")
+        return self
+
+
+# Onset of a protocol that declares none: an illness of one to three days.
+DEFAULT_SYMPTOM_ONSET = SymptomOnset(unit="days", range=(1, 3))
+
+
 class EncounterNarrativeSpec(BaseModel):
     """α-min-2 encounter narrative wrapper.
 
     Only the sub-block relevant to the encounter type is populated:
     - outpatient: ``outpatient_soap_template``
     - emergency: ``ed_note_template`` + ``ed_triage_template``
+
+    ``onset`` (any encounter type) sets the ``{onset_*}`` placeholders; a
+    protocol without it gets ``DEFAULT_SYMPTOM_ONSET``.
     """
 
     model_config = ConfigDict(extra="forbid")
 
+    onset: SymptomOnset | None = None
     outpatient_soap_template: OutpatientSoapTemplate | None = None
     ed_note_template: EdNoteTemplate | None = None
     ed_triage_template: EdTriageTemplate | None = None
@@ -267,7 +297,6 @@ class EncounterConditionProtocol(BaseModel):
     age_distribution: str | None = None
     sex_ratio_female: float | None = None
     incidence_modifier: float | None = None
-    discharge_instructions: list[str] = []
     followup_instructions: list[str] = []
     prescriptions: list[_Prescription] = []
     visit_duration_minutes: _MeanSd | None = None
@@ -277,6 +306,23 @@ class EncounterConditionProtocol(BaseModel):
     # templates.  Optional default = None so existing encounter YAMLs without a
     # narrative: block continue to validate without error.
     narrative: EncounterNarrativeSpec | None = None
+
+    # Patient instructions and follow-up given on discharge from the ED
+    # (Issue #2871). An emergency protocol writes each as a language map
+    # ({en, ja}); the ED note's disposition lists them for a patient sent home.
+    discharge_instructions: list[dict[str, str] | str] = []
+    follow_up: dict[str, str] = {}
+
+    @model_validator(mode="after")
+    def _emergency_instructions_are_language_maps(self) -> EncounterConditionProtocol:
+        if self.encounter_type != "emergency":
+            return self
+        for item in self.discharge_instructions:
+            if not isinstance(item, dict) or not {"en", "ja"} <= item.keys():
+                raise ValueError(f"{self.condition_id}: discharge instruction {item!r} needs en and ja text")
+        if self.discharge_instructions and not {"en", "ja"} <= self.follow_up.keys():
+            raise ValueError(f"{self.condition_id}: follow_up needs en and ja text")
+        return self
 
     @model_validator(mode="after")
     def _high_risk_orders_are_treatments(self) -> EncounterConditionProtocol:
