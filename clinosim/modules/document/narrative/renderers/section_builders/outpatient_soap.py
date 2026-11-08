@@ -48,13 +48,9 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
-    NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD,
-    NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD,
     NARRATIVE_HBA1C_DIABETES_THRESHOLD,
-    NARRATIVE_LDL_BORDERLINE_THRESHOLD,
-    NARRATIVE_LDL_ELEVATED_THRESHOLD,
-    NARRATIVE_LDL_HIGH_THRESHOLD,
     bp_band,
+    chronic_control_targets,
 )
 from clinosim.modules.document.narrative._narrative_utils import _age_at
 from clinosim.modules.document.narrative._template_helpers import (
@@ -639,14 +635,15 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
                     "hypertension": "control_status.poorly_controlled",
                     "high_normal": "control_status.high_normal",
                     "normal": "control_status.at_goal",
-                }[bp_band(sbp, dbp)],
+                }[bp_band(sbp, dbp, ctx.locale)],
                 lang,
             )
+            _bp_target = chronic_control_targets(ctx.locale).bp.target
             target = t(
                 "chronic_assessment.bp_target",
                 lang,
-                sbp=NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD,
-                dbp=NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD,
+                sbp=_bp_target[0],
+                dbp=_bp_target[1],
             )
             med = _pick_med_by_class("hypertension")
             med_tail = t("chronic_assessment.med_continue_tail", lang, med=med) if med else ""
@@ -715,28 +712,31 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
         # ── E78: Dyslipidemia ──────────────────────────────────────
         elif code_prefix.startswith("E78"):
             ldl = lab_by_name.get("ldl")
+            _ldl = chronic_control_targets(ctx.locale).ldl
             if ldl:
                 v, u = ldl
                 try:
                     vf = float(v)
-                    if vf >= NARRATIVE_LDL_HIGH_THRESHOLD:
+                    if vf >= _ldl.high:
                         ctrl = t("control_status.high_ldl_statin_underresponse", lang)
-                    elif vf >= NARRATIVE_LDL_BORDERLINE_THRESHOLD:
+                    elif vf >= _ldl.borderline:
                         ctrl = t("control_status.borderline_intensification", lang)
-                    elif vf >= NARRATIVE_LDL_ELEVATED_THRESHOLD:
+                    elif vf >= _ldl.elevated:
                         ctrl = t("control_status.elevated", lang)
                     else:
                         ctrl = t("control_status.at_goal", lang)
                 except (TypeError, ValueError):
                     ctrl = ""
-                target = t(
-                    "chronic_assessment.ldl_target_primary_prevention",
-                    lang,
-                    ldl=NARRATIVE_LDL_ELEVATED_THRESHOLD,
+                # The US guideline sets no primary-prevention LDL target, so
+                # none is stated there (chronic_control_targets.yaml).
+                target_part = (
+                    t("chronic_assessment.ldl_target_primary_prevention", lang, ldl=_ldl.target) + " — "
+                    if _ldl.target is not None
+                    else ""
                 )
                 med = _pick_med_by_class("dyslipidemia")
                 med_tail = t("chronic_assessment.med_continue_tail", lang, med=med) if med else ""
-                interp = f"LDL {v} {u or 'mg/dL'} — {target} — {ctrl}{med_tail}" + t("list_sep.period", lang)
+                interp = f"LDL {v} {u or 'mg/dL'} — {target_part}{ctrl}{med_tail}" + t("list_sep.period", lang)
 
         # ── N18: Chronic kidney disease ────────────────────────────
         elif code_prefix.startswith("N18"):

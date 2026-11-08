@@ -19,9 +19,18 @@ substitution preserves the branch decisions bit-identically.
 
 from __future__ import annotations
 
+from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from clinosim.countries import country_slot
+from clinosim.datafiles import load_validated_yaml
+
 __all__ = [
+    "ChronicControlTargets",
+    "chronic_control_targets",
     "BmiBand",
     "NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE",
     "NARRATIVE_BMI_OBESITY_MILD_MAX_EXCLUSIVE",
@@ -88,36 +97,84 @@ def bmi_band(bmi: float) -> BmiBand:
 # Blood pressure interpretation — JP 高血圧治療ガイドライン 2019
 # ---------------------------------------------------------------------------
 
-NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD: int = 140
-"""SBP (mmHg) at or above which the interpretation is 「高血圧」 (or
-"hypertension"). Matches the JP 高血圧治療ガイドライン 2019 診察室
-血圧 grade-I hypertension boundary (≥ 140 / ≥ 90)."""
 
-NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD: int = 90
-"""DBP (mmHg) at or above which the interpretation is 「高血圧」 —
-paired with :data:`NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD` (either
-SBP or DBP crossing fires the hypertension label)."""
+class _BpTargets(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    hypertension: tuple[int, int]
+    high_normal: tuple[int, int]
+    target: tuple[int, int]
 
-NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD: int = 130
-"""SBP (mmHg) at or above which the interpretation is 「高値注意」
-(high-normal) — matches the JP 高血圧治療ガイドライン 2019 診察室
-血圧 high-normal boundary (130-139 / 85-89)."""
 
-NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD: int = 85
-"""DBP (mmHg) at or above which the interpretation is 「高値注意」
-— paired with :data:`NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD`."""
+class _LdlTargets(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    high: int = Field(gt=0)
+    borderline: int = Field(gt=0)
+    elevated: int = Field(gt=0)
+    target: int | None = None
+
+    @model_validator(mode="after")
+    def _ordered(self) -> _LdlTargets:
+        if not self.elevated < self.borderline < self.high:
+            raise ValueError("ldl thresholds must satisfy elevated < borderline < high")
+        return self
+
+
+class ChronicControlTargets(BaseModel):
+    """One country's BP and LDL bands and stated targets (Issue #2860)."""
+
+    model_config = ConfigDict(extra="forbid")
+    bp: _BpTargets
+    ldl: _LdlTargets
+
+
+class _ChronicControlTargetsFile(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    countries: dict[Literal["jp", "us"], ChronicControlTargets]
+
+
+_TARGETS_YAML = Path(__file__).resolve().parents[1] / "reference_data" / "chronic_control_targets.yaml"
+
+
+@lru_cache(maxsize=1)
+def _targets_by_country() -> dict[str, ChronicControlTargets]:
+    data = load_validated_yaml(_TARGETS_YAML, _ChronicControlTargetsFile)
+    return {k: ChronicControlTargets.model_validate(v) for k, v in data["countries"].items()}
+
+
+def chronic_control_targets(country: str) -> ChronicControlTargets:
+    """The BP / LDL bands and targets of ``country`` (``chronic_control_targets.yaml``)."""
+    return _targets_by_country()[country_slot(country)]
+
+
+_JP_TARGETS = chronic_control_targets("JP")
+
+NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD: int = _JP_TARGETS.bp.hypertension[0]
+"""SBP (mmHg) at or above which the JP interpretation is 「高血圧」 —
+JSH 2019 office grade-I hypertension (≥ 140 / ≥ 90)."""
+
+NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD: int = _JP_TARGETS.bp.hypertension[1]
+"""DBP (mmHg) paired with :data:`NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD`."""
+
+NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD: int = _JP_TARGETS.bp.high_normal[0]
+"""SBP (mmHg) at or above which the JP interpretation is 「高値注意」
+(JSH 2019 high-normal, 130-139 / 85-89)."""
+
+NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD: int = _JP_TARGETS.bp.high_normal[1]
+"""DBP (mmHg) paired with :data:`NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD`."""
 
 
 BpBand = Literal["hypertension", "high_normal", "normal"]
 
 
-def bp_band(sbp: float, dbp: float) -> BpBand:
-    """JSH 2019 office band of a blood pressure (Issue #2751): hypertension
-    when either reading reaches its hypertension threshold, high-normal when
-    either reaches its high-normal threshold, normal otherwise."""
-    if sbp >= NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD or dbp >= NARRATIVE_BP_HYPERTENSION_DBP_THRESHOLD:
+def bp_band(sbp: float, dbp: float, country: str) -> BpBand:
+    """Office band of a blood pressure for ``country`` (Issue #2751; per
+    country since #2860 — JSH 2019 for JP, 2017 ACC/AHA for the US):
+    hypertension when either reading reaches its hypertension threshold,
+    high-normal when either reaches its high-normal threshold, else normal."""
+    bp = chronic_control_targets(country).bp
+    if sbp >= bp.hypertension[0] or dbp >= bp.hypertension[1]:
         return "hypertension"
-    if sbp >= NARRATIVE_BP_HIGH_NORMAL_SBP_THRESHOLD or dbp >= NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD:
+    if sbp >= bp.high_normal[0] or dbp >= bp.high_normal[1]:
         return "high_normal"
     return "normal"
 
@@ -141,17 +198,17 @@ NARRATIVE_HBA1C_BORDERLINE_THRESHOLD: float = 5.6
 # LDL interpretation — JAS 動脈硬化性疾患予防ガイドライン 2022
 # ---------------------------------------------------------------------------
 
-NARRATIVE_LDL_HIGH_THRESHOLD: int = 160
+NARRATIVE_LDL_HIGH_THRESHOLD: int = _JP_TARGETS.ldl.high
 """LDL (mg/dL) at or above which the interpretation is 「高 LDL
 血症」 (severe hypercholesterolemia). Matches the JAS 動脈硬化性疾患
 予防ガイドライン 2022 severe hyper-LDL cutoff (≥ 160)."""
 
-NARRATIVE_LDL_BORDERLINE_THRESHOLD: int = 140
+NARRATIVE_LDL_BORDERLINE_THRESHOLD: int = _JP_TARGETS.ldl.borderline
 """LDL (mg/dL) at or above which the interpretation is 「境界域」
 (borderline). Matches the JAS 動脈硬化性疾患予防ガイドライン 2022
 hyper-LDL cutoff (≥ 140)."""
 
-NARRATIVE_LDL_ELEVATED_THRESHOLD: int = 120
+NARRATIVE_LDL_ELEVATED_THRESHOLD: int = _JP_TARGETS.ldl.elevated
 """LDL (mg/dL) at or above which the interpretation is 「高値注意」
 (elevated). Matches the JAS 動脈硬化性疾患予防ガイドライン 2022
 mild-elevation boundary (120-139)."""

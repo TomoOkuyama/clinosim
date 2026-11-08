@@ -1,0 +1,30 @@
+# Per-country blood-pressure and LDL-cholesterol bands and targets used to word
+# chronic-disease control in narratives (outpatient SOAP assessment, JP-CLINS
+# checkup judgements). Issue #2860: US notes used the Japanese values.
+#
+# bp.hypertension / bp.high_normal: [SBP, DBP] at or above which (either value)
+#   the reading is "hypertension" / "high-normal" (US: "elevated").
+# bp.target: [SBP, DBP] stated as the treatment target ("target < SBP/DBP").
+# ldl.high / borderline / elevated: LDL (mg/dL) band thresholds.
+# ldl.target: LDL stated as the primary-prevention target, or null when the
+#   country's guideline sets no numeric target (the note then states none).
+metadata:
+  kind: reference
+  name: chronic_control_targets
+  source: clinosim
+
+countries:
+  jp:
+    # JSH 2019 (高血圧治療ガイドライン 2019) office BP; JAS 2022
+    # (動脈硬化性疾患予防ガイドライン 2022) LDL categories and the
+    # primary-prevention LDL target.
+    bp: {hypertension: [140, 90], high_normal: [130, 85], target: [140, 90]}
+    ldl: {high: 160, borderline: 140, elevated: 120, target: 120}
+  us:
+    # 2017 ACC/AHA hypertension guideline: stage 1 hypertension >= 130 / 80,
+    # elevated 120-129 / < 80, treatment target < 130 / 80. LDL categories from
+    # NCEP ATP III (very high >= 190, high 160-189, borderline high 130-159);
+    # the 2018 ACC/AHA cholesterol guideline sets statin intensity rather
+    # than a primary-prevention LDL target, so none is stated.
+    bp: {hypertension: [130, 80], high_normal: [120, 80], target: [130, 80]}
+    ldl: {high: 190, borderline: 160, elevated: 130, target: null}

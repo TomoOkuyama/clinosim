@@ -417,7 +417,7 @@ def build_checkup_lab_results(generator: TemplateNarrativeGenerator, ctx: Narrat
             "hypertension": ("bp_hypertension", "D"),
             "high_normal": ("bp_high_normal", "B"),
             "normal": ("bp_reference", "A"),
-        }[bp_band(sys_v, dia_v)]
+        }[bp_band(sys_v, dia_v, "JP")]
         return (f"checkup_lab_results.{key}", kw, grade)
 
     def _judge_hba1c(v: float | None) -> tuple[str, dict, str]:
