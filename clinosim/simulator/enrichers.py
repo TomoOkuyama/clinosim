@@ -427,18 +427,20 @@ def register_builtin_enrichers() -> None:
     # Fires only on records whose ``condition_event.condition_type ==
     # "newborn_birth"`` (perinatal.py stamp); non-newborn records no-op.
     # This PR's slice: Vitamin K prophylaxis (JP oral × 2 / US IM × 1).
-    # Order 92 places it after device 70 → prophylaxis 75 → hai 80 →
-    # antibiotic 85 → imaging 90 → discontinue_flip 91, before triage 93 →
-    # lab_derived_dx / nursing_assignment 94, and before the document
-    # enricher (95) so any downstream narrative that references Vitamin K
-    # administration has the MAR entry in hand.
+    # Order 90 (after imaging by name) places it after device 70 →
+    # prophylaxis 75 → hai 80 → antibiotic 85, and before supersede_orders
+    # (91), which closes the orders of a finished stay: the vitamin K /
+    # ophthalmic orders this enricher appends must exist by then (Issue
+    # #2951). It also runs before the document enricher (95) so any
+    # narrative that references Vitamin K has the MAR entry in hand. It
+    # draws only per-newborn sha256 sub-RNGs, so moving it shifts no draw.
     from clinosim.modules.newborn import enrich_newborn
 
     register_enricher(
         Enricher(
             name="newborn",
             stage=POST_ENCOUNTER,
-            order=92,
+            order=90,
             enabled=lambda c: True,
             run=enrich_newborn,
         )

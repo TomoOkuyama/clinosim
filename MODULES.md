@@ -93,9 +93,9 @@ load-bearing verification gate that protects this goal.
 │  hai(80)          CLABSI / CAUTI / VAP + Phase 3a WBC/CRP│
 │  antibiotic(85)   HAI empirical + narrow de-escalation   │
 │  imaging(90)      ImagingStudy metadata chain (AD-62)    │
+│  newborn(90)      birth-admission workup (Vit K, screens)│
 │  discontinue_flip(91)  DISCONTINUE marker → STOPPED      │
-│  supersede_orders(91)  superseded order → STOPPED        │
-│  newborn(92)      birth-admission workup (Vit K, screens)│
+│  supersede_orders(91)  superseded / discharge → closed   │
 │  triage(93)       JTAS/ESI level + arrival_mode (ED-only)│
 │  lab_derived_dx(94)  KDIGO-3 Cr → N17.9 working dx       │
 │  nursing_assignment(94)   primary nurse                  │
@@ -156,7 +156,7 @@ the canonical 11-section structure).
 | [antibiotic](clinosim/modules/antibiotic/README.md) | HAI empirical + narrow ladder + AD-60 audit | enrichment | `0x4142` ("AB") | POST_ENCOUNTER 85 |
 | [imaging](clinosim/modules/imaging/README.md) | ImagingStudy metadata chain + AD-60 audit (AD-62) | enrichment | `0x4947` ("IG") | POST_ENCOUNTER 90 |
 | [triage](clinosim/modules/triage/README.md) | JTAS / ESI triage sampling + AD-60 audit (ED-only, AD-64) | enrichment | `0x5452` ("TR") | POST_ENCOUNTER 93 |
-| [newborn](clinosim/modules/newborn/README.md) | birth-admission clinical workup (Vitamin K, newborn screens) — Issue #1252 | enrichment | — (per-encounter deterministic) | POST_ENCOUNTER 92 |
+| [newborn](clinosim/modules/newborn/README.md) | birth-admission clinical workup (Vitamin K, newborn screens) — Issue #1252 | enrichment | — (per-encounter deterministic) | POST_ENCOUNTER 90 |
 | [nursing](clinosim/modules/nursing/README.md) (`nursing_assignment`) | primary nurse assignment (inpatient/ICU/rehab; AD-64) | enrichment | `0x4E55` ("NU") | POST_ENCOUNTER 94 |
 | [document](clinosim/modules/document/README.md) | stub emission + AD-60 audit + Stage 2 narrative subpackage | enrichment | `0x444F` ("DO") | POST_ENCOUNTER 95 |
 | [immunization](clinosim/modules/immunization/README.md) | CVX adult vaccine history | enrichment | `0x494D` ("IM") | POST_RECORDS 30 |

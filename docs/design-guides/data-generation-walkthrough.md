@@ -257,7 +257,8 @@ modules** run in three stages:
 - **POST_ENCOUNTER** (right after one visit's daily loop, inside
   the encounter simulator): the clinical cascade. Order is fixed:
   `device(70) → prophylaxis(75) → hai(80) → antibiotic(85) →
-  imaging(90) → discontinue_flip(91) → newborn(92) → triage(93) →
+  imaging(90) → newborn(90) → discontinue_flip(91) →
+  supersede_orders(91) → triage(93) →
   lab_derived_dx(94) → nursing_assignment(94) → document(95)`
   (ties sort by name). Later stages read `extensions[X]` written by
   earlier ones (no HAI without a device, etc.).
