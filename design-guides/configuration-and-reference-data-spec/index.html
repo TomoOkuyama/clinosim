@@ -2433,9 +2433,9 @@
 <td><code>tests/unit/test_data_yaml_conventions_2465.py</code></td>
 </tr>
 <tr>
-<td>A module's reference YAML is validated at load by a Pydantic model, so a missing required key or a wrong type fails at import. The guard checks every <code>modules/&lt;module&gt;/reference_data/*.yaml</code> file: the code that names the file must load it through <code>load_validated_yaml</code> or a model (<code>Model.model_validate</code> / <code>Model(**data)</code>); files still read without a model are listed in §5. A model also rejects unknown keys (<code>ConfigDict(extra="forbid")</code>), and an open map is a typed <code>dict[str, X]</code> field, never <code>extra="allow"</code>. Codes the YAML names are checked to exist through <code>clinosim.codes</code>. A new key is added to the model first (AD-69).</td>
+<td>A module's reference YAML is validated at load by a Pydantic model, so a missing required key or a wrong type fails at import. The guard checks every <code>modules/&lt;module&gt;/reference_data/*.yaml</code> file: the code that names the file must load it through <code>load_validated_yaml</code> or a model (<code>Model.model_validate</code> / <code>Model(**data)</code>), and no file is exempt. A model also rejects unknown keys (<code>ConfigDict(extra="forbid")</code>), and an open map is a typed <code>dict[str, X]</code> field, never <code>extra="allow"</code>. Codes the YAML names are checked to exist through <code>clinosim.codes</code>. A new key is added to the model first (AD-69).</td>
 <td>per module: <code>modules/&lt;module&gt;/</code> models (allergy, antibiotic, care_level, clinical_course, code_status, device, diagnosis, disease, document, drug_safety, encounter, family_history, hai, imaging, llm_service, monitoring, newborn, nursing, observation, order, patient, pediatric, physiology, population, procedure, prophylaxis, sdoh, triage)</td>
-<td><code>tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model</code>, <code>::test_module_models_forbid_unknown_keys</code> (shrink-only ratchet), <code>::test_no_extra_allow_models</code>, per-module model tests</td>
+<td><code>tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model</code>, <code>::test_not_yet_modeled_stays_empty</code>, <code>::test_module_models_forbid_unknown_keys</code> (shrink-only ratchet), <code>::test_no_extra_allow_models</code>, per-module model tests</td>
 </tr>
 <tr>
 <td>A cached loader's return value is shared and read-only.</td>
@@ -2505,10 +2505,6 @@
 <tr>
 <td>The constants-placement policy has no automatic guard.</td>
 <td>review</td>
-</tr>
-<tr>
-<td>Twelve module reference YAML files are still read without a Pydantic model (plain dict or a hand-written check): <code>document/</code> cc-pe-consistency-keywords, chronic-med-class-hints, chronic_soap_templates, document_type_specs, hedging_phrases, hpi_pertinent_negatives, ja_only_fallback_sections, narrative_extras_whitelists, section_catalog; <code>hai/</code> hai_antibiogram, hai_lab_lift; <code>imaging/</code> imaging-impression-keywords. The guard pins them in <code>_NOT_YET_MODELED</code>, which only shrinks.</td>
-<td><code>tests/unit/test_configuration_spec_guards.py</code></td>
 </tr>
 </tbody>
 </table>

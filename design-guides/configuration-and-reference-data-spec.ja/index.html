@@ -2433,9 +2433,9 @@
 <td><code>tests/unit/test_data_yaml_conventions_2465.py</code></td>
 </tr>
 <tr>
-<td>モジュールの参照 YAML は、読み込み時に Pydantic モデルで検証する。欠けた必須キーや型の誤りは import 時に失敗する。ガードは、参照 YAML を持つすべてのモジュールにこのモデルがあることを確かめる。モデルは未知のキーも拒否する(<code>ConfigDict(extra="forbid")</code>)。開いたマップは型付きの <code>dict[str, X]</code> フィールドにし、<code>extra="allow"</code> は使わない。YAML が名指すコードは <code>clinosim.codes</code> で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。</td>
+<td>モジュールの参照 YAML は、読み込み時に Pydantic モデルで検証する。欠けた必須キーや型の誤りは import 時に失敗する。ガードは <code>modules/&lt;module&gt;/reference_data/*.yaml</code> のファイルを一つずつ確かめる。ファイルを名指すコードは、<code>load_validated_yaml</code> かモデル(<code>Model.model_validate</code> / <code>Model(**data)</code>)を通して読み込まなければならず、例外のファイルは無い。モデルは未知のキーも拒否する(<code>ConfigDict(extra="forbid")</code>)。開いたマップは型付きの <code>dict[str, X]</code> フィールドにし、<code>extra="allow"</code> は使わない。YAML が名指すコードは <code>clinosim.codes</code> で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。</td>
 <td>モジュールごとのモデル(allergy, antibiotic, care_level, clinical_course, code_status, device, diagnosis, disease, document, drug_safety, encounter, family_history, hai, imaging, llm_service, monitoring, newborn, nursing, observation, order, patient, pediatric, physiology, population, procedure, prophylaxis, sdoh, triage)</td>
-<td><code>tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model</code>、<code>::test_module_models_forbid_unknown_keys</code>(縮小のみのラチェット)、<code>::test_no_extra_allow_models</code>、各モジュールのモデルのテスト</td>
+<td><code>tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model</code>、<code>::test_not_yet_modeled_stays_empty</code>、<code>::test_module_models_forbid_unknown_keys</code>(縮小のみのラチェット)、<code>::test_no_extra_allow_models</code>、各モジュールのモデルのテスト</td>
 </tr>
 <tr>
 <td>キャッシュ付きローダーの戻り値は共有物で、読み取り専用。</td>
