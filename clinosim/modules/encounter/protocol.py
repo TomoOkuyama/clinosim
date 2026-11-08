@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
@@ -243,6 +244,30 @@ class _Scenario(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+AgeDistribution = Literal[
+    "all", "all_ages", "adults", "adults_all", "adults_40plus", "adults_50plus", "elderly", "women_40plus"
+]
+
+AGE_DISTRIBUTION_MIN_AGE: dict[str, int] = {
+    "adults": 18,
+    "adults_all": 18,
+    "adults_40plus": 40,
+    "adults_50plus": 50,
+    "elderly": 65,
+    "women_40plus": 40,
+}
+"""Youngest age a protocol's ``age_distribution`` admits (no entry = any age).
+Adult = 18 (age of majority used for the adult ED protocols)."""
+
+
+def protocol_min_age(spec: Mapping[str, Any]) -> int | None:
+    """The youngest age an encounter protocol is drawn for: its explicit
+    ``min_age``, else the floor of its ``age_distribution`` (Issue #2874)."""
+    if spec.get("min_age") is not None:
+        return int(spec["min_age"])
+    return AGE_DISTRIBUTION_MIN_AGE.get(str(spec.get("age_distribution") or ""))
+
+
 class EncounterConditionProtocol(BaseModel):
     """Loaded encounter (ED/outpatient) condition protocol from YAML.
 
@@ -263,6 +288,10 @@ class EncounterConditionProtocol(BaseModel):
     # Chronic-code prefixes a resident must carry for this condition to be
     # drawn (exacerbations of a chronic disease, e.g. ["J45"] for asthma).
     requires_chronic_prefix: list[str] = []
+
+    # Who presents with this condition (Issue #2874): bounds the ages it is
+    # drawn for, see :data:`AGE_DISTRIBUTION_MIN_AGE`.
+    age_distribution: AgeDistribution | None = None
 
     # Per-severity disposition (``discharge_home`` / ``transfer_psychiatric``)
     # and per-chronic-prefix diagnosis code overrides (Issue #2124).

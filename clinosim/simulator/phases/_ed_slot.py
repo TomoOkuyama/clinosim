@@ -14,6 +14,7 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING, Any
 
 from clinosim.modules._shared import random_day_of_month
+from clinosim.modules.encounter.protocol import protocol_min_age
 from clinosim.seeding import PHASE_ED_VISIT, derive_phase_rng, id_hashes, rendezvous_pick
 from clinosim.simulator._scheduling_thresholds import (
     ED_FAVORED_HOURS,
@@ -194,7 +195,8 @@ def _ed_condition_weight(
     dob = getattr(person, "date_of_birth", None)
     if visit_year is not None and dob is not None:
         person_age = visit_year - dob.year
-    if spec.get("min_age") is not None and person_age < int(spec["min_age"]):
+    min_age = protocol_min_age(spec)
+    if min_age is not None and person_age < min_age:
         return 0.0
     if spec.get("max_age") is not None and person_age > int(spec["max_age"]):
         return 0.0
