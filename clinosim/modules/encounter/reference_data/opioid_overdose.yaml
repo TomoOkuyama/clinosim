@@ -107,11 +107,11 @@ narrative:
     physical_exam:
       en:
         general: Somnolent, slow to respond to voice
-        neuro: Pinpoint pupils, depressed level of consciousness
+        neurological: Pinpoint pupils, depressed level of consciousness
         respiratory: Bradypnea with shallow respirations
       ja:
         general: 傾眠、呼びかけに反応鈍い
-        neuro: 縮瞳、意識レベル低下
+        neurological: 縮瞳、意識レベル低下
         respiratory: 呼吸数低下、浅い呼吸
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'

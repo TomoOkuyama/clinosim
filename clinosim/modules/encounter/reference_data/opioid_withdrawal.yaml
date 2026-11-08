@@ -94,10 +94,10 @@ narrative:
     physical_exam:
       en:
         general: Restless and diaphoretic, yawning, lacrimation and rhinorrhea
-        neuro: Mydriasis, tremor, piloerection
+        neurological: Alert and oriented; mydriasis, tremor, piloerection
       ja:
         general: 不穏、発汗、あくび・流涙・鼻漏あり
-        neuro: 散瞳、振戦、立毛
+        neurological: 意識清明、見当識保持。散瞳、振戦、立毛
     ed_workup_summary:
       en: '{lab_summary_en}'
       ja: '{lab_summary_ja}'
