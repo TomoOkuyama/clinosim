@@ -684,6 +684,9 @@ codes:
     ja: 尿培養（細菌同定）
   619-7:
     en: Bacteria identified in Peritoneal fluid by Culture
+    ja: 腹水培養（細菌同定）
+  624-7:
+    en: Bacteria identified in Sputum by Respiratory culture
     ja: 喀痰培養（細菌同定）
   634-6:
     en: Bacteria identified in Specimen by Aerobe culture
@@ -782,7 +785,7 @@ codes:
     en: D-dimer
     ja: D ダイマー
   # === HAI culture LOINCs (PR-B) ===
-  # 600-7 (Blood), 630-4 (Urine), 619-7 (Sputum) are already registered
+  # 600-7 (Blood), 630-4 (Urine), 624-7 (Sputum) are already registered
   # above in the existing microbiology block; PR-B reuses those rather
   # than introducing duplicates.
   # tx.fhir.org LOINC 2.83 $lookup verified 2026-10-27 (COMPONENT
