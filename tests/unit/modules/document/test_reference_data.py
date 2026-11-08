@@ -228,3 +228,24 @@ def test_discharge_instructions_cached_lru() -> None:
     first = rdl.load_discharge_instructions()
     second = rdl.load_discharge_instructions()
     assert first is second
+
+
+# ─────────────────────────────────────────────────────────────────
+# load_document_data_yaml (shared registry loader, Issue #2840)
+# ─────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize("filename", ["chronic_soap_templates.yaml", "hedging_phrases.yaml"])
+def test_load_document_data_yaml_loads_registry_and_caches_per_file(filename: str) -> None:
+    """Each registry loads non-empty and repeat calls share one cached dict."""
+    data = rdl.load_document_data_yaml(filename)
+    assert isinstance(data, dict) and data
+    assert rdl.load_document_data_yaml(filename) is data
+
+
+def test_load_document_data_yaml_keeps_files_apart() -> None:
+    """The cache is keyed by file name, so two registries never alias."""
+    soap = rdl.load_document_data_yaml("chronic_soap_templates.yaml")
+    hedging = rdl.load_document_data_yaml("hedging_phrases.yaml")
+    assert soap is not hedging
+    assert set(soap).isdisjoint(hedging)

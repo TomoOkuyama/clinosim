@@ -14,7 +14,7 @@ site keeps working unchanged.
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable
 from functools import lru_cache
 from typing import Any
 
@@ -52,29 +52,11 @@ def load_chronic_medications() -> dict[str, Any]:
     return data
 
 
-def _iter_route_values(data: Any) -> Iterator[str]:
-    """Yield every `route:` string found anywhere in a nested YAML structure.
-
-    Third copy of this walker (sibling to disease/protocol.py and
-    encounter/protocol.py). Kept local so the `locale` package retains its
-    "loader lives with the data" convention and does not depend on either.
-    """
-    if isinstance(data, dict):
-        for k, v in data.items():
-            if k == "route" and isinstance(v, str):
-                yield v
-            else:
-                yield from _iter_route_values(v)
-    elif isinstance(data, list):
-        for item in data:
-            yield from _iter_route_values(item)
-
-
 def _validate_chronic_medications_route_vocabulary(data: Any) -> None:
     """Delegate to the single-sourced canonical validator (Issue #458)."""
-    from clinosim.modules.output.fhir_r4.lib.reference_data import validate_yaml_route_value
+    from clinosim.modules.output.fhir_r4.lib.reference_data import iter_route_values, validate_yaml_route_value
 
-    for raw in _iter_route_values(data):
+    for raw in iter_route_values(data):
         validate_yaml_route_value(raw, source="chronic_medications.yaml")
 
 

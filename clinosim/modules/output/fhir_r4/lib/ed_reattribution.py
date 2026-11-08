@@ -42,6 +42,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 
@@ -112,11 +113,11 @@ def _resolve_ed_imp_id(ctx: Any) -> str | None:
     encounters = ctx.record.get("encounters", []) if isinstance(ctx.record, dict) else []
     if encounters:
         imp = encounters[0]
-        admit_source = _get_field(imp, "admit_source")
+        admit_source = get_attr_or_key(imp, "admit_source")
         # AdmitSource.EMD.value == "emd"; accept both the enum instance and
         # the raw string that reaches this layer from serialized CIF.
         if str(admit_source) == "emd" or str(admit_source).lower().endswith(".emd"):
-            raw = _get_field(imp, "encounter_id") or ""
+            raw = get_attr_or_key(imp, "encounter_id") or ""
             if raw:
                 imp_id = str(raw)
 
@@ -125,12 +126,6 @@ def _resolve_ed_imp_id(ctx: Any) -> str | None:
     except AttributeError:
         pass
     return imp_id
-
-
-def _get_field(obj: Any, name: str) -> Any:
-    if isinstance(obj, dict):
-        return obj.get(name)
-    return getattr(obj, name, None)
 
 
 def _is_ed_by_doc_type(resource: dict) -> bool:

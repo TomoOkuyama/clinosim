@@ -61,9 +61,9 @@ def test_accepts_dict_shape():
 def test_all_registry_entries_have_four_slots():
     """Every registry entry must supply the full SOAP set to satisfy
     the OutpatientSoapTemplate shape."""
-    from clinosim.modules.document.narrative._chronic_soap import _load_registry
+    from clinosim.modules.document.reference_data_loaders import load_document_data_yaml
 
-    reg = _load_registry()
+    reg = load_document_data_yaml("chronic_soap_templates.yaml")
     # Each slot is a language map with the authored Japanese text (Issue #2506).
     required = {"subjective", "objective", "assessment", "plan"}
     for code, entry in reg.items():

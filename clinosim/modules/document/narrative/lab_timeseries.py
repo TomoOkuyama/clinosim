@@ -31,14 +31,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-
-def _get(d: Any, key: str, default: Any = None) -> Any:
-    """dict[str, Any] or dataclass-like read."""
-    if hasattr(d, key):
-        return getattr(d, key)
-    if isinstance(d, dict):
-        return d.get(key, default)
-    return default
+from clinosim.modules._shared import get_attr_or_key as _get
 
 
 def _parse_datetime(raw: Any) -> datetime | None:

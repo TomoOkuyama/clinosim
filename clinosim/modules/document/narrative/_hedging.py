@@ -13,21 +13,11 @@ Callers reach for :func:`hedged_phrase` — one shot in, one string out.
 
 from __future__ import annotations
 
-from functools import lru_cache
-from importlib import resources
-from pathlib import Path
 from typing import Any, Protocol
 
-from clinosim.datafiles import load_data_yaml
+from clinosim.modules.document.reference_data_loaders import load_document_data_yaml
 
-_REGISTRY_PACKAGE = "clinosim.modules.document.reference_data"
 _REGISTRY_FILENAME = "hedging_phrases.yaml"
-
-
-@lru_cache(maxsize=1)
-def _load_registry() -> dict[str, Any]:
-    """Load the YAML registry once and cache it (small file, static shape)."""
-    return load_data_yaml(Path(str(resources.files(_REGISTRY_PACKAGE).joinpath(_REGISTRY_FILENAME)))) or {}
 
 
 class _Chooser(Protocol):
@@ -69,7 +59,7 @@ def hedged_phrase(
         branch is unknown — callers can concatenate freely without
         introducing a broken half-sentence.
     """
-    registry = _load_registry()
+    registry = load_document_data_yaml(_REGISTRY_FILENAME)
     entry = registry.get(topic) or {}
     branch = entry.get("confirmed" if confirmed else "unconfirmed") or {}
     phrases = branch.get(lang) or branch.get("en") or []  # Issue #2273: English fallback
@@ -93,4 +83,4 @@ def hedged_phrase(
 def has_topic(topic: str) -> bool:
     """True when ``topic`` is a valid registry key. Callers can guard
     lookups without triggering a fallback string."""
-    return topic in _load_registry()
+    return topic in load_document_data_yaml(_REGISTRY_FILENAME)

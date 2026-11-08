@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
@@ -117,33 +116,15 @@ class EncounterConditionProtocol(BaseModel):
     narrative: EncounterNarrativeSpec | None = None
 
 
-def _iter_route_values(data: Any) -> Iterator[str]:
-    """Yield every `route:` string found anywhere in a nested YAML structure.
-
-    Sibling of the identically-named helper in `disease/protocol.py` — kept
-    inline here rather than shared to preserve module independence
-    (encounter module has no dependency on disease module).
-    """
-    if isinstance(data, dict):
-        for k, v in data.items():
-            if k == "route" and isinstance(v, str):
-                yield v
-            else:
-                yield from _iter_route_values(v)
-    elif isinstance(data, list):
-        for item in data:
-            yield from _iter_route_values(item)
-
-
 def _validate_encounter_route_vocabulary(condition_id: str, data: Any) -> None:
     """Issue #458: import-time route vocabulary check for encounter YAMLs.
 
     Sibling of `disease.protocol._validate_drug_route_vocabulary`. Delegates
     to `validate_yaml_route_value` so the recognized set stays single-sourced.
     """
-    from clinosim.modules.output.fhir_r4.lib.reference_data import validate_yaml_route_value
+    from clinosim.modules.output.fhir_r4.lib.reference_data import iter_route_values, validate_yaml_route_value
 
-    for raw in _iter_route_values(data):
+    for raw in iter_route_values(data):
         validate_yaml_route_value(raw, source=f"encounter {condition_id!r}")
 
 

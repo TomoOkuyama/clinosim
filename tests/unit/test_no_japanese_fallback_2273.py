@@ -46,7 +46,7 @@ def test_follow_up_falls_back_to_english_not_japanese() -> None:
 
 def test_hedged_phrase_falls_back_to_english_not_japanese() -> None:
     registry = {"t": {"confirmed": {"ja": ["確定"], "en": ["confirmed"]}}}
-    with patch.object(_hedging, "_load_registry", return_value=registry):
+    with patch.object(_hedging, "load_document_data_yaml", return_value=registry):
         assert _hedging.hedged_phrase("t", "x", confirmed=True, lang="fr") == "confirmed"
         assert _hedging.hedged_phrase("t", "x", confirmed=True) == "confirmed"  # default is English
 
