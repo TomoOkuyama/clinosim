@@ -13,11 +13,68 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field
+
 from clinosim.codes import code_exists, system_key_for
-from clinosim.datafiles import load_data_yaml
+from clinosim.datafiles import load_validated_yaml
 
 _YAML = Path(__file__).resolve().parent / "reference_data" / "diagnosis_rules.yaml"
 _MODULES = Path(__file__).resolve().parents[1] / "modules"
+
+
+class _VisitTypeCodes(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    default: str
+    by_visit: dict[str, str] = Field(default_factory=dict)
+
+
+class _VisitPurposeCodes(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    fallback: str
+    post_discharge: str
+    by_visit_type: dict[str, _VisitTypeCodes]
+
+
+class _UnknownCodes(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    admission: str
+    unresolved: str
+    partially_resolved: str
+
+
+class _UnknownConditionCodes(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    default: _UnknownCodes
+    by_pattern: dict[str, _UnknownCodes]
+
+
+class _LabFinding(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    finding: str
+    above: float
+
+
+class _DifferentialFindings(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    labs: dict[str, _LabFinding]
+    day1_imaging: dict[str, list[str]]
+
+
+class DiagnosisRulesFile(BaseModel):
+    """Shape of ``diagnosis_rules.yaml`` (Issue #2956). The codes, ids and
+    labs it names are checked against their registries by ``_check``."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    visit_purpose_codes: _VisitPurposeCodes
+    unknown_condition_codes: _UnknownConditionCodes
+    differential_findings: _DifferentialFindings
 
 
 @dataclass(frozen=True)
@@ -101,7 +158,7 @@ def _check(rules: _DiagnosisRules) -> None:
 
 @cache
 def _rules() -> _DiagnosisRules:
-    data = load_data_yaml(_YAML)
+    data = load_validated_yaml(_YAML, DiagnosisRulesFile)
     visit = data["visit_purpose_codes"]
     by_type = visit["by_visit_type"]
     unknown = data["unknown_condition_codes"]

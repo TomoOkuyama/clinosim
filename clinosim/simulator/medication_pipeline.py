@@ -27,9 +27,10 @@ import functools
 from datetime import datetime, timedelta
 from functools import cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field
 
 from clinosim import determinism
 from clinosim.codes.drugs import drug_classes, drug_key, drug_ref, get_drug, same_drug
@@ -123,15 +124,26 @@ def metformin_admission_hold_threshold() -> float:
     return METFORMIN_ADMISSION_HOLD_THRESHOLD
 
 
+class RenalMedicationRules(BaseModel):
+    """Schema of ``reference_data/renal_medication_rules.yaml`` (Issue #2956)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    # Drug (catalog id or name) -> admission action for renal impairment.
+    renal_drugs: dict[str, Literal["hold", "reduce"]] = Field(min_length=1)
+
+
 @functools.cache
 def renal_medication_rules() -> dict[str, str]:
     """Drug key (catalog drug_id, ``codes.drugs.drug_key``) -> admission action
     ("hold" / "reduce") for renal impairment, from
     ``renal_medication_rules.yaml`` (Issue #2296; keyed by identity, #2377)."""
     from clinosim.codes.drugs import drug_key
-    from clinosim.datafiles import load_data_yaml
+    from clinosim.datafiles import load_validated_yaml
 
-    data = load_data_yaml(Path(__file__).resolve().parent / "reference_data" / "renal_medication_rules.yaml")
+    data = load_validated_yaml(
+        Path(__file__).resolve().parent / "reference_data" / "renal_medication_rules.yaml", RenalMedicationRules
+    )
     return {drug_key(str(k)): str(v) for k, v in (data.get("renal_drugs") or {}).items()}
 
 

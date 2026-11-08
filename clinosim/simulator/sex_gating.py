@@ -40,11 +40,31 @@ from __future__ import annotations
 from collections.abc import Iterable
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
-from clinosim.datafiles import load_data_yaml
+from pydantic import BaseModel, ConfigDict, StringConstraints, model_validator
+
+from clinosim.datafiles import load_validated_yaml
 
 _YAML_PATH = Path(__file__).resolve().parent / "reference_data" / "icd10_sex_restrictions.yaml"
+
+_IcdCode = Annotated[str, StringConstraints(pattern=r"^[A-Z]\d{2}(\.\w+)?$")]
+
+
+class SexRestrictionRules(BaseModel):
+    """Schema of ``reference_data/icd10_sex_restrictions.yaml`` (Issue #2956)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    male_only: list[_IcdCode]
+    female_only: list[_IcdCode]
+
+    @model_validator(mode="after")
+    def _check_disjoint(self) -> SexRestrictionRules:
+        both = sorted(set(self.male_only) & set(self.female_only))
+        if both:
+            raise ValueError(f"codes locked to both sexes: {both}")
+        return self
 
 
 @lru_cache(maxsize=1)
@@ -60,7 +80,7 @@ def _load_restrictions() -> tuple[frozenset[str], frozenset[str]]:
         # via ValueError so CI catches it, but do not crash the simulator
         # for developers who happen to be editing the locale tree.
         return frozenset(), frozenset()
-    data = load_data_yaml(_YAML_PATH) or {}
+    data = load_validated_yaml(_YAML_PATH, SexRestrictionRules)
     male = frozenset(str(c) for c in (data.get("male_only") or []))
     female = frozenset(str(c) for c in (data.get("female_only") or []))
     return male, female
