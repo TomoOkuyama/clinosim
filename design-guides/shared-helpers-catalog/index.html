@@ -2952,6 +2952,10 @@
 <td>A statin's intensity from the drug and dose, the per-patient fraction of the untreated LDL the patient's statins remove, and the LDL after that reduction. Every LDL a statin lowers (lab derivation, health checkup) goes through these.</td>
 </tr>
 <tr>
+<td><code>clinosim/modules/physiology/engine.py</code> <code>lipid_panel(sex, has_diabetes, has_dyslipidemia, statin_ldl_reduction)</code> / <code>patient_lipid_panel(patient)</code></td>
+<td>The true TC / HDL / TG / LDL of a lipid state, and of a patient from its conditions and home medications. Encounter labs and the health checkup both read it, so a patient has one untreated LDL.</td>
+</tr>
+<tr>
 <td><code>clinosim/modules/order/panel_grouping.py</code> <code>classify_lab_specs(...)</code></td>
 <td>Grouping lab orders into panels and individual tests.</td>
 </tr>
