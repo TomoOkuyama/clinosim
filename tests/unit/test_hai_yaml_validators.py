@@ -281,7 +281,7 @@ def test_hai_specimens_rejects_unknown_hai_type(monkeypatch) -> None:
     base = {
         "clabsi": {"specimen": "blood", "specimen_snomed": "119297000", "test_loinc": "600-7"},
         "cauti": {"specimen": "urine", "specimen_snomed": "122575003", "test_loinc": "630-4"},
-        "vap": {"specimen": "sputum", "specimen_snomed": "119334006", "test_loinc": "619-7"},
+        "vap": {"specimen": "sputum", "specimen_snomed": "119334006", "test_loinc": "624-7"},
     }
     monkeypatch.setattr(yaml, "safe_load", lambda f: {"hai_specimens": {**base, "INVALID": base["clabsi"]}})
     with pytest.raises(ValueError, match="unknown hai_type 'INVALID'"):
@@ -312,7 +312,7 @@ def test_hai_specimens_rejects_unknown_snomed(monkeypatch) -> None:
             "hai_specimens": {
                 "clabsi": {"specimen": "blood", "specimen_snomed": "9999999999", "test_loinc": "600-7"},
                 "cauti": {"specimen": "urine", "specimen_snomed": "122575003", "test_loinc": "630-4"},
-                "vap": {"specimen": "sputum", "specimen_snomed": "119334006", "test_loinc": "619-7"},
+                "vap": {"specimen": "sputum", "specimen_snomed": "119334006", "test_loinc": "624-7"},
             }
         },
     )
@@ -329,7 +329,7 @@ def test_hai_specimens_rejects_unknown_loinc(monkeypatch) -> None:
             "hai_specimens": {
                 "clabsi": {"specimen": "blood", "specimen_snomed": "119297000", "test_loinc": "99999-99"},
                 "cauti": {"specimen": "urine", "specimen_snomed": "122575003", "test_loinc": "630-4"},
-                "vap": {"specimen": "sputum", "specimen_snomed": "119334006", "test_loinc": "619-7"},
+                "vap": {"specimen": "sputum", "specimen_snomed": "119334006", "test_loinc": "624-7"},
             }
         },
     )
@@ -510,7 +510,7 @@ def test_hai_specimens_rejects_missing_specimen_snomed_field(monkeypatch) -> Non
             "hai_specimens": {
                 "clabsi": {"specimen": "blood", "test_loinc": "600-7"},  # snomed missing
                 "cauti": {"specimen": "urine", "specimen_snomed": "122575003", "test_loinc": "630-4"},
-                "vap": {"specimen": "sputum", "specimen_snomed": "119334006", "test_loinc": "619-7"},
+                "vap": {"specimen": "sputum", "specimen_snomed": "119334006", "test_loinc": "624-7"},
             }
         },
     )

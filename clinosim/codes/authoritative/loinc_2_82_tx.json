@@ -1290,6 +1290,12 @@
       "display": "1 minute Apgar Score",
       "status": "ACTIVE",
       "source": "tx.fhir.org LOINC $lookup (2026-11-01, Issue #2392)"
+    },
+    {
+      "code": "624-7",
+      "display": "Bacteria identified in Sputum by Respiratory culture",
+      "status": "ACTIVE",
+      "source": "tx.fhir.org LOINC $lookup (2026-11-08, Issue #2858)"
     }
   ]
 }
