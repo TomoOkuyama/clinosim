@@ -2466,7 +2466,7 @@ AR(1) で drift し、慢性 staging ladder は Markov 遷移で進行、
 <tr>
 <td><strong>治療 escalation イベント</strong></td>
 <td><code>med/&lt;regimen&gt;.yaml</code></td>
-<td>HTN 第 3 剤 / 第 4 剤 step-up (<code>htn_escalate_third_agent_i10</code>、<code>htn_escalate_fourth_agent_i10</code>)、脂質 ezetimibe 追加 (<code>lipid_escalate_ezetimibe_e78</code>。high-intensity スタチン切替 <code>lipid_escalate_high_intensity_e78</code> は rate 0 で廃止 — スタチンの増量は実測 LDL に基づき <code>simulator/statin_monitoring.py</code> が行う)、DM SGLT2i / insulin step-up (<code>dm_escalate_sglt2i_e11</code>、<code>dm_escalate_insulin_e11</code>)。ガイドライン trigger (例: HbA1c target 超過が N 年連続) で発火。Phase 4a は DM 合併症を T2DM (E11) 限定にスコープ — T1DM (E10) は除外。</td>
+<td>HTN 第 3 剤 / 第 4 剤 step-up (<code>htn_escalate_third_agent_i10</code>、<code>htn_escalate_fourth_agent_i10</code>)、脂質 high-intensity スタチン切替 / ezetimibe 追加 (<code>lipid_escalate_high_intensity_e78</code>、<code>lipid_escalate_ezetimibe_e78</code>。いずれも rate 0 で廃止 — スタチンの増量と ezetimibe 追加は実測 LDL に基づき <code>simulator/statin_monitoring.py</code> が行う)、DM SGLT2i / insulin step-up (<code>dm_escalate_sglt2i_e11</code>、<code>dm_escalate_insulin_e11</code>)。ガイドライン trigger (例: HbA1c target 超過が N 年連続) で発火。Phase 4a は DM 合併症を T2DM (E11) 限定にスコープ — T1DM (E10) は除外。</td>
 </tr>
 </tbody>
 </table>

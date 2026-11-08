@@ -2578,9 +2578,14 @@
 <td><code>tests/unit/test_finite_course_2757.py</code></td>
 </tr>
 <tr>
-<td>A dyslipidemia patient's statin is stepped up one dose at the renewal visit after a lipid panel whose LDL is at or above the country's threshold (US 2018 ACC/AHA: 190 mg/dL, 70 with clinical ASCVD; JP JAS 2022: the LDL target), and renewed at the new dose, which replaces the previous prescription of the drug. The titrated dose is kept in later years' profiles. This is the only statin step-up: the longitudinal history does not switch statins on its untreated LDL latent (<code>lipid_escalate_high_intensity_e78</code> is retired at rate 0, keeping its yearly draw).</td>
+<td>A dyslipidemia patient's statin is stepped up one dose at the renewal visit after a lipid panel whose LDL is at or above the country's threshold (US 2018 ACC/AHA: 190 mg/dL, 70 with clinical ASCVD; JP JAS 2022: the LDL target of the patient's risk tier, as for the add-on below), and renewed at the new dose, which replaces the previous prescription of the drug. The titrated dose is kept in later years' profiles. This is the only statin step-up: the longitudinal history does not switch statins on its untreated LDL latent (<code>lipid_escalate_high_intensity_e78</code> is retired at rate 0, keeping its yearly draw).</td>
 <td><code>simulator/statin_monitoring.py</code> (<code>titrate_statin</code>, <code>restore_titrated_statin</code>); data <code>simulator/reference_data/statin_monitoring.yaml</code></td>
 <td><code>tests/unit/simulator/test_statin_monitoring_2877.py</code></td>
+</tr>
+<tr>
+<td>At a renewal visit that does not step the statin up, a dyslipidemia patient on maximal statin therapy (US: high intensity, atorvastatin ≥ 40 mg / rosuvastatin ≥ 20 mg; JP: the usual maximum, atorvastatin 20 mg / rosuvastatin 10 mg) whose last lipid panel, taken on that statin, has an LDL at or above the add-on threshold (US 2018 ACC/AHA: 70 mg/dL with clinical ASCVD, 100 otherwise; JP JAS 2022: the LDL target of the patient's risk tier — 100 after coronary heart disease or ischaemic stroke, 120 with diabetes, CKD or peripheral arterial disease, 140 otherwise) starts ezetimibe 10 mg daily, unless already taking it or ruled out by a recorded allergy; the panel is rechecked 4 weeks or more later and the add-on is kept in later years' profiles. This is the only ezetimibe add-on: <code>lipid_escalate_ezetimibe_e78</code> is retired at rate 0, keeping its yearly draw.</td>
+<td><code>simulator/statin_monitoring.py</code> (<code>add_lipid_add_on</code>, <code>restore_lipid_add_on</code>); data <code>simulator/reference_data/statin_monitoring.yaml</code></td>
+<td><code>tests/unit/test_ezetimibe_measured_ldl_2942.py</code></td>
 </tr>
 <tr>
 <td>The status of a take-home prescription (active, completed, stopped), its end date and the prescription it replaced are computed once, across all the patient's records and the snapshot, before the bundles are built.</td>
