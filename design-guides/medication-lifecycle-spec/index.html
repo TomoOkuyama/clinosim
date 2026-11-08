@@ -2477,6 +2477,11 @@
 <td><code>tests/unit/modules/drug_safety/</code>, <code>tests/integration/test_drug_safety_gate_post_admission.py</code></td>
 </tr>
 <tr>
+<td>No drug is ordered or prescribed against an active recorded allergy (not the no-known-allergy assertion, not resolved or refuted): an allergen's drug classes are blocked (penicillin allergy: every penicillin, aminopenicillins included; aspirin allergy: non-selective and preferential COX-2 NSAIDs and aspirin; sulfonamide allergy: sulfonamide antibiotics) or ordered with a caution note (cephalosporins, selective COX-2 inhibitors, thiazide / loop diuretics and celecoxib in sulfonamide allergy). A blocked drug is logged on the safety-skip log and replaced by the alternative of the rule's indication when one exists. The check runs on admission and daily-loop orders, ED orders and take-home scripts, chronic medication sampling and carried-over home medications, the discharge prescription, outpatient renewals and the delivery bundle.</td>
+<td><code>modules/drug_safety/engine.py</code> (<code>check_candidate_against_allergies</code>, <code>allergy_entries</code>, <code>allergy_skip_verdict</code>); <code>simulator/medication_pipeline.py</code> (<code>apply_drug_safety_gate_to_orders</code>, <code>allergy_blocked</code>); callers <code>simulator/emergency.py</code>, <code>simulator/discharge_rx.py</code>, <code>simulator/outpatient.py</code>, <code>simulator/perinatal.py</code>, <code>modules/patient/activator.py</code>, <code>modules/longitudinal/engine.py</code>; rules in <code>modules/drug_safety/reference_data/allergy_contraindications.yaml</code></td>
+<td><code>tests/unit/modules/drug_safety/test_allergy_gate_2924.py</code></td>
+</tr>
+<tr>
 <td>Hold rules come from one source at admission, administration and discharge: renal actions per drug, vital-sign hold parameters, the metformin renal threshold.</td>
 <td><code>medication_pipeline.py</code> (<code>renal_medication_rules</code>, <code>mar_vital_hold_reason</code>, <code>metformin_admission_hold_threshold</code>), <code>discharge_rx.py::renal_hold_drugs</code>; data <code>simulator/reference_data/renal_medication_rules.yaml</code>, <code>locale/shared/chronic_medications.yaml</code></td>
 <td><code>tests/unit/test_hold_rules_one_source_2296.py</code>, <code>tests/unit/test_medication_holds_acute_illness_1335.py</code></td>
