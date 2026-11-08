@@ -40,7 +40,8 @@
 #     hypercholesterolaemia).
 # The 30-50 % response criterion of the US guideline needs an untreated LDL,
 # which the run does not have (patients enter on a statin), so it is not
-# applied.
+# applied. The LDL the panels report falls with the statin's intensity
+# (modules/physiology/reference_data/statin_ldl_response.yaml, Issue #2917).
 #
 # `steps`: drug_id -> {current dose mg: next dose mg}. A drug or dose not
 # listed is not titrated (e.g. JP rosuvastatin 20 mg, already above the usual
