@@ -32,7 +32,7 @@ Deliberately not here:
 
 from __future__ import annotations
 
-import hashlib
+from clinosim.determinism import sha_quantile
 
 # Mother phenotype → genotype (allele-pair) distribution. Uses the
 # simplifying assumption of Hardy-Weinberg equilibrium with the
@@ -59,18 +59,6 @@ _LOCALE_ALLELE_FREQ: dict[str, dict[str, float]] = {
     "US": {"A": 0.264, "B": 0.071, "O": 0.665},
     "JP": {"A": 0.279, "B": 0.169, "O": 0.552},
 }
-
-
-def _hash_quantile(key: str, byte_offset: int = 0, byte_count: int = 4) -> float:
-    """Return a deterministic uniform-[0, 1) quantile from a SHA256
-    hash of ``key``, picking ``byte_count`` bytes starting at
-    ``byte_offset``. Multiple quantiles can be drawn from the same
-    key without re-hashing by varying the offset — the whole hash is
-    32 bytes, so up to 8 independent 4-byte quantiles are available."""
-    h = hashlib.sha256(key.encode()).digest()
-    slot = h[byte_offset : byte_offset + byte_count]
-    span = 1 << (8 * byte_count)
-    return int.from_bytes(slot, "big") / span
 
 
 def _sample_mother_genotype(mother_phenotype: str, q: float) -> str:
@@ -144,10 +132,10 @@ def derive_newborn_blood_type(
     locale) tuple.
     """
     salt = f"{newborn_patient_id}|abo"
-    q_mother_genotype = _hash_quantile(salt, byte_offset=0, byte_count=4)
-    q_mother_allele = _hash_quantile(salt, byte_offset=4, byte_count=4)
-    q_father_source = _hash_quantile(salt, byte_offset=8, byte_count=4)
-    q_father_allele = _hash_quantile(salt, byte_offset=12, byte_count=4)
+    q_mother_genotype = sha_quantile(salt, byte_offset=0, byte_count=4)
+    q_mother_allele = sha_quantile(salt, byte_offset=4, byte_count=4)
+    q_father_source = sha_quantile(salt, byte_offset=8, byte_count=4)
+    q_father_allele = sha_quantile(salt, byte_offset=12, byte_count=4)
 
     mother_genotype = _sample_mother_genotype(mother_blood_type, q_mother_genotype)
     mother_allele = mother_genotype[0] if q_mother_allele < 0.5 else mother_genotype[1]
@@ -209,10 +197,10 @@ def derive_newborn_rh_factor(
     p_d = max(1e-9, 1.0 - q_d)
 
     salt = f"{newborn_patient_id}|rhd"
-    q_mother_genotype = _hash_quantile(salt, byte_offset=0, byte_count=4)
-    q_mother_allele = _hash_quantile(salt, byte_offset=4, byte_count=4)
-    q_father_source = _hash_quantile(salt, byte_offset=8, byte_count=4)
-    q_father_allele = _hash_quantile(salt, byte_offset=12, byte_count=4)
+    q_mother_genotype = sha_quantile(salt, byte_offset=0, byte_count=4)
+    q_mother_allele = sha_quantile(salt, byte_offset=4, byte_count=4)
+    q_father_source = sha_quantile(salt, byte_offset=8, byte_count=4)
+    q_father_allele = sha_quantile(salt, byte_offset=12, byte_count=4)
 
     mother_allele = _parent_rh_allele(mother_rh_factor, q_mother_genotype, q_mother_allele, p_d, q_d)
     if father_rh_factor:

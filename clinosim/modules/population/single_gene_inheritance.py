@@ -22,18 +22,9 @@ stream is unaffected and byte-identity across runs is preserved.
 
 from __future__ import annotations
 
-import hashlib
 from typing import Any
 
-
-def _hash_quantile(key: str, byte_offset: int = 0, byte_count: int = 4) -> float:
-    """Return a deterministic uniform-[0, 1) quantile from a SHA256
-    hash of ``key``. Mirrors the pattern in ``inheritance.py`` so a
-    single hash can serve multiple draws by varying the offset."""
-    h = hashlib.sha256(key.encode()).digest()
-    slot = h[byte_offset : byte_offset + byte_count]
-    span = 1 << (8 * byte_count)
-    return int.from_bytes(slot, "big") / span
+from clinosim.determinism import sha_quantile
 
 
 def _carrier_freq_for_race(disease_cfg: dict, race: str) -> float:
@@ -102,8 +93,8 @@ def derive_initial_carrier_status(
         q = _recessive_allele_freq(carrier_freq)
         if q <= 0.0:
             return "normal"
-        q_allele_a = _hash_quantile(salt, byte_offset=0, byte_count=4)
-        q_allele_b = _hash_quantile(salt, byte_offset=4, byte_count=4)
+        q_allele_a = sha_quantile(salt, byte_offset=0, byte_count=4)
+        q_allele_b = sha_quantile(salt, byte_offset=4, byte_count=4)
         allele_a = 1 if q_allele_a < q else 0
         allele_b = 1 if q_allele_b < q else 0
         total = allele_a + allele_b
@@ -118,7 +109,7 @@ def derive_initial_carrier_status(
         p_affected = max(0.0, min(1.0, _carrier_freq_for_race(disease_cfg, race)))
         if p_affected <= 0.0:
             return "normal"
-        q_pheno = _hash_quantile(salt, byte_offset=0, byte_count=4)
+        q_pheno = sha_quantile(salt, byte_offset=0, byte_count=4)
         return "affected" if q_pheno < p_affected else "normal"
 
     if pattern == "x_linked_recessive":
@@ -127,11 +118,11 @@ def derive_initial_carrier_status(
         if q <= 0.0:
             return "normal"
         if sex == "M":
-            q_x = _hash_quantile(salt, byte_offset=0, byte_count=4)
+            q_x = sha_quantile(salt, byte_offset=0, byte_count=4)
             return "affected" if q_x < q else "normal"
         if sex == "F":
-            q_x1 = _hash_quantile(salt, byte_offset=0, byte_count=4)
-            q_x2 = _hash_quantile(salt, byte_offset=4, byte_count=4)
+            q_x1 = sha_quantile(salt, byte_offset=0, byte_count=4)
+            q_x2 = sha_quantile(salt, byte_offset=4, byte_count=4)
             x1 = 1 if q_x1 < q else 0
             x2 = 1 if q_x2 < q else 0
             total = x1 + x2
@@ -175,8 +166,8 @@ def inherit_single_gene_autosomal_recessive(
     phenotype collapses to the other parent's donation.
     """
     salt = f"{newborn_patient_id}|single_gene_inherit|{disease_code}|v1"
-    q_mother = _hash_quantile(salt, byte_offset=0, byte_count=4)
-    q_father = _hash_quantile(salt, byte_offset=4, byte_count=4)
+    q_mother = sha_quantile(salt, byte_offset=0, byte_count=4)
+    q_father = sha_quantile(salt, byte_offset=4, byte_count=4)
 
     mother_allele = _sample_parent_donated_allele(mother_phenotype or "normal", q_mother)
     father_allele = _sample_parent_donated_allele(father_phenotype or "normal", q_father)
@@ -215,7 +206,7 @@ def inherit_x_linked_recessive(
     scored on sex).
     """
     salt = f"{newborn_patient_id}|single_gene_inherit_x|{disease_code}|v1"
-    q_mother = _hash_quantile(salt, byte_offset=0, byte_count=4)
+    q_mother = sha_quantile(salt, byte_offset=0, byte_count=4)
 
     # Mother-donated X.
     if (mother_phenotype or "normal") == "normal":
@@ -264,8 +255,8 @@ def inherit_autosomal_dominant(
             return 1 if quantile < 0.5 else 0
         return 0
 
-    q_mother = _hash_quantile(salt, byte_offset=0, byte_count=4)
-    q_father = _hash_quantile(salt, byte_offset=4, byte_count=4)
+    q_mother = sha_quantile(salt, byte_offset=0, byte_count=4)
+    q_father = sha_quantile(salt, byte_offset=4, byte_count=4)
     mother_allele = _parent_allele(mother_phenotype, q_mother)
     father_allele = _parent_allele(father_phenotype, q_father)
     return "affected" if (mother_allele + father_allele) >= 1 else "normal"

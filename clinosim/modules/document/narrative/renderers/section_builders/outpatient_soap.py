@@ -32,7 +32,6 @@ Generator-threaded helpers (stay on the class):
 
 from __future__ import annotations
 
-import hashlib
 from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -41,6 +40,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes.icd10 import icd10_system
 from clinosim.codes.valuesets import concept_group, iter_chronic_codes
 from clinosim.countries import has_authored_narrative
+from clinosim.determinism import sha_index
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import chronic_followup_interval_months
 from clinosim.locale.loader import narrative_label as _label
@@ -1054,9 +1054,7 @@ def _compose_follow_up_line(ctx: NarrativeContext) -> str:
     enc = getattr(ctx, "encounter", None)
     enc_id = _o(enc, "encounter_id", "") or ""
     pat_id = getattr(patient, "patient_id", "") if patient else ""
-    key = f"{pat_id}|{enc_id}|follow_up_interval".encode()
-    idx = int.from_bytes(hashlib.sha256(key).digest()[:4], "big") % len(band)
-    d = band[idx]
+    d = band[sha_index(f"{pat_id}|{enc_id}|follow_up_interval", len(band), byte_count=4)]
     return t("prescription.next_visit", lang, days=d)
 
 

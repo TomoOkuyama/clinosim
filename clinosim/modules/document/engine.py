@@ -184,12 +184,9 @@ def _referral_note_fires(encounter_id: str, patient_id: str) -> bool:
       hashlib.sha256-based (like P1-7 lot_number fix) so the
       result is stable across Python invocations and locales.
     """
-    import hashlib
+    from clinosim.determinism import sha_bernoulli
 
-    key = f"{encounter_id}::{patient_id}".encode()
-    digest = hashlib.sha256(key).digest()
-    frac = int.from_bytes(digest[:8], "big") / (1 << 64)
-    return frac < REFERRAL_NOTE_FIRE_RATE
+    return sha_bernoulli(f"{encounter_id}::{patient_id}", REFERRAL_NOTE_FIRE_RATE)
 
 
 def _pick_document_author(spec: Any, encounter: Any) -> str:

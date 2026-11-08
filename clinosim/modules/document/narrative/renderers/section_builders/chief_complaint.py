@@ -21,10 +21,10 @@ Generator-threaded helpers:
 
 from __future__ import annotations
 
-import hashlib
 from typing import TYPE_CHECKING, Any
 
 from clinosim.countries import has_authored_narrative
+from clinosim.determinism import sha_index
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._template_helpers import _pick_localized
@@ -238,5 +238,4 @@ def _cc_variant_index(pool_key: str, ctx: NarrativeContext, pool_size: int) -> i
     """
     patient_id = _o(ctx.patient, "patient_id", "") or ""
     encounter_id = _o(ctx.encounter, "encounter_id", "") if ctx.encounter is not None else ""
-    seed = f"cc-variant|{pool_key}|{patient_id}|{encounter_id}"
-    return int.from_bytes(hashlib.sha256(seed.encode("utf-8")).digest()[:4], "big") % pool_size
+    return sha_index(f"cc-variant|{pool_key}|{patient_id}|{encounter_id}", pool_size, byte_count=4)
