@@ -1,29 +1,45 @@
-# Design Guides — reading path for new module authors
+# Design Guides — where the rules and specs live
 
-An index for the new contributor (human or AI) adding a module to
-clinosim. Read the entries below in the order shown. (0) – (4) are
-mandatory for everyone; (5) – (8) apply only when you are touching
-that specific surface.
+The index of the design guides for every contributor (human or agent). It has three parts: the coding rules that apply to every change, the binding specs for each area of the simulator, and background reading for onboarding. When a guide and the code disagree, fix one of them in the same PR — the guides are meant to be true.
 
-| # | Document | When to read |
-|---|---|---|
-| 0a | [`project-concept-and-design.md`](project-concept-and-design.md) | **First.** Project concept (the 9 requirements), the end-to-end pipeline, the two-layer narrative design, current state and roadmap catch-up. |
-| 0b | [`implementation-rules.md`](implementation-rules.md) | **Before writing any code.** The distilled invariants every implementer must obey — workflow discipline, determinism, canonical helpers, silent-no-op defense, verification gates. |
-| 0c | [`data-generation-walkthrough.md`](data-generation-walkthrough.md) | **After the concept doc.** How one patient record is born: population → life events → encounter simulation → CIF → FHIR, walked end-to-end with actual file and function names. Covers the three-stage CLI, enrichers, and extension entry points. Onboarding material for new contributors. |
-| 1 | [`MODULES.md`](../../MODULES.md) | Overview of all 38 modules (`clinosim/modules/` packages), their dependency graph, and data flow, on a single page. |
-| 2 | [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md) | Before implementation. The practical playbook — Base / Module classification, canonical layout, loader / sub-seed / registry usage, verification triage (byte-diff vs. 3-axis DQR). |
-| 3 | [`.github/TEMPLATE_MODULE_README.md`](../../.github/TEMPLATE_MODULE_README.md) | When creating a new module skeleton. Copy the README and path-constants boilerplate from here. |
-| 4 | Curated ADRs in [`DESIGN.md`](../../DESIGN.md) | When you need the reasoning behind a design decision. Start with the 9 core ADRs — AD-16, AD-17, AD-25, AD-30, AD-55, AD-56, AD-59, AD-60, AD-65 (one-line summaries in the "最初に読む ADR" table of `CONTRIBUTING-modules.md`). |
-| 5 | [`clinosim/modules/output/SPEC.md`](../../clinosim/modules/output/SPEC.md) | Only when you touch clinical documents or narratives. The canonical spec for two-pass CIF (structural + narrative separation, AD-65). |
-| 6 | [`docs/design-guides/fhir-data-generation-logic.md`](fhir-data-generation-logic.md) | Only when you add or extend a FHIR builder (`clinosim/modules/output/fhir_r4/<theme>/`, Layer 4). Covers `code_lookup`, URIs, multilingual display, and the anti-patterns. |
-| 7 | [`SCENARIO_FLAGS.md`](../../SCENARIO_FLAGS.md) | Only when you touch lab values or scenario / medication flags (`causes_X`, `on_warfarin`). Lists every flag and the procedure to add one. |
-| 0d | [`code-mapping-and-localization-spec.md`](code-mapping-and-localization-spec.md) | **Before any code-related change.** Binding spec for code systems, code mappings, name resolution functions, localization and fallback rules. |
-| 0e | [`determinism-and-rng-spec.md`](determinism-and-rng-spec.md) | **Before any change that draws a random number, derives a seed or reads a clock.** Binding spec for the generator factory, seed derivation, RNG-neutral changes and clocks. |
-| 0f | [`medication-lifecycle-spec.md`](medication-lifecycle-spec.md) | **Before any change that places, holds, administers, stops, prescribes or codes a medication.** Binding spec for the safety gate, holds, administrations, supersede / discharge close, discharge reconciliation and product coding. |
-| 0g | [`narrative-and-document-generation-spec.md`](narrative-and-document-generation-spec.md) | **Before any change that plans a document, adds a section or words a clinical fact.** Binding spec for document planners, the section registry and the shared wording of safety events, vital signs and BMI. |
-| 0h | [`configuration-and-reference-data-spec.md`](configuration-and-reference-data-spec.md) | **Before adding or reading a reference-data YAML, an age-banded table or a constant.** Binding spec for loading and validation, shared tables (age bands, follow-up, named conditions) and constants placement. |
-| 0i | [`lab-orders-and-results-spec.md`](lab-orders-and-results-spec.md) | **Before ordering, deriving, flagging or linking a lab result.** Binding spec for true lab values, lab identity and panels, results and their orders, eval bounds. |
-| 0j | [`encounter-lifecycle-and-export-spec.md`](encounter-lifecycle-and-export-spec.md) | **Before creating or finishing an encounter, applying the snapshot or finishing a FHIR resource.** Binding spec for encounter setup, the forward loop, death records, snapshot at export and FHIR finishing. |
-| 8 | [`data-model-and-completeness-conventions.md`](data-model-and-completeness-conventions.md) | Only when you implement a FHIR completeness fix-point (severity unification, orphan YAML keys, `extra="forbid"`, I10 stage, `person.age`, `course_archetypes`). Documents the prohibitions on C1 / C2 / C3 incompleteness and the as-of-age pattern. The registry lives at `docs/design-notes/2026-07-06-fix-point-registry.md`. |
+## 1. Coding rules (read before writing any code)
+
+| Document | What it covers |
+|---|---|
+| [`implementation-rules.md`](implementation-rules.md) | **Start here.** The rules every change follows — workflow, coding standards, architecture invariants, determinism, canonical helpers, loaders, verification gates, silent-no-op defence — and a map from each concern to its binding spec. |
+| [`shared-helpers-catalog.md`](shared-helpers-catalog.md) | Which shared helper to use for X: every cross-module helper by concern, with its path and governing spec. Look here before writing a small utility. |
+| [`documentation-and-code-quality-policy.md`](documentation-and-code-quality-policy.md) | Documentation language and EN/JA pairing, self-contained OSS quality, source-comment language, constants placement, dead-code hygiene. |
+
+## 2. Binding specs (read the one for the area you are changing)
+
+Each spec states rules, the canonical code that implements them and the guard tests that enforce them. A change in that area follows the spec, or changes the spec in the same PR.
+
+| Read before you… | Spec |
+|---|---|
+| add or change a code, a display text, a code mapping, a name-resolution function, localization or a fallback | [`code-mapping-and-localization-spec.md`](code-mapping-and-localization-spec.md) |
+| draw a random number, derive a seed or read a clock | [`determinism-and-rng-spec.md`](determinism-and-rng-spec.md) |
+| add or read a reference-data YAML, an age-banded table or a constant | [`configuration-and-reference-data-spec.md`](configuration-and-reference-data-spec.md) |
+| place, hold, administer, stop, prescribe or code a medication | [`medication-lifecycle-spec.md`](medication-lifecycle-spec.md) |
+| order, derive, flag or link a lab result | [`lab-orders-and-results-spec.md`](lab-orders-and-results-spec.md) |
+| plan a document, add a section or word a clinical fact | [`narrative-and-document-generation-spec.md`](narrative-and-document-generation-spec.md) |
+| create or finish an encounter, apply the snapshot or finish a FHIR resource | [`encounter-lifecycle-and-export-spec.md`](encounter-lifecycle-and-export-spec.md) |
+| implement a FHIR completeness fix (unread YAML keys, unconsumed elements, `extra="forbid"`, stages, as-of age) | [`data-model-and-completeness-conventions.md`](data-model-and-completeness-conventions.md) |
+| sync code displays with an authoritative source (LOINC, YJ, ICD-10, MHLW tables) | [`code-display-authoritative-sync.md`](code-display-authoritative-sync.md) |
+
+## 3. Background and onboarding
+
+| Document | When to read |
+|---|---|
+| [`project-concept-and-design.md`](project-concept-and-design.md) | First, for the project concept (the nine requirements), the end-to-end pipeline and the two-layer narrative design. |
+| [`data-generation-walkthrough.md`](data-generation-walkthrough.md) | After the concept: how one patient record is born, from population to CIF to FHIR, with the real file and function names. |
+| [`MODULES.md`](../../MODULES.md) | The module map: every package under `clinosim/modules/`, the dependency graph, data flow and enricher order. |
+| [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.md) | Before adding a module: Base vs Module, canonical layout, loader / sub-seed / registry usage, verification (byte-diff vs audit). |
+| [`.github/TEMPLATE_MODULE_README.md`](../../.github/TEMPLATE_MODULE_README.md) | When creating a module skeleton: the README and path-constant boilerplate. |
+| [`fhir-data-generation-logic.md`](fhir-data-generation-logic.md) | When adding or extending a FHIR builder (`clinosim/modules/output/fhir_r4/<theme>/`). Subordinate to the code-mapping spec on display rules. |
+| [`clinosim/modules/output/SPEC.md`](../../clinosim/modules/output/SPEC.md) | When touching clinical documents or narratives: the two-pass CIF (structural + narrative, AD-65). |
+| [`SCENARIO_FLAGS.md`](../../SCENARIO_FLAGS.md) | When touching lab values or scenario / medication flags (`causes_X`, `on_warfarin`). |
+| [`docs/architecture/adr-history.md`](../architecture/adr-history.md) | When you need the reasoning behind a design decision (ADRs AD-1 to AD-71). |
+
+Historical plans that are no longer current live under [`docs/history/`](../history/).
 
 Japanese counterpart: [`README.ja.md`](README.ja.md).

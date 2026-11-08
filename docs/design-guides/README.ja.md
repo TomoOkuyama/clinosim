@@ -1,25 +1,45 @@
-# Design Guides — 新規モジュール著者のための読書パス
+# Design Guides — 規則と仕様の所在
 
-clinosim にモジュールを追加する新規開発者/実装 AI 向けの索引です。以下の順に読んでください。
-(0)〜(4) は全員必読、(5)〜(7) は触る領域に応じて読みます。
+人とエージェントを問わず、すべての貢献者のための design guides の索引。3 部構成で、すべての変更に適用されるコーディング規則、シミュレータの領域ごとの binding spec、オンボーディング用の背景資料からなる。ガイドとコードが食い違ったら同じ PR でどちらかを直す — ガイドは正しくあるべきものである。
 
-| # | ドキュメント | いつ読むか |
-| --- | --- | --- |
-| 0a | [`project-concept-and-design.md`](project-concept-and-design.ja.md) | **一番最初**。プロジェクトのコンセプト(9 要求)・パイプライン全体像・ナラティブ 2 層設計・現在地とロードマップのキャッチアップ |
-| 0b | [`implementation-rules.md`](implementation-rules.ja.md) | **コードを書く前に必ず**。全実装者が守る不変則の蒸留版(workflow 規律 / 決定性 / canonical helpers / silent-no-op 防御 / 検証 gate) |
-| 0c | [`data-generation-walkthrough.md`](data-generation-walkthrough.ja.md) | **コンセプトの次に**。「1 件の患者データがどう生まれるか」を population → イベント → 受診シミュレーション → CIF → FHIR まで実ファイル/関数名つきで end-to-end に追う。3 段 CLI・enricher・拡張の入口も。新規貢献者のオンボーディング用 |
-| 1 | [`MODULES.md`](../../MODULES.ja.md) | 全 38 module(`clinosim/modules/` 配下の package)の俯瞰・依存関係・データフローを 1 ページで把握する |
-| 2 | [`docs/CONTRIBUTING-modules.md`](../CONTRIBUTING-modules.ja.md) | 実装前に。Base/Module 判定、正準 layout、loader / sub-seed / registry / 検証 (byte-diff vs DQR) の実践 playbook |
-| 3 | [`.github/TEMPLATE_MODULE_README.md`](../../.github/TEMPLATE_MODULE_README.md) | モジュールの skeleton を作るとき。README + パス定数などの boilerplate をここからコピーする |
-| 4 | [`DESIGN.md`](../../DESIGN.ja.md) の curated ADR | 設計判断の背景が必要なとき。まず AD-16 / AD-17 / AD-25 / AD-30 / AD-55 / AD-56 / AD-59 / AD-60 / AD-65 の 9 つ(一言サマリは CONTRIBUTING-modules.md「最初に読む ADR」参照) |
-| 5 | [`clinosim/modules/output/SPEC.md`](../../clinosim/modules/output/SPEC.md) | 臨床文書 / narrative を触るときのみ。two-pass CIF(structural + narrative 分離、AD-65)の canonical spec |
-| 6 | [`docs/design-guides/fhir-data-generation-logic.md`](fhir-data-generation-logic.ja.md) | FHIR builder(`clinosim/modules/output/fhir_r4/<theme>/`、Layer 4)を追加・拡張するときのみ。code_lookup / URI / multilingual / anti-patterns |
-| 7 | [`SCENARIO_FLAGS.md`](../../SCENARIO_FLAGS.ja.md) | lab 値や scenario / medication flag(`causes_X` / `on_warfarin`)を触るときのみ。flag の一覧と追加手順 |
-| 0d | [`code-mapping-and-localization-spec.md`](code-mapping-and-localization-spec.ja.md) | **コードに関わる変更の前に必読。** コード体系・コード対応・名称解決関数・多言語対応・フォールバック規則の規範仕様。 |
-| 0e | [`determinism-and-rng-spec.md`](determinism-and-rng-spec.ja.md) | **乱数を引く・シードを導く・時計を読む変更の前に必読。** 生成器の生成元・シード導出・乱数をずらさない変更・時計の規範仕様。 |
-| 0f | [`medication-lifecycle-spec.md`](medication-lifecycle-spec.ja.md) | **薬剤をオーダー・保留・投与・中止・処方・コード化する変更の前に必読。** 安全ゲート・保留・投与・置換中止と退院時終了・退院時突合・製品コードの規範仕様。 |
-| 0g | [`narrative-and-document-generation-spec.md`](narrative-and-document-generation-spec.ja.md) | **文書を計画する・セクションを足す・臨床事実を言い表す変更の前に必読。** 文書 planner・セクション登録表・安全事象/バイタル/BMI の共通の言い表しの規範仕様。 |
-| 0h | [`configuration-and-reference-data-spec.md`](configuration-and-reference-data-spec.ja.md) | **参照データ YAML・年齢区分の表・定数を足す/読む前に必読。** 読み込みと検証・共有の表(年齢区分・フォローアップ・名前付き病態)・定数の置き場所の規範仕様。 |
-| 0i | [`lab-orders-and-results-spec.md`](lab-orders-and-results-spec.ja.md) | **検査をオーダー・導出・フラグ付け・結び付けする変更の前に必読。** 検査の真値・同一性とパネル・結果とオーダー・評価範囲の規範仕様。 |
-| 0j | [`encounter-lifecycle-and-export-spec.md`](encounter-lifecycle-and-export-spec.ja.md) | **受診を作る/終える・スナップショットを当てる・FHIR リソースを仕上げる変更の前に必読。** 受診の設定・月次ループ・死亡記録・出力時のスナップショット・FHIR の仕上げの規範仕様。 |
-| 8 | [`data-model-and-completeness-conventions.md`](data-model-and-completeness-conventions.ja.md) | FHIR completeness fix-point(重症度統合 / 孤児 YAML キー / `extra="forbid"` / I10 stage / person.age / course_archetypes)を実装するときのみ。C1/C2/C3 不完全状態の禁止規約と as-of-age パターン。台帳 = `docs/design-notes/2026-07-06-fix-point-registry.md` |
+## 1. コーディング規則(コードを書く前に読む)
+
+| 文書 | 内容 |
+| --- | --- |
+| [`implementation-rules.ja.md`](implementation-rules.ja.md) | **ここから読む。** すべての変更が従う規則(workflow・コーディング標準・アーキテクチャ不変則・決定性・正準ヘルパー・loader・検証 gate・silent-no-op 防御)と、関心事ごとの binding spec への対応表。 |
+| [`shared-helpers-catalog.ja.md`](shared-helpers-catalog.ja.md) | X にどの共通ヘルパーを使うか。モジュール横断のヘルパーを関心事別に、パスと governing spec 付きで一覧にしたもの。小さな処理を書く前に引く。 |
+| [`documentation-and-code-quality-policy.ja.md`](documentation-and-code-quality-policy.ja.md) | 文書の言語と EN/JA の対、自己完結した OSS 品質、ソースコメントの言語、定数の置き場所、dead code の扱い。 |
+
+## 2. Binding specs(変更する領域の spec を読む)
+
+各 spec は規則・それを実装する正準コード・それを強制するガードテストを示す。その領域の変更は spec に従うか、同じ PR で spec を改める。
+
+| こういう変更の前に | Spec |
+| --- | --- |
+| コード・表示名・コード対応・名称解決関数・多言語化・fallback を足す/変える | [`code-mapping-and-localization-spec.ja.md`](code-mapping-and-localization-spec.ja.md) |
+| 乱数を引く・シードを導く・時計を読む | [`determinism-and-rng-spec.ja.md`](determinism-and-rng-spec.ja.md) |
+| 参照データ YAML・年齢区分の表・定数を足す/読む | [`configuration-and-reference-data-spec.ja.md`](configuration-and-reference-data-spec.ja.md) |
+| 薬剤をオーダー・保留・投与・中止・処方・コード化する | [`medication-lifecycle-spec.ja.md`](medication-lifecycle-spec.ja.md) |
+| 検査をオーダー・導出・フラグ付け・結び付けする | [`lab-orders-and-results-spec.ja.md`](lab-orders-and-results-spec.ja.md) |
+| 文書を計画する・セクションを足す・臨床事実を言い表す | [`narrative-and-document-generation-spec.ja.md`](narrative-and-document-generation-spec.ja.md) |
+| 受診を作る/終える・スナップショットを当てる・FHIR リソースを仕上げる | [`encounter-lifecycle-and-export-spec.ja.md`](encounter-lifecycle-and-export-spec.ja.md) |
+| FHIR 完全性の修正(読まれない YAML キー・消費されない要素・`extra="forbid"`・病期・as-of 年齢)を実装する | [`data-model-and-completeness-conventions.ja.md`](data-model-and-completeness-conventions.ja.md) |
+| コード表示名を権威ある出典(LOINC・YJ・ICD-10・厚労省の表)と同期する | [`code-display-authoritative-sync.ja.md`](code-display-authoritative-sync.ja.md) |
+
+## 3. 背景とオンボーディング
+
+| 文書 | いつ読むか |
+| --- | --- |
+| [`project-concept-and-design.ja.md`](project-concept-and-design.ja.md) | 最初に。プロジェクトのコンセプト(9 要求)・パイプライン全体像・ナラティブ 2 層設計。 |
+| [`data-generation-walkthrough.ja.md`](data-generation-walkthrough.ja.md) | コンセプトの次に。1 件の患者データが population から CIF・FHIR まで生まれる流れを、実ファイル/関数名つきで追う。 |
+| [`MODULES.ja.md`](../../MODULES.ja.md) | モジュールの地図。`clinosim/modules/` 配下の全 package・依存関係・データフロー・enricher の順序。 |
+| [`docs/CONTRIBUTING-modules.ja.md`](../CONTRIBUTING-modules.ja.md) | モジュールを足す前に。Base / Module 判定・正準 layout・loader / sub-seed / registry の使い方・検証(byte-diff と audit)。 |
+| [`.github/TEMPLATE_MODULE_README.md`](../../.github/TEMPLATE_MODULE_README.md) | モジュールの skeleton を作るとき。README とパス定数の boilerplate。 |
+| [`fhir-data-generation-logic.ja.md`](fhir-data-generation-logic.ja.md) | FHIR builder(`clinosim/modules/output/fhir_r4/<theme>/`)を足す・拡張するとき。表示の規則は code-mapping spec が優先。 |
+| [`clinosim/modules/output/SPEC.md`](../../clinosim/modules/output/SPEC.md) | 臨床文書・narrative を触るとき。two-pass CIF(structural + narrative、AD-65)。 |
+| [`SCENARIO_FLAGS.ja.md`](../../SCENARIO_FLAGS.ja.md) | 検査値や scenario / medication flag(`causes_X`、`on_warfarin`)を触るとき。 |
+| [`docs/architecture/adr-history.md`](../architecture/adr-history.md) | 設計判断の背景が必要なとき(ADR AD-1〜AD-71)。 |
+
+現行でなくなった過去の計画は [`docs/history/`](../history/) にある。
+
+English counterpart: [`README.md`](README.md).

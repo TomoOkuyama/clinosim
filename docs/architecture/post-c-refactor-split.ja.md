@@ -130,7 +130,7 @@ Issue #2169 以降、4 つの phase はループ後の runner ではない。各
 ### なぜこの境界か (原案との差)
 
 C2 前の計画書
-[`../design-guides/p6-god-function-split-plan.md`](../design-guides/p6-god-function-split-plan.md)
+[`../history/plans-archive/p6-god-function-split-plan.md`](../history/plans-archive/p6-god-function-split-plan.md)
 は phase 名を `_run_beta_prepare` / `_run_beta_month_tick` /
 `_run_beta_dispatch_window` / `_run_beta_writeback` と提案していた。
 実際の分割は代わりに `_setup` + `_dispatch` + 4 本の phase runner を
@@ -212,5 +212,5 @@ from clinosim.modules.population._chemo import pick_active_chemo_regimen
 ## 7. 次に見る場所
 
 - [`module-architecture.md`](module-architecture.md) — top-level パッケージツリー。post-C2 simulator レイアウトを反映。
-- [`../design-guides/p6-god-function-split-plan.md`](../design-guides/p6-god-function-split-plan.md) — 実行前の原案 + 実行結果 callout を inline で追記済。
+- [`../history/plans-archive/p6-god-function-split-plan.md`](../history/plans-archive/p6-god-function-split-plan.md) — 実行前の原案 + 実行結果 callout を inline で追記済。
 - 各抽出モジュールのファイル先頭 docstring — 「RNG-neutrality contract」「cross-year state」等の属性別設計ノートが元の engine から verbatim で移植されている。

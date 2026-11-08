@@ -383,7 +383,7 @@ def _finalize_discharge(
     the encounter field assignments are state-reads only.
 
     Extracted from ``_simulate_patient`` per META #1633 P6
-    (``docs/design-guides/p6-god-function-split-plan.md``).
+    (``docs/history/plans-archive/p6-god-function-split-plan.md``).
     """
     final_renal = state.renal_function if state else 1.0
     discharge_rx = (
@@ -466,7 +466,7 @@ def _run_post_encounter_stage(
 
     Extracted from ``_simulate_patient`` as part of META #1633 P6
     (first-pass split; the admit / tick / discharge phases per
-    ``docs/design-guides/p6-god-function-split-plan.md`` remain as
+    ``docs/history/plans-archive/p6-god-function-split-plan.md`` remain as
     follow-up work).
     """
     from clinosim.simulator.enrichers import (
