@@ -4060,6 +4060,8 @@ sub-seed を割り当てる。</p>
 </tbody>
 </table>
 <h4 id="seed-階層">Seed 階層<a class="headerlink" href="#seed-階層" title="Permanent link">&para;</a></h4>
+<p>(当初設計のスケッチ。実装の sub-stream は上の注記にある
+<code>clinosim/seeding.py</code> の helper。)</p>
 <p>master_seed から派生する sub-seed (population_seed、disease_seed、
 staff_seed、encounter_seed、physiology_seed、order_seed、
 nursing_seed、observation_seed、llm_cache_key)。各モジュールは
@@ -4238,6 +4240,14 @@ enum)。国 / 言語固有レンダリングは定義された境界で発生す
 </span></code></pre></div>
 <h4 id="layer-1-人物名-populationstaff">Layer 1: 人物名 (population、staff)<a class="headerlink" href="#layer-1-人物名-populationstaff" title="Permanent link">&para;</a></h4>
 <p>名前はアイデンティティの一部 — 作成時に一度生成、CIF に保存。</p>
+<div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>clinosim/locale/jp/names.yaml   # 姓 (重み付き)、名 (男女別、世代相応)
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>clinosim/locale/us/names.yaml   # 姓 (国勢調査)、名 (男女別、年代相応)
+</span></code></pre></div>
+<p>集団とスタッフの名前サンプリングは同じ locale yaml から引く
+(<code>modules/*/names/</code> のような別ディレクトリは無い — データは
+<code>clinosim/locale/&lt;country&gt;/names.yaml</code> にあり、
+<code>clinosim/locale/loaders/demographics.py</code> と <code>clinosim/modules/staff/</code>
+のローダが読む)。</p>
 <p>国別名前構造:</p>
 <table>
 <thead>
@@ -4270,13 +4280,13 @@ enum)。国 / 言語固有レンダリングは定義された境界で発生す
 - JP: 全メンバーが姓を共有 (旧姓を保持する既婚女性は ~5% を除く)
 - US: 子供は父の姓を取る (通常); 既婚カップルは異なりうる</p>
 <p>CIF 内データ型:
-<div class="highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nd">@dataclass</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">PersonName</span><span class="p">:</span>
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>    <span class="n">family_name</span><span class="p">:</span> <span class="nb">str</span>          <span class="c1"># "田中" / "Smith"</span>
-</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>    <span class="n">given_name</span><span class="p">:</span> <span class="nb">str</span>           <span class="c1"># "太郎" / "John"</span>
-</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    <span class="n">display_name</span><span class="p">:</span> <span class="nb">str</span>         <span class="c1"># "田中 太郎" / "John Smith" (国フォーマット)</span>
-</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>    <span class="n">name_script</span><span class="p">:</span> <span class="nb">str</span>          <span class="c1"># "ja" / "en" (名前が書かれる script)</span>
-</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>    <span class="n">phonetic</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>      <span class="c1"># "タナカ タロウ" (JP: カタカナ; US: None)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nd">@dataclass</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">PersonName</span><span class="p">:</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>    <span class="n">family_name</span><span class="p">:</span> <span class="nb">str</span>          <span class="c1"># "田中" / "Smith"</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>    <span class="n">given_name</span><span class="p">:</span> <span class="nb">str</span>           <span class="c1"># "太郎" / "John"</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>    <span class="n">display_name</span><span class="p">:</span> <span class="nb">str</span>         <span class="c1"># "田中 太郎" / "John Smith" (国フォーマット)</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="n">name_script</span><span class="p">:</span> <span class="nb">str</span>          <span class="c1"># "ja" / "en" (名前が書かれる script)</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="n">phonetic</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>      <span class="c1"># "タナカ タロウ" (JP: カタカナ; US: None)</span>
 </span></code></pre></div></p>
 <h4 id="layer-2-臨床用語翻訳-outputcode_mapping">Layer 2: 臨床用語翻訳 (output/code_mapping)<a class="headerlink" href="#layer-2-臨床用語翻訳-outputcode_mapping" title="Permanent link">&para;</a></h4>
 <p>全内部コードは標準システム (ICD-10、LOINC/JLAC10、RxNorm/YJ) を
@@ -4408,26 +4418,26 @@ enum)。国 / 言語固有レンダリングは定義された境界で発生す
 を持って到着する。診断は臨床プロセスの <strong>出力</strong> であり、入力では
 ない。</p>
 <p>clinosim はこの forward プロセスをシミュレート:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>Ground truth          臨床プロセス          EHR レコード
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>(hidden、CIF 内)      (シミュレート)         (出力)
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>原因:                 呈示:                 入院 Dx:
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>  既知疾患       --&gt;    症状 / 徴候      --&gt;    "Pneumonia, unspecified"
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>  混合原因       --&gt;    重複症状          --&gt;    "Pneumonia" (誤りかも)
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>  未知原因       --&gt;    非特異的症状       --&gt;    "Fever, unspecified"
-</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>|
-</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>                        Workup:
-</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>                          labs、imaging
-</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>|
-</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>                        Differential:
-</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>                          結果で更新
-</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>|
-</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>                        Working Dx:            Progress notes:
-</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>                          変わりうる           "Pneumonia suspected"
-</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>|
-</span><span id="__span-16-18"><a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>                        Final Dx:              Discharge Dx:
-</span><span id="__span-16-19"><a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>                          ground truth と      "Pneumonia due to S. pneumoniae"
-</span><span id="__span-16-20"><a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a>                          異なりうる           (または 10% で "Fever, unresolved")
+<div class="highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>Ground truth          臨床プロセス          EHR レコード
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>(hidden、CIF 内)      (シミュレート)         (出力)
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>原因:                 呈示:                 入院 Dx:
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>  既知疾患       --&gt;    症状 / 徴候      --&gt;    "Pneumonia, unspecified"
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>  混合原因       --&gt;    重複症状          --&gt;    "Pneumonia" (誤りかも)
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>  未知原因       --&gt;    非特異的症状       --&gt;    "Fever, unspecified"
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>                            |
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>                        Workup:
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>                          labs、imaging
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>                            |
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>                        Differential:
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>                          結果で更新
+</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>                            |
+</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>                        Working Dx:            Progress notes:
+</span><span id="__span-17-16"><a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a>                          変わりうる           "Pneumonia suspected"
+</span><span id="__span-17-17"><a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a>                            |
+</span><span id="__span-17-18"><a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a>                        Final Dx:              Discharge Dx:
+</span><span id="__span-17-19"><a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a>                          ground truth と      "Pneumonia due to S. pneumoniae"
+</span><span id="__span-17-20"><a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a>                          異なりうる           (または 10% で "Fever, unresolved")
 </span></code></pre></div>
 <h4 id="3-つの-condition-生成器タイプ">3 つの condition 生成器タイプ<a class="headerlink" href="#3-つの-condition-生成器タイプ" title="Permanent link">&para;</a></h4>
 <p><strong>Type 1: 既知原因 condition</strong>
@@ -4461,35 +4471,39 @@ specific 疾患が状態変化を駆動。これは現行モデル。
 - 最終 dx: "R50.9 Fever, unspecified" (~10% のケースで退院時
   未解決)</p>
 <h4 id="ground-truth-vs-臨床診断">Ground truth vs 臨床診断<a class="headerlink" href="#ground-truth-vs-臨床診断" title="Permanent link">&para;</a></h4>
-<div class="highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="nd">@dataclass</span>
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">ConditionEvent</span><span class="p">:</span>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="sd">"""患者に実際に起こること (hidden ground truth)。"""</span>
-</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>    <span class="n">condition_id</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>    <span class="n">condition_type</span><span class="p">:</span> <span class="nb">str</span>           <span class="c1"># "known_disease" | "mixed" | "unknown"</span>
-</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>
-</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>    <span class="c1"># known_disease 用:</span>
-</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>    <span class="n">ground_truth_diseases</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>  <span class="c1"># ["bacterial_pneumonia"] or ["bacterial_pneumonia", "heart_failure_exacerbation"]</span>
-</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>
-</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>    <span class="c1"># unknown 用:</span>
-</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>    <span class="n">symptom_pattern</span><span class="p">:</span> <span class="nb">str</span>          <span class="c1"># "fever_unknown" | "weight_loss" | "malaise"</span>
-</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>
-</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a>    <span class="c1"># 状態影響はタイプに関わらず適用される</span>
-</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a>    <span class="n">state_impacts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>   <span class="c1"># 全原因からの combined impact</span>
-</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>
-</span><span id="__span-17-16"><a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="nd">@dataclass</span>
-</span><span id="__span-17-17"><a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="k">class</span><span class="w"> </span><span class="nc">ClinicalDiagnosis</span><span class="p">:</span>
-</span><span id="__span-17-18"><a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a><span class="w">    </span><span class="sd">"""病院が結論すること (ground truth と異なりうる)。"""</span>
-</span><span id="__span-17-19"><a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a>    <span class="n">admission_diagnosis</span><span class="p">:</span> <span class="nb">str</span>      <span class="c1"># 入院時 ICD コード (しばしば漠然)</span>
-</span><span id="__span-17-20"><a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a>    <span class="n">working_diagnoses</span><span class="p">:</span> <span class="nb">list</span>       <span class="c1"># 滞在中に発展</span>
-</span><span id="__span-17-21"><a id="__codelineno-17-21" name="__codelineno-17-21" href="#__codelineno-17-21"></a>    <span class="n">discharge_diagnosis</span><span class="p">:</span> <span class="nb">str</span>      <span class="c1"># 退院時 ICD コード (依然漠然かも)</span>
-</span><span id="__span-17-22"><a id="__codelineno-17-22" name="__codelineno-17-22" href="#__codelineno-17-22"></a>
-</span><span id="__span-17-23"><a id="__codelineno-17-23" name="__codelineno-17-23" href="#__codelineno-17-23"></a>    <span class="n">diagnosis_correct</span><span class="p">:</span> <span class="nb">bool</span>       <span class="c1"># 退院 dx が ground truth と一致するか? (CIF hidden field)</span>
-</span><span id="__span-17-24"><a id="__codelineno-17-24" name="__codelineno-17-24" href="#__codelineno-17-24"></a>    <span class="n">missed_diagnoses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>   <span class="c1"># 識別されなかった ground truth 疾患</span>
-</span><span id="__span-17-25"><a id="__codelineno-17-25" name="__codelineno-17-25" href="#__codelineno-17-25"></a>    <span class="n">overcalled_diagnoses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>  <span class="c1"># 診断されたが実際は存在しない</span>
+<div class="highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nd">@dataclass</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">ConditionEvent</span><span class="p">:</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="sd">"""患者に実際に起こること (hidden ground truth)。"""</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>    <span class="n">condition_id</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>    <span class="n">condition_type</span><span class="p">:</span> <span class="nb">str</span>           <span class="c1"># "known_disease" | "mixed" | "unknown"</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>    <span class="c1"># known_disease 用:</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>    <span class="n">ground_truth_diseases</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>  <span class="c1"># ["bacterial_pneumonia"] or ["bacterial_pneumonia", "heart_failure_exacerbation"]</span>
+</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>
+</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>    <span class="c1"># unknown 用:</span>
+</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>    <span class="n">symptom_pattern</span><span class="p">:</span> <span class="nb">str</span>          <span class="c1"># "fever_unknown" | "weight_loss" | "malaise"</span>
+</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a>
+</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>    <span class="c1"># 状態影響はタイプに関わらず適用される</span>
+</span><span id="__span-18-14"><a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a>    <span class="n">state_impacts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>   <span class="c1"># 全原因からの combined impact</span>
+</span><span id="__span-18-15"><a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a>
+</span><span id="__span-18-16"><a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="nd">@dataclass</span>
+</span><span id="__span-18-17"><a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a><span class="k">class</span><span class="w"> </span><span class="nc">ClinicalDiagnosis</span><span class="p">:</span>
+</span><span id="__span-18-18"><a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="w">    </span><span class="sd">"""病院が結論すること (ground truth と異なりうる)。"""</span>
+</span><span id="__span-18-19"><a id="__codelineno-18-19" name="__codelineno-18-19" href="#__codelineno-18-19"></a>    <span class="n">admission_diagnosis</span><span class="p">:</span> <span class="nb">str</span>      <span class="c1"># 入院時 ICD コード (しばしば漠然)</span>
+</span><span id="__span-18-20"><a id="__codelineno-18-20" name="__codelineno-18-20" href="#__codelineno-18-20"></a>    <span class="n">working_diagnoses</span><span class="p">:</span> <span class="nb">list</span>       <span class="c1"># 滞在中に発展</span>
+</span><span id="__span-18-21"><a id="__codelineno-18-21" name="__codelineno-18-21" href="#__codelineno-18-21"></a>    <span class="n">discharge_diagnosis</span><span class="p">:</span> <span class="nb">str</span>      <span class="c1"># 退院時 ICD コード (依然漠然かも)</span>
+</span><span id="__span-18-22"><a id="__codelineno-18-22" name="__codelineno-18-22" href="#__codelineno-18-22"></a>
+</span><span id="__span-18-23"><a id="__codelineno-18-23" name="__codelineno-18-23" href="#__codelineno-18-23"></a>    <span class="n">diagnosis_correct</span><span class="p">:</span> <span class="nb">bool</span>       <span class="c1"># 退院 dx が ground truth と一致するか? (CIF hidden field)</span>
+</span><span id="__span-18-24"><a id="__codelineno-18-24" name="__codelineno-18-24" href="#__codelineno-18-24"></a>    <span class="n">missed_diagnoses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>   <span class="c1"># 識別されなかった ground truth 疾患</span>
+</span><span id="__span-18-25"><a id="__codelineno-18-25" name="__codelineno-18-25" href="#__codelineno-18-25"></a>    <span class="n">overcalled_diagnoses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>  <span class="c1"># 診断されたが実際は存在しない</span>
 </span></code></pre></div>
 <h4 id="診断精度パラメータ">診断精度パラメータ<a class="headerlink" href="#診断精度パラメータ" title="Permanent link">&para;</a></h4>
-<p>実世界診断精度は変動する。clinosim は tunable パラメータとして
-モデル化:</p>
+<p>実世界診断精度は変動する。clinosim はこれを tunable パラメータとして
+モデル化する計画。</p>
+<blockquote>
+<p><strong>未実装 (計画)。</strong> 以下のパラメータは現在コードにも <code>SimulatorConfig</code>
+にも存在しない。表は設計目標を記録したもの。</p>
+</blockquote>
 <table>
 <thead>
 <tr>
@@ -4546,7 +4560,7 @@ specific 疾患が状態変化を駆動。これは現行モデル。
 </tr>
 <tr>
 <td>AD-29</td>
-<td>診断精度は tunable パラメータ。デフォルトは実世界レート (~85% 正しい) と一致。異なる用途のために調整可能。</td>
+<td>診断精度は tunable パラメータ。デフォルトは実世界レート (~85% 正しい) と一致。異なる用途のために調整可能。(未実装 — 計画。)</td>
 </tr>
 </tbody>
 </table>
@@ -4598,8 +4612,8 @@ Mode 1 のスーパーセット。</p>
 <p>clinosim は患者を生成 <strong>しない</strong>。<strong>集団</strong> を生成し、人々に生活
 させ、病院訪問時に何が起こるかを観察する。これは他の合成データ
 生成器との根本的な違い。</p>
-<div class="highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>伝統的アプローチ:      患者 → 疾患 → 病院レコード    (逆向き)
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>clinosim アプローチ:   集団 → ライフイベント → 病院訪問 → レコード    (前向き、現実のように)
+<div class="highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>伝統的アプローチ:      患者 → 疾患 → 病院レコード    (逆向き)
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>clinosim アプローチ:   集団 → ライフイベント → 病院訪問 → レコード    (前向き、現実のように)
 </span></code></pre></div>
 <h3 id="2-層集団モデル">2 層集団モデル<a class="headerlink" href="#2-層集団モデル" title="Permanent link">&para;</a></h3>
 <p>各人を詳細にシミュレートするのは計算的に不可能。集団は 2 層
@@ -4618,6 +4632,16 @@ Mode 1 のスーパーセット。</p>
 - フル臨床シミュレーション: 生理、診断、治療、観察
 - 退院 + フォローアップ完了後、人は Layer 1 に戻る (履歴は保持)
 - 次の病院訪問で再アクティブ化 (全前データ intact で)</p>
+<div class="highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>集団レジストリ (Layer 1)
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>  │
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>  │ ← ライフイベントが受診行動を誘発
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>  ↓
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>アクティブ患者 (Layer 2) ──→ Encounter ──→ 臨床シミュレーション ──→ レコード
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>  │
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>  │ ← 退院 + フォローアップ完了
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>  ↓
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>集団レジストリ (Layer 1) [健康状態を更新]
+</span></code></pre></div>
 <h3 id="世帯ベース生成">世帯ベース生成<a class="headerlink" href="#世帯ベース生成" title="Permanent link">&para;</a></h3>
 <p>人は孤立した個人としてではなく <strong>世帯</strong> に属して生成される:</p>
 <ul>
@@ -4660,12 +4684,12 @@ Mode 1 のスーパーセット。</p>
 - 結果: 行動なし、self-care、外来訪問、ER 訪問、救急車呼び出し</p>
 <h3 id="紹介経路">紹介経路<a class="headerlink" href="#紹介経路" title="Permanent link">&para;</a></h3>
 <p>大半の病院患者は直接ではなく紹介経由で到着する:</p>
-<div class="highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>症状のある人
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>  ├── 軽度 → 地元クリニック / GP (かかりつけ医 / PCP)
-</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>  │     └── クリニックの capability を超える → 紹介状 → この病院
-</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>  ├── 中等度 → この病院外来 (紹介あり / なし)
-</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>  ├── 重度 → この病院 ER
-</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>  └── 緊急 → 救急車 → この病院 ER
+<div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>症状のある人
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>  ├── 軽度 → 地元クリニック / GP (かかりつけ医 / PCP)
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>  │     └── クリニックの capability を超える → 紹介状 → この病院
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>  ├── 中等度 → この病院外来 (紹介あり / なし)
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>  ├── 重度 → この病院 ER
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>  └── 緊急 → 救急車 → この病院 ER
 </span></code></pre></div>
 <p>紹介元クリニックは完全にはシミュレートされない — 以下として表現:
 - 基本情報付き紹介元 (クリニック名、紹介医)
@@ -4721,36 +4745,36 @@ Mode 1 のスーパーセット。</p>
 現行の構成は <a href="../module-architecture.ja/"><code>module-architecture.ja.md</code></a> と
 <a href="../../MODULES.ja.md"><code>../../MODULES.ja.md</code></a> を参照。</p>
 </blockquote>
-<div class="highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>clinosim/
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>├── DESIGN.md              ← この文書 (設計ガイドライン)
-</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>├── docs/roadmap.md        ← ロードマップ (GitHub Issues board を指す)
-</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>├── docs/history/spec-2026-04.md  ← 歴史的 spec (2026-04、参考として保持)
-</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>├── README.md              ← プロジェクト紹介
-</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>│
-</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>├── modules/
-</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>│   ├── INTERFACES.md      ← コアデータ型定義 (モジュール間コントラクト)
-</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>│   ├── population/        ← catchment 集団、世帯、ライフイベント
-</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>│   ├── facility/          ← 病院施設定義 (規模、診療科、ベッド)
-</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>│   ├── staff/             ← 医療スタッフ生成、ライフサイクル &amp; 割当
-</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>│   ├── patient/           ← Layer 1 → Layer 2 アクティブ化 &amp; 臨床詳細
-</span><span id="__span-20-13"><a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>│   ├── encounter/         ← Encounter タイプ &amp; ワークフロー state machine
-</span><span id="__span-20-14"><a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>│   ├── order/             ← Order ライフサイクル (order → execute → result)
-</span><span id="__span-20-15"><a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a>│   ├── physiology/        ← 生理状態変数 &amp; 状態空間
-</span><span id="__span-20-16"><a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a>│   ├── disease/           ← 疾患定義 &amp; イベントスケジューリング
-</span><span id="__span-20-17"><a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a>│   ├── diagnosis/         ← 診断推論エンジン
-</span><span id="__span-20-18"><a id="__codelineno-20-18" name="__codelineno-20-18" href="#__codelineno-20-18"></a>│   ├── clinical_course/   ← 臨床コースエンジン (archetype、状態遷移)
-</span><span id="__span-20-19"><a id="__codelineno-20-19" name="__codelineno-20-19" href="#__codelineno-20-19"></a>│   ├── treatment/         ← 薬剤 &amp; 治療モデル
-</span><span id="__span-20-20"><a id="__codelineno-20-20" name="__codelineno-20-20" href="#__codelineno-20-20"></a>│   ├── observation/       ← 検査 &amp; vital sign 生成 (3 層エンジン)
-</span><span id="__span-20-21"><a id="__codelineno-20-21" name="__codelineno-20-21" href="#__codelineno-20-21"></a>│   ├── nursing/           ← 看護プロセス &amp; ケアレコード
-</span><span id="__span-20-22"><a id="__codelineno-20-22" name="__codelineno-20-22" href="#__codelineno-20-22"></a>│   ├── procedure/         ← 手術 &amp; 手技ワークフロー
-</span><span id="__span-20-23"><a id="__codelineno-20-23" name="__codelineno-20-23" href="#__codelineno-20-23"></a>│   ├── validator/         ← 整合性検証
-</span><span id="__span-20-24"><a id="__codelineno-20-24" name="__codelineno-20-24" href="#__codelineno-20-24"></a>│   ├── healthcare_system/ ← 医療システム設定 (日本 / US)
-</span><span id="__span-20-25"><a id="__codelineno-20-25" name="__codelineno-20-25" href="#__codelineno-20-25"></a>│   ├── llm_service/       ← LLM 統合サービス (LLM 接触の単一ポイント)
-</span><span id="__span-20-26"><a id="__codelineno-20-26" name="__codelineno-20-26" href="#__codelineno-20-26"></a>│   │   ├── prompts/       ← プロンプトテンプレート (YAML)
-</span><span id="__span-20-27"><a id="__codelineno-20-27" name="__codelineno-20-27" href="#__codelineno-20-27"></a>│   │   └── templates/     ← テンプレートモード fallback (LLM なし)
-</span><span id="__span-20-28"><a id="__codelineno-20-28" name="__codelineno-20-28" href="#__codelineno-20-28"></a>│   └── output/            ← データエクスポート (FHIR R4、CSV)
-</span><span id="__span-20-29"><a id="__codelineno-20-29" name="__codelineno-20-29" href="#__codelineno-20-29"></a>│
-</span><span id="__span-20-30"><a id="__codelineno-20-30" name="__codelineno-20-30" href="#__codelineno-20-30"></a>└── simulator/             ← メインオーケストレータ
+<div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>clinosim/
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>├── DESIGN.md              ← この文書 (設計ガイドライン)
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>├── docs/roadmap.md        ← ロードマップ (GitHub Issues board を指す)
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>├── docs/history/spec-2026-04.md  ← 歴史的 spec (2026-04、参考として保持)
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>├── README.md              ← プロジェクト紹介
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>│
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>├── modules/
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>│   ├── INTERFACES.md      ← コアデータ型定義 (モジュール間コントラクト)
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a>│   ├── population/        ← catchment 集団、世帯、ライフイベント
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>│   ├── facility/          ← 病院施設定義 (規模、診療科、ベッド)
+</span><span id="__span-22-11"><a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a>│   ├── staff/             ← 医療スタッフ生成、ライフサイクル &amp; 割当
+</span><span id="__span-22-12"><a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a>│   ├── patient/           ← Layer 1 → Layer 2 アクティブ化 &amp; 臨床詳細
+</span><span id="__span-22-13"><a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a>│   ├── encounter/         ← Encounter タイプ &amp; ワークフロー state machine
+</span><span id="__span-22-14"><a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a>│   ├── order/             ← Order ライフサイクル (order → execute → result)
+</span><span id="__span-22-15"><a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a>│   ├── physiology/        ← 生理状態変数 &amp; 状態空間
+</span><span id="__span-22-16"><a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a>│   ├── disease/           ← 疾患定義 &amp; イベントスケジューリング
+</span><span id="__span-22-17"><a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a>│   ├── diagnosis/         ← 診断推論エンジン
+</span><span id="__span-22-18"><a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a>│   ├── clinical_course/   ← 臨床コースエンジン (archetype、状態遷移)
+</span><span id="__span-22-19"><a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a>│   ├── treatment/         ← 薬剤 &amp; 治療モデル
+</span><span id="__span-22-20"><a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a>│   ├── observation/       ← 検査 &amp; vital sign 生成 (3 層エンジン)
+</span><span id="__span-22-21"><a id="__codelineno-22-21" name="__codelineno-22-21" href="#__codelineno-22-21"></a>│   ├── nursing/           ← 看護プロセス &amp; ケアレコード
+</span><span id="__span-22-22"><a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a>│   ├── procedure/         ← 手術 &amp; 手技ワークフロー
+</span><span id="__span-22-23"><a id="__codelineno-22-23" name="__codelineno-22-23" href="#__codelineno-22-23"></a>│   ├── validator/         ← 整合性検証
+</span><span id="__span-22-24"><a id="__codelineno-22-24" name="__codelineno-22-24" href="#__codelineno-22-24"></a>│   ├── healthcare_system/ ← 医療システム設定 (日本 / US)
+</span><span id="__span-22-25"><a id="__codelineno-22-25" name="__codelineno-22-25" href="#__codelineno-22-25"></a>│   ├── llm_service/       ← LLM 統合サービス (LLM 接触の単一ポイント)
+</span><span id="__span-22-26"><a id="__codelineno-22-26" name="__codelineno-22-26" href="#__codelineno-22-26"></a>│   │   ├── prompts/       ← プロンプトテンプレート (YAML)
+</span><span id="__span-22-27"><a id="__codelineno-22-27" name="__codelineno-22-27" href="#__codelineno-22-27"></a>│   │   └── templates/     ← テンプレートモード fallback (LLM なし)
+</span><span id="__span-22-28"><a id="__codelineno-22-28" name="__codelineno-22-28" href="#__codelineno-22-28"></a>│   └── output/            ← データエクスポート (FHIR R4、CSV)
+</span><span id="__span-22-29"><a id="__codelineno-22-29" name="__codelineno-22-29" href="#__codelineno-22-29"></a>│
+</span><span id="__span-22-30"><a id="__codelineno-22-30" name="__codelineno-22-30" href="#__codelineno-22-30"></a>└── simulator/             ← メインオーケストレータ
 </span></code></pre></div>
 <h3 id="モジュールフォルダあたり必要ファイル">モジュールフォルダあたり必要ファイル<a class="headerlink" href="#モジュールフォルダあたり必要ファイル" title="Permanent link">&para;</a></h3>
 <table>
@@ -4768,28 +4792,28 @@ Mode 1 のスーパーセット。</p>
 </tbody>
 </table>
 <h3 id="specmd-テンプレート">SPEC.md テンプレート<a class="headerlink" href="#specmd-テンプレート" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="gh"># Module Name</span>
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
-</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="gu">## Purpose</span>
-</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>このモジュールが何をするか (1–2 文)。
-</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>
-</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="gu">## Inputs</span>
-</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="k">-</span><span class="w"> </span>受け取るもの (データ型、ソースモジュール)
-</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>
-</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a><span class="gu">## Outputs</span>
-</span><span id="__span-21-10"><a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="k">-</span><span class="w"> </span>produce するもの (データ型、consumer モジュール)
-</span><span id="__span-21-11"><a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>
-</span><span id="__span-21-12"><a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="gu">## Dependencies</span>
-</span><span id="__span-21-13"><a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="k">-</span><span class="w"> </span>依存するモジュール
-</span><span id="__span-21-14"><a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a>
-</span><span id="__span-21-15"><a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a><span class="gu">## Confirmed Specifications</span>
-</span><span id="__span-21-16"><a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a>(確定した設計判断をここに追記)
-</span><span id="__span-21-17"><a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a>
-</span><span id="__span-21-18"><a id="__codelineno-21-18" name="__codelineno-21-18" href="#__codelineno-21-18"></a><span class="gu">## Open Questions</span>
-</span><span id="__span-21-19"><a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a>(モジュール固有の open question)
-</span><span id="__span-21-20"><a id="__codelineno-21-20" name="__codelineno-21-20" href="#__codelineno-21-20"></a>
-</span><span id="__span-21-21"><a id="__codelineno-21-21" name="__codelineno-21-21" href="#__codelineno-21-21"></a><span class="gu">## Design Notes</span>
-</span><span id="__span-21-22"><a id="__codelineno-21-22" name="__codelineno-21-22" href="#__codelineno-21-22"></a>(議論中のアイデアとオプション)
+<div class="highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="gh"># Module Name</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="gu">## Purpose</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>このモジュールが何をするか (1–2 文)。
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="gu">## Inputs</span>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="k">-</span><span class="w"> </span>受け取るもの (データ型、ソースモジュール)
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="gu">## Outputs</span>
+</span><span id="__span-23-10"><a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a><span class="k">-</span><span class="w"> </span>produce するもの (データ型、consumer モジュール)
+</span><span id="__span-23-11"><a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a>
+</span><span id="__span-23-12"><a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a><span class="gu">## Dependencies</span>
+</span><span id="__span-23-13"><a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a><span class="k">-</span><span class="w"> </span>依存するモジュール
+</span><span id="__span-23-14"><a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a>
+</span><span id="__span-23-15"><a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a><span class="gu">## Confirmed Specifications</span>
+</span><span id="__span-23-16"><a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a>(確定した設計判断をここに追記)
+</span><span id="__span-23-17"><a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a>
+</span><span id="__span-23-18"><a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a><span class="gu">## Open Questions</span>
+</span><span id="__span-23-19"><a id="__codelineno-23-19" name="__codelineno-23-19" href="#__codelineno-23-19"></a>(モジュール固有の open question)
+</span><span id="__span-23-20"><a id="__codelineno-23-20" name="__codelineno-23-20" href="#__codelineno-23-20"></a>
+</span><span id="__span-23-21"><a id="__codelineno-23-21" name="__codelineno-23-21" href="#__codelineno-23-21"></a><span class="gu">## Design Notes</span>
+</span><span id="__span-23-22"><a id="__codelineno-23-22" name="__codelineno-23-22" href="#__codelineno-23-22"></a>(議論中のアイデアとオプション)
 </span></code></pre></div>
 <hr />
 <h2 id="5-モジュール間-interface-規約">5. モジュール間 Interface 規約<a class="headerlink" href="#5-モジュール間-interface-規約" title="Permanent link">&para;</a></h2>
@@ -4809,44 +4833,44 @@ clinical_course → observation → validator</code>。<code>diagnosis</code> /
 Layer 2 → Layer 1 (更新履歴付き)。NO なら人は Layer 1 に留まる
 (病院データ生成なし)。Mode 2 では: ベッド競合、OR
 スケジューリング、スタッフワークロード、キュー追加。</p>
-<div class="highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>┌─── World Setup (一度) ───────────────────────────────────┐
-</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>│                                                          │
-</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>│  healthcare_system ──→ facility ──→ staff (roster)       │
-</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>│          │                                               │
-</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>│          └──→ population (catchment area 生成)           │
-</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>│                  │                                       │
-</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>│                  ├── households                          │
-</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>│                  └── person registry (Layer 1)           │
-</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a>└──────────────────────────────────────────────────────────┘
-</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>
-</span><span id="__span-22-11"><a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a>┌─── Time シミュレーション (連続) ────────────────────────────────────────┐
-</span><span id="__span-22-12"><a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a>│                                                                          │
-</span><span id="__span-22-13"><a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a>│  population ──→ ライフイベント (疾患発症、事故、加齢、…)                │
-</span><span id="__span-22-14"><a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a>│       │              │                                                   │
-</span><span id="__span-22-15"><a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a>│       │         受診決定                                                 │
-</span><span id="__span-22-16"><a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a>│       │              │                                                   │
-</span><span id="__span-22-17"><a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a>│       │         ┌────┴─── YES: 病院訪問 ────────┐                       │
-</span><span id="__span-22-18"><a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a>│       │         │                                 │                      │
-</span><span id="__span-22-19"><a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a>│       │    patient (Layer 1 → Layer 2 アクティブ化) │                    │
-</span><span id="__span-22-20"><a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a>│       │         │                                 │                      │
-</span><span id="__span-22-21"><a id="__codelineno-22-21" name="__codelineno-22-21" href="#__codelineno-22-21"></a>│       │    encounter ──→ clinical_course ──→ observation ──→ validator   │
-</span><span id="__span-22-22"><a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a>│       │         │              ↑                  ↑              │       │
-</span><span id="__span-22-23"><a id="__codelineno-22-23" name="__codelineno-22-23" href="#__codelineno-22-23"></a>│       │      order ←─── diagnosis            treatment          │       │
-</span><span id="__span-22-24"><a id="__codelineno-22-24" name="__codelineno-22-24" href="#__codelineno-22-24"></a>│       │         │              │                  │              │       │
-</span><span id="__span-22-25"><a id="__codelineno-22-25" name="__codelineno-22-25" href="#__codelineno-22-25"></a>│       │      procedure     nursing               │              │       │
-</span><span id="__span-22-26"><a id="__codelineno-22-26" name="__codelineno-22-26" href="#__codelineno-22-26"></a>│       │         │              │                  │              │       │
-</span><span id="__span-22-27"><a id="__codelineno-22-27" name="__codelineno-22-27" href="#__codelineno-22-27"></a>│       │         └── staff (イベントごとに割当) ───┘              │       │
-</span><span id="__span-22-28"><a id="__codelineno-22-28" name="__codelineno-22-28" href="#__codelineno-22-28"></a>│       │                                                          │       │
-</span><span id="__span-22-29"><a id="__codelineno-22-29" name="__codelineno-22-29" href="#__codelineno-22-29"></a>│       │    disease (プロトコル) ──────────────────────────────────┘       │
-</span><span id="__span-22-30"><a id="__codelineno-22-30" name="__codelineno-22-30" href="#__codelineno-22-30"></a>│       │                                                                  │
-</span><span id="__span-22-31"><a id="__codelineno-22-31" name="__codelineno-22-31" href="#__codelineno-22-31"></a>│       │    ──→ output (FHIR / CSV)                                      │
-</span><span id="__span-22-32"><a id="__codelineno-22-32" name="__codelineno-22-32" href="#__codelineno-22-32"></a>│       │                                                                  │
-</span><span id="__span-22-33"><a id="__codelineno-22-33" name="__codelineno-22-33" href="#__codelineno-22-33"></a>│       │    ──→ 退院 ──→ Layer 2 → Layer 1 (更新履歴付き)                │
-</span><span id="__span-22-34"><a id="__codelineno-22-34" name="__codelineno-22-34" href="#__codelineno-22-34"></a>│       │                                                                  │
-</span><span id="__span-22-35"><a id="__codelineno-22-35" name="__codelineno-22-35" href="#__codelineno-22-35"></a>│       └── NO: 人は Layer 1 に留まる (病院データ生成なし)                │
-</span><span id="__span-22-36"><a id="__codelineno-22-36" name="__codelineno-22-36" href="#__codelineno-22-36"></a>│                                                                          │
-</span><span id="__span-22-37"><a id="__codelineno-22-37" name="__codelineno-22-37" href="#__codelineno-22-37"></a>│  Mode 2 では追加: ベッド競合、OR スケジューリング、スタッフ負荷、キュー │
-</span><span id="__span-22-38"><a id="__codelineno-22-38" name="__codelineno-22-38" href="#__codelineno-22-38"></a>└──────────────────────────────────────────────────────────────────────────┘
+<div class="highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>┌─── World Setup (一度) ───────────────────────────────────┐
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>│                                                          │
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>│  healthcare_system ──→ facility ──→ staff (roster)       │
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>│          │                                               │
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>│          └──→ population (catchment area 生成)           │
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>│                  │                                       │
+</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>│                  ├── households                          │
+</span><span id="__span-24-8"><a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>│                  └── person registry (Layer 1)           │
+</span><span id="__span-24-9"><a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>└──────────────────────────────────────────────────────────┘
+</span><span id="__span-24-10"><a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>
+</span><span id="__span-24-11"><a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>┌─── Time シミュレーション (連続) ────────────────────────────────────────┐
+</span><span id="__span-24-12"><a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>│                                                                          │
+</span><span id="__span-24-13"><a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a>│  population ──→ ライフイベント (疾患発症、事故、加齢、…)                │
+</span><span id="__span-24-14"><a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a>│       │              │                                                   │
+</span><span id="__span-24-15"><a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a>│       │         受診決定                                                 │
+</span><span id="__span-24-16"><a id="__codelineno-24-16" name="__codelineno-24-16" href="#__codelineno-24-16"></a>│       │              │                                                   │
+</span><span id="__span-24-17"><a id="__codelineno-24-17" name="__codelineno-24-17" href="#__codelineno-24-17"></a>│       │         ┌────┴─── YES: 病院訪問 ────────┐                       │
+</span><span id="__span-24-18"><a id="__codelineno-24-18" name="__codelineno-24-18" href="#__codelineno-24-18"></a>│       │         │                                 │                      │
+</span><span id="__span-24-19"><a id="__codelineno-24-19" name="__codelineno-24-19" href="#__codelineno-24-19"></a>│       │    patient (Layer 1 → Layer 2 アクティブ化) │                    │
+</span><span id="__span-24-20"><a id="__codelineno-24-20" name="__codelineno-24-20" href="#__codelineno-24-20"></a>│       │         │                                 │                      │
+</span><span id="__span-24-21"><a id="__codelineno-24-21" name="__codelineno-24-21" href="#__codelineno-24-21"></a>│       │    encounter ──→ clinical_course ──→ observation ──→ validator   │
+</span><span id="__span-24-22"><a id="__codelineno-24-22" name="__codelineno-24-22" href="#__codelineno-24-22"></a>│       │         │              ↑                  ↑              │       │
+</span><span id="__span-24-23"><a id="__codelineno-24-23" name="__codelineno-24-23" href="#__codelineno-24-23"></a>│       │      order ←─── diagnosis            treatment          │       │
+</span><span id="__span-24-24"><a id="__codelineno-24-24" name="__codelineno-24-24" href="#__codelineno-24-24"></a>│       │         │              │                  │              │       │
+</span><span id="__span-24-25"><a id="__codelineno-24-25" name="__codelineno-24-25" href="#__codelineno-24-25"></a>│       │      procedure     nursing               │              │       │
+</span><span id="__span-24-26"><a id="__codelineno-24-26" name="__codelineno-24-26" href="#__codelineno-24-26"></a>│       │         │              │                  │              │       │
+</span><span id="__span-24-27"><a id="__codelineno-24-27" name="__codelineno-24-27" href="#__codelineno-24-27"></a>│       │         └── staff (イベントごとに割当) ───┘              │       │
+</span><span id="__span-24-28"><a id="__codelineno-24-28" name="__codelineno-24-28" href="#__codelineno-24-28"></a>│       │                                                          │       │
+</span><span id="__span-24-29"><a id="__codelineno-24-29" name="__codelineno-24-29" href="#__codelineno-24-29"></a>│       │    disease (プロトコル) ──────────────────────────────────┘       │
+</span><span id="__span-24-30"><a id="__codelineno-24-30" name="__codelineno-24-30" href="#__codelineno-24-30"></a>│       │                                                                  │
+</span><span id="__span-24-31"><a id="__codelineno-24-31" name="__codelineno-24-31" href="#__codelineno-24-31"></a>│       │    ──→ output (FHIR / CSV)                                      │
+</span><span id="__span-24-32"><a id="__codelineno-24-32" name="__codelineno-24-32" href="#__codelineno-24-32"></a>│       │                                                                  │
+</span><span id="__span-24-33"><a id="__codelineno-24-33" name="__codelineno-24-33" href="#__codelineno-24-33"></a>│       │    ──→ 退院 ──→ Layer 2 → Layer 1 (更新履歴付き)                │
+</span><span id="__span-24-34"><a id="__codelineno-24-34" name="__codelineno-24-34" href="#__codelineno-24-34"></a>│       │                                                                  │
+</span><span id="__span-24-35"><a id="__codelineno-24-35" name="__codelineno-24-35" href="#__codelineno-24-35"></a>│       └── NO: 人は Layer 1 に留まる (病院データ生成なし)                │
+</span><span id="__span-24-36"><a id="__codelineno-24-36" name="__codelineno-24-36" href="#__codelineno-24-36"></a>│                                                                          │
+</span><span id="__span-24-37"><a id="__codelineno-24-37" name="__codelineno-24-37" href="#__codelineno-24-37"></a>│  Mode 2 では追加: ベッド競合、OR スケジューリング、スタッフ負荷、キュー │
+</span><span id="__span-24-38"><a id="__codelineno-24-38" name="__codelineno-24-38" href="#__codelineno-24-38"></a>└──────────────────────────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <h3 id="interface-設計原則">Interface 設計原則<a class="headerlink" href="#interface-設計原則" title="Permanent link">&para;</a></h3>
 <ol>

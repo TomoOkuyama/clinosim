@@ -2381,12 +2381,12 @@
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        act["patient activator&lt;br/&gt;Layer 1 → Layer 2"]
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        enc["encounter creation&lt;br/&gt;disease YAML → department&lt;br/&gt;staff / ward / bed / OR"]
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        loop["daily simulation loop&lt;br/&gt;clinical_course → physiology&lt;br/&gt;→ orders → diagnosis&lt;br/&gt;→ procedure + MAR&lt;br/&gt;→ discharge readiness?"]
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        cif_s["CIF structural/&lt;br/&gt;immutable, encounter ごとに 1 JSON"]
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        pop --&gt; act --&gt; enc --&gt; loop --&gt; cif_s
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    end
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    subgraph stage2["Stage 2 — clinosim narrate"]
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        gen2["document_enricher (document module)&lt;br/&gt;Stage 1 built-in: DR + Composition + ClinicalImpression&lt;br/&gt;template ベース、完全決定的"]
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        gen2["document_enricher (document module)&lt;br/&gt;POST_ENCOUNTER enricher: DR + Composition + ClinicalImpression&lt;br/&gt;template ベース、完全決定的"]
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        cif_s["CIF structural/&lt;br/&gt;immutable, encounter ごとに 1 JSON"]
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        pop --&gt; act --&gt; enc --&gt; loop --&gt; gen2 --&gt; cif_s
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    end
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    subgraph stage2["Stage 2 — clinosim narrate"]
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        llm2["clinosim narrate (cli_narrate.py)&lt;br/&gt;structural CIF に対するオプション LLM narrative pass&lt;br/&gt;cif/narratives/&amp;lt;version&amp;gt;/ を emit"]
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    end
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>

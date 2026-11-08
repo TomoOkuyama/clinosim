@@ -2769,6 +2769,13 @@ retired / unemployed / other。</p>
 → <code>"(display unavailable)"</code> にフォールバック。<code>code.text</code> は
 <code>_CONDITION_SHORT_NAME</code> を用いて search-friendly な省略形にする
 (AD-49)。</p>
+<blockquote>
+<p><strong>実装:</strong> builder は現在 <code>clinosim/modules/output/fhir_r4/lib/common.py</code>
+の <code>build_diagnosis_codeable_concept()</code>。coding は 1 つのみ (現地語名は
+<code>code.text</code> に入れる、Issue #2375)、<code>"(display unavailable)"</code> placeholder
+は出さず (解決できない display は省略、Issue #1766)、短縮名は
+<code>clinosim/codes/data/condition-short-name.yaml</code> から読む。</p>
+</blockquote>
 <h3 id="ad-47-observation-referencerange--interpretation-一貫性">AD-47: Observation referenceRange + interpretation 一貫性<a class="headerlink" href="#ad-47-observation-referencerange--interpretation-一貫性" title="Permanent link">&para;</a></h3>
 <p>FHIR R5 Note 5 より: "the interpretation should be consistent with
 the reference range when both are provided"。</p>
@@ -2994,16 +3001,15 @@ primary team allocation を要求。</p>
 - AD-55 always-on Module 数は 8 に増加 (device、hai、antibiotic、
   imaging、triage、nursing_assignment、allergy、document)。
   POST_ENCOUNTER ordering: 70/80/85/90/93/94/95
-- <strong>既知のプロダクションギャップ</strong>: outpatient.py + emergency.py
-  は POST_ENCOUNTER enricher を <strong>invoke しない</strong> (inpatient.py
-  のみ実施)。OUTPATIENT_SOAP / ED_NOTE / ED_TRIAGE_NOTE は
-  プロダクションで 0 リソースしか生成しない。dispatch ロジックは
-  正しい (audit proof checks 22-25 で検証済); fix は outpatient.py
-  + emergency.py に <code>run_stage(POST_ENCOUNTER, ...)</code> を追加すること
-  (α-min-3 に予定)。
-- <strong>命名衝突ガード</strong>: <code>modules/nursing/</code> は <code>nursing_enricher</code>
+- <strong>当時のプロダクションギャップ (解消済)</strong>: outpatient.py +
+  emergency.py は POST_ENCOUNTER enricher を <strong>invoke していなかった</strong>
+  (inpatient.py のみ実施) ため、OUTPATIENT_SOAP / ED_NOTE /
+  ED_TRIAGE_NOTE はプロダクションで 0 リソースだった。現在は両者とも
+  <code>run_stage(POST_ENCOUNTER, ...)</code> を呼ぶ (α-min-2 Task 14 fix)。
+- <strong>命名衝突ガード</strong>: <code>modules/nursing/engine.py::nursing_enricher</code>
   (POST_ENCOUNTER order=94、primary_nurse assign) と
-  <code>nursery_enricher</code> (POST_RECORDS observation) の両方を含む。
+  <code>modules/observation/nursing_enricher.py::enrich_nursing</code>
+  (POST_RECORDS observation) は名前が紛らわしい。
   参照時は必ず enricher 名を指定。<code>nursing_assignment</code> =
   POST_ENCOUNTER。<code>nursing</code> (observation) = POST_RECORDS。
 - <strong>CareTeam 2 名 scope</strong>: β-JP-1 で 6 名の多職種チーム (薬剤師 /
@@ -3377,9 +3383,7 @@ analyte 用の primary coding system として JLAC10 を確立 (session
 <p><strong>Related documents:</strong>
 - Migration PR: #396 (dispatcher refactor) / #398 (shared pkg
   loader) / #400 (analyte classifier) / #402 (CoreLabo emit) /
-  #404 (Uncoded + LocalCode + sanitize)
-- Session note: <code>project_session_67_end_state.md</code> (axis completion、
-  decision B 採用)</p>
+  #404 (Uncoded + LocalCode + sanitize)</p>
 <hr />
 <h3 id="ad-71--時限-state-パターン--temporalstateperiod-時限エピソード用の-state-scoped-generator">AD-71 · 時限 state パターン — <code>TemporalStatePeriod</code> (時限エピソード用の state-scoped generator)<a class="headerlink" href="#ad-71--時限-state-パターン--temporalstateperiod-時限エピソード用の-state-scoped-generator" title="Permanent link">&para;</a></h3>
 <p><strong>Date:</strong> 2026-09-01 (session 97、META #957 Incr 1)</p>

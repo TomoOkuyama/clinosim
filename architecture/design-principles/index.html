@@ -3997,6 +3997,7 @@ sketches below are the original design.</p>
 </tr>
 </tbody>
 </table>
+<p>(Superseded sketch — the shipped cache is <code>PromptCache</code>, see the note above.)</p>
 <div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">LLMResponseCache</span><span class="p">:</span>
 </span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="sd">"""Persistent cache for LLM responses, enabling reproducible runs."""</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
@@ -4018,6 +4019,8 @@ sketches below are the original design.</p>
 </span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>        <span class="n">shutil</span><span class="o">.</span><span class="n">make_archive</span><span class="p">(</span><span class="n">archive_path</span><span class="p">,</span> <span class="s1">'zip'</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_dir</span><span class="p">)</span>
 </span></code></pre></div>
 <h4 id="seed-hierarchy">Seed hierarchy<a class="headerlink" href="#seed-hierarchy" title="Permanent link">&para;</a></h4>
+<p>(Superseded sketch — the original design. The shipped sub-streams are the
+<code>clinosim/seeding.py</code> helpers listed in the note above.)</p>
 <div class="highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>master_seed (user-provided, e.g., 42)
 </span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>  |
 </span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>  +-- population_seed     -&gt; population generation, household structure
@@ -4032,6 +4035,8 @@ sketches below are the original design.</p>
 </span></code></pre></div>
 <p>Each module creates its own <code>numpy.random.Generator</code> from its sub-seed at initialization and uses only that generator. No module shares random state with another. This ensures that adding a new module or changing one module's random usage does not affect other modules' outputs.</p>
 <h4 id="validation-of-reproducibility">Validation of reproducibility<a class="headerlink" href="#validation-of-reproducibility" title="Permanent link">&para;</a></h4>
+<p>(Superseded sketch — there is no <code>Simulator</code> class; reproducibility is checked
+by the shipped unit / e2e suites and byte-diff of generated cohorts.)</p>
 <div class="highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_reproducibility</span><span class="p">():</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    <span class="n">result1</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    <span class="n">result2</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
@@ -4110,7 +4115,7 @@ sketches below are the original design.</p>
 </span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>    # seed=42 → 100 patients → run Tier 1 statistical benchmarks →
 </span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>    # all benchmarks pass (within ±20% of expected)
 </span></code></pre></div>
-<p>Golden file update process:
+<p>Golden file update process (original plan):
 1. Run simulation with new code
 2. If test fails: diff against golden file
 3. If changes are intentional: update golden file, commit with explanation
@@ -4508,7 +4513,11 @@ State changes occur without a clear disease mechanism.
 </span><span id="__span-25-25"><a id="__codelineno-25-25" name="__codelineno-25-25" href="#__codelineno-25-25"></a>    <span class="n">overcalled_diagnoses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>  <span class="c1"># diagnosed but not actually present</span>
 </span></code></pre></div>
 <h4 id="diagnostic-accuracy-parameters">Diagnostic accuracy parameters<a class="headerlink" href="#diagnostic-accuracy-parameters" title="Permanent link">&para;</a></h4>
-<p>Real-world diagnostic accuracy varies. clinosim models this as a tunable parameter:</p>
+<p>Real-world diagnostic accuracy varies. clinosim plans to model this as a tunable parameter.</p>
+<blockquote>
+<p><strong>Not implemented (planned).</strong> None of the parameters below exists in the code or in
+<code>SimulatorConfig</code> today; the table records the design target.</p>
+</blockquote>
 <table>
 <thead>
 <tr>
@@ -4564,7 +4573,7 @@ State changes occur without a clear disease mechanism.
 </tr>
 <tr>
 <td>AD-29</td>
-<td>Diagnostic accuracy is a tunable parameter. Default matches real-world rates (~85% correct). Can be adjusted for different use cases.</td>
+<td>Diagnostic accuracy is a tunable parameter. Default matches real-world rates (~85% correct). Can be adjusted for different use cases. (Not implemented yet — planned.)</td>
 </tr>
 </tbody>
 </table>
@@ -5009,6 +5018,9 @@ See <a href="../module-architecture/"><code>module-architecture.md</code></a> an
 <p>This part documents major architectural decisions made after the initial v0.1-alpha
 foundation. They are integrated into the live codebase but recorded here as ADRs for
 historical reference.</p>
+<p>Detailed per-topic discussion for Part 6 lives in the §6.1–§6.11 sections of
+<a href="../architecture-notes/"><code>architecture-notes.md</code></a>. For the full ADR list see
+<a href="../adr-history/"><code>adr-history.md</code></a>.</p>
 
 
 

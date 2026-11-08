@@ -2751,6 +2751,13 @@ transportation, education, homemaker, student, retired, unemployed, other.</p>
 </span></code></pre></div>
 <p><code>_build_diagnosis_codeable_concept()</code> tries <code>icd-10</code> → falls back to <code>icd-10-cm</code> → <code>"(display unavailable)"</code>.
 <code>code.text</code> uses <code>_CONDITION_SHORT_NAME</code> for search-friendly abbreviations (AD-49).</p>
+<blockquote>
+<p><strong>As shipped:</strong> the builder is now <code>build_diagnosis_codeable_concept()</code> in
+<code>clinosim/modules/output/fhir_r4/lib/common.py</code>. It emits a single coding (the
+localized name goes in <code>code.text</code>, Issue #2375), never emits the
+<code>"(display unavailable)"</code> placeholder (an unresolved display is omitted, Issue #1766),
+and reads short names from <code>clinosim/codes/data/condition-short-name.yaml</code>.</p>
+</blockquote>
 <h3 id="ad-47-observation-referencerange--interpretation-consistency">AD-47: Observation referenceRange + interpretation consistency<a class="headerlink" href="#ad-47-observation-referencerange--interpretation-consistency" title="Permanent link">&para;</a></h3>
 <p>Per FHIR R5 Note 5: "The interpretation should be consistent with the reference range when both
 are provided."</p>
@@ -2930,12 +2937,13 @@ as device/hai/antibiotic/imaging precedents):</p>
   (1:1 with inpatient encounters) enforced via lift_firing_proof equality_checks 18-25
 - AD-55 always-on Module count increases to 8 (device, hai, antibiotic, imaging, triage,
   nursing_assignment, allergy, document). POST_ENCOUNTER ordering: 70/80/85/90/93/94/95
-- <strong>Known production gap</strong>: outpatient.py + emergency.py do NOT invoke POST_ENCOUNTER enrichers
-  (only inpatient.py does). OUTPATIENT_SOAP / ED_NOTE / ED_TRIAGE_NOTE produce 0 resources in
-  production. Dispatch logic is correct (verified by audit proof checks 22-25); fix requires
-  adding <code>run_stage(POST_ENCOUNTER, ...)</code> to outpatient.py + emergency.py (targeted for α-min-3).
-- <strong>Naming collision guard</strong>: <code>modules/nursing/</code> contains both <code>nursing_enricher</code> (POST_ENCOUNTER
-  order=94, primary_nurse assignment) and <code>nursery_enricher</code> (POST_RECORDS observation).
+- <strong>Production gap at the time (since resolved)</strong>: outpatient.py + emergency.py did NOT invoke
+  POST_ENCOUNTER enrichers (only inpatient.py did), so OUTPATIENT_SOAP / ED_NOTE / ED_TRIAGE_NOTE
+  produced 0 resources in production. Both now call <code>run_stage(POST_ENCOUNTER, ...)</code>
+  (α-min-2 Task 14 fix).
+- <strong>Naming collision guard</strong>: <code>modules/nursing/engine.py::nursing_enricher</code> (POST_ENCOUNTER
+  order=94, primary_nurse assignment) and <code>modules/observation/nursing_enricher.py::enrich_nursing</code>
+  (POST_RECORDS observation) have near-identical names.
   Always specify the enricher name when referencing. <code>nursing_assignment</code> = POST_ENCOUNTER.
   <code>nursing</code> (observation) = POST_RECORDS.
 - <strong>CareTeam 2-name scope</strong>: β-JP-1 will expand to 6-name multi-disciplinary team
@@ -3245,8 +3253,7 @@ primary, or removed entirely for JP-only purism?</p>
 single responsibility) / AD-58 (output adapter registration pattern)</p>
 <p><strong>Related documents:</strong>
 - Migration PRs: #396 (dispatcher refactor) / #398 (shared pkg loader) / #400 (analyte classifier)
-  / #402 (CoreLabo emit) / #404 (Uncoded + LocalCode + sanitize)
-- Session notes: <code>project_session_67_end_state.md</code> (axis completion, decision B adoption)</p>
+  / #402 (CoreLabo emit) / #404 (Uncoded + LocalCode + sanitize)</p>
 <hr />
 <h3 id="ad-71--temporal-state-pattern--temporalstateperiod-state-scoped-generators-for-time-boxed-episodes">AD-71 · Temporal state pattern — <code>TemporalStatePeriod</code> (state-scoped generators for time-boxed episodes)<a class="headerlink" href="#ad-71--temporal-state-pattern--temporalstateperiod-state-scoped-generators-for-time-boxed-episodes" title="Permanent link">&para;</a></h3>
 <p><strong>Date:</strong> 2026-09-01 (session 97, META #957 Incr 1)</p>

@@ -2343,6 +2343,8 @@
 <!-- README.md から抽出 (Issue #568 PR A2)。本ファイルの見出しが変更されたら README のポインタを更新。 -->
 
 <h1 id="モジュール依存グラフ">モジュール依存グラフ<a class="headerlink" href="#モジュール依存グラフ" title="Permanent link">&para;</a></h1>
+<p>主要モジュール間の概念的なデータフロー図。実際の import グラフではない:
+モジュール同士が直接 import することは少なく、<code>clinosim/simulator/</code> が順に呼び出す。</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>flowchart TD
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    codes["codes&lt;br/&gt;(国際コードシステム)"]
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    locale["locale&lt;br/&gt;(国別)"]
@@ -2354,7 +2356,7 @@
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    population["population"]
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    staff["staff"]
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    healthcare["healthcare_system"]
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    identity["identity&lt;br/&gt;(JP 保険、opt-in)"]
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    identity["identity&lt;br/&gt;(保険番号)"]
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    subgraph loop["daily simulation loop"]
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        cc["clinical_course"] --&gt; phys["physiology"]
@@ -2382,7 +2384,8 @@
 </span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>    identity --&gt; output
 </span></code></pre></div>
 <p><code>llm_service</code> と <code>validator</code> は cross-cutting (専用フェーズで使用)。
-<code>identity</code> は opt-in enricher (AD-54): enricher registry (AD-56) 経由
+<code>identity</code> は既定で有効な enricher (AD-54。JP は <code>--no-jp-insurance</code> で
+無効化でき、US は常に実行): enricher registry (AD-56) 経由
 の post-population pass として走行、そのデータは <code>output</code> が FHIR
 <code>Coverage</code> として emit。</p>
 <p>詳細は各モジュールの <code>clinosim/modules/&lt;module&gt;/README.md</code> 参照。</p>

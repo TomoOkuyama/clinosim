@@ -2807,12 +2807,16 @@ on US p=500 seed=42 + JP p=500 seed=17 (full-cohort sha256
 <code>0184a8b382990915e2e04ca6c94bce2d24e105b39d6be827f705c461f8f621a8</code>).</p>
 <h2 id="2-c1--narrative-template-split-12-section-builders--4-shared-helpers">2. C1 — narrative template split (12 section builders + 4 shared helpers)<a class="headerlink" href="#2-c1--narrative-template-split-12-section-builders--4-shared-helpers" title="Permanent link">&para;</a></h2>
 <p><strong>Façade</strong>: <code>clinosim/modules/document/narrative/template_generator.py</code>
-(1399 LOC post-split). Every symbol below is re-exported from the
-façade; historical callers (<code>generator._build_&lt;section&gt;</code>,
-<code>TemplateNarrativeGenerator()._compose_&lt;name&gt;()</code>, direct free-function
-imports) all keep working.</p>
+(1399 LOC post-split). At the time of the cascade every symbol below was
+re-exported from the façade. Since Issue #2531 the section builders are no
+longer re-exported or wrapped: they register themselves in a section
+registry (see <em>Pattern</em> below). The façade keeps thin <code>_</code>-prefixed
+delegator methods for several shared helpers
+(<code>TemplateNarrativeGenerator()._compose_&lt;name&gt;()</code>, <code>_resolve_*</code>, <code>_ed_*</code>).</p>
 <h3 id="section-builders--rendererssection_builders">Section builders — <code>renderers/section_builders/</code><a class="headerlink" href="#section-builders--rendererssection_builders" title="Permanent link">&para;</a></h3>
-<p>Twelve files; each exports free functions <code>build_&lt;section&gt;(generator, ctx)</code>.</p>
+<p>Twelve files; each defines free functions <code>(generator, ctx) -&gt; (text, facts)</code>
+registered with the <code>@section("&lt;name&gt;")</code> decorator from
+<code>section_builders/_registry.py</code>.</p>
 <table>
 <thead>
 <tr>
@@ -2886,7 +2890,9 @@ imports) all keep working.</p>
 </table>
 <h3 id="shared-helpers--renderers">Shared helpers — <code>renderers/</code><a class="headerlink" href="#shared-helpers--renderers" title="Permanent link">&para;</a></h3>
 <p>Four shared-cluster modules (post C1p-s) that back the section builders.
-Still re-exported from <code>template_generator.py</code>.</p>
+Their module-level functions use public names (no leading <code>_</code>);
+<code>template_generator.py</code> keeps <code>_</code>-prefixed delegator methods for most of
+them.</p>
 <table>
 <thead>
 <tr>
@@ -2897,19 +2903,19 @@ Still re-exported from <code>template_generator.py</code>.</p>
 <tbody>
 <tr>
 <td><code>_resolvers.py</code></td>
-<td><code>_resolve_physical_exam</code>, <code>_resolve_daily_trajectory</code>, <code>_resolve_daily_trajectory_with_source</code>, <code>_generic_trajectory</code>, <code>_resolve_discharge_instructions</code></td>
+<td><code>resolve_physical_exam</code>, <code>resolve_daily_trajectory</code>, <code>resolve_daily_trajectory_with_source</code>, <code>generic_trajectory</code>, <code>resolve_discharge_instructions</code></td>
 </tr>
 <tr>
 <td><code>_composers.py</code></td>
-<td><code>_compose_progress_subjective_from_state</code>, <code>_compose_progress_assessment_from_state</code>, <code>_compose_progress_plan_from_state</code>, <code>_pick_stable_progress_phrase</code>, <code>_compose_today_vitals_line</code>, <code>_compose_pe_vitals_line</code>, <code>_apply_cc_pe_consistency</code>, <code>_compose_vital_signs_line</code></td>
+<td><code>compose_progress_subjective_from_state</code>, <code>compose_progress_assessment_from_state</code>, <code>compose_progress_plan_from_state</code>, <code>pick_stable_progress_phrase</code>, <code>compose_today_vitals_line</code>, <code>compose_pe_vitals_line</code>, <code>apply_cc_pe_consistency</code>, <code>compose_vital_signs_line</code></td>
 </tr>
 <tr>
 <td><code>_ed_helpers.py</code></td>
-<td><code>_get_ed_note_template</code>, <code>_ed_disposition_reason</code>, <code>_ed_triage_level</code></td>
+<td><code>get_ed_note_template</code>, <code>ed_disposition_reason</code>, <code>ed_triage_level</code></td>
 </tr>
 <tr>
 <td><code>_shared_helpers.py</code></td>
-<td><code>_pydantic_day_findings_to_dict</code>, <code>_format_physical_exam</code>, <code>_primary_surgical_procedure</code>, <code>_resolve_procedure_display</code></td>
+<td><code>pydantic_day_findings_to_dict</code>, <code>format_physical_exam</code>, <code>primary_surgical_procedure</code>, <code>resolve_procedure_display</code></td>
 </tr>
 </tbody>
 </table>
@@ -2917,30 +2923,30 @@ Still re-exported from <code>template_generator.py</code>.</p>
 also live under <code>renderers/</code>: <code>ed_triage_note.py</code>, <code>nursing_shift_note.py</code>,
 <code>progress_note.py</code>, <code>composition_sections.py</code>.</p>
 <h3 id="pattern">Pattern<a class="headerlink" href="#pattern" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># template_generator.py (façade)</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.document.narrative.renderers.section_builders.hpi</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">build_hpi</span> <span class="k">as</span> <span class="n">build_hpi</span><span class="p">,</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">_build_hpi_core</span> <span class="k">as</span> <span class="n">_build_hpi_core</span><span class="p">,</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">)</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># ...and 11 more section-builder re-exports.</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">class</span><span class="w"> </span><span class="nc">TemplateNarrativeGenerator</span><span class="p">:</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_build_hpi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        <span class="c1"># thin lazy-import delegator so composition_sections.py's</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        <span class="c1"># generator._build_&lt;section&gt; lookup keeps resolving</span>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.document.narrative.renderers.section_builders.hpi</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>            <span class="n">build_hpi</span><span class="p">,</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="p">)</span>
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="k">return</span> <span class="n">build_hpi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># renderers/section_builders/hpi.py</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.document.narrative.renderers.section_builders._registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">section</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nd">@section</span><span class="p">(</span><span class="s2">"hpi"</span><span class="p">)</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">build_hpi</span><span class="p">(</span><span class="n">generator</span><span class="p">,</span> <span class="n">ctx</span><span class="p">):</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="o">...</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="k">return</span> <span class="n">text</span><span class="p">,</span> <span class="n">facts</span>
 </span></code></pre></div>
+<p><code>renderers/composition_sections.py</code> looks each section name of the
+document spec up in the registry (<code>document_section_builders()</code> first, for
+a builder registered with <code>@section(name, document_type=...)</code>, then
+<code>section_builders()</code>) and calls the builder with the generator and context.
+An unregistered section gets the generic fallback phrase. Adding a section
+is one decorated function; nothing is added to <code>template_generator.py</code>.</p>
 <p>Direct free-function imports also work:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules.document.narrative.renderers.section_builders.hpi</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">build_hpi</span><span class="p">,</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">)</span>
 </span></code></pre></div>
-<p><strong>When fixing a narrative bug</strong>: trace from the thin delegator in
-<code>template_generator.py</code> into its backing <code>renderers/section_builders/&lt;section&gt;.py</code>.
-The delegator is a 2-line shim; the real body is in the per-section file.</p>
+<p><strong>When fixing a narrative bug</strong>: find the <code>@section("&lt;name&gt;")</code> function for
+the section in <code>renderers/section_builders/&lt;file&gt;.py</code> — that is the real
+body. (Before Issue #2531 the façade carried a 2-line <code>_build_&lt;section&gt;</code>
+delegator per section; those were removed.)</p>
 <h2 id="3-c2--simulator-engine-split-setup--dispatch--4-phases">3. C2 — simulator engine split (setup + dispatch + 4 phases)<a class="headerlink" href="#3-c2--simulator-engine-split-setup--dispatch--4-phases" title="Permanent link">&para;</a></h2>
 <p><strong>Façade</strong>: <code>clinosim/simulator/engine.py</code> (632 LOC post-split).
 <code>run_beta</code> + <code>run_forced</code> remain the top-level entries.</p>
@@ -2956,7 +2962,7 @@ The delegator is a 2-line shim; the real body is in the per-section file.</p>
 <tbody>
 <tr>
 <td><code>clinosim/simulator/_setup.py</code></td>
-<td>9 helpers — <code>_load_health_screening_visit_reason</code>, <code>_HEALTH_SCREENING_VISIT_REASON</code>, <code>_HEALTH_SCREENING_VISIT_REASON_FALLBACK</code>, <code>_pediatric_visit_reason</code>, <code>_parse_time_range_bound</code>, <code>_TimeRangeBounds</code>, <code>_activate_cached_person</code>, <code>_derive_time_range_bounds</code>, <code>_load_hospital_ops</code>, <code>_resolve_pop_size</code>, <code>_load_prev_admission_cache</code></td>
+<td>11 symbols — <code>_load_health_screening_visit_reason</code>, <code>_HEALTH_SCREENING_VISIT_REASON</code>, <code>_HEALTH_SCREENING_VISIT_REASON_FALLBACK</code>, <code>_pediatric_visit_reason</code>, <code>_parse_time_range_bound</code>, <code>_TimeRangeBounds</code>, <code>_activate_cached_person</code>, <code>_derive_time_range_bounds</code>, <code>_load_hospital_ops</code>, <code>_resolve_pop_size</code>, <code>_load_prev_admission_cache</code></td>
 <td>C2a</td>
 </tr>
 <tr>

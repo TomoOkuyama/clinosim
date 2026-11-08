@@ -2362,6 +2362,8 @@
 <!-- Extracted from `README.md` (Issue #568 PR A2). Update the pointer in README when this file's heading changes. -->
 
 <h1 id="module-dependency-graph">Module Dependency Graph<a class="headerlink" href="#module-dependency-graph" title="Permanent link">&para;</a></h1>
+<p>Conceptual data-flow view of the main modules. It is not the literal import graph:
+modules rarely import each other directly; <code>clinosim/simulator/</code> calls them in turn.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>flowchart TD
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    codes["codes&lt;br/&gt;(international code systems)"]
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    locale["locale&lt;br/&gt;(country)"]
@@ -2373,7 +2375,7 @@
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    population["population"]
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    staff["staff"]
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    healthcare["healthcare_system"]
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    identity["identity&lt;br/&gt;(JP insurance, opt-in)"]
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    identity["identity&lt;br/&gt;(insurance numbering)"]
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
 </span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    subgraph loop["daily simulation loop"]
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        cc["clinical_course"] --&gt; phys["physiology"]
@@ -2401,7 +2403,8 @@
 </span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>    identity --&gt; output
 </span></code></pre></div>
 <p><code>llm_service</code> and <code>validator</code> are cross-cutting (used in dedicated phases).
-<code>identity</code> is an opt-in enricher (AD-54): it runs as a post-population pass via the
+<code>identity</code> is an enricher (AD-54) that is on by default (JP can opt out with
+<code>--no-jp-insurance</code>; US always runs it): it runs as a post-population pass via the
 enricher registry (AD-56) and its data is emitted as FHIR <code>Coverage</code> by <code>output</code>.</p>
 <p>See each module's <code>clinosim/modules/&lt;module&gt;/README.md</code> for details.</p>
 <hr />
