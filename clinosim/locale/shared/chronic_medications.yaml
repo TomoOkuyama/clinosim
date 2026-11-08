@@ -98,6 +98,9 @@ E78:  # Dyslipidemia
     # Phase 4b.1 (#1697) — longitudinal escalation drugs. probability: 0.0
     # keeps activation sampling from picking them; only the longitudinal
     # engine's lipid_escalate_* event yamls add them via resolve_med_name.
+    # Issue #2927: the Rosuvastatin switch is retired (statins are stepped
+    # up on the measured LDL by simulator/statin_monitoring.py); the entry
+    # stays so the activation sampler's draws for E78 are unchanged.
     - {drug_id: rosuvastatin, dose: "20mg", drug_class: "statin", route: "PO", frequency: "daily", probability: 0.0}
     - {drug_id: ezetimibe, dose: "10mg", drug_class: "cholesterol_absorption_inhibitor", route: "PO", frequency: "daily", probability: 0.0}
   monitoring:

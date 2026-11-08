@@ -54,19 +54,19 @@ def test_lipid_high_intensity_escalation_yaml_loads():
     assert body.emits_icd == ""
     assert body.emits_meds == ["Rosuvastatin"]
     assert body.fire_marker == "lipid_escalate_high_intensity_e78"
-    assert body.base_annual_rate == 0.40
+    # Issue #2927: retired — statins are stepped up on the measured LDL.
+    assert body.base_annual_rate == 0.0
     assert spec.clinical_scope.requires_chronic_codes == ["E78"]
 
 
-def test_lipid_high_intensity_fires_at_ldl_above_160():
+def test_lipid_high_intensity_never_fires_on_the_latent_ldl():
+    """Issue #2927: the untreated LDL latent no longer switches a patient
+    to high intensity, however high it is."""
     load_attribute_specs.cache_clear()
     spec = load_attribute_specs()["lipid_escalate_high_intensity_e78"].body
-    r = step([], [], np.random.default_rng(0), spec, context={"continuous": {"ldl": 155.0}})
-    assert not r.fired
-    # seed=0 draws ~0.637 > 0.40; use seed=2 (0.274) for the fire path.
-    r = step([], [], np.random.default_rng(2), spec, context={"continuous": {"ldl": 175.0}})
-    assert r.fired
-    assert r.med_additions == ["Rosuvastatin"]
+    for seed in range(20):
+        r = step([], [], np.random.default_rng(seed), spec, context={"continuous": {"ldl": 250.0}})
+        assert not r.fired
 
 
 def test_lipid_ezetimibe_escalation_yaml_loads():

@@ -2,7 +2,9 @@
 
 Mirrors tests/integration/test_dm_escalation_in_cif.py. p=200 US 5y:
 - HTN adults with sustained SBP > 140 may accumulate Hydrochlorothiazide;
-- dyslipidemia adults with sustained LDL > 160 may accumulate Rosuvastatin;
+- dyslipidemia adults are never switched to Rosuvastatin by the longitudinal
+  history (Issue #2927: statins are stepped up on the measured LDL at the
+  follow-up visit, ``simulator/statin_monitoring.py``);
 - non-HTN non-lipid adults never pick up any of the three escalation
   drugs (clinical_scope gate holds — Review Focus #5);
 - fire_marker dedup end-to-end for all three new yamls (one fire per
@@ -49,25 +51,20 @@ def test_htn_patients_may_escalate_to_third_agent_across_5y() -> None:
 
 
 @pytest.mark.integration
-def test_lipid_patients_may_escalate_to_high_intensity_across_5y() -> None:
+def test_lipid_patients_are_not_switched_to_high_intensity_on_the_latent_ldl() -> None:
+    """Issue #2927: the untreated LDL latent no longer switches anyone to
+    Rosuvastatin; the step-up follows the measured LDL at the visit."""
     registry = generate_population(size=200, country="US", rng=np.random.default_rng(42), base_year=2024)
     for year in (2025, 2026, 2027, 2028):
         advance_population(registry, year=year, locale="US")
     lipid_adults = 0
-    lipid_adults_with_rosuvastatin = 0
     for person in registry.persons.values():
-        if person.age < 18:
-            continue
-        if not any(c.startswith("E78") for c in person.chronic_conditions):
+        if person.age < 18 or not any(c.startswith("E78") for c in person.chronic_conditions):
             continue
         lipid_adults += 1
-        if any(hm.drug_name == "Rosuvastatin" for hm in person.current_medications):
-            lipid_adults_with_rosuvastatin += 1
+        fired = [s for s in person.longitudinal_history if "lipid_escalate_high_intensity_e78" in s.med_additions]
+        assert not fired, f"{person.person_id} switched to Rosuvastatin by the longitudinal history"
     assert lipid_adults > 0, "sample has no dyslipidemia adults — bump size or seed"
-    assert lipid_adults_with_rosuvastatin >= 1, (
-        f"expected >= 1 dyslipidemia adult escalated to Rosuvastatin in p=200 5y, "
-        f"got {lipid_adults_with_rosuvastatin} of {lipid_adults} dyslipidemia adults"
-    )
 
 
 @pytest.mark.integration

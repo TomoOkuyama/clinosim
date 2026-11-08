@@ -1,14 +1,32 @@
-# Lipid high-intensity statin switch — event pattern.
+# Lipid high-intensity statin switch — retired event (Issue #2927).
 #
-# Phase 4b.1 of the longitudinal state-evolution subsystem (Issue #1697).
-# Base rate 40 %/yr under uncontrolled LDL (> 160 mg/dL), gated OUT when
-# LDL ≤ 160 via a factor-zero modifier.
+# Phase 4b.1 of the longitudinal state-evolution subsystem (Issue #1697)
+# switched a dyslipidemia patient to Rosuvastatin 20 mg at 40 %/yr while
+# the `ldl` latent (labs/ldl_trajectory.yaml) was above 160 mg/dL. That
+# latent is the untreated LDL (target 165) and never reflects the statin
+# the patient takes, so patients whose measured on-treatment LDL was at
+# goal were still moved to high intensity.
 #
-# Clinical basis: ACC-AHA 2018 Cholesterol Guideline (Grundy et al,
-# Circulation 2019), Section 4.4.1 intensification pathway. Rosuvastatin
-# 20mg is the representative high-intensity statin (equivalent to
-# Atorvastatin 40mg per STELLAR). Real-world uptake slower than guideline
-# due to statin intolerance and clinician inertia (NHANES LDL gap data).
+# A statin is now stepped up only on the measured LDL: the lipid panel at
+# the chronic follow-up visit and the titration of
+# simulator/statin_monitoring.py (Issue #2877; thresholds in
+# simulator/reference_data/statin_monitoring.yaml — US 2018 ACC/AHA:
+# LDL >= 190 mg/dL, >= 70 with clinical ASCVD; JP JAS 2022 targets), on
+# the LDL the statin lowers (physiology/statin_response.py, Issue #2917).
+#
+# The event is kept at base_annual_rate 0.0 rather than deleted: the
+# engine draws one `year_rng` number per in-scope person-year for every
+# event, and the attributes after this one in the dispatch order (onset
+# events, cancer / stroke stage ladders, the `sbp` latent, HTN escalation)
+# draw from the same generator. Keeping the draw leaves those unchanged
+# for every patient who was never switched; only patients who were (and
+# so stopped drawing in later years under `one_shot`) see a later draw
+# move.
+#
+# Clinical basis of the original switch: ACC-AHA 2018 Cholesterol
+# Guideline (Grundy et al, Circulation 2019), Section 4.4.1. Rosuvastatin
+# 20 mg is a high-intensity statin (equivalent to Atorvastatin 40 mg per
+# STELLAR).
 
 attribute_id: lipid_escalate_high_intensity_e78
 pattern: event
@@ -34,10 +52,8 @@ emits_meds: ["rosuvastatin"]
 # fires.
 removes_meds: ["atorvastatin"]
 fire_marker: lipid_escalate_high_intensity_e78
-base_annual_rate: 0.40
-rate_modifiers:
-  - when: {attribute: ldl, operator: "<=", value: 160.0}
-    factor: 0.0
+# Issue #2927: retired — never fires (see the header).
+base_annual_rate: 0.0
 one_shot: true
 narrative_label:
   en: "Lipid high-intensity statin switch"
