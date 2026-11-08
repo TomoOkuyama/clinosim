@@ -34,8 +34,16 @@ import:
 from clinosim.modules.pediatric.calendar import (
     load_pediatric_schedule,     # (path=None) -> {encounter_key: entry_dict}
     generate_pediatric_events,   # (person, year, prng, schedule=None) -> list[LifeEvent]
+    pediatric_presentation,      # (visit_id) -> Presentation | None (急性受診のみ)
+    Presentation,                # 急性受診 1 件の臨床像を表す pydantic model
 )
 ```
+
+`pediatric_presentation(disease_id)` は急性受診の `Presentation`
+(予防受診なら `None`) を返す。外来シミュレータはこれを使い、受診時の
+vitals、stream を消費しない発熱 / 非発熱状態 (`Presentation.visit_state`、
+encounter id に対する SHA Bernoulli)、対応する状態変数への影響、
+持ち帰り処方を決める。
 
 `load_pediatric_schedule` は load 時に file を validate し、schema
 違反 (必須 field `age_min` / `age_max` / `visits_per_year` /
@@ -79,16 +87,27 @@ condition_type="pediatric", protocol_source="pediatric:<key>")` を
 ## 定数と設定
 
 [`reference_data/pediatric_schedule.yaml`](reference_data/pediatric_schedule.yaml)
-は登録済みの encounter を単一 `encounters:` map に格納する。各 entry:
+は登録済みの encounter を `encounters:` map に、急性受診の臨床像を
+`presentations:` map に格納する。`encounters:` の各 entry:
 
 | キー | 意味 |
 | --- | --- |
 | `age_min` | 含む下限 (歳)。 |
 | `age_max` | 含む上限 (歳)。 |
 | `visits_per_year` | 非空 `list[int]` — 患者 × 年ごとに uniform sampling し patient 間の分散を与える。 |
-| `encounter_type` | `"outpatient"` / `"emergency"` / `"inpatient"` — `LifeEvent.encounter_type` に copy (default `"outpatient"`、現行 entry は全て outpatient)。 |
+| `encounter_type` | `"outpatient"` のみ (それ以外は model が拒否) — `LifeEvent.encounter_type` に copy。 |
 | `disease_id` | `LifeEvent.disease_id` に copy。診療科解決と visit-reason lookup に使用。 |
 | `visit_reason` | 任意。bilingual `{en, ja}` dict または文字列。`simulator/_setup.py::_pediatric_visit_reason` が読み、encounter の chief complaint に emit。 |
+
+`presentations:` の各 entry は `encounters:` の `disease_id` をキーとする
+(未知のキーは load 時に失敗):
+
+| キー | 意味 |
+| --- | --- |
+| `vitals` | 受診時に測定する vital field の非空 list。 |
+| `febrile_probability` | 受診が発熱である確率 (0–1)。0 より大きい場合は `state_impact.febrile` block が必須。 |
+| `state_impact` | 任意。`{febrile, afebrile}` → `{state_var: delta}`。状態変数名は physiology の canonical state var であること。 |
+| `prescriptions` | 任意。持ち帰り処方の list: `drug_id` (薬剤カタログに存在すること)、`dose`、`route`、`frequency`、`duration_days` (年齢帯 → 正の日数)。 |
 
 schedule 拡張は **純粋 YAML 編集** — code 変更不要。不正 entry は
 load 時に `ValueError` として顕在化する。
@@ -128,7 +147,7 @@ pediatric event を他の calendar event と同等に扱う。
 | Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`generate_healthcare_calendar` 内) | (person, year) ごとに `generate_pediatric_events(person, year, prng)` を呼び、返却 `LifeEvent` を calendar `events` list に追加。 |
 | Healthcare-calendar dispatch | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | `event_type == "pediatric_visit"` を外来受診に振り分け (診療科は `resolve_outpatient_department`、主訴は `_pediatric_visit_reason(disease_id)`)。 |
 | Visit-reason lookup | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_pediatric_visit_reason`) | `load_pediatric_schedule()` から `visit_reason` を読む。 |
-| Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` 分岐。 |
+| Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` 分岐。`pediatric_presentation` が急性受診の vitals・発熱状態・処方を供給。 |
 
 ## テスト
 

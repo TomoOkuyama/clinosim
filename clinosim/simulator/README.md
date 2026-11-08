@@ -129,7 +129,7 @@ Concrete consequences:
 
 ## Directory contents
 
-Simulation orchestration (18 files):
+Simulation orchestration (24 files):
 
 ```
 clinosim/simulator/
@@ -153,6 +153,18 @@ clinosim/simulator/
   sex_gating.py          sex-gating for ICD-10 diagnosis dispatch
   unknown_condition.py   handling for chronic conditions without a
                          disease protocol
+  encounter_setup.py     shared steps for building and finishing an
+                         encounter (order linking, admit source /
+                         disposition / priority)
+  ed_procedures.py       timing of bedside procedures within an ED visit
+  screening_visit.py     scheduled screening visits run from their
+                         encounter protocol (workup + screening labs)
+  statin_monitoring.py   lipid monitoring + statin titration at chronic
+                         follow-up visits
+  diagnosis_rules.py     diagnosis-coding rule tables of the encounter
+                         simulators (loads reference_data/diagnosis_rules.yaml)
+  event_refs.py          declared namespaces of LifeEvent.disease_id /
+                         ConditionEvent.ground_truth_diseases values
 ```
 
 Forward loop and phases (`phases/`, 5 modules + `__init__.py`):
@@ -191,16 +203,30 @@ Helpers (2 files):
   enumerate.py           exhaustive enumeration mode (`clinosim enumerate`)
 ```
 
-CLI subcommand handlers (7 files):
+CLI subcommand handlers (11 files):
 
 ```
   cli_common.py          shared CLI utilities
+  cli_simulate.py        `clinosim simulate` subcommand (+ `generate` alias)
+  cli_validate.py        `clinosim validate` subcommand
+  cli_list_diseases.py   `clinosim list-diseases` subcommand
+  cli_diff.py            `clinosim diff` subcommand
   cli_enumerate.py       `clinosim enumerate` subcommand
   cli_export_fhir.py     `clinosim export-fhir` subcommand
-  cli_narrate.py         `clinosim narrate` subcommand
+  cli_narrate.py         `clinosim narrate` / `check-narratives` subcommands
   cli_regenerate.py      `clinosim regenerate-goldens` subcommand
   cli_test_disease.py    `clinosim test-disease` subcommand
   cli_test_encounter.py  `clinosim test-encounter` subcommand
+```
+
+Reference data (`reference_data/`, 5 YAMLs):
+
+```
+  reference_data/chronic_propagation.yaml     chronic-condition propagation (helpers.py)
+  reference_data/diagnosis_rules.yaml         diagnosis-coding rules (diagnosis_rules.py)
+  reference_data/icd10_sex_restrictions.yaml  ICD-10 sex gates (sex_gating.py)
+  reference_data/renal_medication_rules.yaml  renal dosing rules (medication_pipeline.py, discharge_rx.py)
+  reference_data/statin_monitoring.yaml       lipid monitoring / statin titration (statin_monitoring.py)
 ```
 
 Extracted threshold constants (14 files, `_<area>_thresholds.py`):

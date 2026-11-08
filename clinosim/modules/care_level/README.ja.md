@@ -128,7 +128,7 @@ clinosim/modules/care_level/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`L371` 付近, `L420` 付近) | `record["care_level"]` から `care_level.csv` を書き出し。 |
+| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`convert_cif_to_csv`) | `record["care_level"]` から `care_level.csv` を書き出し。 |
 | FHIR `Observation` builder | [`clinosim/modules/output/fhir_r4/encounters/care_level.py`](../output/fhir_r4/encounters/care_level.py) (`_bb_care_level`) | social-history `Observation`、id は patient id から導出した opaque な `carelevel-<hash>` (identifier に元 key を保持)、`code` = LOINC 80391-6 (JP では `text = "要介護度"`)、`valueCodeableConcept` = `jp-care-level` コード。`effectiveDateTime` は SDOH パターン (最初の encounter 入院時刻) を踏襲。JP encounter は `meta.profile = JP_Observation_Common` を付与。PR2 G2 (2026-06-24) で旧 `_fhir_sdoh.py` から single-responsibility 分離。 |
 | Enricher registry | [`clinosim/simulator/enrichers.py:280`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
 

@@ -12,7 +12,8 @@ measurements
 (BMI, systolic BP, diastolic BP, HbA1c, LDL cholesterol), and a
 `HEALTH_CHECKUP_REPORT` `ClinicalDocument` stub whose narrative
 [`document.narrative`](../document/narrative/README.md) fills in
-during Stage 2 (AD-65 two-pass CIF).
+during Stage 2 (AD-65 two-pass CIF). A selected patient who is not
+alive on the checkup date gets no checkup (Issue #2940).
 
 Default OFF — the module only fires when
 `SimulatorConfig.modules["health_checkup"] == True` and `country == "JP"`.
@@ -21,7 +22,7 @@ Off keeps the simulator's default acute-hospital shape unchanged.
 ## Scope
 
 - **In scope**: patient subset selection (age gate + deterministic
-  hash), snapshot-anchored checkup-date pick (exactly 90 days
+  hash + alive-on-checkup-date gate), snapshot-anchored checkup-date pick (exactly 90 days
   before the snapshot, falling back to 2026-12-31 when no snapshot is
   set; one checkup per patient regardless of simulation length), age-tier checkup-type dispatch
   (40-64 → 事業者健診, 65-74 → 特定健診, 75+ → 広域連合健診 —
@@ -56,8 +57,12 @@ but useful for tests: `_patient_selected(patient_id)`,
 `_pick_checkup_type(age)`, `_pick_checkup_date(snapshot_date)`,
 `_derive_checkup_values(patient, rng)`, `_interp_for(lab_name, value)`, `checkup_lab_names()`,
 `_build_checkup_encounter`, `_build_checkup_lab_results`,
-`_build_checkup_document_stub`. `HEALTH_CHECKUP_MIN_AGE = 40` and the
-age-tier thresholds (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
+`_build_checkup_document_stub`, `_alive_on_checkup_date` (skips a
+patient who died before the checkup date — read from
+`PersonRecord.in_population_at` when the population registry is
+present, else from the profile's `date_of_death`).
+`HEALTH_CHECKUP_MIN_AGE = 40` is defined in `engine.py`; the age-tier
+thresholds (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
 `CHECKUP_TYPE_REGIONAL_UNION_AGE_MIN = 75`) live in
 [`_checkup_thresholds.py`](_checkup_thresholds.py).
 

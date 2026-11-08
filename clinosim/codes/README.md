@@ -194,29 +194,34 @@ Japanese counterpart: [`README.ja.md`](README.ja.md).
 
 ### Core clinical registries (with curated data)
 
-| Key | Name | FHIR system URI | Codes | Source |
-|---|---|---|---|---|
-| `icd-10-cm` | ICD-10-CM | `http://hl7.org/fhir/sid/icd-10-cm` | 420 | CMS / NCHS |
-| `icd-10` | WHO ICD-10 | `http://hl7.org/fhir/sid/icd-10` | 368 | WHO ICD-10 |
-| `icd-10-mhlw` | JP MHLW ICD-10 (2013 registry) | `http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full` | (aliased to icd-10) | MHLW / JP-Core |
-| `loinc` | LOINC | `http://loinc.org` | 211 | Regenstrief LOINC |
-| `snomed-ct` | SNOMED CT | `http://snomed.info/sct` | 158 | IHTSDO |
-| `jlac10` | JLAC10 | `urn:oid:1.2.392.200119.4.1005` | 50 | JCCLS |
-| `rxnorm` | RxNorm | `http://www.nlm.nih.gov/research/umls/rxnorm` | 229 | NLM RxNorm |
-| `yj` | YJ code | `http://capstandard.jp/iyaku.info/CodeSystem/YJ-code` | 259 | JP Core / capstandard; MHLW YJ master |
-| `hot7` | HOT7 (JP MEDIS) | `http://medis.or.jp/CodeSystem/master-HOT7` | 0 (URI only; Issue #2347) | MEDIS |
-| `cpt` | CPT | `http://www.ama-assn.org/go/cpt` | 36 | AMA CPT |
-| `k-codes` | K codes | `urn:oid:1.2.392.200119.4.401` | 34 | MHLW reimbursement schedule |
-| `cvx` | CVX (vaccine codes) | `http://hl7.org/fhir/sid/cvx` | 34 | CDC |
+| Key | Name | FHIR system URI | Source |
+|---|---|---|---|
+| `icd-10-cm` | ICD-10-CM | `http://hl7.org/fhir/sid/icd-10-cm` | CMS / NCHS |
+| `icd-10` | WHO ICD-10 | `http://hl7.org/fhir/sid/icd-10` | WHO ICD-10 |
+| `icd-10-mhlw` | JP MHLW ICD-10 (2013 registry) | `http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full` | MHLW / JP-Core — code data aliased to `icd-10` |
+| `loinc` | LOINC | `http://loinc.org` | Regenstrief LOINC |
+| `snomed-ct` | SNOMED CT | `http://snomed.info/sct` | IHTSDO |
+| `jlac10` | JLAC10 | `urn:oid:1.2.392.200119.4.1005` | JCCLS |
+| `rxnorm` | RxNorm | `http://www.nlm.nih.gov/research/umls/rxnorm` | NLM RxNorm |
+| `yj` | YJ code | `http://capstandard.jp/iyaku.info/CodeSystem/YJ-code` | JP Core / capstandard; MHLW YJ master |
+| `hot7` | HOT7 (JP MEDIS) | `http://medis.or.jp/CodeSystem/master-HOT7` | MEDIS — URI only, no code data (Issue #2347) |
+| `cpt` | CPT | `http://www.ama-assn.org/go/cpt` | AMA CPT |
+| `k-codes` | K codes | `urn:oid:1.2.392.200119.4.401` | MHLW reimbursement schedule |
+| `cvx` | CVX (vaccine codes) | `http://hl7.org/fhir/sid/cvx` | CDC |
+
+Code counts grow with every new scenario, so they are not listed
+here; count a system's entries with
+`python -c "from clinosim.codes import code_system; print(len(code_system('loinc').codes))"`
+(substitute the system key).
 
 ### HL7 terminology CodeSystems (data-backed)
 
 | Key | Codes |
 |---|---|
 | `hl7-condition-clinical`, `hl7-condition-ver-status` | 6 + 6 |
-| `hl7-admit-source`, `hl7-discharge-disposition` | 3 + 4 |
+| `hl7-admit-source`, `hl7-discharge-disposition` | 4 + 4 |
 | `hl7-allergyintolerance-clinical`, `hl7-allergyintolerance-verification` | 3 + 5 |
-| `hl7-observation-interpretation` | 3 |
+| `hl7-observation-interpretation` | 14 |
 | `hl7-practitioner-role`, `hl7-subscriber-relationship` | 6 + 7 |
 | `hl7-v3-actreason`, `hl7-v3-administrativegender`, `hl7-v3-maritalstatus` | 4 + 3 + 6 |
 | `hl7-endpoint-connection-type`, `hl7-endpoint-payload-type` | 1 + 1 |

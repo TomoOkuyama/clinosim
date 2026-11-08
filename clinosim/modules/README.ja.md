@@ -121,7 +121,7 @@ Cross-module invariant:
 | Module | 用途 |
 | --- | --- |
 | [`document/`](document/README.ja.md) | 文書 stub emission (POST_ENCOUNTER order=95) + AD-60 audit + canonical FHIR ID prefix。 |
-| [`llm_service/`](llm_service/README.ja.md) | 単一 LLM gateway (AD-11) — Bedrock / Ollama / vLLM / Anthropic / mock を `providers/` で。 |
+| [`llm_service/`](llm_service/README.ja.md) | 単一 LLM gateway (AD-11) — Bedrock / Ollama / vLLM (OpenAI 互換) / mock を `providers/` で。 |
 
 ### 出力 & 検証
 

@@ -53,7 +53,7 @@ from clinosim.modules.metabolic import (
 
 - `_BMI_OVERWEIGHT_THRESHOLD` (25.0), `_BMI_OBESITY_THRESHOLD` (30.0), `_BMI_MORBID_THRESHOLD` (40.0) — WHO BMI 階層境界。`clinosim.modules.population` の `BMI_OVERWEIGHT_THRESHOLD` / `BMI_OBESE_THRESHOLD` / `BMI_MORBID_OBESITY_THRESHOLD` のローカル alias として import (single source of truth、軸 1-4 の `_bmi_tier` で共用)。
 - `_E66_ICD_CODING_RATE_OVERWEIGHT = 0.20`, `_E66_ICD_CODING_RATE_OBESITY = 0.65`, `_E66_ICD_CODING_SALT = "metabolic.e66.icd_coding.v1"` — 軸 1 実 EHR コーディング率 gate (Issue #1773)。
-- `_SYNDROME_BMI_THRESHOLD = 30.0`, `_HTN_PREFIXES`, `_DYSLIPIDEMIA_PREFIXES`, `_DM_PREFIXES`, `_SYNDROME_CODE = "E88.81"` — 軸 2 AND 基準。
+- `_SYNDROME_BMI_THRESHOLD = 30.0`, `_HTN_PREFIXES`, `_DYSLIPIDEMIA_PREFIXES`, `_has_diabetes` (`concept_group` 経由の共有 `diabetes` value set), `_SYNDROME_CODE = "E88.81"` — 軸 2 AND 基準。
 - `_NAFLD_CODE = "K76.0"`, `_NAFLD_OBESE_PREVALENCE = 0.60`, `_NAFLD_MORBID_PREVALENCE = 0.85`, `_NAFLD_DM_UPLIFT = 1.15`, `_NAFLD_SALT = "metabolic.nafld.v1"`, `_F10_PREFIXES = ("F10",)` — 軸 3 アンカー (Younossi 2016 肥満サブコホート) と F10 除外 gate (Issue #1756)。
 - `_OSA_CODE = "G47.30"`, `_OSA_PREVALENCE_MALE`, `_OSA_PREVALENCE_FEMALE`, `_OSA_AGE_SPLIT`, `_OSA_AGE_FACTOR_MALE` / `_FEMALE`, `_OSA_SALT = "metabolic.osa.v1"` — 軸 4 アンカー (BMI 階層 × 性別テーブル × 年齢係数、Peppard 2013 AHI ≥ 15 に較正)。
 

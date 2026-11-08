@@ -105,7 +105,9 @@ The full `__all__`: functions `check_pair`,
 `check_candidate_against_allergies`, `allergy_entries`,
 `allergy_skip_verdict`, `conflict_display`, `condition_entries`,
 `suggest_alternative`, `discharge_reconciliation_rules`,
-`resolve_classes`, `canonical_name`, `japanese_display`; types
+`resolve_classes`, `canonical_name`, `japanese_display`,
+`rule_kind` (allergy / disease / interaction kind of a verdict's
+`rule_id`); types
 `SafetyVerdict`, `SafetySkipEntry`, `Severity`, `SEVERITY_RANK`
 (re-exported from `clinosim.types.drug_safety` via `verdict.py`),
 `AlternativeDrug` (`engine.py`) and `DemographicVerdict`

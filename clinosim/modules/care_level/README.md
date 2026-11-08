@@ -140,7 +140,7 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`~L371`, `~L420`) | Writes `care_level.csv` from `record["care_level"]`. |
+| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`convert_cif_to_csv`) | Writes `care_level.csv` from `record["care_level"]`. |
 | FHIR `Observation` builder | [`clinosim/modules/output/fhir_r4/encounters/care_level.py`](../output/fhir_r4/encounters/care_level.py) (`_bb_care_level`) | Social-history `Observation` with opaque id `carelevel-<hash>` derived from the patient id (kept as an identifier), `code` = LOINC 80391-6 (`text = "要介護度"` on JP), `valueCodeableConcept` = `jp-care-level` code. `effectiveDateTime` mirrors the SDOH pattern (earliest encounter admission). JP encounters carry `meta.profile = JP_Observation_Common`. Extracted from the former `_fhir_sdoh.py` by PR2 G2 (2026-06-24) for single-responsibility separation. |
 | Enricher registry | [`clinosim/simulator/enrichers.py:280`](../../simulator/enrichers.py) | POST_RECORDS registration. |
 

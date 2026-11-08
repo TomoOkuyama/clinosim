@@ -25,7 +25,7 @@ CLI dispatcher を所有し、本サブパッケージは実際にコホート�
 | `structural.py` | Structural | FHIR resource 整合性 — `referenceRange` + `interpretation` 100% カバレッジ、NDJSON 毎の id ユニーク性、全 coding で `display != code`。 |
 | `clinical.py` | Clinical | `spec.clinical_acceptance` 駆動。HAI 型エントリ (`icd10_code` を持つ dict) ごとに observation を cohort (ICD-10 診断経由) と baseline に分割し、WBC / CRP の `cohort_p50 − baseline_p50` delta を spec 閾値と比較。メタデータキーで追加 gate を有効化: `basedon_coverage` (検査 Observation の `basedOn`)、`imaging_basedon_coverage`、`care_team_per_encounter`、HAI 耐性 / 空感受性 / narrow-rate バンド。 |
 | `jp_language.py` | JP-language | コホートレベルのローカライズ整合性 — Issue #473 準拠。JP 側違反 = Latin word (`[A-Za-z]{2,}`) を含み日本語文字ゼロ、US 側漏出 = 日本語文字を含む。`meta`/`identifier`/`extension`/URL slot、JP-CLINS 定義の coding display はスキップ。 |
-| `silent_no_op.py` | silent-no-op | PR-90 クラスのバグを止める gate — 独立に有効化できる 2 チェックを実行: canonical constants クロスチェック (`yaml_keys_to_validate` vs `canonical_constants`) と lift-firing proof (`lift_firing_proof`)。3 つ目 (fired counter) はモジュール docstring に記載があるが未実装。ドリフト検出時は FAIL。 |
+| `silent_no_op.py` | silent-no-op | PR-90 クラスのバグを止める gate — 独立に有効化できる 2 チェックを実行: canonical constants クロスチェック (`yaml_keys_to_validate` vs `canonical_constants`) と lift-firing proof (`lift_firing_proof`)。ドリフト検出時は FAIL。 |
 
 ## 新しい軸を追加する
 

@@ -53,7 +53,7 @@ Thresholds live as module-level constants in `engine.py` rather than yaml so the
 
 - `_BMI_OVERWEIGHT_THRESHOLD` (25.0), `_BMI_OBESITY_THRESHOLD` (30.0), `_BMI_MORBID_THRESHOLD` (40.0) — WHO BMI tier bounds, imported as local aliases of the `clinosim.modules.population` constants `BMI_OVERWEIGHT_THRESHOLD` / `BMI_OBESE_THRESHOLD` / `BMI_MORBID_OBESITY_THRESHOLD` (single source of truth; also used by `_bmi_tier` across axes 1-4).
 - `_E66_ICD_CODING_RATE_OVERWEIGHT = 0.20`, `_E66_ICD_CODING_RATE_OBESITY = 0.65`, `_E66_ICD_CODING_SALT = "metabolic.e66.icd_coding.v1"` — axis 1 real-EHR coding-rate gate (Issue #1773).
-- `_SYNDROME_BMI_THRESHOLD = 30.0`, `_HTN_PREFIXES`, `_DYSLIPIDEMIA_PREFIXES`, `_DM_PREFIXES`, `_SYNDROME_CODE = "E88.81"` — axis 2 AND criteria.
+- `_SYNDROME_BMI_THRESHOLD = 30.0`, `_HTN_PREFIXES`, `_DYSLIPIDEMIA_PREFIXES`, `_has_diabetes` (shared `diabetes` value set via `concept_group`), `_SYNDROME_CODE = "E88.81"` — axis 2 AND criteria.
 - `_NAFLD_CODE = "K76.0"`, `_NAFLD_OBESE_PREVALENCE = 0.60`, `_NAFLD_MORBID_PREVALENCE = 0.85`, `_NAFLD_DM_UPLIFT = 1.15`, `_NAFLD_SALT = "metabolic.nafld.v1"`, `_F10_PREFIXES = ("F10",)` — axis 3 anchors (Younossi 2016 obese sub-cohort) and the F10 exclusion gate (Issue #1756).
 - `_OSA_CODE = "G47.30"`, `_OSA_PREVALENCE_MALE`, `_OSA_PREVALENCE_FEMALE`, `_OSA_AGE_SPLIT`, `_OSA_AGE_FACTOR_MALE` / `_FEMALE`, `_OSA_SALT = "metabolic.osa.v1"` — axis 4 anchors (BMI tier × sex table × age factor, calibrated to Peppard 2013 AHI ≥ 15).
 

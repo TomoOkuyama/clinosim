@@ -3,7 +3,8 @@
 # Default: local Ollama (no API key needed)
 # Setup: brew install ollama && ollama pull llama3.1:8b
 #
-# To use cloud APIs, see llm_service.bedrock.yaml or llm_service.cloud.yaml
+# To use AWS Bedrock, see llm_service.bedrock.yaml; for Ollama on a remote
+# Sakura GPU VM, see llm_service.sakura.yaml
 
 # NARRATIVE: clinical document generation (`clinosim narrate`). The document
 # types are defined by the document registry

@@ -10,7 +10,8 @@ health checkup) を JP コホートに追加する opt-in POST_RECORDS enricher�
 HbA1c、LDL コレステロール)、および `HEALTH_CHECKUP_REPORT` の
 `ClinicalDocument` stub (narrative は
 [`document.narrative`](../document/narrative/README.ja.md) が Stage 2
-で populate) を emit する。
+で populate) を emit する。選定患者でも健診日に生存していなければ
+健診は生成しない (Issue #2940)。
 
 **default OFF** — `SimulatorConfig.modules["health_checkup"] == True`
 かつ `country == "JP"` のときのみ発火。OFF 時は simulator default の
@@ -18,7 +19,8 @@ HbA1c、LDL コレステロール)、および `HEALTH_CHECKUP_REPORT` の
 
 ## Scope
 
-- **In scope**: 患者サブセット選定 (年齢 gate + 決定論 hash)、
+- **In scope**: 患者サブセット選定 (年齢 gate + 決定論 hash + 健診日
+  生存 gate)、
   snapshot 基点の健診日決定 (snapshot のちょうど 90 日前、snapshot
   未設定時は 2026-12-31 基準。simulation 期間に関わらず患者あたり
   1 回)、年齢層別 checkup type dispatch (40-64 → 事業者健診、
@@ -53,7 +55,10 @@ from clinosim.modules.health_checkup import (
 `_pick_checkup_date(snapshot_date)`,
 `_derive_checkup_values(patient, rng)`, `_interp_for(lab_name, value)`, `checkup_lab_names()`,
 `_build_checkup_encounter`, `_build_checkup_lab_results`,
-`_build_checkup_document_stub`。`HEALTH_CHECKUP_MIN_AGE = 40` と年齢
+`_build_checkup_document_stub`, `_alive_on_checkup_date` (健診日より
+前に死亡した患者をスキップ — population registry があれば
+`PersonRecord.in_population_at`、無ければ profile の `date_of_death`
+で判定)。`HEALTH_CHECKUP_MIN_AGE = 40` は `engine.py` に定義し、年齢
 tier 閾値 (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
 `CHECKUP_TYPE_REGIONAL_UNION_AGE_MIN = 75`) は
 [`_checkup_thresholds.py`](_checkup_thresholds.py) に定義。

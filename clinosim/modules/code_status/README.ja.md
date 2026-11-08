@@ -121,7 +121,7 @@ clinosim/modules/code_status/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`L358` 付近, `L419` 付近) | `record["code_status"]` から `code_status.csv` を書き出し。 |
+| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`convert_cif_to_csv`) | `record["code_status"]` から `code_status.csv` を書き出し。 |
 | FHIR `Observation` builder | [`clinosim/modules/output/fhir_r4/conditions/code_status.py`](../output/fhir_r4/conditions/code_status.py) (`_bb_code_status`) | survey カテゴリの `Observation`、id は encounter id から導出した opaque な `codestatus-<hash>` (identifier に元 key を保持)、`code` = observable 304251008、`valueCodeableConcept` = tier SNOMED、`effectiveDateTime` = 入院日時。JP encounter は追加で `meta.profile = JP_Observation_Common` を付与。 |
 | Enricher registry | [`clinosim/simulator/enrichers.py:267`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
 

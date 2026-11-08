@@ -137,7 +137,7 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`~L341`, `~L418`) | Writes `family_history.csv` from `record["family_history"]` (patient-unique). |
+| CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`convert_cif_to_csv`) | Writes `family_history.csv` from `record["family_history"]` (patient-unique). |
 | FHIR `FamilyMemberHistory` builder | [`clinosim/modules/output/fhir_r4/demographics/family_history.py`](../output/fhir_r4/demographics/family_history.py) | Emits one `FamilyMemberHistory` per relative; ids are opaque `fmh-<12hex>` derived from the structural key `{patient_id}-NN` (kept as an identifier) for write-time de-dup. |
 | Enricher registry | [`clinosim/simulator/enrichers.py:254`](../../simulator/enrichers.py) | POST_RECORDS registration. |
 
