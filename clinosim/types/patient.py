@@ -196,6 +196,14 @@ class OutpatientVisitLedger:
     # Phase 1 of #1698: specialty visits emitted, as (specialty, year, period slot);
     # the slot is None for annual, 1|2 for semi_annual, 1..4 for quarterly.
     specialty_visits: set[tuple[str, int, int | None]] = field(default_factory=set)
+    # Issue #2877 (simulator/statin_monitoring.py): the last lipid panel of a
+    # statin-monitoring visit (date, LDL, the statin taken then as
+    # "drug_id dose"), and the statin the clinic last titrated to, with the date.
+    lipid_panel_on: date | None = None
+    lipid_panel_ldl: float | None = None
+    lipid_panel_statin: str = ""
+    titrated_statin: HomeMedication | None = None
+    statin_changed_on: date | None = None
 
 
 @dataclass

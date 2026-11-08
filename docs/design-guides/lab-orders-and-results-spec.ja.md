@@ -30,6 +30,7 @@
 | 規則 | 正準コード | ガード |
 |---|---|---|
 | あらゆる境界(シミュレータ、FHIR ServiceRequest / Observation、入院経過の抽出、健診、ベンチマーク)は、検査名を正準の検査名と別名表で解決する。 | `observation/engine.py::canonical_lab_name`, `observation/reference_data/lab_aliases.yaml` | `tests/unit/test_lab_identity_2299.py`, `tests/unit/test_checkup_canonical_labs_2300.py` |
+| スタチン服用中の脂質異常症の患者は、処方更新の受診で脂質パネル全体(TC, LDL, HDL, TG)を測る(単独項目にしない)。最初のモニタリング受診、スタチン変更から 4 週以上後、それ以外は約 6 か月ごと(2018 ACC/AHA: 変更後 4〜12 週、以後 3〜12 か月ごと)。 | `simulator/statin_monitoring.py`(`lipid_panel_due`, `lipid_panel_labs`)。データ `simulator/reference_data/statin_monitoring.yaml` | `tests/unit/simulator/test_statin_monitoring_2877.py` |
 | パネルは一度だけ定義し、オーダー時は一つの分類関数で検査をパネルと単独検査に分ける。 | `observation/reference_data/lab_panels.yaml`, `order/panel_grouping.py::classify_lab_specs` | `tests/unit/test_lab_bounds_panels_2332.py`, `tests/unit/test_lab_panel_registry.py` |
 
 ## 4. 結果とオーダー
@@ -48,4 +49,6 @@
 
 ## 6. 未対応
 
-既知のものは無い。新たな例外は、それを許すガードとともにここに記す。
+| 未対応 | 場所 |
+|---|---|
+| 脂質の真値はスタチン治療に依存しないため、スタチンを増量しても以後のパネルの LDL は下がらない(Issue #2877 はパネルのオーダーと増量のみ)。 | `physiology/engine.py::_add_lipid_labs` |

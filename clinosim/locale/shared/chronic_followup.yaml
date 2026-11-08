@@ -53,7 +53,10 @@ E78:  # Dyslipidemia
   follow_up_interval_months: 3
   labs: []
   labs_quarterly: [AST, ALT]
-  labs_annual: [LDL, HDL, TG, TC]
+  # Issue #2877: the lipid panel (TC, LDL, HDL, TG) is ordered whole by the
+  # statin-monitoring cadence (simulator/reference_data/statin_monitoring.yaml)
+  # at every renewal visit of a dyslipidemia patient on a statin, whichever
+  # condition the visit is for.
   vitals: [systolic_bp, diastolic_bp, heart_rate]
   prescriptions_renewed: true
   visit_duration_minutes: 10

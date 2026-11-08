@@ -1,0 +1,71 @@
+# Lipid monitoring and statin titration at chronic follow-up visits (Issue #2877).
+#
+# Read by simulator/statin_monitoring.py. Applies to a patient with
+# dyslipidemia (value set `dyslipidemia`) on a statin (catalog class
+# `statin`), at the chronic follow-up visit that renews their prescriptions
+# (`prescriptions_renewed` in chronic_followup.yaml).
+#
+# Lipid panel cadence (2018 ACC/AHA cholesterol guideline, Grundy et al.,
+# Circulation 2019;139:e1082, "Adherence and percentage response to
+# LDL-C-lowering medications": fasting lipids 4-12 weeks after statin
+# initiation or dose adjustment and every 3-12 months thereafter; Class I,
+# LOE A). The visit orders the whole panel (TC, LDL, HDL, TG), never a
+# single analyte:
+#   - at the patient's first monitoring visit of the run (no panel on record);
+#   - at the first visit at least `recheck_min_days_after_change` days after
+#     the statin was changed (the 4-week lower bound; chronic visits are about
+#     3 months apart, so the recheck falls at 4-13 weeks);
+#   - otherwise at the first visit at least `maintenance_min_days` days after
+#     the last panel: every other 3-monthly visit, i.e. about 6-monthly, inside
+#     the guideline's 3-12 months.
+#
+# Titration: at the next monitoring visit after a panel whose LDL is at or
+# above the patient's step-up threshold, the statin moves one step up the
+# country's ladder and the new prescription replaces the old one. The step-up
+# threshold is the first `step_up_ldl` rule whose value set the patient is
+# in, else the rule without a value set.
+#   US (2018 ACC/AHA): clinical ASCVD -> high-intensity / maximally tolerated
+#     statin, and LDL >= 70 mg/dL on it is above the add-on threshold
+#     ("Secondary ASCVD prevention"); otherwise LDL >= 190 mg/dL calls for a
+#     high-intensity statin ("Severe hypercholesterolemia"). Statin intensity
+#     (ACC/AHA Table 3): atorvastatin 10-20 mg and rosuvastatin 5-10 mg are
+#     moderate, atorvastatin 40-80 mg and rosuvastatin 20-40 mg high.
+#   JP (JAS 2022 動脈硬化性疾患予防ガイドライン, target-based): LDL target
+#     < 100 mg/dL after coronary heart disease (secondary prevention), < 120
+#     mg/dL in high-risk primary prevention (diabetes, CKD, PAD, non-
+#     cardioembolic stroke) — the target the outpatient note states
+#     (document/reference_data/chronic_control_targets.yaml). Ladder within
+#     the Japanese package-insert usual maximum (atorvastatin 20 mg/day,
+#     rosuvastatin 10 mg/day; higher doses only for familial
+#     hypercholesterolaemia).
+# The 30-50 % response criterion of the US guideline needs an untreated LDL,
+# which the run does not have (patients enter on a statin), so it is not
+# applied.
+#
+# `steps`: drug_id -> {current dose mg: next dose mg}. A drug or dose not
+# listed is not titrated (e.g. JP rosuvastatin 20 mg, already above the usual
+# maximum, or a statin at the top of its ladder).
+metadata:
+  kind: reference
+  name: statin_monitoring
+  source: clinosim
+
+lipid_panel: [TC, LDL, HDL, TG]
+recheck_min_days_after_change: 28
+maintenance_min_days: 150
+
+countries:
+  US:
+    step_up_ldl:
+      - {value_set: clinical_ascvd, ldl_mg_dl: 70}
+      - {ldl_mg_dl: 190}
+    steps:
+      atorvastatin: {10: 40, 20: 40, 40: 80}
+      rosuvastatin: {5: 20, 10: 20, 20: 40}
+  JP:
+    step_up_ldl:
+      - {value_set: coronary_heart_disease, ldl_mg_dl: 100}
+      - {ldl_mg_dl: 120}
+    steps:
+      atorvastatin: {5: 10, 10: 20}
+      rosuvastatin: {2.5: 5, 5: 10}

@@ -664,7 +664,12 @@ class NarrativePass(ABC):
         for item in _o(rx, "items", []) or []:
             drug = str(_o(item, "drug_name", "") or _o(item, "drug", "") or "")
             if drug:
-                items.append({"drug_name": drug, "dose": str(_o(item, "dose", "") or "")})
+                entry: dict[str, Any] = {"drug_name": drug, "dose": str(_o(item, "dose", "") or "")}
+                # Issue #2877: a statin titration, stated in the plan.
+                for key in ("titrated_from_dose", "titration_ldl", "titration_panel_on"):
+                    if _o(item, key, None) is not None:
+                        entry[key] = _o(item, key, None)
+                items.append(entry)
         return items
 
     @staticmethod

@@ -62,6 +62,7 @@
 | 退院時・在宅薬の有効化・経年履歴は一つの規則リストで突き合わせる。リストの規則が名指す系統の 2 剤目は加えない(スタチン 1 剤、P2Y12 阻害薬 1 剤、抗凝固薬 1 剤、ACE 阻害薬と ARB の併用なし)。 | `modules/drug_safety/engine.py::discharge_reconciliation_rules`。呼び出し元 `discharge_rx.py`, `modules/patient/activator.py`, `modules/longitudinal/engine.py` | `tests/unit/test_discharge_reconciliation_2713.py` |
 | 経口抗凝固薬があれば、退院時と在宅薬の有効化で、抗血小板 2 剤を抗凝固薬+クロピドグレルにし、アスピリンを短期にする。 | `discharge_rx.py::limit_triple_antithrombotic`。計画は `contraindications.yaml` `triple_therapy_after_acs` | `tests/unit/test_limit_triple_therapy_2717.py` |
 | 退院処方の有限の投与期間(1〜14 日)は在宅薬に引き継がない。0 や期間なしは無期限として引き継ぐ。 | `simulator/helpers.py::is_finite_course`、`simulator/_stay_thresholds.py::ACUTE_COURSE_MAX_DAYS` | `tests/unit/test_finite_course_2757.py` |
+| 脂質異常症の患者のスタチンは、LDL が国の閾値以上(US 2018 ACC/AHA: 190 mg/dL、臨床的 ASCVD があれば 70。JP 動脈硬化性疾患予防ガイドライン 2022: LDL 管理目標値)だった脂質パネルの次の処方更新の受診で 1 段階増量し、新しい用量で更新する。新しい処方はその薬の前の処方を置き換える。増量した用量は翌年以降のプロファイルでも保つ。 | `simulator/statin_monitoring.py`(`titrate_statin`, `restore_titrated_statin`)。データ `simulator/reference_data/statin_monitoring.yaml` | `tests/unit/simulator/test_statin_monitoring_2877.py` |
 | 退院処方の状態(active / completed / stopped)、終了日、置き換えた処方は、その患者の全記録とスナップショットにわたって一度だけ計算する。計算はバンドル作成の前に行う。 | `modules/order/prescription_supersede.py::prescription_closures`、`BundleContext.rx_closures` で渡す | `tests/unit/test_prescription_renewal_2610.py` |
 
 ## 7. 製品コード

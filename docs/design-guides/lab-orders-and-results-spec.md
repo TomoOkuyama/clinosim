@@ -30,6 +30,7 @@ Related specs, linked rather than restated:
 | Rule | Canonical code | Guard |
 |---|---|---|
 | Every boundary resolves a test name through the canonical lab name and the alias table: the simulator, FHIR ServiceRequest / Observation, the hospital-course extractor, health checkups, benchmarks. | `observation/engine.py::canonical_lab_name`, `observation/reference_data/lab_aliases.yaml` | `tests/unit/test_lab_identity_2299.py`, `tests/unit/test_checkup_canonical_labs_2300.py` |
+| A dyslipidemia patient on a statin has the whole lipid panel (TC, LDL, HDL, TG), never a single analyte, at the renewal visit: at the first monitoring visit, 4 weeks or more after a statin change, else about 6-monthly (2018 ACC/AHA: 4-12 weeks after a change, then every 3-12 months). | `simulator/statin_monitoring.py` (`lipid_panel_due`, `lipid_panel_labs`); data `simulator/reference_data/statin_monitoring.yaml` | `tests/unit/simulator/test_statin_monitoring_2877.py` |
 | Panels are defined once, and ordering groups tests into panels and stand-alone tests through one classifier. | `observation/reference_data/lab_panels.yaml`, `order/panel_grouping.py::classify_lab_specs` | `tests/unit/test_lab_bounds_panels_2332.py`, `tests/unit/test_lab_panel_registry.py` |
 
 ## 4. Results and their orders
@@ -48,4 +49,6 @@ Related specs, linked rather than restated:
 
 ## 6. Gaps
 
-None known. A new exception is listed here with the guard that allows it.
+| Gap | Where |
+|---|---|
+| Lipid true values do not depend on statin therapy, so a statin titration does not lower the LDL of later panels (Issue #2877 orders the panels and titrates only). | `physiology/engine.py::_add_lipid_labs` |
