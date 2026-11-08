@@ -13,6 +13,7 @@ import numpy as np
 
 from clinosim.codes import display as registry_display
 from clinosim.codes.drugs import protocol_drug_name
+from clinosim.countries import country_slot, is_jp
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _s
 from clinosim.modules.imaging.engine import (
@@ -386,7 +387,7 @@ def protocol_drug_order_code_system(spec: dict, country: str) -> str:
     ``yj`` (JP), ``rxnorm`` (other countries), ``""`` when there is no code."""
     if not protocol_drug_order_code(spec, country):
         return ""
-    return "yj" if str(country).strip().lower() in ("jp", "japan") else "rxnorm"
+    return "yj" if is_jp(country) else "rxnorm"
 
 
 def protocol_drug_order_code(spec: dict, country: str) -> str:
@@ -398,7 +399,7 @@ def protocol_drug_order_code(spec: dict, country: str) -> str:
     product for that route. US: the catalog RxCUI of the drug; ``""`` when the
     drug is not catalogued.
     """
-    if str(country).strip().lower() not in ("jp", "japan"):
+    if not is_jp(country):
         # The catalog RxCUI of the drug (Issue #2378): the inline
         # ``code_rxnorm`` values named other drugs (labetalol carried
         # ketoconazole's RxCUI) and are removed from the disease YAMLs.
@@ -607,7 +608,7 @@ def place_admission_orders(
         # ``detail`` when the map is absent. Old YAML entries keep
         # working unchanged.
         _locale_detail = sup.get("locale_detail") or {}
-        _country_key = "jp" if str(country).lower() in ("jp", "japan") else "us"
+        _country_key = country_slot(country)
         detail_raw = str(_locale_detail.get(_country_key) or sup.get("detail", "") or "")
         for splitter in (" or ", " OR ", " または "):
             if splitter in detail_raw:

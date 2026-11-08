@@ -24,6 +24,12 @@ __all__ = [
 ]
 
 
+# "japan" is the legacy locale key the simulator carries as ``country_key``
+# (disease YAML blocks, ``country_slot(scheme="legacy_japan")``); accepting it
+# here gives one normalization for both spellings (Issue #2838).
+_JP_SPELLINGS = frozenset({"jp", "japan"})
+
+
 @lru_cache(maxsize=16)
 def is_jp(country: str) -> bool:
     """True when the country code refers to Japan (case-insensitive).
@@ -38,7 +44,7 @@ def is_jp(country: str) -> bool:
     inputs per export in practice. Cache size 16 covers all realistic
     input shapes (``"US"`` / ``"JP"`` / lower / mixed-case variants).
     """
-    return str(country).strip().lower() == "jp"
+    return str(country).strip().lower() in _JP_SPELLINGS
 
 
 @lru_cache(maxsize=16)
@@ -98,6 +104,12 @@ def normalize_lang(lang: str | None) -> str:
     if mapped:
         return mapped
     return key.split("-", 1)[0]
+
+
+def country_code(country: str) -> str:
+    """``"JP"`` for Japan (``"JP"`` / ``"jp"`` / the legacy key ``"japan"``),
+    else ``"US"`` — the upper-case code the lab and narrative helpers take."""
+    return "JP" if is_jp(country) else "US"
 
 
 def country_slot(country: str, *, scheme: Literal["code", "legacy_japan"] = "code") -> str:

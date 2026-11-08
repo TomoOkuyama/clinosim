@@ -39,7 +39,7 @@ from typing import TYPE_CHECKING, Any
 from clinosim.codes import display as registry_display
 from clinosim.codes.icd10 import icd10_system
 from clinosim.codes.valuesets import concept_group, iter_chronic_codes
-from clinosim.countries import has_authored_narrative
+from clinosim.countries import country_code, has_authored_narrative
 from clinosim.determinism import sha_index
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import chronic_followup_interval_months
@@ -248,7 +248,7 @@ def _compose_outpatient_subjective_from_state(ctx: NarrativeContext) -> str:
     from clinosim.codes import lookup as _code_lookup
     from clinosim.locale.loader import map_diagnosis_code as _map_diagnosis_code
 
-    country = "JP" if ctx.locale.lower() == "jp" else "US"
+    country = country_code(ctx.locale)
     conditions = _o(patient, "chronic_conditions", []) or []
     chronic_labels: list[str] = []
     for c in conditions[:3]:

@@ -31,6 +31,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from clinosim.countries import country_code
 from clinosim.locale.loader import narrative_label as _label  # noqa: F401 — re-exported name (Issue #2396)
 from clinosim.modules.disease.localization import target_los_config
 from clinosim.modules.document.narrative._localization import (
@@ -375,7 +376,7 @@ class TemplateNarrativeGenerator:
             # than sampling (RNG-free per this method's docstring above), and
             # falls back to the observed encounter length when the protocol
             # has no matching (country, severity) slot.
-            country = "JP" if ctx.locale == "jp" else "US"
+            country = country_code(ctx.locale)
             los_cfg = target_los_config(proto, country, ctx.severity) or {}
             if "mean" in los_cfg:
                 los = los_cfg["mean"]

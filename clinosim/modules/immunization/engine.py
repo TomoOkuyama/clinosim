@@ -613,7 +613,7 @@ def generate_pregnancy_tdap(
     """
     from clinosim.types.encounter import ImmunizationRecord
 
-    if str(country).upper() != "US":
+    if not is_us(country):
         return []
     state_periods = getattr(patient, "state_periods", None) or []
     if not state_periods:

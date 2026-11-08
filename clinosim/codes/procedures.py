@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from clinosim.codes.loader import display
+from clinosim.countries import is_jp
 from clinosim.datafiles import load_data_yaml
 
 _DATA_FILE = Path(__file__).parent / "data" / "clinosim-procedure-catalog.yaml"
@@ -37,7 +38,7 @@ def procedure_code(proc_type: str, country: str) -> str:
     """CPT (US) or K-code (JP) of a procedure type; ``""`` when the catalog has
     no verified code for it."""
     entry = _entries().get(proc_type) or {}
-    field = "k_code" if str(country).strip().upper() == "JP" else "cpt"
+    field = "k_code" if is_jp(country) else "cpt"
     return str(entry.get(field) or "")
 
 

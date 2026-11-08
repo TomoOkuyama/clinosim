@@ -15,7 +15,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any
 
-from clinosim.countries import is_jp
+from clinosim.countries import is_jp, is_us
 from clinosim.locale._io import (
     _COUNTRY_DIR_MAP,
     _FALLBACK_DEMOGRAPHICS,
@@ -188,7 +188,7 @@ def load_code_mapping(domain: str, country: str) -> dict[str, str]:
     if domain != "drug":
         return legacy
     # Union with catalog (legacy wins on conflict).
-    code_field = "rxnorm" if country.lower() == "us" else "yj"
+    code_field = "rxnorm" if is_us(country) else "yj"
     merged: dict[str, str] = {}
     try:
         from clinosim.codes.drugs import all_drug_ids, resolve_drug

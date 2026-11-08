@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from clinosim.age_bands import lookup_age_band, parse_closed_age_band
+from clinosim.countries import is_us
 from clinosim.determinism import sha_quantile
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.population._household_thresholds import (
@@ -195,7 +196,7 @@ def _derive_rh_factor(person_id: str, country: str) -> str:
     negative is the clinically-actionable state; over-emitting Rh+ is
     a lower-cost failure mode for a synthetic dataset).
     """
-    frac = _RH_POSITIVE_FRACTION.get("US" if country.upper() == "US" else "JP", 0.995)
+    frac = _RH_POSITIVE_FRACTION.get("US" if is_us(country) else "JP", 0.995)
     h = hashlib.sha256(f"{person_id}|rh".encode()).digest()
     quantile = int.from_bytes(h[:2], "big") / 65535.0
     return "+" if quantile < frac else "-"

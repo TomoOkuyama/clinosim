@@ -22,6 +22,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from clinosim.codes.icd10 import condition_label
+from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -65,7 +66,7 @@ def build_nursing_history(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     # map_diagnosis_code so display matches the FHIR emit-target.
     from clinosim.locale.loader import map_diagnosis_code as _map_diagnosis_code
 
-    country = "JP" if ctx.locale.lower() == "jp" else "US"
+    country = country_code(ctx.locale)
     conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
     labels: list[str] = []
     for c in conds[:4]:

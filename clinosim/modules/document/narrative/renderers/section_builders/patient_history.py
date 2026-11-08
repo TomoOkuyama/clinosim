@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
-from clinosim.countries import has_authored_narrative, lang_for
+from clinosim.countries import country_code, has_authored_narrative, lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -81,7 +81,7 @@ def build_past_medical_history(generator: TemplateNarrativeGenerator, ctx: Narra
     # the trailing ``[code]`` bracket.
     from clinosim.locale.loader import map_diagnosis_code
 
-    country = "JP" if ctx.locale.lower() == "jp" else "US"
+    country = country_code(ctx.locale)
     icd_system = _label("code_system_icd_display", "primary", lang)
     lines = []
     for cond in conditions:
@@ -255,7 +255,7 @@ def build_family_history(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     # is the same helper the FHIR emit-side family_history builder uses,
     # so the narrative and FHIR resource render the same disease label
     # per relative.
-    country = "JP" if ctx.locale.lower() == "jp" else "US"
+    country = country_code(ctx.locale)
     try:
         icd_system_key = system_key_for("diagnosis", country)
     except KeyError:  # pragma: no cover — kind is hard-coded

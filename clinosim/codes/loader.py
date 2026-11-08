@@ -25,7 +25,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any, ClassVar, final
 
-from clinosim.countries import normalize_lang
+from clinosim.countries import is_jp, normalize_lang
 from clinosim.datafiles import data_metadata, load_data_yaml
 
 _DATA_DIR = Path(__file__).parent / "data"
@@ -445,8 +445,7 @@ def system_key_for(kind: str, country: str) -> str:
     if kind not in _COUNTRY_SYSTEM_KEYS:
         raise KeyError(f"system_key_for: unknown kind {kind!r}; expected one of {sorted(_COUNTRY_SYSTEM_KEYS)}")
     entry = _COUNTRY_SYSTEM_KEYS[kind]
-    # JP test inlined (codes/ must not import from modules/ — dependency direction).
-    return entry["jp"] if str(country).strip().lower() == "jp" else entry["default"]
+    return entry["jp"] if is_jp(country) else entry["default"]
 
 
 # Built-in fallback URIs when the yaml doesn't define one
