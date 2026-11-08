@@ -53,7 +53,7 @@ LdlTargetTier = Literal["secondary_prevention", "high_risk_primary_prevention", 
 
 
 class _StepUpRule(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     value_set: str | None = None
     ldl_mg_dl: float = Field(gt=0)
@@ -61,7 +61,7 @@ class _StepUpRule(BaseModel):
 
 
 class _CountryRules(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     step_up_ldl: list[_StepUpRule]
     steps: dict[str, dict[float, float]]
@@ -86,7 +86,7 @@ class _CountryRules(BaseModel):
 
 
 class StatinMonitoringRules(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     lipid_panel: list[str] = Field(min_length=1)
     add_on: str

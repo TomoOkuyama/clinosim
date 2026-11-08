@@ -27,8 +27,18 @@ _NOT_YET_MODELED: dict[str, str] = {}
 _PATTERN_LOADED_MODULES = {"disease", "encounter"}
 
 
+# Simulator reference YAMLs (``simulator/reference_data``) are held to the
+# same rule as module ones, keyed ``simulator/reference_data/<file>``
+# (Issue #2956).
+_SIMULATOR = "simulator"
+
+
 def _reference_yamls() -> dict[str, Path]:
-    return {str(p.relative_to(_PKG / "modules")): p for p in sorted((_PKG / "modules").glob("*/reference_data/*.yaml"))}
+    modules = {
+        str(p.relative_to(_PKG / "modules")): p for p in sorted((_PKG / "modules").glob("*/reference_data/*.yaml"))
+    }
+    simulator = {str(p.relative_to(_PKG)): p for p in sorted((_PKG / _SIMULATOR / "reference_data").glob("*.yaml"))}
+    return {**modules, **simulator}
 
 
 def _pydantic_model_names(trees: dict[Path, ast.Module]) -> set[str]:
@@ -106,12 +116,12 @@ def _validated_reference_yamls() -> tuple[set[tuple[str, str]], set[str]]:
     """
     trees = {p: ast.parse(p.read_text(encoding="utf-8")) for p in sorted(_PKG.rglob("*.py"))}
     models = _pydantic_model_names(trees)
-    module_names = {p.name for p in (_PKG / "modules").iterdir() if p.is_dir()}
+    module_names = {p.name for p in (_PKG / "modules").iterdir() if p.is_dir()} | {_SIMULATOR}
     covered: set[tuple[str, str]] = set()
     pattern_modules: set[str] = set()
     for path, tree in trees.items():
         rel = path.relative_to(_PKG).parts
-        home = rel[1] if rel[0] == "modules" and len(rel) > 2 else None
+        home = rel[1] if rel[0] == "modules" and len(rel) > 2 else _SIMULATOR if rel[0] == _SIMULATOR else None
         # Module-level constants naming a YAML file, resolved in order.
         names: dict[str, set[_Ref]] = {}
         for stmt in tree.body:
@@ -190,29 +200,34 @@ def test_guard_sees_the_issue_2844_files(rel: str) -> None:
 _EXTRA_FORBID_RATCHET: dict[str, str] = {}
 
 
-def _forbids_extra(cls: ast.ClassDef) -> bool:
+def _config_sets(cls: ast.ClassDef, key: str, value: object) -> bool:
+    """``cls`` declares ``model_config = ConfigDict(..., key=value, ...)``."""
     for stmt in cls.body:
         if not (isinstance(stmt, ast.Assign) and any(getattr(t, "id", "") == "model_config" for t in stmt.targets)):
             continue
         call = stmt.value
         return isinstance(call, ast.Call) and any(
-            kw.arg == "extra" and isinstance(kw.value, ast.Constant) and kw.value.value == "forbid"
-            for kw in call.keywords
+            kw.arg == key and isinstance(kw.value, ast.Constant) and kw.value.value == value for kw in call.keywords
         )
     return False
 
 
+def _forbids_extra(cls: ast.ClassDef) -> bool:
+    return _config_sets(cls, "extra", "forbid")
+
+
+def _base_models(root: Path) -> list[tuple[str, ast.ClassDef]]:
+    """``(path::Class, node)`` of the direct ``BaseModel`` subclasses under ``root``."""
+    return [
+        (f"{path.relative_to(root).as_posix()}::{node.name}", node)
+        for path in sorted(root.rglob("*.py"))
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8")))
+        if isinstance(node, ast.ClassDef) and any(getattr(b, "id", "") == "BaseModel" for b in node.bases)
+    ]
+
+
 def _module_models_accepting_unknown_keys() -> set[str]:
-    found = set()
-    for path in sorted((_PKG / "modules").rglob("*.py")):
-        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
-            if (
-                isinstance(node, ast.ClassDef)
-                and any(getattr(b, "id", "") == "BaseModel" for b in node.bases)
-                and not _forbids_extra(node)
-            ):
-                found.add(f"{path.relative_to(_PKG / 'modules').as_posix()}::{node.name}")
-    return found
+    return {name for name, node in _base_models(_PKG / "modules") if not _forbids_extra(node)}
 
 
 def test_module_models_forbid_unknown_keys() -> None:
@@ -223,6 +238,32 @@ def test_module_models_forbid_unknown_keys() -> None:
     fixed = sorted(set(_EXTRA_FORBID_RATCHET) - found)
     assert not new, f"module models accepting unknown keys (declare the fields, then forbid): {new}"
     assert not fixed, f"now forbid unknown keys — remove from _EXTRA_FORBID_RATCHET: {fixed}"
+
+
+def test_simulator_models_forbid_unknown_keys_and_are_frozen() -> None:
+    """The simulator reference-YAML models reject unknown keys and are
+    read-only, nested models included (Issue #2956)."""
+    models = _base_models(_PKG / _SIMULATOR)
+    assert models, "no simulator models found"
+    offenders = [name for name, node in models if not (_forbids_extra(node) and _config_sets(node, "frozen", True))]
+    assert not offenders, f'simulator models without ConfigDict(extra="forbid", frozen=True): {offenders}'
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "chronic_propagation.yaml",
+        "diagnosis_rules.yaml",
+        "icd10_sex_restrictions.yaml",
+        "renal_medication_rules.yaml",
+        "statin_monitoring.yaml",
+    ],
+)
+def test_guard_sees_the_simulator_reference_yamls(name: str) -> None:
+    """Every simulator reference YAML is discovered and validated (Issue #2956)."""
+    assert f"{_SIMULATOR}/reference_data/{name}" in _reference_yamls()
+    covered, _ = _validated_reference_yamls()
+    assert (_SIMULATOR, name) in covered
 
 
 def test_no_extra_allow_models() -> None:

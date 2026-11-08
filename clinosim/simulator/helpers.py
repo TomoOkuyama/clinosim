@@ -22,9 +22,10 @@ from __future__ import annotations
 import functools
 import re
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from clinosim.codes.drugs import drug_ref, get_drug
 from clinosim.modules.disease.protocol import (
@@ -131,11 +132,22 @@ def _promote_stroke_sequela_at_discharge(person: Any, disease_id: str, record: A
             person.longitudinal_history[-1].chronic_stages["I69"] = stage
 
 
+class ChronicPropagationRules(BaseModel):
+    """Schema of ``reference_data/chronic_propagation.yaml`` (Issue #2956)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    # ICD-10 base codes (the part before the dot).
+    chronic_propagatable: list[Annotated[str, StringConstraints(pattern=r"^[A-Z]\d{2}$")]] = Field(min_length=1)
+
+
 @functools.cache
 def _chronic_propagatable() -> frozenset[str]:
-    from clinosim.datafiles import load_data_yaml
+    from clinosim.datafiles import load_validated_yaml
 
-    data = load_data_yaml(Path(__file__).resolve().parent / "reference_data" / "chronic_propagation.yaml")
+    data = load_validated_yaml(
+        Path(__file__).resolve().parent / "reference_data" / "chronic_propagation.yaml", ChronicPropagationRules
+    )
     return frozenset(str(c) for c in data.get("chronic_propagatable") or [])
 
 
