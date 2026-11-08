@@ -58,9 +58,12 @@ seed もそちら側で管理される。
 
 ## 依存
 
-- `yaml` — reference file の YAML パーサ。
-- `clinosim.codes` (間接、FHIR builder 経由) — 出力時の SNOMED 表示
-  lookup。
+- `clinosim.datafiles` — reference file を読む `load_data_yaml`。
+- `clinosim.codes` — `code_exists`: load 時に yaml 中の全 SNOMED /
+  LOINC code が `codes/data/` に登録済みであることを検証 (出力時の
+  表示 lookup にも FHIR builder が `clinosim.codes` を使う)。
+- `pydantic` — `_SocialHistoryConfig` (`_Observable`, `_Value`,
+  `_AgeGates`) が load 時に yaml を検証。
 - 他の `clinosim.modules.*` / locale / types への依存なし。
 
 ## 定数と設定
@@ -78,7 +81,7 @@ seed もそちら側で管理される。
   - `age_gates` — `smoking_min_age: 15`、`alcohol_min_age: 15`
     (Issue #938)。この年齢未満では FHIR builder が smoking / alcohol
     `Observation` を出力しない。
-- 6 SNOMED コードはすべて
+- 6 SNOMED コードはすべて load 時に `code_exists` で検証され、
   [`clinosim/codes/data/snomed-ct.yaml`](../../codes/data/snomed-ct.yaml)
   に登録済 (`en` + `ja` 両表示あり)。PR #68 の SNOMED CT authority
   crosswalk で照合済み。

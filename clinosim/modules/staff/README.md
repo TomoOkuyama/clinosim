@@ -29,7 +29,8 @@ staff identities the simulator hands to encounter builders + FHIR
   (Issue #915), country-appropriate name (JP kanji + kana pair) and
   phone / email generation, event-type → staff-role dispatch in
   `assign_staff`, surgeon + anesthesiologist pick in
-  `select_surgical_team`.
+  `select_surgical_team`, ward- / department-scoped nurse pool in
+  `scoped_nurses`.
 - **In scope (fallback IDs)**: `FALLBACK_PHYSICIAN_ID = "DR-001"`,
   `FALLBACK_NURSE_ID = "NS-001"`, `FALLBACK_TECH_ID = "TECH-001"`
   (Issue #562) — grep-alignable sentinels used ONLY when the roster
@@ -61,6 +62,7 @@ from clinosim.modules.staff.engine import (
     FALLBACK_TECH_ID,                  # "TECH-001"
     select_surgical_team,              # (roster, department, rng) -> (surgeon_id, anesthesiologist_id)
     roster_departments,                # (hospital_config) -> list[str] (configured + anesthesiology)
+    scoped_nurses,                     # (roster, *, ward="", department="") -> list[StaffMember]
 )
 ```
 
@@ -76,6 +78,13 @@ from clinosim.modules.staff.engine import (
 
 `StaffRoster.get_by_role(role, department=None)` is the primary
 lookup shape the module uses internally.
+
+`scoped_nurses` (Issue #2700) returns the nurses of `ward`, else of
+`department`, else every nurse; it is the shared nurse pool for the
+nursing primary-nurse enricher, `order.placed_order_mar.stable_nurse`
+(giving nurse on orders placed outside the daily MAR loop) and the
+immunization enricher. `__all__` re-exports only the four names in
+the first block; the `engine` names are imported from the submodule.
 
 ## Determinism
 
@@ -150,7 +159,7 @@ lookup shape the module uses internally.
 ```
 clinosim/modules/staff/
   __init__.py                     public API (StaffMember, StaffRoster, generate_roster, assign_staff)
-  engine.py                       roster generation + assign_staff / select_surgical_team + name / phone / email helpers
+  engine.py                       roster generation + assign_staff / select_surgical_team / scoped_nurses + name / phone / email helpers
   _staff_thresholds.py            named threshold constants (Issue #562)
   SPEC.md                         v1+ design reference (roles, lifecycle, credentials — not runtime data)
 ```
@@ -176,7 +185,7 @@ from the encounter code paths listed below.
 | Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) | `assign_staff("lab_result", …)` for the performing technician, uses `FALLBACK_TECH_ID` when the roster is empty. |
 | CLI single-encounter driver / enumerate | [`cli_test_encounter.py`](../../simulator/cli_test_encounter.py), [`enumerate.py`](../../simulator/enumerate.py) | Call `generate_roster("medium", country, rng)` for smoke runs. |
 | FHIR facility builder | [`clinosim/modules/output/fhir_r4/encounters/facility.py`](../output/fhir_r4/encounters/facility.py) | `roster_departments(hospital_config)` so every PractitionerRole department has an Organization. |
-| Nursing primary-nurse enricher | [`clinosim/modules/nursing/engine.py`](../nursing/engine.py) | Picks primary nurse via `roster.get_by_role("nurse")` (transitive consumer of the roster this module produces). |
+| Nursing primary-nurse enricher | [`clinosim/modules/nursing/engine.py`](../nursing/engine.py) | Picks the primary nurse from `scoped_nurses(roster, ward=..., department=...)`. |
 | FHIR `Practitioner` + `PractitionerRole` builders | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | Emit `StaffMember` fields as `Practitioner` (name / kana / telecom / qualification) and `PractitionerRole` (department / specialty). |
 
 ## Testing

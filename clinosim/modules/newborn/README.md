@@ -70,6 +70,11 @@ the ServiceRequest / Specimen / DiagnosticReport payload.
 `enrich_newborn` appends to the newborn record:
 
 - `medication_administrations` — Vitamin K + ophthalmic prophylaxis.
+  Each dose's `administered_by` is the giving nurse, picked by
+  `enricher._set_giving_nurse` through
+  `clinosim.modules.order.placed_order_mar.stable_nurse` — a nurse of
+  the birth encounter's ward (else department) chosen stably by the
+  order id, no RNG (Issue #2824).
 - `vital_signs` — shift vitals.
 - `procedures` — hearing + metabolic screen `ProcedureRecord`s.
 - `extensions["newborn"]` — `apgar`, `bilirubin`, `cchd_pulse_ox`,
@@ -104,6 +109,20 @@ vitamin_k:
   us: {drug_name, dose, route, schedule_days, within_hours_of_birth, rxnorm_code}
 ```
 
+## Directory contents
+
+```
+clinosim/modules/newborn/
+├── __init__.py            # Public re-exports (__all__)
+├── engine.py              # Config loader, firing gate, per-event builders, perinatal-baseline dedup tracker
+├── enricher.py            # enrich_newborn (POST_ENCOUNTER) + _set_giving_nurse
+├── fhir_emit.py           # _bb_newborn_* bundle-builders imported by output/fhir_r4/builder.py
+├── reference_data/
+│   └── newborn_screening.yaml   # Locale-specific protocol parameters
+├── README.md
+└── README.ja.md
+```
+
 ## Determinism
 
 No master-stream RNG is consumed. Vitamin K, ophthalmic prophylaxis
@@ -115,14 +134,16 @@ bilirubin values and CCHD SpO2 values use a local
 the newborn's patient id (e.g. `newborn-apgar|<pid>|…`,
 `newborn-hearing-screen|<pid>`), so they are reproducible per patient
 and independent of caller RNG. No `ENRICHER_SEED_OFFSETS` entry is
-used. There is no Vitamin K coverage-miss / declined path yet.
+used. The giving nurse is a stable function of the order id
+(`stable_nurse`), so it draws no RNG either. There is no Vitamin K coverage-miss / declined path yet.
 
 ## Testing
 
 `tests/unit/modules/newborn/` — `test_vitamin_k.py`,
 `test_shift_vitals.py`, `test_apgar.py`, `test_hearing_screen.py`,
 `test_metabolic_screen.py`, `test_bilirubin_cchd_ophthalmic.py`,
-`test_perinatal_baseline_dedup.py`; FHIR shape in
+`test_perinatal_baseline_dedup.py`, `test_newborn_giving_nurse_2824.py`
+(giving nurse on the birth-admission doses, Issue #2824); FHIR shape in
 `tests/unit/output/test_newborn_metabolic_screen_fhir_shape.py`.
 
 ## References

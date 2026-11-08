@@ -33,7 +33,7 @@ Internal derivation primitives (`_derive_e66_code`, `_is_e66_icd_coded`, `_deriv
 - **Axis 1**: the E66 tier is a pure function of BMI (`_derive_e66_code`); whether a BMI-eligible person actually receives the code is a per-person SHA Bernoulli (`_is_e66_icd_coded`, salt `metabolic.e66.icd_coding.v1`, rate `_E66_ICD_CODING_RATE_OVERWEIGHT = 0.20` for E66.3 and `_E66_ICD_CODING_RATE_OBESITY = 0.65` for E66.9 / E66.01 — Issue #1773 real-EHR coding rate). RNG-neutral — no master-stream draw.
 - **Axis 2**: pure deterministic function of BMI + chronic-condition set. Zero RNG consumption. Byte-identity preserved for cohorts whose chronic-condition set never satisfies the E88.81 4-way AND.
 - **Axes 3-4**: SHA-256 per-person Bernoulli via `clinosim.determinism.sha_bernoulli`. Each enricher hashes `<module salt>|<person_id>` to a 64-bit quantile, compares against the BMI (+ DM / sex)-weighted probability. **RNG-neutral — the master simulation stream is never consumed**, so adding these enrichers preserves byte-identity for cohorts under their respective thresholds. Separate salts (`metabolic.nafld.v1` vs `metabolic.osa.v1`) make a given patient's NAFLD / OSA assignments statistically independent, not perfectly correlated.
-- **Axis 5**: served by the chronic-medications activator pipeline, which uses the shared per-patient sub-RNG. Already governed by `ENRICHER_SEED_OFFSETS["chronic_medications"]` upstream; the metabolic module does not register its own sub-seed.
+- **Axis 5**: served by the chronic-medications activator pipeline, which uses the shared per-patient sub-RNG. That draw is seeded per patient by `clinosim.seeding.chronic_medication_seed(patient_id)` (called from `patient/activator.py::_derive_home_medications`), not by an `ENRICHER_SEED_OFFSETS` entry; the metabolic module does not register its own sub-seed.
 
 No entry in `ENRICHER_SEED_OFFSETS` is required for axes 1-4 (SHA-based or RNG-free).
 
@@ -41,7 +41,7 @@ No entry in `ENRICHER_SEED_OFFSETS` is required for axes 1-4 (SHA-based or RNG-f
 
 - `clinosim.types.population.PersonRecord` — reads `.bmi`, `.sex`, `.person_id`; mutates `.chronic_conditions`.
 - `clinosim.determinism.sha_bernoulli` — SHA-256 per-person Bernoulli for the axis 1 coding coin and the axis 3 / 4 draws.
-- `clinosim.codes.has_icd_prefix` — ICD prefix matching on the chronic-condition list.
+- `clinosim.codes.valuesets` — `has_icd_prefix` (ICD prefix matching on the chronic-condition list), `concept_group`, `iter_chronic_codes`.
 - `clinosim.modules.population` — WHO BMI tier constants (`BMI_OVERWEIGHT_THRESHOLD`, `BMI_OBESE_THRESHOLD`, `BMI_MORBID_OBESITY_THRESHOLD`, defined in `population/_population_thresholds.py`).
 - Downstream, axis 5 depends on `clinosim.modules.patient.activator` reading the yaml entries at patient activation.
 

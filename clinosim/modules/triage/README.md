@@ -39,7 +39,7 @@ from clinosim.modules.triage.engine import (
     pick_arrival_mode,           # (severity, rng) -> str
     condition_triage_bounds,     # (record) -> (most, least) urgent level
     triage_level_cap,            # (vitals) -> least-urgent level allowed
-    load_triage_protocols,       # () -> dict (@lru_cache, 6-layer validated)
+    load_triage_protocols,       # () -> dict (@lru_cache, TriageProtocols-validated)
 )
 ```
 
@@ -85,7 +85,7 @@ from clinosim.modules.triage.engine import (
 ```
 clinosim/modules/triage/
   __init__.py                        re-exports TriageData
-  engine.py                          triage_enricher + pick_* helpers + loader + 6-layer validator
+  engine.py                          triage_enricher + pick_* helpers + loader + TriageProtocols model
   audit.py                           AD-60 audit plug-in (triage-tier canonical constants + firing proof)
   reference_data/
     triage_protocols.yaml            per (system × severity) tier + arrival weights
@@ -98,7 +98,7 @@ in `engine.py` and is registered directly.
 
 Registered in
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`~L393-408`):
+(`register_builtin_enrichers`):
 
 - `name="triage"`, `stage=POST_ENCOUNTER`, `order=93`,
   `enabled=lambda c: True`.
@@ -112,7 +112,7 @@ Registered in
 
 | Consumer | Where | Role |
 |---|---|---|
-| Enricher registry | [`clinosim/simulator/enrichers.py:400`](../../simulator/enrichers.py) | POST_ENCOUNTER order=93 registration. |
+| Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) (`register_builtin_enrichers`) | POST_ENCOUNTER order=93 registration. |
 | Audit registry | [`clinosim/modules/triage/audit.py`](audit.py) | AD-60 audit plug-in — canonical-constants cross-check + firing proof. |
 | Document module audit | [`clinosim/modules/document/audit.py`](../document/audit.py) | Delegates its triage-level proof to `_build_triage_severity_proof`. |
 | ED narrative renderers | [`clinosim/modules/document/narrative/renderers/`](../document/narrative/renderers/) | `ed_triage_note.py`, `_ed_helpers.py`, `section_builders/ed_note.py` read `encounter.triage_data`. |
@@ -129,7 +129,7 @@ Individual files:
 - [`tests/unit/modules/triage/test_engine.py`](../../../tests/unit/modules/triage/test_engine.py)
   — enricher gate, sampling determinism, ED-only behaviour.
 - [`tests/unit/modules/triage/test_triage_protocols_yaml.py`](../../../tests/unit/modules/triage/test_triage_protocols_yaml.py)
-  — 6-layer validator coverage.
+  — `TriageProtocols` validator coverage.
 
 ## Ownership
 

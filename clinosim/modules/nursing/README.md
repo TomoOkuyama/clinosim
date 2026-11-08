@@ -29,9 +29,13 @@ comments. This module scopes to the former.
     from the ctx `StaffRoster` (falls back to `""` if the ctx carries
     no roster or the roster has no nurses).
   - `assign_primary_nurse` — uniform sampling from
-    `roster.get_by_role("nurse")`; caller owns the RNG seeding.
+    `clinosim.modules.staff.engine.scoped_nurses(roster, ward=...,
+    department=...)`: the nurses of the encounter's ward, else of its
+    department, else every nurse (Issue #2700); caller owns the RNG
+    seeding.
   - `load_nursing_assessment` — reference-data loader for
-    `nursing_assessment.yaml` with a 6-layer import-time validator.
+    `nursing_assessment.yaml`, validated against the
+    `NursingAssessment` Pydantic model.
   - Public constants: `SUPPORTED_ADL_CATEGORIES` (5 ADL categories),
     `SUPPORTED_RISK_ASSESSMENTS` (3 risk-assessment types),
     `INPATIENT_ENCOUNTER_TYPES` (3 encounter types accepted by the
@@ -54,7 +58,7 @@ from clinosim.modules.nursing import (
     SUPPORTED_ADL_CATEGORIES,    # frozenset {eating, bathing, dressing, toileting, mobility}
     SUPPORTED_RISK_ASSESSMENTS,  # frozenset {fall_risk, pressure_ulcer_risk, aspiration_risk}
     assign_primary_nurse,        # (encounter, roster|None, rng) -> staff_id (str, may be "")
-    load_nursing_assessment,     # () -> dict (cached, 6-layer validated)
+    load_nursing_assessment,     # () -> dict (cached, NursingAssessment-validated)
 )
 ```
 
@@ -78,12 +82,14 @@ it directly from
 ## Dependencies
 
 - `clinosim.modules._shared` — `get_attr_or_key`.
+- `clinosim.modules.staff.engine` — `scoped_nurses` (ward- /
+  department-scoped nurse pool).
+- `clinosim.determinism` — per-encounter RNG construction.
+- `clinosim.datafiles` — `load_validated_yaml`.
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`.
-- `clinosim.types.staff` — `StaffRoster` (for the `get_by_role`
-  interface).
+- `clinosim.types.staff` — `StaffRoster`.
 - `numpy` — `np.random.Generator`.
-- `yaml` — YAML parser.
-- No dependency on any other `clinosim.modules.*`.
+- `pydantic` — `NursingAssessment` / `_NursingFocus` models.
 
 ## Constants and configuration
 
@@ -101,18 +107,19 @@ it directly from
     value is the ordered list of possible ADL statuses.
   - `risk_assessments` — one entry per `SUPPORTED_RISK_ASSESSMENTS`
     key; value is the ordered list of possible risk statuses.
-  - `disease_specific_nursing_focus` — `{disease_id: {focus: str,
-    interventions_ja: list[str]}}` (JP nursing-focus text).
-  - `baseline` — same `{focus, interventions_ja}` shape, used as the
+  - `disease_specific_nursing_focus` — `{disease_id: {focus,
+    interventions: {<lang>: list[str]}}}` (nursing-focus text).
+  - `baseline` — same `{focus, interventions}` shape, used as the
     fallback when no disease-specific entry matches.
-- import-time validator (`NursingAssessment` Pydantic model)
-  catches: (1) empty top-level, (2) missing top-level keys,
-  (3) missing baseline required fields, (4) `adl_categories` ↔
-  `SUPPORTED_ADL_CATEGORIES` drift both ways, (4b) same for
-  `risk_assessments` ↔ `SUPPORTED_RISK_ASSESSMENTS`, (5) missing
-  per-disease required fields, (6) type checks (`interventions_ja`
-  must be `list`). Any drift raises `ValueError` at load time — the
-  standard PR-90 silent-no-op defense.
+- Load-time validation is the `NursingAssessment` Pydantic model
+  (with `_NursingFocus` for `baseline` and each disease entry),
+  applied by `load_validated_yaml`. It rejects an empty top-level,
+  missing top-level keys, a focus without `focus` / `interventions`,
+  `interventions` that does not map each language to a list, and
+  `adl_categories` / `risk_assessments` keys that differ from
+  `SUPPORTED_ADL_CATEGORIES` / `SUPPORTED_RISK_ASSESSMENTS` in either
+  direction. Any drift raises at load time — the standard PR-90
+  silent-no-op defense.
 - **Scaffolding note**: `load_nursing_assessment` currently has no
   live consumers; the data is loaded only by its own unit tests.
   Downstream narrative work (β-JP-1) is the intended reader.
@@ -152,9 +159,9 @@ Registered in
 | Consumer | Where | Role |
 |---|---|---|
 | FHIR `CareTeam` builder | [`clinosim/modules/output/fhir_r4/encounters/care_team.py`](../output/fhir_r4/encounters/care_team.py) | Emits `primary_nurse_id` as `CareTeam.participant[1].member` — only when non-empty (attending physician is participant[0]). |
-| FHIR nursing flowsheet performer fallback | [`clinosim/modules/output/fhir_r4/procedures/nursing.py`](../output/fhir_r4/procedures/nursing.py) (`~L222`) | RM-1: uses `primary_nurse_id` as the default `performer` on nursing survey Observations when no per-observation performer is set. |
-| FHIR nursing observation performer fallback | [`clinosim/modules/output/fhir_r4/lib/inline_bb.py`](../output/fhir_r4/lib/inline_bb.py) (`~L1092`) | Same RM-1 fallback for inline nursing observation builders. |
-| Enricher registry (`nursing_assignment`) | [`clinosim/simulator/enrichers.py:418`](../../simulator/enrichers.py) | POST_ENCOUNTER order=94 registration. |
+| FHIR nursing flowsheet performer fallback | [`clinosim/modules/output/fhir_r4/procedures/nursing.py`](../output/fhir_r4/procedures/nursing.py) (`_bb_nursing_observations`) | RM-1: uses `primary_nurse_id` as the default `performer` on nursing survey Observations when no per-observation performer is set. |
+| FHIR Practitioner emission | [`clinosim/modules/output/fhir_r4/lib/inline_bb.py`](../output/fhir_r4/lib/inline_bb.py) (`_bb_practitioners`) | RM-1: emits each encounter's `primary_nurse_id` as a `Practitioner` so the nursing-Observation performer reference resolves. |
+| Enricher registry (`nursing_assignment`) | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) (`register_builtin_enrichers`) | POST_ENCOUNTER order=94 registration. |
 
 ## Testing
 
@@ -171,7 +178,7 @@ Individual files:
   — `assign_primary_nurse` + constants + `nursing_enricher`
   determinism.
 - [`tests/unit/modules/nursing/test_nursing_assessment_yaml.py`](../../../tests/unit/modules/nursing/test_nursing_assessment_yaml.py)
-  — 6-layer validator coverage.
+  — `NursingAssessment` validator coverage.
 - [`tests/integration/test_nursing_enricher.py`](../../../tests/integration/test_nursing_enricher.py)
   — POST_ENCOUNTER enricher end-to-end.
 - [`tests/integration/test_fhir_nursing.py`](../../../tests/integration/test_fhir_nursing.py)

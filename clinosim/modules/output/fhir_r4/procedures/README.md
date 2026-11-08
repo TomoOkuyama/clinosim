@@ -22,9 +22,11 @@ FHIR resource-family taxonomy.
   / bedside / rehab dispatch, CPT for US + MHLW 診療報酬 K-code
   (`k-codes`) for JP; registry wrapper `_bb_procedures` lives in
   [`../lib/inline_bb.py`](../lib/inline_bb.py));
-  `resolve_procedure_snomed` (`procedure_name_snomed.py` +
-  `procedure_name_snomed.yaml`, display-name → SNOMED for
-  order-derived Procedures, Issue #1282);
+  the secondary SNOMED coding `_build_procedure` attaches when
+  `procedure_type` matches a phrase (`clinosim.codes.snomed.snomed_for_phrase`
+  over `codes/data/procedure-phrase-to-snomed.yaml`, Issue #2363 —
+  the former `procedure_name_snomed.py` / `.yaml` and
+  `resolve_procedure_snomed` no longer exist);
   `_bb_immunizations` (adult vaccine history from
   `CIFPatientRecord.immunizations`);
   `_bb_device` + `_bb_device_use` (from `extensions["device"]`);
@@ -148,7 +150,6 @@ Not applicable — pure builders over CIF procedures / immunizations /
 clinosim/modules/output/fhir_r4/procedures/
   __init__.py                        namespace stub (builders imported by ../builder.py / ../lib/inline_bb.py)
   procedures.py                      _build_procedure (surgery + bedside + rehab)
-  procedure_name_snomed.py (+ .yaml) resolve_procedure_snomed (display name → SNOMED, Issue #1282)
   immunization.py                    _bb_immunizations (CVX + lot number)
   device.py                          _bb_device + _bb_device_use (from extensions["device"])
   nursing.py                         _bb_nursing_observations (NEWS2 / GCS / Braden / Morse / Barthel / intake-output survey Observation)

@@ -26,7 +26,8 @@ staff identity の単一情報源。
   `nutrition` / `medical_social_work` 部門には医師を作らない
   (Issue #915)、国別姓名 (JP は kanji + kana pair) と電話 / メール生成、
   `assign_staff` の event-type → staff-role dispatch、
-  `select_surgical_team` による術者 + 麻酔科医の選出。
+  `select_surgical_team` による術者 + 麻酔科医の選出、
+  `scoped_nurses` による病棟 / 部門単位の看護師 pool。
 - **In scope (fallback ID)**: `FALLBACK_PHYSICIAN_ID = "DR-001"`、
   `FALLBACK_NURSE_ID = "NS-001"`、`FALLBACK_TECH_ID = "TECH-001"`
   (Issue #562) — roster が空 (test fixture / smoke run) のときのみ
@@ -58,6 +59,7 @@ from clinosim.modules.staff.engine import (
     FALLBACK_TECH_ID,                  # "TECH-001"
     select_surgical_team,              # (roster, department, rng) -> (surgeon_id, anesthesiologist_id)
     roster_departments,                # (hospital_config) -> list[str] (設定部門 + anesthesiology)
+    scoped_nurses,                     # (roster, *, ward="", department="") -> list[StaffMember]
 )
 ```
 
@@ -72,6 +74,13 @@ from clinosim.modules.staff.engine import (
 
 `StaffRoster.get_by_role(role, department=None)` は module 内部で
 使う主要 lookup 形状。
+
+`scoped_nurses` (Issue #2700) は `ward` の看護師、無ければ
+`department` の看護師、無ければ全看護師を返す。nursing の主担当看護師
+enricher、`order.placed_order_mar.stable_nurse` (日次 MAR loop 外で
+発注された order の投与看護師)、immunization enricher が共有する看護師
+pool。`__all__` が再 export するのは最初の block の 4 名のみで、
+`engine` の名前は submodule から import する。
 
 ## 決定論
 
@@ -142,7 +151,7 @@ from clinosim.modules.staff.engine import (
 ```
 clinosim/modules/staff/
   __init__.py                     public API (StaffMember, StaffRoster, generate_roster, assign_staff)
-  engine.py                       roster 生成 + assign_staff / select_surgical_team + name / phone / email helper
+  engine.py                       roster 生成 + assign_staff / select_surgical_team / scoped_nurses + name / phone / email helper
   _staff_thresholds.py            named threshold 定数 (Issue #562)
   SPEC.md                         v1+ 設計参考 (役職 / lifecycle / 資格 — runtime data ではない)
 ```
@@ -167,7 +176,7 @@ simulator が run あたり 1 回構築し、`assign_staff` は下記 encounter
 | Lab pipeline | [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) | `assign_staff("lab_result", …)` で performing 技師を選出、roster 空時は `FALLBACK_TECH_ID`。 |
 | CLI single-encounter driver / enumerate | [`cli_test_encounter.py`](../../simulator/cli_test_encounter.py)、[`enumerate.py`](../../simulator/enumerate.py) | smoke run で `generate_roster("medium", country, rng)` を呼ぶ。 |
 | FHIR facility builder | [`clinosim/modules/output/fhir_r4/encounters/facility.py`](../output/fhir_r4/encounters/facility.py) | `roster_departments(hospital_config)` で全 PractitionerRole の部門に Organization を用意。 |
-| Nursing 主担当看護師 enricher | [`clinosim/modules/nursing/engine.py`](../nursing/engine.py) | `roster.get_by_role("nurse")` で主担当看護師を選出 (本モジュール生成 roster を transit 消費)。 |
+| Nursing 主担当看護師 enricher | [`clinosim/modules/nursing/engine.py`](../nursing/engine.py) | `scoped_nurses(roster, ward=..., department=...)` から主担当看護師を選出。 |
 | FHIR `Practitioner` + `PractitionerRole` builder | [`clinosim/modules/output/fhir_r4/`](../output/fhir_r4/) | `StaffMember` field を `Practitioner` (name / kana / telecom / qualification) と `PractitionerRole` (department / specialty) に emit。 |
 
 ## テスト

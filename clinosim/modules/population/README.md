@@ -297,8 +297,15 @@ engine and will be reverted in a follow-up recalibration PR (B-3 phase 2).
   - `_population_workflow_thresholds.py`: monthly-event day jitter,
     chronic-visit and screening scheduling, `LEGAL_ADULT_AGE`,
     unknown-condition sampling, `PRIOR_HOSPITALIZATION_RECURRENCE_MULTIPLIER`.
-- **Locale-driven data** (no `reference_data/` in this module —
-  everything data-shaped lives under `clinosim/locale/`):
+- **Module reference data**:
+  [`reference_data/anthropometric_reference.yaml`](reference_data/anthropometric_reference.yaml)
+  — pediatric height / BMI growth-chart medians (CDC for US,
+  MHLW / MEXT for JP), loaded by
+  `_pediatric_anthropometry.load_anthropometric_reference` and
+  validated by the `_AnthropometricReference` Pydantic model; also
+  read by the FHIR anthropometric Observation emit.
+- **Locale-driven data** (everything else data-shaped lives under
+  `clinosim/locale/`):
   - `demographics.yaml` — age distribution, sex ratio, chronic
     prevalence (with optional `sex` filter), disease incidence,
     seasonal modifiers, disease risk multipliers, lifestyle risk
@@ -338,11 +345,14 @@ clinosim/modules/population/
   _household_thresholds.py             household / address / phone / naming defaults
   _population_thresholds.py            anthropometrics + lifestyle + care-seeking defaults
   _population_workflow_thresholds.py   screening / chronic-visit / event-day scheduling
+  reference_data/
+    anthropometric_reference.yaml      pediatric growth-chart medians (validated by _AnthropometricReference)
   SPEC.md                              extended design reference (not runtime)
 ```
 
-The module has **no `reference_data/`, no `enricher.py`, no
-`audit.py`** — locale YAML is the data source, and the pipeline
+The module has **no `enricher.py` and no `audit.py`** — locale YAML
+plus `reference_data/anthropometric_reference.yaml` are the data
+sources, and the pipeline
 head is called directly by the simulator rather than through
 `register_builtin_enrichers`.
 

@@ -36,21 +36,33 @@ strip を最終化する post-processing pipeline (`post_process/`) を所有。
 
 ```python
 from clinosim.modules.output.fhir_r4 import (
-    convert_cif_to_fhir,             # (cif_dir, out_dir, country="US", narrative_version="current") -> None
+    convert_cif_to_fhir,             # (cif_dir, output_dir, country="US", narrative_version="current") -> None
     register_bundle_builder,         # (fn) — AD-56 plug-in 登録
     available_builders,              # () -> list[str] 登録 builder 名
-    _fhir_id_is_spec_valid,          # (rid) -> bool  (test + builder 用 guard)
+)
+from clinosim.modules.output.fhir_r4.lib.context import (
+    BundleContext,                   # 各 _bb_* builder に渡される dataclass
 )
 from clinosim.modules.output.fhir_r4.lib.common import (
-    BundleContext,                   # 各 _bb_* builder に渡される dataclass
     entry,                           # (resource) -> Bundle entry dict
-    survey_category,                 # () -> [{coding: [...]}] survey category CodeableConcept
-    loinc_coding,                    # (code, lang) -> {system, code, display}
+    survey_category,                 # (lang) -> [{coding: [...]}] survey category CodeableConcept
+)
+from clinosim.modules.output.fhir_r4.lib.ecs_extensions import (
     build_ecs_institution_extension, # JP JP_Organization_eCS institution
     build_ecs_department_extension,
     attach_ecs_institutional_extensions,
 )
 ```
+
+`fhir_r4/__init__.py` の `__all__` は上の public 3 名と、test 用に
+`builder.py` から再 export する private 名
+(`_AFTER_DEATH_ALLOWED_RESOURCE_TYPES`,
+`_AFTER_DEATH_START_GATED_RESOURCE_TYPES`, `_BUNDLE_BUILDERS`,
+`_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES`, `_build_bundle`,
+`_drop_entries_after_death`, `_drop_entries_after_snapshot`,
+`_fhir_id_is_spec_valid` — NDJSON writer の id guard)。`lib/` の各
+helper module はそれぞれ自前の `__all__` を持つ
+([`lib/README.ja.md`](lib/README.ja.md) 参照)。
 
 全 `_bb_*` bundle-builder 関数は同 signature:
 `_bb_<resource>(ctx: BundleContext) -> list[dict]`。default registry
@@ -132,15 +144,16 @@ Procedure, Practitioner)、
 clinosim/modules/output/fhir_r4/
   __init__.py                        薄い再 export facade (public + back-compat private 名)
   builder.py                         convert_cif_to_fhir + _BUNDLE_BUILDERS registry + _build_bundle + snapshot / death reconciliation + NDJSON sort
-  lib/                               共有 FHIR fragment helper (common / localization / reference_data / inline_bb / generator_metadata / ids / ed_reattribution)
+  lib/                               共有 FHIR fragment helper (common / context / dosage / ecs_extensions / fhir_time / localization / reference_data / inline_bb / generator_metadata / ids / ed_reattribution)
   demographics/                      Patient / Practitioner / FamilyMemberHistory / smoking + alcohol Observation
   encounters/                        Encounter / CareTeam / CareLevel / Location + Organization (facility) / Endpoint
   medications/                       MedicationRequest + MedicationAdministration
   labs/                              Observation (lab + vitals) / DiagnosticReport / ServiceRequest / microbiology / ImagingStudy / blood_type / anthropometrics / stage_scale_observations / _reference_ranges / coding_package + coding_strategy
-  procedures/                        Procedure / Immunization / Device + DeviceUseStatement / nursing (survey Observation) / oxygen_therapy / procedure_name_snomed (.py + .yaml)
+  procedures/                        Procedure / Immunization / Device + DeviceUseStatement / nursing (survey Observation) / oxygen_therapy
   conditions/                        Condition / AllergyIntolerance / ClinicalImpression / HAI Condition / CodeStatus (custom Observation) / primary_ref
   documents/                         Composition / DocumentReference / DocumentReference (checkup / eCheckup) / imaging_report / referral_orgs / jp_clins/ (文書別 JP-CLINS section builder)
   post_process/                      bundle-level pipeline (datetime 正規化 / profile / specimen / strip / populate)
+  reference_data/                    FHIR 層 yaml: clinosim-drug-dosing-conventions + mhlw-ecs-non-oral-route-markers (post_process/populate.py)、evaluation-orders (labs/service_request.py)
 ```
 
 ## FHIR resource → domain mapping (canonical 表)

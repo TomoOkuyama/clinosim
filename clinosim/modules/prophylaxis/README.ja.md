@@ -14,7 +14,10 @@ YAML のうち 14 しか `supportive_orders:` に DVT 予防を載せておら�
 ## Scope
 
 **In scope**: 48 時間以上の IMP encounter に対する DVT (VTE) 薬物的
-予防 Order の emit。以下の場合はルールベースで skip する: 患者が
+予防 Order の emit と、その日次 MedicationAdministration 行 (Issue
+#2607 — order から退院まで毎日 `administration_hour` に 1 回、
+`order.placed_order_mar.stable_nurse` で選んだ病棟看護師が投与)。
+以下の場合はルールベースで skip する: 患者が
 小児年齢上限 (既定 15) 未満、既に治療量の抗凝固療法中 (warfarin /
 DOAC / heparin 持続点滴)、入院時診断が活動性出血 / 最近の出血性
 脳卒中 / 消化管出血 / 分娩 / 活動性 DVT-PE の治療、または
@@ -27,10 +30,6 @@ Enoxaparin が有効な薬剤と major / 禁忌ペアを形成する
   enricher の担当。
 - 出血禁忌の患者に対する機械的予防 (間欠的空気圧迫法) への
   fallback — 先送り。現行設計では単に skip する。
-- 予防投与 order に対する MedicationAdministration 行 —
-  MedicationRequest 単体が load-bearing な FHIR signal であり、MAR
-  生成は sim の詳細度が必要とする場合に既存の daily-loop 経路で
-  行われる。
 
 ## Public API
 
@@ -56,7 +55,9 @@ orders = build_dvt_prophylaxis_orders(record=cif_record)
 
 ## 決定論
 
-純粋な YAML lookup + ルール dispatch。RNG は消費しない。
+純粋な YAML lookup + ルール dispatch。RNG は消費しない — MAR の
+時刻は固定 (`daily_times`)、投与看護師は order id の安定関数
+(`stable_nurse`)。
 (patient, encounter, admission_dx) の組が固定であれば、出力は run 間で
 byte-identical である。
 
@@ -67,12 +68,20 @@ byte-identical である。
 - `clinosim.modules.drug_safety.engine.check_candidate_against_active`
   (有効な薬剤とのペアチェック。失敗は握りつぶされるため、
   drug_safety のエラーで予防投与が阻害されることは無い)
-- サードパーティ: PyYAML のみ。
+- `clinosim.modules.order.placed_order_mar` — `daily_times`、
+  `stable_nurse`、`administrations_for` (enricher の MAR 行)、
+  `clinosim.modules.order.absolute_dose.is_continuous_infusion`
+- `clinosim.codes.drugs.medication_matches`、
+  `clinosim.datafiles.load_data_yaml`、
+  `clinosim.locale.localized` (`language_slot`, `localized_field`)
+- サードパーティ: pydantic (`_ProphylaxisRules`, `_SkipRule` が load
+  時に rules yaml を検証)。
 
 ## 定数と設定
 
 `reference_data/prophylaxis_rules.yaml`:
-- `dvt_prophylaxis` ブロック: 薬剤 / 用量 / 経路 / 頻度 / LOS 閾値
+- `dvt_prophylaxis` ブロック: 薬剤 / 用量 / 経路 / 頻度 / LOS 閾値 /
+  `administration_hour` (MAR の投与時刻、Issue #2607)
 - `skip_conditions` ブロック: 5 ルール (治療量抗凝固 / 活動性出血 /
   周産期の分娩 / 活動性 DVT-PE 治療 / 小児年齢 gate)。薬剤 needle、
   ICD prefix、または `pediatric_age_ceiling` (15) を持つ。
@@ -89,10 +98,11 @@ byte-identical である。
 clinosim/modules/prophylaxis/
 ├── __init__.py            # public API re-export
 ├── engine.py              # rule loader + skip dispatch + order builder
-├── enricher.py            # POST_ENCOUNTER order 75 entrypoint
+├── enricher.py            # POST_ENCOUNTER order 75 entrypoint + 日次 MAR 行
 ├── reference_data/
 │   └── prophylaxis_rules.yaml
-└── README.md              # this file
+├── README.md
+└── README.ja.md           # 本ファイル
 ```
 
 ## Enricher 配線
@@ -111,6 +121,10 @@ clinosim/modules/prophylaxis/
 - 対象となる encounter ごとに、`record.orders` に `Order` dataclass が
   1 件追記される。order は新たな adapter 無しに標準の FHIR
   `MedicationRequest` builder を通って流れる。
+- `record.medication_administrations` に order の日次
+  `MedicationAdministration` 行 (status `given`、`administered_by`
+  設定済み) が追記され、FHIR `MedicationAdministration` として emit
+  される。
 
 ## テスト
 

@@ -19,9 +19,11 @@ FHIR taxonomy が Immunization を Procedure ファミリに配置している
   / bedside / rehab dispatch、US は CPT、JP は厚労省 診療報酬 K-code
   (`k-codes`)。registry wrapper `_bb_procedures` は
   [`../lib/inline_bb.py`](../lib/inline_bb.py));
-  `resolve_procedure_snomed` (`procedure_name_snomed.py` +
-  `procedure_name_snomed.yaml`、order 由来 Procedure の表示名 →
-  SNOMED、Issue #1282);
+  `procedure_type` が phrase に一致したときに `_build_procedure` が
+  付与する副 SNOMED coding (`codes/data/procedure-phrase-to-snomed.yaml`
+  を引く `clinosim.codes.snomed.snomed_for_phrase`、Issue #2363 — 旧
+  `procedure_name_snomed.py` / `.yaml` と `resolve_procedure_snomed` は
+  現存しない);
   `_bb_immunizations` (`CIFPatientRecord.immunizations` 由来の
   成人ワクチン接種歴);`_bb_device` + `_bb_device_use`
   (`extensions["device"]` 由来);`_bb_nursing_observations`
@@ -141,7 +143,6 @@ from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import (
 clinosim/modules/output/fhir_r4/procedures/
   __init__.py                        namespace stub (builder は ../builder.py / ../lib/inline_bb.py が import)
   procedures.py                      _build_procedure (手術 + bedside + rehab)
-  procedure_name_snomed.py (+ .yaml) resolve_procedure_snomed (表示名 → SNOMED、Issue #1282)
   immunization.py                    _bb_immunizations (CVX + lot number)
   device.py                          _bb_device + _bb_device_use (extensions["device"] 由来)
   nursing.py                         _bb_nursing_observations (NEWS2 / GCS / Braden / Morse / Barthel / intake-output survey Observation)

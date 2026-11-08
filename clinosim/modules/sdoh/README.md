@@ -60,9 +60,12 @@ there.
 
 ## Dependencies
 
-- `yaml` — YAML parser for the reference file.
-- `clinosim.codes` (indirect, via the FHIR builder) — SNOMED display
-  lookup at emission time.
+- `clinosim.datafiles` — `load_data_yaml` for the reference file.
+- `clinosim.codes` — `code_exists`: at load, every SNOMED / LOINC code
+  in the yaml must be registered in `codes/data/` (the FHIR builder
+  also uses `clinosim.codes` for display lookup at emission time).
+- `pydantic` — `_SocialHistoryConfig` (with `_Observable`, `_Value`,
+  `_AgeGates`) validates the yaml at load.
 - No dependency on any other `clinosim.modules.*`, no locale, no
   types.
 
@@ -81,7 +84,8 @@ there.
   - `age_gates` — `smoking_min_age: 15`, `alcohol_min_age: 15`
     (Issue #938): below these ages the FHIR builder emits no
     smoking / alcohol `Observation`.
-- All 6 SNOMED codes are cross-checked against
+- All 6 SNOMED codes are checked at load (`code_exists`) and
+  cross-checked against
   [`clinosim/codes/data/snomed-ct.yaml`](../../codes/data/snomed-ct.yaml)
   (both `en` and `ja` displays present) — verified by PR #68 SNOMED
   CT authority crosswalk.

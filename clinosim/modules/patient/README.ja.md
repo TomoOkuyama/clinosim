@@ -131,7 +131,12 @@ from clinosim.modules.patient.activator import (
 - `clinosim.types.patient` — `PatientProfile`,
   `PatientPhysiologicalProfile`, `BaselineVitals`, `HomeMedication`,
   `ChronicCondition`, `PersonName`。
+- `clinosim.datafiles` — `load_data_yaml` (`stage_severity.yaml`)。
+  `clinosim.modules.longitudinal.loader` /
+  `longitudinal.patterns.markov` (lazy) — Markov stage YAML からの
+  stage 分布 (`_severity_activation.py`)。
 - `numpy` — `np.random.Generator` (rng.beta / rng.choice / rng.normal)。
+- `pydantic` — `_StageSeverityConfig`。
 
 ## 定数と設定
 
@@ -157,7 +162,11 @@ from clinosim.modules.patient.activator import (
   (Issue #637 PR-D) —
   - per-condition stage weight tuple (CKD / NYHA / GOLD 等)、
     import 時に合計 1.0 を validate。
-  - `STAGE_SEVERITY: dict[str, dict[str, float]]` — condition code
+  - `STAGE_SEVERITY: dict[str, dict[str, float]]` — import 時に
+    [`reference_data/stage_severity.yaml`](reference_data/stage_severity.yaml)
+    (Issue #2525) から load し、`_StageSeverityConfig` Pydantic model
+    (`extra="forbid"`、各 scale 非空、score は `[0, 1]`、scale に沿って
+    非減少) で検証。condition code
     ごとに stage テキストを `[0.0, 1.0]` の severity score に写像。
     [`clinosim.modules.physiology.engine.initialize_state`](../physiology/README.ja.md)
     が消費する。各条件の severe 閾値
@@ -177,12 +186,15 @@ clinosim/modules/patient/
   _patient_activator_thresholds.py     named threshold (586 LOC, Issue #637)
   _severity_activation.py              慢性疾患 stage + severity table (Issue #637 PR-D)
   test_patient.py                      決定論的 create_test_patient() fixture
+  reference_data/
+    stage_severity.yaml                ICD base code → stage → severity score (STAGE_SEVERITY、Issue #2525)
   SPEC.md                              拡張設計参考 (runtime data ではない)
 ```
 
-**`enricher.py` / `audit.py` / `reference_data/` は存在しない** —
+**`enricher.py` / `audit.py` は存在しない** —
 activator は simulator が直接呼び、常用薬 data は
-`clinosim/locale/`、検証は下記 test で担保。
+`clinosim/locale/`、検証は下記 test で担保。`reference_data/` は
+`stage_severity.yaml` のみ。
 
 ## Enricher 配線
 
@@ -197,9 +209,9 @@ key あたり exactly-once 活性化する。
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
 | Patient cache | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_activate_cached_person`) | cache miss 時に activate。`_dispatch.py` と `phases/` runner (`_readmission`, `_post_discharge`, `_healthcare_calendar`, `_ed_slot`) から呼ばれる。 |
-| Forced scenarios | [`clinosim/simulator/engine.py`](../../simulator/engine.py) (`L387` 付近) | 合成 `FORCED-NNNN` person を activate。 |
-| Enumeration path | [`clinosim/simulator/enumerate.py`](../../simulator/enumerate.py) (`L581`, `L647` 付近) | enumeration entry で `activate_patient` を遅延 import。 |
-| CLI single-encounter driver | [`clinosim/simulator/cli_test_encounter.py`](../../simulator/cli_test_encounter.py) (`L14`, `L110`, `L190` 付近) | smoke run で 1 患者ずつ activate。 |
+| Forced scenarios | [`clinosim/simulator/engine.py`](../../simulator/engine.py) (`run_forced`) | 合成 `FORCED-NNNN` person を activate。 |
+| Enumeration path | [`clinosim/simulator/enumerate.py`](../../simulator/enumerate.py) (`run_enumeration`) | enumeration entry で `activate_patient` を遅延 import。 |
+| CLI single-encounter driver | [`clinosim/simulator/cli_test_encounter.py`](../../simulator/cli_test_encounter.py) (`_run_test_encounter_debug`, `_run_test_encounter_generate`) | smoke run で 1 患者ずつ activate。 |
 | Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py) | activator が set した `PatientProfile` field を使用。 |
 | Types layer | [`clinosim/types/patient.py`](../../types/patient.py) | activator が `PatientProfile` + child 型の全 field を populate。 |
 

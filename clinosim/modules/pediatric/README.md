@@ -29,7 +29,7 @@ layer** by adding a per-age-band pediatric visit schedule.
 
 ## Public API
 
-`__init__.py` is a doc string only. Consumers import the two
+`__init__.py` is a doc string only (`__all__ = []`). Consumers import the two
 functions directly from `calendar`:
 
 ```python
@@ -70,10 +70,12 @@ visits spaced evenly across the year with a day-of-month jitter.
 
 - `numpy` — `np.random.Generator` (`prng.random`, `prng.choice`,
   `prng.integers`).
-- `yaml` — YAML parser.
+- `pydantic` — `_PediatricSchedule` / `_Visit` schedule models.
+- `clinosim.datafiles` — `load_data_yaml`.
+- `clinosim.modules._shared` — `random_day_of_month` (per-visit
+  day-of-month jitter).
 - `clinosim.modules.population.engine` — `LifeEvent` (imported
   lazily inside `generate_pediatric_events`).
-- No dependency on any other `clinosim.modules.*` at import time.
 
 ## Constants and configuration
 
@@ -117,7 +119,7 @@ directly instead of registering an enricher. It has no entry in
 
 Integration lives in
 [`clinosim/modules/population/engine.py`](../population/engine.py)
-(`~L995-997`):
+(`generate_healthcare_calendar`):
 `generate_healthcare_calendar` calls `generate_pediatric_events` with
 the per-person spawned `prng`, and the returned `LifeEvent` list is
 merged into the calendar `events` list. The rest of the pipeline
@@ -127,7 +129,7 @@ treats pediatric events like any other calendar event.
 
 | Consumer | Where | Role |
 |---|---|---|
-| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`~L995-997`, inside `generate_healthcare_calendar`) | Calls `generate_pediatric_events(person, year, prng)` per (person, year) and extends the calendar's `events` list with the returned `LifeEvent` records. |
+| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (inside `generate_healthcare_calendar`) | Calls `generate_pediatric_events(person, year, prng)` per (person, year) and extends the calendar's `events` list with the returned `LifeEvent` records. |
 | Healthcare-calendar dispatch | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | Routes `event_type == "pediatric_visit"` to an outpatient visit (department via `resolve_outpatient_department`, chief complaint via `_pediatric_visit_reason(disease_id)`). |
 | Visit-reason lookup | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_pediatric_visit_reason`) | Reads `visit_reason` from `load_pediatric_schedule()`. |
 | Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` branches. |

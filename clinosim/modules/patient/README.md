@@ -139,7 +139,12 @@ from clinosim.modules.patient.activator import (
 - `clinosim.types.patient` — `PatientProfile`,
   `PatientPhysiologicalProfile`, `BaselineVitals`, `HomeMedication`,
   `ChronicCondition`, `PersonName`.
+- `clinosim.datafiles` — `load_data_yaml` (`stage_severity.yaml`);
+  `clinosim.modules.longitudinal.loader` /
+  `longitudinal.patterns.markov` (lazy) — stage distributions read
+  from the Markov stage YAMLs (`_severity_activation.py`).
 - `numpy` — `np.random.Generator` (rng.beta, rng.choice, rng.normal).
+- `pydantic` — `_StageSeverityConfig`.
 
 ## Constants and configuration
 
@@ -167,7 +172,11 @@ from clinosim.modules.patient.activator import (
   (Issue #637 PR-D) —
   - Per-condition stage weight tuples (e.g. CKD, NYHA, GOLD),
     validated at import to sum to 1.0.
-  - `STAGE_SEVERITY: dict[str, dict[str, float]]` — per condition
+  - `STAGE_SEVERITY: dict[str, dict[str, float]]` — loaded at import
+    from [`reference_data/stage_severity.yaml`](reference_data/stage_severity.yaml)
+    (Issue #2525) and validated by the `_StageSeverityConfig` Pydantic
+    model (`extra="forbid"`; every scale non-empty, scores in
+    `[0, 1]`, non-decreasing along the scale). Per condition
     code, maps a stage text to a `[0.0, 1.0]` severity score consumed by
     [`clinosim.modules.physiology.engine.initialize_state`](../physiology/README.md).
     Scores above each condition's severe-threshold (defined in
@@ -188,13 +197,15 @@ clinosim/modules/patient/
   _patient_activator_thresholds.py     named thresholds (586 LOC, Issue #637)
   _severity_activation.py              chronic-condition stage + severity tables (Issue #637 PR-D)
   test_patient.py                      deterministic create_test_patient() fixture
+  reference_data/
+    stage_severity.yaml                ICD base code → stage → severity score (STAGE_SEVERITY, Issue #2525)
   SPEC.md                              extended design reference (not runtime)
 ```
 
-The module has **no `enricher.py`, no `audit.py`, no
-`reference_data/`** — the activator is called directly by the
-simulator, chronic-medication data lives in `clinosim/locale/`, and
-verification is via the tests below.
+The module has **no `enricher.py` and no `audit.py`** — the
+activator is called directly by the simulator, chronic-medication
+data lives in `clinosim/locale/`, and verification is via the tests
+below. `reference_data/` holds only `stage_severity.yaml`.
 
 ## Enricher wiring
 
@@ -210,9 +221,9 @@ activation is exactly-once per key.
 | Consumer | Where | Role |
 |---|---|---|
 | Patient cache | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_activate_cached_person`) | Activates on cache miss; called from `_dispatch.py` and the `phases/` runners (`_readmission`, `_post_discharge`, `_healthcare_calendar`, `_ed_slot`). |
-| Forced scenarios | [`clinosim/simulator/engine.py`](../../simulator/engine.py) (`~L387`) | Activates the synthetic `FORCED-NNNN` persons. |
-| Enumeration path | [`clinosim/simulator/enumerate.py`](../../simulator/enumerate.py) (`~L581`, `~L647`) | Late-imports `activate_patient` for the enumeration entry point. |
-| CLI single-encounter driver | [`clinosim/simulator/cli_test_encounter.py`](../../simulator/cli_test_encounter.py) (`~L14`, `~L110`, `~L190`) | Activates one patient at a time for smoke runs. |
+| Forced scenarios | [`clinosim/simulator/engine.py`](../../simulator/engine.py) (`run_forced`) | Activates the synthetic `FORCED-NNNN` persons. |
+| Enumeration path | [`clinosim/simulator/enumerate.py`](../../simulator/enumerate.py) (`run_enumeration`) | Late-imports `activate_patient` for the enumeration entry point. |
+| CLI single-encounter driver | [`clinosim/simulator/cli_test_encounter.py`](../../simulator/cli_test_encounter.py) (`_run_test_encounter_debug`, `_run_test_encounter_generate`) | Activates one patient at a time for smoke runs. |
 | Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py) | Uses `PatientProfile` fields set by the activator. |
 | Types layer | [`clinosim/types/patient.py`](../../types/patient.py) | The activator populates every field on `PatientProfile` + child types. |
 

@@ -27,7 +27,7 @@ pediatric 訪問 schedule を追加する。
 
 ## Public API
 
-`__init__.py` は docstring のみ。呼び出し側は `calendar` から直接
+`__init__.py` は docstring のみ (`__all__ = []`)。呼び出し側は `calendar` から直接
 import:
 
 ```python
@@ -69,10 +69,12 @@ condition_type="pediatric", protocol_source="pediatric:<key>")` を
 
 - `numpy` — `np.random.Generator` (`prng.random`, `prng.choice`,
   `prng.integers`)。
-- `yaml` — YAML パーサ。
+- `pydantic` — schedule model `_PediatricSchedule` / `_Visit`。
+- `clinosim.datafiles` — `load_data_yaml`。
+- `clinosim.modules._shared` — `random_day_of_month` (visit ごとの
+  日付 jitter)。
 - `clinosim.modules.population.engine` — `LifeEvent`
   (`generate_pediatric_events` 内で遅延 import)。
-- import 時点では他の `clinosim.modules.*` に依存しない。
 
 ## 定数と設定
 
@@ -113,7 +115,7 @@ clinosim/modules/pediatric/
 
 Integration は
 [`clinosim/modules/population/engine.py`](../population/engine.py)
-(`L995-997` 付近):
+(`generate_healthcare_calendar`):
 `generate_healthcare_calendar` が per-person spawn 済み `prng` を
 渡して `generate_pediatric_events` を呼び、返却 `LifeEvent` list を
 calendar `events` list に merge する。以降のパイプラインは
@@ -123,7 +125,7 @@ pediatric event を他の calendar event と同等に扱う。
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`L995-997` 付近、`generate_healthcare_calendar` 内) | (person, year) ごとに `generate_pediatric_events(person, year, prng)` を呼び、返却 `LifeEvent` を calendar `events` list に追加。 |
+| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`generate_healthcare_calendar` 内) | (person, year) ごとに `generate_pediatric_events(person, year, prng)` を呼び、返却 `LifeEvent` を calendar `events` list に追加。 |
 | Healthcare-calendar dispatch | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | `event_type == "pediatric_visit"` を外来受診に振り分け (診療科は `resolve_outpatient_department`、主訴は `_pediatric_visit_reason(disease_id)`)。 |
 | Visit-reason lookup | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_pediatric_visit_reason`) | `load_pediatric_schedule()` から `visit_reason` を読む。 |
 | Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` 分岐。 |

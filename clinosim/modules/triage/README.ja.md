@@ -40,7 +40,7 @@ from clinosim.modules.triage.engine import (
     pick_arrival_mode,           # (severity, rng) -> str
     condition_triage_bounds,     # (record) -> (最緊急, 最非緊急) level
     triage_level_cap,            # (vitals) -> 許容される最非緊急 level
-    load_triage_protocols,       # () -> dict (@lru_cache、6-layer validated)
+    load_triage_protocols,       # () -> dict (@lru_cache、TriageProtocols 検証済)
 )
 ```
 
@@ -85,7 +85,7 @@ from clinosim.modules.triage.engine import (
 ```
 clinosim/modules/triage/
   __init__.py                        TriageData を再 export
-  engine.py                          triage_enricher + pick_* helper + loader + 6-layer validator
+  engine.py                          triage_enricher + pick_* helper + loader + TriageProtocols model
   audit.py                           AD-60 audit plug-in (triage tier canonical constants + firing proof)
   reference_data/
     triage_protocols.yaml            (system × severity) 別 tier + arrival weight
@@ -97,7 +97,7 @@ clinosim/modules/triage/
 ## Enricher 配線
 
 [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py)
-(`L393-408` 付近) で登録:
+(`register_builtin_enrichers`) で登録:
 
 - `name="triage"`, `stage=POST_ENCOUNTER`, `order=93`,
   `enabled=lambda c: True`。
@@ -110,7 +110,7 @@ clinosim/modules/triage/
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Enricher registry | [`clinosim/simulator/enrichers.py:400`](../../simulator/enrichers.py) | POST_ENCOUNTER order=93 登録。 |
+| Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) (`register_builtin_enrichers`) | POST_ENCOUNTER order=93 登録。 |
 | Audit registry | [`clinosim/modules/triage/audit.py`](audit.py) | AD-60 audit plug-in — canonical-constants cross-check + firing proof。 |
 | Document module audit | [`clinosim/modules/document/audit.py`](../document/audit.py) | triage level proof を `_build_triage_severity_proof` に委譲。 |
 | ED narrative renderer | [`clinosim/modules/document/narrative/renderers/`](../document/narrative/renderers/) | `ed_triage_note.py`、`_ed_helpers.py`、`section_builders/ed_note.py` が `encounter.triage_data` を read。 |
@@ -127,7 +127,7 @@ clinosim audit run -d <cohort_dir> --module triage
 - [`tests/unit/modules/triage/test_engine.py`](../../../tests/unit/modules/triage/test_engine.py)
   — enricher gate、サンプリング決定論、ED-only 挙動。
 - [`tests/unit/modules/triage/test_triage_protocols_yaml.py`](../../../tests/unit/modules/triage/test_triage_protocols_yaml.py)
-  — 6-layer validator coverage。
+  — `TriageProtocols` validator coverage。
 
 ## Ownership
 
