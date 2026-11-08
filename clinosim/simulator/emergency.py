@@ -36,6 +36,7 @@ from clinosim.simulator._ed_thresholds import (
     ED_LAB_ORDER_OFFSET_STD_MIN,
     ED_LAB_RESULT_OFFSET_MEAN_MIN,
     ED_LAB_RESULT_OFFSET_STD_MIN,
+    ED_MED_ADMINISTRATION_DELAY_MIN,
     ED_OBSERVATION_EXTENSION_HOURS,
     ED_OBSERVATION_MAX_EXTENSIONS,
     ED_PAIN_BASELINE,
@@ -830,10 +831,21 @@ def _simulate_ed_visit(
 
     # Enrich medication orders + assign encounter_id
     from clinosim.modules.order.engine import enrich_medication_order
+    from clinosim.modules.order.placed_order_mar import administrations_for
 
+    ed_mars = []
     for o in orders:
         if o.order_type == OrderType.MEDICATION:
+            # Issue #2866: a dose given in the department is a one-time order
+            # (not a daily schedule) and is recorded as administered.
+            if not o.frequency:
+                o.frequency = "ONCE"
             enrich_medication_order(o)
+            if o.frequency == "ONCE":
+                given = o.ordered_datetime + timedelta(minutes=ED_MED_ADMINISTRATION_DELAY_MIN)
+                if encounter.discharge_datetime is not None:
+                    given = min(given, encounter.discharge_datetime)
+                ed_mars.extend(administrations_for(o, [given], ed_nurse_id))
     attach_orders(orders, encounter)
     # An ED visit is not an admission: it has no admit source (Issue #2878;
     # a via-ED admission's inpatient encounter carries ``emd``).
@@ -887,6 +899,7 @@ def _simulate_ed_visit(
         microbiology=microbiology,
         procedures=ed_procedures,
         discharge_prescription=discharge_rx,
+        medication_administrations=ed_mars,
         condition_event=ConditionEvent(
             condition_id=f"COND-{patient.patient_id}-ED",
             condition_type="ed_visit",

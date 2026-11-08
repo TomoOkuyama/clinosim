@@ -595,6 +595,9 @@ def resolve_timing_repeat(
             "periodMax": int(_range.group(2)),
             "periodUnit": "h",
         }, _prn
+    if _flow in ("once", "stat"):
+        # Issue #2866: a one-time dose is one occurrence, not a daily cadence.
+        return {"count": 1}, _prn
     if _flow in ("prn", "as needed", "when required", ""):
         if _max_per_day:
             return {"frequency": 1, "frequencyMax": _max_per_day, "period": 1, "periodUnit": "d"}, True
