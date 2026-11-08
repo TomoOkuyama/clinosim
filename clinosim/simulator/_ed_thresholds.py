@@ -50,6 +50,7 @@ __all__ = [
     "ED_LAB_RESULT_OFFSET_MEAN_MIN",
     "ED_LAB_RESULT_OFFSET_STD_MIN",
     "ED_LAB_MIN_TURNAROUND_MIN",
+    "ED_MED_ADMINISTRATION_DELAY_MIN",
     "ED_REPEAT_ON_RAISED_LABS",
     "ED_SERIAL_LAB_INTERVAL_HOURS",
     "ED_PAIN_INFLAMMATION_SCALE",
@@ -136,6 +137,10 @@ ED_REPEAT_ON_RAISED_LABS: tuple[str, ...] = ("Troponin_I",)
 """Analytes repeated after ``ED_SERIAL_LAB_INTERVAL_HOURS`` whenever the first
 ED result is flagged high, even if the protocol did not ask for a serial draw:
 a raised troponin is not acted on (or dismissed) from one value (Issue #2854)."""
+
+ED_MED_ADMINISTRATION_DELAY_MIN: int = 10
+"""Minutes from an in-department ED medication order to its administration
+(Issue #2866): STAT doses are drawn up and given shortly after the order."""
 
 ED_IMAGING_ORDER_OFFSET_MEAN_MIN: float = 20.0
 """Mean minutes from ``visit_time`` at which an ED imaging order is
