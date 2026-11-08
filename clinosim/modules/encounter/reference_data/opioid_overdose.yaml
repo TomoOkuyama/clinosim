@@ -79,10 +79,10 @@ treatment:
   - {name: "Referral for medication for opioid use disorder", probability: 0.6, route: "non-pharmacologic"}
 
 discharge_instructions:
-  - "Carry naloxone and tell family or friends how to use it"
-  - "Do not use alone; avoid mixing opioids with alcohol or benzodiazepines"
-  - "Follow up with addiction medicine for buprenorphine or methadone"
-  - "Return or call 911 for drowsiness, slow breathing or chest pain"
+  - {en: "Carry naloxone and tell family or friends how to use it", ja: "ナロキソンを携帯し、家族や友人に使い方を伝える"}
+  - {en: "Do not use alone; avoid mixing opioids with alcohol or benzodiazepines", ja: "一人で使用しない、オピオイドとアルコール・ベンゾジアゼピン系薬を併用しない"}
+  - {en: "Return or call 911 for drowsiness, slow breathing, or chest pain", ja: "眠気、呼吸の遅さ、胸痛があれば再受診するか救急要請する"}
+follow_up: {en: "addiction medicine for buprenorphine or methadone", ja: "ブプレノルフィンまたはメサドン治療のため依存症専門外来を受診"}
 
 discharge_prescriptions:
   - {drug: "Naloxone 4mg nasal spray", locale_exclude: [JP], route: "nasal", frequency: "once PRN overdose (may repeat)", duration_days: 30, probability: 0.6}

@@ -89,11 +89,11 @@ treatment:
   - {name: "Lorazepam 0.5mg", probability: 0.25, route: "PO", intent: "anxiolytic"}
 
 discharge_instructions:
-  - "Safety plan reviewed with patient and family"
-  - "Remove access to firearms and stockpiled medications"
-  - "Crisis line information provided"
-  - "Follow up with psychiatry within 7 days"
-  - "Return immediately if suicidal thoughts worsen or a plan develops"
+  - {en: "Safety plan reviewed with patient and family", ja: "本人・家族と安全計画を確認"}
+  - {en: "Remove access to firearms and stockpiled medications", ja: "銃器や溜め込んだ薬剤を手の届かない所へ移す"}
+  - {en: "Crisis line information provided", ja: "相談窓口（危機対応ホットライン）の情報を提供"}
+  - {en: "Return immediately if suicidal thoughts worsen or a plan develops", ja: "希死念慮が強まる、または具体的な計画が生じたら直ちに受診"}
+follow_up: {en: "psychiatry within 7 days", ja: "7日以内に精神科を受診"}
 
 incidence_modifier: 1.0
 probability: 0.018  # ~1% of ED visits (weights sum to ~1.8)
@@ -102,13 +102,14 @@ sex_ratio_female: 1.0
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.05, 6: 1.05, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 0.95, 12: 0.95}
 
 narrative:
+  onset: {unit: days, range: [5, 21]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en}'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Worsening depressed mood over {onset_days} day(s) with new suicidal ideation.'
-      ja: '{onset_days}日前より抑うつ気分が増悪し、希死念慮が出現'
+      en: "Depressed mood began worsening {onset_en}, with new suicidal ideation."
+      ja: "{onset_ja}より抑うつ気分が増悪し、希死念慮が出現。"
     physical_exam:
       en:
         general: Alert and oriented, flat affect, depressed mood

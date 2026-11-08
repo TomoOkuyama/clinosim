@@ -12,7 +12,10 @@ from typing import TYPE_CHECKING
 
 from clinosim.locale.i18n import t
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
-from clinosim.modules.document.narrative.renderers.section_builders._registry import section_builders
+from clinosim.modules.document.narrative.renderers.section_builders._registry import (
+    document_section_builders,
+    section_builders,
+)
 from clinosim.types.document import NarrativeContext, NarrativeOutput
 
 if TYPE_CHECKING:
@@ -29,9 +32,10 @@ def render_composition_sections(
     sections: dict[str, str] = {}
 
     builders = section_builders()
+    document_builders = document_section_builders()
     section_list = spec.composition_sections_for(ctx.locale.upper())
     for section in section_list:
-        builder = builders.get(section)
+        builder = document_builders.get((str(ctx.document_type), section)) or builders.get(section)
         if builder is not None:
             text, section_facts = builder(generator, ctx)
             sections[section] = text

@@ -252,7 +252,8 @@ ENCOUNTER_TOP_KEYS = frozenset(
         "treatment",
         "workup",
         # Common but optional
-        "discharge_instructions",
+        "discharge_instructions",  # Issue #2871 (document ed_note.build_ed_disposition)
+        "follow_up",  # Issue #2871 (document ed_note.build_ed_disposition)
         "discharge_prescriptions",
         "ed_stay_hours",
         "severity_distribution",

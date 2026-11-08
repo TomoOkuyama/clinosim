@@ -38,11 +38,11 @@ treatment:
   - {name: "IV normal saline", probability: 0.2, route: "IV"}
 
 discharge_instructions:
-  - "Allergic reaction treated, symptoms improved"
-  - "Avoid identified or suspected trigger"
-  - "Continue antihistamines for 3-5 days as rebound urticaria may occur"
-  - "Return immediately if throat swelling, difficulty breathing, or lightheadedness"
-  - "Follow up with allergist if recurrent episodes"
+  - {en: "Allergic reaction treated, symptoms improved", ja: "アレルギー反応は治療により症状改善"}
+  - {en: "Avoid identified or suspected trigger", ja: "原因と考えられる物質を避ける"}
+  - {en: "Continue antihistamines for 3-5 days as rebound urticaria may occur", ja: "蕁麻疹の再燃に備え抗ヒスタミン薬を3〜5日間継続"}
+  - {en: "Return immediately if throat swelling, difficulty breathing, or lightheadedness", ja: "喉の腫れ、呼吸困難、ふらつきがあれば直ちに受診"}
+follow_up: {en: "allergist if episodes recur", ja: "再発する場合はアレルギー専門外来を受診"}
 
 discharge_prescriptions:
   # Urticaria / mild angioedema is discharged on an H1 antihistamine (AAAAI /
@@ -84,18 +84,19 @@ sex_ratio_female: 1.2
 seasonal: {1: 0.8, 2: 0.8, 3: 1.1, 4: 1.3, 5: 1.3, 6: 1.2, 7: 1.1, 8: 1.0, 9: 1.0, 10: 0.9, 11: 0.8, 12: 0.8}
 
 narrative:
+  onset: {unit: hours, range: [1, 6]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Itching and hives began {onset_en}, with mild swelling of the lips or eyelids. No throat tightness, wheezing, or lightheadedness."
+      ja: "{onset_ja}より掻痒を伴う膨疹が出現し、口唇・眼瞼に軽度の腫脹を伴う。咽頭絞扼感・喘鳴・ふらつきなし。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

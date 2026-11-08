@@ -56,10 +56,9 @@ treatment:
   - {name: "IV normal saline", probability: 0.3, route: "IV"}
 
 discharge_instructions:
-  - "Serial troponin without a significant change, ECG unchanged — ACS ruled out"
-  - "Follow up with PCP within 1 week"
-  - "Return immediately if chest pain recurs, worsens, or associated with dyspnea"
-  - "Consider outpatient stress test if risk factors present"
+  - {en: "Return immediately if chest pain recurs, worsens, or is associated with dyspnea", ja: "胸痛の再発・増悪、呼吸困難を伴う場合は直ちに受診"}
+  - {en: "Consider outpatient stress test if risk factors present", ja: "危険因子があれば外来での負荷試験を検討"}
+follow_up: {en: "primary care physician within 1 week", ja: "1週間以内にかかりつけ医を受診"}
 
 discharge_prescriptions:
   - {drug: "Omeprazole 20mg", route: "PO", frequency: "daily", duration_days: 14, probability: 0.4}
@@ -97,22 +96,23 @@ sex_ratio_female: 0.6  # more men
 seasonal: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.1}
 
 narrative:
+  onset: {unit: hours, range: [1, 12]}
   ed_note_template:
     chief_complaint:
       en: Chest pain (rule out acute coronary syndrome)
       ja: 胸痛（急性冠症候群除外目的）
     hpi:
-      en: 'Chest pain onset {onset_en}. Character: {pain_quality_en}, location: retrosternal to anterior chest, radiation: {radiation_en}. Associated symptoms: dyspnea, diaphoresis, and nausea assessed. Cardiac history and risk factors (hypertension, diabetes, smoking, dyslipidemia) reviewed.'
-      ja: '{onset_ja}より胸痛出現。性状：{pain_quality_ja}、部位：胸骨後部〜前胸部、放散痛：{radiation_ja}。随伴症状：息切れ・冷汗・嘔気の有無を確認。心疾患既往・危険因子（高血圧・糖尿病・喫煙・脂質異常症）を聴取。'
+      en: "Chest pain onset {onset_en}. Location: retrosternal to anterior chest. Character, radiation, and associated symptoms (dyspnea, diaphoresis, nausea) assessed. Cardiac history and risk factors (hypertension, diabetes, smoking, dyslipidemia) reviewed."
+      ja: "{onset_ja}より胸痛出現。部位：胸骨後部〜前胸部。性状・放散痛・随伴症状（息切れ・冷汗・嘔気）を確認。心疾患既往・危険因子（高血圧・糖尿病・喫煙・脂質異常症）を聴取。"
     physical_exam:
       en:
-        general: Alert and oriented, in distress
+        general: 'Alert and oriented, {appearance_en}'
         cardiovascular: 'BP {sbp}/{dbp} mmHg, HR {hr}/min, regular heart sounds, no murmurs, no jugular venous distension'
         respiratory: Respiratory rate normal, lungs clear, no pleural friction rub
         abdominal: Flat, soft, non-tender
         neurological: No paralysis
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
         cardiovascular: 血圧{sbp}/{dbp}mmHg、心拍数{hr}/分、心音整、雑音なし、頸静脈怒張なし
         respiratory: 呼吸数正常、肺野清明、胸膜摩擦音なし
         abdominal: 平坦、軟、圧痛なし
@@ -121,8 +121,8 @@ narrative:
       en: 'ECG: {ecg_result_en}. Cardiac troponin: {troponin_result_en} (repeat at 3 hours). Chest X-ray: {cxr_result_en}. ACS rule-out criteria assessed.'
       ja: ECG：{ecg_result_ja}。心筋トロポニン：{troponin_result_ja}（3時間後再検）。胸部X線：{cxr_result_ja}。ACS除外基準を評価。
     disposition:
-      en: 'ACS ruled out with serial negative troponins and no ECG changes. {disposition_display_en}. Internal medicine follow-up within 2 weeks.'
-      ja: 連続トロポニン陰性・ECG変化なしにてACS除外。{disposition_display_ja}。2週間以内に内科外来受診。
+      en: "ACS ruled out with serial negative troponins and no ECG changes. {disposition_display_en}"
+      ja: "連続トロポニン陰性・ECG変化なしにてACS除外。{disposition_display_ja}"
   ed_triage_template:
     # ESI v4: chest pain treated as possible ACS (empiric aspirin) is a high-risk presentation (level 2).
     common_triage_levels:

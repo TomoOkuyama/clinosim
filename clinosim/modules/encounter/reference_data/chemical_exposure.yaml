@@ -42,10 +42,10 @@ treatment:
   - {name: "Silver sulfadiazine cream", probability: 0.30, route: "topical", intent: "skin burn care"}
 
 discharge_instructions:
-  - "患部を清潔に保つ"
-  - "症状悪化時（呼吸困難、発熱、皮膚炎増悪）は再受診"
-  - "3-5日後に経過観察"
-  - "産業医・労働基準監督署への報告を推奨"
+  - {en: "Keep the affected area clean", ja: "患部を清潔に保つ"}
+  - {en: "Return if symptoms worsen (difficulty breathing, fever, worsening dermatitis)", ja: "症状悪化時（呼吸困難、発熱、皮膚炎増悪）は再受診"}
+  - {en: "Report the exposure to the occupational health physician and the labor standards office", ja: "産業医・労働基準監督署への報告を推奨"}
+follow_up: {en: "recheck in 3-5 days", ja: "3〜5日後に経過観察"}
 
 discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.6}
@@ -58,18 +58,19 @@ sex_ratio_female: 0.25
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: hours, range: [1, 4]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Exposed to a chemical at work {onset_en} (skin, eye, or inhalation). The substance and its safety data sheet were reviewed."
+      ja: "{onset_ja}に作業中に化学物質に曝露（皮膚・眼・吸入）。物質名と安全データシート（SDS）を確認。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

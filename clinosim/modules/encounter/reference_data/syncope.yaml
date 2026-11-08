@@ -41,10 +41,10 @@ treatment:
   - {name: "Cardiac monitoring", probability: 0.5, route: "N/A", intent: "arrhythmia detection"}
 
 discharge_instructions:
-  - "Cardiac and neurological workup negative"
-  - "Follow up with PCP or cardiologist within 1 week"
-  - "Return immediately if recurrent syncope, chest pain, or palpitations"
-  - "Avoid driving until cleared by physician"
+  - {en: "Cardiac and neurological workup negative", ja: "心臓・神経学的精査で異常なし"}
+  - {en: "Return immediately if recurrent syncope, chest pain, or palpitations", ja: "失神の再発、胸痛、動悸があれば直ちに受診"}
+  - {en: "Avoid driving until cleared by physician", ja: "医師の許可が出るまで運転を控える"}
+follow_up: {en: "primary care physician or cardiologist within 1 week", ja: "1週間以内にかかりつけ医または循環器内科を受診"}
 
 discharge_prescriptions: []
 
@@ -81,18 +81,19 @@ sex_ratio_female: 0.5
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.1, 7: 1.1, 8: 1.1, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: hours, range: [1, 6]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Brief loss of consciousness {onset_en} with spontaneous full recovery. Prodrome, exertion, palpitations, and injury from the fall reviewed."
+      ja: "{onset_ja}に一過性の意識消失があり、自然に完全回復。前駆症状・労作との関連・動悸・転倒による外傷の有無を確認。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

@@ -44,11 +44,12 @@ treatment:
   - {name: "Lidocaine 1% local", probability: 0.6, route: "infiltration", intent: "local anesthesia for wound care"}
 
 discharge_instructions:
-  - "Wound irrigated and cleaned; no signs of deep structure injury"
-  - "Complete antibiotic course as prescribed"
-  - "Return if increasing redness, swelling, warmth, drainage, or fever"
-  - "Keep wound clean and dry; change dressing daily"
-  - "Report bite to local animal control"
+  - {en: "Wound irrigated and cleaned; no signs of deep structure injury", ja: "創は洗浄済み、深部組織損傷の所見なし"}
+  - {en: "Complete antibiotic course as prescribed", ja: "処方された抗菌薬を最後まで内服"}
+  - {en: "Keep wound clean and dry; change dressing daily", ja: "創部を清潔・乾燥に保ち、ガーゼは毎日交換"}
+  - {en: "Return if increasing redness, swelling, warmth, drainage, or fever", ja: "発赤・腫脹・熱感・排膿の増強、発熱があれば再受診"}
+  - {en: "Report bite to local animal control", ja: "咬傷を保健所に届け出る"}
+follow_up: {en: "wound check with primary care physician in 2 days", ja: "2日後にかかりつけ医で創部を確認"}
 
 discharge_prescriptions:
   - {drug: "Amoxicillin/clavulanate 875/125mg", route: "PO", frequency: "BID", duration_days: 7, probability: 0.7}
@@ -61,18 +62,19 @@ sex_ratio_female: 0.45
 seasonal: {1: 0.8, 2: 0.8, 3: 0.9, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.3, 8: 1.3, 9: 1.1, 10: 1.0, 11: 0.9, 12: 0.8}
 
 narrative:
+  onset: {unit: hours, range: [1, 6]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Bitten by a dog {onset_en}, with a wound to the hand or leg. Animal ownership, rabies vaccination status of the dog, and tetanus history reviewed."
+      ja: "{onset_ja}に犬に咬まれ、手または下肢に創を受傷。飼い主の有無、犬の狂犬病予防接種歴、破傷風予防接種歴を確認。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

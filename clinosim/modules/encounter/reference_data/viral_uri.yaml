@@ -48,10 +48,11 @@ treatment:
   - {name: "Oral fluids encouraged", probability: 0.8, route: "PO", intent: "hydration"}
 
 discharge_instructions:
-  - "Rest and increase fluid intake"
-  - "Symptomatic care: warm fluids, honey for cough, saline nasal spray"
-  - "Expected duration 5-10 days"
-  - "Return if fever >39C persisting >3 days, difficulty breathing, or worsening symptoms"
+  - {en: "Rest and increase fluid intake", ja: "安静と十分な水分摂取"}
+  - {en: "Symptomatic care: warm fluids, honey for cough, saline nasal spray", ja: "対症療法：温かい飲み物、咳に蜂蜜、生理食塩水の点鼻"}
+  - {en: "Expected duration 5-10 days", ja: "5〜10日で軽快する見込み"}
+  - {en: "Return if fever >39C persisting >3 days, difficulty breathing, or worsening symptoms", ja: "39℃を超える発熱が3日以上続く、呼吸困難、症状の悪化があれば再受診"}
+follow_up: {en: "primary care physician if not improving within 1 week", ja: "1週間で改善しなければかかりつけ医を受診"}
 
 discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.5}
@@ -90,22 +91,23 @@ sex_ratio_female: 1.0
 seasonal: {1: 1.4, 2: 1.3, 3: 1.2, 4: 0.8, 5: 0.7, 6: 0.6, 7: 0.6, 8: 0.6, 9: 0.8, 10: 1.0, 11: 1.2, 12: 1.4}
 
 narrative:
+  onset: {unit: days, range: [1, 5]}
   ed_note_template:
     chief_complaint:
       en: Fever, sore throat, cough, rhinorrhea
       ja: 発熱・咽頭痛・咳嗽・鼻汁
     hpi:
-      en: 'Fever, sore throat, cough, and rhinorrhea began {onset_days} day(s) ago. Peak temperature: {max_temp_en}C. Contact history: {contact_history_en}. Influenza vaccination history: {flu_vax_en}. No dyspnea, chest pain, or altered mentation.'
-      ja: '{onset_days}日前より発熱・咽頭痛・咳嗽・鼻汁が出現。最高体温：{max_temp_ja}℃。接触歴：{contact_history_ja}。インフルエンザ予防接種歴：{flu_vax_ja}。呼吸困難・胸痛・意識変容なし。'
+      en: "Fever, sore throat, cough, and rhinorrhea began {onset_en}. Sick contacts and influenza vaccination history reviewed. No dyspnea, chest pain, or altered mentation."
+      ja: "{onset_ja}より発熱・咽頭痛・咳嗽・鼻汁が出現。接触歴・インフルエンザ予防接種歴を確認。呼吸困難・胸痛・意識変容なし。"
     physical_exam:
       en:
-        general: 'Alert and oriented, {severity_desc_en}, temperature {temp}C'
+        general: 'Alert and oriented, {appearance_en}, temperature {temp}C'
         cardiovascular: Normal to mildly tachycardic, regular heart sounds
         respiratory: Respiratory rate normal, lungs clear (no findings of pneumonia)
         abdominal: Flat, soft, non-tender
         neurological: No paralysis, no meningeal signs
       ja:
-        general: 意識清明、{severity_desc_ja}、体温{temp}℃
+        general: '意識清明、{appearance_ja}、体温{temp}℃'
         cardiovascular: 心拍数正常〜軽度頻脈、心音整
         respiratory: 呼吸数正常、肺野清明（肺炎所見なし）
         abdominal: 平坦、軟、圧痛なし
@@ -114,8 +116,8 @@ narrative:
       en: 'Rapid strep test: {strep_result_en}. {lab_summary_en}. Chest X-ray (if cough prominent): {cxr_result_en}.'
       ja: 迅速溶連菌検査：{strep_result_ja}。{lab_summary_ja}。胸部X線（咳嗽強い場合）：{cxr_result_ja}。
     disposition:
-      en: Discharged home with diagnosis of viral upper respiratory infection. Antipyretic and symptomatic treatment prescribed. Return if high fever persists beyond 3 days or dyspnea develops.
-      ja: ウイルス性上気道炎の診断にて帰宅。解熱・対症療法処方。3日以上の高熱持続・呼吸困難出現時は再診指示。
+      en: "{disposition_display_en}"
+      ja: "{disposition_display_ja}"
   ed_triage_template:
     common_triage_levels:
     - '4'

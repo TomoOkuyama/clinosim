@@ -43,12 +43,12 @@ treatment:
   - {name: "IV normal saline", probability: 0.2, route: "IV", intent: "hydration if vomiting"}
 
 discharge_instructions:
-  - "Have a responsible adult stay with you for first 24 hours"
-  - "Return IMMEDIATELY if: worsening headache, repeated vomiting, seizures, confusion, weakness"
-  - "No driving, sports, or strenuous activity for at least 48 hours"
-  - "Follow stepwise return-to-activity protocol"
-  - "Avoid alcohol and sedating medications for 48 hours"
-  - "Follow up with primary care in 1-2 days"
+  - {en: "Have a responsible adult stay with you for the first 24 hours", ja: "最初の24時間は付き添いの成人と過ごす"}
+  - {en: "Return IMMEDIATELY if worsening headache, repeated vomiting, seizures, confusion, or weakness", ja: "頭痛の増悪、繰り返す嘔吐、けいれん、意識の混乱、脱力があれば直ちに受診"}
+  - {en: "No driving, sports, or strenuous activity for at least 48 hours", ja: "少なくとも48時間は運転・スポーツ・激しい運動を控える"}
+  - {en: "Follow stepwise return-to-activity protocol", ja: "段階的に活動へ復帰する"}
+  - {en: "Avoid alcohol and sedating medications for 48 hours", ja: "48時間は飲酒と鎮静作用のある薬を避ける"}
+follow_up: {en: "primary care physician in 1-2 days", ja: "1〜2日後にかかりつけ医を受診"}
 
 discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 7, probability: 0.7}
@@ -86,18 +86,19 @@ sex_ratio_female: 0.7  # more common in males (sports, accidents)
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.2, 8: 1.2, 9: 1.1, 10: 1.1, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: hours, range: [1, 6]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Struck the head {onset_en}, followed by headache and brief confusion. No loss of consciousness. Mechanism, vomiting, and anticoagulant use reviewed."
+      ja: "{onset_ja}に頭部を打撲し、その後頭痛と一過性の混乱が出現。意識消失なし。受傷機転・嘔吐の有無・抗凝固薬内服を確認。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

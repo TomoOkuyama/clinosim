@@ -46,11 +46,11 @@ treatment:
   - {name: "Ice pack to affected area", probability: 0.4, route: "topical", intent: "swelling reduction"}
 
 discharge_instructions:
-  - "No fracture identified on imaging; soft tissue injury"
-  - "Follow up with PCP within 1 week"
-  - "Return if worsening pain, inability to bear weight, confusion, or persistent headache"
-  - "Home safety assessment recommended — remove tripping hazards"
-  - "Review medications that may contribute to falls (sedatives, antihypertensives)"
+  - {en: "No fracture identified on imaging; soft tissue injury", ja: "画像検査で骨折なし、軟部組織損傷"}
+  - {en: "Return if worsening pain, inability to bear weight, confusion, or persistent headache", ja: "疼痛の増悪、荷重不能、意識の混乱、持続する頭痛があれば再受診"}
+  - {en: "Home safety assessment recommended; remove tripping hazards", ja: "住環境を見直し、つまずきの原因を取り除く"}
+  - {en: "Review medications that may contribute to falls (sedatives, antihypertensives)", ja: "転倒の一因となりうる薬剤（鎮静薬・降圧薬）を見直す"}
+follow_up: {en: "primary care physician within 1 week", ja: "1週間以内にかかりつけ医を受診"}
 
 discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "Q6H PRN", duration_days: 7, probability: 0.5}
@@ -88,18 +88,19 @@ sex_ratio_female: 0.6
 seasonal: {1: 1.1, 2: 1.1, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.1, 12: 1.1}
 
 narrative:
+  onset: {unit: hours, range: [1, 12]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Fell at home {onset_en} without loss of consciousness. Mechanism, head strike, and anticoagulant use reviewed."
+      ja: "{onset_ja}に自宅で転倒、意識消失なし。受傷機転・頭部打撲の有無・抗凝固薬内服を確認。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

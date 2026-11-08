@@ -154,7 +154,69 @@ def _pick_localized(tmpl: Any, key_base: str, lang: str, ctx: NarrativeContext |
 # statics + chain 1b T4 vitals). Everything else ({lab_summary_ja},
 # {severity_desc_en}, {weight}, ...) makes the whole section fall back to the
 # locale generic phrase.
-_KNOWN_PLACEHOLDERS = frozenset({"onset_days", "chief_complaint_ja", "chief_complaint_en"})
+_KNOWN_PLACEHOLDERS = frozenset({"chief_complaint_ja", "chief_complaint_en"})
+
+# Language-suffixed placeholders resolved per language (Issue #2871):
+# ``{onset_<lang>}`` (symptom onset) and ``{appearance_<lang>}`` (ED general
+# appearance by triage level).
+_ONSET_PREFIX = "onset_"
+_APPEARANCE_PREFIX = "appearance_"
+
+
+def symptom_onset(ctx: NarrativeContext) -> tuple[str, int]:
+    """``(unit, n)``: how many hours / days before arrival the presenting
+    problem began (Issue #2871).
+
+    The unit and the inclusive range come from the encounter protocol's
+    ``narrative.onset`` (``DEFAULT_SYMPTOM_ONSET`` when it declares none);
+    ``n`` is drawn RNG-neutrally, keyed on the encounter, so every section of
+    the visit's documents states the same onset.
+    """
+    from clinosim.determinism import sha_index
+    from clinosim.modules.encounter.protocol import DEFAULT_SYMPTOM_ONSET
+
+    narrative = _o(ctx.encounter_protocol, "narrative", None) if ctx.encounter_protocol else None
+    spec = _o(narrative, "onset", None) if narrative is not None else None
+    unit = str(_o(spec, "unit", "") or DEFAULT_SYMPTOM_ONSET.unit)
+    low, high = _o(spec, "range", None) or DEFAULT_SYMPTOM_ONSET.range
+    enc_id = str(_o(ctx.encounter, "encounter_id", "") or "") if ctx.encounter is not None else ""
+    n = int(low) + sha_index(f"{enc_id}|symptom-onset", int(high) - int(low) + 1)
+    return unit, n
+
+
+def _onset_phrase(unit: str, n: int, lang: str) -> str:
+    key = f"symptom_onset.{unit}_one" if n == 1 else f"symptom_onset.{unit}"
+    return t(key, lang, n=n)
+
+
+def _appearance_phrase(ctx: NarrativeContext, lang: str) -> str:
+    """General appearance for the triage level the ED note shows, or ``""``
+    when the level is unknown."""
+    from clinosim.modules.document.narrative.renderers._ed_helpers import ed_triage_level
+
+    return t(f"ed_appearance.level_{ed_triage_level(ctx)}", lang)
+
+
+def _language_placeholders(fields: set[str], ctx: NarrativeContext) -> dict[str, str]:
+    """Resolve the ``{onset_<lang>}`` / ``{appearance_<lang>}`` placeholders
+    present in ``fields`` (plus ``{onset_days}`` for a day-unit onset);
+    unresolvable ones are left out so the caller falls back whole-section."""
+    resolved: dict[str, str] = {}
+    onset: tuple[str, int] | None = None
+    for name in fields:
+        if name == "onset_days":
+            onset = onset or symptom_onset(ctx)
+            if onset[0] == "days":
+                resolved[name] = str(onset[1])
+        elif name.startswith(_ONSET_PREFIX):
+            onset = onset or symptom_onset(ctx)
+            resolved[name] = _onset_phrase(onset[0], onset[1], name.removeprefix(_ONSET_PREFIX))
+        elif name.startswith(_APPEARANCE_PREFIX):
+            phrase = _appearance_phrase(ctx, name.removeprefix(_APPEARANCE_PREFIX))
+            if phrase:
+                resolved[name] = phrase
+    return {k: v for k, v in resolved.items() if v}
+
 
 # Numeric vitals placeholders are resolved from ctx.vitals. numeric vitals placeholders resolved from ctx.vitals
 # .. Placeholder name → structural-CIF vital_signs field.
@@ -238,18 +300,22 @@ def _resolve_vital_placeholders(ctx: NarrativeContext, wanted: set[str]) -> dict
     return resolved
 
 
-def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> str:
+def _fill_template_placeholders(
+    text: str, ctx: NarrativeContext, lang: str, extra: dict[str, str] | None = None
+) -> str:
     """Substitute `{placeholder}` tokens in encounter-template text.
 
     Known placeholders:
-      - ``{onset_days}`` → fixed default 3 ( see module
-        docstring: computed values use a fixed reasonable default until they
-        can be derived from CIF).
+      - ``{onset_<lang>}`` → the symptom onset phrase ("about 3 hours before
+        arrival" / "2 days ago"); ``{onset_days}`` → the day count of a
+        day-unit onset (``symptom_onset``, Issue #2871).
+      - ``{appearance_<lang>}`` → general appearance by the ED triage level.
       - ``{chief_complaint_ja}`` / ``{chief_complaint_en}`` → the encounter
         protocol's own ``chief_complaint`` multi-language dict.
       - ``{sbp}`` / ``{dbp}`` / ``{hr}`` / ``{temp}`` / ``{spo2}`` / ``{rr}``
         (vital signs resolution) → nearest non-null reading in ``ctx.vitals`` for the
         stub's day (``_resolve_vital_placeholders``).
+      - any name in ``extra`` (a value the calling section composed itself).
 
     adv-1 I-2: if the text carries ANY placeholder outside the known set —
     including a vitals placeholder with NO resolvable reading — the WHOLE
@@ -269,16 +335,19 @@ def _fill_template_placeholders(text: str, ctx: NarrativeContext, lang: str) -> 
     if not fields:
         return text
     vital_values = _resolve_vital_placeholders(ctx, fields & _VITAL_PLACEHOLDER_FIELDS.keys())
-    if not fields <= (_KNOWN_PLACEHOLDERS | vital_values.keys()):
+    extra_values = {k: v for k, v in (extra or {}).items() if k in fields and v}
+    language_values = _language_placeholders(fields - _KNOWN_PLACEHOLDERS - extra_values.keys(), ctx)
+    if not fields <= (_KNOWN_PLACEHOLDERS | vital_values.keys() | extra_values.keys() | language_values.keys()):
         return generic
     cc = _o(ctx.encounter_protocol, "chief_complaint", {}) if ctx.encounter_protocol else {}
     if not isinstance(cc, dict):
         cc = {}
     mapping = {
-        "onset_days": "3",
         "chief_complaint_ja": str(cc.get("ja") or "") or generic,
         "chief_complaint_en": str(cc.get("en") or "") or generic,
         **vital_values,
+        **language_values,
+        **extra_values,
     }
     try:
         return text.format_map(mapping)

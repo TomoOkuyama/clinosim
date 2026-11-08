@@ -3908,7 +3908,8 @@
         "chief_complaint_variants.sepsis[3]",
         "ctx.vitals[0]",
         "ctx.orders.ed",
-        "ctx.ed_assessment.state_composed",
+        "ctx.diagnoses.admission_diagnosis_code",
+        "ctx.encounter.chief_complaint",
         "ctx.encounter.disposition"
       ],
       "generated_at": "2020-01-01T00:00:42Z",

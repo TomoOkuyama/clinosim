@@ -1087,7 +1087,8 @@
         "ctx.encounter.chief_complaint",
         "ctx.vitals[0]",
         "ctx.orders.ed",
-        "ctx.ed_assessment.state_composed",
+        "ctx.diagnoses.admission_diagnosis_code",
+        "ctx.encounter.chief_complaint",
         "ctx.encounter.disposition"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -1097,7 +1098,7 @@
         "lang": "en"
       },
       "sections": {
-        "assessment": "Encounter reason: Sudden severe headache, vomiting, altered consciousness",
+        "assessment": "ED diagnosis: Nontraumatic intracerebral hemorrhage, unspecified. Chief complaint: Sudden severe headache, vomiting, altered consciousness.",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
         "disposition": "Admitted (Sudden severe headache, vomiting, altered consciousness)",
         "ed_workup": "Labs: CBC, PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast), head CT (repeat). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line",

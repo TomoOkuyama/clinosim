@@ -77,9 +77,9 @@ scenarios:
     discharge_note: "Surgical consult completed, outpatient follow-up arranged."
 
 discharge_instructions:
-  - "Return if pain worsens, fever develops, or vomiting persists"
-  - "Follow up with PCP within 3-5 days"
-  - "Bland diet for 24 hours"
+  - {en: "Return if pain worsens, fever develops, or vomiting persists", ja: "腹痛の増悪、発熱、嘔吐の持続があれば再受診"}
+  - {en: "Bland diet for 24 hours", ja: "24時間は消化のよい食事とする"}
+follow_up: {en: "primary care physician within 3-5 days", ja: "3〜5日以内にかかりつけ医を受診"}
 
 discharge_prescriptions:
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.5}
@@ -92,22 +92,23 @@ sex_ratio_female: 1.2
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: days, range: [1, 3]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: abdominal pain with nausea. Location: periumbilical to lower abdomen, character: constant to intermittent. No fever, diarrhea, or hematochezia. See intake questionnaire for past medical/surgical history.'
-      ja: '{onset_days}日前より腹痛・嘔気が出現。部位：臍周囲〜下腹部、性質：持続性・間欠性。発熱・下痢・血便はなし。既往歴・手術歴は問診票参照。'
+      en: "Abdominal pain with nausea began {onset_en}. Location: periumbilical to lower abdomen, character: constant to intermittent. No fever, diarrhea, or hematochezia. See intake questionnaire for past medical/surgical history."
+      ja: "{onset_ja}より腹痛・嘔気が出現。部位：臍周囲〜下腹部、性質：持続性・間欠性。発熱・下痢・血便はなし。既往歴・手術歴は問診票参照。"
     physical_exam:
       en:
-        general: Alert and oriented, {severity_desc_en}
+        general: 'Alert and oriented, {appearance_en}'
         cardiovascular: Normal to mildly tachycardic, regular heart sounds
         respiratory: Respiratory rate normal, breath sounds clear
         abdominal: 'Abdomen: flat to mildly distended, hypoactive to hyperactive bowel sounds. Tenderness: {pain_site_en}. Peritoneal signs: {peritoneal_sign_en}. Murphy sign negative.'
         neurological: No paralysis, no altered mentation
       ja:
-        general: 意識清明、{severity_desc_ja}
+        general: '意識清明、{appearance_ja}'
         cardiovascular: 心拍数正常〜軽度頻脈、心音整
         respiratory: 呼吸数正常、呼吸音清明
         abdominal: 腹部：平坦〜軽度膨満、腸音減弱〜亢進。圧痛：{pain_site_ja}。腹膜刺激徴候：{peritoneal_sign_ja}。Murphy徴候陰性。
@@ -116,8 +117,8 @@ narrative:
       en: 'Labs obtained (WBC, CRP, liver enzymes, creatinine). {imaging_summary_en}. Urinalysis: {ua_result_en}.'
       ja: 血液検査（WBC・CRP・肝酵素・クレアチニン）施行。{imaging_summary_ja}。尿検査：{ua_result_ja}。
     disposition:
-      en: '{disposition_display_en}. Outpatient follow-up: return if symptoms worsen or fever develops.'
-      ja: '{disposition_display_ja}。外来フォローアップ：症状増悪時・発熱出現時は再診。'
+      en: "{disposition_display_en}"
+      ja: "{disposition_display_ja}"
   ed_triage_template:
     common_triage_levels:
     - '3'

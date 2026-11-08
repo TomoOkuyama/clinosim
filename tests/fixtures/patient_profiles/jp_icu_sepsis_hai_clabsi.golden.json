@@ -3908,7 +3908,8 @@
         "chief_complaint_variants.sepsis[3]",
         "ctx.vitals[0]",
         "ctx.orders.ed",
-        "ctx.ed_assessment.state_composed",
+        "ctx.diagnoses.admission_diagnosis_code",
+        "ctx.encounter.chief_complaint",
         "ctx.encounter.disposition"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
@@ -3918,7 +3919,7 @@
         "lang": "ja"
       },
       "sections": {
-        "assessment": "救急対応中の疾患: 急性腎不全，詳細不明。合併症: 急性腎障害、クロストリジウム・ディフィシル腸炎。",
+        "assessment": "救急外来診断: 敗血症，詳細不明。主訴: 発熱・意識変容・低血圧。",
         "chief_complaint": "3日前より倦怠感・本日ぐったり",
         "disposition": "入院適応（発熱・意識変容・低血圧）",
         "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、血液培養 (セット 1)、血液培養 (セット 2)、乳酸、CRP、PCT、クレアチニン。画像: 胸部レントゲン (正面・側面)、腹部・骨盤 CT、胸部レントゲン (臥位正面)、胸部ポータブルレントゲン。投薬: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5、メロペネム 2g 静注 8時間毎、ミカファンギン 100mg 静注 1日1回",

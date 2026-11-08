@@ -135,6 +135,60 @@ ed:
   on_arrival_no_findings:
     ja: "来院時所見: {vitals}。特記の身体所見なし。"
     en: "On arrival: {vitals}. No focal findings on exam."
+  # Issue #2871: ED-note assessment (the encounter's diagnosis) and the
+  # discharge instructions / follow-up of a patient sent home.
+  assessment_diagnosis:
+    ja: "救急外来診断: {dx}。主訴: {cc}。"
+    en: "ED diagnosis: {dx}. Chief complaint: {cc}."
+  assessment_diagnosis_only:
+    ja: "救急外来診断: {dx}。"
+    en: "ED diagnosis: {dx}."
+  discharge_instructions:
+    ja: "帰宅時指導: {list}。"
+    en: " Discharge instructions: {list}."
+  instruction_sep:
+    ja: "。"
+    en: "; "
+  follow_up:
+    ja: "フォローアップ: {text}。"
+    en: " Follow-up: {text}."
+
+# Issue #2871: `{onset_<lang>}` placeholder of the encounter-protocol
+# templates — how long before arrival the presenting problem began
+# (`narrative.onset` of the protocol: unit + range).
+symptom_onset:
+  hours_one:
+    ja: "来院約1時間前"
+    en: "about 1 hour before arrival"
+  hours:
+    ja: "来院約{n}時間前"
+    en: "about {n} hours before arrival"
+  days_one:
+    ja: "1日前"
+    en: "1 day ago"
+  days:
+    ja: "{n}日前"
+    en: "{n} days ago"
+
+# Issue #2871: `{appearance_<lang>}` placeholder of the ED physical exam —
+# general appearance by the triage level the note shows (ESI / JTAS 1-5):
+# 1-2 distressed, 3 uncomfortable, 4-5 no acute distress.
+ed_appearance:
+  level_1:
+    ja: "苦悶様"
+    en: "in acute distress"
+  level_2:
+    ja: "苦悶様"
+    en: "in acute distress"
+  level_3:
+    ja: "やや苦痛様"
+    en: "appears uncomfortable"
+  level_4:
+    ja: "苦痛様顔貌なし"
+    en: "in no acute distress"
+  level_5:
+    ja: "苦痛様顔貌なし"
+    en: "in no acute distress"
 
 # ED-note physical-exam vitals prepend (Phase 1d-37, Issue #979).
 # Prepends a vitals prose line before the body-system findings; only the

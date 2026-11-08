@@ -53,11 +53,11 @@ treatment:
   - {name: "Acetaminophen 500mg", probability: 0.3, route: "PO", intent: "antipyretic"}
 
 discharge_instructions:
-  - "Clear liquids for 24 hours, advance to bland diet (BRAT) as tolerated"
-  - "Avoid dairy, caffeine, and fatty foods for 48 hours"
-  - "Oral rehydration solution or sports drinks to maintain hydration"
-  - "Return if bloody stool, fever >39C, unable to keep fluids down >12 hours"
-  - "Return if symptoms not improving after 48 hours"
+  - {en: "Clear liquids for 24 hours, advance to bland diet (BRAT) as tolerated", ja: "24時間は水分中心とし、様子をみて消化のよい食事へ"}
+  - {en: "Avoid dairy, caffeine, and fatty foods for 48 hours", ja: "48時間は乳製品・カフェイン・脂っこい食事を避ける"}
+  - {en: "Oral rehydration solution or sports drinks to maintain hydration", ja: "経口補水液やスポーツドリンクで水分を補給"}
+  - {en: "Return if bloody stool, fever >39C, or unable to keep fluids down >12 hours", ja: "血便、39℃を超える発熱、12時間以上水分がとれない場合は再受診"}
+follow_up: {en: "primary care physician if not improving after 48 hours", ja: "48時間で改善しなければかかりつけ医を受診"}
 
 discharge_prescriptions:
   - {drug: "Ondansetron 4mg", route: "PO", frequency: "q8h PRN", duration_days: 3, probability: 0.5}
@@ -96,18 +96,19 @@ sex_ratio_female: 1.0
 seasonal: {1: 0.8, 2: 0.8, 3: 0.9, 4: 1.0, 5: 1.1, 6: 1.3, 7: 1.4, 8: 1.4, 9: 1.2, 10: 1.0, 11: 0.9, 12: 0.8}
 
 narrative:
+  onset: {unit: hours, range: [4, 24]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Abdominal pain, vomiting, and diarrhea began {onset_en}, after a meal. Similar illness among contacts and blood in the stool reviewed."
+      ja: "食後、{onset_ja}より腹痛・嘔吐・下痢が出現。同席者の同様症状・血便の有無を確認。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

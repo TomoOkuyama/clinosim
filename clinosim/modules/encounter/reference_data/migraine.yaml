@@ -50,11 +50,11 @@ treatment:
   - {name: "Dark room rest", probability: 0.8, route: "non-pharmacologic", intent: "photophobia relief"}
 
 discharge_instructions:
-  - "Migraine aborted with IV therapy"
-  - "Avoid known triggers (bright lights, certain foods, stress)"
-  - "Follow up with PCP or neurology for preventive therapy if frequent"
-  - "Return if headache recurs and is unresponsive to prescribed medication"
-  - "Return immediately if sudden worst headache of life, neck stiffness, or fever"
+  - {en: "Migraine aborted with IV therapy", ja: "点滴治療で頭痛発作は頓挫"}
+  - {en: "Avoid known triggers (bright lights, certain foods, stress)", ja: "誘因（強い光、特定の食品、ストレス）を避ける"}
+  - {en: "Return if headache recurs and is unresponsive to prescribed medication", ja: "頭痛が再発し処方薬が効かなければ再受診"}
+  - {en: "Return immediately if sudden worst headache of life, neck stiffness, or fever", ja: "突然の人生最悪の頭痛、項部硬直、発熱があれば直ちに受診"}
+follow_up: {en: "primary care physician or neurology for preventive therapy if frequent", ja: "頻回であれば予防治療のためかかりつけ医または脳神経内科を受診"}
 
 discharge_prescriptions:
   - {drug: "Sumatriptan 50mg", route: "PO", frequency: "PRN (max 2/day)", duration_days: 30, probability: 0.6}
@@ -68,18 +68,19 @@ sex_ratio_female: 1.8  # much more common in women
 seasonal: {1: 1.0, 2: 1.0, 3: 1.1, 4: 1.1, 5: 1.1, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 0.9, 12: 0.9}
 
 narrative:
+  onset: {unit: hours, range: [4, 24]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Severe throbbing headache with nausea and photophobia began {onset_en}, unrelieved by oral analgesics. No thunderclap onset, fever, or neck stiffness."
+      ja: "{onset_ja}より拍動性の激しい頭痛が出現し、嘔気・光過敏を伴う。内服鎮痛薬で改善せず。雷鳴様の突然発症・発熱・項部硬直なし。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

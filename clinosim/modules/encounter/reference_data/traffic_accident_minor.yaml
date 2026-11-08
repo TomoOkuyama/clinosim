@@ -48,11 +48,11 @@ treatment:
   - {name: "Observation", probability: 0.4, route: "other", intent: "monitor for delayed symptoms"}
 
 discharge_instructions:
-  - "Monitor for worsening headache, dizziness, or vomiting — return immediately"
-  - "Wear cervical collar as directed for 1-2 weeks"
-  - "Avoid driving for 24-48 hours"
-  - "Follow up with primary care or orthopedics in 5-7 days"
-  - "Apply ice to painful areas for 20 min every 2-3 hours"
+  - {en: "Return immediately if worsening headache, dizziness, or vomiting", ja: "頭痛の増悪、めまい、嘔吐があれば直ちに受診"}
+  - {en: "Wear cervical collar as directed for 1-2 weeks", ja: "指示どおり1〜2週間頸椎カラーを装着"}
+  - {en: "Avoid driving for 24-48 hours", ja: "24〜48時間は運転を控える"}
+  - {en: "Apply ice to painful areas for 20 minutes every 2-3 hours", ja: "痛む部位を2〜3時間ごとに20分間冷却"}
+follow_up: {en: "primary care physician or orthopedics in 5-7 days", ja: "5〜7日後にかかりつけ医または整形外科を受診"}
 
 discharge_prescriptions:
   - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
@@ -66,18 +66,19 @@ sex_ratio_female: 0.9
 seasonal: {1: 1.1, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.1, 6: 1.2, 7: 1.3, 8: 1.3, 9: 1.1, 10: 1.0, 11: 1.0, 12: 1.2}
 
 narrative:
+  onset: {unit: hours, range: [1, 6]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Involved in a motor vehicle collision {onset_en} without loss of consciousness, with neck and back pain since. Seatbelt use and airbag deployment reviewed."
+      ja: "{onset_ja}に交通事故で受傷、意識消失なし。以後、頸部・背部痛あり。シートベルト着用・エアバッグ作動の有無を確認。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

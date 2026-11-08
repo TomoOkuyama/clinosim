@@ -37,11 +37,11 @@ treatment:
   - {name: "IV normal saline", probability: 0.2, route: "IV", intent: "hydration during observation"}
 
 discharge_instructions:
-  - "Foreign body expected to pass spontaneously within 2-5 days"
-  - "Monitor stools for passage of object"
-  - "Return immediately if abdominal pain, vomiting, bloody stool, or fever"
-  - "High-fiber diet encouraged to facilitate passage"
-  - "Follow up with PCP if object not passed within 5 days"
+  - {en: "Foreign body expected to pass spontaneously within 2-5 days", ja: "異物は2〜5日以内に自然排出される見込み"}
+  - {en: "Monitor stools for passage of object", ja: "便に異物が排出されたか確認"}
+  - {en: "Return immediately if abdominal pain, vomiting, bloody stool, or fever", ja: "腹痛・嘔吐・血便・発熱があれば直ちに受診"}
+  - {en: "High-fiber diet encouraged to facilitate passage", ja: "排出を促すため食物繊維の多い食事をとる"}
+follow_up: {en: "primary care physician if the object has not passed within 5 days", ja: "5日以内に排出されなければかかりつけ医を受診"}
 
 discharge_prescriptions: []
 
@@ -52,18 +52,19 @@ sex_ratio_female: 0.5
 seasonal: {1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0, 5: 1.0, 6: 1.0, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0, 12: 1.0}
 
 narrative:
+  onset: {unit: hours, range: [1, 6]}
   ed_note_template:
     chief_complaint:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: 'Onset {onset_days} day(s) ago: {chief_complaint_en}, progressively worsening.'
-      ja: '{onset_days}日前より{chief_complaint_ja}が出現・増悪'
+      en: "Accidentally swallowed a foreign body {onset_en}. No drooling, choking, or chest pain. Type and size of the object reviewed."
+      ja: "{onset_ja}に異物を誤飲。流涎・窒息・胸痛なし。異物の種類と大きさを確認。"
     physical_exam:
       en:
-        general: Alert and oriented, in visible distress
+        general: 'Alert and oriented, {appearance_en}'
       ja:
-        general: 意識清明、苦痛様
+        general: '意識清明、{appearance_ja}'
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'
