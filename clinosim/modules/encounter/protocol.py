@@ -172,6 +172,10 @@ class _WorkupImaging(BaseModel):
     test: str
     probability: float = Field(default=1.0, ge=0.0, le=1.0)
     note: str | None = None  # authoring note, not read
+    # Issue #2870: countries the study is ordered in (empty = all), and the
+    # share of screens read abnormal by severity.
+    countries: list[Literal["US", "JP"]] = []
+    abnormal_rate_by_severity: dict[str, float] = {}
 
 
 class _Workup(BaseModel):
@@ -189,6 +193,9 @@ class _Treatment(BaseModel):
     probability: float = Field(default=1.0, ge=0.0, le=1.0)
     route: str | None = None
     intent: str | None = None
+    # Issue #2870: a scheduled visit orders and administers the catalogued drug.
+    drug_id: str | None = None
+    dose: str | None = None
     locale_name: dict[str, str] = Field(default_factory=dict)
     locale_exclude: list[str] = Field(default_factory=list)
 
