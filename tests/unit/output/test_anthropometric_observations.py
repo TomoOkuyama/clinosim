@@ -295,15 +295,22 @@ def _value(patient, admission, code, country="US", encounter_id=None):
 
 @pytest.mark.parametrize("country", ["US", "JP"])
 @pytest.mark.parametrize("sex", ["M", "F"])
-def test_child_height_never_decreases_across_visits(country, sex):
+def test_child_height_and_head_circumference_never_decrease_across_visits(country, sex):
     # Monthly visits from birth to age 17 — across the infant table, the
-    # yearly table and every birthday — never lose height.
+    # yearly table and every birthday — never lose height, nor head
+    # circumference while it is measured (age <= 3).
     patient = _child(dob="2005-01-20", sex=sex)
-    heights = []
+    heights, hcs = [], []
     for i in range(17 * 12):
         year, month = 2005 + i // 12, 1 + i % 12
-        heights.append(_value(patient, f"{year}-{month:02d}-25T09:00:00", LOINC_BODY_HEIGHT, country))
+        enc = _encounter(f"enc-{i}", f"{year}-{month:02d}-25T09:00:00")
+        obs = _by_code(build_anthropometric_observations(patient, enc, country))
+        heights.append(obs[LOINC_BODY_HEIGHT]["valueQuantity"]["value"])
+        if LOINC_HEAD_CIRCUMFERENCE in obs:
+            hcs.append(obs[LOINC_HEAD_CIRCUMFERENCE]["valueQuantity"]["value"])
     assert all(b >= a for a, b in zip(heights, heights[1:], strict=False)), heights
+    assert len(hcs) >= 40
+    assert all(b >= a for a, b in zip(hcs, hcs[1:], strict=False)), hcs
 
 
 def test_child_height_has_no_birthday_jump():

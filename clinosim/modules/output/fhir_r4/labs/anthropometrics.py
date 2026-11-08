@@ -44,7 +44,7 @@ observations share the following FHIR shape:
 
 - **Head circumference** — emitted only for patients aged
   ≤ ``head_circumference_max_age_years`` (default 3 y), on the same
-  percentile model plus a small per-encounter noise.
+  percentile model, without per-encounter noise so it never decreases.
 
 ## Determinism / RNG-shape isolation
 
@@ -383,9 +383,11 @@ def _derive_anthropometrics(
     }
 
     if age_years <= hc_max_age and hc_base is not None:
-        hc_sd = float(noise.get("head_circumference_cm_sd", 0.1))
+        hc_sd = float(noise.get("head_circumference_cm_sd", 0.0))
+        if hc_sd > 0:
+            hc_base += sha_normal(f"{patient_id}|{encounter_id}|hc", 0.0, hc_sd)
         hc = _clamp(
-            hc_base + sha_normal(f"{patient_id}|{encounter_id}|hc", 0.0, hc_sd),
+            hc_base,
             float((clamps.get("head_circumference_cm") or {}).get("min", 30.0)),
             float((clamps.get("head_circumference_cm") or {}).get("max", 60.0)),
         )
