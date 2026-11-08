@@ -2749,6 +2749,10 @@
 <td>どちらの形でもフィールドを書く、または入れ子の list/dict を取得・作成する。</td>
 </tr>
 <tr>
+<td><code>clinosim/timeutil.py</code> <code>parse_iso_datetime(value, lenient=False)</code></td>
+<td><code>datetime</code>・<code>date</code>・ISO 8601 文字列 (末尾 <code>Z</code>、オフセット、日付のみ) のいずれかで届く CIF タイムスタンプの読み取り。欠落・解析不能なら <code>None</code> を返し、タイムゾーンは変更しない。<code>lenient=True</code> は前後の空白除去と先頭日付へのフォールバックも行う。ローカルな <code>_parse_dt</code> を書かないこと。</td>
+</tr>
+<tr>
 <td><code>clinosim/modules/_shared.py</code> <code>strip_protocol_prefix(name)</code></td>
 <td>薬剤オーダー文字列からプロトコル・分類の接頭辞を外す。</td>
 </tr>

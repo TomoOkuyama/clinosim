@@ -2904,6 +2904,10 @@
 <td>Writing a field, or getting-or-creating a nested list/dict, on either shape.</td>
 </tr>
 <tr>
+<td><code>clinosim/timeutil.py</code> <code>parse_iso_datetime(value, lenient=False)</code></td>
+<td>Reading a CIF timestamp that may be a <code>datetime</code>, a <code>date</code> or an ISO 8601 string (trailing <code>Z</code>, offsets, date-only); returns <code>None</code> when absent or unparseable and never changes the time zone. <code>lenient=True</code> also strips whitespace and falls back to the leading date. Do not write a local <code>_parse_dt</code>.</td>
+</tr>
+<tr>
 <td><code>clinosim/modules/_shared.py</code> <code>strip_protocol_prefix(name)</code></td>
 <td>Removing the protocol/category prefix from a drug order string.</td>
 </tr>

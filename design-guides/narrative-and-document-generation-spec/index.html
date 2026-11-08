@@ -2443,6 +2443,11 @@
 <td><code>tests/unit/modules/document/narrative/test_vaccination_visit_own_data_2869.py</code></td>
 </tr>
 <tr>
+<td>A stay that ended in death (discharge disposition <code>exp</code>) is recognised by one test, used by the planner (death summary and death certificate instead of the discharge summary) and by every section that words the end of a stay. Such a stay keeps its nursing discharge summary, which records the time of death, the family's notification and post-mortem care in place of discharge criteria, patient teaching and discharge readiness; the last two days' progress notes take their stable-day phrase from the <code>terminal</code> pool, not from the discharge-preparation pools.</td>
+<td><code>clinosim/modules/document/narrative/_narrative_utils.py::encounter_died</code></td>
+<td><code>tests/unit/modules/document/narrative/test_death_stay_documents_2875.py</code></td>
+</tr>
+<tr>
 <td>The LLM is reached only through <code>LLMService.complete_prompt</code> (AD-11).</td>
 <td><code>clinosim/modules/llm_service/</code></td>
 <td><code>implementation-rules.md</code> §2 (review)</td>

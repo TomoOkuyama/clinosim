@@ -2443,6 +2443,11 @@
 <td><code>tests/unit/modules/document/narrative/test_vaccination_visit_own_data_2869.py</code></td>
 </tr>
 <tr>
+<td>死亡で終わった入院(退院時転帰 <code>exp</code>)は一つの判定で見分け、planner(退院時サマリーに代えて死亡退院サマリーと死亡診断書)と、入院の終わりを言い表すすべてのセクションがそれを使う。この入院にも看護サマリーは残し、退院基準・患者指導・退院可能性の代わりに死亡確認時刻、家族への連絡、死後の処置を記す。最後の 2 日の経過記録の安定日フレーズは退院準備のプールではなく <code>terminal</code> プールから取る。</td>
+<td><code>clinosim/modules/document/narrative/_narrative_utils.py::encounter_died</code></td>
+<td><code>tests/unit/modules/document/narrative/test_death_stay_documents_2875.py</code></td>
+</tr>
+<tr>
 <td>LLM には <code>LLMService.complete_prompt</code> を通してのみ届く(AD-11)。</td>
 <td><code>clinosim/modules/llm_service/</code></td>
 <td><code>implementation-rules.ja.md</code> §2(レビュー)</td>
