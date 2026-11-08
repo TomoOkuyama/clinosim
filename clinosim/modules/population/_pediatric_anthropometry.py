@@ -69,6 +69,26 @@ class _EncounterNoise(BaseModel):
     model_config = ConfigDict(extra="forbid")
     weight_kg_sd: StrictFloat | StrictInt = Field(ge=0)
     head_circumference_cm_sd: StrictFloat | StrictInt = Field(ge=0)
+    pediatric_weight_cv: StrictFloat | StrictInt = Field(ge=0, lt=0.1)
+    pediatric_height_cm_sd: StrictFloat | StrictInt = Field(ge=0)
+
+
+class _GrowthVariation(BaseModel):
+    """Per-child spread around the growth medians (Issue #2876)."""
+
+    model_config = ConfigDict(extra="forbid")
+    height_cv: StrictFloat | StrictInt = Field(gt=0, lt=0.2)
+    weight_cv: StrictFloat | StrictInt = Field(gt=0, lt=0.4)
+    head_circumference_cv: StrictFloat | StrictInt = Field(gt=0, lt=0.2)
+    shared_size_correlation: StrictFloat | StrictInt = Field(ge=0, le=1)
+    z_limit: StrictFloat | StrictInt = Field(gt=0, le=4)
+
+    @model_validator(mode="after")
+    def _positive_at_tail(self) -> _GrowthVariation:
+        for cv in (self.height_cv, self.weight_cv, self.head_circumference_cv):
+            if cv * self.z_limit >= 1:
+                raise ValueError(f"cv {cv} x z_limit {self.z_limit} would reach a non-positive measurement")
+        return self
 
 
 class _GrowthRow(BaseModel):
@@ -99,6 +119,7 @@ class _AnthropometricReference(BaseModel):
     model_config = ConfigDict(extra="forbid")
     clamps: _Clamps
     per_encounter_noise: _EncounterNoise
+    pediatric_growth_variation: _GrowthVariation
     pediatric_growth_infant: _BySex  # keyed by age in months
     pediatric_growth: dict[str, _BySex]  # country -> keyed by age in years
     head_circumference_max_age_years: StrictInt = Field(ge=0)

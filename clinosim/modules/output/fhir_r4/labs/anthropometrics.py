@@ -31,37 +31,43 @@ observations share the following FHIR shape:
   emit time from the emitted height and weight so the triple is
   internally consistent (Issue #946 acceptance criterion).
 
-- **Pediatric (age < 18)** — height and weight come from a per-age /
-  per-sex p50 growth-chart median in
-  `modules/population/reference_data/anthropometric_reference.yaml` (WHO / MHLW for JP,
-  WHO / CDC for US). A small per-encounter SHA256-derived noise is
-  added. BMI is computed as above.
+- **Pediatric (age < 18)** — each child keeps a stable growth
+  percentile (Issue #2876): one z-score per measure, drawn once per
+  patient, scales the per-sex growth-chart median
+  (`modules/population/reference_data/anthropometric_reference.yaml`;
+  WHO infant table, then CDC for US / MHLW-MEXT for JP) interpolated
+  linearly by exact age in months: ``median(age) × (1 + cv × z)``.
+  Height therefore never decreases between visits and has no birthday
+  steps; newborns vary in length, weight and head circumference. Weight
+  carries a small relative per-encounter noise (``pediatric_weight_cv``).
+  BMI is computed as above.
 
 - **Head circumference** — emitted only for patients aged
-  ≤ ``head_circumference_max_age_years`` (default 3 y). Same
-  SHA256-derived per-encounter noise pattern.
+  ≤ ``head_circumference_max_age_years`` (default 3 y), on the same
+  percentile model plus a small per-encounter noise.
 
 ## Determinism / RNG-shape isolation
 
-None of the emit paths draw from the master RNG. Per-encounter noise
-is derived from ``hashlib.sha256(f"{patient_id}|{encounter_id}|<suffix>"
-.encode())`` and mapped to a Gaussian quantile via ``mpmath.erfinv`` —
-following the memory-rule pattern documented in
-``feedback_rng_neutral_additive_field.md`` (introducing the emit does
-not shift any downstream RNG cursor, keeping memoize / F4 byte-
-identical guarantees intact for every other resource type).
+None of the emit paths draw from the master RNG. Children's z-scores
+and noise come from ``determinism.sha_normal`` keyed on the patient id
+(z-scores) or ``{patient_id}|{encounter_id}|<suffix>`` (noise). The
+adult weight drift keeps its original SHA256 → ``mpmath.erfinv``
+formula (``_sha256_gaussian``) so adult output is unchanged.
 """
 
 from __future__ import annotations
 
 import hashlib
+import math
 from datetime import date, datetime
+from functools import lru_cache
 from typing import Any
 
 from clinosim.codes import get_system_uri
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
+from clinosim.determinism import sha_normal
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -201,17 +207,13 @@ def _age_at(dob: date, when: datetime) -> int:
     return max(0, yrs)
 
 
-def _age_at_months(dob: date, when: datetime) -> int:
-    """Age in whole months (Issue #1322 infant growth-chart lookup).
+def _age_in_months(dob: date, when: datetime) -> float:
+    """Exact age in months (days / mean month length), 0 at or before ``dob``.
 
-    Rounded down (a 5-week-old is 1 month, not 2). Returns 0 for any date
-    at or before ``dob``, so newborns admitted on day 0 land on the WHO
-    birth-median row.
+    Fractional so the growth curve advances smoothly between visits instead
+    of stepping at month or birthday boundaries (Issue #2876).
     """
-    months = (when.year - dob.year) * 12 + (when.month - dob.month)
-    if when.day < dob.day:
-        months -= 1
-    return max(0, months)
+    return max(0.0, (when.date() - dob).days / _DAYS_PER_MONTH)
 
 
 # ---------------------------------------------------------------------------
@@ -219,80 +221,83 @@ def _age_at_months(dob: date, when: datetime) -> int:
 # ---------------------------------------------------------------------------
 
 
+_DAYS_PER_MONTH = 365.25 / 12
 _INFANT_MEDIAN_UPPER_MONTHS = 24
+_MEASURES = ("height", "weight", "head_circumference")
+
+
+def _sex_key(sex: str) -> str:
+    return "male" if str(sex or "").upper().startswith("M") else "female"
 
 
 def _pediatric_medians(country: str, sex: str, age_years: int) -> dict[str, float] | None:
-    """Return {"height": …, "weight": …, "head_circumference": …?} for a
-    pediatric age / sex, or None when the age falls outside the yaml table.
-
-    ``head_circumference`` is only present in the returned dict when the
-    growth-chart row carries the measurement (ages within the pediatric
-    head-circumference tracking window). Callers check ``"head_circumference"
-    in peds`` — never on a sentinel ``None`` value — so downstream unwrap
-    stays type-safe.
-
-    Sex normalization: "M" / "male" → male row, otherwise female row.
-
-    NOTE: for ages under 2 years, callers should prefer
-    :func:`_infant_medians` (keyed by month-of-age), which resolves the
-    0-24 month band with sub-year granularity. The ``age_years=0`` row
-    here represents the 12-month median (kept for backwards compatibility
-    with adult / older-pediatric callers that only have years available).
+    """Return the yearly growth-table row ``{"height", "weight"}`` for
+    ``(country, sex, age_years)``, or None when the age falls outside the
+    table. Used only for the adult fallback when a profile carries no
+    stored height / weight.
     """
     ref = _load_reference()
     tables = (ref.get("pediatric_growth") or {}).get("JP" if is_jp(country) else "US") or {}
-    sex_key = "male" if str(sex or "").upper().startswith("M") else "female"
-    row = (tables.get(sex_key) or {}).get(int(age_years))
+    row = (tables.get(_sex_key(sex)) or {}).get(int(age_years))
     if not row:
         return None
-    out: dict[str, float] = {
-        "height": float(row.get("height", 0.0)),
-        "weight": float(row.get("weight", 0.0)),
-    }
-    if "head_circumference" in row:
-        out["head_circumference"] = float(row["head_circumference"])
-    return out
+    return {"height": float(row.get("height", 0.0)), "weight": float(row.get("weight", 0.0))}
 
 
-def _infant_medians(sex: str, age_months: int) -> dict[str, float] | None:
-    """Return WHO length-for-age / weight-for-age / head-circumference
-    p50 medians for infants under 24 months (Issue #1322).
+@lru_cache(maxsize=16)
+def _growth_curve(country: str, sex_key: str, measure: str) -> tuple[tuple[float, float], ...]:
+    """The reference median of one measure as ``((age_months, value), …)``,
+    sorted by age (Issue #2876).
 
-    The infant table's month keys are 0 / 1 / 3 / 6 / 9 / 12 / 18. The
-    row selected is the largest key ≤ ``age_months`` (a 4-month-old
-    picks the 3-month row, an 11-month-old picks the 9-month row) —
-    p50 medians vary smoothly, and picking the next-earlier keyed row
-    is closer than picking the next-later row for a growing child.
-
-    Returns ``None`` when the age is at or above 24 months; those
-    callers should fall back to :func:`_pediatric_medians` for the
-    yearly table.
+    Points: the monthly infant rows (both countries), then the yearly rows
+    for ages >= 2 at mid-year (``(y + 0.5) × 12`` months) — the anchoring
+    documented in ``anthropometric_reference.yaml``. Yearly rows 0 and 1 are
+    superseded by the infant rows. Rows without the measure are skipped.
     """
-    if age_months >= _INFANT_MEDIAN_UPPER_MONTHS:
-        return None
     ref = _load_reference()
-    tables = ref.get("pediatric_growth_infant") or {}
-    sex_key = "male" if str(sex or "").upper().startswith("M") else "female"
-    rows = tables.get(sex_key) or {}
-    if not rows:
+    points: list[tuple[float, float]] = []
+    for month, row in ((ref.get("pediatric_growth_infant") or {}).get(sex_key) or {}).items():
+        if row.get(measure) is not None:
+            points.append((float(month), float(row[measure])))
+    yearly = ((ref.get("pediatric_growth") or {}).get(country) or {}).get(sex_key) or {}
+    first_yearly = _INFANT_MEDIAN_UPPER_MONTHS // 12
+    for year, row in yearly.items():
+        if int(year) >= first_yearly and row.get(measure) is not None:
+            points.append(((int(year) + 0.5) * 12.0, float(row[measure])))
+    return tuple(sorted(points))
+
+
+def _median_at(country: str, sex: str, age_months: float, measure: str) -> float | None:
+    """Reference median of ``measure`` at ``age_months``, linearly
+    interpolated between the curve points and flat beyond its ends.
+    None when the reference carries no value for the measure."""
+    curve = _growth_curve("JP" if is_jp(country) else "US", _sex_key(sex), measure)
+    if not curve:
         return None
-    # Pick the largest key ≤ age_months.
-    keys = sorted(int(k) for k in rows.keys())
-    picked_key = keys[0]
-    for k in keys:
-        if k <= age_months:
-            picked_key = k
-        else:
-            break
-    row = rows[picked_key]
-    out: dict[str, float] = {
-        "height": float(row.get("height", 0.0)),
-        "weight": float(row.get("weight", 0.0)),
+    if age_months <= curve[0][0]:
+        return curve[0][1]
+    for (m0, v0), (m1, v1) in zip(curve, curve[1:], strict=False):
+        if age_months <= m1:
+            return v0 + (v1 - v0) * (age_months - m0) / (m1 - m0)
+    return curve[-1][1]
+
+
+def _growth_z_scores(patient_id: str, variation: dict[str, Any]) -> dict[str, float]:
+    """One stable z-score per measure for this child (Issue #2876).
+
+    Each measure mixes a shared body-size z (weight ``shared_size_correlation``)
+    with its own z, so a large child is large on every measure. Drawn with
+    ``sha_normal`` keyed on the patient id: the same at every visit and no
+    master-RNG draw. Truncated at ``± z_limit``.
+    """
+    rho = float(variation.get("shared_size_correlation", 0.7))
+    limit = float(variation.get("z_limit", 2.5))
+    own = math.sqrt(max(0.0, 1.0 - rho * rho))
+    size = sha_normal(f"anthropometry-growth|{patient_id}|size")
+    return {
+        m: _clamp(rho * size + own * sha_normal(f"anthropometry-growth|{patient_id}|{m}"), -limit, limit)
+        for m in _MEASURES
     }
-    if "head_circumference" in row:
-        out["head_circumference"] = float(row["head_circumference"])
-    return out
 
 
 def _derive_anthropometrics(
@@ -300,17 +305,15 @@ def _derive_anthropometrics(
     encounter_id: str,
     age_years: int,
     country: str,
-    age_months: int | None = None,
+    age_months: float | None = None,
 ) -> dict[str, float]:
     """Return {"height_cm", "weight_kg", "bmi", "head_circumference_cm"?}
     for one encounter. Values are clamped to yaml `clamps` bounds.
 
-    ``age_months`` (Issue #1322) selects the WHO infant growth table for
-    ages under 24 months so a newborn admitted at day 0 emits 50 cm /
-    3.3 kg rather than the 12-month-median 74 cm / 9.6 kg. When it is
-    ``None`` (older callers), the function falls back to the yearly
-    ``pediatric_growth`` table using ``age_years`` alone — the same
-    behavior as before this parameter was added.
+    Children (Issue #2876): the reference median at the exact age in months
+    (``age_months``; mid-year of ``age_years`` when it is None), scaled by
+    the child's stable percentile ``1 + cv × z``, plus a small per-encounter
+    weight noise.
     """
     ref = _load_reference()
     clamps = ref.get("clamps") or {}
@@ -321,6 +324,8 @@ def _derive_anthropometrics(
     patient_id = str(patient_data.get("patient_id", "") or "")
     sex = str(patient_data.get("sex", "") or "M")
 
+    height_noise = 0.0
+    hc_base: float | None = None
     if age_years >= adult_min:
         # Adult path — patient profile carries height/weight/bmi already
         # sampled at Layer 1 from country-specific demographics.yaml.
@@ -336,38 +341,32 @@ def _derive_anthropometrics(
                 base_height = float(fallback["height"])
             if base_weight <= 0.0:
                 base_weight = float(fallback["weight"])
+        weight_sd = float(noise.get("weight_kg_sd", 0.6))
+        weight_kg = base_weight + _sha256_gaussian(f"{patient_id}|{encounter_id}|weight", weight_sd)
     else:
-        # Pediatric path — growth-chart medians per age/sex.
-        # Issue #1322: for age < 24 months, prefer the WHO infant table
-        # (sub-year granularity) so newborns don't inherit the 12-month
-        # median (74 cm / 9.6 kg) from the ``age=0`` yearly row.
-        peds: dict[str, float] | None = None
-        if age_months is not None and age_months < _INFANT_MEDIAN_UPPER_MONTHS:
-            peds = _infant_medians(sex, age_months)
-        if peds is None:
-            peds = _pediatric_medians(country, sex, age_years)
-        if peds is None:
-            # Age outside table range: fall back to nearest adult profile.
-            base_height = float(patient_data.get("height_cm", 0.0) or 0.0) or 160.0
-            base_weight = float(patient_data.get("weight_kg", 0.0) or 0.0) or 55.0
-            # Empty dict so the "head_circumference in peds" check downstream
-            # returns False — head circumference is only tracked in the
-            # pediatric growth window, absent above it.
-            peds = {}
-        else:
-            base_height = peds["height"]
-            base_weight = peds["weight"]
+        months = age_months if age_months is not None else (age_years + 0.5) * 12.0
+        variation = ref.get("pediatric_growth_variation") or {}
+        z = _growth_z_scores(patient_id, variation)
+        cv = {m: float(variation.get(f"{m}_cv", 0.0)) for m in _MEASURES}
+        medians = {m: _median_at(country, sex, months, m) for m in _MEASURES}
+        base_height = (medians["height"] or 160.0) * (1.0 + cv["height"] * z["height"])
+        base_weight = (medians["weight"] or 55.0) * (1.0 + cv["weight"] * z["weight"])
+        hc_median = medians["head_circumference"]
+        if hc_median is not None:
+            hc_base = hc_median * (1.0 + cv["head_circumference"] * z["head_circumference"])
+        height_sd = float(noise.get("pediatric_height_cm_sd", 0.0))
+        if height_sd > 0:
+            height_noise = sha_normal(f"{patient_id}|{encounter_id}|height", 0.0, height_sd)
+        weight_cv = float(noise.get("pediatric_weight_cv", 0.01))
+        weight_kg = base_weight * (1.0 + sha_normal(f"{patient_id}|{encounter_id}|weight", 0.0, weight_cv))
 
-    # Per-encounter weight noise (RNG-neutral SHA256 → Gaussian).
-    weight_sd = float(noise.get("weight_kg_sd", 0.6))
-    weight_noise = _sha256_gaussian(f"{patient_id}|{encounter_id}|weight", weight_sd)
     height_cm = _clamp(
-        base_height,
+        base_height + height_noise,
         float((clamps.get("height_cm") or {}).get("min", 40.0)),
         float((clamps.get("height_cm") or {}).get("max", 210.0)),
     )
     weight_kg = _clamp(
-        base_weight + weight_noise,
+        weight_kg,
         float((clamps.get("weight_kg") or {}).get("min", 2.0)),
         float((clamps.get("weight_kg") or {}).get("max", 200.0)),
     )
@@ -384,26 +383,14 @@ def _derive_anthropometrics(
         "bmi": round(bmi, 1),
     }
 
-    if age_years <= hc_max_age:
-        # Head-circumference: pediatric growth-chart median + small noise.
-        # Issue #1322: for age < 24 months, look up HC in the infant table
-        # (sub-year granularity) so a newborn's HC ~34.5 cm is emitted
-        # instead of the 12-month median 46 cm from the yearly ``age=0``
-        # row.
-        if age_months is not None and age_months < _INFANT_MEDIAN_UPPER_MONTHS:
-            peds = _infant_medians(sex, age_months) or {}
-        else:
-            peds = _pediatric_medians(country, sex, age_years) or {}
-        hc_base = peds.get("head_circumference")
-        if hc_base is not None:
-            hc_sd = float(noise.get("head_circumference_cm_sd", 0.1))
-            hc_noise = _sha256_gaussian(f"{patient_id}|{encounter_id}|hc", hc_sd)
-            hc = _clamp(
-                float(hc_base) + hc_noise,
-                float((clamps.get("head_circumference_cm") or {}).get("min", 30.0)),
-                float((clamps.get("head_circumference_cm") or {}).get("max", 60.0)),
-            )
-            out["head_circumference_cm"] = round(hc, 1)
+    if age_years <= hc_max_age and hc_base is not None:
+        hc_sd = float(noise.get("head_circumference_cm_sd", 0.1))
+        hc = _clamp(
+            hc_base + sha_normal(f"{patient_id}|{encounter_id}|hc", 0.0, hc_sd),
+            float((clamps.get("head_circumference_cm") or {}).get("min", 30.0)),
+            float((clamps.get("head_circumference_cm") or {}).get("max", 60.0)),
+        )
+        out["head_circumference_cm"] = round(hc, 1)
 
     return out
 
@@ -467,14 +454,14 @@ def build_anthropometric_observations(
 
     dob = _parse_date_of_birth(patient_data.get("date_of_birth"))
     enc_dt = _parse_encounter_datetime(get_attr_or_key(encounter, "admission_datetime", None))
-    age_months: int | None = None
+    age_months: float | None = None
     if dob is None:
         age_years = int(patient_data.get("age", 0) or 0)
     elif enc_dt is None:
         age_years = int(patient_data.get("age", 0) or 0)
     else:
         age_years = _age_at(dob, enc_dt)
-        age_months = _age_at_months(dob, enc_dt)
+        age_months = _age_in_months(dob, enc_dt)
 
     values = _derive_anthropometrics(patient_data, encounter_id, age_years, country, age_months)
 

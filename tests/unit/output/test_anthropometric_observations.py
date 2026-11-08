@@ -17,6 +17,7 @@ Coverage:
 
 from __future__ import annotations
 
+from datetime import date
 from types import SimpleNamespace
 
 import pytest
@@ -275,3 +276,77 @@ def test_infant_medians_deterministic():
     b = _by_code(build_anthropometric_observations(p, e, "US"))
     for code in (LOINC_BODY_HEIGHT, LOINC_BODY_WEIGHT):
         assert a[code]["valueQuantity"]["value"] == b[code]["valueQuantity"]["value"]
+
+
+# ---------------------------------------------------------------------------
+# Issue #2876 — each child keeps a stable growth percentile.
+# ---------------------------------------------------------------------------
+
+
+def _child(patient_id: str = "pt-growth", dob: str = "2018-03-10", sex: str = "M"):
+    return {"patient_id": patient_id, "date_of_birth": dob, "sex": sex, "age": 0}
+
+
+def _value(patient, admission, code, country="US", encounter_id=None):
+    enc = _encounter(encounter_id or f"enc-{admission[:10]}", admission)
+    obs = _by_code(build_anthropometric_observations(patient, enc, country))
+    return obs[code]["valueQuantity"]["value"]
+
+
+@pytest.mark.parametrize("country", ["US", "JP"])
+@pytest.mark.parametrize("sex", ["M", "F"])
+def test_child_height_never_decreases_across_visits(country, sex):
+    # Monthly visits from birth to age 17 — across the infant table, the
+    # yearly table and every birthday — never lose height.
+    patient = _child(dob="2005-01-20", sex=sex)
+    heights = []
+    for i in range(17 * 12):
+        year, month = 2005 + i // 12, 1 + i % 12
+        heights.append(_value(patient, f"{year}-{month:02d}-25T09:00:00", LOINC_BODY_HEIGHT, country))
+    assert all(b >= a for a, b in zip(heights, heights[1:], strict=False)), heights
+
+
+def test_child_height_has_no_birthday_jump():
+    # The step lookup moved 145 -> 151 cm across one birthday.
+    patient = _child(dob="2012-06-01")
+    before = _value(patient, "2024-05-25T09:00:00", LOINC_BODY_HEIGHT)
+    after = _value(patient, "2024-06-05T09:00:00", LOINC_BODY_HEIGHT)
+    assert 0.0 <= after - before < 1.0
+
+
+@pytest.mark.parametrize("patient_id", [f"pt-w{i}" for i in range(20)])
+def test_child_weight_change_within_30_days_is_small(patient_id):
+    # 12-13 months old: two visits 19 days apart differ by < 5 %.
+    patient = _child(patient_id=patient_id, dob="2023-01-10")
+    w0 = _value(patient, "2024-02-01T09:00:00", LOINC_BODY_WEIGHT, encounter_id="enc-a")
+    w1 = _value(patient, "2024-02-20T09:00:00", LOINC_BODY_WEIGHT, encounter_id="enc-b")
+    assert abs(w1 - w0) / w0 < 0.05, (w0, w1)
+
+
+def test_newborns_differ_in_birth_measurements():
+    lengths, weights, hcs = set(), set(), set()
+    for i in range(10):
+        patient = _child(patient_id=f"pt-newborn-{i}", dob="2025-01-05")
+        enc = _encounter(f"enc-nb-{i}", "2025-01-05T09:00:00")
+        obs = _by_code(build_anthropometric_observations(patient, enc, "US"))
+        lengths.add(obs[LOINC_BODY_HEIGHT]["valueQuantity"]["value"])
+        weights.add(obs[LOINC_BODY_WEIGHT]["valueQuantity"]["value"])
+        hcs.add(obs[LOINC_HEAD_CIRCUMFERENCE]["valueQuantity"]["value"])
+    assert len(lengths) >= 5 and len(weights) >= 5 and len(hcs) >= 5
+    assert all(44.0 <= x <= 56.0 for x in lengths), lengths
+    assert all(2.0 <= x <= 4.8 for x in weights), weights
+
+
+def test_child_percentile_is_stable_across_ages():
+    # A child's height stays at the same multiple of the reference median.
+    from clinosim.modules.output.fhir_r4.labs.anthropometrics import _median_at
+
+    patient = _child(patient_id="pt-stable", dob="2010-04-01")
+    ratios = []
+    for year in (2012, 2015, 2019, 2024):
+        h = _value(patient, f"{year}-04-01T09:00:00", LOINC_BODY_HEIGHT)
+        months = (date(year, 4, 1) - date(2010, 4, 1)).days / 30.4375
+        median = _median_at("US", "M", months, "height")
+        assert median is not None
+        ratios.append(h / median)
+    assert max(ratios) - min(ratios) < 0.005, ratios
