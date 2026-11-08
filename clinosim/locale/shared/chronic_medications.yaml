@@ -101,6 +101,9 @@ E78:  # Dyslipidemia
     # Issue #2927: the Rosuvastatin switch is retired (statins are stepped
     # up on the measured LDL by simulator/statin_monitoring.py); the entry
     # stays so the activation sampler's draws for E78 are unchanged.
+    # Issue #2942: the Ezetimibe event is retired too; this entry is the dose
+    # / route / frequency of the add-on statin_monitoring.py starts on the
+    # measured LDL (resolve_med_name).
     - {drug_id: rosuvastatin, dose: "20mg", drug_class: "statin", route: "PO", frequency: "daily", probability: 0.0}
     - {drug_id: ezetimibe, dose: "10mg", drug_class: "cholesterol_absorption_inhibitor", route: "PO", frequency: "daily", probability: 0.0}
   monitoring:

@@ -895,6 +895,13 @@ chronic_assessment:
   bp_target:
     ja: "目標 {sbp}/{dbp} mmHg 未満"
     en: "target < {sbp}/{dbp} mmHg"
+  # Issue #2942: one per JAS 2022 risk tier (statin_monitoring.yaml `tier`).
+  ldl_target_secondary_prevention:
+    ja: "目標 {ldl} mg/dL 未満 (二次予防)"
+    en: "target < {ldl} mg/dL (secondary prevention)"
+  ldl_target_high_risk_primary_prevention:
+    ja: "目標 {ldl} mg/dL 未満 (一次予防・高リスク)"
+    en: "target < {ldl} mg/dL (high-risk primary prevention)"
   ldl_target_primary_prevention:
     ja: "目標 {ldl} mg/dL 未満 (一次予防)"
     en: "target < {ldl} mg/dL (primary prevention)"

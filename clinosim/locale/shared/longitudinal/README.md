@@ -10,4 +10,4 @@ One yaml per clinical attribute. Each file carries the common frontmatter (`attr
 - `anthropometry/` (1) — BMI drift
 - `stage/` (19) — Markov stage transitions (CKD, COPD, heart failure, ischemic heart disease, atrial fibrillation, dementia, Parkinson, MS, liver fibrosis / alcoholic liver disease, stroke sequelae, cancer stages)
 - `event/` (35) — event-firing attributes: chronic-disease onset (`*_onset.yaml`) and DM complication onset (nephropathy / neuropathy / retinopathy)
-- `med/` (6) — treatment escalation (DM: insulin / SGLT2i; HTN: third / fourth agent; lipids: ezetimibe; the high-intensity statin switch is retired at rate 0, statins are stepped up on the measured LDL by `simulator/statin_monitoring.py`)
+- `med/` (6) — treatment escalation (DM: insulin / SGLT2i; HTN: third / fourth agent; lipids: the high-intensity statin switch and the ezetimibe add-on are retired at rate 0 — statins are stepped up and ezetimibe added on the measured LDL by `simulator/statin_monitoring.py`)

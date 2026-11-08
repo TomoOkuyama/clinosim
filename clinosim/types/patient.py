@@ -204,6 +204,10 @@ class OutpatientVisitLedger:
     lipid_panel_statin: str = ""
     titrated_statin: HomeMedication | None = None
     statin_changed_on: date | None = None
+    # Issue #2942: the non-statin add-on (ezetimibe) the clinic started on the
+    # measured LDL, with the date.
+    lipid_add_on: HomeMedication | None = None
+    lipid_add_on_on: date | None = None
 
 
 @dataclass

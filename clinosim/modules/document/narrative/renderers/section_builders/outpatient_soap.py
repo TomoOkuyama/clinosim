@@ -34,6 +34,7 @@ from __future__ import annotations
 
 from functools import cache
 from pathlib import Path
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import display as registry_display
@@ -61,6 +62,7 @@ from clinosim.modules.document.narrative._template_helpers import (
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.modules.document.reference_data_loaders import ChronicMedClassHints
 from clinosim.reference_data import load_reference_yaml
+from clinosim.simulator.statin_monitoring import ldl_target as statin_ldl_target
 from clinosim.types.document import DocumentType, NarrativeContext
 
 if TYPE_CHECKING:
@@ -536,7 +538,7 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
         controlled HbA1c 6.8% is still worth citing against target
         7.0% — that's the point of the follow-up assessment).
       - Adds explicit target reference (JDS DM HbA1c < 7.0%, JAS
-        LDL < 120 mg/dL primary prevention, JSH BP < 140/90 mmHg,
+        LDL by JAS 2022 risk tier (Issue #2942), JSH BP < 140/90 mmHg,
         KDIGO CKD stage classification).
       - Adds CKD staging from eGFR when present.
       - Adds pertinent negatives (尿アルブミン when measured) so the
@@ -715,6 +717,11 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
         elif code_prefix.startswith("E78"):
             ldl = lab_by_name.get("ldl")
             _ldl = chronic_control_targets(ctx.locale).ldl
+            # Issue #2942: the stated target is the patient's risk-tier
+            # target, the threshold the statin titration uses
+            # (statin_monitoring.ldl_target); none in the US, whose
+            # guideline sets no LDL target.
+            _target = statin_ldl_target(SimpleNamespace(chronic_conditions=conditions), ctx.locale)
             if ldl:
                 v, u = ldl
                 try:
@@ -723,17 +730,15 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
                         ctrl = t("control_status.high_ldl_statin_underresponse", lang)
                     elif vf >= _ldl.borderline:
                         ctrl = t("control_status.borderline_intensification", lang)
-                    elif vf >= _ldl.elevated:
+                    elif vf >= (_target[0] if _target is not None else _ldl.elevated):
                         ctrl = t("control_status.elevated", lang)
                     else:
                         ctrl = t("control_status.at_goal", lang)
                 except (TypeError, ValueError):
                     ctrl = ""
-                # The US guideline sets no primary-prevention LDL target, so
-                # none is stated there (chronic_control_targets.yaml).
                 target_part = (
-                    t("chronic_assessment.ldl_target_primary_prevention", lang, ldl=_ldl.target) + " — "
-                    if _ldl.target is not None
+                    t(f"chronic_assessment.ldl_target_{_target[1]}", lang, ldl=f"{_target[0]:g}") + " — "
+                    if _target is not None
                     else ""
                 )
                 med = _pick_med_by_class("dyslipidemia")

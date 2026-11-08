@@ -154,10 +154,12 @@ def _activate_cached_person(
         patient = activate_patient(person, act_rng, demo, as_of_year=as_of_year)
         # One ledger per person across the per-year profiles (Issue #2862).
         patient.visit_ledger = person.visit_ledger
-        # Issue #2877: a statin the clinic titrated stays at its dose.
-        from clinosim.simulator.statin_monitoring import restore_titrated_statin
+        # Issue #2877: a statin the clinic titrated stays at its dose;
+        # Issue #2942: an add-on it started is still taken.
+        from clinosim.simulator.statin_monitoring import restore_lipid_add_on, restore_titrated_statin
 
         restore_titrated_statin(patient)
+        restore_lipid_add_on(patient)
         patient_cache[key] = patient
     return patient_cache[key]
 

@@ -79,7 +79,8 @@ def test_lipid_ezetimibe_escalation_yaml_loads():
     body = spec.body
     assert body.emits_meds == ["Ezetimibe"]
     assert body.fire_marker == "lipid_escalate_ezetimibe_e78"
-    assert body.base_annual_rate == 0.30
+    # Issue #2942: retired — ezetimibe is added on the measured LDL.
+    assert body.base_annual_rate == 0.0
 
 
 def test_lipid_ezetimibe_independent_of_high_intensity():
@@ -93,10 +94,11 @@ def test_lipid_ezetimibe_independent_of_high_intensity():
     assert "ldl" in ezet_deps
 
 
-def test_lipid_ezetimibe_does_not_fire_at_ldl_180():
-    """Review Focus #4 pin: LDL=180 (above > 160 high-intensity threshold
-    but below > 190 ezetimibe threshold) must NOT fire ezetimibe."""
+def test_lipid_ezetimibe_never_fires_on_the_latent_ldl():
+    """Issue #2942: the untreated LDL latent no longer adds ezetimibe,
+    however high it is."""
     load_attribute_specs.cache_clear()
     spec = load_attribute_specs()["lipid_escalate_ezetimibe_e78"].body
-    r = step([], [], np.random.default_rng(0), spec, context={"continuous": {"ldl": 180.0}})
-    assert not r.fired
+    for seed in range(20):
+        r = step([], [], np.random.default_rng(seed), spec, context={"continuous": {"ldl": 250.0}})
+        assert not r.fired

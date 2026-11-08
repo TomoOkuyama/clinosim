@@ -2,9 +2,10 @@
 
 Mirrors tests/integration/test_dm_escalation_in_cif.py. p=200 US 5y:
 - HTN adults with sustained SBP > 140 may accumulate Hydrochlorothiazide;
-- dyslipidemia adults are never switched to Rosuvastatin by the longitudinal
-  history (Issue #2927: statins are stepped up on the measured LDL at the
-  follow-up visit, ``simulator/statin_monitoring.py``);
+- dyslipidemia adults are never switched to Rosuvastatin nor given Ezetimibe
+  by the longitudinal history (Issues #2927 / #2942: statins are stepped up
+  and Ezetimibe added on the measured LDL at the follow-up visit,
+  ``simulator/statin_monitoring.py``);
 - non-HTN non-lipid adults never pick up any of the three escalation
   drugs (clinical_scope gate holds — Review Focus #5);
 - fire_marker dedup end-to-end for all three new yamls (one fire per
@@ -51,9 +52,10 @@ def test_htn_patients_may_escalate_to_third_agent_across_5y() -> None:
 
 
 @pytest.mark.integration
-def test_lipid_patients_are_not_switched_to_high_intensity_on_the_latent_ldl() -> None:
-    """Issue #2927: the untreated LDL latent no longer switches anyone to
-    Rosuvastatin; the step-up follows the measured LDL at the visit."""
+def test_lipid_patients_are_not_escalated_on_the_latent_ldl() -> None:
+    """Issues #2927 / #2942: the untreated LDL latent no longer switches
+    anyone to Rosuvastatin nor adds Ezetimibe; both follow the measured LDL
+    at the visit."""
     registry = generate_population(size=200, country="US", rng=np.random.default_rng(42), base_year=2024)
     for year in (2025, 2026, 2027, 2028):
         advance_population(registry, year=year, locale="US")
@@ -62,8 +64,9 @@ def test_lipid_patients_are_not_switched_to_high_intensity_on_the_latent_ldl() -
         if person.age < 18 or not any(c.startswith("E78") for c in person.chronic_conditions):
             continue
         lipid_adults += 1
-        fired = [s for s in person.longitudinal_history if "lipid_escalate_high_intensity_e78" in s.med_additions]
-        assert not fired, f"{person.person_id} switched to Rosuvastatin by the longitudinal history"
+        for marker in ("lipid_escalate_high_intensity_e78", "lipid_escalate_ezetimibe_e78"):
+            fired = [s for s in person.longitudinal_history if marker in s.med_additions]
+            assert not fired, f"{person.person_id} fired {marker} in the longitudinal history"
     assert lipid_adults > 0, "sample has no dyslipidemia adults — bump size or seed"
 
 

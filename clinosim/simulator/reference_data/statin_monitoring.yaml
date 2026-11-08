@@ -30,11 +30,14 @@
 #     high-intensity statin ("Severe hypercholesterolemia"). Statin intensity
 #     (ACC/AHA Table 3): atorvastatin 10-20 mg and rosuvastatin 5-10 mg are
 #     moderate, atorvastatin 40-80 mg and rosuvastatin 20-40 mg high.
-#   JP (JAS 2022 動脈硬化性疾患予防ガイドライン, target-based): LDL target
-#     < 100 mg/dL after coronary heart disease (secondary prevention), < 120
-#     mg/dL in high-risk primary prevention (diabetes, CKD, PAD, non-
-#     cardioembolic stroke) — the target the outpatient note states
-#     (document/reference_data/chronic_control_targets.yaml). Ladder within
+#   JP (JAS 2022 動脈硬化性疾患予防ガイドライン, target-based, Issue #2942
+#     risk tiers): LDL target < 100 mg/dL in secondary prevention (coronary
+#     heart disease, prior ischaemic stroke), < 120 mg/dL in high-risk primary
+#     prevention (the guideline's high-risk conditions: diabetes, CKD,
+#     peripheral arterial disease), < 140 mg/dL otherwise (moderate risk). The
+#     low-risk tier (< 160 mg/dL) needs the Suita score / absolute-risk
+#     chart, which the run does not compute, so it is not modelled: every
+#     other patient is treated as moderate risk. Ladder within
 #     the Japanese package-insert usual maximum (atorvastatin 20 mg/day,
 #     rosuvastatin 10 mg/day; higher doses only for familial
 #     hypercholesterolaemia).
@@ -43,15 +46,48 @@
 # applied. The LDL the panels report falls with the statin's intensity
 # (modules/physiology/reference_data/statin_ldl_response.yaml, Issue #2917).
 #
+# `tier` (JP only): the JAS 2022 risk tier a rule's LDL is the target of. The
+# outpatient note states the patient's target from the step-up rule that
+# applies to them (`ldl_target`), with the tier, so the note and the
+# titration read one threshold (Issue #2942). US rules have no tier: the
+# 2018 ACC/AHA guideline sets statin intensity and add-on thresholds, not an
+# LDL target, so the US note states none.
+#
 # `steps`: drug_id -> {current dose mg: next dose mg}. A drug or dose not
 # listed is not titrated (e.g. JP rosuvastatin 20 mg, already above the usual
 # maximum, or a statin at the top of its ladder).
+#
+# Non-statin add-on (Issue #2942): at a monitoring visit where the statin is
+# not stepped up, a patient on maximal statin therapy whose last panel (taken
+# on that statin) has an LDL at or above the add-on threshold starts
+# `add_on` (ezetimibe 10 mg daily, dose and route from chronic_medications.yaml
+# E78) unless they already take it or a recorded allergy rules it out. The
+# panel is then rechecked `recheck_min_days_after_change` days or more later.
+# The threshold is the first `add_on_ldl` rule whose value set the patient is
+# in, else the rule without a value set. `maximal_statin_mg`: drug_id -> the
+# lowest daily dose (mg) that counts as maximal statin therapy; a statin not
+# listed never qualifies.
+#   US (2018 ACC/AHA, Grundy et al., Circulation 2019;139:e1082): clinical
+#     ASCVD on maximally tolerated statin with LDL >= 70 mg/dL -> adding
+#     ezetimibe is reasonable (Class 2a, "Secondary ASCVD prevention");
+#     severe primary hypercholesterolaemia on maximally tolerated statin with
+#     LDL >= 100 mg/dL -> ezetimibe is reasonable (Class 2a, "Severe
+#     hypercholesterolemia"). Maximal = high intensity (Table 3: atorvastatin
+#     >= 40 mg, rosuvastatin >= 20 mg). A high-intensity statin lowers LDL by
+#     >= 50 %, so an on-treatment LDL >= 100 means an untreated LDL around 200
+#     or more, i.e. the severe range; the untreated value itself is not known.
+#   JP (JAS 2022 動脈硬化性疾患予防ガイドライン): when the LDL target is not
+#     reached on the maximum tolerated statin dose, add ezetimibe. The targets
+#     are the step-up thresholds above (100 secondary prevention, 120 high-
+#     risk primary prevention, 140 otherwise); maximal = the top of the JP ladder, the
+#     package-insert usual maximum (atorvastatin 20 mg, rosuvastatin 10 mg).
 metadata:
   kind: reference
   name: statin_monitoring
   source: clinosim
 
 lipid_panel: [TC, LDL, HDL, TG]
+add_on: ezetimibe
 recheck_min_days_after_change: 28
 maintenance_min_days: 150
 
@@ -63,10 +99,20 @@ countries:
     steps:
       atorvastatin: {10: 40, 20: 40, 40: 80}
       rosuvastatin: {5: 20, 10: 20, 20: 40}
+    add_on_ldl:
+      - {value_set: clinical_ascvd, ldl_mg_dl: 70}
+      - {ldl_mg_dl: 100}
+    maximal_statin_mg: {atorvastatin: 40, rosuvastatin: 20}
   JP:
-    step_up_ldl:
-      - {value_set: coronary_heart_disease, ldl_mg_dl: 100}
-      - {ldl_mg_dl: 120}
+    step_up_ldl: &jp_ldl_targets
+      - {value_set: coronary_heart_disease, ldl_mg_dl: 100, tier: secondary_prevention}
+      - {value_set: prior_ischemic_stroke, ldl_mg_dl: 100, tier: secondary_prevention}
+      - {value_set: diabetes, ldl_mg_dl: 120, tier: high_risk_primary_prevention}
+      - {value_set: CKD, ldl_mg_dl: 120, tier: high_risk_primary_prevention}
+      - {value_set: peripheral_vascular_disease, ldl_mg_dl: 120, tier: high_risk_primary_prevention}
+      - {ldl_mg_dl: 140, tier: primary_prevention}
     steps:
       atorvastatin: {5: 10, 10: 20}
       rosuvastatin: {2.5: 5, 5: 10}
+    add_on_ldl: *jp_ldl_targets
+    maximal_statin_mg: {atorvastatin: 20, rosuvastatin: 10}
