@@ -2549,6 +2549,10 @@
 <td>データ YAML の <code>metadata</code> ヘッダ (出典・版・ライセンス)。</td>
 </tr>
 <tr>
+<td><code>clinosim/modules/document/reference_data_loaders.py</code> <code>load_document_data_yaml(filename)</code></td>
+<td><code>document/reference_data/</code> の YAML をファイル名でキャッシュ付きで読む (形を読み手が持つ登録表向け)。</td>
+</tr>
+<tr>
 <td><code>clinosim/reference_data.py</code> <code>load_reference_yaml(path)</code></td>
 <td>コピーを返すキャッシュ付き読み込み。データを組み替える呼び出し側向け。</td>
 </tr>
@@ -2559,6 +2563,10 @@
 <tr>
 <td><code>clinosim/age_bands.py</code> <code>find_age_band(keys, age)</code> / <code>lookup_age_band(table, age, default)</code></td>
 <td>年齢から年齢帯キーまたは値を引く。<code>if age &lt; 18</code> のような境界のハードコードは禁止。</td>
+</tr>
+<tr>
+<td><code>clinosim/age_bands.py</code> <code>find_age_band_or_last(keys, age)</code></td>
+<td><code>age</code> を含む年齢帯、無ければ最後の帯 (最後の帯が受け皿の表向け)。</td>
 </tr>
 <tr>
 <td><code>clinosim/codes/valuesets.py</code> <code>has_condition(person, group)</code> / <code>concept_group(name)</code> / <code>group_names()</code> / <code>patient_condition_names()</code></td>
@@ -2835,6 +2843,10 @@
 <tr>
 <td><code>clinosim/modules/output/fhir_r4/lib/dosage.py</code> <code>build_dosage_instruction</code>, <code>build_route_concept</code>, <code>canonicalize_route</code>, <code>resolve_timing_repeat</code>, <code>frequency_in_text</code>, <code>is_rate_unit</code>, <code>augment_iv_dosage_with_rate</code>, <code>map_mar_status</code></td>
 <td>用法・経路・タイミング・投与ステータス。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/output/fhir_r4/lib/reference_data.py</code> <code>iter_route_values(data)</code> / <code>validate_yaml_route_value(...)</code></td>
+<td>プロトコル YAML の投与経路値をすべてたどり検証する。</td>
 </tr>
 <tr>
 <td><code>clinosim/modules/output/fhir_r4/lib/fhir_time.py</code> <code>to_fhir_datetime</code> / <code>to_fhir_instant</code> / <code>to_fhir_date</code> / <code>to_fhir_deceased_datetime</code> / <code>tz_suffix_for_country</code> / <code>derive_meta_last_updated</code></td>

@@ -2704,6 +2704,10 @@
 <td>The <code>metadata</code> header (source, version, licence) of a data YAML.</td>
 </tr>
 <tr>
+<td><code>clinosim/modules/document/reference_data_loaders.py</code> <code>load_document_data_yaml(filename)</code></td>
+<td>Cached read of a <code>document/reference_data/</code> YAML by file name (registries whose reader owns their shape).</td>
+</tr>
+<tr>
 <td><code>clinosim/reference_data.py</code> <code>load_reference_yaml(path)</code></td>
 <td>Cached reader that returns a copy, for callers that reshape the data.</td>
 </tr>
@@ -2714,6 +2718,10 @@
 <tr>
 <td><code>clinosim/age_bands.py</code> <code>find_age_band(keys, age)</code> / <code>lookup_age_band(table, age, default)</code></td>
 <td>Resolve an age to its band key or value. Hard-coded <code>if age &lt; 18</code> cut-offs are forbidden.</td>
+</tr>
+<tr>
+<td><code>clinosim/age_bands.py</code> <code>find_age_band_or_last(keys, age)</code></td>
+<td>The band covering <code>age</code>, else the last band (tables whose last band is the catch-all).</td>
 </tr>
 <tr>
 <td><code>clinosim/codes/valuesets.py</code> <code>has_condition(person, group)</code> / <code>concept_group(name)</code> / <code>group_names()</code> / <code>patient_condition_names()</code></td>
@@ -2990,6 +2998,10 @@
 <tr>
 <td><code>clinosim/modules/output/fhir_r4/lib/dosage.py</code> <code>build_dosage_instruction</code>, <code>build_route_concept</code>, <code>canonicalize_route</code>, <code>resolve_timing_repeat</code>, <code>frequency_in_text</code>, <code>is_rate_unit</code>, <code>augment_iv_dosage_with_rate</code>, <code>map_mar_status</code></td>
 <td>Dosage, route, timing and administration status.</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/output/fhir_r4/lib/reference_data.py</code> <code>iter_route_values(data)</code> / <code>validate_yaml_route_value(...)</code></td>
+<td>Walk and validate every route value of a protocol YAML.</td>
 </tr>
 <tr>
 <td><code>clinosim/modules/output/fhir_r4/lib/fhir_time.py</code> <code>to_fhir_datetime</code> / <code>to_fhir_instant</code> / <code>to_fhir_date</code> / <code>to_fhir_deceased_datetime</code> / <code>tz_suffix_for_country</code> / <code>derive_meta_last_updated</code></td>
