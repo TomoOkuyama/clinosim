@@ -39,6 +39,20 @@ from clinosim.modules.newborn.engine import (
 logger = logging.getLogger(__name__)
 
 
+def _set_giving_nurse(mars: list[Any], record: Any, roster: Any) -> None:
+    """Name the giving nurse on each birth-admission dose: a nurse of the
+    birth encounter's ward, picked stably by the order (no RNG), as for every
+    order placed outside the daily loop (medication-lifecycle spec; Issue #2824)."""
+    from clinosim.modules.order.placed_order_mar import stable_nurse
+
+    encounters = _get(record, "encounters", []) or []
+    enc = encounters[0] if encounters else None
+    ward = str(_get(enc, "ward_id", "") or "") if enc is not None else ""
+    department = str(_get(enc, "department_id", "") or "") if enc is not None else ""
+    for m in mars:
+        m.administered_by = stable_nurse(roster, str(m.order_id), ward=ward, department=department)
+
+
 def enrich_newborn(ctx: Any) -> None:
     """POST_ENCOUNTER entrypoint. Iterates `ctx.records`, no-ops on
     non-newborn records, and appends the newborn workup listed in the
@@ -65,6 +79,7 @@ def enrich_newborn(ctx: Any) -> None:
         except Exception:  # pragma: no cover — defensive
             logger.exception("newborn enricher failed on record; continuing")
             continue
+        _set_giving_nurse([*new_mars, *new_oph], record, _get(ctx, "roster", None))
         # Issue #1736 — once-per-newborn dedup for the hearing (SNOMED
         # 413083006) + metabolic (SNOMED 428447008) screens. A mother
         # with ≥ 2 deliveries produces two newborn-side CIF records that
