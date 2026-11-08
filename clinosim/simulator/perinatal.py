@@ -297,7 +297,7 @@ def _sample_newborn_given_name(baby_id: str, sex: str, country: str) -> str:
     return str(picked.get("kanji") or picked.get("name") or "")
 
 
-def _newborn_contact_from_mother(mother: PatientProfile):
+def _newborn_contact_from_mother(mother: PatientProfile, country: str = "US"):
     """Build a newborn `ContactInfo` seeded with the mother as the
     emergency contact (#1246). Direct telecom for the baby stays empty
     (a newborn cannot answer a phone); the mother's channels populate
@@ -309,10 +309,11 @@ def _newborn_contact_from_mother(mother: PatientProfile):
     m_contact = getattr(mother, "contact", None) or ContactInfo()
     m_name = getattr(mother, "name", None)
     if m_name is not None:
-        _display_parts = [str(getattr(m_name, "family_name", "") or "")]
+        _family = str(getattr(m_name, "family_name", "") or "")
         _given = str(getattr(m_name, "given_name", "") or "")
-        if _given:
-            _display_parts.append(_given)
+        # JP writes family name first; the US writes the given name first
+        # (Issue #2880 — the US contact read "Hsu Karen").
+        _display_parts = [_family, _given] if is_jp(country) else [_given, _family]
         mother_name_text = " ".join(part for part in _display_parts if part)
     else:
         mother_name_text = ""
@@ -453,7 +454,7 @@ def _build_newborn_patient(
         #   * `emergency_contact_*` — mother's name + preferred phone,
         #     relationship = "MTH" (the delivery path is mother-only;
         #     father / other guardian is a follow-up scope).
-        contact=_newborn_contact_from_mother(mother),
+        contact=_newborn_contact_from_mother(mother, country),
         preferred_language=mother.preferred_language,
         # Issue #1751: forward mother's race + ethnicity to the newborn
         # PatientProfile so the delivery-day Patient resource emits with

@@ -63,6 +63,12 @@ class PersonRecord:
     address_line: str = ""
     phone_home: str = ""
     phone_mobile: str = ""
+    # Guardian of a child born in the simulation (the mother), kept on the
+    # long-lived record so every later activation of the child carries the
+    # same emergency contact (Issue #2880).
+    guardian_contact_name: str = ""
+    guardian_contact_phone: str = ""
+    guardian_contact_relationship: str = ""
     chronic_conditions: list[str] = field(default_factory=list)
     # Issue #2867: when each chronic code is first on the problem list.
     # ``chronic_tracked_from`` is the first simulated year the yearly aging
