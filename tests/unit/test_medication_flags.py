@@ -37,42 +37,42 @@ class _StubOrder:
 @pytest.mark.unit
 def test_chronic_warfarin_en_detected():
     p = _StubPatient(current_medications=_hm("Warfarin 3mg"))
-    assert medication_flags_from_context(p) == {"on_warfarin": True}
+    assert medication_flags_from_context(p)["on_warfarin"] is True
 
 
 @pytest.mark.unit
 def test_chronic_warfarin_jp_detected():
     p = _StubPatient(current_medications=_hm("ワルファリン3mg"))
-    assert medication_flags_from_context(p) == {"on_warfarin": True}
+    assert medication_flags_from_context(p)["on_warfarin"] is True
 
 
 @pytest.mark.unit
 def test_chronic_coumadin_detected_case_insensitive():
     p = _StubPatient(current_medications=_hm("COUMADIN 5mg PO daily"))
-    assert medication_flags_from_context(p) == {"on_warfarin": True}
+    assert medication_flags_from_context(p)["on_warfarin"] is True
 
 
 @pytest.mark.unit
 def test_chronic_apixaban_not_warfarin():
     p = _StubPatient(current_medications=_hm("Apixaban 5mg"))
-    assert medication_flags_from_context(p) == {"on_warfarin": False}
+    assert medication_flags_from_context(p)["on_warfarin"] is False
 
 
 @pytest.mark.unit
 def test_chronic_rivaroxaban_not_warfarin():
     p = _StubPatient(current_medications=_hm("Rivaroxaban 20mg", "リバーロキサバン15mg"))
-    assert medication_flags_from_context(p) == {"on_warfarin": False}
+    assert medication_flags_from_context(p)["on_warfarin"] is False
 
 
 @pytest.mark.unit
 def test_no_meds_returns_false():
     p = _StubPatient(current_medications=[])
-    assert medication_flags_from_context(p) == {"on_warfarin": False}
+    assert medication_flags_from_context(p)["on_warfarin"] is False
 
 
 @pytest.mark.unit
 def test_none_patient_returns_false():
-    assert medication_flags_from_context(None) == {"on_warfarin": False}
+    assert medication_flags_from_context(None)["on_warfarin"] is False
 
 
 @pytest.mark.unit
@@ -82,7 +82,7 @@ def test_in_hospital_warfarin_day_2_not_yet():
     # warfarin ordered on day 0 (admission), current day = 2 → not yet therapeutic
     orders = [_StubOrder(display_name="Warfarin 3mg", ordered_datetime=datetime(2026, 6, 1, 10, 0))]
     flags = medication_flags_from_context(p, medication_orders=orders, admission_date=admission, current_day=2)
-    assert flags == {"on_warfarin": False}
+    assert flags["on_warfarin"] is False
 
 
 @pytest.mark.unit
@@ -91,7 +91,7 @@ def test_in_hospital_warfarin_day_3_active():
     admission = date(2026, 6, 1)
     orders = [_StubOrder(display_name="Warfarin 3mg", ordered_datetime=datetime(2026, 6, 1, 10, 0))]
     flags = medication_flags_from_context(p, medication_orders=orders, admission_date=admission, current_day=3)
-    assert flags == {"on_warfarin": True}
+    assert flags["on_warfarin"] is True
 
 
 @pytest.mark.unit
@@ -100,7 +100,7 @@ def test_in_hospital_apixaban_never_triggers():
     admission = date(2026, 6, 1)
     orders = [_StubOrder(display_name="Apixaban 5mg", ordered_datetime=datetime(2026, 6, 1, 10, 0))]
     flags = medication_flags_from_context(p, medication_orders=orders, admission_date=admission, current_day=7)
-    assert flags == {"on_warfarin": False}
+    assert flags["on_warfarin"] is False
 
 
 @pytest.mark.unit
@@ -110,7 +110,7 @@ def test_in_hospital_warfarin_ordered_day_5_current_day_6_not_yet():
     admission = date(2026, 6, 1)
     orders = [_StubOrder(display_name="Warfarin 3mg", ordered_datetime=datetime(2026, 6, 6, 10, 0))]
     flags = medication_flags_from_context(p, medication_orders=orders, admission_date=admission, current_day=6)
-    assert flags == {"on_warfarin": False}
+    assert flags["on_warfarin"] is False
 
 
 @pytest.mark.unit
@@ -119,4 +119,4 @@ def test_chronic_overrides_in_hospital_gate():
     p = _StubPatient(current_medications=_hm("Warfarin 3mg"))
     admission = date(2026, 6, 1)
     flags = medication_flags_from_context(p, medication_orders=[], admission_date=admission, current_day=1)
-    assert flags == {"on_warfarin": True}
+    assert flags["on_warfarin"] is True

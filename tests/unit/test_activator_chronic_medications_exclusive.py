@@ -189,7 +189,7 @@ def test_on_warfarin_detection_fires_for_chronic_warfarin_patient():
     class _P:
         current_medications = [HomeMedication(drug_name="Warfarin 3mg")]
 
-    assert medication_flags_from_context(_P()) == {"on_warfarin": True}
+    assert medication_flags_from_context(_P())["on_warfarin"] is True
 
 
 def test_on_warfarin_detection_fires_for_chronic_warfarin_jp():
@@ -199,4 +199,4 @@ def test_on_warfarin_detection_fires_for_chronic_warfarin_jp():
     class _P:
         current_medications = [HomeMedication(drug_name="ワルファリン3mg")]
 
-    assert medication_flags_from_context(_P()) == {"on_warfarin": True}
+    assert medication_flags_from_context(_P())["on_warfarin"] is True

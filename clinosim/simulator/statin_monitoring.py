@@ -15,9 +15,9 @@ The state lives on the person's ``OutpatientVisitLedger`` (shared by the
 per-year profiles), and ``restore_titrated_statin`` carries a titrated dose
 into the next year's profile. Draws no randomness.
 
-Scope: the lipid true values (``physiology._add_lipid_labs``) do not depend on
-statin therapy, so a titration does not lower the LDL that later panels
-report.
+The LDL a panel reports falls with the intensity of the statin taken
+(``physiology/statin_response.py``, Issue #2917), so a titration lowers the
+LDL of the later panels.
 """
 
 from __future__ import annotations

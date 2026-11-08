@@ -1,0 +1,49 @@
+# LDL lowering by statin intensity (Issue #2917).
+#
+# Read by modules/physiology/statin_response.py. A patient taking a statin
+# has their LDL (and total cholesterol, by the same mg/dL) lowered from the
+# untreated value the physiology derives (`_add_lipid_labs`) by a fraction
+# that depends on the intensity of the statin and dose they take.
+#
+# Intensity (2018 ACC/AHA cholesterol guideline, Grundy et al., Circulation
+# 2019;139:e1082, Table 3 "High-, Moderate-, and Low-Intensity Statin
+# Therapy"):
+#   high      atorvastatin 40-80 mg, rosuvastatin 20-40 mg       LDL -50 % or more
+#   moderate  atorvastatin 10-20 mg, rosuvastatin 5-10 mg,
+#             simvastatin 20-40 mg                              LDL -30 to -49 %
+#   low       simvastatin 10 mg                                  LDL below -30 %
+# `intensity` lists, per catalog statin, the lowest daily dose (mg) of each
+# intensity; a dose below the lowest listed one is low intensity (e.g. the
+# Japanese starting doses atorvastatin 5 mg and rosuvastatin 2.5 mg, below
+# the Table 3 ranges). The same table applies in both countries: no
+# Japan-specific response is set, a dose is taken to lower LDL by the same
+# fraction in Japanese patients.
+#
+# `ldl_reduction`: the fraction of the untreated LDL removed at each
+# intensity, [low, high]. Each patient takes one deterministic position in
+# the ranges (a SHA-256 quantile of the patient id, so it draws no
+# randomness): a good responder stays a good responder after a titration.
+# The high-intensity range is closed at 60 % (the mean response of
+# atorvastatin 80 mg / rosuvastatin 40 mg is about 50-55 %, STELLAR, Jones
+# et al., Am J Cardiol 2003;92:152).
+#
+# `default_intensity`: a statin whose dose cannot be read.
+#
+# The effect applies in full from the day the statin is taken; the lipid
+# panels after a change are drawn 4 weeks or more later
+# (simulator/reference_data/statin_monitoring.yaml), when the LDL response is
+# complete.
+metadata:
+  kind: reference
+  name: statin_ldl_response
+  source: clinosim
+
+intensity:
+  atorvastatin: {moderate: 10, high: 40}
+  rosuvastatin: {moderate: 5, high: 20}
+  simvastatin: {moderate: 20}
+default_intensity: moderate
+ldl_reduction:
+  low: [0.20, 0.29]
+  moderate: [0.30, 0.49]
+  high: [0.50, 0.60]
