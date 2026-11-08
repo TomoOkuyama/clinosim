@@ -2454,6 +2454,11 @@
 <td><code>observation/engine.py</code>(<code>medications_in_effect</code>, <code>therapeutic_range</code>)、<code>physiology/engine.py::medication_flags_from_context</code></td>
 <td><code>tests/unit/test_warfarin_status_2293.py</code></td>
 </tr>
+<tr>
+<td>急性冠症候群でない患者のトロポニン I は、健常成人では正常に留まる(加齢による予備能低下だけでは上昇しない)。慢性的な上昇は心不全・CKD ステージ 4-5・超高齢から生じ、MI レベルの値は ACS フラグのときだけになる。</td>
+<td><code>physiology/engine.py::_add_cardiac_labs</code>、<code>physiology/_lab_derivation_thresholds.py</code>(<code>TROPONIN_*</code>)</td>
+<td><code>tests/unit/test_troponin_chronic_calibration_2903.py</code>、<code>tests/unit/test_blood_markers.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="3-同一性とパネル">3. 同一性とパネル<a class="headerlink" href="#3-同一性とパネル" title="Permanent link">&para;</a></h2>

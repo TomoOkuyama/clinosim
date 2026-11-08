@@ -2454,6 +2454,11 @@
 <td><code>observation/engine.py</code> (<code>medications_in_effect</code>, <code>therapeutic_range</code>), <code>physiology/engine.py::medication_flags_from_context</code></td>
 <td><code>tests/unit/test_warfarin_status_2293.py</code></td>
 </tr>
+<tr>
+<td>Troponin I without an acute coronary syndrome stays normal for a healthy adult (the age-reduced reserve alone does not lift it); chronic elevation comes from heart failure, CKD stage 4-5 and very old age, and only the ACS flag gives MI-level values.</td>
+<td><code>physiology/engine.py::_add_cardiac_labs</code>, <code>physiology/_lab_derivation_thresholds.py</code> (<code>TROPONIN_*</code>)</td>
+<td><code>tests/unit/test_troponin_chronic_calibration_2903.py</code>, <code>tests/unit/test_blood_markers.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="3-identity-and-panels">3. Identity and panels<a class="headerlink" href="#3-identity-and-panels" title="Permanent link">&para;</a></h2>
