@@ -81,13 +81,19 @@ report output is the timestamp itself.
 
 - `clinosim.audit.types.Cohort` — reused as the NDJSON cohort reader
   (both packages share the same lazy-reader implementation).
-- `clinosim.codes` (`get_system_uri`) and
-  `clinosim.modules.output.fhir_r4.labs.coding_package` (JP-CLINS
+- `clinosim.codes` (`get_system_uri`, plus `drugs.resolve_drug` and
+  `ucum.ucum_code`) in the `clinical`, `locale` and
+  `us_core_compliance` axes.
+- `clinosim.modules.output.fhir_r4.labs.coding_package` (JP-CLINS
   system URIs / package loader) in the `locale` and
   `jp_clins_lab_compliance` axes.
-- `pyyaml` (`clinical` axis reference data).
+- `clinosim.locale.loader` (code mappings, chronic-condition age
+  limits), `clinosim.modules.observation.engine` (`LAB_UNITS`,
+  `PHYSIOLOGIC_LIMITS`) and `clinosim.reference_data`
+  (`load_reference_yaml`, for `reference_data/*.yaml`) in the
+  `clinical` axis.
 - Standard library otherwise (`json`, `pathlib`, `datetime`, `enum`,
-  `dataclasses`, `shutil`).
+  `dataclasses`, `shutil`, `argparse`).
 
 ## Constants and configuration
 
@@ -136,6 +142,9 @@ clinosim/eval/
                                   (checks only for country=JP)
     us_core_compliance.py         US Core narrow must-support gate
                                   (checks only for country=US)
+  reference_data/                 `clinical` axis reference YAMLs
+    lab-plausibility-bounds.yaml  per-LOINC unit plausibility bounds
+    condition-lab-pairings.yaml   condition × expected-lab pairings
 ```
 
 ## Testing
@@ -144,7 +153,7 @@ clinosim/eval/
 pytest tests/unit -k eval -q
 ```
 
-Eight test files reference `clinosim.eval`, covering axis scoring,
+Test files referencing `clinosim.eval` cover axis scoring,
 Synthea adapter round-trips, and CLI dispatch.
 
 ## Ownership

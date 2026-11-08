@@ -56,6 +56,9 @@ from the cohort producer (`clinosim.simulator`, AD-16).
 ## Dependencies
 
 - `numpy` — vectorised AUROC.
+- `clinosim.modules.disease.protocol` (`load_disease_protocol`) in
+  `harness.py` and `clinosim.modules.observation.engine`
+  (`canonical_lab_name`) in `aki.py`.
 - Standard library `pathlib`, `dataclasses`, `argparse`, `typing`.
 - **No external ML dependencies.** scikit-learn is intentionally not
   imported.
@@ -100,7 +103,7 @@ clinosim/benchmarks/
 pytest tests/unit -k benchmarks -q
 ```
 
-One test file references `clinosim.benchmarks`. Coverage is
+Few test files reference `clinosim.benchmarks`; coverage is
 deliberately light because the baselines are stable numerical
 identities; the meaningful test is that they run to completion on any
 generated cohort and produce the same AUROC given the same seed. When

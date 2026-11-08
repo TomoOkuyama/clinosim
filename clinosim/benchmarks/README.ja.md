@@ -54,6 +54,9 @@ AD-16) から継承します。
 ## 依存
 
 - `numpy` — ベクトル化 AUROC 用。
+- `harness.py` で `clinosim.modules.disease.protocol`
+  (`load_disease_protocol`)、`aki.py` で
+  `clinosim.modules.observation.engine` (`canonical_lab_name`)。
 - 標準ライブラリ `pathlib` / `dataclasses` / `argparse` / `typing`。
 - **外部 ML 依存なし。** scikit-learn は意図的に import しません。
 
@@ -96,7 +99,7 @@ clinosim/benchmarks/
 pytest tests/unit -k benchmarks -q
 ```
 
-`clinosim.benchmarks` を参照するテストファイルは 1。ベースラインは
+`clinosim.benchmarks` を参照するテストファイルは少数。ベースラインは
 安定した数値恒等式なので、テストは意図的に薄めです。意味ある検証は
 「任意の生成コホートで完走し、同一 seed で同一 AUROC を返す」こと。
 新規ベンチマークタスク追加時は、自身の label extractor + baseline

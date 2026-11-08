@@ -77,13 +77,17 @@ CLI は exit 1 (既定は exit 0)。
 
 - `clinosim.audit.types.Cohort` — NDJSON コホートリーダーを再利用
   (両パッケージが同じ lazy-reader 実装を共有)。
-- `locale` / `jp_clins_lab_compliance` 軸で `clinosim.codes`
-  (`get_system_uri`) と
+- `clinical` / `locale` / `us_core_compliance` 軸で `clinosim.codes`
+  (`get_system_uri`、および `drugs.resolve_drug` / `ucum.ucum_code`)。
+- `locale` / `jp_clins_lab_compliance` 軸で
   `clinosim.modules.output.fhir_r4.labs.coding_package` (JP-CLINS
   system URI / パッケージローダー)。
-- `pyyaml` (`clinical` 軸の参照データ)。
+- `clinical` 軸で `clinosim.locale.loader` (コードマッピング、慢性疾患
+  の年齢下限)、`clinosim.modules.observation.engine` (`LAB_UNITS` /
+  `PHYSIOLOGIC_LIMITS`)、`clinosim.reference_data`
+  (`load_reference_yaml`、`reference_data/*.yaml` 読み込み用)。
 - それ以外は標準ライブラリ (`json` / `pathlib` / `datetime` /
-  `enum` / `dataclasses` / `shutil`)。
+  `enum` / `dataclasses` / `shutil` / `argparse`)。
 
 ## 定数と設定
 
@@ -131,6 +135,9 @@ clinosim/eval/
                                   (country=JP でのみチェック)
     us_core_compliance.py         US Core narrow must-support gate
                                   (country=US でのみチェック)
+  reference_data/                 `clinical` 軸の参照 YAML
+    lab-plausibility-bounds.yaml  LOINC 別・単位別の妥当範囲
+    condition-lab-pairings.yaml   疾患 × 期待検査のペアリング
 ```
 
 ## テスト
@@ -139,7 +146,7 @@ clinosim/eval/
 pytest tests/unit -k eval -q
 ```
 
-`clinosim.eval` を参照するテストファイルは 8。軸スコアリング、
+`clinosim.eval` を参照するテストファイルが軸スコアリング、
 Synthea アダプタラウンドトリップ、CLI dispatch を網羅。
 
 ## オーナー

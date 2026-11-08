@@ -41,6 +41,13 @@ need the concept (e.g. US LTC levels, US-specific microbiology
 code system), add the US file explicitly rather than
 copy-pasting the JP structure.
 
+In the other direction, two files exist here with no JP sibling:
+
+| US file | Reason the JP sibling is absent |
+|---|---|
+| `code_mapping_drug.yaml` | JP drug codes are not a locale mapping: they are the YJ products of the drug-identity catalog `clinosim/codes/data/drugs.yaml`, picked by route through `clinosim.codes.drugs.jp_drug_code` (Issue #2347). `load_code_mapping("drug", "US")` unions this file with the catalog. |
+| `ckd_under60_prevalence.yaml` | US CKD (N18) prevalence bands below age 60 (USRDS / NHANES), read by `load_ckd_under60_prevalence` for the RNG-neutral under-60 CKD assignment in `clinosim/modules/population/`. The loader returns an empty band list for a country without the file, so the JP cohort gets no under-60 CKD top-up. |
+
 ## Adding a new file
 
 Files are not auto-discovered: a new `*.yaml` here is only
