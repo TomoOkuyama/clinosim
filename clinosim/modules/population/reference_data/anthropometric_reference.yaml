@@ -18,9 +18,9 @@
 # - **Pediatric (age < 18)** — adult BMI distributions are not
 #   appropriate for children; a per-age-per-sex p50 growth chart is used
 #   to derive height, then weight = BMI(age) × (height / 100)^2. The
-#   tables below carry median (p50) values only — synthetic patients
-#   land on the population median with a small per-encounter noise
-#   applied. Sources:
+#   tables below carry median (p50) values; the FHIR emit places each
+#   child at a stable percentile around them (``pediatric_growth_variation``)
+#   with a small per-encounter noise. Sources:
 #     - WHO Child Growth Standards (< 5 y): median height/weight/head-
 #       circumference by month-of-age × sex. clinosim buckets by whole
 #       year for compactness (mid-year median).
@@ -51,6 +51,9 @@ metadata:
     - "CDC Growth Charts (2-20 y, US, 2000): https://www.cdc.gov/growthcharts/cdc_charts.htm"
     - "MHLW 乳幼児身体発育調査 2010 (JP < 6 y): https://www.mhlw.go.jp/toukei/list/73-22.html"
     - "文部科学省 学校保健統計調査 令和4年度 (JP 6-17 y): https://www.mext.go.jp/b_menu/toukei/chousa05/hoken/"
+    - "WHO Child Growth Standards LMS tables (length/height, weight, head circumference for age; S ≈ CV): https://www.who.int/tools/child-growth-standards/standards"
+    - "CDC 2000 growth charts LMS data files (statage, wtage): https://www.cdc.gov/growthcharts/percentile_data_files.htm"
+    - "de Onis M et al. Measurement and standardization protocols for anthropometry used in the construction of a new international growth reference. Food Nutr Bull 2004;25(1 Suppl):S27-36"
 
 # Physiological clamps applied to every emitted value (defence against
 # outlier profiles / floating-point noise). Values outside these bounds
@@ -75,8 +78,42 @@ clamps:
 # range. Standard deviations chosen to reflect real EHR flowsheet noise
 # without crossing clinical grade boundaries.
 per_encounter_noise:
-  weight_kg_sd: 0.6           # ± ~1.2 kg 95% interval — day-to-day fluid shift
+  weight_kg_sd: 0.6           # adults: ± ~1.2 kg 95% interval — day-to-day fluid shift
   head_circumference_cm_sd: 0.1  # measurement-technique noise only
+  # Children (Issue #2876): weight noise is relative (a 0.6 kg SD is 15 %
+  # of a 4 kg infant). The WHO MGRS protocol weighs to 0.1 kg (de Onis et
+  # al., Food Nutr Bull 2004;25(1 Suppl):S27-36); ~1 % covers the scale
+  # plus clothing and feeding state. Height carries no per-visit noise: the
+  # child's length follows the smooth reference curve, so it never
+  # decreases between visits (a decrease is a charting red flag, not a
+  # growth signal).
+  pediatric_weight_cv: 0.01
+  pediatric_height_cm_sd: 0.0
+
+# Per-child spread around the medians (Issue #2876). Each child draws one
+# stable z-score per measure (RNG-neutral, keyed by patient id) and keeps
+# it at every age: value = median(age) × (1 + cv × z). The cv values are
+# the LMS "S" parameters (≈ coefficient of variation) of the reference
+# charts, rounded:
+#   - length/height-for-age S: WHO 0-5 y 0.030-0.042 (birth 0.038, 12 mo
+#     0.031, 60 mo 0.042); CDC 2000 stature-for-age 2-20 y 0.035-0.050.
+#   - weight-for-age S: WHO 0-5 y 0.11-0.15 (birth 0.146, 12 mo 0.109,
+#     60 mo 0.123); CDC 2000 weight-for-age 2-20 y 0.12-0.20 (skewed —
+#     the symmetric 0.12 here under-states the heavy tail).
+#   - head-circumference-for-age S: WHO 0-5 y 0.027-0.037.
+#   - JP: MHLW 乳幼児身体発育調査 2010 and 学校保健統計調査 report SDs of
+#     the same relative size (height ~4 %, weight ~11-15 %).
+# Height, weight and head circumference of one child are correlated
+# (a large child is large on every measure): each measure's z mixes a
+# shared size z with weight ``shared_size_correlation`` and its own
+# independent z. ``z_limit`` truncates the draw at the p0.6 / p99.4 lines
+# so the tails stay inside the clinically plausible range.
+pediatric_growth_variation:
+  height_cv: 0.04
+  weight_cv: 0.12
+  head_circumference_cv: 0.033
+  shared_size_correlation: 0.7
+  z_limit: 2.5
 
 # Pediatric growth-chart medians (p50) by age (whole years) and sex.
 # Height in cm, weight in kg, head_circumference_cm optional (present
@@ -95,8 +132,13 @@ per_encounter_noise:
 # 調査 2010 medians are within ±0.5 cm / ±0.3 kg of WHO through the first
 # year; a single unified table serves both locales.
 #
-# Callers (:func:`_pediatric_medians`) resolve the row by month-of-age
-# rounded down to the nearest table key (0 → 0, 4-5 → 3, 6-8 → 6, …).
+# Age anchoring of the growth curve (Issue #2876): the FHIR emit
+# interpolates linearly by exact age in months between the points of one
+# curve per country and sex — the infant rows below at their month key,
+# then the yearly ``pediatric_growth`` rows for ages >= 2 at the middle of
+# that year (row ``y`` at ``(y + 0.5) × 12`` months). Yearly rows 0 and 1
+# are superseded by the monthly infant rows. Beyond the last point the
+# curve is flat.
 pediatric_growth_infant:
   male:
     0:  {height: 50.0, weight: 3.3, head_circumference: 34.5}
