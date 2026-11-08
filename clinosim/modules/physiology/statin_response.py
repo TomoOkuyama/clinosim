@@ -1,16 +1,18 @@
-"""LDL lowering by statin intensity (Issue #2917).
+"""LDL lowering by statin intensity and by non-statin add-ons (Issues #2917, #2947).
 
 The statin a patient takes, at its dose, has an intensity (2018 ACC/AHA
 cholesterol guideline, Table 3), and the intensity lowers the untreated LDL by
-a fraction within the guideline's range; where in the range a patient falls is
-a deterministic per-patient quantile, so it draws no randomness. Data:
-``reference_data/statin_ldl_response.yaml``.
+a fraction within the guideline's range. A non-statin LDL-lowering drug
+(ezetimibe) removes a further fraction of what the statin leaves, from its own
+range with or without a statin (Issue #2947). Where in each range a patient
+falls is one deterministic per-patient quantile, so it draws no randomness.
+Data: ``reference_data/statin_ldl_response.yaml``.
 
-``statin_ldl_reduction`` is read through
+``ldl_reduction`` (statins and add-ons together) is read through
 ``engine.medication_flags_from_context`` and applied by ``statin_treated_ldl``
 in ``engine.lipid_panel``, the lipid panel of both the encounter labs and the
 health checkup (``engine.patient_lipid_panel``, Issues #2928, #2941), so one
-statin model sets both the encounter and the checkup LDL.
+lipid-lowering model sets both the encounter and the checkup LDL.
 """
 
 from __future__ import annotations
@@ -23,7 +25,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from clinosim import determinism
-from clinosim.codes.drugs import drug_classes, drug_ref, find_drug
+from clinosim.codes.drugs import all_drug_ids, drug_classes, drug_ref, find_drug
 from clinosim.datafiles import load_data_yaml
 
 _YAML = Path(__file__).resolve().parent / "reference_data" / "statin_ldl_response.yaml"
@@ -54,12 +56,29 @@ class _Bands(BaseModel):
         return self
 
 
+def _fraction_range(name: str, value: tuple[float, float]) -> None:
+    lo, hi = value
+    if not 0.0 <= lo <= hi < 1.0:
+        raise ValueError(f"{name} must be an ordered range in [0, 1)")
+
+
+class _AddOn(BaseModel):
+    """LDL fraction a non-statin drug class removes, alone and on top of a
+    statin (applied to the LDL the statin leaves)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    monotherapy: tuple[float, float]
+    with_statin: tuple[float, float]
+
+
 class StatinLdlResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     intensity: dict[str, _Bands] = Field(min_length=1)
     default_intensity: Intensity
     ldl_reduction: dict[Intensity, tuple[float, float]]
+    add_on: dict[str, _AddOn] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def _check(self) -> StatinLdlResponse:
@@ -74,6 +93,12 @@ class StatinLdlResponse(BaseModel):
             if not 0.0 <= lo <= hi < 1.0 or lo < previous_high:
                 raise ValueError(f"ldl_reduction[{level}] must be an ordered range in [0, 1) above the lower intensity")
             previous_high = hi
+        catalog_classes = {cls for drug_id in all_drug_ids() for cls in drug_classes(drug_id)}
+        for drug_class, add_on in self.add_on.items():
+            if drug_class == _STATIN_CLASS or drug_class not in catalog_classes:
+                raise ValueError(f"add_on: {drug_class!r} is not a catalog non-statin drug class")
+            _fraction_range(f"add_on[{drug_class}].monotherapy", add_on.monotherapy)
+            _fraction_range(f"add_on[{drug_class}].with_statin", add_on.with_statin)
         return self
 
 
@@ -115,6 +140,12 @@ def statin_intensity(med: Any) -> Intensity | None:
     return "low"
 
 
+def _response_quantile(patient_id: str) -> float:
+    """The patient's one position in every LDL-lowering range (a good statin
+    responder is a good responder to an add-on too)."""
+    return determinism.sha_quantile(f"statin-ldl-response|{patient_id}")
+
+
 def statin_ldl_reduction(patient_id: str, medications: list[Any]) -> float:
     """Fraction of the untreated LDL removed by the most intense statin in
     ``medications`` (0.0 without a statin). The patient's position in the
@@ -124,12 +155,32 @@ def statin_ldl_reduction(patient_id: str, medications: list[Any]) -> float:
         return 0.0
     level = max(levels, key=_ORDER.index)
     lo, hi = statin_ldl_response().ldl_reduction[level]
-    return lo + (hi - lo) * determinism.sha_quantile(f"statin-ldl-response|{patient_id}")
+    return lo + (hi - lo) * _response_quantile(patient_id)
+
+
+def ldl_reduction(patient_id: str, medications: list[Any]) -> float:
+    """Fraction of the untreated LDL removed by every LDL-lowering drug in
+    ``medications`` (Issue #2947): the statin's :func:`statin_ldl_reduction`,
+    then each ``add_on`` drug class present (ezetimibe) removing its fraction
+    of the LDL left, from its ``with_statin`` range on a statin, else its
+    ``monotherapy`` range. 0.0 without any. Same per-patient position as the
+    statin; draws no randomness."""
+    statin = statin_ldl_reduction(patient_id, medications)
+    classes = {cls for med in medications for cls in drug_classes(_drug_id(med))}
+    add_ons = [add_on for drug_class, add_on in statin_ldl_response().add_on.items() if drug_class in classes]
+    if not add_ons:
+        return statin  # the statin's own value, bit for bit
+    remaining = 1.0 - statin
+    q = _response_quantile(patient_id)
+    for add_on in add_ons:
+        lo, hi = add_on.with_statin if statin > 0.0 else add_on.monotherapy
+        remaining *= 1.0 - (lo + (hi - lo) * q)
+    return 1.0 - remaining
 
 
 def statin_treated_ldl(untreated_ldl: float, reduction: float) -> float:
-    """The LDL (mg/dL) after a statin removes ``reduction`` (from
-    :func:`statin_ldl_reduction`) of ``untreated_ldl``; unchanged at 0.0."""
+    """The LDL (mg/dL) after the lipid-lowering drugs remove ``reduction``
+    (from :func:`ldl_reduction`) of ``untreated_ldl``; unchanged at 0.0."""
     if reduction <= 0.0:
         return untreated_ldl
     return max(STATIN_TREATED_LDL_FLOOR, untreated_ldl * (1.0 - reduction))

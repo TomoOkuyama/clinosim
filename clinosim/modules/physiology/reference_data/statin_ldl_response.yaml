@@ -1,4 +1,5 @@
-# LDL lowering by statin intensity (Issue #2917).
+# LDL lowering by statin intensity (Issue #2917) and by non-statin add-ons
+# (Issue #2947).
 #
 # Read by modules/physiology/statin_response.py. A patient taking a statin
 # has their LDL (and total cholesterol, by the same mg/dL) lowered from the
@@ -33,6 +34,19 @@
 # panels after a change are drawn 4 weeks or more later
 # (simulator/reference_data/statin_monitoring.yaml), when the LDL response is
 # complete.
+# `add_on`: per non-statin drug class (catalog `classes`, codes/data/drugs.yaml),
+# the fraction of the LDL left by the statin (or of the untreated LDL without
+# one) that the drug removes, [low, high], at the patient's same position as
+# in the statin range. Multiplicative: statin 50 % then ezetimibe 24 % leaves
+# 0.50 x 0.77 = 38.5 % of the untreated LDL.
+#   cholesterol_absorption_inhibitor (ezetimibe 10 mg):
+#     monotherapy  LDL -18.6 % vs placebo (systematic review and
+#                  meta-analysis of 8 RCTs, 2,722 patients; Pandor et al.,
+#                  J Intern Med 2009;265:568)
+#     with_statin  a further -23 % on simvastatin 40 mg (IMPROVE-IT, Cannon
+#                  et al., NEJM 2015;372:2387: 1-year LDL 53.7 vs 69.5 mg/dL,
+#                  reported as about 24 % lower)
+# The ranges are centred on these means (18.5 % and 23 %).
 metadata:
   kind: reference
   name: statin_ldl_response
@@ -47,3 +61,7 @@ ldl_reduction:
   low: [0.20, 0.29]
   moderate: [0.30, 0.49]
   high: [0.50, 0.60]
+add_on:
+  cholesterol_absorption_inhibitor:
+    monotherapy: [0.16, 0.21]
+    with_statin: [0.20, 0.26]

@@ -56,9 +56,9 @@ def test_a_dose_written_into_the_name_is_read() -> None:
 
 def test_no_statin_leaves_the_untreated_lipids() -> None:
     untreated = derive_lab_values(PhysiologicalState(), sex="M", age=60, has_dyslipidemia=True)
-    assert medication_flags_from_context(_patient())["statin_ldl_reduction"] == 0.0
+    assert medication_flags_from_context(_patient())["ldl_reduction"] == 0.0
     assert _lipids(_patient()) == {k: untreated[k] for k in ("TC", "LDL", "HDL", "TG")}
-    assert medication_flags_from_context(None)["statin_ldl_reduction"] == 0.0
+    assert medication_flags_from_context(None)["ldl_reduction"] == 0.0
 
 
 @pytest.mark.parametrize(
