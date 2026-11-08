@@ -2438,6 +2438,11 @@
 <td><code>tests/unit/modules/document/narrative/test_section_registry_2531.py</code></td>
 </tr>
 <tr>
+<td>A document's context holds only the data recorded at its own encounter. A record's vitals, lab results, orders, administrations, procedures and closing prescription belong to the record's encounter (<code>encounters[0]</code>); for any other encounter of the record (the vaccination visit the immunization enricher appends) they are kept only when they carry that encounter's id or a timestamp inside its period, so its note never prints another visit's vitals or prescription.</td>
+<td><code>clinosim/modules/document/narrative/passes.py::scope_record_to_encounter</code></td>
+<td><code>tests/unit/modules/document/narrative/test_vaccination_visit_own_data_2869.py</code></td>
+</tr>
+<tr>
 <td>The LLM is reached only through <code>LLMService.complete_prompt</code> (AD-11).</td>
 <td><code>clinosim/modules/llm_service/</code></td>
 <td><code>implementation-rules.md</code> §2 (review)</td>
