@@ -8,27 +8,39 @@
 > Claude Code users may still reference [`CLAUDE.md`](CLAUDE.md); it is a thin
 > pointer to this file kept for backward compatibility.
 
+This file holds agent operating instructions only. The coding rules live in
+[`docs/design-guides/implementation-rules.md`](docs/design-guides/implementation-rules.md)
+and the binding specs it links; this file links to them instead of restating
+them, so the rules have one source.
+
 ## Project overview
 
 clinosim is a population-driven, physiology-based synthetic EHR data simulator.
-See `README.md` (English) / `README.ja.md` (日本語) for user-facing overview, `DESIGN.md` for full architecture (ADRs), [`docs/roadmap.md`](docs/roadmap.md) (points at the GitHub Issues board) for roadmap, and each `modules/<name>/README.md` for module-level reference.
+See `README.md` (English) / `README.ja.md` (日本語) for the user-facing overview,
+[`docs/architecture/adr-history.md`](docs/architecture/adr-history.md) for the
+architecture decision records (ADRs; `DESIGN.md` is a pointer to it),
+[`docs/roadmap.md`](docs/roadmap.md) (points at the GitHub Issues board) for the
+roadmap, and each `clinosim/modules/<name>/README.md` for module-level reference.
 
 ## Quick navigation
 
 | Looking for | Read |
 |---|---|
-| ★ Project concept + pipeline catch-up (read first) | [`docs/design-guides/project-concept-and-design.md`](docs/design-guides/project-concept-and-design.md) |
-| ★ Implementation rules distilled (must-follow invariants) | [`docs/design-guides/implementation-rules.md`](docs/design-guides/implementation-rules.md) |
-| ★ Documentation + code-quality policy (all contributors follow) | [`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.md) |
-| ★ How data is generated (end-to-end walkthrough) | [`docs/design-guides/data-generation-walkthrough.md`](docs/design-guides/data-generation-walkthrough.md) |
-| ★ Code mapping, name resolution, localization and fallback (binding for every code-related change) | [`docs/design-guides/code-mapping-and-localization-spec.md`](docs/design-guides/code-mapping-and-localization-spec.md) |
-| Module overview (38 modules at a glance) | [`MODULES.md`](MODULES.md) |
+| ★ Coding rules (start here before writing code) | [`docs/design-guides/implementation-rules.md`](docs/design-guides/implementation-rules.md) |
+| ★ Which shared helper to use for X | [`docs/design-guides/shared-helpers-catalog.md`](docs/design-guides/shared-helpers-catalog.md) |
+| ★ Binding spec for the area you are changing (codes, determinism, configuration, medications, labs, narratives, encounters) | [`docs/design-guides/README.md`](docs/design-guides/README.md) |
+| ★ Documentation + code-quality policy | [`docs/design-guides/documentation-and-code-quality-policy.md`](docs/design-guides/documentation-and-code-quality-policy.md) |
+| Project concept + pipeline catch-up | [`docs/design-guides/project-concept-and-design.md`](docs/design-guides/project-concept-and-design.md) |
+| How data is generated (end-to-end walkthrough) | [`docs/design-guides/data-generation-walkthrough.md`](docs/design-guides/data-generation-walkthrough.md) |
+| Module overview, dependency graph and enricher order | [`MODULES.md`](MODULES.md) |
 | Scenario / medication flags (`causes_X` / `on_warfarin`) | [`SCENARIO_FLAGS.md`](SCENARIO_FLAGS.md) |
-| Architecture + ADR table (55+ entries) | [`DESIGN.md`](DESIGN.md) |
+| Architecture decision records | [`docs/architecture/adr-history.md`](docs/architecture/adr-history.md) |
 | Module author HOW-TO + PR verification guide | [`docs/CONTRIBUTING-modules.md`](docs/CONTRIBUTING-modules.md) |
 | New module template (boilerplate) | [`.github/TEMPLATE_MODULE_README.md`](.github/TEMPLATE_MODULE_README.md) |
 | Roadmap | [`docs/roadmap.md`](docs/roadmap.md) (GitHub Issues board) |
-| ★ Audit-cycle workflow + by-design exclusion registry | [`docs/audit-cycles/README.md`](docs/audit-cycles/README.md) + [`docs/audit-cycles/by-design-registry.md`](docs/audit-cycles/by-design-registry.md) |
+| Audit-cycle workflow + by-design exclusion registry | [`docs/audit-cycles/README.md`](docs/audit-cycles/README.md) + [`docs/audit-cycles/by-design-registry.md`](docs/audit-cycles/by-design-registry.md) |
+| Hospital configuration reference | [`docs/reference/hospital-configuration.md`](docs/reference/hospital-configuration.md) |
+| LLM integration reference | [`docs/reference/llm-integration.md`](docs/reference/llm-integration.md) |
 
 ## Language conventions
 
@@ -76,7 +88,7 @@ old name; those are being cleaned up module-by-module (see linked issues).
   JP-specific modules — JP Core / JP-CLINS profile application, JCCLS
   reference ranges, JST (`+09:00`) timestamp appenders, MHLW ICD system
   routing, MEDIS code emission, 保険者番号 (insurer number) lookup, JP-specific display strings —
-  MUST be gated behind `is_jp(country)` from `clinosim.modules._shared` and
+  MUST be gated behind `is_jp(country)` from `clinosim.countries` and
   MUST no-op on non-JP cohorts.
 - **Future US-specific profile support** (US Core / USCDI) will be gated behind
   `is_us(country)` in the same manner. The default cohort (no `--country`)
@@ -91,163 +103,85 @@ old name; those are being cleaned up module-by-module (see linked issues).
   tests (e.g. `tests/unit/test_jp_clins_profile_emit.py::test_us_bundle_has_no_clins_profile`);
   add the same kind of US-side assertion when you add a JP-only emit path.
 
-## Code standards
+## Coding rules
 
-- Formatter: ruff
-- Type checking: mypy (strict mode)
-- Line length: 100
-- Types: Pydantic BaseModel for YAML-loaded configs (AD-18). `@dataclass` for runtime types.
-- All types defined in `clinosim/types/` — never define data types inside module code.
-- Public API surface: only what's exported in module `__init__.py`.
+Follow [`implementation-rules.md`](docs/design-guides/implementation-rules.md)
+(Python 3.11+, ruff with line length 120, mypy, types in `clinosim/types/`,
+public API = `__init__.py` exports, determinism, canonical helpers, loader
+conventions, verification gates). Before writing any small utility, look it
+up in the [shared-helpers catalog](docs/design-guides/shared-helpers-catalog.md).
+Every change to codes, display text or localization follows
+[`code-mapping-and-localization-spec.md`](docs/design-guides/code-mapping-and-localization-spec.md);
+every change that draws a random number or derives a seed follows
+[`determinism-and-rng-spec.md`](docs/design-guides/determinism-and-rng-spec.md).
 
 ## Architecture rules
+
+The invariants an agent most often needs while editing; each links to its
+normative source.
 
 ### Data flow & ownership
 
 - **CIF is the only simulation output** (AD-17) — format adapters (FHIR, CSV) read CIF, never simulation internals.
-- **CIF stores codes only, not display text** (AD-30) — `ClinicalDiagnosis.admission_diagnosis_code` + `_system`, no `_name`. Display is resolved at output time via `clinosim.codes`.
-- **Code is the truth** — Internal test names (e.g., `"WBC"`) are mapped to standard codes (LOINC) via `locale/<country>/code_mapping_*.yaml`. Display text comes from `clinosim/codes/data/<system>.yaml`.
+- **CIF stores codes only, not display text** (AD-30) — e.g. `ClinicalDiagnosis.admission_diagnosis_code` + `_system`, no `_name`. Display is resolved at output time with `clinosim.codes.display(...)` and an explicit fallback. Drug names in `Order.display_name` / `MAR.drug_name` are English (a pragmatic exception).
+- **Code is the truth** — internal test names (e.g. `"WBC"`) map to standard codes (LOINC) via `locale/<country>/code_mapping_*.yaml`; display text comes from `clinosim/codes/data/<system>.yaml`.
+- **LLM calls only via `llm_service`** (AD-11) — narrative code calls `LLMService.complete_prompt()`; no other module calls a provider API.
 
-### Two-pass CIF generation invariant (AD-65, 2026-07-02)
+### Two-pass CIF (AD-65)
 
-- **CIF is split into two file layers, structural + narrative**: `cif/structural/patients/<enc>.json`
-  (structured data, immutable after Stage 1) and `cif/narratives/<version>/documents/<enc>/<doc>.json`
-  (narrative, versionable in Stage 2) **must always be separated at the file level**. Never mix them inline.
-  This restores the state that had drifted in past implementations; the SPEC.md
-  `Stage 2: Narrative Generation` section is canonical.
-- **`document_enricher` (POST_ENCOUNTER) generates only a `ClinicalDocument` stub**: metadata +
-  author + encounter binding + `narrative=None`. It must not populate narrative content (text / sections /
-  facts_used); populating it risks a silent no-op when Stage 2 swaps the narrative in.
-- **Narrative is generated in a post-simulation two-pass**: `TemplateNarrativePass.run(cif_dir,
-  version_id)` reads the structural CIF → derives the narrative from patient profile + labs + conditions +
-  medications + scenario_spine as input →
-  writes `narratives/<version>/documents/<enc>/<doc>.json`. Narrative content must never be
-  generated inside the simulation loop. This drifted from the original SPEC.md design in α-min-1 Task 15
-  and was restored by AD-65.
-- **`NarrativePass` walk order is per (doc_type, language) group**: patients are processed sequentially
-  in batches that share the same prompt prefix → maximizes the Bedrock prompt cache (5-min TTL) hit
-  rate. LLMNarrativePass (β-JP-1) inherits the same base class = drop-in and cache-friendly.
-- **FHIR builders must go through `doc.narrative.sections` / `doc.narrative.text`**:
-  the flat fields on `ClinicalDocument` (`doc.text` / `doc.sections`) were removed by AD-65 and
-  consolidated into the wrapper `ClinicalDocumentNarrative`. `CIFReader(narrative_version="current")`
-  merges structural + narrative to fill `doc.narrative`; builders access it only through the
-  wrapper.
+Normative: [`narrative-and-document-generation-spec.md`](docs/design-guides/narrative-and-document-generation-spec.md) and `clinosim/modules/output/SPEC.md`.
 
-### Canonical patient profile fixture library (AD-66, 2026-07-03)
+- Structural CIF (`cif/structural/patients/<enc>.json`, immutable after Stage 1) and narratives (`cif/narratives/<version>/documents/<enc>/<doc>.json`, versioned in Stage 2) are always separate files. Never write narrative content inline.
+- The `document` enricher (POST_ENCOUNTER) creates only a `ClinicalDocument` stub (metadata, author, encounter binding, `narrative=None`). Narrative text is generated after the simulation by `TemplateNarrativePass` / `LLMNarrativePass` (`clinosim narrate`).
+- FHIR builders read narrative only through `doc.narrative.sections` / `doc.narrative.text` (`CIFReader(narrative_version="current")` merges the layers).
+- The `NarrativePass` walk order (per `(doc_type, language)` group, sorted patients) is tuned for the prompt cache — do not change it.
+- All template narrative rendering goes through `clinosim/modules/document/narrative/`. A `DocumentTypeSpec` restricted to some encounter types must list them in `encounter_types_supported` — an empty tuple means *all* types.
 
-- **AD-66 Rule 1**: Profile YAML changes MUST regenerate golden + commit both together.
-  Whenever you edit `tests/fixtures/patient_profiles/<name>.yaml`, you must run `clinosim
-  regenerate-goldens --profile <name>` to regenerate `<name>.golden.json` and include both
-  in the same commit. Committing only one makes the regression suite fail on the next
-  `pytest -m regression` run = ship-blocker.
-- **AD-66 Rule 2**: Unexpected `git diff` on goldens after intentional template
-  changes = regression suspicion. If you intentionally change narrative template logic
-  (e.g. add a new section to the H&P) and run `clinosim regenerate-goldens --all`,
-  and goldens for profiles other than the intended ones also show a diff, suspect a
-  narrative-pass regression. Always investigate before committing. "I regenerated everything, so
-  it's green" = the classic way to hide a silent regression (PR-90 lesson).
-- **AD-66 Rule 3**: CI runs the regression suite on every PR (`Narrative regression
-  (goldens)` job, Issue #2442). Any change that moves template or mock-LLM narrative
-  output — including simulation, catalog and localization changes, not only template
-  edits — regenerates the affected goldens (`--provider template` and `--provider mock`)
-  in the same PR and explains the diff in the PR description.
+### Canonical patient profile goldens (AD-66)
 
-### Module independence
+- **Rule 1**: editing `tests/fixtures/patient_profiles/<name>.yaml` requires regenerating its goldens (`clinosim regenerate-goldens --profile <name>` and `--profile <name> --provider mock`) and committing both together.
+- **Rule 2**: after an intentional template change, a golden diff in profiles you did not expect to change is a regression signal — investigate before committing. "I regenerated everything, so it is green" hides regressions.
+- **Rule 3**: CI runs the regression suite on every PR (`Narrative regression (goldens)` job). Any change that moves template or mock-LLM narrative output — simulation, catalog and localization changes included — regenerates the affected goldens in the same PR and explains the diff in the PR description. PRs that move goldens are serialized (rebase, then regenerate).
 
-- Each module under `clinosim/modules/` can only depend on `clinosim/types/`, `clinosim/codes/`, `clinosim/locale/`, and other modules listed in its `README.md` Dependencies section.
-- **LLM calls only via `llm_service`** (AD-11) — no other module may call Ollama or Anthropic APIs directly.
-- **Deterministic with seed** (AD-16) — each module creates its own `numpy.random.Generator` from a sub-seed. Never use `random.random()` or shared global state.
-- **Per-order lab RNG isolation** (AD-59) — every lab order (panel children AND individual scalar orders) draws specimen-rejection / hemolysis / technician / noise from a per-order sub-rng (`clinosim/seeding.py:panel_specimen_seed` / `individual_lab_seed`; Issue #553 moved the helpers up from `simulator/seeding.py`, and the legacy shim itself was removed in session 96), NOT the patient-scoped master RNG. When extending `derive_lab_values` with a new analyte or adding a `{test:"X"}` order to a disease/encounter YAML, route any per-lab RNG draw through these helpers so YAML edits cannot shift unrelated patients' cohorts. Guard: `tests/integration/test_individual_lab_isolation.py`.
-- **`derive_lab_values` scenario flags** — disease YAMLs declare `causes_X: true` flags (e.g. `causes_myocardial_injury`, `causes_vte`) that lift specific labs at the lab-derive step (no state mutation; AD-57 BNP-pattern surgical). Always read flags via `physiology.engine.scenario_flags_from_protocol(protocol)` and pass with `**flags` to `derive_lab_values`. Never add a fourth `flag=value` named-argument at a call site — the helper is the single edit point so adding a new flag automatically reaches inpatient / emergency / outpatient. The J5 wiring defect (PR Phase 2a, 2026-06-24) showed what happens when this rule is violated: `causes_myocardial_injury` was only read in `inpatient.py` Pass-1, so ED-route MI patients silently produced type-2 troponin only.
-- **`derive_lab_values` medication flags** (Phase 2b, 2026-06-24) — medication-driven lab couplings (e.g. `on_warfarin` → therapeutic PT_INR) are detected via the sibling helper `physiology.engine.medication_flags_from_context(patient, medication_orders, admission_date, current_day)`. Call sites merge BOTH dicts: `flags = {**scenario_flags_from_protocol(protocol), **medication_flags_from_context(...)}` and splat as `**flags` to `derive_lab_values`. Same J5-prevention rationale — adding a new medication coupling (steroid → glucose, diuretic → K, antibiotic → CRP) extends the helper once and reaches inpatient / emergency / outpatient / inpatient-unknown-condition through the merge pattern. ED / outpatient pass `medication_orders=None / current_day=None`; only the chronic-meds detection runs. DOAC (apixaban / rivaroxaban / edoxaban / dabigatran) is intentionally NOT detected for INR — clinical practice does not monitor INR for DOAC, and modeling DOAC INR lift would be clinically misleading.
-- **`classify_lab_specs` helper** (PR1, 2026-06-29) — lab order generation in `place_admission_orders` and `place_daily_lab_orders` MUST go through `clinosim.modules.order.panel_grouping.classify_lab_specs` so panel members share a single `ordered_datetime` + `panel_key`. Never inline a panel-detection if/elif at the call site; the helper is the single edit point so adding a new panel to `lab_panel_groups.yaml` automatically reaches all ordering sites. Companion to `scenario_flags_from_protocol` and `medication_flags_from_context` sibling pattern (AD-61).
-- **`_o(order, name, default)` dual-access** (PR1, 2026-06-29) — FHIR builders reading Order objects MUST use the `_o()` helper (wrapping `clinosim.modules._shared.get_attr_or_key`) to support BOTH dict (production JSON-deserialized CIF) AND Order dataclass (test fixtures). The 4-6 line `isinstance(order, Order) ... elif isinstance(order, dict) ...` branching pattern is a PR-90 silent-no-op risk. New FHIR builder reading CIF Orders MUST exercise BOTH paths in unit tests + add a subprocess integration smoke test exercising the production dict path.
-- **Imaging chain DRY rule** (Tier 1 #2, AD-62, 2026-06-30) — multi-view → multi-series expansion logic lives in `clinosim/modules/imaging/engine._expand_views_to_series`. Disease YAML `imaging_orders[].views` carries view labels; the enricher reads `modalities.yaml:default_views_by_body_site` for empty-views fallback. New imaging order calls MUST go through `clinosim.modules.order.engine.place_imaging_orders(protocol, patient_id, encounter_id, admission_time, rng)` — never set `imaging_modality` / `imaging_body_site_code` / `imaging_views` directly at a call site. Sibling to `scenario_flags_from_protocol` / `medication_flags_from_context` / `classify_lab_specs` — single edit point for adding modality / view kinds or body site display text. **Encounter_id invariant**: ALL orders stored in `CIFPatientRecord.orders` MUST have `encounter_id` non-empty before the record is returned. The `_simulate_unknown_condition` bug (2026-06-30) showed that omitting the `encounter_id` back-fill loop causes `fhir_r4/labs/service_request._build_sr_skeleton` to `AssertionError` at FHIR export time on any cohort with unknown-condition patients.
-- **Narrative generation DRY rule** (Tier 1 #3, AD-63, 2026-07-01) — all template-based narrative rendering for clinical documents MUST go through `clinosim/modules/document/narrative/` (`TemplateNarrativeGenerator`). No other module may render narrative templates directly (J5-pattern prevention: a single edit point ensures a new document type or section template reaches all encounter venues and document format types). New Stage 1 template work uses `clinosim/modules/document/` only. (Legacy `narrative_generator.py` + `document_generator.py` were deleted in Task 15; the Stage 2 LLM narrative path is deferred to β-JP-1.)
-- **`ClinicalDocument.sections` + `format_type` field invariant** (Task 8 fix, Tier 1 #3, 2026-07-01) — `ClinicalDocument` MUST carry both `sections: dict[str, str]` (section name → text) and `format_type: str` (dispatch key: `"free_text"` or `"composition"`) at every emission site in `clinosim/modules/document/engine.py`. The CIF→FHIR no-drop invariant (spec §3.4) requires that Composition.section[] can be reconstructed from CIF without re-parsing `raw_text`. Omitting `sections` is a silent-no-op: the `fhir_r4/documents/composition.py` builder would emit `"section": []` (FHIR R4 cardinality violation) with no error. Omitting `format_type` causes the builder dispatch to silently default to free_text, emitting DocumentReference instead of Composition with no error. Rule: sections is authoritative for COMPOSITION builders; raw_text (joined sections) is for FREE_TEXT / DocumentReference only.
-- **`document` module always-on Module** (Tier 1 #3, AD-63, 2026-07-01) — `clinosim/modules/document/` is the 6th always-on Module (`enabled=lambda c: True`, POST_ENCOUNTER order=95). It produces `ClinicalDocument` records in `record.documents` (typed field on `CIFPatientRecord`) and `ClinicalImpressionRecord` records in `extensions["clinical_impressions"]` for all inpatient/ICU/rehab encounters. No-op for outpatient/ED encounters and for non-inpatient patients. The sibling `allergy` module (POST_POPULATION order=10) enriches `PersonRecord.allergies` and is a prerequisite for correct AllergyIntolerance FHIR emission but is NOT a direct input to the `document` enricher (both read CIF independently).
-- **`nursing_assignment` naming convention** (Tier 1 #3 α-min-2, AD-64, 2026-07-01) — `clinosim/modules/nursing/` contains TWO distinct enrichers registered in DIFFERENT stages: (1) `nursing_enricher` (POST_ENCOUNTER order=94) = primary nurse assignment to inpatient/ICU/rehab encounters, writes `EncounterRecord.primary_nurse_id`, consumed by `fhir_r4/encounters/care_team.py`. (2) The observation-layer nursing flowsheet enricher (POST_RECORDS order=20) = NEWS2/GCS/Braden/Morse scores. When referencing this module in code comments, use `nursing_assignment` for (1) and `nursing_flowsheets` for (2) to prevent confusion. The `nursing_assignment` entry in the `MODULES.md` POST_ENCOUNTER section refers to (1); the `nursing` entry in the POST_RECORDS section refers to (2).
-- **`DocumentTypeSpec.encounter_types_supported` invariant** (Tier 1 #3 α-min-2, AD-64, 2026-07-01) — every `DocumentTypeSpec` that should be restricted to specific encounter types MUST declare an explicit `encounter_types_supported` allowlist. An EMPTY tuple means "matches ALL encounter types" (backwards-compat default), NOT "disabled". α-min-1 specs (ADMISSION_HP / PROGRESS_NOTE / DISCHARGE_SUMMARY) had empty tuples originally, which would have leaked inpatient documents into outpatient/ED encounters if outpatient.py and emergency.py called POST_ENCOUNTER enrichers. Task 10 fix (α-min-2): all α-min-1 specs now carry explicit `[inpatient, icu, rehab_inpatient]` allowlists. Any new document spec that applies to only one encounter type MUST declare it explicitly — never rely on the empty-tuple fallback for inpatient-only specs.
-- **CareTeam participant invariant** (Tier 1 #3 α-min-2, AD-64, 2026-07-01; 2-name scope superseded by C1-15 pharmacist + Issue #915 allied-health / rehab-MD participants) — `clinosim/modules/output/fhir_r4/encounters/care_team.py` emits the attending physician + primary nurse, plus a pharmacist and allied-health participants (PT / OT / ST / RD / MSW, rehab MD) selected deterministically per encounter from the roster by encounter-id hash (RNG-neutral). Do NOT add new participant roles without a spec decision. The attending physician (participant[0]) is ALWAYS emitted even when `attending_physician_id` is empty (uses `"UNKNOWN"` placeholder rather than omitting participant[]). The nurse (participant[1]) is emitted ONLY when `primary_nurse_id` is non-empty. This ensures CareTeam.participant[] is never `[]` (FHIR R4 cardinality: 0..*; participant is optional but when present must have member).
-- **`triage` + `nursing_assignment` modules as 7th/8th always-on Modules** (Tier 1 #3 α-min-2, AD-64, 2026-07-01) — `clinosim/modules/triage/` (POST_ENCOUNTER order=93) and the nursing_assignment enricher in `clinosim/modules/nursing/` (POST_ENCOUNTER order=94) are the 7th and 8th always-on Modules. Both have `enabled=lambda c: True`. Triage is ED-only (no-op for non-emergency encounters). Nursing_assignment is inpatient/ICU/rehab-only (no-op for outpatient/ED). New POST_ENCOUNTER Modules MUST be registered BEFORE `document` (order=95) if they produce CIF data that `document_enricher` needs to read. Current POST_ENCOUNTER order: device(70) → prophylaxis(75) → hai(80) → antibiotic(85) → imaging(90) → triage(93) → nursing_assignment(94) → document(95).
+### Module independence and extension points (AD-55 / AD-56 / AD-58)
 
-### EHR data enrichment — Base vs Module (AD-55) + extensibility (AD-56)
+- A module under `clinosim/modules/` depends only on `clinosim/types/`, `clinosim/codes/`, `clinosim/locale/`, the top-level helpers (`clinosim/determinism.py`, `seeding.py`, `datafiles.py`, `countries.py`, `age_bands.py`) and the modules listed in its README's Dependencies section.
+- **Near-essential data → Base** (types / population / observation / simulator / output); **specialised data → a module**, one theme per module. Always-on modules are the near-essential clinical cascade (`device` → `hai` → `antibiotic`, `imaging`, `allergy`, `document`, `triage`, `nursing`), registered with `enabled=lambda c: True` and a no-op when their input is empty.
+- Modules write to `CIFPatientRecord.extensions[<module>]`; only Base adds typed fields to core types.
+- Extend through the registries, never by editing the dispatch body: `register_bundle_builder()` (a FHIR resource), `register_output_adapter()` (an output format), `register_enricher()` in `simulator/enrichers.py::register_builtin_enrichers` (a post-population / post-encounter / post-records pass).
+- **Enricher stages**: `POST_POPULATION` (before simulation), `POST_ENCOUNTER` (per encounter, after the daily loop, inside the encounter simulator — for passes that depend on the clinical course and feed the same encounter) and `POST_RECORDS` (after all records — for passes that read patient-wide history). The registered stage and order of every enricher are listed in [`MODULES.md`](MODULES.md); `register_builtin_enrichers` is the source. Do not change existing orders; a new POST_ENCOUNTER module whose output `document` reads registers before `document` (order 95).
+- New enrichers register a 16-bit hex-ASCII offset in `clinosim/seeding.py::ENRICHER_SEED_OFFSETS` (duplicates fail at import).
+- Every order stored in `CIFPatientRecord.orders` has a non-empty `encounter_id` before the record is returned.
+- New-feature verification gate: `clinosim audit run -d <cohort>` (AD-60; structural / clinical / jp_language / silent_no_op axes). Modules register their checks in `clinosim/modules/<name>/audit.py` via `register_audit_module(ModuleAuditSpec(...))`; closed-form `lift_firing_proof` checks prove a feature actually fires.
 
-- **Near-essential data → Base** (always-on, extend core: `types`/`population`/`observation`/`simulator`/`output`). **Specialized/optional data → opt-in module**, one theme per module (like `identity`), gated via `SimulatorConfig.modules` + `config.module_enabled(name)`. **Always-on Module = near-essential clinical cascade** (AD-55 PR3b-1 supplement, 2026-06-25): for modules where omission would produce a clinically incoherent state (HAI without antibiotic, device without HAI). Registered with `enabled=lambda c: True` and no-op only when the upstream `extensions[X]` slot is empty. Examples: `device` (PR-A), `hai` (PR-B), `antibiotic` (PR3b-1), `imaging` (Tier 1 #2, AD-62), `allergy` (Tier 1 #3, AD-63), `document` (Tier 1 #3, AD-63), `triage` (Tier 1 #3 α-min-2, AD-64), `nursing_assignment` (Tier 1 #3 α-min-2, AD-64).
-- **Add a FHIR resource** by registering a builder via `register_bundle_builder()` (AD-56) — do NOT edit `_build_bundle()`. Builders return raw resources `(ctx) -> list[resource]`.
-- **Add an output format** by registering an `OutputAdapter` via `register_output_adapter()` (AD-58) — do NOT edit the CLI `--format` dispatch. Adapters read CIF + `clinosim.codes` + `clinosim.locale` only.
-- **Add a post-population / post-records pass** by registering an `Enricher` in `simulator/enrichers.py` (`register_builtin_enrichers`) — do NOT inline it into `run_beta`. Enrichers derive their own sub-seed; order is fixed (determinism).
-- **Modules must NOT edit `CIFPatientRecord`** — write to `CIFPatientRecord.extensions[<module>]`. Only Base data adds typed fields to the core type.
-- Refactors of these paths must preserve golden/e2e output and determinism.
+### Code systems and locale data
 
-### AD-55 enricher patterns (PR1 foundation refactor, 2026-06-24)
-
-- **Sub-seed offset convention** — new enricher modules MUST register their sub-seed in `clinosim/seeding.py:ENRICHER_SEED_OFFSETS` with a 16-bit hex-ASCII offset (e.g. `0x494D` = "IM", `0x4445` = "DE", `0x4841` = "HA"). Identity (decimal 540_054) and microbiology (decimal 770_077) are grandfathered to preserve byte-identical output. The dict has a module-level assert that catches accidental duplicates at import. Modules import via `from clinosim.seeding import ENRICHER_SEED_OFFSETS` and use `derive_sub_seed(master, ENRICHER_SEED_OFFSETS["my_module"], key)`. (The legacy `clinosim/simulator/seeding.py` path was a deprecation shim under Issue #553 and was removed entirely in session 96 — always import from `clinosim.seeding`.)
-- **Cross-platform RNG proxy (v0.5.0+)** — every `np.random.default_rng(seed)` in `clinosim/` MUST route through `clinosim.determinism.default_rng(seed)`. The returned `_DeterministicRngProxy` overrides `beta` / `normal` / `exponential` with `mpmath`-backed bit-reproducible variates (transcendentals through platform `libm` are NOT guaranteed bit-identical across CPU architectures, so calling `numpy.rng.beta` directly re-introduces the cross-Mac-ARM-vs-x86-Linux divergence session s88j-late verified). All other Generator methods (`random` / `integers` / `choice` / `permutation` / `bytes` / …) pass through unchanged via `__getattr__`. Do NOT add `math.log` / `math.exp` / `math.pow` / `math.cos` (or their `numpy.*` equivalents) to any RNG-consuming path either — the same libm precision drift applies. When a new sampling algorithm needs a new variate, add it to `clinosim/determinism.py` as a `_DeterministicRngProxy` method plus a pinned bit-anchor test in `tests/unit/test_determinism.py`.
-- **DRY helpers** — cross-module utilities used by 2+ enrichers live in `clinosim/modules/_shared.py`. Don't redefine inline; import from `_shared`. Current: `get_attr_or_key(obj, name, default)` for dict / dataclass dual access; `normalize_probabilities(probs, fallback="uniform")` for any `rng.choice(p=)` argument (PR-A 2026-06-26 — `numpy.random.Generator.choice` does NOT auto-normalize; YAML pre-normalization is fragile, helper is idempotent on already-normalized arrays so migration is byte-clean).
-- **Locale loader signature** — modules with locale-specific data MUST accept a `country: str` parameter and return `{}` for unsupported countries (no-op early return). Hardcoded country literals in path joins (e.g., `_LOCALE / "jp" / "..."` without country gating) are a consistency bug.
-- **Path constant canonical form (PR-A 2026-06-26)** — every module that loads data uses `_HERE = Path(__file__).resolve().parent`, `_REF_DIR = _HERE / "reference_data"` (if applicable), `_LOCALE = _HERE.parents[1] / "locale"` (if applicable). Old naming (`_REFERENCE_DATA_DIR`, `_DATA`, `_HAI_REF_DIR`, fragile `.parents[2]`) was unified across 18 modules (PR-A initial 12 + Fix PR #100 6 more). New modules MUST follow the canonical form; see boilerplate in `.github/TEMPLATE_MODULE_README.md`.
-- **`lru_cache` maxsize convention (PR-A 2026-06-26, PR-B1 2026-06-27 + Fix extension)** — `load_X()` no-param → `maxsize=1`; `load_X(country: str)` → `maxsize=2` (US + JP); `load_X(country, language)` → `maxsize=4` (future multilingual, currently unused). `maxsize=4` on country-only loader is a smell. **PR-B1 (+ adversarial fix) eliminated the remaining global mutable `_X: ... | None = None` sentinel pattern from every data loader and unified them on `@lru_cache(maxsize=1)`** (`clinosim/modules/encounter/protocol.py:load_all_encounter_conditions`, `clinosim/modules/order/panel_grouping.py:load_panel_definitions`, `_load_med_terms_ja` / `_load_narrative_display_dict` / `_load_department_display` etc. in `clinosim/modules/output/fhir_r4/lib/localization.py`). Never write a hand-rolled cache in a new module (that pattern also blocks the test `cache_clear()` pattern). Note: `simulator/helpers.py:_load_all_disease_protocols`, which was in the enumeration at the time, was deleted entirely in session 96.
-- **Import-time canonical-constants validation (PR-A 2026-06-26, PR #102 2026-06-27 extension)** — any YAML data referencing external IDs (SNOMED / LOINC / antibiotic key / probability weights) MUST validate against the canonical set at load time and raise `ValueError` on unknown keys / zero-sum weights. Silent `dict.get(key)` fall-through is a PR-90 class silent-no-op risk. Precedents: `modules/hai/load_hai_antibiogram` (3-way validation), `modules/observation/microbiology._validate_microbiology` (PR-A added, 7 cross-refs), `modules/antibiotic/audit._validate_nhsn_resistance_bands`, **`modules/hai/engine._validate_hai_organisms` + `locale/loader._validate_demographics` / `_validate_names` / `_validate_addresses` (PR #102, completing upstream defense for the 4 major YAML loaders)**. Combined with the backward defense of `clinosim/modules/_shared.normalize_probabilities(..., fallback="raise")` (**all 15 YAML-sourced callsites covered** = 10 callsites added in PR #102 + 5 pre-PR ones = `code_status:51` / `family_history:90` / `care_level:53` / `observation/microbiology:167+206` already migrated during PR-A Fix #100/#101; spread across 7 modules: code_status / population / clinical_course / hai / family_history / observation / care_level), this **completes the 3-layer silent-no-op defense** (canonical constants + upstream `_validate_*` + backward `fallback="raise"`).
-- **Enricher stages (Phase 3a, 2026-06-25)** — three stages now exist in `clinosim/simulator/enrichers.py`:
-  - `POST_POPULATION` — runs after population generation, before simulation. Currently: `allergy` (10), `identity` (10, JP insurance numbering), metabolic `e66_bmi` (15) → `e88_81_syndrome` (16) → `k76_0_nafld` (17) → `g47_30_osa` (18).
-  - `POST_ENCOUNTER` — runs **per encounter, immediately after the daily loop completes** but **inside** the encounter simulator. Use for "encounter-bound" Modules whose sampling depends on full clinical course (`icu_transferred`, GCS, perfusion) and whose output is consumed by physiology / observation layers later in the same encounter. Currently: `device`(70) → `prophylaxis`(75) → `hai`(80) → `antibiotic`(85) → `imaging`(90) → `discontinue_flip`(91) → `newborn`(92) → `triage`(93) → `lab_derived_dx`(94) → `nursing_assignment`(94) → `document`(95) (ties sort by name). See the always-on cascade note below for cross-module invariants.
-  - `POST_RECORDS` — runs after **all** patient records are simulated. Use for "cross-record" Modules that read patient-wide history. Currently: `nursing` (20), `immunization` (30), `family_history` (40), `code_status` (50), `care_level` (60), `medication_monitoring` (65), `health_checkup` (70, JP opt-in).
-  - **Module classification**: when adding a new opt-in Module, decide first which stage it belongs in. "encounter-bound" vs "cross-record" is a critical design axis — encounter-bound Modules can interact with the same-encounter physiology (e.g. lift WBC + CRP for HAI), while cross-record Modules cannot reach back into the loop.
-- **Phase 3b-1 HAI empirical antibiotic** (2026-06-25, PR #93) — `modules/antibiotic/` is the second always-on Module of the HAI cascade. Consumes `extensions["hai"]` at POST_ENCOUNTER order=85 (after `hai=80`), emits IDSA 2009/2016 empirical regimens (Vancomycin / Piperacillin-Tazobactam / Ceftriaxone) as `Order(MEDICATION)` + `MedicationAdministration` via the existing `_fhir_medications.py` builder (now `fhir_r4/medications/medications.py`) (zero new builder), plus `extensions["antibiotic"] = list[AntibioticRegimen]` for cross-PR consumption by PR3b-2/3/4. AD-32 defensive future-onset HAI skip prevents orphan Order/MAR when `inpatient.py:464-490` truncates HAI events post-POST_ENCOUNTER. `ForcedScenario.force_hai_event` added for deterministic HAI testing (PR-90 lesson completion). `modules/antibiotic/audit.py` = AD-60 framework second per-Module plug-in with closed-form `lift_firing_proof`.
-- **Phase 3b-2 HAI culture S/I/R susceptibility chain** (2026-06-26, PR #96 + adversarial fix PRs #97/#98) — `modules/hai/_append_hai_culture()` extended with antibiogram-driven S/I/R sampling. Source of truth: `modules/hai/reference_data/hai_antibiogram.yaml` (CDC NHSN AR 2018-2020), nested format `{hai_type: {organism_snomed: {antibiotic_key: [S_rate, I_rate, R_rate]}}}`. Import-time 3-way cross-validation applies the PR-90 / PR3b-1 canonical-constants lesson: YAML keys are validated against `HAI_TYPES` (lowercase) + `hai_organisms.yaml` (valid SNOMED set) + `ANTIBIOTIC_LOINC_LOOKUP` (valid antibiotic keys) at `load_hai_antibiogram()` import, so a case-mismatch or orphan drug key raises `ImportError` before any simulation runs. **`MicrobiologyResult.hai_event_id` backref convention**: HAI-derived cultures set `hai_event_id = HAIEvent.hai_id`; community microbiology paths leave it `""` and are unchanged. **`ANTIBIOTIC_DRUGS` tuple → dict refactor**: key = lowercase snake_case drug key, value = `{"name", "rxnorm", "yj"}`; `ANTIBIOTIC_LOINC_LOOKUP` is a new companion `dict[str, str]` loaded from `microbiology.yaml`. **Forward-compat reserves**: `AntibioticRegimen.discontinuation_datetime = None` (PR3b-3 de-escalation) + `run_forced` now injects `force_hai_event`-carrying scenarios into `config.forced_scenarios` (silent-no-op gap closed; load-bearing `test_run_forced_auto_injects_force_hai_event_into_config` in PR #97 verifies the fix actually fires via monkeypatched enricher — closing the PR-90 class fix-PR-itself-silently-regresses gap). **Audit**: `antibiogram_firing_proof` in `modules/antibiotic/audit.py` uses PR-94 `equality_checks` format with a non-degenerate cefazolin sentinel (PR #98 LOW-1, exposes YAML key-order swaps that the always-S vancomycin sentinel cannot); `_build_combined_proof` sub-proof exception isolation (PR #98 MED-3); `_NHSN_RESISTANCE_BANDS` import-time validation against `HAI_TYPES` + `ANTIBIOTIC_DRUGS` + `hai_organisms.yaml` (PR #98 MED-4); `HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE` denominator clarified to panel-eligible HAI cultures only (excluding E.faecalis 78065002 + C.albicans 53326005; PR #97 F-MAJ-1 — without this, CLABSI 28% / CAUTI 34% no-panel weight would force PR3b-3 gate to always-FAIL). `_NHSN_RESISTANCE_BANDS` + `HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE` active enforcement was added in PR3b-3 (2026-06-27) and finalized with per-organism R-rate filter + panel-eligible empty-rate denominator in PR3b-3 D1+D2 (PR #112+#113, 2026-06-29). **AD-16 hardening**: `_CapturingRNG.choice` logs the `p=` array (PR #98 MED-1, exposes YAML key reorders); YAML key-order pin tests for clabsi/cauti/vap pinned organisms (PR #98 MED-1); YAML header carries a "KEY ORDER LOAD-BEARING" comment (PR #98 MED-2). **Type annotation correctness**: `ModuleAuditSpec.clinical_acceptance` is `dict[str, Any]` since PR3b-2 stores mixed types (per-HAI dict, list of bands, float threshold) — PR #97 F-CRIT-1 mypy strict 11 errors closed.
-- **Phase 3b-3 HAI culture S/I/R-driven narrow / de-escalation chain** (2026-06-27, PR #107 + adv-1 #108 + adv-2 #109 + adv-3 #110 = 4-stage adversarial chain converged, matches PR-A / PR #102 / PR-B1 pattern) — `modules/antibiotic/enricher.py` extended with **same-enricher Pass 2** (POST_ENCOUNTER order=85 unchanged). Pass 2 walks `extensions["antibiotic"]` empirical regimens, looks up the culture via `MicrobiologyResult.hai_event_id` backref, picks the narrow target via new per-(hai_type, organism_snomed) ladder YAML (`reference_data/narrow_ladder.yaml`, 3-way import-time validation against `HAI_TYPES` + `hai_antibiogram.yaml` + `ANTIBIOTIC_DRUGS` — silent-no-op defense 3rd layer). Walk algo: S only accept, I/R skip. Three dispatched outcomes per `NarrowOutcome` enum: **(i) SWITCH** = all empirical get `discontinuation_datetime=reported_datetime`, new `AntibioticRegimen(intent="narrowed")` + Order + MAR added; **(ii) ELIMINATION** = non-target empirical discontinued, target kept unchanged, no new regimen; **(iii) NO_CHANGE** = empirical continues unchanged. `narrowing by elimination` data model avoids same-drug duplication (MRSA CLABSI → vancomycin continues as single regimen, not vanc-twice). **FHIR `MedicationRequest.status` wiring**: new `OrderStatus.STOPPED` + `_map_order_status_to_fhir` in `_fhir_medications.py` → discontinued empirical emits `status="stopped"`. **Audit clinical axis active enforcement** (closes PR3b-2 TODO): `_NHSN_RESISTANCE_BANDS` R-rate gate + `HAI_EMPTY_SUSCEPTIBILITIES_MAX_RATE` empty rate gate + new `_NARROW_RATE_BANDS` narrow rate gate, each `n<30` → WARN else PASS/FAIL with per-cohort observed in `result.info`. **lift_firing_proof extended**: 8 PR3b-1 + 3 PR3b-2 + 6 PR3b-3 = **17 equality_checks** total. **Determinism (AD-16)**: no new RNG (select_narrow_target is pure over already-determined susceptibilities), enricher cascade order unchanged. **AD-32**: `snapshot < reported_datetime` → narrow skipped. byte-diff intentionally broken (new-feature PR, audit run is primary gate).
-
-  **PR3b-3 chain CLOSED — D1+D2 complete (2026-06-29, PR #112 + adv-1 #113 + adv-2 #114 + adv-3 #115 = 4-stage adversarial chain converged)** — the clinical-axis R-rate gate now filters cohort encounters per-(hai_type, organism, antibiotic) via `_organism_per_encounter` (single `Observation.ndjson` walk on `mb-org-*` resources, builds `{enc_id: {organism_snomed,...}}`); the empty-rate gate restricts the denominator to panel-eligible HAI cohort encounters via `_panel_eligible_organisms` (derived from `load_hai_antibiogram()` keys, no hard-coded no-panel exclusion — E.faecalis 78065002 / C.albicans 53326005 auto-excluded). Both TODO markers removed (`clinosim/audit/axes/clinical.py:175-191` R-rate block + `clinosim/modules/antibiotic/audit.py:111-128` empty-rate block). 10 new unit tests + 4 new integration tests pin filter behavior. n<30 WARN guards retained for rare-event safety. **Silent-no-op defense layers**: (1) canonical SNOMED URI equality vs substring (`_SNOMED_URI`), (2) shared id-prefix constants between writers/readers (`MB_ORG_ID_PREFIX` in `fhir_r4/labs/microbiology.py`, `ABX_REGIMEN_ID_PREFIX` + `ABX_ORDER_REQ_PREFIX` + `ABX_ORDER_ID_PREFIX` + `ABX_NARROW_SUFFIX` in `antibiotic/engine.py`), (3) `load_hai_antibiogram()` raises on empty top-level + empty per-hai_type bucket, (4) `_validate_nhsn_resistance_bands` reverse-coverage (forward + staleness) with `_NHSN_REVERSE_COVERAGE_EXEMPT` for organisms NHSN doesn't band, (5) all validators run BEFORE `register_audit_module` so band-shape failure prevents stale spec from registering, (6) `_validate_narrow_rate_bands` symmetric forward-coverage = every HAI_TYPE has a narrow rate band (adv-3 finding, applies the sibling layer-4 pattern to `_NARROW_RATE_BANDS`), (7) `HAI_EVENT_ID_SYSTEM` canonical URI shared between writer (`fhir_r4/labs/microbiology.py`) and reader (`audit/axes/clinical.py`) — PR3b-5 emit pattern same as MB_ORG_ID_PREFIX + ABX_ORDER_ID_PREFIX.
-
-  **★ Milestone declaration (2026-06-29)** — PR3b-3 D1+D2 chain (#112-#116) + PR3b-5 attribution refinement chain (#117-#120) + HAI YAML sibling sweep chain (#121-#122) **all 3 chains CLOSED**. Across the 4 axes of data quality / clinical consistency / maintainability / conceptual soundness:
-  - **Data quality**: PR3b-5 RESOLVED the encounter-level attribution approximation; approximations = 0
-  - **Clinical consistency**: D1 R-rate gate semantics correct at any cohort scale (per-(hai_type, organism, antibiotic)), D2 panel-eligible denominator matches the NHSN definition, 6-of-6 hai_*.yaml loaders fully validated
-  - **Maintainability**: 7-layer system-level silent-no-op defense (canonical URIs + ID prefixes + validator ordering + reverse-coverage forward+staleness + HAI_EVENT_ID_SYSTEM) + per-validator 6-layer pattern (empty + per-bucket + forward-coverage + range + authoritative cross-validation) applied to all HAI YAML; clear separation of responsibilities
-  - **Conceptual soundness**: the 4-layer silent-no-op defense pattern (canonical constants + YAML loader cross-validation + normalize_probabilities + reverse-coverage) is established + the 5th instance of the 4-stage adversarial chain pattern converged (PR-A / PR #102 / PR-B1 / PR3b-3-original / PR3b-3-D1+D2 / PR3b-5 / sibling sweep) = **7 instances of a stable chain pattern**
-
-  All remaining backlog is in GitHub Issues (see `docs/roadmap.md`) (PR3b-4 WBC/CRP decay / audit registry `_reset_for_test` ordering / Phase 2 per-event observed-vs-theoretical / NHSN clinical-accuracy band verification / I1 WARN UX / MB_*_PREFIX cleanup / DESIGN.md AD-55+AD-60 extended ADR / `_code_in_data` public API promote). Zero half-finished state; every deferred item is documented with full context.
-
-  **HAI YAML sibling sweep CLOSED (2026-06-29, PR #121 + adv-1 #122 = 2-stage adversarial chain converged)** — the **per-validator 6-layer defense pattern** (empty top + per-bucket guards + unknown-hai_type rejection + HAI_TYPES forward-coverage + range/type checks + authoritative cross-validation) is now applied to **all 6 HAI YAML loaders**: `hai_antibiogram` + `hai_organisms` (existing, PR3b-3) + new `hai_lab_lift` + `hai_rates` + `hai_codes` + `hai_specimens` (sibling sweep). Each `_validate_hai_<name>` performs the pattern with authoritative loader lookups (`_code_in_data()` for ICD/SNOMED/LOINC, `load_devices_config()["devices"]` for device_type). Note: the system-level 7-layer silent-no-op defense established by PR3b-3 / PR3b-5 chains (canonical URIs + ID prefixes + validator ordering + reverse-coverage etc.) is unchanged by sibling sweep — the new validators are pattern applications, not new defense layers. YAML data unchanged; byte-diff verified zero NDJSON at p=1000 seed=42 (only manifest.json transactionTime differs).
-
-  **PR3b-5 attribution refinement CLOSED (2026-06-29, PR #117 + adv-1 #118 + adv-2 #119 = 3-stage adversarial chain converged)** — D1 R-rate gate now joins susceptibilities to specimens (via `Observation.specimen.reference`) and filters to HAI-derived specimens (via the new `HAI_EVENT_ID_SYSTEM` canonical URI identifier, `urn:clinosim:identifier:hai-event-id` matching the existing `urn:clinosim:staff` internal convention). C1 (multi-organism encounter double-count) and C2 (community + HAI culture co-occurrence) attribution defects are mechanically excluded. **D1 gate semantics are correct at any cohort scale; production-scale firing requires either p≥1M (NHSN-band per-(hai_type, organism, abx) cohort sizes scale ~linearly with HAI rate × population) or `ForcedScenario.force_hai_event` injection at smaller p — both currently in the n<30 WARN regime, mechanically verified by integration tests.** New helpers: `_organism_per_specimen`, `_hai_specimens` (inline in `clinosim/audit/axes/clinical.py`). FHIR identifier emission added to `clinosim/modules/output/fhir_r4/labs/microbiology.py` on Specimen + mb-org-* / mb-sus-* Observation + DiagnosticReport when `MicrobiologyResult.hai_event_id` is non-empty (community cultures byte-identical). PR3b-3 DQR §"Known approximation" carries a RESOLVED cross-link to `docs/reviews/2026-06-29-pr3b-5-attribution-refinement-dqr.md`. **PR3b-3-related deferred TODOs = 0** (PR3b-5 closes the only remaining documented approximation). DQR: `docs/reviews/2026-06-29-pr3b-3-clinical-axis-completion-dqr.md`. **PR3b-3 original-spec deferred TODOs = 0** (both clinical.py + audit.py TODO markers removed). Out-of-scope deferred (separate backlog, not folded in to preserve closure integrity): (a) PR3b-5 **specimen-organism susceptibility attribution refinement** (adv-1 finding C1+C2: current per-organism filter joins susc → organism via encounter ref alone; a HAI encounter with both S.aureus + S.epidermidis cultures double-counts susc rows; the clean fix joins via `Observation.specimen.reference`. New finding spawned by PR3b-3 adv review, not part of original PR3b-3 backlog), (b) YAML loader reverse-coverage sibling sweep (hai_lab_lift / hai_rates / hai_codes / hai_specimens / hai_organisms), (c) audit registry `_reset_for_test` ordering, (d) FHIR `hai_event_id` identifier emission.
-- **Phase 3a HAI WBC + CRP lift** — `modules/hai/lab_lift.apply_hai_lab_lift` walks `record.extensions["hai"]` after the daily loop completes (POST_ENCOUNTER stage fires before this) and adds a **closed-form forward delta** to the existing WBC + CRP `obs.value`, preserving original noise + circadian. The closed-form `_hai_lift_delta` mirrors `derive_lab_values`' CRP + WBC blocks exactly without invoking the 30+ analyte pipeline twice. State snapshot comes from `state_history[day_index + 1]` (post-day-N state — index 0 is admission). After lift, `round_to_precision` + `determine_flag` are re-applied so CSV / CIF consumers see consistent flag/value pairs. The earlier 3-helper `hai_flags_from_record` primitive was removed as dead code in the post-PR-90 xhigh review. Phase 3b/c will reuse the same forward-delta pattern for antibiotic decay and Lactate / Plt / Temp / SBP sepsis cascade extensions.
-- **Canonical hai_type strings** — use the constants in `clinosim/modules/hai/__init__.HAI_TYPES = ("clabsi", "cauti", "vap")` everywhere a `HAIEvent.hai_type` appears (enricher, tests, YAML keys). The PR-90 xhigh review caught a case-mismatch (UPPERCASE YAML keys vs lowercase enricher writes) that silently no-op'd the entire Phase 3a lift in production; `load_hai_lab_lift_config` now validates YAML keys against `HAI_TYPES` at import time. Any test that constructs `HAIEvent` with a literal string that bypasses `HAI_TYPES` is a smell — wire it through the enricher path or import the constant.
-- **Verification gate is `clinosim audit run`** — the unified new-feature gate (structural / clinical / jp_language / silent_no_op axes; AD-60). Modules co-locate their audit checks in `clinosim/modules/<name>/audit.py` via `register_audit_module(ModuleAuditSpec(...))`. byte-diff stays as a separate refactor-PR mechanic. The `silent_no_op` axis runs canonical-constants cross-check + lift-firing proof — this is the load-bearing verification that catches PR-90's silent-no-op class of bug at audit time (a green DQR with HAI cohort delta vs non-HAI baseline can be confounded by underlying disease state — UTI → naturally elevated WBC + CRP — masking a no-op lift code; the lift_firing_proof closes that gap).
-
-### Code system module (`clinosim/codes/`)
-
-- **English-first principle**: every code in `codes/data/*.yaml` MUST have an `en` field. Other languages (`ja`, etc.) are optional translation attributes.
-- **Authoritative sources**: code values and English text follow official definitions from CMS (ICD-10-CM), NLM (RxNorm), Regenstrief (LOINC), AMA (CPT), WHO (ICD-10), JCCLS (JLAC10), MHLW (YJ codes, K codes).
-- **Locale-independent**: `clinosim/codes/` is NOT under `locale/`. Code systems are international standards.
-- **Single lookup API**: all code → display resolution goes through `clinosim.codes.lookup(system, code, lang)`.
-
-### Locale module (`clinosim/locale/`)
-
-- Contains **only culture/country-dependent data**: names, addresses, demographics, formatting, lab reference ranges, code_mapping (internal name → standard code).
-- Terminology files (`terminology_*.yaml`) have been migrated to `clinosim/codes/`. Do not recreate them in locale.
+- `clinosim/codes/` holds international code systems (locale-independent): every code in `codes/data/*.yaml` has an `en` entry from an authoritative source (CMS, NLM, Regenstrief, AMA, WHO, JCCLS, MHLW). Never fabricate a code.
+- `clinosim/locale/` holds only culture- or country-dependent data (names, addresses, demographics, formatting, reference ranges, internal-name → code mappings). Do not recreate terminology files there.
 
 ### FHIR R4 output
 
-- **Bulk Data Access compliant** (AD-31) — one NDJSON per resource type + manifest.json. No per-encounter Bundle wrapping.
-- **Resource.id uniqueness**: every resource id must be globally unique within its type. Use encounter-scoped ids (`vs-{encounter_id}-...`, `lab-{encounter_id}-...`) for observations and orders.
-- **Reference integrity**: every `reference` must resolve to a resource in the same export.
-- **Facility master resources** — Organization (hospital + departments), Location (wards + beds) and Device are built once by `fhir_r4/encounters/facility.py::_build_facility_bundle` and written into the regular `Organization.ndjson` / `Location.ndjson` / `Device.ndjson` (there is no separate `_facility.json`).
+Normative: [`fhir-data-generation-logic.md`](docs/design-guides/fhir-data-generation-logic.md) (subordinate to the code-mapping spec on display rules) and [`encounter-lifecycle-and-export-spec.md`](docs/design-guides/encounter-lifecycle-and-export-spec.md).
 
-### Snapshot semantics (AD-32)
-
-- `--end` flag = **snapshot date**. No life events generated past this date.
-- Inpatients whose discharge would fall after snapshot become `Encounter.status = "in-progress"` with no `discharge_datetime`.
-- Partial data only (labs/vitals/orders/MAR up to snapshot day).
-- Primary `Condition.clinicalStatus = "active"` for in-progress encounters.
+- **Bulk Data** (AD-31): one NDJSON per resource type + `manifest.json`; resource ids unique within their type; every reference resolves within the export. Facility masters (Organization / Location / Device) are built once by `fhir_r4/encounters/facility.py` into the regular NDJSON files.
+- **Codings** go through `dual_slot_concept` / `system_coding`: English-only systems (LOINC, SNOMED CT) keep the English `coding.display`, the local label goes in `.text`. Condition and Procedure carry dual coding (local primary + interop). Never emit `display == code`. `code.text` of a Condition uses the `condition-short-name` code system.
+- **Medication text**: strip protocol prefixes with `strip_protocol_prefix()`; `medicationCodeableConcept.text` is the drug name only.
+- **Numeric Observations** carry both `referenceRange` and `interpretation`, recomputed at output time and consistent.
+- **Locale**: JP output has every `display` / `text` / `name` in Japanese except English-only codings; US output contains no Japanese characters.
+- **JP Core / JP-CLINS / JP-eCheckup / SS-MIX2 URIs** are quoted from the spec's `fixedUri`, defined once as a constant and pinned by a unit test (`tests/unit/output/test_fhir_jp_core_p14_slices.py`). A guessed URI makes validators silently skip the slice.
+- **Sex-locked ICD-10**: every Condition dispatch site calls `clinosim.simulator.sex_gating.is_sex_locked_for(code, patient_sex)` (table: `clinosim/simulator/reference_data/icd10_sex_restrictions.yaml`); when every candidate is locked, fall back to `UNRESOLVED_DIAGNOSIS_ICD` (R69). Never inline a sex-restriction dict.
+- **Snapshot** (AD-32): `--end` is the snapshot date; no life event after it; inpatients still admitted have `Encounter.status = "in-progress"`, no discharge, data up to the snapshot day and an active primary Condition. Builders read `ctx.snapshot_date` (never re-parse `cif/metadata.json`) and sample dates at or before it; the bundle-finalize filter (`_drop_entries_after_snapshot`) is a safety net, not a substitute.
+- **Allergy assertion**: every patient carries at least one `AllergyIntolerance` — a real allergen or SNOMED `716186003` "No known allergy". Tunables live in `clinosim/modules/allergy/reference_data/allergens.yaml`.
+- **Anthropometrics**: height, weight, BMI (and head circumference up to age 3) at every encounter; pediatric medians from `clinosim/modules/population/reference_data/anthropometric_reference.yaml`; per-encounter noise from `clinosim.determinism.sha_normal` (never the master RNG). BMI is computed from the emitted height and weight.
+- **JP long-term-care level** Observations emit only for patients meeting `care_level.yaml::eligibility_gates` (age ≥ 65, or 40–64 with a designated condition).
 
 ## Testing
 
-- `pytest -m unit` — per-module unit tests (<30s)
-- `pytest -m integration` — module chain tests (<5min)
-- `pytest -m e2e` — golden file comparison (<30min)
-- `pytest -x` — full suite (≈8400 tests; unit+integration ~2 min, e2e golden ~8 min)
-- Always run unit tests before committing.
+- `pytest tests/unit` — unit tests (use the path, not `-m unit`: not every unit file carries the marker).
+- `pytest -m integration` — module chain tests.
+- `pytest -m e2e` — golden file comparison.
+- `pytest tests/regression -m regression` — narrative golden byte-diff (opt-in locally; runs in CI).
+- Before pushing: `ruff check`, `ruff format --check`, `mypy clinosim/` and the unit tests.
 
 ## Development workflow — Issue → PR → Merge
 
@@ -339,174 +273,35 @@ within the same session.
 ## When modifying a module
 
 1. Read the module's `README.md` first
-2. Make changes
-3. Check the dependency tree in [`MODULES.md`](MODULES.md) — verify downstream impact
-4. Update the module's `README.md` if API/data structures changed
-5. Update `clinosim/types/*.py` if shared data types changed
-6. If adding a new code, add it to `clinosim/codes/data/<system>.yaml` with at least an `en` field
-7. Run tests: `pytest -x -q`
-
-## FHIR output rules (must follow for all resource builders)
-
-- **Multilingual coding**: Condition and Procedure emit dual `coding[]` entries — primary language + interop language. Never emit `display == code`.
-- **code.text**: Use clinical short names from the `condition-short-name` code system (`clinosim/codes/data/condition-short-name.yaml`, resolved via `code_lookup("condition-short-name", base_code, lang)`) (e.g. "COPD" not "Other chronic obstructive pulmonary disease"). For Procedures, resolve via `code_lookup()`.
-- **Medication text**: Strip protocol prefixes (DVT_prophylaxis:, antipyretic: etc.) via `clinosim.modules._shared.strip_protocol_prefix()`. `medicationCodeableConcept.text` = drug name only.
-- **referenceRange + interpretation**: Both MUST be present for numerical observations and MUST be consistent (FHIR R5 Note 5). Lab interpretation recomputed from value vs referenceRange.
-- **JP localization**: All `display`, `text`, `name` fields must use Japanese when `country="JP"`. Use `_localize_display()` for enum values. Drug/procedure names via `code_lookup()` or the lang-aware wrapper `localize_drug_name(name, lang)` — the wrapper is a no-op for locales without a lookup table (today: any `lang != "ja"`), so callers stay single-code-path across locales rather than gating on `if lang == "ja":`. Same pattern for `localize_lab_name(name, lang)` / `localize_oxygen_device(device, lang)`.
-- **US output**: Must be 100% English. No Japanese characters in any field.
-- **JP Core / JP-CLINS profile URIs and slice system URIs must always quote the spec's `fixedUri` directly**. Use `Element.system.fixedUri` / `Element.fixedUri` from the JP Core StructureDefinition JSON (`iris4h-ai/jp_core/package/StructureDefinition-*.json` or the corresponding spec file on `jpfhir.jp`), **taken directly via grep**. **Never use guessed URIs or URIs named by plausible-looking convention** — a mismatch with the spec turns the HAPI validator into a silent no-op (it looks fine because a URI is present, but the profile slice discriminator does not match and the validation error does not go away). Any new pull request adding JP Core slice support **must add a test that pins the URI as a module-level constant**, like `tests/unit/output/test_fhir_jp_core_p14_slices.py` (regression defense). The same rule applies to JP-eCheckup / JP-CLINS / SS-MIX2 profile URIs.
-- **Sex-locked ICD-10 emit** (Issue #947, 2026-08-30) — every Condition dispatch site MUST call `clinosim.simulator.sex_gating.is_sex_locked_for(code, patient_sex)` before emitting an anatomy-locked ICD-10 (`N40` BPH, `N41` prostatitis, `N70`-`N77` female PID, `O00`-`O9A` pregnancy, `C50`-`C63` sex-specific malignancies, etc.). The canonical restriction table lives in `clinosim/locale/shared/icd10_sex_restrictions.yaml` (non-engineer editable; explicit code list, no prefix ranges). The differential picker (`modules/diagnosis/engine.py::get_current_diagnosis_code`) walks the already-probability-sorted candidate list to the next sex-compatible entry — no fresh RNG state consumed, preserving cross-platform bit-reproducibility. Every candidate locked → fall back to `UNRESOLVED_DIAGNOSIS_ICD` (`R69`) rather than emit a locked code. Do NOT inline `_SEX_RESTRICTED_ICD` dicts at call sites — that pattern already surfaced two silent-drift copies (Issue #947 root cause). Companion to the age-gate symmetry rule (`feedback_dispatch_table_age_sex_gate_symmetry`).
-- **Snapshot-date awareness** (Issue #944 + Issue #945, 2026-08-30) — every bundle emit path SHOULD respect `ctx.snapshot_date` (populated once by `convert_cif_to_fhir` reading `cif/metadata.json`, soft-failure on missing / malformed). Coverage.status derivation (`_derive_coverage_status`) uses it directly; new emit sites SHOULD sample dates `<= snapshot_date` at the source. The universal `_drop_entries_after_snapshot` bundle-finalize filter (with its cascade-drop + dangling-reference scrubber sibling) is a safety net, not a substitute — leaking future-dated events into the bundle and relying on the filter to remove them wastes RNG cursor, cascades the drop-set through the scrubber's fixed-point iteration, and risks orphaning parent resources whose only child was dropped. `_POST_SNAPSHOT_ALLOWED_RESOURCE_TYPES` whitelists Patient / Encounter / Coverage / CareTeam / Practitioner / PractitionerRole / Organization / Location / Endpoint / Device / Medication (period.end for open admissions and active coverage legitimately reaches past snapshot). Never re-parse `cif/metadata.json` in a builder — read from `ctx.snapshot_date`.
-- **NKA positive assertion** (Issue #942, 2026-08-30) — every emitted patient MUST carry at least one `AllergyIntolerance` record: a real allergen OR SNOMED `716186003` "No known allergy" (localized `code.text = アレルギー歴なし` JP / `No known allergies` US, `clinicalStatus=resolved`, `verificationStatus=confirmed`; `type` / `category` / `criticality` omitted per NKA shape). Absent `AllergyIntolerance` = "not assessed" is a bug, not a default — the absent state is ambiguous between "no known allergy" and "not documented", so downstream analytics cannot rely on absence. NKA bypasses the JFAGY JP-Core substitution — it is a status code, not a JFAGY allergen. All NKA / polyallergy / cross-reactivity tunables live in `clinosim/modules/allergy/reference_data/allergens.yaml` (`nka` / `polyallergy` / `cross_reactivity` blocks); do not hard-code the SNOMED code or the localized display strings.
-- **Anthropometric vitals at every encounter** (Issue #946, 2026-08-30) — height (LOINC `8302-2`), weight (`29463-7`), BMI (`39156-5`), and — for age ≤ 3 — head circumference (`8287-5`) emit as `category=vital-signs` Observations on every encounter. Adult values come from fixed `patient.height_cm` + per-encounter weight drift; pediatric values from per-age × per-sex p50 medians in `clinosim/locale/shared/anthropometric_reference.yaml` (WHO / MHLW / MEXT for JP, WHO / CDC for US). BMI is computed at emit time from the emitted height + weight so the triple stays internally consistent. Per-encounter noise MUST be derived via `hashlib.sha256(f"{patient_id}|{encounter_id}|<suffix>")` → Gaussian quantile through `mpmath.erfinv` (prec=128) — the same RNG-neutral pattern as `_derive_rh_factor` (`feedback_rng_neutral_additive_field`). Never consume the master RNG for anthropometric values; that pattern shifts every downstream stream. All clamp bounds / medians / head-circ max age / noise SDs live in the anthropometric_reference.yaml.
-- **LTCI carelevel eligibility gate** (Issue #940, 2026-08-30) — 介護保険 `carelevel-*` Observations MUST emit only when the patient satisfies the eligibility gate in `clinosim/modules/care_level/reference_data/care_level.yaml::eligibility_gates`: 第1号被保険者 (category-1 insured, universal) age ≥ 65, OR 第2号被保険者 (category-2 insured) age 40-64 with a chronic condition in the MHLW 特定疾病 (specified diseases) subset that clinosim actually emits (`F00`, `G30`, `G20`, `J44`, `I60` / `I61` / `I63` / `I69`, `G12.2`, `M80`). Patients under 40 MUST NOT emit a carelevel code. The eligibility filter runs AFTER the per-patient sub-RNG draw so RNG shape is unchanged for skipped patients (no cross-patient cascade). Symmetric pattern to the alcohol / smoking `age_gates.{alcohol,smoking}_min_age` (default 15, USPSTF / MHLW high-school health-checkup lifecycle) in `modules/sdoh/reference_data/social_history.yaml`.
-
-## Enrichment architecture (narrative prompts)
-
-- **Enrichment is language-neutral** (AD-44): extraction functions produce English structured data regardless of target language. LLM translates based on prompt language instruction.
-- **Only 2 locale-specific operations in enrichment**:
-  1. `code_lookup(system, code, language)` — returns official diagnosis short name in target language
-  2. CRP unit conversion (mg/L → mg/dL for JP) — mathematical, not translation (AD-42)
-- **Do NOT pre-translate** drug names, procedure names, complication labels, event descriptions. LLM handles this.
-- **FHIR adapter localization is separate** — FHIR output path (not going through LLM) uses its own dictionaries (the retired `drug_names_ja.yaml` (deleted #1876; replaced by `load_narrative_display_dict` catalog UNION), the `condition-short-name` code system, etc.; procedure-name translations and condition short names moved into the code dictionaries under `clinosim/codes/data/`, resolved via `code_lookup()`)
-
-## AD-30 (CIF is language-neutral) enforcement
-
-- CIF stores **codes only**, not display text. Display resolved at output time via `clinosim.codes.lookup()`.
-- `ProcedureRecord` has `procedure_code`, `procedure_code_jp`, `procedure_code_us` — no `procedure_name`.
-- Drug names in `Order.display_name` and `MAR.drug_name` are English (pragmatic exception — RxNorm integration incomplete).
-- Diagnosis display comes from `code_lookup()` at FHIR export / enrichment time.
-
-## Current implementation phase
-
-**Baseline capabilities (last release v0.6.5, 2026-09-28; counts below reflect current master)**:
-population-driven simulation with full FHIR R4 Bulk Data Export,
-multi-country
-(US / JP), **36 inpatient disease protocols + 51 ED / outpatient
-encounter conditions**, JP-CLINS eCS emission (profile pin tracked in
-`.github/jp-validator-pins.env` and the
-`jp-clins-lab-compliance-gate.yml` CI check), snapshot date support,
-opt-in JP insurance enrollment (FHIR Coverage, AD-54), a new
-**US insurance Coverage emit** (PR #1149, 9 synthetic payor categories
-mapped to `us-core-coverage` profile), the complete
-**AD-55 Base data-enrichment set** (microbiology, cardiac markers,
-nursing flowsheets, immunization, family history, code status,
-extended SDOH — smoking / alcohol / JP 要介護度 (long-term-care need level)), and the FHIR
-adapter split into per-theme builder modules under
-`clinosim/modules/output/fhir_r4/` (FA-1 complete).
-
-**Session 100-103 (2026-09-01 → 2026-09-06) additions** on top of the
-v0.5.0 line: full **`natural_death` lifecycle** (C11g-1 → C11g-5;
-`clinosim/modules/natural_death/` + `clinosim/locale/shared/actuarial_life_table.yaml`
-with US CDC 2020 + JP MHLW 2020 qₓ tables; `is_alive_at(t)` gate
-threaded into all 4 event dispatchers; `Patient.deceasedDateTime` +
-`Patient.active=false` FHIR alignment — the `natural_death` module and
-its enricher were later superseded by #2167: community deaths are now
-drawn forward once per person per year in
-`clinosim/modules/population/mortality.py`, called from
-`population/aging.py::advance_population`, and events are gated by
-`PersonRecord.in_population_at(t)`); **`prophylaxis` enricher**
-(POST_ENCOUNTER order=75, DVT chemoprophylaxis for IMP ≥ 48 h);
-**`drug_safety` foundation** (8-rule contraindication engine invoked
-sync from `order` + `patient`, with alternative-drug substitution +
-`MedicationRequest.note[]` caution passthrough);
-**`TemporalStatePeriod` framework** (`PersonRecord.state_periods` +
-`PatientProfile.state_periods`, adopted first by the pregnancy
-lifecycle refactor META #957 Incr 1); an 8-axis US demographics
-recalibration bundle (E66 / cancer / dementia / osteoporosis /
-depression / anxiety / young-adult HTN / SDOH tobacco+alcohol / MI +
-stroke incidence); a **hospital-cohort target-band verifier**
-(`scripts/verify_medical_stats.py::HOSPITAL_COHORT_TARGET`) that
-flags legitimate deviations from general-population benchmarks with
-an `OK-HC` verdict rather than `FAIL`; imaging stub-share reduced
-19.4 % → < 3 %; and a narrative CIF density round-out (admission H&P
-PE+A&P + progress-note SOAP + on-disk `structured` cleanup). Full PR
-list under `## [Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md).
-
-**Longitudinal service lines** (v0.6.0 complete): oncology
-(10 cancer sites — C15 / C16 / C18 / C22 / C25 / C34 / C50 / C61 /
-C67 / C71 — including male breast (~1% of C50) via the `by_sex`
-prevalence schema, chemo regimen cycle scheduling with per-cycle
-`MedicationRequest` + `MedicationAdministration`, radiation therapy
-Procedure, tumor-marker labs — CEA / CA19-9 / AFP / PIVKA-II /
-CA15-3 / PSA) and obstetrics (META #957 Incr 1: pregnancy as a
-time-boxed `TemporalStatePeriod` on `PersonRecord.state_periods`,
-opened by an age-banded annual conception Bernoulli against MHLW
-2022 / CDC NVSR 2022 rates; prenatal visits at gestational weeks
-12/24/36 with encounter reason Z34; mother-side delivery Encounter
-with Z37.0 discharge dx + delivery Procedure JP K894 / US CPT 59400
-+ newborn Patient chain via `admit_source = born` + `Encounter.partOf`;
-postpartum encounters × 2 at 7 d / 28 d with Z39; Z37 past-birth
-problem-list-item derived from `state_history` delivered periods;
-newborn perinatal conditions P59.9 / P07.3 / P22.0 / L22 / L20.9;
-abortion outcome O03.9 / O04.5 age-gated 15-19 → 35-44). Config:
-`chemo_regimens.yaml`, `perinatal.yaml` (both under
-`clinosim/locale/shared/`). Runtime detail:
-[`docs/reference/oncology-obstetric-service-lines.md`](docs/reference/oncology-obstetric-service-lines.md).
-Framework rationale:
-[`docs/architecture/architecture-notes.md`](docs/architecture/architecture-notes.md)
-§9 (AD-71 TemporalStatePeriod).
-
-The v0.3 → v0.6.5 history of PATCH / MINOR bumps lives in
-[`CHANGELOG.md`](CHANGELOG.md); the invariants below stay accurate
-irrespective of release cadence.
-
-**Silent-no-op defense triplet** is fully wired across the codebase (PR #102 / #103 2026-06-27): (1) canonical constants (e.g. `HAI_TYPES`) are defined at module level, (2) `_validate_*(data) -> None` is wired into the 5 major YAML loaders (`_validate_microbiology` PR-A 7 cross-refs + `_validate_hai_organisms` + `_validate_demographics` + `_validate_names` + `_validate_addresses`) (fail-loud at import), (3) `normalize_probabilities(..., fallback="raise")` is applied to all **15 YAML-sourced callsites** (7 modules: code_status / population / clinical_course / hai / family_history / observation / care_level). Verified with added tests + a converged 4-stage adversarial chain (unit / integration / e2e: 1020 passed, 4 skipped).
-
-**Foundation polish complete** — PR-B1 chain (PR #104 / #105 / #106 2026-06-27): hand-rolled `global X; if X is None: ... else return X` sentinel pattern was eliminated from every loader and unified on `@lru_cache(maxsize=1)` (current path examples: `clinosim/modules/encounter/protocol.py:load_all_encounter_conditions`, `clinosim/modules/order/panel_grouping.py:load_panel_definitions`, `_load_med_terms_ja` / `_load_narrative_display_dict` / `_load_department_display` in `clinosim/modules/output/fhir_r4/lib/localization.py`). The `try/except pass` silent skip in the PR-B1-era `_load_all_disease_protocols` was removed at the same time (strengthening the silent-no-op defense, consistent with the PR #102 triplet). Verified with the byte-diff invariant preserved (37/37 NDJSON sha256 IDENTICAL) + a converged 4-stage adversarial chain (1031 passed, 4 skipped). Remaining PR-B2 = `__all__` + re-export in the `__init__.py` of 16 modules (MOD-1 flexible interpretation, callers unchanged). Note: `simulator/helpers.py:_load_all_disease_protocols`, which was in the enumeration at the time, was deleted entirely in session 96, and `_fhir_diagnostic_report.py` / `_fhir_localization.py` moved to `fhir_r4/labs/` / `fhir_r4/lib/` respectively.
-
-**PR3b-3 HAI culture S/I/R-driven narrow / de-escalation chain complete** — PR #107 (original) + #108 (adv-1 = 5 CRITICAL + 5 IMPORTANT) + #109 (adv-2 = 1 CRITICAL + 5 IMPORTANT) + #110 (adv-3 = stage-3-introduced regression fix) = **4-stage adversarial chain CONVERGED** (2026-06-27, matches PR-A / PR #102 / PR-B1 4-stage pattern): same antibiotic enricher Pass 2 walks `extensions["antibiotic"]` empirical regimens, looks up culture via `MicrobiologyResult.hai_event_id` backref, picks narrow target via per-(hai_type, organism) `narrow_ladder.yaml` (4-way validation: HAI_TYPES + antibiogram + ANTIBIOTIC_DRUGS + reverse-coverage), dispatches 3 outcomes (SWITCH = new `intent="narrowed"` regimen / ELIMINATION = non-target empirical discontinued / NO_CHANGE). FHIR `MedicationRequest.status="stopped"` via new `OrderStatus.STOPPED` + exhaustive `_map_order_status_to_fhir`. Audit clinical axis active enforcement (per-hai_type narrow rate + NHSN R-rate + empty rate, all `n<30 → WARN` guards). lift_firing_proof extended to **17 equality_checks** (8+3+6). silent-no-op defense triplet 4th layer = `_validate_narrow_ladder` 4-way (forward+reverse coverage+empty container) + `_validate_narrow_rate_bands` typo + empty list gates + `_validate_hai_empirical` reverse-coverage (sibling sweep from adv-1).
-
-**Tier 1 #2 Imaging chain α-min complete** (2026-06-30, AD-62) — `modules/imaging/` always-on POST_ENCOUNTER Module (order=90) emits `ImagingStudyRecord` into `extensions["imaging"]`. 4 FHIR resources per imaging encounter: `ImagingStudy` (urn:dicom:uid, DCM modality, multi-series), `Endpoint` (WADO-RS placeholder), radiology `DiagnosticReport` (findings + impression in `text.div` + `conclusion`), `ServiceRequest` (imaging category). Polymorphic `_fhir_service_request` dispatches LAB + IMAGING. 15-check `lift_firing_proof` (AD-60). Disease YAMLs: `bacterial_pneumonia.yaml` (CR CXR) + `hemorrhagic_stroke.yaml` (CT head). JP locale: 100% ja displays (modality/bodySite/DR.code/conclusion). Production cohort: US p=10k + JP p=5k. Bug found+fixed: `_simulate_unknown_condition` was not setting `encounter_id` on orders before returning `CIFPatientRecord` — added encounter_id backfill loop (mirrors `simulate_inpatient:361-363`).
-
-**FHIR completeness chain complete** (2026-07-06, AD-67/68/69) — a 9-chain effort
-to eliminate "incomplete FHIR element states", organized in a dedicated fix-point registry
-(`docs/design-notes/2026-07-06-fix-point-registry.md`, kept separate from this TODO) under a
-3-class definition: **C1 silent-drop** / **C2 degenerate** / **C3 missing-structure**. Landed:
-(1) **FP-SEV-MODEL / AD-67** — severity single source of truth: disease-YAML
-`severity.distribution` × `modifiers` is now canonical (new `clinosim/modules/disease/severity.py`
-owns sampling + the category↔score boundary + fail-loud validation); locale `severity_beta` /
-`severity_minimum` retired; comorbidity modifiers now fire (acute_mi severe rate ~0.11→~0.5).
-(2) **FP-YAML-2b / AD-68** — dead `archetype_modifiers` (23 YAMLs) wired into `select_archetype`.
-(3) **FP-YAML-3 / AD-69** — `DiseaseProtocol` `extra="forbid"` (author-time silent-drop defense)
-after deleting 4 unread orphan keys + the dead `readmission` field.
-(4) **FP-YAML-1** — `diagnostic_difficulty` top-level silent-drop (8 diseases had 0.25/0.5→0.3).
-(5) **FP-I10** — hypertension stage now drives baseline BP (was a no-op degenerate stage).
-(6) **FP-ARCH-1** — `heart_failure_exacerbation` + `subdural_hematoma` course_archetypes +
-complications (were on the generic infection fallback).
-(7) **FP-COMPLETENESS-GATE** — `tests/unit/test_completeness_invariants.py` durable guards
-(incl. a general-class C2 guard: every graded-stage condition must have a `STAGE_SEVERITY`
-consumer, so the I10-class no-op cannot recur). Remaining: FP-AGE (person.age multi-year),
-FP-ARCH-2/3 (7 trauma diseases), cross-cutting follow-ups (Condition.stage SNOMED code across 6
-staged conditions, 3 dead model fields, cohort-level statistical completeness audit axis) — all in
-the registry. Implementation conventions: `docs/design-guides/data-model-and-completeness-conventions.md`.
-
-See [`docs/roadmap.md`](docs/roadmap.md) — which points at the GitHub Issues board — for roadmap and remaining tasks.
+2. Read the binding spec of the area you are changing ([`docs/design-guides/README.md`](docs/design-guides/README.md))
+3. Make changes
+4. Check the dependency tree in [`MODULES.md`](MODULES.md) — verify downstream impact
+5. Update the module's `README.md` (and `README.ja.md`) if its API, files or data changed
+6. Update `clinosim/types/*.py` if shared data types changed
+7. If adding a new code, add it to `clinosim/codes/data/<system>.yaml` with at least an `en` field
+8. Run tests: `pytest tests/unit -x -q`
 
 ## Key directories
 
 ```
 clinosim/
-  codes/           <- ★ International code systems (locale-independent, EN-first)
+  codes/           <- International code systems (locale-independent, EN-first)
     data/          <- icd-10-cm.yaml, loinc.yaml, rxnorm.yaml, ...
-    loader.py      <- lookup() API
-  locale/          <- Country/culture-specific data (names, addresses, ranges)
+    loader.py      <- display() / get_system_uri() / system_key_for()
+  locale/          <- Country/culture-specific data (names, addresses, ranges, code mappings)
     jp/, us/, shared/
-  config/          <- Hospital config YAML (50-bed, 10-bed, etc.) + LLM config
-  types/           <- All data type definitions (Pydantic / dataclass)
+  config/          <- Hospital config YAML (50-bed, 10-bed, 200-bed) + LLM config
+  types/           <- Shared data type definitions (Pydantic / dataclass)
+  determinism.py   <- Bit-reproducible generator + stream-free sha_* draws
+  seeding.py       <- Sub-seed derivation + ENRICHER_SEED_OFFSETS
+  datafiles.py     <- The one YAML reader (+ model validation)
+  countries.py     <- is_jp / is_us / lang_for
   modules/         <- Functional modules (one package per module, each with README)
-    identity/      <- ★ Resident identifier & insurance numbering (JP, opt-in; AD-54)
-    immunization/  <- Adult vaccine history (AD-55 Base; AD-56 enricher)
-    family_history/<- First-degree-relative disease history (AD-55 Base)
-    code_status/   <- Resuscitation status on serious encounters (AD-55 Base)
-    care_level/    <- JP 要介護度 / long-term-care need level (AD-55 Base, JP only)
-    device/        <- ★ ICU device placement (CVC/catheter/ventilator, AD-55 Module, PR-A)
-    hai/           <- ★ CDC NHSN HAI sampling (CLABSI/CAUTI/VAP, AD-55 Module, PR-B; consumes extensions["device"])
-    output/        <- CIF → format adapters; fhir_r4/ package with per-theme builder subpackages (FA-1; fhir_r4_adapter.py is a back-compat shim)
+    output/        <- CIF -> format adapters; fhir_r4/ package with per-theme builder subpackages
   simulator/       <- Top-level orchestration (run_beta, run_forced, CLI)
-    phases/        <- Forward month loop (_forward_loop.py) + per-phase schedule/dispatch (readmission, post-discharge, calendar, ED)
-    enrichers.py   <- ★ Enricher registry for Base/opt-in module passes (AD-56)
-tests/             <- Test code (unit / integration / e2e)
+    phases/        <- Forward month loop (_forward_loop.py) + per-phase schedule/dispatch
+    enrichers.py   <- Enricher registry for Base / module passes (AD-56)
+tests/             <- unit / integration / e2e / regression
 ```
 
 ## Hospital configuration
@@ -528,9 +323,9 @@ The `available_departments` list determines which physicians get generated. The 
 simulator's inpatient dispatch does not gate admissions on the current
 concurrent-inpatient count. Life events are processed chronologically
 and admitted regardless of remaining bed capacity — the concurrent
-count can therefore exceed the declared bed count (session-102 5-year
-US p=10k sim: peak concurrent=176 vs 50 declared beds = 352 %
-occupancy).
+count can therefore exceed the declared bed count (a 5-year US
+p=10k run peaked at 176 concurrent inpatients against 50 declared
+beds).
 
 The `bed_occ=NN%` line in the simulator log reports occupancy against
 a smoothed telemetry denominator (not the raw declared count), so a
@@ -547,28 +342,12 @@ Full queueing / transfer / diversion model is future work per issue
 
 ## LLM setup
 
-Default: local Ollama (no API key or cloud account needed).
-
-```bash
-# Install Ollama
-brew install ollama    # macOS
-# or: curl -fsSL https://ollama.com/install.sh | sh   # Linux
-
-# Pull the default model
-ollama pull llama3.1:8b
-
-# (Optional) Higher quality model for narratives (requires ~40GB VRAM)
-ollama pull llama3.1:70b
-```
-
-Config files:
-- `clinosim/config/llm_service.yaml` — default (local Ollama)
-- `clinosim/config/llm_service.bedrock.yaml` — AWS Bedrock (Claude Sonnet 4, EC2 with IAM role)
-- `clinosim/config/llm_service.sakura.yaml` — Ollama on a Sakura Cloud GPU over an SSH tunnel
-
-JUDGMENT and NARRATIVE can use different providers (AD-24). See `modules/llm_service/README.md` for details.
-
-LLM is **not required** for structural data generation. Without an LLM, template-based narratives are used.
+An LLM is **not required** for structural data or template narratives.
+For LLM narratives (`clinosim narrate --provider ...`), the default config is
+local Ollama (`clinosim/config/llm_service.yaml`); AWS Bedrock and a remote
+GPU over SSH have their own configs (`llm_service.bedrock.yaml`,
+`llm_service.sakura.yaml`). Setup steps: [`docs/reference/llm-integration.md`](docs/reference/llm-integration.md),
+[`docs/bedrock_setup.md`](docs/bedrock_setup.md).
 
 ## Disease protocol YAML files
 
@@ -602,9 +381,9 @@ fabricate** — then:
 
 - **US billable**: if `C` is a valid billable ICD-10-CM leaf, add it to `codes/data/icd-10-cm.yaml`
   (`en` + `ja`). If `C` is a non-billable category/header or WHO-only (e.g. `I21.2`, `I50.0`,
-  `N30.9`), add a `code_mapping_diagnosis/us.yaml` entry `C → <billable leaf>` and register the
+  `N30.9`), add a `locale/us/code_mapping_diagnosis.yaml` entry `C → <billable leaf>` and register the
   leaf in `icd-10-cm.yaml`.
-- **JP (WHO)**: `code_mapping_diagnosis/jp.yaml.get(C, C)` must be a **true WHO ICD-10 code
+- **JP (WHO)**: `locale/jp/code_mapping_diagnosis.yaml`'s mapping of `C` (else `C`) must be a **true WHO ICD-10 code
   (3-4 char)** present in `codes/data/icd-10.yaml`. If `C` is ICD-10-CM granularity (5-7 char,
   7th-char extension, `X` placeholder — e.g. `A41.01`, `S06.0X0A`), add a jp map entry folding
   it to its WHO parent (`A41.01 → A41.0`) and register the WHO code in `icd-10.yaml`. JP does NOT
@@ -654,10 +433,11 @@ The loader falls back to English if a requested language is missing.
 
 ## Common pitfalls
 
-- ❌ **Never store display text in CIF.** CIF should only contain codes + system keys. Display is resolved at output time.
+- ❌ **Never store display text in CIF.** CIF contains codes + system keys; display is resolved at output time.
 - ❌ **Never hardcode FHIR system URIs.** Use `clinosim.codes.get_system_uri(system_key)`.
 - ❌ **Never add a code without an `en` entry.** English is required.
-- ❌ **Never use `random.random()`.** Always use a seeded `numpy.random.Generator` passed in via parameter.
+- ❌ **Never use `random` or `numpy.random.default_rng`.** Use `clinosim.determinism.default_rng` with a seed from `clinosim/seeding.py`, or a stream-free `sha_*` draw.
+- ❌ **Never re-implement a shared helper.** Look it up in the [shared-helpers catalog](docs/design-guides/shared-helpers-catalog.md).
 - ❌ **Never call LLM APIs from outside `llm_service`.**
-- ❌ **Never define data types inside module code.** All shared types live in `clinosim/types/`.
+- ❌ **Never put a shared data type inside module code.** Types used by more than one module live in `clinosim/types/`.
 - ❌ **Never duplicate locale-specific data and code-system data.** Code systems go to `codes/`, culture data goes to `locale/`.
