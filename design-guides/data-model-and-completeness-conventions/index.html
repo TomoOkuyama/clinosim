@@ -2870,11 +2870,10 @@ new C1 / C2 / C3 (see the §5 checklist).</p>
   <strong>from the start</strong>.</li>
 <li><code>extra="ignore"</code> (i.e. silent-drop) is not used; <code>DiseaseProtocol</code>
   is <code>extra="forbid"</code>.</li>
-<li><code>extra="allow"</code> (as in <code>EncounterConditionProtocol</code>) combined with
-  raw-dict returns is "deliberately unvalidated", but that path
-  should also be closed in the future by cross-checking against
-  canonical constants (<code>SUPPORTED_*</code> diff detection,
-  <code>implementation-rules.md</code> §9-2).</li>
+<li><code>extra="allow"</code> is not used either: an open map is a typed
+  <code>dict[str, X]</code> field (<code>EncounterConditionProtocol</code> moved to
+  <code>extra="forbid"</code> in issue #2845; the guard is
+  <code>test_configuration_spec_guards.py::test_no_extra_allow_models</code>).</li>
 </ul>
 <h3 id="23-defend-the-raw-dict-path-too">2.3 Defend the raw-dict path too<a class="headerlink" href="#23-defend-the-raw-dict-path-too" title="Permanent link">&para;</a></h3>
 <p>Disease YAML has two access routes: (A) <code>DiseaseProtocol(**data)</code>

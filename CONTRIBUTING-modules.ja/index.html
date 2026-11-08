@@ -3275,7 +3275,7 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 </blockquote>
 <h3 id="yaml-は-pydantic-で-validate-する">YAML は Pydantic で validate する<a class="headerlink" href="#yaml-は-pydantic-で-validate-する" title="Permanent link">&para;</a></h3>
 <p><code>disease/protocol.py</code> が正しい手本です。<code>DiseaseProtocol(BaseModel)</code> を <code>load_disease_protocol()</code> で <code>model_validate()</code> します。</p>
-<p><code>encounter/protocol.py</code> も 51 の encounter condition YAML に対して同じパターンに従います (<code>EncounterConditionProtocol</code>、<code>extra="allow"</code> で寛容に受け、validation 失敗は該当ファイル名付きで re-raise)。<strong>新規 YAML protocol は必ず Pydantic でラップ</strong> してください (段階導入には <code>extra="allow"</code> 可)。bare <code>except</code> 禁止。</p>
+<p><code>encounter/protocol.py</code> も 51 の encounter condition YAML に対して同じパターンに従います (<code>EncounterConditionProtocol</code>、validation 失敗は該当ファイル名付きで re-raise)。<strong>新規 YAML protocol は必ず Pydantic でラップ</strong> し、<code>ConfigDict(extra="forbid")</code> で YAML の全キーを宣言してください (開いたマップは型付きの <code>dict[str, X]</code> フィールドにし、<code>extra="allow"</code> は使わない)。bare <code>except</code> 禁止。</p>
 <h3 id="__init__py-で-public-api-を明示する"><code>__init__.py</code> で public API を明示する<a class="headerlink" href="#__init__py-で-public-api-を明示する" title="Permanent link">&para;</a></h3>
 <blockquote>
 <p><strong>既知の負債:</strong> 38 モジュール中 14 の <code>__init__.py</code> がまだ空で、それらのモジュールの caller は submodule に直接到達しています。<strong>新規モジュールは <code>__init__.py</code> に public surface を <code>__all__</code> で re-export</strong> し (残り 24 モジュールと同様)、caller は <code>.engine</code> ではなく <code>from clinosim.modules.&lt;name&gt; import X</code> を使ってください。</p>

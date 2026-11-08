@@ -2589,8 +2589,9 @@ completeness 修正に固有の新規約だけを書く — 既存規約は<stro
 <li><code>PatientProfile</code>(<code>config.py:101</code>)が前例。新しい YAML-loaded <code>BaseModel</code> は
   <code>model_config = ConfigDict(extra="forbid")</code> を<strong>最初から</strong>付ける。</li>
 <li><code>extra="ignore"</code>(= silent-drop)は使わない。<code>DiseaseProtocol</code> は <code>extra="forbid"</code>。</li>
-<li><code>extra="allow"</code>(<code>EncounterConditionProtocol</code>)+ 生 dict 返しは「意図的無検証」だが、この経路も
-  将来 canonical constants 照合(<code>SUPPORTED_*</code> 差分検出、<code>implementation-rules.md</code> §9-2)で塞ぐのが望ましい。</li>
+<li><code>extra="allow"</code> も使わない。開いたマップは型付きの <code>dict[str, X]</code> フィールドにする
+  (<code>EncounterConditionProtocol</code> は issue #2845 で <code>extra="forbid"</code> に移行。ガードは
+  <code>test_configuration_spec_guards.py::test_no_extra_allow_models</code>)。</li>
 </ul>
 <h3 id="23-モデルを通さない生-dict-経路にも防御を効かせる">2.3 モデルを通さない生 dict 経路にも防御を効かせる<a class="headerlink" href="#23-モデルを通さない生-dict-経路にも防御を効かせる" title="Permanent link">&para;</a></h3>
 <p>疾患 YAML には 2 経路がある:(A) <code>DiseaseProtocol(**data)</code> 属性アクセス、(B) <code>order/engine.py</code> の

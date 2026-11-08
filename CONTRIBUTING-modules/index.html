@@ -4267,11 +4267,12 @@ types are imported from <code>types</code>.</p>
 <code>DiseaseProtocol(BaseModel)</code> is loaded via
 <code>load_disease_protocol()</code> with <code>model_validate()</code>.
 <code>encounter/protocol.py</code> follows the same pattern for the 51
-encounter-condition YAMLs (<code>EncounterConditionProtocol</code>, permissive
-via <code>extra="allow"</code>; a validation failure is re-raised with the
-offending filename). <strong>Wrap every new YAML protocol in Pydantic</strong>;
-<code>extra="allow"</code> is acceptable for gradual adoption. <code>bare except</code>
-is forbidden.</p>
+encounter-condition YAMLs (<code>EncounterConditionProtocol</code>; a
+validation failure is re-raised with the offending filename). <strong>Wrap
+every new YAML protocol in Pydantic</strong> with
+<code>ConfigDict(extra="forbid")</code>, declaring every key the YAML carries
+(an open map is a typed <code>dict[str, X]</code> field, never <code>extra="allow"</code>).
+<code>bare except</code> is forbidden.</p>
 <h3 id="publish-the-public-api-via-__init__py">Publish the public API via <code>__init__.py</code><a class="headerlink" href="#publish-the-public-api-via-__init__py" title="Permanent link">&para;</a></h3>
 <blockquote>
 <p><strong>Known debt:</strong> 14 of the 38 module <code>__init__.py</code> files are

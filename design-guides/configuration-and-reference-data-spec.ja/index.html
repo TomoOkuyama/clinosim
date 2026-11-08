@@ -2433,9 +2433,9 @@
 <td><code>tests/unit/test_data_yaml_conventions_2465.py</code></td>
 </tr>
 <tr>
-<td>モジュールの参照 YAML は、読み込み時に Pydantic モデルで検証する。欠けた必須キーや型の誤りは import 時に失敗する。ガードは、参照 YAML を持つすべてのモジュールにこのモデルがあることを確かめる。モデルは未知のキーも拒否するべきである(<code>ConfigDict(extra="forbid")</code>)。まだ受け入れるモデルは §5 に挙げる。YAML が名指すコードは <code>clinosim.codes</code> で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。</td>
+<td>モジュールの参照 YAML は、読み込み時に Pydantic モデルで検証する。欠けた必須キーや型の誤りは import 時に失敗する。ガードは、参照 YAML を持つすべてのモジュールにこのモデルがあることを確かめる。モデルは未知のキーも拒否する(<code>ConfigDict(extra="forbid")</code>)。開いたマップは型付きの <code>dict[str, X]</code> フィールドにし、<code>extra="allow"</code> は使わない。まだ未知のキーを受け入れる唯一のモデルは §5 に挙げる。YAML が名指すコードは <code>clinosim.codes</code> で存在を確かめる。新しいキーは先にモデルへ足す(AD-69)。</td>
 <td>モジュールごとのモデル(allergy, antibiotic, care_level, clinical_course, code_status, device, diagnosis, disease, document, drug_safety, encounter, family_history, hai, imaging, llm_service, monitoring, newborn, nursing, observation, order, patient, pediatric, physiology, population, procedure, prophylaxis, sdoh, triage)</td>
-<td><code>tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model</code>、各モジュールのモデルのテスト</td>
+<td><code>tests/unit/test_configuration_spec_guards.py::test_module_reference_yaml_has_a_model</code>、<code>::test_module_models_forbid_unknown_keys</code>(縮小のみのラチェット)、<code>::test_no_extra_allow_models</code>、各モジュールのモデルのテスト</td>
 </tr>
 <tr>
 <td>キャッシュ付きローダーの戻り値は共有物で、読み取り専用。</td>
@@ -2507,8 +2507,8 @@
 <td>レビュー</td>
 </tr>
 <tr>
-<td>一部のモジュールの参照 YAML モデルはまだ未知のキーを受け入れる(<code>ConfigDict(extra="allow")</code>)ため、綴り誤りのキーが読み込み時に検出されない。すべてを <code>extra="forbid"</code> に移すことは issue #2845 で追跡している。</td>
-<td><code>extra="allow"</code> を持つ <code>modules/&lt;module&gt;/</code> のモデル</td>
+<td>ED の身体所見テンプレートのモデルはまだ未知のキーを無視する。2 つの ED 疾患が <code>neuro</code> 行を持つが、ED ノートは <code>neurological</code> を読むため描画されない。名前を直すと生成ノートが変わる。</td>
+<td><code>modules/encounter/protocol.py::EdPhysicalExam</code>(<code>test_module_models_forbid_unknown_keys</code> のラチェット)</td>
 </tr>
 </tbody>
 </table>
