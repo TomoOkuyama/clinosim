@@ -247,6 +247,24 @@ def _pick_checkup_date(snapshot_date: date | str | None) -> date:
     return snapshot_date - timedelta(days=90)
 
 
+def _alive_on_checkup_date(ctx: Any, patient_id: str, patient: Any, checkup_date: date) -> bool:
+    """健診日に本人が在籍・生存しているか (Issue #2940)。
+
+    死亡の正本は ``PersonRecord`` (``record_death``) なので、population
+    registry があれば ``PersonRecord.in_population_at`` をそのまま使う
+    (死亡日当日以降は不在扱い)。registry の無い呼び出し (unit test 等)
+    では ``sync_profile_death_dates`` が profile に写した死亡日で判定する。
+    """
+    persons = _o(_o(ctx, "population", None), "persons", None) or {}
+    person = persons.get(patient_id)
+    if person is not None:
+        return bool(person.in_population_at(checkup_date))
+    dod = _o(patient, "date_of_death", None)
+    if isinstance(dod, datetime):
+        dod = dod.date()
+    return dod is None or checkup_date < dod
+
+
 def _build_checkup_encounter(
     patient_id: str,
     checkup_date: date,
@@ -423,6 +441,9 @@ def enrich_health_checkup(ctx: Any) -> None:
         seen_patient_ids.add(patient_id)
 
         checkup_date = _pick_checkup_date(snapshot_date)
+        # Issue #2940: 死亡日当日以降の健診は作らない。
+        if not _alive_on_checkup_date(ctx, patient_id, patient, checkup_date):
+            continue
         checkup_type = _pick_checkup_type(age)
         encounter = _build_checkup_encounter(
             patient_id,
