@@ -15,6 +15,7 @@ from clinosim import determinism
 from clinosim.modules._shared import normalize_probabilities, random_day_of_month
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.disease.severity import sample_severity
+from clinosim.modules.immunization.engine import seasonal_flu_coverage
 from clinosim.modules.population._chemo import (
     _chemo_cycle_events as _chemo_cycle_events,
 )
@@ -131,8 +132,6 @@ from clinosim.modules.population._population_workflow_thresholds import (
     DIABETIC_RETINOPATHY_ICD10_CODE,
     DIABETIC_RETINOPATHY_PROBABILITY,
     EVENT_MID_OF_MONTH_DAY,
-    FLU_VAX_ADULT_AGE_THRESHOLD,
-    FLU_VAX_COMORBIDITY_MIN,
     FLU_VAX_MONTHS,
     FLU_VAX_PROBABILITY,
     HEALTH_SCREENING_MAX_AGE,
@@ -156,6 +155,7 @@ from clinosim.modules.population._population_workflow_thresholds import (
     UNKNOWN_CONDITION_PATTERNS_FALLBACK,
     UNKNOWN_CONDITION_SEVERITY_BETA_ALPHA,
     UNKNOWN_CONDITION_SEVERITY_BETA_BETA,
+    is_flu_vaccination_candidate,
 )
 from clinosim.modules.population._pregnancy import (
     _PERINATAL_STAGE_COUNTERS as _PERINATAL_STAGE_COUNTERS,
@@ -1018,7 +1018,9 @@ def generate_healthcare_calendar(
     - Annual health screening (age 40-89), gated by the locale's
       ``preventive_care.annual_screening_participation``
     - Flu vaccination (age 65+ or 2+ chronic conditions, Oct-Dec), at the
-      locale's ``preventive_care.flu_vaccination_probability``
+      immunization schedule's per-season coverage for the person's age / sex
+      (``immunization.engine.seasonal_flu_coverage``), else the locale's
+      ``preventive_care.flu_vaccination_probability``
     - Colonoscopy screening (age 50-75) and mammography screening
       (women 40-74)
     - Diabetic retinopathy screening (persons with E11.9)
@@ -1160,8 +1162,14 @@ def generate_healthcare_calendar(
                 )
 
         # --- Flu vaccination (age 65+ or chronic conditions, Oct-Dec) ---
-        if person.age >= FLU_VAX_ADULT_AGE_THRESHOLD or len(person.chronic_conditions) >= FLU_VAX_COMORBIDITY_MIN:
-            if prng.random() < flu_vax_probability:
+        if is_flu_vaccination_candidate(person.age, len(person.chronic_conditions)):
+            # Issue #2868: the visit is the season's vaccination for this
+            # person (the immunization enricher keeps no off-visit dose), so
+            # it fires at the schedule's calibrated per-season rate for the
+            # person's age / sex; the locale value covers ages the schedule
+            # does not model. Same single draw.
+            _flu_rate = seasonal_flu_coverage(country, _age_at_year, getattr(person, "sex", "M") or "M")
+            if prng.random() < (flu_vax_probability if _flu_rate is None else _flu_rate):
                 vax_month = int(prng.choice(FLU_VAX_MONTHS))
                 events.append(
                     LifeEvent(

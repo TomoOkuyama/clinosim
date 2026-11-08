@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from clinosim.locale.i18n import t
+from clinosim.modules.immunization.visits import FLU_VISIT_CONDITION
 from clinosim.modules.population.engine import LifeEvent, generate_healthcare_calendar
 from clinosim.seeding import PHASE_OUTPATIENT_CAL, derive_phase_rng
 from clinosim.simulator._scheduling_thresholds import (
@@ -274,7 +275,9 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
     ctx.patient_records.append(opd_record)
     note_outpatient_visit(ctx.outpatient_day_ends, event.person_id, opd_record)
 
-    if event.event_type == "chronic_visit":
+    # Issue #2868: a flu vaccination visit is not a chronic follow-up, so it
+    # starts no specialty follow-up (those carried its Z23 reason).
+    if event.event_type == "chronic_visit" and event.disease_id != FLU_VISIT_CONDITION:
         from clinosim.locale.loader import department_display, load_specialty_routing
         from clinosim.simulator.hospital_ops import resolve_department
         from clinosim.simulator.outpatient import _specialty_fanout_tick

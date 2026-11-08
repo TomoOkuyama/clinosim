@@ -112,12 +112,24 @@ in-progress snapshot でのバックデート出力を防ぐ。
 ## Encounter 紐付け
 
 `enrich_immunizations` は患者の全レコードから encounter を集約し、
-`_align_to_encounters` (決定論、rng なし) で:
+各接種を紐付ける (決定論、rng なし):
 
 1. 入院期間内の接種日はその入院に紐付け、日付は維持 (新生児室での
    B 型肝炎出生時接種など)。
-2. それ以外は ±60 日以内で最も近い外来 encounter に snap し
-   `encounter_id` を記録。
+2. `visits.bind_to_vaccination_visits` (Issue #2868): 受診理由 `Z23` の
+   外来受診は、その受診で行った接種を記録する (接種日は受診日)。シーズンの
+   インフルエンザ接種はそのシーズン最初のインフルエンザ予防接種受診
+   (`flu_vaccination` encounter condition) に付け (engine が接種を引いて
+   いなければ新規作成)、同シーズンの他のインフルエンザ記録は残さない。
+   healthcare calendar が受診を提供する人 (`population.is_flu_vaccination_candidate`)
+   では、calendar が対象としたシーズンに受診が無ければ接種も無し
+   (受診抽選がそのシーズンの判断で、engine の抽選と重ねない)。どのシーズンも
+   インフルエンザ記録は最大 1 件。小児予防接種受診は、受診時の年齢が
+   接種年齢窓に入る `pediatric_series` の接種を記録する (engine の接種を
+   移す、または系列が継続中 — 1 回目か前回接種済み — なら新規作成)。
+3. それ以外は ±60 日以内で最も近い外来 encounter に snap し
+   `encounter_id` を記録。インフルエンザは同シーズンかつ接種月の
+   encounter に限る。
 
 紐付かず simulation window 開始 (`config.time_range[0]`) より前の接種は
 `primary_source=False` とし未紐付けのまま残す。window 内の orphan には
@@ -193,6 +205,7 @@ clinosim/modules/immunization/
   __init__.py                     空 (Public API 節参照)
   engine.py                       generate_immunizations + load_schedule + helpers
   enricher.py                     POST_RECORDS enrichment (患者単位サブ RNG)
+  visits.py                       予防接種受診 (Z23) で行った接種の紐付け
 ```
 
 **`reference_data/` ディレクトリと `audit.py` は存在しない** — 国別
@@ -235,7 +248,7 @@ pytest tests/integration -k immunization -q  # enricher + FHIR 出力
   — `Immunization` 出力の end-to-end。
 - [`tests/unit/modules/immunization/`](../../../tests/unit/modules/immunization/)
   — encounter 紐付け、付随接種 encounter、同日統合、文書 dispatch、
-  well-child 集約、US 小児 schedule、妊娠 Tdap。
+  well-child 集約、US 小児 schedule、妊娠 Tdap、予防接種受診での接種。
 
 ## Ownership
 

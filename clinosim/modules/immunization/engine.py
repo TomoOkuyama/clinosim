@@ -50,6 +50,29 @@ def _det_hash(*args: object) -> int:
     return int(hashlib.sha256(key).hexdigest(), 16)
 
 
+def synthetic_lot_number(cvx: str, occurrence: date) -> str:
+    """Synthetic manufacturer-style lot number ``L<MFR>-<YYYYMM>-<BATCH>``.
+
+    MFR is derived from the schedule entry's CVX, BATCH from (CVX, year,
+    month). A structural placeholder for FHIR ``Immunization.lotNumber``,
+    not an authoritative lot.
+    """
+    mfr = f"{(_det_hash(cvx) % 900 + 100):03d}"
+    batch = f"{(_det_hash(cvx, occurrence.year, occurrence.month) % 900 + 100):03d}"
+    return f"L{mfr}-{occurrence.year:04d}{occurrence.month:02d}-{batch}"
+
+
+def _declined(rng: np.random.Generator, coverage: float) -> bool:
+    """Whether a dose the coverage draw skipped is charted as declined.
+
+    The draw is always consumed (stream shape unchanged); a vaccine the
+    patient is not eligible for at this age (coverage 0) is never charted
+    as refused (Issue #2868: adults got a "patient refused" pediatric flu
+    dose beside their adult one).
+    """
+    return bool(rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE) and coverage > 0
+
+
 # Issue #1771 — canonical well-child visit anchor ages, in days from
 # birth. ACIP recommends routine infant vaccinations be co-administered
 # at the well-child visits scheduled at 2 / 4 / 6 / 9 / 12 / 15 / 18
@@ -168,6 +191,11 @@ def _safe_date(year: int, month: int, day: int) -> date:
 # its opposite off-season half, so months 6..12 anchor to season_yr and 1..5
 # roll to season_yr+1. Both US and JP flu seasons stay well inside those halves.
 _SEASON_ANCHOR_MONTH = 6
+
+
+def flu_season_of(day: date) -> int:
+    """The flu season (its start year) that ``day`` belongs to."""
+    return day.year if day.month >= _SEASON_ANCHOR_MONTH else day.year - 1
 
 
 def _band_lookup(bands: dict, age: int) -> float:
@@ -291,6 +319,20 @@ def _pick_wave_epoch_date(
     return date(first_valid.year, first_valid.month, day)
 
 
+def seasonal_flu_coverage(country: str, age: int, sex: str) -> float | None:
+    """Per-season flu vaccination rate for a person of ``age`` / ``sex``
+    (Issue #2868): the schedule's ``annual`` vaccine coverage. ``None`` when
+    the schedule models no seasonal flu vaccination at this age (the caller
+    keeps its own default)."""
+    rates = [
+        _coverage(v.get("coverage_by_age_sex", {}), age, sex)
+        for v in load_schedule(country).values()
+        if v.get("frequency") == "annual" and int(v["min_age"]) <= age
+    ]
+    rates = [r for r in rates if r > 0]
+    return max(rates) if rates else None
+
+
 def product_cvx(vaccine: dict, on: date) -> str:
     """The CVX of the product of ``vaccine`` in use on ``on`` (Issue #2629).
 
@@ -356,27 +398,6 @@ def generate_immunizations(
         if start > as_of:
             continue
 
-        # C3-03 continuation: synthetic lot number generator.
-        # JP 薬機法 requires vaccine lot tracking for post-market surveillance
-        # (副作用報告制度). Real lot numbers come from manufacturer QC systems;
-        # for synthetic data we generate a deterministic manufacturer-style
-        # tag: <MFR>-<YYYYMM>-<BATCH> where MFR is derived from CVX code
-        # (deterministic 3-letter tag) and BATCH is a 3-digit patient-relative
-        # sequence. The result is NOT an authoritative lot number — it is a
-        # structural placeholder that satisfies FHIR Immunization.lotNumber
-        # 0..1 and JP practice pattern documentation. Downstream consumers
-        # must treat it as synthetic (AD-57 spirit: no fabrication of billing
-        # / regulatory codes; lot number is neither).
-        # P1-7: use _det_hash (sha256-based) instead of the
-        # Python builtin `hash()`. Builtin hash on strings is salted per
-        # interpreter run so lot numbers used to vary between two runs at
-        # the same seed. reproduce.sh gates this now.
-        _mfr_hash = f"{(_det_hash(cvx) % 900 + 100):03d}"  # 100-999
-
-        def _synthetic_lot(occurrence):
-            batch = f"{(_det_hash(cvx, occurrence.year, occurrence.month) % 900 + 100):03d}"
-            return f"L{_mfr_hash}-{occurrence.year:04d}{occurrence.month:02d}-{batch}"
-
         if freq == "annual":
             # Issue #921: prefer per-season seasonal_distribution (yaml-driven)
             # over a single fixed season_month. Iterate season anchor years
@@ -408,10 +429,10 @@ def generate_immunizations(
                             vaccine_cvx=product_cvx(v, occ),
                             occurrence_date=occ,
                             administered_by=default_nurse,
-                            lot_number=_synthetic_lot(occ),
+                            lot_number=synthetic_lot_number(cvx, occ),
                         )
                     )
-                elif rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE:
+                elif _declined(rng, _coverage(cov, age_at, sex)):
                     out.append(
                         ImmunizationRecord(
                             vaccine_cvx=product_cvx(v, occ),
@@ -431,10 +452,10 @@ def generate_immunizations(
                             vaccine_cvx=product_cvx(v, occ),
                             occurrence_date=occ,
                             administered_by=default_nurse,
-                            lot_number=_synthetic_lot(occ),
+                            lot_number=synthetic_lot_number(cvx, occ),
                         )
                     )
-                elif rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE:
+                elif _declined(rng, _coverage(cov, age_at, sex)):
                     out.append(
                         ImmunizationRecord(
                             vaccine_cvx=product_cvx(v, occ),
@@ -510,7 +531,7 @@ def generate_immunizations(
                             vaccine_cvx=product_cvx(v, occ),
                             occurrence_date=occ,
                             administered_by=default_nurse,
-                            lot_number=_synthetic_lot(occ),
+                            lot_number=synthetic_lot_number(cvx, occ),
                             dose_number=dose_num,
                         )
                     )
@@ -552,7 +573,7 @@ def generate_immunizations(
                         vaccine_cvx=product_cvx(v, occ),
                         occurrence_date=occ,
                         administered_by=default_nurse,
-                        lot_number=_synthetic_lot(occ),
+                        lot_number=synthetic_lot_number(cvx, occ),
                     )
                 )
             elif rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE:
@@ -561,13 +582,16 @@ def generate_immunizations(
                 span = (as_of - start).days
                 offset = int(rng.integers(0, span + 1)) if span > 0 else 0
                 declined_on = date.fromordinal(start.toordinal() + offset)
-                out.append(
-                    ImmunizationRecord(
-                        vaccine_cvx=product_cvx(v, declined_on),
-                        occurrence_date=declined_on,
-                        status="not-done",
+                # Issue #2868: never a refusal of a vaccine the patient is
+                # not eligible for (the draws above are kept either way).
+                if _coverage(cov, age_at, sex) > 0:
+                    out.append(
+                        ImmunizationRecord(
+                            vaccine_cvx=product_cvx(v, declined_on),
+                            occurrence_date=declined_on,
+                            status="not-done",
+                        )
                     )
-                )
 
     out.sort(key=lambda r: r.occurrence_date)
     return out
@@ -640,14 +664,12 @@ def generate_pregnancy_tdap(
             span = (eff_end - win_start).days
             offset = int(rng.integers(0, span + 1)) if span > 0 else 0
             occ = date.fromordinal(win_start.toordinal() + offset)
-            _mfr_hash = f"{(_det_hash(_MATERNAL_TDAP_CVX) % 900 + 100):03d}"
-            batch = f"{(_det_hash(_MATERNAL_TDAP_CVX, occ.year, occ.month) % 900 + 100):03d}"
             out.append(
                 ImmunizationRecord(
                     vaccine_cvx=_MATERNAL_TDAP_CVX,
                     occurrence_date=occ,
                     administered_by=default_nurse,
-                    lot_number=f"L{_mfr_hash}-{occ.year:04d}{occ.month:02d}-{batch}",
+                    lot_number=synthetic_lot_number(_MATERNAL_TDAP_CVX, occ),
                 )
             )
         elif rng.random() < IMMUNIZATION_NOT_DONE_RECORDING_RATE:
