@@ -263,12 +263,13 @@ condition onset can be dated before this year regardless of the
 random offset."""
 
 CHRONIC_ONSET_YEAR_REFERENCE: int = 2024
-"""Reference year from which the random offset is subtracted to
-produce the onset year.
-
-Note: this is a hardcoded "current year" that should ideally track
-the simulation date. Kept as-is here for byte-diff equivalence with
-the pre-extraction behavior."""
+"""Fallback reference year from which the random offset is subtracted
+to produce the onset year, for a person the simulation's yearly aging
+pass has not seen (forced scenarios, the test-encounter CLI, a newborn
+before its first year boundary). In a simulation run the onset is
+anchored to the first simulated year instead (Issue #2867), so a
+condition on the problem list at the start of the window has its onset
+before the window."""
 
 CHRONIC_ONSET_YEAR_MIN: int = 1
 """Inclusive lower bound of the random years-ago offset."""

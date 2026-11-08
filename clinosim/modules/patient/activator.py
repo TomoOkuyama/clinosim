@@ -369,6 +369,34 @@ def _stage_at_year(person: PersonRecord, code_base: str, as_of_year: int | None)
     return earliest_hit
 
 
+def _chronic_onset_year(person: PersonRecord, code: str, years_back: int) -> tuple[int, int]:
+    """Return ``(onset_year, ceiling_year)`` for a chronic code (Issue #2867).
+
+    The onset must precede every visit, medication and note naming the
+    condition, i.e. the first simulated year the code is on the problem
+    list (``person.chronic_first_year``):
+
+    - present when the run's yearly aging pass first saw the person
+      (baseline): ``years_back`` (1-14) years before that first year, so
+      the onset is before the simulated window;
+    - added later in the run (incident): the year before the code is first
+      on the list (the drawn ``years_back`` is not used), so no visit of
+      that year precedes the onset;
+    - outside a simulation run (``chronic_tracked_from`` unset): the fixed
+      ``CHRONIC_ONSET_YEAR_REFERENCE`` as before.
+
+    Uses only the existing draw, so no stream moves.
+    """
+    tracked_from = person.chronic_tracked_from
+    if tracked_from is None:
+        anchor = CHRONIC_ONSET_YEAR_REFERENCE
+        return max(CHRONIC_ONSET_YEAR_FLOOR, anchor - years_back), anchor
+    first_year = person.chronic_first_year.get(code, tracked_from)
+    if first_year > tracked_from:
+        return first_year - 1, first_year - 1
+    return max(CHRONIC_ONSET_YEAR_FLOOR, tracked_from - years_back), tracked_from - 1
+
+
 def _derive_chronic_conditions(
     person: PersonRecord,
     rng: np.random.Generator,
@@ -391,11 +419,9 @@ def _derive_chronic_conditions(
     """
     conditions: list[ChronicCondition] = []
     for code in person.chronic_conditions:
-        # Random onset year (1-15 yrs ago) and random month/day
-        onset_year = max(
-            CHRONIC_ONSET_YEAR_FLOOR,
-            CHRONIC_ONSET_YEAR_REFERENCE - int(rng.integers(CHRONIC_ONSET_YEAR_MIN, CHRONIC_ONSET_YEAR_MAX_EXCLUSIVE)),
-        )
+        # Random onset year (1-14 yrs before the anchor) and random month/day
+        years_back = int(rng.integers(CHRONIC_ONSET_YEAR_MIN, CHRONIC_ONSET_YEAR_MAX_EXCLUSIVE))
+        onset_year, ceiling_year = _chronic_onset_year(person, code, years_back)
         onset_month = int(rng.integers(CHRONIC_ONSET_MONTH_MIN, CHRONIC_ONSET_MONTH_MAX_EXCLUSIVE))
         onset_day = int(rng.integers(CHRONIC_ONSET_DAY_MIN, CHRONIC_ONSET_DAY_MAX_EXCLUSIVE))
         sev = "mild" if rng.random() < CHRONIC_SEVERITY_MILD_PROBABILITY else "moderate"
@@ -464,11 +490,12 @@ def _derive_chronic_conditions(
         _sampled_onset = date(onset_year, onset_month, onset_day)
         _dob = getattr(person, "date_of_birth", None)
         _clamped = _clamp_chronic_onset(_sampled_onset, _dob, code)
-        # Cap at the reference year so a very-young patient does not get
-        # an onset date far in the future. If the cap would push onset
-        # below dob (patient born after ref_year), keep the birthDate
-        # floor instead — never regress into pre-birth territory.
-        _ref_ceiling = date(CHRONIC_ONSET_YEAR_REFERENCE, 12, 31)
+        # Cap at the anchor's ceiling so a very-young patient does not get
+        # an onset date after the condition is first on the problem list.
+        # If the cap would push onset below dob (patient born after the
+        # ceiling), keep the birthDate floor instead — never regress into
+        # pre-birth territory.
+        _ref_ceiling = date(ceiling_year, 12, 31)
         if _clamped > _ref_ceiling and _dob is not None and _ref_ceiling >= _dob:
             _clamped = _ref_ceiling
         conditions.append(

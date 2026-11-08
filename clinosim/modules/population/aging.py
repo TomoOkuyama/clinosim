@@ -500,3 +500,9 @@ def advance_population(
                 year_rng=_ls_rng,
                 multiplier_fn=_comorbidity_multiplier,
             )
+        # Issue #2867: the year each chronic code is first on the list, so
+        # the activator dates baseline onsets before the window and
+        # incident onsets before the year they are first followed up.
+        if person.chronic_tracked_from is None:
+            person.chronic_tracked_from = year
+        person.note_chronic_conditions(year)
