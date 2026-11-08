@@ -42,7 +42,9 @@ pip install -e ".[dev]"
   [JP-CLINS](../jp-clins.md).
 - **Optional:**
     - Ollama for local LLM narrative generation
-    - `pip install "clinosim[parquet]"` for CIF Parquet export
+    - The `clinosim[parquet]` extra (pyarrow + pandas) is a placeholder:
+      CIF Parquet output is not implemented yet (design only); CIF is
+      written as JSON
     - `pip install "clinosim[docs]"` to build this documentation site
       locally with `mkdocs serve`
 

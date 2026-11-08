@@ -416,11 +416,11 @@ cascade しないことを保証する:
 | --- | --- | --- |
 | Chemo regimen 選択 + Day-1 offset | `chemotherapy_regimen_seed` | `(patient_id, cancer_code)` |
 | 妊娠 lifecycle (受精 Bernoulli + LMP + jitter) | `perinatal_delivery_seed` | `(patient_id, year)` |
-| 中絶 outcome (自然 / 人工 split) | `_abortion_outcome_sub_seed` | `(mother_id, year)` |
+| 妊娠 outcome (分娩 / 中絶、自然 / 人工 split) | `pregnancy_outcome_seed` | `(mother_id, year)` |
 | 男性 C50 augmentation サンプリング | `chronic_augment_sex_seed` | `(patient_id, code)` |
 | 慢性薬剤選択 | `chronic_medication_seed` | `patient_id` |
 | 退院 Rx categorical + Bernoulli | `discharge_prescription_seed` | `(patient_id, encounter_id)` |
-| 放射線治療 per-visit trigger | ad-hoc `sha256("rt:<encounter_id>")` | `encounter_id` |
+| 放射線治療 per-visit trigger | `radiation_therapy_seed` | `encounter_id` |
 
 すべて `clinosim/seeding.py` に定義。AD-16 パターンの背景は
 [`architecture/design-principles.md`](../architecture/design-principles.ja.md) 参照。

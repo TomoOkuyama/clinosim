@@ -17,9 +17,11 @@ structural CIF を生成、Stage 2 (`narrate`) と Stage 3 (`export-fhir`)
 └────────────────┘  └────────────────┘  └──────────────────┘
 ```
 
-権威 source は
-[`clinosim/simulator/cli.py`](https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/simulator/cli.py)
-。最新オプション一覧は `clinosim <subcommand> --help` で確認。
+権威 source はサブコマンドごとの
+`clinosim/simulator/cli_<command>.py` モジュール
+([`clinosim/simulator/`](https://github.com/TomoOkuyama/clinosim/tree/master/clinosim/simulator)。`cli.py` は
+登録と dispatch のみ) と、`clinosim/{audit,eval,benchmarks}/cli.py`
+および `clinosim/dataset/__init__.py`。最新オプション一覧は `clinosim <subcommand> --help` で確認。
 
 ## `clinosim simulate` — Stage 1 (structural シミュレーション)
 
@@ -211,9 +213,10 @@ AD-66 α-min-2c golden narrative bootstrap。
 
 ## `clinosim audit` — per-Module PR ゲート
 
-AD-60 audit フレームワーク — 現在 7 つの per-module プラグイン
-(`antibiotic`、`document`、`drug_safety`、`hai`、`imaging`、`order`、
-`triage`)。
+AD-60 audit フレームワーク — 現在登録済みの per-module プラグインは
+6 つ (`antibiotic`、`document_chain`、`hai`、`imaging_chain`、
+`order_service_request`、`triage_chain`。最新の一覧は
+`clinosim audit list` で確認)。`drug_safety` は audit プラグインではない。
 `clinosim/audit/README.ja.md` と
 [`../audit-cycles/`](../audit-cycles/README.ja.md) の workflow 参照。
 

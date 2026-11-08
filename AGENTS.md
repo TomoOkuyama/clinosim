@@ -357,7 +357,7 @@ Adding a new disease:
 
 1. Create `clinosim/modules/disease/reference_data/<disease_id>.yaml`
 2. Reference an existing disease as template
-3. Required: `disease_id`, `chief_complaint` (multi-language dict), `department`, `icd_codes`, `target_los`, `course_archetypes`, `outcome_benchmarks`
+3. Required (validated by `DiseaseProtocol`): `disease_id`, `icd_codes`, `incidence`, `severity`. Also fill in `chief_complaint` (multi-language dict), `department`, `target_los`, `course_archetypes` and `outcome_benchmarks` — they have defaults, so omitting them does not fail validation but leaves the disease under-specified
 4. Add to incidence list in `clinosim/locale/<country>/demographics.yaml`
 5. **Register every `icd_codes` value (primary AND variants) in the code data** — see
    "Diagnosis code coverage" below. Skipping this makes the FHIR Condition display fall

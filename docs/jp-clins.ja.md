@@ -134,7 +134,7 @@ emit。
 統合テスト
 `tests/integration/test_jp_clins_composition_ds_end_to_end.py::test_us_p50_has_no_japanese_language_leakage`
 が全 US NDJSON ファイルを byte-by-byte で JP シグナルをスキャン — この
-check が本 PR で修正された既存の `_build_reference_range` JP Core
+check が本 PR で修正された既存の `build_reference_range` JP Core
 extension leak を浮上させた。
 
 ## JP-CLINS 診療情報提供書 Composition (PR2b)
@@ -232,11 +232,12 @@ Note: 健診 IG は JP-CLINS と別に発行 (JP-eCheckup General v1.7.0、
   - **SBP/DBP** = `patient.baseline_vitals` を base に日間変動
     (sd 5.0/3.5 mmHg)。高血圧 (I10) は FP-I10 (session 38) で
     baseline_vitals に反映済み
-  - **HbA1c** = 糖尿病 (E10/E11) 保有時は
-    `hba1c_from_glycemic_control` を reuse (physiology 経路と一貫)、
-    非 DM は `HBA1C_NONDM_BASE` + 年齢係数 0.003 + noise
-  - **LDL** = 年齢/性別 baseline + 脂質異常症 (E78) で +40 mg/dL +
-    スタチン系薬 (`-statin` 末尾) で -30 mg/dL
+  - **HbA1c** = 糖尿病 (E10/E11) 保有時は年次の longitudinal HbA1c
+    潜在値 (`hba1c_latent_at`) + noise。longitudinal 履歴が無い患者に
+    限り `hba1c_from_glycemic_control` にフォールバック。非 DM は
+    `HBA1C_NONDM_BASE` + 年齢係数 0.003 + noise
+  - **LDL** = `patient_lipid_panel` による患者の真の LDL (入院・外来の
+    検査値と同じ脂質状態、スタチン効果込み) + 測定ノイズ
   - RNG は `ENRICHER_SEED_OFFSETS["health_checkup"] = 0x4843` から
     `derive_sub_seed(master, offset, patient_id)` で per-patient に
     確定。同 seed + 同 patient で byte-identical (AD-16 準拠)

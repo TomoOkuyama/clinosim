@@ -93,6 +93,7 @@ pytest tests/unit -q               # ~1 分、green 必須
 8. **merge 前に CI 必須 job がすべて green**:
    - `Unit tests (Py 3.12 shard 1/3, 2/3, 3/3)`
    - `Integration tests (shard 1/10 〜 10/10)`
+   - `Narrative regression (goldens)`
    - `Build sdist + wheel`
    - `Signed-off-by check`
    - `mkdocs build`

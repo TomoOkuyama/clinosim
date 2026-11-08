@@ -2,7 +2,7 @@
 
 # Hospital Configuration
 
-`clinosim/config/hospital_*.yaml` defines hospital physical layout and operational parameters:
+`clinosim/config/hospital_*.yaml` defines hospital physical layout and operational parameters. Excerpt of the default `hospital_operations.yaml`:
 
 ```yaml
 # Per-country catchment (the CLI resolves by --country; `default` is the fallback)
@@ -26,11 +26,14 @@ available_departments:           # Available specialties (50-bed community hospi
   - nutrition                   # RD (allied-health)
   - medical_social_work         # MSW (allied-health)
   - oncology                    # Chemo + cancer follow-up routes here (Issue #1280 Sub-A)
+  - obstetrics_gynecology       # Prenatal / delivery / postpartum
+  - radiology
 
 department_rollup:              # Sub-specialty → available department
   pulmonology: internal_medicine
   neurology: internal_medicine
   neurosurgery: general_surgery
+  # ... 14 more rows (nephrology, pediatrics, psychiatry, oncology sub-specialties, ...)
 
 wards:                          # Wards per department
   internal_medicine: ["4E", "4W"]
@@ -40,6 +43,7 @@ wards:                          # Wards per department
   orthopedics: ["3W"]
   emergency_medicine: ["ER"]
   primary_care: ["OPD"]
+  obstetrics_gynecology: ["2E", "NBN"]
   oncology: ["OPD-ONC"]
 
 ward_capacity:                  # Bed count per ward
@@ -49,17 +53,26 @@ ward_capacity:                  # Bed count per ward
   "5W": 8
   "3E": 8
   "3W": 6
+  "2E": 6
+  "NBN": 6
 
 resource_capacity:              # Lab/imaging capacity
   lab_analyzers: 2
   ct_scanners: 1
   mri_scanners: 0
+  xray_rooms: 2
+  ultrasound_rooms: 1
+  operating_rooms: 2
+  ed_beds: 8
   inpatient_beds: 50
+  perinatal_beds: 12
 
 staffing:                       # Staffing ratio per shift
   day:    {hours: [8, 16],  lab_staff: 1.0, nursing_staff: 1.0}
   evening:{hours: [16, 0],  lab_staff: 0.5, nursing_staff: 0.7}
   night:  {hours: [0, 8],   lab_staff: 0.2, nursing_staff: 0.5}
+  # each shift also sets radiology_staff / pharmacy_staff / or_staff;
+  # weekend_modifier: 0.6
 ```
 
 This enables:

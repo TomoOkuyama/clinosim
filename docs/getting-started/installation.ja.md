@@ -41,7 +41,8 @@ pip install -e ".[dev]"
   JLAC10 コードを出力する。[JP-CLINS](../jp-clins.ja.md) 参照。
 - **オプション:**
     - ローカル LLM narrative 生成用 Ollama
-    - CIF Parquet 出力: `pip install "clinosim[parquet]"`
+    - `clinosim[parquet]` extra (pyarrow + pandas) は予約のみ: CIF の
+      Parquet 出力は未実装 (設計段階) で、CIF は JSON で書き出される
     - `mkdocs serve` でこの文書サイトをローカルビルド:
       `pip install "clinosim[docs]"`
 
