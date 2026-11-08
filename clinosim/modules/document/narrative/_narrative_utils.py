@@ -29,6 +29,7 @@ from typing import Any
 from clinosim.codes.hl7_encounter import DischargeDisposition
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.reference_data import load_reference_yaml
+from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext
 
 
@@ -160,11 +161,11 @@ def _filter_vitals_for_day(vitals: list, day_index: int, encounter: Any) -> list
         return []
     # 2. Calendar-day offset fallback
     adm_raw = _o(encounter, "admission_datetime", None) if encounter is not None else None
-    adm_dt = _parse_iso_datetime(adm_raw)
+    adm_dt = parse_iso_datetime(adm_raw, lenient=True)
     if adm_dt is None:
         # Use earliest timestamp as day-0 anchor
         candidates: list[datetime] = [
-            c for c in (_parse_iso_datetime(_o(v, "timestamp", None)) for v in vitals) if c is not None
+            c for c in (parse_iso_datetime(_o(v, "timestamp", None), lenient=True) for v in vitals) if c is not None
         ]
         if candidates:
             adm_dt = min(candidates)
@@ -173,7 +174,7 @@ def _filter_vitals_for_day(vitals: list, day_index: int, encounter: Any) -> list
     adm_date = adm_dt.date()
     picks: list = []
     for v in vitals:
-        ts = _parse_iso_datetime(_o(v, "timestamp", None))
+        ts = parse_iso_datetime(_o(v, "timestamp", None), lenient=True)
         if ts is None:
             continue
         # Session-104 v7: calendar-day bucket, not 24h-window bucket.
@@ -263,30 +264,6 @@ def _age_at(ctx: NarrativeContext) -> int | None:
         return years
     except (AttributeError, TypeError, ValueError):
         return static_age
-
-
-def _parse_iso_datetime(raw: Any) -> datetime | None:
-    """Best-effort parse of an ISO 8601 datetime string / datetime object."""
-    if raw is None:
-        return None
-    if isinstance(raw, datetime):
-        return raw
-    if not isinstance(raw, str):
-        return None
-    s = raw.strip()
-    if not s:
-        return None
-    # Python's fromisoformat handles the common cases; tolerate trailing Z.
-    if s.endswith("Z"):
-        s = s[:-1] + "+00:00"
-    try:
-        return datetime.fromisoformat(s)
-    except ValueError:
-        # Fall back to date-only strings
-        try:
-            return datetime.fromisoformat(s[:10])
-        except ValueError:
-            return None
 
 
 # ─────────────────────────────────────────────────────────────────

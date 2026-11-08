@@ -80,9 +80,6 @@ from clinosim.modules.document.narrative._narrative_utils import (
     _lookup_nursing_content as _lookup_nursing_content,
 )
 from clinosim.modules.document.narrative._narrative_utils import (
-    _parse_iso_datetime as _parse_iso_datetime,
-)
-from clinosim.modules.document.narrative._narrative_utils import (
     _pe_altered_consciousness_pool_ja as _pe_altered_consciousness_pool_ja,
 )
 from clinosim.modules.document.narrative._narrative_utils import (

@@ -109,6 +109,7 @@ Governing spec: [`implementation-rules.md`](implementation-rules.md) §4.
 |---|---|
 | `clinosim/modules/_shared.py` `get_attr_or_key(obj, name, default)` | Reading a field from a dict or a dataclass. Do not add new `isinstance(x, dict)` branches or local `_get` helpers. |
 | `clinosim/modules/_shared.py` `set_attr_or_key(obj, name, value)` / `get_or_create_container(obj, name, factory)` | Writing a field, or getting-or-creating a nested list/dict, on either shape. |
+| `clinosim/timeutil.py` `parse_iso_datetime(value, lenient=False)` | Reading a CIF timestamp that may be a `datetime`, a `date` or an ISO 8601 string (trailing `Z`, offsets, date-only); returns `None` when absent or unparseable and never changes the time zone. `lenient=True` also strips whitespace and falls back to the leading date. Do not write a local `_parse_dt`. |
 | `clinosim/modules/_shared.py` `strip_protocol_prefix(name)` | Removing the protocol/category prefix from a drug order string. |
 | `clinosim/modules/_shared.py` `sanitize_id_token(token, max_len)` | Turning free text into an id-safe token. |
 | `clinosim/modules/_shared.py` `practitioner_name(staff_id, roster_map)` | A staff member's roster name. |

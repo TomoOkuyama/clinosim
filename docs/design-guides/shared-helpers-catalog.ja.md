@@ -109,6 +109,7 @@ Governing spec: [`implementation-rules.ja.md`](implementation-rules.ja.md) §4�
 |---|---|
 | `clinosim/modules/_shared.py` `get_attr_or_key(obj, name, default)` | dict でも dataclass でもフィールドを読む。新たな `isinstance(x, dict)` 分岐やローカルの `_get` を作らない。 |
 | `clinosim/modules/_shared.py` `set_attr_or_key(obj, name, value)` / `get_or_create_container(obj, name, factory)` | どちらの形でもフィールドを書く、または入れ子の list/dict を取得・作成する。 |
+| `clinosim/timeutil.py` `parse_iso_datetime(value, lenient=False)` | `datetime`・`date`・ISO 8601 文字列 (末尾 `Z`、オフセット、日付のみ) のいずれかで届く CIF タイムスタンプの読み取り。欠落・解析不能なら `None` を返し、タイムゾーンは変更しない。`lenient=True` は前後の空白除去と先頭日付へのフォールバックも行う。ローカルな `_parse_dt` を書かないこと。 |
 | `clinosim/modules/_shared.py` `strip_protocol_prefix(name)` | 薬剤オーダー文字列からプロトコル・分類の接頭辞を外す。 |
 | `clinosim/modules/_shared.py` `sanitize_id_token(token, max_len)` | 自由記述を id に使える文字列にする。 |
 | `clinosim/modules/_shared.py` `practitioner_name(staff_id, roster_map)` | 職員の名簿上の氏名。 |
