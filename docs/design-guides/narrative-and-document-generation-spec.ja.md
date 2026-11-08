@@ -22,6 +22,7 @@
 |---|---|---|
 | 受診ごとの文書は `_PLANNERS[spec.generation_frequency]` で決める。頻度ごとに planner が一つある(入院時 1 回、毎日、3 交代、退院時 1 回、手術ごと …)。新しい頻度は表に planner を足して表す。表の外で計画する文書種別は無い。 | `clinosim/modules/document/engine.py::_PLANNERS` | `tests/unit/modules/document/test_document_planners_2532.py` |
 | Composition の各セクションは `@section(name)` で登録した関数がちょうど一つ作る。同じ名前の二重登録は import 時に失敗する。Composition の描画はこの登録表からセクションを引く。 | `clinosim/modules/document/narrative/renderers/section_builders/_registry.py`(`section`, `section_builder`, `section_builders`) | `tests/unit/modules/document/narrative/test_section_registry_2531.py` |
+| 文書のコンテキストは、その文書の受診で記録されたデータだけを持つ。記録のバイタル・検査結果・オーダー・投与・処置・終了時処方は記録の受診 (`encounters[0]`) に属する。記録の他の受診(予防接種 enricher が追加する接種受診)では、その受診の ID を持つか受診期間内の時刻を持つものだけを残し、他の受診のバイタルや処方を記載しない。 | `clinosim/modules/document/narrative/passes.py::scope_record_to_encounter` | `tests/unit/modules/document/narrative/test_vaccination_visit_own_data_2869.py` |
 | LLM には `LLMService.complete_prompt` を通してのみ届く(AD-11)。 | `clinosim/modules/llm_service/` | `implementation-rules.ja.md` §2(レビュー) |
 
 ## 3. 臨床事実の言い表し
