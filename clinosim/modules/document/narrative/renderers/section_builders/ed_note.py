@@ -44,6 +44,33 @@ from clinosim.modules.document.narrative._template_helpers import (
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.types.document import NarrativeContext
 
+# An ED note rendered on an inpatient record is the ED part of a via-ED
+# admission (the ED-companion stub, Issue #2856): its encounter is the stay.
+_STAY_TYPES = frozenset({"inpatient", "icu", "rehab_inpatient"})
+
+
+def _iso(value: object) -> str:
+    return str(value or "").replace(" ", "T")[:19]
+
+
+def _admitted_from_ed(ctx: NarrativeContext) -> bool:
+    """True when this ED note belongs to a visit that ended in admission."""
+    enc = ctx.encounter
+    if enc is None:
+        return False
+    raw = _o(enc, "encounter_type", "") or ""
+    enc_type = str(getattr(raw, "value", raw)).lower()
+    return enc_type in _STAY_TYPES
+
+
+def _ed_cutoff(ctx: NarrativeContext) -> str:
+    """ISO time at which the ED part ended (the admission time) for an
+    admitted patient, else ``""`` (no cutoff)."""
+    if not _admitted_from_ed(ctx):
+        return ""
+    return _iso(_o(ctx.encounter, "admission_datetime", ""))
+
+
 if TYPE_CHECKING:
     from clinosim.modules.document.narrative.template_generator import (
         TemplateNarrativeGenerator,
@@ -202,6 +229,10 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     seen_imaging: set[str] = set()
     seen_meds: set[str] = set()
     seen_proc_orders: set[str] = set()
+    # The initial workup of a via-ED admission is placed as the stay's
+    # admission orders, so the order list is kept; only result values are
+    # limited to those available at the ED departure (Issue #2856).
+    cutoff = _ed_cutoff(ctx)
     for order in ctx.orders or []:
         # Scope to the ED encounter only — record.orders can include a
         # follow-up outpatient order carried on the same patient file
@@ -300,7 +331,12 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     # names in ed_workup ``異常値:`` lines (Creatinine / Albumin /
     # Glucose / Lactate / Troponin_I / …).
     abn_labs = []
-    for lab in (ctx.lab_results or [])[:8]:
+    ed_labs = [
+        lab
+        for lab in (ctx.lab_results or [])
+        if not cutoff or (_iso(_o(lab, "result_datetime", "")) and _iso(_o(lab, "result_datetime", "")) <= cutoff)
+    ]
+    for lab in ed_labs[:8]:
         flag = _o(lab, "flag", None)
         if not flag:
             continue
@@ -385,7 +421,9 @@ def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
         reason = generator._ed_disposition_reason(ctx, lang)
         jtas_level = generator._ed_triage_level(ctx)
 
-        if adm or dispo == "hosp":
+        # Issue #2856: on an admitted patient's record the encounter is the
+        # stay, whose discharge disposition (home / exp) is not the ED's.
+        if adm or dispo == "hosp" or _admitted_from_ed(ctx):
             # Deprecated `admit_to_ward` (used by legacy fixtures) is
             # normalized to the same "admitted" path as an inbound
             # transfer disposition.

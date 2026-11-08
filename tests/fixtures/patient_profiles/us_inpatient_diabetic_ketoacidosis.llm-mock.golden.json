@@ -459,7 +459,6 @@
         "ctx.encounter.chief_complaint",
         "ctx.vitals[0]",
         "ctx.orders.ed",
-        "ctx.lab_results.abnormal",
         "ctx.ed_assessment.state_composed",
         "ctx.encounter.disposition"
       ],
@@ -473,7 +472,7 @@
         "assessment": "[Mock LLM response #6 — assessment]",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "disposition": "[Mock LLM response #6 — disposition]",
-        "ed_workup": "Labs: glucose, ABG, β-hydroxybutyrate, BMP, Na, K, Cl, HCO3. Imaging: chest X-ray PA, ECG, chest X-ray AP. Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0. Abnormal: glucose 551.0 mg/dL [critical], K 5.3 mmol/L [H], HCO3 5.8 mmol/L [L], BUN 31.2 mg/dL [H]",
+        "ed_workup": "Labs: glucose, ABG, β-hydroxybutyrate, BMP, Na, K, Cl, HCO3. Imaging: chest X-ray PA, ECG, chest X-ray AP. Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0",
         "hpi": "[Mock LLM response #6 — hpi]",
         "physical_exam": "On arrival: BP 107/67 mmHg, HR 113 bpm, RR 22 /min, SpO2 94%, T 36.3°C. No focal findings on exam.",
         "triage_details": "Triage information: not recorded"
