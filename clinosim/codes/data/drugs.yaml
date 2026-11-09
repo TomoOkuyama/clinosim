@@ -531,7 +531,7 @@ drugs:
     names: {en: "Midazolam", ja: "ミダゾラム"}
     codes:
       rxnorm: "6960"
-      yj: {oral: "1124031Q1024"}
+      yj: {oral: "1124031Q1024", injection: "1124401A1052"}  # Issue #3013: ドルミカム注射液10mg
     classes: ["benzodiazepine"]
   morphine:
     names: {en: "Morphine", ja: "モルヒネ"}
@@ -546,10 +546,15 @@ drugs:
       yj: {oral: "6131001F2026"}
     classes: ["antibiotic.penicillin"]
   norepinephrine:
-    names: {en: "Norepinephrine", ja: "ノルエピネフリン"}
+    # Issue #3013: the Japanese generic name is ノルアドレナリン (JP 局方);
+    # YJ 2451401A1034 (局)ノルアドレナリン注射液 (MEDIS YJ; MHLW 薬価基準
+    # 統一名収載 2451401A1018 ノルアドレナリン注射液).
+    names: {en: "Norepinephrine", ja: "ノルアドレナリン"}
     codes:
       rxnorm: "7512"
+      yj: {injection: "2451401A1034"}
     classes: []
+    aliases: ["Noradrenaline"]
   omeprazole:
     names: {en: "Omeprazole", ja: "オメプラゾール"}
     codes:
@@ -828,7 +833,7 @@ drugs:
     names: {en: "Lidocaine", ja: "リドカイン"}
     codes:
       rxnorm: "6387"
-      yj: {oral: "1214001S1054"}
+      yj: {oral: "1214001S1054", injection: "1214400A7055"}  # Issue #3013: キシロカイン注ポリアンプ1%
     classes: ["local_anesthetic", "antiarrhythmic.class_ib"]
   ketamine:
     names: {en: "Ketamine", ja: "ケタミン"}
@@ -852,7 +857,7 @@ drugs:
     names: {en: "Diphenhydramine", ja: "ジフェンヒドラミン"}
     codes:
       rxnorm: "3498"
-      yj: {oral: "4411001F1040"}
+      yj: {oral: "4411001F1040", injection: "4411400A1033"}  # Issue #3013: ジフェンヒドラミン塩酸塩注10mg「日新」
     classes: ["antihistamine.h1_first_generation"]
   octreotide:
     names: {en: "Octreotide", ja: "オクトレオチド"}
@@ -964,6 +969,7 @@ drugs:
     names: {en: "Sodium polystyrene sulfonate", ja: "ポリスチレンスルホン酸ナトリウム"}
     codes:
       rxnorm: "56512"
+      yj: {oral: "2190009A1048"}  # Issue #3013: ケイキサレート散
     classes: ["potassium_binder"]
   loxoprofen:
     # Note: loxoprofen IS in NLM RxNorm as RxCUI 28908 (TTY=IN),
@@ -985,7 +991,7 @@ drugs:
     names: {en: "Butylscopolamine bromide", ja: "ブチルスコポラミン臭化物"}
     codes:
       rxnorm: "1851"
-      yj: {oral: "1242002F1330"}
+      yj: {oral: "1242002F1330", injection: "1242401A1315"}  # Issue #3013: ブスコパン注20mg
     classes: ["antispasmodic.anticholinergic"]
     aliases: ["Butylscopolamine", "Buscopan"]  # bare chemical / JP trade name; both
                                                # resolve to the bromide-salt catalog entry.
@@ -1214,6 +1220,9 @@ drugs:
     names: {en: "Mannitol", ja: "マンニトール"}
     codes:
       rxnorm: "6628"
+      # Issue #3013: (局)D-マンニトール注射液 (MEDIS YJ; MHLW 薬価基準
+      # 統一名収載 2190400A5010 D-マンニトール注射液).
+      yj: {injection: "2190400A5037"}
     classes: []
   lactated_ringers_injectable_solution:
     names: {en: "Lactated Ringers Injectable Solution", ja: "乳酸リンゲル液"}
@@ -1446,6 +1455,7 @@ drugs:
       yj: {oral: "3939001B1034"}
     classes: ["aldh_inhibitor"]
   ferrous_fumarate:
+    # Issue #3013: no product in the MHLW drug-price list (2026-06-12), so no YJ code.
     names: {en: "Ferrous fumarate", ja: "フマル酸第一鉄"}
     codes:
       rxnorm: "24941"
@@ -1632,6 +1642,9 @@ drugs:
     names: {en: "Tetanus toxoid", ja: "破傷風トキソイド"}
     codes:
       rxnorm: "798306"                 # NLM TTY=IN (tetanus toxoid vaccine, inactivated)
+      # Issue #3013: 沈降破傷風トキソイド「ビケン」 (MEDIS YJ; MHLW 薬価基準
+      # 統一名収載 6322400X2013 沈降破傷風トキソイド).
+      yj: {injection: "6322400X2072"}
     classes: ["vaccine"]
   nab_paclitaxel:
     # Nab-paclitaxel is a specific albumin-bound formulation of paclitaxel
@@ -1701,7 +1714,9 @@ drugs:
     # Calcium carbonate + cholecalciferol (Vitamin D3) combination
     # product. RxCUI 608343 (TTY=MIN) is the multi-ingredient form;
     # the inactive "Calcium/Vitamin D" generic reference (NLM RxCUI
-    # 215839 NotCurrent) resolves here via the alias.
+    # 215839 NotCurrent) resolves here via the alias. Issue #3013: no YJ code;
+    # the only JP calcium + cholecalciferol product (デノタス, with magnesium)
+    # is indicated for denosumab-associated hypocalcaemia only.
     names: {en: "Calcium Carbonate / Cholecalciferol", ja: "炭酸カルシウム/ビタミンD"}
     codes:
       rxnorm: "608343"                 # NLM TTY=MIN

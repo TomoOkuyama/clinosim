@@ -95,7 +95,7 @@ codes:
     ja: アドレナリン（エピネフリン）
   2451401A1034:
     en: Norepinephrine (Levophed)
-    ja: ノルエピネフリン（ノルアドリナリン）
+    ja: （局）ノルアドレナリン注射液  # Issue #3013: MEDIS YJ display
   2492403A4051:
     en: Regular human insulin (Humulin R)
     ja: ヒト(遺伝子組換え)インスリン（ヒューマリンR）
@@ -799,3 +799,25 @@ codes:
   2329021F1102:
     en: "Rebamipide"
     ja: "ムコスタ錠100mg"
+  # Issue #3013: displays from the MEDIS YJ CodeSystem (codes/authoritative).
+  1124401A1052:
+    en: Midazolam injection
+    ja: ドルミカム注射液１０ｍｇ
+  2190009A1048:
+    en: Sodium polystyrene sulfonate
+    ja: （局）ケイキサレート散
+  1214400A7055:
+    en: Lidocaine hydrochloride injection 1%
+    ja: キシロカイン注ポリアンプ１％
+  6322400X2072:
+    en: Tetanus toxoid, adsorbed
+    ja: 沈降破傷風トキソイド「ビケン」
+  1242401A1315:
+    en: Butylscopolamine bromide injection
+    ja: ブスコパン注２０ｍｇ
+  4411400A1033:
+    en: Diphenhydramine hydrochloride injection
+    ja: ジフェンヒドラミン塩酸塩注１０ｍｇ「日新」
+  2190400A5037:
+    en: D-Mannitol injection
+    ja: （局）Ｄ－マンニトール注射液

@@ -3,7 +3,7 @@
   "source": "MHLW 薬価基準収載品目リスト及び後発医薬品に関する情報 (令和8年6月12日適用)",
   "url": "https://www.mhlw.go.jp/topics/2026/04/xls/tp20260612-01_05.xlsx",
   "retrieved": "2026-10-31",
-  "note": "YJ codes of the drug catalog (codes/data/drugs.yaml codes.yj) with the MHLW ingredient and product names. Issue #2347."
+  "note": "YJ codes of the drug catalog (codes/data/drugs.yaml codes.yj) with the MHLW ingredient and product names. Issue #2347. Issue #3013: products the list carries under a generic-name (統一名収載) code are keyed by their MEDIS product code, with the list's code in mhlw_code."
  },
  "codes": {
   "1119400A1031": {
@@ -853,6 +853,41 @@
   "2329021F1102": {
    "ingredient": "レバミピド",
    "product": "ムコスタ錠１００ｍｇ"
+  },
+  "1124401A1052": {
+   "ingredient": "ミダゾラム",
+   "product": "ドルミカム注射液１０ｍｇ"
+  },
+  "2190009A1048": {
+   "ingredient": "ポリスチレンスルホン酸ナトリウム",
+   "product": "ケイキサレート散"
+  },
+  "1214400A7055": {
+   "ingredient": "リドカイン塩酸塩",
+   "product": "キシロカイン注ポリアンプ１％"
+  },
+  "1242401A1315": {
+   "ingredient": "ブチルスコポラミン臭化物",
+   "product": "ブスコパン注２０ｍｇ"
+  },
+  "4411400A1033": {
+   "ingredient": "ジフェンヒドラミン塩酸塩",
+   "product": "ジフェンヒドラミン塩酸塩注１０ｍｇ「日新」"
+  },
+  "2451401A1034": {
+   "ingredient": "ノルアドレナリン",
+   "product": "ノルアドレナリン注射液",
+   "mhlw_code": "2451401A1018"
+  },
+  "6322400X2072": {
+   "ingredient": "沈降破傷風トキソイド",
+   "product": "沈降破傷風トキソイド",
+   "mhlw_code": "6322400X2013"
+  },
+  "2190400A5037": {
+   "ingredient": "Ｄ－マンニトール",
+   "product": "Ｄ－マンニトール注射液",
+   "mhlw_code": "2190400A5010"
   }
  }
 }
