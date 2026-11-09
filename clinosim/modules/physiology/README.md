@@ -37,7 +37,13 @@ and applies day-scale deltas requested by clinical_course.
   `derive_observed_vitals` (adds circadian + measurement noise),
   `canonical_state_vars()` for cross-module reflection, and the
   lipid panel (`lipid_panel` / `patient_lipid_panel`) with the statin /
-  ezetimibe LDL reduction from `statin_response.py`.
+  ezetimibe LDL reduction from `statin_response.py`, and the eGFR
+  equation `egfr.estimated_gfr(creatinine, age, sex, height_cm, country)`
+  (Issue #3019; `locale/<cc>/egfr_equation.yaml`: JP JSN / Uemura 2014,
+  US CKD-EPI 2021 / bedside Schwartz, none below the youngest age an
+  equation covers). `simulator.lab_pipeline.relate_egfr_to_creatinine`
+  reports every eGFR (every encounter path and the chronic-medication
+  monitoring enricher) as this equation on the creatinine drawn with it.
 - **Out of scope**: temporal trajectory selection
   ([`clinical_course`](../clinical_course/README.md)); the observed
   values as they land in CIF ([`observation`](../observation/README.md));

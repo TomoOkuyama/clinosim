@@ -181,6 +181,30 @@ def _inject_for_record(
                 last_drawn[(pid_key, analyte)] = enc_dt
             injected_count += 1
 
+    if injected_count and enc_dt is not None:
+        _relate_egfr_on_the_day(record, patient, country, enc_dt)
+
+
+def _relate_egfr_on_the_day(record: Any, patient: Any, country: str, day_of: datetime) -> None:
+    """Issue #3019: an eGFR drawn on the encounter day (injected here or by
+    the visit) is the equation on that day's creatinine, wherever the
+    creatinine came from (``lab_pipeline.relate_egfr_to_creatinine``)."""
+    from clinosim.simulator.lab_pipeline import relate_egfr_to_creatinine
+
+    day = day_of.date()
+    same_day = [
+        o
+        for o in (_get(record, "orders", []) or [])
+        if getattr(o, "result", None) is not None
+        and isinstance(getattr(o.result, "result_datetime", None), datetime)
+        and o.result.result_datetime.date() == day
+    ]
+    dropped = {id(r) for r in relate_egfr_to_creatinine(same_day, patient, country)}
+    if dropped:
+        results = _get(record, "lab_results", None)
+        if isinstance(results, list):
+            results[:] = [r for r in results if id(r) not in dropped]
+
 
 def _pick_target_encounter(record: Any) -> Any | None:
     """Return the first outpatient encounter, else the first encounter, else None."""

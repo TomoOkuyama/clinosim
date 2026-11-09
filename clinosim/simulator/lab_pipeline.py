@@ -43,6 +43,7 @@ from clinosim.modules.observation.engine import (
     determine_flag,
     generate_lab_result,
     get_lab_unit,
+    round_to_precision,
 )
 from clinosim.modules.observation.pre_analytical import (
     HEMOLYSIS_LIFT_RANGE,
@@ -51,6 +52,7 @@ from clinosim.modules.observation.pre_analytical import (
     SPECIMEN_REJECTION_RATE,
 )
 from clinosim.modules.order.engine import calculate_result_time_from_state
+from clinosim.modules.physiology.egfr import estimated_gfr
 from clinosim.modules.physiology.engine import derive_lab_values, hba1c_latent_at
 from clinosim.modules.staff.engine import FALLBACK_TECH_ID, StaffRoster, assign_staff
 from clinosim.seeding import individual_lab_seed, panel_specimen_seed
@@ -73,7 +75,7 @@ def patient_true_labs(
     ``medication_flags_from_context``); ``hour`` drives circadian analytes
     when the caller samples at a known time. Draws no randomness."""
     kwargs: dict[str, Any] = {"hour": hour} if hour is not None else {}
-    return derive_lab_values(
+    labs = derive_lab_values(
         state,
         sex=patient.sex,
         age=patient.age,
@@ -83,6 +85,73 @@ def patient_true_labs(
         **kwargs,
         **flags,
     )
+    # Issue #3019: eGFR is the country's equation on the creatinine (none for
+    # a child younger than every equation covers).
+    egfr = _patient_egfr(labs["Creatinine"], patient)
+    if egfr is None:
+        labs.pop("eGFR", None)
+    else:
+        labs["eGFR"] = egfr
+    return labs
+
+
+def _patient_country(patient: Any) -> str:
+    return str(getattr(getattr(patient, "address", None), "country", "") or "US")
+
+
+def _patient_egfr(creatinine: float, patient: Any) -> float | None:
+    return estimated_gfr(
+        creatinine,
+        int(getattr(patient, "age", 0) or 0),
+        str(getattr(patient, "sex", "") or ""),
+        getattr(patient, "height_cm", None),
+        _patient_country(patient),
+    )
+
+
+_EGFR = "eGFR"
+_CREATININE = "Creatinine"
+
+
+def relate_egfr_to_creatinine(orders: list[Order], patient: Any, country: str) -> list[OrderResult]:
+    """Report each resulted eGFR order as the country's equation on the
+    creatinine measured with it (Issue #3019): the creatinine result of
+    ``orders`` closest in time (the eGFR's own noise draw is made as before
+    and only its value replaced, so no stream moves). Without a creatinine in
+    ``orders`` the eGFR keeps its value — the equation on the true
+    creatinine. A patient younger than every equation covers gets no eGFR:
+    the order is cancelled. Returns the dropped results, for callers that
+    also keep a result list."""
+    creatinine = [
+        o.result
+        for o in orders
+        if o.result is not None
+        and canonical_lab_name(o.result.lab_name or o.display_name) == _CREATININE
+        and isinstance(o.result.value, (int, float))
+    ]
+    dropped: list[OrderResult] = []
+    for order in orders:
+        result = order.result
+        if result is None or canonical_lab_name(result.lab_name or order.display_name) != _EGFR:
+            continue
+        if not isinstance(result.value, (int, float)):
+            continue
+        if creatinine:
+            nearest = min(creatinine, key=lambda r: abs((r.result_datetime - result.result_datetime).total_seconds()))
+            value = _patient_egfr(float(nearest.value), patient)  # type: ignore[arg-type]
+        else:
+            value = _patient_egfr(1.0, patient)
+            value = None if value is None else float(result.value)
+        if value is None:
+            dropped.append(result)
+            order.result = None
+            order.status = OrderStatus.CANCELLED
+            continue
+        result.value = round_to_precision(_EGFR, value)
+        result.flag = determine_flag(
+            _EGFR, result.value, sex=patient.sex, country=country_code(country), age=patient.age
+        )
+    return dropped
 
 
 TYPE_AND_SCREEN = "Type_and_screen"  # Issue #2587
@@ -274,4 +343,9 @@ def _run_lab_result_pipeline(
             child.status = OrderStatus.RESULTED
             produced.append(child.result)
 
-    return produced
+    # Issue #3019: an eGFR is the equation on the creatinine drawn with it.
+    resulted = [o for o in all_orders if o.order_id not in panel_child_ids] + [
+        c for children in panel_children_by_parent.values() for c in children
+    ]
+    dropped = {id(r) for r in relate_egfr_to_creatinine(resulted, patient, country_key)}
+    return [r for r in produced if id(r) not in dropped]

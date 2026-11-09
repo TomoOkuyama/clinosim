@@ -62,7 +62,7 @@ from clinosim.simulator._ed_thresholds import (
     ED_WARD_ID,
 )
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
-from clinosim.simulator.lab_pipeline import patient_true_labs
+from clinosim.simulator.lab_pipeline import patient_true_labs, relate_egfr_to_creatinine
 from clinosim.simulator.vitals_pipeline import _loc_for
 from clinosim.types.clinical import ConditionEvent, PhysiologicalState
 from clinosim.types.encounter import (
@@ -697,6 +697,9 @@ def _simulate_ed_visit(
         if repeat is not None and repeat.result is not None:
             orders.append(repeat)
             lab_results.append(repeat.result)
+    # Issue #3019: an eGFR is the equation on the creatinine drawn with it.
+    _dropped = {id(r) for r in relate_egfr_to_creatinine(orders, patient, country)}
+    lab_results[:] = [r for r in lab_results if id(r) not in _dropped]
 
     # Imaging from protocol
     for i, img_spec in enumerate(workup.get("imaging", [])):

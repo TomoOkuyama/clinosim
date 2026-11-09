@@ -305,8 +305,10 @@ def derive_lab_values(state: PhysiologicalState, patient: PatientProfile,
     if state.volume_status < -0.3:  # dehydration elevates BUN disproportionately
         labs["BUN"] *= 1.0 + abs(state.volume_status) * 0.5
     
-    # eGFR: directly from renal_function
-    labs["eGFR"] = renal * 120  # 1.0→120, 0.5→60, 0.25→30
+    # eGFR: the country's equation on the creatinine (Issue #3019,
+    # physiology/egfr.py; applied in simulator/lab_pipeline.patient_true_labs
+    # and to the reported creatinine by relate_egfr_to_creatinine)
+    labs["eGFR"] = estimated_gfr(labs["Creatinine"], age, sex, height_cm, country)
     
     # Potassium: rises with renal failure, acidosis
     labs["K"] = 4.0 + (1 - renal) * 3.0 + max(0, -state.ph_status) * 1.0
