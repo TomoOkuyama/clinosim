@@ -2883,7 +2883,7 @@ interchange.</p>
 <li>Inter-institution exchange (機関間連携) workflow simulation — non-goal</li>
 </ul>
 <h2 id="deferred-improvement-candidates">Deferred improvement candidates<a class="headerlink" href="#deferred-improvement-candidates" title="Permanent link">&para;</a></h2>
-<p>Session 47 preflight review surfaced three items worth revisiting in future PRs. Status as of session 88k:</p>
+<p>2026-07-13 preflight review surfaced three items worth revisiting in future PRs. Status as of 2026-08-10:</p>
 <ul>
 <li>✅ CLI verb <code>generate</code> → <code>simulate</code> rename with a deprecation alias — landed; <code>generate</code> remains as an alias in <code>clinosim/simulator/cli.py</code>.</li>
 <li>✅ <code>_JP_CORE_PROFILES</code> shape unification from <code>dict[str, str]</code> to <code>dict[str, list[str]]</code> — landed; the table has since moved to <code>clinosim/codes/data/fhir-profiles-jp-core.yaml</code> and is applied by <code>_apply_jp_core_profile</code> in <code>clinosim/modules/output/fhir_r4/post_process/profile.py</code>.</li>

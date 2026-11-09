@@ -2645,7 +2645,7 @@ verification, lessons).</p>
    difference (<code>export CLINOSIM_REPRO_KEEP_OUTPUT=1</code> and re-run).</li>
 <li>The most common cause is Python's builtin <code>hash()</code> on a string
    (salted by <code>PYTHONHASHSEED</code>) — replace with
-   <code>hashlib.sha256(...).hexdigest()</code>. Session 46 P1-7 uncovered exactly
+   <code>hashlib.sha256(...).hexdigest()</code>. 2026-07-12 P1-7 uncovered exactly
    this defect in the immunization module's synthetic lot-number
    generator.</li>
 </ol>

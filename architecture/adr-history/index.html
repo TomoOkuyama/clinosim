@@ -2954,7 +2954,7 @@ as device/hai/antibiotic/imaging precedents):</p>
   JP p=5k (16,046 CareTeam + 7,416 DR + 970 Composition). DQR:
   <code>docs/reviews/2026-07-01-tier1-3-document-density-alpha-min-2-dqr.md</code></p>
 <h3 id="ad-65-structural--narrative-cif-file-separation-two-pass-generation">AD-65: Structural + Narrative CIF file separation (two-pass generation)<a class="headerlink" href="#ad-65-structural--narrative-cif-file-separation-two-pass-generation" title="Permanent link">&para;</a></h3>
-<p><strong>Status:</strong> Accepted (Tier 1 #3 α-min-2b, 2026-07-02, session 28)</p>
+<p><strong>Status:</strong> Accepted (Tier 1 #3 α-min-2b, 2026-07-02)</p>
 <p><strong>Context:</strong>
 - clinosim's initial architecture (<code>clinosim/modules/output/SPEC.md</code>) defines a three-stage
   pipeline: structural CIF Stage 1 (immutable) / narrative Stage 2 (separate version dir) /
@@ -2964,9 +2964,9 @@ as device/hai/antibiotic/imaging precedents):</p>
   generation into <code>document_enricher</code>. At the time, this closure of Stage 1 default-emission gaps
   was correct; however, as a long-term Stage 2 replacement architecture, it was a premature
   deletion, causing drift from the <code>clinosim/modules/output/SPEC.md</code> Stage 2 design.
-- Session 27 Clinical Integrity review uncovered three Critical narrative bugs. The inline-only
+- 2026-07-01 Clinical Integrity review uncovered three Critical narrative bugs. The inline-only
   pattern requires full cohort regeneration to fix them, destroying development velocity.
-- User explicitly indicated (session 27→28): the original design assumed structural CIF and
+- User explicitly indicated (2026-07-01): the original design assumed structural CIF and
   narrative CIF as separate files = restoration of the SPEC.md original design.</p>
 <p><strong>Decision:</strong>
 1. Refactor <code>ClinicalDocument</code> to stub-only: metadata + author + encounter binding, with
@@ -3056,7 +3056,7 @@ semantic diff mechanism, GitHub Actions CI integration, clinical review loop.</p
 - Plan: <code>docs/history/plans-archive/2026-07-03-tier1-3-alpha-min-2c-fixture-library-plan.md</code></p>
 <hr />
 <h3 id="ad-67--severity-single-source-of-truth-disease-yaml-canonical-hybrid-c2">AD-67 · Severity single source of truth (disease YAML canonical, hybrid c2)<a class="headerlink" href="#ad-67--severity-single-source-of-truth-disease-yaml-canonical-hybrid-c2" title="Permanent link">&para;</a></h3>
-<p><strong>Date:</strong> 2026-07-06 (session 38, FP-SEV-MODEL)</p>
+<p><strong>Date:</strong> 2026-07-06 (FP-SEV-MODEL)</p>
 <p><strong>Status:</strong> Accepted</p>
 <p><strong>Context:</strong></p>
 <p>Three disconnected severity systems coexisted: (A) locale <code>demographics.yaml</code>
@@ -3104,7 +3104,7 @@ which are KNOWN (validation does not raise) but skipped this chain.</p>
 - Registry: <code>docs/design-notes/2026-07-06-fix-point-registry.md</code> (FP-SEV-MODEL)</p>
 <hr />
 <h3 id="ad-68--archetype_modifiers-wiring-dead-yaml-activation-sibling-to-ad-67">AD-68 · archetype_modifiers wiring (dead YAML activation, sibling to AD-67)<a class="headerlink" href="#ad-68--archetype_modifiers-wiring-dead-yaml-activation-sibling-to-ad-67" title="Permanent link">&para;</a></h3>
-<p><strong>Date:</strong> 2026-07-06 (session 38, FP-YAML-2b)</p>
+<p><strong>Date:</strong> 2026-07-06 (FP-YAML-2b)</p>
 <p><strong>Status:</strong> Accepted</p>
 <p><strong>Context:</strong></p>
 <p><code>archetype_modifiers</code> (23 disease YAMLs) was silently dropped at load (<code>extra="ignore"</code>)
@@ -3140,7 +3140,7 @@ conditions deferred (shared scenario-flag mechanism with AD-67's reserved set).<
 - Registry: <code>docs/design-notes/2026-07-06-fix-point-registry.md</code> (FP-YAML-2)</p>
 <hr />
 <h3 id="ad-69--diseaseprotocol-extraforbid-author-time-silent-drop-defense">AD-69 · DiseaseProtocol extra="forbid" (author-time silent-drop defense)<a class="headerlink" href="#ad-69--diseaseprotocol-extraforbid-author-time-silent-drop-defense" title="Permanent link">&para;</a></h3>
-<p><strong>Date:</strong> 2026-07-06 (session 38, FP-YAML-3)</p>
+<p><strong>Date:</strong> 2026-07-06 (FP-YAML-3)</p>
 <p><strong>Status:</strong> Accepted</p>
 <p><strong>Context:</strong> <code>DiseaseProtocol</code> used Pydantic's default <code>extra="ignore"</code>, so any
 top-level YAML key not matching a model field was silently dropped at load. This was
@@ -3157,7 +3157,7 @@ model field (0 YAML, 0 readers).</p>
 <p><strong>Consequences:</strong> Byte-diff identical to master (deleted keys were never consumed) —
 a refactor-class change. New disease-YAML authors must add a model field for any new
 top-level key (or it fails loud).</p>
-<p><strong>Dead-field triage (session 39, registry FP-YAML-3 follow-up):</strong> of the 3
+<p><strong>Dead-field triage (2026-07-07, registry FP-YAML-3 follow-up):</strong> of the 3
 declared-but-unconsumed fields, only <code>reference_ranges</code> was removed — it duplicated the
 live locale-side lab reference ranges (locale is the single source of truth, AD-30), so
 the disease-YAML copy was pure drift. Its model field + 23×3 YAML blocks (banner + body,
@@ -3175,11 +3175,11 @@ consumption path in <code>order/engine.py</code> bypasses Pydantic (not covered 
 <code>docs/design-guides/data-model-and-completeness-conventions.md</code> §2</p>
 <hr />
 <h3 id="ad-70--jp-clins-lab-coding-jlac10-primary--loinc-secondary-international-interoperability">AD-70 · JP-CLINS lab coding: JLAC10 primary + LOINC secondary (international interoperability)<a class="headerlink" href="#ad-70--jp-clins-lab-coding-jlac10-primary--loinc-secondary-international-interoperability" title="Permanent link">&para;</a></h3>
-<p><strong>Date:</strong> 2026-07-26 (session 68, migration PR 4)</p>
+<p><strong>Date:</strong> 2026-07-26 (migration PR 4)</p>
 <p><strong>Status:</strong> Accepted</p>
 <p><strong>Context:</strong></p>
 <p>JP-CLINS 検体検査 migration (PR #396–#404) established JLAC10 as the primary coding system
-for 1,898 CoreLabo analytes (session 67 axis 100% completion). The architecture decision for
+for 1,898 CoreLabo analytes (2026-07-26 axis 100% completion). The architecture decision for
 secondary coding systems arose: should LOINC be retained as secondary coding alongside JLAC10
 primary, or removed entirely for JP-only purism?</p>
 <p>Three options were considered:</p>
@@ -3256,7 +3256,7 @@ single responsibility) / AD-58 (output adapter registration pattern)</p>
   / #402 (CoreLabo emit) / #404 (Uncoded + LocalCode + sanitize)</p>
 <hr />
 <h3 id="ad-71--temporal-state-pattern--temporalstateperiod-state-scoped-generators-for-time-boxed-episodes">AD-71 · Temporal state pattern — <code>TemporalStatePeriod</code> (state-scoped generators for time-boxed episodes)<a class="headerlink" href="#ad-71--temporal-state-pattern--temporalstateperiod-state-scoped-generators-for-time-boxed-episodes" title="Permanent link">&para;</a></h3>
-<p><strong>Date:</strong> 2026-09-01 (session 97, META #957 Incr 1)</p>
+<p><strong>Date:</strong> 2026-09-01 (META #957 Incr 1)</p>
 <p><strong>Status:</strong> Accepted</p>
 <p><strong>Context:</strong></p>
 <p>Several clinical facts fit awkwardly on <code>PersonRecord.chronic_conditions</code> (a flat

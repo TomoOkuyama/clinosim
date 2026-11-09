@@ -2393,18 +2393,18 @@ JP 表示テキスト方針変更、JP 保険番号 opt-in 挙動変更等) が�
 <li><strong>JP F33 / F41.1 chronic prevalence config 追加</strong> (PR #1240, Issue
   #1239): <code>clinosim/locale/jp/demographics.yaml</code> に F33 (反復性うつ病、
   ~1-2%) と F41.1 (全般性不安障害/GAD、~0.8-1.5%) の prevalence
-  定義を追加 (US 側は Session 102 で追加済、JP mirror 漏れ)。JP p=10k
+  定義を追加 (US 側は 2026-09-05 で追加済、JP mirror 漏れ)。JP p=10k
   で F33 = 0 → ~150-200 件 emit 見込み。合わせて <code>codes/data/icd-10.yaml</code>
   に F33 / F41.1 の canonical JA display を追加。</li>
 <li><strong>companion vaccination encounter (<code>ENC-VAX-*</code>) の Z23 reasonCode +
   日本語 chief_complaint「予防接種」+ VAX narrative dispatch</strong> (PR
-  #1216 / #1229 / #1238): Session 104 で導入した companion vaccination
+  #1216 / #1229 / #1238): 2026-09-06 で導入した companion vaccination
   encounter が FHIR emit 側で親 IMP encounter の admission dx (熱傷等)
   を reasonCode に inheriting していた defect を root-cause 修正。
   Encounter-scoped Z23 で正しく emit + 実際の attending physician が
   stamp される + narrative 内容も encounter-scoped context (「予防接種
   のため来院」) で生成される。</li>
-<li><strong>JP-CLINS eCS 全般の validator-reference-integrity 品質改善</strong> (S105
+<li><strong>JP-CLINS eCS 全般の validator-reference-integrity 品質改善</strong> (2026-09-08
   wave 全体): in-hospital-death case の in-mortem-timestamp resource
   drop → parent resource の dangling refs を PR #1226/#1232/#1236 で
   3-pass scrubber として一括 fix。JP p=10k で dangling FHIR references
@@ -2412,7 +2412,7 @@ JP 表示テキスト方針変更、JP 保険番号 opt-in 挙動変更等) が�
 </ul>
 <h2 id="060---2026-09-07-jp-load-bearing-追記">[0.6.0] - 2026-09-07 (JP load-bearing 追記)<a class="headerlink" href="#060---2026-09-07-jp-load-bearing-追記" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>session 104 実測 defect fix 3 件</strong> (2026-09-06 → 2026-09-07):</li>
+<li><strong>2026-09-06 実測 defect fix 3 件</strong> (2026-09-06 → 2026-09-07):</li>
 <li><strong>JP 抗癌剤 canonical katakana</strong> (PR #1170、Issue #1168 Cat A/B):
     <code>chronic_medications.yaml</code> 側で <code>drug_ja</code> 定義済だが
     <code>drug_names_ja.yaml</code> 側に未登録だった 14 薬 (Osimertinib →
@@ -2442,7 +2442,7 @@ JP 表示テキスト方針変更、JP 保険番号 opt-in 挙動変更等) が�
   emit されていた。<code>nursing_content.yaml</code> に急性疾患軸を追加、NANDA-I
   / NIC / AHA-ADA-ATS-ASA 患者向け教育資材ベースで疾患別 nursing
   diagnosis / care plan / patient education を格納。</li>
-<li><strong>JP 完全生命表 (MHLW 2020 第23回) 導入 + natural_death lifecycle 完成</strong> (PR #1147/#1150/#1152/#1153、session 103 C11g-1〜5):
+<li><strong>JP 完全生命表 (MHLW 2020 第23回) 導入 + natural_death lifecycle 完成</strong> (PR #1147/#1150/#1152/#1153、2026-09-05 C11g-1〜5):
   <code>clinosim/locale/shared/actuarial_life_table.yaml</code> に JP MHLW 生命表 (男/女、
   0-110 歳 5 年帯 qₓ) を追加、<code>clinosim.modules.natural_death.NaturalDeathEnricher</code>
   が per-person Bernoulli で自然死日をサンプリング、<code>is_alive_at(t)</code> を 4
