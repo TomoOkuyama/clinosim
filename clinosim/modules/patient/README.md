@@ -153,7 +153,8 @@ from clinosim.modules.patient.activator import (
   (Issue #637). Named clusters include:
   - `BASELINE_{HR,SBP,DBP,RR,SPO2,TEMPERATURE}_*` — age / sex
     scaling, means, standard deviations, ceilings for the six
-    vital-sign types.
+    vital-sign types; `PEDIATRIC_BASELINE_SPO2_{MEAN,CEILING}` centre a
+    child's (under 18) baseline SpO2 on 99 % (Issue #2987).
   - `AGE_PENALTY_{MIN_AGE,SCALE,HEPATIC_RATIO}` — reserve
     depletion beyond `AGE_PENALTY_MIN_AGE`.
   - `RESERVE_FLOOR`, `IMMUNE_REACTIVITY_BETA_PARAMS` —

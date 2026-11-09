@@ -109,6 +109,7 @@ condition_type="pediatric", protocol_source="pediatric:<key>")` を
 | `vitals` | 受診時に測定する vital field の非空 list。 |
 | `febrile_probability` | 受診が発熱である確率 (0–1)。0 より大きい場合は `state_impact.febrile` block が必須。 |
 | `state_impact` | 任意。`{febrile, afebrile}` → `{state_var: delta}`。状態変数名は physiology の canonical state var であること。 |
+| `pulmonary_involvement` | 必須。疾患が肺に及ぶか (炎症が SpO2 を下げるか)。細気管支炎は `true`、上気道炎・中耳炎・外傷は `false` で、発熱を伴う上気道炎の小児でも SpO2 は正常に保たれる (Issue #2987)。 |
 | `prescriptions` | 任意。持ち帰り処方の list: `drug_id` (薬剤カタログに存在すること)、`dose`、`route`、`frequency`、`duration_days` (年齢帯 → 正の日数)。 |
 
 schedule 拡張は **純粋 YAML 編集** — code 変更不要。不正 entry は

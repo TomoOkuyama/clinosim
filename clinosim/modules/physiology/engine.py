@@ -752,15 +752,21 @@ def medication_flags_from_context(
     }
 
 
-def room_air_saturation(state: PhysiologicalState, baseline_spo2: float) -> float:
+def room_air_saturation(
+    state: PhysiologicalState, baseline_spo2: float, *, pulmonary_inflammation: bool = True
+) -> float:
     """Room-air arterial saturation (%) implied by the state: inflammation
     (lung involvement), volume overload and ``oxygenation_impairment``. Shared
-    by the SpO2 vital and blood-gas pO2 so the two agree (Issue #2088)."""
+    by the SpO2 vital and blood-gas pO2 so the two agree (Issue #2088).
+
+    ``pulmonary_inflammation=False`` marks an inflammation that does not
+    involve the lung (an upper-airway or ear infection, Issue #2987): its
+    fever leaves the saturation at baseline."""
     infl = state.inflammation_level
     vol = state.volume_status
     oxy = state.oxygenation_impairment
     spo2 = baseline_spo2
-    if infl > SPO2_INFLAMMATION_THRESHOLD:
+    if pulmonary_inflammation and infl > SPO2_INFLAMMATION_THRESHOLD:
         spo2 -= (infl - SPO2_INFLAMMATION_THRESHOLD) * SPO2_INFLAMMATION_SCALE
     if vol > SPO2_VOLUME_OVERLOAD_THRESHOLD:
         spo2 -= (vol - SPO2_VOLUME_OVERLOAD_THRESHOLD) * SPO2_VOLUME_OVERLOAD_SCALE
@@ -1330,11 +1336,13 @@ def derive_vital_signs(
     timestamp: datetime,
     *,
     age_months: int | None = None,
+    pulmonary_inflammation: bool = True,
 ) -> dict[str, float]:
     """Derive vital signs from physiological state + baseline.
 
     ``age_months`` (completed months at ``timestamp``) selects the
-    age-dependent respiratory-rate ceiling; ``None`` keeps the adult one."""
+    age-dependent respiratory-rate ceiling; ``None`` keeps the adult one.
+    ``pulmonary_inflammation`` is passed to :func:`room_air_saturation`."""
     infl = state.inflammation_level
     perf = state.perfusion_status
     vol = state.volume_status
@@ -1403,7 +1411,7 @@ def derive_vital_signs(
     rr = clamp(rr, RR_CLAMP_MIN, rr_clamp_max(age_months))
 
     # SpO2
-    spo2 = room_air_saturation(state, baseline.spo2)
+    spo2 = room_air_saturation(state, baseline.spo2, pulmonary_inflammation=pulmonary_inflammation)
 
     return {
         "temperature": round(temperature, 1),
@@ -1432,6 +1440,7 @@ def derive_observed_vitals(
     rng: np.random.Generator,
     *,
     age_months: int | None = None,
+    pulmonary_inflammation: bool = True,
 ) -> dict[str, float]:
     """Physiology-derived vitals + realistic measurement noise.
 
@@ -1442,9 +1451,12 @@ def derive_observed_vitals(
     cannot cross into non-physiological territory (Issue #1040 — agonal RR 3-5 on
     non-terminal patients). The respiratory-rate ceiling follows ``age_months``
     (Issue #2926, see :func:`derive_vital_signs`); only the bound moves, the
-    draws are the same.
+    draws are the same. ``pulmonary_inflammation`` is passed to
+    :func:`room_air_saturation` (Issue #2987).
     """
-    raw = derive_vital_signs(state, baseline, timestamp, age_months=age_months)
+    raw = derive_vital_signs(
+        state, baseline, timestamp, age_months=age_months, pulmonary_inflammation=pulmonary_inflammation
+    )
     for key in raw:
         noise_sd = OBSERVED_TEMPERATURE_NOISE_SD if key == "temperature" else OBSERVED_VITALS_NOISE_SD_DEFAULT
         raw[key] += float(rng.normal(0, noise_sd))

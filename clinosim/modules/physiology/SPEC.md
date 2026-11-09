@@ -73,7 +73,7 @@ The four symptom axes default to 0, are clamped to their range by `state_variabl
   - sympathetic → HR +35, SBP +30, DBP +15, RR +6, T +0.8 °C at 1.0
   - pain adds `0.8 × max(0, pain − 0.4)` to the sympathetic drive, so mild / chronic pain does not raise HR / BP
   - oxygenation → SpO2 −25, RR +14, HR +20 at 1.0
-  - `room_air_saturation()` is shared by the SpO2 vital and blood-gas pO2 (Severinghaus inversion); oxygenation also lowers pCO2 (hyperventilation) unless CO2 is retained
+  - `room_air_saturation()` is shared by the SpO2 vital and blood-gas pO2 (Severinghaus inversion); oxygenation also lowers pCO2 (hyperventilation) unless CO2 is retained. `pulmonary_inflammation=False` (a pediatric URI / otitis media visit, Issue #2987) keeps inflammation from lowering SpO2
 - **Observations**:
   - pain score = max(noise draw, round(10 × pain_level)) for inpatient / ED; outpatient records it when set; FHIR LOINC 72514-3
   - AVPU = consciousness + N(0, 0.12) mapped to V ≥ 0.25, P ≥ 0.5, U ≥ 0.75 (inpatient and ED; clinic visits do not assess it)

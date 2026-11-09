@@ -423,7 +423,13 @@ def _record_visit_vitals(
         _state = apply_disease_onset(_state, presentation.visit_state(encounter_id), presentation.state_impact)
     vit_time = visit_date + timedelta(minutes=OUTPATIENT_VITALS_OFFSET_MIN)
     raw = derive_observed_vitals(
-        _state, baseline, vit_time, rng, age_months=age_in_completed_months(patient.date_of_birth, vit_time)
+        _state,
+        baseline,
+        vit_time,
+        rng,
+        age_months=age_in_completed_months(patient.date_of_birth, vit_time),
+        # A URI / otitis fever does not involve the lung (Issue #2987).
+        pulmonary_inflammation=presentation is None or presentation.pulmonary_involvement,
     )
     opd_nurse_id = assign_staff("medication_administration", "primary_care", roster, rng).get("administering_nurse", "")
     vital = VitalSignRecord(

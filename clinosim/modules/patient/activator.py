@@ -104,6 +104,8 @@ from clinosim.modules.patient._patient_activator_thresholds import (
     MARITAL_STATUS_YOUNG_ADULT_CODES,
     MARITAL_STATUS_YOUNG_ADULT_WEIGHTS,
     PEDIATRIC_BASELINE_MID_YEAR_MONTHS,
+    PEDIATRIC_BASELINE_SPO2_CEILING,
+    PEDIATRIC_BASELINE_SPO2_MEAN,
     RESERVE_FLOOR,
     SYMPTOM_REPORTING_BIAS_MEAN,
     SYMPTOM_REPORTING_BIAS_SD,
@@ -522,6 +524,16 @@ def _pediatric_median(vital: str, age_months: int, adult: float) -> float:
     return adult if band is None else band.median
 
 
+def _baseline_spo2_mean_and_ceiling(age_months: int) -> tuple[float, float]:
+    """Mean and ceiling of the baseline SpO2 draw: a child's (under 18 years,
+    Issue #2987) or the adult one."""
+    from clinosim.modules.observation.pediatric_ranges import PEDIATRIC_UPPER_AGE_MONTHS
+
+    if age_months < PEDIATRIC_UPPER_AGE_MONTHS:
+        return PEDIATRIC_BASELINE_SPO2_MEAN, PEDIATRIC_BASELINE_SPO2_CEILING
+    return BASELINE_SPO2_MEAN, BASELINE_SPO2_CEILING
+
+
 def activate_patient(
     person: PersonRecord,
     rng: np.random.Generator,
@@ -622,13 +634,15 @@ def activate_patient(
     sbp_base = _pediatric_median("systolic_bp", _age_months, sbp_base)
     dbp_base = _pediatric_median("diastolic_bp", _age_months, dbp_base)
     rr_base = _pediatric_median("respiratory_rate", _age_months, rr_base)
+    # Issue #2987: a child's SpO2 centres on 99 % (adults 97.5 %); same draw.
+    spo2_base, spo2_ceiling = _baseline_spo2_mean_and_ceiling(_age_months)
     vitals = BaselineVitals(
         temperature=round(float(rng.normal(BASELINE_TEMPERATURE_MEAN, BASELINE_TEMPERATURE_SD)), 1),
         heart_rate=int(rng.normal(hr_base, BASELINE_HR_SAMPLE_SD)),
         systolic_bp=int(rng.normal(sbp_base, BASELINE_SBP_SAMPLE_SD)),
         diastolic_bp=int(rng.normal(dbp_base, BASELINE_DBP_SAMPLE_SD)),
         respiratory_rate=int(rng.normal(rr_base, BASELINE_RR_SD)),
-        spo2=round(float(min(BASELINE_SPO2_CEILING, rng.normal(BASELINE_SPO2_MEAN, BASELINE_SPO2_SD))), 1),
+        spo2=round(float(min(spo2_ceiling, rng.normal(spo2_base, BASELINE_SPO2_SD))), 1),
     )
 
     # Chronic condition adjustments to baseline vitals
