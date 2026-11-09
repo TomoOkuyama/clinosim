@@ -63,9 +63,21 @@ vaccines:
   covid19:
     # 309 is the current active CVX representing a COVID-19 mRNA vaccination; availability anchors the program start.
     cvx: "309"
+    # Issue #3014: 接種日に国内で使われていた製剤 (Pfizer mRNA, 30 µg/0.3 mL;
+    # CVX は codes/data/cvx.yaml で照合済み)。
+    #   従来型 1価 (CVX 208): 2021-02-14 特例承認、初回接種・3回目・4回目
+    #   オミクロン株対応 2価 (CVX 300): 令和4年秋開始接種 2022-09-20 から
+    #   XBB.1.5 対応 1価 以降の季節性製剤 (CVX 309): 令和5年秋開始接種
+    #     2023-09-20 から、令和6年度以降の定期接種 (B類) を含む
+    # 出典: 厚生労働省「新型コロナワクチンの接種について」(令和4年秋開始接種・
+    # 令和5年秋開始接種の実施要領)、PMDA 承認情報 (コミナティ筋注)。
+    products:
+      - {cvx: "208", until: "2022-09-19"}
+      - {cvx: "300", from: "2022-09-20", until: "2023-09-19"}
+      - {cvx: "309", from: "2023-09-20"}
     min_age: 18
     frequency: once
-    administration: {route: IM, dose_ml: 0.3}
+    administration: {route: IM, dose_ml: 0.3}   # 30 µg/0.3 mL (CVX 208 / 300 / 309)
     available_from: "2021-02-17"
     # Issue #921: real JP COVID-19 rollout (MHLW / VRS) has distinct
     # wave epochs — uniform month distribution is unphysical. Each
