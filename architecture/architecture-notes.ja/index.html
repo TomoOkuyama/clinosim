@@ -3055,8 +3055,8 @@
 <h2 id="61-コードシステムモジュール-clinosimcodes">6.1 コードシステムモジュール (<code>clinosim/codes/</code>)<a class="headerlink" href="#61-コードシステムモジュール-clinosimcodes" title="Permanent link">&para;</a></h2>
 <h3 id="問題">問題<a class="headerlink" href="#問題" title="Permanent link">&para;</a></h3>
 <p>当初 terminology ファイル (例: ICD コード → 表示名) は
-<code>clinosim/locale/jp/terminology_diagnosis.yaml</code> 等のパスに配置され
-ていた。これは 2 つの問題を生んだ:</p>
+<code>clinosim/locale/jp/</code> の <code>terminology_diagnosis.yaml</code>(削除済み)等に
+配置されていた。これは 2 つの問題を生んだ:</p>
 <ol>
 <li><strong>誤分類</strong>: ICD-10-CM は国際標準であり文化固有データセットで
    はない。<code>locale/jp/</code> に置くと locale-scoped 所有を示唆するが、
@@ -3754,7 +3754,7 @@ emit しない。</p>
    Coverage + payor Org</li>
 <li>Period-bounded 加入履歴 + 75 歳移行 + <code>Coverage.period</code></li>
 <li>雇用移行 (軽い確率的) + カード / 保険証日付 + 検証方式</li>
-<li>US 互換テスト + docs/ADR 最終化</li>
+<li>US 互換テスト + ドキュメント・ADR 最終化</li>
 </ol>
 <hr />
 <h2 id="610-ehr-データ-enrichment-分割--base-vs-module-ad-55">6.10 EHR データ enrichment 分割 — Base vs Module (AD-55)<a class="headerlink" href="#610-ehr-データ-enrichment-分割--base-vs-module-ad-55" title="Permanent link">&para;</a></h2>

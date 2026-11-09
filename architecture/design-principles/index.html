@@ -4101,19 +4101,13 @@ by the shipped unit / e2e suites and byte-diff of generated cohorts.)</p>
 </span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>    # family history matches household members' conditions
 </span></code></pre></div>
 <h4 id="level-3-end-to-end--golden-file-tests-full-simulation-slow">Level 3: End-to-end / golden file tests (full simulation, slow)<a class="headerlink" href="#level-3-end-to-end--golden-file-tests-full-simulation-slow" title="Permanent link">&para;</a></h4>
-<p>Run a complete simulation with a fixed seed and compare against stored "golden" CIF.</p>
+<p>Run a complete simulation with a fixed seed and compare against stored "golden" values.</p>
 <div class="highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>tests/e2e/
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>  test_golden_1patient.py
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    # seed=42 → 1 pneumonia patient (alpha scenario) →
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    # compare CIF JSON against tests/golden/seed42_1patient.json
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    # Any structural change = test failure → investigate: intentional or regression?
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
-</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>  test_golden_10patients.py
-</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>    # seed=42 → 10 patients → compare against golden CIF
-</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>
-</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>  test_benchmark_100patients.py
-</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>    # seed=42 → 100 patients → run Tier 1 statistical benchmarks →
-</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>    # all benchmarks pass (within ±20% of expected)
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>  test_alpha_golden.py
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    # seed=42 → 1 forced pneumonia patient (alpha scenario) →
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    # compare structural values (LOS, lab / vital / order counts, state
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    # trajectory) against the GOLDEN dict in the same file
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    # Any structural change = test failure → investigate: intentional or regression?
 </span></code></pre></div>
 <p>Golden file update process (original plan):
 1. Run simulation with new code

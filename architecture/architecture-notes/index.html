@@ -3055,7 +3055,7 @@
 <h2 id="61-code-system-module-clinosimcodes">6.1 Code System Module (<code>clinosim/codes/</code>)<a class="headerlink" href="#61-code-system-module-clinosimcodes" title="Permanent link">&para;</a></h2>
 <h3 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h3>
 <p>Initially, terminology files (e.g., ICD code → display name) lived under
-<code>clinosim/locale/jp/terminology_diagnosis.yaml</code> and similar paths. This created two
+<code>clinosim/locale/jp/</code> in files such as <code>terminology_diagnosis.yaml</code> (since removed). This created two
 issues:</p>
 <ol>
 <li><strong>Misclassification</strong>: ICD-10-CM is an international standard, not a culture-specific
@@ -3725,7 +3725,7 @@ opted in.</p>
 <li>Module skeleton + JP numbering + snapshot single enrollment + Coverage + payor Org</li>
 <li>Period-bounded enrollment history + 75-yr transition + <code>Coverage.period</code></li>
 <li>Employment transitions (light probabilistic) + card/保険証 dates + verification method</li>
-<li>US compat tests + docs/ADR finalize</li>
+<li>US compat tests + docs and ADR finalize</li>
 </ol>
 <hr />
 <h2 id="610-ehr-data-enrichment-split--base-vs-module-ad-55">6.10 EHR data enrichment split — Base vs Module (AD-55)<a class="headerlink" href="#610-ehr-data-enrichment-split--base-vs-module-ad-55" title="Permanent link">&para;</a></h2>

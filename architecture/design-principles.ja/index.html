@@ -4086,9 +4086,10 @@ sub-seed から独自の <code>numpy.random.Generator</code> を初期化時に�
 CRP が Day 0-2 上昇、ピーク、14 日にわたって減少を検証。</p>
 <h4 id="level-3-エンドツーエンド--golden-ファイルテスト-フル">Level 3: エンドツーエンド / golden ファイルテスト (フル<a class="headerlink" href="#level-3-エンドツーエンド--golden-ファイルテスト-フル" title="Permanent link">&para;</a></h4>
 <p>シミュレーション、遅い)</p>
-<p>固定 seed で完全シミュレーションを実行、保存された「golden」CIF
-と比較。例: seed=42 → 1 肺炎患者 → CIF JSON を
-<code>tests/golden/seed42_1patient.json</code> と比較。任意の構造変化 =
+<p>固定 seed で完全シミュレーションを実行、保存された「golden」値
+と比較。例: <code>tests/e2e/test_alpha_golden.py</code> は seed=42 → 1 肺炎患者 →
+構造値 (在院日数、検査・バイタル・オーダー数、状態推移) を同ファイルの
+<code>GOLDEN</code> 辞書と比較。任意の構造変化 =
 テスト失敗 → 調査: 意図的か回帰か?</p>
 <h4 id="テスト実行戦略">テスト実行戦略<a class="headerlink" href="#テスト実行戦略" title="Permanent link">&para;</a></h4>
 <div class="highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>make test-unit          # &lt; 30 秒。各コミットで実行。
