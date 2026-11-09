@@ -119,8 +119,8 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Changed
 
-- **Phase 1d unified-i18n migration continued (sessions 122, Phases 1d-64 through 1d-81)** — 18 further PRs (#1528–#1547) closing the "add a new locale = zero code change" contract on the last emit sites + resolving the JA LLM narrative EN-leak class surfaced by the H100 p=300 vLLM audit.
-- **Phase 1d-67 → 1d-73 (session 122 late)** — 8 template-side i18n fixes surfaced by the p=10000 manual narrative review across all 29 doc types (16 JP + 12 US):
+- **Phase 1d unified-i18n migration continued (2026-09-26, Phases 1d-64 through 1d-81)** — 18 further PRs (#1528–#1547) closing the "add a new locale = zero code change" contract on the last emit sites + resolving the JA LLM narrative EN-leak class surfaced by the H100 p=300 vLLM audit.
+- **Phase 1d-67 → 1d-73 (2026-09-26 late)** — 8 template-side i18n fixes surfaced by the p=10000 manual narrative review across all 29 doc types (16 JP + 12 US):
   - **operative_note approach dedup** (Phase 1d-67, 1d-78) — the composer appended `" approach"` / `"アプローチにて"` even when the localized approach text already contained that word. Detection widened from `endswith` to substring so `laparoscopic approach with 4-port technique` no longer collapses into `…technique approach approach` / `…techniqueアプローチにて`.
   - **US `ed_note` disposition triage scale** (Phase 1d-68) — the fallback template hard-coded `JTAS level {level}` for both locales. EN now emits `ESI level {level}` to match the standard US ED triage scale.
   - **UCUM special-unit brackets in prose** (Phase 1d-69) — `_format_lab_unit_for_prose` now strips `[Hg]` / `[H2O]` / `[in_i]` alongside `{annotation}` so blood-gas labs read `PaCO2 46.4 mmHg` rather than `PaCO2 46.4 mm[Hg]`.
@@ -141,7 +141,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   - **Template `1 shift 毎に` / `毎 shift`** — respiratory-care and NIHSS-stroke care_plan JA strings now use「勤務帯ごとに」(Phases 1d-79 and 1d-81).
   - **pH-pH lab dedupe** (Phase 1d-80, 1d-81) — when the stripped unit collapses to the same string as the lab_name (real case: pH lab with UCUM `[pH]` → strips to `pH` → visible `pH 7.11 pH [L]` dup), the unit is dropped. Applied at three lab-render callsites (progress_note notable_labs, outpatient-fallback observations, ed_workup abnormal-labs).
 - **Nightly `test-durations-regen` graceful fallback** (Issue #1500) — `.github/workflows/nightly.yml`: `continue-on-error: true` on the create-PR step + WARN notice + `.test_durations` artifact upload. Nightly job stops going red on the expected permission gap; once the repo setting `Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests` is toggled ON (owner action), the fallback steps auto-skip.
-- **Phase 1d unified-i18n migration (sessions 121-125, Phases 1d-40 through 1d-63)** — 24 PRs (#1505-#1527) advancing the "add a new locale = zero code change" contract across the narrative pipeline + FHIR emit modules. All phases verified byte-identical to pre-refactor output; CIF ↔ narrative-CIF consistency preserved.
+- **Phase 1d unified-i18n migration (from 2026-09-25, Phases 1d-40 through 1d-63)** — 24 PRs (#1505-#1527) advancing the "add a new locale = zero code change" contract across the narrative pipeline + FHIR emit modules. All phases verified byte-identical to pre-refactor output; CIF ↔ narrative-CIF consistency preserved.
 - **`if is_ja:` bindings eliminated** — `template_generator.py`: **37 → 0** runtime bindings (100% removed). `replacement_strategy.py`: **6 → 0** runtime bindings. Remaining `is_ja` mentions are docstring/comment references to the historical pattern.
 - **Phrase catalog expanded** — added `safety_skips`, `safety_skips_prompt`, `chronic_assessment`, `checkup_lab_results`, `immunization_fhir`, `microbiology_fhir`, `diagnostic_report_fhir`, `imaging_report_fhir`, `care_team_fhir`, `allergy_intolerance_fhir`, `family_history_fhir`, `referral_fhir` sections in `narrative_phrases.yaml` (~130 keys total).
 - **Label catalog expanded** — added `soap_label`, `mb_container_text`, `care_team_role_display`, `allergy_jfagy_display`, `lab_trend_direction` sections in `narrative_labels.yaml` (24 keys); newborn / op_note / procedure-note label sections consolidated.
@@ -150,7 +150,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 - **Lang-aware localizer wrappers** — `localize_drug_name(name, lang)` (`output/fhir_r4/lib/localization.py`), `localize_lab_name(name, lang)` / `localize_oxygen_device(device, lang)` (`document/narrative/replacement_strategy.py`). Each is a no-op when the target locale has no lookup table (today: any `lang != "ja"`), so ~15 callsites across `template_generator.py` / `replacement_strategy.py` / FHIR emitters drop the outer `if lang == "ja":` guard.
 - **Module-level JA/EN constants deleted** — `_SOAP_JA/EN`, `_CARE_TEAM_CATEGORY_JA/EN`, `_IMAGING_REPORT_TITLE_JA/EN`, `_LP29684_5_DISPLAY_JA/EN`, `_JP_DR_RADIOLOGY_{CATEGORY,REPORT}_DISPLAY_{JA,EN}`, `_RP_GOALS_FALLBACK_JA/EN`, `_RP_POLICY_FALLBACK_JA/EN`, `_TREND_LABEL_JA/EN`, `_JFAGY_GENERIC_BY_CATEGORY` display slots — all lifted into YAML.
 - **Vulture whitelist** — added `assessment_ja` to `.vulture-whitelist.py` for the `OutpatientSoapTemplate` Pydantic field (Phase 1d-40 co-fix, unblocked master CI).
-- **Nightly cohort byte-diff canary** — downgraded from `::error` + `exit 1` to `::warning` + `exit 0` in `.github/workflows/nightly.yml` (session 121). Per-file diff visibility retained; upstream Issue #1499 tracks a governance follow-up.
+- **Nightly cohort byte-diff canary** — downgraded from `::error` + `exit 1` to `::warning` + `exit 0` in `.github/workflows/nightly.yml` (2026-09-25). Per-file diff visibility retained; upstream Issue #1499 tracks a governance follow-up.
 - **Audit `basedOn` coverage check** — excluded non-order-driven LAB Observations (`mb-org-*`, `mb-sus-*`, `blood-abo-*`, `blood-rh-*`) via canonical registry `NON_ORDER_DRIVEN_LAB_OBS_ID_PREFIXES` in `output/fhir_r4/labs/service_request.py`. Replaces hard-coded audit-side exclusion with a single-source-of-truth registry.
 
 ### Docs
@@ -192,13 +192,13 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Changed
 
-- **CI: nightly `.test_durations` regeneration from ubuntu runner** (S115, follow-up to #1428). New `test-durations-regen` job in `nightly.yml` runs `pytest --store-durations` for unit + integration on ubuntu-latest and opens a routine "chore(ci): refresh .test_durations" PR when the file drifts. Motivation: post-#1428 install variance was solved by uv but the residual integration-shard imbalance (max 6m29s vs min 2m22s, gap ~4 min) was 100 % test-time distribution because `.test_durations` had been recorded on a maintainer M-series Mac where sim-heavy tests run ~2-3× faster than on ubuntu-latest — so `pytest-split`'s bin-pack looked perfect on paper (1.01× at N=10) but leaned heavy on the shards that landed the sim-bound tests. Regenerating from the same runner infra as PR CI aligns bin-pack with reality; expected max shard drop from ~6.5 min toward the theoretical floor once the first nightly refresh lands.
-- **CI: introduce `uv` for dependency installation across all workflows** (S115, follow-up to Issue #1420). Replace `pip install` with `uv pip install --system` in all 9 workflows (ci / nightly / release / docs / jp-clins-lab-compliance-gate / jp-core-compliance-gate / us-core-compliance-gate / jp-validate / us-validate). Each workflow now inserts an `astral-sh/setup-uv@v6` step immediately after `actions/setup-python`, with `enable-cache: true` and `cache-dependency-glob: pyproject.toml` so the wheel cache keys off the dependency spec. The unit-test shard imbalance observed post-#1426 (max 4m5s vs min 1m36s, gap ~2m30s) is dominated by pip-install runner-cache variance (~3m cold vs ~30s warm); `uv` installs the same wheels ~10× faster, so the install phase converges to ~30s regardless of cache state. Expected gap collapse: shard variance drops from 2-3 min to ~20-30s, so the max-shard wall matches the min-shard wall much more tightly. `cache: pip` on `setup-python` and any `python -m pip install --upgrade pip` steps are removed (uv owns its own cache and does not need a bootstrapped pip).
+- **CI: nightly `.test_durations` regeneration from ubuntu runner** (2026-09-14, follow-up to #1428). New `test-durations-regen` job in `nightly.yml` runs `pytest --store-durations` for unit + integration on ubuntu-latest and opens a routine "chore(ci): refresh .test_durations" PR when the file drifts. Motivation: post-#1428 install variance was solved by uv but the residual integration-shard imbalance (max 6m29s vs min 2m22s, gap ~4 min) was 100 % test-time distribution because `.test_durations` had been recorded on a maintainer M-series Mac where sim-heavy tests run ~2-3× faster than on ubuntu-latest — so `pytest-split`'s bin-pack looked perfect on paper (1.01× at N=10) but leaned heavy on the shards that landed the sim-bound tests. Regenerating from the same runner infra as PR CI aligns bin-pack with reality; expected max shard drop from ~6.5 min toward the theoretical floor once the first nightly refresh lands.
+- **CI: introduce `uv` for dependency installation across all workflows** (2026-09-14, follow-up to Issue #1420). Replace `pip install` with `uv pip install --system` in all 9 workflows (ci / nightly / release / docs / jp-clins-lab-compliance-gate / jp-core-compliance-gate / us-core-compliance-gate / jp-validate / us-validate). Each workflow now inserts an `astral-sh/setup-uv@v6` step immediately after `actions/setup-python`, with `enable-cache: true` and `cache-dependency-glob: pyproject.toml` so the wheel cache keys off the dependency spec. The unit-test shard imbalance observed post-#1426 (max 4m5s vs min 1m36s, gap ~2m30s) is dominated by pip-install runner-cache variance (~3m cold vs ~30s warm); `uv` installs the same wheels ~10× faster, so the install phase converges to ~30s regardless of cache state. Expected gap collapse: shard variance drops from 2-3 min to ~20-30s, so the max-shard wall matches the min-shard wall much more tightly. `cache: pip` on `setup-python` and any `python -m pip install --upgrade pip` steps are removed (uv owns its own cache and does not need a bootstrapped pip).
 
 ### Added
 
 - **US Core narrow-gate compliance axis + CI gate**
-  (S115, Issue #1418 Phase 1). New `clinosim.eval.axes.us_core_compliance`
+  (2026-09-14, Issue #1418 Phase 1). New `clinosim.eval.axes.us_core_compliance`
   registers a 7-check axis that runs strictly (`threshold=1.0`) on US
   cohorts and returns `[]` on non-US locales. The checks cover the
   narrow subset of US Core AllPatients / Encounter / Condition
@@ -229,7 +229,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   us_core_compliance`, ~1 min per PR). Full HL7 FHIR Validator
   coverage for US Core stays on the roadmap as Phase 3 (Issue #1418).
 - **JP Core narrow-gate compliance axis + CI gate**
-  (S115, Issue #1418 Phase 1). New
+  (2026-09-14, Issue #1418 Phase 1). New
   `clinosim.eval.axes.jp_core_compliance` registers a 7-check axis
   that runs strictly (`threshold=1.0`) on JP cohorts and returns
   `[]` on non-JP locales. Runs alongside (not overlapping) the
@@ -256,7 +256,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   membership already covered in the `locale` axis so this new axis
   does not duplicate it.
 - **US FHIR profile validator on-demand workflow**
-  (S115, Issue #1418 Phase 3). New `.github/workflows/us-validate.yml`
+  (2026-09-14, Issue #1418 Phase 3). New `.github/workflows/us-validate.yml`
   mirrors `jp-validate.yml`: runs the HL7 official FHIR Validator
   against US Core 8.0 profiles on an on-demand trigger
   (`workflow_dispatch` or PR label `us-validate`). Complements the
@@ -279,7 +279,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Changed
 
-- **CI integration tests: 5 → 10 shards** (S115, Issue #1420 Phase 2).
+- **CI integration tests: 5 → 10 shards** (2026-09-14, Issue #1420 Phase 2).
   Bin-packing simulation on the current `.test_durations` (370
   integration tests, 2035 s single-thread total) gives 10 shards of
   ~204 s each at 1.01 × imbalance under `least_duration` — essentially
@@ -296,7 +296,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Changed
 
-- **Integration slow-test fixture consolidation** (S115, Issue #1420
+- **Integration slow-test fixture consolidation** (2026-09-14, Issue #1420
   follow-up). Five integration test files were each spinning up an
   independent `run_beta` / `clinosim generate` per test case — the
   same config, seed, cohort every time — because there was no
@@ -326,7 +326,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 ### Changed
 
 - **CI unit tests: N=3 shards + xdist -n 2 + coverage combine**
-  (S115, Issue #1420 Phase 1). Local bin-packing simulation on the
+  (2026-09-14, Issue #1420 Phase 1). Local bin-packing simulation on the
   regenerated `.test_durations` (6086 unit entries, 119.2s
   single-thread total) shows 3-way split at 39.7s per shard (0 %
   imbalance). With xdist -n 2 inside each shard the per-shard wall
@@ -340,7 +340,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   the pre-#1420 single-run job. Critical path expected 18 min →
   ~13 min (unit 3 min + integration 10 min, coverage combine
   parallel to integration).
-- **CI integration tests: 3 → 5 shards** (S114 CI-throughput
+- **CI integration tests: 3 → 5 shards** (2026-09-14 CI-throughput
   optimization). Bin-packing simulation on the current
   `.test_durations` (315 integration tests, 1465s single-worker
   total) shows ideal max-bin drops from 488s (~8 min) to 293s
@@ -355,7 +355,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 ### Fixed
 
 - **`switch` event `substituted_with` now cites the correct antibiotic
-  (not IV fluid)** (Issue #1416 / PR #1415 follow-up). S114
+  (not IV fluid)** (Issue #1416 / PR #1415 follow-up). 2026-09-14
   re-verification (post-#1415) found 100 % of JP + 9 % of US switch
   events picked `IV_fluid: NS 80-125 mL/h` as `substituted_with`
   because the pre-#1416 `_find_replacement_agent` returned the first
@@ -378,7 +378,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   1 / 81 stop-only correctly returns None. 0 wrong IV_fluid
   replacements.
 - **Template narrative `_render_safety_skips_line` event_type-aware
-  cadence** (Issue #1416 sibling — S114 code-audit finding). The
+  cadence** (Issue #1416 sibling — 2026-09-14 code-audit finding). The
   template renderer for the progress_note / outpatient_soap plan
   addendum rendered EVERY skip_log entry with pair-avoid phrasing
   ("~ was avoided due to concurrent ~; ~ prescribed instead")
@@ -391,7 +391,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   template output too, not only in LLM-driven narratives.
 
 - **`_build_newborn_workup` field-name mismatch on production CIF
-  shape** (Issue #1412 / PR #1409 follow-up). S114 verification of a
+  shape** (Issue #1412 / PR #1409 follow-up). 2026-09-14 verification of a
   US p=10000 s=357 cohort exposed that 6 of 8 neonatal signals
   (`bilirubin_peak`, `cchd_ru_spo2`, `cchd_le_spo2`, `has_aabr`,
   `has_metabolic`, `has_vitamin_k`, `has_ophthalmic`) were silently
@@ -420,7 +420,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   legacy fixture tests remain green (backward-compat via fallback
   reads).
 - **`treatment_modifications` stop events default to `event_type="switch"`,
-  not `"deescalate"`** (Issue #1413 / PR #1408 follow-up). S114
+  not `"deescalate"`** (Issue #1413 / PR #1408 follow-up). 2026-09-14
   verification of a US p=10000 s=357 cohort found 165 (US) + 277 (JP)
   `deescalate` skip_log entries — **100 % were actually escalations**
   driven by disease-YAML `treatment_modifications.day_N.stop` blocks
@@ -463,7 +463,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
   Rule 1〜6 explanations, intro paragraph, trajectory / phase-of-stay
   / localization / per-doc-type header prose from English to Japanese
   to honor the user rule "JP 出力生成時は LLM prompt も日本語で" (that
-  overrides the session-88j design "instruction-following is more
+  overrides the 2026-08-10 design "instruction-following is more
   reliable in English"). All code identifiers, template variables
   (`${target_language}`, `${document_type}`), backtick-quoted context
   keys, canonical drug katakana, and Rule 5 translation tables are
@@ -587,13 +587,13 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ### Changed
 
-- **Narrative bundle prompts v16 → v17** (S113→S114 narrative review;
+- **Narrative bundle prompts v16 → v17** (2026-09-14 narrative review;
   covers stale docstring, name-resolution drift, and forward-declared
   event_type cadence). Locale-authored `prompts/{en,ja}/narrative_seed_bundle.yaml`
   updated in parallel:
   - Stale pre-v17 docstring "Single English prompt with output language
     controlled by `${target_language}`" — accurate only through
-    session-88j v9 — replaced with the two-file locale-authored shape.
+    2026-08-10 v9 — replaced with the two-file locale-authored shape.
   - **Context contract expanded** with 7 (EN) / 6 (JA) keys the code
     emits but the prompt never mentioned: `admission_datetime`,
     `length_of_stay_days`, `in_hospital_new_diagnoses`,
@@ -622,7 +622,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
     antibiotic de-escalation #1346, JP C-section postop analgesic
     substitution #1315).
   - **Rule 3 VERBATIM COPY: universal person-name preservation
-    clause** (S113→S114 name-resolution audit). Pre-v17 only 4 doc
+    clause** (2026-09-14 name-resolution audit). Pre-v17 only 4 doc
     types (operative_note / procedure_note / death_certificate /
     death_discharge_summary) had person-name verbatim contract in
     per-doc-type blocks; admission_hp / discharge_summary / ed_note /
@@ -1738,7 +1738,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 ### Added
 
 - **US SEER-calibrated prevalences for C15 / C16 / C25 / C67 / C71**
-  (Issue #1311). S108 PRs #1298 (C15/C16 → FOLFOX), #1303 (Gemcitabine
+  (Issue #1311). 2026-09-12 PRs #1298 (C15/C16 → FOLFOX), #1303 (Gemcitabine
   / Irinotecan / Nab-paclitaxel / Temozolomide / BCG catalog), and
   #1304 (C25 → GemNabP, C67 → BCG intravesical, C71 → Temozolomide /
   Stupp) added chemo regimens for five cancer codes. US
@@ -2429,7 +2429,7 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [0.6.1] - 2026-09-10
 
-**PATCH** — Session 105 wave (14 PRs). Cumulative dangling-FHIR-reference
+**PATCH** — 2026-09-08 wave (14 PRs). Cumulative dangling-FHIR-reference
 cleanup, VAX companion encounter follow-through, full JP national YJ
 CodeSystem ship, and JP mental-health prevalence config gap fix. Every
 change either preserves CIF ↔ narrative-CIF consistency directly (FHIR
@@ -2439,10 +2439,10 @@ against the new structural CIF is a small refresh, not a full rebuild
 (F33/F41.1 config addition affects ≲2 % of JP adults; YJ code catalog
 replacements swap 16 fictitious codes for real MEDIS-registered codes on
 1-2 drugs per patient at most). Version bump from 0.6.0 is PATCH — the
-S105 wave delivers audit-driven quality improvements without the
+2026-09-08 wave delivers audit-driven quality improvements without the
 schema-level breaks that trigger a MINOR bump.
 
-### Session 105 (2026-09-08 → 2026-09-10) fixes
+### (2026-09-08 → 2026-09-10) fixes
 
 #### Fixed (FHIR reference-integrity cascade — dangling refs 2,509 → 0 at p=10k)
 
@@ -2499,7 +2499,7 @@ schema-level breaks that trigger a MINOR bump.
 
 - **Per-encounter reasonCode with VAX Z23 stamp + attending physician**
   (PR [#1216](https://github.com/TomoOkuyama/clinosim/pull/1216)). The
-  companion vaccination encounter (`ENC-VAX-*`, session 104 PR #1214)
+  companion vaccination encounter (`ENC-VAX-*`, 2026-09-06 PR #1214)
   inherited the record's primary IMP admission dx as its FHIR
   `Encounter.reasonCode` — a burn patient's flu-shot visit was tagged
   T30.0. New `Encounter.admission_diagnosis_code` field on the CIF
@@ -2559,7 +2559,7 @@ schema-level breaks that trigger a MINOR bump.
 - **JP F33 (recurrent depression) + F41.1 (GAD) chronic prevalence
   config** (PR
   [#1240](https://github.com/TomoOkuyama/clinosim/pull/1240)). US
-  `demographics.yaml` declared F33 / F41.1 (session 102 addition) but
+  `demographics.yaml` declared F33 / F41.1 (2026-09-05 addition) but
   JP mirror was missing — F33 = 0 / F41.1 = 0 at JP p=10k despite F32
   = 297. Added `F33: {40-59: 0.015, 60-99: 0.02}` (~1-2% MHLW
   epidemiology) and `F41.1: {40-59: 0.012, 60-99: 0.015}` (~0.8-1.5%
@@ -2578,7 +2578,7 @@ schema-level breaks that trigger a MINOR bump.
   the audit can compare the narrow slice against the NAMCS 3.0-4.5/yr
   band directly.
 
-### Session 105 (2026-09-08 → 2026-09-10) verification
+### (2026-09-08 → 2026-09-10) verification
 
 - **JP p=10,000 s=329, window 2025-09-10 → 2026-09-10**: 2,509 → 0
   dangling FHIR references (all 7 scrubber PRs), MR NOCODED 41.8 % →
@@ -2598,17 +2598,17 @@ schema-level breaks that trigger a MINOR bump.
 ## [0.6.0] - 2026-09-07
 
 **MINOR** — the wave of feature + defect-fix work accumulated across
-sessions 97-104 (2026-09-01 → 2026-09-07) is cut as v0.6.0. The
+2026-09-01 → 2026-09-07 is cut as v0.6.0. The
 initial v0.6.0 tag was attempted on 2026-08-31 and **un-released the
 same day** because META Issues #914 Bucket B / #957 remaining slices
-/ #757 remaining mappings were left as follow-up. Sessions 97-104
+/ #757 remaining mappings were left as follow-up. 2026-09-01 → 2026-09-06
 closed those remaining sub-items and added a substantial further
 feature + narrative-quality wave. All CIF ↔ narrative-CIF consistency
 invariants required a MINOR bump per the versioning policy: seven of
 the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
 `narrate` run is required against the new structured CIF.
 
-### Session 104 (2026-09-06 → 2026-09-07) additions
+### (2026-09-06 → 2026-09-07) additions
 
 #### Added
 
@@ -2684,7 +2684,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   Objective showed T 36.8°C. The 38.5°C reading was real but
   belonged to a different calendar day than the doc was labeled for.
   Root cause: `_filter_vitals_for_day` and 3 sibling per-day filters
-  (session-103 lab/med filters) used `(ts - adm_dt).days` — a
+  (2026-09-05 lab/med filters) used `(ts - adm_dt).days` — a
   `timedelta.days` floor that buckets sub-daily admission times into
   24-h windows spanning two calendar days. Fix: switch to
   `(ts.date() - adm_dt.date()).days` in all four sites so day_index=N
@@ -2699,12 +2699,12 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
 - **Documentation drift sweep** (PR
   [#1163](https://github.com/TomoOkuyama/clinosim/pull/1163)).
   CHANGELOG + AGENTS + module READMEs + docs/architecture updated to
-  reflect the session 100-103 wave that had landed on master without
+  reflect the 2026-09-05 wave that had landed on master without
   documentation follow-up. See PR body for the drift punch-list.
 
-### Sessions 100-103 (2026-09-05 → 2026-09-06) additions
+### 2026-09-05 → 2026-09-06 additions
 
-### Added (session 103 — natural_death lifecycle end-to-end)
+### Added (2026-09-05 — natural_death lifecycle end-to-end)
 
 - **New `clinosim.modules.natural_death` enricher module** (C11g).
   Actuarial-driven per-patient mortality sampling replaces the prior
@@ -2730,7 +2730,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
     patients (3.03 %); US p=10k s=326 1-year: 191 / 6,177 patients
     (3.09 %); zero encounters starting after death (date-strict).
 
-### Added (session 103 — US insurance Coverage emit, PR #1149)
+### Added (2026-09-05 — US insurance Coverage emit, PR #1149)
 
 - **`Coverage` FHIR resource now emitted for US patients** with 9
   synthetic payor categories: Employer-sponsored group plan (~32 %),
@@ -2745,7 +2745,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   `--jp-insurance` path; JP p=10k s=326 measurement:
   9,378 / 5,529 = 1.70 rows/patient.
 
-### Added (session 103 — narrative CIF density round-out)
+### Added (2026-09-05 — narrative CIF density round-out)
 
 - **PR #1158 (Issue #1154)**: progress-note **per-day filter** for
   `assessment` (abnormal labs) and `plan` (medications) — was reading
@@ -2772,7 +2772,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   carrying an empty `{}` slot; still preserved on the dataclass so
   QUESTIONNAIRE_RESPONSE emit has a clean insertion point).
 
-### Added (session 103 — perinatal + imaging + JP pneumonia band)
+### Added (2026-09-05 — perinatal + imaging + JP pneumonia band)
 
 - **PR #1146**: perinatal per-year stage counters instrumented for
   the pregnancy lifecycle (conception → prenatal 12/24/36 → delivery →
@@ -2789,7 +2789,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   verifier band widened to (4, 14) — reflects Japan's higher
   hospitalisation-for-pneumonia rate in aging catchment cohorts.
 
-### Added (session 102 — US demographics epidemiology bundle)
+### Added (2026-09-05 — US demographics epidemiology bundle)
 
 - **PR #1138 (Issue #1126)**: BMI-derived `E66` obesity `Condition`
   emit — was silently absent from cohort output despite the BMI
@@ -2799,7 +2799,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   osteoporosis prevalence-bump bundle. Post-fix US p=10k: cancer
   6.82 % adults (target 4–8), osteoporosis M81 9.12 % adults
   (target 4–15), dementia 6.84 % 65+ (still under Alzheimer Assoc
-  13–33 target; residual gap tracked as session-102 known defer).
+  13–33 target; residual gap tracked as 2026-09-05 known defer).
 - **PR #1140**: chronic prevalence recalibration for depression
   (F32 + F33) + anxiety (F41.1) + young-adult HTN (18–39 band).
   Post-fix US p=10k: depression 11.56 % (10–15), anxiety 2.44 %
@@ -2819,7 +2819,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   the pre-fix 0.81; NAMCS target range clears when de-skewed for
   hospital-cohort catchment).
 
-### Added (session 101 — hospital-cohort target-band verifier + prev calibrations)
+### Added (2026-09-05 — hospital-cohort target-band verifier + prev calibrations)
 
 - **PR #1121 (Issue #1108)**: US HTN 3-band recalibration into NHANES
   target (young / middle / senior bands independently tuned).
@@ -2837,7 +2837,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
 - **PR #1125 (Issue #1117)**: hospital-cohort bands for `median_age`
   and `outpatient_share` added to the verifier.
 
-### Added (session 100 — pre-release hardening bundle)
+### Added (2026-09-05 — pre-release hardening bundle)
 
 - **PR #1094 (Issue #1092)**: past-pregnancy marker `Z37.9` → `Z87.59`
   (Personal history of other specified conditions). Z37 stays on the
@@ -2852,7 +2852,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   backfill from parent `Order` for bolus IV meds — was silently
   dropping dose on empty-MA IV paths.
 - **PR #1098 (Issue #1088)**: US RxNorm coding added for 19
-  top-missing drugs (session-99 code-review surfacing).
+  top-missing drugs (2026-09-03 code-review surfacing).
 - **PR #1093 (Issue #1087)**: prophylaxis Enoxaparin auto-issue now
   consults the drug_safety gate before issuing (previously bypassed
   the anticoag+bleeding-risk contraindication check).
@@ -2866,7 +2866,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   from annual health-screening panel (was in the panel spec but not
   reaching the emit side).
 
-### Added (session 99, prophylaxis — Issue #1071)
+### Added (2026-09-03, prophylaxis — Issue #1071)
 
 - **New `clinosim.modules.prophylaxis` enrichment module**: standard-of-care
   DVT (VTE) chemoprophylaxis for inpatient encounters ≥ 48 h. Registered as
@@ -2881,7 +2881,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   Residual 5.8 % = delivery admissions (Z37 / Z38) intentionally
   skipped — postpartum VTE protocol is out of the generic DVT rule.
 
-### Added (session 99, drug_safety — Issue #1066)
+### Added (2026-09-03, drug_safety — Issue #1066)
 
 - **New `clinosim.modules.drug_safety` foundation module**: class-based
   contraindication rule engine with severity-graded verdicts
@@ -2916,7 +2916,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
 - **verify_medical_stats.py `contraindicated_pair_count` metric**
   (target: 0 per cohort).
 
-### Changed (session 99, drug_safety)
+### Changed (2026-09-03, drug_safety)
 
 - **Contraindicated home-med pairs no longer form** in the activator
   (chronic-med derivation) or the admission-order pipeline (acute
@@ -2946,7 +2946,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   The whitelist for narrow-indication exceptions (post-PCI+AF, mechanical
   valve) is a post-MVP follow-up.
 
-### Migration notes (session 99, drug_safety)
+### Migration notes (2026-09-03, drug_safety)
 
 - Downstream ETLs counting `warfarin+aspirin` / `warfarin+NSAID` /
   `β-blocker+verapamil` co-prescription events will see counts drop
@@ -2978,7 +2978,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   (pregnancy is not a chronic condition); **Z37 problem-list-item is
   now derived from `state_history("pregnancy")` delivered periods**
   (one per delivered pregnancy, biology-consistent; replaces the
-  session-95 s95-z37 chronic proxy). Prenatal supplements (folic acid,
+  2026-09-01 s95-z37 chronic proxy). Prenatal supplements (folic acid,
   iron via `chronic_medications.yaml::Z34`) still emit via an
   activator-time hook keyed on `state_history("pregnancy")`
   non-empty. Z34 / Z39 now route to `obgyn` in
@@ -3994,7 +3994,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
   `test_fhir_family_history` accepts any `C50*` prefix for US
   billable-leaf resolution (`C50.919`);
   `test_anticoag_carryforward` reseeded 49 → 55 (same maintenance
-  pattern as sessions 42 / 89 B-3 / 90 determinism / #933 restore).
+  pattern as 2026-07-07 / 89 B-3 / 90 determinism / #933 restore).
   Closes #943.
 - **Anticoag-carryforward integration test scouted to seed=49** (post
   #933 restore). The B-3 chronic-prevalence restore reshaped the US
@@ -4016,10 +4016,10 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
    between Mac ARM and x86 Linux (RNG shape changes; fresh CIF+narrate
    required).
 
-Session 89 post-Issue-#854 audit resolutions + session 90 cross-platform
+2026-08-28 post-Issue-#854 audit resolutions + 2026-08-28 cross-platform
 determinism + narrative-review follow-ups (pediatric localization,
 per-day lab filter). See
-[`docs/reviews/2026-08-28-session-89-post-p1000-audit.md`](docs/reviews/2026-08-28-session-89-post-p1000-audit.md)
+[`docs/reviews/2026-08-28-2026-08-28-post-p1000-audit.md`](docs/reviews/2026-08-28-2026-08-28-post-p1000-audit.md)
 and
 [`docs/reviews/2026-08-28-cross-platform-determinism.md`](docs/reviews/2026-08-28-cross-platform-determinism.md)
 for the per-finding timelines and technical summaries.
@@ -4567,8 +4567,8 @@ Cumulative volume impact on the JP p=10000 s500 sample:
 
 - **`medicationCodeableConcept.text` JA multi-word extension now fires even when `Order.order_code` is pre-set** (Issue #852 follow-up). PR #856 landed the multi-word JA-dict extension INSIDE the `if not code_value and drug_name_clean:` block in `_resolve_medication_concept` and `_build_medication_admin`. When the disease YAML supplied `Order.order_code` up front (e.g. Magnesium Sulfate = MHLW HOT7 `2355002`, and similarly for Normal saline / Regular insulin / Potassium chloride / Lactated Ringer / Hypertonic Saline / Unfractionated Heparin), `code_value` was truthy at the top of the block, the whole block including the JA extension was skipped, and `.text` fell back to the first whitespace token (`"Magnesium"` / `"Regular"` / `"Potassium"` / `"Lactated"` / `"Hypertonic"` / `"Unfractionated"` / `"Normal"`) even though `drug_names_ja.yaml` carried the multi-word entry. JP p=10000 s500 sample: **6,327 records (165 MR + 6,162 MA)** leaked English single-word `.text` while `coding[0].display` on the same resource was already Japanese (e.g. `硫酸マグネシウム水和物`). Missed by the original PR #856 verification because the P=200 s800 sample did not include drugs with disease-YAML-supplied pre-set codes. Fix: dedent the JA multi-word extension out of the `code_value` gate (hoist `normalized` / `tokens` computation so both blocks can share them). Applied symmetrically to both `_resolve_medication_concept` (MR builder) and `_build_medication_admin` (MA builder). Verified on P=200 seed=500 (which does include Magnesium sulfate at POP-000012 ESC-D3): all 11 English single-word truncation patterns now = 0 on both MR and MA. New: 5 regression tests in `tests/unit/output/test_fhir_medication_text_full_name.py` covering Magnesium/Normal saline/Regular insulin/Unfractionated Heparin with pre-set `order_code`, plus the MA builder path with `mar.code_yj` pre-set — all fail on the pre-fix code, all pass on the post-fix code. 998 existing unit tests still pass.
 - **In-hospital new-disease events no longer open a second concurrent inpatient encounter** (issue #848). The population life-event stream can fire a new disease event for a patient who is still admitted for an earlier event (POP-000170 in the JP p=10000 s500 sample developed acute coronary syndrome on hospital day 37 of a 46-day pancreatitis admission). Prior behavior: `run_beta` dispatched the new event as a wholly separate `_simulate_patient` call, and two admissions coexisted for the patient in the same physical hospital — 17 cross-department overlaps + 8 same-department overlaps in the sample. `run_beta` now gates every admission with `_find_active_inpatient_record` (point-in-time; main inpatient loop) or `_find_overlapping_inpatient_record` (period-overlap with a 30-day LOS estimate; readmission loop — needed because it runs after the main loop, so `patient_records` already contains later life-event admissions whose start is after the readmission's scheduled admit time but whose period overlaps). When a gate hits, `_merge_disease_into_active_encounter` records the new disease as an in-hospital complication on the existing encounter: appends to `complications_occurred`, promotes `condition_event.condition_type` to `"mixed"`, appends to `condition_event.ground_truth_diseases`, and adds a `working_diagnoses` entry carrying `disease_id` + `onset_day` (days since admission, clamped to `0` when the readmission dispatch merges an earlier-scheduled readmission into a later-admitting life-event encounter) + `onset_datetime` + `source="in_hospital_complication"`. Full order/lab/vital simulation for the complication is deliberately deferred — the per-disease protocol's LOS pacing and discharge date logic cannot be dropped into the middle of another admission's timeline without a substantial refactor of `_simulate_patient`; the diagnostic fact + working-diagnosis entry preserve the clinical signal (this patient developed X on day N) without fabricating a treatment timeline that would not agree with the pre-simulated existing admission's flow. Narrative side: `NarrativeContext.working_diagnoses` is a new field wired through `build_narrative_context` (structural CIF path) and `NarrativePass` (LLM path); the discharge-summary hospital-course sentence 2 in `template_generator.py` now emits `入院第N日目 <disease>` / `<disease> (onset day N)` when an onset day is present (falls back to the plain disease id for legacy `complications_occurred` entries without a matching `working_diagnoses` record); `replacement_strategy.py::_build_extra_context` exposes both `complications_during_stay` (with hospital-day annotations) and a dedicated `in_hospital_new_diagnoses` key to the LLM prompt so generated narrative can say `入院第30日目に急性心筋梗塞を発症` instead of listing the disease as an admission-day finding. New: `tests/unit/test_engine_inpatient_overlap.py` (21 tests) covers point-in-time active detection, period-overlap detection with 30-day window, merge idempotency, condition-type promotion, working-diagnoses entry structure, and negative-onset-day clamp. Measured impact on the JP p=10000 s500 sample after applying the fix to the existing snapshot as a data patch: **25 → 0** inpatient encounter overlaps; 22 later encounter CIF files + narratives deleted; primary encounters carry the merged disease facts. 4404 existing unit tests still pass; s88k / PR #845 / PR #847 invariants (MHLW oral 85.88% / non-oral-MHLW = 0, four narrative leak metrics 0.00%, outpatient dept resolver POP-000911 = general_surgery, DR normal-contradict = 0) preserved on the regenerated FHIR.
-- **`MedicationRequest.dosageInstruction[].patientInstruction` is now route-aware** (Issue #848). Prior emit derived the JA phrase from the frequency label alone and every generated template ended in `"内服してください"` ("take orally") — so a saline IV drip (`route.text="静注"`) shipped with `patientInstruction="毎日1回、指示された時間帯に内服してください"` and the two fields inside one resource disagreed on the route. The mismatch touched **3,592 / 10,886 populated JP `patientInstruction` (33.0 %)** in the JP p=10000 s500 sample; saline (`生理食塩液`) was 100 % wrong at 838 records ("take saline orally"). New `_resolve_patient_instruction_ja(route, freq, freq_per_day)` picks the phrasing template from a route-family table `_PI_ROUTE_FAMILIES_JA` (parenteral IV/SC/IM/drip → `医師の指示のもと、看護師が投与します`; inhalation → `指示された方法で吸入してください`; rectal / suppository → `指示された時間に直腸内に挿入してください`; transdermal patch → `指示された部位に貼付してください`; topical / ointment → `指示された部位に塗布してください`; eye drop → `指示された時間に点眼してください`; nasal → `指示された時間に点鼻してください`; sublingual → `指示された時に舌下に投与してください`; enteral / NG / PEG → `看護師が経管より投与します`; oral → freq-composed `毎日N回、指示された時間帯に内服してください`) and folds a freq-per-day / interval prefix into the oral case only. Timing-only labels (`qhs` / `ac` / `pc` / `qam` / `qpm` / `prn` / `頓服` / `頓用`) still emit their route-independent phrase unchanged. Unknown routes yield the empty string so `patientInstruction` is omitted (FHIR cardinality `0..1`) rather than emitted with a value that would contradict the resource's own `route.text` — matching the alternative Issue #848 recommends. Explicit CIF-authored `Order.patient_instruction` (Issue #476 opt-in) still wins over the derived phrase. New: `tests/unit/output/test_fhir_dosage_patient_instruction_route.py` (16 tests) covering the oral freq composer, each non-oral route family, unknown-route omission, authored-instruction precedence, timing-only labels, and the saline-IV regression case; existing session-88j `test_fhir_p25_reasoncode_and_patientinstruction.py` continues to pass with the expanded `_PI_ROUTE_FAMILIES_JA` markers (`ORAL` / `BY MOUTH` / `INTRAVENOUS` etc. added so pre-localization EN route strings resolve correctly).
-- **`medicationCodeableConcept.text` now uses the full multi-word drug name for JA localization** (Issue #852). Prior emit truncated the base name to the first whitespace token before localizing, so multi-word product-family names (`Cefcapene pivoxil`, `Cefditoren pivoxil`, `Magnesium sulfate`, `Normal saline`, `Regular insulin`, `Potassium chloride`, `Lactated Ringer`, `Hypertonic Saline`, `Unfractionated Heparin`, `Calcium/Vitamin D`, `ICS/LABA inhaler`) whose only JA-dict key was the full form never localized — 8,283 (2.3 %) `MedicationAdministration.text` + 1,113 (1.0 %) `MedicationRequest.text` shipped Latin single-word strings (`"Magnesium"` / `"Cefcapene"` / `"Normal"` / `"Regular"` / `"Potassium"` / `"Lactated"` / `"Hypertonic"` / `"Unfractionated"` / `"ICS/LABA"` / `"Calcium/Vitamin"` / `"Cefditoren"`) while `coding[0].display` on the same resource was already Japanese. Fix: after the code_mapping multi-token prefix loop (which is optimized for the JP MHLW YJ table and misses product-family qualifiers), extend `base_name` to the longest multi-word prefix that has a matching entry in `drug_names_ja.yaml`, but only when the prefix begins with the already-chosen first token — the constraint preserves the Issue #775 invariant that `.text` must not carry dose text, since dose / route / freq tails cannot slip in as an unrelated prefix. Applied symmetrically to `MedicationRequest` (`_resolve_medication_concept`) and `MedicationAdministration` (`_build_medication_admin`). Also added missing `ICS/LABA inhaler` → `吸入ステロイド／β2刺激薬配合吸入剤` and `ICS/LABA` → `吸入ステロイド／β2刺激薬配合` entries to `clinosim/locale/shared/drug_names_ja.yaml`. New: `tests/unit/output/test_fhir_medication_text_full_name.py` (10 tests) verifies all 11 flagged drugs localize to JA, the `ICS/LABA` short-form resolves, US output passes through unchanged, and the yaml has the required entries. Existing session-88j `test_fhir_medication_jp_hot_uri.py` (Issue #775 dose-exclusion invariant) continues to pass — the JA-dict extension respects the same first-token boundary that keeps dose out of `.text`.
+- **`MedicationRequest.dosageInstruction[].patientInstruction` is now route-aware** (Issue #848). Prior emit derived the JA phrase from the frequency label alone and every generated template ended in `"内服してください"` ("take orally") — so a saline IV drip (`route.text="静注"`) shipped with `patientInstruction="毎日1回、指示された時間帯に内服してください"` and the two fields inside one resource disagreed on the route. The mismatch touched **3,592 / 10,886 populated JP `patientInstruction` (33.0 %)** in the JP p=10000 s500 sample; saline (`生理食塩液`) was 100 % wrong at 838 records ("take saline orally"). New `_resolve_patient_instruction_ja(route, freq, freq_per_day)` picks the phrasing template from a route-family table `_PI_ROUTE_FAMILIES_JA` (parenteral IV/SC/IM/drip → `医師の指示のもと、看護師が投与します`; inhalation → `指示された方法で吸入してください`; rectal / suppository → `指示された時間に直腸内に挿入してください`; transdermal patch → `指示された部位に貼付してください`; topical / ointment → `指示された部位に塗布してください`; eye drop → `指示された時間に点眼してください`; nasal → `指示された時間に点鼻してください`; sublingual → `指示された時に舌下に投与してください`; enteral / NG / PEG → `看護師が経管より投与します`; oral → freq-composed `毎日N回、指示された時間帯に内服してください`) and folds a freq-per-day / interval prefix into the oral case only. Timing-only labels (`qhs` / `ac` / `pc` / `qam` / `qpm` / `prn` / `頓服` / `頓用`) still emit their route-independent phrase unchanged. Unknown routes yield the empty string so `patientInstruction` is omitted (FHIR cardinality `0..1`) rather than emitted with a value that would contradict the resource's own `route.text` — matching the alternative Issue #848 recommends. Explicit CIF-authored `Order.patient_instruction` (Issue #476 opt-in) still wins over the derived phrase. New: `tests/unit/output/test_fhir_dosage_patient_instruction_route.py` (16 tests) covering the oral freq composer, each non-oral route family, unknown-route omission, authored-instruction precedence, timing-only labels, and the saline-IV regression case; existing 2026-08-10 `test_fhir_p25_reasoncode_and_patientinstruction.py` continues to pass with the expanded `_PI_ROUTE_FAMILIES_JA` markers (`ORAL` / `BY MOUTH` / `INTRAVENOUS` etc. added so pre-localization EN route strings resolve correctly).
+- **`medicationCodeableConcept.text` now uses the full multi-word drug name for JA localization** (Issue #852). Prior emit truncated the base name to the first whitespace token before localizing, so multi-word product-family names (`Cefcapene pivoxil`, `Cefditoren pivoxil`, `Magnesium sulfate`, `Normal saline`, `Regular insulin`, `Potassium chloride`, `Lactated Ringer`, `Hypertonic Saline`, `Unfractionated Heparin`, `Calcium/Vitamin D`, `ICS/LABA inhaler`) whose only JA-dict key was the full form never localized — 8,283 (2.3 %) `MedicationAdministration.text` + 1,113 (1.0 %) `MedicationRequest.text` shipped Latin single-word strings (`"Magnesium"` / `"Cefcapene"` / `"Normal"` / `"Regular"` / `"Potassium"` / `"Lactated"` / `"Hypertonic"` / `"Unfractionated"` / `"ICS/LABA"` / `"Calcium/Vitamin"` / `"Cefditoren"`) while `coding[0].display` on the same resource was already Japanese. Fix: after the code_mapping multi-token prefix loop (which is optimized for the JP MHLW YJ table and misses product-family qualifiers), extend `base_name` to the longest multi-word prefix that has a matching entry in `drug_names_ja.yaml`, but only when the prefix begins with the already-chosen first token — the constraint preserves the Issue #775 invariant that `.text` must not carry dose text, since dose / route / freq tails cannot slip in as an unrelated prefix. Applied symmetrically to `MedicationRequest` (`_resolve_medication_concept`) and `MedicationAdministration` (`_build_medication_admin`). Also added missing `ICS/LABA inhaler` → `吸入ステロイド／β2刺激薬配合吸入剤` and `ICS/LABA` → `吸入ステロイド／β2刺激薬配合` entries to `clinosim/locale/shared/drug_names_ja.yaml`. New: `tests/unit/output/test_fhir_medication_text_full_name.py` (10 tests) verifies all 11 flagged drugs localize to JA, the `ICS/LABA` short-form resolves, US output passes through unchanged, and the yaml has the required entries. Existing 2026-08-10 `test_fhir_medication_jp_hot_uri.py` (Issue #775 dose-exclusion invariant) continues to pass — the JA-dict extension respects the same first-token boundary that keeps dose out of `.text`.
 - **`MedicationAdministration.dosage` (route + text) now backfills from the parent Order** (Issue #851). Prior emit dropped the entire `dosage` element on **23,543 / 359,023 (6.56 %)** of JP p=10000 s500 sample MAs — continue-home-med / sliding-scale / PRN orders had no numeric dose at either MA or Order level, so `_parse_dose_for_mar` yielded no structured `dose_quantity`, and the historic mad-1 emit gate (require `dose` OR `rateQuantity` before emitting the dosage element) discarded the entire block — losing route and free-text description as well. Fix (a): `_build_medication_admin` accepts a new `parent_order: dict | None` parameter; when `mar.dose` is empty or a drug-name fallback (`"Fluticasone/Salmeterol"` in the `dose` slot for the same drug), the builder backfills text + route from the parent Order's structured `dose_quantity` / `dose_unit` / `frequency` / `route` fields. Fix (b): the mad-1 emit gate is relaxed so `dosage` emits whenever it carries at least a route or a meaningful (non-drug-name) text — the eMAR-rendering need outweighs the FHIR R4 mad-1 preference, which is SHOULD not SHALL. Text that merely repeats the drug name is treated as empty so `.dosage.text` never shadows `medicationCodeableConcept.text`. Caller (`inline_bb.py::_bb_medication_administrations`) builds a one-shot `order_id → Order` lookup and passes the matching parent to the builder. New: `tests/unit/output/test_fhir_medication_admin_dosage_backfill.py` (8 tests) covers the Fluticasone/Salmeterol home-med case, composed-text carries freq/route, structured-dose backfill from parent, drug-name-fallback empty treatment, dosage emitted for sliding-scale (route only, no dose), still-omitted when nothing meaningful is available, structured-path unchanged when MA.dose is parseable (`"500mL"`), and no-parent-Order defensive path. 4,414 existing unit tests still pass.
 - **Late-admission placed medications now get a day-0 first dose** (Issue #850). `_generate_mar` computed day-0 slots off `admission_time`'s calendar day at the fixed `admin_hours` for the drug (`[8]` for daily; `[0, 8, 16]` for IV default; `[0, 6, 12, 18]` for Q6H; etc.) and rejected every slot that fell before `admission_time`. For a patient admitted at 09:02 to an Enoxaparin `daily` order (only slot `[8]`) or admitted at 16:43 to an IV order (`[0, 8, 16]`), every day-0 slot was rejected. When the encounter's LOS was short enough that day 1's first slot never fired, the order ended up with ZERO MedicationAdministration records — 3 orphan inpatient MedicationRequests (`status="completed"`, 0 linked MA) in the JP p=10000 s500 sample. Fix: on day 0, when every scheduled slot is before `admission_time` and no STAT ad-hoc first dose already applies, insert an ad-hoc first-dose slot at `admission_time + jitter` (same 30–60 min shape as the existing STAT first-dose path, reusing `MAR_STAT_FIRST_DOSE_DELAY_MIN` / `_MAX_EXCLUSIVE`). Guarded on `stat_first_dose_time is None` so STAT orders keep their bundle-mandated first-dose timing unchanged, and gated on `day == 0` so subsequent days use their normal fixed slots. New: `tests/unit/simulator/test_mar_late_admission_first_dose.py` (5 tests) — Enoxaparin daily late admission, IV saline late admission, admit-before-first-slot uses scheduled slot not ad-hoc, STAT unchanged, day 1+ unchanged.
 - **DiagnosticReport.conclusionCode now derives from result flags / impression negation** (issue #846). The lab-panel DR emit path read the overall abnormality signal from ``getattr(group, "any_abnormal", False)`` — a field that was never set on the ``_GroupedPanel`` NamedTuple, so every lab DR emitted ``conclusionCode = 17621005`` (Normal) even when its own ``.conclusion`` listed ``参照範囲外: XXX`` and per-value ``[H]`` / ``[L]`` flags. 44.82 % of the 42,903 DRs in the JP p=10000 s500 sample carried this internal contradiction (19,229 Normal-verdict reports with abnormal markers in their own text). Additionally, the imaging-DR fallback path used a naive substring search that flipped ``impression_text`` to Abnormal whenever the text contained any of ``異常`` / ``認め`` / ``consolidation`` / ``fracture`` / ``骨折`` — regardless of negation. Radiology impressions such as ``急性期異常所見を認めず`` ("no acute abnormality found") were classified Abnormal because the search matched ``異常`` and ``認め`` without noticing the ``認めず`` negation (2,857 imaging DRs affected). Fix: ``_build_lab_panel_conclusion`` now returns ``(text, has_abnormal)`` so a single walk over the panel's Observations drives both the free-text summary and the SNOMED verdict — the code and the text cannot disagree within one resource by construction; and ``_derive_imaging_conclusion_code`` checks negation phrases (``認めず`` / ``認めない`` / ``所見なし`` / ``異常なし`` / ``正常`` / ``no acute`` / ``no evidence of`` / ``negative for`` / ``unremarkable`` / ``within normal limits`` / ``normal study``) BEFORE the abnormal-keyword scan, so ``no acute consolidation`` is Normal. When ``orders`` is unavailable to the lab path, ``conclusionCode`` is omitted rather than emitted with a value we cannot back with the resource's own data (FHIR cardinality is ``0..*``). New: ``tests/unit/output/test_fhir_dr_conclusion_code.py`` (17 tests) covers all-normal / single-flag / critical-flag lab cases with both dataclass and dict fixtures, the code↔text single-walk invariant, JA and EN imaging negation phrases, JA and EN abnormal-keyword recognition, and empty-impression Normal defaults. Measured impact on the JP p=10000 s500 sample: Normal-with-abnormal-text drops **19,229 → 0**; residual 495 Abnormal-without-lab-marker reports are the correctly-Abnormal 134 microbiology growth-positives (culture wells emit no ``[H]`` / ``[L]``) plus 361 imaging reports with genuine positive findings (fractures, edema, effusions, masses).
@@ -4618,7 +4618,7 @@ Cumulative volume impact on the JP p=10000 s500 sample:
 
 ## [0.3.0] - 2026-08-22
 
-### Added (session 88k)
+### Added (2026-08-10)
 
 - **MHLW `MedicationUsage_ePrescription` heuristic** at FHIR emit time (PRs #836/#837/#838/#840/#841). `_populate_jp_medication_dosage_ecs_fields` now calls `_resolve_mhlw_usage_code(drug_text, freq, period, period_unit, route_text)` which dispatches through a 5-path resolver: **(1)** route filter — non-oral routes (`_NON_ORAL_ROUTE_MARKERS` = 静注/皮下注/筋注/吸入/舌下/貼付/塗布/点眼/直腸/経腸/etc.) return None so the walker falls to the JP-CLINS dummy uncoded code (spec-legit; MHLW oral CS has no injection/inhalation/etc. code family); **(2)** PRN condition codes via `_DRUG_PRN_MHLW_CODE` (アセトアミノフェン→発熱時、サルブタモール→喘息発作時); **(3)** fixed-interval Q3H via `_HOURLY_CADENCE_MHLW_CODE` (`1028…`); **(4)** daily-cadence meal-context via `_FREQ_CONTEXT_TO_MHLW_CODE` (9 canonical codes) driven by the drug-class → meal-context tables `_DRUG_{QD,BID,TID}_MEAL_CONTEXT` (~50 drugs across statins/PPIs/bisphosphonates/diuretics/antihypertensives/anticoagulants/antibiotics/etc.); **(5)** drug-implied freq when `timing.repeat` is missing entirely via `_DRUG_IMPLIED_FREQ_{QD,BID,TID}` sets. Semantic invariant: MHLW oral code is emitted **only** when `route.text == "経口"`. JP p=10000 s500 sample coverage: **99,252 / 115,599 dosages (85.86%) with a real MHLW code, all clinically correct**; residual 14.14% dummy is MHLW-CS-unmappable routes.
 - **`comp-{encounter_id}-imgrpt-{n}` id pattern for imgrpt Composition** (PR #835, Issue #818 fu). Prior `comp-imgrpt-…` prefix sorted after every `comp-ENC-…` id so consumer alphabetic-`id` pagination (e.g. `_count=500`) missed all 4,823 imgrpt records. New pattern interleaves them among the same-encounter documents — a first-500 sample now includes ~37 imgrpt.
@@ -4626,23 +4626,23 @@ Cumulative volume impact on the JP p=10000 s500 sample:
 - **`_resolve_staff_name(staff_id, roster_map, is_ja)` template helper** (PR #831, Issue #819 fu). New `NarrativeContext.roster_map` field, populated by `NarrativePass._load_roster()` from `hospital.json`, threaded through `context.py::build_narrative_context`. 4 template call-sites (nursing shift note / progress-note nurse line / ACP other-staff / NCP ward+physician) now emit resolved names (`加瀬 幸男 医師`) before the LLM sees them — no more raw `DR-CA-002` id leak into narrative text. The FHIR-emit-time `_localize_practitioner_ids_in_text` walker (PR #828) is retained as defence-in-depth.
 - **Documentation** (PRs #839, #842): narrative module README (EN + JA) documents the roster/template staff-name resolution + JA token localization + relationship to the composition.py walker; fhir_r4/post_process README (EN + JA) documents the full MHLW usage-code heuristic dispatch chain including the route filter and updated coverage numbers.
 
-### Fixed (session 88k)
+### Fixed (2026-08-10)
 
 - **JA localization of `severity` / `oxygen_device` / `fall_risk_level` enum tokens** in narrative templates (PRs #832, #833). Three admission_hp HPI fallback branches used to embed raw `moderate` / `mild` / `severe` in JA text; `_build_nursing_shift_status` used to embed `酸素投与: nasal_cannula` and `転倒リスク high、` verbatim. All now route through the existing `_localize_severity_ja` / `_localize_oxygen_device_ja` / inline fall-level maps.
 
-### Changed (session 88k)
+### Changed (2026-08-10)
 
 - **iris4h-ai deploy** (`~/workspace/iris4h-ai/fhir_r4/`) regenerated from patched CIF via `clinosim export-fhir`. Post-regen quality on the JP p=10000 s500 cohort: staff_id / severity / o2_device / fall_lvl narrative leaks all 0.00 % on DocumentReference + Composition; imgrpt Composition present in first-500 alphabetically sorted; ImagingStudy empty description = 0, 3-tuple dup = 0; MedRequest MHLW oral code = 85.86 % (all 経口 route, 100 % clinically correct).
 
-### Refactored (session 83)
+### Refactored (2026-08-07)
 
 - **Test import migration to canonical modules + re-export facade removal** (PR #540, PR #541):
   All test suites migrated to import directly from extracted `_fhir_*` sibling modules instead of the backward-compat re-export facade in `fhir_r4_adapter.py`. This allows deletion of the re-export block and further shrinkage of `fhir_r4_adapter.py`.
   - **PR #540**: 3 test files migrate `_build_discharge_rx` imports from `clinosim.simulator.inpatient._build_discharge_rx` (back-compat alias, deprecated in PR #532) to canonical `clinosim.simulator.discharge_rx.build_discharge_rx`. Back-compat alias removed from both `inpatient.py` and `discharge_rx.py`.
   - **PR #541**: 32 test files migrate 104 symbol references from `clinosim.modules.output.fhir_r4_adapter` facade to canonical modules (`_fhir_common`, `_fhir_inline_bb`, `_fhir_post_process`, etc.). The re-export block (109 symbols with `# noqa: F401`) is removed, and `fhir_r4_adapter.py` shrinks 689 → 543 lines (-146 lines). Module boundary now explicit: adapter holds only orchestration (`convert_cif_to_fhir` + `_build_bundle` + registry), leaf symbols live in canonical modules.
-  - Verification: both PRs byte-diff neutral (session 82 protocol: unit + E2E + byte-diff), all CI checks green.
+  - Verification: both PRs byte-diff neutral (2026-08-07 protocol: unit + E2E + byte-diff), all CI checks green.
 
-### Added (session 82)
+### Added (2026-08-07)
 
 - **New `AGENTS.md`** at repo root (agentmd.dev convention). AI coding
   agents (Claude Code, Codex, Cursor, Gemini CLI, Copilot, …) all
@@ -4696,7 +4696,7 @@ Cumulative volume impact on the JP p=10000 s500 sample:
   (`tests/unit/test_module_readme_coverage.py`) will fail any future
   module added under `clinosim/modules/` without one.
 
-### Changed (session 82)
+### Changed (2026-08-07)
 
 - **CI PR-gate simplification** (PR #530): PR-level check count reduced
   from 13 to 9. Drops the empty `integration_serial` job, drops Python
@@ -4721,7 +4721,7 @@ Cumulative volume impact on the JP p=10000 s500 sample:
   `_BUNDLE_BUILDERS` registry stays with `_build_bundle` in the
   adapter.
 
-### Fixed (session 82 — subsumed under Added / Changed above)
+### Fixed (2026-08-07 — subsumed under Added / Changed above)
 
 Detailed defect-fix notes for the three Issue tickets (#460 / #439 / #433)
 are recorded in the corresponding PR bodies (#521 / #522 / #523). All
@@ -4729,7 +4729,7 @@ three preserve deterministic output for pre-existing cohorts — byte-diff
 verified on US + JP p=3000 seed=42 (Observation.ndjson identical, no
 regression).
 
-### Repo hygiene (session 82)
+### Repo hygiene (2026-08-07)
 
 - `.tar.gz` maintainer artifacts (3 files) untracked, `.gitignore`
   unified (PR #524).
@@ -4874,7 +4874,7 @@ regression).
 ## [0.2.0] - 2026-07-12
 
 Initial public v0.2 baseline release. Bundles the physiology-driven
-generator (session-16-through-46 development) with the packaging /
+generator (2026-06-26-through-46 development) with the packaging /
 distribution work that makes it installable.
 
 ### Changed
@@ -4926,9 +4926,9 @@ distribution work that makes it installable.
 - Always-on modules: device, HAI, antibiotic, imaging, allergy, document,
   triage, nursing.
 - Opt-in JP insurance enrollment (FHIR Coverage, AD-54).
-- Session 46: JP Core meta.profile emission for 16 primary resource types
+- 2026-07-12: JP Core meta.profile emission for 16 primary resource types
   (100% emission rate).
-- Session 46: drug_names_ja +54 entries + 17 silent-code-substitution
+- 2026-07-12: drug_names_ja +54 entries + 17 silent-code-substitution
   fixes against MHLW YJ Excel authoritative master.
 - Two-pass CIF generation (AD-65): structural + narrative separation.
 - Canonical patient profile fixture library (AD-66) + `regenerate-goldens`
@@ -4943,7 +4943,7 @@ distribution work that makes it installable.
 - Per-order lab RNG isolation (AD-59): specimen rejection / hemolysis /
   technician / noise are per-order sub-RNGs, so a YAML edit cannot shift
   unrelated patients' cohorts.
-- Verified across seed=42/100/200/300/400 in session 45's 5-seed chain.
+- Verified across seed=42/100/200/300/400 in 2026-07-11's 5-seed chain.
 
 ### CI / Automation
 

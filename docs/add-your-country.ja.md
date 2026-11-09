@@ -1,6 +1,6 @@
 # clinosim に国を追加する
 
-*P2-14 (session 48)。本ガイドは、clinosim が新規国向けの locale
+*P2-14 (2026-07-13)。本ガイドは、clinosim が新規国向けの locale
 適合合成 EHR/EMR データを生成できるように国別パックを追加する手順
 を示します。*
 

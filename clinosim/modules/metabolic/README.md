@@ -4,7 +4,7 @@ Deterministic chronic-condition enrichment for metabolic syndrome components. Ax
 
 ## Purpose
 
-Fill a data-completeness gap identified in the session-102 cohort audit: `PersonRecord.bmi` was already set at generation and consumed by multiple acute-event risk multipliers, but the ICD-10 obesity classification derived from BMI (E66) was absent from `chronic_conditions` entirely (0% emission vs ~41% CDC NHANES 2017-20 US adult prevalence). The module splits BMI-driven condition derivation out of the shared `demographics.yaml:chronic_prevalence` sampler so a Bernoulli draw is never involved in a condition that is a deterministic function of a Layer-1 attribute, and it collects the four cluster-2 enrichers (plus the GLP-1 pharmacotherapy layer) in one place for a single contributor-facing seam.
+Fill a data-completeness gap identified in the 2026-09-05 cohort audit: `PersonRecord.bmi` was already set at generation and consumed by multiple acute-event risk multipliers, but the ICD-10 obesity classification derived from BMI (E66) was absent from `chronic_conditions` entirely (0% emission vs ~41% CDC NHANES 2017-20 US adult prevalence). The module splits BMI-driven condition derivation out of the shared `demographics.yaml:chronic_prevalence` sampler so a Bernoulli draw is never involved in a condition that is a deterministic function of a Layer-1 attribute, and it collects the four cluster-2 enrichers (plus the GLP-1 pharmacotherapy layer) in one place for a single contributor-facing seam.
 
 Fields written: appends ICD-10 codes to `PersonRecord.chronic_conditions`. Does not touch `encounters`, labs, or `current_medications` directly — the medication layer (axis 5) is served by the shared `chronic_medications.yaml` pipeline through the activator.
 

@@ -386,7 +386,7 @@ primary team allocation を要求。
 
 ### AD-65: Structural + Narrative CIF ファイル分離 (two-pass generation)
 
-**Status:** Accepted (Tier 1 #3 α-min-2b, 2026-07-02, session 28)
+**Status:** Accepted (Tier 1 #3 α-min-2b, 2026-07-02)
 
 **Context:**
 - clinosim の initial アーキテクチャ (`clinosim/modules/output/SPEC.md`)
@@ -400,10 +400,10 @@ primary team allocation を要求。
   置換アーキテクチャとしては premature deletion となり、
   `clinosim/modules/output/SPEC.md` の Stage 2 設計から drift が
   生じた。
-- Session 27 Clinical Integrity review が 3 つの Critical narrative
+- 2026-07-01 Clinical Integrity review が 3 つの Critical narrative
   bug を発見。inline-only パターンは修正のためにフルコホート再生成
   を要求し、開発速度を破壊する。
-- ユーザが (session 27→28 で) 明示的に示した: original design は
+- ユーザが (2026-07-01 で) 明示的に示した: original design は
   structural CIF と narrative CIF を separate file として想定して
   いた = SPEC.md original design の復元。
 
@@ -530,7 +530,7 @@ Neutral:
 
 ### AD-67 · Severity single source of truth (disease YAML canonical、hybrid c2)
 
-**Date:** 2026-07-06 (session 38、FP-SEV-MODEL)
+**Date:** 2026-07-06 (FP-SEV-MODEL)
 
 **Status:** Accepted
 
@@ -600,7 +600,7 @@ Negative / neutral:
 
 ### AD-68 · archetype_modifiers 配線 (dead YAML activation、AD-67 sibling)
 
-**Date:** 2026-07-06 (session 38、FP-YAML-2b)
+**Date:** 2026-07-06 (FP-YAML-2b)
 
 **Status:** Accepted
 
@@ -655,7 +655,7 @@ byte-unchanged)。疾患内在 condition は defer (AD-67 の reserved set
 
 ### AD-69 · DiseaseProtocol extra="forbid" (author-time silent-drop 防御)
 
-**Date:** 2026-07-06 (session 38、FP-YAML-3)
+**Date:** 2026-07-06 (FP-YAML-3)
 
 **Status:** Accepted
 
@@ -682,7 +682,7 @@ consume されなかった) — refactor クラス変更。新規 disease-YAML
 author は新 top-level key に対して model field を追加する必要あり
 (でなければ fail-loud)。
 
-**Dead-field triage (session 39、registry FP-YAML-3 follow-up):**
+**Dead-field triage (2026-07-07、registry FP-YAML-3 follow-up):**
 宣言されているが consume されない 3 field のうち、`reference_ranges`
 のみを削除 — live locale 側 lab reference range を duplicate して
 いた (locale が single source of truth、AD-30) ため、disease-YAML
@@ -712,7 +712,7 @@ Pydantic を bypass (forbid でカバーされていない)。
 
 ### AD-70 · JP-CLINS lab coding: JLAC10 primary + LOINC secondary (国際相互運用性)
 
-**Date:** 2026-07-26 (session 68、migration PR 4)
+**Date:** 2026-07-26 (migration PR 4)
 
 **Status:** Accepted
 
@@ -812,7 +812,7 @@ Alternative deferred:
 
 ### AD-71 · 時限 state パターン — `TemporalStatePeriod` (時限エピソード用の state-scoped generator)
 
-**Date:** 2026-09-01 (session 97、META #957 Incr 1)
+**Date:** 2026-09-01 (META #957 Incr 1)
 
 **Status:** Accepted
 

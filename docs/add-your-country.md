@@ -1,6 +1,6 @@
 # Add Your Country to clinosim
 
-*P2-14 (session 48). This guide walks you through adding a new country pack
+*P2-14 (2026-07-13). This guide walks you through adding a new country pack
 so clinosim can generate locale-appropriate synthetic EHR/EMR data for it.*
 
 ## Overview

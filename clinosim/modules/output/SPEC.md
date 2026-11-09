@@ -704,7 +704,7 @@ CIF files can be:
 
 ### AD-65 (2026-07-02): Two-Pass CIF Generation Architecture Restoration
 
-**Context**: SPEC.md defined a three-stage pipeline with structural/narrative file separation. α-min-1 Task 15 consolidated narrative generation into `document_enricher` (Stage 1) for immediate implementation, but this introduced coupling that made Stage 2 narrative regeneration infeasible. Session 27 revealed three critical narrative bugs with full-cohort re-simulation as the only recovery path.
+**Context**: SPEC.md defined a three-stage pipeline with structural/narrative file separation. α-min-1 Task 15 consolidated narrative generation into `document_enricher` (Stage 1) for immediate implementation, but this introduced coupling that made Stage 2 narrative regeneration infeasible. 2026-07-01 revealed three critical narrative bugs with full-cohort re-simulation as the only recovery path.
 
 **Changes**:
 - Restored file-level separation: `cif/structural/patients/<enc>.json` (immutable) and `cif/narratives/<version>/documents/<enc>/<doc>.json` (re-generatable)

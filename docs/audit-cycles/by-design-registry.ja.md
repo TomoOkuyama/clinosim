@@ -16,7 +16,7 @@
    本レジストリの entry を更新するか新規追加を検討する。By-design 判定を
    変更するには **理由 (Signature 変化 / 新臨床要件 / etc.) を明記した
    PR + 元 session PR への back-link** を必須とする(silent drift 防止)。
-4. Session 43 以降追加された `docs/design-notes/2026-07-06-fix-point-registry.md`
+4. 2026-07-09 以降追加された `docs/design-notes/2026-07-06-fix-point-registry.md`
    の "resolved" 項目と本レジストリは別役割:
    - fix-point-registry = 過去のバグ fix の台帳(歴史)
    - by-design-registry = 現在の by-design 観測の除外リスト(現行仕様)
@@ -30,7 +30,7 @@
   observation: <監査時に見えるもの: "X ndjson has N missing Y">
   by_design_reason: <なぜバグでないか (仕様書 / clinical practice / AD-XX への言及)>
   signature: <この観測を機械的に判定する pattern (regex / count comparison / etc.)>
-  established_session: <session N, YYYY-MM-DD>
+  established: <YYYY-MM-DD>
   established_pr: <commit / PR ref>
   revalidation_check: <次回、依然として by-design であることを確認する簡易 check>
 ```
@@ -48,7 +48,7 @@
   ISO 8601 `length` を計算できないため意図的に省略。FHIR R4
   `Encounter.length` は 0..1 で、in-progress encounter で欠落しても spec 適合。
 - **signature**: `sum(1 for e in encounters if "length" not in e and e.get("status") == "in-progress")` が **全 length 欠落の総数と一致**。もし `status != "in-progress"` かつ length 欠落があれば本レジストリ対象外 = 真のバグ。
-- **established_session**: session 44, 2026-07-11 (Chain 1 verify)
+- **established**: 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d` chain 1 wrap
 - **revalidation_check**: JP p=200 seed=42 で `Encounter.length missing` 全件が `status = in-progress` であることを確認。
 
@@ -63,7 +63,7 @@
   omit する。判定は encounter 種別 + 持参薬かどうかで行い、`intent` には依らない。
   FHIR R4 `MedicationRequest.substitution` は 0..1。
 - **signature**: substitution 欠落 MR はすべて `IMP` / `EMER` Encounter を参照すること(すなわち Encounter の `class.code == "AMB"` の MR は 100% substitution 付き)。IMP / EMER encounter 上の持参薬にも substitution が付くのは想定通り。
-- **established_session**: session 44, 2026-07-11 (Chain 1 verify)
+- **established**: 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d`
 - **revalidation_check**: `AMB` Encounter の MR で substitution 欠落 = 0 件、substitution 欠落 MR はすべて `IMP` / `EMER` Encounter 上。
 
@@ -73,7 +73,7 @@
 - **observation**: `Coverage.ndjson` の一部 (概ね 15–25%) が `class[].type.coding[].code == "plan"` の entry を持たない。
 - **by_design_reason**: JP 後期高齢者医療広域連合 (75 歳以上) は保険者番号 (group) のみで **記号 (symbol / plan) を持たない**(制度上)。`fhir_r4/demographics/patient.py`(`_build_coverage_resources` の `use_symbol` 分岐)は `symbol` が truthy の時のみ plan entry を emit するため、後期高齢者 coverage には plan が付かない。
 - **signature**: plan 欠落の Coverage を全数抽出し、その `payor` / class[0].name が「後期高齢者医療広域連合」を含むこと。他の insurer type で plan 欠落があれば本レジストリ対象外。
-- **established_session**: session 44, 2026-07-11 (Chain 1 verify)
+- **established**: 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d`
 - **revalidation_check**: plan 欠落 Coverage の class[0].name が全て「〇〇後期高齢者医療広域連合」pattern に一致。
 
@@ -83,7 +83,7 @@
 - **observation**: `FamilyMemberHistory.ndjson` の一部 (概ね 15–20%) で `condition[].onsetString` が欠落。
 - **by_design_reason**: `fhir_r4/demographics/family_history.py`(`_bb_family_history` の `if conditions:` ガード)は relative の `condition_codes` が空の場合 `condition[]` を emit しない。従って onsetString を attach する対象自体がない。健常な relative(疾患履歴無し) = clinically-realistic。FHIR R4 `FamilyMemberHistory.condition` は 0..*。
 - **signature**: onsetString 欠落 FMH で `"condition" not in resource`(そもそも condition array が存在しない)であること。`condition` array があるのに onsetString が欠落 = 真のバグ(本レジストリ対象外)。
-- **established_session**: session 44, 2026-07-11 (Chain 2 verify)
+- **established**: 2026-07-11 (Chain 2 verify)
 - **established_pr**: `1481306d2f`
 - **revalidation_check**: onsetString 欠落全 FMH で `"condition" not in resource` を確認。
 
@@ -91,19 +91,19 @@
 
 - **id**: `co8-non-jp-marketed-drugs`
 - **observation**: `MedicationRequest.ndjson` の一部記録が YJ code を持たない(text-only)。
-- **by_design_reason**: 該当 drug は 日本 薬価基準未掲載 (imported / OTC / withdrawn / 眼科点眼など海外一般名指定処方)。No-fabrication policy (session 40 確立) により、authoritative code 未確認の drug には code を emit しない。
+- **by_design_reason**: 該当 drug は 日本 薬価基準未掲載 (imported / OTC / withdrawn / 眼科点眼など海外一般名指定処方)。No-fabrication policy (2026-07-07 確立) により、authoritative code 未確認の drug には code を emit しない。
 - **signature**: uncoded MR の drug name (medicationCodeableConcept.text の base name / normalized form) が以下 whitelist に含まれること:
   - "シクロベンザプリン" / "Cyclobenzaprine"
   - "フェナゾピリジン" / "Phenazopyridine"
-  - "メクリジン" / "Meclizine"  (session 44 cycle 6 追加 — 抗ヒスタミン、JP 薬価基準未掲載)
-  - "ニトロフラントイン" / "Nitrofurantoin"  (session 44 cycle 6 追加 — UTI、JP 未掲載)
-  - "プロパラカイン" / "Proparacaine"  (session 44 cycle 6 追加 — 眼科表面麻酔、JP 未掲載)
-  - "オフロキサシン点眼" / "Ofloxacin ophthalmic"  (session 44 cycle 6 追加 — 眼科 個別 code なし)
-  - "オキシメタゾリン" / "Oxymetazoline"  (session 44 cycle 6 追加 — 鼻噴霧 OTC)
-  - "テルリプレシン" / "Terlipressin"  (session 44 cycle 7 residual sweep 追加 — JP 薬価基準未掲載)
-  - "シクロペントラート" / "Cyclopentolate"  (session 44 cycle 7 residual sweep 追加 — 眼科 個別 code なし)
+  - "メクリジン" / "Meclizine"  (2026-07-11 cycle 6 追加 — 抗ヒスタミン、JP 薬価基準未掲載)
+  - "ニトロフラントイン" / "Nitrofurantoin"  (2026-07-11 cycle 6 追加 — UTI、JP 未掲載)
+  - "プロパラカイン" / "Proparacaine"  (2026-07-11 cycle 6 追加 — 眼科表面麻酔、JP 未掲載)
+  - "オフロキサシン点眼" / "Ofloxacin ophthalmic"  (2026-07-11 cycle 6 追加 — 眼科 個別 code なし)
+  - "オキシメタゾリン" / "Oxymetazoline"  (2026-07-11 cycle 6 追加 — 鼻噴霧 OTC)
+  - "テルリプレシン" / "Terlipressin"  (2026-07-11 cycle 7 residual sweep 追加 — JP 薬価基準未掲載)
+  - "シクロペントラート" / "Cyclopentolate"  (2026-07-11 cycle 7 residual sweep 追加 — 眼科 個別 code なし)
   他の drug で uncoded が発生した場合 = 真のバグ(MHLW lookup 追加が必要)。
-- **established_session**: session 44, 2026-07-11 (Chain 4 CO-8) — cycle 6 (session 44 continuation) で 5 件追加
+- **established**: 2026-07-11 (Chain 4 CO-8) — cycle 6 (2026-07-11 continuation) で 5 件追加
 - **established_pr**: `2c5e79b974` + cycle 6 close
 - **revalidation_check**: uncoded MR の text が全て上記 whitelist の subset に一致することを確認。増減があれば registry を update。
 
@@ -113,7 +113,7 @@
 - **observation**: `Condition.ndjson` の糖尿病 (E11 / E10) で `stage.summary.text` が `"HbA1c X.Y%"` 形式 (例: `"HbA1c 7.5%"`) で `coding` を持たない。
 - **by_design_reason**: HbA1c 値そのものが「stage」の記述で、CKD Gx / NYHA I-IV のような **標準化された stage system ではない**。SNOMED CT に "HbA1c 7.5%" のような値ベース concept は存在しない。テキストで値を保持する方が meaningful。
 - **signature**: coding 欠落 stage.summary の text が `HbA1c \d+\.\d+%` regex に一致。他 pattern (CKD / NYHA / GOLD / CCS / asthma / HTN Stage) で coding 欠落があれば真のバグ。
-- **established_session**: session 44, 2026-07-11 (Chain 4 CO-6 verify)
+- **established**: 2026-07-11 (Chain 4 CO-6 verify)
 - **established_pr**: `69f4cae082`
 - **revalidation_check**: coding 欠落 stage.summary が全て `HbA1c \d+\.\d+%` regex に一致することを確認。
 
@@ -121,10 +121,10 @@
 
 - **id**: `snapshot-in-progress-clinical-impression-status`
 - **observation**: `ClinicalImpression.ndjson` の 1 件以上で `status = "in-progress"`(`"completed"` を期待する tests がある)。
-- **by_design_reason**: 同 encounter が AD-32 スナップショットで in-progress 打切りとなる患者。encounter status に連動して ClinicalImpression status も in-progress となる = FHIR spec 適合 (both are valid `EventStatus` codes)。既存 unit test `test_jp_clinical_impression_structural_fields_present` は `status == "completed"` を厳密要求しており、この test は snapshot 挙動を考慮していない = pre-existing test-side gap (session 44 で確認済)。
+- **by_design_reason**: 同 encounter が AD-32 スナップショットで in-progress 打切りとなる患者。encounter status に連動して ClinicalImpression status も in-progress となる = FHIR spec 適合 (both are valid `EventStatus` codes)。既存 unit test `test_jp_clinical_impression_structural_fields_present` は `status == "completed"` を厳密要求しており、この test は snapshot 挙動を考慮していない = pre-existing test-side gap (2026-07-11 で確認済)。
 - **signature**: `status = "in-progress"` の CI に紐付く `encounter.status` も `in-progress` であること。
-- **established_session**: session 44, 2026-07-11
-- **established_pr**: `544fd40d18` (session 43 wrap で observed / not yet formalized)
+- **established**: 2026-07-11
+- **established_pr**: `544fd40d18` (2026-07-09 wrap で observed / not yet formalized)
 - **revalidation_check**: 全 in-progress CI に対し、その encounter が同じく in-progress であることを確認。将来的には test を snapshot-aware に緩和する予定(FHIR completeness registry 参照)。
 
 ### snapshot-in-progress-encounter-discharge-disposition-omitted
@@ -133,18 +133,18 @@
 - **observation**: `Encounter.ndjson` の一部が `hospitalization.dischargeDisposition` を持たない(cycle 1 監査で 24 件観測)。
 - **by_design_reason**: AD-32 snapshot 意味論。in-progress encounter は退院していないので disposition 未定 = FHIR spec 適合。C1-04 で確認済(cycle 1)。
 - **signature**: `dischargeDisposition` 欠落の Encounter が全て `status == "in-progress"` かつ `discharge_datetime == null`。
-- **established_session**: session 41, 2026-07-07 (cycle 1)
-- **established_pr**: cycle 1 close (session 41)
+- **established**: 2026-07-07 (cycle 1)
+- **established_pr**: cycle 1 close (2026-07-07)
 - **revalidation_check**: dischargeDisposition 欠落 Encounter が全て in-progress であること。
 
 ### realistic-mr-mar-ratio-for-outpatient-heavy-cohort
 
 - **id**: `realistic-mr-mar-ratio-for-outpatient-heavy-cohort`
 - **observation**: MR 件数がある基準値 (例 21820 for JP p=10000) より少なく見える。MAR:MR 比が ~9:1 〜 33:1 の広い帯。
-- **by_design_reason**: 90% 外来コホートで MR = 外来処方 + 入院初期オーダーのみ、MAR = 入院での複数日投与実績。~0.4-0.6 MR/enc + 高比率 MAR:MR は実 EHR reality。session 45 seed=100 verification で 32.6 観測 = long-LOS IMP + continuous-infusion drip の重畳による自然な pattern。C1-08 (cycle 1) + session 45 verification 併合。
+- **by_design_reason**: 90% 外来コホートで MR = 外来処方 + 入院初期オーダーのみ、MAR = 入院での複数日投与実績。~0.4-0.6 MR/enc + 高比率 MAR:MR は実 EHR reality。2026-07-11 seed=100 verification で 32.6 観測 = long-LOS IMP + continuous-infusion drip の重畳による自然な pattern。C1-08 (cycle 1) + 2026-07-11 verification 併合。
 - **signature**: `MR count / encounter count ≈ 0.4–0.7` かつ `MAR / MR ≈ 5–40`。両範囲内なら by-design。範囲外 = 要調査(cohort 混合が変化 or MAR bloat)。
-- **established_session**: session 41, 2026-07-07 (cycle 1) — band widened session 45, 2026-07-11
-- **established_pr**: cycle 1 close + session 45 verification
+- **established**: 2026-07-07 (cycle 1) — band widened  2026-07-11
+- **established_pr**: cycle 1 close + 2026-07-11 verification
 - **revalidation_check**: 上記 2 比率を計算し範囲内であること。band 上限を上回るときは continuous-infusion drip の混在率が急変していないか確認。
 
 ### clinical-impression-summary-optional
@@ -153,7 +153,7 @@
 - **observation**: `ClinicalImpression.summary` field が空(多くの CI で omit)。
 - **by_design_reason**: FHIR R4 `ClinicalImpression.summary` は 0..1 (optional)。CIF に対応する source data 無し(distinct 所見総括データを clinosim は生成しない)。fabrication すると no-fabrication policy 違反。`description` は populated (Day N clinical assessment)。C1-11 で確認済(cycle 1)。
 - **signature**: 全 CI で `summary` field が omit されている(コード側で emit していない)ことを確認。将来 β-JP-1 LLM narrative pass で populate 予定(FHIR completeness registry 参照)。
-- **established_session**: session 41, 2026-07-07 (cycle 1)
+- **established**: 2026-07-07 (cycle 1)
 - **established_pr**: cycle 1 close
 - **revalidation_check**: `fhir_r4/documents/composition.py` (or clinical_impression builder) が summary を emit していないことを grep 確認。
 
@@ -163,7 +163,7 @@
 - **observation**: `CareTeam.status = "inactive"` の record が多い(退院済 encounter に紐付く CT)。"active" を期待するレビューあり。
 - **by_design_reason**: FHIR R4 `CareTeam.status` valueSet includes `active | inactive | suspended | entered-in-error`。退院済 encounter = team が現在ケアを提供していない = inactive が spec 正解(`fhir_r4/encounters/care_team.py`: `status = "active" if discharge_dt is None else "inactive"`)。C1-14 で確認済(cycle 1)。
 - **signature**: `status = "inactive"` の CT に紐付く `encounter.discharge_datetime` が non-null であること。
-- **established_session**: session 41, 2026-07-07 (cycle 1)
+- **established**: 2026-07-07 (cycle 1)
 - **established_pr**: cycle 1 close
 - **revalidation_check**: inactive CT の encounter が全て discharge_datetime 有(= completed)であること。
 
@@ -173,7 +173,7 @@
 - **observation**: `--population 10000` で `Patient.ndjson` が 5000-6000 程度(= 全員患者化しない)。
 - **by_design_reason**: population = catchment area total = 病院サービスエリア人口(健常人含む)。Patient = 期間内に encounter を持った人だけ。~50% healthcare utilization rate は実データと整合。C1-20 で確認済(cycle 1)。
 - **signature**: `Patient count / population` が `0.4–0.7` 範囲内(country demographics 依存)。
-- **established_session**: session 41, 2026-07-07 (cycle 1)
+- **established**: 2026-07-07 (cycle 1)
 - **established_pr**: cycle 1 close
 - **revalidation_check**: 上記 ratio を計算し範囲内であること。範囲外 = disease incidence data の drift 疑い。
 
@@ -183,20 +183,20 @@
 - **observation**: `Coverage.type` が `{"text": "..."}` のみで `coding` を持たない。
 - **by_design_reason**: JP 保険 type (公費 / 社保 / 国保 等) に authoritative FHIR CodeSystem が確定していない。fabrication 禁止 policy に従い text-only 維持(`fhir_r4/demographics/patient.py`: `coverage["type"] = {"text": label}`)。C2-12 で確認済(cycle 2)。
 - **signature**: `Coverage.type.coding` が全 Coverage で omit されていること(`fhir_r4/demographics/patient.py` に fabricated code が入っていない)。
-- **established_session**: session 42, 2026-07-07 (cycle 2)
+- **established**: 2026-07-07 (cycle 2)
 - **established_pr**: cycle 2 close
 - **revalidation_check**: 全 Coverage の type に `coding` が無く、`text` のみであること。authoritative code source が確立した時点で本 entry は解除。
 
 ### condition-severity-none-on-chronic-primary-encounter [RETIRED]
 
 - **id**: `condition-severity-none-on-chronic-primary-encounter`
-- **status**: **RETIRED — session 45, 2026-07-11 verification**
-- **retirement_reason**: cycle 6-7 residual sweep + Cycle 4 C4-05/07-09 chronic-inherit path で全 Condition が severity populate 済。session 45 seed=100 verification で severity 欠落 Condition = 0 件を確認 = 該当 pattern が消失。今後 severity 欠落を検出した場合は **真のバグ**(本 entry で by-design 扱いしない)。
+- **status**: **RETIRED —  2026-07-11 verification**
+- **retirement_reason**: cycle 6-7 residual sweep + Cycle 4 C4-05/07-09 chronic-inherit path で全 Condition が severity populate 済。2026-07-11 seed=100 verification で severity 欠落 Condition = 0 件を確認 = 該当 pattern が消失。今後 severity 欠落を検出した場合は **真のバグ**(本 entry で by-design 扱いしない)。
 - **original_observation**: `Condition.severity` の一部欠落(65.8% observed at cycle 2 for I10 routine visit)。
 - **original_by_design_reason**: primary dx が慢性疾患 (I10 essential HTN etc.) の routine outpatient follow-up では acute severity が sensor 由来で inferable でない → severity None が clinically correct。C2-32 で確認済(cycle 2)。
-- **established_session**: session 42, 2026-07-07 (cycle 2)
-- **retired_session**: session 45, 2026-07-11 (verification)
-- **retired_pr**: session 45 verification chain
+- **established**: 2026-07-07 (cycle 2)
+- **retired**: 2026-07-11 (verification)
+- **retired_pr**: 2026-07-11 verification chain
 
 ### composition-vs-documentreference-format-type-split
 
@@ -204,7 +204,7 @@
 - **observation**: `Composition.ndjson` の resource 数 が `DocumentReference.ndjson` より多い / 少ないなど「分布が偏る」観測。
 - **by_design_reason**: `ClinicalDocument.format_type` により意図的に分岐 — `composition` (H&P / Discharge Summary / Nursing / SOAP 等 section 構造持つ帳票) → Composition emit。`free_text` (Progress Note / Nursing Record / Triage 等) → DocumentReference emit。両者は独立 resource type であり比率一致は要求されない。C4-25 で確認済(cycle 4)。
 - **signature**: `fhir_r4/documents/composition.py` および `fhir_r4/documents/documents.py` の `format_type` filter が両ビルダーで一貫していること(composition ↔ Composition emit / free_text ↔ DR emit / それ以外 → skip)。
-- **established_session**: session 43, 2026-07-08 (cycle 4)
+- **established**: 2026-07-08 (cycle 4)
 - **established_pr**: cycle 4 close
 - **revalidation_check**: Composition 全 resource が `format_type == "composition"` doc 由来、DR 全 resource が `format_type == "free_text"` doc 由来であること(id 遡り検証)。
 
@@ -212,9 +212,9 @@
 
 - **id**: `compound-rx-with-device-alternative-real-drug`
 - **observation**: `MedicationRequest` / `MedicationAdministration` の text が `"エノキサパリン ... または 間欠的空気圧迫"` 等の複合表現。184 件観測(cycle 5 baseline)。
-- **by_design_reason**: 実 CIF Order の detail は 「実薬 (Enoxaparin) OR 代替 device (IPC)」の compound orderable。session 43 CY2-B fix + session 44 C5-19 で primary alternative が prefer される splitter を導入したが、`"または"` 前が real drug の場合は drug 側が採用され、alternative text が残る事もある = 分類バグではない。C5-16 で確認済(cycle 5)。
+- **by_design_reason**: 実 CIF Order の detail は 「実薬 (Enoxaparin) OR 代替 device (IPC)」の compound orderable。2026-07-09 CY2-B fix + 2026-07-11 C5-19 で primary alternative が prefer される splitter を導入したが、`"または"` 前が real drug の場合は drug 側が採用され、alternative text が残る事もある = 分類バグではない。C5-16 で確認済(cycle 5)。
 - **signature**: compound text の primary drug が code_mapping にヒットして coding 有、後半 " または " 以降の text が display に混じる。primary が uncoded なら真のバグ。
-- **established_session**: session 43, 2026-07-09 (cycle 5)
+- **established**: 2026-07-09 (cycle 5)
 - **established_pr**: cycle 5 close
 - **revalidation_check**: compound text MR/MAR で `medicationCodeableConcept.coding[0].code` が non-empty であること(primary drug が resolved)。
 
@@ -224,7 +224,7 @@
 - **observation**: `Encounter.hospitalization` が cohort 全体で ~10% しか emit されない(cycle 6 で 3951/37137)。
 - **by_design_reason**: `Encounter.hospitalization` は入院/退院 episode 情報(admit source / discharge disposition / dietary preference 等)を保持する。AMB (ambulatory / outpatient) encounter には入退院 episode が存在しないため、FHIR R4 は `hospitalization` を emit しない。EMER + IMP encounter だけが hospitalization を持つ = 実 EHR 挙動と整合。
 - **signature**: `hospitalization` 欠落 Encounter が全て `class.code == "AMB"` であること。EMER / IMP で欠落 = 真のバグ。
-- **established_session**: session 44, 2026-07-11 (Cycle 6 review)
+- **established**: 2026-07-11 (Cycle 6 review)
 - **established_pr**: cycle 6 open (`892c15051c`)
 - **revalidation_check**: hospitalization 欠落 Encounter の class.code を集計し全て "AMB" であることを確認。EMER + IMP は 100% 有。
 
@@ -232,9 +232,9 @@
 
 - **id**: `observation-method-lab-only`
 - **observation**: `Observation.method` の cohort emit rate が ~12% (cycle 6 baseline 282762/2340725)。
-- **by_design_reason**: session 44 CO-8 で `Observation.method` を lab カテゴリのみに wired。vital-signs (device 設定値の計測)、survey (質問票 / 意識レベル)、social-history (喫煙 / 飲酒 / 職業) は概念的に method 不要:vital signs は device による自動計測、survey は問診、social-history は聞き取り。lab のみ analyzer method (自動分析器測定 / 培養同定 / 感受性試験) が意味を持つ。
+- **by_design_reason**: 2026-07-11 CO-8 で `Observation.method` を lab カテゴリのみに wired。vital-signs (device 設定値の計測)、survey (質問票 / 意識レベル)、social-history (喫煙 / 飲酒 / 職業) は概念的に method 不要:vital signs は device による自動計測、survey は問診、social-history は聞き取り。lab のみ analyzer method (自動分析器測定 / 培養同定 / 感受性試験) が意味を持つ。
 - **signature**: method 欠落 Observation が全て非 lab カテゴリ (`vital-signs | survey | social-history | imaging`) であること。lab カテゴリで method 欠落 = 真のバグ。
-- **established_session**: session 44, 2026-07-11 (Chain 2 + Cycle 6 review)
+- **established**: 2026-07-11 (Chain 2 + Cycle 6 review)
 - **established_pr**: `1481306d2f` (Chain 2 initial) + cycle 6 confirm
 - **revalidation_check**: method 欠落 Observation の category を集計し全て非 lab であることを確認。lab カテゴリの method rate = 100% であること。
 
@@ -244,7 +244,7 @@
 - **observation**: `Immunization.ndjson` の一部 (~2%) で `performer` field が欠落 (cycle 6 で 599/29995)。
 - **by_design_reason**: `Immunization.status == "not-done"` は「接種予定だったが未接種」の記録形式(refusal / contraindication / logistics 等)。実接種者が存在しないため performer は emit しない。CDC IIS / JP 予防接種台帳の両方で同じ挙動。FHIR R4 `Immunization.performer` は 0..* で not-done で欠落しても spec 適合。
 - **signature**: performer 欠落 Immunization が全て `status == "not-done"` であること。`status == "completed"` で欠落 = 真のバグ。
-- **established_session**: session 44, 2026-07-11 (Cycle 6 review)
+- **established**: 2026-07-11 (Cycle 6 review)
 - **established_pr**: cycle 6 open
 - **revalidation_check**: performer 欠落 Immunization の status を集計し全て "not-done" であることを確認。
 
@@ -252,9 +252,9 @@
 
 - **id**: `icu-transfer-rate-classhistory-6pct`
 - **observation**: `Encounter.classHistory` は IMP encounter の ~6% でしか emit されない(cycle 7 で 73/1223)。
-- **by_design_reason**: `classHistory` は encounter class の遷移(一般病棟 → ICU、ICU → 一般病棟)を記録する。ICU 転棟したケースのみ遷移が発生するため、IMP の中で ICU 経由率(clinical reality ~5-10%、cycle 7 の 6.0% は妥当) だけが classHistory を持つ。session 43 C5-22 で導入した機能で、100% ではなく「該当ケースの 100%」が正しい挙動。
+- **by_design_reason**: `classHistory` は encounter class の遷移(一般病棟 → ICU、ICU → 一般病棟)を記録する。ICU 転棟したケースのみ遷移が発生するため、IMP の中で ICU 経由率(clinical reality ~5-10%、cycle 7 の 6.0% は妥当) だけが classHistory を持つ。2026-07-09 C5-22 で導入した機能で、100% ではなく「該当ケースの 100%」が正しい挙動。
 - **signature**: classHistory 欠落 IMP encounter が `icu_transferred_day` を持たないこと(ICU 経由なし)。ICU 経由あり(icu_transferred_day 有)で classHistory 欠落 = 真のバグ。
-- **established_session**: session 44, 2026-07-11 (Cycle 7 review)
+- **established**: 2026-07-11 (Cycle 7 review)
 - **established_pr**: cycle 7 open (`499f72a09d`)
 - **revalidation_check**: classHistory 欠落 IMP encounter に対応する CIF record の `icu_transferred_day` を確認し全て -1 (or missing) であること。
 
@@ -264,8 +264,8 @@
 - **observation**: `Condition.ndjson` does not reference the synthesized ED
   Encounter resources (id suffix `-ED`) — clinical audits show
   IMP/EMER-without-Condition count matches exactly the number of ED→IMP
-  partOf-linked synth encounters (session 45 seed=400: 972/972).
-- **by_design_reason**: CY7-05 (session 44) synthesizes a lightweight ED
+  partOf-linked synth encounters (2026-07-11 seed=400: 972/972).
+- **by_design_reason**: CY7-05 (2026-07-11) synthesizes a lightweight ED
   Encounter FHIR resource so IMP.partOf resolves, but the diagnosis lives on
   the primary IMP encounter — not duplicated on the synth stub. The synth
   carries chief-complaint text in `reasonCode` and `hospitalization.admitSource
@@ -273,28 +273,28 @@
   without inflating downstream Condition/Procedure/Order counts. Adding a
   Condition specifically for the synth stub would misrepresent EHR reality
   (in practice, ED-to-admission is billed on the inpatient encounter, not the
-  ED subacct). Session 45 seed=400 verification confirmed all 972 IMP/EMER
+  ED subacct). 2026-07-11 seed=400 verification confirmed all 972 IMP/EMER
   missing-Condition were synth `-ED` ids (`class == "EMER"`, `status ==
   "finished"`, id endswith `-ED`).
 - **signature**: `IMP/EMER encounters without any Condition.encounter =
   Encounter/<id> reference` all have id endswith `-ED`.
-- **established_session**: session 45 verification, 2026-07-11
-- **established_pr**: session 45 chain #5 (`210bc6b057`..)
+- **established**: 2026-07-11 (verification)
+- **established_pr**: 2026-07-11 chain #5 (`210bc6b057`..)
 - **revalidation_check**: sort no-Condition IMP/EMER by id; every id must
   end with `-ED` (the CY7-05 synth suffix).
 
 ### vital-signs-no-refrange-for-device-setting-or-categorical
 
 - **id**: `vital-signs-no-refrange-for-device-setting-or-categorical`
-- **aliases**: `o2-flow-rate-device-setting-no-refrange` (original session 43 name; kept as alias for back-reference from session 41-44 cycle docs)
-- **observation**: バイタル系 `Observation` の一部に `referenceRange` が無い。cycle 5 baseline で LOINC 3151-8 (O2 flow rate) 13,843 obs 観測。session 45 seed=100 verification で LOINC 80288-4 (AVPU consciousness level) 131,364 obs 追加確認。
+- **aliases**: `o2-flow-rate-device-setting-no-refrange` (original 2026-07-09 name; kept as alias for back-reference from 2026-07-07 → 2026-07-11 cycle docs)
+- **observation**: バイタル系 `Observation` の一部に `referenceRange` が無い。cycle 5 baseline で LOINC 3151-8 (O2 flow rate) 13,843 obs 観測。2026-07-11 seed=100 verification で LOINC 80288-4 (AVPU consciousness level) 131,364 obs 追加確認。
 - **by_design_reason**: 以下 2 種類のバイタル観測は生理学的 normal range が概念的に不要:
   - **Device setting**: LOINC 3151-8 O2 flow rate = 装置設定値(酸素投与量 = 治療介入量、健常者に対する reference 範囲は存在しない)。
-  - **Categorical scale**: LOINC 80288-4 AVPU = 4 段階 categorical valueSet (Alert / Verbal / Pain / Unresponsive)、numeric range が意味を持たない。session 45 追加。
+  - **Categorical scale**: LOINC 80288-4 AVPU = 4 段階 categorical valueSet (Alert / Verbal / Pain / Unresponsive)、numeric range が意味を持たない。2026-07-11 追加。
   他の categorical vital scale(GCS の 3 sub-components など)を将来追加する場合は同 pattern。FHIR R4 は refRange を 0..* で要求しない。
 - **signature**: refRange 欠落バイタル Observation の `code.coding[0].code` が `{3151-8 (O2 flow rate), 80288-4 (AVPU consciousness)}` のいずれかに一致すること。他 LOINC で refRange 欠落 = 真のバグ(本レジストリ対象外)。
-- **established_session**: session 43, 2026-07-09 (cycle 5) — signature extended session 45, 2026-07-11
-- **established_pr**: cycle 5 close + session 45 verification
+- **established**: 2026-07-09 (cycle 5) — signature extended  2026-07-11
+- **established_pr**: cycle 5 close + 2026-07-11 verification
 - **revalidation_check**: refRange 欠落 Observation の LOINC が全て上記 whitelist に含まれることを確認。新規 categorical vital LOINC を発見した場合は registry を update。
 
 ### cy8-29-unknown-condition-imp-no-partof
@@ -317,7 +317,7 @@
   CIF record の `condition_event.disease_id` が空(unknown-condition path
   由来)であること。他 admit_source(emd / outp / born 等)で partOf 欠落 =
   真のバグ(本レジストリ対象外)。
-- **established_session**: session 48, 2026-07-13 (Cycle 8 verify)
+- **established**: 2026-07-13 (Cycle 8 verify)
 - **established_pr**: cycle 8 close(this commit)
 - **revalidation_check**: partOf 欠落 IMP encounter を全数抽出し、admit_source
   が全て `"hosp"` であること。JP p=10000 seed=42 での期待範囲 = ≤ 0.6% of IMP。
@@ -326,7 +326,7 @@
 
 - **id**: `cy8-23-condition-bodysite-selective`
 - **observation**: `Condition.ndjson` の一部(≈ 92%)で `bodySite` が欠落。
-- **by_design_reason**: session 48 cycle 8 で導入した bodySite emit は 17
+- **by_design_reason**: 2026-07-13 cycle 8 で導入した bodySite emit は 17
   疾患 prefix(呼吸器 J13/J14/J15/J18/J44/J45 + 心血管 I21/I25/I50 + 脳
   血管 I60/I61/I63 + 泌尿器 N10/N17/N30/N39 + 皮膚 L03)に限定 selective。
   非部位性疾患(I10 高血圧、E11 糖尿病、E78 脂質異常症 等)には解剖学的
@@ -334,7 +334,7 @@
 - **signature**: bodySite 欠落 Condition の primary ICD prefix(`.` の前の
   最初のセグメント)が上記 17 prefix 以外であること。17 prefix に該当する
   Condition で bodySite 欠落 = 真のバグ(本レジストリ対象外)。
-- **established_session**: session 48, 2026-07-13 (Cycle 8)
+- **established**: 2026-07-13 (Cycle 8)
 - **established_pr**: cycle 8 close
 - **revalidation_check**: bodySite 欠落 Condition の ICD prefix を集計、上記
   17 prefix を含まないことを確認。新規部位性疾患を disease に追加した場合
@@ -346,7 +346,7 @@
 - **id**: `cy8-24-condition-abatement-finished-encounter-only`
 - **observation**: `Condition.ndjson` の一部(概ね 40%)で
   `abatementDateTime` が欠落。
-- **by_design_reason**: session 48 cycle 8 で追加した abatement emit は
+- **by_design_reason**: 2026-07-13 cycle 8 で追加した abatement emit は
   `encounter.status in ("completed", "finished")` かつ `discharge_datetime`
   非空の encounter に限定。in-progress encounter(AD-32 snapshot 打切り)や
   chronic problem-list-item(そもそも解消しない)は abatement を emit しない
@@ -355,7 +355,7 @@
   in-progress、または (b) `category=problem-list-item`(chronic path 由来)、
   または (c) encounter 参照無しの patient-level Condition のいずれか。
   finished encounter の encounter-diagnosis で abatement 欠落 = 真のバグ。
-- **established_session**: session 48, 2026-07-13 (Cycle 8)
+- **established**: 2026-07-13 (Cycle 8)
 - **established_pr**: cycle 8 close
 - **revalidation_check**: abatementDateTime 欠落 Condition を全数抽出し、
   上記 (a)/(b)/(c) のいずれかに該当することを確認。
@@ -373,7 +373,7 @@
 - **signature**: device 欠落 MAR が `dosage.route.text != "IV"` または
   `dosage.text` に CONTINUOUS/DRIP/`/h` を含まないこと。IV + CONTINUOUS で
   device 欠落 = 真のバグ(本レジストリ対象外)。
-- **established_session**: session 48, 2026-07-13 (Cycle 8)
+- **established**: 2026-07-13 (Cycle 8)
 - **established_pr**: cycle 8 close
 - **revalidation_check**: device 欠落 MAR の route + dose_text を集計、上記
   条件を満たすことを確認。IV 持続点滴での device 100% 発火を保証。
@@ -384,7 +384,7 @@
 - **observation**: ED / IMP 入院で `N10` Condition を持つ症例に多剤抗菌薬 escalation (UTI 分類の単一診断に対し Ceftriaxone → Ciprofloxacin → Meropenem) が行われる。ランダムサンプル review で N10 を薬剤性急性間質性腎炎 (AIN) と解釈し、抗菌薬治療を臨床的に誤り (AIN ならステロイド + 被疑薬中止が正) と指摘されうる。
 - **by_design_reason**: WHO ICD-10 `N10` = "Acute tubulo-interstitial nephritis" は細菌感染型 (急性腎盂腎炎、抗菌薬治療) と薬剤 / 免疫性 AIN 型 (ステロイド + 被疑薬中止) の両方を含むコード。sim は腎盂腎炎経路のみを `urinary_tract_infection.yaml` (primary code `N10`、抗菌薬 protocol) でモデル化しており、その病因に対しては臨床的に正しい。AKI YAML の `interstitial_nephritis` 鑑別行は Issue #1353 で `N14.1` (ICD-10-CM "Nephropathy induced by other drugs, medicaments and biological substances") に改名し、2 コードを意味的に分離した。AIN を独立した疾患分岐 (ステロイド + 被疑薬中止治療) としてモデル化するのは見送り (DEFERRED) — AKI cohort の件数が別 disease YAML を正当化するほど無く、AKI YAML のベイズ鑑別行で診断の不確実性は表現できる。de-escalation なしの抗菌薬 escalation という別の懸念は Issue #1346 (真のバグ、別途追跡) で扱う。
 - **signature**: 出力 cohort の `N10` Condition はすべて `urinary_tract_infection.yaml` (腎盂腎炎) 由来であること — Issue #1353 の改名以降 `acute_kidney_injury.yaml` 由来は無い。grep 確認: `grep -R "'N10'" clinosim/modules/disease/reference_data/` は `urinary_tract_infection.yaml` (primary `N10` + variant `N10` prob 0.35) のみを示すこと。AKI 分岐のコード経路が `N10` を emit したら回帰であり、再登録が必要。
-- **established_session**: session 112, 2026-09-13.
+- **established**: 2026-09-13.
 - **established_pr**: #1353 (issue) — this PR (`fix/1353-n10-differential-taxonomy` branch、両 disease YAML のコメントブロック + AKI 鑑別の改名)。
 - **revalidation_check**: cohort 再生成ごとに、disease source として `acute_kidney_injury` を引く `N10` Condition が 0 件であることを確認 (FHIR bundle の Condition.evidence または CIF の condition_source field のうち、現リリースで使われている方を検索)。
 
@@ -394,7 +394,7 @@
 - **observation**: `Z37.*` Condition の相当割合(JP ~53%/US ~57%)が
   `onsetDateTime` が `recordedDate` より数年以上前で emit される。極端例では
   13年ギャップ(`onset=2012-10-25`, `recorded=2025-10-11`)。
-- **by_design_reason**: **session 97 更新 (META #957 Incr 1)** — Z37 はもはや
+- **by_design_reason**: **2026-09-01 更新 (META #957 Incr 1)** — Z37 はもはや
   `chronic_prevalence` で sample されない。代わりに FHIR emit adapter が
   `person.state_periods` (state_type="pregnancy"、outcome="delivered") から
   delivered pregnancy period 毎に 1 件の Z37 `problem-list-item` を導出し、
@@ -408,7 +408,7 @@
   `category.coding[].code == "problem-list-item"` を持つ。category が `encounter-diagnosis`
   かつ stale onset の Z37 → 真のバグ。Incr-1 後: problem-list-item Z37 の数は
   cohort 全体の `Σ delivered pregnancy period` に等しい (生物学的整合)。
-- **established_session**: session 95, 2026-09-01 (post-close p=10000 audit follow-up); **session 97 で更新**、2026-09-01 (META #957 Incr 1 refactor)。
+- **established**: 2026-09-01 (post-close p=10000 audit follow-up); **2026-09-01 に更新** (META #957 Incr 1 refactor)。
 - **established_pr**: #1034 (issue) — コメントスレッド + registry entry。Incr-1 refactor: this branch。
 - **revalidation_check**: `onset < recorded - 30d` を持つ全 Z37 について category が
   `problem-list-item` であることを確認。加えて Z39 postpartum encounter 日付が母の
@@ -423,7 +423,7 @@
 - **original_observation**: `Encounter.ndjson` のごく一部 (US p=10000 で 142/234,425 = 0.06%) が、入力 `--start` (window 開始日) より前の `period.start` を持つ。例: window `2021-10-27 → 2026-10-27` で `period.start` が最も早いもので `2021-10-01` (window 開始の 26 日前)。該当レコードの `period.end` はすべて window 内。
 - **original_by_design_reason**: `clinosim/simulator/_setup.py::_load_prev_admission_cache` が prior-admission cache を作り、window 開始時点で既に入院中の患者が初日に「入院中の状態で発生」しないようにしている。`clinosim/simulator/_dispatch.py::_replay_cached_admission_queue` はその入院を本来の (window 前の) 入院日と window 内の退院日で emit する。index date 時点の実際の EHR スナップショットと同じく、進行中の入院は切り詰めない本来の `period.start` を持つ。`max(period.start, window_start)` で切ると実入院日が失われ、持ち越し患者の在院日数を過小評価するため、意図的に保持している。対象は初年度の入院 cache のみで、総 encounter の 1% を十分下回る。
 - **original_signature**: `period.start < window_start` の Encounter はすべて `class.code in {"IMP", "EMER"}` かつ `period.end >= window_start` で、prior-admit cache replay 経路由来。件数は総 encounter の 1% 以下 (US p=10000 seed=342 で 0.06%)。`class.code == "AMB"` で `period.start < window_start`、または `period.end < window_start` (完全に window 前) のものは真のバグ。
-- **established_session**: session 118, 2026-10-27 (Issue #2005)
+- **established**: 2026-10-27 (Issue #2005)
 - **established_pr**: #2007
 - **retired_on**: 2026-11-09 (doc–code drift review)
 
@@ -433,7 +433,7 @@
 - **observation**: `Patient.ndjson` の行数が `-p` の人口を下回る。US `s=342 p=10000 2021-10-27..2026-10-27` では 9,832 Patient (catchment 住民 10,000 人中 9,206 人 + 新生児 626 人 `POP-*-BABY`)。残り 794 人 (7.9%) は Patient resource を持たない。
 - **by_design_reason**: FHIR 出力は病院 EHR であり、EHR には受診した人しか載らない。FHIR Patient は CIF の患者レコードから作られ、CIF 患者レコードは window 内に 1 回以上 encounter がある住民にのみ存在する。window 中に一度も受診しなかった住民は simulate された catchment の一員 (有病率・発生率の draw に寄与) だがカルテを持たない。死亡者は落とされない: 1 回以上受診した後に死亡した患者は `deceasedDateTime` 付きで emit される。
 - **signature**: `Encounter.subject` の集合と Patient id の集合が完全一致 (Encounter のない Patient も、Patient のない Encounter subject も無い)。`Patient.ndjson` に無い catchment id (`-BABY` 接尾辞なしの `POP-NNNNNN`) はすべて Encounter を持たない。いずれかの resource の subject に現れるのに Patient が無い、または CIF encounter があるのに Patient が無い場合は真のバグ。
-- **established_session**: session 118, 2026-10-27 (Issue #2004)
+- **established**: 2026-10-27 (Issue #2004)
 - **established_pr**: #2004 (issue) — this PR (`docs/patient-emit-requires-encounter` branch).
 - **revalidation_check**: (a) `set(Encounter.subject) == set(Patient ids)`; (b) `Patient.ndjson` に含まれる catchment id を数え、5 年 window で非受診者比率が 1 桁 % に収まることを確認; (c) `deceasedDateTime` を持つ Patient を数え、死亡者が除去されず存在することを確認。
 
@@ -444,30 +444,30 @@
 以下は **登録禁止**。監査中に検出した場合は cycle 問題として登録し fix する。
 
 - 全 stage system(CKD/NYHA/GOLD 1-4/asthma 4-tier/HTN Stage 1-2/CCS I-IV) → 全 stage.summary.coding **有** を要求。coding 欠落あれば bug。
-- MicrobiologyResult 由来 Observation(mb-org-*/mb-sus-*) の `method` field 欠落 → session 44 CO-8 で全 populate 済、欠落あれば bug。
-- CareTeam.telecom / DR.presentedForm の 100% populate → session 44 Chain 1/3 で確立、欠落あれば bug。
+- MicrobiologyResult 由来 Observation(mb-org-*/mb-sus-*) の `method` field 欠落 → 2026-07-11 CO-8 で全 populate 済、欠落あれば bug。
+- CareTeam.telecom / DR.presentedForm の 100% populate → 2026-07-11 Chain 1/3 で確立、欠落あれば bug。
 
 ---
 
 ## 更新履歴
 
-- 2026-07-11 (session 44): 初版。Chain 1-4 で確定した 7 by-design entry を登録。
-- 2026-07-11 (session 44 追補): cycle 1-5 の doc から遡って 10 by-design/not-a-bug 記述を統合。
+- 2026-07-11: 初版。Chain 1-4 で確定した 7 by-design entry を登録。
+- 2026-07-11 (追補): cycle 1-5 の doc から遡って 10 by-design/not-a-bug 記述を統合。
   合計 **17 entries** で C1-C5 全 by-design 観測をカバー:
   - Cycle 1 (5): C1-04, C1-08, C1-11, C1-14, C1-20
   - Cycle 2 (2): C2-12, C2-32
   - Cycle 4 (1): C4-25
   - Cycle 5 (2): C5-16, C5-17
-  - Session 44 Chain 1-4 verify (7): snapshot-length, MR substitution, Coverage 後期高齢者,
+  - 2026-07-11 Chain 1-4 verify (7): snapshot-length, MR substitution, Coverage 後期高齢者,
     FMH healthy relative, CO-8 non-JP drugs, HbA1c stage text, CI in-progress status
-- 2026-07-11 (session 44 Cycle 6 拡張): cycle 6 baseline review で発見した 3 新パターン
+- 2026-07-11 (Cycle 6 拡張): cycle 6 baseline review で発見した 3 新パターン
   (`amb-encounter-no-hospitalization` / `observation-method-lab-only` /
   `immunization-not-done-no-performer`) を追加 + `co8-non-jp-marketed-drugs` の
   whitelist を 5 件拡張 (Meclizine / Nitrofurantoin / Proparacaine / Ofloxacin
   ophthalmic / Oxymetazoline)。合計 **20 entries**。
-- 2026-07-11 (session 44 Cycle 7 拡張): cycle 7 baseline review で発見した 1 新
+- 2026-07-11 (Cycle 7 拡張): cycle 7 baseline review で発見した 1 新
   パターン `icu-transfer-rate-classhistory-6pct` を追加。合計 **21 entries**。
-- 2026-07-11 (session 45 verification): JP p=10000 seed=100 verification で発見した
+- 2026-07-11 (verification): JP p=10000 seed=100 verification で発見した
   3 修正 (heparin rate adjustment / EMER length synthesis) と registry 3 更新を統合:
   - `condition-severity-none-on-chronic-primary-encounter` → RETIRED
     (cycle 6-7 residual sweep 後 severity 欠落 = 0 件、pattern 消失)
@@ -477,23 +477,23 @@
   - `realistic-mr-mar-ratio-for-outpatient-heavy-cohort` → MAR/MR band 5-15 → 5-40 に拡張
     (long-LOS IMP + continuous-infusion drip 混在の広い自然帯を許容)
   net: **21 entries**(1 retire + 2 signature update、新規 entry 無し)。
-- 2026-07-13 (session 48 Cycle 8 拡張): cycle 8 verify で確定した 4 新
+- 2026-07-13 (Cycle 8 拡張): cycle 8 verify で確定した 4 新
   パターン(`cy8-29-unknown-condition-imp-no-partof` +
   `cy8-23-condition-bodysite-selective` +
   `cy8-24-condition-abatement-finished-encounter-only` +
   `cy8-20-mar-device-iv-infusion-only`)を追加。合計 **25 entries**。
-- 2026-09-01 (session 95, Issue #1034 調査): session-95 p=10000 audit の
+- 2026-09-01 (Issue #1034 調査): 2026-09-01 p=10000 audit の
   "Z37 stale onset + Z39 cascade" 発見を調査した結果として
   `s95-z37-past-birth-marker-stale-onset` を追加。audit の Z39 cascade
   主張は再現せず(母の delivery 前に立つ Z39 は 0/314)、Z37 stale onset は
   `demographics.yaml` "past-birth marker" として意図的動作。合計 **26 entries**。
-- 2026-09-01 (session 97, META #957 Incr 1): `s95-z37-past-birth-marker-stale-onset`
+- 2026-09-01 (META #957 Incr 1): `s95-z37-past-birth-marker-stale-onset`
   を更新 — Z37 chronic-sample proxy を retire し、`state_periods` 由来の
   FHIR emit adapter に置換。stale-onset パターン自体は残る(多年 sim で
   delivery date が過去になりうる)が、emit path と population semantic が
   変化: delivered pregnancy period 毎に Z37 problem-list-item 1 件。
   合計 **26 entries**(in-place 更新、add/remove なし)。
-- 2026-09-13 (session 113, Issue #1353): `s112-n10-pyelonephritis-vs-ain-single-code` を追加。ランダムサンプル review で抗菌薬 escalation された N10 症例が AIN の誤治療と指摘されたため、WHO N10 が両病因を含むこと、sim の N10 経路は意図的に腎盂腎炎であることを YAML 内に明記。AKI YAML の `interstitial_nephritis` 鑑別行は `N14.1` (ICD-10-CM 薬剤性) に改名し、emit 層で 2 コードを分離。AIN を独立した疾患分岐としてモデル化するのは見送り。合計 **27 entries**。
-- 2026-10-27 (session 118, Issue #2005): `s118-prior-admit-cache-encounter-start-before-window` を追加。US `s=342 p=10000 2021-10-27..2026-10-27` の aggregate QA で window 開始前の `period.start` を持つ Encounter 142/234,425 件 (0.06%) を検出し、prior-admit cache の意図した出力と確認。
-- 2026-10-27 (session 118, Issue #2004): `s118-patient-emit-requires-encounter` を追加。`Patient.ndjson` が `-p 10000` に対し 9,832 件である件を調査し、window 内に 1 回以上 encounter がある住民のみカルテを持つ (住民 9,206 人 + 新生児 626 人) こと、死亡者は `deceasedDateTime` 付きで残ることを確認。
+- 2026-09-13 (Issue #1353): `s112-n10-pyelonephritis-vs-ain-single-code` を追加。ランダムサンプル review で抗菌薬 escalation された N10 症例が AIN の誤治療と指摘されたため、WHO N10 が両病因を含むこと、sim の N10 経路は意図的に腎盂腎炎であることを YAML 内に明記。AKI YAML の `interstitial_nephritis` 鑑別行は `N14.1` (ICD-10-CM 薬剤性) に改名し、emit 層で 2 コードを分離。AIN を独立した疾患分岐としてモデル化するのは見送り。合計 **27 entries**。
+- 2026-10-27 (Issue #2005): `s118-prior-admit-cache-encounter-start-before-window` を追加。US `s=342 p=10000 2021-10-27..2026-10-27` の aggregate QA で window 開始前の `period.start` を持つ Encounter 142/234,425 件 (0.06%) を検出し、prior-admit cache の意図した出力と確認。
+- 2026-10-27 (Issue #2004): `s118-patient-emit-requires-encounter` を追加。`Patient.ndjson` が `-p 10000` に対し 9,832 件である件を調査し、window 内に 1 回以上 encounter がある住民のみカルテを持つ (住民 9,206 人 + 新生児 626 人) こと、死亡者は `deceasedDateTime` 付きで残ることを確認。
 - 2026-11-09 (doc–code drift review): `s118-prior-admit-cache-encounter-start-before-window` → RETIRED。引用先コード (`_load_prev_admission_cache` / `_replay_cached_admission_queue`) は window 前の入院を emit しない — 前者は `--cache-dir` の memoize cache、後者は検査 / 画像キュー加算の再適用 — うえ、forward loop は window 外イベントを落とす。window 前の `period.start` は今後真のバグとして扱う。合計 **29 entries** (うち 1 retired)。

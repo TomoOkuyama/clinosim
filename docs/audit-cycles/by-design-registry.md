@@ -22,7 +22,7 @@ mandatory**.
    this prevents silent drift.
 4. This registry has a different role from the "resolved" items in
    `docs/design-notes/2026-07-06-fix-point-registry.md` added from
-   session 43 onward:
+   2026-07-09 onward:
    - fix-point-registry = ledger of past bug fixes (history)
    - by-design-registry = exclusion list of current by-design observations
      (current spec)
@@ -36,7 +36,7 @@ Each entry has six fields:
   observation: <what is visible at audit time: "X ndjson has N missing Y">
   by_design_reason: <why this is not a bug (reference to spec / clinical practice / AD-XX)>
   signature: <pattern that mechanically decides this observation (regex / count comparison / etc.)>
-  established_session: <session N, YYYY-MM-DD>
+  established: <YYYY-MM-DD>
   established_pr: <commit / PR ref>
   revalidation_check: <a quick check to confirm next time that this is still by-design>
 ```
@@ -51,7 +51,7 @@ Each entry has six fields:
 - **observation**: One or more entries in `Encounter.ndjson` are missing the `length` field.
 - **by_design_reason**: AD-32 snapshot semantics. An admission that runs past `--end` becomes `status = "in-progress"` with `discharge_datetime = None`, so ISO 8601 `length` cannot be computed and is intentionally omitted. FHIR R4 `Encounter.length` has cardinality 0..1, so omission on an in-progress encounter is spec-conformant.
 - **signature**: `sum(1 for e in encounters if "length" not in e and e.get("status") == "in-progress")` **equals the total count of missing length**. If any `status != "in-progress"` encounters are missing length, they are out of scope for this registry = a real bug.
-- **established_session**: session 44, 2026-07-11 (Chain 1 verify)
+- **established**: 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d` chain 1 wrap
 - **revalidation_check**: Confirm on JP p=200 seed=42 that every `Encounter.length missing` case has `status = in-progress`.
 
@@ -61,7 +61,7 @@ Each entry has six fields:
 - **observation**: Some fraction (roughly 45–55%) of `MedicationRequest.ndjson` records are missing `substitution.allowedBoolean`.
 - **by_design_reason**: JP inpatient dispensing practice = brand-specified, generic substitution not allowed. `fhir_r4/medications/medications.py::_build_medication_request` emits `substitution` (`allowedBoolean: true`) only when the order belongs to an outpatient encounter or is a chronic home medication; it intentionally omits it for the other inpatient / ED orders. The rule is keyed on encounter type + home-med status, not on `intent`. FHIR R4 `MedicationRequest.substitution` has cardinality 0..1.
 - **signature**: Every MR missing substitution references an `IMP` / `EMER` Encounter (equivalently, every MR whose Encounter has `class.code == "AMB"` has substitution attached, 100%). Home medications listed on an IMP / EMER encounter also carry substitution, which is expected.
-- **established_session**: session 44, 2026-07-11 (Chain 1 verify)
+- **established**: 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d`
 - **revalidation_check**: 0 MRs on an `AMB` Encounter missing substitution; every MR missing substitution is on an `IMP` / `EMER` Encounter.
 
@@ -71,7 +71,7 @@ Each entry has six fields:
 - **observation**: Some fraction (roughly 15–25%) of `Coverage.ndjson` records lack an entry with `class[].type.coding[].code == "plan"`.
 - **by_design_reason**: JP late-elderly medical care insurers (後期高齢者医療広域連合, age ≥ 75) only have an insurer number (group) and **do not have a symbol (plan)** by statutory design. `fhir_r4/demographics/patient.py` (`_build_coverage_resources`, the `use_symbol` branch) emits the plan entry only when `symbol` is truthy, so late-elderly Coverage records have no plan.
 - **signature**: Extract all Coverage records missing plan; every one must have `payor` / `class[0].name` containing "後期高齢者医療広域連合". Missing plan on any other insurer type is out of scope for this registry.
-- **established_session**: session 44, 2026-07-11 (Chain 1 verify)
+- **established**: 2026-07-11 (Chain 1 verify)
 - **established_pr**: `2dcde6497d`
 - **revalidation_check**: `class[0].name` of every plan-missing Coverage matches the "〇〇後期高齢者医療広域連合" pattern.
 
@@ -81,7 +81,7 @@ Each entry has six fields:
 - **observation**: Some fraction (roughly 15–20%) of `FamilyMemberHistory.ndjson` records are missing `condition[].onsetString`.
 - **by_design_reason**: `fhir_r4/demographics/family_history.py` (`_bb_family_history`, the `if conditions:` guard) does not emit `condition[]` when the relative's `condition_codes` is empty, so there is no target to attach onsetString to. Healthy relatives (no disease history) = clinically realistic. FHIR R4 `FamilyMemberHistory.condition` has cardinality 0..*.
 - **signature**: For every FMH missing onsetString, `"condition" not in resource` (i.e., the condition array does not exist at all). If the condition array is present but onsetString is missing, that is a real bug (out of scope for this registry).
-- **established_session**: session 44, 2026-07-11 (Chain 2 verify)
+- **established**: 2026-07-11 (Chain 2 verify)
 - **established_pr**: `1481306d2f`
 - **revalidation_check**: Confirm `"condition" not in resource` for every FMH missing onsetString.
 
@@ -89,19 +89,19 @@ Each entry has six fields:
 
 - **id**: `co8-non-jp-marketed-drugs`
 - **observation**: Some `MedicationRequest.ndjson` records lack a YJ code (text-only).
-- **by_design_reason**: The drug is not listed in the Japanese pharmaceutical pricing standard (imported / OTC / withdrawn / ophthalmic-drop or other overseas generic-name prescription). Under the no-fabrication policy (established session 40), drugs whose authoritative code has not been verified do not carry an emitted code.
+- **by_design_reason**: The drug is not listed in the Japanese pharmaceutical pricing standard (imported / OTC / withdrawn / ophthalmic-drop or other overseas generic-name prescription). Under the no-fabrication policy (established 2026-07-07), drugs whose authoritative code has not been verified do not carry an emitted code.
 - **signature**: The drug name (base name or normalized form of medicationCodeableConcept.text) of an uncoded MR must be in the following whitelist:
   - "シクロベンザプリン" / "Cyclobenzaprine"
   - "フェナゾピリジン" / "Phenazopyridine"
-  - "メクリジン" / "Meclizine"  (added session 44 cycle 6 — antihistamine, not listed in JP pricing standard)
-  - "ニトロフラントイン" / "Nitrofurantoin"  (added session 44 cycle 6 — UTI, not listed in JP)
-  - "プロパラカイン" / "Proparacaine"  (added session 44 cycle 6 — ophthalmic surface anesthetic, not listed in JP)
-  - "オフロキサシン点眼" / "Ofloxacin ophthalmic"  (added session 44 cycle 6 — ophthalmic, no individual code)
-  - "オキシメタゾリン" / "Oxymetazoline"  (added session 44 cycle 6 — nasal spray OTC)
-  - "テルリプレシン" / "Terlipressin"  (added session 44 cycle 7 residual sweep — not listed in JP pricing standard)
-  - "シクロペントラート" / "Cyclopentolate"  (added session 44 cycle 7 residual sweep — ophthalmic, no individual code)
+  - "メクリジン" / "Meclizine"  (added 2026-07-11 cycle 6 — antihistamine, not listed in JP pricing standard)
+  - "ニトロフラントイン" / "Nitrofurantoin"  (added 2026-07-11 cycle 6 — UTI, not listed in JP)
+  - "プロパラカイン" / "Proparacaine"  (added 2026-07-11 cycle 6 — ophthalmic surface anesthetic, not listed in JP)
+  - "オフロキサシン点眼" / "Ofloxacin ophthalmic"  (added 2026-07-11 cycle 6 — ophthalmic, no individual code)
+  - "オキシメタゾリン" / "Oxymetazoline"  (added 2026-07-11 cycle 6 — nasal spray OTC)
+  - "テルリプレシン" / "Terlipressin"  (added 2026-07-11 cycle 7 residual sweep — not listed in JP pricing standard)
+  - "シクロペントラート" / "Cyclopentolate"  (added 2026-07-11 cycle 7 residual sweep — ophthalmic, no individual code)
   An uncoded MR for any other drug is a real bug (an MHLW lookup must be added).
-- **established_session**: session 44, 2026-07-11 (Chain 4 CO-8) — 5 items added in cycle 6 (session 44 continuation)
+- **established**: 2026-07-11 (Chain 4 CO-8) — 5 items added in cycle 6 (2026-07-11 continuation)
 - **established_pr**: `2c5e79b974` + cycle 6 close
 - **revalidation_check**: Confirm every uncoded MR's text is a subset of the whitelist above. Update the registry if the set grows or shrinks.
 
@@ -111,7 +111,7 @@ Each entry has six fields:
 - **observation**: For diabetes (E11 / E10) in `Condition.ndjson`, `stage.summary.text` uses the `"HbA1c X.Y%"` form (e.g., `"HbA1c 7.5%"`) and has no `coding`.
 - **by_design_reason**: The HbA1c value itself is the "stage" description, but this is **not a standardized stage system** like CKD Gx or NYHA I-IV. A value-based concept such as "HbA1c 7.5%" does not exist in SNOMED CT. Keeping the value as text is more meaningful.
 - **signature**: The `text` of any stage.summary missing coding must match the regex `HbA1c \d+\.\d+%`. Missing coding on any other pattern (CKD / NYHA / GOLD / CCS / asthma / HTN Stage) is a real bug.
-- **established_session**: session 44, 2026-07-11 (Chain 4 CO-6 verify)
+- **established**: 2026-07-11 (Chain 4 CO-6 verify)
 - **established_pr**: `69f4cae082`
 - **revalidation_check**: Confirm every stage.summary missing coding matches the `HbA1c \d+\.\d+%` regex.
 
@@ -119,10 +119,10 @@ Each entry has six fields:
 
 - **id**: `snapshot-in-progress-clinical-impression-status`
 - **observation**: One or more `ClinicalImpression.ndjson` records have `status = "in-progress"` (a test expects `"completed"`).
-- **by_design_reason**: A patient whose enclosing encounter is truncated to in-progress by the AD-32 snapshot cutoff. ClinicalImpression status follows the encounter status = in-progress, which is spec-conformant (both are valid `EventStatus` codes). The existing unit test `test_jp_clinical_impression_structural_fields_present` strictly requires `status == "completed"` and does not account for snapshot behavior = a pre-existing test-side gap (confirmed in session 44).
+- **by_design_reason**: A patient whose enclosing encounter is truncated to in-progress by the AD-32 snapshot cutoff. ClinicalImpression status follows the encounter status = in-progress, which is spec-conformant (both are valid `EventStatus` codes). The existing unit test `test_jp_clinical_impression_structural_fields_present` strictly requires `status == "completed"` and does not account for snapshot behavior = a pre-existing test-side gap (confirmed in 2026-07-11).
 - **signature**: Every CI with `status = "in-progress"` has an associated `encounter.status` that is also `in-progress`.
-- **established_session**: session 44, 2026-07-11
-- **established_pr**: `544fd40d18` (observed in session 43 wrap / not yet formalized)
+- **established**: 2026-07-11
+- **established_pr**: `544fd40d18` (observed in 2026-07-09 wrap / not yet formalized)
 - **revalidation_check**: Confirm that every in-progress CI's encounter is also in-progress. Future plan: relax the test to be snapshot-aware (see FHIR completeness registry).
 
 ### snapshot-in-progress-encounter-discharge-disposition-omitted
@@ -131,18 +131,18 @@ Each entry has six fields:
 - **observation**: Some `Encounter.ndjson` records lack `hospitalization.dischargeDisposition` (24 observed in the cycle 1 audit).
 - **by_design_reason**: AD-32 snapshot semantics. An in-progress encounter has not been discharged, so disposition is undetermined = spec-conformant. Confirmed at C1-04 (cycle 1).
 - **signature**: Every Encounter missing `dischargeDisposition` has `status == "in-progress"` and `discharge_datetime == null`.
-- **established_session**: session 41, 2026-07-07 (cycle 1)
-- **established_pr**: cycle 1 close (session 41)
+- **established**: 2026-07-07 (cycle 1)
+- **established_pr**: cycle 1 close (2026-07-07)
 - **revalidation_check**: Every Encounter missing dischargeDisposition is in-progress.
 
 ### realistic-mr-mar-ratio-for-outpatient-heavy-cohort
 
 - **id**: `realistic-mr-mar-ratio-for-outpatient-heavy-cohort`
 - **observation**: MR count looks lower than some baseline (e.g., 21820 for JP p=10000). The MAR:MR ratio is a wide band from roughly 9:1 to 33:1.
-- **by_design_reason**: In a 90% outpatient cohort, MR = outpatient prescriptions + initial inpatient orders only; MAR = multi-day administration records in inpatient care. ~0.4–0.6 MR/enc combined with a high MAR:MR ratio is real EHR reality. Session 45 seed=100 verification observed 32.6, which is a natural pattern from the compounding of long-LOS IMP and continuous-infusion drips. Merged with C1-08 (cycle 1) + session 45 verification.
+- **by_design_reason**: In a 90% outpatient cohort, MR = outpatient prescriptions + initial inpatient orders only; MAR = multi-day administration records in inpatient care. ~0.4–0.6 MR/enc combined with a high MAR:MR ratio is real EHR reality. 2026-07-11 seed=100 verification observed 32.6, which is a natural pattern from the compounding of long-LOS IMP and continuous-infusion drips. Merged with C1-08 (cycle 1) + 2026-07-11 verification.
 - **signature**: `MR count / encounter count ≈ 0.4–0.7` AND `MAR / MR ≈ 5–40`. Within both ranges = by-design. Outside = requires investigation (cohort mix has changed, or MAR bloat).
-- **established_session**: session 41, 2026-07-07 (cycle 1) — band widened session 45, 2026-07-11
-- **established_pr**: cycle 1 close + session 45 verification
+- **established**: 2026-07-07 (cycle 1) — band widened  2026-07-11
+- **established_pr**: cycle 1 close + 2026-07-11 verification
 - **revalidation_check**: Compute the two ratios and confirm they are in range. If the upper bound is exceeded, check whether the mixture rate of continuous-infusion drip has changed abruptly.
 
 ### clinical-impression-summary-optional
@@ -151,7 +151,7 @@ Each entry has six fields:
 - **observation**: `ClinicalImpression.summary` field is empty (omitted for many CIs).
 - **by_design_reason**: FHIR R4 `ClinicalImpression.summary` has cardinality 0..1 (optional). No corresponding source data exists in the CIF (clinosim does not generate distinct findings-summary data). Fabricating one would violate the no-fabrication policy. `description` is populated ("Day N clinical assessment"). Confirmed at C1-11 (cycle 1).
 - **signature**: Every CI omits the `summary` field (the emit code does not produce it). Planned to be populated in a future β-JP-1 LLM narrative pass (see FHIR completeness registry).
-- **established_session**: session 41, 2026-07-07 (cycle 1)
+- **established**: 2026-07-07 (cycle 1)
 - **established_pr**: cycle 1 close
 - **revalidation_check**: Grep-verify that `fhir_r4/documents/composition.py` (or the clinical_impression builder) does not emit summary.
 
@@ -161,7 +161,7 @@ Each entry has six fields:
 - **observation**: Many records have `CareTeam.status = "inactive"` (CTs attached to discharged encounters). A review expected "active".
 - **by_design_reason**: The FHIR R4 `CareTeam.status` valueSet includes `active | inactive | suspended | entered-in-error`. Discharged encounter = the team is no longer providing care = `inactive` is the spec-correct value (`fhir_r4/encounters/care_team.py`: `status = "active" if discharge_dt is None else "inactive"`). Confirmed at C1-14 (cycle 1).
 - **signature**: Every CT with `status = "inactive"` has `encounter.discharge_datetime` non-null.
-- **established_session**: session 41, 2026-07-07 (cycle 1)
+- **established**: 2026-07-07 (cycle 1)
 - **established_pr**: cycle 1 close
 - **revalidation_check**: Every inactive CT's encounter has a non-null discharge_datetime (= completed).
 
@@ -171,7 +171,7 @@ Each entry has six fields:
 - **observation**: With `--population 10000`, `Patient.ndjson` has around 5000-6000 records (not everyone becomes a patient).
 - **by_design_reason**: population = catchment area total = hospital service-area population (includes healthy people). Patient = only those who had an encounter within the period. A ~50% healthcare utilization rate is consistent with real data. Confirmed at C1-20 (cycle 1).
 - **signature**: `Patient count / population` is within `0.4–0.7` (varies by country demographics).
-- **established_session**: session 41, 2026-07-07 (cycle 1)
+- **established**: 2026-07-07 (cycle 1)
 - **established_pr**: cycle 1 close
 - **revalidation_check**: Compute the ratio and confirm it is in range. Out of range = suspect drift in the disease incidence data.
 
@@ -181,20 +181,20 @@ Each entry has six fields:
 - **observation**: `Coverage.type` has only `{"text": "..."}` and no `coding`.
 - **by_design_reason**: No authoritative FHIR CodeSystem has been finalized for JP insurance types (公費 / 社保 / 国保 etc.). Following the no-fabrication policy, text-only is preserved (`fhir_r4/demographics/patient.py`: `coverage["type"] = {"text": label}`). Confirmed at C2-12 (cycle 2).
 - **signature**: `Coverage.type.coding` is omitted on every Coverage (no fabricated code exists in `fhir_r4/demographics/patient.py`).
-- **established_session**: session 42, 2026-07-07 (cycle 2)
+- **established**: 2026-07-07 (cycle 2)
 - **established_pr**: cycle 2 close
 - **revalidation_check**: Every Coverage's type has no `coding`, only `text`. When an authoritative code source is established, this entry is retired.
 
 ### condition-severity-none-on-chronic-primary-encounter [RETIRED]
 
 - **id**: `condition-severity-none-on-chronic-primary-encounter`
-- **status**: **RETIRED — session 45, 2026-07-11 verification**
-- **retirement_reason**: Cycle 6-7 residual sweep + Cycle 4 C4-05/07-09 chronic-inherit paths together populate severity on every Condition. Session 45 seed=100 verification confirmed 0 Conditions missing severity = the pattern disappeared. Any missing severity detected in the future is **a real bug** (this entry is no longer a by-design exception).
+- **status**: **RETIRED —  2026-07-11 verification**
+- **retirement_reason**: Cycle 6-7 residual sweep + Cycle 4 C4-05/07-09 chronic-inherit paths together populate severity on every Condition. 2026-07-11 seed=100 verification confirmed 0 Conditions missing severity = the pattern disappeared. Any missing severity detected in the future is **a real bug** (this entry is no longer a by-design exception).
 - **original_observation**: Some Conditions were missing `severity` (65.8% observed at cycle 2 for I10 routine visits).
 - **original_by_design_reason**: When the primary dx is a chronic disease (I10 essential HTN etc.), acute severity for a routine outpatient follow-up is not inferable from sensor data → severity None is clinically correct. Confirmed at C2-32 (cycle 2).
-- **established_session**: session 42, 2026-07-07 (cycle 2)
-- **retired_session**: session 45, 2026-07-11 (verification)
-- **retired_pr**: session 45 verification chain
+- **established**: 2026-07-07 (cycle 2)
+- **retired**: 2026-07-11 (verification)
+- **retired_pr**: 2026-07-11 verification chain
 
 ### composition-vs-documentreference-format-type-split
 
@@ -202,7 +202,7 @@ Each entry has six fields:
 - **observation**: Resource counts of `Composition.ndjson` and `DocumentReference.ndjson` differ ("distribution looks skewed").
 - **by_design_reason**: `ClinicalDocument.format_type` intentionally branches: `composition` (H&P / Discharge Summary / Nursing / SOAP and other section-structured records) → emit Composition; `free_text` (Progress Note / Nursing Record / Triage etc.) → emit DocumentReference. These are independent resource types; a matching ratio is not required. Confirmed at C4-25 (cycle 4).
 - **signature**: The `format_type` filter in `fhir_r4/documents/composition.py` and `fhir_r4/documents/documents.py` is consistent across both builders (composition → Composition emit / free_text → DR emit / other → skip).
-- **established_session**: session 43, 2026-07-08 (cycle 4)
+- **established**: 2026-07-08 (cycle 4)
 - **established_pr**: cycle 4 close
 - **revalidation_check**: Every Composition resource originates from a `format_type == "composition"` doc, and every DR resource originates from a `format_type == "free_text"` doc (verify by id back-trace).
 
@@ -210,9 +210,9 @@ Each entry has six fields:
 
 - **id**: `compound-rx-with-device-alternative-real-drug`
 - **observation**: `MedicationRequest` / `MedicationAdministration` text contains compound expressions such as `"エノキサパリン ... または 間欠的空気圧迫"`. 184 observed (cycle 5 baseline).
-- **by_design_reason**: The real CIF Order detail is a compound orderable of "real drug (Enoxaparin) OR alternative device (IPC)". Session 43 CY2-B fix + session 44 C5-19 introduced a splitter that prefers the primary alternative, but when the substring before "または" is a real drug, the drug side is adopted and the alternative text may remain = not a classification bug. Confirmed at C5-16 (cycle 5).
+- **by_design_reason**: The real CIF Order detail is a compound orderable of "real drug (Enoxaparin) OR alternative device (IPC)". 2026-07-09 CY2-B fix + 2026-07-11 C5-19 introduced a splitter that prefers the primary alternative, but when the substring before "または" is a real drug, the drug side is adopted and the alternative text may remain = not a classification bug. Confirmed at C5-16 (cycle 5).
 - **signature**: The primary drug in the compound text hits code_mapping and has a coding; the text after " または " remains in the display. If the primary is uncoded, that is a real bug.
-- **established_session**: session 43, 2026-07-09 (cycle 5)
+- **established**: 2026-07-09 (cycle 5)
 - **established_pr**: cycle 5 close
 - **revalidation_check**: For a compound-text MR/MAR, `medicationCodeableConcept.coding[0].code` is non-empty (the primary drug is resolved).
 
@@ -222,7 +222,7 @@ Each entry has six fields:
 - **observation**: `Encounter.hospitalization` is emitted for only ~10% of the cohort (3951/37137 in cycle 6).
 - **by_design_reason**: `Encounter.hospitalization` holds admission/discharge episode information (admit source / discharge disposition / dietary preference etc.). AMB (ambulatory / outpatient) encounters have no admission/discharge episode, so FHIR R4 does not emit `hospitalization`. Only EMER + IMP encounters carry hospitalization = consistent with real EHR behavior.
 - **signature**: Every Encounter missing `hospitalization` has `class.code == "AMB"`. Missing on EMER / IMP = a real bug.
-- **established_session**: session 44, 2026-07-11 (Cycle 6 review)
+- **established**: 2026-07-11 (Cycle 6 review)
 - **established_pr**: cycle 6 open (`892c15051c`)
 - **revalidation_check**: Aggregate class.code across Encounters missing hospitalization; every one is "AMB". EMER + IMP are 100% populated.
 
@@ -230,9 +230,9 @@ Each entry has six fields:
 
 - **id**: `observation-method-lab-only`
 - **observation**: `Observation.method` cohort emit rate is ~12% (cycle 6 baseline 282762/2340725).
-- **by_design_reason**: Session 44 CO-8 wired `Observation.method` for the lab category only. vital-signs (device auto-measured values), survey (questionnaire / consciousness level), and social-history (smoking / alcohol / occupation) conceptually do not need method: vital signs are auto-measured by devices, survey uses interview, and social-history uses history-taking. Only lab has meaningful analyzer methods (automated analyzer / culture identification / susceptibility testing).
+- **by_design_reason**: 2026-07-11 CO-8 wired `Observation.method` for the lab category only. vital-signs (device auto-measured values), survey (questionnaire / consciousness level), and social-history (smoking / alcohol / occupation) conceptually do not need method: vital signs are auto-measured by devices, survey uses interview, and social-history uses history-taking. Only lab has meaningful analyzer methods (automated analyzer / culture identification / susceptibility testing).
 - **signature**: Every Observation missing method belongs to a non-lab category (`vital-signs | survey | social-history | imaging`). Missing on the lab category = a real bug.
-- **established_session**: session 44, 2026-07-11 (Chain 2 + Cycle 6 review)
+- **established**: 2026-07-11 (Chain 2 + Cycle 6 review)
 - **established_pr**: `1481306d2f` (Chain 2 initial) + cycle 6 confirm
 - **revalidation_check**: Aggregate categories across Observations missing method; every one is non-lab. The lab category method rate is 100%.
 
@@ -242,7 +242,7 @@ Each entry has six fields:
 - **observation**: Some fraction (~2%) of `Immunization.ndjson` records lack the `performer` field (599/29995 in cycle 6).
 - **by_design_reason**: `Immunization.status == "not-done"` is the record form for "scheduled but not administered" (refusal / contraindication / logistics etc.). No actual administrator exists, so performer is not emitted. The same behavior exists in both the CDC IIS and the JP immunization ledger. FHIR R4 `Immunization.performer` has cardinality 0..*, so omission on not-done is spec-conformant.
 - **signature**: Every Immunization missing performer has `status == "not-done"`. Missing on `status == "completed"` = a real bug.
-- **established_session**: session 44, 2026-07-11 (Cycle 6 review)
+- **established**: 2026-07-11 (Cycle 6 review)
 - **established_pr**: cycle 6 open
 - **revalidation_check**: Aggregate status across Immunizations missing performer; every one is "not-done".
 
@@ -250,34 +250,34 @@ Each entry has six fields:
 
 - **id**: `icu-transfer-rate-classhistory-6pct`
 - **observation**: `Encounter.classHistory` is emitted for only ~6% of IMP encounters (73/1223 in cycle 7).
-- **by_design_reason**: `classHistory` records transitions of the encounter class (general ward → ICU, ICU → general ward). Only cases with ICU transfer produce a transition, so within IMP only the ICU-transit rate (clinical reality ~5-10%, cycle 7's 6.0% is plausible) has classHistory. This is the feature introduced at session 43 C5-22; the correct behavior is "100% of the applicable cases", not 100% overall.
+- **by_design_reason**: `classHistory` records transitions of the encounter class (general ward → ICU, ICU → general ward). Only cases with ICU transfer produce a transition, so within IMP only the ICU-transit rate (clinical reality ~5-10%, cycle 7's 6.0% is plausible) has classHistory. This is the feature introduced at 2026-07-09 C5-22; the correct behavior is "100% of the applicable cases", not 100% overall.
 - **signature**: Every IMP encounter missing classHistory has no `icu_transferred_day` (never routed through ICU). Missing classHistory on an ICU-transit case (icu_transferred_day present) = a real bug.
-- **established_session**: session 44, 2026-07-11 (Cycle 7 review)
+- **established**: 2026-07-11 (Cycle 7 review)
 - **established_pr**: cycle 7 open (`499f72a09d`)
 - **revalidation_check**: For every IMP encounter missing classHistory, confirm the corresponding CIF record's `icu_transferred_day` is -1 (or missing).
 
 ### cy7-05-synth-ed-encounter-no-condition
 
 - **id**: `cy7-05-synth-ed-encounter-no-condition`
-- **observation**: `Condition.ndjson` does not reference the synthesized ED Encounter resources (id suffix `-ED`) — clinical audits show IMP/EMER-without-Condition count matches exactly the number of ED→IMP partOf-linked synth encounters (session 45 seed=400: 972/972).
-- **by_design_reason**: CY7-05 (session 44) synthesizes a lightweight ED Encounter FHIR resource so IMP.partOf resolves, but the diagnosis lives on the primary IMP encounter — not duplicated on the synth stub. The synth carries chief-complaint text in `reasonCode` and `hospitalization.admitSource = "outp"` / `dischargeDisposition = "hosp"` to convey the ED-visit event without inflating downstream Condition/Procedure/Order counts. Adding a Condition specifically for the synth stub would misrepresent EHR reality (in practice, ED-to-admission is billed on the inpatient encounter, not the ED subacct). Session 45 seed=400 verification confirmed all 972 IMP/EMER missing-Condition were synth `-ED` ids (`class == "EMER"`, `status == "finished"`, id endswith `-ED`).
+- **observation**: `Condition.ndjson` does not reference the synthesized ED Encounter resources (id suffix `-ED`) — clinical audits show IMP/EMER-without-Condition count matches exactly the number of ED→IMP partOf-linked synth encounters (2026-07-11 seed=400: 972/972).
+- **by_design_reason**: CY7-05 (2026-07-11) synthesizes a lightweight ED Encounter FHIR resource so IMP.partOf resolves, but the diagnosis lives on the primary IMP encounter — not duplicated on the synth stub. The synth carries chief-complaint text in `reasonCode` and `hospitalization.admitSource = "outp"` / `dischargeDisposition = "hosp"` to convey the ED-visit event without inflating downstream Condition/Procedure/Order counts. Adding a Condition specifically for the synth stub would misrepresent EHR reality (in practice, ED-to-admission is billed on the inpatient encounter, not the ED subacct). 2026-07-11 seed=400 verification confirmed all 972 IMP/EMER missing-Condition were synth `-ED` ids (`class == "EMER"`, `status == "finished"`, id endswith `-ED`).
 - **signature**: `IMP/EMER encounters without any Condition.encounter = Encounter/<id> reference` all have id endswith `-ED`.
-- **established_session**: session 45 verification, 2026-07-11
-- **established_pr**: session 45 chain #5 (`210bc6b057`..)
+- **established**: 2026-07-11 (verification)
+- **established_pr**: 2026-07-11 chain #5 (`210bc6b057`..)
 - **revalidation_check**: Sort no-Condition IMP/EMER by id; every id must end with `-ED` (the CY7-05 synth suffix).
 
 ### vital-signs-no-refrange-for-device-setting-or-categorical
 
 - **id**: `vital-signs-no-refrange-for-device-setting-or-categorical`
-- **aliases**: `o2-flow-rate-device-setting-no-refrange` (original session 43 name; kept as alias for back-reference from session 41-44 cycle docs)
-- **observation**: Some vital-family `Observation` records lack `referenceRange`. Cycle 5 baseline observed 13,843 obs at LOINC 3151-8 (O2 flow rate). Session 45 seed=100 verification added 131,364 obs at LOINC 80288-4 (AVPU consciousness level).
+- **aliases**: `o2-flow-rate-device-setting-no-refrange` (original 2026-07-09 name; kept as alias for back-reference from 2026-07-07 → 2026-07-11 cycle docs)
+- **observation**: Some vital-family `Observation` records lack `referenceRange`. Cycle 5 baseline observed 13,843 obs at LOINC 3151-8 (O2 flow rate). 2026-07-11 seed=100 verification added 131,364 obs at LOINC 80288-4 (AVPU consciousness level).
 - **by_design_reason**: The following two kinds of vital observations do not conceptually require a physiologic normal range:
   - **Device setting**: LOINC 3151-8 O2 flow rate = a device setting value (oxygen administration = therapeutic intervention dose; no reference range against healthy subjects exists).
-  - **Categorical scale**: LOINC 80288-4 AVPU = 4-level categorical valueSet (Alert / Verbal / Pain / Unresponsive); a numeric range is meaningless. Added session 45.
+  - **Categorical scale**: LOINC 80288-4 AVPU = 4-level categorical valueSet (Alert / Verbal / Pain / Unresponsive); a numeric range is meaningless. Added 2026-07-11.
   Any other categorical vital scale (e.g., the 3 sub-components of GCS) added in the future follows the same pattern. FHIR R4 does not require refRange (cardinality 0..*).
 - **signature**: The `code.coding[0].code` of a vital Observation missing refRange must match one of `{3151-8 (O2 flow rate), 80288-4 (AVPU consciousness)}`. Missing refRange on any other LOINC = a real bug (out of scope for this registry).
-- **established_session**: session 43, 2026-07-09 (cycle 5) — signature extended session 45, 2026-07-11
-- **established_pr**: cycle 5 close + session 45 verification
+- **established**: 2026-07-09 (cycle 5) — signature extended  2026-07-11
+- **established_pr**: cycle 5 close + 2026-07-11 verification
 - **revalidation_check**: Confirm the LOINC of every Observation missing refRange is in the whitelist. If a new categorical vital LOINC is discovered, update the registry.
 
 ### cy8-29-unknown-condition-imp-no-partof
@@ -286,7 +286,7 @@ Each entry has six fields:
 - **observation**: Some fraction (roughly 6/1265 ≈ 0.5%) of IMP encounters in `Encounter.ndjson` lack `partOf`. In real operations most admissions come via ED (`admit_source="emd"`), and the `admit_source_encounter_id` derivation added in CY7-05 emits partOf accordingly. The remaining 0.5% is a residual pattern without a synth ED.
 - **by_design_reason**: `_simulate_unknown_condition` (the `disease_id=None` idiopathic inpatient path) does not go through the discharge-phase logic of `_simulate_patient`, so the CY7-05 admit_source completion logic never fires and `admit_source=""` is written to CIF as-is. The FHIR builder falls back to emitting empty admit_source as `hosp` (from hospital administration), which is semantically correct (recorded as a direct admission). Missing partOf = "direct admission without ED routing" = spec-conformant. Fabrication avoided (no CY7-05 forcing on paths that clinically do not necessarily route via ED).
 - **signature**: Every IMP encounter missing partOf has `hospitalization.admitSource.coding[0].code == "hosp"` (FHIR builder fallback default), and the corresponding CIF record's `condition_event.disease_id` is empty (originates from the unknown-condition path). Missing partOf with any other admit_source (emd / outp / born etc.) = a real bug (out of scope for this registry).
-- **established_session**: session 48, 2026-07-13 (Cycle 8 verify)
+- **established**: 2026-07-13 (Cycle 8 verify)
 - **established_pr**: cycle 8 close (this commit)
 - **revalidation_check**: Extract every IMP encounter missing partOf; every admit_source is `"hosp"`. The expected range on JP p=10000 seed=42 is ≤ 0.6% of IMP.
 
@@ -294,9 +294,9 @@ Each entry has six fields:
 
 - **id**: `cy8-23-condition-bodysite-selective`
 - **observation**: Some fraction (≈ 92%) of `Condition.ndjson` records lack `bodySite`.
-- **by_design_reason**: The bodySite emit introduced in session 48 cycle 8 is limited to a selective set of 17 disease prefixes (respiratory J13/J14/J15/J18/J44/J45 + cardiovascular I21/I25/I50 + cerebrovascular I60/I61/I63 + urologic N10/N17/N30/N39 + skin L03). Non-anatomic diseases (I10 hypertension, E11 diabetes, E78 dyslipidemia etc.) have no anatomic bodySite, so not emitting one is clinically correct. Fabrication avoided.
+- **by_design_reason**: The bodySite emit introduced in 2026-07-13 cycle 8 is limited to a selective set of 17 disease prefixes (respiratory J13/J14/J15/J18/J44/J45 + cardiovascular I21/I25/I50 + cerebrovascular I60/I61/I63 + urologic N10/N17/N30/N39 + skin L03). Non-anatomic diseases (I10 hypertension, E11 diabetes, E78 dyslipidemia etc.) have no anatomic bodySite, so not emitting one is clinically correct. Fabrication avoided.
 - **signature**: The primary ICD prefix (first segment before `.`) of a Condition missing bodySite is NOT in the 17 prefixes above. Missing bodySite for a Condition matching the 17 prefixes = a real bug (out of scope for this registry).
-- **established_session**: session 48, 2026-07-13 (Cycle 8)
+- **established**: 2026-07-13 (Cycle 8)
 - **established_pr**: cycle 8 close
 - **revalidation_check**: Aggregate ICD prefixes across Conditions missing bodySite; confirm none contain the 17 prefixes. When a new anatomic-site disease is added to `disease`, update the crosswalk `clinosim/codes/data/icd10-condition-bodysite-crosswalk.yaml` (loaded by `fhir_r4/conditions/conditions.py::_icd10_condition_bodysite_map`) + this signature.
 
@@ -304,9 +304,9 @@ Each entry has six fields:
 
 - **id**: `cy8-24-condition-abatement-finished-encounter-only`
 - **observation**: Some fraction (roughly 40%) of `Condition.ndjson` records lack `abatementDateTime`.
-- **by_design_reason**: The abatement emit added in session 48 cycle 8 is limited to encounters where `encounter.status in ("completed", "finished")` AND `discharge_datetime` is non-empty. In-progress encounters (AD-32 snapshot cutoff) and chronic problem-list-items (which never resolve to begin with) do not emit abatement, consistent with the FHIR spec.
+- **by_design_reason**: The abatement emit added in 2026-07-13 cycle 8 is limited to encounters where `encounter.status in ("completed", "finished")` AND `discharge_datetime` is non-empty. In-progress encounters (AD-32 snapshot cutoff) and chronic problem-list-items (which never resolve to begin with) do not emit abatement, consistent with the FHIR spec.
 - **signature**: A Condition missing abatementDateTime falls into one of: (a) its corresponding encounter is in-progress, (b) `category=problem-list-item` (originates from the chronic path), or (c) it is a patient-level Condition without an encounter reference. Missing abatement on an encounter-diagnosis for a finished encounter = a real bug.
-- **established_session**: session 48, 2026-07-13 (Cycle 8)
+- **established**: 2026-07-13 (Cycle 8)
 - **established_pr**: cycle 8 close
 - **revalidation_check**: Extract every Condition missing abatementDateTime; confirm each falls into (a) / (b) / (c) above.
 
@@ -316,7 +316,7 @@ Each entry has six fields:
 - **observation**: Most (96.5%) of `MedicationAdministration.ndjson` records lack `device`. Only IV continuous-infusion admins emit it, at ~3.5%.
 - **by_design_reason**: `device` is the field that references the administration equipment such as an infusion pump. Oral / IM / SC / SL / topical admins do not need a pump, so clinically-accurate operation is to reference `Device/dev-infusion-pump` only for IV continuous-infusion admins (dose_text contains CONTINUOUS/DRIP/`/h` + route=IV). Fabrication avoided (no fictional Device pinned to oral drugs).
 - **signature**: An MAR missing device has `dosage.route.text != "IV"` OR `dosage.text` does not contain CONTINUOUS/DRIP/`/h`. Missing device on IV + CONTINUOUS = a real bug (out of scope for this registry).
-- **established_session**: session 48, 2026-07-13 (Cycle 8)
+- **established**: 2026-07-13 (Cycle 8)
 - **established_pr**: cycle 8 close
 - **revalidation_check**: Aggregate route + dose_text across MARs missing device; confirm the condition above. Guarantee 100% device fire on IV continuous infusion.
 
@@ -326,7 +326,7 @@ Each entry has six fields:
 - **observation**: Cases with an `N10` Condition on an ED / IMP admission receive multi-antibiotic escalation (Ceftriaxone → Ciprofloxacin → Meropenem for a single UTI-classified diagnosis). A random-sample reviewer may interpret the N10 label as drug-induced acute interstitial nephritis (AIN) and flag the antibiotic treatment as clinically wrong (steroid + drug d/c would be right for AIN).
 - **by_design_reason**: WHO ICD-10 `N10` = "Acute tubulo-interstitial nephritis" is a chapter code covering BOTH the bacterial-infection form (acute pyelonephritis, antibiotic-treated) AND the drug/immune AIN form (steroid + drug d/c). The sim models the pyelonephritis path exclusively via `urinary_tract_infection.yaml` (primary code `N10`, antibiotic protocol) — clinically correct for that etiology. The AKI YAML `interstitial_nephritis` differential row was renamed to `N14.1` (ICD-10-CM "Nephropathy induced by other drugs, medicaments and biological substances") in Issue #1353 to make the two codes semantically disjoint. Distinct AIN modeling as its own disease branch (with steroid + drug d/c treatment) is DEFERRED — insufficient AKI-cohort volume to justify a separate disease YAML; the AKI YAML's Bayesian differential row is enough to represent the diagnostic uncertainty. The separate antibiotic-escalation-without-de-escalation concern lives in Issue #1346 (real bug, tracked separately).
 - **signature**: Every `N10` Condition in the emitted cohort MUST come from `urinary_tract_infection.yaml` (pyelonephritis) — never from `acute_kidney_injury.yaml` after the Issue #1353 rename. Grep verify: `grep -R "'N10'" clinosim/modules/disease/reference_data/` should show only `urinary_tract_infection.yaml` (primary `N10` + variant `N10` at prob 0.35). If any AKI-branch code path emits `N10`, that is a regression and must be re-registered.
-- **established_session**: session 112, 2026-09-13.
+- **established**: 2026-09-13.
 - **established_pr**: #1353 (issue) — this PR (`fix/1353-n10-differential-taxonomy` branch, comment blocks in both disease YAMLs + AKI differential rename).
 - **revalidation_check**: After each cohort rebuild, confirm zero `N10` Conditions cite `acute_kidney_injury` as their disease source (search FHIR bundle Condition.evidence or CIF condition_source field, whichever the current release uses).
 
@@ -334,9 +334,9 @@ Each entry has six fields:
 
 - **id**: `s95-z37-past-birth-marker-stale-onset`
 - **observation**: A large fraction (~53% JP / 57% US) of `Z37.*` Condition resources emit with `onsetDateTime` many years before `recordedDate`. Extreme cases show a 13-year gap (e.g. `onset=2012-10-25`, `recorded=2025-10-11`).
-- **by_design_reason**: **Session 97 update (META #957 Incr 1)** — Z37 is no longer sampled in `chronic_prevalence`; instead the FHIR emit adapter derives one Z37 `problem-list-item` per delivered pregnancy from `person.state_periods` (state_type="pregnancy", outcome="delivered"), anchored at the delivery date. The stale-onset pattern therefore SHRINKS to just those cross-year deliveries the sim actually simulated; the "activation-window historical onset" proxy source is retired. The interim signature below still holds — a Z37 with historical onset must be `problem-list-item` category and the delivery encounter's Z37 `encounter-diagnosis` sibling has current-time onset — but the population is now bounded by (and correlates 1:1 with) the sim's own delivery events.
+- **by_design_reason**: **2026-09-01 update (META #957 Incr 1)** — Z37 is no longer sampled in `chronic_prevalence`; instead the FHIR emit adapter derives one Z37 `problem-list-item` per delivered pregnancy from `person.state_periods` (state_type="pregnancy", outcome="delivered"), anchored at the delivery date. The stale-onset pattern therefore SHRINKS to just those cross-year deliveries the sim actually simulated; the "activation-window historical onset" proxy source is retired. The interim signature below still holds — a Z37 with historical onset must be `problem-list-item` category and the delivery encounter's Z37 `encounter-diagnosis` sibling has current-time onset — but the population is now bounded by (and correlates 1:1 with) the sim's own delivery events.
 - **signature**: A Z37 Condition where `onsetDateTime` is many days before `recordedDate` MUST have `category.coding[].code == "problem-list-item"`. If a Z37 with `category == "encounter-diagnosis"` shows stale onset → real bug. Post-Incr-1: the problem-list-item Z37 count equals `Σ delivered pregnancy periods` across the cohort (biology-consistent).
-- **established_session**: session 95, 2026-09-01 (post-close p=10000 audit follow-up); **updated session 97**, 2026-09-01 (META #957 Incr 1 refactor).
+- **established**: 2026-09-01 (post-close p=10000 audit follow-up); **updated 2026-09-01** (META #957 Incr 1 refactor).
 - **established_pr**: #1034 (issue) — comment thread + registry entry. Incr-1 refactor: this branch.
 - **revalidation_check**: For every Z37 with `onset < recorded - 30d`, confirm category is `problem-list-item`. Also verify Z39 postpartum encounter dates > mother's delivery encounter's `period.start` (Z39 scheduler now reads `state_period.metadata.delivered_on` derived from the same delivery event, so no cascade risk).
 
@@ -348,7 +348,7 @@ Each entry has six fields:
 - **original_observation**: A small fraction (~0.06% at US p=10000 — 142/234,425 Encounters) of `Encounter.ndjson` records have `period.start` strictly before the input `--start` (window-open) date. Example: window `2021-10-27 → 2026-10-27` yields 142 encounters with `period.start` as early as `2021-10-01` (26 days before window-open). All such records have `period.end` inside the window.
 - **original_by_design_reason**: `clinosim/simulator/_setup.py::_load_prev_admission_cache` seeds a prior-admission cache so that patients who are already admitted at window-open are not born in-admission on day 1. `clinosim/simulator/_dispatch.py::_replay_cached_admission_queue` then emits those admissions with their real (pre-window) admission date and the in-window discharge date. This mirrors real EHR snapshots at an index date — admissions in-flight at the snapshot carry their true `period.start`, not a clipped one. Clipping to `max(period.start, window_start)` would destroy the actual admission date and under-represent length-of-stay for the carry-over cohort, so the sim intentionally preserves pre-window `period.start`. The affected population is bounded by the first-year inpatient cache (no cache replay in later years), so the fraction stays well under 1% of total encounters.
 - **original_signature**: Every Encounter with `period.start < window_start` has `class.code in {"IMP", "EMER"}`, `period.end >= window_start`, and originates from the prior-admit cache replay path. The count empirically ran at ≤ 1% of total encounters (0.06% observed on US p=10000 seed=342). An encounter with `period.start < window_start` AND `class.code == "AMB"` (outpatient), or an encounter where `period.end < window_start` (fully pre-window), is a real bug (out of scope for this registry).
-- **established_session**: session 118, 2026-10-27 (Issue #2005)
+- **established**: 2026-10-27 (Issue #2005)
 - **established_pr**: #2005 (issue) — this PR (`docs/prior-admit-cache-by-design` branch).
 - **retired_on**: 2026-11-09 (doc–code drift review)
 
@@ -358,7 +358,7 @@ Each entry has six fields:
 - **observation**: `Patient.ndjson` row count is below the `-p` population. US `s=342 p=10000 2021-10-27..2026-10-27` emits 9,832 Patients: 9,206 of the 10,000 catchment residents plus 626 newborns (`POP-*-BABY`). The other 794 residents (7.9%) have no Patient resource.
 - **by_design_reason**: The FHIR export is the hospital EHR, and an EHR only holds people who were seen. FHIR Patients are built from CIF patient records, which exist only for residents with at least one encounter in the window. Residents who never visited the hospital during the window are part of the simulated catchment (they shape prevalence and incidence draws) but have no chart. Deceased patients are not dropped: a patient who died after at least one encounter is emitted with `deceasedDateTime`.
 - **signature**: The set of `Encounter.subject` references equals the set of Patient ids exactly (no Patient without an Encounter, no Encounter subject without a Patient). Every catchment id missing from `Patient.ndjson` (`POP-NNNNNN` without a `-BABY` suffix) has no Encounter. A missing Patient whose id appears as any resource's subject, or a resident with CIF encounters but no Patient, is a real bug.
-- **established_session**: session 118, 2026-10-27 (Issue #2004)
+- **established**: 2026-10-27 (Issue #2004)
 - **established_pr**: #2004 (issue) — this PR (`docs/patient-emit-requires-encounter` branch).
 - **revalidation_check**: (a) `set(Encounter.subject) == set(Patient ids)`; (b) count catchment ids present in `Patient.ndjson` and confirm the non-visitor share stays in single digits for a 5-year window; (c) count Patients with `deceasedDateTime` and confirm deaths are present rather than removed.
 
@@ -369,32 +369,32 @@ Each entry has six fields:
 The following are **not eligible for registration**. If detected during audit, register them as cycle issues and fix them.
 
 - Every stage system (CKD / NYHA / GOLD 1-4 / asthma 4-tier / HTN Stage 1-2 / CCS I-IV) → require stage.summary.coding to be **present**. Missing coding is a bug.
-- Missing `method` on Observations derived from MicrobiologyResult (mb-org-* / mb-sus-*) → fully populated at session 44 CO-8; missing is a bug.
-- 100% population of CareTeam.telecom / DR.presentedForm → established at session 44 Chain 1/3; missing is a bug.
+- Missing `method` on Observations derived from MicrobiologyResult (mb-org-* / mb-sus-*) → fully populated at 2026-07-11 CO-8; missing is a bug.
+- 100% population of CareTeam.telecom / DR.presentedForm → established at 2026-07-11 Chain 1/3; missing is a bug.
 
 ---
 
 ## Change history
 
-- 2026-07-11 (session 44): first edition. Registered 7 by-design entries confirmed in Chain 1-4.
-- 2026-07-11 (session 44 addendum): consolidated 10 by-design / not-a-bug notes retrospectively from cycles 1-5 docs.
+- 2026-07-11: first edition. Registered 7 by-design entries confirmed in Chain 1-4.
+- 2026-07-11 (addendum): consolidated 10 by-design / not-a-bug notes retrospectively from cycles 1-5 docs.
   A total of **17 entries** cover all by-design observations across C1-C5:
   - Cycle 1 (5): C1-04, C1-08, C1-11, C1-14, C1-20
   - Cycle 2 (2): C2-12, C2-32
   - Cycle 4 (1): C4-25
   - Cycle 5 (2): C5-16, C5-17
-  - Session 44 Chain 1-4 verify (7): snapshot-length, MR substitution, Coverage late-elderly, FMH healthy relative, CO-8 non-JP drugs, HbA1c stage text, CI in-progress status
-- 2026-07-11 (session 44 Cycle 6 expansion): added 3 new patterns discovered in the cycle 6 baseline review (`amb-encounter-no-hospitalization` / `observation-method-lab-only` / `immunization-not-done-no-performer`) and expanded the `co8-non-jp-marketed-drugs` whitelist by 5 (Meclizine / Nitrofurantoin / Proparacaine / Ofloxacin ophthalmic / Oxymetazoline). Total **20 entries**.
-- 2026-07-11 (session 44 Cycle 7 expansion): added 1 new pattern `icu-transfer-rate-classhistory-6pct` discovered in the cycle 7 baseline review. Total **21 entries**.
-- 2026-07-11 (session 45 verification): consolidated 3 fixes (heparin rate adjustment / EMER length synthesis) and 3 registry updates found in the JP p=10000 seed=100 verification:
+  - 2026-07-11 Chain 1-4 verify (7): snapshot-length, MR substitution, Coverage late-elderly, FMH healthy relative, CO-8 non-JP drugs, HbA1c stage text, CI in-progress status
+- 2026-07-11 (Cycle 6 expansion): added 3 new patterns discovered in the cycle 6 baseline review (`amb-encounter-no-hospitalization` / `observation-method-lab-only` / `immunization-not-done-no-performer`) and expanded the `co8-non-jp-marketed-drugs` whitelist by 5 (Meclizine / Nitrofurantoin / Proparacaine / Ofloxacin ophthalmic / Oxymetazoline). Total **20 entries**.
+- 2026-07-11 (Cycle 7 expansion): added 1 new pattern `icu-transfer-rate-classhistory-6pct` discovered in the cycle 7 baseline review. Total **21 entries**.
+- 2026-07-11 (verification): consolidated 3 fixes (heparin rate adjustment / EMER length synthesis) and 3 registry updates found in the JP p=10000 seed=100 verification:
   - `condition-severity-none-on-chronic-primary-encounter` → RETIRED (after cycle 6-7 residual sweep, missing severity = 0, pattern gone)
   - `o2-flow-rate-device-setting-no-refrange` → renamed + signature extended = `vital-signs-no-refrange-for-device-setting-or-categorical` (added LOINC 80288-4 AVPU consciousness)
   - `realistic-mr-mar-ratio-for-outpatient-heavy-cohort` → MAR/MR band widened 5-15 → 5-40 (accommodating a wide natural band from long-LOS IMP + continuous-infusion drip mixture)
   net: **21 entries** (1 retire + 2 signature updates, no new entries).
-- 2026-07-13 (session 48 Cycle 8 expansion): added 4 new patterns confirmed in cycle 8 verify (`cy8-29-unknown-condition-imp-no-partof` + `cy8-23-condition-bodysite-selective` + `cy8-24-condition-abatement-finished-encounter-only` + `cy8-20-mar-device-iv-infusion-only`). Total **25 entries**.
-- 2026-09-01 (session 95, Issue #1034 investigation): added `s95-z37-past-birth-marker-stale-onset` after the session-95 p=10000 audit's "Z37 stale onset + Z39 cascade" finding was investigated. Audit's Z39 cascade claim did not reproduce (0/314 Z39s before mother's delivery); the Z37 stale onset is intentional per `demographics.yaml` "past-birth marker". Total **26 entries**.
-- 2026-09-01 (session 97, META #957 Incr 1): updated `s95-z37-past-birth-marker-stale-onset` — Z37 chronic-sample proxy retired in favor of a `state_periods`-derived FHIR emit adapter. The stale-onset pattern still exists (delivery date can be historic if the sim ran multi-year) but the emit path and population semantics changed: one Z37 problem-list-item per actually-delivered pregnancy. Total **26 entries** (in-place update, no add/remove).
-- 2026-09-13 (session 113, Issue #1353): added `s112-n10-pyelonephritis-vs-ain-single-code`. Random-sample review flagged an antibiotic-escalated N10 case as an AIN mistreatment; clarified in-YAML that WHO N10 spans both etiologies and the sim's N10 path is pyelonephritis by design. The AKI YAML `interstitial_nephritis` differential row renamed to `N14.1` (ICD-10-CM drug-induced) so the two codes are now disjoint at the emit layer. Distinct AIN modeling as its own disease branch is deferred. Total **27 entries**.
-- 2026-10-27 (session 118, Issue #2005): added `s118-prior-admit-cache-encounter-start-before-window`. Aggregate QA on US `s=342 p=10000 2021-10-27..2026-10-27` flagged 142/234,425 Encounters (0.06%) with `period.start` before the window-open date. Confirmed as the intended output of the prior-admit cache (`clinosim/simulator/_setup.py::_load_prev_admission_cache` + `clinosim/simulator/_dispatch.py::_replay_cached_admission_queue`), which preserves the true admission date of patients already admitted at window-open. Total **28 entries**.
-- 2026-10-27 (session 118, Issue #2004): added `s118-patient-emit-requires-encounter`. Aggregate QA flagged `Patient.ndjson` at 9,832 against `-p 10000`; confirmed that only residents with at least one encounter in the window get a chart (9,206 residents + 626 newborns), and deceased patients remain emitted with `deceasedDateTime`. Total **29 entries**.
+- 2026-07-13 (Cycle 8 expansion): added 4 new patterns confirmed in cycle 8 verify (`cy8-29-unknown-condition-imp-no-partof` + `cy8-23-condition-bodysite-selective` + `cy8-24-condition-abatement-finished-encounter-only` + `cy8-20-mar-device-iv-infusion-only`). Total **25 entries**.
+- 2026-09-01 (Issue #1034 investigation): added `s95-z37-past-birth-marker-stale-onset` after the 2026-09-01 p=10000 audit's "Z37 stale onset + Z39 cascade" finding was investigated. Audit's Z39 cascade claim did not reproduce (0/314 Z39s before mother's delivery); the Z37 stale onset is intentional per `demographics.yaml` "past-birth marker". Total **26 entries**.
+- 2026-09-01 (META #957 Incr 1): updated `s95-z37-past-birth-marker-stale-onset` — Z37 chronic-sample proxy retired in favor of a `state_periods`-derived FHIR emit adapter. The stale-onset pattern still exists (delivery date can be historic if the sim ran multi-year) but the emit path and population semantics changed: one Z37 problem-list-item per actually-delivered pregnancy. Total **26 entries** (in-place update, no add/remove).
+- 2026-09-13 (Issue #1353): added `s112-n10-pyelonephritis-vs-ain-single-code`. Random-sample review flagged an antibiotic-escalated N10 case as an AIN mistreatment; clarified in-YAML that WHO N10 spans both etiologies and the sim's N10 path is pyelonephritis by design. The AKI YAML `interstitial_nephritis` differential row renamed to `N14.1` (ICD-10-CM drug-induced) so the two codes are now disjoint at the emit layer. Distinct AIN modeling as its own disease branch is deferred. Total **27 entries**.
+- 2026-10-27 (Issue #2005): added `s118-prior-admit-cache-encounter-start-before-window`. Aggregate QA on US `s=342 p=10000 2021-10-27..2026-10-27` flagged 142/234,425 Encounters (0.06%) with `period.start` before the window-open date. Confirmed as the intended output of the prior-admit cache (`clinosim/simulator/_setup.py::_load_prev_admission_cache` + `clinosim/simulator/_dispatch.py::_replay_cached_admission_queue`), which preserves the true admission date of patients already admitted at window-open. Total **28 entries**.
+- 2026-10-27 (Issue #2004): added `s118-patient-emit-requires-encounter`. Aggregate QA flagged `Patient.ndjson` at 9,832 against `-p 10000`; confirmed that only residents with at least one encounter in the window get a chart (9,206 residents + 626 newborns), and deceased patients remain emitted with `deceasedDateTime`. Total **29 entries**.
 - 2026-11-09 (doc–code drift review): `s118-prior-admit-cache-encounter-start-before-window` → RETIRED. The cited code (`_load_prev_admission_cache` / `_replay_cached_admission_queue`) does not emit pre-window admissions — the former is the `--cache-dir` memoize cache, the latter replays lab / imaging queue increments — and the forward loop drops out-of-window events. A pre-window `period.start` is now treated as a real bug. Total **29 entries** (1 retired).

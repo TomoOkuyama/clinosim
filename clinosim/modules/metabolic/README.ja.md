@@ -4,7 +4,7 @@
 
 ## 目的
 
-Session-102 コホート監査で identify された完結性ギャップを埋める: `PersonRecord.bmi` は生成時にセットされ複数の急性イベントリスク乗数で既に消費されていたが、BMI から導かれる ICD-10 肥満分類 (E66) は `chronic_conditions` に全く emit されていなかった (0% emission 対 CDC NHANES 2017-20 の米国成人有病率 ~41%)。本モジュールは、Layer-1 属性の決定論的関数である ICD コードが共有 `demographics.yaml:chronic_prevalence` の Bernoulli 抽選 pass を経由しないよう BMI 駆動の疾患導出を分離し、クラスタ 2 の 4 enricher (+ GLP-1 薬物療法層) を単一の contributor 向け seam に集約する。
+2026-09-05 コホート監査で identify された完結性ギャップを埋める: `PersonRecord.bmi` は生成時にセットされ複数の急性イベントリスク乗数で既に消費されていたが、BMI から導かれる ICD-10 肥満分類 (E66) は `chronic_conditions` に全く emit されていなかった (0% emission 対 CDC NHANES 2017-20 の米国成人有病率 ~41%)。本モジュールは、Layer-1 属性の決定論的関数である ICD コードが共有 `demographics.yaml:chronic_prevalence` の Bernoulli 抽選 pass を経由しないよう BMI 駆動の疾患導出を分離し、クラスタ 2 の 4 enricher (+ GLP-1 薬物療法層) を単一の contributor 向け seam に集約する。
 
 書き込み対象フィールド: `PersonRecord.chronic_conditions` に ICD-10 コードを append。encounters / labs / `current_medications` を直接触らない — 薬物層 (軸 5) は共有 `chronic_medications.yaml` パイプライン経由で activator を通して提供。
 

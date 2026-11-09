@@ -151,7 +151,7 @@ overall            85.9       92.6
 - **Structural.** 両ツールとも valid な FHIR R4 を emit するので、
   ここのスコアは近くなるはず。structural ギャップは主にリソース
   cardinality: 例えば Synthea は Encounter ごとに `CareTeam` を emit
-  しないが、clinosim は session 46 P0 以降 emit する。
+  しないが、clinosim は 2026-07-12 P0 以降 emit する。
 - **Clinical.** clinosim の生理学モデルは
   [eval-rules.ja.md](eval-rules.ja.md) の `condition_lab_coherence`
   ペアリングでチューニングされているので、clinosim コホートは

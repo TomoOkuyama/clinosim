@@ -151,7 +151,7 @@ The scoring formula is documented at
 - **Structural.** Both tools emit valid FHIR R4, so scores here should
   be close. Any structural gap tends to be resource-cardinality: e.g.
   Synthea doesn't emit `CareTeam` for every Encounter, clinosim does
-  after session 46 P0.
+  after 2026-07-12 P0.
 - **Clinical.** clinosim's physiology model was tuned by the
   `condition_lab_coherence` pairings in [eval-rules.md](eval-rules.md),
   so a clinosim cohort should score high there almost by construction.
