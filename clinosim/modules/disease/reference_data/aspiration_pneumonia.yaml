@@ -498,7 +498,7 @@ imaging_orders:
     body_site: chest
     views: [PA, Lateral]
     urgency: routine
-    clinical_indication: "Suspected aspiration pneumonia"
+    clinical_indication: {en: "Suspected aspiration pneumonia", ja: "誤嚥性肺炎疑い"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.80
@@ -508,7 +508,7 @@ imaging_orders:
     body_site: chest
     contrast: false
     urgency: routine
-    clinical_indication: "Evaluate extent and rule out empyema"
+    clinical_indication: {en: "Evaluate extent and rule out empyema", ja: "病変範囲の評価、膿胸の除外"}
     day: 1
     only_if_severity: [moderate, severe]
     abnormal_rate_by_severity:

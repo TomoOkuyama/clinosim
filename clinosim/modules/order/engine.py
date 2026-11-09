@@ -16,6 +16,8 @@ from clinosim.codes import display as registry_display
 from clinosim.codes.drugs import protocol_drug_name
 from clinosim.countries import country_slot, is_jp
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import order_test_display
+from clinosim.locale.localized import language_slot
 from clinosim.modules._shared import get_attr_or_key as _s
 from clinosim.modules.imaging.engine import (
     _resolve_imaging_procedure_code_key,
@@ -177,12 +179,12 @@ def place_imaging_orders(
         body_site_key: str = _s(spec, "body_site", "")
         contrast: bool = _s(spec, "contrast", False)
         urgency: str = _s(spec, "urgency", "routine")
-        clinical_indication: str = _s(spec, "clinical_indication", "")
-        # Issue #871: JA equivalent of clinical_indication, sourced from
-        # per-disease YAML `imaging_orders[].clinical_indication_ja`. Empty
-        # when the YAML has not yet been authored bilingually — the SR emit
-        # path (`_pick_reason_text`) then falls back to the EN string.
-        clinical_indication_ja: str = _s(spec, "clinical_indication_ja", "")
+        # Issue #3024: the reason is a language map ({en, ja}) in the disease
+        # YAML; a plain string is the English text (the SR emit path then
+        # falls back to it for JP).
+        _indication = _s(spec, "clinical_indication", "")
+        clinical_indication: str = _indication if isinstance(_indication, str) else language_slot(_indication, "en")
+        clinical_indication_ja: str = "" if isinstance(_indication, str) else language_slot(_indication, "ja")
         abnormal_rate: dict = dict(_s(spec, "abnormal_rate_by_severity", {}))
 
         body_site = body_sites.get(body_site_key)
@@ -582,7 +584,9 @@ def place_admission_orders(
                     panel_key=panel_name,
                     clinical_intent=t("encounter_intent.admission_workup", "en", test=lab_spec["test"]),
                     # Issue #871: JA display for JP SR reasonCode.text.
-                    clinical_intent_ja=t("encounter_intent.admission_workup", "ja", test=lab_spec["test"]),
+                    clinical_intent_ja=t(
+                        "encounter_intent.admission_workup", "ja", test=order_test_display(lab_spec["test"], "ja")
+                    ),
                 )
             )
             order_seq += 1
@@ -601,7 +605,9 @@ def place_admission_orders(
                 panel_key="",
                 clinical_intent=t("encounter_intent.admission_workup", "en", test=lab_spec["test"]),
                 # Issue #871: JA display for JP SR reasonCode.text.
-                clinical_intent_ja=t("encounter_intent.admission_workup", "ja", test=lab_spec["test"]),
+                clinical_intent_ja=t(
+                    "encounter_intent.admission_workup", "ja", test=order_test_display(lab_spec["test"], "ja")
+                ),
             )
         )
         order_seq += 1
@@ -770,7 +776,9 @@ def place_admission_orders(
             urgency=img_spec.get("urgency", "stat"),
             clinical_intent=t("encounter_intent.admission_imaging", "en", test=img_spec.get("test", "")),
             # Issue #871: JA display for JP SR reasonCode.text.
-            clinical_intent_ja=t("encounter_intent.admission_imaging", "ja", test=img_spec.get("test", "")),
+            clinical_intent_ja=t(
+                "encounter_intent.admission_imaging", "ja", test=order_test_display(img_spec.get("test", ""), "ja")
+            ),
             ordered_datetime=admission_time
             + timedelta(
                 minutes=int(rng.normal(ADMISSION_IMAGING_PLACEMENT_MEAN_MIN, ADMISSION_IMAGING_PLACEMENT_STD_MIN))
@@ -856,7 +864,10 @@ def place_daily_lab_orders(
                     clinical_intent=t("encounter_intent.day_monitoring", "en", day=day_number, test=lab_spec["test"]),
                     # Issue #871: JA display for JP SR reasonCode.text.
                     clinical_intent_ja=t(
-                        "encounter_intent.day_monitoring", "ja", day=day_number, test=lab_spec["test"]
+                        "encounter_intent.day_monitoring",
+                        "ja",
+                        day=day_number,
+                        test=order_test_display(lab_spec["test"], "ja"),
                     ),
                 )
             )
@@ -874,7 +885,12 @@ def place_daily_lab_orders(
                 panel_key="",
                 clinical_intent=t("encounter_intent.day_monitoring", "en", day=day_number, test=lab_spec["test"]),
                 # Issue #871: JA display for JP SR reasonCode.text.
-                clinical_intent_ja=t("encounter_intent.day_monitoring", "ja", day=day_number, test=lab_spec["test"]),
+                clinical_intent_ja=t(
+                    "encounter_intent.day_monitoring",
+                    "ja",
+                    day=day_number,
+                    test=order_test_display(lab_spec["test"], "ja"),
+                ),
             )
         )
         order_seq += 1

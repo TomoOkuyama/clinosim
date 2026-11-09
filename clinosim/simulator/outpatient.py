@@ -13,7 +13,12 @@ from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisp
 from clinosim.codes.valuesets import concept_group
 from clinosim.countries import is_jp, lang_for
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import chronic_followup_vitals, load_ambulatory_visit_length, load_chronic_followup
+from clinosim.locale.loader import (
+    chronic_followup_vitals,
+    load_ambulatory_visit_length,
+    load_chronic_followup,
+    order_test_display,
+)
 from clinosim.locale.localized import localized
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import (
@@ -525,7 +530,7 @@ def _result_followup_labs(
             # Issue #871: JA display for the JP `reasonCode.text` emit path.
             # `test_name` is the analyte name (e.g. "Creatinine") — kept as-is
             # so consumers can still string-match; the shell is translated.
-            clinical_intent_ja=t(intent_key, "ja", test=test_name),
+            clinical_intent_ja=t(intent_key, "ja", test=order_test_display(test_name, "ja")),
             ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.PLACED,
@@ -1085,7 +1090,7 @@ def _visit_imaging_orders(
                 display_name=test,
                 urgency="routine",
                 clinical_intent=t("encounter_intent.screening_workup", "en", test=test),
-                clinical_intent_ja=t("encounter_intent.screening_workup", "ja", test=test),
+                clinical_intent_ja=t("encounter_intent.screening_workup", "ja", test=order_test_display(test, "ja")),
                 ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
                 ordered_by=encounter.attending_physician_id,
                 status=OrderStatus.PLACED,

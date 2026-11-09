@@ -350,7 +350,7 @@ imaging_orders:
     body_site: wrist
     views: [PA, Lateral, Oblique]
     urgency: stat
-    clinical_indication: "Wrist fracture evaluation"
+    clinical_indication: {en: "Wrist fracture evaluation", ja: "手関節骨折の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.98
@@ -360,7 +360,7 @@ imaging_orders:
     body_site: wrist
     views: [PA, Lateral]
     urgency: routine
-    clinical_indication: "Post-op alignment check"
+    clinical_indication: {en: "Post-op alignment check", ja: "術後のアライメント確認"}
     day: 1
     abnormal_rate_by_severity:
       mild: 0.8

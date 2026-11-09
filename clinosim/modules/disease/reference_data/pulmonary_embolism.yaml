@@ -810,7 +810,7 @@ imaging_orders:
     body_site: chest
     contrast: true
     urgency: stat
-    clinical_indication: "CT pulmonary angiography, evaluate for PE"
+    clinical_indication: {en: "CT pulmonary angiography, evaluate for PE", ja: "造影CT (肺動脈)、肺塞栓症の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.8

@@ -524,7 +524,9 @@ class ImagingOrderSpec(BaseModel):
     body_site: str
     views: list[str] = Field(default_factory=list)
     urgency: str = "routine"
-    clinical_indication: str = ""
+    # Issue #3024: the order reason as a language map ({en, ja}); a plain
+    # string is the English text. ServiceRequest.reasonCode.text reads it.
+    clinical_indication: str | dict[str, str] = ""
     day: int = 0
     contrast: bool = False
     only_if_severity: list[str] = Field(default_factory=list)

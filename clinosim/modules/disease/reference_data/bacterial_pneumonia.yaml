@@ -467,7 +467,7 @@ imaging_orders:
     body_site: chest
     views: [PA, Lateral]
     urgency: routine
-    clinical_indication: "Suspected pneumonia, evaluate consolidation"
+    clinical_indication: {en: "Suspected pneumonia, evaluate consolidation", ja: "肺炎疑い、浸潤影の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.85
@@ -477,7 +477,7 @@ imaging_orders:
     body_site: chest
     contrast: false
     urgency: routine
-    clinical_indication: "Confirm extent of consolidation"
+    clinical_indication: {en: "Confirm extent of consolidation", ja: "浸潤影の範囲の確認"}
     day: 1
     only_if_severity: [moderate, severe]
     abnormal_rate_by_severity:

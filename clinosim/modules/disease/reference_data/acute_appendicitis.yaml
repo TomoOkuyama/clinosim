@@ -723,7 +723,7 @@ imaging_orders:
     body_site: abdomen
     contrast: true
     urgency: urgent
-    clinical_indication: "Suspected appendicitis, evaluate appendix"
+    clinical_indication: {en: "Suspected appendicitis, evaluate appendix", ja: "急性虫垂炎疑い、虫垂の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.8

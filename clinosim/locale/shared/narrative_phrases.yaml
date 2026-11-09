@@ -2187,24 +2187,26 @@ order_intent:
   interaction_check_author:
     ja: "処方チェックシステム"
     en: "Prescription safety check"
+  # Issue #3024: orders placed when the clinical course changes state the
+  # reason, never the simulator's course-archetype key.
   archetype_workup:
-    ja: "第{day}病日 {archetype}: 追加検査"
-    en: "Day {day} {archetype}: additional workup"
+    ja: "第{day}病日 病状変化に伴う追加検査"
+    en: "Day {day}: additional workup for a change in the clinical course"
   archetype_imaging:
-    ja: "第{day}病日 {archetype}: 追加画像検査"
-    en: "Day {day} {archetype}: additional imaging"
+    ja: "第{day}病日 病状変化に伴う追加画像検査"
+    en: "Day {day}: additional imaging for a change in the clinical course"
   archetype_stop:
-    ja: "第{day}病日 {archetype}: {drug} 中止"
-    en: "Day {day} {archetype}: stop {drug}"
+    ja: "第{day}病日 治療方針変更に伴う{drug}中止"
+    en: "Day {day}: stop {drug} on a change of treatment plan"
   archetype_new_medication:
-    ja: "第{day}病日 {archetype}: 新規投薬"
-    en: "Day {day} {archetype}: new medication"
+    ja: "第{day}病日 病状変化に伴う新規投薬"
+    en: "Day {day}: new medication for a change in the clinical course"
   archetype_device:
-    ja: "第{day}病日 {archetype}: 器材/治療"
-    en: "Day {day} {archetype}: device / therapy"
+    ja: "第{day}病日 病状変化に伴う医療機器・治療"
+    en: "Day {day}: device / therapy for a change in the clinical course"
   archetype_procedure:
-    ja: "第{day}病日 {archetype}: 新規処置"
-    en: "Day {day} {archetype}: new procedure"
+    ja: "第{day}病日 病状変化に伴う新規処置"
+    en: "Day {day}: new procedure for a change in the clinical course"
   escalation:
     ja: "治療エスカレーション第{day}病日: {drug} ({indication})"
     en: "Escalation day {day}: {drug} ({indication})"
@@ -2244,10 +2246,10 @@ encounter_intent:
     ja: "第{day}病日モニタリング: {test}"
     en: "Day {day} monitoring: {test}"
   unknown_initial_workup:
-    ja: "不明疾患 {complaint}: 初期精査"
+    ja: "{complaint}の初期精査"
     en: "Unknown {complaint}: initial workup"
   unknown_imaging:
-    ja: "不明疾患 {complaint}: 画像精査"
+    ja: "{complaint}の画像精査"
     en: "Unknown {complaint}: imaging workup"
   unknown_treatment:
     ja: "不明疾患 {complaint}: {intent}"

@@ -439,7 +439,7 @@ imaging_orders:
     body_site: head
     contrast: false
     urgency: stat
-    clinical_indication: "Trauma head CT, exclude intracranial injury"
+    clinical_indication: {en: "Trauma head CT, exclude intracranial injury", ja: "外傷頭部CT、頭蓋内損傷の除外"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.3
@@ -449,7 +449,7 @@ imaging_orders:
     body_site: chest
     contrast: true
     urgency: stat
-    clinical_indication: "Trauma chest CT, evaluate thoracic injury"
+    clinical_indication: {en: "Trauma chest CT, evaluate thoracic injury", ja: "外傷胸部CT、胸部損傷の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.35
@@ -459,7 +459,7 @@ imaging_orders:
     body_site: abdomen
     contrast: true
     urgency: stat
-    clinical_indication: "Trauma abdomen CT, evaluate solid organ injury"
+    clinical_indication: {en: "Trauma abdomen CT, evaluate solid organ injury", ja: "外傷腹部CT、実質臓器損傷の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.3
@@ -469,7 +469,7 @@ imaging_orders:
     body_site: spine
     contrast: false
     urgency: stat
-    clinical_indication: "Trauma spine CT, exclude fracture"
+    clinical_indication: {en: "Trauma spine CT, exclude fracture", ja: "外傷脊椎CT、骨折の除外"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.2

@@ -299,6 +299,7 @@ def _derive_microbiology(
     stream is not consumed (AD-16).
     """
     from clinosim.locale.i18n import t
+    from clinosim.locale.loader import order_test_display
     from clinosim.modules.observation.microbiology import (
         culture_draws,
         culture_results,
@@ -325,7 +326,7 @@ def _derive_microbiology(
                 display_name=name,
                 urgency="stat",
                 clinical_intent=t("encounter_intent.admission_workup", "en", test=name),
-                clinical_intent_ja=t("encounter_intent.admission_workup", "ja", test=name),
+                clinical_intent_ja=t("encounter_intent.admission_workup", "ja", test=order_test_display(name, "ja")),
                 ordered_datetime=admission_time,
                 ordered_by=encounter.attending_physician_id,
                 status=OrderStatus.PLACED,

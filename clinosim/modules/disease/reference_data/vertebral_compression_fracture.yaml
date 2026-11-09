@@ -784,7 +784,7 @@ imaging_orders:
     body_site: spine
     views: [AP, Lateral]
     urgency: urgent
-    clinical_indication: "Confirm compression fracture level"
+    clinical_indication: {en: "Confirm compression fracture level", ja: "圧迫骨折の椎体高位の確認"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.9
@@ -794,7 +794,7 @@ imaging_orders:
     body_site: spine
     contrast: false
     urgency: routine
-    clinical_indication: "Assess acuity, rule out malignancy"
+    clinical_indication: {en: "Assess acuity, rule out malignancy", ja: "新旧の評価、悪性腫瘍の除外"}
     day: 2
     abnormal_rate_by_severity:
       mild: 0.85

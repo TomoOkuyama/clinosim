@@ -190,7 +190,9 @@ def _simulate_unknown_condition(
                 urgency="stat",
                 clinical_intent=t("encounter_intent.unknown_initial_workup", "en", complaint=complaint),
                 # Issue #871: JA display for JP SR reasonCode.text.
-                clinical_intent_ja=t("encounter_intent.unknown_initial_workup", "ja", complaint=complaint),
+                clinical_intent_ja=t(
+                    "encounter_intent.unknown_initial_workup", "ja", complaint=complaint_ja or complaint
+                ),
                 ordered_datetime=admission_time,
                 ordered_by=attending_id,
                 status=OrderStatus.PLACED,
@@ -208,7 +210,7 @@ def _simulate_unknown_condition(
                 urgency="stat" if i == 0 else "urgent",
                 clinical_intent=t("encounter_intent.unknown_imaging", "en", complaint=complaint),
                 # Issue #871: JA display for JP SR reasonCode.text.
-                clinical_intent_ja=t("encounter_intent.unknown_imaging", "ja", complaint=complaint),
+                clinical_intent_ja=t("encounter_intent.unknown_imaging", "ja", complaint=complaint_ja or complaint),
                 ordered_datetime=admission_time + timedelta(hours=i + 1),
                 ordered_by=attending_id,
                 status=OrderStatus.PLACED,

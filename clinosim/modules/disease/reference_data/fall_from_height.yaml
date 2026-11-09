@@ -364,7 +364,7 @@ imaging_orders:
     body_site: head
     contrast: false
     urgency: stat
-    clinical_indication: "Exclude intracranial injury"
+    clinical_indication: {en: "Exclude intracranial injury", ja: "頭蓋内損傷の除外"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.2
@@ -374,7 +374,7 @@ imaging_orders:
     body_site: spine
     contrast: false
     urgency: stat
-    clinical_indication: "Exclude spinal fracture"
+    clinical_indication: {en: "Exclude spinal fracture", ja: "脊椎骨折の除外"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.15
@@ -384,7 +384,7 @@ imaging_orders:
     body_site: chest
     views: [AP]   # Issue #2699: a single film of an admitted / emergency patient is a portable AP (code 36572-6)
     urgency: urgent
-    clinical_indication: "Screen for pneumothorax / rib fracture"
+    clinical_indication: {en: "Screen for pneumothorax / rib fracture", ja: "気胸・肋骨骨折のスクリーニング"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.2
