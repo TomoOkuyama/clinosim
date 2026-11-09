@@ -127,7 +127,7 @@ def build_adl_assessment(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
             label = _label("adl_detail_key", k, lang)
             detail_parts.append(t("adl_detail.item", lang, label=label, score=v))
     detail = t("adl_detail.wrap", lang, items=t("list_sep.serial", lang).join(detail_parts)) if detail_parts else ""
-    return f"Barthel Index {barthel}/100 → {band}{detail}", facts
+    return t("adl_detail.barthel_line", lang, score=barthel, band=band, detail=detail), facts
 
 
 @section("risk_assessments")

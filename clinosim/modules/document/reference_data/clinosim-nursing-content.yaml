@@ -94,7 +94,7 @@ acute_disease:
       ja:
         - IN/OUT を 1 時間毎に計測、輸液速度調整を医師と連携
         - 血糖・血清 K を 1-2 時間毎にモニタ、低血糖・低 K を早期認識
-        - 意識状態と Kussmaul 呼吸を継続観察
+        - 意識状態とクスマウル呼吸を継続観察
         - 感染源探索 (尿・下気道) と体温トレンド記録
       en:
         - hourly I/O, coordinate IV rate titration with MD

@@ -47,7 +47,7 @@ from clinosim.locale.loader import chronic_followup_interval_months
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
-from clinosim.modules.document.narrative._localization import _localize_complication
+from clinosim.modules.document.narrative._localization import _localize_complication, _localize_stage
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
     NARRATIVE_ADULT_TACHYCARDIA_HR,
     NARRATIVE_HBA1C_DIABETES_THRESHOLD,
@@ -867,7 +867,8 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
                     "chronic_assessment.chronic_stage_stable",
                     lang,
                     label=label,
-                    stage=condition_stage,
+                    # Issue #3034: the stage label in the output language.
+                    stage=_localize_stage(condition_stage, lang),
                 )
                 lines.append(follow)
             else:
