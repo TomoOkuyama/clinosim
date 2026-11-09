@@ -178,6 +178,18 @@ class _WorkupImaging(BaseModel):
     abnormal_rate_by_severity: dict[str, float] = {}
 
 
+class _AgeGatedProcedure(BaseModel):
+    """A bedside procedure the visit performs for patients aged
+    ``min_age_days``-``max_age_days`` days (Issue #3063: lumbar puncture for
+    febrile infants 8-21 days old)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    procedure: str = Field(min_length=1)
+    min_age_days: int = Field(ge=0)
+    max_age_days: int = Field(ge=0)
+
+
 class _Workup(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -421,10 +433,11 @@ class EncounterConditionProtocol(BaseModel):
     # drawn for, see :data:`AGE_DISTRIBUTION_MIN_AGE`.
     age_distribution: AgeDistribution | None = None
 
-    # Per-severity disposition (``discharge_home`` / ``transfer_psychiatric``)
-    # and per-chronic-prefix diagnosis code overrides (Issue #2124).
+    # Per-severity disposition (``discharge_home`` / ``transfer_psychiatric`` /
+    # ``transfer_pediatric``) and per-chronic-prefix diagnosis code overrides
+    # (Issue #2124, #3063).
     disposition: str | None = None
-    disposition_by_severity: dict[str, Literal["discharge_home", "transfer_psychiatric"]] = {}
+    disposition_by_severity: dict[str, Literal["discharge_home", "transfer_psychiatric", "transfer_pediatric"]] = {}
     by_chronic_prefix: dict[str, str] = {}
     # Severities a hospital with an inpatient unit of ``department`` admits
     # instead of treating in the ED (Issue #2132): {department, severities}.
@@ -438,6 +451,27 @@ class EncounterConditionProtocol(BaseModel):
     probability: float = Field(default=0.05, ge=0.0)
     min_age: int | None = None
     max_age: int | None = None
+    # Issue #3063: a neonatal condition is drawn per birth, not from the ED
+    # visit mix — at ``incidence_per_1000_births`` (by upper-case country
+    # code; a country without a rate gets none), on a day of life in
+    # ``min_age_days``-``max_age_days``. An infant of at most the largest
+    # such ``max_age_days`` gets no other ED condition.
+    min_age_days: int | None = Field(default=None, ge=0)
+    max_age_days: int | None = Field(default=None, ge=0)
+    incidence_per_1000_births: dict[str, float] = {}
+    procedures_by_age_days: list[_AgeGatedProcedure] = []
+    # Severity -> [low, high] triage temperature (°C) for a presentation
+    # defined by a fever (Issue #3063), instead of the inflammation-derived one.
+    triage_temperature_c: dict[str, tuple[float, float]] = {}
+
+    @field_validator("triage_temperature_c")
+    @classmethod
+    def _ordered_bands(cls, value: dict[str, tuple[float, float]]) -> dict[str, tuple[float, float]]:
+        for severity, (low, high) in value.items():
+            if not low <= high:
+                raise ValueError(f"triage_temperature_c.{severity}: low {low} above high {high}")
+        return value
+
     seasonal: dict[int, float] = {}
     severity_distribution: dict[str, float] = {}
     # Visit content (simulator/emergency.py).

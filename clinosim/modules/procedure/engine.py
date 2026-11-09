@@ -467,6 +467,78 @@ def build_intubation_procedure(
     )
 
 
+def _bedside_record(
+    patient_id: str,
+    encounter_id: str,
+    proc_type: str,
+    spec: tuple[str, str, str, str, str, str],
+    code: str,
+    start: datetime,
+    duration: int,
+    proc_idx: int,
+    fallback_category: str,
+) -> ProcedureRecord:
+    """One bedside procedure of the catalogue ``spec`` (names resolved downstream, AD-30)."""
+    _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
+    meta = _PROCEDURE_METADATA.get(proc_type)
+    return ProcedureRecord(
+        procedure_id=f"PROC-{patient_id}-{proc_idx + 2:03d}",
+        patient_id=patient_id,
+        encounter_id=encounter_id,
+        procedure_type=proc_type,
+        procedure_code=code,
+        procedure_code_jp=kcode,
+        procedure_code_us=cpt,
+        start_datetime=start,
+        end_datetime=start + timedelta(minutes=duration),
+        duration_minutes=duration,
+        primary_surgeon_id="",
+        anesthesia_type=anesthesia,
+        category_code=meta.category_code if meta else fallback_category,
+        body_site_code=meta.body_site_code if meta else "",
+        outcome_code=_SCT_OUTCOME_SUCCESS,
+        complication_codes=[],
+        location_id="",
+    )
+
+
+def age_gated_procedures(
+    patient_id: str,
+    encounter_id: str,
+    rules: list[dict],
+    age_days: int,
+    start: datetime,
+    first_index: int,
+    country: str = "US",
+) -> list[ProcedureRecord]:
+    """The protocol's ``procedures_by_age_days`` performed for a patient
+    ``age_days`` old (Issue #3063), numbered from ``first_index``. No random
+    draw: each rule in its age range is performed, for the mean bedside
+    duration."""
+    proc_lookup = {p[0]: p for p in _BEDSIDE_PROCEDURES}
+    results: list[ProcedureRecord] = []
+    for rule in rules:
+        if not int(rule["min_age_days"]) <= age_days <= int(rule["max_age_days"]):
+            continue
+        proc_type = str(rule["procedure"])
+        spec = proc_lookup[proc_type]
+        code = spec[2] if is_jp(country) else spec[1]
+        results.append(
+            _bedside_record(
+                patient_id,
+                encounter_id,
+                proc_type,
+                spec,
+                code,
+                start,
+                int(BEDSIDE_DURATION_MEAN_MIN),
+                first_index + len(results),
+                _SCT_CATEGORY_THERAPEUTIC,
+            )
+        )
+    return results
+
+
 def generate_bedside_procedures(
     patient_id: str,
     encounter_id: str,
@@ -506,7 +578,7 @@ def generate_bedside_procedures(
         if not spec:
             continue
 
-        _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
+        _, cpt, kcode, *_ = spec
         # A procedure without a code in this country (JP peripheral IV: no
         # separate fee; US oxygen: no CPT) is still recorded; the FHIR
         # Procedure then carries its name and the other country's coding,
@@ -519,27 +591,19 @@ def generate_bedside_procedures(
         proc_time = admission_time + timedelta(hours=hours_offset)
         duration = int(max(BEDSIDE_DURATION_MIN_MIN, rng.normal(BEDSIDE_DURATION_MEAN_MIN, BEDSIDE_DURATION_STD_MIN)))
 
-        meta = _PROCEDURE_METADATA.get(proc_type)
-        record = ProcedureRecord(
-            procedure_id=f"PROC-{patient_id}-{proc_idx + 2:03d}",
-            patient_id=patient_id,
-            encounter_id=encounter_id,
-            procedure_type=proc_type,
-            procedure_code=code,
-            procedure_code_jp=kcode,
-            procedure_code_us=cpt,
-            start_datetime=proc_time,
-            end_datetime=proc_time + timedelta(minutes=duration),
-            duration_minutes=duration,
-            primary_surgeon_id="",
-            anesthesia_type=anesthesia,
-            category_code=meta.category_code if meta else _SCT_CATEGORY_THERAPEUTIC,
-            body_site_code=meta.body_site_code if meta else "",
-            outcome_code=_SCT_OUTCOME_SUCCESS,
-            complication_codes=[],
-            location_id="",
+        results.append(
+            _bedside_record(
+                patient_id,
+                encounter_id,
+                proc_type,
+                spec,
+                code,
+                proc_time,
+                duration,
+                proc_idx,
+                _SCT_CATEGORY_THERAPEUTIC,
+            )
         )
-        results.append(record)
         proc_idx += 1
 
     # Issue #939 — isolated sub-RNG loop for cardiology / neurosurgery /
@@ -558,7 +622,7 @@ def generate_bedside_procedures(
             if not spec:
                 continue
 
-            _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
+            _, cpt, kcode, *_ = spec
             if is_jp(country) and not kcode:
                 continue
             code = kcode if is_jp(country) else cpt
@@ -575,27 +639,19 @@ def generate_bedside_procedures(
                 )
             )
 
-            meta = _PROCEDURE_METADATA.get(proc_type)
-            record = ProcedureRecord(
-                procedure_id=f"PROC-{patient_id}-{proc_idx + 2:03d}",
-                patient_id=patient_id,
-                encounter_id=encounter_id,
-                procedure_type=proc_type,
-                procedure_code=code,
-                procedure_code_jp=kcode,
-                procedure_code_us=cpt,
-                start_datetime=proc_time,
-                end_datetime=proc_time + timedelta(minutes=duration),
-                duration_minutes=duration,
-                primary_surgeon_id="",
-                anesthesia_type=anesthesia,
-                category_code=meta.category_code if meta else _SCT_CATEGORY_SURGICAL,
-                body_site_code=meta.body_site_code if meta else "",
-                outcome_code=_SCT_OUTCOME_SUCCESS,
-                complication_codes=[],
-                location_id="",
+            results.append(
+                _bedside_record(
+                    patient_id,
+                    encounter_id,
+                    proc_type,
+                    spec,
+                    code,
+                    proc_time,
+                    duration,
+                    proc_idx,
+                    _SCT_CATEGORY_SURGICAL,
+                )
             )
-            results.append(record)
             proc_idx += 1
 
     return results

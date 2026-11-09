@@ -623,6 +623,7 @@ class ChildDosing(NamedTuple):
     age_months: int
     weight_kg: float  # charted at admission
     country: str
+    age_days: int | None = None  # postnatal age at admission (neonatal bands, Issue #3063)
 
 
 def child_dosing(
@@ -635,10 +636,14 @@ def child_dosing(
     from clinosim.modules.order.pediatric_dose import pediatric_adult_age_months
     from clinosim.modules.population.encounter_anthropometry import encounter_weight_kg
 
-    months = age_in_completed_months(getattr(patient, "date_of_birth", None), admission_time)
-    if months is None or months >= pediatric_adult_age_months():
+    dob = getattr(patient, "date_of_birth", None)
+    months = age_in_completed_months(dob, admission_time)
+    if dob is None or months is None or months >= pediatric_adult_age_months():
         return None
-    return ChildDosing(months, encounter_weight_kg(patient, encounter_id, admission_time, country), country)
+    age_days = (admission_time.date() - dob).days
+    return ChildDosing(
+        months, encounter_weight_kg(patient, encounter_id, admission_time, country), country, age_days=age_days
+    )
 
 
 def dose_orders_for_child(orders: list[Order], child: ChildDosing | None) -> None:
@@ -654,7 +659,7 @@ def dose_orders_for_child(orders: list[Order], child: ChildDosing | None) -> Non
         if o.order_type != OrderType.MEDICATION or (o.display_name or "").startswith("DISCONTINUE:"):
             continue
         enrich_medication_order(o)
-        redose_order_for_child(o, child.age_months, child.weight_kg, child.country)
+        redose_order_for_child(o, child.age_months, child.weight_kg, child.country, age_days=child.age_days)
 
 
 def _given_dose_text(order: Order, patient: PatientProfile, weight_kg: float | None = None) -> str:

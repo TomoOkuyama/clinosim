@@ -337,6 +337,10 @@ codes:
   P59:
     en: Neonatal jaundice from other and unspecified causes
     ja: "その他及び詳細不明の原因による新生児黄疸"
+  # Issue #3063: ED visit of a febrile neonate (WHO inclusion: Fever of newborn NOS).
+  P81.9:
+    en: Disturbance of temperature regulation of newborn, unspecified
+    ja: "新生児の体温調節機能障害，詳細不明"
   # ── Abortion codes (Issue #957 Tier-3-B slice 3, young-age gate).
   O03:
     en: Spontaneous abortion

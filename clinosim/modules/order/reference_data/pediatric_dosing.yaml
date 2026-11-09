@@ -111,3 +111,32 @@ maintenance_fluid_bands:
   - {up_to_kg: 10, ml_per_kg_per_h: 4}
   - {up_to_kg: 20, ml_per_kg_per_h: 2}
   - {ml_per_kg_per_h: 1}
+
+# Neonates (Issue #3063): for an infant of at most max_postnatal_age_days days
+# of life (the first band that covers the age), a listed drug is dosed
+# mg_per_kg x weight with no adult cap, every interval_hours hours. These
+# replace the rules above in the neonatal period. Doses for a term or
+# late-preterm infant (gestational age above 34 weeks; gestational age is
+# not modelled):
+# - ampicillin: 150 mg/kg/day divided every 8 hours (50 mg/kg every 8 h) up
+#   to 28 days of life - FDA label, ampicillin for injection (DailyMed set
+#   06ca924c-5f3a-4924-90f4-5ba623daaa0e, revised 01/2024), Table 1, for
+#   septicemia and meningitis, gestational age > 34 weeks; AAP Clinical
+#   Practice Guideline for febrile infants (Pantell et al., Pediatrics
+#   2021;148:e2021052228), 150 mg/kg/day divided every 8 hours at 8-21 days.
+# - gentamicin: 4 mg/kg every 24 hours at every postnatal age to 28 days, the
+#   febrile-infant regimen of the AAP 2021 guideline above (4 mg/kg every 24
+#   hours). Term and late-preterm infants only; gestational age is not
+#   modelled.
+# - cefotaxime: 50 mg/kg every 12 hours in the first week of life and every
+#   8 hours at 1-4 weeks - FDA label, cefotaxime for injection (DailyMed set
+#   ed23b6bc-32c7-4c50-a53d-313ae78e5623, 2024), which needs no gestational
+#   age distinction.
+neonatal_drugs:
+  ampicillin:
+    - {max_postnatal_age_days: 28, mg_per_kg: 50, interval_hours: 8}
+  gentamicin:
+    - {max_postnatal_age_days: 28, mg_per_kg: 4, interval_hours: 24}
+  cefotaxime:
+    - {max_postnatal_age_days: 7, mg_per_kg: 50, interval_hours: 12}
+    - {max_postnatal_age_days: 28, mg_per_kg: 50, interval_hours: 8}

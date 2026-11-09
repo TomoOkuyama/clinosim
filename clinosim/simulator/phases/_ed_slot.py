@@ -10,9 +10,11 @@ from __future__ import annotations
 
 import calendar
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+from clinosim import determinism
+from clinosim.countries import country_code
 from clinosim.modules._shared import random_day_of_month
 from clinosim.modules.encounter.protocol import protocol_min_age
 from clinosim.seeding import PHASE_ED_VISIT, derive_phase_rng, id_hashes, rendezvous_pick
@@ -64,6 +66,8 @@ class EDSlotSampler:
         self.prefix_share: dict[str, float] = {}
         self.carry = 0.0
         self.n_slots = 0
+        # Issue #3063: conditions drawn per birth (febrile neonate), not from the visit mix.
+        self.per_birth = [i for i, (_n, spec) in enumerate(self.conditions) if spec.get("incidence_per_1000_births")]
 
     def refresh_population_shares(self) -> None:
         """Recompute the chronic-prefix shares (once per year)."""
@@ -103,6 +107,15 @@ class EDSlotSampler:
                 int(rng.integers(ED_MINUTE_JITTER_MIN, ED_MINUTE_JITTER_MAX_EXCLUSIVE)),
             )
             slots.append(EDSlot(when, person.person_id, cond_idx, rng))
+        for idx in self.per_birth:
+            name, spec = self.conditions[idx]
+            if self.restrictions[idx][1] <= 0:
+                continue  # every severity is admitted to this hospital's inpatient unit
+            for person_id, when in neonatal_ed_onsets(
+                spec, residents, self.ctx.config.country, self.ctx.master_seed, year, month
+            ):
+                key = f"{self.ctx.config.country}|ed-per-birth-{name}-{person_id}"
+                slots.append(EDSlot(when, person_id, idx, derive_phase_rng(self.ctx.master_seed, PHASE_ED_VISIT, key)))
         self.n_slots += len(slots)
         return slots
 
@@ -124,6 +137,8 @@ def dispatch_ed_slot(slot: EDSlot, sampler: EDSlotSampler) -> None:
         demo=ctx.demo,
     )
     cond, allowed = sampler.condition(slot)
+    if neonate_excluded(cond, person, slot.when, sampler.conditions):
+        return
     ctx.patient_records.append(
         _simulate_ed_visit(
             patient,
@@ -136,6 +151,59 @@ def dispatch_ed_slot(slot: EDSlot, sampler: EDSlotSampler) -> None:
             allowed_severities=allowed,
         )
     )
+
+
+def _neonatal_period_days(conditions: list[tuple[str, dict[str, Any]]]) -> int | None:
+    """The longest neonatal period (``max_age_days``) of the per-birth ED conditions."""
+    days = [int(spec["max_age_days"]) for _n, spec in conditions if spec.get("incidence_per_1000_births")]
+    return max(days) if days else None
+
+
+def neonate_excluded(
+    spec: dict[str, Any], person: Any, when: datetime, conditions: list[tuple[str, dict[str, Any]]]
+) -> bool:
+    """True when ``spec`` is an ordinary ED condition and ``person`` is a
+    neonate at ``when`` (Issue #3063): a febrile neonate gets the neonatal
+    evaluation, and the ED protocols written for older patients are not
+    applied to an infant in the neonatal period."""
+    if spec.get("incidence_per_1000_births"):
+        return False
+    period = _neonatal_period_days(conditions)
+    dob = getattr(person, "date_of_birth", None)
+    return period is not None and dob is not None and (when.date() - dob).days <= period
+
+
+def neonatal_ed_onsets(
+    spec: dict[str, Any], persons: list[Any], country: str, master_seed: int, year: int, month: int
+) -> list[tuple[str, datetime]]:
+    """ED visits of a per-birth condition falling in ``year``-``month``
+    (Issue #3063): each infant presents at most once, with probability
+    ``incidence_per_1000_births`` / 1000 for the country (none without a
+    rate), on a day of life in ``min_age_days``-``max_age_days``. Drawn by
+    hashing the person id, so no shared random stream is read."""
+    rate = float((spec.get("incidence_per_1000_births") or {}).get(country_code(country), 0.0)) / 1000.0
+    if rate <= 0:
+        return []
+    lo, hi = int(spec["min_age_days"]), int(spec["max_age_days"])
+    first = date(year, month, 1)
+    last = date(year, month, calendar.monthrange(year, month)[1])
+    onsets: list[tuple[str, datetime]] = []
+    for person in persons:
+        dob = getattr(person, "date_of_birth", None)
+        if dob is None or not first - timedelta(days=hi) <= dob <= last - timedelta(days=lo):
+            continue
+        salt = f"{master_seed}|{spec['condition_id']}|{person.person_id}"
+        if not determinism.sha_bernoulli(salt, rate):
+            continue
+        day = dob + timedelta(days=lo + determinism.sha_index(f"{salt}|day", hi - lo + 1))
+        if not first <= day <= last:
+            continue
+        hour = int(ED_FAVORED_HOURS[determinism.sha_index(f"{salt}|hour", len(ED_FAVORED_HOURS))])
+        minute = ED_MINUTE_JITTER_MIN + determinism.sha_index(
+            f"{salt}|minute", ED_MINUTE_JITTER_MAX_EXCLUSIVE - ED_MINUTE_JITTER_MIN
+        )
+        onsets.append((str(person.person_id), datetime(day.year, day.month, day.day, hour, minute)))
+    return onsets
 
 
 def ed_severity_restriction(

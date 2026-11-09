@@ -82,7 +82,7 @@ Cross-module invariant:
 
 | Module | 用途 |
 | --- | --- |
-| [`encounter/`](encounter/README.ja.md) | encounter 条件 registry (51 YAML) + 入院日次 cycle timeline。 |
+| [`encounter/`](encounter/README.ja.md) | encounter 条件 registry (52 YAML) + 入院日次 cycle timeline。 |
 | [`triage/`](triage/README.ja.md) | ED triage サンプリング (JTAS / ESI、POST_ENCOUNTER order=93)。 |
 | [`diagnosis/`](diagnosis/README.ja.md) | Bayesian 鑑別診断 engine + Issue #551 非特異コード定数。 |
 | [`order/`](order/README.ja.md) | 発注 + panel grouping + treatment classifier + AD-60 audit。 |

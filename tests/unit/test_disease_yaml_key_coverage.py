@@ -245,6 +245,11 @@ ENCOUNTER_TOP_KEYS = frozenset(
         "triage_level_max",  # Issue #2124 (triage/engine.py condition_triage_bounds)
         "triage_level_min",  # Issue #2124 (triage/engine.py condition_triage_bounds)
         "admitted_with_inpatient_unit",  # Issue #2132 (phases/_ed_slot.py ed_severity_restriction)
+        "incidence_per_1000_births",  # Issue #3063 (phases/_ed_slot.py neonatal_ed_onsets)
+        "min_age_days",  # Issue #3063 (phases/_ed_slot.py neonatal_ed_onsets)
+        "max_age_days",  # Issue #3063 (phases/_ed_slot.py neonatal_ed_onsets / neonate_excluded)
+        "procedures_by_age_days",  # Issue #3063 (simulator/emergency.py age_gated_procedures)
+        "triage_temperature_c",  # Issue #3063 (simulator/emergency.py presenting_temperature)
         "incidence_modifier",
         "narrative",
         "seasonal",

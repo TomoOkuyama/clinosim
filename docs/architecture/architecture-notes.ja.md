@@ -367,7 +367,7 @@ clinosim/
 ├── modules/
 │   ├── (Simulation)        physiology (19 変数)、observation、order、
 │   │                       clinical_course、diagnosis、procedure、
-│   │                       encounter (51 YAML)、disease (36 YAML)
+│   │                       encounter (52 YAML)、disease (36 YAML)
 │   ├── (Population)        population、patient、identity、pediatric、
 │   │                       staff、facility、healthcare_system、
 │   │                       family_history、sdoh

@@ -67,6 +67,10 @@ class DischargeDisposition(StrEnum):
     """Psychiatric hospital — ED psychiatric crisis transferred out because the
     hospital has no inpatient psychiatric unit (Issue #2124)."""
 
+    OTHER_HCF = "other-hcf"
+    """Other healthcare facility — ED febrile neonate transferred to a pediatric
+    facility because the hospital has no pediatric inpatient ward (Issue #3063)."""
+
 
 class ActPriority(StrEnum):
     """HL7 v3 ActPriority ``http://terminology.hl7.org/CodeSystem/v3-ActPriority``."""

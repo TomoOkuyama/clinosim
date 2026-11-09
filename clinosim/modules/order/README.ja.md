@@ -253,6 +253,13 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   抗菌薬 (Issue #3082): 1 回 mg/kg と上限は Harriet Lane Handbook / AAP Red
   Book に従う。g で書かれた用量 ("1g"、"3.375g") も mg で再計算し、
   antibiotic enricher が入院後に追加する regimen も `pediatric_dose_text` を通す。
+  新生児 (Issue #3063): `neonatal_drugs` は薬剤ごとの生後日数帯
+  (`max_postnatal_age_days`、`mg_per_kg`、`interval_hours`) で、生後 28 日
+  までは通常の rule に代わり、成人上限は適用しない。アンピシリン 50 mg/kg
+  8 時間ごと、ゲンタマイシン 4 mg/kg 24 時間ごと、セフォタキシム 50 mg/kg を
+  生後 1 週以内は 12 時間ごと、それ以降は 8 時間ごと。ED と入院は
+  `child_dosing` (`age_days`) から同じ rule 解決を通り、入院オーダーは帯の
+  投与間隔を頻度とする。
 - **添付文書の用量上限** ([`reference_data/label_dose_limits.yaml`](reference_data/label_dose_limits.yaml)、
   `label_dose.py` が読み、`LabelDoseLimitsFile` で検証): 国別・カタログ薬剤
   ごとの 1 回量・1 日回数・1 日最大量 (JP イブプロフェン 200 mg、1 日 3 回、
@@ -284,7 +291,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay 定数 (Issue #637)
   reference_data/
     medication_supersede.yaml        supersede.py が読む class 切替 + PRN marker (Issue #2615, #2983)
-    pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢、輸液ごとの mL/kg、国別上書き、Holliday-Segar 帯 (Issue #2857, #2977, #3012, #3004)
+    pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢、輸液ごとの mL/kg、国別上書き、Holliday-Segar 帯、新生児の生後日数帯 (Issue #2857, #2977, #3012, #3004, #3082, #3063)
     label_dose_limits.yaml           label_dose.py が読む国別の 1 回量・1 日回数・1 日最大量 (Issue #3012)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```

@@ -18,3 +18,5 @@ codes:
   snf: {en: "Skilled nursing facility", ja: "介護・療養施設"}
   # Issue #2124: ED psychiatric crisis transferred to a psychiatric facility.
   psy: {en: "Psychiatric hospital", ja: "精神科病院"}
+  # Issue #3063: ED febrile neonate transferred to a pediatric facility.
+  other-hcf: {en: "Other healthcare facility", ja: "他の医療機関"}

@@ -545,6 +545,11 @@ codes:
   P59.9:
     en: "Neonatal jaundice, unspecified"
     ja: "新生児黄疸、詳細不明"
+  # Issue #3063: ED visit of a febrile neonate (ICD-10-CM index: Fever, newborn).
+  P81:
+    en: Other disturbances of temperature regulation of newborn
+  P81.9:
+    en: "Disturbance of temperature regulation of newborn, unspecified"
   # ── Abortion codes (Issue #957 Tier-3-B slice 3, young-age gate).
   O03:
     en: Spontaneous abortion
