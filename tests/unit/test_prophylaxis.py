@@ -297,16 +297,16 @@ def _med_order(name: str, order_id: str = "ORD-CHR-1") -> Any:
     )
 
 
-def test_skip_on_chronic_aspirin_via_drug_safety() -> None:
-    """Patient on chronic aspirin — Enoxaparin would create a
-    contraindicated anticoagulant+antiplatelet(+nsaid) pair."""
+def test_no_skip_on_chronic_low_dose_aspirin() -> None:
+    """Patient on chronic low-dose aspirin — Enoxaparin prophylaxis is still
+    given: heparin with antiplatelet aspirin is exempt from the anticoagulant
+    + NSAID rule (Issue #3003)."""
     skip, reason = should_skip_dvt_prophylaxis(
         patient=_patient(["Aspirin 81mg"]),
         encounter=_encounter(72),
         admission_dx_code="J18.1",
     )
-    assert skip is True
-    assert reason.startswith("drug_safety_pair:")
+    assert not reason.startswith("drug_safety_pair:")
 
 
 def test_skip_on_in_encounter_nsaid_via_drug_safety() -> None:

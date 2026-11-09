@@ -162,7 +162,8 @@ Six YAML files plus the drug catalog:
 - Drug classes and aliases: the drug catalog
   (`clinosim/codes/data/drugs.yaml`, read through `clinosim.codes.drugs`).
 - `reference_data/contraindications.yaml` — class × class rules
-  (18 rules: VKA+antiplatelet, DOAC+P2Y12, anticoagulant+NSAID,
+  (19 rules: VKA+antiplatelet, DOAC+P2Y12, anticoagulant+NSAID (heparin
+  with antiplatelet aspirin exempt, Issue #3003), heparin+heparin,
   BB+non-DHP CCB, P2Y12+P2Y12, statin+statin, DOAC+VKA, ACEi+ARB,
   ACEi/ARB+K, ACEi/ARB+K-sparing, statin+strong CYP3A4 inhibitor,
   allopurinol+thiopurine, SSRI+MAOI, SSRI+SNRI, NSAID stacking,

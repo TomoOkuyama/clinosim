@@ -50,9 +50,11 @@ def _patient(*home_drugs: str) -> PatientProfile:
     return p
 
 
-def test_post_admission_aspirin_against_pre_accepted_enoxaparin_is_skipped() -> None:
-    """B6 placed Enoxaparin at admission; daily_loop later adds Aspirin.
-    The gate must see Enoxaparin in the pre-accepted set and skip Aspirin."""
+def test_post_admission_aspirin_against_pre_accepted_apixaban_is_skipped() -> None:
+    """Apixaban was accepted at admission; daily_loop later adds Aspirin.
+    The gate must see Apixaban in the pre-accepted set and skip Aspirin.
+    (Aspirin with a heparin is an accepted combination since Issue #3003,
+    so the pre-accepted anticoagulant here is a DOAC.)"""
     patient = _patient()  # no home meds
     new = [_order("Aspirin", "ORD-D4-01")]
     result = apply_drug_safety_gate_to_orders(
@@ -62,18 +64,18 @@ def test_post_admission_aspirin_against_pre_accepted_enoxaparin_is_skipped() -> 
         ordered_datetime=datetime(2026, 1, 5, 10, 0),
         attending_id="DR-1",
         country="us",
-        already_accepted_meds=["Enoxaparin"],
+        already_accepted_meds=["Apixaban"],
     )
     names = [o.display_name for o in result]
     # Aspirin skipped or substituted; Aspirin as-is must NOT be in output
     assert "Aspirin" not in names, (
-        f"post-admission Aspirin should be blocked when Enoxaparin already accepted; got {names}"
+        f"post-admission Aspirin should be blocked when Apixaban already accepted; got {names}"
     )
     # safety_skip_log records the skip
     assert len(patient.safety_skip_log) == 1
     entry = patient.safety_skip_log[0]
     assert entry.candidate_drug == "Aspirin"
-    assert entry.active_conflict == "Enoxaparin"
+    assert entry.active_conflict == "Apixaban"
 
 
 def test_post_admission_ibuprofen_substituted_with_acetaminophen() -> None:
@@ -118,7 +120,7 @@ def test_pre_accepted_meds_includes_home_by_default() -> None:
     """When ``already_accepted_meds`` is None (default), the gate seeds
     the active set from ``patient.current_medications`` — matching the
     admission-orders helper's behavior."""
-    patient = _patient("Enoxaparin")  # home med
+    patient = _patient("Apixaban")  # home med
     new = [_order("Aspirin", "ORD-D4-01")]
     result = apply_drug_safety_gate_to_orders(
         new,

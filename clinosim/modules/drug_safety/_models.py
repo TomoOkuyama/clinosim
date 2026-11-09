@@ -41,6 +41,18 @@ class _Rationale(BaseModel):
     ja: str = Field(min_length=1)
 
 
+class _ExemptPair(BaseModel):
+    """A pair of classes a rule does not apply to (Issue #3003): the drug on
+    the rule's ``lhs`` side belongs to ``lhs`` and the other to ``rhs``."""
+
+    model_config = ConfigDict(extra="forbid")
+    lhs: str
+    rhs: str
+    source: str = Field(min_length=1)
+
+    _classes = field_validator("lhs", "rhs")(classmethod(lambda cls, v: _check_class(v)))
+
+
 class _InteractionRule(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: str = Field(min_length=1)
@@ -50,6 +62,7 @@ class _InteractionRule(BaseModel):
     rationale: _Rationale
     source: str = Field(min_length=1)
     substitution_hint: str | None = None
+    exempt: list[_ExemptPair] = []
 
     _classes = field_validator("lhs", "rhs")(classmethod(lambda cls, v: _check_class(v)))
 

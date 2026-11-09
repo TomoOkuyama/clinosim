@@ -26,7 +26,9 @@ def test_an_oral_anticoagulant_by_any_name_skips(name: str) -> None:
 
 def test_a_heparin_infusion_skips_but_prophylactic_heparin_does_not() -> None:
     assert _skip(SimpleNamespace(drug_name="Heparin", frequency="continuous"))[0]
-    assert not _skip(SimpleNamespace(drug_name="Heparin", frequency="BID"))[0]
+    # Prophylactic SC heparin is not a therapeutic anticoagulant; a second
+    # heparin is still not added (drug-safety pair heparin-plus-heparin, #3003).
+    assert _skip(SimpleNamespace(drug_name="Heparin", frequency="BID"))[1] != "therapeutic_anticoagulant_active"
 
 
 def test_an_antiplatelet_is_not_a_therapeutic_anticoagulant() -> None:

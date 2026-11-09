@@ -62,6 +62,10 @@ rules:
       ja: "<Japanese translation>"
     substitution_hint: <optional indication tag; null if no substitute>
     source: "<citation: guideline / DDI database / textbook>"
+    exempt:                        # optional (Issue #3003): pairs the rule does not apply to
+      - lhs: <class of the drug on the lhs side>
+        rhs: <class of the drug on the rhs side>
+        source: "<citation>"
 
 discharge_reconciliation_rules: [<rule id>, ...]   # rules the discharge Rx reconciles (Issue #2713)
 
@@ -78,6 +82,9 @@ triple_therapy_after_acs:          # antithrombotic plan: anticoagulant + DAPT a
 Matching:
 - **Order-independent**: `check_pair(A, B) == check_pair(B, A)`.
 - **Multi-rule hits**: highest-severity rule wins.
+- **Exemptions**: a pair matching one of the rule's `exempt` entries
+  (oriented like `lhs` / `rhs`) does not trigger it — e.g. heparin with
+  antiplatelet aspirin under `anticoagulant-plus-nsaid`.
 
 `substitution_hint` names an indication tag that `suggest_alternative`
 uses as a prior when picking a replacement drug from
