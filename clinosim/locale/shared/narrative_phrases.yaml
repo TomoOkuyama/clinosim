@@ -2376,6 +2376,115 @@ imaging_report:
     ja: "今回撮像範囲内に急性期異常所見を認めず。"
     en: "No acute abnormal findings within the imaged range."
 
+# ECG and coronary angiography reports (Issue #3020). An ECG states rhythm,
+# rate, axis, intervals and ST-T findings; an angiogram the culprit lesion.
+cardiac_report:
+  ecg_rhythm_sinus:
+    ja: "洞調律"
+    en: "Sinus rhythm"
+  ecg_rhythm_sinus_tachycardia:
+    ja: "洞性頻脈"
+    en: "Sinus tachycardia"
+  ecg_rhythm_sinus_bradycardia:
+    ja: "洞性徐脈"
+    en: "Sinus bradycardia"
+  ecg_rhythm_atrial_fibrillation:
+    ja: "心房細動"
+    en: "Atrial fibrillation"
+  ecg_rate:
+    ja: "HR {hr} /分"
+    en: "HR {hr}/min"
+  ecg_axis_normal:
+    ja: "正常軸"
+    en: "normal axis"
+  ecg_intervals_normal:
+    ja: "PR・QRS・QT 間隔正常"
+    en: "normal PR, QRS and QT intervals"
+  ecg_intervals_normal_af:
+    ja: "QRS・QT 間隔正常"
+    en: "normal QRS and QT intervals"
+  ecg_st_none:
+    ja: "ST-T 変化なし"
+    en: "no ST-T changes"
+  ecg_st_anterior_elevation:
+    ja: "V1-V4 誘導で ST 上昇"
+    en: "ST elevation in V1-V4"
+  ecg_st_inferior_elevation:
+    ja: "II・III・aVF 誘導で ST 上昇"
+    en: "ST elevation in II, III and aVF"
+  ecg_st_lateral_elevation:
+    ja: "I・aVL・V5-V6 誘導で ST 上昇"
+    en: "ST elevation in I, aVL and V5-V6"
+  ecg_st_depression:
+    ja: "V4-V6 誘導で ST 低下"
+    en: "ST depression in V4-V6"
+  ecg_st_ischemic:
+    ja: "虚血性 ST-T 変化"
+    en: "ischemic ST-T changes"
+  ecg_st_evolving_elevation:
+    ja: "ST 上昇は改善傾向、異常 Q 波あり"
+    en: "resolving ST elevation with Q waves"
+  ecg_st_evolving:
+    ja: "ST-T 変化は改善傾向"
+    en: "resolving ST-T changes"
+  ecg_impression_normal:
+    ja: "正常心電図。"
+    en: "Normal ECG."
+  ecg_impression_sinus_tachycardia:
+    ja: "洞性頻脈、虚血性変化なし。"
+    en: "Sinus tachycardia without ischemic changes."
+  ecg_impression_sinus_bradycardia:
+    ja: "洞性徐脈、虚血性変化なし。"
+    en: "Sinus bradycardia without ischemic changes."
+  ecg_impression_atrial_fibrillation:
+    ja: "心房細動、虚血性変化なし。"
+    en: "Atrial fibrillation without ischemic changes."
+  ecg_impression_atrial_fibrillation_rapid:
+    ja: "頻脈性心房細動、虚血性変化なし。"
+    en: "Atrial fibrillation with rapid ventricular response, no ischemic changes."
+  ecg_impression_anterior_elevation:
+    ja: "前壁の急性 ST 上昇型心筋梗塞に合致。"
+    en: "Consistent with acute anterior ST-elevation myocardial infarction."
+  ecg_impression_inferior_elevation:
+    ja: "下壁の急性 ST 上昇型心筋梗塞に合致。"
+    en: "Consistent with acute inferior ST-elevation myocardial infarction."
+  ecg_impression_lateral_elevation:
+    ja: "側壁の急性 ST 上昇型心筋梗塞に合致。"
+    en: "Consistent with acute lateral ST-elevation myocardial infarction."
+  ecg_impression_depression:
+    ja: "非 ST 上昇型の心筋虚血を示唆。"
+    en: "Suggests non-ST-elevation myocardial ischemia."
+  ecg_impression_ischemic:
+    ja: "急性心筋虚血を示唆する ST-T 変化。"
+    en: "ST-T changes suggesting acute myocardial ischemia."
+  ecg_impression_evolving:
+    ja: "心筋梗塞の経過として矛盾しない変化。"
+    en: "Evolving changes consistent with the myocardial infarction."
+  cag_culprit_lad:
+    ja: "左前下行枝 #7 に 99% 狭窄を認め、責任病変と判断。他枝に有意狭窄なし。"
+    en: "99% stenosis of the left anterior descending artery (#7), the culprit lesion; no significant stenosis elsewhere."
+  cag_culprit_rca:
+    ja: "右冠動脈 #2 に 99% 狭窄を認め、責任病変と判断。他枝に有意狭窄なし。"
+    en: "99% stenosis of the right coronary artery (#2), the culprit lesion; no significant stenosis elsewhere."
+  cag_culprit_lcx:
+    ja: "左回旋枝 #13 に 90% 狭窄を認め、責任病変と判断。他枝に有意狭窄なし。"
+    en: "90% stenosis of the left circumflex artery (#13), the culprit lesion; no significant stenosis elsewhere."
+  cag_impression_culprit:
+    ja: "責任病変を同定、経皮的冠動脈インターベンションの適応。"
+    en: "Culprit lesion identified; indication for percutaneous coronary intervention."
+  cag_residual:
+    ja: "前回の責任病変部に 75% の残存狭窄を認める。"
+    en: "75% residual stenosis at the previous culprit lesion."
+  cag_impression_residual:
+    ja: "残存狭窄あり、追加治療を検討。"
+    en: "Residual stenosis; consider further intervention."
+  cag_no_significant_stenosis:
+    ja: "冠動脈に有意狭窄を認めず。"
+    en: "No significant coronary artery stenosis."
+  cag_impression_no_significant_stenosis:
+    ja: "有意な冠動脈狭窄なし。"
+    en: "No significant coronary artery disease."
+
 # Short visit reasons, notes and names written by simulator modules (Issue #2406).
 module_text:
   chronic_drug_monitoring:

@@ -1,0 +1,45 @@
+# ECG and coronary angiography report content (Issue #3020).
+#
+# An ECG is interpreted for rhythm, rate, axis, intervals and ST-T changes;
+# a coronary angiogram for stenoses and the culprit lesion. Neither is a
+# radiology read, so these studies do not use the imaging impression
+# templates or the generic "no acute findings in the imaged field" report.
+#
+# Sources: rate bands — AHA/ACCF/HRS recommendations for the standardization
+# and interpretation of the ECG (2009): sinus bradycardia < 60/min, sinus
+# tachycardia > 100/min. Infarct territory and ECG leads — Fourth Universal
+# Definition of Myocardial Infarction (2018): anterior ST elevation in
+# V1-V4, inferior in II / III / aVF, lateral in I / aVL / V5-V6; NSTEMI shows
+# ST depression without ST elevation. Culprit artery by territory — the usual
+# supply (anterior: left anterior descending, inferior: right coronary,
+# lateral: left circumflex); segment numbers follow the AHA classification.
+metadata:
+  kind: reference
+  name: cardiac_reports
+  source: clinosim
+
+ecg:
+  sinus_bradycardia_below: 60
+  sinus_tachycardia_above: 100
+  # Atrial fibrillation: the stay's disease, or a chronic AF diagnosis.
+  atrial_fibrillation_diseases: [atrial_fibrillation_rvr]
+  atrial_fibrillation_codes: [I48]
+  # ST-T pattern of an acute MI by the stay's ICD-10 code; codes are matched
+  # by prefix, longest first. Keys name the cardiac_report.ecg_st_<pattern>
+  # and ecg_impression_<pattern> phrases.
+  acute_mi_st_pattern:
+    I21.0: anterior_elevation
+    I21.1: inferior_elevation
+    I21.2: lateral_elevation
+    I21.4: depression
+    I21: ischemic
+
+coronary_angiography:
+  # Culprit lesion by the stay's ICD-10 code (prefix match, longest first);
+  # keys name the cardiac_report.cag_culprit_<lesion> phrases.
+  culprit_by_code:
+    I21.0: lad
+    I21.1: rca
+    I21.2: lcx
+    I21.4: lcx
+    I21: lad

@@ -776,6 +776,7 @@ def imaging_enricher(ctx: Any) -> None:
     # Lazy import to avoid circular dependency with seeding module.
     # Lazy import to avoid circular dep with inference module (which imports
     # load_body_sites / load_modalities from this module).
+    from clinosim.modules.imaging.cardiac_report import cardiac_report
     from clinosim.modules.imaging.inference import infer_imaging_metadata
     from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 
@@ -980,6 +981,13 @@ def imaging_enricher(ctx: Any) -> None:
                 # ``if report:`` gate.
                 encounter_id = _o(order, "encounter_id", "") or ""
                 report = _build_generic_negative_report(encounter_id, idx)
+            # Issue #3020: an ECG or a coronary angiogram is read from the
+            # patient's state (rhythm, rate, ischaemia, culprit lesion), not
+            # with a radiology template or the generic imaging report. The
+            # template draw above still runs, so no stream moves.
+            _cardiac = cardiac_report(modality, record, order, report.report_id)
+            if _cardiac is not None:
+                report = _cardiac
 
             # Issue #822 follow-up: non-stub studies were the majority of
             # the 916 / 4863 (18.8%) empty-description hits in the deployed

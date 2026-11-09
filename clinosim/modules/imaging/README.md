@@ -122,7 +122,15 @@ from clinosim.modules.imaging.inference import (
     imaging report Composition date (Issue #2999).
   - `body_sites.yaml` — SNOMED body-site catalog.
   - `impression_templates.yaml` — per-modality / per-body-site
-    negative and abnormal report templates. The `ja` text uses Japanese
+    negative and abnormal report templates.
+  - `cardiac_reports.yaml` — ECG and coronary angiography reports
+    (Issue #3020): an ECG (`ECG`) states rhythm, rate, axis, intervals and
+    ST-T findings from the stay's disease and ICD-10 code (acute-MI
+    territory), a chronic AF diagnosis and the heart rate nearest the
+    recording; a coronary angiogram (`XA`) names the culprit lesion.
+    `cardiac_report.py` builds them in place of the radiology template;
+    the FHIR report is signed by a cardiologist (else the attending), not a
+    radiologist. The `ja` text uses Japanese
     finding terms (浸潤影, すりガラス影, Kerley B線; Issue #3030).
   - `view_labels.yaml` — en / ja display of each view key; the FHIR
     `ImagingStudy.series.description` shows the CIF description ("PA view",

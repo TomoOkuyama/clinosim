@@ -996,6 +996,10 @@ def _bb_diagnostic_reports(ctx: Any) -> list[dict]:
     return resources
 
 
+# Issue #3020: studies interpreted by cardiology, not radiology.
+_CARDIOLOGY_READ_MODALITIES = frozenset({"ECG", "XA"})
+
+
 def radiology_report_issued(study: Any) -> Any:
     """When an imaging study's report is signed (Issue #2999).
 
@@ -1239,7 +1243,20 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         if (staff.get("role", "") or "") == "radiologist"
     )
     _reader = ""
-    if _radiologists:
+    # Issue #3020: an ECG or a coronary angiogram is read by a cardiologist
+    # (else the attending), not a radiologist.
+    _cardiologists = sorted(
+        sid
+        for sid, staff in (getattr(ctx, "roster_map", None) or {}).items()
+        if (staff.get("role", "") or "") == "physician" and (staff.get("department", "") or "") == "cardiology"
+    )
+    if modality_code in _CARDIOLOGY_READ_MODALITIES:
+        if _cardiologists:
+            _hash_key = f"cardiologist:{study_id}:{order_id}"
+            _reader = _cardiologists[sum(ord(c) for c in _hash_key) % len(_cardiologists)]
+        elif _att:
+            _reader = _att
+    elif _radiologists:
         # Key on study_id + order_id so two DRs for the same encounter but
         # different studies can plausibly be read by different radiologists
         # (a 24/7 radiology group rotates).
