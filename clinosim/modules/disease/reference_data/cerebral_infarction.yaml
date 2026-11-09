@@ -1045,7 +1045,7 @@ imaging_orders:
     body_site: head
     contrast: false
     urgency: stat
-    clinical_indication: "Acute stroke, exclude hemorrhage"
+    clinical_indication: {en: "Acute stroke, exclude hemorrhage", ja: "急性期脳卒中、出血の除外"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.6
@@ -1055,7 +1055,7 @@ imaging_orders:
     body_site: head
     contrast: false
     urgency: urgent
-    clinical_indication: "Confirm infarct territory (DWI)"
+    clinical_indication: {en: "Confirm infarct territory (DWI)", ja: "梗塞巣の範囲の確認 (DWI)"}
     day: 1
     abnormal_rate_by_severity:
       mild: 0.95

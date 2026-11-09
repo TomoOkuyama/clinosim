@@ -247,6 +247,7 @@ lab リストの各要素 (`labs`、`add_labs`、`additional_labs`、薬剤モ�
 | `narrative_label(section, key, lang, fallback)` | narrative のラベル |
 | `imaging_exam_display(exam_id, lang)` | 画像検査名 |
 | `lab_display(name, lang, *, style, fallback)` | 検査項目・パネル名。narrative、LLM テキスト、`DiagnosticReport.conclusion` には `style="prose"`、標準コードのない項目の FHIR `code.text` には `style="formal"`。コードのある `Observation.code.coding.display` は権威の表示名のまま |
+| `order_test_display(test, lang)` | オーダー理由 (`clinical_intent_ja`、`ServiceRequest.reasonCode.text`) に書く検査名 (検体検査・パネル・画像検査): `lab_display`、なければ `imaging_exam_display` (Issue #3024) |
 | `department_display(dept, lang)` / `department_specialty_snomed(dept)` | 診療科名 / 専門科コード |
 | `role_display(role, lang, *, facet)` | 職種の名称・接尾辞・資格 |
 | `chronic_followup_vitals(code)` / `chronic_followup_interval_months(codes)` | フォローアップ予定のデータ |

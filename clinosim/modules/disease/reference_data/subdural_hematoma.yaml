@@ -400,7 +400,7 @@ imaging_orders:
     body_site: head
     contrast: false
     urgency: stat
-    clinical_indication: "Confirm subdural hematoma, assess mass effect"
+    clinical_indication: {en: "Confirm subdural hematoma, assess mass effect", ja: "硬膜下血腫の確認、圧排効果の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 1.0
@@ -410,7 +410,7 @@ imaging_orders:
     body_site: head
     contrast: false
     urgency: urgent
-    clinical_indication: "Follow-up hematoma progression"
+    clinical_indication: {en: "Follow-up hematoma progression", ja: "血腫増大の経過観察"}
     day: 2
     abnormal_rate_by_severity:
       mild: 0.6

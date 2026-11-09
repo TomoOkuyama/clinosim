@@ -13,6 +13,7 @@ from clinosim.codes.hl7_encounter import ActPriority, DischargeDisposition
 from clinosim.codes.valuesets import code_by_chronic_prefix
 from clinosim.countries import country_slot
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import order_test_display
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -655,7 +656,7 @@ def _simulate_ed_visit(
             urgency="stat",
             clinical_intent=t("encounter_intent.ed_workup", "en", test=test),
             # Issue #871: JA display for JP SR reasonCode.text.
-            clinical_intent_ja=t("encounter_intent.ed_workup", "ja", test=test),
+            clinical_intent_ja=t("encounter_intent.ed_workup", "ja", test=order_test_display(test, "ja")),
             ordered_datetime=visit_time
             + timedelta(minutes=int(lab_rng.normal(ED_LAB_ORDER_OFFSET_MEAN_MIN, ED_LAB_ORDER_OFFSET_STD_MIN))),
             ordered_by=encounter.attending_physician_id,
@@ -711,7 +712,7 @@ def _simulate_ed_visit(
                 urgency="stat",
                 clinical_intent=t("encounter_intent.ed_imaging", "en", test=test),
                 # Issue #871: JA display for JP SR reasonCode.text.
-                clinical_intent_ja=t("encounter_intent.ed_imaging", "ja", test=test),
+                clinical_intent_ja=t("encounter_intent.ed_imaging", "ja", test=order_test_display(test, "ja")),
                 ordered_datetime=visit_time
                 + timedelta(minutes=int(rng.normal(ED_IMAGING_ORDER_OFFSET_MEAN_MIN, ED_IMAGING_ORDER_OFFSET_STD_MIN))),
                 ordered_by=encounter.attending_physician_id,

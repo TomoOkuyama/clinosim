@@ -37,6 +37,7 @@ from clinosim.codes.drugs import drug_classes, drug_key, drug_ref, get_drug, sam
 from clinosim.countries import lang_for
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import order_test_display
 from clinosim.locale.localized import localized, localized_field
 from clinosim.modules.drug_safety.hyperkalemia import PotassiumHold, holds_for_hyperkalemia
 from clinosim.modules.observation.order_routing import lab_order_targets
@@ -458,7 +459,7 @@ def _place_chronic_monitoring_orders(
                         # a shell-translated default when the YAML has not
                         # yet been extended.
                         clinical_intent_ja=mon.get("intent_ja")
-                        or t("order_intent.chronic_monitoring", "ja", test=mon["test"]),
+                        or t("order_intent.chronic_monitoring", "ja", test=order_test_display(mon["test"], "ja")),
                         ordered_datetime=order_time,
                         ordered_by=ordered_by,
                         status=OrderStatus.PLACED,
@@ -494,7 +495,7 @@ def _place_chronic_monitoring_orders(
                         # a shell-translated default when the YAML has not
                         # yet been extended.
                         clinical_intent_ja=mon.get("intent_ja")
-                        or t("order_intent.chronic_monitoring", "ja", test=mon["test"]),
+                        or t("order_intent.chronic_monitoring", "ja", test=order_test_display(mon["test"], "ja")),
                         ordered_datetime=order_time,
                         ordered_by=ordered_by,
                         status=OrderStatus.PLACED,
@@ -521,7 +522,8 @@ def _place_chronic_monitoring_orders(
                 urgency="routine",
                 clinical_intent=mon.get("intent") or t("order_intent.chronic_monitoring", "en", test=mon["test"]),
                 # Issue #871: JA display for JP SR reasonCode.text.
-                clinical_intent_ja=mon.get("intent_ja") or t("order_intent.chronic_monitoring", "ja", test=mon["test"]),
+                clinical_intent_ja=mon.get("intent_ja")
+                or t("order_intent.chronic_monitoring", "ja", test=order_test_display(mon["test"], "ja")),
                 ordered_datetime=order_time,
                 ordered_by=ordered_by,
                 status=OrderStatus.PLACED,

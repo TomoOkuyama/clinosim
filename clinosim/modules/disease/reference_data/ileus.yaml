@@ -734,7 +734,7 @@ imaging_orders:
     body_site: abdomen
     views: [Supine, Upright]
     urgency: urgent
-    clinical_indication: "Evaluate bowel gas pattern / air-fluid levels"
+    clinical_indication: {en: "Evaluate bowel gas pattern / air-fluid levels", ja: "腸管ガス像・鏡面像の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.75
@@ -744,7 +744,7 @@ imaging_orders:
     body_site: abdomen
     contrast: true
     urgency: routine
-    clinical_indication: "Rule out mechanical obstruction / ischemia"
+    clinical_indication: {en: "Rule out mechanical obstruction / ischemia", ja: "機械的閉塞・腸管虚血の除外"}
     day: 1
     abnormal_rate_by_severity:
       mild: 0.4

@@ -754,7 +754,7 @@ imaging_orders:
   - modality: US
     body_site: skin
     urgency: routine
-    clinical_indication: "Rule out abscess / DVT differential"
+    clinical_indication: {en: "Rule out abscess / DVT differential", ja: "膿瘍の除外、深部静脈血栓症との鑑別"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.15

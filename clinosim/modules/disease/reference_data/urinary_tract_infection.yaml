@@ -948,7 +948,7 @@ imaging_orders:
   - modality: US
     body_site: kidney
     urgency: routine
-    clinical_indication: "Complicated UTI, exclude obstruction"
+    clinical_indication: {en: "Complicated UTI, exclude obstruction", ja: "複雑性尿路感染症、尿路閉塞の除外"}
     day: 1
     abnormal_rate_by_severity:
       mild: 0.1

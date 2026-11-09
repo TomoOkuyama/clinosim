@@ -305,7 +305,7 @@ imaging_orders:
     body_site: knee
     views: [AP, Lateral]
     urgency: routine
-    clinical_indication: "Post-operative check of knee prosthesis"
+    clinical_indication: {en: "Post-operative check of knee prosthesis", ja: "術後の人工膝関節の確認"}
     day: 1
     abnormal_rate_by_severity:
       mild: 0.0

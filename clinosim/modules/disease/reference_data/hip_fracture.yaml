@@ -432,7 +432,7 @@ imaging_orders:
     body_site: hip
     views: [AP, Lateral]
     urgency: stat
-    clinical_indication: "Confirm hip fracture"
+    clinical_indication: {en: "Confirm hip fracture", ja: "大腿骨近位部骨折の確認"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.9
@@ -442,7 +442,7 @@ imaging_orders:
     body_site: hip
     contrast: false
     urgency: routine
-    clinical_indication: "Pre-op planning / occult fracture assessment"
+    clinical_indication: {en: "Pre-op planning / occult fracture assessment", ja: "術前計画、不顕性骨折の評価"}
     day: 1
     abnormal_rate_by_severity:
       mild: 0.6

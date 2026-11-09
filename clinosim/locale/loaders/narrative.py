@@ -222,6 +222,17 @@ def imaging_exam_display(exam_id: str, lang: str) -> str:
     )
 
 
+def order_test_display(test: str, lang: str) -> str:
+    """Display of the test an order names (a lab, a panel, an imaging exam)
+    in ``lang`` for order-reason text (Issue #3024): the lab table, else the
+    imaging-exam table (which humanises an unknown slug), so a reason never
+    shows the internal test key or, in Japanese, an English analyte name
+    the tables translate."""
+    if not str(test or "").strip():
+        return ""
+    return lab_display(str(test), lang, fallback="") or imaging_exam_display(str(test), lang)
+
+
 @lru_cache(maxsize=1)
 def load_fhir_text_translations() -> dict[str, dict[str, dict[str, str]]]:
     """Translation tables for FHIR text — ``route``, ``frequency`` and

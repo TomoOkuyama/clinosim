@@ -885,7 +885,7 @@ imaging_orders:
   - modality: US
     body_site: kidney
     urgency: routine
-    clinical_indication: "AKI workup, exclude obstruction / hydronephrosis"
+    clinical_indication: {en: "AKI workup, exclude obstruction / hydronephrosis", ja: "急性腎障害の精査、尿路閉塞・水腎症の除外"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.2

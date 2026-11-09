@@ -808,7 +808,7 @@ imaging_orders:
   - modality: US
     body_site: abdomen
     urgency: urgent
-    clinical_indication: "RUQ pain, evaluate gallbladder"
+    clinical_indication: {en: "RUQ pain, evaluate gallbladder", ja: "右季肋部痛、胆嚢の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.75
@@ -818,7 +818,7 @@ imaging_orders:
     body_site: abdomen
     contrast: true
     urgency: routine
-    clinical_indication: "Complicated cholecystitis, exclude perforation"
+    clinical_indication: {en: "Complicated cholecystitis, exclude perforation", ja: "重症胆嚢炎、穿孔の除外"}
     day: 1
     abnormal_rate_by_severity:
       mild: 0.3

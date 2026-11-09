@@ -761,7 +761,7 @@ imaging_orders:
     body_site: chest
     views: [PA, Lateral]
     urgency: routine
-    clinical_indication: "Rule out pneumonia / pneumothorax"
+    clinical_indication: {en: "Rule out pneumonia / pneumothorax", ja: "肺炎・気胸の除外"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.15

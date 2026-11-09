@@ -805,7 +805,7 @@ imaging_orders:
   - modality: US
     body_site: abdomen
     urgency: urgent
-    clinical_indication: "Suspected pancreatitis, evaluate biliary tree"
+    clinical_indication: {en: "Suspected pancreatitis, evaluate biliary tree", ja: "急性膵炎疑い、胆道系の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.6
@@ -815,7 +815,7 @@ imaging_orders:
     body_site: abdomen
     contrast: true
     urgency: routine
-    clinical_indication: "Assess pancreatic necrosis (day 3+)"
+    clinical_indication: {en: "Assess pancreatic necrosis (day 3+)", ja: "膵壊死の評価 (第3病日以降)"}
     day: 3
     abnormal_rate_by_severity:
       mild: 0.4

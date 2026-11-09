@@ -913,7 +913,7 @@ imaging_orders:
   - modality: US
     body_site: abdomen
     urgency: routine
-    clinical_indication: "Evaluate ascites / hepatic parenchyma"
+    clinical_indication: {en: "Evaluate ascites / hepatic parenchyma", ja: "腹水・肝実質の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.85
@@ -923,7 +923,7 @@ imaging_orders:
     body_site: abdomen
     contrast: true
     urgency: routine
-    clinical_indication: "HCC screening / portal hypertension assessment"
+    clinical_indication: {en: "HCC screening / portal hypertension assessment", ja: "肝細胞癌のスクリーニング、門脈圧亢進の評価"}
     day: 2
     abnormal_rate_by_severity:
       mild: 0.5

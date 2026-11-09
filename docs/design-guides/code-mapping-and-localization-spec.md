@@ -251,6 +251,7 @@ Consumers resolve names only through these functions.
 | `narrative_label(section, key, lang, fallback)` | narrative label |
 | `imaging_exam_display(exam_id, lang)` | imaging exam name |
 | `lab_display(name, lang, *, style, fallback)` | lab analyte or panel name: `style="prose"` for narrative, LLM text and `DiagnosticReport.conclusion`; `style="formal"` for the FHIR `code.text` of analytes with no standard code. A coded `Observation.code.coding.display` keeps the authority display |
+| `order_test_display(test, lang)` | the test an order names (lab, panel or imaging exam) in an order reason (`clinical_intent_ja`, `ServiceRequest.reasonCode.text`): `lab_display`, else `imaging_exam_display` (Issue #3024) |
 | `department_display(dept, lang)` / `department_specialty_snomed(dept)` | department label / specialty code |
 | `role_display(role, lang, *, facet)` | staff role title, suffix or qualification |
 | `chronic_followup_vitals(code)` / `chronic_followup_interval_months(codes)` | follow-up schedule data |

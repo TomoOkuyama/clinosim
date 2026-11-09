@@ -654,7 +654,7 @@ def _apply_archetype_modifications(stay: _Stay, run: _Run, day: int) -> None:
 
 
 def _add_archetype_workup(stay: _Stay, run: _Run, day: int, mod: dict) -> None:
-    encounter_id, archetype = stay.encounter_id, stay.archetype
+    encounter_id = stay.encounter_id
     ordered_at = stay.admission_time + timedelta(days=day, hours=10)
     # Add labs. An entry may route to imaging, to several component labs, or
     # to nothing (a vital sign) — see observation/order_routing.py (Issue #2583).
@@ -675,11 +675,9 @@ def _add_archetype_workup(stay: _Stay, run: _Run, day: int, mod: dict) -> None:
                     order_type=target.order_type,
                     display_name=target.name,
                     urgency="stat",
-                    clinical_intent=t(intent_key, "en", day=day, archetype=archetype),
+                    clinical_intent=t(intent_key, "en", day=day),
                     # Issue #871: JA display for JP SR reasonCode.text.
-                    # `archetype` is a code identifier (sepsis/ards/etc.) —
-                    # kept as-is; the shell is translated.
-                    clinical_intent_ja=t(intent_key, "ja", day=day, archetype=archetype),
+                    clinical_intent_ja=t(intent_key, "ja", day=day),
                     ordered_datetime=ordered_at,
                     status=OrderStatus.PLACED,
                 )
@@ -693,9 +691,9 @@ def _add_archetype_workup(stay: _Stay, run: _Run, day: int, mod: dict) -> None:
                 order_type=OrderType.IMAGING,
                 display_name=img_name,
                 urgency="stat",
-                clinical_intent=t("order_intent.archetype_imaging", "en", day=day, archetype=archetype),
+                clinical_intent=t("order_intent.archetype_imaging", "en", day=day),
                 # Issue #871: JA display for JP SR reasonCode.text.
-                clinical_intent_ja=t("order_intent.archetype_imaging", "ja", day=day, archetype=archetype),
+                clinical_intent_ja=t("order_intent.archetype_imaging", "ja", day=day),
                 ordered_datetime=ordered_at,
                 status=OrderStatus.PLACED,
             )
@@ -703,7 +701,9 @@ def _add_archetype_workup(stay: _Stay, run: _Run, day: int, mod: dict) -> None:
 
 
 def _stop_archetype_medications(stay: _Stay, run: _Run, day: int, mod: dict) -> None:
-    encounter_id, archetype = stay.encounter_id, stay.archetype
+    from clinosim.locale.free_text import localize_drug_name
+
+    encounter_id = stay.encounter_id
     for stop_idx, drug_name in enumerate(mod.get("stop", [])):
         run.orders.append(
             Order(
@@ -714,9 +714,11 @@ def _stop_archetype_medications(stay: _Stay, run: _Run, day: int, mod: dict) -> 
                 order_type=OrderType.MEDICATION,
                 display_name=f"DISCONTINUE: {drug_name}",
                 urgency="routine",
-                clinical_intent=t("order_intent.archetype_stop", "en", day=day, archetype=archetype, drug=drug_name),
+                clinical_intent=t("order_intent.archetype_stop", "en", day=day, drug=drug_name),
                 # Issue #871: JA display for JP SR reasonCode.text.
-                clinical_intent_ja=t("order_intent.archetype_stop", "ja", day=day, archetype=archetype, drug=drug_name),
+                clinical_intent_ja=t(
+                    "order_intent.archetype_stop", "ja", day=day, drug=localize_drug_name(drug_name, "ja")
+                ),
                 ordered_datetime=stay.admission_time + timedelta(days=day, hours=10),
                 status=OrderStatus.PLACED,
             )
@@ -725,7 +727,7 @@ def _stop_archetype_medications(stay: _Stay, run: _Run, day: int, mod: dict) -> 
 
 def _start_archetype_treatments(stay: _Stay, run: _Run, day: int, mod: dict) -> None:
     """Start new medications or procedures."""
-    encounter_id, archetype = stay.encounter_id, stay.archetype
+    encounter_id = stay.encounter_id
     start_meds = mod.get("start", {}).get(stay.country_key, mod.get("start", []))
     if not isinstance(start_meds, list):
         return
@@ -756,9 +758,9 @@ def _start_archetype_treatments(stay: _Stay, run: _Run, day: int, mod: dict) -> 
                     order_type=order_type,
                     display_name=display,
                     urgency="urgent",
-                    clinical_intent=t(intent_key, "en", day=day, archetype=archetype),
+                    clinical_intent=t(intent_key, "en", day=day),
                     # Issue #871: JA display for JP SR reasonCode.text.
-                    clinical_intent_ja=t(intent_key, "ja", day=day, archetype=archetype),
+                    clinical_intent_ja=t(intent_key, "ja", day=day),
                     ordered_datetime=stay.admission_time + timedelta(days=day, hours=10),
                     status=OrderStatus.PLACED,
                 )
@@ -774,9 +776,9 @@ def _start_archetype_treatments(stay: _Stay, run: _Run, day: int, mod: dict) -> 
                     order_type=OrderType.PROCEDURE,
                     display_name=display,
                     urgency="urgent",
-                    clinical_intent=t("order_intent.archetype_procedure", "en", day=day, archetype=archetype),
+                    clinical_intent=t("order_intent.archetype_procedure", "en", day=day),
                     # Issue #871: JA display for JP SR reasonCode.text.
-                    clinical_intent_ja=t("order_intent.archetype_procedure", "ja", day=day, archetype=archetype),
+                    clinical_intent_ja=t("order_intent.archetype_procedure", "ja", day=day),
                     ordered_datetime=stay.admission_time + timedelta(days=day, hours=10),
                     status=OrderStatus.PLACED,
                 )

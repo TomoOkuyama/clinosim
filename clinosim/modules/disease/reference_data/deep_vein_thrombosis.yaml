@@ -783,7 +783,7 @@ imaging_orders:
   - modality: US
     body_site: leg
     urgency: stat
-    clinical_indication: "Doppler ultrasound, evaluate for DVT"
+    clinical_indication: {en: "Doppler ultrasound, evaluate for DVT", ja: "下肢静脈エコー、深部静脈血栓症の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.85

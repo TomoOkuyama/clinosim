@@ -303,7 +303,7 @@ imaging_orders:
     body_site: hand
     views: [PA, Oblique, Lateral]
     urgency: stat
-    clinical_indication: "Evaluate fracture / foreign body"
+    clinical_indication: {en: "Evaluate fracture / foreign body", ja: "骨折・異物の評価"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.7

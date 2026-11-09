@@ -228,6 +228,7 @@ def _append_hai_culture(
     get_or_create_container(rec, "microbiology", list).append(micro)
     # Issue #2640: the culture drawn for the suspected HAI is a culture order.
     from clinosim.locale.i18n import t
+    from clinosim.locale.loader import order_test_display
     from clinosim.modules.observation.microbiology import workup_culture_order
     from clinosim.types.encounter import Order, OrderStatus, OrderType
 
@@ -251,7 +252,7 @@ def _append_hai_culture(
                 display_name=name,
                 urgency="stat",
                 clinical_intent=t("encounter_intent.hai_culture", "en", test=name),
-                clinical_intent_ja=t("encounter_intent.hai_culture", "ja", test=name),
+                clinical_intent_ja=t("encounter_intent.hai_culture", "ja", test=order_test_display(name, "ja")),
                 ordered_datetime=onset_dt,
                 ordered_by=str(attending or ""),
                 status=OrderStatus.PLACED,

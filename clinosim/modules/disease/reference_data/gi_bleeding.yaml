@@ -896,7 +896,7 @@ imaging_orders:
     body_site: abdomen
     contrast: true
     urgency: urgent
-    clinical_indication: "Localize active bleeding source"
+    clinical_indication: {en: "Localize active bleeding source", ja: "活動性出血源の同定"}
     day: 0
     abnormal_rate_by_severity:
       mild: 0.3
