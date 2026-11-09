@@ -1,0 +1,150 @@
+# Fever in a neonate (1-28 days of life) — ED visit protocol (Issue #3063)
+#
+# A febrile neonate is evaluated for a serious bacterial infection (bacteremia,
+# urinary tract infection, bacterial meningitis) and treated with parenteral
+# antibiotics until cultures are negative. AAP Clinical Practice Guideline
+# "Evaluation and Management of Well-Appearing Febrile Infants 8 to 60 Days
+# Old" (Pantell et al., Pediatrics 2021;148:e2021052228): for infants 8-21 days
+# old a blood culture, a catheter urinalysis with urine culture, inflammatory
+# markers (CBC, CRP, procalcitonin) and a lumbar puncture, then admission on
+# parenteral antibiotics; younger neonates are managed at least as
+# conservatively. None of the hospital configurations has a pediatric
+# inpatient ward, so the ED performs the evaluation, gives the first
+# weight-based doses (pediatric_dosing.yaml ``neonatal``) and transfers the
+# infant to a pediatric facility. A hospital with a pediatric inpatient ward
+# admits the infant instead (``admitted_with_inpatient_unit``).
+#
+# Incidence (US only) is per birth, not a share of ED visits: 2,745 ED visits
+# of neonates diagnosed with fever in North Carolina from October 2010 to
+# September 2015 (Wu, Harmon, Waller, Mann. "Variability in Hospital Admission
+# Rates for Neonates With Fever in North Carolina". Global Pediatric Health
+# 2019;6:2333794X19865447, NC DETECT data), over the North Carolina births of
+# the same period: 122,350 (2010), 120,389 (2011), 119,831 (2012), 119,002
+# (2013), 120,975 (2014) and 120,843 (2015) from CDC/NCHS National Vital
+# Statistics Reports "Births: Final Data" for 2010-2015 (vol 61 no 1, vol 62
+# no 1, vol 62 no 9, vol 64 no 1, vol 64 no 12, vol 66 no 1), prorated by
+# quarter to the study window (601,417 births) = 4.56 per 1,000 births.
+# No Japanese population source was found, so JP has no rate (no visits).
+
+metadata:
+  kind: protocol
+  name: neonatal_fever
+  source: clinosim
+
+condition_id: neonatal_fever
+# ICD-10-CM codes fever of a newborn as P81.9 (index: Fever, newborn).
+icd10_code: "P81.9"
+chief_complaint:
+  en: "Fever in a newborn"
+  ja: "新生児の発熱"
+encounter_type: emergency
+department: emergency_medicine
+disposition: transfer_pediatric
+disposition_by_severity:
+  mild: transfer_pediatric
+  moderate: transfer_pediatric
+  severe: transfer_pediatric
+admitted_with_inpatient_unit:
+  department: pediatrics
+  severities: [mild, moderate, severe]
+# ESI: a febrile infant of 28 days or less is ESI 2 (ESI Implementation
+# Handbook v4); an ill-appearing one is ESI 1.
+triage_level_min: 1
+triage_level_max: 2
+
+# Drawn per birth, never from the ED visit mix (probability 0).
+probability: 0.0
+min_age_days: 1
+max_age_days: 28
+incidence_per_1000_births:
+  US: 4.56
+
+severity_distribution:
+  mild: 0.60
+  moderate: 0.30
+  severe: 0.10
+
+# The infant boards in the ED until the receiving facility accepts.
+ed_stay_hours:
+  mild: {mean: 5, sd: 1.5}
+  moderate: {mean: 5, sd: 1.5}
+  severe: {mean: 4, sd: 1.0}
+
+# Severity: mild = well-appearing with normal inflammatory markers (most
+# febrile neonates, mostly viral), moderate = abnormal markers, severe =
+# ill-appearing. AAP 2021 (Pantell et al.) counts as abnormal a temperature
+# above 38.5 °C, procalcitonin above 0.5 ng/mL, CRP above 20 mg/L and an ANC
+# above 4,000-5,200/µL. The inflammation levels give a median CRP of about
+# 3 mg/L (all below 20) for mild, about 25 for moderate and about 80 for
+# severe.
+initial_state_impact:
+  mild: {inflammation_level: 0.15}
+  moderate: {inflammation_level: 0.35}
+  severe: {inflammation_level: 0.55, volume_status: -0.05}
+
+# The visit is defined by a rectal temperature of 38.0 °C or more, so the
+# triage temperature comes from this band, not from the inflammation level
+# (AAP 2021: above 38.5 °C counts as an abnormal inflammatory marker).
+triage_temperature_c:
+  mild: [38.0, 38.5]
+  moderate: [38.0, 39.0]
+  severe: [38.3, 39.5]
+
+workup:
+  vitals: true
+  labs:
+    - {test: "Blood_culture"}
+    # Catheter specimen. A urinary tract infection is the commonest serious
+    # bacterial infection, in about 1 in 10 febrile neonates (AAP 2021).
+    - test: "Urinalysis"
+      note: "catheter specimen"
+      result_distribution:
+        options: ["Normal", "1+ leukocytes", "2+ leukocytes, nitrite positive"]
+        weights: [0.88, 0.07, 0.05]
+    - {test: "Urine_culture", note: "catheter specimen"}
+    - {test: "WBC"}
+    - {test: "Hb"}
+    - {test: "Plt"}
+    - {test: "CRP"}
+    - {test: "Procalcitonin"}
+
+# Lumbar puncture (CSF analysis and culture) for infants 8-21 days old (AAP 2021).
+procedures_by_age_days:
+  - {procedure: lumbar_puncture, min_age_days: 8, max_age_days: 21}
+
+# First parenteral doses, re-dosed per kg (pediatric_dosing.yaml ``neonatal``).
+# JP: ampicillin with cefotaxime, the usual Japanese empiric pairing.
+treatment:
+  - {name: "Ampicillin 2000mg", route: "IV", intent: "possible serious bacterial infection"}
+  - {name: "Gentamicin 120mg", route: "IV", intent: "possible serious bacterial infection", locale_name: {jp: "Cefotaxime 2000mg"}}
+
+# Told to the parents before the transfer.
+discharge_instructions:
+  - {en: "Your baby is being transferred to a children's hospital for admission and IV antibiotics until the cultures are back", ja: "培養結果が出るまで入院して点滴の抗菌薬を続けるため、小児医療施設へ転院搬送します"}
+  - {en: "Bring the baby's feeding record and birth records", ja: "哺乳の記録と出生時の記録（母子健康手帳）をお持ちください"}
+follow_up: {en: "admission at the receiving pediatric facility", ja: "搬送先の小児医療施設に入院"}
+
+narrative:
+  onset: {unit: hours, range: [2, 12]}
+  ed_note_template:
+    chief_complaint:
+      en: '{chief_complaint_en}'
+      ja: '{chief_complaint_ja}'
+    hpi:
+      en: "Fever noted at home {onset_en}, with reduced feeding."
+      ja: "{onset_ja}より自宅で発熱に気づかれ、哺乳量が低下。"
+    physical_exam:
+      en:
+        general: Febrile neonate, fontanelle flat
+      ja:
+        general: 発熱あり、大泉門平坦
+    ed_workup_summary:
+      en: '{lab_summary_en}, {imaging_summary_en}'
+      ja: '{lab_summary_ja}、{imaging_summary_ja}'
+    disposition:
+      en: '{disposition_display_en}'
+      ja: '{disposition_display_ja}'
+  ed_triage_template:
+    common_triage_levels:
+    - '1'
+    - '2'

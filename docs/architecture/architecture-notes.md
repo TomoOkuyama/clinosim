@@ -352,7 +352,7 @@ clinosim/
 ├── modules/
 │   ├── (Simulation)        physiology (19-var), observation, order,
 │   │                       clinical_course, diagnosis, procedure,
-│   │                       encounter (51 YAMLs), disease (36 YAMLs)
+│   │                       encounter (52 YAMLs), disease (36 YAMLs)
 │   ├── (Population)        population, patient, identity, pediatric,
 │   │                       staff, facility, healthcare_system,
 │   │                       family_history, sdoh

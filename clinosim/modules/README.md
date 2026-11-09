@@ -89,7 +89,7 @@ Cross-module invariants:
 
 | Module | Purpose |
 | --- | --- |
-| [`encounter/`](encounter/README.md) | Encounter-condition registry (51 YAMLs) + inpatient daily-cycle timeline. |
+| [`encounter/`](encounter/README.md) | Encounter-condition registry (52 YAMLs) + inpatient daily-cycle timeline. |
 | [`triage/`](triage/README.md) | ED triage sampling (JTAS / ESI, POST_ENCOUNTER order=93). |
 | [`diagnosis/`](diagnosis/README.md) | Bayesian differential-diagnosis engine + Issue #551 non-specific codes. |
 | [`order/`](order/README.md) | Order placement + panel grouping + treatment classifier + AD-60 audit. |

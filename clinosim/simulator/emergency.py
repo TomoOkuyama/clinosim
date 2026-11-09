@@ -123,6 +123,7 @@ def ed_release_safe(*, spo2: float, sbp: int, avpu: str, pain: int, copd: bool) 
 _ED_DISPOSITIONS = {
     "discharge_home": DischargeDisposition.HOME,
     "transfer_psychiatric": DischargeDisposition.PSY,
+    "transfer_pediatric": DischargeDisposition.OTHER_HCF,
 }
 
 
@@ -230,8 +231,22 @@ def ed_pediatric_dose_name(
     minimum age. The dose is per kg of the weight charted at ``encounter``
     (its body-weight Observation), not the registration-time profile weight
     (Issue #2990)."""
-    weight = encounter_weight_kg(patient, encounter.encounter_id, encounter.admission_datetime, country)
-    return pediatric_order_name(name, _age_months(patient, when), weight, country)
+    from clinosim.simulator.medication_pipeline import child_dosing
+
+    # The same age and charted weight a minor's inpatient doses use (Issue
+    # #3004), with the postnatal age for the neonatal bands (Issue #3063).
+    child = child_dosing(patient, encounter.encounter_id, when, country)
+    if child is None:
+        weight = encounter_weight_kg(patient, encounter.encounter_id, encounter.admission_datetime, country)
+        return pediatric_order_name(name, _age_months(patient, when), weight, country)
+    return pediatric_order_name(name, child.age_months, child.weight_kg, country, age_days=child.age_days)
+
+
+def presenting_temperature(band: list[float] | tuple[float, float], encounter_id: str) -> float:
+    """Triage temperature (°C) within ``band`` [low, high], uniform, hashed from
+    ``encounter_id`` (Issue #3063: a febrile neonate's defining fever)."""
+    low, high = float(band[0]), float(band[1])
+    return low + (high - low) * determinism.sha_quantile(f"{encounter_id}|triage_temperature")
 
 
 def ed_lab_true_value(lab_spec: dict, severity: str, derived: float) -> float:
@@ -645,8 +660,15 @@ def _simulate_ed_visit(
         # analytes, must not get a fabricated value (AD-57 cleanup).
         canon = canonical_lab_name(test)
         # Qualitative tests (urinalysis, urine drug screen, …) have no numeric
-        # baseline but are real results (Issue #2138: previously dropped).
-        if canon not in _true_labs and canon not in baseline_values and not is_qualitative_test(canon):
+        # baseline but are real results (Issue #2138: previously dropped), and
+        # a culture is reported by its microbiology result (Issue #3063: an ED
+        # blood culture was dropped here).
+        if (
+            canon not in _true_labs
+            and canon not in baseline_values
+            and not is_qualitative_test(canon)
+            and not specimen_for_order(test)
+        ):
             continue
         order = Order(
             order_id=order_id,
@@ -819,6 +841,11 @@ def _simulate_ed_visit(
         rng,
         age_months=age_in_completed_months(patient.date_of_birth, vit_time),
     )
+    # Issue #3063: a presentation defined by a fever charts a triage
+    # temperature in the protocol's band, hashed from the encounter id (no draw).
+    _band = ((protocol or {}).get("triage_temperature_c") or {}).get(severity)
+    if _band:
+        raw["temperature"] = presenting_temperature(_band, encounter.encounter_id)
     # ED presentations are acute → pain skews higher, scaled by inflammation.
     _pain_mean = _state.inflammation_level * ED_PAIN_INFLAMMATION_SCALE + ED_PAIN_BASELINE
     pain = int(max(ED_PAIN_MIN, min(ED_PAIN_MAX, rng.normal(_pain_mean, ED_PAIN_NOISE_STD))))
@@ -855,6 +882,10 @@ def _simulate_ed_visit(
         _cond_id = str((protocol or condition).get("condition_id") or cond_name)
         _copd = _cond_id.startswith("copd")
         _reassess = ed_treatment_response(_state)
+        # Issue #3063: an infant transferred to a pediatric facility leaves
+        # when accepted; the treat-and-release criteria (adult blood pressure)
+        # are for patients sent home.
+        _transferred = ed_disposition(protocol, severity) == DischargeDisposition.OTHER_HCF
         for _round in range(ED_OBSERVATION_MAX_EXTENSIONS + 1):
             _t = encounter.discharge_datetime - timedelta(minutes=ED_REASSESS_BEFORE_DISCHARGE_MIN)
             _t = max(_t, vit_time + timedelta(minutes=ED_REASSESS_BEFORE_DISCHARGE_MIN))
@@ -883,8 +914,12 @@ def _simulate_ed_visit(
                     nursing_note="reassessment",
                 )
             )
-            if _round == ED_OBSERVATION_MAX_EXTENSIONS or ed_release_safe(
-                spo2=_raw["spo2"], sbp=int(round(_raw["systolic_bp"])), avpu=_avpu, pain=_pain, copd=_copd
+            if (
+                _round == ED_OBSERVATION_MAX_EXTENSIONS
+                or _transferred
+                or ed_release_safe(
+                    spo2=_raw["spo2"], sbp=int(round(_raw["systolic_bp"])), avpu=_avpu, pain=_pain, copd=_copd
+                )
             ):
                 break
             encounter.discharge_datetime += timedelta(hours=ED_OBSERVATION_EXTENSION_HOURS)
@@ -940,6 +975,21 @@ def _simulate_ed_visit(
         if severity in ("moderate", "severe")
         else []
     )
+    # Issue #3063: procedures the protocol performs at an age (lumbar
+    # puncture for a febrile infant 8-21 days old); no draw.
+    _age_rules = (protocol or {}).get("procedures_by_age_days") or []
+    if _age_rules and patient.date_of_birth is not None:
+        from clinosim.modules.procedure.engine import age_gated_procedures
+
+        ed_procedures = ed_procedures + age_gated_procedures(
+            patient.patient_id,
+            encounter.encounter_id,
+            _age_rules,
+            (visit_time.date() - patient.date_of_birth).days,
+            encounter.admission_datetime,
+            len(ed_procedures),
+            country=country,
+        )
     # Issue #2863: on the visit's own workflow, inside the ED stay.
     from clinosim.simulator.ed_procedures import time_ed_procedures
 

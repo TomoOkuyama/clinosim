@@ -23,7 +23,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from clinosim.codes.drugs import drug_key
 from clinosim.countries import country_code
@@ -37,6 +37,8 @@ _MG_OR_G = re.compile(r"(\d+(?:\.\d+)?)\s*(mg|g)\b", re.IGNORECASE)
 _MG_PER_UNIT = {"mg": 1.0, "g": 1000.0}
 _VOLUME = re.compile(r"(\d+(?:\.\d+)?)\s*(mL|L)\b", re.IGNORECASE)
 # An hourly rate as written, a range ("80-125 mL/h") or one value.
+# A written dosing interval ("q6h"), replaced by a neonatal band's (Issue #3063).
+_INTERVAL = re.compile(r"\bq\d+h\b", re.IGNORECASE)
 _RATE = re.compile(r"\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?\s*mL/h\b", re.IGNORECASE)
 
 
@@ -50,6 +52,15 @@ class _PediatricDose(BaseModel):
 class _PediatricFluid(BaseModel):
     model_config = ConfigDict(extra="forbid")
     ml_per_kg: float = Field(gt=0)
+
+
+class _NeonatalBand(BaseModel):
+    """A neonatal dose up to a postnatal age (Issue #3063)."""
+
+    model_config = ConfigDict(extra="forbid")
+    max_postnatal_age_days: int = Field(ge=0)
+    mg_per_kg: float = Field(gt=0)
+    interval_hours: int = Field(gt=0)
 
 
 class _HollidaySegarBand(BaseModel):
@@ -68,6 +79,19 @@ class PediatricDosingFile(BaseModel):
     # Upper-case country code -> drug -> rule replacing ``drugs`` (Issue #3012).
     country_overrides: dict[str, dict[str, _PediatricDose]] = Field(default_factory=dict)
     maintenance_fluid_bands: list[_HollidaySegarBand] = Field(min_length=1)
+    # Drug -> postnatal-age bands, ascending (Issue #3063).
+    neonatal_drugs: dict[str, list[_NeonatalBand]] = Field(default_factory=dict)
+
+    @field_validator("neonatal_drugs")
+    @classmethod
+    def _ascending(cls, drugs: dict[str, list[_NeonatalBand]]) -> dict[str, list[_NeonatalBand]]:
+        for drug, bands in drugs.items():
+            ages = [b.max_postnatal_age_days for b in bands]
+            if not bands or ages != sorted(set(ages)):
+                raise ValueError(
+                    f"neonatal_drugs.{drug}: bands must be non-empty and ascending by max_postnatal_age_days"
+                )
+        return drugs
 
 
 @cache
@@ -94,17 +118,42 @@ def _fluid_bolus_name(name: str, ml_per_kg: float, weight_kg: float | None) -> s
     return name[: m.start()] + f"{ml:g}mL" + name[m.end() :]
 
 
-def _drug_rule(key: str, country: str) -> dict[str, Any] | None:
-    """The dosing rule of drug ``key``: the country's ``country_overrides``
-    rule, else the shared one (Issue #3012)."""
+def _neonatal_band(key: str, age_days: int | None) -> dict[str, Any] | None:
+    """The ``neonatal_drugs`` band of drug ``key`` covering ``age_days`` days
+    of life, or None (Issue #3063)."""
+    if age_days is None or age_days < 0:
+        return None
+    for band in (_table().get("neonatal_drugs") or {}).get(key) or []:
+        if age_days <= int(band["max_postnatal_age_days"]):
+            return dict(band)
+    return None
+
+
+def _drug_rule(key: str, country: str, age_days: int | None = None) -> dict[str, Any] | None:
+    """The dosing rule of drug ``key``: in the neonatal period its
+    ``neonatal_drugs`` band (no adult cap; Issue #3063), else the country's
+    ``country_overrides`` rule, else the shared one (Issue #3012)."""
+    band = _neonatal_band(key, age_days)
+    if band is not None:
+        return {"mg_per_kg": band["mg_per_kg"], "max_mg": float("inf"), "min_age_months": 0}
     table = _table()
     return (table.get("country_overrides") or {}).get(country_code(country), {}).get(key) or table["drugs"].get(key)
 
 
-def pediatric_order_name(name: str, age_months: int, weight_kg: float | None, country: str = "US") -> str | None:
+def neonatal_interval_hours(name: str, age_days: int | None) -> int | None:
+    """Dosing interval (hours) of drug ``name`` for an infant ``age_days``
+    days old, or None outside the neonatal bands (Issue #3063)."""
+    band = _neonatal_band(drug_key(name), age_days)
+    return int(band["interval_hours"]) if band is not None else None
+
+
+def pediatric_order_name(
+    name: str, age_months: int, weight_kg: float | None, country: str = "US", age_days: int | None = None
+) -> str | None:
     """``name`` re-dosed for a child, unchanged for an adult or an unlisted drug,
     or None when the child is below the drug's minimum age. A country's
-    ``country_overrides`` rule replaces the shared one (Issue #3012)."""
+    ``country_overrides`` rule replaces the shared one (Issue #3012); a
+    neonate ``age_days`` old gets the drug's neonatal band (Issue #3063)."""
     table = _table()
     if age_months >= int(table["adult_age_years"]) * 12:
         return name
@@ -112,7 +161,7 @@ def pediatric_order_name(name: str, age_months: int, weight_kg: float | None, co
     fluid = (table.get("fluids") or {}).get(key)
     if fluid is not None:
         return _fluid_bolus_name(name, float(fluid["ml_per_kg"]), weight_kg)
-    rule = _drug_rule(key, country)
+    rule = _drug_rule(key, country, age_days)
     if rule is None:
         return name
     if age_months < int(rule["min_age_months"]):
@@ -142,39 +191,47 @@ def maintenance_fluid_ml_per_h(weight_kg: float) -> int:
     return int(round(rate))
 
 
-def _child_mg(key: str, written_mg: float, age_months: int, weight_kg: float | None, country: str) -> float | None:
+def _child_mg(
+    key: str, written_mg: float, age_months: int, weight_kg: float | None, country: str, age_days: int | None = None
+) -> float | None:
     """A child's dose (mg) of drug ``key`` written as ``written_mg`` for an
     adult, or None when it is not re-dosed (adult, unlisted drug, no weight).
     Never more than the written dose."""
     table = _table()
-    rule = _drug_rule(key, country)
+    rule = _drug_rule(key, country, age_days)
     if rule is None or age_months >= int(table["adult_age_years"]) * 12 or not weight_kg or weight_kg <= 0:
         return None
     mg = min(float(rule["mg_per_kg"]) * float(weight_kg), float(rule["max_mg"]), written_mg)
     return float(_rounded(mg))
 
 
-def pediatric_dose_text(drug: str, dose: str, age_months: int, weight_kg: float | None, country: str = "US") -> str:
+def pediatric_dose_text(
+    drug: str, dose: str, age_months: int, weight_kg: float | None, country: str = "US", age_days: int | None = None
+) -> str:
     """A prescription's dose text (``"75mg PO BID"``, ``"1g"``) re-dosed for a
     child (Issue #3004, #3082): its first mg or g strength becomes the child's
-    dose in mg. Unchanged for an adult, an unlisted drug, a dose not written in
+    dose in mg; a neonate ``age_days`` old gets the drug's neonatal band (Issue
+    #3063). Unchanged for an adult, an unlisted drug, a dose not written in
     mg or g, or a child dose no lower than the written one."""
     m = _MG_OR_G.search(dose or "")
     if not m or (m.end() < len(dose) and dose[m.end()] == "/"):
         return dose
     written = float(m.group(1)) * _MG_PER_UNIT[m.group(2).lower()]
-    mg = _child_mg(drug_key(drug), written, age_months, weight_kg, country)
+    mg = _child_mg(drug_key(drug), written, age_months, weight_kg, country, age_days)
     if mg is None or (mg >= written and m.group(2).lower() == "g"):
         return dose
     return dose[: m.start()] + f"{mg:g}mg" + dose[m.end() :]
 
 
-def redose_order_for_child(order: Any, age_months: int, weight_kg: float | None, country: str = "US") -> None:
+def redose_order_for_child(
+    order: Any, age_months: int, weight_kg: float | None, country: str = "US", age_days: int | None = None
+) -> None:
     """Re-dose an inpatient medication order for a child in place (Issue
     #3004): a listed drug written in mg gets ``mg_per_kg`` × weight, a listed
     fluid's hourly rate the Holliday-Segar rate, never more than written.
-    The written strength in the order's name follows. Idempotent; adults,
-    unlisted drugs and per-kg orders are unchanged."""
+    The written strength in the order's name follows. A neonate ``age_days``
+    old gets the drug's neonatal band and its dosing interval (Issue #3063).
+    Idempotent; adults, unlisted drugs and per-kg orders are unchanged."""
     table = _table()
     if age_months >= int(table["adult_age_years"]) * 12 or not weight_kg or weight_kg <= 0:
         return
@@ -193,7 +250,12 @@ def redose_order_for_child(order: Any, age_months: int, weight_kg: float | None,
     if per_unit is None:
         return
     written = float(order.dose_quantity) * per_unit
-    mg = _child_mg(str(getattr(order, "drug_id", "") or key), written, age_months, weight_kg, country)
+    drug = str(getattr(order, "drug_id", "") or key)
+    interval = neonatal_interval_hours(drug, age_days)
+    if interval is not None:
+        order.frequency = f"q{interval}h"
+        order.display_name = name = _INTERVAL.sub(order.frequency, name, count=1)
+    mg = _child_mg(drug, written, age_months, weight_kg, country, age_days)
     if mg is None or mg >= written:
         return
     order.dose_quantity = mg

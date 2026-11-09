@@ -4,7 +4,7 @@
 
 Owns two related concerns for inpatient / ED / outpatient encounters:
 
-1. The **encounter-condition protocol registry** — 51 YAMLs under
+1. The **encounter-condition protocol registry** — 52 YAMLs under
    [`reference_data/`](reference_data/) covering short outpatient and
    ED conditions (asthma attack, migraine, minor laceration,
    screening visits, allergic reaction, syncope, viral gastroenteritis,
@@ -45,7 +45,7 @@ Owns two related concerns for inpatient / ED / outpatient encounters:
 
 ### Longitudinal service-line encounter shapes (v0.5 → v0.6.0)
 
-The 51 YAML protocols above cover ED / outpatient chief-complaint
+The 52 YAML protocols above cover ED / outpatient chief-complaint
 episodes. The two longitudinal service lines below emit inpatient /
 outpatient encounter shapes that are NOT tied to a `reference_data/`
 protocol — the shape lives directly in
@@ -155,7 +155,7 @@ from clinosim.modules.encounter.protocol import (
 ## Constants and configuration
 
 - **Encounter-condition YAML registry**: [`reference_data/`](reference_data/)
-  — 51 files (one per condition id; filename = condition_id +
+  — 52 files (one per condition id; filename = condition_id +
   `.yaml`). Covers outpatient chronic follow-up, ED short-stay,
   screening (mammography / colonoscopy / diabetic retinopathy /
   annual health screening), rehab, dialysis, cardiac rehab,
@@ -163,6 +163,18 @@ from clinosim.modules.encounter.protocol import (
   Each entry carries chief-complaint, physical-exam templates,
   narrative sections (SOAP / ED-note / triage), and clinical
   metadata.
+- **Per-birth neonatal ED condition** (Issue #3063): `neonatal_fever.yaml`
+  is not drawn from the ED visit mix (`probability: 0`). Each infant
+  presents at most once, with probability `incidence_per_1000_births`
+  (US 4.56; JP none, no source), on a day of life in `min_age_days`-
+  `max_age_days`, hashed from the person id
+  (`phases/_ed_slot.py::neonatal_ed_onsets`). An infant within that period
+  gets no other ED condition (`neonate_excluded`). The visit performs the
+  serious-bacterial-infection workup, `procedures_by_age_days` (lumbar
+  puncture at 8-21 days), the first weight-based antibiotic doses, and the
+  `transfer_pediatric` disposition (HL7 `other-hcf`); a hospital with a
+  pediatric inpatient ward gets no such ED visits
+  (`admitted_with_inpatient_unit`).
 - **Encounter-id shape** (`engine.py`):
   - `_ENCOUNTER_SUFFIX_MODULUS = 10**12` — 12-digit suffix modulus.
   - Encounter id format: `ENC-{patient_id}-{suffix:012d}`.
@@ -183,7 +195,7 @@ clinosim/modules/encounter/
   engine.py                       inpatient encounter creation + daily-cycle timeline
   protocol.py                     EncounterConditionProtocol + child models + loaders
   reference_data/
-    <condition_id>.yaml           51 files (one per outpatient / ED / screening condition)
+    <condition_id>.yaml           52 files (one per outpatient / ED / screening condition)
   SPEC.md                         extended design reference (not runtime)
 ```
 
@@ -214,7 +226,7 @@ pytest tests/unit -k encounter -q
 Individual files:
 
 - [`tests/unit/test_encounter_protocol_validation.py`](../../../tests/unit/test_encounter_protocol_validation.py)
-  — Pydantic schema validation across all 51 YAMLs (required fields, unknown keys rejected).
+  — Pydantic schema validation across all 52 YAMLs (required fields, unknown keys rejected).
 - [`tests/unit/test_encounter_archetype_severity.py`](../../../tests/unit/test_encounter_archetype_severity.py)
   — archetype × severity coverage.
 - [`tests/unit/test_encounter_features.py`](../../../tests/unit/test_encounter_features.py)

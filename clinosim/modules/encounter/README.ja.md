@@ -5,7 +5,7 @@
 入院 / ED / 外来 encounter に関する 2 つの関連責務を持つ:
 
 1. **encounter-condition protocol registry** —
-   [`reference_data/`](reference_data/) 配下の 51 YAML。外来 / ED 短期
+   [`reference_data/`](reference_data/) 配下の 52 YAML。外来 / ED 短期
    条件 (asthma attack、migraine、minor laceration、screening visit、
    allergic reaction、syncope、viral gastroenteritis、annual health
    screening、dialysis session、rehab outpatient 等) を扱う。
@@ -41,7 +41,7 @@
 
 ### 縦断サービスライン encounter shape (v0.5 → v0.6.0)
 
-上記 51 YAML protocol は ED / 外来主訴 episode を対象とする。以下 2
+上記 52 YAML protocol は ED / 外来主訴 episode を対象とする。以下 2
 縦断サービスラインは `reference_data/` protocol 非依存で、shape は
 [`clinosim/locale/shared/perinatal.yaml`](../../locale/shared/perinatal.yaml)
 と
@@ -145,13 +145,23 @@ from clinosim.modules.encounter.protocol import (
 ## 定数と設定
 
 - **encounter-condition YAML registry**: [`reference_data/`](reference_data/)
-  — 51 file (1 condition = 1 file、filename = condition_id +
+  — 52 file (1 condition = 1 file、filename = condition_id +
   `.yaml`)。外来慢性フォロー、ED 短期、screening (mammography /
   colonoscopy / diabetic retinopathy / annual health screening)、
   rehab、dialysis、cardiac rehab、smoking cessation、mental health
   follow-up の condition class をカバー。各 entry は chief-complaint、
   physical-exam template、narrative section (SOAP / ED-note /
   triage)、臨床 metadata を保持。
+- **出生ごとの新生児 ED condition** (Issue #3063): `neonatal_fever.yaml` は
+  ED 受診 mix からは引かれない (`probability: 0`)。各乳児は最大 1 回、
+  確率 `incidence_per_1000_births` (US 4.56、JP は出典が無いため無し) で、
+  日齢 `min_age_days`-`max_age_days` のいずれかの日に受診する。person id の
+  hash で決まる (`phases/_ed_slot.py::neonatal_ed_onsets`)。この期間内の
+  乳児には他の ED condition を当てない (`neonate_excluded`)。受診では重症
+  細菌感染症の検査、`procedures_by_age_days` (日齢 8-21 の腰椎穿刺)、
+  体重あたりの抗菌薬初回投与を行い、`transfer_pediatric` (HL7
+  `other-hcf`) で転院搬送する。小児病棟のある病院ではこの ED 受診は生じない
+  (`admitted_with_inpatient_unit`)。
 - **Encounter-id 形状** (`engine.py`):
   - `_ENCOUNTER_SUFFIX_MODULUS = 10**12` — 12 桁 suffix modulus。
   - Encounter id: `ENC-{patient_id}-{suffix:012d}`。
@@ -171,7 +181,7 @@ clinosim/modules/encounter/
   engine.py                       入院 encounter 生成 + 日次 cycle timeline
   protocol.py                     EncounterConditionProtocol + child model + loader
   reference_data/
-    <condition_id>.yaml           51 file (外来 / ED / screening condition ごと 1 file)
+    <condition_id>.yaml           52 file (外来 / ED / screening condition ごと 1 file)
   SPEC.md                         拡張設計参考 (runtime data ではない)
 ```
 
@@ -201,7 +211,7 @@ pytest tests/unit -k encounter -q
 個別ファイル:
 
 - [`tests/unit/test_encounter_protocol_validation.py`](../../../tests/unit/test_encounter_protocol_validation.py)
-  — 51 YAML 全体に対する Pydantic schema 検証 (必須 field、未知 key の拒否)。
+  — 52 YAML 全体に対する Pydantic schema 検証 (必須 field、未知 key の拒否)。
 - [`tests/unit/test_encounter_archetype_severity.py`](../../../tests/unit/test_encounter_archetype_severity.py)
   — archetype × severity coverage。
 - [`tests/unit/test_encounter_features.py`](../../../tests/unit/test_encounter_features.py)

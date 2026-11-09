@@ -270,6 +270,13 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   and maximum from the Harriet Lane Handbook / AAP Red Book; doses written in
   grams ("1g", "3.375g") are re-dosed too, in mg, and the antibiotic
   enricher's post-stay regimens go through `pediatric_dose_text`.
+  Neonates (Issue #3063): `neonatal_drugs` gives a drug postnatal-age
+  bands (`max_postnatal_age_days`, `mg_per_kg`, `interval_hours`) that
+  replace its rule up to 28 days of life, with no adult cap. Ampicillin is
+  50 mg/kg q8h, gentamicin 4 mg/kg q24h, and cefotaxime 50 mg/kg q12h in the
+  first week and q8h after it. The ED and the inpatient path resolve them in
+  the same rule lookup from `child_dosing` (`age_days`); an inpatient
+  order also takes the band's interval as its frequency.
 - **Label dose limits** ([`reference_data/label_dose_limits.yaml`](reference_data/label_dose_limits.yaml),
   read by `label_dose.py`, validated by `LabelDoseLimitsFile`): per country
   and catalog drug the label's single dose, doses a day and daily maximum
@@ -302,7 +309,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay constants (Issue #637)
   reference_data/
     medication_supersede.yaml        class switches + PRN markers read by supersede.py (Issues #2615, #2983)
-    pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg, per-country overrides, Holliday-Segar bands (Issue #2857, #2977, #3012, #3004, #3082)
+    pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg, per-country overrides, Holliday-Segar bands, neonatal postnatal-age bands (Issue #2857, #2977, #3012, #3004, #3082, #3063)
     label_dose_limits.yaml           per-country label dose, doses a day, daily max read by label_dose.py (Issue #3012)
   SPEC.md                            extended design reference (not runtime)
 ```

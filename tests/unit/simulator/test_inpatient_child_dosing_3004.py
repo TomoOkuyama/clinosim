@@ -49,7 +49,8 @@ def _order(order_id: str, name: str, **kw: object) -> Order:
 @pytest.mark.parametrize("country", ["US", "JP"])
 def test_child_dosing_uses_the_weight_charted_at_admission(country: str) -> None:
     child = child_dosing(_child(), _ENC, _ADMIT, country)
-    assert child == (90, encounter_weight_kg(_child(), _ENC, _ADMIT, country), country)
+    weight = encounter_weight_kg(_child(), _ENC, _ADMIT, country)
+    assert child == (90, weight, country, (_ADMIT.date() - date(2018, 6, 1)).days)
 
 
 def test_an_adult_has_no_child_dosing() -> None:

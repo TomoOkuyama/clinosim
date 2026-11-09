@@ -6862,6 +6862,25 @@
       ]
     },
     {
+      "code": "P81.9",
+      "display": "Disturbance of temperature regulation of newborn, unspecified",
+      "definition": "Disturbance of temperature regulation of newborn, unspecified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "P81"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Fever of newborn NOS"
+        }
+      ]
+    },
+    {
       "code": "Q87.4",
       "display": "Marfan syndrome",
       "definition": "Marfan syndrome",
