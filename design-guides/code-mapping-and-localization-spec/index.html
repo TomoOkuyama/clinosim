@@ -3048,6 +3048,7 @@
 <li>Maps an <strong>internal name</strong> to the code that country emits, for the domains <code>lab</code>, <code>drug</code>, <code>diagnosis</code> and <code>procedure</code>.</li>
 <li>The code system of the value is <code>codes.system_key_for(kind, country)</code>. For example <code>lab</code>/<code>US</code> is <code>loinc</code> and <code>lab</code>/<code>JP</code> is <code>jlac10</code>.</li>
 <li>Every value is registered in that system's registry file.</li>
+<li>Output for a country codes with that country's systems and international ones (SNOMED CT, LOINC, ...) only, never with another country's system. A JP Procedure with no K-code carries its Japanese <code>code.text</code> (and a verified SNOMED coding) but no CPT coding (Issue #3009).</li>
 </ul>
 <h3 id="35-catalogs">3.5 Catalogs<a class="headerlink" href="#35-catalogs" title="Permanent link">&para;</a></h3>
 <table>
