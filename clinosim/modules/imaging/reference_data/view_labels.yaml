@@ -1,0 +1,48 @@
+# Display names of imaging views (Issue #3030).
+#
+# A series' CIF description is "<view> view" (one image per view: CR, ECG,
+# MG, US) or "<view> acquisition" (one series per acquisition: CT, MR, XA),
+# with <view> a key of modalities.yaml default_views_by_body_site or a
+# disease-YAML imaging view. The FHIR ImagingStudy.series.description shows
+# it in the output language:
+#   en: "<en> view" / "<en> acquisition" (the key, or the words it stands for)
+#   ja: the Japanese name of the image (Japanese radiology wording; Latin
+#       script only where Japanese reports write it: PA / AP, LAO / RAO,
+#       CC / MLO)
+# Every view key in modalities.yaml must be listed (unit-tested).
+
+metadata:
+  kind: reference
+  name: view_labels
+  source: clinosim
+
+views:
+  # Plain radiographs
+  PA: {en: PA, ja: 正面像 (PA)}
+  AP: {en: AP, ja: 正面像 (AP)}
+  Lateral: {en: Lateral, ja: 側面像}
+  Oblique: {en: Oblique, ja: 斜位像}
+  Mortise: {en: Mortise, ja: 果間関節窩撮影 (モーティス像)}
+  Supine: {en: Supine, ja: 臥位像}
+  Upright: {en: Upright, ja: 立位像}
+  # Cross-sectional acquisitions (CT / MR)
+  axial: {en: axial, ja: 横断像}
+  sagittal: {en: sagittal, ja: 矢状断像}
+  coronal: {en: coronal, ja: 冠状断像}
+  angiography: {en: angiography, ja: 血管造影像}
+  # Ultrasound
+  longitudinal: {en: longitudinal, ja: 縦断像}
+  transverse: {en: transverse, ja: 横断像}
+  doppler: {en: Doppler, ja: ドプラ像}
+  parasternal_long_axis: {en: parasternal long-axis, ja: 傍胸骨長軸像}
+  apical_4_chamber: {en: apical 4-chamber, ja: 心尖部四腔像}
+  # Coronary angiography projections
+  LAO: {en: LAO, ja: 左前斜位 (LAO)}
+  RAO: {en: RAO, ja: 右前斜位 (RAO)}
+  # Electrocardiogram
+  12-lead: {en: 12-lead, ja: 12誘導}
+  # Mammography
+  RCC: {en: RCC, ja: 右CC}
+  LCC: {en: LCC, ja: 左CC}
+  RMLO: {en: RMLO, ja: 右MLO}
+  LMLO: {en: LMLO, ja: 左MLO}

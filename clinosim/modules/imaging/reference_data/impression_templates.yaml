@@ -13,7 +13,7 @@ templates:
       normal:
         findings:
           en: "Lungs are clear bilaterally. No focal consolidation, effusion, or pneumothorax."
-          ja: "両肺野に明らかなconsolidation、胸水、気胸を認めず、明らかな異常所見なし。"
+          ja: "両肺野に明らかな浸潤影、胸水、気胸を認めず、明らかな異常所見なし。"
         impression:
           en: "No acute cardiopulmonary process."
           ja: "急性心肺疾患を示唆する所見なし。"
@@ -28,14 +28,14 @@ templates:
       normal:
         findings:
           en: "No focal consolidation, ground-glass opacity, or effusion."
-          ja: "consolidation、ground-glass opacity、胸水いずれも認めない。"
+          ja: "浸潤影、すりガラス影、胸水いずれも認めない。"
         impression:
           en: "No acute pulmonary process."
           ja: "急性肺疾患を示唆する所見なし。"
       abnormal:
         findings:
           en: "Consolidation in the right lower lobe with surrounding ground-glass opacity, consistent with pneumonia."
-          ja: "右下葉にconsolidationおよび周囲のground-glass opacityを認め、肺炎像と矛盾せず。"
+          ja: "右下葉に浸潤影および周囲のすりガラス影を認め、肺炎像と矛盾せず。"
         impression:
           en: "Right lower lobe pneumonia with surrounding inflammation."
           ja: "右下葉肺炎、周囲炎症像を伴う。"
@@ -52,7 +52,7 @@ templates:
       abnormal:
         findings:
           en: "Patchy opacity in the right lower lobe and posterior segments, consistent with aspiration pneumonia."
-          ja: "右下葉および背側区域にpatchy浸潤影を認め、誤嚥性肺炎像と矛盾せず。"
+          ja: "右下葉および背側区域に斑状浸潤影を認め、誤嚥性肺炎像と矛盾せず。"
         impression:
           en: "Findings consistent with aspiration pneumonia."
           ja: "誤嚥性肺炎像。"
@@ -60,14 +60,14 @@ templates:
       normal:
         findings:
           en: "No focal consolidation or aspiration findings."
-          ja: "consolidationまたは誤嚥所見は認めない。"
+          ja: "浸潤影または誤嚥所見は認めない。"
         impression:
           en: "No acute pulmonary process."
           ja: "急性肺疾患を示唆する所見なし。"
       abnormal:
         findings:
           en: "Right lower lobe and posterior segment consolidation with surrounding ground-glass opacity, consistent with aspiration."
-          ja: "右下葉および背側区域にconsolidationおよび周囲ground-glass opacityを認め、誤嚥性と矛盾せず。"
+          ja: "右下葉および背側区域に浸潤影および周囲のすりガラス影を認め、誤嚥性と矛盾せず。"
         impression:
           en: "Aspiration pneumonia, right lower lobe predominant."
           ja: "誤嚥性肺炎、右下葉優位。"
@@ -77,7 +77,7 @@ templates:
       normal:
         findings:
           en: "No acute intracranial hemorrhage or mass effect."
-          ja: "急性期頭蓋内出血や mass effect を認めない。"
+          ja: "急性期頭蓋内出血や圧排所見を認めない。"
         impression:
           en: "No acute intracranial process."
           ja: "急性頭蓋内疾患を示唆する所見なし。"
@@ -87,7 +87,7 @@ templates:
           ja: "右側基底核に急性期実質出血を認め、周囲浮腫および5mmの正中偏位を伴う。"
         impression:
           en: "Acute right basal ganglia intracerebral hemorrhage with mass effect."
-          ja: "右側基底核急性脳出血、mass effect を伴う。"
+          ja: "右側基底核急性脳出血、周囲への圧排を伴う。"
 
   # RM-5 (session 42, cycle-3 tail / CO-1 expansion): sepsis / heart failure /
   # acute MI — all commonly workup with CXR to evaluate for pulmonary source
@@ -97,7 +97,7 @@ templates:
       normal:
         findings:
           en: "No focal consolidation or effusion. No cardiomegaly."
-          ja: "consolidation・胸水を認めず。心陰影は正常。"
+          ja: "浸潤影・胸水を認めず。心陰影は正常。"
         impression:
           en: "No pulmonary source of sepsis identified radiographically."
           ja: "胸部単純写真上、敗血症の肺由来源を示唆する所見なし。"
@@ -107,7 +107,7 @@ templates:
           ja: "両側下肺野に浸潤影を認め、感染ないし誤嚥を示唆。右少量胸水あり。"
         impression:
           en: "Bibasilar pneumonia; possible source of sepsis."
-          ja: "両側下葉肺炎、敗血症の source として矛盾せず。"
+          ja: "両側下葉肺炎、敗血症の感染源として矛盾せず。"
 
   heart_failure_exacerbation:
     CR_chest:
@@ -121,7 +121,7 @@ templates:
       abnormal:
         findings:
           en: "Cardiomegaly. Bilateral perihilar interstitial edema with Kerley B lines and small bilateral pleural effusions."
-          ja: "心拡大。両側肺門周囲に間質性浮腫、Kerley B lines および両側少量胸水を認める。"
+          ja: "心拡大。両側肺門周囲に間質性浮腫、Kerley B線および両側少量胸水を認める。"
         impression:
           en: "Findings consistent with congestive heart failure exacerbation."
           ja: "うっ血性心不全増悪像。"
@@ -289,10 +289,10 @@ templates:
       abnormal:
         findings:
           en: 'Cobblestone appearance of subcutaneous tissue with adjacent abscess collection.'
-          ja: '皮下組織cobblestone像、隣接する膿瘍貯留を認める。'
+          ja: '皮下組織の敷石状変化、隣接する膿瘍貯留を認める。'
         impression:
           en: 'Cobblestone appearance of subcutaneous tissue with adjacent abscess collection.'
-          ja: '皮下組織cobblestone像、隣接する膿瘍貯留を認める。'
+          ja: '皮下組織の敷石状変化、隣接する膿瘍貯留を認める。'
 
   cerebral_infarction:
     CT_head:
@@ -389,10 +389,10 @@ templates:
       abnormal:
         findings:
           en: 'Left lower lobe consolidation.'
-          ja: '左下葉consolidation。'
+          ja: '左下葉浸潤影。'
         impression:
           en: 'Left lower lobe consolidation.'
-          ja: '左下葉consolidation。'
+          ja: '左下葉浸潤影。'
 
   electrical_injury:
     CR_chest:
@@ -519,10 +519,10 @@ templates:
       abnormal:
         findings:
           en: 'Dilated small bowel loops with air-fluid levels.'
-          ja: '小腸拡張と air-fluid level。'
+          ja: '小腸拡張と鏡面像 (ニボー)。'
         impression:
           en: 'Dilated small bowel loops with air-fluid levels.'
-          ja: '小腸拡張と air-fluid level。'
+          ja: '小腸拡張と鏡面像 (ニボー)。'
     CT_abdomen:
       normal:
         findings:
@@ -534,10 +534,10 @@ templates:
       abnormal:
         findings:
           en: 'Diffusely dilated small bowel loops with air-fluid levels, no transition point.'
-          ja: '小腸びまん性拡張と air-fluid level、明らかな移行部なし。'
+          ja: '小腸びまん性拡張と鏡面像 (ニボー)、明らかな移行部なし。'
         impression:
           en: 'Diffusely dilated small bowel loops with air-fluid levels, no transition point.'
-          ja: '小腸びまん性拡張と air-fluid level、明らかな移行部なし。'
+          ja: '小腸びまん性拡張と鏡面像 (ニボー)、明らかな移行部なし。'
 
   industrial_burn_severe:
     CR_chest:
@@ -681,10 +681,10 @@ templates:
       abnormal:
         findings:
           en: 'Grade III splenic laceration with hemoperitoneum.'
-          ja: '脾臓GradeIII裂傷および腹腔内出血。'
+          ja: '脾臓 Grade III 裂傷および腹腔内出血。'
         impression:
           en: 'Grade III splenic laceration with hemoperitoneum.'
-          ja: '脾臓GradeIII裂傷および腹腔内出血。'
+          ja: '脾臓 Grade III 裂傷および腹腔内出血。'
     CT_spine:
       normal:
         findings:

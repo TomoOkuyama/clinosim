@@ -1948,6 +1948,13 @@ diagnostic_report_fhir:
   radiology_title_with_display:
     ja: "画像診断報告書: {display}"
     en: "Radiology Report: {display}"
+  # Issue #3030: text.div headings.
+  radiology_findings_heading:
+    ja: "所見"
+    en: "Findings"
+  radiology_impression_heading:
+    ja: "印象"
+    en: "Impression"
   radiology_presented_form:
     ja: "[所見]\n{findings}\n\n[印象]\n{impression}\n"
     en: "[Findings]\n{findings}\n\n[Impression]\n{impression}\n"
