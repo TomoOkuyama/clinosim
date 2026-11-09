@@ -244,7 +244,10 @@ from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name,
   `extra="forbid"`): `adult_age_years` plus per-drug `mg_per_kg`,
   `max_mg`, `min_age_months`. An ED order for a listed drug given to a
   patient under `adult_age_years` is re-dosed from the weight, and not
-  given below its minimum age.
+  given below its minimum age. `fluids` lists IV crystalloids by
+  `ml_per_kg` (Issue #2977): a child's bolus written as an adult volume
+  ("IV normal saline 1000mL") becomes `ml_per_kg` × weight, never more
+  than the written volume.
 
 ## Directory contents
 
@@ -267,7 +270,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay constants (Issue #637)
   reference_data/
     medication_supersede.yaml        class switches + PRN markers read by supersede.py (Issue #2615)
-    pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age read by pediatric_dose.py (Issue #2857)
+    pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg (Issue #2857, #2977)
   SPEC.md                            extended design reference (not runtime)
 ```
 
