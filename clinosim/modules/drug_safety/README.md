@@ -31,6 +31,17 @@ drug-vs-age/sex (`check_demographic_gate`) and drug-vs-recorded-allergy
   `modules/allergy/reference_data/allergens.yaml` maps to the classes it
   rules out (block) or flags (caution), with cross-reactivity per current
   evidence.
+- Inpatient hyperkalemia response (`hyperkalemia.py`,
+  `hyperkalemia_response.yaml`, Issue #2981): a resulted potassium
+  >= 6.0 mmol/L holds every ACE inhibitor, ARB and potassium-sparing
+  diuretic dose scheduled from that result to discharge (MAR status
+  `held`, reason `K <value> mmol/L`, shown as `Held: ...` / `休薬: ...` in
+  the progress-note plan) and places the country's treatment order set
+  (calcium gluconate, regular insulin with 50% dextrose, a potassium
+  binder) as one-time doses on the first day a result reaches the
+  threshold; while it stays there on consecutive days only the binder is
+  ordered again.
+  Called by the inpatient daily loop; no RNG.
 - Alternative substitution: revives Issue #437 dead-data `alternative_*`
   blocks in disease YAML + new `modules/drug_safety/reference_data/drug_substitution.yaml`
   generic pool.
@@ -146,7 +157,7 @@ The full `__all__`: functions `check_pair`,
 
 ## 6. Constants and configuration
 
-Five YAML files plus the drug catalog:
+Six YAML files plus the drug catalog:
 
 - Drug classes and aliases: the drug catalog
   (`clinosim/codes/data/drugs.yaml`, read through `clinosim.codes.drugs`).
@@ -182,11 +193,18 @@ Five YAML files plus the drug catalog:
   alternative pool keyed by catalog `drug_id` (pain_management →
   acetaminophen; hypertension_or_rate_control → amlodipine /
   candesartan).
+- `reference_data/hyperkalemia_response.yaml` — the potassium treatment
+  threshold (6.0 mmol/L; KDIGO 2024 CKD, 2022 AHA/ACC/HFSA heart failure
+  and UK Kidney Association 2020 acute hyperkalaemia guidelines), the
+  held classes (`acei`, `arb`, `diuretic.k_sparing`) and the US / JP
+  treatment order sets (Issue #2981). The order-timing offset lives in
+  `_hyperkalemia_thresholds.py`.
 
 Each file is validated at load by an `extra="forbid"` Pydantic model
 in `_models.py` (`ContraindicationsFile`,
 `DiseaseContraindicationsFile`, `DemographicGatesFile`,
-`DrugSubstitutionFile`, `AllergyContraindicationsFile`); drug classes /
+`DrugSubstitutionFile`, `AllergyContraindicationsFile`,
+`HyperkalemiaResponseFile`); drug classes /
 drug ids are checked against the catalog, rule ids must be unique, the
 reconciliation list must name existing rules, and an allergy rule's
 `allergen_code` must be a medication allergen of `allergens.yaml`.
@@ -203,7 +221,9 @@ clinosim/modules/drug_safety/
 ├── classifier.py          # drug-name → class[] resolver
 ├── engine.py              # check_pair / check_candidate_against_active / check_candidate_against_disease_state / check_candidate_against_allergies / suggest_alternative / discharge_reconciliation_rules
 ├── demographic.py         # check_demographic_gate + DemographicVerdict
-├── _models.py             # Pydantic models of the five reference YAMLs
+├── hyperkalemia.py        # potassium hold + hyperkalemia order set (Issue #2981)
+├── _hyperkalemia_thresholds.py  # order-timing offset
+├── _models.py             # Pydantic models of the six reference YAMLs
 ├── audit.py               # audit_drug_safety(patients) → list[AuditFinding]
 ├── reference_data/
 │   ├── contraindications.yaml
@@ -211,6 +231,7 @@ clinosim/modules/drug_safety/
 │   ├── demographic_gates.yaml
 │   ├── allergy_contraindications.yaml
 │   ├── drug_substitution.yaml
+│   ├── hyperkalemia_response.yaml
 │   ├── README.md          # YAML schemas
 │   └── README.ja.md
 ├── README.md              # this file

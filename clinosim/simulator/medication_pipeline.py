@@ -38,6 +38,7 @@ from clinosim.countries import lang_for
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized, localized_field
+from clinosim.modules.drug_safety.hyperkalemia import PotassiumHold, holds_for_hyperkalemia
 from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.physiology.renal_thresholds import (
     METFORMIN_ADMISSION_HOLD_THRESHOLD,
@@ -650,8 +651,14 @@ def _generate_mar(
     department: str = "internal_medicine",
     roster: StaffRoster,
     rng: np.random.Generator,
+    potassium_hold: PotassiumHold | None = None,
 ) -> list[MedicationAdministration]:
-    """Generate MAR entries for medication orders on this day."""
+    """Generate MAR entries for medication orders on this day.
+
+    ``potassium_hold`` (Issue #2981): doses of a drug held for hyperkalemia
+    (ACE inhibitors, ARBs, potassium-sparing diuretics) scheduled at or after
+    the potassium result are recorded as held, with the value as the reason.
+    """
     from clinosim.modules.order.engine import enrich_medication_order
 
     mars: list[MedicationAdministration] = []
@@ -686,6 +693,7 @@ def _generate_mar(
         drug_name = order.display_name
         if _is_triggered_prn(order):
             continue  # given on demand by generate_prn_administrations (Issue #2085)
+        k_held = potassium_hold is not None and holds_for_hyperkalemia(order.drug_id or drug_name)
         # Determine administration times based on drug and route
         route = order.route or _determine_route(drug_name, order.clinical_intent, order.drug_id)
 
@@ -828,6 +836,9 @@ def _generate_mar(
             _mar_salt = f"mar|{patient.patient_id}|{order.order_id}|{scheduled.isoformat()}"
             if determinism.sha_bernoulli(f"{_mar_salt}|refusal", MAR_PATIENT_REFUSAL_PROBABILITY):
                 status = "refused"
+            # Issue #2981: held for hyperkalemia from the potassium result on.
+            if k_held and potassium_hold is not None and scheduled >= potassium_hold.since:
+                status, hold_reason = "held", potassium_hold.reason
 
             actual = (
                 scheduled

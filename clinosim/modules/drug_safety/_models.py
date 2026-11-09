@@ -213,3 +213,46 @@ class AllergyContraindicationsFile(BaseModel):
     rules: list[_AllergyRule] = Field(min_length=1)
 
     _ids = field_validator("rules")(classmethod(lambda cls, v: _unique_ids(v)))
+
+
+class _HyperkalemiaTreatment(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    drug_id: str
+    dose: str = Field(min_length=1)
+    dose_text: _Rationale
+    # Ordered again on every day the potassium stays at or above the
+    # threshold (the binder); other entries start an episode only.
+    ongoing: bool = False
+
+    @field_validator("drug_id")
+    @classmethod
+    def _catalog_drug(cls, v: str) -> str:
+        from clinosim.codes.drugs import get_drug
+
+        if get_drug(v) is None:
+            raise ValueError(f"drug_id {v!r} is not in the drug catalog")
+        return v
+
+
+class HyperkalemiaResponseFile(BaseModel):
+    """Shape of ``hyperkalemia_response.yaml`` (Issue #2981): the potassium
+    threshold, the catalog classes held and each country's order set."""
+
+    model_config = ConfigDict(extra="forbid")
+    treat_threshold_mmol_l: float = Field(gt=0)
+    hold_classes: list[str] = Field(min_length=1)
+    # Keyed by upper-case country code (``clinosim.countries.country_code``).
+    treatment: dict[str, list[_HyperkalemiaTreatment]] = Field(min_length=1)
+
+    @field_validator("treatment")
+    @classmethod
+    def _countries(cls, v: dict[str, list[_HyperkalemiaTreatment]]) -> dict[str, list[_HyperkalemiaTreatment]]:
+        unknown = sorted(set(v) - {"US", "JP"})
+        if unknown:
+            raise ValueError(f"treatment keys must be country codes US / JP, got {unknown}")
+        return v
+
+    @field_validator("hold_classes")
+    @classmethod
+    def _classes(cls, v: list[str]) -> list[str]:
+        return [_check_class(c) for c in v]

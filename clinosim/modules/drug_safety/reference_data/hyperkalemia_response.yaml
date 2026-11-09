@@ -1,0 +1,76 @@
+# clinosim/modules/drug_safety/reference_data/hyperkalemia_response.yaml
+# Inpatient response to a potassium result at or above the treatment
+# threshold (Issue #2981). Consumed by
+# clinosim.modules.drug_safety.hyperkalemia and applied in the inpatient
+# daily loop (clinosim/simulator/daily_loop.py) right after the day's labs
+# are resulted:
+#
+#   - every scheduled dose of a drug in `hold_classes` (catalog classes,
+#     codes/data/drugs.yaml) given at or after the result is held — the MAR
+#     records status "held" with the potassium value as the reason — for the
+#     rest of the stay;
+#   - the country's `treatment` order set is placed as one-time doses on
+#     the first day a result reaches the threshold; on following days that
+#     stay at or above it only the `ongoing: true` entries (the potassium
+#     binder) are ordered again — calcium and insulin start an episode.
+#
+# Sources:
+#   - KDIGO 2024 Clinical Practice Guideline for the Evaluation and
+#     Management of CKD (hyperkalemia associated with RASi / MRA): hold or
+#     reduce the RAAS inhibitor or MRA when potassium is high, treat and
+#     recheck.
+#   - 2022 AHA/ACC/HFSA Heart Failure Guideline (GDMT safety): MRA and
+#     ACEi/ARB/ARNi are held or stopped when K+ > 5.5-6.0 mEq/L.
+#   - UK Kidney Association, Clinical Practice Guideline: Treatment of Acute
+#     Hyperkalaemia in Adults (2020): K+ >= 6.0 mmol/L is treated with IV
+#     calcium (membrane stabilisation), insulin-glucose (shift) and a
+#     potassium binder (removal), then rechecked.
+#   - JP: 日本腎臓学会「エビデンスに基づく CKD 診療ガイドライン 2023」;
+#     グルコン酸カルシウム静注・GI 療法・陽イオン交換樹脂 (ケイキサレート) を使用。
+#   - The per-country drug choice follows the acute kidney injury protocol's
+#     `hyperkalemia_management` block (modules/disease/reference_data/
+#     acute_kidney_injury.yaml).
+#
+# Schema:
+#   treat_threshold_mmol_l — potassium (mmol/L) at or above which drugs are
+#                            held and the order set is placed
+#   hold_classes           — drug classes (codes/data/drugs.yaml) held
+#   treatment.<CC>         — one-time orders; `dose` is the parseable order
+#                            dose (EN), `dose_text` the localised instruction,
+#                            `ongoing` repeats the entry on consecutive days
+
+metadata:
+  kind: reference
+  name: hyperkalemia_response
+  source: "KDIGO 2024 CKD guideline; 2022 AHA/ACC/HFSA HF guideline; UK Kidney Association acute hyperkalaemia guideline 2020"
+
+treat_threshold_mmol_l: 6.0
+
+hold_classes:
+  - acei
+  - arb
+  - diuretic.k_sparing
+
+treatment:
+  US:
+    - drug_id: calcium_gluconate
+      dose: "1 g IV"
+      dose_text: {en: "1 g (10% 10 mL) IV over 10 minutes", ja: "1 g (10% 10 mL) を 10 分かけて静注"}
+    - drug_id: insulin_regular_human
+      dose: "10 units IV"
+      dose_text: {en: "10 units IV with 50 mL of 50% dextrose", ja: "10 単位を 50% ブドウ糖液 50 mL とともに静注"}
+    - drug_id: patiromer
+      dose: "8.4 g PO"
+      dose_text: {en: "8.4 g PO", ja: "8.4 g 内服"}
+      ongoing: true
+  JP:
+    - drug_id: calcium_gluconate
+      dose: "10 mL IV"
+      dose_text: {en: "8.5% 10 mL IV over 10 minutes", ja: "8.5% 10 mL を 10 分かけて静注"}
+    - drug_id: insulin_regular_human
+      dose: "10 units IV"
+      dose_text: {en: "10 units IV with 50 mL of 50% glucose (glucose-insulin therapy)", ja: "10 単位を 50% ブドウ糖液 50 mL とともに静注 (GI 療法)"}
+    - drug_id: sodium_polystyrene_sulfonate
+      dose: "30 g PO"
+      dose_text: {en: "30 g PO", ja: "30 g 内服"}
+      ongoing: true

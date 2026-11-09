@@ -114,6 +114,10 @@ progress:
   meds_continue:
     ja: "薬物療法継続: {list}。"
     en: "Continue current medications: {list}."
+  # Issue #2981: drugs whose doses were held today, with the hold reason.
+  meds_held:
+    ja: "休薬: {list}。"
+    en: "Held: {list}."
   procs_today:
     ja: "本日の処置: {list}。"
     en: "Procedures today: {list}."
@@ -2107,6 +2111,10 @@ order_intent:
   protocol_hold:
     ja: "protocol による保留: {reason}"
     en: "held per protocol: {reason}"
+  # Issue #2981: the hyperkalemia order set (calcium, insulin, binder).
+  hyperkalemia_treatment:
+    ja: "高カリウム血症治療 (K {value} mmol/L)"
+    en: "hyperkalemia treatment (K {value} mmol/L)"
   discharge_hold:
     ja: "退院時保留: {reason}"
     en: "held at discharge: {reason}"

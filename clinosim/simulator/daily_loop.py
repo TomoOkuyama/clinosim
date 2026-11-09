@@ -33,6 +33,11 @@ from clinosim.modules.clinical_course.engine import (
 )
 from clinosim.modules.diagnosis.engine import update_differential
 from clinosim.modules.disease.protocol import DiseaseProtocol
+from clinosim.modules.drug_safety.hyperkalemia import (
+    PotassiumHold,
+    hyperkalemia_treatment_orders,
+    potassium_hold_from_results,
+)
 from clinosim.modules.observation.engine import canonical_lab_name, lab_panel_components, medications_in_effect
 from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.order.engine import (
@@ -300,6 +305,8 @@ class _Run:
     # was expanded into (Issue #2582); the drug-safety gate checks the rest.
     admission_order_ids: set[str] = field(default_factory=set)
     lab_time: datetime | None = None  # the most recent morning lab draw (none before day 1)
+    potassium_hold: PotassiumHold | None = None  # Issue #2981: hyperkalemia hold, from the first K >= threshold
+    hyperkalemia_last_day: int | None = None  # Issue #2981: last day with K >= threshold
 
 
 def _escalate_on_arrival(stay: _Stay, run: _Run) -> None:
@@ -571,6 +578,33 @@ def _result_labs(stay: _Stay, run: _Run, day: int, lab_state_pre_update: Physiol
         )
     )
     return day_results_start
+
+
+def _respond_to_hyperkalemia(stay: _Stay, run: _Run, day: int, day_results_start: int) -> None:
+    """Issue #2981: a potassium result at or above the treatment threshold
+    holds ACE inhibitors, ARBs and potassium-sparing diuretics for the rest of
+    the stay and places the hyperkalemia order set (calcium, insulin with
+    dextrose, a potassium binder) that day — only the binder again while the
+    potassium stays high on consecutive days. No draws: a stay whose potassium
+    stays below the threshold is unchanged."""
+    today = potassium_hold_from_results(run.lab_results[day_results_start:])
+    if today is None:
+        return
+    continuing = run.hyperkalemia_last_day == day - 1
+    run.hyperkalemia_last_day = day
+    if run.potassium_hold is None:
+        run.potassium_hold = today
+    run.orders.extend(
+        hyperkalemia_treatment_orders(
+            today,
+            patient_id=stay.patient.patient_id,
+            encounter_id=stay.encounter_id,
+            country=stay.country_key,
+            day=day,
+            ordered_by=stay.attending_id,
+            continuing=continuing,
+        )
+    )
 
 
 def _update_diagnosis(stay: _Stay, run: _Run, day: int, day_results_start: int) -> None:
@@ -1104,13 +1138,23 @@ def _run_daily_loop(
                 )
             )
         day_results_start = _result_labs(stay, run, day, lab_state_pre_update)
+        _respond_to_hyperkalemia(stay, run, day, day_results_start)
         if day >= 1:
             _update_diagnosis(stay, run, day, day_results_start)
         _apply_archetype_modifications(stay, run, day)
         if day == TREATMENT_ESCALATION_DAY and run.state.inflammation_level > TREATMENT_ESCALATION_INFLAMMATION_MIN:
             _escalate_treatment(stay, run, day)
         run.mars.extend(
-            _generate_mar(patient, run.orders, day, admission_time, department=department, roster=roster, rng=rng)
+            _generate_mar(
+                patient,
+                run.orders,
+                day,
+                admission_time,
+                department=department,
+                roster=roster,
+                rng=rng,
+                potassium_hold=run.potassium_hold,
+            )
         )
         _order_diet(stay, run, day)
         _record_bedside_observations(stay, run, day)
