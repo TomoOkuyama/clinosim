@@ -74,6 +74,27 @@ def _find_active_inpatient_record(
     return active
 
 
+class InpatientStayIndex:
+    """Each patient's inpatient records, read incrementally from the run's
+    append-only ``patient_records`` (Issue #2996), so a point-in-time
+    "is the patient admitted?" check does not scan every record."""
+
+    def __init__(self) -> None:
+        self._by_patient: dict[str, list[CIFPatientRecord]] = {}
+        self._seen = 0
+
+    def active_at(
+        self, patient_records: list[CIFPatientRecord], person_id: str, when: datetime
+    ) -> CIFPatientRecord | None:
+        """The patient's inpatient record whose stay covers ``when``
+        (``_find_active_inpatient_record`` semantics), or ``None``."""
+        for record in patient_records[self._seen :]:
+            if record.encounters and record.encounters[0].encounter_type == EncounterType.INPATIENT:
+                self._by_patient.setdefault(record.patient.patient_id, []).append(record)
+        self._seen = len(patient_records)
+        return _find_active_inpatient_record(self._by_patient.get(person_id, []), person_id, when)
+
+
 def _find_overlapping_inpatient_record(
     patient_records: list[CIFPatientRecord],
     person_id: str,

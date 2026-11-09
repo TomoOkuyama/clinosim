@@ -41,7 +41,7 @@ from clinosim.modules.population.aging import advance_population
 from clinosim.modules.population.engine import LifeEvent, generate_monthly_events
 from clinosim.seeding import PHASE_LIFE_EVENT, derive_phase_rng
 from clinosim.simulator import log as sim_log
-from clinosim.simulator._dispatch import _dispatch_hospital_events, _DispatchState
+from clinosim.simulator._dispatch import InpatientStayIndex, _dispatch_hospital_events, _DispatchState
 from clinosim.types.encounter import EncounterType
 from clinosim.types.output import CIFPatientRecord
 
@@ -113,6 +113,9 @@ class ForwardContext:
     # later same-day visit (another calendar event, a post-discharge
     # follow-up) starts after it instead of overlapping.
     outpatient_day_ends: dict = field(default_factory=dict)
+    # Issue #2996: inpatient stays by patient, so a calendar clinic visit
+    # dated inside a stay is postponed until after discharge.
+    inpatient_stays: InpatientStayIndex = field(default_factory=InpatientStayIndex)
     n_life_events: int = 0
     n_hospital_events: int = 0
 
@@ -204,7 +207,10 @@ def run_forward_loop(ctx: ForwardContext, months: list[tuple[int, int]]) -> None
                 index_record, followup_time = item.payload
                 dispatch_post_discharge(index_record, followup_time, ctx)
             elif item.kind == "calendar":
-                dispatch_calendar_event(item.payload, ctx)
+                event, visit_day = item.payload if isinstance(item.payload, tuple) else (item.payload, None)
+                postponed = dispatch_calendar_event(event, ctx, visit_day=visit_day)
+                if postponed is not None and in_window(postponed.date()):
+                    queue.push(postponed, "calendar", (event, postponed.date()))
             elif item.kind == "ed":
                 dispatch_ed_slot(item.payload, ed_sampler)
             enroll_new_persons(year)
