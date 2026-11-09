@@ -21,7 +21,7 @@ Generator-threaded helpers:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
@@ -120,22 +120,31 @@ def build_past_medical_history(generator: TemplateNarrativeGenerator, ctx: Narra
     return none_text, facts
 
 
+def home_medications_at_admission(ctx: NarrativeContext) -> tuple[list[Any], str]:
+    """The patient's home medications when the stay began and the fact that
+    names their source (Issue #2995): the record's admission snapshot, else
+    (a record written without one) the patient's ``current_medications``,
+    which is the list at the end of the simulation."""
+    snapshot = getattr(ctx, "home_medications_at_admission", None)
+    if snapshot is not None:
+        return list(snapshot), "ctx.home_medications_at_admission"
+    patient = ctx.patient
+    meds = (_o(patient, "current_medications", []) or []) if patient is not None else []
+    return list(meds), "ctx.patient.current_medications"
+
+
 @section("medications_at_home")
 def build_medications_at_home(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """Build home medications from ctx.patient.current_medications."""
+    """Build home medications from the medications at admission (Issue #2995)."""
     facts: list[str] = []
     lang = ctx.target_lang
     none_text = t("section_none.home_medications", lang)
 
-    patient = ctx.patient
-    if patient is None:
-        return none_text, facts
-
-    meds = _o(patient, "current_medications", []) or []
+    meds, source = home_medications_at_admission(ctx)
     if not meds:
         return none_text, facts
 
-    facts.append("ctx.patient.current_medications")
+    facts.append(source)
     # Issue #452 PR 1: `HomeMedication` serializes to dict when the CIF is
     # written to disk and reloaded here in the narrative pass. Extract
     # drug_name explicitly so we don't render a Python dict repr.

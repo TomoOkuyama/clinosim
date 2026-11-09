@@ -277,6 +277,9 @@ class NarrativeContext:
     # and LLM narrative pipelines to surface "considered but not prescribed"
     # clinical reasoning in the Assessment & Plan section.
     safety_skips: list[dict[str, Any]] = field(default_factory=list)
+    # Issue #2995: the record's ``home_medications_at_admission`` snapshot
+    # (``None`` when the record has none; the patient's list is used then).
+    home_medications_at_admission: list[Any] | None = None
 
     # === Issue #848 (in-hospital new-disease complication) ===
     # Working diagnoses arising DURING the admission. Populated by
