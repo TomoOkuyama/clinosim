@@ -47,7 +47,7 @@ from clinosim.simulator.encounter_setup import (
     extend_visit_to_procedures,
     finalize_encounter,
 )
-from clinosim.simulator.lab_pipeline import patient_true_labs
+from clinosim.simulator.lab_pipeline import patient_true_labs, relate_egfr_to_creatinine
 from clinosim.simulator.medication_pipeline import allergy_blocked
 from clinosim.types.clinical import ConditionEvent, PhysiologicalState
 from clinosim.types.config import SimulatorConfig
@@ -562,7 +562,9 @@ def _result_followup_labs(
         order.status = OrderStatus.RESULTED
         lab_results.append(result)
 
-    return orders, lab_results
+    # Issue #3019: an eGFR is the equation on the creatinine drawn with it.
+    dropped = {id(r) for r in relate_egfr_to_creatinine(orders, patient, country)}
+    return orders, [r for r in lab_results if id(r) not in dropped]
 
 
 def _renewal_prescription(

@@ -1,0 +1,36 @@
+# Estimated GFR equations — Japan (Issue #3019). eGFR (mL/min/1.73m²) is
+# computed from the serum creatinine (mg/dL, enzymatic), age and sex; the
+# simulator never draws it.
+#
+# adult (age >= 18): JSN 日本人のGFR推算式 — Matsuo S, et al. Revised
+#   equations for estimated GFR from serum creatinine in Japan. Am J Kidney
+#   Dis 2009;53:982-992 (日本腎臓学会 CKD診療ガイド):
+#   eGFR = 194 x Cr^-1.094 x age^-0.287 (x 0.739 female)
+# pediatric (age 2-18): 日本人小児のeGFR推算式 — Uemura O, et al.
+#   Creatinine-based equation to estimate the glomerular filtration rate in
+#   Japanese children and adolescents with chronic kidney disease. Clin Exp
+#   Nephrol 2014;18:626-633 (19歳未満に適応):
+#   eGFR = 110.2 x (reference Cr / patient Cr) + 2.93, reference Cr a
+#   5th-degree polynomial of body length x (m), by sex.
+# Under 2 years: no Cr-based equation in this set — no eGFR is reported.
+metadata:
+  kind: reference
+  name: egfr_equation
+  source: "JSN (Matsuo 2009); Uemura 2014"
+adult:
+  type: jsn
+  min_age: 18
+  coefficient: 194
+  creatinine_exponent: -1.094
+  age_exponent: -0.287
+  female_factor: 0.739
+pediatric:
+  type: uemura
+  min_age: 2
+  scale: 110.2
+  intercept: 2.93
+  # Reference serum Cr (mg/dL) = sum(c_i x^i), x = body length (m); highest
+  # power first (x^5 ... x^0).
+  reference_cr_polynomial:
+    M: [-1.259, 7.815, -18.57, 21.39, -11.71, 2.628]
+    F: [-4.536, 27.16, -63.47, 72.43, -40.06, 8.778]

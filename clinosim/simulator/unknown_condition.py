@@ -77,7 +77,7 @@ from clinosim.simulator._unknown_condition_thresholds import (
 from clinosim.simulator.diagnosis_rules import unknown_condition_codes
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis
 from clinosim.simulator.hospital_ops import pick_ward, resolve_department
-from clinosim.simulator.lab_pipeline import patient_true_labs
+from clinosim.simulator.lab_pipeline import patient_true_labs, relate_egfr_to_creatinine
 from clinosim.types.clinical import ConditionEvent
 from clinosim.types.config import HealthcareSystemConfig, SimulatorConfig
 from clinosim.types.encounter import (
@@ -313,6 +313,7 @@ def _simulate_unknown_condition(
             **medication_flags_from_context(patient),
         }
         true_labs = patient_true_labs(state, patient, admission_time, _flags_unknown)
+        _day_start = len(all_lab_results)
         for order in all_orders:
             canon = canonical_lab_name(order.display_name)
             if order.order_type.value == "lab" and order.status == OrderStatus.PLACED and canon in true_labs:
@@ -342,6 +343,12 @@ def _simulate_unknown_condition(
                 )
                 order.status = OrderStatus.RESULTED
                 all_lab_results.append(order.result)
+        # Issue #3019: an eGFR is the equation on the creatinine drawn with it
+        # (this day's results only).
+        _day_ids = {id(r) for r in all_lab_results[_day_start:]}
+        _day_orders = [o for o in all_orders if o.result is not None and id(o.result) in _day_ids]
+        _dropped = {id(r) for r in relate_egfr_to_creatinine(_day_orders, patient, config.country if config else "US")}
+        all_lab_results[:] = [r for r in all_lab_results if id(r) not in _dropped]
 
         # Vitals
         unk_nurse_id = assign_staff("medication_administration", department, roster, rng).get(

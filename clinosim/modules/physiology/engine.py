@@ -865,6 +865,9 @@ def _add_renal_labs(labs: dict[str, float], state: PhysiologicalState, sex: str)
     labs["BUN"] = BUN_BASE_MG_DL / max(renal, BUN_RENAL_FLOOR)
     if state.volume_status < BUN_ELEVATION_THRESHOLD:
         labs["BUN"] *= 1.0 + abs(state.volume_status) * BUN_VOLUME_LIFT_SCALE
+    # Placeholder from the renal state; ``lab_pipeline.patient_true_labs``
+    # replaces it with the country's equation on the creatinine above
+    # (Issue #3019: eGFR is calculated, not measured).
     labs["eGFR"] = renal * EGFR_RENAL_SCALE
     # K: renal failure causes hyperkalemia, but not as aggressively as before
     # renal 1.0→K 4.0, renal 0.3→K 5.4, renal 0.1→K 6.0, acidosis adds

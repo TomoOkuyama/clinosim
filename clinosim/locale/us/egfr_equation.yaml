@@ -1,0 +1,30 @@
+# Estimated GFR equations — United States (Issue #3019). eGFR (mL/min/1.73m²)
+# is computed from the serum creatinine (mg/dL), age and sex; the simulator
+# never draws it.
+#
+# adult (age >= 18): CKD-EPI 2021 creatinine equation without race — Inker
+#   LA, et al. New creatinine- and cystatin C-based equations to estimate GFR
+#   without race. N Engl J Med 2021;385:1737-1749 (NKF-ASN recommendation):
+#   eGFR = 142 x min(Cr/k, 1)^a x max(Cr/k, 1)^-1.200 x 0.9938^age
+#          (x 1.012 female); k 0.7 F / 0.9 M, a -0.241 F / -0.302 M
+# pediatric (age 1-17): bedside Schwartz — Schwartz GJ, et al. New equations
+#   to estimate GFR in children with CKD. J Am Soc Nephrol 2009;20:629-637:
+#   eGFR = 0.413 x height (cm) / Cr
+# Under 1 year: no Cr-based equation in this set — no eGFR is reported.
+metadata:
+  kind: reference
+  name: egfr_equation
+  source: "CKD-EPI 2021 (Inker 2021); bedside Schwartz (Schwartz 2009)"
+adult:
+  type: ckd_epi_2021
+  min_age: 18
+  coefficient: 142
+  kappa: {F: 0.7, M: 0.9}
+  alpha: {F: -0.241, M: -0.302}
+  upper_exponent: -1.200
+  age_base: 0.9938
+  female_factor: 1.012
+pediatric:
+  type: bedside_schwartz
+  min_age: 1
+  k: 0.413

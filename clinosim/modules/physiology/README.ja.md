@@ -35,7 +35,13 @@ clinical_course が要求する day-scale delta を適用する。
   `derive_observed_vitals` (circadian + 測定 noise 付与)、
   cross-module reflection 用 `canonical_state_vars()`、
   `statin_response.py` の statin / ezetimibe による LDL 低下を反映した
-  lipid panel (`lipid_panel` / `patient_lipid_panel`)。
+  lipid panel (`lipid_panel` / `patient_lipid_panel`)、eGFR 推算式
+  `egfr.estimated_gfr(creatinine, age, sex, height_cm, country)`
+  (Issue #3019。`locale/<cc>/egfr_equation.yaml`: JP は JSN / Uemura 2014、
+  US は CKD-EPI 2021 / bedside Schwartz、どの式も対象外の低年齢では eGFR なし)。
+  `simulator.lab_pipeline.relate_egfr_to_creatinine` は、全受診経路と
+  服薬モニタリング enricher の eGFR を、同時に採血したクレアチニンに
+  この式を適用した値として報告する。
 - **Out of scope**: 時間軸 trajectory 選択
   ([`clinical_course`](../clinical_course/README.ja.md))、CIF に着地
   する観測値 ([`observation`](../observation/README.ja.md))、疾患定義
