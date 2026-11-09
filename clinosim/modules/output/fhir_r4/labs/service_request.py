@@ -342,8 +342,8 @@ def _build_earliest_issued_by_sr(record: dict, primary_enc_id: str) -> dict[str,
       ``panel_report_issued(group, orders)``, the latest component result
       time (Issue #2634). SR ids per group via ``_sr_ids_for_group`` (same helper the DR writer
       uses, so the map keys match by construction).
-    - Radiology DRs (``_build_radiology_dr``): ``issued = started_datetime``
-      (ImagingStudyRecord field). SR id via ``_resolve_service_request_id
+    - Radiology DRs (``_build_radiology_dr``): ``issued =
+      radiology_report_issued(study)`` (Issue #2999: the signed read). SR id via ``_resolve_service_request_id
       (order_id)`` (imaging = 1 Order = 1 SR).
 
     Lazy import of ``diagnostic_report`` internals avoids the circular
@@ -358,6 +358,7 @@ def _build_earliest_issued_by_sr(record: dict, primary_enc_id: str) -> dict[str,
         _sr_ids_for_group,
         group_lab_orders,
         panel_report_issued,
+        radiology_report_issued,
         single_test_report_groups,
     )
 
@@ -389,23 +390,22 @@ def _build_earliest_issued_by_sr(record: dict, primary_enc_id: str) -> dict[str,
                 if prev is None or issued_naive < prev:
                     out[sid] = issued_naive
 
-    # Imaging side — radiology DRs (issued = study.started_datetime).
+    # Imaging side — radiology DRs (issued = the signed read, Issue #2999).
     studies = (get_attr_or_key(record, "extensions", {}) or {}).get("imaging") or []
     for study in studies:
         rep = _o(study, "report")
         if not rep:
             continue
-        started = _o(study, "started_datetime")
-        started_naive = _to_naive_iso(started)
-        if not started_naive:
+        issued_naive = _to_naive_iso(radiology_report_issued(study))
+        if not issued_naive:
             continue
         order_id = _o(study, "order_id", "") or ""
         if not order_id:
             continue
         sid = _resolve_service_request_id(order_id)
         prev = out.get(sid)
-        if prev is None or started_naive < prev:
-            out[sid] = started_naive
+        if prev is None or issued_naive < prev:
+            out[sid] = issued_naive
     return out
 
 

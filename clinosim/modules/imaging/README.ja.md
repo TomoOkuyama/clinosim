@@ -108,7 +108,12 @@ from clinosim.modules.imaging.inference import (
 - **3 YAML** ([`reference_data/`](reference_data/)):
   - `modalities.yaml` — modality カタログ +
     `default_views_by_body_site` (order module が empty-views
-    fallback で参照)。
+    fallback で参照) + modality 別の読影時間 `report_read_minutes`
+    (modality を推定できない検査は `stub_report_read_minutes`)。
+    各 report の `RadiologyReport.issued_datetime` は検査開始 + その範囲の
+    読影時間 (`report_issued_datetime`、order から SHA で決定、RNG 消費なし)
+    で、FHIR の放射線 `DiagnosticReport.issued` と画像検査報告書
+    Composition の date になる (Issue #2999)。
   - `body_sites.yaml` — SNOMED body-site カタログ。
   - `impression_templates.yaml` — modality × body-site 別 negative
     / abnormal report template。

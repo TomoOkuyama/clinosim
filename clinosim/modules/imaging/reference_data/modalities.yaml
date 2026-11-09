@@ -13,9 +13,18 @@ metadata:
   name: modalities
   source: clinosim
 
+# Issue #2999: report read time — minutes from the study start to the signed
+# radiology report (DiagnosticReport.issued), uniform in [low, high] per study
+# (sha-derived from the order, no RNG draw). Typical report turnaround: plain
+# radiographs about 30-60 min, CT about 1 h, MRI 1-3 h (ACR practice parameter
+# for communication of diagnostic imaging findings; ED turnaround benchmarks).
+# Studies whose modality could not be inferred use stub_report_read_minutes.
+stub_report_read_minutes: [30, 90]
+
 modalities:
   CR:                                            # Computed Radiography (plain X-ray)
     dicom_code: "CR"
+    report_read_minutes: [20, 60]                # plain radiograph
     typical_instances_per_view_range: [1, 1]     # 1 view = 1 instance
     default_views_by_body_site:
       chest: ["PA", "Lateral"]
@@ -33,6 +42,7 @@ modalities:
 
   CT:                                            # Computed Tomography
     dicom_code: "CT"
+    report_read_minutes: [30, 90]
     typical_instances_per_series_range:
       head: [180, 280]                           # axial 5mm ≈ ~200 slices
       chest: [220, 340]                          # axial 1mm ≈ ~280 slices
@@ -54,6 +64,7 @@ modalities:
 
   MR:                                            # Magnetic Resonance
     dicom_code: "MR"
+    report_read_minutes: [60, 180]
     typical_instances_per_series_range:
       head: [140, 220]                           # DWI/FLAIR/T1/T2 typical
       spine: [120, 200]
@@ -69,6 +80,7 @@ modalities:
 
   US:                                            # Ultrasound
     dicom_code: "US"
+    report_read_minutes: [20, 90]
     typical_instances_per_series_range:
       abdomen: [12, 30]                          # ~20 static frames
       kidney: [8, 20]
@@ -92,6 +104,7 @@ modalities:
 
   XA:                                            # X-Ray Angiography (coronary angiography)
     dicom_code: "XA"
+    report_read_minutes: [30, 120]               # catheterisation report after the procedure
     typical_instances_per_series_range:
       chest: [300, 800]                          # cine runs, multiple projections
       coronary_artery: [300, 800]                # Issue #2655
@@ -101,12 +114,14 @@ modalities:
 
   ECG:                                           # Electrocardiography (DICOM waveform)
     dicom_code: "ECG"
+    report_read_minutes: [10, 30]                # cardiologist over-read
     typical_instances_per_view_range: [1, 1]     # 1 waveform object
     default_views_by_body_site:
       chest: ["12-lead"]
 
   MG:                                            # Mammography (Issue #2870)
     dicom_code: "MG"
+    report_read_minutes: [240, 2880]             # screening mammograms are batch-read within 1-2 days
     typical_instances_per_view_range: [1, 1]     # 1 image per view
     default_views_by_body_site:
       # Screening mammogram: craniocaudal + mediolateral oblique of each breast.

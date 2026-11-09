@@ -39,6 +39,7 @@ from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (  # type: ig
     RADIOLOGY_CATEGORY_V2_0074,
     RADIOLOGY_REPORT_ID_PREFIX,
     V2_0074_SYSTEM,
+    radiology_report_issued,
 )
 from clinosim.modules.output.fhir_r4.lib.common import _escape_html, dual_slot_concept
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
@@ -96,8 +97,9 @@ def _build_imaging_report_composition(
 
     encounter_id = _o(study, "encounter_id", "") or ""
     patient_id = _o(study, "patient_id", "") or ctx.patient_id
-    started_dt = _o(study, "started_datetime", None)
-    date_iso = to_fhir_datetime(started_dt) if started_dt else ""
+    # Issue #2999: the report document is dated when the read is signed.
+    issued_dt = radiology_report_issued(study)
+    date_iso = to_fhir_datetime(issued_dt) if issued_dt else ""
 
     # Author: reader-radiologist not on report; fall back to the encounter's
     # attending physician via roster_map (mirrors radiology DR fallback).
