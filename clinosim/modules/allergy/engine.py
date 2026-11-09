@@ -206,6 +206,20 @@ class AllergenConfig(BaseModel):
     polyallergy: _Polyallergy
     cross_reactivity: list[_CrossReactivityRule] | None = None
     aging: _Aging | None = None
+    # Issue #3108: youngest age (completed months) per category.
+    minimum_age_months: dict[str, StrictInt]
+
+    @field_validator("minimum_age_months")
+    @classmethod
+    def _every_category(cls, months: dict[str, int]) -> dict[str, int]:
+        if set(months) != SUPPORTED_ALLERGEN_CATEGORIES:
+            raise ValueError(
+                f"allergens.yaml minimum_age_months: one entry per category expected, got {sorted(months)}"
+            )
+        negative = sorted(c for c, m in months.items() if m < 0)
+        if negative:
+            raise ValueError(f"allergens.yaml minimum_age_months{negative}: non-negative expected")
+        return months
 
     @model_validator(mode="before")
     @classmethod
@@ -273,6 +287,30 @@ def _make_nka(nka_cfg: dict[str, Any]) -> Allergy:
     )
 
 
+def age_months_at_start(person: Any, config: Any) -> int:
+    """Completed months of age at the start of the simulation (Issue #3108):
+    from the date of birth when the window is known (0 for a person born
+    later), else the whole years of ``age``."""
+    from clinosim.modules.population.mortality import sim_window
+
+    window = sim_window(config)
+    dob = getattr(person, "date_of_birth", None)
+    if window is None or dob is None:
+        return int(getattr(person, "age", 0) or 0) * 12
+    start = window[0]
+    months = (start.year - dob.year) * 12 + (start.month - dob.month) - (1 if start.day < dob.day else 0)
+    return max(0, months)
+
+
+def _documentable(allergies: list[Allergy], age_months: int, minimum: dict[str, int]) -> list[Allergy]:
+    """The sampled allergies of a category the person is old enough to have
+    on record (Issue #3108), renumbered from 1."""
+    kept = [a for a in allergies if age_months >= int(minimum.get(a.category, 0))]
+    for i, allergy in enumerate(kept):
+        allergy.allergy_id = str(i + 1)
+    return kept
+
+
 def allergy_enricher(ctx: Any) -> None:
     """POST_POPULATION enricher: sample allergies per patient.
 
@@ -288,7 +326,10 @@ def allergy_enricher(ctx: Any) -> None:
          records; secondary allergens sampled without replacement from the
          allergen catalog. Cross-reactivity: if primary is penicillin, next
          allergen's category weights are shifted toward medication.
-      5. every patient ends with ``allergies`` = list of ≥1 record — the
+      5. an allergy of a category the patient is too young to have on
+         record (``minimum_age_months``, age at the simulation start) is
+         dropped after all draws (Issue #3108) — a newborn has none.
+      6. every patient ends with ``allergies`` = list of ≥1 record — the
          empty list is never emitted (`feedback_empty_vs_wrong_assertion`).
     """
     cfg = load_allergen_config()
@@ -296,6 +337,7 @@ def allergy_enricher(ctx: Any) -> None:
     nka_cfg = cfg["nka"]
     poly_cfg = cfg["polyallergy"]
     cross_reactivity_rules = cfg.get("cross_reactivity", []) or []
+    minimum_age_months = cfg["minimum_age_months"]
 
     categories = list(CATEGORY_WEIGHTS.keys())
     base_weights = [CATEGORY_WEIGHTS[c] for c in categories]
@@ -433,4 +475,9 @@ def allergy_enricher(ctx: Any) -> None:
                 )
                 used_codes.add(sec_entry["allergen_code"])
 
-        patient.allergies = allergies_out
+        # Issue #3108: the draws above are made at every age; an allergy the
+        # person is too young to have on record is dropped afterwards.
+        kept = _documentable(
+            allergies_out, age_months_at_start(patient, getattr(ctx, "config", None)), minimum_age_months
+        )
+        patient.allergies = kept or [_make_nka(nka_cfg)]

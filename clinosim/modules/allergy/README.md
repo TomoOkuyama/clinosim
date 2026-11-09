@@ -31,7 +31,11 @@ up to three secondary allergens.
   boost (penicillin → medication +0.20); per-allergy clinical /
   verification status sampling ("active + confirmed" majority,
   "active + unconfirmed" ~10 %, "resolved + confirmed" ~5 % restricted
-  to food category).
+  to food category). Age gate (Issue #3108): an allergy of a category
+  the person is too young to have on record (`minimum_age_months`:
+  medication 12, food 6, environment 24, by age at the simulation start)
+  is dropped after all draws, so no random stream moves; a person left
+  with none, including every newborn, carries the NKA record.
 - **In scope (validation)**: 6-layer load-time validator over
   `allergens.yaml` including `allergen_code` and every reaction's
   `manifestation_snomed` cross-checked against
@@ -159,7 +163,8 @@ for the correct audit metric (this benchmark note is cross-referenced there).
   `prevalence.adult` out of range or the SNOMED cross-checks above.
 - Sibling blocks in the same yaml: `nka` (`allergen_code`,
   `clinical_status`, `verification_status`), `polyallergy`,
-  `cross_reactivity`, and `aging` (see Scope).
+  `cross_reactivity`, `aging` and `minimum_age_months` (one non-negative
+  whole number per category; see Scope).
 
 ## Directory contents
 
@@ -168,7 +173,7 @@ clinosim/modules/allergy/
   __init__.py                     re-exports Allergy + AllergyReaction
   engine.py                       validators / load_allergens / load_allergen_config / allergy_enricher
   reference_data/
-    allergens.yaml                3-category allergen catalog + reactions, nka, polyallergy, cross_reactivity, aging
+    allergens.yaml                3-category allergen catalog + reactions, nka, polyallergy, cross_reactivity, aging, minimum_age_months
 ```
 
 The module has **no `enricher.py`, no `audit.py`, no separate

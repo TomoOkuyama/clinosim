@@ -112,6 +112,33 @@ allergens:
           severity: mild
 
 # ---------------------------------------------------------------------------
+# Issue #3108: youngest age (completed months, at the start of the
+# simulation) at which an allergy of each category can be on record. A
+# person younger than that, including every newborn, has no documented
+# allergy of the category (a sampled one is dropped; a person left with none
+# carries the NKA record).
+#
+# * food 6: a food allergy is documented after a reaction to the food, and
+#   egg and wheat are first eaten with complementary feeding, which starts
+#   at about 6 months (NIAID-sponsored "Guidelines for the Diagnosis and
+#   Management of Food Allergy in the United States", Boyce et al., JACI
+#   2010;126:S1-S58; 日本小児アレルギー学会「食物アレルギー診療ガイドライン
+#   2021」: 即時型食物アレルギーの新規発症は 0 歳が最多で、原因は鶏卵・
+#   牛乳・小麦。厚生労働省「授乳・離乳の支援ガイド」2019: 離乳の開始は
+#   生後 5-6 か月).
+# * medication 12: a drug allergy is recorded after a reaction to a previous
+#   course of the drug. The model has no record of earlier exposures, so a
+#   documented drug allergy is allowed only from the first birthday.
+# * environment 24: sensitisation to pollen and house dust mite with
+#   allergic rhinitis is uncommon before 2 years (ARIA 2008 update,
+#   Bousquet et al., Allergy 2008;63 Suppl 86:8-160).
+# ---------------------------------------------------------------------------
+minimum_age_months:
+  medication: 12
+  food: 6
+  environment: 24
+
+# ---------------------------------------------------------------------------
 # Issue #942: NKA (No Known Allergies) positive-assertion representation.
 #
 # Every patient in a JP EHR has an allergy-status field (mandatory bedside
