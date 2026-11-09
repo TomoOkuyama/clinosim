@@ -92,6 +92,12 @@ the emitted NDJSON by resource id so line order is deterministic.
   `clinosim.modules.code_status.engine.load_reference`;
   `clinosim.modules.diagnosis.nonspecific_codes.is_visit_reason_zcode`;
   `clinosim.codes.snomed.snomed_for("stage", ...)`.
+- `clinosim.modules.disease.protocol.load_all_disease_protocols` and
+  `clinosim.codes.icd10.is_icd10_shaped` — a `working_diagnoses[].disease_id`
+  that holds a disease id (an in-hospital new disease) is coded by that
+  protocol's primary ICD code; a value that resolves to no ICD code emits
+  no Condition, so a disease key never appears under an ICD system
+  (Issue #3028).
 - Builders read CIF records as dicts / attribute objects via
   `get_attr_or_key`; they import no `clinosim.types` classes.
 - No dependency on the parent `__init__.py` (no cycle back through

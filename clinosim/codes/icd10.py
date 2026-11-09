@@ -13,6 +13,8 @@ its category (:class:`Icd10CodeSystem`) in the system, then its declared sibling
 
 from __future__ import annotations
 
+import re
+
 from clinosim.codes.loader import CodeSystem, display, system_key_for
 from clinosim.codes.medis import medis_disease_keyno as medis_disease_keyno
 
@@ -22,8 +24,19 @@ __all__ = [
     "condition_short_name",
     "icd10_display",
     "icd10_system",
+    "is_icd10_shaped",
     "medis_disease_keyno",
 ]
+
+
+_ICD10_SHAPE = re.compile(r"^[A-Z][0-9]{2}(\.[0-9A-Z]{1,4})?$")
+
+
+def is_icd10_shaped(code: str) -> bool:
+    """``True`` when ``code`` has the ICD-10 / ICD-10-CM shape: a letter, two
+    digits, then an optional ``.`` and up to four characters (``I50``,
+    ``E11.9``, ``O60.10X0``). A disease key or an empty string is not."""
+    return bool(_ICD10_SHAPE.match(code or ""))
 
 
 class Icd10CodeSystem(CodeSystem):

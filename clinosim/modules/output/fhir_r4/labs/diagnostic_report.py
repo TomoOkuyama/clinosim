@@ -1168,13 +1168,12 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
             ],
         }
     ]
-    _default_code_coding = [
-        {
-            "system": get_system_uri("loinc"),
-            "code": proc_code,
-            "display": proc_display,
-        }
-    ]
+    # Issue #3028: a study with no LOINC procedure code (no modality / body
+    # site) gets no coding, never ``{"code": ""}``; the code keeps its text.
+    _default_code_coding = (
+        [{"system": get_system_uri("loinc"), "code": proc_code, "display": proc_display}] if proc_code else []
+    )
+    _code_coding = (_jp_code_coding + _default_code_coding) if _is_jp else _default_code_coding
 
     # Issue #854 Bucket B (PR-diagnostic-report): opaque radiology DR.id.
     # `rep_id` (CIF) retains the pre-#854 shape `imgrpt-{enc_id}-{idx}`
@@ -1195,8 +1194,8 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         "text": {"status": "generated", "div": div},
         "category": _jp_dr_category if _is_jp else _default_category,
         "code": {
-            "coding": (_jp_code_coding + _default_code_coding) if _is_jp else _default_code_coding,
-            "text": proc_display,
+            **({"coding": _code_coding} if _code_coding else {}),
+            "text": proc_display or t("diagnostic_report_fhir.radiology_title_bare", lang),
         },
         "subject": patient_ref(_o(study, "patient_id", "")),
         "encounter": encounter_ref(_o(study, "encounter_id", "")),

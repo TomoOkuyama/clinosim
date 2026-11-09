@@ -62,8 +62,8 @@ def test_pregnancy_complications_emit_conditions():
     rec = _record_with_working_dx(["O24.9", "O42.9"])
     conds = _build_conditions(rec, patient_id="pt-42", country="US")
     codes = _codes(conds)
-    assert "O24.9" in codes, f"O24.9 missing from emitted Conditions: {codes}"
-    assert "O42.9" in codes, f"O42.9 missing from emitted Conditions: {codes}"
+    assert "O24.919" in codes, f"O24.919 missing from emitted Conditions: {codes}"
+    assert "O42.90" in codes, f"O42.90 missing from emitted Conditions: {codes}"
 
 
 def test_secondary_condition_id_is_deterministic_and_indexed():
@@ -82,19 +82,19 @@ def test_secondary_condition_carries_encounter_diagnosis_category():
     conds = _build_conditions(rec, patient_id="pt-42", country="US")
     for c in conds:
         codes = _codes([c])
-        if "O24.9" in codes:
+        if "O24.919" in codes:
             cats = [x.get("code") for cat in c.get("category", []) for x in cat.get("coding", [])]
             assert "encounter-diagnosis" in cats
             break
     else:
-        raise AssertionError("O24.9 Condition not found")
+        raise AssertionError("O24.919 Condition not found")
 
 
 def test_secondary_condition_onset_uses_entry_timestamp():
     rec = _record_with_working_dx(["O24.9"])
     conds = _build_conditions(rec, patient_id="pt-42", country="US")
     for c in conds:
-        if "O24.9" not in _codes([c]):
+        if "O24.919" not in _codes([c]):
             continue
         assert c.get("onsetDateTime", "").startswith("2026-06-22")
         break
@@ -126,7 +126,7 @@ def test_in_hospital_complication_gets_distinguishing_evidence_label():
     rec["clinical_diagnosis"]["working_diagnoses"][0]["source"] = "in_hospital_complication"
     conds = _build_conditions(rec, patient_id="pt-42", country="US")
     for c in conds:
-        if "O24.9" not in _codes([c]):
+        if "O24.919" not in _codes([c]):
             continue
         ev_text = (c.get("evidence") or [{}])[0].get("code", [{}])[0].get("text", "")
         assert "In-hospital complication" in ev_text
