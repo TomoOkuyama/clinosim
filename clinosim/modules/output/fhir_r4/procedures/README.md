@@ -118,7 +118,9 @@ Not applicable — pure builders over CIF procedures / immunizations /
   (`http://www.ama-assn.org/go/cpt`); JP emits the MHLW 診療報酬
   K-code (`k-codes`, `urn:oid:1.2.392.200119.4.401`); a record-level
   `procedure_system_key` override (e.g. `snomed-ct`) takes
-  precedence.
+  precedence. JP output never carries CPT (Issue #3009): a procedure
+  with no K-code keeps its Japanese `code.text` and a verified SNOMED
+  coding when there is one.
 - **Oxygen therapy** (`oxygen_therapy.py`, Issue #796):
   - `_SNOMED_OXYGEN_THERAPY = "57485005"` — SNOMED CT code for
     oxygen administration.
