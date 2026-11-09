@@ -1133,7 +1133,7 @@ def _derive_home_medications(
                     ]
 
         # Single-mechanism selection: exclusive_classes categorical + non-exclusive
-        # independent Bernoulli. Shared with `_build_discharge_rx` — see
+        # independent Bernoulli. Shared with `build_discharge_rx` — see
         # `select_with_exclusive_classes` in clinosim.modules._shared.
         from clinosim.modules._shared import select_with_exclusive_classes
 

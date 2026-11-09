@@ -18,12 +18,12 @@
 # β-JP-1 chain 1a extension).
 #
 # Current entries:
-#   - hpi: `_build_hpi` fallback — pre-F-3 HPI generation emitted ja
+#   - hpi: `build_hpi` fallback — pre-F-3 HPI generation emitted ja
 #     text whenever disease YAML HPI templates were absent (which is
 #     every disease at the time of audit).
-#   - physical_examination: `_build_physical_examination` fallback —
+#   - physical_examination: `build_physical_examination` fallback —
 #     same source gap, matching builder.
-#   - assessment_and_plan: `_build_assessment_and_plan` fallback added
+#   - assessment_and_plan: `build_assessment_and_plan` fallback added
 #     at β-JP-1 chain 1a once `ctx.disease_protocol` wiring surfaced
 #     the same per-section data-authoring gap.
 

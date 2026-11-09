@@ -195,7 +195,7 @@ def select_with_exclusive_classes(
         Used by population-time activator where per-drug independent draws
         model "some drugs are optional".
       * ``"always"``: include unconditionally, ignoring ``probability``.
-        Used by ``_build_discharge_rx`` where the pre-existing legacy
+        Used by ``build_discharge_rx`` where the pre-existing legacy
         semantics are "every drug listed for this discharge_oral block is
         prescribed" (byte-compat with disease protocols that predate
         Issue #432 and rely on unconditional emit).

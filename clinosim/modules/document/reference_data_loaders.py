@@ -393,7 +393,7 @@ def load_nursing_content() -> dict[str, Any]:
     """Load clinosim-nursing-content.yaml + validate. Cached singleton.
 
     Returns the full top-level dict with `acute_disease` and
-    `chronic_icd10` axes. Consumers (`template_generator._build_nursing_*`)
+    `chronic_icd10` axes. Consumers (`section_builders.nursing.build_*`)
     merge acute-first then chronic-second, per-lang, deduplicating and
     capping the merged list.
     """

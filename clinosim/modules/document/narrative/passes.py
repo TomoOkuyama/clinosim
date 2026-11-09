@@ -578,7 +578,7 @@ class NarrativePass(ABC):
             # the text reaches the LLM.
             roster_map=self.roster_map,
             # Issue #981 — expose the encounter's orders (per-encounter
-            # CIF file already filters to one encounter) so `_build_ed_workup`
+            # CIF file already filters to one encounter) so `build_ed_workup`
             # can enumerate labs / imaging actually placed in the ED.
             orders=list(patient_dict.get("orders", []) or []),
             # Issue #982 — expose family_history for the narrative walker
@@ -615,8 +615,8 @@ class NarrativePass(ABC):
         into an ISO string — same lossy round trip that ``parse_iso_datetime``
         already handles for ``admission_datetime``/``discharge_datetime``.
         The rehabilitation_plan section builders
-        (``_build_rp_session_frequency`` / ``_build_rp_functional_status`` /
-        ``_build_rp_basic_movement``) call ``.date()`` / compare via
+        (``build_rp_session_frequency`` / ``build_rp_functional_status`` /
+        ``build_rp_basic_movement``) call ``.date()`` / compare via
         ``min``/``max`` on this field — a raw string round-trips fine through
         dict access but breaks those calls (first surfaced by the full-chain
         integration test that exercised the real structural-CIF JSON path

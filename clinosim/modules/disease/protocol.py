@@ -23,7 +23,7 @@ _REF_DIR = _HERE / "reference_data"
 # Two readers in `clinosim/simulator/inpatient.py` substitute a route when a
 # drug entry omits the `route` key. Each substitutes a different default:
 #
-#   drugs.discharge_oral -> "PO"   (`_build_discharge_rx._append_item`)
+#   drugs.discharge_oral -> "PO"   (`build_discharge_rx._append_item`)
 #   drugs.escalation     -> "IV"   (escalation order placement)
 #
 # The substitution is a grounded inference for most entries — `discharge_oral`
@@ -127,7 +127,7 @@ def _validate_drug_route_vocabulary(disease_id: str, data: dict[str, Any]) -> No
 # Drug-block duration_days fallback validation (Issue #462)
 # ---------------------------------------------------------------------------
 #
-# `_build_discharge_rx._append_item` substitutes `duration_days = 7` when a
+# `build_discharge_rx._append_item` substitutes `duration_days = 7` when a
 # `discharge_oral` entry omits the field. That fallback is a grounded inference
 # for daily-dosed drugs where "7 days = 1 week supply" is a defensible default.
 #

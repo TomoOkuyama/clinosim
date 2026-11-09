@@ -123,7 +123,7 @@ def render_progress_note(
             objective = f"{today_vitals_line}。{objective}"
 
         # Add physical exam findings to the objective section (JP only,
-        # EN skips to prevent CJK leak — sibling of _build_physical_examination fix)
+        # EN skips to prevent CJK leak — sibling of build_physical_examination fix)
         phys_exam = generator._resolve_physical_exam(ctx, ctx.clinical_course_archetype, ctx.day_index)
         if phys_exam:
             facts.append(f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}")

@@ -382,8 +382,8 @@ drugs:
         duration_days: 28   # maintenance controller: same supply as the chronic renewal, so it stays a home medication
         dose: ""   # Issue #476: no numeric dose exists. Authored JP + EN
                    # instructions live in `dose_ja` / `dose_en` (below) — read
-                   # by _build_discharge_rx / _bb_discharge_medication_requests
-                   # / _build_dosage_instruction as country-scoped text. Kept
+                   # by build_discharge_rx / _bb_discharge_medication_requests
+                   # / build_dosage_instruction as country-scoped text. Kept
                    # empty (rather than "As prescribed") because the term
                    # translator mangled the placeholder into "として prescribed"
                    # on the JP path — session 76 Issue #469 escape via `note`

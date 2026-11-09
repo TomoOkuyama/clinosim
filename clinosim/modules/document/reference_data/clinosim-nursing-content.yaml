@@ -2,8 +2,8 @@
 # care_plan / patient_education) for admission_nursing_assessment (doc-05)
 # and nursing_discharge_summary (doc-10).
 #
-# Pre-session-104 behavior: template_generator._build_nursing_{diagnosis,
-# care_plan, patient_education} keyed on 6 chronic ICD-10 prefixes
+# Behavior before 2026-09-06: the nursing_diagnosis / care_plan /
+# patient_education builders keyed on 6 chronic ICD-10 prefixes
 # (I10 / I50 / E11 / N18 / J45 / J44) — completely disease-agnostic for
 # ACUTE admission reasons, so every COPD-exacerbation admission got the
 # same nursing content as a DVT admission (whichever chronic conditions

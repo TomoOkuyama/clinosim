@@ -361,7 +361,7 @@ class TemplateNarrativeGenerator:
         meant to represent an AT-ADMISSION prediction). Falls back to
         ctx.los_days only when disease_protocol is unavailable.
 
-        Shared by _build_acp_estimated_los and _build_rp_discharge_estimate —
+        Shared by build_acp_estimated_los and build_rp_discharge_estimate —
         extracted once rehabilitation_plan became the 2nd consumer
         (implementation-rules.md §4 canonical single-source rule)."""
         facts: list[str] = []

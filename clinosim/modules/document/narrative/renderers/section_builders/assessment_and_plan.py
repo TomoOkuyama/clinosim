@@ -182,7 +182,7 @@ def _compose_ap_plan_from_state(generator: TemplateNarrativeGenerator, ctx: Narr
     # LOS estimate — Issue #1185 F4: two sections of the same admission_hp
     # document reported different planned LOS numbers (25日 vs 17日)
     # because `_compose_ap_plan_from_state` used `ctx.los_days` (the
-    # actual observed LOS) while `_build_acp_estimated_los` used the
+    # actual observed LOS) while `build_acp_estimated_los` used the
     # canonical `_estimated_los_days()` resolver (protocol mean =
     # AT-ADMISSION prediction). Route both through the canonical
     # resolver so the "予定入院期間" and "推定入院期間" slots of the

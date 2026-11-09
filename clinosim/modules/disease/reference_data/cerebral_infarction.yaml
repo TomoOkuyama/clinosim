@@ -444,7 +444,7 @@ drugs:
   # they existed as YAML data but had NO Python reader (dead code — see
   # Issue #437), so cerebral_infarction patients silently received an
   # empty discharge prescription. Each block below opts in via
-  # `continue_at_discharge: true`; the reader is `_build_discharge_rx`
+  # `continue_at_discharge: true`; the reader is `build_discharge_rx`
   # (single edit point, `select_with_exclusive_classes` shared with
   # `chronic_medications.yaml` and `discharge_oral`). Sources for each
   # category are cited inline (JCS 2019 / AHA-ASA 2021 / JCS 2015 etc.).
@@ -453,7 +453,7 @@ drugs:
     # `first_line:` layer. The nested form had no Python consumer at any
     # depth (grep -rn 'first_line' shows only top-level `drugs.first_line`
     # and `admission.medications.first_line` — both unrelated). Flattened
-    # 2026-07-29 (session 72) to align with the schema `_build_discharge_rx`
+    # 2026-07-29 (session 72) to align with the schema `build_discharge_rx`
     # expects (block[country_key] → list[drug_spec]).
     continue_at_discharge: true
     japan:

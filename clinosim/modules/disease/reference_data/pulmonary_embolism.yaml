@@ -407,7 +407,7 @@ drugs:
     # entries were emitted unconditionally (implicit probability=1.0),
     # producing 100% 2-drug regimens for every PE discharge. The single-mechanism
     # (`exclusive_classes` + `drug_class`) matches `chronic_medications.yaml`
-    # so `_build_discharge_rx` and `_derive_home_medications` share one rule.
+    # so `build_discharge_rx` and `_derive_home_medications` share one rule.
     # META #1804 Phase 2.d anticoagulant-antiviral cluster: discharge_oral
     # entries carry drug_id into clinosim/codes/data/drugs.yaml. Display
     # resolved via the catalog.

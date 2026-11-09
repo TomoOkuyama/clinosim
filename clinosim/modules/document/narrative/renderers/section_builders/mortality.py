@@ -616,7 +616,7 @@ def build_dds_complications_and_comorbidities(
     if comp_tokens:
         # Phase 1d-72: route through _localize_complication so JA
         # resolves ``hypokalemia`` → 低カリウム血症 etc. and EN keeps
-        # canonical casing. Sibling fix to _build_dc_contributing_conditions.
+        # canonical casing. Sibling fix to build_dc_contributing_conditions.
         comp_labels_str = cond_sep.join(_localize_complication(str(tok), lang) for tok in comp_tokens)
         parts.append(t("dds_complications_and_comorbidities.in_hospital_part", lang, list=comp_labels_str))
     # JA joins parts with "。" (list_sep.period) + trailing period;

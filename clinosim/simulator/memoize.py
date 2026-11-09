@@ -48,7 +48,7 @@ in ``test_memoize_hit_bit_identical``.)
    ``patient_cache[pid].current_medications``, a cold-vs-memo divergence
    analogous to limitation 1 appeared on the ``current_medications``
    field. **The new divergence path is confirmed empirically.** However,
-   the exact-name dedup added alongside the change (``_build_discharge_rx``
+   the exact-name dedup added alongside the change (``build_discharge_rx``
    in ``inpatient.py``) prevents same-name drug accumulation across
    admissions, so the observed drift after Phase 1 + dedup
    (p=600 / seed=123 / 2 mo advance, stress variant of

@@ -369,7 +369,7 @@ _GENERIC_ASSESSMENT_EN = t("fallback.generic_assessment", "en")
 _GENERIC_PLAN_JA = t("fallback.generic_plan", "ja")
 _GENERIC_PLAN_EN = t("fallback.generic_plan", "en")
 
-# JP/EN disposition-label map for `_build_discharge_details`. Kept at
+# JP/EN disposition-label map for `build_discharge_details`. Kept at
 # module scope because the equivalent function-local ``UPPER_CASE`` binding
 # would trigger the N806 lint rule.
 # Phase 1d-32: ``_JA_DISPO_LABEL`` / ``_EN_DISPO_LABEL`` moved to
@@ -511,7 +511,7 @@ def _hpi_onset_en(severity: str) -> str:
 
 # Occupation labels (v6, 2026-08-16). Population layer emits raw
 # English tokens (retired, office, manufacturing, …); v5
-# `_build_social_history` pasted them verbatim into JP narratives, so
+# `build_social_history` pasted them verbatim into JP narratives, so
 # 96-yo 女性 の 職業 が 「retired」 と英字で残っていた。These maps close
 # the gap. `_OCCUPATION_*.get(k, k)` — unmapped values fall back to the
 # raw token so unknown occupations still render (defensive default).

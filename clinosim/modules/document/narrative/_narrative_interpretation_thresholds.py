@@ -58,7 +58,7 @@ NARRATIVE_BMI_UNDERWEIGHT_MAX_EXCLUSIVE: float = 18.5
 """BMI (kg/m²) below which the interpretation is 「低体重」
 (underweight). Matches the WHO underweight cutoff (< 18.5).
 
-Also used by `_build_ncp_nutrition_risk` as the "high malnutrition
+Also used by `build_ncp_nutrition_risk` as the "high malnutrition
 risk" boundary — same clinical semantics."""
 
 NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE: float = 25.0
@@ -66,7 +66,7 @@ NARRATIVE_BMI_NORMAL_MAX_EXCLUSIVE: float = 25.0
 「標準」 (normal). Matches the JP 日本肥満学会 obesity category-1
 boundary and the WHO overweight boundary (both = 25.0).
 
-Also used by `_build_ncp_nutrition_risk` as the "overnutrition
+Also used by `build_ncp_nutrition_risk` as the "overnutrition
 tendency" trigger — same clinical semantics."""
 
 NARRATIVE_BMI_OBESITY_MILD_MAX_EXCLUSIVE: float = 30.0

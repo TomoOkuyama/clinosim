@@ -249,7 +249,7 @@ class NarrativeContext:
     # with ``onset_day`` / ``onset_datetime`` / ``source`` (see
     # ``types/output.py::CIFPatientRecord.complications_occurred``). This
     # narrative-facing field remains a plain ``list[str]`` so the eight
-    # template_generator consumers (`_build_hospital_course`,
+    # template_generator consumers (`build_hospital_course`,
     # `_render_progress_note_assessment`, etc.) that iterate over the
     # tokens are untouched. See ``complications_events`` below for the
     # dict-carrying twin field that the LLM prompt path
@@ -295,8 +295,8 @@ class NarrativeContext:
 
     # === v9 (2026-08-17) nursing density fix ===
     # ADL / risk / intake-output snapshots consumed by nursing template
-    # builders (`_build_adl_assessment`, `_build_risk_assessments`,
-    # `_build_nursing_history` etc.). Sourced from
+    # builders (`build_adl_assessment`, `build_risk_assessments`,
+    # `build_nursing_history` etc. in `section_builders/nursing.py`). Sourced from
     # record.adl_assessments / record.nursing_risk_assessments /
     # record.intake_output_records. Empty list is the safe default —
     # template falls through to a hedged phrase rather than fabricating.
@@ -319,7 +319,7 @@ class NarrativeContext:
     # === Issue #981 (ED workup + disposition) ===
     # Raw ``record.orders`` for the encounter (already narrowed by the
     # per-encounter structural-CIF file layout). Consumed by
-    # ``_build_ed_workup`` to enumerate labs / imaging actually placed
+    # ``build_ed_workup`` to enumerate labs / imaging actually placed
     # during the ED visit, rather than falling back to a boilerplate
     # "検査・処置：特記事項なし" phrase (71% placeholder rate in the
     # p=2000 audit that motivated the issue). Kept as ``list[Any]`` so
@@ -339,7 +339,7 @@ class NarrativeContext:
     # Raw ``record.family_history`` (list of ``FamilyMemberHistoryRecord``
     # dicts). Populated for FHIR emit already; the narrative layer used
     # to ignore it and emit "特記家族歴なし" for 100% of docs. Consumed
-    # by ``_build_family_history`` to render a relationship-grouped
+    # by ``build_family_history`` to render a relationship-grouped
     # narrative from the actual condition codes.
     family_history: list[Any] = field(default_factory=list)
 
