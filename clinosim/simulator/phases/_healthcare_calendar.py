@@ -11,7 +11,7 @@ no shared global generator is read.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from clinosim.locale.i18n import t
@@ -37,6 +37,7 @@ from clinosim.simulator.outpatient_dept import resolve_outpatient_department
 from clinosim.simulator.screening_visit import screening_visit_spec
 
 if TYPE_CHECKING:
+    from clinosim.simulator._dispatch import InpatientStayIndex
     from clinosim.simulator.phases._forward_loop import ForwardContext
 
 
@@ -63,6 +64,26 @@ def place_outpatient_visit(day_ends: dict, patient_id: str, start: datetime) -> 
     visit that day when they would overlap (Issue #2690). No RNG."""
     end = day_ends.get((patient_id, start.date()))
     return max(start, next_visit_start(end)) if end else start
+
+
+# Calendar events that are clinic visits; an admission (delivery, abortion)
+# during a stay is merged into it by the inpatient dispatch instead.
+_CLINIC_VISIT_EVENTS = frozenset({"chronic_visit", "pediatric_visit", "chemo_visit", "health_screening"})
+
+
+def visit_time_outside_stays(
+    stays: InpatientStayIndex, patient_records: list, patient_id: str, visit_time: datetime
+) -> datetime | None:
+    """``visit_time`` when the patient is not admitted then; otherwise the
+    same clock time on the day after discharge (Issue #2996), past any
+    further stay; ``None`` while the patient is still admitted at the
+    snapshot. No RNG."""
+    while (stay := stays.active_at(patient_records, patient_id, visit_time)) is not None:
+        discharge = stay.encounters[0].discharge_datetime
+        if discharge is None:
+            return None
+        visit_time = datetime.combine(discharge.date() + timedelta(days=1), visit_time.time())
+    return visit_time
 
 
 def note_outpatient_visit(day_ends: dict, patient_id: str, record: Any) -> None:
@@ -104,30 +125,44 @@ def newborn_calendar_events(person: Any, year: int, ctx: ForwardContext) -> list
     return [e for e in events if e.timestamp and person.in_population_at(e.timestamp)]
 
 
-def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
-    """Simulate one calendar event on its date, appending its record(s)."""
+def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext, visit_day: date | None = None) -> datetime | None:
+    """Simulate one calendar event on its date (``visit_day`` when it was
+    postponed), appending its record(s).
+
+    Issue #2996: a clinic visit dated while the patient is admitted is not
+    held; the return value is the time after discharge to dispatch it at
+    instead (``None`` otherwise). A visit the stay pushes into the next
+    calendar year is dropped: that year's calendar has its own visits."""
     from clinosim.simulator.engine import _handle_overlap_via_merge
 
+    day = visit_day or event.timestamp
     person = ctx.population.get_person(event.person_id)
-    if not person or not person.in_population_at(event.timestamp):
-        return
+    if not person or not person.in_population_at(day):
+        return None
+
+    ev_key = f"{event.person_id}|{event.timestamp.isoformat()}|{event.event_type}|{event.disease_id}"
+    ev_rng = derive_phase_rng(ctx.master_seed, PHASE_OUTPATIENT_CAL, ev_key)
+
+    visit_time = datetime(
+        day.year,
+        day.month,
+        day.day,
+        OUTPATIENT_CALENDAR_VISIT_HOUR,
+        int(ev_rng.integers(OUTPATIENT_MINUTE_JITTER_MIN, OUTPATIENT_MINUTE_JITTER_MAX_EXCLUSIVE)),
+    )
+    if event.event_type in _CLINIC_VISIT_EVENTS:
+        free_time = visit_time_outside_stays(ctx.inpatient_stays, ctx.patient_records, event.person_id, visit_time)
+        if free_time != visit_time:
+            if free_time is None or free_time.year != event.timestamp.year:
+                return None
+            return free_time
+
     patient = _activate_cached_person(
         person,
         as_of_year=event.timestamp.year,
         patient_cache=ctx.patient_cache,
         master_seed=ctx.master_seed,
         demo=ctx.demo,
-    )
-
-    ev_key = f"{event.person_id}|{event.timestamp.isoformat()}|{event.event_type}|{event.disease_id}"
-    ev_rng = derive_phase_rng(ctx.master_seed, PHASE_OUTPATIENT_CAL, ev_key)
-
-    visit_time = datetime(
-        event.timestamp.year,
-        event.timestamp.month,
-        event.timestamp.day,
-        OUTPATIENT_CALENDAR_VISIT_HOUR,
-        int(ev_rng.integers(OUTPATIENT_MINUTE_JITTER_MIN, OUTPATIENT_MINUTE_JITTER_MAX_EXCLUSIVE)),
     )
     # Issue #2690: a patient is in one clinic at a time — a visit that would
     # overlap an earlier same-day visit starts after it (the minute draw above
@@ -199,7 +234,7 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
             if _post_hoc_overlap is None:
                 ctx.patient_records.append(_r)
                 note_outpatient_visit(ctx.outpatient_day_ends, event.person_id, _r)
-        return
+        return None
     elif event.event_type == "delivery":
         from clinosim.simulator.perinatal import simulate_delivery_encounter
 
@@ -223,7 +258,7 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
                 ctx.patient_records.append(mother_rec)
             for _r in companions:
                 ctx.patient_records.append(_r)
-        return
+        return None
     elif event.event_type == "chemo_visit":
         regimen_name = event.protocol_source.split(":", 1)[1] if ":" in event.protocol_source else ""
         from clinosim.locale.loader import load_chemo_regimens
@@ -273,7 +308,7 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
             department_id=screening_dept,
         )
     else:
-        return
+        return None
 
     ctx.patient_records.append(opd_record)
     note_outpatient_visit(ctx.outpatient_day_ends, event.person_id, opd_record)
@@ -330,3 +365,4 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext) -> None:
             note_outpatient_visit(ctx.outpatient_day_ends, event.person_id, specialty_record)
             if specialty_record.encounters:
                 slot_end = specialty_record.encounters[0].discharge_datetime
+    return None

@@ -18,6 +18,7 @@ from clinosim.modules.immunization.visits import (
 )
 from clinosim.modules.immunization.visits import bind_to_vaccination_visits as _bind
 from clinosim.modules.population import is_flu_vaccination_candidate
+from clinosim.simulator._dispatch import InpatientStayIndex
 from clinosim.types.encounter import Encounter, EncounterStatus, EncounterType, ImmunizationRecord
 from clinosim.types.patient import PatientProfile
 
@@ -372,6 +373,7 @@ def test_flu_vaccination_visit_starts_no_specialty_follow_up(monkeypatch, diseas
         config=SimpleNamespace(country="US"),
         followup_data={},
         outpatient_day_ends={},
+        inpatient_stays=InpatientStayIndex(),
     )
     monkeypatch.setattr(
         hc, "_activate_cached_person", lambda person, **_k: SimpleNamespace(patient_id="P1", current_medications=[])

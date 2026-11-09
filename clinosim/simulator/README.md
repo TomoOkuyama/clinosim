@@ -179,6 +179,14 @@ Forward loop and phases (`phases/`, 5 modules + `__init__.py`):
   phases/_post_discharge.py      schedule_post_discharge / dispatch_post_discharge
 ```
 
+A clinic visit is never held while the patient is admitted (Issue #2996):
+`dispatch_calendar_event` moves a calendar visit dated inside a stay to the
+same clock time on the day after discharge (re-queued; dropped when that
+leaves the calendar year or the patient is still admitted at the snapshot),
+and `dispatch_post_discharge` drops a follow-up that falls inside a later
+stay, which queues its own. `_dispatch.InpatientStayIndex` answers the
+"admitted at this time?" check.
+
 Pipelines (3 files):
 
 ```

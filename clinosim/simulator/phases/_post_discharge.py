@@ -3,7 +3,8 @@
 For every surviving inpatient stay (index or readmission) the forward loop
 (Issue #2169) queues one follow-up visit at ``discharge + first_visit_days``
 (default 14 d, ``_post_discharge`` yaml) with the same service line as the
-stay — continuity of care.
+stay — continuity of care. A follow-up that falls inside a later stay is not
+held (Issue #2996): that stay queues its own.
 
 RNG consumption is derive_phase_rng(master_seed, PHASE_OUTPATIENT_CAL,
 opd_key) sub-seeds; no shared global generator is read.
@@ -40,6 +41,10 @@ def dispatch_post_discharge(record: CIFPatientRecord, followup_date: datetime, c
     pid = record.patient.patient_id
     person = ctx.population.get_person(pid)
     if not person or not person.in_population_at(followup_date.date()):
+        return
+    # Issue #2996: a patient readmitted by then is not seen in clinic; the
+    # new stay queues its own follow-up after its discharge.
+    if ctx.inpatient_stays.active_at(ctx.patient_records, pid, followup_date) is not None:
         return
     enc = record.encounters[0]
     diseases = record.condition_event.ground_truth_diseases

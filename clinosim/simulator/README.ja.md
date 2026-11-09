@@ -173,6 +173,13 @@ forward ループとフェーズ (`phases/`、5 モジュール + `__init__.py`)
   phases/_post_discharge.py      schedule_post_discharge / dispatch_post_discharge
 ```
 
+入院中の患者は外来受診しない (Issue #2996)。`dispatch_calendar_event` は
+入院期間内に当たったカレンダー受診を退院翌日の同時刻へ延期し (キューに
+再投入。暦年をまたぐ場合・スナップショット時点で入院中の場合は取りやめ)、
+`dispatch_post_discharge` は後続入院の期間内に当たった退院後フォローアップを
+取りやめる (後続入院が自身のフォローアップを予約する)。入院中かどうかの
+判定は `_dispatch.InpatientStayIndex` が担う。
+
 パイプライン (3 ファイル):
 
 ```
