@@ -3305,7 +3305,7 @@
 </tr>
 <tr>
 <td><code>map_diagnosis_code(code, country, sex)</code></td>
-<td>internal diagnosis base code → the country's ICD code (<code>code_mapping_diagnosis.yaml</code>; sex-conditional leaves), the code itself when unmapped</td>
+<td>internal diagnosis base code → the country's ICD code (<code>code_mapping_diagnosis.yaml</code>; sex-conditional leaves), the code itself when unmapped. Every diagnosis coding in the output — <code>Condition.code</code>, <code>Encounter.reasonCode</code>, <code>Procedure.reasonCode</code> — goes through it (Issue #3010). JP output uses WHO ICD-10 (MHLW 2013) only: an ICD-10-CM-only code the simulator generates has a JP entry folding it to its WHO code, checked against the MHLW 基本分類表 code by code, and <code>tests/unit/test_diagnosis_code_coverage.py</code> fails when an emittable code's JP target is not in <code>icd-10.yaml</code></td>
 </tr>
 <tr>
 <td><code>vocab_display(vocab, slug, lang, *, fallback)</code></td>
