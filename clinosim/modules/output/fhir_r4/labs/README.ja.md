@@ -9,6 +9,11 @@ vitals + ABO/RhD + microbiology + 身体計測 + 慢性疾患 stage scale)、`Di
 コードを解決する JP-CLINS lab-code loader (`coding_package`) +
 dispatcher (`coding_strategy`)。
 
+培養結果 (`_bb_microbiology`、Issue #3039): 菌同定・感受性の Observation と
+微生物 DiagnosticReport は検体採取時刻を effective、報告時刻を `issued` と
+する。`Specimen.receivedTime` は採取時刻 +
+`observation.microbiology.specimen_transport_minutes`。
+
 ## Scope
 
 - **In scope**: `_bb_labs` (lab Observation) + `_build_vital_observations`

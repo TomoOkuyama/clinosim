@@ -111,6 +111,7 @@ class MicrobiologyConfig(BaseModel):
     organisms: dict[str, _Organism] = Field(default_factory=dict)
     specimens: dict[str, _Specimen] = Field(default_factory=dict)
     culture_order_match_window_hours: float = 6.0
+    specimen_transport_minutes: int = Field(default=45, ge=0)
     repeat_culture_persistence_prob: float = Field(default=0.0, ge=0.0, le=1.0)
     workup_culture_window_hours: float = 24.0
     diseases: dict[str, _DiseaseProfile] = Field(default_factory=dict)
@@ -186,6 +187,11 @@ def culture_order_names(specimen: str) -> frozenset[str]:
 def culture_order_match_window_hours() -> float:
     """How far a culture order may be from the culture's collection time (Issue #2585)."""
     return float(_load().get("culture_order_match_window_hours", 6.0))
+
+
+def specimen_transport_minutes() -> int:
+    """Minutes from a culture specimen's collection to its receipt in the laboratory (Issue #3039)."""
+    return int(_load().get("specimen_transport_minutes", 45))
 
 
 def workup_culture_window_hours() -> float:

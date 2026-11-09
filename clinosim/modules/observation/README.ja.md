@@ -98,6 +98,7 @@ from clinosim.modules.observation.microbiology import (
     culture_draws,                       # (orders, encounter_id) -> list[(specimen, collected)]  (Issue #2640)
     culture_results,                     # (disease_id, draws, encounter_id, master_seed) -> list[MicrobiologyResult]
     antibiotic_loinc_lookup,             # () -> dict[antibiotic_key, LOINC code]
+    specimen_transport_minutes,          # () -> int、採取から検査室受領まで (Issue #3039)
 )
 ```
 

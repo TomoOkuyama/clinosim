@@ -11,6 +11,12 @@ JP-CLINS lab-code loader (`coding_package`) and dispatcher
 (`coding_strategy`) that resolve JLAC10 five-axis codes at emit
 time.
 
+Culture results (`_bb_microbiology`, Issue #3039): the organism and
+susceptibility Observations and the microbiology DiagnosticReport are
+effective at the specimen collection and `issued` at the report;
+`Specimen.receivedTime` is the collection plus
+`observation.microbiology.specimen_transport_minutes`.
+
 ## Scope
 
 - **In scope**: `_bb_labs` (lab Observation) + `_build_vital_observations`
