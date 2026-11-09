@@ -22,6 +22,13 @@ arguments come from literals or module-scope constants.
 from __future__ import annotations
 
 __all__ = [
+    "TERMINAL_CONSCIOUSNESS_MIN",
+    "TERMINAL_OBSERVATION_GAP_HOURS",
+    "TERMINAL_OBSERVATION_MINUTES_BEFORE_DEATH",
+    "TERMINAL_OXYGENATION_MIN",
+    "TERMINAL_PERFUSION_MAX",
+    "TERMINAL_VOLUME_MAX",
+    "TERMINAL_WINDOW_HOURS",
     "AIRWAY_CONSCIOUSNESS_MIN",
     "AIRWAY_ESCALATION_HOUR",
     "AIRWAY_OXYGENATION_MIN",
@@ -239,3 +246,35 @@ ICU_DISTRIBUTIVE_SHOCK_PERFUSION_MAX: float = 0.8
 """Distributive shock also requires some hypoperfusion (``perfusion_status``
 below 0.8, lactate rising): maximal inflammation with preserved perfusion
 is treated on the ward (Issue #2110)."""
+
+
+# ---------------------------------------------------------------------------
+# Terminal course before an in-hospital death (Issue #2985,
+# ``clinosim/simulator/terminal_course.py``)
+# ---------------------------------------------------------------------------
+
+TERMINAL_WINDOW_HOURS: int = 12
+"""Hours before an in-hospital death over which the state moves from the
+day's state to the terminal state; vitals charted in them follow it."""
+
+TERMINAL_PERFUSION_MAX: float = 0.1
+"""``perfusion_status`` at death (at most): circulatory failure. With the
+volume below, a baseline SBP of 125 mmHg reads about 85 mmHg and the HR
+about 140/min (physiology engine)."""
+
+TERMINAL_VOLUME_MAX: float = -0.3
+"""``volume_status`` at death (at most): effective hypovolaemia of the
+failing circulation."""
+
+TERMINAL_OXYGENATION_MIN: float = 0.5
+"""``oxygenation_impairment`` at death (at least): room-air SpO2 about 85 %."""
+
+TERMINAL_CONSCIOUSNESS_MIN: float = 0.75
+"""``consciousness_impairment`` at death (at least): unresponsive (AVPU U)."""
+
+TERMINAL_OBSERVATION_GAP_HOURS: int = 2
+"""A full set of vitals is charted before death when the last one is more
+than this many hours earlier."""
+
+TERMINAL_OBSERVATION_MINUTES_BEFORE_DEATH: int = 30
+"""Minutes before death of that final set of vitals."""

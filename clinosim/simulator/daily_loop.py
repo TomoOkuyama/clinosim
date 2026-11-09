@@ -1000,6 +1000,23 @@ def _dies_today(stay: _Stay, run: _Run, day: int, expected_mortality_multiplier:
     )
 
 
+def _record_terminal_course(stay: _Stay, run: _Run, day: int) -> None:
+    """Issue #2985: the final hours before a death drawn today deteriorate
+    (``terminal_course.apply_terminal_course``). The death time is the one
+    the inpatient simulator records (00:mm after the last hospital day)."""
+    from clinosim.simulator.inpatient import _planned_discharge_datetime
+    from clinosim.simulator.terminal_course import apply_terminal_course
+
+    apply_terminal_course(
+        run.vitals,
+        run.state_history,
+        stay.patient,
+        disease_id=stay.disease_id,
+        encounter_id=stay.encounter_id,
+        death_time=_planned_discharge_datetime(stay.admission_time, day + 1, 0),
+    )
+
+
 def _gate_new_medication_orders(
     stay: _Stay, admission_orders: list[Order], orders: list[Order], admission_ids: set[str]
 ) -> list[Order]:
@@ -1164,6 +1181,7 @@ def _run_daily_loop(
 
         if _dies_today(stay, run, day, expected_mortality_multiplier):
             run.death_occurred = True
+            _record_terminal_course(stay, run, day)
             break
         # Early discharge: if state-based criteria met before target_los
         # (not for protocols whose recovery the physiology does not model,

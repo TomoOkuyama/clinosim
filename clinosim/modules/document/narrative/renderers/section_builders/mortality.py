@@ -43,6 +43,71 @@ if TYPE_CHECKING:
 # DC/DDS-local helpers (private to this module).
 # ─────────────────────────────────────────────────────────────────────
 
+TERMINAL_HYPOTENSION_SBP_MAX = 90
+"""Last recorded SBP (mmHg) below which the terminal course reads as
+circulatory failure (Issue #2985; the NEWS2 3-point band starts at 90)."""
+
+TERMINAL_HYPOXAEMIA_SPO2_MAX = 90.0
+"""Last recorded SpO2 (%) below which it reads as respiratory failure."""
+
+_UNRESPONSIVE_AVPU = frozenset({"P", "U"})
+
+
+def _as_datetime(value: object) -> datetime | None:
+    """``value`` as a datetime (CIF dicts carry ISO strings), else ``None``."""
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str) and value:
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            return None
+    return None
+
+
+def _last_recorded_vitals(ctx: NarrativeContext) -> object | None:
+    """The last full set of vitals (HR, BP and SpO2 charted; not a monitor
+    HR / SpO2 pair) at or before the death, or ``None``."""
+    death = _as_datetime(_o(ctx.encounter, "discharge_datetime", None))
+    best, best_at = None, None
+    for v in ctx.vitals or []:
+        at = _as_datetime(_o(v, "timestamp", None))
+        if at is None or any(_o(v, k, None) is None for k in ("heart_rate", "systolic_bp", "spo2")):
+            continue
+        if death is not None and at > death:
+            continue
+        if best_at is None or at > best_at:
+            best, best_at = v, at
+    return best
+
+
+def _terminal_phrase_key(last: object) -> str | None:
+    """The terminal-course phrase the last recorded vitals show, or ``None``."""
+    sbp = _o(last, "systolic_bp", None)
+    if sbp is not None and sbp < TERMINAL_HYPOTENSION_SBP_MAX:
+        return "dds_terminal_course.phrase_acute"
+    if _o(last, "spo2", 100.0) < TERMINAL_HYPOXAEMIA_SPO2_MAX:
+        return "dds_terminal_course.phrase_respiratory"
+    if str(_o(last, "consciousness_level", "") or "") in _UNRESPONSIVE_AVPU:
+        return "dds_terminal_course.phrase_consciousness"
+    return None
+
+
+def _last_vitals_line(last: object, lang: str) -> str:
+    """ "The last recorded observations (ts) were HR .., BP .., ..." from the record."""
+    parts = [t("dds_terminal_course.hr", lang, hr=_o(last, "heart_rate"))]
+    if _o(last, "systolic_bp", None) is not None and _o(last, "diastolic_bp", None) is not None:
+        parts.append(t("dds_terminal_course.bp", lang, sbp=_o(last, "systolic_bp"), dbp=_o(last, "diastolic_bp")))
+    if _o(last, "respiratory_rate", None) is not None:
+        parts.append(t("dds_terminal_course.rr", lang, rr=_o(last, "respiratory_rate")))
+    o2 = t("dds_terminal_course.on_oxygen", lang) if _o(last, "on_supplemental_oxygen", False) else ""
+    parts.append(t("dds_terminal_course.spo2", lang, spo2=f"{float(_o(last, 'spo2')):.0f}", o2=o2))
+    avpu = str(_o(last, "consciousness_level", "") or "")
+    if avpu in ("A", "V", "P", "U"):
+        parts.append(t(f"fhir_obs_text.avpu_{avpu}", lang))
+    ts = str(_as_datetime(_o(last, "timestamp")))[:16]
+    return t("dds_terminal_course.last_vitals", lang, ts=ts, values=t("list_sep.serial", lang).join(parts))
+
 
 def _dc_resolve_primary_cause(ctx: NarrativeContext) -> tuple[str, str, list[str]]:
     """Resolve (icd_code, localized_display, facts_used) for the primary
@@ -494,11 +559,12 @@ def build_dds_terminal_course(generator: TemplateNarrativeGenerator, ctx: Narrat
     """終末期経過 / Terminal course (final ~24-72 h).
 
     Anchors on the discharge (= death) datetime and describes the
-    final hours from the primary cause + any complications. When the
-    CIF has no dedicated terminal-vitals summary, the template
-    renders a defensible "progressive deterioration" phrase keyed
-    on disease pattern (chronic decompensation vs acute event)
-    rather than fabricating specific vital values.
+    final hours from the last full set of vitals recorded before death
+    (Issue #2985): circulatory failure, respiratory failure or falling
+    consciousness as those vitals show, followed by the values
+    themselves. Without such vitals (or when they show none of these)
+    the phrase is keyed on disease pattern (chronic decompensation vs
+    acute event) and no vital values are quoted.
     """
     lang = ctx.target_lang
     facts: list[str] = []
@@ -511,10 +577,15 @@ def build_dds_terminal_course(generator: TemplateNarrativeGenerator, ctx: Narrat
     if code:
         facts.append("ctx.diagnoses[0].discharge_diagnosis_code")
 
-    phrase_key = {
-        "acute": "dds_terminal_course.phrase_acute",
-        "chronic": "dds_terminal_course.phrase_chronic",
-    }.get(pattern, "dds_terminal_course.phrase_unknown")
+    # Issue #2985: the course the last recorded vitals show, quoted; the
+    # disease-pattern phrase only when they show none.
+    last = _last_recorded_vitals(ctx)
+    phrase_key = _terminal_phrase_key(last) if last is not None else None
+    if phrase_key is None:
+        phrase_key = {
+            "acute": "dds_terminal_course.phrase_acute",
+            "chronic": "dds_terminal_course.phrase_chronic",
+        }.get(pattern, "dds_terminal_course.phrase_unknown")
     phrase = t(phrase_key, lang)
     dx_part = t("dds_terminal_course.dx_part", lang, display=display) if display else ""
     when = (
@@ -522,7 +593,11 @@ def build_dds_terminal_course(generator: TemplateNarrativeGenerator, ctx: Narrat
         if dis_str
         else t("dds_terminal_course.when_eventually", lang)
     )
-    return t("dds_terminal_course.full_line", lang, phrase=phrase, dx_part=dx_part, when=when), facts
+    line = t("dds_terminal_course.full_line", lang, phrase=phrase, dx_part=dx_part, when=when)
+    if last is not None:
+        facts.append("ctx.vitals")
+        line = line + t("list_sep.sentence_gap", lang) + _last_vitals_line(last, lang)
+    return line, facts
 
 
 @section("circumstances_of_death")

@@ -643,6 +643,10 @@ list_sep:
   period:
     ja: "。"
     en: "."
+  # Space between two sentences (none after a Japanese full stop).
+  sentence_gap:
+    ja: ""
+    en: " "
   space:
     ja: " "
     en: "; "
@@ -1712,6 +1716,31 @@ dds_terminal_course:
   phrase_unknown:
     ja: "臨床状態の増悪を認め、"
     en: "showed clinical deterioration"
+  # Issue #2985: phrases chosen from the last recorded vitals.
+  phrase_respiratory:
+    ja: "呼吸不全が進行し、"
+    en: "developed progressive respiratory failure"
+  phrase_consciousness:
+    ja: "意識レベルが低下し、"
+    en: "became progressively less responsive"
+  last_vitals:
+    ja: "最終観察 ({ts}) は{values}であった。"
+    en: "The last recorded observations ({ts}) were {values}."
+  hr:
+    ja: "心拍数 {hr}/分"
+    en: "HR {hr}/min"
+  bp:
+    ja: "血圧 {sbp}/{dbp} mmHg"
+    en: "BP {sbp}/{dbp} mmHg"
+  rr:
+    ja: "呼吸数 {rr}/分"
+    en: "RR {rr}/min"
+  spo2:
+    ja: "SpO2 {spo2}%{o2}"
+    en: "SpO2 {spo2}%{o2}"
+  on_oxygen:
+    ja: " (酸素投与下)"
+    en: " on oxygen"
   dx_part:
     ja: "{display}を主因として"
     en: ", attributed to {display},"
