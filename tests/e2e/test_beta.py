@@ -43,19 +43,23 @@ class TestBeta:
 
     def test_patient_identity_stable_across_encounters(self, beta_result):
         """A person appearing in multiple encounters must have ONE stable medical
-        history: chronic-condition onset dates (and stage) identical across all their
-        records. Guards against activate_patient being re-run per encounter."""
+        history: chronic-condition onset dates identical across all their records
+        (Issue #3037), and the stage identical across the records of one year — the
+        stage may progress from one simulated year to the next (Issue #1581,
+        year-aware stage snapshots). Guards against activate_patient being re-run
+        per encounter."""
         from collections import defaultdict
 
         onsets = defaultdict(set)  # (patient_id, code) -> {onset_date}
-        stages = defaultdict(set)  # (patient_id, code) -> {stage}
+        stages = defaultdict(set)  # (patient_id, code, year) -> {stage}
         rec_count = defaultdict(int)
         for rec in beta_result.patients:
             pid = rec.patient.patient_id
             rec_count[pid] += 1
+            year = rec.encounters[0].admission_datetime.year if rec.encounters else None
             for c in rec.patient.chronic_conditions:
                 onsets[(pid, c.code)].add(c.onset_date)
-                stages[(pid, c.code)].add(c.stage)
+                stages[(pid, c.code, year)].add(c.stage)
         multi = [p for p, n in rec_count.items() if n > 1]
         assert multi, "test needs patients with >1 encounter to be meaningful"
         bad_onset = {k: v for k, v in onsets.items() if len(v) > 1}

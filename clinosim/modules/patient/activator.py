@@ -501,6 +501,9 @@ def _derive_chronic_conditions(
         _ref_ceiling = date(ceiling_year, 12, 31)
         if _clamped > _ref_ceiling and _dob is not None and _ref_ceiling >= _dob:
             _clamped = _ref_ceiling
+        # Issue #3037: the person's onset, once dated, is the same in every
+        # record (the draws above are still taken, so no stream moves).
+        _clamped = person.chronic_onset.setdefault(code, _clamped)
         conditions.append(
             ChronicCondition(
                 code=code,
@@ -940,6 +943,9 @@ def activate_patient(
         # Shallow copy — subsequent encounters mutate current_medications but
         # baseline preserves the activation-time chronic regimen.
         baseline_chronic_medications=list(current_meds),
+        # Issue #3037: shared with the person, so an onset dated on this
+        # profile is the onset of every later profile.
+        chronic_onset=person.chronic_onset,
         # Issue #1066: drug_safety skip log collected during home-med
         # derivation is copied into the profile so downstream narrative /
         # audit paths can surface it.

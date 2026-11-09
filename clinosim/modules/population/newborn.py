@@ -298,6 +298,9 @@ def register_newborn(
             if _affected_code not in record.chronic_conditions:
                 record.chronic_conditions.append(_affected_code)
 
+    # Issue #3037: the conditions found at birth keep their birth onset in
+    # every later record of the child.
+    record.keep_chronic_onsets(newborn.chronic_conditions)
     registry.persons[newborn.patient_id] = record
 
     # Attach to the mother's household (same household_id as the mother).
