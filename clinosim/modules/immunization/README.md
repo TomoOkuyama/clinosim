@@ -24,7 +24,8 @@ EHR documentation.
   from `wave_epochs` when declared, else uniform in the eligible
   window; pediatric_series → per-dose `[age_days_min, age_days_max]`
   window snapped to the canonical well-child visit age, a missed dose
-  discontinuing the rest of the series); US maternal Tdap (CVX 115,
+  discontinuing the rest of the series, and each dose kept at least its
+  `min_interval_days` after the earlier dose — Issue #3001); US maternal Tdap (CVX 115,
   27–36 weeks of each non-aborted pregnancy, coverage 0.78);
   refusal-documentation emission at rate
   `IMMUNIZATION_NOT_DONE_RECORDING_RATE`; binding doses to existing
@@ -148,7 +149,11 @@ their records, then binds each dose (deterministic, no rng):
 3. otherwise snaps the dose to the nearest outpatient encounter within
    ±60 days and records its `encounter_id`; a flu dose only to an
    encounter in its own season and vaccination months, and no dose to an
-   encounter before its vaccine's `min_age_days` floor.
+   encounter before its vaccine's `min_age_days` floor. A dose is never
+   snapped onto a day that holds another dose of the same vaccine, out of
+   series order, or closer to a neighbouring dose than the series'
+   `min_interval_days` (Issue #3001); with no allowed encounter it keeps
+   its own date.
 
 A dose still unbound and dated before the simulation window start
 (`config.time_range[0]`) is marked `primary_source=False` and left
@@ -212,7 +217,7 @@ encounter documents).
   | `season_month` | `annual` only. Fixed month used when no `seasonal_distribution` (default 10). |
   | `seasonal_distribution` | `annual` only. `{month: weight}` for per-season month sampling. |
   | `wave_epochs` | `once` only. Epochs with `start` / `end` / `age_weight` / `monthly_curve`. |
-  | `doses` | `pediatric_series` only. Per dose: `age_days_min`, `age_days_max`, `dose_number`, `coverage_by_sex`. |
+  | `doses` | `pediatric_series` only. Per dose: `age_days_min`, `age_days_max`, `dose_number`, `coverage_by_sex`; from dose 2 on, `min_interval_days` (minimum days after the previous dose; US CDC General Best Practice Guidelines Table 3-1, JP 予防接種実施規則) and optionally `min_interval_after_dose` (the earlier dose the interval counts from when it is not the previous one, e.g. JP hepatitis B dose 3: 139 days after dose 1). Issue #3001. |
   | `available_from` | Program availability date (`YYYY-MM-DD`). |
   | `history_years` | Optional. EHR retention window (e.g. flu → 10 y). |
   | `coverage_by_age_sex` | `{"age_band": {sex: rate}}` in [0, 1] (non-paediatric branches). |

@@ -8,7 +8,7 @@ Codes (CVX) live in clinosim.codes; schedules in clinosim/locale/<country>/.
 from __future__ import annotations
 
 import hashlib
-from datetime import date
+from datetime import date, timedelta
 from functools import lru_cache
 from pathlib import Path
 
@@ -349,6 +349,28 @@ def licensed_from_by_cvx(schedule: dict, dob: date | None) -> dict[str, date]:
     return out
 
 
+def min_interval_days_by_cvx(schedule: dict) -> dict[str, dict[int, tuple[int, int]]]:
+    """CVX (the entry's and its products') → ``{dose_number: (reference dose,
+    minimum days)}`` of each pediatric series dose that declares
+    ``min_interval_days`` (Issue #3001). The interval counts from the
+    previous dose unless the dose names ``min_interval_after_dose``."""
+    out: dict[str, dict[int, tuple[int, int]]] = {}
+    for v in schedule.values():
+        if v.get("frequency") != "pediatric_series":
+            continue
+        rules: dict[int, tuple[int, int]] = {}
+        for dose in v.get("doses") or []:
+            if dose.get("min_interval_days") is None:
+                continue
+            number = int(dose["dose_number"])
+            rules[number] = (int(dose.get("min_interval_after_dose", number - 1)), int(dose["min_interval_days"]))
+        if not rules:
+            continue
+        for cvx in {str(v["cvx"])} | {str(p["cvx"]) for p in v.get("products") or []}:
+            out.setdefault(cvx, {}).update(rules)
+    return out
+
+
 def flu_vaccine_licensed_on(country: str, dob: date | None, on: date) -> bool:
     """Whether some annual (flu) vaccine of ``country``'s schedule may be
     given on ``on`` to a patient born on ``dob`` (Issue #2979). ``True``
@@ -394,6 +416,21 @@ def product_cvx(vaccine: dict, on: date) -> str:
         if (start is None or _parse(str(start)) <= on) and (end is None or on <= _parse(str(end))):
             return str(product["cvx"])
     return str(vaccine["cvx"])
+
+
+def _after_earlier_doses(occ: date, dose: dict, dose_num: int | None, given_on: dict[int, date]) -> date:
+    """``occ`` moved, when needed, to keep the dose after the series' earlier
+    doses (Issue #3001): at least ``min_interval_days`` after the dose it
+    counts from (``min_interval_after_dose``, default the previous one) and
+    at least a day after every earlier dose."""
+    if dose_num is None or not given_on:
+        return occ
+    earliest = max(given_on.values()) + timedelta(days=1)
+    if dose.get("min_interval_days") is not None:
+        ref = int(dose.get("min_interval_after_dose", dose_num - 1))
+        if ref in given_on:
+            earliest = max(earliest, given_on[ref] + timedelta(days=int(dose["min_interval_days"])))
+    return max(occ, earliest)
 
 
 def generate_immunizations(
@@ -548,6 +585,7 @@ def generate_immunizations(
             if dob is None:
                 continue
             series_discontinued = False
+            given_on: dict[int, date] = {}  # dose number -> date given
             for dose in v.get("doses") or []:
                 d_min = int(dose["age_days_min"])
                 d_max = int(dose["age_days_max"])
@@ -579,11 +617,23 @@ def generate_immunizations(
                 # tighten the yaml window when the sim's [start, as_of]
                 # bounds cut into it).
                 occ = max(eff_start, min(eff_end, snapped))
+                dose_num = int(dose.get("dose_number", 0)) or None
+                # Issue #3001: a dose comes after the earlier ones by the
+                # series' minimum interval — the clamp to the vaccine's start
+                # (``available_from``) put two doses on one day. Date only;
+                # the draws below are unchanged.
+                occ = _after_earlier_doses(occ, dose, dose_num, given_on)
                 age_at = _age_on(dob, occ, base_age)
                 cov = dose.get("coverage_by_sex") or {}
                 cov_val = float(cov.get(sex, next(iter(cov.values()), 0.0))) if cov else 0.0
-                dose_num = int(dose.get("dose_number", 0)) or None
                 if rng.random() < cov_val:
+                    if occ > as_of:
+                        # Not due yet at the snapshot: no record, and the
+                        # later doses wait for it.
+                        series_discontinued = True
+                        continue
+                    if dose_num is not None:
+                        given_on[dose_num] = occ
                     out.append(
                         ImmunizationRecord(
                             vaccine_cvx=product_cvx(v, occ),

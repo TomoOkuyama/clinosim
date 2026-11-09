@@ -22,6 +22,7 @@ from clinosim.modules.immunization.engine import (
     generate_pregnancy_tdap,
     licensed_from_by_cvx,
     load_schedule,
+    min_interval_days_by_cvx,
 )
 from clinosim.modules.immunization.visits import (
     bind_to_vaccination_visits,
@@ -119,11 +120,47 @@ def _bind_stay_doses(imm_recs: list, encounters: list) -> None:
                 break
 
 
+def _series_allows(imm: Any, day: date, imm_recs: list, intervals: dict[int, tuple[int, int]] | None) -> bool:
+    """Whether ``imm`` may be given on ``day`` beside the other doses of its
+    vaccine (Issue #3001): never two doses of one vaccine on one day, the
+    series in dose order, and each declared minimum interval kept (to the
+    earlier dose it counts from and from this dose to a later one)."""
+    cvx = str(_get(imm, "vaccine_cvx", "") or "")
+    number = _get(imm, "dose_number", None)
+    dates: dict[int, date] = {}
+    for other in imm_recs:
+        if other is imm or str(_get(other, "vaccine_cvx", "") or "") != cvx:
+            continue
+        if str(_get(other, "status", "completed") or "completed") != "completed":
+            continue
+        occ = _get(other, "occurrence_date", None)
+        if not isinstance(occ, date):
+            continue
+        if occ == day:
+            return False
+        other_number = _get(other, "dose_number", None)
+        if number is None or other_number is None:
+            continue
+        if (other_number < number) != (occ < day):
+            return False
+        dates[int(other_number)] = occ
+    if number is None or not intervals:
+        return True
+    ref, days = intervals.get(int(number), (0, 0))
+    if ref in dates and (day - dates[ref]).days < days:
+        return False
+    for later, (later_ref, later_days) in intervals.items():
+        if later_ref == number and later in dates and (dates[later] - day).days < later_days:
+            return False
+    return True
+
+
 def _align_to_encounters(
     imm_recs: list,
     encounters: list,
     season_months: dict[str, frozenset[int]] | None = None,
     earliest_by_cvx: dict[str, date] | None = None,
+    min_interval_by_cvx: dict[str, dict[int, tuple[int, int]]] | None = None,
 ) -> list:
     """Snap each immunization's occurrence_date to a nearby pediatric_visit
     encounter and stamp the encounter_id.
@@ -145,6 +182,11 @@ def _align_to_encounters(
         (silence beats fabrication).
       * A dose is not snapped onto a day before its vaccine's licensure
         floor (``earliest_by_cvx``; Issue #2979: no flu dose before 6 months).
+      * A dose is not snapped onto a day that holds another dose of the same
+        vaccine, out of series order, or closer to a neighbouring dose than
+        the series' minimum interval (``min_interval_by_cvx``,
+        ``min_interval_days_by_cvx``; Issue #3001). With no allowed visit
+        the dose keeps its own date.
 
     Never introduces a new encounter — the alignment only rebinds
     existing ones. Deterministic (no rng).
@@ -190,6 +232,7 @@ def _align_to_encounters(
         # months (not snapped onto a July or March visit).
         _months = (season_months or {}).get(str(_get(imm, "vaccine_cvx", "") or ""))
         _earliest = (earliest_by_cvx or {}).get(str(_get(imm, "vaccine_cvx", "") or ""))
+        _intervals = (min_interval_by_cvx or {}).get(str(_get(imm, "vaccine_cvx", "") or ""))
         for _day, _eid in _enc_days:
             _delta = abs((_day - occ).days)
             if _delta > 60:
@@ -197,6 +240,10 @@ def _align_to_encounters(
             if _earliest is not None and _day < _earliest:
                 continue
             if _months is not None and (_day.month not in _months or flu_season_of(_day) != flu_season_of(occ)):
+                continue
+            if best_delta is not None and _delta >= best_delta:
+                continue
+            if not _series_allows(imm, _day, imm_recs, _intervals):
                 continue
             if best_delta is None or _delta < best_delta:
                 best_delta = _delta
@@ -431,7 +478,11 @@ def enrich_immunizations(ctx) -> None:
             nurse=_default_nurse,
         )
         recs = _align_to_encounters(
-            recs, pool, season_months, licensed_from_by_cvx(schedule, _get(patient, "date_of_birth", None))
+            recs,
+            pool,
+            season_months,
+            licensed_from_by_cvx(schedule, _get(patient, "date_of_birth", None)),
+            min_interval_days_by_cvx(schedule),
         )
         if roster is not None and hasattr(roster, "members"):
             _give_stay_doses_by_ward_nurse(recs, pool, roster, pid)

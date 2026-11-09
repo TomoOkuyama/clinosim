@@ -133,6 +133,11 @@ vaccines:
         age_days_min: 152    # 生後 5 か月
         age_days_max: 213    # 生後 7 か月
         coverage_by_sex: {M: 0.98, F: 0.98}
+  # `min_interval_days` (Issue #3001): 同じシリーズの前回接種からの最小間隔
+  # (日)。予防接種実施規則 / 定期接種実施要領の接種間隔による。
+  # `min_interval_after_dose` は前回以外の回から数える場合の起点の回
+  # (B型肝炎3回目は1回目から139日以上)。近くの受診への接種日の寄せは
+  # この間隔を守り、同じシリーズの2回分を同じ受診に重ねない。
   pediatric_dtap_ipv:
     cvx: "106"
     min_age: 0
@@ -144,14 +149,17 @@ vaccines:
         age_days_max: 120    # 生後 4 か月
         coverage_by_sex: {M: 0.98, F: 0.98}
       - dose_number: 2
+        min_interval_days: 20    # 20日以上
         age_days_min: 121    # 生後 4 か月
         age_days_max: 150    # 生後 5 か月
         coverage_by_sex: {M: 0.97, F: 0.97}
       - dose_number: 3
+        min_interval_days: 20    # 20日以上
         age_days_min: 151    # 生後 5 か月
         age_days_max: 210    # 生後 7 か月
         coverage_by_sex: {M: 0.96, F: 0.96}
       - dose_number: 4
+        min_interval_days: 182    # 初回3回目から6か月以上
         age_days_min: 365    # 1歳
         age_days_max: 545    # 1歳半 (18か月)
         coverage_by_sex: {M: 0.94, F: 0.94}
@@ -166,6 +174,7 @@ vaccines:
         age_days_max: 730    # 2歳
         coverage_by_sex: {M: 0.97, F: 0.97}
       - dose_number: 2
+        min_interval_days: 27    # 注射生ワクチンの間隔 27日以上
         age_days_min: 1825   # 5歳 (就学前)
         age_days_max: 2555   # 7歳
         coverage_by_sex: {M: 0.94, F: 0.94}
@@ -180,6 +189,7 @@ vaccines:
         age_days_max: 455    # 15か月
         coverage_by_sex: {M: 0.90, F: 0.90}
       - dose_number: 2
+        min_interval_days: 90    # 1回目から3か月以上
         age_days_min: 456    # 15か月+
         age_days_max: 730    # 2歳
         coverage_by_sex: {M: 0.86, F: 0.86}
@@ -194,14 +204,17 @@ vaccines:
         age_days_max: 1460   # 4歳
         coverage_by_sex: {M: 0.90, F: 0.90}
       - dose_number: 2
+        min_interval_days: 6    # 6日以上
         age_days_min: 1461   # 4歳
         age_days_max: 1825   # 5歳
         coverage_by_sex: {M: 0.88, F: 0.88}
       - dose_number: 3
+        min_interval_days: 182    # 初回2回目から6か月以上
         age_days_min: 3285   # 9歳 (追加接種)
         age_days_max: 3650   # 10歳
         coverage_by_sex: {M: 0.80, F: 0.80}
       - dose_number: 4
+        min_interval_days: 182    # 第2期: 規則に間隔の定めなし、第1期追加と同じ6か月を下限とする
         age_days_min: 4380   # 12歳
         age_days_max: 4745   # 13歳
         coverage_by_sex: {M: 0.72, F: 0.72}
@@ -216,14 +229,17 @@ vaccines:
         age_days_max: 90     # 生後 3 か月
         coverage_by_sex: {M: 0.97, F: 0.97}
       - dose_number: 2
+        min_interval_days: 27    # 27日以上
         age_days_min: 91
         age_days_max: 120    # 生後 4 か月
         coverage_by_sex: {M: 0.96, F: 0.96}
       - dose_number: 3
+        min_interval_days: 27    # 27日以上
         age_days_min: 121
         age_days_max: 150    # 生後 5 か月
         coverage_by_sex: {M: 0.95, F: 0.95}
       - dose_number: 4
+        min_interval_days: 210    # 初回3回目から7か月以上
         age_days_min: 365    # 1歳
         age_days_max: 525    # 17 か月
         coverage_by_sex: {M: 0.90, F: 0.90}
@@ -238,14 +254,17 @@ vaccines:
         age_days_max: 90
         coverage_by_sex: {M: 0.97, F: 0.97}
       - dose_number: 2
+        min_interval_days: 27    # 27日以上
         age_days_min: 91
         age_days_max: 120
         coverage_by_sex: {M: 0.96, F: 0.96}
       - dose_number: 3
+        min_interval_days: 27    # 27日以上
         age_days_min: 121
         age_days_max: 150
         coverage_by_sex: {M: 0.95, F: 0.95}
       - dose_number: 4
+        min_interval_days: 60    # 初回3回目から60日以上
         age_days_min: 365
         age_days_max: 455    # 15 か月
         coverage_by_sex: {M: 0.92, F: 0.92}
@@ -260,10 +279,13 @@ vaccines:
         age_days_max: 90
         coverage_by_sex: {M: 0.95, F: 0.95}
       - dose_number: 2
+        min_interval_days: 27    # 27日以上
         age_days_min: 91
         age_days_max: 120
         coverage_by_sex: {M: 0.94, F: 0.94}
       - dose_number: 3
+        min_interval_days: 139    # 1回目から139日以上
+        min_interval_after_dose: 1
         age_days_min: 210    # 生後 7 か月
         age_days_max: 270    # 生後 9 か月
         coverage_by_sex: {M: 0.92, F: 0.92}
@@ -278,6 +300,7 @@ vaccines:
         age_days_max: 90
         coverage_by_sex: {M: 0.94, F: 0.94}
       - dose_number: 2
+        min_interval_days: 27    # 27日以上
         age_days_min: 91
         age_days_max: 150    # 生後 5 か月
         coverage_by_sex: {M: 0.92, F: 0.92}
@@ -293,6 +316,7 @@ vaccines:
         age_days_max: 730    # 2歳
         coverage_by_sex: {M: 0.35, F: 0.35}
       - dose_number: 2
+        min_interval_days: 27    # 注射生ワクチンの間隔 27日以上
         age_days_min: 1825   # 5歳
         age_days_max: 2555   # 7歳 (就学前)
         coverage_by_sex: {M: 0.28, F: 0.28}

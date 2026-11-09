@@ -150,6 +150,11 @@ vaccines:
   #   - Meningococcal B teen (CVX 162 / 163) — needs CVX register
   # ==================================================================
 
+  # `min_interval_days` (Issue #3001): the minimum interval between a dose
+  # and the previous dose of the series, from the CDC General Best Practice
+  # Guidelines for Immunization, Table 3-1 (recommended and minimum ages
+  # and intervals between vaccine doses). Aligning a dose to a nearby visit
+  # never breaks it, nor puts two doses of a series on one visit.
   pediatric_hepb:
     cvx: "08"
     min_age: 0
@@ -161,10 +166,12 @@ vaccines:
         age_days_max: 30
         coverage_by_sex: {M: 0.92, F: 0.92}
       - dose_number: 2
+        min_interval_days: 28    # 4 weeks
         age_days_min: 30      # 1 month
         age_days_max: 90
         coverage_by_sex: {M: 0.90, F: 0.90}
       - dose_number: 3
+        min_interval_days: 56    # 8 weeks
         age_days_min: 180     # 6 months
         age_days_max: 545     # up to 18 months
         coverage_by_sex: {M: 0.90, F: 0.90}
@@ -180,18 +187,22 @@ vaccines:
         age_days_max: 90
         coverage_by_sex: {M: 0.95, F: 0.95}
       - dose_number: 2
+        min_interval_days: 28    # 4 weeks
         age_days_min: 120     # 4 months
         age_days_max: 150
         coverage_by_sex: {M: 0.93, F: 0.93}
       - dose_number: 3
+        min_interval_days: 28    # 4 weeks
         age_days_min: 180     # 6 months
         age_days_max: 210
         coverage_by_sex: {M: 0.92, F: 0.92}
       - dose_number: 4
+        min_interval_days: 182    # 6 months
         age_days_min: 455     # 15 months
         age_days_max: 545     # 18 months
         coverage_by_sex: {M: 0.86, F: 0.86}
       - dose_number: 5
+        min_interval_days: 182    # 6 months
         age_days_min: 1460    # 4 years
         age_days_max: 2190    # 6 years
         coverage_by_sex: {M: 0.85, F: 0.85}
@@ -207,14 +218,17 @@ vaccines:
         age_days_max: 90
         coverage_by_sex: {M: 0.93, F: 0.93}
       - dose_number: 2
+        min_interval_days: 28    # 4 weeks
         age_days_min: 120     # 4 months
         age_days_max: 150
         coverage_by_sex: {M: 0.92, F: 0.92}
       - dose_number: 3
+        min_interval_days: 28    # 4 weeks
         age_days_min: 180     # 6 months
         age_days_max: 545     # 6-18 months window
         coverage_by_sex: {M: 0.91, F: 0.91}
       - dose_number: 4
+        min_interval_days: 182    # 6 months
         age_days_min: 1460    # 4 years
         age_days_max: 2190    # 6 years
         coverage_by_sex: {M: 0.86, F: 0.86}
@@ -230,14 +244,17 @@ vaccines:
         age_days_max: 90
         coverage_by_sex: {M: 0.93, F: 0.93}
       - dose_number: 2
+        min_interval_days: 28    # 4 weeks
         age_days_min: 120     # 4 months
         age_days_max: 150
         coverage_by_sex: {M: 0.92, F: 0.92}
       - dose_number: 3
+        min_interval_days: 28    # 4 weeks
         age_days_min: 180     # 6 months (some Hib products need only 2+booster)
         age_days_max: 210
         coverage_by_sex: {M: 0.90, F: 0.90}
       - dose_number: 4
+        min_interval_days: 56    # 8 weeks
         age_days_min: 365     # 12 months
         age_days_max: 455     # 15 months
         coverage_by_sex: {M: 0.88, F: 0.88}
@@ -253,14 +270,17 @@ vaccines:
         age_days_max: 90
         coverage_by_sex: {M: 0.93, F: 0.93}
       - dose_number: 2
+        min_interval_days: 28    # 4 weeks
         age_days_min: 120     # 4 months
         age_days_max: 150
         coverage_by_sex: {M: 0.92, F: 0.92}
       - dose_number: 3
+        min_interval_days: 28    # 4 weeks
         age_days_min: 180     # 6 months
         age_days_max: 210
         coverage_by_sex: {M: 0.90, F: 0.90}
       - dose_number: 4
+        min_interval_days: 56    # 8 weeks
         age_days_min: 365     # 12 months
         age_days_max: 455     # 15 months
         coverage_by_sex: {M: 0.87, F: 0.87}
@@ -276,10 +296,12 @@ vaccines:
         age_days_max: 90
         coverage_by_sex: {M: 0.82, F: 0.82}
       - dose_number: 2
+        min_interval_days: 28    # 4 weeks
         age_days_min: 120     # 4 months
         age_days_max: 150
         coverage_by_sex: {M: 0.80, F: 0.80}
       - dose_number: 3
+        min_interval_days: 28    # 4 weeks
         age_days_min: 180     # 6 months (must complete by 32 weeks / 8 mo)
         age_days_max: 240
         coverage_by_sex: {M: 0.78, F: 0.78}
@@ -295,6 +317,7 @@ vaccines:
         age_days_max: 455     # 15 months
         coverage_by_sex: {M: 0.91, F: 0.91}
       - dose_number: 2
+        min_interval_days: 28    # 4 weeks
         age_days_min: 1460    # 4 years
         age_days_max: 2190    # 6 years
         coverage_by_sex: {M: 0.90, F: 0.90}
@@ -310,6 +333,7 @@ vaccines:
         age_days_max: 455     # 15 months
         coverage_by_sex: {M: 0.90, F: 0.90}
       - dose_number: 2
+        min_interval_days: 84    # 3 months (age 12 months-12 years)
         age_days_min: 1460    # 4 years
         age_days_max: 2190    # 6 years
         coverage_by_sex: {M: 0.89, F: 0.89}
@@ -379,6 +403,7 @@ vaccines:
         age_days_max: 545    # 18 months
         coverage_by_sex: {M: 0.86, F: 0.87}
       - dose_number: 2
+        min_interval_days: 182    # 6 months
         age_days_min: 730    # 24 months (≥6 mo after dose 1)
         age_days_max: 1095   # 36 months
         coverage_by_sex: {M: 0.82, F: 0.83}
@@ -398,6 +423,7 @@ vaccines:
         age_days_max: 4745    # 13 years
         coverage_by_sex: {M: 0.76, F: 0.79}
       - dose_number: 2
+        min_interval_days: 150    # 5 months (2-dose series)
         age_days_min: 4195    # 6 mo after dose 1 (11.5 y)
         age_days_max: 5110    # 14 years
         coverage_by_sex: {M: 0.68, F: 0.72}
@@ -413,6 +439,7 @@ vaccines:
         age_days_max: 4745    # 13 years
         coverage_by_sex: {M: 0.88, F: 0.90}
       - dose_number: 2
+        min_interval_days: 56    # 8 weeks
         age_days_min: 5840    # 16 years
         age_days_max: 6570    # 18 years
         coverage_by_sex: {M: 0.60, F: 0.62}
