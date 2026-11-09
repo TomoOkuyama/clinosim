@@ -212,6 +212,9 @@ class _Prescription(BaseModel):
     # Prescriptions sharing a group name are alternatives: one is written.
     choose_one: str | None = None
     locale_name: dict[str, str] = Field(default_factory=dict)
+    # Country-specific frequency (Issue #3012: the JP ibuprofen label allows
+    # three doses a day), keyed like ``locale_name``.
+    locale_frequency: dict[str, str] = Field(default_factory=dict)
     locale_exclude: list[str] = Field(default_factory=list)
 
 

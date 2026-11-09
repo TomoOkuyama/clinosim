@@ -42,7 +42,7 @@ treatment:
   - {name: "Elastic bandage wrap", probability: 0.8, route: "topical"}
   - {name: "Posterior splint", probability: 0.15, route: "topical", intent: "immobilization for severe"}
   - {name: "Acetaminophen 500mg", probability: 0.5, route: "PO"}
-  - {name: "Ibuprofen 400mg", probability: 0.6, route: "PO", intent: "anti-inflammatory"}
+  - {name: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, probability: 0.6, route: "PO", intent: "anti-inflammatory"}
 
 discharge_instructions:
   - {en: "RICE: Rest, Ice, Compression, Elevation", ja: "RICE（安静・冷却・圧迫・挙上）"}
@@ -51,7 +51,7 @@ discharge_instructions:
 follow_up: {en: "orthopedics in 1 week if not improving", ja: "改善がなければ1週間後に整形外科を受診"}
 
 discharge_prescriptions:
-  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
+  - {drug: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
 
 incidence_modifier: 1.0

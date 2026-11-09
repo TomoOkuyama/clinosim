@@ -18,6 +18,7 @@ from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.observation.engine import get_lab_unit
 from clinosim.modules.observation.order_routing import lab_order_targets
+from clinosim.modules.order.label_dose import within_label
 from clinosim.modules.order.pediatric_dose import pediatric_order_name
 from clinosim.modules.order.treatment_classifier import classify_encounter_treatment
 from clinosim.modules.physiology._vital_signs_thresholds import PAIN_SCORE_SCALE
@@ -229,7 +230,7 @@ def ed_pediatric_dose_name(
     (its body-weight Observation), not the registration-time profile weight
     (Issue #2990)."""
     weight = encounter_weight_kg(patient, encounter.encounter_id, encounter.admission_datetime, country)
-    return pediatric_order_name(name, _age_months(patient, when), weight)
+    return pediatric_order_name(name, _age_months(patient, when), weight, country)
 
 
 def ed_lab_true_value(lab_spec: dict, severity: str, derived: float) -> float:
@@ -389,10 +390,15 @@ def _ed_discharge_prescription(
     def _marketed(spec: dict) -> bool:
         return country.upper() not in {str(c).upper() for c in spec.get("locale_exclude") or []}
 
+    def _frequency(spec: dict) -> str:
+        return str((spec.get("locale_frequency") or {}).get(country_key) or spec.get("frequency", ""))
+
     def _name(spec: dict) -> str:
         written = str((spec.get("locale_name") or {}).get(country_key) or spec.get("drug", ""))
         # Issue #2857: a child's script is weight-based ("" when below the drug's minimum age).
-        return ed_pediatric_dose_name(written, patient, encounter, issued, country) or ""
+        name = ed_pediatric_dose_name(written, patient, encounter, issued, country) or ""
+        # Issue #3012: within the country's label dose (JP ibuprofen 200 mg).
+        return within_label(name, _frequency(spec), country)[0] if name else ""
 
     def _skipped(name: str) -> bool:
         return not name or _ed_medication_skipped(
@@ -433,13 +439,17 @@ def _ed_discharge_prescription(
         # without its strength, which goes in ``dose``.
         strength = m.group(0) if (m := _DOSE_IN_NAME.search(name)) else ""
         drug = " ".join(_DOSE_IN_NAME.sub("", name).split()) or name
+        # Issue #3012: the dose and doses a day within the country's label
+        # (JP ibuprofen 200 mg, 600 mg/day), also for a declared ``dose``.
+        labelled, frequency = within_label(f"{drug} {spec.get('dose') or strength}", _frequency(spec), country)
+        dose = labelled[len(drug) :].strip()
         items.append(
             {
                 "drug_name": drug,
                 "drug_name_ja": drug_safety.japanese_display(drug) or "",
-                "dose": str(spec.get("dose") or strength),
+                "dose": dose,
                 "route": str(spec.get("route", "PO")),
-                "frequency": str(spec.get("frequency", "")),
+                "frequency": frequency,
                 "duration_days": spec.get("duration_days"),
             }
         )
@@ -752,7 +762,8 @@ def _simulate_ed_visit(
             _ped_name = ed_pediatric_dose_name(_tx_name, patient, encounter, visit_time, country)
             if _ped_name is None:
                 continue
-            _tx_name = _ped_name
+            # Issue #3012: a single dose within the country's label (JP ibuprofen 200 mg).
+            _tx_name = within_label(_ped_name, "", country)[0]
             _active_ed = [m.drug_name for m in (patient.current_medications or []) if m.drug_name] + [
                 str(o.display_name) for o in orders if o.order_type == OrderType.MEDICATION and o.display_name
             ]

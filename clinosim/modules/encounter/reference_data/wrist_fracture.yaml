@@ -43,7 +43,7 @@ treatment:
   - {name: "Short arm cast", probability: 0.3, route: "topical", intent: "immobilization after reduction"}
   - {name: "Closed reduction", probability: 0.25, route: "other", intent: "realign displaced fracture"}
   - {name: "Acetaminophen 500mg", probability: 0.5, route: "PO"}
-  - {name: "Ibuprofen 400mg", probability: 0.6, route: "PO", intent: "anti-inflammatory"}
+  - {name: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, probability: 0.6, route: "PO", intent: "anti-inflammatory"}
   - {name: "Morphine 4mg IV", probability: 0.2, route: "IV", intent: "severe pain or pre-reduction"}
 
 discharge_instructions:
@@ -54,7 +54,7 @@ discharge_instructions:
 follow_up: {en: "orthopedics in 5-7 days for repeat X-ray", ja: "5〜7日後に整形外科で再度X線撮影"}
 
 discharge_prescriptions:
-  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
+  - {drug: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
   - {drug: "Oxycodone 5mg", locale_exclude: [JP], route: "PO", frequency: "q6h PRN", duration_days: 3, probability: 0.2}
 

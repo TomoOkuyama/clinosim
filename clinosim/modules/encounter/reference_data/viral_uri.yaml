@@ -43,7 +43,7 @@ workup:
 
 treatment:
   - {name: "Acetaminophen 500mg", probability: 0.6, route: "PO", intent: "antipyretic/analgesic"}
-  - {name: "Ibuprofen 400mg", probability: 0.4, route: "PO", intent: "antipyretic/analgesic"}
+  - {name: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, probability: 0.4, route: "PO", intent: "antipyretic/analgesic"}
   - {name: "IV normal saline 500mL", probability: 0.2, route: "IV", intent: "rehydration"}
   - {name: "Oral fluids encouraged", probability: 0.8, route: "PO", intent: "hydration"}
 

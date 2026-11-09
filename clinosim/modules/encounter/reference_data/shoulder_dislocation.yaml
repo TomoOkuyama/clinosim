@@ -44,7 +44,7 @@ treatment:
   - {name: "Sling immobilization", probability: 1.0, route: "topical", intent: "post-reduction support"}
   - {name: "Ice pack application", probability: 0.8, route: "topical"}
   - {name: "Morphine 4mg IV", probability: 0.5, route: "IV", intent: "pre-reduction analgesia"}
-  - {name: "Ibuprofen 400mg", probability: 0.5, route: "PO", intent: "post-reduction pain"}
+  - {name: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, probability: 0.5, route: "PO", intent: "post-reduction pain"}
 
 discharge_instructions:
   - {en: "Wear sling at all times for 2-3 weeks", ja: "2〜3週間は常に三角巾で固定"}
@@ -55,7 +55,7 @@ discharge_instructions:
 follow_up: {en: "orthopedics in 1-2 weeks", ja: "1〜2週間後に整形外科を受診"}
 
 discharge_prescriptions:
-  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
+  - {drug: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, route: "PO", frequency: "tid", duration_days: 7, probability: 0.7}
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
   - {drug: "Oxycodone 5mg", locale_exclude: [JP], route: "PO", frequency: "q6h PRN", duration_days: 3, probability: 0.2}
 

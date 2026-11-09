@@ -1,0 +1,21 @@
+# Per-country package-insert (label) dose limits of oral take-home and ED
+# drugs (Issue #3012).
+#
+# A drug listed for a country is kept within its label by
+# `clinosim.modules.order.label_dose.within_label`: a single dose above
+# `dose_mg` is lowered to it, and a regimen whose daily total
+# (dose x doses per day) is above `max_mg_per_day` is given at most
+# `max_doses_per_day` times a day ("q6h PRN" -> "tid PRN"). Applied to ED
+# treatment orders, ED / clinic take-home prescriptions and the postpartum
+# take-home bundle. Drugs or countries not listed keep their written dose.
+#
+# Keys: upper-case country code -> catalog drug_id (codes/data/drugs.yaml).
+metadata:
+  kind: reference
+  name: label_dose_limits
+  source: "JP: ブルフェン錠100・200 添付文書 (科研製薬)"
+
+limits:
+  JP:
+    # ブルフェン: 成人 1 日 600 mg を 3 回に分けて経口投与 (消炎・鎮痛)。
+    ibuprofen: {dose_mg: 200, max_doses_per_day: 3, max_mg_per_day: 600}

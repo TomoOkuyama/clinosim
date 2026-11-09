@@ -40,7 +40,7 @@ workup:
     - {test: "CT_Chest", probability: 0.2, note: "multiple fractures or suspected pneumothorax"}
 
 treatment:
-  - {name: "Ibuprofen 400mg", probability: 0.7, route: "PO", intent: "anti-inflammatory"}
+  - {name: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, probability: 0.7, route: "PO", intent: "anti-inflammatory"}
   - {name: "Acetaminophen 1000mg", probability: 0.6, route: "PO"}
   - {name: "Oxycodone 5mg", probability: 0.3, route: "PO", intent: "severe pain PRN"}
   - {name: "Lidocaine patch 5%", probability: 0.2, route: "topical", intent: "local pain relief"}
@@ -56,7 +56,7 @@ discharge_instructions:
 follow_up: {en: "primary care physician in 1-2 weeks", ja: "1〜2週間後にかかりつけ医を受診"}
 
 discharge_prescriptions:
-  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid", duration_days: 10, probability: 0.7}
+  - {drug: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, route: "PO", frequency: "tid", duration_days: 10, probability: 0.7}
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "tid", duration_days: 10, probability: 0.5}
   - {drug: "Oxycodone 5mg", locale_exclude: [JP], route: "PO", frequency: "q6h PRN", duration_days: 5, probability: 0.3}
 

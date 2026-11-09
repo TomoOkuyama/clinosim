@@ -53,7 +53,7 @@ discharge_instructions:
 follow_up: {en: "suture removal in 7-10 days (face 5 days)", ja: "7〜10日後に抜糸（顔面は5日後）"}
 
 discharge_prescriptions:
-  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "tid PRN", duration_days: 5, probability: 0.6}
+  - {drug: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, route: "PO", frequency: "tid PRN", duration_days: 5, probability: 0.6}
   - {drug: "Cephalexin 500mg", route: "PO", frequency: "qid", duration_days: 7, probability: 0.15}
 
 incidence_modifier: 1.0
