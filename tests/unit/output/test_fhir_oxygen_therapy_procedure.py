@@ -511,3 +511,44 @@ def test_single_encounter_untagged_vitals_still_emit_1352_backcompat():
         f"single-encounter record with untagged on-O2 vitals must still emit "
         f"one Procedure via the fallback; got {len(resources)}"
     )
+
+
+def test_session_started_in_the_ed_starts_at_admission_2973():
+    """Via-ED admission: oxygen begun in the ED (order and first on-O2 vital
+    before the inpatient admission) is charted on the inpatient encounter
+    from its admission on, so the Procedure lies inside that encounter."""
+    record = _record_with_o2_session(on_o2_vital_count=3)
+    record["encounters"][0]["admission_datetime"] = "2025-06-21T18:40:00"
+    p = _bb_oxygen_therapy(_ctx(record))[0]
+    assert p["performedPeriod"]["start"].startswith("2025-06-21T18:40:00")
+    assert p["performedPeriod"]["end"].startswith("2025-06-30T20:00:00")
+
+
+def test_session_never_ends_after_discharge_2973():
+    record = _record_with_o2_session(on_o2_vital_count=3, encounter_discharge="2025-06-28T10:00:00")
+    record["encounters"][0]["admission_datetime"] = "2025-06-21T18:00:00"
+    p = _bb_oxygen_therapy(_ctx(record))[0]
+    assert p["performedPeriod"]["end"].startswith("2025-06-28T10:00:00")
+
+
+def test_session_inside_the_stay_is_unchanged_2973():
+    record = _record_with_o2_session(on_o2_vital_count=3)
+    record["encounters"][0]["admission_datetime"] = "2025-06-21T18:00:00"
+    p = _bb_oxygen_therapy(_ctx(record))[0]
+    assert p["performedPeriod"]["start"].startswith("2025-06-21T18:22:00")
+
+
+def test_clamp_compares_instants_not_strings_2973():
+    """An offset-qualified admission is compared as an instant."""
+    record = _record_with_o2_session(on_o2_vital_count=3)
+    for v in record["vital_signs"]:
+        v["timestamp"] = v["timestamp"] + "+09:00"
+    record["orders"][0]["ordered_datetime"] = "2025-06-21T18:26:00+09:00"
+    record["encounters"][0]["discharge_datetime"] = "2025-06-30T20:00:00+09:00"
+    record["encounters"][0]["admission_datetime"] = "2025-06-21T09:30:00Z"  # 18:30+09:00
+    p = _bb_oxygen_therapy(_ctx(record))[0]
+    assert p["performedPeriod"]["start"] in (
+        "2025-06-21T18:30:00+09:00",
+        "2025-06-21T09:30:00Z",
+        "2025-06-21T09:30:00+00:00",
+    )

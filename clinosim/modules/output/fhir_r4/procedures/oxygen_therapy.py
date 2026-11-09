@@ -249,6 +249,49 @@ def _encounter_end_index(ctx: BundleContext) -> dict[str, str]:
     return idx
 
 
+def _encounter_start_index(ctx: BundleContext) -> dict[str, str]:
+    """Return a map `encounter_id -> admission_datetime` for session-start clamping."""
+    idx: dict[str, str] = {}
+    for e in ctx.record.get("encounters", []) or []:
+        eid = _o(e, "encounter_id", "") or ""
+        start = _o(e, "admission_datetime", "") or ""
+        if eid and start:
+            idx[eid] = str(start)
+    return idx
+
+
+def _instant(value: str) -> datetime | None:
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def _before(a: str, b: str) -> bool:
+    """Whether instant ``a`` precedes ``b`` (ISO strings; a naive value is
+    read in the other's zone)."""
+    da, db = _instant(a), _instant(b)
+    if da is None or db is None:
+        return False
+    if (da.tzinfo is None) != (db.tzinfo is None):
+        da, db = da.replace(tzinfo=None), db.replace(tzinfo=None)
+    return da < db
+
+
+def clamp_to_stay(start: str, end: str, admission: str, discharge: str) -> tuple[str, str]:
+    """Keep an oxygen session inside its encounter (Issue #2973).
+
+    Oxygen begun in the ED before a via-ED admission (O2 order or first
+    on-O2 vital in the ED window) is charted on the inpatient encounter
+    from its admission on; a session never runs past the discharge.
+    """
+    if admission and _before(start, admission):
+        start = admission
+    if discharge and _before(discharge, end):
+        end = discharge
+    return start, end
+
+
 def _encounter_attending_index(ctx: BundleContext) -> dict[str, str]:
     """Return a map `encounter_id -> attending_physician_id` for performer
     fallback when no O2 Order is present."""
@@ -299,6 +342,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
                 o2_orders_by_enc[eid].append(o)
 
     enc_end_idx = _encounter_end_index(ctx)
+    enc_start_idx = _encounter_start_index(ctx)
     enc_att_idx = _encounter_attending_index(ctx)
     lang = lang_for(ctx.country)
     is_jp_out = is_jp(ctx.country)
@@ -381,6 +425,8 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
                     start,
                 )
                 continue
+
+        start, end = clamp_to_stay(start, end, enc_start_idx.get(enc_id, ""), enc_end_idx.get(enc_id, ""))
 
         order_id = str(_o(order, "order_id", "") or "") if order is not None else ""
         ordered_by = str(_o(order, "ordered_by", "") or "") if order is not None else ""
