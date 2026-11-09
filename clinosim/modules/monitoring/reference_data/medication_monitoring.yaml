@@ -143,7 +143,8 @@ mappings:
   # patients today emit ≈ 0 eGFR orders (no monitoring driver — sepsis /
   # AKI / hypertension incidental fires cover < 5 %). This enricher closes
   # the gap so DOAC + monitoring appears in the FHIR record the way real
-  # anticoagulation clinics chart it.
+  # anticoagulation clinics chart it. Issue #2993: plus a yearly Hb (the
+  # DOAC follow-up checks the blood count, not the INR).
   Apixaban:
     per_visit_probability: 0.4
     drugs: [apixaban]
@@ -153,6 +154,11 @@ mappings:
         rationale:
           en: "DOAC (Apixaban) renal-clearance monitoring — dose adjustment CrCl < 30 (5 mg BID → 2.5 mg BID). At minimum q6 months on stable therapy per Chest 2018 / JCS 2020."
           ja: "DOAC (アピキサバン) の腎排泄モニタリング — CrCl <30 で減量 (5 mg 1日2回 → 2.5 mg 1日2回)。Chest 2018 / JCS 2020 に基づき安定期は 6 か月毎の測定を最低推奨。"
+      - lab: Hb
+        interval_months: 12
+        rationale:
+          en: "DOAC blood count — hemoglobin at least yearly to detect occult bleeding (2021 EHRA practical guide on NOAC use; Issue #2993)."
+          ja: "DOAC 投与中の血算 — 潜在出血の検出のため少なくとも年 1 回ヘモグロビンを測定 (2021 EHRA NOAC 実践ガイド、Issue #2993)。"
 
   Rivaroxaban:
     per_visit_probability: 0.4
@@ -163,6 +169,11 @@ mappings:
         rationale:
           en: "DOAC (Rivaroxaban) renal-clearance monitoring — contraindicated CrCl < 15, dose adjustment CrCl 15-49 (20 mg qd → 15 mg qd). At minimum q6 months per Chest 2018."
           ja: "DOAC (リバーロキサバン) の腎排泄モニタリング — CrCl <15 で禁忌、CrCl 15-49 で減量 (20 mg 1日1回 → 15 mg 1日1回)。Chest 2018 に基づき 6 か月毎測定を最低推奨。"
+      - lab: Hb
+        interval_months: 12
+        rationale:
+          en: "DOAC blood count — hemoglobin at least yearly to detect occult bleeding (2021 EHRA practical guide on NOAC use; Issue #2993)."
+          ja: "DOAC 投与中の血算 — 潜在出血の検出のため少なくとも年 1 回ヘモグロビンを測定 (2021 EHRA NOAC 実践ガイド、Issue #2993)。"
 
   Dabigatran:
     per_visit_probability: 0.4
@@ -173,6 +184,11 @@ mappings:
         rationale:
           en: "DOAC (Dabigatran) renal-clearance monitoring — most renally-dependent of the DOACs (~80% renal). Contraindicated CrCl < 30, dose adjustment CrCl 30-50 (150 mg BID → 110 mg BID). Recheck q3-6 months."
           ja: "DOAC (ダビガトラン) の腎排泄モニタリング — 4 剤中最も腎依存 (約 80% 腎排泄)。CrCl <30 で禁忌、CrCl 30-50 で減量 (150 mg 1日2回 → 110 mg 1日2回)。3-6 か月毎に再検。"
+      - lab: Hb
+        interval_months: 12
+        rationale:
+          en: "DOAC blood count — hemoglobin at least yearly to detect occult bleeding (2021 EHRA practical guide on NOAC use; Issue #2993)."
+          ja: "DOAC 投与中の血算 — 潜在出血の検出のため少なくとも年 1 回ヘモグロビンを測定 (2021 EHRA NOAC 実践ガイド、Issue #2993)。"
 
   Edoxaban:
     per_visit_probability: 0.4
@@ -183,6 +199,11 @@ mappings:
         rationale:
           en: "DOAC (Edoxaban) renal-clearance monitoring — dose adjustment CrCl 15-50 (60 mg qd → 30 mg qd). Contraindicated CrCl < 15 or > 95 (paradoxical stroke risk). At minimum q6 months per JCS 2020."
           ja: "DOAC (エドキサバン) の腎排泄モニタリング — CrCl 15-50 で減量 (60 mg 1日1回 → 30 mg 1日1回)。CrCl <15 または >95 は禁忌 (逆説的脳卒中リスク)。JCS 2020 に基づき 6 か月毎測定を最低推奨。"
+      - lab: Hb
+        interval_months: 12
+        rationale:
+          en: "DOAC blood count — hemoglobin at least yearly to detect occult bleeding (2021 EHRA practical guide on NOAC use; Issue #2993)."
+          ja: "DOAC 投与中の血算 — 潜在出血の検出のため少なくとも年 1 回ヘモグロビンを測定 (2021 EHRA NOAC 実践ガイド、Issue #2993)。"
 
   # Issue #2142: mood stabilizers (CANMAT / ISBD 2018 safety monitoring).
   Lithium carbonate:

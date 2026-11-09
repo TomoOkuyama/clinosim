@@ -912,6 +912,10 @@ chronic_assessment:
   inr_target_standard:
     ja: "目標 2.0-3.0"
     en: "target 2.0-3.0"
+  # Issue #2993: DOAC follow-up (no INR target).
+  doac_renal_bleeding_review:
+    ja: "DOAC 用量に関わる腎機能・出血徴候を確認"
+    en: "renal function and bleeding reviewed for DOAC dosing"
   med_continue_tail:
     ja: "、{med} 継続"
     en: "; {med} continue"
