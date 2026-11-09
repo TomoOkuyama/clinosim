@@ -7,6 +7,12 @@
 # Sources: Lexicomp Pediatric & Neonatal Dosage Handbook (single-dose mg/kg and
 # maximum), AAP Clinical Report "Fever and Antipyretic Use in Children" (2011,
 # reaffirmed 2016) for acetaminophen / ibuprofen; FDA labels for age limits.
+#
+# Fluids (Issue #2977): an IV isotonic crystalloid bolus written as an adult
+# volume ("IV normal saline 1000mL") is ml_per_kg x weight for a child, rounded
+# to whole mL and never more than the written adult volume. Source: AHA PALS
+# 2020 / AAP — isotonic crystalloid bolus 10-20 mL/kg (20 mL/kg for
+# dehydration with poor perfusion).
 metadata:
   kind: reference
   name: pediatric_dosing
@@ -24,3 +30,7 @@ drugs:
   famotidine: {mg_per_kg: 0.5, max_mg: 20, min_age_months: 3}
   prednisone: {mg_per_kg: 1, max_mg: 40, min_age_months: 0}
   prednisolone: {mg_per_kg: 1, max_mg: 40, min_age_months: 0}
+
+fluids:
+  normal_saline: {ml_per_kg: 20}
+  lactated_ringer_solution: {ml_per_kg: 20}

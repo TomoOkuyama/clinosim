@@ -226,7 +226,9 @@ from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name,
   `pediatric_dose.py` が読み、`PediatricDosingFile` (`extra="forbid"`) で
   検証): `adult_age_years` と薬剤ごとの `mg_per_kg` / `max_mg` /
   `min_age_months`。`adult_age_years` 未満の患者への ED 処方は、掲載薬なら
-  体重から用量を再計算し、最低年齢未満なら投与しない。
+  体重から用量を再計算し、最低年齢未満なら投与しない。`fluids` は IV 晶質液の
+  `ml_per_kg` (Issue #2977): 成人量で書かれた小児のボーラス
+  ("IV normal saline 1000mL") は `ml_per_kg` × 体重とし、記載量を超えない。
 
 ## ディレクトリ構造
 
@@ -249,7 +251,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay 定数 (Issue #637)
   reference_data/
     medication_supersede.yaml        supersede.py が読む class 切替 + PRN marker (Issue #2615)
-    pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢 (Issue #2857)
+    pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢、輸液ごとの mL/kg (Issue #2857, #2977)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 
