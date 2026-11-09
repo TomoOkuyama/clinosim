@@ -293,6 +293,25 @@ newborn_conditions:
 # below are drawn from AHA / Nelson Pediatrics 21st ed. term-newborn
 # reference ranges + JP MHLW 母子保健統計. All are population medians
 # for a healthy term newborn (0-28 days).
+# ---------------------------------------------------------------------------
+# Maternal vital signs during the delivery admission (Issue #3007). A full
+# set (BP, pulse, temperature, respiratory rate, SpO2) is recorded at
+# ``first_day_offsets_hours`` after admission over the first 24 hours —
+# frequent around the birth, every 4 hours for the rest of the first day,
+# more often after a cesarean (post-anesthesia recovery) — and then once per
+# nursing shift at ``later_day_hours`` (clock hours) until discharge.
+# Sources: AAP / ACOG Guidelines for Perinatal Care, 8th ed. (2017) —
+# postpartum BP / pulse / temperature at least every 15 min for the first
+# 1-2 h, then routinely; ACOG Practice Bulletin 209 / ASA Practice
+# Guidelines for Obstetric Anesthesia (2016) for the post-cesarean recovery
+# period; 日本産科婦人科学会・日本産婦人科医会 産婦人科診療ガイドライン
+# 産科編 2023 (分娩直後の頻回の母体観察とその後の定時観察).
+maternal_vitals:
+  first_day_offsets_hours:
+    vaginal: [0, 1, 2, 4, 8, 12, 16, 20]
+    cesarean: [0, 0.5, 1, 1.5, 2, 4, 8, 12, 16, 20]
+  later_day_hours: [6, 14, 22]
+
 newborn:
   baseline_vitals:
     temperature: 36.7                   # °C — neutral thermal environment target

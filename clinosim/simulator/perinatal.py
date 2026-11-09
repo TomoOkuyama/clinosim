@@ -506,6 +506,60 @@ def _build_newborn_patient(
     )
 
 
+def _maternal_vital_times(admission: datetime, discharge: datetime, cesarean: bool) -> list[datetime]:
+    """When a delivery admission records the mother's vitals (Issue #3007):
+    ``first_day_offsets_hours`` after admission over the first 24 hours,
+    then each ``later_day_hours`` clock hour until discharge
+    (``perinatal.yaml`` ``maternal_vitals``)."""
+    cfg = (load_perinatal_config() or {}).get("maternal_vitals") or {}
+    offsets = (cfg.get("first_day_offsets_hours") or {}).get("cesarean" if cesarean else "vaginal") or []
+    times = [admission + timedelta(hours=float(h)) for h in offsets]
+    first_day_end = admission + timedelta(hours=24)
+    day = first_day_end.date()
+    while day <= discharge.date():
+        for hour in cfg.get("later_day_hours") or []:
+            at = datetime.combine(day, datetime.min.time()) + timedelta(hours=int(hour))
+            if first_day_end <= at < discharge:
+                times.append(at)
+        day += timedelta(days=1)
+    return sorted(at for at in times if admission <= at < discharge)
+
+
+def _maternal_vitals(
+    patient: PatientProfile, encounter_id: str, admission: datetime, discharge: datetime, cesarean: bool, nurse_id: str
+) -> list:
+    """The mother's vital signs over the delivery admission (Issue #3007):
+    a full set at each ``_maternal_vital_times`` time, derived from a
+    healthy postpartum physiological state through the shared vitals
+    derivation. Drawn from a sub-RNG keyed on the encounter, so no shared
+    stream moves."""
+    from clinosim.modules.physiology.engine import derive_observed_vitals
+    from clinosim.simulator.vitals_pipeline import _loc_for
+    from clinosim.types.clinical import PhysiologicalState
+    from clinosim.types.encounter import VitalSignRecord
+
+    rng = determinism.default_rng(text_seed(f"maternal-vitals|{encounter_id}"))
+    state = PhysiologicalState()
+    out = []
+    for at in _maternal_vital_times(admission, discharge, cesarean):
+        raw = derive_observed_vitals(state, patient.baseline_vitals, at, rng)
+        out.append(
+            VitalSignRecord(
+                timestamp=at,
+                temperature_celsius=round(raw["temperature"], 1),
+                heart_rate=int(round(raw["heart_rate"])),
+                systolic_bp=int(round(raw["systolic_bp"])),
+                diastolic_bp=int(round(raw["diastolic_bp"])),
+                respiratory_rate=int(round(raw["respiratory_rate"])),
+                spo2=round(raw["spo2"], 1),
+                consciousness_level=_loc_for(state, "", (at.date() - admission.date()).days, rng),
+                measured_by=nurse_id,
+                data_source="manual",
+            )
+        )
+    return out
+
+
 def simulate_delivery_encounter(
     patient: PatientProfile,
     visit_date: datetime,
@@ -977,7 +1031,14 @@ def simulate_delivery_encounter(
         encounters=[encounter],
         orders=orders,
         medication_administrations=_bundle_mars,
-        vital_signs=[],
+        vital_signs=_maternal_vitals(
+            patient,
+            encounter.encounter_id,
+            encounter.admission_datetime,
+            encounter.discharge_datetime or visit_date,
+            is_cesarean,
+            _bundle_nurse,
+        ),
         lab_results=[],
         procedures=[procedure],
         condition_event=condition_event,
