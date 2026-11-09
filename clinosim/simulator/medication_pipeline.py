@@ -757,6 +757,12 @@ def _generate_mar(
             )
             continue
 
+        # Issue #3002: the maintenance order written with a loading dose is
+        # given from the day after the load.
+        _from = getattr(order, "administer_from", None)
+        if _from is not None and (admission_time + timedelta(days=day)).date() < _from.date():
+            continue
+
         stat_first_dose_time = None
         if day == 0 and str(getattr(order, "urgency", "")).lower() == "stat":
             stat_first_dose_time = admission_time + timedelta(
@@ -937,6 +943,11 @@ def apply_drug_safety_gate_to_orders(
     out: list[Order] = []
     accepted_med_names: list[str] = seed
     substitute_seq = 0
+    # Issue #3002: a maintenance order that replaces an order of this pass
+    # (``prior_order_id``, e.g. the loading dose of the same drug) follows
+    # that order's verdict instead of being checked against it.
+    accepted_ids: set[str] = set()
+    rejected_ids: set[str] = set()
     # Issue #2924: the patient's active allergies rule out drugs too.
     allergen_codes = drug_safety.allergy_entries(getattr(patient, "allergies", None) or [])
     condition_codes = drug_safety.condition_entries(patient.chronic_conditions or [])
@@ -949,6 +960,14 @@ def apply_drug_safety_gate_to_orders(
         candidate = order.display_name or ""
         if not candidate:
             out.append(order)
+            continue
+        _prior = getattr(order, "prior_order_id", "") or ""
+        if _prior in accepted_ids:
+            out.append(order)
+            accepted_ids.add(order.order_id)
+            continue
+        if _prior in rejected_ids:
+            rejected_ids.add(order.order_id)
             continue
 
         # Issue #1066: home-medication continuation orders re-emit drugs already
@@ -964,6 +983,7 @@ def apply_drug_safety_gate_to_orders(
         if _canonical_candidate in _canonical_home:
             out.append(order)
             accepted_med_names.append(candidate)
+            accepted_ids.add(order.order_id)
             continue
 
         verdicts = drug_safety.check_candidate_against_active(candidate, accepted_med_names)
@@ -1011,6 +1031,7 @@ def apply_drug_safety_gate_to_orders(
                     timestamp=ordered_datetime.isoformat(),
                 )
             )
+            rejected_ids.add(order.order_id)
             if alt is None:
                 # Fully skip — order dropped
                 continue
@@ -1055,6 +1076,7 @@ def apply_drug_safety_gate_to_orders(
 
         out.append(order)
         accepted_med_names.append(candidate)
+        accepted_ids.add(order.order_id)
 
     return out
 

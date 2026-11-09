@@ -33,7 +33,11 @@ ServiceRequest への `basedOn` を持つことを要求する
 
 - **In scope**: `place_admission_orders`, `place_daily_lab_orders`,
   `place_imaging_orders` (Tier 1 #2 imaging-chain DRY entry point)、
-  `enrich_medication_order` + `parse_dose_string`、
+  `enrich_medication_order` + `parse_dose_string` (「X loading, then Y」
+  の用量文字列は維持量 Y として解析する。`place_admission_orders` では
+  1 回限りの負荷投与オーダー X と、それを `prior_order_id` で置き換え
+  `administer_from` で翌日から投与する維持オーダー Y に分ける、#3002、
+  `split_loading_dose`)、
   `calculate_lab_result_time` (STAT / routine + 夜勤 deferral)、
   `calculate_imaging_result_time` (scheduling + reporting delay)、
   `calculate_result_time_from_state` (`facility.HospitalState` 経由

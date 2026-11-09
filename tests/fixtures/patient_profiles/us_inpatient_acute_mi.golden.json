@@ -847,7 +847,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 14 days\nPatient status: BP 116/72, HR 111, SpO2 96%, T 36.2°C.\nMeds administered: Ticagrelor, Nitroglycerin, Acetaminophen.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 14 days\nPatient status: BP 116/72, HR 111, SpO2 96%, T 36.2°C.\nMeds administered: Nitroglycerin, Acetaminophen.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-20-night": {
@@ -870,7 +870,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 14 days\nPatient status: BP 115/71, HR 109, SpO2 93%, T 37.3°C; nasal cannula 3.2 L/min.\nMeds administered: Nitroglycerin, Acetaminophen.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 14 days\nPatient status: BP 115/71, HR 109, SpO2 93%, T 37.3°C; nasal cannula 3.2 L/min.\nMeds administered: Aspirin, Nitroglycerin, Acetaminophen.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-21-day": {
@@ -893,7 +893,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 14 days\nPatient status: BP 115/71, HR 109, SpO2 93%, T 37.3°C; nasal cannula 3.2 L/min.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 14 days\nPatient status: BP 115/71, HR 109, SpO2 93%, T 37.3°C; nasal cannula 3.2 L/min.\nMeds administered: Ticagrelor, Nitroglycerin, Acetaminophen.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-22-evening": {
@@ -939,7 +939,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 14 days\nPatient status: BP 111/69, HR 108, SpO2 96%, T 36.7°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 14 days\nPatient status: BP 111/69, HR 108, SpO2 96%, T 36.7°C.\nMeds administered: Ticagrelor, Nitroglycerin, Acetaminophen.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-24-day": {
@@ -962,7 +962,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 14 days\nPatient status: BP 111/69, HR 108, SpO2 96%, T 36.7°C.\nMeds administered: Nitroglycerin, Acetaminophen.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 14 days\nPatient status: BP 111/69, HR 108, SpO2 96%, T 36.7°C.\nMeds administered: Aspirin, Nitroglycerin, Acetaminophen.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-25-evening": {
@@ -1008,7 +1008,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 96%, T 37.5°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 96%, T 37.5°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-27-day": {
@@ -1031,7 +1031,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 96%, T 37.5°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 96%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-28-evening": {
@@ -1215,7 +1215,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 7 / LOS 14 days\nPatient status: BP 118/70, HR 104, SpO2 94%, T 37.9°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 7 / LOS 14 days\nPatient status: BP 118/70, HR 104, SpO2 94%, T 37.9°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-36-day": {
@@ -1238,7 +1238,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 14 days\nPatient status: BP 118/70, HR 104, SpO2 94%, T 37.9°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 14 days\nPatient status: BP 118/70, HR 104, SpO2 94%, T 37.9°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-37-evening": {
@@ -1284,7 +1284,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8 / LOS 14 days\nPatient status: BP 114/69, HR 102, SpO2 97%, T 36.7°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 8 / LOS 14 days\nPatient status: BP 114/69, HR 102, SpO2 97%, T 36.7°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-39-day": {
@@ -1307,7 +1307,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 8 / LOS 14 days\nPatient status: BP 114/69, HR 102, SpO2 97%, T 36.7°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 8 / LOS 14 days\nPatient status: BP 114/69, HR 102, SpO2 97%, T 36.7°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-40-evening": {
@@ -1491,7 +1491,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 11 / LOS 14 days\nPatient status: BP 117/70, HR 99, SpO2 97%, T 36.0°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 11 / LOS 14 days\nPatient status: BP 117/70, HR 99, SpO2 97%, T 36.0°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-48-day": {
@@ -1514,7 +1514,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 11 / LOS 14 days\nPatient status: BP 117/70, HR 99, SpO2 97%, T 36.0°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 11 / LOS 14 days\nPatient status: BP 117/70, HR 99, SpO2 97%, T 36.0°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-49-evening": {
@@ -1560,7 +1560,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 12 / LOS 14 days\nPatient status: BP 112/69, HR 96, SpO2 96%, T 36.4°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 12 / LOS 14 days\nPatient status: BP 112/69, HR 96, SpO2 96%, T 36.4°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-51-day": {
@@ -1583,7 +1583,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 12 / LOS 14 days\nPatient status: BP 112/69, HR 96, SpO2 96%, T 36.4°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 12 / LOS 14 days\nPatient status: BP 112/69, HR 96, SpO2 96%, T 36.4°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-52-evening": {
@@ -1629,7 +1629,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 13 / LOS 14 days\nPatient status: BP 116/72, HR 97, SpO2 99%, T 36.9°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 13 / LOS 14 days\nPatient status: BP 116/72, HR 97, SpO2 99%, T 36.9°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-54-day": {
@@ -1652,7 +1652,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 13 / LOS 14 days\nPatient status: BP 116/72, HR 97, SpO2 99%, T 36.9°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 13 / LOS 14 days\nPatient status: BP 116/72, HR 97, SpO2 99%, T 36.9°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-55-evening": {
