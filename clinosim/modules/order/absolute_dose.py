@@ -14,7 +14,13 @@ from __future__ import annotations
 import math
 import re
 
-__all__ = ["absolute_dose", "body_surface_area", "is_continuous_infusion", "is_per_body_unit"]
+__all__ = [
+    "absolute_dose",
+    "body_surface_area",
+    "is_continuous_infusion",
+    "is_one_time_infusion",
+    "is_per_body_unit",
+]
 
 # Frequency / name markers of a continuous infusion, whose per-kg figure is a
 # rate (per minute or hour), not a dose.
@@ -25,6 +31,28 @@ def is_continuous_infusion(frequency: str, name: str = "") -> bool:
     """Whether an order is a continuous infusion (its dose is a rate)."""
     text = f"{frequency} {name}".upper()
     return any(marker in text for marker in _CONTINUOUS_MARKERS)
+
+
+# Issue #3043: a dose given as one timed infusion — "IV over 2h", "over
+# 20min", "10% bolus then 60min infusion" (alteplase, magnesium sulfate).
+_TIMED_INFUSION = re.compile(
+    r"\bover\s*\d+(?:\.\d+)?\s*(?:min|minutes?|h|hrs?|hours?)\b|\b\d+\s*min(?:ute)?s?\s+infusion\b",
+    re.IGNORECASE,
+)
+# A repeat or a running rate written next to it: an interval ("q6-8h"), a
+# schedule word, as needed, or a duration of a running infusion ("x12-24h").
+_REPEATED = re.compile(r"\bq\s*\d|\b(?:daily|bid|tid|qid|prn|weekly)\b|\bx\s*\d", re.IGNORECASE)
+
+
+def is_one_time_infusion(name: str) -> bool:
+    """Whether an order written without a frequency is one timed infusion
+    ("Alteplase 100mg IV over 2h"): a timed-infusion phrase, no repeat or
+    running-infusion duration, and not a continuous infusion (Issue #3043)."""
+    return (
+        bool(_TIMED_INFUSION.search(name or ""))
+        and not _REPEATED.search(name or "")
+        and not is_continuous_infusion("", name)
+    )
 
 
 # Per-unit dose: "<mass unit>/kg" or "<mass unit>/m2", nothing after it.

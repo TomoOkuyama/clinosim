@@ -924,6 +924,20 @@ def _simulate_patient(
     dc_hour = 0 if death_occurred else int(rng.normal(PLANNED_DISCHARGE_HOUR_MEAN, PLANNED_DISCHARGE_HOUR_STD))
     dc_hour = max(PLANNED_DISCHARGE_HOUR_MIN, min(PLANNED_DISCHARGE_HOUR_MAX, dc_hour)) if not death_occurred else 0
     planned_discharge = _planned_discharge_datetime(admission_time, actual_los, dc_hour)
+    # Issue #3043: a one-time order placed on the last stay day but dated the
+    # next calendar day is still given before discharge.
+    from clinosim.simulator.medication_pipeline import missed_single_doses
+
+    all_mars = all_mars + missed_single_doses(
+        patient,
+        all_orders,
+        all_mars,
+        admission_time,
+        planned_discharge,
+        roster=roster,
+        ward=encounter.ward_id or "",
+        department=department,
+    )
 
     # Snapshot truncation: if planned discharge is after snapshot date,
     # patient is still admitted as of snapshot → no discharge_datetime

@@ -277,15 +277,20 @@ def enrich_medication_order(order: Order, dose_str: str = "") -> Order:
         order.route = _determine_route(order.display_name, order.clinical_intent or "")
     # Default frequency when a dose is set but no frequency was parsed: a
     # continuous infusion (a drip, a per-minute / per-hour rate) runs
-    # continuously, like an order written "continuous" (Issue #2812);
-    # anything else is assumed daily.
+    # continuously, like an order written "continuous" (Issue #2812); one
+    # timed infusion ("IV over 2h") is a single dose (Issue #3043); anything
+    # else is assumed daily.
     if order.dose_quantity is not None and not order.frequency:
-        from clinosim.modules.order.absolute_dose import is_continuous_infusion
+        from clinosim.modules.order.absolute_dose import is_continuous_infusion, is_one_time_infusion
 
         # The rate unit may survive only in dose_unit (a renamed product order).
         if is_continuous_infusion(f"{dose_str} {order.display_name} {order.dose_unit or ''}"):
             order.frequency = "CONTINUOUS"
             order.frequency_per_day = _freq_per_day().get("continuous")
+        elif is_one_time_infusion(f"{dose_str} {order.display_name}"):
+            order.frequency = "once"
+            order.frequency_per_day = 1
+            order.single_dose = True
         else:
             order.frequency = "DAILY"
             order.frequency_per_day = 1

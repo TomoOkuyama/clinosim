@@ -129,6 +129,7 @@ Governing specs: [`medication-lifecycle-spec.md`](medication-lifecycle-spec.md),
 | `clinosim/modules/order/panel_grouping.py` `classify_lab_specs(...)` | Grouping lab orders into panels and individual tests. |
 | `clinosim/modules/order/engine.py` `place_imaging_orders(...)` | Imaging orders. |
 | `clinosim/modules/order/absolute_dose.py` `is_continuous_infusion(frequency, name="")` | Whether an order is a continuous infusion (its dose is a rate), from its frequency and name. |
+| `clinosim/modules/order/absolute_dose.py` `is_one_time_infusion(name)` | Whether an order written without a frequency is one timed infusion ("Alteplase 100mg IV over 2h"): `enrich_medication_order` makes it a single dose instead of a daily order (Issue #3043). |
 | `clinosim/modules/drug_safety/engine.py` `allergy_entries(allergies)` | The active allergen codes of a patient's allergy records (drops inactive, refuted and "no known allergy" entries) — the input of `check_candidate_against_allergies`. |
 | `clinosim/modules/drug_safety/engine.py` `check_candidate_against_allergies(candidate, allergen_codes)` | The non-allowed verdicts of a candidate drug against the patient's allergen codes. Every prescribing path calls this (or `allergy_skip_verdict`) instead of re-implementing an allergy check. |
 | `clinosim/modules/drug_safety/engine.py` `allergy_skip_verdict(candidate, allergies)` | The worst allergy verdict that drops a candidate drug for a patient's allergy records, or None when it may be given. |

@@ -143,6 +143,7 @@ from clinosim.modules.order.absolute_dose import (
     is_per_body_unit,                   # (unit) -> bool ("mg/kg", "mg/m2")
     body_surface_area,                  # (height_cm, weight_kg) -> m2 (Mosteller)
     is_continuous_infusion,             # (frequency, name="") -> bool
+    is_one_time_infusion,               # (name) -> bool — "IV over 2h" with no repeat: one dose (Issue #3043)
 )
 
 # Administrations for orders placed outside the daily MAR loop (Issue #2607), RNG-free
@@ -279,7 +280,7 @@ clinosim/modules/order/
   supersede.py                       POST_ENCOUNTER enricher: a newer order for the same drug / a listed class switch stops the earlier one (Issue #2615)
   prescription_supersede.py          prescription_closures — renewal / supply-end closure of take-home prescriptions at FHIR export (Issue #2610)
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — RNG-free MAR for orders placed outside the daily loop (Issue #2607)
-  absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion — per-kg / per-m2 dose amounts (Issue #2750)
+  absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion + is_one_time_infusion — per-kg / per-m2 dose amounts (Issue #2750), infusion kinds (Issue #3043)
   pediatric_dose.py                  pediatric_order_name — weight-based ED doses for children (Issue #2857)
   label_dose.py                      within_label — per-country label dose limits (Issue #3012)
   audit.py                           AD-60 audit plug-in (per-module) — 7-check lift_firing_proof + basedon_coverage

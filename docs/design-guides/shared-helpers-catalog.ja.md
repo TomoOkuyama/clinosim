@@ -129,6 +129,7 @@ Governing specs: [`medication-lifecycle-spec.ja.md`](medication-lifecycle-spec.j
 | `clinosim/modules/order/panel_grouping.py` `classify_lab_specs(...)` | 検査オーダーをパネルと単項目に分ける。 |
 | `clinosim/modules/order/engine.py` `place_imaging_orders(...)` | 画像検査オーダー。 |
 | `clinosim/modules/order/absolute_dose.py` `is_continuous_infusion(frequency, name="")` | オーダーが持続投与(用量が速度)かを、頻度と名前から判定する。 |
+| `clinosim/modules/order/absolute_dose.py` `is_one_time_infusion(name)` | 頻度のないオーダーが 1 回の時間指定投与(「Alteplase 100mg IV over 2h」)かを判定する。`enrich_medication_order` はこれを毎日投与でなく単回投与にする (Issue #3043)。 |
 | `clinosim/modules/drug_safety/engine.py` `allergy_entries(allergies)` | 患者のアレルギー記録から有効なアレルゲンコードを取り出す (非活動・否定・「アレルギーなし」は除外)。`check_candidate_against_allergies` の入力。 |
 | `clinosim/modules/drug_safety/engine.py` `check_candidate_against_allergies(candidate, allergen_codes)` | 候補薬を患者のアレルゲンコードと照合した、許可されない判定。処方経路はアレルギー照合を自作せず、これ (または `allergy_skip_verdict`) を呼ぶ。 |
 | `clinosim/modules/drug_safety/engine.py` `allergy_skip_verdict(candidate, allergies)` | 患者のアレルギー記録で候補薬を除外する最も重い判定。投与可能なら None。 |
