@@ -19,7 +19,10 @@ in the [#1252 design comment](https://github.com/TomoOkuyama/clinosim/issues/125
   - Vitamin K prophylaxis (`MedicationAdministration` — JP oral K2
     syrup on days 0 / 7 when inside the stay, US 1 mg IM — N2).
   - Shift-cadence vital signs from the newborn's `baseline_vitals`
-    (`VitalSignRecord` — N3).
+    (`VitalSignRecord` — N3); each measurement varies around the baseline
+    within the newborn normal range (`shift_vitals.measurement`: HR
+    110-160, RR 30-60, T 36.5-37.5, SpO2 >= 95), drawn from a per-stay
+    sub-stream (Issue #2989).
   - Apgar score at 1 min / 5 min (`Observation`, LOINC 9272-6 /
     9274-2 — N4).
   - AABR hearing screen (`Procedure`, SNOMED 413083006 — N5).

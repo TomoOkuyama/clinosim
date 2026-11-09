@@ -85,8 +85,7 @@ def test_newborn_shift_vitals_span_the_birth_admission_los() -> None:
     """5-day JP birth admission (admit 06/01 10:00 → discharge 06/06 10:00)
     covers ≥ 14 vital sets: 1 at admission + 5 days × 3 shifts = 16 max,
     minus any that fall past discharge (day 5 evening 16:00 falls past
-    the 10:00 discharge → skipped). Every emitted VitalSignRecord
-    carries the neonatal baseline verbatim.
+    the 10:00 discharge → skipped).
     """
     rec = _newborn_record(los_days=5)
     vitals = build_newborn_shift_vitals(rec)
@@ -98,11 +97,29 @@ def test_newborn_shift_vitals_span_the_birth_admission_los() -> None:
         assert admit <= v.timestamp <= dischg
     # First entry lands exactly at admission (arrival vital set).
     assert vitals[0].timestamp == admit
-    # Neonatal values carried through.
-    assert all(v.heart_rate == 130 for v in vitals)
-    assert all(v.systolic_bp == 68 for v in vitals)
-    assert all(v.respiratory_rate == 40 for v in vitals)
-    assert all(v.temperature_celsius == pytest.approx(36.7) for v in vitals)
+    # Issue #2989: each measurement varies within the newborn normal ranges.
+    assert all(110 <= v.heart_rate <= 160 for v in vitals)
+    assert all(30 <= v.respiratory_rate <= 60 for v in vitals)
+    assert all(36.5 <= v.temperature_celsius <= 37.5 for v in vitals)
+    assert all(95 <= v.spo2 <= 100 for v in vitals)
+
+
+@pytest.mark.parametrize("los_days", [2, 5])
+def test_newborn_stay_vitals_are_not_all_identical(los_days: int) -> None:
+    """Issue #2989: serial measurements vary (every one used to be the baseline)."""
+    vitals = build_newborn_shift_vitals(_newborn_record(los_days=los_days))
+    for field in ("heart_rate", "respiratory_rate", "temperature_celsius"):
+        assert len({getattr(v, field) for v in vitals}) > 1, field
+    assert abs(sum(v.heart_rate for v in vitals) / len(vitals) - 130) < 12  # centred on the baseline
+
+
+def test_newborn_vitals_of_two_birth_stays_of_one_baby_id_differ() -> None:
+    """A mother's two deliveries give two records sharing the -BABY id."""
+    a = build_newborn_shift_vitals(_newborn_record(los_days=5))
+    other = _newborn_record(los_days=5)
+    other.encounters[0].encounter_id = "ENC-BABY-2"
+    b = build_newborn_shift_vitals(other)
+    assert [v.heart_rate for v in a] != [v.heart_rate for v in b]
 
 
 def test_newborn_shift_vitals_deterministic_across_reruns() -> None:

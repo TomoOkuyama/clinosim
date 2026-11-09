@@ -19,7 +19,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -107,6 +107,27 @@ class _Apgar(_Strict):
     minute_5_score_weights: dict[int, float]
 
 
+class _Measurement(_Strict):
+    """Per-measurement variation of one newborn vital (Issue #2989)."""
+
+    sd: float = Field(ge=0)
+    range: tuple[float, float] | None = None
+
+    @field_validator("range")
+    @classmethod
+    def _ordered(cls, rng: tuple[float, float] | None) -> tuple[float, float] | None:
+        if rng is not None and rng[0] > rng[1]:
+            raise ValueError(f"range low > high: {rng}")
+        return rng
+
+
+class _ShiftVitals(_Strict):
+    shift_hours: list[int]
+    measurement: dict[
+        Literal["temperature", "heart_rate", "systolic_bp", "diastolic_bp", "respiratory_rate", "spo2"], _Measurement
+    ] = Field(default_factory=dict)
+
+
 class _NewbornConfig(_Strict):
     """Shape of newborn_screening.yaml (validated at load)."""
 
@@ -117,7 +138,7 @@ class _NewbornConfig(_Strict):
     metabolic_screen: _Screen
     hearing_screen: _Screen
     apgar: _Apgar
-    shift_vitals: dict[str, list[int]]
+    shift_vitals: _ShiftVitals
     vitamin_k: dict[str, _Dose]
 
 
@@ -282,10 +303,11 @@ def build_newborn_shift_vitals(record: Any) -> list[VitalSignRecord]:
     Emits one `VitalSignRecord` at admission (t=0) and one at each
     subsequent shift boundary (`newborn_screening.yaml::shift_vitals
     .shift_hours`, default night 00:00 / day 08:00 / evening 16:00)
-    across the birth admission LOS. Values are the newborn's own
-    `baseline_vitals` verbatim — deterministic, no RNG. Jitter /
-    physiology-driven perturbation is a follow-up once the neonatal
-    physiology model lands.
+    across the birth admission LOS. Each measurement varies around the
+    newborn's own `baseline_vitals` (Issue #2989): Normal(baseline, sd)
+    per vital, kept inside the newborn normal range
+    (`shift_vitals.measurement`), drawn from a sub-stream keyed on the
+    newborn and the birth encounter, so the master RNG is not consumed.
 
     Returns an empty list on non-newborn records (defensive; the
     enricher already gates).
@@ -330,26 +352,44 @@ def build_newborn_shift_vitals(record: Any) -> list[VitalSignRecord]:
         cursor += timedelta(days=1)
     boundaries.sort()
 
-    temperature = float(_get(bv, "temperature", 36.7) or 36.7)
-    heart_rate = int(_get(bv, "heart_rate", 130) or 130)
-    systolic_bp = int(_get(bv, "systolic_bp", 68) or 68)
-    diastolic_bp = int(_get(bv, "diastolic_bp", 40) or 40)
-    respiratory_rate = int(_get(bv, "respiratory_rate", 40) or 40)
-    spo2 = float(_get(bv, "spo2", 97) or 97)
+    baseline = {
+        "temperature": float(_get(bv, "temperature", 36.7) or 36.7),
+        "heart_rate": float(_get(bv, "heart_rate", 130) or 130),
+        "systolic_bp": float(_get(bv, "systolic_bp", 68) or 68),
+        "diastolic_bp": float(_get(bv, "diastolic_bp", 40) or 40),
+        "respiratory_rate": float(_get(bv, "respiratory_rate", 40) or 40),
+        "spo2": float(_get(bv, "spo2", 97) or 97),
+    }
+    measurement = cfg.get("measurement") or {}
+    pid = str(_get(patient, "patient_id", "") or "")
+    enc_id = str(_get(birth_enc, "encounter_id", "") or "")
+    rng = determinism.default_rng(text_seed(f"newborn-shift-vitals|{pid}|{enc_id}"))
 
-    return [
-        VitalSignRecord(
-            timestamp=ts,
-            temperature_celsius=temperature,
-            heart_rate=heart_rate,
-            systolic_bp=systolic_bp,
-            diastolic_bp=diastolic_bp,
-            respiratory_rate=respiratory_rate,
-            spo2=spo2,
-            data_source="manual",
+    def measure(vital: str) -> float:
+        spec = measurement.get(vital) or {}
+        value = float(rng.normal(baseline[vital], float(spec.get("sd", 0.0))))
+        bounds = spec.get("range")
+        if bounds:
+            value = min(float(bounds[1]), max(float(bounds[0]), value))
+        return value
+
+    out = []
+    for ts in boundaries:
+        # Fixed draw order per set: temperature, HR, SBP, DBP, RR, SpO2.
+        v = {vital: measure(vital) for vital in baseline}
+        out.append(
+            VitalSignRecord(
+                timestamp=ts,
+                temperature_celsius=round(v["temperature"], 1),
+                heart_rate=int(round(v["heart_rate"])),
+                systolic_bp=int(round(v["systolic_bp"])),
+                diastolic_bp=int(round(v["diastolic_bp"])),
+                respiratory_rate=int(round(v["respiratory_rate"])),
+                spo2=round(v["spo2"], 1),
+                data_source="manual",
+            )
         )
-        for ts in boundaries
-    ]
+    return out
 
 
 def build_apgar_scores(record: Any) -> list[dict[str, Any]]:
