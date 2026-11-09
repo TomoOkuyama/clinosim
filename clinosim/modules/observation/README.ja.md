@@ -88,6 +88,7 @@ from clinosim.modules.observation.pediatric_ranges import (
     age_in_completed_months,             # (birth, when) -> int | None
     pediatric_vital_range,               # (vital, age_months) -> PediatricVitalRange | None
     pediatric_vital_max,                 # (vital, age_months) -> float | None
+    carry_vital_centile,                 # (vital, value, from_months, to_months) -> float | None (同じ centile、Issue #2988)
     pediatric_lab_range,                 # (lab_name, age_years, sex) -> (low, high, unit, band) | None
     pediatric_lab_center,                # (lab_name, age_years, sex) -> float | None
 )
@@ -157,7 +158,8 @@ from clinosim.modules.observation.microbiology import (
     正常値 / panic 値。
   - `pediatric_reference_ranges.yaml` — 年齢帯別の小児 vital / lab
     範囲。`pediatric_ranges.py` が読み `PediatricReferenceRanges` で検証。
-    `physiology` が小児 lab の scaling と小児 vital の上限に使う。
+    `physiology` が小児 lab の scaling、小児 vital の上限、小児の baseline
+    心拍数 / 呼吸数を各測定時の月齢へ持ち越すのに使う (Issue #2988)。
   - `lab_aliases.yaml`、`lab_constants.yaml`、`nursing_scores.yaml` は
     `_reference_models.py` の `LabAliases` / `LabConstants` /
     `NursingScores` model で検証される。

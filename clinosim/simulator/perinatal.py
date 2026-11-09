@@ -398,6 +398,7 @@ def _build_newborn_patient(
         diastolic_bp=int(_bv_cfg.get("diastolic_bp", 40)),
         respiratory_rate=int(_bv_cfg.get("respiratory_rate", 40)),
         spo2=float(_bv_cfg.get("spo2", 97)),
+        reference_age_months=0,  # Issue #2988: set at birth, carried to each later visit's age
     )
     occupation = str(_newborn_cfg.get("occupation") or "infant")
     # Issue #1581 Phase C.1 audit — JP phonetic reading of the family

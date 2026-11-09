@@ -145,7 +145,11 @@ from clinosim.modules.patient.activator import (
   - `BASELINE_{HR,SBP,DBP,RR,SPO2,TEMPERATURE}_*` — 6 vital-sign
     種別の年齢 / 性別 スケール、平均、標準偏差、ceiling。
     `PEDIATRIC_BASELINE_SPO2_{MEAN,CEILING}` は小児 (18 歳未満) の
-    baseline SpO2 を 99 % 中心にする (Issue #2987)。
+    baseline SpO2 を 99 % 中心にする (Issue #2987)。小児の
+    `BaselineVitals.reference_age_months` は心拍数・呼吸数を設定した月齢
+    (登録時、新生児は出生時) を記録し、各測定でその時点の月齢へ同じ
+    Fleming 2011 centile のまま持ち越す (`physiology.engine`、Issue #2988)。
+    成人は `None` で、保存した baseline のまま。
   - `AGE_PENALTY_{MIN_AGE,SCALE,HEPATIC_RATIO}` —
     `AGE_PENALTY_MIN_AGE` 超えの reserve depletion。
   - `RESERVE_FLOOR`, `IMMUNE_REACTIVITY_BETA_PARAMS` — 生理予備能

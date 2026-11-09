@@ -1330,6 +1330,17 @@ def rr_clamp_max(age_months: int | None) -> float:
     return RR_CLAMP_MAX if ceiling is None else ceiling
 
 
+def _baseline_at_age(baseline: BaselineVitals, vital: str, age_months: int | None) -> float:
+    """A child's baseline ``vital`` (heart / respiratory rate) at the age of
+    this measurement, at the child's own centile (Issue #2988); the stored
+    baseline for an adult or when the age is unknown."""
+    from clinosim.modules.observation.pediatric_ranges import carry_vital_centile
+
+    value = float(getattr(baseline, vital))
+    carried = carry_vital_centile(vital, value, getattr(baseline, "reference_age_months", None), age_months)
+    return value if carried is None else carried
+
+
 def derive_vital_signs(
     state: PhysiologicalState,
     baseline: BaselineVitals,
@@ -1366,7 +1377,13 @@ def derive_vital_signs(
     perfusion_effect = max(0, (1.0 - perf)) * HR_PERFUSION_SCALE
     anemia_effect = state.anemia_level * HR_ANEMIA_SCALE
     hypovolemia_effect = max(0.0, -vol) * HR_HYPOVOLEMIA_SCALE
-    hr = baseline.heart_rate + temp_effect + perfusion_effect + anemia_effect + hypovolemia_effect
+    hr = (
+        _baseline_at_age(baseline, "heart_rate", age_months)
+        + temp_effect
+        + perfusion_effect
+        + anemia_effect
+        + hypovolemia_effect
+    )
     if symp:
         hr += symp * SYMPATHETIC_HR_SCALE
     if oxy:
@@ -1397,7 +1414,7 @@ def derive_vital_signs(
     dbp = clamp(dbp, BP_DBP_CLAMP_MIN, BP_DBP_CLAMP_MAX)
 
     # Respiratory rate
-    rr: float = baseline.respiratory_rate
+    rr: float = _baseline_at_age(baseline, "respiratory_rate", age_months)
     rr += max(0, -state.ph_status) * RR_PH_ACIDOSIS_SCALE
     rr += infl * RR_INFLAMMATION_SCALE
     if vol > RR_VOLUME_OVERLOAD_THRESHOLD:
