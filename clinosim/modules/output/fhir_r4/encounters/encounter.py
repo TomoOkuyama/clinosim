@@ -253,8 +253,13 @@ def _set_reason(
     chronic_condition_codes: list[str] | None,
     patient_id: str,
     encounter_id: str,
+    visit_reason_codes: list[str] | None = None,
 ) -> None:
-    """Encounter.reasonCode (admission dx, else the chief complaint) and reasonReference."""
+    """Encounter.reasonCode (admission dx, else the chief complaint) and reasonReference.
+
+    ``visit_reason_codes`` (Issue #3008): a vaccination visit's codes in the
+    country's diagnosis system, one reasonCode each (JP: the WHO Z23-Z27 code
+    of every vaccine given)."""
     # reasonCode: use diagnosis display in target language (codes module)
     # Falls back to JP-stashed chief_complaint_ja on JP output, or
     # English chief_complaint text otherwise, if no code available.
@@ -288,6 +293,15 @@ def _set_reason(
     if _reason_code:
         rc["coding"] = [system_coding(_reason_system, _reason_code, lang)]
     resource["reasonCode"] = [rc]
+    if visit_reason_codes:
+        resource["reasonCode"] = [
+            {
+                "coding": [system_coding(_reason_system, code, lang)],
+                # Every visit-reason code is in the code table (unit-tested).
+                "text": code_lookup(_reason_system, code, lang),
+            }
+            for code in visit_reason_codes
+        ]
     # reasonReference: link to primary Condition (if dx exists).
     # Chronic-primary encounters resolve to the patient-scoped chronic
     # Condition; acute-primary encounters keep the encounter-scoped id.
@@ -631,6 +645,7 @@ def _build_encounter(
     chronic_condition_codes: list[str] | None = None,
     record_orders: list | None = None,  # CY8-03: DIET Order source for dietPreference
     patient_sex: str = "",  # Issue #957: threads sex to sex-conditional ICD-10-CM mapping (C50)
+    visit_reason_codes: list[str] | None = None,  # Issue #3008: vaccination-visit reason codes
 ) -> dict:
     """Build FHIR Encounter resource."""
     encounter_id = enc.get("encounter_id", str(uuid.uuid4()))
@@ -688,6 +703,7 @@ def _build_encounter(
             chronic_condition_codes,
             patient_id,
             encounter_id,
+            visit_reason_codes,
         )
     _set_participants(resource, enc, class_code, country)
     _set_diagnoses(

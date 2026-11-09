@@ -55,6 +55,29 @@ IMMUNIZATION_VISIT_DX = "Z23"
 """ICD-10 / ICD-10-CM "Encounter for immunization" — the reason code of a
 vaccination visit."""
 
+
+def vaccination_visit_reason_codes(country: str, cvx_codes: Any) -> list[str]:
+    """The diagnosis codes of a vaccination visit's reason in ``country``'s
+    system (Issue #3008). ICD-10-CM (US) codes every such visit
+    ``IMMUNIZATION_VISIT_DX``; WHO ICD-10 (JP) has one "need for immunization"
+    code per disease group (Z23 bacterial, Z24 / Z25 viral, Z26 other, Z27
+    combinations), so a JP visit gets the code of each vaccine given, in
+    order, from ``locale/jp/code_mapping_vaccination_reason.yaml`` — the
+    table's ``unspecified`` code when no given vaccine is listed."""
+    from clinosim.locale.loader import load_code_mapping
+
+    table: dict[str, Any] = dict(load_code_mapping("vaccination_reason", country) or {})
+    by_cvx = table.get("by_cvx") if isinstance(table.get("by_cvx"), dict) else {}
+    if not by_cvx:
+        return [IMMUNIZATION_VISIT_DX]
+    codes: list[str] = []
+    for cvx in cvx_codes or ():
+        code = str(by_cvx.get(str(cvx), "") or "")
+        if code and code not in codes:
+            codes.append(code)
+    return codes or [str(table.get("unspecified") or IMMUNIZATION_VISIT_DX)]
+
+
 FLU_VISIT_CONDITION = "flu_vaccination"
 """Encounter condition YAML of the seasonal flu vaccination visit."""
 

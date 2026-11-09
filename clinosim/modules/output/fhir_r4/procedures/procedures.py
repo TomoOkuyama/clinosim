@@ -308,7 +308,32 @@ def _build_procedure(
         _dx_code = _dx.get("discharge_diagnosis_code") or _dx.get("admission_diagnosis_code", "") or ""
         _dx_display = _dx.get("discharge_diagnosis_display") or _dx.get("admission_diagnosis_display", "") or ""
         _generic_text = t("fhir_text.procedure_reason_generic", lang_for(country))
-        if _dx_code:
+        from clinosim.modules.immunization.visits import IMMUNIZATION_VISIT_DX, vaccination_visit_reason_codes
+
+        if _dx_code == IMMUNIZATION_VISIT_DX:
+            # Issue #3008: a vaccination visit's reason in the country's system
+            # (JP: the WHO need-for-immunization code of each vaccine given).
+            _icd_key = system_key_for("diagnosis", country)
+            _vax = [
+                str(imm.get("vaccine_cvx", "") if isinstance(imm, dict) else getattr(imm, "vaccine_cvx", ""))
+                for imm in (record or {}).get("immunizations", []) or []
+                if enc_id
+                and (imm.get("encounter_id") if isinstance(imm, dict) else getattr(imm, "encounter_id", "")) == enc_id
+            ]
+            resource["reasonCode"] = [
+                {
+                    "coding": [
+                        {
+                            "system": get_system_uri(_icd_key),
+                            "code": code,
+                            "display": registry_display(_icd_key, code, lang) or code,
+                        }
+                    ],
+                    "text": registry_display(_icd_key, code, lang) or _generic_text,
+                }
+                for code in vaccination_visit_reason_codes(country, _vax)
+            ]
+        elif _dx_code:
             # Use country-scoped ICD-10 system key (JP=icd-10-mhlw, US=icd-10-cm)
             # to stay consistent with Condition.code system emission.
             _icd_key = system_key_for("diagnosis", country)

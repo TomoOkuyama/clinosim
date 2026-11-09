@@ -9311,6 +9311,160 @@
       ]
     },
     {
+      "code": "Z23.2",
+      "display": "Need for immunization against tuberculosis [BCG]",
+      "definition": "Need for immunization against tuberculosis [BCG]",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z23"
+        }
+      ]
+    },
+    {
+      "code": "Z23.8",
+      "display": "Need for immunization against other single bacterial diseases",
+      "definition": "Need for immunization against other single bacterial diseases",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z23"
+        }
+      ]
+    },
+    {
+      "code": "Z24.1",
+      "display": "Need for immunization against arthropod-borne viral encephalitis",
+      "definition": "Need for immunization against arthropod-borne viral encephalitis",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z24"
+        }
+      ]
+    },
+    {
+      "code": "Z24.6",
+      "display": "Need for immunization against viral hepatitis",
+      "definition": "Need for immunization against viral hepatitis",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z24"
+        }
+      ]
+    },
+    {
+      "code": "Z25.0",
+      "display": "Need for immunization against mumps alone",
+      "definition": "Need for immunization against mumps alone",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z25"
+        }
+      ]
+    },
+    {
+      "code": "Z25.1",
+      "display": "Need for immunization against influenza",
+      "definition": "Need for immunization against influenza",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z25"
+        }
+      ]
+    },
+    {
+      "code": "Z25.8",
+      "display": "Need for immunization against other specified single viral diseases",
+      "definition": "Need for immunization against other specified single viral diseases",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z25"
+        }
+      ]
+    },
+    {
+      "code": "Z26.9",
+      "display": "Need for immunization against unspecified infectious disease",
+      "definition": "Need for immunization against unspecified infectious disease",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z26"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Need for immunization NOS"
+        }
+      ]
+    },
+    {
+      "code": "Z27.3",
+      "display": "Need for immunization against diphtheria-tetanus-pertussis with poliomyelitis [DTP + polio]",
+      "definition": "Need for immunization against diphtheria-tetanus-pertussis with poliomyelitis [DTP + polio]",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z27"
+        }
+      ]
+    },
+    {
+      "code": "Z27.8",
+      "display": "Need for immunization against other combinations of infectious diseases",
+      "definition": "Need for immunization against other combinations of infectious diseases",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z27"
+        }
+      ]
+    },
+    {
       "code": "Z48",
       "display": "Other surgical follow-up care",
       "definition": "Other surgical follow-up care",
