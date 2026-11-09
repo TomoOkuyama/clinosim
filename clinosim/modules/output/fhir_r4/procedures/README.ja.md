@@ -110,7 +110,9 @@ from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import (
 - **Procedure code dispatch** — US は CPT
   (`http://www.ama-assn.org/go/cpt`);JP は厚労省 診療報酬 K-code
   (`k-codes`、`urn:oid:1.2.392.200119.4.401`)。record 単位の
-  `procedure_system_key` override (例 `snomed-ct`) が優先。
+  `procedure_system_key` override (例 `snomed-ct`) が優先。JP 出力は CPT を
+  一切出さない (Issue #3009): K-code の無い処置は日本語 `code.text` と、
+  検証済みなら SNOMED coding のみ。
 - **酸素療法** (`oxygen_therapy.py`、Issue #796):
   - `_SNOMED_OXYGEN_THERAPY = "57485005"` — 酸素投与の SNOMED CT
     code。

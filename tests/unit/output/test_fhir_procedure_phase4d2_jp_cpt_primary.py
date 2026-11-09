@@ -1,18 +1,9 @@
-"""Phase 4d.2: JP output of a CPT-only Procedure emits the primary
-coding under the CPT system URI, not the K-codes system URI.
+"""JP output of a CPT-only Procedure (Phase 4d CPAP / polysomnography).
 
-Phase 4d emits CPAP (CPT 94660) and polysomnography (CPT 95810) on the
-CIF ProcedureRecord path with ``procedure_code_us`` set but no
-``procedure_code_jp``. Prior to Phase 4d.2 the JP FHIR emit path put
-these codes under the ``http://jpfhir.jp/fhir/core/CodeSystem/
-JP_MedicalProcedure_CS`` (K-codes) system URI — semantically wrong,
-since 94660 / 95810 are CPT codes not K-codes. A consumer validating
-against the K-codes system would reject them.
-
-This test pins the fix: when ``is_jp(country)`` and no K-code is
-available but a CPT code is, the primary ``coding[]`` entry carries
-the CPT system URI. The redundant secondary CPT entry is suppressed
-in that same case.
+Phase 4d.2 put the CPT code under the CPT system URI rather than the
+K-codes URI. Issue #3009 goes further: JP output never carries CPT (a US
+code system), so a CPT-only procedure has no CPT coding on JP and a
+procedure with a K-code has no secondary CPT. US output is unchanged.
 """
 
 from __future__ import annotations
@@ -40,27 +31,24 @@ def _cpt_only_proc(code: str, display: str) -> dict:
     }
 
 
-def test_jp_cpt_only_cpap_primary_coding_uses_cpt_system() -> None:
-    """CPT-only CPAP (94660) on JP output — primary coding carries the
-    CPT system URI, not the K-codes URI."""
+def test_jp_cpt_only_cpap_has_no_cpt_coding() -> None:
+    """CPT-only CPAP (94660) on JP output has no CPT coding (Issue #3009)."""
     res = _build_procedure(_cpt_only_proc("94660", "CPAP therapy"), "pt-4d2", 0, "JP")
-    codings = res["code"]["coding"]
+    codings = res["code"].get("coding", [])
     cpt_uri = get_system_uri("cpt")
     k_uri = get_system_uri("k-codes")
-    # Exactly one CPT 94660 entry (primary), zero under K-codes URI.
-    cpt_entries = [c for c in codings if c.get("code") == "94660" and c.get("system") == cpt_uri]
-    k_entries = [c for c in codings if c.get("code") == "94660" and c.get("system") == k_uri]
-    assert len(cpt_entries) == 1
-    assert len(k_entries) == 0
+    # Issue #3009: no CPT on JP, and the CPT code is never put under K-codes.
+    assert not [c for c in codings if c.get("system") == cpt_uri]
+    assert not [c for c in codings if c.get("code") == "94660" and c.get("system") == k_uri]
 
 
-def test_jp_cpt_only_polysomnography_primary_coding_uses_cpt_system() -> None:
+def test_jp_cpt_only_polysomnography_has_no_cpt_coding() -> None:
     """CPT-only polysomnography (95810) on JP output — same contract."""
     res = _build_procedure(_cpt_only_proc("95810", "Polysomnography"), "pt-4d2", 0, "JP")
-    codings = res["code"]["coding"]
+    codings = res["code"].get("coding", [])
     cpt_uri = get_system_uri("cpt")
     k_uri = get_system_uri("k-codes")
-    assert any(c.get("code") == "95810" and c.get("system") == cpt_uri for c in codings)
+    assert not any(c.get("system") == cpt_uri for c in codings)
     assert not any(c.get("code") == "95810" and c.get("system") == k_uri for c in codings)
 
 
@@ -97,5 +85,5 @@ def test_jp_with_k_code_populated_still_uses_k_codes_primary() -> None:
     # Primary (first entry) under K-codes URI with the K-code.
     assert codings[0]["system"] == k_uri
     assert codings[0]["code"] == "K078"
-    # Secondary CPT 32555 still emitted for interop.
-    assert any(c.get("code") == "32555" and c.get("system") == cpt_uri for c in codings)
+    # Issue #3009: no secondary CPT on JP.
+    assert not any(c.get("system") == cpt_uri for c in codings)

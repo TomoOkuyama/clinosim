@@ -136,6 +136,7 @@ CRP: "5C070"
 - Maps an **internal name** to the code that country emits, for the domains `lab`, `drug`, `diagnosis` and `procedure`.
 - The code system of the value is `codes.system_key_for(kind, country)`. For example `lab`/`US` is `loinc` and `lab`/`JP` is `jlac10`.
 - Every value is registered in that system's registry file.
+- Output for a country codes with that country's systems and international ones (SNOMED CT, LOINC, ...) only, never with another country's system. A JP Procedure with no K-code carries its Japanese `code.text` (and a verified SNOMED coding) but no CPT coding (Issue #3009).
 
 ### 3.5 Catalogs
 

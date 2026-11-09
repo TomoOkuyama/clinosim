@@ -136,8 +136,8 @@ def test_catalog_codes(proc_type: str, jp: str, us: str) -> None:
 
 
 def test_uncoded_jp_delivery_has_no_empty_coding() -> None:
-    """正常分娩 has no K-code: the JP Procedure carries the CPT coding and a
-    Japanese text, never ``code: ""``."""
+    """正常分娩 has no K-code: the JP Procedure carries a Japanese text and no
+    coding with ``code: ""``; no CPT coding either (Issue #3009)."""
     proc = {
         "procedure_type": "delivery",
         "procedure_id": "p1",
@@ -147,15 +147,16 @@ def test_uncoded_jp_delivery_has_no_empty_coding() -> None:
         "procedure_code_us": "59400",
     }
     res = _build_procedure(proc, "pt1", 0, "JP")
-    codings = res["code"]["coding"]
+    codings = res["code"].get("coding", [])
     assert all(c["code"] for c in codings)
-    assert [c["code"] for c in codings if c["system"] == "http://www.ama-assn.org/go/cpt"] == ["59400"]
+    assert [c["code"] for c in codings if c["system"] == "http://www.ama-assn.org/go/cpt"] == []
     assert res["code"]["text"] == _CPT["59400"]["ja"]
 
 
 def test_jp_procedure_without_a_k_code_is_recorded_and_emitted_without_an_empty_code() -> None:
     """A JP peripheral IV has no fee code; it is still a ProcedureRecord, and
-    its Procedure carries the catalog name and the CPT coding only."""
+    its Procedure carries the catalog name and no coding (no CPT on JP,
+    Issue #3009)."""
     from datetime import datetime
 
     import numpy as np
@@ -191,4 +192,4 @@ def test_jp_procedure_without_a_k_code_is_recorded_and_emitted_without_an_empty_
         "JP",
     )
     assert res["code"]["text"] == "末梢静脈路確保"
-    assert [c["code"] for c in res["code"]["coding"]] == ["36000"]
+    assert [c["code"] for c in res["code"].get("coding", [])] == []

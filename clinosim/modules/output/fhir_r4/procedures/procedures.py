@@ -177,11 +177,19 @@ def _build_procedure(
         _primary_system = get_system_uri(_primary_system_key_override)
     elif is_jp(country) and not proc_code_jp and proc_code_us and primary_code == proc_code_us:
         _primary_system = get_system_uri("cpt")
+    # Issue #3009: JP output uses JP code systems only. CPT is a US code
+    # system (AMA) and is never emitted on JP: a procedure with no K-code
+    # keeps its Japanese ``code.text`` (and a SNOMED coding below when one
+    # is verified) and no CPT coding (code-mapping spec: no other country's
+    # system as a fallback).
+    _drop_primary = is_jp(country) and _primary_system == get_system_uri("cpt")
 
     # No primary coding without a code (an empty ``code`` is invalid FHIR);
-    # the text and the other country's coding still describe it.
+    # the text and the SNOMED coding still describe it.
     coding_entries: list[dict[str, Any]] = (
-        [{"system": _primary_system, "code": primary_code, "display": primary_display}] if primary_code else []
+        [{"system": _primary_system, "code": primary_code, "display": primary_display}]
+        if primary_code and not _drop_primary
+        else []
     )
 
     # Issue #1701 Phase 4d.1: when ``procedure_type`` matches a verified
@@ -197,22 +205,6 @@ def _build_procedure(
             # English SNOMED preferred term from the registry (dual slot,
             # Issue #2363); the localized name is code.text.
             coding_entries.append(system_coding("snomed-ct", _sct_code, lang_for(country)))
-
-    # Secondary coding on JP output: the CPT code for international interop.
-    # Phase 4d.2: skip the secondary CPT entry when the primary coding is
-    # already under the CPT system URI (CPT-only JP output case above) —
-    # otherwise two identical ``{system: CPT, code: X, display: ...}``
-    # entries would land in ``coding[]``. Issue #2626: US output carries no
-    # Japanese 診療行為 code (a US record would not hold one).
-    if is_jp(country) and proc_code_us and _primary_system != get_system_uri("cpt"):
-        us_display = _procedure_display(proc_code_us, "en", fallback)
-        coding_entries.append(
-            {
-                "system": get_system_uri("cpt"),
-                "code": proc_code_us,
-                "display": us_display,
-            }
-        )
 
     resource: dict[str, Any] = {
         "resourceType": "Procedure",
