@@ -103,6 +103,7 @@ Each `encounters:` entry:
 | `disease_id` | Copied onto `LifeEvent.disease_id`; used for department resolution and the visit-reason lookup. |
 | `visit_reason` | Optional. Bilingual `{en, ja}` dict or string, read by `simulator/_setup.py::_pediatric_visit_reason` and emitted as the encounter's chief complaint. |
 | `vaccination` | Optional, default `false`. A visit held to give vaccines (reason Z23). With a country, `generate_pediatric_events` moves it inside a series dose window of that country's immunization schedule that opens in the year and overlaps the age band (the day nearest the drawn date), and drops it when no window opens, so the visit always has a dose due (`place_vaccination_visit`, Issue #2974). Draws are unchanged. |
+| `min_age_days` | Optional, default `0`. Youngest age in days at the visit: a visit drawn earlier is dropped (the draws are unchanged). The acute-illness entries open to infants (URI, otitis media, bronchiolitis) set `29`: a febrile infant of 28 days or less is admitted for a sepsis workup (AAP 2021 febrile infant guideline), not seen as an outpatient cold (Issue #2978). |
 
 Each `presentations:` entry is keyed by an `encounters:` `disease_id`
 (an unknown key fails at load):

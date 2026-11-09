@@ -100,6 +100,7 @@ condition_type="pediatric", protocol_source="pediatric:<key>")` を
 | `disease_id` | `LifeEvent.disease_id` に copy。診療科解決と visit-reason lookup に使用。 |
 | `visit_reason` | 任意。bilingual `{en, ja}` dict または文字列。`simulator/_setup.py::_pediatric_visit_reason` が読み、encounter の chief complaint に emit。 |
 | `vaccination` | 任意、既定 `false`。接種のための受診 (理由 Z23)。国が渡されると `generate_pediatric_events` は、その国の予防接種スケジュールのうちその年に始まり年齢帯と重なる定期接種の接種期間内 (引いた日に最も近い日) に受診を移し、該当する期間がなければ受診を入れない。受診には必ず接種対象がある (`place_vaccination_visit`、Issue #2974)。乱数の引き方は変わらない。 |
+| `min_age_days` | 任意、既定 `0`。受診時の最低日齢。これより前に引かれた受診は入れない (乱数の引き方は変わらない)。乳児が対象になる急性疾患の受診 (上気道感染・中耳炎・細気管支炎) は `29`: 日齢 28 以下の発熱児は外来の感冒ではなく入院のうえ敗血症精査を行う (AAP 2021 発熱乳児ガイドライン、Issue #2978)。 |
 
 `presentations:` の各 entry は `encounters:` の `disease_id` をキーとする
 (未知のキーは load 時に失敗):

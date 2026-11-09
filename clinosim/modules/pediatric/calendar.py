@@ -53,6 +53,10 @@ class _Visit(BaseModel):
     # A visit held to give vaccines (reason Z23): placed on a day a dose of
     # the country's immunization schedule is due (Issue #2974).
     vaccination: bool = False
+    # Youngest age in days at the visit (Issue #2978): an acute-illness visit
+    # is not held in the first 28 days of life, when a febrile infant is
+    # admitted for a sepsis workup rather than seen as an outpatient.
+    min_age_days: int = Field(default=0, ge=0)
 
     @field_validator("visits_per_year")
     @classmethod
@@ -364,6 +368,8 @@ def generate_pediatric_events(
                 if placed is None:
                     continue
                 visit_day = placed
+            if dob is not None and hasattr(dob, "year") and (visit_day - dob).days < int(entry.get("min_age_days", 0)):
+                continue  # drawn above, so the rest of the calendar is unchanged
             events.append(
                 LifeEvent(
                     person_id=person.person_id,

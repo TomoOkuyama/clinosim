@@ -742,6 +742,7 @@ _.morse_mental  # types/encounter.py NursingRiskAssessment (Issue #2692)
 _.laterality  # types/imaging.py ImagingStudyRecord (read by key in fhir_r4/labs/imaging_study.py, Issue #2657)
 _.repeat_culture_persistence_prob  # observation/microbiology.py MicrobiologyConfig field (validated yaml key, Issue #2640)
 _.fluids  # order/pediatric_dose.py PediatricDosingFile field (validated yaml key, read by key in pediatric_order_name, Issue #2977)
+_.min_age_days  # pediatric/calendar.py _Visit field (validated yaml key, read by key in generate_pediatric_events, Issue #2978)
 _.has_microbiology  # observation/microbiology.py public API (README), used by tests after Issue #2640
 _.collected_datetime  # types/microbiology.py MicrobiologyResult (read by key in fhir_r4/labs/microbiology.py)
 _.rxnorm_scd_codes  # codes/drugs.py — used by tests/unit/test_drugs_catalog_phase_4_coverage_1792b.py (Issue #2614)
