@@ -21,7 +21,7 @@
       },
       "sections": {
         "allergies": "No known drug allergies (NKDA)",
-        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Sudden severe headache, vomiting, altered consciousness. Working diagnosis: hemorrhagic stroke (severity: severe). Comorbidities: Essential (primary) hypertension, Unspecified atrial fibrillation. Plan: Estimated length of stay: ~14 days. Initial medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.",
+        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Sudden severe headache, vomiting, altered consciousness. Working diagnosis: hemorrhagic stroke (severity: severe). Comorbidities: Hypertension (HTN), Atrial fibrillation (AF). Plan: Estimated length of stay: ~14 days. Initial medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
         "family_history": "No significant family history",
         "hpi": "Patient reports rapid symptom worsening prompting today's presentation.",

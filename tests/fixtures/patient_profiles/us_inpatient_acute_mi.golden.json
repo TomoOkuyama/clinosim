@@ -21,7 +21,7 @@
       },
       "sections": {
         "allergies": "No known drug allergies (NKDA)",
-        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Chest pain, diaphoresis, dyspnea. Working diagnosis: acute myocardial infarction (severity: severe). Comorbidities: Atherosclerotic heart disease of native coronary artery without angina pectoris, Essential (primary) hypertension, Hyperlipidemia, unspecified. Plan: Estimated length of stay: ~7 days. Initial medications: Aspirin, Ticagrelor, Nitroglycerin, Acetaminophen.",
+        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Chest pain, diaphoresis, dyspnea. Working diagnosis: acute myocardial infarction (severity: severe). Comorbidities: Chronic ischemic heart disease (IHD), Hypertension (HTN), Dyslipidemia. Plan: Estimated length of stay: ~7 days. Initial medications: Aspirin, Ticagrelor, Nitroglycerin, Acetaminophen.",
         "chief_complaint": "Chest pain, diaphoresis, dyspnea",
         "family_history": "No significant family history",
         "hpi": "Patient reports rapid symptom worsening prompting today's presentation.",

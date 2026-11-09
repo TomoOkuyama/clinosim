@@ -23,11 +23,10 @@ from typing import TYPE_CHECKING
 
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
-from clinosim.countries import has_authored_narrative
+from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
     NARRATIVE_HBA1C_BORDERLINE_THRESHOLD,
     NARRATIVE_HBA1C_DIABETES_THRESHOLD,
@@ -40,6 +39,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
 from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
 )
+from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_coded
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.types.document import NarrativeContext
 
@@ -483,21 +483,18 @@ def build_checkup_questionnaire(generator: TemplateNarrativeGenerator, ctx: Narr
     lang = ctx.target_lang
     patient = ctx.patient
 
-    # Convert past medical history (chronic_conditions) codes to
-    # locale-appropriate display text. JP forces the ICD-10 authority
-    # (JP-CLINS uses base icd-10, not the US -CM modification);
-    # other locales use whatever ``system`` the CIF Condition
-    # carries (typically icd-10-cm on US records).
+    # Convert past medical history (chronic_conditions) codes to the
+    # display of the code the output emits, in the country's ICD-10
+    # system (JP: MHLW ICD-10; Issue #2994).
     chronic = _o(patient, "chronic_conditions", []) or []
     history_lines: list[str] = []
     for cond in chronic:
         code = _o(cond, "code", "")
-        system = _o(cond, "system", "icd-10-cm") or "icd-10-cm"
         if not code:
             continue
-        # A country rule: JP output names conditions in the MHLW ICD-10 system.
-        resolved_system = system_key_for("diagnosis", ctx.locale) if is_jp(ctx.locale) else system
-        display = code_lookup(resolved_system, code, lang)
+        # Issue #2994: the code the output emits for the condition and its
+        # display in the country's ICD-10 system (JP: MHLW ICD-10).
+        code, display = chronic_condition_coded(code, country_code(ctx.locale), lang)
         if display and display != code:
             history_lines.append(t("list_item.bullet_dx_with_code", lang, display=display, code=code))
         else:

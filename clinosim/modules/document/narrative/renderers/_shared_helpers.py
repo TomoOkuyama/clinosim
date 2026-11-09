@@ -11,9 +11,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+from clinosim.codes.icd10 import condition_label, icd10_display
 from clinosim.codes.procedures import procedure_code_display
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import map_diagnosis_code
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 
@@ -117,3 +119,27 @@ def resolve_procedure_display(proc: Any, lang: str) -> str:
     if disp:
         return disp
     return str(_o(proc, "procedure_type", "") or "")
+
+
+def chronic_condition_code(code: str, country: str, sex: str = "") -> str:
+    """The code the output emits for a patient's chronic condition stored
+    under the internal key ``code`` (``map_diagnosis_code``: US ``F00`` →
+    ``F03.90``, JP identity)."""
+    return map_diagnosis_code(code, country, sex=sex) or code
+
+
+def chronic_condition_label(code: str, country: str, lang: str, sex: str = "") -> str | None:
+    """Name of a chronic problem in prose (Issue #2994): the condition label
+    (``codes.icd10.condition_label``: short name, else official display) of
+    the code the output emits for it, so the narrative names the condition
+    the FHIR ``Condition`` codes (US dementia ``F03.90`` "Dementia", not the
+    ``F00`` category title "Dementia in Alzheimer disease"). ``None`` when
+    the code has no label."""
+    return condition_label(chronic_condition_code(code, country, sex), country, lang) if code else None
+
+
+def chronic_condition_coded(code: str, country: str, lang: str, sex: str = "") -> tuple[str, str]:
+    """``(emitted code, official display)`` of a chronic condition for a
+    coded list ("display [code]"); the display falls back to the code."""
+    emit = chronic_condition_code(code, country, sex)
+    return emit, icd10_display(emit, country, lang) or emit

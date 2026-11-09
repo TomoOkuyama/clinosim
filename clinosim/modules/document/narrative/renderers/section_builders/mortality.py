@@ -25,11 +25,13 @@ from typing import TYPE_CHECKING
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
+from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_utils import _autopsy_performed_sha256
+from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_coded
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.types.document import NarrativeContext
 
@@ -42,6 +44,10 @@ if TYPE_CHECKING:
 # ─────────────────────────────────────────────────────────────────────
 # DC/DDS-local helpers (private to this module).
 # ─────────────────────────────────────────────────────────────────────
+
+
+def _sex(ctx: NarrativeContext) -> str:
+    return str(_o(ctx.patient, "sex", "") or "") if ctx.patient else ""
 
 
 def _dc_resolve_primary_cause(ctx: NarrativeContext) -> tuple[str, str, list[str]]:
@@ -307,9 +313,10 @@ def build_dc_contributing_conditions(
         code_val = _o(c, "code", "") or (c if isinstance(c, str) else "")
         if not code_val:
             continue
-        system = _o(c, "system", "") or system_key_for("diagnosis", ctx.locale.upper())
-        display = registry_display(system, code_val, lang) or code_val
-        parts.append(t("list_item.inline_dx_with_code", lang, display=display, code=code_val))
+        # Issue #2994: the code the output emits and its display (US
+        # dementia F03.90, not the internal F00 category).
+        emit, display = chronic_condition_coded(code_val, country_code(ctx.locale), lang, _sex(ctx))
+        parts.append(t("list_item.inline_dx_with_code", lang, display=display, code=emit))
     if parts:
         facts.append("ctx.patient.chronic_conditions")
 
@@ -596,9 +603,8 @@ def build_dds_complications_and_comorbidities(
         code_val = _o(c, "code", "") or (c if isinstance(c, str) else "")
         if not code_val:
             continue
-        system = _o(c, "system", "") or system_key_for("diagnosis", ctx.locale.upper())
-        disp = registry_display(system, code_val, lang) or code_val
-        cond_labels.append(t("list_item.inline_dx_with_code", lang, display=disp, code=code_val))
+        emit, disp = chronic_condition_coded(code_val, country_code(ctx.locale), lang, _sex(ctx))
+        cond_labels.append(t("list_item.inline_dx_with_code", lang, display=disp, code=emit))
     if cond_labels:
         facts.append("ctx.patient.chronic_conditions")
 

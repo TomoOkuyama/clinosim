@@ -255,6 +255,19 @@ def map_diagnosis_code(code: str, country: str, sex: str = "") -> str:
     return target
 
 
+def map_family_history_code(code: str, country: str) -> str:
+    """Locale code of a relative's condition in family history: the
+    :func:`map_diagnosis_code` target, except a personal-history Z-code
+    target (Z86.*, Z87.*, Z82.*: "the patient's own past"), which does not
+    fit a relative — then the code passes through. FHIR
+    ``FamilyMemberHistory`` and the narrative family history read the same
+    code (Issue #2994)."""
+    mapped = map_diagnosis_code(code, country)
+    if mapped.startswith("Z"):
+        return code
+    return mapped
+
+
 def lab_code(lab_name: str, country: str) -> tuple[str, str] | None:
     """``(system_key, code)`` of a lab result for ``country``: LOINC for the
     US, JLAC10 for JP, from ``code_mapping_lab.yaml``; ``None`` when the
