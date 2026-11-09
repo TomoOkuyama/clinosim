@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 from clinosim.types.allergy import Allergy  # noqa: F401 — re-exported for callers
@@ -226,6 +226,10 @@ class PatientProfile:
     # this at the moment of in-hospital death lets `_fhir_patient` emit
     # `deceasedDateTime` matching the Encounter dischargeDisposition="expired".
     date_of_death: date | None = None
+    # Issue #2984: documented time of death (the expired encounter's
+    # discharge for an in-hospital death); ``None`` when the death is known
+    # by date alone. ``Patient.deceasedDateTime`` emits it when present.
+    death_datetime: datetime | None = None
     blood_type: str = "A"
     rh_factor: str = "+"
     height_cm: float = 170.0

@@ -91,6 +91,11 @@ def to_fhir_datetime(value: Any) -> str:
     return _append_tz_if_missing(s)
 
 
+def _with_country_tz(s: str, tz: str) -> str:
+    """Append ``tz`` to an ISO datetime string that carries no TZ suffix."""
+    return s if _append_tz_if_missing(s) == s else s + tz
+
+
 def to_fhir_deceased_datetime(value: Any, country: str) -> str:
     """Normalize ``Patient.deceasedDateTime``.
 
@@ -105,31 +110,31 @@ def to_fhir_deceased_datetime(value: Any, country: str) -> str:
     Expand a date-only input to end-of-day (``T23:59:59``) with the
     country's canonical TZ suffix so every same-day event lands before
     the deceased moment. Full datetime inputs (already carrying a time
-    component) pass through unchanged — a future upstream that widens
-    ``date_of_death`` to a real time-of-death datetime picks that up
-    with no further change here.
+    component) keep their time, with the country's TZ when naive — the documented time of an
+    in-hospital death (``PatientProfile.death_datetime``, Issue #2984)
+    takes this path.
 
     Empty / ``None`` returns ``""`` (matches ``to_fhir_datetime``).
     """
     if value is None or value == "":
         return ""
     tz = tz_suffix_for_country(country)
-    # Full datetime object → forward as-is with TZ.
+    # Full datetime object → its ISO form, at the country's TZ when naive.
     if isinstance(value, datetime):
-        return to_fhir_datetime(value)
+        return _with_country_tz(value.isoformat(), tz)
     # date object → end-of-day at the country's TZ.
     if isinstance(value, date) and not isinstance(value, datetime):
         return f"{value.isoformat()}T23:59:59{tz}"
     # String forms.
     s = str(value)
-    # Already carries a time component → forward through the standard
-    # ``to_fhir_datetime`` normalizer (adds TZ if missing per the
-    # existing convention).
+    # Already carries a time component → keep it; a naive time gets the
+    # country's TZ (Issue #2984: the post-emit TZ walker does not visit
+    # ``deceasedDateTime``, so the JST default must not leak into US).
     if "T" in s and len(s) >= 11:
-        return to_fhir_datetime(s)
+        return _with_country_tz(s, tz)
     # Space-separated datetime → normalize the separator then forward.
     if len(s) >= 11 and s[10] == " ":
-        return to_fhir_datetime(s[:10] + "T" + s[11:])
+        return _with_country_tz(s[:10] + "T" + s[11:], tz)
     # Date-only string (``YYYY-MM-DD``) → expand to end-of-day.
     if len(s) == 10 and s[4] == "-" and s[7] == "-":
         return f"{s}T23:59:59{tz}"

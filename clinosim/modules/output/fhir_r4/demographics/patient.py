@@ -918,11 +918,11 @@ def _build_patient(p: dict, country: str) -> dict:
     # marks the patient as deceased, override with deceasedDateTime.
     _dod = p.get("date_of_death", "") or p.get("dod", "")
     if _dod:
-        # Issue #1440: date-only ``date_of_death`` values must expand
-        # to end-of-day so same-day intra-day events (encounter
-        # discharge, post-mortem Condition record) fall before the
-        # deceased moment. Full datetime inputs pass through unchanged.
-        resource["deceasedDateTime"] = to_fhir_deceased_datetime(_dod, country)
+        # Issue #2984: a documented time of death (in-hospital death: the
+        # expired encounter's discharge) is the deceased instant.
+        # Issue #1440: a death known by date alone expands to end-of-day
+        # so same-day intra-day events fall before the deceased moment.
+        resource["deceasedDateTime"] = to_fhir_deceased_datetime(p.get("death_datetime") or _dod, country)
         # Issue #926: FHIR `Patient.active` = "Whether this patient's record
         # is in active use." A deceased patient's record is by definition no
         # longer in active use. Flip active=false whenever the CIF marks

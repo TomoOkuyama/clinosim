@@ -79,8 +79,11 @@ The simulation advances month by month in one forward loop
    are dispatched in date order.
 4. **Death** — recorded once per person (`PersonRecord.record_death`,
    `death_place` = `hospital` or `community`). An in-hospital death comes
-   from the inpatient simulator; a community death needs no hospital visit.
-   Every later event is gated by `in_population_at(date)`.
+   from the inpatient simulator and keeps its time (`death_datetime`, the
+   expired encounter's discharge), which `Patient.deceasedDateTime` emits; a
+   community death needs no hospital visit and is known by date alone
+   (`deceasedDateTime` at 23:59:59 of that day). Every later event is gated
+   by `in_population_at(date)`.
 5. **Birth** — a delivery registers the newborn (`newborn.register_newborn`);
    the newborn enrolls the day after the birth-stay discharge
    (`PersonRecord.enrolled_from`), gets a rest-of-year calendar, and from

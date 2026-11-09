@@ -8,7 +8,7 @@ the population module; only the data records that cross module boundaries live h
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from typing import TYPE_CHECKING
 
 from clinosim.types.identity import IdentityTimeline
@@ -96,6 +96,10 @@ class PersonRecord:
     # who survive the window.
     date_of_death: date | None = None
     death_place: str | None = None  # "hospital" | "community"
+    # Issue #2984: the time of death when it is documented — the expired
+    # encounter's discharge for an in-hospital death. ``None`` for a death
+    # known by date alone (a community death).
+    death_datetime: datetime | None = None
     # Issue #2168: first day the person takes part in the simulated
     # population (life events, calendar, ED). ``None`` for the initial
     # cohort, who are part of it from the start; for a newborn, the day
@@ -223,18 +227,21 @@ class PersonRecord:
         """
         return self.date_of_death is None
 
-    def record_death(self, when: date, place: str) -> None:
+    def record_death(self, when: date, place: str, at: datetime | None = None) -> None:
         """Record the person's death (Issue #2166).
 
         The earliest recorded death wins. A pre-sampled community death
         later in the window is replaced by an earlier in-hospital death,
-        and a later death is ignored.
+        and a later death is ignored. ``at`` is the documented time of
+        death when there is one (Issue #2984); it is stored with the
+        winning death, so a death known by date alone clears it.
         """
         if place not in _DEATH_PLACES:
             raise ValueError(f"death place must be one of {sorted(_DEATH_PLACES)}, got {place!r}")
         if self.date_of_death is None or when < self.date_of_death:
             self.date_of_death = when
             self.death_place = place
+            self.death_datetime = at
 
     def in_population_at(self, when: date) -> bool:
         """True when the person is alive and enrolled on ``when`` (Issue #2168).
