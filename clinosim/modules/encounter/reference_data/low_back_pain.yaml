@@ -46,7 +46,7 @@ workup:
 # (locale_name) or are not given on JP (locale_exclude).
 treatment:
   - {name: "Ketorolac 30mg", locale_name: {jp: "Acetaminophen 1000mg", us: "Ketorolac 30mg"}, probability: 0.6, route: "IV", intent: "analgesic"}
-  - {name: "Ibuprofen 600mg", probability: 0.4, route: "PO", intent: "anti-inflammatory"}
+  - {name: "Ibuprofen 600mg", locale_name: {jp: "Ibuprofen 200mg"}, probability: 0.4, route: "PO", intent: "anti-inflammatory"}
   - {name: "Cyclobenzaprine 10mg", locale_name: {jp: "Eperisone 50mg", us: "Cyclobenzaprine 10mg"}, probability: 0.4, route: "PO", intent: "muscle relaxant"}
   - {name: "Acetaminophen 1000mg", probability: 0.3, route: "PO", intent: "analgesic"}
   - {name: "Heat pack application", probability: 0.5, route: "topical", intent: "muscle relaxation"}
@@ -59,7 +59,7 @@ discharge_instructions:
 follow_up: {en: "physical therapy referral for strengthening", ja: "筋力強化のため理学療法へ紹介"}
 
 discharge_prescriptions:
-  - {drug: "Ibuprofen 600mg", route: "PO", frequency: "tid", duration_days: 10, probability: 0.7}
+  - {drug: "Ibuprofen 600mg", locale_name: {jp: "Ibuprofen 200mg"}, route: "PO", frequency: "tid", duration_days: 10, probability: 0.7}
   - {drug: "Cyclobenzaprine 10mg", locale_name: {jp: "Eperisone 50mg"}, route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.5}
   - {drug: "Acetaminophen 500mg", route: "PO", frequency: "q6h PRN", duration_days: 10, probability: 0.4}
 

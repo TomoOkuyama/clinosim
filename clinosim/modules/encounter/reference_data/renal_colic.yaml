@@ -87,7 +87,7 @@ follow_up: {en: "urology within 1-2 weeks", ja: "1〜2週間以内に泌尿器�
 
 discharge_prescriptions:
   - {drug: "Tamsulosin 0.4mg", route: "PO", frequency: "daily", duration_days: 14, probability: 0.7}
-  - {drug: "Ibuprofen 600mg", route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.8}
+  - {drug: "Ibuprofen 600mg", locale_name: {jp: "Ibuprofen 200mg"}, route: "PO", frequency: "tid PRN", duration_days: 7, probability: 0.8}
   - {drug: "Oxycodone 5mg", locale_exclude: [JP], route: "PO", frequency: "q6h PRN", duration_days: 3, probability: 0.3}
 
 incidence_modifier: 1.0

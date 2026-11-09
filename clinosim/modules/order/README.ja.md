@@ -145,7 +145,10 @@ from clinosim.modules.order.placed_order_mar import (
 from clinosim.modules.order.prescription_supersede import prescription_closures  # (records, run_end) -> {(encounter_id, seq): Closure}
 
 # 小児 ED 投与量の体重換算 (Issue #2857)
-from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg) -> 再計算した名称 (成人 / 非掲載薬はそのまま) | None (最低年齢未満)
+from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg, country="US") -> 再計算した名称 (成人 / 非掲載薬はそのまま) | None (最低年齢未満)
+
+# 国別の添付文書用量上限 (Issue #3012)
+from clinosim.modules.order.label_dose import within_label  # (name, frequency, country) -> 添付文書内に収めた (name, frequency)
 ```
 
 ## 決定論
@@ -233,6 +236,17 @@ from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name,
   体重から用量を再計算し、最低年齢未満なら投与しない。`fluids` は IV 晶質液の
   `ml_per_kg` (Issue #2977): 成人量で書かれた小児のボーラス
   ("IV normal saline 1000mL") は `ml_per_kg` × 体重とし、記載量を超えない。
+  `country_overrides.<CC>` は国別に薬剤の rule を置き換える (Issue #3012:
+  JP のイブプロフェンはブルフェン添付文書に従い 4 mg/kg、1 回 200 mg まで、
+  5 歳以上)。
+- **添付文書の用量上限** ([`reference_data/label_dose_limits.yaml`](reference_data/label_dose_limits.yaml)、
+  `label_dose.py` が読み、`LabelDoseLimitsFile` で検証): 国別・カタログ薬剤
+  ごとの 1 回量・1 日回数・1 日最大量 (JP イブプロフェン 200 mg、1 日 3 回、
+  600 mg/日、Issue #3012)。`within_label` は書かれた 1 回量を添付文書の量に
+  下げ、それでも 1 日量が上限を超えるときは 1 日回数を下げる (頓用は頓用の
+  まま)。ED の治療オーダー、ED / 外来の持ち帰り処方、産後の退院処方に適用。
+  encounter YAML の処方も JP の用法を `locale_name` / `locale_frequency` で
+  持つ。
 
 ## ディレクトリ構造
 
@@ -248,6 +262,7 @@ clinosim/modules/order/
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — 日次 loop 外で発注された order の RNG-free MAR (Issue #2607)
   absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion — per-kg / per-m2 投与量の絶対量 (Issue #2750)
   pediatric_dose.py                  pediatric_order_name — 小児 ED 投与量の体重換算 (Issue #2857)
+  label_dose.py                      within_label — 国別の添付文書用量上限 (Issue #3012)
   audit.py                           AD-60 audit plug-in (per-module) — 7-check lift_firing_proof + basedon_coverage
   _lab_result_timing.py              STAT / routine / 夜勤 定数 (Issue #637)
   _imaging_result_timing.py          scheduling + reporting delay 定数 (Issue #637)
@@ -255,7 +270,8 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay 定数 (Issue #637)
   reference_data/
     medication_supersede.yaml        supersede.py が読む class 切替 + PRN marker (Issue #2615)
-    pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢、輸液ごとの mL/kg (Issue #2857, #2977)
+    pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢、輸液ごとの mL/kg、国別上書き (Issue #2857, #2977, #3012)
+    label_dose_limits.yaml           label_dose.py が読む国別の 1 回量・1 日回数・1 日最大量 (Issue #3012)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 

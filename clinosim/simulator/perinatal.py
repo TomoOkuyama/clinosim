@@ -928,6 +928,15 @@ def simulate_delivery_encounter(
             timestamp=encounter.discharge_datetime or visit_date,
         )
     ]
+    # Issue #3012: each item within the country's label dose (JP ibuprofen
+    # 200 mg, at most three doses a day).
+    from clinosim.modules.order.label_dose import within_label
+
+    for item in _mother_rx_items:
+        _labelled, item["frequency"] = within_label(
+            f"{item['drug_name']} {item['dose']}", str(item["frequency"]), country
+        )
+        item["dose"] = _labelled[len(str(item["drug_name"])) :].strip()
     from clinosim.types.encounter import PrescriptionRecord as _PrescriptionRecord
 
     _mother_discharge_rx = _PrescriptionRecord(

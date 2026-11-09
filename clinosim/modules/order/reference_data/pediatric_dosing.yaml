@@ -34,3 +34,13 @@ drugs:
 fluids:
   normal_saline: {ml_per_kg: 20}
   lactated_ringer_solution: {ml_per_kg: 20}
+
+# Per-country rules replacing the ones above (Issue #3012). Keys: upper-case
+# country code -> drug.
+# JP ibuprofen: the ブルフェン package insert doses children from 5 years
+# (5-7 y 200-300 mg/day, 8-10 y 300-400 mg/day, 11-15 y 400-600 mg/day, in
+# three doses); 4 mg/kg per dose (12 mg/kg/day) falls in those bands at the
+# usual weights of each age, and a dose never exceeds the adult 200 mg.
+country_overrides:
+  JP:
+    ibuprofen: {mg_per_kg: 4, max_mg: 200, min_age_months: 60}

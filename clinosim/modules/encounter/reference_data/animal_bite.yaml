@@ -53,7 +53,7 @@ follow_up: {en: "wound check with primary care physician in 2 days", ja: "2æ—¥å¾
 
 discharge_prescriptions:
   - {drug: "Amoxicillin/clavulanate 875/125mg", route: "PO", frequency: "BID", duration_days: 7, probability: 0.7}
-  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "Q6H PRN", duration_days: 5, probability: 0.5}
+  - {drug: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, locale_frequency: {jp: "tid PRN"}, route: "PO", frequency: "Q6H PRN", duration_days: 5, probability: 0.5}
 
 incidence_modifier: 1.0
 probability: 0.03

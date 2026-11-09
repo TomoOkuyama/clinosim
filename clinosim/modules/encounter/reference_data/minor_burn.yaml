@@ -41,7 +41,7 @@ treatment:
   - {name: "Cool water irrigation", probability: 0.8, route: "topical", intent: "initial burn care"}
   - {name: "Silver sulfadiazine cream", probability: 0.6, route: "topical", intent: "antimicrobial wound care"}
   - {name: "Non-adherent dressing", probability: 0.9, route: "topical", intent: "wound protection"}
-  - {name: "Ibuprofen 400mg", probability: 0.6, route: "PO", intent: "pain management"}
+  - {name: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, probability: 0.6, route: "PO", intent: "pain management"}
   - {name: "Acetaminophen/codeine", probability: 0.2, route: "PO", intent: "pain management for moderate burns"}
 
 discharge_instructions:
@@ -53,7 +53,7 @@ follow_up: {en: "primary care physician or burn clinic in 2-3 days", ja: "2ã€œ3æ
 
 discharge_prescriptions:
   - {drug: "Silver sulfadiazine 1% cream", route: "topical", frequency: "BID", duration_days: 14, probability: 0.6}
-  - {drug: "Ibuprofen 400mg", route: "PO", frequency: "Q6H PRN", duration_days: 7, probability: 0.5}
+  - {drug: "Ibuprofen 400mg", locale_name: {jp: "Ibuprofen 200mg"}, locale_frequency: {jp: "tid PRN"}, route: "PO", frequency: "Q6H PRN", duration_days: 7, probability: 0.5}
 
 incidence_modifier: 1.0
 probability: 0.03

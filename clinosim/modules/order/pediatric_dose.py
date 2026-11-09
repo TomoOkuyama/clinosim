@@ -18,6 +18,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from clinosim.codes.drugs import drug_key
+from clinosim.countries import country_code
 from clinosim.datafiles import load_validated_yaml
 
 _REF = Path(__file__).resolve().parent / "reference_data" / "pediatric_dosing.yaml"
@@ -44,6 +45,8 @@ class PediatricDosingFile(BaseModel):
     adult_age_years: int = Field(gt=0)
     drugs: dict[str, _PediatricDose]
     fluids: dict[str, _PediatricFluid] = Field(default_factory=dict)
+    # Upper-case country code -> drug -> rule replacing ``drugs`` (Issue #3012).
+    country_overrides: dict[str, dict[str, _PediatricDose]] = Field(default_factory=dict)
 
 
 @cache
@@ -68,9 +71,10 @@ def _fluid_bolus_name(name: str, ml_per_kg: float, weight_kg: float | None) -> s
     return name[: m.start()] + f"{ml:g}mL" + name[m.end() :]
 
 
-def pediatric_order_name(name: str, age_months: int, weight_kg: float | None) -> str | None:
+def pediatric_order_name(name: str, age_months: int, weight_kg: float | None, country: str = "US") -> str | None:
     """``name`` re-dosed for a child, unchanged for an adult or an unlisted drug,
-    or None when the child is below the drug's minimum age."""
+    or None when the child is below the drug's minimum age. A country's
+    ``country_overrides`` rule replaces the shared one (Issue #3012)."""
     table = _table()
     if age_months >= int(table["adult_age_years"]) * 12:
         return name
@@ -78,7 +82,7 @@ def pediatric_order_name(name: str, age_months: int, weight_kg: float | None) ->
     fluid = (table.get("fluids") or {}).get(key)
     if fluid is not None:
         return _fluid_bolus_name(name, float(fluid["ml_per_kg"]), weight_kg)
-    rule = table["drugs"].get(key)
+    rule = (table.get("country_overrides") or {}).get(country_code(country), {}).get(key) or table["drugs"].get(key)
     if rule is None:
         return name
     if age_months < int(rule["min_age_months"]):

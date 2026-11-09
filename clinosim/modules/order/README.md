@@ -152,7 +152,10 @@ from clinosim.modules.order.placed_order_mar import (
 from clinosim.modules.order.prescription_supersede import prescription_closures  # (records, run_end) -> {(encounter_id, seq): Closure}
 
 # Weight-based ED doses for children (Issue #2857)
-from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg) -> re-dosed name (unchanged for adults / unlisted drugs) | None (below minimum age)
+from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg, country="US") -> re-dosed name (unchanged for adults / unlisted drugs) | None (below minimum age)
+
+# Per-country label dose limits (Issue #3012)
+from clinosim.modules.order.label_dose import within_label  # (name, frequency, country) -> (name, frequency) within the label
 ```
 
 ## Determinism
@@ -247,7 +250,18 @@ from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name,
   given below its minimum age. `fluids` lists IV crystalloids by
   `ml_per_kg` (Issue #2977): a child's bolus written as an adult volume
   ("IV normal saline 1000mL") becomes `ml_per_kg` × weight, never more
-  than the written volume.
+  than the written volume. `country_overrides.<CC>` replaces a drug's
+  rule for one country (Issue #3012: JP ibuprofen 4 mg/kg, at most 200 mg,
+  from 5 years, per the ブルフェン label).
+- **Label dose limits** ([`reference_data/label_dose_limits.yaml`](reference_data/label_dose_limits.yaml),
+  read by `label_dose.py`, validated by `LabelDoseLimitsFile`): per country
+  and catalog drug the label's single dose, doses a day and daily maximum
+  (JP ibuprofen 200 mg, 3 a day, 600 mg/day, Issue #3012). `within_label`
+  lowers a written single dose to the label dose and, when the daily total
+  is still above the maximum, the doses a day (a PRN regimen stays PRN). It
+  is applied to ED treatment orders, ED / clinic take-home prescriptions and
+  the postpartum take-home bundle; encounter-YAML prescriptions also carry
+  the JP regimen as `locale_name` / `locale_frequency`.
 
 ## Directory contents
 
@@ -263,6 +277,7 @@ clinosim/modules/order/
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — RNG-free MAR for orders placed outside the daily loop (Issue #2607)
   absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion — per-kg / per-m2 dose amounts (Issue #2750)
   pediatric_dose.py                  pediatric_order_name — weight-based ED doses for children (Issue #2857)
+  label_dose.py                      within_label — per-country label dose limits (Issue #3012)
   audit.py                           AD-60 audit plug-in (per-module) — 7-check lift_firing_proof + basedon_coverage
   _lab_result_timing.py              STAT / routine / night-shift constants (Issue #637)
   _imaging_result_timing.py          scheduling + reporting delay constants (Issue #637)
@@ -270,7 +285,8 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay constants (Issue #637)
   reference_data/
     medication_supersede.yaml        class switches + PRN markers read by supersede.py (Issue #2615)
-    pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg (Issue #2857, #2977)
+    pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg, per-country overrides (Issue #2857, #2977, #3012)
+    label_dose_limits.yaml           per-country label dose, doses a day, daily max read by label_dose.py (Issue #3012)
   SPEC.md                            extended design reference (not runtime)
 ```
 
