@@ -159,7 +159,11 @@ def _init_newborn_identity(person: Any, config: Any, registry: Any) -> None:
     country = getattr(config, "country", "US") or "US"
     master_seed = int(getattr(config, "random_seed", 0) or 0)
     try:
-        from clinosim.modules.identity.assign import assign_identity_for_person
+        from clinosim.modules.identity.assign import assign_identity_for_person, identity_enabled
     except Exception:
+        return
+    # Issue #3070: the newborn follows the run's identity switch
+    # (--no-jp-insurance gives no one an enrollment), as the batch pass does.
+    if not identity_enabled(config):
         return
     assign_identity_for_person(registry, person, country, master_seed)

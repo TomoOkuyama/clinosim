@@ -3,6 +3,10 @@
 # Hard gates (must be green to merge):
 #   - unit tests on Python 3.12 (PR gate; 3.11 covered by weekly cron)
 #   - integration tests on Python 3.12 (5 pytest-split shards × xdist -n 2)
+#   - fast end-to-end tests (tests/e2e/test_alpha_golden.py +
+#     test_identity_jp.py, ~1 min locally; Issue #3070). The slow e2e
+#     files (forced scenario ~3.5 min, US mode ~6 min, beta ~7.5 min
+#     locally) run nightly, see `nightly.yml`.
 #
 # Informational (visible but does not block merge — pre-existing lint / mypy
 # debt is tracked as follow-up cleanup, this keeps the debt VISIBLE without
@@ -240,6 +244,28 @@ jobs:
         run: uv pip install --system -e ".[dev]"
       - name: Run the narrative regression suite
         run: pytest tests/regression -m regression -q --tb=short
+
+  e2e-fast:
+    # Issue #3070: the e2e tier was run by no workflow, so two JP identity
+    # tests failed on master unnoticed. The fast files run on every PR; the
+    # slow ones nightly (nightly.yml `e2e-slow`).
+    name: E2E tests (fast)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
+      - name: Install (with dev extras)
+        run: uv pip install --system -e ".[dev]"
+      - name: Run the fast e2e tests
+        run: pytest tests/e2e/test_alpha_golden.py tests/e2e/test_identity_jp.py -q --tb=short
 
   ruff-dead-code:
     name: ruff dead-code (F401 / F841)

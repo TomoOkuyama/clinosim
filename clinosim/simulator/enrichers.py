@@ -140,13 +140,14 @@ def register_builtin_enrichers() -> None:
     # that ship an ``identity.yaml`` (or don't) don't need this line
     # touched.
     from clinosim.modules.identity import assign_identities
+    from clinosim.modules.identity.assign import identity_enabled
 
     register_enricher(
         Enricher(
             name="identity",
             stage=POST_POPULATION,
             order=10,
-            enabled=lambda c: c.jp_insurance_numbers if is_jp(c.country) else True,
+            enabled=identity_enabled,
             run=lambda ctx: assign_identities(ctx.population, ctx.config.country, ctx.master_seed),
         )
     )
