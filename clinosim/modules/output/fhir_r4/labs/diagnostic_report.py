@@ -57,7 +57,13 @@ from clinosim.modules.output.fhir_r4.labs.service_request import (
     order_to_sr_id,
     standalone_lab_order_code,
 )
-from clinosim.modules.output.fhir_r4.lib.common import _escape_html, build_presented_form, dual_slot_concept
+from clinosim.modules.output.fhir_r4.lib.common import (
+    _escape_html,
+    build_presented_form,
+    display_entry,
+    dual_slot_concept,
+    system_coding,
+)
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -579,7 +585,8 @@ def build_dr_resource(
                 {
                     "system": get_system_uri("loinc"),
                     "code": panel["loinc"],
-                    "display": display,
+                    # Issue #3026: English LOINC display; the label is text.
+                    "display": registry_display("loinc", panel["loinc"], "en") or language_slot(panel["display"], "en"),
                 }
             ],
             "text": text_display,
@@ -631,18 +638,8 @@ def _lab_report_resource(
         ),
         "status": "final",
         "category": (
-            [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri("loinc"),
-                            "code": JP_LAB_DR_CATEGORY_LOINC,
-                        }
-                    ]
-                }
-            ]
-            if is_jp(country)
-            else []
+            # Issue #3026: English LOINC display, the label in text.
+            [dual_slot_concept("loinc", JP_LAB_DR_CATEGORY_LOINC, lang_for(country))] if is_jp(country) else []
         )
         + [
             {
@@ -805,7 +802,13 @@ def _single_test_report_code(anchor: Any, country: str) -> tuple[dict, str]:
         panel = panels[panel_key]
         display = registry_display("loinc", panel["loinc"], lang) or language_slot(panel["display"], "en")
         code = {
-            "coding": [{"system": get_system_uri("loinc"), "code": panel["loinc"], "display": display}],
+            "coding": [
+                {
+                    "system": get_system_uri("loinc"),
+                    "code": panel["loinc"],
+                    "display": registry_display("loinc", panel["loinc"], "en") or language_slot(panel["display"], "en"),
+                }
+            ],
             "text": localized_field(panel, "display", lang),
         }
         return (code, display)
@@ -1107,23 +1110,24 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         _jp_dr_category.append(
             {
                 "coding": [
-                    {
-                        "system": get_system_uri("loinc"),
-                        "code": _JP_DR_RADIOLOGY_CATEGORY_LOINC_CODE,
-                        "display": _lp_display,
-                    }
-                ]
+                    # Issue #3026: English LOINC display; the label is text.
+                    system_coding("loinc", _JP_DR_RADIOLOGY_CATEGORY_LOINC_CODE, "en")
+                ],
+                "text": _lp_display,
             }
         )
         if modality_code:
+            _modality_label = registry_display("dicom-modality", modality_code, lang) or ""
             _jp_dr_category.append(
                 {
                     "coding": [
                         {
                             "system": _JP_DR_DICOM_MODALITY_SYSTEM,
                             "code": modality_code,
+                            **display_entry(registry_display("dicom-modality", modality_code, "en") or ""),
                         }
-                    ]
+                    ],
+                    **({"text": _modality_label} if _modality_label else {}),
                 }
             )
         # Issue #815 (P1-11): also add the FHIR-standard v2-0074 "RAD"
@@ -1170,8 +1174,17 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     ]
     # Issue #3028: a study with no LOINC procedure code (no modality / body
     # site) gets no coding, never ``{"code": ""}``; the code keeps its text.
+    # Issue #3026: English LOINC display; the localized name is text.
     _default_code_coding = (
-        [{"system": get_system_uri("loinc"), "code": proc_code, "display": proc_display}] if proc_code else []
+        [
+            {
+                "system": get_system_uri("loinc"),
+                "code": proc_code,
+                **display_entry(_codes_lookup("loinc", proc_code, "en")),
+            }
+        ]
+        if proc_code
+        else []
     )
     _code_coding = (_jp_code_coding + _default_code_coding) if _is_jp else _default_code_coding
 

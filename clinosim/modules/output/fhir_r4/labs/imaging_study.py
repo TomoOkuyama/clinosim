@@ -167,7 +167,7 @@ def _build_imaging_study(
     # META #1805 Phase C: DICOM modality display resolves against the
     # dicom-modality authority yaml (code_lookup) — the inline
     # display_en/ja on modalities.yaml were retired.
-    modality_display = code_lookup("dicom-modality", modality_code, lang) if modality_code else modality_code
+    modality_display = code_lookup("dicom-modality", modality_code, "en") if modality_code else modality_code
 
     series_list = _o(study, "series", []) or []
     series_resources = [_build_series(s, lang) for s in series_list]
@@ -178,7 +178,7 @@ def _build_imaging_study(
             _series["laterality"] = {
                 "system": get_system_uri("snomed-ct"),
                 "code": _side_code,
-                **display_entry(code_lookup("snomed-ct", _side_code, lang)),
+                **display_entry(code_lookup("snomed-ct", _side_code, "en")),
             }
     total_instances = sum(_o(s, "instance_count", 0) for s in series_list)
 
@@ -351,12 +351,14 @@ def _build_series(series: Any, lang: str) -> dict[str, Any]:
     # Resolve body site display via code registry (AD-30 — CIF stores the code
     # only; import-time validation guarantees every body_sites.yaml SNOMED
     # code resolves).
-    body_site_display = code_lookup("snomed-ct", body_site_snomed, lang)
+    # Issue #3026: series.bodySite / modality are Coding-typed (no text
+    # slot), so they carry the English canonical display on every output.
+    body_site_display = code_lookup("snomed-ct", body_site_snomed, "en")
     modalities = load_modalities()
     modality_code = _o(series, "modality_code", "")
     mod_def = modalities.get(modality_code, {})  # noqa: F841 — kept for parity with series validator contract
     # META #1805 Phase C: DICOM modality display via dicom-modality authority.
-    modality_display = code_lookup("dicom-modality", modality_code, lang) if modality_code else modality_code
+    modality_display = code_lookup("dicom-modality", modality_code, "en") if modality_code else modality_code
     return {
         "uid": _o(series, "series_uid", ""),
         "number": _o(series, "series_number", 1),

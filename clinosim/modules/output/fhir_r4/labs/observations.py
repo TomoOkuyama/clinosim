@@ -17,6 +17,7 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
+from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
@@ -47,7 +48,13 @@ from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
     lab_observation_id,
 )
 from clinosim.modules.output.fhir_r4.labs.service_request import build_panel_counter, order_to_sr_id
-from clinosim.modules.output.fhir_r4.lib.common import build_reference_range, dual_slot_concept, entry, survey_category
+from clinosim.modules.output.fhir_r4.lib.common import (
+    build_reference_range,
+    dual_slot_concept,
+    english_display_concept,
+    entry,
+    survey_category,
+)
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -368,7 +375,8 @@ def _build_bp_component(
     )
     return {
         "code": {
-            "coding": [{"system": get_system_uri("loinc"), "code": spec.loinc, "display": display}],
+            # Issue #3026: English LOINC display on the coding, the label in text.
+            "coding": [_vital_loinc_coding(spec.loinc, localized_field(spec, "display", "en"))],
             "text": display,
         },
         "valueQuantity": ucum_quantity(value, unit),
@@ -422,16 +430,18 @@ def _vital_interpretation(
     return "N"
 
 
+def _vital_loinc_coding(code: str, fallback_en: str) -> dict[str, Any]:
+    """A vital-sign LOINC Coding with the English canonical display (Issue #3026)."""
+    coding: dict[str, Any] = {"system": get_system_uri("loinc"), "code": code}
+    display = fallback_en or loinc_coding(code, "en").get("display", "")
+    if display:
+        coding["display"] = display
+    return coding
+
+
 def _range_meaning(code: str, country: str) -> dict[str, Any]:
-    return {
-        "coding": [
-            {
-                "system": get_system_uri("hl7-referencerange-meaning"),
-                "code": code,
-                "display": registry_display("hl7-referencerange-meaning", code, lang_for(country)),
-            }
-        ],
-    }
+    # Issue #3026: English display on the HL7 coding, the label in ``text``.
+    return english_display_concept("hl7-referencerange-meaning", code, lang_for(country))
 
 
 def _vital_reference_ranges(
@@ -540,7 +550,7 @@ def _build_vital_observations(
             "status": "final",
             "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
-                "coding": [{"system": get_system_uri("loinc"), "code": loinc, "display": display}],
+                "coding": [_vital_loinc_coding(loinc, localized_field(spec, "display", "en"))],
                 "text": display,
             },
             "subject": patient_ref(patient_id),
@@ -603,7 +613,7 @@ def _build_vital_observations(
             "status": "final",
             "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
-                "coding": [{"system": get_system_uri("loinc"), "code": "85354-9", "display": bp_display}],
+                "coding": [_vital_loinc_coding("85354-9", t("fhir_obs_text.bp_panel", "en"))],
                 "text": bp_display,
             },
             "subject": patient_ref(patient_id),
@@ -679,7 +689,8 @@ def _build_vital_observations(
                     {
                         "system": get_system_uri("snomed-ct"),
                         "code": loc_snomed,
-                        "display": display,
+                        # Issue #3026: English SNOMED display; the label in text.
+                        "display": loc_display,
                     }
                 ],
                 "text": display,

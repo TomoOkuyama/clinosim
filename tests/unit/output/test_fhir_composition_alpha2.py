@@ -154,7 +154,9 @@ def test_jp_locale_admission_nursing_assessment_display():
     doc["language"] = "ja"
     ctx = _make_ctx([doc], country="jp")
     r = _bb_compositions(ctx)[0]
-    display = r["type"]["coding"][0]["display"]
+    # Issue #3026: the coding keeps the English LOINC display; the Japanese label is type.text.
+    assert r["type"]["coding"][0]["display"].isascii()
+    display = r["type"]["text"]
     assert display == "看護入院アセスメント", (
         f"Expected '看護入院アセスメント', got '{display}' — check loinc.yaml 78390-2 ja field"
     )
@@ -219,7 +221,9 @@ def test_jp_locale_nursing_discharge_summary_display():
     doc["language"] = "ja"
     ctx = _make_ctx([doc], country="jp")
     r = _bb_compositions(ctx)[0]
-    display = r["type"]["coding"][0]["display"]
+    # Issue #3026: the coding keeps the English LOINC display; the Japanese label is type.text.
+    assert r["type"]["coding"][0]["display"].isascii()
+    display = r["type"]["text"]
     assert display == "看護退院サマリー", (
         f"Expected '看護退院サマリー', got '{display}' — check loinc.yaml 34745-0 ja field"
     )
@@ -284,7 +288,9 @@ def test_jp_locale_outpatient_soap_display():
     doc["language"] = "ja"
     ctx = _make_ctx([doc], country="jp")
     r = _bb_compositions(ctx)[0]
-    display = r["type"]["coding"][0]["display"]
+    # Issue #3026: the coding keeps the English LOINC display; the Japanese label is type.text.
+    assert r["type"]["coding"][0]["display"].isascii()
+    display = r["type"]["text"]
     assert display == "外来経過記録（SOAP）", (
         f"Expected '外来経過記録（SOAP）', got '{display}' — check loinc.yaml 34131-3 ja field"
     )
@@ -359,7 +365,9 @@ def test_jp_locale_ed_note_display():
     doc["language"] = "ja"
     ctx = _make_ctx([doc], country="jp")
     r = _bb_compositions(ctx)[0]
-    display = r["type"]["coding"][0]["display"]
+    # Issue #3026: the coding keeps the English LOINC display; the Japanese label is type.text.
+    assert r["type"]["coding"][0]["display"].isascii()
+    display = r["type"]["text"]
     assert display == "救急科記録", f"Expected '救急科記録', got '{display}' — check loinc.yaml 34878-9 ja field"
 
 

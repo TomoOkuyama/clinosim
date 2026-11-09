@@ -138,7 +138,9 @@ def test_jp_inpatient_with_rehab_sessions_produces_rehabilitation_plan_compositi
         assert len(comp_out) == 1
         comp = comp_out[0]
         assert comp["type"]["coding"][0]["code"] == "34823-5"
-        assert comp["type"]["coding"][0]["display"] == "リハビリテーション実施計画書"
+        # LOINC is English-only (code-mapping spec §5.3, Issue #3026): the
+        # coding keeps its English display and the Japanese title is type.text.
+        assert comp["type"]["text"] == "リハビリテーション実施計画書"
         assert len(comp["section"]) == 9
 
         all_text = " ".join(s["title"] + s["text"]["div"] for s in comp["section"])

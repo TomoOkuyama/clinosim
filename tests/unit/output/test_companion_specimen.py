@@ -122,7 +122,7 @@ def test_build_companion_specimen_blood_type_jp_localized():
     s = _build_companion_specimen(r, country="JP")
     coding = s["type"]["coding"][0]
     assert coding["code"] == "119297000"
-    assert coding["display"] == "血液検体"
+    assert coding["display"] == "Blood specimen"  # Issue #3026: English SNOMED display
     assert s["type"]["text"] == "血液検体"
 
 

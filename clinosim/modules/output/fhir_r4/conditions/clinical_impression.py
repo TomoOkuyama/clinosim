@@ -23,6 +23,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
@@ -31,6 +32,7 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document import CLINICAL_IMPRESSION_ID_PREFIX
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
+from clinosim.modules.output.fhir_r4.lib.common import display_entry
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -153,7 +155,18 @@ def _build_clinical_impression(
                 {
                     "system": get_system_uri("loinc"),
                     "code": code_loinc,
-                    **({"display": code_loinc_display} if code_loinc_display else {}),
+                    # Issue #3026: the coding keeps an English display (the
+                    # CIF's when it is English, else the LOINC registry's);
+                    # the CIF's localized name stays in text.
+                    **display_entry(
+                        (
+                            code_loinc_display
+                            if code_loinc_display.isascii()
+                            else registry_display("loinc", code_loinc, "en") or ""
+                        )
+                        if code_loinc_display
+                        else ""
+                    ),
                 }
             ],
         }

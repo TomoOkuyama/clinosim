@@ -87,7 +87,7 @@ def test_jp_composition_type_display_in_ja(jp_export_dir: Path) -> None:
     non_jp: list[str] = []
     for comp in comps:
         comp_id = comp.get("id", "?")
-        display = _first_display_from_type(comp)
+        display = _text_or_first_display_from_type(comp)
         if display and not _has_jp_chars(display):
             non_jp.append(f"Composition/{comp_id} type.display not JP: {display!r}")
     assert not non_jp, f"{len(non_jp)} Composition resource(s) have non-JP type.display:\n" + "\n".join(non_jp[:5])

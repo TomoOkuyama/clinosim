@@ -108,7 +108,10 @@ def test_normalize_vital_signs_category_split_into_two_elements():
     }
     _normalize_jp_observation_category(resource)
     assert resource["category"] == [
-        {"coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}]},
+        {
+            "coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs", "display": "Vital Signs"}],
+            "text": "バイタルサイン",
+        },  # Issue #3026: English display, the label in text
         {
             "coding": [{"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}],
             "text": "バイタルサイン",
@@ -273,12 +276,12 @@ def test_normalize_is_idempotent_for_vital_signs():
     }
     _normalize_jp_observation_category(resource)
     assert resource["category"] == [
-        {"coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}]},
+        {"coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs", "display": "Vital Signs"}]},
         {"coding": [{"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}]},
     ]
     _normalize_jp_observation_category(resource)
     assert resource["category"] == [
-        {"coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}]},
+        {"coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs", "display": "Vital Signs"}]},
         {"coding": [{"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": "vital-signs"}]},
     ]
 
@@ -384,7 +387,7 @@ def test_normalize_two_elements_only_for_vital_signs(hl7_code, expected_two_elem
     _normalize_jp_observation_category(resource)
     if expected_two_elements:
         assert resource["category"] == [
-            {"coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": hl7_code}]},
+            {"coding": [{"system": HL7_OBSERVATION_CATEGORY_SYSTEM, "code": hl7_code, "display": "Vital Signs"}]},
             {"coding": [{"system": JP_OBSERVATION_CATEGORY_SYSTEM, "code": hl7_code}]},
         ]
     else:

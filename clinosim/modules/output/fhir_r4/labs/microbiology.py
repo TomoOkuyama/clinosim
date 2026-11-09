@@ -459,18 +459,8 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             **({"meta": {"profile": [JP_MB_DR_PROFILE_URI]}} if is_jp(ctx.country) else {}),
             "status": "final",
             "category": (
-                [
-                    {
-                        "coding": [
-                            {
-                                "system": get_system_uri("loinc"),
-                                "code": JP_MB_DR_CATEGORY_LOINC,
-                            }
-                        ]
-                    }
-                ]
-                if is_jp(ctx.country)
-                else []
+                # Issue #3026: English LOINC display, the label in text.
+                [dual_slot_concept("loinc", JP_MB_DR_CATEGORY_LOINC, lang)] if is_jp(ctx.country) else []
             )
             + [
                 {

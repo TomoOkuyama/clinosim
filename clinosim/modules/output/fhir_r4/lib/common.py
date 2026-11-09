@@ -107,6 +107,25 @@ def dual_slot_concept(
     return concept
 
 
+def text_if_localized(display_en: str, label: str) -> dict[str, Any]:
+    """``{"text": label}`` when the localized ``label`` differs from the
+    coding's English display, else ``{}`` (Issue #3026)."""
+    return {"text": label} if label and label != display_en else {}
+
+
+def english_display_concept(system_key: str, code: str, lang: str) -> dict[str, Any]:
+    """A CodeableConcept for an English-only CodeSystem whose coding keeps the
+    English canonical display, with the ``lang`` label in ``text`` only when it
+    differs from that display (Issue #3026) — so English output carries no
+    duplicate ``text``."""
+    coding = system_coding(system_key, code, "en")
+    concept: dict[str, Any] = {"coding": [coding]}
+    label = registry_display(system_key, code, lang)
+    if label and label != coding.get("display"):
+        concept["text"] = label
+    return concept
+
+
 def survey_category(lang: str) -> list[dict]:
     """The observation category list for survey-type observations (dual slot,
     Issue #2337)."""
@@ -506,17 +525,8 @@ def build_reference_range(
             {
                 "low": ucum_quantity(therapeutic[0], unit_str),
                 "high": ucum_quantity(therapeutic[1], unit_str),
-                "type": {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-referencerange-meaning"),
-                            "code": "therapeutic",
-                            "display": registry_display(
-                                "hl7-referencerange-meaning", "therapeutic", lang_for(country_code)
-                            ),
-                        }
-                    ]
-                },
+                # Issue #3026: English HL7 display, the label in text.
+                "type": english_display_concept("hl7-referencerange-meaning", "therapeutic", lang_for(country_code)),
                 **({"text": therapeutic[2]} if therapeutic[2] else {}),
             }
         )

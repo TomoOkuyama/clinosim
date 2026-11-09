@@ -22,7 +22,9 @@ def test_marital_status_display_us(patient_dict_factory):
 def test_marital_status_display_jp(patient_dict_factory):
     resource = _build_patient(patient_dict_factory(marital="M"), "JP")
     coding = resource["maritalStatus"]["coding"][0]
-    assert coding["display"] == "既婚"
+    # Issue #3026: English HL7 display on the coding, the label in text.
+    assert coding["display"] == "Married"
+    assert resource["maritalStatus"]["text"] == "既婚"
 
 
 @pytest.mark.parametrize(
