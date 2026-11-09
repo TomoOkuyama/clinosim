@@ -28,7 +28,10 @@ baseline ~15.3 % に一致)、gate 不成立の患者には「既知のアレル
   medication +0.20)、per-allergy clinical /
   verification status サンプリング (「active + confirmed」多数派、
   「active + unconfirmed」~10 %、「resolved + confirmed」~5 % で
-  food category 限定)。
+  food category 限定)。年齢 gate (Issue #3108): 記録されうる年齢に達して
+  いない category のアレルギー (`minimum_age_months`: medication 12、
+  food 6、environment 24、シミュレーション開始時の月齢) は全 draw の後で
+  除くので乱数列は動かない。残りが無い人 (新生児は全員) は NKA を持つ。
 - **In scope (validation)**: `allergens.yaml` に対する load 時
   6-layer validator。`allergen_code` および各 reaction の
   `manifestation_snomed` を `code_exists(..., exact=True)` で
@@ -149,8 +152,8 @@ defensible 値で、pre-refactor patient activator baseline (~15.3%) に
   (4) per-category list が空、(5) 必須 entry field 欠落、
   (6) `prevalence.adult` 範囲違反 または SNOMED cross-check 失敗。
 - 同 yaml の兄弟 block: `nka` (`allergen_code`、`clinical_status`、
-  `verification_status`)、`polyallergy`、`cross_reactivity`、`aging`
-  (Scope 参照)。
+  `verification_status`)、`polyallergy`、`cross_reactivity`、`aging`、
+  `minimum_age_months` (category ごとに 0 以上の整数、Scope 参照)。
 
 ## ディレクトリ構造
 
@@ -159,7 +162,7 @@ clinosim/modules/allergy/
   __init__.py                     Allergy + AllergyReaction を再 export
   engine.py                       validator 群 / load_allergens / load_allergen_config / allergy_enricher
   reference_data/
-    allergens.yaml                3-category allergen カタログ + 反応、nka、polyallergy、cross_reactivity、aging
+    allergens.yaml                3-category allergen カタログ + 反応、nka、polyallergy、cross_reactivity、aging、minimum_age_months
 ```
 
 **`enricher.py` / `audit.py` / 独立 `assign_*` 関数は存在しない** —
