@@ -15,6 +15,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
+from clinosim.locale.clinic_calendar import clinic_visit_day
 from clinosim.seeding import PHASE_OUTPATIENT_CAL, derive_phase_rng
 from clinosim.simulator._setup import _activate_cached_person
 from clinosim.simulator.outpatient import _simulate_outpatient_visit
@@ -33,7 +34,9 @@ def schedule_post_discharge(record: CIFPatientRecord, ctx: ForwardContext) -> da
     if not discharge:
         return None
     post_dc_days = ctx.followup_data.get("_post_discharge", {}).get("first_visit_days", 14)
-    return discharge + timedelta(days=post_dc_days)
+    planned = discharge + timedelta(days=post_dc_days)
+    # Issue #3018: held on the next clinic day, at the same clock time.
+    return datetime.combine(clinic_visit_day(planned.date(), ctx.config.country, keep_year=False), planned.time())
 
 
 def dispatch_post_discharge(record: CIFPatientRecord, followup_date: datetime, ctx: ForwardContext) -> None:

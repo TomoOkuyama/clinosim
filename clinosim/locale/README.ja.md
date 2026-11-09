@@ -141,15 +141,18 @@ clinosim/locale/
                                    LocalizedTable
   free_text.py                    薬剤 / 処置 / アレルゲン名の
                                    自由記述翻訳器
-  us/                             US 固有バンドル (15 YAML):
+  clinic_calendar.py              is_clinic_day / clinic_visit_day —
+                                   予定外来を行う診療日
+                                   (clinic_calendar.yaml、Issue #3018)
+  us/                             US 固有バンドル (16 YAML):
                                    addresses / ambulatory_visit_length /
-                                   ckd_under60_prevalence /
+                                   ckd_under60_prevalence / clinic_calendar /
                                    code_mapping_{diagnosis,drug,lab,procedure}
                                    / code_status_rates / demographics /
                                    family_history_prevalence / formatting
                                    / identity / immunization_schedule /
                                    names / reference_range_lab
-  jp/                             JP 固有バンドル (19 YAML — US 集合から
+  jp/                             JP 固有バンドル (20 YAML — US 集合から
                                    ckd_under60_prevalence と
                                    code_mapping_drug を除き、
                                    care_level_rates /

@@ -76,6 +76,7 @@ from clinosim.locale.loaders.demographics import (
 from clinosim.locale.loaders.fhir_identity import (
     _validate_ambulatory_visit_length,
     load_ambulatory_visit_length,
+    load_clinic_calendar,
     load_encounter_disposition_defaults,
     load_external_organizations,
     load_identity_config,
@@ -161,6 +162,7 @@ __all__ = [
     "load_frequency_tokens",
     "load_health_screening_visit_reason",
     "load_identity_config",
+    "load_clinic_calendar",
     "load_inpatient_subjective_pool",
     "load_iv_infusion_defaults",
     "load_llm_prompt_labels",

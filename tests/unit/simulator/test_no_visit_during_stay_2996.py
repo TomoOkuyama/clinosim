@@ -93,6 +93,7 @@ def _ctx(records: list) -> SimpleNamespace:
         inpatient_stays=InpatientStayIndex(),
         outpatient_day_ends={},
         master_seed=42,
+        config=SimpleNamespace(country="US"),
     )
 
 
