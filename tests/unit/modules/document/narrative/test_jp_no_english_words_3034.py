@@ -31,6 +31,21 @@ _SOURCES = (
     "modules/document/reference_data/chronic_soap_templates.yaml",
     "modules/document/reference_data/cc-pe-consistency-keywords.yaml",
 )
+# Issue #3107: the Japanese labels (``ja`` keys) of the order-reason, dose-text
+# and free-text-name sources; their citation fields (``source``) are not text
+# a record shows and stay as cited.
+_JA_KEY_SOURCES = (
+    "locale/shared/treatment_intents.yaml",
+    "locale/shared/medication_hold_reasons.yaml",
+    "locale/shared/clinosim-procedure-phrase.yaml",
+    "locale/shared/diet_type_display.yaml",
+    "locale/shared/med_terms.yaml",
+    "codes/data/clinosim-procedure-catalog.yaml",
+    "modules/drug_safety/reference_data/contraindications.yaml",
+    "modules/drug_safety/reference_data/demographic_gates.yaml",
+    "modules/drug_safety/reference_data/disease_contraindications.yaml",
+    "modules/monitoring/reference_data/medication_monitoring.yaml",
+)
 # A word with lower-case letters (not an abbreviation, code or unit).
 _WORD = re.compile(r"(?<![A-Za-z0-9])[A-Za-z][a-z]+(?:-[a-z]+)*(?![A-Za-z0-9])")
 # Written in Latin script in Japanese records: eponyms and scale / unit
@@ -50,6 +65,9 @@ _ALLOWED = {
     "Alzheimer",
     "Parkinson",
     "Kussmaul",
+    "Parkland",
+    "Connaught",
+    "Kerley",
     "Wells",
     "Geneva",
     "Ranson",
@@ -87,6 +105,7 @@ _ALLOWED = {
     "sec",
     "hr",
     "mcg",
+    "ng",
     "kcal",
     "proBNP",
     "dimer",
@@ -125,6 +144,22 @@ def _english_words(text: str) -> list[str]:
 def test_japanese_phrases_have_no_english_words(source: str) -> None:
     data = yaml.safe_load((_ROOT / source).read_text(encoding="utf-8"))
     offenders = sorted({(w, s.strip()[:60]) for s in _ja_strings(data) for w in _english_words(s)})
+    assert not offenders, offenders
+
+
+def _ja_key_strings(node: Any, key: str = "") -> list[str]:
+    """Every string under a ``ja`` key."""
+    if isinstance(node, dict):
+        return [t for k, v in node.items() for t in _ja_key_strings(v, str(k))]
+    if isinstance(node, list):
+        return [t for v in node for t in _ja_key_strings(v, key)]
+    return [node] if key == "ja" and isinstance(node, str) else []
+
+
+@pytest.mark.parametrize("source", _JA_KEY_SOURCES)
+def test_japanese_labels_of_order_and_dose_sources_have_no_english_words(source: str) -> None:
+    data = yaml.safe_load((_ROOT / source).read_text(encoding="utf-8"))
+    offenders = sorted({(w, s.strip()[:60]) for s in _ja_key_strings(data) for w in _english_words(s)})
     assert not offenders, offenders
 
 

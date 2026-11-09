@@ -383,6 +383,8 @@ drugs:
       - drug_id: edoxaban
         drug_class: "anticoagulant"
         dose: "60mg PO daily (30mg if CrCl 15-50 or weight <= 60kg)"
+        dose_text:
+          ja: "60mg 1日1回 経口（CrCl 15-50 mL/分または体重 60kg 以下では 30mg）"  # Issue #3107
         route: PO
         indication: "transition_from_heparin"
         pregnancy_safe: false

@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
 from clinosim.locale.i18n import t
+from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication
@@ -265,6 +266,13 @@ def build_discharge_medications(generator: TemplateNarrativeGenerator, ctx: Narr
         freq = _o(med, "frequency", "") or ""
         days = _o(med, "days_supply", None)
         bits: list[str] = [display]
+        # Issue #3107: a dose instruction authored per language (disease
+        # YAML ``dose_text``, e.g. a DOAC's reduced-dose condition) is the
+        # whole instruction in that language.
+        authored = localized_field(med, "dose", lang)
+        if authored and authored != dose:
+            bits.append(authored)
+            dose = route = freq = ""
         if dose:
             bits.append(_term(str(dose)))
         if route:

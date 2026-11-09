@@ -12,6 +12,7 @@ from clinosim import determinism
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.codes.valuesets import concept_group
 from clinosim.countries import is_jp, lang_for
+from clinosim.locale.free_text import _localize_dosage_terms
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import (
     chronic_followup_vitals,
@@ -987,13 +988,17 @@ def _chemo_cycle(
                 urgency="routine",
                 clinical_intent=t("encounter_intent.chemo_cycle", "en", drug=_drug_name, dose=_dose).strip(),
                 clinical_intent_ja=t(
-                    "encounter_intent.chemo_cycle", "ja", drug=_drug_ja or _drug_name, dose=_dose
+                    "encounter_intent.chemo_cycle",
+                    "ja",
+                    drug=_drug_ja or _drug_name,
+                    dose=_localize_dosage_terms(_dose, "ja"),
                 ).strip(),
                 ordered_datetime=visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN),
                 ordered_by=encounter.attending_physician_id,
                 status=OrderStatus.RESULTED,
                 dose_text_en=_dose,
-                dose_text_ja=_dose,
+                # Issue #3107: the dose text in Japanese wording.
+                dose_text_ja=_localize_dosage_terms(_dose, "ja"),
                 route=_route,
                 frequency="once",
                 frequency_per_day=1,
@@ -1142,12 +1147,14 @@ def _procedural_sedation(
             display_name=name,
             urgency="routine",
             clinical_intent=t("encounter_intent.procedural_sedation", "en", drug=name, dose=dose).strip(),
-            clinical_intent_ja=t("encounter_intent.procedural_sedation", "ja", drug=name_ja, dose=dose).strip(),
+            clinical_intent_ja=t(
+                "encounter_intent.procedural_sedation", "ja", drug=name_ja, dose=_localize_dosage_terms(dose, "ja")
+            ).strip(),
             ordered_datetime=given_at,
             ordered_by=encounter.attending_physician_id,
             status=OrderStatus.RESULTED,
             dose_text_en=dose,
-            dose_text_ja=dose,
+            dose_text_ja=_localize_dosage_terms(dose, "ja"),
             route=route,
             frequency="once",
             frequency_per_day=1,

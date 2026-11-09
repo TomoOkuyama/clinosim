@@ -309,3 +309,43 @@ medication_request_status:
   stopped: {en: stopped, ja: 中止}
   draft: {en: draft, ja: 下書き}
   unknown: {en: unknown, ja: 不明}
+
+# Escalation-drug indications of the disease protocols (`drugs.escalation[].indication`)
+# in the order reason (Issue #3107). English keeps the protocol text.
+escalation_indication:
+  "ESBL or resistant gram-negative": {en: "ESBL or resistant gram-negative", ja: "ESBL産生菌または耐性グラム陰性桿菌"}
+  "alternative escalation": {en: "alternative escalation", ja: "代替の治療強化"}
+  "alternative for infected necrosis": {en: "alternative for infected necrosis", ja: "感染性膵壊死に対する代替治療"}
+  "atypical_coverage": {en: "atypical coverage", ja: "非定型病原体のカバー"}
+  "cardiogenic_shock_with_hypotension": {en: "cardiogenic shock with hypotension", ja: "低血圧を伴う心原性ショック"}
+  "cardiogenic_shock_with_low_CO": {en: "cardiogenic shock with low CO", ja: "低心拍出量の心原性ショック"}
+  "fever or suspected bowel ischemia — prophylactic antibiotic": {en: "fever or suspected bowel ischemia — prophylactic antibiotic", ja: "発熱または腸管虚血疑い（予防的抗菌薬）"}
+  "gangrenous_cholecystitis_or_sepsis": {en: "gangrenous cholecystitis or sepsis", ja: "壊疽性胆嚢炎または敗血症"}
+  "iliofemoral_dvt_acute_phlegmasia": {en: "iliofemoral dvt acute phlegmasia", ja: "急性有痛性青股腫を伴う腸骨大腿静脈血栓症"}
+  "iliofemoral_dvt_phlegmasia": {en: "iliofemoral dvt phlegmasia", ja: "有痛性青股腫を伴う腸骨大腿静脈血栓症"}
+  "infected_necrosis": {en: "infected necrosis", ja: "感染性膵壊死"}
+  "infected_necrosis_or_pancreatic_abscess": {en: "infected necrosis or pancreatic abscess", ja: "感染性膵壊死または膵膿瘍"}
+  "massive_PE_with_hemodynamic_instability": {en: "massive PE with hemodynamic instability", ja: "血行動態不安定な広範型肺塞栓症"}
+  "no improvement": {en: "no improvement", ja: "改善なし"}
+  "no_defervescence_72h or culture_ESBL_producing_organism": {en: "no defervescence 72h or culture ESBL producing organism", ja: "72時間解熱なし、または培養でESBL産生菌"}
+  "no_defervescence_72h or culture_resistant_organism": {en: "no defervescence 72h or culture resistant organism", ja: "72時間解熱なし、または培養で耐性菌"}
+  "no_defervescence_72h or hospital-acquired": {en: "no defervescence 72h or hospital-acquired", ja: "72時間解熱なし、または院内感染"}
+  "no_defervescence_72h or lung_abscess": {en: "no defervescence 72h or lung abscess", ja: "72時間解熱なし、または肺膿瘍"}
+  "no_improvement_48h_or_diabetic_foot": {en: "no improvement 48h or diabetic foot", ja: "48時間改善なし、または糖尿病足病変"}
+  "no_improvement_48h_or_polymicrobial_concern": {en: "no improvement 48h or polymicrobial concern", ja: "48時間改善なし、または複数菌感染の懸念"}
+  "no_improvement_72h or culture_resistant_organism": {en: "no improvement 72h or culture resistant organism", ja: "72時間改善なし、または培養で耐性菌"}
+  "no_response_to_initial_treatment": {en: "no response to initial treatment", ja: "初期治療に反応なし"}
+  "pain_refractory_to_conservative_treatment_2_weeks": {en: "pain refractory to conservative treatment 2 weeks", ja: "2週間の保存療法に抵抗性の疼痛"}
+  "pain_refractory_to_conservative_treatment_4_weeks": {en: "pain refractory to conservative treatment 4 weeks", ja: "4週間の保存療法に抵抗性の疼痛"}
+  "perforated_appendicitis_or_abscess": {en: "perforated appendicitis or abscess", ja: "穿孔性虫垂炎または膿瘍"}
+  "persistent bacteremia or resistant organism": {en: "persistent bacteremia or resistant organism", ja: "持続菌血症または耐性菌"}
+  "refractory_hyperkalemia, acidosis, volume_overload, uremia, or BUN > 100": {en: "refractory hyperkalemia, acidosis, volume overload, uremia, or BUN > 100", ja: "治療抵抗性の高カリウム血症・アシドーシス・体液過剰・尿毒症、または BUN > 100"}
+  "refractory_to_bronchodilators_and_steroids": {en: "refractory to bronchodilators and steroids", ja: "気管支拡張薬・ステロイドに抵抗性"}
+  "same": {en: "same", ja: "同上"}
+  "severe pancreatitis (JP-specific protease inhibitor)": {en: "severe pancreatitis (JP-specific protease inhibitor)", ja: "重症膵炎（蛋白分解酵素阻害薬）"}
+  "severe_cerebral_edema_or_herniation": {en: "severe cerebral edema or herniation", ja: "重度の脳浮腫または脳ヘルニア"}
+  "severe_cerebral_edema_or_herniation_signs": {en: "severe cerebral edema or herniation signs", ja: "重度の脳浮腫または脳ヘルニア徴候"}
+  "shock": {en: "shock", ja: "ショック"}
+  "suspected bowel ischemia or perforation": {en: "suspected bowel ischemia or perforation", ja: "腸管虚血または穿孔の疑い"}
+  "suspected_bacterial_superinfection": {en: "suspected bacterial superinfection", ja: "細菌性重複感染の疑い"}
+  "suspected_invasive_candidiasis": {en: "suspected invasive candidiasis", ja: "侵襲性カンジダ症の疑い"}

@@ -22,7 +22,7 @@ Generator-threaded helpers:
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import display
 from clinosim.codes.ucum import ucum_prose
@@ -180,6 +180,30 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
     return fallback, facts
 
 
+def _ed_imaging_display(order: Any, lang: str) -> str:
+    """An ED imaging order's name in ``lang`` (Issue #3107): the imaging-exam
+    table's entry for the order name, else the label of the order's LOINC
+    code (the name it was placed under), else the humanised name."""
+    from clinosim.codes import display
+    from clinosim.locale.loader import load_narrative_imaging
+    from clinosim.locale.table import ImagingExamTable
+
+    name = str(_o(order, "display_name", "") or _o(order, "imaging_modality", "") or "")
+    listed = (
+        ImagingExamTable("narrative_imaging.imaging", load_narrative_imaging, humanize_unknown=False).get(name, lang)
+        if name
+        else ""
+    )
+    if listed:
+        return listed
+    code = str(_o(order, "order_code", "") or "")
+    if code and str(_o(order, "order_code_system", "") or "") == "loinc":
+        named = display("loinc", code, lang)
+        if named:
+            return named
+    return _localize_imaging(name, lang) if name else ""
+
+
 @section("ed_workup")
 def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build ed_workup from ed_note_template.ed_workup_summary_<lang>.
@@ -259,7 +283,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
             key = f"{modality}|{display}"
             if display and key not in seen_imaging:
                 seen_imaging.add(key)
-                imaging_names.append(str(display))
+                imaging_names.append(_ed_imaging_display(order, lang) or str(display))
         elif otype_str == "medication":
             if display_raw and str(display_raw) not in seen_meds:
                 seen_meds.add(str(display_raw))
@@ -281,7 +305,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         # ("Chest_Xray_PA_Lateral" / "CT_Head" / etc.) via
         # ``_localize_imaging``. Handles both underscore-slug and
         # spaced-name variants (semantic dedup).
-        imaging_display = [_localize_imaging(n, ctx.target_lang) for n in imaging_names[:6]]
+        imaging_display = imaging_names[:6]  # localized per order (Issue #3107)
         parts.append(t("ed_workup.imaging_head", lang) + t("list_sep.serial", lang).join(imaging_display))
     if med_names:
         # Phase 1c-3 (2026-09-22): localize med display names to

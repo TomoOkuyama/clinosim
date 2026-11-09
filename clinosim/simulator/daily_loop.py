@@ -20,8 +20,10 @@ import numpy as np
 
 from clinosim.codes.drugs import has_drug, protocol_drug_name
 from clinosim.countries import country_code
+from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
-from clinosim.locale.localized import language_slot
+from clinosim.locale.loader import load_diet_type_display, narrative_label
+from clinosim.locale.localized import language_slot, localized
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, sanitize_id_token
 from clinosim.modules.clinical_course._complication_risk_conditions import ComplicationContext, in_drug_class
 from clinosim.modules.clinical_course.engine import (
@@ -836,7 +838,14 @@ def _escalate_treatment(stay: _Stay, run: _Run, day: int) -> None:
                 # Issue #871: JA display for JP SR reasonCode.text.
                 # `drug_name` and `indication` are kept as-is (may be
                 # EN or already-JA from disease YAML) — shell translated.
-                clinical_intent_ja=t("order_intent.escalation", "ja", day=day, drug=drug_name, indication=indication),
+                clinical_intent_ja=t(
+                    "order_intent.escalation",
+                    "ja",
+                    day=day,
+                    drug=localize_drug_name(drug_name, "ja"),
+                    # Issue #3107: the indication in clinical Japanese.
+                    indication=narrative_label("escalation_indication", str(indication), "ja"),
+                ),
                 ordered_datetime=stay.admission_time + timedelta(days=day, hours=10),
                 ordered_by=stay.attending_id,
                 status=OrderStatus.PLACED,
@@ -870,7 +879,13 @@ def _order_diet(stay: _Stay, run: _Run, day: int) -> None:
                 urgency="routine",
                 clinical_intent=t("order_intent.diet", "en", day=day, diet=diet),
                 # Issue #871: JA display for JP SR reasonCode.text.
-                clinical_intent_ja=t("order_intent.diet", "ja", day=day, diet=diet),
+                # Issue #3107: the diet's Japanese name (diet_type_display).
+                clinical_intent_ja=t(
+                    "order_intent.diet",
+                    "ja",
+                    day=day,
+                    diet=localized(load_diet_type_display().get(diet), "ja", fallback=diet),
+                ),
                 ordered_datetime=stay.admission_time + timedelta(days=day, hours=7),
                 ordered_by=stay.attending_id,
                 status=OrderStatus.PLACED,

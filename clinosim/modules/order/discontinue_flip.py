@@ -394,6 +394,14 @@ def _log_treatment_change(
         conflict_en = t("safety_text.treatment_plan_change", "en")
         conflict_ja = t("safety_text.treatment_plan_change", "ja")
 
+    replacement_ja = replacement_agent
+    if replacement_agent:
+        try:
+            from clinosim.locale.free_text import _localize_drug_name
+
+            replacement_ja = _localize_drug_name(replacement_agent, "JP") or replacement_agent
+        except Exception:  # noqa: BLE001 — never fail the enricher on i18n
+            replacement_ja = replacement_agent
     verdict = SafetyVerdict(
         severity="moderate",
         rule_id="treatment-modification-switch",
@@ -404,10 +412,12 @@ def _log_treatment_change(
             + (t("safety_text.treatment_switch_start", "en", drug=replacement_agent) if replacement_agent else "")
             + (f" ({archetype})" if archetype else "")
         ),
+        # Issue #3107: the Japanese rationale names the drugs and the course
+        # in Japanese.
         rationale_ja=(
-            t("safety_text.treatment_switch_stop", "ja", drug=stopped_drug)
-            + (t("safety_text.treatment_switch_start", "ja", drug=replacement_agent) if replacement_agent else "")
-            + (f" ({archetype})" if archetype else "")
+            t("safety_text.treatment_switch_stop", "ja", drug=stopped_drug_ja or stopped_drug)
+            + (t("safety_text.treatment_switch_start", "ja", drug=replacement_ja) if replacement_agent else "")
+            + (f" ({archetype_ja})" if archetype else "")
         ),
         substitution_hint=replacement_agent,
     )
@@ -421,14 +431,6 @@ def _log_treatment_change(
     # it handles substring drug + dose/route/frequency term translation.
     # Note: ``stopped_drug_ja`` is already resolved at the caller
     # (order.display_name_ja) so we do NOT re-localise it here.
-    replacement_ja = replacement_agent
-    if replacement_agent:
-        try:
-            from clinosim.locale.free_text import _localize_drug_name
-
-            replacement_ja = _localize_drug_name(replacement_agent, "JP") or replacement_agent
-        except Exception:  # noqa: BLE001 — never fail the enricher on i18n
-            replacement_ja = replacement_agent
     patient.safety_skip_log.append(
         SafetySkipEntry(
             encounter_id=encounter_id,

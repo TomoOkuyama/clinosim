@@ -36,6 +36,7 @@ from clinosim import determinism
 from clinosim.codes.drugs import drug_classes, drug_key, drug_ref, get_drug, same_drug
 from clinosim.countries import lang_for
 from clinosim.datafiles import load_data_yaml
+from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import order_test_display
 from clinosim.locale.localized import localized, localized_field
@@ -197,7 +198,8 @@ def _log_disease_medication_hold(
         matched_classes=None,
         matched_active_drug=hold_reason,
         rationale_en=t("order_intent.protocol_hold", "en", reason=hold_reason),
-        rationale_ja=t("order_intent.protocol_hold", "ja", reason=hold_reason),
+        # Issue #3107: the reason's Japanese display (medication_hold_reasons).
+        rationale_ja=t("order_intent.protocol_hold", "ja", reason=_hold_reason_japanese(hold_reason)),
         substitution_hint=None,
     )
     # active_conflict phrasing carries the CLINICAL REASON (English +
@@ -340,7 +342,8 @@ def _generate_home_medication_orders(
         # Issue #871: parallel JA display for JP SR reasonCode.text. `intent_drug`
         # includes the raw drug name + dose (which may be EN or JA depending on
         # the source); the shell is translated.
-        intent_ja = t("order_intent.home_med_continue", "ja", drug=intent_drug)
+        # Issue #3107: the drug named in Japanese.
+        intent_ja = t("order_intent.home_med_continue", "ja", drug=localize_drug_name(intent_drug, "ja"))
 
         # 1. Protocol-driven disease-specific holds.
         yaml_held = False
@@ -1174,7 +1177,11 @@ def apply_drug_safety_gate_to_orders(
                     "order_intent.contraindication_alternative", "en", candidate=candidate, drug=alt.drug
                 ),
                 clinical_intent_ja=t(
-                    "order_intent.contraindication_alternative", "ja", candidate=candidate, drug=alt.drug_ja
+                    "order_intent.contraindication_alternative",
+                    "ja",
+                    # Issue #3107: the avoided drug's Japanese name.
+                    candidate=localize_drug_name(candidate, "ja"),
+                    drug=alt.drug_ja,
                 ),
                 ordered_datetime=order.ordered_datetime,
                 ordered_by=order.ordered_by or attending_id,

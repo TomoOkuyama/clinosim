@@ -17,7 +17,7 @@ rules:
     severity: contraindicated
     rationale:
       en: "VKA + antiplatelet substantially raises major bleeding risk. Allowed only under specific indications (recent PCI + AF ≤12mo, mechanical valve + secondary prevention) with GI protection."
-      ja: "ワルファリン (VKA) と抗血小板薬の併用は重大出血リスクを大幅に上昇。特定 indication (PCI 後 12 か月以内かつ AF、機械弁 + 二次予防) 下でのみ、消化管保護と併用。"
+      ja: "ワルファリン (VKA) と抗血小板薬の併用は重大出血リスクを大幅に上昇。特定の適応 (PCI 後 12 か月以内かつ AF、機械弁 + 二次予防) 下でのみ、消化管保護と併用。"
     substitution_hint: pain_management
     source: "CHEST 2016 antithrombotic guidelines; JCS 2020 抗血栓療法"
 
@@ -195,7 +195,7 @@ rules:
     severity: major
     rationale:
       en: "SSRI + SNRI concurrent raises 5-HT at both the reuptake and additional norepinephrine axes without added efficacy, multiplying serotonin-syndrome risk. Guideline practice is switching with washout, not combining. Augmentation of a serotonergic agent should use an atypical (Mirtazapine, Bupropion) or a non-serotonergic adjunct."
-      ja: "SSRI と SNRI の併用は 5-HT 再取り込み阻害が重なり、追加の効果上積みなくセロトニン症候群リスクを多重化する。ガイドライン実務は休薬期間を置いた切替であり、両剤同時併用は推奨されない。serotonergic 薬の増強には atypical (Mirtazapine 等) あるいは非 serotonergic 系の併用が標準。"
+      ja: "SSRI と SNRI の併用は 5-HT 再取り込み阻害が重なり、追加の効果上積みなくセロトニン症候群リスクを多重化する。ガイドライン実務は休薬期間を置いた切替であり、両剤同時併用は推奨されない。セロトニン作動薬の増強には非定型抗うつ薬 (ミルタザピン等) あるいは非セロトニン作動系の併用が標準。"
     substitution_hint: null
     source: "APA 2010 major depressive disorder practice guideline; VA/DoD 2022 MDD guideline"
 

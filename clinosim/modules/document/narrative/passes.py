@@ -725,6 +725,13 @@ class NarrativePass(ABC):
             if drug:
                 entry: dict[str, Any] = {"drug_name": drug, "dose": str(_o(item, "dose", "") or "")}
                 # Issue #2877: a statin titration, stated in the plan.
+                # Issue #3107: a dose instruction authored for another
+                # language (``dose_<lang>``; English is the base ``dose``
+                # field, code-mapping spec §5.2, so ``dose_en`` is not used).
+                if isinstance(item, dict):
+                    for key, value in item.items():
+                        if re.fullmatch(r"dose_[a-z]{2}", str(key)) and key != "dose_en" and value:
+                            entry[key] = str(value)
                 for key in ("titrated_from_dose", "titration_ldl", "titration_panel_on"):
                     if _o(item, key, None) is not None:
                         entry[key] = _o(item, key, None)

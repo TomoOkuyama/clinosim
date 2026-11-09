@@ -47,6 +47,13 @@ procedures:
   therapeutic anticoagulation: {ja: "治療的抗凝固療法"}
 
   # --- Non-drug orders (procedures classified as medication in CIF) ---
+  # NPO orders of the disease protocols (Issue #3107).
+  Nothing by mouth: {ja: "絶飲食"}
+  Psychiatric evaluation and suicide risk assessment: {ja: "精神科評価・自殺リスク評価"}
+  Nothing by mouth pending endoscopy: {ja: "内視鏡まで絶飲食"}
+  Nothing by mouth for surgery: {ja: "術前絶飲食"}
+  Nothing by mouth initially: {ja: "当初は絶飲食"}
+  Nothing by mouth until swallowing evaluation completed: {ja: "嚥下評価まで絶飲食"}
   Ice pack application: {ja: "氷嚢貼付"}
   Ice pack to affected area: {ja: "患部への氷嚢貼付"}
   Heat pack application: {ja: "温罨法"}
