@@ -21,7 +21,10 @@ Issue #1252 で起票。module 境界の根拠と、`perinatal.py` や
   - ビタミン K 予防投与 (`MedicationAdministration` — JP は入院期間内
     であれば day 0 / 7 に経口 K2 シロップ、US は 1 mg IM — N2)。
   - 新生児の `baseline_vitals` からの勤務帯ごとのバイタルサイン
-    (`VitalSignRecord` — N3)。
+    (`VitalSignRecord` — N3)。各測定値は baseline を中心に新生児の正常範囲
+    (`shift_vitals.measurement`: 心拍数 110-160、呼吸数 30-60、体温
+    36.5-37.5、SpO2 95 以上) の中でばらつき、入院ごとの sub-stream から
+    引く (Issue #2989)。
   - 1 分 / 5 分 Apgar スコア (`Observation`、LOINC 9272-6 /
     9274-2 — N4)。
   - AABR 聴覚スクリーニング (`Procedure`、SNOMED 413083006 — N5)。

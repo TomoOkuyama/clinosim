@@ -229,6 +229,24 @@ shift_vitals:
   # `perinatal.yaml::encounter.length_of_stay_days` (JP 5 / US 2), so
   # this section only carries the cadence — the total dose count is a
   # pure LOS × cadence derivative.
+  #
+  # Issue #2989: each measurement varies around the newborn's baseline
+  # (`perinatal.yaml` baseline_vitals) — Normal(baseline, sd), drawn from a
+  # per-stay sub-stream — and a healthy newborn's reading stays inside the
+  # normal range. Normal ranges of a term newborn: heart rate 110-160 /min
+  # and respiratory rate 30-60 /min (AAP/ACOG Guidelines for Perinatal
+  # Care, 8th ed., care of the newborn); axillary temperature 36.5-37.5 °C
+  # (WHO, Thermal Protection of the Newborn: a practical guide, 1997);
+  # SpO2 >= 95 % after the first day (the CCHD screening pass threshold).
+  # The SDs are the spread of serial nursery readings of one healthy
+  # newborn (synthetic calibration). Blood pressure has no clamp.
+  measurement:
+    temperature:      {sd: 0.15, range: [36.5, 37.5]}
+    heart_rate:       {sd: 8.0,  range: [110, 160]}
+    respiratory_rate: {sd: 5.0,  range: [30, 60]}
+    spo2:             {sd: 1.0,  range: [95, 100]}
+    systolic_bp:      {sd: 4.0}
+    diastolic_bp:     {sd: 3.0}
 
 # Sub-scope PR N2 (this file's first slice): Vitamin K prophylaxis only.
 vitamin_k:
