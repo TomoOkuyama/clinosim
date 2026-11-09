@@ -267,7 +267,11 @@ def _attach_implied_chronic_conditions(
         # by 1-14 years, matching the population-time sampling window.
         # RNG-neutral (deterministic per patient×code, no master-RNG
         # consumption) — see `derive_implied_chronic_onset`.
-        backdated = derive_implied_chronic_onset(patient.patient_id, code, adm_date, dob)
+        # Issue #3037: a condition the person already has an onset for (an
+        # earlier stay implied it) keeps that onset.
+        backdated = patient.chronic_onset.setdefault(
+            code, derive_implied_chronic_onset(patient.patient_id, code, adm_date, dob)
+        )
         patient.chronic_conditions.append(
             ChronicCondition(
                 code=code,

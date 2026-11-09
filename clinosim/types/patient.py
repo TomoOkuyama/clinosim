@@ -314,6 +314,11 @@ class PatientProfile:
     longitudinal_history: list[Any] = field(default_factory=list)
     # Outpatient follow-up / specialty visit dedup state (not written to the CIF).
     visit_ledger: OutpatientVisitLedger = field(default_factory=OutpatientVisitLedger, compare=False, repr=False)
+    # Issue #3037: the person's chronic onset dates (``PersonRecord.chronic_onset``,
+    # shared by every profile of the person; not written to the CIF). A
+    # condition an encounter adds to the profile (an implied chronic condition)
+    # is dated here once, so every record of the person shows one onset.
+    chronic_onset: dict[str, date] = field(default_factory=dict, compare=False, repr=False)
 
     def __post_init__(self) -> None:
         """Issue #452 PR 1 migration shim: accept legacy `list[str]` fixtures

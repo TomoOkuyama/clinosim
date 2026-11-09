@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from clinosim.types.identity import IdentityTimeline
 from clinosim.types.patient import HomeMedication, OutpatientVisitLedger, TemporalStatePeriod
@@ -80,6 +80,11 @@ class PersonRecord:
     # dates its onset before that year so no visit precedes it.
     chronic_tracked_from: int | None = None
     chronic_first_year: dict[str, int] = field(default_factory=dict)
+    # Issue #3037: the onset date of each chronic code, fixed the first time a
+    # record dates it (a newborn's at birth, otherwise the first activation).
+    # The profile is re-activated every simulated year; each activation
+    # reuses this date, so every record of the person shows one onset.
+    chronic_onset: dict[str, date] = field(default_factory=dict)
     current_medications: list[HomeMedication] = field(default_factory=list)  # active medications (see #452)
     # Occupation category (drives work-related injury risk); see PatientProfile.occupation
     occupation: str = "other"
@@ -258,6 +263,14 @@ class PersonRecord:
         """True when the person is in the population on any day of ``[start, end]``."""
         first = max(start, self.enrolled_from or self.date_of_birth, self.date_of_birth)
         return first <= end and self.is_alive_at(first)
+
+    def keep_chronic_onsets(self, conditions: Any) -> None:
+        """Fix the onset of each dated condition not yet dated (Issue #3037).
+        Draws nothing."""
+        for cond in conditions or ():
+            code, onset = getattr(cond, "code", ""), getattr(cond, "onset_date", None)
+            if code and onset is not None:
+                self.chronic_onset.setdefault(code, onset)
 
     def note_chronic_conditions(self, year: int) -> None:
         """Record ``year`` as the first simulated year of every chronic code

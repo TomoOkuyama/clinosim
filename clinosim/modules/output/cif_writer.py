@@ -119,9 +119,11 @@ class _CIFEncoder(json.JSONEncoder):
 
 def cif_record_dict(record: Any) -> dict[str, Any]:
     """The CIF content of a patient record: ``asdict`` without the simulator's
-    internal per-patient bookkeeping (``PatientProfile.visit_ledger``)."""
+    internal per-patient bookkeeping (``PatientProfile.visit_ledger``,
+    ``PatientProfile.chronic_onset``)."""
     record_dict = asdict(record)
     (record_dict.get("patient") or {}).pop("visit_ledger", None)
+    (record_dict.get("patient") or {}).pop("chronic_onset", None)
     return record_dict
 
 
