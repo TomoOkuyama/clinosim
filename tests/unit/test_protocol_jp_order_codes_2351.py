@@ -35,7 +35,9 @@ def test_no_disease_yaml_carries_code_yj() -> None:
         ({"drug": "Furosemide", "dose": "20mg IV", "route": "IV"}, "2139401A2137"),
         ({"drug": "Furosemide", "dose": "40mg PO daily"}, "2139005F1052"),
         ({"drug": "Unfractionated Heparin", "dose": "5000U IV", "route": "IV"}, jp_drug_code_for_name("Heparin", "IV")),
-        ({"drug": "Norepinephrine", "dose": "0.05ug/kg/min IV drip"}, ""),
+        # Issue #3013: norepinephrine has one JP product (injection), so an
+        # order with no route takes it.
+        ({"drug": "Norepinephrine", "dose": "0.05ug/kg/min IV drip"}, "2451401A1034"),
     ],
 )
 def test_jp_order_code_is_the_catalog_product_for_the_route(spec: dict, expected: str) -> None:

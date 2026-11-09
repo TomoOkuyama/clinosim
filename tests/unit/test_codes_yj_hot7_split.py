@@ -107,10 +107,13 @@ class TestFileSeparation:
           (hot7 → 0). The drug catalog's full YJ products are registered in
           yj.yaml with their MHLW product names (yj → 255; #2351 adds four IV products → 259).
         - #2423: imipenem/cilastatin and rebamipide → 261.
+        - #3013: +7 JP products (midazolam / lidocaine / butylscopolamine /
+          diphenhydramine injections, sodium polystyrene sulfonate, tetanus
+          toxoid, mannitol) → 268.
         """
         yj_n = len(_load(_YJ_FILE).get("codes") or {})
         hot7_n = len(_load(_HOT7_FILE).get("codes") or {})
-        assert yj_n == 261, f"yj.yaml YJ12 count expected 261, got {yj_n}"
+        assert yj_n == 268, f"yj.yaml YJ12 count expected 268, got {yj_n}"
         assert hot7_n == 0, f"hot7.yaml HOT7 count expected 0, got {hot7_n}"
 
 
