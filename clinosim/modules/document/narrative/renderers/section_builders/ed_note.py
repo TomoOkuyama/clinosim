@@ -36,6 +36,7 @@ from clinosim.modules.document.narrative._localization import (
     _localize_imaging,
     _localize_lab_flag,
 )
+from clinosim.modules.document.narrative._narrative_utils import _age_months_at
 from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_FALLBACK_EN,
     _GENERIC_FALLBACK_JA,
@@ -43,6 +44,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _pick_localized,
 )
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
+from clinosim.modules.encounter.protocol import discharge_instructions_for_age
 from clinosim.types.document import DocumentType, NarrativeContext
 
 # An ED note rendered on an inpatient record is the ED part of a via-ED
@@ -428,7 +430,9 @@ def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
 
     parts = [text.rstrip(t("list_sep.period", lang)) + t("list_sep.period", lang)]
     proto = ctx.encounter_protocol
-    instructions = [localized(item, lang) for item in (_o(proto, "discharge_instructions", None) or [])]
+    # Issue #2980: an age-gated instruction (honey for cough) has a variant
+    # for a younger patient.
+    instructions = [localized(item, lang) for item in discharge_instructions_for_age(proto, _age_months_at(ctx))]
     instructions = [item for item in instructions if item]
     if instructions:
         sep = t("ed.instruction_sep", lang)

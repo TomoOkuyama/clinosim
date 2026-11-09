@@ -49,7 +49,14 @@ treatment:
 
 discharge_instructions:
   - {en: "Rest and increase fluid intake", ja: "安静と十分な水分摂取"}
-  - {en: "Symptomatic care: warm fluids, honey for cough, saline nasal spray", ja: "対症療法：温かい飲み物、咳に蜂蜜、生理食塩水の点鼻"}
+  # Honey is not given under 12 months (infant botulism; AAP, CDC) — an
+  # infant gets saline drops with nasal suction instead (Issue #2980).
+  - en: "Symptomatic care: warm fluids, honey for cough, saline nasal spray"
+    ja: "対症療法：温かい飲み物、咳に蜂蜜、生理食塩水の点鼻"
+    min_age_months: 12
+    younger:
+      en: "Symptomatic care: saline nose drops with gentle bulb suction before feeds, small frequent feeds"
+      ja: "対症療法：哺乳前に生理食塩水の点鼻と鼻吸引、少量頻回の哺乳"
   - {en: "Expected duration 5-10 days", ja: "5〜10日で軽快する見込み"}
   - {en: "Return if fever >39C persisting >3 days, difficulty breathing, or worsening symptoms", ja: "39℃を超える発熱が3日以上続く、呼吸困難、症状の悪化があれば再受診"}
 follow_up: {en: "primary care physician if not improving within 1 week", ja: "1週間で改善しなければかかりつけ医を受診"}
