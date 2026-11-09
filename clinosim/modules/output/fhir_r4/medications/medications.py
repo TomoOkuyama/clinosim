@@ -20,6 +20,7 @@ from clinosim.codes import (
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.drugs import drug_system_uri, is_verified_yj, jp_drug_code_table
+from clinosim.codes.icd10 import condition_label
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
@@ -29,6 +30,7 @@ from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, get_attr_or_key, 
 from clinosim.modules.order.absolute_dose import is_continuous_infusion
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
 from clinosim.modules.output.fhir_r4.lib.dosage import (
     _parse_dose_for_mar,
     build_dosage_instruction,
@@ -1559,17 +1561,16 @@ def _build_ma_reason_block(
     cond_ref = primary_condition_ref_from_codes(primary_dx_code, chronic_condition_codes, patient_id, encounter_id)
     reason_reference = [{"reference": f"Condition/{cond_ref}"}]
     # Issue #350: route through system_key_for("diagnosis", country).
-    _icd_system = get_system_uri(system_key_for("diagnosis", country_code))
     _mapped_dx_code = map_diagnosis_code(primary_dx_code, country_code, sex=patient_sex)
+    # Issue #3027: the ICD display and the localized diagnosis label (the
+    # referenced Condition's ``code.text``), like every other coded reason.
     reason_code = [
-        {
-            "coding": [
-                {
-                    "system": _icd_system,
-                    "code": _mapped_dx_code,
-                }
-            ],
-        }
+        dual_slot_concept(
+            system_key_for("diagnosis", country_code),
+            _mapped_dx_code,
+            lang_for(country_code),
+            text=condition_label(_mapped_dx_code, country_code, lang_for(country_code)),
+        )
     ]
     return reason_reference, reason_code
 
