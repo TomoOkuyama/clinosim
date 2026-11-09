@@ -562,6 +562,37 @@ codes:
   Z23:
     en: Need for immunization against single bacterial diseases
     ja: "単独の細菌性疾患に対する予防接種の必要性"
+  # Issue #3008: JP vaccination-visit reasons (WHO Z23-Z27 by vaccine).
+  Z23.2:
+    en: Need for immunization against tuberculosis [BCG]
+    ja: "結核に対する予防接種［BCG］の必要性"
+  Z23.8:
+    en: Need for immunization against other single bacterial diseases
+    ja: "その他の単独の細菌性疾患に対する予防接種の必要性"
+  Z24.1:
+    en: Need for immunization against arthropod-borne viral encephalitis
+    ja: "節足動物媒介ウイルス脳炎に対する予防接種の必要性"
+  Z24.6:
+    en: Need for immunization against viral hepatitis
+    ja: "ウイルス性肝炎に対する予防接種の必要性"
+  Z25.0:
+    en: Need for immunization against mumps alone
+    ja: "ムンプスのみに対する予防接種の必要性"
+  Z25.1:
+    en: Need for immunization against influenza
+    ja: "インフルエンザに対する予防接種の必要性"
+  Z25.8:
+    en: Need for immunization against other specified single viral diseases
+    ja: "その他の明示された単独のウイルス性疾患に対する予防接種の必要性"
+  Z26.9:
+    en: Need for immunization against unspecified infectious disease
+    ja: "詳細不明の感染症に対する予防接種の必要性"
+  Z27.3:
+    en: Need for immunization against diphtheria-tetanus-pertussis with poliomyelitis [DTP + polio]
+    ja: "ジフテリア・破傷風・百日咳と灰白髄炎＜ポリオ＞に対する予防接種［DTP＋polio］の必要性"
+  Z27.8:
+    en: Need for immunization against other combinations of infectious diseases
+    ja: "感染症のその他の混合予防接種の必要性"
   Z34:
     en: Encounter for supervision of normal pregnancy
     ja: "正常妊娠の管理"

@@ -164,6 +164,16 @@ physician roster), hosted once per patient. When any `ENC-VAX-*`
 encounter exists, `document.engine.document_enricher` is re-invoked so
 those encounters get their document stubs.
 
+`Z23` is the ICD-10-CM "Encounter for immunization" the CIF records on a
+vaccination visit. In WHO ICD-10 (JP output) `Z23` means single bacterial
+diseases only, so `visits.vaccination_visit_reason_codes(country, cvx_codes)`
+gives a JP visit the WHO need-for-immunization code of each vaccine given at
+it (`locale/jp/code_mapping_vaccination_reason.yaml`: influenza Z25.1,
+COVID-19 / varicella / rotavirus Z25.8, JE Z24.1, hepatitis B Z24.6, MR
+Z27.8, DTaP-IPV Z27.3, BCG Z23.2, Hib / pneumococcal Z23.8; Z26.9 when no
+listed vaccine is linked). The FHIR Encounter and Procedure `reasonCode` use
+it; US output keeps `Z23` (Issue #3008).
+
 ## Dependencies
 
 - `clinosim.modules._shared` — `is_us` / `is_jp`,

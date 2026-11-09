@@ -142,6 +142,16 @@ attending は primary-care 医師 roster から決定論選出) を合成し、�
 あたり 1 回だけ host する。`ENC-VAX-*` が存在すれば
 `document.engine.document_enricher` を再実行して文書 stub を付与する。
 
+`Z23` は CIF が予防接種受診に記録する ICD-10-CM の "Encounter for
+immunization"。WHO ICD-10 (JP 出力) の `Z23` は単独の細菌性疾患のみを指すため、
+`visits.vaccination_visit_reason_codes(country, cvx_codes)` が JP の受診に、
+そこで接種したワクチンごとの予防接種の必要性コードを与える
+(`locale/jp/code_mapping_vaccination_reason.yaml`: インフルエンザ Z25.1、
+COVID-19・水痘・ロタウイルス Z25.8、日本脳炎 Z24.1、B型肝炎 Z24.6、MR Z27.8、
+四種混合 Z27.3、BCG Z23.2、Hib・肺炎球菌 Z23.8、紐付くワクチンがなければ
+Z26.9)。FHIR の Encounter・Procedure の `reasonCode` がこれを使い、US 出力は
+`Z23` のまま (Issue #3008)。
+
 ## 依存
 
 - `clinosim.modules._shared` — `is_us` / `is_jp`,

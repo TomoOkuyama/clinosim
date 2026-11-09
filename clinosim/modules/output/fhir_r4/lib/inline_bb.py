@@ -28,6 +28,7 @@ from clinosim.countries import lang_for
 from clinosim.locale.free_text import localize_procedure_name
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules.immunization.visits import IMMUNIZATION_VISIT_DX, vaccination_visit_reason_codes
 from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions
 from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_coverage_resources,
@@ -207,12 +208,28 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             if isinstance(enc, dict)
             else getattr(enc, "admission_diagnosis_system", "")
         ) or ""
+        # Issue #3008: a vaccination visit's reason in the country's system
+        # (JP: the WHO need-for-immunization code of each vaccine given there).
+        _visit_reasons: list[str] | None = None
+        if (_enc_admit_code or ctx.admit_dx_code) == IMMUNIZATION_VISIT_DX:
+            _enc_id = enc.get("encounter_id", "") if isinstance(enc, dict) else getattr(enc, "encounter_id", "")
+            _visit_reasons = vaccination_visit_reason_codes(
+                ctx.country,
+                [
+                    (imm.get("vaccine_cvx") if isinstance(imm, dict) else getattr(imm, "vaccine_cvx", ""))
+                    for imm in ctx.record.get("immunizations", []) or []
+                    if _enc_id
+                    and (imm.get("encounter_id") if isinstance(imm, dict) else getattr(imm, "encounter_id", ""))
+                    == _enc_id
+                ],
+            )
         _resource = _build_encounter(
             enc,
             ctx.patient_id,
             ctx.is_readmission,
             ctx.prior_encounter_id,
             primary_dx_code=_enc_admit_code or ctx.primary_dx_code,
+            visit_reason_codes=_visit_reasons,
             country=ctx.country,
             admit_dx_code=_enc_admit_code or ctx.admit_dx_code,
             admit_dx_system=_enc_admit_system or ctx.admit_dx_system,

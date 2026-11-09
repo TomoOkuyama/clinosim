@@ -143,12 +143,14 @@ def test_companion_vax_has_no_dangling_condition_ref() -> None:
 
 
 def test_jp_vax_encounter_z23_and_ja_chief_complaint() -> None:
-    """JP output: Z23 reasonCode with Japanese fallback text where applicable."""
+    """JP output: the WHO need-for-immunization reasonCode (Issue #3008: the
+    fixture links no vaccine to the visit, so the unspecified Z26.9) with
+    Japanese text."""
     ctx = _mk_ctx(_build_two_encounter_record(), "JP")
     resources = _bb_encounters(ctx)
     vax_res = next(r for r in resources if _cif_id(r) == "ENC-VAX-POP-000001-deadbeef1234")
     codes = _codes_in_reason(vax_res)
-    assert "Z23" in codes
+    assert codes == ["Z26.9"]
     # text should not be a burn-related string (T30.0 leakage guard).
     rc_text = (vax_res.get("reasonCode") or [{}])[0].get("text", "")
     assert "熱傷" not in rc_text and "Burn" not in rc_text
