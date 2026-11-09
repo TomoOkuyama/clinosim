@@ -3929,20 +3929,5 @@
       },
       "text": ""
     }
-  },
-  "doc-ENC-FORCED-0001-013699914137-ED-134": {
-    "document_id": "doc-ENC-FORCED-0001-013699914137-ED-134",
-    "encounter_id": "ENC-FORCED-0001-013699914137",
-    "narrative": {
-      "facts_used": [],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "llm-mock",
-      "generator_metadata": {
-        "generator": "template",
-        "lang": "ja"
-      },
-      "sections": {},
-      "text": "トリアージ情報：未記録"
-    }
   }
 }

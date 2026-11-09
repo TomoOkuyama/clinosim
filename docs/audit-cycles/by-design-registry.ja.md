@@ -268,20 +268,31 @@
 - **by_design_reason**: CY7-05 (2026-07-11) synthesizes a lightweight ED
   Encounter FHIR resource so IMP.partOf resolves, but the diagnosis lives on
   the primary IMP encounter — not duplicated on the synth stub. The synth
-  carries chief-complaint text in `reasonCode` and `hospitalization.admitSource
-  = "outp"` / `dischargeDisposition = "hosp"` to convey the ED-visit event
-  without inflating downstream Condition/Procedure/Order counts. Adding a
+  carries the chief complaint in `reasonCode` and takes place in the ED
+  (`location` = `loc-ward-ER`, `serviceProvider` = `dept-emergency-medicine`);
+  the ED-to-inpatient transition is the admission's `partOf` link to it and the
+  admission's `admitSource = "emd"`. The synth has no `admitSource` (an ED
+  visit is not an admission, Issue #2878) and no `dischargeDisposition`: the
+  HL7 discharge-disposition CodeSystem has no "admitted as inpatient" concept
+  (`hosp` is hospice), so Issue #546 dropped the former `hosp` value (Issue
+  #2998 re-confirmed). Its ED documents are the ED note, plus the triage note
+  only when the record holds the ED phase's triage data (Issue #2998). This
+  conveys the ED-visit event without inflating downstream
+  Condition/Procedure/Order counts. Adding a
   Condition specifically for the synth stub would misrepresent EHR reality
   (in practice, ED-to-admission is billed on the inpatient encounter, not the
   ED subacct). 2026-07-11 seed=400 verification confirmed all 972 IMP/EMER
   missing-Condition were synth `-ED` ids (`class == "EMER"`, `status ==
   "finished"`, id endswith `-ED`).
 - **signature**: `IMP/EMER encounters without any Condition.encounter =
-  Encounter/<id> reference` all have id endswith `-ED`.
+  Encounter/<id> reference` all have an encounter-key identifier ending with
+  `-ED` (the resource id is opaque since Issue #854), and each has
+  `reasonCode`.
 - **established**: 2026-07-11 (verification)
 - **established_pr**: 2026-07-11 chain #5 (`210bc6b057`..)
-- **revalidation_check**: sort no-Condition IMP/EMER by id; every id must
-  end with `-ED` (the CY7-05 synth suffix).
+- **revalidation_check**: list the no-Condition IMP/EMER encounters; every
+  encounter-key identifier must end with `-ED` (the CY7-05 synth suffix) and
+  every one must carry `reasonCode`.
 
 ### vital-signs-no-refrange-for-device-setting-or-categorical
 

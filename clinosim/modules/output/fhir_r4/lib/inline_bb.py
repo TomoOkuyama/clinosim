@@ -62,6 +62,7 @@ from clinosim.modules.output.fhir_r4.procedures.procedures import (
     _build_procedure,
     _resolve_procedure_id,
 )
+from clinosim.simulator._ed_thresholds import ED_DEPARTMENT_ID, ED_WARD_ID
 
 
 # Issue #546: synth-ED bridge Encounter now delegates to canonical
@@ -131,7 +132,10 @@ def _make_synth_ed_enc_dict(
         "attending_physician_id": _att,
         "chief_complaint": _chief,
         "chief_complaint_ja": _chief_ja,
-        "department_id": "",
+        # Issue #2998: the ED phase takes place in the ED, like a standalone
+        # ED visit (Issue #2623), not in the admitting department.
+        "department_id": ED_DEPARTMENT_ID,
+        "ward_id": ED_WARD_ID,
     }
 
 
