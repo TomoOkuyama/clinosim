@@ -40,6 +40,7 @@ from typing import Any
 
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
+from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -299,9 +300,13 @@ def _build_care_team(
         # CY7-25 (Chain-7): CareTeam.reasonCode — link to the encounter
         # primary diagnosis. Emit the chief_complaint as text when available;
         # the encounter's Condition already carries the ICD code so we don't
-        # duplicate the coding.
+        # duplicate the coding. Issue #3029: the chief complaint in the output
+        # language (``chief_complaint_ja`` for JP), as on Encounter.reasonCode.
         "reasonCode": [
-            {"text": _o(encounter, "chief_complaint", "") or t("care_team_fhir.reason_inpatient_care", lang)}
+            {
+                "text": localized_field(encounter, "chief_complaint", lang)
+                or t("care_team_fhir.reason_inpatient_care", lang)
+            }
         ],
     }
 
