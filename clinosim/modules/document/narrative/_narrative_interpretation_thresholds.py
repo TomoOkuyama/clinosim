@@ -99,11 +99,20 @@ def bmi_band(bmi: float) -> BmiBand:
 # ---------------------------------------------------------------------------
 
 
+class _OlderBpTarget(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    min_age: int = Field(gt=0)
+    target: tuple[int, int]
+    # ICD-10 prefixes that keep the general target at any age.
+    keep_target_with: list[str] = Field(default_factory=list)
+
+
 class _BpTargets(BaseModel):
     model_config = ConfigDict(extra="forbid")
     hypertension: tuple[int, int]
     high_normal: tuple[int, int]
     target: tuple[int, int]
+    older: _OlderBpTarget | None = None
 
 
 class _LdlTargets(BaseModel):
@@ -164,6 +173,30 @@ NARRATIVE_BP_HIGH_NORMAL_DBP_THRESHOLD: int = _JP_TARGETS.bp.high_normal[1]
 
 
 BpBand = Literal["hypertension", "high_normal", "normal"]
+
+
+def bp_target(country: str, age: int | None, condition_codes: list[str]) -> tuple[int, int]:
+    """The patient's one blood-pressure target ``(SBP, DBP)`` (Issue #3021):
+    ``bp.target``, or ``bp.older.target`` from its ``min_age`` on unless one of
+    the patient's conditions keeps the general target (JSH 2019 for JP)."""
+    bp = chronic_control_targets(country).bp
+    older = bp.older
+    if older is None or age is None or age < older.min_age:
+        return bp.target
+    if any(str(c).upper().startswith(tuple(older.keep_target_with)) for c in condition_codes):
+        return bp.target
+    return older.target
+
+
+def bp_control(
+    sbp: float, dbp: float, target: tuple[int, int], country: str
+) -> Literal["at_goal", "above_target", "hypertension"]:
+    """Control of a reading against the patient's target (Issue #3021): at goal
+    below it; above it, ``hypertension`` in the hypertension band, else
+    ``above_target``."""
+    if sbp < target[0] and dbp < target[1]:
+        return "at_goal"
+    return "hypertension" if bp_band(sbp, dbp, country) == "hypertension" else "above_target"
 
 
 def bp_band(sbp: float, dbp: float, country: str) -> BpBand:

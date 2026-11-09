@@ -51,7 +51,8 @@ from clinosim.modules.document.narrative._localization import _localize_complica
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
     NARRATIVE_ADULT_TACHYCARDIA_HR,
     NARRATIVE_HBA1C_DIABETES_THRESHOLD,
-    bp_band,
+    bp_control,
+    bp_target,
     chronic_control_targets,
 )
 from clinosim.modules.document.narrative._narrative_utils import _age_at
@@ -539,7 +540,8 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
         controlled HbA1c 6.8% is still worth citing against target
         7.0% — that's the point of the follow-up assessment).
       - Adds explicit target reference (JDS DM HbA1c < 7.0%, JAS
-        LDL by JAS 2022 risk tier (Issue #2942), JSH BP < 140/90 mmHg,
+        LDL by JAS 2022 risk tier (Issue #2942), the patient's one JSH BP
+        target (130/80 or 140/90 by age and comorbidity, Issue #3021),
         KDIGO CKD stage classification).
       - Adds CKD staging from eGFR when present.
       - Adds pertinent negatives (尿アルブミン when measured) so the
@@ -636,15 +638,17 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
 
         # ── I10: Essential hypertension ────────────────────────────
         if code_prefix.startswith("I10") and sbp and dbp:
+            # Issue #3021: one target for the patient (age, comorbidities),
+            # stated and used for the control judgement.
+            _bp_target = bp_target(ctx.locale, _age_at(ctx), [str(_o(cc, "code", "") or cc) for cc in conditions])
             ctrl = t(
                 {
                     "hypertension": "control_status.poorly_controlled",
-                    "high_normal": "control_status.high_normal",
-                    "normal": "control_status.at_goal",
-                }[bp_band(sbp, dbp, ctx.locale)],
+                    "above_target": "control_status.high_normal",
+                    "at_goal": "control_status.at_goal",
+                }[bp_control(float(sbp), float(dbp), _bp_target, ctx.locale)],
                 lang,
             )
-            _bp_target = chronic_control_targets(ctx.locale).bp.target
             target = t(
                 "chronic_assessment.bp_target",
                 lang,

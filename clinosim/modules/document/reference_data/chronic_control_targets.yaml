@@ -5,6 +5,8 @@
 # bp.hypertension / bp.high_normal: [SBP, DBP] at or above which (either value)
 #   the reading is "hypertension" / "high-normal" (US: "elevated").
 # bp.target: [SBP, DBP] stated as the treatment target ("target < SBP/DBP").
+# bp.older (optional): the target from min_age on, unless the patient has one
+#   of the conditions (ICD-10 prefixes) that keep bp.target (Issue #3021).
 # ldl.high / borderline / elevated: LDL (mg/dL) band thresholds.
 # The LDL target the note states is not here: it is the patient's risk-tier
 # target of simulator/reference_data/statin_monitoring.yaml
@@ -20,7 +22,13 @@ countries:
     # JSH 2019 (高血圧治療ガイドライン 2019) office BP; JAS 2022
     # (動脈硬化性疾患予防ガイドライン 2022) LDL categories and the
     # primary-prevention LDL target.
-    bp: {hypertension: [140, 90], high_normal: [130, 85], target: [140, 90]}
+    # 降圧目標 (JSH 2019 表 3-3): < 130/80 under 75; < 140/90 from 75, but
+    # < 130/80 (if tolerated) with diabetes or coronary artery disease.
+    bp:
+      hypertension: [140, 90]
+      high_normal: [130, 85]
+      target: [130, 80]
+      older: {min_age: 75, target: [140, 90], keep_target_with: [E10, E11, E13, E14, I20, I21, I22, I24, I25]}
     ldl: {high: 160, borderline: 140, elevated: 120}
   us:
     # 2017 ACC/AHA hypertension guideline: stage 1 hypertension >= 130 / 80,

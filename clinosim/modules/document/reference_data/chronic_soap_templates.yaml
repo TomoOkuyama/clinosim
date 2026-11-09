@@ -24,6 +24,9 @@
 #   - Placeholders , {chronic_labels}, {continue_meds},
 #     {today_finding} are substituted by the template engine at render
 #     time. Unknown placeholders are left in the text (defensive default).
+#   - Issue #3021: a seed states no number the engine composes itself —
+#     no BP target (the assessment states the patient's one target) and no
+#     return interval (the plan's follow-up line states the scheduled one).
 #   - Selection: use the FIRST chronic condition whose code prefix
 #     matches. Order in ``patient.chronic_conditions`` reflects clinical
 #     priority (primary condition first).
@@ -46,11 +49,10 @@ I10:
       診察室血圧を測定、家庭血圧との整合性を確認。
   assessment:
     ja: |
-      本態性高血圧のフォローアップ。目標 130/80 mmHg 未満を基準に評価。
+      本態性高血圧のフォローアップ。降圧目標に照らして評価。
   plan:
     ja: |
       降圧薬継続、家庭血圧測定継続を指導。減塩・適度な運動・体重管理を再確認。
-      次回外来は 4-6 週後に予定。
 
 # ── E11: Type 2 diabetes mellitus ─────────────────────────────────
 E11:
@@ -68,7 +70,7 @@ E11:
   plan:
     ja: |
       経口血糖降下薬継続、必要に応じて用量調整を検討。食事・運動療法を
-      再指導。眼科・腎機能検査は年 1 回。次回外来は 1-2 か月後。
+      再指導。眼科・腎機能検査は年 1 回。
 
 # ── E78: Dyslipidemia ─────────────────────────────────────────────
 E78:
@@ -85,8 +87,7 @@ E78:
   plan:
     ja: |
       スタチン継続、必要に応じて用量調整。食事療法 (飽和脂肪酸・糖質制限)
-      と運動療法を再指導。次回外来は 3 か月後、AST・ALT・CK・脂質パネル
-      を採血。
+      と運動療法を再指導。次回外来時に AST・ALT・CK・脂質パネルを採血。
 
 # ── N18: Chronic kidney disease ───────────────────────────────────
 N18:
@@ -103,8 +104,8 @@ N18:
   plan:
     ja: |
       RAS 阻害薬・ACEI/ARB 継続、腎機能に応じて用量調整。蛋白制限
-      (0.6-0.8 g/kg/日)、塩分制限 (6 g/日未満) を再指導。次回外来は
-      1-3 か月後、Cr・eGFR・尿蛋白・電解質採血。
+      (0.6-0.8 g/kg/日)、塩分制限 (6 g/日未満) を再指導。次回外来時に
+      Cr・eGFR・尿蛋白・電解質を採血。
 
 # ── I50 / I11.0: Chronic heart failure ────────────────────────────
 I50:
@@ -122,7 +123,7 @@ I50:
   plan:
     ja: |
       利尿薬・β遮断薬・RAS 阻害薬継続、症状に応じて調整。塩分制限
-      (6 g/日未満)、水分制限、体重毎日測定を再指導。次回外来は 2-4 週後。
+      (6 g/日未満)、水分制限、体重毎日測定を再指導。
 
 # ── I25: Chronic ischemic heart disease ───────────────────────────
 I25:
@@ -140,8 +141,8 @@ I25:
   plan:
     ja: |
       アスピリン・スタチン継続、必要に応じて用量調整。労作時症状に対する
-      生活指導 (無理な負荷回避) を再確認。次回外来は 3 か月後、脂質パネル・
-      心電図を評価。
+      生活指導 (無理な負荷回避) を再確認。次回外来時に脂質パネル・心電図を
+      評価。
 
 # ── J44: COPD (stable) ────────────────────────────────────────────
 J44:
@@ -160,7 +161,7 @@ J44:
     ja: |
       LABA/LAMA 吸入継続、必要に応じて ICS 追加を検討。禁煙指導、呼吸
       リハビリ継続を確認。インフルエンザ・肺炎球菌ワクチンを勧奨。
-      次回外来は 3 か月後、スパイロメトリを年 1 回。
+      スパイロメトリを年 1 回。
 
 # ── J45: Asthma (stable follow-up) ────────────────────────────────
 J45:
@@ -179,7 +180,6 @@ J45:
     ja: |
       ICS/LABA 継続、必要に応じてステップアップ・ダウンを検討。
       アレルゲン回避・生活指導。ピークフローメーター使用を継続。
-      次回外来は 3 か月後。
 
 # ── K21: GERD / functional GI disorders ───────────────────────────
 K21:
@@ -197,4 +197,4 @@ K21:
   plan:
     ja: |
       PPI 継続、症状増悪時は用量調整を検討。生活指導 (少食頻回、就寝
-      2 時間前までに食事終了、頭部挙上)。次回外来は 3-6 か月後。
+      2 時間前までに食事終了、頭部挙上)。
