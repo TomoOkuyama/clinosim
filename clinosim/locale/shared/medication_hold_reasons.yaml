@@ -33,7 +33,7 @@ reasons:
     ja: "頭蓋内出血の活動性 (抗血小板薬は禁忌のため保留)"
   "Acute HF exacerbation — oral diuretic replaced by IV furosemide":
     en: "acute HF exacerbation (oral diuretic held, IV furosemide substituted)"
-    ja: "急性心不全増悪 (経口利尿薬を保留し静注フロセミドに切替)"
+    ja: "急性心不全増悪 (内服利尿薬を静注フロセミドに変更)"
   "Acute illness with lactic acidosis risk + NPO status":
     en: "acute illness (lactic acidosis risk + NPO)"
     ja: "急性疾患 (乳酸アシドーシスリスク + 絶食状態のため保留)"
@@ -51,4 +51,4 @@ reasons:
     ja: "敗血症 (乳酸アシドーシス・腎機能悪化リスクのため保留)"
   "Stroke: PO bisphosphonates held (aspiration risk)":
     en: "acute stroke (PO bisphosphonate aspiration risk)"
-    ja: "急性期脳卒中 (PO bisphosphonate 誤嚥リスク)"
+    ja: "急性期脳卒中 (経口ビスホスホネートの誤嚥リスク)"

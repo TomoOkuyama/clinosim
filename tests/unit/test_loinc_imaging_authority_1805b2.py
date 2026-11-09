@@ -35,7 +35,7 @@ _EXPECTED = {
     # maps to 42272-5 and 36572-6's JA reads as 1-view AP.
     "36572-6": ("XR Chest AP", "胸部単純X線撮影 正面 (AP)"),
     "29252-4": ("CT Chest WO contrast", "胸部CT 単純"),
-    "24628-0": ("CT Chest W contrast IV", "胸部CT 造影"),
+    "24628-0": ("CT Chest W contrast IV", "胸部造影CT"),  # Issue #3107
     "30799-1": ("CT Head WO contrast", "頭部CT 単純"),
     "24725-4": ("CT Head", "頭部CT"),
     "30657-1": ("MR Brain WO contrast", "頭部MRI 単純"),
@@ -45,7 +45,7 @@ _EXPECTED = {
     "24558-9": ("US Abdomen", "腹部超音波検査"),
     "38036-0": ("US Kidney", "腎臓超音波検査"),
     "99607-4": ("US.doppler Lower extremity vein - bilateral for venous mapping", "下肢静脈超音波検査（DVT評価）"),
-    "80861-8": ("US Lower extremity soft tissue", "軟部組織超音波検査"),
+    "80861-8": ("US Lower extremity soft tissue", "下肢軟部組織超音波"),  # Issue #3107
     "24722-1": ("XR Hand 3 Views", "手部単純X線撮影 3方向"),
     "36663-3": ("XR Hip 2 Views", "股関節単純X線撮影 正面・側面"),
     "44203-8": ("Portable XR Cervical and thoracic and lumbar spine Views", "脊椎単純X線撮影 正面・側面"),

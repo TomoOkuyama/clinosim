@@ -15,6 +15,7 @@ import numpy as np
 from clinosim.codes import display as registry_display
 from clinosim.codes.drugs import protocol_drug_name
 from clinosim.countries import country_slot, is_jp
+from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import order_test_display
 from clinosim.locale.localized import language_slot
@@ -493,6 +494,18 @@ def _apply_weight_based_bolus(order: Order, detail: str, weight_kg: float | None
     order.single_dose = True
 
 
+def _category_name(category: str, lang: str) -> str:
+    """An order category slug ("IV_fluid") in ``lang`` from the med_terms
+    category table (Issue #3107); the slug as written when it is not listed."""
+    from clinosim.locale.loader import load_med_terms
+    from clinosim.locale.localized import localized
+
+    cats = {str(k).lower(): v for k, v in (load_med_terms().get("categories") or {}).items()}
+    key = str(category or "").strip().lower()
+    entry = cats.get(key) or cats.get(key.replace("_", " "))
+    return localized(entry, lang, fallback=str(category)) if entry else str(category)
+
+
 def place_admission_orders(
     protocol: dict,
     patient_id: str,
@@ -643,7 +656,7 @@ def place_admission_orders(
             # is preserved as-is (may be EN or already-JA depending on the
             # disease YAML source); localize_drug_name is a rendering-layer
             # concern for downstream display.
-            clinical_intent_ja=t("encounter_intent.first_line", "ja", drug=drug_name),
+            clinical_intent_ja=t("encounter_intent.first_line", "ja", drug=localize_drug_name(drug_name, "ja")),
             ordered_datetime=admission_time
             + timedelta(minutes=int(rng.normal(ADMISSION_MED_PLACEMENT_MEAN_MIN, ADMISSION_MED_PLACEMENT_STD_MIN))),
             ordered_by=ordered_by,
@@ -732,7 +745,8 @@ def place_admission_orders(
             urgency="routine",
             clinical_intent=t("encounter_intent.supportive", "en", type=sup["type"]),
             # Issue #871: JA display for JP SR reasonCode.text.
-            clinical_intent_ja=t("encounter_intent.supportive", "ja", type=sup["type"]),
+            # Issue #3107: the order category's Japanese name (med_terms).
+            clinical_intent_ja=t("encounter_intent.supportive", "ja", type=_category_name(sup["type"], "ja")),
             ordered_datetime=admission_time
             + timedelta(
                 minutes=int(rng.normal(ADMISSION_SUPPORTIVE_PLACEMENT_MEAN_MIN, ADMISSION_SUPPORTIVE_PLACEMENT_STD_MIN))

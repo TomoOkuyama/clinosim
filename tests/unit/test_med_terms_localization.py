@@ -51,7 +51,7 @@ def test_med_terms_tables_loaded():
     # that the localization table changed.
     # Issue #2650: k_replace; Issue #2627: iv_access; Issue #3025: 7 procedure slugs;
     # Issue #3033: 6 regimen / conditional dose phrases.
-    assert len(tables["categories"]) == 40
+    assert len(tables["categories"]) == 89  # Issue #3107: 49 supportive-order categories
     # Phase 1c-7 (2026-09-23): count bumped from 158 → 206 after
     # extending the terms table with the ed_workup composite vocabulary
     # (Ice pack / Wound irrigation / Elastic bandage / Suture closure /

@@ -123,6 +123,7 @@ from clinosim.locale.loaders.narrative import (
     oxygen_device_label,
     prompt_label,
     resolve_localized_display,
+    treatment_intent_display,
     vocab_display,
 )
 
@@ -191,6 +192,7 @@ __all__ = [
     "vocab_display",
     "load_narrative_lab_flags",
     "condition_stage_display",
+    "treatment_intent_display",
     "lab_display",
     "lab_result_display",
     "load_lab_display",

@@ -57,3 +57,17 @@ bedside:
 named:
   - {type: hearing_screen_aabr, name: {en: "Newborn hearing screening (AABR)", ja: "新生児聴覚スクリーニング（AABR）"}}
   - {type: metabolic_screen_tandem_ms, name: {en: "Newborn metabolic screening (tandem mass spectrometry)", ja: "新生児マススクリーニング（タンデムマス法）"}}
+  # Surgical procedure types the procedure engine records from the disease
+  # protocols' `procedure.type` (Issue #3107); JP names per 診療報酬点数表
+  # wording.
+  - {type: ORIF, name: {en: "Open reduction and internal fixation (ORIF)", ja: "観血的整復固定術"}}
+  - {type: hemiarthroplasty, name: {en: "Hemiarthroplasty", ja: "人工骨頭置換術"}}
+  - {type: laparoscopic appendectomy, name: {en: "Laparoscopic appendectomy", ja: "腹腔鏡下虫垂切除術"}}
+  - {type: laparoscopic cholecystectomy, name: {en: "Laparoscopic cholecystectomy", ja: "腹腔鏡下胆嚢摘出術"}}
+  - {type: complex hand surgery, name: {en: "Complex hand surgery", ja: "手の複合組織損傷手術"}}
+  - {type: Total knee arthroplasty, name: {en: "Total knee arthroplasty", ja: "人工膝関節全置換術"}}
+  - {type: orthopedic fracture fixation, name: {en: "Fracture fixation", ja: "骨折観血的手術"}}
+  - {type: debridement and skin grafting, name: {en: "Debridement and skin grafting", ja: "デブリードマン・植皮術"}}
+  - {type: Craniotomy, name: {en: "Craniotomy", ja: "開頭術"}}
+  - {type: exploratory laparotomy, name: {en: "Exploratory laparotomy", ja: "試験開腹術"}}
+  - {type: ORIF with volar locking plate, name: {en: "ORIF with volar locking plate", ja: "掌側ロッキングプレート固定術"}}

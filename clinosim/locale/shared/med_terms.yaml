@@ -69,6 +69,58 @@ categories:
   cervical_immobilization: {en: cervical immobilization, ja: 頸椎固定}
   wound_care: {en: wound care, ja: 創傷処置}
   intubation_and_mechanical_ventilation: {en: intubation and mechanical ventilation, ja: 気管挿管・人工呼吸管理}
+  # Issue #3107: supportive-order categories of the disease protocols
+  # (order reason text). Kept at the end of the section.
+  BP_management: {en: "blood pressure management", ja: "血圧管理"}
+  HOB_elevation: {en: "head-of-bed elevation", ja: "頭部挙上"}
+  IV_fluid_restriction: {en: "IV fluid restriction", ja: "輸液制限"}
+  I_and_O: {en: "intake and output", ja: "水分出納管理"}
+  NG_tube: {en: "nasogastric tube", ja: "経鼻胃管"}
+  antibiotic_prophylaxis: {en: "antibiotic prophylaxis", ja: "予防的抗菌薬"}
+  anticoagulant_reversal: {en: "anticoagulant reversal", ja: "抗凝固薬の拮抗"}
+  aspiration_precautions: {en: "aspiration precautions", ja: "誤嚥予防"}
+  bed_rest: {en: "bed rest", ja: "安静"}
+  cardiac_monitoring: {en: "cardiac monitoring", ja: "心電図モニター"}
+  continuous_monitoring: {en: "continuous monitoring", ja: "持続モニタリング"}
+  daily_weight: {en: "daily weight", ja: "毎日の体重測定"}
+  fall_precautions: {en: "fall precautions", ja: "転倒予防"}
+  fluid_balance: {en: "fluid balance", ja: "水分バランス管理"}
+  fluid_management: {en: "fluid management", ja: "輸液管理"}
+  fluid_restriction: {en: "fluid restriction", ja: "水分制限"}
+  foley_catheter: {en: "Foley catheter", ja: "膀胱留置カテーテル"}
+  glucose_check: {en: "glucose check", ja: "血糖測定"}
+  glucose_monitoring: {en: "glucose monitoring", ja: "血糖モニタリング"}
+  head_elevation: {en: "head elevation", ja: "頭部挙上"}
+  head_of_bed: {en: "head of bed elevation", ja: "頭部挙上"}
+  hold_anticoagulants: {en: "hold anticoagulants", ja: "抗凝固薬の休薬"}
+  hold_nephrotoxins: {en: "hold nephrotoxins", ja: "腎毒性薬剤の休薬"}
+  large_bore_IV: {en: "large-bore IV", ja: "太径静脈路確保"}
+  leg_elevation: {en: "leg elevation", ja: "下肢挙上"}
+  limb_elevation: {en: "limb elevation", ja: "患肢挙上"}
+  massive_transfusion_protocol: {en: "massive transfusion protocol", ja: "大量輸血プロトコル"}
+  neuro_checks: {en: "neuro checks", ja: "神経学的評価"}
+  neuro_monitoring: {en: "neuro monitoring", ja: "神経学的モニタリング"}
+  oral_care: {en: "oral care", ja: "口腔ケア"}
+  safety_observation: {en: "safety observation", ja: "安全確保のための観察"}
+  seizure_prophylaxis: {en: "seizure prophylaxis", ja: "痙攣予防"}
+  sodium_restriction: {en: "sodium restriction", ja: "塩分制限"}
+  stress_ulcer_prophylaxis: {en: "stress ulcer prophylaxis", ja: "ストレス潰瘍予防"}
+  suicide_precautions: {en: "suicide precautions", ja: "自殺予防"}
+  tetanus_prophylaxis: {en: "tetanus prophylaxis", ja: "破傷風予防"}
+  urine_output_monitoring: {en: "urine output monitoring", ja: "尿量モニタリング"}
+  withdrawal_monitoring: {en: "withdrawal monitoring", ja: "離脱症状モニタリング"}
+  wound_marking: {en: "surgical site marking", ja: "手術部位マーキング"}
+  diet: {en: "diet", ja: "食事"}
+  elevation: {en: "elevation", ja: "患肢挙上"}
+  isolation: {en: "isolation", ja: "隔離"}
+  lactulose: {en: "lactulose", ja: "ラクツロース"}
+  monitoring: {en: "monitoring", ja: "モニタリング"}
+  nebulizer: {en: "nebulizer", ja: "ネブライザー"}
+  splint: {en: "splint", ja: "シーネ固定"}
+  telemetry: {en: "telemetry", ja: "テレメトリー心電図モニター"}
+  transfusion: {en: "transfusion", ja: "輸血"}
+  NPO: {en: "NPO", ja: "絶飲食"}
+
 terms:
   # Issue #3033: non-daily cadences and the topical route on administrations.
   WEEKLY: {ja: 週1回}

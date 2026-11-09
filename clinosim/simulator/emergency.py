@@ -12,8 +12,9 @@ from clinosim import determinism
 from clinosim.codes.hl7_encounter import ActPriority, DischargeDisposition
 from clinosim.codes.valuesets import code_by_chronic_prefix
 from clinosim.countries import country_slot
+from clinosim.locale.free_text import localize_drug_name, localize_free_text
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import order_test_display
+from clinosim.locale.loader import order_test_display, treatment_intent_display
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
@@ -287,7 +288,8 @@ def _ed_medication_skipped(
             SafetySkipEntry(
                 encounter_id=encounter_id,
                 candidate_drug=drug_name,
-                candidate_drug_ja=drug_name,
+                # Issue #3107: the drug's Japanese name.
+                candidate_drug_ja=localize_drug_name(drug_name, "ja"),
                 active_conflict=t("safety_text.demographic_conflict", "en", age=patient.age, sex=patient.sex),
                 active_conflict_ja=t("safety_text.demographic_conflict", "ja", age=patient.age, sex=patient.sex),
                 verdict=_wrapped,
@@ -796,7 +798,15 @@ def _simulate_ed_visit(
                 # Issue #871: JA display for JP SR reasonCode.text. `tx["intent"]`
                 # or `_tx_name` are kept as-is (may be EN or already-JA
                 # depending on the source); the shell is translated.
-                clinical_intent_ja=t("encounter_intent.ed_treatment", "ja", intent=tx.get("intent", _tx_name)),
+                # Issue #3107: without an authored intent the treatment is named
+                # in Japanese.
+                clinical_intent_ja=t(
+                    "encounter_intent.ed_treatment",
+                    "ja",
+                    intent=treatment_intent_display(tx["intent"], "ja")
+                    if tx.get("intent")
+                    else localize_free_text(_tx_name, "ja"),
+                ),
                 ordered_datetime=visit_time
                 + timedelta(
                     minutes=int(rng.normal(ED_TREATMENT_ORDER_OFFSET_MEAN_MIN, ED_TREATMENT_ORDER_OFFSET_STD_MIN))

@@ -176,6 +176,25 @@ def load_condition_stage_labels() -> dict[str, dict[str, str]]:
     return raw.get("stages", {}) or {}
 
 
+@lru_cache(maxsize=1)
+def load_treatment_intents() -> dict[str, dict[str, str]]:
+    """ED treatment intents (``locale/shared/treatment_intents.yaml``,
+    Issue #3107), keyed by the English intent text."""
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "treatment_intents.yaml", fallback={})
+    return {str(k): dict(v) for k, v in (raw.get("intents") or {}).items()}
+
+
+def treatment_intent_display(intent: str, lang: str) -> str:
+    """An ED treatment intent in ``lang`` (Issue #3107): the translation
+    table's entry, else the protocol's English text (translation table:
+    English keeps the text as written)."""
+    if not intent:
+        return intent
+    return resolve_localized_display(
+        load_treatment_intents().get(str(intent).strip()) or {}, lang, fallback=str(intent)
+    )
+
+
 def condition_stage_display(stage: str, lang: str) -> str:
     """A condition's stage label in ``lang`` (Issue #3032): "Mild persistent"
     -> 軽症持続型, "AJCC III" -> III期. The stored label for a language with no

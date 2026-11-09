@@ -1,0 +1,106 @@
+# ED treatment intents (Issue #3107): the English intent text the encounter
+# protocols write on `treatment[].intent` → its wording in other languages, for
+# the order reason (ServiceRequest / MedicationRequest reasonCode.text).
+# Translation table (code-mapping spec §3.8): English keeps the protocol text;
+# a guard test requires every protocol intent to be listed.
+metadata:
+  kind: translation-table
+  name: treatment_intents
+  source: clinosim
+
+intents:
+  "acute agitation": {ja: "急性興奮"}
+  "adjunct/akathisia prevention": {ja: "補助療法・アカシジア予防"}
+  "alpha-blocker for BPH": {ja: "前立腺肥大症に対する α 遮断薬"}
+  "ambulation improvement": {ja: "歩行能力の改善"}
+  "analgesic": {ja: "鎮痛"}
+  "anaphylaxis concern": {ja: "アナフィラキシーの懸念"}
+  "anemia management": {ja: "貧血の管理"}
+  "anti-emetic for nausea": {ja: "悪心に対する制吐"}
+  "anti-inflammatory": {ja: "抗炎症"}
+  "antibiotic": {ja: "抗菌薬投与"}
+  "antibiotic (if resistance concern)": {ja: "抗菌薬（耐性が懸念される場合）"}
+  "antiemetic": {ja: "制吐"}
+  "antiemetic/migraine adjunct": {ja: "制吐・片頭痛の補助療法"}
+  "antihistamine": {ja: "抗ヒスタミン"}
+  "antimicrobial wound care": {ja: "抗菌的創傷処置"}
+  "antipyretic": {ja: "解熱"}
+  "antipyretic/analgesic": {ja: "解熱・鎮痛"}
+  "antispasmodic": {ja: "鎮痙"}
+  "antivertiginous": {ja: "鎮暈"}
+  "anxiolytic": {ja: "抗不安"}
+  "arrhythmia detection": {ja: "不整脈の検出"}
+  "assess passage": {ja: "排出の確認"}
+  "behavioral support": {ja: "行動面の支援"}
+  "bladder decompression": {ja: "膀胱減圧"}
+  "bronchodilation": {ja: "気管支拡張"}
+  "bronchospasm": {ja: "気管支攣縮"}
+  "c-spine precaution": {ja: "頸椎保護"}
+  "chest pain relief": {ja: "胸痛の緩和"}
+  "circuit anticoagulation": {ja: "回路内抗凝固"}
+  "cycloplegia for pain": {ja: "疼痛に対する調節麻痺"}
+  "dehydration": {ja: "脱水"}
+  "dilute / remove chemical": {ja: "化学物質の希釈・除去"}
+  "ED-initiated buprenorphine for withdrawal": {ja: "離脱症状に対する救急外来でのブプレノルフィン導入"}
+  "empiric ACS protocol": {ja: "ACS に対する経験的プロトコル"}
+  "facilitate closed reduction": {ja: "徒手整復の補助"}
+  "foreign body removal if impacted": {ja: "嵌頓時の異物除去"}
+  "further decontamination": {ja: "追加の除染"}
+  "H2 blocker adjunct": {ja: "H2 遮断薬の併用"}
+  "headache relief — avoid NSAIDs": {ja: "頭痛の緩和（NSAID は避ける）"}
+  "hemostasis": {ja: "止血"}
+  "hydration": {ja: "補液"}
+  "hydration during observation": {ja: "経過観察中の補液"}
+  "hydration if vomiting": {ja: "嘔吐時の補液"}
+  "hypoxemia": {ja: "低酸素血症"}
+  "immobilization after reduction": {ja: "整復後の固定"}
+  "immobilization for severe": {ja: "重症例の固定"}
+  "immobilization non-displaced": {ja: "転位のない骨折の固定"}
+  "infection prevention": {ja: "感染予防"}
+  "infection prophylaxis": {ja: "感染予防"}
+  "initial burn care": {ja: "熱傷の初期処置"}
+  "joint flexibility": {ja: "関節可動性"}
+  "local anesthesia": {ja: "局所麻酔"}
+  "local anesthesia for wound care": {ja: "創傷処置のための局所麻酔"}
+  "local pain relief": {ja: "局所の疼痛緩和"}
+  "monitor for delayed symptoms": {ja: "遅発症状の監視"}
+  "muscle relaxant": {ja: "筋弛緩"}
+  "muscle relaxation": {ja: "筋弛緩"}
+  "nausea / vomiting": {ja: "悪心・嘔吐"}
+  "nicotine dependence evaluation": {ja: "ニコチン依存の評価"}
+  "NSAID analgesia (first-line)": {ja: "NSAID による鎮痛（第一選択）"}
+  "opioid if NSAID insufficient": {ja: "NSAID で不十分な場合のオピオイド"}
+  "opioid reversal (titrated)": {ja: "オピオイド拮抗（漸増投与）"}
+  "optimize psychotropic regimen": {ja: "向精神薬処方の最適化"}
+  "pain management": {ja: "疼痛管理"}
+  "pain management for moderate burns": {ja: "中等度熱傷の疼痛管理"}
+  "photophobia relief": {ja: "羞明の緩和"}
+  "post-reduction pain": {ja: "整復後の疼痛"}
+  "post-reduction support": {ja: "整復後の支持"}
+  "pre-reduction analgesia": {ja: "整復前の鎮痛"}
+  "prevent atelectasis/pneumonia": {ja: "無気肺・肺炎の予防"}
+  "prophylactic antibiotic": {ja: "予防的抗菌薬"}
+  "prophylaxis": {ja: "予防"}
+  "realign displaced fracture": {ja: "転位骨折の整復"}
+  "rehydration": {ja: "補液"}
+  "relocate glenohumeral joint": {ja: "肩関節の整復"}
+  "removal": {ja: "除去"}
+  "renal replacement therapy": {ja: "腎代替療法"}
+  "respiratory support": {ja: "呼吸補助"}
+  "rust removal": {ja: "錆の除去"}
+  "serial neuro checks q1h": {ja: "1時間毎の神経学的評価"}
+  "severe pain or pre-reduction": {ja: "強い疼痛時または整復前"}
+  "severe pain PRN": {ja: "強い疼痛時の頓用"}
+  "skin burn care": {ja: "皮膚熱傷の処置"}
+  "strength and mobility": {ja: "筋力と可動性"}
+  "swelling reduction": {ja: "腫脹の軽減"}
+  "symptom severity assessment": {ja: "症状重症度の評価"}
+  "tetanus prophylaxis": {ja: "破傷風予防"}
+  "topical anesthesia": {ja: "表面麻酔"}
+  "urinary analgesic": {ja: "尿路の鎮痛"}
+  "vasoconstriction": {ja: "血管収縮"}
+  "volume resuscitation": {ja: "輸液蘇生"}
+  "withdrawal sympathetic symptoms": {ja: "離脱に伴う交感神経症状"}
+  "wound cleaning": {ja: "創洗浄"}
+  "wound closure": {ja: "創閉鎖"}
+  "wound protection": {ja: "創保護"}

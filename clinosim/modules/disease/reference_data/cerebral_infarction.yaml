@@ -510,12 +510,16 @@ drugs:
         drug_class: "anticoagulant"
         probability: 0.8
         dose: "60mg PO daily (30mg if CrCl 15-50 or weight <= 60kg)"
+        dose_text:
+          ja: "60mg 1日1回 経口（CrCl 15-50 mL/分または体重 60kg 以下では 30mg）"  # Issue #3107
         route: PO
         note: "DOAC first-line (JCS 2019 脳卒中治療ガイドライン)"
       - drug_id: warfarin
         drug_class: "anticoagulant"
         probability: 0.2
         dose: "Titrate to INR 2.0-3.0 (1.6-2.6 if age >= 70)"
+        dose_text:
+          ja: "INR 2.0-3.0 に調整（70歳以上は 1.6-2.6）"  # Issue #3107
         route: PO
         frequency: "daily"                 # Issue #2613: once daily, dose titrated to INR
         note: "Used if mechanical valve or DOAC contraindicated (JCS 2019)"

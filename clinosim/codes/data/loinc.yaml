@@ -826,7 +826,7 @@ codes:
     ja: 胸部CT 単純
   24628-0:
     en: CT Chest W contrast IV
-    ja: 胸部CT 造影
+    ja: 胸部造影CT
   1863-0:
     en: Anion gap
     ja: アニオンギャップ
@@ -1009,7 +1009,7 @@ codes:
     ja: 腹部・骨盤CT（造影）
   79103-8:
     en: CT Abdomen W contrast IV
-    ja: 腹部CT 造影
+    ja: 腹部造影CT
   # #1851 chest 2-view-vs-1-view split. body_sites.yaml used 36572-6
   # (XR Chest AP — AP projection, portable supine) for both the
   # CR_PA_Lateral (standing 2-view) and CR_PA (portable 1-view) variants.
@@ -1041,7 +1041,7 @@ codes:
     ja: 下肢静脈超音波検査（DVT評価）
   80861-8:
     en: US Lower extremity soft tissue
-    ja: 軟部組織超音波検査
+    ja: 下肢軟部組織超音波
   24722-1:
     en: XR Hand 3 Views
     ja: 手部単純X線撮影 3方向
