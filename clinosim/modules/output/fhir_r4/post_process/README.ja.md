@@ -149,7 +149,9 @@ byte-identity を保つ。
   - `_DATETIME_FIELDS` — walker が訪問する全 FHIR dateTime / date
     field 名の frozenset。
   - `_PERIOD_FIELDS = frozenset(("start", "end"))`。
-  - `_PERIOD_KEYS` — Period wrapping field key 全 frozenset。
+  - `_PERIOD_KEYS` — Period wrapping field key 全 frozenset。walker はそれ以外の
+    `*Period` dict も Period として扱う (`_is_period_key`、Issue #3042:
+    `timing.repeat.boundsPeriod` が漏れていた)。
   - `_INSTANT_FIELDS = frozenset(("issued", "lastUpdated"))`。
 - **Companion specimen** (`specimen.py`):
   - `_COMPANION_SPECIMEN_ID_PREFIX = "spec-"` (alias
