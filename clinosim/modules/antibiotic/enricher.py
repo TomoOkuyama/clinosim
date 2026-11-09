@@ -20,7 +20,7 @@ data quality defect. The enricher pre-skips future-onset events.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from clinosim.modules._shared import get_attr_or_key as _get
@@ -63,6 +63,11 @@ def _resolve_snapshot(cfg) -> datetime:
     (matching the no-time_range default behaviour).
     """
     snap = _get(cfg, "snapshot_date", None)
+    if isinstance(snap, datetime):
+        return snap
+    if isinstance(snap, date):
+        # Issue #3045: a ``date`` snapshot (the perinatal path accepts both).
+        return datetime.combine(snap, datetime.min.time())
     if snap:
         return datetime.fromisoformat(snap)
     time_range = _get(cfg, "time_range", None) or ()

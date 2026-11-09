@@ -34,6 +34,26 @@ from clinosim.types.patient import ChronicCondition, HomeMedication, PatientProf
 
 
 @pytest.fixture(autouse=True)
+def _isolate_enricher_registry():
+    """Issue #3045 — the enricher registry (``simulator.enrichers._ENRICHERS``
+    and its ``_BUILTINS_REGISTERED`` flag) is module-level state. A test that
+    calls ``register_builtin_enrichers()`` (directly or through ``run_beta``)
+    left every built-in enricher registered for the tests that ran after it
+    in the same worker, so a test that runs an enricher stage (e.g.
+    ``simulate_delivery_encounter``) passed or failed depending on the test
+    order and the xdist split. Each test now starts from, and leaves, the
+    registry as it found it."""
+    from clinosim.simulator import enrichers
+
+    saved = dict(enrichers._ENRICHERS)
+    saved_flag = enrichers._BUILTINS_REGISTERED
+    yield
+    enrichers._ENRICHERS.clear()
+    enrichers._ENRICHERS.update(saved)
+    enrichers._BUILTINS_REGISTERED = saved_flag
+
+
+@pytest.fixture(autouse=True)
 def _reset_perinatal_baseline_tracker() -> None:
     """Issue #1736 — the once-per-newborn hearing + metabolic screen
     dedup tracker is module-level state in
