@@ -192,7 +192,10 @@ token が template 出力に混入すると LLM は verbatim rule に従って
       自由文の名称翻訳 (locale 層、Issue #2367)。
     - `_replacement_localization.localize_oxygen_device(device,
       lang)` (`replacement_strategy` から再 export) —
-      `_localize_oxygen_device_ja` を wrap。
+      `locale.loader.oxygen_device_label` の臨床ラベル
+      (`llm_prompt_labels.yaml` の `oxygen_device`、なければデバイスの
+      SNOMED CT 表示)。FHIR のデバイス概念の `text` と同じ (Issue #3023)。
+      `_localize_oxygen_device_ja` はこれを wrap。
     基底の JA-only helper 群
     (`_localize_severity_ja`、`_localize_oxygen_device_ja`、
     `_localize_arrival_mode_ja`、

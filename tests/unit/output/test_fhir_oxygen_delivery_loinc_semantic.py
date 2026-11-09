@@ -34,7 +34,7 @@ def _o2_obs_with_device(country: str) -> dict:
         {
             "on_supplemental_oxygen": True,
             "oxygen_flow_rate_lpm": 2.5,
-            "oxygen_delivery_device": "Nasal cannula",
+            "oxygen_delivery_device": "nasal_cannula",
             "timestamp": "2026-01-01T08:00:00",
         },
         patient_id="p1",
@@ -60,8 +60,8 @@ def test_oxygen_component_code_is_method_of_oxygen_delivery_jp() -> None:
     assert coding["system"].endswith("loinc.org")
     assert coding["code"] == "107117-4"
     assert coding["display"] == "Method of oxygen delivery"
-    # Device string carried on valueString unchanged.
-    assert comp["valueString"] == "Nasal cannula"
+    # The device is a coded concept (Issue #3023).
+    assert comp["valueCodeableConcept"]["text"] == "鼻カニューラ"
 
 
 def test_oxygen_component_code_is_method_of_oxygen_delivery_us() -> None:

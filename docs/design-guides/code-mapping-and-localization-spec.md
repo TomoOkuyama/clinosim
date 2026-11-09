@@ -182,7 +182,7 @@ occupation:
   - `narrative_imaging.yaml` — imaging exams
   - `lab_display.yaml` — lab analytes and panels, keyed by lower-cased lab token; the language map is the clinician short form and an optional `formal` map holds the full analyte name
   - `department_display.yaml`
-- FHIR, narrative and LLM prompts read the same table. A second copy of a vocabulary is not allowed, and a vocabulary that has codes takes its labels from the code system (§5.3), not from a display table.
+- FHIR, narrative and LLM prompts read the same table. A second copy of a vocabulary is not allowed, and a vocabulary that has codes takes its labels from the code system (§5.3), not from a display table, except the clinical labels of internal tokens described in §5.3.
 
 ### 3.8 Translation tables and the phrase catalog
 
@@ -249,6 +249,7 @@ Consumers resolve names only through these functions.
 | `map_diagnosis_code(code, country, sex)` | internal diagnosis base code → the country's ICD code (`code_mapping_diagnosis.yaml`; sex-conditional leaves), the code itself when unmapped |
 | `vocab_display(vocab, slug, lang, *, fallback)` | vocabulary display (`vocabulary.yaml`) |
 | `narrative_label(section, key, lang, fallback)` | narrative label |
+| `oxygen_device_label(device, lang)` | clinical label of an oxygen device (§5.3), else its SNOMED CT display, else `""` |
 | `imaging_exam_display(exam_id, lang)` | imaging exam name |
 | `lab_display(name, lang, *, style, fallback)` | lab analyte or panel name: `style="prose"` for narrative, LLM text and `DiagnosticReport.conclusion`; `style="formal"` for the FHIR `code.text` of analytes with no standard code. A coded `Observation.code.coding.display` keeps the authority display |
 | `order_test_display(test, lang)` | the test an order names (lab, panel or imaging exam) in an order reason (`clinical_intent_ja`, `ServiceRequest.reasonCode.text`): `lab_display`, else `imaging_exam_display` (Issue #3024) |
@@ -317,7 +318,7 @@ The output language of a country is `countries.lang_for(country)`; CIF `<base>_<
 - **Where it is built.** The concept is built at the emit site with `dual_slot_concept`. It is not filled in later by a post-process walker.
 - **Coding-typed elements.** An element whose type is `Coding` (`Encounter.class`, `classHistory.class`) has no `text` slot. It is built with `system_coding` and carries the English display in every locale.
 - **HL7 vocabularies.** Each HL7 CodeSystem the generator emits has a code-keyed registry file (`hl7-v3-actcode`, `hl7-v3-actpriority`, `hl7-observation-category`, `hl7-condition-category`, `hl7-v3-participationtype`, `hl7-diagnosis-role`, `hl7-organization-type`, `hl7-observation-interpretation`, ...). Japanese labels are looked up by code, never by the English display.
-- **Labels for coded vocabularies.** The `text` label of a coded concept comes from the language map beside that concept's code. When the generator holds an internal English token mapped to the code (an order route such as `PO`, a frequency such as `BID`), the label comes from that token's translation table (`locale/shared/fhir_text_translations.yaml`), so English keeps the token as written. A per-language table is never used.
+- **Labels for coded vocabularies.** The `text` label of a coded concept comes from the language map beside that concept's code. When the generator holds an internal English token mapped to the code (an order route such as `PO`, a frequency such as `BID`), the label comes from that token's translation table (`locale/shared/fhir_text_translations.yaml`), so English keeps the token as written. Likewise, a vocabulary of internal tokens whose clinical wording differs from the code system's display has one label table keyed by the token, with a language map per token: oxygen devices use `llm_prompt_labels.yaml` `oxygen_device` (`oxygen_device_label`; "nasal cannula" / 鼻カニューラ for SNOMED CT 336623009 "Oxygen nasal cannula"). That label is the `text` and the narrative wording; `coding.display` stays the code system's display. A per-language table is never used.
 
 ## 6. Fallback rules
 

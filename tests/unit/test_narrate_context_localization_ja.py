@@ -56,10 +56,10 @@ def test_severity_ja_unknown_returns_input():
 @pytest.mark.parametrize(
     "raw,expected",
     [
-        ("nasal_cannula", "経鼻カニューレ"),
+        ("nasal_cannula", "鼻カニューラ"),
         ("oxygen_mask", "酸素マスク"),
-        ("non_rebreather", "リザーバーマスク"),
-        ("high_flow_nc", "ハイフローネーザル"),
+        ("non_rebreather", "リザーバー付き酸素マスク"),
+        ("high_flow_nc", "ハイフローネーザルカニューラ"),
         ("room_air", "大気吸入"),
         ("mechanical_ventilation", "人工呼吸器"),
         ("CPAP", "CPAP"),  # kept as-is (JA standard)
@@ -260,7 +260,7 @@ def test_render_supplemental_oxygen_today_ja_localizes_device():
         }
     ]
     ja = _render_supplemental_oxygen_today(vitals, day_index=2, encounter=None, lang="ja")
-    assert "経鼻カニューレ" in ja
+    assert "鼻カニューラ" in ja
     assert "nasal_cannula" not in ja
     assert "2.5 L/min" in ja
 
@@ -279,7 +279,7 @@ def test_render_supplemental_oxygen_today_en_names_the_device():
     # Issue #2449: English names the device instead of printing its slug.
     assert "nasal cannula" in en
     assert "nasal_cannula" not in en
-    assert "経鼻カニューレ" not in en
+    assert "鼻カニューラ" not in en
 
 
 @pytest.mark.unit

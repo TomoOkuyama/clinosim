@@ -556,8 +556,8 @@ system: |
      moderate→中等度, severe→重度, very severe→最重度, critical→重篤.
      Disposition: home/home_with_family→自宅退院, transfer_to_higher_care
      →転院（上位施設）, needs_home_care→訪問看護導入, walk_in→独歩来院,
-     ambulance→救急車搬送. Oxygen device: nasal_cannula→経鼻カニューレ,
-     oxygen_mask→酸素マスク, non_rebreather→リザーバーマスク, room_air→
+     ambulance→救急車搬送. Oxygen device: nasal_cannula→鼻カニューラ,
+     oxygen_mask→酸素マスク, non_rebreather→リザーバー付き酸素マスク, room_air→
      大気吸入 (keep CPAP/BiPAP as-is). Full-English lab names MUST be
      translated (v11 hard-guard, verified against p=10000 s500):
      Creatinine→クレアチニン, Glucose→血糖, Lactate→乳酸, Albumin→

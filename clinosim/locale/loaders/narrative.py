@@ -290,6 +290,21 @@ def prompt_label(section: str, token: str, lang: str, *, fallback: str = "") -> 
     )
 
 
+def oxygen_device_label(device: str, lang: str) -> str:
+    """The clinical label of an oxygen device (or oxygen term) in ``lang``
+    (then English): ``llm_prompt_labels.yaml`` ``oxygen_device``, else the
+    device's SNOMED CT display (``snomed-maps.yaml`` ``oxygen_device``), else
+    ``""``. One label for narratives and the FHIR device concept's ``text``
+    (Issue #3023); ``coding.display`` stays the SNOMED display."""
+    if not device:
+        return ""
+    from clinosim.codes.snomed import snomed_display, snomed_for
+
+    code = snomed_for("oxygen_device", str(device))
+    coded = snomed_display(code, lang) if code else None
+    return prompt_label("oxygen_device", str(device), lang, fallback=coded or "")
+
+
 def narrative_label(section: str, key: str, lang: str, fallback: str = "") -> str:
     """Entry ``key`` of a narrative-label section in ``lang`` (then English,
     then ``fallback``, else the key). Case-preserving with a lower-cased

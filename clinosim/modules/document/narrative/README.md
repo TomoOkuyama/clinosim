@@ -205,8 +205,11 @@ first. Two symmetric defenses coexist:
     - `clinosim.locale.free_text.localize_free_text(name, lang)` —
       the free-text name translator (locale layer, Issue #2367).
     - `_replacement_localization.localize_oxygen_device(device,
-      lang)` (re-exported from `replacement_strategy`) — wraps
-      `_localize_oxygen_device_ja`.
+      lang)` (re-exported from `replacement_strategy`) — the clinical
+      label of `locale.loader.oxygen_device_label` (`llm_prompt_labels.yaml`
+      `oxygen_device`, else the device's SNOMED CT display), the same
+      label the FHIR device concept carries in `text` (Issue #3023);
+      `_localize_oxygen_device_ja` wraps it.
     Underlying JA-only helpers
     (`_localize_severity_ja`, `_localize_oxygen_device_ja`,
     `_localize_arrival_mode_ja`,

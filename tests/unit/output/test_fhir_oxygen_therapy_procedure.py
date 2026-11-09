@@ -155,15 +155,15 @@ def test_procedure_usedcode_carries_device_snomed():
     assert coding["system"] == "http://snomed.info/sct"
     assert coding["code"] == "336623009"  # nasal cannula
     # Dual slot (Issue #2375): English SNOMED display, Japanese text.
-    assert coding["display"] == "Nasal cannula"
-    assert used[0]["text"] == "経鼻カニューラ"
+    assert coding["display"] == "Oxygen nasal cannula"
+    assert used[0]["text"] == "鼻カニューラ"
 
 
 def test_ventilator_maps_to_ventilator_snomed():
     ctx = _ctx(_record_with_o2_session(device="ventilator"))
     p = _bb_oxygen_therapy(ctx)[0]
     coding = p["usedCode"][0]["coding"][0]
-    assert coding["code"] == "26412008"
+    assert coding["code"] == "706172005"  # Ventilator (26412008 is an endotracheal tube)
 
 
 def test_no_emission_when_no_on_o2_vitals():
@@ -276,7 +276,8 @@ def test_us_locale_english_text():
     p = _bb_oxygen_therapy(ctx)[0]
     assert p["code"]["text"] == "Oxygen therapy"
     assert p["note"][0]["text"].startswith("Target:")
-    assert p["usedCode"][0]["coding"][0]["display"] == "Nasal cannula"
+    assert p["usedCode"][0]["coding"][0]["display"] == "Oxygen nasal cannula"
+    assert p["usedCode"][0]["text"] == "nasal cannula"
 
 
 def test_jp_profile_present_on_jp_output():
