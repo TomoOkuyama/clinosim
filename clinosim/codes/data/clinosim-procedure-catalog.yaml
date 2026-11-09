@@ -11,7 +11,8 @@
 # on 2026-11-01 (Issue #2340). A blank code means "uncoded by design":
 # oxygen administration has no CPT code of its own (it is bundled into the
 # visit), and peripheral IV placement has no separate fee in the 点数表.
-# Read through clinosim.codes.procedures.
+# `named` (end of file) names further procedure types that are not bedside
+# procedures. Read through clinosim.codes.procedures.
 
 metadata:
   kind: catalog
@@ -46,3 +47,13 @@ bedside:
   - {type: ileus_tube_placement, cpt: "44500", k_code: "J034", name: {en: "Long tube (ileus tube) placement for bowel obstruction", ja: "イレウス用ロングチューブ挿入法"}, anesthesia: none}
   - {type: bowel_resection, cpt: "44140", k_code: "K719", name: {en: "Colectomy (bowel resection)", ja: "結腸切除術"}, anesthesia: general}
 
+# Procedure types the generator records outside the bedside dispatch, named
+# here so Procedure.code.text reads in the output language instead of the
+# humanised type key (Issue #3081). Their codes come from the record (the
+# newborn screens are SNOMED CT: 413083006, 428447008), not from this file.
+# JP wording follows 母子保健 practice: 新生児聴覚スクリーニング (AABR 法) and
+# 新生児マススクリーニング (タンデムマス法), the national programmes' names
+# (こども家庭庁 / 厚生労働省 通知).
+named:
+  - {type: hearing_screen_aabr, name: {en: "Newborn hearing screening (AABR)", ja: "新生児聴覚スクリーニング（AABR）"}}
+  - {type: metabolic_screen_tandem_ms, name: {en: "Newborn metabolic screening (tandem mass spectrometry)", ja: "新生児マススクリーニング（タンデムマス法）"}}

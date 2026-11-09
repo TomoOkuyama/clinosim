@@ -143,7 +143,7 @@ CRP: "5C070"
 | Catalog | File | Entry shape |
 |---|---|---|
 | Drugs | `codes/data/drugs.yaml` | `<drug_id>: {names: {en, ja}, codes: {rxnorm, yj: {<route_class>: <YJ12>}}, classes: [...], aliases: [...]}` |
-| Procedures | `codes/data/clinosim-procedure-catalog.yaml` | `bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]` |
+| Procedures | `codes/data/clinosim-procedure-catalog.yaml` | `bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]`; `named: [{type, name: {en, ja}}]` (types recorded outside the bedside dispatch, named for `Procedure.code.text`) |
 | Staff roles | `codes/data/clinosim-clinician-role.yaml` | `<role>: {title: {en, ja}, staff_prefix, suffix: {en, ja}, practitioner_role, qualification: {code, display: {en, ja}}}` |
 | Departments | `locale/shared/department_display.yaml` | `<dept>: {en, ja, specialty_snomed}` |
 
