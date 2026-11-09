@@ -110,6 +110,10 @@ fiscal_year:
 age_gates:
   late_elderly_min_age: 75
   primary_subscriber_min_age: 18
+  # Issue #3000: a minor 被扶養者 (category "dependent", including an
+  # "employee" minor demoted to it) is covered as the subscriber's child.
+  # 国民健康保険 members are each insured in their own right ("self").
+  minor_dependent_categories: []
 
 # FHIR output mapping — HL7 FHIR JP Core Coverage profile.
 # Verified against jpfhir.jp/fhir/core (Coverage profile + example). Consumed by the

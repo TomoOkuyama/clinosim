@@ -40,6 +40,11 @@ fiscal_year:
 age_gates:
   late_elderly_min_age: 200
   primary_subscriber_min_age: 18
+  # Issue #3000: categories under which a minor (below
+  # primary_subscriber_min_age) is covered as a dependant of a parent's or
+  # guardian's policy (Coverage.relationship = child). A child on Medicaid /
+  # CHIP is the enrollee in their own right and stays "self".
+  minor_dependent_categories: [private, private_employer, uninsured]
 
 # Distribution used by the identity provider at household-assignment time.
 # Copy of demographics.yaml insurance_distribution to keep the identity
