@@ -96,6 +96,7 @@ from clinosim.modules.observation.pediatric_ranges import (
     age_in_completed_months,             # (birth, when) -> int | None
     pediatric_vital_range,               # (vital, age_months) -> PediatricVitalRange | None
     pediatric_vital_max,                 # (vital, age_months) -> float | None
+    carry_vital_centile,                 # (vital, value, from_months, to_months) -> float | None (same centile, Issue #2988)
     pediatric_lab_range,                 # (lab_name, age_years, sex) -> (low, high, unit, band) | None
     pediatric_lab_center,                # (lab_name, age_years, sex) -> float | None
 )
@@ -169,8 +170,9 @@ from clinosim.modules.observation.microbiology import (
     normals / panic values.
   - `pediatric_reference_ranges.yaml` — age-banded pediatric vital and
     lab ranges, read by `pediatric_ranges.py` (validated by
-    `PediatricReferenceRanges`); `physiology` uses it to scale child labs
-    and cap child vitals.
+    `PediatricReferenceRanges`); `physiology` uses it to scale child labs,
+    cap child vitals and carry a child's baseline heart / respiratory rate
+    to the age at each measurement (Issue #2988).
   - `lab_aliases.yaml`, `lab_constants.yaml` and `nursing_scores.yaml` are
     validated by the `LabAliases` / `LabConstants` / `NursingScores` models
     in `_reference_models.py`.

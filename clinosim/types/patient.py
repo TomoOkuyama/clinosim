@@ -91,6 +91,10 @@ class BaselineVitals:
     diastolic_bp: int = 75
     respiratory_rate: int = 16
     spo2: float = 97.5
+    # Issue #2988: the age in months a child's heart and respiratory rate were
+    # set for (registration, or birth); each visit carries them to the age at
+    # that visit, keeping the child's centile. ``None`` for an adult.
+    reference_age_months: int | None = None
 
 
 @dataclass

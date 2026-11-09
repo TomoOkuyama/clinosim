@@ -636,6 +636,8 @@ def activate_patient(
     rr_base = _pediatric_median("respiratory_rate", _age_months, rr_base)
     # Issue #2987: a child's SpO2 centres on 99 % (adults 97.5 %); same draw.
     spo2_base, spo2_ceiling = _baseline_spo2_mean_and_ceiling(_age_months)
+    from clinosim.modules.observation.pediatric_ranges import PEDIATRIC_UPPER_AGE_MONTHS
+
     vitals = BaselineVitals(
         temperature=round(float(rng.normal(BASELINE_TEMPERATURE_MEAN, BASELINE_TEMPERATURE_SD)), 1),
         heart_rate=int(rng.normal(hr_base, BASELINE_HR_SAMPLE_SD)),
@@ -643,6 +645,8 @@ def activate_patient(
         diastolic_bp=int(rng.normal(dbp_base, BASELINE_DBP_SAMPLE_SD)),
         respiratory_rate=int(rng.normal(rr_base, BASELINE_RR_SD)),
         spo2=round(float(min(spo2_ceiling, rng.normal(spo2_base, BASELINE_SPO2_SD))), 1),
+        # Issue #2988: a child's HR / RR follow the age at each visit.
+        reference_age_months=_age_months if _age_months < PEDIATRIC_UPPER_AGE_MONTHS else None,
     )
 
     # Chronic condition adjustments to baseline vitals

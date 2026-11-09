@@ -154,7 +154,12 @@ from clinosim.modules.patient.activator import (
   - `BASELINE_{HR,SBP,DBP,RR,SPO2,TEMPERATURE}_*` — age / sex
     scaling, means, standard deviations, ceilings for the six
     vital-sign types; `PEDIATRIC_BASELINE_SPO2_{MEAN,CEILING}` centre a
-    child's (under 18) baseline SpO2 on 99 % (Issue #2987).
+    child's (under 18) baseline SpO2 on 99 % (Issue #2987). A child's
+    `BaselineVitals.reference_age_months` records the age its heart and
+    respiratory rate were set for (registration; birth for a newborn), and
+    every measurement carries them to the age at that time at the same
+    Fleming 2011 centile (`physiology.engine`, Issue #2988); adults keep
+    `None` and their stored baseline.
   - `AGE_PENALTY_{MIN_AGE,SCALE,HEPATIC_RATIO}` — reserve
     depletion beyond `AGE_PENALTY_MIN_AGE`.
   - `RESERVE_FLOOR`, `IMMUNE_REACTIVITY_BETA_PARAMS` —

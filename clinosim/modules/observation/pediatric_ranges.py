@@ -35,6 +35,7 @@ __all__ = [
     "PediatricVitalRange",
     "age_in_completed_months",
     "age_independent_vital_range_text",
+    "carry_vital_centile",
     "pediatric_lab_band",
     "pediatric_lab_center",
     "pediatric_lab_range",
@@ -230,6 +231,23 @@ def pediatric_vital_range(vital: str, age_months: int | None) -> PediatricVitalR
         critical_low=None if row.get("critical_low") is None else float(row["critical_low"]),
         critical_high=None if row.get("critical_high") is None else float(row["critical_high"]),
     )
+
+
+def carry_vital_centile(vital: str, value: float, from_months: int | None, to_months: int | None) -> float | None:
+    """``value`` of ``vital`` set for a child of ``from_months``, carried to the
+    same centile at ``to_months`` (Issue #2988): its position between the
+    band's median and the 1st (below) or 99th (above) centile is kept, so a
+    median child stays on the median as the median falls with age. ``None``
+    when either age has no pediatric band (an adult, or 18 years and older)."""
+    start = pediatric_vital_range(vital, from_months)
+    end = pediatric_vital_range(vital, to_months)
+    if start is None or end is None:
+        return None
+    if value >= start.median:
+        span, target = start.high - start.median, end.high - end.median
+    else:
+        span, target = start.median - start.low, end.median - end.low
+    return end.median + (value - start.median) * (target / span if span else 1.0)
 
 
 def pediatric_vital_max(vital: str, age_months: int | None) -> float | None:
