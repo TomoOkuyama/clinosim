@@ -115,6 +115,33 @@ age_gates:
   # 国民健康保険 members are each insured in their own right ("self").
   minor_dependent_categories: []
 
+# Issue #3016: 一部負担金割合 (Coverage.costToBeneficiary) by age on the
+# coverage date and, from 70, by income.
+#   健康保険法 / 高齢者医療確保法: 20% before school entry (義務教育就学前),
+#   30% from school entry to 69, 20% at 70-74 (30% 現役並み所得),
+#   後期高齢者医療 (from the 75th birthday) 10%, 20% 一般Ⅱ (from 2022-10-01),
+#   30% 現役並み所得.
+#   Income shares: MHLW 第217回社会保障審議会医療保険部会 資料2-1
+#   (2026-10-01), 70歳以上の所得区分ごとの窓口負担割合: 70-74 現役並み約11%;
+#   75+ 現役並み約7%, 一般Ⅱ約20%.
+# The income tier is a per-person quantile (sha-256 of the patient id): one
+# person keeps the same tier every year.
+copay:
+  preschool_pct: 20
+  standard_pct: 30
+  age_70_74:
+    min_age: 70
+    pct: 20
+    high_income_pct: 30
+    high_income_share: 0.11
+  late_elderly:
+    pct: 10
+    high_income_pct: 30
+    high_income_share: 0.07
+    middle_income_pct: 20
+    middle_income_share: 0.20
+    middle_income_from: "2022-10-01"
+
 # FHIR output mapping — HL7 FHIR JP Core Coverage profile.
 # Verified against jpfhir.jp/fhir/core (Coverage profile + example). Consumed by the
 # FHIR adapter; the identity module itself stays output-agnostic.

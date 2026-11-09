@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from datetime import date
+from datetime import date, timedelta
 from functools import lru_cache
 from typing import Any
 
@@ -414,6 +414,61 @@ def _age_on(dob: date, when: date) -> int:
     return years
 
 
+def _birthday(dob: date, age: int) -> date:
+    """The day ``age`` is reached (29 February birthdays fall on 1 March)."""
+    try:
+        return dob.replace(year=dob.year + age)
+    except ValueError:
+        return date(dob.year + age, 3, 1)
+
+
+def _jp_school_entry(dob: date) -> date:
+    """1 April of the school year a child enters elementary school (学校教育法):
+    a child who is 6 by 1 April enters that April (birthdays 2 April to
+    1 April of the following year share a school year)."""
+    year = dob.year + 6 if (dob.month, dob.day) <= (4, 1) else dob.year + 7
+    return date(year, 4, 1)
+
+
+def jp_income_quantile(patient_id: str) -> float:
+    """Per-person income quantile in [0, 1) for the JP copay tier (Issue #3016);
+    stable for a person across years, no RNG draw."""
+    from clinosim.determinism import sha_quantile
+
+    return sha_quantile(f"jp-copay-income|{patient_id}")
+
+
+def jp_copay_pct(dob: date, on: date, income_q: float, country: str = "JP") -> int:
+    """JP 一部負担金割合 (%) on ``on`` (Issue #3016), from identity.yaml ``copay``:
+    by age (school entry, 70, 75) and, from 70, by the income quantile."""
+    cfg = _identity_cfg(country).get("copay", {}) or {}
+    late_age = _age_gate_config(country)["late_elderly_min_age"]
+    age = _age_on(dob, on)
+    if age >= late_age:
+        le = cfg["late_elderly"]
+        if income_q < float(le["high_income_share"]):
+            return int(le["high_income_pct"])
+        middle_from = date.fromisoformat(str(le["middle_income_from"]))
+        if on >= middle_from and income_q < float(le["high_income_share"]) + float(le["middle_income_share"]):
+            return int(le["middle_income_pct"])
+        return int(le["pct"])
+    old = cfg["age_70_74"]
+    if age >= int(old["min_age"]):
+        return int(old["high_income_pct"]) if income_q < float(old["high_income_share"]) else int(old["pct"])
+    if on < _jp_school_entry(dob):
+        return int(cfg["preschool_pct"])
+    return int(cfg["standard_pct"])
+
+
+def _national_payer_number(country: str) -> str:
+    """The representative 国民健康保険 保険者番号 (identity.yaml ``payers.national``),
+    used for the months before a 後期高齢者 enrollee's 75th birthday."""
+    for e in (_identity_cfg(country).get("payers", {}) or {}).get("national") or []:
+        if e.get("number"):
+            return str(e["number"])
+    return ""
+
+
 @lru_cache(maxsize=2)
 def _identity_cfg(country: str) -> dict:
     """Full resident-identity locale config (AD-54).
@@ -516,6 +571,17 @@ def _build_coverage_resources(
     # Issue #3000: no coverage before birth.
     if dob:
         fy_periods = [(max(s, dob), e) for s, e in fy_periods if e >= dob]
+    # Issue #3016: 後期高齢者医療 starts on the 75th birthday — split the fiscal
+    # year there. The part from the birthday gets its own structural key.
+    periods: list[tuple[date, date, str]] = []
+    late_start = _birthday(dob, gates["late_elderly_min_age"]) if dob else None
+    for s, e in fy_periods:
+        if late_start is not None and s < late_start <= e:
+            periods.append((s, late_start - timedelta(days=1), f"fy{s.year}"))
+            periods.append((late_start, e, f"fy{s.year}-from{late_start.isoformat()}"))
+        else:
+            periods.append((s, e, f"fy{s.year}"))
+    income_q = jp_income_quantile(pid) if is_jp(country) else 0.0
 
     # Deduplicate payor Organization resources across FY rows — the same
     # 保険者番号 typically holds the entire encounter window; only aging-into-≥75
@@ -531,7 +597,7 @@ def _build_coverage_resources(
         if not base_insurer or not number:
             continue
 
-        for fy_start, fy_end in fy_periods:
+        for fy_start, fy_end, period_key in periods:
             # Issue #923 §Fix 2: re-age the category at each FY boundary.
             # Two age checks:
             #  - late_elderly gate uses `fy_end`: if the patient is ≥75 at
@@ -545,11 +611,17 @@ def _build_coverage_resources(
             #  - primary-subscriber gate uses `fy_start`: minors are demoted
             #    to 被扶養者 whenever they are still under 18 at the FY start,
             #    because the 被保険者 slot is a policy-time role.
-            age_at_period_end = _age_on(dob, fy_end) if dob else -1
+            # Issue #3016: the late-elderly gate uses the period start — the
+            # fiscal year is split on the 75th birthday above, so a row is
+            # 後期高齢者医療 exactly when the patient is 75 throughout it. A
+            # 後期 enrollee's rows before 75 are 国民健康保険 (the scheme of
+            # the years before; the enrollment itself starts at 75).
             age_at_period_start = _age_on(dob, fy_start) if dob else -1
             if dob:
-                if age_at_period_end >= gates["late_elderly_min_age"]:
+                if age_at_period_start >= gates["late_elderly_min_age"]:
                     category = "late_elderly"
+                elif base_category == "late_elderly":
+                    category = "national"
                 elif age_at_period_start < gates["primary_subscriber_min_age"] and base_category == "employee":
                     category = "dependent"
                 else:
@@ -563,6 +635,10 @@ def _build_coverage_resources(
                 # Late-elderly enrolment is per-individual: no 記号 / 枝番.
                 use_symbol: str | None = None
                 use_branch: str | None = None
+            elif category == "national" and base_category == "late_elderly":
+                insurer = _national_payer_number(country) or base_insurer
+                use_symbol = None
+                use_branch = None
             elif category != base_category and category == "dependent":
                 # Minor demoted from 被保険者 → 被扶養者 on the same policy;
                 # keep the household insurer + 記号 but 枝番 must exist.
@@ -626,7 +702,7 @@ def _build_coverage_resources(
             # single-FY keys). Different-FY records for the same patient
             # now hash to distinct ids and coexist as intended; same-FY
             # duplicate records collapse as before.
-            _cov_structural_key = f"{pid}-{enr_idx}-fy{fy_start.year}"
+            _cov_structural_key = f"{pid}-{enr_idx}-{period_key}"
             # Issue #944: derive Coverage.status from period.end vs the
             # simulation snapshot date. Explicit enrollment valid_to (rare,
             # Phase 2) still wins over the FY-derived end below — resolve
@@ -749,10 +825,12 @@ def _build_coverage_resources(
                 )
             coverage["class"] = _class_entries
             # CY7-14 (Chain-7): Coverage.costToBeneficiary — JP 自己負担割合.
-            # Standard JP 医療保険 co-pay: 3割 for adults, 1割 for elderly (≥70,
-            # 現役並み所得除く). Population module carries age; use category as
-            # a proxy (late-elderly insurer = 1割; others = 3割 default).
-            _coshare_pct = 10 if category == "late_elderly" else 30
+            # Issue #3016: JP follows age on the period start and the income
+            # tier (``jp_copay_pct``); other countries keep the category proxy.
+            if is_jp(country) and dob:
+                _coshare_pct = jp_copay_pct(dob, fy_start, income_q, country)
+            else:
+                _coshare_pct = 10 if category == "late_elderly" else 30
             coverage["costToBeneficiary"] = [
                 {
                     "type": {
