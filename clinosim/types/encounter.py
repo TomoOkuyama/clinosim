@@ -254,6 +254,10 @@ class Order:
     # Issue #2611: a one-time dose (e.g. a 30 mL/kg fluid bolus) — given once
     # on the day it is ordered, not on every day of the stay.
     single_dose: bool = False
+    # Issue #3002: first day a scheduled order is given — the maintenance
+    # order written with a loading dose starts the day after the load.
+    # ``None``: from the day it is ordered.
+    administer_from: datetime | None = None
     # Issue #2606: when a medication order ended (its last administration, or
     # discharge when it was never given); set once the stay is over.
     end_datetime: datetime | None = None

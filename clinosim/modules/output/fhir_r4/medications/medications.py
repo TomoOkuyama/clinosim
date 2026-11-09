@@ -262,10 +262,13 @@ def _apply_order_end(resource: dict[str, Any], order: dict, authored: str) -> No
     end_iso = to_fhir_datetime(order.get("end_datetime"))
     if not end_iso:
         return
+    # Issue #3002: the maintenance order written with a loading dose runs
+    # from the day after the load (``administer_from``).
+    start = to_fhir_datetime(order.get("administer_from")) or authored
     for dosage in resource.get("dosageInstruction") or []:
         repeat = (dosage.get("timing") or {}).get("repeat")
         if isinstance(repeat, dict) and "boundsPeriod" not in repeat and "boundsDuration" not in repeat:
-            repeat["boundsPeriod"] = {"start": authored, "end": end_iso} if authored else {"end": end_iso}
+            repeat["boundsPeriod"] = {"start": start, "end": end_iso} if start else {"end": end_iso}
 
 
 def _resolve_mr_id(order_id: str) -> str:

@@ -38,7 +38,11 @@ ServiceRequest.
 
 - **In scope**: `place_admission_orders`, `place_daily_lab_orders`,
   `place_imaging_orders` (Tier 1 #2 imaging-chain DRY entry point);
-  `enrich_medication_order` + `parse_dose_string`;
+  `enrich_medication_order` + `parse_dose_string` (a "X loading, then
+  Y" dose string parses as the maintenance regimen Y; in
+  `place_admission_orders` it becomes a one-time loading order X plus the
+  maintenance order Y, which replaces it via `prior_order_id` and is given
+  from the next day via `administer_from`, #3002; `split_loading_dose`);
   `calculate_lab_result_time` (STAT / routine + night-shift
   deferral), `calculate_imaging_result_time` (scheduling + reporting
   delay), `calculate_result_time_from_state` (hospital-state-driven

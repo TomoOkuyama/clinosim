@@ -6,7 +6,8 @@ Expands disease protocol order definitions into concrete Order instances with ti
 from __future__ import annotations
 
 import re
-from datetime import datetime, timedelta
+from dataclasses import replace
+from datetime import datetime, time, timedelta
 from typing import Any
 
 import numpy as np
@@ -266,17 +267,34 @@ def enrich_medication_order(order: Order, dose_str: str = "") -> Order:
     return order
 
 
+# Issue #3002: "<loading dose> loading, then <maintenance regimen>"
+# ("300mg loading, then 75mg PO daily", "0.5mg IV load, then 0.125mg PO daily").
+_LOADING_THEN = re.compile(r"^(?P<load>.+?)\s+load(?:ing)?(?:\s+dose)?\s*,?\s*then\s+(?P<maint>.+)$", re.IGNORECASE)
+
+
+def split_loading_dose(dose_str: str) -> tuple[str, str] | None:
+    """``(loading dose, maintenance regimen)`` of a "X loading, then Y" dose
+    string (Issue #3002); ``None`` for any other dose string."""
+    m = _LOADING_THEN.match((dose_str or "").strip())
+    return (m.group("load").strip(), m.group("maint").strip()) if m else None
+
+
 def parse_dose_string(dose_str: str) -> dict[str, Any]:
     """Parse a dose string like '500mg PO BID' into structured fields.
 
     Returns dict with keys: dose_quantity, dose_unit, frequency, frequency_per_day, route.
-    All keys may be missing if unparseable.
+    All keys may be missing if unparseable. A "X loading, then Y" string is
+    the maintenance regimen Y (Issue #3002: the loading dose is given once,
+    see :func:`split_loading_dose`).
     """
     result: dict[str, Any] = {}
     if not dose_str:
         return result
 
     s = dose_str.strip()
+    _loading = split_loading_dose(s)
+    if _loading:
+        s = _loading[1]
 
     # Dose quantity + unit. Two-tier match:
     # 1. BSA / weight-based dose (e.g. "85mg/m2", "6mg/kg", "500mg/m2") —
@@ -567,8 +585,9 @@ def place_admission_orders(
         dose_str = med_spec.get("dose", "")
         parsed = parse_dose_string(dose_str)
         drug_name = protocol_drug_name(med_spec) or "Unknown"
+        _order_id = f"ORD-{encounter_id}-ADM-M{med_idx + 1:02d}"
         order = Order(
-            order_id=f"ORD-{encounter_id}-ADM-M{med_idx + 1:02d}",
+            order_id=_order_id,
             encounter_id=encounter_id,
             patient_id=patient_id,
             order_type=OrderType.MEDICATION,
@@ -593,6 +612,29 @@ def place_admission_orders(
             route=parsed.get("route") or med_spec.get("route", ""),
             duration_days=med_spec.get("duration_days"),
         )
+        _loading = split_loading_dose(dose_str)
+        if _loading:
+            # Issue #3002: "X loading, then Y" is a one-time loading order and
+            # the maintenance order Y written with it, given from the next day.
+            # The maintenance order replaces the loading order
+            # (MedicationRequest.priorPrescription). No extra RNG draw.
+            load_parsed = parse_dose_string(_loading[0])
+            loading = replace(
+                order,
+                dose_quantity=load_parsed.get("dose_quantity"),
+                dose_unit=load_parsed.get("dose_unit", ""),
+                frequency="once",
+                frequency_per_day=1,
+                route=load_parsed.get("route") or order.route,
+                duration_days=None,
+                single_dose=True,
+                notes=[],
+            )
+            orders.append(loading)
+            order.order_id = f"{_order_id}-MAINT"
+            order.urgency = "routine"
+            order.prior_order_id = loading.order_id
+            order.administer_from = datetime.combine(order.ordered_datetime.date() + timedelta(days=1), time())
         orders.append(order)
 
     # Supportive orders — classify into medication vs. care plan/therapy via
