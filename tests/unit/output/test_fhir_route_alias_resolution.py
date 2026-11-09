@@ -81,8 +81,10 @@ def test_canonical_set_is_the_full_declared_route_vocabulary():
       * #2352                   — added INFILTRATION → 718329006 and
                                   INTRA-ARTICULAR → 12130007 for ED /
                                   outpatient procedure orders.
+      * #3005                   — added PERCUTANEOUS → 428191002 for BCG.
     """
     assert set(_ROUTE_SNOMED) == {
+        "PERCUTANEOUS",
         "INFILTRATION",
         "INTRA-ARTICULAR",
         "PO",

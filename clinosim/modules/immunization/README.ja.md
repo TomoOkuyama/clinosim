@@ -196,6 +196,7 @@ attending は primary-care 医師 roster から決定論選出) を合成し、�
   | `doses` | `pediatric_series` 時のみ。dose ごとに `age_days_min` / `age_days_max` / `dose_number` / `coverage_by_sex`。2 回目以降は `min_interval_days` (前回接種からの最小日数。US は CDC General Best Practice Guidelines Table 3-1、JP は予防接種実施規則) と、前回以外の回から数える場合の起点 `min_interval_after_dose` (任意。例: JP B型肝炎 3 回目は 1 回目から 139 日)、その起点からの最大間隔 `max_interval_days` (任意。例: JP 日本脳炎 第1期初回 2 回目は 6〜28 日、Issue #3006)。生成・予防接種受診への紐付け・encounter への寄せのいずれもこの規則を守る (`engine.series_allows`)。Issue #3001。 |
   | `available_from` | プログラム開始日 (`YYYY-MM-DD`)。 |
   | `history_years` | 任意。EHR 保持期間 (flu → 10 y 等)。 |
+  | `administration` | 接種方法 (Issue #3005): `route` (`codes/data/snomed-maps.yaml` の route キー: `IM` / `SC` / `PO` / `PERCUTANEOUS`)、`dose_ml` (BCG のように添付文書に固定量がない場合は省略)、任意の `dose_ml_by_age` `[{max_age_months, ml}]` (例: JP 日本脳炎 3 歳未満 0.25 mL)。schedule 最上位の `administration_sites` が経路と月齢帯ごとの SNOMED 接種部位を与える (乳幼児の筋注は大腿、それ以外は上腕、経口は部位なし)。`engine.vaccine_administration(country, cvx, age_months)` が FHIR Immunization の `route` / `site` / `doseQuantity` に使う。 |
   | `coverage_by_age_sex` | `{"age_band": {sex: rate}}` (0-1、小児 series 以外)。 |
   | `program_type` | 小児エントリ (`mandatory` / `elective`)。情報用で engine は読まない。 |
 - CVX コード表:

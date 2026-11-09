@@ -24,6 +24,7 @@ route:
   OPH: "54485002"
   INFILTRATION: "718329006"
   INTRA-ARTICULAR: "12130007"
+  PERCUTANEOUS: "428191002"  # Issue #3005: BCG multipuncture
 
 # Condition severity.
 severity:

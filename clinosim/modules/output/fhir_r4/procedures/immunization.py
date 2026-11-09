@@ -19,6 +19,8 @@ from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules.immunization.engine import vaccine_administration
+from clinosim.modules.observation.pediatric_ranges import age_in_completed_months
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding
@@ -127,6 +129,7 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
     """
     lang = lang_for(ctx.country)
     out: list[dict] = []
+    birth_date = (ctx.patient_data or {}).get("date_of_birth")
     encounters = ctx.record.get("encounters", []) or []
 
     for i, imm in enumerate(ctx.record.get("immunizations") or []):
@@ -232,15 +235,24 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
                     "actor": {"reference": f"Practitioner/{admin_by}"},
                 }
             ]
-        # CY7-20/21/22 (Chain-7): standard vaccine administration mechanics.
-        # All adult IM vaccines follow the same pattern: 0.5mL IM into left
-        # deltoid (SNOMED 368208006). Not fabricated — this is universal
-        # adult vaccine administration protocol per CDC ACIP + JP 予防接種
-        # ガイドライン. Only omitted for not-done entries.
-        if status != "not-done":
-            resource["site"] = dual_slot_concept("snomed-ct", "368208006", lang)
-            resource["route"] = dual_slot_concept("snomed-ct", snomed_for("route", "IM") or "", lang)
-            resource["doseQuantity"] = ucum_quantity(0.5, "mL")
+        # Issue #3005: the vaccine's own route, site and dose from the
+        # country's schedule (`administration` / `administration_sites`):
+        # e.g. rotavirus oral with no site, BCG percutaneous on the upper arm,
+        # infant IM doses in the thigh. Omitted for not-done entries and for a
+        # vaccine the schedule does not list (no fabricated mechanics).
+        given = (
+            vaccine_administration(ctx.country, cvx, age_in_completed_months(birth_date, occurrence))
+            if status != "not-done"
+            else None
+        )
+        if given is not None:
+            route_code = snomed_for("route", given.route)
+            if route_code:
+                resource["route"] = dual_slot_concept("snomed-ct", route_code, lang)
+            if given.site:
+                resource["site"] = dual_slot_concept("snomed-ct", given.site, lang)
+            if given.dose_ml is not None:
+                resource["doseQuantity"] = ucum_quantity(given.dose_ml, "mL")
         out.append(resource)
 
     return out

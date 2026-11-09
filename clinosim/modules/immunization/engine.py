@@ -8,6 +8,7 @@ Codes (CVX) live in clinosim.codes; schedules in clinosim/locale/<country>/.
 from __future__ import annotations
 
 import hashlib
+from dataclasses import dataclass
 from datetime import date, timedelta
 from functools import lru_cache
 from pathlib import Path
@@ -158,6 +159,57 @@ def load_schedule(country: str) -> dict:
         return {}
     key = "jp" if is_jp(country) else "us"
     return (load_data_yaml(_LOCALE / key / "immunization_schedule.yaml") or {}).get("vaccines", {})
+
+
+@lru_cache(maxsize=2)
+def _administration_sites(country: str) -> dict[str, list[dict]]:
+    """Route key -> age-banded SNOMED sites of ``country``'s schedule (Issue #3005)."""
+    if not (is_us(country) or is_jp(country)):
+        return {}
+    key = "jp" if is_jp(country) else "us"
+    return (load_data_yaml(_LOCALE / key / "immunization_schedule.yaml") or {}).get("administration_sites", {}) or {}
+
+
+@dataclass(frozen=True)
+class VaccineAdministration:
+    """How a dose of a vaccine is given (Issue #3005): the ``route`` key of
+    ``codes/data/snomed-maps.yaml``, the SNOMED body ``site`` (``None`` for an
+    oral dose) and the volume ``dose_ml`` (``None`` when the label states no
+    fixed volume)."""
+
+    route: str
+    site: str | None
+    dose_ml: float | None
+
+
+def vaccine_administration(country: str, cvx: str, age_months: int | None) -> VaccineAdministration | None:
+    """The route, site and dose of a ``cvx`` dose given at ``age_months`` from
+    ``country``'s schedule (``administration`` of the vaccine, sites from
+    ``administration_sites``); ``None`` for a vaccine the schedule does not list.
+    An unknown age takes the adult (last) band."""
+    for vaccine in load_schedule(country).values():
+        codes = {str(vaccine.get("cvx"))} | {str(p["cvx"]) for p in vaccine.get("products") or []}
+        admin = vaccine.get("administration") or {}
+        if str(cvx) not in codes or not admin.get("route"):
+            continue
+        route = str(admin["route"])
+
+        def _band(rows: list[dict]) -> dict | None:
+            for row in rows:
+                limit = row.get("max_age_months")
+                if limit is None or (age_months is not None and age_months <= int(limit)):
+                    return row
+            return None
+
+        site_row = _band(_administration_sites(country).get(route) or [])
+        dose_row = _band(admin.get("dose_ml_by_age") or [])
+        dose = dose_row.get("ml") if dose_row else admin.get("dose_ml")
+        return VaccineAdministration(
+            route=route,
+            site=str(site_row["site"]) if site_row else None,
+            dose_ml=float(dose) if dose is not None else None,
+        )
+    return None
 
 
 def _age_on(dob: date | None, on: date, fallback_age: int) -> int:

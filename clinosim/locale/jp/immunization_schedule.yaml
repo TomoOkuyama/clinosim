@@ -17,12 +17,31 @@
 # make cumulative "≥1 record" match a per-season statistic — that would
 # under-represent per-season rates and misalign with MHLW targets.
 # See modules/immunization/README.md "Cumulative record vs per-season" note.
+# Issue #3005: 各ワクチンの接種経路・接種部位・接種量。`administration`:
+#   route    codes/data/snomed-maps.yaml `route` のキー (IM / SC / PO / PERCUTANEOUS)
+#   dose_ml  1回接種量 (添付文書に固定量がないものは省略、BCG)
+#   dose_ml_by_age  年少児の接種量 [{max_age_months, ml}] (日本脳炎・B型肝炎)
+# `administration_sites` は経路と接種時月齢ごとの SNOMED 接種部位 (経口は部位なし)。
+# 出典: 厚生労働省 予防接種実施要領・各ワクチン添付文書 (皮下注は上腕伸側、
+# BCG は経皮・管針法、ロタリックスは経口 1.5 mL)、日本小児科学会
+# 「小児に対するワクチンの筋肉内接種法について」(乳幼児は大腿前外側部、
+# 年長児・成人は三角筋)。
+administration_sites:
+  SC:
+    - {site: "368208006"}                      # 左上腕 (上腕伸側)
+  IM:
+    - {max_age_months: 35, site: "61396006"}   # 左大腿 (大腿前外側部)
+    - {site: "368208006"}                      # 左上腕 (三角筋)
+  PERCUTANEOUS:
+    - {site: "368208006"}                      # 左上腕 (BCG 管針法)
+
 vaccines:
   influenza:
     cvx: "150"
     min_age: 18
     min_age_days: 182   # 接種可能な下限 (生後6か月、接種日で判定、Issue #2979)
     frequency: annual
+    administration: {route: SC, dose_ml: 0.5}
     season_month: 11   # legacy fallback; seasonal_distribution below takes precedence
     available_from: "2000-01-01"
     history_years: 10   # EHR retains only ~recent flu history (avoids 20+ accumulated shots)
@@ -46,6 +65,7 @@ vaccines:
     cvx: "309"
     min_age: 18
     frequency: once
+    administration: {route: IM, dose_ml: 0.3}
     available_from: "2021-02-17"
     # Issue #921: real JP COVID-19 rollout (MHLW / VRS) has distinct
     # wave epochs — uniform month distribution is unphysical. Each
@@ -101,6 +121,7 @@ vaccines:
     cvx: "33"
     min_age: 65
     frequency: once
+    administration: {route: IM, dose_ml: 0.5}
     available_from: "2014-10-01"
     # 2026-08-30: bumped 0.40/0.42 → 0.45/0.47 so the emitted lifetime rate
     # at 65+ lands near the 40%/42% MHLW target (p=1000 seed=500 JP audit
@@ -127,6 +148,7 @@ vaccines:
     cvx: "19"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: PERCUTANEOUS}   # 管針法、上腕外側 (固定の接種量なし)
     available_from: "2000-01-01"
     doses:
       - dose_number: 1
@@ -143,6 +165,7 @@ vaccines:
     cvx: "106"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: SC, dose_ml: 0.5}
     available_from: "2012-11-01"    # 四種混合 (DTaP-IPV) 導入
     doses:
       - dose_number: 1
@@ -168,6 +191,7 @@ vaccines:
     cvx: "04"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: SC, dose_ml: 0.5}
     available_from: "2000-01-01"
     doses:
       - dose_number: 1
@@ -183,6 +207,7 @@ vaccines:
     cvx: "21"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: SC, dose_ml: 0.5}
     available_from: "2014-10-01"    # 定期化
     doses:
       - dose_number: 1
@@ -198,6 +223,7 @@ vaccines:
     cvx: "129"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: SC, dose_ml: 0.5, dose_ml_by_age: [{max_age_months: 35, ml: 0.25}]}   # 3歳未満 0.25 mL
     available_from: "2010-04-01"    # 乾燥細胞培養日本脳炎ワクチン 定期接種再開
     # Issue #3006: 定期接種実施要領の標準的な接種スケジュール — 第1期初回は
     # 3歳で2回 (6日以上、標準的には6日から28日までの間隔)、第1期追加は
@@ -229,6 +255,7 @@ vaccines:
     cvx: "17"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: SC, dose_ml: 0.5}
     available_from: "2013-04-01"    # 定期化
     doses:
       - dose_number: 1
@@ -254,6 +281,7 @@ vaccines:
     cvx: "133"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: SC, dose_ml: 0.5}
     available_from: "2013-11-01"    # 小児 PCV13 定期化
     doses:
       - dose_number: 1
@@ -279,6 +307,7 @@ vaccines:
     cvx: "08"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: SC, dose_ml: 0.5, dose_ml_by_age: [{max_age_months: 119, ml: 0.25}]}   # 10歳未満 0.25 mL
     available_from: "2016-10-01"    # 定期化 (2016 年 10 月以降出生児対象)
     doses:
       - dose_number: 1
@@ -300,6 +329,7 @@ vaccines:
     cvx: "119"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: PO, dose_ml: 1.5}   # ロタリックス (CVX 119) 1.5 mL 経口
     available_from: "2020-10-01"    # 定期化 (2020 年 10 月以降出生児対象)
     doses:
       - dose_number: 1
@@ -316,6 +346,7 @@ vaccines:
     cvx: "07"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: SC, dose_ml: 0.5}
     available_from: "2000-01-01"
     doses:
       - dose_number: 1
