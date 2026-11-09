@@ -95,6 +95,13 @@ _NURSING_DOC_TYPE_KEYS = frozenset(
 )
 
 
+def _severity_label(severity: str, lang: str) -> str:
+    """The encounter severity in ``lang`` (Issue #3032): 軽症 / 中等症 / 重症."""
+    from clinosim.locale.loader import narrative_label
+
+    return narrative_label("encounter_severity", str(severity).strip().lower(), lang, fallback=str(severity))
+
+
 @lru_cache(maxsize=1)
 def _load_nursing_loincs() -> frozenset[str]:
     """Derive the nursing LOINC set from document_type_specs.yaml at import time.
@@ -627,7 +634,9 @@ def _clinical_impression_records(
                 day=day + 1,
                 los=los_days,
                 dx_part=t("clinical_impression.dx_part", lang, dx=_disease_id) if _disease_id else "",
-                sev_part=t("clinical_impression.sev_part", lang, severity=_severity) if _severity else "",
+                sev_part=t("clinical_impression.sev_part", lang, severity=_severity_label(_severity, lang))
+                if _severity
+                else "",
                 phase=t(f"clinical_impression.phase.{_phase_key}", lang),
             )
 

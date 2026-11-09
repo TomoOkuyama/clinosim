@@ -15,7 +15,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import map_diagnosis_code
+from clinosim.locale.loader import condition_stage_display, map_diagnosis_code
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
@@ -262,17 +262,19 @@ def _stage(stage: str, country: str) -> list[dict]:
     SNOMED coding when the staging system has a verified concept. ``type`` is a
     plain-text label — the former SNOMED 385356007 "Tumor stage finding" coding
     was clinically wrong for these stages and is intentionally not emitted."""
-    summary: dict[str, Any] = {"text": stage}
+    # Issue #3032: the label and the stage type in the output language; the
+    # SNOMED coding keeps its English display (code-mapping spec 5.3).
+    summary: dict[str, Any] = {"text": condition_stage_display(stage, lang_for(country))}
     stage_snomed = snomed_for("stage", stage)
     if stage_snomed:
         summary["coding"] = [
             {
                 "system": get_system_uri("snomed-ct"),
                 "code": stage_snomed,
-                **display_entry(code_lookup("snomed-ct", stage_snomed, lang_for(country))),
+                **display_entry(code_lookup("snomed-ct", stage_snomed, "en")),
             }
         ]
-    return [{"summary": summary, "type": {"text": "Clinical stage"}}]
+    return [{"summary": summary, "type": {"text": t("condition_fhir.stage_type", lang_for(country))}}]
 
 
 def _set_bodysite(cond: dict, code: str, country: str) -> None:

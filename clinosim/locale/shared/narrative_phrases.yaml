@@ -1961,6 +1961,12 @@ microbiology_fhir:
 # `clinosim/modules/output/fhir_r4/labs/diagnostic_report.py` —
 # conclusionCode display, panel conclusion prose, presentedForm
 # titles/bodies, and JP-Radiology profile display constants.
+# Condition FHIR text (Issue #3032).
+condition_fhir:
+  stage_type:
+    ja: "臨床病期"
+    en: "Clinical stage"
+
 diagnostic_report_fhir:
   out_of_reference_range:
     ja: "{body}。参照範囲外: {names}"
