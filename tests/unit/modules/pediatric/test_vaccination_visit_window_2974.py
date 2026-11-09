@@ -88,3 +88,24 @@ def test_placement_draws_nothing() -> None:
         generate_pediatric_events(_person(dob), 2026, a, country="US")
         generate_pediatric_events(_person(dob), 2026, b)
         assert a.random() == b.random()
+
+
+@pytest.mark.parametrize("country", ["US", "JP"])
+def test_two_visits_in_a_year_use_different_windows(country: str) -> None:
+    """An infant's two catch-up visits in a year are held for different dose
+    windows (by opening day), not both for the window that opens first, where
+    the second visit would find every dose already given."""
+    from itertools import permutations
+
+    for dob in [date(2025, 8, 1) + timedelta(days=9 * k) for k in range(40)]:
+        for seed in range(6):
+            events = [e for e in _vaccination_events(country, dob, 2026, seed) if e.disease_id == "immunization_infant"]
+            candidates = [
+                {lo for lo, hi in _windows(country, dob) if lo.year == 2026 and lo <= e.timestamp <= hi} for e in events
+            ]
+            assert all(candidates)
+            assert any(
+                len(set(pick)) == len(pick)
+                for pick in permutations([o for c in candidates for o in c], len(candidates))
+                if all(p in c for p, c in zip(pick, candidates))
+            ), (country, dob, seed, [e.timestamp for e in events])
