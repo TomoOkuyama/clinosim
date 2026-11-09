@@ -19,6 +19,15 @@ status is preserved in the
 `urn:clinosim:medicationrequest-effective-status` extension plus a
 `note[]` text (no `statusReason` is emitted).
 
+A per-kg / per-m² prescription ("45mg/kg", "15-20mg/kg IV q12h") states
+the amount to give (Issue #2991): `doseQuantity` is the written dose x
+the patient's profile weight (or body surface area), capped by a written
+maximum, the amount the MedicationAdministration records; the text keeps
+the written dose as its basis ("540mg (45mg/kg) PO BID"). Rates and
+continuous infusions are unchanged. Both builders take the patient's
+`body=(height_cm, weight_kg)`; `lib/dosage.prescribed_absolute_dose` is
+the shared rule.
+
 ## Scope
 
 - **In scope**: `_build_medication_request` (root prescription

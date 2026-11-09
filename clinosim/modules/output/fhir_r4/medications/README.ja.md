@@ -17,6 +17,14 @@ status が異なる場合 (`active`、narrow / 中止された
 `urn:clinosim:medicationrequest-effective-status` extension と
 `note[]` text に保持される (`statusReason` は emit しない)。
 
+体重 / 体表面積あたりの処方 ("45mg/kg"、"15-20mg/kg IV q12h") は投与する
+絶対量を記載する (Issue #2991): `doseQuantity` は処方量 × 患者 profile の
+体重 (または体表面積) で、記載された上限で頭打ちにし、MedicationAdministration
+が記録する量と一致する。text は処方量を根拠として残す ("540mg (45mg/kg)
+経口 1日2回")。速度指定・持続投与は変更しない。両 builder は患者の
+`body=(height_cm, weight_kg)` を受け取り、共通規則は
+`lib/dosage.prescribed_absolute_dose`。
+
 ## Scope
 
 - **In scope**: `_build_medication_request` (処方 root builder —

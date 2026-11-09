@@ -375,6 +375,7 @@ def _bb_medication_requests(ctx: BundleContext) -> list[dict]:
                     order_in_rp=str(_order_in_rp_by_oid.get(_oid, 1)),
                     chronic_condition_codes=_chronic_codes,
                     earliest_admin_dt=_earliest_admin_by_oid.get(_oid, ""),
+                    body=_patient_body(ctx.patient_data),
                 )
             )
     # Chain the two guards:
@@ -577,6 +578,7 @@ def _bb_discharge_medication_requests(ctx: BundleContext) -> list[dict]:
                 seq,
                 authored_on,
                 prescriber_id=prescriber_id,
+                body=_patient_body(ctx.patient_data),
             )
         )
     # #1176 / #1179 follow-up (S104 verify): the discharge-Rx builder
@@ -585,6 +587,18 @@ def _bb_discharge_medication_requests(ctx: BundleContext) -> list[dict]:
     # emerged when both drugs were on the take-home list. Chain both
     # dedups here too — exact-duplicate first, then class-collision.
     return _dedup_same_class_orders(_dedup_medication_requests(out))
+
+
+def _patient_body(patient_data: dict | None) -> tuple[float, float] | None:
+    """The patient's ``(height_cm, weight_kg)`` (the profile values the
+    administrations are dosed from), or ``None`` without a weight (Issue #2991)."""
+    data = patient_data or {}
+    try:
+        weight = float(data.get("weight_kg") or 0.0)
+        height = float(data.get("height_cm") or 0.0)
+    except (TypeError, ValueError):
+        return None
+    return (height, weight) if weight > 0 else None
 
 
 def build_order_in_rp_map(orders: list) -> dict[str, int]:

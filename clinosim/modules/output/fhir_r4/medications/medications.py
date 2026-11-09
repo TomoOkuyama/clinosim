@@ -932,8 +932,12 @@ def _build_medication_request(
     order_in_rp: str = "1",
     chronic_condition_codes: list[str] | None = None,
     earliest_admin_dt: str = "",
+    body: tuple[float, float] | None = None,
 ) -> dict:
     """Build FHIR MedicationRequest resource.
+
+    ``body`` is the patient's ``(height_cm, weight_kg)``, from which a per-kg /
+    per-m² dose is stated as the absolute amount (Issue #2991).
 
     rp_number / order_in_rp (clinosim_feedback P1-4): JP Core
     JP_MedicationRequest.identifier:rpNumber と :orderInRp slice を満たす
@@ -1062,7 +1066,7 @@ def _build_medication_request(
     resource["priority"] = _priority_map.get(_urgency, "routine")
 
     # Dosage instruction
-    dosage = build_dosage_instruction(order, country=country)
+    dosage = build_dosage_instruction(order, country=country, body=body)
     # append any rate-adjustment note peeled off drug_name so the
     # continuous-infusion adjustment intent (e.g. "increase rate by 20%") lives
     # in dosageInstruction where it belongs — not in medicationCodeableConcept.text.
@@ -1172,8 +1176,12 @@ def _build_discharge_rx_dosage(
     drug_name: str,
     rate_adjustment_note: str,
     country: str,
+    body: tuple[float, float] | None = None,
 ) -> dict[str, Any]:
     """Compose MR.dosageInstruction[0] for a discharge prescription item.
+
+    ``body`` is the patient's ``(height_cm, weight_kg)``: a per-kg / per-m²
+    dose is stated as the absolute amount (Issue #2991).
 
     Order of operations preserved verbatim from the inline site:
       1. route via `build_route_concept`
@@ -1198,10 +1206,33 @@ def _build_discharge_rx_dosage(
     dose_text_ja = str(get_attr_or_key(item, "dose_ja", "") or "")
     dose_text_en = str(get_attr_or_key(item, "dose_en", "") or "")
     authored_text = localized({"ja": dose_text_ja, "en": dose_text_en}, lang_for(country))
+    # Issue #2991: a per-kg / per-m² dose is prescribed as the amount to give.
+    from clinosim.modules.order.engine import parse_dose_string
+    from clinosim.modules.output.fhir_r4.lib.dosage import (
+        frequency_in_text,
+        prescribed_absolute_dose,
+        resolve_timing_repeat,
+        with_absolute_dose,
+    )
+
+    _parsed = parse_dose_string(dose) if dose and not authored_text else {}
+    _qty = _parsed.get("dose_quantity")
+    _unit = _parsed.get("dose_unit", "")
+    # Issue #2613: the timing comes from the item's frequency even when it
+    # has no dose, and a frequency written in the dose text ("70mg PO
+    # weekly", "5mg PO q4-6h PRN") is used when the item has none.
+    _freq_raw = str(get_attr_or_key(item, "frequency", "") or "").strip()
+    if not _freq_raw and not authored_text:
+        _freq_raw = frequency_in_text(dose) or str(_parsed.get("frequency") or "")
+    _absolute = prescribed_absolute_dose(_qty, _unit, f"{drug_name} {dose}", body)
+
     if authored_text:
         dosage["text"] = authored_text
     else:
-        dose_parts = [p for p in (dose, rate_adjustment_note) if p]
+        _dose_txt = dose
+        if _absolute is not None:
+            _dose_txt = with_absolute_dose(dose, _absolute)
+        dose_parts = [p for p in (_dose_txt, rate_adjustment_note) if p]
         if dose_parts:
             dose_text = " ".join(dose_parts)
             dosage["text"] = _localize_dosage_terms(dose_text, lang_for(country))
@@ -1211,20 +1242,10 @@ def _build_discharge_rx_dosage(
     # instruction-only prescriptions (e.g. "既存のインスリンレジメン
     # どおり") don't get an inferred numeric dose.
     if not authored_text:
-        from clinosim.modules.order.engine import parse_dose_string
-        from clinosim.modules.output.fhir_r4.lib.dosage import frequency_in_text, resolve_timing_repeat
-
-        _parsed = parse_dose_string(dose) if dose else {}
-        _qty = _parsed.get("dose_quantity")
-        _unit = _parsed.get("dose_unit", "")
-        if _qty is not None and _unit:
+        if _absolute is not None:
+            dosage["doseAndRate"] = [{"doseQuantity": ucum_quantity(_absolute[0], _absolute[1])}]
+        elif _qty is not None and _unit:
             dosage["doseAndRate"] = [{"doseQuantity": ucum_quantity(_qty, _unit)}]
-        # Issue #2613: the timing comes from the item's frequency even when it
-        # has no dose, and a frequency written in the dose text ("70mg PO
-        # weekly", "5mg PO q4-6h PRN") is used when the item has none.
-        _freq_raw = str(get_attr_or_key(item, "frequency", "") or "").strip()
-        if not _freq_raw:
-            _freq_raw = frequency_in_text(dose) or str(_parsed.get("frequency") or "")
         _freq_per_day = _parsed.get("frequency_per_day")
         _repeat, _is_prn = resolve_timing_repeat(_freq_raw, _freq_per_day)
         if _repeat:
@@ -1250,6 +1271,7 @@ def _build_discharge_medication_request(
     seq: int,
     authored_on: str,
     prescriber_id: str = "",
+    body: tuple[float, float] | None = None,
 ) -> dict:
     """Build a MedicationRequest for one `discharge_prescription.items[]` entry (Issue #445).
 
@@ -1383,7 +1405,7 @@ def _build_discharge_medication_request(
     # `patient.current_medications` lose both upstream (Issue #452), and
     # `_apply_jp_clins_profile` withholds the eCS profile from those
     # resources so eCS min=1 is not violated.
-    dosage = _build_discharge_rx_dosage(item, dose, route, drug_name, rate_adjustment_note, country)
+    dosage = _build_discharge_rx_dosage(item, dose, route, drug_name, rate_adjustment_note, country, body=body)
     if dosage:
         resource["dosageInstruction"] = [dosage]
 

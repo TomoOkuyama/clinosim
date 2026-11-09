@@ -623,6 +623,7 @@ def _given_dose_text(order: Order, patient: PatientProfile) -> str:
         order.dose_unit,
         float(getattr(patient, "height_cm", 0.0) or 0.0),
         float(getattr(patient, "weight_kg", 0.0) or 0.0),
+        text=order.display_name or "",
     )
     if given is not None:
         return f"{given[0]:g}{given[1]}"

@@ -1001,7 +1001,9 @@ def _chemo_cycle(
             # (per-m² dose x body surface area); the order keeps the prescribed dose.
             from clinosim.modules.order.absolute_dose import absolute_dose
 
-            _given = absolute_dose(_order.dose_quantity, _order.dose_unit, patient.height_cm, patient.weight_kg)
+            _given = absolute_dose(
+                _order.dose_quantity, _order.dose_unit, patient.height_cm, patient.weight_kg, text=_dose
+            )
             chemo_mars.append(
                 MedicationAdministration(
                     order_id=_order_id,

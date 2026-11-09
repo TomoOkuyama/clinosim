@@ -612,8 +612,57 @@ def resolve_timing_repeat(
     return {"frequency": _f, "period": _p, "periodUnit": _u}, _prn
 
 
-def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any] | None:
-    """Build FHIR Dosage from structured order fields."""
+def _amount_text(amount: float) -> str:
+    return f"{int(amount)}" if float(amount).is_integer() else f"{amount}"
+
+
+def prescribed_absolute_dose(
+    dose_qty: Any, dose_unit: str, written: str, body: tuple[float, float] | None
+) -> tuple[float, str] | None:
+    """The absolute amount per dose of a per-kg / per-m² prescription
+    (Issue #2991): the written dose x the patient's weight (or body surface
+    area), capped by a written maximum (``order.absolute_dose``). ``None``
+    for any other dose (a rate such as "mg/kg/h" keeps its rate) or an
+    unknown body size. A continuous infusion's per-kg dose is its loading
+    dose ("6mg/kg IV loading then 0.5mg/kg/h"), so it is converted too.
+    ``body`` is ``(height_cm, weight_kg)``."""
+    from clinosim.modules.order.absolute_dose import absolute_dose, is_per_body_unit
+
+    if body is None or dose_qty is None or not is_per_body_unit(dose_unit):
+        return None
+    try:
+        value = float(dose_qty)
+    except (TypeError, ValueError):
+        return None
+    return absolute_dose(value, dose_unit, float(body[0] or 0.0), float(body[1] or 0.0), text=written)
+
+
+# The written per-kg / per-m² dose in an order text ("45mg/kg",
+# "15-20mg/kg", "0.9 mg/kg"), not a rate ("0.5mg/kg/h").
+_PER_BODY_DOSE = re.compile(
+    r"\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?\s*(?:mg|g|mcg|ug|µg|U|IU|units?)\s*/\s*(?:kg|m2|m²)(?![/\w])",
+    re.IGNORECASE,
+)
+
+
+def with_absolute_dose(text: str, amount: tuple[float, str]) -> str:
+    """``text`` with its written per-kg / per-m² dose preceded by the
+    absolute amount: "45mg/kg" -> "540mg (45mg/kg)" (Issue #2991)."""
+    stated = f"{_amount_text(amount[0])}{amount[1]}"
+    m = _PER_BODY_DOSE.search(text or "")
+    if m is None:
+        return f"{stated} ({text})" if text else stated
+    return f"{text[: m.start()]}{stated} ({m.group(0)}){text[m.end() :]}"
+
+
+def build_dosage_instruction(
+    order: dict, country: str = "US", body: tuple[float, float] | None = None
+) -> dict[str, Any] | None:
+    """Build FHIR Dosage from structured order fields.
+
+    ``body`` is the patient's ``(height_cm, weight_kg)``: a per-kg / per-m²
+    dose is stated as the absolute amount, with the written dose as its
+    basis in the text (Issue #2991)."""
     dose_qty = order.get("dose_quantity")
     dose_unit = order.get("dose_unit", "")
     freq = order.get("frequency", "")
@@ -666,18 +715,21 @@ def build_dosage_instruction(order: dict, country: str = "US") -> dict[str, Any]
     if dose_qty is not None and dose_unit:
         # Issue #2752: a per-time unit is a rate, stated as rateQuantity.
         _field = "rateQuantity" if is_rate_unit(dose_unit) else "doseQuantity"
-        dosage["doseAndRate"] = [
-            {
-                _field: ucum_quantity(dose_qty, dose_unit),
-            }
-        ]
         # Issue #781: `dosageInstruction[].text` is human-readable, so drop
         # the trailing `.0` on integer-valued dose floats (`4mg` not `4.0mg`).
         # `doseQuantity.value` is unaffected — it is a JSON number and both
         # `4.0` and `4` serialize the same. `text` is the only site where
         # `.0` leaks into the rendered UI.
         _dose_txt = f"{int(dose_qty)}" if isinstance(dose_qty, float) and dose_qty.is_integer() else f"{dose_qty}"
-        parts.append(f"{_dose_txt}{dose_unit}")
+        _written = f"{_dose_txt}{dose_unit}"
+        # Issue #2991: a per-kg / per-m² dose is prescribed as the amount to give.
+        _absolute = prescribed_absolute_dose(dose_qty, dose_unit, str(order.get("display_name", "") or ""), body)
+        if _absolute is not None:
+            dosage["doseAndRate"] = [{"doseQuantity": ucum_quantity(_absolute[0], _absolute[1])}]
+            parts.append(with_absolute_dose(_written, _absolute))
+        else:
+            dosage["doseAndRate"] = [{_field: ucum_quantity(dose_qty, dose_unit)}]
+            parts.append(_written)
 
     # Route
     if route_concept:
