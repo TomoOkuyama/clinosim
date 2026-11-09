@@ -1,9 +1,9 @@
 # Anthropometric reference values (Issue #946).
 #
 # Height / weight / BMI / head-circumference reference tables used by
-# clinosim/modules/output/fhir_r4/labs/anthropometrics.py to emit body
-# measurement Observations (LOINC 8302-2, 29463-7, 39156-5, 8287-5) on
-# every encounter.
+# clinosim/modules/population/encounter_anthropometry.py to derive the body
+# measurements charted on every encounter (emitted as LOINC 8302-2, 29463-7,
+# 39156-5, 8287-5 Observations; the weight also drives weight-based doses).
 #
 # Design notes:
 #

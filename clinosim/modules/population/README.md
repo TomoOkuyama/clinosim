@@ -111,8 +111,13 @@ Submodule entry points used by the simulator (imported by path, not
 re-exported): `aging.advance_population(registry, year, locale,
 window=None)`, `mortality.draw_community_death` /
 `annual_death_probability`, `vital_status.record_hospital_death` /
-`sync_profile_death_dates` / `death_counts_by_place`, and
-`newborn.register_newborn`.
+`sync_profile_death_dates` / `death_counts_by_place`,
+`newborn.register_newborn`, and
+`encounter_anthropometry.encounter_weight_kg(patient, encounter_id,
+encounter_datetime, country)` / `encounter_anthropometrics(...)` — the
+height / weight / BMI charted at one encounter (growth-curve percentile
+for children), the single derivation behind the FHIR body-measurement
+Observations and the weight-based ED doses (Issue #2990).
 
 Internal helpers (not re-exported) worth knowing about:
 `Household` + `PopulationRegistry` dataclasses in `engine.py`;
@@ -344,6 +349,7 @@ clinosim/modules/population/
   _chemo.py                            chemotherapy regimen pick + cycle events
   _ckd_under60.py                      RNG-neutral CKD (N18) assignment under age 60
   _pediatric_anthropometry.py          pediatric height / BMI reference lookup
+  encounter_anthropometry.py           height / weight / BMI charted at one encounter
   _household_thresholds.py             household / address / phone / naming defaults
   _population_thresholds.py            anthropometrics + lifestyle + care-seeking defaults
   _population_workflow_thresholds.py   screening / chronic-visit / event-day scheduling
@@ -379,6 +385,7 @@ directly with derived RNGs.
 | Perinatal | [`clinosim/simulator/perinatal.py`](../../simulator/perinatal.py) | `register_newborn` at delivery; sets `enrolled_from` to the day after the birth-stay discharge. |
 | Inpatient / discharge encounters | [`clinosim/simulator/{inpatient,discharge_gate,unknown_condition}.py`](../../simulator/) | Read `PersonRecord` + `HospitalizationSummary` fields (chronic conditions, prior hospitalizations, care-seeking threshold, lifestyle). |
 | Enumeration / CLI single-encounter driver | [`clinosim/simulator/enumerate.py`](../../simulator/enumerate.py), [`cli_test_encounter.py`](../../simulator/cli_test_encounter.py) | Build `PersonRecord`s directly for forced / smoke cases (no `PopulationRegistry`). |
+| Body measurements / weight-based dosing | [`clinosim/modules/output/fhir_r4/labs/anthropometrics.py`](../output/fhir_r4/labs/anthropometrics.py), [`clinosim/simulator/emergency.py`](../../simulator/emergency.py) | `encounter_anthropometrics` for the body-measurement Observations; `encounter_weight_kg` for a child's ED dose. |
 | Pediatric integration | [`clinosim/modules/pediatric/calendar.py`](../pediatric/calendar.py) | Called by `generate_healthcare_calendar` to append pediatric visits per (person, year). |
 
 ## Testing

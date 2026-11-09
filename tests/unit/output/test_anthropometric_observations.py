@@ -346,7 +346,7 @@ def test_newborns_differ_in_birth_measurements():
 
 def test_child_percentile_is_stable_across_ages():
     # A child's height stays at the same multiple of the reference median.
-    from clinosim.modules.output.fhir_r4.labs.anthropometrics import _median_at
+    from clinosim.modules.population.encounter_anthropometry import _median_at
 
     patient = _child(patient_id="pt-stable", dob="2010-04-01")
     ratios = []

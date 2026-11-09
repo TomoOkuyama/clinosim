@@ -231,7 +231,7 @@ def pediatric_snapshot_profile(country: str, sex: str, age_years: int) -> dict[s
     newborn values and never advanced as the sim moved forward. For
     the per-encounter FHIR anthropometric Observation emit, use the
     existing growth-chart lookup in
-    :mod:`clinosim.modules.output.fhir_r4.labs.anthropometrics`
+    :mod:`clinosim.modules.population.encounter_anthropometry`
     instead — that path is per-encounter and already age-aware."""
     med = _lookup_median(country, sex, age_years)
     if med is None:

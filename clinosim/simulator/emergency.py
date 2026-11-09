@@ -21,6 +21,7 @@ from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.order.pediatric_dose import pediatric_order_name
 from clinosim.modules.order.treatment_classifier import classify_encounter_treatment
 from clinosim.modules.physiology._vital_signs_thresholds import PAIN_SCORE_SCALE
+from clinosim.modules.population.encounter_anthropometry import encounter_weight_kg
 from clinosim.modules.staff.engine import (
     FALLBACK_PHYSICIAN_ID,
     StaffRoster,
@@ -220,6 +221,17 @@ def _age_months(patient: PatientProfile, when: datetime) -> int:
     return months - (1 if when.day < dob.day else 0)
 
 
+def ed_pediatric_dose_name(
+    name: str, patient: PatientProfile, encounter: Encounter, when: datetime, country: str
+) -> str | None:
+    """``name`` re-dosed for a child (Issue #2857), or None below the drug's
+    minimum age. The dose is per kg of the weight charted at ``encounter``
+    (its body-weight Observation), not the registration-time profile weight
+    (Issue #2990)."""
+    weight = encounter_weight_kg(patient, encounter.encounter_id, encounter.admission_datetime, country)
+    return pediatric_order_name(name, _age_months(patient, when), weight)
+
+
 def ed_lab_true_value(lab_spec: dict, severity: str, derived: float) -> float:
     """True value of one ED workup analyte: the spec's ``value_by_severity``
     entry for the sampled severity (screening scores such as C-SSRS / PHQ-9
@@ -380,7 +392,7 @@ def _ed_discharge_prescription(
     def _name(spec: dict) -> str:
         written = str((spec.get("locale_name") or {}).get(country_key) or spec.get("drug", ""))
         # Issue #2857: a child's script is weight-based ("" when below the drug's minimum age).
-        return pediatric_order_name(written, _age_months(patient, issued), patient.weight_kg) or ""
+        return ed_pediatric_dose_name(written, patient, encounter, issued, country) or ""
 
     def _skipped(name: str) -> bool:
         return not name or _ed_medication_skipped(
@@ -737,7 +749,7 @@ def _simulate_ed_visit(
         _order_type = classify_encounter_treatment(_tx_name)
         if _order_type == OrderType.MEDICATION:
             # Issue #2857: a child gets a weight-based dose (or no dose below the drug's minimum age).
-            _ped_name = pediatric_order_name(_tx_name, _age_months(patient, visit_time), patient.weight_kg)
+            _ped_name = ed_pediatric_dose_name(_tx_name, patient, encounter, visit_time, country)
             if _ped_name is None:
                 continue
             _tx_name = _ped_name
