@@ -119,10 +119,10 @@ def test_series_emit_full_payload():
 def test_jp_locale_resolves_modality_and_body_site_ja():
     ctx = _make_ctx([_sample_study()], country="jp")
     r = _bb_imaging_studies(ctx)[0]
-    # CR display_ja = "単純X線撮影", chest SNOMED display_ja = "胸部"
-    assert "単純X線撮影" in r["modality"][0]["display"]
-    # bodySite display via series — chest SNOMED resolved
-    assert "胸部" in r["series"][0]["bodySite"]["display"]
+    # Issue #3026: modality and series.bodySite are Coding-typed (no text
+    # slot), so they keep the English canonical display on JP output too.
+    assert r["modality"][0]["display"] == "Plain X-ray"
+    assert r["series"][0]["bodySite"]["display"].isascii()
 
 
 def test_description_populated_from_procedure_code_display_us() -> None:

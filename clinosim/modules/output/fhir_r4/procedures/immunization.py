@@ -143,8 +143,11 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
 
         display = code_lookup("cvx", cvx, lang)
         coding: dict[str, Any] = {"system": get_system_uri("cvx"), "code": cvx}
-        if display and display != cvx:
-            coding["display"] = display
+        # Issue #3026: CVX is English-only; the coding keeps the English
+        # display and the localized name goes in ``text``.
+        display_en = code_lookup("cvx", cvx, "en")
+        if display_en and display_en != cvx:
+            coding["display"] = display_en
 
         vaccine_code: dict[str, Any] = {"coding": [coding]}
         if display and display != cvx:

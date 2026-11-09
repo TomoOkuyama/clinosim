@@ -207,7 +207,8 @@ def _build_blood_type_obs(
                 {
                     "system": get_system_uri("snomed-ct"),
                     "code": snomed_code,
-                    "display": snomed_display,
+                    # Issue #3026: English SNOMED display; the label is text.
+                    "display": registry_display("snomed-ct", snomed_code, "en") or snomed_code,
                 }
             ],
             "text": snomed_display,

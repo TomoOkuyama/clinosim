@@ -6,12 +6,14 @@ leaf data, shared helpers, and stdlib/first-party deps — never the adapter.
 
 from __future__ import annotations
 
+from typing import Any
+
 from clinosim.codes import get_system_uri
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import vocab_display
 from clinosim.modules._shared import is_jp
-from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, entry
+from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, entry, text_if_localized
 from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
     JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM,
     JP_LOCATION_PROFILE,
@@ -20,6 +22,17 @@ from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
 )
 from clinosim.modules.output.fhir_r4.lib.localization import _dept_display
 from clinosim.modules.staff.engine import roster_departments
+
+
+def _physical_type(code: str, phrase: str, country: str) -> dict[str, Any]:
+    """``Location.physicalType``: the HL7 coding with its English display and
+    the localized label in ``text`` when it differs (Issue #3026)."""
+    display_en = t(f"fhir_emit_text.{phrase}", "en")
+    concept: dict[str, Any] = {
+        "coding": [{"system": get_system_uri("hl7-location-physical-type"), "code": code, "display": display_en}]
+    }
+    concept.update(text_if_localized(display_en, t(f"fhir_emit_text.{phrase}", lang_for(country))))
+    return concept
 
 
 def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
@@ -119,15 +132,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 ],
             }
         ],
-        "physicalType": {
-            "coding": [
-                {
-                    "system": get_system_uri("hl7-location-physical-type"),
-                    "code": "bu",
-                    "display": t("fhir_emit_text.location_type_building", lang_for(country)),
-                }
-            ],
-        },
+        "physicalType": _physical_type("bu", "location_type_building", country),
         "managingOrganization": {"reference": "Organization/hospital-main"},
     }
     entries.append(entry(main_loc))
@@ -146,7 +151,8 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                 {
                     "system": get_system_uri("snomed-ct"),
                     "code": "433296005",
-                    "display": t("fhir_emit_text.infusion_pump_snomed", lang_for(country)),
+                    # Issue #3026: English SNOMED display; the label is text.
+                    "display": t("fhir_emit_text.infusion_pump_snomed", "en"),
                 }
             ],
             "text": t("fhir_emit_text.generic_infusion_pump", lang_for(country)),
@@ -196,15 +202,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
                     ],
                 }
             ],
-            "physicalType": {
-                "coding": [
-                    {
-                        "system": get_system_uri("hl7-location-physical-type"),
-                        "code": "area",
-                        "display": t("fhir_emit_text.location_type_area", lang_for(country)),
-                    }
-                ],
-            },
+            "physicalType": _physical_type("area", "location_type_area", country),
             # Issue #2624: every area, ward and room sits in the hospital building.
             "partOf": {"reference": "Location/loc-hospital-main"},
             "managingOrganization": {"reference": f"Organization/dept-{dept.replace('_', '-')}"},

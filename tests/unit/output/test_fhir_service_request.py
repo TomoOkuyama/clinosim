@@ -230,12 +230,14 @@ def test_bb_service_requests_category_dual_coding():
 
 
 def test_bb_service_requests_jp_locale_uses_ja_snomed_display():
-    """JP cohort SR has SNOMED display in Japanese."""
+    """JP cohort SR category keeps the English SNOMED display and carries
+    the Japanese label in text (Issue #3026)."""
     orders = [_make_order(order_id="ORD-1", panel_key="")]
     ctx = _make_ctx(orders, country="jp")
     sr = _bb_service_requests(ctx)[0]
     snomed_coding = next(c for c in sr["category"][0]["coding"] if c["code"] == LAB_CATEGORY_SNOMED)
-    assert snomed_coding["display"] == "臨床検査"
+    assert snomed_coding["display"] == "Laboratory procedure"
+    assert sr["category"][0]["text"] == "臨床検査"
 
 
 def test_bb_service_requests_empty_orders_returns_empty():

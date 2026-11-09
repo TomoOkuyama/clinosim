@@ -17,7 +17,6 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, slug_to_code
-from clinosim.codes import lookup as code_lookup
 from clinosim.codes.bcp47 import bcp47_display
 from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.ucum import ucum_quantity
@@ -31,7 +30,9 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     build_telecom,
     display_entry,
     dual_slot_concept,
+    english_display_concept,
     system_coding,
+    text_if_localized,
 )
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_date, to_fhir_deceased_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -807,9 +808,14 @@ def _build_coverage_resources(
                             {
                                 "system": get_system_uri("hl7-coverage-class"),
                                 "code": "group",
-                                "display": t("fhir_emit_text.coverage_class_group", lang_for(country)),
+                                # Issue #3026: English display; the label is text.
+                                "display": t("fhir_emit_text.coverage_class_group", "en"),
                             }
                         ],
+                        **text_if_localized(
+                            t("fhir_emit_text.coverage_class_group", "en"),
+                            t("fhir_emit_text.coverage_class_group", lang_for(country)),
+                        ),
                     },
                     "value": insurer,
                     "name": name_map.get(insurer, insurer),
@@ -823,9 +829,14 @@ def _build_coverage_resources(
                                 {
                                     "system": get_system_uri("hl7-coverage-class"),
                                     "code": "plan",
-                                    "display": t("fhir_emit_text.coverage_class_plan", lang_for(country)),
+                                    # Issue #3026: English display; the label is text.
+                                    "display": t("fhir_emit_text.coverage_class_plan", "en"),
                                 }
                             ],
+                            **text_if_localized(
+                                t("fhir_emit_text.coverage_class_plan", "en"),
+                                t("fhir_emit_text.coverage_class_plan", lang_for(country)),
+                            ),
                         },
                         "value": use_symbol,
                         "name": name_map.get(insurer, insurer),
@@ -1092,15 +1103,8 @@ def _build_patient(p: dict, country: str) -> dict:
     # Marital status
     marital = p.get("marital_status", "")
     if marital:
-        resource["maritalStatus"] = {
-            "coding": [
-                {
-                    "system": get_system_uri("hl7-v3-maritalstatus"),
-                    "code": marital,
-                    **display_entry(code_lookup("hl7-v3-maritalstatus", marital, lang_for(country))),
-                }
-            ],
-        }
+        # Issue #3026: English HL7 display on the coding, the label in text.
+        resource["maritalStatus"] = english_display_concept("hl7-v3-maritalstatus", marital, lang_for(country))
 
     # Communication / preferred language
     lang = p.get("preferred_language", "")

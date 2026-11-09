@@ -192,9 +192,10 @@ def test_run_beta_emits_service_request_jp_with_ja_label():
             if entry is None:
                 continue  # not a lab SR (imaging / other) — skip
             snomed = next(c for c in entry["coding"] if c.get("code") == "108252007")
-            # SNOMED coding: display is stripped by the P2 A walker.
-            assert "display" not in snomed or snomed["display"] == "", (
-                f"SNOMED 108252007 leaked display: {snomed.get('display')!r}"
+            # SNOMED is English-only: the coding carries its English display
+            # (code-mapping spec §5.3, Issue #3026), never a Japanese one.
+            assert snomed.get("display") == "Laboratory procedure", (
+                f"SNOMED 108252007 display: {snomed.get('display')!r}"
             )
             # CodeableConcept.text preserves the Japanese label.
             assert entry.get("text") == "臨床検査", f"Expected category.text '臨床検査', got {entry.get('text')!r}"

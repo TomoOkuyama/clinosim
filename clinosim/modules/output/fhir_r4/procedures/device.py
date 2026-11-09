@@ -89,7 +89,8 @@ def _bb_device(ctx: BundleContext) -> list[dict]:
                     {
                         "system": get_system_uri("snomed-ct"),
                         "code": snomed,
-                        "display": display,
+                        # Issue #3026: English SNOMED display; the label is text.
+                        "display": registry_display("snomed-ct", snomed, "en") or snomed,
                     }
                 ],
                 "text": display,

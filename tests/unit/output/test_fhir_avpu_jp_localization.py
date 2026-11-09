@@ -31,8 +31,9 @@ def test_avpu_coding_display_localized_for_jp():
     )
     coding_display = loc_obs["valueCodeableConcept"]["coding"][0]["display"]
     text = loc_obs["valueCodeableConcept"]["text"]
-    assert coding_display == "無反応"
-    assert coding_display == text
+    # Issue #3026: English SNOMED display on the coding, Japanese in text.
+    assert coding_display == "Unresponsive"
+    assert text == "無反応"
 
 
 def test_avpu_coding_display_stays_english_for_us():

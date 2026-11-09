@@ -157,7 +157,8 @@ def _bodysite_for(code: str, country: str) -> dict | None:
             {
                 "system": get_system_uri("snomed-ct"),
                 "code": snomed_code,
-                **display_entry(disp),
+                # Issue #3026: English SNOMED display; the label is text.
+                **display_entry(code_lookup("snomed-ct", snomed_code, "en")),
             }
         ],
         **({"text": disp} if disp else {}),

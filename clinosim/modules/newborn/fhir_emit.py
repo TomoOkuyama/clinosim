@@ -329,7 +329,8 @@ def _bb_newborn_cchd_pulse_ox(ctx: Any) -> list[dict]:
                     {
                         "system": get_system_uri("snomed-ct"),
                         "code": site_code,
-                        "display": site_display,
+                        # Issue #3026: English SNOMED display; the label is text.
+                        "display": registry_display("snomed-ct", site_code, "en") or site,
                     }
                 ],
                 "text": _label("newborn_cchd_body_site", site, lang, fallback=site_display),

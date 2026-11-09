@@ -22,7 +22,7 @@ from clinosim.locale.loader import (
 )
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import is_jp, is_us
-from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding
+from clinosim.modules.output.fhir_r4.lib.common import display_entry, dual_slot_concept, system_coding
 from clinosim.modules.output.fhir_r4.lib.localization import _ROLE_PREFIX_MAP_JA
 
 # Issue #1986: US Core 6.1.0 Practitioner profile marks the NPI
@@ -481,7 +481,8 @@ def _build_practitioner_role(
                     {
                         "system": get_system_uri("snomed-ct"),
                         "code": _snomed_code,
-                        "display": _spec_display,
+                        # Issue #3026: English SNOMED display; the label is text.
+                        **display_entry(registry_display("snomed-ct", _snomed_code, "en") or ""),
                     }
                 ],
                 "text": _spec_display,

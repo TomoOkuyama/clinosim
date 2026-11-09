@@ -39,12 +39,17 @@ def _bb_code_status(ctx: BundleContext) -> list[dict]:
     observable = load_reference()["observable_snomed"]
     snomed_uri = get_system_uri("snomed-ct")
 
-    def _coding(c: str) -> dict[str, Any]:
+    def _concept(c: str) -> dict[str, Any]:
+        # Issue #3026: English SNOMED display on the coding, the label in text.
         d: dict[str, Any] = {"system": snomed_uri, "code": c}
-        disp = code_lookup("snomed-ct", c, lang)
-        if disp and disp != c:
-            d["display"] = disp
-        return d
+        disp_en = code_lookup("snomed-ct", c, "en")
+        if disp_en and disp_en != c:
+            d["display"] = disp_en
+        concept: dict[str, Any] = {"coding": [d]}
+        label = code_lookup("snomed-ct", c, lang)
+        if label and label != c and label != disp_en:
+            concept["text"] = label
+        return concept
 
     encs = ctx.record.get("encounters") or []
     admit = encs[0].get("admission_datetime") if encs else None
@@ -57,9 +62,9 @@ def _bb_code_status(ctx: BundleContext) -> list[dict]:
         **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(ctx.country) else {}),
         "status": "final",
         "category": survey_category(lang_for(ctx.country)),
-        "code": {"coding": [_coding(observable)]},
+        "code": _concept(observable),
         "subject": patient_ref(ctx.patient_id),
-        "valueCodeableConcept": {"coding": [_coding(code)]},
+        "valueCodeableConcept": _concept(code),
     }
     if enc:
         obs["encounter"] = encounter_ref(enc)

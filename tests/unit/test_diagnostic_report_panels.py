@@ -274,7 +274,10 @@ class TestBuildDrResource:
             seq=0,
         )
         coding = r["code"]["coding"][0]
-        assert coding["display"] == "全血球計算パネル"
+        # Issue #3026: LOINC is English-only, so the coding keeps its
+        # canonical English display and the Japanese name goes in .text.
+        assert coding["display"] == "Complete blood count (hemogram) panel - Blood by Automated count"
+        assert r["code"]["text"] == "血算 (CBC)"
         # session 48 cycle 8 cross-seed verify fix: performer_ref 未指定でも
         # hospital-main を fallback として emit(CY7-01 100% coverage 維持)。
         assert r["performer"] == [{"reference": "Organization/hospital-main"}]
@@ -377,7 +380,10 @@ class TestBuildLabPanelReports:
         ]
         out = build_lab_panel_reports(self._ctx(orders, country="JP"))
         assert len(out) == 1
-        assert out[0]["code"]["coding"][0]["display"] == "全血球計算パネル"
+        assert (
+            out[0]["code"]["coding"][0]["display"] == "Complete blood count (hemogram) panel - Blood by Automated count"
+        )
+        assert out[0]["code"]["text"] == "血算 (CBC)"
 
 
 @pytest.mark.unit

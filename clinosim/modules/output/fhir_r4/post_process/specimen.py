@@ -146,7 +146,14 @@ def _build_companion_specimen(observation: dict, country: str) -> dict:
         ],
         "subject": subject,
         "type": {
-            "coding": [{"system": get_system_uri("snomed-ct"), "code": specimen_snomed, **display_entry(display)}],
+            # Issue #3026: English SNOMED display on the coding, the label in text.
+            "coding": [
+                {
+                    "system": get_system_uri("snomed-ct"),
+                    "code": specimen_snomed,
+                    **display_entry(code_lookup("snomed-ct", specimen_snomed, "en")),
+                }
+            ],
             **({"text": display} if display else {}),
         },
         "status": "available",

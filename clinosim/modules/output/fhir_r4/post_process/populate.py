@@ -25,10 +25,10 @@ from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label
 from clinosim.modules._shared import is_jp, practitioner_name
+from clinosim.modules.output.fhir_r4.lib.common import system_coding
 from clinosim.modules.output.fhir_r4.lib.fhir_time import derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_RESOURCE_INSTANCE_IDENTIFIER_SYSTEM
 from clinosim.modules.output.fhir_r4.post_process.profile import (
-    _HL7_OBSERVATION_CATEGORY_SYSTEM,
     _HL7_OBSERVATION_CATEGORY_SYSTEMS,
     _JP_OBSERVATION_CATEGORY_SYSTEM,
 )
@@ -1030,7 +1030,12 @@ def _normalize_jp_observation_category(resource: dict) -> None:
             # HL7 element first: matched by the auto-applied base
             # `vitalsigns` profile's `category:VSCat` slice; the JP Core
             # `category:first` slice ignores it via `rules=open`.
-            rebuilt.append({"coding": [{"system": _HL7_OBSERVATION_CATEGORY_SYSTEM, "code": code_}]})
+            # Issue #3026: the HL7 coding keeps its English display and the
+            # element its label (dual slot).
+            hl7_elem: dict[str, Any] = {"coding": [system_coding("hl7-observation-category", code_, "en")]}
+            if text_hint:
+                hl7_elem["text"] = text_hint
+            rebuilt.append(hl7_elem)
         # Always emit a JP element (satisfies JP Core / eCS slices for
         # every obs-cat code, including VS's `category:first`).
         rebuilt.append({"coding": [{"system": _JP_OBSERVATION_CATEGORY_SYSTEM, "code": code_}]})

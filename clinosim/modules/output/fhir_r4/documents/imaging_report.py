@@ -28,6 +28,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
@@ -41,7 +42,7 @@ from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (  # type: ig
     V2_0074_SYSTEM,
     radiology_report_issued,
 )
-from clinosim.modules.output.fhir_r4.lib.common import _escape_html, dual_slot_concept
+from clinosim.modules.output.fhir_r4.lib.common import _escape_html, display_entry, dual_slot_concept
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 
@@ -174,7 +175,10 @@ def _build_imaging_report_composition(
                 {
                     "system": get_system_uri("loinc"),
                     "code": _IMAGING_REPORT_LOINC,
-                    "display": _title,
+                    # Issue #3026: English LOINC display; the title is text.
+                    **display_entry(
+                        _title if _title.isascii() else registry_display("loinc", _IMAGING_REPORT_LOINC, "en") or ""
+                    ),
                 }
             ],
             "text": _title,

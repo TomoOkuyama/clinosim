@@ -789,7 +789,8 @@ def _build_composition_generic(
                 {
                     "system": get_system_uri("loinc"),
                     "code": loinc_code,
-                    **display_entry(loinc_display),
+                    # Issue #3026: English LOINC display; the label is text.
+                    **display_entry(code_lookup("loinc", loinc_code, "en") if loinc_code else ""),
                 }
             ],
             "text": loinc_display or _doc_label,
@@ -889,7 +890,7 @@ def _build_composition_generic(
                     {
                         "system": get_system_uri("loinc"),
                         "code": loinc_section,
-                        "display": _loinc_disp,
+                        **display_entry(registry_display("loinc", loinc_section, "en") or ""),
                     }
                 ],
                 "text": _loinc_disp,

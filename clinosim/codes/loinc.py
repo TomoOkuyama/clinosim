@@ -41,10 +41,13 @@ def loinc_display(code: str, lang: str) -> str | None:
 
 
 def loinc_coding(code: str, lang: str) -> dict[str, Any]:
-    """A LOINC ``Coding``; the display is omitted when the code is not
-    registered (never the code itself)."""
+    """A LOINC ``Coding`` with the English canonical display whatever ``lang``
+    is (LOINC is an English-only code system; the localized label belongs in
+    ``CodeableConcept.text`` — code-mapping spec 5.3, Issue #3026). The
+    display is omitted when the code is not registered (never the code itself)."""
+    del lang  # the display does not depend on the output language
     entry: dict[str, Any] = {"system": get_system_uri("loinc"), "code": code}
-    disp = loinc_display(code, lang)
+    disp = loinc_display(code, "en")
     if disp:
         entry["display"] = disp
     return entry

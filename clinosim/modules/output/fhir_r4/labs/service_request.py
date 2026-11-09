@@ -42,6 +42,7 @@ from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.observation.engine import canonical_lab_name
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
+from clinosim.modules.output.fhir_r4.lib.common import display_entry, system_coding, text_if_localized
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
@@ -212,7 +213,7 @@ def _evaluation_orders() -> dict[str, dict[str, Any]]:
 def _evaluation_category(entry: dict[str, Any] | None, lang: str) -> tuple[list[dict[str, Any]], str]:
     """``(category coding, text)`` of an evaluation-procedure order (Issue #2789)."""
     text = registry_display("snomed-ct", EVALUATION_CATEGORY_SNOMED, lang) or "Evaluation procedure"
-    coding: list[dict[str, Any]] = [{"system": SNOMED_CT_SYSTEM, "code": EVALUATION_CATEGORY_SNOMED, "display": text}]
+    coding: list[dict[str, Any]] = [system_coding("snomed-ct", EVALUATION_CATEGORY_SNOMED, "en")]  # Issue #3026
     section = (entry or {}).get("v2_0074")
     if section:
         coding.append({"system": V2_0074_SYSTEM, "code": section, "display": _V2_0074_DISPLAYS[section]})
@@ -430,6 +431,10 @@ def _build_sr_code_field(
     the 2026-07-16 fhir-jp-validator feedback.
     """
     code_field: dict[str, Any] = {}
+    if code and system == get_system_uri("loinc"):
+        # Issue #3026: LOINC is English-only; the coding keeps the English
+        # display and the localized name stays in ``text``.
+        display = registry_display("loinc", code, "en") or (display if display.isascii() else "")
     if code:
         entry: dict[str, Any] = {"system": system, "code": code}
         if display:
@@ -820,7 +825,7 @@ def _build_imaging_sr(
         localize_fixed_label("Imaging procedure", country)
     )
     category_coding = [
-        {"system": SNOMED_CT_SYSTEM, "code": IMAGING_CATEGORY_SNOMED, "display": snomed_imaging_display},
+        system_coding("snomed-ct", IMAGING_CATEGORY_SNOMED, "en"),  # Issue #3026: English display
         {"system": V2_0074_SYSTEM, "code": IMAGING_CATEGORY_V2_0074, "display": "Radiology"},
     ]
     category_text = snomed_imaging_display
@@ -830,7 +835,7 @@ def _build_imaging_sr(
         # Issue #2621: an electrocardiogram is not an imaging study.
         category_text = registry_display("snomed-ct", EVALUATION_CATEGORY_SNOMED, lang) or "Evaluation procedure"
         category_coding = [
-            {"system": SNOMED_CT_SYSTEM, "code": EVALUATION_CATEGORY_SNOMED, "display": category_text},
+            system_coding("snomed-ct", EVALUATION_CATEGORY_SNOMED, "en"),
             {
                 "system": V2_0074_SYSTEM,
                 "code": ELECTROCARDIAC_V2_0074,
@@ -908,9 +913,11 @@ def _build_imaging_sr(
                     {
                         "system": SNOMED_CT_SYSTEM,
                         "code": body_site_snomed,
-                        "display": body_site_display,
+                        # Issue #3026: English display, the label in text.
+                        **display_entry(registry_display("snomed-ct", body_site_snomed, "en") or ""),
                     }
                 ],
+                **text_if_localized(registry_display("snomed-ct", body_site_snomed, "en") or "", body_site_display),
             }
         ]
         # Issue #2657: the side of a paired structure, as on the study.
@@ -1150,7 +1157,7 @@ def _build_sr_skeleton(
         localize_fixed_label("Laboratory procedure", country)
     )
     lab_category_coding: list[dict[str, Any]] = [
-        {"system": SNOMED_CT_SYSTEM, "code": LAB_CATEGORY_SNOMED, "display": snomed_display},
+        system_coding("snomed-ct", LAB_CATEGORY_SNOMED, "en"),  # Issue #3026: English display
         {"system": V2_0074_SYSTEM, "code": LAB_CATEGORY_V2_0074, "display": "Laboratory"},
     ]
     lab_category_text = snomed_display
