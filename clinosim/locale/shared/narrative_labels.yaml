@@ -201,13 +201,13 @@ discharge_disposition:
 
 # ADL Barthel-detail item labels (Phase 1d-35). Was inline
 # ``[("feeding", "食事"), ...]`` tuple in ``build_adl_assessment``.
-# JA uses full-word labels ("食事{score}"), EN keeps the raw slug
-# ("feeding=score") — the EN "label" is the slug itself.
+# Issue #3025: both languages name the Barthel item ("Toilet use 10",
+# "トイレ動作10"), never the slug.
 adl_detail_key:
-  feeding: {en: feeding, ja: 食事}
-  bathing: {en: bathing, ja: 入浴}
-  mobility: {en: mobility, ja: 移動}
-  toilet_use: {en: toilet_use, ja: 排泄}
+  feeding: {en: Feeding, ja: 食事}
+  bathing: {en: Bathing, ja: 入浴}
+  mobility: {en: Mobility, ja: 移動}
+  toilet_use: {en: Toilet use, ja: トイレ動作}
 
 # SOAP progress-note section header prefixes (Phase 1d-45). Was
 # `_SOAP_JA` / `_SOAP_EN` module-level tuples in

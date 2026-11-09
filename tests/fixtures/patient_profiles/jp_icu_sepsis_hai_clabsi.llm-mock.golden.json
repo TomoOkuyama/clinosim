@@ -2396,7 +2396,7 @@
         "lang": "ja"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 100/100 → 自立（食事10、入浴5、移動15、排泄10）",
+        "adl_assessment": "Barthel Index 100/100 → 自立（食事10、入浴5、移動15、トイレ動作10）",
         "care_plan": "看護計画: 尿量・浮腫観察、電解質モニタ。",
         "nursing_diagnosis": "看護診断: 腎機能低下・電解質異常のリスク。",
         "nursing_history": "入院目的: 発熱・意識変容・低血圧。既往: 慢性腎臓病。",

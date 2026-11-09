@@ -524,7 +524,7 @@ rehab:
 adl_detail:
   item:
     ja: "{label}{score}"
-    en: "{label}={score}"
+    en: "{label} {score}"
   wrap:
     ja: "（{items}）"
     en: " ({items})"
@@ -2173,6 +2173,10 @@ order_intent:
   interaction_caution:
     ja: "併用注意: {note}"
     en: "Drug interaction (caution): {note}"
+  # Issue #3025: author of the interaction-caution note (was "clinosim drug_safety v1").
+  interaction_check_author:
+    ja: "処方チェックシステム"
+    en: "Prescription safety check"
   archetype_workup:
     ja: "第{day}病日 {archetype}: 追加検査"
     en: "Day {day} {archetype}: additional workup"

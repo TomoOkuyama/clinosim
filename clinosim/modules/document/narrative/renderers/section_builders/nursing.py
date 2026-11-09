@@ -120,7 +120,7 @@ def build_adl_assessment(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     for k in ("feeding", "bathing", "mobility", "toilet_use"):
         v = _o(latest, k, None)
         if v is not None:
-            label = _label("adl_detail_key", k, lang, fallback=k)
+            label = _label("adl_detail_key", k, lang)
             detail_parts.append(t("adl_detail.item", lang, label=label, score=v))
     detail = t("adl_detail.wrap", lang, items=t("list_sep.serial", lang).join(detail_parts)) if detail_parts else ""
     return f"Barthel Index {barthel}/100 → {band}{detail}", facts

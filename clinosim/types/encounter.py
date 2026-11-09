@@ -292,7 +292,7 @@ class Order:
     # Issue #1066 (drug_safety): free-form note dicts attached by the
     # CPOE-style contraindication gate for moderate DDI cases. Each entry
     # is already MR.note-shaped (``{"text": ..., "authorReference":
-    # {"display": "clinosim drug_safety v1"}}``) so downstream FHIR
+    # {"display": <order_intent.interaction_check_author>}}``) so downstream FHIR
     # MedicationRequest emit can pass them through verbatim. Empty on all
     # orders that did not trigger a moderate-severity gate finding.
     notes: list[dict] = field(default_factory=list)

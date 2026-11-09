@@ -232,7 +232,7 @@
         "lang": "en"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 80/100 → minimal assistance (feeding=10, bathing=5, mobility=10, toilet_use=5)",
+        "adl_assessment": "Barthel Index 80/100 → minimal assistance (Feeding 10, Bathing 5, Mobility 10, Toilet use 5)",
         "care_plan": "Care plan: hourly I/O, coordinate IV rate titration with MD; q1-2h glucose + serum K monitoring, early hypoglycemia / hypokalemia recognition; continuous mental-status + Kussmaul-respiration assessment; infection source workup (urine / LRT) + temperature trending.",
         "nursing_diagnosis": "Nursing diagnoses: deficient fluid volume, risk for electrolyte imbalance, unstable glycemic control, risk for infection.",
         "nursing_history": "Admission reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. PMH: Type 2 diabetes (DM), Dyslipidemia.",

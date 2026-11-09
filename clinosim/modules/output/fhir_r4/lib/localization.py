@@ -10,6 +10,8 @@ This module must NOT import ``fhir_r4_adapter`` (no circular import).
 
 from __future__ import annotations
 
+import re
+
 from clinosim.codes import lookup as code_lookup
 from clinosim.countries import lang_for
 from clinosim.locale.loader import load_department_display as _load_department_display
@@ -145,3 +147,40 @@ def _role_prefix_map_ja() -> dict[str, dict[str, str]]:
 # `demographics/practitioner.py` and `fhir_r4/lib/inline_bb.py` keep
 # working. New code should call `_role_prefix_map_ja()` directly.
 _ROLE_PREFIX_MAP_JA: dict[str, dict[str, str]] = _role_prefix_map_ja()
+
+
+# Issue #3025: an internal slug (snake_case order / lab / exam / clinical-course
+# key) inside generated text, not followed by "/" (a rate unit) or part of a
+# URL / identifier.
+_TEXT_SLUG = re.compile(r"(?<![\w/.:#@=-])[A-Za-z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)+(?![\w/.-])")
+
+
+def slug_display(slug: str, lang: str) -> str:
+    """The display of an internal slug in ``lang`` (Issue #3025): the
+    clinical-course archetype table, else the lab table, else the
+    imaging-exam table, else the slug read as words (underscores as
+    spaces) — never the raw key (code-mapping spec section 6)."""
+    from clinosim.locale.loader import (
+        imaging_exam_display,
+        lab_display,
+        load_narrative_archetypes,
+        resolve_localized_display,
+    )
+
+    archetype = (load_narrative_archetypes() or {}).get(slug)
+    if archetype:
+        return resolve_localized_display(archetype, lang, fallback=slug.replace("_", " "))
+    words = slug.replace("_", " ")
+    lab = lab_display(slug, lang, fallback="")
+    if lab:
+        return lab
+    exam = imaging_exam_display(slug, lang)
+    return exam or words
+
+
+def display_slugs_in_text(text: str, lang: str) -> str:
+    """``text`` with every internal slug replaced by its display
+    (:func:`slug_display`; Issue #3025). Text without a slug is unchanged."""
+    if not text or "_" not in text:
+        return text
+    return _TEXT_SLUG.sub(lambda m: slug_display(m.group(0), lang), text)
