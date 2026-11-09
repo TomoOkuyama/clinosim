@@ -201,7 +201,15 @@ def _dose_windows(country: str) -> tuple[tuple[int, int, date], ...]:
     )
 
 
-def place_vaccination_visit(drawn: date, dob: date, year: int, age_min: int, age_max: int, country: str) -> date | None:
+def place_vaccination_visit(
+    drawn: date,
+    dob: date,
+    year: int,
+    age_min: int,
+    age_max: int,
+    country: str,
+    taken: set[date] | None = None,
+) -> date | None:
     """The day a vaccination visit drawn for ``drawn`` is held (Issue #2974).
 
     The visit is held inside a series dose window of ``country``'s schedule
@@ -211,22 +219,29 @@ def place_vaccination_visit(drawn: date, dob: date, year: int, age_min: int, age
     visit). Calendar-year age and the fixed visit month otherwise put the
     visit before a window opens (10 y 10 m for the 11-year adolescent doses)
     or after it closes. Draws nothing.
+
+    ``taken`` holds the opening days of the windows earlier visits of the
+    year were placed in; they are skipped and the chosen one is added, so
+    two visits are not held for the same doses.
     """
     year_start, year_end = date(year, 1, 1), date(year, 12, 31)
     band_start = _years_after(dob, age_min)
     band_end = _years_after(dob, age_max + 1) - timedelta(days=1)
     best: date | None = None
+    best_opens: date | None = None
     for lo_days, hi_days, available in _dose_windows(country):
         opens = dob + timedelta(days=lo_days)
-        if not year_start <= opens <= year_end:
+        if not year_start <= opens <= year_end or (taken is not None and opens in taken):
             continue
         lo = max(opens, band_start, available)
         hi = min(dob + timedelta(days=hi_days), band_end, year_end)
         if lo > hi:
             continue
         day = min(max(drawn, lo), hi)
-        if best is None or (abs((day - drawn).days), day) < (abs((best - drawn).days), best):
-            best = day
+        if best is None or (abs((day - drawn).days), day, opens) < (abs((best - drawn).days), best, best_opens):
+            best, best_opens = day, opens
+    if taken is not None and best_opens is not None:
+        taken.add(best_opens)
     return best
 
 
@@ -333,6 +348,7 @@ def generate_pediatric_events(
         n_visits = int(prng.choice(entry["visits_per_year"]))
         if n_visits <= 0:
             continue
+        taken: set[date] = set()
         # Space visits evenly across the year with per-visit day jitter.
         for i in range(n_visits):
             month = min(12, max(1, int((12 * (i + 0.5)) / max(1, n_visits))))
@@ -340,7 +356,7 @@ def generate_pediatric_events(
             visit_day = date(year, month, day)
             if entry.get("vaccination") and country and dob is not None and hasattr(dob, "year"):
                 placed = place_vaccination_visit(
-                    visit_day, dob, year, int(entry["age_min"]), int(entry["age_max"]), country
+                    visit_day, dob, year, int(entry["age_min"]), int(entry["age_max"]), country, taken
                 )
                 if placed is None:
                     continue
