@@ -19,6 +19,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from clinosim.countries import has_authored_narrative
+from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules.document.narrative._template_helpers import (
     _GENERIC_ASSESSMENT_EN,
@@ -110,7 +111,17 @@ def render_progress_note(
         _obj_raw = traj.get("objective")
         objective = _obj_raw if (_obj_raw and _obj_raw not in _placeholders) else _generic_s
         assessment = _prefer(traj.get("assessment"), generator._compose_progress_assessment_from_state(ctx), _generic_a)
-        plan = _prefer(traj.get("plan"), generator._compose_progress_plan_from_state(ctx), _generic_p)
+        composed_plan_ja = generator._compose_progress_plan_from_state(ctx)
+        plan = _prefer(traj.get("plan"), composed_plan_ja, _generic_p)
+        # Issue #2981: an authored trajectory plan lists no drugs, so a drug
+        # held today (hyperkalemia hold) is added to it.
+        if plan != composed_plan_ja:
+            from clinosim.modules.document.narrative.renderers._composers import compose_progress_held_line
+
+            held_line = compose_progress_held_line(ctx)
+            if held_line:
+                base = plan.rstrip().removesuffix(t("list_sep.period", lang))
+                plan = f"{base}{t('list_sep.period_space', lang)}{held_line}"
 
         # v6 blocker fix (2026-08-16): prepend today's numeric vitals
         # snapshot to `objective` for inpatient progress_note. `objective`

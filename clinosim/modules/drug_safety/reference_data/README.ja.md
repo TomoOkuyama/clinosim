@@ -191,6 +191,21 @@ indications:
 `check_candidate_against_active` (ペアごとの `check_pair`) で caller の
 active 薬と再照合する。最初に conflict の無い entry を採用する。
 
+## `hyperkalemia_response.yaml`
+
+入院中の K 高値への対応 (Issue #2981)。
+`clinosim.modules.drug_safety.hyperkalemia` が読み、
+`HyperkalemiaResponseFile` で検証する:
+
+- `treat_threshold_mmol_l` — 休薬とオーダーセットを発動する K 値
+  (mmol/L、6.0)。
+- `hold_classes` — 結果時刻から退院まで休薬するカタログ class
+  (`acei`、`arb`、`diuretic.k_sparing`)。
+- `treatment.<US|JP>` — 単回オーダー: `drug_id` (カタログ)、`dose`
+  (解析可能なオーダー用量、例 `1 g IV`)、`dose_text.{en,ja}`
+  (各言語の用法指示)、`ongoing: true` (K 吸着薬) は閾値以上が続く日に
+  繰り返す。
+
 ## rule の追加手順
 
 1. rule の対象薬剤に `codes/data/drugs.yaml` で class を付与する。

@@ -28,6 +28,15 @@ rule engine によって 0 件に低減する。薬剤 × 疾患状態
   Issue #2924): `modules/allergy/reference_data/allergens.yaml` の各医薬品
   アレルゲンを、回避 (block) または注意 (caution) とする class に対応付け、
   交差反応は現行エビデンスに従う。
+- 入院中の高カリウム血症対応 (`hyperkalemia.py`、
+  `hyperkalemia_response.yaml`、Issue #2981): 血清 K >= 6.0 mmol/L の
+  結果が出たら、その時刻以降退院までの ACE 阻害薬・ARB・K 保持性利尿薬の
+  投与をすべて休薬 (MAR の status `held`、理由 `K <値> mmol/L`、経過記録の
+  計画に `休薬: ...` / `Held: ...` と記載) とし、閾値に達した日ごとに
+  国別の治療オーダーセット (グルコン酸カルシウム、レギュラーインスリン +
+  50% ブドウ糖、K 吸着薬) を単回投与で出す (翌日以降も閾値以上が続く間は
+  K 吸着薬のみ再オーダー)。入院 daily loop から呼ばれ、
+  RNG は消費しない。
 - 代替薬 substitution: Issue #437 の dead-data `alternative_*` block
   を revive + 新規 `modules/drug_safety/reference_data/drug_substitution.yaml`。
 - CIF trace (`PatientProfile.safety_skip_log`)。
@@ -135,7 +144,7 @@ drug_safety.japanese_display("Aspirin")   # → "アスピリン"
 
 ## 6. 定数と設定
 
-YAML 4 ファイル + 薬剤カタログ:
+YAML 6 ファイル + 薬剤カタログ:
 
 - 薬剤 class と alias: 薬剤カタログ
   (`clinosim/codes/data/drugs.yaml`、`clinosim.codes.drugs` 経由で読む)。
@@ -169,11 +178,16 @@ YAML 4 ファイル + 薬剤カタログ:
   indication → 代替薬 pool (カタログ `drug_id` で key 付け。
   pain_management → acetaminophen、hypertension_or_rate_control →
   amlodipine / candesartan)。
+- `reference_data/hyperkalemia_response.yaml` — K の治療閾値
+  (6.0 mmol/L。KDIGO 2024 CKD、2022 AHA/ACC/HFSA 心不全、UK Kidney
+  Association 2020 急性高カリウム血症ガイドライン)、休薬する class
+  (`acei`、`arb`、`diuretic.k_sparing`)、US / JP の治療オーダーセット
+  (Issue #2981)。オーダー時刻のオフセットは `_hyperkalemia_thresholds.py`。
 
 各ファイルは load 時に `_models.py` の `extra="forbid"` Pydantic
 model (`ContraindicationsFile`, `DiseaseContraindicationsFile`,
 `DemographicGatesFile`, `DrugSubstitutionFile`,
-`AllergyContraindicationsFile`) で検証される。薬剤 class / drug id は
+`AllergyContraindicationsFile`, `HyperkalemiaResponseFile`) で検証される。薬剤 class / drug id は
 カタログと照合、rule id は一意、reconciliation list は既存 rule を指し、
 アレルギー rule の `allergen_code` は `allergens.yaml` の医薬品
 アレルゲンである必要がある。
@@ -190,7 +204,9 @@ clinosim/modules/drug_safety/
 ├── classifier.py          # 薬剤名 → class[] resolver
 ├── engine.py              # check_pair / check_candidate_against_active / check_candidate_against_disease_state / check_candidate_against_allergies / suggest_alternative / discharge_reconciliation_rules
 ├── demographic.py         # check_demographic_gate + DemographicVerdict
-├── _models.py             # reference YAML 5 種の Pydantic model
+├── hyperkalemia.py        # K による休薬 + 高カリウム血症オーダーセット (Issue #2981)
+├── _hyperkalemia_thresholds.py  # オーダー時刻のオフセット
+├── _models.py             # reference YAML 6 種の Pydantic model
 ├── audit.py               # audit_drug_safety(patients) → list[AuditFinding]
 ├── reference_data/
 │   ├── contraindications.yaml
@@ -198,6 +214,7 @@ clinosim/modules/drug_safety/
 │   ├── demographic_gates.yaml
 │   ├── allergy_contraindications.yaml
 │   ├── drug_substitution.yaml
+│   ├── hyperkalemia_response.yaml
 │   ├── README.md          # YAML スキーマ
 │   └── README.ja.md
 ├── README.md

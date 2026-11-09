@@ -588,10 +588,10 @@
       "sections": {
         "assessment": "Notable labs today: troponin I 58.303 ng/mL [H], CK-MB 30.9 ng/mL [H], BNP 107.5 pg/mL [H], creatinine 2.72 mg/dL [H].",
         "objective": "BP 117/70 mmHg, HR 99/min, T 36.0°C, SpO2 97% (RA), RR 23/min",
-        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip, Calcium Gluconate 1 g IV.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead.",
         "subjective": "Hospital day 11. Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 11. Level of consciousness improved, now alert (prev AVPU V).\nO: BP 117/70 mmHg, HR 99/min, T 36.0°C, SpO2 97% (RA), RR 23/min\nA: Notable labs today: troponin I 58.303 ng/mL [H], CK-MB 30.9 ng/mL [H], BNP 107.5 pg/mL [H], creatinine 2.72 mg/dL [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
+      "text": "S: Hospital day 11. Level of consciousness improved, now alert (prev AVPU V).\nO: BP 117/70 mmHg, HR 99/min, T 36.0°C, SpO2 97% (RA), RR 23/min\nA: Notable labs today: troponin I 58.303 ng/mL [H], CK-MB 30.9 ng/mL [H], BNP 107.5 pg/mL [H], creatinine 2.72 mg/dL [H].\nP: Continue current medications: Aspirin, Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip, Calcium Gluconate 1 g IV.\n- Heparin avoided due to concurrent Aspirin; Acetaminophen prescribed instead."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-13": {

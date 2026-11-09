@@ -290,6 +290,51 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
     return t("list_sep.chunk", lang).join(parts)
 
 
+def _today_medications(ctx: NarrativeContext) -> tuple[list[str], list[str]]:
+    """Today's MAR drugs as (continued, held) display lists, first-seen order,
+    at most six each. A drug with a held dose today is listed as held with
+    its reason ("Candesartan (K 6.5 mmol/L)"), not as continued (Issue #2981)."""
+    from clinosim.locale.free_text import localize_drug_name
+
+    lang = ctx.target_lang
+    _p_enc = getattr(ctx, "encounter", None)
+    _adm_raw = _o(_p_enc, "admission_datetime", None) if _p_enc is not None else None
+    _adm_dt = parse_iso_datetime(_adm_raw, lenient=True) if _adm_raw is not None else None
+    today: list[str] = []
+    held_reason: dict[str, str] = {}
+    for m in list(ctx.medications or []):
+        d = _o(m, "day", None)
+        if d is None and _adm_dt is not None:
+            _m_ts_raw = _o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None)
+            _m_ts = parse_iso_datetime(_m_ts_raw, lenient=True) if _m_ts_raw is not None else None
+            if _m_ts is not None:
+                d = (_m_ts.date() - _adm_dt.date()).days
+        if d is not None and d != ctx.day_index:
+            continue
+        name = _o(m, "drug_name", None) or _o(m, "medication", None) or _o(m, "name", None)
+        if not name:
+            continue
+        if name not in today:
+            today.append(name)
+        if _o(m, "status", None) == "held" and name not in held_reason:
+            held_reason[name] = str(_o(m, "hold_reason", None) or "")
+    continued = [localize_drug_name(str(n), lang) for n in today if n not in held_reason][:6]
+    held = [
+        f"{localize_drug_name(str(n), lang)} ({r})" if r else localize_drug_name(str(n), lang)
+        for n, r in held_reason.items()
+    ][:6]
+    return continued, held
+
+
+def compose_progress_held_line(ctx: NarrativeContext) -> str:
+    """The plan line naming today's held drugs ("Held: ..."), or ``""`` — for
+    an authored daily-trajectory plan, which lists no drugs (Issue #2981)."""
+    _, held = _today_medications(ctx)
+    return (
+        t("progress.meds_held", ctx.target_lang, list=t("list_sep.serial", ctx.target_lang).join(held)) if held else ""
+    )
+
+
 def compose_progress_plan_from_state(ctx: NarrativeContext) -> str:
     """Inpatient progress_note Plan from CIF facts.
 
@@ -304,33 +349,12 @@ def compose_progress_plan_from_state(ctx: NarrativeContext) -> str:
     """
     lang = ctx.target_lang
     parts: list[str] = []
-    admins = list(ctx.medications or [])
-    _p_enc = getattr(ctx, "encounter", None)
-    _adm_raw = _o(_p_enc, "admission_datetime", None) if _p_enc is not None else None
-    _adm_dt = parse_iso_datetime(_adm_raw, lenient=True) if _adm_raw is not None else None
-    med_names: list[str] = []
-    seen: set[str] = set()
-    for m in admins:
-        d = _o(m, "day", None)
-        if d is None and _adm_dt is not None:
-            _m_ts_raw = _o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None)
-            _m_ts = parse_iso_datetime(_m_ts_raw, lenient=True) if _m_ts_raw is not None else None
-            if _m_ts is not None:
-                d = (_m_ts.date() - _adm_dt.date()).days
-        if d is not None and d != ctx.day_index:
-            continue
-        name = _o(m, "drug_name", None) or _o(m, "medication", None) or _o(m, "name", None)
-        if not name or name in seen:
-            continue
-        seen.add(name)
-        from clinosim.locale.free_text import localize_drug_name
-
-        med_names.append(localize_drug_name(str(name), lang))
-        if len(med_names) >= 6:
-            break
+    med_names, held = _today_medications(ctx)
     if med_names:
         sep = t("list_sep.serial", lang)
         parts.append(t("progress.meds_continue", lang, list=sep.join(med_names)))
+    if held:
+        parts.append(t("progress.meds_held", lang, list=t("list_sep.serial", lang).join(held)))
     procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:4]]
     procs = [p for p in procs if p]
     if procs:

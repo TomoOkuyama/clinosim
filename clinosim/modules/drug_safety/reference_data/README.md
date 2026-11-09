@@ -191,6 +191,21 @@ indications:
 re-checks each candidate against the caller's active meds via
 `check_candidate_against_active` (pairwise `check_pair`). The first conflict-free entry wins.
 
+## `hyperkalemia_response.yaml`
+
+Inpatient response to a potassium result (Issue #2981), read by
+`clinosim.modules.drug_safety.hyperkalemia` and validated by
+`HyperkalemiaResponseFile`:
+
+- `treat_threshold_mmol_l` — potassium (mmol/L) at or above which drugs
+  are held and the order set is placed (6.0).
+- `hold_classes` — catalog classes whose doses are held from the result to
+  discharge (`acei`, `arb`, `diuretic.k_sparing`).
+- `treatment.<US|JP>` — one-time orders: `drug_id` (catalog), `dose` (the
+  parseable order dose, e.g. `1 g IV`) and `dose_text.{en,ja}` (the
+  localised instruction); `ongoing: true` (the binder) repeats the entry
+  on consecutive days at or above the threshold.
+
 ## Adding a new rule
 
 1. Give the drugs the rule targets their classes in `codes/data/drugs.yaml`.
