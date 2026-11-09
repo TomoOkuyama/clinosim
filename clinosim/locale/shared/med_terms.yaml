@@ -52,7 +52,17 @@ categories:
   respiratory support: {ja: 呼吸補助}
   fluid_resuscitation: {en: fluid resuscitation, ja: 輸液蘇生}
   fluid resuscitation: {ja: 輸液蘇生}
+  # Issue #3025: bedside-procedure order slugs ("urinary_catheter: Foley
+  # catheter") read as the procedure in every language.
+  urinary_catheter: {en: urinary catheter, ja: 膀胱留置カテーテル}
+  unfractionated_heparin: {en: unfractionated heparin, ja: 未分画ヘパリン}
+  compression_stocking: {en: compression stockings, ja: 弾性ストッキング}
+  graduated compression stockings: {ja: 段階的弾性ストッキング}
+  cervical_immobilization: {en: cervical immobilization, ja: 頸椎固定}
+  wound_care: {en: wound care, ja: 創傷処置}
+  intubation_and_mechanical_ventilation: {en: intubation and mechanical ventilation, ja: 気管挿管・人工呼吸管理}
 terms:
+  Q6H_PRN: {en: Q6H PRN, ja: 6時間毎 頓用}  # Issue #3025
   PRN: {ja: 頓用}
   PO: {ja: 経口}
   IV: {ja: 静注}

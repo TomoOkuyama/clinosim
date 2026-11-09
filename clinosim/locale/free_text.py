@@ -175,7 +175,7 @@ def _localize_rate_adjustment(note_en: str, country: str) -> str:
     lang = lang_for(country)
     if not note_en or lang == _SOURCE_LANG:
         return note_en
-    m = re.match(r"^(increase|decrease) rate by (\d+)%\s*$", note_en, re.IGNORECASE)
+    m = re.match(r"^(increase|decrease)[_ ]rate[_ ]by[_ ](\d+)%\s*$", note_en, re.IGNORECASE)
     if not m:
         return note_en
     return t(f"module_text.rate_{m.group(1).lower()}", lang, pct=m.group(2)) or note_en
@@ -244,11 +244,21 @@ def localize_drug_name(drug_name: str, lang: str) -> str:
     target = _target_lang(lang)
     if not drug_name:
         return drug_name
+    # Issue #3025: a rate-adjustment notation ("Heparin increase_rate_by_20%")
+    # reads as the instruction in the output language.
+    base, rate_note = _split_rate_adjustment_suffix(drug_name)
+    if rate_note:
+        m = re.match(r"^(increase|decrease) rate by (\d+)%$", rate_note)
+        note = t(f"module_text.rate_{m.group(1)}", normalize_lang(lang), pct=m.group(2)) if m else rate_note
+        return f"{localize_drug_name(base, lang)} {note}".strip()
     if target is None:
         # Issue #2650: English keeps the name but spells out a protocol slug
         # ("IV_fluid: NS" -> "IV fluids: NS") from the med_terms ``en`` slots.
         return _localize_dosage_terms(drug_name, normalize_lang(lang))
     return _translate(drug_name, _load_drug_display_dict(target), target)
+
+
+_LEADING_SLUG = re.compile(r"^[A-Za-z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)+")
 
 
 def localize_procedure_name(name: str, lang: str) -> str:
@@ -263,6 +273,14 @@ def localize_procedure_name(name: str, lang: str) -> str:
         # Issue #2627: English spells out a protocol slug ("IV_access: ..." ->
         # "IV access: ...") like drug names do (Issue #2650).
         return _localize_dosage_terms(name, normalize_lang(lang))
+    # Issue #3025: a leading procedure slug ("compression_stocking: ...")
+    # takes its med_terms name first, so the free-text pass below does not
+    # translate it word by word.
+    lead = _LEADING_SLUG.match(name)
+    if lead:
+        named = _localize_dosage_terms(lead.group(0), target)
+        if named != lead.group(0):
+            name = named + name[lead.end() :]
     table = _load_procedure_display_dict(target)
     normalized = name.replace("_", " ").strip().lower()
     hit = table.get(normalized) or table.get(normalized.split(":", 1)[1].strip() if ":" in normalized else "")

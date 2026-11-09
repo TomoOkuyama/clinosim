@@ -36,7 +36,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
 from clinosim.countries import lang_for
-from clinosim.locale.loader import load_code_mapping
+from clinosim.locale.loader import imaging_exam_display, load_code_mapping
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.observation.engine import canonical_lab_name
@@ -49,7 +49,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
+from clinosim.modules.output.fhir_r4.lib.localization import display_slugs_in_text, localize_fixed_label
 
 
 # C1-16: FHIR R4 ServiceRequest.intent values are
@@ -95,7 +95,9 @@ def _pick_reason_text(source: Any, lang: str) -> str:
     Same writer/reader locale-split pattern as
     ``Encounter.chief_complaint`` / ``chief_complaint_ja`` (Issue #360 G1).
     """
-    return localized_field(source, "clinical_intent", lang)
+    # Issue #3025: the intent names its test / clinical course by an internal
+    # key ("Day 3 monitoring: PT_INR"); the reason text shows its display.
+    return display_slugs_in_text(localized_field(source, "clinical_intent", lang), lang)
 
 
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -891,7 +893,8 @@ def _build_imaging_sr(
             code=loinc_code,
             display=loinc_display,
             # Issue #2621: the readable study name when the code resolves.
-            text=loinc_display if loinc_code else _o(order, "display_name", ""),
+            # Issue #3025: else the exam's display name, not the order key.
+            text=loinc_display if loinc_code else imaging_exam_display(_o(order, "display_name", ""), lang),
         ),
         "subject": patient_ref(patient_id),
         "encounter": encounter_ref(encounter_id_val),

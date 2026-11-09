@@ -1081,7 +1081,7 @@ def apply_drug_safety_gate_to_orders(
             note_text = localized_field(worst, "rationale", lang_for(locale))
             note_entry = {
                 "text": t("order_intent.interaction_caution", lang_for(locale), note=note_text),
-                "authorReference": {"display": "clinosim drug_safety v1"},
+                "authorReference": {"display": t("order_intent.interaction_check_author", lang_for(locale))},
             }
             order.notes.append(note_entry)
 

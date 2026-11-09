@@ -49,7 +49,8 @@ def test_med_terms_tables_loaded():
     # Sizes match the current YAML. Update these counts intentionally when
     # editing med_terms_ja.yaml — a diff here is the load-bearing signal
     # that the localization table changed.
-    assert len(tables["categories"]) == 27  # Issue #2650: k_replace; Issue #2627: iv_access
+    # Issue #2650: k_replace; Issue #2627: iv_access; Issue #3025: 7 procedure slugs.
+    assert len(tables["categories"]) == 34
     # Phase 1c-7 (2026-09-23): count bumped from 158 → 206 after
     # extending the terms table with the ed_workup composite vocabulary
     # (Ice pack / Wound irrigation / Elastic bandage / Suture closure /
@@ -61,4 +62,4 @@ def test_med_terms_tables_loaded():
     # is asserted by test_fhir_procedure_jp_text.
     # Issue #2446: 206 → 196 — the five procedure names (both cases) the
     # procedure-phrase table defines were removed.
-    assert len(tables["terms"]) == 196
+    assert len(tables["terms"]) == 197  # Issue #3025: Q6H_PRN

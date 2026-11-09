@@ -253,7 +253,7 @@ clinosim/modules/drug_safety/
 ## 9. Output surface
 
 - **FHIR MedicationRequest.note[]**: moderate DDI caution を
-  `authorReference.display = "clinosim drug_safety v1"` で付与。
+  `authorReference.display` = 言語別の `order_intent.interaction_check_author` (「処方チェックシステム」、Issue #3025) で付与。
   それ以外は空。DetectedIssue リソースは emit しない。
 - **CIF `PatientProfile.safety_skip_log`**: 内部 / audit trace。
   FHIR 構造化リソースには emit しない — 却下された CPOE order が

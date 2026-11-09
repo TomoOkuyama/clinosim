@@ -272,7 +272,7 @@ clinosim/modules/drug_safety/
 ## 9. Output surfaces
 
 - **FHIR MedicationRequest.note[]**: moderate DDI cautions attached
-  with `authorReference.display = "clinosim drug_safety v1"`. Empty
+  with `authorReference.display` = the localized `order_intent.interaction_check_author` ("Prescription safety check", Issue #3025). Empty
   otherwise. NO DetectedIssue resource emitted.
 - **CIF `PatientProfile.safety_skip_log`**: internal / audit trace.
   Never emitted to FHIR structured resources — matches real EHR where

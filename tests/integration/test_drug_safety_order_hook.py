@@ -119,7 +119,7 @@ def test_gate_moderate_severity_attaches_caution_note() -> None:
     order = result[0]
     assert order.notes, "Task 11 wires Order.notes as a real field"
     assert any("併用注意" in n["text"] for n in order.notes)
-    assert order.notes[0]["authorReference"]["display"] == "clinosim drug_safety v1"
+    assert order.notes[0]["authorReference"]["display"] == "処方チェックシステム"  # Issue #3025
 
 
 def test_gate_passes_non_medication_orders_through() -> None:

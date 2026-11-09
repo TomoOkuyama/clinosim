@@ -253,3 +253,6 @@ lab_names:
   blood_type_crossmatch: {en: type and crossmatch, ja: 交差適合試験}
   ana: {en: ANA, ja: 抗核抗体}
   rf: {en: RF, ja: RF}
+  # Issue #3025: monitoring tokens named in order reasons.
+  anion_gap: {en: anion gap, ja: アニオンギャップ}
+  peak_expiratory_flow: {en: peak expiratory flow, ja: ピークフロー}
