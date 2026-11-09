@@ -16,7 +16,7 @@ from clinosim.age_bands import parse_closed_age_band
 from clinosim.modules._shared import normalize_probabilities, random_day_of_month
 from clinosim.modules.disease.protocol import load_disease_protocol
 from clinosim.modules.disease.severity import sample_severity
-from clinosim.modules.immunization.engine import seasonal_flu_coverage
+from clinosim.modules.immunization.engine import flu_vaccine_licensed_on, seasonal_flu_coverage
 from clinosim.modules.population._chemo import (
     _chemo_cycle_events as _chemo_cycle_events,
 )
@@ -1050,7 +1050,8 @@ def generate_healthcare_calendar(
     - Flu vaccination (age 65+ or 2+ chronic conditions, Oct-Dec), at the
       immunization schedule's per-season coverage for the person's age / sex
       (``immunization.engine.seasonal_flu_coverage``), else the locale's
-      ``preventive_care.flu_vaccination_probability``
+      ``preventive_care.flu_vaccination_probability``; none before the
+      person may have a flu vaccine (6 months, Issue #2979)
     - Colonoscopy screening (age 45-75, every 10 years) and mammography
       screening (women 40-74), per their protocols' ``screening_schedule``
     - Diabetic retinopathy screening (persons with E11.9)
@@ -1201,18 +1202,22 @@ def generate_healthcare_calendar(
             _flu_rate = seasonal_flu_coverage(country, _age_at_year, getattr(person, "sex", "M") or "M")
             if prng.random() < (flu_vax_probability if _flu_rate is None else _flu_rate):
                 vax_month = int(prng.choice(FLU_VAX_MONTHS))
-                events.append(
-                    LifeEvent(
-                        person_id=person.person_id,
-                        event_type="chronic_visit",
-                        timestamp=date(year, vax_month, random_day_of_month(prng, year, vax_month)),
-                        severity=0.0,
-                        condition_type="screening",
-                        disease_id="flu_vaccination",
-                        encounter_type="outpatient",
-                        protocol_source="encounter:flu_vaccination",
+                vax_day = date(year, vax_month, random_day_of_month(prng, year, vax_month))
+                # Issue #2979: no flu vaccination visit before the person may
+                # have a flu vaccine (6 months); the draws are already made.
+                if flu_vaccine_licensed_on(country, _dob if isinstance(_dob, date) else None, vax_day):
+                    events.append(
+                        LifeEvent(
+                            person_id=person.person_id,
+                            event_type="chronic_visit",
+                            timestamp=vax_day,
+                            severity=0.0,
+                            condition_type="screening",
+                            disease_id="flu_vaccination",
+                            encounter_type="outpatient",
+                            protocol_source="encounter:flu_vaccination",
+                        )
                     )
-                )
 
         # --- Cancer screening (Issue #2870): colonoscopy, then mammography ---
         # Each screening's age band, sex, interval and uptake come from its

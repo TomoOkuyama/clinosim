@@ -27,6 +27,7 @@ vaccines:
       - {cvx: "150", from: "2013-07-01", until: "2024-06-30"}
       - {cvx: "140", from: "2024-07-01"}
     min_age: 18
+    min_age_days: 182   # licensure floor checked on the dose date: 6 months (Issue #2979)
     frequency: annual
     season_month: 10   # legacy fallback; seasonal_distribution below takes precedence
     available_from: "2000-01-01"
@@ -315,10 +316,10 @@ vaccines:
 
   # Pediatric annual influenza — every year from 6 months.
   # Modelled with the same `annual` frequency the adult path uses;
-  # the engine gates emission on `min_age` (in years) so setting
-  # min_age: 0 with a floor via history_years reasonably approximates
-  # the "starts at 6 months" reality (small pre-6mo sliver of eligible
-  # infants is a minor over-approximation, acceptable for realism).
+  # `min_age` (years) opens the schedule at birth and `min_age_days`
+  # (Issue #2979) is the licensure floor checked on the dose date: no
+  # dose before 6 months (CDC/ACIP: influenza vaccine is recommended for
+  # everyone 6 months and older and is not licensed below that age).
   pediatric_influenza:
     cvx: "158"
     # Issue #2629: trivalent before 2013-14 and from 2024-25 (see influenza).
@@ -327,6 +328,7 @@ vaccines:
       - {cvx: "158", from: "2013-07-01", until: "2024-06-30"}
       - {cvx: "141", from: "2024-07-01"}
     min_age: 0
+    min_age_days: 182    # 6 months (Issue #2979)
     frequency: annual
     season_month: 10
     available_from: "2010-08-01"    # universal ≥ 6 mo recommendation

@@ -21,6 +21,7 @@ vaccines:
   influenza:
     cvx: "150"
     min_age: 18
+    min_age_days: 182   # 接種可能な下限 (生後6か月、接種日で判定、Issue #2979)
     frequency: annual
     season_month: 11   # legacy fallback; seasonal_distribution below takes precedence
     available_from: "2000-01-01"
