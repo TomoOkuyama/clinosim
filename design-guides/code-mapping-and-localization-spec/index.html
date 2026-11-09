@@ -3239,6 +3239,11 @@
 <td>key / <code>None</code> / <code>None</code> / <code>None</code> / <code>None</code></td>
 </tr>
 <tr>
+<td><code>modules.document.narrative.renderers._shared_helpers</code>: <code>chronic_condition_code(code, country, sex)</code>, <code>chronic_condition_label(code, country, lang, sex)</code>, <code>chronic_condition_coded(code, country, lang, sex)</code></td>
+<td>a patient's chronic condition in narrative and LLM context (Issue #2994): the code the output emits for the internal key (<code>map_diagnosis_code</code>), its <code>condition_label</code> for prose, and <code>(code, official display)</code> for a coded list. Narrative never labels a chronic condition from the internal key's category title</td>
+<td>code / <code>None</code> / <code>(code, code)</code></td>
+</tr>
+<tr>
 <td><code>codes.procedures</code>: <code>procedure_code</code>, <code>procedure_type_display</code>, <code>procedure_code_display</code></td>
 <td>procedure codes and names</td>
 <td><code>""</code> / humanised type / <code>None</code></td>
