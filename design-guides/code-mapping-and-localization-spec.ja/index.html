@@ -3111,7 +3111,7 @@
 <li><code>narrative_imaging.yaml</code>: 画像検査</li>
 <li><code>lab_display.yaml</code>: 検査項目とパネル。小文字化した検査トークンをキーにする。言語マップは臨床での略称で、任意の <code>formal</code> マップに正式な項目名を持つ。</li>
 <li><code>department_display.yaml</code></li>
-<li>FHIR、narrative、LLM プロンプトは同じ表を読む。同じ語彙の 2 つ目の表は作らない。コードを持つ語彙は、表示表ではなくそのコード体系から名称を取る (§5.3)。</li>
+<li>FHIR、narrative、LLM プロンプトは同じ表を読む。同じ語彙の 2 つ目の表は作らない。コードを持つ語彙は、表示表ではなくそのコード体系から名称を取る (§5.3)。ただし §5.3 の内部トークンの臨床ラベルは除く。</li>
 </ul>
 <h3 id="38-翻訳表とフレーズカタログ">3.8 翻訳表とフレーズカタログ<a class="headerlink" href="#38-翻訳表とフレーズカタログ" title="Permanent link">&para;</a></h3>
 <ul>
@@ -3300,6 +3300,10 @@
 <td>narrative のラベル</td>
 </tr>
 <tr>
+<td><code>oxygen_device_label(device, lang)</code></td>
+<td>酸素投与デバイスの臨床ラベル (§5.3)、なければ SNOMED CT の表示、なければ <code>""</code></td>
+</tr>
+<tr>
 <td><code>imaging_exam_display(exam_id, lang)</code></td>
 <td>画像検査名</td>
 </tr>
@@ -3429,7 +3433,7 @@
 <li><strong>作る場所</strong>: 出力する箇所で <code>dual_slot_concept</code> を使って作る。後処理の walker で後から埋めることはしない。</li>
 <li><strong>Coding 型の要素</strong>: 型が <code>Coding</code> の要素 (<code>Encounter.class</code>、<code>classHistory.class</code>) には <code>text</code> がない。<code>system_coding</code> で作り、どのロケールでも英語の表示名を入れる。</li>
 <li><strong>HL7 の語彙</strong>: 生成器が出力する HL7 CodeSystem には、それぞれコードをキーにしたレジストリファイルがある (<code>hl7-v3-actcode</code>、<code>hl7-v3-actpriority</code>、<code>hl7-observation-category</code>、<code>hl7-condition-category</code>、<code>hl7-v3-participationtype</code>、<code>hl7-diagnosis-role</code>、<code>hl7-organization-type</code>、<code>hl7-observation-interpretation</code> …)。日本語ラベルはコードで引き、英語の表示名では引かない。</li>
-<li><strong>コードを持つ語彙のラベル</strong>: コード付き概念の <code>text</code> ラベルは、その概念のコードの横にある言語マップから取る。生成器がコードに対応付けた内部の英語トークン (<code>PO</code> などのオーダ経路、<code>BID</code> などの頻度) を持つ場合は、そのトークンの翻訳表 (<code>locale/shared/fhir_text_translations.yaml</code>) から取り、英語ではトークンをそのまま使う。言語ごとの別表は使わない。</li>
+<li><strong>コードを持つ語彙のラベル</strong>: コード付き概念の <code>text</code> ラベルは、その概念のコードの横にある言語マップから取る。生成器がコードに対応付けた内部の英語トークン (<code>PO</code> などのオーダ経路、<code>BID</code> などの頻度) を持つ場合は、そのトークンの翻訳表 (<code>locale/shared/fhir_text_translations.yaml</code>) から取り、英語ではトークンをそのまま使う。同様に、臨床での書き方がコード体系の表示と異なる内部トークンの語彙は、トークンをキーとし言語マップを持つラベル表を 1 つ持つ。酸素投与デバイスは <code>llm_prompt_labels.yaml</code> の <code>oxygen_device</code> (<code>oxygen_device_label</code>。SNOMED CT 336623009 "Oxygen nasal cannula" に "nasal cannula" / 鼻カニューラ)。このラベルを <code>text</code> と narrative の文言に使い、<code>coding.display</code> はコード体系の表示のまま。言語ごとの別表は使わない。</li>
 </ul>
 <h2 id="6-フォールバック規則">6. フォールバック規則<a class="headerlink" href="#6-フォールバック規則" title="Permanent link">&para;</a></h2>
 <p>§4 のすべての解決関数に、両方の層で共通に適用する。</p>
