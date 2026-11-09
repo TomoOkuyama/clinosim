@@ -380,8 +380,11 @@ def test_via_ed_imp_emits_ed_note_stub_targeting_ed_bridge() -> None:
 
 
 def test_via_ed_imp_emits_ed_triage_note_stub_targeting_ed_bridge() -> None:
-    """ED_TRIAGE_NOTE parallel to ED_NOTE."""
-    record = _make_record(_make_via_ed_imp())
+    """ED_TRIAGE_NOTE parallel to ED_NOTE when the record holds the ED
+    phase's triage data."""
+    imp = _make_via_ed_imp()
+    imp.triage_data = SimpleNamespace(level="2", level_system="ESI", arrival_mode="ambulance")
+    record = _make_record(imp)
     ctx = _make_ctx(record)
     document_enricher(ctx)
 
@@ -389,6 +392,18 @@ def test_via_ed_imp_emits_ed_triage_note_stub_targeting_ed_bridge() -> None:
     assert len(triage) == 1
     assert triage[0].encounter_id == "enc-imp-1-ED"
     assert triage[0].loinc_code == "54094-8"
+
+
+def test_via_ed_imp_without_triage_data_emits_no_triage_note() -> None:
+    """Issue #2998: without the ED phase's triage data a triage note would
+    read only "Triage information: not recorded", so none is emitted; the
+    ED note still is."""
+    record = _make_record(_make_via_ed_imp())
+    ctx = _make_ctx(record)
+    document_enricher(ctx)
+
+    assert not [d for d in record.documents if d.task_type == "ed_triage_note"]
+    assert [d for d in record.documents if d.task_type == "ed_note"]
 
 
 def test_via_ed_imp_ed_stub_period_is_within_synth_bridge_window() -> None:
@@ -461,6 +476,6 @@ def test_via_ed_imp_still_emits_normal_inpatient_docs() -> None:
     assert task_counts.get("discharge_summary", 0) == 1
     # LOS=5 days → 5 progress notes.
     assert task_counts.get("progress_note", 0) == 5
-    # Plus the two ED companion stubs.
+    # Plus the ED companion stub (no triage note without triage data, Issue #2998).
     assert task_counts.get("ed_note", 0) == 1
-    assert task_counts.get("ed_triage_note", 0) == 1
+    assert task_counts.get("ed_triage_note", 0) == 0

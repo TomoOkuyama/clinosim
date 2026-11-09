@@ -1944,20 +1944,5 @@
       },
       "text": ""
     }
-  },
-  "doc-ENC-FORCED-0001-616171532456-ED-66": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-ED-66",
-    "encounter_id": "ENC-FORCED-0001-616171532456",
-    "narrative": {
-      "facts_used": [],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "generator": "template",
-        "lang": "ja"
-      },
-      "sections": {},
-      "text": "トリアージ情報：未記録"
-    }
   }
 }

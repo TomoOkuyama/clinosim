@@ -560,8 +560,13 @@ def _ed_companion_documents(
         (admission_dt - timedelta(hours=3, minutes=30)).isoformat(),
         admission_dt.isoformat(),
     )
+    # Issue #2998: the triage note is written from the ED phase's triage data;
+    # without it the note would only read "Triage information: not recorded".
+    has_triage = _o(encounter, "triage_data", None) is not None
     docs: list[ClinicalDocument] = []
     for spec in specs_for_encounter_type("emergency"):
+        if spec.type_key == DocumentType.ED_TRIAGE_NOTE.value and not has_triage:
+            continue
         if spec.type_key in country_spec_keys and spec.generation_frequency == "encounter_once":
             built, doc_seq = _build_documents(spec, [plan], encounter, ed_enc_id, pid, lang, doc_seq)
             docs += built

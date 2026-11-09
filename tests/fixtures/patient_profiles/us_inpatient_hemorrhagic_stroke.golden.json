@@ -1108,20 +1108,5 @@
       },
       "text": ""
     }
-  },
-  "doc-ENC-FORCED-0001-160487169457-ED-38": {
-    "document_id": "doc-ENC-FORCED-0001-160487169457-ED-38",
-    "encounter_id": "ENC-FORCED-0001-160487169457",
-    "narrative": {
-      "facts_used": [],
-      "generated_at": "2020-01-01T00:00:42Z",
-      "generator": "template",
-      "generator_metadata": {
-        "generator": "template",
-        "lang": "en"
-      },
-      "sections": {},
-      "text": "Triage information: not recorded"
-    }
   }
 }
