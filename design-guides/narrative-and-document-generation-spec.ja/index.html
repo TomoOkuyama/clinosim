@@ -2485,6 +2485,11 @@
 <td><code>test_narrative_spec_guards.py::test_blood_pressure_bands_only_through_bp_band</code>, <code>test_each_bp_boundary_belongs_to_the_upper_band</code></td>
 </tr>
 <tr>
+<td>高血圧の記録は患者ごとに一つの降圧目標を記し、その目標でコントロールを判定する。JP は 130/80 未満、75 歳以上は 140/90 未満 (糖尿病・冠動脈疾患があれば 130/80 未満、JSH 2019)、US は 130/80 未満。テンプレートの雛形には目標値と次回受診間隔を書かない。</td>
+<td><code>_narrative_interpretation_thresholds.py::bp_target</code>, <code>bp_control</code>、<code>reference_data/chronic_control_targets.yaml</code></td>
+<td><code>tests/unit/modules/document/narrative/test_one_bp_target_3021.py</code></td>
+</tr>
+<tr>
 <td><code>facts_used</code> のタグは、それが示す文章の出所を一つの語彙の接頭辞で名指す。構造 CIF の項目(<code>ctx.</code>, <code>patient.</code>, <code>encounter.</code>, <code>profile.</code>, <code>chronic.</code>, <code>physical_exam_findings</code>, <code>discharge_instructions</code>)、静的な参照データ(<code>disease_protocol.</code>, <code>encounter_protocol.</code>, <code>chief_complaint_variants.</code>)、CIF の状態から組み立てた文章(<code>composed:</code>)、静的なテンプレート(<code>generic:</code>, <code>outpatient_soap_template.</code>)のいずれか。語彙の外のタグは <code>check-narratives</code> が捏造された出所として報告する。</td>
 <td><code>clinosim/modules/document/narrative/semantic_check.py::_ALLOWED_FACT_PREFIXES</code></td>
 <td><code>tests/unit/modules/document/narrative/test_narrative_spec_guards.py::test_every_facts_tag_literal_is_in_the_facts_vocabulary</code>, <code>tests/integration/test_check_narratives_mock.py</code></td>
