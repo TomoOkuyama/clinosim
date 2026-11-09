@@ -3,8 +3,8 @@
 ### 問題
 
 当初 terminology ファイル (例: ICD コード → 表示名) は
-`clinosim/locale/jp/terminology_diagnosis.yaml` 等のパスに配置され
-ていた。これは 2 つの問題を生んだ:
+`clinosim/locale/jp/` の `terminology_diagnosis.yaml`(削除済み)等に
+配置されていた。これは 2 つの問題を生んだ:
 
 1. **誤分類**: ICD-10-CM は国際標準であり文化固有データセットで
    はない。`locale/jp/` に置くと locale-scoped 所有を示唆するが、
@@ -609,7 +609,7 @@ emit しない。
    Coverage + payor Org
 2. Period-bounded 加入履歴 + 75 歳移行 + `Coverage.period`
 3. 雇用移行 (軽い確率的) + カード / 保険証日付 + 検証方式
-4. US 互換テスト + docs/ADR 最終化
+4. US 互換テスト + ドキュメント・ADR 最終化
 
 ---
 

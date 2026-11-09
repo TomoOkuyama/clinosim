@@ -4,7 +4,7 @@
 # allergen_code binding.
 #
 # META #1849 Phase 5 Step 2.c + partial 2.f: these entries used to live
-# in `clinosim/locale/shared/drug_names_ja.yaml` under the "Allergens"
+# in the retired `drug_names_ja.yaml` under the "Allergens"
 # comment block. They are not drugs; the mapping was tactically placed
 # in that file because `_localize_drug_name` is the generic string-
 # translation helper the FHIR narrative emit paths fall back to.

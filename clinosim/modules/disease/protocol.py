@@ -564,7 +564,7 @@ class DiseaseProtocol(BaseModel):
     # sibling authored-but-unwired blocks (drug_interactions below and
     # expected_vital_distributions at line 128) are RETAINED as future-wiring
     # seeds, not deleted: drug_interactions seeds the planned FHIR DetectedIssue
-    # resource (docs/design-notes/2026-06-30-tier1-...-master-plan.md), and
+    # resource (docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md), and
     # expected_vital_distributions is a candidate target for the cohort-level
     # completeness audit axis (fix-point registry FP-COMPLETENESS-GATE).
     drug_interactions: list[dict[str, Any]] = []

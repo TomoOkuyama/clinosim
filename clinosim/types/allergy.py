@@ -2,7 +2,7 @@
 
 Stored on ``PatientProfile.allergies``. The FHIR
 ``AllergyIntolerance`` mapping lives in
-``clinosim/modules/output/fhir_r4/conditions/allergy.py``.
+``clinosim/modules/output/fhir_r4/conditions/allergy_intolerance.py``.
 """
 
 from __future__ import annotations

@@ -507,21 +507,15 @@ tests/integration/
 
 #### Level 3: End-to-end / golden file tests (full simulation, slow)
 
-Run a complete simulation with a fixed seed and compare against stored "golden" CIF.
+Run a complete simulation with a fixed seed and compare against stored "golden" values.
 
 ```
 tests/e2e/
-  test_golden_1patient.py
-    # seed=42 → 1 pneumonia patient (alpha scenario) →
-    # compare CIF JSON against tests/golden/seed42_1patient.json
+  test_alpha_golden.py
+    # seed=42 → 1 forced pneumonia patient (alpha scenario) →
+    # compare structural values (LOS, lab / vital / order counts, state
+    # trajectory) against the GOLDEN dict in the same file
     # Any structural change = test failure → investigate: intentional or regression?
-    
-  test_golden_10patients.py
-    # seed=42 → 10 patients → compare against golden CIF
-    
-  test_benchmark_100patients.py
-    # seed=42 → 100 patients → run Tier 1 statistical benchmarks →
-    # all benchmarks pass (within ±20% of expected)
 ```
 
 Golden file update process (original plan):

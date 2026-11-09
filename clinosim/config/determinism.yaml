@@ -5,5 +5,5 @@
 # the nearest float64 within 0.5 ULP.
 #
 # Do NOT change without re-verifying cross-platform byte-identity of the
-# entire simulator output (see docs/cross-platform-determinism.md).
+# entire simulator output (see docs/development/reproducibility.md).
 mpmath_precision_bits: 128
