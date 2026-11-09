@@ -278,24 +278,38 @@ to stay empty (or a temporary placeholder) until then. After the window
 the name is sampled from the locale's given-name pool. #1247."""
 
 
-def _sample_newborn_given_name(baby_id: str, sex: str, country: str) -> str:
-    """Deterministically sample a given name for a newborn from the same
-    locale name pool used for adult patients (population.engine helpers).
-    Uses a fresh sub-seed keyed on baby_id so the RNG cascade of the
-    caller is untouched — the name is a pure derivative of (baby_id,
-    country, sex).
+def _sample_newborn_given(baby_id: str, sex: str, country: str) -> dict:
+    """Deterministically sample a newborn's given-name entry (``kanji`` /
+    ``kana`` for JP, ``name`` elsewhere) from the same locale name pool used
+    for adult patients (population.engine helpers). Uses a fresh sub-seed
+    keyed on baby_id so the RNG cascade of the caller is untouched — the
+    name is a pure derivative of (baby_id, country, sex). Empty without a
+    name pool.
     """
     from clinosim.modules.population.engine import _load_name_data, _sample_given_name
 
     name_data = _load_name_data(country)
     if not name_data:
-        return ""
+        return {}
     # Sub-seed derived from baby_id — independent of any RNG stream so
     # perinatal callers see byte-identical output for their own draws.
     sub = text_seed(f"newborn-given|{baby_id}|{country}|{sex}")
     rng = determinism.default_rng(sub)
-    picked = _sample_given_name(name_data, sex, rng)
-    return str(picked.get("kanji") or picked.get("name") or "")
+    return dict(_sample_given_name(name_data, sex, rng))
+
+
+def _newborn_phonetic(mother: PatientProfile, given_entry: dict) -> str | None:
+    """The newborn's kana reading (Issue #3017): the family reading shared
+    with the mother (同じ戸籍) followed by the reading of the newborn's own
+    given name from its name-pool entry; the family reading alone while
+    the newborn is unnamed. None when the mother has no reading (no
+    phonetic name in the locale)."""
+    mother_reading = mother.name.phonetic if mother.name is not None else None
+    if not mother_reading:
+        return None
+    family = mother_reading.split(" ", 1)[0]
+    given = str(given_entry.get("kana") or "")
+    return f"{family} {given}" if given else family
 
 
 def _newborn_contact_from_mother(mother: PatientProfile, country: str = "US"):
@@ -378,9 +392,10 @@ def _build_newborn_patient(
         getattr(mother, "rh_factor", "+") or "+",
         country=country,
     )
-    given = ""
+    given_entry: dict = {}
     if snapshot_date is not None and (snapshot_date - delivery_date).days > _NEWBORN_NAMING_WINDOW_DAYS:
-        given = _sample_newborn_given_name(newborn_id, sex, country)
+        given_entry = _sample_newborn_given(newborn_id, sex, country)
+    given = str(given_entry.get("kanji") or given_entry.get("name") or "")
     # Issue #1252 (N1): seed neonatal-specific `baseline_vitals` from
     # `perinatal.yaml::newborn.baseline_vitals` — term-newborn medians
     # (HR ~130 / BP ~68/40 / RR ~40) rather than the PatientProfile
@@ -401,17 +416,10 @@ def _build_newborn_patient(
         reference_age_months=0,  # Issue #2988: set at birth, carried to each later visit's age
     )
     occupation = str(_newborn_cfg.get("occupation") or "infant")
-    # Issue #1581 Phase C.1 audit — JP phonetic reading of the family
-    # name is a per-household property (妻側の姓読みを継承、同じ戸籍)
-    # so the newborn inherits the mother's phonetic. The field lives
-    # inside PersonName (not PatientProfile top-level). The given-name
-    # piece of the phonetic is empty when the given name itself is
-    # empty (14-day 戸籍 window); even once the given name is
-    # populated the inherited phonetic carries the family-name reading
-    # only — a precise kana reading of the sampled given name would
-    # need a dict lookup against the locale name pool and is a known
-    # follow-up.
-    newborn_phonetic = mother.name.phonetic if mother.name is not None else None
+    # Issue #1581 Phase C.1 / #3017 — the JP kana reading: the family
+    # reading is a per-household property (同じ戸籍) taken from the mother;
+    # the given reading is the newborn's own, from its name-pool entry.
+    newborn_phonetic = _newborn_phonetic(mother, given_entry)
     # Issue #1699: route sampled newborn conditions into chronic vs perinatal.
     _newborn_persistent, _newborn_perinatal = _sample_newborn_conditions(mother.patient_id, delivery_date)
     return PatientProfile(
