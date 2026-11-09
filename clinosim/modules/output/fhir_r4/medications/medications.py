@@ -266,7 +266,9 @@ def _apply_order_end(resource: dict[str, Any], order: dict, authored: str) -> No
         return
     # Issue #3002: the maintenance order written with a loading dose runs
     # from the day after the load (``administer_from``).
-    start = to_fhir_datetime(order.get("administer_from")) or authored
+    # Issue #3042: both bounds through the shared helper (``authored`` is the
+    # authoredOn as built, before the post-emit offset normalization).
+    start = to_fhir_datetime(order.get("administer_from")) or to_fhir_datetime(authored)
     for dosage in resource.get("dosageInstruction") or []:
         repeat = (dosage.get("timing") or {}).get("repeat")
         if isinstance(repeat, dict) and "boundsPeriod" not in repeat and "boundsDuration" not in repeat:

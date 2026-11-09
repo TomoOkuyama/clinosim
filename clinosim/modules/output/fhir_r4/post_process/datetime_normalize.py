@@ -56,8 +56,20 @@ _PERIOD_KEYS = frozenset(
         "effectivePeriod",
         "occurrencePeriod",
         "authoredOnPeriod",
+        "boundsPeriod",  # Timing.repeat (Issue #3042)
+        "collectedPeriod",
+        "timingPeriod",
+        "valuePeriod",
     )
 )
+
+
+def _is_period_key(key: str) -> bool:
+    """A Period-typed element (Issue #3042): one listed in ``_PERIOD_KEYS``,
+    or any ``period`` / ``*Period`` element (FHIR R4 names every Period-typed
+    element so; ``timing.repeat.boundsPeriod`` was missed, keeping a JST end
+    and an offset-less start in US output)."""
+    return key in _PERIOD_KEYS or key == "period" or key.endswith("Period")
 
 
 # instant 型 field(秒精度+TZ 必須)
@@ -111,7 +123,7 @@ def _normalize_dt_fields(resource, country: str = "") -> None:
                 resource[k] = _normalize_dt(v, country, want_instant=True)
             elif k in _DATETIME_FIELDS and isinstance(v, str):
                 resource[k] = _normalize_dt(v, country)
-            elif k in _PERIOD_KEYS and isinstance(v, dict):
+            elif _is_period_key(k) and isinstance(v, dict):
                 for pk in _PERIOD_FIELDS:
                     if pk in v:
                         v[pk] = _normalize_dt(v[pk], country)
@@ -157,7 +169,7 @@ def _normalize_dt_and_fill_practitioner_display(resource, country: str, roster_m
                     node[k] = _normalize_dt(v, country, want_instant=True)
                 elif k in _DATETIME_FIELDS and isinstance(v, str):
                     node[k] = _normalize_dt(v, country)
-                elif k in _PERIOD_KEYS and isinstance(v, dict):
+                elif _is_period_key(k) and isinstance(v, dict):
                     for pk in _PERIOD_FIELDS:
                         if pk in v:
                             v[pk] = _normalize_dt(v[pk], country)
