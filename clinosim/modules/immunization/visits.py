@@ -20,7 +20,11 @@ date), so the dose is not charted on another day or on a synthesised
 - Pediatric immunization visits: the series doses whose age window holds
   the visit age are given at the visit, earliest visit first. A dose the
   engine did not draw is added when the series is on track (dose 1, or
-  the previous dose already given).
+  the previous dose already given). A dose charted on the visit's day at
+  another, non-vaccination encounter moves to the visit. A visit that
+  gives nothing (the child has not kept up the series, which is not
+  restarted out of order) documents the due dose as ``not-done``, so a
+  vaccination visit always records an Immunization (Issue #2974).
 
 Deterministic, draws nothing.
 """
@@ -246,6 +250,7 @@ def _bind_pediatric(imms: list, visits: list[VaccinationVisit], patient: Any, sc
     ]
     imms = list(imms)
     hosted: set[int] = set()
+    visit_ids = {v.encounter_id for v in visits}
 
     def _is(imm: Any, vaccine: dict, dose_number: int | None) -> bool:
         return _get(imm, "dose_number", None) == dose_number and str(_get(imm, "vaccine_cvx", "")) in _cvx_codes(
@@ -273,8 +278,18 @@ def _bind_pediatric(imms: list, visits: list[VaccinationVisit], patient: Any, sc
                 continue
             existing = next((i for i in imms if _is(i, vaccine, dose_number)), None)
             if existing is not None:
-                # Bound elsewhere already (another visit, an inpatient stay).
-                if id(existing) in hosted or _get(existing, "encounter_id", ""):
+                # Bound elsewhere already (another vaccination visit, an
+                # inpatient stay). A dose charted on this visit's day at
+                # another encounter (a same-day well-child visit) is given
+                # here, at the visit held for it (Issue #2974).
+                bound_to = str(_get(existing, "encounter_id", "") or "")
+                same_day_elsewhere = (
+                    bound_to
+                    and bound_to not in visit_ids
+                    and _get(existing, "occurrence_date", None) == visit.day
+                    and id(existing) not in hosted
+                )
+                if (id(existing) in hosted or bound_to) and not same_day_elsewhere:
                     continue
                 _give_at(existing, vaccine, visit)
                 hosted.add(id(existing))
@@ -286,7 +301,40 @@ def _bind_pediatric(imms: list, visits: list[VaccinationVisit], patient: Any, sc
                 imms.append(new)
                 hosted.add(id(new))
                 given_here.add(id(vaccine))
+        if not given_here:
+            _chart_not_done(imms, visit, series, age_days, hosted)
     return imms
+
+
+def _chart_not_done(imms: list, visit: VaccinationVisit, series: list, age_days: int, hosted: set[int]) -> None:
+    """A vaccination visit that gives nothing documents the due dose as not
+    done (Issue #2974): the visit was held, the dose was not given (a series
+    the child has not kept up is not restarted out of order). The first
+    series dose due at the visit age without a given dose is charted; a
+    visit at which every due dose was already given charts nothing."""
+    for vaccine, dose in series:
+        if not int(dose["age_days_min"]) <= age_days <= int(dose["age_days_max"]):
+            continue
+        if _parse(str(vaccine["available_from"])) > visit.day:
+            continue
+        dose_number = int(dose.get("dose_number", 0)) or 1
+        cvx = _cvx_codes(vaccine)
+        same = [
+            i for i in imms if _get(i, "dose_number", None) == dose_number and str(_get(i, "vaccine_cvx", "")) in cvx
+        ]
+        if any(_completed(i) for i in same):
+            continue
+        refusal = next((i for i in same if id(i) not in hosted and not _get(i, "encounter_id", "")), None)
+        if refusal is None:
+            from clinosim.types.encounter import ImmunizationRecord
+
+            refusal = ImmunizationRecord(
+                vaccine_cvx=product_cvx(vaccine, visit.day), status="not-done", dose_number=dose_number
+            )
+            imms.append(refusal)
+        _give_at(refusal, vaccine, visit)
+        hosted.add(id(refusal))
+        return
 
 
 def bind_to_vaccination_visits(

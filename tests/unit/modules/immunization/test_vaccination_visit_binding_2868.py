@@ -171,12 +171,57 @@ def test_kindergarten_visit_records_the_boosters_due_at_that_age() -> None:
 
 
 def test_pediatric_visit_does_not_restart_a_discontinued_series() -> None:
+    """No dose is given out of order; the visit documents the due dose as
+    not done (Issue #2974), so a vaccination visit never records nothing."""
     child = SimpleNamespace(patient_id="C2", age=5, sex="M", date_of_birth=date(2019, 2, 1), chronic_conditions=[])
     visit = VaccinationVisit(encounter_id="ENC-KG", day=date(2024, 6, 10), is_flu=False)
     out = bind_to_vaccination_visits(
         [], [visit], child, {"mmr": _MMR}, as_of=date(2025, 12, 31), sim_start=date(2023, 1, 1)
     )
-    assert out == []
+    assert [(r.vaccine_cvx, r.dose_number, r.status, r.encounter_id, r.occurrence_date) for r in out] == [
+        ("03", 2, "not-done", "ENC-KG", date(2024, 6, 10))
+    ]
+    assert out[0].lot_number == ""
+
+
+def test_an_unbound_refusal_of_the_due_dose_is_charted_at_the_visit_2974() -> None:
+    child = SimpleNamespace(patient_id="C3", age=5, sex="M", date_of_birth=date(2019, 2, 1), chronic_conditions=[])
+    visit = VaccinationVisit(encounter_id="ENC-KG", day=date(2024, 6, 10), is_flu=False)
+    refusal = ImmunizationRecord(vaccine_cvx="03", occurrence_date=date(2023, 3, 1), status="not-done", dose_number=2)
+    out = bind_to_vaccination_visits(
+        [refusal], [visit], child, {"mmr": _MMR}, as_of=date(2025, 12, 31), sim_start=date(2023, 1, 1)
+    )
+    assert len(out) == 1
+    assert (out[0].status, out[0].encounter_id, out[0].occurrence_date) == ("not-done", "ENC-KG", date(2024, 6, 10))
+
+
+def test_a_dose_given_the_same_day_at_another_encounter_moves_to_the_visit_2974() -> None:
+    """A dose charted on the vaccination visit's day at another encounter (a
+    same-day well-child visit) is given at the vaccination visit."""
+    child = SimpleNamespace(patient_id="C4", age=5, sex="M", date_of_birth=date(2019, 2, 1), chronic_conditions=[])
+    visit = VaccinationVisit(encounter_id="ENC-KG", day=date(2024, 6, 10), is_flu=False)
+    recs = [
+        ImmunizationRecord(vaccine_cvx="03", occurrence_date=date(2020, 2, 3), dose_number=1),
+        ImmunizationRecord(vaccine_cvx="03", occurrence_date=date(2024, 6, 10), dose_number=2, encounter_id="ENC-WELL"),
+    ]
+    out = bind_to_vaccination_visits(
+        recs, [visit], child, {"mmr": _MMR}, as_of=date(2025, 12, 31), sim_start=date(2023, 1, 1)
+    )
+    assert [(r.dose_number, r.encounter_id, r.status) for r in out if r.occurrence_date == visit.day] == [
+        (2, "ENC-KG", "completed")
+    ]
+    assert len(out) == 2
+
+
+def test_a_dose_bound_to_another_vaccination_visit_stays_there_2974() -> None:
+    child = SimpleNamespace(patient_id="C5", age=5, sex="M", date_of_birth=date(2019, 2, 1), chronic_conditions=[])
+    first = VaccinationVisit(encounter_id="ENC-KG1", day=date(2024, 6, 10), is_flu=False)
+    second = VaccinationVisit(encounter_id="ENC-KG2", day=date(2024, 6, 10), is_flu=False)
+    recs = [ImmunizationRecord(vaccine_cvx="03", occurrence_date=date(2020, 2, 3), dose_number=1)]
+    out = bind_to_vaccination_visits(
+        recs, [first, second], child, {"mmr": _MMR}, as_of=date(2025, 12, 31), sim_start=date(2023, 1, 1)
+    )
+    assert [r.encounter_id for r in out if r.dose_number == 2 and r.status == "completed"] == ["ENC-KG1"]
 
 
 def test_a_visit_gives_one_dose_of_a_series() -> None:
