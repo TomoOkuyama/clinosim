@@ -4,7 +4,7 @@
 # their generic catalog drug_id does not capture.
 #
 # META #1849 Phase 5 Step 2 admin-form display: these entries used to
-# live in `clinosim/locale/shared/drug_names_ja.yaml`. They are display
+# live in the retired `drug_names_ja.yaml`. They are display
 # variants where the JA includes a route-decoration ("点鼻", "点眼",
 # "経口"), concentration qualifier ("高張", "レギュラー", "ヒト"), or
 # class-level qualifier ("広域スペクトラム", "配合"). The underlying

@@ -13,7 +13,7 @@ codes identify a given drug and what to display.
 
 History: META #1792 established the catalog + migrated downstream yamls
 to ``drug_id`` references (Phases 1-6, closed). META #1849 Phase 5
-retired the legacy ``clinosim/locale/shared/drug_names_ja.yaml``
+retired the legacy ``drug_names_ja.yaml`` (formerly under ``locale/shared/``)
 display source (deleted in #1876) in favour of this catalog + the
 four narrative display catalogs under ``clinosim/codes/data/`` — the
 free-text EN→JA lookup `load_narrative_display_dict()` in

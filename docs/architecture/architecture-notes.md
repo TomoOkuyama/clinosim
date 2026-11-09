@@ -3,7 +3,7 @@
 ### Problem
 
 Initially, terminology files (e.g., ICD code → display name) lived under
-`clinosim/locale/jp/terminology_diagnosis.yaml` and similar paths. This created two
+`clinosim/locale/jp/` in files such as `terminology_diagnosis.yaml` (since removed). This created two
 issues:
 
 1. **Misclassification**: ICD-10-CM is an international standard, not a culture-specific
@@ -580,7 +580,7 @@ opted in.
 1. Module skeleton + JP numbering + snapshot single enrollment + Coverage + payor Org
 2. Period-bounded enrollment history + 75-yr transition + `Coverage.period`
 3. Employment transitions (light probabilistic) + card/保険証 dates + verification method
-4. US compat tests + docs/ADR finalize
+4. US compat tests + docs and ADR finalize
 
 ---
 

@@ -3,10 +3,9 @@
 Generates one FHIR Bundle (JSON) per patient containing:
   Patient, Encounter, Observation (labs + vitals), MedicationRequest, Practitioner references.
 
-Promoted from ``fhir_r4_adapter.py`` (Issue #555 PR1). A thin shim remains at
-``clinosim/modules/output/fhir_r4_adapter.py`` for backward-compat with
-pre-migration import paths (100+ caller sites); new code should import
-directly from ``clinosim.modules.output.fhir_r4``.
+Promoted from the former ``fhir_r4_adapter.py`` (Issue #555 PR1); that
+backward-compat shim has since been removed, so import from
+``clinosim.modules.output.fhir_r4``.
 """
 
 from __future__ import annotations

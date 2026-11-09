@@ -4,7 +4,7 @@
 # Short arm cast, Foley catheter insertion, Observation, …).
 #
 # META #1849 Phase 5 Step 2.d: these entries used to live in
-# `clinosim/locale/shared/drug_names_ja.yaml` under the "Non-drug orders",
+# the retired `drug_names_ja.yaml` under the "Non-drug orders",
 # "Dialysis", "Ventilation", "Interventional procedures", "Procedures
 # (ED)", "Procedures (order-derived)", and "PE/DVT treatment" comment
 # blocks. They are not drugs; the mapping was tactically placed in that

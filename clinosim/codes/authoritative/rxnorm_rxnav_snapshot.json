@@ -3,7 +3,7 @@
   "source": "RxNav (NLM) /REST/rxcui/{code}/historystatus",
   "fetched_at": "2026-10-28",
   "note": "RxNorm status / name / term type for every RxCUI clinosim ships (rxnorm.yaml, drugs.yaml, US drug mapping). Used offline by tests/unit/codes/test_rxnorm_codes_name_their_drug.py (Issue #2150).",
-  "scd_fetched_at": "2026-11-06"
+  "scd_fetched_at": "2026-11-09"
  },
  "concept": [
   {

@@ -33,7 +33,7 @@
 # Adding a new entry: (a) put the code here, (b) add a comment naming the
 # anatomy + the sex the code is locked TO (male_only means "emit for males
 # only"; the enforcement point rejects opposite-sex assignment), (c) run
-# the regression test `tests/unit/test_sex_gating.py`. No further code
+# the regression test `tests/unit/simulator/test_sex_gating.py`. No further code
 # edits — every dispatch site funnels through
 # `clinosim.simulator.sex_gating.is_sex_locked_for`.
 
