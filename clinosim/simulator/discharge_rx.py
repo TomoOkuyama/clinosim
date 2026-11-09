@@ -18,6 +18,7 @@ Related design references (kept in one place for the discharge chain):
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import datetime
 
 import numpy as np
@@ -104,12 +105,20 @@ def _log_discharge_hold(
     hold_reason: str,
     hold_reason_ja: str,
     timestamp: datetime,
+    taken: frozenset[str] | None = None,
 ) -> None:
     """Issue #1403: record a discharge-Rx hold (renal-threshold or
     disease-protocol medication_holds) on ``patient.safety_skip_log``.
     Sister of ``medication_pipeline._log_disease_medication_hold`` for
     the discharge side. See that helper for the rationale.
+
+    Issue #2992: "held" describes a drug the patient was taking. With
+    ``taken`` (drug keys of the home medications and the stay's medication
+    orders), a drug outside it is not logged: a protocol discharge drug the
+    patient never started is simply not prescribed.
     """
+    if taken is not None and drug_key(held_drug_name) not in taken:
+        return
     from clinosim.modules.drug_safety.verdict import (
         SafetySkipEntry,
         SafetyVerdict,
@@ -180,8 +189,12 @@ def build_discharge_rx(
     encounter_id: str = "",
     country_key: str = "us",
     final_renal_function: float = 1.0,
+    ordered_drugs: Iterable[str] = (),
 ) -> PrescriptionRecord:
     """Build discharge prescription from protocol.
+
+    ``ordered_drugs`` are the names of the stay's medication orders; with the
+    home medications they are the drugs a discharge hold may name (Issue #2992).
 
     Applies renal contraindication checks so that nephrotoxic drugs or drugs
     requiring renal clearance are not prescribed at discharge if the patient's
@@ -210,6 +223,14 @@ def build_discharge_rx(
 
     items: list[dict] = []
     seen_dedup_keys: set[str] = set()
+    taken = frozenset(
+        k
+        for k in (
+            *(m.drug_id or drug_key(m.drug_name) for m in getattr(patient, "current_medications", None) or []),
+            *(drug_key(name) for name in ordered_drugs),
+        )
+        if k
+    )
 
     # Issue #1335 (META #1392 Cluster A part 3): expose the disease
     # protocol's ``medication_holds`` at discharge — this is the same
@@ -260,6 +281,7 @@ def build_discharge_rx(
                     hold_reason=verdict.rationale_en or str(verdict.rule_id),
                     hold_reason_ja=verdict.rationale_ja or str(verdict.rule_id),
                     timestamp=admission_time,
+                    taken=taken,
                 )
                 return True
         return False
@@ -345,6 +367,7 @@ def build_discharge_rx(
                 hold_reason=t("order_intent.renal_impairment", "en"),
                 hold_reason_ja=t("order_intent.renal_impairment", "ja"),
                 timestamp=admission_time,
+                taken=taken,
             )
             return
         # Issue #1335: apply the disease-protocol medication_holds at
@@ -360,6 +383,7 @@ def build_discharge_rx(
                 hold_reason=_discharge_protocol_hold_reason_en(disease_id),
                 hold_reason_ja=_discharge_protocol_hold_reason_ja(disease_id),
                 timestamp=admission_time,
+                taken=taken,
             )
             return
         key = _dedup_key(drug_name)
