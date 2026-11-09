@@ -8,14 +8,16 @@ from types import SimpleNamespace
 
 import pytest
 
-from clinosim.modules.immunization.engine import load_schedule, min_interval_days_by_cvx
+from clinosim.modules.immunization.engine import DoseInterval, dose_intervals_by_cvx, load_schedule
 from clinosim.modules.immunization.enricher import _align_to_encounters
 from clinosim.types.encounter import ImmunizationRecord
 
 pytestmark = pytest.mark.unit
 
 _DTAP = "20"
-_INTERVALS = {_DTAP: {2: (1, 28), 3: (2, 28), 4: (3, 182)}}  # dose -> (counted from dose, days)
+_INTERVALS = {
+    _DTAP: {2: DoseInterval(1, 28), 3: DoseInterval(2, 28), 4: DoseInterval(3, 182)}
+}  # dose -> (counted from dose, days)
 
 
 def _enc(enc_id: str, day: date) -> SimpleNamespace:
@@ -71,7 +73,7 @@ def test_different_series_still_share_a_visit() -> None:
 @pytest.mark.parametrize("country", ["US", "JP"])
 def test_every_later_dose_of_a_pediatric_series_has_a_minimum_interval(country: str) -> None:
     schedule = load_schedule(country)
-    intervals = min_interval_days_by_cvx(schedule)
+    intervals = dose_intervals_by_cvx(schedule)
     for name, vaccine in schedule.items():
         if vaccine.get("frequency") != "pediatric_series":
             continue
@@ -80,11 +82,11 @@ def test_every_later_dose_of_a_pediatric_series_has_a_minimum_interval(country: 
             number = int(dose["dose_number"])
             ref = int(dose.get("min_interval_after_dose", number - 1))
             assert 1 <= ref < number, (name, number)
-            assert intervals[str(vaccine["cvx"])][number] == (ref, int(dose["min_interval_days"]))
+            assert intervals[str(vaccine["cvx"])][number][:2] == (ref, int(dose["min_interval_days"]))
 
 
 def test_jp_hepatitis_b_dose_3_counts_from_dose_1() -> None:
-    assert min_interval_days_by_cvx(load_schedule("JP"))["08"][3] == (1, 139)
+    assert dose_intervals_by_cvx(load_schedule("JP"))["08"][3] == DoseInterval(1, 139)
 
 
 def test_a_series_clamped_to_the_vaccine_start_keeps_its_doses_apart() -> None:

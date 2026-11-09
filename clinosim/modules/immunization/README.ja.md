@@ -193,7 +193,7 @@ attending は primary-care 医師 roster から決定論選出) を合成し、�
   | `season_month` | `annual` 時のみ。`seasonal_distribution` が無い場合の固定接種月 (既定 10)。 |
   | `seasonal_distribution` | `annual` 時のみ。シーズン内の月抽選用 `{month: weight}`。 |
   | `wave_epochs` | `once` 時のみ。`start` / `end` / `age_weight` / `monthly_curve` を持つ epoch 列。 |
-  | `doses` | `pediatric_series` 時のみ。dose ごとに `age_days_min` / `age_days_max` / `dose_number` / `coverage_by_sex`。2 回目以降は `min_interval_days` (前回接種からの最小日数。US は CDC General Best Practice Guidelines Table 3-1、JP は予防接種実施規則) と、前回以外の回から数える場合の起点 `min_interval_after_dose` (任意。例: JP B型肝炎 3 回目は 1 回目から 139 日)。Issue #3001。 |
+  | `doses` | `pediatric_series` 時のみ。dose ごとに `age_days_min` / `age_days_max` / `dose_number` / `coverage_by_sex`。2 回目以降は `min_interval_days` (前回接種からの最小日数。US は CDC General Best Practice Guidelines Table 3-1、JP は予防接種実施規則) と、前回以外の回から数える場合の起点 `min_interval_after_dose` (任意。例: JP B型肝炎 3 回目は 1 回目から 139 日)、その起点からの最大間隔 `max_interval_days` (任意。例: JP 日本脳炎 第1期初回 2 回目は 6〜28 日、Issue #3006)。生成・予防接種受診への紐付け・encounter への寄せのいずれもこの規則を守る (`engine.series_allows`)。Issue #3001。 |
   | `available_from` | プログラム開始日 (`YYYY-MM-DD`)。 |
   | `history_years` | 任意。EHR 保持期間 (flu → 10 y 等)。 |
   | `coverage_by_age_sex` | `{"age_band": {sex: rate}}` (0-1、小児 series 以外)。 |

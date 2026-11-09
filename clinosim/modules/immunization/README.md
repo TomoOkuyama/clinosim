@@ -217,7 +217,7 @@ encounter documents).
   | `season_month` | `annual` only. Fixed month used when no `seasonal_distribution` (default 10). |
   | `seasonal_distribution` | `annual` only. `{month: weight}` for per-season month sampling. |
   | `wave_epochs` | `once` only. Epochs with `start` / `end` / `age_weight` / `monthly_curve`. |
-  | `doses` | `pediatric_series` only. Per dose: `age_days_min`, `age_days_max`, `dose_number`, `coverage_by_sex`; from dose 2 on, `min_interval_days` (minimum days after the previous dose; US CDC General Best Practice Guidelines Table 3-1, JP 予防接種実施規則) and optionally `min_interval_after_dose` (the earlier dose the interval counts from when it is not the previous one, e.g. JP hepatitis B dose 3: 139 days after dose 1). Issue #3001. |
+  | `doses` | `pediatric_series` only. Per dose: `age_days_min`, `age_days_max`, `dose_number`, `coverage_by_sex`; from dose 2 on, `min_interval_days` (minimum days after the previous dose; US CDC General Best Practice Guidelines Table 3-1, JP 予防接種実施規則) and optionally `min_interval_after_dose` (the earlier dose the interval counts from when it is not the previous one, e.g. JP hepatitis B dose 3: 139 days after dose 1) and `max_interval_days` (the latest the dose may come after that dose, e.g. JP Japanese encephalitis 1期初回 dose 2: 6-28 days; Issue #3006). The generator, the vaccination-visit binder and the encounter alignment all keep these rules (`engine.series_allows`). Issue #3001. |
   | `available_from` | Program availability date (`YYYY-MM-DD`). |
   | `history_years` | Optional. EHR retention window (e.g. flu → 10 y). |
   | `coverage_by_age_sex` | `{"age_band": {sex: rate}}` in [0, 1] (non-paediatric branches). |
