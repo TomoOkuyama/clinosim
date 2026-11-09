@@ -9,6 +9,7 @@ Layer 3-6).
 from __future__ import annotations
 
 import hashlib
+from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -185,10 +186,17 @@ class _Modality(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     dicom_code: str = Field(min_length=1)
+    # Issue #2999: minutes from the study start to the signed report.
+    report_read_minutes: list[_Number]
     typical_instances_per_view_range: list[_Number] | None = None
     typical_instances_per_series_range: dict[str, list[_Number]] | None = None
     # Body-site key -> the views ordered when a spec names none (order engine).
     default_views_by_body_site: dict[str, list[str]] = Field(default_factory=dict)
+
+    @field_validator("report_read_minutes")
+    @classmethod
+    def _read_range(cls, value: list[_Number]) -> list[_Number]:
+        return _instance_range(value, "report_read_minutes")
 
     @field_validator("typical_instances_per_view_range")
     @classmethod
@@ -223,6 +231,13 @@ class ImagingModalities(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     modalities: dict[str, _Modality] = Field(min_length=1)
+    # Issue #2999: read time of a study whose modality could not be inferred.
+    stub_report_read_minutes: list[_Number]
+
+    @field_validator("stub_report_read_minutes")
+    @classmethod
+    def _stub_read_range(cls, value: list[_Number]) -> list[_Number]:
+        return _instance_range(value, "stub_report_read_minutes")
 
     @model_validator(mode="before")
     @classmethod
@@ -382,9 +397,34 @@ def bedside_examination_names() -> frozenset[str]:
 
 
 @lru_cache(maxsize=1)
+def _load_modalities_yaml() -> dict[str, Any]:
+    return load_validated_yaml(_REF_DIR / "modalities.yaml", ImagingModalities)
+
+
 def load_modalities() -> dict[str, Any]:
     """Load modalities.yaml + validate. Cached singleton."""
-    return load_validated_yaml(_REF_DIR / "modalities.yaml", ImagingModalities)["modalities"]
+    return _load_modalities_yaml()["modalities"]
+
+
+def stub_report_read_minutes() -> list[_Number]:
+    """Read-time range of a study whose modality could not be inferred (Issue #2999)."""
+    return _load_modalities_yaml()["stub_report_read_minutes"]
+
+
+def report_issued_datetime(started: datetime | None, modality: str, patient_id: str, order_id: str) -> datetime | None:
+    """When the radiologist signs the report of a study (Issue #2999).
+
+    The study start plus a read time uniform in the modality's
+    ``report_read_minutes`` (``stub_report_read_minutes`` for an unknown
+    modality), whole minutes, derived from the order by SHA-256 so no RNG
+    stream is consumed. ``None`` when the study has no start time.
+    """
+    if started is None:
+        return None
+    mod = load_modalities().get(modality)
+    lo, hi = mod["report_read_minutes"] if mod else stub_report_read_minutes()
+    q = determinism.sha_quantile(f"imaging-report-read|{patient_id}|{order_id}")
+    return started + timedelta(minutes=round(lo + q * (hi - lo)))
 
 
 @lru_cache(maxsize=1)
@@ -843,6 +883,10 @@ def imaging_enricher(ctx: Any) -> None:
                     # placeholder and the visual duplication cue.
                     description=_stub_display,
                 )
+                if stub_study.report is not None:
+                    stub_study.report.issued_datetime = report_issued_datetime(
+                        _stub_started, "", stub_study.patient_id, order_id
+                    )
                 studies.append(stub_study)
                 continue
 
@@ -927,6 +971,9 @@ def imaging_enricher(ctx: Any) -> None:
                 laterality=imaging_laterality(encounter_id, body_site_key),
                 report=report,
                 description=_non_stub_display,
+            )
+            report.issued_datetime = report_issued_datetime(
+                study.started_datetime, modality, study.patient_id, order_id
             )
             studies.append(study)
 

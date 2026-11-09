@@ -186,6 +186,7 @@ _.findings_text_ja  # types/imaging.py:44 (JP locale field)
 _.impression_text_ja  # types/imaging.py:46 (JP locale field)
 _.study_instance_uid  # types/imaging.py:60
 _.started_datetime  # types/imaging.py:66
+_.issued_datetime  # types/imaging.py RadiologyReport (Issue #2999; FHIR reads it via _o)
 
 # types/microbiology.py
 _.specimen_snomed  # types/microbiology.py:35
@@ -324,6 +325,7 @@ _.trigger_allergen_codes  # allergy/engine.py AllergenConfig
 # ----- clinosim/modules/imaging/engine.py (Pydantic BaseModel, Issue #2568) -----
 # Schema fields of the YAML validation models; callers read the raw dict.
 _.dicom_code  # imaging/engine.py _Modality
+_.report_read_minutes  # imaging/engine.py _Modality (Issue #2999; read from the raw dict)
 _.jp_k_code  # imaging/engine.py _ProcedureCodes
 _.procedure_codes  # imaging/engine.py _BodySite
 

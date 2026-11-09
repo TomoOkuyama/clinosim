@@ -993,6 +993,17 @@ def _bb_diagnostic_reports(ctx: Any) -> list[dict]:
     return resources
 
 
+def radiology_report_issued(study: Any) -> Any:
+    """When an imaging study's report is signed (Issue #2999).
+
+    ``report.issued_datetime`` (the study start plus the modality's read
+    time, set by the imaging enricher); the study start for CIF written
+    before the read time existed. The radiology DiagnosticReport, its
+    Composition and the ServiceRequest clamp all read this one value.
+    """
+    return _o(_o(study, "report"), "issued_datetime") or _o(study, "started_datetime")
+
+
 def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     """Build one radiology DiagnosticReport resource for an ImagingStudy.
 
@@ -1006,7 +1017,9 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     - findings_text  → text.div (FHIR Radiology IG narrative requirement).
     - impression_text → conclusion.
     - findings_codes → conclusionCode when non-empty (PR1 default empty → gate skipped).
-    - started_datetime → effectiveDateTime + issued.
+    - started_datetime → effectiveDateTime.
+    - report.issued_datetime → issued (Issue #2999; the study start for CIF
+      written before the read time existed).
     - order_id → basedOn[ServiceRequest].
     - study_id → imagingStudy[ImagingStudy].
 
@@ -1236,7 +1249,8 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
 
     if started_iso:
         dr["effectiveDateTime"] = started_iso
-        dr["issued"] = started_iso
+        # Issue #2999: issued when the read is signed, after the study.
+        dr["issued"] = to_fhir_datetime(radiology_report_issued(study))
 
     # Issue #2234: the study is referenced only through ``imagingStudy``.
     # ``DiagnosticReport.media.link`` is Reference(Media) in FHIR R4; the

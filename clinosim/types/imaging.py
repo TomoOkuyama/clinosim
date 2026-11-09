@@ -45,6 +45,9 @@ class RadiologyReport:
     impression_text: str = ""  # clinical impression / conclusion (en)
     impression_text_ja: str = ""  # ja copy for JP cohort (Task 6 FHIR builder picks by lang)
     findings_codes: list[str] = field(default_factory=list)  # Optional SNOMED finding codes.
+    # Issue #2999: when the radiologist's read is signed (DiagnosticReport.issued):
+    # the study start plus the modality's read time (modalities.yaml).
+    issued_datetime: datetime | None = None
 
 
 @dataclass

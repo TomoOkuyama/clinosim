@@ -113,7 +113,13 @@ from clinosim.modules.imaging.inference import (
 
 - **Three YAMLs** ([`reference_data/`](reference_data/)):
   - `modalities.yaml` — modality catalog + `default_views_by_body_site`
-    (empty-views fallback the order module consults).
+    (empty-views fallback the order module consults) + `report_read_minutes`
+    per modality (and `stub_report_read_minutes` for a study whose modality
+    could not be inferred): the radiologist's read time. Each report's
+    `RadiologyReport.issued_datetime` is the study start plus a read time in
+    that range (`report_issued_datetime`, SHA-derived from the order, no RNG
+    draw); FHIR emits it as the radiology `DiagnosticReport.issued` and the
+    imaging report Composition date (Issue #2999).
   - `body_sites.yaml` — SNOMED body-site catalog.
   - `impression_templates.yaml` — per-modality / per-body-site
     negative and abnormal report templates.
