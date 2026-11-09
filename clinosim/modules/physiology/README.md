@@ -62,7 +62,7 @@ from clinosim.modules.physiology.engine import (
     hba1c_from_glycemic_control,      # (glycemic_control) -> float (HbA1c %)
     hba1c_latent_at,                  # (patient, when) -> float | None (longitudinal HbA1c latent)
     clamp,                            # (value, lo, hi) -> float
-    room_air_saturation,              # (state, baseline_spo2) -> float
+    room_air_saturation,              # (state, baseline_spo2, *, pulmonary_inflammation=True) -> float
     po2_from_saturation,              # (saturation_pct) -> float
 
     # Flag helpers (AD-57 canonical single edit points)
@@ -74,8 +74,8 @@ from clinosim.modules.physiology.engine import (
                                       #  hba1c_latent=None, ldl_reduction=0.0) -> dict[analyte, float]
     lipid_panel,                      # (sex, has_diabetes, has_dyslipidemia, ldl_reduction=0.0) -> {"TC", "HDL", "TG", "LDL"}
     patient_lipid_panel,              # (patient) -> lipid_panel(...) from home medications (health checkup)
-    derive_vital_signs,               # (state, baseline: BaselineVitals, timestamp, *, age_months=None) -> dict[str, float]
-    derive_observed_vitals,           # (state, baseline: BaselineVitals, timestamp, rng, *, age_months=None) -> dict[str, float]
+    derive_vital_signs,               # (state, baseline: BaselineVitals, timestamp, *, age_months=None, pulmonary_inflammation=True) -> dict[str, float]
+    derive_observed_vitals,           # (state, baseline: BaselineVitals, timestamp, rng, *, age_months=None, pulmonary_inflammation=True) -> dict[str, float]
 )
 ```
 

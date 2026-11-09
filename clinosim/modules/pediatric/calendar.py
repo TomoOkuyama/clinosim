@@ -119,6 +119,9 @@ class Presentation(BaseModel):
     febrile_probability: float = Field(ge=0.0, le=1.0)
     # Visit state ("febrile" / "afebrile") -> state-var deltas.
     state_impact: dict[str, dict[str, float]] = Field(default_factory=dict)
+    # Whether the illness involves the lung, so its inflammation lowers SpO2
+    # (Issue #2987): bronchiolitis does, a URI or otitis media does not.
+    pulmonary_involvement: bool
     prescriptions: list[PrescriptionSpec] = Field(default_factory=list)
 
     @field_validator("state_impact")

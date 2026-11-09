@@ -214,7 +214,12 @@ def _schedule_with(tmp_path, presentation: dict):
     return p
 
 
-_OK = {"vitals": ["temp"], "febrile_probability": 0.5, "state_impact": {"febrile": {"inflammation_level": 0.7}}}
+_OK = {
+    "vitals": ["temp"],
+    "febrile_probability": 0.5,
+    "state_impact": {"febrile": {"inflammation_level": 0.7}},
+    "pulmonary_involvement": False,
+}
 
 
 @pytest.mark.parametrize(

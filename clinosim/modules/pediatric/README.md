@@ -112,6 +112,7 @@ Each `presentations:` entry is keyed by an `encounters:` `disease_id`
 | `vitals` | Non-empty list of vital fields measured at the visit. |
 | `febrile_probability` | Probability (0–1) that the visit is febrile; > 0 requires a `state_impact.febrile` block. |
 | `state_impact` | Optional `{febrile, afebrile}` → `{state_var: delta}`; state-variable names must be canonical physiology state vars. |
+| `pulmonary_involvement` | Required. Whether the illness involves the lung, so its inflammation lowers SpO2 (bronchiolitis `true`; URI, otitis media and injury `false`, so a child with a febrile URI keeps a normal SpO2 — Issue #2987). |
 | `prescriptions` | Optional list of take-home items: `drug_id` (must be in the drug catalog), `dose`, `route`, `frequency`, `duration_days` (age band → positive day count). |
 
 Extending the schedule is a **pure YAML edit** — no code changes

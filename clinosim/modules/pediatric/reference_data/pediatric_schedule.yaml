@@ -251,6 +251,13 @@ encounters:
 #                        baseline (about 36.4 °C) + 3.0 x inflammation_level
 #                        (physiology engine), so 0.75 reads about 38.6 °C and
 #                        0.10 about 36.7 °C before measurement noise.
+#   pulmonary_involvement: whether the illness involves the lung, so its
+#                        inflammation lowers SpO2 (physiology engine
+#                        room_air_saturation). An upper-airway or ear
+#                        infection does not: a child with a URI or otitis
+#                        media keeps SpO2 >= 95 % (AAP 2014 bronchiolitis /
+#                        BTS 2011 pneumonia guidance treat SpO2 < 90-92 % as
+#                        a marker of lower-respiratory disease).
 #   prescriptions:       take-home prescription items (a short course). `dose`
 #                        is per dose; `duration_days` is keyed by age band
 #                        (years, clinosim.age_bands keys).
@@ -261,6 +268,7 @@ presentations:
   pediatric_bronchiolitis:
     vitals: [temp, hr, rr, spo2]
     febrile_probability: 0.3
+    pulmonary_involvement: true
     state_impact:
       febrile: {inflammation_level: 0.75}
       afebrile: {inflammation_level: 0.10}
@@ -272,6 +280,7 @@ presentations:
   pediatric_otitis_media:
     vitals: [temp, hr, rr, spo2]
     febrile_probability: 0.5
+    pulmonary_involvement: false
     state_impact:
       febrile: {inflammation_level: 0.75}
       afebrile: {inflammation_level: 0.10}
@@ -287,6 +296,7 @@ presentations:
   pediatric_uri:
     vitals: [temp, hr, rr, spo2]
     febrile_probability: 0.7
+    pulmonary_involvement: false
     state_impact:
       febrile: {inflammation_level: 0.75}
       afebrile: {inflammation_level: 0.10}
@@ -295,5 +305,6 @@ presentations:
   pediatric_injury:
     vitals: [temp, hr, bp]
     febrile_probability: 0.0
+    pulmonary_involvement: false
     state_impact:
       afebrile: {pain_level: 0.3}

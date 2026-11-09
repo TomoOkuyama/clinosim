@@ -144,6 +144,8 @@ from clinosim.modules.patient.activator import (
   — `activator.py` から lift された全 scalar (Issue #637)。主な cluster:
   - `BASELINE_{HR,SBP,DBP,RR,SPO2,TEMPERATURE}_*` — 6 vital-sign
     種別の年齢 / 性別 スケール、平均、標準偏差、ceiling。
+    `PEDIATRIC_BASELINE_SPO2_{MEAN,CEILING}` は小児 (18 歳未満) の
+    baseline SpO2 を 99 % 中心にする (Issue #2987)。
   - `AGE_PENALTY_{MIN_AGE,SCALE,HEPATIC_RATIO}` —
     `AGE_PENALTY_MIN_AGE` 超えの reserve depletion。
   - `RESERVE_FLOOR`, `IMMUNE_REACTIVITY_BETA_PARAMS` — 生理予備能

@@ -39,6 +39,8 @@ __all__ = [
     "BASELINE_SPO2_CEILING",
     "BASELINE_SPO2_MEAN",
     "BASELINE_SPO2_SD",
+    "PEDIATRIC_BASELINE_SPO2_CEILING",
+    "PEDIATRIC_BASELINE_SPO2_MEAN",
     "BASELINE_TEMPERATURE_MEAN",
     "BASELINE_TEMPERATURE_SD",
     "CHRONIC_CONTROLLED_PROBABILITY",
@@ -407,6 +409,15 @@ BASELINE_SPO2_CEILING: int = 99
 """Ceiling on the sampled baseline SpO2 — prevents the normal
 distribution's right tail from producing implausible 100+ % values
 (SpO2 is physiologically capped at 100 %)."""
+
+PEDIATRIC_BASELINE_SPO2_MEAN: float = 99.0
+"""Baseline SpO2 (%) of a child under 18 (Issue #2987): healthy children at
+sea level read a median of 98-99 % with a 5th centile near 97 %, above the
+adult resting mean (:data:`BASELINE_SPO2_MEAN`). Drawn with the same SD."""
+
+PEDIATRIC_BASELINE_SPO2_CEILING: int = 100
+"""Ceiling on a child's sampled baseline SpO2 (Issue #2987): a healthy
+child's true saturation can be 100 %."""
 
 
 # ---------------------------------------------------------------------------
