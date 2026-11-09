@@ -140,6 +140,8 @@ clinosim/simulator/
   _dispatch.py           hospital-event dispatch + overlap handling
                          (`_dispatch_hospital_events`)
   daily_loop.py          per-day loop extracted from engine
+  terminal_course.py     final hours before an in-hospital death: terminal
+                         state + the last 12 h of vitals follow it (Issue #2985)
   hospital_ops.py        hospital operations orchestration
   inpatient.py           inpatient encounter simulator
   outpatient.py          outpatient encounter simulator

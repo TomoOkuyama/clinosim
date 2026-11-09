@@ -136,6 +136,8 @@ clinosim/simulator/
   _dispatch.py           病院イベント dispatch + 重複処理
                          (`_dispatch_hospital_events`)
   daily_loop.py          engine から抽出した per-day ループ
+  terminal_course.py     院内死亡の直前数時間: 終末期の状態と、それに沿う
+                         最終 12 時間の vitals (Issue #2985)
   hospital_ops.py        病院運用オーケストレーション
   inpatient.py           入院エンカウンターシミュレータ
   outpatient.py          外来エンカウンターシミュレータ

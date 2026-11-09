@@ -436,6 +436,12 @@ def avpu_day_seed(patient_id: str, day: int) -> int:
     return _digest_int(f"avpu:{patient_id}:{day}", 8)
 
 
+def terminal_course_seed(patient_id: str, encounter_id: str) -> int:
+    """Per-stay seed of the measurement noise of the vitals charted in the
+    final hours before an in-hospital death (Issue #2985, 64-bit)."""
+    return _digest_int(f"terminal:{patient_id}:{encounter_id}", 8)
+
+
 def newborn_seed(key: str) -> int:
     """Per-mother (or per-key) seed for newborn attributes, bed and delivery
     mode draws, in ``[0, 2**32)``."""
