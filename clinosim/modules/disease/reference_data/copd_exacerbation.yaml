@@ -778,7 +778,7 @@ course_archetypes:
     order_modifications:
       day_2:
         add_labs: ["ABG", "Lactate", "D_dimer", "Troponin", "Blood_culture_x2"]
-        add_imaging: ["CT_angiography", "Chest_Xray_portable"]
+        add_imaging: ["CT_pulmonary_angiography", "Chest_Xray_portable"]
     treatment_modifications:
       day_2:
         start:

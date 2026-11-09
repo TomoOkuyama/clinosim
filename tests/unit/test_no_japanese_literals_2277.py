@@ -58,7 +58,6 @@ _ALLOWED: dict[str, set[str]] = {
         "(?:関節)?",
         "?contrast)?|軟部",
         "^(?:ecg|ekg)(?:[\\s\\-_].*)?$|心電図",
-        "angio(?:graphy|gram)|ctpa|肺動脈",
         "angio(?:graphy|gram)|冠動脈",
         "ct|脳",
         "ct|腎臓",

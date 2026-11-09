@@ -47,6 +47,7 @@ SUPPORTED_MODALITIES: frozenset[str] = frozenset(
         "XA",
         "ECG",
         "MG",  # Issue #2870: screening mammography
+        "RF",  # Issue #3113: videofluoroscopic swallowing study
     }
 )
 
@@ -81,6 +82,11 @@ SUPPORTED_BODY_SITES: frozenset[str] = frozenset(
         "cervical_spine",
         "lumbar_spine",
         "breast",  # Issue #2870
+        # Issue #3113: trauma pelvis film, whole-body CT, swallow study
+        "pelvis",
+        "whole_body",
+        "hypopharynx",
+        "chest_abdomen_pelvis",
     }
 )
 
@@ -260,7 +266,10 @@ class _ProcedureCodes(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     loinc: str = Field(min_length=1)
-    cpt: str = Field(min_length=1)
+    # Issue #3113: a study with no single CPT code (a whole-body or chest /
+    # abdomen / pelvis CT bills per region) or one not verifiable against the
+    # CMS fee schedule carries none; the field is not emitted.
+    cpt: str | None = Field(default=None, min_length=1)
     jp_k_code: str = Field(min_length=1)
 
 
@@ -511,18 +520,28 @@ def _resolve_imaging_procedure_code_key(
             return "CR_AP_Lateral"
         if body_site in ("ankle", "foot"):
             return "CR_AP_Lateral_Oblique"
+        if body_site == "pelvis":  # Issue #3113: trauma AP pelvis
+            return "CR_AP"
         if body_site == "wrist":
             return "CR_PA_Lateral_Oblique" if len(views) >= 3 else "CR_PA_Lateral"
     # CT — contrast is the discriminator; non-contrast is the default
     if modality == "CT":
-        if body_site in ("chest", "abdomen", "abdomen_pelvis"):
+        # Issue #3113: a CT angiogram is its own study — pulmonary arteries
+        # (chest), abdominal and pelvic vessels, head and neck vessels.
+        if "angiography" in views and body_site in ("chest", "abdomen_pelvis", "head"):
+            return "CTA"
+        if body_site in ("chest", "abdomen", "abdomen_pelvis", "chest_abdomen_pelvis"):
             return "CT_contrast" if contrast else "CT_non_contrast"
         if body_site == "head":
-            if "angiography" in views:  # Issue #2699: CT angiography of head and neck
-                return "CTA"
+            if "perfusion" in views:  # Issue #3113: CT perfusion of the brain
+                return "CT_perfusion"
             return "CT_non_contrast" if not contrast else "CT"
-        if body_site in ("hip", "spine"):
+        if body_site in ("hip", "spine", "cervical_spine", "hand", "wrist"):
             return "CT_non_contrast"
+        if body_site == "leg" and contrast:  # soft-tissue CT (cellulitis / abscess)
+            return "CT_contrast"
+        if body_site == "whole_body":  # trauma pan-scan, always with IV contrast
+            return "CT_contrast"
     # MR — non-contrast is the standard variant (contrast MR reserved for future)
     if modality == "MR":
         if body_site == "head" and "angiography" in views:  # Issue #2699: MR angiography
@@ -533,6 +552,10 @@ def _resolve_imaging_procedure_code_key(
     if modality == "US":
         if body_site == "leg":
             return "US_Doppler"
+        if body_site == "abdomen" and "subxiphoid" in views:  # Issue #3113: FAST
+            return "US_limited"
+        if body_site == "heart" and "midesophageal_4_chamber" in views:  # Issue #3113: TEE
+            return "US_TEE"
         if body_site in ("abdomen", "kidney", "skin", "heart", "carotid_artery", "urinary_bladder"):
             return "US"
     # ECG — a 12-lead electrocardiogram (Issue #2621); the waveform is
@@ -545,6 +568,9 @@ def _resolve_imaging_procedure_code_key(
     # MG — a bilateral screening mammogram (Issue #2870)
     if modality == "MG" and body_site == "breast":
         return "MG_screening"
+    # RF — a videofluoroscopic swallowing study (Issue #3113)
+    if modality == "RF" and body_site == "hypopharynx":
+        return "RF_swallow"
     raise ValueError(
         f"Unsupported imaging combination: modality={modality} body_site={body_site} views={views} contrast={contrast}"
     )

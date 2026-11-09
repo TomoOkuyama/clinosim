@@ -42,6 +42,10 @@ body_sites:
         loinc: "24628-0"                         # CT Chest W contrast IV (LOINC 2.82 ACTIVE)
         cpt: "71260"
         jp_k_code: "E200"
+      CTA:                                       # Issue #3113: CT pulmonary angiography (PE work-up)
+        loinc: "79077-4"                         # CTA Pulmonary arteries for pulmonary embolus W contrast IV (tx.fhir.org 2026-11-10)
+        cpt: "71275"                             # "Ct angiography chest" — CMS PFS RVU26D (PPRRVU2026_Oct)
+        jp_k_code: "E200"
       ECG:                                       # Issue #2621: 12-lead electrocardiogram (not imaging)
         loinc: "11524-6"                         # EKG study (tx.fhir.org $lookup 2026-11-06)
         cpt: "93000"
@@ -72,6 +76,11 @@ body_sites:
         loinc: "36881-1"                         # MRA Head vessels WO contrast
         cpt: "70544"                             # MRA head without contrast
         jp_k_code: "E202"
+      CT_perfusion:                              # Issue #3113: CT perfusion (acute ischaemic stroke)
+        loinc: "39142-5"                         # CT perfusion Head W contrast IV (tx.fhir.org 2026-11-10)
+        # No CPT: 0042T (cerebral perfusion analysis using CT) is not in
+        # the CMS PFS RVU26D file, so none is recorded.
+        jp_k_code: "E200"
 
   # === CO-1 continuation (session 43) — new body sites ===
 
@@ -102,6 +111,10 @@ body_sites:
         loinc: "24558-9"                         # US Abdomen — NLM verified
         cpt: "76700"                             # US abdomen complete — AMA
         jp_k_code: "D215"                        # 超音波検査
+      US_limited:                                # Issue #3113: FAST (focused trauma ultrasound)
+        loinc: "30704-1"                         # US Abdomen limited (tx.fhir.org 2026-11-10)
+        cpt: "76705"                             # "Echo exam of abdomen" — CMS PFS RVU26D (PPRRVU2026_Oct)
+        jp_k_code: "D215"
 
   # Issue #2654: CT of abdomen and pelvis (the common acute-abdomen study),
   # distinct from an abdomen-only CT. LOINC codes checked with tx.fhir.org;
@@ -118,6 +131,10 @@ body_sites:
       CT_contrast:
         loinc: "36813-4"                         # CT Abdomen and Pelvis W contrast IV
         cpt: "74177"
+        jp_k_code: "E200"
+      CTA:                                       # Issue #3113: CT angiography for GI bleeding
+        loinc: "69908-2"                         # CTA Abdominal vessels and Pelvis vessels W contrast IV (tx.fhir.org 2026-11-10)
+        cpt: "74174"                             # "Cta abd&plvs w/contrast" — CMS PFS RVU26D (PPRRVU2026_Oct)
         jp_k_code: "E200"
 
   kidney:
@@ -136,6 +153,10 @@ body_sites:
         loinc: "99607-4"                         # US Doppler Lower extremity vein bilateral — NLM verified
         cpt: "93970"                             # US extremity venous complete bilateral — AMA
         jp_k_code: "D215"
+      CT_contrast:                               # Issue #3113: soft-tissue CT (cellulitis / abscess)
+        loinc: "30624-1"                         # CT Lower extremity W contrast IV (tx.fhir.org 2026-11-10)
+        cpt: "73701"                             # "Ct lower extremity w/dye" — CMS PFS RVU26D (PPRRVU2026_Oct)
+        jp_k_code: "E200"
 
   skin:
     snomed: "39937001"                           # Skin structure
@@ -153,6 +174,10 @@ body_sites:
         loinc: "24722-1"                         # XR Hand 3 Views — NLM verified
         cpt: "73130"                             # X-ray hand, minimum 3 views (Issue #2390; 73140 is the fingers)
         jp_k_code: "E001"
+      CT_non_contrast:                           # Issue #3113: crush-injury fracture mapping
+        loinc: "36477-8"                         # CT Hand WO contrast (tx.fhir.org 2026-11-10)
+        cpt: "73200"                             # "Ct upper extremity w/o dye" — CMS PFS RVU26D (PPRRVU2026_Oct)
+        jp_k_code: "E200"
 
   hip:
     snomed: "29836001"                           # Hip region
@@ -211,6 +236,10 @@ body_sites:
         loinc: "37925-5"
         cpt: "73100"                             # X-ray wrist 2 views — AMA
         jp_k_code: "E001"
+      CT_non_contrast:                           # Issue #3113: intra-articular fracture planning
+        loinc: "37459-5"                         # CT Wrist WO contrast (tx.fhir.org 2026-11-10)
+        cpt: "73200"                             # "Ct upper extremity w/o dye" — CMS PFS RVU26D (PPRRVU2026_Oct)
+        jp_k_code: "E200"
 
   # === Issue #2655: sites that were folded into the nearest defined one ===
   # (ankle / foot -> leg, shoulder -> hand, echocardiography -> chest,
@@ -249,6 +278,10 @@ body_sites:
         loinc: "59281-6"                         # US Heart Transthoracic
         cpt: "93306"
         jp_k_code: "D215"                        # 超音波検査 (心臓超音波)
+      US_TEE:                                    # Issue #3113: transesophageal echocardiography
+        loinc: "85475-2"                         # US Heart Transesophageal (tx.fhir.org 2026-11-10)
+        cpt: "93312"                             # "Echo transesophageal" — CMS PFS RVU26D (PPRRVU2026_Oct)
+        jp_k_code: "D215"                        # 経食道心エコー法
   coronary_artery:
     snomed: "41801008"                           # Coronary artery structure
     procedure_codes:
@@ -287,6 +320,10 @@ body_sites:
         loinc: "36669-0"                         # XR Cervical spine 2 Views (tx.fhir.org 2026-11-06)
         cpt: "72040"                             # X-ray cervical spine 2 or 3 views — AMA (licensed, not checkable)
         jp_k_code: "E001"
+      CT_non_contrast:                           # Issue #3113: trauma cervical spine CT
+        loinc: "30592-0"                         # CT Cervical spine WO contrast (tx.fhir.org 2026-11-10)
+        cpt: "72125"                             # "Ct neck spine w/o dye" — CMS PFS RVU26D (PPRRVU2026_Oct)
+        jp_k_code: "E200"
   lumbar_spine:
     snomed: "122496007"                          # Lumbar spine structure
     report_template_site: spine                  # reads with the spine report templates
@@ -309,3 +346,42 @@ body_sites:
         loinc: "24606-6"                         # MG Breast Screening (tx.fhir.org 2026-11-08)
         cpt: "77067"                             # Screening mammography, bilateral (codes/data/cpt.yaml)
         jp_k_code: "E001"                        # 写真診断 (k-codes.yaml)
+
+  # === Issue #3113: sites of the trauma, staging and swallowing work-ups ===
+  # SNOMED and LOINC checked with tx.fhir.org $lookup (2026-11-10, active);
+  # CPT codes checked against the CMS Physician Fee Schedule relative value
+  # file RVU26D (PPRRVU2026_Oct, released 2026-08-26).
+  pelvis:
+    snomed: "12921003"                           # Pelvic structure
+    procedure_codes:
+      CR_AP:                                     # trauma AP pelvis
+        loinc: "37622-8"                         # XR Pelvis AP
+        cpt: "72170"                             # "X-ray exam of pelvis" — CMS PFS RVU26D
+        jp_k_code: "E001"
+  whole_body:
+    snomed: "38266002"                           # Entire body as a whole
+    procedure_codes:
+      CT_contrast:                               # trauma pan-scan (head to pelvis, IV contrast)
+        loinc: "46306-7"                         # CT Whole body W contrast IV
+        # No CPT: a pan-scan has no single code (it bills per region:
+        # 70450, 72125, 71260, 74177).
+        jp_k_code: "E200"
+  hypopharynx:
+    snomed: "81502006"                           # Hypopharyngeal structure
+    procedure_codes:
+      RF_swallow:                                # videofluoroscopic swallowing study (VF)
+        loinc: "24682-7"                         # RF videography Hypopharynx and Esophagus Views W liquid and paste contrast PO during swallowing
+        cpt: "74230"                             # "X-ray xm swlng funcj c+" — CMS PFS RVU26D
+        jp_k_code: "E001"                        # 写真診断 (造影剤使用撮影)
+  chest_abdomen_pelvis:
+    snomed: "22943007"                           # Trunk structure
+    report_template_site: chest
+    procedure_codes:
+      # Staging CT of chest, abdomen and pelvis (malignancy work-up). No
+      # CPT: it bills per region (71260 / 71250 + 74177 / 74176).
+      CT_contrast:
+        loinc: "72254-6"                         # CT Chest and Abdomen and Pelvis W contrast IV
+        jp_k_code: "E200"
+      CT_non_contrast:
+        loinc: "72253-8"                         # CT Chest and Abdomen and Pelvis WO contrast
+        jp_k_code: "E200"

@@ -30,12 +30,20 @@ views:
   sagittal: {en: sagittal, ja: 矢状断像}
   coronal: {en: coronal, ja: 冠状断像}
   angiography: {en: angiography, ja: 血管造影像}
+  perfusion: {en: perfusion, ja: 灌流画像}  # Issue #3113: CT perfusion
   # Ultrasound
   longitudinal: {en: longitudinal, ja: 縦断像}
   transverse: {en: transverse, ja: 横断像}
   doppler: {en: Doppler, ja: ドプラ像}
   parasternal_long_axis: {en: parasternal long-axis, ja: 傍胸骨長軸像}
   apical_4_chamber: {en: apical 4-chamber, ja: 心尖部四腔像}
+  # Issue #3113: transesophageal echocardiogram and the FAST windows
+  midesophageal_4_chamber: {en: midesophageal 4-chamber, ja: 中部食道四腔像}
+  transgastric_short_axis: {en: transgastric short-axis, ja: 経胃短軸像}
+  RUQ: {en: right upper quadrant (Morison's pouch), ja: 右上腹部 (モリソン窩)}
+  LUQ: {en: left upper quadrant (splenorenal), ja: 左上腹部 (脾腎境界)}
+  pelvic: {en: pelvic, ja: 骨盤腔 (膀胱周囲)}
+  subxiphoid: {en: subxiphoid (pericardial), ja: 心窩部 (心嚢)}
   # Coronary angiography projections
   LAO: {en: LAO, ja: 左前斜位 (LAO)}
   RAO: {en: RAO, ja: 右前斜位 (RAO)}

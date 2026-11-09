@@ -145,7 +145,14 @@ from clinosim.modules.imaging.inference import (
 - **Inference whitelist** (`inference.py`): pattern は substring
   match で発火。missed match は `None` を返し、enricher は order を
   silent drop せず stub study (series 無し、汎用陰性 report 付き) を
-  emit する。
+  emit する。疾患 protocol が出す画像キー (`add_imaging`、`imaging`
+  リスト、`type: imaging` の trigger) はすべて modality・body site・
+  登録済み LOINC 手技コード・en/ja の検査名を持つ study に解決されねば
+  ならない (Issue #3113、`tests/unit/test_imaging_protocol_keys_3113.py`
+  で guard)。CT アンギオは部位を名前に持つ (`CT_pulmonary_angiography`、
+  `CT_angiography_abdomen_pelvis`、`CT_angiography_head_neck`)。部位の無い
+  `CT_angiography` は match しない。部位・適応別のパターンは Python ではなく
+  `reference_data/exam_region_patterns.yaml` (en/ja) に置く。
 
 ## ディレクトリ構造
 
@@ -158,6 +165,7 @@ clinosim/modules/imaging/
   reference_data/
     modalities.yaml                modality + default_views_by_body_site
     body_sites.yaml                SNOMED body-site カタログ
+    exam_region_patterns.yaml      部位・適応別の検査の en/ja order 名パターン (inference.py が先に照合、Issue #3113)
     impression_templates.yaml      (modality × body_site) 別 report template
     view_labels.yaml               series description 用の en / ja view 名 (series_view_display、Issue #3030)
     bedside_examinations.yaml      画像検査ではなくベッドサイド診察である work-up order 名 (bedside_examination_names、Issue #2796)
@@ -203,6 +211,8 @@ clinosim audit run -d <cohort_dir> --module imaging
   — 15-check audit plug-in unit run。
 - [`tests/unit/test_imaging_inference.py`](../../../tests/unit/test_imaging_inference.py)
   — whitelist regex coverage。
+- [`tests/unit/test_imaging_protocol_keys_3113.py`](../../../tests/unit/test_imaging_protocol_keys_3113.py)
+  — 疾患 protocol の全画像キーがコード付き catalog study に解決される。
 - [`tests/unit/output/test_fhir_imaging_study.py`](../../../tests/unit/output/test_fhir_imaging_study.py)
   — FHIR ImagingStudy emission unit。
 - [`tests/integration/test_imaging_chain.py`](../../../tests/integration/test_imaging_chain.py),

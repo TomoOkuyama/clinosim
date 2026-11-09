@@ -39,6 +39,7 @@ modalities:
       shoulder: ["AP", "Lateral"]                # Issue #2655 (incl. post-reduction)
       cervical_spine: ["AP", "Lateral"]          # Issue #2657
       lumbar_spine: ["AP", "Lateral"]            # Issue #2657
+      pelvis: ["AP"]                             # Issue #3113: trauma pelvis film
 
   CT:                                            # Computed Tomography
     dicom_code: "CT"
@@ -52,6 +53,13 @@ modalities:
       spine: [220, 320]
       kidney: [280, 420]                         # CT urography ≈ abdomen coverage
       leg: [180, 320]                            # session-103: soft-tissue CT for cellulitis workup
+      # Issue #3113: cervical spine (trauma), hand / wrist (fracture
+      # planning), whole body (trauma pan-scan, head to pelvis).
+      cervical_spine: [150, 260]
+      hand: [120, 240]
+      wrist: [120, 240]
+      whole_body: [1200, 2000]
+      chest_abdomen_pelvis: [600, 900]           # Issue #3113: staging CT
     default_views_by_body_site:
       head: ["axial"]
       chest: ["axial"]
@@ -61,6 +69,11 @@ modalities:
       spine: ["axial"]
       kidney: ["axial"]
       leg: ["axial"]                             # session-103: CT_soft_tissue_with_contrast
+      cervical_spine: ["axial", "sagittal"]      # Issue #3113
+      hand: ["axial", "coronal"]                 # Issue #3113
+      wrist: ["axial", "coronal"]                # Issue #3113
+      whole_body: ["axial"]                      # Issue #3113
+      chest_abdomen_pelvis: ["axial"]            # Issue #3113
 
   MR:                                            # Magnetic Resonance
     dicom_code: "MR"
@@ -111,6 +124,14 @@ modalities:
     default_views_by_body_site:
       chest: ["LAO", "RAO"]
       coronary_artery: ["LAO", "RAO"]            # Issue #2655
+
+  RF:                                            # Radiofluoroscopy (Issue #3113)
+    dicom_code: "RF"
+    report_read_minutes: [30, 120]               # videofluoroscopic swallow, read with the speech therapist
+    typical_instances_per_series_range:
+      hypopharynx: [2, 6]                        # cine loops per projection (several boluses)
+    default_views_by_body_site:
+      hypopharynx: ["Lateral", "AP"]             # lateral then frontal swallow projections
 
   ECG:                                           # Electrocardiography (DICOM waveform)
     dicom_code: "ECG"

@@ -169,7 +169,7 @@ order_protocols:
          note: "Within 24h for non-variceal; within 12h for variceal"}
       - {test: "Colonoscopy", urgency: "semi_urgent", probability: 0.30,
          note: "If upper GI source not identified"}
-      - {test: "CT_angiography", urgency: "stat", probability: 0.10,
+      - {test: "CT_angiography_abdomen_pelvis", urgency: "stat", probability: 0.10,
          note: "If massive bleeding with hemodynamic instability"}
     supportive:
       - {type: "IV_fluid", detail: "NS or LR 500-1000mL bolus, then 125-250mL/h"}
@@ -206,7 +206,7 @@ order_protocols:
       actions:
         - {type: "fluid", action: "aggressive_IV_resuscitation"}
         - {type: "transfusion", action: "transfuse_pRBC_and_FFP"}
-        - {type: "imaging", test: "CT_angiography"}
+        - {type: "imaging", test: "CT_angiography_abdomen_pelvis"}
         - {type: "evaluate", action: "consider_ICU_transfer"}
     rebleeding:
       condition: "Recurrent hematemesis or melena with Hb drop after initial stabilization"
@@ -622,7 +622,7 @@ course_archetypes:
     order_modifications:
       day_2:
         add_labs: ["Hb_stat", "Lactate", "Type_and_crossmatch"]
-        add_imaging: ["CT_angiography"]
+        add_imaging: ["CT_angiography_abdomen_pelvis"]
         add_consult: ["interventional_radiology", "surgery"]
     treatment_modifications:
       day_2:
@@ -647,7 +647,7 @@ course_archetypes:
         add_procedures: ["Repeat_upper_endoscopy"]
       day_5:
         add_labs: ["Lactate", "ABG"]
-        add_imaging: ["CT_angiography"]
+        add_imaging: ["CT_angiography_abdomen_pelvis"]
     treatment_modifications:
       day_3:
         add_transfusion: {detail: "pRBC 2 units"}
