@@ -1,7 +1,8 @@
 # Medication orders that supersede an earlier active order (Issue #2615).
 #
 # A second order for the same drug in an encounter replaces the first (a
-# dose or frequency change ends the previous order). Besides that, an
+# dose or frequency change ends the previous order); two such orders placed
+# at the same time are duplicates and the second is cancelled (Issue #2983). Besides that, an
 # escalation to a drug of `new_class` stops any active order whose drug is
 # in one of `stops` (the earlier agent's administrations end at the switch).
 # Only escalations clinicians make as a replacement are listed here: an
@@ -13,10 +14,24 @@ metadata:
   source: clinosim
 
 class_switches:
-  # Escalation to a carbapenem replaces the earlier broad beta-lactam
-  # (e.g. piperacillin/tazobactam -> meropenem).
+  # Escalation to a carbapenem replaces the earlier beta-lactam, a carbapenem
+  # included (e.g. piperacillin/tazobactam -> meropenem).
   - new_class: antibiotic.carbapenem
+    stops: [antibiotic.penicillin, antibiotic.cephalosporin, antibiotic.carbapenem]
+  # Issue #2983 (IDSA/SHEA antimicrobial stewardship: an escalated or
+  # de-escalated beta-lactam replaces the previous one).
+  # A penicillin with a beta-lactamase inhibitor (piperacillin/tazobactam,
+  # ampicillin/sulbactam, amoxicillin/clavulanate step-down) replaces an
+  # earlier cephalosporin or penicillin (ceftriaxone -> piperacillin/
+  # tazobactam).
+  - new_class: antibiotic.penicillin.bli_combination
     stops: [antibiotic.penicillin, antibiotic.cephalosporin]
+  # A cephalosporin replaces an earlier cephalosporin (cefazolin ->
+  # ceftriaxone, IV -> oral step-down) or an inhibitor combination
+  # (piperacillin/tazobactam -> ceftriaxone de-escalation). Plain ampicillin
+  # with ceftriaxone (Listeria / enterococcal cover) stays a combination.
+  - new_class: antibiotic.cephalosporin
+    stops: [antibiotic.cephalosporin, antibiotic.penicillin.bli_combination]
 
 # Markers of an as-needed order (frequency or order text). A PRN order next to
 # a scheduled order for the same drug is breakthrough dosing, not a replacement.

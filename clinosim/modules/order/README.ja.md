@@ -50,7 +50,10 @@ ServiceRequest への `basedOn` を持つことを要求する
   (`discontinue_flip.py`、`DISCONTINUE: X` marker の元 order を
   `STOPPED` に flip する POST_ENCOUNTER enricher)、
   `enrich_supersede_orders` (`supersede.py`、新しい薬剤 order に
-  置き換えられた旧 order を停止する POST_ENCOUNTER enricher)、
+  置き換えられた旧 order を停止する POST_ENCOUNTER enricher。同一薬剤
+  または登録済の class 切替 (β ラクタム同士の切替など) を対象とし、切替の
+  投与枠にある旧薬剤の投与を落とし (`_supersede_thresholds.py`)、同時刻に
+  出た重複 order を取り消し、単回投与は対象外とする。Issue #2983)、
   `prescription_closures` (`prescription_supersede.py`)、日次 loop 外
   発注の MAR helper (`placed_order_mar.py`)、体重 / 体表面積基準の
   投与量 (`absolute_dose.py`)、
@@ -269,7 +272,7 @@ clinosim/modules/order/
   _order_placement_timing.py         placement offset 定数 (Issue #637)
   _state_delay_thresholds.py         hospital-state delay 定数 (Issue #637)
   reference_data/
-    medication_supersede.yaml        supersede.py が読む class 切替 + PRN marker (Issue #2615)
+    medication_supersede.yaml        supersede.py が読む class 切替 + PRN marker (Issue #2615, #2983)
     pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢、輸液ごとの mL/kg、国別上書き (Issue #2857, #2977, #3012)
     label_dose_limits.yaml           label_dose.py が読む国別の 1 回量・1 日回数・1 日最大量 (Issue #3012)
   SPEC.md                            拡張設計参考 (runtime data ではない)

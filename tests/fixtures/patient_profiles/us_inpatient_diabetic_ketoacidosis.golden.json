@@ -21,7 +21,7 @@
       },
       "sections": {
         "allergies": "No known drug allergies (NKDA)",
-        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Working diagnosis: diabetic ketoacidosis (severity: severe). Comorbidities: Type 2 diabetes (DM), Dyslipidemia. Plan: Estimated length of stay: ~5 days. Initial medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.",
+        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Working diagnosis: diabetic ketoacidosis (severity: severe). Comorbidities: Type 2 diabetes (DM), Dyslipidemia. Plan: Estimated length of stay: ~5 days. Initial medications: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "family_history": "No significant family history",
         "hpi": "Patient reports rapid symptom worsening prompting today's presentation.",
@@ -77,10 +77,10 @@
       "sections": {
         "assessment": "Complications noted (aspiration pneumonia, DVT); management ongoing. Notable labs today: glucose 551.0 mg/dL [critical], K 5.3 mmol/L [H], HCO3 5.8 mmol/L [L], BUN 31.2 mg/dL [H].",
         "objective": "BP 107/67 mmHg, HR 113/min, T 36.3°C, SpO2 94% (RA), RR 22/min",
-        "plan": "Continue current medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.",
+        "plan": "Continue current medications: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin.",
         "subjective": "Hospital day 1. No new subjective complaints."
       },
-      "text": "S: Hospital day 1. No new subjective complaints.\nO: BP 107/67 mmHg, HR 113/min, T 36.3°C, SpO2 94% (RA), RR 22/min\nA: Complications noted (aspiration pneumonia, DVT); management ongoing. Notable labs today: glucose 551.0 mg/dL [critical], K 5.3 mmol/L [H], HCO3 5.8 mmol/L [L], BUN 31.2 mg/dL [H].\nP: Continue current medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0."
+      "text": "S: Hospital day 1. No new subjective complaints.\nO: BP 107/67 mmHg, HR 113/min, T 36.3°C, SpO2 94% (RA), RR 22/min\nA: Complications noted (aspiration pneumonia, DVT); management ongoing. Notable labs today: glucose 551.0 mg/dL [critical], K 5.3 mmol/L [H], HCO3 5.8 mmol/L [L], BUN 31.2 mg/dL [H].\nP: Continue current medications: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0, Enoxaparin."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-03": {
