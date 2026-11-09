@@ -1115,7 +1115,7 @@ def generate_healthcare_calendar(
         # test_empty_schedule_returns_no_events_and_does_not_consume_rng).
         from clinosim.modules.pediatric.calendar import generate_pediatric_events
 
-        events.extend(generate_pediatric_events(person, year, prng))
+        events.extend(generate_pediatric_events(person, year, prng, country=country))
 
         # --- Pregnancy lifecycle (META #957 Incr 1) ---
         # Runs for everyone, for the same reason as pediatric encounters

@@ -33,7 +33,8 @@ import:
 ```python
 from clinosim.modules.pediatric.calendar import (
     load_pediatric_schedule,     # (path=None) -> {encounter_key: entry_dict}
-    generate_pediatric_events,   # (person, year, prng, schedule=None) -> list[LifeEvent]
+    generate_pediatric_events,   # (person, year, prng, schedule=None, country=None) -> list[LifeEvent]
+    place_vaccination_visit,     # 接種期間内の予防接種受診日 (Issue #2974)
     pediatric_presentation,      # (visit_id) -> Presentation | None (急性受診のみ)
     Presentation,                # 急性受診 1 件の臨床像を表す pydantic model
 )
@@ -98,6 +99,7 @@ condition_type="pediatric", protocol_source="pediatric:<key>")` を
 | `encounter_type` | `"outpatient"` のみ (それ以外は model が拒否) — `LifeEvent.encounter_type` に copy。 |
 | `disease_id` | `LifeEvent.disease_id` に copy。診療科解決と visit-reason lookup に使用。 |
 | `visit_reason` | 任意。bilingual `{en, ja}` dict または文字列。`simulator/_setup.py::_pediatric_visit_reason` が読み、encounter の chief complaint に emit。 |
+| `vaccination` | 任意、既定 `false`。接種のための受診 (理由 Z23)。国が渡されると `generate_pediatric_events` は、その国の予防接種スケジュールのうちその年に始まり年齢帯と重なる定期接種の接種期間内 (引いた日に最も近い日) に受診を移し、該当する期間がなければ受診を入れない。受診には必ず接種対象がある (`place_vaccination_visit`、Issue #2974)。乱数の引き方は変わらない。 |
 
 `presentations:` の各 entry は `encounters:` の `disease_id` をキーとする
 (未知のキーは load 時に失敗):
@@ -135,8 +137,8 @@ clinosim/modules/pediatric/
 Integration は
 [`clinosim/modules/population/engine.py`](../population/engine.py)
 (`generate_healthcare_calendar`):
-`generate_healthcare_calendar` が per-person spawn 済み `prng` を
-渡して `generate_pediatric_events` を呼び、返却 `LifeEvent` list を
+`generate_healthcare_calendar` が per-person spawn 済み `prng` と
+コホートの国を渡して `generate_pediatric_events` を呼び、返却 `LifeEvent` list を
 calendar `events` list に merge する。以降のパイプラインは
 pediatric event を他の calendar event と同等に扱う。
 
@@ -144,7 +146,7 @@ pediatric event を他の calendar event と同等に扱う。
 
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
-| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`generate_healthcare_calendar` 内) | (person, year) ごとに `generate_pediatric_events(person, year, prng)` を呼び、返却 `LifeEvent` を calendar `events` list に追加。 |
+| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (`generate_healthcare_calendar` 内) | (person, year) ごとに `generate_pediatric_events(person, year, prng, country=country)` を呼び、返却 `LifeEvent` を calendar `events` list に追加。 |
 | Healthcare-calendar dispatch | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | `event_type == "pediatric_visit"` を外来受診に振り分け (診療科は `resolve_outpatient_department`、主訴は `_pediatric_visit_reason(disease_id)`)。 |
 | Visit-reason lookup | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_pediatric_visit_reason`) | `load_pediatric_schedule()` から `visit_reason` を読む。 |
 | Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` 分岐。`pediatric_presentation` が急性受診の vitals・発熱状態・処方を供給。 |
