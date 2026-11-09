@@ -98,6 +98,8 @@ def build_narrative_context(
         family_history=_o(record, "family_history", []) or [],
         # Issue #1066 — encounter-filtered drug_safety avoidance log for narrative surface.
         safety_skips=safety_skips,
+        # Issue #2995: home medications at admission (admission H&P).
+        home_medications_at_admission=_o(record, "home_medications_at_admission", None),
         # Issue #1404 — neonatal admission workup projection (Apgar,
         # bilirubin trend, CCHD SpO2, hearing/metabolic screen flags,
         # Vitamin K / ophthalmic prophylaxis MAR flags). Empty for

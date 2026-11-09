@@ -26,7 +26,7 @@ from clinosim.types.encounter import (
 )
 from clinosim.types.family_history import FamilyMemberHistoryRecord
 from clinosim.types.microbiology import MicrobiologyResult
-from clinosim.types.patient import PatientProfile
+from clinosim.types.patient import HomeMedication, PatientProfile
 from clinosim.types.procedure import ProcedureRecord, RehabSession
 
 
@@ -88,6 +88,13 @@ class CIFPatientRecord:
     care_level: str = ""  # AD-55 Base: JP 要介護度 (jp-care-level code; JP only)
     microbiology: list[MicrobiologyResult] = field(default_factory=list)  # AD-55 Base (codes only)
     discharge_prescription: PrescriptionRecord | None = None
+    # Issue #2995: the patient's home medications when the stay began (the
+    # list the admission medication reconciliation reads). ``patient`` is the
+    # patient's profile at the end of the simulation, whose
+    # ``current_medications`` later encounters replace; the admission H&P
+    # reads this snapshot. ``None`` for encounters that record none
+    # (outpatient, ED) and for CIF written before it existed.
+    home_medications_at_admission: list[HomeMedication] | None = None
     icu_transferred: bool = False
     # C5-22 (imaging chain closure): day (0-indexed LOS day) at
     # which the patient was transferred to ICU. -1 when no transfer. Used

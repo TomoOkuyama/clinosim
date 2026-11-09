@@ -374,6 +374,8 @@ def _simulate_unknown_condition(
 
     record = CIFPatientRecord(
         patient=patient,
+        # Issue #2995: the home medications at admission, for the admission H&P.
+        home_medications_at_admission=list(patient.current_medications),
         encounters=[encounter],
         orders=all_orders,
         vital_signs=all_vitals,

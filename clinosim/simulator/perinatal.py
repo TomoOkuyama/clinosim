@@ -954,6 +954,8 @@ def simulate_delivery_encounter(
     attach_orders(orders, encounter)  # every encounter kind links its orders the same way
     mother_record = CIFPatientRecord(
         patient=patient,
+        # Issue #2995: the home medications at admission, for the admission H&P.
+        home_medications_at_admission=list(patient.current_medications),
         encounters=[encounter],
         orders=orders,
         medication_administrations=_bundle_mars,
@@ -1111,6 +1113,7 @@ def simulate_delivery_encounter(
 
     newborn_record = CIFPatientRecord(
         patient=newborn,
+        home_medications_at_admission=[],  # Issue #2995: a newborn takes nothing at home
         encounters=[newborn_encounter],
         orders=[],
         vital_signs=[],

@@ -594,6 +594,9 @@ class NarrativePass(ABC):
             # here so the two factories stay in lockstep.
             safety_skips=_build_safety_skips(patient_dict.get("patient"), encounter_dict),
             newborn_workup=_build_newborn_workup(patient_dict, patient_dict.get("patient")),
+            # Issue #2995: the home medications at admission (admission H&P);
+            # the same field the ``build_narrative_context`` factory reads.
+            home_medications_at_admission=patient_dict.get("home_medications_at_admission"),
         )
         ctx.narrative_spine = build_narrative_spine(
             disease_protocol,

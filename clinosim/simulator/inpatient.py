@@ -732,6 +732,9 @@ def _simulate_patient(
     admission_orders.extend(adm_imaging)
 
     # Home medication orders (chronic condition continuation)
+    # Issue #2995: the home medications at admission, kept on the record for
+    # the admission H&P (later encounters replace patient.current_medications).
+    home_medications_at_admission = list(patient.current_medications)
     home_med_orders, chronic_monitoring = _generate_home_medication_orders(
         patient,
         encounter.encounter_id,
@@ -993,6 +996,7 @@ def _simulate_patient(
 
     record = CIFPatientRecord(
         patient=patient,
+        home_medications_at_admission=home_medications_at_admission,
         encounters=[encounter],
         orders=all_orders,
         vital_signs=all_vitals,

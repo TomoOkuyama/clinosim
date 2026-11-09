@@ -447,7 +447,12 @@ def _build_extra_context(
     elif doc_type == "admission_hp":
         # home_medications: skip when template renders medications_at_home.
         if "medications_at_home" not in tmpl:
-            home_meds = _get(p, "current_medications", []) or _get(p, "medications", []) or []
+            # Issue #2995: the medications at admission, as the template section.
+            from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
+                home_medications_at_admission,
+            )
+
+            home_meds: list = home_medications_at_admission(ctx)[0] or list(_get(p, "medications", []) or [])
             med_names = _render_med_names(home_meds, lang=ctx.target_lang)
             if med_names:
                 extra["home_medications"] = med_names
