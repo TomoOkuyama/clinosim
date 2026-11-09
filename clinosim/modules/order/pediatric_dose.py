@@ -12,6 +12,8 @@ mL/h"). For a patient under ``adult_age_years`` (``pediatric_dosing.yaml``):
   ``pediatric_dose_text``, Issue #3004): a listed drug's mg dose becomes
   ``mg_per_kg`` × weight and a listed fluid's maintenance rate the
   Holliday-Segar rate, never more than the written adult dose or rate.
+  Antibiotics are listed too, and a dose written in grams is re-dosed in mg
+  (Issue #3082); the antibiotic enricher's regimens use the same table.
 """
 
 from __future__ import annotations
@@ -29,6 +31,10 @@ from clinosim.datafiles import load_validated_yaml
 
 _REF = Path(__file__).resolve().parent / "reference_data" / "pediatric_dosing.yaml"
 _STRENGTH = re.compile(r"(\d+(?:\.\d+)?)\s*mg\b", re.IGNORECASE)
+# A strength in milligrams or grams ("1g", "3.375 g", "500mg"); grams are how
+# the adult antibiotic regimens are written (Issue #3082).
+_MG_OR_G = re.compile(r"(\d+(?:\.\d+)?)\s*(mg|g)\b", re.IGNORECASE)
+_MG_PER_UNIT = {"mg": 1.0, "g": 1000.0}
 _VOLUME = re.compile(r"(\d+(?:\.\d+)?)\s*(mL|L)\b", re.IGNORECASE)
 # An hourly rate as written, a range ("80-125 mL/h") or one value.
 _RATE = re.compile(r"\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?\s*mL/h\b", re.IGNORECASE)
@@ -149,14 +155,16 @@ def _child_mg(key: str, written_mg: float, age_months: int, weight_kg: float | N
 
 
 def pediatric_dose_text(drug: str, dose: str, age_months: int, weight_kg: float | None, country: str = "US") -> str:
-    """A prescription's dose text (``"75mg PO BID"``) re-dosed for a child
-    (Issue #3004): its first mg strength becomes the child's dose. Unchanged
-    for an adult, an unlisted drug, or a dose not written in mg."""
-    m = _STRENGTH.search(dose or "")
+    """A prescription's dose text (``"75mg PO BID"``, ``"1g"``) re-dosed for a
+    child (Issue #3004, #3082): its first mg or g strength becomes the child's
+    dose in mg. Unchanged for an adult, an unlisted drug, a dose not written in
+    mg or g, or a child dose no lower than the written one."""
+    m = _MG_OR_G.search(dose or "")
     if not m or (m.end() < len(dose) and dose[m.end()] == "/"):
         return dose
-    mg = _child_mg(drug_key(drug), float(m.group(1)), age_months, weight_kg, country)
-    if mg is None:
+    written = float(m.group(1)) * _MG_PER_UNIT[m.group(2).lower()]
+    mg = _child_mg(drug_key(drug), written, age_months, weight_kg, country)
+    if mg is None or (mg >= written and m.group(2).lower() == "g"):
         return dose
     return dose[: m.start()] + f"{mg:g}mg" + dose[m.end() :]
 
@@ -181,14 +189,15 @@ def redose_order_for_child(order: Any, age_months: int, weight_kg: float | None,
             order.dose_quantity = rate
             order.display_name = _RATE.sub(f"{rate:g} mL/h", name, count=1)
         return
-    if unit.lower() != "mg":
+    per_unit = _MG_PER_UNIT.get(unit.lower())
+    if per_unit is None:
         return
-    mg = _child_mg(
-        str(getattr(order, "drug_id", "") or key), float(order.dose_quantity), age_months, weight_kg, country
-    )
-    if mg is None or mg >= order.dose_quantity:
+    written = float(order.dose_quantity) * per_unit
+    mg = _child_mg(str(getattr(order, "drug_id", "") or key), written, age_months, weight_kg, country)
+    if mg is None or mg >= written:
         return
     order.dose_quantity = mg
-    m = _STRENGTH.search(name)
+    order.dose_unit = "mg"
+    m = _MG_OR_G.search(name)
     if m and not (m.end() < len(name) and name[m.end()] == "/"):
         order.display_name = name[: m.start()] + f"{mg:g}mg" + name[m.end() :]

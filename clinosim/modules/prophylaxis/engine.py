@@ -124,7 +124,7 @@ def should_skip_dvt_prophylaxis(
     # pediatric VTE prophylaxis guidelines do not recommend routine
     # prophylaxis for the "any adult inpatient ≥ 48 h LOS" trigger
     # this rule set applies. Skip below `pediatric_age_ceiling`
-    # (default 15). A follow-up in the pediatric care module (Issue
+    # (18, Issue #3082). A follow-up in the pediatric care module (Issue
     # #1137) can layer positive-indication detection (ortho surgery,
     # ICU immobilization, Kawasaki disease) + weight-based dosing.
     peds_rule = conditions.get("pediatric_age_gate", {}) or {}

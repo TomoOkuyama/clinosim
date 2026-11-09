@@ -18,7 +18,7 @@ encounters ≥ 48 h, plus its daily MedicationAdministration rows
 (Issue #2607 — one dose at `administration_hour` from the order until
 discharge, given by a ward nurse picked with
 `order.placed_order_mar.stable_nurse`), with rule-based skip when the patient is below the
-pediatric age ceiling (default 15), is already on therapeutic
+pediatric age ceiling (default 18), is already on therapeutic
 anticoagulation (warfarin / DOAC / heparin drip), the admission dx is
 active bleeding / recent hemorrhagic stroke / GI bleed / delivery /
 active DVT-PE treatment, or Enoxaparin would form a major /
@@ -86,7 +86,7 @@ across runs.
   threshold / `administration_hour` (MAR dose time, Issue #2607)
 - `skip_conditions` block: 5 rules (therapeutic AC / active bleed /
   perinatal delivery / active DVT-PE treatment / pediatric age gate)
-  with drug needles, ICD prefixes, or `pediatric_age_ceiling` (15).
+  with drug needles, ICD prefixes, or `pediatric_age_ceiling` (18).
   The drug_safety pair check is code-only (no yaml block).
 
 Schema-level guidance: every skip condition MUST document its clinical
@@ -135,7 +135,7 @@ Unit tests: `tests/unit/test_prophylaxis.py` covering
 - Active hemorrhage dx → skipped
 - Delivery dx (Z37/Z38) → skipped
 - Active DVT/PE dx → skipped (own therapy replaces prophylaxis)
-- Pediatric (age < 15) admission → skipped (Issue #1276)
+- Pediatric (age < 18) admission → skipped (Issue #1276, #3082)
 - Chronic aspirin / in-encounter NSAID → skipped via drug_safety pair (Issue #1087)
 - Normal J18 pneumonia IMP ≥ 48 h → order emitted
 

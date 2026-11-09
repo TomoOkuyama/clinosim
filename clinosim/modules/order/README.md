@@ -266,7 +266,10 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   fluids (hourly rate of listed fluids, Holliday-Segar 4-2-1 rule from
   `maintenance_fluid_bands`) by the weight charted at admission, and
   `pediatric_dose_text` the discharge prescription doses — never more than
-  the written adult dose or rate.
+  the written adult dose or rate. Antibiotics (Issue #3082): per-dose mg/kg
+  and maximum from the Harriet Lane Handbook / AAP Red Book; doses written in
+  grams ("1g", "3.375g") are re-dosed too, in mg, and the antibiotic
+  enricher's post-stay regimens go through `pediatric_dose_text`.
 - **Label dose limits** ([`reference_data/label_dose_limits.yaml`](reference_data/label_dose_limits.yaml),
   read by `label_dose.py`, validated by `LabelDoseLimitsFile`): per country
   and catalog drug the label's single dose, doses a day and daily maximum
@@ -299,7 +302,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay constants (Issue #637)
   reference_data/
     medication_supersede.yaml        class switches + PRN markers read by supersede.py (Issues #2615, #2983)
-    pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg, per-country overrides, Holliday-Segar bands (Issue #2857, #2977, #3012, #3004)
+    pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg, per-country overrides, Holliday-Segar bands (Issue #2857, #2977, #3012, #3004, #3082)
     label_dose_limits.yaml           per-country label dose, doses a day, daily max read by label_dose.py (Issue #3012)
   SPEC.md                            extended design reference (not runtime)
 ```

@@ -50,6 +50,49 @@ drugs:
   cetirizine: {mg_per_kg: 0.25, max_mg: 10, min_age_months: 6}
   epinephrine: {mg_per_kg: 0.01, max_mg: 0.5, min_age_months: 0}
 
+  # --- Antibiotics (Issue #3082) ---------------------------------------
+  # Inpatient intravenous antibiotics, per dose, at the interval the order
+  # already carries; the written adult dose remains the ceiling. Sources:
+  # The Harriet Lane Handbook (23rd ed., 2023), Formulary; AAP Red Book
+  # 2024-2027, "Antibacterial drugs for pediatric patients beyond the
+  # newborn period"; cefmetazole: セフメタゾン package insert (小児 1 日
+  # 25-100 mg/kg を 2-4 回に分割). min_age_months is 0: a labelled lower age
+  # does not withhold an antibiotic here, the dose is weight-based at any age.
+  #   ceftriaxone 50 mg/kg q24h (non-CNS), max 2 g
+  #   cefotaxime 50 mg/kg q8h, max 2 g
+  #   cefepime 50 mg/kg q8-12h, max 2 g
+  #   cefazolin 25 mg/kg q8h, max 2 g
+  #   cefmetazole 25 mg/kg q6-12h, max 2 g
+  #   meropenem 20 mg/kg q8h (non-CNS), max 1 g
+  #   piperacillin/tazobactam 100 mg/kg piperacillin q6-8h, max 4 g
+  #     piperacillin — dosed as the combined product (3.375 / 4.5 g), so
+  #     112.5 mg/kg and 4.5 g of the combination
+  #   ampicillin/sulbactam 50 mg/kg ampicillin q6h, max 2 g ampicillin —
+  #     as the combined product 75 mg/kg and 3 g
+  #   ampicillin 50 mg/kg q6h, max 2 g
+  #   vancomycin 15 mg/kg q6h (then adjusted to levels), max 2 g
+  #   gentamicin 2.5 mg/kg q8h (traditional dosing; adjusted to levels)
+  #   clindamycin IV 10 mg/kg q8h, max 900 mg
+  #   metronidazole IV 10 mg/kg q8h, max 500 mg
+  #   ciprofloxacin IV 10 mg/kg q12h, max 400 mg
+  #   trimethoprim/sulfamethoxazole 5 mg/kg trimethoprim q12h, max 160 mg
+  #     trimethoprim
+  ceftriaxone: {mg_per_kg: 50, max_mg: 2000, min_age_months: 0}
+  cefotaxime: {mg_per_kg: 50, max_mg: 2000, min_age_months: 0}
+  cefepime: {mg_per_kg: 50, max_mg: 2000, min_age_months: 0}
+  cefazolin: {mg_per_kg: 25, max_mg: 2000, min_age_months: 0}
+  cefmetazole: {mg_per_kg: 25, max_mg: 2000, min_age_months: 0}
+  meropenem: {mg_per_kg: 20, max_mg: 1000, min_age_months: 0}
+  piperacillin_tazobactam: {mg_per_kg: 112.5, max_mg: 4500, min_age_months: 0}
+  ampicillin_sulbactam: {mg_per_kg: 75, max_mg: 3000, min_age_months: 0}
+  ampicillin: {mg_per_kg: 50, max_mg: 2000, min_age_months: 0}
+  vancomycin: {mg_per_kg: 15, max_mg: 2000, min_age_months: 0}
+  gentamicin: {mg_per_kg: 2.5, max_mg: 120, min_age_months: 0}
+  clindamycin: {mg_per_kg: 10, max_mg: 900, min_age_months: 0}
+  metronidazole: {mg_per_kg: 10, max_mg: 500, min_age_months: 0}
+  ciprofloxacin: {mg_per_kg: 10, max_mg: 400, min_age_months: 0}
+  trimethoprim_sulfamethoxazole: {mg_per_kg: 5, max_mg: 160, min_age_months: 0}
+
 fluids:
   normal_saline: {ml_per_kg: 20}
   lactated_ringer_solution: {ml_per_kg: 20}

@@ -228,10 +228,10 @@ def test_pediatric_no_order_end_to_end_1276() -> None:
 
 
 def test_pediatric_ceiling_boundary_1276() -> None:
-    """Age 15 is at the ceiling → NOT pediatric, prophylaxis path
-    proceeds normally (skip=False on unrelated admission dx)."""
+    """Age 18 is at the ceiling (Issue #3082) → NOT pediatric, prophylaxis
+    path proceeds normally (skip=False on unrelated admission dx)."""
     skip, reason = should_skip_dvt_prophylaxis(
-        patient=_peds_patient(age=15),
+        patient=_peds_patient(age=18),
         encounter=_encounter(los_hours=72),
         admission_dx_code="J18.1",
     )
@@ -240,9 +240,9 @@ def test_pediatric_ceiling_boundary_1276() -> None:
 
 
 def test_pediatric_edge_case_age_14_1276() -> None:
-    """Age 14 (< ceiling 15) → skipped."""
+    """Age 17 (< ceiling 18, Issue #3082) → skipped."""
     skip, reason = should_skip_dvt_prophylaxis(
-        patient=_peds_patient(age=14),
+        patient=_peds_patient(age=17),
         encounter=_encounter(los_hours=72),
         admission_dx_code="J18.1",
     )
