@@ -400,6 +400,8 @@ def _finalize_discharge(
             encounter_id=encounter.encounter_id,
             country_key=country_key,
             final_renal_function=final_renal,
+            # Issue #2992: a discharge hold names only a drug the patient took.
+            ordered_drugs=[o.display_name for o in all_orders if o.order_type == OrderType.MEDICATION],
         )
         if not death_occurred
         else None

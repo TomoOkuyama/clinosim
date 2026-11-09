@@ -46,7 +46,9 @@ def safety_skip_line(
         stem = "avoid_allergy"
     localize = drug_name or (lambda name: name)
     considered = localize(localized_field(skip, "considered", lang))
-    conflict = localized_field(skip, "avoided_due_to", lang)
+    # Issue #2992: the phrase supplies the sentence's own full stop, so a
+    # reason written as a sentence does not end in "..".
+    conflict = localized_field(skip, "avoided_due_to", lang).rstrip(" .。")
     substituted = localize(localized_field(skip, "substituted_with", lang))
     day = skip.get("stopped_on_day")
     day_phrase = (
