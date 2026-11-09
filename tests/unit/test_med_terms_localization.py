@@ -50,8 +50,9 @@ def test_med_terms_tables_loaded():
     # editing med_terms_ja.yaml — a diff here is the load-bearing signal
     # that the localization table changed.
     # Issue #2650: k_replace; Issue #2627: iv_access; Issue #3025: 7 procedure slugs;
-    # Issue #3033: 6 regimen / conditional dose phrases.
-    assert len(tables["categories"]) == 89  # Issue #3107: 49 supportive-order categories
+    # Issue #3033: 6 regimen / conditional dose phrases; Issue #3106: controlled o2;
+    # Issue #3107: 49 supportive-order categories.
+    assert len(tables["categories"]) == 90
     # Phase 1c-7 (2026-09-23): count bumped from 158 → 206 after
     # extending the terms table with the ed_workup composite vocabulary
     # (Ice pack / Wound irrigation / Elastic bandage / Suture closure /
@@ -63,6 +64,7 @@ def test_med_terms_tables_loaded():
     # is asserted by test_fhir_procedure_jp_text.
     # Issue #2446: 206 → 196 — the five procedure names (both cases) the
     # procedure-phrase table defines were removed.
-    assert (
-        len(tables["terms"]) == 202
-    )  # Issue #3025: Q6H_PRN; Issue #3033: WEEKLY / MONTHLY / NIGHTLY / topical; Issue #3034: units
+    # Issue #3106: 12 Japanese chart-notation phrases (nasal spray, IV drip,
+    # q4-6h, the IV DRIP route + cadence term, ...); `once` reads 1回.
+    assert len(tables["terms"]) == 214  # Issue #3025 / #3033 / #3034 / #3106
+    assert tables["terms"]["once"] == "1回"

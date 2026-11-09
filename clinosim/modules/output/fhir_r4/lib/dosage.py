@@ -655,6 +655,18 @@ def with_absolute_dose(text: str, amount: tuple[float, str]) -> str:
     return f"{text[: m.start()]}{stated} ({m.group(0)}){text[m.end() :]}"
 
 
+def _route_frequency_term(route: str, frequency: str, lang: str) -> str:
+    """The single term the output language writes for a route + cadence pair
+    (``med_terms.yaml`` key ``"<ROUTE> <FREQUENCY>"``, e.g. JP ``IV DRIP`` →
+    点滴静注; Issue #3106); ``""`` when the language has none."""
+    if not route or not frequency:
+        return ""
+    from clinosim.locale.loader import load_med_terms
+
+    entry = load_med_terms()["terms"].get(f"{route.upper()} {frequency.upper()}")
+    return localized(entry, lang, fallback="") if entry else ""
+
+
 def build_dosage_instruction(
     order: dict, country: str = "US", body: tuple[float, float] | None = None
 ) -> dict[str, Any] | None:
@@ -832,12 +844,20 @@ def build_dosage_instruction(
         # term translator for any remaining English (Issue #2459); English
         # output keeps the tokens as written.
         _lang = lang_for(country)
+        # Issue #3106: a route + cadence pair with one term in the output
+        # language (JP `IV DRIP` → 点滴静注, med_terms.yaml) reads as that
+        # term, not the route and the cadence side by side (静注 点滴静注).
+        # A language without the entry (English) keeps its tokens.
+        _parts = parts
+        _combined = _route_frequency_term(str(order.get("route") or ""), str(freq or ""), _lang)
+        if _combined and route and freq:
+            _parts = [_combined if p == freq else p for p in parts if p != route]
         translated = [
             ROUTE_TEXT.get(p.upper(), _lang)
             or FREQUENCY_TEXT.get(p.upper(), _lang)
             or FREQUENCY_TEXT.get(p, _lang)
             or p
-            for p in parts
+            for p in _parts
         ]
         dosage["text"] = _localize_dosage_terms(" ".join(translated), _lang)
     elif order.get("display_name"):

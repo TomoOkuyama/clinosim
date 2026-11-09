@@ -121,6 +121,9 @@ categories:
   transfusion: {en: "transfusion", ja: "輸血"}
   NPO: {en: "NPO", ja: "絶飲食"}
 
+  # Issue #3106: a phrase in Japanese chart wording, matched before the `o2`
+  # category and the single words.
+  controlled o2: {ja: 調節酸素投与}
 terms:
   # Issue #3033: non-daily cadences and the topical route on administrations.
   WEEKLY: {ja: 週1回}
@@ -173,7 +176,7 @@ terms:
   min: {ja: 分}
   over: {ja: かけて}
   after: {ja: 後}
-  once: {ja: 一度}
+  once: {ja: 1回}  # Issue #3106: chart notation for a one-time dose
   stable: {ja: 安定後}
   hemodynamically: {ja: 血行動態}
   hypotonic: {ja: 低張}
@@ -325,3 +328,19 @@ terms:
   before meals: {ja: 食前}
   after meals: {ja: 食後}
   at bedtime: {ja: 就寝前}
+  # Issue #3106: multi-word dose and timing phrases in Japanese chart notation.
+  # Entries are matched longest-first, so a phrase wins over its words.
+  nasal spray: {ja: 点鼻}
+  IV drip: {ja: 点滴静注}
+  # A route + cadence pair written as one term (dosage summary of an IV order
+  # whose cadence is a drip); no `en` slot, so English keeps "IV DRIP".
+  IV DRIP: {ja: 点滴静注}
+  q1-2h: {ja: 1-2時間毎}
+  q1-4h: {ja: 1-4時間毎}
+  q2-4h: {ja: 2-4時間毎}
+  q4-6h: {ja: 4-6時間毎}
+  q6-8h: {ja: 6-8時間毎}
+  loading, then: {ja: 負荷投与後}
+  wide open: {ja: 全開}
+  once hemodynamically stable: {ja: 血行動態安定後}
+  avoid hyperoxia in CO2 retainers: {ja: CO2 貯留患者では高酸素を避ける}
