@@ -21,7 +21,7 @@ paths unchanged.
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime
+from datetime import date, datetime
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -208,6 +208,44 @@ def _autopsy_performed_sha256(ctx: NarrativeContext) -> bool:
     return h < _DDS_AUTOPSY_PROB_CUTOFF
 
 
+def _birth_and_visit_dates(ctx: NarrativeContext) -> tuple[date, date] | None:
+    """``(date_of_birth, encounter date)`` of ``ctx``, or None when either is
+    missing or unparseable.
+
+    #1173 verify follow-up (2nd pass): CIF can carry `date_of_birth` as
+    either a `date` object (typed CIF) or an ISO string like `"1990-06-25"`
+    (CIF reader on serialized JSON); both are normalized here.
+    """
+    patient = getattr(ctx, "patient", None)
+    if patient is None:
+        return None
+    dob_raw = _o(patient, "date_of_birth", None)
+    dob: date
+    if isinstance(dob_raw, str):
+        try:
+            dob = date.fromisoformat(dob_raw[:10])
+        except ValueError:
+            return None
+    elif hasattr(dob_raw, "year") and hasattr(dob_raw, "month") and hasattr(dob_raw, "day"):
+        dob = dob_raw
+    else:
+        return None
+    enc = getattr(ctx, "encounter", None)
+    ref_dt = _o(enc, "admission_datetime", None) if enc is not None else None
+    if ref_dt is None:
+        return None
+    try:
+        if isinstance(ref_dt, str):
+            ref = date.fromisoformat(ref_dt[:10])
+        elif isinstance(ref_dt, datetime):
+            ref = ref_dt.date()
+        else:
+            ref = ref_dt
+        return dob, ref
+    except (AttributeError, TypeError, ValueError):
+        return None
+
+
 def _age_at(ctx: NarrativeContext) -> int | None:
     """Age of ``ctx.patient`` at the ``ctx.encounter`` date.
 
@@ -226,45 +264,34 @@ def _age_at(ctx: NarrativeContext) -> int | None:
     if patient is None:
         return None
     static_age = _o(patient, "age", None)
-    dob_raw = _o(patient, "date_of_birth", None)
-    if dob_raw is None:
+    dates = _birth_and_visit_dates(ctx)
+    if dates is None:
         return static_age
-    # #1173 verify follow-up (2nd pass): CIF can carry `date_of_birth`
-    # as either a `date` object (typed CIF) or an ISO string like
-    # `"1990-06-25"` (CIF reader on serialized JSON). `dob.year` on a
-    # string raises AttributeError which the try/except below silently
-    # swallowed, and the helper fell back to static age — so 94-96% of
-    # SOAP headers still reported the stale age. Normalize string DOB
-    # here so both representations reach the year arithmetic.
-    from datetime import date as _date
-
-    dob: _date | None
-    if isinstance(dob_raw, str):
-        try:
-            dob = _date.fromisoformat(dob_raw[:10])
-        except ValueError:
-            return static_age
-    elif hasattr(dob_raw, "year") and hasattr(dob_raw, "month") and hasattr(dob_raw, "day"):
-        dob = dob_raw
-    else:
-        return static_age
-    enc = getattr(ctx, "encounter", None)
-    ref_dt = _o(enc, "admission_datetime", None) if enc is not None else None
-    if ref_dt is None:
-        return static_age
+    dob, ref = dates
     try:
-        if isinstance(ref_dt, str):
-            ref = _date.fromisoformat(ref_dt[:10])
-        elif isinstance(ref_dt, datetime):
-            ref = ref_dt.date()
-        else:
-            ref = ref_dt
         years = ref.year - dob.year - (1 if (ref.month, ref.day) < (dob.month, dob.day) else 0)
-        if years < 0:
-            return static_age
-        return years
-    except (AttributeError, TypeError, ValueError):
+    except (AttributeError, TypeError):
         return static_age
+    if years < 0:
+        return static_age
+    return years
+
+
+def _age_months_at(ctx: NarrativeContext) -> int | None:
+    """Completed months of age of ``ctx.patient`` at the ``ctx.encounter``
+    date (Issue #2980), else ``patient.age`` × 12, else None."""
+    dates = _birth_and_visit_dates(ctx)
+    if dates is not None:
+        dob, ref = dates
+        try:
+            months = (ref.year - dob.year) * 12 + (ref.month - dob.month) - (1 if ref.day < dob.day else 0)
+        except (AttributeError, TypeError):
+            months = -1
+        if months >= 0:
+            return months
+    patient = getattr(ctx, "patient", None)
+    static_age = _o(patient, "age", None) if patient is not None else None
+    return int(static_age) * 12 if static_age is not None else None
 
 
 # ─────────────────────────────────────────────────────────────────

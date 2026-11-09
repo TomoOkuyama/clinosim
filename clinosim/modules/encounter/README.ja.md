@@ -102,6 +102,7 @@ from clinosim.modules.encounter.protocol import (
     AGE_DISTRIBUTION_MIN_AGE,        # age_distribution → 最低年齢
     protocol_min_age,                # (spec) -> int | None  (min_age、なければ age_distribution の下限)
     screening_schedule,              # (condition_id) -> ScreeningSchedule  (screening protocol の schedule (無ければ ValueError))
+    discharge_instructions_for_age,  # (protocol, age_months) -> 退院指導; 年齢条件付きの項目は `min_age_months` 未満で `younger` を返す (12か月未満に蜂蜜を勧めない)
 )
 ```
 

@@ -110,6 +110,7 @@ from clinosim.modules.encounter.protocol import (
     AGE_DISTRIBUTION_MIN_AGE,        # age_distribution → youngest age
     protocol_min_age,                # (spec) -> int | None  (min_age, else the age_distribution floor)
     screening_schedule,              # (condition_id) -> ScreeningSchedule  (a screening protocol's schedule (ValueError if none))
+    discharge_instructions_for_age,  # (protocol, age_months) -> instructions; an age-gated item yields its `younger` variant below `min_age_months` (no honey under 12 months)
 )
 ```
 

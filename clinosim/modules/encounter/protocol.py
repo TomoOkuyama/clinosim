@@ -306,6 +306,30 @@ class ScreeningLab(BaseModel):
         return value
 
 
+class _InstructionText(BaseModel):
+    """One patient instruction in English and Japanese."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    en: str = Field(min_length=1)
+    ja: str = Field(min_length=1)
+
+
+class _DischargeInstruction(_InstructionText):
+    """An ED discharge instruction (Issue #2871). With ``min_age_months`` a
+    patient younger than that gets ``younger`` instead (Issue #2980: no honey
+    for cough under 12 months)."""
+
+    min_age_months: int | None = Field(default=None, gt=0)
+    younger: _InstructionText | None = None
+
+    @model_validator(mode="after")
+    def _gate_has_a_younger_variant(self) -> _DischargeInstruction:
+        if (self.min_age_months is None) != (self.younger is None):
+            raise ValueError(f"discharge instruction {self.en!r}: min_age_months and younger go together")
+        return self
+
+
 class _ProcedureName(BaseModel):
     """The procedure's English and Japanese names (both required)."""
 
@@ -444,7 +468,7 @@ class EncounterConditionProtocol(BaseModel):
     # Patient instructions and follow-up given on discharge from the ED
     # (Issue #2871). An emergency protocol writes each as a language map
     # ({en, ja}); the ED note's disposition lists them for a patient sent home.
-    discharge_instructions: list[dict[str, str] | str] = []
+    discharge_instructions: list[_DischargeInstruction | str] = []
     follow_up: dict[str, str] = {}
 
     @model_validator(mode="after")
@@ -452,7 +476,7 @@ class EncounterConditionProtocol(BaseModel):
         if self.encounter_type != "emergency":
             return self
         for item in self.discharge_instructions:
-            if not isinstance(item, dict) or not {"en", "ja"} <= item.keys():
+            if isinstance(item, str):
                 raise ValueError(f"{self.condition_id}: discharge instruction {item!r} needs en and ja text")
         if self.discharge_instructions and not {"en", "ja"} <= self.follow_up.keys():
             raise ValueError(f"{self.condition_id}: follow_up needs en and ja text")
@@ -483,6 +507,29 @@ def _validate_encounter_route_vocabulary(condition_id: str, data: Any) -> None:
 
     for raw in iter_route_values(data):
         validate_yaml_route_value(raw, source=f"encounter {condition_id!r}")
+
+
+def discharge_instructions_for_age(protocol: Any, age_months: int | None) -> list[Any]:
+    """The protocol's discharge instructions for a patient ``age_months`` old
+    (Issue #2980): an instruction with ``min_age_months`` is replaced by its
+    ``younger`` variant below that age. Each item is an ``{en, ja}`` map (or
+    a plain string). An unknown age keeps the general instruction."""
+    out: list[Any] = []
+    raw = (
+        protocol.get("discharge_instructions")
+        if isinstance(protocol, Mapping)
+        else getattr(protocol, "discharge_instructions", None)
+    )
+    for item in raw or []:
+        if not isinstance(item, Mapping):
+            out.append(item)
+            continue
+        gate = item.get("min_age_months")
+        if gate is not None and age_months is not None and age_months < int(gate):
+            out.append(dict(item["younger"]))
+        else:
+            out.append({k: v for k, v in item.items() if k not in ("min_age_months", "younger")})
+    return out
 
 
 @lru_cache(maxsize=64)
