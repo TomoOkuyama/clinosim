@@ -19,7 +19,8 @@
   every_n_years → `interval_years` step、once → `wave_epochs` があれば
   epoch/月を抽選、無ければ資格期間内で uniform、pediatric_series →
   dose ごとの `[age_days_min, age_days_max]` 窓を標準 well-child 受診
-  月齢に snap、1 回欠けた series は以降打ち切り)、US 母体 Tdap (CVX 115、
+  月齢に snap、1 回欠けた series は以降打ち切り、各回は前の回から
+  `min_interval_days` 以上空ける — Issue #3001)、US 母体 Tdap (CVX 115、
   中絶以外の各妊娠の 27–36 週、coverage 0.78)、
   `IMMUNIZATION_NOT_DONE_RECORDING_RATE` レートでの拒否記録、既存
   encounter への紐付けと window 内 orphan への付随接種 encounter 合成
@@ -130,7 +131,9 @@ in-progress snapshot でのバックデート出力を防ぐ。
 3. それ以外は ±60 日以内で最も近い外来 encounter に snap し
    `encounter_id` を記録。インフルエンザは同シーズンかつ接種月の
    encounter に限る。ワクチンの `min_age_days` 下限より前の encounter には
-   snap しない。
+   snap しない。同じワクチンの別の回がある日、系列の順序を崩す日、隣の回との
+   間隔が `min_interval_days` 未満になる日にも snap せず、該当する encounter が
+   無ければ元の接種日のまま残す (Issue #3001)。
 
 紐付かず simulation window 開始 (`config.time_range[0]`) より前の接種は
 `primary_source=False` とし未紐付けのまま残す。window 内の orphan には
@@ -190,7 +193,7 @@ attending は primary-care 医師 roster から決定論選出) を合成し、�
   | `season_month` | `annual` 時のみ。`seasonal_distribution` が無い場合の固定接種月 (既定 10)。 |
   | `seasonal_distribution` | `annual` 時のみ。シーズン内の月抽選用 `{month: weight}`。 |
   | `wave_epochs` | `once` 時のみ。`start` / `end` / `age_weight` / `monthly_curve` を持つ epoch 列。 |
-  | `doses` | `pediatric_series` 時のみ。dose ごとに `age_days_min` / `age_days_max` / `dose_number` / `coverage_by_sex`。 |
+  | `doses` | `pediatric_series` 時のみ。dose ごとに `age_days_min` / `age_days_max` / `dose_number` / `coverage_by_sex`。2 回目以降は `min_interval_days` (前回接種からの最小日数。US は CDC General Best Practice Guidelines Table 3-1、JP は予防接種実施規則) と、前回以外の回から数える場合の起点 `min_interval_after_dose` (任意。例: JP B型肝炎 3 回目は 1 回目から 139 日)。Issue #3001。 |
   | `available_from` | プログラム開始日 (`YYYY-MM-DD`)。 |
   | `history_years` | 任意。EHR 保持期間 (flu → 10 y 等)。 |
   | `coverage_by_age_sex` | `{"age_band": {sex: rate}}` (0-1、小児 series 以外)。 |
