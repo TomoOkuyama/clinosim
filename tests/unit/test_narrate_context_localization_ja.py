@@ -187,11 +187,12 @@ def test_render_chronic_list_en_leaves_severity_untranslated():
 
 @pytest.mark.unit
 def test_render_chronic_list_resolves_icd_display_en():
-    """G20 must render as 'Parkinson disease (G20)', not just 'G20'."""
+    """G20 must render with its name, not just 'G20'. Issue #2994: the code
+    is the one the US output emits for it (G20.C), named by its label."""
     chronic = [{"code": "G20", "system": "icd-10-cm", "severity": "mild"}]
     en = _render_chronic_list(chronic, lang="en")
     assert "Parkinson" in en, f"expected 'Parkinson' in {en!r}"
-    assert "(G20)" in en, f"expected '(G20)' in {en!r}"
+    assert "(G20.C)" in en, f"expected '(G20.C)' in {en!r}"
     assert "mild" in en
 
 
@@ -199,7 +200,7 @@ def test_render_chronic_list_resolves_icd_display_en():
 def test_render_chronic_list_resolves_icd_display_ja():
     """Same case, JA locale — display must be the JA name."""
     chronic = [{"code": "G20", "system": "icd-10-cm", "severity": "mild"}]
-    ja = _render_chronic_list(chronic, lang="ja")
+    ja = _render_chronic_list(chronic, lang="ja", country="JP")
     assert "パーキンソン" in ja, f"expected 'パーキンソン' in {ja!r}"
     assert "(G20)" in ja
     assert "軽度" in ja
@@ -243,7 +244,8 @@ def test_render_chronic_list_multiple_icd_codes_all_resolved():
     ]
     en = _render_chronic_list(chronic, lang="en")
     # I10 → hypertension family, N18 → chronic kidney, C34 → lung.
-    for token in ("hypertension", "(I10)", "(N18)", "CKD G4", "(C34)"):
+    # Issue #2994: the codes are the ones the US output emits.
+    for token in ("hypertension", "(I10)", "(N18.9)", "CKD G4", "(C34.90)"):
         assert token.lower() in en.lower(), f"missing {token!r} in {en!r}"
 
 
@@ -314,3 +316,11 @@ def test_render_abnormal_labs_en_unchanged():
     en = _render_abnormal_labs(labs, day_index=0, lang="en")
     assert "creatinine 1.42 mg/dL" in en
     assert "クレアチニン" not in en
+
+
+@pytest.mark.unit
+def test_render_chronic_list_names_us_dementia_by_the_coded_condition():
+    """Issue #2994: the internal dementia key F00 is coded F03.90 in US output."""
+    en = _render_chronic_list([{"code": "F00", "system": "icd-10-cm", "stage": "CDR 2"}], lang="en")
+    assert "Alzheimer" not in en
+    assert "Dementia (F03.90) (CDR 2)" in en

@@ -8,7 +8,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri, system_key_for
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import map_diagnosis_code
+from clinosim.locale.loader import map_family_history_code
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import build_diagnosis_codeable_concept
@@ -81,19 +81,11 @@ def _build_relationship_codeable(rel: str, lang: str) -> dict[str, Any]:
 
 
 def _resolve_family_history_code(code: str, country: str) -> str:
-    """Family-history-context-aware code translation.
-
-    Reuses ``map_diagnosis_code`` (chronic/history → billable leaf) but rejects
-    personal-history Z-code targets (Z86.*, Z87.*, Z82.*) which encode "patient's
-    own past" semantics — inappropriate for a relative. In those cases the
-    original code passes through and resolves in ``codes/data`` directly.
-    fix: keeps E11 → E11.9 and I64 → I63.9 corrections while
-    preserving the pre-fix semantic for I63 (relative's cerebral infarction).
-    """
-    mapped = map_diagnosis_code(code, country)
-    if mapped.startswith("Z"):
-        return code
-    return mapped
+    """Family-history-context-aware code translation
+    (``locale.loader.map_family_history_code``, shared with the narrative
+    family history — Issue #2994): keeps E11 → E11.9 and I64 → I63.9
+    corrections while preserving I63 (relative's cerebral infarction)."""
+    return map_family_history_code(code, country)
 
 
 def _bb_family_history(ctx: BundleContext) -> list[dict]:

@@ -21,7 +21,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from clinosim.codes.icd10 import condition_label
 from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -243,7 +242,10 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
         parts.append(t("narrative_text.hpi.chief_complaint", "ja", cc=cc))
     # Chronic short list — Issue #1333: route CIF base code through
     # map_diagnosis_code so display matches the FHIR emit-target.
-    from clinosim.locale.loader import map_diagnosis_code as _map_diagnosis_code
+    from clinosim.modules.document.narrative.renderers._shared_helpers import (
+        chronic_condition_code,
+        chronic_condition_label,
+    )
 
     country = country_code(ctx.locale)
     conds = _o(patient, "chronic_conditions", []) or []
@@ -252,9 +254,8 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
         if not code:
             continue
-        emit_code = _map_diagnosis_code(code, country) or code
-        disp = condition_label(emit_code, ctx.locale, ctx.target_lang) or emit_code
-        chronic_labels.append(disp)
+        disp = chronic_condition_label(code, country, ctx.target_lang, str(_o(patient, "sex", "") or ""))
+        chronic_labels.append(disp or chronic_condition_code(code, country))
     if chronic_labels:
         parts.append(
             t("narrative_text.hpi.history", "ja", items=t("narrative_text.hpi.list_sep", "ja").join(chronic_labels))

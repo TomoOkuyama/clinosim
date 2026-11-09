@@ -18,6 +18,7 @@ from functools import cache
 from pathlib import Path
 
 from clinosim.codes.icd10 import condition_label
+from clinosim.countries import country_code
 from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _get
@@ -138,7 +139,7 @@ def _build_extra_context(
         # don't get PMH from template so extras carry the chronic list).
         if "past_medical_history" not in tmpl:
             chronic = _get(p, "chronic_conditions", []) or []
-            rendered = _render_chronic_list(chronic, lang=ctx.target_lang)
+            rendered = _render_chronic_list(chronic, lang=ctx.target_lang, country=country_code(ctx.locale))
             if rendered:
                 extra["chronic_conditions"] = rendered
 

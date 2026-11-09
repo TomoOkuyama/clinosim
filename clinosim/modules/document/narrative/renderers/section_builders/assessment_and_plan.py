@@ -27,10 +27,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from clinosim.codes import display as registry_display
 from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._template_helpers import (
@@ -147,17 +145,15 @@ def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
     # map_diagnosis_code so display matches the FHIR emit-target.
     conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
     if conds:
-        from clinosim.locale.loader import map_diagnosis_code as _map_diagnosis_code
+        from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_label
 
         country = country_code(ctx.locale)
-        key = _label("code_system_icd_display", "primary", lang)
+        sex = str(_o(ctx.patient, "sex", "") or "")
 
         def _resolve_chronic_label(c: object) -> str:
+            # Issue #2994: the label of the condition the output codes.
             base = _o(c, "code", "") or ""
-            if not base:
-                return ""
-            emit = _map_diagnosis_code(base, country) or base
-            return registry_display(key, emit, lang) or emit
+            return (chronic_condition_label(base, country, lang, sex) or base) if base else ""
 
         labels = [_resolve_chronic_label(c) for c in conds[:4]]
         labels = [lbl for lbl in labels if lbl]

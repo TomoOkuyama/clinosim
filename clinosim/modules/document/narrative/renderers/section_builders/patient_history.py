@@ -26,8 +26,10 @@ from typing import TYPE_CHECKING, Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
+from clinosim.codes.icd10 import condition_label
 from clinosim.countries import country_code, has_authored_narrative, lang_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import map_family_history_code
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_stage
@@ -283,10 +285,15 @@ def build_family_history(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
         for code in codes:
             if not code:
                 continue
-            # lookup falls back to the code string when the
+            # Issue #2994: the label of the condition the FamilyMemberHistory
+            # codes (E78 → E78.5 "Dyslipidemia", not the E78 category
+            # title); lookup falls back to the code string when the
             # display is missing — that surfaces a code rather than an
             # empty entry, better than dropping the relative silently.
-            disp = code_lookup(icd_system_key, str(code), lang_for(country))
+            fam_code = map_family_history_code(str(code), country)
+            disp = condition_label(fam_code, country, lang_for(country)) or code_lookup(
+                icd_system_key, fam_code, lang_for(country)
+            )
             if disp:
                 displays.append(str(disp))
         if not displays:

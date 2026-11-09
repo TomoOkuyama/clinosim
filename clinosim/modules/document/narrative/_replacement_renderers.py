@@ -20,7 +20,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from clinosim.codes import display as registry_display
 from clinosim.codes.ucum import ucum_prose
 from clinosim.locale.free_text import localize_free_text
 from clinosim.locale.i18n import t
@@ -34,7 +33,7 @@ from clinosim.modules.document.narrative._vitals_line import LLM_ARRIVAL, LLM_DA
 from clinosim.modules.document.narrative.template_generator import _filter_vitals_for_day
 
 
-def _render_chronic_list(chronic: list, lang: str = "en") -> str:
+def _render_chronic_list(chronic: list, lang: str = "en", country: str = "US") -> str:
     """chronic_conditions [{'code','system','severity','stage','onset_date'}, ...]
     → short comma-separated string of the form
     ``"<display> (<code>) (<stage>, <severity>)"``.
@@ -74,9 +73,18 @@ def _render_chronic_list(chronic: list, lang: str = "en") -> str:
         # Issue #1445: resolve display when system is present. code_lookup
         # echoes the code back on miss (unmapped / fictional codes), so
         # guard against emitting a redundant "CODE (CODE)" string.
+        # Issue #2994: the code the output emits for the condition and its
+        # prose label (US dementia F03.90 "Dementia", not the internal F00
+        # category title "Dementia in Alzheimer disease").
         display = ""
         if code and system:
-            resolved = registry_display(system, code, lang) or ""
+            from clinosim.modules.document.narrative.renderers._shared_helpers import (
+                chronic_condition_code,
+                chronic_condition_label,
+            )
+
+            resolved = chronic_condition_label(code, country, lang) or ""
+            code = chronic_condition_code(code, country)
             if resolved and resolved != code:
                 display = resolved
         if display and code:

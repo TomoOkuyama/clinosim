@@ -57,6 +57,9 @@ codes:
   S72: {en: "Hip fracture", ja: "大腿骨骨折"}
   # Neurological
   F00: {en: "Alzheimer's dementia", ja: "アルツハイマー型認知症"}
+  # Issue #2994: US output codes the internal dementia key F00 as F03.90
+  # (unspecified dementia); its prose name is the plain term.
+  F03: {en: "Dementia", ja: "認知症"}
   G20: {en: "Parkinson's disease (PD)", ja: "パーキンソン病"}
   # Infectious
   A41: {en: "Sepsis", ja: "敗血症"}

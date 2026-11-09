@@ -39,7 +39,6 @@ from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes.drugs import medication_matches
-from clinosim.codes.icd10 import icd10_system
 from clinosim.codes.valuesets import concept_group, iter_chronic_codes
 from clinosim.countries import country_code, has_authored_narrative
 from clinosim.determinism import sha_index
@@ -61,6 +60,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
     _render_safety_skips_line,
 )
+from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_label
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.modules.document.reference_data_loaders import ChronicMedClassHints
 from clinosim.modules.observation.pediatric_ranges import age_in_completed_months, pediatric_vital_range
@@ -248,25 +248,22 @@ def _compose_outpatient_subjective_from_state(ctx: NarrativeContext) -> str:
     # narrative display matches the FHIR emit-target (US F00 → F03.90
     # renders as "Unspecified dementia", not the WHO parent-code
     # "Dementia in Alzheimer disease").
-    from clinosim.codes import lookup as _code_lookup
-    from clinosim.locale.loader import map_diagnosis_code as _map_diagnosis_code
-
     country = country_code(ctx.locale)
+    sex = str(_o(patient, "sex", "") or "")
     conditions = _o(patient, "chronic_conditions", []) or []
     chronic_labels: list[str] = []
     for c in conditions[:3]:
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
         if not code:
             continue
-        emit_code = _map_diagnosis_code(code, country) or code
-        key = _label("code_system_icd_display", "primary", lang)
-        disp = _code_lookup(key, emit_code, lang)
+        # Issue #2994: the label of the condition the output codes.
+        disp = chronic_condition_label(code, country, lang, sex)
         # Issue #1777: when the display lookup misses, SKIP the entry
         # rather than leak the raw ICD code into narrative free text.
         # The prose sentence "Follow-up of chronic conditions: G47.30"
         # reads as a coding sheet, not a clinical note; a shorter list
         # with only resolvable items reads correctly.
-        if not disp or disp == emit_code:
+        if not disp:
             continue
         chronic_labels.append(disp)
     # Compose
@@ -515,14 +512,15 @@ def _compose_chronic_condition_line(ctx: NarrativeContext) -> str:
     # pick a JA display when available; fall back to the code itself.
 
     lang = ctx.target_lang
+    country = country_code(ctx.locale)
+    sex = str(_o(patient, "sex", "") or "")
     labels: list[str] = []
     for c in conditions:
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
         if not code:
             continue
-        disp_key = _label("code_system_icd_display", "primary", lang)
-        disp = registry_display(disp_key, code, lang) or code
-        labels.append(disp)
+        # Issue #2994: the label of the condition the output codes.
+        labels.append(chronic_condition_label(code, country, lang, sex) or code)
     if not labels:
         return ""
     sep = t("list_sep.serial", lang)
@@ -601,7 +599,7 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
         lab_by_name[name] = (val, _o(lab, "unit", None))
 
     lang = ctx.target_lang
-    disp_key = icd10_system(ctx.locale)
+    _sex = str(_o(patient, "sex", "") or "")
 
     # Pre-resolve current-medications for continuation-tail. Issue #1033:
     # rendering always as ``lang="ja"`` leaks katakana drug names into US
@@ -631,7 +629,8 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
         if not code:
             continue
-        label = registry_display(disp_key, code, ctx.target_lang) or code
+        # Issue #2994: the label of the condition the output codes.
+        label = chronic_condition_label(code, country_code(ctx.locale), ctx.target_lang, _sex) or code
         code_prefix = code.split(".")[0].upper()
         interp = ""
 

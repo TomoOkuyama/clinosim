@@ -21,7 +21,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from clinosim.codes.icd10 import condition_label
 from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
@@ -64,7 +63,10 @@ def build_nursing_history(generator: TemplateNarrativeGenerator, ctx: NarrativeC
         parts.append(t("admission_status.admission_reason", lang, cc=cc))
     # Chronic summary — Issue #1333: route CIF base code through
     # map_diagnosis_code so display matches the FHIR emit-target.
-    from clinosim.locale.loader import map_diagnosis_code as _map_diagnosis_code
+    from clinosim.modules.document.narrative.renderers._shared_helpers import (
+        chronic_condition_code,
+        chronic_condition_label,
+    )
 
     country = country_code(ctx.locale)
     conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
@@ -73,8 +75,10 @@ def build_nursing_history(generator: TemplateNarrativeGenerator, ctx: NarrativeC
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
         if not code:
             continue
-        emit_code = _map_diagnosis_code(code, country) or code
-        labels.append(condition_label(emit_code, ctx.locale, ctx.target_lang) or emit_code)
+        sex = str(_o(ctx.patient, "sex", "") or "")
+        labels.append(
+            chronic_condition_label(code, country, ctx.target_lang, sex) or chronic_condition_code(code, country)
+        )
     if labels:
         parts.append(
             t("pmh.header_prefix", lang) + t("list_sep.serial", lang).join(labels) + t("list_sep.period", lang)

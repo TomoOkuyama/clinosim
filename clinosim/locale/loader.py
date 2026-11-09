@@ -71,6 +71,7 @@ from clinosim.locale.loaders.demographics import (
     load_names,
     load_naming_rules,
     map_diagnosis_code,
+    map_family_history_code,
 )
 from clinosim.locale.loaders.fhir_identity import (
     _validate_ambulatory_visit_length,
@@ -142,6 +143,7 @@ __all__ = [
     "lab_code",
     "lab_codes",
     "map_diagnosis_code",
+    "map_family_history_code",
     "load_code_mapping",
     "load_comorbidity_progression_multipliers",
     "load_condition_mortality_smr",
