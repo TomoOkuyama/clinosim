@@ -250,6 +250,9 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   (掲載薬の mg 用量) と維持輸液 (掲載輸液の時間量、`maintenance_fluid_bands`
   の Holliday-Segar 4-2-1 則) を入院時の体重で、`pediatric_dose_text` は
   退院処方の用量を再計算する。いずれも成人の記載量・速度を超えない。
+  抗菌薬 (Issue #3082): 1 回 mg/kg と上限は Harriet Lane Handbook / AAP Red
+  Book に従う。g で書かれた用量 ("1g"、"3.375g") も mg で再計算し、
+  antibiotic enricher が入院後に追加する regimen も `pediatric_dose_text` を通す。
 - **添付文書の用量上限** ([`reference_data/label_dose_limits.yaml`](reference_data/label_dose_limits.yaml)、
   `label_dose.py` が読み、`LabelDoseLimitsFile` で検証): 国別・カタログ薬剤
   ごとの 1 回量・1 日回数・1 日最大量 (JP イブプロフェン 200 mg、1 日 3 回、

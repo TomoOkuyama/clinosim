@@ -86,6 +86,7 @@ def enrich_antibiotic(ctx) -> None:
     snapshot = _resolve_snapshot(ctx.config)
     snapshot_date = snapshot.date()
     roster = getattr(ctx, "roster", None)
+    country = str(getattr(ctx.config, "country", "") or "US")
     for rec in ctx.records:
         ext = _get(rec, "extensions", {}) or {}
         hai_events: list[HAIEvent] = list(ext.get("hai", []) or [])
@@ -104,6 +105,7 @@ def enrich_antibiotic(ctx) -> None:
                 continue
             start_dt = datetime.fromisoformat(ev.onset_date).replace(hour=_ORDER_HOUR)
             for regimen in build_regimens(ev, start_datetime=start_dt):
+                regimen.dose = _child_dose(rec, regimen.encounter_id, regimen.drug_key, regimen.dose, country)
                 order_id = f"{ABX_ORDER_REQ_PREFIX}{regimen.regimen_id}"
                 # P1-3: Parse dose string to split quantity/unit
                 dose_parsed = parse_dose_string(regimen.dose)
@@ -141,7 +143,33 @@ def enrich_antibiotic(ctx) -> None:
             ext = get_or_create_container(rec, "extensions", dict)
             get_or_create_container(ext, "antibiotic", list).extend(regimens_out)
         # PR3b-3 Pass 2: narrow / de-escalation
-        _apply_pass2(rec, snapshot, roster)
+        _apply_pass2(rec, snapshot, roster, country)
+
+
+def _child_dose(record: Any, encounter_id: str, drug_key: str, dose: str, country: str) -> str:
+    """``dose`` (an adult regimen's ``"1g"``) re-dosed for a minor by the
+    weight charted at admission, with the inpatient pediatric dosing table
+    (Issue #3082); unchanged for an adult."""
+    from clinosim.modules.order.pediatric_dose import pediatric_dose_text
+    from clinosim.simulator.medication_pipeline import child_dosing
+
+    patient = _get(record, "patient", None)
+    enc = next(
+        (e for e in _get(record, "encounters", []) or [] if str(_get(e, "encounter_id", "") or "") == encounter_id),
+        None,
+    )
+    admitted = _get(enc, "admission_datetime", None) if enc is not None else None
+    if patient is None or not admitted:
+        return dose
+    if not isinstance(admitted, datetime):
+        try:
+            admitted = datetime.fromisoformat(str(admitted))
+        except (TypeError, ValueError):
+            return dose
+    child = child_dosing(patient, encounter_id, admitted, country)
+    if child is None:
+        return dose
+    return pediatric_dose_text(drug_key, dose, child.age_months, child.weight_kg, child.country)
 
 
 def _set_giving_nurse(mars: list, record: Any, encounter_id: str, roster: Any, order_id: str) -> None:
@@ -225,7 +253,7 @@ def _narrow_dose_frequency(drug_key: str) -> tuple[str, str]:
     return NARROW_DOSE_DEFAULTS.get(drug_key, DEFAULT_NARROW_REGIMEN)
 
 
-def _apply_pass2(rec, snapshot: datetime, roster: Any = None) -> None:
+def _apply_pass2(rec, snapshot: datetime, roster: Any = None, country: str = "US") -> None:
     """PR3b-3 Pass 2: walk extensions['antibiotic'] empirical regimens, look
     up the HAI culture via MicrobiologyResult.hai_event_id, pick narrow target
     via ladder, dispatch one of the three outcomes (spec §2.4)."""
@@ -289,6 +317,7 @@ def _apply_pass2(rec, snapshot: datetime, roster: Any = None) -> None:
                 continue  # type-narrowing gate for str|None target
             narrow_dur = narrow_duration_days(template.start_datetime, reported, template.duration_days)
             narrow_dose, narrow_freq = _narrow_dose_frequency(target)
+            narrow_dose = _child_dose(rec, template.encounter_id, target, narrow_dose, country)
             slug = _drug_slug(target)
             # Phase 2 (Issue #349): move intent from id suffix to meta.tag[].
             # Regimen_id is now unique by virtue of different drug_slug or

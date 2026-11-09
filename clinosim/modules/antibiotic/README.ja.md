@@ -88,6 +88,10 @@ from clinosim.modules.antibiotic.enricher import enrich_antibiotic  # POST_ENCOU
 - `clinosim.modules.hai` — `HAI_TYPES`、`load_hai_antibiogram`
   (narrow ladder 検証)。
 - `clinosim.modules.order.engine` — `parse_dose_string`。
+- `clinosim.modules.order.pediatric_dose` — `pediatric_dose_text`、
+  `clinosim.simulator.medication_pipeline` — `child_dosing`。未成年の
+  empirical / narrowed regimen は入院時の体重で小児投与量表に従って再計算し、
+  成人量を超えない (Issue #3082)。
 - `clinosim.modules.observation.microbiology` —
   `antibiotic_loinc_lookup` (`ANTIBIOTIC_LOINC_LOOKUP` として再 export)。
 - `clinosim.modules.antibiotic._narrow_dose_defaults` — 薬剤別

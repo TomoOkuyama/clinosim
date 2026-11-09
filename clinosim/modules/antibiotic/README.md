@@ -86,6 +86,11 @@ from clinosim.modules.antibiotic.enricher import enrich_antibiotic  # POST_ENCOU
   timed at 08:00 on the onset date; narrowed regimens start at the
   culture's `reported_datetime` (skipped when that is after the
   snapshot).
+- A minor's empirical and narrowed regimens are dosed by the weight
+  charted at admission with the inpatient pediatric dosing table
+  (`clinosim.modules.order.pediatric_dose.pediatric_dose_text`,
+  `clinosim.simulator.medication_pipeline.child_dosing`; Issue #3082) —
+  never more than the adult dose; order and MAR doses follow.
 
 ## Dependencies
 
@@ -94,6 +99,8 @@ from clinosim.modules.antibiotic.enricher import enrich_antibiotic  # POST_ENCOU
 - `clinosim.modules.hai` — `HAI_TYPES`, `load_hai_antibiogram`
   (narrow-ladder validation).
 - `clinosim.modules.order.engine` — `parse_dose_string`.
+- `clinosim.modules.order.pediatric_dose` — `pediatric_dose_text`;
+  `clinosim.simulator.medication_pipeline` — `child_dosing` (Issue #3082).
 - `clinosim.modules.observation.microbiology` —
   `antibiotic_loinc_lookup` (re-exported as
   `ANTIBIOTIC_LOINC_LOOKUP`).

@@ -85,7 +85,9 @@ def test_a_per_kg_or_non_mg_order_is_unchanged() -> None:
 def test_a_discharge_prescription_dose_is_redosed() -> None:
     assert pediatric_dose_text("Oseltamivir", "75mg PO BID", _SEVEN_YEARS, 18.9) == "38mg PO BID"
     assert pediatric_dose_text("Oseltamivir", "75mg PO BID", 40 * 12, 60.0) == "75mg PO BID"
-    assert pediatric_dose_text("Cefazolin", "1g IV q8h", _SEVEN_YEARS, 18.9) == "1g IV q8h"
+    # Cefazolin 25 mg/kg since Issue #3082; an unlisted drug keeps its dose.
+    assert pediatric_dose_text("Cefazolin", "1g IV q8h", _SEVEN_YEARS, 18.9) == "472mg IV q8h"
+    assert pediatric_dose_text("Amoxicillin", "1g PO", _SEVEN_YEARS, 18.9) == "1g PO"
 
 
 def test_a_childs_epinephrine_and_cetirizine_are_weight_based() -> None:

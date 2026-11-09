@@ -84,7 +84,7 @@ byte-identical である。
   `administration_hour` (MAR の投与時刻、Issue #2607)
 - `skip_conditions` ブロック: 5 ルール (治療量抗凝固 / 活動性出血 /
   周産期の分娩 / 活動性 DVT-PE 治療 / 小児年齢 gate)。薬剤 needle、
-  ICD prefix、または `pediatric_age_ceiling` (15) を持つ。
+  ICD prefix、または `pediatric_age_ceiling` (18) を持つ。
   drug_safety のペアチェックはコードのみ (yaml ブロック無し)。
 
 スキーマレベルの指針: すべての skip 条件は臨床的根拠を記述しなければ
@@ -134,7 +134,7 @@ Unit test: `tests/unit/test_prophylaxis.py` が以下をカバー
 - 活動性出血の診断 → skip
 - 分娩の診断 (Z37/Z38) → skip
 - 活動性 DVT/PE の診断 → skip (自身の治療が予防を置き換える)
-- 小児 (15 歳未満) の入院 → skip (Issue #1276)
+- 小児 (18 歳未満) の入院 → skip (Issue #1276, #3082)
 - 慢性 aspirin / encounter 内 NSAID → drug_safety ペア経由で skip (Issue #1087)
 - 通常の J18 肺炎 IMP 48 時間以上 → order を emit
 

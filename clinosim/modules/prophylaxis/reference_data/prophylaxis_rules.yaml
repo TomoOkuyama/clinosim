@@ -95,4 +95,10 @@ skip_conditions:
   # (Issue #1137 architectural cluster) picks that up.
   pediatric_age_gate:
     description: "Pediatric patient (age < pediatric_age_ceiling) without a positive VTE-prophylaxis indication. Skip the generic DVT rule; adult-flat 40 mg is unsafe and asthma / bronchiolitis / seizure admissions are not indications."
-    pediatric_age_ceiling: 15    # AAP / CHEST 2019 pediatric VTE guideline boundary
+    # Issue #3082: the gate covers every minor (under 18). ACCP (Monagle et
+    # al., "Antithrombotic therapy in neonates and children", CHEST
+    # 2012;141(2 Suppl):e737S) and ASH 2018 pediatric VTE guidance (Monagle
+    # et al., Blood Adv 2018;2:3292) give no recommendation for routine
+    # pharmacologic prophylaxis of hospitalized children; it is reserved for
+    # specific risk factors, which the simulator does not model.
+    pediatric_age_ceiling: 18
