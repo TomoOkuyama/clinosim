@@ -3067,7 +3067,7 @@
 <tr>
 <td>処置</td>
 <td><code>codes/data/clinosim-procedure-catalog.yaml</code></td>
-<td><code>bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]</code></td>
+<td><code>bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]</code>、<code>named: [{type, name: {en, ja}}]</code> (bedside 以外で記録される処置種別の名称。<code>Procedure.code.text</code> に使う)</td>
 </tr>
 <tr>
 <td>職種</td>
@@ -3306,6 +3306,10 @@
 <tr>
 <td><code>lab_display(name, lang, *, style, fallback)</code></td>
 <td>検査項目・パネル名。narrative、LLM テキスト、<code>DiagnosticReport.conclusion</code> には <code>style="prose"</code>、標準コードのない項目の FHIR <code>code.text</code> には <code>style="formal"</code>。コードのある <code>Observation.code.coding.display</code> は権威の表示名のまま</td>
+</tr>
+<tr>
+<td><code>order_test_display(test, lang)</code></td>
+<td>オーダー理由 (<code>clinical_intent_ja</code>、<code>ServiceRequest.reasonCode.text</code>) に書く検査名 (検体検査・パネル・画像検査): <code>lab_display</code>、なければ <code>imaging_exam_display</code> (Issue #3024)</td>
 </tr>
 <tr>
 <td><code>department_display(dept, lang)</code> / <code>department_specialty_snomed(dept)</code></td>

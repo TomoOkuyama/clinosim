@@ -3068,7 +3068,7 @@
 <tr>
 <td>Procedures</td>
 <td><code>codes/data/clinosim-procedure-catalog.yaml</code></td>
-<td><code>bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]</code></td>
+<td><code>bedside: [{type, cpt, k_code, name: {en, ja}, anesthesia}]</code>; <code>named: [{type, name: {en, ja}}]</code> (types recorded outside the bedside dispatch, named for <code>Procedure.code.text</code>)</td>
 </tr>
 <tr>
 <td>Staff roles</td>
@@ -3322,6 +3322,10 @@
 <tr>
 <td><code>lab_display(name, lang, *, style, fallback)</code></td>
 <td>lab analyte or panel name: <code>style="prose"</code> for narrative, LLM text and <code>DiagnosticReport.conclusion</code>; <code>style="formal"</code> for the FHIR <code>code.text</code> of analytes with no standard code. A coded <code>Observation.code.coding.display</code> keeps the authority display</td>
+</tr>
+<tr>
+<td><code>order_test_display(test, lang)</code></td>
+<td>the test an order names (lab, panel or imaging exam) in an order reason (<code>clinical_intent_ja</code>, <code>ServiceRequest.reasonCode.text</code>): <code>lab_display</code>, else <code>imaging_exam_display</code> (Issue #3024)</td>
 </tr>
 <tr>
 <td><code>department_display(dept, lang)</code> / <code>department_specialty_snomed(dept)</code></td>
