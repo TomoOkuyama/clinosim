@@ -2548,6 +2548,10 @@ fhir_emit_text:
   coverage_class_plan:
     ja: "保険プラン"
     en: "Plan"
+  # Issue #3000: Coverage.policyHolder of a minor whose guardian is not on record.
+  coverage_policy_holder_guardian:
+    ja: "保護者"
+    en: "Parent or guardian"
   death_certificate:
     ja: "死亡診断書"
     en: "Death certificate"

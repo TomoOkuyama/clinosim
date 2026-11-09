@@ -16,7 +16,12 @@ builder is the only allergy emit path.
 
 - **In scope**: `_build_patient` (Patient with birthDate / sex /
   address / telecom / marital + language) + Coverage / payor
-  Organization construction (`_build_coverage_resources`) +
+  Organization construction (`_build_coverage_resources`; a Coverage
+  never starts before the birth date, and a minor under one of the locale's
+  `age_gates.minor_dependent_categories` or a JP 被扶養者 is covered with
+  relationship `child`: the subscriber is the guardian on record as a
+  display-only reference, else `policyHolder` names the role; a minor on
+  Medicaid / CHIP or 国保 stays `self`, Issue #3000) +
   occupation Observation (`_build_occupation_observation`);
   `_build_practitioner` + `_build_practitioner_role`;
   `_bb_family_history` + `_resolve_family_history_code` +

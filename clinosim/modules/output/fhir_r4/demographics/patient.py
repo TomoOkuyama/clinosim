@@ -288,6 +288,32 @@ def _age_gate_config(country: str) -> dict[str, int]:
     }
 
 
+def _minor_dependent_categories(country: str) -> frozenset[str]:
+    """Categories under which a minor is a dependant on a guardian's policy
+    (identity.yaml ``age_gates.minor_dependent_categories``, Issue #3000)."""
+    gates = _identity_cfg(country).get("age_gates", {}) or {}
+    return frozenset(str(c) for c in gates.get("minor_dependent_categories") or [])
+
+
+def _guardian_subscriber(patient_data: dict) -> dict[str, str] | None:
+    """The guardian on record as a display-only Reference (Issue #3000).
+
+    A child born in the simulation carries its mother as the emergency
+    contact (``MTH``); no Patient / RelatedPerson resource is fabricated for
+    her, so the reference names her only. ``None`` when no guardian is on
+    record.
+    """
+    contact = patient_data.get("contact") or {}
+    if not isinstance(contact, dict) or contact.get("emergency_contact_relationship") not in _GUARDIAN_RELATIONS:
+        return None
+    name = str(contact.get("emergency_contact_name") or "")
+    return {"display": name} if name else None
+
+
+# Emergency-contact relationships that make the contact a minor's guardian.
+_GUARDIAN_RELATIONS = frozenset({"MTH", "parent"})
+
+
 def _late_elderly_payer_number(country: str) -> str:
     """Return the representative 保険者番号 for the late-elderly scheme, or empty.
 
@@ -484,8 +510,12 @@ def _build_coverage_resources(
         ]
 
     gates = _age_gate_config(country)
+    minor_dependent = _minor_dependent_categories(country)
     dob = _parse_iso_date(patient_data.get("date_of_birth"))
     late_elderly_payer = _late_elderly_payer_number(country)
+    # Issue #3000: no coverage before birth.
+    if dob:
+        fy_periods = [(max(s, dob), e) for s, e in fy_periods if e >= dob]
 
     # Deduplicate payor Organization resources across FY rows — the same
     # 保険者番号 typically holds the entire encounter window; only aging-into-≥75
@@ -638,7 +668,22 @@ def _build_coverage_resources(
             # C2-06: resolve display via codes/data/
             # hl7-subscriber-relationship.yaml — was raw code emission.
             # Beneficiary's relationship to the subscriber: 被扶養者 → not self.
-            rel_code = "other" if category == "dependent" else "self"
+            # Issue #3000: a minor on a guardian's policy is the subscriber's
+            # child; the subscriber is the guardian on record, else the policy
+            # holder is named by role only (no fabricated person).
+            is_minor = bool(dob) and age_at_period_start < gates["primary_subscriber_min_age"]
+            if is_minor and (category == "dependent" or base_category in minor_dependent):
+                rel_code = "child"
+                guardian = _guardian_subscriber(patient_data)
+                if guardian:
+                    coverage["subscriber"] = guardian
+                else:
+                    coverage.pop("subscriber", None)
+                    coverage["policyHolder"] = {
+                        "display": t("fhir_emit_text.coverage_policy_holder_guardian", lang_for(country))
+                    }
+            else:
+                rel_code = "other" if category == "dependent" else "self"
             coverage["relationship"] = {
                 "coding": [
                     system_coding(

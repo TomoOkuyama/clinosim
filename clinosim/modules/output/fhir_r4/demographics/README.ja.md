@@ -16,7 +16,12 @@ builder が唯一の emit path。
 
 - **In scope**: `_build_patient` (Patient + birthDate / sex /
   address / telecom / marital + language) + Coverage / payor
-  Organization 構築 (`_build_coverage_resources`) + occupation
+  Organization 構築 (`_build_coverage_resources`。Coverage は出生日より
+  前に始まらない。locale の `age_gates.minor_dependent_categories` に該当
+  する未成年と JP の被扶養者の未成年は relationship `child` とし、
+  subscriber は記録上の保護者 (表示のみの参照)、いなければ `policyHolder`
+  に役割名を入れる。Medicaid / CHIP・国保の未成年は `self` のまま、
+  Issue #3000) + occupation
   Observation (`_build_occupation_observation`);
   `_build_practitioner` + `_build_practitioner_role`;
   `_bb_family_history` + `_resolve_family_history_code` +
