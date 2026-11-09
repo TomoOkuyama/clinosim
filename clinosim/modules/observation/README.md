@@ -70,6 +70,8 @@ from clinosim.modules.observation.engine import (
     canonical_lab_name,                  # (name) -> canonical str
     lab_panel_components,                # (panel_name) -> list[str]
     get_lab_unit,                        # (lab_name) -> unit str
+    reported_lab_value,                  # (lab_name, value, unit, country) -> (value, unit) in the country's reporting unit (Issue #3011)
+    reported_lab_results,                # (lab_results, country) -> copies in the reporting unit (narrative context)
     clamp_to_physiologic_limits,         # (lab_name, value) -> float
     apply_realistic_variability,         # (lab_name, true_value, rng) -> float
     round_to_precision,                  # (lab_name, value) -> float

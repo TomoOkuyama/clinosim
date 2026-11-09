@@ -14,6 +14,14 @@
 source_url: "https://www.jccls.org/wp-content/uploads/2022/10/kijyunhani20221031.pdf"
 source_name: "JCCLS共用基準範囲2022"
 
+# Issue #3011: units in which this country reports an analyte when they
+# differ from the simulator's internal unit (`from`). The reported value is
+# the internal value x `factor`, rounded to `decimals`; the analyte's ranges
+# below are stated in the reported unit. 日本の検査室は CRP を mg/dL で報告
+# する (JCCLS 共用基準範囲 2022: 0.00-0.14 mg/dL)。
+reporting_units:
+  CRP: {unit: "mg/dL", from: "mg/L", factor: 0.1, decimals: 2}
+
 ranges:
   # === 血液学 ===
   WBC:
@@ -89,7 +97,7 @@ ranges:
 
   # === 炎症マーカー ===
   CRP:
-    - {low: 0, high: 1.4, unit: "mg/L", text: "JCCLS共用基準範囲2022"}
+    - {low: 0, high: 0.14, unit: "mg/dL", text: "JCCLS共用基準範囲2022"}
   PCT:
     - {low: 0, high: 0.05, unit: "ng/mL", text: "敗血症診断カットオフ（＜0.05 正常）"}
   ESR:

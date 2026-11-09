@@ -244,7 +244,11 @@ def _build_lab_observation(
     }
 
     if isinstance(value, (int, float)):
-        unit_str = result.get("unit", "")
+        # Issue #3011: in the country's reporting unit (JP CRP mg/dL); the
+        # reference range below is stated in the same unit.
+        from clinosim.modules.observation.engine import reported_lab_value
+
+        value, unit_str = reported_lab_value(lab_name, value, str(result.get("unit", "") or ""), country)
         # #323 FHIR R4 ele-1 は空文字列 field を禁止。unit が
         # 未設定時(unit_str == "")は unit / code / system 全て omit
         # (v6.1 で 44 件 error 発火)。value のみ emit する。

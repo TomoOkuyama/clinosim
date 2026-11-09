@@ -6,6 +6,7 @@ Three sources: biological variation (CVi), pre-analytical, analytical (CVa).
 
 from __future__ import annotations
 
+from dataclasses import replace
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -169,6 +170,45 @@ _PANIC_THRESHOLDS: dict[str, tuple[float | None, float | None]] = {
 }
 
 
+def _reporting_units(country: str) -> dict[str, dict[str, Any]]:
+    from clinosim.locale.loader import load_reference_ranges
+
+    return dict((load_reference_ranges(country) or {}).get("reporting_units") or {})
+
+
+def reported_lab_value(lab_name: str, value: Any, unit: str, country: str) -> tuple[Any, str]:
+    """``(value, unit)`` of a lab result as ``country`` reports it (Issue
+    #3011): the locale's ``reference_range_lab.yaml`` ``reporting_units``
+    convert an analyte held in its internal unit (JP CRP: mg/L → mg/dL,
+    x 0.1); any other result, a non-numeric value or another unit is
+    returned unchanged."""
+    spec = _reporting_units(country).get(canonical_lab_name(lab_name))
+    if not spec or str(unit or "") != str(spec.get("from", "")) or isinstance(value, bool):
+        return value, unit
+    if not isinstance(value, (int, float)):
+        return value, unit
+    return round(float(value) * float(spec["factor"]), int(spec.get("decimals", 2))), str(spec["unit"])
+
+
+def reported_lab_results(lab_results: list, country: str) -> list:
+    """``lab_results`` with every value in the country's reporting unit
+    (:func:`reported_lab_value`), for narrative quoting. Entries that change
+    are copies; the CIF entries are not modified."""
+    out = []
+    for lab in lab_results or []:
+        name = lab.get("lab_name") if isinstance(lab, dict) else getattr(lab, "lab_name", "")
+        value = lab.get("value") if isinstance(lab, dict) else getattr(lab, "value", None)
+        unit = lab.get("unit") if isinstance(lab, dict) else getattr(lab, "unit", "")
+        new_value, new_unit = reported_lab_value(str(name or ""), value, str(unit or ""), country)
+        if (new_value, new_unit) == (value, unit):
+            out.append(lab)
+        elif isinstance(lab, dict):
+            out.append({**lab, "value": new_value, "unit": new_unit})
+        else:
+            out.append(replace(lab, value=new_value, unit=new_unit))
+    return out
+
+
 @lru_cache(maxsize=2)
 def _reference_ranges_by_sex(country: str) -> dict[str, dict[str, tuple[float, float]]]:
     """Transform the YAML `ranges: {lab: [{low, high, sex?}]}` shape into a
@@ -182,6 +222,7 @@ def _reference_ranges_by_sex(country: str) -> dict[str, dict[str, tuple[float, f
 
     raw = load_reference_ranges(country) or {}
     ranges_yaml = raw.get("ranges") or {}
+    reporting = _reporting_units(country)
     out: dict[str, dict[str, tuple[float, float]]] = {}
     for lab_name, entries in ranges_yaml.items():
         if not isinstance(entries, list):
@@ -195,7 +236,10 @@ def _reference_ranges_by_sex(country: str) -> dict[str, dict[str, tuple[float, f
             if low is None or high is None:
                 continue
             key = entry.get("sex") or "all"
-            by_sex[key] = (float(low), float(high))
+            # Issue #3011: a range stated in the country's reporting unit
+            # (JP CRP mg/dL) is judged against the internal value.
+            factor = float((reporting.get(lab_name) or {}).get("factor", 1.0))
+            by_sex[key] = (round(float(low) / factor, 9), round(float(high) / factor, 9))
         if by_sex:
             out[lab_name] = by_sex
     return out
