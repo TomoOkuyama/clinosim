@@ -2412,7 +2412,7 @@
 - ローダーの約束事(パス定数、<code>@lru_cache</code>、所有モジュールのアクセサ): <a href="../implementation-rules.ja/"><code>implementation-rules.ja.md</code></a> §5。</p>
 <h2 id="1-原則">1. 原則<a class="headerlink" href="#1-原則" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>読み手は一つ、形の検査も一つ。</strong> 参照データは所有モジュールのローダーを通して読み、形はキーを初めて引き損ねた時ではなく読み込み時に検査する。モジュールの参照 YAML(<code>clinosim/modules/&lt;module&gt;/reference_data/*.yaml</code>)は <code>extra="forbid"</code> の Pydantic モデルがこれを行い、形が崩れたキーや未知のキーは読み込み時に大きく失敗する。それ以外のデータ YAML はまだモデルで検証していない(§5)。</li>
+<li><strong>読み手は一つ、形の検査も一つ。</strong> 参照データは所有モジュールのローダーを通して読み、形はキーを初めて引き損ねた時ではなく読み込み時に検査する。モジュールの参照 YAML(<code>clinosim/modules/&lt;module&gt;/reference_data/*.yaml</code>)とシミュレータの参照 YAML(<code>clinosim/simulator/reference_data/*.yaml</code>)は <code>extra="forbid"</code> の Pydantic モデルがこれを行い、形が崩れたキーや未知のキーは読み込み時に大きく失敗する。ロケールとコード表の YAML はまだモデルで検証していない(§5)。</li>
 <li><strong>一つの事実に一つの表。</strong> 複数の段階が使う値(フォローアップ間隔、名前付きの病態、年齢区分の率)は一つの表に置き、各段階は一つのアクセサでその表を読む。</li>
 <li><strong>キー形式の解釈は一つ。</strong> 共通のキー形式(年齢区分、コード群)は一つの補助関数が解釈し、すべての表が同じ書き方・読み方をする。</li>
 <li><strong>規則には必ずガードがある。</strong> 各規則はそれを強制するテストを示す。テストの無い規則は §5 に挙げる。</li>
@@ -2507,8 +2507,8 @@
 <td>レビュー</td>
 </tr>
 <tr>
-<td><code>clinosim/modules/*/reference_data/</code> の外にあるデータ YAML は Pydantic モデルで検証しておらず、§2 のガードも見ていない: <code>clinosim/simulator/reference_data/*.yaml</code>(モデルがあるのは <code>statin_monitoring.yaml</code> だけ)、<code>clinosim/locale/**</code>(一部のファイルは <code>clinosim/locale/loader.py</code> の手書きの検査を持つ)、<code>clinosim/codes/data/*.yaml</code>。これらのファイルの未知のキーは読み込み時に拒否されない。</td>
-<td><code>tests/unit/test_configuration_spec_guards.py</code> は <code>modules/*/reference_data/</code> だけを走査する</td>
+<td>ロケールとコード表の YAML は Pydantic モデルで検証しておらず、§2 のガードも見ていない: <code>clinosim/locale/**</code>(一部のファイルは <code>clinosim/locale/loader.py</code> の手書きの検査を持つ)と <code>clinosim/codes/data/*.yaml</code>。これらのファイルの未知のキーは読み込み時に拒否されない。</td>
+<td><code>tests/unit/test_configuration_spec_guards.py</code> は <code>modules/*/reference_data/</code> と <code>simulator/reference_data/</code> だけを走査する</td>
 </tr>
 <tr>
 <td>キャッシュ付きローダーの戻り値を書き換えない(§2)。</td>
