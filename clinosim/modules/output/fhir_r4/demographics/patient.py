@@ -23,7 +23,7 @@ from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import load_identity_config, vocab_display
+from clinosim.locale.loader import load_identity_config, resident_insurer_number, vocab_display
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.common import (
     _social_category,
@@ -314,20 +314,27 @@ def _guardian_subscriber(patient_data: dict) -> dict[str, str] | None:
 _GUARDIAN_RELATIONS = frozenset({"MTH", "parent"})
 
 
-def _late_elderly_payer_number(country: str) -> str:
-    """Return the representative 保険者番号 for the late-elderly scheme, or empty.
-
-    Used when Issue #923's age-gate reassigns an aging-into-≥75 patient's
-    Coverage row to 後期高齢者医療制度. Falls back to the first late_elderly payer
-    entry declared in identity.yaml; empty string when no such payer is
-    configured (e.g., non-JP locale).
-    """
-    payers = _identity_cfg(country).get("payers", {}) or {}
-    entries = payers.get("late_elderly") or []
-    for e in entries:
+def _resident_payer_number(country: str, scheme: str, prefecture: str, city: str) -> str:
+    """保険者番号 of the ``scheme`` insurer of the patient's residence
+    (Issue #3015: 国保 by municipality, 後期高齢者医療 by the prefecture's
+    広域連合), else the first ``scheme`` payer in identity.yaml; empty when
+    none is configured (e.g., non-JP locale)."""
+    resident = resident_insurer_number(country, scheme, prefecture, city)
+    if resident:
+        return resident
+    for e in (_identity_cfg(country).get("payers", {}) or {}).get(scheme) or []:
         if e.get("number"):
             return str(e["number"])
     return ""
+
+
+def _late_elderly_payer_number(country: str, prefecture: str = "", city: str = "") -> str:
+    """The 後期高齢者医療 保険者番号 for a residence (``_resident_payer_number``).
+
+    Used when Issue #923's age-gate reassigns an aging-into-≥75 patient's
+    Coverage row to 後期高齢者医療制度.
+    """
+    return _resident_payer_number(country, "late_elderly", prefecture, city)
 
 
 def _parse_iso_date(value: Any) -> date | None:
@@ -460,13 +467,10 @@ def jp_copay_pct(dob: date, on: date, income_q: float, country: str = "JP") -> i
     return int(cfg["standard_pct"])
 
 
-def _national_payer_number(country: str) -> str:
-    """The representative 国民健康保険 保険者番号 (identity.yaml ``payers.national``),
+def _national_payer_number(country: str, prefecture: str = "", city: str = "") -> str:
+    """The 国民健康保険 保険者番号 for a residence (``_resident_payer_number``),
     used for the months before a 後期高齢者 enrollee's 75th birthday."""
-    for e in (_identity_cfg(country).get("payers", {}) or {}).get("national") or []:
-        if e.get("number"):
-            return str(e["number"])
-    return ""
+    return _resident_payer_number(country, "national", prefecture, city)
 
 
 @lru_cache(maxsize=2)
@@ -567,7 +571,11 @@ def _build_coverage_resources(
     gates = _age_gate_config(country)
     minor_dependent = _minor_dependent_categories(country)
     dob = _parse_iso_date(patient_data.get("date_of_birth"))
-    late_elderly_payer = _late_elderly_payer_number(country)
+    # Issue #3015: the insurers of the patient's residence.
+    _addr = patient_data.get("address") or {}
+    _pref = str(_addr.get("state", "") or "") if isinstance(_addr, dict) else ""
+    _city = str(_addr.get("city", "") or "") if isinstance(_addr, dict) else ""
+    late_elderly_payer = _late_elderly_payer_number(country, _pref, _city)
     # Issue #3000: no coverage before birth.
     if dob:
         fy_periods = [(max(s, dob), e) for s, e in fy_periods if e >= dob]
@@ -636,7 +644,7 @@ def _build_coverage_resources(
                 use_symbol: str | None = None
                 use_branch: str | None = None
             elif category == "national" and base_category == "late_elderly":
-                insurer = _national_payer_number(country) or base_insurer
+                insurer = _national_payer_number(country, _pref, _city) or base_insurer
                 use_symbol = None
                 use_branch = None
             elif category != base_category and category == "dependent":

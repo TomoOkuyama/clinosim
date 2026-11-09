@@ -111,7 +111,12 @@ content.
 - Locale YAML: [`clinosim/locale/jp/identity.yaml`](../../locale/jp/identity.yaml)
   — age-banded rates for マイナンバー card holding + マイナ保険証
   registration, insurer scheme distributions, `household_icc` for
-  the Gaussian-copula intra-household correlation.
+  the Gaussian-copula intra-household correlation, and `payers`:
+  国民健康保険 entries per municipality and 後期高齢者医療 広域連合 per
+  prefecture, each naming the residence it serves — a resident is
+  enrolled with the insurer of their prefecture / city
+  (`locale.loader.resident_insurer_number`, also read by the FHIR
+  Coverage builder when a patient turns 75; Issue #3015).
   [`clinosim/locale/us/identity.yaml`](../../locale/us/identity.yaml)
   — age-banded `sampling.insurance_distribution` + `payers`. A
   country without an `identity.yaml` makes `assign_identities` return

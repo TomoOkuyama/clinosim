@@ -234,7 +234,9 @@ class TestIssue923AgeGate:
         assert len(covs) == 1
         assert covs[0]["type"]["text"] == "後期高齢者医療制度"
         # And swapped to the 後期高齢 payer
-        assert covs[0]["payor"][0]["reference"] == "Organization/payer-39130083"
+        assert (
+            covs[0]["payor"][0]["reference"] == "Organization/payer-39130000"
+        )  # Issue #3015: 東京都 広域連合 (no address → first entry)
 
     def test_minor_never_gets_hihokensha(self):
         """A minor's Coverage.type MUST NOT be 被用者保険（被保険者）; if the

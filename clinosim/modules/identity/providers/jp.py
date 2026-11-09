@@ -20,6 +20,7 @@ import numpy as np
 
 import clinosim.modules.identity.generators as generators
 from clinosim.age_bands import lookup_age_band
+from clinosim.locale.loader import resident_insurer_number
 from clinosim.types import InsuranceEnrollment, NationalIdentity
 
 _NORM = NormalDist()
@@ -50,7 +51,7 @@ class JPIdentityProvider:
             head = (
                 subscriber if scheme == "employee" and subscriber is not None else max(non_elderly, key=lambda m: m.age)
             )
-            insurer = self._insurer_for(scheme, payers, rng)
+            insurer = self._insurer_for(scheme, payers, rng, head)
             symbol = generators.numeric_id(rng, 4)  # 記号 (employer for 社保 / 世帯 for 国保)
             base_member = generators.numeric_id(rng, 8 if scheme == "employee" else 6)
             # Head first, then dependents — branch numbers 01, 02, ...
@@ -70,7 +71,7 @@ class JPIdentityProvider:
                 )
 
         for m in elderly:
-            insurer = self._insurer_for("late_elderly", payers, rng)
+            insurer = self._insurer_for("late_elderly", payers, rng, m)
             result[m.person_id] = InsuranceEnrollment(
                 country="JP",
                 category="late_elderly",
@@ -150,11 +151,23 @@ class JPIdentityProvider:
         p = float(dist.get("employee", 0.5)) if dist else 0.5
         return ("employee", head) if rng.random() < p else ("national", None)
 
-    def _insurer_for(self, scheme: str, payers: dict[str, Any], rng: np.random.Generator) -> str:
-        """Pick a representative payer's 保険者番号 for the scheme (name resolved at output)."""
+    def _insurer_for(self, scheme: str, payers: dict[str, Any], rng: np.random.Generator, member: Any) -> str:
+        """The scheme's 保険者番号 for ``member`` (name resolved at output).
+
+        Issue #3015: 国民健康保険 and 後期高齢者医療 are run by the insurer of
+        the residence (``resident_insurer_number``: municipality / 広域連合 of
+        the member's prefecture and city), with no draw: these schemes used to
+        have a single payer, whose pick drew nothing, so the stream keeps its
+        shape. A residence no entry serves takes the scheme's first entry.
+        Other schemes (被用者保険) draw a representative payer as before."""
         options = payers.get(scheme) or []
         if not options:
             return ""
+        if any(o.get("prefecture") for o in options):
+            resident = resident_insurer_number(
+                self.country, scheme, str(getattr(member, "state", "") or ""), str(getattr(member, "city", "") or "")
+            )
+            return resident or str(options[0]["number"])
         choice = options[int(rng.integers(0, len(options)))]
         return str(choice["number"])
 

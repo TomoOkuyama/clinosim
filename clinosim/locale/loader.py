@@ -81,6 +81,7 @@ from clinosim.locale.loaders.fhir_identity import (
     load_external_organizations,
     load_identity_config,
     load_practitioner_qualifications,
+    resident_insurer_number,
 )
 from clinosim.locale.loaders.medical_display import (
     department_display,
@@ -163,6 +164,7 @@ __all__ = [
     "load_health_screening_visit_reason",
     "load_identity_config",
     "load_clinic_calendar",
+    "resident_insurer_number",
     "load_inpatient_subjective_pool",
     "load_iv_infusion_defaults",
     "load_llm_prompt_labels",
