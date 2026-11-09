@@ -631,6 +631,59 @@ def _given_dose_text(order: Order, patient: PatientProfile) -> str:
     return f"{order.dose_quantity}{order.dose_unit}"
 
 
+def missed_single_doses(
+    patient: PatientProfile,
+    orders: list[Order],
+    administrations: list[MedicationAdministration],
+    admission_time: datetime,
+    stay_end: datetime,
+    *,
+    roster: StaffRoster | None,
+    ward: str = "",
+    department: str = "",
+) -> list[MedicationAdministration]:
+    """The dose of each one-time order the daily MAR never reached (Issue #3043).
+
+    ``_generate_mar`` gives a one-time order on the stay day matching its
+    calendar date. An order placed on the last stay day but dated the next
+    calendar day (a late-evening admission's escalation order at "day N
+    10:00") falls after the last day and was never given. Each such order
+    ordered before ``stay_end`` (the discharge) gets its single dose. No
+    draws: the time and the nurse come from hashes."""
+    from clinosim.modules.order.placed_order_mar import stable_nurse
+
+    given_ids = {m.order_id for m in administrations}
+    out: list[MedicationAdministration] = []
+    for order in orders:
+        if (
+            order.order_type != OrderType.MEDICATION
+            or order.status != OrderStatus.PLACED
+            or not getattr(order, "single_dose", False)
+            or order.order_id in given_ids
+        ):
+            continue
+        ordered = order.ordered_datetime or admission_time
+        given = max(ordered, admission_time) + timedelta(
+            minutes=_first_dose_delay_min(patient.patient_id, order.order_id, "single")
+        )
+        if given >= stay_end:
+            continue
+        out.append(
+            MedicationAdministration(
+                order_id=order.order_id,
+                drug_name=order.display_name,
+                scheduled_datetime=given,
+                actual_datetime=given,
+                status="given",
+                dose=_given_dose_text(order, patient) if order.dose_quantity else order.display_name,
+                route=order.route or _determine_route(order.display_name, order.clinical_intent, order.drug_id),
+                administered_by=stable_nurse(roster, order.order_id, ward=ward, department=department)
+                or FALLBACK_NURSE_ID,
+            )
+        )
+    return out
+
+
 def _first_dose_delay_min(patient_id: str, order_id: str, kind: str) -> int:
     """Minutes from the order (or admission) to a first dose: a hash of the
     patient, the order and the kind of dose (``single`` / ``stat`` / ``day0``)

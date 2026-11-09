@@ -135,6 +135,7 @@ from clinosim.modules.order.absolute_dose import (
     is_per_body_unit,                   # (unit) -> bool ("mg/kg", "mg/m2")
     body_surface_area,                  # (height_cm, weight_kg) -> m2 (Mosteller)
     is_continuous_infusion,             # (frequency, name="") -> bool
+    is_one_time_infusion,               # (name) -> bool — 繰り返しのない「IV over 2h」は単回投与 (Issue #3043)
 )
 
 # 日次 MAR loop 外で発注された order の投与記録 (Issue #2607)、RNG-free
@@ -263,7 +264,7 @@ clinosim/modules/order/
   supersede.py                       POST_ENCOUNTER enricher: 同一薬剤の新 order / 登録済 class 切替が旧 order を停止 (Issue #2615)
   prescription_supersede.py          prescription_closures — FHIR export 時に持ち帰り処方の更新 / 供給終了で終了を決定 (Issue #2610)
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — 日次 loop 外で発注された order の RNG-free MAR (Issue #2607)
-  absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion — per-kg / per-m2 投与量の絶対量 (Issue #2750)
+  absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion + is_one_time_infusion — per-kg / per-m2 投与量の絶対量 (Issue #2750)、投与形態の判定 (Issue #3043)
   pediatric_dose.py                  pediatric_order_name — 小児 ED 投与量の体重換算 (Issue #2857)
   label_dose.py                      within_label — 国別の添付文書用量上限 (Issue #3012)
   audit.py                           AD-60 audit plug-in (per-module) — 7-check lift_firing_proof + basedon_coverage
