@@ -21,7 +21,10 @@ builder が唯一の emit path。
   する未成年と JP の被扶養者の未成年は relationship `child` とし、
   subscriber は記録上の保護者 (表示のみの参照)、いなければ `policyHolder`
   に役割名を入れる。Medicaid / CHIP・国保の未成年は `self` のまま、
-  Issue #3000) + occupation
+  Issue #3000。JP の後期高齢者医療は 75 歳の誕生日から始まり、その年度の
+  Coverage を誕生日で分ける。JP の自己負担割合 `costToBeneficiary` は年齢と
+  1 人ごとの所得区分で identity.yaml `copay` から決める (`jp_copay_pct`、
+  Issue #3016)) + occupation
   Observation (`_build_occupation_observation`);
   `_build_practitioner` + `_build_practitioner_role`;
   `_bb_family_history` + `_resolve_family_history_code` +

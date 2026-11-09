@@ -292,12 +292,10 @@ class TestIssue923MultiFY:
 
     def test_ages_across_75_boundary_gets_swapped(self):
         """A patient turning 75 mid-simulation gets 後期高齢者医療制度 from
-        the FY containing the 75th birthday onward."""
+        the 75th birthday (Issue #3016: the fiscal year is split there)."""
         p = _patient_with_encounters(
-            # Born 1951-05-01 → age at FY2025 end (2026-03-31) is 74; age at
-            # FY2026 end (2027-03-31) is 75. The late-elderly gate uses the
-            # period-end age so a patient turning 75 in FY2026 promotes only
-            # from FY2026 onward and their FY2025 row stays 国保.
+            # Born 1951-05-01 → 75 on 2026-05-01. FY2025 stays 国保; FY2026 is
+            # 国保 until 2026-04-30 and 後期高齢者医療制度 from the birthday.
             "1951-05-01",
             "national",  # 国保 at generation time
             [
@@ -305,10 +303,12 @@ class TestIssue923MultiFY:
                 {"admission_datetime": "2026-09-01T09:00:00"},  # FY2026 (age 75)
             ],
         )
-        covs = _covs(p)
-        assert len(covs) == 2
-        types = [c["type"]["text"] for c in covs]
-        assert types == ["国民健康保険", "後期高齢者医療制度"]
+        covs = sorted(_covs(p), key=lambda c: c["period"]["start"])
+        assert [(c["period"]["start"], c["type"]["text"]) for c in covs] == [
+            ("2025-04-01", "国民健康保険"),
+            ("2026-04-01", "国民健康保険"),
+            ("2026-05-01", "後期高齢者医療制度"),
+        ]
 
     def test_single_fy_patient_still_gets_one_row(self):
         """Single-FY encounters produce a single Coverage row (regression:

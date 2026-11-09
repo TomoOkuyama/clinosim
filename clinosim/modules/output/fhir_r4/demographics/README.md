@@ -21,7 +21,10 @@ builder is the only allergy emit path.
   `age_gates.minor_dependent_categories` or a JP 被扶養者 is covered with
   relationship `child`: the subscriber is the guardian on record as a
   display-only reference, else `policyHolder` names the role; a minor on
-  Medicaid / CHIP or 国保 stays `self`, Issue #3000) +
+  Medicaid / CHIP or 国保 stays `self`, Issue #3000; JP 後期高齢者医療 starts
+  on the 75th birthday, splitting that fiscal year's Coverage, and the JP
+  copay `costToBeneficiary` follows age and a per-person income tier from
+  identity.yaml `copay` (`jp_copay_pct`, Issue #3016) +
   occupation Observation (`_build_occupation_observation`);
   `_build_practitioner` + `_build_practitioner_role`;
   `_bb_family_history` + `_resolve_family_history_code` +
