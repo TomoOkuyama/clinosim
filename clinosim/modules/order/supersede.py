@@ -5,7 +5,11 @@ that already has an active order (or a class switch listed in
 ``reference_data/medication_supersede.yaml``) stops the earlier order at the
 new order's time, drops the earlier order's administrations from then on, and
 links the new order to it (``Order.prior_order_id`` →
-``MedicationRequest.priorPrescription``).
+``MedicationRequest.priorPrescription``). A dose of the earlier order in the
+switch's administration slot (``SWITCH_SLOT_WINDOW_MIN`` before the switch)
+is replaced by the new drug's dose. An order that would supersede one placed
+at the same time is a duplicate of it: it is cancelled and its
+administrations dropped (Issue #2983).
 
 Runs after the daily loop, like ``discontinue_flip``: the per-day MAR
 generation has finished, so stopping an order here moves no random draw
@@ -14,6 +18,7 @@ generation has finished, so stopping an order here moves no random draw
 
 from __future__ import annotations
 
+from datetime import timedelta
 from functools import cache
 from pathlib import Path
 from typing import Annotated, Any
@@ -23,10 +28,10 @@ from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 from clinosim.codes.drugs import all_drug_ids, drug_classes, drug_ref, get_drug
 from clinosim.datafiles import load_validated_yaml
 from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER
+from clinosim.modules.order._supersede_thresholds import SWITCH_SLOT_WINDOW_MIN
 from clinosim.types.encounter import OrderStatus, OrderType
 
 _REF = Path(__file__).parent / "reference_data" / "medication_supersede.yaml"
-_INACTIVE = (OrderStatus.STOPPED, OrderStatus.CANCELLED)
 _STAY_TYPES = frozenset({"inpatient", "icu", "rehab_inpatient"})
 
 
@@ -84,8 +89,9 @@ def _drug_id(order: Any) -> str:
 
 
 def _classes(drug_id: str) -> frozenset[str]:
-    drug = get_drug(drug_id) if drug_id else None
-    return frozenset(drug.classes) if drug is not None else frozenset()
+    """The drug's catalog classes with their dotted ancestors
+    (``antibiotic.penicillin.bli_combination`` is also ``antibiotic.penicillin``)."""
+    return frozenset(drug_classes(drug_id)) if drug_id and get_drug(drug_id) is not None else frozenset()
 
 
 def _supersedes(new_id: str, old_id: str) -> bool:
@@ -110,6 +116,15 @@ def _is_prn(order: Any) -> bool:
     return any(marker.upper() in text for marker in _prn_markers())
 
 
+def _is_one_time(order: Any) -> bool:
+    """A one-time dose (pre-operative prophylaxis): given once next to the
+    ongoing regimen, it replaces nothing (Issue #2983)."""
+    return bool(getattr(order, "single_dose", False)) or str(getattr(order, "frequency", "") or "").lower() in (
+        "once",
+        "stat",
+    )
+
+
 def supersede_orders(orders: list[Any], administrations: list[Any]) -> list[Any]:
     """Stop superseded orders in place; return the administrations kept."""
     meds = sorted(
@@ -124,33 +139,61 @@ def supersede_orders(orders: list[Any], administrations: list[Any]) -> list[Any]
         oid = getattr(mar, "order_id", "")
         if when is not None and (oid not in first_given or when < first_given[oid]):
             first_given[oid] = when
+    doses: dict[str, int] = {}
+    for mar in administrations:
+        doses[getattr(mar, "order_id", "")] = doses.get(getattr(mar, "order_id", ""), 0) + 1
     stopped_at: dict[str, Any] = {}
+    cancelled: set[str] = set()
     for i, new in enumerate(meds):
         new_id = _drug_id(new)
-        if not new_id:
+        if not new_id or _is_one_time(new):
             continue
         for old in meds[:i]:
             if (
-                old.status in _INACTIVE
+                # A stopped order is still cut at the switch: a DISCONTINUE
+                # marker (discontinue_flip) stops it without ending its
+                # administrations (Issue #2983).
+                old.status == OrderStatus.CANCELLED
+                or _is_one_time(old)
                 or old.encounter_id != new.encounter_id
-                or old.ordered_datetime >= new.ordered_datetime
+                or old.ordered_datetime > new.ordered_datetime
                 # A PRN order alongside a scheduled one (breakthrough dosing)
                 # is a combination, not a replacement.
                 or _is_prn(old) != _is_prn(new)
             ):
                 continue
             old_id = _drug_id(old)
-            if old_id and _supersedes(new_id, old_id):
-                old.status = OrderStatus.STOPPED
-                switch = min(new.ordered_datetime, first_given.get(new.order_id, new.ordered_datetime))
-                stopped_at[old.order_id] = min(stopped_at.get(old.order_id, switch), switch)
-                if old_id == new_id and not getattr(new, "prior_order_id", ""):
-                    new.prior_order_id = old.order_id
-    if not stopped_at:
+            if not (old_id and _supersedes(new_id, old_id)):
+                continue
+            if old.ordered_datetime == new.ordered_datetime:
+                # Issue #2983: ordered together with an order it would replace
+                # (the same drug twice, two carbapenems) — a duplicate. The
+                # order given more often is kept (the earlier one on a tie).
+                drop = new if doses.get(new.order_id, 0) <= doses.get(old.order_id, 0) else old
+                drop.status = OrderStatus.CANCELLED
+                cancelled.add(drop.order_id)
+                if drop is new:
+                    break
+                continue
+            switch = min(new.ordered_datetime, first_given.get(new.order_id, new.ordered_datetime))
+            if min(old.ordered_datetime, first_given.get(old.order_id, old.ordered_datetime)) >= switch:
+                # Started while the new drug was already being given: an
+                # addition to it, not the drug it replaced (Issue #2983).
+                continue
+            old.status = OrderStatus.STOPPED
+            # Issue #2983: the old drug's dose in the switch's slot is replaced.
+            switch -= timedelta(minutes=SWITCH_SLOT_WINDOW_MIN)
+            stopped_at[old.order_id] = min(stopped_at.get(old.order_id, switch), switch)
+            if old_id == new_id and not getattr(new, "prior_order_id", ""):
+                new.prior_order_id = old.order_id
+    if not stopped_at and not cancelled:
         return administrations
     kept = []
     for mar in administrations:
-        cut = stopped_at.get(getattr(mar, "order_id", ""))
+        oid = getattr(mar, "order_id", "")
+        if oid in cancelled:
+            continue
+        cut = stopped_at.get(oid)
         when = getattr(mar, "actual_datetime", None) or getattr(mar, "scheduled_datetime", None)
         if cut is not None and when is not None and when >= cut:
             continue

@@ -62,7 +62,9 @@
 #   immunosuppressant, ssri, snri, maoi, atypical_antidepressant,
 #   antidepressant, antiparkinsonian, benzodiazepine, anxiolytic, lithium,
 #   mood_stabilizer, analgesic.non_opioid, macrolide, antihypertensive,
-#   antiarrhythmic.class4, ...
+#   antiarrhythmic.class4,
+#   antibiotic.{penicillin.bli_combination (a penicillin with a beta-lactamase
+#   inhibitor, Issue #2983), cephalosporin.oral, carbapenem, ...}, ...
 #   Drug-safety rules (modules/drug_safety/reference_data/*.yaml) match by
 #   class, so a drug given an existing class inherits its rules.
 #
@@ -251,7 +253,7 @@ drugs:
     names: {en: "Ampicillin / Sulbactam Injectable Product", ja: "アンピシリン・スルバクタム注"}
     codes:
       rxnorm: "1153190"  # Issue #2150: was 1116635
-    classes: ["antibiotic.penicillin"]
+    classes: ["antibiotic.penicillin.bli_combination"]
     scheduled_interval_hours: 6
     default_route: IV
   vitamin_d:
@@ -307,7 +309,7 @@ drugs:
     codes:
       rxnorm: "19711"
       yj: {oral: "6139100F2044"}
-    classes: ["antibiotic.penicillin"]
+    classes: ["antibiotic.penicillin.bli_combination"]
     aliases: ["Amoxicillin/Clavulanate"] # slash-no-space form used in disease YAMLs. META #1849 Phase 5 Step 2.
   levofloxacin:
     names: {en: "Levofloxacin", ja: "レボフロキサシン"}
@@ -393,7 +395,7 @@ drugs:
     codes:
       rxnorm: "1009148"  # Issue #2150: was 308182
       yj: {injection: "6139504F3033"}
-    classes: ["antibiotic.penicillin"]
+    classes: ["antibiotic.penicillin.bli_combination"]
     scheduled_interval_hours: 6
     default_route: IV
   ceftriaxone_1_g_injection:
@@ -1079,7 +1081,7 @@ drugs:
     codes:
       rxnorm: "74169"
       yj: {injection: "6139505G1022"}
-    classes: ["antibiotic.penicillin"]
+    classes: ["antibiotic.penicillin.bli_combination"]
     scheduled_interval_hours: 6
     default_route: IV
   kcentra:

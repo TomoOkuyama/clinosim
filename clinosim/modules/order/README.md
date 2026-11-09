@@ -57,7 +57,11 @@ ServiceRequest.
   original order of a `DISCONTINUE: X` marker to `STOPPED`);
   `enrich_supersede_orders` (`supersede.py`, the POST_ENCOUNTER
   enricher that stops an earlier medication order superseded by a
-  newer one); `prescription_closures` (`prescription_supersede.py`);
+  newer one — the same drug or a listed class switch such as one
+  beta-lactam replacing another — drops the replaced drug's dose in the
+  switch's administration slot (`_supersede_thresholds.py`), cancels an
+  order duplicating one placed at the same time, and leaves one-time doses
+  alone, Issue #2983); `prescription_closures` (`prescription_supersede.py`);
   the placed-order MAR helpers (`placed_order_mar.py`); weight- /
   BSA-based dose amounts (`absolute_dose.py`); `classify_lab_specs` + `load_panel_definitions` +
   `PANEL_PRIORITY_ORDER` (`("ABG", "CBC", "BMP", "LFT", "Lipid",
@@ -284,7 +288,7 @@ clinosim/modules/order/
   _order_placement_timing.py         placement offset constants (Issue #637)
   _state_delay_thresholds.py         hospital-state delay constants (Issue #637)
   reference_data/
-    medication_supersede.yaml        class switches + PRN markers read by supersede.py (Issue #2615)
+    medication_supersede.yaml        class switches + PRN markers read by supersede.py (Issues #2615, #2983)
     pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg, per-country overrides (Issue #2857, #2977, #3012)
     label_dose_limits.yaml           per-country label dose, doses a day, daily max read by label_dose.py (Issue #3012)
   SPEC.md                            extended design reference (not runtime)
