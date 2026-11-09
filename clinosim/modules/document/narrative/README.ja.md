@@ -119,6 +119,9 @@ from clinosim.modules.document.narrative.semantic_check import check_narratives,
   (`semantic_check.py`)。
 - `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
   `practitioner_name`。
+- `clinosim.modules.observation.pediatric_ranges` —
+  `age_in_completed_months`, `pediatric_vital_range` (外来 SOAP の
+  Assessment で小児の心拍数上限を年齢別に判定、Issue #2986)。
 - `clinosim.modules.health_checkup.engine` — `checkup_lab_names`
   (`renderers/section_builders/jp_clins.py` で lazy import)。
 - `clinosim.simulator` — `log` (`passes.py`) と
