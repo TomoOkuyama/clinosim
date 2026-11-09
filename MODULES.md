@@ -208,7 +208,7 @@ antibiotic/     ├── types/, codes/, modules/observation (antibiotic_loinc_
 imaging/        ├── types/, codes/, locale/, modules/order
 triage/         ├── types/, codes/, locale/
 nursing/        ├── types.staff/, seeding/  (Assignment side; nursing_flowsheets lives in observation)
-document/       ├── types/, codes/, locale/, modules/allergy, modules/triage
+document/       ├── types/, codes/, locale/, modules/allergy, modules/triage, modules/observation (pediatric_ranges)
 immunization/   ├── types.encounter (lazy import), codes/, locale/
 code_status/    ├── codes/, locale/
 care_level/     ├── codes/, locale/

@@ -44,6 +44,7 @@ __all__ = [
     "NARRATIVE_LDL_BORDERLINE_THRESHOLD",
     "NARRATIVE_LDL_ELEVATED_THRESHOLD",
     "NARRATIVE_LDL_HIGH_THRESHOLD",
+    "NARRATIVE_ADULT_TACHYCARDIA_HR",
     "NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT",
     "NUTRITION_PROTEIN_G_PER_KG_MIDPOINT",
     "bmi_band",
@@ -211,6 +212,17 @@ NARRATIVE_LDL_ELEVATED_THRESHOLD: int = _JP_TARGETS.ldl.elevated
 """LDL (mg/dL) at or above which the interpretation is 「高値注意」
 (elevated). Matches the JAS 動脈硬化性疾患予防ガイドライン 2022
 mild-elevation boundary (120-139)."""
+
+
+# ---------------------------------------------------------------------------
+# Heart rate interpretation
+# ---------------------------------------------------------------------------
+
+NARRATIVE_ADULT_TACHYCARDIA_HR: int = 100
+"""Heart rate (/min) at or above which an adult's SOAP Assessment notes
+tachycardia (the conventional adult definition, > 100 /min resting;
+AHA/ACC). A child's limit is the upper end of the normal range for the
+age in ``observation.pediatric_ranges`` (Issue #2986)."""
 
 
 # ---------------------------------------------------------------------------

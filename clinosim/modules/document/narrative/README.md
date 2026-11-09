@@ -127,6 +127,9 @@ from clinosim.modules.document.narrative.semantic_check import check_narratives,
   `audit` JA-char constants (`semantic_check.py`).
 - `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
   `practitioner_name`.
+- `clinosim.modules.observation.pediatric_ranges` —
+  `age_in_completed_months`, `pediatric_vital_range` (a child's
+  heart-rate limit in the outpatient SOAP Assessment, Issue #2986).
 - `clinosim.modules.health_checkup.engine` — `checkup_lab_names`
   (lazy import in `renderers/section_builders/jp_clins.py`).
 - `clinosim.simulator` — `log` (`passes.py`) and

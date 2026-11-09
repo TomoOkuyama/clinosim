@@ -49,6 +49,7 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
+    NARRATIVE_ADULT_TACHYCARDIA_HR,
     NARRATIVE_HBA1C_DIABETES_THRESHOLD,
     bp_band,
     chronic_control_targets,
@@ -61,6 +62,7 @@ from clinosim.modules.document.narrative._template_helpers import (
 )
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.modules.document.reference_data_loaders import ChronicMedClassHints
+from clinosim.modules.observation.pediatric_ranges import age_in_completed_months, pediatric_vital_range
 from clinosim.reference_data import load_reference_yaml
 from clinosim.simulator.statin_monitoring import ldl_target as statin_ldl_target
 from clinosim.types.document import DocumentType, NarrativeContext
@@ -865,13 +867,15 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
     # were not paired with a matching chronic condition. Tachycardia
     # was acknowledged in 2.5% of notes (20/790), hypoxemia in 0%
     # (0/1,890), and fever in only 6.7% (2/30). Add a per-vital pass
-    # after the condition-dispatch loop so a HR ≥100 / SpO2 <95 /
+    # after the condition-dispatch loop so a HR ≥100 (adult) / SpO2 <95 /
     # T ≥38 always surfaces in the Assessment prose regardless of
     # the chronic-condition list. hr_f / temp_f / spo2_f are already
     # parsed once at the top of this method (shared with PR B3's
     # observation-aware fallback).
+    # Issue #2986: a child's heart rate is judged against the normal range
+    # for the age (``observation.pediatric_ranges``), not the adult 100/min.
     vital_lines: list[str] = []
-    if hr_f is not None and hr_f >= 100:
+    if hr_f is not None and _is_tachycardic(hr_f, patient, v0, ctx):
         vital_lines.append(t("chronic_assessment.tachycardia", lang, hr=int(round(hr_f))))
     if spo2_f is not None and spo2_f < 95:
         key = "chronic_assessment.hypoxemia_severe" if spo2_f < 90 else "chronic_assessment.hypoxemia"
@@ -886,6 +890,17 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
     if not lines:
         return ""
     return "\n".join(lines)
+
+
+def _is_tachycardic(hr: float, patient: Any, vital: Any, ctx: NarrativeContext) -> bool:
+    """Whether ``hr`` is above normal: above the pediatric heart-rate range
+    for the age on the measurement day, else (adults, unknown age) the adult
+    limit ``NARRATIVE_ADULT_TACHYCARDIA_HR`` (Issue #2986)."""
+    when = _o(vital, "timestamp", None) if vital is not None else None
+    if when is None:
+        when = _o(ctx.encounter, "admission_datetime", None) if ctx.encounter is not None else None
+    rng = pediatric_vital_range("heart_rate", age_in_completed_months(_o(patient, "date_of_birth", None), when))
+    return hr > rng.high if rng is not None else hr >= NARRATIVE_ADULT_TACHYCARDIA_HR
 
 
 # ─────────────────────────────────────────────────────────────────────
