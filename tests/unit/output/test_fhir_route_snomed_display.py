@@ -37,6 +37,7 @@ _AUTHORITATIVE_SNOMED_ROUTE_DISPLAY: dict[str, str] = {
     "54485002": "Ophthalmic route",
     "718329006": "Infiltration route",
     "12130007": "Intra-articular route",
+    "428191002": "Percutaneous route",  # Issue #3005: tx.fhir.org $lookup 2026-11-09
 }
 
 

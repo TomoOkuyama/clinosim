@@ -16,6 +16,25 @@
 # coverage to match cumulative "≥1 record" targets — per-season vs
 # cumulative are different measurements.
 # See modules/immunization/README.md "Cumulative record vs per-season" note.
+# Issue #3005: how each vaccine is given. `administration` on a vaccine:
+#   route    key of codes/data/snomed-maps.yaml `route` (IM / SC / PO / PERCUTANEOUS)
+#   dose_ml  volume per dose (omitted when the label states no fixed volume)
+#   dose_ml_by_age  optional [{max_age_months, ml}] overriding dose_ml for a young child
+# `administration_sites` gives the SNOMED body site per route and age (first
+# band whose max_age_months covers the age at the dose; an oral dose has no
+# site). Sources: CDC General Best Practice Guidelines for Immunization,
+# "Vaccine Administration" (IM in the anterolateral thigh for infants and
+# toddlers under 3 years, deltoid from 3 years; SC in the thigh under 12 months,
+# upper-outer triceps from 12 months); route and volume per the package
+# inserts (MMR / varicella SC, rotavirus oral, COVID-19 mRNA 0.3 mL).
+administration_sites:
+  IM:
+    - {max_age_months: 35, site: "61396006"}   # left thigh (anterolateral thigh)
+    - {site: "368208006"}                      # left upper arm (deltoid)
+  SC:
+    - {max_age_months: 11, site: "61396006"}   # left thigh
+    - {site: "368208006"}                      # left upper arm (upper-outer triceps)
+
 vaccines:
   influenza:
     cvx: "150"
@@ -29,6 +48,7 @@ vaccines:
     min_age: 18
     min_age_days: 182   # licensure floor checked on the dose date: 6 months (Issue #2979)
     frequency: annual
+    administration: {route: IM, dose_ml: 0.5}
     season_month: 10   # legacy fallback; seasonal_distribution below takes precedence
     available_from: "2000-01-01"
     history_years: 10   # EHR retains only ~recent flu history (avoids 20+ accumulated shots)
@@ -57,6 +77,7 @@ vaccines:
       - {cvx: "309", from: "2023-09-11"}
     min_age: 18
     frequency: once
+    administration: {route: IM, dose_ml: 0.3}   # 30 mcg/0.3 mL products (CVX 208 / 300 / 309)
     available_from: "2020-12-14"
     # Issue #921: US COVID-19 wave epochs (CDC / VAERS).
     # See JP schedule for detailed algorithm notes.
@@ -107,6 +128,7 @@ vaccines:
     cvx: "33"
     min_age: 65
     frequency: once
+    administration: {route: IM, dose_ml: 0.5}
     available_from: "2000-01-01"
     coverage_by_age_sex:
       "65-99": {M: 0.65, F: 0.68}
@@ -114,6 +136,7 @@ vaccines:
     cvx: "115"
     min_age: 18
     frequency: every_n_years
+    administration: {route: IM, dose_ml: 0.5}
     interval_years: 10
     available_from: "2005-06-01"
     coverage_by_age_sex:
@@ -124,6 +147,7 @@ vaccines:
     cvx: "187"
     min_age: 50
     frequency: once
+    administration: {route: IM, dose_ml: 0.5}
     available_from: "2017-10-20"
     coverage_by_age_sex:
       "50-64": {M: 0.30, F: 0.35}
@@ -159,6 +183,7 @@ vaccines:
     cvx: "08"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: IM, dose_ml: 0.5}
     available_from: "1991-11-01"
     doses:
       - dose_number: 1
@@ -180,6 +205,7 @@ vaccines:
     cvx: "20"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: IM, dose_ml: 0.5}
     available_from: "1997-01-01"
     doses:
       - dose_number: 1
@@ -211,6 +237,7 @@ vaccines:
     cvx: "10"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: IM, dose_ml: 0.5}
     available_from: "2000-01-01"    # US switched fully to IPV
     doses:
       - dose_number: 1
@@ -237,6 +264,7 @@ vaccines:
     cvx: "17"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: IM, dose_ml: 0.5}
     available_from: "2000-01-01"
     doses:
       - dose_number: 1
@@ -263,6 +291,7 @@ vaccines:
     cvx: "133"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: IM, dose_ml: 0.5}
     available_from: "2010-04-01"    # PCV13 FDA approval, replacing PCV7
     doses:
       - dose_number: 1
@@ -289,6 +318,7 @@ vaccines:
     cvx: "116"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: PO, dose_ml: 2.0}   # RotaTeq (CVX 116), 2 mL oral
     available_from: "2006-02-01"    # RotaTeq (5-valent, 3 doses)
     doses:
       - dose_number: 1
@@ -310,6 +340,7 @@ vaccines:
     cvx: "03"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: SC, dose_ml: 0.5}
     available_from: "1971-01-01"    # MMR combined licensure
     doses:
       - dose_number: 1
@@ -326,6 +357,7 @@ vaccines:
     cvx: "21"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: SC, dose_ml: 0.5}
     available_from: "1995-03-01"    # US Varicella vaccine licensure
     doses:
       - dose_number: 1
@@ -354,6 +386,7 @@ vaccines:
     min_age: 0
     min_age_days: 182    # 6 months (Issue #2979)
     frequency: annual
+    administration: {route: IM, dose_ml: 0.5}
     season_month: 10
     available_from: "2010-08-01"    # universal ≥ 6 mo recommendation
     history_years: 5
@@ -377,6 +410,7 @@ vaccines:
     cvx: "115"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: IM, dose_ml: 0.5}
     available_from: "2005-06-10"
     doses:
       - dose_number: 1
@@ -396,6 +430,7 @@ vaccines:
     cvx: "83"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: IM, dose_ml: 0.5}
     available_from: "2006-10-01"       # ACIP universal 12-23 mo recommendation
     doses:
       - dose_number: 1
@@ -412,6 +447,7 @@ vaccines:
     cvx: "165"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: IM, dose_ml: 0.5}
     # HPV9 licensure late-2014; universal ACIP recommendation now
     # 9-valent (Gardasil-9). 2-dose schedule when initiated before
     # age 15; 3-dose otherwise (this generator models the 2-dose path
@@ -432,6 +468,7 @@ vaccines:
     cvx: "147"
     min_age: 0
     frequency: pediatric_series
+    administration: {route: IM, dose_ml: 0.5}
     available_from: "2005-01-14"       # Menactra licensure
     doses:
       - dose_number: 1

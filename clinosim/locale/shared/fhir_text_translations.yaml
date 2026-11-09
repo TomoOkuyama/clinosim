@@ -34,6 +34,7 @@ route:
   OPH: {ja: 点眼}  # #1265: eye-drop / eye-ointment (点眼薬)
   INFILTRATION: {ja: 局所浸潤}  # #2352: local-anaesthetic infiltration
   INTRA-ARTICULAR: {ja: 関節内注}  # #2352
+  PERCUTANEOUS: {ja: 経皮}  # Issue #3005 (BCG)
 
 frequency:
   DAILY: {ja: 1日1回}

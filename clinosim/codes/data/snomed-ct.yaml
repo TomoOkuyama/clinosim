@@ -722,6 +722,13 @@ codes:
   '368208006':
     en: Left upper arm structure
     ja: 左上腕
+  # Issue #3005: infant IM site and the BCG route (tx.fhir.org $lookup 2026-11-09).
+  '61396006':
+    en: Structure of left thigh
+    ja: 左大腿
+  '428191002':
+    en: Percutaneous route
+    ja: 経皮
   # Issue #2660: negative culture result (tx.fhir.org $lookup 2026-11-05).
   '264868006':
     en: No growth
