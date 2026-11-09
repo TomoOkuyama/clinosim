@@ -2968,6 +2968,10 @@
 <td>Whether an order is a continuous infusion (its dose is a rate), from its frequency and name.</td>
 </tr>
 <tr>
+<td><code>clinosim/modules/order/absolute_dose.py</code> <code>is_one_time_infusion(name)</code></td>
+<td>Whether an order written without a frequency is one timed infusion ("Alteplase 100mg IV over 2h"): <code>enrich_medication_order</code> makes it a single dose instead of a daily order (Issue #3043).</td>
+</tr>
+<tr>
 <td><code>clinosim/modules/drug_safety/engine.py</code> <code>allergy_entries(allergies)</code></td>
 <td>The active allergen codes of a patient's allergy records (drops inactive, refuted and "no known allergy" entries) — the input of <code>check_candidate_against_allergies</code>.</td>
 </tr>

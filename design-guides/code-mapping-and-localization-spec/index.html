@@ -3240,6 +3240,11 @@
 <td>key / <code>None</code> / <code>None</code> / <code>None</code> / <code>None</code></td>
 </tr>
 <tr>
+<td><code>locale.loader.resident_insurer_number(country, scheme, prefecture, city)</code></td>
+<td>JP 保険者番号 of the insurer serving a residence (Issue #3015): <code>identity.yaml</code> <code>payers[scheme]</code> entries name the <code>prefecture</code> (and <code>city</code> for 国民健康保険) they serve; the identity provider and the FHIR Coverage builder both resolve through it</td>
+<td><code>""</code></td>
+</tr>
+<tr>
 <td><code>modules.document.narrative.renderers._shared_helpers</code>: <code>chronic_condition_code(code, country, sex)</code>, <code>chronic_condition_label(code, country, lang, sex)</code>, <code>chronic_condition_coded(code, country, lang, sex)</code></td>
 <td>a patient's chronic condition in narrative and LLM context (Issue #2994): the code the output emits for the internal key (<code>map_diagnosis_code</code>), its <code>condition_label</code> for prose, and <code>(code, official display)</code> for a coded list. Narrative never labels a chronic condition from the internal key's category title</td>
 <td>code / <code>None</code> / <code>(code, code)</code></td>
