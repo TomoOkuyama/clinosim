@@ -21,6 +21,8 @@ def test_us_targets_are_acc_aha() -> None:
 
 def test_jp_targets_are_jsh_jas_and_back_the_jp_constants() -> None:
     jp = chronic_control_targets("jp")
-    assert jp.bp.target == (140, 90)
+    # Issue #3021: JSH 2019 — < 130/80, < 140/90 from 75 (unless DM / CAD).
+    assert jp.bp.target == (130, 80)
+    assert jp.bp.older is not None and (jp.bp.older.min_age, jp.bp.older.target) == (75, (140, 90))
     assert NARRATIVE_BP_HYPERTENSION_SBP_THRESHOLD == 140
     assert NARRATIVE_LDL_ELEVATED_THRESHOLD == 120
