@@ -567,6 +567,16 @@ def build_discharge_rx(
             _append_item(picked, chronic_continuation=True)
 
     limit_triple_antithrombotic(items, home_medications=[m.drug_name for m in patient.current_medications])
+    # Issue #3004: a minor's discharge doses are weight-based (weight charted
+    # at admission), like the inpatient orders.
+    if encounter_id:
+        from clinosim.modules.order.pediatric_dose import pediatric_dose_text
+        from clinosim.simulator.medication_pipeline import child_dosing
+
+        child = child_dosing(patient, encounter_id, admission_time, country_key)
+        if child is not None:
+            for item in items:
+                item["dose"] = pediatric_dose_text(str(item.get("drug_name", "")), str(item.get("dose", "")), *child)
     return PrescriptionRecord(
         prescription_id=f"RX-{patient.patient_id}-DC",
         patient_id=patient.patient_id,

@@ -27,7 +27,7 @@ import functools
 from datetime import datetime, timedelta
 from functools import cache
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, NamedTuple
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
@@ -612,9 +612,51 @@ def generate_prn_administrations(
     return out
 
 
-def _given_dose_text(order: Order, patient: PatientProfile) -> str:
+class ChildDosing(NamedTuple):
+    """What a minor's inpatient doses are based on (Issue #3004)."""
+
+    age_months: int
+    weight_kg: float  # charted at admission
+    country: str
+
+
+def child_dosing(
+    patient: PatientProfile, encounter_id: str, admission_time: datetime, country: str
+) -> ChildDosing | None:
+    """The age and the body weight charted at admission a minor's inpatient
+    doses are based on (Issue #3004), or None for an adult or a patient
+    without a date of birth."""
+    from clinosim.modules.observation.pediatric_ranges import age_in_completed_months
+    from clinosim.modules.order.pediatric_dose import pediatric_adult_age_months
+    from clinosim.modules.population.encounter_anthropometry import encounter_weight_kg
+
+    months = age_in_completed_months(getattr(patient, "date_of_birth", None), admission_time)
+    if months is None or months >= pediatric_adult_age_months():
+        return None
+    return ChildDosing(months, encounter_weight_kg(patient, encounter_id, admission_time, country), country)
+
+
+def dose_orders_for_child(orders: list[Order], child: ChildDosing | None) -> None:
+    """Re-dose a minor's medication orders by weight in place (Issue #3004);
+    a no-op for an adult (``child`` None). Idempotent, so it may run every day
+    over the stay's growing order list."""
+    if child is None:
+        return
+    from clinosim.modules.order.engine import enrich_medication_order
+    from clinosim.modules.order.pediatric_dose import redose_order_for_child
+
+    for o in orders:
+        if o.order_type != OrderType.MEDICATION or (o.display_name or "").startswith("DISCONTINUE:"):
+            continue
+        enrich_medication_order(o)
+        redose_order_for_child(o, child.age_months, child.weight_kg, child.country)
+
+
+def _given_dose_text(order: Order, patient: PatientProfile, weight_kg: float | None = None) -> str:
     """The dose an administration records: the order's dose, or for a per-kg /
-    per-m² order the absolute amount given (Issue #2750)."""
+    per-m² order the absolute amount given (Issue #2750) — per kg of
+    ``weight_kg`` (a minor's weight at admission, Issue #3004) when given,
+    else of the profile weight."""
     from clinosim.modules.order.absolute_dose import absolute_dose, is_continuous_infusion
 
     if is_continuous_infusion(order.frequency or "", order.display_name or ""):
@@ -623,7 +665,7 @@ def _given_dose_text(order: Order, patient: PatientProfile) -> str:
         order.dose_quantity,
         order.dose_unit,
         float(getattr(patient, "height_cm", 0.0) or 0.0),
-        float(getattr(patient, "weight_kg", 0.0) or 0.0),
+        float(weight_kg or getattr(patient, "weight_kg", 0.0) or 0.0),
         text=order.display_name or "",
     )
     if given is not None:
@@ -705,8 +747,13 @@ def _generate_mar(
     roster: StaffRoster,
     rng: np.random.Generator,
     potassium_hold: PotassiumHold | None = None,
+    child: ChildDosing | None = None,
 ) -> list[MedicationAdministration]:
     """Generate MAR entries for medication orders on this day.
+
+    ``child`` (Issue #3004): a minor's ``(age in months, weight at admission)``
+    (``child_dosing``); the orders are re-dosed by weight before they are
+    given, and a per-kg dose is given per kg of that weight.
 
     ``potassium_hold`` (Issue #2981): doses of a drug held for hyperkalemia
     (ACE inhibitors, ARBs, potassium-sparing diuretics) scheduled at or after
@@ -738,6 +785,8 @@ def _generate_mar(
     # Ensure medication orders are enriched (idempotent) so MAR can use structured dose
     for o in med_orders:
         enrich_medication_order(o)
+    dose_orders_for_child(med_orders, child)
+    child_weight = child.weight_kg if child else None
     nurse_id = assign_staff("medication_administration", department, roster, rng).get(
         "administering_nurse", FALLBACK_NURSE_ID
     )
@@ -821,7 +870,7 @@ def _generate_mar(
                     scheduled_datetime=given,
                     actual_datetime=given,
                     status="given",
-                    dose=_given_dose_text(order, patient) if order.dose_quantity else order.display_name,
+                    dose=_given_dose_text(order, patient, child_weight) if order.dose_quantity else order.display_name,
                     route=route,
                     administered_by=nurse_id,
                 )
@@ -920,7 +969,7 @@ def _generate_mar(
 
             # Build dose text from structured fields if available, else fall back to display_name
             if order.dose_quantity is not None and order.dose_unit:
-                dose_text = _given_dose_text(order, patient)
+                dose_text = _given_dose_text(order, patient, child_weight)
                 if order.frequency:
                     dose_text += f" {order.frequency}"
             else:

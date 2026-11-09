@@ -158,6 +158,9 @@ from clinosim.modules.order.prescription_supersede import prescription_closures 
 
 # Weight-based ED doses for children (Issue #2857)
 from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg, country="US") -> re-dosed name (unchanged for adults / unlisted drugs) | None (below minimum age)
+from clinosim.modules.order.pediatric_dose import redose_order_for_child  # (order, age_months, weight_kg, country="US") -> None; a minor's inpatient order re-dosed in place (Issue #3004)
+from clinosim.modules.order.pediatric_dose import pediatric_dose_text  # (drug, dose, age_months, weight_kg, country="US") -> a minor's prescription dose text
+from clinosim.modules.order.pediatric_dose import maintenance_fluid_ml_per_h  # (weight_kg) -> Holliday-Segar mL/h
 
 # Per-country label dose limits (Issue #3012)
 from clinosim.modules.order.label_dose import within_label  # (name, frequency, country) -> (name, frequency) within the label
@@ -258,6 +261,12 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   than the written volume. `country_overrides.<CC>` replaces a drug's
   rule for one country (Issue #3012: JP ibuprofen 4 mg/kg, at most 200 mg,
   from 5 years, per the ブルフェン label).
+  Inpatient (Issue #3004): `redose_order_for_child` re-doses a minor's
+  inpatient medication orders (mg doses of listed drugs) and maintenance
+  fluids (hourly rate of listed fluids, Holliday-Segar 4-2-1 rule from
+  `maintenance_fluid_bands`) by the weight charted at admission, and
+  `pediatric_dose_text` the discharge prescription doses — never more than
+  the written adult dose or rate.
 - **Label dose limits** ([`reference_data/label_dose_limits.yaml`](reference_data/label_dose_limits.yaml),
   read by `label_dose.py`, validated by `LabelDoseLimitsFile`): per country
   and catalog drug the label's single dose, doses a day and daily maximum
@@ -281,7 +290,7 @@ clinosim/modules/order/
   prescription_supersede.py          prescription_closures — renewal / supply-end closure of take-home prescriptions at FHIR export (Issue #2610)
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — RNG-free MAR for orders placed outside the daily loop (Issue #2607)
   absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion + is_one_time_infusion — per-kg / per-m2 dose amounts (Issue #2750), infusion kinds (Issue #3043)
-  pediatric_dose.py                  pediatric_order_name — weight-based ED doses for children (Issue #2857)
+  pediatric_dose.py                  pediatric_order_name / redose_order_for_child / pediatric_dose_text — weight-based doses for children (Issue #2857, #3004)
   label_dose.py                      within_label — per-country label dose limits (Issue #3012)
   audit.py                           AD-60 audit plug-in (per-module) — 7-check lift_firing_proof + basedon_coverage
   _lab_result_timing.py              STAT / routine / night-shift constants (Issue #637)
@@ -290,7 +299,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay constants (Issue #637)
   reference_data/
     medication_supersede.yaml        class switches + PRN markers read by supersede.py (Issues #2615, #2983)
-    pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg, per-country overrides (Issue #2857, #2977, #3012)
+    pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg, per-country overrides, Holliday-Segar bands (Issue #2857, #2977, #3012, #3004)
     label_dose_limits.yaml           per-country label dose, doses a day, daily max read by label_dose.py (Issue #3012)
   SPEC.md                            extended design reference (not runtime)
 ```

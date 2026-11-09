@@ -13,6 +13,16 @@
 # to whole mL and never more than the written adult volume. Source: AHA PALS
 # 2020 / AAP — isotonic crystalloid bolus 10-20 mL/kg (20 mL/kg for
 # dehydration with poor perfusion).
+#
+# Inpatient (Issue #3004): inpatient medication orders, maintenance fluids and
+# discharge prescriptions of a minor are re-dosed from the weight charted at
+# admission with the same drug table — never more than the written adult
+# dose. A maintenance fluid's hourly rate is the Holliday-Segar rate
+# (maintenance_fluid_bands: 4 mL/kg/h for the first 10 kg, 2 mL/kg/h for the
+# next 10 kg, 1 mL/kg/h for each further kg; Holliday & Segar, Pediatrics
+# 1957;19:823; AAP Clinical Practice Guideline "Maintenance Intravenous
+# Fluids in Children", Pediatrics 2018;142:e20183083), never more than the
+# written adult rate.
 metadata:
   kind: reference
   name: pediatric_dosing
@@ -30,6 +40,15 @@ drugs:
   famotidine: {mg_per_kg: 0.5, max_mg: 20, min_age_months: 3}
   prednisone: {mg_per_kg: 1, max_mg: 40, min_age_months: 0}
   prednisolone: {mg_per_kg: 1, max_mg: 40, min_age_months: 0}
+  # Oseltamivir: 2 mg/kg twice daily, max 75 mg (タミフル添付文書 幼小児用量;
+  # Japanese Society of Pediatrics influenza guidance; CDC weight bands give
+  # 30-75 mg). Cetirizine: 0.25 mg/kg, max 10 mg, from 6 months (FDA label;
+  # Lexicomp). Epinephrine: 0.01 mg/kg IM for anaphylaxis (AAP Clinical
+  # Report, Pediatrics 2017;139:e20164006) and IV in PALS, max 0.5 mg; the
+  # written adult dose (0.3 mg IM) caps it further.
+  oseltamivir: {mg_per_kg: 2, max_mg: 75, min_age_months: 0}
+  cetirizine: {mg_per_kg: 0.25, max_mg: 10, min_age_months: 6}
+  epinephrine: {mg_per_kg: 0.01, max_mg: 0.5, min_age_months: 0}
 
 fluids:
   normal_saline: {ml_per_kg: 20}
@@ -44,3 +63,8 @@ fluids:
 country_overrides:
   JP:
     ibuprofen: {mg_per_kg: 4, max_mg: 200, min_age_months: 60}
+
+maintenance_fluid_bands:
+  - {up_to_kg: 10, ml_per_kg_per_h: 4}
+  - {up_to_kg: 20, ml_per_kg_per_h: 2}
+  - {ml_per_kg_per_h: 1}

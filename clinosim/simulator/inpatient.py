@@ -702,6 +702,9 @@ def _simulate_patient(
                 target_los = max(target_los, max(mod_days) + 2)
 
     # Admission orders
+    from clinosim.simulator.medication_pipeline import child_dosing
+
+    _child = child_dosing(patient, encounter.encounter_id, admission_time, country_key)
     admission_orders = place_admission_orders(
         protocol.model_dump(),
         patient.patient_id,
@@ -715,8 +718,9 @@ def _simulate_patient(
         # (mirrors the enricher-side gate that already covers the
         # prophylaxis-engine emit).
         patient_age=int(getattr(patient, "age", 0) or 0),
-        # Issue #2611: weight-based fluid boluses (30 mL/kg).
-        patient_weight_kg=float(getattr(patient, "weight_kg", 0) or 0) or None,
+        # Issue #2611: weight-based fluid boluses (30 mL/kg) — for a minor per
+        # kg of the weight charted at admission (Issue #3004).
+        patient_weight_kg=_child.weight_kg if _child else float(getattr(patient, "weight_kg", 0) or 0) or None,
     )
 
     # Imaging orders from disease YAML imaging_orders[] (Tier 1 #2 PR1).
