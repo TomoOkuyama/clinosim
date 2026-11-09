@@ -226,7 +226,7 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 | `jpfhir-doc-section` | 42 |
 | `jpfhir-doc-typecodes` | 6 |
 | `jpfhir-eCheckup-section` | 7 |
-| `condition-short-name` | 42 |
+| `condition-short-name` | 53 |
 | `clinosim-nursing-scores` | 1 |
 | `bcp-47-language` | 2 |
 

@@ -69,3 +69,16 @@ codes:
   N40: {en: "BPH", ja: "前立腺肥大症"}
   # DKA
   E13: {en: "DKA", ja: "糖尿病性ケトアシドーシス"}
+  # Malignant neoplasms (Issue #3022). The MHLW 基本分類表 names a
+  # subcategory by its site alone ("C16.9 胃，部位不明"), which the coding
+  # display keeps verbatim; the label names the cancer as a chart does.
+  C15: {en: "Esophageal cancer", ja: "食道癌"}
+  C16: {en: "Gastric cancer", ja: "胃癌"}
+  C18: {en: "Colon cancer", ja: "結腸癌"}
+  C22: {en: "Liver cancer", ja: "肝癌"}
+  C25: {en: "Pancreatic cancer", ja: "膵癌"}
+  C34: {en: "Lung cancer", ja: "肺癌"}
+  C50: {en: "Breast cancer", ja: "乳癌"}
+  C61: {en: "Prostate cancer", ja: "前立腺癌"}
+  C67: {en: "Bladder cancer", ja: "膀胱癌"}
+  C71: {en: "Malignant brain tumor", ja: "悪性脳腫瘍"}
