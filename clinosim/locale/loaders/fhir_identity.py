@@ -15,6 +15,8 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field
+
 from clinosim.locale._io import (
     _FALLBACK_ENCOUNTER_DISPOSITION,
     _LOCALE_DIR,
@@ -186,3 +188,57 @@ def load_identity_config(country: str) -> dict[str, Any]:
     which keeps its existing insurance handling in Phase 1).
     """
     return _load_yaml(_country_dir(country) / "identity.yaml", fallback={})
+
+
+class _ClosedPeriod(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    start: str = Field(pattern=r"^\d{2}-\d{2}$")
+    end: str = Field(pattern=r"^\d{2}-\d{2}$")
+
+
+class _FixedHoliday(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    month: int = Field(ge=1, le=12)
+    day: int = Field(ge=1, le=31)
+    from_year: int = 0
+
+
+class _NthWeekdayHoliday(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    month: int = Field(ge=1, le=12)
+    weekday: int = Field(ge=0, le=6)
+    n: int = Field(ge=-1, le=5)
+
+
+class _FederalHolidays(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    fixed: list[_FixedHoliday] = Field(default_factory=list)
+    nth_weekday: list[_NthWeekdayHoliday] = Field(default_factory=list)
+
+
+class ClinicCalendar(BaseModel):
+    """Shape of ``locale/<country>/clinic_calendar.yaml`` (Issue #3018)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    closed_weekdays: list[int] = Field(default_factory=list)
+    closed_periods: list[_ClosedPeriod] = Field(default_factory=list)
+    # Year -> closed public holidays as "MM-DD" (JP: the Cabinet Office list).
+    holidays: dict[int, list[str]] = Field(default_factory=dict)
+    # Rule-based federal holidays (US).
+    federal_holidays: _FederalHolidays | None = None
+
+
+@lru_cache(maxsize=4)
+def load_clinic_calendar(country: str) -> dict[str, Any]:
+    """The country's outpatient clinic calendar (Issue #3018): closed weekdays,
+    closed periods and public holidays. A country without the file has no
+    closed day."""
+    raw = _load_yaml(_country_dir(country) / "clinic_calendar.yaml", fallback={})
+    return ClinicCalendar.model_validate(raw or {}).model_dump()

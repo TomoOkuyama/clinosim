@@ -189,6 +189,16 @@ and `dispatch_post_discharge` drops a follow-up that falls inside a later
 stay, which queues its own. `_dispatch.InpatientStayIndex` answers the
 "admitted at this time?" check.
 
+Scheduled outpatient care is held on clinic days (Issue #3018): a calendar
+clinic visit (chronic follow-up, pediatric / vaccination, chemotherapy,
+screening) planned on a closed day is queued on the next clinic day (the
+previous one when that would leave the calendar year), and a post-discharge
+follow-up moves to the next clinic day. Closed days come from
+`locale/<country>/clinic_calendar.yaml` through
+`clinosim.locale.clinic_calendar` (JP: Sundays, national holidays, 29 Dec -
+3 Jan; US: Sundays and federal holidays). The event keeps its planned date for
+its RNG key, so no stream moves; ED visits are not affected.
+
 Pipelines (3 files):
 
 ```

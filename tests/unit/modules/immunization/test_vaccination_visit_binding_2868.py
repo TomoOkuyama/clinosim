@@ -383,7 +383,8 @@ def test_flu_vaccination_visit_starts_no_specialty_follow_up(monkeypatch, diseas
     monkeypatch.setattr(monitoring, "monitoring_labs_for_patient", lambda *_a, **_k: [])
     monkeypatch.setattr(outpatient, "_specialty_fanout_tick", lambda *_a: [("cardiology", "annual", (2025, None))])
     monkeypatch.setattr(hospital_ops, "resolve_department", lambda name, _ops: name)
-    event = LifeEvent(person_id="P1", event_type="chronic_visit", timestamp=date(2025, 11, 2), disease_id=disease_id)
+    # A Monday: a visit planned on a Sunday is moved to the next clinic day (Issue #3018).
+    event = LifeEvent(person_id="P1", event_type="chronic_visit", timestamp=date(2025, 11, 3), disease_id=disease_id)
     hc.dispatch_calendar_event(event, ctx)
     assert len(ctx.patient_records) == visits
 

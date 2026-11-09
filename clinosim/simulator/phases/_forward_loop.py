@@ -131,6 +131,7 @@ def run_forward_loop(ctx: ForwardContext, months: list[tuple[int, int]]) -> None
     from clinosim.simulator.phases._ed_slot import EDSlotSampler, dispatch_ed_slot
     from clinosim.simulator.phases._healthcare_calendar import (
         calendar_events_for_year,
+        clinic_visit_events,
         dispatch_calendar_event,
         newborn_calendar_events,
     )
@@ -160,16 +161,18 @@ def run_forward_loop(ctx: ForwardContext, months: list[tuple[int, int]]) -> None
         new_ids = [pid for pid in ctx.population.persons if pid not in known_persons]
         for pid in new_ids:
             known_persons.add(pid)
-            for ev in newborn_calendar_events(ctx.population.persons[pid], year, ctx):
-                if in_window(ev.timestamp):
-                    queue.push(ev.timestamp, "calendar", ev)
+            newborn_events = newborn_calendar_events(ctx.population.persons[pid], year, ctx)
+            for day, ev, visit_day in clinic_visit_events(newborn_events, ctx.config.country):
+                if in_window(day):
+                    queue.push(day, "calendar", (ev, visit_day) if visit_day else ev)
 
     for i, (year, month) in enumerate(months):
         if month == 1 or i == 0:
             advance_population(ctx.population, year, ctx.config.country, window=ctx.window)
-            for ev in calendar_events_for_year(ctx.population, year, ctx):
-                if ev.timestamp and in_window(ev.timestamp):
-                    queue.push(ev.timestamp, "calendar", ev)
+            year_events = calendar_events_for_year(ctx.population, year, ctx)
+            for day, ev, visit_day in clinic_visit_events(year_events, ctx.config.country):
+                if day and in_window(day):
+                    queue.push(day, "calendar", (ev, visit_day) if visit_day else ev)
             ed_sampler.refresh_population_shares()
 
         month_rng = derive_phase_rng(ctx.master_seed, PHASE_LIFE_EVENT, f"{year:04d}-{month:02d}")

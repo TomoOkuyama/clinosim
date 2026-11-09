@@ -7,12 +7,13 @@ simulation random stream is untouched (AD-16). occurrence dates <= snapshot (AD-
 from __future__ import annotations
 
 import hashlib
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from clinosim import determinism
 from clinosim.codes import system_key_for
 from clinosim.countries import is_jp
+from clinosim.locale.clinic_calendar import clinic_visit_day, is_clinic_day
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
@@ -220,6 +221,26 @@ def _align_to_encounters(
             _set(imm, "occurrence_date", best_day)
             _set(imm, "encounter_id", best_eid)
     return imm_recs
+
+
+def _clinic_day_within(day: date, country: str, first: date | None, last: date) -> date | None:
+    """The clinic day a vaccination due on ``day`` is given on (Issue #3018):
+    the next clinic day, else the previous one, kept within ``first`` ..
+    ``last``; ``None`` when neither is."""
+    later = clinic_visit_day(day, country, keep_year=False)
+    if later <= last:
+        return later
+    earlier = day
+    for _ in range(_MAX_CLOSED_RUN_DAYS):
+        if is_clinic_day(earlier, country):
+            break
+        earlier -= timedelta(days=1)
+    ok = is_clinic_day(earlier, country) and (first is None or earlier >= first)
+    return earlier if ok else None
+
+
+# A clinic calendar never closes this many days in a row.
+_MAX_CLOSED_RUN_DAYS = 31
 
 
 def _synthesize_vaccination_encounter(
@@ -444,12 +465,13 @@ def enrich_immunizations(ctx) -> None:
             flu_visit_candidate=is_flu_visit_candidate(patient),
             nurse=_default_nurse,
         )
+        _min_intervals = dose_intervals_by_cvx(schedule)
         recs = _align_to_encounters(
             recs,
             pool,
             season_months,
             licensed_from_by_cvx(schedule, _get(patient, "date_of_birth", None)),
-            dose_intervals_by_cvx(schedule),
+            _min_intervals,
         )
         if roster is not None and hasattr(roster, "members"):
             _give_stay_doses_by_ward_nurse(recs, pool, roster, pid)
@@ -467,6 +489,17 @@ def enrich_immunizations(ctx) -> None:
             if sim_start is not None and occ < sim_start:
                 _set(imm, "primary_source", False)
                 continue
+            # Issue #3018: the vaccination visit is held on a clinic day — a
+            # dose due on a closed day (Sunday, a holiday, JP 年末年始) is given
+            # on the next clinic day, or the previous one when the next is past
+            # the record's as-of date, when that keeps its series' intervals.
+            held = _clinic_day_within(occ, country_upper, sim_start, as_of)
+            if (
+                held is not None
+                and held != occ
+                and series_allows(imm, held, recs, _min_intervals.get(str(_get(imm, "vaccine_cvx", "") or "")))
+            ):
+                _set(imm, "occurrence_date", held)
             # In-window orphan: emit companion encounter. The FIRST record
             # we visit for this patient hosts the encounter; later records
             # only link the imm to it (no cross-record duplicate append).

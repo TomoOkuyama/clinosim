@@ -14,6 +14,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+from clinosim.locale.clinic_calendar import clinic_visit_day
 from clinosim.locale.i18n import t
 from clinosim.modules.immunization.visits import FLU_VISIT_CONDITION
 from clinosim.modules.population.engine import LifeEvent, generate_healthcare_calendar
@@ -86,6 +87,38 @@ def visit_time_outside_stays(
     return visit_time
 
 
+def clinic_time_outside_stays(
+    stays: InpatientStayIndex, patient_records: list, patient_id: str, visit_time: datetime, country: str
+) -> datetime | None:
+    """``visit_time`` moved past any stay (Issue #2996) and onto a clinic day
+    (Issue #3018), whichever moves are needed; ``None`` while the patient is
+    still admitted at the snapshot. No RNG."""
+    while True:
+        free = visit_time_outside_stays(stays, patient_records, patient_id, visit_time)
+        if free is None:
+            return None
+        held = datetime.combine(clinic_visit_day(free.date(), country, keep_year=False), free.time())
+        if held == visit_time:
+            return held
+        visit_time = held
+
+
+def clinic_visit_events(events: list[LifeEvent], country: str) -> list[tuple[date, LifeEvent, date | None]]:
+    """``(queue day, event, visit day)`` for the year's calendar events: a clinic
+    visit planned on a closed day is queued on its clinic day (Issue #3018;
+    ``visit day`` is then that day, the event keeps its planned date for its
+    RNG key); other events keep their date (``visit day`` ``None``)."""
+    out: list[tuple[date, LifeEvent, date | None]] = []
+    for ev in events:
+        if ev.timestamp and ev.event_type in _CLINIC_VISIT_EVENTS:
+            held = clinic_visit_day(ev.timestamp, country)
+            if held != ev.timestamp:
+                out.append((held, ev, held))
+                continue
+        out.append((ev.timestamp, ev, None))
+    return out
+
+
 def note_outpatient_visit(day_ends: dict, patient_id: str, record: Any) -> None:
     """Remember when the visit in ``record`` ends (Issue #2690)."""
     encs = getattr(record, "encounters", None) or []
@@ -151,7 +184,9 @@ def dispatch_calendar_event(event: LifeEvent, ctx: ForwardContext, visit_day: da
         int(ev_rng.integers(OUTPATIENT_MINUTE_JITTER_MIN, OUTPATIENT_MINUTE_JITTER_MAX_EXCLUSIVE)),
     )
     if event.event_type in _CLINIC_VISIT_EVENTS:
-        free_time = visit_time_outside_stays(ctx.inpatient_stays, ctx.patient_records, event.person_id, visit_time)
+        free_time = clinic_time_outside_stays(
+            ctx.inpatient_stays, ctx.patient_records, event.person_id, visit_time, ctx.config.country
+        )
         if free_time != visit_time:
             if free_time is None or free_time.year != event.timestamp.year:
                 return None

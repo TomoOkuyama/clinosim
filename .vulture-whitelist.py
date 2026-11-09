@@ -302,6 +302,16 @@ _.level_by_count  # reference-YAML model field (Issue #2864)
 _.parenteral_routes  # reference-YAML model field (Issue #2864)
 _.non_resource_procedures  # reference-YAML model field (Issue #2864)
 
+# ----- clinosim/locale/loaders/fhir_identity.py ClinicCalendar (Pydantic, Issue #3018) -----
+# Schema fields of the clinic-calendar YAML model; clinic_calendar.py reads the dumped dict.
+_.from_year  # ClinicCalendar federal fixed holiday
+_.fixed  # ClinicCalendar federal_holidays
+_.nth_weekday  # ClinicCalendar federal_holidays
+_.closed_weekdays  # ClinicCalendar
+_.closed_periods  # ClinicCalendar
+_.holidays  # ClinicCalendar
+_.federal_holidays  # ClinicCalendar
+
 # ----- clinosim/modules/nursing/engine.py (Pydantic BaseModel, Issue #2565) -----
 # Schema fields of the YAML validation model; callers read the raw dict.
 _.adl_categories  # nursing/engine.py NursingAssessment

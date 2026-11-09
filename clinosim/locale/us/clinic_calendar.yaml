@@ -1,0 +1,35 @@
+# Clinic calendar — United States (Issue #3018).
+#
+# Scheduled outpatient visits (chronic follow-up, screening, vaccination,
+# pediatric, post-discharge) are held on clinic days only; the ED is open
+# every day. A US clinic closes on Sundays and on the federal holidays;
+# Saturday clinics are open.
+#
+# Source of `federal_holidays`: 5 U.S.C. 6103(a) and the U.S. Office of
+# Personnel Management federal holiday rules: a holiday on a Saturday is
+# observed on the Friday before, one on a Sunday on the Monday after.
+# Juneteenth National Independence Day is a federal holiday from 2021.
+metadata:
+  kind: reference
+  name: clinic_calendar
+  source: "5 U.S.C. 6103; U.S. Office of Personnel Management"
+
+# Python weekday numbers (Monday = 0, Sunday = 6).
+closed_weekdays: [6]
+closed_periods: []
+federal_holidays:
+  # Fixed dates (observed on the nearest weekday when they fall on a weekend).
+  fixed:
+    - {name: "New Year's Day", month: 1, day: 1}
+    - {name: "Juneteenth National Independence Day", month: 6, day: 19, from_year: 2021}
+    - {name: "Independence Day", month: 7, day: 4}
+    - {name: "Veterans Day", month: 11, day: 11}
+    - {name: "Christmas Day", month: 12, day: 25}
+  # The n-th weekday of a month (n = -1: the last one).
+  nth_weekday:
+    - {name: "Birthday of Martin Luther King, Jr.", month: 1, weekday: 0, n: 3}
+    - {name: "Washington's Birthday", month: 2, weekday: 0, n: 3}
+    - {name: "Memorial Day", month: 5, weekday: 0, n: -1}
+    - {name: "Labor Day", month: 9, weekday: 0, n: 1}
+    - {name: "Columbus Day", month: 10, weekday: 0, n: 2}
+    - {name: "Thanksgiving Day", month: 11, weekday: 3, n: 4}

@@ -149,15 +149,18 @@ clinosim/locale/
                                    and translation tables
   free_text.py                    free-text medication / procedure /
                                    allergen name translator
-  us/                             US-specific bundle (15 YAMLs):
+  clinic_calendar.py              is_clinic_day / clinic_visit_day — the
+                                   days scheduled outpatient care is held
+                                   (clinic_calendar.yaml, Issue #3018)
+  us/                             US-specific bundle (16 YAMLs):
                                    addresses, ambulatory_visit_length,
-                                   ckd_under60_prevalence,
+                                   ckd_under60_prevalence, clinic_calendar,
                                    code_mapping_{diagnosis,drug,lab,procedure},
                                    code_status_rates, demographics,
                                    family_history_prevalence, formatting,
                                    identity, immunization_schedule, names,
                                    reference_range_lab
-  jp/                             JP-specific bundle (19 YAMLs — the US
+  jp/                             JP-specific bundle (20 YAMLs — the US
                                    set minus ckd_under60_prevalence and
                                    code_mapping_drug, plus
                                    care_level_rates,
