@@ -91,12 +91,18 @@ encounters:
   #   Adolescent (11-13yo) — 1 visit: Tdap + HPV series + MCV4
   #     (routinely a separate school-nurse or pediatrician visit,
   #     distinct from the age-12 well-child physical).
+  #
+  # `vaccination: true`: the visit is placed inside a dose window of the
+  # country's immunization schedule that opens in the year (and dropped
+  # when none does), so it always has a dose due (Issue #2974). The age
+  # band above only selects the years it can occur in.
   immunization_infant:
     age_min: 0
     age_max: 1
     visits_per_year: [1, 2]
     encounter_type: outpatient
     disease_id: immunization_infant
+    vaccination: true
     visit_reason:
       en: "Immunization visit — infant catch-up / hospital-supplement"
       ja: "予防接種 (乳児キャッチアップ / 病院補足)"
@@ -107,6 +113,7 @@ encounters:
     visits_per_year: [1]
     encounter_type: outpatient
     disease_id: immunization_kindergarten
+    vaccination: true
     visit_reason:
       en: "Immunization visit — kindergarten entry boosters (DTaP / IPV / MMR / varicella)"
       ja: "予防接種 (幼稚園・入園前追加接種: DPT-IPV / MR / 水痘)"
@@ -117,6 +124,7 @@ encounters:
     visits_per_year: [1]
     encounter_type: outpatient
     disease_id: immunization_adolescent
+    vaccination: true
     visit_reason:
       en: "Immunization visit — adolescent bundle (Tdap / HPV / MCV4)"
       ja: "予防接種 (思春期: DPT / HPV / 髄膜炎菌)"

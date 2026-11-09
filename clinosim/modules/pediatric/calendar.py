@@ -20,7 +20,7 @@ Determinism notes:
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
@@ -50,6 +50,9 @@ class _Visit(BaseModel):
     encounter_type: Literal["outpatient"]
     disease_id: str = Field(min_length=1)
     visit_reason: dict[str, str] | str = ""
+    # A visit held to give vaccines (reason Z23): placed on a day a dose of
+    # the country's immunization schedule is due (Issue #2974).
+    vaccination: bool = False
 
     @field_validator("visits_per_year")
     @classmethod
@@ -184,6 +187,56 @@ def load_pediatric_schedule(path: Path | None = None) -> dict[str, dict[str, Any
     return {key: entry.model_dump(exclude_none=True) for key, entry in config.encounters.items()}
 
 
+@lru_cache(maxsize=4)
+def _dose_windows(country: str) -> tuple[tuple[int, int, date], ...]:
+    """(age_days_min, age_days_max, available_from) of every pediatric series
+    dose in ``country``'s immunization schedule."""
+    from clinosim.modules.immunization.engine import _parse, load_schedule
+
+    return tuple(
+        (int(d["age_days_min"]), int(d["age_days_max"]), _parse(str(v.get("available_from", "1900-01-01"))))
+        for v in load_schedule(country).values()
+        if v.get("frequency") == "pediatric_series"
+        for d in v.get("doses") or []
+    )
+
+
+def place_vaccination_visit(drawn: date, dob: date, year: int, age_min: int, age_max: int, country: str) -> date | None:
+    """The day a vaccination visit drawn for ``drawn`` is held (Issue #2974).
+
+    The visit is held inside a series dose window of ``country``'s schedule
+    that opens in ``year`` and overlaps the visit's age band
+    [``age_min``, ``age_max`` + 1) years, on the day of those windows nearest
+    ``drawn``; None when no window opens in the year (no dose is due, so no
+    visit). Calendar-year age and the fixed visit month otherwise put the
+    visit before a window opens (10 y 10 m for the 11-year adolescent doses)
+    or after it closes. Draws nothing.
+    """
+    year_start, year_end = date(year, 1, 1), date(year, 12, 31)
+    band_start = _years_after(dob, age_min)
+    band_end = _years_after(dob, age_max + 1) - timedelta(days=1)
+    best: date | None = None
+    for lo_days, hi_days, available in _dose_windows(country):
+        opens = dob + timedelta(days=lo_days)
+        if not year_start <= opens <= year_end:
+            continue
+        lo = max(opens, band_start, available)
+        hi = min(dob + timedelta(days=hi_days), band_end, year_end)
+        if lo > hi:
+            continue
+        day = min(max(drawn, lo), hi)
+        if best is None or (abs((day - drawn).days), day) < (abs((best - drawn).days), best):
+            best = day
+    return best
+
+
+def _years_after(dob: date, years: int) -> date:
+    try:
+        return dob.replace(year=dob.year + years)
+    except ValueError:  # 29 February
+        return dob.replace(year=dob.year + years, day=28)
+
+
 def pediatric_presentation(visit_id: str) -> Presentation | None:
     """The clinical picture of the acute pediatric visit ``visit_id`` (a
     schedule ``disease_id``), or None for a preventive visit."""
@@ -195,6 +248,7 @@ def generate_pediatric_events(
     year: int,
     prng: np.random.Generator,
     schedule: dict[str, dict[str, Any]] | None = None,
+    country: str | None = None,
 ) -> list[Any]:
     """Emit `LifeEvent` records for the pediatric encounters `person` should have this year.
 
@@ -202,6 +256,10 @@ def generate_pediatric_events(
     the person's age falls outside every registered entry's band. `prng`
     is expected to be a per-person spawn'd sub-generator so YAML edits
     do not shift unrelated persons' calendars.
+
+    With ``country``, a vaccination visit is moved to a day a dose of that
+    country's schedule is due, or dropped when none is due in the year
+    (``place_vaccination_visit``); the draws are the same either way.
     """
     if schedule is None:
         schedule = load_pediatric_schedule()
@@ -279,11 +337,19 @@ def generate_pediatric_events(
         for i in range(n_visits):
             month = min(12, max(1, int((12 * (i + 0.5)) / max(1, n_visits))))
             day = random_day_of_month(prng, year, month)
+            visit_day = date(year, month, day)
+            if entry.get("vaccination") and country and dob is not None and hasattr(dob, "year"):
+                placed = place_vaccination_visit(
+                    visit_day, dob, year, int(entry["age_min"]), int(entry["age_max"]), country
+                )
+                if placed is None:
+                    continue
+                visit_day = placed
             events.append(
                 LifeEvent(
                     person_id=person.person_id,
                     event_type="pediatric_visit",
-                    timestamp=date(year, month, day),
+                    timestamp=visit_day,
                     severity=0.0,
                     condition_type="pediatric",
                     disease_id=entry["disease_id"],

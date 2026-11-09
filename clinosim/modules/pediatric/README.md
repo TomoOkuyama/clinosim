@@ -35,7 +35,8 @@ directly from `calendar`:
 ```python
 from clinosim.modules.pediatric.calendar import (
     load_pediatric_schedule,     # (path=None) -> {encounter_key: entry_dict}
-    generate_pediatric_events,   # (person, year, prng, schedule=None) -> list[LifeEvent]
+    generate_pediatric_events,   # (person, year, prng, schedule=None, country=None) -> list[LifeEvent]
+    place_vaccination_visit,     # vaccination-visit day inside a dose window (Issue #2974)
     pediatric_presentation,      # (visit_id) -> Presentation | None (acute visits only)
     Presentation,                # pydantic model of one acute-visit clinical picture
 )
@@ -101,6 +102,7 @@ Each `encounters:` entry:
 | `encounter_type` | Must be `"outpatient"` (the model rejects any other value) — copied onto `LifeEvent.encounter_type`. |
 | `disease_id` | Copied onto `LifeEvent.disease_id`; used for department resolution and the visit-reason lookup. |
 | `visit_reason` | Optional. Bilingual `{en, ja}` dict or string, read by `simulator/_setup.py::_pediatric_visit_reason` and emitted as the encounter's chief complaint. |
+| `vaccination` | Optional, default `false`. A visit held to give vaccines (reason Z23). With a country, `generate_pediatric_events` moves it inside a series dose window of that country's immunization schedule that opens in the year and overlaps the age band (the day nearest the drawn date), and drops it when no window opens, so the visit always has a dose due (`place_vaccination_visit`, Issue #2974). Draws are unchanged. |
 
 Each `presentations:` entry is keyed by an `encounters:` `disease_id`
 (an unknown key fails at load):
@@ -141,7 +143,7 @@ Integration lives in
 [`clinosim/modules/population/engine.py`](../population/engine.py)
 (`generate_healthcare_calendar`):
 `generate_healthcare_calendar` calls `generate_pediatric_events` with
-the per-person spawned `prng`, and the returned `LifeEvent` list is
+the per-person spawned `prng` and the cohort country, and the returned `LifeEvent` list is
 merged into the calendar `events` list. The rest of the pipeline
 treats pediatric events like any other calendar event.
 
@@ -149,7 +151,7 @@ treats pediatric events like any other calendar event.
 
 | Consumer | Where | Role |
 |---|---|---|
-| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (inside `generate_healthcare_calendar`) | Calls `generate_pediatric_events(person, year, prng)` per (person, year) and extends the calendar's `events` list with the returned `LifeEvent` records. |
+| Population calendar loop | [`clinosim/modules/population/engine.py`](../population/engine.py) (inside `generate_healthcare_calendar`) | Calls `generate_pediatric_events(person, year, prng, country=country)` per (person, year) and extends the calendar's `events` list with the returned `LifeEvent` records. |
 | Healthcare-calendar dispatch | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | Routes `event_type == "pediatric_visit"` to an outpatient visit (department via `resolve_outpatient_department`, chief complaint via `_pediatric_visit_reason(disease_id)`). |
 | Visit-reason lookup | [`clinosim/simulator/_setup.py`](../../simulator/_setup.py) (`_pediatric_visit_reason`) | Reads `visit_reason` from `load_pediatric_schedule()`. |
 | Outpatient encounter | [`clinosim/simulator/outpatient.py`](../../simulator/outpatient.py), [`outpatient_dept.py`](../../simulator/outpatient_dept.py) | `visit_type == "pediatric_visit"` branches; `pediatric_presentation` supplies the acute visit's vitals, febrile state and prescriptions. |
