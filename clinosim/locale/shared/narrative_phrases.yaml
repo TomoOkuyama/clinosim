@@ -122,14 +122,14 @@ progress:
     en: "Continue current management, observe course."
 
 # Admission-reason single-line composer (Phase 1d-20).
-# From template_generator._build_admission_reason.
+# From section_builders.jp_clins.build_admission_reason.
 admission_reason:
   admitted_for:
     ja: "{subject}のため入院となった。"
     en: "Admitted for {subject}."
 
 # ED-note fallback phrases (Phase 1d-20).
-# From template_generator._build_ed_physical_exam (vitals-derived
+# From section_builders.ed_note.build_ed_physical_exam (vitals-derived
 # fallback when the encounter template carries no physical_exam).
 ed:
   on_arrival_no_findings:
@@ -231,7 +231,7 @@ ap_plan:
     en: "Observation with symptom-directed management."
 
 # admission_hp assessment+plan merged body (Phase A15 hardcoded-review).
-# Used by `_build_assessment_and_plan` to compose the final `【評価】` /
+# Used by `build_assessment_and_plan` to compose the final `【評価】` /
 # `【方針】` block from the two sub-templates.
 ap_combined:
   assessment_plan_block:
@@ -239,7 +239,7 @@ ap_combined:
     en: "Assessment: {assessment}\nPlan: {plan}"
 
 # Discharge-summary admission_summary head (Phase 1d-18).
-# From template_generator._build_admission_summary.
+# From section_builders.patient_history.build_admission_summary.
 admission_summary:
   head_line:
     ja: "主訴: {cc}。入院日: {day} 日目現在。"
@@ -297,9 +297,9 @@ chronic:
     en: "Chronic-condition follow-up: {list}"
 
 # Section fallback text when the underlying CIF field is empty.
-# Callers: template_generator._build_past_medical_history /
-# _build_medications_at_home / _build_admission_diagnoses /
-# _build_discharge_medications / _build_ncp_* / _build_pain_score /
+# Callers: section_builders.patient_history.build_past_medical_history /
+# build_medications_at_home / build_admission_diagnoses /
+# build_discharge_medications / build_ncp_* / _build_pain_score /
 # _build_hpi_history_of_present_illness (etc.).
 section_none:
   past_medical_history:
@@ -417,7 +417,7 @@ fall_risk:
     en: "fall risk"
 
 # Pressure-ulcer / Braden risk phrase (Phase 1d-34).
-# From _build_risk_assessments.
+# From build_risk_assessments.
 risk:
   braden_line:
     ja: "褥瘡リスク (Braden {braden}/23): {band}"
@@ -515,7 +515,7 @@ rehab:
     ja: "転倒 {label}"
     en: "fall {label}"
 
-# ADL detail-item render (Phase 1d-35). From _build_adl_assessment —
+# ADL detail-item render (Phase 1d-35). From build_adl_assessment —
 # JA emits "食事80" (label + value), EN emits "feeding=80" (slug=value).
 adl_detail:
   item:
@@ -526,7 +526,7 @@ adl_detail:
     en: " ({items})"
 
 # Discharge-summary hospital_course composer phrases (Phase 1d-19).
-# From template_generator._build_hospital_course.
+# From section_builders.discharge_summary.build_hospital_course.
 hospital_course:
   los_head:
     ja: "入院期間 {los} 日間。"
@@ -762,7 +762,7 @@ patient_demographics:
     ja: "{age}歳"
     en: "{age} y/o"
   # Short bilingual sex-code display, keyed by lowercased sex code
-  # (`m`, `f`). Used by `template_generator._build_patient_summary` and
+  # (`m`, `f`). Used by `section_builders.hpi._compose_hpi_extras_from_state` and
   # elsewhere a short JA sex label is composed inline (hardcoded-review
   # Phase A15).
   sex_display:
@@ -1078,7 +1078,7 @@ op_note:
   # Bare variant used when the localized ``approach`` string already
   # ends with "アプローチ" (JA) / "approach" (EN) — appending the suffix
   # again produces "…アプローチアプローチにて" / "…approach approach".
-  # Selected by ``_build_op_course`` on a suffix check.
+  # Selected by ``build_op_course`` on a suffix check.
   course_approach_part_bare:
     ja: "{approach}にて"
     en: " via {approach}"
@@ -1161,7 +1161,7 @@ proc_note:
     ja: "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。"
     en: "Informed consent: risks, benefits, and alternatives were explained to the patient (or surrogate) and written consent was obtained prior to the procedure."
   # Performer + assistants + anesthesiologist compound line (Phase 1d-25).
-  # _build_pn_performer localises staff-ids with the ", MD" / 医師 role suffix
+  # build_pn_performer localises staff-ids with the ", MD" / 医師 role suffix
   # inline, then joins per-role lines with "。" / ". " (locale-specific glue).
   performer_role_suffix:
     ja: "{name}医師"
@@ -1197,8 +1197,8 @@ proc_note:
     en: "The procedure was completed as planned"
 
 # Autopsy status + findings (Phase 1d-22).
-# From template_generator._build_dc_autopsy_status +
-# _build_dds_autopsy_status_and_findings.
+# From section_builders.mortality.build_dc_autopsy_status +
+# build_dds_autopsy_status_and_findings.
 autopsy:
   status_yes:
     ja: "解剖の有無: 有（病理解剖）。"
@@ -1214,7 +1214,7 @@ autopsy:
     en: "Autopsy status and findings: autopsy not performed (no family consent)."
 
 # Family-history entry format (Phase 1d-30).
-# From _build_family_history — per-relative line assembled from
+# From build_family_history — per-relative line assembled from
 # relationship label + deceased suffix + condition list.
 family_history:
   entry_line:
@@ -1222,7 +1222,7 @@ family_history:
     en: "{label}{suffix}: {conditions}"
 
 # Nursing discharge-summary admission-status composer (Phase 1d-30).
-# From _build_nursing_admission_status. Sub-lines concatenate.
+# From section_builders.nursing.build_nursing_admission_status. Sub-lines concatenate.
 nursing_admission_status:
   stay_head:
     ja: "入院期間: {los}日間。"
@@ -1252,7 +1252,7 @@ nursing_interventions:
     en: "Cumulative IN {in_ml} mL / OUT {out_ml} mL (net {net:+} mL)"
 
 # HPI-core fallback phrase (Phase 1d-29). From _build_hpi_core.
-# Same 'admission_with_severity' shape as _build_present_illness but a
+# Same 'admission_with_severity' shape as build_present_illness but a
 # shorter no-severity variant.
 hpi_core:
   fallback_with_severity:
@@ -1275,9 +1275,9 @@ ncp:
     en: "Malnutrition risk: low (BMI {bmi}, no risk identified)"
 
 # JP-CLINS REFERRAL section-builder line templates (Phase 1d-28).
-# From template_generator._build_referring_institution /
-# _build_referral_destination / _build_referral_purpose /
-# _build_present_illness / _build_present_illness_ref.
+# From section_builders.jp_clins.build_referring_institution /
+# build_referral_destination / build_referral_purpose /
+# build_present_illness / build_present_illness_ref.
 referral:
   referring_institution_line:
     ja: "紹介元:当院(急性期一般病棟)。担当医師の署名により発行。"
@@ -1289,8 +1289,8 @@ referral:
     ja: "紹介目的:{purpose}のため。"
     en: "Referral purpose: {purpose}."
 
-# HPI-fallback phrase pair used by _build_present_illness (with
-# admission clause) and _build_present_illness_ref (without).
+# HPI-fallback phrase pair used by build_present_illness (with
+# admission clause) and build_present_illness_ref (without).
 hpi:
   admission_with_severity:
     ja: "{sev}の症状で受診し入院となった。"
@@ -1318,7 +1318,7 @@ hpi:
       en: "Patient reports rapid symptom worsening prompting today's presentation."
 
 # Diagnoses + chief-complaint compound section (JP-CLINS referral 340).
-# From template_generator._build_diagnoses_and_complaint.
+# From section_builders.jp_clins.build_diagnoses_and_complaint.
 diagnoses_and_complaint:
   section:
     ja: "【傷病名】\n{dx_lines}\n\n【主訴】\n{cc_text}"
@@ -1328,9 +1328,9 @@ diagnoses_and_complaint:
     en: "None recorded."
 
 # REHAB_PLAN (RP) section-builder line templates (Phase 1d-27).
-# From template_generator._build_rp_rehab_team /
-# _build_rp_functional_status / _build_rp_session_frequency /
-# _build_rp_discharge_estimate.
+# From section_builders.care_plans.build_rp_rehab_team /
+# build_rp_functional_status / build_rp_session_frequency /
+# build_rp_discharge_estimate.
 rp_note:
   rehab_team_line:
     ja: "担当リハビリ職種：{disciplines}／{therapist_note}"
@@ -1509,7 +1509,7 @@ checkup_lab_results:
     en: "Overall assessment: {overall} ({overall_note})."
 
 # Checkup questionnaire full-page composer (Phase 1d-38).
-# From _build_checkup_questionnaire. JA renders 【…】-marked
+# From build_checkup_questionnaire. JA renders 【…】-marked
 # section headers; EN renders comma-separated labelled fields.
 checkup_questionnaire:
   full_line:
@@ -1584,8 +1584,8 @@ dc_contributing:
     en: "{prefix}{list_part}{connector}{tail}{comp_part}"
 
 # admission/discharge/triage details composers (Phase 1d-32).
-# From _build_admission_details / _build_discharge_details /
-# _build_triage_details. JA vs EN sentence structures differ so each
+# From build_admission_details / build_discharge_details /
+# build_triage_details. JA vs EN sentence structures differ so each
 # lang carries a complete template plus optional sub-slot phrases.
 admission_details:
   full_line:
@@ -1748,9 +1748,9 @@ dds_family_communication:
     en: "Family communication: {lead}and the family was present at the bedside at the time of death confirmation."
 
 # Death-certificate + DDS single-line composers (Phase 1d-26).
-# From template_generator._build_dc_immediate_cause /
-# _build_dc_underlying_cause / _build_dc_manner_of_death /
-# _build_dds_cause_of_death.
+# From section_builders.mortality.build_dc_immediate_cause /
+# build_dc_underlying_cause / build_dc_manner_of_death /
+# build_dds_cause_of_death.
 death_cert_line:
   immediate_cause:
     ja: "直接死因: {display}（{code}）。"
@@ -1766,7 +1766,7 @@ death_cert_line:
     en: "Cause of death: {display} ({code})."
 
 # DDS admission-state composer (Phase 1d-26).
-# From template_generator._build_dds_admission_state.
+# From section_builders.mortality.build_dds_admission_state.
 dds_admission_state:
   full_line:
     ja: "患者は{when}{dx}当院に緊急入院となった。入院時の全身状態は{severity}の所見を呈していた。"

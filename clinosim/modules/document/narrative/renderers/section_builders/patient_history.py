@@ -148,7 +148,7 @@ def build_allergies(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     """Build allergies section from ctx.allergies.
 
     Resolves display via code_lookup ( — CIF stores allergen_code
-    only, not display text; this mirrors _build_discharge_diagnoses'
+    only, not display text; this mirrors build_discharge_diagnoses'
     code_lookup pattern in this same file).
     """
     facts: list[str] = []

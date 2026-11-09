@@ -1,7 +1,7 @@
 """Cross-check `clinosim/codes/data/*.yaml` displays against authoritative
 snapshots in `clinosim/codes/authoritative/`.
 
-This is the 5th layer of the silent-no-op defense (session 58 Phase 1):
+This is the 5th layer of the silent-no-op defense (2026-07-19, Phase 1):
 
 1. canonical constants at module level
 2. `_validate_*` YAML loader validators (import-time fail-loud)
@@ -68,7 +68,7 @@ _SYSTEMS_UNDER_CROSS_CHECK: tuple[dict, ...] = (
         "snapshot_file": "icd10_who_tx.json",
         # WHO ICD-10 CodeSystem carries only English preferred terms; the
         # tx-server has no Japanese designations, so we verify the `en`
-        # field. Session 58 Chain #6 (Phase 2 framework citizen).
+        # field (2026-07-19, Chain #6, Phase 2 framework citizen).
         "compare_lang": "en",
     },
     {
@@ -83,7 +83,7 @@ _SYSTEMS_UNDER_CROSS_CHECK: tuple[dict, ...] = (
         "snapshot_file": "loinc_2_82_tx.json",
         # LOINC is English-only in the source; clinosim ships a mix of
         # authoritative LOINC long_display + curated clinical shorthand.
-        # Session 58 Issue #270 (Phase 3-b) migrated from `presence` mode to
+        # Issue #270 (Phase 3-b, 2026-07-19) migrated from `presence` mode to
         # full display verification. All 92 divergent codes are registered
         # in `authoritative_override_allowlist.yaml` with per-code
         # rationales (75 legitimate shorthand + 17 tracked semantic

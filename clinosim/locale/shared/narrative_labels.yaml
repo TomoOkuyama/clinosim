@@ -137,7 +137,7 @@ op_outcome_code:
   '385671000': {en: unsuccessful, ja: 不成功}
 
 # Procedure-note analgesia_type dictionary (Phase 1d-25).
-# Was inline dict in ``_build_pn_analgesia``. Fallback is
+# Was inline dict in ``build_pn_analgesia``. Fallback is
 # ``local`` (bedside procedures default).
 pn_analgesia_type:
   local: {en: local anesthesia, ja: 局所麻酔}
@@ -147,7 +147,7 @@ pn_analgesia_type:
 
 # Procedure-note SNOMED outcome-code narrative phrases (Phase 1d-25).
 # Different wording than op_outcome_code — this is the "手技は…した"
-# sentence-style narrative used inside _build_pn_course. Fallback
+# sentence-style narrative used inside build_pn_course. Fallback
 # is 手技は概ね予定通りに完遂した / The procedure was completed as planned.
 pn_outcome_code:
   '385669000': {en: The procedure was completed without issue, ja: 手技は問題なく完遂した}
@@ -179,7 +179,7 @@ checkup_alcohol_use:
   heavy: {ja: 多量飲酒, en: heavy}
 
 # Referral purpose 4-option pool (Phase 1d-28). Was inline
-# ``purposes_ja/en`` lists in ``_build_referral_purpose``. Selection is
+# ``purposes_ja/en`` lists in ``build_referral_purpose``. Selection is
 # by SHA256 hash of encounter_id modulo len(keys), so key ORDER
 # matters for RNG-neutral determinism — the Python side keeps a small
 # tuple of ordered keys.
@@ -200,7 +200,7 @@ discharge_disposition:
   exp: {en: expired, ja: 死亡退院}
 
 # ADL Barthel-detail item labels (Phase 1d-35). Was inline
-# ``[("feeding", "食事"), ...]`` tuple in ``_build_adl_assessment``.
+# ``[("feeding", "食事"), ...]`` tuple in ``build_adl_assessment``.
 # JA uses full-word labels ("食事{score}"), EN keeps the raw slug
 # ("feeding=score") — the EN "label" is the slug itself.
 adl_detail_key:

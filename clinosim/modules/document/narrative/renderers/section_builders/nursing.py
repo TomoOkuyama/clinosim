@@ -222,7 +222,7 @@ def build_nursing_diagnosis(generator: TemplateNarrativeGenerator, ctx: Narrativ
 @section("care_plan")
 def build_care_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build care_plan from CIF-derived nursing diagnoses (mirror of
-    _build_nursing_diagnosis interventions).
+    build_nursing_diagnosis interventions).
 
     Session-104 Tier 2: acute-disease axis (from
     ``ctx.disease_protocol.disease_id``) is consulted BEFORE the

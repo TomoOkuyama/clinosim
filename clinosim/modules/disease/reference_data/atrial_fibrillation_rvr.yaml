@@ -364,11 +364,11 @@ drugs:
 
   # Issue #437: block was previously dead (no `continue_at_discharge: true` and
   # no other Python reader). Now opted in to the generic `continue_at_discharge`
-  # consumer in `_build_discharge_rx` (inpatient.py:2163), which filters to
+  # consumer in `build_discharge_rx` (simulator/discharge_rx.py), which filters to
   # PO-only entries — so only the oral DOACs (Edoxaban japan / Apixaban us)
   # reach discharge; the IV Heparin drip stays inpatient-only as intended.
   # `exclusive_classes: ["anticoagulant"]` + per-entry `drug_class` follow the
-  # cerebral_infarction pattern so the cross-source guard in _build_discharge_rx
+  # cerebral_infarction pattern so the cross-source guard in build_discharge_rx
   # correctly skips patients whose chronic I48 already covers the anticoagulant
   # class.
   anticoagulation:

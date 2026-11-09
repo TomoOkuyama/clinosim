@@ -63,10 +63,10 @@ from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 # CY8-23 fix:Condition.bodySite mapping。
 # 特定の解剖学的部位を持つ疾患について SNOMED body structure コードを付与。
 # 非部位性(高血圧・糖尿病等)は bodySite emit しない = 100% 化はせず
-# 臨床的に意味のある約 15 疾患に絞る。ICD prefix で match、no fabrication。
+# 臨床的に意味のある約 17 疾患に絞る。ICD prefix で match、no fabrication。
 # Crosswalk + display SoT moved under META #1849 post-review:
 #   `clinosim/codes/data/icd10-condition-bodysite-crosswalk.yaml` holds
-#   the 15 ICD-10 prefix → SNOMED body-site mapping; displays resolve
+#   the 17 ICD-10 prefix → SNOMED body-site mapping; displays resolve
 #   via `code_lookup("snomed-ct", code, lang)` against snomed-ct.yaml.
 #   (hardcoded-audit Finding 9).
 

@@ -280,7 +280,7 @@ class PatientProfile:
     # hospital-started drug propagation, etc.); `baseline_chronic_medications`
     # preserves the original list so that a drug held during an AKI admission
     # can be re-emitted at discharge after renal function recovers, and so that
-    # `_build_discharge_rx` can distinguish "held this admission" from
+    # `build_discharge_rx` can distinguish "held this admission" from
     # "chronic drug permanently discontinued". Populated by `activate_patient`
     # as a shallow copy of `current_medications` at activation time; never
     # mutated after that. Empty until the activator runs.

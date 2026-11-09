@@ -128,7 +128,7 @@ def build_discharge_details(generator: TemplateNarrativeGenerator, ctx: Narrativ
     An earlier state emitted only the slice code, leaving the
     narrative content unset — that violated `text.div SHALL have
     non-whitespace content` (FHIR R4 `txt-2`) on 130+ resources per
-    fullset. This template mirrors `_build_admission_details`
+    fullset. This template mirrors `build_admission_details`
     symmetrically to close that gap.
     """
     facts: list[str] = []
@@ -173,7 +173,7 @@ def build_discharge_details(generator: TemplateNarrativeGenerator, ctx: Narrativ
 def build_admission_diagnoses(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """342 入院時診断セクション:入院時診断名の番号付きリスト。
 
-    _build_discharge_diagnoses と同じ code-lookup pattern を再利用するが
+    build_discharge_diagnoses と同じ code-lookup pattern を再利用するが
     ``admission_diagnosis_code`` を最優先で拾い、無ければ
     ``discharge_diagnosis_code`` に fallback。
     """
@@ -225,7 +225,7 @@ def build_present_illness(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     # no structural changes are needed. Text style harmonization will be
     # deferred to the LLM narrative pass when applicable.
     if not hpi_text:
-        # #1266 empty-severity guard (see `_build_hpi`). JA severity
+        # #1266 empty-severity guard (see `build_hpi`). JA severity
         # translation via _localize_severity_ja is JA-locale-specific
         # (JA disease severity ontology mapping); other locales use
         # the raw token via the phrase template.
@@ -348,7 +348,7 @@ def build_present_illness_ref(generator: TemplateNarrativeGenerator, ctx: Narrat
     hpi_text, facts = section_builder("hpi")(generator, ctx)
     lang = ctx.target_lang
     if not hpi_text:
-        # #1266 empty-severity guard (see `_build_hpi`).
+        # #1266 empty-severity guard (see `build_hpi`).
         sev = str(ctx.severity or "").strip()
         from clinosim.modules.document.narrative._replacement_localization import localize_token
 

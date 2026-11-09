@@ -87,7 +87,7 @@ def build_acp_other_staff(generator: TemplateNarrativeGenerator, ctx: NarrativeC
 def build_acp_diagnosis(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """病名（他に考え得る病名）— ctx.diagnoses, admission code preferred
     (discharge dx is not yet known when this document is written at
-    admission — unlike _build_discharge_diagnoses which prefers discharge)."""
+    admission — unlike build_discharge_diagnoses which prefers discharge)."""
     facts: list[str] = []
     lang = ctx.target_lang
     diagnoses = ctx.diagnoses or []

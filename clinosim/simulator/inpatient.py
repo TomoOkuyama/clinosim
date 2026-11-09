@@ -948,7 +948,7 @@ def _simulate_patient(
     else:
         encounter.status = EncounterStatus.COMPLETED
         encounter.discharge_datetime = planned_discharge
-        # Issue #466: `_build_discharge_rx` runs before planned_discharge is
+        # Issue #466: `build_discharge_rx` runs before planned_discharge is
         # known (it consumes rng; moving it later would shift the cohort per
         # AD-16). Backfill the correct issue_date here — pure assignment, no
         # rng consumption. Also lets the FHIR adapter drop its inpatient

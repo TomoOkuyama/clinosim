@@ -90,7 +90,7 @@ def chronic_medication_seed(patient_id: str) -> int:
 def discharge_prescription_seed(patient_id: str, encounter_id: str) -> int:
     """Per-(patient, encounter) deterministic sub-seed for discharge Rx (Issue #439).
 
-    `_build_discharge_rx` (inpatient.py) samples the discharge-oral block via
+    `build_discharge_rx` (simulator/discharge_rx.py) samples the discharge-oral block via
     `select_with_exclusive_classes` (categorical + Bernoulli) plus a
     `continue_at_discharge` loop. Pre-Issue-439 that sampling drew from the
     patient-scoped master RNG, so YAML edits to `drugs.discharge_oral` or
