@@ -32,6 +32,7 @@ from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.narrative.scenario_spine import build_narrative_spine
 from clinosim.modules.document.narrative.section_extractor import extract_for_composition
 from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
+from clinosim.modules.observation.engine import reported_lab_results
 from clinosim.simulator import log as sim_log
 from clinosim.simulator.complications import complication_names, normalized_complications
 from clinosim.timeutil import parse_iso_datetime
@@ -546,7 +547,8 @@ class NarrativePass(ABC):
             day_index=0,
             los_days=self._compute_los_days(patient_dict, encounter_dict),
             vitals=patient_dict.get("vital_signs", []) or [],
-            lab_results=patient_dict.get("lab_results", []) or [],
+            # Issue #3011: values in the country's reporting unit.
+            lab_results=reported_lab_results(patient_dict.get("lab_results", []) or [], self.country),
             medications=self._collect_medications(patient_dict),
             discharge_medications=self._collect_discharge_medications(patient_dict),
             diagnoses=[clinical_diagnosis] if clinical_diagnosis else [],

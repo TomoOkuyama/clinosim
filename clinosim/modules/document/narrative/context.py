@@ -7,6 +7,7 @@ from typing import Any
 from clinosim.countries import lang_for
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.drug_safety import rule_kind
+from clinosim.modules.observation.engine import reported_lab_results
 from clinosim.simulator.complications import complication_names, normalized_complications
 from clinosim.types.document import DocumentType, NarrativeContext
 
@@ -60,7 +61,9 @@ def build_narrative_context(
         day_index=day_index,
         los_days=los_days,
         vitals=_o(record, "vital_signs", []) or [],
-        lab_results=_o(record, "lab_results", []) or [],
+        # Issue #3011: values in the country's reporting unit (JP CRP mg/dL),
+        # as the FHIR Observation reports them.
+        lab_results=reported_lab_results(_o(record, "lab_results", []) or [], locale),
         medications=_o(record, "medication_administrations", []) or [],
         diagnoses=_o(record, "diagnoses", []) or [],
         procedures=_o(record, "procedures", []) or [],

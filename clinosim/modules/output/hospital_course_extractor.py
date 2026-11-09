@@ -17,7 +17,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes.procedures import procedure_code_display
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.locale.localized import normalize_lang
-from clinosim.modules.observation.engine import canonical_lab_name, get_lab_unit
+from clinosim.modules.observation.engine import canonical_lab_name, get_lab_unit, reported_lab_value
 from clinosim.simulator.complications import complication_names as _complication_names_from_cif
 from clinosim.timeutil import parse_iso_datetime
 
@@ -398,10 +398,8 @@ def _lab_peak_events(
     events: list[HospitalCourseFact] = []
     for name, (dt, val) in peaks.items():
         day = _day_offset(admission_dt, dt) if dt else 1
-        unit = _unit_for(name, language)
         # CRP unit conversion (mathematical, not translation — AD-42)
-        factor = _CONVERSION_BY_LANG.get(normalize_lang(language), {}).get(name, 1.0)
-        disp_val = round(val * factor, 2) if factor != 1.0 else val
+        disp_val, unit = _reported(name, val, language)
         events.append(
             HospitalCourseFact(
                 hospital_day=day,
@@ -577,14 +575,13 @@ def format_lab_trends(trends: dict[str, dict[str, Any]], language: str = "en") -
     out: list[str] = []
     for name, t in sorted(trends.items()):
         unit = _unit_for(name, language)
-        factor = _CONVERSION_BY_LANG.get(normalize_lang(language), {}).get(name, 1.0)
         adm = t["admission"]
         peak = t["peak"]
         latest = t["latest"]
         trend_label = t["trend"]
 
-        def _cv(v: float) -> float:
-            return round(v * factor, 2) if factor != 1.0 else v
+        def _cv(v: float, name: str = name) -> float:
+            return _reported(name, v, language)[0]
 
         out.append(
             f"{name}: admission {_cv(adm['value'])}{unit} (day {adm['day']}) "
@@ -773,24 +770,22 @@ def _normalize_lab_name(name: str) -> str:
 
 _UNIT_MAP = {name: get_lab_unit(name) for name in ("CRP", "WBC", "Creatinine", "Lactate", "Hb", "Plt")}
 
-# Japanese conventional units differ from SI for CRP: mg/dL instead of mg/L.
-_UNIT_MAP_JA = {
-    **_UNIT_MAP,
-    "CRP": "mg/dL",
-}
+# Output language → the country whose reporting units it uses (Issue #3011:
+# the units and conversions live in that country's reference_range_lab.yaml
+# ``reporting_units``, e.g. JP CRP mg/L → mg/dL); a language not listed
+# keeps the internal units.
+_COUNTRY_BY_LANG: dict[str, str] = {"ja": "JP"}
 
-# Conversion factors from SI to Japanese conventional units (multiply).
-_JA_CONVERSION: dict[str, float] = {
-    "CRP": 0.1,  # mg/L → mg/dL (divide by 10)
-}
 
-# Output language → its conventional units and SI conversion factors; a
-# language not listed uses the SI units (Issue #2457: selected by data, not by
-# comparing the language with a literal).
-_UNIT_MAP_BY_LANG: dict[str, dict[str, str]] = {"ja": _UNIT_MAP_JA}
-_CONVERSION_BY_LANG: dict[str, dict[str, float]] = {"ja": _JA_CONVERSION}
+def _reported(name: str, value: float, language: str) -> tuple[float, str]:
+    """``(value, unit)`` of an internal lab value as the language's country reports it."""
+    country = _COUNTRY_BY_LANG.get(normalize_lang(language))
+    unit = _UNIT_MAP.get(name, "")
+    if country is None:
+        return value, unit
+    out_value, out_unit = reported_lab_value(name, value, unit, country)
+    return float(out_value), out_unit
 
 
 def _unit_for(name: str, language: str = "en") -> str:
-    units = _UNIT_MAP_BY_LANG.get(normalize_lang(language), _UNIT_MAP)
-    return units.get(name, _UNIT_MAP.get(name, ""))
+    return _reported(name, 0.0, language)[1]
