@@ -29,6 +29,13 @@ specimens:
 
 culture_order_match_window_hours: 6
 
+# Issue #3039: minutes from specimen collection to its receipt in the
+# microbiology laboratory (FHIR Specimen.receivedTime). IDSA/ASM guide to
+# using the microbiology laboratory (Miller et al., Clin Infect Dis
+# 2018;67:e1-e94) and CLSI M47: cultures reach the laboratory within 2 h of
+# collection; in-hospital transport typically takes 30-60 min (midpoint 45).
+specimen_transport_minutes: 45
+
 # Issue #2640: culture results come from culture orders, one per draw. A
 # later draw of a specimen that grew (a repeat blood culture after 48-72 h of
 # active therapy) grows the same organism again with this probability;

@@ -22,7 +22,11 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping, load_narrative_labels, resolve_localized_display
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.observation.engine import canonical_lab_name
-from clinosim.modules.observation.microbiology import culture_order_match_window_hours, culture_order_names
+from clinosim.modules.observation.microbiology import (
+    culture_order_match_window_hours,
+    culture_order_names,
+    specimen_transport_minutes,
+)
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
@@ -272,14 +276,11 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             specimen["type"] = dual_slot_concept("snomed-ct", mb["specimen_snomed"], lang)
         if mb.get("collected_datetime"):
             specimen["collection"] = {"collectedDateTime": mb["collected_datetime"]}
-        # CY8-09 fix: Specimen.receivedTime = 検体到着時刻。
-        # 実運用では採取から 30-60 分後にラボ受領。reported_datetime が無ければ
-        # collected + 45 min 相当を近似で使う(検体運搬時間 median)。
-        if mb.get("reported_datetime"):
-            specimen["receivedTime"] = mb["reported_datetime"]
-        elif mb.get("collected_datetime"):
-            # 45 min 経過を simple approx(runtime dep 追加せず string concat 回避)
-            specimen["receivedTime"] = mb["collected_datetime"]
+        # Issue #3039: Specimen.receivedTime is the laboratory's receipt of
+        # the specimen, a transport time after collection (not the report).
+        _collected_dt = parse_iso_datetime(mb.get("collected_datetime"))
+        if _collected_dt is not None:
+            specimen["receivedTime"] = (_collected_dt + timedelta(minutes=specimen_transport_minutes())).isoformat()
         # CY8-10 fix: Specimen.container — 培養検体は type に応じた容器
         # (Blood culture bottle / Urine sterile container / Sputum container)。
         # SNOMED CT 容器 code は正典未確定、text-only per no-fabrication policy。
@@ -344,8 +345,14 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             org_obs["basedOn"] = based_on
         if enc_ref:
             org_obs["encounter"] = enc_ref
-        if mb.get("reported_datetime"):
-            org_obs["effectiveDateTime"] = mb["reported_datetime"]
+        # Issue #3039: a culture result is effective at the specimen
+        # collection (the physiologically relevant time); the report time is
+        # `issued`.
+        _effective, _issued = _culture_times(mb)
+        if _effective:
+            org_obs["effectiveDateTime"] = _effective
+        if _issued:
+            org_obs["issued"] = _issued
         if mb.get("growth") and mb.get("organism_snomed"):
             # #321 JP_Observation_LabResult_eCS profile は
             # valueCodeableConcept.coding.display min=1 を要求(v6.1 で
@@ -414,10 +421,12 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             sus_obs["derivedFrom"] = [{"reference": f"Observation/{org_id}"}]
             if enc_ref:
                 sus_obs["encounter"] = enc_ref
-            # C1-13: pin effectiveDateTime to match the
-            # organism observation above (both belong to the same reported result).
-            if mb.get("reported_datetime"):
-                sus_obs["effectiveDateTime"] = mb["reported_datetime"]
+            # C1-13: the same times as the organism observation above (both
+            # belong to the same reported result).
+            if _effective:
+                sus_obs["effectiveDateTime"] = _effective
+            if _issued:
+                sus_obs["issued"] = _issued
             out.append(sus_obs)
             result_refs.append({"reference": f"Observation/{sus_id}"})
             member_refs.append({"reference": f"Observation/{sus_id}"})
@@ -486,8 +495,8 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             report["basedOn"] = based_on
         if enc_ref:
             report["encounter"] = enc_ref
-        if mb.get("reported_datetime"):
-            report["effectiveDateTime"] = mb["reported_datetime"]
+        if _effective:
+            report["effectiveDateTime"] = _effective
         if _mb_performer_ref:
             report["performer"] = [{"reference": _mb_performer_ref}]
             # CY8-13 polish: DR.resultsInterpreter — 培養検査は微生物検査室で解釈。
@@ -509,11 +518,9 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         _mb_conclusion = _mb_conclusion_text(mb, lang)
         if _mb_conclusion:
             report["conclusion"] = _mb_conclusion
-        # CY8-16 polish: MB DR.issued default = reported_datetime。
-        if not report.get("issued") and mb.get("reported_datetime"):
-            from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_instant
-
-            report["issued"] = to_fhir_instant(mb["reported_datetime"])
+        # CY8-16 polish: MB DR.issued = the report time.
+        if not report.get("issued") and _issued:
+            report["issued"] = _issued
         # C5-20 (Chain 3): presentedForm — text/plain summary of culture +
         # susceptibility results (patient-facing form of the microbiology
         # report). Deterministic text (no external state).
@@ -525,6 +532,19 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         out.append(report)
 
     return out
+
+
+def _culture_times(mb: dict) -> tuple[str, str]:
+    """``(effective, issued)`` of a culture result (Issue #3039): effective at
+    the specimen collection (the report time when the collection is
+    unknown), issued at the report as a FHIR instant (empty when unknown)."""
+    from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_instant
+
+    collected = mb.get("collected_datetime") or ""
+    reported = mb.get("reported_datetime") or ""
+    when = collected or reported
+    effective = when.isoformat() if isinstance(when, datetime) else str(when)
+    return effective, to_fhir_instant(reported) if reported else ""
 
 
 def _antibiotic_name(sus: dict, lang: str) -> str:
