@@ -25,6 +25,10 @@
 #     job (which proves same code → same output) by also proving
 #     "unchanged code = unchanged output across master advances".
 #
+#   - slow end-to-end tests (Issue #3070): tests/e2e/test_forced_scenario.py
+#     (~3.5 min locally), test_us_mode.py (~6 min), test_beta.py (~7.5 min).
+#     The fast e2e files run on every PR (ci.yml `e2e-fast`).
+#
 # Any failure here should be triaged the next morning: `git bisect` the
 # last night's merges to find the offender.
 #
@@ -80,6 +84,25 @@ jobs:
         run: uv pip install --system -e ".[dev]"
       - name: Run unit tests
         run: pytest tests/unit tests/modules -q --tb=short
+
+  e2e-slow:
+    name: E2E tests (slow)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: pyproject.toml
+      - name: Install (with dev extras)
+        run: uv pip install --system -e ".[dev]"
+      - name: Run the slow e2e tests
+        run: pytest tests/e2e/test_forced_scenario.py tests/e2e/test_us_mode.py tests/e2e/test_beta.py -q --tb=short
 
   audit:
     name: Clinical-integrity audit (US + JP p=100 seed=42)

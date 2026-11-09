@@ -14,6 +14,13 @@ Opt-in pytest tier (`pytest -m e2e`) that runs the full simulation pipeline on r
 - AD-66 patient-profile golden snapshots (per-profile narrative + structure byte-fidelity).
 - Tests anchored on a single `tests/fixtures/patient_profiles/*.yaml` fixture.
 
+## Where it runs (Issue #3070)
+
+- **Every PR** (`.github/workflows/ci.yml`, job `e2e-fast`): `test_alpha_golden.py` and `test_identity_jp.py` (about 1 minute together locally).
+- **Nightly** (`.github/workflows/nightly.yml`, job `e2e-slow`): `test_forced_scenario.py` (~3.5 min locally), `test_us_mode.py` (~6 min) and `test_beta.py` (~7.5 min).
+
+A new e2e file goes into one of the two lists: the PR job if it runs in about a minute, otherwise the nightly job.
+
 The two directories are intentionally separate because the pytest markers (`e2e` vs `regression`) correspond to different CI pipelines; see [`../regression/README.md`](../regression/README.md) for the full comparison table.
 
 ## Adding tests here

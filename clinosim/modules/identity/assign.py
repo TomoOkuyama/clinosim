@@ -10,10 +10,20 @@ from __future__ import annotations
 from typing import Any
 
 from clinosim import determinism
+from clinosim.countries import is_jp
 from clinosim.locale.loader import load_identity_config
 from clinosim.modules.identity.registry import get_provider
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, identity_person_seed
 from clinosim.types import IdentityTimeline
+
+
+def identity_enabled(config: Any) -> bool:
+    """Whether resident identity / insurance numbering runs for ``config``:
+    always, except for JP with ``--no-jp-insurance``
+    (``jp_insurance_numbers=False``). The batch pass (identity enricher) and
+    the per-person entry of a newborn read the same switch (Issue #3070)."""
+    country = getattr(config, "country", "US") or "US"
+    return bool(getattr(config, "jp_insurance_numbers", True)) if is_jp(country) else True
 
 
 def assign_identities(registry: Any, country: str, master_seed: int) -> None:

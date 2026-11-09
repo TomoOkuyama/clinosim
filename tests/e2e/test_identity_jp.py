@@ -13,6 +13,7 @@ import pytest
 from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_coverage_resources,
     _build_patient,
+    patient_ref,
 )
 from clinosim.simulator import run_beta
 from clinosim.types.config import SimulatorConfig
@@ -54,7 +55,8 @@ class TestJPIdentity:
             org_refs = {f"Organization/{x['id']}" for x in res if x["resourceType"] == "Organization"}
             cov = next(x for x in res if x["resourceType"] == "Coverage")
             assert cov["payor"][0]["reference"] in org_refs
-            assert cov["beneficiary"]["reference"] == f"Patient/{r.patient.patient_id}"
+            # The Patient reference uses the opaque Patient id (Issue #854).
+            assert cov["beneficiary"] == patient_ref(r.patient.patient_id)
         assert built == len(jp_dataset.patients)
 
     def test_national_id_in_cif_not_in_fhir(self, jp_dataset):
