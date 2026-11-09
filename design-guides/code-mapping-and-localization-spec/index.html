@@ -3260,6 +3260,11 @@
 <td>unit passed through</td>
 </tr>
 <tr>
+<td><code>modules.observation.engine.reported_lab_value(lab_name, value, unit, country)</code>, <code>reported_lab_results(lab_results, country)</code></td>
+<td>a lab value in the unit the country reports it in (Issue #3011): <code>locale/&lt;cc&gt;/reference_range_lab.yaml</code> <code>reporting_units</code> (<code>{unit, from, factor, decimals}</code>, e.g. JP CRP mg/L → mg/dL) converts the internal value; that analyte's <code>ranges</code> are stated in the reported unit. CIF, flags and thresholds keep the internal unit; the FHIR Observation, the narrative context and the hospital-course summary report the converted value</td>
+<td>value and unit unchanged</td>
+</tr>
+<tr>
 <td><code>codes.prefectures.prefecture_code(name)</code></td>
 <td>JIS X 0401 code</td>
 <td><code>""</code></td>
