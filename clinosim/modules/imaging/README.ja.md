@@ -116,7 +116,13 @@ from clinosim.modules.imaging.inference import (
     Composition の date になる (Issue #2999)。
   - `body_sites.yaml` — SNOMED body-site カタログ。
   - `impression_templates.yaml` — modality × body-site 別 negative
-    / abnormal report template。`ja` は日本語の所見用語 (浸潤影、すりガラス影、
+    / abnormal report template。
+  - `cardiac_reports.yaml` — 心電図・冠動脈造影の所見 (Issue #3020)。
+    心電図 (`ECG`) は入院の疾患と ICD-10 コード (急性心筋梗塞の部位)、
+    慢性心房細動の診断、記録時刻に最も近い心拍数から、調律・心拍数・
+    軸・間隔・ST-T 所見を記す。冠動脈造影 (`XA`) は責任病変を記す。
+    `cardiac_report.py` が放射線科テンプレートの代わりに作成し、FHIR の
+    報告は放射線科医ではなく循環器内科医 (いなければ主治医) が署名する。`ja` は日本語の所見用語 (浸潤影、すりガラス影、
     Kerley B線) で書く (Issue #3030)。
   - `view_labels.yaml` — view key ごとの en / ja 表示名。FHIR
     `ImagingStudy.series.description` は CIF の description ("PA view"、
