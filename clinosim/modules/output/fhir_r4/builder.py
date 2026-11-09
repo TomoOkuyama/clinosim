@@ -769,8 +769,11 @@ def _build_bundle(
                 _dod = _dis
                 break
         if _dod:
+            # Issue #2984: the discharge is the time of death; the date
+            # part is the death date the after-death gate compares.
             patient_data = dict(patient_data)
-            patient_data["date_of_death"] = str(_dod)
+            patient_data["death_datetime"] = str(_dod)
+            patient_data["date_of_death"] = str(_dod)[:10]
     ctx = BundleContext(
         record=record,
         country=country,
@@ -846,6 +849,9 @@ def _build_bundle(
     # deceasedDateTime is the local ceiling; the Patient resource itself
     # (deceasedDateTime is the death event) and administrative post-mortem
     # resources without any date field are kept unchanged.
+    # Issue #2984: the gate compares the death DATE even when the time of
+    # death is known — results of specimens drawn before death are issued
+    # after it (``Observation.issued``) and stay in the record.
     _pat_dod_str = patient_data.get("date_of_death") or patient_data.get("dod")
     if _pat_dod_str:
         entries = _drop_entries_after_death(entries, str(_pat_dod_str)[:10], lang_for(country))

@@ -147,6 +147,7 @@ class PersonRecord:
     # Vital status / enrollment
     date_of_death: date | None = None      # written only by record_death()
     death_place: str | None = None         # "hospital" | "community"
+    death_datetime: datetime | None = None # time of an in-hospital death (expired discharge); None if known by date alone
     enrolled_from: date | None = None      # newborn: day after birth-stay discharge
     # Healthcare engagement / hospital history
     care_seeking_threshold: float = 0.3
@@ -161,7 +162,7 @@ class PersonRecord:
 
     # Derived / methods
     is_alive -> bool                       # read-only property: date_of_death is None
-    def record_death(self, when: date, place: str) -> None   # earliest death wins
+    def record_death(self, when: date, place: str, at: datetime | None = None) -> None   # earliest death wins
     def is_alive_at(self, when: date) -> bool
     def in_population_at(self, when: date) -> bool           # alive and enrolled
     def in_population_during(self, start: date, end: date) -> bool

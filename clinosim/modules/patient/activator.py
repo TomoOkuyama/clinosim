@@ -953,6 +953,7 @@ def activate_patient(
         # at the end of the run, so profiles activated before the death
         # carry it too.
         date_of_death=getattr(person, "date_of_death", None),
+        death_datetime=getattr(person, "death_datetime", None),
     )
 
 

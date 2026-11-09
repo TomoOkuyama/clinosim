@@ -986,6 +986,10 @@ def _simulate_patient(
         )
         if patient.date_of_death is None or _dod < patient.date_of_death:
             patient.date_of_death = _dod
+            # Issue #2984: keep the time of death for Patient.deceasedDateTime.
+            patient.death_datetime = (
+                encounter.discharge_datetime if isinstance(encounter.discharge_datetime, datetime) else None
+            )
 
     record = CIFPatientRecord(
         patient=patient,

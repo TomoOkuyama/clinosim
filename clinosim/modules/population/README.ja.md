@@ -70,8 +70,10 @@ calendar (月次 acute-disease event、慢性フォロー visit、screening、
    (入院、再入院、フォローアップ、受診予定、出産) を日付順に処理する。
 4. **死亡** — 1 人 1 件で記録する (`PersonRecord.record_death`、
    `death_place` は `hospital` か `community`)。院内死亡は入院シミュレー
-   タから、院外死亡は受診なしでも起きる。以後のイベントはすべて
-   `in_population_at(date)` で止まる。
+   タから記録し、死亡時刻 (`death_datetime`、死亡退院の退院日時) を保持して
+   `Patient.deceasedDateTime` に出力する。院外死亡は受診なしでも起き、日付
+   のみ分かるため `deceasedDateTime` はその日の 23:59:59 とする。以後の
+   イベントはすべて `in_population_at(date)` で止まる。
 5. **出生** — 出産で新生児を登録し (`newborn.register_newborn`)、出生入院の
    退院翌日に集団へ加える (`PersonRecord.enrolled_from`)。その年の残りの
    受診予定を作り、以後は他の人と同じく加齢・疾患・受診・死亡の対象になる。

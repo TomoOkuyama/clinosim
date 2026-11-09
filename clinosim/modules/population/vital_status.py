@@ -5,14 +5,14 @@ person's death. This module holds the two operations around it that the
 simulator needs:
 
 * :func:`record_hospital_death` — called by the inpatient dispatchers when a
-  simulated stay ends in death. The expired encounter's discharge date is the
-  death date.
+  simulated stay ends in death. The expired encounter's discharge is the
+  time of death (Issue #2984) and its date the death date.
 * :func:`death_counts_by_place` — the run's deaths by place, logged at the end
   of the run so the in-hospital / community split can be calibrated.
 * :func:`sync_profile_death_dates` — called once after all records exist.
   Every ``PatientProfile`` of the person (including profiles activated before
-  the death, which are shared with earlier records) gets the same death date,
-  so ``Patient.deceasedDateTime`` agrees across encounters.
+  the death, which are shared with earlier records) gets the same death date
+  and time, so ``Patient.deceasedDateTime`` agrees across encounters.
 """
 
 from __future__ import annotations
@@ -48,7 +48,8 @@ def record_hospital_death(person: PersonRecord, record: CIFPatientRecord) -> dat
     final = (expired or discharges)[-1]
     assert final.discharge_datetime is not None
     when = _as_date(final.discharge_datetime)
-    person.record_death(when, "hospital")
+    at = final.discharge_datetime if isinstance(final.discharge_datetime, datetime) else None
+    person.record_death(when, "hospital", at=at)
     return when
 
 
@@ -70,11 +71,13 @@ def sync_profile_death_dates(
         if person is None:
             continue
         dod = person.date_of_death
+        death_dt = person.death_datetime
         # A community death after the cutoff is not yet known; an
         # in-hospital death is, because its expired stay is in the CIF.
         if dod is not None and as_of is not None and dod > as_of and person.death_place != "hospital":
-            dod = None
+            dod = death_dt = None
         record.patient.date_of_death = dod
+        record.patient.death_datetime = death_dt
 
 
 def death_counts_by_place(population: object, start: date, end: date) -> dict[str, int]:
