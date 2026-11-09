@@ -93,7 +93,7 @@ def test_avoid_no_substitute_ja() -> None:
         "event_type": "avoid",
     }
     out = _render([skip], target_lang="ja")
-    assert "avoid: NSAID" in out
+    assert "回避: NSAID" in out
     assert "ワルファリン" in out
     assert "代替薬は選択せず" in out
 
@@ -122,7 +122,7 @@ def test_hold_ja() -> None:
         "event_type": "hold",
     }
     out = _render([skip], target_lang="ja")
-    assert "hold: エナラプリル" in out
+    assert "保留: エナラプリル" in out
     assert "急性腎障害" in out
     assert "保留" in out
 
@@ -182,7 +182,7 @@ def test_deescalate_without_day_ja() -> None:
         "event_type": "deescalate",
     }
     out = _render([skip], target_lang="ja")
-    assert "deescalate: セファゾリン" in out
+    assert "狭域化: セファゾリン" in out
     assert "経過中で中止" in out
     assert "アモキシシリン" in out
 
@@ -195,7 +195,7 @@ def test_deescalate_stopped_on_day_ja() -> None:
         "stopped_on_day": 5,
     }
     out = _render([skip], target_lang="ja")
-    assert "deescalate: メロペネム" in out
+    assert "狭域化: メロペネム" in out
     assert "第5病日で中止" in out
 
 
@@ -230,7 +230,7 @@ def test_switch_ja_neutral_phrasing() -> None:
         "stopped_on_day": 2,
     }
     out = _render([skip], target_lang="ja")
-    assert "switch: セファゾリン" in out
+    assert "切替: セファゾリン" in out
     assert "第2病日で中止" in out
     assert "メロペネム" in out
     # Must NOT assert spectrum direction.

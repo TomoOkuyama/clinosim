@@ -69,7 +69,7 @@ fall_risk_level:
 # Chronic-disease rating scale names for the stage-scale Observation
 # code.text (Issue #3031). Japanese records write the scale abbreviation.
 stage_scale:
-  mrs: {en: Modified Rankin Scale, ja: modified Rankin Scale (mRS)}
+  mrs: {en: Modified Rankin Scale, ja: 修正Rankinスケール（mRS）}
   hy: {en: Hoehn and Yahr stage, ja: Hoehn-Yahr重症度}
   edss: {en: Expanded Disability Status Scale score, ja: 総合障害度評価尺度 (EDSS)}
   cdr: {en: Clinical Dementia Rating Global score, ja: CDR全般スコア}
@@ -255,6 +255,13 @@ mb_container_text:
 # role JA/EN literals. Keyed by the SNOMED code so the callsite
 # stays code-driven (no locale-specific args) and the display map
 # is a data-only concern.
+# AllergyIntolerance.criticality (FHIR low / high / unable-to-assess) in the
+# allergy line (Issue #3034).
+allergy_criticality:
+  low: {en: low, ja: 低リスク}
+  high: {en: high, ja: 高リスク}
+  unable-to-assess: {en: unable to assess, ja: 評価不能}
+
 allergy_jfagy_display:
   medication: {en: Medication, ja: 医薬品}
   food: {en: Food, ja: 食品}

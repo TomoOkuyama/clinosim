@@ -100,7 +100,7 @@ def build_triage_details(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     arrival_display = _label("arrival_mode", arrival_mode, lang, fallback=arrival_mode)
 
     if level_system and level:
-        level_text = f"{level_system} Level {level}"
+        level_text = t("triage_details.system_level", lang, system=level_system, level=level)
     else:
         level_text = t("control_status.not_assessed", lang)
 

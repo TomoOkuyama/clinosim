@@ -97,6 +97,7 @@ terms:
   q1h: {ja: 1時間毎}
   q6months: {ja: 6ヶ月毎}
   tablet: {ja: 錠}
+  units: {ja: 単位}  # insulin / transfusion units (Issue #3034)
   as prescribed: {ja: 指示どおり}
   bolus: {ja: ボーラス}
   continuous: {ja: 持続}

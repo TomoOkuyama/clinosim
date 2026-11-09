@@ -528,6 +528,10 @@ adl_detail:
   wrap:
     ja: "（{items}）"
     en: " ({items})"
+  # Issue #3034: Barthel Index in Japanese records is "Barthel 指数".
+  barthel_line:
+    ja: "Barthel 指数 {score}/100 → {band}{detail}"
+    en: "Barthel Index {score}/100 → {band}{detail}"
 
 # Discharge-summary hospital_course composer phrases (Phase 1d-19).
 # From section_builders.discharge_summary.build_hospital_course.
@@ -888,7 +892,7 @@ chronic_monitoring:
     ja: "、腎機能推移を継続監視。"
     en: "; ongoing renal function monitoring."
   cat_mmrc_review:
-    ja: "、CAT score / mMRC で症状評価。"
+    ja: "、CAT スコア / mMRC で症状評価。"
     en: "; CAT / mMRC symptom review."
   act_control_review:
     ja: "、ACT で コントロール状況確認。"
@@ -1378,10 +1382,10 @@ safety_skips:
     ja: "・{considered} を{day_phrase}で中止（{conflict}）。"
     en: "- {considered} was discontinued {day_phrase} ({conflict})."
   deescalate_with_sub:
-    ja: "・{considered} を{day_phrase}で中止し {substituted} へ de-escalate（{conflict}）。"
+    ja: "・{considered} を{day_phrase}で中止し {substituted} へ狭域化（{conflict}）。"
     en: "- {considered} was discontinued {day_phrase} and narrowed to {substituted} ({conflict})."
   deescalate_no_sub:
-    ja: "・{considered} を{day_phrase}で中止し de-escalate（{conflict}）。"
+    ja: "・{considered} を{day_phrase}で中止し狭域化（{conflict}）。"
     en: "- {considered} was discontinued {day_phrase} and de-escalated ({conflict})."
   avoid_with_sub:
     ja: "・{considered} は {conflict} との併用禁忌のため回避し、{substituted} を処方。"
@@ -1414,37 +1418,37 @@ safety_skips:
 # time-of-event phrase.
 safety_skips_prompt:
   hold:
-    ja: "- hold: {considered} ({conflict} のため今回入院中は保留)"
+    ja: "- 保留: {considered} ({conflict} のため今回入院中は保留)"
     en: "- hold: {considered} was held during this admission because of {conflict}"
   substitute_with_sub:
-    ja: "- substitute: {considered} を {substituted} に切替 (理由: {conflict})"
+    ja: "- 代替: {considered} を {substituted} に切替 (理由: {conflict})"
     en: "- substitute: {considered} substituted with {substituted} (rationale: {conflict})"
   substitute_no_sub:
-    ja: "- substitute: {considered} を切替 (理由: {conflict})"
+    ja: "- 代替: {considered} を切替 (理由: {conflict})"
     en: "- substitute: {considered} substituted (rationale: {conflict})"
   switch_with_sub:
-    ja: "- switch: {considered} を {day_phrase}で中止し {substituted} に切替 ({conflict})"
+    ja: "- 切替: {considered} を {day_phrase}で中止し {substituted} に切替 ({conflict})"
     en: "- switch: {considered} discontinued {day_phrase}; {substituted} started ({conflict})"
   switch_no_sub:
-    ja: "- switch: {considered} を {day_phrase}で中止 ({conflict})"
+    ja: "- 切替: {considered} を {day_phrase}で中止 ({conflict})"
     en: "- switch: {considered} discontinued {day_phrase} ({conflict})"
   deescalate_with_sub:
-    ja: "- deescalate: {considered} を {day_phrase}で中止し {substituted} へ de-escalate ({conflict})"
+    ja: "- 狭域化: {considered} を {day_phrase}で中止し {substituted} へ狭域化 ({conflict})"
     en: "- deescalate: {considered} discontinued {day_phrase} and narrowed to {substituted} ({conflict})"
   deescalate_no_sub:
-    ja: "- deescalate: {considered} を {day_phrase}で中止 ({conflict})"
+    ja: "- 狭域化: {considered} を {day_phrase}で中止 ({conflict})"
     en: "- deescalate: {considered} discontinued {day_phrase} ({conflict})"
   avoid_with_sub:
-    ja: "- avoid: {considered} ({conflict} との併用のため回避); 代替として {substituted} を処方"
+    ja: "- 回避: {considered} ({conflict} との併用のため回避); 代替として {substituted} を処方"
     en: "- avoid: {considered} (avoided due to concurrent {conflict}); substituted with {substituted}"
   avoid_no_sub:
-    ja: "- avoid: {considered} ({conflict} との併用のため回避、代替薬は選択せず)"
+    ja: "- 回避: {considered} ({conflict} との併用のため回避、代替薬は選択せず)"
     en: "- avoid: {considered} (avoided due to concurrent {conflict}); no alternative selected"
   avoid_allergy_with_sub:
-    ja: "- avoid: {considered} ({conflict}のため投与せず); 代替として {substituted} を処方"
+    ja: "- 回避: {considered} ({conflict}のため投与せず); 代替として {substituted} を処方"
     en: "- avoid: {considered} (not given: {conflict}); substituted with {substituted}"
   avoid_allergy_no_sub:
-    ja: "- avoid: {considered} ({conflict}のため投与せず、代替薬は選択せず)"
+    ja: "- 回避: {considered} ({conflict}のため投与せず、代替薬は選択せず)"
     en: "- avoid: {considered} (not given: {conflict}); no alternative selected"
 
 # Checkup lab-results section (Phase 1d-47). From
@@ -1647,12 +1651,16 @@ triage_details:
   arrival_unknown:
     ja: "不明"
     en: "unknown"
+  # Issue #3034: "JTAS レベル3" / "ESI Level 3".
+  system_level:
+    ja: "{system} レベル{level}"
+    en: "{system} Level {level}"
 
 # ED_TRIAGE_NOTE free-text renderer phrases (Phase 1d-33).
 # From _render_ed_triage_note_text.
 triage_note:
   level_line_with_data:
-    ja: "トリアージレベル: {system} Level {level}"
+    ja: "トリアージレベル: {system} レベル{level}"
     en: "Triage level: {system} Level {level}"
   level_line_none:
     ja: "トリアージレベル: 未評価"
@@ -2159,7 +2167,7 @@ narrative_text:
 # Issue #2405).
 order_intent:
   protocol_hold:
-    ja: "protocol による保留: {reason}"
+    ja: "プロトコルによる保留: {reason}"
     en: "held per protocol: {reason}"
   # Issue #2981: the hyperkalemia order set (calcium, insulin, binder).
   hyperkalemia_treatment:
@@ -2313,7 +2321,7 @@ safety_text:
     ja: "治療計画変更 (経過型: {archetype})"
     en: "treatment plan change (archetype: {archetype})"
   treatment_switch_stop:
-    ja: "treatment_modifications による中止→開始: {drug} 中止"
+    ja: "治療変更による中止→開始: {drug} 中止"
     en: "treatment_modifications stop→start: {drug} discontinued"
   treatment_switch_start:
     ja: "、{drug} 開始"
@@ -2346,7 +2354,7 @@ perinatal_intent:
     ja: "経腟分娩中の維持輸液 (乳酸リンゲル)"
     en: "Vaginal delivery IV crystalloid during labor (maintenance + hydration)"
   VDOX:
-    ja: "経腟分娩 分娩第3期 子宮収縮薬 (PPH予防、AWHONN / ACOG Class IA)"
+    ja: "経腟分娩 分娩第3期 子宮収縮薬 (PPH予防、AWHONN / ACOG 推奨クラス IA)"
     en: "Vaginal delivery active 3rd-stage uterotonic (PPH prevention, AWHONN / ACOG Class IA)"
 
 # Health-checkup visit reasons and order intent (modules/health_checkup, Issue #2406).
@@ -2776,7 +2784,7 @@ fhir_emit_text:
     ja: "診療録番号"
     en: "MRN"
   o2_single_ts:
-    ja: "単一測定時点のみに基づく推定 (dwell 15 分)"
+    ja: "単一測定時点のみに基づく推定 (酸素投与 15 分後)"
     en: "Estimated from a single on-O2 measurement (15 min dwell)"
   o2_target:
     ja: "投与目標: {value}"

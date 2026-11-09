@@ -63,4 +63,6 @@ def test_med_terms_tables_loaded():
     # is asserted by test_fhir_procedure_jp_text.
     # Issue #2446: 206 → 196 — the five procedure names (both cases) the
     # procedure-phrase table defines were removed.
-    assert len(tables["terms"]) == 201  # Issue #3025: Q6H_PRN; Issue #3033: WEEKLY / MONTHLY / NIGHTLY / topical
+    assert (
+        len(tables["terms"]) == 202
+    )  # Issue #3025: Q6H_PRN; Issue #3033: WEEKLY / MONTHLY / NIGHTLY / topical; Issue #3034: units

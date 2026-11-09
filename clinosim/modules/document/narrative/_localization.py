@@ -106,8 +106,13 @@ def _localize_stage(stage: str, lang: str) -> str:
     s = str(stage).strip()
     if not s:
         return s
-    from clinosim.locale.loader import load_narrative_stage_tokens, resolve_localized_display
+    from clinosim.locale.loader import condition_stage_display, load_narrative_stage_tokens, resolve_localized_display
 
+    # Issue #3034: a whole stage label of the condition-stage table
+    # ("PHQ-9 moderate", "Stage 1") reads as the FHIR Condition.stage does.
+    whole = condition_stage_display(s, lang)
+    if whole != s:
+        return whole
     table = load_narrative_stage_tokens()
     out: list[str] = []
     for tok in s.split():

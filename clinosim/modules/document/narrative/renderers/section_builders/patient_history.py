@@ -186,7 +186,11 @@ def build_allergies(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         criticality = _o(allergy, "criticality", "") or ""
         if display:
             if criticality:
-                crit_str = t("allergy.criticality_suffix", lang, criticality=criticality)
+                crit_str = t(
+                    "allergy.criticality_suffix",
+                    lang,
+                    criticality=_label("allergy_criticality", str(criticality), lang),
+                )
                 parts.append(f"{display}{crit_str}")
             else:
                 parts.append(display)

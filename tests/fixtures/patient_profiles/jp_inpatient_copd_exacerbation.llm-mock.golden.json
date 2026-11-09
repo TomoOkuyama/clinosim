@@ -33,7 +33,7 @@
         "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "常用薬なし",
         "past_medical_history": "慢性閉塞性肺疾患，詳細不明 [J44.9]",
-        "physical_examination": "バイタルサイン: BP 126/79 mmHg, HR 95/min, T 37.5°C, SpO2 89%, RR 25/min。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "physical_examination": "バイタルサイン: BP 126/79 mmHg, HR 95/min, T 37.5°C, SpO2 89%, RR 25/min。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: その他"
       },
       "text": ""
@@ -80,11 +80,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 126/79 mmHg, HR 95 回/分, RR 25 回/分, SpO2 89%, T 37.5°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 126/79 mmHg, HR 95 回/分, RR 25 回/分, SpO2 89%, T 37.5°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 126/79 mmHg, HR 95 回/分, RR 25 回/分, SpO2 89%, T 37.5°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
+      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 126/79 mmHg, HR 95 回/分, RR 25 回/分, SpO2 89%, T 37.5°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-03": {
@@ -128,11 +128,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "BP 128/75 mmHg, HR 93 回/分, RR 21 回/分, SpO2 92%, T 37.2°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 128/75 mmHg, HR 93 回/分, RR 21 回/分, SpO2 92%, T 37.2°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 128/75 mmHg, HR 93 回/分, RR 21 回/分, SpO2 92%, T 37.2°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
+      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 128/75 mmHg, HR 93 回/分, RR 21 回/分, SpO2 92%, T 37.2°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-04": {
@@ -176,11 +176,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 121/74 mmHg, HR 90 回/分, RR 23 回/分, SpO2 90%, T 36.8°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 121/74 mmHg, HR 90 回/分, RR 23 回/分, SpO2 90%, T 36.8°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 121/74 mmHg, HR 90 回/分, RR 23 回/分, SpO2 90%, T 36.8°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
+      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 121/74 mmHg, HR 90 回/分, RR 23 回/分, SpO2 90%, T 36.8°C。特記事項なし。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-05": {
@@ -224,11 +224,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 127/78 mmHg, HR 88 回/分, RR 19 回/分, SpO2 90%, T 37.4°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 127/78 mmHg, HR 88 回/分, RR 19 回/分, SpO2 90%, T 37.4°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 127/78 mmHg, HR 88 回/分, RR 19 回/分, SpO2 90%, T 37.4°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
+      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 127/78 mmHg, HR 88 回/分, RR 19 回/分, SpO2 90%, T 37.4°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-06": {
@@ -272,11 +272,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #6 — assessment]",
-        "objective": "BP 121/76 mmHg, HR 82 回/分, RR 22 回/分, SpO2 93%, T 36.9°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 121/76 mmHg, HR 82 回/分, RR 22 回/分, SpO2 93%, T 36.9°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #6 — plan]",
         "subjective": "[Mock LLM response #6 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 121/76 mmHg, HR 82 回/分, RR 22 回/分, SpO2 93%, T 36.9°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
+      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 121/76 mmHg, HR 82 回/分, RR 22 回/分, SpO2 93%, T 36.9°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-07": {
@@ -320,11 +320,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #7 — assessment]",
-        "objective": "BP 123/73 mmHg, HR 82 回/分, RR 19 回/分, SpO2 95%, T 37.2°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 123/73 mmHg, HR 82 回/分, RR 19 回/分, SpO2 95%, T 37.2°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #7 — plan]",
         "subjective": "[Mock LLM response #7 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 123/73 mmHg, HR 82 回/分, RR 19 回/分, SpO2 95%, T 37.2°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
+      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 123/73 mmHg, HR 82 回/分, RR 19 回/分, SpO2 95%, T 37.2°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-08": {
@@ -368,11 +368,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #8 — assessment]",
-        "objective": "BP 121/75 mmHg, HR 84 回/分, RR 17 回/分, SpO2 95%, T 36.8°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 121/75 mmHg, HR 84 回/分, RR 17 回/分, SpO2 95%, T 36.8°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #8 — plan]",
         "subjective": "[Mock LLM response #8 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 121/75 mmHg, HR 84 回/分, RR 17 回/分, SpO2 95%, T 36.8°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
+      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 121/75 mmHg, HR 84 回/分, RR 17 回/分, SpO2 95%, T 36.8°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-09": {
@@ -416,11 +416,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #9 — assessment]",
-        "objective": "BP 126/76 mmHg, HR 83 回/分, RR 20 回/分, SpO2 94%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 126/76 mmHg, HR 83 回/分, RR 20 回/分, SpO2 94%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #9 — plan]",
         "subjective": "[Mock LLM response #9 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 126/76 mmHg, HR 83 回/分, RR 20 回/分, SpO2 94%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
+      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 126/76 mmHg, HR 83 回/分, RR 20 回/分, SpO2 94%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-10": {
@@ -464,11 +464,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #10 — assessment]",
-        "objective": "BP 123/78 mmHg, HR 78 回/分, RR 18 回/分, SpO2 94%, T 37.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 123/78 mmHg, HR 78 回/分, RR 18 回/分, SpO2 94%, T 37.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #10 — plan]",
         "subjective": "[Mock LLM response #10 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 123/78 mmHg, HR 78 回/分, RR 18 回/分, SpO2 94%, T 37.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
+      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 123/78 mmHg, HR 78 回/分, RR 18 回/分, SpO2 94%, T 37.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-11": {
@@ -513,11 +513,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #11 — assessment]",
-        "objective": "BP 125/73 mmHg, HR 81 回/分, RR 20 回/分, SpO2 92%, T 36.7°C。特記事項なし。一般状態: JCS I-1、ややぼんやりしている。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 125/73 mmHg, HR 81 回/分, RR 20 回/分, SpO2 92%, T 36.7°C。特記事項なし。一般状態: JCS I-1、ややぼんやりしている。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #11 — plan]",
         "subjective": "[Mock LLM response #11 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 125/73 mmHg, HR 81 回/分, RR 20 回/分, SpO2 92%, T 36.7°C。特記事項なし。一般状態: JCS I-1、ややぼんやりしている。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
+      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 125/73 mmHg, HR 81 回/分, RR 20 回/分, SpO2 92%, T 36.7°C。特記事項なし。一般状態: JCS I-1、ややぼんやりしている。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-12": {
@@ -561,11 +561,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #12 — assessment]",
-        "objective": "BP 121/75 mmHg, HR 83 回/分, RR 16 回/分, SpO2 95%, T 37.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 121/75 mmHg, HR 83 回/分, RR 16 回/分, SpO2 95%, T 37.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #12 — plan]",
         "subjective": "[Mock LLM response #12 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 121/75 mmHg, HR 83 回/分, RR 16 回/分, SpO2 95%, T 37.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
+      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 121/75 mmHg, HR 83 回/分, RR 16 回/分, SpO2 95%, T 37.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-13": {
@@ -609,11 +609,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #13 — assessment]",
-        "objective": "BP 122/75 mmHg, HR 81 回/分, RR 17 回/分, SpO2 96%, T 37.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 122/75 mmHg, HR 81 回/分, RR 17 回/分, SpO2 96%, T 37.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #13 — plan]",
         "subjective": "[Mock LLM response #13 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 122/75 mmHg, HR 81 回/分, RR 17 回/分, SpO2 96%, T 37.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
+      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 122/75 mmHg, HR 81 回/分, RR 17 回/分, SpO2 96%, T 37.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-14": {
@@ -657,11 +657,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #14 — assessment]",
-        "objective": "BP 126/74 mmHg, HR 77 回/分, RR 18 回/分, SpO2 97%, T 36.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 126/74 mmHg, HR 77 回/分, RR 18 回/分, SpO2 97%, T 36.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #14 — plan]",
         "subjective": "[Mock LLM response #14 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 126/74 mmHg, HR 77 回/分, RR 18 回/分, SpO2 97%, T 36.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
+      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 126/74 mmHg, HR 77 回/分, RR 18 回/分, SpO2 97%, T 36.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-15": {
@@ -705,11 +705,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #15 — assessment]",
-        "objective": "BP 123/77 mmHg, HR 84 回/分, RR 17 回/分, SpO2 99%, T 37.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 123/77 mmHg, HR 84 回/分, RR 17 回/分, SpO2 99%, T 37.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #15 — plan]",
         "subjective": "[Mock LLM response #15 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 123/77 mmHg, HR 84 回/分, RR 17 回/分, SpO2 99%, T 37.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
+      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 123/77 mmHg, HR 84 回/分, RR 17 回/分, SpO2 99%, T 37.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-16": {
@@ -753,11 +753,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #16 — assessment]",
-        "objective": "BP 124/74 mmHg, HR 81 回/分, RR 14 回/分, SpO2 96%, T 37.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 124/74 mmHg, HR 81 回/分, RR 14 回/分, SpO2 96%, T 37.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #16 — plan]",
         "subjective": "[Mock LLM response #16 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 124/74 mmHg, HR 81 回/分, RR 14 回/分, SpO2 96%, T 37.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺 wheeze 聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
+      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 124/74 mmHg, HR 81 回/分, RR 14 回/分, SpO2 96%, T 37.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-17": {
@@ -823,7 +823,7 @@
         "lang": "ja"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 100/100 → 自立（食事10、入浴5、移動15、トイレ動作10）",
+        "adl_assessment": "Barthel 指数 100/100 → 自立（食事10、入浴5、移動15、トイレ動作10）",
         "care_plan": "看護計画: SpO2 持続モニタ + 酸素投与量調整、呼吸パターン・副雑音を勤務帯ごとに評価、起坐位で呼吸楽な体位保持を支援、吸入手技を毎回付き添い確認。",
         "nursing_diagnosis": "看護診断: ガス交換障害、気道クリアランス不十分、活動耐性低下、不安 (呼吸困難関連)、ガス交換障害のリスク。",
         "nursing_history": "入院目的: 呼吸困難増悪・喀痰増加・喘鳴。既往: COPD（慢性閉塞性肺疾患）。",
