@@ -31,7 +31,14 @@ def bedside_procedures() -> tuple[dict[str, Any], ...]:
 
 @cache
 def _entries() -> dict[str, dict[str, Any]]:
-    return {str(e["type"]): e for e in bedside_procedures()}
+    named = tuple(_catalog().get("named") or ())
+    return {str(e["type"]): e for e in (*bedside_procedures(), *named)}
+
+
+def catalog_procedure_types() -> frozenset[str]:
+    """Every procedure type the catalog names: the bedside procedures and the
+    ``named`` types recorded elsewhere (Issue #3081)."""
+    return frozenset(_entries())
 
 
 def procedure_code(proc_type: str, country: str) -> str:

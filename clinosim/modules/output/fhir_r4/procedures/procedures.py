@@ -13,7 +13,7 @@ from clinosim.codes import (
     get_system_uri,
     system_key_for,
 )
-from clinosim.codes.procedures import bedside_procedures, procedure_type_display
+from clinosim.codes.procedures import catalog_procedure_types, procedure_type_display
 from clinosim.codes.snomed import snomed_for_phrase
 from clinosim.countries import lang_for
 from clinosim.locale.free_text import localize_procedure_name
@@ -58,7 +58,7 @@ _PROCEDURE_TYPE_ACRONYMS = ("aabr", "crp", "mri", "ms", "cpap", "ecg", "ekg", "u
 
 
 def _catalog_types() -> frozenset[str]:
-    return frozenset(str(e["type"]) for e in bedside_procedures())
+    return catalog_procedure_types()
 
 
 def _humanize_procedure_type(proc_type: str) -> str:
@@ -129,7 +129,10 @@ def _build_procedure(
     # Resolve displays via code dictionaries (k-codes.yaml / cpt.yaml)
     primary_lang = lang_for(country)
     if primary_code:
-        primary_display = _procedure_display(primary_code, primary_lang, fallback)
+        # Issue #3081: a code with no K-code / CPT display (the SNOMED CT
+        # newborn screens) is named from the catalog in the output language.
+        named = procedure_type_display(proc_type, primary_lang) if proc_type in _catalog_types() else ""
+        primary_display = _procedure_display(primary_code, primary_lang, named or fallback)
     else:
         # Uncoded by design in this country (Issue #2340: e.g. JP 正常分娩 is
         # uninsured, US oxygen administration has no CPT code): name it from
@@ -191,6 +194,14 @@ def _build_procedure(
         if primary_code and not _drop_primary
         else []
     )
+    if coding_entries and _primary_system_key_override:
+        # Issue #3081: a code pinned to its own system (the SNOMED CT newborn
+        # screens) carries that system's display, English for an
+        # English-only system (spec §5.3); ``code.text`` keeps the name in
+        # the output language.
+        coding_entries = [
+            system_coding(_primary_system_key_override, primary_code, lang, fallback_display=catalog_name or fallback)
+        ]
 
     # Issue #1701 Phase 4d.1: when ``procedure_type`` matches a verified
     # keyword in ``codes/data/procedure-phrase-to-snomed.yaml``, attach the SNOMED coding
