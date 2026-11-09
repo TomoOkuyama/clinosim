@@ -180,6 +180,7 @@ Registered in
 | Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) (`register_builtin_enrichers`) | POST_RECORDS order=65 registration. |
 | Chronic-visit scheduler | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | Calls `monitoring_labs_for_patient` per `chronic_visit` event. |
 | Observation engine | [`clinosim/modules/observation/engine.py`](../observation/engine.py) | `generate_lab_result` + `determine_flag` + `get_lab_unit` produce the emitted lab value. |
+| Physiology / lab pipeline | [`clinosim/modules/physiology/engine.py`](../physiology/engine.py), [`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) | The true value comes from `patient_true_labs` on the patient's own chronic state (`initialize_state`, as on an outpatient visit), so a CKD patient's creatinine stays on the renal baseline (Issue #2997). |
 | Downstream FHIR + CSV | (via generated `Order` / `OrderResult`) | The injected orders flow through the standard lab-emission path. |
 
 ## Testing

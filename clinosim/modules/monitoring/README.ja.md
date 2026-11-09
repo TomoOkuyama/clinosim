@@ -170,6 +170,7 @@ clinosim/modules/monitoring/
 | Enricher registry | [`clinosim/simulator/enrichers.py`](../../simulator/enrichers.py) (`register_builtin_enrichers`) | POST_RECORDS order=65 登録。 |
 | 慢性外来スケジューラ | [`clinosim/simulator/phases/_healthcare_calendar.py`](../../simulator/phases/_healthcare_calendar.py) | `chronic_visit` event ごとに `monitoring_labs_for_patient` を呼ぶ。 |
 | Observation engine | [`clinosim/modules/observation/engine.py`](../observation/engine.py) | `generate_lab_result` + `determine_flag` + `get_lab_unit` が emit lab 値を生成。 |
+| Physiology / lab pipeline | [`clinosim/modules/physiology/engine.py`](../physiology/engine.py)、[`clinosim/simulator/lab_pipeline.py`](../../simulator/lab_pipeline.py) | 真値は患者自身の慢性疾患状態 (`initialize_state`、外来受診と同じ) に対する `patient_true_labs` で決まり、CKD 患者のクレアチニンは腎機能の基準値に沿う (Issue #2997)。 |
 | 下流 FHIR + CSV | (生成される `Order` / `OrderResult` 経由) | 注入 order が標準 lab-emission path を流れる。 |
 
 ## テスト

@@ -214,8 +214,12 @@ def _existing_analytes(record: Any) -> set[str]:
 
 def _derive_true_labs_for_patient(patient: Any, at: Any) -> dict[str, float]:
     """Baseline monitoring lab true values: the shared true-lab function
-    (``simulator.lab_pipeline.patient_true_labs``, Issue #2735) on the healthy
-    default state with the patient's medication flags, at the encounter time.
+    (``simulator.lab_pipeline.patient_true_labs``, Issue #2735) on the
+    patient's own chronic state (``initialize_state`` from the physiological
+    profile and chronic conditions, as an outpatient visit derives its labs;
+    Issue #2997 — a CKD patient's creatinine stays on the renal baseline) with
+    the patient's medication flags, at the encounter time. A patient without a
+    physiological profile gets the healthy default state.
 
     The medication flags put a warfarin patient's PT_INR in the therapeutic
     band, and the patient's longitudinal HbA1c of that year is used.
@@ -225,7 +229,11 @@ def _derive_true_labs_for_patient(patient: Any, at: Any) -> dict[str, float]:
     from datetime import datetime
 
     from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS
-    from clinosim.modules.physiology.engine import medication_flags_from_context, scenario_flags_from_protocol
+    from clinosim.modules.physiology.engine import (
+        initialize_state,
+        medication_flags_from_context,
+        scenario_flags_from_protocol,
+    )
     from clinosim.simulator.lab_pipeline import patient_true_labs
     from clinosim.types.clinical import PhysiologicalState
 
@@ -234,7 +242,13 @@ def _derive_true_labs_for_patient(patient: Any, at: Any) -> dict[str, float]:
         **medication_flags_from_context(patient),
     }
     when = at if isinstance(at, datetime) else datetime(1970, 1, 1)
-    labs = dict(patient_true_labs(PhysiologicalState(), patient, when, flags))
+    profile = getattr(patient, "physiological_profile", None)
+    state = (
+        initialize_state(profile, list(getattr(patient, "chronic_conditions", None) or []), patient.patient_id)
+        if profile is not None
+        else PhysiologicalState()
+    )
+    labs = dict(patient_true_labs(state, patient, when, flags))
     # Physiology values win when both exist so a medication-flag-driven value
     # (warfarin PT_INR) is never overwritten by a reference normal.
     for lab_name, ref_val in BASELINE_LAB_NORMALS.items():
