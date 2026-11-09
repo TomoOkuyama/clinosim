@@ -20,6 +20,7 @@ from clinosim.modules.immunization.engine import (
     flu_season_of,
     generate_immunizations,
     generate_pregnancy_tdap,
+    licensed_from_by_cvx,
     load_schedule,
 )
 from clinosim.modules.immunization.visits import (
@@ -119,7 +120,10 @@ def _bind_stay_doses(imm_recs: list, encounters: list) -> None:
 
 
 def _align_to_encounters(
-    imm_recs: list, encounters: list, season_months: dict[str, frozenset[int]] | None = None
+    imm_recs: list,
+    encounters: list,
+    season_months: dict[str, frozenset[int]] | None = None,
+    earliest_by_cvx: dict[str, date] | None = None,
 ) -> list:
     """Snap each immunization's occurrence_date to a nearby pediatric_visit
     encounter and stamp the encounter_id.
@@ -139,6 +143,8 @@ def _align_to_encounters(
         admission_datetime.date() and record `encounter_id`.
       * When no encounter is within window, leave both fields unchanged
         (silence beats fabrication).
+      * A dose is not snapped onto a day before its vaccine's licensure
+        floor (``earliest_by_cvx``; Issue #2979: no flu dose before 6 months).
 
     Never introduces a new encounter — the alignment only rebinds
     existing ones. Deterministic (no rng).
@@ -183,9 +189,12 @@ def _align_to_encounters(
         # Issue #2868: a flu dose stays inside its own season's vaccination
         # months (not snapped onto a July or March visit).
         _months = (season_months or {}).get(str(_get(imm, "vaccine_cvx", "") or ""))
+        _earliest = (earliest_by_cvx or {}).get(str(_get(imm, "vaccine_cvx", "") or ""))
         for _day, _eid in _enc_days:
             _delta = abs((_day - occ).days)
             if _delta > 60:
+                continue
+            if _earliest is not None and _day < _earliest:
                 continue
             if _months is not None and (_day.month not in _months or flu_season_of(_day) != flu_season_of(occ)):
                 continue
@@ -421,7 +430,9 @@ def enrich_immunizations(ctx) -> None:
             flu_visit_candidate=is_flu_visit_candidate(patient),
             nurse=_default_nurse,
         )
-        recs = _align_to_encounters(recs, pool, season_months)
+        recs = _align_to_encounters(
+            recs, pool, season_months, licensed_from_by_cvx(schedule, _get(patient, "date_of_birth", None))
+        )
         if roster is not None and hasattr(roster, "members"):
             _give_stay_doses_by_ward_nurse(recs, pool, roster, pid)
         # Companion synthesis for the residual in-window orphans.

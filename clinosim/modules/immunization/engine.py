@@ -319,6 +319,55 @@ def _pick_wave_epoch_date(
     return date(first_valid.year, first_valid.month, day)
 
 
+def licensed_from(vaccine: dict, dob: date | None) -> date | None:
+    """The first day a dose of ``vaccine`` may be given to a patient born on
+    ``dob`` (Issue #2979): the schedule's ``min_age_days`` licensure floor
+    (influenza: 6 months), checked on the dose date. ``None`` when the
+    vaccine has no floor or the birth date is unknown."""
+    days = vaccine.get("min_age_days")
+    if days is None or dob is None:
+        return None
+    return date.fromordinal(dob.toordinal() + int(days))
+
+
+def licensed_on(vaccine: dict, dob: date | None, on: date) -> bool:
+    """Whether a dose of ``vaccine`` may be given on ``on`` (``licensed_from``)."""
+    floor = licensed_from(vaccine, dob)
+    return floor is None or on >= floor
+
+
+def licensed_from_by_cvx(schedule: dict, dob: date | None) -> dict[str, date]:
+    """CVX (the entry's and its products') → ``licensed_from`` for each
+    schedule entry with a licensure floor."""
+    out: dict[str, date] = {}
+    for v in schedule.values():
+        floor = licensed_from(v, dob)
+        if floor is None:
+            continue
+        for cvx in {str(v["cvx"])} | {str(p["cvx"]) for p in v.get("products") or []}:
+            out[cvx] = max(out.get(cvx, floor), floor)
+    return out
+
+
+def flu_vaccine_licensed_on(country: str, dob: date | None, on: date) -> bool:
+    """Whether some annual (flu) vaccine of ``country``'s schedule may be
+    given on ``on`` to a patient born on ``dob`` (Issue #2979). ``True``
+    for a schedule that models no annual vaccine."""
+    annual = [v for v in load_schedule(country).values() if v.get("frequency") == "annual"]
+    return not annual or any(licensed_on(v, dob, on) for v in annual)
+
+
+def _first_licensed_season_day(
+    seasonal_dist: dict[str, float], season_yr: int, floor: date, as_of: date
+) -> date | None:
+    """The first configured month start of the ``season_yr`` flu season on
+    or after ``floor`` (and not after ``as_of``), else ``None``. Draws nothing."""
+    days = sorted(
+        date(season_yr if int(m) >= _SEASON_ANCHOR_MONTH else season_yr + 1, int(m), 1) for m in seasonal_dist
+    )
+    return next((d for d in days if floor <= d <= as_of), None)
+
+
 def seasonal_flu_coverage(country: str, age: int, sex: str) -> float | None:
     """Per-season flu vaccination rate for a person of ``age`` / ``sex``
     (Issue #2868): the schedule's ``annual`` vaccine coverage. ``None`` when
@@ -413,6 +462,11 @@ def generate_immunizations(
                 season_years = range(start.year - 1, as_of.year + 1)
             else:
                 season_years = range(start.year, as_of.year + 1)
+            # Issue #2979: no dose before the licensure floor (influenza: 6
+            # months). A season's month drawn before it moves to the
+            # season's first month on or after it (none left: no record);
+            # the draws stay as they were.
+            floor = licensed_from(v, dob)
             for yr in season_years:
                 if seasonal_dist:
                     occ = _pick_flu_month(seasonal_dist, yr, start, as_of, rng)
@@ -423,20 +477,24 @@ def generate_immunizations(
                     if occ < start or occ > as_of:
                         continue
                 age_at = _age_on(dob, occ, base_age)
+                given: date | None = occ
+                if floor is not None and occ < floor:
+                    given = _first_licensed_season_day(seasonal_dist, yr, floor, as_of) if seasonal_dist else None
                 if rng.random() < _coverage(cov, age_at, sex):
-                    out.append(
-                        ImmunizationRecord(
-                            vaccine_cvx=product_cvx(v, occ),
-                            occurrence_date=occ,
-                            administered_by=default_nurse,
-                            lot_number=synthetic_lot_number(cvx, occ),
+                    if given is not None:
+                        out.append(
+                            ImmunizationRecord(
+                                vaccine_cvx=product_cvx(v, given),
+                                occurrence_date=given,
+                                administered_by=default_nurse,
+                                lot_number=synthetic_lot_number(cvx, given),
+                            )
                         )
-                    )
-                elif _declined(rng, _coverage(cov, age_at, sex)):
+                elif _declined(rng, _coverage(cov, age_at, sex)) and given is not None:
                     out.append(
                         ImmunizationRecord(
-                            vaccine_cvx=product_cvx(v, occ),
-                            occurrence_date=occ,
+                            vaccine_cvx=product_cvx(v, given),
+                            occurrence_date=given,
                             status="not-done",
                         )
                     )

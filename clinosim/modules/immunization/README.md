@@ -147,7 +147,8 @@ their records, then binds each dose (deterministic, no rng):
    track: dose 1, or the previous dose given);
 3. otherwise snaps the dose to the nearest outpatient encounter within
    ±60 days and records its `encounter_id`; a flu dose only to an
-   encounter in its own season and vaccination months.
+   encounter in its own season and vaccination months, and no dose to an
+   encounter before its vaccine's `min_age_days` floor.
 
 A dose still unbound and dated before the simulation window start
 (`config.time_range[0]`) is marked `primary_source=False` and left
@@ -205,6 +206,7 @@ encounter documents).
   |---|---|
   | `cvx` | CDC CVX code (string). |
   | `min_age` | Minimum eligible age. |
+  | `min_age_days` | Optional. Licensure floor in days from birth, checked on the dose date (Issue #2979: influenza 182 = 6 months). No dose, no vaccination-visit dose, no alignment onto an earlier encounter and no healthcare-calendar flu visit before it; an `annual` season month drawn before it moves to the season's first month after it. |
   | `frequency` | `"annual"`, `"once"`, `"every_n_years"`, or `"pediatric_series"`. |
   | `interval_years` | `every_n_years` only. Interval in years. |
   | `season_month` | `annual` only. Fixed month used when no `seasonal_distribution` (default 10). |

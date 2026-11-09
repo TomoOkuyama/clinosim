@@ -44,6 +44,7 @@ from clinosim.modules.immunization.engine import (
     _coverage,
     _parse,
     flu_season_of,
+    licensed_on,
     product_cvx,
     synthetic_lot_number,
 )
@@ -163,12 +164,18 @@ def _new_dose(vaccine: dict, visit: VaccinationVisit, nurse: str, dose_number: i
     )
 
 
-def _flu_vaccine_for(annual: list[dict], age: int, sex: str) -> dict:
-    """The annual vaccine for a patient of ``age``: one the patient is
-    covered by, else one they are old enough for, else the first."""
-    covered = [v for v in annual if int(v["min_age"]) <= age and _coverage(v.get("coverage_by_age_sex", {}), age, sex)]
-    old_enough = [v for v in annual if int(v["min_age"]) <= age]
-    return (covered or old_enough or annual)[0]
+def _flu_vaccine_for(annual: list[dict], dob: date | None, day: date, base_age: int, sex: str) -> dict | None:
+    """The annual vaccine given on ``day``: one the patient is covered by,
+    else one they are old enough for, else the first. Only vaccines past
+    their licensure floor on ``day`` count (Issue #2979: no flu dose before
+    6 months); ``None`` when there is none."""
+    licensed = [v for v in annual if licensed_on(v, dob, day)]
+    age = _age_on(dob, day, base_age)
+    covered = [
+        v for v in licensed if int(v["min_age"]) <= age and _coverage(v.get("coverage_by_age_sex", {}), age, sex)
+    ]
+    old_enough = [v for v in licensed if int(v["min_age"]) <= age]
+    return next(iter(covered or old_enough or licensed), None)
 
 
 def _calendar_covers_season(season: int, sim_start: date | None, as_of: date) -> bool:
@@ -210,13 +217,15 @@ def _bind_flu(
             flu_by_season.setdefault(flu_season_of(occ), []).append(imm)
         else:
             rest.append(imm)
-    first_visit: dict[int, VaccinationVisit] = {}
-    for v in visits:
-        if v.is_flu:
-            first_visit.setdefault(flu_season_of(v.day), v)
     dob = _get(patient, "date_of_birth", None)
     base_age = int(_get(patient, "age", 0) or 0)
     sex = _get(patient, "sex", "M") or "M"
+    # Issue #2979: a flu visit before the patient may have any flu vaccine
+    # (6 months) gives none.
+    first_visit: dict[int, VaccinationVisit] = {}
+    for v in visits:
+        if v.is_flu and any(licensed_on(a, dob, v.day) for a in annual):
+            first_visit.setdefault(flu_season_of(v.day), v)
 
     for season in sorted(set(flu_by_season) | set(first_visit)):
         records = flu_by_season.get(season, [])
@@ -224,12 +233,16 @@ def _bind_flu(
         refused = [r for r in records if not _completed(r)]
         visit = first_visit.get(season)
         if visit is not None:
+            # Only visits past a licensure floor are kept, so a vaccine exists.
+            vaccine = _flu_vaccine_for(annual, dob, visit.day, base_age, sex)
             if done:
                 dose = done[0]
-                _give_at(dose, vaccine_of[str(_get(dose, "vaccine_cvx", ""))], visit)
-            else:
-                vaccine = _flu_vaccine_for(annual, _age_on(dob, visit.day, base_age), sex)
+                drawn = vaccine_of[str(_get(dose, "vaccine_cvx", ""))]
+                _give_at(dose, drawn if licensed_on(drawn, dob, visit.day) else vaccine or drawn, visit)
+            elif vaccine is not None:
                 dose = _new_dose(vaccine, visit, nurse)
+            else:
+                continue
             rest.append(dose)
         elif done and not (flu_visit_candidate and _calendar_covers_season(season, sim_start, as_of)):
             rest.append(done[0])

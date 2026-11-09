@@ -129,7 +129,8 @@ in-progress snapshot でのバックデート出力を防ぐ。
    移す、または系列が継続中 — 1 回目か前回接種済み — なら新規作成)。
 3. それ以外は ±60 日以内で最も近い外来 encounter に snap し
    `encounter_id` を記録。インフルエンザは同シーズンかつ接種月の
-   encounter に限る。
+   encounter に限る。ワクチンの `min_age_days` 下限より前の encounter には
+   snap しない。
 
 紐付かず simulation window 開始 (`config.time_range[0]`) より前の接種は
 `primary_source=False` とし未紐付けのまま残す。window 内の orphan には
@@ -183,6 +184,7 @@ attending は primary-care 医師 roster から決定論選出) を合成し、�
   | --- | --- |
   | `cvx` | CDC CVX コード (文字列)。 |
   | `min_age` | 接種資格の最低年齢。 |
+  | `min_age_days` | 任意。接種可能な下限 (出生からの日数、接種日で判定。Issue #2979: インフルエンザは 182 = 生後 6 か月)。これより前には接種も、予防接種受診での接種も、より早い encounter への snap も、healthcare calendar のインフルエンザ予防接種受診も無い。下限より前に引いた `annual` のシーズン月は、下限以降のシーズン最初の月へ移す。 |
   | `frequency` | `"annual"` / `"once"` / `"every_n_years"` / `"pediatric_series"`。 |
   | `interval_years` | `every_n_years` 時のみ。年間隔。 |
   | `season_month` | `annual` 時のみ。`seasonal_distribution` が無い場合の固定接種月 (既定 10)。 |
