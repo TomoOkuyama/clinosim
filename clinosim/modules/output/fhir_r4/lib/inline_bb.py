@@ -20,8 +20,6 @@ Contains:
 
 from __future__ import annotations
 
-from clinosim.codes import display as registry_display
-from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes.hl7_encounter import ActPriority
 from clinosim.codes.snomed import snomed_for_phrase
 from clinosim.countries import lang_for
@@ -62,6 +60,7 @@ from clinosim.modules.output.fhir_r4.procedures.procedures import (
     PROCEDURE_KEY_SYSTEM,
     _build_procedure,
     _resolve_procedure_id,
+    procedure_reason_codes,
 )
 from clinosim.simulator._ed_thresholds import ED_DEPARTMENT_ID, ED_WARD_ID
 
@@ -924,27 +923,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
         # Procedures (splint/bandage/wound-care/O2/etc.) previously
         # emitted a hardcoded generic text — 48% of all Procedures fell
         # here and consumer views could not distinguish the indication.
-        _dx = (ctx.record or {}).get("clinical_diagnosis", {}) or {}
-        _dx_code = _dx.get("discharge_diagnosis_code") or _dx.get("admission_diagnosis_code", "") or ""
-        _dx_display = _dx.get("discharge_diagnosis_display") or _dx.get("admission_diagnosis_display", "") or ""
-        _generic_reason_text = t("fhir_text.procedure_reason_generic", _lang)
-        if _dx_code:
-            _icd_key = system_key_for("diagnosis", ctx.country)
-            _reason_display = _dx_display or (registry_display(_icd_key, _dx_code, _lang) or _dx_code)
-            procedure_res["reasonCode"] = [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri(_icd_key),
-                            "code": _dx_code,
-                            "display": _reason_display,
-                        }
-                    ],
-                    "text": _reason_display or _generic_reason_text,
-                }
-            ]
-        else:
-            procedure_res["reasonCode"] = [{"text": _generic_reason_text}]
+        procedure_res["reasonCode"] = procedure_reason_codes(ctx.record, ctx.country)
         # CY7-18 (Chain-7): text-only bodySite fallback for order-derived
         # Procedures — the Order carries display_name but not a SNOMED site
         # code, so text is defensible.

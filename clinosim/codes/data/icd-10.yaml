@@ -1287,3 +1287,57 @@ codes:
   Q87.4:
     en: "Marfan syndrome"
     ja: "マルファン＜Marfan＞症候群"
+  # Issue #3010: WHO codes of the lifestyle / SDOH conditions and the obstetric
+  # history, which the simulator generates in ICD-10-CM (F17.210, F10.20, E66.3,
+  # E66.01, G47.30, Z87.59 — folded by locale/jp/code_mapping_diagnosis.yaml)
+  # or in codes shared with WHO (E66.9, K76.0).
+  E66.0:
+    en: Obesity due to excess calories
+    ja: "過剰カロリーによる肥満（症）"
+  E66.9:
+    en: Obesity, unspecified
+    ja: "肥満（症），詳細不明"
+  F10.2:
+    en: "Mental and behavioural disorders due to use of alcohol : Dependence syndrome"
+    ja: "アルコール使用＜飲酒＞による精神及び行動の障害，依存症候群"
+  F17.2:
+    en: "Mental and behavioural disorders due to use of tobacco : Dependence syndrome"
+    ja: "タバコ使用＜喫煙＞による精神及び行動の障害，依存症候群"
+  G47.3:
+    en: Sleep apnoea
+    ja: "睡眠時無呼吸"
+  K76.0:
+    en: Fatty (change of) liver, not elsewhere classified
+    ja: "脂肪肝＜肝の脂肪化＞，他に分類されないもの"
+  Z87.5:
+    en: Personal history of complications of pregnancy, childbirth and the puerperium
+    ja: "妊娠，分娩及び産じょく＜褥＞の合併症の既往歴"
+  # Issue #3010: the delivery / abortion / newborn codes JP emits (perinatal.yaml,
+  # simulator/perinatal.py), checked against the MHLW 基本分類表 and WHO ICD-10.
+  O03.9:
+    en: "Spontaneous abortion : Complete or unspecified, without complication"
+    ja: "自然流産，完全流産又は詳細不明の流産，合併症を伴わないもの"
+  O04.9:
+    en: "Medical abortion : Complete or unspecified, without complication"
+    ja: "医学的人工流産，完全流産又は詳細不明の流産，合併症を伴わないもの"
+  O14.9:
+    en: "Pre-eclampsia, unspecified"
+    ja: "子かん＜癇＞前症，詳細不明"
+  O24.9:
+    en: "Diabetes mellitus in pregnancy, unspecified"
+    ja: "妊娠中の糖尿病，詳細不明"
+  O42.9:
+    en: "Premature rupture of membranes, unspecified"
+    ja: "前期破水，詳細不明"
+  O60.1:
+    en: "Preterm spontaneous labour with preterm delivery"
+    ja: "早産"
+  O64.9:
+    en: "Obstructed labour due to malposition and malpresentation, unspecified"
+    ja: "胎位異常及び胎向異常による分娩停止，詳細不明"
+  Z37.0:
+    en: "Single live birth"
+    ja: "単胎出生"
+  Z38.0:
+    en: "Singleton, born in hospital"
+    ja: "単胎児，院内出生"

@@ -919,6 +919,36 @@
       ]
     },
     {
+      "code": "E66.0",
+      "display": "Obesity due to excess calories",
+      "definition": "Obesity due to excess calories",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "E66"
+        }
+      ]
+    },
+    {
+      "code": "E66.9",
+      "display": "Obesity, unspecified",
+      "definition": "Obesity, unspecified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "E66"
+        }
+      ]
+    },
+    {
       "code": "E78",
       "display": "Disorders of lipoprotein metabolism and other lipidaemias",
       "definition": "Disorders of lipoprotein metabolism and other lipidaemias",
@@ -1147,6 +1177,36 @@
         {
           "code": "modifierlink",
           "valueString": "[[See before F10 for subdivisions]]"
+        }
+      ]
+    },
+    {
+      "code": "F10.2",
+      "display": "Mental and behavioural disorders due to use of alcohol : Dependence syndrome",
+      "definition": "Mental and behavioural disorders due to use of alcohol : Dependence syndrome",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "F10"
+        }
+      ]
+    },
+    {
+      "code": "F17.2",
+      "display": "Mental and behavioural disorders due to use of tobacco : Dependence syndrome",
+      "definition": "Mental and behavioural disorders due to use of tobacco : Dependence syndrome",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "F17"
         }
       ]
     },
@@ -1415,6 +1475,21 @@
         {
           "code": "inclusion",
           "valueString": "Transient cerebral ischaemia NOS"
+        }
+      ]
+    },
+    {
+      "code": "G47.3",
+      "display": "Sleep apnoea",
+      "definition": "Sleep apnoea",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "G47"
         }
       ]
     },
@@ -4791,6 +4866,21 @@
       ]
     },
     {
+      "code": "K76.0",
+      "display": "Fatty (change of) liver, not elsewhere classified",
+      "definition": "Fatty (change of) liver, not elsewhere classified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "K76"
+        }
+      ]
+    },
+    {
       "code": "K76.6",
       "display": "Portal hypertension",
       "definition": "Portal hypertension",
@@ -6663,6 +6753,111 @@
         {
           "code": "exclusion",
           "valueString": "polycystic ovarian syndrome[E28.2]"
+        }
+      ]
+    },
+    {
+      "code": "O03.9",
+      "display": "Spontaneous abortion : Complete or unspecified, without complication",
+      "definition": "Spontaneous abortion : Complete or unspecified, without complication",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "O03"
+        }
+      ]
+    },
+    {
+      "code": "O04.9",
+      "display": "Medical abortion : Complete or unspecified, without complication",
+      "definition": "Medical abortion : Complete or unspecified, without complication",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "O04"
+        }
+      ]
+    },
+    {
+      "code": "O14.9",
+      "display": "Pre-eclampsia, unspecified",
+      "definition": "Pre-eclampsia, unspecified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "O14"
+        }
+      ]
+    },
+    {
+      "code": "O24.9",
+      "display": "Diabetes mellitus in pregnancy, unspecified",
+      "definition": "Diabetes mellitus in pregnancy, unspecified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "O24"
+        }
+      ]
+    },
+    {
+      "code": "O42.9",
+      "display": "Premature rupture of membranes, unspecified",
+      "definition": "Premature rupture of membranes, unspecified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "O42"
+        }
+      ]
+    },
+    {
+      "code": "O60.1",
+      "display": "Preterm spontaneous labour with preterm delivery",
+      "definition": "Preterm spontaneous labour with preterm delivery",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "O60"
+        }
+      ]
+    },
+    {
+      "code": "O64.9",
+      "display": "Obstructed labour due to malposition and malpresentation, unspecified",
+      "definition": "Obstructed labour due to malposition and malpresentation, unspecified",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "O64"
         }
       ]
     },
@@ -9465,6 +9660,36 @@
       ]
     },
     {
+      "code": "Z37.0",
+      "display": "Single live birth",
+      "definition": "Single live birth",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z37"
+        }
+      ]
+    },
+    {
+      "code": "Z38.0",
+      "display": "Singleton, born in hospital",
+      "definition": "Singleton, born in hospital",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z38"
+        }
+      ]
+    },
+    {
       "code": "Z48",
       "display": "Other surgical follow-up care",
       "definition": "Other surgical follow-up care",
@@ -9803,6 +10028,21 @@
         {
           "code": "parent",
           "valueCode": "Z76"
+        }
+      ]
+    },
+    {
+      "code": "Z87.5",
+      "display": "Personal history of complications of pregnancy, childbirth and the puerperium",
+      "definition": "Personal history of complications of pregnancy, childbirth and the puerperium",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "Z87"
         }
       ]
     },

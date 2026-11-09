@@ -223,14 +223,15 @@ def test_hai_codes_rejects_unknown_icd10_us(monkeypatch) -> None:
 
 @pytest.mark.unit
 def test_hai_codes_rejects_unknown_icd10_jp(monkeypatch) -> None:
-    # F10.20 is a valid ICD-10-CM code with no JP crosswalk entry and no WHO
+    # F11.20 is a valid ICD-10-CM code with no JP crosswalk entry and no WHO
     # ICD-10 entry, so the JP code it passes through as is not registered.
+    # (F10.20 folds to F10.2 for JP since Issue #3010.)
     monkeypatch.setattr(
         yaml,
         "safe_load",
         lambda f: {
             "hai_codes": {
-                "clabsi": {"icd10_us_billable": "F10.20", "snomed": "736442006"},
+                "clabsi": {"icd10_us_billable": "F11.20", "snomed": "736442006"},
                 "cauti": {"icd10_us_billable": "T83.511A", "snomed": "68566005"},
                 "vap": {"icd10_us_billable": "J95.851", "snomed": "429271009"},
             }
