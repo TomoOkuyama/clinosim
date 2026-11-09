@@ -792,8 +792,9 @@ def test_newborn_given_name_empty_within_naming_window() -> None:
     """
 
     class _Cfg:
+        # ``SimulatorConfig.snapshot_date`` is an ISO string (Issue #3045).
         def __init__(self, snap: date) -> None:
-            self.snapshot_date = snap
+            self.snapshot_date = snap.isoformat()
 
     patient = _make_patient()
     visit_dt = datetime(2026, 8, 30, 10, 0)  # 11 days before snapshot 2026-09-10
@@ -821,8 +822,9 @@ def test_newborn_given_name_sampled_past_naming_window() -> None:
     """
 
     class _Cfg:
+        # ``SimulatorConfig.snapshot_date`` is an ISO string (Issue #3045).
         def __init__(self, snap: date) -> None:
-            self.snapshot_date = snap
+            self.snapshot_date = snap.isoformat()
 
     patient = _make_patient()
     visit_dt = datetime(2026, 6, 1, 10, 0)  # 101 days before snapshot 2026-09-10
@@ -1068,3 +1070,33 @@ def test_birth_record_newborn_carries_registered_identity(country: str) -> None:
     assert registered.identity is not None and registered.identity.enrollments
     assert newborn_profile.identity is registered.identity
     assert newborn_profile.insurance_type == registered.identity.current_enrollment().category
+
+
+def test_delivery_runs_the_registered_enrichers_with_a_production_config() -> None:
+    """Issue #3045: with the built-in enrichers registered (as in a real run),
+    the delivery's POST_ENCOUNTER stage works on the production config shape."""
+    from clinosim.simulator.enrichers import register_builtin_enrichers
+    from clinosim.types.config import SimulatorConfig
+
+    register_builtin_enrichers()
+    records = simulate_delivery_encounter(
+        patient=_make_patient(),
+        visit_date=datetime(2026, 6, 1, 10, 0),
+        roster=StaffRoster(),
+        rng=np.random.default_rng(42),
+        country="JP",
+        config=SimulatorConfig(country="JP", snapshot_date="2026-09-10", random_seed=1),
+        hospital_ops={},
+    )
+    assert records[1].patient.name.given_name
+
+
+@pytest.mark.parametrize("snap", ["2026-09-10", date(2026, 9, 10), datetime(2026, 9, 10)])
+def test_antibiotic_snapshot_accepts_the_config_types(snap) -> None:
+    """Issue #3045: the antibiotic enricher reads a ``date`` snapshot too
+    (it raised ``TypeError`` from ``fromisoformat``)."""
+    from types import SimpleNamespace
+
+    from clinosim.modules.antibiotic.enricher import _resolve_snapshot
+
+    assert _resolve_snapshot(SimpleNamespace(snapshot_date=snap)) == datetime(2026, 9, 10)
