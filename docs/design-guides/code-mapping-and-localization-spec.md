@@ -246,7 +246,7 @@ Consumers resolve names only through these functions.
 | `load_code_mapping(domain, country)` | internal name → code for that country |
 | `lab_code(lab_name, country)` / `lab_codes(lab_name)` | `(system_key, code)` / the codes of every locale |
 | `lab_order_targets(name)` (`clinosim.modules.observation.order_routing`) | the orders a protocol lab-list entry places (§3.9) |
-| `map_diagnosis_code(code, country, sex)` | internal diagnosis base code → the country's ICD code (`code_mapping_diagnosis.yaml`; sex-conditional leaves), the code itself when unmapped |
+| `map_diagnosis_code(code, country, sex)` | internal diagnosis base code → the country's ICD code (`code_mapping_diagnosis.yaml`; sex-conditional leaves), the code itself when unmapped. Every diagnosis coding in the output — `Condition.code`, `Encounter.reasonCode`, `Procedure.reasonCode` — goes through it (Issue #3010). JP output uses WHO ICD-10 (MHLW 2013) only: an ICD-10-CM-only code the simulator generates has a JP entry folding it to its WHO code, checked against the MHLW 基本分類表 code by code, and `tests/unit/test_diagnosis_code_coverage.py` fails when an emittable code's JP target is not in `icd-10.yaml` |
 | `vocab_display(vocab, slug, lang, *, fallback)` | vocabulary display (`vocabulary.yaml`) |
 | `narrative_label(section, key, lang, fallback)` | narrative label |
 | `oxygen_device_label(device, lang)` | clinical label of an oxygen device (§5.3), else its SNOMED CT display, else `""` |

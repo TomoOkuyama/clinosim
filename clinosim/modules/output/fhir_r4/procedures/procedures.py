@@ -18,6 +18,7 @@ from clinosim.codes.snomed import snomed_for_phrase
 from clinosim.countries import lang_for
 from clinosim.locale.free_text import localize_procedure_name
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import map_diagnosis_code
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -315,54 +316,7 @@ def _build_procedure(
     # CY7-17 (Chain-7): base fallback wording kept identical for
     # backwards compatibility of CY7-17 assertions.
     if not resource.get("reasonCode"):
-        _dx = (record or {}).get("clinical_diagnosis", {}) or {}
-        _dx_code = _dx.get("discharge_diagnosis_code") or _dx.get("admission_diagnosis_code", "") or ""
-        _dx_display = _dx.get("discharge_diagnosis_display") or _dx.get("admission_diagnosis_display", "") or ""
-        _generic_text = t("fhir_text.procedure_reason_generic", lang_for(country))
-        from clinosim.modules.immunization.visits import IMMUNIZATION_VISIT_DX, vaccination_visit_reason_codes
-
-        if _dx_code == IMMUNIZATION_VISIT_DX:
-            # Issue #3008: a vaccination visit's reason in the country's system
-            # (JP: the WHO need-for-immunization code of each vaccine given).
-            _icd_key = system_key_for("diagnosis", country)
-            _vax = [
-                str(imm.get("vaccine_cvx", "") if isinstance(imm, dict) else getattr(imm, "vaccine_cvx", ""))
-                for imm in (record or {}).get("immunizations", []) or []
-                if enc_id
-                and (imm.get("encounter_id") if isinstance(imm, dict) else getattr(imm, "encounter_id", "")) == enc_id
-            ]
-            resource["reasonCode"] = [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri(_icd_key),
-                            "code": code,
-                            "display": registry_display(_icd_key, code, lang) or code,
-                        }
-                    ],
-                    "text": registry_display(_icd_key, code, lang) or _generic_text,
-                }
-                for code in vaccination_visit_reason_codes(country, _vax)
-            ]
-        elif _dx_code:
-            # Use country-scoped ICD-10 system key (JP=icd-10-mhlw, US=icd-10-cm)
-            # to stay consistent with Condition.code system emission.
-            _icd_key = system_key_for("diagnosis", country)
-            _display = _dx_display or (registry_display(_icd_key, _dx_code, lang) or _dx_code)
-            resource["reasonCode"] = [
-                {
-                    "coding": [
-                        {
-                            "system": get_system_uri(_icd_key),
-                            "code": _dx_code,
-                            "display": _display,
-                        }
-                    ],
-                    "text": _display or _generic_text,
-                }
-            ]
-        else:
-            resource["reasonCode"] = [{"text": _generic_text}]
+        resource["reasonCode"] = procedure_reason_codes(record, country, encounter_id=enc_id)
 
     # bodySite (SNOMED)
     body_site_code = proc.get("body_site_code", "")
@@ -396,3 +350,61 @@ def _build_procedure(
         resource["complication"] = [dual_slot_concept("snomed-ct", c, lang) for c in comp_codes]
 
     return resource
+
+
+def procedure_reason_codes(record: dict | None, country: str, encounter_id: str | None = None) -> list[dict]:
+    """``Procedure.reasonCode`` from the encounter's clinical diagnosis
+    (session-88j P2-5a / Issue #816), shared by the CIF-procedure and the
+    order-derived Procedure paths.
+
+    The coding carries the code the country emits for the diagnosis
+    (``map_diagnosis_code``; Issue #3010: JP folds an ICD-10-CM code to WHO
+    ICD-10, e.g. Z12.11 → Z12.1), in the country's ICD-10 system, as
+    ``Condition`` and ``Encounter`` do; a folded code takes its own display.
+    A vaccination visit of the CIF-procedure path (``encounter_id`` given)
+    carries the reason of each vaccine given at the encounter (Issue #3008).
+    Without a diagnosis, the generic reason text."""
+    from clinosim.modules.immunization.visits import IMMUNIZATION_VISIT_DX, vaccination_visit_reason_codes
+
+    lang = lang_for(country)
+    dx = (record or {}).get("clinical_diagnosis", {}) or {}
+    dx_code = dx.get("discharge_diagnosis_code") or dx.get("admission_diagnosis_code", "") or ""
+    dx_display = dx.get("discharge_diagnosis_display") or dx.get("admission_diagnosis_display", "") or ""
+    generic_text = t("fhir_text.procedure_reason_generic", lang)
+    if not dx_code:
+        return [{"text": generic_text}]
+    icd_key = system_key_for("diagnosis", country)
+    if encounter_id is not None and dx_code == IMMUNIZATION_VISIT_DX:
+        # Issue #3008: a vaccination visit's reason in the country's system
+        # (JP: the WHO need-for-immunization code of each vaccine given).
+        vax = [
+            str(imm.get("vaccine_cvx", "") if isinstance(imm, dict) else getattr(imm, "vaccine_cvx", ""))
+            for imm in (record or {}).get("immunizations", []) or []
+            if encounter_id
+            and (imm.get("encounter_id") if isinstance(imm, dict) else getattr(imm, "encounter_id", "")) == encounter_id
+        ]
+        return [
+            {
+                "coding": [
+                    {
+                        "system": get_system_uri(icd_key),
+                        "code": code,
+                        "display": registry_display(icd_key, code, lang) or code,
+                    }
+                ],
+                "text": registry_display(icd_key, code, lang) or generic_text,
+            }
+            for code in vaccination_visit_reason_codes(country, vax)
+        ]
+    patient = (record or {}).get("patient") or {}
+    sex = str(patient.get("sex", "") or "") if isinstance(patient, dict) else ""
+    emit_code = map_diagnosis_code(dx_code, country, sex=sex)
+    if emit_code != dx_code:
+        dx_code, dx_display = emit_code, ""
+    display = dx_display or (registry_display(icd_key, dx_code, lang) or dx_code)
+    return [
+        {
+            "coding": [{"system": get_system_uri(icd_key), "code": dx_code, "display": display}],
+            "text": display or generic_text,
+        }
+    ]

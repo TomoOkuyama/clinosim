@@ -64,11 +64,12 @@ def test_us_past_birth_marker_is_z87_59_not_z37_9() -> None:
     )
 
 
-def test_jp_past_birth_marker_is_z87_59_not_z37() -> None:
+def test_jp_past_birth_marker_is_z87_5_not_z37() -> None:
+    """Issue #3010: JP codes the marker in WHO ICD-10 (Z87.5); Z87.59 is ICD-10-CM."""
     conds = _build_conditions(_record_with_delivered_pregnancy(complications=["O14"]), "P1", "JP")
     c = _past_birth(conds)
     codes = [cd.get("code") for cd in c["code"]["coding"]]
-    assert "Z87.59" in codes, f"JP past-birth marker should be Z87.59, got codes={codes}"
+    assert "Z87.5" in codes, f"JP past-birth marker should be Z87.5, got codes={codes}"
     assert not any(str(cd).startswith("Z37") for cd in codes), f"JP past-birth marker leaked Z37; codes={codes}"
 
 

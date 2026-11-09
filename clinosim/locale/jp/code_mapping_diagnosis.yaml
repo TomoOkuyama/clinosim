@@ -204,3 +204,19 @@ J95.851: "J95.8"
 E88.81: "E88.8"   # その他の明示された代謝障害
 # === Single-gene disease categories (locale/shared/single_gene_diseases.yaml) ===
 E84: "E84.9"      # のう＜嚢＞胞線維症，詳細不明 (4-char leaf, Issue #1320 convention)
+
+# --- Lifestyle / SDOH conditions and obstetric history (Issue #3010) ---
+# Generated in ICD-10-CM (population SDOH conditions, metabolic enrichers,
+# the obstetric-history Condition); each folded to its WHO ICD-10 code,
+# checked against the MHLW 基本分類表 (ICD-10 2013年版準拠) code by code.
+F17.210: "F17.2"  # Nicotine dependence, cigarettes → タバコ使用による…依存症候群.
+F10.20: "F10.2"   # Alcohol dependence, uncomplicated → アルコール使用による…依存症候群.
+E66.3: "E66.9"    # Overweight (BMI 25-29.9, 肥満 by the JASSO BMI ≥ 25 criterion) → 肥満（症），詳細不明.
+E66.01: "E66.0"   # Morbid obesity due to excess calories → 過剰カロリーによる肥満（症）.
+G47.30: "G47.3"   # Sleep apnea, unspecified → 睡眠時無呼吸.
+Z87.59: "Z87.5"   # History of other complications of pregnancy → 妊娠，分娩及び産じょくの合併症の既往歴.
+# The perinatal simulator codes an uncomplicated induced abortion O04.5 (the US
+# ICD-10-CM stand-in, see us/code_mapping_diagnosis.yaml); WHO / MHLW O04.5 is
+# "complicated by genital tract and pelvic infection", so JP takes O04.9
+# (医学的人工流産，完全流産又は詳細不明の流産，合併症を伴わないもの).
+O04.5: "O04.9"

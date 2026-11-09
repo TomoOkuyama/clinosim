@@ -88,6 +88,9 @@ def _family_history_codes() -> set[str]:
     return set((data.get("conditions") or {}).keys())
 
 
+_ICD_LIKE = re.compile(r"^[A-Z][0-9]{2}(\.[0-9A-Z]{1,4})?$")
+
+
 def _perinatal_admission_codes() -> set[str]:
     """ICD codes emitted as delivery admission diagnoses (6th emittable
     source: perinatal.yaml admission_diagnosis_code drives the mother's
@@ -173,6 +176,53 @@ def _locale_chronic_codes(country: str) -> set[str]:
     return codes
 
 
+def _lifestyle_codes() -> set[str]:
+    """ICD codes the simulator writes from Python (8th emittable source,
+    Issue #3010): the SDOH / lifestyle chronic conditions of population
+    generation (``conditions.append("F17.210")``), the metabolic enrichers'
+    codes (BMI → E66.*, ``_*_CODE`` constants) and the obstetric-history
+    Condition the FHIR emitter adds (``ctx.mapped("Z87.59")``). They reached
+    JP output as ICD-10-CM-only codes (F17.210, F10.20, E66.3, G47.30, Z87.59)
+    because no channel of this guard covered them."""
+    sources = {
+        "clinosim/modules/population/engine.py": r'conditions\.append\("([A-Z][0-9][0-9A-Z.]*)"\)',
+        "clinosim/modules/metabolic/engine.py": r'(?:_CODE = |return )"([A-Z][0-9][0-9A-Z.]*)"',
+        "clinosim/modules/output/fhir_r4/conditions/conditions.py": r'ctx\.mapped\("([A-Z][0-9][0-9A-Z.]*)"\)',
+    }
+    codes: set[str] = set()
+    for rel, pattern in sources.items():
+        with open(os.path.join(ROOT, rel)) as f:
+            codes |= set(re.findall(pattern, f.read()))
+    return codes
+
+
+def _perinatal_codes() -> set[str]:
+    """Every diagnosis code of a delivery, abortion or newborn stay (9th
+    emittable source, Issue #3010): the codes of ``perinatal.yaml`` (delivery
+    discharge, pregnancy complications, newborn conditions) and those the
+    perinatal simulator writes (abortion outcomes, newborn Z38.0). Checked
+    for JP only: the US registry gaps of this channel are a separate fix."""
+    codes: set[str] = set()
+    fp = os.path.join(ROOT, "clinosim/locale/shared/perinatal.yaml")
+
+    def _walk(node: object) -> None:
+        if isinstance(node, dict):
+            for key, val in node.items():
+                if "code" in key and isinstance(val, str) and _ICD_LIKE.match(val):
+                    codes.add(val)
+                else:
+                    _walk(val)
+        elif isinstance(node, list):
+            for item in node:
+                _walk(item)
+
+    with open(fp) as f:
+        _walk(yaml.safe_load(f) or {})
+    with open(os.path.join(ROOT, "clinosim/simulator/perinatal.py")) as f:
+        codes |= set(re.findall(r'"([A-Z][0-9]{2}\.[0-9A-Z]+)"', f.read()))
+    return codes
+
+
 # A genuine WHO ICD-10 code is 3-4 chars: a letter, two digits, optionally one decimal digit.
 # CM granularity (5-7 chars, 7th-char extensions, X placeholders) is NOT valid WHO.
 _WHO_FORMAT = re.compile(r"^[A-Z][0-9]{2}(\.[0-9])?$")
@@ -182,14 +232,20 @@ WHO = _codes("clinosim/codes/data/icd-10.yaml")
 US_MAP = _map("clinosim/locale/us/code_mapping_diagnosis.yaml")
 JP_MAP = _map("clinosim/locale/jp/code_mapping_diagnosis.yaml")
 INTERNAL = _emittable_internal_codes()
-_COUNTRY_AGNOSTIC = INTERNAL | _engine_differential_codes() | _family_history_codes() | _perinatal_admission_codes()
+LIFESTYLE = _lifestyle_codes()
+_COUNTRY_AGNOSTIC = (
+    INTERNAL | _engine_differential_codes() | _family_history_codes() | _perinatal_admission_codes() | LIFESTYLE
+)
 _CHRONIC_FOLLOWUP = _chronic_followup_codes()
 # chronic_followup only fires for chronic conditions the locale actually
 # has, so intersect with the locale demographics rather than assert every
 # followup key resolves in both locales (Issue #1035: C15/C16/C25/C67/C71
 # are JP-only cancers not present in US demographics).
 US_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("us") | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("us"))
-JP_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("jp") | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("jp"))
+PERINATAL_JP = _perinatal_codes()
+JP_EMITTABLE = (
+    _COUNTRY_AGNOSTIC | _locale_chronic_codes("jp") | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("jp")) | PERINATAL_JP
+)
 
 
 def _resolve_targets(mapping: dict, code: str) -> list[str]:
@@ -290,3 +346,10 @@ def test_hapi_absent_who_codes_are_remapped() -> None:
     # JP code_mapping must fold CM/legacy codes to the HAPI-present WHO code.
     assert JP_MAP.get("R33.9") == "R33", "jp map R33.9 → R33 required (#284)"
     assert JP_MAP.get("S62.90XA") == "S62.8", "jp map S62.90XA → S62.8 required (#284)"
+
+
+def test_lifestyle_channel_finds_the_python_written_codes() -> None:
+    """The lifestyle channel must keep seeing the codes written from Python
+    (a refactor that renames the pattern would silently empty it)."""
+    assert {"F17.210", "F10.20", "E66.3", "E66.01", "E66.9", "G47.30", "K76.0", "E88.81", "Z87.59"} <= LIFESTYLE
+    assert {"O03.9", "O04.5", "Z37.0", "Z38.0", "O24.9", "O42.9"} <= PERINATAL_JP

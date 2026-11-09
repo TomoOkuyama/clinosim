@@ -145,7 +145,6 @@ codes:
     ja: 過体重
   E66.9:
     en: Obesity, unspecified
-    ja: 肥満（詳細不明）
   E78:
     en: Disorders of lipoprotein metabolism and other lipidemias
   F00:
@@ -460,7 +459,6 @@ codes:
   # Issue #1777: K76.0 drives the fatty-liver narrative (metabolic chronic).
   K76.0:
     en: Fatty (change of) liver, not elsewhere classified
-    ja: 脂肪肝（他に分類されないもの）
   K76.6:
     en: Portal hypertension
   K80:
@@ -552,7 +550,6 @@ codes:
     en: Spontaneous abortion
   O03.9:
     en: "Complete or unspecified spontaneous abortion without complication"
-    ja: "自然流産、合併症なし・詳細不明"
   O04:
     en: Complications following (induced) termination of pregnancy
   O04.5:
