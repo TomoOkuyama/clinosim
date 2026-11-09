@@ -104,6 +104,31 @@ def _freq_per_day() -> dict[str, int]:
     return out
 
 
+# Days per FHIR Timing period unit, for cadences longer than a day. A month is
+# counted as 30 days (one dose per calendar-month-length interval).
+_DAYS_PER_PERIOD_UNIT = {"d": 1, "wk": 7, "mo": 30}
+
+
+def _interval_days_by_token() -> dict[str, int]:
+    """Frequency token -> days between doses, for once-per-period tokens whose
+    period is longer than a day ("weekly" -> 7, "every_other_day" -> 2)."""
+    from clinosim.locale.loader import load_frequency_tokens
+
+    out: dict[str, int] = {}
+    for token, (freq, period, unit) in load_frequency_tokens().items():
+        days = period * _DAYS_PER_PERIOD_UNIT.get(unit, 0)
+        if freq == 1 and days > 1:
+            out[token] = days
+    return out
+
+
+def dosing_interval_days(frequency: str) -> int | None:
+    """Days between doses of an order whose frequency label is a cadence longer
+    than a day ("WEEKLY" -> 7, "MONTHLY" -> 30, "QOD" -> 2); ``None`` for a
+    daily or shorter cadence (Issue #2982)."""
+    return _interval_days_by_token().get((frequency or "").strip().lower())
+
+
 def place_imaging_orders(
     disease_protocol: Any,
     encounter_id: str,
@@ -355,6 +380,13 @@ def parse_dose_string(dose_str: str) -> dict[str, Any]:
             result["frequency"] = token.upper()
             result["frequency_per_day"] = per_day
             break
+    else:
+        # Issue #2982: a cadence longer than a day ("70mg PO weekly") keeps its
+        # label (no per-day count), so the order is not defaulted to daily.
+        for token in _interval_days_by_token():
+            if re.search(rf"\b{re.escape(token)}\b", s_lower):
+                result["frequency"] = token.upper()
+                break
     # Issue #2085: keep the PRN qualifier ("1000mg IV q6h PRN" -> "Q6H PRN") so
     # the MAR gives the drug on demand and FHIR emits asNeededBoolean.
     if re.search(r"\bprn\b", s_lower):

@@ -659,7 +659,7 @@ def _generate_mar(
     (ACE inhibitors, ARBs, potassium-sparing diuretics) scheduled at or after
     the potassium result are recorded as held, with the value as the reason.
     """
-    from clinosim.modules.order.engine import enrich_medication_order
+    from clinosim.modules.order.engine import dosing_interval_days, enrich_medication_order
 
     mars: list[MedicationAdministration] = []
 
@@ -720,7 +720,17 @@ def _generate_mar(
         _drug = get_drug(order.drug_id or drug_ref(drug_name))
         _scheduled_h = _drug.scheduled_interval_hours if _drug is not None else None
         _freq_per_day = getattr(order, "frequency_per_day", None)
-        if _scheduled_h:
+        # Issue #2982: a cadence longer than a day (weekly alendronate, a
+        # monthly injection) is given on the day it is ordered and every
+        # interval after, one dose on each of those days.
+        _interval = dosing_interval_days(getattr(order, "frequency", "") or "")
+        if _interval:
+            _ordered = getattr(order, "ordered_datetime", None) or admission_time
+            _order_day = max(0, (_ordered.date() - admission_time.date()).days)
+            if day < _order_day or (day - _order_day) % _interval:
+                continue
+            admin_hours = [8]
+        elif _scheduled_h:
             admin_hours = list(range(0, 24, _scheduled_h))  # q6h / q8h clinical override
         elif _freq_per_day and _freq_per_day > 0:
             admin_hours = _admin_hours_from_frequency(int(_freq_per_day))

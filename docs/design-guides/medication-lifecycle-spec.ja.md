@@ -44,6 +44,7 @@
 | 規則 | 正準コード | ガード |
 |---|---|---|
 | 日次ループが置いたオーダーの投与は、オーダーの頻度と患者状態(保留・拒否・頓用の契機)からループ内で作る。 | `medication_pipeline.py::_generate_mar`, `generate_prn_administrations`, `prn_category` | `tests/unit/test_prn_from_state.py`, `tests/unit/test_prn_inhaler_cadence_1318.py` |
+| 1 日より長い間隔の頻度 (週 1 回・月 1 回・隔日) のオーダーは、オーダーした日とその後の間隔ごとに 1 回投与する。間隔は頻度トークン表から読むので、週 1 回の用量文字列が 1 日 1 回に置き換わることはない。 | `modules/order/engine.py::dosing_interval_days`, `medication_pipeline.py::_generate_mar` | `tests/unit/simulator/test_non_daily_mar_2982.py` |
 | ループ外で置いたオーダー(VTE 予防 enricher、分娩バンドル)の投与は、乱数を引かない一組の補助関数で作る。投与時刻は日次の固定時刻で、看護師は安定ハッシュで選ぶ。投与時刻を自前で決める enricher(HAI の抗菌薬、新生児の出生入院時の予防投与)も、投与した看護師は同じ `stable_nurse` で名指す。 | `modules/order/placed_order_mar.py`(`daily_times`, `stable_nurse`, `administrations_for`) | `tests/unit/modules/order/test_placed_order_mar_spec.py`, `tests/unit/test_hai_abx_giving_nurse_2823.py`, `tests/unit/modules/newborn/test_newborn_giving_nurse_2824.py` |
 | オーダーの FHIR timing は頻度を一度だけ述べる。範囲指定("q4-6h")と頓用の上限は一つの解決関数から得る。用量テキストに既にある頻度は繰り返さない。 | `modules/output/fhir_r4/lib/dosage.py`(`resolve_timing_repeat`, `frequency_in_text`) | `tests/unit/output/test_prn_timing_2613.py` |
 

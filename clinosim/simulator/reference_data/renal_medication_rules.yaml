@@ -10,8 +10,10 @@
 # below DISCHARGE_RENAL_HOLD_THRESHOLD (KDIGO stage 3b+ or active AKI).
 #
 # Rationale: NSAIDs are nephrotoxic; metformin carries a lactic-acidosis
-# risk; enoxaparin and alendronate are renally cleared; ACE inhibitors and
-# ARBs act on glomerular haemodynamics (Issue #1335).
+# risk; enoxaparin is renally cleared; ACE inhibitors and ARBs act on
+# glomerular haemodynamics (Issue #1335). Alendronate is renally cleared and
+# has no renal dose: the FOSAMAX US prescribing information does not
+# recommend it at creatinine clearance < 35 mL/min, so it is held (Issue #2982).
 metadata:
   kind: reference
   name: renal_medication_rules
@@ -28,7 +30,7 @@ renal_drugs:
   ketorolac: hold
   indomethacin: hold
   enoxaparin: reduce
-  alendronate: reduce
+  alendronate: hold
   enalapril: reduce
   lisinopril: reduce
   captopril: reduce
