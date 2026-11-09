@@ -95,7 +95,7 @@ If `scripts/reproduce.sh` reports a regression:
    difference (`export CLINOSIM_REPRO_KEEP_OUTPUT=1` and re-run).
 3. The most common cause is Python's builtin `hash()` on a string
    (salted by `PYTHONHASHSEED`) — replace with
-   `hashlib.sha256(...).hexdigest()`. Session 46 P1-7 uncovered exactly
+   `hashlib.sha256(...).hexdigest()`. 2026-07-12 P1-7 uncovered exactly
    this defect in the immunization module's synthetic lot-number
    generator.
 

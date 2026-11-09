@@ -197,7 +197,7 @@ Note: 健診 IG は JP-CLINS と別に発行 (JP-eCheckup General v1.7.0、
   `http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code`
 
 **対象範囲 (scope)**:
-- 3 健診種別すべて対応 (sub-PR-D、session 47):
+- 3 健診種別すべて対応 (sub-PR-D、2026-07-13):
   - **事業者健診** (occupational、40-64 歳): section 01031 + 01032
   - **特定健診** (specific、65-74 歳): section 01011 + 01012
   - **広域連合健診** (regional_union、75 歳以上): section 01021 + 01022
@@ -208,7 +208,7 @@ Note: 健診 IG は JP-CLINS と別に発行 (JP-eCheckup General v1.7.0、
   保険種別 / 就業状態を参照した精緻化余地あり。ClinicalDocument に
   `checkup_type: str` field を追加 (sub-PR-D)、Composition builder
   が dispatch。
-- section content は個別化済 (sub-PR-B、session 47):
+- section content は個別化済 (sub-PR-B、2026-07-13):
   - **01031 検査結果**: record.lab_results から 5 項目 (BMI /
     収縮期 BP / 拡張期 BP / HbA1c / LDL) の実測値を拾い、法定健診
     基準で A/B/C/D 判定を組み立てる。総合判定は各項目の最悪 grade。
@@ -216,7 +216,7 @@ Note: 健診 IG は JP-CLINS と別に発行 (JP-eCheckup General v1.7.0、
     (chronic_conditions → 既往歴、current_medications → 服薬、
     smoking_status/alcohol_use → 生活習慣)。慢性疾患保有時は
     「継続経過観察を要す」判定。
-- **健診 encounter 生成 module** (sub-PR-A、session 47 で追加):
+- **健診 encounter 生成 module** (sub-PR-A、2026-07-13 で追加):
   `clinosim/modules/health_checkup/` の POST_RECORDS enricher が
   `SimulatorConfig.modules["health_checkup"]=True` + country=JP 時に
   発火。40 歳以上の成人患者から SHA-256 hash-based 決定的 30% サブ
@@ -224,13 +224,13 @@ Note: 健診 IG は JP-CLINS と別に発行 (JP-eCheckup General v1.7.0、
   5 項目 ObservationRecord + HEALTH_CHECKUP_REPORT stub を追加する。
   narrative content は Stage 2 の TemplateNarrativePass が populate、
   FHIR emit は `_build_jp_echeckup_general_composition` が担う。
-- **法定健診 5 項目の実測値個別化 (sub-PR-B 高度化、session 48)**:
+- **法定健診 5 項目の実測値個別化 (sub-PR-B 高度化、2026-07-13)**:
   かつては固定値 (BMI 22.5 / SBP 118 / DBP 76 / HbA1c 5.4 /
   LDL 118) だったが、`_derive_checkup_values(patient, rng)` が
   PatientProfile と chronic_conditions を反映するよう改修:
   - **BMI** = `patient.bmi` + 測定日変動 (sd 0.3 kg/m²)
   - **SBP/DBP** = `patient.baseline_vitals` を base に日間変動
-    (sd 5.0/3.5 mmHg)。高血圧 (I10) は FP-I10 (session 38) で
+    (sd 5.0/3.5 mmHg)。高血圧 (I10) は FP-I10 (2026-07-06) で
     baseline_vitals に反映済み
   - **HbA1c** = 糖尿病 (E10/E11) 保有時は年次の longitudinal HbA1c
     潜在値 (`hba1c_latent_at`) + noise。longitudinal 履歴が無い患者に
@@ -248,7 +248,7 @@ Note: 健診 IG は JP-CLINS と別に発行 (JP-eCheckup General v1.7.0、
 **US path**: 健診 opt-in flag は US では発火しない
 (`countries_supported: [jp]` により spec 側で JP に限定)。
 
-### DocumentReference wrapper (sub-PR-E、session 48)
+### DocumentReference wrapper (sub-PR-E、2026-07-13)
 
 HEALTH_CHECKUP_REPORT の Composition と併存する DocumentReference
 を追加発行:
@@ -273,15 +273,15 @@ DocumentReference = portable な wrapper。事業所 ⇄ 保険者 ⇄ 実施機
 間の交換で DocumentReference を使うことが多いため、両者併存が
 JP-eCheckup interchange の標準形。
 
-## JP FHIR Validator Bridge (PR3 sub-PR-C、session 48 高度化)
+## JP FHIR Validator Bridge (PR3 sub-PR-C、2026-07-13 高度化)
 
-session 47 で `scripts/validate_jp.sh` と
-`.github/workflows/jp-validate.yml` を追加、session 48 で **SHA256
+2026-07-13 で `scripts/validate_jp.sh` と
+`.github/workflows/jp-validate.yml` を追加、2026-07-13 で **SHA256
 pin + auto-fail gate 化** に高度化しました。**JP 出力を HL7 公式
 FHIR Validator で JP Core / JP-CLINS / JP-eCheckup に適合検証** し、
 pin mismatch や validation failure で CI が自動 fail します。
 
-### Pin ファイル (session 48 追加)
+### Pin ファイル (2026-07-13 追加)
 
 `.github/jp-validator-pins.env` に validator と IG package の
 バージョン / SHA256 が集約:
@@ -353,7 +353,7 @@ CLINOSIM_JP_VAL_STRICT=1 \
 - `JP_Composition_eReferral`
 - `JP_Composition_eCheckupGeneral` (health_checkup opt-in 時)
 
-### CI 実行 (auto-fail gate、session 48 高度化)
+### CI 実行 (auto-fail gate、2026-07-13 高度化)
 
 `.github/workflows/jp-validate.yml`:
 
@@ -390,8 +390,8 @@ spec §1.3 (`docs/history/specs-archive/2026-07-12-p2-13-jp-clins-design.md`)
 
 ## Deferred improvement candidates
 
-Session 47 preflight review で浮上した将来 PR で再訪する価値のある
-3 項目。session 88k 時点の状況:
+2026-07-13 preflight review で浮上した将来 PR で再訪する価値のある
+3 項目。2026-08-10 時点の状況:
 
 - ✅ CLI 動詞 `generate` → `simulate` リネーム + deprecation alias —
   landed; `clinosim/simulator/cli.py` で `generate` は alias として

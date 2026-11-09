@@ -1,6 +1,6 @@
 # Prediction benchmarks
 
-*Session 48 P2-15: reproducible baseline eval for sepsis + AKI onset prediction.*
+*2026-07-13 P2-15: reproducible baseline eval for sepsis + AKI onset prediction.*
 
 ## Purpose
 

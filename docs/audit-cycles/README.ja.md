@@ -1,8 +1,8 @@
 # CIF/FHIR 監査サイクル — Issue Tracker
 
-このディレクトリは **session 41 以降** clinosim のデフォルトワーク
+このディレクトリは **2026-07-07 以降** clinosim のデフォルトワーク
 フローとなった逐次的 CIF/FHIR データ品質監査サイクルを記録する
-(session 40 まとめ時のユーザ指示、2026-07-07)。
+(2026-07-07 のまとめ時のユーザ指示)。
 
 **Cycle 2 以降: JP first + サイクルあたり 30 issue** (cycle 1 開始時
 および mid-fix 時のユーザ指示、2026-07-07)。Cycle 1 は US p=10000 +
@@ -114,7 +114,7 @@ resolved X / carried-over Y / newly discovered Z を表示。
 
 ## 関連文書
 
-- `docs/design-notes/2026-07-06-fix-point-registry.md` — session 38
+- `docs/design-notes/2026-07-06-fix-point-registry.md` — 2026-07-06
   FP-* registry (この監査サイクルワークフロー以前の completeness
   作業からの背景)。
 - `docs/design-guides/data-model-and-completeness-conventions.md` —

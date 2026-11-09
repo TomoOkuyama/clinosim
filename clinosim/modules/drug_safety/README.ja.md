@@ -296,7 +296,7 @@ clinosim/modules/drug_safety/
 
 ## 11. Ownership
 
-- session 99 (2026-09-03) — 初期実装。
+- 2026-09-03 — 初期実装。
 - Spec: `docs/superpowers/specs/2026-09-03-drug-safety-module-design.md`。
 - Plan: `docs/superpowers/plans/2026-09-03-drug-safety-module.md`。
 - Issue: #1066。

@@ -317,7 +317,7 @@ as device/hai/antibiotic/imaging precedents):
 
 ### AD-65: Structural + Narrative CIF file separation (two-pass generation)
 
-**Status:** Accepted (Tier 1 #3 α-min-2b, 2026-07-02, session 28)
+**Status:** Accepted (Tier 1 #3 α-min-2b, 2026-07-02)
 
 **Context:**
 - clinosim's initial architecture (`clinosim/modules/output/SPEC.md`) defines a three-stage
@@ -328,9 +328,9 @@ as device/hai/antibiotic/imaging precedents):
   generation into `document_enricher`. At the time, this closure of Stage 1 default-emission gaps
   was correct; however, as a long-term Stage 2 replacement architecture, it was a premature
   deletion, causing drift from the `clinosim/modules/output/SPEC.md` Stage 2 design.
-- Session 27 Clinical Integrity review uncovered three Critical narrative bugs. The inline-only
+- 2026-07-01 Clinical Integrity review uncovered three Critical narrative bugs. The inline-only
   pattern requires full cohort regeneration to fix them, destroying development velocity.
-- User explicitly indicated (session 27→28): the original design assumed structural CIF and
+- User explicitly indicated (2026-07-01): the original design assumed structural CIF and
   narrative CIF as separate files = restoration of the SPEC.md original design.
 
 **Decision:**
@@ -441,7 +441,7 @@ Neutral:
 
 ### AD-67 · Severity single source of truth (disease YAML canonical, hybrid c2)
 
-**Date:** 2026-07-06 (session 38, FP-SEV-MODEL)
+**Date:** 2026-07-06 (FP-SEV-MODEL)
 
 **Status:** Accepted
 
@@ -503,7 +503,7 @@ Negative / neutral:
 
 ### AD-68 · archetype_modifiers wiring (dead YAML activation, sibling to AD-67)
 
-**Date:** 2026-07-06 (session 38, FP-YAML-2b)
+**Date:** 2026-07-06 (FP-YAML-2b)
 
 **Status:** Accepted
 
@@ -552,7 +552,7 @@ conditions deferred (shared scenario-flag mechanism with AD-67's reserved set).
 
 ### AD-69 · DiseaseProtocol extra="forbid" (author-time silent-drop defense)
 
-**Date:** 2026-07-06 (session 38, FP-YAML-3)
+**Date:** 2026-07-06 (FP-YAML-3)
 
 **Status:** Accepted
 
@@ -574,7 +574,7 @@ model field (0 YAML, 0 readers).
 a refactor-class change. New disease-YAML authors must add a model field for any new
 top-level key (or it fails loud).
 
-**Dead-field triage (session 39, registry FP-YAML-3 follow-up):** of the 3
+**Dead-field triage (2026-07-07, registry FP-YAML-3 follow-up):** of the 3
 declared-but-unconsumed fields, only `reference_ranges` was removed — it duplicated the
 live locale-side lab reference ranges (locale is the single source of truth, AD-30), so
 the disease-YAML copy was pure drift. Its model field + 23×3 YAML blocks (banner + body,
@@ -598,14 +598,14 @@ consumption path in `order/engine.py` bypasses Pydantic (not covered by forbid).
 
 ### AD-70 · JP-CLINS lab coding: JLAC10 primary + LOINC secondary (international interoperability)
 
-**Date:** 2026-07-26 (session 68, migration PR 4)
+**Date:** 2026-07-26 (migration PR 4)
 
 **Status:** Accepted
 
 **Context:**
 
 JP-CLINS 検体検査 migration (PR #396–#404) established JLAC10 as the primary coding system
-for 1,898 CoreLabo analytes (session 67 axis 100% completion). The architecture decision for
+for 1,898 CoreLabo analytes (2026-07-26 axis 100% completion). The architecture decision for
 secondary coding systems arose: should LOINC be retained as secondary coding alongside JLAC10
 primary, or removed entirely for JP-only purism?
 
@@ -682,7 +682,7 @@ single responsibility) / AD-58 (output adapter registration pattern)
 
 ### AD-71 · Temporal state pattern — `TemporalStatePeriod` (state-scoped generators for time-boxed episodes)
 
-**Date:** 2026-09-01 (session 97, META #957 Incr 1)
+**Date:** 2026-09-01 (META #957 Incr 1)
 
 **Status:** Accepted
 

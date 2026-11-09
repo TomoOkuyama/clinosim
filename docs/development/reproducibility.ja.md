@@ -92,7 +92,7 @@ p=100 s=42 → 24/24 file 一致、US p=500 s=42 → 25/25 file 一致。詳細�
    (`export CLINOSIM_REPRO_KEEP_OUTPUT=1` して再実行)。
 3. 最頻の原因は Python 組み込み `hash()` の文字列適用
    (`PYTHONHASHSEED` によるソルト) — `hashlib.sha256(...).hexdigest()`
-   に置換。session 46 P1-7 で immunization モジュールの synthetic
+   に置換。2026-07-12 P1-7 で immunization モジュールの synthetic
    lot 番号生成器がまさにこの欠陥を持っていた。
 
 追加背景:

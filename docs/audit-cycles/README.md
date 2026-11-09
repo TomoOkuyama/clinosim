@@ -1,8 +1,8 @@
 # CIF/FHIR Audit Cycles — Issue Tracker
 
 This directory records the sequential CIF/FHIR data-quality audit cycles that
-became the default workflow for clinosim from **session 41 onward**
-(user directive at session 40 wrap-up, 2026-07-07).
+became the default workflow for clinosim from **2026-07-07 onward**
+(user directive at the 2026-07-07 wrap-up).
 
 **Cycle 2 onward: JP first + 30 issues per cycle** (user directive at cycle 1
 start and mid-fix, 2026-07-07). Cycle 1 opened with US p=10000 + JP p=10000
@@ -114,7 +114,7 @@ Each cycle has its own file, `cycle-<N>.md`, with:
 
 ## Related documents
 
-- `docs/design-notes/2026-07-06-fix-point-registry.md` — session 38 FP-*
+- `docs/design-notes/2026-07-06-fix-point-registry.md` — 2026-07-06 FP-*
   registry (background from the completeness work that preceded this
   audit-cycle workflow).
 - `docs/design-guides/data-model-and-completeness-conventions.md` — the C1/

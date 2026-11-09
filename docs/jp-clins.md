@@ -320,7 +320,7 @@ See spec §1.3 in `docs/history/specs-archive/2026-07-12-p2-13-jp-clins-design.m
 
 ## Deferred improvement candidates
 
-Session 47 preflight review surfaced three items worth revisiting in future PRs. Status as of session 88k:
+2026-07-13 preflight review surfaced three items worth revisiting in future PRs. Status as of 2026-08-10:
 
 - ✅ CLI verb `generate` → `simulate` rename with a deprecation alias — landed; `generate` remains as an alias in `clinosim/simulator/cli.py`.
 - ✅ `_JP_CORE_PROFILES` shape unification from `dict[str, str]` to `dict[str, list[str]]` — landed; the table has since moved to `clinosim/codes/data/fhir-profiles-jp-core.yaml` and is applied by `_apply_jp_core_profile` in `clinosim/modules/output/fhir_r4/post_process/profile.py`.
