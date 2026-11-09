@@ -95,6 +95,7 @@ from clinosim.locale.loaders.medical_display import (
 )
 from clinosim.locale.loaders.narrative import (
     _load_country_language_map,
+    condition_stage_display,
     imaging_exam_display,
     lab_display,
     lab_result_display,
@@ -181,6 +182,7 @@ __all__ = [
     "prompt_label",
     "vocab_display",
     "load_narrative_lab_flags",
+    "condition_stage_display",
     "lab_display",
     "lab_result_display",
     "load_lab_display",

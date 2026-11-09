@@ -62,11 +62,12 @@ from clinosim.locale.text import (
 ```
 
 The list above is a commonly used subset: `clinosim.locale.loader`
-re-exports 73 names in its `__all__` — 49 `load_*` functions plus
+re-exports 75 names in its `__all__` — 49 `load_*` functions plus
 display / code-lookup helpers (`drug_code`, `lab_code`,
 `map_diagnosis_code`, `department_display`, `lab_display`,
 `lab_result_display` (qualitative results from `shared/lab_result_terms.yaml`,
-Issue #3031), …) —
+Issue #3031), `condition_stage_display` (stage labels from
+`shared/condition_stage_labels.yaml`, Issue #3032), …) —
 implemented in
 `clinosim/locale/loaders/` (`clinical.py`, `demographics.py`,
 `fhir_identity.py`, `medical_display.py`, `narrative.py`).
@@ -129,7 +130,7 @@ via `yaml.safe_load`, which is deterministic byte-in → dict-out.
 clinosim/locale/
   __init__.py                     (empty by design — import direct
                                    from .loader / .text)
-  loader.py                       re-export facade (72 names, 49 of
+  loader.py                       re-export facade (75 names, 49 of
                                    them public load_* functions)
   _io.py                          shared YAML primitives (_LOCALE_DIR,
                                    _COUNTRY_DIR_MAP, _country_dir,

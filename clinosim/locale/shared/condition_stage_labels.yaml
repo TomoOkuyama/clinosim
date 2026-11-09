@@ -1,0 +1,103 @@
+# Condition stage labels (Issue #3032).
+#
+# The stage text a chronic condition carries (longitudinal stage YAMLs and
+# patient/reference_data/stage_severity.yaml) in the output language, for
+# FHIR Condition.stage.summary.text. Read through
+# ``clinosim.locale.loader.condition_stage_display(stage, lang)``; English
+# output keeps the stored label, and a label not listed is kept as stored.
+# Japanese follows each disease's Japanese convention: scale names written
+# in Latin script where Japanese records do (NYHA, CCS, CKD G, GOLD, CDR,
+# mRS, EDSS, BCLC, Child-Pugh, PHQ-9, GAD-7), 度 for NYHA / CCS /
+# Hoehn-Yahr grades, 期 for the AJCC cancer stage, and the Japanese names of
+# the asthma severity and atrial-fibrillation types (日本アレルギー学会 喘息
+# 予防・管理ガイドライン; 日本循環器学会 不整脈薬物治療ガイドライン).
+# A guard test requires every stage label to be listed here.
+
+metadata:
+  kind: display-table
+  name: condition_stage_labels
+  source: clinosim
+
+stages:
+  # Hypertension (ACC/AHA 2017 stage)
+  Stage 1: {ja: ステージ1}
+  Stage 2: {ja: ステージ2}
+  # CKD (KDIGO)
+  CKD G1: {ja: CKD G1}
+  CKD G2: {ja: CKD G2}
+  CKD G3a: {ja: CKD G3a}
+  CKD G3b: {ja: CKD G3b}
+  CKD G4: {ja: CKD G4}
+  CKD G5: {ja: CKD G5}
+  # Heart failure (NYHA)
+  NYHA I: {ja: NYHA I度}
+  NYHA II: {ja: NYHA II度}
+  NYHA III: {ja: NYHA III度}
+  NYHA IV: {ja: NYHA IV度}
+  # COPD (GOLD)
+  GOLD 1: {ja: GOLD 1}
+  GOLD 2: {ja: GOLD 2}
+  GOLD 3: {ja: GOLD 3}
+  GOLD 4: {ja: GOLD 4}
+  # Asthma severity
+  Mild intermittent: {ja: 軽症間欠型}
+  Mild persistent: {ja: 軽症持続型}
+  Moderate persistent: {ja: 中等症持続型}
+  Severe persistent: {ja: 重症持続型}
+  # Angina (CCS)
+  CCS I: {ja: CCS I度}
+  CCS II: {ja: CCS II度}
+  CCS III: {ja: CCS III度}
+  # Dementia (CDR)
+  CDR 0.5: {ja: CDR 0.5}
+  CDR 1: {ja: CDR 1}
+  CDR 2: {ja: CDR 2}
+  CDR 3: {ja: CDR 3}
+  # Liver (Child-Pugh)
+  Child-Pugh A: {ja: Child-Pugh A}
+  Child-Pugh B: {ja: Child-Pugh B}
+  Child-Pugh C: {ja: Child-Pugh C}
+  # Parkinson's disease (Hoehn & Yahr)
+  H&Y 1: {ja: Hoehn-Yahr 1度}
+  H&Y 2: {ja: Hoehn-Yahr 2度}
+  H&Y 3: {ja: Hoehn-Yahr 3度}
+  H&Y 4: {ja: Hoehn-Yahr 4度}
+  H&Y 5: {ja: Hoehn-Yahr 5度}
+  # Atrial fibrillation type
+  Paroxysmal: {ja: 発作性}
+  Persistent: {ja: 持続性}
+  Long-standing persistent: {ja: 長期持続性}
+  Permanent: {ja: 永続性}
+  # Multiple sclerosis (EDSS)
+  EDSS 0-2: {ja: EDSS 0-2}
+  EDSS 2.5-5: {ja: EDSS 2.5-5}
+  EDSS 5.5-7: {ja: EDSS 5.5-7}
+  EDSS 7.5-10: {ja: EDSS 7.5-10}
+  # Stroke sequela (mRS)
+  mRS 0: {ja: mRS 0}
+  mRS 1: {ja: mRS 1}
+  mRS 2: {ja: mRS 2}
+  mRS 3: {ja: mRS 3}
+  mRS 4: {ja: mRS 4}
+  mRS 5: {ja: mRS 5}
+  # Depression (PHQ-9) and anxiety (GAD-7) severity
+  PHQ-9 none: {ja: PHQ-9 症状なし}
+  PHQ-9 mild: {ja: PHQ-9 軽度}
+  PHQ-9 moderate: {ja: PHQ-9 中等度}
+  PHQ-9 moderately severe: {ja: PHQ-9 中等度～重度}
+  PHQ-9 severe: {ja: PHQ-9 重度}
+  GAD-7 minimal: {ja: GAD-7 最小限}
+  GAD-7 mild: {ja: GAD-7 軽度}
+  GAD-7 moderate: {ja: GAD-7 中等度}
+  GAD-7 severe: {ja: GAD-7 重度}
+  # Cancer (AJCC stage group)
+  AJCC I: {ja: I期}
+  AJCC II: {ja: II期}
+  AJCC III: {ja: III期}
+  AJCC IV: {ja: IV期}
+  # Hepatocellular carcinoma (BCLC)
+  BCLC 0: {ja: BCLC 0}
+  BCLC A: {ja: BCLC A}
+  BCLC B: {ja: BCLC B}
+  BCLC C: {ja: BCLC C}
+  BCLC D: {ja: BCLC D}

@@ -170,6 +170,22 @@ def lab_result_display(value: Any, lang: str) -> Any:
     return out if out != sep.join(p.strip() for p in text.split(",")) else value
 
 
+def load_condition_stage_labels() -> dict[str, dict[str, str]]:
+    """Condition stage labels (``locale/shared/condition_stage_labels.yaml``, Issue #3032)."""
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "condition_stage_labels.yaml", fallback={})
+    return raw.get("stages", {}) or {}
+
+
+def condition_stage_display(stage: str, lang: str) -> str:
+    """A condition's stage label in ``lang`` (Issue #3032): "Mild persistent"
+    -> 軽症持続型, "AJCC III" -> III期. The stored label for a language with no
+    entry (English) and for a label the table does not list."""
+    if not stage:
+        return stage
+    entry = load_condition_stage_labels().get(str(stage).strip()) or {}
+    return resolve_localized_display(entry, lang, fallback=str(stage))
+
+
 @lru_cache(maxsize=1)
 def load_narrative_lab_flags() -> dict[str, dict[str, str]]:
     raw = _load_yaml(_LOCALE_DIR / "shared" / "narrative_lab_flags.yaml", fallback={})

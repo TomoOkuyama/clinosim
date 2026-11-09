@@ -284,3 +284,10 @@ unknown_condition_pattern:
   weight_loss_unexplained: {en: "Unexplained weight loss", ja: "原因不明の体重減少"}
   malaise_fatigue: {en: "Generalized malaise and fatigue", ja: "全身倦怠感・疲労"}
   elevated_inflammatory_markers: {en: "Elevated inflammatory markers", ja: "炎症反応上昇"}
+
+# Encounter severity in the ClinicalImpression description (Issue #3032).
+encounter_severity:
+  mild: {en: mild, ja: 軽症}
+  moderate: {en: moderate, ja: 中等症}
+  severe: {en: severe, ja: 重症}
+  critical: {en: critical, ja: 重篤}

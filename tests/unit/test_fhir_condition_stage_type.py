@@ -88,7 +88,7 @@ def test_ckd_nyha_stage_summary_snomed_coding_us(code, stage_text, snomed, en):
     assert coding["display"] == en
 
 
-def test_stage_summary_coding_uses_jp_display():
+def test_stage_summary_coding_keeps_the_english_display_on_jp():
     record = {
         "patient": {
             "chronic_conditions": [
@@ -100,8 +100,12 @@ def test_stage_summary_coding_uses_jp_display():
     c = next(x for x in _build_conditions(record, "P1", "JP") if x["code"]["coding"][0]["code"].startswith("N18"))
     coding = c["stage"][0]["summary"]["coding"][0]
     assert coding["code"] == "700378005"
-    # JP output must localize display (SNOMED ja from snomed-ct.yaml).
-    assert any(ord(ch) > 0x3000 for ch in coding["display"]), coding["display"]
+    # Issue #3032: SNOMED is an English-only code system, so the coding keeps
+    # its English display (code-mapping spec 5.3; a Japanese display was
+    # stripped by the post-process walker, leaving none); the Japanese label
+    # is the summary text.
+    assert coding["display"] == "Chronic kidney disease stage 3A"
+    assert c["stage"][0]["summary"]["text"] == "CKD G3a"
 
 
 @pytest.mark.parametrize(
