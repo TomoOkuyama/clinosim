@@ -202,6 +202,7 @@ lab_names:
   rapid_strep_ag: {en: rapid strep antigen, ja: 溶連菌迅速抗原}
   reticulocytes: {en: reticulocytes, ja: 網状赤血球}
   sputum_culture: {en: sputum culture, ja: 喀痰培養}
+  wound_culture: {en: wound culture, ja: 創部培養}  # Issue #3031
   tracp_5b: {en: TRACP-5b, ja: TRACP-5b}
   theophylline: {en: theophylline level, ja: テオフィリン血中濃度}
   urine_cr: {en: urine creatinine, ja: 尿中クレアチニン}

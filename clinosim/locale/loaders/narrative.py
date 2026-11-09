@@ -19,10 +19,12 @@ working.
 
 from __future__ import annotations
 
+import re
 from functools import cache, lru_cache
 from typing import Any
 
 from clinosim.locale._io import _LOCALE_DIR, _load_yaml
+from clinosim.locale.localized import normalize_lang
 
 
 @lru_cache(maxsize=1)
@@ -102,6 +104,70 @@ def lab_display(name: str, lang: str, *, style: str = "prose", fallback: str | N
     if style == "formal":
         names.update(entry.get("formal") or {})
     return resolve_localized_display(names, lang, fallback=fallback)
+
+
+@lru_cache(maxsize=1)
+def load_lab_result_terms() -> dict[str, dict[str, dict[str, str]]]:
+    """Qualitative lab result wording (``locale/shared/lab_result_terms.yaml``, Issue #3031)."""
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "lab_result_terms.yaml", fallback={})
+    return {k: v for k, v in (raw or {}).items() if k != "metadata"}
+
+
+_DIPSTICK_GRADE_FIRST = re.compile(r"^(trace|\d\+|positive|negative)\s+([a-z]+)$", re.IGNORECASE)
+_DIPSTICK_ANALYTE_FIRST = re.compile(r"^([a-z]+)\s+(trace|\d\+|positive|negative)$", re.IGNORECASE)
+_BLOOD_TYPE_RESULT = re.compile(r"^(A|B|AB|O)([+-]);\s*antibody screen negative$")
+_DRUG_SCREEN_POSITIVE = re.compile(r"^positive:\s*(.+)$", re.IGNORECASE)
+
+
+def lab_result_display(value: Any, lang: str) -> Any:
+    """A qualitative lab result in ``lang`` (Issue #3031): "2+ leukocytes,
+    trace blood" -> 白血球(2+)、尿潜血(±); "Positive: opiates" -> 陽性: アヘン類;
+    "A+; antibody screen negative" -> A型 Rh(+)、不規則抗体スクリーニング陰性.
+    The stored wording when the language has no entry (English), and any
+    non-string value unchanged."""
+    if not isinstance(value, str) or not value.strip():
+        return value
+    from clinosim.locale.i18n import t
+
+    terms = load_lab_result_terms()
+
+    def term(section: str, key: str) -> str:
+        entry = (terms.get(section) or {}).get(key.strip().lower()) or {}
+        return resolve_localized_display(entry, lang, fallback="") if entry.get(normalize_lang(lang)) else ""
+
+    text = value.strip()
+    whole = term("results", text)
+    if whole:
+        return whole
+    sep = t("list_sep.serial", lang)
+    blood = _BLOOD_TYPE_RESULT.match(text)
+    if blood:
+        typed = term("phrases", "blood_type")
+        screen = term("phrases", "antibody_screen_negative")
+        if typed and screen:
+            return typed.format(abo=blood.group(1), rh=blood.group(2)) + sep + screen
+        return value
+    drugs = _DRUG_SCREEN_POSITIVE.match(text)
+    if drugs:
+        positive = term("results", "positive")
+        names = [term("drug_classes", d) or d.strip() for d in drugs.group(1).split(",")]
+        return f"{positive}: {sep.join(names)}" if positive else value
+    parts: list[str] = []
+    for part in text.split(","):
+        part = part.strip()
+        m = _DIPSTICK_GRADE_FIRST.match(part)
+        grade, analyte = (m.group(1), m.group(2)) if m else (None, None)
+        if m is None:
+            m2 = _DIPSTICK_ANALYTE_FIRST.match(part)
+            if m2:
+                analyte, grade = m2.group(1), m2.group(2)
+        name = term("dipstick", analyte) if analyte else ""
+        if not name or grade is None:
+            parts.append(term("results", part) or part)
+            continue
+        parts.append(f"{name}({term('grades', grade) or grade})")
+    out = sep.join(parts)
+    return out if out != sep.join(p.strip() for p in text.split(",")) else value
 
 
 @lru_cache(maxsize=1)

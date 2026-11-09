@@ -57,10 +57,11 @@ from clinosim.locale.text import (
 )
 ```
 
-上記はよく使う部分集合: `clinosim.locale.loader` は `__all__` に 72 名
+上記はよく使う部分集合: `clinosim.locale.loader` は `__all__` に 73 名
 — `load_*` 関数 49 個と表示 / コード lookup ヘルパー (`drug_code` /
 `lab_code` / `map_diagnosis_code` / `department_display` /
-`lab_display` 等) — を再 export しており、実装は `clinosim/locale/loaders/`
+`lab_display` / `lab_result_display` (定性結果、`shared/lab_result_terms.yaml`、
+Issue #3031) 等) — を再 export しており、実装は `clinosim/locale/loaders/`
 (`clinical.py` / `demographics.py` / `fhir_identity.py` /
 `medical_display.py` / `narrative.py`) にある。
 

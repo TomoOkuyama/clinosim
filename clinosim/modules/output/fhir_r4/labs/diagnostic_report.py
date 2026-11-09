@@ -33,7 +33,7 @@ from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
 from clinosim.codes.ucum import ucum_prose
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import lab_display
+from clinosim.locale.loader import lab_display, lab_result_display
 from clinosim.locale.localized import language_slot, localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.imaging.engine import (
@@ -507,13 +507,16 @@ def _build_lab_panel_conclusion(
         if isinstance(value, float) and value.is_integer():
             value_str = str(int(value))
         else:
-            value_str = str(value)
+            # Issue #3031: a qualitative result in the output language.
+            value_str = str(lab_result_display(value, lang))
         bits = [lab_name, value_str]
         if unit:
             bits.append(unit)
         segment = " ".join(bits)
         if flag:
-            segment = f"{segment} [{flag}]"
+            # Issue #3031: H / L stay as written; "critical" is named.
+            flag_text = t("diagnostic_report_fhir.flag_critical", lang) if flag.lower() == "critical" else flag
+            segment = f"{segment} [{flag_text}]"
             flagged.append(lab_name)
             if flag.upper() in _ABNORMAL_LAB_FLAGS:
                 has_abnormal = True

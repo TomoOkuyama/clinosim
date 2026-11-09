@@ -225,6 +225,7 @@ def test_bundle_builder_wires_ctx_fields():
         record={"encounters": [_enc("enc-ctx", "2025-04-01T09:00:00")]},
         patient_data=_patient([{"code": "G20", "stage": "H&Y 2"}]),
         snapshot_date="2025-12-31",
+        country="US",
     )
     out = _bb_stage_scale_observations(ctx)  # type: ignore[arg-type]
     assert len(out) == 1

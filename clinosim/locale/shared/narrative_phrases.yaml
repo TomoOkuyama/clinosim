@@ -1965,6 +1965,10 @@ diagnostic_report_fhir:
   out_of_reference_range:
     ja: "{body}。参照範囲外: {names}"
     en: "{body}. Out of reference range: {names}"
+  # Issue #3031: the critical-value flag of a lab panel conclusion.
+  flag_critical:
+    ja: "パニック値"
+    en: "critical"
   lab_panel_title:
     ja: "検査報告書: {display}"
     en: "Diagnostic Report: {display}"
