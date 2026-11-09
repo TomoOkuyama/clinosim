@@ -143,8 +143,15 @@ encounters:
   # severe enough to hospitalize is a small minority; the majority of
   # bronchiolitis / otitis / URI care is ambulatory. Follow-up work can
   # add an emergency variant when the ED cohort grows.
+  #
+  # min_age_days: 29 (Issue #2978) — no outpatient acute-illness visit in the
+  # first 28 days of life. A febrile infant <= 28 days is admitted for a
+  # serious-bacterial-infection workup (AAP Clinical Practice Guideline for
+  # well-appearing febrile infants 8-60 days, Pantell et al., Pediatrics
+  # 2021;148:e2021052228), not managed as an outpatient cold.
   pediatric_bronchiolitis:
     age_min: 0
+    min_age_days: 29
     age_max: 2
     visits_per_year: [0, 0, 0, 1]
     encounter_type: outpatient
@@ -155,6 +162,7 @@ encounters:
 
   pediatric_otitis_media_early:
     age_min: 0
+    min_age_days: 29
     age_max: 5
     visits_per_year: [0, 1, 1, 2]
     encounter_type: outpatient
@@ -165,6 +173,7 @@ encounters:
 
   pediatric_uri_young:
     age_min: 0
+    min_age_days: 29
     age_max: 5
     visits_per_year: [1, 2, 2, 3]
     encounter_type: outpatient
