@@ -25,24 +25,32 @@ codes:
     ja: 放射線
   # === Composition section codes (section_catalog.yaml; Issue #2256) ===
   # Official displays verified with tx.fhir.org $lookup (26436-6 with the NLM
-  # Clinical Tables LOINC API). No Japanese label: JP output falls back to
-  # English for these English-only section codes.
+  # Clinical Tables LOINC API). The `ja` labels are clinosim's Japanese
+  # names for JP output (Issue #3031).
   26436-6:
     en: Laboratory studies (set)
+    ja: 検査所見
   29554-3:
     en: Procedure Narrative
+    ja: 処置記録
   46241-6:
     en: Hospital admission diagnosis Narrative - Reported
+    ja: 入院時診断
   69449-7:
     en: Manner of death
+    ja: 死亡の種類
   69453-9:
     en: Cause of death [US Standard Certificate of Death]
+    ja: 死因
   85699-7:
     en: Autopsy was performed
+    ja: 剖検の有無
   8646-2:
     en: Hospital admission diagnosis
+    ja: 入院時診断
   8649-6:
     en: Hospital discharge date
+    ja: 退院日
   # === Clinical document types (FHIR DocumentReference.type) ===
   34117-2:
     en: History and physical note
@@ -743,6 +751,7 @@ codes:
   # display can trip strict validators (mirrors the 11506-3 comment above).
   80391-6:
     en: Level of care [Type]
+    ja: ケアレベル
   # ---------------------------------------------------------------------------
   # DiagnosticReport panel grouping codes (2026-06-22)
   # Verified vs Regenstrief LOINC via NLM Clinical Tables API.

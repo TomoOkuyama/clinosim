@@ -20,6 +20,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import lab_display, lab_result_display, prompt_label
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
 from clinosim.modules.observation.engine import medications_in_effect
@@ -140,6 +141,14 @@ def lab_observation_coding(lab_name: str, order: dict, result: dict, country: st
         # No JP code (only the English LOINC interop coding, Issue #2300) or
         # no standard code at all (Issue #2138): the analyte name, in Japanese on JP.
         display_name = uncoded_analyte_display(lab_name, lang_for(country))
+        # Issue #3031: an analyte the lab table does not list is named by its
+        # LOINC code's label in the output language ("Anion gap" -> アニオンギャップ).
+        _loinc = (
+            str(codings[0].get("code") or "") if codings and codings[0].get("system") == get_system_uri("loinc") else ""
+        )
+        if _loinc and not lab_display(lab_name, lang_for(country), fallback=""):
+            _named = registry_display("loinc", _loinc, lang_for(country))
+            display_name = _named if _named and _named != _loinc else display_name
     return (codings, display_name)
 
 
@@ -241,7 +250,8 @@ def _build_lab_observation(
         # (v6.1 で 44 件 error 発火)。value のみ emit する。
         resource["valueQuantity"] = ucum_quantity(value, unit_str) if unit_str else {"value": value}
     else:
-        resource["valueString"] = str(value)
+        # Issue #3031: a qualitative result in the output language.
+        resource["valueString"] = str(lab_result_display(value, lang_for(country)))
 
     # Reference range (JP: JCCLS共用基準範囲). A health-checkup result is
     # judged against the checkup criterion (保健指導判定値) stored on the result
@@ -760,7 +770,10 @@ def _build_vital_observations(
                             }
                         ],
                     },
-                    "valueString": device,
+                    # Issue #3031: the device's name, not its key.
+                    "valueString": prompt_label(
+                        "oxygen_device", device, lang_for(country), fallback=str(device).replace("_", " ")
+                    ),
                 }
             ]
         timestamp = vs.get("timestamp")

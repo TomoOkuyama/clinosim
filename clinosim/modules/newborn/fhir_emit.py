@@ -439,7 +439,8 @@ def _bb_newborn_metabolic_screen_service_request(ctx: Any) -> list[dict]:
                         "display": cat_display,
                     }
                 ],
-                "text": cat_display,
+                # Issue #3031: the category in the output language.
+                "text": _label("newborn_category_text", "laboratory_procedure", lang),
             }
         ],
         "code": {
@@ -610,7 +611,7 @@ def _bb_newborn_metabolic_screen_observation(ctx: Any) -> list[dict]:
                         "display": category_display,
                     }
                 ],
-                "text": category_display,
+                "text": _label("newborn_category_text", "laboratory", lang),
             }
         ],
         "code": {
@@ -690,7 +691,7 @@ def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
                         "display": dr_cat_display,
                     }
                 ],
-                "text": dr_cat_display,
+                "text": _label("newborn_category_text", "laboratory", lang),
             }
         ],
         "code": {

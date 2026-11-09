@@ -1,0 +1,55 @@
+# Qualitative lab result wording (Issue #3031).
+#
+# The simulator stores qualitative results in English ("2+ leukocytes,
+# trace blood", "Positive: opiates", "A+; antibody screen negative"). The
+# FHIR Observation.valueString and the DiagnosticReport conclusion show them
+# in the output language through
+# ``clinosim.locale.loader.lab_result_display(value, lang)``:
+#   results       a whole result
+#   dipstick      urine dipstick analytes, shown "<analyte>(<grade>)"
+#   grades        dipstick grades other than "1+".."4+" (kept as written)
+#   drug_classes  urine drug screen classes after "Positive: "
+#   phrases       the blood-type result parts
+# English output keeps the stored wording (no `en` slot needed); a part with
+# no entry for the language stays as written.
+# Japanese: JSLM / 臨床検査 wording (尿蛋白(±), 尿潜血(2+), 白血球(1+)).
+
+metadata:
+  kind: display-table
+  name: lab_result_terms
+  source: clinosim
+
+results:
+  normal: {ja: 異常なし}
+  negative: {ja: 陰性}
+  positive: {ja: 陽性}
+  no growth: {ja: 発育なし}
+  mixed flora (contaminated): {ja: 混合菌 (汚染)}
+  up to date: {ja: 接種済み (最新)}
+  unknown: {ja: 不明}
+  last >10 years ago: {ja: 最終接種 10年以上前}
+
+dipstick:
+  protein: {ja: 尿蛋白}
+  blood: {ja: 尿潜血}
+  leukocytes: {ja: 白血球}
+  glucose: {ja: 尿糖}
+  nitrite: {ja: 亜硝酸塩}
+  ketones: {ja: 尿ケトン体}
+
+grades:
+  trace: {ja: ±}
+  positive: {ja: +}
+  negative: {ja: "-"}
+
+drug_classes:
+  fentanyl: {ja: フェンタニル}
+  opiates: {ja: アヘン類}
+  benzodiazepines: {ja: ベンゾジアゼピン}
+  cocaine: {ja: コカイン}
+  amphetamines: {ja: アンフェタミン}
+  cannabinoids: {ja: カンナビノイド}
+
+phrases:
+  blood_type: {ja: "{abo}型 Rh({rh})"}
+  antibody_screen_negative: {ja: 不規則抗体スクリーニング陰性}

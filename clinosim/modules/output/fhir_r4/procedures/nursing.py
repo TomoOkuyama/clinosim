@@ -19,6 +19,7 @@ from clinosim.codes.snomed_concepts import NEWS2_SCALE
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import narrative_label
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.observation.nursing import gcs_components
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -432,7 +433,12 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
                 # Issue #2337); the risk band goes in text.
                 _fall_interp = {"low": "L", "moderate": "N", "high": "H"}
                 code_val = _fall_interp.get(str(fall_level).lower(), "N")
-                interp_text = t("fhir_emit_text.fall_risk", lang_for(ctx.country), level=fall_level)
+                # Issue #3031: the band in the output language.
+                interp_text = t(
+                    "fhir_emit_text.fall_risk",
+                    lang_for(ctx.country),
+                    level=narrative_label("fall_risk_level", str(fall_level).lower(), lang_for(ctx.country)),
+                )
                 obs["interpretation"] = [
                     dual_slot_concept(
                         "hl7-observation-interpretation", code_val, lang_for(ctx.country), text=interp_text

@@ -55,6 +55,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from clinosim.codes.loinc import loinc_coding
+from clinosim.countries import lang_for
+from clinosim.locale.loader import narrative_label
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -243,10 +245,12 @@ def _build_one_observation(
     patient_id: str,
     encounter_id: str,
     effective_dt: str,
+    lang: str = "en",
 ) -> dict[str, Any]:
     """Assemble one FHIR stage-scale Observation."""
     structural_key = f"{patient_id}-{spec.suffix}"
-    code_block: dict[str, Any] = {"text": spec.display}
+    # Issue #3031: the scale named in the output language (stage_scale labels).
+    code_block: dict[str, Any] = {"text": narrative_label("stage_scale", spec.suffix, lang, fallback=spec.display)}
     if spec.loinc is not None:
         code_block["coding"] = [loinc_coding(spec.loinc, "en")]
 
@@ -255,9 +259,7 @@ def _build_one_observation(
         "id": _resolve_scale_id(structural_key),
         "identifier": [wrap_as_identifier(structural_key, STAGE_SCALE_OBSERVATION_KEY_SYSTEM)],
         "status": "final",
-        # The stage-scale builder has no output language (its code.text is
-        # English too); the category keeps the English label.
-        "category": survey_category("en"),
+        "category": survey_category(lang),
         "code": code_block,
         "subject": patient_ref(patient_id),
         spec.value_key: value,
@@ -273,8 +275,10 @@ def build_stage_scale_observations(
     patient_data: dict,
     encounters: list[dict],
     snapshot_date: str | None,
+    lang: str = "en",
 ) -> list[dict[str, Any]]:
-    """Return the list of stage-scale Observations for one patient.
+    """Return the list of stage-scale Observations for one patient
+    (``code.text`` and category text in ``lang``).
 
     One Observation per tracked scale (mRS / H&Y / EDSS / CDR) when
     the patient carries a correspondingly-staged chronic condition.
@@ -310,7 +314,7 @@ def build_stage_scale_observations(
         if spec.suffix in seen:
             continue
         seen.add(spec.suffix)
-        out.append(_build_one_observation(spec, value, patient_id, encounter_id, effective_dt))
+        out.append(_build_one_observation(spec, value, patient_id, encounter_id, effective_dt, lang))
     return out
 
 
@@ -322,4 +326,4 @@ def _bb_stage_scale_observations(ctx: BundleContext) -> list[dict]:
     """
     patient_data = ctx.patient_data or {}
     encounters = ctx.record.get("encounters", []) or []
-    return build_stage_scale_observations(patient_data, encounters, ctx.snapshot_date)
+    return build_stage_scale_observations(patient_data, encounters, ctx.snapshot_date, lang_for(ctx.country))

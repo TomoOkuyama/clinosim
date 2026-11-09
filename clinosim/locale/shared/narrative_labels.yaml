@@ -56,6 +56,23 @@ newborn_category_text:
   exam: {en: Exam, ja: 身体所見}
   survey: {en: Survey, ja: 評価スコア}
   vital_signs: {en: Vital Signs, ja: バイタルサイン}
+  # Issue #3031: metabolic-screen Observation / DiagnosticReport / order.
+  laboratory: {en: Laboratory, ja: 検体検査}
+  laboratory_procedure: {en: Laboratory procedure, ja: 臨床検査}
+
+# Morse fall-risk band in Observation.interpretation.text (Issue #3031).
+fall_risk_level:
+  low: {en: low, ja: 低}
+  moderate: {en: moderate, ja: 中}
+  high: {en: high, ja: 高}
+
+# Chronic-disease rating scale names for the stage-scale Observation
+# code.text (Issue #3031). Japanese records write the scale abbreviation.
+stage_scale:
+  mrs: {en: Modified Rankin Scale, ja: modified Rankin Scale (mRS)}
+  hy: {en: Hoehn and Yahr stage, ja: Hoehn-Yahr重症度}
+  edss: {en: Expanded Disability Status Scale score, ja: 総合障害度評価尺度 (EDSS)}
+  cdr: {en: Clinical Dementia Rating Global score, ja: CDR全般スコア}
 
 # Observation.code text for newborn FHIR resources.
 newborn_code_text:
@@ -69,13 +86,13 @@ newborn_apgar_minute:
 # CCHD pulse-ox site display for Observation.code.text
 # (was ``_CCHD_SITE_DISPLAY_JA[site] if is_ja else f"SpO2 ({site})"``).
 newborn_cchd_site:
-  right_hand: {en: SpO2 (right hand), ja: 右手 (pre-ductal)}
-  foot: {en: SpO2 (foot), ja: 足 (post-ductal)}
+  right_hand: {en: SpO2 (right hand), ja: SpO2 右手 (動脈管前)}
+  foot: {en: SpO2 (foot), ja: SpO2 足 (動脈管後)}
 
 # CCHD bodySite.text (was ``_CCHD_SITE_DISPLAY_JA[site] if is_ja else site_snomed[1]``).
 newborn_cchd_body_site:
-  right_hand: {en: Right upper arm, ja: 右手 (pre-ductal)}
-  foot: {en: Foot, ja: 足 (post-ductal)}
+  right_hand: {en: Right upper arm, ja: 右手 (動脈管前)}
+  foot: {en: Foot, ja: 足 (動脈管後)}
 
 # Metabolic-screen Specimen collection text fallbacks.
 newborn_specimen_body_site:

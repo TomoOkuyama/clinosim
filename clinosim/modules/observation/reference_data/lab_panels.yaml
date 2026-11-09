@@ -74,7 +74,7 @@ panels:
     loinc: "57698-3"
     display:
       en: "Lipid panel with direct LDL - Serum or Plasma"
-      ja: "脂質検査 (Lipid Panel)"
+      ja: "脂質検査"  # Issue #3031: no English parenthetical
     components: [TC, LDL, HDL, TG]
     min_components: 2
 
@@ -102,7 +102,7 @@ panels:
     loinc: "24356-8"
     display:
       en: "Urinalysis complete panel - Urine"
-      ja: "尿検査 (Urinalysis)"
+      ja: "尿定性検査"  # Issue #3031
     components: [Urine_pH, Urine_specific_gravity, Urine_protein, Urine_glucose, Urine_ketones, Urine_blood, Urine_nitrite, Urine_leukocyte_esterase]
     min_components: 3
     skip_if_no_components_present: true
