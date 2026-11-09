@@ -17,12 +17,12 @@ string's shape:
 
 from __future__ import annotations
 
-import re
 from functools import cache
 from pathlib import Path
 from typing import Literal
 
 from clinosim.codes import code_exists
+from clinosim.codes.icd10 import is_icd10_shaped
 from clinosim.datafiles import load_data_yaml
 
 EventRefKind = Literal["disease", "encounter", "icd", "label"]
@@ -39,7 +39,6 @@ EVENT_LABELS: frozenset[str] = frozenset(
     }
 )
 
-_ICD_SHAPE = re.compile(r"^[A-Z][0-9]{2}(\.[0-9A-Z]{1,4})?$")
 _PEDIATRIC_SCHEDULE = (
     Path(__file__).resolve().parents[1] / "modules" / "pediatric" / "reference_data" / "pediatric_schedule.yaml"
 )
@@ -87,6 +86,6 @@ def event_ref_kind(value: str) -> EventRefKind | None:
         return "encounter"
     if value in EVENT_LABELS or value in _pediatric_labels() or value.startswith("unknown_"):
         return "label"
-    if _ICD_SHAPE.match(value) and (code_exists("icd-10-cm", value) or code_exists("icd-10", value)):
+    if is_icd10_shaped(value) and (code_exists("icd-10-cm", value) or code_exists("icd-10", value)):
         return "icd"
     return None

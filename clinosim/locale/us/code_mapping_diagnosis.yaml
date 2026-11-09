@@ -90,6 +90,15 @@ O04:   "O04.5"       # Medical abortion → CM "with genital tract/pelvic infect
                      # induced termination when a specific complication is not
                      # coded)
 
+# ── Pregnancy complications (locale/shared/perinatal.yaml; Issue #3028) ──
+# WHO-level codes are not billable in ICD-10-CM; map to the unspecified-
+# trimester / fetus-not-applicable leaf.
+O14.9: "O14.90"      # Unspecified pre-eclampsia, unspecified trimester
+O24.9: "O24.919"     # Unspecified diabetes mellitus in pregnancy, unspecified trimester
+O42.9: "O42.90"      # PROM, unspecified time to labor, unspecified weeks of gestation
+O60.1: "O60.10X0"    # Preterm labor with preterm delivery, unspecified trimester
+O64.9: "O64.9XX0"    # Obstructed labor due to malposition/malpresentation, unspecified
+
 # --- Past acute events carried as chronic background → "personal history of / old" ---
 I21: "I25.2"        # Old myocardial infarction
 I26: "Z86.711"      # Personal history of pulmonary embolism

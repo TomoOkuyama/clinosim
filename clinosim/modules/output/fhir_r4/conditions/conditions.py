@@ -12,12 +12,14 @@ from typing import Any
 
 from clinosim.codes import data_table, get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.icd10 import is_icd10_shaped
 from clinosim.codes.snomed import snomed_for
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import condition_stage_display, map_diagnosis_code
 from clinosim.modules._shared import get_attr_or_key, is_jp
 from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
+from clinosim.modules.disease.protocol import load_all_disease_protocols
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     CONDITION_KEY_SYSTEM,
     chronic_condition_id,
@@ -532,6 +534,20 @@ def _admission_condition(ctx: _ConditionContext, dx: dict, chronic_list: list) -
     return cond
 
 
+def _working_diagnosis_code(value: str) -> str:
+    """ICD-10 code of a ``working_diagnoses[].disease_id`` (Issue #3028).
+
+    Pregnancy complications and lab-derived diagnoses store an ICD code there;
+    an in-hospital new disease (``simulator/_dispatch.py``) stores its disease
+    id, which resolves to that protocol's primary ICD code. Anything else is
+    ``""`` — a disease key is never emitted as an ICD code."""
+    if is_icd10_shaped(value):
+        return value
+    protocol = load_all_disease_protocols().get(value)
+    primary = str((protocol.icd_codes or {}).get("primary") or "") if protocol is not None else ""
+    return primary if is_icd10_shaped(primary) else ""
+
+
 def _secondary_conditions(ctx: _ConditionContext, dx: dict, seen_codes: set[str]) -> list[dict]:
     """Issue #1307: one encounter-diagnosis Condition per
     ``clinical_diagnosis.working_diagnoses`` entry — pregnancy complications
@@ -540,7 +556,7 @@ def _secondary_conditions(ctx: _ConditionContext, dx: dict, seen_codes: set[str]
     _record_complication_on_active_encounter``)."""
     conditions: list[dict] = []
     for idx, wd in enumerate(dx.get("working_diagnoses") or []):
-        code_raw = str((wd.get("disease_id") or "") if isinstance(wd, dict) else "")
+        code_raw = _working_diagnosis_code(str((wd.get("disease_id") or "") if isinstance(wd, dict) else ""))
         if not code_raw:
             continue
         base = code_raw.split(".")[0]

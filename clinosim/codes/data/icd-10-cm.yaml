@@ -563,6 +563,20 @@ codes:
   # billable leaf so no code_mapping_diagnosis entry is required, but the
   # display needs to be resolvable to avoid the "(display unavailable)"
   # fallback in build_diagnosis_codeable_concept.
+  # ── Pregnancy complications (Issue #3028): billable ICD-10-CM leaves the
+  # WHO-level codes in locale/shared/perinatal.yaml map to via
+  # locale/us/code_mapping_diagnosis.yaml. Displays verified against the NLM
+  # Clinical Tables ICD-10-CM API.
+  O14.90:
+    en: "Unspecified pre-eclampsia, unspecified trimester"
+  O24.919:
+    en: "Unspecified diabetes mellitus in pregnancy, unspecified trimester"
+  O42.90:
+    en: "Premature rupture of membranes, unspecified as to length of time between rupture and onset of labor, unspecified weeks of gestation"
+  O60.10X0:
+    en: "Preterm labor with preterm delivery, unspecified trimester, not applicable or unspecified"
+  O64.9XX0:
+    en: "Obstructed labor due to malposition and malpresentation, unspecified, not applicable or unspecified"
   O80:
     en: "Encounter for full-term uncomplicated delivery"
   # Cesarean-section admission diagnosis (session 98 F7 — Incr 1.5).

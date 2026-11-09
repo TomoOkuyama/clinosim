@@ -91,6 +91,11 @@ sort するため line 順は決定論的。
   `clinosim.modules.code_status.engine.load_reference`、
   `clinosim.modules.diagnosis.nonspecific_codes.is_visit_reason_zcode`、
   `clinosim.codes.snomed.snomed_for("stage", ...)`。
+- `clinosim.modules.disease.protocol.load_all_disease_protocols` と
+  `clinosim.codes.icd10.is_icd10_shaped` — `working_diagnoses[].disease_id`
+  が疾患 id (入院中の新規発症) のときはその protocol の primary ICD コードで
+  コード化する。ICD コードに解決できない値は Condition を出さず、ICD system に
+  疾患キーが載ることはない (Issue #3028)。
 - builder は CIF record を `get_attr_or_key` 経由で dict / 属性
   object として読み、`clinosim.types` の class は import しない。
 - 親 `__init__.py` には依存しない (adapter facade への循環無し)。
