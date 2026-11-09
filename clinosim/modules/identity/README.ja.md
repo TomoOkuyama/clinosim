@@ -103,7 +103,12 @@ README は重複するだけになる。
   `"jp"` を弾いてしまう)。
 - Locale YAML: [`clinosim/locale/jp/identity.yaml`](../../locale/jp/identity.yaml)
   — マイナンバー card 保有・マイナ保険証 登録の年齢帯レート、
-  保険 scheme 分布、Gaussian-copula 世帯内相関の `household_icc`。
+  保険 scheme 分布、Gaussian-copula 世帯内相関の `household_icc`、
+  `payers` (国民健康保険は市区町村ごと、後期高齢者医療は都道府県の
+  広域連合ごとの保険者で、それぞれ担当する住所を持つ)。住民は住所の
+  都道府県・市区町村の保険者に加入する
+  (`locale.loader.resident_insurer_number`。75 歳到達時の FHIR
+  Coverage でも同じ関数を使う。Issue #3015)。
   [`clinosim/locale/us/identity.yaml`](../../locale/us/identity.yaml)
   — 年齢帯別 `sampling.insurance_distribution` + `payers`。
   `identity.yaml` を持たない国では `assign_identities` が早期 return。

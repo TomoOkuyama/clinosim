@@ -242,3 +242,18 @@ def load_clinic_calendar(country: str) -> dict[str, Any]:
     closed day."""
     raw = _load_yaml(_country_dir(country) / "clinic_calendar.yaml", fallback={})
     return ClinicCalendar.model_validate(raw or {}).model_dump()
+
+
+def resident_insurer_number(country: str, scheme: str, prefecture: str, city: str) -> str:
+    """保険者番号 of the ``scheme`` insurer serving a residence (Issue #3015):
+    the identity.yaml ``payers[scheme]`` entry for the ``prefecture`` (and,
+    when the entry names one, the ``city``) — 国民健康保険 by municipality,
+    後期高齢者医療 by prefecture. ``""`` when no entry serves the residence."""
+    for entry in (load_identity_config(country).get("payers", {}) or {}).get(scheme) or []:
+        if entry.get("prefecture") and entry["prefecture"] != prefecture:
+            continue
+        if entry.get("city") and entry["city"] != city:
+            continue
+        if entry.get("prefecture"):
+            return str(entry["number"])
+    return ""

@@ -24,12 +24,39 @@ payers:
       name: "東京都某健康保険組合"
     - number: "31130040"
       name: "国家公務員共済組合"
+  # Issue #3015: 国民健康保険 is run by the municipality of residence and
+  # 後期高齢者医療 by the prefecture's 広域連合, so each entry names the
+  # residence it serves (`prefecture`, and `city` for 国保) — one per city of
+  # addresses.yaml. 保険者番号 = 法別番号 (後期: 39) + 都道府県番号 + 保険者別番号
+  # + 検証番号. Sources:
+  #   東京都 特別区: 東京都保健医療局「国民健康保険財政健全化計画」各区の保険者番号
+  #     (世田谷区 13-012, 大田区 13-011, 杉並区 13-015, 板橋区 13-019; 練馬区
+  #     13-020 / 江戸川区 13-023 by the same 特別区 order), 検証番号 computed.
+  #   埼玉県: 埼玉県国保連合会「埼玉県の保険者番号一覧表」(H24.10.1).
+  #   千葉県: 千葉県「各市町村の国保事業費納付金等の状況」(令和7年度).
+  #   神奈川県: 神奈川県国保連合会「神奈川県保険者コード一覧」(2012).
+  #   広域連合: 神奈川県国保連合会「後期高齢者医療広域連合コード」(2012).
   national:        # 国民健康保険
-    - number: "131011"
-      name: "東京都新宿区 国民健康保険"
+    - {number: "130120", name: "世田谷区 国民健康保険", prefecture: "東京都", city: "世田谷区"}
+    - {number: "130203", name: "練馬区 国民健康保険", prefecture: "東京都", city: "練馬区"}
+    - {number: "130112", name: "大田区 国民健康保険", prefecture: "東京都", city: "大田区"}
+    - {number: "130153", name: "杉並区 国民健康保険", prefecture: "東京都", city: "杉並区"}
+    - {number: "130195", name: "板橋区 国民健康保険", prefecture: "東京都", city: "板橋区"}
+    - {number: "130237", name: "江戸川区 国民健康保険", prefecture: "東京都", city: "江戸川区"}
+    - {number: "114009", name: "さいたま市 国民健康保険", prefecture: "埼玉県", city: "さいたま市"}
+    - {number: "110031", name: "川口市 国民健康保険", prefecture: "埼玉県", city: "川口市"}
+    - {number: "110080", name: "所沢市 国民健康保険", prefecture: "埼玉県", city: "所沢市"}
+    - {number: "144006", name: "横浜市 国民健康保険", prefecture: "神奈川県", city: "横浜市"}
+    - {number: "145003", name: "川崎市 国民健康保険", prefecture: "神奈川県", city: "川崎市"}
+    - {number: "140061", name: "藤沢市 国民健康保険", prefecture: "神奈川県", city: "藤沢市"}
+    - {number: "120048", name: "船橋市 国民健康保険", prefecture: "千葉県", city: "船橋市"}
+    - {number: "120030", name: "市川市 国民健康保険", prefecture: "千葉県", city: "市川市"}
+    - {number: "120170", name: "柏市 国民健康保険", prefecture: "千葉県", city: "柏市"}
   late_elderly:    # 後期高齢者医療制度 (75+)
-    - number: "39130083"
-      name: "東京都後期高齢者医療広域連合"
+    - {number: "39130000", name: "東京都後期高齢者医療広域連合", prefecture: "東京都"}
+    - {number: "39110002", name: "埼玉県後期高齢者医療広域連合", prefecture: "埼玉県"}
+    - {number: "39120001", name: "千葉県後期高齢者医療広域連合", prefecture: "千葉県"}
+    - {number: "39140009", name: "神奈川県後期高齢者医療広域連合", prefecture: "神奈川県"}
 
 # Coverage.type human label by category (emitted as FHIR Coverage.type.text).
 coverage_type_labels:
