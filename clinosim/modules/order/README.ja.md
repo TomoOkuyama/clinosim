@@ -124,7 +124,8 @@ from clinosim.modules.order.supersede import (
 
 # 体重 / 体表面積基準の投与量 (Issue #2750)
 from clinosim.modules.order.absolute_dose import (
-    absolute_dose,                      # (value, unit, height_cm, weight_kg) -> (amount, unit) | None
+    absolute_dose,                      # (value, unit, height_cm, weight_kg, *, text="") -> (amount, unit) | None。text の "max N mg" で上限 (Issue #2991)
+    is_per_body_unit,                   # (unit) -> bool ("mg/kg", "mg/m2")
     body_surface_area,                  # (height_cm, weight_kg) -> m2 (Mosteller)
     is_continuous_infusion,             # (frequency, name="") -> bool
 )
