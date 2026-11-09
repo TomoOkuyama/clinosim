@@ -9,6 +9,7 @@ Layer 3-6).
 from __future__ import annotations
 
 import hashlib
+import re
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
@@ -425,6 +426,42 @@ def report_issued_datetime(started: datetime | None, modality: str, patient_id: 
     lo, hi = mod["report_read_minutes"] if mod else stub_report_read_minutes()
     q = determinism.sha_quantile(f"imaging-report-read|{patient_id}|{order_id}")
     return started + timedelta(minutes=round(lo + q * (hi - lo)))
+
+
+class _ViewLabel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    en: str
+    ja: str
+
+
+class _ViewLabels(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    views: dict[str, _ViewLabel]
+
+
+@lru_cache(maxsize=1)
+def _view_labels() -> dict[str, dict[str, str]]:
+    raw = load_data_yaml(_REF_DIR / "view_labels.yaml")
+    return {str(k): v.model_dump() for k, v in _ViewLabels.model_validate(raw).views.items()}
+
+
+_SERIES_DESCRIPTION = re.compile(r"^(?P<view>.+?) (?P<kind>view|acquisition)$")
+
+
+def series_view_display(description: str, lang: str) -> str:
+    """A series description ("PA view", "axial acquisition") in ``lang``
+    (Issue #3030): the view's name from ``view_labels.yaml``; Japanese gives
+    the name of the image ("正面像 (PA)", "横断像"), English the view's words
+    with the description's suffix ("parasternal long-axis view"). A
+    description of an unlisted view is returned unchanged."""
+    m = _SERIES_DESCRIPTION.match(description or "")
+    label = _view_labels().get(m.group("view")) if m else None
+    if m is None or label is None:
+        return description
+    return localized({"en": f"{label['en']} {m.group('kind')}", "ja": label["ja"]}, lang)
 
 
 @lru_cache(maxsize=1)

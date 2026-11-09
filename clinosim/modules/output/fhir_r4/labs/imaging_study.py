@@ -42,6 +42,7 @@ from clinosim.modules.imaging.engine import (  # canonical owners; re-exported b
     ENDPOINT_ID_PREFIX,
     IMAGING_STUDY_ID_PREFIX,
     load_modalities,
+    series_view_display,
 )
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -365,7 +366,8 @@ def _build_series(series: Any, lang: str) -> dict[str, Any]:
             **display_entry(modality_display),
         },
         "numberOfInstances": _o(series, "instance_count", 0),
-        "description": _o(series, "description", ""),
+        # Issue #3030: the view in the output language ("PA view" -> 正面像 (PA)).
+        "description": series_view_display(str(_o(series, "description", "") or ""), lang),
         "bodySite": {
             "system": snomed_system,
             "code": body_site_snomed,

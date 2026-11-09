@@ -64,6 +64,7 @@ imaging:
   spine_xray_ap_lateral: {en: spine X-ray AP lateral, ja: 脊椎レントゲン (正面・側面)}
   ultrasound abdomen: {en: ultrasound abdomen, ja: 腹部エコー}
   ultrasound kidney: {en: ultrasound kidney, ja: 腎エコー}
+  video_fluoroscopic_swallowing_study: {en: videofluoroscopic swallowing study, ja: 嚥下造影検査 (VF)}  # Issue #3030
   wrist_xray: {en: wrist X-ray, ja: 手関節レントゲン}
   wrist_xray_ap_lateral: {en: wrist X-ray AP lateral, ja: 手関節レントゲン (正面・側面)}
   x-ray abdomen (supine and upright): {en: X-ray abdomen (supine and upright), ja: 腹部レントゲン (臥位・立位)}

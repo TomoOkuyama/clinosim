@@ -122,7 +122,12 @@ from clinosim.modules.imaging.inference import (
     imaging report Composition date (Issue #2999).
   - `body_sites.yaml` — SNOMED body-site catalog.
   - `impression_templates.yaml` — per-modality / per-body-site
-    negative and abnormal report templates.
+    negative and abnormal report templates. The `ja` text uses Japanese
+    finding terms (浸潤影, すりガラス影, Kerley B線; Issue #3030).
+  - `view_labels.yaml` — en / ja display of each view key; the FHIR
+    `ImagingStudy.series.description` shows the CIF description ("PA view",
+    "axial acquisition") through `series_view_display(description, lang)`
+    (ja: 正面像 (PA), 横断像; en: "parasternal long-axis view") (Issue #3030).
 - Each YAML is checked at load time by its Pydantic model (empty top,
   required keys, forward + reverse coverage, per-entry required
   fields, cross-reference to SNOMED / body-site / disease canonical
@@ -154,6 +159,7 @@ clinosim/modules/imaging/
     modalities.yaml                modality + default_views_by_body_site
     body_sites.yaml                SNOMED body-site catalog
     impression_templates.yaml      per-(modality × body_site) report templates
+    view_labels.yaml               en / ja view names for series descriptions (series_view_display, Issue #3030)
     bedside_examinations.yaml      work-up order names that are bedside examinations, not imaging (bedside_examination_names, Issue #2796)
     imaging-impression-keywords.yaml  normal / abnormal impression phrases for the radiology DiagnosticReport conclusionCode (read by output/fhir_r4/labs/diagnostic_report.py)
 ```

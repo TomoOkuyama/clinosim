@@ -116,7 +116,13 @@ from clinosim.modules.imaging.inference import (
     Composition の date になる (Issue #2999)。
   - `body_sites.yaml` — SNOMED body-site カタログ。
   - `impression_templates.yaml` — modality × body-site 別 negative
-    / abnormal report template。
+    / abnormal report template。`ja` は日本語の所見用語 (浸潤影、すりガラス影、
+    Kerley B線) で書く (Issue #3030)。
+  - `view_labels.yaml` — view key ごとの en / ja 表示名。FHIR
+    `ImagingStudy.series.description` は CIF の description ("PA view"、
+    "axial acquisition") を `series_view_display(description, lang)` で
+    出力言語にする (ja: 正面像 (PA)、横断像; en: "parasternal long-axis view")
+    (Issue #3030)。
 - 各 YAML は load 時に Pydantic model で検証する (空 top、必須 key、
   双方向 coverage、per-entry 必須 field、SNOMED / body-site / 疾患
   canonical への cross-reference)。
@@ -147,6 +153,7 @@ clinosim/modules/imaging/
     modalities.yaml                modality + default_views_by_body_site
     body_sites.yaml                SNOMED body-site カタログ
     impression_templates.yaml      (modality × body_site) 別 report template
+    view_labels.yaml               series description 用の en / ja view 名 (series_view_display、Issue #3030)
     bedside_examinations.yaml      画像検査ではなくベッドサイド診察である work-up order 名 (bedside_examination_names、Issue #2796)
     imaging-impression-keywords.yaml  放射線 DiagnosticReport conclusionCode 用の正常 / 異常 impression 語句 (output/fhir_r4/labs/diagnostic_report.py が読む)
 ```

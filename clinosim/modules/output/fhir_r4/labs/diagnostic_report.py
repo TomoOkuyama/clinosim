@@ -1072,11 +1072,14 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     findings_text = localized_field(report, "findings_text", lang)
     impression_text = localized_field(report, "impression_text", lang)
 
-    # Build text.div (FHIR Narrative, Radiology IG requirement).
+    # Build text.div (FHIR Narrative, Radiology IG requirement); headings in
+    # the output language (Issue #3030).
     div = (
         '<div xmlns="http://www.w3.org/1999/xhtml">'
-        f"<h5>Findings</h5><p>{_escape_html(findings_text)}</p>"
-        f"<h5>Impression</h5><p>{_escape_html(impression_text)}</p>"
+        f"<h5>{_escape_html(t('diagnostic_report_fhir.radiology_findings_heading', lang))}</h5>"
+        f"<p>{_escape_html(findings_text)}</p>"
+        f"<h5>{_escape_html(t('diagnostic_report_fhir.radiology_impression_heading', lang))}</h5>"
+        f"<p>{_escape_html(impression_text)}</p>"
         "</div>"
     )
 
