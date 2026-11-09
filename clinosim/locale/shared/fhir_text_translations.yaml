@@ -35,6 +35,7 @@ route:
   INFILTRATION: {ja: 局所浸潤}  # #2352: local-anaesthetic infiltration
   INTRA-ARTICULAR: {ja: 関節内注}  # #2352
   PERCUTANEOUS: {ja: 経皮}  # Issue #3005 (BCG)
+  INTRAVESICAL: {ja: 膀胱内注入}  # Issue #3033: BCG intravesical instillation
 
 frequency:
   DAILY: {ja: 1日1回}
@@ -48,6 +49,10 @@ frequency:
   PRN: {ja: 必要時}
   STAT: {ja: 緊急}
   ONCE: {ja: 1回}
+  # Issue #3033: non-daily cadences.
+  WEEKLY: {ja: 週1回}
+  MONTHLY: {ja: 4週毎}
+  NIGHTLY: {ja: 就寝前}
   "1x/day": {ja: 1日1回}
   "2x/day": {ja: 1日2回}
   "3x/day": {ja: 1日3回}

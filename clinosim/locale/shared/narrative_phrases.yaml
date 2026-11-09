@@ -2614,8 +2614,9 @@ fhir_emit_text:
   death_discharge_summary_title:
     ja: "死亡退院サマリー"
     en: "Death discharge summary"
+  # Issue #3033: the status in Japanese (medication_request_status labels).
   effective_status_note:
-    ja: "実効ステータス: {status}（JP-CLINS eCS 準拠のため MedicationRequest.status は \"completed\" に固定されているが、この処方の実際の運用状態は \"{status}\" である）"
+    ja: "処方の実際の状態: {status}（JP-CLINS eCS 準拠のため処方ステータスは「完了」で記録）"
     en: "Effective status: {status} (MedicationRequest.status is pinned to \"completed\" for JP-CLINS eCS; the actual state of this prescription is \"{status}\")"
   every_hours:
     ja: "{n}時間ごと"

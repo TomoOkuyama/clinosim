@@ -23,6 +23,7 @@ from clinosim.codes.icd10 import medis_disease_keyno
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import narrative_label
 from clinosim.modules._shared import is_jp, practitioner_name
 from clinosim.modules.output.fhir_r4.lib.fhir_time import derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_RESOURCE_INSTANCE_IDENTIFIER_SYSTEM
@@ -729,6 +730,13 @@ def _ensure_jp_resource_identifier(resource: dict) -> None:
     ids.insert(0, {"system": _JP_OBSERVATION_RESOURCE_IDENTIFIER_SYSTEM, "value": rid})
 
 
+def _effective_status_note(status: str) -> str:
+    """The JP MedicationRequest note naming the prescription's actual status
+    (pinned to "completed" for JP-CLINS eCS), in Japanese (Issue #3033)."""
+    label = narrative_label("medication_request_status", status, "ja", fallback=status)
+    return t("fhir_emit_text.effective_status_note", "ja", status=label)
+
+
 def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") -> None:
     """Populate JP-CLINS eCS-required fields on Condition / AllergyIntolerance
     / MedicationRequest.
@@ -901,7 +909,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
             ):
                 _ext_list.append({"url": _ext_url, "valueCode": _pre_pin_status})
             _notes = resource.setdefault("note", [])
-            _note_text = t("fhir_emit_text.effective_status_note", "ja", status=_pre_pin_status)
+            _note_text = _effective_status_note(_pre_pin_status)
             if isinstance(_notes, list) and not any(
                 isinstance(n, dict) and n.get("text") == _note_text for n in _notes
             ):
