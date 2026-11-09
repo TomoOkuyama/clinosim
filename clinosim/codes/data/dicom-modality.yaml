@@ -39,6 +39,9 @@ codes:
   ECG:
     en: Electrocardiography
     ja: 心電図検査
+  RF:                                   # Issue #3113 (tx.fhir.org $lookup 2026-11-10: Radiofluoroscopy)
+    en: Radiofluoroscopy
+    ja: X線透視撮影
   MG:                                   # Issue #2870 (tx.fhir.org $lookup 2026-11-08)
     en: Mammography
     ja: マンモグラフィ

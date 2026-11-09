@@ -153,7 +153,15 @@ from clinosim.modules.imaging.inference import (
 - **Inference whitelist** (`inference.py`): patterns MUST match on
   substring to fire; a missed match returns `None` so the enricher
   emits a stub study (no series, generic negative report) rather than
-  dropping the order silently.
+  dropping the order silently. Every imaging key a disease protocol
+  orders (`add_imaging`, `imaging` lists, `type: imaging` triggers) must
+  resolve to a study with a modality, a body site, a registered LOINC
+  procedure code and an en/ja exam display (Issue #3113, guarded by
+  `tests/unit/test_imaging_protocol_keys_3113.py`). A CT angiogram names
+  its region (`CT_pulmonary_angiography`, `CT_angiography_abdomen_pelvis`,
+  `CT_angiography_head_neck`); a bare `CT_angiography` is not matched.
+  Region- and indication-specific patterns live in
+  `reference_data/exam_region_patterns.yaml` (en/ja), not in Python.
 
 ## Directory contents
 
@@ -166,6 +174,7 @@ clinosim/modules/imaging/
   reference_data/
     modalities.yaml                modality + default_views_by_body_site
     body_sites.yaml                SNOMED body-site catalog
+    exam_region_patterns.yaml      en/ja order-name patterns of region- / indication-specific studies, matched first by inference.py (Issue #3113)
     impression_templates.yaml      per-(modality × body_site) report templates
     view_labels.yaml               en / ja view names for series descriptions (series_view_display, Issue #3030)
     bedside_examinations.yaml      work-up order names that are bedside examinations, not imaging (bedside_examination_names, Issue #2796)
@@ -213,6 +222,8 @@ Individual files:
   — 15-check audit plug-in unit run.
 - [`tests/unit/test_imaging_inference.py`](../../../tests/unit/test_imaging_inference.py)
   — whitelist regex coverage.
+- [`tests/unit/test_imaging_protocol_keys_3113.py`](../../../tests/unit/test_imaging_protocol_keys_3113.py)
+  — every disease-protocol imaging key resolves to a coded catalog study.
 - [`tests/unit/output/test_fhir_imaging_study.py`](../../../tests/unit/output/test_fhir_imaging_study.py)
   — FHIR ImagingStudy emission unit.
 - [`tests/integration/test_imaging_chain.py`](../../../tests/integration/test_imaging_chain.py),

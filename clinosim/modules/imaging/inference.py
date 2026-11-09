@@ -23,8 +23,18 @@ from ``display_name`` using a whitelist of regex patterns.
 from __future__ import annotations
 
 import re
+from functools import cache
+from pathlib import Path
 
-from clinosim.modules.imaging.engine import load_body_sites, load_modalities
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from clinosim.datafiles import load_data_yaml
+from clinosim.modules.imaging.engine import (
+    SUPPORTED_BODY_SITES,
+    SUPPORTED_MODALITIES,
+    load_body_sites,
+    load_modalities,
+)
 
 # Tuple layout: ``(regex, modality DCM code, body_site key, default views)``.
 # ``body_site`` key is a key of ``body_sites.yaml`` (``chest`` / ``head``
@@ -147,8 +157,6 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     # ---- XA / angiography ----
     # Coronary angiography → XA of the coronary arteries (Issue #2655).
     (rf"coronary{_SEP}angio(?:graphy|gram)|冠動脈{_SEP}造影", "XA", "coronary_artery", []),
-    # CT pulmonary angiography (PE workup) → CT + chest.
-    (rf"ct{_SEP}pulmonary{_SEP}angio(?:graphy|gram)|ctpa|肺動脈{_SEP}ct", "CT", "chest", []),
     # ---- MG ----
     # Issue #2870: a (bilateral, screening) mammogram.
     (rf"(?:bilateral{_SEP})?mammogra(?:m|phy)", "MG", "breast", []),
@@ -162,6 +170,59 @@ _PATTERNS: list[tuple[str, str, str, list[str]]] = [
     # boundary.
     (r"^(?:ecg|ekg)(?:[\s\-_].*)?$|心電図", "ECG", "chest", []),
 ]
+
+
+class _RegionStudy(BaseModel):
+    """One study of ``exam_region_patterns.yaml`` (Issue #3113)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    modality: str
+    body_site: str
+    views: list[str] = Field(default_factory=list)
+    patterns: dict[str, list[str]] = Field(min_length=1)
+
+    @field_validator("modality")
+    @classmethod
+    def _modality(cls, value: str) -> str:
+        if value not in SUPPORTED_MODALITIES:
+            raise ValueError(f"exam_region_patterns.yaml: unsupported modality {value!r}")
+        return value
+
+    @field_validator("body_site")
+    @classmethod
+    def _body_site(cls, value: str) -> str:
+        if value not in SUPPORTED_BODY_SITES:
+            raise ValueError(f"exam_region_patterns.yaml: unsupported body site {value!r}")
+        return value
+
+
+class _RegionStudies(BaseModel):
+    """Shape of ``exam_region_patterns.yaml``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    studies: list[_RegionStudy] = Field(min_length=1)
+
+
+_REGION_PATTERNS_YAML = Path(__file__).resolve().parent / "reference_data" / "exam_region_patterns.yaml"
+
+
+@cache
+def _region_patterns() -> tuple[tuple[str, str, str, list[str]], ...]:
+    """The region- and indication-specific studies of
+    ``reference_data/exam_region_patterns.yaml`` (Issue #3113), in the
+    ``_PATTERNS`` tuple layout: every language's patterns joined into one
+    alternation, ``{SEP}`` expanded to the separator class. Each pattern
+    must compile."""
+    raw = {k: v for k, v in (load_data_yaml(_REGION_PATTERNS_YAML) or {}).items() if k != "metadata"}
+    out = []
+    for study in _RegionStudies.model_validate(raw).studies:
+        alternatives = [p.replace("{SEP}", _SEP) for lang in sorted(study.patterns) for p in study.patterns[lang]]
+        pattern = "|".join(alternatives)
+        re.compile(pattern)
+        out.append((pattern, study.modality, study.body_site, list(study.views)))
+    return tuple(out)
 
 
 def infer_imaging_metadata(display_name: str) -> dict | None:
@@ -183,7 +244,9 @@ def infer_imaging_metadata(display_name: str) -> dict | None:
     body_sites = load_body_sites()
     modalities = load_modalities()
 
-    for pattern, modality, body_key, views in _PATTERNS:
+    # Issue #3113: region- / indication-specific studies first, so a generic
+    # CT / US pattern does not claim them.
+    for pattern, modality, body_key, views in (*_region_patterns(), *_PATTERNS):
         if re.search(pattern, txt, flags=re.IGNORECASE):
             bs = body_sites.get(body_key)
             if not bs:

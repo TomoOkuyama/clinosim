@@ -1,0 +1,106 @@
+# Imaging order names that name a region or an indication (Issue #3113).
+#
+# The imaging enricher infers (modality, body site, views) from an order's
+# display name when the order carries no structured imaging metadata
+# (clinosim/modules/imaging/inference.py). These studies are matched before
+# the generic CT / US patterns there, so a generic pattern does not claim
+# them. CT angiography is a study of its own per region: pulmonary arteries
+# (PE work-up), abdominal and pelvic vessels (GI bleeding), head (and neck)
+# vessels (stroke). A bare "CT angiography" names no region and is not
+# matched — a protocol names the region it orders.
+#
+# patterns: regular expressions per language, matched case-insensitively
+# against the lower-cased order name. "{SEP}" stands for any run of spaces,
+# hyphens and underscores. views: the study's views (empty = the modality's
+# default views for the body site); they pick the procedure code.
+
+metadata:
+  kind: reference
+  name: Imaging exam names by region
+  description: >
+    Order-name patterns of region- or indication-specific imaging studies
+    (Issue #3113), matched before the generic patterns of inference.py.
+
+studies:
+  - modality: CT
+    body_site: chest
+    views: [angiography]
+    patterns:
+      en: ["ct{SEP}pulmonary{SEP}angio(?:graphy|gram)", "ctpa", "ct{SEP}angiography{SEP}chest"]
+      ja: ["肺動脈{SEP}ct"]
+  - modality: CT
+    body_site: abdomen_pelvis
+    views: [angiography]
+    patterns:
+      en: ["ct{SEP}angiography{SEP}abdomen{SEP}(?:and{SEP})?pelvis"]
+  - modality: CT
+    body_site: head
+    views: [angiography]
+    patterns:
+      en: ["ct{SEP}angiography{SEP}head"]
+  - modality: CT
+    body_site: head
+    views: [perfusion]
+    patterns:
+      en: ["ct{SEP}perfusion"]
+      ja: ["(?:脳{SEP})?ct{SEP}灌流"]
+  - modality: CT
+    body_site: cervical_spine
+    views: []
+    patterns:
+      en: ["(?:cervical{SEP}spine|c{SEP}spine){SEP}ct", "ct{SEP}cervical{SEP}spine"]
+      ja: ["頸椎{SEP}ct"]
+  - modality: CT
+    body_site: hand
+    views: []
+    patterns:
+      en: ["hand{SEP}ct", "ct{SEP}hand"]
+      ja: ["手部{SEP}ct"]
+  - modality: CT
+    body_site: wrist
+    views: []
+    patterns:
+      en: ["wrist{SEP}ct", "ct{SEP}wrist"]
+      ja: ["手関節{SEP}ct"]
+  - modality: CT
+    body_site: whole_body
+    views: []
+    patterns:
+      en: ["ct{SEP}whole{SEP}body", "whole{SEP}body{SEP}ct"]
+      ja: ["全身{SEP}ct"]
+  - modality: CT
+    body_site: chest_abdomen_pelvis
+    views: []
+    patterns:
+      en: ["ct{SEP}chest{SEP}(?:and{SEP})?abdomen{SEP}(?:and{SEP})?pelvis"]
+      ja: ["胸腹部{SEP}(?:・{SEP})?骨盤{SEP}ct"]
+  - modality: CR
+    body_site: pelvis
+    views: []
+    patterns:
+      en: ["pelvi[sc]{SEP}x{SEP}?ray"]
+      ja: ["骨盤{SEP}(?:x{SEP}(?:線|p)|レントゲン)"]
+  - modality: US
+    body_site: abdomen
+    views: [RUQ, LUQ, pelvic, subxiphoid]
+    patterns:
+      en: ["fast{SEP}(?:ultrasound|us|exam)"]
+      ja: ["fast{SEP}エコー"]
+  - modality: US
+    body_site: leg
+    views: []
+    patterns:
+      en: ["compression{SEP}ultrasound"]
+      ja: ["下肢{SEP}圧迫{SEP}エコー"]
+  - modality: US
+    body_site: heart
+    views: [midesophageal_4_chamber, transgastric_short_axis]
+    patterns:
+      en: ["^tee(?:{SEP}.*)?$", "transesophageal{SEP}echo"]
+      ja: ["経食道{SEP}心?エコー"]
+  - modality: RF
+    body_site: hypopharynx
+    views: []
+    patterns:
+      en: ["video{SEP}fluoroscopic{SEP}swallow", "vfss"]
+      ja: ["嚥下造影"]

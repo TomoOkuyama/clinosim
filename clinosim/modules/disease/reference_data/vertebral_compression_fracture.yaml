@@ -178,7 +178,7 @@ order_protocols:
       actions:
         - {type: "lab", test: "Protein_electrophoresis"}
         - {type: "lab", test: "PSA_if_male"}
-        - {type: "imaging", test: "CT_chest_abdomen_pelvis"}
+        - {type: "imaging", test: "CT_chest_abdomen_pelvis_with_contrast"}
         - {type: "consult", target: "oncology"}
 
   discharge_criteria:
@@ -615,7 +615,7 @@ course_archetypes:
     order_modifications:
       day_2:
         add_labs: ["D_dimer", "Troponin", "ABG"]
-        add_imaging: ["CT_angiography"]
+        add_imaging: ["CT_pulmonary_angiography"]
     treatment_modifications:
       day_2:
         start:

@@ -73,7 +73,7 @@ def test_modalities_rejections(break_it: _Break, message: str) -> None:
         (lambda d: d["body_sites"]["chest"].update({"snomed": "99999999999"}), "99999999999"),
         (lambda d: d["body_sites"]["chest"].pop("procedure_codes"), "procedure_codes"),
         (lambda d: d["body_sites"]["chest"].update({"procedure_codes": {}}), "procedure_codes"),
-        (lambda d: next(iter(d["body_sites"]["chest"]["procedure_codes"].values())).pop("cpt"), "cpt"),
+        (lambda d: next(iter(d["body_sites"]["chest"]["procedure_codes"].values())).update({"cpt": ""}), "cpt"),
         (lambda d: next(iter(d["body_sites"]["chest"]["procedure_codes"].values())).update({"loinc": ""}), "loinc"),
         (
             lambda d: next(iter(d["body_sites"]["chest"]["procedure_codes"].values())).pop("jp_k_code"),

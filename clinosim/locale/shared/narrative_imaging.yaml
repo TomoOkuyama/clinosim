@@ -124,3 +124,18 @@ imaging:
   orbital_ct: {en: orbital CT, ja: 眼窩 CT}
   fundus_photography: {en: fundus photography, ja: 眼底写真}
   bilateral_mammography: {en: bilateral mammography, ja: 両側マンモグラフィ}
+  # --- Protocol imaging names without an entry (Issue #3113) ---
+  ct_angiography_abdomen_pelvis: {en: CT angiography abdomen/pelvis, ja: 腹部・骨盤 CT アンギオ}
+  ct_angiography_head_neck_repeat: {en: CT angiography head/neck (repeat), ja: 頭頸部 CT アンギオ (再検)}
+  ct_pulmonary_angiography_repeat: {en: CT pulmonary angiography (repeat), ja: 肺動脈 CT アンギオ (再検)}
+  ct_abdomen_with_contrast: {en: CT abdomen (with contrast), ja: 腹部 CT (造影)}
+  ct_abdomen_pelvis_with_contrast_repeat: {en: CT abdomen/pelvis (with contrast, repeat), ja: 腹部・骨盤 CT (造影・再検)}
+  ct_chest_abdomen_pelvis_with_contrast: {en: CT chest/abdomen/pelvis (with contrast), ja: 胸腹部・骨盤 CT (造影)}
+  ct_head_stat: {en: head CT (stat), ja: 頭部 CT (緊急)}
+  ct_head_noncontrast_stat: {en: head CT (non-contrast, stat), ja: 頭部 CT (単純・緊急)}
+  head_ct: {en: head CT, ja: 頭部 CT}
+  echocardiography_repeat: {en: echocardiogram (repeat), ja: 心エコー (再検)}
+  echocardiography_urgent: {en: echocardiogram (urgent), ja: 心エコー (緊急)}
+  spine_mri_repeat: {en: spine MRI (repeat), ja: 脊椎 MRI (再検)}
+  spine_mri_urgent: {en: spine MRI (urgent), ja: 脊椎 MRI (緊急)}
+  spine_xray_repeat: {en: spine X-ray (repeat), ja: 脊椎レントゲン (再検)}

@@ -322,6 +322,16 @@ codes:
   '51185008':
     en: Thoracic structure
     ja: 胸部
+  # Issue #3113: imaged body sites (tx.fhir.org $lookup 2026-11-10, active).
+  '12921003':
+    en: Pelvic structure
+    ja: 骨盤
+  '22943007':
+    en: Trunk structure
+    ja: 体幹
+  '81502006':
+    en: Hypopharyngeal structure
+    ja: 下咽頭
   # Issue #2870: imaged body site of a mammogram (tx.fhir.org $lookup 2026-11-08).
   '76752008':
     en: Breast structure

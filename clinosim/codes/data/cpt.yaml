@@ -274,3 +274,34 @@ codes:
     en: Radiologic examination, spine, lumbosacral; 2 or 3 views
     ja: 腰仙椎X線撮影（2-3方向）
 
+  # Issue #3113: imaging studies of the disease protocols (body_sites.yaml).
+  # Each code checked in the CMS Physician Fee Schedule relative value file
+  # RVU26D (PPRRVU2026_Oct, released 2026-08-26); its short descriptor is
+  # quoted per code.
+  '71275':                                     # CMS PFS: "Ct angiography chest"
+    en: Computed tomographic angiography, chest (noncoronary), with contrast material(s)
+    ja: 胸部CTアンギオグラフィ（造影）
+  '72125':                                     # CMS PFS: "Ct neck spine w/o dye"
+    en: Computed tomography, cervical spine; without contrast material
+    ja: 頸椎CT（造影なし）
+  '72170':                                     # CMS PFS: "X-ray exam of pelvis"
+    en: Radiologic examination, pelvis; 1 or 2 views
+    ja: 骨盤X線撮影（1〜2方向）
+  '73200':                                     # CMS PFS: "Ct upper extremity w/o dye"
+    en: Computed tomography, upper extremity; without contrast material
+    ja: 上肢CT（造影なし）
+  '73701':                                     # CMS PFS: "Ct lower extremity w/dye"
+    en: Computed tomography, lower extremity; with contrast material(s)
+    ja: 下肢CT（造影あり）
+  '74174':                                     # CMS PFS: "Cta abd&plvs w/contrast"
+    en: Computed tomographic angiography, abdomen and pelvis, with contrast material(s)
+    ja: 腹部・骨盤CTアンギオグラフィ（造影）
+  '74230':                                     # CMS PFS: "X-ray xm swlng funcj c+"
+    en: Swallowing function, with cineradiography/videoradiography
+    ja: 嚥下造影検査
+  '76705':                                     # CMS PFS: "Echo exam of abdomen"
+    en: Ultrasound, abdominal, real time with image documentation; limited
+    ja: 腹部超音波検査（限定的）
+  '93312':                                     # CMS PFS: "Echo transesophageal"
+    en: Echocardiography, transesophageal, real-time with image documentation (2D)
+    ja: 経食道心エコー

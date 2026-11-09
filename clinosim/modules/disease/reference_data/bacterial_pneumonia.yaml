@@ -645,7 +645,7 @@ course_archetypes:
     order_modifications:
       day_2:
         add_labs: ["ABG", "Lactate", "Blood_culture_x2", "D_dimer", "Troponin"]
-        add_imaging: ["CT_angiography"]
+        add_imaging: ["CT_pulmonary_angiography"]
     treatment_modifications:
       day_2:
         stop: ["Ampicillin/Sulbactam"]

@@ -169,7 +169,8 @@ def test_ed_workup_lifts_orders_labs_and_imaging_ja() -> None:
     assert "検査: " in text
     assert "CBC" in text and "BMP" in text
     assert "画像: " in text
-    assert "Chest XR" in text and "Head CT" in text
+    # Issue #3113: "Head CT" has a Japanese display; "Chest XR" has none yet.
+    assert "Chest XR" in text and "頭部 CT" in text
     assert "ctx.orders.ed" in facts
 
 

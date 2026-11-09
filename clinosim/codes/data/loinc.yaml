@@ -1017,6 +1017,50 @@ codes:
   42272-5:
     en: XR Chest PA and Lateral
     ja: 胸部単純X線撮影 PA・側面
+  # Issue #3113: the studies disease protocols order (tx.fhir.org $lookup
+  # 2026-11-10, all ACTIVE).
+  79077-4:
+    en: CTA Pulmonary arteries for pulmonary embolus W contrast IV
+    ja: 肺動脈CTアンギオグラフィ（肺塞栓症評価、造影）
+  69908-2:
+    en: CTA Abdominal vessels and Pelvis vessels W contrast IV
+    ja: 腹部・骨盤CTアンギオグラフィ（造影）
+  39142-5:
+    en: CT perfusion Head W contrast IV
+    ja: 頭部CT灌流画像（造影）
+  30592-0:
+    en: CT Cervical spine WO contrast
+    ja: 頸椎CT（単純）
+  37459-5:
+    en: CT Wrist WO contrast
+    ja: 手関節CT（単純）
+  36477-8:
+    en: CT Hand WO contrast
+    ja: 手部CT（単純）
+  30624-1:
+    en: CT Lower extremity W contrast IV
+    ja: 下肢CT（造影）
+  46306-7:
+    en: CT Whole body W contrast IV
+    ja: 全身CT（造影）
+  37622-8:
+    en: XR Pelvis AP
+    ja: 骨盤単純X線撮影 正面
+  30704-1:
+    en: US Abdomen limited
+    ja: 腹部超音波検査（限定的）
+  85475-2:
+    en: US Heart Transesophageal
+    ja: 経食道心エコー図検査
+  24682-7:
+    en: RF videography Hypopharynx and Esophagus Views W liquid and paste contrast PO during swallowing
+    ja: 嚥下造影検査
+  72254-6:
+    en: CT Chest and Abdomen and Pelvis W contrast IV
+    ja: 胸部・腹部・骨盤CT（造影）
+  72253-8:
+    en: CT Chest and Abdomen and Pelvis WO contrast
+    ja: 胸部・腹部・骨盤CT（単純）
   # Issue #2870: screening mammography (tx.fhir.org $lookup 2026-11-08).
   24606-6:
     en: MG Breast Screening

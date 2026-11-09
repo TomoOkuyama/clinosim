@@ -751,7 +751,7 @@ course_archetypes:
       renal_function: {0: -0.02, 1: -0.01, 2: 0.00, 3: 0.00, 5: 0.00, 7: 0.01, 10: 0.01, 14: 0.00, 21: 0.00, 28: 0.00}
     order_modifications:
       day_1:
-        add_imaging: ["CT_angiography_repeat", "CT_perfusion"]
+        add_imaging: ["CT_angiography_head_neck_repeat", "CT_perfusion"]
         add_consult: ["interventional_neuroradiology"]
       day_3:
         add_imaging: ["MRI_brain"]
