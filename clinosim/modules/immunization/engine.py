@@ -11,11 +11,13 @@ import hashlib
 from datetime import date, timedelta
 from functools import lru_cache
 from pathlib import Path
+from typing import Any, NamedTuple
 
 import numpy as np
 
 from clinosim.age_bands import lookup_age_band
 from clinosim.datafiles import load_data_yaml
+from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import is_jp, is_us
 
 # ---------------------------------------------------------------------------
@@ -349,26 +351,88 @@ def licensed_from_by_cvx(schedule: dict, dob: date | None) -> dict[str, date]:
     return out
 
 
-def min_interval_days_by_cvx(schedule: dict) -> dict[str, dict[int, tuple[int, int]]]:
-    """CVX (the entry's and its products') → ``{dose_number: (reference dose,
-    minimum days)}`` of each pediatric series dose that declares
-    ``min_interval_days`` (Issue #3001). The interval counts from the
-    previous dose unless the dose names ``min_interval_after_dose``."""
-    out: dict[str, dict[int, tuple[int, int]]] = {}
+class DoseInterval(NamedTuple):
+    """Interval rule of one pediatric series dose (Issues #3001 / #3006): at
+    least ``min_days`` (and, when set, at most ``max_days``) after dose
+    ``after_dose`` of the same series."""
+
+    after_dose: int
+    min_days: int
+    max_days: int | None = None
+
+
+def dose_intervals_by_cvx(schedule: dict) -> dict[str, dict[int, DoseInterval]]:
+    """CVX (the entry's and its products') → ``{dose_number: DoseInterval}``
+    of each pediatric series dose that declares ``min_interval_days`` (and
+    optionally ``max_interval_days``). The interval counts from the previous
+    dose unless the dose names ``min_interval_after_dose``."""
+    out: dict[str, dict[int, DoseInterval]] = {}
     for v in schedule.values():
         if v.get("frequency") != "pediatric_series":
             continue
-        rules: dict[int, tuple[int, int]] = {}
+        rules: dict[int, DoseInterval] = {}
         for dose in v.get("doses") or []:
-            if dose.get("min_interval_days") is None:
-                continue
-            number = int(dose["dose_number"])
-            rules[number] = (int(dose.get("min_interval_after_dose", number - 1)), int(dose["min_interval_days"]))
+            rule = _dose_interval(dose)
+            if rule is not None:
+                rules[int(dose["dose_number"])] = rule
         if not rules:
             continue
         for cvx in {str(v["cvx"])} | {str(p["cvx"]) for p in v.get("products") or []}:
             out.setdefault(cvx, {}).update(rules)
     return out
+
+
+def _dose_interval(dose: dict) -> DoseInterval | None:
+    if dose.get("min_interval_days") is None:
+        return None
+    number = int(dose["dose_number"])
+    top = dose.get("max_interval_days")
+    return DoseInterval(
+        int(dose.get("min_interval_after_dose", number - 1)),
+        int(dose["min_interval_days"]),
+        None if top is None else int(top),
+    )
+
+
+def series_allows(imm: Any, day: date, imm_recs: list, intervals: dict[int, DoseInterval] | None) -> bool:
+    """Whether ``imm`` may be given on ``day`` beside the other completed
+    doses of its vaccine in ``imm_recs`` (Issues #3001 / #3006): never two
+    doses of one vaccine on one day, the series in dose order, and each
+    interval rule kept — from the earlier dose it counts from, and from this
+    dose to a later one."""
+    cvx = str(_get(imm, "vaccine_cvx", "") or "")
+    number = _get(imm, "dose_number", None)
+    dates: dict[int, date] = {}
+    for other in imm_recs:
+        if other is imm or str(_get(other, "vaccine_cvx", "") or "") != cvx:
+            continue
+        if str(_get(other, "status", "completed") or "completed") != "completed":
+            continue
+        occ = _get(other, "occurrence_date", None)
+        if not isinstance(occ, date):
+            continue
+        if occ == day:
+            return False
+        other_number = _get(other, "dose_number", None)
+        if number is None or other_number is None:
+            continue
+        if (other_number < number) != (occ < day):
+            return False
+        dates[int(other_number)] = occ
+    if number is None or not intervals:
+        return True
+    own = intervals.get(int(number))
+    if own is not None and own.after_dose in dates and not _within(day, dates[own.after_dose], own):
+        return False
+    for later, rule in intervals.items():
+        if rule.after_dose == number and later in dates and not _within(dates[later], day, rule):
+            return False
+    return True
+
+
+def _within(day: date, ref: date, rule: DoseInterval) -> bool:
+    gap = (day - ref).days
+    return gap >= rule.min_days and (rule.max_days is None or gap <= rule.max_days)
 
 
 def flu_vaccine_licensed_on(country: str, dob: date | None, on: date) -> bool:
@@ -421,15 +485,20 @@ def product_cvx(vaccine: dict, on: date) -> str:
 def _after_earlier_doses(occ: date, dose: dict, dose_num: int | None, given_on: dict[int, date]) -> date:
     """``occ`` moved, when needed, to keep the dose after the series' earlier
     doses (Issue #3001): at least ``min_interval_days`` after the dose it
-    counts from (``min_interval_after_dose``, default the previous one) and
-    at least a day after every earlier dose."""
+    counts from (``min_interval_after_dose``, default the previous one),
+    no later than ``max_interval_days`` after it when set (Issue #3006),
+    and at least a day after every earlier dose."""
     if dose_num is None or not given_on:
         return occ
     earliest = max(given_on.values()) + timedelta(days=1)
-    if dose.get("min_interval_days") is not None:
-        ref = int(dose.get("min_interval_after_dose", dose_num - 1))
-        if ref in given_on:
-            earliest = max(earliest, given_on[ref] + timedelta(days=int(dose["min_interval_days"])))
+    rule = _dose_interval(dose)
+    if rule is not None and rule.after_dose in given_on:
+        ref = given_on[rule.after_dose]
+        earliest = max(earliest, ref + timedelta(days=rule.min_days))
+        # Issue #3006: a dose with a maximum interval (JP Japanese
+        # encephalitis 1期初回 2回目: 6-28 days) comes no later than it.
+        if rule.max_days is not None:
+            occ = min(occ, ref + timedelta(days=rule.max_days))
     return max(occ, earliest)
 
 

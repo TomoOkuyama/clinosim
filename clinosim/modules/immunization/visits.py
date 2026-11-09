@@ -43,9 +43,11 @@ from clinosim.modules.immunization.engine import (
     _age_on,
     _coverage,
     _parse,
+    dose_intervals_by_cvx,
     flu_season_of,
     licensed_on,
     product_cvx,
+    series_allows,
     synthetic_lot_number,
 )
 
@@ -264,6 +266,10 @@ def _bind_pediatric(imms: list, visits: list[VaccinationVisit], patient: Any, sc
     imms = list(imms)
     hosted: set[int] = set()
     visit_ids = {v.encounter_id for v in visits}
+    # Issue #3006: a visit gives a dose only where the series' interval
+    # rules allow it (a visit inside the next dose's age window can come too
+    # soon after the previous dose: the JP windows touch).
+    intervals = dose_intervals_by_cvx(schedule)
 
     def _is(imm: Any, vaccine: dict, dose_number: int | None) -> bool:
         return _get(imm, "dose_number", None) == dose_number and str(_get(imm, "vaccine_cvx", "")) in _cvx_codes(
@@ -304,6 +310,8 @@ def _bind_pediatric(imms: list, visits: list[VaccinationVisit], patient: Any, sc
                 )
                 if (id(existing) in hosted or bound_to) and not same_day_elsewhere:
                     continue
+                if not series_allows(existing, visit.day, imms, intervals.get(str(vaccine["cvx"]))):
+                    continue
                 _give_at(existing, vaccine, visit)
                 hosted.add(id(existing))
                 given_here.add(id(vaccine))
@@ -311,6 +319,8 @@ def _bind_pediatric(imms: list, visits: list[VaccinationVisit], patient: Any, sc
             on_track = dose_number == 1 or any(_is(i, vaccine, dose_number - 1) and _completed(i) for i in others)
             if on_track:
                 new = _new_dose(vaccine, visit, nurse, dose_number)
+                if not series_allows(new, visit.day, imms, intervals.get(str(vaccine["cvx"]))):
+                    continue
                 imms.append(new)
                 hosted.add(id(new))
                 given_here.add(id(vaccine))
