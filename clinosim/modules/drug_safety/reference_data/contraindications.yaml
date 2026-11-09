@@ -48,6 +48,15 @@ rules:
       ja: "抗凝固薬と NSAID の併用は消化管出血リスクを 3-4 倍に上昇。アセトアミノフェン等の代替を選択。"
     substitution_hint: pain_management
     source: "BMJ 2011;343:d4094"
+    # Issue #3003: heparin (unfractionated or low-molecular-weight) with
+    # low-dose antiplatelet aspirin is the standard regimen of acute coronary
+    # syndrome and PCI; the bleeding caution concerns analgesic NSAIDs.
+    # Aspirin with an oral anticoagulant stays caught (this rule for DOACs,
+    # vka-plus-antiplatelet for warfarin).
+    exempt:
+      - lhs: anticoagulant.heparin
+        rhs: antiplatelet
+        source: "2025 ACC/AHA/ACEP/NAEMSP/SCAI ACS guideline; JCS 2018 急性冠症候群ガイドライン"
 
   - id: bb-plus-non-dhp-ccb
     lhs: beta_blocker
@@ -89,6 +98,19 @@ rules:
       ja: "DOAC とワルファリンは併用しない。切替時は INR を見て一方を中止してから他方を開始する。"
     substitution_hint: null
     source: "EHRA 2021 practical guide on NOAC use in AF"
+
+  # Issue #3003: with heparin no longer avoided beside aspirin, an ACS
+  # patient on therapeutic unfractionated heparin must not also get
+  # prophylactic enoxaparin: two heparins are one anticoagulant given twice.
+  - id: heparin-plus-heparin
+    lhs: anticoagulant.heparin
+    rhs: anticoagulant.heparin
+    severity: contraindicated
+    rationale:
+      en: "Unfractionated heparin and a low-molecular-weight heparin are not given together; a patient on therapeutic heparin needs no prophylactic dose, and a switch stops one before the other starts."
+      ja: "未分画ヘパリンと低分子ヘパリンは併用しない。治療量のヘパリン投与中は予防投与を行わず、切替時は一方を中止してから他方を開始する。"
+    substitution_hint: null
+    source: "ACCP CHEST 2012 antithrombotic therapy (VTE prevention, parenteral anticoagulants); enoxaparin prescribing information"
 
   # Issue #2707: dual RAAS blockade.
   - id: acei-plus-arb

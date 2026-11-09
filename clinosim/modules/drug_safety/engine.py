@@ -83,6 +83,12 @@ def _load_rules() -> list[dict[str, Any]]:
     return list(_contraindications_file().get("rules", []))
 
 
+def _exempt(rule: dict[str, Any], lhs_side: set[str], rhs_side: set[str]) -> bool:
+    """True when the drug pair is one the rule's ``exempt`` list excludes
+    (Issue #3003: heparin with antiplatelet aspirin)."""
+    return any(ex["lhs"] in lhs_side and ex["rhs"] in rhs_side for ex in rule.get("exempt") or ())
+
+
 def _match_rule(classes_a: list[str], classes_b: list[str]) -> SafetyVerdict:
     """Return the highest-severity SafetyVerdict for (classes_a, classes_b)."""
     set_a = set(classes_a)
@@ -92,8 +98,8 @@ def _match_rule(classes_a: list[str], classes_b: list[str]) -> SafetyVerdict:
     for rule in _load_rules():
         lhs = rule["lhs"]
         rhs = rule["rhs"]
-        hit_forward = lhs in set_a and rhs in set_b
-        hit_reverse = lhs in set_b and rhs in set_a
+        hit_forward = lhs in set_a and rhs in set_b and not _exempt(rule, set_a, set_b)
+        hit_reverse = lhs in set_b and rhs in set_a and not _exempt(rule, set_b, set_a)
         if not (hit_forward or hit_reverse):
             continue
         severity: Severity = rule["severity"]

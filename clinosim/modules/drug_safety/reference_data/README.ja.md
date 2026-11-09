@@ -63,6 +63,10 @@ rules:
       ja: "<日本語訳>"
     substitution_hint: <任意の indication tag。代替薬が無ければ null>
     source: "<出典: ガイドライン / DDI データベース / 教科書>"
+    exempt:                        # 任意 (Issue #3003): rule を適用しない組み合わせ
+      - lhs: <lhs 側の薬剤の class>
+        rhs: <rhs 側の薬剤の class>
+        source: "<出典>"
 
 discharge_reconciliation_rules: [<rule id>, ...]   # 退院処方で reconcile する rule (Issue #2713)
 
@@ -80,6 +84,9 @@ triple_therapy_after_acs:          # ACS 後に抗凝固薬 + DAPT で退院す�
 照合:
 - **順序非依存**: `check_pair(A, B) == check_pair(B, A)`。
 - **複数 rule hit**: 最も severity の高い rule を採用。
+- **除外**: rule の `exempt` に一致する組み合わせ (`lhs` / `rhs` と同じ向き) は
+  その rule に hit しない。例: `anticoagulant-plus-nsaid` でのヘパリンと
+  抗血小板薬アスピリン。
 
 `substitution_hint` は、`suggest_alternative` が
 `drug_substitution.yaml` または疾患 YAML の `alternative_*` block

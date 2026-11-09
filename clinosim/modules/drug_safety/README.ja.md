@@ -149,7 +149,8 @@ YAML 6 ファイル + 薬剤カタログ:
 - 薬剤 class と alias: 薬剤カタログ
   (`clinosim/codes/data/drugs.yaml`、`clinosim.codes.drugs` 経由で読む)。
 - `reference_data/contraindications.yaml` — class × class rule
-  (18 rule: VKA+抗血小板薬、DOAC+P2Y12、抗凝固薬+NSAID、
+  (19 rule: VKA+抗血小板薬、DOAC+P2Y12、抗凝固薬+NSAID (ヘパリンと
+  抗血小板薬アスピリンは除外、Issue #3003)、ヘパリン+ヘパリン、
   β遮断薬+非DHP CCB、P2Y12+P2Y12、statin+statin、DOAC+VKA、
   ACEi+ARB、ACEi/ARB+K、ACEi/ARB+K 保持性利尿薬、statin+強力
   CYP3A4 阻害薬、allopurinol+thiopurine、SSRI+MAOI、SSRI+SNRI、

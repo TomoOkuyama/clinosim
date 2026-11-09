@@ -299,6 +299,7 @@ _.severity_to_triage_distribution  # triage/engine.py TriageProtocols
 _.arrival_mode_base_distribution  # triage/engine.py TriageProtocols
 _.resource_rule  # reference-YAML model field (Issue #2864)
 _.level_by_count  # reference-YAML model field (Issue #2864)
+_.exempt  # modules/drug_safety/_models.py _InteractionRule (Pydantic field; read from the YAML dict in engine._exempt, Issue #3003)
 _.parenteral_routes  # reference-YAML model field (Issue #2864)
 _.non_resource_procedures  # reference-YAML model field (Issue #2864)
 
