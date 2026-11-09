@@ -1,11 +1,17 @@
-"""Weight-based doses of ED orders for children (Issue #2857, #2977).
+"""Weight-based doses for children (Issue #2857, #2977, #3004).
 
-ED protocols write adult fixed strengths ("Acetaminophen 500mg") and fixed
-fluid boluses ("IV normal saline 1000mL"). For a patient under
-``adult_age_years`` a listed drug is re-dosed from the weight
-(``pediatric_dosing.yaml``) and not given below its minimum age; a listed
-fluid's bolus becomes ``ml_per_kg`` × weight, never more than the written
-adult volume.
+Protocols write adult fixed strengths ("Acetaminophen 500mg"), fixed fluid
+boluses ("IV normal saline 1000mL") and adult maintenance rates ("NS 80-125
+mL/h"). For a patient under ``adult_age_years`` (``pediatric_dosing.yaml``):
+
+- ED orders and take-home prescriptions (``pediatric_order_name``): a listed
+  drug is re-dosed from the weight and not given below its minimum age; a
+  listed fluid's bolus becomes ``ml_per_kg`` × weight, never more than the
+  written adult volume.
+- Inpatient orders and discharge prescriptions (``redose_order_for_child``,
+  ``pediatric_dose_text``, Issue #3004): a listed drug's mg dose becomes
+  ``mg_per_kg`` × weight and a listed fluid's maintenance rate the
+  Holliday-Segar rate, never more than the written adult dose or rate.
 """
 
 from __future__ import annotations
@@ -24,6 +30,8 @@ from clinosim.datafiles import load_validated_yaml
 _REF = Path(__file__).resolve().parent / "reference_data" / "pediatric_dosing.yaml"
 _STRENGTH = re.compile(r"(\d+(?:\.\d+)?)\s*mg\b", re.IGNORECASE)
 _VOLUME = re.compile(r"(\d+(?:\.\d+)?)\s*(mL|L)\b", re.IGNORECASE)
+# An hourly rate as written, a range ("80-125 mL/h") or one value.
+_RATE = re.compile(r"\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?\s*mL/h\b", re.IGNORECASE)
 
 
 class _PediatricDose(BaseModel):
@@ -38,6 +46,12 @@ class _PediatricFluid(BaseModel):
     ml_per_kg: float = Field(gt=0)
 
 
+class _HollidaySegarBand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    up_to_kg: float | None = Field(default=None, gt=0)  # None: every further kg
+    ml_per_kg_per_h: float = Field(gt=0)
+
+
 class PediatricDosingFile(BaseModel):
     """Shape of ``pediatric_dosing.yaml``."""
 
@@ -47,6 +61,7 @@ class PediatricDosingFile(BaseModel):
     fluids: dict[str, _PediatricFluid] = Field(default_factory=dict)
     # Upper-case country code -> drug -> rule replacing ``drugs`` (Issue #3012).
     country_overrides: dict[str, dict[str, _PediatricDose]] = Field(default_factory=dict)
+    maintenance_fluid_bands: list[_HollidaySegarBand] = Field(min_length=1)
 
 
 @cache
@@ -55,6 +70,8 @@ def _table() -> dict[str, Any]:
 
 
 def _rounded(mg: float) -> str:
+    if mg < 1:  # e.g. epinephrine 0.01 mg/kg, drawn up to 0.01 mg
+        return f"{round(mg, 2):g}"
     if mg < 10:
         return f"{round(mg, 1):g}"
     return str(int(round(mg)))
@@ -71,6 +88,13 @@ def _fluid_bolus_name(name: str, ml_per_kg: float, weight_kg: float | None) -> s
     return name[: m.start()] + f"{ml:g}mL" + name[m.end() :]
 
 
+def _drug_rule(key: str, country: str) -> dict[str, Any] | None:
+    """The dosing rule of drug ``key``: the country's ``country_overrides``
+    rule, else the shared one (Issue #3012)."""
+    table = _table()
+    return (table.get("country_overrides") or {}).get(country_code(country), {}).get(key) or table["drugs"].get(key)
+
+
 def pediatric_order_name(name: str, age_months: int, weight_kg: float | None, country: str = "US") -> str | None:
     """``name`` re-dosed for a child, unchanged for an adult or an unlisted drug,
     or None when the child is below the drug's minimum age. A country's
@@ -82,7 +106,7 @@ def pediatric_order_name(name: str, age_months: int, weight_kg: float | None, co
     fluid = (table.get("fluids") or {}).get(key)
     if fluid is not None:
         return _fluid_bolus_name(name, float(fluid["ml_per_kg"]), weight_kg)
-    rule = (table.get("country_overrides") or {}).get(country_code(country), {}).get(key) or table["drugs"].get(key)
+    rule = _drug_rule(key, country)
     if rule is None:
         return name
     if age_months < int(rule["min_age_months"]):
@@ -91,3 +115,80 @@ def pediatric_order_name(name: str, age_months: int, weight_kg: float | None, co
         return name
     mg = min(float(rule["mg_per_kg"]) * float(weight_kg), float(rule["max_mg"]))
     return _STRENGTH.sub(f"{_rounded(mg)}mg", name, count=1)
+
+
+def pediatric_adult_age_months() -> int:
+    """Age in months from which the adult (written) doses apply."""
+    return int(_table()["adult_age_years"]) * 12
+
+
+def maintenance_fluid_ml_per_h(weight_kg: float) -> int:
+    """Hourly maintenance fluid rate (whole mL/h) for ``weight_kg`` by the
+    Holliday-Segar rule (``maintenance_fluid_bands``)."""
+    rate, below = 0.0, 0.0
+    for band in _table()["maintenance_fluid_bands"]:
+        top = band.get("up_to_kg")
+        kg = max(0.0, (float(weight_kg) if top is None else min(float(weight_kg), float(top))) - below)
+        rate += kg * float(band["ml_per_kg_per_h"])
+        if top is None or weight_kg <= top:
+            break
+        below = float(top)
+    return int(round(rate))
+
+
+def _child_mg(key: str, written_mg: float, age_months: int, weight_kg: float | None, country: str) -> float | None:
+    """A child's dose (mg) of drug ``key`` written as ``written_mg`` for an
+    adult, or None when it is not re-dosed (adult, unlisted drug, no weight).
+    Never more than the written dose."""
+    table = _table()
+    rule = _drug_rule(key, country)
+    if rule is None or age_months >= int(table["adult_age_years"]) * 12 or not weight_kg or weight_kg <= 0:
+        return None
+    mg = min(float(rule["mg_per_kg"]) * float(weight_kg), float(rule["max_mg"]), written_mg)
+    return float(_rounded(mg))
+
+
+def pediatric_dose_text(drug: str, dose: str, age_months: int, weight_kg: float | None, country: str = "US") -> str:
+    """A prescription's dose text (``"75mg PO BID"``) re-dosed for a child
+    (Issue #3004): its first mg strength becomes the child's dose. Unchanged
+    for an adult, an unlisted drug, or a dose not written in mg."""
+    m = _STRENGTH.search(dose or "")
+    if not m or (m.end() < len(dose) and dose[m.end()] == "/"):
+        return dose
+    mg = _child_mg(drug_key(drug), float(m.group(1)), age_months, weight_kg, country)
+    if mg is None:
+        return dose
+    return dose[: m.start()] + f"{mg:g}mg" + dose[m.end() :]
+
+
+def redose_order_for_child(order: Any, age_months: int, weight_kg: float | None, country: str = "US") -> None:
+    """Re-dose an inpatient medication order for a child in place (Issue
+    #3004): a listed drug written in mg gets ``mg_per_kg`` × weight, a listed
+    fluid's hourly rate the Holliday-Segar rate, never more than written.
+    The written strength in the order's name follows. Idempotent; adults,
+    unlisted drugs and per-kg orders are unchanged."""
+    table = _table()
+    if age_months >= int(table["adult_age_years"]) * 12 or not weight_kg or weight_kg <= 0:
+        return
+    if order.dose_quantity is None:
+        return
+    name = order.display_name or ""
+    key = drug_key(name) or str(getattr(order, "drug_id", "") or "")
+    unit = str(order.dose_unit or "")
+    if unit.lower() == "ml/h" and key in (table.get("fluids") or {}):
+        rate = float(min(maintenance_fluid_ml_per_h(weight_kg), order.dose_quantity))
+        if rate < order.dose_quantity:
+            order.dose_quantity = rate
+            order.display_name = _RATE.sub(f"{rate:g} mL/h", name, count=1)
+        return
+    if unit.lower() != "mg":
+        return
+    mg = _child_mg(
+        str(getattr(order, "drug_id", "") or key), float(order.dose_quantity), age_months, weight_kg, country
+    )
+    if mg is None or mg >= order.dose_quantity:
+        return
+    order.dose_quantity = mg
+    m = _STRENGTH.search(name)
+    if m and not (m.end() < len(name) and name[m.end()] == "/"):
+        order.display_name = name[: m.start()] + f"{mg:g}mg" + name[m.end() :]

@@ -105,8 +105,11 @@ from clinosim.simulator.discharge_gate import (
 )
 from clinosim.simulator.lab_pipeline import _run_lab_result_pipeline, patient_true_labs
 from clinosim.simulator.medication_pipeline import (
+    ChildDosing,
     _generate_mar,
     _place_chronic_monitoring_orders,
+    child_dosing,
+    dose_orders_for_child,
     generate_prn_administrations,
 )
 from clinosim.simulator.vitals_pipeline import (
@@ -271,6 +274,9 @@ class _Stay:
     max_los: int | None
     surgery: tuple[int, float] | None
     prior_procedures: list | None
+    # A minor's (age in months, weight at admission) for weight-based doses
+    # (Issue #3004); None for an adult.
+    child: ChildDosing | None = None
 
     @property
     def country(self) -> str:
@@ -1119,6 +1125,7 @@ def _run_daily_loop(
         max_los=max_los,
         surgery=surgery,
         prior_procedures=prior_procedures,
+        child=child_dosing(patient, encounter_id, admission_time, country_key),
     )
     run = _Run(
         state=state,
@@ -1173,6 +1180,7 @@ def _run_daily_loop(
                 roster=roster,
                 rng=rng,
                 potassium_hold=run.potassium_hold,
+                child=stay.child,
             )
         )
         _order_diet(stay, run, day)
@@ -1196,8 +1204,12 @@ def _run_daily_loop(
                 break
             los_ceiling += 1
 
+    orders = _gate_new_medication_orders(stay, admission_orders, run.orders, run.admission_order_ids)
+    # Orders placed after the last day's administrations (and substitutes of
+    # the gate) are a minor's weight-based doses too (Issue #3004).
+    dose_orders_for_child(orders, stay.child)
     return DailyLoopResult(
-        orders=_gate_new_medication_orders(stay, admission_orders, run.orders, run.admission_order_ids),
+        orders=orders,
         lab_results=run.lab_results,
         vitals=run.vitals,
         mars=run.mars,

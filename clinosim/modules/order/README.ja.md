@@ -150,6 +150,9 @@ from clinosim.modules.order.prescription_supersede import prescription_closures 
 
 # 小児 ED 投与量の体重換算 (Issue #2857)
 from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg, country="US") -> 再計算した名称 (成人 / 非掲載薬はそのまま) | None (最低年齢未満)
+from clinosim.modules.order.pediatric_dose import redose_order_for_child  # (order, age_months, weight_kg, country="US") -> None; 未成年の入院オーダーをその場で再計算 (Issue #3004)
+from clinosim.modules.order.pediatric_dose import pediatric_dose_text  # (drug, dose, age_months, weight_kg, country="US") -> 未成年の処方用量テキスト
+from clinosim.modules.order.pediatric_dose import maintenance_fluid_ml_per_h  # (weight_kg) -> Holliday-Segar の mL/h
 
 # 国別の添付文書用量上限 (Issue #3012)
 from clinosim.modules.order.label_dose import within_label  # (name, frequency, country) -> 添付文書内に収めた (name, frequency)
@@ -243,6 +246,10 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   `country_overrides.<CC>` は国別に薬剤の rule を置き換える (Issue #3012:
   JP のイブプロフェンはブルフェン添付文書に従い 4 mg/kg、1 回 200 mg まで、
   5 歳以上)。
+  入院 (Issue #3004): `redose_order_for_child` は未成年の入院中の薬剤オーダー
+  (掲載薬の mg 用量) と維持輸液 (掲載輸液の時間量、`maintenance_fluid_bands`
+  の Holliday-Segar 4-2-1 則) を入院時の体重で、`pediatric_dose_text` は
+  退院処方の用量を再計算する。いずれも成人の記載量・速度を超えない。
 - **添付文書の用量上限** ([`reference_data/label_dose_limits.yaml`](reference_data/label_dose_limits.yaml)、
   `label_dose.py` が読み、`LabelDoseLimitsFile` で検証): 国別・カタログ薬剤
   ごとの 1 回量・1 日回数・1 日最大量 (JP イブプロフェン 200 mg、1 日 3 回、
@@ -265,7 +272,7 @@ clinosim/modules/order/
   prescription_supersede.py          prescription_closures — FHIR export 時に持ち帰り処方の更新 / 供給終了で終了を決定 (Issue #2610)
   placed_order_mar.py                daily_times + stable_nurse + administrations_for — 日次 loop 外で発注された order の RNG-free MAR (Issue #2607)
   absolute_dose.py                   absolute_dose + body_surface_area + is_continuous_infusion + is_one_time_infusion — per-kg / per-m2 投与量の絶対量 (Issue #2750)、投与形態の判定 (Issue #3043)
-  pediatric_dose.py                  pediatric_order_name — 小児 ED 投与量の体重換算 (Issue #2857)
+  pediatric_dose.py                  pediatric_order_name / redose_order_for_child / pediatric_dose_text — 小児投与量の体重換算 (Issue #2857, #3004)
   label_dose.py                      within_label — 国別の添付文書用量上限 (Issue #3012)
   audit.py                           AD-60 audit plug-in (per-module) — 7-check lift_firing_proof + basedon_coverage
   _lab_result_timing.py              STAT / routine / 夜勤 定数 (Issue #637)
@@ -274,7 +281,7 @@ clinosim/modules/order/
   _state_delay_thresholds.py         hospital-state delay 定数 (Issue #637)
   reference_data/
     medication_supersede.yaml        supersede.py が読む class 切替 + PRN marker (Issue #2615, #2983)
-    pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢、輸液ごとの mL/kg、国別上書き (Issue #2857, #2977, #3012)
+    pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢、輸液ごとの mL/kg、国別上書き、Holliday-Segar 帯 (Issue #2857, #2977, #3012, #3004)
     label_dose_limits.yaml           label_dose.py が読む国別の 1 回量・1 日回数・1 日最大量 (Issue #3012)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
