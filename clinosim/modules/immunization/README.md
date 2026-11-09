@@ -210,6 +210,7 @@ encounter documents).
   | Key | Meaning |
   |---|---|
   | `cvx` | CDC CVX code (string). |
+  | `products` | Optional `[{cvx, from, until}]` (inclusive dates): the product in use on the dose date (`engine.product_cvx`; Issue #2629). US influenza / COVID-19 and JP COVID-19 (従来型 1価 CVX 208 to 2022-09-19, 2価 CVX 300 from 2022-09-20, CVX 309 from 2023-09-20; Issue #3014). `cvx` is the fallback. |
   | `min_age` | Minimum eligible age. |
   | `min_age_days` | Optional. Licensure floor in days from birth, checked on the dose date (Issue #2979: influenza 182 = 6 months). No dose, no vaccination-visit dose, no alignment onto an earlier encounter and no healthcare-calendar flu visit before it; an `annual` season month drawn before it moves to the season's first month after it. |
   | `frequency` | `"annual"`, `"once"`, `"every_n_years"`, or `"pediatric_series"`. |

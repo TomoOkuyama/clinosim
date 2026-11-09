@@ -186,6 +186,7 @@ attending は primary-care 医師 roster から決定論選出) を合成し、�
   | キー | 意味 |
   | --- | --- |
   | `cvx` | CDC CVX コード (文字列)。 |
+  | `products` | 任意の `[{cvx, from, until}]` (日付は両端含む): 接種日に使われていた製剤 (`engine.product_cvx`、Issue #2629)。US インフルエンザ / COVID-19 と JP COVID-19 (従来型 1価 CVX 208 は 2022-09-19 まで、2価 CVX 300 は 2022-09-20 から、CVX 309 は 2023-09-20 から。Issue #3014)。`cvx` は該当がないときの値。 |
   | `min_age` | 接種資格の最低年齢。 |
   | `min_age_days` | 任意。接種可能な下限 (出生からの日数、接種日で判定。Issue #2979: インフルエンザは 182 = 生後 6 か月)。これより前には接種も、予防接種受診での接種も、より早い encounter への snap も、healthcare calendar のインフルエンザ予防接種受診も無い。下限より前に引いた `annual` のシーズン月は、下限以降のシーズン最初の月へ移す。 |
   | `frequency` | `"annual"` / `"once"` / `"every_n_years"` / `"pediatric_series"`。 |
