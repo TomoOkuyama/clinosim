@@ -186,7 +186,7 @@ pytest tests/unit -k medication_monitoring -q
 - [`tests/unit/test_monitoring_intervals.py`](../../../tests/unit/test_monitoring_intervals.py)
   — `interval_months` スケジューリング (Issue #2143)。
 - [`tests/unit/test_monitoring_doac.py`](../../../tests/unit/test_monitoring_doac.py)
-  — DOAC → eGFR mapping。
+  — DOAC → eGFR (+ 年 1 回の Hb、Issue #2993) mapping。
 
 ## Ownership
 

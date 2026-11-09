@@ -95,11 +95,16 @@ I50:  # Heart failure
   visit_duration_minutes: 20
 
 I48:  # Atrial fibrillation
+  # Issue #2993: no routine INR. INR monitors warfarin only, and the
+  # medication monitoring table (monitoring/reference_data/
+  # medication_monitoring.yaml) draws it at every visit of a warfarin
+  # patient; a DOAC patient gets renal function / blood count from the same
+  # table (2023 ACC/AHA/ACCP/HRS AF guideline; 2021 EHRA practical guide).
   visit_reason:
-    en: "Anticoagulation management, INR check"
-    ja: "抗凝固療法管理・INR確認"
+    en: "Anticoagulation management"
+    ja: "抗凝固療法管理"
   follow_up_interval_months: 2
-  labs: [PT_INR]
+  labs: []
   vitals: [systolic_bp, diastolic_bp, heart_rate]
   prescriptions_renewed: true
   visit_duration_minutes: 15

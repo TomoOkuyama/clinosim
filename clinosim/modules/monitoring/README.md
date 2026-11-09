@@ -196,7 +196,7 @@ Individual files:
 - [`tests/unit/test_monitoring_intervals.py`](../../../tests/unit/test_monitoring_intervals.py)
   — `interval_months` scheduling (Issue #2143).
 - [`tests/unit/test_monitoring_doac.py`](../../../tests/unit/test_monitoring_doac.py)
-  — DOAC → eGFR mapping.
+  — DOAC → eGFR (+ yearly Hb, Issue #2993) mapping.
 
 ## Ownership
 

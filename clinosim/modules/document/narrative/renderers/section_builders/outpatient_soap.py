@@ -38,6 +38,7 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import display as registry_display
+from clinosim.codes.drugs import medication_matches
 from clinosim.codes.icd10 import icd10_system
 from clinosim.codes.valuesets import concept_group, iter_chronic_codes
 from clinosim.countries import country_code, has_authored_narrative
@@ -784,13 +785,17 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
 
         # ── I48: Atrial fibrillation / flutter ─────────────────────
         # Anticoagulation is the primary monitoring axis. INR is the
-        # therapeutic marker for warfarin (2.0-3.0 for non-valvular
-        # AFib per ACC/AHA + JCS guidelines); DOACs skip INR but the
-        # med-continuation tail still records the drug.
+        # therapeutic marker for warfarin only (2.0-3.0 for non-valvular
+        # AFib per ACC/AHA + JCS guidelines). A DOAC is not monitored by
+        # INR: its follow-up reviews renal function, the blood count and
+        # bleeding (Issue #2993; 2023 ACC/AHA/ACCP/HRS AF guideline, 2021
+        # EHRA practical guide). The med-continuation tail records the drug.
         elif code_prefix.startswith("I48"):
             parts_afib: list[str] = []
+            on_warfarin = any(medication_matches(m, classes=("anticoagulant.vka",)) for m in cur_meds)
+            on_doac = any(medication_matches(m, classes=("anticoagulant.doac",)) for m in cur_meds)
             inr = lab_by_name.get("pt-inr") or lab_by_name.get("pt_inr") or lab_by_name.get("inr")
-            if inr:
+            if inr and on_warfarin:
                 v, u = inr
                 try:
                     vf = float(v)
@@ -804,6 +809,9 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
                     ctrl = ""
                 target = t("chronic_assessment.inr_target_standard", lang)
                 parts_afib.append(f"PT-INR {v} — {target} — {ctrl}" if ctrl else f"PT-INR {v} — {target}")
+            elif on_doac:
+                parts_afib.extend(_doac_monitoring_values(lab_by_name))
+                parts_afib.append(t("chronic_assessment.doac_renal_bleeding_review", lang))
             med = _pick_med_by_class("afib_anticoagulation")
             if med:
                 parts_afib.append(t("prescription.medication_continue", lang, med=med))
@@ -901,6 +909,25 @@ def _is_tachycardic(hr: float, patient: Any, vital: Any, ctx: NarrativeContext) 
         when = _o(ctx.encounter, "admission_datetime", None) if ctx.encounter is not None else None
     rng = pediatric_vital_range("heart_rate", age_in_completed_months(_o(patient, "date_of_birth", None), when))
     return hr > rng.high if rng is not None else hr >= NARRATIVE_ADULT_TACHYCARDIA_HR
+
+
+def _doac_monitoring_values(lab_by_name: dict[str, tuple[Any, str | None]]) -> list[str]:
+    """Today's renal function and blood count of a DOAC patient, as cited
+    in the AF assessment (Issue #2993): eGFR (else creatinine), then Hb."""
+    out: list[str] = []
+    egfr = lab_by_name.get("egfr")
+    cr = lab_by_name.get("cr") or lab_by_name.get("creatinine")
+    if egfr:
+        v, u = egfr
+        out.append(f"eGFR {v} {'mL/min/1.73m²' if not u or '1.73' in str(u) else u}")
+    elif cr:
+        v, u = cr
+        out.append(f"Cr {v} {u or 'mg/dL'}")
+    hb = lab_by_name.get("hb") or lab_by_name.get("hemoglobin")
+    if hb:
+        v, u = hb
+        out.append(f"Hb {v} {u or 'g/dL'}")
+    return out
 
 
 # ─────────────────────────────────────────────────────────────────────
