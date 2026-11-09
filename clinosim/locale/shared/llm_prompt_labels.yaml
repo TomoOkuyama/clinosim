@@ -62,20 +62,24 @@ severity:
   very_severe: {en: very severe, ja: 最重度}
   critical: {en: critical, ja: 重篤}
 oxygen_device:
-  nasal_cannula: {en: nasal cannula, ja: 経鼻カニューレ}
-  oxygen_mask: {en: oxygen mask, ja: 酸素マスク}
+  # The clinical label of an oxygen device or term, read by narratives and
+  # by the FHIR device concept's `text` (Issue #3023). A device's code is its
+  # SNOMED CT concept (codes/data/snomed-maps.yaml `oxygen_device`), whose
+  # `coding.display` stays the SNOMED display; the label here is the short
+  # wording a clinician writes. Keys are lower-case (prompt_label matches
+  # case-insensitively).
+  nasal_cannula: {en: nasal cannula, ja: 鼻カニューラ}
   simple_mask: {en: simple face mask, ja: 酸素マスク}
-  non_rebreather: {en: non-rebreather mask, ja: リザーバーマスク}
-  # `non-rebreather` (hyphen form) is what `vitals_pipeline.py:304`
-  # actually writes to CIF. Alias entry so the JA-narrative
-  # localizer resolves the hyphenated CIF value rather than leaking
-  # `non-rebreather` verbatim into JP prose (Phase 1d-64 verify).
-  non-rebreather: {en: non-rebreather mask, ja: リザーバーマスク}
-  reservoir_mask: {en: reservoir mask, ja: リザーバーマスク}
+  oxygen_mask: {en: oxygen mask, ja: 酸素マスク}
+  non-rebreather: {en: non-rebreather mask, ja: リザーバー付き酸素マスク}
+  non_rebreather: {en: non-rebreather mask, ja: リザーバー付き酸素マスク}
+  reservoir_mask: {en: non-rebreather mask, ja: リザーバー付き酸素マスク}
   venturi: {en: Venturi mask, ja: ベンチュリーマスク}
   venturi_mask: {en: Venturi mask, ja: ベンチュリーマスク}
-  high_flow_nc: {en: high-flow nasal cannula, ja: ハイフローネーザル}
-  high_flow_nasal_cannula: {en: high-flow nasal cannula, ja: ハイフローネーザル}
+  hfnc: {en: high-flow nasal cannula, ja: ハイフローネーザルカニューラ}
+  high_flow_nc: {en: high-flow nasal cannula, ja: ハイフローネーザルカニューラ}
+  high_flow_nasal_cannula: {en: high-flow nasal cannula, ja: ハイフローネーザルカニューラ}
+  ventilator: {en: ventilator, ja: 人工呼吸器}
   mechanical_ventilation: {en: mechanical ventilation, ja: 人工呼吸器}
   invasive_mechanical_ventilation: {en: invasive mechanical ventilation, ja: 人工呼吸器}
   room_air: {en: room air, ja: 大気吸入}

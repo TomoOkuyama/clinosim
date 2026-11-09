@@ -638,15 +638,29 @@ codes:
   '57485005':
     en: Oxygen therapy (procedure)
     ja: 酸素療法
+  # Oxygen delivery devices (Issue #3023): the `oxygen_device` concepts of
+  # snomed-maps.yaml, named on the vital-sign Observation, the oxygen-therapy
+  # Procedure and in narratives. Displays verified on tx.fhir.org $lookup
+  # (SNOMED CT International 20250201, all active, 2026-11-09); ventilator
+  # 706172005 is registered with the device codes above.
   '336623009':
-    en: Nasal cannula
-    ja: 経鼻カニューラ
-  '425574000':
-    en: Oxygen face mask
+    en: Oxygen nasal cannula
+    ja: 鼻カニューラ
+  '336602003':
+    en: Oxygen mask
     ja: 酸素マスク
-  '26412008':
-    en: Mechanical ventilator
-    ja: 人工呼吸器
+  '465433006':
+    en: Venturi oxygen face mask
+    ja: ベンチュリーマスク
+  '427591007':
+    en: Nonrebreather oxygen mask
+    ja: リザーバー付き酸素マスク
+  '426854004':
+    en: High flow oxygen nasal cannula
+    ja: ハイフローネーザルカニューラ
+  '706226000':
+    en: Continuous positive airway pressure/Bilevel positive airway pressure mask
+    ja: NPPVマスク
 
   # Blood group findings (ABO + RhD) — used by blood-type Observation
   # emit path (LOINC 883-9 for ABO, 10331-7 for Rh). Codes and English

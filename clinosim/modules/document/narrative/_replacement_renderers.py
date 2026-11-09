@@ -182,7 +182,7 @@ def _render_supplemental_oxygen_today(vitals: list, day_index: int, encounter: o
     narrative consistent with the recorded therapy.
 
     session-88j Phase B: when ``lang == "ja"`` localizes the device
-    label (nasal_cannula → 経鼻カニューレ, oxygen_mask → 酸素マスク,
+    label (nasal_cannula → 鼻カニューラ, oxygen_mask → 酸素マスク,
     etc.) so JA narratives no longer leak raw snake_case tokens
     (v14 review: 155 mentions).
     """

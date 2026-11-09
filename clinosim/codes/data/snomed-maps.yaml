@@ -62,15 +62,25 @@ encounter_type:
   outpatient: '270427003'
   icu: '183452005'
 
-# Oxygen delivery device mode → Procedure.usedCode device concept.
+# Oxygen delivery device → device concept (Issue #3023): the vital-sign
+# Observation's delivery-method component, the oxygen-therapy
+# Procedure.usedCode and the device named in narratives. Keys are the CIF
+# `oxygen_delivery_device` values (vitals_pipeline writes nasal_cannula,
+# simple_mask, non-rebreather) and their spellings in other inputs.
 oxygen_device:
-  nasal_cannula: '336623009'
-  simple_mask: '425574000'
-  venturi: '336623009'
-  non-rebreather: '425574000'
-  HFNC: '336623009'
-  BiPAP: '26412008'
-  ventilator: '26412008'
+  nasal_cannula: '336623009'      # Oxygen nasal cannula
+  simple_mask: '336602003'        # Oxygen mask
+  oxygen_mask: '336602003'
+  venturi: '465433006'            # Venturi oxygen face mask
+  venturi_mask: '465433006'
+  non-rebreather: '427591007'     # Nonrebreather oxygen mask
+  non_rebreather: '427591007'
+  reservoir_mask: '427591007'
+  HFNC: '426854004'               # High flow oxygen nasal cannula
+  high_flow_nc: '426854004'
+  high_flow_nasal_cannula: '426854004'
+  BiPAP: '706226000'              # CPAP/BiPAP mask
+  ventilator: '706172005'         # Ventilator
 
 # Clinical stage label → Condition.stage.summary concept (KDIGO, NYHA, GOLD,
 # GINA, ACC/AHA hypertension, CCS angina).

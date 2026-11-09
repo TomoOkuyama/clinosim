@@ -59,7 +59,7 @@ def test_jp_o2_supportive_procedure_gets_japanese_prefix() -> None:
     res = _build_procedure(_proc("O2: Nasal cannula SpO2 >= 94%"), "pt-1", 0, "JP")
     text = res["code"]["text"]
     assert "酸素投与" in text
-    assert "経鼻カニューラ" in text
+    assert "鼻カニューラ" in text
     # Original English tokens should be replaced, not left as-is
     assert "O2:" not in text
     assert "Nasal cannula" not in text

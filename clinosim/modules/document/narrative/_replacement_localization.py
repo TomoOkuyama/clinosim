@@ -49,8 +49,8 @@ def _localize_severity_ja(sev: str) -> str:
 
 
 def _localize_oxygen_device_ja(device: str) -> str:
-    """nasal_cannula → 経鼻カニューレ (etc)."""
-    return _lookup_ja_label(device, "oxygen_device")
+    """nasal_cannula → 鼻カニューラ (etc), see ``localize_oxygen_device``."""
+    return localize_oxygen_device(device, "ja")
 
 
 def _localize_arrival_mode_ja(mode: str) -> str:
@@ -69,13 +69,15 @@ def _localize_barthel_band_ja(band: str) -> str:
 
 
 def localize_oxygen_device(device: str, lang: str) -> str:
-    """Oxygen-device label in ``lang`` (then English, then the raw device);
-    no language branch of its own (Issue #2396)."""
+    """Oxygen-device label in ``lang`` (then English): ``oxygen_device_label``
+    — the label the FHIR device concept carries in ``text`` (Issue #3023) —
+    else the text as given (a free-text term). No language branch of its
+    own (Issue #2396)."""
     if not device:
         return device
-    from clinosim.locale.loader import prompt_label
+    from clinosim.locale.loader import oxygen_device_label
 
-    return prompt_label("oxygen_device", device, lang, fallback=device)
+    return oxygen_device_label(device, lang) or device
 
 
 # --- prompt v11: post-processor hard-guard for EN lab names in JA text ------

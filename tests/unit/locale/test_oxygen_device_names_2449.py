@@ -25,4 +25,4 @@ def test_every_device_has_english_and_japanese() -> None:
 def test_english_shift_note_names_the_device() -> None:
     device = localize_oxygen_device("nasal_cannula", "en")
     assert t("nursing_shift.o2_device_with_flow", "en", device=device, flow="3.2") == "nasal cannula 3.2 L/min"
-    assert localize_oxygen_device("nasal_cannula", "ja") == "経鼻カニューレ"
+    assert localize_oxygen_device("nasal_cannula", "ja") == "鼻カニューラ"

@@ -42,12 +42,12 @@ def test_a_jp_urinalysis_observation_value_is_japanese() -> None:
     assert not _LATIN_WORD.search(obs["code"]["text"])
 
 
-@pytest.mark.parametrize(("country", "device"), [("JP", "経鼻カニューレ"), ("US", "nasal cannula")])
+@pytest.mark.parametrize(("country", "device"), [("JP", "鼻カニューラ"), ("US", "nasal cannula")])
 def test_the_oxygen_device_is_named(country: str, device: str) -> None:
     vs = {"on_supplemental_oxygen": True, "oxygen_flow_rate_lpm": 2, "oxygen_delivery_device": "nasal_cannula"}
     entries = _build_vital_observations(vs, "P1", 0, country, "E1")
     o2 = [e["resource"] for e in entries if e["resource"].get("component")][-1]
-    assert o2["component"][-1]["valueString"] == device
+    assert o2["component"][-1]["valueCodeableConcept"]["text"] == device  # Issue #3023: a coded concept
 
 
 def test_jp_stage_scales_are_named_in_japanese() -> None:

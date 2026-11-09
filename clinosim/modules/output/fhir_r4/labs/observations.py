@@ -17,10 +17,11 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
+from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import lab_display, lab_result_display, prompt_label
+from clinosim.locale.loader import lab_display, lab_result_display, oxygen_device_label
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
 from clinosim.modules.observation.engine import medications_in_effect
@@ -757,7 +758,8 @@ def _build_vital_observations(
         }
         if flow is not None:
             o2_obs["valueQuantity"] = ucum_quantity(flow, "L/min")
-        if device:
+        device_code = snomed_for("oxygen_device", str(device)) if device else None
+        if device_code:
             # Issue #376: LOINC 8478-0 is "Mean blood pressure" — completely
             # unrelated to oxygen delivery. Verified via NLM Clinical Table +
             # tx.fhir.org $lookup. Correct code for "device / method by which
@@ -774,9 +776,13 @@ def _build_vital_observations(
                             }
                         ],
                     },
-                    # Issue #3031: the device's name, not its key.
-                    "valueString": prompt_label(
-                        "oxygen_device", device, lang_for(country), fallback=str(device).replace("_", " ")
+                    # Issue #3023: the device concept (SNOMED CT, English
+                    # display) with its clinical label in the output language.
+                    "valueCodeableConcept": dual_slot_concept(
+                        "snomed-ct",
+                        device_code,
+                        lang_for(country),
+                        text=oxygen_device_label(str(device), lang_for(country)) or None,
                     ),
                 }
             ]

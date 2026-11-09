@@ -76,6 +76,7 @@ from typing import Any
 from clinosim.codes.snomed import snomed_for
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import oxygen_device_label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
@@ -503,7 +504,9 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
         # Procedure R4. Emit only when the vitals actually name a device.
         device_snomed = snomed_for("oxygen_device", device_mode) if device_mode else None
         if device_snomed:
-            procedure["usedCode"] = [dual_slot_concept("snomed-ct", device_snomed, lang, fallback_display=device_mode)]
+            procedure["usedCode"] = [
+                dual_slot_concept("snomed-ct", device_snomed, lang, text=oxygen_device_label(device_mode, lang) or None)
+            ]
         out.append(procedure)
 
     return out

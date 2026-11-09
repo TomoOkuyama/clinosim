@@ -606,11 +606,11 @@ system: |
         transfer                              → 転院搬送
 
      C. Oxygen delivery device (from supplemental_oxygen_today):
-        nasal_cannula → 経鼻カニューレ
-        oxygen_mask    → 酸素マスク
-        non_rebreather / reservoir_mask → リザーバーマスク
+        nasal_cannula → 鼻カニューラ
+        oxygen_mask / simple_mask → 酸素マスク
+        non_rebreather / reservoir_mask → リザーバー付き酸素マスク
         venturi        → ベンチュリーマスク
-        high_flow_nc   → ハイフローネーザル
+        high_flow_nc   → ハイフローネーザルカニューラ
         room_air       → 大気吸入
        Keep CPAP / BiPAP as-is (英字が日本でも標準).
 
