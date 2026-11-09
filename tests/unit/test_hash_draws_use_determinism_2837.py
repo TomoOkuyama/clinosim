@@ -27,7 +27,7 @@ _RATCHET = {
     "modules/encounter/engine.py": "encounter id suffix",
     # Draws whose formula differs from the canonical helper; switching
     # would change existing output.
-    "modules/output/fhir_r4/labs/anthropometrics.py": "erfinv normal on (raw + 1) / (2**32 + 1)",
+    "modules/population/encounter_anthropometry.py": "erfinv normal on (raw + 1) / (2**32 + 1)",
     "modules/document/narrative/_narrative_utils.py": "integer-cutoff Bernoulli",
     "modules/population/_demographics.py": "Rh factor: 2-byte value / 65535",
 }

@@ -101,7 +101,11 @@ simulator が使う submodule の入口 (再 export なし、path で import):
 `aging.advance_population(registry, year, locale, window=None)`、
 `mortality.draw_community_death` / `annual_death_probability`、
 `vital_status.record_hospital_death` / `sync_profile_death_dates` /
-`death_counts_by_place`、`newborn.register_newborn`。
+`death_counts_by_place`、`newborn.register_newborn`、
+`encounter_anthropometry.encounter_weight_kg(patient, encounter_id,
+encounter_datetime, country)` / `encounter_anthropometrics(...)` —
+1 encounter で計測された身長 / 体重 / BMI (小児は成長曲線パーセンタイル)。
+FHIR 体格 Observation と ED の体重換算投与量が共有する唯一の導出 (Issue #2990)。
 
 再 export されない内部 helper (把握しておく価値のあるもの):
 `engine.py` の `Household` + `PopulationRegistry` dataclass、
@@ -317,6 +321,7 @@ clinosim/modules/population/
   _chemo.py                            化学療法 regimen 選択 + cycle event
   _ckd_under60.py                      60 歳未満 CKD (N18) の RNG 非消費付与
   _pediatric_anthropometry.py          小児身長 / BMI 参照 lookup
+  encounter_anthropometry.py           1 encounter で計測される身長 / 体重 / BMI
   _household_thresholds.py             世帯 / 住所 / 電話 / 命名 default
   _population_thresholds.py            体格 + lifestyle + care-seeking default
   _population_workflow_thresholds.py   screening / 慢性 visit / event 日 スケジュール
@@ -349,6 +354,7 @@ CLI master RNG で `generate_population` を呼び、前進ループが
 | 周産期 | [`clinosim/simulator/perinatal.py`](../../simulator/perinatal.py) | 分娩時に `register_newborn`、`enrolled_from` を出生入院の退院翌日に設定。 |
 | Inpatient / discharge encounter | [`clinosim/simulator/{inpatient,discharge_gate,unknown_condition}.py`](../../simulator/) | `PersonRecord` + `HospitalizationSummary` の field (慢性疾患、既往入院、care-seeking threshold、lifestyle) を read。 |
 | Enumeration / CLI single-encounter driver | [`clinosim/simulator/enumerate.py`](../../simulator/enumerate.py)、[`cli_test_encounter.py`](../../simulator/cli_test_encounter.py) | forced / smoke case 用に `PersonRecord` を直接構築 (`PopulationRegistry` は使わない)。 |
+| 体格計測 / 体重換算投与量 | [`clinosim/modules/output/fhir_r4/labs/anthropometrics.py`](../output/fhir_r4/labs/anthropometrics.py)、[`clinosim/simulator/emergency.py`](../../simulator/emergency.py) | 体格 Observation は `encounter_anthropometrics`、小児 ED 投与量は `encounter_weight_kg` を使う。 |
 | Pediatric 統合 | [`clinosim/modules/pediatric/calendar.py`](../pediatric/calendar.py) | `generate_healthcare_calendar` から (person, year) ごとに呼ばれて小児 visit を追加。 |
 
 ## テスト
