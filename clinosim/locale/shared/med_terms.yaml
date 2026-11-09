@@ -25,6 +25,14 @@ metadata:
   source: clinosim
 
 categories:
+  # Issue #3033: regimen and conditional dose phrases written in English in
+  # the protocols, in Japanese chart notation (units stay in Latin script).
+  400mg/m2 bolus + 2400mg/m2/46h: {ja: 400mg/m² 急速静注後 2400mg/m² 46時間持続静注}
+  1 vial (81mg TICE / 27mg Connaught: {ja: 1バイアル (TICE株 81mg または Connaught株 27mg}
+  150mg/m2 PO daily x 5 days: {ja: 150mg/m² 経口 1日1回 5日間}
+  30mg if CrCl 15-50 or weight <= 60kg: {ja: CrCl 15-50 または体重 60kg 以下は 30mg}
+  Titrate to INR 2.0-3.0: {ja: INR 2.0-3.0 を目標に用量調節}
+  1.6-2.6 if age >= 70: {ja: 70歳以上は 1.6-2.6}
   dvt prophylaxis: {ja: DVT予防}
   dvt_prophylaxis: {en: DVT prophylaxis, ja: DVT予防}
   antipyretic: {ja: 解熱剤}
@@ -62,6 +70,11 @@ categories:
   wound_care: {en: wound care, ja: 創傷処置}
   intubation_and_mechanical_ventilation: {en: intubation and mechanical ventilation, ja: 気管挿管・人工呼吸管理}
 terms:
+  # Issue #3033: non-daily cadences and the topical route on administrations.
+  WEEKLY: {ja: 週1回}
+  MONTHLY: {ja: 4週毎}
+  NIGHTLY: {ja: 就寝前}
+  topical: {ja: 外用}
   Q6H_PRN: {en: Q6H PRN, ja: 6時間毎 頓用}  # Issue #3025
   PRN: {ja: 頓用}
   PO: {ja: 経口}

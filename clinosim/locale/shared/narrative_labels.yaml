@@ -291,3 +291,14 @@ encounter_severity:
   moderate: {en: moderate, ja: 中等症}
   severe: {en: severe, ja: 重症}
   critical: {en: critical, ja: 重篤}
+
+# MedicationRequest.status in the JP effective-status note (Issue #3033).
+medication_request_status:
+  active: {en: active, ja: 有効}
+  on-hold: {en: on hold, ja: 一時中止}
+  cancelled: {en: cancelled, ja: 取消}
+  completed: {en: completed, ja: 完了}
+  entered-in-error: {en: entered in error, ja: 誤登録}
+  stopped: {en: stopped, ja: 中止}
+  draft: {en: draft, ja: 下書き}
+  unknown: {en: unknown, ja: 不明}

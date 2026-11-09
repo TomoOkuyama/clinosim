@@ -823,7 +823,10 @@ def build_dosage_instruction(
     # the authored text carries the clinical meaning the summary cannot
     # reconstruct from route + frequency alone.
     if authored_text:
-        dosage["text"] = authored_text
+        # Issue #3033: an authored dose copied from an English protocol
+        # string (chemotherapy regimens) reads in the output language;
+        # Japanese authored text has no Latin term to replace.
+        dosage["text"] = _localize_dosage_terms(authored_text, lang_for(country))
     elif parts:
         # Route / frequency tokens in the output language, then the dosage
         # term translator for any remaining English (Issue #2459); English
