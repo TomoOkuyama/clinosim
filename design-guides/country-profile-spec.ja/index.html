@@ -2558,7 +2558,7 @@ YAML の読み込みと検証は
 </tr>
 <tr>
 <td><code>formats</code></td>
-<td>氏名の順序、住所テンプレート、電話のパターン、MRN・国の識別子の仕様。</td>
+<td>氏名の順序 (<code>given_family</code> / <code>family_given</code>)、日付・時刻・日時の書式。住所テンプレート、電話のパターン、MRN・国の識別子の仕様は移行の手順 2 (§7) で加える。</td>
 </tr>
 <tr>
 <td><code>implementations</code></td>
@@ -2570,29 +2570,56 @@ YAML の読み込みと検証は
 の <code>reference_data/</code> または <code>clinosim/locale/&lt;cc&gt;/&lt;topic&gt;.yaml</code> に国をキーとして
 置き、モジュールのローダーで読む。プロファイルには重複して持たない。</p>
 <h3 id="33-api">3.3 API<a class="headerlink" href="#33-api" title="Permanent link">&para;</a></h3>
+<p>すべて <code>clinosim/country_profile.py</code> にある。</p>
 <ul>
 <li><code>country_profile(country) -&gt; CountryProfile</code> — 検証済みでキャッシュされる
-  Pydantic モデル (<code>extra="forbid"</code>)。未知の国はエラーにし、黙って US に戻さない。</li>
+  Pydantic モデル (<code>extra="forbid"</code>、frozen)。国コードは大文字小文字を
+  区別しない。旧来の表記 (<code>"japan"</code>) はローダー内のデータ表で変換し、
+  <code>is_jp</code> / <code>is_us</code> は使わない。未知の国は <code>KeyError</code> にし、黙って US に
+  戻さない。</li>
+<li><code>profile.code</code>、<code>profile.language</code>、<code>profile.timezone</code> (<code>"Z"</code> または
+  <code>+HH:MM</code> / <code>-HH:MM</code> の UTC オフセット)、<code>profile.formats</code>。</li>
 <li><code>profile.uses(profile_name) -&gt; bool</code>、<code>profile.feature(name) -&gt; bool</code>、
-  <code>profile.code_system(kind) -&gt; str</code>、<code>profile.language</code>、
-  <code>profile.implementation(kind) -&gt; str</code>。</li>
+  <code>profile.code_system(kind) -&gt; str</code>、<code>profile.implementation(kind) -&gt; str</code>。
+  未知の名前 (既知の集合にない FHIR プロファイル、プロファイルが持たない
+  feature や種類) はどれも <code>KeyError</code> にし、綴り間違いを「無効」として
+  読まない。</li>
 <li><code>implementation(kind, country)</code> — プロファイルが選んだ名前で登録された実装
   (§4)。</li>
+<li><code>supported_countries()</code> — <code>country.yaml</code> を持つ locale ディレクトリの
+  国コード (大文字。<code>_root</code> と <code>_template</code> を除く)。</li>
+<li><code>load_profile_data(country)</code> — 検証前のマージ結果 (ルートに国のファイルを
+  深くマージしたもの)。<code>deep_merge(base, override)</code> がマージ本体。</li>
+<li><code>validate_implementations(profile)</code> — 登録するモジュール (§4) を import し、
+  プロファイルが未登録の実装を名指ししていれば <code>ValueError</code> にする。
+  <code>country_profile</code> は返す前にこれを呼ぶ。</li>
 </ul>
-<p><code>is_jp</code> / <code>is_us</code> は、移行中はプロファイルのローダー内の正規化にだけ残す。
-新しいコードはプロファイルを呼ぶ。</p>
+<p>読み込み時の検証: コード体系はすべて <code>clinosim.codes</code> のキーで、5 種類を
+過不足なく持つ。FHIR プロファイル名は既知のもの。feature と実装の種類は
+<code>_root/country.yaml</code> で宣言されていなければならない。
+<code>locale/&lt;cc&gt;/country.yaml</code> の <code>code</code> は <code>&lt;cc&gt;</code> と一致しなければならない。</p>
+<p><code>is_jp</code> / <code>is_us</code> はプロファイルのローダーでは使わない。新しいコードは
+プロファイルを呼ぶ。</p>
 <h2 id="4-名前付きの実装">4. 名前付きの実装<a class="headerlink" href="#4-名前付きの実装" title="Permanent link">&para;</a></h2>
 <ul>
 <li>アルゴリズムの種類は、それを呼ぶ汎用コードの隣でシグネチャを 1 回宣言する
   (<code>Protocol</code>)。</li>
-<li>実装は <code>@register_implementation(kind, name)</code> で明示的に登録する。ある国だけの
-  アルゴリズムは <code>clinosim/countries/&lt;cc&gt;/</code> に置き (例: JP の保険者番号の
-  検証番号)、複数の国が使いうるものは汎用コードの隣に
-  置く (例: <code>clinosim/modules/physiology/</code> の eGFR 式)。</li>
-<li>登録はそれらのモジュールの import 時に行い、エントリーポイントによる自動検出は
-  しない。登録されていない実装を名指しするプロファイルは読み込み時に失敗する。</li>
-<li>実装の係数は定数の規則に従う: 式の係数はその <code>_&lt;topic&gt;_thresholds.py</code>、国で
-  異なる値は YAML。</li>
+<li>実装は <code>@register_implementation(kind, name)</code> で明示的に登録する。同じ種類と
+  名前を 2 回登録すると <code>ValueError</code> になる。複数の国が使いうるアルゴリズムは
+  汎用コードの隣に置く (例: <code>clinosim/modules/physiology/egfr.py</code> の eGFR 式)。</li>
+<li>ある国だけのアルゴリズムは国パッケージ <code>clinosim/countries/&lt;cc&gt;/</code> に置く
+  (例: JP の保険者番号の検証番号)。最初の国パッケージを作るとき、モジュール
+  <code>clinosim/countries.py</code> をパッケージ <code>clinosim/countries/__init__.py</code> に
+  変え、今の API を再エクスポートして既存の
+  <code>from clinosim.countries import ...</code> がそのまま動くようにする
+  (django-localflavor と同じ形)。</li>
+<li>登録は明示的に行う: 実装を登録するモジュールはすべて
+  <code>clinosim/country_profile.py</code> の <code>IMPLEMENTATION_MODULES</code> に列挙し、
+  プロファイルを検証する前に import する。エントリーポイントやパッケージ走査
+  による自動検出はしない。登録されていない実装を名指しするプロファイルは
+  読み込み時に失敗する。</li>
+<li>実装の係数は定数の規則に従う: 式の係数はその <code>_&lt;topic&gt;_thresholds.py</code>
+  または参照 YAML、国で異なる値は YAML。</li>
 </ul>
 <h2 id="5-残してよい分岐">5. 残してよい分岐<a class="headerlink" href="#5-残してよい分岐" title="Permanent link">&para;</a></h2>
 <p>プロファイルによる分岐は、FHIR プロファイルや仕様が要求する構造を出すかどうかを
