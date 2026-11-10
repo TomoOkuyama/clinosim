@@ -90,6 +90,10 @@ codes:
   3D045:
     en: Hemoglobin A1c
     ja: グリコヘモグロビンA1c
+  # Issue #3164: the NGSP value (Japan's reporting unit since 2012).
+  3D046:
+    en: Hemoglobin A1c (NGSP)
+    ja: グリコヘモグロビンA1c(NGSP)
   # --- Organic acids (3E) ---
   3E010:
     en: Lactate
