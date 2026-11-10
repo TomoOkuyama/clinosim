@@ -54,3 +54,14 @@ profiles:
     - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Encounter_eCS
   Practitioner:
     - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Practitioner_eCS
+
+# Element rules of the eCS profiles that change how an element is stated
+# (Issue #3158). JP_Encounter_eCS fixes Encounter.length.code to "d" (UCUM
+# days) and Encounter.length.unit to "日" (fixedString): a stay of a day or
+# more states its length in days, a shorter one omits length
+# (Encounter.period already carries the duration). Applied to an Encounter
+# only when it then conforms and declares the eCS profile.
+element_rules:
+  Encounter:
+    length_unit: d
+    length_unit_display: 日

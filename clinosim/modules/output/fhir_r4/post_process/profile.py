@@ -198,6 +198,47 @@ def _apply_jp_core_profile(resource: dict) -> None:
 # Finding 11). Issue #745 (Wave 3) extensions + the Encounter_eCS /
 # FamilyMemberHistory_eCS deferral rationale are captured there.
 
+
+@cache
+def _jp_clins_element_rules() -> dict[str, dict[str, str]]:
+    """Per-resource element rules of the JP-CLINS eCS profiles (Issue #3158),
+    from ``fhir-profiles-jp-clins.yaml`` ``element_rules``."""
+    raw = data_table("fhir-profiles-jp-clins")
+    return {
+        str(rt): {str(k): str(v) for k, v in (rules or {}).items()}
+        for rt, rules in (raw.get("element_rules") or {}).items()
+    }
+
+
+# Minutes in one unit of each length unit an element rule may require.
+_LENGTH_UNIT_MINUTES = {"d": 1440}
+
+
+def _apply_length_unit(resource: dict, unit: str, display: str) -> None:
+    """State ``Encounter.length`` in UCUM ``unit`` written ``display``
+    (Issue #3158): the period's duration in that unit, or no ``length`` when
+    it is shorter than one ``unit`` (``period`` carries it)."""
+    from datetime import datetime
+
+    from clinosim.codes.ucum import ucum_quantity
+
+    length = resource.get("length")
+    if not length or (length.get("code") == unit and length.get("unit") == display):
+        return
+    period = resource.get("period") or {}
+    try:
+        start = datetime.fromisoformat(str(period["start"]))
+        end = datetime.fromisoformat(str(period["end"]))
+    except (KeyError, ValueError):
+        resource.pop("length", None)
+        return
+    units = (end - start).total_seconds() / 60 / _LENGTH_UNIT_MINUTES[unit]
+    if units < 1:
+        resource.pop("length", None)
+    else:
+        resource["length"] = {**ucum_quantity(round(units, 2), unit), "unit": display}
+
+
 # Static deterministic placeholder for `meta.lastUpdated` used to satisfy the
 # JP-CLINS eCS must-support requirement on resources whose CIF source data
 # carries no timestamp. Mirrors the pattern already used in
@@ -243,8 +284,18 @@ def _apply_jp_clins_profile(resource: dict) -> None:
         return
     if rt == "AllergyIntolerance" and not _allergy_satisfies_ecs(resource):
         return
-    if rt == "Encounter" and not _encounter_satisfies_ecs(resource):
-        return
+    if rt == "Encounter":
+        # Issue #3158: state the elements the eCS profile fixes (length in
+        # days) — on a trial copy, so an Encounter that still cannot conform
+        # keeps its output unchanged.
+        rules = _jp_clins_element_rules().get(rt, {})
+        trial = dict(resource)
+        if rules.get("length_unit"):
+            _apply_length_unit(trial, rules["length_unit"], rules["length_unit_display"])
+        if not _encounter_satisfies_ecs(trial):
+            return
+        if rules.get("length_unit"):
+            _apply_length_unit(resource, rules["length_unit"], rules["length_unit_display"])
     meta = resource.setdefault("meta", {})
     profs = meta.setdefault("profile", [])
     for url in profiles:
@@ -272,7 +323,7 @@ def _encounter_satisfies_ecs(resource: dict) -> bool:
     """Predicate: may this Encounter assert JP_Encounter_eCS? (Issue #3148)
 
     The eCS profile (JP-CLINS 1.13.0) fixes ``status`` to ``finished``,
-    ``length.code`` to ``d``, requires ``hospitalization.dischargeDisposition``
+    ``length`` to code ``d`` / unit ``日``, requires ``hospitalization.dischargeDisposition``
     from the JP discharge-disposition value set (DPC discharge outcome,
     required binding) whenever ``hospitalization`` is present, and requires
     ``class.display``, ``reasonCode.text`` / ``coding.display`` and
@@ -286,8 +337,13 @@ def _encounter_satisfies_ecs(resource: dict) -> bool:
         return False
     if not (resource.get("class") or {}).get("display"):
         return False
+    # Issue #3158: the unit the profile fixes (code "d", unit "日").
+    rules = _jp_clins_element_rules().get("Encounter", {})
     length = resource.get("length")
-    if length is not None and length.get("code") != "d":
+    if length is not None and (length.get("code"), length.get("unit")) != (
+        rules.get("length_unit"),
+        rules.get("length_unit_display"),
+    ):
         return False
     for reason in resource.get("reasonCode") or []:
         if not reason.get("text") or any(not c.get("display") for c in reason.get("coding") or []):

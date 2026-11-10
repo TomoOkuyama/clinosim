@@ -49,7 +49,7 @@ URL root: `http://jpfhir.jp/fhir/eCS/StructureDefinition/`
 
 - Observation: only when `category.coding[].code == "laboratory"` — vital signs stay on the JP Core profile only.
 - MedicationRequest: only when the resource can satisfy the eCS constraints (`dosageInstruction` min=1); discharge / outpatient-renewal prescriptions without dose or route stay on the JP Core profile only.
-- Encounter: only a finished encounter without `hospitalization`, whose `length` (if any) is in days and whose `class` / `reasonCode` / `location` carry the elements the profile requires (`_encounter_satisfies_ecs`). The eCS profile requires a DPC discharge outcome (JP discharge-disposition value set) whenever `hospitalization` is present; clinosim records the HL7 discharge destination, which is a different fact, so inpatient and ED encounters stay on JP Core. An outpatient visit's length in minutes also keeps it off the eCS profile (fixed unit `d`).
+- Encounter: only a finished encounter without `hospitalization`, whose `length` (if any) is in days and whose `class` / `reasonCode` / `location` carry the elements the profile requires (`_encounter_satisfies_ecs`). The eCS profile requires a DPC discharge outcome (JP discharge-disposition value set) whenever `hospitalization` is present; clinosim records the HL7 discharge destination, which is a different fact, so inpatient and ED encounters stay on JP Core. The profile fixes `length` to days (code `d`, unit `日`; `element_rules` in `fhir-profiles-jp-clins.yaml`, Issue #3158): an Encounter that declares it states a stay of a day or more in days and omits `length` for a shorter visit, whose `period` carries the duration.
 
 **Not covered by JP-CLINS v1.13.0** (emitted with JP Core profile only, no JP-CLINS URL added):
 

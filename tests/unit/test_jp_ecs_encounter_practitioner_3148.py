@@ -52,7 +52,6 @@ def test_an_inpatient_encounter_with_an_hl7_discharge_destination_does_not() -> 
     "over",
     [
         {"status": "in-progress"},  # eCS fixes status to finished
-        {"length": {"value": 12, "unit": "min", "system": "http://unitsofmeasure.org", "code": "min"}},  # fixed "d"
         {"hospitalization": {"reAdmission": {"text": "x"}}},  # dischargeDisposition min=1
         {"reasonCode": [{"coding": [{"system": "s", "code": "c"}]}]},  # text and display min=1
     ],
