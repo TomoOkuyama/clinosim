@@ -19,7 +19,7 @@ from __future__ import annotations
 import copy
 import importlib
 from collections.abc import Callable
-from functools import lru_cache
+from functools import cache, lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
@@ -60,6 +60,13 @@ class _Formats(BaseModel):
     date_format: str = Field(min_length=1)
     time_format: Literal["12h", "24h"]
     datetime_format: str = Field(min_length=1)
+    # Issue #3141: the title written before a physician's name (HumanName.prefix);
+    # empty when the country writes none.
+    physician_name_prefix: str
+
+    def name_parts(self, family: str, given: str) -> tuple[str, str]:
+        """``(family, given)`` in the country's written order (``name_order``)."""
+        return (family, given) if self.name_order == "family_given" else (given, family)
 
 
 def _root_keys(section: str) -> frozenset[str]:
@@ -110,6 +117,11 @@ class CountryProfile(BaseModel):
                 raise ValueError(f"{section} not declared in the root profile: {extra}")
         return self
 
+    @property
+    def language_tag(self) -> str:
+        """BCP 47 tag of the output language in this country (``en-US``, ``ja-JP``)."""
+        return f"{self.language}-{self.code}"
+
     def uses(self, profile_name: str) -> bool:
         """Whether output applies the FHIR profile ``profile_name``."""
         if profile_name not in FHIR_PROFILES:
@@ -147,6 +159,7 @@ def deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]
     return out
 
 
+@cache
 def supported_countries() -> tuple[str, ...]:
     """Upper-case codes of the countries that have a profile (``_root`` and
     ``_template`` are not countries)."""

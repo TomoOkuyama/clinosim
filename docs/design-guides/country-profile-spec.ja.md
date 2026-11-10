@@ -56,8 +56,14 @@ YAML の読み込みと検証は
 | `code_systems` | 種類 (`lab`、`diagnosis`、`drug`、`procedure`、`microbiology`) ごとのコード体系キー。`clinosim.codes` が解決する。 |
 | `fhir_profiles` | 出力に適用する FHIR プロファイル (`us_core`、`jp_core`、`jp_clins`、`jp_echeckup`)。 |
 | `features` | 国ごとに有効・無効を切り替える機能 (`health_checkup`、`care_level`、`maternal_tdap` など)。 |
-| `formats` | 氏名の順序 (`given_family` / `family_given`)、日付・時刻・日時の書式。住所テンプレート、電話のパターン、MRN・国の識別子の仕様は移行の手順 2 (§7) で加える。 |
+| `formats` | 氏名の順序 (`given_family` / `family_given`、`formats.name_parts(family, given)` で適用)、日付・時刻・日時の書式、医師名の敬称 (`physician_name_prefix`)。 |
 | `implementations` | アルゴリズムの種類ごとに使う実装の名前 (`egfr_equation`、`triage_scale`、`copay_rule`、`insurer_number` など)。 |
+
+住所と電話の書式は `clinosim/locale/<cc>/addresses.yaml` のパターン
+(`street_line`、`apartment_line`、`phone.{mobile,landline,staff_work,ward}`、
+`fhir_address`) で、汎用の整形器 `clinosim/locale/patterns.py` が抽選・整形する
+(libaddressinput / libphonenumber 方式)。Patient の MRN の system と国の識別子は
+`clinosim/locale/<cc>/identity.yaml` (`fhir_patient`) に置く。
 
 モジュールの**国別パラメータ** (退院基準、手術までの時間など) は、そのモジュール
 の `reference_data/` または `clinosim/locale/<cc>/<topic>.yaml` に国をキーとして
@@ -72,7 +78,8 @@ YAML の読み込みと検証は
   区別しない。旧来の表記 (`"japan"`) はローダー内のデータ表で変換し、
   `is_jp` / `is_us` は使わない。未知の国は `KeyError` にし、黙って US に
   戻さない。
-- `profile.code`、`profile.language`、`profile.timezone` (`"Z"` または
+- `profile.code`、`profile.language`、`profile.language_tag` (BCP 47 の
+  `<language>-<code>`、例 `ja-JP`)、`profile.timezone` (`"Z"` または
   `+HH:MM` / `-HH:MM` の UTC オフセット)、`profile.formats`。
 - `profile.uses(profile_name) -> bool`、`profile.feature(name) -> bool`、
   `profile.code_system(kind) -> str`、`profile.implementation(kind) -> str`。

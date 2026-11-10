@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import uuid
+from collections.abc import Callable
 from datetime import date, timedelta
 from functools import lru_cache
 from typing import Any
@@ -185,6 +186,11 @@ def _build_us_ssn_identifier(cif_patient_id: str) -> dict[str, Any]:
         "system": _US_SSN_SYSTEM,
         "value": _build_us_ssn(cif_patient_id),
     }
+
+
+# National identifier builders by the name identity.yaml
+# ``fhir_patient.national_identifier`` gives (Issue #3141).
+_NATIONAL_IDENTIFIER_BUILDERS: dict[str, Callable[[str], dict[str, Any]]] = {"ssn": _build_us_ssn_identifier}
 
 
 def resolve_patient_id(cif_patient_id: str) -> str:
@@ -1034,8 +1040,11 @@ def _build_patient(
         "gender": gender,
     }
 
-    if not is_jp(country) and p.get("patient_id"):
-        resource["identifier"].append(_build_us_ssn_identifier(pid))
+    # Issue #3141: which national identifier the Patient carries is country
+    # data (identity.yaml ``fhir_patient.national_identifier``).
+    _national_id = _patient_cfg.get("national_identifier")
+    if _national_id and p.get("patient_id"):
+        resource["identifier"].append(_NATIONAL_IDENTIFIER_BUILDERS[str(_national_id)](pid))
     # Issue #3149: JP_Patient_eCS R1012 — exactly one insured-person
     # identifier, the current Coverage's member identifier.
     if _patient_cfg.get("insured_identifier_from_coverage"):

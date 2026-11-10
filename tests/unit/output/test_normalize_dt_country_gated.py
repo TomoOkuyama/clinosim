@@ -32,9 +32,14 @@ class TestTzSuffixForCountry:
         assert tz_suffix_for_country("US") == "Z"
         assert tz_suffix_for_country("us") == "Z"
 
-    def test_empty_or_unknown_returns_utc(self):
+    def test_empty_returns_utc(self):
         assert tz_suffix_for_country("") == "Z"
-        assert tz_suffix_for_country("FR") == "Z"
+
+    def test_unknown_country_raises(self):
+        # Issue #3141: the suffix is the country profile's timezone; a country
+        # without a profile fails instead of reading as UTC.
+        with pytest.raises(KeyError):
+            tz_suffix_for_country("FR")
 
 
 class TestNormalizeDtRewrite:

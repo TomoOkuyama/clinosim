@@ -13,6 +13,7 @@ from typing import Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.loader import (
     department_display,
     department_specialty_snomed,
@@ -239,8 +240,11 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
             family, given = full_name, ""
 
         name_obj: dict[str, Any] = {"family": family, "given": [given] if given else []}
-        if role in ("physician", "radiologist") and not is_jp(country):
-            name_obj["prefix"] = ["Dr."]
+        # Issue #3141: the title is country data (country profile
+        # ``formats.physician_name_prefix``; none in JP).
+        _prefix = country_profile(country).formats.physician_name_prefix
+        if role in ("physician", "radiologist") and _prefix:
+            name_obj["prefix"] = [_prefix]
         # C3-01: JP Core requires kanji (IDE)
         # representation tag on Practitioner names as well as Patient.
         # C2-19 continuation: Kana SYL entry now

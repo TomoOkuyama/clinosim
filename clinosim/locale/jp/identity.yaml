@@ -196,3 +196,6 @@ fhir_coverage:
 fhir_patient:
   mrn_system: "urn:oid:1.2.392.100495.20.3.51.1{institution_code}"
   insured_identifier_from_coverage: true
+  # National identifier on the Patient (Issue #3141): none — the 個人番号 is
+  # held in CIF only and never emitted.
+  national_identifier: null

@@ -26,9 +26,15 @@ cities:
   - {city: "市川市", prefecture: "千葉県", zips: ["272-0001", "272-0002", "272-0003", "272-0021", "272-0022", "272-0023"], weight: 6}
   - {city: "柏市", prefecture: "千葉県", zips: ["277-0001", "277-0002", "277-0003", "277-0011", "277-0012", "277-0013"], weight: 5}
 
-# Japanese address format: 丁目-番地-号
-# Street line written by modules/population/_identity.py.
-line_format: "{town}{chome}丁目{banchi}-{go}"
+# Japanese address format: 丁目-番地-号 (1-5 丁目, 1-29 番地, 1-14 号).
+# clinosim/locale/patterns.py draw_pattern; fields drawn in order.
+street_line:
+  fields:
+    - {name: town, choice: towns}
+    - {name: chome, integer: [1, 6]}
+    - {name: banchi, integer: [1, 30]}
+    - {name: go, integer: [1, 15]}
+  format: "{town}{chome}丁目{banchi}-{go}"
 towns:
   - "本町"
   - "中央"
@@ -46,8 +52,14 @@ towns:
   - "大宮"
   - "美園"
 
-# Apartment/mansion probability (60% in Tokyo metro area)
+# Apartment/mansion probability (60% in Tokyo metro area); building name and
+# room number (101-1204) appended to the street line.
 apartment_probability: 0.60
+apartment_line:
+  fields:
+    - {name: name, choice: apartment_names}
+    - {name: room, integer: [101, 1205]}
+  format: " {name}{room}"
 apartment_names:
   - "グランドメゾン"
   - "パークハイツ"
@@ -64,8 +76,43 @@ apartment_names:
 phone:
   area_codes_landline: ["03", "048", "045", "044", "047", "04"]  # 東京/埼玉/横浜/川崎/千葉
   mobile_prefix: ["090", "080", "070"]
-  landline_format: "{area}-{exchange}-{number}"  # 03-1234-5678
-  mobile_format: "{prefix}-{mid}-{last}"  # 090-1234-5678
+  # clinosim/locale/patterns.py draw_pattern; `choice` names a list above.
+  mobile:  # 090-1234-5678
+    fields:
+      - {name: prefix, choice: mobile_prefix}
+      - {name: mid, integer: [1000, 9999]}
+      - {name: last, integer: [1000, 9999]}
+    format: "{prefix}-{mid:04d}-{last:04d}"
+  landline:
+    fields:
+      - {name: area, choice: area_codes_landline}
+    then:
+      by: area
+      cases:
+        # 東京 (03): 市内局番 4 桁 — 03-1234-5678
+        "03":
+          fields:
+            - {name: exchange, integer: [1000, 9999]}
+            - {name: number, integer: [1000, 9999]}
+          format: "{area}-{exchange:04d}-{number:04d}"
+        # その他 (048 / 045 …): 市内局番 3 桁 — 048-123-4567
+        default:
+          fields:
+            - {name: exchange, integer: [100, 999]}
+            - {name: number, integer: [1000, 9999]}
+          format: "{area}-{exchange:03d}-{number:04d}"
+  # Hospital staff work phone (staff roster): Tokyo 03 number.
+  staff_work:
+    fields:
+      - {name: exchange, integer: [3000, 6000]}
+      - {name: number, integer: [1000, 9999]}
+    format: "03-{exchange}-{number}"
+  # Ward phone on the encounter CareTeam: derived from a hash of the
+  # encounter and ward (format_hash_pattern), Tokyo 03 number.
+  ward:
+    format: "03-{high:04d}-{low:04d}"
+    low_modulus: 10000
+    high_modulus: 10000
 
 # Contact patterns (Japan)
 # Source: 総務省通信利用動向調査
@@ -74,3 +121,10 @@ contact_rules:
   adult_female_mobile_probability: 0.60  # 既婚女性は自宅電話が多い
   child_uses_parent_phone: true
   household_has_landline_probability: 0.65  # 日本は固定電話保有率が高い
+
+# FHIR Address shape (Issue #3141; read by
+# clinosim/modules/output/fhir_r4/lib/common.py build_address): Address.line
+# is 都道府県 + 市区町村 + 番地, Address.state the JIS X 0401 prefecture code.
+fhir_address:
+  line_template: "{state}{city}{line1}"
+  state: jis_x0401

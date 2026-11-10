@@ -32,6 +32,7 @@ from clinosim import determinism
 from clinosim.age_bands import lookup_age_band
 from clinosim.codes.drugs import drug_display
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
+from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_perinatal_config
 from clinosim.modules._shared import is_jp
@@ -326,9 +327,9 @@ def _newborn_contact_from_mother(mother: PatientProfile, country: str = "US"):
     if m_name is not None:
         _family = str(getattr(m_name, "family_name", "") or "")
         _given = str(getattr(m_name, "given_name", "") or "")
-        # JP writes family name first; the US writes the given name first
-        # (Issue #2880 — the US contact read "Hsu Karen").
-        _display_parts = [_family, _given] if is_jp(country) else [_given, _family]
+        # Written name order from the country profile (Issue #3141; Issue
+        # #2880 — the US contact read "Hsu Karen").
+        _display_parts = country_profile(country).formats.name_parts(_family, _given)
         mother_name_text = " ".join(part for part in _display_parts if part)
     else:
         mother_name_text = ""

@@ -33,6 +33,8 @@ formats:
   date_format: "MM/dd/yyyy"
   time_format: "12h"
   datetime_format: "MM/dd/yyyy h:mm a"
+  # Title before a physician's name (FHIR HumanName.prefix); "" = none.
+  physician_name_prefix: "Dr."
 # Named implementation per algorithm kind (registered with
 # clinosim.country_profile.register_implementation).
 implementations:

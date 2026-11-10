@@ -22,6 +22,8 @@ formats:
   date_format: "yyyy/MM/dd"
   time_format: "24h"
   datetime_format: "yyyy/MM/dd HH:mm"
+  # Japanese records write no title before a physician's name.
+  physician_name_prefix: ""
 implementations:
   egfr_equation: jsn
   pediatric_egfr_equation: uemura

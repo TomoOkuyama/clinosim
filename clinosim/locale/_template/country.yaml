@@ -16,5 +16,5 @@ code: XX
 # code_systems: {lab: loinc, diagnosis: icd-10-cm, drug: rxnorm, procedure: cpt, microbiology: loinc}
 # fhir_profiles: []
 # features: {care_level: false}
-# formats: {name_order: given_family}
+# formats: {name_order: given_family, physician_name_prefix: "Dr."}
 # implementations: {egfr_equation: ckd_epi_2021}

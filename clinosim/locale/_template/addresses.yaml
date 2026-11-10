@@ -14,3 +14,20 @@ regions:
 
 city_pool:
   - {name: "__TODO_city_1__", region: "__TODO_region_1__", postal_code: "000-0000"}
+
+# Address and phone formats (Issue #3141): patterns drawn and formatted by
+# clinosim/locale/patterns.py. `choice` names a list in this file (or in
+# `phone` for phone patterns); `integer: [low, high)` draws rng.integers.
+# street_line:
+#   fields: [{name: street, choice: street_names}, {name: number, integer: [1, 500]}]
+#   format: "{number} {street}"
+# apartment_probability: 0.0
+# apartment_line: {fields: [{name: number, integer: [1, 13]}], format: ", Apt {number}"}
+# phone:
+#   mobile: {fields: [...], format: "..."}
+#   landline: {fields: [...], format: "..."}
+#   staff_work: {fields: [...], format: "..."}
+#   ward: {format: "{high:03d}-{low:04d}", low_modulus: 10000, high_modulus: 1000}
+# fhir_address:
+#   line_template: "{line1}"     # fields: state, city, line1
+#   state: name                  # "name" or "jis_x0401"

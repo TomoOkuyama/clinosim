@@ -22,7 +22,8 @@ from clinosim.codes.icd10 import condition_short_name
 from clinosim.codes.prefectures import prefecture_code
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
-from clinosim.locale.loader import load_code_mapping, load_reference_ranges
+from clinosim.country_profile import country_profile
+from clinosim.locale.loader import load_addresses, load_code_mapping, load_reference_ranges
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.reference_data import (
     _JP_CONDITION_SEVERITY_CS,
@@ -310,14 +311,12 @@ def build_address(addr: dict, country: str) -> dict[str, Any] | None:
 
     state_name = addr.get("state", "")
     country_code = addr.get("country", country)
+    # Issue #3141: the line shape and the state form are country data
+    # (addresses.yaml ``fhir_address``).
+    shape = load_addresses(country_code)["fhir_address"]
 
-    # Build full address line
-    if is_jp(country_code):
-        # JP: 都道府県+市区町村+番地
-        line = f"{state_name}{addr.get('city', '')}{addr.get('line1', '')}"
-    else:
-        # US: street line
-        line = addr.get("line1", "")
+    # Full address line: US the street line; JP 都道府県+市区町村+番地.
+    line = str(shape["line_template"]).format(state=state_name, city=addr.get("city", ""), line1=addr.get("line1", ""))
 
     fhir_addr: dict[str, Any] = {
         # C4-13: Address.use = "home" per FHIR R4 spec.
@@ -326,24 +325,21 @@ def build_address(addr: dict, country: str) -> dict[str, Any] | None:
         "use": "home",
         "type": "both",
         # Issue #378: JP_Patient_eCS requires `address.text` (min=1). Only
-        # emit on JP so US Patient.address stays byte-clean (US doesn't
-        # assert eCS and adding `text` there would be an unrelated diff).
+        # emitted where the JP-CLINS (eCS) profile applies; US does not
+        # assert eCS and adding `text` there would be an unrelated diff.
         # JP `line` already carries the concatenated 都道府県+市区町村+番地
         # form, which is exactly what `text` should hold.
-        **({"text": line} if line and is_jp(country_code) else {}),
+        **({"text": line} if line and country_profile(country_code).uses("jp_clins") else {}),
         "line": [line] if line else [],
         "city": addr.get("city", ""),
         "postalCode": addr.get("postal_code", ""),
         "country": country_code,
     }
 
-    # State: use code for JP (JIS X 0401), abbreviation for US
-    if is_jp(country_code):
-        code = prefecture_code(state_name)
-        if code:
-            fhir_addr["state"] = code
-    elif state_name:
-        fhir_addr["state"] = state_name
+    # State: JP the JIS X 0401 prefecture code, US the state abbreviation.
+    state = prefecture_code(state_name) if shape["state"] == "jis_x0401" else state_name
+    if state:
+        fhir_addr["state"] = state
 
     return fhir_addr
 

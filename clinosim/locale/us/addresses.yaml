@@ -45,15 +45,54 @@ street_names:
   - "Pleasant St"
   - "Franklin St"
 
-# Apartment probability (35% in MA urban area)
+# Street line (clinosim/locale/patterns.py draw_pattern; fields drawn in
+# order): "123 Main St". House numbers 1-499.
+street_line:
+  fields:
+    - {name: street, choice: street_names}
+    - {name: number, integer: [1, 500]}
+  format: "{number} {street}"
+
+# Apartment probability (35% in MA urban area); the unit is appended to the
+# street line: "123 Main St, Apt 7" (units 1-12).
 apartment_probability: 0.35
-apartment_format: "Apt {number}"  # {number} = 1-12
+apartment_line:
+  fields:
+    - {name: number, integer: [1, 13]}
+  format: ", Apt {number}"
 
 # Phone patterns
 phone:
   area_codes: ["617", "508", "781", "978", "413", "857", "339", "351"]
   mobile_prefix: ["617", "508", "781"]  # same area codes for mobile
-  format: "({area}) {exchange}-{number}"  # (617) 555-1234
+  # NANP number: exchange 200-998 (no leading 0/1), line 1000-9998.
+  # clinosim/locale/patterns.py draw_pattern; `choice` names a list above.
+  mobile:
+    fields:
+      - {name: area, choice: mobile_prefix}
+      - {name: exchange, integer: [200, 999]}
+      - {name: number, integer: [1000, 9999]}
+    format: "({area}) {exchange:03d}-{number:04d}"  # (617) 555-1234
+  landline:
+    fields:
+      - {name: area, choice: area_codes}
+      - {name: exchange, integer: [200, 999]}
+      - {name: number, integer: [1000, 9999]}
+    format: "({area}) {exchange:03d}-{number:04d}"
+  # Hospital staff work phone (staff roster): any NANP area code.
+  staff_work:
+    fields:
+      - {name: area, integer: [200, 999]}
+      - {name: exchange, integer: [200, 999]}
+      - {name: number, integer: [1000, 9999]}
+    format: "({area}) {exchange}-{number}"
+  # Ward phone on the encounter CareTeam: derived from a hash of the
+  # encounter and ward (format_hash_pattern), in the 555 area code reserved
+  # for fiction.
+  ward:
+    format: "(555) {high:03d}-{low:04d}"
+    low_modulus: 10000
+    high_modulus: 1000
 
 # Contact patterns (US)
 contact_rules:
@@ -61,3 +100,10 @@ contact_rules:
   adult_female_mobile_probability: 0.70  # 70% use mobile
   child_uses_parent_phone: true
   household_has_landline_probability: 0.40  # declining in US
+
+# FHIR Address shape (Issue #3141; read by
+# clinosim/modules/output/fhir_r4/lib/common.py build_address). line_template
+# fields: state, city, line1. state: "name" (as written) or "jis_x0401".
+fhir_address:
+  line_template: "{line1}"
+  state: name
