@@ -38,7 +38,7 @@ def test_registered_keys(key: str, uri: str) -> None:
     assert get_system_uri(key) == uri
 
 
-def test_post_mortem_disposition_override_carries_a_display() -> None:
+def _post_mortem_disposition(country: str) -> dict:
     enc = _build_encounter(
         {
             "encounter_id": "E1",
@@ -48,10 +48,24 @@ def test_post_mortem_disposition_override_carries_a_display() -> None:
             "discharge_disposition": "home",
         },
         "patient-1",
-        country="JP",
+        country=country,
     )
-    kept = _drop_entries_after_death([{"resource": enc}], "2026-01-10", "ja")
-    disp = kept[0]["resource"]["hospitalization"]["dischargeDisposition"]
+    lang = "ja" if country == "JP" else "en"
+    kept = _drop_entries_after_death([{"resource": enc}], "2026-01-10", lang, country)
+    return kept[0]["resource"]["hospitalization"]["dischargeDisposition"]
+
+
+def test_post_mortem_disposition_override_carries_a_display() -> None:
+    disp = _post_mortem_disposition("US")
     assert disp["coding"][0]["code"] == "exp"
     assert disp["coding"][0]["display"] == "Expired"
-    assert disp["text"] == "死亡退院"
+    assert disp["text"] == "Expired"
+
+
+def test_jp_post_mortem_disposition_is_a_death_from_another_cause() -> None:
+    # Issue #3150: a JP stay codes the DPC discharge outcome; a death outside
+    # the simulated course is 7 傷病以外による死亡.
+    disp = _post_mortem_disposition("JP")
+    assert disp["coding"][0]["code"] == "7"
+    assert disp["coding"][0]["display"] == "傷病以外による死亡"
+    assert disp["text"] == "傷病以外による死亡"

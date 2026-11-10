@@ -1,0 +1,32 @@
+# Encounter.hospitalization.dischargeDisposition coding — Japan (Issue #3150).
+#
+# JP-CLINS JP_Encounter_eCS binds an inpatient Encounter's
+# dischargeDisposition (1..1, required) to the DPC 退院時転帰 value set
+# (jpfhir-discharge-disposition): the stay's discharge outcome, derived from
+# the simulated course (clinosim.modules.encounter.discharge_outcome), not
+# the destination. Other encounter classes keep the HL7 destination coding.
+#
+#   <Encounter.class code> (IMP = inpatient) / default:
+#     concept: outcome (DPC 退院時転帰) | destination (HL7 discharge-disposition)
+#     system_key: code-system registry key (clinosim/codes/data)
+#     codes: outcome key -> code (concept: outcome only)
+metadata:
+  kind: country-mapping
+  name: code_mapping_discharge_disposition
+  source: "JP-CLINS 1.13.0 JP_Encounter_eCS; DPC 様式1 退院時転帰"
+
+IMP:
+  concept: outcome
+  system_key: jpfhir-discharge-disposition
+  codes:
+    improved: "1"
+    remission: "3"
+    unchanged: "4"
+    worsened: "5"
+    death_from_condition: "6"
+    death_other: "7"
+    other: "9"
+
+default:
+  concept: destination
+  system_key: hl7-discharge-disposition

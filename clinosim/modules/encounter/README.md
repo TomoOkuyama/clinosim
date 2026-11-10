@@ -112,6 +112,12 @@ from clinosim.modules.encounter.protocol import (
     screening_schedule,              # (condition_id) -> ScreeningSchedule  (a screening protocol's schedule (ValueError if none))
     discharge_instructions_for_age,  # (protocol, age_months) -> instructions; an age-gated item yields its `younger` variant below `min_age_months` (no honey under 12 months)
 )
+from clinosim.modules.encounter.discharge_outcome import discharge_outcome
+# (encounter, *, deceased) -> outcome key of a finished inpatient stay
+# (improved / remission / unchanged / worsened / death_from_condition /
+# death_other / other), the DPC 退院時転帰, derived from the course by the
+# ordered rules of locale/shared/discharge_outcomes.yaml (Issue #3150).
+# Each country codes it through locale/<cc>/code_mapping_discharge_disposition.yaml.
 ```
 
 ## Determinism

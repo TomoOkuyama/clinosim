@@ -83,6 +83,60 @@ def _encounter_disposition_defaults() -> dict[str, Any]:
     return load_encounter_disposition_defaults()
 
 
+def _discharge_disposition_table(class_code: str, country: str) -> dict[str, Any]:
+    """The country's dischargeDisposition coding for an encounter class
+    (``locale/<cc>/code_mapping_discharge_disposition.yaml``, Issue #3150)."""
+    from clinosim.locale.loader import load_code_mapping
+
+    table: dict[str, Any] = dict(load_code_mapping("discharge_disposition", country))
+    entry = table.get(class_code) or table.get("default") or {}
+    return entry if isinstance(entry, dict) else {}
+
+
+def discharge_disposition_concept(
+    enc: dict, class_code: str, country: str, *, deceased: bool = False, death_other: bool = False
+) -> dict[str, Any] | None:
+    """``Encounter.hospitalization.dischargeDisposition`` of an encounter in
+    ``country`` (Issue #3150), coded as the country's table says:
+
+    - ``outcome``: the DPC discharge outcome of the stay
+      (``modules.encounter.discharge_outcome``); ``death_other`` for a death
+      the simulated course does not explain.
+    - ``destination``: the HL7 discharge-disposition of the destination — the
+      CIF value, else the yaml default (``deceased_code`` / ``fallback_code``).
+
+    None when the table has no code for the encounter."""
+    entry = _discharge_disposition_table(class_code, country)
+    if not entry:
+        return None
+    if entry.get("concept") == "outcome":
+        from clinosim.modules.encounter.discharge_outcome import discharge_outcome
+
+        key = "death_other" if death_other else discharge_outcome(enc, deceased=deceased)
+        code = str((entry.get("codes") or {}).get(key) or "")
+    else:
+        defaults = _encounter_disposition_defaults()["discharge_disposition"]
+        if death_other:
+            code = str(defaults["deceased_code"])
+        else:
+            code = str(enc.get("discharge_disposition") or "") or str(
+                defaults["deceased_code"] if deceased else defaults["fallback_code"]
+            )
+    if not code:
+        return None
+    return dual_slot_concept(str(entry["system_key"]), code, lang_for(country))
+
+
+def discharge_death_codes(class_code: str, country: str) -> set[str]:
+    """The dischargeDisposition codes of a death for an encounter class in
+    ``country`` (Issue #3150)."""
+    entry = _discharge_disposition_table(class_code, country)
+    if entry.get("concept") == "outcome":
+        codes = entry.get("codes") or {}
+        return {str(codes[k]) for k in ("death_from_condition", "death_other") if k in codes}
+    return {str(_encounter_disposition_defaults()["discharge_disposition"]["deceased_code"])}
+
+
 def _compute_encounter_length(start_iso: str, end_iso: str) -> dict[str, Any] | None:
     """Compute FHIR ``Encounter.length`` from ISO-8601 period bounds.
 
@@ -502,9 +556,11 @@ def _set_hospitalization(
     if _emit_hospitalization and enc.get("admit_source"):
         hosp["admitSource"] = dual_slot_concept("hl7-admit-source", enc["admit_source"], _lang)
     if _emit_hospitalization and enc.get("discharge_disposition"):
-        hosp["dischargeDisposition"] = dual_slot_concept(
-            "hl7-discharge-disposition", enc["discharge_disposition"], _lang
-        )
+        # Issue #3150: the country's table decides what the element codes —
+        # the destination (HL7) or the DPC discharge outcome of a JP stay.
+        _dd = discharge_disposition_concept(enc, class_code, country, deceased=deceased)
+        if _dd:
+            hosp["dischargeDisposition"] = _dd
     # Re-admission flag (FHIR standard: hospitalization.reAdmission CodeableConcept)
     # Using HL7 v2 table 0092 "Re-admission Indicator" — the canonical source.
     if _emit_hospitalization and is_readmission:
@@ -540,9 +596,10 @@ def _set_hospitalization(
     _cif_status = enc.get("status", "")
     _is_finished = _cif_status in ("completed", "finished")
     if _emit_hospitalization and not hosp.get("dischargeDisposition") and _is_finished:
-        _dd_defaults = _defaults["discharge_disposition"]
-        _dd_code = _dd_defaults["deceased_code"] if deceased else _dd_defaults["fallback_code"]
-        hosp["dischargeDisposition"] = dual_slot_concept(_dd_defaults["system_key"], _dd_code, _lang)
+        _dd = discharge_disposition_concept(enc, class_code, country, deceased=deceased)
+        if _dd:
+            hosp["dischargeDisposition"] = _dd
+
     # CY8-03 fix:Encounter.hospitalization.dietPreference
     # を CIF の DIET Order から derive。IMP/EMER encounter で diet order あれば
     # 一意の diet 種別を text-only CodeableConcept として emit。
@@ -716,7 +773,12 @@ def _build_encounter(
         country,
         patient_sex,
     )
-    _set_hospitalization(resource, enc, class_code, country, is_readmission, deceased, record_orders, encounter_id)
+    # Issue #3150: the discharge outcome reads the stay's admission diagnosis,
+    # which the CIF records on the clinical diagnosis rather than the encounter.
+    _hosp_enc = enc if enc.get("admission_diagnosis_code") else {**enc, "admission_diagnosis_code": admit_dx_code}
+    _set_hospitalization(
+        resource, _hosp_enc, class_code, country, is_readmission, deceased, record_orders, encounter_id
+    )
 
     # Service provider (department Organization ``dept-<department>``, emitted
     # by facility.py's _build_facility_bundle into Organization.ndjson)

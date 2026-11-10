@@ -102,7 +102,9 @@ def test_admit_source_outp_dual_slot(country: str, lang: str) -> None:
 # ---------- 3. Death encounter → dischargeDisposition=exp fallback ----------
 
 
-@pytest.mark.parametrize("country,lang", [("JP", "ja"), ("US", "en")])
+# Issue #3150: a JP inpatient stay codes the DPC discharge outcome instead
+# (tests/unit/output/test_dpc_discharge_outcome_3150.py).
+@pytest.mark.parametrize("country,lang", [("US", "en")])
 def test_death_encounter_falls_back_to_expired(country: str, lang: str) -> None:
     """`deceased=True` with no explicit CIF `discharge_disposition` → falls
     back to the yaml-configured `deceased_code` ("exp") rather than to
@@ -121,7 +123,9 @@ def test_death_encounter_falls_back_to_expired(country: str, lang: str) -> None:
 # ---------- 4. Normal completed encounter → dischargeDisposition=home ----------
 
 
-@pytest.mark.parametrize("country,lang", [("JP", "ja"), ("US", "en")])
+# Issue #3150: a JP inpatient stay codes the DPC discharge outcome instead
+# (tests/unit/output/test_dpc_discharge_outcome_3150.py).
+@pytest.mark.parametrize("country,lang", [("US", "en")])
 def test_normal_discharge_falls_back_to_home(country: str, lang: str) -> None:
     """Finished IMP with no explicit CIF `discharge_disposition` and
     `deceased=False` → dispo falls back to yaml `fallback_code` ("home")."""

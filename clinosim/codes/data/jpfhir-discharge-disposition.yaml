@@ -1,0 +1,20 @@
+# DPC 退院時転帰 (discharge outcome). Authoritative source: JP-CLINS 1.13.0
+# package (jp-clins), CodeSystem-jp-codeSystem-dischargeDisposition.json —
+# http://jpfhir.jp/fhir/Common/CodeSystem/discharge-disposition version
+# 1.0.0, the code system of the ValueSet
+# http://jpfhir.jp/fhir/Common/ValueSet/discharge-disposition that
+# JP_Encounter_eCS binds (required) to hospitalization.dischargeDisposition.
+# `ja` is the package display; `en` is a translation (Issue #3150).
+metadata:
+  kind: code-system
+  name: JP DPC Discharge Disposition (退院時転帰)
+  uri: http://jpfhir.jp/fhir/Common/CodeSystem/discharge-disposition
+  source: "JP-CLINS 1.13.0 (jpfhir discharge-disposition 1.0.0)"
+codes:
+  "1": {en: "Cured or improved", ja: "傷病が治癒・軽快"}
+  "3": {en: "In remission (leukemia, ulcerative colitis, Crohn's disease, etc.)", ja: "傷病（白血病、潰瘍性大腸炎、クローン病等）が寛解"}
+  "4": {en: "Unchanged", ja: "傷病が不変"}
+  "5": {en: "Worsened", ja: "傷病が増悪"}
+  "6": {en: "Death from the condition", ja: "傷病による死亡"}
+  "7": {en: "Death from another cause", ja: "傷病以外による死亡"}
+  "9": {en: "Other (including examination admission, normal delivery and health checkup)", ja: "その他（検査入院,正常分娩及び人間ドック含む）"}

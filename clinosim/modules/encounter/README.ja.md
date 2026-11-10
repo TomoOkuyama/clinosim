@@ -104,6 +104,11 @@ from clinosim.modules.encounter.protocol import (
     screening_schedule,              # (condition_id) -> ScreeningSchedule  (screening protocol の schedule (無ければ ValueError))
     discharge_instructions_for_age,  # (protocol, age_months) -> 退院指導; 年齢条件付きの項目は `min_age_months` 未満で `younger` を返す (12か月未満に蜂蜜を勧めない)
 )
+from clinosim.modules.encounter.discharge_outcome import discharge_outcome
+# (encounter, *, deceased) -> 終了した入院の退院時転帰キー (improved / remission /
+# unchanged / worsened / death_from_condition / death_other / other)。DPC 様式1 の
+# 退院時転帰で、locale/shared/discharge_outcomes.yaml の順序付き規則で経過から導く
+# (Issue #3150)。国ごとの符号化は locale/<cc>/code_mapping_discharge_disposition.yaml。
 ```
 
 ## 決定論

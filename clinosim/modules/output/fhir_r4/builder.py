@@ -20,7 +20,6 @@ from collections.abc import Callable
 from datetime import date, datetime
 from typing import Any
 
-from clinosim.codes.hl7_encounter import DischargeDisposition
 from clinosim.countries import lang_for
 from clinosim.modules._shared import is_jp, is_us
 from clinosim.modules.newborn.fhir_emit import (
@@ -51,6 +50,7 @@ from clinosim.modules.output.fhir_r4.documents.documents import _bb_document_ref
 from clinosim.modules.output.fhir_r4.documents.imaging_report import _bb_imaging_report_compositions
 from clinosim.modules.output.fhir_r4.encounters.care_level import _bb_care_level
 from clinosim.modules.output.fhir_r4.encounters.care_team import _bb_care_teams
+from clinosim.modules.output.fhir_r4.encounters.encounter import discharge_death_codes, discharge_disposition_concept
 from clinosim.modules.output.fhir_r4.encounters.endpoint import _bb_endpoints
 from clinosim.modules.output.fhir_r4.encounters.facility import _build_facility_bundle
 from clinosim.modules.output.fhir_r4.labs.anthropometrics import _bb_anthropometrics
@@ -68,7 +68,7 @@ from clinosim.modules.output.fhir_r4.labs.stage_scale_observations import _bb_st
 # and `convert_cif_to_fhir` (this module's public surface) actually call —
 # the historical facade re-export block (marked with `noqa` directives) was
 # dropped once tests migrated to canonical imports.
-from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, entry
+from clinosim.modules.output.fhir_r4.lib.common import entry
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ed_reattribution import (
     reattribute_encounter_to_ed_bridge as _reattribute_encounter_to_ed_bridge,
@@ -859,7 +859,7 @@ def _build_bundle(
     # after it (``Observation.issued``) and stay in the record.
     _pat_dod_str = patient_data.get("date_of_death") or patient_data.get("dod")
     if _pat_dod_str:
-        entries = _drop_entries_after_death(entries, str(_pat_dod_str)[:10], lang_for(country))
+        entries = _drop_entries_after_death(entries, str(_pat_dod_str)[:10], lang_for(country), country)
 
     # Issue #945 (2026-08-30): post-snapshot event gate. Universal
     # bundle-finalize filter mirroring #928 death filter — for inpatients
@@ -1374,7 +1374,7 @@ def _drop_entries_after_snapshot(entries: list[dict], snapshot_iso: str) -> tupl
     return kept, dropped, total_scrubbed
 
 
-def _drop_entries_after_death(entries: list[dict], dod_iso: str, lang: str = "en") -> list[dict]:
+def _drop_entries_after_death(entries: list[dict], dod_iso: str, lang: str = "en", country: str = "US") -> list[dict]:
     """Filter out bundle entries whose timestamp is after the patient's date of death.
 
     Issue #926: universal safety gate applied per-record in `_build_bundle`.
@@ -1450,12 +1450,15 @@ def _drop_entries_after_death(entries: list[dict], dod_iso: str, lang: str = "en
                     disp = hospitalization.get("dischargeDisposition") or {}
                     coding_list = disp.get("coding") or []
                     disp_code = (coding_list[0] or {}).get("code", "") if coding_list else ""
-                    if disp_code != "exp":
-                        # Overwrite the disposition to the death-event code.
-                        hospitalization["dischargeDisposition"] = dual_slot_concept(
-                            "hl7-discharge-disposition", DischargeDisposition.EXP.value, lang
-                        )
-                        res["hospitalization"] = hospitalization
+                    _class = str((res.get("class") or {}).get("code") or "")
+                    if disp_code not in discharge_death_codes(_class, country):
+                        # Overwrite the disposition to the death-event code: a
+                        # death outside the simulated course (Issue #3150: DPC
+                        # 7 傷病以外による死亡 for a JP stay, HL7 exp elsewhere).
+                        _death = discharge_disposition_concept({}, _class, country, death_other=True)
+                        if _death:
+                            hospitalization["dischargeDisposition"] = _death
+                            res["hospitalization"] = hospitalization
             kept.append(e)
             continue
         after_death = False
