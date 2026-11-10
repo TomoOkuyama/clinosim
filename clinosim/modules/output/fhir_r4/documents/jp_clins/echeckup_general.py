@@ -3,8 +3,8 @@
 Extracted from ``composition.py::_build_jp_echeckup_general_composition``
 (full-review Phase B4, CRITICAL C5c). Same lazy-import pattern as the
 discharge-summary / eReferral splits — the builder reuses
-``_build_composition_generic`` + ``_section_title_from_section_display``
-from composition.py through a function-body import so module load stays
+``_build_composition_generic`` from composition.py through a function-body
+import so module load stays
 cycle-free.
 
 The section-code matrix (3 checkup types × 2 section keys) is loaded
@@ -50,6 +50,28 @@ def _jp_echeckup_section_code_matrix() -> dict[str, dict[str, str]]:
     return out
 
 
+@cache
+def _jp_echeckup_report_codes() -> dict[str, dict[str, str]]:
+    """Per checkup type, the report category and program service codes
+    (``mhlw-echeckup-section-codes.yaml`` ``report_codes``, Issue #3153)."""
+    raw = data_table("mhlw-echeckup-section-codes").get("report_codes") or {}
+    return {str(k): {str(a): str(b) for a, b in (v or {}).items()} for k, v in raw.items()}
+
+
+@cache
+def _jp_echeckup_version_extension() -> dict[str, str]:
+    """The composition-clinicaldocument-versionNumber extension's URL and
+    value (``mhlw-echeckup-section-codes.yaml``, Issue #3153)."""
+    raw = data_table("mhlw-echeckup-section-codes").get("version_extension") or {}
+    return {"url": str(raw["url"]), "valueString": str(raw["value"])}
+
+
+def _coded(system_key: str, code: str, lang: str) -> dict[str, Any]:
+    """A one-coding CodeableConcept of ``code`` in ``system_key``."""
+    display = registry_display(system_key, code, lang) or code
+    return {"coding": [{"system": get_system_uri(system_key), "code": code, "display": display}], "text": display}
+
+
 _JP_ECHECKUP_SECTION_CODE_MATRIX: dict[str, dict[str, str]] = _jp_echeckup_section_code_matrix()
 
 # 既存 test 互換 alias。checkup_type 未指定時は事業者健診として dispatch。
@@ -72,10 +94,7 @@ def _build_jp_echeckup_general_composition(
         01032 問診結果)。section.code.system は eCheckup 固有 CodeSystem。
     """
     # Lazy imports break the composition.py ↔ echeckup_general.py cycle.
-    from clinosim.modules.output.fhir_r4.documents.composition import (
-        _build_composition_generic,
-        _section_title_from_section_display,
-    )
+    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition_generic
 
     comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map)
 
@@ -85,18 +104,28 @@ def _build_jp_echeckup_general_composition(
     if _JP_ECHECKUP_GENERAL_PROFILE not in profs:
         profs.append(_JP_ECHECKUP_GENERAL_PROFILE)
 
-    # `type` field:53576-5 を doc-typecodes と LOINC 両方で emit
+    # meta.lastUpdated min=1 (Issue #3153): the authored time, as for the
+    # discharge summary / referral letter; omitted without one.
+    if not meta.get("lastUpdated"):
+        ts = comp.get("date") or _o(doc, "authored_datetime", "")
+        if ts:
+            meta["lastUpdated"] = ts
+
+    # Composition.extension:version min=1 (Issue #3153).
+    version_ext = _jp_echeckup_version_extension()
+    exts = comp.setdefault("extension", [])
+    if not any(isinstance(e, dict) and e.get("url") == version_ext["url"] for e in exts):
+        exts.append(dict(version_ext))
+
+    # `type`: the profile allows one coding, doc-typecodes 53576-5 with the
+    # fixed display 検診・健診報告書 (Issue #3153: the LOINC copy broke
+    # type.coding max=1 and the fixed system).
     disp = registry_display("jpfhir-doc-typecodes", document_loinc("health_checkup_report"), lang) or t(
         "fhir_emit_text.checkup_report_type", "ja"
     )
     comp["type"] = {
         "coding": [
             {"system": _JPFHIR_DOC_TYPECODES_SYSTEM, "code": document_loinc("health_checkup_report"), "display": disp},
-            {
-                "system": get_system_uri("loinc"),
-                "code": document_loinc("health_checkup_report"),
-                "display": registry_display("loinc", document_loinc("health_checkup_report"), lang) or disp,
-            },
         ],
         "text": disp,
     }
@@ -106,16 +135,25 @@ def _build_jp_echeckup_general_composition(
     # sub-PR-D:doc.checkup_type から健診種別を dispatch(未設定なら
     # occupational 事業者健診にfallback)
     checkup_type = _o(doc, "checkup_type", "") or "occupational"
-    section_code_map = _JP_ECHECKUP_SECTION_CODE_MATRIX.get(
-        checkup_type, _JP_ECHECKUP_SECTION_CODE_MATRIX["occupational"]
-    )
+    if checkup_type not in _JP_ECHECKUP_SECTION_CODE_MATRIX:
+        checkup_type = "occupational"
+    section_code_map = _JP_ECHECKUP_SECTION_CODE_MATRIX[checkup_type]
+
+    # category (checkup-report-category) and event.code
+    # (checkup-programService-code), each min=1 max=1 (Issue #3153).
+    report_codes = _jp_echeckup_report_codes()[checkup_type]
+    comp["category"] = [_coded("jpfhir-eCheckup-report-category", report_codes["report_category"], lang)]
+    service = _coded("jpfhir-eCheckup-program-service", report_codes["program_service"], lang)
+    for event in comp.get("event") or []:
+        event["code"] = [service]
     section_entries: list[dict[str, Any]] = []
     for key, code in section_code_map.items():
         disp_c = registry_display("jpfhir-eCheckup-section", code, lang) or key
         text_val = sections.get(key, "") or ""
-        # eCheckup section entries follow the same code.text=absent /
-        # title-vs-display convention as eDS / eReferral.
-        title_c = _section_title_from_section_display(disp_c)
+        # The eCheckup section title is fixed to the section code's display
+        # itself (事業者健診検査結果セクション, Issue #3153) — unlike eDS /
+        # eReferral, whose titles drop the セクション suffix.
+        title_c = disp_c
         section_entries.append(
             {
                 "title": title_c,

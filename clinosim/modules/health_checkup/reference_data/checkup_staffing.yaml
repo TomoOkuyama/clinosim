@@ -1,0 +1,16 @@
+# Who performs a health checkup (Issue #3153).
+#
+# The checkup encounter and its 健診結果報告書 name an attending physician
+# (the report's author). The health-checkup unit (hospital config
+# department `health_checkup`) has no physicians of its own; its checkups
+# are done by internists, as at a hospital 健診センター. The physician is
+# picked stably from these departments' physicians by the encounter id
+# (no RNG), in the listed order of preference when a department has none.
+metadata:
+  kind: reference
+  name: checkup_staffing
+  source: clinosim
+
+attending_departments:
+  - internal_medicine
+  - primary_care

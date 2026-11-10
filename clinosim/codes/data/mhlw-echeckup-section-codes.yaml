@@ -35,3 +35,23 @@ sections:
   regional_union:
     checkup_lab_results: '01021'      # 広域連合保健事業検査結果セクション
     checkup_questionnaire: '01022'    # 広域連合保健事業問診結果セクション
+
+# Issue #3153: per checkup type, the report category (Composition.category,
+# jpfhir-eCheckup-report-category) and the program service
+# (Composition.event.code, jpfhir-eCheckup-program-service).
+#   occupational   — 41 事業者健診 / 030 事業者健診
+#   specific       — 10 特定健診情報 / 010 特定健康診査
+#   regional_union — 80 保険者が実施する特定健診等以外の健診 (the 後期高齢者医療
+#                    広域連合 is the insurer; its checkup is not a 特定健診) /
+#                    020 広域連合の保健事業
+report_codes:
+  occupational: {report_category: "41", program_service: "030"}
+  specific: {report_category: "10", program_service: "010"}
+  regional_union: {report_category: "80", program_service: "020"}
+
+# JP_Composition_eCheckupGeneral Composition.extension:version
+# (composition-clinicaldocument-versionNumber, fixedUri below): the document
+# version as a string, "1" for a first issue (the profile's own example).
+version_extension:
+  url: http://hl7.org/fhir/StructureDefinition/composition-clinicaldocument-versionNumber
+  value: "1"

@@ -125,6 +125,11 @@ tier 閾値 (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
 - checkup type 別 chief-complaint テキスト
   (`health_checkup.<type>` in `locale/shared/narrative_phrases.yaml`): `occupational → "事業者健診"`,
   `specific → "特定健診"`, `regional_union → "広域連合健診"`。
+- 担当医 (Issue #3153): 健診 encounter の `attending_physician_id` と報告書の
+  author は、`reference_data/checkup_staffing.yaml` の `attending_departments`
+  (内科、次に総合診療科) のうち医師がいる最初の科の医師を encounter id で
+  安定に選ぶ (`checkup_attending`、RNG 不使用)。`health_checkup` 科そのものは
+  病院 config にあり、自前の医師は持たない (`departments_without_physicians`)。
 
 ## ディレクトリ構造
 
@@ -133,11 +138,12 @@ clinosim/modules/health_checkup/
   __init__.py                     enrich_health_checkup + HEALTH_CHECKUP_SUBSET_RATE を再 export
   engine.py                       enricher + 患者選定 + 値導出 + record builder
   _checkup_thresholds.py          named threshold 定数 (Issue #637)
+  reference_data/
+    checkup_staffing.yaml         健診を担当する医師の科 (Issue #3153)
 ```
 
-**`reference_data/` / `audit.py` / `enricher.py` は存在しない** —
-enricher entry は `engine.py` の `enrich_health_checkup`、reference
-値は定数 (YAML ではない)。
+**`audit.py` / `enricher.py` は存在しない** — enricher entry は
+`engine.py` の `enrich_health_checkup`。
 
 ## Enricher 配線
 

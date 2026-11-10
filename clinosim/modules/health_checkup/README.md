@@ -131,6 +131,13 @@ thresholds (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
 - Chief-complaint text per checkup type
   (`health_checkup.<type>` in `locale/shared/narrative_phrases.yaml`): `occupational → "事業者健診"`,
   `specific → "特定健診"`, `regional_union → "広域連合健診"`.
+- Attending physician (Issue #3153): the checkup encounter's
+  `attending_physician_id` and the report's author are a physician of the
+  first department in `reference_data/checkup_staffing.yaml`
+  `attending_departments` (internal medicine, then primary care) that has
+  any, picked stably by the encounter id (`checkup_attending`, no RNG). The
+  `health_checkup` department itself is in the hospital config with no
+  physicians of its own (`departments_without_physicians`).
 
 ## Directory contents
 
@@ -139,11 +146,12 @@ clinosim/modules/health_checkup/
   __init__.py                     re-exports enrich_health_checkup + HEALTH_CHECKUP_SUBSET_RATE
   engine.py                       enricher + patient selection + value derivation + record builders
   _checkup_thresholds.py          named threshold constants (Issue #637)
+  reference_data/
+    checkup_staffing.yaml         departments whose physicians perform checkups (Issue #3153)
 ```
 
-The module has **no `reference_data/`, no `audit.py`, no
-`enricher.py`** — the enricher entry point is `enrich_health_checkup`
-in `engine.py` and reference values are constants, not YAML.
+The module has **no `audit.py`, no `enricher.py`** — the enricher entry
+point is `enrich_health_checkup` in `engine.py`.
 
 ## Enricher wiring
 
