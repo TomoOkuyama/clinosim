@@ -37,9 +37,6 @@ from clinosim.modules._shared import is_jp
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.health_checkup._checkup_thresholds import (
     BMI_MEASUREMENT_NOISE_SD,
-    BMI_PHYSIOLOGIC_MAX,
-    BMI_PHYSIOLOGIC_MIN,
-    BMI_PROFILE_FALLBACK,
     CHECKUP_TYPE_REGIONAL_UNION_AGE_MIN,
     CHECKUP_TYPE_SPECIFIC_AGE_MIN,
     DBP_MEASUREMENT_NOISE_SD,
@@ -115,10 +112,11 @@ def checkup_lab_names() -> list[str]:
     return list(load_panel_definitions()["Checkup"]["components"])
 
 
-def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, float]:
+def _derive_checkup_values(patient: Any, rng: np.random.Generator, *, charted_bmi: float) -> dict[str, float]:
     """患者プロファイルと chronic_conditions から健診 5 項目の実測値を導出。
 
-    - BMI:``patient.bmi`` に測定日変動を乗せる(sd 0.3 kg/m²)。
+    - BMI:健診 encounter で計測した身長・体重から算出した ``charted_bmi``
+      (encounter の身長・体重 Observation と同じ値から、Issue #3167)。
     - SBP/DBP:``patient.baseline_vitals`` を base とし、日間変動 sd 5.0/3.5 mmHg。
       HT(I10)は FP-I10で baseline_vitals に既に反映済み。
     - HbA1c:糖尿病(E10/E11)保有時は ``glycemic_control`` から
@@ -138,9 +136,11 @@ def _derive_checkup_values(patient: Any, rng: np.random.Generator) -> dict[str, 
     age = int(_o(patient, "age", 60) or 60)
     chronic = _o(patient, "chronic_conditions", []) or []
 
-    # BMI:profile が持つ値に測定日変動を足す(patient.bmi は生成時決定)
-    bmi_base = float(_o(patient, "bmi", BMI_PROFILE_FALLBACK) or BMI_PROFILE_FALLBACK)
-    bmi = float(np.clip(bmi_base + rng.normal(0.0, BMI_MEASUREMENT_NOISE_SD), BMI_PHYSIOLOGIC_MIN, BMI_PHYSIOLOGIC_MAX))
+    # BMI is the one computed from the height and weight charted on the
+    # checkup encounter (Issue #3167). The former BMI noise draw stays in the
+    # stream so the later results keep their values (determinism spec §2).
+    rng.normal(0.0, BMI_MEASUREMENT_NOISE_SD)
+    bmi = float(charted_bmi)
 
     # SBP/DBP:baseline_vitals が HT stage(FP-I10)を反映済み
     bv = _o(patient, "baseline_vitals", None)
@@ -291,17 +291,23 @@ def _interp_for(lab_name: str, value: float) -> tuple[str, str]:
 def _build_checkup_lab_results(
     patient_id: str,
     patient: Any,
-    checkup_date: date,
+    encounter: Any,
     rng: np.random.Generator,
+    country: str,
 ) -> list[OrderResult]:
     """法定健診 5 項目の OrderResult を組み立てる(sub-PR-B 高度化)。
 
     ``_derive_checkup_values`` で PatientProfile + chronic_conditions を反映した
     実測値を得て、LOINC 別 reference_range と interpretation("N" or "H")を
-    ``_interp_for`` で付与する。
+    ``_interp_for`` で付与する。BMI は健診 encounter で計測した身長・体重
+    (``encounter_anthropometrics``) から算出する (Issue #3167)。
     """
-    result_dt = datetime.combine(checkup_date, datetime.min.time().replace(hour=10))
-    values = _derive_checkup_values(patient, rng)
+    from clinosim.modules.population.encounter_anthropometry import encounter_anthropometrics
+
+    admission = encounter.admission_datetime
+    result_dt = datetime.combine(admission.date(), datetime.min.time().replace(hour=10))
+    charted = encounter_anthropometrics(patient, encounter.encounter_id, admission, country)
+    values = _derive_checkup_values(patient, rng, charted_bmi=charted["bmi"])
     results: list[OrderResult] = []
     for lab_name in checkup_lab_names():
         v = values[lab_name]
@@ -467,8 +473,9 @@ def enrich_health_checkup(ctx: Any) -> None:
         checkup_labs = _build_checkup_lab_results(
             patient_id,
             patient,
-            checkup_date,
+            encounter,
             patient_rng,
+            _o(ctx.config, "country", ""),
         )
         checkup_doc = _build_checkup_document_stub(
             patient_id,

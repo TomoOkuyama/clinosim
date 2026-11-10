@@ -176,7 +176,8 @@ clinosim/locale/
                                    external_organizations,
                                    checkup_report_items (health-checkup
                                    item codes of the report
-                                   Observations, Issue #3154),
+                                   Observations, Issue #3154; body
+                                   measurements, Issue #3167),
                                    facility_identity (the hospital's
                                    医療機関コード, Issue #3129),
                                    patient_instructions_ja,

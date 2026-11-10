@@ -44,7 +44,9 @@ def test_a_checkup_result_carries_the_item_coding_and_the_profile(lab_name: str,
     assert [c["code"] for c in items] == [item]
     assert items[0]["display"]
     assert _PROFILE in obs["meta"]["profile"]
-    assert len(obs["code"]["coding"]) >= 2  # the JLAC10 / LOINC coding stays
+    # A specimen test keeps its JLAC10 / LOINC coding; a body measurement
+    # (BMI, blood pressure) carries the item code alone (Issue #3167).
+    assert len(obs["code"]["coding"]) == (1 if lab_name in ("BMI", "SBP", "DBP") else 3)
 
 
 def test_a_result_outside_the_checkup_is_not_an_echeckup_observation() -> None:

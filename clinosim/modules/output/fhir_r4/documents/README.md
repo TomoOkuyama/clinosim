@@ -28,7 +28,13 @@ resourceType and also by `<resourceType>|<declared profile>`;
 section. The JP-eCheckup results section (01031) takes the checkup's
 Observations declaring `JP_Observation_eCheckupGeneral` — the checkup
 lab / vital results, which carry the MHLW health-checkup item code
-(`locale/jp/checkup_report_items.yaml`, Issue #3154).
+(`locale/jp/checkup_report_items.yaml`, Issue #3154). A body measurement
+(BMI, blood pressure) is a vital-sign Observation carrying that item code
+alone, with one category and no specimen, as the JP-eCheckup sample report
+codes it; a LOINC vital-sign code would bring in the HL7 `bmi` / `bp`
+profiles, which one checkup measurement cannot meet. The checkup BMI is
+computed from the height and weight charted on the checkup encounter, which
+charts no second BMI (Issue #3167).
 
 ## Scope
 

@@ -278,8 +278,10 @@ def _apply_jp_clins_profile(resource: dict) -> None:
     profiles = _jp_clins_profiles().get(rt)
     if not profiles:
         return
-    if rt == "Observation" and not _is_lab_observation(resource):
-        return
+    if rt == "Observation":
+        if not _is_lab_observation(resource):
+            return
+        _apply_interpreted_reference_range(resource, _jp_clins_element_rules().get(rt, {}))
     if rt == "MedicationRequest" and not _medication_request_satisfies_ecs(resource):
         return
     if rt == "AllergyIntolerance" and not _allergy_satisfies_ecs(resource):
@@ -317,6 +319,30 @@ def _apply_jp_clins_profile(resource: dict) -> None:
     # Issue #3148: JP_Practitioner_eCS mandates it too.
     if rt in ("Immunization", "Practitioner") and not meta.get("lastUpdated"):
         meta["lastUpdated"] = _JP_ECS_LAST_UPDATED_PLACEHOLDER
+
+
+# Interpretation codes JP-CLINS R06042H / L / N judge against the one
+# reference range (check-interpretationH / L / N).
+_RANGE_JUDGED_INTERPRETATIONS = frozenset({"H", "L", "N"})
+
+
+def _apply_interpreted_reference_range(resource: dict, rules: dict[str, str]) -> None:
+    """Keep only the reference range an ``H`` / ``L`` / ``N`` interpretation
+    was judged against (Issue #3167, rule ``interpreted_reference_range:
+    judged`` in ``fhir-profiles-jp-clins.yaml``): the eCS profile requires
+    exactly one range for those codes. No-op without the rule, with at most
+    one range, or for other interpretation codes."""
+    from clinosim.modules.output.fhir_r4.lib.common import judged_reference_range
+
+    ranges = resource.get("referenceRange") or []
+    if rules.get("interpreted_reference_range") != "judged" or len(ranges) < 2:
+        return
+    codes = {cd.get("code") for i in resource.get("interpretation") or [] for cd in i.get("coding") or []}
+    if not codes & _RANGE_JUDGED_INTERPRETATIONS:
+        return
+    judged = judged_reference_range(ranges)
+    if judged is not None:
+        resource["referenceRange"] = [judged]
 
 
 def _encounter_satisfies_ecs(resource: dict) -> bool:

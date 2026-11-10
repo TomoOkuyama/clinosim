@@ -96,8 +96,8 @@ def test_the_checkup_and_encounter_ldl_agree_with_ezetimibe() -> None:
     without = _patient("pt-2947-checkup", _STATIN)
     rng = np.random.default_rng(0)
     assert (
-        checkup._derive_checkup_values(patient, rng)["LDL"]
-        < checkup._derive_checkup_values(without, np.random.default_rng(0))["LDL"]
+        checkup._derive_checkup_values(patient, rng, charted_bmi=22.5)["LDL"]
+        < checkup._derive_checkup_values(without, np.random.default_rng(0), charted_bmi=22.5)["LDL"]
     )
 
 

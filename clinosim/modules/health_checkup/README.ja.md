@@ -11,7 +11,8 @@ HbA1c、LDL コレステロール)、および `HEALTH_CHECKUP_REPORT` の
 `ClinicalDocument` stub (narrative は
 [`document.narrative`](../document/narrative/README.ja.md) が Stage 2
 で populate) を emit する。選定患者でも健診日に生存していなければ
-健診は生成しない (Issue #2940)。
+健診は生成しない (Issue #2940)。健診の BMI は健診 encounter で計測した
+身長・体重 (`encounter_anthropometrics`) から算出する (Issue #3167)。
 
 **default OFF** — `SimulatorConfig.modules["health_checkup"] == True`
 かつ `country == "JP"` のときのみ発火。OFF 時は simulator default の
@@ -53,7 +54,7 @@ from clinosim.modules.health_checkup import (
 内部 helper (`engine.py`) — public surface ではないが test 参照に有用:
 `_patient_selected(patient_id)`, `_pick_checkup_type(age)`,
 `_pick_checkup_date(snapshot_date)`,
-`_derive_checkup_values(patient, rng)`, `_interp_for(lab_name, value)`, `checkup_lab_names()`,
+`_derive_checkup_values(patient, rng, *, charted_bmi)`, `_interp_for(lab_name, value)`, `checkup_lab_names()`,
 `_build_checkup_encounter`, `_build_checkup_lab_results`,
 `_build_checkup_document_stub`, `_alive_on_checkup_date` (健診日より
 前に死亡した患者をスキップ — population registry があれば

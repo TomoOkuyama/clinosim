@@ -530,6 +530,21 @@ def build_reference_range(
     return result if result else None
 
 
+def judged_reference_range(ranges: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """The reference range a result's interpretation is judged against: the
+    therapeutic range when one is present (a patient on the matching drug,
+    Issue #2205), else the first normal or unlabeled range; None when there
+    is none."""
+    judged = None
+    for rng in ranges:
+        code = ((rng.get("type") or {}).get("coding") or [{}])[0].get("code", "")
+        if code == "therapeutic":
+            return rng
+        if (code == "normal" or not code) and judged is None:
+            judged = rng
+    return judged
+
+
 def map_encounter_status(status: str) -> str:
     mapping = {
         "planned": "planned",

@@ -28,6 +28,8 @@ observation_profile: http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Obser
 # DiagnosticReport).
 identifier_system: http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier
 forbidden_elements: [basedOn, partOf, hasMember]
+# The profile allows one category (Observation.category max 1).
+category_max: 1
 code_system: jpfhir-eCheckup-observation
 items:
   BMI: "9N011000000000001"
@@ -35,3 +37,17 @@ items:
   DBP: "9A761000000000001"
   HbA1c: "3D046000001999902"
   LDL: "3F077000002391901"
+# Items measured on the body, not on a specimen (Issue #3167): the result
+# is a vital-sign Observation with the category below and the item code
+# alone — no laboratory category, lab profile, specimen or analyzer method,
+# and no LOINC vital-sign code, as the JP-eCheckup 1.7.0 sample report
+# (Bundle-eCheckupReport-Sample-01) codes 身長 / 体重 / BMI / 収縮期血圧.
+# A LOINC 39156-5 / 8480-6 coding would bring in the HL7 vital-signs
+# `bmi` / `bp` profiles, which one eCheckup measurement cannot meet (`bp`
+# requires the 85354-9 panel with both pressures as components).
+# Category: JP_SimpleObservationCategory_CS vital-signs (the sample uses it
+# for blood pressure; HL7 classes BMI as a vital sign).
+measurement_items:
+  BMI: vital-signs
+  SBP: vital-signs
+  DBP: vital-signs

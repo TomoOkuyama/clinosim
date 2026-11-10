@@ -29,7 +29,7 @@ def _patient(patient_id: str, *meds: HomeMedication) -> PatientProfile:
 
 
 def _checkup_ldl(patient: PatientProfile) -> float:
-    return checkup._derive_checkup_values(patient, np.random.default_rng(0))["LDL"]
+    return checkup._derive_checkup_values(patient, np.random.default_rng(0), charted_bmi=22.5)["LDL"]
 
 
 def _encounter_ldl(patient: PatientProfile) -> float:

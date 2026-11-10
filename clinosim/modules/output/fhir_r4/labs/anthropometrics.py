@@ -149,14 +149,22 @@ def _build_one_observation(
     return obs
 
 
+# The lab name of an encounter result that reports the same measurement as
+# an anthropometric Observation (Issue #3167): the health-checkup BMI result
+# is the checkup encounter's BMI, so the encounter charts no second one.
+_RESULT_LAB_NAME = {"bmi": "BMI"}
+
+
 def build_anthropometric_observations(
     patient_data: dict,
     encounter: dict,
     country: str,
+    reported: frozenset[str] = frozenset(),
 ) -> list[dict[str, Any]]:
     """Return a list of body-height / body-weight / BMI [ / head-circ]
     Observation resources for one encounter. Empty list if the patient
-    lacks a usable date_of_birth.
+    lacks a usable date_of_birth. A measurement whose lab name is in
+    ``reported`` (the encounter's own results report it) is left out.
     """
     patient_id = str(patient_data.get("patient_id", "") or "")
     encounter_id = str(get_attr_or_key(encounter, "encounter_id", "") or "")
@@ -182,7 +190,7 @@ def build_anthropometric_observations(
     # Issue #1322: BMI is not a valid metric under age 2 (WHO / AAP: use
     # weight-for-length percentile instead). Suppress the BMI Observation
     # for infants; height + weight alone suffice for growth analytics.
-    if age_years >= 2:
+    if age_years >= 2 and _RESULT_LAB_NAME["bmi"] not in reported:
         out.append(
             _build_one_observation(LOINC_BMI, values["bmi"], patient_id, encounter_id, effective_dt, country, "bmi")
         )
@@ -210,6 +218,13 @@ def _bb_anthropometrics(ctx: BundleContext) -> list[dict]:
     out: list[dict] = []
     encounters = ctx.record.get("encounters", []) or []
     patient_data = ctx.patient_data or {}
+    # Lab names of each encounter's results (Issue #3167).
+    reported: dict[str, set[str]] = {}
+    for order in ctx.record.get("orders", []) or []:
+        result = get_attr_or_key(order, "result", None)
+        lab_name = get_attr_or_key(result, "lab_name", "") if result else ""
+        if lab_name:
+            reported.setdefault(str(get_attr_or_key(order, "encounter_id", "") or ""), set()).add(str(lab_name))
     for enc in encounters:
         enc_dict = (
             enc
@@ -219,5 +234,8 @@ def _bb_anthropometrics(ctx: BundleContext) -> list[dict]:
                 "admission_datetime": getattr(enc, "admission_datetime", None),
             }
         )
-        out.extend(build_anthropometric_observations(patient_data, enc_dict, ctx.country))
+        enc_id = str(enc_dict.get("encounter_id", "") or "")
+        out.extend(
+            build_anthropometric_observations(patient_data, enc_dict, ctx.country, frozenset(reported.get(enc_id, ())))
+        )
     return out

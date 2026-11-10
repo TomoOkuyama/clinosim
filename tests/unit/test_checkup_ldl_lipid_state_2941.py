@@ -45,7 +45,7 @@ def test_checkup_ldl_equals_encounter_ldl(
     monkeypatch.setattr(checkup, "LDL_MEASUREMENT_NOISE_SD", 0.0)
     patient = _patient(age, sex, codes, statin)
     encounter = _encounter_labs(patient)
-    checkup_ldl = checkup._derive_checkup_values(patient, np.random.default_rng(0))["LDL"]
+    checkup_ldl = checkup._derive_checkup_values(patient, np.random.default_rng(0), charted_bmi=22.5)["LDL"]
     expected = float(np.clip(encounter["LDL"], checkup.LDL_PHYSIOLOGIC_MIN, checkup.LDL_PHYSIOLOGIC_MAX))
     assert checkup_ldl == pytest.approx(expected, abs=1e-9)
     # The shared helper returns the whole encounter lipid panel.
@@ -57,6 +57,8 @@ def test_checkup_ldl_equals_encounter_ldl(
 def test_checkup_ldl_keeps_its_measurement_noise() -> None:
     patient = _patient(55, "M", ("E78.5",), None)
     true_ldl = patient_lipid_panel(patient)["LDL"]
-    values = [checkup._derive_checkup_values(patient, np.random.default_rng(s))["LDL"] for s in range(200)]
+    values = [
+        checkup._derive_checkup_values(patient, np.random.default_rng(s), charted_bmi=22.5)["LDL"] for s in range(200)
+    ]
     assert np.std(values) > 5.0
     assert abs(np.median(values) - true_ldl) < 3.0
