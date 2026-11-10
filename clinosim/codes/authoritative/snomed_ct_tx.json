@@ -5,14 +5,9 @@
     "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (preferred term, synonyms, FSN)",
     "extracted_at": "2026-11-10",
     "edition_version": "http://snomed.info/sct/900000000000207008/version/20250201",
-    "clinosim_codes_total": 267,
+    "clinosim_codes_total": 263,
     "clinosim_codes_missing_from_source": [
-      "224549009",
-      "303408005",
-      "394583003",
-      "407484005",
-      "424535000",
-      "735320007"
+      "303408005"
     ],
     "note": "SNOMED CT codes in codes/data/snomed-ct.yaml with their English preferred term, synonyms and FSN (Issue #3127). Codes missing from the source are unknown to the International Edition."
   },
@@ -426,6 +421,16 @@
       ]
     },
     {
+      "code": "1255736009",
+      "display": "Clinical pathology",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Clinical pathology (qualifier value)"
+        }
+      ]
+    },
+    {
       "code": "1256115008",
       "display": "Clinical nutrition",
       "designation": [
@@ -442,6 +447,20 @@
         {
           "use": "900000000000003001",
           "value": "Burn (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "1258957008",
+      "display": "Hospital pharmacy specialization",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Hospital pharmacy specialisation"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Hospital pharmacy specialization (qualifier value)"
         }
       ]
     },
@@ -674,56 +693,6 @@
         {
           "use": "900000000000003001",
           "value": "Structure of large intestine (body structure)"
-        }
-      ]
-    },
-    {
-      "code": "158965000",
-      "display": "Medical practitioner",
-      "designation": [
-        {
-          "use": "900000000000013009",
-          "value": "Doctor"
-        },
-        {
-          "use": "900000000000003001",
-          "value": "Medical practitioner (occupation)"
-        }
-      ]
-    },
-    {
-      "code": "158967008",
-      "display": "Consultant physician",
-      "designation": [
-        {
-          "use": "900000000000003001",
-          "value": "Consultant physician (occupation)"
-        }
-      ]
-    },
-    {
-      "code": "158972004",
-      "display": "House officer",
-      "designation": [
-        {
-          "use": "900000000000013009",
-          "value": "Junior house officer"
-        },
-        {
-          "use": "900000000000013009",
-          "value": "Hospital house officer"
-        },
-        {
-          "use": "900000000000013009",
-          "value": "HO - House officer"
-        },
-        {
-          "use": "900000000000013009",
-          "value": "Pre-registration house officer"
-        },
-        {
-          "use": "900000000000003001",
-          "value": "House officer (occupation)"
         }
       ]
     },
@@ -2426,6 +2395,16 @@
       ]
     },
     {
+      "code": "394583002",
+      "display": "Endocrinology",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Endocrinology (qualifier value)"
+        }
+      ]
+    },
+    {
       "code": "394584008",
       "display": "Gastroenterology",
       "designation": [
@@ -2700,16 +2679,6 @@
       ]
     },
     {
-      "code": "405623001",
-      "display": "Assigned practitioner",
-      "designation": [
-        {
-          "use": "900000000000003001",
-          "value": "Assigned practitioner (occupation)"
-        }
-      ]
-    },
-    {
       "code": "410024004",
       "display": "Insertion of catheter into urinary bladder",
       "designation": [
@@ -2770,6 +2739,30 @@
         {
           "use": "900000000000003001",
           "value": "Angina, class II (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "413854007",
+      "display": "Circulating nurse",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Circulating nurse (occupation)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Circulator"
+        }
+      ]
+    },
+    {
+      "code": "415506007",
+      "display": "Scrub nurse",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Scrub nurse (occupation)"
         }
       ]
     },
@@ -4148,20 +4141,6 @@
       ]
     },
     {
-      "code": "722414000",
-      "display": "Vascular medicine",
-      "designation": [
-        {
-          "use": "900000000000003001",
-          "value": "Vascular medicine (qualifier value)"
-        },
-        {
-          "use": "900000000000013009",
-          "value": "Angiology"
-        }
-      ]
-    },
-    {
       "code": "72641008",
       "display": "Sedation",
       "designation": [
@@ -4790,6 +4769,36 @@
         {
           "use": "900000000000003001",
           "value": "Heavy drinker (finding)"
+        }
+      ]
+    },
+    {
+      "code": "88189002",
+      "display": "Anesthesiologist",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Anaesthetist"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Anaesthesiologist"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Anesthesiologist (occupation)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Anesthetist"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Consultant anesthetist"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Consultant anaesthetist"
         }
       ]
     },

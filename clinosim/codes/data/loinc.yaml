@@ -218,15 +218,9 @@ codes:
   29762-2:
     en: "Social history note"
     ja: 社会歴
-  42346-6:
-    en: Patient education Narrative
-    ja: 患者教育
   42349-1:
     en: Reason for referral (narrative)
     ja: 受診理由
-  45391-8:
-    en: Physical function assessment Narrative
-    ja: 身体機能評価
   48765-2:
     en: Allergies and adverse reactions Document
     ja: アレルギー・副作用歴
@@ -866,8 +860,8 @@ codes:
   1834-1:
     en: "Alpha-1-Fetoprotein [Mass/volume] in Serum or Plasma"
     ja: AFP（α-フェトプロテイン）
-  44805-4:
-    en: PIVKA-II
+  93768-0:
+    en: "Acarboxyprothrombin [Units/volume] in Serum or Plasma"
     ja: PIVKA-II
   6875-9:
     en: "Cancer Ag 15-3 [Units/volume] in Serum or Plasma"
@@ -883,8 +877,8 @@ codes:
   14334-7:
     en: "Lithium [Moles/volume] in Serum or Plasma"
     ja: リチウム血中濃度
-  27069-5:
-    en: Tacrolimus
+  77348-1:
+    en: "Tacrolimus [Mass/volume] in Blood --trough"
     ja: タクロリムス血中濃度（トラフ）
   3521-2:
     en: "cycloSPORINE [Mass/volume] in Serum"
@@ -907,9 +901,10 @@ codes:
   70274-6:
     en: "Generalized anxiety disorder 7 item (GAD-7) total score [Reported.PHQ]"
     ja: GAD-7 全般性不安障害 総合スコア
-  93372-1:
-    en: Columbia Suicide Severity Rating Scale (C-SSRS) lifetime suicidal ideation severity scale
-    ja: C-SSRS コロンビア自殺重症度評価尺度 生涯希死念慮重症度
+  # Issue #3157: C-SSRS ideation severity (tx.fhir.org $lookup, LOINC 2.83).
+  93293-9:
+    en: "Most severe suicidal ideation 1 month"
+    ja: C-SSRS 最も重度の希死念慮（過去1か月）
   89204-2:
     en: "Patient Health Questionnaire-9: Modified for Teens total score [Reported.PHQ.Teen]"
     ja: PHQ-9 (青少年改訂版) 総合スコア

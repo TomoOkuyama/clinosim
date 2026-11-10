@@ -10,7 +10,7 @@
 # PractitionerRole.specialty (display from codes/data/snomed-ct.yaml), so the
 # service type and the specialty of the same department agree (Issue #2270).
 # Codes are SNOMED CT specialties (isa 394658006), tx.fhir.org $lookup
-# 2026-11-05 (Issue #2625). trauma_surgery, medical_social_work and
+# 2026-11-05 (Issue #2625; #3157). trauma_surgery, medical_social_work and
 # health_checkup have no specialty concept and carry none.
 # Read through `department_display()`; a missing language falls back to
 # English and a missing key is humanised (never title-cased).
@@ -25,7 +25,7 @@ departments:
   pulmonology: {en: "Pulmonology", ja: "呼吸器内科", specialty_snomed: "418112009"}
   gastroenterology: {en: "Gastroenterology", ja: "消化器内科", specialty_snomed: "394584008"}
   nephrology: {en: "Nephrology", ja: "腎臓内科", specialty_snomed: "394589003"}
-  endocrinology: {en: "Endocrinology", ja: "内分泌・代謝内科", specialty_snomed: "394583003"}
+  endocrinology: {en: "Endocrinology", ja: "内分泌・代謝内科", specialty_snomed: "394583002"}
   neurology: {en: "Neurology", ja: "神経内科", specialty_snomed: "394591006"}
   general_surgery: {en: "General Surgery", ja: "外科", specialty_snomed: "394609007"}
   orthopedics: {en: "Orthopedic Surgery", ja: "整形外科", specialty_snomed: "394801008"}
@@ -50,8 +50,10 @@ departments:
   # medical-oncology facilities.
   oncology: {en: "Oncology", ja: "腫瘍内科", specialty_snomed: "394593009"}
   # Issue #2270: support departments that staff are assigned to.
-  laboratory: {en: "Laboratory", ja: "検査科", specialty_snomed: "722414000"}
-  pharmacy: {en: "Pharmacy", ja: "薬剤科", specialty_snomed: "405623001"}
+  # Issue #3157: 1255736009 Clinical pathology / 1258957008 Hospital pharmacy
+  # specialization (tx.fhir.org $lookup, International Edition 2025-02-01).
+  laboratory: {en: "Laboratory", ja: "検査科", specialty_snomed: "1255736009"}
+  pharmacy: {en: "Pharmacy", ja: "薬剤科", specialty_snomed: "1258957008"}
   # Issue #3153: the health-checkup unit (健診センター) the opt-in
   # health_checkup module's encounters belong to; its checkups are done by
   # the internal-medicine / primary-care physicians.

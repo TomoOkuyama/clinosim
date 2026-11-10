@@ -267,7 +267,7 @@ def _build_procedure(
     if anes_id and anes_id != surgeon_id:
         performers.append(
             {
-                "function": dual_slot_concept("snomed-ct", "158967008", lang),
+                "function": dual_slot_concept("snomed-ct", "88189002", lang),
                 "actor": {"reference": f"Practitioner/{anes_id}"},
             }
         )

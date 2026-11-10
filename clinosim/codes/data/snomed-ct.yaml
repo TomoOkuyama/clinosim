@@ -43,20 +43,22 @@ codes:
     ja: 画像診断
 
   # === Performer function (role) ===
+  # Issue #3157: occupations verified on tx.fhir.org $lookup (International
+  # Edition 2025-02-01). Replaced 158967008 (Consultant physician),
+  # 158972004 (House officer) and 224549009 (unknown to the edition); the
+  # assistant-surgeon entry (158965000 = Medical practitioner) is dropped,
+  # the edition has no assistant-surgeon occupation.
   '304292004':
     en: Surgeon
     ja: 執刀医
-  '158965000':
-    en: Assistant surgeon
-    ja: 助手
-  '158967008':
-    en: Anaesthetist
+  '88189002':
+    en: Anesthesiologist    # FSN: Anesthesiologist (occupation)
     ja: 麻酔科医
-  '224549009':
-    en: Scrub nurse
+  '415506007':
+    en: Scrub nurse         # FSN: Scrub nurse (occupation)
     ja: 器械出し看護師
-  '158972004':
-    en: Circulating nurse
+  '413854007':
+    en: Circulating nurse   # FSN: Circulating nurse (occupation)
     ja: 外回り看護師
 
   # === Procedure outcome ===
@@ -422,27 +424,9 @@ codes:
     en: History of pregnancy
     ja: 妊娠歴
 
-  # === CareTeam category (Tier 1 #3 α-min-2 Task 11) ===
-  # Verified via SNOMED International browser (https://browser.ihtsdotools.org/), 2026-07-01.
-  '424535000':
-    en: Clinical team      # FSN: Clinical team (person) — FHIR CareTeam.category standard code
-    ja: 臨床チーム
-  # Verified via SNOMED CT International Edition 2026-06-01 (HAPI Validator tx run,
-  # 2026-07-16). Active concept, replaces LA27976-8 which is unknown in LOINC 2.82.
-  '735320007':
-    en: Multidisciplinary care team    # FSN: Multidisciplinary care team (qualifier value)
-    ja: 多職種ケアチーム
-  # v2 feedback (2026-07-17_full_v2, §【最優先 2】): 735320007 は
-  # SNOMED CT International 2026-06-01 に未収録で fhirserver が "Unknown code"
-  # として 3,788 件を reject。v2 feedback 推奨の 407484005 (fhirserver 収録
-  # 確認済 active concept) に切替え。semantic は "Rehabilitation care team"
-  # で本来 rehab 特化だが、CareTeam.category binding は preferred (制約 loose)
-  # かつ full spec 沿った general concept で 2026-06-01 版に確実に載っている
-  # 選択肢が乏しかったため採用。encounter-type ごとの分岐は follow-up
-  # Issue で扱う (rehab_inpatient 以外は general team に refine 予定)。
-  '407484005':
-    en: Rehabilitation care team    # FSN: Rehabilitation care team (record artifact)
-    ja: リハビリテーションケアチーム
+  # CareTeam.category is emitted as text only (care_team.py). Issue #3157:
+  # the SNOMED codes once registered for it (424535000, 735320007,
+  # 407484005) are unknown to the International Edition and were removed.
 
   # === Allergic reaction manifestations (Tier 1 #3 α-min-1 PR1) ===
   # Verified via SNOMED International browser, 2026-07-01.
@@ -615,14 +599,18 @@ codes:
   '394589003':
     en: Nephrology
     ja: 腎臓内科
-  '394583003':
+  # Issue #3157: tx.fhir.org $lookup, International Edition 2025-02-01
+  # (isa 394658006 Clinical specialty). Replaced 394583003 (unknown to the
+  # edition), 722414000 (Vascular medicine) and 405623001 (Assigned
+  # practitioner).
+  '394583002':
     en: Endocrinology
     ja: 内分泌内科
-  '722414000':
-    en: Laboratory medicine
+  '1255736009':
+    en: Clinical pathology  # FSN: Clinical pathology (qualifier value)
     ja: 検査科
-  '405623001':
-    en: Pharmacy
+  '1258957008':
+    en: Hospital pharmacy specialization  # FSN: ... (qualifier value)
     ja: 薬剤科
   # === CO-1 continuation (session 43): body site SNOMED codes for imaging
   # expansion. Well-established SNOMED CT International concepts, verified

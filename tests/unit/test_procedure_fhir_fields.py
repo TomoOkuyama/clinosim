@@ -159,7 +159,7 @@ def test_fhir_procedure_has_performer_function():
     assert surgeon["function"]["coding"][0]["display"] == "Surgeon"
     assert surgeon["actor"]["reference"] == "Practitioner/DR-SU-001"
     anes = performers[1]
-    assert anes["function"]["coding"][0]["code"] == "158967008"
+    assert anes["function"]["coding"][0]["code"] == "88189002"
     assert anes["actor"]["reference"] == "Practitioner/DR-AN-001"
 
 
