@@ -2871,6 +2871,12 @@ module's API lives in its <code>__init__.py</code>, and a typed configuration mo
 <code>clinosim/types/config.py</code>.</p>
 <p>A Python table keyed by domain identifiers is data and moves to YAML. A
 table of formula coefficients stays in Python even when it is long.</p>
+<p>A branch on country, age or sex that <strong>selects a value</strong>
+(<code>if is_jp(country): x = ...</code>, <code>if age &lt; 18: ...</code>) is a table keyed by
+those identifiers written as code, and the same rule applies: the values
+move to YAML and the code looks them up. Only a structural difference that a
+profile or spec mandates stays a code branch (the grand design in
+<a href="../implementation-rules/#grand-design-code-and-data-are-separated">implementation-rules</a>).</p>
 <hr />
 <h2 id="6-dead-code-hygiene">6. Dead-code hygiene<a class="headerlink" href="#6-dead-code-hygiene" title="Permanent link">&para;</a></h2>
 <ul>

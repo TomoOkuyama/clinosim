@@ -2335,6 +2335,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#グランドデザイン-コードとデータの分離" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        グランドデザイン: コードとデータの分離
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#0-workflow-規律コードを書く前に" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2566,6 +2577,62 @@
 </tr>
 </tbody>
 </table>
+<hr />
+<h2 id="グランドデザイン-コードとデータの分離">グランドデザイン: コードとデータの分離<a class="headerlink" href="#グランドデザイン-コードとデータの分離" title="Permanent link">&para;</a></h2>
+<p>clinosim は <strong>ロジックをコードに、定数・変数・パラメータをすべてデータに</strong>
+置く。これは本ページのほかのすべての規則に優先する基本原則である。</p>
+<ul>
+<li><strong>国・年齢 / 年齢帯・性別</strong>によって異なるもの、および調整対象の臨床・統計値
+  (閾値・カットオフ・レート・確率・分布・期間と間隔・用量上限・コード・表示
+  文言・書式・順序付きリスト) は YAML (<code>reference_data/</code>、
+  <code>clinosim/locale/&lt;country&gt;/</code>、<code>clinosim/codes/data/</code>、<code>clinosim/config/</code>)
+  に出典付きで置き、コードはローダー経由で読む。</li>
+<li>コードは国・年齢・性別の分岐で<strong>値を選ばない</strong>
+  (<code>if is_jp(country): x = ...</code>、<code>country == "JP"</code>、<code>if age &lt; 18: dose = ...</code>、
+  <code>if sex == "F": ...</code>)。国・年齢帯・性別をキーに表を引く。国の追加や年齢帯の
+  変更は YAML の編集だけで済む構造にする。</li>
+<li>国固有の<strong>処理</strong> (ある国だけが使うアルゴリズム: 検証番号の計算、eGFR の式、
+  JP Core 要素の組み立てなど) はコードに書くが、名前付きの実装としてコードに
+  登録し、<strong>どの国がどの実装を使うかは YAML で選ぶ</strong>
+  (<code>locale/&lt;country&gt;/egfr_equation.yaml</code> が式を指定し、コードは各式を実装する)。
+  共通の流れは <code>if is_jp(...)</code> で分岐せず、国の YAML が指す実装を呼ぶ。新しい国は
+  既存の実装なら YAML だけで済み、本当に新しいアルゴリズムのときだけコードを足す。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>何が違うか</th>
+<th>置き場所</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>値 (コード・文言・閾値・年齢帯・単位・表)</td>
+<td>YAML</td>
+</tr>
+<tr>
+<td>一部の国だけが使うアルゴリズム</td>
+<td>コード (名前付きの実装)</td>
+</tr>
+<tr>
+<td>国がどのアルゴリズム・構造を使うか</td>
+<td>YAML</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>そうした登録の仕組みがまだない箇所で、コードの国分岐が決めてよいのは、
+  プロファイルが要求する構造 (US 出力にない JP Core / JP-CLINS の要素・スライス・
+  リソース) を<strong>出すかどうか</strong>だけで、その中の値は YAML から取る。</li>
+<li>Python に数値を置いてよいのは、ポリシー §5.1 の文書化された式定数モジュール
+  (<code>_&lt;topic&gt;_thresholds.py</code> / <code>_&lt;topic&gt;_defaults.py</code>) だけ: 1 つの式の係数、
+  RNG の salt、YAML の fallback、enum とキー。</li>
+<li>国・年齢・性別のデータをコードに直書きする変更はレビューで差し戻す。既存の
+  直書きに触れたら、小さければ同じ PR で YAML に移し、大きければ Issue に
+  する。</li>
+</ul>
+<p>置き場所の詳細: <a href="../documentation-and-code-quality-policy.ja/#5-定数と設定">文書・コード品質ポリシー §5</a>、
+<a href="../configuration-and-reference-data-spec.ja/">設定・参照データ仕様</a>。</p>
 <hr />
 <h2 id="0-workflow-規律コードを書く前に">0. Workflow 規律(コードを書く前に)<a class="headerlink" href="#0-workflow-規律コードを書く前に" title="Permanent link">&para;</a></h2>
 <ol>

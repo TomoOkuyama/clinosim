@@ -889,6 +889,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#grand-design-code-and-data-are-separated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grand design: code and data are separated
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#0-workflow-discipline-before-you-write-any-code" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2545,6 +2556,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#grand-design-code-and-data-are-separated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grand design: code and data are separated
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#0-workflow-discipline-before-you-write-any-code" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2783,6 +2805,67 @@ conceptual fit</strong>.</p>
 </tr>
 </tbody>
 </table>
+<hr />
+<h2 id="grand-design-code-and-data-are-separated">Grand design: code and data are separated<a class="headerlink" href="#grand-design-code-and-data-are-separated" title="Permanent link">&para;</a></h2>
+<p>clinosim keeps <strong>logic in code and every constant, variable and parameter
+in data</strong>. This is the governing rule above every other rule on this page.</p>
+<ul>
+<li>Anything that differs <strong>by country, by age or age band, by sex</strong>, or is a
+  tunable clinical or statistical value — thresholds, cut-offs, rates,
+  probabilities, distributions, durations and intervals, dose limits, codes,
+  display text, formats, ordered lists — lives in YAML
+  (<code>reference_data/</code>, <code>clinosim/locale/&lt;country&gt;/</code>, <code>clinosim/codes/data/</code>,
+  <code>clinosim/config/</code>) with a cited source, and code reads it through a
+  loader.</li>
+<li>Code does not <strong>select a value</strong> with a branch on country, age or sex
+  (<code>if is_jp(country): x = ...</code>, <code>country == "JP"</code>, <code>if age &lt; 18: dose = ...</code>,
+  <code>if sex == "F": ...</code>). It looks the value up by country / age band / sex
+  in a table. Adding a country, or changing an age band, edits YAML only.</li>
+<li>Country-specific <strong>processing</strong> — an algorithm only one country uses (a
+  check-digit rule, an eGFR equation, the assembly of a JP Core element) —
+  is code, but it is a named implementation registered in code, and <strong>which
+  one a country uses is chosen in YAML</strong> (<code>locale/&lt;country&gt;/egfr_equation.yaml</code>
+  names the equation; the code implements each one). The common flow calls
+  the implementation the country's YAML names, not an <code>if is_jp(...)</code>
+  branch, so a new country reuses existing implementations from YAML alone
+  and adds code only for a genuinely new algorithm.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>What differs</th>
+<th>Where it lives</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>a value (code, text, threshold, age band, unit, table)</td>
+<td>YAML</td>
+</tr>
+<tr>
+<td>an algorithm only some countries use</td>
+<td>code, as a named implementation</td>
+</tr>
+<tr>
+<td>which algorithm or structure a country uses</td>
+<td>YAML</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Where no such registry exists yet, a country branch in code may only
+  decide <strong>whether</strong> a profile-mandated structure is emitted (a JP Core /
+  JP-CLINS element, slice or resource that US output does not have); the
+  values inside it still come from YAML.</li>
+<li>The one place for numbers in Python is the documented formula-constant
+  module of policy §5.1 (<code>_&lt;topic&gt;_thresholds.py</code> / <code>_&lt;topic&gt;_defaults.py</code>):
+  the coefficients of one formula, RNG salts, YAML fallbacks, enums and keys.</li>
+<li>A change that adds hard-coded country, age or sex data is rejected in
+  review; when you touch code that already has some, move it to YAML in the
+  same PR if small, otherwise file an Issue.</li>
+</ul>
+<p>Placement details: <a href="../documentation-and-code-quality-policy/#5-constants-and-configuration">documentation-and-code-quality-policy §5</a>
+and <a href="../configuration-and-reference-data-spec/">configuration-and-reference-data-spec</a>.</p>
 <hr />
 <h2 id="0-workflow-discipline-before-you-write-any-code">0. Workflow discipline (before you write any code)<a class="headerlink" href="#0-workflow-discipline-before-you-write-any-code" title="Permanent link">&para;</a></h2>
 <ol>
