@@ -70,8 +70,11 @@ URL ルート: `http://jpfhir.jp/fhir/eCS/StructureDefinition/`
   必須要素を持つ場合のみ (`_encounter_satisfies_ecs`)。eCS は
   `hospitalization` があれば DPC の退院時転帰 (JP discharge-disposition
   値セット) を必須とするが、clinosim が記録するのは HL7 の退院先で
-  別の事実のため、入院・救急 Encounter は JP Core のまま。外来受診の
-  長さが分単位のものも eCS の対象外 (単位は `d` 固定)。
+  別の事実のため、入院・救急 Encounter は JP Core のまま。eCS は
+  `length` を日単位 (code `d`、unit `日`) に固定する (`fhir-profiles-jp-clins.yaml` の
+  `element_rules`、Issue #3158): eCS を宣言する Encounter は 1 日以上の
+  滞在を日単位で示し、1 日未満の受診は `length` を省く (`period` が
+  所要時間を持つ)。
 
 **JP-CLINS v1.13.0 対象外** (JP Core プロファイルのみで emit、
 JP-CLINS URL 非追加):
