@@ -2825,7 +2825,7 @@
 <ol>
 <li><strong>Data.</strong> Each code system has one registry file named by its system key (§3.3). Internal-key maps and crosswalks for that system are separate files named after it (<code>loinc-maps.yaml</code>, <code>snomed-maps.yaml</code>).</li>
 <li><strong>Accessor.</strong> Every code system is an instance of the <code>CodeSystem</code> base class (§2.3). An authority that needs a hook or lookups of its own — a mapping, a hierarchy, a product choice, a canonical-URI rule — has one subclass in <code>clinosim/codes/&lt;authority&gt;.py</code>, and that module reads only its authority's files. Authorities served by the base class alone (HL7 terminology, CVX, DICOM, OMB, clinosim-owned systems) are plain instances built from their registry file and need no module.</li>
-<li><strong>Snapshot.</strong> Verified extracts from the authority live in <code>clinosim/codes/authoritative/</code>, one file per authority and release (<code>loinc_2_82_tx.json</code>, <code>rxnorm_rxnav_snapshot.json</code>, ...), and a test checks the registry against them.</li>
+<li><strong>Snapshot.</strong> Verified extracts from the authority live in <code>clinosim/codes/authoritative/</code>, one file per authority and release (<code>loinc_2_83_tx.json</code>, <code>rxnorm_rxnav_snapshot.json</code>, ...), and a test checks the registry against them.</li>
 <li><strong>Catalogs join authorities, they do not own them.</strong> A catalog (drugs, procedures, staff roles) holds internal ids, names and the codes of several authorities. It resolves each code through that authority's accessor; it never re-implements an authority's lookup rule.</li>
 </ol>
 <p>Current layout:</p>
@@ -2843,7 +2843,7 @@
 <td>ICD-10-CM (NLM / CMS)</td>
 <td><code>icd-10-cm.yaml</code></td>
 <td><code>codes/icd10.py</code></td>
-<td>—</td>
+<td><code>icd10cm_2027_cms.json</code></td>
 </tr>
 <tr>
 <td>ICD-10 (WHO; MHLW Japanese names)</td>
@@ -2861,13 +2861,13 @@
 <td>LOINC</td>
 <td><code>loinc.yaml</code>, <code>loinc-maps.yaml</code></td>
 <td><code>codes/loinc.py</code></td>
-<td><code>loinc_2_82_tx.json</code></td>
+<td><code>loinc_2_83_tx.json</code></td>
 </tr>
 <tr>
 <td>SNOMED CT</td>
 <td><code>snomed-ct.yaml</code>, <code>snomed-maps.yaml</code>, <code>procedure-phrase-to-snomed.yaml</code>, <code>procedure-snomed-metadata.yaml</code></td>
 <td><code>codes/snomed.py</code>, <code>codes/snomed_concepts.py</code></td>
-<td>—</td>
+<td><code>snomed_ct_tx.json</code></td>
 </tr>
 <tr>
 <td>RxNorm</td>

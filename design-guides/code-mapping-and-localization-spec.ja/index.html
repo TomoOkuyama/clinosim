@@ -2825,7 +2825,7 @@
 <ol>
 <li><strong>データ。</strong> コード体系ごとに、システムキーを名前にしたレジストリファイルを 1 つ置く (§3.3)。その体系への内部キー対応表や crosswalk は、体系名を付けた別ファイルにする (<code>loinc-maps.yaml</code>、<code>snomed-maps.yaml</code>)。</li>
 <li><strong>アクセサ。</strong> すべてのコード体系は基底クラス <code>CodeSystem</code> (§2.3) のインスタンスとする。フックや独自の参照 (対応付け、階層、製品の選択、正規 URI の規則など) が要る権威は、<code>clinosim/codes/&lt;authority&gt;.py</code> にサブクラスを 1 つ持ち、そのモジュールは自分の権威のファイルだけを読む。基底クラスだけで足りる権威 (HL7 terminology、CVX、DICOM、OMB、clinosim 独自の体系) は、レジストリファイルから作る素のインスタンスで、モジュールを持たない。</li>
-<li><strong>スナップショット。</strong> 権威から照合済みで取り出したデータは <code>clinosim/codes/authoritative/</code> に、権威とリリースごとに 1 ファイルで置き (<code>loinc_2_82_tx.json</code>、<code>rxnorm_rxnav_snapshot.json</code> など)、テストでレジストリと突き合わせる。</li>
+<li><strong>スナップショット。</strong> 権威から照合済みで取り出したデータは <code>clinosim/codes/authoritative/</code> に、権威とリリースごとに 1 ファイルで置き (<code>loinc_2_83_tx.json</code>、<code>rxnorm_rxnav_snapshot.json</code> など)、テストでレジストリと突き合わせる。</li>
 <li><strong>カタログは権威をつなぐだけで、権威を持たない。</strong> カタログ (薬、処置、職種) は内部 id、名称、複数の権威のコードを持つ。各コードはその権威のアクセサで解決し、権威の参照規則を再実装しない。</li>
 </ol>
 <p>現在の配置:</p>
@@ -2843,7 +2843,7 @@
 <td>ICD-10-CM (NLM / CMS)</td>
 <td><code>icd-10-cm.yaml</code></td>
 <td><code>codes/icd10.py</code></td>
-<td>—</td>
+<td><code>icd10cm_2027_cms.json</code></td>
 </tr>
 <tr>
 <td>ICD-10 (WHO、MHLW 日本語名)</td>
@@ -2861,13 +2861,13 @@
 <td>LOINC</td>
 <td><code>loinc.yaml</code>、<code>loinc-maps.yaml</code></td>
 <td><code>codes/loinc.py</code></td>
-<td><code>loinc_2_82_tx.json</code></td>
+<td><code>loinc_2_83_tx.json</code></td>
 </tr>
 <tr>
 <td>SNOMED CT</td>
 <td><code>snomed-ct.yaml</code>、<code>snomed-maps.yaml</code>、<code>procedure-phrase-to-snomed.yaml</code>、<code>procedure-snomed-metadata.yaml</code></td>
 <td><code>codes/snomed.py</code>、<code>codes/snomed_concepts.py</code></td>
-<td>—</td>
+<td><code>snomed_ct_tx.json</code></td>
 </tr>
 <tr>
 <td>RxNorm</td>

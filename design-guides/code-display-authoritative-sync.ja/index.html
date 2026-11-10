@@ -2486,16 +2486,19 @@ display 関連エラーを表面化し、体系的検証フレームワークの
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    yj_tx_fragment.json                 # YJ (framework の最初の住民)
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    icd10_who_tx.json                   # ICD-10 WHO、英語 display
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    icd10_mhlw_2013_ja.json             # ICD-10 MHLW、日本語 display
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    loinc_2_82_tx.json                  # LOINC
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    &lt;system&gt;_&lt;source&gt;.json              # その他の snapshot (一覧は README.md)
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  loader.py                             # lookup() は不変
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>tests/unit/codes/
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  test_display_matches_authoritative.py # silent-no-op 防御の 5 層目
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  authoritative_override_allowlist.yaml # 臨床略記 override
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>scripts/
-</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>  refresh_authoritative_yj.py           # 抽出スクリプト (system ごと)
-</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  refresh_authoritative_yj_full.py
-</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  refresh_authoritative_loinc.py
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    loinc_2_83_tx.json                  # LOINC
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    icd10cm_2027_cms.json               # ICD-10-CM (CMS)
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    snomed_ct_tx.json                   # SNOMED CT International
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    JP_MedicationCodeYJ_CS_full.json    # YJ (full CodeSystem)
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    &lt;system&gt;_&lt;source&gt;.json              # その他の snapshot (一覧は README.md)
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  loader.py                             # lookup() は不変
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>tests/unit/codes/
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>  test_display_matches_authoritative.py # silent-no-op 防御の 5 層目
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  authoritative_override_allowlist.yaml # 臨床略記 override
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>scripts/
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>  refresh_authoritative_yj.py           # 抽出スクリプト (system ごと)
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>  refresh_authoritative_yj_full.py
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>  refresh_authoritative_loinc.py
 </span></code></pre></div>
 <h2 id="snapshot-形式">Snapshot 形式<a class="headerlink" href="#snapshot-形式" title="Permanent link">&para;</a></h2>
 <p>各 snapshot は <code>metadata</code> ブロックと <code>concept</code> リストを持つ JSON
@@ -2582,7 +2585,7 @@ common name の代わりに臨床略記を保つ LOINC display (と追跡中の�
 <tbody>
 <tr>
 <td>YJ</td>
-<td><code>jpfhir-terminology 2.2606.0</code> YJ-code CS (<code>yj_tx_fragment.json</code>)</td>
+<td>YJ-code CS 全体 (<code>JP_MedicationCodeYJ_CS_full.json</code>。Issue #3127 以前は fragment <code>yj_tx_fragment.json</code>)</td>
 <td>Phase 1</td>
 <td>cross-check 済</td>
 </tr>
@@ -2600,15 +2603,15 @@ common name の代わりに臨床略記を保つ LOINC display (と追跡中の�
 </tr>
 <tr>
 <td>LOINC</td>
-<td>LOINC 2.82 master (<code>loinc_2_82_tx.json</code>)</td>
+<td>LOINC 2.83 via tx.fhir.org (<code>loinc_2_83_tx.json</code>)</td>
 <td>Phase 3</td>
 <td>cross-check 済</td>
 </tr>
 <tr>
 <td>SNOMED CT</td>
-<td>tx-server SNOMED International fragment</td>
+<td>tx.fhir.org の SNOMED CT International (<code>snomed_ct_tx.json</code>)</td>
 <td>Phase 2</td>
-<td>予定</td>
+<td>cross-check 済 (Issue #3127)</td>
 </tr>
 <tr>
 <td>BCP-47</td>
@@ -2618,9 +2621,9 @@ common name の代わりに臨床略記を保つ LOINC display (と追跡中の�
 </tr>
 <tr>
 <td>ICD-10-CM</td>
-<td><code>codes/data/icd-10-cm.yaml</code> vs NLM CM master</td>
+<td>CMS FY2027 code descriptions (<code>icd10cm_2027_cms.json</code>)</td>
 <td>Phase 3</td>
-<td>予定</td>
+<td>cross-check 済 (Issue #3127)</td>
 </tr>
 <tr>
 <td>MEDIS keyNo</td>
