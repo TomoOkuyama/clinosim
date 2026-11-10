@@ -10,8 +10,8 @@
 # PractitionerRole.specialty (display from codes/data/snomed-ct.yaml), so the
 # service type and the specialty of the same department agree (Issue #2270).
 # Codes are SNOMED CT specialties (isa 394658006), tx.fhir.org $lookup
-# 2026-11-05 (Issue #2625). trauma_surgery and medical_social_work have no
-# specialty concept and carry none.
+# 2026-11-05 (Issue #2625). trauma_surgery, medical_social_work and
+# health_checkup have no specialty concept and carry none.
 # Read through `department_display()`; a missing language falls back to
 # English and a missing key is humanised (never title-cased).
 metadata:
@@ -52,3 +52,7 @@ departments:
   # Issue #2270: support departments that staff are assigned to.
   laboratory: {en: "Laboratory", ja: "検査科", specialty_snomed: "722414000"}
   pharmacy: {en: "Pharmacy", ja: "薬剤科", specialty_snomed: "405623001"}
+  # Issue #3153: the health-checkup unit (健診センター) the opt-in
+  # health_checkup module's encounters belong to; its checkups are done by
+  # the internal-medicine / primary-care physicians.
+  health_checkup: {en: "Health Checkup Center", ja: "健診センター"}

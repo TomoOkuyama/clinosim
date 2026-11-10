@@ -23,9 +23,11 @@ Composition.section の text.div は narrative pass が入れる。
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
+from functools import cache
 from typing import Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field
 
 from clinosim import determinism
 from clinosim.codes.valuesets import concept_group
@@ -358,6 +360,39 @@ def _build_checkup_document_stub(
     )
 
 
+class CheckupStaffingFile(BaseModel):
+    """Shape of ``reference_data/checkup_staffing.yaml`` (Issue #3153)."""
+
+    model_config = ConfigDict(extra="forbid")
+    attending_departments: list[str] = Field(min_length=1)
+
+
+@cache
+def _attending_departments() -> tuple[str, ...]:
+    """Departments whose physicians perform checkups
+    (``reference_data/checkup_staffing.yaml``, Issue #3153)."""
+    from pathlib import Path
+
+    from clinosim.datafiles import load_validated_yaml
+
+    raw = load_validated_yaml(
+        Path(__file__).resolve().parent / "reference_data" / "checkup_staffing.yaml", CheckupStaffingFile
+    )
+    return tuple(str(d) for d in raw["attending_departments"])
+
+
+def checkup_attending(roster: Any, encounter_id: str) -> str:
+    """The physician who performs checkup ``encounter_id`` (Issue #3153): a
+    physician of the first ``attending_departments`` entry that has any,
+    picked stably by the encounter id (no RNG); "" without a roster."""
+    members = list(getattr(roster, "members", None) or [])
+    for dept in _attending_departments():
+        ids = sorted(m.staff_id for m in members if m.role == "physician" and m.department == dept)
+        if ids:
+            return ids[determinism.sha_index(f"checkup-attending::{encounter_id}", len(ids))]
+    return ""
+
+
 def enrich_health_checkup(ctx: Any) -> None:
     """POST_RECORDS enricher entry — 事業者健診 opt-in の CIF 拡張。
 
@@ -443,6 +478,10 @@ def enrich_health_checkup(ctx: Any) -> None:
             lang,
             checkup_type=checkup_type,
         )
+        # Issue #3153: a real attending physician, who authors the report.
+        attending = checkup_attending(getattr(ctx, "roster", None), encounter.encounter_id)
+        encounter.attending_physician_id = attending
+        checkup_doc.author_practitioner_id = attending
         # CY8-01 fix:Order を lab_results 数だけ作り
         # `result` に checkup_labs を対応付ける。これで既存 `_bb_labs` /
         # `_bb_service_requests` / `_bb_diagnostic_reports` が checkup lab を

@@ -213,7 +213,13 @@ def generate_roster(
     #
     # ``radiology`` (Issue #2870) is staffed by the radiologists generated
     # below, not by ward physicians.
-    _physician_skip_depts = frozenset({"nutrition", "medical_social_work", "radiology"})
+    # The list lives in the hospital config (``departments_without_physicians``,
+    # Issue #3153, which adds the health-checkup unit); the default keeps a
+    # config without the key on the earlier set.
+    _physician_skip_depts = frozenset(
+        hospital_config.get("departments_without_physicians")
+        or ("nutrition", "medical_social_work", "radiology", "health_checkup")
+    )
 
     physician_counters: dict[str, int] = {}
     for dept in available:

@@ -1,0 +1,44 @@
+# JP-eCheckup 報告区分 CodeSystem — Composition.category (Issue #3153).
+#
+# 一次出典: JP-eCheckup General v1.7.0 package (jpfhir.jp
+# fhir/eCheckup/igv170/package.tgz), CodeSystem-eCheckup-codeSystem-
+# reportCategory.json (url urn:oid:1.2.392.200119.6.1001, version 1.0.0).
+# Composition.category.coding is bound (required) to ValueSet
+# checkup-report-category, which includes 10 / 41 / 42 / 43 / 44 / 60 / 70 /
+# 80 / 99; those are listed here with the CodeSystem's Japanese display.
+# English displays are clinosim translations.
+metadata:
+  kind: code-system
+  name: JP-eCheckup Report Category
+  uri: urn:oid:1.2.392.200119.6.1001
+  version: "1.0.0"
+  source: "jpfhir.jp JP-eCheckup General v1.7.0 CodeSystem reportCategory"
+  description: Report category of a JP-eCheckup health-checkup report (Composition.category)
+codes:
+  "10":
+    en: "Specific health checkup information"
+    ja: "特定健診情報"
+  "41":
+    en: "Occupational health checkup"
+    ja: "事業者健診"
+  "42":
+    en: "Municipal screening"
+    ja: "自治体検診"
+  "43":
+    en: "Infant health checkup"
+    ja: "乳幼児健診"
+  "44":
+    en: "Prenatal health checkup"
+    ja: "妊婦健診"
+  "60":
+    en: "Health checkup information of a public-assistance recipient"
+    ja: "被保護者の健診情報"
+  "70":
+    en: "Checkup equivalent to the specific health checkup performed by a non-insurer"
+    ja: "保険者以外が行う特定健診等に相当する健診"
+  "80":
+    en: "Checkup other than the specific health checkup performed by an insurer"
+    ja: "保険者が実施する特定健診等以外の健診"
+  "99":
+    en: "Other"
+    ja: "そのほか"

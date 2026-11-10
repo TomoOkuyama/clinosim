@@ -35,14 +35,14 @@ def _jp_checkup_doc():
 
 @pytest.mark.unit
 def test_jp_eCheckup_composition_type_uses_doc_typecodes():
-    """type.coding が doc-typecodes system + 53576-5 を含むこと。"""
+    """type.coding は doc-typecodes system の 53576-5 の 1 件のみ (JP-eCheckup は
+    type.coding max=1、system 固定。Issue #3153 で LOINC の併記を外した)。"""
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_checkup_doc()
     comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
-    systems = {c.get("system") for c in comp["type"]["coding"]}
-    assert _DOC_TYPE_SYSTEM in systems
-    assert "http://loinc.org" in systems
+    systems = [c.get("system") for c in comp["type"]["coding"]]
+    assert systems == [_DOC_TYPE_SYSTEM]
     assert comp["title"] == "検診・健診報告書"
 
 

@@ -58,8 +58,21 @@ available_departments:
   # Issue #2870: radiology runs the screening mammograms. Its staff are the
   # radiologists every roster has (no physicians or wards of its own).
   - radiology              # 放射線科
+  # Issue #3153: health-checkup unit (健診センター) of the opt-in
+  # health_checkup module; no physicians of its own (see
+  # departments_without_physicians), its checkups are done by internists.
+  - health_checkup         # 健診センター
 
 # Map granular specialties to the available departments at this hospital
+# Departments staffed without physicians of their own (Issue #915, #2870,
+# #3153): allied-health service lines (dietitians, social workers), radiology
+# (the radiologists every roster has) and the health-checkup unit.
+departments_without_physicians:
+  - nutrition
+  - medical_social_work
+  - radiology
+  - health_checkup
+
 department_rollup:
   pulmonology: internal_medicine
   neurology: internal_medicine

@@ -1,0 +1,45 @@
+# JP-eCheckup 健診プログラムサービスコード CodeSystem — Composition.event.code
+# (Issue #3153).
+#
+# 一次出典: JP-eCheckup General v1.7.0 package (jpfhir.jp
+# fhir/eCheckup/igv170/package.tgz), CodeSystem-echeckup-programService-cs.json
+# (url urn:oid:1.2.392.200119.6.1002). Composition.event.code is bound
+# (required) to ValueSet checkup-programService-code, which includes the
+# whole CodeSystem. English displays are clinosim translations.
+metadata:
+  kind: code-system
+  name: JP-eCheckup Program Service Code
+  uri: urn:oid:1.2.392.200119.6.1002
+  source: "jpfhir.jp JP-eCheckup General v1.7.0 CodeSystem programService"
+  description: Health-checkup program service of a JP-eCheckup report (Composition.event.code)
+codes:
+  "000":
+    en: "Unknown"
+    ja: "不明"
+  "010":
+    en: "Specific health checkup"
+    ja: "特定健康診査"
+  "020":
+    en: "Health program of a regional union for late-stage elderly"
+    ja: "広域連合の保健事業"
+  "030":
+    en: "Occupational health checkup"
+    ja: "事業者健診"
+  "040":
+    en: "School health checkup"
+    ja: "学校健診"
+  "060":
+    en: "Cancer screening"
+    ja: "がん検診"
+  "070":
+    en: "Checkup equivalent to the specific health checkup performed by a non-insurer"
+    ja: "保険者以外が行う特定健診等に相当する健診"
+  "080":
+    en: "Checkup other than the specific health checkup performed by an insurer"
+    ja: "保険者が実施する特定健診等以外の健診"
+  "090":
+    en: "Hepatitis screening"
+    ja: "肝炎検診"
+  "990":
+    en: "Other health checkup (screening)"
+    ja: "その他の健診(検診)"
