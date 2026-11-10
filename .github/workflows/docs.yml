@@ -2,7 +2,8 @@
 #
 # Two jobs:
 #   - build  (fires on PRs to master) — validates docs compile with
-#            `mkdocs build` (warnings tolerated; see note in job for details)
+#            `mkdocs build --strict`: a broken link, missing page or bad
+#            anchor fails the PR
 #   - deploy (fires on master push)   — publishes to the gh-pages branch
 #            via `mkdocs gh-deploy`, which GitHub Pages then serves.
 #
@@ -42,13 +43,12 @@ jobs:
         # its transclusions (README.md, CHANGELOG.md, ...) resolve.
         run: uv pip install --system -e ".[docs]"
       - name: Build
-        # `--strict` is not used: transcluded root files (README.md,
-        # MODULES.md, ...) contain internal repo-path links that are
-        # valid on GitHub but not from within the docs tree, and fixing
-        # each of those links in the transcluded source would require
-        # dual-purpose paths. The build succeeds if there are no hard
-        # errors; warnings are surfaced but tolerated.
-        run: mkdocs build
+        # Links from pages and transcluded root files (README.md,
+        # MODULES.md, ...) to repository files that are not site pages are
+        # rewritten to their GitHub URL by the hook in mkdocs.yml
+        # (scripts/mkdocs_repo_links.py), so any remaining warning is a
+        # real broken link and fails the build.
+        run: mkdocs build --strict
 
   deploy:
     name: Deploy to gh-pages

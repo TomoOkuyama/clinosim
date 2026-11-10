@@ -4019,7 +4019,7 @@ the 30+ PRs since 0.5.0 are RNG-cascade or CIF-shape changes; a fresh
 2026-08-28 post-Issue-#854 audit resolutions + 2026-08-28 cross-platform
 determinism + narrative-review follow-ups (pediatric localization,
 per-day lab filter). See
-[`docs/reviews/2026-08-28-2026-08-28-post-p1000-audit.md`](docs/reviews/2026-08-28-2026-08-28-post-p1000-audit.md)
+[`docs/reviews/2026-08-28-post-p1000-audit.md`](docs/reviews/2026-08-28-post-p1000-audit.md)
 and
 [`docs/reviews/2026-08-28-cross-platform-determinism.md`](docs/reviews/2026-08-28-cross-platform-determinism.md)
 for the per-finding timelines and technical summaries.
