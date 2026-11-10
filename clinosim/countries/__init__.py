@@ -1,8 +1,14 @@
-"""Country-code predicates (Issue #2210).
+"""Country-code predicates (Issue #2210) and the country packages.
 
 The lowest layer of the package: no clinosim imports, so ``clinosim.types``
 can use them without depending on ``clinosim.modules``. Re-exported by
 ``clinosim.modules._shared`` for existing callers.
+
+Country-only algorithms live in a subpackage named by the country code
+(``clinosim.countries.jp``), registered as named implementations and
+selected by the country profile (docs/design-guides/country-profile-spec.md
+§4, Issue #3194). This module was a single file before; its API is
+unchanged.
 """
 
 from __future__ import annotations
@@ -61,7 +67,7 @@ def is_us(country: str) -> bool:
     return str(country).strip().lower() == "us"
 
 
-_COUNTRY_LANGUAGE_YAML = Path(__file__).parent / "locale" / "shared" / "country_language.yaml"
+_COUNTRY_LANGUAGE_YAML = Path(__file__).parent.parent / "locale" / "shared" / "country_language.yaml"
 
 
 @lru_cache(maxsize=1)

@@ -28,16 +28,11 @@ SUPPORTED_LEVEL_SYSTEMS: frozenset[str] = frozenset({"JTAS", "ESI"})
 # the country profile (``implementations.triage_scale``). Each returns the
 # level-system name the scale's levels are recorded under; both scales draw
 # their level from the same severity distribution (:func:`pick_triage_level`).
+# JTAS is in ``clinosim/countries/jp/triage.py``.
 @register_implementation("triage_scale", "esi")
 def _esi_scale() -> str:
     """Emergency Severity Index."""
     return "ESI"
-
-
-@register_implementation("triage_scale", "jtas")
-def _jtas_scale() -> str:
-    """Japan Triage and Acuity Scale."""
-    return "JTAS"
 
 
 def triage_scale(country: str) -> str:

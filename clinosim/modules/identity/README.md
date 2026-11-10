@@ -144,11 +144,12 @@ clinosim/modules/identity/
   assign.py                       assign_identities POST_POPULATION pass + assign_identity_for_person (newborns)
   base.py                         ResidentLike + IdentityProvider Protocols
   generators.py                   my_number / mod10 / insurer_number / …
-  registry.py                     country → provider dispatch (JP / US)
+  registry.py                     country → provider dispatch (country profile)
   providers/
-    __init__.py                   re-exports JPIdentityProvider + USIdentityProvider
-    jp.py                         JP numbering rules + card-holding copula
+    __init__.py                   re-exports USIdentityProvider
     us.py                         US age-banded insurance enrollment (Issue #1107); no national ID
+clinosim/countries/jp/
+  identity_provider.py            JP numbering rules + card-holding copula (Issue #3194)
 ```
 
 The module has **no `enricher.py`, no `audit.py`, no `reference_data/`**

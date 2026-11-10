@@ -172,6 +172,12 @@ copay:
     middle_income_pct: 20
     middle_income_share: 0.20
     middle_income_from: "2022-10-01"
+  # Issue #3194: the rate by insurance category when the birth date is
+  # unknown (copay_rule "jp_age_income" falls back to "category_rate"): the
+  # 後期高齢者 rate, else the standard rate.
+  by_category:
+    late_elderly: 10
+  default_pct: 30
 
 # FHIR output mapping — HL7 FHIR JP Core Coverage profile.
 # Verified against jpfhir.jp/fhir/core (Coverage profile + example). Consumed by the

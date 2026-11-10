@@ -22,7 +22,7 @@
 |---|---|---|---|
 | 権威コード体系 | `clinosim/codes/` | 登録コード、URI、表示名、value set、薬・処置・職種カタログ、UCUM、JIS X 0401、名前付き SNOMED 概念 | `clinosim.countries` のみ (`clinosim.locale` / `clinosim.modules` 禁止) |
 | 国別・表示データ | `clinosim/locale/` | 国別コード対応、コードを持たない語彙の表示表、翻訳表、フレーズカタログ | `clinosim.codes`、`clinosim.countries` |
-| 言語の選択 | `clinosim/countries.py` | 国→言語、言語タグの正規化 (§5.1) | clinosim 内は import しない |
+| 言語の選択 | `clinosim/countries/__init__.py` | 国→言語、言語タグの正規化 (§5.1) | clinosim 内は import しない |
 | データファイル | `clinosim/datafiles.py` | データ YAML の唯一の読み込み (`load_data_yaml`、`data_metadata`) と kind の一覧 (§3.1) | clinosim 内は import しない |
 | 利用側 | `clinosim/modules/` / `simulator/` / `eval/` / `audit/` / `benchmarks/` | 判定ロジック、出力処理 | 上の層。§4 の関数経由に限る |
 

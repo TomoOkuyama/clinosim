@@ -58,11 +58,11 @@ Governing spec: [`code-mapping-and-localization-spec.md`](code-mapping-and-local
 
 | Helper | Use it for |
 |---|---|
-| `clinosim/countries.py` `is_jp(country)` / `is_us(country)` | Country-specific rules (insurance, profiles, code systems). Never compare country strings by hand. Not for choosing a display language. |
-| `clinosim/countries.py` `lang_for(country)` / `normalize_lang(lang)` | The output language of a country, and the one normalisation of a language argument. |
-| `clinosim/countries.py` `country_code(country)` | `"JP"` / `"US"` from any spelling (`"jp"`, the legacy locale key `"japan"`, ...) for helpers that take the upper-case code. `is_jp` accepts the same spellings. |
-| `clinosim/countries.py` `country_slot(country, scheme=...)` | The section key of a per-country YAML block. |
-| `clinosim/countries.py` `lang_name(lang, in_lang=)` / `output_language_instruction(lang)` / `has_authored_narrative(lang)` | Language names, the LLM "write in this language" instruction, and whether a language has authored narrative content. |
+| `clinosim/countries/__init__.py` `is_jp(country)` / `is_us(country)` | Country-specific rules (insurance, profiles, code systems). Never compare country strings by hand. Not for choosing a display language. |
+| `clinosim/countries/__init__.py` `lang_for(country)` / `normalize_lang(lang)` | The output language of a country, and the one normalisation of a language argument. |
+| `clinosim/countries/__init__.py` `country_code(country)` | `"JP"` / `"US"` from any spelling (`"jp"`, the legacy locale key `"japan"`, ...) for helpers that take the upper-case code. `is_jp` accepts the same spellings. |
+| `clinosim/countries/__init__.py` `country_slot(country, scheme=...)` | The section key of a per-country YAML block. |
+| `clinosim/countries/__init__.py` `lang_name(lang, in_lang=)` / `output_language_instruction(lang)` / `has_authored_narrative(lang)` | Language names, the LLM "write in this language" instruction, and whether a language has authored narrative content. |
 | `clinosim/modules/_shared.py` `uses_jp_clins_profile(lang)` | Whether FHIR resources are emitted under a JP-CLINS profile family. |
 
 ## 4. Codes and display text

@@ -153,7 +153,7 @@ icd_display = display("icd-10-cm", icd_code, lang) or ""
 ```
 
 - 第一引数 = code system key(`"loinc"` / `"icd-10-cm"` / `"snomed-ct"` / `"rxnorm"` / `"jlac10"` / `"k-codes"` / `"cpt"` / etc.)
-- 第三引数 = 出力言語。必ず `lang_for(ctx.country)`(`clinosim/countries.py`)で導出、inline 分岐禁止(E.10)
+- 第三引数 = 出力言語。必ず `lang_for(ctx.country)`(`clinosim/countries/__init__.py`)で導出、inline 分岐禁止(E.10)
 - 戻り値 = display string、不在時は `None`(`or` で fallback)
 - code 自体を display として使うのは AD-30 違反 + 多言語破綻 = NG
 
@@ -405,7 +405,7 @@ Condition / Procedure / ServiceRequest 等で **国の local code system + inter
 
 ### D.4 JP localization 規約
 
-出力言語は **`lang_for(ctx.country)`** で決める。**`is_jp(ctx.country)`** / **`is_us(ctx.country)`** は国ルール(診療報酬コード、profile、JP 専用 section)専用で、display の選択には使わない(code-mapping spec §5.1、§9)。3 つとも `clinosim/countries.py` にある。`ctx.country.lower() == "jp"` 等の hand-rolled 変種を書かない — E.10。JP cohort で:
+出力言語は **`lang_for(ctx.country)`** で決める。**`is_jp(ctx.country)`** / **`is_us(ctx.country)`** は国ルール(診療報酬コード、profile、JP 専用 section)専用で、display の選択には使わない(code-mapping spec §5.1、§9)。3 つとも `clinosim/countries/__init__.py` にある。`ctx.country.lower() == "jp"` 等の hand-rolled 変種を書かない — E.10。JP cohort で:
 
 - `text` / `name` field と、英語専用でない system(JP Core、JP-CLINS、MEDIS、YJ、clinosim 独自)の `coding.display` = 日本語(`dual_slot_concept` / `system_coding`、または `display(..., lang_for(ctx.country)) or <fallback>` 経由)
 - 英語専用 system(LOINC、SNOMED CT、HL7 terminology、DICOM、UCUM)の `coding.display` = 英語。日本語ラベルは `dual_slot_concept` で `CodeableConcept.text` に入れる(code-mapping spec §5.3)。こうした coding 内の日本語 display は validation error
@@ -617,4 +617,4 @@ Condition / Procedure / ServiceRequest 等で dual coding(local primary + intero
 | **Tier 1 #3 α-min-2 OUTPATIENT_SOAP (2026-07-01)** | **LOINC 34131-3** (corrected from 11488-4 per LOINC DB query). `encounter_types_supported: [outpatient]`. Production wiring: outpatient.py calls `run_stage(POST_ENCOUNTER)` (α-min-2 Task 14 fix; verified 2026-07-02 — 1,841 Composition at US p=500 seed=42). |
 | **Tier 1 #3 α-min-2 ED_NOTE + ED_TRIAGE_NOTE (2026-07-01)** | **ED_NOTE = LOINC 34878-9** (corrected from 51847-2), **ED_TRIAGE_NOTE = LOINC 54094-8** (corrected from 54094-8 confirmed correct). `encounter_types_supported: [emergency]`. Production wiring: emergency.py calls `run_stage(POST_ENCOUNTER)` (α-min-2 Task 14 fix; verified 2026-07-02 — ED_NOTE 210 Composition + ED_TRIAGE_NOTE 210 DocumentReference at US p=500 seed=42). |
 | **Tier 1 #2 Imaging (2026-06-30)** | **New `_fhir_imaging_study.py` + `_fhir_endpoint.py` + polymorphic `_fhir_service_request.py` imaging dispatch + radiology `_fhir_diagnostic_report.py` variant + canonical constants `IMAGING_CATEGORY_SNOMED` / `DICOM_UID_SYSTEM` / `ENDPOINT_ID_PREFIX` / `DICOM_WADO_RS_CONNECTION_TYPE` / `IMAGING_SR_ID_PREFIX` + CIF→FHIR no-drop invariant (1:1 ImagingStudyRecord → ImagingStudy + Endpoint + radiology DR + imaging SR) + AD-62 ADR + `encounter_id` invariant (all orders in CIFPatientRecord.orders must have non-empty encounter_id before FHIR export — inpatient.py unknown-condition fix 2026-06-30)** |
-| **Common-logic unification (2026-07-02)** | **`is_jp` / `lang_for`(現在は `clinosim/countries.py`)を JP 国判定 / 出力言語選択の唯一の正準 idiom として確立(5 divergent idiom を置換、E.10)+ `system_key_for(kind, country)`(`clinosim.codes`)= 国→code system 選択の single source of truth(E.11)+ `_fhir_localization.py` の 3 inline YAML loader を `clinosim/locale/loader.py` canonical cached loader へ移設(`load_med_terms_ja` / `load_narrative_display_dict` / `load_department_display`、E.3 precedent)+ `_BUILTIN_URIS` に `hl7-endpoint-connection-type` / `hl7-endpoint-payload-type` / `hl7-subscriber-relationship` 追加 + aggregate loader owner-module 移設(`load_all_disease_protocols` → `modules/disease/protocol.py`)+ protocol / config loader `@lru_cache` 化(shared instance = mutate 禁止)** |
+| **Common-logic unification (2026-07-02)** | **`is_jp` / `lang_for`(現在は `clinosim/countries/__init__.py`)を JP 国判定 / 出力言語選択の唯一の正準 idiom として確立(5 divergent idiom を置換、E.10)+ `system_key_for(kind, country)`(`clinosim.codes`)= 国→code system 選択の single source of truth(E.11)+ `_fhir_localization.py` の 3 inline YAML loader を `clinosim/locale/loader.py` canonical cached loader へ移設(`load_med_terms_ja` / `load_narrative_display_dict` / `load_department_display`、E.3 precedent)+ `_BUILTIN_URIS` に `hl7-endpoint-connection-type` / `hl7-endpoint-payload-type` / `hl7-subscriber-relationship` 追加 + aggregate loader owner-module 移設(`load_all_disease_protocols` → `modules/disease/protocol.py`)+ protocol / config loader `@lru_cache` 化(shared instance = mutate 禁止)** |

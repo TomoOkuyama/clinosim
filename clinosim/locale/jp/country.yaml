@@ -37,3 +37,7 @@ implementations:
   lab_coding: jp_clins
   # The JP drug code family (YJ, HOT, ...) is read from the code's format.
   drug_system: jp_code_format
+  # The YJ product for the drug and its route (clinosim/countries/jp).
+  drug_order_code: jp_route_product
+  # 一部負担金割合 by age and income (clinosim/countries/jp/copay.py).
+  copay_rule: jp_age_income

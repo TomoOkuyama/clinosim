@@ -335,8 +335,8 @@ class TestIssue923IdentitySampler:
         minor as 被保険者 — instead fall back to 国保."""
         import numpy as np
 
+        from clinosim.countries.jp.identity_provider import JPIdentityProvider
         from clinosim.locale.loader import load_identity_config
-        from clinosim.modules.identity.providers.jp import JPIdentityProvider
 
         class _M:
             def __init__(self, pid, age, occupation="other"):

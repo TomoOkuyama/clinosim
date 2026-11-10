@@ -543,7 +543,7 @@ A new leaf-ish module `clinosim/modules/identity/` owns numbering:
 - `base.py` — `IdentityProvider` Protocol (country-pluggable seam; interface only)
 - `registry.py` — `country → provider` resolution (mirrors `healthcare_system`)
 - `generators.py` — check-digit number generators (country-agnostic pure functions)
-- `providers/jp.py` — JP rules (employer-level 記号, 社保/国保/後期高齢, 枝番,
+- `clinosim/countries/jp/identity_provider.py` — JP rules (employer-level 記号, 社保/国保/後期高齢, 枝番,
   card/保険証 dated flags, 75-yr transition)
 - `providers/us.py` — thin (existing `_sample_insurance` behavior preserved)
 

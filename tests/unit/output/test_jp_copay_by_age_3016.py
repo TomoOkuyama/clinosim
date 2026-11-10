@@ -34,7 +34,7 @@ pytestmark = pytest.mark.unit
     ],
 )
 def test_jp_copay_by_age_and_income(dob: date, on: date, income_q: float, pct: int) -> None:
-    from clinosim.modules.output.fhir_r4.demographics.patient import jp_copay_pct
+    from clinosim.countries.jp.copay import jp_copay_pct
 
     assert jp_copay_pct(dob, on, income_q) == pct
 

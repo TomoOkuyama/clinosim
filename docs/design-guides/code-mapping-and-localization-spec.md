@@ -22,7 +22,7 @@ Japanese counterpart: [`code-mapping-and-localization-spec.ja.md`](code-mapping-
 |---|---|---|---|
 | Authority code systems | `clinosim/codes/` | registered codes, URIs, displays, value sets, the drug / procedure / role catalogs, UCUM, JIS X 0401, named SNOMED concepts | `clinosim.countries` only (no `clinosim.locale`, no `clinosim.modules`) |
 | Country and display data | `clinosim/locale/` | per-country code mappings, display tables for non-code vocabularies, translation tables, the phrase catalog | `clinosim.codes`, `clinosim.countries` |
-| Language selection | `clinosim/countries.py` | country → language, language-tag normalization (§5.1) | nothing in clinosim |
+| Language selection | `clinosim/countries/__init__.py` | country → language, language-tag normalization (§5.1) | nothing in clinosim |
 | Data files | `clinosim/datafiles.py` | the one data-YAML reader (`load_data_yaml`, `data_metadata`) and the list of kinds (§3.1) | nothing in clinosim |
 | Consumers | `clinosim/modules/`, `clinosim/simulator/`, `clinosim/eval/`, `clinosim/audit/`, `clinosim/benchmarks/` | decision logic, emitters | the layers above, only through the functions in §4 |
 

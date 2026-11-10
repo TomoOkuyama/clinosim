@@ -15,7 +15,8 @@ import numpy as np
 from clinosim.codes import display as registry_display
 from clinosim.codes import system_key_for
 from clinosim.codes.drugs import protocol_drug_name
-from clinosim.countries import country_slot, is_jp
+from clinosim.countries import country_slot
+from clinosim.country_profile import implementation, register_implementation
 from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import order_test_display
@@ -455,29 +456,25 @@ def protocol_drug_order_code_system(spec: dict, country: str) -> str:
     return system_key_for("drug", country)
 
 
+@register_implementation("drug_order_code", "catalog_code")
+def _catalog_drug_order_code(spec: dict, country: str) -> str:
+    """The catalog code of the drug in the country's drug code system (US: the
+    RxCUI; Issue #2378: the inline ``code_rxnorm`` values named other drugs —
+    labetalol carried ketoconazole's RxCUI — and are removed from the disease
+    YAMLs); ``""`` when the drug is not catalogued."""
+    from clinosim.codes.drugs import drug_ref, get_drug
+
+    rec = get_drug(str(spec.get("drug_id") or "") or drug_ref(str(spec.get("drug") or "")))
+    return rec.codes.get(system_key_for("drug", country), "") if rec is not None else ""
+
+
 def protocol_drug_order_code(spec: dict, country: str) -> str:
-    """Order code of a disease-YAML drug entry (Issue #2351).
-
-    JP: the drug catalog's YJ product for the drug and its route (the entry's
-    ``route``, else the route in its dose string, else the name heuristic) —
-    the same code the FHIR builders emit; ``""`` when the catalog lists no
-    product for that route. US: the catalog RxCUI of the drug; ``""`` when the
-    drug is not catalogued.
-    """
-    if not is_jp(country):
-        # The catalog RxCUI of the drug (Issue #2378): the inline
-        # ``code_rxnorm`` values named other drugs (labetalol carried
-        # ketoconazole's RxCUI) and are removed from the disease YAMLs.
-        from clinosim.codes.drugs import drug_ref, get_drug
-
-        rec = get_drug(str(spec.get("drug_id") or "") or drug_ref(str(spec.get("drug") or "")))
-        return rec.codes.get("rxnorm", "") if rec is not None else ""
-    from clinosim.codes.drugs import jp_drug_code_for_name
-    from clinosim.simulator.helpers import _determine_route
-
-    drug = protocol_drug_name(spec)
-    route = str(spec.get("route") or parse_dose_string(str(spec.get("dose") or "")).get("route") or "")
-    return jp_drug_code_for_name(drug, route or _determine_route(drug, "")) or ""
+    """Order code of a disease-YAML drug entry (Issue #2351): the
+    ``drug_order_code`` implementation the country profile names (Issue
+    #3194) — US ``catalog_code`` (the catalog RxCUI), JP ``jp_route_product``
+    (the YJ product for the drug and its route,
+    ``clinosim/countries/jp/drug_order_code.py``)."""
+    return str(implementation("drug_order_code", country)(spec, country))
 
 
 _PER_KG_BOLUS = re.compile(r"(\d+(?:\.\d+)?)\s*mL/kg\s+bolus", re.IGNORECASE)
