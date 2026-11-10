@@ -1,0 +1,12 @@
+# JFAGY GCM 剤形・規格・銘柄不明コードマスタ — JP AllergyIntolerance.code for a
+# drug allergen named by its ingredient (in JP_AllergyIntolerance_VS; Issue
+# #3128). `ja` is the CodeSystem display verbatim (jpfhir-terminology
+# 2.2606.0, CodeSystem-jp-jfagymedicationallergengcm-cs.json v2026.6.15, a
+# fragment); `en` is a clinosim translation.
+metadata:
+  kind: code-system
+  name: JFAGY GCM Medication Allergen
+  uri: http://jpfhir.jp/fhir/core/CodeSystem/GCM/JP_JfagyMedicationAllergen_CS
+  source: "jpfhir-terminology 2.2606.0 GCM/JP_JfagyMedicationAllergen_CS"
+codes:
+  GCM1143001X1ZZZ: {en: "Aspirin", ja: "アスピリン"}

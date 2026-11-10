@@ -92,7 +92,7 @@ rules:
     source: "Kowalski ML et al. Allergy 2013;68:1219-1232; Khan DA et al. J Allergy Clin Immunol 2022;150:1333-1393"
 
   - id: sulfonamide-allergy-sulfonamide-antibiotics
-    allergen_code: "115556009"   # Sulfonamide
+    allergen_code: "387406002"   # Sulfonamide
     drug_classes: [antibiotic.sulfonamide]
     severity: contraindicated
     rationale:
@@ -101,7 +101,7 @@ rules:
     source: "Khan DA et al. Drug allergy: a 2022 practice parameter update. J Allergy Clin Immunol 2022;150:1333-1393"
 
   - id: sulfonamide-allergy-nonantibiotic-sulfonamides
-    allergen_code: "115556009"   # Sulfonamide
+    allergen_code: "387406002"   # Sulfonamide
     drug_classes: [diuretic.thiazide, diuretic.loop, nsaid.cox2_selective]
     severity: moderate
     rationale:

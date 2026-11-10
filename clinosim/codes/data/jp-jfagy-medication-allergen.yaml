@@ -1,0 +1,17 @@
+# JFAGY YCM 薬剤アレルギー用コードマスタ — JP AllergyIntolerance.code for drug
+# allergens (in JP_AllergyIntolerance_VS; Issue #3128). `ja` is the
+# CodeSystem display verbatim (jpfhir-terminology 2.2606.0,
+# CodeSystem-jp-jfagymedicationallergenycm-cs.json v2026.6.15, a fragment);
+# `en` is a clinosim translation.
+# D9M000000000 is the medication dummy code: JP-CLINS
+# (JP_AllergyIntolerance_eCS, AllergyIntolerance.code) requires a code by
+# the allergen coding rules, dummy codes included; a drug-class allergy
+# (penicillins, sulfonamides) has no JFAGY drug code, so it is coded with
+# the dummy and named in code.text.
+metadata:
+  kind: code-system
+  name: JFAGY YCM Medication Allergen
+  uri: http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS
+  source: "jpfhir-terminology 2.2606.0 YCM/JP_JfagyMedicationAllergen_CS"
+codes:
+  D9M000000000: {en: "Medication dummy code", ja: "医薬品ダミーコード"}

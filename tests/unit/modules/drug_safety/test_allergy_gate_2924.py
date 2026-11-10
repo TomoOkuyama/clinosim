@@ -26,8 +26,8 @@ from clinosim.types.patient import HomeMedication, PatientProfile
 pytestmark = pytest.mark.unit
 
 _WHEN = datetime(2026, 3, 1, 10, 0)
-PENICILLIN, ASPIRIN, SULFONAMIDE = "764146007", "387458008", "115556009"
-EGG, NKA = "735038006", "716186003"
+PENICILLIN, ASPIRIN, SULFONAMIDE = "764146007", "387458008", "387406002"
+EGG, NKA = "303300008", "716186003"
 
 
 def _allergy(code: str, **kw: object) -> Allergy:

@@ -122,11 +122,12 @@ sort するため line 順は決定論的。
   4 文字 (JP-Core convention)。mapping は
   [`clinosim/locale/jp/code_mapping_diagnosis.yaml`](../../../../locale/jp/code_mapping_diagnosis.yaml)。
 - **Allergen coding**: SNOMED CT (アレルゲン + 反応 manifestation)。
-  JP-CLINS 出力では `AllergyIntolerance.code` は代わりに
-  `_jfagy_coding_for_category` の JFAGY generic category coding
-  (medication `00M` / food `00F` / environment + biologic `00N`) を
-  持ち、mapping 無しの category は SNOMED に fallback。RxNorm coding
-  は emit しない。
+  JP-CLINS 出力では `AllergyIntolerance.code` は代わりに allergens.yaml
+  `country_codes.JP` のアレルゲン別 JFAGY コードを持つ (Issue #3128:
+  JP_AllergyIntolerance_VS は JFAGY CodeSystem のみ。薬効群のアレルギーは
+  JFAGY 医薬品ダミーコード)。`code.text` はアレルゲンの日本語名。
+  アレルギー歴なし (NKA) は SNOMED CT のままで、eCS profile は宣言せず
+  JP Core のみ。RxNorm coding は emit しない。
 - **HAI coding**: ICD-10-CM (US billable) + WHO ICD-10 (JP) +
   SNOMED CT International — AGENTS.md の `dual-slot` 規約に沿う
   dual-code。

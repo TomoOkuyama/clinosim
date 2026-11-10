@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "source_package": "jpfhir-terminology 2.2606.0 (https://jpfhir.jp/fhir/core/terminology/igv-2.2606.0/package.tgz, sha256 831b1f6ce5c3d7712ea5d167cb371c87dbf3ea08e70f29267d80acd508becaff)",
+    "fetched": "2026-11-10",
+    "note": "JFAGY allergen codes clinosim emits on JP AllergyIntolerance (JP-CLINS 1.13.0 binds AllergyIntolerance.code.coding to JP_AllergyIntolerance_VS|2023.9.25, which includes these four CodeSystems). The medication CodeSystems are fragments in the package (2000 codes each)."
+  },
+  "concept": [
+    {
+      "system": "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoodAllergen_CS",
+      "version": "2026.5.31",
+      "content": "complete",
+      "code": "J9FA15000000",
+      "display": "小麦"
+    },
+    {
+      "system": "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoodAllergen_CS",
+      "version": "2026.5.31",
+      "content": "complete",
+      "code": "J9FB13110000",
+      "display": "鶏卵"
+    },
+    {
+      "system": "http://jpfhir.jp/fhir/core/CodeSystem/GCM/JP_JfagyMedicationAllergen_CS",
+      "version": "2026.6.15",
+      "content": "fragment",
+      "code": "GCM1143001X1ZZZ",
+      "display": "アスピリン"
+    },
+    {
+      "system": "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS",
+      "version": "2026.6.15",
+      "content": "fragment",
+      "code": "D9M000000000",
+      "display": "医薬品ダミーコード"
+    },
+    {
+      "system": "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS",
+      "version": "2024.7.9",
+      "content": "complete",
+      "code": "J9NK13000000",
+      "display": "樹木"
+    },
+    {
+      "system": "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS",
+      "version": "2024.7.9",
+      "content": "complete",
+      "code": "J9NM12000000",
+      "display": "ダニ"
+    }
+  ]
+}

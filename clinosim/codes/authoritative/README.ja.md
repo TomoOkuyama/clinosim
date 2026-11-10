@@ -21,6 +21,8 @@ override を許容する (下の allowlist に登録)。
 | `rxnorm_rxnav_snapshot.json` | RxNav (NLM) `/REST/rxcui/{code}/historystatus` | 2026-10-28 | clinosim 同梱の全 RxCUI (`rxnorm.yaml` / `drugs.yaml` / US 薬剤マッピング) の status / name / term type。`tests/unit/codes/test_rxnorm_codes_name_their_drug.py` がオフラインで読む。 |
 | `yj_mhlw_snapshot.json` | 厚労省 薬価基準収載品目リスト及び後発医薬品に関する情報 (令和8年6月12日適用)、`https://www.mhlw.go.jp/topics/2026/04/xls/tp20260612-01_05.xlsx` | 2026-10-31 | 薬剤カタログ (`drugs.yaml` の `codes.yj`) の YJ コードに対する厚労省の成分名・品名。JP 薬剤コードテスト (例: `tests/unit/codes/test_jp_yj_class_codes_name_their_drug.py`) がオフラインで読む (Issue #2347)。統一名収載の品目は MEDIS の製品コードをキーにし、リスト上のコードを `mhlw_code` に記録 (Issue #3013)。 |
 | `JP_MedicationCodeYJ_CS_full.json` | YJ-code CodeSystem 全体 (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`、version `2026.8.31`、content `complete`) | — | 23,923 concept。YJ full-CS テスト (例: `tests/unit/output/test_fhir_yj_full_cs_gate_1220.py`) が使用。 |
+| `snomed_allergy_tx.json` | tx.fhir.org R4 `CodeSystem/$lookup`、SNOMED CT International Edition 2025-02-01 | 2026-11-10 | `allergens.yaml` のアレルゲン物質・アレルギー歴なし・反応 manifestation コード (display、FSN、`inactive`)。`tests/unit/modules/allergy/test_allergen_codes_3128.py` がオフラインで参照 (Issue #3128)。 |
+| `jfagy_jpfhir_terminology.json` | `jpfhir-terminology 2.2606.0` (`JP_AllergyIntolerance_VS` の JFAGY アレルゲン CodeSystem。医薬品 CodeSystem は fragment) | 2026-11-10 | JP AllergyIntolerance が emit する JFAGY コード (`allergens.yaml` `country_codes.JP`) と、各 `ja` が一致すべき CodeSystem display (Issue #3128)。 |
 
 snapshot の件数は clinosim の emit 範囲に合わせて増えるため上表には
 記載しません。件数は `len(json.load(open(path))["concept"])` で数えて
