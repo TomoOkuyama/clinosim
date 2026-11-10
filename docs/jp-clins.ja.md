@@ -245,6 +245,7 @@ Note: 健診 IG は JP-CLINS と別に発行 (JP-eCheckup General v1.7.0、
     (chronic_conditions → 既往歴、current_medications → 服薬、
     smoking_status/alcohol_use → 生活習慣)。慢性疾患保有時は
     「継続経過観察を要す」判定。
+    同 section は、記録から答えられる問診項目ごとに `JP_Observation_eCheckupGeneral` を 1 件参照する (Issue #3163、`locale/jp/checkup_questionnaire.yaml`): 服薬1-3 (血圧・血糖・脂質の薬、現在の服薬から)、既往歴1-3 (脳血管・心血管・腎疾患、健診日までに発症した慢性疾患から)、喫煙 (喫煙状況から)。健診項目コード (urn:oid:1.2.392.200119.6.1005) と付属２ XML用特定健診項目情報 Ver.4 の結果コード (はい・いいえ 1.2.392.200119.6.2003、喫煙習慣 1.2.392.200119.6.24060) で符号化し、広域連合の報告 (後期質問票) は「あなたはたばこを吸いますか(後期)」(1.2.392.200119.6.19120) を持つ。乱数は使わず、記録から答えられない項目は出力しない。
 - **健診 encounter 生成 module** (sub-PR-A、2026-07-13 で追加):
   `clinosim/modules/health_checkup/` の POST_RECORDS enricher が
   `SimulatorConfig.modules["health_checkup"]=True` + country=JP 時に

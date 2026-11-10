@@ -21,6 +21,8 @@ dispatcher (`coding_strategy`)。
   [`../lib/inline_bb.py`](../lib/inline_bb.py))、`_bb_anthropometrics`
   (身長 / 体重 / BMI / 頭囲、Issue #946)、
   `_bb_stage_scale_observations` (mRS / H&Y / EDSS / CDR stage scale)、
+  `_bb_checkup_questionnaire` (JP 健診の問診回答を JP-eCheckup Observation
+  として、Issue #3163)、
   `_bb_diagnostic_reports`、`_bb_service_requests` (canonical 定数
   `SR_ID_PREFIX` + `PLACER_ORDER_NUMBER_SYSTEM` +
   `LAB_CATEGORY_SNOMED` + `LAB_CATEGORY_V2_0074` を保持、
@@ -74,6 +76,10 @@ from clinosim.modules.output.fhir_r4.labs.blood_type import (
 )
 from clinosim.modules.output.fhir_r4.labs.anthropometrics import _bb_anthropometrics
 from clinosim.modules.output.fhir_r4.labs.stage_scale_observations import _bb_stage_scale_observations
+from clinosim.modules.output.fhir_r4.labs.checkup_questionnaire import (
+    _bb_checkup_questionnaire,
+    checkup_questionnaire_observations,  # (record, country) -> 健診 encounter の問診 Observation
+)
 from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package          # () -> LabCodingPackage
 from clinosim.modules.output.fhir_r4.labs.coding_strategy import select_lab_coding_strategy     # (lab_name, country) -> LabCodingStrategy
 from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
@@ -152,6 +158,7 @@ clinosim/modules/output/fhir_r4/labs/
   observations.py                _bb_labs (lab Observation) + _build_vital_observations
   anthropometrics.py             _bb_anthropometrics (身長 / 体重 / BMI / 頭囲)
   stage_scale_observations.py    _bb_stage_scale_observations (慢性疾患 stage scale)
+  checkup_questionnaire.py       _bb_checkup_questionnaire (健診の問診回答)
   diagnostic_report.py           _bb_diagnostic_reports + RADIOLOGY_DR_ID_PREFIX
   service_request.py             _bb_service_requests + canonical 定数 (SR_ID_PREFIX / PLACER_ORDER_NUMBER_SYSTEM / LAB_CATEGORY_*)
   microbiology.py                _bb_microbiology (culture + susceptibility)

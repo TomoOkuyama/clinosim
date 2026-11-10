@@ -1,0 +1,30 @@
+# 特定健診 喫煙習慣コード — the answer code of questionnaire item 喫煙
+# (9N736000000000011) of a health-checkup report (Issue #3163).
+#
+# 一次出典:
+#   - JP-eCheckup General v1.7.0 package, CodeSystem-specialCheckup-choice-
+#     24060-cs.json (url urn:oid:1.2.392.200119.6.24060, version 1.0.0, title
+#     特定健診　喫煙習慣　コード); the Japanese displays are that
+#     CodeSystem's, verbatim.
+#   - 厚生労働省 電子的な標準様式 第４期 付属２ XML用特定健診項目情報 Ver.4
+#     (https://www.mhlw.go.jp/content/12400000/001082795.xlsx), 順番号 2420
+#     喫煙: 結果コードOID 1.2.392.200119.6.24060 (1：はい、2：以前は吸っていたが、
+#     最近1ヶ月間は吸っていない、3：いいえ).
+# English displays are clinosim translations.
+metadata:
+  kind: code-system
+  name: MHLW Health-Checkup Smoking Habit Code
+  uri: urn:oid:1.2.392.200119.6.24060
+  version: "1.0.0"
+  source: "jpfhir.jp JP-eCheckup General v1.7.0 CodeSystem specialCheckup-choice-24060; MHLW 付属２ Ver.4"
+  description: Answer of the health-checkup questionnaire item on smoking
+codes:
+  "1":
+    en: "Yes"
+    ja: "はい"
+  "2":
+    en: "Smoked before, but not in the last month"
+    ja: "以前は吸っていたが、最近1ヶ月間は吸っていない"
+  "3":
+    en: "No"
+    ja: "いいえ"

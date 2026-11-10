@@ -380,8 +380,20 @@ def _build_encounter_resource_index(
         # Issue #3154: also by declared profile ("Observation|<profile URL>"),
         # so a section can take only the resources of one profile (the
         # health-checkup results among the checkup encounter's Observations).
+        # Issue #3163: and by profile and category code
+        # ("Observation|<profile URL>|<category code>"), which splits the
+        # health-checkup results from its questionnaire answers.
+        categories = [
+            str(c.get("code"))
+            for cat in res.get("category") or []
+            if isinstance(cat, dict)
+            for c in cat.get("coding") or []
+            if isinstance(c, dict) and c.get("code")
+        ]
         for profile in (res.get("meta") or {}).get("profile") or []:
             index[enc_id].setdefault(f"{rtype}|{profile}", []).append(ref_entry)
+            for code in dict.fromkeys(categories):
+                index[enc_id].setdefault(f"{rtype}|{profile}|{code}", []).append(ref_entry)
     return index
 
 

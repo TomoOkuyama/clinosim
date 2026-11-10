@@ -1,0 +1,31 @@
+# 健診 質問項目 喫煙習慣の有無(後期) 結果コード — the answer code of the
+# late-stage elderly questionnaire item あなたはたばこを吸いますか(後期)
+# (9N943000000000011) of a health-checkup report (Issue #3163).
+#
+# 一次出典:
+#   - JP-eCheckup General v1.7.0 package, CodeSystem-specialCheckup-choice-
+#     19120-cs.json (url urn:oid:1.2.392.200119.6.19120, version 1.0.0, title
+#     健診　質問項目　喫煙習慣の有無(後期）結果コード); the Japanese displays
+#     are that CodeSystem's, verbatim.
+#   - 厚生労働省 電子的な標準様式 第４期 付属２ XML用特定健診項目情報 Ver.4
+#     (https://www.mhlw.go.jp/content/12400000/001082795.xlsx), 順番号 2950:
+#     結果コードOID 1.2.392.200119.6.19120 (1：吸っている、2：吸っていない、
+#     3：やめた).
+# English displays are clinosim translations.
+metadata:
+  kind: code-system
+  name: MHLW Late-Stage Elderly Questionnaire Smoking Code
+  uri: urn:oid:1.2.392.200119.6.19120
+  version: "1.0.0"
+  source: "jpfhir.jp JP-eCheckup General v1.7.0 CodeSystem specialCheckup-choice-19120; MHLW 付属２ Ver.4"
+  description: Answer of the late-stage elderly questionnaire item on smoking
+codes:
+  "1":
+    en: "Smokes"
+    ja: "吸っている"
+  "2":
+    en: "Does not smoke"
+    ja: "吸っていない"
+  "3":
+    en: "Quit"
+    ja: "やめた"

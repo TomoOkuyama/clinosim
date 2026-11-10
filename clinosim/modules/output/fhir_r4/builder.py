@@ -56,6 +56,7 @@ from clinosim.modules.output.fhir_r4.encounters.endpoint import _bb_endpoints
 from clinosim.modules.output.fhir_r4.encounters.facility import _build_facility_bundle
 from clinosim.modules.output.fhir_r4.labs.anthropometrics import _bb_anthropometrics
 from clinosim.modules.output.fhir_r4.labs.blood_type import _bb_blood_type
+from clinosim.modules.output.fhir_r4.labs.checkup_questionnaire import _bb_checkup_questionnaire
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _bb_diagnostic_reports
 from clinosim.modules.output.fhir_r4.labs.imaging_study import _bb_imaging_studies
 from clinosim.modules.output.fhir_r4.labs.microbiology import _bb_microbiology
@@ -618,6 +619,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_code_status,
     _bb_smoking_status,
     _bb_alcohol_use,
+    _bb_checkup_questionnaire,  # Issue #3163: health-checkup questionnaire answers (JP-eCheckup)
     _bb_blood_type,
     _bb_care_level,
     _bb_device,

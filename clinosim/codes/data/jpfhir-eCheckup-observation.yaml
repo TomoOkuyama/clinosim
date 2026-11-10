@@ -9,8 +9,12 @@
 #   - 厚生労働省 XML用特定健診項目情報 (付属2, XMLhc18tab.csv, retrieved
 #     2026-11-10 from https://www.mhlw.go.jp/content/12400000/XMLhc18tab.csv):
 #     item → 検査方法 and XML unit.
-# Only the items clinosim's checkup measures are listed; English displays
-# are clinosim translations.
+#   - 厚生労働省 電子的な標準様式 第４期 付属２ XML用特定健診項目情報 Ver.4
+#     (https://www.mhlw.go.jp/content/12400000/001082795.xlsx, retrieved
+#     2026-11-10): the questionnaire items (区分 500 質問票 / 900 後期質問票,
+#     Issue #3163).
+# Only the items clinosim's checkup measures or derives are listed; English
+# displays are clinosim translations.
 metadata:
   kind: code-system
   name: JP-eCheckup Health-Checkup Item Code
@@ -34,3 +38,29 @@ codes:
   "3F077000002391901":
     en: "LDL cholesterol, calculated"
     ja: "LDLコレステロール"
+  # 質問票 (Issue #3163): 付属２ Ver.4 順番号 2290 / 2320 / 2350 / 2380 /
+  # 2390 / 2400 / 2420, and 後期質問票 順番号 2950.
+  "9N701000000000011":
+    en: "Medication 1 (blood pressure)"
+    ja: "服薬1(血圧)"
+  "9N706000000000011":
+    en: "Medication 2 (blood glucose)"
+    ja: "服薬2(血糖)"
+  "9N711000000000011":
+    en: "Medication 3 (lipids)"
+    ja: "服薬3(脂質)"
+  "9N716000000000011":
+    en: "Past history 1 (cerebrovascular)"
+    ja: "既往歴1(脳血管)"
+  "9N721000000000011":
+    en: "Past history 2 (cardiovascular)"
+    ja: "既往歴2(心血管)"
+  "9N726000000000011":
+    en: "Past history 3 (renal failure / dialysis)"
+    ja: "既往歴3(腎不全･人工透析)"
+  "9N736000000000011":
+    en: "Smoking"
+    ja: "喫煙"
+  "9N943000000000011":
+    en: "Do you smoke? (late-stage elderly)"
+    ja: "あなたはたばこを吸いますか(後期)"
