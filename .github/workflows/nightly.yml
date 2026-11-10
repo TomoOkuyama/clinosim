@@ -60,6 +60,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install (runtime deps only; dev extras not needed for the script)
@@ -78,12 +79,13 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
         run: uv pip install --system -e ".[dev]"
       - name: Run unit tests
-        run: pytest tests/unit tests/modules -q --tb=short
+        run: pytest tests/unit tests/modules tests/simulator -q --tb=short
 
   e2e-slow:
     name: E2E tests (slow)
@@ -97,6 +99,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
@@ -122,6 +125,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install
@@ -181,6 +185,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
@@ -271,6 +276,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install

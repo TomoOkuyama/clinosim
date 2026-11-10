@@ -58,8 +58,8 @@ conceptual fit**.
 
 ## 1. Coding standards
 
-- Python 3.11+ / ruff (line length 120) / mypy (`mypy clinosim/`
-  must pass locally; CI runs it as informational only) / vulture
+- Python 3.11+ / ruff (line length 120) / mypy (`mypy clinosim/`;
+  CI blocks merge on ruff check, ruff format --check and mypy) / vulture
   (unused code; framework-read members go in `.vulture-whitelist.py`).
 - **In-code comments and docstrings are English**, except the
   Japanese-spec categories listed in the documentation policy §4.

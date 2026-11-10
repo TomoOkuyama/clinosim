@@ -79,8 +79,7 @@ pytest tests/unit -q               # ~1 分、green 必須
                                               # (local ~18 分、CI ~30 分)
    ```
 
-   任意 local check (CI と同じ command; 既存 lint / type 負債の
-   解消途中のため CI では現在 informational マーク):
+   lint / format / 型チェック (CI と同じ command。merge をブロックする):
 
    ```bash
    make lint                                  # ruff check + ruff format --check
@@ -100,11 +99,11 @@ pytest tests/unit -q               # ~1 分、green 必須
    - `JP-CLINS lab compliance gate` / `JP Core narrow compliance gate` /
      `US Core narrow compliance gate` (FHIR 出力に影響する path を変更した
      PR のみ実行)
-   - `ruff dead-code (F401 / F841)`
+   - `E2E tests (fast)`
+   - `Quality (ruff + format + mypy)` — ruff check + ruff format --check + mypy
    - `vulture dead-code`
 
    Informational (merge-block しない):
-   - `Quality (informational)` — ruff check + ruff format --check + mypy
    - `Unit test coverage combine (informational)`
 
    Python 3.11 unit-test 互換性は nightly 実行

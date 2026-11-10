@@ -42,8 +42,8 @@
 
 ## 1. コーディング標準
 
-- Python 3.11+ / ruff (line length 120) / mypy (`mypy clinosim/` をローカルで通す。CI では
-  informational) / vulture (未使用コード。フレームワークが読むメンバーは `.vulture-whitelist.py` へ)。
+- Python 3.11+ / ruff (line length 120) / mypy (`mypy clinosim/`。CI は ruff check・ruff format --check・mypy の
+  失敗で merge をブロックする) / vulture (未使用コード。フレームワークが読むメンバーは `.vulture-whitelist.py` へ)。
 - **コード内コメント・docstring は英語**。例外は文書ポリシー §4 の日本の仕様に関するカテゴリのみ。
   ドキュメントは `*.md` が英語、日本語版は `*.ja.md`
   ([`documentation-and-code-quality-policy.ja.md`](documentation-and-code-quality-policy.ja.md) §1)。

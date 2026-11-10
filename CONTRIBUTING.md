@@ -79,9 +79,8 @@ pytest tests/unit -q               # ~1 minute, must be green
                                               # ~30 min in CI)
    ```
 
-   Optional local checks (the same commands CI runs — CI marks these
-   informational for now while the pre-existing lint/type debt is being
-   worked down):
+   Lint, format and type checks (the same commands CI runs; they block
+   merge):
 
    ```bash
    make lint                                  # ruff check + ruff format --check
@@ -101,11 +100,11 @@ pytest tests/unit -q               # ~1 minute, must be green
    - `JP-CLINS lab compliance gate` / `JP Core narrow compliance gate` /
      `US Core narrow compliance gate` (run only on PRs that touch paths
      affecting FHIR output)
-   - `ruff dead-code (F401 / F841)`
+   - `E2E tests (fast)`
+   - `Quality (ruff + format + mypy)` — ruff check + ruff format --check + mypy
    - `vulture dead-code`
 
    Informational (not merge-blocking):
-   - `Quality (informational)` — ruff check + ruff format --check + mypy
    - `Unit test coverage combine (informational)`
 
    Python 3.11 unit-test compatibility runs nightly (see
