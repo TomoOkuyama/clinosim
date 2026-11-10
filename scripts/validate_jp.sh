@@ -193,6 +193,16 @@ if not expected_count:
     print("  警告: 抽出対象 0 件。cohort が小さすぎる可能性あり", file=sys.stderr)
 PYEOF
 
+# Issue #3147: a document Composition is validated inside its document
+# Bundle (the Composition and every resource it references), so the
+# validator can resolve the referenced resources' profiles for the entry
+# slices. Other samples stay standalone.
+for comp in "$SAMPLES"/Composition_*.json; do
+    [ -e "$comp" ] || continue
+    echo "  $(basename "$comp"):"
+    python3 "$(dirname "$0")/fhir_document_bundle.py" "$OUT/fhir_r4" "$comp" "$comp"
+done
+
 SAMPLE_COUNT=$(find "$SAMPLES" -name "*.json" | wc -l | tr -d ' ')
 echo "  サンプルディレクトリ: $SAMPLES ($SAMPLE_COUNT files)"
 
@@ -365,11 +375,26 @@ for sample in "$SAMPLES"/*.json; do
         continue
     fi
     TOTAL=$((TOTAL + 1))
-    echo "  validating $filename against $profile"
+    PROFILE_ARGS=(-profile "$profile")
+    case "$filename" in
+        Composition_*)
+            # A document Bundle: the Composition is validated against the
+            # profile its meta.profile declares, which must be $profile.
+            if ! python3 -c 'import json,sys; sys.path.insert(0, sys.argv[1]); from fhir_document_bundle import declares_profile; sys.exit(0 if declares_profile(json.load(open(sys.argv[2])), sys.argv[3]) else 1)' \
+                    "$(dirname "$0")" "$sample" "$profile"; then
+                FAILED=$((FAILED + 1))
+                echo "  $filename: the Composition does not declare $profile — FAIL"
+                continue
+            fi
+            PROFILE_ARGS=()
+            echo "  validating $filename (document Bundle) against $profile" ;;
+        *)
+            echo "  validating $filename against $profile" ;;
+    esac
     if java -Duser.home="$VAL_HOME" -jar "$VALIDATOR_JAR" \
             -version 4.0.1 \
             ${IG_ARGS[@]+"${IG_ARGS[@]}"} \
-            -profile "$profile" \
+            ${PROFILE_ARGS[@]+"${PROFILE_ARGS[@]}"} \
             "$sample" >"$TMP/val_${filename}.log" 2>&1; then
         PASSED=$((PASSED + 1))
         echo "    PASS"

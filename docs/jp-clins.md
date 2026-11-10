@@ -260,6 +260,10 @@ git commit -m "chore(jp-validate): pin validator + IG SHA256"
 
 Override the behavior with `PIN_FILE=<path>` / `DRY_RUN=1`.
 
+### Document Compositions
+
+The discharge summary, referral letter and health-checkup report Compositions are validated inside a `type: document` Bundle that holds the Composition and every resource it references, directly or through those resources (`scripts/fhir_document_bundle.py`, Issue #3147). Their entry slices are matched by resolving the referenced resource's profile, which a Composition validated on its own cannot do. The Composition must declare its profile in `meta.profile`; other samples are validated on their own against their profile.
+
 ### Running locally
 
 ```bash
