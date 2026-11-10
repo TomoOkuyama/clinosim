@@ -1,0 +1,12 @@
+# Encounter.hospitalization.dischargeDisposition coding — United States
+# (Issue #3150): the HL7 discharge-disposition code of the destination
+# (home / exp / snf / psy / other-hcf) for every encounter class. See
+# locale/jp/code_mapping_discharge_disposition.yaml for the table shape.
+metadata:
+  kind: country-mapping
+  name: code_mapping_discharge_disposition
+  source: "HL7 Terminology (THO) discharge-disposition"
+
+default:
+  concept: destination
+  system_key: hl7-discharge-disposition

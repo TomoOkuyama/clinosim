@@ -1,0 +1,35 @@
+# Discharge outcome of a finished inpatient stay (Issue #3150).
+#
+# Source: DPC 様式1 退院時転帰 (厚生労働省 DPC 導入の影響評価に係る調査
+# 「退院患者調査」実施説明資料): 1 治癒・軽快, 3 寛解, 4 不変, 5 増悪,
+# 6 傷病による死亡, 7 傷病以外による死亡, 9 その他 (検査入院、正常分娩、
+# 人間ドックを含む). The outcome is a fact of the clinical course, coded per
+# country by locale/<cc>/code_mapping_discharge_disposition.yaml.
+#
+# `rules` are tried in order; the first whose conditions all hold gives the
+# outcome. Conditions read the CIF encounter:
+#   deceased: the patient died during the stay (the simulated course)
+#   admission_diagnosis_prefix: admission diagnosis starts with one of these
+#   destination: discharge_disposition is one of these (HL7 keys)
+#   course_archetype: clinical_course_archetype is one of these
+#
+# A death the simulated course does not explain (an actuarial death that
+# falls inside a stay, applied at export) is `death_other`.
+metadata:
+  kind: reference
+  name: discharge_outcomes
+  source: "DPC 様式1 退院時転帰"
+
+outcomes: [improved, remission, unchanged, worsened, death_from_condition, death_other, other]
+
+rules:
+  # 6 傷病による死亡: an in-hospital death of the simulated course.
+  - {outcome: death_from_condition, deceased: true}
+  # 9 その他: normal delivery and the well-newborn birth stay.
+  - {outcome: other, admission_diagnosis_prefix: ["O80", "Z38"]}
+  # Still unsafe for home at the end of the stay (skilled nursing facility):
+  # 5 増悪 after a deteriorating course, else 4 不変.
+  - {outcome: worsened, destination: [snf], course_archetype: [gradual_deterioration, sudden_deterioration]}
+  - {outcome: unchanged, destination: [snf]}
+  # 1 治癒・軽快: discharged home after meeting the discharge criteria.
+  - {outcome: improved}
