@@ -40,6 +40,11 @@ fiscal_year:
 age_gates:
   late_elderly_min_age: 200
   primary_subscriber_min_age: 18
+  # Issue #3142: Medicare eligibility age (CMS); a member at or above it whose
+  # sampled category is not a Medicare one is moved to the first category
+  # listed (USIdentityProvider.assign_household).
+  medicare_min_age: 65
+  medicare_categories: [medicare, medicare_plus_private, medicare_medicaid]
   # Issue #3000: categories under which a minor (below
   # primary_subscriber_min_age) is covered as a dependant of a parent's or
   # guardian's policy (Coverage.relationship = child). A child on Medicaid /

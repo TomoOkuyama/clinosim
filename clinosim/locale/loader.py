@@ -57,6 +57,7 @@ from clinosim.locale.loaders.clinical import (
     load_single_gene_diseases,
     load_specialty_routing,
 )
+from clinosim.locale.loaders.country_parameters import load_care_practice, load_population_genetics
 from clinosim.locale.loaders.demographics import (
     _load_demographics_cached,
     _validate_addresses,
@@ -142,6 +143,7 @@ __all__ = [
     "load_actuarial_life_table",
     "load_addresses",
     "load_ambulatory_visit_length",
+    "load_care_practice",
     "load_chemo_regimens",
     "load_chronic_age_limits",
     "chronic_followup_interval_months",
@@ -208,6 +210,7 @@ __all__ = [
     "load_occupation_display",
     "load_perinatal_config",
     "load_practitioner_qualifications",
+    "load_population_genetics",
     "load_pregnancy_substitutions",
     "checkup_criterion",
     "load_reference_ranges",

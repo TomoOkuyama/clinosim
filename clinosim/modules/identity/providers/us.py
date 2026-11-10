@@ -12,7 +12,8 @@ Unlike JP:
   - No 記号/枝番 composite identifier; ``group_symbol`` / ``branch_number``
     stay ``None`` and the identity.yaml ``fhir_coverage.ext_*`` URLs are
     blank so the emitter skips those extensions.
-  - Age gate: 65 → Medicare auto-enrollment (mapped to `late_elderly` slot
+  - Age gate: 65 (identity.yaml ``age_gates.medicare_min_age``) → Medicare
+    auto-enrollment (mapped to `late_elderly` slot
     for compatibility with the JP-shared ``_build_coverage_resources``
     aging-in logic — categorically the same "government-run insurance
     kicks in at threshold age" pattern).
@@ -76,6 +77,9 @@ class USIdentityProvider:
         if not distribution or not payers:
             return {}
 
+        gates = config["age_gates"]
+        medicare_age = int(gates["medicare_min_age"])
+        medicare_categories = [str(c) for c in gates["medicare_categories"]]
         result: dict[str, InsuranceEnrollment] = {}
         for m in members:
             category = _sample_category(distribution, int(getattr(m, "age", 0)), rng)
@@ -84,9 +88,10 @@ class USIdentityProvider:
             # eligibility rule kicks in. Route to `late_elderly` slot so
             # the shared _build_coverage_resources aging-in logic works
             # identically to the JP 後期高齢者 pathway.
+            # Age and categories from identity.yaml ``age_gates`` (Issue #3142).
             member_age = int(getattr(m, "age", 0))
-            if member_age >= 65 and category not in {"medicare", "medicare_plus_private", "medicare_medicaid"}:
-                category = "medicare"
+            if member_age >= medicare_age and category not in medicare_categories:
+                category = medicare_categories[0]
             insurer = _first_payer_number(payers, category)
             if not insurer:
                 # Category configured but no payer number → skip (leaves the

@@ -137,6 +137,10 @@ fiscal_year:
 age_gates:
   late_elderly_min_age: 75
   primary_subscriber_min_age: 18
+  # Issue #3142: youngest age that can hold the 被用者保険 被保険者 slot by
+  # occupation — 15, the end of compulsory education (労働基準法 第56条:
+  # no employment before the first 31 March after the 15th birthday).
+  working_min_age: 15
   # Issue #3000: a minor 被扶養者 (category "dependent", including an
   # "employee" minor demoted to it) is covered as the subscriber's child.
   # 国民健康保険 members are each insured in their own right ("self").

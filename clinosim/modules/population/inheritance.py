@@ -16,7 +16,8 @@ Current scope (Phase C.1 — ABO + Rh):
   cohort ABO distribution consistent with the published
   ``blood_type`` phenotype shares in ``demographics.yaml``.
 * :func:`derive_newborn_rh_factor` — mother Rh phenotype × population
-  d-allele frequency (derived from the locale ``_RH_POSITIVE_FRACTION``).
+  d-allele frequency (derived from the locale RhD-positive fraction,
+  ``locale/<cc>/population_genetics.yaml``).
   Rh+ phenotype dominance preserved; mother Rh- children are Rh+
   only when the father-side draw returns a D allele.
 
@@ -33,6 +34,7 @@ Deliberately not here:
 from __future__ import annotations
 
 from clinosim.determinism import sha_quantile
+from clinosim.locale.loader import load_population_genetics
 
 # Mother phenotype → genotype (allele-pair) distribution. Uses the
 # simplifying assumption of Hardy-Weinberg equilibrium with the
@@ -49,16 +51,9 @@ _MOTHER_GENOTYPE_PROBS: dict[str, tuple[tuple[str, float], ...]] = {
     "O": (("OO", 1.0),),
 }
 
-# Locale-level ABO allele frequencies, used as the father-side draw
-# distribution when no household spouse is identified. Derived from
-# the phenotype distributions in ``locale/{us,jp}/demographics.yaml``
-# via Hardy-Weinberg (p² + 2pq + q² for A/O; r² + 2rq for B/O; etc.).
-# A locale not listed falls through to the US values — synthetic-
-# dataset defaults rather than clinically-tuned per-country tables.
-_LOCALE_ALLELE_FREQ: dict[str, dict[str, float]] = {
-    "US": {"A": 0.264, "B": 0.071, "O": 0.665},
-    "JP": {"A": 0.279, "B": 0.169, "O": 0.552},
-}
+# The locale ABO allele frequencies (father-side draw when no household
+# spouse is identified) and the RhD-positive fraction are country data:
+# ``locale/<cc>/population_genetics.yaml`` (Issue #3142).
 
 
 def _sample_mother_genotype(mother_phenotype: str, q: float) -> str:
@@ -79,7 +74,7 @@ def _sample_mother_genotype(mother_phenotype: str, q: float) -> str:
 
 def _sample_population_allele(country: str, q: float) -> str:
     """Pick a single ABO allele from the locale allele-frequency table."""
-    freq = _LOCALE_ALLELE_FREQ.get(country.upper(), _LOCALE_ALLELE_FREQ["US"])
+    freq = load_population_genetics(country).abo_allele_frequencies
     acc = 0.0
     for allele in ("A", "B", "O"):
         acc += freq.get(allele, 0.0)
@@ -177,7 +172,6 @@ def derive_newborn_rh_factor(
     newborn_patient_id: str,
     mother_rh_factor: str,
     country: str = "US",
-    rh_positive_fraction: dict[str, float] | None = None,
     father_rh_factor: str | None = None,
 ) -> str:
     """Return the newborn's RhD phenotype ("+" or "-") inherited from
@@ -189,8 +183,7 @@ def derive_newborn_rh_factor(
     Deterministic SHA-based sampling (same determinism contract as
     :func:`derive_newborn_blood_type`).
     """
-    frac_map = rh_positive_fraction or {"US": 0.85, "JP": 0.995}
-    rh_pos = frac_map.get(country.upper(), frac_map.get("JP", 0.995))
+    rh_pos = load_population_genetics(country).rh_positive_fraction
     # Hardy-Weinberg allele frequency for the recessive d allele.
     # P(Rh-) = q², so q = sqrt(1 - rh_pos).
     q_d = max(0.0, min(1.0, (1.0 - rh_pos) ** 0.5))

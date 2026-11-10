@@ -165,8 +165,9 @@ from clinosim.modules.patient.activator import (
   - `RESERVE_FLOOR`, `IMMUNE_REACTIVITY_BETA_PARAMS` —
     physiological-reserve sampling shape (the shared reserve Beta,
     `_RESERVE_BETA_PARAMS = (30, 2)`, lives in `activator.py`).
-  - `DRUG_METABOLISM_{LABELS,JP_PROBS,US_PROBS}` — country-varying
-    poor / normal / rapid / ultra_rapid probability vector.
+  - The country-varying poor / normal / rapid / ultra_rapid
+    drug-metabolizer distribution is in
+    `clinosim/locale/<cc>/population_genetics.yaml` (Issue #3142).
   - `DELIRIUM_{BETA_PARAMS,ELDERLY_AGE_THRESHOLD,ELDERLY_PREMIUM,DEMENTIA_PREMIUM,PARKINSON_PREMIUM}`
     — delirium-risk model.
   - `DVT_{BETA_PARAMS,ELDERLY_AGE_THRESHOLD,ELDERLY_PREMIUM}` — DVT

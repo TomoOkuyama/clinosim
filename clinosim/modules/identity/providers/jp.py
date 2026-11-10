@@ -43,8 +43,10 @@ class JPIdentityProvider:
         result: dict[str, InsuranceEnrollment] = {}
         payers = config.get("payers", {})
 
-        non_elderly = [m for m in members if m.age < 75]
-        elderly = [m for m in members if m.age >= 75]
+        # Issue #3142: age gates from identity.yaml ``age_gates``.
+        late_elderly_age = int(config["age_gates"]["late_elderly_min_age"])
+        non_elderly = [m for m in members if m.age < late_elderly_age]
+        elderly = [m for m in members if m.age >= late_elderly_age]
 
         if non_elderly:
             scheme, subscriber = self._sample_scheme(non_elderly, config, rng)
@@ -122,15 +124,19 @@ class JPIdentityProvider:
         occupation table is configured. Returns (scheme, subscriber_or_None).
 
         Issue #923 §Fix 2: a minor (<18 by default) cannot legally hold the 被保険者
-        slot. The occupation-driven path already restricts subscribers to `15 <= age <
-        75`, but the fallback path historically picked the oldest non-elderly household
+        slot. The occupation-driven path already restricts subscribers to working age
+        (identity.yaml ``age_gates.working_min_age`` to ``late_elderly_min_age``), but
+        the fallback path historically picked the oldest non-elderly household
         member — for all-minor households that produced 157 minors marked 被用者保険
         （被保険者） at p=10000. When no adult subscriber exists the household falls to
         国保 (`("national", None)`) so downstream categories become "national".
         """
-        primary_min_age = int(config.get("age_gates", {}).get("primary_subscriber_min_age", 18))
+        gates = config["age_gates"]
+        primary_min_age = int(gates["primary_subscriber_min_age"])
+        working_min_age = int(gates["working_min_age"])
+        late_elderly_age = int(gates["late_elderly_min_age"])
         occ_prob = config.get("employee_probability_by_occupation", {})
-        working = [m for m in non_elderly if 15 <= m.age < 75 and m.age >= primary_min_age]
+        working = [m for m in non_elderly if working_min_age <= m.age < late_elderly_age and m.age >= primary_min_age]
         if occ_prob and working:
             default_p = float(config.get("default_employee_probability", 0.0))
 

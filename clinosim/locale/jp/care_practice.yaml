@@ -1,0 +1,34 @@
+# Inpatient care-practice parameters — Japan (Issue #3142).
+# Read by clinosim.locale.loader.load_care_practice (CarePractice model,
+# extra="forbid"). Moved verbatim from Python constants (discharge gate,
+# surgery and rehab thresholds modules); values unchanged.
+metadata:
+  kind: reference
+  name: care_practice
+  source: clinosim
+
+# State-based discharge readiness (clinosim/simulator/discharge_gate.py
+# _check_discharge_ready); comparisons as in locale/us/care_practice.yaml.
+# Empirical tuning for the synthetic simulator: the JP convention holds
+# patients until inflammation resolves further, so every criterion is
+# stricter than the US one — matches the longer JP length of stay.
+discharge_criteria:
+  inflammation_max: 0.05
+  perfusion_min: 0.8
+  renal_min: 0.6
+  volume_abs_max: 0.2
+  ph_abs_max: 0.15
+
+# Hours from admission to incision, normal(mean, sd) floored at `floor`
+# (clinosim/modules/procedure/engine.py _hours_to_surgery). Default when the
+# disease YAML declares no procedure.time_to_surgery. JP acute-care hospitals
+# typically operate hip fracture and other urgent surgery on day 1-2 (48 h);
+# below 12 h pre-op work-up, consent and OR scheduling cannot be compressed.
+time_to_surgery_hours:
+  mean: 48.0
+  sd: 24.0
+  floor: 12.0
+
+# One inpatient physical-therapy session (minutes): the 疾患別リハビリテーション料
+# unit is 20 minutes, and a typical post-op orthopaedic block is 2 units.
+rehab_session_minutes: 40

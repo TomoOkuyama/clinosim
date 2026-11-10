@@ -1,0 +1,29 @@
+# Population genetics — Japan (Issue #3142).
+# Read by clinosim.locale.loader.load_population_genetics
+# (PopulationGenetics model, extra="forbid"). Moved verbatim from Python
+# constants; values unchanged.
+metadata:
+  kind: reference
+  name: population_genetics
+  source: clinosim
+
+# Fraction of the population that is RhD positive (about 99.5% in Japan).
+rh_positive_fraction: 0.995
+
+# ABO allele frequencies for the father-side draw in newborn inheritance when
+# no household father is identified. Derived from the phenotype distribution
+# in locale/jp/demographics.yaml `blood_type` via Hardy-Weinberg.
+abo_allele_frequencies:
+  A: 0.279
+  B: 0.169
+  O: 0.552
+
+# CYP450 drug-metabolizer phenotype distribution (activator; order is the draw
+# order). Empirical tuning for the synthetic simulator: 15% poor metabolizers
+# reflect the higher CYP2C19 poor-metabolizer prevalence in East Asian
+# populations.
+drug_metabolism_phenotypes:
+  poor: 0.15
+  normal: 0.65
+  rapid: 0.15
+  ultra_rapid: 0.05

@@ -17,7 +17,7 @@ from typing import Any
 import numpy as np
 
 from clinosim.codes.hl7_encounter import DischargeDisposition
-from clinosim.countries import is_us
+from clinosim.locale.loader import load_care_practice
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.disease.severity import SEVERITY_SCORE_RANGES
 from clinosim.modules.population.engine import LifeEvent
@@ -25,19 +25,9 @@ from clinosim.simulator._discharge_gate_thresholds import (
     DISCHARGE_ANEMIA_MAX,
     DISCHARGE_CONSCIOUSNESS_EXCESS_MAX,
     DISCHARGE_INFLAMMATION_SAFE_MAX,
-    DISCHARGE_JP_INFLAMMATION_MAX,
-    DISCHARGE_JP_PERFUSION_MIN,
-    DISCHARGE_JP_PH_ABS_MAX,
-    DISCHARGE_JP_RENAL_MIN,
-    DISCHARGE_JP_VOLUME_ABS_MAX,
     DISCHARGE_OXYGENATION_EXCESS_MAX,
     DISCHARGE_PERFUSION_SAFE_MIN,
     DISCHARGE_SYMPATHETIC_MAX,
-    DISCHARGE_US_INFLAMMATION_MAX,
-    DISCHARGE_US_PERFUSION_MIN,
-    DISCHARGE_US_PH_ABS_MAX,
-    DISCHARGE_US_RENAL_MIN,
-    DISCHARGE_US_VOLUME_ABS_MAX,
     MORTALITY_AGE_OLD_MULTIPLIER,
     MORTALITY_AGE_OLD_THRESHOLD,
     MORTALITY_AGE_OLDEST_MULTIPLIER,
@@ -200,8 +190,9 @@ def _check_discharge_ready(
 
     Common criteria across diseases: inflammation resolving (CRP proxy),
     hemodynamically stable (perfusion), no acute organ dysfunction.
-    JP: stricter (lower inflammation threshold). US: earlier discharge once
-    clinically stable.
+    The thresholds are the country's (``locale/<cc>/care_practice.yaml``
+    ``discharge_criteria``): JP stricter, US earlier discharge once clinically
+    stable.
     """
     # anemia_level < 0.60 ≈ Hgb > 7.0 g/dL for females and > 8.7 for males —
     # no patient should be discharged with Hgb below transfusion trigger.
@@ -209,22 +200,14 @@ def _check_discharge_ready(
     # Autonomic symptoms, oxygenation, consciousness and perfusion safe for home.
     symptoms_ok = not unsafe_for_home(state, symptom_floor)
 
-    if is_us(country_key):
-        return (
-            state.inflammation_level < DISCHARGE_US_INFLAMMATION_MAX
-            and state.perfusion_status > DISCHARGE_US_PERFUSION_MIN
-            and state.renal_function > DISCHARGE_US_RENAL_MIN
-            and abs(state.volume_status) < DISCHARGE_US_VOLUME_ABS_MAX
-            and abs(state.ph_status) < DISCHARGE_US_PH_ABS_MAX
-            and anemia_ok
-            and symptoms_ok
-        )
+    # Issue #3142: the country's criteria (locale/<cc>/care_practice.yaml).
+    criteria = load_care_practice(country_key).discharge_criteria
     return (
-        state.inflammation_level < DISCHARGE_JP_INFLAMMATION_MAX
-        and state.perfusion_status > DISCHARGE_JP_PERFUSION_MIN
-        and state.renal_function > DISCHARGE_JP_RENAL_MIN
-        and abs(state.volume_status) < DISCHARGE_JP_VOLUME_ABS_MAX
-        and abs(state.ph_status) < DISCHARGE_JP_PH_ABS_MAX
+        state.inflammation_level < criteria.inflammation_max
+        and state.perfusion_status > criteria.perfusion_min
+        and state.renal_function > criteria.renal_min
+        and abs(state.volume_status) < criteria.volume_abs_max
+        and abs(state.ph_status) < criteria.ph_abs_max
         and anemia_ok
         and symptoms_ok
     )

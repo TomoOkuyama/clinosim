@@ -20,9 +20,9 @@ from clinosim.codes.valuesets import concept_group, has_condition
 from clinosim.countries import lang_for
 from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import load_names
+from clinosim.locale.loader import load_names, load_population_genetics
 from clinosim.locale.localized import localized
-from clinosim.modules._shared import is_jp, normalize_probabilities
+from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.patient._patient_activator_thresholds import (
     AGE_PENALTY_HEPATIC_RATIO,
     AGE_PENALTY_MIN_AGE,
@@ -60,9 +60,6 @@ from clinosim.modules.patient._patient_activator_thresholds import (
     DELIRIUM_ELDERLY_AGE_THRESHOLD,
     DELIRIUM_ELDERLY_PREMIUM,
     DELIRIUM_PARKINSON_PREMIUM,
-    DRUG_METABOLISM_JP_PROBS,
-    DRUG_METABOLISM_LABELS,
-    DRUG_METABOLISM_US_PROBS,
     DVT_BETA_PARAMS,
     DVT_ELDERLY_AGE_THRESHOLD,
     DVT_ELDERLY_PREMIUM,
@@ -590,14 +587,11 @@ def activate_patient(
 
     # Physiological profile
     age_penalty = max(0, (age - AGE_PENALTY_MIN_AGE) * AGE_PENALTY_SCALE)
+    # Issue #3142: phenotype distribution from locale/<cc>/population_genetics.yaml.
+    _metabolism = load_population_genetics(country).drug_metabolism_phenotypes
     profile = PatientPhysiologicalProfile(
         immune_reactivity=float(rng.beta(*IMMUNE_REACTIVITY_BETA_PARAMS)),
-        drug_metabolism_rate=str(
-            rng.choice(
-                DRUG_METABOLISM_LABELS,
-                p=DRUG_METABOLISM_JP_PROBS if is_jp(country) else DRUG_METABOLISM_US_PROBS,
-            )
-        ),
+        drug_metabolism_rate=str(rng.choice(tuple(_metabolism), p=tuple(_metabolism.values()))),
         renal_reserve=max(RESERVE_FLOOR, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty),
         cardiac_reserve=max(RESERVE_FLOOR, float(rng.beta(*_RESERVE_BETA_PARAMS)) - age_penalty),
         hepatic_reserve=max(

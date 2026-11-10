@@ -18,8 +18,9 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from clinosim import determinism
 from clinosim.codes import data_table
 from clinosim.codes.procedures import bedside_procedures
+from clinosim.countries import country_slot
 from clinosim.datafiles import load_data_yaml
-from clinosim.locale.loader import load_code_mapping
+from clinosim.locale.loader import load_care_practice, load_code_mapping
 from clinosim.modules._shared import is_jp
 from clinosim.modules.procedure._bedside_thresholds import (
     BEDSIDE_DURATION_MEAN_MIN,
@@ -34,7 +35,6 @@ from clinosim.modules.procedure._bedside_thresholds import (
 )
 from clinosim.modules.procedure._rehab_thresholds import (
     REHAB_IMPROVED_MIN_POD,
-    REHAB_JP_SESSION_DURATION_MIN,
     REHAB_PAIN_BASE_SCORE,
     REHAB_PAIN_DECAY_PER_POD,
     REHAB_PAIN_FAIR_PARTICIPATION_THRESHOLD,
@@ -47,7 +47,6 @@ from clinosim.modules.procedure._rehab_thresholds import (
     REHAB_SESSION_START_HOUR,
     REHAB_SKIP_DAY_PROBABILITY,
     REHAB_START_POD,
-    REHAB_US_SESSION_DURATION_MIN,
 )
 from clinosim.modules.procedure._surgery_thresholds import (
     ASA_AGE_HIGH_THRESHOLD,
@@ -71,16 +70,10 @@ from clinosim.modules.procedure._surgery_thresholds import (
     INTRAOP_ANESTHESIA_HYPOTENSION_PROBABILITY,
     INTRAOP_EBL_BLEEDING_MULTIPLIER,
     INTRAOP_EXCESSIVE_BLEEDING_PROBABILITY,
-    JP_TIME_TO_SURGERY_FLOOR_HOURS,
-    JP_TIME_TO_SURGERY_MEAN_HOURS,
-    JP_TIME_TO_SURGERY_STD_HOURS,
     SPINAL_ANESTHESIA_PROBABILITY_WHEN_ALLOWED,
     SURGERY_DURATION_MIN_MIN,
     SURGERY_INFLAMMATION_LIFT,
     SURGERY_VOLUME_LIFT,
-    US_TIME_TO_SURGERY_FLOOR_HOURS,
-    US_TIME_TO_SURGERY_MEAN_HOURS,
-    US_TIME_TO_SURGERY_STD_HOURS,
 )
 from clinosim.seeding import issue939_procedure_seed
 from clinosim.types.procedure import ProcedureRecord, RehabSession
@@ -97,12 +90,10 @@ def _hours_to_surgery(proc_data: dict, country: str, rng: np.random.Generator) -
     the declared mean for emergent / same-day pathways (acute SDH ~3 h,
     elective TKA ~3 h); YAMLs that declare the defaults draw identically.
     """
-    if is_jp(country):
-        mean, sd, floor = JP_TIME_TO_SURGERY_MEAN_HOURS, JP_TIME_TO_SURGERY_STD_HOURS, JP_TIME_TO_SURGERY_FLOOR_HOURS
-        declared = (proc_data.get("time_to_surgery") or {}).get("japan")
-    else:
-        mean, sd, floor = US_TIME_TO_SURGERY_MEAN_HOURS, US_TIME_TO_SURGERY_STD_HOURS, US_TIME_TO_SURGERY_FLOOR_HOURS
-        declared = (proc_data.get("time_to_surgery") or {}).get("us")
+    # Issue #3142: the country default (locale/<cc>/care_practice.yaml).
+    default = load_care_practice(country).time_to_surgery_hours
+    mean, sd, floor = default.mean, default.sd, default.floor
+    declared = (proc_data.get("time_to_surgery") or {}).get(country_slot(country, scheme="legacy_japan"))
     if declared:
         mean = float(declared.get("mean_hours", mean))
         sd = float(declared.get("sd_hours", sd))
@@ -670,7 +661,7 @@ def generate_rehab_sessions(
 
     # Rehab starts POD 1 (day after surgery)
     start_day = REHAB_START_POD
-    duration = REHAB_JP_SESSION_DURATION_MIN if is_jp(country) else REHAB_US_SESSION_DURATION_MIN
+    duration = load_care_practice(country).rehab_session_minutes  # Issue #3142
 
     activities_by_phase = {
         "early": ["bed exercises", "sitting up", "standing with assist"],
