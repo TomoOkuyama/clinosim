@@ -165,6 +165,18 @@ block します。
 
 ---
 
+## コーディング規則
+
+すべての変更はこの規則に従います。各規則の詳細は、リンク先の拘束力のある仕様書に定義されています。
+
+1. **コードとデータの分離。** 国・年齢・性別で異なる値や、調整可能な臨床・統計の値は、出典を明記して YAML に置きます。コードはそれを参照するだけで、国・年齢・性別の分岐で値を選びません。国ごとに異なるアルゴリズムは名前付きの実装とし、YAML で選択します。詳細は [実装規則: グランドデザイン](docs/design-guides/implementation-rules.ja.md#グランドデザイン-コードとデータの分離) と [設定・参照データ仕様](docs/design-guides/configuration-and-reference-data-spec.ja.md)。
+2. **多言語出力。** 利用者に見える文字列はすべて、カタログまたは多言語の表から出力箇所で解決します。英語は必須で、ある言語が欠けたときのフォールバックです。キー・生のコード・スラッグを出力してはいけません。JP の出力は日本の電子カルテとして自然な日本語にし(ラテン文字は日本の記録でもそう書くものだけ)、英語のみのコード体系は `coding.display` を英語のまま、日本語のラベルを `.text` に入れます。詳細は [コードマッピング仕様 §5](docs/design-guides/code-mapping-and-localization-spec.ja.md#5-多言語対応) と [§6](docs/design-guides/code-mapping-and-localization-spec.ja.md#6-フォールバック規則)。
+3. **コード。** 権威ある出典で確認したコードだけを使います。コード表に登録し、`clinosim.codes` / `clinosim.locale.loader` で解決します。コード中にリテラルで書きません。詳細は [コードマッピング仕様 §8](docs/design-guides/code-mapping-and-localization-spec.ja.md#8-コードの追加変更手順) と [§9](docs/design-guides/code-mapping-and-localization-spec.ja.md#9-禁止パターン)。
+4. **国の扱い。** 国や出力言語は `is_jp` / `lang_for` でのみ判定します。国による分岐は、国のプロファイルが必須とする構造を出力するかどうかだけを決め、値を選んではいけません。詳細は [コードマッピング仕様 §5](docs/design-guides/code-mapping-and-localization-spec.ja.md#5-多言語対応) と [モジュールガイド](docs/CONTRIBUTING-modules.ja.md)。
+5. **決定性。** 共有の乱数ストリームから新たに乱数を引きません。新しい乱数は、対象のエンティティから導いたシードか、ハッシュによる抽選から得ます。詳細は [決定性・乱数仕様](docs/design-guides/determinism-and-rng-spec.ja.md#2-乱数を引く)。
+
+---
+
 ## Documentation + code コメント言語ポリシー
 
 全 PR は

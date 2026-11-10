@@ -133,18 +133,24 @@ from clinosim.modules._shared import get_attr_or_key as _get
 - `is_jp(country) -> bool` — **JP 判定の唯一の正準 idiom**(case-insensitive + strip 正規化)
 - `countries.lang_for(country) -> str` — **display 言語選択の唯一の正準 idiom**(JP → `"ja"`、その他 → `"en"`)
 
-**JP-gating / 言語選択の必須 idiom(2026-07-02)** — 国判定と display 言語選択は必ず `is_jp(country)` / `lang_for(country)` を使うこと:
+**国・言語の判定。** 国と出力言語は `is_jp(country)` / `lang_for(country)` でのみ判定し、手書きの比較は書きません。国による分岐でしてよいことは限られています([`implementation-rules.ja.md`](design-guides/implementation-rules.ja.md#グランドデザイン-コードとデータの分離) のグランドデザイン: コードとデータの分離)。
+
+- 国による分岐が決めるのは、**国のプロファイルが必須とする構造を出力するかどうか**(JP Core の `meta.profile`、JP のみのセクションなど)だけです。値を選んではいけません。
+- 国で異なる**値**(ラベル・コード・範囲・率・文言)は、locale の YAML またはコード表から、出力言語や国をキーに引きます([`code-mapping-and-localization-spec.ja.md`](design-guides/code-mapping-and-localization-spec.ja.md#5-多言語対応) §5)。
+- **国ごとに異なるアルゴリズム**は、YAML で選ぶ名前付きの実装にします。locale のファイルが実装名と係数を持ち、コードはその名前で処理を振り分けます(例: `locale/<cc>/egfr_equation.yaml` の `type: jsn` / `ckd_epi_2021` を `physiology/egfr.py` が読む)。
 
 ```python
 from clinosim.countries import lang_for
+from clinosim.locale.loader import narrative_label
 from clinosim.modules._shared import is_jp
 
-if is_jp(ctx.country):
-    ...
-lang = lang_for(ctx.country)   # "ja" / "en"
+lang = lang_for(ctx.country)                                    # "ja" / "en"
+obs = {"code": {"text": narrative_label("fall_risk_level", level, lang)}}  # 値: 多言語の表から
+if is_jp(ctx.country):                                          # JP Core プロファイルが必須とする構造
+    obs["meta"] = {"profile": [JP_OBSERVATION_COMMON_PROFILE]}
 ```
 
-> **アンチパターン:** hand-rolled な国判定の変種(`country == "JP"` / `country.lower() == "jp"` / `str(country).upper() == "JP"` / `lang = "ja" if country == "JP" else "en"`)を新規に書かない。共通ロジック統一前は 5 種類の divergent idiom が混在し、大文字小文字の扱い差で JP gating が silent に外れる PR-90 class risk があった。`is_jp` / `lang_for` が単一の正規化点。
+> **アンチパターン:** 手書きの国判定(`country == "JP"` / `country.lower() == "jp"` / `str(country).upper() == "JP"` / `lang = "ja" if country == "JP" else "en"`)— 大文字小文字の違いで JP の判定が黙って外れたことがあり、`is_jp` / `lang_for` が唯一の正規化点です。また、分岐で値を選ぶこと(`label = "転倒リスク高" if is_jp(country) else "High fall risk"`)— 値は多言語の表に置きます。
 
 ### パス定数の正規形(PR-A 2026-06-26 で確立)
 
@@ -795,7 +801,7 @@ two-pass CIF 生成アーキテクチャ(`clinosim simulate` → Stage 1 structu
 **Do**
 - engine は pure function、文脈は引数で渡す (`observation/engine.py` が手本)。
 - 型は `clinosim/types/`、display は `code_lookup()`、URI は `get_system_uri()`。
-- 国判定は `is_jp()`、display 言語は `lang_for()`、国→code system 選択は `system_key_for()`(hand-rolled な `country == "JP"` 変種 / inline 分岐を書かない)。
+- 国判定は `is_jp()`、display 言語は `lang_for()`、国→code system 選択は `system_key_for()`(hand-rolled な `country == "JP"` 変種を書かない)。国による分岐はプロファイルが必須とする構造を出すかどうかだけを決め、値は locale の YAML / コード表から引く。
 - cached loader の戻り値は read-only 扱い(共有 instance — mutate 禁止)。
 - venue simulator は `CIFPatientRecord` を **return**、opt-in は `extensions[<module>]` に書く。
 - sub-seed に per-entity key を混ぜ、各 entity ごとに fresh な `default_rng` を作る。

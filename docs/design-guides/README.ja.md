@@ -6,6 +6,7 @@
 
 | 文書 | 内容 |
 | --- | --- |
+| [`CONTRIBUTING.ja.md` のコーディング規則](../../CONTRIBUTING.ja.md#コーディング規則) | すべての貢献者が従う 5 つの規則(コードとデータの分離・多言語出力・コード・国の扱い・決定性)。各規則から binding spec へリンク。 |
 | [`implementation-rules.ja.md`](implementation-rules.ja.md) | **ここから読む。** すべての変更が従う規則(workflow・コーディング標準・アーキテクチャ不変則・決定性・正準ヘルパー・loader・検証 gate・silent-no-op 防御)と、関心事ごとの binding spec への対応表。 |
 | [`shared-helpers-catalog.ja.md`](shared-helpers-catalog.ja.md) | X にどの共通ヘルパーを使うか。モジュール横断のヘルパーを関心事別に、パスと governing spec 付きで一覧にしたもの。小さな処理を書く前に引く。 |
 | [`documentation-and-code-quality-policy.ja.md`](documentation-and-code-quality-policy.ja.md) | 文書の言語と EN/JA の対、自己完結した OSS 品質、ソースコメントの言語、定数の置き場所、dead code の扱い。 |

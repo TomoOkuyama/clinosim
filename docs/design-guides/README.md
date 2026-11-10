@@ -6,6 +6,7 @@ The index of the design guides for every contributor (human or agent). It has th
 
 | Document | What it covers |
 |---|---|
+| [Coding rules in `CONTRIBUTING.md`](../../CONTRIBUTING.md#coding-rules) | The five rules every contributor follows (code and data separated, multilingual output, codes, country handling, determinism), each linked to its binding spec. |
 | [`implementation-rules.md`](implementation-rules.md) | **Start here.** The rules every change follows — workflow, coding standards, architecture invariants, determinism, canonical helpers, loaders, verification gates, silent-no-op defence — and a map from each concern to its binding spec. |
 | [`shared-helpers-catalog.md`](shared-helpers-catalog.md) | Which shared helper to use for X: every cross-module helper by concern, with its path and governing spec. Look here before writing a small utility. |
 | [`documentation-and-code-quality-policy.md`](documentation-and-code-quality-policy.md) | Documentation language and EN/JA pairing, self-contained OSS quality, source-comment language, constants placement, dead-code hygiene. |

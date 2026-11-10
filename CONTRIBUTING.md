@@ -168,6 +168,18 @@ the trailer.
 
 ---
 
+## Coding rules
+
+Every change follows these rules. Each one is defined in a binding spec; the link is the place to read the details.
+
+1. **Code and data are separated.** Values that differ by country, age or sex, and tunable clinical or statistical values, live in YAML with a cited source. Code looks them up and never selects them in a country / age / sex branch; a country-specific algorithm is a named implementation chosen in YAML. See [implementation rules: grand design](docs/design-guides/implementation-rules.md#grand-design-code-and-data-are-separated) and the [configuration and reference data spec](docs/design-guides/configuration-and-reference-data-spec.md).
+2. **Multilingual output.** Every user-visible string comes from a catalog or localized table, resolved at the emit site. English is required and is the fallback for a missing language; a key, raw code or slug never reaches output. JP output reads as Japanese EHR text (Latin script only where Japanese records use it), and an English-only code system keeps its English `coding.display` with the localized label in `.text`. See [code-mapping spec §5](docs/design-guides/code-mapping-and-localization-spec.md#5-localization) and [§6](docs/design-guides/code-mapping-and-localization-spec.md#6-fallback-rules).
+3. **Codes.** Only codes verified against their authoritative source are used. They are registered in the code tables and resolved through `clinosim.codes` / `clinosim.locale.loader`, never written as literals in code. See [code-mapping spec §8](docs/design-guides/code-mapping-and-localization-spec.md#8-adding-or-changing-a-code) and [§9](docs/design-guides/code-mapping-and-localization-spec.md#9-prohibited-patterns).
+4. **Country handling.** `is_jp` / `lang_for` are the only way to read the country or output language. A country branch only decides whether a structure a country profile mandates is emitted; it never selects a value. See [code-mapping spec §5](docs/design-guides/code-mapping-and-localization-spec.md#5-localization) and the [module guide](docs/CONTRIBUTING-modules.md#shared-helpers-go-into-clinosimmodules_sharedpy).
+5. **Determinism.** A change never adds draws to a shared RNG stream; new randomness comes from a seed derived for the entity it concerns, or from a hash draw. See the [determinism and RNG spec](docs/design-guides/determinism-and-rng-spec.md#2-drawing-random-numbers).
+
+---
+
 ## Documentation and comment-language policy
 
 Every PR is reviewed against
