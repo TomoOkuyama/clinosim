@@ -48,8 +48,9 @@ from datetime import date, datetime
 from functools import lru_cache
 from typing import Any
 
+from clinosim.countries import country_code as _country_code
 from clinosim.determinism import sha_normal
-from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.population._pediatric_anthropometry import load_anthropometric_reference
 
 _PATIENT_FIELDS = ("patient_id", "sex", "date_of_birth", "age", "height_cm", "weight_kg")
@@ -162,7 +163,7 @@ def _pediatric_medians(country: str, sex: str, age_years: int) -> dict[str, floa
     stored height / weight.
     """
     ref = _load_reference()
-    tables = (ref.get("pediatric_growth") or {}).get("JP" if is_jp(country) else "US") or {}
+    tables = (ref.get("pediatric_growth") or {}).get(_country_code(country)) or {}
     row = (tables.get(_sex_key(sex)) or {}).get(int(age_years))
     if not row:
         return None
@@ -196,7 +197,7 @@ def _median_at(country: str, sex: str, age_months: float, measure: str) -> float
     """Reference median of ``measure`` at ``age_months``, linearly
     interpolated between the curve points and flat beyond its ends.
     None when the reference carries no value for the measure."""
-    curve = _growth_curve("JP" if is_jp(country) else "US", _sex_key(sex), measure)
+    curve = _growth_curve(_country_code(country), _sex_key(sex), measure)
     if not curve:
         return None
     if age_months <= curve[0][0]:

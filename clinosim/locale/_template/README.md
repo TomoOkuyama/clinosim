@@ -24,6 +24,6 @@ full walk-through.
 
 ## Non-runnable warning
 
-The scaffold intentionally does NOT declare itself as a valid country in
-`_COUNTRY_DIR_MAP`. Running `clinosim simulate --country _template` will
+The scaffold intentionally is NOT a supported country (`_`-prefixed
+directories are never countries, and `_country_dir` rejects them). Running `clinosim simulate --country _template` will
 fail. This prevents accidental "runs with placeholder data" errors.

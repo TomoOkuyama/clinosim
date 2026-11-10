@@ -10,6 +10,8 @@ language: ja
 timezone: "+09:00"
 code_systems:
   lab: jlac10
+  # Issue #350: icd-10-mhlw shares the WHO ICD-10 code data but carries the
+  # MHLW canonical URI that JP Core jp-condition-diagnosis binds to.
   diagnosis: icd-10-mhlw
   drug: yj
   procedure: k-codes

@@ -5,13 +5,15 @@ Locks:
 - Country fallback to `"us"` when the requested country_key is absent
 - Returns `None` when the (country, severity) slot is missing so the caller
   can apply its own domain-appropriate default
-- Unknown country codes normalize to `"us"` (default-US convention)
+- A country without a profile raises `KeyError` (Issue #3143)
 - Non-dict severity values (e.g. `None`) return `None`
 """
 
 from __future__ import annotations
 
 from types import SimpleNamespace
+
+import pytest
 
 from clinosim.modules.disease.localization import target_los_config
 
@@ -55,10 +57,11 @@ def test_missing_country_and_us_returns_none() -> None:
     assert cfg is None
 
 
-def test_unknown_country_normalizes_to_us() -> None:
+def test_unknown_country_raises() -> None:
+    # Issue #3143: a country without a profile fails instead of reading the US slot.
     proto = _mk_proto({"us": {"moderate": {"mean": 7.0, "sd": 2.0, "min": 3, "max": 14}}})
-    cfg = target_los_config(proto, "XX", "moderate")
-    assert cfg == {"mean": 7.0, "sd": 2.0, "min": 3, "max": 14}
+    with pytest.raises(KeyError):
+        target_los_config(proto, "XX", "moderate")
 
 
 def test_empty_target_los_returns_none() -> None:

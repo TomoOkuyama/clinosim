@@ -25,6 +25,6 @@
 
 ## Non-runnable 警告
 
-Scaffold は意図的に `_COUNTRY_DIR_MAP` で有効な国として自身を宣言
-**しない**。`clinosim simulate --country _template` の実行は fail
+Scaffold は意図的に対応国**ではない** (`_` で始まるディレクトリは国に
+ならず、`_country_dir` が拒否する)。`clinosim simulate --country _template` の実行は fail
 する。これは「プレースホルダデータでの偶発実行」エラーを防止する。

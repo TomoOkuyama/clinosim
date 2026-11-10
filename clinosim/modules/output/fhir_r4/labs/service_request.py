@@ -35,6 +35,7 @@ from clinosim.codes import code_exists, get_system_uri, system_key_for
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
+from clinosim.countries import country_code as _country_code
 from clinosim.countries import lang_for
 from clinosim.locale.loader import imaging_exam_display, load_code_mapping
 from clinosim.locale.localized import localized_field
@@ -1028,7 +1029,7 @@ def standalone_lab_order_code(o: Any, lang: str, country: str) -> LabOrderCode:
     # Resolve internal test name → real standard code via locale mapping.
     # Mirrors _build_lab_observation (code_map.get(lab_name, order_code)).
     # country arrives lowercase ("us"/"jp"); load_code_mapping expects uppercase.
-    country_code = "JP" if is_jp(country) else "US"
+    country_code = _country_code(country)
     code_map = load_code_mapping("lab", country_code)
     # Issue #2299: the code mappings are keyed by canonical lab name.
     lab_key = canonical_lab_name(display_name)
@@ -1232,7 +1233,7 @@ def _build_sr_skeleton(
         # feedback fix (2026-07-16, PR-H): skip coding[] when loinc_code is
         # empty (FHIR R4 `ele-1` violation on ~19k lab SRs); preserve text.
         "code": _build_sr_code_field(
-            system=get_system_uri(code_system_override_key or system_key_for("lab", "JP" if is_jp(country) else "US")),
+            system=get_system_uri(code_system_override_key or system_key_for("lab", _country_code(country))),
             code=loinc_code,
             display=loinc_display,
             text=loinc_text,

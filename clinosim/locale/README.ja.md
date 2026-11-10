@@ -101,9 +101,9 @@ Issue #3031) / `condition_stage_display` (病期ラベル、
 
 - **`_LOCALE_DIR`** = `Path(__file__).parent` (`_io.py` 内) — import
   時の locale バンドルルート。
-- **`_COUNTRY_DIR_MAP`** = `{"JP": "jp", "US": "us"}` — 国 ISO
-  コード → ディレクトリ名マッピング。未マップコードは
-  `country.lower()` にフォールスルー。
+- **`_country_dir(country)`** — locale ディレクトリは国コードの小文字。
+  対応国は `country.yaml` を持つディレクトリ
+  (`clinosim.country_profile.supported_countries`)。
 - **P2-14 セーフガード** — `_country_dir` は解決後のディレクトリ名
   が `_` で始まるものを全て拒否します。これにより `_template/`
   (新規 locale scaffold) が実 country として使用不可能になります —
@@ -125,7 +125,7 @@ clinosim/locale/
   loader.py                       再 export facade (79 名、うち公開
                                    load_* 関数 50)
   _io.py                          共有 YAML プリミティブ (_LOCALE_DIR /
-                                   _COUNTRY_DIR_MAP / _country_dir /
+                                   _country_dir /
                                    _load_yaml / fallback 既定値)
   loaders/                        トピック別 @lru_cache YAML ローダー:
                                    clinical / demographics / fhir_identity
@@ -210,8 +210,9 @@ clinosim/locale/
    - `immunization_schedule.yaml` — 国の予防接種スケジュール。
    - 必要に応じて他の `code_mapping_*.yaml` (JP は `microbiology` と
      `microbiology_susceptibility` を追加)。
-3. ISO コードが小文字ディレクトリ名に直接マップされない場合は
-   `_COUNTRY_DIR_MAP` (`clinosim/locale/_io.py`) に国を登録。
+3. `clinosim/locale/<cc>/country.yaml` を追加 (`_template/country.yaml`
+   をコピー)。国プロファイルが国を対応国にし、コードシステム・FHIR
+   プロファイル・機能を選ぶ。
 4. トップレベル `clinosim/config/<country>.yaml` を追加して国別
    医療制度デフォルト (`lab_frequency_multiplier` /
    `discharge_criteria` / `target_los_multiplier` / コードシステム名)

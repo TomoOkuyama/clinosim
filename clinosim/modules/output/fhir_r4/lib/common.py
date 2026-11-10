@@ -21,6 +21,7 @@ from clinosim.codes import get_system_uri, is_english_only_system
 from clinosim.codes.icd10 import condition_short_name
 from clinosim.codes.prefectures import prefecture_code
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.countries import country_code as _country_code
 from clinosim.countries import lang_for
 from clinosim.country_profile import country_profile
 from clinosim.locale.loader import load_addresses, load_code_mapping, load_reference_ranges
@@ -235,7 +236,7 @@ def iter_diagnosis_mapping_targets(country: str) -> list[str]:
     coverage sweeps) must walk both the plain string values and the
     ``by_sex`` / ``default`` leaves of the dict values.
     """
-    country_code = "JP" if is_jp(country) else "US"
+    country_code = _country_code(country)
     out: list[str] = []
     for value in load_code_mapping("diagnosis", country_code).values():
         if isinstance(value, dict):

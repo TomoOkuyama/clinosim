@@ -10,8 +10,9 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from clinosim.age_bands import find_age_band_or_last, parse_closed_age_band
+from clinosim.country_profile import country_profile
 from clinosim.datafiles import load_data_yaml
-from clinosim.modules._shared import is_jp, normalize_probabilities
+from clinosim.modules._shared import normalize_probabilities
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
@@ -60,11 +61,12 @@ def load_reference() -> dict:
 
 @lru_cache(maxsize=2)
 def load_rates(country: str = "JP") -> dict:
-    """Load care-level rates for ``country``. Returns ``{}`` for non-JP
-    (no-op path) — care_level is currently JP-only, but the signature
-    matches immunization / family_history / code_status so future locale
-    additions slot in without API churn."""
-    if not is_jp(country):
+    """Load care-level rates for ``country``. Returns ``{}`` when the country
+    profile has the ``care_level`` feature off (no-op path; Issue #3143) —
+    care_level is currently JP-only, but the signature matches immunization /
+    family_history / code_status so future locale additions slot in without
+    API churn."""
+    if not country_profile(country).feature("care_level"):
         return {}
     return (load_data_yaml(_LOCALE / "jp" / "care_level_rates.yaml") or {}).get("weights", {})
 
@@ -98,8 +100,9 @@ def patient_qualifies_for_secondary_ltci(chronic_condition_codes: list[str]) -> 
 
 
 def assign_care_level(age: int, country: str, rng: np.random.Generator) -> str:
-    """Return the jp-care-level code (or "" for independent / non-JP). Deterministic."""
-    if not is_jp(country):
+    """Return the jp-care-level code (or "" for independent / a country without
+    the ``care_level`` feature). Deterministic."""
+    if not country_profile(country).feature("care_level"):
         return ""
     ref = load_reference()
     levels = ref["levels"]

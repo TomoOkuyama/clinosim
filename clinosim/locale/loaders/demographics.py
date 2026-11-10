@@ -15,9 +15,9 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Any
 
-from clinosim.countries import is_jp, is_us
+from clinosim.countries import country_code
+from clinosim.country_profile import supported_countries
 from clinosim.locale._io import (
-    _COUNTRY_DIR_MAP,
     _FALLBACK_DEMOGRAPHICS,
     _FALLBACK_FORMATTING,
     _FALLBACK_NAMES,
@@ -164,8 +164,9 @@ def load_names(country: str) -> dict[str, Any]:
 def load_naming_rules(country: str) -> dict[str, Any]:
     """Load naming rules for a country from shared/naming_rules.yaml."""
     all_rules = _load_yaml(_LOCALE_DIR / "shared" / "naming_rules.yaml", fallback={})
-    dir_name = _COUNTRY_DIR_MAP.get(country, country.lower())
-    return all_rules.get(dir_name, all_rules.get("us", {}))
+    # Issue #3143: the country's own rules; a country without an entry
+    # raises instead of reading the US rules.
+    return all_rules[country_code(country).lower()]
 
 
 @lru_cache(maxsize=32)
@@ -188,7 +189,10 @@ def load_code_mapping(domain: str, country: str) -> dict[str, str]:
     if domain != "drug":
         return legacy
     # Union with catalog (legacy wins on conflict).
-    code_field = "rxnorm" if is_us(country) else "yj"
+    # The country's drug code system (country profile, Issue #3143).
+    from clinosim.codes import system_key_for
+
+    code_field = system_key_for("drug", country)
     merged: dict[str, str] = {}
     try:
         from clinosim.codes.drugs import all_drug_ids, resolve_drug
@@ -244,8 +248,7 @@ def map_diagnosis_code(code: str, country: str, sex: str = "") -> str:
     """
     if not code:
         return code
-    country_code = "JP" if is_jp(country) else "US"
-    target = load_code_mapping("diagnosis", country_code).get(code, code)
+    target = load_code_mapping("diagnosis", country_code(country)).get(code, code)
     if isinstance(target, dict):
         by_sex = target.get("by_sex") or {}
         sex_norm = (sex or "").upper()[:1]  # "F"/"M"/"" — first char, case-fold
@@ -285,7 +288,7 @@ def lab_codes(lab_name: str) -> tuple[str, ...]:
     For checks that read a mixed or unknown-locale cohort and must recognise an
     analyte by code without restating the codes.
     """
-    codes = (load_code_mapping("lab", country).get(lab_name, "") for country in ("US", "JP"))
+    codes = (load_code_mapping("lab", country).get(lab_name, "") for country in supported_countries())
     return tuple(dict.fromkeys(c for c in codes if c))
 
 

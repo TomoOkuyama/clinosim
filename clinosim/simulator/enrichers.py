@@ -44,6 +44,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
+from clinosim.country_profile import country_profile
 from clinosim.modules._shared import is_jp
 
 logger = logging.getLogger(__name__)
@@ -281,7 +282,7 @@ def register_builtin_enrichers() -> None:
             name="care_level",
             stage=POST_RECORDS,
             order=60,
-            enabled=lambda c: is_jp(getattr(c, "country", "US")),
+            enabled=lambda c: country_profile(getattr(c, "country", "US")).feature("care_level"),
             run=enrich_care_level,
         )
     )

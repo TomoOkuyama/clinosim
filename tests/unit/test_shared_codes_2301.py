@@ -34,7 +34,7 @@ def test_monitoring_orders_use_the_lab_result_code() -> None:
 
 
 def test_lab_codes_cover_both_locales() -> None:
-    assert lab_codes("WBC") == (load_code_mapping("lab", "US")["WBC"], load_code_mapping("lab", "JP")["WBC"])
+    assert set(lab_codes("WBC")) == {load_code_mapping("lab", "US")["WBC"], load_code_mapping("lab", "JP")["WBC"]}
     assert lab_codes("not-a-lab") == ()
 
 

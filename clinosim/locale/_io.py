@@ -19,18 +19,17 @@ from clinosim.datafiles import load_data_yaml
 
 _LOCALE_DIR = Path(__file__).parent
 
-# ISO 3166-1 alpha-2 lowercase.
-_COUNTRY_DIR_MAP = {"JP": "jp", "US": "us"}
-
 
 def _country_dir(country: str) -> Path:
     """Return the per-country locale directory path.
 
-    See the original ``loader.py`` docstring: unknown countries fall
-    through to a lowercased folder name; P2-14 forbids any resolution
-    that would land in a leading-underscore scaffold directory.
+    The directory is the lower-case country code (``locale/us``,
+    ``locale/jp``); the supported countries are the directories that hold a
+    ``country.yaml`` (``clinosim.country_profile.supported_countries``,
+    Issue #3143). P2-14 forbids any resolution that would land in a
+    leading-underscore scaffold directory.
     """
-    dir_name = _COUNTRY_DIR_MAP.get(country, country.lower())
+    dir_name = country.lower()
     if dir_name.startswith("_"):
         raise ValueError(
             f"country={country!r} resolves to reserved scaffold folder "

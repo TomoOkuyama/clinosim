@@ -22,6 +22,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes.drugs import drug_system_uri, is_verified_yj, jp_drug_code_table
 from clinosim.codes.icd10 import condition_label
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.countries import country_code as _country_code
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping, map_diagnosis_code
@@ -567,7 +568,7 @@ def _resolve_medication_concept(
     # Strip dose info to get base drug name for code lookup (use cleaned name)
     base_name = drug_name_clean.split(" ")[0] if drug_name_clean else ""
 
-    country_code = "JP" if is_jp(country) else "US"
+    country_code = _country_code(country)
     lang = lang_for(country_code)
     drug_codes = _drug_code_table(country_code, route)
 
@@ -959,7 +960,7 @@ def _build_medication_request(
         country,
         route=str(order.get("route", "") or ""),
     )
-    country_code = "JP" if is_jp(country) else "US"
+    country_code = _country_code(country)
 
     # ID: order_id は fix 0 で encounter-scoped 化された
     # (grep で "ORD-{encounter_id}-..." pattern に統一済)ので、そのまま
@@ -1304,7 +1305,7 @@ def _build_discharge_medication_request(
     route = str(get_attr_or_key(item, "route", "") or "")
     duration_days = _supply_duration_days(get_attr_or_key(item, "duration_days", None))
 
-    country_code = "JP" if is_jp(country) else "US"
+    country_code = _country_code(country)
     med_concept, rate_adjustment_note = _resolve_medication_concept(drug_name, "", country, route=route)
 
     # Issue #853: opaque id. Structural key = same compound the pre-#853 id
@@ -1661,7 +1662,7 @@ def _build_medication_admin(
     drug_name_clean, _protocol_category = strip_protocol_prefix(drug_name_raw)
     drug_name_clean, rate_adjustment_note = _split_rate_adjustment_suffix(drug_name_clean)
     drug_name = _localize_drug_name(drug_name_clean, country)
-    country_code = "JP" if is_jp(country) else "US"
+    country_code = _country_code(country)
     # Issue #2749: an administration's drug is coded by the one resolver its
     # MedicationRequest uses (name matching, catalog identity, JP product by
     # route, display rules, eCS no-code slice). The MAR-carried code is the
