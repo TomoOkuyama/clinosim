@@ -147,13 +147,26 @@ def load_external_organizations(country: str) -> list[dict[str, Any]]:
 
 @lru_cache(maxsize=8)
 def load_facility_identity(country: str) -> dict[str, Any]:
-    """The simulated hospital's own identity (Issue #3129): ``prefecture``
-    and the 10-digit ``institution_code`` (医療機関コード) from
+    """The simulated hospital's own identity (Issue #3129): ``prefecture``,
+    the 10-digit ``institution_code`` (医療機関コード) and the address's
+    ``postal_code`` (Issue #3155) from
     ``<country>/facility_identity.yaml``; empty for a country without the
     file (US)."""
     data = _load_yaml(_country_dir(country) / "facility_identity.yaml", fallback={})
     hospital = data.get("hospital") if isinstance(data, dict) else None
     return dict(hospital) if isinstance(hospital, dict) else {}
+
+
+@lru_cache(maxsize=8)
+def load_encounter_type_profiles(country: str) -> dict[str, dict[str, Any]]:
+    """Profile-mandated Encounter structure per CIF encounter type
+    (Issue #3155): ``class`` (``system_key`` / ``code``), ``profile`` and
+    ``service_provider`` from ``<country>/encounter_type_profiles.yaml``;
+    empty for a country without the file (US)."""
+    data = _load_yaml(_country_dir(country) / "encounter_type_profiles.yaml", fallback={})
+    if not isinstance(data, dict):
+        return {}
+    return {str(k): dict(v) for k, v in data.items() if k != "metadata" and isinstance(v, dict)}
 
 
 @lru_cache(maxsize=8)

@@ -135,6 +135,15 @@ def _build_jp_echeckup_general_composition(
     }
     comp["title"] = disp
 
+    # Composition.author 2..2 (Issue #3155): the reporting physician
+    # (JP_Practitioner_eCheckupGeneral, from the generic builder) and the
+    # institution (JP_Organization_eCheckupGeneral), which is also the
+    # custodian — as in the IG's sample Bundle.
+    authors = comp.setdefault("author", [])
+    if not any(str(a.get("reference", "")).startswith("Organization/") for a in authors if isinstance(a, dict)):
+        authors.append({"reference": "Organization/hospital-main"})
+    comp["custodian"] = {"reference": "Organization/hospital-main"}
+
     # section:2 個 flat(nesting なし)
     # sub-PR-D:doc.checkup_type から健診種別を dispatch(未設定なら
     # occupational 事業者健診にfallback)

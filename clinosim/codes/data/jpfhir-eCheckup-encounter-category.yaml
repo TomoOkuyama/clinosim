@@ -1,0 +1,21 @@
+# JP-eCheckup 受診区分 CodeSystem — Encounter.class of a health-checkup
+# encounter (Issue #3155).
+#
+# 一次出典: JP-eCheckup General v1.7.0 package (jpfhir.jp
+# fhir/eCheckup/igv170/package.tgz), CodeSystem-eCheckup-codeSystem-
+# encounterCategory.json (url
+# http://jpfhir.jp/fhir/eCheckup/CodeSystem/encounter-category, version
+# 1.0.0), whose only concept is checkup 健診. JP_Encounter_eCheckupGeneral
+# fixes Encounter.class to it (patternCoding, display 健診). The English
+# display is a clinosim translation.
+metadata:
+  kind: code-system
+  name: JP-eCheckup Encounter Category
+  uri: http://jpfhir.jp/fhir/eCheckup/CodeSystem/encounter-category
+  version: "1.0.0"
+  source: "jpfhir.jp JP-eCheckup General v1.7.0 CodeSystem encounterCategory"
+  description: Encounter category of a JP-eCheckup health-checkup encounter (Encounter.class)
+codes:
+  checkup:
+    en: "Health checkup"
+    ja: "健診"

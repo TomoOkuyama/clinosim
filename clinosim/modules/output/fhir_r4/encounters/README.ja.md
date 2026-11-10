@@ -33,6 +33,10 @@ export 時に 1 回生成)、および JP `CareLevel` (要介護度) の custom 
   要介護度付与
   ([`clinosim.modules.care_level`](../../../care_level/README.ja.md))。
 
+### プロファイルが定める encounter 構造 (Issue #3155)
+
+`_apply_encounter_type_profile` (`_build_encounter` の末尾) は、国のプロファイルが encounter 種別に定める構造を `locale/<cc>/encounter_type_profiles.yaml` から適用する: `class` の coding、`serviceProvider` の Organization、宣言するプロファイルと受診終了時刻の `meta.lastUpdated`。JP は `checkup` を持ち、健診 Encounter は JP-eCheckup の `JP_Encounter_eCheckupGeneral` になる (class `encounter-category#checkup` 健診、serviceProvider `hospital-main`)。ファイルに無い種別と US の encounter はすべて既定のまま (HL7 v3 ActCode の class、診療科の serviceProvider)。
+
 ### 周産期 + オンコロジー encounter shape (v0.5 → v0.6.0)
 
 `_build_encounter` は縦断サービスラインが追加した encounter shape を

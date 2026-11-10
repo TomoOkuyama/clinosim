@@ -11,7 +11,7 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import vocab_display
+from clinosim.locale.loader import load_facility_identity, vocab_display
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, entry, text_if_localized
 from clinosim.modules.output.fhir_r4.lib.ecs_extensions import hospital_institution_code
@@ -109,6 +109,11 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
         ]
         root_org["telecom"] = [{"system": "phone", "value": "03-0000-0000", "use": "work"}]
         root_org["address"] = [{"use": "work", "text": t("fhir_emit_text.hospital_address", "ja")}]
+        # Issue #3155: JP_Organization_eCheckupGeneral (the health-checkup
+        # report's author and custodian) requires address.postalCode.
+        postal_code = str(load_facility_identity(country).get("postal_code") or "")
+        if postal_code:
+            root_org["address"][0]["postalCode"] = postal_code
     entries.append(entry(root_org))
 
     # Main-building Location — referenced by PractitionerRole.location fallback

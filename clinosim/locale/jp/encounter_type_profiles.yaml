@@ -1,0 +1,26 @@
+# Encounter structure a country's FHIR profile mandates for an encounter type
+# (Issue #3155). Keyed by the CIF encounter_type; a type that is not listed
+# keeps the default Encounter (HL7 v3 ActCode class, department
+# serviceProvider).
+#
+#   class: the Encounter.class coding (system_key: code-system registry key)
+#   profile: the profile URL the Encounter declares besides JP Core
+#   service_provider: the Organization id of Encounter.serviceProvider
+#
+# checkup — JP-eCheckup 1.7.0 JP_Encounter_eCheckupGeneral (the encounter a
+# health-checkup report, JP_Composition_eCheckupGeneral, references): class
+# fixed to encounter-category#checkup 健診 (patternCoding), meta.lastUpdated
+# 1..1 (the end of the visit), serviceProvider 1..1 an
+# JP_Organization_eCheckupGeneral, which forbids partOf — so the hospital
+# itself, not its 健診センター department Organization.
+metadata:
+  kind: locale
+  name: encounter_type_profiles
+  source: "jpfhir.jp JP-eCheckup General v1.7.0 StructureDefinition JP_Encounter_eCheckupGeneral"
+
+checkup:
+  class:
+    system_key: jpfhir-eCheckup-encounter-category
+    code: checkup
+  profile: http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Encounter_eCheckupGeneral
+  service_provider: hospital-main

@@ -71,10 +71,20 @@ profiles:
 # referenceRange. A result with several ranges (PT-INR on warfarin: normal
 # and therapeutic) keeps the one its interpretation was judged against
 # (`judged`: the therapeutic range when present, else the normal one).
+#
+# Issue #3155: JP_Encounter_eCS fixes Encounter.class.system to HL7 v3
+# ActCode (fixedUri) — a JP-eCheckup health-checkup encounter, classed
+# encounter-category#checkup, does not declare it.
 element_rules:
   Encounter:
+    class_system: hl7-v3-actcode
     length_unit: d
     length_unit_display: 日
     discharge_disposition_system: jpfhir-discharge-disposition
+  # Issue #3155: JP_Observation_LabResult_eCS targets Observation.encounter
+  # at JP_Encounter_eCS; a health-checkup report result (declaring this
+  # JP-eCheckup profile) references the checkup encounter, a
+  # JP_Encounter_eCheckupGeneral, so it does not declare the eCS profile.
   Observation:
     interpreted_reference_range: judged
+    excluded_with_profile: http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Observation_eCheckupGeneral
