@@ -181,3 +181,18 @@ fhir_coverage:
   ext_subnumber: "http://jpfhir.jp/fhir/core/Extension/StructureDefinition/JP_Coverage_InsuredPersonSubNumber"
   # Composite identifier value format: "保険者番号:記号:番号:枝番"
   # subscriberId format: "記号:番号" ; dependent: "枝番"
+  # Issue #3149: the JP-CLINS 被保険者個人識別子 string (JP_Patient_eCS
+  # R1013): always four fields, a missing field is an empty string, and the
+  # 保険者等番号 is 8 digits — "８桁に満たない場合は、先頭に半角ゼロを追加
+  # して８桁とする" (a 6-digit 国民健康保険 number gets "00").
+  member_id_fields: [insurer, symbol, number, branch]
+  insurer_number_width: 8
+
+# Issue #3149: JP_Patient_eCS identifiers. R1010: the facility patient ID's
+# system is "urn:oid:1.2.392.100495.20.3.51." + "1" + the 10-digit
+# 医療機関コード (facility_identity.yaml institution_code). R1012: exactly one
+# insured-person identifier — the current Coverage's member identifier
+# (JP_Insurance_memberID; clinosim models no 生活保護 / JP_PublicPayer_memberID).
+fhir_patient:
+  mrn_system: "urn:oid:1.2.392.100495.20.3.51.1{institution_code}"
+  insured_identifier_from_coverage: true

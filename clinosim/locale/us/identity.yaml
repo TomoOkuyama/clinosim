@@ -135,3 +135,13 @@ fhir_coverage:
   ext_symbol: ""
   ext_number: ""
   ext_subnumber: ""
+  # Composite member identifier: "<insurer>:<member_id>" (Issue #3149 moved
+  # the field list to YAML; US has no 記号 / 枝番).
+  member_id_fields: [insurer, number]
+
+# Issue #3149: the Patient's MRN system (Issue #1763: a project-owned https
+# URL, not the RFC 2606 example domain). No insured-person identifier on the
+# US Patient.
+fhir_patient:
+  mrn_system: "https://clinosim.io/fhir/us/mrn"
+  insured_identifier_from_coverage: false
