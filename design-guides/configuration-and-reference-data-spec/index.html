@@ -2489,7 +2489,7 @@
 <tr>
 <td>A table keyed by domain identifiers (disease, drug, lab, age band, country) lives in YAML. A formula coefficient or a clinical threshold lives as a named, documented constant in a <code>_&lt;topic&gt;_thresholds.py</code> / <code>_defaults.py</code> module, with its source. Code holds no unnamed clinical literals.</td>
 <td>policy</td>
-<td><a href="../documentation-and-code-quality-policy/"><code>documentation-and-code-quality-policy.md</code></a> §5.1 (review)</td>
+<td><a href="../documentation-and-code-quality-policy/"><code>documentation-and-code-quality-policy.md</code></a> §5.1; <code>tests/unit/test_code_data_separation_3137.py</code> (shrink-only ratchet, per file under <code>clinosim/</code>: country / language branches — <code>is_jp</code> / <code>is_us</code> / <code>uses_jp_clins_profile</code> calls and comparisons with <code>"JP"</code> / <code>"US"</code> / <code>"ja"</code> / <code>"en"</code> — and non-trivial numeric literals in comparisons outside <code>_&lt;topic&gt;_thresholds.py</code> / <code>_&lt;topic&gt;_defaults.py</code>; counted with the AST by <code>tests/unit/code_data_separation.py</code> against <code>tests/unit/code_data_separation_baseline.json</code>. A count may not grow; a file that drops lowers its entry with <code>python -m tests.unit.code_data_separation --write</code>, which refuses to raise one)</td>
 </tr>
 </tbody>
 </table>
@@ -2502,10 +2502,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>The constants-placement policy has no automatic guard.</td>
-<td>review</td>
-</tr>
 <tr>
 <td>The locale and code-table YAMLs are not validated by a Pydantic model, and the §2 guard does not look at them: <code>clinosim/locale/**</code> (some files have hand-written checks in <code>clinosim/locale/loader.py</code>) and <code>clinosim/codes/data/*.yaml</code>. An unknown key in these files is not rejected at load.</td>
 <td><code>tests/unit/test_configuration_spec_guards.py</code> globs <code>modules/*/reference_data/</code> and <code>simulator/reference_data/</code> only</td>

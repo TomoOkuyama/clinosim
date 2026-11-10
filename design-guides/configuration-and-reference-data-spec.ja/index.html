@@ -2489,7 +2489,7 @@
 <tr>
 <td>領域の識別子(疾患・薬剤・検査・年齢区分・国)をキーとする表は YAML に置く。式の係数や臨床の閾値は、<code>_&lt;topic&gt;_thresholds.py</code> / <code>_defaults.py</code> の名前付き・説明付きの定数とし、出典を付ける。コードに名前の無い臨床リテラルを書かない。</td>
 <td>方針</td>
-<td><a href="../documentation-and-code-quality-policy.ja/"><code>documentation-and-code-quality-policy.ja.md</code></a> §5.1(レビュー)</td>
+<td><a href="../documentation-and-code-quality-policy.ja/"><code>documentation-and-code-quality-policy.ja.md</code></a> §5.1、<code>tests/unit/test_code_data_separation_3137.py</code>(減る一方のラチェット。<code>clinosim/</code> 配下のファイルごとに、国・言語の分岐 — <code>is_jp</code> / <code>is_us</code> / <code>uses_jp_clins_profile</code> の呼び出しと <code>"JP"</code> / <code>"US"</code> / <code>"ja"</code> / <code>"en"</code> との比較 — と、<code>_&lt;topic&gt;_thresholds.py</code> / <code>_&lt;topic&gt;_defaults.py</code> 以外の比較に書かれた自明でない数値リテラルを、<code>tests/unit/code_data_separation.py</code> が AST で数え、<code>tests/unit/code_data_separation_baseline.json</code> と照合する。件数は増やせない。減ったファイルは <code>python -m tests.unit.code_data_separation --write</code> で記録を下げる(このコマンドは記録を上げない))</td>
 </tr>
 </tbody>
 </table>
@@ -2502,10 +2502,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>定数の置き場所の方針には自動のガードが無い。</td>
-<td>レビュー</td>
-</tr>
 <tr>
 <td>ロケールとコード表の YAML は Pydantic モデルで検証しておらず、§2 のガードも見ていない: <code>clinosim/locale/**</code>(一部のファイルは <code>clinosim/locale/loader.py</code> の手書きの検査を持つ)と <code>clinosim/codes/data/*.yaml</code>。これらのファイルの未知のキーは読み込み時に拒否されない。</td>
 <td><code>tests/unit/test_configuration_spec_guards.py</code> は <code>modules/*/reference_data/</code> と <code>simulator/reference_data/</code> だけを走査する</td>
