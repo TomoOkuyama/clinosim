@@ -13,6 +13,7 @@ Coding displays and CodeableConcept text are set at emit time with
 
 from __future__ import annotations
 
+import re
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -82,17 +83,25 @@ _HL7_V3_SUBSTITUTION_SYSTEM = get_system_uri("hl7-v3-substanceadminsubstitution"
 _JP_CLINS_MEDICATION_USAGE_UNCODED_CS = get_system_uri("jp-clins-medication-usage-uncoded")
 
 
-_JP_CLINS_MEDICATION_USAGE_UNCODED_CODE = "0X0XXXXXXXXX0000"
+@cache
+def _jp_dosage_ecs() -> dict[str, Any]:
+    """JP_MedicationDosage_eCS shapes and fixed values (Issue #3130):
+    ``reference_data/jp-medication-dosage-ecs.yaml``."""
+    return load_reference_yaml(Path(__file__).resolve().parents[1] / "reference_data" / "jp-medication-dosage-ecs.yaml")
 
 
-# Issue #782 (part of META #774): consumer viewer からの指摘で "ダミー" 表現の
-# display を factual な placeholder に変更。JP-CLINS 1.13.0 example fixture
-# (`MedicationRequest-Example-JP-MedReq-PO-TID-2days-dummyUsageCode.json`) は
-# `"ダミー用法コード"` を使うが、consumer 側で raw FHIR を露出する場面
-# (デモ・スクリーンショット) で「ダミー」文字が信頼を損ねる。code は spec の
-# `0X0XXXXXXXXX0000` を維持し display のみ「用法未指定」に置換 (factual、
-# JP-CLINS の profile validation は display に制約を持たず spec 準拠を維持)。
+_JP_CLINS_MEDICATION_USAGE_UNCODED_CODE = str(_jp_dosage_ecs()["uncoded_usage"]["code"])
+
+
+# The usage text when nothing more specific is known (用法未指定), written to
+# timing.code.text. The unCoded coding itself carries the display the profile
+# fixes (ダミー用法コード, jp-medication-dosage-ecs.yaml; Issue #3130 — the
+# Issue #782 factual display in the coding is no longer allowed).
 _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY = t("fhir_emit_text.usage_uncoded", "ja")
+
+
+# A dose amount with nothing else ("35mg", "2 mg", "6mg/kg").
+_DOSE_ONLY_TEXT = re.compile(r"[\d.,\s]+[A-Za-zμ%/]+")
 
 
 def _derive_usage_display_from_timing(repeat: Any) -> str:
@@ -111,6 +120,9 @@ def _derive_usage_display_from_timing(repeat: Any) -> str:
     """
     if not isinstance(repeat, dict):
         return ""
+    if repeat.get("count") == 1 and not repeat.get("frequency"):
+        # Issue #3130: a one-time dose.
+        return t("fhir_emit_text.single_dose_usage", "ja")
     freq = repeat.get("frequency")
     period = repeat.get("period")
     unit = repeat.get("periodUnit", "")
@@ -120,6 +132,11 @@ def _derive_usage_display_from_timing(repeat: Any) -> str:
         return t("fhir_emit_text.freq_per_day", "ja", n=int(freq))
     if unit == "h" and freq == 1 and period >= 1:
         return t("fhir_emit_text.every_hours", "ja", n=int(period))
+    # Issue #3130: weekly / monthly cadences (週1回, 月1回).
+    if unit == "wk" and period == 1 and freq >= 1:
+        return t("fhir_emit_text.freq_per_week", "ja", n=int(freq))
+    if unit == "mo" and period == 1 and freq >= 1:
+        return t("fhir_emit_text.freq_per_month", "ja", n=int(freq))
     return ""
 
 
@@ -594,24 +611,42 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
                         }
                     )
                 else:
-                    # Issue #782: prefer a derived usage description (`1日3回`,
-                    # `8時間ごと`) over the neutral placeholder when
-                    # timing.repeat carries a recognizable cadence — this
-                    # gives consumers a meaningful display without
-                    # changing the JP-CLINS-required `code` value.
-                    _derived = _derive_usage_display_from_timing(timing.get("repeat"))
+                    # Issue #3130: the unCoded slice fixes the display
+                    # (ダミー用法コード); the actual usage goes in
+                    # timing.code.text below.
+                    _uncoded = _jp_dosage_ecs()["uncoded_usage"]
                     codings.append(
                         {
                             "system": _JP_CLINS_MEDICATION_USAGE_UNCODED_CS,
-                            "code": _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE,
-                            "display": _derived or _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY,
+                            "code": str(_uncoded["code"]),
+                            "display": str(_uncoded["display"]),
                         }
                     )
-        # DO NOT fill timing.code.text with dosage text. Timing.code is a
-        # CodeableConcept with binding to TimingAbbreviation (BID/TID/QID/Q4H/QD).
-        # Dosage text belongs in Dosage.text only (line 745). Filling both
-        # creates duplication and makes timing.code.text unsuitable for its
-        # intended purpose (machine-readable frequency abbreviations). Issue #477.
+        # Issue #3130: timing.code.text is min 1 in JP_MedicationDosage_eCS —
+        # the usage as written (JP-CLINS example: 1日3回 毎食後): the MHLW
+        # usage display, else the cadence (1日3回 / 8時間ごと), else the
+        # dosage text, else 用法未指定.
+        if not code_field.get("text"):
+            _mhlw_display = next(
+                (
+                    str(c.get("display") or "")
+                    for c in code_field.get("coding") or []
+                    if isinstance(c, dict) and c.get("system") == _JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS
+                ),
+                "",
+            )
+            _dosage_text = str(dosage.get("text") or "")
+            code_field["text"] = (
+                _mhlw_display
+                or _derive_usage_display_from_timing(timing.get("repeat"))
+                # A dosage text that is only the dose ("35mg") states no usage.
+                or ("" if _DOSE_ONLY_TEXT.fullmatch(_dosage_text) else _dosage_text)
+                or _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
+            )
+        # Dosage.text is min 1 too: the route and the usage.
+        if not dosage.get("text"):
+            _route_text = str((dosage.get("route") or {}).get("text") or "")
+            dosage["text"] = " ".join(p for p in (_route_text, code_field["text"]) if p)
 
         # (4) `Dosage.doseAndRate.type` min=1.
         # Every doseAndRate entry gets the MHLW MedicationIngredientStrength
@@ -621,6 +656,12 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
         dose_and_rate = dosage.get("doseAndRate")
         if isinstance(dose_and_rate, list):
             for dr in dose_and_rate:
+                # Issue #3130: rate[x] only as a Ratio per day.
+                if isinstance(dr, dict) and isinstance(dr.get("rateQuantity"), dict):
+                    _ratio = _rate_per_day_ratio(dr["rateQuantity"])
+                    if _ratio is not None:
+                        dr.pop("rateQuantity")
+                        dr["rateRatio"] = _ratio
                 if not isinstance(dr, dict) or dr.get("type"):
                     continue
                 dr["type"] = {
@@ -656,6 +697,25 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
         # `period + periodUnit` はそのまま emit される。US は FHIR R4
         # 標準 validator が `code` binding を通す仕様)。
         repeat = timing.get("repeat")
+        # Issue #3130: bounds[x] only as a Duration — a period the order ran
+        # (start / end) is the dosage's period of use.
+        if isinstance(repeat, dict) and isinstance(repeat.get("boundsPeriod"), dict):
+            _bounds = repeat.pop("boundsPeriod")
+            _exts = dosage.setdefault("extension", [])
+            _pou = next(
+                (
+                    e
+                    for e in _exts
+                    if isinstance(e, dict) and e.get("url") == _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL
+                ),
+                None,
+            )
+            if _pou is None:
+                _pou = {"url": _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL, "valuePeriod": {}}
+                _exts.append(_pou)
+            _pou["valuePeriod"] = {k: v for k, v in _bounds.items() if k in ("start", "end") and v} or _pou.get(
+                "valuePeriod", {}
+            )
         if isinstance(repeat, dict) and repeat.get("periodUnit") == "d":
             bounds = repeat.get("boundsDuration")
             if not isinstance(bounds, dict):
@@ -675,6 +735,31 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
             # per-day cadence は保持。
             repeat.pop("periodUnit", None)
             repeat.pop("period", None)
+
+
+def _rate_per_day_ratio(rate: dict) -> dict | None:
+    """A rate Quantity (``125 mL/h``) as the JP_MedicationRatio_DosePerDay
+    Ratio (``3000 mL / 1 日``, Issue #3130); ``None`` when its unit has no
+    per-time segment the table converts."""
+    cfg = _jp_dosage_ecs()["rate_per_day"]
+    code = str(rate.get("code") or rate.get("unit") or "")
+    value = rate.get("value")
+    if "/" not in code or not isinstance(value, (int, float)):
+        return None
+    amount_code, per = code.rsplit("/", 1)
+    factor = (cfg.get("per_day_factor") or {}).get(per)
+    if factor is None:
+        return None
+    unit = str(rate.get("unit") or code)
+    amount_unit = unit.rsplit("/", 1)[0] if "/" in unit else amount_code
+    per_day = round(float(value) * float(factor), 6)
+    numerator: dict[str, Any] = {
+        "value": int(per_day) if per_day.is_integer() else per_day,
+        "unit": amount_unit,
+        "system": rate.get("system") or cfg["denominator"]["system"],
+        "code": amount_code,
+    }
+    return {"numerator": numerator, "denominator": dict(cfg["denominator"])}
 
 
 def _populate_status_coding_display(coding_dict: Any, system_key: str, lang: str) -> None:
@@ -902,12 +987,9 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
         resource["status"] = "completed"
         resource["intent"] = "order"
         if _pre_pin_status and _pre_pin_status != "completed":
-            _ext_list = resource.setdefault("extension", [])
-            _ext_url = "urn:clinosim:medicationrequest-effective-status"
-            if isinstance(_ext_list, list) and not any(
-                isinstance(e, dict) and e.get("url") == _ext_url for e in _ext_list
-            ):
-                _ext_list.append({"url": _ext_url, "valueCode": _pre_pin_status})
+            # Issue #3130: the effective status is carried in note — a
+            # `urn:` extension has no StructureDefinition the eCS validator
+            # can resolve, so it is not allowed there.
             _notes = resource.setdefault("note", [])
             _note_text = _effective_status_note(_pre_pin_status)
             if isinstance(_notes, list) and not any(

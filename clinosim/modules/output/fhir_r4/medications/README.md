@@ -15,9 +15,9 @@ is applied after the builder by
 the builder-set status differs (e.g. `active`, or `stopped` for a
 narrowed / discontinued
 [`antibiotic`](../../../antibiotic/README.md) regimen), the original
-status is preserved in the
-`urn:clinosim:medicationrequest-effective-status` extension plus a
-`note[]` text (no `statusReason` is emitted).
+status is preserved in a `note[]` text (Issue #3130: an undefined
+`urn:` extension is not allowed by the eCS profile; no `statusReason` is
+emitted).
 
 A per-kg / per-m² prescription ("45mg/kg", "15-20mg/kg IV q12h") states
 the amount to give (Issue #2991): `doseQuantity` is the written dose x
@@ -155,9 +155,13 @@ Not applicable — pure builders over CIF orders + MAR records.
   output by `post_process/populate.py`
   (`_populate_condition_ai_mr_ecs_fields`) per
   `JP_MedicationRequest_eCS`; a differing builder status (`active`,
-  `stopped`, …) is kept in the
-  `urn:clinosim:medicationrequest-effective-status` extension
-  (`valueCode`) and a Japanese `note[]` text. The builder itself
+  `stopped`, …) is kept in a Japanese `note[]` text (Issue #3130).
+  The JP dosage follows `JP_MedicationDosage_eCS` (Issue #3130,
+  `reference_data/jp-medication-dosage-ecs.yaml`): `timing.code.text`
+  states the usage, the uncoded usage coding carries the fixed
+  `ダミー用法コード` display, an order's run period is the
+  `PeriodOfUse` extension (bounds only as a Duration), and a rate is a
+  per-day `rateRatio`. The builder itself
   sets `stopped` for stop orders (`MED_STOP_ORDER_ID_MARKER`).
 
 ## Directory contents

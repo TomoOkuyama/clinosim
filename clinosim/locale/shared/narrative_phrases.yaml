@@ -2744,6 +2744,16 @@ fhir_emit_text:
   freq_per_day:
     ja: "1日{n}回"
     en: "{n} times a day"
+  # Issue #3130: usage text of a weekly / monthly / single dose.
+  freq_per_week:
+    ja: "週{n}回"
+    en: "{n} times a week"
+  freq_per_month:
+    ja: "月{n}回"
+    en: "{n} times a month"
+  single_dose_usage:
+    ja: "1回"
+    en: "once"
   generic_infusion_pump:
     ja: "汎用輸液ポンプ"
     en: "Generic infusion pump"

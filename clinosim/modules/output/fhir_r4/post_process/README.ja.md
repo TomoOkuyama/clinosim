@@ -55,7 +55,8 @@ builder が resource を返した直後に resource 単位で呼ばれる —
     (`_JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS`)、
     MedicationUsage uncoded fallback
     (`_JP_CLINS_MEDICATION_USAGE_UNCODED_CS`、code
-    `"0X0XXXXXXXXX0000"`、display `"用法未指定"`)は
+    `"0X0XXXXXXXXX0000"`、display は profile 固定の `"ダミー用法コード"`、
+    用法は `timing.code.text`、Issue #3130)は
     `_resolve_mhlw_usage_code(drug_text, freq, period, period_unit,
     route_text)` (Issue #817 / PR #836/#837/#838/#840/#841) が
     (drug, cadence, route) tuple を実

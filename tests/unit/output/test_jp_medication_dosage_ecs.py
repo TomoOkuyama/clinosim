@@ -8,8 +8,8 @@ of the base `Dosage` type that clinosim's builder does not emit:
 - `Dosage.timing.code.coding` (min=1) satisfying R5020 — exactly one of
   MHLW ePrescription CS OR the JP-CLINS uncoded dummy code.
 
-See Issue #477: `Dosage.timing.code.text` is NOT populated. Timing.code is
-a CodeableConcept with binding to TimingAbbreviation, not a free-text field.
+Issue #3130 (supersedes #477): `Dosage.timing.code.text` is min 1 in
+JP_MedicationDosage_eCS and carries the usage as written.
 
 Feedback fix (2026-07-16, PR-I).
 """
@@ -115,36 +115,35 @@ def test_timing_code_dummy_uncoded_added_when_missing():
     assert coding == {
         "system": _JP_CLINS_MEDICATION_USAGE_UNCODED_CS,
         "code": _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE,
-        "display": _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY,
+        # Issue #3130: the unCoded slice fixes the display.
+        "display": "ダミー用法コード",
     }
 
 
-def test_timing_code_text_not_populated():
-    """Issue #477: timing.code.text should NOT be populated. It's a
-    CodeableConcept with TimingAbbreviation binding, not a free-text field."""
+def test_timing_code_text_is_the_usage():
+    """Issue #3130 (supersedes #477): timing.code.text is min 1 in
+    JP_MedicationDosage_eCS — the usage as written, here the dosage text."""
     r = {
         "resourceType": "MedicationRequest",
         "id": "mr1",
         "dosageInstruction": [{"text": "1日3回 毎食後"}],
     }
     _populate_jp_medication_dosage_ecs_fields(r)
-    # timing.code.text should NOT be set (Issue #477)
-    assert "text" not in r["dosageInstruction"][0]["timing"]["code"]
-    # But timing.code.coding should still be present
+    assert r["dosageInstruction"][0]["timing"]["code"]["text"] == "1日3回 毎食後"
     assert len(r["dosageInstruction"][0]["timing"]["code"]["coding"]) == 1
 
 
-def test_timing_code_text_not_populated_even_with_no_dosage_text():
-    """Issue #477: timing.code.text should NOT be populated, even as a
-    fallback when dosageInstruction.text is missing."""
+def test_timing_code_text_without_any_usage_is_unspecified():
+    """With no cadence and no dosage text the usage reads 用法未指定, and
+    Dosage.text (min 1) carries it too."""
     r = {
         "resourceType": "MedicationRequest",
         "id": "mr1",
         "dosageInstruction": [{}],
     }
     _populate_jp_medication_dosage_ecs_fields(r)
-    # timing.code.text should NOT be set (Issue #477)
-    assert "text" not in r["dosageInstruction"][0]["timing"]["code"]
+    assert r["dosageInstruction"][0]["timing"]["code"]["text"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
+    assert r["dosageInstruction"][0]["text"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
 
 
 def test_timing_code_daily_cadence_resolves_to_mhlw_code():
@@ -195,7 +194,7 @@ def test_timing_code_statin_qd_resolves_to_bedtime_mhlw_code():
 def test_timing_code_hourly_cadence_falls_back_to_dummy():
     """Issue #817: only daily cadences map to MHLW codes (the CS has no
     pure-hourly entries). Hourly cadence continues to emit the JP-CLINS
-    dummy code with the derived `Nh時間ごと` display."""
+    dummy code; the derived `N時間ごと` usage is the timing text (Issue #3130)."""
     r = {
         "resourceType": "MedicationRequest",
         "id": "mr-hourly",
@@ -207,13 +206,14 @@ def test_timing_code_hourly_cadence_falls_back_to_dummy():
         ],
     }
     _populate_jp_medication_dosage_ecs_fields(r)
-    coding = r["dosageInstruction"][0]["timing"]["code"]["coding"][0]
-    assert coding["code"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE
-    assert coding["display"] == "6時間ごと"
+    code = r["dosageInstruction"][0]["timing"]["code"]
+    assert code["coding"][0]["code"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_CODE
+    assert code["coding"][0]["display"] == "ダミー用法コード"
+    assert code["text"] == "6時間ごと"
 
 
-def test_timing_code_display_derives_hourly_cadence():
-    """`{frequency: 1, period: 6, periodUnit: 'h'}` → `6時間ごと`."""
+def test_timing_code_text_derives_hourly_cadence():
+    """`{frequency: 1, period: 6, periodUnit: 'h'}` → timing text `6時間ごと`."""
     r = {
         "resourceType": "MedicationRequest",
         "id": "mr1",
@@ -225,22 +225,22 @@ def test_timing_code_display_derives_hourly_cadence():
         ],
     }
     _populate_jp_medication_dosage_ecs_fields(r)
-    assert r["dosageInstruction"][0]["timing"]["code"]["coding"][0]["display"] == "6時間ごと"
+    assert r["dosageInstruction"][0]["timing"]["code"]["text"] == "6時間ごと"
 
 
-def test_timing_code_display_falls_back_to_neutral_placeholder_when_no_repeat():
-    """Issue #782: with no recognizable timing.repeat, the walker uses
-    a factual placeholder (`用法未指定`) — NOT the pre-fix `ダミー用法コード`
-    which leaked "dummy" wording into consumer-facing raw FHIR views."""
+def test_uncoded_display_is_the_fixed_profile_value_when_no_repeat():
+    """Issue #3130: JP_MedicationDosage_eCS fixes the unCoded display to
+    `ダミー用法コード` (supersedes the Issue #782 placeholder in the coding);
+    the usage text (here the dosage text) goes in timing.code.text."""
     r = {
         "resourceType": "MedicationRequest",
         "id": "mr1",
         "dosageInstruction": [{"text": "x"}],  # no timing.repeat
     }
     _populate_jp_medication_dosage_ecs_fields(r)
-    coding = r["dosageInstruction"][0]["timing"]["code"]["coding"][0]
-    assert coding["display"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_DISPLAY
-    assert "ダミー" not in coding["display"], "Fix must remove 'ダミー' wording from consumer-visible display"
+    code = r["dosageInstruction"][0]["timing"]["code"]
+    assert code["coding"][0]["display"] == "ダミー用法コード"
+    assert code["text"] == "x"
 
 
 def test_timing_code_preserves_pre_existing_mhlw_coding():
@@ -301,9 +301,9 @@ def test_all_dosage_instructions_receive_fields():
         assert any(e["url"] == _JP_MEDICATION_DOSAGE_PERIOD_OF_USE_EXT_URL for e in di["extension"])
         codings = di["timing"]["code"]["coding"]
         assert any(c["system"] == _JP_CLINS_MEDICATION_USAGE_UNCODED_CS for c in codings)
-    # Issue #477: timing.code.text should NOT be set
-    assert "text" not in r["dosageInstruction"][0]["timing"]["code"]
-    assert "text" not in r["dosageInstruction"][1]["timing"]["code"]
+    # Issue #3130: timing.code.text (min 1) is the usage.
+    assert r["dosageInstruction"][0]["timing"]["code"]["text"] == "AM"
+    assert r["dosageInstruction"][1]["timing"]["code"]["text"] == "PM"
 
 
 def test_ignores_non_medication_request_resources():
