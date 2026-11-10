@@ -37,6 +37,7 @@ from clinosim.modules.output.fhir_r4.conditions.clinical_impression import _bb_c
 from clinosim.modules.output.fhir_r4.conditions.code_status import _bb_code_status
 from clinosim.modules.output.fhir_r4.conditions.hai import _bb_hai_conditions
 from clinosim.modules.output.fhir_r4.demographics.family_history import _bb_family_history
+from clinosim.modules.output.fhir_r4.demographics.related_person import _bb_related_person
 from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import (
     _bb_alcohol_use,
     _bb_smoking_status,
@@ -581,6 +582,7 @@ def _merge_sorted_chunks(chunk_paths: list[str], out_path: str) -> None:
 # here (or via register_bundle_builder) instead of editing _build_bundle (AD-56).
 _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_patient,
+    _bb_related_person,  # Issue #3182: emergency contact (was Patient.contact)
     _bb_coverage,
     _bb_encounters,
     _bb_care_teams,  # α-min-2 Task 11: 1 CareTeam per encounter (attending + nurse)

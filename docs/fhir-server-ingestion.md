@@ -31,9 +31,9 @@ ClinicalImpression.ndjson    Endpoint.ndjson              Patient.ndjson
 Composition.ndjson           FamilyMemberHistory.ndjson   Practitioner.ndjson
 Condition.ndjson             ImagingStudy.ndjson          PractitionerRole.ndjson
 Coverage.ndjson              Immunization.ndjson          Procedure.ndjson
-Device.ndjson                Location.ndjson              ServiceRequest.ndjson
-DeviceUseStatement.ndjson    MedicationAdministration.ndjson  Specimen.ndjson
-DiagnosticReport.ndjson      MedicationRequest.ndjson
+Device.ndjson                Location.ndjson              RelatedPerson.ndjson
+DeviceUseStatement.ndjson    MedicationAdministration.ndjson  ServiceRequest.ndjson
+DiagnosticReport.ndjson      MedicationRequest.ndjson     Specimen.ndjson
 manifest.json
 ```
 
@@ -101,7 +101,7 @@ SRC=jp-100/fhir_r4
 # references point at resources already loaded. Types that a cohort did
 # not produce are skipped.
 for rt in Organization Endpoint Practitioner Location PractitionerRole \
-          Patient Coverage Device Encounter Condition AllergyIntolerance \
+          Patient RelatedPerson Coverage Device Encounter Condition AllergyIntolerance \
           FamilyMemberHistory Immunization ServiceRequest Specimen Observation \
           ImagingStudy DiagnosticReport MedicationRequest MedicationAdministration \
           Procedure DeviceUseStatement ClinicalImpression CareTeam \
@@ -120,7 +120,7 @@ do
 done
 ```
 
-The list above covers all 26 resource types the FHIR writer can emit.
+The list above covers all 27 resource types the FHIR writer can emit.
 To check that a cohort contains nothing the loop would skip, compare it
 with `manifest.json`:
 
@@ -135,7 +135,7 @@ exactly as with the loop above.
 
 ```bash
 for rt in Organization Endpoint Practitioner Location PractitionerRole \
-          Patient Coverage Device Encounter Condition AllergyIntolerance \
+          Patient RelatedPerson Coverage Device Encounter Condition AllergyIntolerance \
           FamilyMemberHistory Immunization ServiceRequest Specimen Observation \
           ImagingStudy DiagnosticReport MedicationRequest MedicationAdministration \
           Procedure DeviceUseStatement ClinicalImpression CareTeam \

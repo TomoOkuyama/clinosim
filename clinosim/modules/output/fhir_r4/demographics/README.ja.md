@@ -1,4 +1,4 @@
-# `fhir_r4/demographics/` — Patient / Practitioner / FamilyMemberHistory / 社会歴 builder
+# `fhir_r4/demographics/` — Patient / RelatedPerson / Practitioner / FamilyMemberHistory / 社会歴 builder
 
 ## 概要
 
@@ -6,7 +6,8 @@ demographics + 社会歴ファミリの FHIR R4 resource 全てを emit:
 `Patient`、`Coverage` + payor `Organization` と occupation
 `Observation` (いずれも `patient.py` で構築。registry wrapper
 `_bb_patient` / `_bb_coverage` / `_bb_occupation` は
-[`../lib/inline_bb.py`](../lib/inline_bb.py))、`Practitioner` +
+[`../lib/inline_bb.py`](../lib/inline_bb.py))、緊急連絡先の
+`RelatedPerson` (`related_person.py`)、`Practitioner` +
 `PractitionerRole`、`FamilyMemberHistory`、smoking / alcohol
 社会歴 `Observation`。standalone allergy path は
 [`../conditions/`](../conditions/README.ja.md) の `AllergyIntolerance`
@@ -26,6 +27,14 @@ builder が唯一の emit path。
   1 人ごとの所得区分で identity.yaml `copay` から決める (`jp_copay_pct`、
   Issue #3016)) + occupation
   Observation (`_build_occupation_observation`);
+  `_bb_related_person` + `_build_emergency_contact_related_person`
+  (緊急連絡先を患者を参照する RelatedPerson として出力。構造は全ての国で
+  共通: relationship は `v2-0131#C` と、CIF の続柄 slug を
+  `codes/data/hl7-v3-rolecode.yaml` の `slug_to_code` で変換した
+  `v3-RoleCode` の続柄、氏名と電話番号。id は structural key
+  `{patient_id}-emergency-contact` から導出した `rp-<12hex>`。
+  `JP_Patient_eCheckupGeneral` は Patient.contact を勤務先の連絡先に
+  限るため Patient.contact は出力しない、Issue #3182);
   `_build_practitioner` + `_build_practitioner_role`;
   `_bb_family_history` + `_resolve_family_history_code` +
   `_build_relationship_codeable`; `_bb_smoking_status` +
@@ -63,6 +72,10 @@ from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_patient,                     # (patient_dict, country) -> Patient dict
     _build_coverage_resources,          # (patient_dict, country, encounters=None, snapshot_date=None) -> [Coverage, payor Organization, ...]
     _build_occupation_observation,      # -> occupation Observation
+)
+from clinosim.modules.output.fhir_r4.demographics.related_person import (
+    _bb_related_person,                 # bundle-builder (ctx) -> [RelatedPerson] (緊急連絡先) または []
+    _build_emergency_contact_related_person,  # (patient_dict, country) -> RelatedPerson dict | None
 )
 from clinosim.modules.output.fhir_r4.demographics.practitioner import (
     _build_practitioner,                # (staff_id, roster_map, country) -> Practitioner dict
@@ -119,6 +132,11 @@ NDJSON を id で sort する。
   JP Core / JP-CLINS / US Core profile URI は
   [`../post_process/profile.py`](../post_process/profile.py) が積む。
   US Patient は US Core race / ethnicity / birthsex extension を持つ。
+- **緊急連絡先の続柄コード** — `v2-0131#C` と HL7 v3-RoleCode の続柄。
+  表示は `codes/data/hl7-v2-0131.yaml` / `hl7-v3-rolecode.yaml`
+  (coding.display は英語、出力言語のラベルは `text`)。JP Core
+  `JP_RelatedPerson` / US Core `us-core-relatedperson` profile は
+  `codes/data/fhir-profiles-{jp,us}-core.yaml` から宣言する。
 - **Family-history relationship coding** — HL7 v3-RoleCode
   ([`family_history` module README](../../../family_history/README.ja.md)
   に記載の Issue #369 v23 regression ルール — per-code JA 表示は
@@ -133,6 +151,7 @@ NDJSON を id で sort する。
 clinosim/modules/output/fhir_r4/demographics/
   __init__.py                    namespace stub (builder は ../builder.py / ../lib/inline_bb.py が import)
   patient.py                     _build_patient + Coverage + payor Org + occupation + patient_ref + legacy allergy (~1,200 LOC)
+  related_person.py              _bb_related_person + _build_emergency_contact_related_person (緊急連絡先)
   practitioner.py                _build_practitioner + _build_practitioner_role
   family_history.py              _bb_family_history + _resolve_family_history_code + _build_relationship_codeable
   smoking_alcohol.py             _bb_smoking_status + _bb_alcohol_use + _sdoh_effective_datetime + _sdoh_performer_ref

@@ -145,7 +145,7 @@ clinosim/modules/output/fhir_r4/
   __init__.py                        薄い再 export facade (public + back-compat private 名)
   builder.py                         convert_cif_to_fhir + _BUNDLE_BUILDERS registry + _build_bundle + snapshot / death reconciliation + NDJSON sort
   lib/                               共有 FHIR fragment helper (common / context / dosage / ecs_extensions / fhir_time / localization / reference_data / inline_bb / generator_metadata / ids / ed_reattribution)
-  demographics/                      Patient / Practitioner / FamilyMemberHistory / smoking + alcohol Observation
+  demographics/                      Patient / RelatedPerson / Practitioner / FamilyMemberHistory / smoking + alcohol Observation
   encounters/                        Encounter / CareTeam / CareLevel / Location + Organization (facility) / Endpoint
   medications/                       MedicationRequest + MedicationAdministration
   labs/                              Observation (lab + vitals) / DiagnosticReport / ServiceRequest / microbiology / ImagingStudy / blood_type / anthropometrics / stage_scale_observations / _reference_ranges / coding_package + coding_strategy
@@ -164,6 +164,7 @@ clinosim/modules/output/fhir_r4/
 | Coverage | `lib/inline_bb.py` (`_bb_coverage`) |
 | Observation (occupation) | `lib/inline_bb.py` (`_bb_occupation`) |
 | Practitioner + PractitionerRole | `demographics/practitioner.py` |
+| RelatedPerson (緊急連絡先) | `demographics/related_person.py` |
 | FamilyMemberHistory | `demographics/family_history.py` |
 | Observation (smoking / alcohol / social) | `demographics/smoking_alcohol.py` |
 | Encounter | `encounters/encounter.py` |

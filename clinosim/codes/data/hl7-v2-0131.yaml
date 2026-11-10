@@ -1,0 +1,14 @@
+# HL7 v2 table 0131 — Contact Role, used for the emergency-contact role on
+# RelatedPerson.relationship (Issue #3182). Authoritative source: HL7
+# Terminology (THO), CodeSystem v2-0131
+# (http://terminology.hl7.org/CodeSystem/v2-0131); English display verified
+# against the hl7.terminology.r4 7.3.0 package CodeSystem-v2-0131.json,
+# 2026-11-10. The code system publishes English only; `ja` is the clinosim
+# label carried in `text`.
+metadata:
+  kind: code-system
+  name: HL7 v2 Contact Role
+  uri: http://terminology.hl7.org/CodeSystem/v2-0131
+  source: "HL7 Terminology (THO)"
+codes:
+  C: {en: "Emergency Contact", ja: "緊急連絡先"}

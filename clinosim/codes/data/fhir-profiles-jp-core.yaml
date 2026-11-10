@@ -22,6 +22,10 @@ metadata:
 profiles:
   Patient:
     - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient
+  # Issue #3182: the emergency contact (StructureDefinition-JP-RelatedPerson.json
+  # `.url` in the jp-core.r4 1.1.2-clins package).
+  RelatedPerson:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_RelatedPerson
   Encounter:
     - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter
   Condition:
