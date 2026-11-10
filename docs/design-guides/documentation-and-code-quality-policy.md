@@ -193,6 +193,13 @@ module's API lives in its `__init__.py`, and a typed configuration model in
 A Python table keyed by domain identifiers is data and moves to YAML. A
 table of formula coefficients stays in Python even when it is long.
 
+A branch on country, age or sex that **selects a value**
+(`if is_jp(country): x = ...`, `if age < 18: ...`) is a table keyed by
+those identifiers written as code, and the same rule applies: the values
+move to YAML and the code looks them up. Only a structural difference that a
+profile or spec mandates stays a code branch (the grand design in
+[implementation-rules](implementation-rules.md#grand-design-code-and-data-are-separated)).
+
 ---
 
 ## 6. Dead-code hygiene

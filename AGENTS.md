@@ -89,7 +89,10 @@ old name; those are being cleaned up module-by-module (see linked issues).
   reference ranges, JST (`+09:00`) timestamp appenders, MHLW ICD system
   routing, MEDIS code emission, 保険者番号 (insurer number) lookup, JP-specific display strings —
   MUST be gated behind `is_jp(country)` from `clinosim.countries` and
-  MUST no-op on non-JP cohorts.
+  MUST no-op on non-JP cohorts. The gate decides *whether* a JP-only
+  structure is emitted; the values it carries (codes, strings, numbers,
+  formats) come from `clinosim/locale/jp/` or `clinosim/codes/data/`, never
+  from literals behind the gate (grand design, see Coding rules).
 - **Future US-specific profile support** (US Core / USCDI) will be gated behind
   `is_us(country)` in the same manner. The default cohort (no `--country`)
   emits generic FHIR R4; explicit `--country US` will additionally apply US
@@ -104,6 +107,19 @@ old name; those are being cleaned up module-by-module (see linked issues).
   add the same kind of US-side assertion when you add a JP-only emit path.
 
 ## Coding rules
+
+**Grand design — code and data are separated.** Logic lives in code; every
+constant, variable and parameter lives in data. Values that differ by
+country, by age / age band or by sex, and tunable clinical or statistical
+values (thresholds, rates, probabilities, durations, dose limits, codes,
+display text, formats), live in YAML with a cited source and are read through
+a loader. Code never selects such a value with a country / age / sex branch
+(`if is_jp(country): x = ...`, `if age < 18: ...`); it looks the value up.
+An algorithm only some countries use is code, written as a named
+implementation, and each country's YAML chooses which implementation it uses
+(e.g. `locale/<country>/egfr_equation.yaml`); a bare country branch only
+decides whether a profile-mandated structure is emitted. See
+[implementation-rules — Grand design](docs/design-guides/implementation-rules.md#grand-design-code-and-data-are-separated).
 
 Follow [`implementation-rules.md`](docs/design-guides/implementation-rules.md)
 (Python 3.11+, ruff with line length 120, mypy, types in `clinosim/types/`,
