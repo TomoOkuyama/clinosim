@@ -228,7 +228,8 @@ def _bb_newborn_bilirubin(ctx: Any) -> list[dict]:
                     {
                         "system": get_system_uri("loinc"),
                         "code": loinc,
-                        "display": "Bilirubin.total [Mass/volume] transcutaneous",
+                        # Issue #3127: the LOINC display of the code.
+                        "display": registry_display("loinc", loinc, "en") or "",
                     }
                 ],
                 "text": _label("newborn_code_text", "transcutaneous_bilirubin", lang),
@@ -449,7 +450,8 @@ def _bb_newborn_metabolic_screen_service_request(ctx: Any) -> list[dict]:
                 {
                     "system": get_system_uri("loinc"),
                     "code": order_loinc,
-                    "display": order_display,
+                    # Issue #3127: the LOINC display; the order name is text.
+                    "display": registry_display("loinc", order_loinc, "en") or order_display,
                 }
             ],
             "text": order_display_local,
@@ -700,7 +702,8 @@ def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
                 {
                     "system": get_system_uri("loinc"),
                     "code": dr_loinc,
-                    "display": dr_display,
+                    # Issue #3127: the LOINC display; the report name is text.
+                    "display": registry_display("loinc", dr_loinc, "en") or dr_display,
                 }
             ],
             "text": dr_display_local,

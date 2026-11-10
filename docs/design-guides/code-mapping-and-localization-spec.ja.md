@@ -32,18 +32,18 @@
 
 1. **データ。** コード体系ごとに、システムキーを名前にしたレジストリファイルを 1 つ置く (§3.3)。その体系への内部キー対応表や crosswalk は、体系名を付けた別ファイルにする (`loinc-maps.yaml`、`snomed-maps.yaml`)。
 2. **アクセサ。** すべてのコード体系は基底クラス `CodeSystem` (§2.3) のインスタンスとする。フックや独自の参照 (対応付け、階層、製品の選択、正規 URI の規則など) が要る権威は、`clinosim/codes/<authority>.py` にサブクラスを 1 つ持ち、そのモジュールは自分の権威のファイルだけを読む。基底クラスだけで足りる権威 (HL7 terminology、CVX、DICOM、OMB、clinosim 独自の体系) は、レジストリファイルから作る素のインスタンスで、モジュールを持たない。
-3. **スナップショット。** 権威から照合済みで取り出したデータは `clinosim/codes/authoritative/` に、権威とリリースごとに 1 ファイルで置き (`loinc_2_82_tx.json`、`rxnorm_rxnav_snapshot.json` など)、テストでレジストリと突き合わせる。
+3. **スナップショット。** 権威から照合済みで取り出したデータは `clinosim/codes/authoritative/` に、権威とリリースごとに 1 ファイルで置き (`loinc_2_83_tx.json`、`rxnorm_rxnav_snapshot.json` など)、テストでレジストリと突き合わせる。
 4. **カタログは権威をつなぐだけで、権威を持たない。** カタログ (薬、処置、職種) は内部 id、名称、複数の権威のコードを持つ。各コードはその権威のアクセサで解決し、権威の参照規則を再実装しない。
 
 現在の配置:
 
 | 権威 | レジストリファイル | アクセサ | スナップショット |
 |---|---|---|---|
-| ICD-10-CM (NLM / CMS) | `icd-10-cm.yaml` | `codes/icd10.py` | — |
+| ICD-10-CM (NLM / CMS) | `icd-10-cm.yaml` | `codes/icd10.py` | `icd10cm_2027_cms.json` |
 | ICD-10 (WHO、MHLW 日本語名) | `icd-10.yaml` (alias `icd-10-mhlw`) | `codes/icd10.py` | `icd10_who_tx.json`、`icd10_mhlw_2013_ja.json` |
 | MEDIS 病名管理番号 | `medis-disease-keyno.yaml` | `codes/medis.py` | — |
-| LOINC | `loinc.yaml`、`loinc-maps.yaml` | `codes/loinc.py` | `loinc_2_82_tx.json` |
-| SNOMED CT | `snomed-ct.yaml`、`snomed-maps.yaml`、`procedure-phrase-to-snomed.yaml`、`procedure-snomed-metadata.yaml` | `codes/snomed.py`、`codes/snomed_concepts.py` | — |
+| LOINC | `loinc.yaml`、`loinc-maps.yaml` | `codes/loinc.py` | `loinc_2_83_tx.json` |
+| SNOMED CT | `snomed-ct.yaml`、`snomed-maps.yaml`、`procedure-phrase-to-snomed.yaml`、`procedure-snomed-metadata.yaml` | `codes/snomed.py`、`codes/snomed_concepts.py` | `snomed_ct_tx.json` |
 | RxNorm | `rxnorm.yaml` | `codes/drugs.py` 経由 | `rxnorm_rxnav_snapshot.json` |
 | YJ / HOT (MHLW、MEDIS) | `yj.yaml`、`hot7.yaml` | `codes/yj.py` (形式、YJ マスタ)。薬ごとの製品は `codes/drugs.py` のカタログ | `yj_mhlw_snapshot.json`、`JP_MedicationCodeYJ_CS_full.json`、`yj_tx_fragment.json` |
 | JLAC10 / JP-CLINS 検査 | `jlac10.yaml`、`jp-clins-lab-uncoded.yaml` | `codes/jlac10.py` | JP-CLINS パッケージ |

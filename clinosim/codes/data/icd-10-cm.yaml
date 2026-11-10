@@ -196,17 +196,17 @@ codes:
   F32.2:
     en: Major depressive disorder, single episode, severe without psychotic features
   F33:
-    en: Recurrent depressive disorder
+    en: "Major depressive disorder, recurrent"
   F33.9:
     en: Major depressive disorder, recurrent, unspecified
   F33.2:
     en: Major depressive disorder, recurrent severe without psychotic features
   F41.0:
-    en: Panic disorder [episodic paroxysmal anxiety] without agoraphobia
+    en: "Panic disorder [episodic paroxysmal anxiety]"
   F41.1:
     en: Generalized anxiety disorder
   G20:
-    en: Parkinson disease
+    en: "Parkinson's disease"
   G43.909:
     en: Migraine, unspecified, not intractable, without status migrainosus
     ja: 片頭痛、詳細不明
@@ -232,11 +232,11 @@ codes:
   I21:
     en: Acute myocardial infarction
   I21.0:
-    en: Acute transmural myocardial infarction of anterior wall
+    en: "ST elevation (STEMI) myocardial infarction of anterior wall"
   I21.1:
-    en: Acute transmural myocardial infarction of inferior wall
+    en: "ST elevation (STEMI) myocardial infarction of inferior wall"
   I21.4:
-    en: Acute subendocardial myocardial infarction (NSTEMI)
+    en: "Non-ST elevation (NSTEMI) myocardial infarction"
   I21.9:
     en: Acute myocardial infarction, unspecified
   I25:
@@ -284,7 +284,7 @@ codes:
   I61.4:
     en: Nontraumatic intracerebral hemorrhage in cerebellum
   I61.5:
-    en: Nontraumatic intraventricular hemorrhage
+    en: "Nontraumatic intracerebral hemorrhage, intraventricular"
   I61.9:
     en: Nontraumatic intracerebral hemorrhage, unspecified
   I63:
@@ -294,7 +294,7 @@ codes:
   I63.4:
     en: Cerebral infarction due to embolism of cerebral arteries
   I63.5:
-    en: Cerebral infarction due to unspecified occlusion of basilar artery
+    en: "Cerebral infarction due to unspecified occlusion or stenosis of cerebral arteries"
   I63.9:
     en: Cerebral infarction, unspecified
   # Issue #1777: I69.* sequelae codes drive the stroke-followup narrative.
@@ -360,19 +360,19 @@ codes:
   J15.1:
     en: Pneumonia due to Pseudomonas
   J15.9:
-    en: Bacterial pneumonia, unspecified
+    en: "Unspecified bacterial pneumonia"
   J18.0:
     en: Bronchopneumonia, unspecified organism
   J18.1:
     en: Lobar pneumonia, unspecified organism
   J18.9:
-    en: Pneumonia, unspecified
+    en: "Pneumonia, unspecified organism"
   J44:
     en: Other chronic obstructive pulmonary disease
   J44.0:
-    en: Chronic obstructive pulmonary disease with acute lower respiratory infection
+    en: "Chronic obstructive pulmonary disease with (acute) lower respiratory infection"
   J44.1:
-    en: Chronic obstructive pulmonary disease with acute exacerbation
+    en: "Chronic obstructive pulmonary disease with (acute) exacerbation"
   J45:
     en: Asthma
   J45.21:
@@ -388,7 +388,7 @@ codes:
     en: Severe persistent asthma with (acute) exacerbation
     ja: 重症持続型喘息の急性増悪
   J45.9:
-    en: Asthma, unspecified
+    en: "Other and unspecified asthma"
   J45.901:
     en: Unspecified asthma with (acute) exacerbation
     ja: 喘息急性増悪、詳細不明
@@ -405,11 +405,11 @@ codes:
   K25:
     en: Gastric ulcer
   K25.4:
-    en: Acute gastric ulcer with hemorrhage
+    en: "Chronic or unspecified gastric ulcer with hemorrhage"
   K26:
     en: Duodenal ulcer
   K26.4:
-    en: Acute duodenal ulcer with hemorrhage
+    en: "Chronic or unspecified duodenal ulcer with hemorrhage"
   K35:
     en: Acute appendicitis
   K35.2:
@@ -438,7 +438,7 @@ codes:
   K56.4:
     en: Other impaction of intestine
   K56.5:
-    en: Intestinal adhesions with obstruction
+    en: "Intestinal adhesions [bands] with obstruction (postinfection)"
   K56.6:
     en: Other and unspecified intestinal obstruction
   K56.69:
@@ -448,7 +448,7 @@ codes:
     en: Alcoholic cirrhosis of liver with ascites
     ja: アルコール性肝硬変，腹水を伴うもの
   K70.41:
-    en: Alcoholic hepatic failure with ascites
+    en: "Alcoholic hepatic failure with coma"
     ja: アルコール性肝不全，腹水を伴うもの
   K74.60:
     ja: 肝硬変，詳細不明
@@ -513,7 +513,7 @@ codes:
     en: Acute lymphangitis of other parts of limb
     ja: 蜂窩織炎，左下肢
   L03.21:
-    en: Cellulitis of face
+    en: "Cellulitis and acute lymphangitis of face"
     ja: 蜂窩織炎，顔面
   L03.31:
     en: Cellulitis of trunk
@@ -531,9 +531,9 @@ codes:
   # ── Perinatal conditions (Issue #957 Tier-3-B slice 3) — sampled on the
   # newborn's birth encounter via ``perinatal.yaml::newborn_conditions``.
   P07:
-    en: Disorders of newborn related to short gestation and low birth weight
+    en: "Disorders of newborn related to short gestation and low birth weight, not elsewhere classified"
   P07.3:
-    en: "Preterm newborn (28 completed weeks to less than 37 completed weeks)"
+    en: "Preterm [premature] newborn [other]"
     ja: "在胎 28-37 週の早産児"
   P22:
     en: Respiratory distress of newborn
@@ -597,7 +597,7 @@ codes:
     en: Other spondylopathies
   M48.50:
     ja: 椎体圧潰，部位不明
-    en: Collapsed vertebra, not elsewhere classified
+    en: "Collapsed vertebra, not elsewhere classified, site unspecified"
   M48.50XA:
     en: Collapsed vertebra, not elsewhere classified, site unspecified, initial encounter
       for fracture
@@ -616,7 +616,7 @@ codes:
     en: Pathological fracture, other site
     ja: 病的骨折，その他の部位（椎体）
   N10:
-    en: Acute tubulo-interstitial nephritis
+    en: "Acute pyelonephritis"
   N12:
     en: Tubulo-interstitial nephritis, not specified as acute or chronic
   N17:
@@ -632,7 +632,7 @@ codes:
   N17.9:
     en: Acute kidney failure, unspecified
   N18:
-    en: Chronic kidney disease
+    en: "Chronic kidney disease (CKD)"
   N18.3:
     en: Chronic kidney disease, stage 3 (moderate)
   N20.0:
@@ -707,35 +707,34 @@ codes:
   S32.0:
     en: Fracture of lumbar vertebra
   S36.1:
-    en: Injury of liver or gallbladder
+    en: "Injury of liver and gallbladder and bile duct"
   S43.006A:
     en: Unspecified dislocation of unspecified shoulder joint, initial encounter
     ja: 肩関節脱臼（部位不明）、初回診療
   S52.50:
     ja: 橈骨遠位端骨折，詳細不明
-    en: Unspecified fracture of the lower end of unspecified radius
+    en: "Unspecified fracture of the lower end of radius"
   S52.51:
-    en: Colles' fracture
+    en: "Fracture of radial styloid process"
     ja: コレス骨折（転位あり）
   S52.52:
-    en: Smith's fracture
+    en: "Torus fracture of lower end of radius"
     ja: スミス骨折
   S52.59:
     en: Other fractures of lower end of radius
     ja: その他の橈骨遠位端骨折
   S62.90XA:
-    en: Unspecified fracture of unspecified wrist and hand, initial encounter for
-      closed fracture
+    en: "Unspecified fracture of unspecified hand, initial encounter for closed fracture"
     ja: 手関節骨折（詳細不明）、閉鎖性、初回診療
   S72.0:
-    en: Fracture of neck of femur
+    en: "Fracture of head and neck of femur"
   S72.00:
-    en: Fracture of unspecified part of neck of unspecified femur
+    en: "Fracture of unspecified part of neck of femur"
     ja: 大腿骨頸部骨折、部位不明
   S72.1:
     en: Pertrochanteric fracture
   S93.40:
-    en: Sprain of unspecified ligament of unspecified ankle
+    en: "Sprain of unspecified ligament of ankle"
     ja: 足関節捻挫、靭帯部位不明
   T07:
     en: Unspecified multiple injuries
@@ -743,7 +742,7 @@ codes:
     en: Injury, unspecified
     ja: 損傷、詳細不明
   T18.9XXA:
-    en: Foreign body in alimentary tract, part unspecified, initial encounter
+    en: "Foreign body of alimentary tract, part unspecified, initial encounter"
     ja: 消化管異物、部位不明、初回診療
   S67.2:
     en: Crushing injury of hand
@@ -751,7 +750,7 @@ codes:
   S67.8:
     en: Crushing injury of other parts of wrist and hand
   S68.1:
-    en: Traumatic amputation of finger
+    en: "Traumatic metacarpophalangeal amputation of other and unspecified finger"
   T15.0:
     en: Foreign body in cornea
   T30.0:
@@ -765,11 +764,11 @@ codes:
     en: Poisoning by fentanyl or fentanyl analogs, accidental (unintentional), initial encounter
     ja: フェンタニル又はフェンタニル類似体による中毒（不慮）、初回診療
   T54.3:
-    en: Toxic effect of corrosive alkalis and alkali-like substances
+    en: "Toxic effects of corrosive alkalis and alkali-like substances"
   T54.9:
-    en: Toxic effect of unspecified corrosive substance
+    en: "Toxic effects of unspecified corrosive substance"
   T75.4:
-    en: Electrocution / shock from electric current
+    en: "Electrocution"
   I49.9:
     en: Cardiac arrhythmia, unspecified
   T78.40:

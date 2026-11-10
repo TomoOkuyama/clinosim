@@ -24,13 +24,13 @@ pytestmark = pytest.mark.unit
 @pytest.mark.parametrize(
     "code, en_expected",
     [
-        ("44249-1", "PHQ-9 quick depression assessment panel"),
-        ("70274-6", "Generalized anxiety disorder 7 item (GAD-7) total score"),
+        ("44249-1", "PHQ-9 quick depression assessment panel [Reported.PHQ]"),
+        ("70274-6", "Generalized anxiety disorder 7 item (GAD-7) total score [Reported.PHQ]"),
         (
             "89204-2",
-            "Patient Health Questionnaire-9: Modified for Teens total score",
+            "Patient Health Questionnaire-9: Modified for Teens total score [Reported.PHQ.Teen]",
         ),
-        ("55757-9", "Patient Health Questionnaire 2 item (PHQ-2)"),
+        ("55757-9", "Patient Health Questionnaire 2 item (PHQ-2) [Reported]"),
     ],
 )
 def test_mental_health_loinc_display_en(code, en_expected):

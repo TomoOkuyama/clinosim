@@ -1,0 +1,4671 @@
+{
+  "metadata": {
+    "source_package": "LOINC 2.83 (tx.fhir.org)",
+    "source_url": "http://loinc.org",
+    "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (display + designations); $validate-code display where $lookup failed",
+    "extracted_at": "2026-11-10",
+    "clinosim_codes_total": 372,
+    "clinosim_codes_missing_from_source": [
+      "27069-5",
+      "42346-6",
+      "44805-4",
+      "45391-8"
+    ],
+    "note": "LOINC codes in codes/data/loinc.yaml with the LONG_COMMON_NAME (display), SHORTNAME and other English designations of LOINC 2.83 as served by tx.fhir.org, the terminology server of the HL7 FHIR validator (Issue #3127; replaces the 2.82 extract). Codes missing from the source are unknown to LOINC 2.83."
+  },
+  "concept": [
+    {
+      "code": "10154-3",
+      "display": "Chief complaint Narrative - Reported",
+      "short_display": "Chief complaint Reported",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Chief complaint Reported"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10157-6",
+      "display": "History of family member diseases note",
+      "short_display": "Hx of fam member ds note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hx of fam member ds note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10160-0",
+      "display": "History of Medication use Narrative",
+      "short_display": "Hx of Medication use",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hx of Medication use"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10164-2",
+      "display": "History of Present illness Narrative",
+      "short_display": "Hx of Pres illness",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hx of Pres illness"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10183-2",
+      "display": "Hospital discharge medications Narrative",
+      "short_display": "Hospital discharge medications",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hospital discharge medications"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10184-0",
+      "display": "Hospital discharge physical findings Narrative",
+      "short_display": "Hospital discharge physical findings",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hospital discharge physical findings"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10187-3",
+      "display": "Review of systems Narrative - Reported",
+      "short_display": "Review of systems",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Review of systems"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10331-7",
+      "display": "Rh [Type] in Blood",
+      "short_display": "Rh Bld",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Rh Bld"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Rh, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "104816-4",
+      "display": "Beta hydroxybutyrate [Moles/volume] in Blood",
+      "short_display": "B-OH-Butyr Bld-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "B-OH-Butyr Bld-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Beta hydroxybutyrate, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10535-3",
+      "display": "Digoxin [Mass/volume] in Serum or Plasma",
+      "short_display": "Digoxin SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Digoxin SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Digoxin, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "107117-4",
+      "display": "Method of oxygen delivery",
+      "short_display": "Method of oxygen delivery",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "10839-9",
+      "display": "Troponin I.cardiac [Mass/volume] in Serum or Plasma",
+      "short_display": "Troponin I SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Troponin I SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Troponin I, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11331-6",
+      "display": "History of Alcohol use",
+      "short_display": "Hx of Alcohol use",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hx of Alcohol use"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11341-5",
+      "display": "History of Occupation",
+      "short_display": "Hx of Occupation",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hx of Occupation"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11348-0",
+      "display": "History of Past illness note",
+      "short_display": "Hx of Past illness note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hx of Past illness note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11504-8",
+      "display": "Surgical Operation Note",
+      "short_display": "Operative Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Operative Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11506-3",
+      "display": "Progress Note",
+      "short_display": "Prog Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Prog Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11524-6",
+      "display": "EKG study",
+      "short_display": "EKG study",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11535-2",
+      "display": "Hospital discharge diagnosis note",
+      "short_display": "Hospital dc px note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hospital dc px note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "115635-5",
+      "display": "Early warning score EWS",
+      "short_display": "EWS EWS",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "EWS EWS"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11572-5",
+      "display": "Rheumatoid factor [Units/volume] in Serum or Plasma",
+      "short_display": "Rheumatoid fact SerPl-aCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Rheumatoid fact SerPl-aCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Rheumatoid factor, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "11580-8",
+      "display": "Thyrotropin [Units/volume] in Serum or Plasma by Detection limit <= 0.005 mIU/L",
+      "short_display": "TSH SerPl DL<=0.005 mIU/L-aCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "TSH SerPl DL<=0.005 mIU/L-aCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Thyroid Stimulating Hormone (TSH; Thyrotropin), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1250-0",
+      "display": "Major crossmatch [Interpretation]",
+      "short_display": "Maj XM SerPl-Imp",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Maj XM SerPl-Imp"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Major crossmatch, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "13457-7",
+      "display": "Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation",
+      "short_display": "LDLc SerPl Calc-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "LDLc SerPl Calc-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "LDL cholesterol, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "13969-1",
+      "display": "Creatine kinase.MB [Mass/volume] in Serum or Plasma",
+      "short_display": "CK MB SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CK MB SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Creatine Kinase-MB Form (CK-MB), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "14334-7",
+      "display": "Lithium [Moles/volume] in Serum or Plasma",
+      "short_display": "Lithium SerPl-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Lithium SerPl-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Lithium, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "14338-8",
+      "display": "Prealbumin [Mass/volume] in Serum or Plasma",
+      "short_display": "Prealb SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Prealb SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Prealbumin, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "14804-9",
+      "display": "Lactate dehydrogenase [Enzymatic activity/volume] in Serum or Plasma by Lactate to pyruvate reaction",
+      "short_display": "LDH SerPl L to P-cCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "LDH SerPl L to P-cCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Lactate Dehydrogenase (LDH), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "14979-9",
+      "display": "aPTT in Platelet poor plasma by Coagulation assay",
+      "short_display": "aPTT PPP",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "aPTT PPP"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Coagulation, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "17351-8",
+      "display": "Neutrophil cytoplasmic Ab [Presence] in Serum",
+      "short_display": "ANCA Ab Ser Ql",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "ANCA Ab Ser Ql"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Neutrophil cytoplasmic antibody, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1742-6",
+      "display": "Alanine aminotransferase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "ALT SerPl-cCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "ALT SerPl-cCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Alanine Aminotransferase (ALT; SGPT), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1749-1",
+      "display": "Albumin [Mass/volume] in Peritoneal fluid",
+      "short_display": "Albumin Prt-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Albumin Prt-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Albumin, Peritoneal fluid"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1751-7",
+      "display": "Albumin [Mass/volume] in Serum or Plasma",
+      "short_display": "Albumin SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Albumin SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Albumin, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "17837-6",
+      "display": "Acid phosphatase tartrate resistant [Enzymatic activity/volume] in Serum",
+      "short_display": "ACP TRAP Ser-cCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "ACP TRAP Ser-cCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Acid phosphatase tartrate resistant, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "17849-1",
+      "display": "Reticulocytes/Erythrocytes in Blood by Automated count",
+      "short_display": "Retics/RBC NFr Auto",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Retics/RBC NFr Auto"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Reticulocytes/Erythrocytes, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "17861-6",
+      "display": "Calcium [Mass/volume] in Serum or Plasma",
+      "short_display": "Calcium SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Calcium SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Calcium, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1798-8",
+      "display": "Amylase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "Amylase SerPl-cCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Amylase SerPl-cCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Amylase, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18262-6",
+      "display": "Cholesterol in LDL [Mass/volume] in Serum or Plasma by Direct assay",
+      "short_display": "LDLc SerPl Direct Assay-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "LDLc SerPl Direct Assay-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "LDL cholesterol, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1834-1",
+      "display": "Alpha-1-Fetoprotein [Mass/volume] in Serum or Plasma",
+      "short_display": "AFP SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "AFP SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Alpha-fetoprotein, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1863-0",
+      "display": "Anion gap in Serum or Plasma by Calculated.4Ions",
+      "short_display": "Anion Gap SerPl Calculated.4Ions-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Anion Gap SerPl Calculated.4Ions-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Anion gap, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18725-2",
+      "display": "Microbiology studies (set)",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18748-4",
+      "display": "Diagnostic imaging study",
+      "short_display": "Diagnostic imaging study",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18776-5",
+      "display": "Plan of Care Note",
+      "short_display": "Plan of Care Note",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18782-3",
+      "display": "Radiology Study observation (narrative)",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18842-5",
+      "display": "Discharge Summary",
+      "short_display": "D/C Sum",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "D/C Sum"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18864-9",
+      "display": "Ampicillin [Susceptibility]",
+      "short_display": "Ampicillin Susc Islt",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Ampicillin Susc Islt"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Susceptibility to Ampicillin"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18878-9",
+      "display": "ceFAZolin [Susceptibility]",
+      "short_display": "ceFAZolin Susc Islt",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "ceFAZolin Susc Islt"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Susceptibility to ceFAZolin"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18879-7",
+      "display": "Cefepime [Susceptibility]",
+      "short_display": "Cefepime Susc Islt",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Cefepime Susc Islt"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Susceptibility to Cefepime"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18895-3",
+      "display": "cefTRIAXone [Susceptibility]",
+      "short_display": "cefTRIAXone Susc Islt",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "cefTRIAXone Susc Islt"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Susceptibility to cefTRIAXone"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18906-8",
+      "display": "Ciprofloxacin [Susceptibility]",
+      "short_display": "Ciprofloxacin Susc Islt",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Ciprofloxacin Susc Islt"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Susceptibility to Ciprofloxacin"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18928-2",
+      "display": "Gentamicin [Susceptibility]",
+      "short_display": "Gentamicin Susc Islt",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Gentamicin Susc Islt"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Susceptibility to Gentamicin"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18943-1",
+      "display": "Meropenem [Susceptibility]",
+      "short_display": "Meropenem Susc Islt",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Meropenem Susc Islt"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Susceptibility to Meropenem"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18970-4",
+      "display": "Piperacillin+Tazobactam [Susceptibility]",
+      "short_display": "Pip+Tazo Susc Islt",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Pip+Tazo Susc Islt"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Susceptibility to Piperacillin+Tazobactam"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "18998-5",
+      "display": "Trimethoprim+Sulfamethoxazole [Susceptibility]",
+      "short_display": "TMP SMX Susc Islt",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "TMP SMX Susc Islt"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Susceptibility to Trimethoprim+Sulfamethoxazole"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "19000-9",
+      "display": "Vancomycin [Susceptibility]",
+      "short_display": "Vancomycin Susc Islt",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Vancomycin Susc Islt"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Susceptibility to Vancomycin"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "19005-8",
+      "display": "Radiology Imaging study [Impression] (narrative)",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "19123-9",
+      "display": "Magnesium [Mass/volume] in Serum or Plasma",
+      "short_display": "Magnesium SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Magnesium SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Magnesium, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1920-8",
+      "display": "Aspartate aminotransferase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "AST SerPl-cCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "AST SerPl-cCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Aspartate Aminotransferase (AST; SGOT), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1959-6",
+      "display": "Bicarbonate [Moles/volume] in Blood",
+      "short_display": "HCO3 Bld-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "HCO3 Bld-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Bicarbonate, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1960-4",
+      "display": "Bicarbonate [Moles/volume] in Arterial blood",
+      "short_display": "HCO3 BldA-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "HCO3 BldA-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Bicarbonate, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1963-8",
+      "display": "Bicarbonate [Moles/volume] in Serum or Plasma",
+      "short_display": "HCO3 SerPl-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "HCO3 SerPl-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Bicarbonate, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1968-7",
+      "display": "Bilirubin.direct [Mass/volume] in Serum or Plasma",
+      "short_display": "Bilirub Direct SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bilirub Direct SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Bilirubin.direct, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1975-2",
+      "display": "Bilirubin.total [Mass/volume] in Serum or Plasma",
+      "short_display": "Bilirub SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bilirub SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Bilirubin, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "1988-5",
+      "display": "C reactive protein [Mass/volume] in Serum or Plasma",
+      "short_display": "CRP SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CRP SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "C Reactive Protein (CRP), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2019-8",
+      "display": "Carbon dioxide [Partial pressure] in Arterial blood",
+      "short_display": "pCO2 BldA",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "pCO2 BldA"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Carbon Dioxide (CO2), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2028-9",
+      "display": "Carbon dioxide, total [Moles/volume] in Serum or Plasma",
+      "short_display": "CO2 SerPl-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CO2 SerPl-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Carbon Dioxide (CO2), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2039-6",
+      "display": "Carcinoembryonic Ag [Mass/volume] in Serum or Plasma",
+      "short_display": "CEA SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CEA SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Carcinoembryonic antigen, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "20565-8",
+      "display": "Carbon dioxide, total [Moles/volume] in Blood",
+      "short_display": "CO2 Bld-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CO2 Bld-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Carbon Dioxide (CO2), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2075-0",
+      "display": "Chloride [Moles/volume] in Serum or Plasma",
+      "short_display": "Chloride SerPl-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Chloride SerPl-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Chloride, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2085-9",
+      "display": "Cholesterol in HDL [Mass/volume] in Serum or Plasma",
+      "short_display": "HDLc SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "HDLc SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "HDL cholesterol, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2089-1",
+      "display": "Cholesterol in LDL [Mass/volume] in Serum or Plasma",
+      "short_display": "LDLc SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "LDLc SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "LDL cholesterol, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2093-3",
+      "display": "Cholesterol [Mass/volume] in Serum or Plasma",
+      "short_display": "Cholest SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Cholest SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Cholesterol, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2106-3",
+      "display": "Choriogonadotropin [Presence] in Urine",
+      "short_display": "HCG Ur Ql",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "HCG Ur Ql"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "HCG, Urine"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2143-6",
+      "display": "Cortisol [Mass/volume] in Serum or Plasma",
+      "short_display": "Cortis SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Cortis SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Cortisol, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2157-6",
+      "display": "Creatine kinase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "CK SerPl-cCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CK SerPl-cCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Creatine Kinase (CK), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2160-0",
+      "display": "Creatinine [Mass/volume] in Serum or Plasma",
+      "short_display": "Creat SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Creat SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Creatinine, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2161-8",
+      "display": "Creatinine [Mass/volume] in Urine",
+      "short_display": "Creat Ur-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Creat Ur-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Creatinine, Urine"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2276-4",
+      "display": "Ferritin [Mass/volume] in Serum or Plasma",
+      "short_display": "Ferritin SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Ferritin SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Ferritin, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2324-2",
+      "display": "Gamma glutamyl transferase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "GGT SerPl-cCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "GGT SerPl-cCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Gamma glutamyl transferase, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2345-7",
+      "display": "Glucose [Mass/volume] in Serum or Plasma",
+      "short_display": "Glucose SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Glucose SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Glucose, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24108-3",
+      "display": "Cancer Ag 19-9 [Units/volume] in Serum or Plasma",
+      "short_display": "Cancer Ag19-9 SerPl-aCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Cancer Ag19-9 SerPl-aCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Cancer Ag 19-9, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24321-2",
+      "display": "Basic metabolic 2000 panel - Serum or Plasma",
+      "short_display": "Bas Metab 2000 Pnl SerPl",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bas Metab 2000 Pnl SerPl"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Basic metabolic 2000 panel, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24325-3",
+      "display": "Hepatic function 2000 panel - Serum or Plasma",
+      "short_display": "Hep Func 2000 Pnl SerPl",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hep Func 2000 Pnl SerPl"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Hepatic function 2000 panel, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24336-0",
+      "display": "Gas panel - Arterial blood",
+      "short_display": "Gas Pnl BldA",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Gas Pnl BldA"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Gas panel, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24351-9",
+      "display": "Protein electrophoresis panel - Serum or Plasma",
+      "short_display": "Prot Elph Pnl SerPl",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Prot Elph Pnl SerPl"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Protein electrophoresis panel, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24356-8",
+      "display": "Urinalysis complete panel - Urine",
+      "short_display": "Urinalysis complete pnl Ur",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Urinalysis complete pnl Ur"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Urinalysis complete panel, Urine"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24357-6",
+      "display": "Urinalysis macro (dipstick) panel - Urine",
+      "short_display": "UA Dipstick Pnl Ur",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "UA Dipstick Pnl Ur"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Urinalysis macro (dipstick) panel, Urine"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24373-3",
+      "display": "Ferritin [Mass/volume] in Blood",
+      "short_display": "Ferritin Bld-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Ferritin Bld-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Ferritin, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24558-9",
+      "display": "US Abdomen",
+      "short_display": "US Abd",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "US Abd"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24606-6",
+      "display": "MG Breast Screening",
+      "short_display": "MG Brst screening",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "MG Brst screening"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24616-5",
+      "display": "US Carotid arteries",
+      "short_display": "US Carotid aa",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "US Carotid aa"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24619-9",
+      "display": "XR Wrist Views",
+      "short_display": "XR Wrist Views",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24628-0",
+      "display": "CT Chest W contrast IV",
+      "short_display": "CT Chest W contr IV",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Chest W contr IV"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24682-7",
+      "display": "RF videography Hypopharynx and Esophagus Views W liquid and paste contrast PO during swallowing",
+      "short_display": "RF vid Hypoph+Esophagus Liq+Pst Swal fn",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "RF vid Hypoph+Esophagus Liq+Pst Swal fn"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24722-1",
+      "display": "XR Hand 3 Views",
+      "short_display": "XR Hand 3V",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR Hand 3V"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24725-4",
+      "display": "CT Head",
+      "short_display": "CT Head",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24799-9",
+      "display": "XR Abdomen AP",
+      "short_display": "XR Abd AP",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR Abd AP"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24932-6",
+      "display": "CT Cervical spine",
+      "short_display": "CT C-spine",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT C-spine"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "24968-0",
+      "display": "MR Lumbar spine",
+      "short_display": "MR L-spine",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "MR L-spine"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "25019-1",
+      "display": "US Urinary bladder",
+      "short_display": "US Bladder",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "US Bladder"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2518-9",
+      "display": "Lactate [Moles/volume] in Arterial blood",
+      "short_display": "Lactate BldA-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Lactate BldA-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Lactate, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2524-7",
+      "display": "Lactate [Moles/volume] in Serum or Plasma",
+      "short_display": "Lactate SerPl-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Lactate SerPl-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Lactate, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2532-0",
+      "display": "Lactate dehydrogenase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "LDH SerPl-cCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "LDH SerPl-cCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Lactate Dehydrogenase (LDH), Blood"
+        }
+      ],
+      "status": "DISCOURAGED"
+    },
+    {
+      "code": "2571-8",
+      "display": "Triglyceride [Mass/volume] in Serum or Plasma",
+      "short_display": "Trigl SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Trigl SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Triglyceride, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "26436-6",
+      "display": "Laboratory studies (set)",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2692-2",
+      "display": "Osmolality of Serum or Plasma",
+      "short_display": "Osmolality SerPl",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Osmolality SerPl"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Osmolality, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2703-7",
+      "display": "Oxygen [Partial pressure] in Arterial blood",
+      "short_display": "pO2 BldA",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "pO2 BldA"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Oxygen, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2708-6",
+      "display": "Oxygen saturation in Arterial blood",
+      "short_display": "SaO2 % BldA",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "SaO2 % BldA"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "SaO2%, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2731-8",
+      "display": "Parathyrin.intact [Mass/volume] in Serum or Plasma",
+      "short_display": "PTH-Intact SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "PTH-Intact SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Parathyrin.intact, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2744-1",
+      "display": "pH of Arterial blood",
+      "short_display": "pH BldA",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "pH BldA"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "pH, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2777-1",
+      "display": "Phosphate [Mass/volume] in Serum or Plasma",
+      "short_display": "Phosphate SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Phosphate SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Phosphate, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2823-3",
+      "display": "Potassium [Moles/volume] in Serum or Plasma",
+      "short_display": "Potassium SerPl-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Potassium SerPl-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Potassium, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2857-1",
+      "display": "Prostate specific Ag [Mass/volume] in Serum or Plasma",
+      "short_display": "PSA SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "PSA SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Prostate specific antigen, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "28570-0",
+      "display": "Procedure Note",
+      "short_display": "Procedure Note",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2883-7",
+      "display": "Protein [Mass/volume] in Peritoneal fluid",
+      "short_display": "Prot Prt-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Prot Prt-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Protein, Peritoneal fluid"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2885-2",
+      "display": "Protein [Mass/volume] in Serum or Plasma",
+      "short_display": "Prot SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Prot SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Protein, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "29252-4",
+      "display": "CT Chest WO contrast",
+      "short_display": "CT Chest WO contr",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Chest WO contr"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "29299-5",
+      "display": "Reason for visit Narrative",
+      "short_display": "Reason for visit",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Reason for visit"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "29308-4",
+      "display": "Diagnosis",
+      "short_display": "Dx",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Dx"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "29463-7",
+      "display": "Body weight",
+      "short_display": "Weight",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Weight"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2951-2",
+      "display": "Sodium [Moles/volume] in Serum or Plasma",
+      "short_display": "Sodium SerPl-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Sodium SerPl-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Sodium, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "29545-1",
+      "display": "Physical findings note",
+      "short_display": "Physical findings note",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "2955-3",
+      "display": "Sodium [Moles/volume] in Urine",
+      "short_display": "Sodium Ur-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Sodium Ur-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Sodium, Urine"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "29554-3",
+      "display": "Procedure Narrative",
+      "short_display": "Proc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Proc"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "29762-2",
+      "display": "Social history note",
+      "short_display": "Social hx note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Social hx note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3016-3",
+      "display": "Thyrotropin [Units/volume] in Serum or Plasma",
+      "short_display": "TSH SerPl-aCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "TSH SerPl-aCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Thyroid Stimulating Hormone (TSH; Thyrotropin), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3024-7",
+      "display": "Thyroxine (T4) free [Mass/volume] in Serum or Plasma",
+      "short_display": "T4 Free SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "T4 Free SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Free T4, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "30341-2",
+      "display": "Erythrocyte [Sedimentation Rate] in Blood",
+      "short_display": "Erythrocyte Sed Rat Bld",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Erythrocyte Sed Rat Bld"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Red Blood Cell (RBC), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3040-3",
+      "display": "Lipase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "Lipase SerPl-cCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Lipase SerPl-cCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Lipase, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "30592-0",
+      "display": "CT Cervical spine WO contrast",
+      "short_display": "CT C-spine WO contr",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT C-spine WO contr"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "30624-1",
+      "display": "CT Lower extremity W contrast IV",
+      "short_display": "CT LE W contr IV",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT LE W contr IV"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "30657-1",
+      "display": "MR Brain WO contrast",
+      "short_display": "MR Brain WO contr",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "MR Brain WO contr"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "30704-1",
+      "display": "US Abdomen limited",
+      "short_display": "US Abd Ltd",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "US Abd Ltd"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "30799-1",
+      "display": "CT Head WO contrast",
+      "short_display": "CT Head WO contr",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Head WO contr"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "30934-4",
+      "display": "Natriuretic peptide B [Mass/volume] in Serum or Plasma",
+      "short_display": "BNP SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "BNP SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Natriuretic Peptide B, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3094-0",
+      "display": "Urea nitrogen [Mass/volume] in Serum or Plasma",
+      "short_display": "BUN SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "BUN SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Urea Nitrogen (BUN), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "30954-2",
+      "display": "Relevant diagnostic tests/laboratory data note",
+      "short_display": "Relevant dx tests/lab data note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Relevant dx tests/lab data note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3151-8",
+      "display": "Inhaled oxygen flow rate",
+      "short_display": "Inhaled O2 flow rate",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Inhaled O2 flow rate"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Inhaled oxygen"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3255-7",
+      "display": "Fibrinogen [Mass/volume] in Platelet poor plasma by Coagulation assay",
+      "short_display": "Fibrinogen PPP-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Fibrinogen PPP-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Fibrinogen, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "32637-1",
+      "display": "Urease [Presence] in Tissue",
+      "short_display": "Urease Tiss Ql",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Urease Tiss Ql"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Urease, Tissue"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "32693-4",
+      "display": "Lactate [Moles/volume] in Blood",
+      "short_display": "Lactate Bld-sCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Lactate Bld-sCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Lactate, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3274-8",
+      "display": "Heparin unfractionated [Units/volume] in Platelet poor plasma by Chromogenic method",
+      "short_display": "UFH PPP Chro-aCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "UFH PPP Chro-aCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Heparin unfractionated, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3298-7",
+      "display": "Acetaminophen [Mass/volume] in Serum or Plasma",
+      "short_display": "APAP SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "APAP SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Acetaminophen, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "33452-4",
+      "display": "Maximum expiratory gas flow Respiratory system airway",
+      "short_display": "PEF Airway",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "PEF Airway"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "33762-6",
+      "display": "Natriuretic peptide.B prohormone N-Terminal [Mass/volume] in Serum or Plasma",
+      "short_display": "NT-proBNP SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "NT-proBNP SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Natriuretic Peptide.B Prohormone N-Terminal, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "33914-3",
+      "display": "Glomerular filtration rate [Volume Rate/Area] in Serum or Plasma by Creatinine-based formula (MDRD)/1.73 sq M",
+      "short_display": "GFR SerPl Creatinine-bsd frml MDRD",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "GFR SerPl Creatinine-bsd frml MDRD"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "GFR, Blood"
+        }
+      ],
+      "status": "DISCOURAGED"
+    },
+    {
+      "code": "34117-2",
+      "display": "History and Physical Note",
+      "short_display": "H&P Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "H&P Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34119-8",
+      "display": "Nursing Facility Initial Evaluation Note",
+      "short_display": "Nursing Facility Initial Eval Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Nursing Facility Initial Eval Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34131-3",
+      "display": "Outpatient Progress Note",
+      "short_display": "OP Prog Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "OP Prog Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34133-9",
+      "display": "Summary of Episode Note",
+      "short_display": "Summary of Episode Note",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34532-2",
+      "display": "Blood type and Indirect antibody screen panel - Blood",
+      "short_display": "Type + Ab Scn Pnl Bld",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Type + Ab Scn Pnl Bld"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Blood type and Indirect antibody screen panel, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34544-7",
+      "display": "Complement C3 and C4 panel [Mass/volume] - Serum or Plasma",
+      "short_display": "Comp C3 + C4 Pnl SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Comp C3 + C4 Pnl SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Complement C3 and C4 Panel, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34558-7",
+      "display": "Cell count panel - Peritoneal fluid",
+      "short_display": "Cell Cnt Pnl Prt",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Cell Cnt Pnl Prt"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Cell count panel, Peritoneal fluid"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34745-0",
+      "display": "Nurse Discharge Summary",
+      "short_display": "Nurse D/C Sum",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Nurse D/C Sum"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34746-8",
+      "display": "Nurse Note",
+      "short_display": "Nurse Note",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34823-5",
+      "display": "Physical Medicine and Rehab Note",
+      "short_display": "PM+R Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "PM+R Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34878-9",
+      "display": "Emergency Medicine Note",
+      "short_display": "Emergency Med Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Emergency Med Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "34895-3",
+      "display": "Education Note",
+      "short_display": "Educ Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Educ Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "3521-2",
+      "display": "cycloSPORINE [Mass/volume] in Serum",
+      "short_display": "cycloSPORINE Ser-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "cycloSPORINE Ser-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "cycloSPORINE, Blood"
+        }
+      ],
+      "status": "DISCOURAGED"
+    },
+    {
+      "code": "36294-7",
+      "display": "XR Ankle 3 Views",
+      "short_display": "XR Ankle 3V",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR Ankle 3V"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36305-1",
+      "display": "XR Foot 3 Views",
+      "short_display": "XR Foot 3V",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR Foot 3V"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36424-0",
+      "display": "CT Abdomen WO contrast",
+      "short_display": "CT Abd WO contr",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Abd WO contr"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36477-8",
+      "display": "CT Hand WO contrast",
+      "short_display": "CT Hand WO contr",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Hand WO contr"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36484-4",
+      "display": "CT Hip WO contrast",
+      "short_display": "CT Hip WO contr",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Hip WO contr"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36554-4",
+      "display": "XR Chest Single view",
+      "short_display": "XR Chest 1V",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR Chest 1V"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36572-6",
+      "display": "XR Chest AP",
+      "short_display": "XR Chest AP",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36663-3",
+      "display": "XR Hip 2 Views",
+      "short_display": "XR Hip 2V",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR Hip 2V"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36669-0",
+      "display": "XR Cervical spine 2 Views",
+      "short_display": "XR C-spine 2V",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR C-spine 2V"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36670-8",
+      "display": "XR Lumbar spine 2 Views",
+      "short_display": "XR L-spine 2V",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR L-spine 2V"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36813-4",
+      "display": "CT Abdomen and Pelvis W contrast IV",
+      "short_display": "CT Abd+Pelvis W contr IV",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Abd+Pelvis W contr IV"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36881-1",
+      "display": "MRA Head vessels WO contrast",
+      "short_display": "MRA Head ves WO contr",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "MRA Head ves WO contr"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "36952-0",
+      "display": "CT Abdomen and Pelvis WO contrast",
+      "short_display": "CT Abd+Pelvis WO contr",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Abd+Pelvis WO contr"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "37174-0",
+      "display": "RFA Coronary arteries Views W contrast IA",
+      "short_display": "RFA CA Views W contr IA",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "RFA CA Views W contr IA"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "37459-5",
+      "display": "CT Wrist WO contrast",
+      "short_display": "CT Wrist WO contr",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Wrist WO contr"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "37498-3",
+      "display": "CTA Head vessels and Neck vessels W contrast IV",
+      "short_display": "CTA Head+Neck Ves W contr IV",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CTA Head+Neck Ves W contr IV"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "37622-8",
+      "display": "XR Pelvis AP",
+      "short_display": "XR Pelvis AP",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "37636-8",
+      "display": "XR Abdomen Views",
+      "short_display": "XR Abd Views",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR Abd Views"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "37840-6",
+      "display": "XR Shoulder 2 Views",
+      "short_display": "XR Should 2V",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR Should 2V"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "37925-5",
+      "display": "XR Wrist 2 Views",
+      "short_display": "XR Wrist 2V",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR Wrist 2V"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "37926-3",
+      "display": "XR Wrist 3 Views",
+      "short_display": "XR Wrist 3V",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR Wrist 3V"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "38036-0",
+      "display": "US Kidney",
+      "short_display": "US Kidney",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "38222-6",
+      "display": "Sensory perception Braden scale",
+      "short_display": "Sensory perception Braden Scale",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Sensory perception Braden Scale"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "38223-4",
+      "display": "Physical activity Braden scale",
+      "short_display": "Physical Activity Braden Scale",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Physical Activity Braden Scale"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "38224-2",
+      "display": "Physical mobility Braden scale",
+      "short_display": "Physical mobility Braden Scale",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Physical mobility Braden Scale"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "38225-9",
+      "display": "Nutrition intake pattern Braden scale",
+      "short_display": "Nutrition Intake Pattern Braden Scale",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Nutrition Intake Pattern Braden Scale"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "38226-7",
+      "display": "Friction and shear Braden scale",
+      "short_display": "Friction+Shear Braden Scale",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Friction+Shear Braden Scale"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "38227-5",
+      "display": "Braden scale total score",
+      "short_display": "Braden Scale Total Score",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Braden Scale Total Score"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "38229-1",
+      "display": "Moisture exposure Braden scale",
+      "short_display": "Moisture exposure Braden Scale",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Moisture exposure Braden Scale"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "39142-5",
+      "display": "CT perfusion Head W contrast IV",
+      "short_display": "CT.perfusion Head W contr IV",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT.perfusion Head W contr IV"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "39156-5",
+      "display": "Body mass index (BMI) [Ratio]",
+      "short_display": "BMI",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "BMI"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "4024-6",
+      "display": "Salicylates [Mass/volume] in Serum or Plasma",
+      "short_display": "Salicylates SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Salicylates SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Salicylates, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "4049-3",
+      "display": "Theophylline [Mass/volume] in Serum or Plasma",
+      "short_display": "Theophylline SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Theophylline SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Theophylline, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "41806-1",
+      "display": "CT Abdomen",
+      "short_display": "CT Abd",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Abd"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "42176-8",
+      "display": "1,3 beta glucan [Mass/volume] in Serum",
+      "short_display": "1,3 beta glucan Ser-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "1,3 beta glucan Ser-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "1,3 beta glucan, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "42272-5",
+      "display": "XR Chest PA and Lateral",
+      "short_display": "XR Chest PA+Lat",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR Chest PA+Lat"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "42349-1",
+      "display": "Reason for referral (narrative)",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "44198-0",
+      "display": "XR Knee 1 or 2 Views",
+      "short_display": "XR Knee 1V or 2V",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR Knee 1V or 2V"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "44203-8",
+      "display": "Portable XR Cervical and thoracic and lumbar spine Views",
+      "short_display": "XR port C+T+L-spine Views",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "XR port C+T+L-spine Views"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "44249-1",
+      "display": "PHQ-9 quick depression assessment panel [Reported.PHQ]",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "44357-2",
+      "display": "Galactomannan Ag [Units/volume] in Serum or Plasma by Immunoassay",
+      "short_display": "Galactomannan Ag SerPl IA-aCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Galactomannan Ag SerPl IA-aCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Galactomannan antigen, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "4537-7",
+      "display": "Erythrocyte [Sedimentation Rate] in Blood by Westergren method",
+      "short_display": "Erythrocyte Sed Rat Bld Westrgrn",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Erythrocyte Sed Rat Bld Westrgrn"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Red Blood Cell (RBC), Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "4542-7",
+      "display": "Haptoglobin [Mass/volume] in Serum or Plasma",
+      "short_display": "Haptoglob SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Haptoglob SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Haptoglobin, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "4544-3",
+      "display": "Hematocrit [Volume Fraction] of Blood by Automated count",
+      "short_display": "Hct VFr Bld Auto",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hct VFr Bld Auto"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Hematocrit, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "4548-4",
+      "display": "Hemoglobin A1c/Hemoglobin.total in Blood",
+      "short_display": "HbA1c MFr Bld",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "HbA1c MFr Bld"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "HbA1c/Total Hgb, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "46241-6",
+      "display": "Hospital admission diagnosis Narrative - Reported",
+      "short_display": "Hospital admission Dx Reported",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hospital admission Dx Reported"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "46306-7",
+      "display": "CT Whole body W contrast IV",
+      "short_display": "CT Whole body W contr IV",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Whole body W contr IV"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "47046-8",
+      "display": "Summary of Death Note",
+      "short_display": "Summary of Death",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Summary of Death"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "47255-5",
+      "display": "Procollagen type I.N-terminal propeptide [Mass/volume] in Serum or Plasma",
+      "short_display": "PINP SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "PINP SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Procollagen Type I.N-terminal Propeptide, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "47420-5",
+      "display": "Functional Status Assessment Note",
+      "short_display": "Functional Status Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Functional Status Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "48065-7",
+      "display": "Fibrin D-dimer FEU [Mass/volume] in Platelet poor plasma",
+      "short_display": "D Dimer PPP FEU-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "D Dimer PPP FEU-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Fibrin d-dimer, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "48066-5",
+      "display": "Fibrin D-dimer DDU [Mass/volume] in Platelet poor plasma",
+      "short_display": "D Dimer PPP DDU-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "D Dimer PPP DDU-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Fibrin d-dimer, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "48642-3",
+      "display": "Glomerular filtration rate [Volume Rate/Area] in Serum, Plasma or Blood by Creatinine-based formula (MDRD)/1.73 sq M among non black population",
+      "short_display": "GFR/BSA pr.non blk SerPlBld MDRD-ArV",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "GFR/BSA pr.non blk SerPlBld MDRD-ArV"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "GFR, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "48765-2",
+      "display": "Allergies and adverse reactions Document",
+      "short_display": "Allergies &or adverse reactions Doc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Allergies &or adverse reactions Doc"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "49135-7",
+      "display": "Fractional excretion of sodium [Ratio] in Urine and Serum or Plasma",
+      "short_display": "Fract excret Na Ur+SerPl-Rto",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Fract excret Na Ur+SerPl-Rto"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Fractional excretion of sodium, Urine+Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "49774-3",
+      "display": "Glomerular basement membrane Ab [Units/volume] in Serum",
+      "short_display": "GBM Ab Ser-aCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "GBM Ab Ser-aCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Glomerular basement membrane antibody, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "50190-8",
+      "display": "Iron and Iron binding capacity panel - Serum or Plasma",
+      "short_display": "Iron+TIBC Pnl SerPl",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Iron+TIBC Pnl SerPl"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Iron and Iron binding capacity panel, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "51847-2",
+      "display": "Evaluation + Plan Note",
+      "short_display": "Eval+Plan Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Eval+Plan Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "51848-0",
+      "display": "Evaluation Note",
+      "short_display": "Eval Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Eval Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "51852-2",
+      "display": "Letter",
+      "short_display": "Letter",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "51897-7",
+      "display": "Healthcare Associated Infection report Document",
+      "short_display": "HAI report Doc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "HAI report Doc"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "53576-5",
+      "display": "Personal Health Monitoring Report",
+      "short_display": "Ph Monitoring Report",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Ph Monitoring Report"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "54089-8",
+      "display": "Newborn screening panel American Health Information Community (AHIC)",
+      "short_display": "NB Screen Pnl Patient AHIC",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "NB Screen Pnl Patient AHIC"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "NBS panel"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "54094-8",
+      "display": "Emergency Department Triage Note",
+      "short_display": "ED Triage Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "ED Triage Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "55109-3",
+      "display": "Complications Document",
+      "short_display": "Complications Doc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Complications Doc"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "55418-8",
+      "display": "Weight and Height tracking panel",
+      "short_display": "Weight & Height tracking Pnl",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Weight & Height tracking Pnl"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "55757-9",
+      "display": "Patient Health Questionnaire 2 item (PHQ-2) [Reported]",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "5643-2",
+      "display": "Ethanol [Mass/volume] in Serum or Plasma",
+      "short_display": "Ethanol SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Ethanol SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Ethanol, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "57130-7",
+      "display": "Newborn screening report - overall interpretation",
+      "short_display": "NBS report - overall interp",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "NBS report - overall interp"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "NBS report - overall interpretation"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "57133-1",
+      "display": "Referral Note",
+      "short_display": "Referral Note",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "57698-3",
+      "display": "Lipid panel with direct LDL - Serum or Plasma",
+      "short_display": "Lipid pnl with direct LDL SerPl",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Lipid pnl with direct LDL SerPl"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Lipid Panel With Direct LDL, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "57761-9",
+      "display": "Heparin induced platelet Ab [Presence] in Serum or Plasma by Immunoassay",
+      "short_display": "PF4 heparin cmplx Ab SerPl Ql IA",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "PF4 heparin cmplx Ab SerPl Ql IA"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Heparin induced platelet antibody, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "58410-2",
+      "display": "CBC panel - Blood by Automated count",
+      "short_display": "CBC Pnl Bld Auto",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CBC Pnl Bld Auto"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "CBC panel, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "58740-2",
+      "display": "MRCP Abdomen WO contrast",
+      "short_display": "MRCP Abd WO contr",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "MRCP Abd WO contr"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "58941-6",
+      "display": "Bilirubin [Mass/volume] in Skin",
+      "short_display": "Bilirub Skin-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bilirub Skin-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Bilirubin, Skin"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "5902-2",
+      "display": "Prothrombin time (PT)",
+      "short_display": "Prothrombin time",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Prothrombin time"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Coagulation, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59281-6",
+      "display": "US Heart Transthoracic",
+      "short_display": "US Heart Transthoracic",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59408-5",
+      "display": "Oxygen saturation in Arterial blood by Pulse oximetry",
+      "short_display": "SaO2 % BldA PulseOx",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "SaO2 % BldA PulseOx"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59454-9",
+      "display": "History of falling; immediate or within 3 months [Morse Fall Scale]",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59455-6",
+      "display": "Secondary diagnosis is present",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59456-4",
+      "display": "Ambulatory aid [Morse Fall Scale]",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59457-2",
+      "display": "Intravenous apparatus [Morse Fall Scale]",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59458-0",
+      "display": "Gait [Morse Fall Scale]",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59459-8",
+      "display": "Mental status [Morse Fall Scale]",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59460-6",
+      "display": "Fall risk total [Morse Fall Scale]",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59770-8",
+      "display": "Procedure estimated blood loss Narrative",
+      "short_display": "Estimated blood loss",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Estimated blood loss"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59773-2",
+      "display": "Procedure specimens taken Narrative",
+      "short_display": "Specimens taken",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Specimens taken"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59774-0",
+      "display": "Procedure anesthesia Narrative",
+      "short_display": "Anesthesia",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Anesthesia"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "59776-5",
+      "display": "Procedure findings Narrative",
+      "short_display": "Findings",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Findings"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "600-7",
+      "display": "Bacteria identified in Blood by Culture",
+      "short_display": "Bacteria Bld Cult",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bacteria Bld Cult"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Bacterial culture, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "601-5",
+      "display": "Fungus identified in Blood by Culture",
+      "short_display": "Fungus Bld Cult",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Fungus Bld Cult"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Fungal culture, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "61144-2",
+      "display": "Diet and nutrition Narrative",
+      "short_display": "Diet+nutrition",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Diet+nutrition"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "61146-7",
+      "display": "Goals Narrative",
+      "short_display": "Goals",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Goals"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "61149-1",
+      "display": "Objective Narrative",
+      "short_display": "Objective",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Objective"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "61150-9",
+      "display": "Subjective Narrative",
+      "short_display": "Subjective",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Subjective"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "619-7",
+      "display": "Bacteria identified in Peritoneal fluid by Culture",
+      "short_display": "Bacteria Prt Cult",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bacteria Prt Cult"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Bacterial culture, Peritoneal fluid"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "62292-8",
+      "display": "25-Hydroxyvitamin D3+25-Hydroxyvitamin D2 [Mass/volume] in Serum or Plasma",
+      "short_display": "25(OH)D3+25(OH)D2 SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "25(OH)D3+25(OH)D2 SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "25-hydroxyvitamin D, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "62387-6",
+      "display": "Interventions Narrative",
+      "short_display": "Interventions",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Interventions"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "624-7",
+      "display": "Bacteria identified in Sputum by Respiratory culture",
+      "short_display": "Bacteria Spt Resp Cult",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bacteria Spt Resp Cult"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Bacterial culture, Sputum"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "6295-0",
+      "display": "Complement C3d [Presence] in Red Blood Cells",
+      "short_display": "C3d RBC Ql",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "C3d RBC Ql"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Complement C3d, Red blood cells"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "630-4",
+      "display": "Bacteria identified in Urine by Culture",
+      "short_display": "Bacteria Ur Cult",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bacteria Ur Cult"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Bacterial culture, Urine"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "6301-6",
+      "display": "INR in Platelet poor plasma by Coagulation assay",
+      "short_display": "INR PPP",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "INR PPP"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Coagulation, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "634-6",
+      "display": "Bacteria identified in Specimen by Aerobe culture",
+      "short_display": "Bacteria Spec Aerobe Cult",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bacteria Spec Aerobe Cult"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Bacterial culture, Specimen"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "64295-9",
+      "display": "Nurse Plan of Care Note",
+      "short_display": "Nurse Plan of Care Note",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "64297-5",
+      "display": "Death Certificate",
+      "short_display": "Death Certificate",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "6460-0",
+      "display": "Bacteria identified in Sputum by Culture",
+      "short_display": "Bacteria Spt Cult",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bacteria Spt Cult"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Bacterial culture, Sputum"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "6598-7",
+      "display": "Troponin T.cardiac [Mass/volume] in Serum or Plasma",
+      "short_display": "Troponin T SerPl-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Troponin T SerPl-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Troponin T, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "6690-2",
+      "display": "Leukocytes [#/volume] in Blood by Automated count",
+      "short_display": "WBC # Bld Auto",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "WBC # Bld Auto"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "White blood cell (WBC) count, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "6768-6",
+      "display": "Alkaline phosphatase [Enzymatic activity/volume] in Serum or Plasma",
+      "short_display": "ALP SerPl-cCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "ALP SerPl-cCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Alkaline phosphatase, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "68609-7",
+      "display": "Hospital Letter",
+      "short_display": "Hosp Letter",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hosp Letter"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "6875-9",
+      "display": "Cancer Ag 15-3 [Units/volume] in Serum or Plasma",
+      "short_display": "Cancer Ag15-3 SerPl-aCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Cancer Ag15-3 SerPl-aCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Cancer Ag 15-3, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "69440-6",
+      "display": "Disease onset to death interval",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "69449-7",
+      "display": "Manner of death",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "69453-9",
+      "display": "Cause of death [US Standard Certificate of Death]",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "69739-1",
+      "display": "Drugs of abuse panel - Urine by Screen method",
+      "short_display": "Drugs of abuse Pnl Ur Scn",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Drugs of abuse Pnl Ur Scn"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Drugs of Abuse panel, Urine"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "69908-2",
+      "display": "CTA Abdominal vessels and Pelvis vessels W contrast IV",
+      "short_display": "CTA Abd ves+Pelvis ves W contr IV",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CTA Abd ves+Pelvis ves W contr IV"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "70274-6",
+      "display": "Generalized anxiety disorder 7 item (GAD-7) total score [Reported.PHQ]",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "711-2",
+      "display": "Eosinophils [#/volume] in Blood by Automated count",
+      "short_display": "Eosinophil # Bld Auto",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Eosinophil # Bld Auto"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Eosinophils, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "718-7",
+      "display": "Hemoglobin [Mass/volume] in Blood",
+      "short_display": "Hgb Bld-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hgb Bld-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Hemoglobin, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "72088-8",
+      "display": "Clinical Dementia Rating scale [CDR]",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "72166-2",
+      "display": "Tobacco smoking status",
+      "short_display": "Tobac smoke stat",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Tobac smoke stat"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "72253-8",
+      "display": "CT Chest and Abdomen and Pelvis WO contrast",
+      "short_display": "CT Chest+Abd+Pelvis WO contr",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Chest+Abd+Pelvis WO contr"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "72254-6",
+      "display": "CT Chest and Abdomen and Pelvis W contrast IV",
+      "short_display": "CT Chest+Abd+Pelvis W contr IV",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Chest+Abd+Pelvis W contr IV"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "72514-3",
+      "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported",
+      "short_display": "Pain severity 0-10 Scre Reported",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Pain severity 0-10 Scre Reported"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "75241-0",
+      "display": "Procalcitonin [Mass/volume] in Serum or Plasma by Immunoassay",
+      "short_display": "Procalcitonin SerPl IA-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Procalcitonin SerPl IA-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Procalcitonin, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "75326-9",
+      "display": "Problem",
+      "short_display": "Problem",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "75859-9",
+      "display": "Modified rankin scale",
+      "short_display": "mRS",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "mRS"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "777-3",
+      "display": "Platelets [#/volume] in Blood by Automated count",
+      "short_display": "Platelet # Bld Auto",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Platelet # Bld Auto"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Platelet count, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "78012-2",
+      "display": "Streptococcus pyogenes Ag [Presence] in Throat by Rapid immunoassay",
+      "short_display": "S pyo Ag Throat Ql IA.rapid",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "S pyo Ag Throat Ql IA.rapid"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Streptococcus pyogenes antigen, Throat"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "78390-2",
+      "display": "Nurse Admission History and Physical Note",
+      "short_display": "Nurse Admit H&P Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Nurse Admit H&P Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "789-8",
+      "display": "Erythrocytes [#/volume] in Blood by Automated count",
+      "short_display": "RBC # Bld Auto",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "RBC # Bld Auto"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Red Blood Cell (RBC) Count, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "79077-4",
+      "display": "CTA Pulmonary arteries for pulmonary embolus W contrast IV",
+      "short_display": "CTA PA for PE W contr IV",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CTA PA for PE W contr IV"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "79103-8",
+      "display": "CT Abdomen W contrast IV",
+      "short_display": "CT Abd W contr IV",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "CT Abd W contr IV"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "79378-6",
+      "display": "Cause of death",
+      "short_display": "Cause of death",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "80288-4",
+      "display": "Level of consciousness",
+      "short_display": "Level of consciousness",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "80381-7",
+      "display": "Influenza virus A and B Ag panel - Upper respiratory specimen by Rapid immunoassay",
+      "short_display": "FLUAV + FLUBV Ag Pnl Upper resp IA.rapid",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "FLUAV + FLUBV Ag Pnl Upper resp IA.rapid"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Influenza A and Influenza B Ag Pnl, Upper respiratory"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "80391-6",
+      "display": "Level of care [Type]",
+      "short_display": "Level of care Type",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Level of care Type"
+        }
+      ],
+      "status": "TRIAL"
+    },
+    {
+      "code": "8061-4",
+      "display": "Nuclear Ab [Presence] in Serum",
+      "short_display": "ANA Ser Ql",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "ANA Ser Ql"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Nuclear antibody, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "80791-7",
+      "display": "Nutrition and Dietetics Plan of Care Note",
+      "short_display": "Nutr+Diet Plan of Care Note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Nutr+Diet Plan of Care Note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "80861-8",
+      "display": "US Lower extremity soft tissue",
+      "short_display": "US LE soft tissue",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "US LE soft tissue"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8287-5",
+      "display": "Head Occipital-frontal circumference by Tape measure",
+      "short_display": "Head Circumf OFC by Tape measure",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Head Circumf OFC by Tape measure"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8302-2",
+      "display": "Body height",
+      "short_display": "Body height",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8310-5",
+      "display": "Body temperature",
+      "short_display": "Body temperature",
+      "designation": [
+        {
+          "use": "ConsumerName",
+          "value": "Body Temperature"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "83181-8",
+      "display": "Bathing - functional ability",
+      "short_display": "Bathing ability",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bathing ability"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "83182-6",
+      "display": "Dressing - functional ability",
+      "short_display": "Dressing ability",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Dressing ability"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "83183-4",
+      "display": "Toileting - functional ability",
+      "short_display": "Toileting ability",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Toileting ability"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "83184-2",
+      "display": "Feeding or eating - functional ability",
+      "short_display": "Feeding or eating ability",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Feeding or eating ability"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "83185-9",
+      "display": "Transferring - functional ability",
+      "short_display": "Transferring ability",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Transferring ability"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "83186-7",
+      "display": "Ambulation - functional ability",
+      "short_display": "Ambulation ability",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Ambulation ability"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8462-4",
+      "display": "Diastolic blood pressure",
+      "short_display": "BP dias",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "BP dias"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8480-6",
+      "display": "Systolic blood pressure",
+      "short_display": "BP sys",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "BP sys"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "85354-9",
+      "display": "Blood pressure panel with all children optional",
+      "short_display": "BP pnl w all optional",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "BP pnl w all optional"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "85475-2",
+      "display": "US Heart Transesophageal",
+      "short_display": "US Heart Transesophageal",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "85699-7",
+      "display": "Autopsy was performed",
+      "short_display": "Autopsy performed",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Autopsy performed"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "85847-2",
+      "display": "Patient Care team information",
+      "short_display": "Pt Care team info",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Pt Care team info"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8646-2",
+      "display": "Hospital admission diagnosis",
+      "short_display": "Hospital admission Dx",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hospital admission Dx"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8648-8",
+      "display": "Hospital course note",
+      "short_display": "Hospital course note",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8649-6",
+      "display": "Hospital discharge date",
+      "short_display": "Hospital discharge date",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8650-4",
+      "display": "Hospital discharge disposition note",
+      "short_display": "Hospital dx disposition note",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hospital dx disposition note"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8653-8",
+      "display": "Hospital Discharge Instructions",
+      "short_display": "Hosp Discharge Instruct",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Hosp Discharge Instruct"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8716-3",
+      "display": "Vital signs note",
+      "short_display": "Vital signs note",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "883-9",
+      "display": "ABO group [Type] in Blood",
+      "short_display": "ABO Group Bld",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "ABO Group Bld"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "ABO group, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "8867-4",
+      "display": "Heart rate",
+      "short_display": "Heart rate",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "890-4",
+      "display": "Blood group antibody screen [Presence] in Serum or Plasma",
+      "short_display": "Bld gp Ab Scn SerPl Ql",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bld gp Ab Scn SerPl Ql"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Blood group antibody screen, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "89204-2",
+      "display": "Patient Health Questionnaire-9: Modified for Teens total score [Reported.PHQ.Teen]",
+      "short_display": null,
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9108-2",
+      "display": "Fluid intake total 24 hour",
+      "short_display": "Fluid intake total 24h",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Fluid intake total 24h"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9192-6",
+      "display": "Urine output 24 hour",
+      "short_display": "Fluid output urine 24h",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Fluid output urine 24h"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9262-7",
+      "display": "Fluid output total 24 hour",
+      "short_display": "Fluid output total 24h",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Fluid output total 24h"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9267-6",
+      "display": "Glasgow coma score eye opening",
+      "short_display": "GCS eye",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "GCS eye"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9268-4",
+      "display": "Glasgow coma score motor",
+      "short_display": "GCS motor",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "GCS motor"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9269-2",
+      "display": "Glasgow coma score total",
+      "short_display": "GCS total",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "GCS total"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9270-0",
+      "display": "Glasgow coma score verbal",
+      "short_display": "GCS verbal",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "GCS verbal"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9271-8",
+      "display": "10 minute Apgar Score",
+      "short_display": "10M Apgar Score",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "10M Apgar Score"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9272-6",
+      "display": "1 minute Apgar Score",
+      "short_display": "1M Apgar Score",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "1M Apgar Score"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9274-2",
+      "display": "5 minute Apgar Score",
+      "short_display": "5M Apgar Score",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "5M Apgar Score"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "9279-1",
+      "display": "Respiratory rate",
+      "short_display": "Resp rate",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Resp rate"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "93372-1",
+      "display": "FDA product label Indexing - national clinical trial number",
+      "short_display": "FDA label Indexing - NCT #",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "FDA label Indexing - NCT #"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "96758-8",
+      "display": "Stairs - functional ability",
+      "short_display": "Stairs ability",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Stairs ability"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "96759-6",
+      "display": "Bowel control - functional ability",
+      "short_display": "Bowel control ability",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bowel control ability"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "96760-4",
+      "display": "Bladder control - functional ability",
+      "short_display": "Bladder control ability",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Bladder control ability"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "96761-2",
+      "display": "Total score Barthel Index",
+      "short_display": "Total score Barthel Index",
+      "designation": [
+        {
+          "use": "ConsumerName",
+          "value": "Total score, Barthel Index"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "96767-9",
+      "display": "Grooming - functional ability",
+      "short_display": "Grooming ability",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Grooming ability"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "99607-4",
+      "display": "US.doppler Lower extremity vein - bilateral for venous mapping",
+      "short_display": "DOP LE v-Bl for venous map",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "DOP LE v-Bl for venous map"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "LA12302-8",
+      "display": "Independent",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA12304-4",
+      "display": "Dependent",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA24937-7",
+      "display": "Unable",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31625-9",
+      "display": "Continent",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31626-7",
+      "display": "Occasional accident",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31627-5",
+      "display": "Incontinent (or needs to be given enemas)",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31628-3",
+      "display": "Incontinent, or catheterized and unable to manage alone",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31629-1",
+      "display": "Needs help (verbal, physical, carrying aid)",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31630-9",
+      "display": "Needs help cutting, spreading butter, etc., or requires modified diet",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31631-7",
+      "display": "Needs some help, but can do something alone",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31632-5",
+      "display": "Independent (on and off, dressing, wiping)",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31633-3",
+      "display": "Unable, no sitting balance",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31634-1",
+      "display": "Major help (one or two people, physical), can sit",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31635-8",
+      "display": "Minor help (verbal or physical)",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31636-6",
+      "display": "Independent (or in shower)",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31637-4",
+      "display": "Needs help but can do about half unaided",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31638-2",
+      "display": "Independent (including buttons, zips, laces, etc.)",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31639-0",
+      "display": "Immobile or <50 yards",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31640-8",
+      "display": "Wheelchair independent, including corners, >50 yards",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31641-6",
+      "display": "Walks with help of one person (verbal or physical) >50 yards",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31642-4",
+      "display": "Independent (but may use any aid; for example, stick) >50 yards",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31643-2",
+      "display": "Needs help with personal care",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LA31644-0",
+      "display": "Independent face/hair/teeth/shaving (implements provided)",
+      "short_display": null,
+      "designation": [],
+      "status": null
+    },
+    {
+      "code": "LP29684-5",
+      "display": "RAD",
+      "short_display": null,
+      "designation": [
+        {
+          "use": "DisplayName",
+          "value": "Radiology"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "LP29693-6",
+      "display": "Lab",
+      "short_display": null,
+      "designation": [
+        {
+          "use": "DisplayName",
+          "value": "Laboratory"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "LP7819-8",
+      "display": "MICRO",
+      "short_display": null,
+      "designation": [
+        {
+          "use": "DisplayName",
+          "value": "Microbiology"
+        }
+      ],
+      "status": "ACTIVE"
+    }
+  ]
+}

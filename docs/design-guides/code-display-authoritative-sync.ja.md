@@ -43,7 +43,10 @@ clinosim/codes/
     yj_tx_fragment.json                 # YJ (framework の最初の住民)
     icd10_who_tx.json                   # ICD-10 WHO、英語 display
     icd10_mhlw_2013_ja.json             # ICD-10 MHLW、日本語 display
-    loinc_2_82_tx.json                  # LOINC
+    loinc_2_83_tx.json                  # LOINC
+    icd10cm_2027_cms.json               # ICD-10-CM (CMS)
+    snomed_ct_tx.json                   # SNOMED CT International
+    JP_MedicationCodeYJ_CS_full.json    # YJ (full CodeSystem)
     <system>_<source>.json              # その他の snapshot (一覧は README.md)
   loader.py                             # lookup() は不変
 tests/unit/codes/
@@ -140,13 +143,13 @@ common name の代わりに臨床略記を保つ LOINC display (と追跡中の�
 
 | System        | Source                                          | Phase   | 状態 |
 | --------------- | ------------------------------------------------- | --------- | ------ |
-| YJ            | `jpfhir-terminology 2.2606.0` YJ-code CS (`yj_tx_fragment.json`) | Phase 1 | cross-check 済 |
+| YJ            | YJ-code CS 全体 (`JP_MedicationCodeYJ_CS_full.json`。Issue #3127 以前は fragment `yj_tx_fragment.json`) | Phase 1 | cross-check 済 |
 | ICD-10 (WHO)  | `fhir.tx.support.r4` ICD-10 CS (`icd10_who_tx.json`)、`en` display | Phase 2 | cross-check 済 |
 | ICD-10 (MHLW) | 厚労省 基本分類表 2013 (`icd10_mhlw_2013_ja.json`)、`ja` display | — | cross-check 済 |
-| LOINC         | LOINC 2.82 master (`loinc_2_82_tx.json`)          | Phase 3 | cross-check 済 |
-| SNOMED CT     | tx-server SNOMED International fragment           | Phase 2 | 予定 |
+| LOINC         | LOINC 2.83 via tx.fhir.org (`loinc_2_83_tx.json`) | Phase 3 | cross-check 済 |
+| SNOMED CT     | tx.fhir.org の SNOMED CT International (`snomed_ct_tx.json`) | Phase 2 | cross-check 済 (Issue #3127) |
 | BCP-47        | HL7 terminology `urn:ietf:bcp:47`                  | Phase 2 | 予定 |
-| ICD-10-CM     | `codes/data/icd-10-cm.yaml` vs NLM CM master       | Phase 3 | 予定 |
+| ICD-10-CM     | CMS FY2027 code descriptions (`icd10cm_2027_cms.json`) | Phase 3 | cross-check 済 (Issue #3127) |
 | MEDIS keyNo   | `medis-codesystem-diseasekanricodes`              | Phase 3 | 予定 |
 | RxNorm        | NLM RxNorm                                        | Phase 4 | 予定 |
 | MHLW / JLAC10 | JCCLS + MHLW masters                              | Phase 4 | 予定 |

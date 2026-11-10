@@ -1,0 +1,4915 @@
+{
+  "metadata": {
+    "source_package": "SNOMED CT International Edition 2025-02-01 (tx.fhir.org)",
+    "source_url": "http://snomed.info/sct",
+    "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (preferred term, synonyms, FSN)",
+    "extracted_at": "2026-11-10",
+    "edition_version": "http://snomed.info/sct/900000000000207008/version/20250201",
+    "clinosim_codes_total": 267,
+    "clinosim_codes_missing_from_source": [
+      "224549009",
+      "303408005",
+      "394583003",
+      "407484005",
+      "424535000",
+      "735320007"
+    ],
+    "note": "SNOMED CT codes in codes/data/snomed-ct.yaml with their English preferred term, synonyms and FSN (Issue #3127). Codes missing from the source are unknown to the International Edition."
+  },
+  "concept": [
+    {
+      "code": "103693007",
+      "display": "Diagnostic procedure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Diagnostic procedure, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Diagnostic procedure (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "103735009",
+      "display": "Palliative care",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Palliative care, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Palliative care (regime/therapy)(procedure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Palliative care (regime/therapy)"
+        }
+      ]
+    },
+    {
+      "code": "105542008",
+      "display": "Non - drinker",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Non-drinker of alcoholic beverage"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Non-drinker of alcoholic beverage, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Non-drinker, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Non-drinker"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Abstinent"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Non-drinker alcohol"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Never drinks"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Does not drink alcohol"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Teetotaller"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Teetotaller (life style)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Current non-drinker of alcohol (finding)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Non - drinker alcohol"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Current non-drinker of alcohol"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Teetotaler"
+        }
+      ]
+    },
+    {
+      "code": "106328005",
+      "display": "Social worker",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Social worker (occupation)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "SW - Social worker"
+        }
+      ]
+    },
+    {
+      "code": "108252007",
+      "display": "Laboratory procedure",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Laboratory procedure (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Laboratory procedures"
+        }
+      ]
+    },
+    {
+      "code": "112144000",
+      "display": "Blood group A",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Blood group A (ABO blood group)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Group A - blood"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Blood group A (finding)"
+        }
+      ]
+    },
+    {
+      "code": "112149005",
+      "display": "Blood group B",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Blood group B (ABO blood group)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Blood group B (finding)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Group B - blood"
+        }
+      ]
+    },
+    {
+      "code": "112283007",
+      "display": "Escherichia coli",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Bacterium coli"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Escherichia coli (organism)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "EC - Escherichia coli"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "E. coli"
+        }
+      ]
+    },
+    {
+      "code": "113257007",
+      "display": "Structure of cardiovascular system",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Cardiovascular system"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Cardiovascular system, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Circulatory system, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Circulatory system"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Cardiovascular structure"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Cardiovascular structure (body structure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of cardiovascular system (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "113697002",
+      "display": "Stenotrophomonas maltophilia",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Xanthomonas maltophilia"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pseudomonas maltophilia"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Stenotrophomonas maltophilia (organism)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pseudomonas betle"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pseudomonas beteli"
+        }
+      ]
+    },
+    {
+      "code": "11429006",
+      "display": "Consultation",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Consultation, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Consultation (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "116863004",
+      "display": "Transfusion of red blood cells",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Red blood cells administration by intravascular infusion"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Transfusion of red blood cells (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "119297000",
+      "display": "Blood specimen",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Blood specimen (specimen)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Blood sample"
+        }
+      ]
+    },
+    {
+      "code": "119334006",
+      "display": "Sputum specimen",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Sputum specimen (specimen)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Sputum sample"
+        }
+      ]
+    },
+    {
+      "code": "12130007",
+      "display": "Intra-articular route",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Intra-articular route (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Intra-articular use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Intra-articular"
+        }
+      ]
+    },
+    {
+      "code": "122494005",
+      "display": "Structure of cervical vertebral column",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Cervical spine"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Cervical spinal column"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Cervical spine structure"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Cervical spine structure (body structure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of cervical vertebral column (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "122496007",
+      "display": "Lumbar spine structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Lumbar spine"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Lumbar vertebral column"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Lumbar spine structure (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Structure of lumbar vertebral column"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of lumbar vertebral column (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "122552005",
+      "display": "Arterial blood specimen",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Arterial blood specimen (specimen)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Arterial blood sample"
+        }
+      ]
+    },
+    {
+      "code": "122554006",
+      "display": "Capillary blood specimen",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Capillary blood specimen (specimen)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Capillary blood sample"
+        }
+      ]
+    },
+    {
+      "code": "122575003",
+      "display": "Urine specimen",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Urine specimen (specimen)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Urine sample"
+        }
+      ]
+    },
+    {
+      "code": "1256115008",
+      "display": "Clinical nutrition",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Clinical nutrition (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "125666000",
+      "display": "Burn",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Burn (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "1258985005",
+      "display": "Invasive mechanical ventilation",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Invasive mechanical ventilation (regime/therapy)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "IMV - invasive mechanical ventilation"
+        }
+      ]
+    },
+    {
+      "code": "12738006",
+      "display": "Brain structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Brain"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Brain, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Brain structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "127784009",
+      "display": "Inhaled bronchodilator therapy",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Bronchodilator therapy"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Inhaled bronchodilator therapy (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "127856007",
+      "display": "Skin and/or subcutaneous tissue structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Skin AND subcutaneous tissue"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Skin AND subcutaneous tissue structure"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Skin AND subcutaneous tissue structure (body structure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Skin and/or subcutaneous tissue structure (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Skin and subcutaneous tissue"
+        }
+      ]
+    },
+    {
+      "code": "1287358002",
+      "display": "National Early Warning Score",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "National Early Warning Score (assessment scale)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "NEWS - National Early Warning Score"
+        }
+      ]
+    },
+    {
+      "code": "12921003",
+      "display": "Pelvic region",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Pelvis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pelvis, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pelvic structure"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Pelvic structure (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Structure of pelvis"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of pelvis (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "131148009",
+      "display": "Bleeding",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Bleeding (finding)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hemorrhage"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Haemorrhage"
+        }
+      ]
+    },
+    {
+      "code": "135836000",
+      "display": "End stage chronic obstructive pulmonary disease",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "End stage chronic obstructive airways disease"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "End stage chronic obstructive airways disease (disorder)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "End stage chronic obstructive pulmonary disease (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "135871000",
+      "display": "Silver nitrate cautery",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Silver nitrate cautery (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "1366004",
+      "display": "Inhalation therapy procedure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Inhalation therapy procedure, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Inhalation therapy procedure (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Breathing treatment"
+        }
+      ]
+    },
+    {
+      "code": "14385002",
+      "display": "Enterobacter cloacae",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Cloaca cloacae"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Aerobacter cloacae"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Enterobacter cloacae (organism)"
+        }
+      ]
+    },
+    {
+      "code": "14742008",
+      "display": "Structure of large intestine",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Large intestine"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Large intestine, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Large bowel, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Large bowel"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Large intestinal structure"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Large intestinal structure (body structure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of large intestine (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "158965000",
+      "display": "Medical practitioner",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Doctor"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Medical practitioner (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "158967008",
+      "display": "Consultant physician",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Consultant physician (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "158972004",
+      "display": "House officer",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Junior house officer"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hospital house officer"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "HO - House officer"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pre-registration house officer"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "House officer (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "159026005",
+      "display": "Speech and language therapist",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Speech therapist"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "SLT - Speech and language therapist"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "ST - Speech therapist"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Speech/language therapist (occupation)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Speech/language therapist"
+        }
+      ]
+    },
+    {
+      "code": "159033005",
+      "display": "Dietitian",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Dietician"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Dietitian (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "159282002",
+      "display": "Laboratory technician",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Laboratory technician (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "165743006",
+      "display": "Blood group AB",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Group AB"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Blood group AB (finding)"
+        }
+      ]
+    },
+    {
+      "code": "165746003",
+      "display": "RhD negative",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Rh negative"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Rhesus negative"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Rh negative (finding)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "RhD negative (finding)"
+        }
+      ]
+    },
+    {
+      "code": "165747007",
+      "display": "RhD positive",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Rhesus positive"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Rh positive"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Rh positive (finding)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "RhD positive (finding)"
+        }
+      ]
+    },
+    {
+      "code": "169069000",
+      "display": "CT of chest",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "CT of thorax"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "CT of chest (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Chest CT"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Computed tomography of chest (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Computed tomography of chest"
+        }
+      ]
+    },
+    {
+      "code": "16982005",
+      "display": "Shoulder region structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Shoulder"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Shoulder, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Shoulder region structure (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Shoulder region"
+        }
+      ]
+    },
+    {
+      "code": "17621005",
+      "display": "Normal",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Unremarkable"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Normal (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "182661005",
+      "display": "Local cooling therapy",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Local cooling therapy (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "183452005",
+      "display": "Emergency hospital admission",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Emergency hospital admission (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "185349003",
+      "display": "Encounter for check up",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Encounter for \"check-up\""
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Encounter for \"check-up\" (procedure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Encounter for check up (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "21483005",
+      "display": "Structure of central nervous system",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Central nervous system"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Central nervous system structure"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Central nervous system structure (body structure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of central nervous system (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "21522001",
+      "display": "Abdominal pain",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "AP - Abdominal pain"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Abdominal pain (finding)"
+        }
+      ]
+    },
+    {
+      "code": "21719001",
+      "display": "Allergic rhinitis caused by pollen",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Allergic rhinitis due to pollen"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pollinosis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Allergic rhinitis due to pollens"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hay fever"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hayfever"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Allergic rhinitis due to pollen (disorder)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Allergic rhinitis caused by pollens"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Allergic rhinitis caused by pollen (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "224535009",
+      "display": "Registered nurse",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "RN - Registered nurse"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Registered nurse (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "225113003",
+      "display": "Timed urine collection",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Timed urine collection (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "225358003",
+      "display": "Wound care",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Wound care (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Administers care to wound sites"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Wound care (regime/therapy)"
+        }
+      ]
+    },
+    {
+      "code": "225390008",
+      "display": "Triage",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Triage (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "227037002",
+      "display": "Fish - dietary",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Fish - dietary (substance)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Fish"
+        }
+      ]
+    },
+    {
+      "code": "22943007",
+      "display": "Trunk structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Trunk"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Trunk, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Torso"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Trunk structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "229585002",
+      "display": "Cold pack treatment",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Cold pack treatment (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "233428003",
+      "display": "Thrombolysis of vein",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Thrombolysis of vein (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "233520008",
+      "display": "Insertion of peripheral venous cannula into peripheral vein",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Peripheral venous cannula insertion"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Peripheral venous cannula insertion (procedure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Insertion of peripheral venous cannula into peripheral vein (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "233573008",
+      "display": "Extracorporeal membrane oxygenation",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "ECMO - Extracorporeal membrane oxygenation"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Extracorporeal membrane oxygenation (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "233581009",
+      "display": "Hemofiltration",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Haemofiltration"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "HF - Hemofiltration"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "HF - Haemofiltration"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Hemofiltration (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Haemofiltration therapy"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hemofiltration therapy"
+        }
+      ]
+    },
+    {
+      "code": "23973005",
+      "display": "Indwelling urinary catheter",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Indwelling bladder catheter"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Permanent bladder catheter"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Indwelling urinary catheter, device (physical object)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Indwelling urinary catheter, device"
+        }
+      ]
+    },
+    {
+      "code": "24028007",
+      "display": "Right",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Right lateral"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Dextro"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Right (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Rt - Right"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Right side"
+        }
+      ]
+    },
+    {
+      "code": "24484000",
+      "display": "Severe",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "High grade"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Gravis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Severely"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Severe (severity modifier) (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Severe (severity modifier)"
+        }
+      ]
+    },
+    {
+      "code": "247472004",
+      "display": "Wheal",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Weal"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Nettle rash"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Urticarial rash"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hives"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Weal (disorder)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Welt"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Wheal (finding)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Wheal (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "255604002",
+      "display": "Mild",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Mild (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "256349002",
+      "display": "Peanut - dietary",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Peanuts"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Peanut"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Peanut - dietary (substance)"
+        }
+      ]
+    },
+    {
+      "code": "257261003",
+      "display": "Swab",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Swab (specimen)"
+        }
+      ]
+    },
+    {
+      "code": "260147004",
+      "display": "House dust mite",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "HDM - House dust mite"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "House dust mite (organism)"
+        }
+      ]
+    },
+    {
+      "code": "260385009",
+      "display": "Negative",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Negative for"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Ruled out"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Negative (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "263654008",
+      "display": "Abnormal",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Abnormal (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "264868006",
+      "display": "No growth",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "No growth (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "26643006",
+      "display": "Oral route",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Peroral route"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Per os"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Oral route (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Oral use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Per oral route"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "PO - Per os"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "By mouth"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Oral"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Orally"
+        }
+      ]
+    },
+    {
+      "code": "266694003",
+      "display": "Heat therapy",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Therapeutic heat application"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hyperthermia therapy"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Therapy by heating"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Heat therapy (regime/therapy)(procedure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Heat therapy (regime/therapy)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Heat therapy (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "266919005",
+      "display": "Never smoked tobacco",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Never smoked"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Never smoked tobacco (life style)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Never smoked tobacco (finding)"
+        }
+      ]
+    },
+    {
+      "code": "270427003",
+      "display": "Patient-initiated encounter",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Patient-initiated encounter (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "271807003",
+      "display": "Eruption",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Skin rash"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Skin eruption"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Rash"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Breaking out - eruption"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Exanthem"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Eruption (disorder)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Eruption of skin (disorder)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Eruption of skin"
+        }
+      ]
+    },
+    {
+      "code": "271903000",
+      "display": "History of pregnancy",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "H/O: pregnancy"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "History of - pregnancy (context-dependent category)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "History of - pregnancy (situation)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "History of - pregnancy"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "History of pregnancy (situation)"
+        }
+      ]
+    },
+    {
+      "code": "277132007",
+      "display": "Therapeutic procedure",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Therapeutic procedure (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Procedure - therapeutic"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Therapy"
+        }
+      ]
+    },
+    {
+      "code": "28127009",
+      "display": "Social drinker",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Alcoholic beverage mild drinker"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Social drinker (life style)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Social drinker (finding)"
+        }
+      ]
+    },
+    {
+      "code": "29836001",
+      "display": "Hip region structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Hip"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hip, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hip region"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Hip region structure (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hip structure"
+        }
+      ]
+    },
+    {
+      "code": "302497006",
+      "display": "Hemodialysis",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Haemodialysis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hemodialysis procedure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "HD - Hemodialysis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "HD - Haemodialysis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Haemodialysis procedure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Extracorporeal hemodialysis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Extracorporeal haemodialysis"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Hemodialysis (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "30315005",
+      "display": "Structure of small intestine",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Small intestine"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Small intestine, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Small bowel, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Small bowel"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Small intestinal structure"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Small intestinal structure (body structure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of small intestine (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "303300008",
+      "display": "Egg protein",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Egg protein (substance)"
+        }
+      ]
+    },
+    {
+      "code": "304251008",
+      "display": "Resuscitation status",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Resuscitation status (observable entity)"
+        }
+      ]
+    },
+    {
+      "code": "304252001",
+      "display": "For resuscitation",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "For resuscitation (finding)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Resuscitate"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "For attempted cardiopulmonary resuscitation"
+        }
+      ]
+    },
+    {
+      "code": "304253006",
+      "display": "Not for resuscitation",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Not for resuscitation (finding)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "DNR"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Do not resuscitate"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Not for attempted cardiopulmonary resuscitation"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "DNAR - Do not attempt resuscitation"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Do not resuscitate status"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "DNR - do not resuscitate"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "DNAR - do not attempt resuscitation"
+        }
+      ]
+    },
+    {
+      "code": "304292004",
+      "display": "Surgeon",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Surgeon (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "304582006",
+      "display": "Structure of upper urinary tract",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Kidney and ureter structures"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Kidney and ureter structures (body structure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Kidney and/or ureter structures (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Kidney and/or ureter structures"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Upper urinary system"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of upper urinary system (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Structure of upper urinary system"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of upper urinary tract (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "3092008",
+      "display": "Staphylococcus aureus",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Micrococcus pyogenes var. aureus"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Staphylococcus pyogenes aureus"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Staphylococcus pyogenes citreus"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Staphylococcus aureus (organism)"
+        }
+      ]
+    },
+    {
+      "code": "309343006",
+      "display": "Physician",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Physician (occupation)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Medical doctor"
+        }
+      ]
+    },
+    {
+      "code": "309360001",
+      "display": "Rehabilitation physician",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Rehabilitation physician (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "313296004",
+      "display": "Mild chronic obstructive pulmonary disease",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Mild chronic obstructive pulmonary disease (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "313297008",
+      "display": "Moderate chronic obstructive pulmonary disease",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Moderate chronic obstructive pulmonary disease (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "313299006",
+      "display": "Severe chronic obstructive pulmonary disease",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Severe chronic obstructive pulmonary disease (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "32485007",
+      "display": "Hospital admission",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Hospital admission, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Hospital admission (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Admission to hospital"
+        }
+      ]
+    },
+    {
+      "code": "336602003",
+      "display": "Oxygen mask",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Oxygen mask (physical object)"
+        }
+      ]
+    },
+    {
+      "code": "336623009",
+      "display": "Oxygen nasal cannula",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Oxygen nasal cannula (physical object)"
+        }
+      ]
+    },
+    {
+      "code": "34206005",
+      "display": "Subcutaneous route",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Subcutaneous route (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "SC use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Subcutaneous use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "SC route"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Subcutaneous"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Subdermal route"
+        }
+      ]
+    },
+    {
+      "code": "34707002",
+      "display": "Biliary tract structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Biliary tract"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Biliary tract, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Biliary system, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Biliary system"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Biliary tract structure (body structure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of biliary tree (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Structure of biliary tree"
+        }
+      ]
+    },
+    {
+      "code": "363679005",
+      "display": "Imaging",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Imaging procedure"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Imaging (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Imaging by method"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Diagnostic imaging"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Clinical imaging"
+        }
+      ]
+    },
+    {
+      "code": "365958005",
+      "display": "Packing of anterior nasal cavity",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Packing of anterior nasal cavity (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "36682004",
+      "display": "Physiotherapist",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Physiotherapist (occupation)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "PT - Physiotherapist"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Physical therapist"
+        }
+      ]
+    },
+    {
+      "code": "368208006",
+      "display": "Left upper arm structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Left arm"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Left upper arm"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Left upper arm structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "368209003",
+      "display": "Right upper arm structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Right upper arm"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Right arm"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Right upper arm structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "37161004",
+      "display": "Rectal route",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Per rectum"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Per rectum (route) (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Rectal use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Rectal"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Per rectum (route)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Rectally"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Rectal route (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "372687004",
+      "display": "Amoxicillin",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Amoxicillin (substance)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Amoxycillin"
+        }
+      ]
+    },
+    {
+      "code": "37839007",
+      "display": "Sublingual route",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Sublingual route (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Sublingual use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Sublingual"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Sublingually"
+        }
+      ]
+    },
+    {
+      "code": "38266002",
+      "display": "Entire body as a whole",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Body as a whole"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Total body"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Carcass"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Entire body as a whole (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Entire total body"
+        }
+      ]
+    },
+    {
+      "code": "385669000",
+      "display": "Successful",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Successful (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "385670004",
+      "display": "Partially successful",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Partially successful (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "385671000",
+      "display": "Unsuccessful",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Unsuccessful (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "386053000",
+      "display": "Evaluation procedure",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Patient evaluation procedure (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Patient evaluation procedure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Clinical investigation"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Investigations"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Evaluation procedure (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Clinical evaluatiion"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Assessment"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Clinical evaluation"
+        }
+      ]
+    },
+    {
+      "code": "387207008",
+      "display": "Ibuprofen",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Ibuprofen (substance)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "p-Isobutylhydratropic acid"
+        }
+      ]
+    },
+    {
+      "code": "387406002",
+      "display": "Sulfonamide",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Ophthalmic sulfonamide preparation (substance)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Ophthalmic sulphonamide preparation"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Ophthalmic sulfonamide preparation"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Sulfonamide (substance)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Sulphonamide"
+        }
+      ]
+    },
+    {
+      "code": "387458008",
+      "display": "Aspirin",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Aspirin (substance)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Acetylsalicylic acid"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Aspirin - chemical"
+        }
+      ]
+    },
+    {
+      "code": "387713003",
+      "display": "Surgical procedure",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Surgical procedure (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Operation"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Surgical procedures"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Operative procedure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Surgery"
+        }
+      ]
+    },
+    {
+      "code": "3895009",
+      "display": "Application of dressing",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Application of dressing, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Dressing"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Dressing of skin or wound"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Application of dressing (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "391906003",
+      "display": "Closure of skin by suture",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Closure of skin by suture (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Suture of skin wound"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Suture of skin"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Closure of skin laceration by suture"
+        }
+      ]
+    },
+    {
+      "code": "394537008",
+      "display": "Pediatric specialty",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Paediatric speciality"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Paediatrics (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Paediatrics"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pediatrics"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Pediatric specialty (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "394577000",
+      "display": "Anesthetics",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Anaesthetics"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Anaesthetics (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Anaesthesia"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Anesthesiology"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Anesthetics (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "394579002",
+      "display": "Cardiology",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Cardiology (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "394584008",
+      "display": "Gastroenterology",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Gastroenterology (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "GE - Gastroenterology"
+        }
+      ]
+    },
+    {
+      "code": "394585009",
+      "display": "Obstetrics and gynecology",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Obstetrics and gynaecology"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Obstetrics and gynaecology (qualifier value)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Obstetrics and gynecology (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "394587001",
+      "display": "Psychiatry",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Psychiatry (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "394589003",
+      "display": "Nephrology",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Nephrology (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Renal medicine"
+        }
+      ]
+    },
+    {
+      "code": "394591006",
+      "display": "Neurology",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Neurology (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "394593009",
+      "display": "Medical oncology",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Medical oncology (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "394594003",
+      "display": "Ophthalmology",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Ophthalmology (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "394602003",
+      "display": "Rehabilitation specialty",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Rehabilitation speciality"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Rehabilitation - specialty (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Rehabilitation - speciality"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Rehabilitation - specialty"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Rehabilitation"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Rehabilitation specialty (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "394609007",
+      "display": "General surgery",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "General surgery (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "394610002",
+      "display": "Neurosurgery",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Neurosurgery (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "394801008",
+      "display": "Trauma & orthopedics",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Trauma & orthopaedics"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Trauma & orthopaedics (qualifier value)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Trauma and orthopedics (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Trauma and orthopaedics"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Trauma and orthopedics"
+        }
+      ]
+    },
+    {
+      "code": "394814009",
+      "display": "General practice (specialty)",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "General practice (specialty) (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "394914008",
+      "display": "Radiology - specialty",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Radiology - speciality"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Radiology - specialty (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Radiology"
+        }
+      ]
+    },
+    {
+      "code": "39579001",
+      "display": "Anaphylaxis",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Anaphylactic reaction"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Generalized anaphylaxis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Generalised anaphylaxis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Anaphylactic shock"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Allergic shock"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Systemic anaphylaxis"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Anaphylaxis (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "39607008",
+      "display": "Lung structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Lung"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Lung, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Lung structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "39937001",
+      "display": "Skin structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Skin"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Skin, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Integument"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Skin structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "401226007",
+      "display": "Vertebroplasty",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Vertebroplasty (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "405623001",
+      "display": "Assigned practitioner",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Assigned practitioner (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "410024004",
+      "display": "Insertion of catheter into urinary bladder",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Catheterization of urinary bladder (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Catheterisation of urinary bladder"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Bladder catheterisation"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Urinary catheterisation"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Catheterization of urinary bladder"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Bladder catheterization"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Urinary catheterization"
+        }
+      ]
+    },
+    {
+      "code": "412071004",
+      "display": "Wheat",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Wheat (substance)"
+        }
+      ]
+    },
+    {
+      "code": "413083006",
+      "display": "Automated auditory brainstem response test",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Automated auditory brainstem response test (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "41334000",
+      "display": "Angina, class II",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Angina, class II (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "41801008",
+      "display": "Coronary artery structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Coronary artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Coronary artery, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Coronary artery structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "418112009",
+      "display": "Pulmonary medicine",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Respiratory medicine"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Pulmonary medicine (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Chest medicine"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Thoracic medicine"
+        }
+      ]
+    },
+    {
+      "code": "419192003",
+      "display": "Internal medicine",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Internal medicine (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "420300004",
+      "display": "New York Heart Association Classification - Class I",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "New York Heart Association Classification - Class I (finding)"
+        }
+      ]
+    },
+    {
+      "code": "420913000",
+      "display": "New York Heart Association Classification - Class III",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "New York Heart Association Classification - Class III (finding)"
+        }
+      ]
+    },
+    {
+      "code": "421060004",
+      "display": "Structure of vertebral column",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Structure of vertebral column (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Spine"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Vertebral column"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Spinal column"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Backbone"
+        }
+      ]
+    },
+    {
+      "code": "421466002",
+      "display": "Structure of peripheral vein",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Structure of peripheral vein (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "421704003",
+      "display": "New York Heart Association Classification - Class II",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "New York Heart Association Classification - Class II (finding)"
+        }
+      ]
+    },
+    {
+      "code": "422293003",
+      "display": "New York Heart Association Classification - Class IV",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "New York Heart Association Classification - Class IV (finding)"
+        }
+      ]
+    },
+    {
+      "code": "426656000",
+      "display": "Severe persistent asthma",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Severe persistent asthma (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "426854004",
+      "display": "High flow oxygen nasal cannula",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "High flow oxygen nasal cannula (physical object)"
+        }
+      ]
+    },
+    {
+      "code": "426979002",
+      "display": "Mild persistent asthma",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Mild persistent asthma (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "427295004",
+      "display": "Moderate persistent asthma",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Moderate persistent asthma (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "427591007",
+      "display": "Nonrebreather oxygen mask",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Nonrebreather oxygen mask (physical object)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Non-rebreather mask"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Nonrebreather mask"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Non-rebreathing oxygen face mask"
+        }
+      ]
+    },
+    {
+      "code": "427679007",
+      "display": "Mild intermittent asthma",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Mild intermittent asthma (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "428191002",
+      "display": "Percutaneous route",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Percutaneous route (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "428447008",
+      "display": "Newborn blood spot screening",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Newborn blood spot screening (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "429271009",
+      "display": "Ventilator associated pneumonia",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Ventilator-acquired pneumonia (disorder)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Ventilator-associated pneumonia"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Ventilator-acquired pneumonia"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "VAP - ventilator associated pneumonia"
+        }
+      ]
+    },
+    {
+      "code": "429289005",
+      "display": "Intermittent pneumatic compression therapy",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Intermittent pneumatic compression therapy (regime/therapy)"
+        }
+      ]
+    },
+    {
+      "code": "431855005",
+      "display": "Chronic kidney disease stage 1",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Chronic kidney disease stage 1 (disorder)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "CKD stage 1"
+        }
+      ]
+    },
+    {
+      "code": "431856006",
+      "display": "Chronic kidney disease stage 2",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Chronic kidney disease stage 2 (disorder)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "CKD stage 2"
+        }
+      ]
+    },
+    {
+      "code": "431857002",
+      "display": "Chronic kidney disease stage 4",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Chronic kidney disease stage 4 (disorder)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "CKD stage 4"
+        }
+      ]
+    },
+    {
+      "code": "431995006",
+      "display": "Kyphoplasty of fracture of spine using fluoroscopic guidance",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Kyphoplasty of fracture of spine using fluoroscopic guidance (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "433146000",
+      "display": "Chronic kidney disease stage 5",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Chronic kidney disease stage 5 (disorder)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "CKD stage 5"
+        }
+      ]
+    },
+    {
+      "code": "433202001",
+      "display": "Surgical site infection",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Surgical site infection (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "433296005",
+      "display": "Infusion pump for intravenous fluids",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Infusion pump for intravenous fluids (physical object)"
+        }
+      ]
+    },
+    {
+      "code": "438409006",
+      "display": "Application of short arm cast",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Application of short arm cast (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "439535000",
+      "display": "Application of short arm splint",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Application of short arm splint (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "442867008",
+      "display": "Respiratory therapist",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Respiratory therapist (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "44470000",
+      "display": "Haemophilus influenzae",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Pfeiffer's bacillus"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hemophilus influenzae"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Haemophilus influenzae (organism)"
+        }
+      ]
+    },
+    {
+      "code": "447694001",
+      "display": "Respiratory tract route",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Respiratory tract route (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Inhalation route"
+        }
+      ]
+    },
+    {
+      "code": "449868002",
+      "display": "Smokes tobacco daily",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Smokes tobacco daily (finding)"
+        }
+      ]
+    },
+    {
+      "code": "45007003",
+      "display": "Low blood pressure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Hypotension"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hypotension, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hypopiesis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Arterial hypotension, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Arterial hypotension"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Low blood pressure (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "45036003",
+      "display": "Ultrasonography of abdomen",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Ultrasonography of abdomen, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Ultrasonography of abdomen (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "US abdominal scan"
+        }
+      ]
+    },
+    {
+      "code": "4525004",
+      "display": "Emergency department patient visit",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Emergency department patient visit, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Emergency department patient visit (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Seen by casualty - service"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Seen by accident and emergency - service"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Seen by Accident and Emergency service"
+        }
+      ]
+    },
+    {
+      "code": "45631007",
+      "display": "Structure of radial artery",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Radial artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Radial artery, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of radial artery (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "46255001",
+      "display": "Pharmacist",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Pharmacist (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "465433006",
+      "display": "Venturi oxygen face mask",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Venturi oxygen face mask (physical object)"
+        }
+      ]
+    },
+    {
+      "code": "47545007",
+      "display": "Continuous positive airway pressure ventilation treatment",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "CPAP treatment"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Continuous positive airway pressure ventilation treatment (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "CPAP - Continuous positive airways pressure"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "CPAP - Continuous positive airways pressure therapy"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Continuous positive airways pressure therapy"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Continuous positive airway pressure ventilation treatment (regime/therapy)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "CPAP (continuous positive airway pressure) therapy"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "CPAP (continuous positive airway pressure) treatment"
+        }
+      ]
+    },
+    {
+      "code": "47625008",
+      "display": "Intravenous route",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Intravenous route (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Intravenous use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "IV use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "IV route"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Intravenous"
+        }
+      ]
+    },
+    {
+      "code": "49076000",
+      "display": "Knee joint structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Knee joint"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Knee joint, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Stifle joint, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Knee joint structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "49689007",
+      "display": "Application of cervical collar",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Application of cervical collar (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "50015006",
+      "display": "Closure by staple",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Stapling"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Closure by staple (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "51185008",
+      "display": "Thoracic structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Thorax"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Thorax, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Chest"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Thoracic structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "52037006",
+      "display": "Application of sling",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Application of sling (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Slinging"
+        }
+      ]
+    },
+    {
+      "code": "52124006",
+      "display": "Central venous catheter",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Central intravenous catheter"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Central venous catheter, device (physical object)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Central line"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Central venous line"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "CVP (central venous pressure) line"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Central venous catheter, device"
+        }
+      ]
+    },
+    {
+      "code": "52499004",
+      "display": "Pseudomonas aeruginosa",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Pseudomonas aeruginosa (organism)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pseudomonas pyocyaneus"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pyo"
+        }
+      ]
+    },
+    {
+      "code": "53326005",
+      "display": "Candida albicans",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Candida albicans (organism)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Oidium albicans"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Monilia albicans"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "CA - Candida albicans"
+        }
+      ]
+    },
+    {
+      "code": "54485002",
+      "display": "Ophthalmic route",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Ophthalmic route (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Ophthalmic use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Ophthalmic"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "In eye"
+        }
+      ]
+    },
+    {
+      "code": "56415008",
+      "display": "Klebsiella pneumoniae",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Friedlander's bacillus"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Klebsiella pneumoniae (organism)"
+        }
+      ]
+    },
+    {
+      "code": "56459004",
+      "display": "Foot structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Foot"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Foot, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hindfoot, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hindpaw, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Foot structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "57485005",
+      "display": "Oxygen therapy",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Oxygen therapy, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Oxygen therapy (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "O2 therapy"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Oxygen therapy care"
+        }
+      ]
+    },
+    {
+      "code": "58460004",
+      "display": "Blood group O",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Blood group antigen O (ABO blood group)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Blood group O (ABO blood group)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Blood group O (finding)"
+        }
+      ]
+    },
+    {
+      "code": "60554003",
+      "display": "Polysomnography",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Polysomnography, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Polysomnogram, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Polysomnogram"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Polysomnography (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Full sleep study"
+        }
+      ]
+    },
+    {
+      "code": "6064005",
+      "display": "Topical route",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Topical route (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Cutaneous use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Cutaneous route"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Topical use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Topical"
+        }
+      ]
+    },
+    {
+      "code": "60875001",
+      "display": "Staphylococcus epidermidis",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Micrococcus pyogenes var. albus"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Staphylococcus epidermidis albus"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Staphylococcus epidermidis (organism)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Staphylococcus albus"
+        }
+      ]
+    },
+    {
+      "code": "609588000",
+      "display": "Total knee replacement",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Total knee arthroplasty"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Total knee replacement (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Prosthetic total arthroplasty of knee joint"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Prosthetic total arthroplasty of knee joint (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "61396006",
+      "display": "Structure of left thigh",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Left thigh"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of left thigh (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "61490001",
+      "display": "Angina, class I",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Angina, class I (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "61582004",
+      "display": "Allergic rhinitis",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Allergic rhinitis, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Allergic rhinitis due to allergen"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Allergic rhinitis (disorder)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "AR - Allergic rhinitis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Atopic rhinitis"
+        }
+      ]
+    },
+    {
+      "code": "61685007",
+      "display": "Lower limb structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Lower extremity"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Lower extremity, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Lower limb, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hindlimb, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Lower limb"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Lower extremity structure"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Lower limb structure (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Leg"
+        }
+      ]
+    },
+    {
+      "code": "64033007",
+      "display": "Kidney structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Kidney"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Kidney, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Kidney structure (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Renal structure"
+        }
+      ]
+    },
+    {
+      "code": "6736007",
+      "display": "Moderate severity",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Moderate"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Midgrade"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Moderate (severity modifier) (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Moderate (severity modifier)"
+        }
+      ]
+    },
+    {
+      "code": "67782005",
+      "display": "Acute respiratory distress syndrome",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Adult respiratory distress syndrome"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Congestive atelectasis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "DaNang lung"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Vietnam lung"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Adult respiratory distress syndrome, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Shock lung"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "ARDS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pulmonary insufficiency following shock"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pulmonary insufficiency following surgery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pulmonary insufficiency following trauma"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Post-traumatic pulmonary insufficiency"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Traumatic wet lung"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Adult hyaline membrane disease"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Acquired respiratory distress syndrome"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pulmonary capillary leak syndrome"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "ARDS - Adult respiratory distress syndrome"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Non-cardiogenic pulmonary oedema"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Non-cardiogenic pulmonary edema"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Adult respiratory distress syndrome (disorder)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Acute respiratory distress syndrome (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "68566005",
+      "display": "Urinary tract infectious disease",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Urinary tract infectious disease, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Urinary tract infection, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Urinary tract infection"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Urinary tract infectious disease (disorder)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "UTI - Urinary tract infection"
+        }
+      ]
+    },
+    {
+      "code": "69105007",
+      "display": "Carotid artery structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Carotid artery"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Carotid artery, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Carotid artery structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "69536005",
+      "display": "Head structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Head"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Head, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Head structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "700372006",
+      "display": "Catheter-associated urinary tract infection",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Urinary tract infection associated with catheter"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Urinary tract infection associated with catheter (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "700378005",
+      "display": "Chronic kidney disease stage 3A",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Chronic kidney disease stage 3A (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "700379002",
+      "display": "Chronic kidney disease stage 3B",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Chronic kidney disease stage 3B (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "70258002",
+      "display": "Ankle joint structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Ankle joint"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Ankle joint, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hock joint, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hock of joint, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Ankle joint structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "706172005",
+      "display": "Ventilator",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Ventilator (physical object)"
+        }
+      ]
+    },
+    {
+      "code": "706226000",
+      "display": "Continuous positive airway pressure/Bilevel positive airway pressure mask",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Continuous positive airway pressure/Bilevel positive airway pressure mask (physical object)"
+        }
+      ]
+    },
+    {
+      "code": "71341001",
+      "display": "Bone structure of femur",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Femur"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Femur, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Bone structure of femur (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Structure of femur"
+        }
+      ]
+    },
+    {
+      "code": "716186003",
+      "display": "No known allergy",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "No known allergy (situation)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "NKA - No known allergy"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "NKA - no known allergy"
+        }
+      ]
+    },
+    {
+      "code": "71651007",
+      "display": "Mammography",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Mammography, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Radiographic examination of breast, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Mammogram, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Radiographic examination of breast"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Mammogram"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Mammography (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "718329006",
+      "display": "Infiltration route",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Infiltration route (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "722414000",
+      "display": "Vascular medicine",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Vascular medicine (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Angiology"
+        }
+      ]
+    },
+    {
+      "code": "72641008",
+      "display": "Sedation",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Sedation, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Sedation procedure, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Sedation procedure"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Sedation (procedure)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Administration of sedative (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Administration of sedative"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Sedative therapy"
+        }
+      ]
+    },
+    {
+      "code": "72696002",
+      "display": "Knee region structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Knee"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Knee, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Stifle, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Stifle"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Knee region structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "73457008",
+      "display": "Proteus mirabilis",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Proteus mirabilis (organism)"
+        }
+      ]
+    },
+    {
+      "code": "736442006",
+      "display": "Catheter related bloodstream infection",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Catheter related bloodstream infection (disorder)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "CRBSI - catheter related bloodstream infection"
+        }
+      ]
+    },
+    {
+      "code": "73761001",
+      "display": "Colonoscopy",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Colonoscopy, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Endoscopy of colon, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Endoscopy of colon"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Endoscopic examination of colon"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Colonoscopy (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "74262004",
+      "display": "Oral cavity structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Oral cavity"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Oral cavity, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Buccal cavity, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Cavitas oris, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Buccal cavity"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Cavitas oris"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Oral cavity structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "746011009",
+      "display": "Closure of skin wound",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Closure of skin wound (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "76009000",
+      "display": "Esophagogastroduodenoscopy",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Oesophagogastroduodenoscopy"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Upper gastrointestinal endoscopy"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Esophagogastroduodenoscopy (procedure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Upper GI endoscopy"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "EGD - Oesophagogastroduodenoscopy"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "EGD - Esophagogastroduodenoscopy"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Endoscopic examination of upper gastrointestinal tract"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Upper GI (gastrointestinal) endoscopy"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "OGD - oesophagogastroduodenoscopy"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "EGD - esophagogastroduodenoscopy"
+        }
+      ]
+    },
+    {
+      "code": "764146007",
+      "display": "Penicillin",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Penicillin (substance)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Substance with penicillin structure (substance)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Substance with penicillin structure"
+        }
+      ]
+    },
+    {
+      "code": "76752008",
+      "display": "Breast structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Breast"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Breast, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Mammary gland, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Mammary gland"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Breast anatomy"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Breast structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "773568002",
+      "display": "Emergency medicine",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Emergency medicine (qualifier value)"
+        }
+      ]
+    },
+    {
+      "code": "7771000",
+      "display": "Left",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Left lateral"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Levo-"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Left (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Left side"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Lt - Left"
+        }
+      ]
+    },
+    {
+      "code": "78065002",
+      "display": "Enterococcus faecalis",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Streptococcus faecalis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Streptococcus fecalis"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Enterococcus fecalis"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Enterococcus fecalis (organism)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Enterococcus faecalis (organism)"
+        }
+      ]
+    },
+    {
+      "code": "782576004",
+      "display": "Tree pollen",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Tree pollen (substance)"
+        }
+      ]
+    },
+    {
+      "code": "78421000",
+      "display": "Intramuscular route",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Intramuscular route (qualifier value)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Intramuscular use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "IM route"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "IM use"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Intramuscular"
+        }
+      ]
+    },
+    {
+      "code": "79321009",
+      "display": "Application of splint",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Splinting"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Application of splint (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "80166006",
+      "display": "Streptococcus pyogenes",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Streptococcus, group A"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Group A streptococcus"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Streptococcus pyogenes (organism)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Streptococcus Lancefield group A"
+        }
+      ]
+    },
+    {
+      "code": "80546007",
+      "display": "Occupational therapist",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Occupational therapist (occupation)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "OT - Occupational therapist"
+        }
+      ]
+    },
+    {
+      "code": "80891009",
+      "display": "Heart structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Heart"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Heart, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Heart structure (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Cardiac structure"
+        }
+      ]
+    },
+    {
+      "code": "81502006",
+      "display": "Hypopharyngeal structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Hypopharynx"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hypopharynx, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Laryngopharynx, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Laryngopharynx"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Hypopharyngeal structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "818982008",
+      "display": "Abdominopelvic cross-sectional segment",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Structure of abdominopelvic cross-sectional segment of trunk"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of abdominopelvic cross-sectional segment of trunk (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "818983003",
+      "display": "Abdomen",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Intra-abdominopelvic structure and/or anterior abdominal wall"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Structure of abdominopelvic cavity and/or content of abdominopelvic cavity and/or anterior abdominal wall (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Structure of abdominopelvic cavity and/or content of abdominopelvic cavity and/or anterior abdominal wall"
+        }
+      ]
+    },
+    {
+      "code": "8205005",
+      "display": "Wrist region structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Wrist"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Wrist, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Carpus, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Carpus"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Wrist region structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "827068008",
+      "display": "Hypertension stage 2",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Stage 2 hypertension"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Stage 2 hypertension (finding)"
+        }
+      ]
+    },
+    {
+      "code": "827069000",
+      "display": "Hypertension stage 1",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Stage 1 hypertension"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Stage 1 hypertension (finding)"
+        }
+      ]
+    },
+    {
+      "code": "8517006",
+      "display": "Ex-smoker",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Former smoker"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Cessation of smoking"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Ex-smoker (life style)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Ex-smoker (finding)"
+        }
+      ]
+    },
+    {
+      "code": "85284003",
+      "display": "Angina, class III",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Angina, class III (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "85562004",
+      "display": "Hand structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Hand"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Hand, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Forefoot, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Forepaw, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Hand structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "86052008",
+      "display": "Closed reduction of fracture",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Closed reduction of fracture, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Manual reduction of closed fracture"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Closed reduction of fracture (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "86933000",
+      "display": "Heavy drinker",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Alcoholic beverage heavy drinker"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Drunk"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Drinks heavily"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Heavy drinker (life style)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Heavy drinker (finding)"
+        }
+      ]
+    },
+    {
+      "code": "89323001",
+      "display": "Angina, class IV",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Angina, class IV (disorder)"
+        }
+      ]
+    },
+    {
+      "code": "89837001",
+      "display": "Urinary bladder structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Urinary bladder"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Urinary bladder, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Bladder, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Bladder"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Urinary bladder structure (body structure)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Bladder structure"
+        }
+      ]
+    },
+    {
+      "code": "91288006",
+      "display": "Acinetobacter baumannii",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Acinetobacter baumannii (organism)"
+        }
+      ]
+    },
+    {
+      "code": "91381003",
+      "display": "Pleural cavity structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Pleural cavity"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pleural cavity, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Pleural cavity structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "9263008",
+      "display": "Application of elastic bandage",
+      "designation": [
+        {
+          "use": "900000000000003001",
+          "value": "Application of elastic bandage (procedure)"
+        }
+      ]
+    },
+    {
+      "code": "955009",
+      "display": "Bronchial structure",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Bronchus"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Bronchus, NOS"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Main bronchus, NOS"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Bronchial structure (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "9861002",
+      "display": "Streptococcus pneumoniae",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Diplococcus pneumoniae"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Pneumococcus"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Streptococcus pneumoniae (organism)"
+        }
+      ]
+    }
+  ]
+}

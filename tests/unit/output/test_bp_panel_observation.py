@@ -134,6 +134,9 @@ def test_bp_panel_us_display_english() -> None:
     resources = _build_vitals("US", sbp=120, dbp=80)
     panel = _find_by_code(resources, "85354-9")
     assert panel is not None
-    assert panel["code"]["coding"][0]["display"] == "Blood pressure panel"
+    assert (
+        panel["code"]["coding"][0]["display"] == "Blood pressure panel with all children optional"
+    )  # LOINC display (Issue #3127)
+    assert panel["code"]["text"] == "Blood pressure panel"
     assert panel["component"][0]["code"]["coding"][0]["display"] == "Systolic blood pressure"
     assert panel["component"][1]["code"]["coding"][0]["display"] == "Diastolic blood pressure"

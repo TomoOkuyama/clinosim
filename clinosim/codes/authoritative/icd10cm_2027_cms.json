@@ -1,0 +1,2401 @@
+{
+  "metadata": {
+    "source_package": "CMS ICD-10-CM FY2027 code descriptions in tabular order",
+    "source_url": "https://www.cms.gov/files/zip/2027-code-descriptions-tabular-order.zip",
+    "source_file": "Code Descriptions/icd10cm_order_2027.txt (long description, columns 78-)",
+    "extracted_at": "2026-11-10",
+    "clinosim_codes_total": 483,
+    "clinosim_codes_missing_from_source": [
+      "F00",
+      "J46",
+      "K35.9",
+      "S06.50",
+      "S06.51",
+      "S06.52",
+      "S67.8"
+    ],
+    "note": "ICD-10-CM codes in codes/data/icd-10-cm.yaml with the CMS long description (Issue #3127). billable = the order file's header flag (1 = valid for HIPAA-covered transactions). Codes missing from the source are WHO-only or retired codes the registry still lists; they are not emitted for the US."
+  },
+  "concept": [
+    {
+      "code": "A05.9",
+      "display": "Bacterial foodborne intoxication, unspecified",
+      "billable": true
+    },
+    {
+      "code": "A08.4",
+      "display": "Viral intestinal infection, unspecified",
+      "billable": true
+    },
+    {
+      "code": "A15.0",
+      "display": "Tuberculosis of lung",
+      "billable": true
+    },
+    {
+      "code": "A40.0",
+      "display": "Sepsis due to streptococcus, group A",
+      "billable": true
+    },
+    {
+      "code": "A41",
+      "display": "Other sepsis",
+      "billable": false
+    },
+    {
+      "code": "A41.01",
+      "display": "Sepsis due to Methicillin susceptible Staphylococcus aureus",
+      "billable": true
+    },
+    {
+      "code": "A41.02",
+      "display": "Sepsis due to Methicillin resistant Staphylococcus aureus",
+      "billable": true
+    },
+    {
+      "code": "A41.51",
+      "display": "Sepsis due to Escherichia coli [E. coli]",
+      "billable": true
+    },
+    {
+      "code": "A41.52",
+      "display": "Sepsis due to Pseudomonas",
+      "billable": true
+    },
+    {
+      "code": "A41.9",
+      "display": "Sepsis, unspecified organism",
+      "billable": true
+    },
+    {
+      "code": "B18.2",
+      "display": "Chronic viral hepatitis C",
+      "billable": true
+    },
+    {
+      "code": "C15",
+      "display": "Malignant neoplasm of esophagus",
+      "billable": false
+    },
+    {
+      "code": "C15.9",
+      "display": "Malignant neoplasm of esophagus, unspecified",
+      "billable": true
+    },
+    {
+      "code": "C16",
+      "display": "Malignant neoplasm of stomach",
+      "billable": false
+    },
+    {
+      "code": "C16.9",
+      "display": "Malignant neoplasm of stomach, unspecified",
+      "billable": true
+    },
+    {
+      "code": "C18",
+      "display": "Malignant neoplasm of colon",
+      "billable": false
+    },
+    {
+      "code": "C18.9",
+      "display": "Malignant neoplasm of colon, unspecified",
+      "billable": true
+    },
+    {
+      "code": "C22",
+      "display": "Malignant neoplasm of liver and intrahepatic bile ducts",
+      "billable": false
+    },
+    {
+      "code": "C22.9",
+      "display": "Malignant neoplasm of liver, not specified as primary or secondary",
+      "billable": true
+    },
+    {
+      "code": "C25",
+      "display": "Malignant neoplasm of pancreas",
+      "billable": false
+    },
+    {
+      "code": "C25.9",
+      "display": "Malignant neoplasm of pancreas, unspecified",
+      "billable": true
+    },
+    {
+      "code": "C34",
+      "display": "Malignant neoplasm of bronchus and lung",
+      "billable": false
+    },
+    {
+      "code": "C34.90",
+      "display": "Malignant neoplasm of unspecified part of unspecified bronchus or lung",
+      "billable": true
+    },
+    {
+      "code": "C50",
+      "display": "Malignant neoplasm of breast",
+      "billable": false
+    },
+    {
+      "code": "C50.919",
+      "display": "Malignant neoplasm of unspecified site of unspecified female breast",
+      "billable": true
+    },
+    {
+      "code": "C50.929",
+      "display": "Malignant neoplasm of unspecified site of unspecified male breast",
+      "billable": true
+    },
+    {
+      "code": "C61",
+      "display": "Malignant neoplasm of prostate",
+      "billable": true
+    },
+    {
+      "code": "C67",
+      "display": "Malignant neoplasm of bladder",
+      "billable": false
+    },
+    {
+      "code": "C67.9",
+      "display": "Malignant neoplasm of bladder, unspecified",
+      "billable": true
+    },
+    {
+      "code": "C71",
+      "display": "Malignant neoplasm of brain",
+      "billable": false
+    },
+    {
+      "code": "C71.9",
+      "display": "Malignant neoplasm of brain, unspecified",
+      "billable": true
+    },
+    {
+      "code": "C79.51",
+      "display": "Secondary malignant neoplasm of bone",
+      "billable": true
+    },
+    {
+      "code": "D55.0",
+      "display": "Anemia due to glucose-6-phosphate dehydrogenase [G6PD] deficiency",
+      "billable": true
+    },
+    {
+      "code": "D56.0",
+      "display": "Alpha thalassemia",
+      "billable": true
+    },
+    {
+      "code": "D56.1",
+      "display": "Beta thalassemia",
+      "billable": true
+    },
+    {
+      "code": "D57.1",
+      "display": "Sickle-cell disease without crisis",
+      "billable": true
+    },
+    {
+      "code": "D66",
+      "display": "Hereditary factor VIII deficiency",
+      "billable": true
+    },
+    {
+      "code": "D67",
+      "display": "Hereditary factor IX deficiency",
+      "billable": true
+    },
+    {
+      "code": "D68.1",
+      "display": "Hereditary factor XI deficiency",
+      "billable": true
+    },
+    {
+      "code": "E03",
+      "display": "Other hypothyroidism",
+      "billable": false
+    },
+    {
+      "code": "E03.9",
+      "display": "Hypothyroidism, unspecified",
+      "billable": true
+    },
+    {
+      "code": "E05.90",
+      "display": "Thyrotoxicosis, unspecified without thyrotoxic crisis or storm",
+      "billable": true
+    },
+    {
+      "code": "E10",
+      "display": "Type 1 diabetes mellitus",
+      "billable": false
+    },
+    {
+      "code": "E10.10",
+      "display": "Type 1 diabetes mellitus with ketoacidosis without coma",
+      "billable": true
+    },
+    {
+      "code": "E10.11",
+      "display": "Type 1 diabetes mellitus with ketoacidosis with coma",
+      "billable": true
+    },
+    {
+      "code": "E10.65",
+      "display": "Type 1 diabetes mellitus with hyperglycemia",
+      "billable": true
+    },
+    {
+      "code": "E10.9",
+      "display": "Type 1 diabetes mellitus without complications",
+      "billable": true
+    },
+    {
+      "code": "E11",
+      "display": "Type 2 diabetes mellitus",
+      "billable": false
+    },
+    {
+      "code": "E11.00",
+      "display": "Type 2 diabetes mellitus with hyperosmolarity without nonketotic hyperglycemic-hyperosmolar coma (NKHHC)",
+      "billable": true
+    },
+    {
+      "code": "E11.10",
+      "display": "Type 2 diabetes mellitus with ketoacidosis without coma",
+      "billable": true
+    },
+    {
+      "code": "E11.11",
+      "display": "Type 2 diabetes mellitus with ketoacidosis with coma",
+      "billable": true
+    },
+    {
+      "code": "E11.65",
+      "display": "Type 2 diabetes mellitus with hyperglycemia",
+      "billable": true
+    },
+    {
+      "code": "E11.9",
+      "display": "Type 2 diabetes mellitus without complications",
+      "billable": true
+    },
+    {
+      "code": "E66",
+      "display": "Overweight and obesity",
+      "billable": false
+    },
+    {
+      "code": "E66.01",
+      "display": "Morbid (severe) obesity due to excess calories",
+      "billable": true
+    },
+    {
+      "code": "E66.3",
+      "display": "Overweight",
+      "billable": true
+    },
+    {
+      "code": "E66.9",
+      "display": "Obesity, unspecified",
+      "billable": true
+    },
+    {
+      "code": "E78",
+      "display": "Disorders of lipoprotein metabolism and other lipidemias",
+      "billable": false
+    },
+    {
+      "code": "E78.5",
+      "display": "Hyperlipidemia, unspecified",
+      "billable": true
+    },
+    {
+      "code": "E79",
+      "display": "Disorders of purine and pyrimidine metabolism",
+      "billable": false
+    },
+    {
+      "code": "E84",
+      "display": "Cystic fibrosis",
+      "billable": false
+    },
+    {
+      "code": "E84.9",
+      "display": "Cystic fibrosis, unspecified",
+      "billable": true
+    },
+    {
+      "code": "E87.20",
+      "display": "Acidosis, unspecified",
+      "billable": true
+    },
+    {
+      "code": "E88.81",
+      "display": "Metabolic syndrome and other insulin resistance",
+      "billable": false
+    },
+    {
+      "code": "E88.810",
+      "display": "Metabolic syndrome",
+      "billable": true
+    },
+    {
+      "code": "F03.90",
+      "display": "Unspecified dementia, unspecified severity, without behavioral disturbance, psychotic disturbance, mood disturbance, and anxiety",
+      "billable": true
+    },
+    {
+      "code": "F10",
+      "display": "Alcohol related disorders",
+      "billable": false
+    },
+    {
+      "code": "F10.20",
+      "display": "Alcohol dependence, uncomplicated",
+      "billable": true
+    },
+    {
+      "code": "F10.230",
+      "display": "Alcohol dependence with withdrawal, uncomplicated",
+      "billable": true
+    },
+    {
+      "code": "F10.231",
+      "display": "Alcohol dependence with withdrawal delirium",
+      "billable": true
+    },
+    {
+      "code": "F10.239",
+      "display": "Alcohol dependence with withdrawal, unspecified",
+      "billable": true
+    },
+    {
+      "code": "F11",
+      "display": "Opioid related disorders",
+      "billable": false
+    },
+    {
+      "code": "F11.20",
+      "display": "Opioid dependence, uncomplicated",
+      "billable": true
+    },
+    {
+      "code": "F11.23",
+      "display": "Opioid dependence with withdrawal",
+      "billable": true
+    },
+    {
+      "code": "F17.210",
+      "display": "Nicotine dependence, cigarettes, uncomplicated",
+      "billable": true
+    },
+    {
+      "code": "F20",
+      "display": "Schizophrenia",
+      "billable": false
+    },
+    {
+      "code": "F20.9",
+      "display": "Schizophrenia, unspecified",
+      "billable": true
+    },
+    {
+      "code": "F31",
+      "display": "Bipolar disorder",
+      "billable": false
+    },
+    {
+      "code": "F31.9",
+      "display": "Bipolar disorder, unspecified",
+      "billable": true
+    },
+    {
+      "code": "F32",
+      "display": "Depressive episode",
+      "billable": false
+    },
+    {
+      "code": "F32.2",
+      "display": "Major depressive disorder, single episode, severe without psychotic features",
+      "billable": true
+    },
+    {
+      "code": "F32.9",
+      "display": "Major depressive disorder, single episode, unspecified",
+      "billable": true
+    },
+    {
+      "code": "F33",
+      "display": "Major depressive disorder, recurrent",
+      "billable": false
+    },
+    {
+      "code": "F33.2",
+      "display": "Major depressive disorder, recurrent severe without psychotic features",
+      "billable": true
+    },
+    {
+      "code": "F33.9",
+      "display": "Major depressive disorder, recurrent, unspecified",
+      "billable": true
+    },
+    {
+      "code": "F41.0",
+      "display": "Panic disorder [episodic paroxysmal anxiety]",
+      "billable": true
+    },
+    {
+      "code": "F41.1",
+      "display": "Generalized anxiety disorder",
+      "billable": true
+    },
+    {
+      "code": "G10",
+      "display": "Huntington's disease",
+      "billable": true
+    },
+    {
+      "code": "G20",
+      "display": "Parkinson's disease",
+      "billable": false
+    },
+    {
+      "code": "G20.C",
+      "display": "Parkinsonism, unspecified",
+      "billable": true
+    },
+    {
+      "code": "G35",
+      "display": "Multiple sclerosis",
+      "billable": false
+    },
+    {
+      "code": "G43",
+      "display": "Migraine",
+      "billable": false
+    },
+    {
+      "code": "G43.109",
+      "display": "Migraine with aura, not intractable, without status migrainosus",
+      "billable": true
+    },
+    {
+      "code": "G43.909",
+      "display": "Migraine, unspecified, not intractable, without status migrainosus",
+      "billable": true
+    },
+    {
+      "code": "G45.9",
+      "display": "Transient cerebral ischemic attack, unspecified",
+      "billable": true
+    },
+    {
+      "code": "G47.30",
+      "display": "Sleep apnea, unspecified",
+      "billable": true
+    },
+    {
+      "code": "G47.33",
+      "display": "Obstructive sleep apnea (adult) (pediatric)",
+      "billable": true
+    },
+    {
+      "code": "H26",
+      "display": "Other cataract",
+      "billable": false
+    },
+    {
+      "code": "H66.90",
+      "display": "Otitis media, unspecified, unspecified ear",
+      "billable": true
+    },
+    {
+      "code": "I10",
+      "display": "Essential (primary) hypertension",
+      "billable": true
+    },
+    {
+      "code": "I20.0",
+      "display": "Unstable angina",
+      "billable": true
+    },
+    {
+      "code": "I21",
+      "display": "Acute myocardial infarction",
+      "billable": false
+    },
+    {
+      "code": "I21.0",
+      "display": "ST elevation (STEMI) myocardial infarction of anterior wall",
+      "billable": false
+    },
+    {
+      "code": "I21.1",
+      "display": "ST elevation (STEMI) myocardial infarction of inferior wall",
+      "billable": false
+    },
+    {
+      "code": "I21.29",
+      "display": "ST elevation (STEMI) myocardial infarction involving other sites",
+      "billable": true
+    },
+    {
+      "code": "I21.4",
+      "display": "Non-ST elevation (NSTEMI) myocardial infarction",
+      "billable": true
+    },
+    {
+      "code": "I21.9",
+      "display": "Acute myocardial infarction, unspecified",
+      "billable": true
+    },
+    {
+      "code": "I25",
+      "display": "Chronic ischemic heart disease",
+      "billable": false
+    },
+    {
+      "code": "I25.10",
+      "display": "Atherosclerotic heart disease of native coronary artery without angina pectoris",
+      "billable": true
+    },
+    {
+      "code": "I25.2",
+      "display": "Old myocardial infarction",
+      "billable": true
+    },
+    {
+      "code": "I26",
+      "display": "Pulmonary embolism",
+      "billable": false
+    },
+    {
+      "code": "I26.0",
+      "display": "Pulmonary embolism with acute cor pulmonale",
+      "billable": false
+    },
+    {
+      "code": "I26.02",
+      "display": "Saddle embolus of pulmonary artery with acute cor pulmonale",
+      "billable": true
+    },
+    {
+      "code": "I26.9",
+      "display": "Pulmonary embolism without acute cor pulmonale",
+      "billable": false
+    },
+    {
+      "code": "I26.92",
+      "display": "Saddle embolus of pulmonary artery without acute cor pulmonale",
+      "billable": true
+    },
+    {
+      "code": "I26.99",
+      "display": "Other pulmonary embolism without acute cor pulmonale",
+      "billable": true
+    },
+    {
+      "code": "I30.9",
+      "display": "Acute pericarditis, unspecified",
+      "billable": true
+    },
+    {
+      "code": "I33.0",
+      "display": "Acute and subacute infective endocarditis",
+      "billable": true
+    },
+    {
+      "code": "I47.10",
+      "display": "Supraventricular tachycardia, unspecified",
+      "billable": true
+    },
+    {
+      "code": "I48",
+      "display": "Atrial fibrillation and flutter",
+      "billable": false
+    },
+    {
+      "code": "I48.0",
+      "display": "Paroxysmal atrial fibrillation",
+      "billable": true
+    },
+    {
+      "code": "I48.1",
+      "display": "Persistent atrial fibrillation",
+      "billable": false
+    },
+    {
+      "code": "I48.2",
+      "display": "Chronic atrial fibrillation",
+      "billable": false
+    },
+    {
+      "code": "I48.91",
+      "display": "Unspecified atrial fibrillation",
+      "billable": true
+    },
+    {
+      "code": "I48.92",
+      "display": "Unspecified atrial flutter",
+      "billable": true
+    },
+    {
+      "code": "I49.9",
+      "display": "Cardiac arrhythmia, unspecified",
+      "billable": true
+    },
+    {
+      "code": "I50",
+      "display": "Heart failure",
+      "billable": false
+    },
+    {
+      "code": "I50.1",
+      "display": "Left ventricular failure, unspecified",
+      "billable": true
+    },
+    {
+      "code": "I50.9",
+      "display": "Heart failure, unspecified",
+      "billable": true
+    },
+    {
+      "code": "I60.9",
+      "display": "Nontraumatic subarachnoid hemorrhage, unspecified",
+      "billable": true
+    },
+    {
+      "code": "I61",
+      "display": "Nontraumatic intracerebral hemorrhage",
+      "billable": false
+    },
+    {
+      "code": "I61.0",
+      "display": "Nontraumatic intracerebral hemorrhage in hemisphere, subcortical",
+      "billable": true
+    },
+    {
+      "code": "I61.1",
+      "display": "Nontraumatic intracerebral hemorrhage in hemisphere, cortical",
+      "billable": true
+    },
+    {
+      "code": "I61.3",
+      "display": "Nontraumatic intracerebral hemorrhage in brain stem",
+      "billable": true
+    },
+    {
+      "code": "I61.4",
+      "display": "Nontraumatic intracerebral hemorrhage in cerebellum",
+      "billable": true
+    },
+    {
+      "code": "I61.5",
+      "display": "Nontraumatic intracerebral hemorrhage, intraventricular",
+      "billable": true
+    },
+    {
+      "code": "I61.9",
+      "display": "Nontraumatic intracerebral hemorrhage, unspecified",
+      "billable": true
+    },
+    {
+      "code": "I63",
+      "display": "Cerebral infarction",
+      "billable": false
+    },
+    {
+      "code": "I63.3",
+      "display": "Cerebral infarction due to thrombosis of cerebral arteries",
+      "billable": false
+    },
+    {
+      "code": "I63.4",
+      "display": "Cerebral infarction due to embolism of cerebral arteries",
+      "billable": false
+    },
+    {
+      "code": "I63.5",
+      "display": "Cerebral infarction due to unspecified occlusion or stenosis of cerebral arteries",
+      "billable": false
+    },
+    {
+      "code": "I63.9",
+      "display": "Cerebral infarction, unspecified",
+      "billable": true
+    },
+    {
+      "code": "I66.0",
+      "display": "Occlusion and stenosis of middle cerebral artery",
+      "billable": false
+    },
+    {
+      "code": "I69.1",
+      "display": "Sequelae of nontraumatic intracerebral hemorrhage",
+      "billable": false
+    },
+    {
+      "code": "I69.3",
+      "display": "Sequelae of cerebral infarction",
+      "billable": false
+    },
+    {
+      "code": "I71.00",
+      "display": "Dissection of unspecified site of aorta",
+      "billable": true
+    },
+    {
+      "code": "I80",
+      "display": "Phlebitis and thrombophlebitis",
+      "billable": false
+    },
+    {
+      "code": "I80.20",
+      "display": "Phlebitis and thrombophlebitis of unspecified deep vessels of lower extremities",
+      "billable": false
+    },
+    {
+      "code": "I80.209",
+      "display": "Phlebitis and thrombophlebitis of unspecified deep vessels of unspecified lower extremity",
+      "billable": true
+    },
+    {
+      "code": "I82",
+      "display": "Other venous embolism and thrombosis",
+      "billable": false
+    },
+    {
+      "code": "I82.40",
+      "display": "Acute embolism and thrombosis of unspecified deep veins of lower extremity",
+      "billable": false
+    },
+    {
+      "code": "I82.41",
+      "display": "Acute embolism and thrombosis of femoral vein",
+      "billable": false
+    },
+    {
+      "code": "I82.42",
+      "display": "Acute embolism and thrombosis of iliac vein",
+      "billable": false
+    },
+    {
+      "code": "I82.43",
+      "display": "Acute embolism and thrombosis of popliteal vein",
+      "billable": false
+    },
+    {
+      "code": "I82.49",
+      "display": "Acute embolism and thrombosis of other specified deep vein of lower extremity",
+      "billable": false
+    },
+    {
+      "code": "I82.90",
+      "display": "Acute embolism and thrombosis of unspecified vein",
+      "billable": true
+    },
+    {
+      "code": "I85.00",
+      "display": "Esophageal varices without bleeding",
+      "billable": true
+    },
+    {
+      "code": "I85.01",
+      "display": "Esophageal varices with bleeding",
+      "billable": true
+    },
+    {
+      "code": "I88.0",
+      "display": "Nonspecific mesenteric lymphadenitis",
+      "billable": true
+    },
+    {
+      "code": "J06.9",
+      "display": "Acute upper respiratory infection, unspecified",
+      "billable": true
+    },
+    {
+      "code": "J10",
+      "display": "Influenza due to other identified influenza virus",
+      "billable": false
+    },
+    {
+      "code": "J10.0",
+      "display": "Influenza due to other identified influenza virus with pneumonia",
+      "billable": false
+    },
+    {
+      "code": "J10.00",
+      "display": "Influenza due to other identified influenza virus with unspecified type of pneumonia",
+      "billable": true
+    },
+    {
+      "code": "J10.1",
+      "display": "Influenza due to other identified influenza virus with other respiratory manifestations",
+      "billable": true
+    },
+    {
+      "code": "J10.8",
+      "display": "Influenza due to other identified influenza virus with other manifestations",
+      "billable": false
+    },
+    {
+      "code": "J11",
+      "display": "Influenza due to unidentified influenza virus",
+      "billable": false
+    },
+    {
+      "code": "J11.0",
+      "display": "Influenza due to unidentified influenza virus with pneumonia",
+      "billable": false
+    },
+    {
+      "code": "J11.1",
+      "display": "Influenza due to unidentified influenza virus with other respiratory manifestations",
+      "billable": true
+    },
+    {
+      "code": "J12.9",
+      "display": "Viral pneumonia, unspecified",
+      "billable": true
+    },
+    {
+      "code": "J13",
+      "display": "Pneumonia due to Streptococcus pneumoniae",
+      "billable": true
+    },
+    {
+      "code": "J15",
+      "display": "Bacterial pneumonia, not elsewhere classified",
+      "billable": false
+    },
+    {
+      "code": "J15.0",
+      "display": "Pneumonia due to Klebsiella pneumoniae",
+      "billable": true
+    },
+    {
+      "code": "J15.1",
+      "display": "Pneumonia due to Pseudomonas",
+      "billable": true
+    },
+    {
+      "code": "J15.7",
+      "display": "Pneumonia due to Mycoplasma pneumoniae",
+      "billable": true
+    },
+    {
+      "code": "J15.9",
+      "display": "Unspecified bacterial pneumonia",
+      "billable": true
+    },
+    {
+      "code": "J18",
+      "display": "Pneumonia, unspecified organism",
+      "billable": false
+    },
+    {
+      "code": "J18.0",
+      "display": "Bronchopneumonia, unspecified organism",
+      "billable": true
+    },
+    {
+      "code": "J18.1",
+      "display": "Lobar pneumonia, unspecified organism",
+      "billable": true
+    },
+    {
+      "code": "J18.9",
+      "display": "Pneumonia, unspecified organism",
+      "billable": true
+    },
+    {
+      "code": "J21.9",
+      "display": "Acute bronchiolitis, unspecified",
+      "billable": true
+    },
+    {
+      "code": "J44",
+      "display": "Other chronic obstructive pulmonary disease",
+      "billable": false
+    },
+    {
+      "code": "J44.0",
+      "display": "Chronic obstructive pulmonary disease with (acute) lower respiratory infection",
+      "billable": true
+    },
+    {
+      "code": "J44.1",
+      "display": "Chronic obstructive pulmonary disease with (acute) exacerbation",
+      "billable": true
+    },
+    {
+      "code": "J44.9",
+      "display": "Chronic obstructive pulmonary disease, unspecified",
+      "billable": true
+    },
+    {
+      "code": "J45",
+      "display": "Asthma",
+      "billable": false
+    },
+    {
+      "code": "J45.21",
+      "display": "Mild intermittent asthma with (acute) exacerbation",
+      "billable": true
+    },
+    {
+      "code": "J45.31",
+      "display": "Mild persistent asthma with (acute) exacerbation",
+      "billable": true
+    },
+    {
+      "code": "J45.41",
+      "display": "Moderate persistent asthma with (acute) exacerbation",
+      "billable": true
+    },
+    {
+      "code": "J45.51",
+      "display": "Severe persistent asthma with (acute) exacerbation",
+      "billable": true
+    },
+    {
+      "code": "J45.9",
+      "display": "Other and unspecified asthma",
+      "billable": false
+    },
+    {
+      "code": "J45.901",
+      "display": "Unspecified asthma with (acute) exacerbation",
+      "billable": true
+    },
+    {
+      "code": "J45.909",
+      "display": "Unspecified asthma, uncomplicated",
+      "billable": true
+    },
+    {
+      "code": "J68.0",
+      "display": "Bronchitis and pneumonitis due to chemicals, gases, fumes and vapors",
+      "billable": true
+    },
+    {
+      "code": "J69",
+      "display": "Pneumonitis due to solids and liquids",
+      "billable": false
+    },
+    {
+      "code": "J69.0",
+      "display": "Pneumonitis due to inhalation of food and vomit",
+      "billable": true
+    },
+    {
+      "code": "J69.1",
+      "display": "Pneumonitis due to inhalation of oils and essences",
+      "billable": true
+    },
+    {
+      "code": "J85.1",
+      "display": "Abscess of lung with pneumonia",
+      "billable": true
+    },
+    {
+      "code": "J93.9",
+      "display": "Pneumothorax, unspecified",
+      "billable": true
+    },
+    {
+      "code": "J95.851",
+      "display": "Ventilator associated pneumonia",
+      "billable": true
+    },
+    {
+      "code": "J96.00",
+      "display": "Acute respiratory failure, unspecified whether with hypoxia or hypercapnia",
+      "billable": true
+    },
+    {
+      "code": "J98.8",
+      "display": "Other specified respiratory disorders",
+      "billable": true
+    },
+    {
+      "code": "K21",
+      "display": "Gastro-esophageal reflux disease",
+      "billable": false
+    },
+    {
+      "code": "K21.00",
+      "display": "Gastro-esophageal reflux disease with esophagitis, without bleeding",
+      "billable": true
+    },
+    {
+      "code": "K21.9",
+      "display": "Gastro-esophageal reflux disease without esophagitis",
+      "billable": true
+    },
+    {
+      "code": "K22.6",
+      "display": "Gastro-esophageal laceration-hemorrhage syndrome",
+      "billable": true
+    },
+    {
+      "code": "K25",
+      "display": "Gastric ulcer",
+      "billable": false
+    },
+    {
+      "code": "K25.4",
+      "display": "Chronic or unspecified gastric ulcer with hemorrhage",
+      "billable": true
+    },
+    {
+      "code": "K25.9",
+      "display": "Gastric ulcer, unspecified as acute or chronic, without hemorrhage or perforation",
+      "billable": true
+    },
+    {
+      "code": "K26",
+      "display": "Duodenal ulcer",
+      "billable": false
+    },
+    {
+      "code": "K26.4",
+      "display": "Chronic or unspecified duodenal ulcer with hemorrhage",
+      "billable": true
+    },
+    {
+      "code": "K35",
+      "display": "Acute appendicitis",
+      "billable": false
+    },
+    {
+      "code": "K35.2",
+      "display": "Acute appendicitis with generalized peritonitis",
+      "billable": false
+    },
+    {
+      "code": "K35.3",
+      "display": "Acute appendicitis with localized peritonitis",
+      "billable": false
+    },
+    {
+      "code": "K35.80",
+      "display": "Unspecified acute appendicitis",
+      "billable": true
+    },
+    {
+      "code": "K35.89",
+      "display": "Other acute appendicitis",
+      "billable": false
+    },
+    {
+      "code": "K37",
+      "display": "Unspecified appendicitis",
+      "billable": true
+    },
+    {
+      "code": "K46.0",
+      "display": "Unspecified abdominal hernia with obstruction, without gangrene",
+      "billable": true
+    },
+    {
+      "code": "K50.90",
+      "display": "Crohn's disease, unspecified, without complications",
+      "billable": true
+    },
+    {
+      "code": "K56",
+      "display": "Paralytic ileus and intestinal obstruction without hernia",
+      "billable": false
+    },
+    {
+      "code": "K56.0",
+      "display": "Paralytic ileus",
+      "billable": true
+    },
+    {
+      "code": "K56.1",
+      "display": "Intussusception",
+      "billable": true
+    },
+    {
+      "code": "K56.2",
+      "display": "Volvulus",
+      "billable": true
+    },
+    {
+      "code": "K56.4",
+      "display": "Other impaction of intestine",
+      "billable": false
+    },
+    {
+      "code": "K56.5",
+      "display": "Intestinal adhesions [bands] with obstruction (postinfection)",
+      "billable": false
+    },
+    {
+      "code": "K56.6",
+      "display": "Other and unspecified intestinal obstruction",
+      "billable": false
+    },
+    {
+      "code": "K56.609",
+      "display": "Unspecified intestinal obstruction, unspecified as to partial versus complete obstruction",
+      "billable": true
+    },
+    {
+      "code": "K56.69",
+      "display": "Other intestinal obstruction",
+      "billable": false
+    },
+    {
+      "code": "K57.31",
+      "display": "Diverticulosis of large intestine without perforation or abscess with bleeding",
+      "billable": true
+    },
+    {
+      "code": "K57.32",
+      "display": "Diverticulitis of large intestine without perforation or abscess without bleeding",
+      "billable": true
+    },
+    {
+      "code": "K59",
+      "display": "Other functional intestinal disorders",
+      "billable": false
+    },
+    {
+      "code": "K65.0",
+      "display": "Generalized (acute) peritonitis",
+      "billable": true
+    },
+    {
+      "code": "K65.9",
+      "display": "Peritonitis, unspecified",
+      "billable": true
+    },
+    {
+      "code": "K70.10",
+      "display": "Alcoholic hepatitis without ascites",
+      "billable": true
+    },
+    {
+      "code": "K70.31",
+      "display": "Alcoholic cirrhosis of liver with ascites",
+      "billable": true
+    },
+    {
+      "code": "K70.41",
+      "display": "Alcoholic hepatic failure with coma",
+      "billable": true
+    },
+    {
+      "code": "K72.90",
+      "display": "Hepatic failure, unspecified without coma",
+      "billable": true
+    },
+    {
+      "code": "K74",
+      "display": "Fibrosis and cirrhosis of liver",
+      "billable": false
+    },
+    {
+      "code": "K74.60",
+      "display": "Unspecified cirrhosis of liver",
+      "billable": true
+    },
+    {
+      "code": "K74.69",
+      "display": "Other cirrhosis of liver",
+      "billable": true
+    },
+    {
+      "code": "K76.0",
+      "display": "Fatty (change of) liver, not elsewhere classified",
+      "billable": true
+    },
+    {
+      "code": "K76.6",
+      "display": "Portal hypertension",
+      "billable": true
+    },
+    {
+      "code": "K76.9",
+      "display": "Liver disease, unspecified",
+      "billable": true
+    },
+    {
+      "code": "K80",
+      "display": "Cholelithiasis",
+      "billable": false
+    },
+    {
+      "code": "K80.00",
+      "display": "Calculus of gallbladder with acute cholecystitis without obstruction",
+      "billable": true
+    },
+    {
+      "code": "K80.01",
+      "display": "Calculus of gallbladder with acute cholecystitis with obstruction",
+      "billable": true
+    },
+    {
+      "code": "K80.20",
+      "display": "Calculus of gallbladder without cholecystitis without obstruction",
+      "billable": true
+    },
+    {
+      "code": "K80.42",
+      "display": "Calculus of bile duct with acute cholecystitis without obstruction",
+      "billable": true
+    },
+    {
+      "code": "K80.62",
+      "display": "Calculus of gallbladder and bile duct with acute cholecystitis without obstruction",
+      "billable": true
+    },
+    {
+      "code": "K81",
+      "display": "Cholecystitis",
+      "billable": false
+    },
+    {
+      "code": "K81.0",
+      "display": "Acute cholecystitis",
+      "billable": true
+    },
+    {
+      "code": "K81.9",
+      "display": "Cholecystitis, unspecified",
+      "billable": true
+    },
+    {
+      "code": "K83.09",
+      "display": "Other cholangitis",
+      "billable": true
+    },
+    {
+      "code": "K85",
+      "display": "Acute pancreatitis",
+      "billable": false
+    },
+    {
+      "code": "K85.1",
+      "display": "Biliary acute pancreatitis",
+      "billable": false
+    },
+    {
+      "code": "K85.2",
+      "display": "Alcohol induced acute pancreatitis",
+      "billable": false
+    },
+    {
+      "code": "K85.3",
+      "display": "Drug induced acute pancreatitis",
+      "billable": false
+    },
+    {
+      "code": "K85.8",
+      "display": "Other acute pancreatitis",
+      "billable": false
+    },
+    {
+      "code": "K85.9",
+      "display": "Acute pancreatitis, unspecified",
+      "billable": false
+    },
+    {
+      "code": "K85.90",
+      "display": "Acute pancreatitis without necrosis or infection, unspecified",
+      "billable": true
+    },
+    {
+      "code": "K92",
+      "display": "Other diseases of digestive system",
+      "billable": false
+    },
+    {
+      "code": "K92.0",
+      "display": "Hematemesis",
+      "billable": true
+    },
+    {
+      "code": "K92.1",
+      "display": "Melena",
+      "billable": true
+    },
+    {
+      "code": "K92.2",
+      "display": "Gastrointestinal hemorrhage, unspecified",
+      "billable": true
+    },
+    {
+      "code": "K92.9",
+      "display": "Disease of digestive system, unspecified",
+      "billable": true
+    },
+    {
+      "code": "L02.91",
+      "display": "Cutaneous abscess, unspecified",
+      "billable": true
+    },
+    {
+      "code": "L03",
+      "display": "Cellulitis and acute lymphangitis",
+      "billable": false
+    },
+    {
+      "code": "L03.01",
+      "display": "Cellulitis of finger",
+      "billable": false
+    },
+    {
+      "code": "L03.11",
+      "display": "Cellulitis of other parts of limb",
+      "billable": false
+    },
+    {
+      "code": "L03.12",
+      "display": "Acute lymphangitis of other parts of limb",
+      "billable": false
+    },
+    {
+      "code": "L03.21",
+      "display": "Cellulitis and acute lymphangitis of face",
+      "billable": false
+    },
+    {
+      "code": "L03.31",
+      "display": "Cellulitis of trunk",
+      "billable": false
+    },
+    {
+      "code": "L03.90",
+      "display": "Cellulitis, unspecified",
+      "billable": true
+    },
+    {
+      "code": "L08.9",
+      "display": "Local infection of the skin and subcutaneous tissue, unspecified",
+      "billable": true
+    },
+    {
+      "code": "L20",
+      "display": "Atopic dermatitis",
+      "billable": false
+    },
+    {
+      "code": "L20.9",
+      "display": "Atopic dermatitis, unspecified",
+      "billable": true
+    },
+    {
+      "code": "L22",
+      "display": "Diaper dermatitis",
+      "billable": true
+    },
+    {
+      "code": "M17",
+      "display": "Osteoarthritis of knee",
+      "billable": false
+    },
+    {
+      "code": "M17.9",
+      "display": "Osteoarthritis of knee, unspecified",
+      "billable": true
+    },
+    {
+      "code": "M48",
+      "display": "Other spondylopathies",
+      "billable": false
+    },
+    {
+      "code": "M48.50",
+      "display": "Collapsed vertebra, not elsewhere classified, site unspecified",
+      "billable": false
+    },
+    {
+      "code": "M48.50XA",
+      "display": "Collapsed vertebra, not elsewhere classified, site unspecified, initial encounter for fracture",
+      "billable": true
+    },
+    {
+      "code": "M51.16",
+      "display": "Intervertebral disc disorders with radiculopathy, lumbar region",
+      "billable": true
+    },
+    {
+      "code": "M54",
+      "display": "Dorsalgia",
+      "billable": false
+    },
+    {
+      "code": "M54.50",
+      "display": "Low back pain, unspecified",
+      "billable": true
+    },
+    {
+      "code": "M71.20",
+      "display": "Synovial cyst of popliteal space [Baker], unspecified knee",
+      "billable": true
+    },
+    {
+      "code": "M72.6",
+      "display": "Necrotizing fasciitis",
+      "billable": true
+    },
+    {
+      "code": "M79.609",
+      "display": "Pain in unspecified limb",
+      "billable": true
+    },
+    {
+      "code": "M80",
+      "display": "Osteoporosis with current pathological fracture",
+      "billable": false
+    },
+    {
+      "code": "M80.08",
+      "display": "Age-related osteoporosis with current pathological fracture, vertebra(e)",
+      "billable": false
+    },
+    {
+      "code": "M81",
+      "display": "Osteoporosis without current pathological fracture",
+      "billable": false
+    },
+    {
+      "code": "M81.0",
+      "display": "Age-related osteoporosis without current pathological fracture",
+      "billable": true
+    },
+    {
+      "code": "M84.40XA",
+      "display": "Pathological fracture, unspecified site, initial encounter for fracture",
+      "billable": true
+    },
+    {
+      "code": "M84.48",
+      "display": "Pathological fracture, other site",
+      "billable": false
+    },
+    {
+      "code": "N10",
+      "display": "Acute pyelonephritis",
+      "billable": true
+    },
+    {
+      "code": "N12",
+      "display": "Tubulo-interstitial nephritis, not specified as acute or chronic",
+      "billable": true
+    },
+    {
+      "code": "N13.9",
+      "display": "Obstructive and reflux uropathy, unspecified",
+      "billable": true
+    },
+    {
+      "code": "N17",
+      "display": "Acute kidney failure",
+      "billable": false
+    },
+    {
+      "code": "N17.0",
+      "display": "Acute kidney failure with tubular necrosis",
+      "billable": true
+    },
+    {
+      "code": "N17.1",
+      "display": "Acute kidney failure with acute cortical necrosis",
+      "billable": true
+    },
+    {
+      "code": "N17.2",
+      "display": "Acute kidney failure with medullary necrosis",
+      "billable": true
+    },
+    {
+      "code": "N17.8",
+      "display": "Other acute kidney failure",
+      "billable": true
+    },
+    {
+      "code": "N17.9",
+      "display": "Acute kidney failure, unspecified",
+      "billable": true
+    },
+    {
+      "code": "N18",
+      "display": "Chronic kidney disease (CKD)",
+      "billable": false
+    },
+    {
+      "code": "N18.3",
+      "display": "Chronic kidney disease, stage 3 (moderate)",
+      "billable": false
+    },
+    {
+      "code": "N18.9",
+      "display": "Chronic kidney disease, unspecified",
+      "billable": true
+    },
+    {
+      "code": "N19",
+      "display": "Unspecified kidney failure",
+      "billable": true
+    },
+    {
+      "code": "N20.0",
+      "display": "Calculus of kidney",
+      "billable": true
+    },
+    {
+      "code": "N23",
+      "display": "Unspecified renal colic",
+      "billable": true
+    },
+    {
+      "code": "N30.0",
+      "display": "Acute cystitis",
+      "billable": false
+    },
+    {
+      "code": "N30.90",
+      "display": "Cystitis, unspecified without hematuria",
+      "billable": true
+    },
+    {
+      "code": "N39.0",
+      "display": "Urinary tract infection, site not specified",
+      "billable": true
+    },
+    {
+      "code": "N40",
+      "display": "Benign prostatic hyperplasia",
+      "billable": false
+    },
+    {
+      "code": "N40.0",
+      "display": "Benign prostatic hyperplasia without lower urinary tract symptoms",
+      "billable": true
+    },
+    {
+      "code": "N41.0",
+      "display": "Acute prostatitis",
+      "billable": true
+    },
+    {
+      "code": "N83.209",
+      "display": "Unspecified ovarian cyst, unspecified side",
+      "billable": true
+    },
+    {
+      "code": "O03",
+      "display": "Spontaneous abortion",
+      "billable": false
+    },
+    {
+      "code": "O03.9",
+      "display": "Complete or unspecified spontaneous abortion without complication",
+      "billable": true
+    },
+    {
+      "code": "O04",
+      "display": "Complications following (induced) termination of pregnancy",
+      "billable": false
+    },
+    {
+      "code": "O04.5",
+      "display": "Genital tract and pelvic infection following (induced) termination of pregnancy",
+      "billable": true
+    },
+    {
+      "code": "O14.90",
+      "display": "Unspecified pre-eclampsia, unspecified trimester",
+      "billable": true
+    },
+    {
+      "code": "O24.919",
+      "display": "Unspecified diabetes mellitus in pregnancy, unspecified trimester",
+      "billable": true
+    },
+    {
+      "code": "O42.90",
+      "display": "Premature rupture of membranes, unspecified as to length of time between rupture and onset of labor, unspecified weeks of gestation",
+      "billable": true
+    },
+    {
+      "code": "O60.10X0",
+      "display": "Preterm labor with preterm delivery, unspecified trimester, not applicable or unspecified",
+      "billable": true
+    },
+    {
+      "code": "O64.9XX0",
+      "display": "Obstructed labor due to malposition and malpresentation, unspecified, not applicable or unspecified",
+      "billable": true
+    },
+    {
+      "code": "O80",
+      "display": "Encounter for full-term uncomplicated delivery",
+      "billable": true
+    },
+    {
+      "code": "O82",
+      "display": "Encounter for cesarean delivery without indication",
+      "billable": true
+    },
+    {
+      "code": "P07",
+      "display": "Disorders of newborn related to short gestation and low birth weight, not elsewhere classified",
+      "billable": false
+    },
+    {
+      "code": "P07.3",
+      "display": "Preterm [premature] newborn [other]",
+      "billable": false
+    },
+    {
+      "code": "P22",
+      "display": "Respiratory distress of newborn",
+      "billable": false
+    },
+    {
+      "code": "P22.0",
+      "display": "Respiratory distress syndrome of newborn",
+      "billable": true
+    },
+    {
+      "code": "P59",
+      "display": "Neonatal jaundice from other and unspecified causes",
+      "billable": false
+    },
+    {
+      "code": "P59.9",
+      "display": "Neonatal jaundice, unspecified",
+      "billable": true
+    },
+    {
+      "code": "P81",
+      "display": "Other disturbances of temperature regulation of newborn",
+      "billable": false
+    },
+    {
+      "code": "P81.9",
+      "display": "Disturbance of temperature regulation of newborn, unspecified",
+      "billable": true
+    },
+    {
+      "code": "Q87.4",
+      "display": "Marfan syndrome",
+      "billable": false
+    },
+    {
+      "code": "Q87.40",
+      "display": "Marfan syndrome, unspecified",
+      "billable": true
+    },
+    {
+      "code": "R00.0",
+      "display": "Tachycardia, unspecified",
+      "billable": true
+    },
+    {
+      "code": "R04.0",
+      "display": "Epistaxis",
+      "billable": true
+    },
+    {
+      "code": "R05",
+      "display": "Cough",
+      "billable": false
+    },
+    {
+      "code": "R05.9",
+      "display": "Cough, unspecified",
+      "billable": true
+    },
+    {
+      "code": "R06.00",
+      "display": "Dyspnea, unspecified",
+      "billable": true
+    },
+    {
+      "code": "R06.2",
+      "display": "Wheezing",
+      "billable": true
+    },
+    {
+      "code": "R07",
+      "display": "Pain in throat and chest",
+      "billable": false
+    },
+    {
+      "code": "R07.89",
+      "display": "Other chest pain",
+      "billable": true
+    },
+    {
+      "code": "R07.9",
+      "display": "Chest pain, unspecified",
+      "billable": true
+    },
+    {
+      "code": "R10",
+      "display": "Abdominal and pelvic pain",
+      "billable": false
+    },
+    {
+      "code": "R10.10",
+      "display": "Upper abdominal pain, unspecified",
+      "billable": true
+    },
+    {
+      "code": "R10.30",
+      "display": "Lower abdominal pain, unspecified",
+      "billable": true
+    },
+    {
+      "code": "R10.9",
+      "display": "Unspecified abdominal pain",
+      "billable": true
+    },
+    {
+      "code": "R29.818",
+      "display": "Other symptoms and signs involving the nervous system",
+      "billable": true
+    },
+    {
+      "code": "R30.0",
+      "display": "Dysuria",
+      "billable": true
+    },
+    {
+      "code": "R33",
+      "display": "Retention of urine",
+      "billable": false
+    },
+    {
+      "code": "R33.9",
+      "display": "Retention of urine, unspecified",
+      "billable": true
+    },
+    {
+      "code": "R42",
+      "display": "Dizziness and giddiness",
+      "billable": true
+    },
+    {
+      "code": "R50.9",
+      "display": "Fever, unspecified",
+      "billable": true
+    },
+    {
+      "code": "R53",
+      "display": "Malaise and fatigue",
+      "billable": false
+    },
+    {
+      "code": "R53.1",
+      "display": "Weakness",
+      "billable": true
+    },
+    {
+      "code": "R55",
+      "display": "Syncope and collapse",
+      "billable": true
+    },
+    {
+      "code": "R57",
+      "display": "Shock, not elsewhere classified",
+      "billable": false
+    },
+    {
+      "code": "R65.10",
+      "display": "Systemic inflammatory response syndrome (SIRS) of non-infectious origin without acute organ dysfunction",
+      "billable": true
+    },
+    {
+      "code": "R65.20",
+      "display": "Severe sepsis without septic shock",
+      "billable": true
+    },
+    {
+      "code": "R65.21",
+      "display": "Severe sepsis with septic shock",
+      "billable": true
+    },
+    {
+      "code": "R68.8",
+      "display": "Other general symptoms and signs",
+      "billable": false
+    },
+    {
+      "code": "R68.89",
+      "display": "Other general symptoms and signs",
+      "billable": true
+    },
+    {
+      "code": "R69",
+      "display": "Illness, unspecified",
+      "billable": true
+    },
+    {
+      "code": "R73.9",
+      "display": "Hyperglycemia, unspecified",
+      "billable": true
+    },
+    {
+      "code": "S06",
+      "display": "Intracranial injury",
+      "billable": false
+    },
+    {
+      "code": "S06.0X0A",
+      "display": "Concussion without loss of consciousness, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "S06.300A",
+      "display": "Unspecified focal traumatic brain injury without loss of consciousness, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "S06.4X0A",
+      "display": "Epidural hemorrhage without loss of consciousness, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "S06.5",
+      "display": "Traumatic subdural hemorrhage",
+      "billable": false
+    },
+    {
+      "code": "S06.5X0A",
+      "display": "Traumatic subdural hemorrhage without loss of consciousness, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "S06.9",
+      "display": "Unspecified intracranial injury",
+      "billable": false
+    },
+    {
+      "code": "S22",
+      "display": "Fracture of rib(s), sternum and thoracic spine",
+      "billable": false
+    },
+    {
+      "code": "S22.0",
+      "display": "Fracture of thoracic vertebra",
+      "billable": false
+    },
+    {
+      "code": "S22.39XA",
+      "display": "Fracture of one rib, unspecified side, initial encounter for closed fracture",
+      "billable": true
+    },
+    {
+      "code": "S22.41XA",
+      "display": "Multiple fractures of ribs, right side, initial encounter for closed fracture",
+      "billable": true
+    },
+    {
+      "code": "S27.0",
+      "display": "Traumatic pneumothorax",
+      "billable": false
+    },
+    {
+      "code": "S32.0",
+      "display": "Fracture of lumbar vertebra",
+      "billable": false
+    },
+    {
+      "code": "S32.10XA",
+      "display": "Unspecified fracture of sacrum, initial encounter for closed fracture",
+      "billable": true
+    },
+    {
+      "code": "S36.00XA",
+      "display": "Unspecified injury of spleen, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "S36.1",
+      "display": "Injury of liver and gallbladder and bile duct",
+      "billable": false
+    },
+    {
+      "code": "S42",
+      "display": "Fracture of shoulder and upper arm",
+      "billable": false
+    },
+    {
+      "code": "S43.006A",
+      "display": "Unspecified dislocation of unspecified shoulder joint, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "S52",
+      "display": "Fracture of forearm",
+      "billable": false
+    },
+    {
+      "code": "S52.50",
+      "display": "Unspecified fracture of the lower end of radius",
+      "billable": false
+    },
+    {
+      "code": "S52.509A",
+      "display": "Unspecified fracture of the lower end of unspecified radius, initial encounter for closed fracture",
+      "billable": true
+    },
+    {
+      "code": "S52.51",
+      "display": "Fracture of radial styloid process",
+      "billable": false
+    },
+    {
+      "code": "S52.52",
+      "display": "Torus fracture of lower end of radius",
+      "billable": false
+    },
+    {
+      "code": "S52.59",
+      "display": "Other fractures of lower end of radius",
+      "billable": false
+    },
+    {
+      "code": "S52.90XA",
+      "display": "Unspecified fracture of unspecified forearm, initial encounter for closed fracture",
+      "billable": true
+    },
+    {
+      "code": "S62",
+      "display": "Fracture at wrist and hand level",
+      "billable": false
+    },
+    {
+      "code": "S62.009A",
+      "display": "Unspecified fracture of navicular [scaphoid] bone of unspecified wrist, initial encounter for closed fracture",
+      "billable": true
+    },
+    {
+      "code": "S62.90XA",
+      "display": "Unspecified fracture of unspecified hand, initial encounter for closed fracture",
+      "billable": true
+    },
+    {
+      "code": "S67.2",
+      "display": "Crushing injury of hand",
+      "billable": false
+    },
+    {
+      "code": "S68.1",
+      "display": "Traumatic metacarpophalangeal amputation of other and unspecified finger",
+      "billable": false
+    },
+    {
+      "code": "S72",
+      "display": "Fracture of femur",
+      "billable": false
+    },
+    {
+      "code": "S72.0",
+      "display": "Fracture of head and neck of femur",
+      "billable": false
+    },
+    {
+      "code": "S72.00",
+      "display": "Fracture of unspecified part of neck of femur",
+      "billable": false
+    },
+    {
+      "code": "S72.009A",
+      "display": "Fracture of unspecified part of neck of unspecified femur, initial encounter for closed fracture",
+      "billable": true
+    },
+    {
+      "code": "S72.1",
+      "display": "Pertrochanteric fracture",
+      "billable": false
+    },
+    {
+      "code": "S72.10",
+      "display": "Unspecified trochanteric fracture of femur",
+      "billable": false
+    },
+    {
+      "code": "S72.143A",
+      "display": "Displaced intertrochanteric fracture of unspecified femur, initial encounter for closed fracture",
+      "billable": true
+    },
+    {
+      "code": "S72.2",
+      "display": "Subtrochanteric fracture of femur",
+      "billable": false
+    },
+    {
+      "code": "S72.23XA",
+      "display": "Displaced subtrochanteric fracture of unspecified femur, initial encounter for closed fracture",
+      "billable": true
+    },
+    {
+      "code": "S86.909A",
+      "display": "Unspecified injury of unspecified muscle(s) and tendon(s) at lower leg level, unspecified leg, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "S93",
+      "display": "Dislocation and sprain of joints and ligaments at ankle, foot and toe level",
+      "billable": false
+    },
+    {
+      "code": "S93.40",
+      "display": "Sprain of unspecified ligament of ankle",
+      "billable": false
+    },
+    {
+      "code": "S93.409A",
+      "display": "Sprain of unspecified ligament of unspecified ankle, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T07",
+      "display": "Unspecified multiple injuries",
+      "billable": false
+    },
+    {
+      "code": "T07.XXXA",
+      "display": "Unspecified multiple injuries, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T14",
+      "display": "Injury of unspecified body region",
+      "billable": false
+    },
+    {
+      "code": "T14.90",
+      "display": "Injury, unspecified",
+      "billable": false
+    },
+    {
+      "code": "T14.90XA",
+      "display": "Injury, unspecified, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T15.0",
+      "display": "Foreign body in cornea",
+      "billable": false
+    },
+    {
+      "code": "T15.00XA",
+      "display": "Foreign body in cornea, unspecified eye, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T18.9XXA",
+      "display": "Foreign body of alimentary tract, part unspecified, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T30",
+      "display": "Burn and corrosion, body region unspecified",
+      "billable": false
+    },
+    {
+      "code": "T30.0",
+      "display": "Burn of unspecified body region, unspecified degree",
+      "billable": true
+    },
+    {
+      "code": "T31.2",
+      "display": "Burns involving 20-29% of body surface",
+      "billable": false
+    },
+    {
+      "code": "T31.3",
+      "display": "Burns involving 30-39% of body surface",
+      "billable": false
+    },
+    {
+      "code": "T40.411A",
+      "display": "Poisoning by fentanyl or fentanyl analogs, accidental (unintentional), initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T54.3",
+      "display": "Toxic effects of corrosive alkalis and alkali-like substances",
+      "billable": false
+    },
+    {
+      "code": "T54.9",
+      "display": "Toxic effects of unspecified corrosive substance",
+      "billable": false
+    },
+    {
+      "code": "T54.91XA",
+      "display": "Toxic effect of unspecified corrosive substance, accidental (unintentional), initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T75.4",
+      "display": "Electrocution",
+      "billable": false
+    },
+    {
+      "code": "T78",
+      "display": "Adverse effects, not elsewhere classified",
+      "billable": false
+    },
+    {
+      "code": "T78.40",
+      "display": "Allergy, unspecified",
+      "billable": false
+    },
+    {
+      "code": "T78.40XA",
+      "display": "Allergy, unspecified, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T80.211A",
+      "display": "Bloodstream infection due to central venous catheter, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T83.511A",
+      "display": "Infection and inflammatory reaction due to indwelling urethral catheter, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "U07.1",
+      "display": "COVID-19",
+      "billable": true
+    },
+    {
+      "code": "V89.2XXA",
+      "display": "Person injured in unspecified motor-vehicle accident, traffic, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "W19",
+      "display": "Unspecified fall",
+      "billable": false
+    },
+    {
+      "code": "W19.XXXA",
+      "display": "Unspecified fall, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "W54",
+      "display": "Contact with dog",
+      "billable": false
+    },
+    {
+      "code": "W54.0XXA",
+      "display": "Bitten by dog, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "Z00",
+      "display": "Encounter for general examination without complaint, suspected or reported diagnosis",
+      "billable": false
+    },
+    {
+      "code": "Z00.00",
+      "display": "Encounter for general adult medical examination without abnormal findings",
+      "billable": true
+    },
+    {
+      "code": "Z01",
+      "display": "Encounter for other special examination without complaint, suspected or reported diagnosis",
+      "billable": false
+    },
+    {
+      "code": "Z01.818",
+      "display": "Encounter for other preprocedural examination",
+      "billable": true
+    },
+    {
+      "code": "Z09",
+      "display": "Encounter for follow-up examination after completed treatment for conditions other than malignant neoplasm",
+      "billable": true
+    },
+    {
+      "code": "Z12",
+      "display": "Encounter for screening for malignant neoplasms",
+      "billable": false
+    },
+    {
+      "code": "Z12.11",
+      "display": "Encounter for screening for malignant neoplasm of colon",
+      "billable": true
+    },
+    {
+      "code": "Z12.31",
+      "display": "Encounter for screening mammogram for malignant neoplasm of breast",
+      "billable": true
+    },
+    {
+      "code": "Z13",
+      "display": "Encounter for screening for other diseases and disorders",
+      "billable": false
+    },
+    {
+      "code": "Z13.39",
+      "display": "Encounter for screening examination for other mental health and behavioral disorders",
+      "billable": true
+    },
+    {
+      "code": "Z13.5",
+      "display": "Encounter for screening for eye and ear disorders",
+      "billable": true
+    },
+    {
+      "code": "Z13.818",
+      "display": "Encounter for screening for other digestive system disorders",
+      "billable": true
+    },
+    {
+      "code": "Z23",
+      "display": "Encounter for immunization",
+      "billable": true
+    },
+    {
+      "code": "Z34",
+      "display": "Encounter for supervision of normal pregnancy",
+      "billable": false
+    },
+    {
+      "code": "Z34.90",
+      "display": "Encounter for supervision of normal pregnancy, unspecified, unspecified trimester",
+      "billable": true
+    },
+    {
+      "code": "Z37",
+      "display": "Outcome of delivery",
+      "billable": false
+    },
+    {
+      "code": "Z37.9",
+      "display": "Outcome of delivery, unspecified",
+      "billable": true
+    },
+    {
+      "code": "Z38",
+      "display": "Liveborn infants according to place of birth and type of delivery",
+      "billable": false
+    },
+    {
+      "code": "Z38.00",
+      "display": "Single liveborn infant, delivered vaginally",
+      "billable": true
+    },
+    {
+      "code": "Z39",
+      "display": "Encounter for maternal postpartum care and examination",
+      "billable": false
+    },
+    {
+      "code": "Z39.2",
+      "display": "Encounter for routine postpartum follow-up",
+      "billable": true
+    },
+    {
+      "code": "Z48",
+      "display": "Encounter for other postprocedural aftercare",
+      "billable": false
+    },
+    {
+      "code": "Z48.01",
+      "display": "Encounter for change or removal of surgical wound dressing",
+      "billable": true
+    },
+    {
+      "code": "Z51",
+      "display": "Encounter for other aftercare and medical care",
+      "billable": false
+    },
+    {
+      "code": "Z51.89",
+      "display": "Encounter for other specified aftercare",
+      "billable": true
+    },
+    {
+      "code": "Z71",
+      "display": "Persons encountering health services for other counseling and medical advice, not elsewhere classified",
+      "billable": false
+    },
+    {
+      "code": "Z71.6",
+      "display": "Tobacco abuse counseling",
+      "billable": true
+    },
+    {
+      "code": "Z71.89",
+      "display": "Other specified counseling",
+      "billable": true
+    },
+    {
+      "code": "Z76",
+      "display": "Persons encountering health services in other circumstances",
+      "billable": false
+    },
+    {
+      "code": "Z76.0",
+      "display": "Encounter for issue of repeat prescription",
+      "billable": true
+    },
+    {
+      "code": "Z76.89",
+      "display": "Persons encountering health services in other specified circumstances",
+      "billable": true
+    },
+    {
+      "code": "Z86.711",
+      "display": "Personal history of pulmonary embolism",
+      "billable": true
+    },
+    {
+      "code": "Z86.718",
+      "display": "Personal history of other venous thrombosis and embolism",
+      "billable": true
+    },
+    {
+      "code": "Z86.73",
+      "display": "Personal history of transient ischemic attack (TIA), and cerebral infarction without residual deficits",
+      "billable": true
+    },
+    {
+      "code": "Z87.310",
+      "display": "Personal history of (healed) osteoporosis fracture",
+      "billable": true
+    },
+    {
+      "code": "Z87.311",
+      "display": "Personal history of (healed) other pathological fracture",
+      "billable": true
+    },
+    {
+      "code": "Z87.51",
+      "display": "Personal history of pre-term labor",
+      "billable": true
+    },
+    {
+      "code": "Z87.59",
+      "display": "Personal history of other complications of pregnancy, childbirth and the puerperium",
+      "billable": true
+    },
+    {
+      "code": "Z99.2",
+      "display": "Dependence on renal dialysis",
+      "billable": true
+    }
+  ]
+}

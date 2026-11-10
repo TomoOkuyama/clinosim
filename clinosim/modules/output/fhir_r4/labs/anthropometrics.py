@@ -33,6 +33,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.ucum import ucum_quantity
@@ -132,7 +133,8 @@ def _build_one_observation(
                 {
                     "system": get_system_uri("loinc"),
                     "code": loinc,
-                    "display": _DISPLAY_EN[loinc],
+                    # Issue #3127: the LOINC display; the label is text.
+                    "display": registry_display("loinc", loinc, "en") or _DISPLAY_EN[loinc],
                 }
             ],
             "text": display,

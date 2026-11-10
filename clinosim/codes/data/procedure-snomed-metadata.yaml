@@ -54,7 +54,7 @@ outcome:
 complications:
   excessive_bleeding: '131148009'          # Bleeding
   anesthesia_hypotension: '45007003'       # Hypotension
-  surgical_site_infection: '87317003'
+  surgical_site_infection: '433202001'    # Surgical site infection (Issue #3127; was 87317003 Respiratory arrest)
   ards: '67782005'
 
 # Per-procedure_type category + body-site dispatch.
@@ -70,24 +70,24 @@ procedures:
   # --- Bedside / routine ---
   urinary_catheter:     {category: therapeutic, body_site: '89837001'}     # bladder
   central_line:         {category: therapeutic, body_site: '113257007'}    # cardiovascular
-  arterial_line:        {category: therapeutic, body_site: '58602004'}     # peripheral vascular
-  lumbar_puncture:      {category: diagnostic,  body_site: '32713005'}     # vertebral column
-  thoracentesis:        {category: therapeutic, body_site: '118375008'}    # intrathoracic
+  arterial_line:        {category: therapeutic, body_site: '45631007'}     # radial artery (Issue #3127)
+  lumbar_puncture:      {category: diagnostic,  body_site: '122496007'}    # lumbar spine (Issue #3127)
+  thoracentesis:        {category: therapeutic, body_site: '91381003'}     # pleural cavity (Issue #3127)
   paracentesis:         {category: therapeutic, body_site: '818983003'}    # abdomen
   intubation:           {category: therapeutic, body_site: '74262004'}     # oral cavity
   nasogastric_tube:     {category: therapeutic, body_site: '74262004'}     # oral cavity
-  chest_tube:           {category: therapeutic, body_site: '118375008'}    # intrathoracic
-  wound_debridement:    {category: therapeutic, body_site: '87642003'}     # skin/subcut
+  chest_tube:           {category: therapeutic, body_site: '91381003'}     # pleural cavity (Issue #3127)
+  wound_debridement:    {category: therapeutic, body_site: '127856007'}    # skin/subcut (Issue #3127)
   cardioversion:        {category: therapeutic, body_site: '113257007'}    # cardiovascular
   blood_transfusion:    {category: therapeutic, body_site: '38266002'}     # entire body
-  dialysis_acute:       {category: therapeutic, body_site: '80581009'}     # upper urinary tract
+  dialysis_acute:       {category: therapeutic, body_site: '304582006'}    # upper urinary tract (Issue #3127)
   bronchoscopy:         {category: diagnostic,  body_site: '39607008'}     # lung
   echocardiography:     {category: diagnostic,  body_site: '113257007'}    # cardiovascular
 
   # --- CO-3: ED procedures ---
   ecg_12lead:           {category: diagnostic,  body_site: '80891009'}     # heart
-  iv_line:              {category: therapeutic, body_site: '58602004'}     # peripheral vascular
-  wound_care:           {category: therapeutic, body_site: '87642003'}     # skin
+  iv_line:              {category: therapeutic, body_site: '421466002'}    # peripheral vein (Issue #3127)
+  wound_care:           {category: therapeutic, body_site: '127856007'}    # skin (Issue #3127)
   short_arm_splint:     {category: therapeutic, body_site: '8205005'}      # wrist
   reduction_closed:     {category: therapeutic, body_site: '8205005'}      # wrist
   oxygen_therapy:       {category: therapeutic, body_site: '39607008'}     # lung
@@ -96,5 +96,5 @@ procedures:
   coronary_pci:                   {category: surgical,    body_site: '41801008'}     # coronary artery
   pacemaker_implant:              {category: surgical,    body_site: '80891009'}     # heart
   craniotomy_hematoma_evacuation: {category: surgical,    body_site: '12738006'}     # brain
-  ileus_tube_placement:           {category: therapeutic, body_site: '26107004'}     # small intestine
-  bowel_resection:                {category: surgical,    body_site: '30315005'}     # large intestine
+  ileus_tube_placement:           {category: therapeutic, body_site: '30315005'}     # small intestine (Issue #3127)
+  bowel_resection:                {category: surgical,    body_site: '14742008'}     # large intestine (Issue #3127)

@@ -142,7 +142,7 @@ class TestSystemUris:
 class TestBackwardCompatLookup:
     def test_yj_key_still_resolves_yj12_code(self):
         # Ampicillin/Sulbactam YJ12 code — stays in yj.yaml
-        assert lookup("yj", "6139504G1028", "ja") == "アンピシリン/スルバクタム（ユナシン）"
+        assert lookup("yj", "6139504G1028", "ja") == "ユナシン－Ｓキット静注用１．５ｇ"
 
     def test_hot7_key_does_not_resolve_yj12_code(self):
         """Sibling fallback is directional (yj → hot7), NOT the reverse.

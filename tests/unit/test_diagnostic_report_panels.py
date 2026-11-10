@@ -245,7 +245,7 @@ class TestBuildDrResource:
         coding = r["code"]["coding"][0]
         assert coding["system"] == "http://loinc.org"
         assert coding["code"] == "58410-2"
-        assert "Complete blood count" in coding["display"]
+        assert coding["display"] == "CBC panel - Blood by Automated count"
         assert r["subject"] == {"reference": f"Patient/{resolve_patient_id('POP-000002')}"}
         assert r["encounter"] == {"reference": f"Encounter/{resolve_encounter_id('ENC-001')}"}
         assert r["effectiveDateTime"] == "2026-05-12"
@@ -276,7 +276,7 @@ class TestBuildDrResource:
         coding = r["code"]["coding"][0]
         # Issue #3026: LOINC is English-only, so the coding keeps its
         # canonical English display and the Japanese name goes in .text.
-        assert coding["display"] == "Complete blood count (hemogram) panel - Blood by Automated count"
+        assert coding["display"] == "CBC panel - Blood by Automated count"
         assert r["code"]["text"] == "血算 (CBC)"
         # session 48 cycle 8 cross-seed verify fix: performer_ref 未指定でも
         # hospital-main を fallback として emit(CY7-01 100% coverage 維持)。
@@ -380,9 +380,7 @@ class TestBuildLabPanelReports:
         ]
         out = build_lab_panel_reports(self._ctx(orders, country="JP"))
         assert len(out) == 1
-        assert (
-            out[0]["code"]["coding"][0]["display"] == "Complete blood count (hemogram) panel - Blood by Automated count"
-        )
+        assert out[0]["code"]["coding"][0]["display"] == "CBC panel - Blood by Automated count"
         assert out[0]["code"]["text"] == "血算 (CBC)"
 
 
