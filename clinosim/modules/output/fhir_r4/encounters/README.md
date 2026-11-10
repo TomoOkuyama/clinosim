@@ -34,6 +34,10 @@ custom JP `CareLevel` (要介護度) social-history `Observation`.
   the 要介護度 assignment
   ([`clinosim.modules.care_level`](../../../care_level/README.md)).
 
+### Profile-mandated encounter structure (Issue #3155)
+
+`_apply_encounter_type_profile` (end of `_build_encounter`) applies the structure a country's profile mandates for an encounter type, from `locale/<cc>/encounter_type_profiles.yaml`: the `class` coding, the `serviceProvider` Organization and the declared profile with `meta.lastUpdated` at the end of the visit. JP lists `checkup`: a health-checkup Encounter is a JP-eCheckup `JP_Encounter_eCheckupGeneral` (class `encounter-category#checkup` 健診, serviceProvider `hospital-main`). A type the file does not list, and every US encounter, keeps the default (HL7 v3 ActCode class, department serviceProvider).
+
 ### Perinatal + oncology encounter shapes (v0.5 → v0.6.0)
 
 `_build_encounter` now handles the extra encounter shapes from the

@@ -281,6 +281,12 @@ def _apply_jp_clins_profile(resource: dict) -> None:
     if rt == "Observation":
         if not _is_lab_observation(resource):
             return
+        # Issue #3155: a profile whose resources the eCS profile cannot
+        # reference (a health-checkup result, whose encounter is a
+        # JP-eCheckup encounter) — checked before any eCS-only reshaping.
+        excluded = _jp_clins_element_rules().get(rt, {}).get("excluded_with_profile")
+        if excluded and excluded in ((resource.get("meta") or {}).get("profile") or []):
+            return
         _apply_interpreted_reference_range(resource, _jp_clins_element_rules().get(rt, {}))
     if rt == "MedicationRequest" and not _medication_request_satisfies_ecs(resource):
         return
@@ -349,7 +355,9 @@ def _encounter_satisfies_ecs(resource: dict) -> bool:
     """Predicate: may this Encounter assert JP_Encounter_eCS? (Issue #3148)
 
     The eCS profile (JP-CLINS 1.13.0) fixes ``status`` to ``finished``,
-    ``length`` to code ``d`` / unit ``日``, and requires ``class.display``,
+    ``length`` to code ``d`` / unit ``日``, ``class.system`` to HL7 v3
+    ActCode (``element_rules``; a JP-eCheckup health-checkup encounter is
+    classed otherwise, Issue #3155), and requires ``class.display``,
     ``reasonCode.text`` / ``coding.display`` and ``location.status`` /
     ``period.start`` when those elements are present. Whenever
     ``hospitalization`` is present it requires ``dischargeDisposition`` with
@@ -369,7 +377,11 @@ def _encounter_satisfies_ecs(resource: dict) -> bool:
     hosp = resource.get("hospitalization")
     if hosp is not None and not _hospitalization_satisfies_ecs(hosp, rules):
         return False
-    if not (resource.get("class") or {}).get("display"):
+    cls = resource.get("class") or {}
+    if not cls.get("display"):
+        return False
+    # Issue #3155: class.system is fixed to the v3 ActCode system.
+    if rules.get("class_system") and cls.get("system") != get_system_uri(rules["class_system"]):
         return False
     # Issue #3158: the unit the profile fixes (code "d", unit "日").
     length = resource.get("length")

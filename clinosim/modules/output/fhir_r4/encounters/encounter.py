@@ -805,4 +805,32 @@ def _build_encounter(
     if is_readmission and prior_encounter_id:
         resource["partOf"] = encounter_ref(prior_encounter_id)
 
+    _apply_encounter_type_profile(resource, enc_type, country)
     return resource
+
+
+def _apply_encounter_type_profile(resource: dict[str, Any], enc_type: str, country: str) -> None:
+    """The Encounter structure the country's profile mandates for this
+    encounter type (``locale/<cc>/encounter_type_profiles.yaml``, Issue
+    #3155): the ``class`` coding, the ``serviceProvider`` Organization and
+    the declared profile, with ``meta.lastUpdated`` at the end of the visit.
+    A JP health-checkup encounter thereby meets JP_Encounter_eCheckupGeneral."""
+    from clinosim.locale.loader import load_encounter_type_profiles
+    from clinosim.modules.output.fhir_r4.lib.fhir_time import derive_meta_last_updated
+
+    rule = load_encounter_type_profiles(country).get(enc_type)
+    if not rule:
+        return
+    cls = rule.get("class") or {}
+    if cls:
+        resource["class"] = system_coding(str(cls["system_key"]), str(cls["code"]), lang_for(country))
+    if rule.get("service_provider"):
+        resource["serviceProvider"] = {"reference": f"Organization/{rule['service_provider']}"}
+    if rule.get("profile"):
+        meta = resource.setdefault("meta", {})
+        profiles = meta.setdefault("profile", [])
+        if rule["profile"] not in profiles:
+            profiles.append(str(rule["profile"]))
+        ts = derive_meta_last_updated(resource, ("period.end", "period.start"))
+        if ts and not meta.get("lastUpdated"):
+            meta["lastUpdated"] = ts

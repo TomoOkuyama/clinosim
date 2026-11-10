@@ -81,7 +81,10 @@ def test_a_checkup_specimen_test_stays_a_laboratory_result(lab_name: str, unit: 
     assert any(c["system"] == _ITEM_SYSTEM for c in obs["code"]["coding"])
     assert [c["coding"][0]["code"] for c in obs["category"]] == ["laboratory"]
     assert _PROFILE in obs["meta"]["profile"]
-    assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS" in obs["meta"]["profile"]
+    assert "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult" in obs["meta"]["profile"]
+    # Issue #3155: not the eCS lab profile, whose encounter must be a
+    # JP_Encounter_eCS — the checkup encounter is a JP-eCheckup encounter.
+    assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS" not in obs["meta"]["profile"]
     assert obs["specimen"] and specimen is not None
 
 

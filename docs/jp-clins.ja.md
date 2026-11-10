@@ -211,6 +211,19 @@ Note: 健診 IG は JP-CLINS と別に発行 (JP-eCheckup General v1.7.0、
   - **01032** 事業者健診問診結果セクション
 - `section.code.system` =
   `http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code`
+- 参照先 (Issue #3155): `Composition.author` は報告医と病院 Organization
+  `hospital-main` の 2 件で、`hospital-main` は `custodian` も兼ねる (住所に
+  `locale/jp/facility_identity.yaml` の `postal_code` を持つ)。`event.detail` は
+  健診 Encounter を参照する。健診 Encounter は
+  `locale/jp/encounter_type_profiles.yaml` のとおり `JP_Encounter_eCheckupGeneral`
+  に従う: `class` = `encounter-category#checkup` 健診、`meta.lastUpdated` =
+  受診終了時刻、`serviceProvider` = `hospital-main` (同プロファイルの
+  Organization は `partOf` を禁じるため健診センター部門ではない)。
+  `JP_Encounter_eCS` は `class.system` を v3 ActCode に固定するので健診
+  Encounter は eCS を宣言せず、その結果 (`JP_Observation_eCheckupGeneral` を
+  宣言) も、`encounter` に eCS の Encounter を求める
+  `JP_Observation_LabResult_eCS` を宣言しない。subject の Patient の適合は
+  Issue #3182 で扱う。
 
 **対象範囲 (scope)**:
 - 3 健診種別すべて対応 (sub-PR-D、2026-07-13):
