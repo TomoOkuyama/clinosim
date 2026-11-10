@@ -29,6 +29,7 @@ import numpy as np
 
 import clinosim.modules.identity.generators as generators
 from clinosim.age_bands import age_band_covers
+from clinosim.country_profile import register_implementation
 from clinosim.types import InsuranceEnrollment, NationalIdentity
 
 
@@ -63,6 +64,7 @@ def _first_payer_number(payers_cfg: dict[str, Any], category: str) -> str:
     return ""
 
 
+@register_implementation("identity_provider", "us")
 class USIdentityProvider:
     country = "US"
 

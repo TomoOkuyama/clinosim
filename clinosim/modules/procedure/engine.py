@@ -17,11 +17,10 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from clinosim import determinism
 from clinosim.codes import data_table
-from clinosim.codes.procedures import bedside_procedures
+from clinosim.codes.procedures import bedside_procedures, country_procedure_code
 from clinosim.countries import country_slot
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.loader import load_care_practice, load_code_mapping
-from clinosim.modules._shared import is_jp
 from clinosim.modules.procedure._bedside_thresholds import (
     BEDSIDE_DURATION_MEAN_MIN,
     BEDSIDE_DURATION_MIN_MIN,
@@ -195,7 +194,7 @@ def simulate_surgery(
         implants = []
 
     # Primary code for this country
-    proc_code = proc_code_jp if is_jp(country) else proc_code_us
+    proc_code = country_procedure_code(country, {"k-codes": proc_code_jp, "cpt": proc_code_us})
 
     # Surgical approach from disease YAML (protocol.procedure.approach)
     approach_map = proc_data.get("approach", {}) or {}
@@ -442,7 +441,7 @@ def build_intubation_procedure(
         patient_id=patient_id,
         encounter_id=encounter_id,
         procedure_type="intubation",
-        procedure_code=kcode if is_jp(country) else cpt,
+        procedure_code=country_procedure_code(country, {"k-codes": kcode, "cpt": cpt}),
         procedure_code_jp=kcode,
         procedure_code_us=cpt,
         start_datetime=start,
@@ -513,7 +512,7 @@ def age_gated_procedures(
             continue
         proc_type = str(rule["procedure"])
         spec = proc_lookup[proc_type]
-        code = spec[2] if is_jp(country) else spec[1]
+        code = country_procedure_code(country, {"k-codes": spec[2], "cpt": spec[1]})
         results.append(
             _bedside_record(
                 patient_id,
@@ -574,7 +573,7 @@ def generate_bedside_procedures(
         # separate fee; US oxygen: no CPT) is still recorded; the FHIR
         # Procedure then carries its name and the other country's coding,
         # never an empty code (Issue #2340).
-        code = kcode if is_jp(country) else cpt
+        code = country_procedure_code(country, {"k-codes": kcode, "cpt": cpt})
         # Names not stored — FHIR adapter resolves via code_lookup (AD-30)
 
         # Timing: most bedside procedures happen within first 24h
@@ -614,9 +613,12 @@ def generate_bedside_procedures(
                 continue
 
             _, cpt, kcode, *_ = spec
-            if is_jp(country) and not kcode:
+            # An intervention without a code in the country's procedure code
+            # system is not dispatched (Issue #3144; every catalogued
+            # intervention has both a CPT and a K-code).
+            code = country_procedure_code(country, {"k-codes": kcode, "cpt": cpt})
+            if not code:
                 continue
-            code = kcode if is_jp(country) else cpt
 
             hours_offset = max(
                 BEDSIDE_HOURS_OFFSET_MIN,

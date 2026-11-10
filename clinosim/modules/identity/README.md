@@ -104,10 +104,11 @@ content.
 
 ## Constants and configuration
 
-- Registry (in `registry.py`): `_SUPPORTED = {"JP", "US"}`. Any other
-  country → `ValueError` in `get_provider`. `is_jp` / `is_us` are the
-  canonical case-insensitive predicates; a raw `country == "JP"`
-  comparison is a FP-UNIFY-4 anti-pattern.
+- Registry (in `registry.py`): `get_provider` returns the provider the
+  country profile names (`locale/<cc>/country.yaml`
+  `implementations.identity_provider`; providers register with
+  `@register_implementation("identity_provider", name)`, Issue #3144). A
+  country without a profile → `KeyError`.
 - Locale YAML: [`clinosim/locale/jp/identity.yaml`](../../locale/jp/identity.yaml)
   — age-banded rates for マイナンバー card holding + マイナ保険証
   registration, insurer scheme distributions, `household_icc` for

@@ -29,6 +29,9 @@ level は ESI v4 に従い (Issue #2864)、JTAS の level も同じ規則に従�
 - **In scope**: `triage_enricher` (POST_ENCOUNTER order=93、ED
   限定)、`pick_triage_level(severity, level_system, rng)` — YAML
   weight 表 (severity 別、JTAS と ESI で共通、condition の範囲に制限)、
+  `triage_scale(country)` — 国プロファイルが指名する尺度
+  (`implementations.triage_scale`: `esi` / `jtas`、Issue #3144) の level
+  system、
   `pick_arrival_mode(severity, rng)`、`condition_triage_bounds(record)`、
   `resource_count(orders)` / `resource_level(orders)`、
   `has_high_risk_order(record, orders)`、`triage_level(record, enc, drawn)`、

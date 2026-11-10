@@ -50,7 +50,14 @@ FHIR_PROFILES: frozenset[str] = frozenset({"us_core", "jp_core", "jp_clins", "jp
 
 # Modules that register named implementations at import (spec §4). Imported
 # before a profile's implementation names are checked.
-IMPLEMENTATION_MODULES: tuple[str, ...] = ("clinosim.modules.physiology.egfr",)
+IMPLEMENTATION_MODULES: tuple[str, ...] = (
+    "clinosim.modules.physiology.egfr",
+    "clinosim.modules.identity.providers.us",
+    "clinosim.modules.identity.providers.jp",
+    "clinosim.modules.triage.engine",
+    "clinosim.modules.output.fhir_r4.labs.coding_strategy",
+    "clinosim.codes.drugs",
+)
 
 
 class _Formats(BaseModel):

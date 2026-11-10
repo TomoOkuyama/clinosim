@@ -20,6 +20,7 @@ import numpy as np
 
 import clinosim.modules.identity.generators as generators
 from clinosim.age_bands import lookup_age_band
+from clinosim.country_profile import register_implementation
 from clinosim.locale.loader import resident_insurer_number
 from clinosim.types import InsuranceEnrollment, NationalIdentity
 
@@ -31,6 +32,7 @@ def _rate_for_age(table: dict[str, float], age: int) -> float:
     return float(lookup_age_band(table, age, 0.0))
 
 
+@register_implementation("identity_provider", "jp")
 class JPIdentityProvider:
     country = "JP"
 

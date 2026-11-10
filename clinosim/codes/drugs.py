@@ -39,7 +39,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-from clinosim.countries import is_jp
+from clinosim.country_profile import register_implementation
 from clinosim.datafiles import load_data_yaml
 
 _DATA_FILE = Path(__file__).parent / "data" / "drugs.yaml"
@@ -542,10 +542,27 @@ from clinosim.codes.yj import is_verified_yj as is_verified_yj  # noqa: E402
 from clinosim.codes.yj import jp_drug_system_key as jp_drug_system_key  # noqa: E402
 
 
+@register_implementation("drug_system", "profile_code_system")
+def _profile_drug_system(code: str, country: str) -> str:
+    """The country profile's drug code system (US RxNorm), whatever the code."""
+    from clinosim.country_profile import country_profile
+
+    return country_profile(country).code_system("drug")
+
+
+@register_implementation("drug_system", "jp_code_format")
+def _jp_drug_system(code: str, country: str) -> str:
+    """The JP drug code family read from the code's format (YJ, HOT, ...)."""
+    return jp_drug_system_key(code)
+
+
 def drug_system_key(code: str, country: str) -> str:
-    """Registry key of a drug code emitted for ``country``: RxNorm for the US,
-    the format-dispatched JP system for JP."""
-    return jp_drug_system_key(code) if is_jp(country) else "rxnorm"
+    """Registry key of a drug code emitted for ``country``: the ``drug_system``
+    implementation the country profile names (Issue #3144) — RxNorm for the
+    US, the format-dispatched JP system for JP."""
+    from clinosim.country_profile import implementation
+
+    return str(implementation("drug_system", country)(code, country))
 
 
 def drug_system_uri(code: str, country: str) -> str:

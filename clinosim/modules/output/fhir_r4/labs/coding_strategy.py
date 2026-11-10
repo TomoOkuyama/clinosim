@@ -63,8 +63,8 @@ from clinosim.codes import code_exists, get_system_uri, system_key_for
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.countries import lang_for
+from clinosim.country_profile import implementation, register_implementation
 from clinosim.locale.loader import lab_display, load_code_mapping
-from clinosim.modules._shared import is_us
 from clinosim.modules.output.fhir_r4.labs.coding_package import LabCodeCandidate
 
 # --------------------------------------------------------------------------- #
@@ -638,28 +638,28 @@ def _slice_name_for_analyte(lab_name: str) -> str | None:
     return _ANALYTE_TO_SLICE_NAME.get(lab_name)
 
 
-def _classify_analyte(lab_name: str, country: str) -> LabCodingKind:
-    """PR 3a real classifier. Return the coding kind for this
-    (analyte, country) pair.
+@register_implementation("lab_coding", "loinc")
+def _loinc_lab_coding(lab_name: str) -> LabCodingKind:
+    """Every analyte coded from the lab code mapping (LOINC)."""
+    return LabCodingKind.LEGACY_LOINC
 
-    - US → ``LEGACY_LOINC`` (unchanged; LOINC direct mapping remains)
-    - JP + analyte in ``_ANALYTE_TO_SLICE_NAME`` → ``CORELABO_JLAC10``
-    - JP + analyte in ``_KNOWN_UNCODED_ANALYTES`` → ``UNCODED``
-    - JP + analyte NOT in either set → ``UNCODED`` (safe fallback for
-      unrecognised analytes; the completeness test in unit tests
-      guards against silent takedowns of known analytes)
 
-    **NOTE (PR 3a invariant)**: this function is only called from
-    unit tests in PR 3a. ``select_lab_coding_strategy`` does not
-    invoke it yet — the dispatcher continues to return LegacyJSLM /
-    LegacyLOINC unchanged for byte-identical production output.
-    PR 3b bridges CoreLabo-classified analytes; PR 3c bridges Uncoded.
-    """
-    if is_us(country):
-        return LabCodingKind.LEGACY_LOINC
+@register_implementation("lab_coding", "jp_clins")
+def _jp_clins_lab_coding(lab_name: str) -> LabCodingKind:
+    """JP-CLINS: an analyte in ``_ANALYTE_TO_SLICE_NAME`` → ``CORELABO_JLAC10``;
+    any other (known-uncoded or unrecognised) → ``UNCODED`` (safe fallback;
+    the completeness unit test guards against silent takedowns of known
+    analytes)."""
     if lab_name in _ANALYTE_TO_SLICE_NAME:
         return LabCodingKind.CORELABO_JLAC10
     return LabCodingKind.UNCODED
+
+
+def _classify_analyte(lab_name: str, country: str) -> LabCodingKind:
+    """The coding kind for this (analyte, country) pair: the ``lab_coding``
+    implementation the country profile names (Issue #3144) — US ``loinc``
+    (``LEGACY_LOINC``), JP ``jp_clins`` (``CORELABO_JLAC10`` / ``UNCODED``)."""
+    return LabCodingKind(implementation("lab_coding", country)(lab_name))
 
 
 _STRATEGIES: dict[LabCodingKind, LabCodingStrategy] = {
@@ -672,25 +672,14 @@ _STRATEGIES: dict[LabCodingKind, LabCodingStrategy] = {
 
 
 def select_lab_coding_strategy(lab_name: str, country: str) -> LabCodingStrategy:
-    """Look up the strategy for this (analyte, country) pair.
-
-    **PR 3c bridge** (2026-07-26, migration complete): US →
-    LegacyLOINC, JP → consult ``_classify_analyte``. CoreLabo →
-    ``CoreLaboStrategy`` (real 17-digit + Fixed display + LocalCode).
-    Uncoded → ``UncodedStrategy`` (spec-pinned Uncoded slice + LOINC
-    secondary + LocalCode). Unmapped-JP falls to ``UncodedStrategy``
-    too (safe default per memo, JP LegacyJSLM path is
-    effectively retired for classified analytes).
+    """Look up the strategy for this (analyte, country) pair: the strategy of
+    the kind :func:`_classify_analyte` returns (Issue #3144) — US
+    LegacyLOINC; JP CoreLabo (real 17-digit + Fixed display + LocalCode) or
+    Uncoded (spec-pinned Uncoded slice + LOINC secondary + LocalCode), the
+    latter also for unmapped JP analytes (safe default).
 
     LegacyJSLM remains registered as a defensive strategy for both
     CoreLabo and Uncoded pkg-absent fallback paths, and as the US-adjacent
-    JP-analog for legacy callers. It is no longer routed to by the
-    dispatcher for any classified JP analyte after PR 3c.
+    JP-analog for legacy callers. It is not routed to by the dispatcher.
     """
-    if is_us(country):
-        return _STRATEGIES[LabCodingKind.LEGACY_LOINC]
-    kind = _classify_analyte(lab_name, country)
-    if kind == LabCodingKind.CORELABO_JLAC10:
-        return _STRATEGIES[LabCodingKind.CORELABO_JLAC10]
-    # UNCODED (classified) or unmapped JP (defaults to UNCODED per classifier) → UncodedStrategy
-    return _STRATEGIES[LabCodingKind.UNCODED]
+    return _STRATEGIES[_classify_analyte(lab_name, country)]
