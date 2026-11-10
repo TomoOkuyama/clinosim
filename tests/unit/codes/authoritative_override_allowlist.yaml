@@ -22,42 +22,14 @@
 # today. Follow-up snapshots (SNOMED / ICD-10) may introduce entries when
 # JP clinical shorthand differs from WHO preferred terms.
 yj: {}
-# Issue #3127: every other LOINC display is a LOINC 2.83 designation (the
-# FHIR validator rejects clinical shorthand); only a tracked wrong code remains.
-loinc:
-  '93372-1':
-    lang: en
-    clinosim_display: "Columbia Suicide Severity Rating Scale (C-SSRS) lifetime suicidal ideation severity scale"
-    authoritative_display: "FDA product label Indexing - national clinical trial number"
-    rationale: >-
-      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
-    registered_at: 2026-11-10
-# Issue #3127: SNOMED CT codes that denote another concept (staff roles,
-# departments, and two legacy allergen entries kept for old CIF). Tracked for
-# replacement with the intended codes; the allergen codes in use were replaced
-# in Issue #3128.
+# Issue #3127: every LOINC display is a LOINC 2.83 designation (the FHIR
+# validator rejects clinical shorthand). Issue #3157 replaced the last tracked
+# wrong code.
+loinc: {}
+# Issue #3127: SNOMED CT codes that denote another concept. Only two legacy
+# allergen entries kept for old CIF remain; the allergen codes in use were
+# replaced in Issue #3128, the staff-role and department codes in Issue #3157.
 snomed-ct:
-  '158965000':
-    lang: en
-    clinosim_display: "Assistant surgeon"
-    authoritative_display: "Medical practitioner"
-    rationale: >-
-      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
-    registered_at: 2026-11-10
-  '158967008':
-    lang: en
-    clinosim_display: "Anaesthetist"
-    authoritative_display: "Consultant physician"
-    rationale: >-
-      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
-    registered_at: 2026-11-10
-  '158972004':
-    lang: en
-    clinosim_display: "Circulating nurse"
-    authoritative_display: "House officer"
-    rationale: >-
-      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
-    registered_at: 2026-11-10
   '227037002':
     lang: en
     clinosim_display: "Egg"
@@ -69,20 +41,6 @@ snomed-ct:
     lang: en
     clinosim_display: "Wheat"
     authoritative_display: "Peanut - dietary"
-    rationale: >-
-      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
-    registered_at: 2026-11-10
-  '722414000':
-    lang: en
-    clinosim_display: "Laboratory medicine"
-    authoritative_display: "Vascular medicine"
-    rationale: >-
-      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
-    registered_at: 2026-11-10
-  '405623001':
-    lang: en
-    clinosim_display: "Pharmacy"
-    authoritative_display: "Assigned practitioner"
     rationale: >-
       Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
     registered_at: 2026-11-10

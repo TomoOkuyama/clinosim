@@ -72,7 +72,7 @@ Urinalysis: "24357-6"        # Urinalysis panel
 CEA: "2039-6"                # CEA [Mass/volume] in Serum or Plasma
 CA19_9: "24108-3"            # Cancer Ag 19-9 [Units/volume] in Serum or Plasma
 AFP: "1834-1"                # Alpha-1-Fetoprotein [Mass/volume] in Serum or Plasma
-PIVKA_II: "44805-4"          # Prothrombin.protein induced by vit K absence [Mass/vol] in Serum
+PIVKA_II: "93768-0"          # Acarboxyprothrombin [Units/volume] in Serum or Plasma (mAU/mL; tx.fhir.org LOINC 2.83, Issue #3157: was 44805-4, not in LOINC)
 CA15_3: "6875-9"             # Cancer Ag 15-3 [Units/volume] in Serum or Plasma
 PSA: "2857-1"                # Prostate specific Ag [Mass/volume] in Serum or Plasma
 
@@ -82,7 +82,7 @@ PSA: "2857-1"                # Prostate specific Ag [Mass/volume] in Serum or Pl
 # ``current_medications`` (medication_monitoring.yaml routes them here).
 Digoxin: "10535-3"           # Digoxin [Mass/volume] in Serum or Plasma
 Lithium: "14334-7"           # Lithium [Mass/volume] in Serum or Plasma
-Tacrolimus: "27069-5"        # Tacrolimus [Mass/volume] in Serum or Plasma
+Tacrolimus: "77348-1"        # Tacrolimus [Mass/volume] in Blood --trough (tx.fhir.org LOINC 2.83, Issue #3157: was 27069-5, not in LOINC)
 Ciclosporin: "3521-2"        # Cyclosporine [Mass/volume] in Serum or Plasma
 
 # Issue #1137 — PHQ-9 Patient Health Questionnaire 9-item depression
@@ -96,9 +96,11 @@ PHQ-9: "44249-1"
 GAD-7: "70274-6"
 
 # Issue #1137 — C-SSRS Columbia Suicide Severity Rating Scale
-# ideation severity scale (score 0-5). Posner 2011 Am J Psychiatry.
-# LOINC 93372-1 (lifetime suicidal ideation severity scale).
-C-SSRS: "93372-1"
+# ideation severity (score 0-5: none, then the five ideation types of
+# Posner 2011 Am J Psychiatry). LOINC 93293-9 "Most severe suicidal
+# ideation 1 month" (tx.fhir.org LOINC 2.83; answer list LL5434-7 = the
+# five ideation types). Issue #3157: was 93372-1, an FDA product-label code.
+C-SSRS: "93293-9"
 
 # Issue #2138: toxicology screen for psychiatric / overdose medical
 # clearance. LOINC verified via NLM Clinical Tables (LOINC 2.82).

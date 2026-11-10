@@ -688,7 +688,7 @@ This gap was blocking:
 **AD-36 — FHIR Procedure gets structural fields via SNOMED CT.**
 Every `Procedure.ndjson` entry now includes:
 - `category` — SNOMED 387713003 (surgical) / 103693007 (diagnostic) / 277132007 (therapeutic)
-- `performer[].function` — SNOMED 304292004 (surgeon) / 158967008 (anaesthetist)
+- `performer[].function` — SNOMED 304292004 (surgeon) / 88189002 (anesthesiologist)
 - `recorder` — Practitioner reference (defaults to surgeon)
 - `reasonReference` — link to the encounter's primary Condition
 - `bodySite` — SNOMED anatomy code

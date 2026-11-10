@@ -740,8 +740,8 @@ observation、procedure リソースを持つが、退院サマリなし、手�
 各 `Procedure.ndjson` エントリは以下を含むようになった:
 - `category` — SNOMED 387713003 (surgical) / 103693007
   (diagnostic) / 277132007 (therapeutic)
-- `performer[].function` — SNOMED 304292004 (surgeon) / 158967008
-  (anaesthetist)
+- `performer[].function` — SNOMED 304292004 (surgeon) / 88189002
+  (anesthesiologist)
 - `recorder` — Practitioner 参照 (デフォルトは surgeon)
 - `reasonReference` — encounter の primary Condition へリンク
 - `bodySite` — SNOMED anatomy コード

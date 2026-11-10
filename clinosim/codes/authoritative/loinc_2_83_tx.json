@@ -4,13 +4,8 @@
     "source_url": "http://loinc.org",
     "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (display + designations); $validate-code display where $lookup failed",
     "extracted_at": "2026-11-10",
-    "clinosim_codes_total": 372,
-    "clinosim_codes_missing_from_source": [
-      "27069-5",
-      "42346-6",
-      "44805-4",
-      "45391-8"
-    ],
+    "clinosim_codes_total": 370,
+    "clinosim_codes_missing_from_source": [],
     "note": "LOINC codes in codes/data/loinc.yaml with the LONG_COMMON_NAME (display), SHORTNAME and other English designations of LOINC 2.83 as served by tx.fhir.org, the terminology server of the HL7 FHIR validator (Issue #3127; replaces the 2.82 extract). Codes missing from the source are unknown to LOINC 2.83."
   },
   "concept": [
@@ -3816,6 +3811,22 @@
       "status": "ACTIVE"
     },
     {
+      "code": "77348-1",
+      "display": "Tacrolimus [Mass/volume] in Blood --trough",
+      "short_display": "Tacrolimus Trough Bld-mCnc",
+      "designation": [
+        {
+          "use": "SHORTNAME",
+          "value": "Tacrolimus Trough Bld-mCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Tacrolimus trough, Blood"
+        }
+      ],
+      "status": "ACTIVE"
+    },
+    {
       "code": "777-3",
       "display": "Platelets [#/volume] in Blood by Automated count",
       "short_display": "Platelet # Bld Auto",
@@ -4387,13 +4398,23 @@
       "status": "ACTIVE"
     },
     {
-      "code": "93372-1",
-      "display": "FDA product label Indexing - national clinical trial number",
-      "short_display": "FDA label Indexing - NCT #",
+      "code": "93293-9",
+      "display": "Most severe suicidal ideation 1 month",
+      "designation": [],
+      "status": "ACTIVE"
+    },
+    {
+      "code": "93768-0",
+      "display": "Acarboxyprothrombin [Units/volume] in Serum or Plasma",
+      "short_display": "Acarboxyprothrombin SerPl-aCnc",
       "designation": [
         {
           "use": "SHORTNAME",
-          "value": "FDA label Indexing - NCT #"
+          "value": "Acarboxyprothrombin SerPl-aCnc"
+        },
+        {
+          "use": "ConsumerName",
+          "value": "Acarboxyprothrombin, Blood"
         }
       ],
       "status": "ACTIVE"

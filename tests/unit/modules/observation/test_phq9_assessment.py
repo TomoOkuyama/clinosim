@@ -175,10 +175,10 @@ def test_cssrs_precision_is_integer() -> None:
 
 
 def test_cssrs_us_loinc_mapping() -> None:
-    """US code map maps C-SSRS → LOINC 93372-1 (Columbia Suicide
-    Severity Rating Scale lifetime ideation severity scale)."""
+    """US code map maps C-SSRS → LOINC 93293-9 (Most severe suicidal
+    ideation 1 month; Issue #3157: was 93372-1, an FDA product-label code)."""
     us_map = load_code_mapping("lab", "US")
-    assert us_map.get("C-SSRS") == "93372-1"
+    assert us_map.get("C-SSRS") == "93293-9"
 
 
 def test_cssrs_generate_lab_result_integer_in_range() -> None:
