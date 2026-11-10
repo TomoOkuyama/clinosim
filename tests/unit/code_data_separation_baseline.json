@@ -29,7 +29,7 @@
     "modules/output/fhir_r4/conditions/allergy_intolerance.py": 2,
     "modules/output/fhir_r4/conditions/code_status.py": 1,
     "modules/output/fhir_r4/conditions/conditions.py": 3,
-    "modules/output/fhir_r4/demographics/patient.py": 9,
+    "modules/output/fhir_r4/demographics/patient.py": 8,
     "modules/output/fhir_r4/demographics/practitioner.py": 7,
     "modules/output/fhir_r4/demographics/smoking_alcohol.py": 1,
     "modules/output/fhir_r4/documents/composition.py": 1,

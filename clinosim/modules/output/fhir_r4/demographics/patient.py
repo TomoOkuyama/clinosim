@@ -23,6 +23,7 @@ from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_identity_config, resident_insurer_number, vocab_display
+from clinosim.locale.loaders.fhir_identity import load_facility_identity
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.common import (
     _social_category,
@@ -523,6 +524,28 @@ def _derive_coverage_status(period_end: str | None, snapshot_date: str | None) -
     return "active" if period_end >= snapshot_date else "cancelled"
 
 
+def _member_id_value(cfg: dict, insurer: str, symbol: str | None, number: str, branch: str | None) -> str:
+    """The composite member identifier of a Coverage (Issue #3149): the
+    locale's ``member_id_fields`` joined by ``:`` (a missing field is an empty
+    string), the 保険者番号 left-padded with zeros to ``insurer_number_width``."""
+    width = int(cfg.get("insurer_number_width") or 0)
+    parts = {"insurer": insurer.zfill(width), "symbol": symbol or "", "number": number, "branch": branch or ""}
+    return ":".join(parts[f] for f in cfg.get("member_id_fields") or ["insurer", "number"])
+
+
+def _current_member_identifier(coverages: list[dict], member_id_system: str) -> dict | None:
+    """The member identifier of the patient's current Coverage (Issue #3149):
+    the active Coverage with the latest period start, else the latest one."""
+    rows = [r for r in coverages if r.get("resourceType") == "Coverage"]
+    if not rows:
+        return None
+    rows.sort(key=lambda r: (r.get("status") == "active", str((r.get("period") or {}).get("start", ""))))
+    for ident in rows[-1].get("identifier") or []:
+        if ident.get("system") == member_id_system:
+            return {"system": ident["system"], "value": ident["value"]}
+    return None
+
+
 def _build_coverage_resources(
     patient_data: dict,
     country: str,
@@ -693,13 +716,10 @@ def _build_coverage_resources(
             if use_branch and ext_subnumber_url:
                 extensions.append({"url": ext_subnumber_url, "valueString": use_branch})
 
-            # Composite member identifier — JP: 保険者番号:記号:番号:枝番;
-            # US drops the empty 記号/枝番 columns so the composite reads
-            # "<insurer>:<member_id>" rather than "<insurer>::<member_id>:".
-            if use_symbol or use_branch:
-                composite = ":".join([insurer, use_symbol or "", number, use_branch or ""])
-            else:
-                composite = f"{insurer}:{number}"
+            # Composite member identifier — fields and 保険者番号 width from
+            # identity.yaml (Issue #3149; JP: 保険者番号:記号:番号:枝番 with an
+            # 8-digit 保険者等番号, US: <insurer>:<member_id>).
+            composite = _member_id_value(cfg, insurer, use_symbol, number, use_branch)
             subscriber = f"{use_symbol}:{number}" if use_symbol else number
 
             # Issue #923: structural key always carries the FY year so
@@ -870,8 +890,12 @@ def _build_coverage_resources(
     return resources
 
 
-def _build_patient(p: dict, country: str) -> dict:
-    """Build FHIR Patient resource with locale-aware name."""
+def _build_patient(
+    p: dict, country: str, encounters: list[dict] | None = None, snapshot_date: str | None = None
+) -> dict:
+    """Build FHIR Patient resource with locale-aware name. ``encounters`` /
+    ``snapshot_date`` place the current Coverage whose member identifier the
+    Patient carries where the locale asks for it (Issue #3149)."""
     # Extract name from patient profile
     name_data = p.get("name", {})
     family = name_data.get("family_name", p.get("patient_id", ""))
@@ -936,17 +960,11 @@ def _build_patient(p: dict, country: str) -> dict:
     names[0]  # kept for legacy readers below
 
     pid = p.get("patient_id", str(uuid.uuid4()))
-    # Hospital MRN identifier system (country-specific).
-    # Issue #1763: ``http://hospital.example.org/…`` is RFC 2606 reserved
-    # for documentation and is rejected by the FHIR validator at ERROR
-    # severity. US output now uses an https URL under the project-owned
-    # ``clinosim.io`` domain. JP keeps the sample OID (unaffected by the
-    # issue — JP output rejected only on US validator runs).
-    mrn_system = (
-        "urn:oid:1.2.392.100495.20.3.51.1"  # JP example MRN OID
-        if is_jp(country)
-        else "https://clinosim.io/fhir/us/mrn"
-    )
+    # Hospital MRN identifier system, from the locale (Issue #3149: JP
+    # builds the JP-CLINS facility patient-ID OID from the 10-digit
+    # 医療機関コード; Issue #1763: US uses a project-owned https URL).
+    _patient_cfg = _identity_cfg(country).get("fhir_patient") or {}
+    mrn_system = str(_patient_cfg.get("mrn_system", "")).format(**load_facility_identity(country))
     resource: dict[str, Any] = {
         "resourceType": "Patient",
         # Issue #854 Bucket C row 18 (PR-patient): opaque `pt-<12hex>` id.
@@ -1018,6 +1036,15 @@ def _build_patient(p: dict, country: str) -> dict:
 
     if not is_jp(country) and p.get("patient_id"):
         resource["identifier"].append(_build_us_ssn_identifier(pid))
+    # Issue #3149: JP_Patient_eCS R1012 — exactly one insured-person
+    # identifier, the current Coverage's member identifier.
+    if _patient_cfg.get("insured_identifier_from_coverage"):
+        member_system = str((_identity_cfg(country).get("fhir_coverage") or {}).get("member_id_system", ""))
+        insured = _current_member_identifier(
+            _build_coverage_resources(p, country, encounters, snapshot_date), member_system
+        )
+        if insured is not None:
+            resource["identifier"].append(insured)
 
     if dob:
         resource["birthDate"] = to_fhir_date(dob)

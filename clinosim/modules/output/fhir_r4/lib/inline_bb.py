@@ -140,7 +140,11 @@ def _make_synth_ed_enc_dict(
 
 
 def _bb_patient(ctx: BundleContext) -> list[dict]:
-    return [_build_patient(ctx.patient_data, ctx.country)]
+    # Issue #3149: the same encounters / snapshot as _bb_coverage, so the
+    # Patient's insured-person identifier is that of the current Coverage.
+    _rec = ctx.record if isinstance(ctx.record, dict) else {}
+    encounters = _rec.get("encounters") or ctx.patient_data.get("encounters") or []
+    return [_build_patient(ctx.patient_data, ctx.country, encounters, ctx.snapshot_date)]
 
 
 def _bb_coverage(ctx: BundleContext) -> list[dict]:
