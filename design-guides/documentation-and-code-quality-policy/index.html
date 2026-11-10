@@ -2874,8 +2874,9 @@ table of formula coefficients stays in Python even when it is long.</p>
 <hr />
 <h2 id="6-dead-code-hygiene">6. Dead-code hygiene<a class="headerlink" href="#6-dead-code-hygiene" title="Permanent link">&para;</a></h2>
 <ul>
-<li>CI runs <code>ruff</code> with F401 (unused import) and F841 (unused local) as
-  errors. This is baseline.</li>
+<li>CI runs <code>ruff check</code> (which includes F401 unused import and F841 unused
+  local) as errors in the merge-blocking <code>Quality (ruff + format + mypy)</code>
+  job. This is baseline.</li>
 <li>CI also runs <code>vulture</code> at 60 % confidence against a project-level
   by-design whitelist (<a href="../../.vulture-whitelist.py"><code>.vulture-whitelist.py</code></a>)
   on every PR (<code>vulture dead-code</code> job — merge-blocking). Any new finding

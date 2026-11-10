@@ -2410,8 +2410,7 @@
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">                                           </span><span class="c1"># コード経路に触るとき推奨</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">                                           </span><span class="c1"># (local ~18 分、CI ~30 分)</span>
 </span></code></pre></div>
-<p>任意 local check (CI と同じ command; 既存 lint / type 負債の
-   解消途中のため CI では現在 informational マーク):</p>
+<p>lint / format / 型チェック (CI と同じ command。merge をブロックする):</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>make<span class="w"> </span>lint<span class="w">                                  </span><span class="c1"># ruff check + ruff format --check</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>make<span class="w"> </span>typecheck<span class="w">                             </span><span class="c1"># mypy clinosim/</span>
 </span></code></pre></div>
@@ -2429,11 +2428,11 @@
 <li><code>JP-CLINS lab compliance gate</code> / <code>JP Core narrow compliance gate</code> /
      <code>US Core narrow compliance gate</code> (FHIR 出力に影響する path を変更した
      PR のみ実行)</li>
-<li><code>ruff dead-code (F401 / F841)</code></li>
+<li><code>E2E tests (fast)</code></li>
+<li><code>Quality (ruff + format + mypy)</code> — ruff check + ruff format --check + mypy</li>
 <li><code>vulture dead-code</code></li>
 </ol>
 <p>Informational (merge-block しない):
-   - <code>Quality (informational)</code> — ruff check + ruff format --check + mypy
    - <code>Unit test coverage combine (informational)</code></p>
 <p>Python 3.11 unit-test 互換性は nightly 実行
    (<a href="../../.github/workflows/nightly.yml"><code>.github/workflows/nightly.yml</code></a>)。

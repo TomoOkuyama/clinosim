@@ -2585,8 +2585,8 @@
 </ol>
 <h2 id="1-コーディング標準">1. コーディング標準<a class="headerlink" href="#1-コーディング標準" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Python 3.11+ / ruff (line length 120) / mypy (<code>mypy clinosim/</code> をローカルで通す。CI では
-  informational) / vulture (未使用コード。フレームワークが読むメンバーは <code>.vulture-whitelist.py</code> へ)。</li>
+<li>Python 3.11+ / ruff (line length 120) / mypy (<code>mypy clinosim/</code>。CI は ruff check・ruff format --check・mypy の
+  失敗で merge をブロックする) / vulture (未使用コード。フレームワークが読むメンバーは <code>.vulture-whitelist.py</code> へ)。</li>
 <li><strong>コード内コメント・docstring は英語</strong>。例外は文書ポリシー §4 の日本の仕様に関するカテゴリのみ。
   ドキュメントは <code>*.md</code> が英語、日本語版は <code>*.ja.md</code>
   (<a href="../documentation-and-code-quality-policy.ja/"><code>documentation-and-code-quality-policy.ja.md</code></a> §1)。</li>

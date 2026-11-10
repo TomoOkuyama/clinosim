@@ -2679,8 +2679,9 @@ Issue を起票し PR description に link)。</p>
 <hr />
 <h2 id="6-dead-code-衛生">6. Dead-code 衛生<a class="headerlink" href="#6-dead-code-衛生" title="Permanent link">&para;</a></h2>
 <ul>
-<li>CI は <code>ruff</code> を F401 (未使用 import) と F841 (未使用 local) を
-  error として実行。これが baseline。</li>
+<li>CI は merge-blocking の <code>Quality (ruff + format + mypy)</code> ジョブで
+  <code>ruff check</code> (F401 未使用 import・F841 未使用 local を含む) を error として
+  実行。これが baseline。</li>
 <li>CI はまた <code>vulture</code> を 60% confidence で
   (<a href="../../.vulture-whitelist.py"><code>.vulture-whitelist.py</code></a> の
   プロジェクトレベル by-design whitelist に対して) 全 PR で実行

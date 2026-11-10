@@ -2811,8 +2811,8 @@ conceptual fit</strong>.</p>
 </ol>
 <h2 id="1-coding-standards">1. Coding standards<a class="headerlink" href="#1-coding-standards" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Python 3.11+ / ruff (line length 120) / mypy (<code>mypy clinosim/</code>
-  must pass locally; CI runs it as informational only) / vulture
+<li>Python 3.11+ / ruff (line length 120) / mypy (<code>mypy clinosim/</code>;
+  CI blocks merge on ruff check, ruff format --check and mypy) / vulture
   (unused code; framework-read members go in <code>.vulture-whitelist.py</code>).</li>
 <li><strong>In-code comments and docstrings are English</strong>, except the
   Japanese-spec categories listed in the documentation policy §4.

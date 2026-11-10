@@ -2429,9 +2429,8 @@ properties the project relies on:</p>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">                                           </span><span class="c1"># code paths (~18 min local,</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">                                           </span><span class="c1"># ~30 min in CI)</span>
 </span></code></pre></div>
-<p>Optional local checks (the same commands CI runs — CI marks these
-   informational for now while the pre-existing lint/type debt is being
-   worked down):</p>
+<p>Lint, format and type checks (the same commands CI runs; they block
+   merge):</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>make<span class="w"> </span>lint<span class="w">                                  </span><span class="c1"># ruff check + ruff format --check</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>make<span class="w"> </span>typecheck<span class="w">                             </span><span class="c1"># mypy clinosim/</span>
 </span></code></pre></div>
@@ -2449,11 +2448,11 @@ properties the project relies on:</p>
 <li><code>JP-CLINS lab compliance gate</code> / <code>JP Core narrow compliance gate</code> /
      <code>US Core narrow compliance gate</code> (run only on PRs that touch paths
      affecting FHIR output)</li>
-<li><code>ruff dead-code (F401 / F841)</code></li>
+<li><code>E2E tests (fast)</code></li>
+<li><code>Quality (ruff + format + mypy)</code> — ruff check + ruff format --check + mypy</li>
 <li><code>vulture dead-code</code></li>
 </ol>
 <p>Informational (not merge-blocking):
-   - <code>Quality (informational)</code> — ruff check + ruff format --check + mypy
    - <code>Unit test coverage combine (informational)</code></p>
 <p>Python 3.11 unit-test compatibility runs nightly (see
    <a href="../../.github/workflows/nightly.yml"><code>.github/workflows/nightly.yml</code></a>).
