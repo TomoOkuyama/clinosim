@@ -697,7 +697,7 @@ def _build_vital_observations(
             "U": ("Unresponsive", "422768004"),
         }
         loc_display, loc_snomed = loc_display_map.get(loc, ("Alert", "248234008"))
-        display = t(f"fhir_obs_text.avpu_{loc}", "ja") or loc_display if is_jp(country) else loc_display
+        display = t(f"fhir_obs_text.avpu_{loc}", lang_for(country)) or loc_display
         _loc_structural_key = f"{encounter_id or patient_id}-{index:04d}-loc"
         loc_obs: dict[str, Any] = {
             "resourceType": "Observation",

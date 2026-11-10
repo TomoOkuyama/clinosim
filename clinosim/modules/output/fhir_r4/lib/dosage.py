@@ -862,7 +862,7 @@ def build_dosage_instruction(
         dosage["text"] = _localize_dosage_terms(" ".join(translated), _lang)
     elif order.get("display_name"):
         name = order["display_name"]
-        dosage["text"] = localize_free_text(name, "ja") if is_jp(country) else name
+        dosage["text"] = localize_free_text(name, lang_for(country))
 
     # Issue #966: IV-route drugs need an infusion rate (or timing.duration)
     # in addition to doseQuantity. `augment_iv_dosage_with_rate` is a no-op

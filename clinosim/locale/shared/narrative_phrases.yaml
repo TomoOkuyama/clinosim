@@ -2566,7 +2566,10 @@ fhir_obs_text:
     en: "Body weight"
   head_circumference:
     ja: "頭囲"
-    en: "Head circumference"
+    en: "Head Occipital-frontal circumference"
+  bmi:
+    ja: "BMI"
+    en: "Body mass index (BMI) [Ratio]"
   abo_group:
     ja: "ABO血液型"
     en: "ABO blood group"

@@ -123,16 +123,14 @@ def summarize_discharge_medications(record: dict[str, Any], language: str = "en"
 
 
 def summarize_procedures(record: dict[str, Any], language: str = "en") -> list[str]:
-    """Return human-readable strings for all procedures (English).
-
-    Language parameter retained for API compatibility; LLM translates.
-    """
+    """Return human-readable strings for all procedures; the procedure names
+    are in ``language`` (Issue #3180), like every code display here."""
     procs = record.get("procedures") or []
     out: list[str] = []
     for p in procs:
         if not isinstance(p, dict):
             continue
-        name = _resolve_procedure_name(p, "en")
+        name = _resolve_procedure_name(p, language)
         start = _format_dt(p.get("start_datetime"))
         surgeon = p.get("primary_surgeon_id", "")
         complications = p.get("intraop_complications") or []
@@ -218,7 +216,7 @@ def _surgery_events(
         if p.get("category_code") != SURGICAL_PROCEDURE:
             continue
         day = _day_offset(admission_dt, p.get("start_datetime"))
-        name = _resolve_procedure_name(p, "en")
+        name = _resolve_procedure_name(p, language)
         comps = p.get("intraop_complications") or []
         ebl = p.get("estimated_blood_loss_ml")
         comp_str = f" with {', '.join(comps)}" if comps else ""
@@ -267,7 +265,7 @@ def _procedure_events(
         if ptype not in invasive:
             continue
         day = _day_offset(admission_dt, p.get("start_datetime"))
-        name = _resolve_procedure_name(p, "en")
+        name = _resolve_procedure_name(p, language)
         events.append(
             HospitalCourseFact(
                 hospital_day=day,

@@ -23,8 +23,12 @@ from clinosim.locale.loader import (
 )
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import is_jp, is_us
-from clinosim.modules.output.fhir_r4.lib.common import display_entry, dual_slot_concept, system_coding
-from clinosim.modules.output.fhir_r4.lib.localization import _ROLE_PREFIX_MAP_JA
+from clinosim.modules.output.fhir_r4.lib.common import (
+    display_entry,
+    dual_slot_concept,
+    system_coding,
+    text_if_localized,
+)
 
 # Issue #1986: US Core 6.1.0 Practitioner profile marks the NPI
 # identifier slice as must-support. System URI is the HL7-registered
@@ -337,33 +341,35 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
         # 循環器専門医`. Falls through to the pre-#962 v2-0360 / text-only
         # path when the yaml is absent or the role is unmapped so we
         # never regress existing qualification coverage.
-        if is_jp(country):
-            jp_quals = _build_jp_qualifications(staff, staff_id)
-            if jp_quals:
-                resource["qualification"] = jp_quals
-                qual = None
-            else:
-                qual = _ROLE_PREFIX_MAP_JA.get(role)
+        jp_quals = _build_jp_qualifications(staff, staff_id) if is_jp(country) else []
+        if jp_quals:
+            resource["qualification"] = jp_quals
+            qual = None
         else:
-            qual = _role_qualification_en(role)
+            qual = _role_qualification(role)
         if qual:
-            _qual_code = qual["qual_code"]
-            _qual_display = qual["qual_display"]
+            _qual_code, _qual_label_map = qual
+            _qual_label = localized(_qual_label_map, lang_for(country))
             if _qual_code in _V2_0360_VALID_CODES:
+                # Issue #3180: HL7 v2-0360 is English-only (code-mapping spec
+                # §5.3): the coding keeps the English display, the label in
+                # the output language goes in text.
+                _qual_display_en = localized(_qual_label_map, "en")
                 qualification: dict[str, Any] = {
                     "code": {
                         "coding": [
                             {
                                 "system": get_system_uri("hl7-v2-0360"),
                                 "code": _qual_code,
-                                "display": _qual_display,
+                                "display": _qual_display_en,
                             }
                         ],
+                        **text_if_localized(_qual_display_en, _qual_label),
                     },
                 }
             else:
                 # v2-0360 未定義 code(RD 管理栄養士 等)は text-only
-                qualification = {"code": {"text": _qual_display}}
+                qualification = {"code": {"text": _qual_label}}
             qual_year = staff.get("qualification_year")
             if qual_year:
                 qualification["period"] = {"start": f"{qual_year}-01-01"}
@@ -372,13 +378,13 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
     return resource
 
 
-def _role_qualification_en(role: str) -> dict[str, str] | None:
-    """US qualification {qual_code, qual_display} of a staff role from the role
-    table (Issue #2270); ``None`` when the role has no qualification."""
+def _role_qualification(role: str) -> tuple[str, dict[str, str]] | None:
+    """``(code, display language map)`` of a staff role's qualification from
+    the role table (Issue #2270); ``None`` when the role has no qualification."""
     qual = (load_clinician_roles().get(role) or {}).get("qualification")
     if not isinstance(qual, dict) or not qual.get("code"):
         return None
-    return {"qual_code": str(qual["code"]), "qual_display": localized(qual.get("display") or {}, "en")}
+    return str(qual["code"]), dict(qual.get("display") or {})
 
 
 def _build_practitioner_role(

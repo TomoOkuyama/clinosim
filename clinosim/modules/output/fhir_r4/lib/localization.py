@@ -18,7 +18,6 @@ from clinosim.locale.loader import load_department_display as _load_department_d
 from clinosim.locale.loader import load_med_terms as _load_med_terms
 from clinosim.locale.loader import load_med_terms_ja as _load_med_terms_ja
 from clinosim.locale.loader import load_narrative_display_dict as _load_narrative_display_dict
-from clinosim.locale.localized import localized
 from clinosim.locale.table import LocalizedTable
 from clinosim.modules._shared import is_jp, is_us
 
@@ -119,34 +118,6 @@ def _clinician_role_rows() -> dict[str, dict[str, object]]:
     from clinosim.locale.loader import load_clinician_roles
 
     return dict(load_clinician_roles())
-
-
-def _role_prefix_map_ja() -> dict[str, dict[str, str]]:
-    """Return the role → {qual_code, qual_display, prefix} map derived
-    from `clinosim/codes/data/clinosim-clinician-role.yaml`. Rows without
-    a `qualification:` entry (narrative-only roles like certified_nurse)
-    are omitted; callers already treat a missing key as "no FHIR
-    qualification materialised".
-    """
-    rows = _clinician_role_rows()
-    out: dict[str, dict[str, str]] = {}
-    for role_key, row in rows.items():
-        qual = row.get("qualification") if isinstance(row, dict) else None
-        if not isinstance(qual, dict):
-            continue
-        out[role_key] = {
-            "qual_code": str(qual.get("code", "")),
-            "qual_display": localized(qual.get("display") or {}, "ja"),
-            "prefix": "",
-        }
-    return out
-
-
-# BACKWARDS-COMPAT: `_ROLE_PREFIX_MAP_JA` is retained as a thin
-# module-level attribute computed from the yaml so existing imports in
-# `demographics/practitioner.py` and `fhir_r4/lib/inline_bb.py` keep
-# working. New code should call `_role_prefix_map_ja()` directly.
-_ROLE_PREFIX_MAP_JA: dict[str, dict[str, str]] = _role_prefix_map_ja()
 
 
 # Issue #3025: an internal slug (snake_case order / lab / exam / clinical-course

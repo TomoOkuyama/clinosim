@@ -317,11 +317,11 @@ def _bb_blood_type(ctx: BundleContext) -> list[dict]:
     rh = str(patient.get("rh_factor", "") or "")
 
     resources: list[dict] = []
-    is_jp_out = is_jp(ctx.country)
+    lang = lang_for(ctx.country)
 
     abo_snomed = snomed_for("abo", abo)
     if abo_snomed:
-        abo_text = t("fhir_obs_text.abo_group", "ja" if is_jp_out else "en")
+        abo_text = t("fhir_obs_text.abo_group", lang)
         _abo_structural_key = ctx.patient_id
         o = _build_blood_type_obs(
             obs_id=_resolve_blood_abo_id(_abo_structural_key),
@@ -342,7 +342,7 @@ def _bb_blood_type(ctx: BundleContext) -> list[dict]:
 
     rh_snomed = snomed_for("rh", rh)
     if rh_snomed:
-        rh_text = t("fhir_obs_text.rh_group", "ja" if is_jp_out else "en")
+        rh_text = t("fhir_obs_text.rh_group", lang)
         _rh_structural_key = ctx.patient_id
         o = _build_blood_type_obs(
             obs_id=_resolve_blood_rh_id(_rh_structural_key),
@@ -366,7 +366,7 @@ def _bb_blood_type(ctx: BundleContext) -> list[dict]:
     for o in resources:
         o.pop("category", None)
         o.pop("meta", None)
-        o["note"] = [{"text": t("fhir_obs_text.blood_type_from_history", "ja" if is_jp_out else "en")}]
+        o["note"] = [{"text": t("fhir_obs_text.blood_type_from_history", lang)}]
     # A stay that orders a type and screen reports its own typing on that order.
     for order in _type_and_screen_orders(ctx):
         resources.extend(_typed_stay_resources(ctx, order, abo_snomed or "", rh_snomed or ""))

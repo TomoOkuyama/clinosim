@@ -409,6 +409,7 @@ These rules are common to every resolver in §4, in both layers.
 | One selection API and fallback order | `tests/unit/locale/test_localized_api_2395.py` |
 | No direct language selection | `tests/unit/locale/test_no_direct_language_selection_2397.py` |
 | No comparison of a language with a literal (ratchet: remaining sites pinned to their issues) | `tests/unit/locale/test_no_language_literal_comparison_2455.py` |
+| A literal `"en"` / `"ja"` passed to a display lookup in the output layer is pinned with its reason (English-only or US-only system, English fallback, JP-only profile, language field, matching); no `"ja" if ... else "en"` | `tests/unit/output/test_fhir_language_literals_3180.py` |
 | Language-suffixed YAML fields that remain (§11) pair `<base>_ja` with `<base>_en` | `tests/unit/locale/test_localized_field_shape_2398.py` |
 | No Japanese in non-JP output, no Japanese literals in Python | `tests/unit/test_no_japanese_fallback_2273.py`, `tests/unit/test_no_japanese_literals_2277.py`, `tests/unit/test_narrative_literals_2400.py`, `tests/unit/test_module_literals_2406.py`, `tests/unit/test_simulator_literals_2405.py`, `tests/unit/output/test_fhir_lib_literals_2402.py`, `tests/unit/output/test_fhir_lab_condition_literals_2403.py`, `tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | A third country is not treated as the US | `tests/unit/test_third_country_fallbacks_2203.py` |

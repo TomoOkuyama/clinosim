@@ -66,17 +66,13 @@ LOINC_BODY_WEIGHT = loinc_for("anthropometric", "body_weight")
 LOINC_HEAD_CIRCUMFERENCE = loinc_for("anthropometric", "head_circumference")
 LOINC_BMI = loinc_for("anthropometric", "bmi")
 
-_DISPLAY_EN = {
-    LOINC_BODY_HEIGHT: "Body height",
-    LOINC_BODY_WEIGHT: "Body weight",
-    LOINC_HEAD_CIRCUMFERENCE: "Head Occipital-frontal circumference",
-    LOINC_BMI: "Body mass index (BMI) [Ratio]",
-}
-_DISPLAY_JA = {
-    LOINC_BODY_HEIGHT: t("fhir_obs_text.body_height", "ja"),
-    LOINC_BODY_WEIGHT: t("fhir_obs_text.body_weight", "ja"),
-    LOINC_HEAD_CIRCUMFERENCE: t("fhir_obs_text.head_circumference", "ja"),
-    LOINC_BMI: "BMI",
+# ``code.text`` label of each measurement, in the output language
+# (``fhir_obs_text.<key>``, narrative_phrases.yaml; Issue #3180).
+_LABEL_KEY = {
+    LOINC_BODY_HEIGHT: "fhir_obs_text.body_height",
+    LOINC_BODY_WEIGHT: "fhir_obs_text.body_weight",
+    LOINC_HEAD_CIRCUMFERENCE: "fhir_obs_text.head_circumference",
+    LOINC_BMI: "fhir_obs_text.bmi",
 }
 _UNIT_UCUM = {
     LOINC_BODY_HEIGHT: "cm",
@@ -118,7 +114,7 @@ def _build_one_observation(
     suffix: str,
 ) -> dict[str, Any]:
     """Assemble one FHIR anthropometric Observation resource."""
-    display = _DISPLAY_JA[loinc] if is_jp(country) else _DISPLAY_EN[loinc]
+    display = t(_LABEL_KEY[loinc], lang_for(country))
     unit = _UNIT_UCUM[loinc]
     structural_key = f"{encounter_id or patient_id}-{suffix}"
     obs: dict[str, Any] = {
@@ -134,7 +130,7 @@ def _build_one_observation(
                     "system": get_system_uri("loinc"),
                     "code": loinc,
                     # Issue #3127: the LOINC display; the label is text.
-                    "display": registry_display("loinc", loinc, "en") or _DISPLAY_EN[loinc],
+                    "display": registry_display("loinc", loinc, "en") or t(_LABEL_KEY[loinc], "en"),
                 }
             ],
             "text": display,
