@@ -269,32 +269,37 @@ if [ -n "${CLINOSIM_US_VAL_PINS:-}" ] && [ -f "${CLINOSIM_US_VAL_PINS}" ]; then
 fi
 
 # 各サンプルを検証 (profile URL は US Core 8.0 IG の canonical URL を使用)
-declare -A PROFILES=(
-    ["Patient.json"]="http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
-    ["Encounter.json"]="http://hl7.org/fhir/us/core/StructureDefinition/us-core-encounter"
-    ["Condition_EncounterDiagnosis.json"]="http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-encounter-diagnosis"
-    ["Condition_ProblemListItem.json"]="http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-problems-health-concerns"
-    ["MedicationRequest.json"]="http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest"
-    ["Observation.json"]="http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab"
-    ["AllergyIntolerance.json"]="http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"
-    ["Immunization.json"]="http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization"
-    ["DiagnosticReport.json"]="http://hl7.org/fhir/us/core/StructureDefinition/us-core-diagnosticreport-lab"
-)
+# (a function rather than an associative array, so the script also runs
+# under the bash 3.2 that macOS ships)
+_profile_for() {
+    case "$1" in
+        Patient.json) echo "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient" ;;
+        Encounter.json) echo "http://hl7.org/fhir/us/core/StructureDefinition/us-core-encounter" ;;
+        Condition_EncounterDiagnosis.json) echo "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-encounter-diagnosis" ;;
+        Condition_ProblemListItem.json) echo "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-problems-health-concerns" ;;
+        MedicationRequest.json) echo "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest" ;;
+        Observation.json) echo "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab" ;;
+        AllergyIntolerance.json) echo "http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance" ;;
+        Immunization.json) echo "http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization" ;;
+        DiagnosticReport.json) echo "http://hl7.org/fhir/us/core/StructureDefinition/us-core-diagnosticreport-lab" ;;
+        *) echo "" ;;
+    esac
+}
 
 TOTAL=0
 PASSED=0
 FAILED=0
 for sample in "$SAMPLES"/*.json; do
     filename=$(basename "$sample")
-    if [ -z "${PROFILES[$filename]:-}" ]; then
+    profile=$(_profile_for "$filename")
+    if [ -z "$profile" ]; then
         continue
     fi
-    profile="${PROFILES[$filename]}"
     TOTAL=$((TOTAL + 1))
     echo "  validating $filename against $profile"
     if java -jar "$VALIDATOR_JAR" \
             -version 4.0.1 \
-            "${IG_ARGS[@]}" \
+            ${IG_ARGS[@]+"${IG_ARGS[@]}"} \
             -profile "$profile" \
             "$sample" >"$TMP/val_${filename}.log" 2>&1; then
         PASSED=$((PASSED + 1))
@@ -302,7 +307,9 @@ for sample in "$SAMPLES"/*.json; do
     else
         FAILED=$((FAILED + 1))
         echo "    FAIL — see $TMP/val_${filename}.log"
-        tail -5 "$TMP/val_${filename}.log" | sed 's/^/      /'
+        # Every error the validator reports (the log is deleted on exit).
+        grep -E "^ +(Error|Fatal) @" "$TMP/val_${filename}.log" | sed 's/^ */      /' || true
+        tail -3 "$TMP/val_${filename}.log" | sed 's/^/      /'
     fi
 done
 

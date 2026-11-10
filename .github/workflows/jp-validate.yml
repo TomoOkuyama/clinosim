@@ -7,6 +7,7 @@
 #   - STRICT モード(pin mismatch → fail)
 #   - workflow_dispatch の run_validator default=true(auto-fail gate)
 #   - PR label "jp-validate" trigger は維持(重い job のため on-demand)
+#   - nightly schedule(Issue #3123): master で毎晩実行
 name: JP FHIR validate
 
 on:
@@ -32,11 +33,16 @@ on:
         default: true
   pull_request:
     types: [labeled]
+  # Nightly on master (Issue #3123), so a profile-validation regression
+  # surfaces within a day. 18:47 UTC.
+  schedule:
+    - cron: "47 18 * * *"
 
 jobs:
   jp-validate:
     if: >
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
       (github.event_name == 'pull_request' && github.event.label.name == 'jp-validate')
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -70,14 +76,14 @@ jobs:
           echo "  pinned validator: $VALIDATOR_VERSION (sha256=${VALIDATOR_SHA256:-<unset>})"
 
       - name: Set up Java (validator)
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' || github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' || github.event_name == 'pull_request' || github.event_name == 'schedule' }}
         uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Download HL7 FHIR Validator (pinned version)
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' || github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' || github.event_name == 'pull_request' || github.event_name == 'schedule' }}
         run: |
           set -euo pipefail
           mkdir -p .cache
@@ -87,7 +93,7 @@ jobs:
           echo "VALIDATOR_JAR=$PWD/.cache/validator_cli.jar" >> "$GITHUB_ENV"
 
       - name: Verify validator SHA256 (STRICT gate)
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' || github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_validator == 'true' || github.event_name == 'pull_request' || github.event_name == 'schedule' }}
         env:
           STRICT: ${{ github.event.inputs.strict_pins }}
         run: |

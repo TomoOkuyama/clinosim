@@ -39,9 +39,10 @@ trap 'rm -rf "$TMP"' EXIT
 
 _calc_sha256() {
     local url="$1"; local dest="$2"
-    echo "  fetching $url"
+    # Progress goes to stderr: the caller captures stdout as the hash.
+    echo "  fetching $url" >&2
     curl -sSL --fail -o "$dest" "$url" || {
-        echo "  ERROR: download failed"
+        echo "  ERROR: download failed" >&2
         return 1
     }
     shasum -a 256 "$dest" | awk '{print $1}'
