@@ -2740,7 +2740,7 @@
 
 
   
-    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/architecture/post-c-refactor-split.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/docs/architecture/post-c-refactor-split.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -3005,7 +3005,7 @@ therefore registers a newborn before that newborn's own calendar and life
 events are generated, and a death recorded in any phase gates every later
 event of that person.</p>
 <h3 id="why-these-boundaries-vs-the-original-proposal">Why these boundaries (vs the original proposal)<a class="headerlink" href="#why-these-boundaries-vs-the-original-proposal" title="Permanent link">&para;</a></h3>
-<p>The pre-C2 plan at <a href="../../history/plans-archive/p6-god-function-split-plan/"><code>../history/plans-archive/p6-god-function-split-plan.md</code></a>
+<p>The pre-C2 plan at <a href="https://github.com/TomoOkuyama/clinosim/blob/master/docs/history/plans-archive/p6-god-function-split-plan.md"><code>../history/plans-archive/p6-god-function-split-plan.md</code></a>
 proposed phase names <code>_run_beta_prepare</code> / <code>_run_beta_month_tick</code> /
 <code>_run_beta_dispatch_window</code> / <code>_run_beta_writeback</code>. The actual split
 chose <code>_setup</code> + <code>_dispatch</code> + the four per-phase runners instead, which
@@ -3099,7 +3099,7 @@ read never cascade into unrelated patients' calendars.</p>
 <h2 id="7-where-to-look-next">7. Where to look next<a class="headerlink" href="#7-where-to-look-next" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../module-architecture/"><code>module-architecture.md</code></a> — top-level package tree, now reflects the post-C2 simulator layout.</li>
-<li><a href="../../history/plans-archive/p6-god-function-split-plan/"><code>../history/plans-archive/p6-god-function-split-plan.md</code></a> — the original pre-execution plan with the shipped-execution callouts added inline.</li>
+<li><a href="https://github.com/TomoOkuyama/clinosim/blob/master/docs/history/plans-archive/p6-god-function-split-plan.md"><code>../history/plans-archive/p6-god-function-split-plan.md</code></a> — the original pre-execution plan with the shipped-execution callouts added inline.</li>
 <li>Each extracted module's own file-level docstring — carries the "RNG-neutrality contract", "cross-year state" invariants, and other per-cluster design notes verbatim lifted from the engine original.</li>
 </ul>
 

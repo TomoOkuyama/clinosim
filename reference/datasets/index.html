@@ -2351,7 +2351,7 @@
 
 
   
-    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/reference/datasets.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/docs/reference/datasets.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2377,28 +2377,28 @@ uniquely determines the output at a fixed clinosim version.</p>
 </thead>
 <tbody>
 <tr>
-<td><a href="../../datasets/us-100/"><code>us-100</code></a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/tree/master/datasets/us-100"><code>us-100</code></a></td>
 <td>US</td>
 <td>100</td>
 <td style="text-align: right;">3 months</td>
 <td style="text-align: right;">~2 MB</td>
 </tr>
 <tr>
-<td><a href="../../datasets/us-1000/"><code>us-1000</code></a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/tree/master/datasets/us-1000"><code>us-1000</code></a></td>
 <td>US</td>
 <td>1000</td>
 <td style="text-align: right;">6 months</td>
 <td style="text-align: right;">~30 MB</td>
 </tr>
 <tr>
-<td><a href="../../datasets/jp-100/"><code>jp-100</code></a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/tree/master/datasets/jp-100"><code>jp-100</code></a></td>
 <td>JP</td>
 <td>100</td>
 <td style="text-align: right;">3 months</td>
 <td style="text-align: right;">~2 MB</td>
 </tr>
 <tr>
-<td><a href="../../datasets/jp-1000/"><code>jp-1000</code></a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/tree/master/datasets/jp-1000"><code>jp-1000</code></a></td>
 <td>JP</td>
 <td>1000</td>
 <td style="text-align: right;">6 months</td>
@@ -2423,7 +2423,7 @@ form is:</p>
 <p>The output byte-for-byte matches the released build at the same
 clinosim version. That's the SemVer determinism contract; the
 <code>reproducibility</code> CI job enforces it on every push (see the top-level
-<a href="../../README.md#reproducibility">Reproducibility section</a>).</p>
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/README.md#reproducibility">Reproducibility section</a>).</p>
 <h2 id="downloading-pre-built-datasets">Downloading pre-built datasets<a class="headerlink" href="#downloading-pre-built-datasets" title="Permanent link">&para;</a></h2>
 <p>Starting with the next release cycle, tagged releases automatically
 attach pre-built dataset tarballs to the GitHub Release page:</p>
@@ -2439,7 +2439,7 @@ guaranteed byte-identical.</p>
 LLM-polished sample cohorts generated on Sakura H100 (Qwen3.8-27B-FP8
 via vLLM). These are <em>not</em> CLI-buildable presets — they carry a
 non-42 seed and the H100 vLLM tuning contract described in
-<a href="../../verify/EMPIRICAL_RESULTS.md"><code>verify/EMPIRICAL_RESULTS.md</code></a> —
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/verify/EMPIRICAL_RESULTS.md"><code>verify/EMPIRICAL_RESULTS.md</code></a> —
 but they follow a <strong>stable naming convention</strong> so downstream users
 can script bulk-download and diff-across-releases:</p>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>clinosim-v&lt;VERSION&gt;-&lt;locale&gt;-p&lt;POP&gt;-s&lt;SEED&gt;-&lt;narrative-generator&gt;.tar.gz
@@ -2480,10 +2480,10 @@ and <code>clinosim-v0.6.3-us-p10000-s3532-llm-polished-narrative.tar.gz</code>
 ingest, reference, or reproduce any real patient data, PHI, or PII.
 The output is <strong>not intended for clinical use</strong> and must not be relied
 upon for any diagnostic, therapeutic, or care decision. See the
-<a href="../../README.md#clinosim">project-level disclaimers</a> for details.</p>
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/README.md#clinosim">project-level disclaimers</a> for details.</p>
 <h2 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">&para;</a></h2>
 <p>If a dataset is used in research, cite the underlying clinosim release
-via <a href="../../CITATION.cff"><code>CITATION.cff</code></a> at the repository root. The
+via <a href="https://github.com/TomoOkuyama/clinosim/blob/master/CITATION.cff"><code>CITATION.cff</code></a> at the repository root. The
 Zenodo integration (<code>.zenodo.json</code>) mints a DOI on every tagged
 release, giving you a stable identifier per dataset build version.</p>
 <h2 id="adding-a-new-preset">Adding a new preset<a class="headerlink" href="#adding-a-new-preset" title="Permanent link">&para;</a></h2>

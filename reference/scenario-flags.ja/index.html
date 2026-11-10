@@ -2332,7 +2332,7 @@
 
 
   
-    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/reference/scenario-flags.ja.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/docs/reference/scenario-flags.ja.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2507,7 +2507,7 @@ merge した <code>flags</code> を <code>simulator/lab_pipeline.py::patient_tru
    state を mutate せず、公式のみ)。</li>
 </ol>
 <p><strong>call site で <code>flag=value</code> を直接指定してはならない</strong> — J5 防止 (
-<a href="../../AGENTS.md">AGENTS.md</a> 「Module independence and extension points (AD-55 / AD-56 / AD-58)」参照)。helper が
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/AGENTS.md">AGENTS.md</a> 「Module independence and extension points (AD-55 / AD-56 / AD-58)」参照)。helper が
 単一 edit point であり、新 flag は <code>**flags</code> splat 経由で自動的に
 5 site すべてに届く。</p>
 <h2 id="doac-除外-phase-2b-臨床判断">DOAC 除外 (Phase 2b 臨床判断)<a class="headerlink" href="#doac-除外-phase-2b-臨床判断" title="Permanent link">&para;</a></h2>
@@ -2518,18 +2518,18 @@ dabigatran) は <code>medication_flags_from_context</code> が意図的に <stro
 Core compliance + 臨床整合」原則に反する。詳細は PR #82 (Phase 2b)。</p>
 <h2 id="関連">関連<a class="headerlink" href="#関連" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../../DESIGN.ja.md">DESIGN.md</a> AD-57 (BNP-pattern surgical) / AD-59
+<li><a href="https://github.com/TomoOkuyama/clinosim/blob/master/DESIGN.ja.md">DESIGN.md</a> AD-57 (BNP-pattern surgical) / AD-59
   (per-order sub-rng) / AD-56 (enricher registry)</li>
-<li><a href="../../AGENTS.md">AGENTS.md</a> 「Module independence and extension points (AD-55 / AD-56 / AD-58)」</li>
+<li><a href="https://github.com/TomoOkuyama/clinosim/blob/master/AGENTS.md">AGENTS.md</a> 「Module independence and extension points (AD-55 / AD-56 / AD-58)」</li>
 <li><a href="../../CONTRIBUTING-modules.ja/">docs/CONTRIBUTING-modules.md</a>
   「PR 検証ガイド」+ 「sub-seed 導出ルール」</li>
-<li><a href="../../clinosim/modules/physiology/README.ja.md">clinosim/modules/physiology/README.ja.md</a>
+<li><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/physiology/README.ja.md">clinosim/modules/physiology/README.ja.md</a>
   — helper API リファレンス</li>
 <li>spec / plan: <code>docs/history/specs-archive/2026-06-24-phase2a-vte-d-dimer-design.md</code>
   (causes_vte) + <code>docs/history/specs-archive/2026-06-24-phase2b-on-anticoagulation-design.md</code>
   (on_warfarin)</li>
 </ul>
-<p>英語版: <a href="../../SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a>。</p>
+<p>英語版: <a href="https://github.com/TomoOkuyama/clinosim/blob/master/SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a>。</p>
 
 
 

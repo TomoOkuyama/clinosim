@@ -3680,7 +3680,7 @@
 
 
   
-    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/CONTRIBUTING-modules.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/docs/CONTRIBUTING-modules.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -3703,10 +3703,10 @@ extend a FHIR builder (Layer 4 = <code>fhir_r4/&lt;domain&gt;/*.py</code>)</stro
 (BundleContext / code_lookup / multilingual display / identifier-
 system conventions / register_bundle_builder).</p>
 <p><strong>When creating a new module</strong>: start by copying
-<a href="../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>.
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>.
 For an overview of all 38 modules (counting rule: packages under
 <code>clinosim/modules/</code>; non-package files such as <code>_shared.py</code> are
-excluded), see <a href="../MODULES.md"><code>MODULES.md</code></a>. For picking the PR
+excluded), see <a href="https://github.com/TomoOkuyama/clinosim/blob/master/MODULES.md"><code>MODULES.md</code></a>. For picking the PR
 verification approach, see the "PR verification guide: byte-diff
 vs. 3-axis DQR" section below. For the whole reading order, see
 <a href="../design-guides/"><code>docs/design-guides/README.md</code></a>.</p>
@@ -3766,7 +3766,7 @@ them). A new module author should grasp these 9 first:</p>
 </tr>
 <tr>
 <td>AD-65</td>
-<td>Two-pass CIF: structural (Stage 1, immutable) and narrative (Stage 2, versioned) are separated at file level. Canonical spec = <a href="../clinosim/modules/output/SPEC.md"><code>clinosim/modules/output/SPEC.md</code></a>.</td>
+<td>Two-pass CIF: structural (Stage 1, immutable) and narrative (Stage 2, versioned) are separated at file level. Canonical spec = <a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/output/SPEC.md"><code>clinosim/modules/output/SPEC.md</code></a>.</td>
 </tr>
 </tbody>
 </table>
@@ -3781,7 +3781,7 @@ emits a clinically-coherent extension on top of an upstream
 <code>extensions[X]</code> — e.g. <code>device</code> / <code>hai</code> / <code>antibiotic</code> / <code>imaging</code>)
 (AD-55).</p>
 <p><strong>Always-on Module precedents (as of 2026-07-01):</strong> (The Tier 1 #3
-roadmap = <a href="../design-notes/2026-06-30-tier1-document-and-event-density-master-plan/"><code>docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md</code></a>.)
+roadmap = <a href="https://github.com/TomoOkuyama/clinosim/blob/master/docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md"><code>docs/design-notes/2026-06-30-tier1-document-and-event-density-master-plan.md</code></a>.)
 - <code>device</code> (PR-A): ICU device placement (POST_ENCOUNTER order=70).
 - <code>hai</code> (PR-B): CDC NHSN HAI sampling (POST_ENCOUNTER order=80).
   Requires <code>extensions["device"]</code>.
@@ -4409,7 +4409,7 @@ through:</p>
 </span></code></pre></div>
 <p>When a disease or a drug lifts a specific lab, use <code>derive_lab_values</code>'s
 scenario flags (<code>causes_X</code>) or medication flags (<code>on_warfarin</code>,
-etc.) — see <a href="../SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a> for the flag
+etc.) — see <a href="https://github.com/TomoOkuyama/clinosim/blob/master/SCENARIO_FLAGS.md"><code>SCENARIO_FLAGS.md</code></a> for the flag
 list, addition procedure, and the design that prevents the J5
 pattern.</p>
 <blockquote>
@@ -4597,7 +4597,7 @@ them.</p>
 - Both dict-path and dataclass-path MUST be covered by tests: a
   subprocess integration smoke test exercises the production dict
   path (see <code>tests/integration/test_servicerequest_chain.py</code>).</p>
-<p>See <a href="../clinosim/modules/output/fhir_r4/labs/service_request.py"><code>clinosim/modules/output/fhir_r4/labs/service_request.py</code></a>
+<p>See <a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/output/fhir_r4/labs/service_request.py"><code>clinosim/modules/output/fhir_r4/labs/service_request.py</code></a>
 for the full implementation.</p>
 <h3 id="b-add-an-output-format-register_output_adapter-ad-58">B. Add an output format (<code>register_output_adapter</code>, AD-58)<a class="headerlink" href="#b-add-an-output-format-register_output_adapter-ad-58" title="Permanent link">&para;</a></h3>
 <p>Do not edit the CLI <code>--format</code> dispatch. Register a class that
@@ -4813,7 +4813,7 @@ facility (<code>test-disease --format</code>, <code>narrate</code> verb) enables
 iteration on different change types. Use this matrix to select the
 fastest workflow for your change. The canonical spec for the two-
 pass structural / narrative CIF separation is
-<a href="../clinosim/modules/output/SPEC.md"><code>clinosim/modules/output/SPEC.md</code></a>
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/output/SPEC.md"><code>clinosim/modules/output/SPEC.md</code></a>
 § "Stage 2: Narrative Generation".</p>
 <h3 id="change-types-and-iteration-time">Change types and iteration time<a class="headerlink" href="#change-types-and-iteration-time" title="Permanent link">&para;</a></h3>
 <table>

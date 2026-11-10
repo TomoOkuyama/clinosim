@@ -2332,7 +2332,7 @@
 
 
   
-    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/governance/contributing.ja.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/docs/governance/contributing.ja.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2344,7 +2344,7 @@
 <h1 id="clinosim-へのコントリビュート">clinosim へのコントリビュート<a class="headerlink" href="#clinosim-へのコントリビュート" title="Permanent link">&para;</a></h1>
 <p>ご興味ありがとうございます。</p>
 <p><strong>clinosim は独立した個人プロジェクト</strong>です
-(<a href="../../README.ja.md">README</a>)。本ドキュメントは手続きを軽く保ちつつ、
+(<a href="https://github.com/TomoOkuyama/clinosim/blob/master/README.ja.md">README</a>)。本ドキュメントは手続きを軽く保ちつつ、
 プロジェクトが依拠する 2 つの hard property を保護します:</p>
 <ul>
 <li><strong>決定論</strong> — <code>(seed, config, country, start, end, population)</code>
@@ -2353,7 +2353,7 @@
   全乱数 draw は渡された <code>numpy.random.Generator</code> の sub-seed から
   派生させる。</li>
 <li><strong>合成データのみ</strong> — 実患者データ / PHI / PII を参照 / 埋め込み
-  / 再現しない。全出力は完全合成。<a href="../../README.ja.md#clinosim">README</a>
+  / 再現しない。全出力は完全合成。<a href="https://github.com/TomoOkuyama/clinosim/blob/master/README.ja.md#clinosim">README</a>
   の免責参照。</li>
 </ul>
 <p>コードに触れる予定なら以下も読んでください:</p>
@@ -2362,17 +2362,17 @@
   新モジュール / plug-in / FHIR builder 追加の実務 playbook
   (Base vs Module 判別、enricher stage、registry 利用、
   <code>clinosim audit run</code> による PR 検証)。</li>
-<li><a href="../../DESIGN.ja.md"><code>DESIGN.md</code></a> — <code>docs/architecture/</code> 配下の
+<li><a href="https://github.com/TomoOkuyama/clinosim/blob/master/DESIGN.ja.md"><code>DESIGN.md</code></a> — <code>docs/architecture/</code> 配下の
   architecture 文書への landing pointer。architecture decision
   record (AD-1 〜 AD-71) は
   <a href="../../architecture/adr-history.ja/"><code>docs/architecture/adr-history.md</code></a>
   と、<code>design-principles.md</code> / <code>architecture-notes.md</code> の要約表にある。
-  日本語版: <a href="../../DESIGN.ja.md"><code>DESIGN.ja.md</code></a>。</li>
-<li><a href="../../AGENTS.md"><code>AGENTS.md</code></a> — repo 全体の規約と invariant
+  日本語版: <a href="https://github.com/TomoOkuyama/clinosim/blob/master/DESIGN.ja.md"><code>DESIGN.ja.md</code></a>。</li>
+<li><a href="https://github.com/TomoOkuyama/clinosim/blob/master/AGENTS.md"><code>AGENTS.md</code></a> — repo 全体の規約と invariant
   (<a href="https://agentmd.dev">AGENTS.md convention</a> 準拠の
   canonical AI-agent instruction; <code>CLAUDE.md</code> は本 file への
   thin pointer)。</li>
-<li><a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>
+<li><a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>
   — 新モジュールディレクトリの boilerplate。</li>
 <li><a href="../../design-guides/documentation-and-code-quality-policy.ja/"><code>docs/design-guides/documentation-and-code-quality-policy.md</code></a>
   — ドキュメント言語 pairing (英語 + 日本語)、source code コメント
@@ -2435,8 +2435,8 @@
 <p>Informational (merge-block しない):
    - <code>Unit test coverage combine (informational)</code></p>
 <p>Python 3.11 unit-test 互換性は nightly 実行
-   (<a href="../../.github/workflows/nightly.yml"><code>.github/workflows/nightly.yml</code></a>)。
-   Full workflow は <a href="../../.github/workflows/"><code>.github/workflows/</code></a> 参照。</p>
+   (<a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/workflows/nightly.yml"><code>.github/workflows/nightly.yml</code></a>)。
+   Full workflow は <a href="https://github.com/TomoOkuyama/clinosim/tree/master/.github/workflows"><code>.github/workflows/</code></a> 参照。</p>
 <hr />
 <h2 id="dco--signed-off-by-必須">DCO — Signed-off-by (必須)<a class="headerlink" href="#dco--signed-off-by-必須" title="Permanent link">&para;</a></h2>
 <p>CLA の代わりに
@@ -2502,17 +2502,17 @@ block します。</p>
 <hr />
 <h2 id="バグ報告--機能要望">バグ報告 + 機能要望<a class="headerlink" href="#バグ報告--機能要望" title="Permanent link">&para;</a></h2>
 <p><a href="https://github.com/TomoOkuyama/clinosim/issues/new/choose">issue templates</a>
-を使用。セキュリティ問題は <a href="../../SECURITY.ja.md"><code>SECURITY.ja.md</code></a> 参照
+を使用。セキュリティ問題は <a href="https://github.com/TomoOkuyama/clinosim/blob/master/SECURITY.ja.md"><code>SECURITY.ja.md</code></a> 参照
 — 公開 issue は <strong>開かないでください</strong>。</p>
 <hr />
 <h2 id="code-of-conduct">Code of Conduct<a class="headerlink" href="#code-of-conduct" title="Permanent link">&para;</a></h2>
-<p>参加は <a href="../../CODE_OF_CONDUCT.ja.md">Code of Conduct</a> の対象。</p>
+<p>参加は <a href="https://github.com/TomoOkuyama/clinosim/blob/master/CODE_OF_CONDUCT.ja.md">Code of Conduct</a> の対象。</p>
 <hr />
 <h2 id="licensing">Licensing<a class="headerlink" href="#licensing" title="Permanent link">&para;</a></h2>
-<p>全 contribution は <a href="../../LICENSE">MIT License</a> の条件で licensed される。
+<p>全 contribution は <a href="https://github.com/TomoOkuyama/clinosim/blob/master/LICENSE">MIT License</a> の条件で licensed される。
 DCO で commit を sign することにより、当該コードを本ライセンス下で
 提出する権利を保持する旨を宣言します。</p>
-<p>英語版: <a href="../../CONTRIBUTING.md"><code>CONTRIBUTING.md (English)</code></a>。</p>
+<p>英語版: <a href="https://github.com/TomoOkuyama/clinosim/blob/master/CONTRIBUTING.md"><code>CONTRIBUTING.md (English)</code></a>。</p>
 
 
 

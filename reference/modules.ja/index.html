@@ -2332,7 +2332,7 @@
 
 
   
-    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/reference/modules.ja.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/docs/reference/modules.ja.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2352,7 +2352,7 @@ top-level package。<code>_shared.py</code> 等の非 package file は除く。
 Constants and configuration / Directory contents / Enricher wiring /
 Output surfaces / Testing / Ownership) に従う <code>README.md</code> +
 <code>README.ja.md</code> を持つ — モジュール索引は
-<a href="../../clinosim/modules/README.ja.md"><code>clinosim/modules/README.ja.md</code></a>。</p>
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/README.ja.md"><code>clinosim/modules/README.ja.md</code></a>。</p>
 <h2 id="このドキュメントの読み方">このドキュメントの読み方<a class="headerlink" href="#このドキュメントの読み方" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2376,7 +2376,7 @@ Output surfaces / Testing / Ownership) に従う <code>README.md</code> +
 </tr>
 <tr>
 <td>新モジュールを足す</td>
-<td><a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a> + <a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a></td>
+<td><a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a> + <a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a></td>
 </tr>
 <tr>
 <td>PR 検証手段を選ぶ</td>
@@ -2489,280 +2489,280 @@ canonical 11-section 構造に従う per-module README にリンクする。</p>
 </thead>
 <tbody>
 <tr>
-<td><a href="../../clinosim/codes/">codes</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/tree/master/clinosim/codes">codes</a></td>
 <td>国際コード lookup (LOINC/SNOMED/ICD/RxNorm/JLAC10/CVX/JJ1017 K-code)</td>
 <td>foundation</td>
 <td>—</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/locale/">locale</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/tree/master/clinosim/locale">locale</a></td>
 <td>国別データ (names / addresses / reference range / code_mapping)</td>
 <td>foundation</td>
 <td>—</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/physiology/README.ja.md">physiology</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/physiology/README.ja.md">physiology</a></td>
 <td>19 変数 physiology state + lab/vital 導出</td>
 <td>simulation</td>
 <td>— (caller RNG)</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/observation/README.ja.md">observation</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/observation/README.ja.md">observation</a></td>
 <td>lab / vital / microbiology + nursing flowsheet</td>
 <td>simulation</td>
 <td>nursing <code>0x4E55</code> (共有)</td>
 <td>POST_RECORDS 20 (<code>nursing</code>)</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/order/README.ja.md">order</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/order/README.ja.md">order</a></td>
 <td>lab / medication / imaging 発注 + AD-60 audit</td>
 <td>simulation</td>
 <td>— (per-order via AD-59)</td>
 <td>POST_ENCOUNTER 91 (<code>discontinue_flip</code> + <code>supersede_orders</code>) + audit 登録</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/clinical_course/README.ja.md">clinical_course</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/clinical_course/README.ja.md">clinical_course</a></td>
 <td>trajectory archetype + 日次 <code>StateChangeDirective</code></td>
 <td>simulation</td>
 <td>— (caller RNG)</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/diagnosis/README.ja.md">diagnosis</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/diagnosis/README.ja.md">diagnosis</a></td>
 <td>Bayesian 鑑別 + Issue #551 非特異コード</td>
 <td>simulation</td>
 <td>—</td>
 <td>POST_ENCOUNTER 94 (<code>lab_derived_dx</code>、RNG なし)</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/procedure/README.ja.md">procedure</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/procedure/README.ja.md">procedure</a></td>
 <td>手術 + bedside + rehab 生成</td>
 <td>simulation</td>
 <td>— (caller RNG)</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/encounter/README.ja.md">encounter</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/encounter/README.ja.md">encounter</a></td>
 <td>encounter registry (51 YAML) + 入院日次 cycle timeline</td>
 <td>simulation</td>
 <td>—</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/disease/README.ja.md">disease</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/disease/README.ja.md">disease</a></td>
 <td>疾患 registry (36 YAML) + 重症度 + acuity + 薬剤 vocabulary</td>
 <td>simulation</td>
 <td>—</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/longitudinal/README.ja.md">longitudinal</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/longitudinal/README.ja.md">longitudinal</a></td>
 <td>年次 trajectory engine (AR(1) HbA1c / Markov stage ladder / event firing — Phase 4a-4d 慢性進展)</td>
 <td>simulation</td>
 <td>— (<code>advance_one_year</code> に caller RNG)</td>
 <td>— (library、aging pass が利用)</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/population/README.ja.md">population</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/population/README.ja.md">population</a></td>
 <td>demographics + life event (Layer 1) + 年次 aging / 院外死亡 (<code>aging.advance_population</code> + <code>mortality.py</code>。旧 <code>natural_death</code> モジュールは #2167 でここへ統合)</td>
 <td>population</td>
 <td>— (pipeline 頭)</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/patient/README.ja.md">patient</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/patient/README.ja.md">patient</a></td>
 <td>Layer 1 → Layer 2 activation + 常用薬</td>
 <td>population</td>
 <td>— (caller cache)</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/identity/README.ja.md">identity</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/identity/README.ja.md">identity</a></td>
 <td>JP 保険 + national ID (opt-in)</td>
 <td>population</td>
 <td><code>540054</code> (decimal、grandfathered)</td>
 <td>POST_POPULATION 10 (JP gate)</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/pediatric/README.ja.md">pediatric</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/pediatric/README.ja.md">pediatric</a></td>
 <td>小児 encounter 発生 (Issue #760)</td>
 <td>population</td>
 <td>— (population calendar hook)</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/staff/README.ja.md">staff</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/staff/README.ja.md">staff</a></td>
 <td>roster + per-event <code>assign_staff</code> dispatch</td>
 <td>population</td>
 <td>— (caller RNG)</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/facility/README.ja.md">facility</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/facility/README.ja.md">facility</a></td>
 <td>病院運用 state + M/M/1 風 queueing</td>
 <td>population</td>
 <td>—</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/healthcare_system/README.ja.md">healthcare_system</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/healthcare_system/README.ja.md">healthcare_system</a></td>
 <td>国 config loader (leaf)</td>
 <td>population</td>
 <td>—</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/metabolic/README.ja.md">metabolic</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/metabolic/README.ja.md">metabolic</a></td>
 <td>BMI 由来慢性疾患 (E66 肥満 / E88.81 メタボリック症候群 / K76.0 NAFLD / G47.30 OSA) — Issue #1137 cluster 2</td>
 <td>enrichment</td>
 <td>— (deterministic SHA Bernoulli)</td>
 <td>POST_POPULATION 15-18 (4 axes)</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/family_history/README.ja.md">family_history</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/family_history/README.ja.md">family_history</a></td>
 <td>第 1 度近親歴</td>
 <td>enrichment</td>
 <td><code>0x4648</code> ("FH")</td>
 <td>POST_RECORDS 40</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/sdoh/README.ja.md">sdoh</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/sdoh/README.ja.md">sdoh</a></td>
 <td>smoking + alcohol SNOMED reference (data-only)</td>
 <td>enrichment</td>
 <td>—</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/allergy/README.ja.md">allergy</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/allergy/README.ja.md">allergy</a></td>
 <td>SNOMED-coded アレルギーサンプリング (15% gate)</td>
 <td>enrichment</td>
 <td><code>0x414C</code> ("AL")</td>
 <td>POST_POPULATION 10</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/device/README.ja.md">device</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/device/README.ja.md">device</a></td>
 <td>ICU デバイス配置</td>
 <td>enrichment</td>
 <td><code>0x4445</code> ("DE")</td>
 <td>POST_ENCOUNTER 70</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/hai/README.ja.md">hai</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/hai/README.ja.md">hai</a></td>
 <td>CLABSI / CAUTI / VAP + Phase 3a WBC/CRP lift + AD-60 audit</td>
 <td>enrichment</td>
 <td><code>0x4841</code> ("HA")</td>
 <td>POST_ENCOUNTER 80</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/antibiotic/README.ja.md">antibiotic</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/antibiotic/README.ja.md">antibiotic</a></td>
 <td>HAI empirical + narrow ladder + AD-60 audit</td>
 <td>enrichment</td>
 <td><code>0x4142</code> ("AB")</td>
 <td>POST_ENCOUNTER 85</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/imaging/README.ja.md">imaging</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/imaging/README.ja.md">imaging</a></td>
 <td>ImagingStudy metadata chain + AD-60 audit (AD-62)</td>
 <td>enrichment</td>
 <td><code>0x4947</code> ("IG")</td>
 <td>POST_ENCOUNTER 90</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/triage/README.ja.md">triage</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/triage/README.ja.md">triage</a></td>
 <td>JTAS / ESI triage サンプリング + AD-60 audit (ED-only、AD-64)</td>
 <td>enrichment</td>
 <td><code>0x5452</code> ("TR")</td>
 <td>POST_ENCOUNTER 93</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/newborn/README.ja.md">newborn</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/newborn/README.ja.md">newborn</a></td>
 <td>出生入院時の臨床ワークアップ (ビタミン K / 新生児スクリーニング) — Issue #1252</td>
 <td>enrichment</td>
 <td>— (encounter 単位 deterministic)</td>
 <td>POST_ENCOUNTER 92</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/nursing/README.ja.md">nursing</a> (<code>nursing_assignment</code>)</td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/nursing/README.ja.md">nursing</a> (<code>nursing_assignment</code>)</td>
 <td>主担当看護師割当 (inpatient/ICU/rehab、AD-64)</td>
 <td>enrichment</td>
 <td><code>0x4E55</code> ("NU")</td>
 <td>POST_ENCOUNTER 94</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/document/README.ja.md">document</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/document/README.ja.md">document</a></td>
 <td>stub emission + AD-60 audit + Stage 2 narrative subpackage</td>
 <td>enrichment</td>
 <td><code>0x444F</code> ("DO")</td>
 <td>POST_ENCOUNTER 95</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/immunization/README.ja.md">immunization</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/immunization/README.ja.md">immunization</a></td>
 <td>CVX 成人ワクチン接種歴</td>
 <td>enrichment</td>
 <td><code>0x494D</code> ("IM")</td>
 <td>POST_RECORDS 30</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/code_status/README.ja.md">code_status</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/code_status/README.ja.md">code_status</a></td>
 <td>DNR / Full Code SNOMED 蘇生方針</td>
 <td>enrichment</td>
 <td><code>0x4353</code> ("CS")</td>
 <td>POST_RECORDS 50</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/care_level/README.ja.md">care_level</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/care_level/README.ja.md">care_level</a></td>
 <td>JP 要介護度 (JP 限定)</td>
 <td>enrichment</td>
 <td><code>0x434C</code> ("CL")</td>
 <td>POST_RECORDS 60 (JP gate)</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/monitoring/README.ja.md">monitoring</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/monitoring/README.ja.md">monitoring</a></td>
 <td>慢性薬 → monitoring labs (Issue #757)</td>
 <td>enrichment</td>
 <td><code>0x4D4D</code> ("MM")</td>
 <td>POST_RECORDS 65</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/health_checkup/README.ja.md">health_checkup</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/health_checkup/README.ja.md">health_checkup</a></td>
 <td>JP 事業者健診 (JP 限定 opt-in)</td>
 <td>enrichment</td>
 <td><code>0x4843</code> ("HC")</td>
 <td>POST_RECORDS 70</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/drug_safety/README.ja.md">drug_safety</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/drug_safety/README.ja.md">drug_safety</a></td>
 <td>class ベース禁忌併用 gate + 代替薬 substitution (Issue #1066)</td>
 <td>foundation</td>
 <td>— (deterministic lookup)</td>
 <td>— (library, enricher ではない)</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/prophylaxis/README.ja.md">prophylaxis</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/prophylaxis/README.ja.md">prophylaxis</a></td>
 <td>DVT/VTE 化学的予防 (48h 以上 IMP、Issue #1071)</td>
 <td>enrichment</td>
 <td><code>0x5052</code> ("PR")</td>
 <td>POST_ENCOUNTER 75</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/output/README.ja.md">output</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/output/README.ja.md">output</a></td>
 <td>CIF → FHIR R4 NDJSON / CSV アダプタ registry</td>
 <td>output</td>
 <td>—</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/llm_service/README.ja.md">llm_service</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/llm_service/README.ja.md">llm_service</a></td>
 <td>narrative Stage 2 用の単一 LLM gateway (AD-11)</td>
 <td>output</td>
 <td>—</td>
 <td>—</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/validator/README.ja.md">validator</a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/validator/README.ja.md">validator</a></td>
 <td>realism benchmark + consistency check</td>
 <td>output</td>
 <td>—</td>
@@ -2770,7 +2770,7 @@ canonical 11-section 構造に従う per-module README にリンクする。</p>
 </tr>
 </tbody>
 </table>
-<p>Sub-seed offset は <a href="../../clinosim/seeding.py"><code>clinosim/seeding.py</code></a> の
+<p>Sub-seed offset は <a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/seeding.py"><code>clinosim/seeding.py</code></a> の
 <code>ENRICHER_SEED_OFFSETS</code> に定義された値。</p>
 <h2 id="依存関係ツリー">依存関係ツリー<a class="headerlink" href="#依存関係ツリー" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>codes/  (依存なし)
@@ -2867,7 +2867,7 @@ canonical 11-section 構造に従う per-module README にリンクする。</p>
 </span></code></pre></div>
 <p>新 FHIR resource 追加: <code>register_bundle_builder()</code> (AD-56) で新
 builder を登録 — <code>_BUNDLE_BUILDERS</code> を直接編集しないこと。詳細は
-<a href="../../clinosim/modules/output/fhir_r4/README.ja.md"><code>clinosim/modules/output/fhir_r4/README.ja.md</code></a>。</p>
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/output/fhir_r4/README.ja.md"><code>clinosim/modules/output/fhir_r4/README.ja.md</code></a>。</p>
 <h2 id="typical-change-impact">Typical change impact<a class="headerlink" href="#typical-change-impact" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2881,31 +2881,31 @@ builder を登録 — <code>_BUNDLE_BUILDERS</code> を直接編集しないこ�
 <tr>
 <td>Scenario flag 追加 (<code>causes_X</code>)</td>
 <td><code>physiology.engine</code> + <code>derive_lab_values</code> 呼び出し 5 site</td>
-<td><code>scenario_flags_from_protocol</code> helper 経由; <a href="../../SCENARIO_FLAGS.ja.md"><code>SCENARIO_FLAGS.md</code></a> 参照</td>
+<td><code>scenario_flags_from_protocol</code> helper 経由; <a href="https://github.com/TomoOkuyama/clinosim/blob/master/SCENARIO_FLAGS.ja.md"><code>SCENARIO_FLAGS.md</code></a> 参照</td>
 </tr>
 <tr>
 <td>薬剤駆動 lab effect 追加</td>
 <td><code>physiology.engine</code> + 5 site</td>
-<td><code>medication_flags_from_context</code> helper 経由; <a href="../../SCENARIO_FLAGS.ja.md"><code>SCENARIO_FLAGS.md</code></a> 参照</td>
+<td><code>medication_flags_from_context</code> helper 経由; <a href="https://github.com/TomoOkuyama/clinosim/blob/master/SCENARIO_FLAGS.ja.md"><code>SCENARIO_FLAGS.md</code></a> 参照</td>
 </tr>
 <tr>
 <td>新 code 追加 (LOINC/SNOMED/ICD/…)</td>
 <td><code>codes/data/&lt;system&gt;.yaml</code> (<code>en</code> + optional <code>ja</code>)</td>
-<td><a href="../../clinosim/codes/README.ja.md"><code>clinosim/codes/README.md</code></a> 参照</td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/codes/README.ja.md"><code>clinosim/codes/README.md</code></a> 参照</td>
 </tr>
 <tr>
 <td>新 FHIR resource 型 追加</td>
 <td><code>output/fhir_r4/&lt;domain&gt;/</code> 配下に新 builder file + <code>register_bundle_builder()</code></td>
-<td><a href="../../clinosim/modules/output/fhir_r4/README.ja.md"><code>clinosim/modules/output/fhir_r4/README.ja.md</code></a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/output/fhir_r4/README.ja.md"><code>clinosim/modules/output/fhir_r4/README.ja.md</code></a></td>
 </tr>
 <tr>
 <td>新疾患追加</td>
 <td>新 disease YAML + <code>locale/&lt;country&gt;/demographics.yaml</code> に登録</td>
-<td><a href="../../clinosim/modules/disease/README.ja.md"><code>clinosim/modules/disease/README.ja.md</code></a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/disease/README.ja.md"><code>clinosim/modules/disease/README.ja.md</code></a></td>
 </tr>
 <tr>
 <td>新モジュール追加</td>
-<td><a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a> を複製、<a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a> 手順で登録</td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a> を複製、<a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a> 手順で登録</td>
 <td>canonical 11-section README 構造に従う</td>
 </tr>
 </tbody>
@@ -2922,7 +2922,7 @@ PR 検証手段 (byte-diff vs 3-axis DQR vs <code>clinosim audit run</code>) は
    <a href="../../CONTRIBUTING-modules.ja/"><code>docs/CONTRIBUTING-modules.md</code></a>
    「判断: Base か Module か」。</li>
 <li><strong>テンプレートを複製</strong> →
-   <a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>
+   <a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>
    を <code>clinosim/modules/&lt;name&gt;/README.md</code> に複製、<code>README.ja.md</code>
    mirror も作成。</li>
 <li><strong>canonical layout でファイル作成</strong> → <code>__init__.py</code> +
@@ -2930,7 +2930,7 @@ PR 検証手段 (byte-diff vs 3-axis DQR vs <code>clinosim audit run</code>) は
    あるなら <code>_&lt;name&gt;_thresholds.py</code> (Issue #637 lift ルール) +
    AD-60 audit plug-in を出すなら <code>audit.py</code>。</li>
 <li><strong>enricher なら</strong>: sub-seed offset を
-   <a href="../../clinosim/seeding.py"><code>clinosim/seeding.py</code></a>
+   <a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/seeding.py"><code>clinosim/seeding.py</code></a>
    <code>ENRICHER_SEED_OFFSETS</code> に登録 (16-bit hex-ASCII、例
    <code>0x4142 = "AB"</code>)、<code>clinosim/simulator/enrichers.py</code> に
    <code>register_enricher(...)</code> 呼び出しを追加。</li>
@@ -2946,15 +2946,15 @@ PR 検証手段 (byte-diff vs 3-axis DQR vs <code>clinosim audit run</code>) は
 </thead>
 <tbody>
 <tr>
-<td><a href="../../README.ja.md"><code>README.md</code></a> / <a href="../../README.ja.md"><code>README.ja.md</code></a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/README.ja.md"><code>README.md</code></a> / <a href="https://github.com/TomoOkuyama/clinosim/blob/master/README.ja.md"><code>README.ja.md</code></a></td>
 <td>ユーザー向け概要</td>
 </tr>
 <tr>
-<td><a href="../../AGENTS.md"><code>AGENTS.md</code></a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/AGENTS.md"><code>AGENTS.md</code></a></td>
 <td>AI エージェント規則 + プロジェクト規約 (<code>CLAUDE.md</code> は本 file への pointer)</td>
 </tr>
 <tr>
-<td><a href="../../DESIGN.ja.md"><code>DESIGN.md</code></a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/DESIGN.ja.md"><code>DESIGN.md</code></a></td>
 <td>landing pointer → <code>docs/architecture/</code> (設計原則 / architecture notes / ADR history)</td>
 </tr>
 <tr>
@@ -2962,11 +2962,11 @@ PR 検証手段 (byte-diff vs 3-axis DQR vs <code>clinosim audit run</code>) は
 <td>Module 作成 playbook + PR 検証ガイド</td>
 </tr>
 <tr>
-<td><a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a></td>
 <td>新 module README ボイラープレート</td>
 </tr>
 <tr>
-<td><a href="../../SCENARIO_FLAGS.ja.md"><code>SCENARIO_FLAGS.md</code></a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/SCENARIO_FLAGS.ja.md"><code>SCENARIO_FLAGS.md</code></a></td>
 <td>Scenario / 薬剤 flag 中央 reference</td>
 </tr>
 <tr>
@@ -2974,12 +2974,12 @@ PR 検証手段 (byte-diff vs 3-axis DQR vs <code>clinosim audit run</code>) は
 <td>Roadmap (GitHub Issues board)</td>
 </tr>
 <tr>
-<td><a href="../../clinosim/modules/README.ja.md"><code>clinosim/modules/README.ja.md</code></a></td>
+<td><a href="https://github.com/TomoOkuyama/clinosim/blob/master/clinosim/modules/README.ja.md"><code>clinosim/modules/README.ja.md</code></a></td>
 <td>モジュール索引 (本 file の per-module 対応)</td>
 </tr>
 </tbody>
 </table>
-<p>英語版: <a href="../../MODULES.ja.md"><code>MODULES.md</code></a>。</p>
+<p>英語版: <a href="https://github.com/TomoOkuyama/clinosim/blob/master/MODULES.ja.md"><code>MODULES.md</code></a>。</p>
 
 
 

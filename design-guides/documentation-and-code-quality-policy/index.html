@@ -2662,7 +2662,7 @@
 
 
   
-    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/design-guides/documentation-and-code-quality-policy.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/docs/design-guides/documentation-and-code-quality-policy.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2678,11 +2678,11 @@ this repository, on every pull request.
 (dead-code baseline in §6, signed-off commits in §7) are also enforced by CI.</p>
 <p>This document is the single source of truth for how documentation is
 written and how source-code quality is maintained in this project. It is
-referenced from <a href="../../AGENTS.md"><code>AGENTS.md</code></a> (for automated agents),
-<a href="../../CONTRIBUTING.md"><code>CONTRIBUTING.md</code></a> (for human contributors), and the
+referenced from <a href="https://github.com/TomoOkuyama/clinosim/blob/master/AGENTS.md"><code>AGENTS.md</code></a> (for automated agents),
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/CONTRIBUTING.md"><code>CONTRIBUTING.md</code></a> (for human contributors), and the
 top-level READMEs.</p>
 <p>The policy was ratified as part of the campaign designed in
-<a href="../../superpowers/specs/2026-08-09-doc-code-quality-campaign-design/"><code>docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md</code></a>.</p>
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md"><code>docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md</code></a>.</p>
 <hr />
 <h2 id="contents">Contents<a class="headerlink" href="#contents" title="Permanent link">&para;</a></h2>
 <ol>
@@ -2788,7 +2788,7 @@ its history.</p>
 <li>Ownership / area lead — may be <code>maintainers@</code> if no single owner.</li>
 </ul>
 <p>Every new module README starts from the boilerplate at
-<a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>.</p>
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>.</p>
 <hr />
 <h2 id="4-source-code-comment-language">4. Source-code comment language<a class="headerlink" href="#4-source-code-comment-language" title="Permanent link">&para;</a></h2>
 <p><strong>Default: English.</strong> Every comment (line comment, docstring, TODO/FIXME
@@ -2878,7 +2878,7 @@ table of formula coefficients stays in Python even when it is long.</p>
   local) as errors in the merge-blocking <code>Quality (ruff + format + mypy)</code>
   job. This is baseline.</li>
 <li>CI also runs <code>vulture</code> at 60 % confidence against a project-level
-  by-design whitelist (<a href="../../.vulture-whitelist.py"><code>.vulture-whitelist.py</code></a>)
+  by-design whitelist (<a href="https://github.com/TomoOkuyama/clinosim/blob/master/.vulture-whitelist.py"><code>.vulture-whitelist.py</code></a>)
   on every PR (<code>vulture dead-code</code> job — merge-blocking). Any new finding
   not covered by an existing whitelist entry fails the job.</li>
 <li>The whitelist is categorised. When adding a new entry, place it under
@@ -2906,7 +2906,7 @@ table of formula coefficients stays in Python even when it is long.</p>
 <li>CHANGELOG entry required for user-facing behaviour changes.</li>
 <li>Test plan required in every PR description.</li>
 </ul>
-<p>See <a href="../../CONTRIBUTING.md"><code>CONTRIBUTING.md</code></a> for the full contribution
+<p>See <a href="https://github.com/TomoOkuyama/clinosim/blob/master/CONTRIBUTING.md"><code>CONTRIBUTING.md</code></a> for the full contribution
 workflow, including local setup, DCO signoff mechanics, and CI job
 descriptions.</p>
 <hr />
@@ -2929,7 +2929,7 @@ Changes to it are not routine. To propose a change:</p>
 <ul>
 <li><strong>2026-08-09</strong> — Policy created. Extracted from §2 of the campaign
   design spec at
-  <a href="../../superpowers/specs/2026-08-09-doc-code-quality-campaign-design/"><code>docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md</code></a>.</li>
+  <a href="https://github.com/TomoOkuyama/clinosim/blob/master/docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md"><code>docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md</code></a>.</li>
 </ul>
 
 

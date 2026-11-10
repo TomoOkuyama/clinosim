@@ -2473,7 +2473,7 @@
 
 
   
-    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/design-guides/documentation-and-code-quality-policy.ja.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/TomoOkuyama/clinosim/edit/master/docs/design-guides/documentation-and-code-quality-policy.ja.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2490,11 +2490,11 @@
 強制。</p>
 <p>本ドキュメントは、このプロジェクトでドキュメントがどう書かれ、ソース
 コード品質がどう維持されるかの single source of truth。
-<a href="../../AGENTS.md"><code>AGENTS.md</code></a> (自動 agent 向け)、
-<a href="../../CONTRIBUTING.ja.md"><code>CONTRIBUTING.md</code></a> (人間 contributor 向け)、
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/AGENTS.md"><code>AGENTS.md</code></a> (自動 agent 向け)、
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/CONTRIBUTING.ja.md"><code>CONTRIBUTING.md</code></a> (人間 contributor 向け)、
 トップレベル READMEs から参照される。</p>
 <p>ポリシーは
-<a href="../../superpowers/specs/2026-08-09-doc-code-quality-campaign-design/"><code>docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md</code></a>
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md"><code>docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md</code></a>
 で設計された campaign の一部として批准。</p>
 <hr />
 <h2 id="目次">目次<a class="headerlink" href="#目次" title="Permanent link">&para;</a></h2>
@@ -2600,7 +2600,7 @@ Issue を起票し PR description に link)。</p>
   可。</li>
 </ul>
 <p>新規モジュール README は
-<a href="../../.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>
+<a href="https://github.com/TomoOkuyama/clinosim/blob/master/.github/TEMPLATE_MODULE_README.md"><code>.github/TEMPLATE_MODULE_README.md</code></a>
 の boilerplate から開始。</p>
 <hr />
 <h2 id="4-ソースコードコメント言語">4. ソースコードコメント言語<a class="headerlink" href="#4-ソースコードコメント言語" title="Permanent link">&para;</a></h2>
@@ -2683,7 +2683,7 @@ Issue を起票し PR description に link)。</p>
   <code>ruff check</code> (F401 未使用 import・F841 未使用 local を含む) を error として
   実行。これが baseline。</li>
 <li>CI はまた <code>vulture</code> を 60% confidence で
-  (<a href="../../.vulture-whitelist.py"><code>.vulture-whitelist.py</code></a> の
+  (<a href="https://github.com/TomoOkuyama/clinosim/blob/master/.vulture-whitelist.py"><code>.vulture-whitelist.py</code></a> の
   プロジェクトレベル by-design whitelist に対して) 全 PR で実行
   (<code>vulture dead-code</code> ジョブ — merge-blocking)。既存 whitelist エン
   トリでカバーされない新規 finding はジョブ fail。</li>
@@ -2711,7 +2711,7 @@ Issue を起票し PR description に link)。</p>
 <li>Test plan は各 PR description で必須。</li>
 </ul>
 <p>完全な contribution ワークフロー (local セットアップ、DCO signoff
-機構、CI ジョブ説明) は <a href="../../CONTRIBUTING.ja.md"><code>CONTRIBUTING.md</code></a>
+機構、CI ジョブ説明) は <a href="https://github.com/TomoOkuyama/clinosim/blob/master/CONTRIBUTING.ja.md"><code>CONTRIBUTING.md</code></a>
 参照。</p>
 <hr />
 <h2 id="8-ポリシー変更方法">8. ポリシー変更方法<a class="headerlink" href="#8-ポリシー変更方法" title="Permanent link">&para;</a></h2>
@@ -2731,7 +2731,7 @@ Issue を起票し PR description に link)。</p>
 <h3 id="変更履歴">変更履歴<a class="headerlink" href="#変更履歴" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>2026-08-09</strong> — Policy 作成。
-  <a href="../../superpowers/specs/2026-08-09-doc-code-quality-campaign-design/"><code>docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md</code></a>
+  <a href="https://github.com/TomoOkuyama/clinosim/blob/master/docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md"><code>docs/superpowers/specs/2026-08-09-doc-code-quality-campaign-design.md</code></a>
   campaign 設計 spec の §2 から抽出。</li>
 </ul>
 
