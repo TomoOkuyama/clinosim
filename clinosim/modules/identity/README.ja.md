@@ -97,10 +97,11 @@ README は重複するだけになる。
 
 ## 定数と設定
 
-- Registry (`registry.py`): `_SUPPORTED = {"JP", "US"}`。それ以外の国
-  → `get_provider` が `ValueError`。`is_jp` / `is_us` を必ず使い、
-  `country == "JP"` の直比較は FP-UNIFY-4 anti-pattern (小文字
-  `"jp"` を弾いてしまう)。
+- Registry (`registry.py`): `get_provider` は国プロファイル
+  (`locale/<cc>/country.yaml` の `implementations.identity_provider`) が
+  指名する provider を返す (provider は
+  `@register_implementation("identity_provider", name)` で登録、Issue
+  #3144)。プロファイルの無い国 → `KeyError`。
 - Locale YAML: [`clinosim/locale/jp/identity.yaml`](../../locale/jp/identity.yaml)
   — マイナンバー card 保有・マイナ保険証 登録の年齢帯レート、
   保険 scheme 分布、Gaussian-copula 世帯内相関の `household_icc`、

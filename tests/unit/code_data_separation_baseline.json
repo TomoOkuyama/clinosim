@@ -1,8 +1,6 @@
 {
   "country_branches": {
     "audit/axes/jp_language.py": 1,
-    "codes/drugs.py": 1,
-    "codes/procedures.py": 1,
     "eval/axes/jp_clins_lab_compliance.py": 1,
     "eval/axes/jp_core_compliance.py": 1,
     "eval/axes/locale.py": 3,
@@ -16,7 +14,6 @@
     "modules/family_history/engine.py": 3,
     "modules/health_checkup/engine.py": 1,
     "modules/identity/assign.py": 1,
-    "modules/identity/registry.py": 3,
     "modules/immunization/engine.py": 6,
     "modules/immunization/enricher.py": 1,
     "modules/newborn/engine.py": 4,
@@ -37,7 +34,6 @@
     "modules/output/fhir_r4/labs/anthropometrics.py": 2,
     "modules/output/fhir_r4/labs/blood_type.py": 2,
     "modules/output/fhir_r4/labs/coding_package.py": 1,
-    "modules/output/fhir_r4/labs/coding_strategy.py": 2,
     "modules/output/fhir_r4/labs/diagnostic_report.py": 3,
     "modules/output/fhir_r4/labs/imaging_study.py": 1,
     "modules/output/fhir_r4/labs/microbiology.py": 5,
@@ -56,12 +52,10 @@
     "modules/physiology/egfr.py": 1,
     "modules/population/_pregnancy.py": 1,
     "modules/population/mortality.py": 1,
-    "modules/procedure/engine.py": 6,
-    "modules/triage/engine.py": 1,
     "modules/validator/benchmarks.py": 4,
     "simulator/cli_simulate.py": 1,
     "simulator/enrichers.py": 1,
-    "simulator/outpatient.py": 3,
+    "simulator/outpatient.py": 1,
     "simulator/perinatal.py": 6,
     "types/document.py": 2
   },

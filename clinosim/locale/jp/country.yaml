@@ -29,3 +29,11 @@ formats:
 implementations:
   egfr_equation: jsn
   pediatric_egfr_equation: uemura
+  identity_provider: jp
+  # JTAS (Japan Triage and Acuity Scale).
+  triage_scale: jtas
+  # JP-CLINS lab coding: CoreLabo JLAC10 for the analytes JP-CLINS slices,
+  # the Uncoded slice for the rest.
+  lab_coding: jp_clins
+  # The JP drug code family (YJ, HOT, ...) is read from the code's format.
+  drug_system: jp_code_format

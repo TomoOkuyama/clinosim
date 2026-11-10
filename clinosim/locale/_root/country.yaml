@@ -40,3 +40,14 @@ formats:
 implementations:
   egfr_equation: ckd_epi_2021
   pediatric_egfr_equation: bedside_schwartz
+  # Issue #3144. Household insurance / resident-identifier assignment
+  # (clinosim/modules/identity/providers/<name>.py).
+  identity_provider: us
+  # ED triage scale (clinosim/modules/triage/engine.py).
+  triage_scale: esi
+  # Lab result coding (clinosim/modules/output/fhir_r4/labs/coding_strategy.py):
+  # "loinc" codes every analyte from the lab code mapping.
+  lab_coding: loinc
+  # Code system of an emitted drug code (clinosim/codes/drugs.py):
+  # "profile_code_system" is the profile's code_systems.drug.
+  drug_system: profile_code_system

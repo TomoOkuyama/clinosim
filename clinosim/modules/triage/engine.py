@@ -14,13 +14,37 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from clinosim import determinism
+from clinosim.country_profile import implementation, register_implementation
 from clinosim.datafiles import load_validated_yaml
-from clinosim.modules._shared import is_jp, normalize_probabilities
+from clinosim.modules._shared import normalize_probabilities
 
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 
 SUPPORTED_LEVEL_SYSTEMS: frozenset[str] = frozenset({"JTAS", "ESI"})
+
+
+# Triage scales (Issue #3144): registered under ``triage_scale`` and selected by
+# the country profile (``implementations.triage_scale``). Each returns the
+# level-system name the scale's levels are recorded under; both scales draw
+# their level from the same severity distribution (:func:`pick_triage_level`).
+@register_implementation("triage_scale", "esi")
+def _esi_scale() -> str:
+    """Emergency Severity Index."""
+    return "ESI"
+
+
+@register_implementation("triage_scale", "jtas")
+def _jtas_scale() -> str:
+    """Japan Triage and Acuity Scale."""
+    return "JTAS"
+
+
+def triage_scale(country: str) -> str:
+    """Level system (``ESI`` / ``JTAS``) of the triage scale ``country`` uses."""
+    return str(implementation("triage_scale", country)())
+
+
 SUPPORTED_ARRIVAL_MODES: frozenset[str] = frozenset({"walk-in", "ambulance", "police", "helicopter", "private_vehicle"})
 SUPPORTED_SEVERITIES: frozenset[str] = frozenset({"mild", "moderate", "severe"})
 
@@ -306,7 +330,7 @@ def triage_enricher(ctx: Any) -> None:
     # instead of JTAS (PR-90 class silent-no-op; fixed 2026-07-01).
     config = _o(ctx, "config", None)
     country = (_o(config, "country", None) or _o(ctx, "country", "us") or "us").lower()
-    level_system = "JTAS" if is_jp(country) else "ESI"
+    level_system = triage_scale(country)
     records = _o(ctx, "records", []) or []
     for record in records:
         encounters = _o(record, "encounters", []) or []

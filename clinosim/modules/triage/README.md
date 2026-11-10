@@ -31,7 +31,9 @@ Non-emergency encounters are a no-op.
 - **In scope**: `triage_enricher` (POST_ENCOUNTER order=93,
   ED-only); `pick_triage_level(severity, level_system, rng)` —
   YAML weight table by severity (shared by JTAS and ESI), restricted
-  to the condition bounds;
+  to the condition bounds; `triage_scale(country)` — the level system of
+  the scale the country profile names (`implementations.triage_scale`:
+  `esi` / `jtas`, Issue #3144);
   `pick_arrival_mode(severity, rng)`; `condition_triage_bounds(record)`;
   `resource_count(orders)` / `resource_level(orders)`;
   `has_high_risk_order(record, orders)`; `triage_level(record, enc, drawn)`;

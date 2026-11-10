@@ -448,6 +448,15 @@ _.specimen_material_cs_uri  # fhir_r4/labs/coding_package.py:333
 _.specimen_material_display  # fhir_r4/labs/coding_package.py:337
 _.specimen_material_cs_uri  # fhir_r4/labs/coding_package.py:477
 _.specimen_material_display  # fhir_r4/labs/coding_package.py:480
+# Country-profile named implementations (Issue #3144): registered with
+# @register_implementation and called through clinosim.country_profile
+# .implementation(kind, country), which reads them from the registry dict.
+_._esi_scale  # modules/triage/engine.py (triage_scale "esi")
+_._jtas_scale  # modules/triage/engine.py (triage_scale "jtas")
+_._loinc_lab_coding  # fhir_r4/labs/coding_strategy.py (lab_coding "loinc")
+_._jp_clins_lab_coding  # fhir_r4/labs/coding_strategy.py (lab_coding "jp_clins")
+_._profile_drug_system  # codes/drugs.py (drug_system "profile_code_system")
+_._jp_drug_system  # codes/drugs.py (drug_system "jp_code_format")
 
 
 # =============================================================================

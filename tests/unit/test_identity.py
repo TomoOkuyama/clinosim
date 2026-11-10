@@ -97,7 +97,8 @@ class TestJPHouseholdAssignment:
         assert len(enr["E1"].insurer_number) == 8
 
     def test_unsupported_country_raises(self):
-        with pytest.raises(ValueError):
+        # Issue #3144: resolved through the country profile (KeyError).
+        with pytest.raises(KeyError):
             get_provider("XX")
 
     @pytest.mark.parametrize("country", ["JP", "jp"])

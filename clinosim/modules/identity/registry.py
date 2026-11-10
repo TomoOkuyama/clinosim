@@ -1,32 +1,28 @@
 """Country → IdentityProvider resolution (AD-54).
 
-Mirrors the `healthcare_system` country-config pattern. Add a country by
-registering a provider here + adding `locale/<cc>/identity.yaml`.
+A provider registers itself with
+``@register_implementation("identity_provider", name)`` and the country profile
+(``locale/<cc>/country.yaml`` ``implementations.identity_provider``) selects it.
+Add a country by naming a provider in its profile + adding
+``locale/<cc>/identity.yaml``.
 """
 
 from __future__ import annotations
 
-from clinosim.modules._shared import is_jp, is_us
+from clinosim.countries import country_code
+from clinosim.country_profile import implementation
 from clinosim.modules.identity.base import IdentityProvider
-from clinosim.modules.identity.providers import JPIdentityProvider, USIdentityProvider
 
-_SUPPORTED = {"JP", "US"}
 _CACHE: dict[str, IdentityProvider] = {}
 
 
 def get_provider(country: str) -> IdentityProvider:
-    """Return the identity provider for a country code (ISO 3166-1 alpha-2).
-
-    Case-insensitive via the canonical is_jp/is_us predicates — a raw
-    ``country == "JP"`` comparison would raise on a lowercase ``"jp"`` that
-    production passes unnormalized (FP-UNIFY-4 sibling class).
+    """Return the identity provider for a country code (ISO 3166-1 alpha-2,
+    case-insensitive): the implementation the country profile names under
+    ``identity_provider`` (Issue #3144). A country without a profile raises
+    ``KeyError``.
     """
-    if is_jp(country):
-        key = "JP"
-    elif is_us(country):
-        key = "US"
-    else:
-        raise ValueError(f"Unsupported country: {country}. Supported: {sorted(_SUPPORTED)}")
+    key = country_code(country)
     if key not in _CACHE:
-        _CACHE[key] = JPIdentityProvider() if key == "JP" else USIdentityProvider()
+        _CACHE[key] = implementation("identity_provider", key)()
     return _CACHE[key]

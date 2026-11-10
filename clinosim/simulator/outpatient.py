@@ -10,6 +10,7 @@ import numpy as np
 
 from clinosim import determinism
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
+from clinosim.codes.procedures import country_procedure_code
 from clinosim.codes.valuesets import concept_group
 from clinosim.countries import is_jp, lang_for
 from clinosim.locale.free_text import _localize_dosage_terms
@@ -275,7 +276,7 @@ def radiation_therapy_code(country: str) -> str:
     (``_radiation_therapy`` in ``chronic_followup.yaml``; Issue #2200)."""
 
     cfg = load_chronic_followup().get("_radiation_therapy") or {}
-    return str(cfg.get("jp_code" if is_jp(country) else "us_code") or "")
+    return str(country_procedure_code(country, {"k-codes": cfg.get("jp_code"), "cpt": cfg.get("us_code")}) or "")
 
 
 def _visit_chief_complaint(
@@ -928,7 +929,7 @@ def _chemo_cycle(
         _chemo_code_jp = str(_chemo_proc.get("jp_code") or "")
         _chemo_code_us = str(_chemo_proc.get("us_code") or "")
         _chemo_dur_min = int(_chemo_proc.get("duration_minutes") or 60)
-        _chemo_code = _chemo_code_jp if is_jp(country) else _chemo_code_us
+        _chemo_code = country_procedure_code(country, {"k-codes": _chemo_code_jp, "cpt": _chemo_code_us})
         _chemo_start = visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN)
         procedures_list.append(
             ProcedureRecord(

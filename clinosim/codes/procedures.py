@@ -12,11 +12,13 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-from clinosim.codes.loader import display
-from clinosim.countries import is_jp
+from clinosim.codes.loader import display, system_key_for
 from clinosim.datafiles import load_data_yaml
 
 _DATA_FILE = Path(__file__).parent / "data" / "clinosim-procedure-catalog.yaml"
+
+# Catalog field holding the code of each procedure code system (Issue #3144).
+_CATALOG_FIELD = {"cpt": "cpt", "k-codes": "k_code"}
 
 
 @cache
@@ -42,11 +44,19 @@ def catalog_procedure_types() -> frozenset[str]:
 
 
 def procedure_code(proc_type: str, country: str) -> str:
-    """CPT (US) or K-code (JP) of a procedure type; ``""`` when the catalog has
-    no verified code for it."""
+    """CPT (US) or K-code (JP) of a procedure type — the catalog field of the
+    country's procedure code system; ``""`` when the catalog has no verified
+    code for it."""
     entry = _entries().get(proc_type) or {}
-    field = "k_code" if is_jp(country) else "cpt"
+    field = _CATALOG_FIELD[system_key_for("procedure", country)]
     return str(entry.get(field) or "")
+
+
+def country_procedure_code(country: str, codes: dict[str, Any]) -> Any:
+    """The code, from ``codes`` keyed by procedure code-system key (``"cpt"``,
+    ``"k-codes"``), of the system the country profile names for procedures
+    (Issue #3144). The value is returned as given."""
+    return codes[system_key_for("procedure", country)]
 
 
 def procedure_type_display(proc_type: str, lang: str) -> str:
