@@ -1,0 +1,13 @@
+# JFAGY アレルゲンコード（非食品・非医薬品） — JP AllergyIntolerance.code for
+# environmental allergens (in JP_AllergyIntolerance_VS; Issue #3128). `ja` is
+# the CodeSystem display verbatim (jpfhir-terminology 2.2606.0,
+# CodeSystem-jp-jfagynonfoodnonmedicationallergen-cs.json v2024.7.9); `en`
+# is a clinosim translation.
+metadata:
+  kind: code-system
+  name: JFAGY Non-food Non-medication Allergen
+  uri: http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS
+  source: "jpfhir-terminology 2.2606.0 JP_JfagyNonFoodNonMedicationAllergen_CS"
+codes:
+  J9NK13000000: {en: "Trees", ja: "樹木"}
+  J9NM12000000: {en: "Mites", ja: "ダニ"}

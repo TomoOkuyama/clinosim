@@ -334,7 +334,7 @@ def test_newborn_atopic_predisposition_raised_for_atopic_mother() -> None:
     mother.allergies = [
         Allergy(
             allergy_id="ALG-EGG",
-            allergen_code="735038006",
+            allergen_code="303300008",
             category="food",
             criticality="low",
             verification_status="confirmed",
@@ -359,7 +359,7 @@ def test_newborn_atopic_predisposition_two_atopic_parents() -> None:
     mother.allergies = [
         Allergy(
             allergy_id="ALG-M-EGG",
-            allergen_code="735038006",
+            allergen_code="303300008",
             category="food",
             criticality="low",
             verification_status="confirmed",
@@ -476,7 +476,7 @@ def test_newborn_atopic_predisposition_ignores_resolved_allergy() -> None:
     mother.allergies = [
         Allergy(
             allergy_id="ALG-EGG-RESOLVED",
-            allergen_code="735038006",
+            allergen_code="303300008",
             category="food",
             criticality="low",
             verification_status="confirmed",

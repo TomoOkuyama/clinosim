@@ -126,9 +126,11 @@ the emitted NDJSON by resource id so line order is deterministic.
   [`clinosim/locale/jp/code_mapping_diagnosis.yaml`](../../../../locale/jp/code_mapping_diagnosis.yaml).
 - **Allergen coding**: SNOMED CT (allergens + reaction manifestations).
   On JP-CLINS output `AllergyIntolerance.code` instead carries the
-  JFAGY generic category coding from `_jfagy_coding_for_category`
-  (medication `00M` / food `00F` / environment + biologic `00N`),
-  falling back to SNOMED when the category has no mapping. No RxNorm
+  allergen's JFAGY code from allergens.yaml `country_codes.JP` (Issue
+  #3128: JP_AllergyIntolerance_VS holds the JFAGY CodeSystems only; a
+  drug-class allergy takes the JFAGY medication dummy code), with the
+  allergen's Japanese name in `code.text`. The No Known Allergies record
+  keeps SNOMED CT and claims JP Core only, not the eCS profile. No RxNorm
   coding is emitted.
 - **HAI coding**: ICD-10-CM (US billable) + WHO ICD-10 (JP) +
   SNOMED CT International — dual-coded per the AGENTS.md

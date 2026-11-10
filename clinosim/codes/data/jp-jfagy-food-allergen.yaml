@@ -1,0 +1,15 @@
+# JFAGY アレルゲンコード（食品） — JP AllergyIntolerance.code for food
+# allergens (JP-CLINS 1.13.0 binds AllergyIntolerance.code.coding to
+# JP_AllergyIntolerance_VS, which includes this CodeSystem; Issue #3128).
+# `ja` is the CodeSystem display verbatim (jpfhir-terminology 2.2606.0,
+# CodeSystem-jp-jfagyfoodallergen-cs.json v2026.5.31; cross-checked by
+# codes/authoritative/jfagy_jpfhir_terminology.json). `en` is a clinosim
+# translation (the English fallback every code carries).
+metadata:
+  kind: code-system
+  name: JFAGY Food Allergen
+  uri: http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoodAllergen_CS
+  source: "jpfhir-terminology 2.2606.0 JP_JfagyFoodAllergen_CS"
+codes:
+  J9FA15000000: {en: "Wheat", ja: "小麦"}
+  J9FB13110000: {en: "Hen's egg", ja: "鶏卵"}

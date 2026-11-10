@@ -371,28 +371,31 @@ codes:
   '387458008':
     en: Aspirin             # FSN: Aspirin (substance)
     ja: アスピリン
-  '115556009':
+  # Issue #3128: allergen substances verified on tx.fhir.org (International
+  # Edition 2025-02-01, codes/authoritative/snomed_allergy_tx.json). Replaced
+  # 115556009 / 735038006 / 260219005 (unknown to the edition), 735029006
+  # (Shellfish, not Wheat) and 256262001 (European white birch pollen).
+  '387406002':
     en: Sulfonamide         # FSN: Sulfonamide (substance)
     ja: サルファ剤
-  # feedback FB-F8: 227037002 と 256349002 は inactive concept、
-  # 735038006 (Egg protein) と 735029006 (Wheat) に更新済(allergens.yaml)。
-  # 旧 code は legacy CIF migration 用に entry を残す(将来削除可)。
-  '735038006':
-    en: Egg protein
+  '303300008':
+    en: Egg protein         # FSN: Egg protein (substance)
     ja: 卵タンパク
-  '735029006':
-    en: Wheat
+  '412071004':
+    en: Wheat               # FSN: Wheat (substance)
     ja: 小麦
+  # feedback FB-F8: 227037002 と 256349002 は inactive concept。
+  # 旧 code は legacy CIF migration 用に entry を残す(将来削除可)。
   '227037002':
     en: Egg                # FSN: Egg (substance) — display: Eggs
     ja: 卵
   '256349002':
     en: Wheat              # FSN: Wheat (substance)
     ja: 小麦
-  '256262001':
-    en: Tree pollen        # FSN: Tree pollen (substance) — display: Pollen
-    ja: 花粉
-  '260219005':
+  '782576004':
+    en: Tree pollen        # FSN: Tree pollen (substance)
+    ja: 樹木花粉
+  '260147004':
     en: House dust mite    # FSN: House dust mite (organism)
     ja: ハウスダスト・ダニ
   # === No Known Allergy (Issue #942 NKA positive-assertion) ===

@@ -327,6 +327,7 @@ _.interventions  # nursing/engine.py _NursingFocus
 _.boost_category  # allergy/engine.py AllergenConfig
 _.boost_weight_bonus  # allergy/engine.py AllergenConfig
 _.common_reactions  # allergy/engine.py AllergenConfig
+_.country_codes  # allergy/engine.py _Allergen (read from the raw dict in country_allergen_code, Issue #3128)
 _.cross_reactivity  # allergy/engine.py AllergenConfig
 _.nka  # allergy/engine.py AllergenConfig
 _.polyallergy  # allergy/engine.py AllergenConfig

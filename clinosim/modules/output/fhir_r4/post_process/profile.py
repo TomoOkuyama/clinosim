@@ -241,6 +241,8 @@ def _apply_jp_clins_profile(resource: dict) -> None:
         return
     if rt == "MedicationRequest" and not _medication_request_satisfies_ecs(resource):
         return
+    if rt == "AllergyIntolerance" and not _allergy_satisfies_ecs(resource):
+        return
     meta = resource.setdefault("meta", {})
     profs = meta.setdefault("profile", [])
     for url in profiles:
@@ -290,6 +292,33 @@ def _medication_request_satisfies_ecs(resource: dict) -> bool:
     delete this predicate) or exclude dosage-less prescriptions from the bundle.
     """
     return bool(resource.get("dosageInstruction"))
+
+
+# JP_AllergyIntolerance_VS|2023.9.25 (jpfhir-terminology 2.2606.0) includes
+# exactly these CodeSystems (the JFAGY allergen codes).
+_JP_ALLERGY_VS_SYSTEM_KEYS: tuple[str, ...] = (
+    "jp-jfagy-food-allergen",
+    "jp-jfagy-nonfood-nonmedication-allergen",
+    "jp-jfagy-medication-allergen",
+    "jp-jfagy-medication-allergen-gcm",
+)
+
+
+def _allergy_satisfies_ecs(resource: dict) -> bool:
+    """Predicate: may this AllergyIntolerance assert JP_AllergyIntolerance_eCS? (Issue #3128)
+
+    The eCS profile binds every ``code.coding`` (required) to
+    JP_AllergyIntolerance_VS, the JFAGY allergen CodeSystems; JP Core binds
+    ``code`` with example strength only. The No Known Allergies record
+    (SNOMED CT 716186003, Issue #942) has no JFAGY code, so it stays on JP
+    Core rather than claim a profile it does not satisfy — the
+    ``_medication_request_satisfies_ecs`` rule.
+    """
+    from clinosim.codes import get_system_uri
+
+    allowed = {get_system_uri(k) for k in _JP_ALLERGY_VS_SYSTEM_KEYS}
+    codings = (resource.get("code") or {}).get("coding") or []
+    return bool(codings) and all(c.get("system") in allowed for c in codings)
 
 
 def _is_lab_observation(resource: dict) -> bool:

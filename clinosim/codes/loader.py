@@ -548,6 +548,7 @@ _BUILTIN_URIS: dict[str, str] = {
     "jp-document-codes": "http://jpfhir.jp/fhir/core/CodeSystem/JP_DocumentCodes_CS",
     "jp-jfagy-food-allergen": "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoodAllergen_CS",
     "jp-jfagy-medication-allergen": "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS",
+    "jp-jfagy-medication-allergen-gcm": "http://jpfhir.jp/fhir/core/CodeSystem/GCM/JP_JfagyMedicationAllergen_CS",
     "jp-jfagy-nonfood-nonmedication-allergen": (
         "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS"
     ),

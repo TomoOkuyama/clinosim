@@ -15,11 +15,14 @@ from clinosim.modules.output.fhir_r4.post_process import (
     _is_lab_observation,
 )
 
+# Issue #3128: an AllergyIntolerance claims eCS only with a JFAGY (value-set) code.
+_EGG = {"coding": [{"system": "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoodAllergen_CS", "code": "J9FB13110000"}]}
+
 
 @pytest.mark.unit
 class TestApplyJpClinsProfile:
     def test_allergy_gets_ecs_profile(self):
-        r = {"resourceType": "AllergyIntolerance"}
+        r = {"resourceType": "AllergyIntolerance", "code": _EGG}
         _apply_jp_clins_profile(r)
         assert r["meta"]["profile"] == ["http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS"]
 
@@ -43,7 +46,7 @@ class TestApplyJpClinsProfile:
         assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS" in r["meta"]["profile"]
 
     def test_idempotent_no_duplicate(self):
-        r = {"resourceType": "AllergyIntolerance"}
+        r = {"resourceType": "AllergyIntolerance", "code": _EGG}
         _apply_jp_clins_profile(r)
         _apply_jp_clins_profile(r)
         _apply_jp_clins_profile(r)
@@ -94,6 +97,8 @@ class TestApplyJpClinsProfile:
             ("AllergyIntolerance", "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS"),
         ):
             r = {"resourceType": rt}  # no dosageInstruction anywhere in sight
+            if rt == "AllergyIntolerance":
+                r["code"] = _EGG
             _apply_jp_clins_profile(r)
             assert url in r["meta"]["profile"]
 

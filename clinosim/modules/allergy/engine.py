@@ -83,10 +83,29 @@ class _Reaction(BaseModel):
         return _registered_snomed(code, "manifestation_snomed")
 
 
+class _CountryCode(BaseModel):
+    """A country's own code for an allergen (Issue #3128): a ``codes/data``
+    registry key and a code registered there."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    system: str
+    code: str
+
+    @model_validator(mode="after")
+    def _registered(self) -> _CountryCode:
+        if not code_exists(self.system, self.code, exact=True):
+            raise ValueError(f"allergens.yaml country_codes: {self.code!r} not in codes/data/{self.system}.yaml")
+        return self
+
+
 class _Allergen(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     allergen_code: str
+    # Upper-case country code -> the code that country's profile requires
+    # instead of SNOMED CT (JP: JFAGY, Issue #3128).
+    country_codes: dict[str, _CountryCode] = Field(default_factory=dict)
     prevalence: dict[str, Any]
     criticality: Any
     common_reactions: list[_Reaction] = Field(min_length=1)
@@ -264,6 +283,20 @@ def load_allergen_config() -> dict[str, Any]:
     view.
     """
     return load_validated_yaml(_REF_DIR / "allergens.yaml", AllergenConfig)
+
+
+def country_allergen_code(allergen_code: str, country: str) -> tuple[str, str] | None:
+    """``(registry key, code)`` a country codes the allergen with instead of
+    SNOMED CT (``country_codes`` in allergens.yaml, Issue #3128), or None."""
+    from clinosim.countries import country_code
+
+    cc = country_code(country)
+    for entries in load_allergens().values():
+        for entry in entries:
+            if entry["allergen_code"] == allergen_code:
+                own = (entry.get("country_codes") or {}).get(cc)
+                return (str(own["system"]), str(own["code"])) if own else None
+    return None
 
 
 def _make_nka(nka_cfg: dict[str, Any]) -> Allergy:

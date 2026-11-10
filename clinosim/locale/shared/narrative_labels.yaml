@@ -262,12 +262,6 @@ allergy_criticality:
   high: {en: high, ja: 高リスク}
   unable-to-assess: {en: unable to assess, ja: 評価不能}
 
-allergy_jfagy_display:
-  medication: {en: Medication, ja: 医薬品}
-  food: {en: Food, ja: 食品}
-  environment: {en: Non-food non-medication, ja: 非食品・非医薬品}
-  biologic: {en: Non-food non-medication, ja: 非食品・非医薬品}
-
 # Lab-trend direction label (Phase 1d-62). Was `_TREND_LABEL_JA` /
 # `_TREND_LABEL_EN` module-level dicts in `replacement_strategy.py`.
 # Used by `_render_lab_trend_today` to annotate current-vs-prior

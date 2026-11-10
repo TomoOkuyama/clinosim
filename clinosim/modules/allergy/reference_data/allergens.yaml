@@ -25,7 +25,16 @@
 # modules/allergy/README.md "Scope: AllergyIntolerance ≠ any allergic disease".
 #
 # SNOMED CT codes verified via SNOMED International browser
-# (https://browser.ihtsdotools.org/) and tx.fhir.org $lookup, 2026-07-01.
+# (https://browser.ihtsdotools.org/) and tx.fhir.org $lookup, 2026-07-01;
+# re-verified against the International Edition 2025-02-01 on tx.fhir.org
+# (Issue #3128, codes/authoritative/snomed_allergy_tx.json).
+#
+# country_codes (Issue #3128): the code a country's profile requires in place
+# of SNOMED CT, as {system: <codes/data registry key>, code}. JP-CLINS 1.13.0
+# binds AllergyIntolerance.code.coding (required) to JP_AllergyIntolerance_VS,
+# which holds the JFAGY allergen CodeSystems only. A drug-class allergy with
+# no JFAGY drug code (penicillins, sulfonamides) takes the JFAGY medication
+# dummy code, which the profile allows, and is named in code.text.
 # Allergen substance codes: SNOMED CT International edition.
 # Reaction manifestation codes: SNOMED CT findings / disorders.
 
@@ -42,6 +51,8 @@ allergens:
     # in SNOMED CT International; verified 2026-10-22 via tx.fhir.org
     # $lookup. 764146007 is the active replacement (Issue #1768).
     - allergen_code: "764146007"
+      country_codes:
+        JP: {system: jp-jfagy-medication-allergen, code: "D9M000000000"}
       prevalence:
         adult: 0.08              # 8% population
       criticality: high
@@ -55,6 +66,8 @@ allergens:
     # Session 57 v3 fix: 372687004 is Amoxicillin in SNOMED CT International
     # 2026-06-01 — swap to 387458008 (Aspirin, substance).
     - allergen_code: "387458008"
+      country_codes:
+        JP: {system: jp-jfagy-medication-allergen-gcm, code: "GCM1143001X1ZZZ"}
       prevalence:
         adult: 0.03
       criticality: low
@@ -62,8 +75,11 @@ allergens:
         - manifestation_snomed: "271807003"
           severity: mild
     # Session 57 v3 fix: 303408005 is not present in SNOMED CT International
-    # 2026-06-01 — swap to 115556009 (Sulfonamide, substance).
-    - allergen_code: "115556009"
+    # 2026-06-01. Issue #3128: 115556009 is unknown to the 2025-02-01 edition
+    # too — 387406002 (Sulfonamide, substance).
+    - allergen_code: "387406002"
+      country_codes:
+        JP: {system: jp-jfagy-medication-allergen, code: "D9M000000000"}
       prevalence:
         adult: 0.03
       criticality: high
@@ -73,8 +89,11 @@ allergens:
 
   food:
     # feedback FB-F8 (session 48 cycle 8): SNOMED CT 227037002 は inactive、
-    # active substance code 735038006 "Egg protein (substance)" に更新。
-    - allergen_code: "735038006"
+    # Issue #3128: 735038006 は 2025-02-01 版に存在しない — 303300008
+    # "Egg protein (substance)"。JP は JFAGY 鶏卵。
+    - allergen_code: "303300008"
+      country_codes:
+        JP: {system: jp-jfagy-food-allergen, code: "J9FB13110000"}
       prevalence:
         adult: 0.02
       criticality: low
@@ -82,8 +101,10 @@ allergens:
         - manifestation_snomed: "271807003"
           severity: mild
     # feedback FB-F8: SNOMED CT 256349002 は inactive、
-    # active substance code 735029006 "Wheat (substance)" に更新。
-    - allergen_code: "735029006"
+    # Issue #3128: 735029006 は Shellfish だった — 412071004 "Wheat (substance)"。
+    - allergen_code: "412071004"
+      country_codes:
+        JP: {system: jp-jfagy-food-allergen, code: "J9FA15000000"}
       prevalence:
         adult: 0.01
       criticality: low
@@ -92,7 +113,11 @@ allergens:
           severity: mild
 
   environment:
-    - allergen_code: "256262001"
+    # Issue #3128: 256262001 is European white birch pollen — 782576004
+    # Tree pollen (substance); JP JFAGY 樹木.
+    - allergen_code: "782576004"
+      country_codes:
+        JP: {system: jp-jfagy-nonfood-nonmedication-allergen, code: "J9NK13000000"}
       prevalence:
         adult: 0.20              # 20% — 高頻度
       criticality: low
@@ -101,7 +126,11 @@ allergens:
         # 2026-06-01 — swap to 61582004 (Allergic rhinitis, disorder).
         - manifestation_snomed: "61582004"
           severity: mild
-    - allergen_code: "260219005"
+    # Issue #3128: 260219005 is unknown to the 2025-02-01 edition — 260147004
+    # House dust mite (organism); JP JFAGY ダニ.
+    - allergen_code: "260147004"
+      country_codes:
+        JP: {system: jp-jfagy-nonfood-nonmedication-allergen, code: "J9NM12000000"}
       prevalence:
         adult: 0.15
       criticality: low

@@ -60,6 +60,7 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
         _jp_clins_profiles,
         _medication_request_satisfies_ecs,
     )
+    from clinosim.modules.output.fhir_r4.post_process.profile import _allergy_satisfies_ecs
 
     # Dense resource types — expected to have at least one instance at p=100.
     dense_types = {"Condition", "Observation", "MedicationRequest", "Procedure"}
@@ -98,6 +99,16 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
                     f"{rt}/{r.get('id')} claims eCS with no dosageInstruction (min=1 violation)"
                 )
                 assert jp_core_mr in profs, f"{rt}/{r.get('id')} lost the parent JP Core profile"
+        if rt == "AllergyIntolerance":
+            # Issue #3128: a "no known allergy" record (SNOMED 716186003) has no code in
+            # the required JP_AllergyIntolerance_VS, so it keeps JP Core only. Reuse the
+            # production predicate and pin both sides, as for MedicationRequest.
+            jp_core_ai = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance"
+            for r in [r for r in pool if not _allergy_satisfies_ecs(r)]:
+                profs = r.get("meta", {}).get("profile", [])
+                assert _jp_clins_profiles()[rt][0] not in profs, f"{rt}/{r.get('id')} claims eCS outside the VS"
+                assert jp_core_ai in profs, f"{rt}/{r.get('id')} lost the parent JP Core profile"
+            pool = [r for r in pool if _allergy_satisfies_ecs(r)]
         if rt in dense_types:
             assert pool, f"expected dense JP-CLINS type {rt} non-empty at p=100 JP"
         for r in pool:

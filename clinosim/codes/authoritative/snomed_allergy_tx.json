@@ -1,0 +1,84 @@
+{
+  "metadata": {
+    "source": "tx.fhir.org R4 CodeSystem/$lookup",
+    "system": "http://snomed.info/sct",
+    "version": "http://snomed.info/sct/900000000000207008/version/20250201",
+    "edition": "SNOMED CT International Edition 2025-02-01",
+    "fetched": "2026-11-10",
+    "note": "Allergen substance and reaction manifestation codes in clinosim/modules/allergy/reference_data/allergens.yaml (Issue #3128)."
+  },
+  "concept": [
+    {
+      "code": "764146007",
+      "display": "Penicillin",
+      "fsn": "Substance with penicillin structure (substance)",
+      "inactive": false
+    },
+    {
+      "code": "387458008",
+      "display": "Aspirin",
+      "fsn": "Aspirin (substance)",
+      "inactive": false
+    },
+    {
+      "code": "387406002",
+      "display": "Sulfonamide",
+      "fsn": "Sulfonamide (substance)",
+      "inactive": false
+    },
+    {
+      "code": "303300008",
+      "display": "Egg protein",
+      "fsn": "Egg protein (substance)",
+      "inactive": false
+    },
+    {
+      "code": "412071004",
+      "display": "Wheat",
+      "fsn": "Wheat (substance)",
+      "inactive": false
+    },
+    {
+      "code": "782576004",
+      "display": "Tree pollen",
+      "fsn": "Tree pollen (substance)",
+      "inactive": false
+    },
+    {
+      "code": "260147004",
+      "display": "House dust mite",
+      "fsn": "House dust mite (organism)",
+      "inactive": false
+    },
+    {
+      "code": "716186003",
+      "display": "No known allergy",
+      "fsn": "No known allergy (situation)",
+      "inactive": false
+    },
+    {
+      "code": "271807003",
+      "display": "Eruption",
+      "fsn": "Eruption of skin (disorder)",
+      "inactive": false
+    },
+    {
+      "code": "39579001",
+      "display": "Anaphylaxis",
+      "fsn": "Anaphylaxis (disorder)",
+      "inactive": false
+    },
+    {
+      "code": "21522001",
+      "display": "Abdominal pain",
+      "fsn": "Abdominal pain (finding)",
+      "inactive": false
+    },
+    {
+      "code": "61582004",
+      "display": "Allergic rhinitis",
+      "fsn": "Allergic rhinitis (disorder)",
+      "inactive": false
+    }
+  ]
+}

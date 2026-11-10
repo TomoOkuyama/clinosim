@@ -268,8 +268,9 @@ def test_jp_locale_resolves_snomed_display_to_ja():
     # #293:JFAGY primary alone
     assert len(codings) == 1
     assert codings[0]["system"] == "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS"
-    assert codings[0]["code"] == "00M"
-    assert codings[0]["display"] == "医薬品"
+    # Issue #3128: a drug-class allergy takes the JFAGY medication dummy code.
+    assert codings[0]["code"] == "D9M000000000"
+    assert codings[0]["display"] == "医薬品ダミーコード"
     # substance ja display still surfaces via `code.text`
     assert r["code"]["text"] == "ペニシリン"
 
@@ -298,7 +299,7 @@ def test_jp_locale_resolves_reaction_manifestation_to_ja():
 
 
 def test_jp_medication_allergen_gets_jfagy_medication_cs_primary():
-    """Medication category → JFAGY YCM medication allergen CS (00M / 医薬品)."""
+    """Penicillin (a drug class) → JFAGY YCM medication dummy code (Issue #3128)."""
     a = _sample_allergy_dataclass()
     a.allergen_code = "764146007"
     a.category = "medication"
@@ -306,32 +307,32 @@ def test_jp_medication_allergen_gets_jfagy_medication_cs_primary():
     r = _bb_allergy_intolerances(ctx)[0]
     primary = r["code"]["coding"][0]
     assert primary["system"] == "http://jpfhir.jp/fhir/core/CodeSystem/YCM/JP_JfagyMedicationAllergen_CS"
-    assert primary["code"] == "00M"
-    assert primary["display"] == "医薬品"
+    assert primary["code"] == "D9M000000000"
+    assert primary["display"] == "医薬品ダミーコード"
 
 
 def test_jp_food_allergen_gets_jfagy_food_cs_primary():
     a = _sample_allergy_dataclass()
-    a.allergen_code = "735038006"
+    a.allergen_code = "303300008"
     a.category = "food"
     ctx = _make_ctx([a], country="JP")
     r = _bb_allergy_intolerances(ctx)[0]
     primary = r["code"]["coding"][0]
     assert primary["system"] == "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoodAllergen_CS"
-    assert primary["code"] == "00F"
-    assert primary["display"] == "食品"
+    assert primary["code"] == "J9FB13110000"
+    assert primary["display"] == "鶏卵"
 
 
 def test_jp_environment_allergen_gets_jfagy_non_food_non_medication_cs_primary():
     a = _sample_allergy_dataclass()
-    a.allergen_code = "256262001"
+    a.allergen_code = "782576004"
     a.category = "environment"
     ctx = _make_ctx([a], country="JP")
     r = _bb_allergy_intolerances(ctx)[0]
     primary = r["code"]["coding"][0]
     assert primary["system"] == "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyNonFoodNonMedicationAllergen_CS"
-    assert primary["code"] == "00N"
-    assert primary["display"] == "非食品・非医薬品"
+    assert primary["code"] == "J9NK13000000"
+    assert primary["display"] == "樹木"
 
 
 def test_us_output_keeps_snomed_primary_and_no_jfagy():
@@ -374,7 +375,7 @@ def test_jp_snomed_secondary_dropped_after_293():
     `code.text` に残るので narrative レベルの識別性は保たれる。
     """
     a = _sample_allergy_dataclass()
-    a.allergen_code = "115556009"  # Sulfonamide
+    a.allergen_code = "387406002"  # Sulfonamide
     a.category = "medication"
     ctx = _make_ctx([a], country="JP")
     r = _bb_allergy_intolerances(ctx)[0]
