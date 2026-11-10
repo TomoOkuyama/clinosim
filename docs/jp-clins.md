@@ -38,6 +38,8 @@ Further eCS profiles are asserted beyond the 6 information items (Issue #745 and
 | Immunization | `.../JP_Immunization_eCS` |
 | Device | `.../JP_Device_eCS` |
 | DeviceUseStatement | `.../JP_DeviceUseStatement_eCS` |
+| Encounter (only conforming encounters, see the filter below; Issue #3148) | `.../JP_Encounter_eCS` |
+| Practitioner (with `meta.lastUpdated`; Issue #3148) | `.../JP_Practitioner_eCS` |
 
 The resource-type → URL table lives in `clinosim/codes/data/fhir-profiles-jp-clins.yaml` and is applied by `_apply_jp_clins_profile` in `clinosim/modules/output/fhir_r4/post_process/profile.py` (Patient and those Organizations carry their eCS URL inline).
 
@@ -47,6 +49,7 @@ URL root: `http://jpfhir.jp/fhir/eCS/StructureDefinition/`
 
 - Observation: only when `category.coding[].code == "laboratory"` — vital signs stay on the JP Core profile only.
 - MedicationRequest: only when the resource can satisfy the eCS constraints (`dosageInstruction` min=1); discharge / outpatient-renewal prescriptions without dose or route stay on the JP Core profile only.
+- Encounter: only a finished encounter without `hospitalization`, whose `length` (if any) is in days and whose `class` / `reasonCode` / `location` carry the elements the profile requires (`_encounter_satisfies_ecs`). The eCS profile requires a DPC discharge outcome (JP discharge-disposition value set) whenever `hospitalization` is present; clinosim records the HL7 discharge destination, which is a different fact, so inpatient and ED encounters stay on JP Core. An outpatient visit's length in minutes also keeps it off the eCS profile (fixed unit `d`).
 
 **Not covered by JP-CLINS v1.13.0** (emitted with JP Core profile only, no JP-CLINS URL added):
 

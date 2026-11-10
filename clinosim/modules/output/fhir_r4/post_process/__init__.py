@@ -60,6 +60,7 @@ __all__ = [
     "_apply_jp_clins_profile",
     "_apply_jp_core_profile",
     "_apply_us_core_profile",
+    "_encounter_satisfies_ecs",
     "_is_lab_observation",
     "_medication_request_satisfies_ecs",
     # specimen
@@ -117,6 +118,7 @@ from clinosim.modules.output.fhir_r4.post_process.profile import (  # noqa: E402
     _apply_jp_clins_profile,
     _apply_jp_core_profile,
     _apply_us_core_profile,
+    _encounter_satisfies_ecs,
     _is_lab_observation,
     _jp_clins_profiles,
     _jp_core_profiles,

@@ -29,7 +29,8 @@ resource — not as a separate pass over an assembled bundle.
     Also owns `_JP_OBSERVATION_CATEGORY_SYSTEM`,
     `_JP_ECS_LAST_UPDATED_PLACEHOLDER` and resource-type
     discriminators (`_is_lab_observation`,
-    `_medication_request_satisfies_ecs`). It carries an unused local
+    `_medication_request_satisfies_ecs`, `_encounter_satisfies_ecs`).
+    It carries an unused local
     copy of `_FHIR_ID_PATTERN`.
   - `specimen.py` — synthesises a companion `Specimen` resource per
     lab Observation (id prefix `lab-`, no builder-set `specimen`;
