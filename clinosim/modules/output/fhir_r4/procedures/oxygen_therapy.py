@@ -459,7 +459,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
                 "snomed-ct",
                 _SNOMED_OXYGEN_THERAPY,
                 lang,
-                text=t("fhir_emit_text.oxygen_therapy", "ja" if is_jp_out else "en"),
+                text=t("fhir_emit_text.oxygen_therapy", lang),
             ),
             "subject": patient_ref(ctx.patient_id),
             "performedPeriod": {
@@ -491,11 +491,11 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
             procedure["performer"] = [{"actor": {"reference": f"Practitioner/{performer_ref}"}}]
         notes: list[dict[str, str]] = []
         if target_note:
-            notes.append({"text": t("fhir_emit_text.o2_target", "ja" if is_jp_out else "en", value=target_note)})
+            notes.append({"text": t("fhir_emit_text.o2_target", lang, value=target_note)})
         if session_filled_from_single_ts:
             # session-88j P1-8: mark filled sessions so consumers can tell
             # a recorded stop time from an estimated one.
-            _fill_note = t("fhir_emit_text.o2_single_ts", "ja" if is_jp_out else "en")
+            _fill_note = t("fhir_emit_text.o2_single_ts", lang)
             notes.append({"text": _fill_note})
         if notes:
             procedure["note"] = notes

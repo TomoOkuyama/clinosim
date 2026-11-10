@@ -148,13 +148,15 @@ def _build_procedure(
     # "O2: Nasal cannula SpO2 >= 94%") OR to a procedure name from encounter
     # YAML (e.g. "Ice pack application", "Wound irrigation with normal saline").
     #
-    # The JP fallback goes through the procedure-name resolver (Issue #2408):
-    # an exact procedure-phrase / imaging entry ("Ice pack application" →
-    # 「氷嚢貼付」), else the free-text translator for composite order text,
-    # which also translates dosage abbreviations (O2 → 酸素投与, PO → 経口).
-    # A K-code display is already Japanese, so this is a no-op there.
-    if is_jp(country) and primary_display:
-        primary_display = localize_procedure_name(primary_display, "ja")
+    # The fallback goes through the procedure-name resolver in the output
+    # language (Issue #2408, #3180): an exact procedure-phrase / imaging entry
+    # ("Ice pack application" → 「氷嚢貼付」), else the free-text translator
+    # for composite order text, which also translates dosage abbreviations
+    # (O2 → 酸素投与, PO → 経口); English keeps the name and spells out a
+    # protocol slug. A code display is already in the output language, so
+    # this is a no-op there.
+    if primary_display:
+        primary_display = localize_procedure_name(primary_display, primary_lang)
 
     # Issue #1701 Phase 4d.2: when running JP output on a Procedure whose
     # CIF record carries only a CPT code (``procedure_code_us``) and no

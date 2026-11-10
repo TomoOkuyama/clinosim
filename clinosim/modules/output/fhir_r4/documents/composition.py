@@ -1054,10 +1054,8 @@ _DEATH_CERT_TYPE_DISPLAY_JA = t("fhir_emit_text.death_certificate", "ja")
 # Issue #961 extension: 死亡退院サマリー (Death discharge summary) display.
 # Shares LOINC 18842-5 with the generic discharge summary; the JP
 # hospital-canonical title for the death variant is 死亡退院サマリー.
-# English label mirrors the section-title bilingual convention used
-# elsewhere in this file (e.g. _SECTION_TITLE_EN).
+# Outside JP-CLINS the title follows the output language (Issue #3180).
 _DEATH_DISCHARGE_SUMMARY_TITLE_JA = t("fhir_emit_text.death_discharge_summary_title", "ja")
-_DEATH_DISCHARGE_SUMMARY_TITLE_EN = t("fhir_emit_text.death_discharge_summary_title", "en")
 
 
 def _build_jp_death_certificate_composition(
@@ -1188,8 +1186,9 @@ def _build_death_discharge_summary_composition(
         }
         comp["title"] = _DEATH_DISCHARGE_SUMMARY_TITLE_JA
     else:
-        # US / EN path: keep the LOINC coding but override the human-
-        # readable slots with the death-variant label.
+        # Keep the LOINC coding but override the human-readable slots with
+        # the death-variant title in the output language (Issue #3180).
+        title = t("fhir_emit_text.death_discharge_summary_title", lang)
         comp["type"] = {
             "coding": [
                 {
@@ -1197,11 +1196,11 @@ def _build_death_discharge_summary_composition(
                     "code": document_loinc("death_discharge_summary"),
                     # Issue #3127: the LOINC display; the death-variant title is text.
                     "display": registry_display("loinc", document_loinc("death_discharge_summary"), "en")
-                    or _DEATH_DISCHARGE_SUMMARY_TITLE_EN,
+                    or t("fhir_emit_text.death_discharge_summary_title", "en"),
                 },
             ],
-            "text": _DEATH_DISCHARGE_SUMMARY_TITLE_EN,
+            "text": title,
         }
-        comp["title"] = _DEATH_DISCHARGE_SUMMARY_TITLE_EN
+        comp["title"] = title
 
     return comp
