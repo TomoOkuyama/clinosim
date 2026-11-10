@@ -277,8 +277,13 @@ def _bb_encounters(ctx: BundleContext) -> list[dict]:
             # synth-ED conveys the discharge-to-IMP transition via partOf,
             # not dischargeDisposition; the canonical "home" fallback
             # (encounter.py:487) does not fit the bridge-encounter
-            # context (spec DD2 / DD4).
-            _ed_resource.get("hospitalization", {}).pop("dischargeDisposition", None)
+            # context (spec DD2 / DD4). Issue #3179: drop `hospitalization`
+            # too when that leaves it empty (FHIR forbids empty elements).
+            _ed_hosp = _ed_resource.get("hospitalization")
+            if isinstance(_ed_hosp, dict):
+                _ed_hosp.pop("dischargeDisposition", None)
+                if not _ed_hosp:
+                    del _ed_resource["hospitalization"]
             _resources.append(_ed_resource)
         _resources.append(_resource)
     return _resources
