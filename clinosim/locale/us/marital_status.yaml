@@ -1,0 +1,77 @@
+# Marital status by sex and age (US) and the adult emergency-contact
+# relationship conditional on it (Issue #3189).
+#
+# Marital status is drawn once per person, at the first activation at or above
+# `adult_age_min`, from the row of the person's sex and age band, and kept on
+# the PersonRecord. Codes are HL7 v3-MaritalStatus: S never married, M married,
+# W widowed, D divorced. Values are population counts (weights, normalised at
+# load).
+#
+# Source: U.S. Census Bureau, American Community Survey 2023 1-year estimates,
+# table B12002 "Sex by Marital Status by Age for the Population 15 Years and
+# Over", United States (data.census.gov, ACSDT1Y2023.B12002). M is "Now
+# married" (spouse present + separated + other spouse absent); the 15-17 band
+# is not used.
+metadata:
+  kind: reference
+  name: marital_status
+  source: U.S. Census Bureau, ACS 2023 1-year, table B12002
+  verified: "2026-11-10"
+
+adult_age_min: 18
+minor_code: S
+distribution:
+  M:
+    "18-19": {S: 4452748, M: 58591, W: 1964, D: 1893}
+    "20-24": {S: 10185202, M: 846040, W: 5791, D: 36926}
+    "25-29": {S: 8049939, M: 2837974, W: 8590, D: 194489}
+    "30-34": {S: 6019863, M: 5327540, W: 18160, D: 445789}
+    "35-39": {S: 3898173, M: 6698584, W: 31063, D: 809659}
+    "40-44": {S: 2852327, M: 7166162, W: 48244, D: 1033964}
+    "45-49": {S: 1865359, M: 6727266, W: 69386, D: 1231824}
+    "50-54": {S: 1637284, M: 7077368, W: 109725, D: 1472831}
+    "55-59": {S: 1376590, M: 6777534, W: 190068, D: 1585394}
+    "60-64": {S: 1313717, M: 7202037, W: 318998, D: 1708324}
+    "65-74": {S: 1415012, M: 11542252, W: 973753, D: 2462226}
+    "75-84": {S: 400372, M: 5782425, W: 1039839, D: 920375}
+    "85+": {S: 92120, M: 1288754, W: 708150, D: 174381}
+  F:
+    "18-19": {S: 4254765, M: 82341, W: 1804, D: 2854}
+    "20-24": {S: 9311648, M: 1172991, W: 6733, D: 53052}
+    "25-29": {S: 6851199, M: 3684345, W: 12726, D: 267444}
+    "30-34": {S: 4812538, M: 6104080, W: 38287, D: 638799}
+    "35-39": {S: 3055914, M: 7029194, W: 69101, D: 1058411}
+    "40-44": {S: 2338115, M: 7207100, W: 129981, D: 1350592}
+    "45-49": {S: 1587904, M: 6604348, W: 188378, D: 1584765}
+    "50-54": {S: 1345126, M: 6823118, W: 298868, D: 1897621}
+    "55-59": {S: 1149257, M: 6595643, W: 520744, D: 2003278}
+    "60-64": {S: 1124398, M: 6871420, W: 906456, D: 2230686}
+    "65-74": {S: 1393252, M: 10471352, W: 3094844, D: 3472127}
+    "75-84": {S: 539514, M: 4357241, W: 3657417, D: 1662987}
+    "85+": {S: 191723, M: 678364, W: 2568936, D: 419640}
+
+# Adult emergency-contact relationship, by the person's marital status and age
+# band (weights, normalised at load). The weights for a married person are the
+# relationship mix the activator used before these tables existed (no
+# published distribution of named emergency contacts was found); the rows for
+# the other statuses are the same weights with the relationships that cannot
+# apply removed: no spouse for a never-married, divorced or widowed person,
+# and a widowed person names a child or a sibling. Order within a row is
+# load-bearing (it is the order of the weighted draw).
+emergency_contact:
+  relationships:
+    M:
+      "18-74": {spouse: 0.55, parent: 0.20, sibling: 0.15, child: 0.10}
+      "75+": {child: 0.60, spouse: 0.25, sibling: 0.15}
+    S:
+      "18-74": {parent: 0.20, sibling: 0.15, child: 0.10}
+      "75+": {child: 0.60, sibling: 0.15}
+    D:
+      "18-74": {parent: 0.20, sibling: 0.15, child: 0.10}
+      "75+": {child: 0.60, sibling: 0.15}
+    W:
+      "18-74": {sibling: 0.15, child: 0.10}
+      "75+": {child: 0.60, sibling: 0.15}
+  # The table whose draw the per-activation stream still makes (and discards)
+  # so every later draw of that stream keeps its position (Issue #3186/#3189).
+  activation_stream_status: M

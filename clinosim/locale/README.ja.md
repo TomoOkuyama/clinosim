@@ -148,7 +148,7 @@ clinosim/locale/
                                    (Issue #3140。clinosim.country_profile が
                                    読み込み・検証する。
                                    docs/design-guides/country-profile-spec.ja.md)
-  us/                             US 固有バンドル (18 YAML):
+  us/                             US 固有バンドル (19 YAML):
                                    addresses / ambulatory_visit_length /
                                    ckd_under60_prevalence / clinic_calendar /
                                    country (プロファイルの上書き) /
@@ -157,8 +157,11 @@ clinosim/locale/
                                    egfr_equation /
                                    family_history_prevalence / formatting
                                    / identity / immunization_schedule /
+                                   marital_status (性・年齢階級別の
+                                   国勢調査の配偶関係と、それに条件付けた
+                                   緊急連絡先の続柄、Issue #3189) /
                                    names / reference_range_lab
-  jp/                             JP 固有バンドル (25 YAML — US 集合から
+  jp/                             JP 固有バンドル (26 YAML — US 集合から
                                    ckd_under60_prevalence と
                                    code_mapping_drug を除き、
                                    care_level_rates /

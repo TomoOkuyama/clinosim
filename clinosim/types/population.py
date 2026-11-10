@@ -75,6 +75,11 @@ class PersonRecord:
     # household phone at each activation.
     emergency_contact_name: str = ""
     emergency_contact_relationship: str = ""
+    # Issue #3189: the marital status (HL7 v3-MaritalStatus code), drawn at
+    # the first adult activation from the locale's census table and kept, so
+    # every record of the person carries it; the emergency contact above is
+    # drawn conditional on it.
+    marital_status: str = ""
     chronic_conditions: list[str] = field(default_factory=list)
     # Issue #2867: when each chronic code is first on the problem list.
     # ``chronic_tracked_from`` is the first simulated year the yearly aging

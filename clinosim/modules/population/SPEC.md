@@ -132,6 +132,7 @@ class PersonRecord:
     guardian_contact_relationship: str = ""
     emergency_contact_name: str = ""       # adult: chosen at the first adult activation, reused after
     emergency_contact_relationship: str = ""
+    marital_status: str = ""               # adult: drawn at the first adult activation from locale marital_status.yaml, reused after
     # Health summary
     chronic_conditions: list[str]          # ICD codes only
     chronic_tracked_from: int | None = None   # first simulated year the aging step ran

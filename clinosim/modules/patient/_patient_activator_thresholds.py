@@ -63,11 +63,6 @@ __all__ = [
     "DVT_ELDERLY_PREMIUM",
     "E03_HR_REDUCTION_MAX_EXCLUSIVE",
     "E03_HR_REDUCTION_MIN",
-    "EMERGENCY_CONTACT_ELDERLY_AGE_MIN",
-    "EMERGENCY_CONTACT_RELATIONS_ADULT",
-    "EMERGENCY_CONTACT_RELATIONS_ELDERLY",
-    "EMERGENCY_CONTACT_WEIGHTS_ADULT",
-    "EMERGENCY_CONTACT_WEIGHTS_ELDERLY",
     "EMPLOYMENT_RETIREMENT_AGE_MIN",
     "GENERIC_SEVERITY_UNIFORM_MAX",
     "GENERIC_SEVERITY_UNIFORM_MIN",
@@ -87,18 +82,6 @@ __all__ = [
     "J45_RR_LIFT_MAX_EXCLUSIVE",
     "J45_RR_LIFT_MIN",
     "MARITAL_STATUS_ADULT_AGE_MIN",
-    "MARITAL_STATUS_ELDERLY_CODES",
-    "MARITAL_STATUS_ELDERLY_WEIGHTS",
-    "MARITAL_STATUS_LATE_ADULT_AGE_MAX_EXCLUSIVE",
-    "MARITAL_STATUS_LATE_ADULT_CODES",
-    "MARITAL_STATUS_LATE_ADULT_WEIGHTS",
-    "MARITAL_STATUS_MID_ADULT_AGE_MAX_EXCLUSIVE",
-    "MARITAL_STATUS_MID_ADULT_CODES",
-    "MARITAL_STATUS_MID_ADULT_WEIGHTS",
-    "MARITAL_STATUS_MINOR_CODE",
-    "MARITAL_STATUS_YOUNG_ADULT_AGE_MAX_EXCLUSIVE",
-    "MARITAL_STATUS_YOUNG_ADULT_CODES",
-    "MARITAL_STATUS_YOUNG_ADULT_WEIGHTS",
     "RESERVE_FLOOR",
     "SYMPTOM_REPORTING_BIAS_MEAN",
     "SYMPTOM_REPORTING_BIAS_SD",
@@ -451,101 +434,19 @@ E03_HR_REDUCTION_MAX_EXCLUSIVE: int = 8
 
 
 # ---------------------------------------------------------------------------
-# Emergency-contact relationship distributions (age-stratified)
-# ---------------------------------------------------------------------------
-
-EMERGENCY_CONTACT_ELDERLY_AGE_MIN: int = 75
-"""Age at or above which the elderly emergency-contact distribution
-fires (children become the modal contact instead of a spouse)."""
-
-EMERGENCY_CONTACT_RELATIONS_ELDERLY: tuple[str, ...] = ("child", "spouse", "sibling")
-"""Emergency-contact relationship labels for patients aged
-:data:`EMERGENCY_CONTACT_ELDERLY_AGE_MIN` and above. Order is
-LOAD-BEARING: paired with
-:data:`EMERGENCY_CONTACT_WEIGHTS_ELDERLY` positionally."""
-
-EMERGENCY_CONTACT_WEIGHTS_ELDERLY: tuple[float, ...] = (0.6, 0.25, 0.15)
-"""Weights for :data:`EMERGENCY_CONTACT_RELATIONS_ELDERLY`.
-
-Empirical tuning for the synthetic simulator: 60% child / 25% spouse
-/ 15% sibling reflects the typical elderly demographic where a
-surviving spouse is a minority (widowhood + spousal age gap)."""
-
-EMERGENCY_CONTACT_RELATIONS_ADULT: tuple[str, ...] = ("spouse", "parent", "sibling", "child")
-"""Emergency-contact relationship labels for adult patients below
-:data:`EMERGENCY_CONTACT_ELDERLY_AGE_MIN`. Order is LOAD-BEARING —
-paired with :data:`EMERGENCY_CONTACT_WEIGHTS_ADULT` positionally."""
-
-EMERGENCY_CONTACT_WEIGHTS_ADULT: tuple[float, ...] = (0.55, 0.20, 0.15, 0.10)
-"""Weights for :data:`EMERGENCY_CONTACT_RELATIONS_ADULT`.
-
-Empirical tuning for the synthetic simulator: 55% spouse / 20%
-parent / 15% sibling / 10% child reflects the adult demographic
-where a spouse is the modal contact and grown children are still
-rare (patient may not have any)."""
-
-
-# ---------------------------------------------------------------------------
-# Marital-status distributions (HL7 v3-MaritalStatus codes, age-banded)
+# Marital status and emergency contact (YAML fallback)
 # ---------------------------------------------------------------------------
 #
-# Age boundaries define 5 bands. Under-18 gets the minor code; the four
-# adult bands each sample from their own (codes, weights) pair.
-# Empirical tuning per JP + US census marital-status distributions
-# (age-stratified 2020-2022 snapshots). The ordering of codes in each
-# `_CODES` tuple is LOAD-BEARING — paired positionally with the
-# matching `_WEIGHTS` tuple.
+# Issue #3189: the marital-status distribution (census counts by sex and age
+# band) and the emergency-contact relationship weights live in
+# ``clinosim/locale/<cc>/marital_status.yaml``, read through
+# ``clinosim.locale.loader.load_marital_status`` and
+# ``clinosim/modules/patient/_marital.py``.
 
 MARITAL_STATUS_ADULT_AGE_MIN: int = 18
-"""Age at or above which marital status is sampled. Below this the
-patient is coded as the minor default."""
-
-MARITAL_STATUS_MINOR_CODE: str = "S"
-"""HL7 v3-MaritalStatus code assigned to patients under
-:data:`MARITAL_STATUS_ADULT_AGE_MIN` — "Never Married"."""
-
-MARITAL_STATUS_YOUNG_ADULT_AGE_MAX_EXCLUSIVE: int = 30
-"""Age below which the young-adult marital-status distribution
-applies."""
-
-MARITAL_STATUS_YOUNG_ADULT_CODES: tuple[str, ...] = ("S", "M")
-"""Young-adult marital-status codes: Single / Married only.
-Divorces are rare enough in the 18-29 band to omit."""
-
-MARITAL_STATUS_YOUNG_ADULT_WEIGHTS: tuple[float, ...] = (0.65, 0.35)
-"""Young-adult marital-status weights: 65% never-married / 35%
-married."""
-
-MARITAL_STATUS_MID_ADULT_AGE_MAX_EXCLUSIVE: int = 50
-"""Age below which the mid-adult marital-status distribution
-applies."""
-
-MARITAL_STATUS_MID_ADULT_CODES: tuple[str, ...] = ("S", "M", "D")
-"""Mid-adult marital-status codes: Single / Married / Divorced."""
-
-MARITAL_STATUS_MID_ADULT_WEIGHTS: tuple[float, ...] = (0.20, 0.70, 0.10)
-"""Mid-adult marital-status weights: 20% single / 70% married / 10%
-divorced."""
-
-MARITAL_STATUS_LATE_ADULT_AGE_MAX_EXCLUSIVE: int = 70
-"""Age below which the late-adult marital-status distribution
-applies."""
-
-MARITAL_STATUS_LATE_ADULT_CODES: tuple[str, ...] = ("M", "D", "W", "S")
-"""Late-adult marital-status codes: Married / Divorced / Widowed /
-Single."""
-
-MARITAL_STATUS_LATE_ADULT_WEIGHTS: tuple[float, ...] = (0.65, 0.15, 0.10, 0.10)
-"""Late-adult marital-status weights: 65% married / 15% divorced /
-10% widowed / 10% single."""
-
-MARITAL_STATUS_ELDERLY_CODES: tuple[str, ...] = ("M", "W", "D", "S")
-"""Elderly (>= :data:`MARITAL_STATUS_LATE_ADULT_AGE_MAX_EXCLUSIVE`)
-marital-status codes: Married / Widowed / Divorced / Single."""
-
-MARITAL_STATUS_ELDERLY_WEIGHTS: tuple[float, ...] = (0.50, 0.35, 0.10, 0.05)
-"""Elderly marital-status weights: 50% married / 35% widowed / 10%
-divorced / 5% single. Widowhood rises sharply in the 70+ band."""
+"""Fallback for a country without ``marital_status.yaml``: the age at or
+above which marital status is drawn and an adult emergency contact is named
+(the table's ``adult_age_min``)."""
 
 
 # ---------------------------------------------------------------------------

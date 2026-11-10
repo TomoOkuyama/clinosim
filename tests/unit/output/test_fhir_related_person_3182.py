@@ -12,14 +12,11 @@ from __future__ import annotations
 
 import pytest
 
+from clinosim.locale.loader import load_marital_status
 from clinosim.modules.output.fhir_r4.demographics.patient import _build_patient, patient_ref
 from clinosim.modules.output.fhir_r4.demographics.related_person import (
     RELATED_PERSON_KEY_SYSTEM,
     _build_emergency_contact_related_person,
-)
-from clinosim.modules.patient._patient_activator_thresholds import (
-    EMERGENCY_CONTACT_RELATIONS_ADULT,
-    EMERGENCY_CONTACT_RELATIONS_ELDERLY,
 )
 
 pytestmark = pytest.mark.unit
@@ -91,9 +88,17 @@ def test_us_labels_add_no_duplicate_text() -> None:
     assert role.get("text", "Emergency Contact") == "Emergency Contact"
 
 
-@pytest.mark.parametrize(
-    "rel", sorted(set(EMERGENCY_CONTACT_RELATIONS_ADULT) | set(EMERGENCY_CONTACT_RELATIONS_ELDERLY))
-)
+def _sampled_relationships() -> list[str]:
+    """Every relationship the locale tables can draw (Issue #3189)."""
+    rels: set[str] = set()
+    for country in ("US", "JP"):
+        for by_band in load_marital_status(country)["emergency_contact"]["relationships"].values():
+            for row in by_band.values():
+                rels |= set(row)
+    return sorted(rels)
+
+
+@pytest.mark.parametrize("rel", _sampled_relationships())
 def test_every_sampled_relationship_has_a_role_code(rel: str) -> None:
     for country in ("JP", "US"):
         rp = _build_emergency_contact_related_person(_patient(rel), country)
