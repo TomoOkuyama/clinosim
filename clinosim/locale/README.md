@@ -153,20 +153,26 @@ clinosim/locale/
   clinic_calendar.py              is_clinic_day / clinic_visit_day — the
                                    days scheduled outpatient care is held
                                    (clinic_calendar.yaml, Issue #3018)
-  us/                             US-specific bundle (16 YAMLs):
+  _root/country.yaml              country-profile defaults every country
+                                   inherits (Issue #3140; loaded and
+                                   validated by clinosim.country_profile;
+                                   docs/design-guides/country-profile-spec.md)
+  us/                             US-specific bundle (18 YAMLs):
                                    addresses, ambulatory_visit_length,
                                    ckd_under60_prevalence, clinic_calendar,
+                                   country (profile overrides),
                                    code_mapping_{diagnosis,drug,lab,procedure},
-                                   code_status_rates, demographics,
+                                   code_status_rates, demographics, egfr_equation,
                                    family_history_prevalence, formatting,
                                    identity, immunization_schedule, names,
                                    reference_range_lab
-  jp/                             JP-specific bundle (23 YAMLs — the US
+  jp/                             JP-specific bundle (24 YAMLs — the US
                                    set minus ckd_under60_prevalence and
                                    code_mapping_drug, plus
                                    care_level_rates,
                                    code_mapping_microbiology,
                                    code_mapping_microbiology_susceptibility,
+                                   code_mapping_vaccination_reason,
                                    external_organizations,
                                    facility_identity (the hospital's
                                    医療機関コード, Issue #3129),
@@ -194,7 +200,8 @@ clinosim/locale/
 
 1. Create `clinosim/locale/<cc>/` (two-letter ISO country code,
    lowercase; **must not start with `_`**). Copy `_template/` as the
-   scaffold.
+   scaffold; `country.yaml` (the country profile, overrides of
+   `_root/country.yaml` only) makes the directory a supported country.
 2. Populate the bundle following the shape of `us/` or `jp/`:
    - `names.yaml` — first / family / phonetic name pools.
    - `addresses.yaml` — postal-format templates and city / region

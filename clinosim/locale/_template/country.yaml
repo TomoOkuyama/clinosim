@@ -1,0 +1,20 @@
+# Country profile template (Issue #3140; docs/design-guides/country-profile-spec.md §3).
+#
+# Copy to clinosim/locale/<cc>/country.yaml and keep only the values that
+# differ from clinosim/locale/_root/country.yaml (deep-merged over it). A
+# profile may not add a feature or implementation kind the root does not
+# declare, and every code system / FHIR profile / implementation it names is
+# validated when the profile is loaded (clinosim.country_profile).
+metadata:
+  kind: reference
+  name: country_profile
+  source: clinosim
+
+code: XX
+# language: xx
+# timezone: "+00:00"
+# code_systems: {lab: loinc, diagnosis: icd-10-cm, drug: rxnorm, procedure: cpt, microbiology: loinc}
+# fhir_profiles: []
+# features: {care_level: false}
+# formats: {name_order: given_family}
+# implementations: {egfr_equation: ckd_epi_2021}

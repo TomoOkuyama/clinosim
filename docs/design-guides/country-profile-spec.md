@@ -65,7 +65,7 @@ changes only when the country needs an algorithm no country has yet.
 | `code_systems` | The code-system key per kind (`lab`, `diagnosis`, `drug`, `procedure`, `microbiology`), resolved by `clinosim.codes`. |
 | `fhir_profiles` | The FHIR profiles applied to output (`us_core`, `jp_core`, `jp_clins`, `jp_echeckup`). |
 | `features` | Country features switched on or off (`health_checkup`, `care_level`, `maternal_tdap`, ...). |
-| `formats` | Name order, address template, phone patterns, MRN / national-identifier specs. |
+| `formats` | Name order (`given_family` / `family_given`), date, time and date-time formats; address template, phone patterns and MRN / national-identifier specs join in migration step 2 (§7). |
 | `implementations` | The named implementation per algorithm kind (`egfr_equation`, `triage_scale`, `copay_rule`, `insurer_number`, ...). |
 
 Country-specific **parameters of a module** (for example discharge
@@ -75,33 +75,63 @@ through the module's loader; the profile does not duplicate them.
 
 ### 3.3 API
 
+All of it lives in `clinosim/country_profile.py`.
+
 - `country_profile(country) -> CountryProfile` — a validated, cached
-  Pydantic model (`extra="forbid"`). An unknown country raises; it never
-  falls back to the US silently.
+  Pydantic model (`extra="forbid"`, frozen). The country code is matched
+  case-insensitively; legacy spellings (`"japan"`) map through a data table
+  in the loader, not through `is_jp` / `is_us`. An unknown country raises
+  `KeyError`; it never falls back to the US silently.
+- `profile.code`, `profile.language`, `profile.timezone` (`"Z"` or a
+  `+HH:MM` / `-HH:MM` UTC offset), `profile.formats`.
 - `profile.uses(profile_name) -> bool`, `profile.feature(name) -> bool`,
-  `profile.code_system(kind) -> str`, `profile.language`,
-  `profile.implementation(kind) -> str`.
+  `profile.code_system(kind) -> str`, `profile.implementation(kind) -> str`.
+  Each raises `KeyError` on an unknown name (a FHIR profile outside the
+  known set, or a feature or kind the profile does not carry), so a typo
+  fails instead of reading as "off".
 - `implementation(kind, country)` — the callable registered under the
   name the profile selects (§4).
+- `supported_countries()` — the upper-case codes of the locale directories
+  that hold a `country.yaml`, excluding `_root` and `_template`.
+- `load_profile_data(country)` — the merged, unvalidated mapping (root
+  deep-merged with the country file); `deep_merge(base, override)` is the
+  merge itself.
+- `validate_implementations(profile)` — imports the registering modules
+  (§4) and raises `ValueError` if the profile names an unregistered
+  implementation. `country_profile` calls it before returning.
 
-`is_jp` / `is_us` remain only as normalisation inside the profile loader
-during the migration; new code calls the profile.
+Validation at load: every code system is a key of `clinosim.codes` and the
+five kinds are covered exactly; every FHIR profile name is known; feature
+and implementation kinds must be declared in `_root/country.yaml`; the
+`code` in `locale/<cc>/country.yaml` must equal `<cc>`.
+
+`is_jp` / `is_us` are not used by the profile loader; new code calls the
+profile.
 
 ## 4. Named implementations
 
 - An algorithm kind declares its signature once (a `Protocol`) next to the
   generic code that calls it.
 - Implementations register explicitly with
-  `@register_implementation(kind, name)`. A country-only algorithm lives in
-  `clinosim/countries/<cc>/` (for example the JP insurer-number check digit);
-  an algorithm several countries may use lives next to the generic code
-  (for example the eGFR equations in `clinosim/modules/physiology/`).
-- Registration happens at import of those modules; there is no
-  entry-point discovery. A profile naming an unregistered implementation
-  fails at load.
+  `@register_implementation(kind, name)`; registering the same kind and name
+  twice raises `ValueError`. An algorithm several countries may use lives
+  next to the generic code (for example the eGFR equations in
+  `clinosim/modules/physiology/egfr.py`).
+- A country-only algorithm lives in a country package
+  `clinosim/countries/<cc>/` (for example the JP insurer-number check
+  digit). When the first such package is created, the module
+  `clinosim/countries.py` becomes the package `clinosim/countries/__init__.py`,
+  which re-exports its current API so that existing
+  `from clinosim.countries import ...` imports keep working
+  (django-localflavor style).
+- Registration is explicit: every module that registers an implementation
+  is listed in `IMPLEMENTATION_MODULES` in `clinosim/country_profile.py`,
+  and those modules are imported before a profile is validated. There is no
+  entry-point or package-scan discovery. A profile naming an unregistered
+  implementation fails at load.
 - An implementation's coefficients follow the constants rule: a formula's
-  coefficients in its `_<topic>_thresholds.py`, values that differ by
-  country in YAML.
+  coefficients in its `_<topic>_thresholds.py` or reference YAML, values
+  that differ by country in YAML.
 
 ## 5. Branches that remain
 

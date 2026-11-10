@@ -55,11 +55,11 @@ _ALLOWED: dict[tuple[str, str], str] = {
         "docs/add-your-country.ja.md",
         "clinosim/codes/data/fhir-profiles-xx-core.yaml",
     ): "placeholder country code in the how-to",
-    ("docs/design-guides/country-profile-spec.md", "clinosim/locale/_root/country.yaml"): (
-        "created by step 1 of the country-profile migration"
+    ("docs/design-guides/country-profile-spec.md", "clinosim/countries/__init__.py"): (
+        "created by step 6 of the country-profile migration"
     ),
-    ("docs/design-guides/country-profile-spec.ja.md", "clinosim/locale/_root/country.yaml"): (
-        "created by step 1 of the country-profile migration"
+    ("docs/design-guides/country-profile-spec.ja.md", "clinosim/countries/__init__.py"): (
+        "created by step 6 of the country-profile migration"
     ),
     ("docs/CONTRIBUTING-modules.md", "clinosim/eval/axes/my_new_axis.py"): "example file the reader creates",
     ("docs/CONTRIBUTING-modules.ja.md", "clinosim/eval/axes/my_new_axis.py"): "example file the reader creates",

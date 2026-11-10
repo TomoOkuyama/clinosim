@@ -56,7 +56,7 @@ YAML の読み込みと検証は
 | `code_systems` | 種類 (`lab`、`diagnosis`、`drug`、`procedure`、`microbiology`) ごとのコード体系キー。`clinosim.codes` が解決する。 |
 | `fhir_profiles` | 出力に適用する FHIR プロファイル (`us_core`、`jp_core`、`jp_clins`、`jp_echeckup`)。 |
 | `features` | 国ごとに有効・無効を切り替える機能 (`health_checkup`、`care_level`、`maternal_tdap` など)。 |
-| `formats` | 氏名の順序、住所テンプレート、電話のパターン、MRN・国の識別子の仕様。 |
+| `formats` | 氏名の順序 (`given_family` / `family_given`)、日付・時刻・日時の書式。住所テンプレート、電話のパターン、MRN・国の識別子の仕様は移行の手順 2 (§7) で加える。 |
 | `implementations` | アルゴリズムの種類ごとに使う実装の名前 (`egfr_equation`、`triage_scale`、`copay_rule`、`insurer_number` など)。 |
 
 モジュールの**国別パラメータ** (退院基準、手術までの時間など) は、そのモジュール
@@ -65,29 +65,58 @@ YAML の読み込みと検証は
 
 ### 3.3 API
 
+すべて `clinosim/country_profile.py` にある。
+
 - `country_profile(country) -> CountryProfile` — 検証済みでキャッシュされる
-  Pydantic モデル (`extra="forbid"`)。未知の国はエラーにし、黙って US に戻さない。
+  Pydantic モデル (`extra="forbid"`、frozen)。国コードは大文字小文字を
+  区別しない。旧来の表記 (`"japan"`) はローダー内のデータ表で変換し、
+  `is_jp` / `is_us` は使わない。未知の国は `KeyError` にし、黙って US に
+  戻さない。
+- `profile.code`、`profile.language`、`profile.timezone` (`"Z"` または
+  `+HH:MM` / `-HH:MM` の UTC オフセット)、`profile.formats`。
 - `profile.uses(profile_name) -> bool`、`profile.feature(name) -> bool`、
-  `profile.code_system(kind) -> str`、`profile.language`、
-  `profile.implementation(kind) -> str`。
+  `profile.code_system(kind) -> str`、`profile.implementation(kind) -> str`。
+  未知の名前 (既知の集合にない FHIR プロファイル、プロファイルが持たない
+  feature や種類) はどれも `KeyError` にし、綴り間違いを「無効」として
+  読まない。
 - `implementation(kind, country)` — プロファイルが選んだ名前で登録された実装
   (§4)。
+- `supported_countries()` — `country.yaml` を持つ locale ディレクトリの
+  国コード (大文字。`_root` と `_template` を除く)。
+- `load_profile_data(country)` — 検証前のマージ結果 (ルートに国のファイルを
+  深くマージしたもの)。`deep_merge(base, override)` がマージ本体。
+- `validate_implementations(profile)` — 登録するモジュール (§4) を import し、
+  プロファイルが未登録の実装を名指ししていれば `ValueError` にする。
+  `country_profile` は返す前にこれを呼ぶ。
 
-`is_jp` / `is_us` は、移行中はプロファイルのローダー内の正規化にだけ残す。
-新しいコードはプロファイルを呼ぶ。
+読み込み時の検証: コード体系はすべて `clinosim.codes` のキーで、5 種類を
+過不足なく持つ。FHIR プロファイル名は既知のもの。feature と実装の種類は
+`_root/country.yaml` で宣言されていなければならない。
+`locale/<cc>/country.yaml` の `code` は `<cc>` と一致しなければならない。
+
+`is_jp` / `is_us` はプロファイルのローダーでは使わない。新しいコードは
+プロファイルを呼ぶ。
 
 ## 4. 名前付きの実装
 
 - アルゴリズムの種類は、それを呼ぶ汎用コードの隣でシグネチャを 1 回宣言する
   (`Protocol`)。
-- 実装は `@register_implementation(kind, name)` で明示的に登録する。ある国だけの
-  アルゴリズムは `clinosim/countries/<cc>/` に置き (例: JP の保険者番号の
-  検証番号)、複数の国が使いうるものは汎用コードの隣に
-  置く (例: `clinosim/modules/physiology/` の eGFR 式)。
-- 登録はそれらのモジュールの import 時に行い、エントリーポイントによる自動検出は
-  しない。登録されていない実装を名指しするプロファイルは読み込み時に失敗する。
-- 実装の係数は定数の規則に従う: 式の係数はその `_<topic>_thresholds.py`、国で
-  異なる値は YAML。
+- 実装は `@register_implementation(kind, name)` で明示的に登録する。同じ種類と
+  名前を 2 回登録すると `ValueError` になる。複数の国が使いうるアルゴリズムは
+  汎用コードの隣に置く (例: `clinosim/modules/physiology/egfr.py` の eGFR 式)。
+- ある国だけのアルゴリズムは国パッケージ `clinosim/countries/<cc>/` に置く
+  (例: JP の保険者番号の検証番号)。最初の国パッケージを作るとき、モジュール
+  `clinosim/countries.py` をパッケージ `clinosim/countries/__init__.py` に
+  変え、今の API を再エクスポートして既存の
+  `from clinosim.countries import ...` がそのまま動くようにする
+  (django-localflavor と同じ形)。
+- 登録は明示的に行う: 実装を登録するモジュールはすべて
+  `clinosim/country_profile.py` の `IMPLEMENTATION_MODULES` に列挙し、
+  プロファイルを検証する前に import する。エントリーポイントやパッケージ走査
+  による自動検出はしない。登録されていない実装を名指しするプロファイルは
+  読み込み時に失敗する。
+- 実装の係数は定数の規則に従う: 式の係数はその `_<topic>_thresholds.py`
+  または参照 YAML、国で異なる値は YAML。
 
 ## 5. 残してよい分岐
 

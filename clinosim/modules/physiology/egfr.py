@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from clinosim.countries import is_jp
+from clinosim.country_profile import register_implementation
 from clinosim.datafiles import load_data_yaml
 
 _LOCALE = Path(__file__).resolve().parents[2] / "locale"
@@ -30,31 +31,54 @@ def _sex(sex: str) -> str:
     return "F" if str(sex or "").upper().startswith("F") else "M"
 
 
+# Issue #3140: the equations are named implementations the country profile
+# selects (``implementations.egfr_equation`` / ``pediatric_egfr_equation``,
+# docs/design-guides/country-profile-spec.md §4); the coefficients stay in egfr_equation.yaml.
+@register_implementation("egfr_equation", "jsn")
+def _jsn(cr: float, age: int, sex: str, eq: dict[str, Any]) -> float:
+    value = float(eq["coefficient"]) * cr ** float(eq["creatinine_exponent"]) * age ** float(eq["age_exponent"])
+    return value * float(eq["female_factor"]) if sex == "F" else value
+
+
+@register_implementation("egfr_equation", "ckd_epi_2021")
+def _ckd_epi_2021(cr: float, age: int, sex: str, eq: dict[str, Any]) -> float:
+    ratio = cr / float(eq["kappa"][sex])
+    value = (
+        float(eq["coefficient"])
+        * min(ratio, 1.0) ** float(eq["alpha"][sex])
+        * max(ratio, 1.0) ** float(eq["upper_exponent"])
+        * float(eq["age_base"]) ** age
+    )
+    return value * float(eq["female_factor"]) if sex == "F" else value
+
+
+@register_implementation("pediatric_egfr_equation", "bedside_schwartz")
+def _bedside_schwartz(cr: float, sex: str, height_cm: float, eq: dict[str, Any]) -> float:
+    return float(eq["k"]) * height_cm / cr
+
+
+@register_implementation("pediatric_egfr_equation", "uemura")
+def _uemura(cr: float, sex: str, height_cm: float, eq: dict[str, Any]) -> float:
+    x = height_cm / 100.0
+    coeffs = [float(c) for c in eq["reference_cr_polynomial"][sex]]
+    ref_cr = sum(c * x ** (len(coeffs) - 1 - i) for i, c in enumerate(coeffs))
+    return float(eq["scale"]) * ref_cr / cr + float(eq["intercept"])
+
+
+_ADULT = {"jsn": _jsn, "ckd_epi_2021": _ckd_epi_2021}
+_PEDIATRIC = {"bedside_schwartz": _bedside_schwartz, "uemura": _uemura}
+
+
 def _adult(cr: float, age: int, sex: str, eq: dict[str, Any]) -> float:
-    if eq["type"] == "jsn":
-        value = float(eq["coefficient"]) * cr ** float(eq["creatinine_exponent"]) * age ** float(eq["age_exponent"])
-        return value * float(eq["female_factor"]) if sex == "F" else value
-    if eq["type"] == "ckd_epi_2021":
-        ratio = cr / float(eq["kappa"][sex])
-        value = (
-            float(eq["coefficient"])
-            * min(ratio, 1.0) ** float(eq["alpha"][sex])
-            * max(ratio, 1.0) ** float(eq["upper_exponent"])
-            * float(eq["age_base"]) ** age
-        )
-        return value * float(eq["female_factor"]) if sex == "F" else value
-    raise ValueError(f"unknown adult eGFR equation {eq['type']!r}")
+    if eq["type"] not in _ADULT:
+        raise ValueError(f"unknown adult eGFR equation {eq['type']!r}")
+    return _ADULT[eq["type"]](cr, age, sex, eq)
 
 
 def _pediatric(cr: float, sex: str, height_cm: float, eq: dict[str, Any]) -> float:
-    if eq["type"] == "bedside_schwartz":
-        return float(eq["k"]) * height_cm / cr
-    if eq["type"] == "uemura":
-        x = height_cm / 100.0
-        coeffs = [float(c) for c in eq["reference_cr_polynomial"][sex]]
-        ref_cr = sum(c * x ** (len(coeffs) - 1 - i) for i, c in enumerate(coeffs))
-        return float(eq["scale"]) * ref_cr / cr + float(eq["intercept"])
-    raise ValueError(f"unknown pediatric eGFR equation {eq['type']!r}")
+    if eq["type"] not in _PEDIATRIC:
+        raise ValueError(f"unknown pediatric eGFR equation {eq['type']!r}")
+    return _PEDIATRIC[eq["type"]](cr, sex, height_cm, eq)
 
 
 def estimated_gfr(creatinine: float, age: int, sex: str, height_cm: float | None, country: str) -> float | None:

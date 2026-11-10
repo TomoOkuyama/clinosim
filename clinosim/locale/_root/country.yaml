@@ -1,0 +1,40 @@
+# Country profile defaults (Issue #3140; docs/design-guides/country-profile-spec.md §3).
+#
+# Every country inherits these; clinosim/locale/<cc>/country.yaml stores only
+# its overrides, deep-merged over this file (maps merge key by key; lists and
+# scalars replace). Loaded and validated by clinosim.country_profile
+# (CountryProfile, extra="forbid"). The keys here are the full vocabulary: a
+# country may not add a feature, a code-system kind or an implementation kind
+# the root does not declare.
+metadata:
+  kind: reference
+  name: country_profile
+  source: clinosim
+
+language: en
+# UTC offset suffix of FHIR timestamps.
+timezone: "Z"
+# Code-system key per clinical data kind (clinosim.codes registry keys).
+code_systems:
+  lab: loinc
+  diagnosis: icd-10-cm
+  drug: rxnorm
+  procedure: cpt
+  microbiology: loinc
+# FHIR profiles applied to output (us_core, jp_core, jp_clins, jp_echeckup).
+fhir_profiles: []
+# Country features (off unless a country switches them on).
+features:
+  health_checkup: true
+  care_level: false
+  maternal_tdap: false
+formats:
+  name_order: given_family
+  date_format: "MM/dd/yyyy"
+  time_format: "12h"
+  datetime_format: "MM/dd/yyyy h:mm a"
+# Named implementation per algorithm kind (registered with
+# clinosim.country_profile.register_implementation).
+implementations:
+  egfr_equation: ckd_epi_2021
+  pediatric_egfr_equation: bedside_schwartz

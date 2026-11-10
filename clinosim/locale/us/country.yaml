@@ -1,0 +1,11 @@
+# Country profile — United States (Issue #3140). Overrides of
+# clinosim/locale/_root/country.yaml only.
+metadata:
+  kind: reference
+  name: country_profile
+  source: clinosim
+
+code: US
+fhir_profiles: [us_core]
+features:
+  maternal_tdap: true
