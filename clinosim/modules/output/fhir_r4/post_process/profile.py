@@ -243,6 +243,8 @@ def _apply_jp_clins_profile(resource: dict) -> None:
         return
     if rt == "AllergyIntolerance" and not _allergy_satisfies_ecs(resource):
         return
+    if rt == "Encounter" and not _encounter_satisfies_ecs(resource):
+        return
     meta = resource.setdefault("meta", {})
     profs = meta.setdefault("profile", [])
     for url in profiles:
@@ -261,8 +263,39 @@ def _apply_jp_clins_profile(resource: dict) -> None:
     # other three new eCS profiles (DocumentReference / Device /
     # DeviceUseStatement) carry zero must-supports so no field emit is
     # needed.
-    if rt == "Immunization" and not meta.get("lastUpdated"):
+    # Issue #3148: JP_Practitioner_eCS mandates it too.
+    if rt in ("Immunization", "Practitioner") and not meta.get("lastUpdated"):
         meta["lastUpdated"] = _JP_ECS_LAST_UPDATED_PLACEHOLDER
+
+
+def _encounter_satisfies_ecs(resource: dict) -> bool:
+    """Predicate: may this Encounter assert JP_Encounter_eCS? (Issue #3148)
+
+    The eCS profile (JP-CLINS 1.13.0) fixes ``status`` to ``finished``,
+    ``length.code`` to ``d``, requires ``hospitalization.dischargeDisposition``
+    from the JP discharge-disposition value set (DPC discharge outcome,
+    required binding) whenever ``hospitalization`` is present, and requires
+    ``class.display``, ``reasonCode.text`` / ``coding.display`` and
+    ``location.status`` / ``period.start`` when those elements are present.
+    clinosim records a discharge destination (HL7), not a DPC outcome, so an
+    inpatient or ED encounter with a ``hospitalization`` stays on JP Core
+    (the ``_medication_request_satisfies_ecs`` rule: never claim a profile
+    the data does not meet).
+    """
+    if resource.get("status") != "finished" or "hospitalization" in resource:
+        return False
+    if not (resource.get("class") or {}).get("display"):
+        return False
+    length = resource.get("length")
+    if length is not None and length.get("code") != "d":
+        return False
+    for reason in resource.get("reasonCode") or []:
+        if not reason.get("text") or any(not c.get("display") for c in reason.get("coding") or []):
+            return False
+    for loc in resource.get("location") or []:
+        if not loc.get("status") or not (loc.get("period") or {}).get("start"):
+            return False
+    return True
 
 
 def _medication_request_satisfies_ecs(resource: dict) -> bool:

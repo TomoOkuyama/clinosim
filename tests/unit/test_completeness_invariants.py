@@ -167,6 +167,7 @@ class TestJpClinsProfileEmissionInvariants:
 
     def test_jp_bacterial_pneumonia_cohort_has_clins_profiles(self, jp_bacterial_pneumonia_resources):
         from clinosim.modules.output.fhir_r4.post_process import (
+            _encounter_satisfies_ecs,
             _is_lab_observation,
             _jp_clins_profiles,
         )
@@ -182,6 +183,9 @@ class TestJpClinsProfileEmissionInvariants:
             if rt not in _jp_clins_profiles():
                 continue
             if rt == "Observation" and not _is_lab_observation(r):
+                continue
+            # Issue #3148: only a conforming Encounter claims JP_Encounter_eCS.
+            if rt == "Encounter" and not _encounter_satisfies_ecs(r):
                 continue
             profs = r.get("meta", {}).get("profile", [])
             expected = _jp_clins_profiles()[rt][0]

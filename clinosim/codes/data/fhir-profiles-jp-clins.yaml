@@ -22,9 +22,9 @@ metadata:
     additional eCS profiles whose must-support is either zero
     (DocumentReference / Device / DeviceUseStatement) or satisfiable
     by a single deterministic field (Immunization →
-    meta.lastUpdated). Encounter_eCS (64 MS) + FamilyMemberHistory_eCS
-    (26 MS) deferred to follow-up per the memory rule
-    `[★★★★ Profile assertion は data-completeness verify 後]`.
+    meta.lastUpdated). Issue #3148 added Encounter_eCS (only on
+    conforming encounters) and Practitioner_eCS (meta.lastUpdated);
+    FamilyMemberHistory_eCS (26 MS) is deferred.
   source: jpfhir.jp/fhir/clins/igv1 (JP-CLINS v1.13.0)
   version: '1.13.0'
 
@@ -47,3 +47,10 @@ profiles:
     - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Device_eCS
   DeviceUseStatement:
     - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_DeviceUseStatement_eCS
+  # Issue #3148: declared only on resources that conform
+  # (post_process.profile._encounter_satisfies_ecs); Practitioner gains the
+  # required meta.lastUpdated in the same hook.
+  Encounter:
+    - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Encounter_eCS
+  Practitioner:
+    - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Practitioner_eCS

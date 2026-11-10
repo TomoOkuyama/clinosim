@@ -56,6 +56,7 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
     resources_by_type = _load_resources(outdir)
 
     from clinosim.modules.output.fhir_r4.post_process import (
+        _encounter_satisfies_ecs,
         _is_lab_observation,
         _jp_clins_profiles,
         _medication_request_satisfies_ecs,
@@ -109,6 +110,16 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
                 assert _jp_clins_profiles()[rt][0] not in profs, f"{rt}/{r.get('id')} claims eCS outside the VS"
                 assert jp_core_ai in profs, f"{rt}/{r.get('id')} lost the parent JP Core profile"
             pool = [r for r in pool if _allergy_satisfies_ecs(r)]
+        if rt == "Encounter":
+            # Issue #3148: JP_Encounter_eCS is declared only on an Encounter that meets
+            # it (e.g. a finished stay without the DPC discharge outcome does not). Reuse
+            # the production predicate and pin both sides, as for MedicationRequest.
+            jp_core_enc = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"
+            for r in [r for r in pool if not _encounter_satisfies_ecs(r)]:
+                profs = r.get("meta", {}).get("profile", [])
+                assert _jp_clins_profiles()[rt][0] not in profs, f"{rt}/{r.get('id')} claims eCS it does not meet"
+                assert jp_core_enc in profs, f"{rt}/{r.get('id')} lost the parent JP Core profile"
+            pool = [r for r in pool if _encounter_satisfies_ecs(r)]
         if rt in dense_types:
             assert pool, f"expected dense JP-CLINS type {rt} non-empty at p=100 JP"
         for r in pool:

@@ -27,7 +27,8 @@ builder が resource を返した直後に resource 単位で呼ばれる —
     `clinosim/codes/data/fhir-profiles-{jp-core,us-core,jp-clins}.yaml`
     から load。`_JP_OBSERVATION_CATEGORY_SYSTEM`、
     `_JP_ECS_LAST_UPDATED_PLACEHOLDER`、resource-type 判別子
-    (`_is_lab_observation`, `_medication_request_satisfies_ecs`) も
+    (`_is_lab_observation`, `_medication_request_satisfies_ecs`,
+    `_encounter_satisfies_ecs`) も
     所有。未使用の `_FHIR_ID_PATTERN` local copy を持つ。
   - `specimen.py` — lab Observation (id prefix `lab-` で builder 側
     `specimen` 未設定のもの。microbiology は自前 Specimen を持つ)

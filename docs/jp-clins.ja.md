@@ -48,6 +48,8 @@ Patient / Organization の emitter):
 | Immunization | `.../JP_Immunization_eCS` |
 | Device | `.../JP_Device_eCS` |
 | DeviceUseStatement | `.../JP_DeviceUseStatement_eCS` |
+| Encounter (適合するもののみ。下のフィルタ参照、Issue #3148) | `.../JP_Encounter_eCS` |
+| Practitioner (`meta.lastUpdated` 付き、Issue #3148) | `.../JP_Practitioner_eCS` |
 
 リソース型 → URL の表は `clinosim/codes/data/fhir-profiles-jp-clins.yaml`
 にあり、`clinosim/modules/output/fhir_r4/post_process/profile.py` の
@@ -63,6 +65,13 @@ URL ルート: `http://jpfhir.jp/fhir/eCS/StructureDefinition/`
 - MedicationRequest: eCS 制約 (`dosageInstruction` min=1) を満たせる
   場合のみ — 用量・経路を持たない退院時 / 外来継続処方は JP Core
   プロファイルのみ保持。
+- Encounter: 終了済みで `hospitalization` を持たず、`length` が日単位
+  (または無し)、`class` / `reasonCode` / `location` がプロファイルの
+  必須要素を持つ場合のみ (`_encounter_satisfies_ecs`)。eCS は
+  `hospitalization` があれば DPC の退院時転帰 (JP discharge-disposition
+  値セット) を必須とするが、clinosim が記録するのは HL7 の退院先で
+  別の事実のため、入院・救急 Encounter は JP Core のまま。外来受診の
+  長さが分単位のものも eCS の対象外 (単位は `d` 固定)。
 
 **JP-CLINS v1.13.0 対象外** (JP Core プロファイルのみで emit、
 JP-CLINS URL 非追加):
