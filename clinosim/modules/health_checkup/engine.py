@@ -280,9 +280,9 @@ def _interp_for(lab_name: str, value: float) -> tuple[str, str]:
     interpretation は HL7 v2 Table 0078 の "N" / "H"。保健指導判定値
     (reference_range_lab.yaml の checkup_ranges) 以上を "H" とする。
     """
-    from clinosim.locale.loader import load_reference_ranges
+    from clinosim.locale.loader import checkup_criterion
 
-    rng_def = (load_reference_ranges("JP").get("checkup_ranges") or {}).get(lab_name)
+    rng_def = checkup_criterion(lab_name, "JP")
     if not rng_def:
         return ("N", "")
     return ("H" if value >= float(rng_def["high"]) else "N", str(rng_def.get("text") or ""))

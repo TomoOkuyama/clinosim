@@ -22,7 +22,7 @@ from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import lab_display, lab_result_display, oxygen_device_label
+from clinosim.locale.loader import checkup_criterion, lab_display, lab_result_display, oxygen_device_label
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
 from clinosim.modules.observation.engine import medications_in_effect
@@ -200,20 +200,13 @@ def _build_lab_observation(
         "_build_lab_observation: encounter_id must be non-empty. "
         "All call sites pass ctx.primary_enc_id which is validated before the loop."
     )
-    # feedback FB-F6: 特定 LOINC は対応標準 profile を要求。
-    # LOINC 39156-5 (BMI) → hl7.org/.../bmi、8480-6/8462-4 (BP) → .../bp。
-    # JP コホートも JP Core LabResult + 該当 vital profile を stacking 可能。
-    _extra_profiles: list[str] = []
-    if lab_name == "BMI":  # health-checkup BMI (Issue #2300: canonical name, LOINC 39156-5 coding)
-        _extra_profiles.append("http://hl7.org/fhir/StructureDefinition/bmi")
-    # BP 個別 obs は bp profile が component 構造を要求するため、
-    # 別 Observation で発行される limitation あり(TODO: 将来 combined 85354-9)。
-    # ここでは profile 付与を保留、TODO として cycle 9 に持越し。
-
+    # A lab Observation declares no HL7 vital-signs profile (Issue #3167): its
+    # single ``laboratory`` category (JP_Observation_LabResult_eCS allows one)
+    # cannot carry the ``vital-signs`` category those profiles require, so a
+    # health-checkup BMI here cannot meet ``bmi``.
     _profiles: list[str] = []
     if is_jp(country):
         _profiles.append(JP_OBSERVATION_LAB_RESULT_PROFILE)
-    _profiles.extend(_extra_profiles)
 
     # Issue #854 Bucket A row 4 (PR-obs-lab): opaque Observation.id.
     # ``lab_observation_id(enc, idx)`` returns ``lab-<12hex>`` — same
@@ -228,7 +221,6 @@ def _build_lab_observation(
         "id": lab_observation_id(encounter_id, index),
         "identifier": [wrap_as_identifier(_lab_obs_structural_key, LAB_OBSERVATION_KEY_SYSTEM)],
         # chain #2: JP Core Observation_LabResult profile.
-        # feedback FB-F6: 該当 LOINC の standard profile も stack 追加。
         **({"meta": {"profile": _profiles}} if _profiles else {}),
         "status": "final",
         "category": survey_category(lang_for(country))
@@ -270,10 +262,20 @@ def _build_lab_observation(
     # (reference_range_lab.yaml checkup_ranges), not the general range, so it
     # carries that text and its interpretation follows the stored flag
     # (Issue #2300).
+    # The range also states the criterion's bound (``high``: H at or above it)
+    # so JP-CLINS check-interpretationH / N can test the value against it
+    # (Issue #3167).
     ref_range: list[dict[str, Any]] | None
-    if order.get("clinical_intent") == "health_checkup":
+    is_checkup = order.get("clinical_intent") == "health_checkup"
+    if is_checkup:
         _checkup_text = str(result.get("reference_range") or "")
-        ref_range = [{"text": _checkup_text}] if _checkup_text else None
+        _criterion = checkup_criterion(lab_name, country)
+        _checkup_rng: dict[str, Any] = {}
+        if _criterion and _criterion.get("high") is not None:
+            _checkup_rng["high"] = ucum_quantity(float(_criterion["high"]), str(_criterion.get("unit") or ""))
+        if _checkup_text:
+            _checkup_rng["text"] = _checkup_text
+        ref_range = [_checkup_rng] if _checkup_rng else None
     else:
         ref_range = build_reference_range(
             lab_name, patient_sex, country_code, medications=patient_medications, age=patient_age
@@ -293,7 +295,9 @@ def _build_lab_observation(
         "critical": "AA",
     }
     coded: str | None = None
-    if isinstance(value, (int, float)) and ref_range:
+    # A checkup result keeps its stored flag: the criterion is "H at or
+    # above high", which re-judging as "above high" would contradict.
+    if isinstance(value, (int, float)) and ref_range and not is_checkup:
         # Find normal range (type=normal or unlabeled first entry); a
         # therapeutic range, present only for patients on the matching drug,
         # takes precedence (Issue #2205).
