@@ -197,8 +197,9 @@ table of formula coefficients stays in Python even when it is long.
 
 ## 6. Dead-code hygiene
 
-- CI runs `ruff` with F401 (unused import) and F841 (unused local) as
-  errors. This is baseline.
+- CI runs `ruff check` (which includes F401 unused import and F841 unused
+  local) as errors in the merge-blocking `Quality (ruff + format + mypy)`
+  job. This is baseline.
 - CI also runs `vulture` at 60 % confidence against a project-level
   by-design whitelist ([`.vulture-whitelist.py`](../../.vulture-whitelist.py))
   on every PR (`vulture dead-code` job — merge-blocking). Any new finding

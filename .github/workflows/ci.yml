@@ -1,17 +1,20 @@
-# clinosim CI — hard-gate on tests, informational on quality.
+# clinosim CI — hard-gate on tests, lint, format and types.
 #
 # Hard gates (must be green to merge):
-#   - unit tests on Python 3.12 (PR gate; 3.11 covered by weekly cron)
-#   - integration tests on Python 3.12 (5 pytest-split shards × xdist -n 2)
+#   - unit tests on Python 3.12 (tests/unit + tests/modules +
+#     tests/simulator; PR gate; 3.11 covered by the nightly cron)
+#   - integration tests on Python 3.12 (10 pytest-split shards × xdist -n 2)
 #   - fast end-to-end tests (tests/e2e/test_alpha_golden.py +
 #     test_identity_jp.py, ~1 min locally; Issue #3070). The slow e2e
 #     files (forced scenario ~3.5 min, US mode ~6 min, beta ~7.5 min
 #     locally) run nightly, see `nightly.yml`.
+#   - narrative regression goldens
+#   - quality: ruff check + ruff format --check + mypy strict (combined;
+#     the lint / type debt that once kept it informational is cleared)
+#   - vulture dead-code
 #
-# Informational (visible but does not block merge — pre-existing lint / mypy
-# debt is tracked as follow-up cleanup, this keeps the debt VISIBLE without
-# freezing the repo):
-#   - quality: ruff check + ruff format --check + mypy strict (combined)
+# Informational (does not block merge):
+#   - unit test coverage combine (80 % soft floor)
 #
 # Rate-of-change gates (moved off the PR path per session 82 CI review):
 #   - reproducibility (`scripts/reproduce.sh`)  → runs nightly, see `nightly.yml`.
@@ -28,11 +31,14 @@ on:
   pull_request:
     branches: [master]
 
-# Cancel in-flight runs for the same branch when a newer push arrives —
-# no point keeping a 20-minute integration job running on obsolete code.
+# Cancel an in-flight PR run when a newer push to the same PR arrives — no
+# point keeping a 20-minute integration job running on obsolete code. A
+# master run is never cancelled: it is the only run that tests the merged
+# combination of PRs that each passed CI on an older base, so a burst of
+# merges must not cancel the earlier ones.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   unit:
@@ -43,7 +49,8 @@ jobs:
     #   * Single-worker serial (pre-S114):                    ~8-9 min
     #   * S115 (2026-09-14) N=3 shards × xdist -n 2:          ~3-4 min per shard
     #
-    # `pytest-split` splits `tests/unit` + `tests/modules` (Issue #2497) into 3 groups using
+    # `pytest-split` splits `tests/unit` + `tests/modules` (Issue #2497) +
+    # `tests/simulator` into 3 groups using
     # `.test_durations` (shared with integration). Within each shard,
     # `pytest-xdist -n 2 --dist=worksteal` fills both vCPUs. Combined
     # parallelism = 3 × 2 = 6 concurrent workers.
@@ -69,6 +76,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
@@ -77,7 +85,7 @@ jobs:
         env:
           COVERAGE_FILE: ".coverage.shard-${{ matrix.shard }}"
         run: >
-          pytest tests/unit tests/modules -q --tb=short
+          pytest tests/unit tests/modules tests/simulator -q --tb=short
           -n 2 --dist=worksteal
           --splits 3 --group ${{ matrix.shard }}
           --splitting-algorithm=least_duration
@@ -108,6 +116,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install coverage
@@ -211,6 +220,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
@@ -238,6 +248,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
@@ -260,6 +271,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
@@ -267,37 +279,6 @@ jobs:
       - name: Run the fast e2e tests
         run: pytest tests/e2e/test_alpha_golden.py tests/e2e/test_identity_jp.py -q --tb=short
 
-  ruff-dead-code:
-    name: ruff dead-code (F401 / F841)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    # Merge-blocking dead-code guard (policy §6 — see
-    # docs/design-guides/documentation-and-code-quality-policy.md).
-    # Scoped narrowly to F401 (unused import) and F841 (unused local
-    # variable) so this check can be `required` in the branch-protection
-    # rule without inheriting the mypy + format-check debt that keeps the
-    # broader `Quality (informational)` job informational-only.
-    #
-    # No `pip install -e ".[dev]"` step: ruff analyses source files
-    # directly and does not need the project's runtime dependencies, so
-    # this job finishes in well under a minute versus ~5 min for a full
-    # install.
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-          cache-dependency-glob: pyproject.toml
-      - name: Install pinned ruff
-        # Match the version pinned in the informational Quality job so
-        # findings reproduce byte-identically across the two jobs.
-        run: uv pip install --system "ruff==0.17.1"
-      - name: ruff check --select F401,F841 clinosim/ tests/
-        run: ruff check --select F401,F841 clinosim/ tests/
 
   vulture-dead-code:
     name: vulture dead-code
@@ -325,6 +306,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install pinned vulture
@@ -333,13 +315,12 @@ jobs:
         run: vulture clinosim/ .vulture-whitelist.py --min-confidence 60
 
   quality:
-    name: Quality (informational)
+    name: Quality (ruff + format + mypy)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    continue-on-error: true
-    # Combines the former `lint` and `typecheck` jobs into a single runner
-    # since neither blocks merge. Removes one runner boot + install cycle
-    # from every PR.
+    # Merge-blocking: ruff check (all rules, which includes the former
+    # separate F401 / F841 dead-code job), ruff format --check and mypy
+    # strict. One runner, one install.
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -348,17 +329,16 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install (with dev extras)
         run: uv pip install --system -e ".[dev]"
       - name: Install pinned ruff
-        # Exact-pinned (session 73 Issue #449): CI and local envs must resolve
-        # to the same ruff version so lint failures reproduce byte-identically
-        # across machines. Bumping this line = intentional lint-config change.
-        # Kept in sync with pyproject.toml's dev-extras ruff spec so local
-        # `uv pip install -e .[dev]` and CI resolve to the same version.
-        run: uv pip install --system "ruff==0.17.1"
+        # Exact-pinned (Issue #449): CI and local envs resolve to the same
+        # ruff version so lint failures reproduce byte-identically. Must
+        # equal pyproject.toml's dev-extras ruff pin (a guard test checks it).
+        run: uv pip install --system "ruff==0.17.3"
       - name: ruff check
         run: ruff check clinosim/ tests/
       - name: ruff format --check
@@ -378,6 +358,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install build tools

@@ -191,8 +191,9 @@ Python に置くと、型検査され、名前で辿れ、使う場所で文書�
 
 ## 6. Dead-code 衛生
 
-- CI は `ruff` を F401 (未使用 import) と F841 (未使用 local) を
-  error として実行。これが baseline。
+- CI は merge-blocking の `Quality (ruff + format + mypy)` ジョブで
+  `ruff check` (F401 未使用 import・F841 未使用 local を含む) を error として
+  実行。これが baseline。
 - CI はまた `vulture` を 60% confidence で
   ([`.vulture-whitelist.py`](../../.vulture-whitelist.py) の
   プロジェクトレベル by-design whitelist に対して) 全 PR で実行

@@ -59,6 +59,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
+          version: "0.13.7"  # pinned: an unpinned "latest" lookup can fail the job; bump on purpose
           enable-cache: true
           cache-dependency-glob: pyproject.toml
       - name: Install build tooling + clinosim
