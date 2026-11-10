@@ -23,7 +23,7 @@ codes:
     ja: ロラピタ静注２ｍｇ
   1147002F1650:
     en: Diclofenac sodium
-    ja: ジクロフェナクナトリウム２５ｍｇ錠
+    ja: "ジクロフェナクＮａ錠２５ｍｇ「サワイ」"
   1149019C1149:
     en: Loxoprofen sodium hydrate
     ja: ロキソニン細粒１０％
@@ -35,154 +35,154 @@ codes:
     ja: ネオドパストン配合錠Ｌ１００
   1179040F2108:
     en: Milnacipran hydrochloride
-    ja: ミルナシプラン塩酸塩
+    ja: "ミルナシプラン塩酸塩錠２５ｍｇ「タイヨー」"
   1242002F1330:
     en: Butylscopolamine bromide (Buscopan)
-    ja: ブチルスコポラミン臭化物（ブスコパン）
+    ja: "ブスコパン錠１０ｍｇ"
   1242008X1066:
     en: Atropine sulfate hydrate
-    ja: アトロピン硫酸塩水和物
+    ja: "アトロピン硫酸塩水和物「ホエイ」原末"
   2115001X1104:
     en: Aminophylline hydrate
-    ja: アミノフィリン水和物
+    ja: "ネオフィリン原末"
   2123404D1033:
     en: Landiolol hydrochloride injection (Onoact)
-    ja: ランジオロール塩酸塩（オノアクト点滴静注用50mg）
+    ja: "オノアクト点滴静注用５０ｍｇ"
   2129005F1145:
     en: Disopyramide phosphate
-    ja: リン酸ジソピラミド
+    ja: "リスラミドＲ錠１５０ｍｇ"
   2129410A1028:
     en: Amiodarone
-    ja: アミオダロン塩酸塩
+    ja: "アンカロン注１５０"
   2149032F1099:
     en: Carvedilol (Coreg)
-    ja: カルベジロール（アーチスト）
+    ja: "カルベジロール錠１０ｍｇ「サワイ」"
   2149400A1132:
     en: Nicardipine hydrochloride injection
-    ja: ニカルジピン塩酸塩注射液
+    ja: "ニカルジピン塩酸塩注射液２ｍｇ「サワイ」"
   2171405D3020:
     en: Diltiazem hydrochloride injection (Herbesser)
-    ja: ジルチアゼム塩酸塩（ヘルベッサー注射用250）
+    ja: "ヘルベッサー注射用２５０"
   2179400D1022:
     en: Carperitide
-    ja: カルペリチド（ハンプ）
+    ja: "ハンプ注射用１０００"
   2190400A7030:
     en: D-Mannitol
-    ja: Ｄ－マンニトール
+    ja: "マンニットＴ注１５％"
   2242001B2122:
     en: Codeine phosphate hydrate 1%
-    ja: コデインリン酸塩水和物1%
+    ja: "リン酸コデイン散１％"
   2254001F1102:
     en: Salbutamol sulfate
-    ja: サルブタモール硫酸塩
+    ja: "サルブタモール錠２ｍｇ「日医工」"
   2259709G1027:
     en: Tiotropium (Spiriva)
-    ja: チオトロピウム（スピリーバ）
+    ja: "スピリーバ吸入用カプセル１８μｇ"
   2329023F1020:
     en: Lansoprazole (Prevacid)
-    ja: ランソプラゾール（タケプロン）
+    ja: "タケプロンＯＤ錠１５"
   2355002X1075:
     en: Magnesium sulfate hydrate
-    ja: 硫酸マグネシウム水和物
+    ja: "硫酸マグネシウム"
   2414402A1035:
     en: Vasopressin
-    ja: バソプレシン
+    ja: "ピトレシン注射液２０"
   2431004F1021:
     en: Levothyroxine (Synthroid)
-    ja: レボチロキシン（チラーヂンS）
+    ja: "チラーヂンＳ錠５０"
   2451400A1030:
     en: Adrenaline (Epinephrine)
-    ja: アドレナリン（エピネフリン）
+    ja: "ボスミン注１ｍｇ"
   2451401A1034:
     en: Norepinephrine (Levophed)
-    ja: （局）ノルアドレナリン注射液  # Issue #3013: MEDIS YJ display
+    ja: "ノルアドリナリン注１ｍｇ"
   2492403A4051:
     en: Regular human insulin (Humulin R)
-    ja: ヒト(遺伝子組換え)インスリン（ヒューマリンR）
+    ja: "ヒューマリンＲ注１００単位／ｍＬ"
   2499403A1037:
     en: Octreotide acetate
-    ja: オクトレオチド酢酸塩
+    ja: "サンドスタチン皮下注用５０μｇ"
   2633705N1031:
     en: Silver sulfadiazine cream (Geben)
-    ja: スルファジアジン銀クリーム（ゲーベン）
+    ja: "ゲーベンクリーム１％"
   3112001F1055:
     en: Vitamin D (Cholecalciferol)
-    ja: ビタミンD（アルファカルシドール）
+    ja: "ワンアルファ錠０．２５μｇ"
   3213400A2047:
     en: Calcium gluconate hydrate injection (Calcicol)
-    ja: グルコン酸カルシウム水和物（カルチコール注射液）
+    ja: "カルチコール注射液８．５％５ｍＬ"
   3222013F1025:
     en: Ferrous fumarate (representative iron supplement)
-    ja: フマル酸第一鉄
+    ja: "フェロミア錠５０ｍｇ"
   3319539A1082:
     en: Ringer's solution
-    ja: リンゲル液
+    ja: "リンゲル液「フソー」"
   3339002F1020:
     en: Edoxaban tosilate hydrate (Lixiana)
-    ja: エドキサバントシル酸塩水和物（リクシアナ錠15mg）
+    ja: "リクシアナ錠１５ｍｇ"
   3959402D1027:
     en: Alteplase (recombinant)
-    ja: アルテプラーゼ（遺伝子組換え）
+    ja: "アクチバシン注６００万"
   3962002F2027:
     en: Metformin (Glucophage)
-    ja: メトホルミン（メトグルコ）
+    ja: "メトグルコ錠２５０ｍｇ"
   3999001Q2058:
     en: Lactulose syrup 65% (Monilac)
-    ja: ラクツロース（モニラック・シロップ65%）
+    ja: "モニラック・シロップ６５％"
   3999018F1196:
     en: Alendronate (Fosamax)
-    ja: アレンドロン酸（フォサマック/ボナロン）
+    ja: "アレンドロン酸錠５ｍｇ「ＮＩＧ」"
   3999033F1026:
     en: Levocarnitine (Elcarnitine)
-    ja: レボカルニチン
+    ja: "エルカルチンＦＦ錠１００ｍｇ"
   3999401A1200:
     en: Elcatonin injection (Elcitonin)
-    ja: エルカトニン（エルシトニン注40単位）
+    ja: "エルシトニン注４０単位"
   3999407D1181:
     en: Nafamostat mesylate injection (Fusan)
-    ja: ナファモスタットメシル酸塩（注射用フサン10）
+    ja: "注射用フサン１０"
   5200092C1025:
     en: Dai-kenchu-to extract
-    ja: 大建中湯エキス
+    ja: "コタロー大建中湯エキス細粒"
   6132401D1061:
     en: Cefazolin sodium
-    ja: セファゾリンナトリウム
+    ja: "セファゾリンナトリウム注射用０．２５ｇ「日医工」"
   6132408E1034:
     en: Cefmetazole sodium
-    ja: セフメタゾールナトリウム
+    ja: "セフメタゾン筋注用０．５ｇ"
   6139100F1048:
     en: Amoxicillin/Clavulanate 125mg (Augmentin SS)
-    ja: アモキシシリン/クラブラン酸配合錠125SS（オーグメンチン）
+    ja: "オーグメンチン配合錠１２５ＳＳ"
   6139100F2044:
     en: Amoxicillin/Clavulanate 250mg (Augmentin RS)
-    ja: アモキシシリン/クラブラン酸配合錠250RS（オーグメンチン）
+    ja: "オーグメンチン配合錠２５０ＲＳ"
   6139504G1028:
     en: Ampicillin/Sulbactam (Unasyn)
-    ja: アンピシリン/スルバクタム（ユナシン）
+    ja: "ユナシン－Ｓキット静注用１．５ｇ"
   6241400A4021:
     en: Ciprofloxacin
-    ja: シプロフロキサシン
+    ja: "シプロキサン注２００ｍｇ"
   6250021F1028:
     en: Oseltamivir phosphate (Tamiflu)
-    ja: オセルタミビルリン酸塩（タミフル）
+    ja: "オセルタミビル錠７５ｍｇ「トーワ」"
   6290100F2115:
     en: Sulfamethoxazole-Trimethoprim (Bactrim/Baktar)
-    ja: スルファメトキサゾール・トリメトプリム（バクタ）
+    ja: "バクタ配合錠"
   6343410X1088:
     en: Human serum albumin
-    ja: 人血清アルブミン
+    ja: "献血アルブミン５％静注５ｇ／１００ｍＬ「ＪＢ」"
   6419401A1027:
     en: Metronidazole IV drip (Anemetro)
-    ja: メトロニダゾール（アネメトロ点滴静注液500mg）
+    ja: "アネメトロ点滴静注液５００ｍｇ"
   8119002B2023:
     en: Oxycodone (OxyContin)
-    ja: オキシコドン（オキシコンチン）
+    ja: "オキノーム散２．５ｍｇ"
   8119003F1023:
     en: Hydromorphone hydrochloride 1mg (Narurapid)
-    ja: ヒドロモルフォン塩酸塩1mg（ナルラピド錠）
+    ja: "ナルラピド錠１ｍｇ"
   8219700S5026:
     en: Fentanyl (Durotep MT patch)
-    ja: フェンタニル（デュロテップMTパッチ）
+    ja: "デュロテップＭＴパッチ２．１ｍｇ"
   # Issue #1233: oncology + endocrine + supplement drugs sourced from
   # MEDIS 医薬品HOTコードマスター (2026-08-31 版) — replaces the previously
   # fictitious YJ codes recorded in the now-retired drug_names_ja.yaml
@@ -191,361 +191,361 @@ codes:
   # Oncology
   4291410A2084:
     en: Oxaliplatin injection 100mg
-    ja: オキサリプラチン100mg注
+    ja: "オキサリプラチン点滴静注液１００ｍｇ「ＦＦＰ」"
   4223401A4037:
     en: Fluorouracil (5-FU) 250mg injection
-    ja: フルオロウラシル注250mg
+    ja: "フルオロウラシル注２５０ｍｇ「トーワ」"
   3929004F2030:
     en: Leucovorin (folinate) 25mg tablet
-    ja: ロイコボリン錠25mg
+    ja: "ロイコボリン錠２５ｍｇ"
   4223005F1030:
     en: Capecitabine 300mg tablet
-    ja: カペシタビン錠300mg
+    ja: "カペシタビン錠３００ｍｇ「サワイ」"
   4291442D2030:
     en: Trastuzumab 150mg IV infusion
-    ja: トラスツズマブBS点滴静注用150mg
+    ja: "トラスツズマブＢＳ点滴静注用１５０ｍｇ「ＮＫ」"
   4291045F2023:
     en: Osimertinib 80mg (Tagrisso)
-    ja: タグリッソ錠80mg
+    ja: "タグリッソ錠８０ｍｇ"
   4229401A2020:
     en: Pemetrexed 500mg IV
-    ja: ペメトレキセド点滴静注液500mg
+    ja: "ペメトレキセド点滴静注液５００ｍｇ「ＮＫ」"
   4291403A2149:
     en: Carboplatin 150mg injection
-    ja: カルボプラチン注射液150mg
+    ja: "カルボプラチン注射液１５０ｍｇ「ＮＫ」"
   4291017F1025:
     en: Sorafenib 200mg (Nexavar)
-    ja: ネクサバール錠200mg
+    ja: "ネクサバール錠２００ｍｇ"
   4291009F1101:
     en: Bicalutamide 80mg tablet
-    ja: ビカルタミド80mg錠
+    ja: "ビカルタミド錠８０ｍｇ「ＴＣＫ」"
   4291039M2027:
     en: Lenvatinib 10mg (Lenvima)
-    ja: レンビマカプセル10mg
+    ja: "レンビマカプセル１０ｍｇ"
   # Endocrine / hormonal
   2499407G2034:
     en: Leuprorelin acetate 3.75mg injection kit
-    ja: リュープロレリン酢酸塩注射用キット3.75mg
+    ja: "リュープロレリン酢酸塩注射用キット３．７５ｍｇ「ＮＰ」"
   4291003F1210:
     en: Tamoxifen citrate 10mg tablet
-    ja: タモキシフェンクエン酸塩10mg錠
+    ja: "タモキシフェン錠１０ｍｇ「日医工」"
   4291010F1201:
     en: Anastrozole 1mg tablet
-    ja: アナストロゾール錠1mg
+    ja: "アナストロゾール錠１ｍｇ「明治」"
   # Supplements & other
   3135001F1025:
     en: Folic acid tablet
-    ja: 葉酸錠
+    ja: "フォリアミン錠"
   6132016F2038:
     en: Cefcapene pivoxil 100mg tablet
-    ja: セフカペンピボキシル塩酸塩100mg錠
+    ja: "セフカペンピボキシル塩酸塩錠１００ｍｇ「サワイ」"
   2290800G2039:
     en: Fluticasone/Salmeterol inhaler (Advair Diskus 250)
-    ja: アドエア250ディスカス28吸入用
+    ja: "アドエア２５０ディスカス２８吸入用"
   # Issue #2347: catalog YJ products (names from the MHLW YJ master, codes/authoritative/yj_mhlw_snapshot.json).
   1124022F1067:
     en: "Lorazepam"
-    ja: "ワイパックス錠0.5"
+    ja: "ワイパックス錠０．５"
   1139004F2173:
     en: "Valproic acid"
-    ja: "デパケン錠200mg"
+    ja: "デパケン錠２００ｍｇ"
   1139009F1021:
     en: "Lamotrigine"
-    ja: "ラミクタール錠小児用2mg"
+    ja: "ラミクタール錠小児用２ｍｇ"
   1139010F2020:
     en: "Levetiracetam"
-    ja: "イーケプラ錠500mg"
+    ja: "イーケプラ錠５００ｍｇ"
   1141007F3023:
     en: "Acetaminophen"
-    ja: "カロナール錠500"
+    ja: "カロナール錠５００"
   1141400A2020:
     en: "Acetaminophen"
-    ja: "アセリオ静注液1000mgバッグ"
+    ja: "アセリオ静注液１０００ｍｇバッグ"
   1143001X1040:
     en: "Aspirin"
     ja: "アスピリン「ケンエー」"
   1147002F1560:
     en: "Diclofenac"
-    ja: "ボルタレン錠25mg"
+    ja: "ボルタレン錠２５ｍｇ"
   1147700J3084:
     en: "Diclofenac"
-    ja: "ボルタレンサポ50mg"
+    ja: "ボルタレンサポ５０ｍｇ"
   1149001F2168:
     en: "Ibuprofen"
-    ja: "ブルフェン錠200"
+    ja: "ブルフェン錠２００"
   1149007F1142:
     en: "Naproxen"
-    ja: "ナイキサン錠100mg"
+    ja: "ナイキサン錠１００ｍｇ"
   1149019F1560:
     en: "Loxoprofen"
-    ja: "ロキソニン錠60mg"
+    ja: "ロキソニン錠６０ｍｇ"
   1149037F2026:
     en: "Celecoxib"
-    ja: "セレコックス錠200mg"
+    ja: "セレコックス錠２００ｍｇ"
   1149038F1024:
     en: "Tramadol"
-    ja: "トラマールOD錠25mg"
+    ja: "トラマールＯＤ錠２５ｍｇ"
   1179005F2025:
     en: "Hydroxyzine"
-    ja: "アタラックス錠25mg"
+    ja: "アタラックス錠２５ｍｇ"
   1179017F1056:
     en: "Lithium carbonate"
-    ja: "リーマス錠100"
+    ja: "リーマス錠１００"
   1179038F2020:
     en: "Risperidone"
-    ja: "リスパダール錠2mg"
+    ja: "リスパダール錠２ｍｇ"
   1179039F1028:
     en: "fluvoxamine"
-    ja: "デプロメール錠25"
+    ja: "デプロメール錠２５"
   1179040F1136:
     en: "Milnacipran"
-    ja: "トレドミン錠15mg"
+    ja: "トレドミン錠１５ｍｇ"
   1179041F2030:
     en: "paroxetine"
-    ja: "パロキセチン錠20mg「AA」"
+    ja: "パロキセチン錠２０ｍｇ「ＡＡ」"
   1179042F1020:
     en: "Quetiapine"
-    ja: "セロクエル25mg錠"
+    ja: "セロクエル２５ｍｇ錠"
   1179044F3021:
     en: "Olanzapine"
-    ja: "ジプレキサ錠10mg"
+    ja: "ジプレキサ錠１０ｍｇ"
   1179045F3026:
     en: "Aripiprazole"
-    ja: "エビリファイ錠12mg"
+    ja: "エビリファイ錠１２ｍｇ"
   1179046F2024:
     en: "sertraline"
-    ja: "ジェイゾロフト錠50mg"
+    ja: "ジェイゾロフト錠５０ｍｇ"
   1179051F1029:
     en: "mirtazapine"
-    ja: "リフレックス錠15mg"
+    ja: "リフレックス錠１５ｍｇ"
   1179052M2029:
     en: "duloxetine"
-    ja: "サインバルタカプセル30mg"
+    ja: "サインバルタカプセル３０ｍｇ"
   1179054F1022:
     en: "escitalopram"
-    ja: "レクサプロ錠10mg"
+    ja: "レクサプロ錠１０ｍｇ"
   1179055N1021:
     en: "venlafaxine"
-    ja: "イフェクサーSRカプセル37.5mg"
+    ja: "イフェクサーＳＲカプセル３７．５ｍｇ"
   1179404A1070:
     en: "Haloperidol"
-    ja: "セレネース注5mg"
+    ja: "セレネース注５ｍｇ"
   1190012F2022:
     en: "Donepezil"
-    ja: "アリセプト錠5mg"
+    ja: "アリセプト錠５ｍｇ"
   1190017F1029:
     en: "Pregabalin"
-    ja: "リリカOD錠25mg"
+    ja: "リリカＯＤ錠２５ｍｇ"
   1190022H1020:
     en: "Acamprosate"
-    ja: "レグテクト錠333mg"
+    ja: "レグテクト錠３３３ｍｇ"
   1190025F1023:
     en: "Nalmefene"
-    ja: "セリンクロ錠10mg"
+    ja: "セリンクロ錠１０ｍｇ"
   1214001S1054:
     en: "Lidocaine"
-    ja: "キシロカインビスカス2%"
+    ja: "キシロカインビスカス２％"
   1214403A1026:
     en: "bupivacaine"
-    ja: "マーカイン注0.125%"
+    ja: "マーカイン注０．１２５％"
   1244400A1030:
     en: "Magnesium Sulfate"
-    ja: "静注用マグネゾール20mL"
+    ja: "静注用マグネゾール２０ｍＬ"
   1249009F1090:
     en: "Eperisone"
-    ja: "ミオナール錠50mg"
+    ja: "ミオナール錠５０ｍｇ"
   1311701Q1031:
     en: "Cyclopentolate"
-    ja: "サイプレジン1%点眼液"
+    ja: "サイプレジン１％点眼液"
   1313700Q3034:
     en: "Oxybuprocaine"
-    ja: "ラクリミン点眼液0.05%"
+    ja: "ラクリミン点眼液０．０５％"
   1324704Q1033:
     en: "Naphazoline"
-    ja: "プリビナ液0.05%"
+    ja: "プリビナ液０．０５％"
   1339005F2128:
     en: "Betahistine"
-    ja: "メリスロン錠12mg"
+    ja: "メリスロン錠１２ｍｇ"
   2113003F3025:
     en: "Digoxin"
-    ja: "ジゴキシン錠0.0625「KYO」"
+    ja: "ジゴキシン錠０．０６２５「ＫＹＯ」"
   2115404A1043:
     en: "Aminophylline"
-    ja: "ネオフィリン注PL250mg"
+    ja: "ネオフィリン注ＰＬ２５０ｍｇ"
   2119404A1026:
     en: "Dobutamine"
-    ja: "ドブトレックス注射液100mg"
+    ja: "ドブトレックス注射液１００ｍｇ"
   2123016F1107:
     en: "Bisoprolol"
-    ja: "メインテート錠2.5mg"
+    ja: "メインテート錠２．５ｍｇ"
   2129005F1129:
     en: "Disopyramide"
-    ja: "リスモダンR錠150mg"
+    ja: "リスモダンＲ錠１５０ｍｇ"
   2132004F1103:
     en: "Hydrochlorothiazide"
-    ja: "ヒドロクロロチアジド錠25mg「トーワ」"
+    ja: "ヒドロクロロチアジド錠２５ｍｇ「トーワ」"
   2133001F1522:
     en: "Spironolactone"
-    ja: "アルダクトンA錠25mg"
+    ja: "アルダクトンＡ錠２５ｍｇ"
   2139005F1052:
     en: "Furosemide"
-    ja: "ラシックス錠20mg"
+    ja: "ラシックス錠２０ｍｇ"
   2139401A2137:
     en: "Furosemide"
-    ja: "ラシックス注20mg"
+    ja: "ラシックス注２０ｍｇ"
   2144002F2020:
     en: "Enalapril"
-    ja: "レニベース錠5"
+    ja: "レニベース錠５"
   2144006F1030:
     en: "Lisinopril"
-    ja: "ロンゲス錠5mg"
+    ja: "ロンゲス錠５ｍｇ"
   2145001F1043:
     en: "Methyldopa"
-    ja: "メチルドパ錠(ツルハラ)125"
+    ja: "メチルドパ錠（ツルハラ）１２５"
   2149009F1030:
     en: "Labetalol"
-    ja: "トランデート錠50mg"
+    ja: "トランデート錠５０ｍｇ"
   2149010F1025:
     en: "Metoprolol"
-    ja: "セロケン錠20mg"
+    ja: "セロケン錠２０ｍｇ"
   2149019F1069:
     en: "Nicardipine"
-    ja: "ペルジピン錠10mg"
+    ja: "ペルジピン錠１０ｍｇ"
   2149032F4020:
     en: "Carvedilol"
-    ja: "アーチスト錠2.5mg"
+    ja: "アーチスト錠２．５ｍｇ"
   2149040F3029:
     en: "Candesartan"
-    ja: "ブロプレス錠8"
+    ja: "ブロプレス錠８"
   2149400A1027:
     en: "Nicardipine"
-    ja: "ペルジピン注射液2mg"
+    ja: "ペルジピン注射液２ｍｇ"
   2160002F1028:
     en: "Midodrine"
-    ja: "メトリジン錠2mg"
+    ja: "メトリジン錠２ｍｇ"
   2160003F1022:
     en: "Sumatriptan"
-    ja: "イミグラン錠50"
+    ja: "イミグラン錠５０"
   2171006F1224:
     en: "Diltiazem"
-    ja: "ヘルベッサー錠30"
+    ja: "ヘルベッサー錠３０"
   2171018K1039:
     en: "Nitroglycerin"
-    ja: "ニトロペン舌下錠0.3mg"
+    ja: "ニトロペン舌下錠０．３ｍｇ"
   2171022F2025:
     en: "Amlodipine"
-    ja: "ノルバスク錠5mg"
+    ja: "ノルバスク錠５ｍｇ"
   2189015F2020:
     en: "Atorvastatin"
-    ja: "リピトール錠10mg"
+    ja: "リピトール錠１０ｍｇ"
   2189017F2029:
     en: "Rosuvastatin"
-    ja: "クレストール錠5mg"
+    ja: "クレストール錠５ｍｇ"
   2189018F1027:
     en: "Ezetimibe"
-    ja: "ゼチーア錠10mg"
+    ja: "ゼチーア錠１０ｍｇ"
   2190046B1028:
     en: "Patiromer"
-    ja: "ビルタサ懸濁用散分包8.4g"
+    ja: "ビルタサ懸濁用散分包８．４ｇ"
   2223001F2099:
     en: "Dextromethorphan"
-    ja: "メジコン錠15mg"
+    ja: "メジコン錠１５ｍｇ"
   2242001F1071:
     en: "Codeine"
-    ja: "コデインリン酸塩錠5mg「VTRS」"
+    ja: "コデインリン酸塩錠５ｍｇ「ＶＴＲＳ」"
   2254700G4037:
     en: "Albuterol"
-    ja: "サルタノールインヘラー100μg"
+    ja: "サルタノールインヘラー１００μｇ"
   2259702G2021:
     en: "Ipratropium"
-    ja: "アトロベントエロゾル20μg"
+    ja: "アトロベントエロゾル２０μｇ"
   2319001M1213:
     en: "Loperamide"
-    ja: "ロペミンカプセル1mg"
+    ja: "ロペミンカプセル１ｍｇ"
   2325003F2020:
     en: "Famotidine"
-    ja: "ガスター錠20mg"
+    ja: "ガスター錠２０ｍｇ"
   2329022H1043:
     en: "Omeprazole"
-    ja: "オメプラール錠20"
+    ja: "オメプラール錠２０"
   2329403D1041:
     en: "Omeprazole"
-    ja: "オメプラゾール注用20mg「NP」"
+    ja: "オメプラゾール注用２０ｍｇ「ＮＰ」"
   2344005F1061:
     en: "Sodium bicarbonate"
-    ja: "炭酸水素ナトリウム錠500mg「VTRS」"
+    ja: "炭酸水素ナトリウム錠５００ｍｇ「ＶＴＲＳ」"
   2391001F4020:
     en: "Ondansetron"
-    ja: "オンダンセトロンODフィルム4mg「GFP」"
+    ja: "オンダンセトロンＯＤフィルム４ｍｇ「ＧＦＰ」"
   2391401A1050:
     en: "Ondansetron"
-    ja: "オンダンセトロン注射液4mg「サンド」"
+    ja: "オンダンセトロン注射液４ｍｇ「サンド」"
   2399004F1200:
     en: "Metoclopramide"
-    ja: "プリンペラン錠5"
+    ja: "プリンペラン錠５"
   2399010F2024:
     en: "Mosapride"
-    ja: "ガスモチン錠5mg"
+    ja: "ガスモチン錠５ｍｇ"
   2399401A1083:
     en: "Metoclopramide"
-    ja: "プリンペラン注射液10mg"
+    ja: "プリンペラン注射液１０ｍｇ"
   2414400A2075:
     en: "oxytocin"
-    ja: "アトニン-O注5単位"
+    ja: "アトニン－Ｏ注５単位"
   2431004F1056:
     en: "Levothyroxine"
-    ja: "チラーヂンS錠50μg"
+    ja: "チラーヂンＳ錠５０μｇ"
   2451402G1040:
     en: "Epinephrine"
-    ja: "アドレナリン注0.1%シリンジ「テルモ」"
+    ja: "アドレナリン注０．１％シリンジ「テルモ」"
   2456001F1345:
     en: "Prednisolone"
-    ja: "プレドニゾロン錠5mg(旭化成)"
+    ja: "プレドニゾロン錠５ｍｇ（旭化成）"
   2456003F1034:
     en: "Methylprednisolone"
-    ja: "メドロール錠2mg"
+    ja: "メドロール錠２ｍｇ"
   2456400D1067:
     en: "Methylprednisolone"
-    ja: "ソル・メドロール静注用40mg"
+    ja: "ソル・メドロール静注用４０ｍｇ"
   2492414G5024:
     en: "Insulin lispro"
     ja: "ヒューマログ注ミリオペン"
   2492415G6025:
     en: "Insulin aspart"
-    ja: "ノボラピッド注 フレックスタッチ"
+    ja: "ノボラピッド注　フレックスタッチ"
   2492416G2024:
     en: "Insulin Glargine"
     ja: "ランタス注ソロスター"
   2499407D1031:
     en: "Leuprolide"
-    ja: "リュープリン注射用3.75mg"
+    ja: "リュープリン注射用３．７５ｍｇ"
   2499410G1021:
     en: "Liraglutide"
-    ja: "ビクトーザ皮下注18mg"
+    ja: "ビクトーザ皮下注１８ｍｇ"
   2499418G4027:
     en: "Semaglutide"
-    ja: "オゼンピック皮下注2mg"
+    ja: "オゼンピック皮下注２ｍｇ"
   2590008F2022:
     en: "Tamsulosin"
-    ja: "ハルナールD錠0.2mg"
+    ja: "ハルナールＤ錠０．２ｍｇ"
   3112001B4036:
     en: "Alfacalcidol"
-    ja: "アルファロール散1μg/g"
+    ja: "アルファロール散１μｇ／ｇ"
   3135002B1036:
     en: "Folic acid"
-    ja: "フォリアミン散100mg/g"
+    ja: "フォリアミン散１００ｍｇ／ｇ"
   3160001F1311:
     en: "Vitamin K"
-    ja: "カチーフN錠5mg"
+    ja: "カチーフＮ錠５ｍｇ"
   3222007G1033:
     en: "Ferrous sulfate"
-    ja: "フェロ・グラデュメット錠105mg"
+    ja: "フェロ・グラデュメット錠１０５ｍｇ"
   3229001X1053:
     en: "Potassium Chloride"
     ja: "塩化カリウム「フソー」"
   3229400A1032:
     en: "Potassium Chloride"
-    ja: "K.C.L.点滴液15%"
+    ja: "Ｋ．Ｃ．Ｌ．点滴液１５％"
   3311401A2026:
     en: "Normal Saline"
     ja: "大塚生食注"
@@ -554,258 +554,258 @@ codes:
     ja: "ラクテック注"
   3332001F1024:
     en: "Warfarin"
-    ja: "ワーファリン錠1mg"
+    ja: "ワーファリン錠１ｍｇ"
   3334400A3049:
     en: "Heparin"
-    ja: "ヘパリンCa皮下注2万単位/0.8mL「サワイ」"
+    ja: "ヘパリンＣａ皮下注２万単位／０．８ｍＬ「サワイ」"
   3334406G1020:
     en: "Enoxaparin"
-    ja: "クレキサン皮下注キット2000IU"
+    ja: "クレキサン皮下注キット２０００ＩＵ"
   3339002F3022:
     en: "Edoxaban"
-    ja: "リクシアナ錠60mg"
+    ja: "リクシアナ錠６０ｍｇ"
   3339003F1024:
     en: "Rivaroxaban"
-    ja: "イグザレルト錠10mg"
+    ja: "イグザレルト錠１０ｍｇ"
   3339004F2025:
     en: "Apixaban"
-    ja: "エリキュース錠5mg"
+    ja: "エリキュース錠５ｍｇ"
   3399008F2021:
     en: "Clopidogrel"
-    ja: "プラビックス錠75mg"
+    ja: "プラビックス錠７５ｍｇ"
   3399011F1027:
     en: "Ticagrelor"
-    ja: "ブリリンタ錠60mg"
+    ja: "ブリリンタ錠６０ｍｇ"
   3399412A1027:
     en: "Idarucizumab"
-    ja: "プリズバインド静注液2.5g"
+    ja: "プリズバインド静注液２．５ｇ"
   3929004F1025:
     en: "Leucovorin"
-    ja: "ロイコボリン錠5mg"
+    ja: "ロイコボリン錠５ｍｇ"
   3929403A1034:
     en: "Leucovorin"
-    ja: "ロイコボリン注3mg"
+    ja: "ロイコボリン注３ｍｇ"
   3939001B1034:
     en: "Disulfiram"
     ja: "ノックビン原末"
   3962002F3023:
     en: "Metformin"
-    ja: "メトグルコ錠500mg"
+    ja: "メトグルコ錠５００ｍｇ"
   3969023F1023:
     en: "Empagliflozin"
-    ja: "ジャディアンス錠10mg"
+    ja: "ジャディアンス錠１０ｍｇ"
   3999001Q1051:
     en: "Lactulose"
-    ja: "ラクツロース・シロップ60%「コーワ」"
+    ja: "ラクツロース・シロップ６０％「コーワ」"
   3999003F1297:
     en: "Camostat mesilate"
-    ja: "フオイパン錠100mg"
+    ja: "フオイパン錠１００ｍｇ"
   3999018F2028:
     en: "Alendronate"
-    ja: "フォサマック錠35mg"
+    ja: "フォサマック錠３５ｍｇ"
   3999401A3024:
     en: "Elcatonin"
-    ja: "エルシトニン注20S"
+    ja: "エルシトニン注２０Ｓ"
   3999435G1023:
     en: "Denosumab"
-    ja: "プラリア皮下注60mgシリンジ"
+    ja: "プラリア皮下注６０ｍｇシリンジ"
   4219004M1024:
     en: "temozolomide"
-    ja: "テモダールカプセル20mg"
+    ja: "テモダールカプセル２０ｍｇ"
   4223005F1022:
     en: "Capecitabine"
-    ja: "ゼローダ錠300"
+    ja: "ゼローダ錠３００"
   4223401A3022:
     en: "Fluorouracil"
-    ja: "5-FU注1000mg"
+    ja: "５－ＦＵ注１０００ｍｇ"
   4224403A2022:
     en: "gemcitabine"
-    ja: "ゲムシタビン点滴静注液1g/25mL「サンド」"
+    ja: "ゲムシタビン点滴静注液１ｇ／２５ｍＬ「サンド」"
   4229101F1026:
     en: "Tegafur-Gimeracil-Oteracil"
-    ja: "ティーエスワン配合OD錠T20"
+    ja: "ティーエスワン配合ＯＤ錠Ｔ２０"
   4229401D1020:
     en: "Pemetrexed"
-    ja: "アリムタ注射用500mg"
+    ja: "アリムタ注射用５００ｍｇ"
   4240404A1091:
     en: "irinotecan"
-    ja: "トポテシン点滴静注40mg"
+    ja: "トポテシン点滴静注４０ｍｇ"
   4240409D1023:
     en: "Nab-paclitaxel"
-    ja: "アブラキサン点滴静注用100mg"
+    ja: "アブラキサン点滴静注用１００ｍｇ"
   4291003F2054:
     en: "Tamoxifen"
-    ja: "ノルバデックス錠20mg"
+    ja: "ノルバデックス錠２０ｍｇ"
   4291009F1039:
     en: "Bicalutamide"
-    ja: "カソデックス錠80mg"
+    ja: "カソデックス錠８０ｍｇ"
   4291010F1031:
     en: "Anastrozole"
-    ja: "アリミデックス錠1mg"
+    ja: "アリミデックス錠１ｍｇ"
   4291039M1020:
     en: "Lenvatinib"
-    ja: "レンビマカプセル4mg"
+    ja: "レンビマカプセル４ｍｇ"
   4291403A1088:
     en: "Carboplatin"
-    ja: "パラプラチン注射液50mg"
+    ja: "パラプラチン注射液５０ｍｇ"
   4291406D6020:
     en: "Trastuzumab"
-    ja: "ハーセプチン注射用150"
+    ja: "ハーセプチン注射用１５０"
   4291410A1029:
     en: "Oxaliplatin"
-    ja: "エルプラット点滴静注液50mg"
+    ja: "エルプラット点滴静注液５０ｍｇ"
   4411001F1040:
     en: "Diphenhydramine"
-    ja: "レスタミンコーワ錠10mg"
+    ja: "レスタミンコーワ錠１０ｍｇ"
   4490020F2027:
     en: "Cetirizine"
-    ja: "ジルテック錠10"
+    ja: "ジルテック錠１０"
   5200092D1020:
     en: "Dai-kenchu-to"
-    ja: "ツムラ大建中湯エキス顆粒(医療用)"
+    ja: "ツムラ大建中湯エキス顆粒（医療用）"
   6112001M1031:
     en: "Clindamycin"
-    ja: "ダラシンカプセル75mg"
+    ja: "ダラシンカプセル７５ｍｇ"
   6112401A2123:
     en: "Clindamycin"
-    ja: "ダラシンS注射液600mg"
+    ja: "ダラシンＳ注射液６００ｍｇ"
   6113001B1097:
     en: "Vancomycin"
-    ja: "バンコマイシン塩酸塩散0.5g「サワイ」"
+    ja: "バンコマイシン塩酸塩散０．５ｇ「サワイ」"
   6113400A2061:
     en: "Vancomycin"
-    ja: "バンコマイシン塩酸塩点滴静注用1g「明治」"
+    ja: "バンコマイシン塩酸塩点滴静注用１ｇ「明治」"
   6122400D1028:
     en: "Aztreonam"
-    ja: "アザクタム注射用0.5g"
+    ja: "アザクタム注射用０．５ｇ"
   6131001F2026:
     en: "Amoxicillin"
-    ja: "サワシリン錠250"
+    ja: "サワシリン錠２５０"
   6131400D1078:
     en: "Ampicillin"
-    ja: "ビクシリン注射用0.25g"
+    ja: "ビクシリン注射用０．２５ｇ"
   6132002M2183:
     en: "Cephalexin"
-    ja: "ケフレックスカプセル250mg"
+    ja: "ケフレックスカプセル２５０ｍｇ"
   6132016F2020:
     en: "Cefcapene pivoxil"
-    ja: "フロモックス錠100mg"
+    ja: "フロモックス錠１００ｍｇ"
   6132401D3145:
     en: "Cefazolin"
-    ja: "セファメジンα注射用1g"
+    ja: "セファメジンα注射用１ｇ"
   6132408F3059:
     en: "Cefmetazole"
-    ja: "セフメタゾン静注用1g"
+    ja: "セフメタゾン静注用１ｇ"
   6132409D1041:
     en: "Cefotaxime"
-    ja: "セフォタックス注射用0.5g"
+    ja: "セフォタックス注射用０．５ｇ"
   6132419F2026:
     en: "Ceftriaxone"
-    ja: "ロセフィン静注用1g"
+    ja: "ロセフィン静注用１ｇ"
   6132425D1032:
     en: "Cefepime"
-    ja: "セフェピム塩酸塩静注用0.5g「サンド」"
+    ja: "セフェピム塩酸塩静注用０．５ｇ「サンド」"
   6134407A1024:
     en: "Gentamicin"
-    ja: "ゲンタシン注10"
+    ja: "ゲンタシン注１０"
   6139400D3028:
     en: "Meropenem"
-    ja: "メロペネム点滴静注用1g「NP」"
+    ja: "メロペネム点滴静注用１ｇ「ＮＰ」"
   6139504F3033:
     en: "Ampicillin/Sulbactam"
-    ja: "スルバシリン静注用3g"
+    ja: "スルバシリン静注用３ｇ"
   6139505G1022:
     en: "Piperacillin/Tazobactam"
-    ja: "ゾシン配合点滴静注用バッグ4.5"
+    ja: "ゾシン配合点滴静注用バッグ４．５"
   6149004F1028:
     en: "Azithromycin"
-    ja: "ジスロマック錠250mg"
+    ja: "ジスロマック錠２５０ｍｇ"
   6179400D1020:
     en: "Micafungin"
-    ja: "ファンガード点滴用50mg"
+    ja: "ファンガード点滴用５０ｍｇ"
   6199001F1026:
     en: "Rifaximin"
-    ja: "リフキシマ錠200mg"
+    ja: "リフキシマ錠２００ｍｇ"
   6241008F2020:
     en: "Ciprofloxacin"
-    ja: "シプロキサン錠200mg"
+    ja: "シプロキサン錠２００ｍｇ"
   6241013F3027:
     en: "Levofloxacin"
-    ja: "クラビット錠500mg"
+    ja: "クラビット錠５００ｍｇ"
   6241016F1028:
     en: "Moxifloxacin"
-    ja: "アベロックス錠400mg"
+    ja: "アベロックス錠４００ｍｇ"
   6250021M1027:
     en: "Oseltamivir"
-    ja: "タミフルカプセル75"
+    ja: "タミフルカプセル７５"
   6250405A1032:
     en: "Peramivir"
-    ja: "ラピアクタ点滴静注液バイアル150mg"
+    ja: "ラピアクタ点滴静注液バイアル１５０ｍｇ"
   6290002M1020:
     en: "Fluconazole"
-    ja: "ジフルカンカプセル50mg"
+    ja: "ジフルカンカプセル５０ｍｇ"
   6343449D1024:
     en: "Factor IX complex"
-    ja: "ケイセントラ静注用500"
+    ja: "ケイセントラ静注用５００"
   6419002F1131:
     en: "Metronidazole"
-    ja: "フラジール内服錠250mg"
+    ja: "フラジール内服錠２５０ｍｇ"
   8114401A2119:
     en: "Morphine"
-    ja: "モルヒネ塩酸塩注射液50mg「シオノギ」"
+    ja: "モルヒネ塩酸塩注射液５０ｍｇ「シオノギ」"
   8119002B3020:
     en: "Oxycodone"
-    ja: "オキノーム散5mg"
+    ja: "オキノーム散５ｍｇ"
   8119401A1020:
     en: "Hydromorphone"
-    ja: "ナルベイン注2mg"
+    ja: "ナルベイン注２ｍｇ"
   8219400A1063:
     en: "Fentanyl"
-    ja: "フェンタニル注射液0.1mg「第一三共」"
+    ja: "フェンタニル注射液０．１ｍｇ「第一三共」"
   8219700T1026:
     en: "Fentanyl"
-    ja: "ワンデュロパッチ0.84mg"
+    ja: "ワンデュロパッチ０．８４ｍｇ"
   1319722Q1163:
     en: "Ofloxacin"
-    ja: "タリビッド点眼液0.3%"
+    ja: "タリビッド点眼液０．３％"
   3160002Q1040:
     en: "Menatetrenone"
-    ja: "ケイツーシロップ0.2%"
+    ja: "ケイツーシロップ０．２％"
   6132015F1037:
     en: "Cefditoren pivoxil"
-    ja: "メイアクトMS錠100mg"
+    ja: "メイアクトＭＳ錠１００ｍｇ"
   6391700X4026:
     en: "BCG (intravesical)"
-    ja: "イムノブラダー膀注用80mg"
+    ja: "イムノブラダー膀注用８０ｍｇ"
   3112001M3065:
     en: "Alfacalcidol"
-    ja: "アルファロールカプセル1μg"
+    ja: "アルファロールカプセル１μｇ"
   1139402A1025:
     en: "Levetiracetam"
-    ja: "イーケプラ点滴静注500mg"
+    ja: "イーケプラ点滴静注５００ｍｇ"
   2171403A2052:
     en: "Nitroglycerin"
-    ja: "ミリスロール注5mg/10mL"
+    ja: "ミリスロール注５ｍｇ／１０ｍＬ"
   2171405D4050:
     en: "Diltiazem"
-    ja: "ヘルベッサー注射用10"
+    ja: "ヘルベッサー注射用１０"
   2325401A2027:
     en: "Famotidine"
-    ja: "ガスター注射液20mg"
+    ja: "ガスター注射液２０ｍｇ"
   # Issue #2423 (MHLW 薬価基準収載品目リスト, 令和8年6月12日適用).
   6139501D2105:
     en: "Imipenem/Cilastatin"
-    ja: "チエナム点滴静注用0.5g"
+    ja: "チエナム点滴静注用０．５ｇ"
   2329021F1102:
     en: "Rebamipide"
-    ja: "ムコスタ錠100mg"
+    ja: "ムコスタ錠１００ｍｇ"
   # Issue #3013: displays from the MEDIS YJ CodeSystem (codes/authoritative).
   1124401A1052:
     en: Midazolam injection
     ja: ドルミカム注射液１０ｍｇ
   2190009A1048:
     en: Sodium polystyrene sulfonate
-    ja: （局）ケイキサレート散
+    ja: "ケイキサレート散"
   1214400A7055:
     en: Lidocaine hydrochloride injection 1%
     ja: キシロカイン注ポリアンプ１％
@@ -820,4 +820,4 @@ codes:
     ja: ジフェンヒドラミン塩酸塩注１０ｍｇ「日新」
   2190400A5037:
     en: D-Mannitol injection
-    ja: （局）Ｄ－マンニトール注射液
+    ja: "２０％マンニットール注射液「ＹＤ」"

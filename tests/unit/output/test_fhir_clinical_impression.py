@@ -312,7 +312,7 @@ def test_code_loinc_emit_admission_h_and_p():
     coding = r["code"]["coding"][0]
     assert coding["system"] == "http://loinc.org"
     assert coding["code"] == "34117-2"
-    assert coding["display"] == "History and physical note"  # Issue #3026: English display
+    assert coding["display"] == "History and Physical Note"  # Issue #3026: English display
     assert r["code"]["text"] == "入院時記録"
 
 

@@ -431,9 +431,11 @@ def _vital_interpretation(
 
 
 def _vital_loinc_coding(code: str, fallback_en: str) -> dict[str, Any]:
-    """A vital-sign LOINC Coding with the English canonical display (Issue #3026)."""
+    """A vital-sign LOINC Coding with the English canonical display (Issue #3026):
+    the LOINC display of the code (Issue #3127 — the validator rejects a label
+    such as "Blood pressure panel"), the English label only for an unregistered code."""
     coding: dict[str, Any] = {"system": get_system_uri("loinc"), "code": code}
-    display = fallback_en or loinc_coding(code, "en").get("display", "")
+    display = loinc_coding(code, "en").get("display", "") or fallback_en
     if display:
         coding["display"] = display
     return coding

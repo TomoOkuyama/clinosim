@@ -32,18 +32,18 @@ An **authority** is the body that defines a code system (NLM, WHO, MHLW, Regenst
 
 1. **Data.** Each code system has one registry file named by its system key (§3.3). Internal-key maps and crosswalks for that system are separate files named after it (`loinc-maps.yaml`, `snomed-maps.yaml`).
 2. **Accessor.** Every code system is an instance of the `CodeSystem` base class (§2.3). An authority that needs a hook or lookups of its own — a mapping, a hierarchy, a product choice, a canonical-URI rule — has one subclass in `clinosim/codes/<authority>.py`, and that module reads only its authority's files. Authorities served by the base class alone (HL7 terminology, CVX, DICOM, OMB, clinosim-owned systems) are plain instances built from their registry file and need no module.
-3. **Snapshot.** Verified extracts from the authority live in `clinosim/codes/authoritative/`, one file per authority and release (`loinc_2_82_tx.json`, `rxnorm_rxnav_snapshot.json`, ...), and a test checks the registry against them.
+3. **Snapshot.** Verified extracts from the authority live in `clinosim/codes/authoritative/`, one file per authority and release (`loinc_2_83_tx.json`, `rxnorm_rxnav_snapshot.json`, ...), and a test checks the registry against them.
 4. **Catalogs join authorities, they do not own them.** A catalog (drugs, procedures, staff roles) holds internal ids, names and the codes of several authorities. It resolves each code through that authority's accessor; it never re-implements an authority's lookup rule.
 
 Current layout:
 
 | Authority | Registry files | Accessor | Snapshot |
 |---|---|---|---|
-| ICD-10-CM (NLM / CMS) | `icd-10-cm.yaml` | `codes/icd10.py` | — |
+| ICD-10-CM (NLM / CMS) | `icd-10-cm.yaml` | `codes/icd10.py` | `icd10cm_2027_cms.json` |
 | ICD-10 (WHO; MHLW Japanese names) | `icd-10.yaml` (alias `icd-10-mhlw`) | `codes/icd10.py` | `icd10_who_tx.json`, `icd10_mhlw_2013_ja.json` |
 | MEDIS 病名管理番号 | `medis-disease-keyno.yaml` | `codes/medis.py` | — |
-| LOINC | `loinc.yaml`, `loinc-maps.yaml` | `codes/loinc.py` | `loinc_2_82_tx.json` |
-| SNOMED CT | `snomed-ct.yaml`, `snomed-maps.yaml`, `procedure-phrase-to-snomed.yaml`, `procedure-snomed-metadata.yaml` | `codes/snomed.py`, `codes/snomed_concepts.py` | — |
+| LOINC | `loinc.yaml`, `loinc-maps.yaml` | `codes/loinc.py` | `loinc_2_83_tx.json` |
+| SNOMED CT | `snomed-ct.yaml`, `snomed-maps.yaml`, `procedure-phrase-to-snomed.yaml`, `procedure-snomed-metadata.yaml` | `codes/snomed.py`, `codes/snomed_concepts.py` | `snomed_ct_tx.json` |
 | RxNorm | `rxnorm.yaml` | through `codes/drugs.py` | `rxnorm_rxnav_snapshot.json` |
 | YJ / HOT (MHLW, MEDIS) | `yj.yaml`, `hot7.yaml` | `codes/yj.py` (formats, YJ master); products per drug in the `codes/drugs.py` catalog | `yj_mhlw_snapshot.json`, `JP_MedicationCodeYJ_CS_full.json`, `yj_tx_fragment.json` |
 | JLAC10 / JP-CLINS lab | `jlac10.yaml`, `jp-clins-lab-uncoded.yaml` | `codes/jlac10.py` | the JP-CLINS package |

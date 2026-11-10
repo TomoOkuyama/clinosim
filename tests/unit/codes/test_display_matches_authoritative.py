@@ -58,10 +58,27 @@ _ALLOWLIST_PATH = Path(__file__).parent / "authoritative_override_allowlist.yaml
 _SYSTEMS_UNDER_CROSS_CHECK: tuple[dict, ...] = (
     {
         "system_key": "yj",
-        "snapshot_file": "yj_tx_fragment.json",
+        # Issue #3127: the published product name (MEDIS 販売名, which the JP
+        # YJ-code CodeSystem displays) of every YJ code — not only the codes
+        # in the earlier tx-server fragment.
+        "snapshot_file": "yj_medis_hot_20261031.json",
         # Which language field in the clinosim YAML is expected to match the
         # snapshot's `display`. YJ 製剤名 is Japanese only on the tx-server.
         "compare_lang": "ja",
+    },
+    {
+        "system_key": "icd-10-cm",
+        # Issue #3127: CMS ICD-10-CM FY2027 code descriptions (long titles,
+        # tabular order file) — the US encounter-diagnosis displays.
+        "snapshot_file": "icd10cm_2027_cms.json",
+        "compare_lang": "en",
+    },
+    {
+        "system_key": "snomed-ct",
+        # Issue #3127: SNOMED CT International (tx.fhir.org $lookup) — the
+        # FSN and synonyms are the accepted displays.
+        "snapshot_file": "snomed_ct_tx.json",
+        "compare_lang": "en",
     },
     {
         "system_key": "icd-10",
@@ -80,15 +97,12 @@ _SYSTEMS_UNDER_CROSS_CHECK: tuple[dict, ...] = (
     },
     {
         "system_key": "loinc",
-        "snapshot_file": "loinc_2_82_tx.json",
-        # LOINC is English-only in the source; clinosim ships a mix of
-        # authoritative LOINC long_display + curated clinical shorthand.
-        # Issue #270 (Phase 3-b, 2026-07-19) migrated from `presence` mode to
-        # full display verification. All 92 divergent codes are registered
-        # in `authoritative_override_allowlist.yaml` with per-code
-        # rationales (75 legitimate shorthand + 17 tracked semantic
-        # mismatches). Any NEW divergence introduced by a future edit fails
-        # CI unless a documented allowlist entry accompanies it.
+        "snapshot_file": "loinc_2_83_tx.json",
+        # LOINC is English-only in the source. Issue #3127: the FHIR validator
+        # rejects clinical shorthand, so every curated display is a LOINC
+        # designation (LONG_COMMON_NAME, SHORTNAME or a display name) of the
+        # release tx.fhir.org serves (2.83). The allowlist keeps only tracked
+        # wrong codes.
         "compare_lang": "en",
     },
 )
@@ -233,5 +247,13 @@ def test_snapshot_metadata_present() -> None:
     for registration in _SYSTEMS_UNDER_CROSS_CHECK:
         snapshot = _load_snapshot(registration["snapshot_file"])
         meta = snapshot.get("metadata") or {}
+        if snapshot.get("resourceType") == "CodeSystem":
+            # A FHIR CodeSystem resource documents itself (Issue #3127).
+            meta = {
+                "source_package": snapshot.get("title") or snapshot.get("name"),
+                "source_url": snapshot.get("url"),
+                "source_file": registration["snapshot_file"],
+                "extracted_at": snapshot.get("version"),
+            }
         for required in ("source_package", "source_url", "source_file", "extracted_at"):
             assert meta.get(required), f"snapshot {registration['snapshot_file']!r} missing metadata.{required}"

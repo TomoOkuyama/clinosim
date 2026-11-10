@@ -42,7 +42,10 @@ clinosim/codes/
     yj_tx_fragment.json                 # YJ (first framework citizen)
     icd10_who_tx.json                   # ICD-10 WHO, English displays
     icd10_mhlw_2013_ja.json             # ICD-10 MHLW, Japanese displays
-    loinc_2_82_tx.json                  # LOINC
+    loinc_2_83_tx.json                  # LOINC
+    icd10cm_2027_cms.json               # ICD-10-CM (CMS)
+    snomed_ct_tx.json                   # SNOMED CT International
+    JP_MedicationCodeYJ_CS_full.json    # YJ (full CodeSystem)
     <system>_<source>.json              # further snapshots (index in README.md)
   loader.py                             # lookup() unchanged
 tests/unit/codes/
@@ -139,13 +142,13 @@ Myocardial infarction (disorder)).
 
 | System        | Source                                          | Phase   | Status |
 |---------------|-------------------------------------------------|---------|--------|
-| YJ            | `jpfhir-terminology 2.2606.0` YJ-code CS (`yj_tx_fragment.json`) | Phase 1 | cross-checked |
+| YJ            | full YJ-code CS (`JP_MedicationCodeYJ_CS_full.json`; fragment `yj_tx_fragment.json` before Issue #3127) | Phase 1 | cross-checked |
 | ICD-10 (WHO)  | `fhir.tx.support.r4` ICD-10 CS (`icd10_who_tx.json`), `en` displays | Phase 2 | cross-checked |
 | ICD-10 (MHLW) | MHLW 基本分類表 2013 (`icd10_mhlw_2013_ja.json`), `ja` displays | — | cross-checked |
-| LOINC         | LOINC 2.82 master (`loinc_2_82_tx.json`)          | Phase 3 | cross-checked |
-| SNOMED CT     | tx-server SNOMED International fragment           | Phase 2 | planned |
+| LOINC         | LOINC 2.83 via tx.fhir.org (`loinc_2_83_tx.json`) | Phase 3 | cross-checked |
+| SNOMED CT     | SNOMED CT International via tx.fhir.org (`snomed_ct_tx.json`) | Phase 2 | cross-checked (Issue #3127) |
 | BCP-47        | HL7 terminology `urn:ietf:bcp:47`                  | Phase 2 | planned |
-| ICD-10-CM     | `codes/data/icd-10-cm.yaml` vs NLM CM master       | Phase 3 | planned |
+| ICD-10-CM     | CMS FY2027 code descriptions (`icd10cm_2027_cms.json`) | Phase 3 | cross-checked (Issue #3127) |
 | MEDIS keyNo   | `medis-codesystem-diseasekanricodes`              | Phase 3 | planned |
 | RxNorm        | NLM RxNorm                                        | Phase 4 | planned |
 | MHLW / JLAC10 | JCCLS + MHLW masters                              | Phase 4 | planned |

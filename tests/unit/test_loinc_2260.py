@@ -13,7 +13,7 @@ from clinosim.modules.output.fhir_r4.labs.stage_scale_observations import _SCALE
 
 pytestmark = pytest.mark.unit
 
-_SNAPSHOT = Path(__file__).resolve().parents[2] / "clinosim" / "codes" / "authoritative" / "loinc_2_82_tx.json"
+_SNAPSHOT = Path(__file__).resolve().parents[2] / "clinosim" / "codes" / "authoritative" / "loinc_2_83_tx.json"
 
 # Verified on tx.fhir.org (LOINC 2.83) on 2026-10-31.
 _VERIFIED = {

@@ -145,9 +145,9 @@ def test_bb_document_references_jp_locale():
     coding_display = r["type"]["coding"][0]["display"]
     text_display = r["type"]["text"]
     # Issue #369: LOINC 11506-3 canonical LONG_COMMON_NAME is
-    # "Provider-unspecified Progress note" (ja lookup requires it, strict
+    # "Progress Note" (ja lookup requires it, strict
     # FHIR validators reject the short form "Progress note").
-    assert coding_display == "Provider-unspecified Progress note"
+    assert coding_display == "Progress Note"
     assert text_display == "経過記録"
 
 
@@ -225,4 +225,4 @@ def test_bb_document_references_us_display_in_english():
     type_display = r["type"]["coding"][0]["display"]
     # Issue #369: LOINC canonical LONG_COMMON_NAME (US path uses the same
     # canonical for consistency; strict validators reject the short form).
-    assert type_display == "Provider-unspecified Progress note"
+    assert type_display == "Progress Note"

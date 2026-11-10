@@ -22,7 +22,7 @@ _CATALOG = load_data_yaml(_ROOT / "modules/document/reference_data/section_catal
 _LOINC = load_data_yaml(_ROOT / "codes/data/loinc.yaml")["codes"]
 _SNAPSHOT = {
     c["code"]: c
-    for c in json.loads((_ROOT / "codes/authoritative/loinc_2_82_tx.json").read_text(encoding="utf-8"))["concept"]
+    for c in json.loads((_ROOT / "codes/authoritative/loinc_2_83_tx.json").read_text(encoding="utf-8"))["concept"]
 }
 
 _REVIEWED = {

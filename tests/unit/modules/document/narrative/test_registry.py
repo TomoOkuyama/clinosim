@@ -628,11 +628,11 @@ def test_load_permits_template_seed_free_text_with_composition_sections() -> Non
 
 
 def test_admission_care_plan_loinc_code_resolves() -> None:
-    """LOINC 18776-5 ('Plan of care note') must resolve in both languages —
+    """LOINC 18776-5 ('Plan of Care Note') must resolve in both languages —
     verified against loinc.org / findacode.com during design (spec §2)."""
     from clinosim.codes import lookup as code_lookup
 
-    assert code_lookup("loinc", "18776-5", "en") == "Plan of care note"
+    assert code_lookup("loinc", "18776-5", "en") == "Plan of Care Note"
     assert code_lookup("loinc", "18776-5", "ja") == "入院診療計画書"
 
 
@@ -685,12 +685,12 @@ def test_production_yaml_passes_stage2_validation() -> None:
 
 
 def test_nutrition_care_plan_loinc_code_resolves() -> None:
-    """LOINC 80791-7 ('Nutrition and dietetics Plan of care note') must
+    """LOINC 80791-7 ('Nutrition and Dietetics Plan of Care Note') must
     resolve in both languages — verified against loinc.org during design
     (spec §2)."""
     from clinosim.codes import lookup as code_lookup
 
-    assert code_lookup("loinc", "80791-7", "en") == "Nutrition and dietetics Plan of care note"
+    assert code_lookup("loinc", "80791-7", "en") == "Nutrition and Dietetics Plan of Care Note"
     assert code_lookup("loinc", "80791-7", "ja") == "栄養管理計画書"
 
 

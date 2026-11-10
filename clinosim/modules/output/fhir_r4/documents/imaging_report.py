@@ -176,9 +176,8 @@ def _build_imaging_report_composition(
                     "system": get_system_uri("loinc"),
                     "code": _IMAGING_REPORT_LOINC,
                     # Issue #3026: English LOINC display; the title is text.
-                    **display_entry(
-                        _title if _title.isascii() else registry_display("loinc", _IMAGING_REPORT_LOINC, "en") or ""
-                    ),
+                    # Issue #3127: the LOINC display, also for an English title.
+                    **display_entry(registry_display("loinc", _IMAGING_REPORT_LOINC, "en") or ""),
                 }
             ],
             "text": _title,

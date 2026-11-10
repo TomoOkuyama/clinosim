@@ -90,7 +90,9 @@ codes:
   '125666000':
     en: Burn
     ja: 熱傷
-  '87317003':
+  # Issue #3127: 87317003 is "Respiratory arrest"; the surgical site
+  # infection concept is 433202001 (tx.fhir.org $lookup 2026-11-10).
+  '433202001':
     en: Surgical site infection
     ja: 手術部位感染
 
@@ -120,8 +122,8 @@ codes:
   '955009':
     en: Bronchial structure
     ja: 気管支
-  '80581009':
-    en: Upper urinary tract structure
+  '304582006':                       # Issue #3127: was 80581009 ("Upper abdomen structure")
+    en: Structure of upper urinary tract
     ja: 上部尿路
   '89837001':
     en: Urinary bladder structure
@@ -139,17 +141,21 @@ codes:
     en: Heart structure
     ja: 心臓
   '41801008':
-    en: Structure of coronary artery
+    en: Coronary artery structure
     ja: 冠動脈
-  '26107004':
+  # Issue #3127: codes checked with tx.fhir.org $lookup (2026-11-10).
+  # 26107004 ("Structure of musculoskeletal system") and 118375008 ("Cardiac
+  # septum prosthesis") named the wrong concepts; 30315005 is the small
+  # intestine and 14742008 the large intestine.
+  '30315005':
     en: Structure of small intestine
     ja: 小腸
-  '30315005':
+  '14742008':
     en: Structure of large intestine
     ja: 大腸
-  '118375008':
-    en: Intrathoracic structure
-    ja: 胸腔内
+  '91381003':
+    en: Pleural cavity structure
+    ja: 胸膜腔
   '818983003':
     en: Abdomen
     ja: 腹部
@@ -162,17 +168,20 @@ codes:
   '21483005':
     en: Structure of central nervous system
     ja: 中枢神経系
-  '58602004':
-    en: Peripheral vascular structure
-    ja: 末梢血管
-  '32713005':
-    en: Vertebral column structure
-    ja: 脊椎
+  # Issue #3127: 58602004 is "Flank structure" and 32713005 "Cecum
+  # structure"; a peripheral line goes into a peripheral vein (IV line) or
+  # the radial artery (arterial line).
+  '421466002':
+    en: Structure of peripheral vein
+    ja: 末梢静脈
+  '45631007':
+    en: Structure of radial artery
+    ja: 橈骨動脈
   '38266002':
     en: Entire body as a whole
     ja: 全身
-  '87642003':
-    en: Skin and subcutaneous tissue structure
+  '127856007':                       # Issue #3127: was 87642003 ("Dislocation")
+    en: Skin and/or subcutaneous tissue structure
     ja: 皮膚・皮下組織
 
   # === Microbiology: organisms (AD-55) ===  # TODO: verify codes vs SNOMED CT
@@ -245,7 +254,7 @@ codes:
     en: Ex-smoker
     ja: 元喫煙者
   '449868002':
-    en: Current every day smoker
+    en: Smokes tobacco daily
     ja: 現在毎日喫煙
   # === Alcohol use ===
   # Verified active against SNOMED CT International via tx.fhir.org $lookup,
@@ -636,7 +645,7 @@ codes:
     en: Vertebral column
     ja: 脊椎
   '8205005':
-    en: Wrist region
+    en: Wrist region structure
     ja: 手関節部
   # Device (facility-shared infusion pump, session 52 fix 2 — verified via
   # tx.fhir.org $expand 2026-07-14)

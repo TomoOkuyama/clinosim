@@ -1188,7 +1188,9 @@ def _build_death_discharge_summary_composition(
                 {
                     "system": get_system_uri("loinc"),
                     "code": document_loinc("death_discharge_summary"),
-                    "display": _DEATH_DISCHARGE_SUMMARY_TITLE_EN,
+                    # Issue #3127: the LOINC display; the death-variant title is text.
+                    "display": registry_display("loinc", document_loinc("death_discharge_summary"), "en")
+                    or _DEATH_DISCHARGE_SUMMARY_TITLE_EN,
                 },
             ],
             "text": _DEATH_DISCHARGE_SUMMARY_TITLE_EN,

@@ -79,7 +79,7 @@ def test_medication_request_jp_code_comes_from_the_catalog_by_route() -> None:
     assert (iv["system"], iv["code"]) == (JP_YJ_CODE_URI, jp_drug_code("furosemide", "IV"))
     assert (po["system"], po["code"]) == (JP_YJ_CODE_URI, jp_drug_code("furosemide", "PO"))
     assert iv["code"] != po["code"]
-    assert iv["display"] == "ラシックス注20mg"
+    assert iv["display"] == "ラシックス注２０ｍｇ"
 
 
 def test_medication_request_jp_drug_without_a_product_for_the_route_is_nocoded() -> None:

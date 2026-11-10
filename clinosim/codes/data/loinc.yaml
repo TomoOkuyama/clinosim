@@ -6,6 +6,13 @@
 # (https://clinicaltables.nlm.nih.gov/api/loinc_items/v3/search) — every mapped code's
 # COMPONENT / LONG_COMMON_NAME matches its analyte and specimen. Do not add a code without
 # verifying it against an authoritative LOINC source (no fabrication — AD-57).
+#
+# Issue #3127: every `en` display is a LOINC designation (the LONG_COMMON_NAME
+# unless noted) of the LOINC release tx.fhir.org serves (2.83), checked by
+# tests/unit/codes/test_display_matches_authoritative.py against
+# clinosim/codes/authoritative/loinc_2_83_tx.json. The FHIR validator rejects
+# clinical shorthand ("Total cholesterol" for 2093-3), so a readable label
+# belongs in CodeableConcept.text, not in the coding display.
 metadata:
   kind: code-system
   name: LOINC
@@ -53,7 +60,7 @@ codes:
     ja: 退院日
   # === Clinical document types (FHIR DocumentReference.type) ===
   34117-2:
-    en: History and physical note
+    en: "History and Physical Note"
     ja: 入院時記録
   11506-3:
     # Issue #369: LOINC canonical LONG_COMMON_NAME is "Provider-unspecified
@@ -61,10 +68,10 @@ codes:
     # `ja` translation table and strict FHIR validators reject it there.
     # `text` field (JP UI label) carries "経過記録"; `coding.display` carries
     # the LOINC canonical EN.
-    en: Provider-unspecified Progress note
+    en: "Progress Note"
     ja: 経過記録
   18842-5:
-    en: Discharge summary note
+    en: "Discharge Summary"
     ja: 退院時サマリー
   # Issue #360 G5 (2026-07-22): "Summary of episode note" — emitted by
   # clinosim as a DocumentReference.type for the ClinicalDocument
@@ -74,23 +81,23 @@ codes:
   # Japanese: MEDIS LOINC-JP マッピング(サマリー文書 pattern
   # aligned with the 退院時サマリー / 経過記録 sibling entries above).
   34133-9:
-    en: Summary of episode note
+    en: "Summary of Episode Note"
     ja: サマリー文書
   18776-5:
-    en: Plan of care note
+    en: "Plan of Care Note"
     ja: 入院診療計画書
   72514-3:
     en: Pain severity - 0-10 verbal numeric rating [Score] - Reported
     ja: 疼痛スケール (NRS 0-10)
   80791-7:
-    en: Nutrition and dietetics Plan of care note
+    en: "Nutrition and Dietetics Plan of Care Note"
     ja: 栄養管理計画書
   34823-5:
-    en: Physical medicine and rehab Note
+    en: "Physical Medicine and Rehab Note"
     ja: リハビリテーション実施計画書
   # P2-13 PR2b (session 47) JP-CLINS 診療情報提供書 (Referral note)
   57133-1:
-    en: Referral note
+    en: "Referral Note"
     ja: 診療情報提供書
   # P2-13 PR3 (session 47) JP-eCheckup General 健診結果報告書
   53576-5:
@@ -119,7 +126,7 @@ codes:
     en: "Education Note"
     ja: 患者教育
   64297-5:
-    en: Death certificate
+    en: "Death Certificate"
     ja: 死亡診断書
   # LOINC 79378-6 "Cause of death" — used as Composition.section.code for
   # the immediate cause section on the death certificate (LOINC canonical
@@ -128,10 +135,10 @@ codes:
     en: Cause of death
     ja: 死因
   11504-8:
-    en: Surgical operation note
+    en: "Surgical Operation Note"
     ja: 手術記録
   28570-0:
-    en: Procedure note
+    en: "Procedure Note"
     ja: 処置記録
   # === α-min-2 document types (Tier 1 #3, 2026-07) ===
   # All 6 codes verified 2026-07-01 via NLM Clinical Table Search Service
@@ -141,7 +148,7 @@ codes:
     # NOTE: DocumentType enum initially commented 34820-1 ("Pharmacology Consult note" — wrong)
     # and 34119-8 ("Nursing facility Initial evaluation note" — SNF, not hospital).
     # 78390-2 is the authoritative code for hospital nursing admission assessment.
-    en: Nurse Admission history and physical note
+    en: "Nurse Admission History and Physical Note"
     ja: 看護入院アセスメント
   34746-8:
     # Verified: LONG_COMMON_NAME = "Nurse Note"
@@ -151,23 +158,23 @@ codes:
     ja: 看護記録
   34745-0:
     # Verified: LONG_COMMON_NAME = "Nurse Discharge summary"
-    en: Nurse Discharge summary
+    en: "Nurse Discharge Summary"
     ja: 看護退院サマリー
   34131-3:
     # Verified 2026-07-01: LONG_COMMON_NAME = "Outpatient Progress note"
     # Chosen over 11488-4 ("Consult note") and 34120-6 ("Outpatient Initial evaluation note")
     # because OUTPATIENT_SOAP is a SOAP-structured outpatient progress note, not a consult.
-    en: Outpatient Progress note
+    en: "Outpatient Progress Note"
     ja: 外来経過記録（SOAP）
   34878-9:
     # Verified: LONG_COMMON_NAME = "Emergency medicine Note"
     # NOTE: 51841-6 was the initial candidate but returned no result from NLM API.
     # 34878-9 is the authoritative ED physician note code.
-    en: Emergency medicine Note
+    en: "Emergency Medicine Note"
     ja: 救急科記録
   54094-8:
     # Verified: LONG_COMMON_NAME = "Emergency department Triage note"
-    en: Emergency department Triage note
+    en: "Emergency Department Triage Note"
     ja: トリアージ記録
   # === C4-04 (session 43 cycle 4): Composition.section[].code narrative LOINCs ===
   # HL7 CCDA v2.1 canonical section codes, cited in HL7 US-CCDA IG Vol 2.
@@ -179,10 +186,10 @@ codes:
     en: Chief complaint Narrative - Reported
     ja: 主訴
   10157-6:
-    en: History of family member diseases Narrative
+    en: "History of family member diseases note"
     ja: 家族歴
   10160-0:
-    en: History of medication use Narrative
+    en: "History of Medication use Narrative"
     ja: 服薬歴
   10164-2:
     en: History of Present illness Narrative
@@ -197,19 +204,19 @@ codes:
     en: Review of systems Narrative - Reported
     ja: システム別レビュー
   11348-0:
-    en: History of Past illness Narrative
+    en: "History of Past illness note"
     ja: 既往歴
   11535-2:
-    en: Hospital discharge Dx Narrative
+    en: "Hospital discharge diagnosis note"
     ja: 退院時診断
   29308-4:
     en: Diagnosis
     ja: 診断
   29545-1:
-    en: Physical findings Narrative
+    en: "Physical findings note"
     ja: 身体所見
   29762-2:
-    en: Social history Narrative
+    en: "Social history note"
     ja: 社会歴
   42346-6:
     en: Patient education Narrative
@@ -224,10 +231,10 @@ codes:
     en: Allergies and adverse reactions Document
     ja: アレルギー・副作用歴
   51847-2:
-    en: Evaluation + Plan note
+    en: "Evaluation + Plan Note"
     ja: 評価計画記録
   51848-0:
-    en: Evaluation note
+    en: "Evaluation Note"
     ja: 評価記録
   51852-2:
     en: Letter
@@ -242,16 +249,16 @@ codes:
     en: Hospital Letter
     ja: 退院時転帰
   75326-9:
-    en: Clinical finding
+    en: "Problem"
     ja: 臨床所見
   8648-8:
-    en: Hospital course Narrative
+    en: "Hospital course note"
     ja: 入院経過
   8650-4:
     en: Hospital discharge disposition note
     ja: 退院時準備状況
   8653-8:
-    en: Hospital discharge instructions Narrative
+    en: "Hospital Discharge Instructions"
     ja: 退院時指示
   # Issue #1766: LOINC 8716-3 canonical SHORT_NAME is "Vital signs note"
   # (verified 2026-10-22 via tx.fhir.org $lookup against LOINC). The
@@ -264,7 +271,7 @@ codes:
 
   # === Lab codes ===
   11580-8:
-    en: Thyroid stimulating hormone [Units/volume] in Serum or Plasma
+    en: "Thyrotropin [Units/volume] in Serum or Plasma by Detection limit <= 0.005 mIU/L"
     ja: TSH（血清）
   # C5 / #1091 correction: 13457-7 IS the calculation code (Friedewald);
   # 18262-6 is the direct-assay code. Pre-C5 the display here was
@@ -284,7 +291,7 @@ codes:
   # Issue #380 (session 66): 14-code LOINC canonical alignment
   # (SHORTNAME → LONG_COMMON_NAME) for v25 Pattern A #1-3. Under strict
   # HAPI validation the SHORTNAME is rejected as "Wrong Display Name";
-  # snapshot LONG_COMMON_NAME (from clinosim/codes/authoritative/loinc_2_82_tx.json,
+  # snapshot LONG_COMMON_NAME (then loinc_2_82_tx.json, now loinc_2_83_tx.json,
   # sourced tx.fhir.org $lookup) is the canonical ja display. Session-58
   # override_allowlist "clinical shorthand" entries for 11331-6 and 80288-4
   # removed accordingly. Prior sibling: PR #371 (LOINC 11506-3) session 65.
@@ -304,7 +311,7 @@ codes:
     en: Aspartate aminotransferase [Enzymatic activity/volume] in Serum or Plasma
     ja: AST(GOT)
   1959-6:
-    en: Bicarbonate [Moles/volume] in Arterial blood
+    en: "Bicarbonate [Moles/volume] in Blood"
     ja: HCO3（動脈血）
   1963-8:
     en: Bicarbonate [Moles/volume] in Serum or Plasma
@@ -314,7 +321,7 @@ codes:
     en: Bicarbonate [Moles/volume] in Arterial blood
     ja: HCO3
   1975-2:
-    en: Total bilirubin
+    en: "Bilirubin.total [Mass/volume] in Serum or Plasma"
     ja: 総ビリルビン
   1988-5:
     en: C reactive protein [Mass/volume] in Serum or Plasma
@@ -323,22 +330,22 @@ codes:
     en: Carbon dioxide [Partial pressure] in Arterial blood
     ja: pCO2
   2075-0:
-    en: Chloride
+    en: "Chloride [Moles/volume] in Serum or Plasma"
     ja: クロール
   2085-9:
     en: Cholesterol in HDL [Mass/volume] in Serum or Plasma
     ja: HDLコレステロール
   2093-3:
-    en: Total cholesterol
+    en: "Cholesterol [Mass/volume] in Serum or Plasma"
     ja: 総コレステロール
   2157-6:
-    en: Creatine kinase
+    en: "Creatine kinase [Enzymatic activity/volume] in Serum or Plasma"
     ja: CK(CPK)
   2160-0:
     en: Creatinine [Mass/volume] in Serum or Plasma
     ja: クレアチニン
   2324-2:
-    en: Gamma-glutamyl transferase
+    en: "Gamma glutamyl transferase [Enzymatic activity/volume] in Serum or Plasma"
     ja: γ-GTP
   2345-7:
     en: Glucose [Mass/volume] in Serum or Plasma
@@ -350,7 +357,7 @@ codes:
     en: Lactate [Moles/volume] in Serum or Plasma
     ja: 乳酸
   2532-0:
-    en: Lactate dehydrogenase
+    en: "Lactate dehydrogenase [Enzymatic activity/volume] in Serum or Plasma"
     ja: LDH
   2571-8:
     en: Triglyceride [Mass/volume] in Serum or Plasma
@@ -368,13 +375,13 @@ codes:
     en: Potassium [Moles/volume] in Serum or Plasma
     ja: カリウム
   2885-2:
-    en: Total protein
+    en: "Protein [Mass/volume] in Serum or Plasma"
     ja: 総蛋白
   2951-2:
     en: Sodium [Moles/volume] in Serum or Plasma
     ja: ナトリウム
   30341-2:
-    en: Erythrocyte sedimentation rate
+    en: "Erythrocyte [Sedimentation Rate] in Blood"
     ja: 赤血球沈降速度（ESR）
   3040-3:
     en: Lipase [Enzymatic activity/volume] in Serum or Plasma
@@ -401,7 +408,7 @@ codes:
   3255-7:
     # NLM COMPONENT="Fibrinogen"; clinosim convention uses clean short names
     # (TestLoincDisplay guards against [Mass/volume] etc. in `display`).
-    en: Fibrinogen
+    en: "Fibrinogen [Mass/volume] in Platelet poor plasma by Coagulation assay"
     ja: フィブリノーゲン（血漿）
   32693-4:
     en: Lactate [Moles/volume] in Blood
@@ -410,19 +417,19 @@ codes:
     en: Natriuretic peptide.B prohormone N-Terminal [Mass/volume] in Serum or Plasma
     ja: NT-proBNP
   33914-3:
-    en: Glomerular filtration rate/1.73 sq M.predicted
+    en: "Glomerular filtration rate [Volume Rate/Area] in Serum or Plasma by Creatinine-based formula (MDRD)/1.73 sq M"
     ja: 推算糸球体濾過量（eGFR）
   4544-3:
-    en: Hematocrit
+    en: "Hematocrit [Volume Fraction] of Blood by Automated count"
     ja: ヘマトクリット
   4548-4:
     en: Hemoglobin A1c/Hemoglobin.total in Blood
     ja: HbA1c
   48066-5:
-    en: D dimer [Mass/volume] in Platelet poor plasma by Immunoassay
+    en: "Fibrin D-dimer DDU [Mass/volume] in Platelet poor plasma"
     ja: Dダイマー（血漿）
   48642-3:
-    en: Estimated GFR
+    en: "Glomerular filtration rate [Volume Rate/Area] in Serum, Plasma or Blood by Creatinine-based formula (MDRD)/1.73 sq M among non black population"
     ja: 推算糸球体濾過量
   5902-2:
     en: Prothrombin time (PT)
@@ -431,13 +438,13 @@ codes:
     en: INR in Platelet poor plasma by Coagulation assay
     ja: PT-INR
   6598-7:
-    en: Troponin T, cardiac
+    en: "Troponin T.cardiac [Mass/volume] in Serum or Plasma"
     ja: 心筋トロポニンT
   6690-2:
     en: Leukocytes [#/volume] in Blood by Automated count
     ja: 白血球数
   6768-6:
-    en: Alkaline phosphatase
+    en: "Alkaline phosphatase [Enzymatic activity/volume] in Serum or Plasma"
     ja: ALP
   718-7:
     en: Hemoglobin [Mass/volume] in Blood
@@ -449,7 +456,7 @@ codes:
     en: Platelets [#/volume] in Blood by Automated count
     ja: 血小板数
   789-8:
-    en: Erythrocyte count [#/volume] in Blood
+    en: "Erythrocytes [#/volume] in Blood by Automated count"
     ja: 赤血球数（血液）
   80288-4:
     # Issue #384 wave 4 (session 66): the actual fhirserver LOINC 2.82
@@ -486,7 +493,7 @@ codes:
     en: Body weight
     ja: 体重
   8287-5:
-    en: Head Occipital-frontal circumference
+    en: "Head Occipital-frontal circumference by Tape measure"
     ja: 頭囲
   39156-5:
     en: Body mass index (BMI) [Ratio]
@@ -668,13 +675,13 @@ codes:
   # === Lipids / endocrine / inflammation (AD-57; codes verified vs NLM LOINC) ===
   # (2085-9 HDL, 2093-3 TC, 2571-8 TG, 2703-7 pO2 are defined once above — no duplicates.)
   2089-1:
-    en: LDL cholesterol
+    en: "Cholesterol in LDL [Mass/volume] in Serum or Plasma"
     ja: LDLコレステロール
   3016-3:
-    en: Thyroid-stimulating hormone
+    en: "Thyrotropin [Units/volume] in Serum or Plasma"
     ja: 甲状腺刺激ホルモン (TSH)
   4537-7:
-    en: Erythrocyte sedimentation rate
+    en: "Erythrocyte [Sedimentation Rate] in Blood by Westergren method"
     ja: 赤血球沈降速度 (ESR)
   # === Cardiac injury markers (AD-55) ===
   10839-9:
@@ -709,7 +716,7 @@ codes:
     en: ceFAZolin [Susceptibility]
     ja: セファゾリン感受性
   18895-3:
-    en: Ceftriaxone [Susceptibility]
+    en: "cefTRIAXone [Susceptibility]"
     ja: セフトリアキソン感受性
   18879-7:
     en: Cefepime [Susceptibility]
@@ -759,10 +766,10 @@ codes:
   # session 48 cycle 8 CY8-01 fix: 労安衛法定健診 panel の canonical LOINC。
   # NLM Clinical Tables API 検証済(2026-07-13)。
   55418-8:
-    en: Weight and height panel
+    en: "Weight and Height tracking panel"
     ja: 身体計測パネル
   58410-2:
-    en: Complete blood count (hemogram) panel - Blood by Automated count
+    en: "CBC panel - Blood by Automated count"
     ja: 全血球計算パネル
   24321-2:
     en: Basic metabolic 2000 panel - Serum or Plasma
@@ -782,7 +789,7 @@ codes:
   # NLM Clinical Tables verified (clinicaltables.nlm.nih.gov/api/loinc_items).
   # PT 5902-2 already present above; Fibrinogen 3255-7 also already present.
   14979-9:
-    en: aPTT
+    en: "aPTT in Platelet poor plasma by Coagulation assay"
     ja: 活性化部分トロンボプラスチン時間
   48065-7:
     # NLM Clinical Tables LONG_COMMON_NAME = "Fibrin D-dimer FEU [Mass/volume]
@@ -791,7 +798,7 @@ codes:
     # against [Mass/volume] etc.). FEU is the canonical unit for clinosim's
     # locale reference range (US 0.5 ug/mL / JP 1.0 ug/mL — both FEU,
     # JCCLS 2022).
-    en: D-dimer
+    en: "Fibrin D-dimer FEU [Mass/volume] in Platelet poor plasma"
     ja: D ダイマー
   # === HAI culture LOINCs (PR-B) ===
   # 600-7 (Blood), 630-4 (Urine), 624-7 (Sputum) are already registered
@@ -810,13 +817,13 @@ codes:
   # C5-01 residual (session 43 cycle 5): analyte LOINCs verified via NLM
   # Clinical Table Search Service (clinicaltables.nlm.nih.gov/api/loinc_items/v3/search).
   2777-1:
-    en: Phosphate
+    en: "Phosphate [Mass/volume] in Serum or Plasma"
     ja: リン
   # session 58 Issue #264: 32340-6 was retired from LOINC. Real active
   # replacement for Beta hydroxybutyrate in Blood is 104816-4 (verified
   # against LOINC 2.82 master table).
   104816-4:
-    en: Beta hydroxybutyrate
+    en: "Beta hydroxybutyrate [Moles/volume] in Blood"
     ja: β-ヒドロキシ酪酸
   # session 58 Issue #264: 30794-3 was retired from LOINC. Real active
   # replacements for Chest CT (verified against LOINC 2.82) are 29252-4 for
@@ -828,59 +835,59 @@ codes:
     en: CT Chest W contrast IV
     ja: 胸部造影CT
   1863-0:
-    en: Anion gap
+    en: "Anion gap in Serum or Plasma by Calculated.4Ions"
     ja: アニオンギャップ
   33452-4:
-    en: Peak expiratory flow
+    en: "Maximum expiratory gas flow Respiratory system airway"
     ja: ピークフロー
   20565-8:
-    en: Carbon dioxide, total
+    en: "Carbon dioxide, total [Moles/volume] in Blood"
     ja: 総二酸化炭素
   2028-9:
-    en: Carbon dioxide, total
+    en: "Carbon dioxide, total [Moles/volume] in Serum or Plasma"
     ja: 総二酸化炭素
   6295-0:
     en: Complement C3d [Presence] in Red Blood Cells
     ja: アンモニア
   19123-9:
-    en: Magnesium
+    en: "Magnesium [Mass/volume] in Serum or Plasma"
     ja: マグネシウム
   24357-6:
-    en: Urinalysis panel
+    en: "Urinalysis macro (dipstick) panel - Urine"
     ja: 尿検査パネル
   # Tumor markers (Issue #957 slice 1). Codes verified against
   # NLM Clinical Table Search Service LOINC API (2026-08).
   2039-6:
-    en: CEA
+    en: "Carcinoembryonic Ag [Mass/volume] in Serum or Plasma"
     ja: CEA（癌胎児性抗原）
   24108-3:
-    en: Cancer Ag 19-9
+    en: "Cancer Ag 19-9 [Units/volume] in Serum or Plasma"
     ja: CA19-9
   1834-1:
-    en: Alpha-1-Fetoprotein
+    en: "Alpha-1-Fetoprotein [Mass/volume] in Serum or Plasma"
     ja: AFP（α-フェトプロテイン）
   44805-4:
     en: PIVKA-II
     ja: PIVKA-II
   6875-9:
-    en: Cancer Ag 15-3
+    en: "Cancer Ag 15-3 [Units/volume] in Serum or Plasma"
     ja: CA15-3
   2857-1:
-    en: Prostate specific Ag
+    en: "Prostate specific Ag [Mass/volume] in Serum or Plasma"
     ja: PSA（前立腺特異抗原）
   # Therapeutic drug monitoring (Issue #757 remaining). Codes verified
   # against NLM Clinical Table Search Service LOINC API (2026-08).
   10535-3:
-    en: Digoxin
+    en: "Digoxin [Mass/volume] in Serum or Plasma"
     ja: ジゴキシン血中濃度
   14334-7:
-    en: Lithium
+    en: "Lithium [Moles/volume] in Serum or Plasma"
     ja: リチウム血中濃度
   27069-5:
     en: Tacrolimus
     ja: タクロリムス血中濃度（トラフ）
   3521-2:
-    en: Cyclosporine
+    en: "cycloSPORINE [Mass/volume] in Serum"
     ja: シクロスポリン血中濃度（トラフ）
 
   # Mental-health assessment scores — Issue #1281 / META #1137
@@ -895,19 +902,19 @@ codes:
     en: Newborn screening report - overall interpretation
     ja: 新生児マススクリーニング 総合判定
   44249-1:
-    en: PHQ-9 quick depression assessment panel
+    en: "PHQ-9 quick depression assessment panel [Reported.PHQ]"
     ja: PHQ-9 うつ病質問票 総合スコア
   70274-6:
-    en: Generalized anxiety disorder 7 item (GAD-7) total score
+    en: "Generalized anxiety disorder 7 item (GAD-7) total score [Reported.PHQ]"
     ja: GAD-7 全般性不安障害 総合スコア
   93372-1:
     en: Columbia Suicide Severity Rating Scale (C-SSRS) lifetime suicidal ideation severity scale
     ja: C-SSRS コロンビア自殺重症度評価尺度 生涯希死念慮重症度
   89204-2:
-    en: 'Patient Health Questionnaire-9: Modified for Teens total score'
+    en: "Patient Health Questionnaire-9: Modified for Teens total score [Reported.PHQ.Teen]"
     ja: PHQ-9 (青少年改訂版) 総合スコア
   55757-9:
-    en: Patient Health Questionnaire 2 item (PHQ-2)
+    en: "Patient Health Questionnaire 2 item (PHQ-2) [Reported]"
     ja: PHQ-2 うつ病2項目版
   # Phase 3.α (#1807-follow-up) — blood-type LOINC codes previously
   # mirrored in a fallback dict inside fhir_r4/labs/blood_type.py.
@@ -926,8 +933,8 @@ codes:
   # 19 LOINC codes are the authority counterparts.
   #
   # EN values are the LOINC Long Common Name (LCN) from the
-  # authoritative snapshot ``tests/unit/codes/snapshots/
-  # loinc_2_82_tx.json`` (NLM / Regenstrief 2.82). JA values are the
+  # authoritative snapshot ``clinosim/codes/authoritative/
+  # loinc_2_83_tx.json`` (LOINC 2.83 via tx.fhir.org). JA values are the
   # clinosim-curated translations currently emitted by the simulator
   # (body_sites.yaml composite labels), kept here as the single source
   # of truth and byte-preserving current FHIR output.

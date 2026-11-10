@@ -14,7 +14,7 @@ Coverage:
   - composition.py: JP dispatch uses jpfhir-doc-typecodes system + JP
     title 死亡診断書 (dual-slot in .text)
   - composition.py: US dispatch uses LOINC system + EN title
-    "Death certificate"
+    "Death Certificate"
   - narrative builder: immediate_cause_of_death section populates ICD-10
     from the encounter's clinical_diagnosis
 """
@@ -266,8 +266,8 @@ def test_us_death_certificate_composition_uses_loinc_and_english_title() -> None
     # US path goes through the generic builder — LOINC is the type coding.
     assert typ["coding"][0]["system"] == "http://loinc.org"
     assert typ["coding"][0]["code"] == "64297-5"
-    assert typ["coding"][0]["display"] == "Death certificate"
-    assert dc_comp["title"] == "Death certificate"
+    assert typ["coding"][0]["display"] == "Death Certificate"
+    assert dc_comp["title"] == "Death Certificate"
 
 
 def test_death_certificate_composition_sections_render_localized_titles() -> None:
@@ -389,7 +389,9 @@ def test_us_death_discharge_summary_composition_has_english_death_title() -> Non
     typ = dds["type"]
     assert typ["coding"][0]["system"] == "http://loinc.org"
     assert typ["coding"][0]["code"] == "18842-5"
-    assert typ["coding"][0]["display"] == "Death discharge summary"
+    # Issue #3127: the coding carries the LOINC display; the death title is text.
+    assert typ["coding"][0]["display"] == "Discharge Summary"
+    assert typ["text"] == "Death discharge summary"
 
 
 def test_dds_section_titles_localized_ja() -> None:

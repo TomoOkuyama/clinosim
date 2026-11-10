@@ -66,12 +66,12 @@ def _narr(text: str = "Sample progress note text.") -> dict[str, Any]:
     "loinc,expected_en,expected_ja",
     [
         # Issue #369: LOINC canonical LONG_COMMON_NAME (ja lookup requires it).
-        ("11506-3", "Provider-unspecified Progress note", "経過記録"),
-        ("18842-5", "Discharge summary note", "退院時サマリー"),
-        ("34117-2", "History and physical note", "入院時記録"),
+        ("11506-3", "Progress Note", "経過記録"),
+        ("18842-5", "Discharge Summary", "退院時サマリー"),
+        ("34117-2", "History and Physical Note", "入院時記録"),
         # 34133-9 was missing from loinc.yaml pre-fix; adding it here is
         # part of this PR (data + emitter both change).
-        ("34133-9", "Summary of episode note", "サマリー文書"),
+        ("34133-9", "Summary of Episode Note", "サマリー文書"),
     ],
 )
 def test_jp_dref_type_has_en_coding_display_and_jp_text(loinc: str, expected_en: str, expected_ja: str) -> None:
@@ -93,8 +93,8 @@ def test_us_dref_type_has_en_coding_display_and_en_text() -> None:
     assert res is not None
     # Issue #369: LOINC canonical LONG_COMMON_NAME (also used on US path
     # for consistency; SHORTNAME "Progress note" is not the CS canonical).
-    assert res["type"]["coding"][0]["display"] == "Provider-unspecified Progress note"
-    assert res["type"]["text"] == "Provider-unspecified Progress note"
+    assert res["type"]["coding"][0]["display"] == "Progress Note"
+    assert res["type"]["text"] == "Progress Note"
 
 
 def test_missing_loinc_never_shows_the_code() -> None:
@@ -114,7 +114,7 @@ def test_loinc_34133_9_is_resolvable_in_both_locales() -> None:
     before this PR — the display fell back to the numeric code on any
     ClinicalDocument that used the ``summary_of_episode`` role. Guards
     against a future accidental deletion."""
-    assert code_lookup("loinc", "34133-9", "en") == "Summary of episode note"
+    assert code_lookup("loinc", "34133-9", "en") == "Summary of Episode Note"
     assert code_lookup("loinc", "34133-9", "ja") == "サマリー文書"
 
 

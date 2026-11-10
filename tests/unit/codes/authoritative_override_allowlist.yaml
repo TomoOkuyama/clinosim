@@ -22,608 +22,67 @@
 # today. Follow-up snapshots (SNOMED / ICD-10) may introduce entries when
 # JP clinical shorthand differs from WHO preferred terms.
 yj: {}
+# Issue #3127: every other LOINC display is a LOINC 2.83 designation (the
+# FHIR validator rejects clinical shorthand); only a tracked wrong code remains.
 loinc:
-  11506-3:
-    lang: en
-    clinosim_display: Provider-unspecified Progress note
-    authoritative_display: Progress note
-    rationale: |
-      HAPI-based FHIR validators (specifically the JP-flavor spec validator
-      run against clinosim output, using tx.fhir.org as the terminology
-      backend but with strict ja-display enforcement via -check-display
-      beyond Ignore) reject the SHORTNAME "Progress note" on
-      DocumentReference.type / Composition.type coding[].display for
-      LOINC 11506-3 and require the LONG_COMMON_NAME
-      "Provider-unspecified Progress note" as the CS canonical for
-      language 'ja'. This is a validator-implementation divergence:
-      tx.fhir.org $lookup returns SHORTNAME as the primary display in the
-      snapshot we captured, but the LONG_COMMON_NAME is the CS-registered
-      ja designation and is what strict downstream consumers require.
-      Adopting LONG_COMMON_NAME as clinosim's canonical resolves 2,513
-      "Wrong Display Name" errors in the most recent iris4h-ai run
-      (Issue #369).
-    registered_at: 2026-07-22
-  104816-4:
-    lang: en
-    clinosim_display: Beta hydroxybutyrate
-    authoritative_display: Beta hydroxybutyrate [Moles/volume] in Blood
-    rationale: Clinical shorthand. Curated 'Beta hydroxybutyrate' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Beta hydroxybutyrate [Moles/volume]
-      in Blood' (specimen / units suffix elided for readability).
-    registered_at: 2026-07-19
-  10157-6:
-    lang: en
-    clinosim_display: History of family member diseases Narrative
-    authoritative_display: History of family member diseases note
-    rationale: Clinical shorthand. Curated 'History of family member diseases Narrative'
-      is a semantically equivalent short form of LOINC LONG_COMMON_NAME 'History of
-      family member diseases note' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  10160-0:
-    lang: en
-    clinosim_display: History of medication use Narrative
-    authoritative_display: History of Medication use Narrative
-    rationale: Clinical shorthand. Curated 'History of medication use Narrative' is
-      a semantically equivalent short form of LOINC LONG_COMMON_NAME 'History of Medication
-      use Narrative' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  # 10839-9 entry removed 2026-07-23 (Issue #380 follow-up / PR L) — clinosim
-  # now emits the LOINC LONG_COMMON_NAME "Troponin I.cardiac [Mass/volume]
-  # in Serum or Plasma" directly (SHORTNAME "Cardiac troponin I" was
-  # rejected by strict HAPI validator with 27 v27 errors). Override no
-  # longer needed.
-  # 11331-6 entry removed 2026-07-23 (Issue #380 / session 66) — clinosim
-  # now emits the LOINC LONG_COMMON_NAME "History of Alcohol use" directly
-  # (SHORTNAME "History of alcohol use" was rejected by strict HAPI
-  # validator with 61 v25 errors). Override no longer needed.
-  11348-0:
-    lang: en
-    clinosim_display: History of Past illness Narrative
-    authoritative_display: History of Past illness note
-    rationale: Clinical shorthand. Curated 'History of Past illness Narrative' is
-      a semantically equivalent short form of LOINC LONG_COMMON_NAME 'History of Past
-      illness note' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  11535-2:
-    lang: en
-    clinosim_display: Hospital discharge Dx Narrative
-    authoritative_display: Hospital discharge diagnosis note
-    rationale: Clinical shorthand. Curated 'Hospital discharge Dx Narrative' is a
-      semantically equivalent short form of LOINC LONG_COMMON_NAME 'Hospital discharge
-      diagnosis note' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  11580-8:
-    lang: en
-    clinosim_display: Thyroid stimulating hormone [Units/volume] in Serum or Plasma
-    authoritative_display: Thyrotropin [Units/volume] in Serum or Plasma by Detection
-      limit <= 0.005 mIU/L
-    rationale: Clinical shorthand. Curated 'Thyroid stimulating hormone [Units/volume]
-      in Serum or Plasma' is a semantically equivalent short form of LOINC LONG_COMMON_NAME
-      'Thyrotropin [Units/volume] in Serum or Plasma by Detection limit <= 0.005 mIU/L'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  13457-7:
-    lang: en
-    clinosim_display: Cholesterol in LDL [Mass/volume] in Serum or Plasma by Direct
-      assay
-    authoritative_display: Cholesterol in LDL [Mass/volume] in Serum or Plasma by
-      calculation
-    rationale: Clinical shorthand. Curated 'Cholesterol in LDL [Mass/volume] in Serum
-      or Plasma by Direct assay' is a semantically equivalent short form of LOINC
-      LONG_COMMON_NAME 'Cholesterol in LDL [Mass/volume] in Serum or Plasma by calculation'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  # 13969-1 entry removed 2026-07-23 (Issue #380 follow-up / PR L) — clinosim
-  # now emits the LOINC LONG_COMMON_NAME "Creatine kinase.MB [Mass/volume]
-  # in Serum or Plasma" directly (SHORTNAME "Creatine kinase-MB" rejected).
-  14979-9:
-    lang: en
-    clinosim_display: aPTT
-    authoritative_display: aPTT in Platelet poor plasma by Coagulation assay
-    rationale: Clinical shorthand. Curated 'aPTT' is a semantically equivalent short
-      form of LOINC LONG_COMMON_NAME 'aPTT in Platelet poor plasma by Coagulation
-      assay' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  1742-6:
-    lang: en
-    clinosim_display: Alanine aminotransferase
-    authoritative_display: Alanine aminotransferase [Enzymatic activity/volume] in
-      Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Alanine aminotransferase' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Alanine aminotransferase [Enzymatic
-      activity/volume] in Serum or Plasma' (specimen / units / method suffix elided
-      for readability).
-    registered_at: 2026-07-19
-  # 1751-7 entry removed 2026-07-23 (Issue #380 follow-up / PR L) — clinosim
-  # now emits the LOINC LONG_COMMON_NAME "Albumin [Mass/volume] in Serum or
-  # Plasma" directly (SHORTNAME "Albumin" rejected).
-  17861-6:
-    lang: en
-    clinosim_display: Calcium
-    authoritative_display: Calcium [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Calcium' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Calcium [Mass/volume] in Serum or Plasma'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  1863-0:
-    lang: en
-    clinosim_display: Anion gap
-    authoritative_display: Anion gap in Serum or Plasma by Calculated.4Ions
-    rationale: Clinical shorthand. Curated 'Anion gap' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Anion gap in Serum or Plasma by Calculated.4Ions'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  18842-5:
-    lang: en
-    clinosim_display: Discharge summary note
-    authoritative_display: Discharge summary
-    rationale: Clinical shorthand. Curated 'Discharge summary note' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Discharge summary' (specimen
-      / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  18895-3:
-    lang: en
-    clinosim_display: Ceftriaxone [Susceptibility]
-    authoritative_display: cefTRIAXone [Susceptibility]
-    rationale: Clinical shorthand. Curated 'Ceftriaxone [Susceptibility]' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'cefTRIAXone [Susceptibility]'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  19123-9:
-    lang: en
-    clinosim_display: Magnesium
-    authoritative_display: Magnesium [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Magnesium' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Magnesium [Mass/volume] in Serum or Plasma'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  1920-8:
-    lang: en
-    clinosim_display: Aspartate aminotransferase
-    authoritative_display: Aspartate aminotransferase [Enzymatic activity/volume]
-      in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Aspartate aminotransferase' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Aspartate aminotransferase
-      [Enzymatic activity/volume] in Serum or Plasma' (specimen / units / method suffix
-      elided for readability).
-    registered_at: 2026-07-19
-  1959-6:
-    lang: en
-    clinosim_display: Bicarbonate [Moles/volume] in Arterial blood
-    authoritative_display: Bicarbonate [Moles/volume] in Blood
-    rationale: Clinical shorthand. Curated 'Bicarbonate [Moles/volume] in Arterial
-      blood' is a semantically equivalent short form of LOINC LONG_COMMON_NAME 'Bicarbonate
-      [Moles/volume] in Blood' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  1963-8:
-    lang: en
-    clinosim_display: Bicarbonate
-    authoritative_display: Bicarbonate [Moles/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Bicarbonate' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Bicarbonate [Moles/volume] in Serum or
-      Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  1975-2:
-    lang: en
-    clinosim_display: Total bilirubin
-    authoritative_display: Bilirubin.total [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Total bilirubin' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Bilirubin.total [Mass/volume] in Serum
-      or Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  1988-5:
-    lang: en
-    clinosim_display: C-reactive protein
-    authoritative_display: C reactive protein [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'C-reactive protein' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'C reactive protein [Mass/volume]
-      in Serum or Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2019-8:
-    lang: en
-    clinosim_display: pCO2
-    authoritative_display: Carbon dioxide [Partial pressure] in Arterial blood
-    rationale: Clinical shorthand. Curated 'pCO2' is a semantically equivalent short
-      form of LOINC LONG_COMMON_NAME 'Carbon dioxide [Partial pressure] in Arterial
-      blood' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  20565-8:
-    lang: en
-    clinosim_display: Carbon dioxide, total
-    authoritative_display: Carbon dioxide, total [Moles/volume] in Blood
-    rationale: Clinical shorthand. Curated 'Carbon dioxide, total' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Carbon dioxide, total [Moles/volume]
-      in Blood' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2075-0:
-    lang: en
-    clinosim_display: Chloride
-    authoritative_display: Chloride [Moles/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Chloride' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Chloride [Moles/volume] in Serum or Plasma'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2085-9:
-    lang: en
-    clinosim_display: HDL cholesterol
-    authoritative_display: Cholesterol in HDL [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'HDL cholesterol' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Cholesterol in HDL [Mass/volume] in Serum
-      or Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2089-1:
-    lang: en
-    clinosim_display: LDL cholesterol
-    authoritative_display: Cholesterol in LDL [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'LDL cholesterol' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Cholesterol in LDL [Mass/volume] in Serum
-      or Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2093-3:
-    lang: en
-    clinosim_display: Total cholesterol
-    authoritative_display: Cholesterol [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Total cholesterol' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Cholesterol [Mass/volume] in Serum or
-      Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2157-6:
-    lang: en
-    clinosim_display: Creatine kinase
-    authoritative_display: Creatine kinase [Enzymatic activity/volume] in Serum or
-      Plasma
-    rationale: Clinical shorthand. Curated 'Creatine kinase' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Creatine kinase [Enzymatic activity/volume]
-      in Serum or Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2160-0:
-    lang: en
-    clinosim_display: Creatinine
-    authoritative_display: Creatinine [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Creatinine' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Creatinine [Mass/volume] in Serum or Plasma'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2324-2:
-    lang: en
-    clinosim_display: Gamma-glutamyl transferase
-    authoritative_display: Gamma glutamyl transferase [Enzymatic activity/volume]
-      in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Gamma-glutamyl transferase' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Gamma glutamyl transferase
-      [Enzymatic activity/volume] in Serum or Plasma' (specimen / units / method suffix
-      elided for readability).
-    registered_at: 2026-07-19
-  2345-7:
-    lang: en
-    clinosim_display: Glucose
-    authoritative_display: Glucose [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Glucose' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Glucose [Mass/volume] in Serum or Plasma'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  24357-6:
-    lang: en
-    clinosim_display: Urinalysis panel
-    authoritative_display: Urinalysis macro (dipstick) panel - Urine
-    rationale: Clinical shorthand. Curated 'Urinalysis panel' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Urinalysis macro (dipstick) panel - Urine'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2524-7:
-    lang: en
-    clinosim_display: Lactate
-    authoritative_display: Lactate [Moles/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Lactate' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Lactate [Moles/volume] in Serum or Plasma'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2532-0:
-    lang: en
-    clinosim_display: Lactate dehydrogenase
-    authoritative_display: Lactate dehydrogenase [Enzymatic activity/volume] in Serum
-      or Plasma
-    rationale: Clinical shorthand. Curated 'Lactate dehydrogenase' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Lactate dehydrogenase [Enzymatic
-      activity/volume] in Serum or Plasma' (specimen / units / method suffix elided
-      for readability).
-    registered_at: 2026-07-19
-  2571-8:
-    lang: en
-    clinosim_display: Triglyceride
-    authoritative_display: Triglyceride [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Triglyceride' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Triglyceride [Mass/volume] in Serum or
-      Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2703-7:
-    lang: en
-    clinosim_display: pO2
-    authoritative_display: Oxygen [Partial pressure] in Arterial blood
-    rationale: Clinical shorthand. Curated 'pO2' is a semantically equivalent short
-      form of LOINC LONG_COMMON_NAME 'Oxygen [Partial pressure] in Arterial blood'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2744-1:
-    lang: en
-    clinosim_display: pH
-    authoritative_display: pH of Arterial blood
-    rationale: Clinical shorthand. Curated 'pH' is a semantically equivalent short
-      form of LOINC LONG_COMMON_NAME 'pH of Arterial blood' (specimen / units / method
-      suffix elided for readability).
-    registered_at: 2026-07-19
-  2777-1:
-    lang: en
-    clinosim_display: Phosphate
-    authoritative_display: Phosphate [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Phosphate' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Phosphate [Mass/volume] in Serum or Plasma'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2823-3:
-    lang: en
-    clinosim_display: Potassium
-    authoritative_display: Potassium [Moles/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Potassium' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Potassium [Moles/volume] in Serum or Plasma'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2885-2:
-    lang: en
-    clinosim_display: Total protein
-    authoritative_display: Protein [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Total protein' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Protein [Mass/volume] in Serum or Plasma'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  2951-2:
-    lang: en
-    clinosim_display: Sodium
-    authoritative_display: Sodium [Moles/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Sodium' is a semantically equivalent short
-      form of LOINC LONG_COMMON_NAME 'Sodium [Moles/volume] in Serum or Plasma' (specimen
-      / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  29545-1:
-    lang: en
-    clinosim_display: Physical findings Narrative
-    authoritative_display: Physical findings note
-    rationale: Clinical shorthand. Curated 'Physical findings Narrative' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Physical findings note' (specimen
-      / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  29762-2:
-    lang: en
-    clinosim_display: Social history Narrative
-    authoritative_display: Social history note
-    rationale: Clinical shorthand. Curated 'Social history Narrative' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Social history note' (specimen
-      / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  3016-3:
-    lang: en
-    clinosim_display: Thyroid-stimulating hormone
-    authoritative_display: Thyrotropin [Units/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Thyroid-stimulating hormone' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Thyrotropin [Units/volume]
-      in Serum or Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  30341-2:
-    lang: en
-    clinosim_display: Erythrocyte sedimentation rate
-    authoritative_display: Erythrocyte [Sedimentation Rate] in Blood
-    rationale: Clinical shorthand. Curated 'Erythrocyte sedimentation rate' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Erythrocyte [Sedimentation
-      Rate] in Blood' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  3094-0:
-    lang: en
-    clinosim_display: Blood urea nitrogen
-    authoritative_display: Urea nitrogen [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Blood urea nitrogen' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Urea nitrogen [Mass/volume]
-      in Serum or Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  3255-7:
-    lang: en
-    clinosim_display: Fibrinogen
-    authoritative_display: Fibrinogen [Mass/volume] in Platelet poor plasma by Coagulation
-      assay
-    rationale: Clinical shorthand. Curated 'Fibrinogen' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Fibrinogen [Mass/volume] in Platelet poor
-      plasma by Coagulation assay' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  33452-4:
-    lang: en
-    clinosim_display: Peak expiratory flow
-    authoritative_display: Maximum expiratory gas flow Respiratory system airway
-    rationale: Clinical shorthand. Curated 'Peak expiratory flow' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Maximum expiratory gas flow
-      Respiratory system airway' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  33914-3:
-    lang: en
-    clinosim_display: Glomerular filtration rate/1.73 sq M.predicted
-    authoritative_display: Glomerular filtration rate [Volume Rate/Area] in Serum
-      or Plasma by Creatinine-based formula (MDRD)/1.73 sq M
-    rationale: Clinical shorthand. Curated 'Glomerular filtration rate/1.73 sq M.predicted'
-      is a semantically equivalent short form of LOINC LONG_COMMON_NAME 'Glomerular
-      filtration rate [Volume Rate/Area] in Serum or Plasma by Creatinine-based formula
-      (MDRD)/1.73 sq M' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  4537-7:
-    lang: en
-    clinosim_display: Erythrocyte sedimentation rate
-    authoritative_display: Erythrocyte [Sedimentation Rate] in Blood by Westergren
-      method
-    rationale: Clinical shorthand. Curated 'Erythrocyte sedimentation rate' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Erythrocyte [Sedimentation
-      Rate] in Blood by Westergren method' (specimen / units / method suffix elided
-      for readability).
-    registered_at: 2026-07-19
-  4544-3:
-    lang: en
-    clinosim_display: Hematocrit
-    authoritative_display: Hematocrit [Volume Fraction] of Blood by Automated count
-    rationale: Clinical shorthand. Curated 'Hematocrit' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Hematocrit [Volume Fraction] of Blood
-      by Automated count' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  4548-4:
-    lang: en
-    clinosim_display: Hemoglobin A1c
-    authoritative_display: Hemoglobin A1c/Hemoglobin.total in Blood
-    rationale: Clinical shorthand. Curated 'Hemoglobin A1c' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Hemoglobin A1c/Hemoglobin.total in Blood'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  48065-7:
-    lang: en
-    clinosim_display: D-dimer
-    authoritative_display: Fibrin D-dimer FEU [Mass/volume] in Platelet poor plasma
-    rationale: Clinical shorthand. Curated 'D-dimer' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Fibrin D-dimer FEU [Mass/volume] in Platelet
-      poor plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  48066-5:
-    lang: en
-    clinosim_display: D dimer [Mass/volume] in Platelet poor plasma by Immunoassay
-    authoritative_display: Fibrin D-dimer DDU [Mass/volume] in Platelet poor plasma
-    rationale: Clinical shorthand. Curated 'D dimer [Mass/volume] in Platelet poor
-      plasma by Immunoassay' is a semantically equivalent short form of LOINC LONG_COMMON_NAME
-      'Fibrin D-dimer DDU [Mass/volume] in Platelet poor plasma' (specimen / units
-      / method suffix elided for readability).
-    registered_at: 2026-07-19
-  48642-3:
-    lang: en
-    clinosim_display: Estimated GFR
-    authoritative_display: Glomerular filtration rate [Volume Rate/Area] in Serum,
-      Plasma or Blood by Creatinine-based formula (MDRD)/1.73 sq M among non black
-      population
-    rationale: Clinical shorthand. Curated 'Estimated GFR' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Glomerular filtration rate [Volume Rate/Area]
-      in Serum, Plasma or Blood by Creatinine-based formula (MDRD)/1.73 sq M among
-      non black population' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  55418-8:
-    lang: en
-    clinosim_display: Weight and height panel
-    authoritative_display: Weight and Height tracking panel
-    rationale: Clinical shorthand. Curated 'Weight and height panel' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Weight and Height tracking
-      panel' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  58410-2:
-    lang: en
-    clinosim_display: Complete blood count (hemogram) panel - Blood by Automated count
-    authoritative_display: CBC panel - Blood by Automated count
-    rationale: Clinical shorthand. Curated 'Complete blood count (hemogram) panel
-      - Blood by Automated count' is a semantically equivalent short form of LOINC
-      LONG_COMMON_NAME 'CBC panel - Blood by Automated count' (specimen / units /
-      method suffix elided for readability).
-    registered_at: 2026-07-19
-  6301-6:
-    lang: en
-    clinosim_display: PT-INR
-    authoritative_display: INR in Platelet poor plasma by Coagulation assay
-    rationale: Clinical shorthand. Curated 'PT-INR' is a semantically equivalent short
-      form of LOINC LONG_COMMON_NAME 'INR in Platelet poor plasma by Coagulation assay'
-      (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  6598-7:
-    lang: en
-    clinosim_display: Troponin T, cardiac
-    authoritative_display: Troponin T.cardiac [Mass/volume] in Serum or Plasma
-    rationale: Clinical shorthand. Curated 'Troponin T, cardiac' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Troponin T.cardiac [Mass/volume]
-      in Serum or Plasma' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  6690-2:
-    lang: en
-    clinosim_display: White blood cell count
-    authoritative_display: Leukocytes [#/volume] in Blood by Automated count
-    rationale: Clinical shorthand. Curated 'White blood cell count' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Leukocytes [#/volume] in Blood
-      by Automated count' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  6768-6:
-    lang: en
-    clinosim_display: Alkaline phosphatase
-    authoritative_display: Alkaline phosphatase [Enzymatic activity/volume] in Serum
-      or Plasma
-    rationale: Clinical shorthand. Curated 'Alkaline phosphatase' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Alkaline phosphatase [Enzymatic
-      activity/volume] in Serum or Plasma' (specimen / units / method suffix elided
-      for readability).
-    registered_at: 2026-07-19
-  718-7:
-    lang: en
-    clinosim_display: Hemoglobin
-    authoritative_display: Hemoglobin [Mass/volume] in Blood
-    rationale: Clinical shorthand. Curated 'Hemoglobin' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Hemoglobin [Mass/volume] in Blood' (specimen
-      / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  75241-0:
-    lang: en
-    clinosim_display: Procalcitonin
-    authoritative_display: Procalcitonin [Mass/volume] in Serum or Plasma by Immunoassay
-    rationale: Clinical shorthand. Curated 'Procalcitonin' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Procalcitonin [Mass/volume] in Serum or
-      Plasma by Immunoassay' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  75326-9:
-    lang: en
-    clinosim_display: Clinical finding
-    authoritative_display: Problem
-    rationale: Clinical shorthand. Curated 'Clinical finding' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Problem' (specimen / units / method suffix
-      elided for readability).
-    registered_at: 2026-07-19
-  777-3:
-    lang: en
-    clinosim_display: Platelet count
-    authoritative_display: Platelets [#/volume] in Blood by Automated count
-    rationale: Clinical shorthand. Curated 'Platelet count' is a semantically equivalent
-      short form of LOINC LONG_COMMON_NAME 'Platelets [#/volume] in Blood by Automated
-      count' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  789-8:
-    lang: en
-    clinosim_display: Erythrocyte count [#/volume] in Blood
-    authoritative_display: Erythrocytes [#/volume] in Blood by Automated count
-    rationale: Clinical shorthand. Curated 'Erythrocyte count [#/volume] in Blood'
-      is a semantically equivalent short form of LOINC LONG_COMMON_NAME 'Erythrocytes
-      [#/volume] in Blood by Automated count' (specimen / units / method suffix elided
-      for readability).
-    registered_at: 2026-07-19
-  # 80288-4 entry removed 2026-07-23 (Issue #384 wave 4 / PR O) — the
-  # fhirserver LOINC 2.82 canonical (verified via direct SQLite +
-  # curl measurement) is "Level of consciousness", same as the snapshot.
-  # clinosim now emits the snapshot canonical directly, so no override
-  # is needed. Previous entry speculatively used "AVPU score" — a
-  # narrative canonical that turned out not to be the actual fhirserver
-  # value. Lesson: never register override entries without direct
-  # fhirserver measurement (see feedback_fhirserver_actual_canonical_verify).
-  8648-8:
-    lang: en
-    clinosim_display: Hospital course Narrative
-    authoritative_display: Hospital course note
-    rationale: Clinical shorthand. Curated 'Hospital course Narrative' is a semantically
-      equivalent short form of LOINC LONG_COMMON_NAME 'Hospital course note' (specimen
-      / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  8653-8:
-    lang: en
-    clinosim_display: Hospital discharge instructions Narrative
-    authoritative_display: Hospital Discharge instructions
-    rationale: Clinical shorthand. Curated 'Hospital discharge instructions Narrative'
-      is a semantically equivalent short form of LOINC LONG_COMMON_NAME 'Hospital
-      Discharge instructions' (specimen / units / method suffix elided for readability).
-    registered_at: 2026-07-19
-  # Issue #1766: `8716-3` entry removed 2026-10-22 — the LOINC canonical
-  # display `Vital signs note` is now used verbatim in `loinc.yaml`, so
-  # no override is needed. The validator rejected the former shorthand
-  # `Vital signs` on 14/20 Composition samples; aligning to canonical
-  # resolves the Wrong Display Name error without needing an allowlist
-  # exception.
+  '93372-1':
+    lang: en
+    clinosim_display: "Columbia Suicide Severity Rating Scale (C-SSRS) lifetime suicidal ideation severity scale"
+    authoritative_display: "FDA product label Indexing - national clinical trial number"
+    rationale: >-
+      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
+    registered_at: 2026-11-10
+# Issue #3127: SNOMED CT codes that denote another concept (staff roles,
+# departments, and two legacy allergen entries kept for old CIF). Tracked for
+# replacement with the intended codes; the allergen codes in use were replaced
+# in Issue #3128.
+snomed-ct:
+  '158965000':
+    lang: en
+    clinosim_display: "Assistant surgeon"
+    authoritative_display: "Medical practitioner"
+    rationale: >-
+      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
+    registered_at: 2026-11-10
+  '158967008':
+    lang: en
+    clinosim_display: "Anaesthetist"
+    authoritative_display: "Consultant physician"
+    rationale: >-
+      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
+    registered_at: 2026-11-10
+  '158972004':
+    lang: en
+    clinosim_display: "Circulating nurse"
+    authoritative_display: "House officer"
+    rationale: >-
+      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
+    registered_at: 2026-11-10
+  '227037002':
+    lang: en
+    clinosim_display: "Egg"
+    authoritative_display: "Fish - dietary"
+    rationale: >-
+      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
+    registered_at: 2026-11-10
+  '256349002':
+    lang: en
+    clinosim_display: "Wheat"
+    authoritative_display: "Peanut - dietary"
+    rationale: >-
+      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
+    registered_at: 2026-11-10
+  '722414000':
+    lang: en
+    clinosim_display: "Laboratory medicine"
+    authoritative_display: "Vascular medicine"
+    rationale: >-
+      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
+    registered_at: 2026-11-10
+  '405623001':
+    lang: en
+    clinosim_display: "Pharmacy"
+    authoritative_display: "Assigned practitioner"
+    rationale: >-
+      Wrong code: the code denotes another concept than the one clinosim means, so no display can be correct. Tracked for replacement with the intended concept's code (Issue #3127 follow-up); the display is left as the intended concept so the defect stays visible.
+    registered_at: 2026-11-10

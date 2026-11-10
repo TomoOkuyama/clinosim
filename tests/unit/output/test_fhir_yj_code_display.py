@@ -33,8 +33,9 @@ _TX_REGISTERED_YJ_JA_DISPLAY: dict[str, str] = {
     "1149019C1149": "ロキソニン細粒１０％",
     "1119402A1022": "１％ディプリバン注",
     # Issue #1220: was 1147002F1013 (fictitious), replaced with real MEDIS
-    # code 1147002F1650 curated to the same 25mg tablet display.
-    "1147002F1650": "ジクロフェナクナトリウム２５ｍｇ錠",
+    # code 1147002F1650. Issue #3127: its MEDIS 販売名 (the code is outside
+    # the tx-server fragment).
+    "1147002F1650": "ジクロフェナクＮａ錠２５ｍｇ「サワイ」",
     "1139403A1020": "ロラピタ静注２ｍｇ",
 }
 
