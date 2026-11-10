@@ -144,21 +144,28 @@ clinosim/locale/
   clinic_calendar.py              is_clinic_day / clinic_visit_day —
                                    予定外来を行う診療日
                                    (clinic_calendar.yaml、Issue #3018)
-  us/                             US 固有バンドル (16 YAML):
+  _root/country.yaml              全ての国が継承する国プロファイルの既定値
+                                   (Issue #3140。clinosim.country_profile が
+                                   読み込み・検証する。
+                                   docs/design-guides/country-profile-spec.ja.md)
+  us/                             US 固有バンドル (18 YAML):
                                    addresses / ambulatory_visit_length /
                                    ckd_under60_prevalence / clinic_calendar /
+                                   country (プロファイルの上書き) /
                                    code_mapping_{diagnosis,drug,lab,procedure}
                                    / code_status_rates / demographics /
+                                   egfr_equation /
                                    family_history_prevalence / formatting
                                    / identity / immunization_schedule /
                                    names / reference_range_lab
-  jp/                             JP 固有バンドル (23 YAML — US 集合から
+  jp/                             JP 固有バンドル (24 YAML — US 集合から
                                    ckd_under60_prevalence と
                                    code_mapping_drug を除き、
                                    care_level_rates /
                                    code_mapping_microbiology /
                                    code_mapping_microbiology_susceptibility
-                                   / external_organizations /
+                                   / code_mapping_vaccination_reason /
+                                   external_organizations /
                                    facility_identity (病院の医療機関コード、
                                    Issue #3129) /
                                    patient_instructions_ja /
@@ -187,6 +194,8 @@ clinosim/locale/
 
 1. `clinosim/locale/<cc>/` (2 文字 ISO 国コード、小文字。**先頭
    アンダースコア禁止**) を作成。`_template/` を scaffold としてコピー。
+   `country.yaml` (国プロファイル。`_root/country.yaml` との差分だけを
+   書く) を置くとそのディレクトリが対応国になる。
 2. `us/` または `jp/` の形状に従いバンドルを埋める:
    - `names.yaml` — first / family / phonetic 氏名プール。
    - `addresses.yaml` — 郵便形式テンプレートと市区 / region プール。

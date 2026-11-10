@@ -462,6 +462,16 @@ _.run_benchmarks  # modules/validator/benchmarks.py:69 (tests/e2e/test_beta.py)
 _.reset_for_test  # simulator/log.py:174 (test-only hook for log-buffer reset)
 _._reset_for_test  # audit/registry.py:40 (test-only hook for registry reset)
 _.get_by_id  # types/staff.py:40 (used in tests/unit/test_staff_types.py)
+# Country profile API (Issue #3140, step 1 of the country-profile migration):
+# tests/unit/test_country_profile_3140.py reads it now; production readers
+# arrive in the later migration steps.
+_.name_order  # country_profile.py _Formats
+_.date_format  # country_profile.py _Formats
+_.time_format  # country_profile.py _Formats
+_.datetime_format  # country_profile.py _Formats
+_.timezone  # country_profile.py CountryProfile
+_.uses  # country_profile.py CountryProfile.uses
+_.feature  # country_profile.py CountryProfile.feature
 
 
 # =============================================================================

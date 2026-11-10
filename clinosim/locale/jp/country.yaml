@@ -1,0 +1,27 @@
+# Country profile — Japan (Issue #3140). Overrides of
+# clinosim/locale/_root/country.yaml only.
+metadata:
+  kind: reference
+  name: country_profile
+  source: clinosim
+
+code: JP
+language: ja
+timezone: "+09:00"
+code_systems:
+  lab: jlac10
+  diagnosis: icd-10-mhlw
+  drug: yj
+  procedure: k-codes
+  microbiology: jlac10
+fhir_profiles: [jp_core, jp_clins, jp_echeckup]
+features:
+  care_level: true
+formats:
+  name_order: family_given
+  date_format: "yyyy/MM/dd"
+  time_format: "24h"
+  datetime_format: "yyyy/MM/dd HH:mm"
+implementations:
+  egfr_equation: jsn
+  pediatric_egfr_equation: uemura
