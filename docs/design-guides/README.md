@@ -20,6 +20,7 @@ Each spec states rules, the canonical code that implements them and the guard te
 | add or change a code, a display text, a code mapping, a name-resolution function, localization or a fallback | [`code-mapping-and-localization-spec.md`](code-mapping-and-localization-spec.md) |
 | draw a random number, derive a seed or read a clock | [`determinism-and-rng-spec.md`](determinism-and-rng-spec.md) |
 | add or read a reference-data YAML, an age-banded table or a constant | [`configuration-and-reference-data-spec.md`](configuration-and-reference-data-spec.md) |
+| add a country, change country-specific behaviour, or touch code that branches on country | [`country-profile-spec.md`](country-profile-spec.md) |
 | place, hold, administer, stop, prescribe or code a medication | [`medication-lifecycle-spec.md`](medication-lifecycle-spec.md) |
 | order, derive, flag or link a lab result | [`lab-orders-and-results-spec.md`](lab-orders-and-results-spec.md) |
 | plan a document, add a section or word a clinical fact | [`narrative-and-document-generation-spec.md`](narrative-and-document-generation-spec.md) |

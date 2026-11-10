@@ -20,6 +20,7 @@
 | コード・表示名・コード対応・名称解決関数・多言語化・fallback を足す/変える | [`code-mapping-and-localization-spec.ja.md`](code-mapping-and-localization-spec.ja.md) |
 | 乱数を引く・シードを導く・時計を読む | [`determinism-and-rng-spec.ja.md`](determinism-and-rng-spec.ja.md) |
 | 参照データ YAML・年齢区分の表・定数を足す/読む | [`configuration-and-reference-data-spec.ja.md`](configuration-and-reference-data-spec.ja.md) |
+| 国を追加する/国ごとの挙動を変える/国で分岐するコードに触れる | [`country-profile-spec.ja.md`](country-profile-spec.ja.md) |
 | 薬剤をオーダー・保留・投与・中止・処方・コード化する | [`medication-lifecycle-spec.ja.md`](medication-lifecycle-spec.ja.md) |
 | 検査をオーダー・導出・フラグ付け・結び付けする | [`lab-orders-and-results-spec.ja.md`](lab-orders-and-results-spec.ja.md) |
 | 文書を計画する・セクションを足す・臨床事実を言い表す | [`narrative-and-document-generation-spec.ja.md`](narrative-and-document-generation-spec.ja.md) |
