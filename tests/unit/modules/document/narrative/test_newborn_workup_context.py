@@ -279,6 +279,7 @@ class _Spec:
 def _make_ctx_for_admission_hp(
     newborn_workup: dict,
     target_lang: str = "en",
+    locale: str = "us",
 ) -> SimpleNamespace:
     encounter = SimpleNamespace(
         encounter_id="ENC-1",
@@ -296,7 +297,8 @@ def _make_ctx_for_admission_hp(
         day_index=0,
         los_days=2,
         target_lang=target_lang,
-        locale=target_lang,
+        # The country slot ("us" / "jp"), as passes.py sets it — not a language.
+        locale=locale,
         vitals=[],
         lab_results=[],
         medications=[],

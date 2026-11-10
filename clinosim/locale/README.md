@@ -107,9 +107,9 @@ via `yaml.safe_load`, which is deterministic byte-in → dict-out.
 
 - **`_LOCALE_DIR`** = `Path(__file__).parent` (in `_io.py`) — root of
   the locale bundle at import time.
-- **`_COUNTRY_DIR_MAP`** = `{"JP": "jp", "US": "us"}` — country ISO
-  code → directory name mapping. Unmapped codes fall through to
-  `country.lower()`.
+- **`_country_dir(country)`** — the locale directory is the lower-case
+  country code. The supported countries are the directories that hold a
+  `country.yaml` (`clinosim.country_profile.supported_countries`).
 - **P2-14 safeguard** — `_country_dir` rejects any resolved directory
   name that starts with `_`. This prevents `_template/` (the
   new-locale scaffold) from ever being usable as a real country —
@@ -133,7 +133,7 @@ clinosim/locale/
   loader.py                       re-export facade (79 names, 50 of
                                    them public load_* functions)
   _io.py                          shared YAML primitives (_LOCALE_DIR,
-                                   _COUNTRY_DIR_MAP, _country_dir,
+                                   _country_dir,
                                    _load_yaml, fallback defaults)
   loaders/                        @lru_cache YAML loaders by topic:
                                    clinical, demographics, fhir_identity,
@@ -219,9 +219,9 @@ clinosim/locale/
    - `immunization_schedule.yaml` — country vaccination schedule.
    - Other `code_mapping_*.yaml` files as needed (JP adds
      `microbiology` + `microbiology_susceptibility`).
-3. Register the country in `_COUNTRY_DIR_MAP` (`clinosim/locale/_io.py`)
-   if the ISO code does not map to the lowercase directory name
-   directly.
+3. Add `clinosim/locale/<cc>/country.yaml` (copy
+   `_template/country.yaml`): the country profile that makes the country
+   supported and selects its code systems, FHIR profiles and features.
 4. Add a top-level `clinosim/config/<country>.yaml` for the country
    healthcare-system defaults (`lab_frequency_multiplier`,
    `discharge_criteria`, `target_los_multiplier`, code-system names)

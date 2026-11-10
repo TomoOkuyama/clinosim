@@ -17,6 +17,7 @@ from clinosim.codes import get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loinc import loinc_for
 from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL, NO_GROWTH
+from clinosim.countries import country_code as _country_code
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping, load_narrative_labels, resolve_localized_display
@@ -142,7 +143,7 @@ def resolve_culture_code(specimen: str, test_loinc: str, country: str) -> tuple[
     builder (_bb_microbiology, below) and csv_adapter.py, so both outputs
     stay consistent (TODO.md 2026-07-04).
     """
-    country_code = "JP" if is_jp(country) else "US"
+    country_code = _country_code(country)
     code_map = load_code_mapping("microbiology", country_code)
     if specimen in code_map:
         return code_map[specimen], system_key_for("microbiology", country_code)
@@ -160,7 +161,7 @@ def resolve_susceptibility_code(antibiotic_loinc: str, country: str) -> tuple[st
     Single source of truth for this resolution — consumed by both the FHIR
     builder (_bb_microbiology, below) and csv_adapter.py.
     """
-    country_code = "JP" if is_jp(country) else "US"
+    country_code = _country_code(country)
     code_map = load_code_mapping("microbiology_susceptibility", country_code)
     if antibiotic_loinc in code_map:
         return code_map[antibiotic_loinc], system_key_for("microbiology", country_code)

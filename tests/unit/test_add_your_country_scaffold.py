@@ -66,7 +66,7 @@ def test_country_dir_still_accepts_registered_countries():
 
 @pytest.mark.unit
 def test_country_dir_falls_back_to_lowercase_for_new_countries():
-    """`_COUNTRY_DIR_MAP` 未登録の 2 文字 code は lower-case 展開される。"""
+    """2 文字の国コードは lower-case のディレクトリ名になる。"""
     from clinosim.locale.loader import _country_dir
 
     p = _country_dir("DE")

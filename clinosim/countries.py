@@ -106,21 +106,31 @@ def normalize_lang(lang: str | None) -> str:
     return key.split("-", 1)[0]
 
 
+@lru_cache(maxsize=16)
 def country_code(country: str) -> str:
-    """``"JP"`` for Japan (``"JP"`` / ``"jp"`` / the legacy key ``"japan"``),
-    else ``"US"`` — the upper-case code the lab and narrative helpers take."""
-    return "JP" if is_jp(country) else "US"
+    """The upper-case ISO code of ``country`` (``"US"`` / ``"JP"``; the legacy
+    key ``"japan"`` is ``"JP"``) from its country profile — the one
+    normalisation every per-country lookup uses (Issue #3143). A country
+    without a profile raises ``KeyError``; it never becomes the US."""
+    from clinosim.country_profile import country_profile
+
+    return country_profile(country).code
+
+
+# Disease-YAML blocks spell Japan "japan" (Issue #2838); other countries use
+# their lower-case code.
+_LEGACY_SLOTS = {"jp": "japan"}
 
 
 def country_slot(country: str, *, scheme: Literal["code", "legacy_japan"] = "code") -> str:
-    """Section key for per-country YAML blocks (case-insensitive, US default).
+    """Section key for per-country YAML blocks (case-insensitive).
 
-    ``scheme="code"`` gives ``"jp"`` / ``"us"``; ``scheme="legacy_japan"``
-    gives the disease-YAML spelling ``"japan"`` / ``"us"``.
+    ``scheme="code"`` gives the lower-case code (``"jp"`` / ``"us"``);
+    ``scheme="legacy_japan"`` gives the disease-YAML spelling (``"japan"`` /
+    ``"us"``). Unknown countries raise ``KeyError`` (:func:`country_code`).
     """
-    if is_jp(country):
-        return "japan" if scheme == "legacy_japan" else "jp"
-    return "us"
+    slot = country_code(country).lower()
+    return _LEGACY_SLOTS.get(slot, slot) if scheme == "legacy_japan" else slot
 
 
 def lang_name(lang: str, *, in_lang: str | None = None) -> str:

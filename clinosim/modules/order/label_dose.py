@@ -16,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from clinosim.codes.drugs import drug_ref, get_drug
 from clinosim.countries import country_code
+from clinosim.country_profile import supported_countries
 from clinosim.datafiles import load_data_yaml
 
 _REF = Path(__file__).resolve().parent / "reference_data" / "label_dose_limits.yaml"
@@ -43,8 +44,8 @@ class LabelDoseLimitsFile(BaseModel):
     @classmethod
     def _keys(cls, v: dict[str, dict[str, _Limit]]) -> dict[str, dict[str, _Limit]]:
         for cc, drugs in v.items():
-            if cc not in ("US", "JP"):
-                raise ValueError(f"country {cc!r} is not an upper-case country code")
+            if cc not in supported_countries():
+                raise ValueError(f"country {cc!r} is not a supported upper-case country code")
             for drug_id in drugs:
                 if get_drug(drug_id) is None:
                     raise ValueError(f"drug_id {drug_id!r} is not in the drug catalog")

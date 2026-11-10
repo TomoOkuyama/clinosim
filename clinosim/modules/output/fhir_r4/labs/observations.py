@@ -20,6 +20,7 @@ from clinosim.codes import get_system_uri
 from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
+from clinosim.countries import country_code as _country_code
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import checkup_criterion, lab_display, lab_result_display, oxygen_device_label
@@ -165,7 +166,6 @@ def _checkup_report_item(lab_name: str, country: str) -> tuple[dict[str, str] | 
     profile (Issue #3154) and, for an item measured on the body, its
     category (Issue #3167; "" for a specimen test), or ``(None, "", "")``
     when the country maps none."""
-    from clinosim.countries import country_code as _country_code
     from clinosim.locale.loader import load_checkup_report_items
 
     table = load_checkup_report_items(_country_code(country))
@@ -200,7 +200,7 @@ def _build_lab_observation(
     # Prefer the result's canonical analyte name (stat/serial/alias resolved upstream)
     # over the raw order label, so the code mapping resolves (AD-55).
     lab_name = result.get("lab_name") or order.get("display_name", "Unknown")
-    country_code = "JP" if is_jp(country) else "US"
+    country_code = _country_code(country)
 
     # PR 1 (JP-CLINS lab coding migration): route through the strategy
     # dispatcher. In PR 1 the classifier returns LEGACY_JSLM (JP) /

@@ -25,7 +25,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any, ClassVar, final
 
-from clinosim.countries import is_jp, normalize_lang
+from clinosim.countries import normalize_lang
 from clinosim.datafiles import data_metadata, load_data_yaml
 
 _DATA_DIR = Path(__file__).parent / "data"
@@ -411,27 +411,12 @@ def data_table(name: str) -> dict[str, Any]:
     return copy.deepcopy(_data_table(name))
 
 
-# Country → code-system key selection for clinical data kinds (common-logic
-# unification, 2026-07-02). Single source of truth for the "JP uses
-# JLAC10 / ICD-10 / YJ / K-codes, everyone else uses LOINC / ICD-10-CM /
-# RxNorm / CPT" selection previously inlined at each builder / simulator site.
-_COUNTRY_SYSTEM_KEYS: dict[str, dict[str, str]] = {
-    "lab": {"jp": "jlac10", "default": "loinc"},
-    # Issue #350: JP path uses `icd-10-mhlw` (aliased to the
-    # same code data as `icd-10` but carrying the MHLW canonical URI
-    # `http://jpfhir.jp/fhir/core/mhlw/CodeSystem/ICD10-2013-full`). JP Core
-    # `jp-condition-diagnosis` declares a required binding to that ValueSet;
-    # emitting WHO `http://hl7.org/fhir/sid/icd-10` violates the binding
-    # regardless of whether the code itself is valid.
-    "diagnosis": {"jp": "icd-10-mhlw", "default": "icd-10-cm"},
-    "drug": {"jp": "yj", "default": "rxnorm"},
-    "procedure": {"jp": "k-codes", "default": "cpt"},
-    "microbiology": {"jp": "jlac10", "default": "loinc"},
-}
-
-
 def system_key_for(kind: str, country: str) -> str:
     """Return the code-system key a country uses for a clinical data kind.
+
+    The country profile's ``code_systems`` (``locale/<cc>/country.yaml``,
+    Issue #3143): JP uses JLAC10 / ICD-10 (MHLW) / YJ / K-codes, the root
+    default LOINC / ICD-10-CM / RxNorm / CPT.
 
     Args:
         kind: one of ``"lab"``, ``"diagnosis"``, ``"drug"``, ``"procedure"``,
@@ -439,13 +424,13 @@ def system_key_for(kind: str, country: str) -> str:
         country: country code (``"US"`` / ``"JP"``, case-insensitive).
 
     Raises:
-        KeyError: on unknown ``kind`` — fail loud rather than silently
-            falling back to a wrong code system (PR-90 silent-no-op class).
+        KeyError: on an unknown ``kind`` or a country without a profile —
+            fail loud rather than silently falling back to a wrong code
+            system (PR-90 silent-no-op class).
     """
-    if kind not in _COUNTRY_SYSTEM_KEYS:
-        raise KeyError(f"system_key_for: unknown kind {kind!r}; expected one of {sorted(_COUNTRY_SYSTEM_KEYS)}")
-    entry = _COUNTRY_SYSTEM_KEYS[kind]
-    return entry["jp"] if is_jp(country) else entry["default"]
+    from clinosim.country_profile import country_profile
+
+    return country_profile(country).code_system(kind)
 
 
 # Built-in fallback URIs when the yaml doesn't define one

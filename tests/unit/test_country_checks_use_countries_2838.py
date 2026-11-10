@@ -62,7 +62,18 @@ def test_japan_spellings(value: str) -> None:
 @pytest.mark.parametrize("value", ["US", "us", "", "XX"])
 def test_non_japan_values(value: str) -> None:
     assert not is_jp(value)
+
+
+@pytest.mark.parametrize("value", ["US", "us"])
+def test_us_values(value: str) -> None:
     assert country_code(value) == "US"
+
+
+@pytest.mark.parametrize("value", ["", "XX"])
+def test_a_country_without_a_profile_has_no_code(value: str) -> None:
+    # Issue #3143: it raises instead of becoming "US".
+    with pytest.raises(KeyError):
+        country_code(value)
 
 
 def test_is_us_is_exact() -> None:

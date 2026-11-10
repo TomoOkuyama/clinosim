@@ -550,7 +550,7 @@ lang = "ja" if str(ctx.country).upper() == "JP" else "en"  # NG
 system_key = "jlac10" if ctx.country == "JP" else "loinc"   # NG — inline 分岐
 ```
 
-**Fix**: `from clinosim.codes import system_key_for` — `system_key_for("lab", ctx.country)`。kinds = `"lab"` / `"diagnosis"` / `"drug"` / `"procedure"`(jlac10/loinc、icd-10/icd-10-cm、yj/rxnorm、k-codes/cpt)。未知 kind は `KeyError` で fail-loud。選択 logic の single source of truth = `codes/loader.py:_COUNTRY_SYSTEM_KEYS`。
+**Fix**: `from clinosim.codes import system_key_for` — `system_key_for("lab", ctx.country)`。kinds = `"lab"` / `"diagnosis"` / `"drug"` / `"procedure"`(jlac10/loinc、icd-10/icd-10-cm、yj/rxnorm、k-codes/cpt)。未知 kind は `KeyError` で fail-loud。選択の single source of truth は国プロファイルの `code_systems` (`clinosim/locale/<cc>/country.yaml`)。
 
 ---
 

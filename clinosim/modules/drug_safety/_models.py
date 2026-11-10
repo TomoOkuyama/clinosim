@@ -11,6 +11,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator, model_validator
 
+from clinosim.country_profile import supported_countries
+
 # The severities a rule may assert ("allowed" is the verdict of no rule).
 _RuleSeverity = Literal["minor", "moderate", "major", "contraindicated"]
 
@@ -260,9 +262,9 @@ class HyperkalemiaResponseFile(BaseModel):
     @field_validator("treatment")
     @classmethod
     def _countries(cls, v: dict[str, list[_HyperkalemiaTreatment]]) -> dict[str, list[_HyperkalemiaTreatment]]:
-        unknown = sorted(set(v) - {"US", "JP"})
+        unknown = sorted(set(v) - set(supported_countries()))
         if unknown:
-            raise ValueError(f"treatment keys must be country codes US / JP, got {unknown}")
+            raise ValueError(f"treatment keys must be supported country codes, got {unknown}")
         return v
 
     @field_validator("hold_classes")

@@ -14,6 +14,7 @@ from clinosim.codes import data_table, get_system_uri, system_key_for
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.icd10 import is_icd10_shaped
 from clinosim.codes.snomed import snomed_for
+from clinosim.countries import country_code as _country_code
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import condition_stage_display, map_diagnosis_code
@@ -182,7 +183,7 @@ class _ConditionContext:
 
     @property
     def country_code(self) -> str:
-        return "JP" if is_jp(self.country) else "US"
+        return _country_code(self.country)
 
     @property
     def lang(self) -> str:

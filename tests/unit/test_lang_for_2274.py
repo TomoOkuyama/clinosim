@@ -22,11 +22,17 @@ def test_lang_for(country: str, lang: str) -> None:
 
 @pytest.mark.parametrize(
     ("country", "code", "legacy"),
-    [("JP", "jp", "japan"), ("jp", "jp", "japan"), ("US", "us", "us"), ("FR", "us", "us")],
+    [("JP", "jp", "japan"), ("jp", "jp", "japan"), ("US", "us", "us")],
 )
 def test_country_slot(country: str, code: str, legacy: str) -> None:
     assert country_slot(country) == code
     assert country_slot(country, scheme="legacy_japan") == legacy
+
+
+def test_country_slot_of_a_country_without_a_profile_raises() -> None:
+    # Issue #3143: no silent US slot for an unknown country.
+    with pytest.raises(KeyError):
+        country_slot("FR")
 
 
 def test_former_copies_are_case_insensitive() -> None:

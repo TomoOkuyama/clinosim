@@ -692,7 +692,7 @@ system_key = "jlac10" if ctx.country == "JP" else "loinc"   # NG — inline bran
 `"diagnosis"` / `"drug"` / `"procedure"` (jlac10 / loinc, icd-10 /
 icd-10-cm, yj / rxnorm, k-codes / cpt). Unknown `kind` raises
 `KeyError` fail-loud. The single source of truth for this selection
-logic = `codes/loader.py:_COUNTRY_SYSTEM_KEYS`.
+is the country profile's `code_systems` (`clinosim/locale/<cc>/country.yaml`).
 
 ---
 

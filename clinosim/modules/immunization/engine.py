@@ -17,6 +17,7 @@ from typing import Any, NamedTuple
 import numpy as np
 
 from clinosim.age_bands import lookup_age_band
+from clinosim.country_profile import country_profile
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import is_jp, is_us
@@ -858,15 +859,16 @@ def generate_pregnancy_tdap(
     perturb pre-existing schedule-driven RNG state (per-patient sub-seed
     upstream). Deterministic per patient / pregnancy period.
 
-    Locale-gated to US only — JP has no equivalent universal maternal
-    pertussis-booster policy (Issue #1283).
+    Gated by the country profile feature ``maternal_tdap`` (on for the US;
+    JP has no equivalent universal maternal pertussis-booster policy,
+    Issue #1283).
 
-    Never raises; returns ``[]`` when the patient carries no pregnancy
-    state periods or the country is not US.
+    Returns ``[]`` when the patient carries no pregnancy state periods or
+    the country has the feature off; a country without a profile raises.
     """
     from clinosim.types.encounter import ImmunizationRecord
 
-    if not is_us(country):
+    if not country_profile(country).feature("maternal_tdap"):
         return []
     state_periods = getattr(patient, "state_periods", None) or []
     if not state_periods:

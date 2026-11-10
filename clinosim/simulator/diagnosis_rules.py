@@ -16,6 +16,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from clinosim.codes import code_exists, system_key_for
+from clinosim.country_profile import supported_countries
 from clinosim.datafiles import load_validated_yaml
 
 _YAML = Path(__file__).resolve().parent / "reference_data" / "diagnosis_rules.yaml"
@@ -116,11 +117,13 @@ def _unknown_codes(entry: dict[str, Any]) -> UnknownConditionCodes:
 
 def _registered_in_both_locales(code: str) -> bool:
     """Whether ``code``, mapped for each country, is registered in that
-    country's diagnosis code system (US ICD-10-CM, JP WHO ICD-10)."""
+    country's diagnosis code system (US ICD-10-CM, JP WHO ICD-10), for every
+    supported country (country profile, Issue #3143)."""
     from clinosim.locale.loader import map_diagnosis_code
 
     return all(
-        code_exists(system_key_for("diagnosis", country), map_diagnosis_code(code, country)) for country in ("US", "JP")
+        code_exists(system_key_for("diagnosis", country), map_diagnosis_code(code, country))
+        for country in supported_countries()
     )
 
 

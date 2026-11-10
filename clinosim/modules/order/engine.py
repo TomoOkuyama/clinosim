@@ -13,6 +13,7 @@ from typing import Any
 import numpy as np
 
 from clinosim.codes import display as registry_display
+from clinosim.codes import system_key_for
 from clinosim.codes.drugs import protocol_drug_name
 from clinosim.countries import country_slot, is_jp
 from clinosim.locale.free_text import localize_drug_name
@@ -447,10 +448,11 @@ def _build_lab_order(
 
 def protocol_drug_order_code_system(spec: dict, country: str) -> str:
     """Code-system key of :func:`protocol_drug_order_code` (Issue #2378):
-    ``yj`` (JP), ``rxnorm`` (other countries), ``""`` when there is no code."""
+    the country's drug code system (``yj`` JP, ``rxnorm`` US; country profile,
+    Issue #3143), ``""`` when there is no code."""
     if not protocol_drug_order_code(spec, country):
         return ""
-    return "yj" if is_jp(country) else "rxnorm"
+    return system_key_for("drug", country)
 
 
 def protocol_drug_order_code(spec: dict, country: str) -> str:

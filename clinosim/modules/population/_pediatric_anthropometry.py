@@ -27,8 +27,9 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, model_validator
 
+from clinosim.countries import country_code as _country_code
+from clinosim.country_profile import supported_countries
 from clinosim.datafiles import load_validated_yaml
-from clinosim.modules._shared import is_jp
 
 _REFERENCE_PATH = Path(__file__).resolve().parent / "reference_data" / "anthropometric_reference.yaml"
 
@@ -128,8 +129,11 @@ class _AnthropometricReference(BaseModel):
 
     @model_validator(mode="after")
     def _covers_pediatric_ages(self) -> _AnthropometricReference:
-        if set(self.pediatric_growth) != {"US", "JP"}:
-            raise ValueError(f"pediatric_growth countries must be US and JP, got {sorted(self.pediatric_growth)}")
+        if set(self.pediatric_growth) != set(supported_countries()):
+            raise ValueError(
+                f"pediatric_growth countries must be the supported countries {list(supported_countries())}, "
+                f"got {sorted(self.pediatric_growth)}"
+            )
         ages = set(range(self.adult_path_min_age_years))
         c = self.clamps
         tables = [(f"pediatric_growth.{k}", v, True) for k, v in self.pediatric_growth.items()]
@@ -174,7 +178,7 @@ def pediatric_upper_age() -> int:
 
 def _lookup_median(country: str, sex: str, age_years: int) -> dict[str, float] | None:
     ref = _load_reference()
-    tables = (ref.get("pediatric_growth") or {}).get("JP" if is_jp(country) else "US") or {}
+    tables = (ref.get("pediatric_growth") or {}).get(_country_code(country)) or {}
     sex_key = "male" if str(sex or "").upper().startswith("M") else "female"
     row = (tables.get(sex_key) or {}).get(int(age_years))
     if not row:
