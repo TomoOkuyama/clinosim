@@ -4,14 +4,16 @@ Lifts the previously-inline scalars from
 :mod:`clinosim.modules.staff.engine` per policy §5 into a single
 per-topic threshold file:
 
-1. Phone-number generation formats (US area/prefix/line, JP 03-XXXX-XXXX)
-2. Sex-distribution ratios (physician / nurse defaults; allied-health
+1. Sex-distribution ratios (physician / nurse defaults; allied-health
    per-role female ratios)
-3. Qualification-year ranges (per-role integer bands)
-4. Staffing formulas (bed-scaled doctors-per-department, nurses-per-ward)
-5. Fixed role counts (lab technicians, radiologists, pharmacists)
-6. Extra-roles table (physical therapist / OT / ST / MSW / dietitian)
-7. Fallback staff-ID digit range for missing locale name data
+2. Qualification-year ranges (per-role integer bands)
+3. Staffing formulas (bed-scaled doctors-per-department, nurses-per-ward)
+4. Fixed role counts (lab technicians, radiologists, pharmacists)
+5. Extra-roles table (physical therapist / OT / ST / MSW / dietitian)
+6. Fallback staff-ID digit range for missing locale name data
+
+The staff work-phone format is country data (``addresses.yaml``
+``phone.staff_work``, Issue #3141).
 
 Byte-diff verification: the file iterates ``rng`` deterministically
 (sex draws + qualification-year draws + name draws), so ANY of these
@@ -37,10 +39,6 @@ __all__ = [
     "ED_OPD_NURSES_PER_AREA",
     "EXTRA_STAFF_ROLES",
     "FALLBACK_BEDS_PER_WARD",
-    "JP_PHONE_LINE_MAX_EXCLUSIVE",
-    "JP_PHONE_LINE_MIN",
-    "JP_PHONE_PREFIX_MAX_EXCLUSIVE",
-    "JP_PHONE_PREFIX_MIN",
     "LAB_TECH_COUNT",
     "MIN_BEDS_PER_WARD",
     "MIN_ED_PHYSICIANS",
@@ -65,57 +63,7 @@ __all__ = [
     "STAFF_ID_FALLBACK_MIN",
     "TECH_QUALIFICATION_YEAR_END_EXCLUSIVE",
     "TECH_QUALIFICATION_YEAR_START",
-    "US_PHONE_AREA_MAX_EXCLUSIVE",
-    "US_PHONE_AREA_MIN",
-    "US_PHONE_LINE_MAX_EXCLUSIVE",
-    "US_PHONE_LINE_MIN",
-    "US_PHONE_PREFIX_MAX_EXCLUSIVE",
-    "US_PHONE_PREFIX_MIN",
 ]
-
-
-# ---------------------------------------------------------------------------
-# Phone-number generation — synthetic identifiers only, not real numbers
-# ---------------------------------------------------------------------------
-
-JP_PHONE_PREFIX_MIN: int = 3000
-"""Inclusive lower bound of the 4-digit JP-format phone-number prefix
-(``03-<prefix>-<line>``). The 3000-5999 range keeps the synthetic
-number visually distinct from any real Tokyo landline prefix while
-staying in the correct digit range."""
-
-JP_PHONE_PREFIX_MAX_EXCLUSIVE: int = 6000
-"""Exclusive upper bound (``integers`` high=exclusive) — combined with
-:data:`JP_PHONE_PREFIX_MIN` yields prefixes 3000-5999."""
-
-JP_PHONE_LINE_MIN: int = 1000
-"""Inclusive lower bound of the JP-format line portion (last 4 digits).
-1000-9998 spans the full 4-digit line range."""
-
-JP_PHONE_LINE_MAX_EXCLUSIVE: int = 9999
-"""Exclusive upper bound — combined with :data:`JP_PHONE_LINE_MIN`
-yields lines 1000-9998."""
-
-US_PHONE_AREA_MIN: int = 200
-"""Inclusive lower bound of the US-format area code. NANP area codes
-never start with 0 or 1 (200-999 is the valid space)."""
-
-US_PHONE_AREA_MAX_EXCLUSIVE: int = 999
-"""Exclusive upper bound of the area code."""
-
-US_PHONE_PREFIX_MIN: int = 200
-"""Inclusive lower bound of the US-format central-office prefix
-(same 200-998 range as area codes per NANP)."""
-
-US_PHONE_PREFIX_MAX_EXCLUSIVE: int = 999
-"""Exclusive upper bound of the central-office prefix."""
-
-US_PHONE_LINE_MIN: int = 1000
-"""Inclusive lower bound of the US-format line portion (last 4
-digits)."""
-
-US_PHONE_LINE_MAX_EXCLUSIVE: int = 9999
-"""Exclusive upper bound of the US-format line portion."""
 
 
 # ---------------------------------------------------------------------------

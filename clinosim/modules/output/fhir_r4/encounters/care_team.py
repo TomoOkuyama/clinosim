@@ -40,9 +40,10 @@ from typing import Any
 
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import load_addresses
 from clinosim.locale.localized import localized_field
+from clinosim.locale.patterns import format_hash_pattern
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
@@ -333,7 +334,7 @@ def _ward_telecom(encounter_id: str, ward_id: str, country: str) -> list[dict[st
     """Deterministic synthetic ward phone as FHIR ContactPoint.
 
     Structural placeholder — same category as C3-03 immunization lot_number
-    (synthetic-but-deterministic). Format:
+    (synthetic-but-deterministic). Format from addresses.yaml ``phone.ward``:
       JP: 03-XXXX-YYYY (Tokyo area code, ward-derived extension)
       US: (555) XXX-YYYY (555 reserved-for-fiction area code)
     Uses (encounter_id, ward_id) hash so the same encounter regenerates the
@@ -343,14 +344,8 @@ def _ward_telecom(encounter_id: str, ward_id: str, country: str) -> list[dict[st
         return []
     seed_str = f"{encounter_id}:{ward_id}"
     h = sum(ord(c) * (i + 1) for i, c in enumerate(seed_str))
-    if is_jp(country):
-        ext = f"{(h // 10_000) % 10_000:04d}"
-        num = f"{h % 10_000:04d}"
-        value = f"03-{ext}-{num}"
-    else:
-        area = f"{(h // 10_000) % 1000:03d}"
-        num = f"{h % 10_000:04d}"
-        value = f"(555) {area}-{num}"
+    # Issue #3141: the format is country data (addresses.yaml ``phone.ward``).
+    value = format_hash_pattern(load_addresses(country)["phone"]["ward"], h)
     return [{"system": "phone", "value": value, "use": "work"}]
 
 

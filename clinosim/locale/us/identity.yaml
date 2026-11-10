@@ -145,3 +145,6 @@ fhir_coverage:
 fhir_patient:
   mrn_system: "https://clinosim.io/fhir/us/mrn"
   insured_identifier_from_coverage: false
+  # National identifier on the Patient (Issue #3141): "ssn" = the synthetic
+  # Social Security number (patient.py _NATIONAL_IDENTIFIER_BUILDERS).
+  national_identifier: ssn

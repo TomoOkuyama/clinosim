@@ -65,8 +65,15 @@ changes only when the country needs an algorithm no country has yet.
 | `code_systems` | The code-system key per kind (`lab`, `diagnosis`, `drug`, `procedure`, `microbiology`), resolved by `clinosim.codes`. |
 | `fhir_profiles` | The FHIR profiles applied to output (`us_core`, `jp_core`, `jp_clins`, `jp_echeckup`). |
 | `features` | Country features switched on or off (`health_checkup`, `care_level`, `maternal_tdap`, ...). |
-| `formats` | Name order (`given_family` / `family_given`), date, time and date-time formats; address template, phone patterns and MRN / national-identifier specs join in migration step 2 (§7). |
+| `formats` | Name order (`given_family` / `family_given`, applied by `formats.name_parts(family, given)`), date, time and date-time formats, and the physician name prefix (`physician_name_prefix`). |
 | `implementations` | The named implementation per algorithm kind (`egfr_equation`, `triage_scale`, `copay_rule`, `insurer_number`, ...). |
+
+Address and phone formats are patterns in `clinosim/locale/<cc>/addresses.yaml`
+(`street_line`, `apartment_line`, `phone.{mobile,landline,staff_work,ward}`,
+`fhir_address`), drawn and formatted by one generic formatter,
+`clinosim/locale/patterns.py` (libaddressinput / libphonenumber style). The
+Patient's MRN system and national identifier are in
+`clinosim/locale/<cc>/identity.yaml` (`fhir_patient`).
 
 Country-specific **parameters of a module** (for example discharge
 criteria or time to surgery) stay in that module's `reference_data/`
@@ -82,7 +89,8 @@ All of it lives in `clinosim/country_profile.py`.
   case-insensitively; legacy spellings (`"japan"`) map through a data table
   in the loader, not through `is_jp` / `is_us`. An unknown country raises
   `KeyError`; it never falls back to the US silently.
-- `profile.code`, `profile.language`, `profile.timezone` (`"Z"` or a
+- `profile.code`, `profile.language`, `profile.language_tag` (BCP 47
+  `<language>-<code>`, e.g. `ja-JP`), `profile.timezone` (`"Z"` or a
   `+HH:MM` / `-HH:MM` UTC offset), `profile.formats`.
 - `profile.uses(profile_name) -> bool`, `profile.feature(name) -> bool`,
   `profile.code_system(kind) -> str`, `profile.implementation(kind) -> str`.

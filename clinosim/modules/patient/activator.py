@@ -18,6 +18,7 @@ from clinosim.age_bands import age_band_covers
 from clinosim.codes.drugs import drug_classes
 from clinosim.codes.valuesets import concept_group, has_condition
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_names
 from clinosim.locale.localized import localized
@@ -671,10 +672,8 @@ def activate_patient(
         vitals.heart_rate -= int(rng.integers(E03_HR_REDUCTION_MIN, E03_HR_REDUCTION_MAX_EXCLUSIVE))
 
     # Build PersonName from Layer 1 data
-    if is_jp(country):
-        display = f"{person.family_name} {person.given_name}"
-    else:
-        display = f"{person.given_name} {person.family_name}"
+    # Issue #3141: written name order from the country profile.
+    display = " ".join(country_profile(country).formats.name_parts(person.family_name, person.given_name))
 
     name = PersonName(
         family_name=person.family_name,
@@ -837,14 +836,10 @@ def activate_patient(
             given_name = given.get("kanji") or given.get("name", "")
             if not given_name:
                 raise ValueError("empty given name")
-            if is_jp(country):
-                emergency_name = f"{name.family_name} {given_name}"
-            else:
-                emergency_name = f"{given_name} {name.family_name}"
+            emergency_name = " ".join(country_profile(country).formats.name_parts(name.family_name, given_name))
         except Exception:
-            # Fallback if name data unavailable. Gate on is_jp (matching the main
-            # path above) — a raw country == "US" would give a lowercase "us"
-            # patient the Japanese "家" suffix (FP-UNIFY-4 sibling class).
+            # Fallback if name data unavailable: the catalog's family-contact
+            # label in the country's output language (FP-UNIFY-4 sibling class).
             emergency_name = t("module_text.family_contact", lang_for(country), family=name.family_name)
 
     contact = ContactInfo(
@@ -869,7 +864,7 @@ def activate_patient(
         marital_status = str(rng.choice(MARITAL_STATUS_ELDERLY_CODES, p=MARITAL_STATUS_ELDERLY_WEIGHTS))
 
     # Preferred language (BCP-47)
-    preferred_language = "ja-JP" if is_jp(country) else "en-US"
+    preferred_language = country_profile(country).language_tag
 
     # Insurance type from YAML age bands
     insurance_type = _sample_insurance(demo, age, rng)

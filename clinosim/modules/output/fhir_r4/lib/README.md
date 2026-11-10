@@ -171,7 +171,9 @@ scope (see `write_generator_metadata` docstring).
   check in the NDJSON writer).
 - **`_JST_TZ_SUFFIX = "+09:00"`** / **`_UTC_TZ_SUFFIX = "Z"`**
   (`fhir_time.py`) — timezone-suffix constants for the `to_fhir_*`
-  formatters + downstream post-processing.
+  formatters + downstream post-processing. A country's own suffix is its
+  country profile `timezone` (`clinosim/locale/<cc>/country.yaml`), which
+  `tz_suffix_for_country` returns; `Z` only when no country is in scope.
 - **`CLINOSIM_IDENTIFIER_SYSTEM_PREFIX = "urn:clinosim:identifier:"`**
   — namespace prefix for every clinosim-internal identifier system
   (`HAI_EVENT_ID_SYSTEM`, staff identifier system, etc.).

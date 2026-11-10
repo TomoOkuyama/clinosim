@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
-from clinosim.modules._shared import is_jp
+from clinosim.country_profile import country_profile
 
 __all__ = [
     "derive_meta_last_updated",
@@ -23,21 +23,23 @@ __all__ = [
 # HAPI FHIR Validator (JP Core 準拠) は TZ 無し dateTime を regex エラーとする。
 # to_fhir_datetime + to_fhir_instant で単一 seam 化、per-builder 個別修正回避。
 _JST_TZ_SUFFIX = "+09:00"
-# Issue #570 convention: non-JP cohorts append UTC (`Z`) as the neutral default.
-# Once locale-aware US time modelling lands, this may switch to a US-specific
-# suffix (e.g. `-05:00` for America/New_York); callers still route through
-# `tz_suffix_for_country(country)` so the change is a one-constant edit.
+# Suffix when no country is in scope (UTC, the neutral default). A country's
+# own suffix is its profile ``timezone`` (Issue #3141).
 _UTC_TZ_SUFFIX = "Z"
 
 
 def tz_suffix_for_country(country: str) -> str:
     """Canonical timezone suffix for the country's FHIR datetime / instant fields.
 
-    JP → `+09:00` (JST); anything else → `Z` (UTC). Callers use this instead of
+    The country profile's ``timezone`` (``locale/<cc>/country.yaml``: JP →
+    ``+09:00``, US → ``Z``; Issue #3141). No country → ``Z`` (UTC); a country
+    without a profile raises ``KeyError``. Callers use this instead of
     hardcoding a TZ suffix so US cohorts do not silently emit JST timestamps
     (Issue #570 locale-gate convention).
     """
-    return _JST_TZ_SUFFIX if is_jp(country) else _UTC_TZ_SUFFIX
+    if not str(country or "").strip():
+        return _UTC_TZ_SUFFIX
+    return country_profile(country).timezone
 
 
 def _append_tz_if_missing(s: str) -> str:

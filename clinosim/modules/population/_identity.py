@@ -13,29 +13,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from clinosim.modules._shared import is_jp, normalize_probabilities
-from clinosim.modules.population._household_thresholds import (
-    JP_ADDRESS_APARTMENT_PROBABILITY_DEFAULT,
-    JP_ADDRESS_APARTMENT_ROOM_MAX_EXCLUSIVE,
-    JP_ADDRESS_APARTMENT_ROOM_MIN,
-    JP_ADDRESS_BANCHI_MAX_EXCLUSIVE,
-    JP_ADDRESS_BANCHI_MIN,
-    JP_ADDRESS_CHOME_MAX_EXCLUSIVE,
-    JP_ADDRESS_CHOME_MIN,
-    JP_ADDRESS_GO_MAX_EXCLUSIVE,
-    JP_ADDRESS_GO_MIN,
-    JP_PHONE_LANDLINE_NON_TOKYO_EXCHANGE_MAX_EXCLUSIVE,
-    JP_PHONE_LANDLINE_NON_TOKYO_EXCHANGE_MIN,
-    PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE,
-    PHONE_4DIGIT_BLOCK_MIN,
-    US_ADDRESS_APARTMENT_NUMBER_MAX_EXCLUSIVE,
-    US_ADDRESS_APARTMENT_NUMBER_MIN,
-    US_ADDRESS_APARTMENT_PROBABILITY_DEFAULT,
-    US_ADDRESS_STREET_NUMBER_MAX_EXCLUSIVE,
-    US_ADDRESS_STREET_NUMBER_MIN,
-    US_PHONE_EXCHANGE_MAX_EXCLUSIVE,
-    US_PHONE_EXCHANGE_MIN,
-)
+from clinosim.locale.patterns import draw_pattern
+from clinosim.modules._shared import normalize_probabilities
 
 
 def _load_name_data(country: str) -> dict:
@@ -137,66 +116,21 @@ def _generate_household_address(addr_data: dict, rng: np.random.Generator) -> di
     zips = city_data.get("zips", ["00000"])
     postal_code = str(rng.choice(zips))
 
-    country = addr_data.get("country", "US")
-    if is_jp(country):
-        towns = addr_data["towns"]
-        town = str(rng.choice(towns))
-        chome = int(rng.integers(JP_ADDRESS_CHOME_MIN, JP_ADDRESS_CHOME_MAX_EXCLUSIVE))
-        banchi = int(rng.integers(JP_ADDRESS_BANCHI_MIN, JP_ADDRESS_BANCHI_MAX_EXCLUSIVE))
-        go = int(rng.integers(JP_ADDRESS_GO_MIN, JP_ADDRESS_GO_MAX_EXCLUSIVE))
-        line = str(addr_data["line_format"]).format(town=town, chome=chome, banchi=banchi, go=go)
-        if rng.random() < addr_data.get("apartment_probability", JP_ADDRESS_APARTMENT_PROBABILITY_DEFAULT):
-            apt_names = addr_data["apartment_names"]
-            apt = str(rng.choice(apt_names))
-            room = int(rng.integers(JP_ADDRESS_APARTMENT_ROOM_MIN, JP_ADDRESS_APARTMENT_ROOM_MAX_EXCLUSIVE))
-            line += f" {apt}{room}"
-    else:
-        streets = addr_data.get("street_names", ["Main St"])
-        street = str(rng.choice(streets))
-        num = int(rng.integers(US_ADDRESS_STREET_NUMBER_MIN, US_ADDRESS_STREET_NUMBER_MAX_EXCLUSIVE))
-        line = f"{num} {street}"
-        if rng.random() < addr_data.get("apartment_probability", US_ADDRESS_APARTMENT_PROBABILITY_DEFAULT):
-            apt_num = int(rng.integers(US_ADDRESS_APARTMENT_NUMBER_MIN, US_ADDRESS_APARTMENT_NUMBER_MAX_EXCLUSIVE))
-            line += f", Apt {apt_num}"
+    # Issue #3141: the street-line and apartment shapes are country data
+    # (addresses.yaml ``street_line`` / ``apartment_line``), drawn in the
+    # same order the per-country code drew them.
+    line = draw_pattern(addr_data["street_line"], addr_data, rng)
+    if rng.random() < float(addr_data["apartment_probability"]):
+        line += draw_pattern(addr_data["apartment_line"], addr_data, rng)
 
     return {"postal_code": postal_code, "state": state, "city": city, "line": line}
 
 
 def _generate_phone(addr_data: dict, phone_type: str, rng: np.random.Generator) -> str:
-    """Generate a phone number from locale phone patterns."""
-    phone_cfg = addr_data.get("phone", {})
-    country = addr_data.get("country", "US")
+    """Generate a phone number from locale phone patterns.
 
-    if is_jp(country):
-        if phone_type == "mobile":
-            prefixes = phone_cfg.get("mobile_prefix", ["090"])
-            prefix = str(rng.choice(prefixes))
-            mid = f"{int(rng.integers(PHONE_4DIGIT_BLOCK_MIN, PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE)):04d}"
-            last = f"{int(rng.integers(PHONE_4DIGIT_BLOCK_MIN, PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE)):04d}"
-            return f"{prefix}-{mid}-{last}"
-        else:
-            areas = phone_cfg.get("area_codes_landline", ["03"])
-            area = str(rng.choice(areas))
-            if area == "03":
-                exchange = f"{int(rng.integers(PHONE_4DIGIT_BLOCK_MIN, PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE)):04d}"
-                number = f"{int(rng.integers(PHONE_4DIGIT_BLOCK_MIN, PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE)):04d}"
-                return f"{area}-{exchange}-{number}"
-            else:
-                exchange_int = int(
-                    rng.integers(
-                        JP_PHONE_LANDLINE_NON_TOKYO_EXCHANGE_MIN,
-                        JP_PHONE_LANDLINE_NON_TOKYO_EXCHANGE_MAX_EXCLUSIVE,
-                    )
-                )
-                exchange = f"{exchange_int:03d}"
-                number = f"{int(rng.integers(PHONE_4DIGIT_BLOCK_MIN, PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE)):04d}"
-                return f"{area}-{exchange}-{number}"
-    else:
-        if phone_type == "mobile":
-            areas = phone_cfg.get("mobile_prefix", ["617"])
-        else:
-            areas = phone_cfg.get("area_codes", ["617"])
-        area = str(rng.choice(areas))
-        exchange = f"{int(rng.integers(US_PHONE_EXCHANGE_MIN, US_PHONE_EXCHANGE_MAX_EXCLUSIVE)):03d}"
-        number = f"{int(rng.integers(PHONE_4DIGIT_BLOCK_MIN, PHONE_4DIGIT_BLOCK_MAX_EXCLUSIVE)):04d}"
-        return f"({area}) {exchange}-{number}"
+    ``phone_type`` (``mobile`` / ``landline``) names the pattern in
+    addresses.yaml ``phone`` (Issue #3141; clinosim/locale/patterns.py).
+    """
+    phone_cfg = addr_data["phone"]
+    return draw_pattern(phone_cfg[phone_type], phone_cfg, rng)

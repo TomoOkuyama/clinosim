@@ -165,7 +165,9 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
   fail-soft 検査)。
 - **`_JST_TZ_SUFFIX = "+09:00"`** / **`_UTC_TZ_SUFFIX = "Z"`**
   (`fhir_time.py`) — `to_fhir_*` 整形と下流 post-processing 用の
-  timezone suffix 定数。
+  timezone suffix 定数。国ごとの suffix は country profile の `timezone`
+  (`clinosim/locale/<cc>/country.yaml`) で、`tz_suffix_for_country` が
+  返す。国が無いときだけ `Z`。
 - **`CLINOSIM_IDENTIFIER_SYSTEM_PREFIX = "urn:clinosim:identifier:"`**
   — clinosim 内部 identifier system の名前空間 prefix
   (`HAI_EVENT_ID_SYSTEM`、staff identifier system 等)。

@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import numpy as np
 
-from clinosim.locale.loader import load_names
-from clinosim.modules._shared import is_jp
+from clinosim.country_profile import country_profile
+from clinosim.locale.loader import load_addresses, load_names
+from clinosim.locale.patterns import draw_pattern
 from clinosim.modules.staff._staff_thresholds import (
     ALLIED_HEALTH_QUALIFICATION_YEAR_END_EXCLUSIVE,
     ALLIED_HEALTH_QUALIFICATION_YEAR_START,
@@ -22,10 +23,6 @@ from clinosim.modules.staff._staff_thresholds import (
     ED_OPD_NURSES_PER_AREA,
     EXTRA_STAFF_ROLES,
     FALLBACK_BEDS_PER_WARD,
-    JP_PHONE_LINE_MAX_EXCLUSIVE,
-    JP_PHONE_LINE_MIN,
-    JP_PHONE_PREFIX_MAX_EXCLUSIVE,
-    JP_PHONE_PREFIX_MIN,
     LAB_TECH_COUNT,
     MIN_ANESTHESIOLOGISTS,
     MIN_BEDS_PER_WARD,
@@ -52,12 +49,6 @@ from clinosim.modules.staff._staff_thresholds import (
     SURGICAL_DEPARTMENTS,
     TECH_QUALIFICATION_YEAR_END_EXCLUSIVE,
     TECH_QUALIFICATION_YEAR_START,
-    US_PHONE_AREA_MAX_EXCLUSIVE,
-    US_PHONE_AREA_MIN,
-    US_PHONE_LINE_MAX_EXCLUSIVE,
-    US_PHONE_LINE_MIN,
-    US_PHONE_PREFIX_MAX_EXCLUSIVE,
-    US_PHONE_PREFIX_MIN,
 )
 from clinosim.types.staff import StaffMember, StaffRoster
 
@@ -83,17 +74,9 @@ FALLBACK_TECH_ID: str = "TECH-001"
 
 
 def _gen_phone(country: str, rng: np.random.Generator) -> str:
-    """Generate a fake work phone number."""
-    if is_jp(country):
-        return (
-            f"03-{int(rng.integers(JP_PHONE_PREFIX_MIN, JP_PHONE_PREFIX_MAX_EXCLUSIVE))}"
-            f"-{int(rng.integers(JP_PHONE_LINE_MIN, JP_PHONE_LINE_MAX_EXCLUSIVE))}"
-        )
-    return (
-        f"({int(rng.integers(US_PHONE_AREA_MIN, US_PHONE_AREA_MAX_EXCLUSIVE))}) "
-        f"{int(rng.integers(US_PHONE_PREFIX_MIN, US_PHONE_PREFIX_MAX_EXCLUSIVE))}"
-        f"-{int(rng.integers(US_PHONE_LINE_MIN, US_PHONE_LINE_MAX_EXCLUSIVE))}"
-    )
+    """Generate a fake work phone number (addresses.yaml ``phone.staff_work``, Issue #3141)."""
+    phone_cfg = load_addresses(country)["phone"]
+    return draw_pattern(phone_cfg["staff_work"], phone_cfg, rng)
 
 
 def _gen_email(staff_id: str) -> str:
@@ -522,8 +505,9 @@ def _generate_name_pair(sex: str, country: str, rng: np.random.Generator) -> tup
             given_kana = g.get("kana", "")
             break
 
-    if is_jp(country):
-        kanji = f"{surname_kanji} {given_kanji}"
-        kana = f"{surname_kana} {given_kana}" if (surname_kana and given_kana) else ""
-        return kanji, kana
-    return f"{given_kanji} {surname_kanji}", ""
+    # Issue #3141: written order from the country profile; only names with a
+    # reading (the JP names.yaml kana column) get a phonetic form.
+    formats = country_profile(country).formats
+    kanji = " ".join(formats.name_parts(surname_kanji, given_kanji))
+    kana = " ".join(formats.name_parts(surname_kana, given_kana)) if (surname_kana and given_kana) else ""
+    return kanji, kana
