@@ -152,13 +152,15 @@ clinosim/locale/
                                    family_history_prevalence / formatting
                                    / identity / immunization_schedule /
                                    names / reference_range_lab
-  jp/                             JP 固有バンドル (20 YAML — US 集合から
+  jp/                             JP 固有バンドル (23 YAML — US 集合から
                                    ckd_under60_prevalence と
                                    code_mapping_drug を除き、
                                    care_level_rates /
                                    code_mapping_microbiology /
                                    code_mapping_microbiology_susceptibility
                                    / external_organizations /
+                                   facility_identity (病院の医療機関コード、
+                                   Issue #3129) /
                                    patient_instructions_ja /
                                    practitioner_qualifications を追加)
   shared/                         locale 間共有データ (38 YAML)。例:

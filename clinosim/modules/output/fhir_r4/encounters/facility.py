@@ -14,6 +14,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import vocab_display
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, entry, text_if_localized
+from clinosim.modules.output.fhir_r4.lib.ecs_extensions import hospital_institution_code
 from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
     JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM,
     JP_LOCATION_PROFILE,
@@ -70,8 +71,7 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
     # `StructureDefinition-JP-Organization-eCS.json` (min=1 or MS):
     #   - meta.profile / meta.lastUpdated
     #   - identifier:medicalInstitutionCode (system fixedUri +
-    #     10-digit medical-institution-code, placeholder "1300000000" since
-    #     hospital_config carries no institutional-code field)
+    #     the hospital's 10-digit 医療機関コード, Issue #3129)
     #   - type.coding.system + code (unchanged — same "prov" already used)
     #   - name / telecom.value / address.text
     # telecom.use / address.use required binding: "home" is forbidden by
@@ -100,11 +100,11 @@ def _build_facility_bundle(hospital_config: dict, country: str) -> dict:
             {
                 "use": "official",
                 # spec fixedUri: identifier:medicalInstitutionCode.system on
-                # JP_Organization_eCS. Placeholder 10-digit value stands in
-                # for a real MHLW-assigned code until hospital_config
-                # carries one.
+                # JP_Organization_eCS; the value is the hospital's 10-digit
+                # 医療機関コード (facility_identity.yaml, Issue #3129), the
+                # same as the JP_eCS_InstitutionNumber extension.
                 "system": JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM,
-                "value": "1300000000",
+                "value": hospital_institution_code(country),
             }
         ]
         root_org["telecom"] = [{"system": "phone", "value": "03-0000-0000", "use": "work"}]

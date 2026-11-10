@@ -27,10 +27,10 @@
 #   address       — used for Organization.address.text (prefecture + city).
 #     prefecture  — 都道府県 name (used as address text prefix).
 #     city        — 市区町村 name.
-#   institution_code — 10-digit MHLW medical-institution number.
-#                   Placeholder values (not real assignments) but they
-#                   satisfy the JP_Organization_eCS
-#                   `identifier:medicalInstitutionCode` slice.
+#   institution_code — 10-digit 医療機関コード: 都道府県番号 (2, the
+#                   entry's prefecture), 点数表番号 1 (医科), then 7 digits
+#                   (Issue #3129; format in facility_identity.yaml).
+#                   Synthetic values, not real assignments.
 #   phone         — Organization.telecom placeholder (03/06/052 area).
 #
 # Design constraints:
@@ -106,7 +106,7 @@ external_hospitals:
     address:
       prefecture: 大阪府
       city: 大阪市北区
-    institution_code: "2727000106"
+    institution_code: "2717000106"
     phone: "06-6361-0006"
 
   - id: ext-hosp-kyoto-univ
@@ -117,7 +117,7 @@ external_hospitals:
     address:
       prefecture: 京都府
       city: 京都市上京区
-    institution_code: "2626000107"
+    institution_code: "2616000107"
     phone: "075-251-0007"
 
   - id: ext-hosp-nagoya-sakae
@@ -128,7 +128,7 @@ external_hospitals:
     address:
       prefecture: 愛知県
       city: 名古屋市中区
-    institution_code: "2323000108"
+    institution_code: "2313000108"
     phone: "052-241-0008"
 
   - id: ext-hosp-sapporo-kita
@@ -139,7 +139,7 @@ external_hospitals:
     address:
       prefecture: 北海道
       city: 札幌市北区
-    institution_code: "0101000109"
+    institution_code: "0111000109"
     phone: "011-711-0009"
 
   - id: ext-hosp-fukuoka-hakata
@@ -150,5 +150,5 @@ external_hospitals:
     address:
       prefecture: 福岡県
       city: 福岡市博多区
-    institution_code: "4040000110"
+    institution_code: "4010000110"
     phone: "092-411-0010"

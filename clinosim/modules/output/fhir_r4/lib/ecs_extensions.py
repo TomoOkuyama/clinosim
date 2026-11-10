@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.locale.loaders.fhir_identity import load_facility_identity
 from clinosim.locale.loaders.medical_display import department_display
 from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM
@@ -13,6 +14,7 @@ __all__ = [
     "attach_ecs_institutional_extensions",
     "build_ecs_department_extension",
     "build_ecs_institution_extension",
+    "hospital_institution_code",
 ]
 
 
@@ -33,32 +35,36 @@ __all__ = [
 # 10-digit medical-institution code is the same URI used by the facility
 # builder's `hospital-main.identifier:medicalInstitutionCode` (Issue #746).
 #
-# Placeholder policy: hospital_config carries no institutional code or per-
-# encounter department name today, so both extensions carry synthetic
-# placeholders. Downstream Issues will thread real values from encounter
-# context once hospital_config gains those fields.
+# The institution number is the hospital's 10-digit 医療機関コード from
+# ``locale/jp/facility_identity.yaml`` (Issue #3129); the department falls
+# back to a placeholder when the caller has no encounter department.
 _JP_ECS_INSTITUTION_NUMBER_EXT_URL = (
     "http://jpfhir.jp/fhir/clins/Extension/StructureDefinition/JP_eCS_InstitutionNumber"
 )
 _JP_ECS_DEPARTMENT_EXT_URL = "http://jpfhir.jp/fhir/eCS/Extension/StructureDefinition/JP_eCS_Department"
 _JP_ECS_INSTITUTION_ID_SYSTEM = JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM
-_JP_ECS_INSTITUTION_PLACEHOLDER = "1300000000"
 _JP_ECS_DEPARTMENT_PLACEHOLDER = department_display("primary_care", "ja")
 
 
 def build_ecs_institution_extension() -> dict[str, Any]:
     """Return the `JP_eCS_InstitutionNumber` extension for JP eCS resources.
 
-    Value is the fixed 10-digit institutional-code placeholder — same as
+    Value is the hospital's 10-digit 医療機関コード (Issue #3129) — same as
     `hospital-main.identifier:medicalInstitutionCode`. Callers gate on JP.
     """
     return {
         "url": _JP_ECS_INSTITUTION_NUMBER_EXT_URL,
         "valueIdentifier": {
             "system": _JP_ECS_INSTITUTION_ID_SYSTEM,
-            "value": _JP_ECS_INSTITUTION_PLACEHOLDER,
+            "value": hospital_institution_code("JP"),
         },
     }
+
+
+def hospital_institution_code(country: str) -> str:
+    """The hospital's 10-digit 医療機関コード (``facility_identity.yaml``,
+    Issue #3129); empty for a country without one."""
+    return str(load_facility_identity(country).get("institution_code") or "")
 
 
 def build_ecs_department_extension(department_text: str = "") -> dict[str, Any]:

@@ -146,6 +146,17 @@ def load_external_organizations(country: str) -> list[dict[str, Any]]:
 
 
 @lru_cache(maxsize=8)
+def load_facility_identity(country: str) -> dict[str, Any]:
+    """The simulated hospital's own identity (Issue #3129): ``prefecture``
+    and the 10-digit ``institution_code`` (医療機関コード) from
+    ``<country>/facility_identity.yaml``; empty for a country without the
+    file (US)."""
+    data = _load_yaml(_country_dir(country) / "facility_identity.yaml", fallback={})
+    hospital = data.get("hospital") if isinstance(data, dict) else None
+    return dict(hospital) if isinstance(hospital, dict) else {}
+
+
+@lru_cache(maxsize=8)
 def load_practitioner_qualifications(country: str) -> dict[str, Any]:
     """Load JP MHLW national-license qualification + license-number tables
     (Issue #962).
