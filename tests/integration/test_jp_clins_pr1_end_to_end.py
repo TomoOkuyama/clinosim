@@ -112,8 +112,9 @@ def test_jp_p100_carries_clins_profiles_on_five_types(tmp_path):
             pool = [r for r in pool if _allergy_satisfies_ecs(r)]
         if rt == "Encounter":
             # Issue #3148: JP_Encounter_eCS is declared only on an Encounter that meets
-            # it (e.g. a finished stay without the DPC discharge outcome does not). Reuse
-            # the production predicate and pin both sides, as for MedicationRequest.
+            # it. Issue #3174: a finished inpatient stay with the DPC discharge outcome
+            # does; an in-progress stay or an HL7 discharge destination (ED) does not.
+            # Reuse the production predicate and pin both sides, as for MedicationRequest.
             jp_core_enc = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"
             for r in [r for r in pool if not _encounter_satisfies_ecs(r)]:
                 profs = r.get("meta", {}).get("profile", [])

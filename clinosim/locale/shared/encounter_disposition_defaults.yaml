@@ -34,7 +34,7 @@ admit_source:
   # code choice.
   jp_clins_value_set: "http://jpfhir.jp/fhir/core/ValueSet/JP_AdmitSource_VS"
   # Fallback code when the CIF carries no explicit admit_source. "other"
-  # is the HL7 admit-source "Other, unspecified" concept — chosen over
+  # is the HL7 admit-source "Other" concept — chosen over
   # "hosp-trans" (has a specific meaning of transfer-from-another-hospital
   # that would misinform DPC consumers). See Issue #332 for the "hosp" →
   # "other" migration rationale.

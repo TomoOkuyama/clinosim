@@ -20,4 +20,7 @@ codes:
   # admit-source CS(r4 7.2.0)に未収録で v9 validation で unknown-code
   # error 発火 → semantic-honest な "other" へ訂正
   # (`hosp-trans` は他院からの転院で specific meaning、不明時 emit は誤情報)。
-  other: {en: "Other, unspecified", ja: "その他、特定できず"}
+  # Issue #3174: `en` is the THO display (CodeSystem admit-source 1.0.1,
+  # hl7.terminology.r4 6.2.0-7.3.0): "Other"; "Other, unspecified" is not a
+  # display of the code and fails display validation.
+  other: {en: "Other", ja: "その他、特定できず"}
