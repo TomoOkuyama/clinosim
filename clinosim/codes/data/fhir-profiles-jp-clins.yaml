@@ -65,8 +65,16 @@ profiles:
 # (1..1, coding 1..1, required) to
 # http://jpfhir.jp/fhir/Common/ValueSet/discharge-disposition|1.0.0, the DPC
 # 退院時転帰 — the code-system registry key of its one CodeSystem.
+#
+# JP_Observation_LabResult_eCS R06042H / L / N (check-interpretationH / L /
+# N, Issue #3167): an H / L / N interpretation requires exactly one
+# referenceRange. A result with several ranges (PT-INR on warfarin: normal
+# and therapeutic) keeps the one its interpretation was judged against
+# (`judged`: the therapeutic range when present, else the normal one).
 element_rules:
   Encounter:
     length_unit: d
     length_unit_display: 日
     discharge_disposition_system: jpfhir-discharge-disposition
+  Observation:
+    interpreted_reference_range: judged

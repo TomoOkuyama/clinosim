@@ -478,6 +478,16 @@ def _conform_checkup_report_observation(resource: dict, country: str = "") -> No
         return
     for element in table["forbidden_elements"]:
         resource.pop(element, None)
+    # Issue #3167: the profile allows ``category_max`` categories; the JP
+    # category elements stay (a vital sign also gets an HL7 element for the
+    # HL7 vital-signs profiles, which a checkup measurement does not claim).
+    limit = table["category_max"]
+    cats = resource.get("category") or []
+    if limit and len(cats) > limit:
+        jp = [
+            c for c in cats if any(cd.get("system") == _JP_OBSERVATION_CATEGORY_SYSTEM for cd in c.get("coding") or [])
+        ]
+        resource["category"] = (jp or cats)[:limit]
     system = table["identifier_system"]
     if system and resource.get("identifier"):
         kept = [i for i in resource["identifier"] if isinstance(i, dict) and i.get("system") == system]

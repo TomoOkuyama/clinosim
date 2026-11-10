@@ -58,11 +58,12 @@ def _run_and_extract_labs(records: list) -> dict[str, float]:
 
 @pytest.mark.unit
 def test_bmi_reflects_patient_profile():
-    """patient.bmi 大 → lab BMI 大(± noise 0.3)。"""
+    """身長・体重が大きい BMI の患者 → lab BMI 大。健診 BMI は健診
+    encounter で計測した身長・体重から算出する (Issue #3167)。"""
     pid = _find_selected_pid()
-    lean = _make_record(pid, bmi=20.0)
+    lean = _make_record(pid, bmi=20.0, height_cm=170.0, weight_kg=57.8)
     labs_lean = _run_and_extract_labs([lean])
-    obese = _make_record(pid, bmi=32.0)
+    obese = _make_record(pid, bmi=32.0, height_cm=170.0, weight_kg=92.5)
     labs_obese = _run_and_extract_labs([obese])
     assert labs_lean["BMI"] < 22.0
     assert labs_obese["BMI"] > 30.0

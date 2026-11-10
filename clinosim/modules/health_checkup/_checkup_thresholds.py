@@ -19,9 +19,6 @@ from __future__ import annotations
 
 __all__ = [
     "BMI_MEASUREMENT_NOISE_SD",
-    "BMI_PHYSIOLOGIC_MAX",
-    "BMI_PHYSIOLOGIC_MIN",
-    "BMI_PROFILE_FALLBACK",
     "CHECKUP_TYPE_REGIONAL_UNION_AGE_MIN",
     "CHECKUP_TYPE_SPECIFIC_AGE_MIN",
     "DBP_MEASUREMENT_NOISE_SD",
@@ -50,21 +47,11 @@ __all__ = [
 # BMI — measurement + interpretation
 # ---------------------------------------------------------------------------
 
-BMI_PROFILE_FALLBACK: float = 22.5
-"""Fallback BMI (kg/m²) when ``patient.bmi`` is missing.
-
-22.5 is the JP adult BMI midpoint (WHO healthy range 18.5-24.9)."""
-
 BMI_MEASUREMENT_NOISE_SD: float = 0.3
-"""Measurement-day BMI noise SD (kg/m²) applied on top of the profile
-baseline — reflects intra-day weight variation without crossing
-category boundaries."""
-
-BMI_PHYSIOLOGIC_MIN: float = 10.0
-"""Physiologic BMI lower clamp (kg/m²) — extreme cachexia floor."""
-
-BMI_PHYSIOLOGIC_MAX: float = 60.0
-"""Physiologic BMI upper clamp (kg/m²) — class-IV obesity ceiling."""
+"""SD (kg/m²) of the former measurement-day BMI noise draw. The checkup BMI
+is now computed from the height and weight charted on the checkup
+encounter (Issue #3167); the draw is still taken, and discarded, so the
+patient's later checkup results keep their values."""
 
 
 # ---------------------------------------------------------------------------

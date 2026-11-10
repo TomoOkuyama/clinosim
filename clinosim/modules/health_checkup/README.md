@@ -13,7 +13,9 @@ measurements
 `HEALTH_CHECKUP_REPORT` `ClinicalDocument` stub whose narrative
 [`document.narrative`](../document/narrative/README.md) fills in
 during Stage 2 (AD-65 two-pass CIF). A selected patient who is not
-alive on the checkup date gets no checkup (Issue #2940).
+alive on the checkup date gets no checkup (Issue #2940). The checkup BMI
+is computed from the height and weight charted on the checkup encounter
+(`encounter_anthropometrics`, Issue #3167).
 
 Default OFF — the module only fires when
 `SimulatorConfig.modules["health_checkup"] == True` and `country == "JP"`.
@@ -55,7 +57,7 @@ from clinosim.modules.health_checkup import (
 Internal helpers (in `engine.py`) — not part of the public surface
 but useful for tests: `_patient_selected(patient_id)`,
 `_pick_checkup_type(age)`, `_pick_checkup_date(snapshot_date)`,
-`_derive_checkup_values(patient, rng)`, `_interp_for(lab_name, value)`, `checkup_lab_names()`,
+`_derive_checkup_values(patient, rng, *, charted_bmi)`, `_interp_for(lab_name, value)`, `checkup_lab_names()`,
 `_build_checkup_encounter`, `_build_checkup_lab_results`,
 `_build_checkup_document_stub`, `_alive_on_checkup_date` (skips a
 patient who died before the checkup date — read from

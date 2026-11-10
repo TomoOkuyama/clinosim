@@ -167,7 +167,8 @@ clinosim/locale/
                                    / code_mapping_vaccination_reason /
                                    external_organizations /
                                    checkup_report_items (健診報告書の
-                                   Observation の健診項目コード、Issue #3154) /
+                                   Observation の健診項目コード、Issue #3154;
+                                   身体計測、Issue #3167) /
                                    facility_identity (病院の医療機関コード、
                                    Issue #3129) /
                                    patient_instructions_ja /

@@ -53,7 +53,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     dual_slot_concept,
     english_display_concept,
     entry,
-    survey_category,
+    judged_reference_range,
 )
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
@@ -160,23 +160,25 @@ def lab_observation_coding(lab_name: str, order: dict, result: dict, country: st
     return (codings, display_name)
 
 
-def _checkup_report_item(lab_name: str, country: str) -> tuple[dict[str, str] | None, str]:
-    """The checkup item coding of ``lab_name`` and the report Observation
-    profile (Issue #3154), or ``(None, "")`` when the country maps none."""
+def _checkup_report_item(lab_name: str, country: str) -> tuple[dict[str, str] | None, str, str]:
+    """The checkup item coding of ``lab_name``, the report Observation
+    profile (Issue #3154) and, for an item measured on the body, its
+    category (Issue #3167; "" for a specimen test), or ``(None, "", "")``
+    when the country maps none."""
     from clinosim.countries import country_code as _country_code
     from clinosim.locale.loader import load_checkup_report_items
 
     table = load_checkup_report_items(_country_code(country))
     item = (table.get("items") or {}).get(lab_name)
     if not item:
-        return None, ""
+        return None, "", ""
     system_key = table["code_system"]
     coding = {
         "system": get_system_uri(system_key),
         "code": item,
         "display": registry_display(system_key, item, lang_for(country)) or item,
     }
-    return coding, table["observation_profile"]
+    return coding, table["observation_profile"], table["measurement_items"].get(lab_name, "")
 
 
 def _build_lab_observation(
@@ -231,9 +233,21 @@ def _build_lab_observation(
     # carries the country's checkup item coding and declares the report
     # Observation profile (``<country>/checkup_report_items.yaml``; none
     # for a country without one).
+    # Issue #3167: an item measured on the body (BMI, blood pressure) is a
+    # vital-sign measurement, not a lab result: its category is the one the
+    # table names, it carries the item code alone (a LOINC vital-sign code
+    # would bring in the HL7 ``bmi`` / ``bp`` profiles, which one checkup
+    # measurement cannot meet) and declares only the report profile.
+    _category = "survey" if lab_name in _QUESTIONNAIRE_SCORE_ANALYTES else "laboratory"
+    _measured_on_body = False
     if order.get("clinical_intent") == "health_checkup":
-        _item_coding, _item_profile = _checkup_report_item(lab_name, country)
-        if _item_coding:
+        _item_coding, _item_profile, _item_category = _checkup_report_item(lab_name, country)
+        if _item_coding and _item_category:
+            codings = [_item_coding]
+            _profiles = [_item_profile]
+            _category = _item_category
+            _measured_on_body = True
+        elif _item_coding:
             codings = [*codings, _item_coding]
             _profiles.append(_item_profile)
 
@@ -252,9 +266,7 @@ def _build_lab_observation(
         # chain #2: JP Core Observation_LabResult profile.
         **({"meta": {"profile": _profiles}} if _profiles else {}),
         "status": "final",
-        "category": survey_category(lang_for(country))
-        if lab_name in _QUESTIONNAIRE_SCORE_ANALYTES
-        else [dual_slot_concept("hl7-observation-category", "laboratory", lang_for(country))],
+        "category": [dual_slot_concept("hl7-observation-category", _category, lang_for(country))],
         "code": {"coding": codings, "text": display_name} if codings else {"text": display_name},
         "subject": patient_ref(patient_id),
         # Session-98 F11 fix. `effectiveDateTime` on a lab Observation is
@@ -330,14 +342,7 @@ def _build_lab_observation(
         # Find normal range (type=normal or unlabeled first entry); a
         # therapeutic range, present only for patients on the matching drug,
         # takes precedence (Issue #2205).
-        normal_rng = None
-        for rng in ref_range:
-            tc = (rng.get("type") or {}).get("coding", [{}])[0].get("code", "")
-            if tc == "therapeutic":
-                normal_rng = rng
-                break
-            if (tc == "normal" or not tc) and normal_rng is None:
-                normal_rng = rng
+        normal_rng = judged_reference_range(ref_range)
         # A text-only range (no bounds) cannot judge the value: keep the
         # stored flag (health-checkup criterion text, Issue #2300).
         if normal_rng and (normal_rng.get("low") or normal_rng.get("high")):
@@ -362,7 +367,13 @@ def _build_lab_observation(
         coded = interp_map.get(flag) if flag else "N"
     if coded is None:
         coded = "N"
-    resource["interpretation"] = [dual_slot_concept("hl7-observation-interpretation", coded, lang_for(country))]
+    # A qualitative result nothing judged (no flag; no range to judge a
+    # reading against) states no interpretation: an asserted "N" would be
+    # unsupported, and wrong for an abnormal reading (Issue #3167).
+    if not isinstance(value, (int, float)) and not flag:
+        coded = None
+    if coded is not None:
+        resource["interpretation"] = [dual_slot_concept("hl7-observation-interpretation", coded, lang_for(country))]
 
     # Encounter reference (use order's encounter_id, fallback to primary)
     enc_ref = order.get("encounter_id", "") or encounter_id
@@ -381,8 +392,10 @@ def _build_lab_observation(
     # (system+code omitted intentionally — no authoritative universal
     # method-code exists for "automated bench analyzer" that fits every
     # analyte). Mirrors Coverage.type text-only precedent.
-    _method_text = t("fhir_obs_text.automated_method", lang_for(country))
-    resource["method"] = {"text": _method_text}
+    # A body measurement (Issue #3167) is not an analyzer result.
+    if not _measured_on_body:
+        _method_text = t("fhir_obs_text.automated_method", lang_for(country))
+        resource["method"] = {"text": _method_text}
 
     return resource
 

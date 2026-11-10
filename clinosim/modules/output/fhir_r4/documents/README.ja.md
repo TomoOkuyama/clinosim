@@ -24,7 +24,13 @@ section の entry は、出力済みリソースの encounter 単位の index
 `codes/data/composition-section-entry-types.yaml` が定める。JP-eCheckup の
 検査結果 section (01031) は `JP_Observation_eCheckupGeneral` を宣言する
 健診の Observation (健診項目コードを持つ健診の検査・バイタル結果、
-`locale/jp/checkup_report_items.yaml`、Issue #3154) を参照する。
+`locale/jp/checkup_report_items.yaml`、Issue #3154) を参照する。身体計測
+(BMI・血圧) は健診項目コードのみを持つバイタルサインの Observation で、
+category は 1 つ、検体を持たない (JP-eCheckup のサンプル報告書と同じ形)。
+LOINC のバイタルサインコードを付けると、1 測定の健診 Observation では
+満たせない HL7 `bmi` / `bp` プロファイルが適用されるため付けない。健診の
+BMI は健診 encounter で計測した身長・体重から算出し、同じ encounter に
+2 つ目の BMI は出さない (Issue #3167)。
 
 ## Scope
 
