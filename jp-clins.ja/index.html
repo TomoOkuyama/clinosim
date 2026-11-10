@@ -2657,6 +2657,14 @@ Patient / Organization の emitter):</p>
 <td>DeviceUseStatement</td>
 <td><code>.../JP_DeviceUseStatement_eCS</code></td>
 </tr>
+<tr>
+<td>Encounter (適合するもののみ。下のフィルタ参照、Issue #3148)</td>
+<td><code>.../JP_Encounter_eCS</code></td>
+</tr>
+<tr>
+<td>Practitioner (<code>meta.lastUpdated</code> 付き、Issue #3148)</td>
+<td><code>.../JP_Practitioner_eCS</code></td>
+</tr>
 </tbody>
 </table>
 <p>リソース型 → URL の表は <code>clinosim/codes/data/fhir-profiles-jp-clins.yaml</code>
@@ -2671,6 +2679,13 @@ emitter 内で直接 eCS URL を付与)。</p>
 <li>MedicationRequest: eCS 制約 (<code>dosageInstruction</code> min=1) を満たせる
   場合のみ — 用量・経路を持たない退院時 / 外来継続処方は JP Core
   プロファイルのみ保持。</li>
+<li>Encounter: 終了済みで <code>hospitalization</code> を持たず、<code>length</code> が日単位
+  (または無し)、<code>class</code> / <code>reasonCode</code> / <code>location</code> がプロファイルの
+  必須要素を持つ場合のみ (<code>_encounter_satisfies_ecs</code>)。eCS は
+  <code>hospitalization</code> があれば DPC の退院時転帰 (JP discharge-disposition
+  値セット) を必須とするが、clinosim が記録するのは HL7 の退院先で
+  別の事実のため、入院・救急 Encounter は JP Core のまま。外来受診の
+  長さが分単位のものも eCS の対象外 (単位は <code>d</code> 固定)。</li>
 </ul>
 <p><strong>JP-CLINS v1.13.0 対象外</strong> (JP Core プロファイルのみで emit、
 JP-CLINS URL 非追加):</p>
