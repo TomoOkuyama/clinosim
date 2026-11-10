@@ -323,22 +323,29 @@ def _encounter_satisfies_ecs(resource: dict) -> bool:
     """Predicate: may this Encounter assert JP_Encounter_eCS? (Issue #3148)
 
     The eCS profile (JP-CLINS 1.13.0) fixes ``status`` to ``finished``,
-    ``length`` to code ``d`` / unit ``日``, requires ``hospitalization.dischargeDisposition``
-    from the JP discharge-disposition value set (DPC discharge outcome,
-    required binding) whenever ``hospitalization`` is present, and requires
-    ``class.display``, ``reasonCode.text`` / ``coding.display`` and
-    ``location.status`` / ``period.start`` when those elements are present.
-    clinosim records a discharge destination (HL7), not a DPC outcome, so an
-    inpatient or ED encounter with a ``hospitalization`` stays on JP Core
-    (the ``_medication_request_satisfies_ecs`` rule: never claim a profile
-    the data does not meet).
+    ``length`` to code ``d`` / unit ``日``, and requires ``class.display``,
+    ``reasonCode.text`` / ``coding.display`` and ``location.status`` /
+    ``period.start`` when those elements are present. Whenever
+    ``hospitalization`` is present it requires ``dischargeDisposition`` with
+    exactly one coding from the JP discharge-disposition value set (the DPC
+    退院時転帰, required binding; ``element_rules`` names its code system),
+    and a coded ``admitSource`` when one is stated.
+
+    Issue #3174: a finished JP inpatient stay carries the DPC discharge
+    outcome (Issue #3150) and so declares eCS; an in-progress stay, or an
+    Encounter whose disposition is an HL7 destination (ED visits, other
+    classes), stays on JP Core (the ``_medication_request_satisfies_ecs``
+    rule: never claim a profile the data does not meet).
     """
-    if resource.get("status") != "finished" or "hospitalization" in resource:
+    if resource.get("status") != "finished":
+        return False
+    rules = _jp_clins_element_rules().get("Encounter", {})
+    hosp = resource.get("hospitalization")
+    if hosp is not None and not _hospitalization_satisfies_ecs(hosp, rules):
         return False
     if not (resource.get("class") or {}).get("display"):
         return False
     # Issue #3158: the unit the profile fixes (code "d", unit "日").
-    rules = _jp_clins_element_rules().get("Encounter", {})
     length = resource.get("length")
     if length is not None and (length.get("code"), length.get("unit")) != (
         rules.get("length_unit"),
@@ -350,6 +357,31 @@ def _encounter_satisfies_ecs(resource: dict) -> bool:
             return False
     for loc in resource.get("location") or []:
         if not loc.get("status") or not (loc.get("period") or {}).get("start"):
+            return False
+    return True
+
+
+def _hospitalization_satisfies_ecs(hosp: dict, rules: dict[str, str]) -> bool:
+    """Does ``Encounter.hospitalization`` meet JP_Encounter_eCS? (Issue #3174)
+
+    ``dischargeDisposition`` 1..1 with ``coding`` 1..1 bound (required) to the
+    DPC discharge-disposition value set, which includes the whole code system
+    ``rules["discharge_disposition_system"]``; ``admitSource.coding`` 1.. with
+    ``system`` and ``code`` when ``admitSource`` is present."""
+    from clinosim.codes import code_exists, get_system_uri
+
+    system_key = rules.get("discharge_disposition_system")
+    codings = (hosp.get("dischargeDisposition") or {}).get("coding") or []
+    if not system_key or len(codings) != 1:
+        return False
+    coding = codings[0]
+    if coding.get("system") != get_system_uri(system_key):
+        return False
+    if not code_exists(system_key, str(coding.get("code") or ""), exact=True):
+        return False
+    if "admitSource" in hosp:
+        admit = (hosp.get("admitSource") or {}).get("coding") or []
+        if not admit or any(not c.get("system") or not c.get("code") for c in admit):
             return False
     return True
 

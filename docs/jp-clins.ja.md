@@ -65,12 +65,16 @@ URL ルート: `http://jpfhir.jp/fhir/eCS/StructureDefinition/`
 - MedicationRequest: eCS 制約 (`dosageInstruction` min=1) を満たせる
   場合のみ — 用量・経路を持たない退院時 / 外来継続処方は JP Core
   プロファイルのみ保持。
-- Encounter: 終了済みで `hospitalization` を持たず、`length` が日単位
-  (または無し)、`class` / `reasonCode` / `location` がプロファイルの
-  必須要素を持つ場合のみ (`_encounter_satisfies_ecs`)。eCS は
-  `hospitalization` があれば DPC の退院時転帰 (JP discharge-disposition
-  値セット) を必須とするが、clinosim が記録するのは HL7 の退院先で
-  別の事実のため、入院・救急 Encounter は JP Core のまま。eCS は
+- Encounter: 終了済みで `length` が日単位 (または無し)、`class` /
+  `reasonCode` / `location` がプロファイルの必須要素を持つ場合のみ
+  (`_encounter_satisfies_ecs`)。eCS は `hospitalization` があれば
+  `dischargeDisposition` に JP discharge-disposition 値セット (DPC の
+  退院時転帰。CodeSystem は `element_rules` の
+  `discharge_disposition_system`) の coding をちょうど 1 つ、
+  `admitSource` を記載するならその coding を必須とする。終了した JP の
+  入院は DPC の退院時転帰を持つ (Issue #3150) ので eCS を宣言する
+  (Issue #3174)。入院中の Encounter と、退院先が HL7 の退院先コードの
+  救急などの Encounter は JP Core のまま。eCS は
   `length` を日単位 (code `d`、unit `日`) に固定する (`fhir-profiles-jp-clins.yaml` の
   `element_rules`、Issue #3158): eCS を宣言する Encounter は 1 日以上の
   滞在を日単位で示し、1 日未満の受診は `length` を省く (`period` が
