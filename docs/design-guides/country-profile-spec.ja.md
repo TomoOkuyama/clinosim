@@ -112,11 +112,12 @@ YAML の読み込みと検証は
   名前を 2 回登録すると `ValueError` になる。複数の国が使いうるアルゴリズムは
   汎用コードの隣に置く (例: `clinosim/modules/physiology/egfr.py` の eGFR 式)。
 - ある国だけのアルゴリズムは国パッケージ `clinosim/countries/<cc>/` に置く
-  (例: JP の保険者番号の検証番号)。最初の国パッケージを作るとき、モジュール
-  `clinosim/countries.py` をパッケージ `clinosim/countries/__init__.py` に
-  変え、今の API を再エクスポートして既存の
-  `from clinosim.countries import ...` がそのまま動くようにする
-  (django-localflavor と同じ形)。
+  (django-localflavor と同じ形)。国の補助関数 (`is_jp`、`lang_for`、
+  `country_code` など) はパッケージの `clinosim/countries/__init__.py`
+  (以前は単一モジュール、API は同じ)。`clinosim/countries/jp/` には
+  JP の identity provider、JP-CLINS の検査コード化、JP の薬剤コード体系の
+  判定、YJ の薬剤オーダーコード、JP の自己負担割合、JTAS を置く
+  (Issue #3194)。
 - 登録は明示的に行う: 実装を登録するモジュールはすべて
   `clinosim/country_profile.py` の `IMPLEMENTATION_MODULES` に列挙し、
   プロファイルを検証する前に import する。エントリーポイントやパッケージ走査

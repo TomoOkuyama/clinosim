@@ -24,8 +24,10 @@ builder が唯一の emit path。
   に役割名を入れる。Medicaid / CHIP・国保の未成年は `self` のまま、
   Issue #3000。JP の後期高齢者医療は 75 歳の誕生日から始まり、その年度の
   Coverage を誕生日で分ける。JP の自己負担割合 `costToBeneficiary` は年齢と
-  1 人ごとの所得区分で identity.yaml `copay` から決める (`jp_copay_pct`、
-  Issue #3016)) + occupation
+  1 人ごとの所得区分で identity.yaml `copay` から決める
+  (`clinosim/countries/jp/copay.py`、Issue #3016。他国は保険区分別
+  `category_copay_pct`。国プロファイルの `copay_rule` が選ぶ、Issue #3194))
+  + occupation
   Observation (`_build_occupation_observation`);
   `_bb_related_person` + `_build_emergency_contact_related_person`
   (緊急連絡先を患者を参照する RelatedPerson として出力。構造は全ての国で

@@ -13,9 +13,9 @@ import numpy as np
 import pytest
 from pydantic import ValidationError
 
+from clinosim.countries.jp.identity_provider import JPIdentityProvider
 from clinosim.locale.loader import load_care_practice, load_population_genetics
 from clinosim.locale.loaders.country_parameters import CarePractice
-from clinosim.modules.identity.providers.jp import JPIdentityProvider
 from clinosim.modules.identity.providers.us import USIdentityProvider
 from clinosim.modules.population._demographics import _derive_rh_factor
 from clinosim.modules.population.inheritance import derive_newborn_rh_factor

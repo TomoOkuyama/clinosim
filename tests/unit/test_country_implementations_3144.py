@@ -10,6 +10,7 @@ from pydantic import ValidationError
 
 from clinosim.codes.drugs import drug_system_key
 from clinosim.codes.procedures import country_procedure_code, procedure_code
+from clinosim.countries.jp.identity_provider import JPIdentityProvider
 from clinosim.country_profile import (
     CountryProfile,
     country_profile,
@@ -17,7 +18,6 @@ from clinosim.country_profile import (
     load_profile_data,
     validate_implementations,
 )
-from clinosim.modules.identity.providers.jp import JPIdentityProvider
 from clinosim.modules.identity.providers.us import USIdentityProvider
 from clinosim.modules.identity.registry import get_provider
 from clinosim.modules.output.fhir_r4.labs.coding_strategy import (

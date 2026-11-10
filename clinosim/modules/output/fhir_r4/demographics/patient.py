@@ -22,6 +22,7 @@ from clinosim.codes.bcp47 import bcp47_display
 from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
+from clinosim.country_profile import implementation, register_implementation
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_identity_config, resident_insurer_number, vocab_display
 from clinosim.locale.loaders.fhir_identity import load_facility_identity
@@ -436,42 +437,13 @@ def _birthday(dob: date, age: int) -> date:
         return date(dob.year + age, 3, 1)
 
 
-def _jp_school_entry(dob: date) -> date:
-    """1 April of the school year a child enters elementary school (学校教育法):
-    a child who is 6 by 1 April enters that April (birthdays 2 April to
-    1 April of the following year share a school year)."""
-    year = dob.year + 6 if (dob.month, dob.day) <= (4, 1) else dob.year + 7
-    return date(year, 4, 1)
-
-
-def jp_income_quantile(patient_id: str) -> float:
-    """Per-person income quantile in [0, 1) for the JP copay tier (Issue #3016);
-    stable for a person across years, no RNG draw."""
-    from clinosim.determinism import sha_quantile
-
-    return sha_quantile(f"jp-copay-income|{patient_id}")
-
-
-def jp_copay_pct(dob: date, on: date, income_q: float, country: str = "JP") -> int:
-    """JP 一部負担金割合 (%) on ``on`` (Issue #3016), from identity.yaml ``copay``:
-    by age (school entry, 70, 75) and, from 70, by the income quantile."""
-    cfg = _identity_cfg(country).get("copay", {}) or {}
-    late_age = _age_gate_config(country)["late_elderly_min_age"]
-    age = _age_on(dob, on)
-    if age >= late_age:
-        le = cfg["late_elderly"]
-        if income_q < float(le["high_income_share"]):
-            return int(le["high_income_pct"])
-        middle_from = date.fromisoformat(str(le["middle_income_from"]))
-        if on >= middle_from and income_q < float(le["high_income_share"]) + float(le["middle_income_share"]):
-            return int(le["middle_income_pct"])
-        return int(le["pct"])
-    old = cfg["age_70_74"]
-    if age >= int(old["min_age"]):
-        return int(old["high_income_pct"]) if income_q < float(old["high_income_share"]) else int(old["pct"])
-    if on < _jp_school_entry(dob):
-        return int(cfg["preschool_pct"])
-    return int(cfg["standard_pct"])
+@register_implementation("copay_rule", "category_rate")
+def category_copay_pct(dob: date | None, on: date, patient_id: str, category: str, country: str) -> int:
+    """Copay percentage (Coverage.costToBeneficiary) by insurance category,
+    from identity.yaml ``copay.by_category`` / ``copay.default_pct`` (Issue
+    #3194)."""
+    cfg = _identity_cfg(country).get("copay") or {}
+    return int((cfg.get("by_category") or {}).get(category, cfg["default_pct"]))
 
 
 def _national_payer_number(country: str, prefecture: str = "", city: str = "") -> str:
@@ -618,7 +590,8 @@ def _build_coverage_resources(
             periods.append((late_start, e, f"fy{s.year}-from{late_start.isoformat()}"))
         else:
             periods.append((s, e, f"fy{s.year}"))
-    income_q = jp_income_quantile(pid) if is_jp(country) else 0.0
+    # Issue #3194: the country's copay rule (country profile ``copay_rule``).
+    copay_pct = implementation("copay_rule", country)
 
     # Deduplicate payor Organization resources across FY rows — the same
     # 保険者番号 typically holds the entire encounter window; only aging-into-≥75
@@ -869,12 +842,10 @@ def _build_coverage_resources(
                 )
             coverage["class"] = _class_entries
             # CY7-14 (Chain-7): Coverage.costToBeneficiary — JP 自己負担割合.
-            # Issue #3016: JP follows age on the period start and the income
-            # tier (``jp_copay_pct``); other countries keep the category proxy.
-            if is_jp(country) and dob:
-                _coshare_pct = jp_copay_pct(dob, fy_start, income_q, country)
-            else:
-                _coshare_pct = 10 if category == "late_elderly" else 30
+            # Issue #3016 / #3194: the country's copay rule — JP by age on the
+            # period start and the income tier
+            # (``clinosim/countries/jp/copay.py``), else by category.
+            _coshare_pct = copay_pct(dob, fy_start, pid, category, country)
             coverage["costToBeneficiary"] = [
                 {
                     "type": {

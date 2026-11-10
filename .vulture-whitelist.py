@@ -452,11 +452,16 @@ _.specimen_material_display  # fhir_r4/labs/coding_package.py:480
 # @register_implementation and called through clinosim.country_profile
 # .implementation(kind, country), which reads them from the registry dict.
 _._esi_scale  # modules/triage/engine.py (triage_scale "esi")
-_._jtas_scale  # modules/triage/engine.py (triage_scale "jtas")
 _._loinc_lab_coding  # fhir_r4/labs/coding_strategy.py (lab_coding "loinc")
-_._jp_clins_lab_coding  # fhir_r4/labs/coding_strategy.py (lab_coding "jp_clins")
 _._profile_drug_system  # codes/drugs.py (drug_system "profile_code_system")
-_._jp_drug_system  # codes/drugs.py (drug_system "jp_code_format")
+_._catalog_drug_order_code  # modules/order/engine.py (drug_order_code "catalog_code")
+# JP country package (clinosim/countries/jp/, Issue #3194).
+_.JPIdentityProvider  # countries/jp/identity_provider.py (identity_provider "jp")
+_.jtas_scale  # countries/jp/triage.py (triage_scale "jtas")
+_.jp_clins_lab_coding  # countries/jp/lab_coding.py (lab_coding "jp_clins")
+_.jp_drug_system  # countries/jp/drug_system.py (drug_system "jp_code_format")
+_.jp_route_product  # countries/jp/drug_order_code.py (drug_order_code "jp_route_product")
+_.jp_copay_rule  # countries/jp/copay.py (copay_rule "jp_age_income")
 
 
 # =============================================================================

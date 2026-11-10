@@ -550,12 +550,6 @@ def _profile_drug_system(code: str, country: str) -> str:
     return country_profile(country).code_system("drug")
 
 
-@register_implementation("drug_system", "jp_code_format")
-def _jp_drug_system(code: str, country: str) -> str:
-    """The JP drug code family read from the code's format (YJ, HOT, ...)."""
-    return jp_drug_system_key(code)
-
-
 def drug_system_key(code: str, country: str) -> str:
     """Registry key of a drug code emitted for ``country``: the ``drug_system``
     implementation the country profile names (Issue #3144) — RxNorm for the

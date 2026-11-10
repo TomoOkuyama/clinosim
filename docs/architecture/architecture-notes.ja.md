@@ -566,7 +566,7 @@ group symbol、枝番 / branch number) と、日本の場合はマイナンバ�
 - `registry.py` — `country → provider` 解決 (`healthcare_system`
   を mirror)
 - `generators.py` — check-digit 番号生成器 (国共通純粋関数)
-- `providers/jp.py` — JP ルール (雇用主レベル 記号、社保 / 国保
+- `clinosim/countries/jp/identity_provider.py` — JP ルール (雇用主レベル 記号、社保 / 国保
   / 後期高齢者、枝番、カード / 保険証 dated flag、75 歳移行)
 - `providers/us.py` — 薄い (既存 `_sample_insurance` 挙動保持)
 

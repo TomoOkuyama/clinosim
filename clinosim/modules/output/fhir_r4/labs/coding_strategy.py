@@ -644,17 +644,6 @@ def _loinc_lab_coding(lab_name: str) -> LabCodingKind:
     return LabCodingKind.LEGACY_LOINC
 
 
-@register_implementation("lab_coding", "jp_clins")
-def _jp_clins_lab_coding(lab_name: str) -> LabCodingKind:
-    """JP-CLINS: an analyte in ``_ANALYTE_TO_SLICE_NAME`` → ``CORELABO_JLAC10``;
-    any other (known-uncoded or unrecognised) → ``UNCODED`` (safe fallback;
-    the completeness unit test guards against silent takedowns of known
-    analytes)."""
-    if lab_name in _ANALYTE_TO_SLICE_NAME:
-        return LabCodingKind.CORELABO_JLAC10
-    return LabCodingKind.UNCODED
-
-
 def _classify_analyte(lab_name: str, country: str) -> LabCodingKind:
     """The coding kind for this (analyte, country) pair: the ``lab_coding``
     implementation the country profile names (Issue #3144) — US ``loinc``

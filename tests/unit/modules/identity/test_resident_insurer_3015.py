@@ -12,8 +12,8 @@ from datetime import date
 import numpy as np
 import pytest
 
+from clinosim.countries.jp.identity_provider import JPIdentityProvider
 from clinosim.locale.loader import load_identity_config, resident_insurer_number
-from clinosim.modules.identity.providers.jp import JPIdentityProvider
 from clinosim.types.population import PersonRecord
 
 pytestmark = pytest.mark.unit

@@ -53,10 +53,18 @@ FHIR_PROFILES: frozenset[str] = frozenset({"us_core", "jp_core", "jp_clins", "jp
 IMPLEMENTATION_MODULES: tuple[str, ...] = (
     "clinosim.modules.physiology.egfr",
     "clinosim.modules.identity.providers.us",
-    "clinosim.modules.identity.providers.jp",
     "clinosim.modules.triage.engine",
     "clinosim.modules.output.fhir_r4.labs.coding_strategy",
     "clinosim.codes.drugs",
+    "clinosim.modules.order.engine",
+    "clinosim.modules.output.fhir_r4.demographics.patient",
+    # Country packages (spec §4).
+    "clinosim.countries.jp.identity_provider",
+    "clinosim.countries.jp.triage",
+    "clinosim.countries.jp.lab_coding",
+    "clinosim.countries.jp.drug_system",
+    "clinosim.countries.jp.drug_order_code",
+    "clinosim.countries.jp.copay",
 )
 
 

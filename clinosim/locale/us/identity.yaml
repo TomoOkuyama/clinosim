@@ -144,6 +144,15 @@ fhir_coverage:
   # the field list to YAML; US has no 記号 / 枝番).
   member_id_fields: [insurer, number]
 
+# Issue #3194: Coverage.costToBeneficiary percentage by insurance category
+# (copay_rule "category_rate"). clinosim does not model US cost sharing; these
+# are the values it has always emitted (30%, 10% for the late_elderly slot,
+# which the US age gates leave unused).
+copay:
+  by_category:
+    late_elderly: 10
+  default_pct: 30
+
 # Issue #3149: the Patient's MRN system (Issue #1763: a project-owned https
 # URL, not the RFC 2606 example domain). No insured-person identifier on the
 # US Patient.

@@ -5,8 +5,8 @@ from __future__ import annotations
 import pytest
 
 from clinosim.age_bands import parse_age_band
+from clinosim.countries.jp.identity_provider import _rate_for_age, _rate_table_for_age
 from clinosim.datafiles import load_data_yaml
-from clinosim.modules.identity.providers.jp import _rate_for_age, _rate_table_for_age
 
 pytestmark = pytest.mark.unit
 

@@ -103,7 +103,7 @@ class TestJPHouseholdAssignment:
 
     @pytest.mark.parametrize("country", ["JP", "jp"])
     def test_get_provider_jp_case_insensitive(self, country):
-        from clinosim.modules.identity.providers import JPIdentityProvider
+        from clinosim.countries.jp.identity_provider import JPIdentityProvider
 
         assert isinstance(get_provider(country), JPIdentityProvider)
 

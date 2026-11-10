@@ -138,7 +138,7 @@ clinosim は **ロジックをコードに、定数・変数・パラメータ�
 
 | 関心事 | 規則 |
 | --- | --- |
-| 国判定 | `is_jp(country)` / `is_us(country)`(`clinosim/countries.py`)は国ごとの規則にだけ使う。`country == "JP"` 等の手書き比較禁止。表示言語は `lang_for(country)` で決め、`is_jp` では決めない |
+| 国判定 | `is_jp(country)` / `is_us(country)`(`clinosim/countries/__init__.py`)は国ごとの規則にだけ使う。`country == "JP"` 等の手書き比較禁止。表示言語は `lang_for(country)` で決め、`is_jp` では決めない |
 | 国→コード体系 | `system_key_for(kind, country)` / `drug_system_key(code, country)`(`clinosim.codes`)。jlac10/loinc や yj/rxnorm の inline 分岐禁止 |
 | system URI | `get_system_uri(key)`(`clinosim.codes`)。コード体系 URI の hardcode 禁止。複数ファイルで使う profile / identifier URI はモジュールレベル定数 1 つにする |
 | code→display | `display(system, code, lang) or <明示的な fallback>`(`clinosim.codes`)、FHIR の coding は `dual_slot_concept` / `system_coding`。`lookup(...)` は旧 API で新規コードでは使わない。display 文字列の hardcode 禁止 |

@@ -22,7 +22,7 @@ _ROOT = Path(__file__).resolve().parents[2] / "clinosim"
 _PATTERN = re.compile(r'(?:==|!=)\s*"(?:JP|US|jp|us|japan)"|in \("jp", "japan"\)')
 # Comparisons that are not country normalisation.
 _ALLOWED = {
-    "countries.py",  # the canonical helpers
+    "countries/__init__.py",  # the canonical helpers
     "modules/imaging/engine.py",  # modality "US" = ultrasound
     "modules/identity/registry.py",  # internal provider key after is_jp / is_us
     "eval/axes/us_core_compliance.py",  # compares a detected-country result

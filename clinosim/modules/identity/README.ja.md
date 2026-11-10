@@ -135,11 +135,12 @@ clinosim/modules/identity/
   assign.py                       assign_identities POST_POPULATION パス + assign_identity_for_person (新生児)
   base.py                         ResidentLike + IdentityProvider Protocol
   generators.py                   my_number / mod10 / insurer_number / …
-  registry.py                     国 → provider dispatch (JP / US)
+  registry.py                     国 → provider dispatch (国プロファイル)
   providers/
-    __init__.py                   JPIdentityProvider + USIdentityProvider 再 export
-    jp.py                         JP 番号規則 + card 保有 copula
+    __init__.py                   USIdentityProvider 再 export
     us.py                         US 年齢帯別保険 enrollment (Issue #1107)、national ID なし
+clinosim/countries/jp/
+  identity_provider.py            JP 番号規則 + card 保有 copula (Issue #3194)
 ```
 
 **`enricher.py` / `audit.py` / `reference_data/` は存在しない** —

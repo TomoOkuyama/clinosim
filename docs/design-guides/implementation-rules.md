@@ -174,7 +174,7 @@ before writing any small utility. The rules that most often go wrong:
 
 | Concern | Rule |
 |---|---|
-| Country decisions | `is_jp(country)` / `is_us(country)` (`clinosim/countries.py`) for country rules only. Hand-written `country == "JP"` comparisons are forbidden. The display language comes from `lang_for(country)`, never from `is_jp`. |
+| Country decisions | `is_jp(country)` / `is_us(country)` (`clinosim/countries/__init__.py`) for country rules only. Hand-written `country == "JP"` comparisons are forbidden. The display language comes from `lang_for(country)`, never from `is_jp`. |
 | Code system per country | `system_key_for(kind, country)` / `drug_system_key(code, country)` (`clinosim.codes`). Inline jlac10 / loinc or yj / rxnorm branching is forbidden. |
 | System URI | `get_system_uri(key)` (`clinosim.codes`). Hard-coded code-system URIs are forbidden; a profile or identifier URI used in more than one file is one module-level constant. |
 | code → display | `display(system, code, lang) or <explicit fallback>` (`clinosim.codes`); FHIR codings via `dual_slot_concept` / `system_coding`. `lookup(...)` is legacy and not used in new code; hard-coded display strings are forbidden. |

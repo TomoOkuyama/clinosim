@@ -49,8 +49,8 @@ COUNTRY_LANGUAGE_LITERALS = frozenset({"JP", "US", "ja", "en"})
 NOT_A_COUNTRY = ("modality",)
 
 # Files where branching on the country is the point: the country registry
-# (``clinosim/countries.py``) and country packages (``clinosim/countries/<cc>/``).
-COUNTRY_PACKAGES = ("countries.py", "countries/")
+# (``clinosim/countries/__init__.py``) and country packages (``clinosim/countries/<cc>/``).
+COUNTRY_PACKAGES = ("countries/",)
 
 # Numbers that are mechanical rather than clinical or statistical: emptiness /
 # sign / index sentinels (0, 1, -1, 2 — "at least two", pairs) and time / metric

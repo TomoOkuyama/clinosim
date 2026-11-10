@@ -51,3 +51,10 @@ implementations:
   # Code system of an emitted drug code (clinosim/codes/drugs.py):
   # "profile_code_system" is the profile's code_systems.drug.
   drug_system: profile_code_system
+  # Order code of a disease-YAML drug entry (clinosim/modules/order/engine.py
+  # protocol_drug_order_code): "catalog_code" is the drug catalog's code in the
+  # profile's drug code system.
+  drug_order_code: catalog_code
+  # Coverage copay percentage (clinosim/modules/output/fhir_r4/demographics/
+  # patient.py): "category_rate" reads identity.yaml copay.by_category.
+  copay_rule: category_rate

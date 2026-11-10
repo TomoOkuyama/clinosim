@@ -25,7 +25,9 @@ builder is the only allergy emit path.
   Medicaid / CHIP or 国保 stays `self`, Issue #3000; JP 後期高齢者医療 starts
   on the 75th birthday, splitting that fiscal year's Coverage, and the JP
   copay `costToBeneficiary` follows age and a per-person income tier from
-  identity.yaml `copay` (`jp_copay_pct`, Issue #3016) +
+  identity.yaml `copay` (`clinosim/countries/jp/copay.py`, Issue #3016;
+  other countries by category, `category_copay_pct`; the country profile's
+  `copay_rule` selects, Issue #3194) +
   occupation Observation (`_build_occupation_observation`);
   `_bb_related_person` + `_build_emergency_contact_related_person` (the
   emergency contact as a RelatedPerson referencing the patient, the same
