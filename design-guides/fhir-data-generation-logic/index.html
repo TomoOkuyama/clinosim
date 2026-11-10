@@ -4088,7 +4088,7 @@ normalization point (case-insensitive + strip).</p>
 <code>"diagnosis"</code> / <code>"drug"</code> / <code>"procedure"</code> (jlac10 / loinc, icd-10 /
 icd-10-cm, yj / rxnorm, k-codes / cpt). Unknown <code>kind</code> raises
 <code>KeyError</code> fail-loud. The single source of truth for this selection
-logic = <code>codes/loader.py:_COUNTRY_SYSTEM_KEYS</code>.</p>
+is the country profile's <code>code_systems</code> (<code>clinosim/locale/&lt;cc&gt;/country.yaml</code>).</p>
 <hr />
 <h2 id="f-principles-reference-deep-dives">F. Principles (reference deep-dives)<a class="headerlink" href="#f-principles-reference-deep-dives" title="Permanent link">&para;</a></h2>
 <h3 id="f1-ad-30--cif-is-language-neutral">F.1 AD-30 — CIF is language-neutral<a class="headerlink" href="#f1-ad-30--cif-is-language-neutral" title="Permanent link">&para;</a></h3>
