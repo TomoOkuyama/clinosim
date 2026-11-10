@@ -2816,6 +2816,19 @@ report)</strong> Composition を <code>JP_Composition_eCheckupGeneral</code>
 <li><strong>01032</strong> 事業者健診問診結果セクション</li>
 <li><code>section.code.system</code> =
   <code>http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code</code></li>
+<li>参照先 (Issue #3155): <code>Composition.author</code> は報告医と病院 Organization
+  <code>hospital-main</code> の 2 件で、<code>hospital-main</code> は <code>custodian</code> も兼ねる (住所に
+  <code>locale/jp/facility_identity.yaml</code> の <code>postal_code</code> を持つ)。<code>event.detail</code> は
+  健診 Encounter を参照する。健診 Encounter は
+  <code>locale/jp/encounter_type_profiles.yaml</code> のとおり <code>JP_Encounter_eCheckupGeneral</code>
+  に従う: <code>class</code> = <code>encounter-category#checkup</code> 健診、<code>meta.lastUpdated</code> =
+  受診終了時刻、<code>serviceProvider</code> = <code>hospital-main</code> (同プロファイルの
+  Organization は <code>partOf</code> を禁じるため健診センター部門ではない)。
+  <code>JP_Encounter_eCS</code> は <code>class.system</code> を v3 ActCode に固定するので健診
+  Encounter は eCS を宣言せず、その結果 (<code>JP_Observation_eCheckupGeneral</code> を
+  宣言) も、<code>encounter</code> に eCS の Encounter を求める
+  <code>JP_Observation_LabResult_eCS</code> を宣言しない。subject の Patient の適合は
+  Issue #3182 で扱う。</li>
 </ul>
 <p><strong>対象範囲 (scope)</strong>:
 - 3 健診種別すべて対応 (sub-PR-D、2026-07-13):

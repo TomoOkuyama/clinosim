@@ -2747,6 +2747,7 @@ the 3-digit JP-CLINS codes).</p>
 <li><strong>01031</strong> 事業者健診検査結果セクション</li>
 <li><strong>01032</strong> 事業者健診問診結果セクション</li>
 <li><code>section.code.system</code> = <code>http://jpfhir.jp/fhir/eCheckup/CodeSystem/section-code</code></li>
+<li>References (Issue #3155): <code>Composition.author</code> is the reporting physician and the hospital Organization <code>hospital-main</code>, which is also the <code>custodian</code> (its address carries the <code>postal_code</code> of <code>locale/jp/facility_identity.yaml</code>); <code>event.detail</code> references the checkup Encounter. The checkup Encounter follows <code>JP_Encounter_eCheckupGeneral</code> as <code>locale/jp/encounter_type_profiles.yaml</code> states it: <code>class</code> = <code>encounter-category#checkup</code> 健診, <code>meta.lastUpdated</code> = the end of the visit, <code>serviceProvider</code> = <code>hospital-main</code> (the profile's Organization forbids <code>partOf</code>, so not the 健診センター department). Because <code>JP_Encounter_eCS</code> fixes <code>class.system</code> to v3 ActCode, the checkup Encounter does not declare eCS, and its results (which declare <code>JP_Observation_eCheckupGeneral</code>) do not declare <code>JP_Observation_LabResult_eCS</code>, whose <code>encounter</code> must be an eCS Encounter. The subject Patient's conformance is handled by Issue #3182.</li>
 </ul>
 <p><strong>Scope</strong>:
 - All three checkup types are supported:
