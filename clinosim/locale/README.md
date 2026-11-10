@@ -161,13 +161,15 @@ clinosim/locale/
                                    family_history_prevalence, formatting,
                                    identity, immunization_schedule, names,
                                    reference_range_lab
-  jp/                             JP-specific bundle (20 YAMLs — the US
+  jp/                             JP-specific bundle (23 YAMLs — the US
                                    set minus ckd_under60_prevalence and
                                    code_mapping_drug, plus
                                    care_level_rates,
                                    code_mapping_microbiology,
                                    code_mapping_microbiology_susceptibility,
                                    external_organizations,
+                                   facility_identity (the hospital's
+                                   医療機関コード, Issue #3129),
                                    patient_instructions_ja,
                                    practitioner_qualifications)
   shared/                         cross-locale data (38 YAMLs), e.g.

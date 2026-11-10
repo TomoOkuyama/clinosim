@@ -1,0 +1,19 @@
+# The simulated hospital's own identity (Issue #3129).
+#
+# institution_code — the hospital's 10-digit 医療機関コード, written to the
+# JP-CLINS JP_eCS_InstitutionNumber extension on every eCS resource and to
+# the hospital Organization's identifier:medicalInstitutionCode.
+# Structure (地方厚生局 保険医療機関コード表, e.g. 四国厚生局 published on
+# e-Govデータポータル): digits 1-2 都道府県番号 (JIS X 0401), digit 3 点数表番号
+# (1 医科, 3 歯科, 4 保険薬局), digits 4-5 郡市区番号, digits 6-9 医療機関番号,
+# digit 10 検証番号. JP-CLINS checks it with ^[0-4][0-9][1-3][0-9]{7}$
+# (constraint valid-value-institutionNumberExtension). The value is
+# synthetic, not a real assignment: Tokyo (13), 医科 (1), then 0000100.
+metadata:
+  kind: locale
+  name: facility_identity
+  source: clinosim
+
+hospital:
+  prefecture: 東京都
+  institution_code: "1310000100"

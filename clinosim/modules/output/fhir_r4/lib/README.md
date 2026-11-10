@@ -33,10 +33,11 @@ rename).
   - `ecs_extensions.py` — the JP-CLINS eCS institution / department
     extensions (`build_ecs_institution_extension`,
     `build_ecs_department_extension`,
-    `attach_ecs_institutional_extensions`); eCS placeholders
-    (`_JP_ECS_INSTITUTION_PLACEHOLDER = "1300000000"`,
+    `attach_ecs_institutional_extensions`); the institution number is
+    the hospital's 10-digit 医療機関コード (`hospital_institution_code`,
+    from `locale/jp/facility_identity.yaml`, Issue #3129);
     `_JP_ECS_DEPARTMENT_PLACEHOLDER` = the JA display of the
-    `primary_care` department) + extension URLs
+    `primary_care` department + extension URLs
     (`_JP_ECS_INSTITUTION_NUMBER_EXT_URL`,
     `_JP_ECS_DEPARTMENT_EXT_URL`, `_JP_ECS_INSTITUTION_ID_SYSTEM`).
   - `jp_profiles.py` — JP Core / JP-CLINS profile and

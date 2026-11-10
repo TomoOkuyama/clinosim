@@ -31,10 +31,11 @@ module から直接 import する (Issue #545 rename)。
   - `ecs_extensions.py` — JP-CLINS eCS 機関 / 部門 extension
     (`build_ecs_institution_extension`、
     `build_ecs_department_extension`、
-    `attach_ecs_institutional_extensions`)、eCS placeholder
-    (`_JP_ECS_INSTITUTION_PLACEHOLDER = "1300000000"`、
+    `attach_ecs_institutional_extensions`)、施設番号は病院の 10 桁
+    医療機関コード (`hospital_institution_code`、
+    `locale/jp/facility_identity.yaml`、Issue #3129)、
     `_JP_ECS_DEPARTMENT_PLACEHOLDER` = `primary_care` 診療科の JA
-    表示) と extension URL (`_JP_ECS_INSTITUTION_NUMBER_EXT_URL`、
+    表示、extension URL (`_JP_ECS_INSTITUTION_NUMBER_EXT_URL`、
     `_JP_ECS_DEPARTMENT_EXT_URL`、`_JP_ECS_INSTITUTION_ID_SYSTEM`)。
   - `jp_profiles.py` — 複数箇所で使う JP Core / JP-CLINS の
     profile / identifier system URI (`JP_*_PROFILE`、`JP_*_SYSTEM`)。
