@@ -69,6 +69,12 @@ class PersonRecord:
     guardian_contact_name: str = ""
     guardian_contact_phone: str = ""
     guardian_contact_relationship: str = ""
+    # Issue #3186: the adult emergency contact, chosen at the person's first
+    # adult activation and reused by every later one, so all records of the
+    # person name the same contact. The phone is not kept: it is the
+    # household phone at each activation.
+    emergency_contact_name: str = ""
+    emergency_contact_relationship: str = ""
     chronic_conditions: list[str] = field(default_factory=list)
     # Issue #2867: when each chronic code is first on the problem list.
     # ``chronic_tracked_from`` is the first simulated year the yearly aging

@@ -535,6 +535,37 @@ def _baseline_spo2_mean_and_ceiling(age_months: int) -> tuple[float, float]:
     return BASELINE_SPO2_MEAN, BASELINE_SPO2_CEILING
 
 
+def _draw_emergency_contact(
+    age: int, sex: str, family_name: str, country: str, rng: np.random.Generator
+) -> tuple[str, str]:
+    """Draw an adult's emergency contact: ``(relationship, name)``.
+
+    The relationship comes from the age band's distribution; a spouse is of
+    the opposite sex, any other relative's sex is drawn. The contact shares
+    the patient's family name.
+    """
+    if age >= EMERGENCY_CONTACT_ELDERLY_AGE_MIN:
+        rel = str(rng.choice(EMERGENCY_CONTACT_RELATIONS_ELDERLY, p=EMERGENCY_CONTACT_WEIGHTS_ELDERLY))
+    else:
+        rel = str(rng.choice(EMERGENCY_CONTACT_RELATIONS_ADULT, p=EMERGENCY_CONTACT_WEIGHTS_ADULT))
+    try:
+        name_data = load_names(country)
+        if rel == "spouse":
+            contact_sex = "F" if sex == "M" else "M"
+        else:
+            contact_sex = str(rng.choice(["M", "F"]))
+        given = _sample_given_name(name_data, contact_sex, rng)
+        # JP uses 'kanji' key, US uses 'name' key
+        given_name = given.get("kanji") or given.get("name", "")
+        if not given_name:
+            raise ValueError("empty given name")
+        return rel, " ".join(country_profile(country).formats.name_parts(family_name, given_name))
+    except Exception:
+        # Fallback if name data unavailable: the catalog's family-contact
+        # label in the country's output language (FP-UNIFY-4 sibling class).
+        return rel, t("module_text.family_contact", lang_for(country), family=family_name)
+
+
 def activate_patient(
     person: PersonRecord,
     rng: np.random.Generator,
@@ -812,29 +843,23 @@ def activate_patient(
     elif age >= MARITAL_STATUS_ADULT_AGE_MIN:
         # Reuse home phone as a household contact for spouse/family
         emergency_phone = phone_home or phone_mobile
-        if age >= EMERGENCY_CONTACT_ELDERLY_AGE_MIN:
-            emergency_rel = str(rng.choice(EMERGENCY_CONTACT_RELATIONS_ELDERLY, p=EMERGENCY_CONTACT_WEIGHTS_ELDERLY))
-        else:
-            emergency_rel = str(rng.choice(EMERGENCY_CONTACT_RELATIONS_ADULT, p=EMERGENCY_CONTACT_WEIGHTS_ADULT))
-        # Generate a realistic person name for the emergency contact.
-        # Spouse/sibling/parent/child typically shares family name (Japan);
-        # opposite sex for spouse, random for others.
-        try:
-            name_data = load_names(country)
-            if emergency_rel == "spouse":
-                contact_sex = "F" if person.sex == "M" else "M"
-            else:
-                contact_sex = str(rng.choice(["M", "F"]))
-            given = _sample_given_name(name_data, contact_sex, rng)
-            # JP uses 'kanji' key, US uses 'name' key
-            given_name = given.get("kanji") or given.get("name", "")
-            if not given_name:
-                raise ValueError("empty given name")
-            emergency_name = " ".join(country_profile(country).formats.name_parts(name.family_name, given_name))
-        except Exception:
-            # Fallback if name data unavailable: the catalog's family-contact
-            # label in the country's output language (FP-UNIFY-4 sibling class).
-            emergency_name = t("module_text.family_contact", lang_for(country), family=name.family_name)
+        # Issue #3186: the activation stream sits at a position that differs
+        # between the per-year activations of one person, so the contact is
+        # drawn once from a person-scoped stream and kept on the person. The
+        # activation-stream draws are still made and discarded, so every
+        # later draw of this stream is unchanged.
+        _draw_emergency_contact(age, person.sex, name.family_name, country, rng)
+        emergency_rel = str(getattr(person, "emergency_contact_relationship", "") or "")
+        emergency_name = str(getattr(person, "emergency_contact_name", "") or "")
+        if not emergency_rel:
+            from clinosim.seeding import emergency_contact_seed
+
+            _contact_rng = determinism.default_rng(emergency_contact_seed(person.person_id, str(person.date_of_birth)))
+            emergency_rel, emergency_name = _draw_emergency_contact(
+                age, person.sex, name.family_name, country, _contact_rng
+            )
+            person.emergency_contact_relationship = emergency_rel
+            person.emergency_contact_name = emergency_name
 
     contact = ContactInfo(
         phone_home=phone_home,
