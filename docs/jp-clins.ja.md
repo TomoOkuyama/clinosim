@@ -319,6 +319,10 @@ git commit -m "chore(jp-validate): pin validator + IG SHA256"
 
 `PIN_FILE=<path>` / `DRY_RUN=1` で挙動を上書き可能。
 
+### 文書 Composition
+
+退院時サマリー・診療情報提供書・健診結果報告書の Composition は、Composition と、それが直接または参照先を介して参照するすべてのリソースを入れた `type: document` の Bundle として検証する (`scripts/fhir_document_bundle.py`、Issue #3147)。entry の slice は参照先リソースの profile を解決して判定されるため、Composition 単体では検証できない。Composition は `meta.profile` に自身の profile を宣言していなければならない。その他のサンプルは単体で各 profile に対して検証する。
+
 ### Local 実行
 
 ```bash
