@@ -12,7 +12,7 @@ site_description: >
 site_url: https://tomookuyama.github.io/clinosim/
 repo_name: TomoOkuyama/clinosim
 repo_url: https://github.com/TomoOkuyama/clinosim
-edit_uri: edit/master/
+edit_uri: edit/master/docs/
 
 # ---------------------------------------------------------------------------
 
@@ -101,26 +101,31 @@ exclude_docs: |
   design-notes/
   superpowers/
   history/
+  /README.md
+  /README.ja.md
 
-# Downgrade to info the whole class of warnings that come from
-# transcluded content (README.md, MODULES.md, etc.) pointing at repo-root
-# files (../DESIGN.md / ../CLAUDE.md) that don't exist as
-# entries in the mkdocs site tree. Those links resolve fine when the
-# transcluded file is viewed on GitHub; when it's rendered inside the
-# docs site they need to point at the corresponding
-# `reference/design.md` / `reference/todo.md` etc. Fixing every link
-# inside every transcluded root file is impractical — the includer knows
-# what it wants, the source of truth is on GitHub. Anchor mismatches
-# from flattened DCO-style anchors get the same treatment.
+# docs/README.md (+ .ja) is the folder landing page GitHub shows when browsing
+# docs/; the site's home page is docs/index.md, and both would map to the site
+# root, so the README pair is excluded from the site (a link to it from a page
+# goes to GitHub through the hook below).
+
+# Links from pages (and from transcluded root files) to repository files that
+# are not site pages — source files, module READMEs, .github/ templates,
+# excluded docs — are rewritten to their GitHub URL, so `--strict` only fails
+# on a link whose target does not exist (scripts/mkdocs_repo_links.py).
+hooks:
+  - scripts/mkdocs_repo_links.py
+
 validation:
-  omitted_files: info
-  absolute_links: info
-  unrecognized_links: info
-  anchors: info
+  links:
+    not_found: warn
+    anchors: warn
+    absolute_links: warn
+    unrecognized_links: warn
   nav:
-    omitted_files: info
-    not_found: info
-    absolute_links: info
+    omitted_files: info  # translations (*.ja.md) and secondary pages are reached by links, not the nav
+    not_found: warn
+    absolute_links: warn
 
 # ---------------------------------------------------------------------------
 
