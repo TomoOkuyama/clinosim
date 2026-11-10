@@ -1,0 +1,314 @@
+{
+  "metadata": {
+    "source": "日本臨床検査医学会 (JSLM) 検査項目コード委員会「JLAC10コード表_臨床検査」version 137 (2026-06)",
+    "source_url": "https://www.jslm.org/committees/code/137jlac10_1.xlsx",
+    "source_sheet": "分析物コード (columns コード / 分析物名 / 略称 / 英名)",
+    "source_sha256": "1fca34d71d402abdbd6dfa4f0cdd63dfc0c1cc94087feec32d5cc75e74a0a9d8",
+    "fetched": "2026-11-10",
+    "note": "JLAC10 analyte codes (分析物コード) registered in codes/data/jlac10.yaml, with the master's names verbatim (Issue #3164)."
+  },
+  "concept": [
+    {
+      "code": "2A010",
+      "display": "白血球数",
+      "abbreviation": "WBC",
+      "display_en": "white blood cell count"
+    },
+    {
+      "code": "2A020",
+      "display": "赤血球数",
+      "abbreviation": "RBC",
+      "display_en": "red blood cell count"
+    },
+    {
+      "code": "2A030",
+      "display": "ヘモグロビン",
+      "abbreviation": "Hb",
+      "display_en": "hemoglobin"
+    },
+    {
+      "code": "2A040",
+      "display": "ヘマトクリット",
+      "abbreviation": "Ht",
+      "display_en": "hematocrit"
+    },
+    {
+      "code": "2A050",
+      "display": "血小板数",
+      "abbreviation": "PLT",
+      "display_en": "platelet count"
+    },
+    {
+      "code": "2B020",
+      "display": "活性化部分トロンボプラスチン時間",
+      "abbreviation": "APTT",
+      "display_en": "activated partial thromboplastin time"
+    },
+    {
+      "code": "2B030",
+      "display": "プロトロンビン時間",
+      "abbreviation": "PT",
+      "display_en": "prothrombin time"
+    },
+    {
+      "code": "2B100",
+      "display": "フィブリノゲン",
+      "display_en": "fibrinogen"
+    },
+    {
+      "code": "2B140",
+      "display": "D-Dダイマー",
+      "abbreviation": "FDP Dダイマー",
+      "display_en": "D-D dimer"
+    },
+    {
+      "code": "2Z010",
+      "display": "血沈",
+      "display_en": "erythrocyte sedimentation rate"
+    },
+    {
+      "code": "3A010",
+      "display": "総蛋白",
+      "abbreviation": "TP",
+      "display_en": "total proteins"
+    },
+    {
+      "code": "3A015",
+      "display": "アルブミン",
+      "display_en": "albumin"
+    },
+    {
+      "code": "3B010",
+      "display": "クレアチンキナーゼ",
+      "abbreviation": "CK",
+      "display_en": "creatine kinase"
+    },
+    {
+      "code": "3B015",
+      "display": "CK-MB",
+      "display_en": "creatine kinase-MB"
+    },
+    {
+      "code": "3B035",
+      "display": "AST",
+      "abbreviation": "GOT",
+      "display_en": "asparate aminotransferase"
+    },
+    {
+      "code": "3B045",
+      "display": "ALT",
+      "abbreviation": "GPT",
+      "display_en": "alanine aminotransferase"
+    },
+    {
+      "code": "3B050",
+      "display": "LD",
+      "abbreviation": "乳酸脱水素酵素",
+      "display_en": "lactate dehydrogenase"
+    },
+    {
+      "code": "3B070",
+      "display": "アルカリフォスファターゼ",
+      "abbreviation": "ALP",
+      "display_en": "alkaline phosphatase"
+    },
+    {
+      "code": "3B090",
+      "display": "γ-GT",
+      "abbreviation": "γ-グルタミルトランスペプチダーゼ",
+      "display_en": "gamma glutamyl transpeptidase"
+    },
+    {
+      "code": "3C015",
+      "display": "クレアチニン",
+      "display_en": "creatinine"
+    },
+    {
+      "code": "3C025",
+      "display": "尿素窒素",
+      "abbreviation": "UN",
+      "display_en": "urea nitrogen"
+    },
+    {
+      "code": "3D010",
+      "display": "グルコース",
+      "display_en": "glucose"
+    },
+    {
+      "code": "3D045",
+      "display": "グリコヘモグロビンA1c",
+      "abbreviation": "HbA1c",
+      "display_en": "hemoglobin A1c"
+    },
+    {
+      "code": "3D046",
+      "display": "グリコヘモグロビンA1c(NGSP)",
+      "abbreviation": "HbA1c(NGSP)",
+      "display_en": "hemoglobin A1c(NGSP)"
+    },
+    {
+      "code": "3E010",
+      "display": "乳酸",
+      "display_en": "lactate"
+    },
+    {
+      "code": "3F015",
+      "display": "トリグリセリド",
+      "abbreviation": "TG",
+      "display_en": "triglyceride"
+    },
+    {
+      "code": "3F050",
+      "display": "コレステロール",
+      "abbreviation": "TC",
+      "display_en": "cholesterol, total"
+    },
+    {
+      "code": "3F070",
+      "display": "HDL-コレステロール",
+      "abbreviation": "HDL-C",
+      "display_en": "HDL-cholesterol"
+    },
+    {
+      "code": "3F077",
+      "display": "LDL-コレステロール",
+      "display_en": "LDL-cholesterol"
+    },
+    {
+      "code": "3G125",
+      "display": "重炭酸塩",
+      "display_en": "bicarbonate"
+    },
+    {
+      "code": "3H010",
+      "display": "ナトリウム",
+      "abbreviation": "Na",
+      "display_en": "sodium"
+    },
+    {
+      "code": "3H015",
+      "display": "カリウム",
+      "abbreviation": "K",
+      "display_en": "potassium"
+    },
+    {
+      "code": "3H020",
+      "display": "クロール",
+      "abbreviation": "Cl",
+      "display_en": "chloride"
+    },
+    {
+      "code": "3H025",
+      "display": "マグネシウム",
+      "abbreviation": "Mg",
+      "display_en": "magnesium"
+    },
+    {
+      "code": "3H030",
+      "display": "カルシウム",
+      "abbreviation": "Ca",
+      "display_en": "calcium"
+    },
+    {
+      "code": "3H040",
+      "display": "無機リン",
+      "abbreviation": "IP",
+      "display_en": "inorganic phosphate"
+    },
+    {
+      "code": "3H050",
+      "display": "動脈血pH",
+      "abbreviation": "pH",
+      "display_en": "pH, arterial blood"
+    },
+    {
+      "code": "3H055",
+      "display": "動脈血CO2分圧",
+      "abbreviation": "pCO2",
+      "display_en": "pCO2, arterial blood"
+    },
+    {
+      "code": "3H060",
+      "display": "O2分圧",
+      "abbreviation": "pO2",
+      "display_en": "pO2"
+    },
+    {
+      "code": "3J010",
+      "display": "総ビリルビン",
+      "abbreviation": "TB",
+      "display_en": "bilirubins, total"
+    },
+    {
+      "code": "3L005",
+      "display": "アセトアミノフェン",
+      "display_en": "acetaminophen"
+    },
+    {
+      "code": "3L320",
+      "display": "リチウム",
+      "abbreviation": "Li",
+      "display_en": "lithium"
+    },
+    {
+      "code": "3L970",
+      "display": "乱用薬物スクリーニング",
+      "display_en": "drug abuse survey"
+    },
+    {
+      "code": "3M205",
+      "display": "サリチル酸",
+      "display_en": "salicylic acid"
+    },
+    {
+      "code": "3Z040",
+      "display": "エタノール",
+      "display_en": "ethanol"
+    },
+    {
+      "code": "4A055",
+      "display": "TSH",
+      "abbreviation": "甲状腺刺激ホルモン",
+      "display_en": "thyroid-stimulating hormone"
+    },
+    {
+      "code": "4Z271",
+      "display": "ヒト脳性Na利尿ペプチド",
+      "abbreviation": "BNP",
+      "display_en": "brain natriuretic polypeptide"
+    },
+    {
+      "code": "5C070",
+      "display": "CRP",
+      "abbreviation": "C反応性蛋白",
+      "display_en": "C-reactive protein"
+    },
+    {
+      "code": "5C094",
+      "display": "トロポニンI",
+      "display_en": "troponin I"
+    },
+    {
+      "code": "5C215",
+      "display": "プロカルシトニン",
+      "abbreviation": "PCT",
+      "display_en": "procalcitonin"
+    },
+    {
+      "code": "6B010",
+      "display": "培養同定(一般細菌)",
+      "display_en": "culture and identification (common bacteria)"
+    },
+    {
+      "code": "6C010",
+      "display": "薬剤感受性検査(一般細菌)",
+      "display_en": "drug susceptibility test, common bacteria"
+    },
+    {
+      "code": "8A065",
+      "display": "推算GFRcreat",
+      "abbreviation": "eGFR",
+      "display_en": "estimated GFR based on creatinine"
+    }
+  ]
+}

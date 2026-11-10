@@ -41,7 +41,10 @@ GGT: "3B090"
 
 # Carbohydrates
 Glucose: "3D010"
-HbA1c: "3D045"
+# Issue #3164: Japan reports HbA1c as the NGSP value (JDS→NGSP since 2012);
+# its analyte is 3D046 グリコヘモグロビンA1c(NGSP) (JSLM JLAC10 v137), as in
+# the JP-CLINS CoreLabo HbA1c-NGSP codes (3D046...), not 3D045.
+HbA1c: "3D046"
 
 # Organic acids
 Lactate: "3E010"

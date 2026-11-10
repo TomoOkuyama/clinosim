@@ -23,6 +23,7 @@ Companion documentation: [`docs/design-guides/code-display-authoritative-sync.md
 | `JP_MedicationCodeYJ_CS_full.json` | Full YJ-code CodeSystem (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`, version `2026.8.31`, content `complete`) | — | 23,923 concepts; used by the YJ full-CS tests (e.g. `tests/unit/output/test_fhir_yj_full_cs_gate_1220.py`). |
 | `snomed_allergy_tx.json` | tx.fhir.org R4 `CodeSystem/$lookup`, SNOMED CT International Edition 2025-02-01 | 2026-11-10 | The allergen substance, No Known Allergy and reaction manifestation codes of `allergens.yaml`, with display, FSN and `inactive`; read offline by `tests/unit/modules/allergy/test_allergen_codes_3128.py` (Issue #3128). |
 | `jfagy_jpfhir_terminology.json` | `jpfhir-terminology 2.2606.0` (the JFAGY allergen CodeSystems in `JP_AllergyIntolerance_VS`; medication CodeSystems are fragments) | 2026-11-10 | The JFAGY codes JP AllergyIntolerance emits (`allergens.yaml` `country_codes.JP`), with the CodeSystem display each `ja` must equal (Issue #3128). |
+| `jlac10_jslm_137.json` | JSLM 検査項目コード委員会「JLAC10コード表_臨床検査」v137 (2026-06), `https://www.jslm.org/committees/code/137jlac10_1.xlsx` (sheet 分析物コード) | 2026-11-10 | The analyte codes registered in `jlac10.yaml`, with the master's name, abbreviation and English name; read offline by `tests/unit/codes/test_jlac10_master_3164.py` (Issue #3164). |
 
 Snapshot sizes follow clinosim's emit surface and grow with it, so they
 are not listed above; count a snapshot's entries with

@@ -23,6 +23,7 @@ override を許容する (下の allowlist に登録)。
 | `JP_MedicationCodeYJ_CS_full.json` | YJ-code CodeSystem 全体 (`http://capstandard.jp/iyaku.info/CodeSystem/YJ-code`、version `2026.8.31`、content `complete`) | — | 23,923 concept。YJ full-CS テスト (例: `tests/unit/output/test_fhir_yj_full_cs_gate_1220.py`) が使用。 |
 | `snomed_allergy_tx.json` | tx.fhir.org R4 `CodeSystem/$lookup`、SNOMED CT International Edition 2025-02-01 | 2026-11-10 | `allergens.yaml` のアレルゲン物質・アレルギー歴なし・反応 manifestation コード (display、FSN、`inactive`)。`tests/unit/modules/allergy/test_allergen_codes_3128.py` がオフラインで参照 (Issue #3128)。 |
 | `jfagy_jpfhir_terminology.json` | `jpfhir-terminology 2.2606.0` (`JP_AllergyIntolerance_VS` の JFAGY アレルゲン CodeSystem。医薬品 CodeSystem は fragment) | 2026-11-10 | JP AllergyIntolerance が emit する JFAGY コード (`allergens.yaml` `country_codes.JP`) と、各 `ja` が一致すべき CodeSystem display (Issue #3128)。 |
+| `jlac10_jslm_137.json` | 日本臨床検査医学会 検査項目コード委員会「JLAC10コード表_臨床検査」v137 (2026-06)、`https://www.jslm.org/committees/code/137jlac10_1.xlsx` (シート 分析物コード) | 2026-11-10 | `jlac10.yaml` に登録した分析物コードと、マスターの分析物名・略称・英名。`tests/unit/codes/test_jlac10_master_3164.py` がオフラインで参照 (Issue #3164)。 |
 
 snapshot の件数は clinosim の emit 範囲に合わせて増えるため上表には
 記載しません。件数は `len(json.load(open(path))["concept"])` で数えて
