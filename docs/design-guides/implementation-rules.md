@@ -31,6 +31,53 @@ conceptual fit**.
 
 ---
 
+## Grand design: code and data are separated
+
+clinosim keeps **logic in code and every constant, variable and parameter
+in data**. This is the governing rule above every other rule on this page.
+
+- Anything that differs **by country, by age or age band, by sex**, or is a
+  tunable clinical or statistical value — thresholds, cut-offs, rates,
+  probabilities, distributions, durations and intervals, dose limits, codes,
+  display text, formats, ordered lists — lives in YAML
+  (`reference_data/`, `clinosim/locale/<country>/`, `clinosim/codes/data/`,
+  `clinosim/config/`) with a cited source, and code reads it through a
+  loader.
+- Code does not **select a value** with a branch on country, age or sex
+  (`if is_jp(country): x = ...`, `country == "JP"`, `if age < 18: dose = ...`,
+  `if sex == "F": ...`). It looks the value up by country / age band / sex
+  in a table. Adding a country, or changing an age band, edits YAML only.
+- Country-specific **processing** — an algorithm only one country uses (a
+  check-digit rule, an eGFR equation, the assembly of a JP Core element) —
+  is code, but it is a named implementation registered in code, and **which
+  one a country uses is chosen in YAML** (`locale/<country>/egfr_equation.yaml`
+  names the equation; the code implements each one). The common flow calls
+  the implementation the country's YAML names, not an `if is_jp(...)`
+  branch, so a new country reuses existing implementations from YAML alone
+  and adds code only for a genuinely new algorithm.
+
+  | What differs | Where it lives |
+  |---|---|
+  | a value (code, text, threshold, age band, unit, table) | YAML |
+  | an algorithm only some countries use | code, as a named implementation |
+  | which algorithm or structure a country uses | YAML |
+
+- Where no such registry exists yet, a country branch in code may only
+  decide **whether** a profile-mandated structure is emitted (a JP Core /
+  JP-CLINS element, slice or resource that US output does not have); the
+  values inside it still come from YAML.
+- The one place for numbers in Python is the documented formula-constant
+  module of policy §5.1 (`_<topic>_thresholds.py` / `_<topic>_defaults.py`):
+  the coefficients of one formula, RNG salts, YAML fallbacks, enums and keys.
+- A change that adds hard-coded country, age or sex data is rejected in
+  review; when you touch code that already has some, move it to YAML in the
+  same PR if small, otherwise file an Issue.
+
+Placement details: [documentation-and-code-quality-policy §5](documentation-and-code-quality-policy.md#5-constants-and-configuration)
+and [configuration-and-reference-data-spec](configuration-and-reference-data-spec.md).
+
+---
+
 ## 0. Workflow discipline (before you write any code)
 
 1. **Workflow**: one GitHub Issue per PR → read the code and the
