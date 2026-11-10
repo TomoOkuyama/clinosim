@@ -3129,16 +3129,23 @@
 <li><code>is_jp(country) -&gt; bool</code> — <strong>JP 判定の唯一の正準 idiom</strong>(case-insensitive + strip 正規化)</li>
 <li><code>countries.lang_for(country) -&gt; str</code> — <strong>display 言語選択の唯一の正準 idiom</strong>(JP → <code>"ja"</code>、その他 → <code>"en"</code>)</li>
 </ul>
-<p><strong>JP-gating / 言語選択の必須 idiom(2026-07-02)</strong> — 国判定と display 言語選択は必ず <code>is_jp(country)</code> / <code>lang_for(country)</code> を使うこと:</p>
+<p><strong>国・言語の判定。</strong> 国と出力言語は <code>is_jp(country)</code> / <code>lang_for(country)</code> でのみ判定し、手書きの比較は書きません。国による分岐でしてよいことは限られています(<a href="../design-guides/implementation-rules.ja/#グランドデザイン-コードとデータの分離"><code>implementation-rules.ja.md</code></a> のグランドデザイン: コードとデータの分離)。</p>
+<ul>
+<li>国による分岐が決めるのは、<strong>国のプロファイルが必須とする構造を出力するかどうか</strong>(JP Core の <code>meta.profile</code>、JP のみのセクションなど)だけです。値を選んではいけません。</li>
+<li>国で異なる<strong>値</strong>(ラベル・コード・範囲・率・文言)は、locale の YAML またはコード表から、出力言語や国をキーに引きます(<a href="../design-guides/code-mapping-and-localization-spec.ja/#5-多言語対応"><code>code-mapping-and-localization-spec.ja.md</code></a> §5)。</li>
+<li><strong>国ごとに異なるアルゴリズム</strong>は、YAML で選ぶ名前付きの実装にします。locale のファイルが実装名と係数を持ち、コードはその名前で処理を振り分けます(例: <code>locale/&lt;cc&gt;/egfr_equation.yaml</code> の <code>type: jsn</code> / <code>ckd_epi_2021</code> を <code>physiology/egfr.py</code> が読む)。</li>
+</ul>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.countries</span><span class="w"> </span><span class="kn">import</span> <span class="n">lang_for</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_jp</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">if</span> <span class="n">is_jp</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">):</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="o">...</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">lang</span> <span class="o">=</span> <span class="n">lang_for</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>   <span class="c1"># "ja" / "en"</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.locale.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">narrative_label</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_jp</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">lang</span> <span class="o">=</span> <span class="n">lang_for</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>                                    <span class="c1"># "ja" / "en"</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">obs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"code"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"text"</span><span class="p">:</span> <span class="n">narrative_label</span><span class="p">(</span><span class="s2">"fall_risk_level"</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">lang</span><span class="p">)}}</span>  <span class="c1"># 値: 多言語の表から</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="k">if</span> <span class="n">is_jp</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">):</span>                                          <span class="c1"># JP Core プロファイルが必須とする構造</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="n">obs</span><span class="p">[</span><span class="s2">"meta"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"profile"</span><span class="p">:</span> <span class="p">[</span><span class="n">JP_OBSERVATION_COMMON_PROFILE</span><span class="p">]}</span>
 </span></code></pre></div>
 <blockquote>
-<p><strong>アンチパターン:</strong> hand-rolled な国判定の変種(<code>country == "JP"</code> / <code>country.lower() == "jp"</code> / <code>str(country).upper() == "JP"</code> / <code>lang = "ja" if country == "JP" else "en"</code>)を新規に書かない。共通ロジック統一前は 5 種類の divergent idiom が混在し、大文字小文字の扱い差で JP gating が silent に外れる PR-90 class risk があった。<code>is_jp</code> / <code>lang_for</code> が単一の正規化点。</p>
+<p><strong>アンチパターン:</strong> 手書きの国判定(<code>country == "JP"</code> / <code>country.lower() == "jp"</code> / <code>str(country).upper() == "JP"</code> / <code>lang = "ja" if country == "JP" else "en"</code>)— 大文字小文字の違いで JP の判定が黙って外れたことがあり、<code>is_jp</code> / <code>lang_for</code> が唯一の正規化点です。また、分岐で値を選ぶこと(<code>label = "転倒リスク高" if is_jp(country) else "High fall risk"</code>)— 値は多言語の表に置きます。</p>
 </blockquote>
 <h3 id="パス定数の正規形pr-a-2026-06-26-で確立">パス定数の正規形(PR-A 2026-06-26 で確立)<a class="headerlink" href="#パス定数の正規形pr-a-2026-06-26-で確立" title="Permanent link">&para;</a></h3>
 <p>モジュールが reference_data や locale データを読み込むときの<strong>正規パターン</strong>:</p>
@@ -3790,7 +3797,7 @@ URI 等)を hard-coded literal で書かないこと。<strong>writer 側 module
 <p><strong>Do</strong>
 - engine は pure function、文脈は引数で渡す (<code>observation/engine.py</code> が手本)。
 - 型は <code>clinosim/types/</code>、display は <code>code_lookup()</code>、URI は <code>get_system_uri()</code>。
-- 国判定は <code>is_jp()</code>、display 言語は <code>lang_for()</code>、国→code system 選択は <code>system_key_for()</code>(hand-rolled な <code>country == "JP"</code> 変種 / inline 分岐を書かない)。
+- 国判定は <code>is_jp()</code>、display 言語は <code>lang_for()</code>、国→code system 選択は <code>system_key_for()</code>(hand-rolled な <code>country == "JP"</code> 変種を書かない)。国による分岐はプロファイルが必須とする構造を出すかどうかだけを決め、値は locale の YAML / コード表から引く。
 - cached loader の戻り値は read-only 扱い(共有 instance — mutate 禁止)。
 - venue simulator は <code>CIFPatientRecord</code> を <strong>return</strong>、opt-in は <code>extensions[&lt;module&gt;]</code> に書く。
 - sub-seed に per-entity key を混ぜ、各 entity ごとに fresh な <code>default_rng</code> を作る。

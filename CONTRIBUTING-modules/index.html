@@ -3926,24 +3926,23 @@ added in PR-A 2026-06-26; <code>is_jp</code> / <code>lang_for</code> added by th
 <li><code>countries.lang_for(country) -&gt; str</code> — <strong>the sole canonical idiom for
   display-language selection</strong> (JP → <code>"ja"</code>, else → <code>"en"</code>).</li>
 </ul>
-<p><strong>Mandatory idiom for JP-gating / language selection (2026-07-02)</strong> —
-country decisions and display-language selection must go through
-<code>is_jp(country)</code> / <code>lang_for(country)</code>:</p>
+<p><strong>Country and language idiom.</strong> Read the country and the output language only through <code>is_jp(country)</code> / <code>lang_for(country)</code>, never through a hand-rolled comparison. What a country branch may do is narrow (the grand design in <a href="../design-guides/implementation-rules/#grand-design-code-and-data-are-separated"><code>implementation-rules.md</code></a>: code and data are separated):</p>
+<ul>
+<li>A country branch decides only <strong>whether a structure that a country profile mandates is emitted</strong> (a JP Core <code>meta.profile</code>, a JP-only section). It never selects a value.</li>
+<li><strong>Values</strong> that differ by country — labels, codes, ranges, rates, wording — come from locale YAML or the code tables, looked up with the output language or the country (see <a href="../design-guides/code-mapping-and-localization-spec/#5-localization"><code>code-mapping-and-localization-spec.md</code></a> §5).</li>
+<li>A <strong>country-specific algorithm</strong> is a named implementation chosen in YAML: the locale file names it and its coefficients, and the code dispatches on that name (e.g. <code>locale/&lt;cc&gt;/egfr_equation.yaml</code> <code>type: jsn</code> / <code>ckd_epi_2021</code>, read by <code>physiology/egfr.py</code>).</li>
+</ul>
 <div class="highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.countries</span><span class="w"> </span><span class="kn">import</span> <span class="n">lang_for</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_jp</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">if</span> <span class="n">is_jp</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">):</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="o">...</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">lang</span> <span class="o">=</span> <span class="n">lang_for</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>   <span class="c1"># "ja" / "en"</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.locale.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">narrative_label</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">clinosim.modules._shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_jp</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">lang</span> <span class="o">=</span> <span class="n">lang_for</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">)</span>                                    <span class="c1"># "ja" / "en"</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">obs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"code"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"text"</span><span class="p">:</span> <span class="n">narrative_label</span><span class="p">(</span><span class="s2">"fall_risk_level"</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">lang</span><span class="p">)}}</span>  <span class="c1"># value: a localized table</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="k">if</span> <span class="n">is_jp</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">country</span><span class="p">):</span>                                          <span class="c1"># structure the JP Core profile mandates</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="n">obs</span><span class="p">[</span><span class="s2">"meta"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"profile"</span><span class="p">:</span> <span class="p">[</span><span class="n">JP_OBSERVATION_COMMON_PROFILE</span><span class="p">]}</span>
 </span></code></pre></div>
 <blockquote>
-<p><strong>Anti-pattern:</strong> do not write new hand-rolled country-decision
-variants (<code>country == "JP"</code> / <code>country.lower() == "jp"</code> /
-<code>str(country).upper() == "JP"</code> /
-<code>lang = "ja" if country == "JP" else "en"</code>). Before the shared-
-logic unification 5 divergent idioms coexisted, and case-handling
-differences could silently disable JP gating — a PR-90-class risk.
-<code>is_jp</code> / <code>lang_for</code> are the single normalisation point.</p>
+<p><strong>Anti-patterns:</strong> a hand-rolled country decision (<code>country == "JP"</code> / <code>country.lower() == "jp"</code> / <code>str(country).upper() == "JP"</code> / <code>lang = "ja" if country == "JP" else "en"</code>) — case differences once silently disabled JP gating, and <code>is_jp</code> / <code>lang_for</code> are the single normalisation point; and a value chosen in a branch (<code>label = "転倒リスク高" if is_jp(country) else "High fall risk"</code>) — the value belongs in a localized table.</p>
 </blockquote>
 <h3 id="canonical-form-of-path-constants-established-in-pr-a-2026-06-26">Canonical form of path constants (established in PR-A 2026-06-26)<a class="headerlink" href="#canonical-form-of-path-constants-established-in-pr-a-2026-06-26" title="Permanent link">&para;</a></h3>
 <p>The <strong>canonical pattern</strong> for how a module loads reference_data or
@@ -4984,7 +4983,8 @@ pass structural / narrative CIF separation is
 - Country decisions via <code>is_jp()</code>; display language via
   <code>lang_for()</code>; country → code-system selection via
   <code>system_key_for()</code> (do not write hand-rolled <code>country == "JP"</code>
-  variants or inline branching).
+  variants). A country branch only decides whether a profile-mandated
+  structure is emitted; values come from locale YAML / code tables.
 - Treat cached loader return values as read-only (shared instance —
   mutation forbidden).
 - Venue simulators <strong>return</strong> <code>CIFPatientRecord</code>; opt-in modules

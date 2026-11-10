@@ -2477,6 +2477,16 @@ block します。</p>
   API 表面を追加する変更で必須。</li>
 </ul>
 <hr />
+<h2 id="コーディング規則">コーディング規則<a class="headerlink" href="#コーディング規則" title="Permanent link">&para;</a></h2>
+<p>すべての変更はこの規則に従います。各規則の詳細は、リンク先の拘束力のある仕様書に定義されています。</p>
+<ol>
+<li><strong>コードとデータの分離。</strong> 国・年齢・性別で異なる値や、調整可能な臨床・統計の値は、出典を明記して YAML に置きます。コードはそれを参照するだけで、国・年齢・性別の分岐で値を選びません。国ごとに異なるアルゴリズムは名前付きの実装とし、YAML で選択します。詳細は <a href="../../design-guides/implementation-rules.ja/#グランドデザイン-コードとデータの分離">実装規則: グランドデザイン</a> と <a href="../../design-guides/configuration-and-reference-data-spec.ja/">設定・参照データ仕様</a>。</li>
+<li><strong>多言語出力。</strong> 利用者に見える文字列はすべて、カタログまたは多言語の表から出力箇所で解決します。英語は必須で、ある言語が欠けたときのフォールバックです。キー・生のコード・スラッグを出力してはいけません。JP の出力は日本の電子カルテとして自然な日本語にし(ラテン文字は日本の記録でもそう書くものだけ)、英語のみのコード体系は <code>coding.display</code> を英語のまま、日本語のラベルを <code>.text</code> に入れます。詳細は <a href="../../design-guides/code-mapping-and-localization-spec.ja/#5-多言語対応">コードマッピング仕様 §5</a> と <a href="../../design-guides/code-mapping-and-localization-spec.ja/#6-フォールバック規則">§6</a>。</li>
+<li><strong>コード。</strong> 権威ある出典で確認したコードだけを使います。コード表に登録し、<code>clinosim.codes</code> / <code>clinosim.locale.loader</code> で解決します。コード中にリテラルで書きません。詳細は <a href="../../design-guides/code-mapping-and-localization-spec.ja/#8-コードの追加変更手順">コードマッピング仕様 §8</a> と <a href="../../design-guides/code-mapping-and-localization-spec.ja/#9-禁止パターン">§9</a>。</li>
+<li><strong>国の扱い。</strong> 国や出力言語は <code>is_jp</code> / <code>lang_for</code> でのみ判定します。国による分岐は、国のプロファイルが必須とする構造を出力するかどうかだけを決め、値を選んではいけません。詳細は <a href="../../design-guides/code-mapping-and-localization-spec.ja/#5-多言語対応">コードマッピング仕様 §5</a> と <a href="../../CONTRIBUTING-modules.ja/">モジュールガイド</a>。</li>
+<li><strong>決定性。</strong> 共有の乱数ストリームから新たに乱数を引きません。新しい乱数は、対象のエンティティから導いたシードか、ハッシュによる抽選から得ます。詳細は <a href="../../design-guides/determinism-and-rng-spec.ja/#2-乱数を引く">決定性・乱数仕様</a>。</li>
+</ol>
+<hr />
 <h2 id="documentation--code-コメント言語ポリシー">Documentation + code コメント言語ポリシー<a class="headerlink" href="#documentation--code-コメント言語ポリシー" title="Permanent link">&para;</a></h2>
 <p>全 PR は
 <a href="../../design-guides/documentation-and-code-quality-policy.ja/"><code>docs/design-guides/documentation-and-code-quality-policy.md</code></a>

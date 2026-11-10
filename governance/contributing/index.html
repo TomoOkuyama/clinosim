@@ -2499,6 +2499,16 @@ the trailer.</p>
   field, CLI subcommand, or public API surface.</li>
 </ul>
 <hr />
+<h2 id="coding-rules">Coding rules<a class="headerlink" href="#coding-rules" title="Permanent link">&para;</a></h2>
+<p>Every change follows these rules. Each one is defined in a binding spec; the link is the place to read the details.</p>
+<ol>
+<li><strong>Code and data are separated.</strong> Values that differ by country, age or sex, and tunable clinical or statistical values, live in YAML with a cited source. Code looks them up and never selects them in a country / age / sex branch; a country-specific algorithm is a named implementation chosen in YAML. See <a href="../../design-guides/implementation-rules/#grand-design-code-and-data-are-separated">implementation rules: grand design</a> and the <a href="../../design-guides/configuration-and-reference-data-spec/">configuration and reference data spec</a>.</li>
+<li><strong>Multilingual output.</strong> Every user-visible string comes from a catalog or localized table, resolved at the emit site. English is required and is the fallback for a missing language; a key, raw code or slug never reaches output. JP output reads as Japanese EHR text (Latin script only where Japanese records use it), and an English-only code system keeps its English <code>coding.display</code> with the localized label in <code>.text</code>. See <a href="../../design-guides/code-mapping-and-localization-spec/#5-localization">code-mapping spec §5</a> and <a href="../../design-guides/code-mapping-and-localization-spec/#6-fallback-rules">§6</a>.</li>
+<li><strong>Codes.</strong> Only codes verified against their authoritative source are used. They are registered in the code tables and resolved through <code>clinosim.codes</code> / <code>clinosim.locale.loader</code>, never written as literals in code. See <a href="../../design-guides/code-mapping-and-localization-spec/#8-adding-or-changing-a-code">code-mapping spec §8</a> and <a href="../../design-guides/code-mapping-and-localization-spec/#9-prohibited-patterns">§9</a>.</li>
+<li><strong>Country handling.</strong> <code>is_jp</code> / <code>lang_for</code> are the only way to read the country or output language. A country branch only decides whether a structure a country profile mandates is emitted; it never selects a value. See <a href="../../design-guides/code-mapping-and-localization-spec/#5-localization">code-mapping spec §5</a> and the <a href="../../CONTRIBUTING-modules/#shared-helpers-go-into-clinosimmodules_sharedpy">module guide</a>.</li>
+<li><strong>Determinism.</strong> A change never adds draws to a shared RNG stream; new randomness comes from a seed derived for the entity it concerns, or from a hash draw. See the <a href="../../design-guides/determinism-and-rng-spec/#2-drawing-random-numbers">determinism and RNG spec</a>.</li>
+</ol>
+<hr />
 <h2 id="documentation-and-comment-language-policy">Documentation and comment-language policy<a class="headerlink" href="#documentation-and-comment-language-policy" title="Permanent link">&para;</a></h2>
 <p>Every PR is reviewed against
 <a href="../../design-guides/documentation-and-code-quality-policy/"><code>docs/design-guides/documentation-and-code-quality-policy.md</code></a>.
