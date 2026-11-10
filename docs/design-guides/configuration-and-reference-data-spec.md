@@ -37,12 +37,11 @@ Related specs, linked rather than restated:
 
 | Rule | Canonical code | Guard |
 |---|---|---|
-| A table keyed by domain identifiers (disease, drug, lab, age band, country) lives in YAML. A formula coefficient or a clinical threshold lives as a named, documented constant in a `_<topic>_thresholds.py` / `_defaults.py` module, with its source. Code holds no unnamed clinical literals. | policy | [`documentation-and-code-quality-policy.md`](documentation-and-code-quality-policy.md) §5.1 (review) |
+| A table keyed by domain identifiers (disease, drug, lab, age band, country) lives in YAML. A formula coefficient or a clinical threshold lives as a named, documented constant in a `_<topic>_thresholds.py` / `_defaults.py` module, with its source. Code holds no unnamed clinical literals. | policy | [`documentation-and-code-quality-policy.md`](documentation-and-code-quality-policy.md) §5.1; `tests/unit/test_code_data_separation_3137.py` (shrink-only ratchet, per file under `clinosim/`: country / language branches — `is_jp` / `is_us` / `uses_jp_clins_profile` calls and comparisons with `"JP"` / `"US"` / `"ja"` / `"en"` — and non-trivial numeric literals in comparisons outside `_<topic>_thresholds.py` / `_<topic>_defaults.py`; counted with the AST by `tests/unit/code_data_separation.py` against `tests/unit/code_data_separation_baseline.json`. A count may not grow; a file that drops lowers its entry with `python -m tests.unit.code_data_separation --write`, which refuses to raise one) |
 
 ## 5. Gaps
 
 | Gap | Where |
 |---|---|
-| The constants-placement policy has no automatic guard. | review |
 | The locale and code-table YAMLs are not validated by a Pydantic model, and the §2 guard does not look at them: `clinosim/locale/**` (some files have hand-written checks in `clinosim/locale/loader.py`) and `clinosim/codes/data/*.yaml`. An unknown key in these files is not rejected at load. | `tests/unit/test_configuration_spec_guards.py` globs `modules/*/reference_data/` and `simulator/reference_data/` only |
 | A cached loader's return value is never mutated (§2). | review |

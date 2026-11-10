@@ -37,12 +37,11 @@
 
 | 規則 | 正準コード | ガード |
 |---|---|---|
-| 領域の識別子(疾患・薬剤・検査・年齢区分・国)をキーとする表は YAML に置く。式の係数や臨床の閾値は、`_<topic>_thresholds.py` / `_defaults.py` の名前付き・説明付きの定数とし、出典を付ける。コードに名前の無い臨床リテラルを書かない。 | 方針 | [`documentation-and-code-quality-policy.ja.md`](documentation-and-code-quality-policy.ja.md) §5.1(レビュー) |
+| 領域の識別子(疾患・薬剤・検査・年齢区分・国)をキーとする表は YAML に置く。式の係数や臨床の閾値は、`_<topic>_thresholds.py` / `_defaults.py` の名前付き・説明付きの定数とし、出典を付ける。コードに名前の無い臨床リテラルを書かない。 | 方針 | [`documentation-and-code-quality-policy.ja.md`](documentation-and-code-quality-policy.ja.md) §5.1、`tests/unit/test_code_data_separation_3137.py`(減る一方のラチェット。`clinosim/` 配下のファイルごとに、国・言語の分岐 — `is_jp` / `is_us` / `uses_jp_clins_profile` の呼び出しと `"JP"` / `"US"` / `"ja"` / `"en"` との比較 — と、`_<topic>_thresholds.py` / `_<topic>_defaults.py` 以外の比較に書かれた自明でない数値リテラルを、`tests/unit/code_data_separation.py` が AST で数え、`tests/unit/code_data_separation_baseline.json` と照合する。件数は増やせない。減ったファイルは `python -m tests.unit.code_data_separation --write` で記録を下げる(このコマンドは記録を上げない)) |
 
 ## 5. 未対応
 
 | 未対応 | 場所 |
 |---|---|
-| 定数の置き場所の方針には自動のガードが無い。 | レビュー |
 | ロケールとコード表の YAML は Pydantic モデルで検証しておらず、§2 のガードも見ていない: `clinosim/locale/**`(一部のファイルは `clinosim/locale/loader.py` の手書きの検査を持つ)と `clinosim/codes/data/*.yaml`。これらのファイルの未知のキーは読み込み時に拒否されない。 | `tests/unit/test_configuration_spec_guards.py` は `modules/*/reference_data/` と `simulator/reference_data/` だけを走査する |
 | キャッシュ付きローダーの戻り値を書き換えない(§2)。 | レビュー |
