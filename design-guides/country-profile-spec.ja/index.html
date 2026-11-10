@@ -2558,7 +2558,7 @@ YAML の読み込みと検証は
 </tr>
 <tr>
 <td><code>formats</code></td>
-<td>氏名の順序 (<code>given_family</code> / <code>family_given</code>)、日付・時刻・日時の書式。住所テンプレート、電話のパターン、MRN・国の識別子の仕様は移行の手順 2 (§7) で加える。</td>
+<td>氏名の順序 (<code>given_family</code> / <code>family_given</code>、<code>formats.name_parts(family, given)</code> で適用)、日付・時刻・日時の書式、医師名の敬称 (<code>physician_name_prefix</code>)。</td>
 </tr>
 <tr>
 <td><code>implementations</code></td>
@@ -2566,6 +2566,11 @@ YAML の読み込みと検証は
 </tr>
 </tbody>
 </table>
+<p>住所と電話の書式は <code>clinosim/locale/&lt;cc&gt;/addresses.yaml</code> のパターン
+(<code>street_line</code>、<code>apartment_line</code>、<code>phone.{mobile,landline,staff_work,ward}</code>、
+<code>fhir_address</code>) で、汎用の整形器 <code>clinosim/locale/patterns.py</code> が抽選・整形する
+(libaddressinput / libphonenumber 方式)。Patient の MRN の system と国の識別子は
+<code>clinosim/locale/&lt;cc&gt;/identity.yaml</code> (<code>fhir_patient</code>) に置く。</p>
 <p>モジュールの<strong>国別パラメータ</strong> (退院基準、手術までの時間など) は、そのモジュール
 の <code>reference_data/</code> または <code>clinosim/locale/&lt;cc&gt;/&lt;topic&gt;.yaml</code> に国をキーとして
 置き、モジュールのローダーで読む。プロファイルには重複して持たない。</p>
@@ -2577,7 +2582,8 @@ YAML の読み込みと検証は
   区別しない。旧来の表記 (<code>"japan"</code>) はローダー内のデータ表で変換し、
   <code>is_jp</code> / <code>is_us</code> は使わない。未知の国は <code>KeyError</code> にし、黙って US に
   戻さない。</li>
-<li><code>profile.code</code>、<code>profile.language</code>、<code>profile.timezone</code> (<code>"Z"</code> または
+<li><code>profile.code</code>、<code>profile.language</code>、<code>profile.language_tag</code> (BCP 47 の
+  <code>&lt;language&gt;-&lt;code&gt;</code>、例 <code>ja-JP</code>)、<code>profile.timezone</code> (<code>"Z"</code> または
   <code>+HH:MM</code> / <code>-HH:MM</code> の UTC オフセット)、<code>profile.formats</code>。</li>
 <li><code>profile.uses(profile_name) -&gt; bool</code>、<code>profile.feature(name) -&gt; bool</code>、
   <code>profile.code_system(kind) -&gt; str</code>、<code>profile.implementation(kind) -&gt; str</code>。

@@ -2567,7 +2567,7 @@ changes only when the country needs an algorithm no country has yet.</p>
 </tr>
 <tr>
 <td><code>formats</code></td>
-<td>Name order (<code>given_family</code> / <code>family_given</code>), date, time and date-time formats; address template, phone patterns and MRN / national-identifier specs join in migration step 2 (§7).</td>
+<td>Name order (<code>given_family</code> / <code>family_given</code>, applied by <code>formats.name_parts(family, given)</code>), date, time and date-time formats, and the physician name prefix (<code>physician_name_prefix</code>).</td>
 </tr>
 <tr>
 <td><code>implementations</code></td>
@@ -2575,6 +2575,12 @@ changes only when the country needs an algorithm no country has yet.</p>
 </tr>
 </tbody>
 </table>
+<p>Address and phone formats are patterns in <code>clinosim/locale/&lt;cc&gt;/addresses.yaml</code>
+(<code>street_line</code>, <code>apartment_line</code>, <code>phone.{mobile,landline,staff_work,ward}</code>,
+<code>fhir_address</code>), drawn and formatted by one generic formatter,
+<code>clinosim/locale/patterns.py</code> (libaddressinput / libphonenumber style). The
+Patient's MRN system and national identifier are in
+<code>clinosim/locale/&lt;cc&gt;/identity.yaml</code> (<code>fhir_patient</code>).</p>
 <p>Country-specific <strong>parameters of a module</strong> (for example discharge
 criteria or time to surgery) stay in that module's <code>reference_data/</code>
 or in <code>clinosim/locale/&lt;cc&gt;/&lt;topic&gt;.yaml</code>, keyed by country and read
@@ -2587,7 +2593,8 @@ through the module's loader; the profile does not duplicate them.</p>
   case-insensitively; legacy spellings (<code>"japan"</code>) map through a data table
   in the loader, not through <code>is_jp</code> / <code>is_us</code>. An unknown country raises
   <code>KeyError</code>; it never falls back to the US silently.</li>
-<li><code>profile.code</code>, <code>profile.language</code>, <code>profile.timezone</code> (<code>"Z"</code> or a
+<li><code>profile.code</code>, <code>profile.language</code>, <code>profile.language_tag</code> (BCP 47
+  <code>&lt;language&gt;-&lt;code&gt;</code>, e.g. <code>ja-JP</code>), <code>profile.timezone</code> (<code>"Z"</code> or a
   <code>+HH:MM</code> / <code>-HH:MM</code> UTC offset), <code>profile.formats</code>.</li>
 <li><code>profile.uses(profile_name) -&gt; bool</code>, <code>profile.feature(name) -&gt; bool</code>,
   <code>profile.code_system(kind) -&gt; str</code>, <code>profile.implementation(kind) -&gt; str</code>.
