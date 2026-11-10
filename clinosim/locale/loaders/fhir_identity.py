@@ -170,6 +170,29 @@ def load_encounter_type_profiles(country: str) -> dict[str, dict[str, Any]]:
 
 
 @lru_cache(maxsize=8)
+def load_checkup_questionnaire(country: str) -> dict[str, Any]:
+    """Health-checkup questionnaire answers derived from the record (Issue
+    #3163): ``item_code_system``, ``category``, ``questionnaires`` (checkup
+    type -> item keys) and ``items`` from
+    ``<country>/checkup_questionnaire.yaml``; empty for a country without the
+    file (US)."""
+    data = _load_yaml(_country_dir(country) / "checkup_questionnaire.yaml", fallback={})
+    if not isinstance(data, dict) or not data.get("items"):
+        return {}
+    items = {str(k): dict(v) for k, v in data["items"].items()}
+    questionnaires = {str(k): [str(i) for i in v or []] for k, v in (data.get("questionnaires") or {}).items()}
+    unknown = sorted({i for v in questionnaires.values() for i in v} - set(items))
+    if unknown:
+        raise ValueError(f"checkup_questionnaire.yaml: questionnaires name unknown items {unknown}")
+    return {
+        "item_code_system": str(data["item_code_system"]),
+        "category": str(data["category"]),
+        "questionnaires": questionnaires,
+        "items": items,
+    }
+
+
+@lru_cache(maxsize=8)
 def load_checkup_report_items(country: str) -> dict[str, Any]:
     """Health-checkup results as report Observations (Issue #3154):
     ``observation_profile``, ``code_system``, ``items`` (internal lab

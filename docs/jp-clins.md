@@ -165,6 +165,7 @@ the 3-digit JP-CLINS codes).
     PatientProfile (chronic_conditions → past history, current_medications
     → medications, smoking_status/alcohol_use → lifestyle). Patients with a
     chronic condition get the grade 「継続経過観察を要す」.
+    The section also references one `JP_Observation_eCheckupGeneral` per questionnaire item the record can answer (Issue #3163, `locale/jp/checkup_questionnaire.yaml`): 服薬1-3 (blood pressure / glucose / lipid medication, from current medications), 既往歴1-3 (cerebrovascular / heart / kidney disease, from chronic conditions begun by the checkup date) and 喫煙 (smoking status), coded with the MHLW item code (urn:oid:1.2.392.200119.6.1005) and the answer code of 付属２ XML用特定健診項目情報 Ver.4 (はい・いいえ 1.2.392.200119.6.2003, 喫煙習慣 1.2.392.200119.6.24060); the regional-union report (late-stage elderly questionnaire) carries あなたはたばこを吸いますか(後期) (1.2.392.200119.6.19120). No random draws; an item the record cannot answer is omitted.
 - **Checkup encounter generation module**:
   the POST_RECORDS enricher in `clinosim/modules/health_checkup/` fires
   when `SimulatorConfig.modules["health_checkup"]=True` and country=JP.

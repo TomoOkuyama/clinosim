@@ -1,0 +1,27 @@
+# 特定健診 はい・いいえコード(質問項目) — the answer code of the yes / no
+# questionnaire items of a health-checkup report (Issue #3163).
+#
+# 一次出典:
+#   - JP-eCheckup General v1.7.0 package (jpfhir.jp fhir/eCheckup/igv170/
+#     package.tgz), CodeSystem-specialCheckup-choice-2003-cs.json (url
+#     urn:oid:1.2.392.200119.6.2003, version 1.0.0, title
+#     特定健診　はい・いいえコード(質問項目)); the Japanese displays are
+#     that CodeSystem's, verbatim.
+#   - 厚生労働省 電子的な標準様式 第４期 付属２ XML用特定健診項目情報 Ver.4
+#     (https://www.mhlw.go.jp/content/12400000/001082795.xlsx), 結果コードOID
+#     of 服薬1-3 / 既往歴1-3: 1.2.392.200119.6.2003 (1：はい、2：いいえ).
+# English displays are clinosim translations.
+metadata:
+  kind: code-system
+  name: MHLW Health-Checkup Yes / No Answer Code
+  uri: urn:oid:1.2.392.200119.6.2003
+  version: "1.0.0"
+  source: "jpfhir.jp JP-eCheckup General v1.7.0 CodeSystem specialCheckup-choice-2003; MHLW 付属２ Ver.4"
+  description: Yes / no answer of a health-checkup questionnaire item
+codes:
+  "1":
+    en: "Yes"
+    ja: "はい"
+  "2":
+    en: "No"
+    ja: "いいえ"

@@ -92,7 +92,16 @@ def test_the_results_section_references_the_checkup_observations() -> None:
         "checkup_type": "occupational",
     }
     refs = [{"reference": "Observation/lab-1"}, {"reference": "Observation/lab-2"}]
-    index = {"enc-1": {f"Observation|{_PROFILE}": refs, "Observation": refs + [{"reference": "Observation/a"}]}}
+    # Issue #3163: the results section takes the report Observations by
+    # category (laboratory / vital-signs); the questionnaire answers are
+    # social-history and none are indexed here.
+    index = {
+        "enc-1": {
+            f"Observation|{_PROFILE}": refs,
+            f"Observation|{_PROFILE}|laboratory": refs,
+            "Observation": refs + [{"reference": "Observation/a"}],
+        }
+    }
     sections = {"checkup_lab_results": "検査結果", "checkup_questionnaire": "問診"}
     comp = _build_composition(doc, sections, "ja", encounter_index=index)
     by_code = {s["code"]["coding"][0]["code"]: s for s in comp["section"]}

@@ -54,12 +54,17 @@ sections:
   discharge_readiness: [Observation]
 
   # JP-eCheckup health-checkup report (Issue #3154). A type may be
-  # narrowed to one declared profile as "<resourceType>|<profile URL>":
-  # the results section references the checkup's Observations declaring
-  # JP_Observation_eCheckupGeneral (not its anthropometric vitals). The
-  # questionnaire section has no structured answers yet.
-  checkup_lab_results: ["Observation|http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Observation_eCheckupGeneral"]
-  checkup_questionnaire: []
+  # narrowed to one declared profile as "<resourceType>|<profile URL>",
+  # and further to one category code as "<resourceType>|<profile URL>|<code>"
+  # (Issue #3163): the results section references the checkup's
+  # Observations declaring JP_Observation_eCheckupGeneral that are body
+  # measurements (vital-signs) or specimen tests (laboratory), in that
+  # order; the questionnaire section references its questionnaire answers
+  # (social-history, locale/jp/checkup_questionnaire.yaml).
+  checkup_lab_results:
+    - "Observation|http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Observation_eCheckupGeneral|vital-signs"
+    - "Observation|http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Observation_eCheckupGeneral|laboratory"
+  checkup_questionnaire: ["Observation|http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Observation_eCheckupGeneral|social-history"]
 
   # Nursing / rehab
   nursing_history: []

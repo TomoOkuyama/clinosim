@@ -1,0 +1,122 @@
+# Health-checkup questionnaire answers derived from the patient record
+# (Issue #3163): the questionnaire section of the health-checkup report
+# (JP_Composition_eCheckupGeneral 0xxx2 問診結果セクション) references one
+# JP_Observation_eCheckupGeneral per item below.
+#
+# Sources (read 2026-11-10):
+#   - 厚生労働省 電子的な標準様式 第４期 付属２ XML用特定健診項目情報 Ver.4
+#     (https://www.mhlw.go.jp/content/12400000/001082795.xlsx): item code
+#     (項目コード（17桁）) and answer code OID (結果コードOID) per item —
+#       順番号 2290 9N701000000000011 服薬1(血圧)      OID 1.2.392.200119.6.2003
+#       順番号 2320 9N706000000000011 服薬2(血糖)      OID 1.2.392.200119.6.2003
+#       順番号 2350 9N711000000000011 服薬3(脂質)      OID 1.2.392.200119.6.2003
+#       順番号 2380 9N716000000000011 既往歴1(脳血管)  OID 1.2.392.200119.6.2003
+#       順番号 2390 9N721000000000011 既往歴2(心血管)  OID 1.2.392.200119.6.2003
+#       順番号 2400 9N726000000000011 既往歴3(腎不全･人工透析) OID 1.2.392.200119.6.2003
+#       順番号 2420 9N736000000000011 喫煙            OID 1.2.392.200119.6.24060
+#       順番号 2950 9N943000000000011 あなたはたばこを吸いますか（後期）
+#                                                     OID 1.2.392.200119.6.19120
+#     The 2025-04-10 正誤表 (https://www.mhlw.go.jp/content/12400000/001474667.pdf)
+#     lists no correction to these rows.
+#   - 標準的な健診・保健指導プログラム（令和６年度版）第２編別紙３ 標準的な質問票
+#     (https://www.mhlw.go.jp/content/10900000/001153030.pdf): the questions —
+#       1-3 現在、a からｃの薬の使用の有無 (a 血圧を下げる薬, b 血糖を下げる薬
+#           又はインスリン注射, c コレステロールや中性脂肪を下げる薬)
+#       4   医師から、脳卒中（脳出血、脳梗塞等）にかかっているといわれたり、
+#           治療を受けたことがありますか。
+#       5   医師から、心臓病（狭心症、心筋梗塞等）にかかっているといわれたり、
+#           治療を受けたことがありますか。 (解説: 心臓病では、動脈硬化疾患
+#           のみならず不整脈、特に心房細動の既往についても留意する。)
+#       6   医師から、慢性腎臓病や腎不全にかかっているといわれたり、治療
+#           （人工透析など）を受けていますか。
+#       8   現在、たばこを習慣的に吸っていますか。 ① はい ② 以前は吸っていた
+#           が、最近１か月間は吸っていない ③ いいえ
+#   - JP-eCheckup General v1.7.0 sample report (Bundle-eCheckupReport-
+#     Sample-01): each questionnaire answer is a JP_Observation_eCheckupGeneral
+#     with category JP_SimpleObservationCategory_CS social-history, the item
+#     code and valueCodeableConcept in the answer code system.
+#
+# Derivation (no random draws). An item whose source the record lacks is
+# omitted, not answered:
+#   medication: yes when a current medication belongs to one of
+#     `drug_classes` (codes/data/drugs.yaml classes); a class listed under
+#     `classes_requiring_condition` counts only when the patient has that
+#     condition group (an SGLT2 inhibitor lowers blood glucose as a diabetes
+#     drug; for heart failure alone it is not a 血糖を下げる薬).
+#   condition: yes when a chronic condition whose ICD-10 code starts with one
+#     of `icd10_prefixes` began on or before the checkup date (a condition
+#     without an onset date counts).
+#   smoking: the patient's smoking status mapped by `answers`.
+metadata:
+  kind: locale
+  name: checkup_questionnaire
+  source: "MHLW 付属２ XML用特定健診項目情報 Ver.4; 標準的な質問票 (令和６年度版); JP-eCheckup General v1.7.0"
+
+item_code_system: jpfhir-eCheckup-observation
+# JP_SimpleObservationCategory_CS social-history, as the sample report.
+category: social-history
+
+# Items per checkup type (the report's checkup_type). The regional-union
+# (広域連合) report uses the late-stage elderly questionnaire (後期質問票),
+# whose derivable item is smoking.
+questionnaires:
+  occupational: [medication_bp, medication_glucose, medication_lipid, history_cerebrovascular, history_cardiac, history_renal, smoking]
+  specific: [medication_bp, medication_glucose, medication_lipid, history_cerebrovascular, history_cardiac, history_renal, smoking]
+  regional_union: [smoking_late]
+
+items:
+  medication_bp:
+    code: "9N701000000000011"
+    answer_system: mhlw-checkup-yes-no
+    source: medication
+    drug_classes: [antihypertensive, diuretic.thiazide]
+    answers: {"yes": "1", "no": "2"}
+  medication_glucose:
+    code: "9N706000000000011"
+    answer_system: mhlw-checkup-yes-no
+    source: medication
+    drug_classes: [biguanide, insulin, glp1_agonist, sglt2i]
+    classes_requiring_condition: {sglt2i: diabetes}
+    answers: {"yes": "1", "no": "2"}
+  medication_lipid:
+    code: "9N711000000000011"
+    answer_system: mhlw-checkup-yes-no
+    source: medication
+    drug_classes: [statin, cholesterol_absorption_inhibitor]
+    answers: {"yes": "1", "no": "2"}
+  history_cerebrovascular:
+    code: "9N716000000000011"
+    answer_system: mhlw-checkup-yes-no
+    source: condition
+    # 脳卒中: subarachnoid / intracerebral / other intracranial haemorrhage,
+    # cerebral infarction, stroke NOS, and their sequelae (ICD-10 I60-I64, I69).
+    icd10_prefixes: [I60, I61, I62, I63, I64, I69]
+    answers: {"yes": "1", "no": "2"}
+  history_cardiac:
+    code: "9N721000000000011"
+    answer_system: mhlw-checkup-yes-no
+    source: condition
+    # 心臓病: ischaemic heart disease (I20-I25), rheumatic and non-rheumatic
+    # valve disease (I05-I08, I34-I37), cardiomyopathy (I42), atrial
+    # fibrillation (I48), heart failure (I50).
+    icd10_prefixes: [I20, I21, I22, I23, I24, I25, I05, I06, I07, I08, I34, I35, I36, I37, I42, I48, I50]
+    answers: {"yes": "1", "no": "2"}
+  history_renal:
+    code: "9N726000000000011"
+    answer_system: mhlw-checkup-yes-no
+    source: condition
+    # 慢性腎臓病や腎不全 / 人工透析: chronic kidney disease (N18), unspecified
+    # kidney failure (N19), dialysis care / dependence (Z49, Z99.2).
+    icd10_prefixes: [N18, N19, Z49, Z99.2]
+    answers: {"yes": "1", "no": "2"}
+  smoking:
+    code: "9N736000000000011"
+    answer_system: mhlw-checkup-smoking
+    source: smoking
+    # 標準的な質問票 8: ② is a former smoker (smoked, not in the last month).
+    answers: {current: "1", former: "2", never: "3"}
+  smoking_late:
+    code: "9N943000000000011"
+    answer_system: mhlw-checkup-smoking-late
+    source: smoking
+    answers: {current: "1", never: "2", former: "3"}

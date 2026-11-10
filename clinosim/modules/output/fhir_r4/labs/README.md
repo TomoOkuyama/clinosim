@@ -24,7 +24,8 @@ effective at the specimen collection and `issued` at the report;
   [`../lib/inline_bb.py`](../lib/inline_bb.py)), `_bb_anthropometrics`
   (height / weight / BMI / head circumference, Issue #946),
   `_bb_stage_scale_observations` (mRS / H&Y / EDSS / CDR stage
-  scales), `_bb_diagnostic_reports`,
+  scales), `_bb_checkup_questionnaire` (JP health-checkup questionnaire
+  answers as JP-eCheckup Observations, Issue #3163), `_bb_diagnostic_reports`,
   `_bb_service_requests` (with the `SR_ID_PREFIX` +
   `PLACER_ORDER_NUMBER_SYSTEM` + `LAB_CATEGORY_SNOMED` +
   `LAB_CATEGORY_V2_0074` canonical constants — cross-verified by
@@ -80,6 +81,10 @@ from clinosim.modules.output.fhir_r4.labs.blood_type import (
 )
 from clinosim.modules.output.fhir_r4.labs.anthropometrics import _bb_anthropometrics
 from clinosim.modules.output.fhir_r4.labs.stage_scale_observations import _bb_stage_scale_observations
+from clinosim.modules.output.fhir_r4.labs.checkup_questionnaire import (
+    _bb_checkup_questionnaire,
+    checkup_questionnaire_observations,  # (record, country) -> questionnaire Observations of its checkup encounters
+)
 from clinosim.modules.output.fhir_r4.labs.coding_package import load_lab_coding_package          # () -> LabCodingPackage
 from clinosim.modules.output.fhir_r4.labs.coding_strategy import select_lab_coding_strategy     # (lab_name, country) -> LabCodingStrategy
 from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
@@ -156,6 +161,7 @@ clinosim/modules/output/fhir_r4/labs/
   observations.py                _bb_labs (lab Observation) + _build_vital_observations
   anthropometrics.py             _bb_anthropometrics (height / weight / BMI / head circumference)
   stage_scale_observations.py    _bb_stage_scale_observations (chronic-disease stage scales)
+  checkup_questionnaire.py       _bb_checkup_questionnaire (health-checkup questionnaire answers)
   diagnostic_report.py           _bb_diagnostic_reports + RADIOLOGY_DR_ID_PREFIX
   service_request.py             _bb_service_requests + canonical constants (SR_ID_PREFIX / PLACER_ORDER_NUMBER_SYSTEM / LAB_CATEGORY_*)
   microbiology.py                _bb_microbiology (culture + susceptibility)
