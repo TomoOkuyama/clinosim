@@ -232,26 +232,24 @@ added in PR-A 2026-06-26; `is_jp` / `lang_for` added by the
 - `countries.lang_for(country) -> str` — **the sole canonical idiom for
   display-language selection** (JP → `"ja"`, else → `"en"`).
 
-**Mandatory idiom for JP-gating / language selection (2026-07-02)** —
-country decisions and display-language selection must go through
-`is_jp(country)` / `lang_for(country)`:
+**Country and language idiom.** Read the country and the output language only through `is_jp(country)` / `lang_for(country)`, never through a hand-rolled comparison. What a country branch may do is narrow (the grand design in [`implementation-rules.md`](design-guides/implementation-rules.md#grand-design-code-and-data-are-separated): code and data are separated):
+
+- A country branch decides only **whether a structure that a country profile mandates is emitted** (a JP Core `meta.profile`, a JP-only section). It never selects a value.
+- **Values** that differ by country — labels, codes, ranges, rates, wording — come from locale YAML or the code tables, looked up with the output language or the country (see [`code-mapping-and-localization-spec.md`](design-guides/code-mapping-and-localization-spec.md#5-localization) §5).
+- A **country-specific algorithm** is a named implementation chosen in YAML: the locale file names it and its coefficients, and the code dispatches on that name (e.g. `locale/<cc>/egfr_equation.yaml` `type: jsn` / `ckd_epi_2021`, read by `physiology/egfr.py`).
 
 ```python
 from clinosim.countries import lang_for
+from clinosim.locale.loader import narrative_label
 from clinosim.modules._shared import is_jp
 
-if is_jp(ctx.country):
-    ...
-lang = lang_for(ctx.country)   # "ja" / "en"
+lang = lang_for(ctx.country)                                    # "ja" / "en"
+obs = {"code": {"text": narrative_label("fall_risk_level", level, lang)}}  # value: a localized table
+if is_jp(ctx.country):                                          # structure the JP Core profile mandates
+    obs["meta"] = {"profile": [JP_OBSERVATION_COMMON_PROFILE]}
 ```
 
-> **Anti-pattern:** do not write new hand-rolled country-decision
-> variants (`country == "JP"` / `country.lower() == "jp"` /
-> `str(country).upper() == "JP"` /
-> `lang = "ja" if country == "JP" else "en"`). Before the shared-
-> logic unification 5 divergent idioms coexisted, and case-handling
-> differences could silently disable JP gating — a PR-90-class risk.
-> `is_jp` / `lang_for` are the single normalisation point.
+> **Anti-patterns:** a hand-rolled country decision (`country == "JP"` / `country.lower() == "jp"` / `str(country).upper() == "JP"` / `lang = "ja" if country == "JP" else "en"`) — case differences once silently disabled JP gating, and `is_jp` / `lang_for` are the single normalisation point; and a value chosen in a branch (`label = "転倒リスク高" if is_jp(country) else "High fall risk"`) — the value belongs in a localized table.
 
 ### Canonical form of path constants (established in PR-A 2026-06-26)
 
@@ -1290,7 +1288,8 @@ pass structural / narrative CIF separation is
 - Country decisions via `is_jp()`; display language via
   `lang_for()`; country → code-system selection via
   `system_key_for()` (do not write hand-rolled `country == "JP"`
-  variants or inline branching).
+  variants). A country branch only decides whether a profile-mandated
+  structure is emitted; values come from locale YAML / code tables.
 - Treat cached loader return values as read-only (shared instance —
   mutation forbidden).
 - Venue simulators **return** `CIFPatientRecord`; opt-in modules
