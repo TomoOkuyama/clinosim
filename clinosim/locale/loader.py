@@ -39,6 +39,7 @@ from clinosim.locale._io import (
 # `from clinosim.locale.loader import load_narrative_X` keeps working.
 from clinosim.locale.loaders.clinical import (
     _validate_chronic_medications_route_vocabulary,
+    checkup_criterion,
     chronic_followup_interval_months,
     chronic_followup_vitals,
     load_actuarial_life_table,
@@ -206,6 +207,7 @@ __all__ = [
     "load_perinatal_config",
     "load_practitioner_qualifications",
     "load_pregnancy_substitutions",
+    "checkup_criterion",
     "load_reference_ranges",
     "load_single_gene_diseases",
     "load_specialty_routing",

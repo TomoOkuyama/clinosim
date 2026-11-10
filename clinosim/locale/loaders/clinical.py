@@ -179,6 +179,15 @@ def load_reference_ranges(country: str) -> dict[str, Any]:
     return _load_yaml(_country_dir(country) / "reference_range_lab.yaml", fallback={})
 
 
+def checkup_criterion(lab_name: str, country: str) -> dict[str, Any] | None:
+    """The statutory health-checkup criterion of ``lab_name`` (Issue #2300,
+    #3167): ``{"high", "unit", "text"}`` from ``reference_range_lab.yaml``
+    ``checkup_ranges``, where ``high`` means "H at or above this value".
+    ``None`` when the country has no criterion for the analyte."""
+    criterion = (load_reference_ranges(country).get("checkup_ranges") or {}).get(lab_name)
+    return dict(criterion) if criterion else None
+
+
 @lru_cache(maxsize=1)
 def load_chronic_age_limits() -> dict[str, Any]:
     """Per-code age limits (``chronic_onset_min_age.yaml``; Issue #2286):
