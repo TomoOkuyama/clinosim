@@ -14,8 +14,8 @@ RxNorm。JP `MedicationRequest.status='completed'` /
 status が異なる場合 (`active`、narrow / 中止された
 [`antibiotic`](../../../antibiotic/README.ja.md) regimen の
 `stopped` 等)、元の status は
-`urn:clinosim:medicationrequest-effective-status` extension と
-`note[]` text に保持される (`statusReason` は emit しない)。
+`note[]` text に保持される (Issue #3130: 定義のない `urn:` extension は
+eCS profile で許可されない。`statusReason` は emit しない)。
 
 体重 / 体表面積あたりの処方 ("45mg/kg"、"15-20mg/kg IV q12h") は投与する
 絶対量を記載する (Issue #2991): `doseQuantity` は処方量 × 患者 profile の
@@ -152,8 +152,12 @@ fragment builder のみを移し、`_bb_*` 登録は inline_bb に残した。
   `post_process/populate.py` (`_populate_condition_ai_mr_ecs_fields`)
   が `JP_MedicationRequest_eCS` に従い固定。builder の status が
   異なる場合 (`active`、`stopped` 等) は
-  `urn:clinosim:medicationrequest-effective-status` extension
-  (`valueCode`) と日本語 `note[]` text に保持。builder 自体は stop
+  日本語 `note[]` text に保持 (Issue #3130)。JP の用法は
+  `JP_MedicationDosage_eCS` に従う (Issue #3130、
+  `reference_data/jp-medication-dosage-ecs.yaml`): `timing.code.text`
+  に用法を記し、用法未コード化の coding は固定 display
+  `ダミー用法コード`、オーダーの実施期間は `PeriodOfUse` extension
+  (bounds は Duration のみ)、投与速度は 1 日あたりの `rateRatio`。builder 自体は stop
   order (`MED_STOP_ORDER_ID_MARKER`) に `stopped` を設定する。
 
 ## ディレクトリ構造

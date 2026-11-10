@@ -1,0 +1,28 @@
+# JP MedicationRequest dosage shapes required by JP-CLINS eCS (Issue #3130).
+#
+# Sources (pinned packages):
+#   - JP-CLINS 1.13.0 StructureDefinition-jp-medicationdosage-eCS.json
+#     (JP_MedicationDosage_eCS): timing.code.text min 1; the unCoded slice
+#     of timing.code.coding fixes display to ダミー用法コード; bounds[x] only
+#     as boundsDuration; rate[x] only as rateRatio (JP_MedicationRatio_DosePerDay).
+#   - JP Core 1.1.2 StructureDefinition-jp-medicationratio-doseperday.json
+#     (JP_MedicationRatio_DosePerDay): denominator fixed to 1 日
+#     (http://unitsofmeasure.org, d).
+# Applied by post_process/populate.py::_populate_jp_medication_dosage_ecs_fields
+# to JP MedicationRequests only; US output does not read this file.
+metadata:
+  kind: reference
+  name: jp-medication-dosage-ecs
+  source: "JP-CLINS 1.13.0 / JP Core 1.1.2"
+
+uncoded_usage:
+  code: "0X0XXXXXXXXX0000"
+  # fixedString of timing.code.coding:unCoded.display
+  display: "ダミー用法コード"
+
+rate_per_day:
+  # Ratio.denominator of JP_MedicationRatio_DosePerDay (all four fixed).
+  denominator: {value: 1, unit: 日, system: "http://unitsofmeasure.org", code: d}
+  # A rate per time unit (the last UCUM segment of the rate code) is
+  # expressed per day: amount per unit × units per day.
+  per_day_factor: {min: 1440, h: 24, d: 1}

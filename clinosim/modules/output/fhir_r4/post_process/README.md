@@ -55,7 +55,8 @@ resource — not as a separate pass over an assembled bundle.
     display `"製剤量"`), medication usage ePrescription
     (`_JP_MHLW_MEDICATION_USAGE_EPRESCRIPTION_CS`), MedicationUsage
     uncoded fallback (`_JP_CLINS_MEDICATION_USAGE_UNCODED_CS` with
-    code `"0X0XXXXXXXXX0000"`, display `"用法未指定"`) — used only when
+    code `"0X0XXXXXXXXX0000"`, display `"ダミー用法コード"` fixed by the
+    profile, the usage in `timing.code.text`; Issue #3130) — used only when
     `_resolve_mhlw_usage_code(drug_text, freq, period, period_unit,
     route_text)` (Issue #817, PRs #836/#837/#838/#840/#841) cannot
     map the (drug, cadence, route) tuple to a real
