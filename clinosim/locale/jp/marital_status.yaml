@@ -1,0 +1,79 @@
+# 配偶関係 (性・年齢階級別) と、それに条件付けた成人の緊急連絡先の続柄 (Issue #3189)。
+#
+# 配偶関係は `adult_age_min` 以上で初めて activate されたときに、性・年齢階級の
+# 行から 1 回だけ選び、PersonRecord に保持する。コードは HL7 v3-MaritalStatus
+# (S 未婚, M 有配偶, W 死別, D 離別)。値は人口 (重み、読み込み時に正規化)。
+#
+# 出典: 総務省統計局 令和2年国勢調査 人口等基本集計 第4-1表「男女，年齢(各歳)，
+# 配偶関係，国籍総数か日本人別人口及び平均年齢(15歳以上)」全国・国籍総数
+# (e-Stat statInfId 000032142474)。各歳の人口を年齢階級ごとに合算し、配偶関係
+# 「不詳」は除く。15-17 歳は使わない。
+metadata:
+  kind: reference
+  name: marital_status
+  source: 総務省統計局 令和2年国勢調査 人口等基本集計 第4-1表
+  verified: "2026-11-10"
+
+adult_age_min: 18
+minor_code: S
+distribution:
+  M:
+    "18-19": {S: 1158379, M: 5985, W: 153, D: 501}
+    "20-24": {S: 2669610, M: 127206, W: 392, D: 5746}
+    "25-29": {S: 2009359, M: 723766, W: 527, D: 23554}
+    "30-34": {S: 1440358, M: 1544254, W: 1097, D: 56010}
+    "35-39": {S: 1197991, M: 2167352, W: 2997, D: 99709}
+    "40-44": {S: 1154540, M: 2654875, W: 6926, D: 155184}
+    "45-49": {S: 1254286, M: 3113037, W: 15861, D: 236563}
+    "50-54": {S: 984378, M: 2792562, W: 25082, D: 261447}
+    "55-59": {S: 725910, M: 2668672, W: 41549, D: 265573}
+    "60-64": {S: 535989, M: 2613155, W: 68929, D: 248918}
+    "65-69": {S: 465528, M: 2937986, W: 130356, D: 249490}
+    "70-74": {S: 333926, M: 3322715, W: 224594, D: 235793}
+    "75-79": {S: 128977, M: 2489953, W: 256495, D: 125024}
+    "80-84": {S: 53308, M: 1726193, W: 286265, D: 61144}
+    "85-89": {S: 20196, M: 931058, W: 280883, D: 22912}
+    "90+": {S: 6470, M: 318686, W: 232118, D: 6356}
+  F:
+    "18-19": {S: 1107312, M: 8180, W: 200, D: 746}
+    "20-24": {S: 2537761, M: 195541, W: 874, D: 14123}
+    "25-29": {S: 1720868, M: 978633, W: 1335, D: 55727}
+    "30-34": {S: 1070318, M: 1842521, W: 3157, D: 120371}
+    "35-39": {S: 822942, M: 2447690, W: 8218, D: 202379}
+    "40-44": {S: 769440, M: 2880530, W: 19259, D: 298483}
+    "45-49": {S: 813608, M: 3331082, W: 44978, D: 441243}
+    "50-54": {S: 626024, M: 2976025, W: 78587, D: 446233}
+    "55-59": {S: 430090, M: 2814453, W: 140838, D: 413663}
+    "60-64": {S: 285484, M: 2736233, W: 245766, D: 356258}
+    "65-69": {S: 238610, M: 2996530, W: 478912, D: 361229}
+    "70-74": {S: 228799, M: 3140917, W: 894085, D: 368419}
+    "75-79": {S: 149577, M: 2117338, W: 1199867, D: 223840}
+    "80-84": {S: 105970, M: 1218650, W: 1478057, D: 130269}
+    "85-89": {S: 80058, M: 515677, W: 1532922, D: 72458}
+    "90+": {S: 57270, M: 129952, W: 1381903, D: 42351}
+
+# Adult emergency-contact relationship, by the person's marital status and age
+# band (weights, normalised at load). The weights for a married person are the
+# relationship mix the activator used before these tables existed (no
+# published distribution of named emergency contacts was found); the rows for
+# the other statuses are the same weights with the relationships that cannot
+# apply removed: no spouse for a never-married, divorced or widowed person,
+# and a widowed person names a child or a sibling. Order within a row is
+# load-bearing (it is the order of the weighted draw).
+emergency_contact:
+  relationships:
+    M:
+      "18-74": {spouse: 0.55, parent: 0.20, sibling: 0.15, child: 0.10}
+      "75+": {child: 0.60, spouse: 0.25, sibling: 0.15}
+    S:
+      "18-74": {parent: 0.20, sibling: 0.15, child: 0.10}
+      "75+": {child: 0.60, sibling: 0.15}
+    D:
+      "18-74": {parent: 0.20, sibling: 0.15, child: 0.10}
+      "75+": {child: 0.60, sibling: 0.15}
+    W:
+      "18-74": {sibling: 0.15, child: 0.10}
+      "75+": {child: 0.60, sibling: 0.15}
+  # The table whose draw the per-activation stream still makes (and discards)
+  # so every later draw of that stream keeps its position (Issue #3186/#3189).
+  activation_stream_status: M

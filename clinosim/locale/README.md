@@ -157,16 +157,19 @@ clinosim/locale/
                                    inherits (Issue #3140; loaded and
                                    validated by clinosim.country_profile;
                                    docs/design-guides/country-profile-spec.md)
-  us/                             US-specific bundle (18 YAMLs):
+  us/                             US-specific bundle (19 YAMLs):
                                    addresses, ambulatory_visit_length,
                                    ckd_under60_prevalence, clinic_calendar,
                                    country (profile overrides),
                                    code_mapping_{diagnosis,drug,lab,procedure},
                                    code_status_rates, demographics, egfr_equation,
                                    family_history_prevalence, formatting,
-                                   identity, immunization_schedule, names,
-                                   reference_range_lab
-  jp/                             JP-specific bundle (25 YAMLs — the US
+                                   identity, immunization_schedule,
+                                   marital_status (census marital status by
+                                   sex and age band, and the emergency-contact
+                                   relationship conditional on it,
+                                   Issue #3189), names, reference_range_lab
+  jp/                             JP-specific bundle (26 YAMLs — the US
                                    set minus ckd_under60_prevalence and
                                    code_mapping_drug, plus
                                    care_level_rates,

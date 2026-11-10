@@ -320,6 +320,27 @@ def load_demographics(country: str) -> dict[str, Any]:
 
 
 @lru_cache(maxsize=8)
+def load_marital_status(country: str) -> dict[str, Any]:
+    """Marital status by sex and age band, and the emergency-contact
+    relationship conditional on it (``marital_status.yaml``, Issue #3189).
+
+    Returns ``{}`` for a country without the file (no fallback to another
+    country's data). Raises ``ValueError`` when a present file lacks a
+    section the activator reads.
+    """
+    data = _load_yaml(_country_dir(country) / "marital_status.yaml", fallback={}) or {}
+    if not data:
+        return {}
+    sections = {"adult_age_min", "minor_code", "distribution", "emergency_contact"}
+    if set(data) != sections:
+        raise ValueError(f"marital_status.yaml ({country}): sections {sorted(data)} != {sorted(sections)}")
+    contact = data["emergency_contact"]
+    if contact.get("activation_stream_status") not in (contact.get("relationships") or {}):
+        raise ValueError(f"marital_status.yaml ({country}): activation_stream_status has no relationship table")
+    return data
+
+
+@lru_cache(maxsize=8)
 def load_addresses(country: str) -> dict[str, Any]:
     """Load address/phone data for a country."""
     data = _load_yaml(_country_dir(country) / "addresses.yaml", fallback={})

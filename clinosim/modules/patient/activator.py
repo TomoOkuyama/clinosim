@@ -23,6 +23,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_names, load_population_genetics
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import normalize_probabilities
+from clinosim.modules.patient import _marital
 from clinosim.modules.patient._patient_activator_thresholds import (
     AGE_PENALTY_HEPATIC_RATIO,
     AGE_PENALTY_MIN_AGE,
@@ -65,11 +66,6 @@ from clinosim.modules.patient._patient_activator_thresholds import (
     DVT_ELDERLY_PREMIUM,
     E03_HR_REDUCTION_MAX_EXCLUSIVE,
     E03_HR_REDUCTION_MIN,
-    EMERGENCY_CONTACT_ELDERLY_AGE_MIN,
-    EMERGENCY_CONTACT_RELATIONS_ADULT,
-    EMERGENCY_CONTACT_RELATIONS_ELDERLY,
-    EMERGENCY_CONTACT_WEIGHTS_ADULT,
-    EMERGENCY_CONTACT_WEIGHTS_ELDERLY,
     EMPLOYMENT_RETIREMENT_AGE_MIN,
     GENERIC_SEVERITY_UNIFORM_MAX,
     GENERIC_SEVERITY_UNIFORM_MIN,
@@ -88,19 +84,6 @@ from clinosim.modules.patient._patient_activator_thresholds import (
     J44_SPO2_LIMIT_SD,
     J45_RR_LIFT_MAX_EXCLUSIVE,
     J45_RR_LIFT_MIN,
-    MARITAL_STATUS_ADULT_AGE_MIN,
-    MARITAL_STATUS_ELDERLY_CODES,
-    MARITAL_STATUS_ELDERLY_WEIGHTS,
-    MARITAL_STATUS_LATE_ADULT_AGE_MAX_EXCLUSIVE,
-    MARITAL_STATUS_LATE_ADULT_CODES,
-    MARITAL_STATUS_LATE_ADULT_WEIGHTS,
-    MARITAL_STATUS_MID_ADULT_AGE_MAX_EXCLUSIVE,
-    MARITAL_STATUS_MID_ADULT_CODES,
-    MARITAL_STATUS_MID_ADULT_WEIGHTS,
-    MARITAL_STATUS_MINOR_CODE,
-    MARITAL_STATUS_YOUNG_ADULT_AGE_MAX_EXCLUSIVE,
-    MARITAL_STATUS_YOUNG_ADULT_CODES,
-    MARITAL_STATUS_YOUNG_ADULT_WEIGHTS,
     PEDIATRIC_BASELINE_MID_YEAR_MONTHS,
     PEDIATRIC_BASELINE_SPO2_CEILING,
     PEDIATRIC_BASELINE_SPO2_MEAN,
@@ -536,18 +519,21 @@ def _baseline_spo2_mean_and_ceiling(age_months: int) -> tuple[float, float]:
 
 
 def _draw_emergency_contact(
-    age: int, sex: str, family_name: str, country: str, rng: np.random.Generator
+    relationships: tuple[list[str], list[float]],
+    sex: str,
+    family_name: str,
+    country: str,
+    rng: np.random.Generator,
 ) -> tuple[str, str]:
     """Draw an adult's emergency contact: ``(relationship, name)``.
 
-    The relationship comes from the age band's distribution; a spouse is of
-    the opposite sex, any other relative's sex is drawn. The contact shares
-    the patient's family name.
+    The relationship comes from ``relationships`` (labels, probabilities: the
+    row of the person's marital status and age band, Issue #3189); a spouse
+    is of the opposite sex, any other relative's sex is drawn. The contact
+    shares the patient's family name.
     """
-    if age >= EMERGENCY_CONTACT_ELDERLY_AGE_MIN:
-        rel = str(rng.choice(EMERGENCY_CONTACT_RELATIONS_ELDERLY, p=EMERGENCY_CONTACT_WEIGHTS_ELDERLY))
-    else:
-        rel = str(rng.choice(EMERGENCY_CONTACT_RELATIONS_ADULT, p=EMERGENCY_CONTACT_WEIGHTS_ADULT))
+    labels, probs = relationships
+    rel = str(rng.choice(labels, p=probs))
     try:
         name_data = load_names(country)
         if rel == "spouse":
@@ -834,13 +820,22 @@ def activate_patient(
     emergency_rel = ""
     guardian_name = str(getattr(person, "guardian_contact_name", "") or "")
     guardian_phone = str(getattr(person, "guardian_contact_phone", "") or "")
-    if age < MARITAL_STATUS_ADULT_AGE_MIN and (guardian_name or guardian_phone):
+    # Marital status (HL7 v3-MaritalStatus code). Issue #3189: drawn once per
+    # person from the locale's census table with a person-scoped stream and
+    # kept on the person, so every record carries the same status; the
+    # emergency contact below is drawn conditional on it.
+    adult_age = _marital.adult_age_min(country)
+    if age >= adult_age:
+        marital_status = _marital.person_marital_status(person, age, country)
+    else:
+        marital_status = _marital.minor_marital_status(country)
+    if age < adult_age and (guardian_name or guardian_phone):
         # A child born in the simulation keeps its mother as the emergency
         # contact on every activation (Issue #2880); no draw is consumed.
         emergency_name = guardian_name
         emergency_phone = guardian_phone
         emergency_rel = str(getattr(person, "guardian_contact_relationship", "") or "")
-    elif age >= MARITAL_STATUS_ADULT_AGE_MIN:
+    elif age >= adult_age:
         # Reuse home phone as a household contact for spouse/family
         emergency_phone = phone_home or phone_mobile
         # Issue #3186: the activation stream sits at a position that differs
@@ -848,15 +843,20 @@ def activate_patient(
         # drawn once from a person-scoped stream and kept on the person. The
         # activation-stream draws are still made and discarded, so every
         # later draw of this stream is unchanged.
-        _draw_emergency_contact(age, person.sex, name.family_name, country, rng)
+        _burn_rels = _marital.activation_stream_relationships(age, country)
+        if _burn_rels[0]:
+            _draw_emergency_contact(_burn_rels, person.sex, name.family_name, country, rng)
         emergency_rel = str(getattr(person, "emergency_contact_relationship", "") or "")
         emergency_name = str(getattr(person, "emergency_contact_name", "") or "")
-        if not emergency_rel:
+        # Issue #3189: the relationship is drawn conditional on the marital
+        # status (no spouse for a never-married, divorced or widowed person).
+        _rels = _marital.contact_relationships(marital_status, age, country)
+        if not emergency_rel and _rels[0]:
             from clinosim.seeding import emergency_contact_seed
 
             _contact_rng = determinism.default_rng(emergency_contact_seed(person.person_id, str(person.date_of_birth)))
             emergency_rel, emergency_name = _draw_emergency_contact(
-                age, person.sex, name.family_name, country, _contact_rng
+                _rels, person.sex, name.family_name, country, _contact_rng
             )
             person.emergency_contact_relationship = emergency_rel
             person.emergency_contact_name = emergency_name
@@ -870,17 +870,12 @@ def activate_patient(
         emergency_contact_relationship=emergency_rel,
     )
 
-    # Marital status (HL7 v3-MaritalStatus codes)
-    if age < MARITAL_STATUS_ADULT_AGE_MIN:
-        marital_status = MARITAL_STATUS_MINOR_CODE  # Never married
-    elif age < MARITAL_STATUS_YOUNG_ADULT_AGE_MAX_EXCLUSIVE:
-        marital_status = str(rng.choice(MARITAL_STATUS_YOUNG_ADULT_CODES, p=MARITAL_STATUS_YOUNG_ADULT_WEIGHTS))
-    elif age < MARITAL_STATUS_MID_ADULT_AGE_MAX_EXCLUSIVE:
-        marital_status = str(rng.choice(MARITAL_STATUS_MID_ADULT_CODES, p=MARITAL_STATUS_MID_ADULT_WEIGHTS))
-    elif age < MARITAL_STATUS_LATE_ADULT_AGE_MAX_EXCLUSIVE:
-        marital_status = str(rng.choice(MARITAL_STATUS_LATE_ADULT_CODES, p=MARITAL_STATUS_LATE_ADULT_WEIGHTS))
-    else:
-        marital_status = str(rng.choice(MARITAL_STATUS_ELDERLY_CODES, p=MARITAL_STATUS_ELDERLY_WEIGHTS))
+    # Issue #3189: the activation stream made one weighted marital-status
+    # draw for an adult here; it is still made (one uniform, which is what a
+    # weighted choice consumes) and discarded, so every later draw of the
+    # stream is unchanged. The status itself is the person's, chosen above.
+    if age >= adult_age:
+        rng.random()
 
     # Preferred language (BCP-47)
     preferred_language = country_profile(country).language_tag

@@ -13,7 +13,11 @@ that the physiology engine reads, home-medication assembly by
 disease profile, insurance selection, and locale-ordered display
 names (family-first for JP) plus a sampled emergency contact (drawn once
 per person from a person-scoped stream and kept on the `PersonRecord`, so
-every record of the person names the same contact). The
+every record of the person names the same contact) and a marital status
+(drawn once per person from the census table in
+`locale/<cc>/marital_status.yaml` and kept on the `PersonRecord`; the
+contact relationship is drawn conditional on it, so a never-married,
+divorced or widowed person names no spouse). The
 simulator activates each person once per `(person_id, as_of_year)`
 cache key — the returned profile is what every downstream encounter
 simulator consumes.
@@ -119,7 +123,7 @@ from clinosim.modules.patient.activator import (
 
 - `clinosim.modules._shared` — `is_jp`, `normalize_probabilities`,
   `countries.lang_for`.
-- `clinosim.modules.patient._patient_activator_thresholds` — 586 LOC
+- `clinosim.modules.patient._patient_activator_thresholds` — 478 LOC
   of named baseline / reserve / delirium / chronic-condition
   thresholds (Issue #637 sweep).
 - `clinosim.modules.patient._severity_activation` — per-condition
@@ -203,7 +207,8 @@ from clinosim.modules.patient.activator import (
 clinosim/modules/patient/
   __init__.py                          empty
   activator.py                         activate_patient orchestrator (~1150 LOC)
-  _patient_activator_thresholds.py     named thresholds (586 LOC, Issue #637)
+  _patient_activator_thresholds.py     named thresholds (478 LOC, Issue #637)
+  _marital.py                          marital status + contact relationship from locale marital_status.yaml (Issue #3189)
   _severity_activation.py              chronic-condition stage + severity tables (Issue #637 PR-D)
   test_patient.py                      deterministic create_test_patient() fixture
   reference_data/

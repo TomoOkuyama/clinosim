@@ -11,7 +11,10 @@ Layer-2 `PatientProfile` に promote する — 生理予備能 (腎 / 肝 / 心
 severity score 付きの慢性疾患活性化、disease profile 由来の常用薬
 組立、保険選択、locale 順の表示名 (JP は姓先) と緊急連絡先の
 サンプリング (緊急連絡先は person 単位の sub-RNG で 1 回だけ選び
-`PersonRecord` に保持するため、同一人物の全 record で同じ連絡先になる)。simulator は `(person_id, as_of_year)` cache key ごとに
+`PersonRecord` に保持するため、同一人物の全 record で同じ連絡先になる)
+と配偶関係 (`locale/<cc>/marital_status.yaml` の国勢調査の表から person 単位で
+1 回だけ選び `PersonRecord` に保持する。緊急連絡先の続柄はこれに条件付けて
+選ぶため、未婚・離別・死別の人は配偶者を連絡先にしない)。simulator は `(person_id, as_of_year)` cache key ごとに
 1 回これを呼び、返却 profile が全 encounter simulator の入力になる。
 
 ## Scope
@@ -110,7 +113,7 @@ from clinosim.modules.patient.activator import (
 
 - `clinosim.modules._shared` — `is_jp`, `normalize_probabilities`,
   `countries.lang_for`。
-- `clinosim.modules.patient._patient_activator_thresholds` — 586
+- `clinosim.modules.patient._patient_activator_thresholds` — 478
   LOC の baseline / reserve / delirium / 慢性疾患 threshold
   (Issue #637 sweep)。
 - `clinosim.modules.patient._severity_activation` — per-condition
@@ -190,7 +193,8 @@ from clinosim.modules.patient.activator import (
 clinosim/modules/patient/
   __init__.py                          空
   activator.py                         activate_patient orchestrator (~1150 LOC)
-  _patient_activator_thresholds.py     named threshold (586 LOC, Issue #637)
+  _patient_activator_thresholds.py     named threshold (478 LOC, Issue #637)
+  _marital.py                          配偶関係と緊急連絡先の続柄 (locale marital_status.yaml、Issue #3189)
   _severity_activation.py              慢性疾患 stage + severity table (Issue #637 PR-D)
   test_patient.py                      決定論的 create_test_patient() fixture
   reference_data/

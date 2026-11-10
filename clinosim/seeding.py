@@ -468,6 +468,13 @@ def emergency_contact_seed(person_id: str, date_of_birth: str) -> int:
     return _digest_int(f"clinosim:emergency-contact:v1|{person_id}|{date_of_birth}", 6) % (2**32)
 
 
+def marital_status_seed(person_id: str, date_of_birth: str) -> int:
+    """Per-person seed of the marital-status draw, in ``[0, 2**32)`` (Issue
+    #3189). Keyed like :func:`emergency_contact_seed`; separate from the
+    per-activation stream so every record of the person carries one status."""
+    return _digest_int(f"clinosim:marital-status:v1|{person_id}|{date_of_birth}", 6) % (2**32)
+
+
 def enumeration_case_seed(base_seed: int, case_key: str) -> int:
     """Seed of one ``clinosim enumerate`` case, in ``[0, 2**32)``."""
     return _digest_int(f"enumerate:{base_seed}:{case_key}", 4)

@@ -60,10 +60,8 @@ def test_contact_does_not_depend_on_the_activation_stream() -> None:
 
 
 def test_crossing_into_the_elderly_band_keeps_the_contact() -> None:
-    from clinosim.modules.patient._patient_activator_thresholds import EMERGENCY_CONTACT_ELDERLY_AGE_MIN
-
     demo = load_demographics("US")
-    person = _adult(age=EMERGENCY_CONTACT_ELDERLY_AGE_MIN - 1)
+    person = _adult(age=74)  # the last age of the locale's 18-74 contact band
     first = _contact(activate_patient(person, default_rng(5), demo))
     person.age += 1  # the yearly aging pass
     assert _contact(activate_patient(person, default_rng(5), demo)) == first
