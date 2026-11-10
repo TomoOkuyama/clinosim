@@ -2447,6 +2447,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#文書-composition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        文書 Composition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#local-実行" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2893,6 +2904,8 @@ pin mismatch や validation failure で CI が自動 fail します。</p>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"chore(jp-validate): pin validator + IG SHA256"</span>
 </span></code></pre></div>
 <p><code>PIN_FILE=&lt;path&gt;</code> / <code>DRY_RUN=1</code> で挙動を上書き可能。</p>
+<h3 id="文書-composition">文書 Composition<a class="headerlink" href="#文書-composition" title="Permanent link">&para;</a></h3>
+<p>退院時サマリー・診療情報提供書・健診結果報告書の Composition は、Composition と、それが直接または参照先を介して参照するすべてのリソースを入れた <code>type: document</code> の Bundle として検証する (<code>scripts/fhir_document_bundle.py</code>、Issue #3147)。entry の slice は参照先リソースの profile を解決して判定されるため、Composition 単体では検証できない。Composition は <code>meta.profile</code> に自身の profile を宣言していなければならない。その他のサンプルは単体で各 profile に対して検証する。</p>
 <h3 id="local-実行">Local 実行<a class="headerlink" href="#local-実行" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># サンプル抽出のみ (validator jar 未指定なら skip)</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>./scripts/validate_jp.sh

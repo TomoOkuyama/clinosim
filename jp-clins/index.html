@@ -2447,6 +2447,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#document-compositions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Document Compositions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#running-locally" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2834,6 +2845,8 @@ interchange.</p>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">"chore(jp-validate): pin validator + IG SHA256"</span>
 </span></code></pre></div>
 <p>Override the behavior with <code>PIN_FILE=&lt;path&gt;</code> / <code>DRY_RUN=1</code>.</p>
+<h3 id="document-compositions">Document Compositions<a class="headerlink" href="#document-compositions" title="Permanent link">&para;</a></h3>
+<p>The discharge summary, referral letter and health-checkup report Compositions are validated inside a <code>type: document</code> Bundle that holds the Composition and every resource it references, directly or through those resources (<code>scripts/fhir_document_bundle.py</code>, Issue #3147). Their entry slices are matched by resolving the referenced resource's profile, which a Composition validated on its own cannot do. The Composition must declare its profile in <code>meta.profile</code>; other samples are validated on their own against their profile.</p>
 <h3 id="running-locally">Running locally<a class="headerlink" href="#running-locally" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Sample extraction only (skipped when no validator jar is set)</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>./scripts/validate_jp.sh
