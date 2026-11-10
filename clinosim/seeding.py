@@ -460,6 +460,14 @@ def newborn_conditions_seed(mother_id: str) -> int:
     return _digest_int(f"clinosim:newborn-conditions:v1|{mother_id}", 6) % (2**32)
 
 
+def emergency_contact_seed(person_id: str, date_of_birth: str) -> int:
+    """Per-person seed of the adult emergency-contact draw (relationship,
+    contact sex, given name), in ``[0, 2**32)`` (Issue #3186). Keyed on the
+    birth date as well as the id so one id names different contacts under
+    different master seeds; separate from the per-activation stream."""
+    return _digest_int(f"clinosim:emergency-contact:v1|{person_id}|{date_of_birth}", 6) % (2**32)
+
+
 def enumeration_case_seed(base_seed: int, case_key: str) -> int:
     """Seed of one ``clinosim enumerate`` case, in ``[0, 2**32)``."""
     return _digest_int(f"enumerate:{base_seed}:{case_key}", 4)

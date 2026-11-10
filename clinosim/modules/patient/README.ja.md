@@ -10,7 +10,8 @@ Layer-2 `PatientProfile` に promote する — 生理予備能 (腎 / 肝 / 心
 (`"CKD G3a"` / `"NYHA III"` / `"GOLD 2"` 等) と physiology engine が読む
 severity score 付きの慢性疾患活性化、disease profile 由来の常用薬
 組立、保険選択、locale 順の表示名 (JP は姓先) と緊急連絡先の
-サンプリング。simulator は `(person_id, as_of_year)` cache key ごとに
+サンプリング (緊急連絡先は person 単位の sub-RNG で 1 回だけ選び
+`PersonRecord` に保持するため、同一人物の全 record で同じ連絡先になる)。simulator は `(person_id, as_of_year)` cache key ごとに
 1 回これを呼び、返却 profile が全 encounter simulator の入力になる。
 
 ## Scope

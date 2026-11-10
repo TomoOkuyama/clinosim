@@ -130,6 +130,8 @@ class PersonRecord:
     guardian_contact_name: str = ""        # newborn: the mother as guardian contact
     guardian_contact_phone: str = ""
     guardian_contact_relationship: str = ""
+    emergency_contact_name: str = ""       # adult: chosen at the first adult activation, reused after
+    emergency_contact_relationship: str = ""
     # Health summary
     chronic_conditions: list[str]          # ICD codes only
     chronic_tracked_from: int | None = None   # first simulated year the aging step ran

@@ -11,7 +11,9 @@ chronic-condition activation with per-condition stage sampling
 (`"CKD G3a"`, `"NYHA III"`, `"GOLD 2"`, …) and severity scoring
 that the physiology engine reads, home-medication assembly by
 disease profile, insurance selection, and locale-ordered display
-names (family-first for JP) plus a sampled emergency contact. The
+names (family-first for JP) plus a sampled emergency contact (drawn once
+per person from a person-scoped stream and kept on the `PersonRecord`, so
+every record of the person names the same contact). The
 simulator activates each person once per `(person_id, as_of_year)`
 cache key — the returned profile is what every downstream encounter
 simulator consumes.
