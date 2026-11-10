@@ -217,6 +217,7 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 | `hl7-practitioner-role` / `hl7-subscriber-relationship` | 6 + 7 |
 | `hl7-v3-actreason` / `hl7-v3-administrativegender` / `hl7-v3-maritalstatus` | 4 + 3 + 6 |
 | `hl7-endpoint-connection-type` / `hl7-endpoint-payload-type` | 1 + 1 |
+| `hl7-v2-0131` / `hl7-v3-rolecode` | 1 + 7 |
 
 ### JP 固有 gap-fill および構造 CodeSystem
 
@@ -237,9 +238,9 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 
 `_BUILTIN_URIS` には、clinosim が参照するが文字列表示は不要な
 システムの URI も登録されています — HOT9、HOT13、medication-nocoded、
-UCUM、HL7 v2 / v3 / terminology 追加系 (v2-0092、v2-0131、v2-0203、
+UCUM、HL7 v2 / v3 / terminology 追加系 (v2-0092、v2-0203、
 v2-0360、service-type、referencerange-meaning、organization-type、
-condition-category、location-physical-type、RoleCode、
+condition-category、location-physical-type、
 ParticipationType、ActCode、ObservationCategory、
 DiagnosticServiceSection)、US Core documentreference-category。
 解決は `get_system_uri()`、`lookup()` はコード自身にフォールバック。

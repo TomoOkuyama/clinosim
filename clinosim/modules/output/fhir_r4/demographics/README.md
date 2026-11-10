@@ -1,4 +1,4 @@
-# `fhir_r4/demographics/` — Patient / Practitioner / FamilyMemberHistory / Social-history builders
+# `fhir_r4/demographics/` — Patient / RelatedPerson / Practitioner / FamilyMemberHistory / Social-history builders
 
 ## Purpose
 
@@ -6,7 +6,8 @@ Emits every FHIR R4 resource in the demographics + social-history
 family: `Patient`, the `Coverage` + payor `Organization` resources
 and the occupation `Observation` (all built in `patient.py`; their
 registry wrappers `_bb_patient` / `_bb_coverage` / `_bb_occupation`
-live in [`../lib/inline_bb.py`](../lib/inline_bb.py)),
+live in [`../lib/inline_bb.py`](../lib/inline_bb.py)), the
+emergency-contact `RelatedPerson` (`related_person.py`),
 `Practitioner` + `PractitionerRole`, `FamilyMemberHistory`, and the
 smoking / alcohol social-history `Observation`s. The
 [`../conditions/`](../conditions/README.md) `AllergyIntolerance`
@@ -26,6 +27,15 @@ builder is the only allergy emit path.
   copay `costToBeneficiary` follows age and a per-person income tier from
   identity.yaml `copay` (`jp_copay_pct`, Issue #3016) +
   occupation Observation (`_build_occupation_observation`);
+  `_bb_related_person` + `_build_emergency_contact_related_person` (the
+  emergency contact as a RelatedPerson referencing the patient, the same
+  structure for every country: relationship `v2-0131#C` plus the family
+  relationship in `v3-RoleCode` mapped from the CIF slug by the
+  `slug_to_code` block of `codes/data/hl7-v3-rolecode.yaml`, name and
+  phone; id `rp-<12hex>` from the structural key
+  `{patient_id}-emergency-contact`. Patient.contact is not emitted, since
+  `JP_Patient_eCheckupGeneral` reserves it for the workplace contact,
+  Issue #3182);
   `_build_practitioner` + `_build_practitioner_role`;
   `_bb_family_history` + `_resolve_family_history_code` +
   `_build_relationship_codeable`; `_bb_smoking_status` +
@@ -66,6 +76,10 @@ from clinosim.modules.output.fhir_r4.demographics.patient import (
     _build_patient,                     # (patient_dict, country) -> Patient dict
     _build_coverage_resources,          # (patient_dict, country, encounters=None, snapshot_date=None) -> [Coverage, payor Organization, ...]
     _build_occupation_observation,      # -> occupation Observation
+)
+from clinosim.modules.output.fhir_r4.demographics.related_person import (
+    _bb_related_person,                 # bundle-builder (ctx) -> [RelatedPerson] (emergency contact) or []
+    _build_emergency_contact_related_person,  # (patient_dict, country) -> RelatedPerson dict | None
 )
 from clinosim.modules.output.fhir_r4.demographics.practitioner import (
     _build_practitioner,                # (staff_id, roster_map, country) -> Practitioner dict
@@ -122,6 +136,12 @@ facade sorts NDJSON by id post-write.
   JP-CLINS / US Core profile URIs are stacked by
   [`../post_process/profile.py`](../post_process/profile.py). US
   Patients carry the US Core race / ethnicity / birthsex extensions.
+- **Emergency-contact relationship coding** — `v2-0131#C` and the
+  HL7 v3-RoleCode family relationship, displays from
+  `codes/data/hl7-v2-0131.yaml` / `hl7-v3-rolecode.yaml` (English
+  coding display, output-language label in `text`). The JP Core
+  `JP_RelatedPerson` / US Core `us-core-relatedperson` profile is
+  declared from `codes/data/fhir-profiles-{jp,us}-core.yaml`.
 - **Family-history relationship coding** — HL7 v3-RoleCode (see the
   Issue #369 v23 regression rule documented in the
   [`family_history` module README](../../../family_history/README.md)
@@ -137,6 +157,7 @@ facade sorts NDJSON by id post-write.
 clinosim/modules/output/fhir_r4/demographics/
   __init__.py                    namespace stub (builders imported by ../builder.py / ../lib/inline_bb.py)
   patient.py                     _build_patient + Coverage + payor Org + occupation + patient_ref + legacy allergy (~1,200 LOC)
+  related_person.py              _bb_related_person + _build_emergency_contact_related_person (emergency contact)
   practitioner.py                _build_practitioner + _build_practitioner_role
   family_history.py              _bb_family_history + _resolve_family_history_code + _build_relationship_codeable
   smoking_alcohol.py             _bb_smoking_status + _bb_alcohol_use + _sdoh_effective_datetime + _sdoh_performer_ref

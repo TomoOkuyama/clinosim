@@ -225,6 +225,7 @@ here; count a system's entries with
 | `hl7-practitioner-role`, `hl7-subscriber-relationship` | 6 + 7 |
 | `hl7-v3-actreason`, `hl7-v3-administrativegender`, `hl7-v3-maritalstatus` | 4 + 3 + 6 |
 | `hl7-endpoint-connection-type`, `hl7-endpoint-payload-type` | 1 + 1 |
+| `hl7-v2-0131`, `hl7-v3-rolecode` | 1 + 7 |
 
 ### JP-specific gap-fill and structural CodeSystems
 
@@ -245,9 +246,9 @@ here; count a system's entries with
 
 `_BUILTIN_URIS` also registers URIs for systems that clinosim references
 but does not need to display strings from — HOT9, HOT13, medication-nocoded,
-UCUM, additional HL7 v2 / v3 / terminology systems (v2-0092, v2-0131,
+UCUM, additional HL7 v2 / v3 / terminology systems (v2-0092,
 v2-0203, v2-0360, service-type, referencerange-meaning, organization-type,
-condition-category, location-physical-type, RoleCode, ParticipationType,
+condition-category, location-physical-type, ParticipationType,
 ActCode, ObservationCategory, DiagnosticServiceSection), US Core
 documentreference-category. Use `get_system_uri()` to resolve; `lookup()`
 falls back to returning the code itself.

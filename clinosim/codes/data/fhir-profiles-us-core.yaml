@@ -23,6 +23,10 @@ metadata:
 profiles:
   Patient:
     - http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient
+  # Issue #3182: the emergency contact (us-core-14: name or relationship;
+  # active and patient are required, both always emitted).
+  RelatedPerson:
+    - http://hl7.org/fhir/us/core/StructureDefinition/us-core-relatedperson
   Coverage:
     - http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage
   MedicationRequest:

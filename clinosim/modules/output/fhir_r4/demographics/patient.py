@@ -307,9 +307,8 @@ def _guardian_subscriber(patient_data: dict) -> dict[str, str] | None:
     """The guardian on record as a display-only Reference (Issue #3000).
 
     A child born in the simulation carries its mother as the emergency
-    contact (``MTH``); no Patient / RelatedPerson resource is fabricated for
-    her, so the reference names her only. ``None`` when no guardian is on
-    record.
+    contact (``MTH``); no Patient resource is fabricated for her, so the
+    reference names her only. ``None`` when no guardian is on record.
     """
     contact = patient_data.get("contact") or {}
     if not isinstance(contact, dict) or contact.get("emergency_contact_relationship") not in _GUARDIAN_RELATIONS:
@@ -1168,38 +1167,9 @@ def _build_patient(
             }
         ]
 
-    # Emergency contact
-    if contact and isinstance(contact, dict):
-        emer_name = contact.get("emergency_contact_name", "")
-        emer_phone = contact.get("emergency_contact_phone", "")
-        emer_rel = contact.get("emergency_contact_relationship", "")
-        if emer_name or emer_phone:
-            ec: dict[str, Any] = {}
-            if emer_rel:
-                rel_concept: dict[str, Any] = {
-                    "coding": [
-                        {
-                            "system": get_system_uri("hl7-v2-0131"),
-                            "code": "C",
-                            "display": "Emergency Contact",
-                        }
-                    ],
-                }
-                rel_text = vocab_display("emergency_contact_relationship", emer_rel, lang_for(country))
-                if rel_text:
-                    rel_concept["text"] = rel_text
-                ec["relationship"] = [rel_concept]
-            if emer_name:
-                ec["name"] = {"text": emer_name}
-            if emer_phone:
-                ec["telecom"] = [
-                    {
-                        "system": "phone",
-                        "value": emer_phone,
-                        "use": "mobile",
-                    }
-                ]
-            resource["contact"] = [ec]
+    # Issue #3182: the emergency contact is a RelatedPerson
+    # (``demographics/related_person.py``), not Patient.contact —
+    # JP_Patient_eCheckupGeneral reserves Patient.contact for the workplace.
 
     # Issue #743: JP_Patient_eCS declares `JP_eCS_InstitutionNumber` as
     # must-support (the Department extension context excludes Patient).

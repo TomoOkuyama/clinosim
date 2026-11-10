@@ -318,7 +318,7 @@ def _newborn_contact_from_mother(mother: PatientProfile, country: str = "US"):
     emergency contact (#1246). Direct telecom for the baby stays empty
     (a newborn cannot answer a phone); the mother's channels populate
     `emergency_contact_*` so downstream FHIR emit renders a
-    `Patient.contact[]` entry with `relationship = MTH`.
+    `RelatedPerson` with `relationship = MTH` (Issue #3182).
     """
     from clinosim.types.patient import ContactInfo
 

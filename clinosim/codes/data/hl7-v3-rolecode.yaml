@@ -1,14 +1,32 @@
 # HL7 v3 RoleCode — family-member relationships used on FamilyMemberHistory
-# (Issue #2764). Authoritative source: HL7 Terminology (THO), CodeSystem
-# v3-RoleCode (http://terminology.hl7.org/CodeSystem/v3-RoleCode). English
-# displays verified with tx.fhir.org $lookup, 2026-11-06. The code system
-# publishes English only; `ja` is the clinosim label carried in `text`.
+# (Issue #2764) and on the emergency-contact RelatedPerson (Issue #3182).
+# Authoritative source: HL7 Terminology (THO), CodeSystem v3-RoleCode
+# (http://terminology.hl7.org/CodeSystem/v3-RoleCode). English displays
+# verified with tx.fhir.org $lookup, 2026-11-06 (MTH / FTH / NSIB), and
+# against the hl7.terminology.r4 7.3.0 package CodeSystem-v3-RoleCode.json,
+# 2026-11-10 (CHILD / PRN / SIB / SPS). The code system publishes English
+# only; `ja` is the clinosim label carried in `text`.
 metadata:
   kind: code-system
   name: HL7 v3 RoleCode
   uri: http://terminology.hl7.org/CodeSystem/v3-RoleCode
   source: "HL7 Terminology (THO)"
 codes:
-  MTH: {en: "mother", ja: "母"}
+  CHILD: {en: "child", ja: "子"}
   FTH: {en: "father", ja: "父"}
+  MTH: {en: "mother", ja: "母"}
   NSIB: {en: "natural sibling", ja: "兄弟姉妹"}
+  PRN: {en: "parent", ja: "親"}
+  SIB: {en: "sibling", ja: "兄弟姉妹"}
+  SPS: {en: "spouse", ja: "配偶者"}
+
+# Emergency-contact relationship slug (CIF
+# ``ContactInfo.emergency_contact_relationship``, sampled by
+# modules/patient/activator.py; ``MTH`` is a newborn's mother,
+# simulator/perinatal.py) → RoleCode, for RelatedPerson.relationship.
+slug_to_code:
+  child: "CHILD"
+  MTH: "MTH"
+  parent: "PRN"
+  sibling: "SIB"
+  spouse: "SPS"
