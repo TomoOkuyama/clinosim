@@ -149,7 +149,7 @@ clinosim/codes/
   ucum.py                         UCUM units for FHIR Quantities
   yj.py                           YJ / HOT JP drug code formats and the
                                   YJ master
-  data/                           74 YAMLs: code systems (see
+  data/                           75 YAMLs: code systems (see
                                   "Supported code systems" below) plus
                                   curated catalogs (drugs, frequency
                                   tokens, FHIR profile maps, value
@@ -236,6 +236,7 @@ here; count a system's entries with
 | `jpfhir-eCheckup-section` | 7 |
 | `jpfhir-eCheckup-report-category` | 9 |
 | `jpfhir-eCheckup-program-service` | 10 |
+| `jpfhir-eCheckup-observation` | 5 |
 | `condition-short-name` | 53 |
 | `clinosim-nursing-scores` | 1 |
 | `bcp-47-language` | 2 |

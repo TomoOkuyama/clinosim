@@ -1,0 +1,36 @@
+# JP-eCheckup 健診項目コード CodeSystem — Observation.code of the health-checkup
+# results (Issue #3154).
+#
+# 一次出典:
+#   - JP-eCheckup General v1.7.0 package (jpfhir.jp fhir/eCheckup/igv170/
+#     package.tgz), CodeSystem-specialCheckup-observations-cs.json
+#     (url urn:oid:1.2.392.200119.6.1005, version 1.0.0, 322 codes); the
+#     Japanese displays below are that CodeSystem's, verbatim.
+#   - 厚生労働省 XML用特定健診項目情報 (付属2, XMLhc18tab.csv, retrieved
+#     2026-11-10 from https://www.mhlw.go.jp/content/12400000/XMLhc18tab.csv):
+#     item → 検査方法 and XML unit.
+# Only the items clinosim's checkup measures are listed; English displays
+# are clinosim translations.
+metadata:
+  kind: code-system
+  name: JP-eCheckup Health-Checkup Item Code
+  uri: urn:oid:1.2.392.200119.6.1005
+  version: "1.0.0"
+  source: "jpfhir.jp JP-eCheckup General v1.7.0 CodeSystem specialCheckup-observations; MHLW XMLhc18tab.csv"
+  description: MHLW health-checkup item code (17 digits) for JP-eCheckup Observation.code
+codes:
+  "9N011000000000001":
+    en: "Body mass index"
+    ja: "BMI"
+  "9A751000000000001":
+    en: "Systolic blood pressure (first reading)"
+    ja: "収縮期血圧(1回目)"
+  "9A761000000000001":
+    en: "Diastolic blood pressure (first reading)"
+    ja: "拡張期血圧(1回目)"
+  "3D046000001999902":
+    en: "HbA1c (NGSP), other method"
+    ja: "HbA1c(NGSP値)"
+  "3F077000002391901":
+    en: "LDL cholesterol, calculated"
+    ja: "LDLコレステロール"

@@ -166,7 +166,7 @@ clinosim/locale/
                                    family_history_prevalence, formatting,
                                    identity, immunization_schedule, names,
                                    reference_range_lab
-  jp/                             JP-specific bundle (24 YAMLs — the US
+  jp/                             JP-specific bundle (25 YAMLs — the US
                                    set minus ckd_under60_prevalence and
                                    code_mapping_drug, plus
                                    care_level_rates,
@@ -174,6 +174,9 @@ clinosim/locale/
                                    code_mapping_microbiology_susceptibility,
                                    code_mapping_vaccination_reason,
                                    external_organizations,
+                                   checkup_report_items (health-checkup
+                                   item codes of the report
+                                   Observations, Issue #3154),
                                    facility_identity (the hospital's
                                    医療機関コード, Issue #3129),
                                    patient_instructions_ja,

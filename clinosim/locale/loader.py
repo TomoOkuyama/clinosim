@@ -77,6 +77,7 @@ from clinosim.locale.loaders.demographics import (
 from clinosim.locale.loaders.fhir_identity import (
     _validate_ambulatory_visit_length,
     load_ambulatory_visit_length,
+    load_checkup_report_items,
     load_clinic_calendar,
     load_encounter_disposition_defaults,
     load_external_organizations,
@@ -164,6 +165,7 @@ __all__ = [
     "load_diet_type_display",
     "load_encounter_disposition_defaults",
     "load_external_organizations",
+    "load_checkup_report_items",
     "load_facility_identity",
     "load_formatting",
     "load_frequency_tokens",

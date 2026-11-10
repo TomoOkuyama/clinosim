@@ -377,6 +377,11 @@ def _build_encounter_resource_index(
         if disp:
             ref_entry["display"] = disp
         index.setdefault(enc_id, {}).setdefault(rtype, []).append(ref_entry)
+        # Issue #3154: also by declared profile ("Observation|<profile URL>"),
+        # so a section can take only the resources of one profile (the
+        # health-checkup results among the checkup encounter's Observations).
+        for profile in (res.get("meta") or {}).get("profile") or []:
+            index[enc_id].setdefault(f"{rtype}|{profile}", []).append(ref_entry)
     return index
 
 
@@ -663,7 +668,9 @@ def _build_composition(
             return _build_jp_clins_referral_note_composition(doc, sections, lang, roster_map=roster_map)
         # P2-13 PR3:JP-eCheckup General
         if loinc == document_loinc("health_checkup_report"):
-            return _build_jp_echeckup_general_composition(doc, sections, lang, roster_map=roster_map)
+            return _build_jp_echeckup_general_composition(
+                doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index
+            )
         # Issue #961:死亡診断書 (Death certificate). Emit under jpfhir
         # doc-typecodes (per JP dispatch convention for JP-authored
         # documents) plus a CodeableConcept.text carrying 死亡診断書.

@@ -158,7 +158,7 @@ clinosim/locale/
                                    family_history_prevalence / formatting
                                    / identity / immunization_schedule /
                                    names / reference_range_lab
-  jp/                             JP 固有バンドル (24 YAML — US 集合から
+  jp/                             JP 固有バンドル (25 YAML — US 集合から
                                    ckd_under60_prevalence と
                                    code_mapping_drug を除き、
                                    care_level_rates /
@@ -166,6 +166,8 @@ clinosim/locale/
                                    code_mapping_microbiology_susceptibility
                                    / code_mapping_vaccination_reason /
                                    external_organizations /
+                                   checkup_report_items (健診報告書の
+                                   Observation の健診項目コード、Issue #3154) /
                                    facility_identity (病院の医療機関コード、
                                    Issue #3129) /
                                    patient_instructions_ja /

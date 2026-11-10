@@ -18,6 +18,14 @@ eCheckup) は各々 [`jp_clins/`](jp_clins/) に template 特化 builder を
 emit し、`referral_orgs.py` は JP 診療情報提供書 (LOINC 57133-1) の
 外部紹介元 / 紹介先 `Organization` を供給する。
 
+section の entry は、出力済みリソースの encounter 単位の index
+(`_build_encounter_resource_index`) から取る。index は resourceType 別と
+`<resourceType>|<宣言 profile>` 別に分かれ、section ごとの bucket は
+`codes/data/composition-section-entry-types.yaml` が定める。JP-eCheckup の
+検査結果 section (01031) は `JP_Observation_eCheckupGeneral` を宣言する
+健診の Observation (健診項目コードを持つ健診の検査・バイタル結果、
+`locale/jp/checkup_report_items.yaml`、Issue #3154) を参照する。
+
 ## Scope
 
 - **In scope**: `_bb_compositions` dispatch (`record.documents` を

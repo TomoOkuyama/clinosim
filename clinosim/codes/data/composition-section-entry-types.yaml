@@ -53,6 +53,14 @@ sections:
   discharge_evaluation: [Observation]
   discharge_readiness: [Observation]
 
+  # JP-eCheckup health-checkup report (Issue #3154). A type may be
+  # narrowed to one declared profile as "<resourceType>|<profile URL>":
+  # the results section references the checkup's Observations declaring
+  # JP_Observation_eCheckupGeneral (not its anthropometric vitals). The
+  # questionnaire section has no structured answers yet.
+  checkup_lab_results: ["Observation|http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Observation_eCheckupGeneral"]
+  checkup_questionnaire: []
+
   # Nursing / rehab
   nursing_history: []
   nursing_diagnosis: [Condition]
