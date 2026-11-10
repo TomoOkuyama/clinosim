@@ -1,0 +1,35 @@
+# Inpatient care-practice parameters — United States (Issue #3142).
+# Read by clinosim.locale.loader.load_care_practice (CarePractice model,
+# extra="forbid"). Moved verbatim from Python constants (discharge gate,
+# surgery and rehab thresholds modules); values unchanged.
+metadata:
+  kind: reference
+  name: care_practice
+  source: clinosim
+
+# State-based discharge readiness (clinosim/simulator/discharge_gate.py
+# _check_discharge_ready). All comparisons strict: inflammation_level <
+# inflammation_max, perfusion_status > perfusion_min, renal_function >
+# renal_min, |volume_status| < volume_abs_max, |ph_status| < ph_abs_max.
+# Empirical tuning for the synthetic simulator: US practice discharges once
+# clinically stable, so the inflammation (CRP proxy) ceiling 0.10 is above
+# the JP 0.05.
+discharge_criteria:
+  inflammation_max: 0.10
+  perfusion_min: 0.7
+  renal_min: 0.5
+  volume_abs_max: 0.3
+  ph_abs_max: 0.2
+
+# Hours from admission to incision, normal(mean, sd) floored at `floor`
+# (clinosim/modules/procedure/engine.py _hours_to_surgery). Default when the
+# disease YAML declares no procedure.time_to_surgery. Mean 24 h: the AAOS
+# hip-fracture "surgery within 24 h" quality benchmark.
+time_to_surgery_hours:
+  mean: 24.0
+  sd: 12.0
+  floor: 6.0
+
+# One inpatient physical-therapy session (minutes). 30 min is a common US
+# inpatient PT block (several shorter sessions rather than one long block).
+rehab_session_minutes: 30

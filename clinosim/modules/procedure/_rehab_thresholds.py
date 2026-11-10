@@ -2,8 +2,10 @@
 
 ``generate_rehab_sessions`` in ``clinosim/modules/procedure/engine.py``
 simulates a daily PT schedule from post-op day 1 through discharge.
-The session-duration, phase cutoffs, pain-model parameters, and
-participation sampling constants are lifted here per policy §5.
+The phase cutoffs, pain-model parameters, and
+participation sampling constants are lifted here per policy §5; the
+per-country session length is in ``locale/<cc>/care_practice.yaml``
+(Issue #3142).
 
 Byte-diff verification: swapping the inline literals for these named
 constants MUST NOT change any RNG-consuming call. ``rng.choice`` /
@@ -15,7 +17,6 @@ from __future__ import annotations
 
 __all__ = [
     "REHAB_IMPROVED_MIN_POD",
-    "REHAB_JP_SESSION_DURATION_MIN",
     "REHAB_PAIN_BASE_SCORE",
     "REHAB_PAIN_DECAY_PER_POD",
     "REHAB_PAIN_FAIR_PARTICIPATION_THRESHOLD",
@@ -28,7 +29,6 @@ __all__ = [
     "REHAB_SESSION_START_HOUR",
     "REHAB_SKIP_DAY_PROBABILITY",
     "REHAB_START_POD",
-    "REHAB_US_SESSION_DURATION_MIN",
 ]
 
 
@@ -50,19 +50,6 @@ Empirical tuning for the synthetic simulator: 10:00 fits the typical
 mid-morning PT visit window after nursing rounds and breakfast, before
 lunch — matches both US and JP inpatient PT norms."""
 
-REHAB_JP_SESSION_DURATION_MIN: int = 40
-"""Duration (minutes) of one JP inpatient PT session.
-
-40 minutes matches the standard JP 疾患別リハビリテーション料 unit
-(``個別療法 20 分/単位`` × 2 units = 40 min), which is the typical
-post-op orthopedic PT block."""
-
-REHAB_US_SESSION_DURATION_MIN: int = 30
-"""Duration (minutes) of one US inpatient PT session.
-
-30 minutes is a common US inpatient PT block — shorter than JP's
-40-minute unit because US inpatient PT tends to run multiple shorter
-sessions per day rather than one longer block."""
 
 REHAB_SKIP_DAY_PROBABILITY: float = 0.1
 """Per-day probability that a scheduled rehab session is skipped.

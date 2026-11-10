@@ -18,8 +18,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from clinosim.age_bands import lookup_age_band, parse_closed_age_band
-from clinosim.countries import is_us
 from clinosim.determinism import sha_quantile
+from clinosim.locale.loader import load_population_genetics
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.population._household_thresholds import (
     BLOOD_TYPE_DEFAULT_DISTRIBUTION,
@@ -138,12 +138,6 @@ def _care_seeking_threshold_mean(demo: dict, age: int) -> float:
     return float(cs.get("threshold_mean", CARE_SEEKING_THRESHOLD_MEAN_DEFAULT))
 
 
-_RH_POSITIVE_FRACTION: dict[str, float] = {
-    "JP": 0.995,
-    "US": 0.85,
-}
-
-
 def _derive_race(person_id: str, demo: dict) -> str:
     """Return the OMB race category for a person, derived from a stable
     hash of ``person_id`` + the locale ``race_distribution``. SHA-based
@@ -191,12 +185,11 @@ def _derive_rh_factor(person_id: str, country: str) -> str:
     does not consume the master RNG (memoize / F4 byte-identical guarantee
     preserved when this field was added post-facto).
 
-    Country selects the Rh-positive fraction: JP 99.5%, US 85%.
-    Unknown countries fall through to JP default (conservative — Rh-
-    negative is the clinically-actionable state; over-emitting Rh+ is
-    a lower-cost failure mode for a synthetic dataset).
+    The Rh-positive fraction is the country's
+    (``locale/<cc>/population_genetics.yaml``: JP 99.5%, US 85%; Issue
+    #3142); a country without one raises.
     """
-    frac = _RH_POSITIVE_FRACTION.get("US" if is_us(country) else "JP", 0.995)
+    frac = load_population_genetics(country).rh_positive_fraction
     h = hashlib.sha256(f"{person_id}|rh".encode()).digest()
     quantile = int.from_bytes(h[:2], "big") / 65535.0
     return "+" if quantile < frac else "-"

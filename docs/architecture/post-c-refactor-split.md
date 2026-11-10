@@ -155,7 +155,7 @@ driven by `run_forward_loop`, as described above.)
 | File | Content | Phase |
 |---|---|---|
 | `clinosim/modules/population/_chronic.py` | `ChronicConditionSpec`, `_bmi_category_probabilities`, `_smoking_status_probabilities`, `_expected_lifestyle_multiplier`, `_expected_comorbidity_multiplier`, `_target_prev_at_age_legacy`, `_parse_chronic_prevalence` | C3a |
-| `clinosim/modules/population/_demographics.py` | `_load_demographics`, `_parse_age_distribution`, `_disease_monthly_rate_from_locale`, `_sample_age_band`, `_sex_ratio_male_probability`, `_care_seeking_threshold_mean`, `_RH_POSITIVE_FRACTION`, `_derive_race`, `_derive_ethnicity`, `_derive_rh_factor`, `_sample_blood_type` | C3b |
+| `clinosim/modules/population/_demographics.py` | `_load_demographics`, `_parse_age_distribution`, `_disease_monthly_rate_from_locale`, `_sample_age_band`, `_sex_ratio_male_probability`, `_care_seeking_threshold_mean`, `_derive_race`, `_derive_ethnicity`, `_derive_rh_factor`, `_sample_blood_type` | C3b |
 | `clinosim/modules/population/_identity.py` | `_load_name_data`, `_sample_surname`, `_sample_given_name`, `_sample_occupation`, `_generate_household_address`, `_generate_phone` | C3c |
 | `clinosim/modules/population/_pregnancy.py` | `_PREGNANCY_ELIGIBLE_MIN_AGE`, `_PREGNANCY_ELIGIBLE_MAX_AGE`, `_PERINATAL_STAGE_COUNTERS`, `_annual_conception_rate`, `_perinatal_stage_incr`, `_pregnancy_lifecycle_events` | C3d |
 | `clinosim/modules/population/_chemo.py` | `pick_active_chemo_regimen` (public helper), `_chemo_cycle_events` | C3e |

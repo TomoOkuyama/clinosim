@@ -58,9 +58,6 @@ __all__ = [
     "DELIRIUM_ELDERLY_AGE_THRESHOLD",
     "DELIRIUM_ELDERLY_PREMIUM",
     "DELIRIUM_PARKINSON_PREMIUM",
-    "DRUG_METABOLISM_JP_PROBS",
-    "DRUG_METABOLISM_LABELS",
-    "DRUG_METABOLISM_US_PROBS",
     "DVT_BETA_PARAMS",
     "DVT_ELDERLY_AGE_THRESHOLD",
     "DVT_ELDERLY_PREMIUM",
@@ -230,30 +227,6 @@ DVT risk rises more gradually across age."""
 
 DVT_ELDERLY_PREMIUM: float = 0.10
 """Additive DVT-susceptibility premium for age ≥ 70."""
-
-
-# ---------------------------------------------------------------------------
-# Drug-metabolism-rate categorical distributions
-# ---------------------------------------------------------------------------
-
-DRUG_METABOLISM_LABELS: tuple[str, str, str, str] = ("poor", "normal", "rapid", "ultra_rapid")
-"""CYP450 phenotype labels sampled by ``rng.choice`` from
-:data:`DRUG_METABOLISM_JP_PROBS` or ``_US_PROBS``."""
-
-DRUG_METABOLISM_JP_PROBS: tuple[float, float, float, float] = (0.15, 0.65, 0.15, 0.05)
-"""JP CYP450 phenotype probability distribution (poor / normal /
-rapid / ultra_rapid).
-
-Empirical tuning for the synthetic simulator: 15% poor-metabolizer
-reflects the higher CYP2C19 poor-metabolizer prevalence documented
-in East Asian populations."""
-
-DRUG_METABOLISM_US_PROBS: tuple[float, float, float, float] = (0.07, 0.70, 0.15, 0.08)
-"""US CYP450 phenotype probability distribution.
-
-Empirical tuning for the synthetic simulator: 7% poor-metabolizer +
-8% ultra-rapid reflects the mixed-population CYP2C19 / CYP2D6
-distribution documented in US pharmacogenomic studies."""
 
 
 # ---------------------------------------------------------------------------

@@ -6,7 +6,8 @@ end-of-encounter decisions:
 1. ``_evaluate_readmission`` — 30-day readmission risk, YAML benchmark
    ± modifiers with a clamp near the benchmark range.
 2. ``_check_discharge_ready`` — daily state-based discharge-readiness
-   check with US and JP threshold sets.
+   check; the shared safety limits are here, the per-country thresholds
+   are in ``locale/<cc>/care_practice.yaml`` (Issue #3142).
 3. ``_evaluate_mortality`` — daily in-hospital mortality with
    day-of-stay weighting and age / perfusion modifiers.
 
@@ -26,17 +27,6 @@ from __future__ import annotations
 
 __all__ = [
     "DISCHARGE_INFLAMMATION_SAFE_MAX",
-    "DISCHARGE_JP_ANEMIA_MAX",
-    "DISCHARGE_JP_INFLAMMATION_MAX",
-    "DISCHARGE_JP_PERFUSION_MIN",
-    "DISCHARGE_JP_PH_ABS_MAX",
-    "DISCHARGE_JP_RENAL_MIN",
-    "DISCHARGE_JP_VOLUME_ABS_MAX",
-    "DISCHARGE_US_INFLAMMATION_MAX",
-    "DISCHARGE_US_PERFUSION_MIN",
-    "DISCHARGE_US_PH_ABS_MAX",
-    "DISCHARGE_US_RENAL_MIN",
-    "DISCHARGE_US_VOLUME_ABS_MAX",
     "MORTALITY_AGE_OLDEST_MULTIPLIER",
     "MORTALITY_AGE_OLDEST_THRESHOLD",
     "MORTALITY_AGE_OLD_MULTIPLIER",
@@ -236,70 +226,6 @@ DISCHARGE_INFLAMMATION_SAFE_MAX: float = 0.8
 uncontrolled and the patient is not safe for home (Issue #2239): CRP about
 200 mg/L and above. Below it, a resolving infection may finish its course at
 home; the stricter state-based early-discharge thresholds still apply."""
-
-
-# ---------------------------------------------------------------------------
-# _check_discharge_ready — US thresholds
-# ---------------------------------------------------------------------------
-
-DISCHARGE_US_INFLAMMATION_MAX: float = 0.10
-"""US discharge criterion: ``inflammation_level`` must be strictly less
-than 0.10 (CRP proxy).
-
-Empirical tuning for the synthetic simulator: US practice permits
-earlier discharge once clinically stable; the 0.10 ceiling is above
-JP's 0.05 to reflect this discharge-earlier convention."""
-
-DISCHARGE_US_PERFUSION_MIN: float = 0.7
-"""US discharge criterion: ``perfusion_status`` must be strictly greater
-than 0.7 (hemodynamic stability proxy)."""
-
-DISCHARGE_US_RENAL_MIN: float = 0.5
-"""US discharge criterion: ``renal_function`` must be strictly greater
-than 0.5 (no acute organ dysfunction)."""
-
-DISCHARGE_US_VOLUME_ABS_MAX: float = 0.3
-"""US discharge criterion: ``abs(volume_status)`` must be strictly less
-than 0.3 (near-euvolemic)."""
-
-DISCHARGE_US_PH_ABS_MAX: float = 0.2
-"""US discharge criterion: ``abs(ph_status)`` must be strictly less
-than 0.2 (no significant acid-base disturbance)."""
-
-
-# ---------------------------------------------------------------------------
-# _check_discharge_ready — JP thresholds (all stricter than US)
-# ---------------------------------------------------------------------------
-
-DISCHARGE_JP_INFLAMMATION_MAX: float = 0.05
-"""JP discharge criterion: ``inflammation_level`` must be strictly less
-than 0.05 (stricter than US 0.10).
-
-Empirical tuning for the synthetic simulator: JP conservative-discharge
-convention holds patients until inflammation resolves further —
-matches longer JP LOS observed in the audit data."""
-
-DISCHARGE_JP_PERFUSION_MIN: float = 0.8
-"""JP discharge criterion: ``perfusion_status`` must be strictly greater
-than 0.8 (stricter than US 0.7)."""
-
-DISCHARGE_JP_RENAL_MIN: float = 0.6
-"""JP discharge criterion: ``renal_function`` must be strictly greater
-than 0.6 (stricter than US 0.5)."""
-
-DISCHARGE_JP_VOLUME_ABS_MAX: float = 0.2
-"""JP discharge criterion: ``abs(volume_status)`` must be strictly less
-than 0.2 (stricter than US 0.3)."""
-
-DISCHARGE_JP_PH_ABS_MAX: float = 0.15
-"""JP discharge criterion: ``abs(ph_status)`` must be strictly less
-than 0.15 (stricter than US 0.2)."""
-
-DISCHARGE_JP_ANEMIA_MAX: float = DISCHARGE_ANEMIA_MAX
-"""JP discharge anemia cutoff — same as US
-(``DISCHARGE_ANEMIA_MAX``). Named separately here so future work can
-introduce a JP-specific transfusion trigger without touching US
-callers."""
 
 
 # ---------------------------------------------------------------------------

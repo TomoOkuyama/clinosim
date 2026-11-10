@@ -1,0 +1,31 @@
+# Population genetics — United States (Issue #3142).
+# Read by clinosim.locale.loader.load_population_genetics
+# (PopulationGenetics model, extra="forbid"). Moved verbatim from Python
+# constants; values unchanged.
+metadata:
+  kind: reference
+  name: population_genetics
+  source: clinosim
+
+# Fraction of the population that is RhD positive (about 85% in the US
+# population); drives the person Rh factor and, through Hardy-Weinberg, the
+# d-allele frequency of an unidentified father in newborn inheritance.
+rh_positive_fraction: 0.85
+
+# ABO allele frequencies for the father-side draw in newborn inheritance when
+# no household father is identified. Derived from the phenotype distribution
+# in locale/us/demographics.yaml `blood_type` via Hardy-Weinberg.
+abo_allele_frequencies:
+  A: 0.264
+  B: 0.071
+  O: 0.665
+
+# CYP450 drug-metabolizer phenotype distribution (activator; order is the draw
+# order). Empirical tuning for the synthetic simulator: 7% poor and 8%
+# ultra-rapid metabolizers reflect the mixed-population CYP2C19 / CYP2D6
+# distribution in US pharmacogenomic studies.
+drug_metabolism_phenotypes:
+  poor: 0.07
+  normal: 0.70
+  rapid: 0.15
+  ultra_rapid: 0.08

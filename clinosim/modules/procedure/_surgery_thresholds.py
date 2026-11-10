@@ -3,7 +3,7 @@
 
 The ``simulate_surgery`` function in ``modules/procedure/engine.py``
 composes each surgical procedure record from a set of previously-
-inline scalars — country-specific time-to-surgery, per-procedure
+inline scalars — per-procedure
 duration + EBL defaults, ASA-class age/comorbidity ladder, intraop
 complication rates, hip-fracture implant split, and post-op
 physiologic state impacts.
@@ -11,22 +11,23 @@ physiologic state impacts.
 Every scalar is lifted here per policy §5, grouped into six families
 for readability:
 
-1. **Time-to-surgery distributions** — JP vs US target intervals
-   from admission to surgery start.
-2. **Duration and EBL fallbacks** — defaults when the disease
+1. **Duration and EBL fallbacks** — defaults when the disease
    protocol does not carry ``typical_duration_minutes`` /
    ``estimated_blood_loss_ml`` blocks.
-3. **Anesthesia mode** — spinal-vs-general probability when both are
+2. **Anesthesia mode** — spinal-vs-general probability when both are
    allowed.
-4. **ASA classification ladder** — age / comorbidity thresholds and
+3. **ASA classification ladder** — age / comorbidity thresholds and
    the corresponding ASA class jumps.
-5. **Intraop complication rates** — excessive bleeding, anesthesia
+4. **Intraop complication rates** — excessive bleeding, anesthesia
    hypotension.
-6. **Hip-fracture surgery split** — ORIF vs hemiarthroplasty and
+5. **Hip-fracture surgery split** — ORIF vs hemiarthroplasty and
    the ORIF implant sub-split.
-7. **Post-op state-impact deltas** — anemia lift (per-mL), volume
+6. **Post-op state-impact deltas** — anemia lift (per-mL), volume
    status, inflammation, and the perfusion penalty for major blood
    loss.
+
+The country time-to-surgery defaults are in
+``locale/<cc>/care_practice.yaml`` (Issue #3142).
 
 Byte-diff verification: swapping the inline literals for these named
 constants MUST NOT change any RNG-consuming call. ``rng.normal`` /
@@ -58,50 +59,15 @@ __all__ = [
     "INTRAOP_ANESTHESIA_HYPOTENSION_PROBABILITY",
     "INTRAOP_EBL_BLEEDING_MULTIPLIER",
     "INTRAOP_EXCESSIVE_BLEEDING_PROBABILITY",
-    "JP_TIME_TO_SURGERY_FLOOR_HOURS",
-    "JP_TIME_TO_SURGERY_MEAN_HOURS",
-    "JP_TIME_TO_SURGERY_STD_HOURS",
     "SPINAL_ANESTHESIA_PROBABILITY_WHEN_ALLOWED",
     "SURGERY_DURATION_MIN_MIN",
     "SURGERY_INFLAMMATION_LIFT",
     "SURGERY_VOLUME_LIFT",
-    "US_TIME_TO_SURGERY_FLOOR_HOURS",
-    "US_TIME_TO_SURGERY_MEAN_HOURS",
-    "US_TIME_TO_SURGERY_STD_HOURS",
 ]
 
 
 # ---------------------------------------------------------------------------
-# Family 1: time-to-surgery distributions (hours from admission)
-# ---------------------------------------------------------------------------
-
-JP_TIME_TO_SURGERY_MEAN_HOURS: float = 48.0
-"""Mean hours from admission to surgery start for JP cohorts. JP acute-
-care hospitals typically operate hip-fracture and other urgent
-surgeries on day 1-2 (48 h target); tighter US "< 24 h" convention
-is a separate constant below."""
-
-JP_TIME_TO_SURGERY_STD_HOURS: float = 24.0
-"""Standard deviation of the JP time-to-surgery draw."""
-
-JP_TIME_TO_SURGERY_FLOOR_HOURS: float = 12.0
-"""Minimum time-to-surgery floor for JP cohorts. Anything faster than
-12 h is unrealistic — pre-op workup + informed consent + OR
-scheduling cannot compress below this."""
-
-US_TIME_TO_SURGERY_MEAN_HOURS: float = 24.0
-"""Mean hours from admission to surgery start for US cohorts. Matches
-the AAOS hip-fracture "surgery within 24 h" quality benchmark."""
-
-US_TIME_TO_SURGERY_STD_HOURS: float = 12.0
-"""Standard deviation of the US time-to-surgery draw."""
-
-US_TIME_TO_SURGERY_FLOOR_HOURS: float = 6.0
-"""Minimum time-to-surgery floor for US cohorts."""
-
-
-# ---------------------------------------------------------------------------
-# Family 2: duration and EBL fallbacks
+# Family 1: duration and EBL fallbacks
 # ---------------------------------------------------------------------------
 
 DEFAULT_SURGERY_DURATION_MEAN_MIN: int = 90
@@ -133,7 +99,7 @@ bleeding — pinning to 0 mL creates unrealistic post-op labs."""
 
 
 # ---------------------------------------------------------------------------
-# Family 3: anesthesia mode
+# Family 2: anesthesia mode
 # ---------------------------------------------------------------------------
 
 SPINAL_ANESTHESIA_PROBABILITY_WHEN_ALLOWED: float = 0.6
@@ -145,7 +111,7 @@ control in elderly patients)."""
 
 
 # ---------------------------------------------------------------------------
-# Family 4: ASA classification ladder
+# Family 3: ASA classification ladder
 # ---------------------------------------------------------------------------
 
 ASA_BASE_CLASS: int = 2
@@ -186,7 +152,7 @@ ASA_AGE_HIGH_THRESHOLD: int = 85
 
 
 # ---------------------------------------------------------------------------
-# Family 5: intraop complication rates
+# Family 4: intraop complication rates
 # ---------------------------------------------------------------------------
 
 INTRAOP_EXCESSIVE_BLEEDING_PROBABILITY: float = 0.03
@@ -206,7 +172,7 @@ induction in the surgical-inpatient population."""
 
 
 # ---------------------------------------------------------------------------
-# Family 6: hip-fracture surgery split
+# Family 5: hip-fracture surgery split
 # ---------------------------------------------------------------------------
 
 HIP_FRACTURE_ORIF_PROBABILITY: float = 0.55
@@ -223,7 +189,7 @@ fixation."""
 
 
 # ---------------------------------------------------------------------------
-# Family 7: post-op state-impact deltas
+# Family 6: post-op state-impact deltas
 # ---------------------------------------------------------------------------
 
 EBL_ANEMIA_LIFT_THRESHOLD_ML: int = 200

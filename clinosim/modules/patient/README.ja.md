@@ -155,8 +155,8 @@ from clinosim.modules.patient.activator import (
   - `RESERVE_FLOOR`, `IMMUNE_REACTIVITY_BETA_PARAMS` — 生理予備能
     sampling shape (共通 reserve Beta `_RESERVE_BETA_PARAMS = (30, 2)`
     は `activator.py` 側にある)。
-  - `DRUG_METABOLISM_{LABELS,JP_PROBS,US_PROBS}` — 国別 poor /
-    normal / rapid / ultra_rapid 確率 vector。
+  - 国別の poor / normal / rapid / ultra_rapid 薬物代謝型の分布は
+    `clinosim/locale/<cc>/population_genetics.yaml` にある (Issue #3142)。
   - `DELIRIUM_{BETA_PARAMS,ELDERLY_AGE_THRESHOLD,ELDERLY_PREMIUM,DEMENTIA_PREMIUM,PARKINSON_PREMIUM}`
     — delirium-risk model。
   - `DVT_{BETA_PARAMS,ELDERLY_AGE_THRESHOLD,ELDERLY_PREMIUM}` — DVT
