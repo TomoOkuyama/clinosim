@@ -32,6 +32,7 @@ from clinosim import determinism
 from clinosim.age_bands import lookup_age_band
 from clinosim.codes.drugs import drug_display
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
+from clinosim.codes.procedures import country_procedure_code
 from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_perinatal_config
@@ -156,7 +157,7 @@ def simulate_abortion_encounter(
 
     proc_code_jp = str(proc_cfg.get("jp_code") or "")
     proc_code_us = str(proc_cfg.get("us_code") or "")
-    proc_code = proc_code_jp if is_jp(country) else proc_code_us
+    proc_code = country_procedure_code(country, {"k-codes": proc_code_jp, "cpt": proc_code_us})
     procedure = ProcedureRecord(
         procedure_id=f"PROC-{patient.patient_id}-ABORTION-{encounter.encounter_id[:8]}",
         patient_id=patient.patient_id,
@@ -730,7 +731,7 @@ def simulate_delivery_encounter(
         proc_code_jp = str(proc_cfg.get("jp_code") or "")
         proc_code_us = str(proc_cfg.get("us_code") or "")
         proc_duration_min = int(proc_cfg.get("duration_minutes") or 90)
-    proc_code = proc_code_jp if is_jp(country) else proc_code_us
+    proc_code = country_procedure_code(country, {"k-codes": proc_code_jp, "cpt": proc_code_us})
     procedure = ProcedureRecord(
         procedure_id=f"PROC-{patient.patient_id}-DELIVERY-{encounter.encounter_id[:8]}",
         patient_id=patient.patient_id,

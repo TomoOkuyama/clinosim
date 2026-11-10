@@ -114,9 +114,11 @@ def test_colonoscopy_visit_performs_the_colonoscopy_under_sedation() -> None:
     assert {m.order_id for m in rec.medication_administrations} == sedation_orders
 
 
-def test_colonoscopy_jp_keeps_the_cpt_code_when_no_jp_code_is_registered() -> None:
+def test_colonoscopy_jp_has_no_primary_code_when_no_jp_code_is_registered() -> None:
+    # Issue #3193: a JP record never takes the CPT code as its primary code;
+    # the CPT code stays in ``procedure_code_us``.
     rec = _visit("colonoscopy_screening", _patient(58, "M"), country="JP")
-    assert [(p.procedure_code, p.procedure_code_jp) for p in rec.procedures] == [("45378", "")]
+    assert [(p.procedure_code, p.procedure_code_jp, p.procedure_code_us) for p in rec.procedures] == [("", "", "45378")]
 
 
 def test_colonoscopies_are_at_least_the_protocol_interval_apart() -> None:

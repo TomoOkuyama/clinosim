@@ -12,7 +12,7 @@ from clinosim import determinism
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.codes.procedures import country_procedure_code
 from clinosim.codes.valuesets import concept_group
-from clinosim.countries import is_jp, lang_for
+from clinosim.countries import lang_for
 from clinosim.locale.free_text import _localize_dosage_terms
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import (
@@ -871,6 +871,9 @@ def _followup_procedures(
             _code_us = str(_proc.get("code") or "")
             # Issue #2870: a protocol procedure carries its JP code and length.
             _code_jp = str(_proc.get("jp_code") or "")
+            # Issue #3193: the primary code is the country's own procedure
+            # code system only; a JP procedure with no K-code stays uncoded
+            # (SNOMED CT + code.text in FHIR), never CPT.
             _proc_start = visit_date + timedelta(minutes=OUTPATIENT_LAB_ORDER_OFFSET_MIN)
             procedures_list.append(
                 ProcedureRecord(
@@ -878,7 +881,7 @@ def _followup_procedures(
                     patient_id=patient.patient_id,
                     encounter_id=encounter.encounter_id,
                     procedure_type=localized(_proc.get("name") or {}, "en"),
-                    procedure_code=_code_jp if (_code_jp and is_jp(country)) else _code_us,
+                    procedure_code=country_procedure_code(country, {"k-codes": _code_jp, "cpt": _code_us}),
                     procedure_code_jp=_code_jp,
                     procedure_code_us=_code_us,
                     start_datetime=_proc_start,
