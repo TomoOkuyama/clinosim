@@ -21,6 +21,15 @@ Composition per `RadiologyReport`, and `referral_orgs.py` supplies
 the external referring / receiving `Organization` resources for JP
 referral letters (LOINC 57133-1).
 
+Section entries come from an encounter-scoped index of the resources
+already emitted (`_build_encounter_resource_index`), bucketed by
+resourceType and also by `<resourceType>|<declared profile>`;
+`codes/data/composition-section-entry-types.yaml` names the buckets per
+section. The JP-eCheckup results section (01031) takes the checkup's
+Observations declaring `JP_Observation_eCheckupGeneral` — the checkup
+lab / vital results, which carry the MHLW health-checkup item code
+(`locale/jp/checkup_report_items.yaml`, Issue #3154).
+
 ## Scope
 
 - **In scope**: `_bb_compositions` dispatch (walks `record.documents`

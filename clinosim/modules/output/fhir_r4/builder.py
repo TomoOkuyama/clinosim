@@ -87,9 +87,6 @@ from clinosim.modules.output.fhir_r4.lib.inline_bb import (
     _bb_procedures,
     _bb_vitals,
 )
-
-# Post-emit helpers (fhir_r4/post_process/).
-# Imported for use inside `_build_bundle` (see finalize pass).
 from clinosim.modules.output.fhir_r4.post_process import (
     _apply_jp_clins_profile,
     _apply_jp_core_profile,
@@ -105,6 +102,10 @@ from clinosim.modules.output.fhir_r4.post_process import (
     _strip_forbidden_observation_reference_range_extensions,
     _strip_japanese_display_on_english_only_systems,
 )
+
+# Post-emit helpers (fhir_r4/post_process/).
+# Imported for use inside `_build_bundle` (see finalize pass).
+from clinosim.modules.output.fhir_r4.post_process.populate import _conform_checkup_report_observation
 from clinosim.modules.output.fhir_r4.procedures.device import (
     _bb_device,
     _bb_device_use,
@@ -706,6 +707,10 @@ def _finalize_resource(resource: dict, country: str, roster_map: dict[str, dict]
     # PR-D (2026-07-17): Observation.identifier + meta.lastUpdated (JP eCS
     # min=1). Universal — base-FHIR-optional, safe on US output.
     _populate_observation_identifier_and_last_updated(resource, country)
+    # Issue #3154: a health-checkup result declaring the report Observation
+    # profile keeps only what that profile allows (identifier system,
+    # forbidden elements; data in checkup_report_items.yaml).
+    _conform_checkup_report_observation(resource, country)
     # #202 (2026-07-17): scrub `Observation.referenceRange[*].extension`
     # (and low/high/component mirrors). LabResult_eCS forbids them (max=0)
     # and the previously-emitted `referenceRangeSource` URL was not

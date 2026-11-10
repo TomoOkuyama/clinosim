@@ -160,6 +160,25 @@ def lab_observation_coding(lab_name: str, order: dict, result: dict, country: st
     return (codings, display_name)
 
 
+def _checkup_report_item(lab_name: str, country: str) -> tuple[dict[str, str] | None, str]:
+    """The checkup item coding of ``lab_name`` and the report Observation
+    profile (Issue #3154), or ``(None, "")`` when the country maps none."""
+    from clinosim.countries import country_code as _country_code
+    from clinosim.locale.loader import load_checkup_report_items
+
+    table = load_checkup_report_items(_country_code(country))
+    item = (table.get("items") or {}).get(lab_name)
+    if not item:
+        return None, ""
+    system_key = table["code_system"]
+    coding = {
+        "system": get_system_uri(system_key),
+        "code": item,
+        "display": registry_display(system_key, item, lang_for(country)) or item,
+    }
+    return coding, table["observation_profile"]
+
+
 def _build_lab_observation(
     order: dict,
     result: dict,
@@ -207,6 +226,16 @@ def _build_lab_observation(
     _profiles: list[str] = []
     if is_jp(country):
         _profiles.append(JP_OBSERVATION_LAB_RESULT_PROFILE)
+
+    # Issue #3154: a health-checkup result is the report's Observation — it
+    # carries the country's checkup item coding and declares the report
+    # Observation profile (``<country>/checkup_report_items.yaml``; none
+    # for a country without one).
+    if order.get("clinical_intent") == "health_checkup":
+        _item_coding, _item_profile = _checkup_report_item(lab_name, country)
+        if _item_coding:
+            codings = [*codings, _item_coding]
+            _profiles.append(_item_profile)
 
     # Issue #854 Bucket A row 4 (PR-obs-lab): opaque Observation.id.
     # ``lab_observation_id(enc, idx)`` returns ``lab-<12hex>`` — same

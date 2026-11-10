@@ -157,6 +157,24 @@ def load_facility_identity(country: str) -> dict[str, Any]:
 
 
 @lru_cache(maxsize=8)
+def load_checkup_report_items(country: str) -> dict[str, Any]:
+    """Health-checkup results as report Observations (Issue #3154):
+    ``observation_profile``, ``code_system`` and ``items`` (internal lab
+    name -> item code) from ``<country>/checkup_report_items.yaml``; empty
+    for a country without the file (US)."""
+    data = _load_yaml(_country_dir(country) / "checkup_report_items.yaml", fallback={})
+    if not isinstance(data, dict) or not data.get("items"):
+        return {}
+    return {
+        "observation_profile": str(data["observation_profile"]),
+        "identifier_system": str(data.get("identifier_system") or ""),
+        "forbidden_elements": [str(e) for e in data.get("forbidden_elements") or []],
+        "code_system": str(data["code_system"]),
+        "items": {str(k): str(v) for k, v in data["items"].items()},
+    }
+
+
+@lru_cache(maxsize=8)
 def load_practitioner_qualifications(country: str) -> dict[str, Any]:
     """Load JP MHLW national-license qualification + license-number tables
     (Issue #962).

@@ -463,6 +463,28 @@ _MEDIS_UNCODED_DISEASE_DISPLAY = t("fhir_emit_text.medis_uncoded", "ja")
 # removed hardcoded dicts were EN-only).
 
 
+def _conform_checkup_report_observation(resource: dict, country: str = "") -> None:
+    """Shape a health-checkup result that declares the report Observation
+    profile to it (Issue #3154; ``<country>/checkup_report_items.yaml``):
+    only identifiers of the profile's identifier system, and none of the
+    elements the profile forbids. A no-op for any other resource."""
+    if resource.get("resourceType") != "Observation":
+        return
+    from clinosim.countries import country_code
+    from clinosim.locale.loader import load_checkup_report_items
+
+    table = load_checkup_report_items(country_code(country)) if country else {}
+    if not table or table["observation_profile"] not in ((resource.get("meta") or {}).get("profile") or []):
+        return
+    for element in table["forbidden_elements"]:
+        resource.pop(element, None)
+    system = table["identifier_system"]
+    if system and resource.get("identifier"):
+        kept = [i for i in resource["identifier"] if isinstance(i, dict) and i.get("system") == system]
+        if kept:
+            resource["identifier"] = kept
+
+
 def _populate_observation_identifier_and_last_updated(resource: dict, country: str = "") -> None:
     """Populate `Observation.identifier` and `Observation.meta.lastUpdated`.
 

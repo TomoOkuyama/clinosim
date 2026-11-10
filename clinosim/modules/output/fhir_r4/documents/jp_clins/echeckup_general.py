@@ -84,6 +84,7 @@ def _build_jp_echeckup_general_composition(
     lang: str,
     *,
     roster_map: dict[str, dict] | None = None,
+    encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
 ) -> dict[str, Any]:
     """JP-eCheckup General v1.7.0 準拠 Composition を emit する(JP-only、opt-in)。
 
@@ -94,7 +95,10 @@ def _build_jp_echeckup_general_composition(
         01032 問診結果)。section.code.system は eCheckup 固有 CodeSystem。
     """
     # Lazy imports break the composition.py ↔ echeckup_general.py cycle.
-    from clinosim.modules.output.fhir_r4.documents.composition import _build_composition_generic
+    from clinosim.modules.output.fhir_r4.documents.composition import (
+        _build_composition_generic,
+        _derive_section_entries,
+    )
 
     comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map)
 
@@ -173,5 +177,10 @@ def _build_jp_echeckup_general_composition(
                 },
             }
         )
+        # Issue #3154: the results section references the checkup's
+        # eCheckup Observations (composition-section-entry-types.yaml).
+        refs = _derive_section_entries(key, _o(doc, "encounter_id", "") or "", encounter_index)
+        if refs:
+            section_entries[-1]["entry"] = refs
     comp["section"] = section_entries
     return comp

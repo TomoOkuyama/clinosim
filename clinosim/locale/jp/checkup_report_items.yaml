@@ -1,0 +1,37 @@
+# Health-checkup results as JP-eCheckup Observations (Issue #3154).
+#
+# The checkup encounter's results (orders with clinical_intent
+# health_checkup) declare `observation_profile` and carry, besides their
+# JLAC10 / LOINC coding, the MHLW health-checkup item code of `items`
+# (code system `jpfhir-eCheckup-observation`, urn:oid:1.2.392.200119.6.1005).
+# Item → method / unit per 厚生労働省 XML用特定健診項目情報 (XMLhc18tab.csv):
+#   BMI   9N011000000000001  BMI, kg/m2
+#   SBP   9A751000000000001  収縮期血圧 1：1回目 (the checkup takes one
+#                            reading), mm[Hg]
+#   DBP   9A761000000000001  拡張期血圧 1：1回目, mm[Hg]
+#   HbA1c 3D046000001999902  HbA1c（ＮＧＳＰ値） 4：その他 — the simulated
+#                            result models no assay method (免疫学的方法 /
+#                            HPLC / 酵素法), %
+#   LDL   3F077000002391901  LDLコレステロール 4：計算法 — the simulated
+#                            LDL is the calculated value (LOINC 13457-7
+#                            "by calculation"), mg/dL
+metadata:
+  kind: locale
+  name: checkup_report_items
+  source: clinosim
+
+observation_profile: http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Observation_eCheckupGeneral
+# JP_Observation_eCheckupGeneral 1.7.0 shape: every identifier has the
+# system below (patternUri), and basedOn / partOf / hasMember are max 0, so
+# a result declaring the profile keeps only those identifiers and drops
+# those elements (the checkup's ServiceRequest still lists it through the
+# DiagnosticReport).
+identifier_system: http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier
+forbidden_elements: [basedOn, partOf, hasMember]
+code_system: jpfhir-eCheckup-observation
+items:
+  BMI: "9N011000000000001"
+  SBP: "9A751000000000001"
+  DBP: "9A761000000000001"
+  HbA1c: "3D046000001999902"
+  LDL: "3F077000002391901"
