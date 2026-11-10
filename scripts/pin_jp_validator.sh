@@ -37,9 +37,10 @@ trap 'rm -rf "$TMP"' EXIT
 
 _calc_sha256() {
     local url="$1"; local dest="$2"
-    echo "  fetching $url"
+    # Progress goes to stderr: the caller captures stdout as the hash.
+    echo "  fetching $url" >&2
     curl -sSL --fail -o "$dest" "$url" || {
-        echo "  ERROR: download failed"
+        echo "  ERROR: download failed" >&2
         return 1
     }
     shasum -a 256 "$dest" | awk '{print $1}'
@@ -74,7 +75,7 @@ _update_pin "VALIDATOR_SHA256" "$sha"
 
 echo ""
 echo "== JP IG package pins =="
-for prefix in JP_CORE JP_CLINS JP_ECHECKUP; do
+for prefix in JP_TERMINOLOGY JP_CORE JP_CLINS JP_ECHECKUP; do
     url_var="${prefix}_PACKAGE_URL"
     sha_var="${prefix}_PACKAGE_SHA256"
     url="${!url_var:-}"

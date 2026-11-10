@@ -228,23 +228,27 @@ interchange.
 `.github/jp-validator-pins.env` collects the versions / SHA256 hashes of the validator and the IG packages:
 
 ```env
-VALIDATOR_VERSION=6.4.3
-VALIDATOR_SHA256=
+VALIDATOR_VERSION=6.10.4
+VALIDATOR_SHA256=1106b9d5...
 
+# Installed into the validator's package cache under the id#version that
+# JP-CLINS / JP-eCheckup declare as dependencies (no registry publishes them)
+JP_TERMINOLOGY_PACKAGE_ID=jpfhir-terminology.r4
+JP_TERMINOLOGY_PACKAGE_VERSION=2.0.0
+JP_TERMINOLOGY_PACKAGE_URL=https://jpfhir.jp/fhir/core/terminology/igv-2.2606.0/package.tgz
 JP_CORE_PACKAGE_ID=jp-core.r4
-JP_CORE_PACKAGE_VERSION=1.1.7
-JP_CORE_PACKAGE_URL=
-JP_CORE_PACKAGE_SHA256=
+JP_CORE_PACKAGE_VERSION=1.1.2-clins
+JP_CORE_PACKAGE_URL=https://jpfhir.jp/fhir/core/1.1.2-clins/package.tgz
 
-JP_CLINS_PACKAGE_URL=
-JP_CLINS_PACKAGE_SHA256=
-
-JP_ECHECKUP_PACKAGE_URL=
-JP_ECHECKUP_PACKAGE_SHA256=
+# Passed to the validator with -ig
+JP_CLINS_PACKAGE_URL=https://jpfhir.jp/fhir/clins/igv1.13.0/package.tgz
+JP_ECHECKUP_PACKAGE_URL=https://jpfhir.jp/fhir/eCheckup/igv170/package.tgz
+# (each *_PACKAGE_URL has a *_PACKAGE_SHA256)
 ```
 
 - Empty SHA256 + STRICT mode = fail (prints bootstrap instructions)
 - SHA256 filled in = checked against the actual hash → fail on mismatch
+- A URL with an ID and VERSION is installed into the validator's package cache (`<user.home>/.fhir/packages`; `CLINOSIM_JP_VAL_HOME` moves it) under that id#version (Issue #3123)
 
 ### Initial pin bootstrap
 

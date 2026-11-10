@@ -90,7 +90,7 @@ from pathlib import Path
 from clinosim.simulator.engine import run_beta
 from clinosim.types.config import SimulatorConfig
 from clinosim.modules.output.cif_writer import write_cif
-from clinosim.modules.output.fhir_r4_adapter import convert_cif_to_fhir
+from clinosim.modules.output.fhir_r4.builder import convert_cif_to_fhir
 from clinosim.modules.document.narrative.passes import TemplateNarrativePass
 
 out_dir, pop, seed, end = sys.argv[1:]
@@ -250,6 +250,12 @@ STRICT="${CLINOSIM_JP_VAL_STRICT:-0}"
 
 IG_ARGS=()
 
+# The validator's package cache is <user.home>/.fhir/packages.
+# CLINOSIM_JP_VAL_HOME moves it (a local run can keep it out of $HOME).
+VAL_HOME="${CLINOSIM_JP_VAL_HOME:-$HOME}"
+FHIR_PACKAGE_CACHE="$VAL_HOME/.fhir/packages"
+mkdir -p "$FHIR_PACKAGE_CACHE"
+
 _verify_sha256() {
     local file="$1"; local expected="$2"; local label="$3"
     if [ -z "$expected" ]; then
@@ -279,11 +285,23 @@ _resolve_ig() {
     if [ -n "$pkg_url" ]; then
         local dest="$TMP/${label}.tgz"
         echo "  fetch: $label from $pkg_url"
-        curl -sSL -o "$dest" "$pkg_url" || {
+        curl -sSL --fail -o "$dest" "$pkg_url" || {
             echo "validate_jp.sh: $label のダウンロード失敗($pkg_url)" >&2
             return 1
         }
         _verify_sha256 "$dest" "$pkg_sha" "$label" || return 1
+        if [ -n "$pkg_id" ] && [ -n "$pkg_ver" ]; then
+            # Issue #3123: a dependency of the JP-CLINS / JP-eCheckup packages
+            # that no package registry publishes under the id#version they
+            # declare. Install the pinned tarball into the validator's package
+            # cache under that id#version, where the validator resolves it.
+            local cached="$FHIR_PACKAGE_CACHE/${pkg_id}#${pkg_ver}"
+            rm -rf "$cached"
+            mkdir -p "$cached"
+            tar -xzf "$dest" -C "$cached"
+            echo "  cache: $label -> ${pkg_id}#${pkg_ver}"
+            return 0
+        fi
         IG_ARGS+=("-ig" "$dest")
         return 0
     fi
@@ -301,6 +319,11 @@ if [ -n "${CLINOSIM_JP_VAL_PINS:-}" ] && [ -f "${CLINOSIM_JP_VAL_PINS}" ]; then
     echo "== Step 3a: IG package pin 解決 =="
     # shellcheck source=/dev/null
     set -a; source "${CLINOSIM_JP_VAL_PINS}"; set +a
+    # Dependencies first (installed into the package cache), then the IGs.
+    _resolve_ig "jp-terminology" \
+        "${JP_TERMINOLOGY_PACKAGE_ID:-}" "${JP_TERMINOLOGY_PACKAGE_VERSION:-}" \
+        "${JP_TERMINOLOGY_PACKAGE_URL:-}" "${JP_TERMINOLOGY_PACKAGE_SHA256:-}" \
+        || exit 1
     _resolve_ig "jp-core" \
         "${JP_CORE_PACKAGE_ID:-}" "${JP_CORE_PACKAGE_VERSION:-}" \
         "${JP_CORE_PACKAGE_URL:-}" "${JP_CORE_PACKAGE_SHA256:-}" \
@@ -316,31 +339,36 @@ if [ -n "${CLINOSIM_JP_VAL_PINS:-}" ] && [ -f "${CLINOSIM_JP_VAL_PINS}" ]; then
 fi
 
 # 各サンプルを検証(profile URL は JP FHIR IG の canonical URL を使用)
-declare -A PROFILES=(
-    ["Condition.json"]="http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS"
-    ["AllergyIntolerance.json"]="http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS"
-    ["Observation.json"]="http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS"
-    ["MedicationRequest.json"]="http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS"
-    ["Procedure.json"]="http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS"
-    ["Composition_DischargeSummary.json"]="http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
-    ["Composition_ReferralNote.json"]="http://jpfhir.jp/fhir/eReferral/StructureDefinition/JP_Composition_eReferral"
-    ["Composition_HealthCheckupReport.json"]="http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Composition_eCheckupGeneral"
-)
+# (a function rather than an associative array, so the script also runs
+# under the bash 3.2 that macOS ships)
+_profile_for() {
+    case "$1" in
+        Condition.json) echo "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS" ;;
+        AllergyIntolerance.json) echo "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS" ;;
+        Observation.json) echo "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS" ;;
+        MedicationRequest.json) echo "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS" ;;
+        Procedure.json) echo "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS" ;;
+        Composition_DischargeSummary.json) echo "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary" ;;
+        Composition_ReferralNote.json) echo "http://jpfhir.jp/fhir/eReferral/StructureDefinition/JP_Composition_eReferral" ;;
+        Composition_HealthCheckupReport.json) echo "http://jpfhir.jp/fhir/eCheckup/StructureDefinition/JP_Composition_eCheckupGeneral" ;;
+        *) echo "" ;;
+    esac
+}
 
 TOTAL=0
 PASSED=0
 FAILED=0
 for sample in "$SAMPLES"/*.json; do
     filename=$(basename "$sample")
-    if [ -z "${PROFILES[$filename]:-}" ]; then
+    profile=$(_profile_for "$filename")
+    if [ -z "$profile" ]; then
         continue
     fi
-    profile="${PROFILES[$filename]}"
     TOTAL=$((TOTAL + 1))
     echo "  validating $filename against $profile"
-    if java -jar "$VALIDATOR_JAR" \
+    if java -Duser.home="$VAL_HOME" -jar "$VALIDATOR_JAR" \
             -version 4.0.1 \
-            "${IG_ARGS[@]}" \
+            ${IG_ARGS[@]+"${IG_ARGS[@]}"} \
             -profile "$profile" \
             "$sample" >"$TMP/val_${filename}.log" 2>&1; then
         PASSED=$((PASSED + 1))
@@ -348,7 +376,9 @@ for sample in "$SAMPLES"/*.json; do
     else
         FAILED=$((FAILED + 1))
         echo "    FAIL — see $TMP/val_${filename}.log"
-        tail -5 "$TMP/val_${filename}.log" | sed 's/^/      /'
+        # Every error the validator reports (the log is deleted on exit).
+        grep -E "^ +(Error|Fatal) @" "$TMP/val_${filename}.log" | sed 's/^ */      /' || true
+        tail -3 "$TMP/val_${filename}.log" | sed 's/^/      /'
     fi
 done
 
