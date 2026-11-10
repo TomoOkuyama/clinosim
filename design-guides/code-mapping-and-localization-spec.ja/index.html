@@ -3599,6 +3599,10 @@
 <td><code>tests/unit/locale/test_no_language_literal_comparison_2455.py</code></td>
 </tr>
 <tr>
+<td>出力層で表示名の検索に <code>"en"</code> / <code>"ja"</code> を固定で渡す箇所は理由 (英語専用・米国専用のコード体系、英語へのフォールバック、日本専用プロファイル、言語別フィールド、照合用) とともに固定する。<code>"ja" if ... else "en"</code> は使わない</td>
+<td><code>tests/unit/output/test_fhir_language_literals_3180.py</code></td>
+</tr>
+<tr>
 <td>残っている言語接尾辞付きの YAML フィールド (§11) は <code>&lt;base&gt;_ja</code> と <code>&lt;base&gt;_en</code> を対で持つ</td>
 <td><code>tests/unit/locale/test_localized_field_shape_2398.py</code></td>
 </tr>
