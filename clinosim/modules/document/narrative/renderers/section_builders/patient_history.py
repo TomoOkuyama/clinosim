@@ -346,7 +346,8 @@ def build_physical_examination(generator: TemplateNarrativeGenerator, ctx: Narra
         vitals_line = generator._compose_pe_vitals_line(ctx)
         if vitals_line:
             facts.append(f"ctx.vitals[day_{ctx.day_index}]")
-            return f"Vital signs: {vitals_line}. General: no additional exam findings recorded.", facts
+            text = t("physical_exam.no_other_findings", lang)
+            return t("ed_physical_exam.vitals_prepend", lang, vitals=vitals_line, text=text), facts
         facts.append("generic:physical_exam_en")
         return t("fallback.generic_fallback", lang), facts
 

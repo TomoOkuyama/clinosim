@@ -74,7 +74,7 @@ from clinosim.modules.document import (
     # Reference-data loader
     load_physical_exam_findings,    # () -> dict (@lru_cache, 6-layer validated)
     load_discharge_instructions,    # () -> dict (@lru_cache, 6-layer validated)
-    load_hpi_pertinent_negatives,   # () -> dict (@lru_cache)
+    load_hpi_pertinent_negatives,   # () -> {disease: {lang: [...]}} (@lru_cache)
 
     # Canonical ID prefix
     DOC_REFERENCE_ID_PREFIX,        # "doc-"
@@ -184,7 +184,7 @@ clinosim/modules/document/
     clinosim-nursing-content.yaml    急性疾患 / 慢性 ICD-10 別の看護記録内容 (load_nursing_content)
     cc-pe-consistency-keywords.yaml  主訴 ↔ 身体所見の整合 rail (narrative/_narrative_utils.py)
     chronic-med-class-hints.yaml     慢性疾患 assessment の薬効分類 hint (narrative/renderers/section_builders/outpatient_soap.py)
-    hpi_pertinent_negatives.yaml     HPI pertinent negative (load_hpi_pertinent_negatives)
+    hpi_pertinent_negatives.yaml     HPI pertinent negative、疾患ごとの言語マップ (hpi_pertinent_negatives(disease_id, lang)、英語にフォールバック)
     bedside_procedure_codes.yaml     bedside procedure code (load_bedside_procedure_codes)
     narrative_extras_whitelists.yaml narrative extra-context whitelist (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   US H&P の JA 文字 audit 対象外 section (audit.py)

@@ -202,6 +202,13 @@ ed_physical_exam:
     ja: "バイタルサイン: {vitals}。{text}"
     en: "Vital signs: {vitals}. {text}"
 
+# Physical exam with no recorded findings besides the vitals line
+# (patient_history.build_physical_exam, Issue #3206).
+physical_exam:
+  no_other_findings:
+    ja: "その他の身体所見の記載なし。"
+    en: "General: no additional exam findings recorded."
+
 # admission_hp Assessment section composer phrases (Phase 1d-18).
 # From template_generator._compose_ap_assessment_from_state.
 ap_assessment:
@@ -241,6 +248,10 @@ ap_combined:
   assessment_plan_block:
     ja: "【評価】{assessment}\n【方針】{plan}"
     en: "Assessment: {assessment}\nPlan: {plan}"
+  # One-line form of the composed admission A&P (Issue #3206).
+  assessment_plan_inline:
+    ja: "評価: {assessment} 方針: {plan}"
+    en: "Assessment: {assessment} Plan: {plan}"
 
 # Discharge-summary admission_summary head (Phase 1d-18).
 # From section_builders.patient_history.build_admission_summary.
@@ -2157,6 +2168,10 @@ narrative_text:
     list_sep:
       ja: "、"
       en: ", "
+    # Review-of-systems pertinent negatives (Issue #3206).
+    ros:
+      ja: "ROS: {items}。"
+      en: "ROS: {items}."
   discharge_details:
     disposition_sentence:
       ja: "{disposition}となった。"

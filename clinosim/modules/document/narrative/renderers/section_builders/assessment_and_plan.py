@@ -61,7 +61,10 @@ def build_assessment_and_plan(generator: TemplateNarrativeGenerator, ctx: Narrat
         facts.append("composed:cif_state_en")
         _en_assessment = _compose_ap_assessment_from_state(ctx) or t("fallback.generic_assessment", lang)
         _en_plan = _compose_ap_plan_from_state(generator, ctx) or t("fallback.generic_plan", lang)
-        return f"Assessment: {_en_assessment} Plan: {_en_plan}", facts
+        return (
+            t("ap_combined.assessment_plan_inline", lang, assessment=_en_assessment, plan=_en_plan),
+            facts,
+        )
 
     traj, traj_src = generator._resolve_daily_trajectory_with_source(ctx, ctx.clinical_course_archetype, 0)
     if traj_src:

@@ -32,7 +32,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
 )
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
-from clinosim.modules.document.reference_data_loaders import load_hpi_pertinent_negatives
+from clinosim.modules.document.reference_data_loaders import hpi_pertinent_negatives
 from clinosim.types.document import DocumentType, NarrativeContext
 
 if TYPE_CHECKING:
@@ -298,10 +298,10 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
     if ctx.disease_protocol is not None:
         disease_id = str(_o(ctx.disease_protocol, "disease_id", "") or "")
     if disease_id:
-        neg_pool = load_hpi_pertinent_negatives().get(disease_id) or []
+        neg_pool = hpi_pertinent_negatives(disease_id, lang)
         if neg_pool:
             # Use up to 2 to keep HPI compact.
-            selected = neg_pool[:2]
-            parts.append(f"ROS: {'、'.join(selected)}。")
+            items = t("narrative_text.hpi.list_sep", lang).join(neg_pool[:2])
+            parts.append(t("narrative_text.hpi.ros", lang, items=items))
 
     return "".join(parts)

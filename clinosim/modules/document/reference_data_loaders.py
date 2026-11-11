@@ -222,35 +222,45 @@ def load_discharge_instructions() -> dict[str, Any]:
 # ─────────────────────────────────────────────────────────────────
 
 
-class HpiPertinentNegatives(RootModel[dict[str, list[str]]]):
-    """Shape of hpi_pertinent_negatives.yaml: per disease, the JP pertinent
-    negative phrases."""
+def _has_english(entry: dict[str, list[str]]) -> dict[str, list[str]]:
+    if "en" not in entry:
+        raise ValueError("every disease needs English negatives (the fallback language)")
+    return entry
+
+
+class HpiPertinentNegatives(RootModel[dict[str, Annotated[dict[str, list[str]], AfterValidator(_has_english)]]]):
+    """Shape of hpi_pertinent_negatives.yaml: per disease, a language map of
+    pertinent negative phrases; English is required (Issue #3206)."""
 
 
 @lru_cache(maxsize=1)
-def load_hpi_pertinent_negatives() -> dict[str, list[str]]:
+def load_hpi_pertinent_negatives() -> dict[str, dict[str, list[str]]]:
     """Load hpi_pertinent_negatives.yaml. Cached singleton.
 
-    Returns a ``{disease_id: [neg_phrase, ...]}`` mapping. Missing file
-    or invalid shape → empty dict (silent no-op ROS tail; template
-    falls back to the pre-#984 HPI body). Content is JP-only; EN
-    locale currently emits its own locale-neutral HPI seed and does
-    not consult this file.
+    Returns a ``{disease_id: {lang: [neg_phrase, ...]}}`` mapping (blank
+    phrases dropped). Missing file → empty dict (silent no-op ROS tail;
+    template falls back to the pre-#984 HPI body).
     """
     path = _REF_DIR / "hpi_pertinent_negatives.yaml"
     if not path.exists():
         return {}
     data = load_validated_yaml(path, HpiPertinentNegatives) or {}
-    out: dict[str, list[str]] = {}
-    if not isinstance(data, dict):
-        return out
-    for disease_id, phrases in data.items():
-        if not isinstance(phrases, list):
-            continue
-        cleaned = [str(p).strip() for p in phrases if p and isinstance(p, str) and str(p).strip()]
-        if cleaned:
-            out[str(disease_id)] = cleaned
+    out: dict[str, dict[str, list[str]]] = {}
+    for disease_id, by_lang in data.items():
+        out[str(disease_id)] = {
+            str(lang): [str(p).strip() for p in phrases if isinstance(p, str) and p.strip()]
+            for lang, phrases in by_lang.items()
+        }
     return out
+
+
+def hpi_pertinent_negatives(disease_id: str, lang: str) -> list[str]:
+    """The pertinent negatives of ``disease_id`` in ``lang``, else English,
+    else ``[]`` (spec §6 rule 1)."""
+    from clinosim.locale.localized import normalize_lang
+
+    by_lang = load_hpi_pertinent_negatives().get(disease_id) or {}
+    return list(by_lang.get(normalize_lang(lang)) or by_lang.get("en") or [])
 
 
 # ─────────────────────────────────────────────────────────────────
