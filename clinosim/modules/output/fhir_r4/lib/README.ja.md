@@ -48,6 +48,8 @@ module から直接 import する (Issue #545 rename)。
     `<ResourceType>/<variant>` キー (`Observation/LabResult`、
     `DiagnosticReport/Radiology` など) は表の `variants` 節を読み、builder
     自身が宣言する profile variant に使う (Issue #3201)。
+    `language_uses(lang, fhir_profile)`: 出力言語で動く builder 向けに、その
+    言語の出力が FHIR profile を適用するかを返す (Issue #3203)。
   - `dosage.py` — MedicationRequest / MedicationAdministration の
     Dosage helper (`build_dosage_instruction`、`build_route_concept`、
     `canonicalize_route`、`augment_iv_dosage_with_rate`、

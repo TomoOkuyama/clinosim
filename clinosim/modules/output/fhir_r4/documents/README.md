@@ -104,7 +104,12 @@ gate replaces byte-diff (see
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`.
+- `clinosim.countries` — `lang_for`.
+- `lib/profile_meta.py` — `language_uses(lang, "jp_clins")`: the Composition
+  builders are keyed by the output language, so the JP-CLINS document
+  dispatch asks whether that language's country profile applies JP-CLINS;
+  the health-checkup DocumentReference follows `profile.uses("jp_echeckup")`
+  (Issue #3203).
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`,
   `_escape_html`, `derive_meta_last_updated`, `to_fhir_instant`;
   `lib.ids` — opaque ids.

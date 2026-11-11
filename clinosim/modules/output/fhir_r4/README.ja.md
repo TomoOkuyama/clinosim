@@ -89,8 +89,11 @@ Procedure, Practitioner)、
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `countries.lang_for` (個別 builder
-  では他 helper も)。
+- `clinosim.countries` — `lang_for` (個別 builder では
+  `clinosim.modules._shared` の helper も)。
+- `clinosim.country_profile` — 各 finishing pass と profile 構造は、国が対象の
+  FHIR profile を適用する (`profile.uses("jp_core" | "jp_clins" | "jp_echeckup" | "us_core")`)
+  ときだけ動く (Issue #3203)。
 - `clinosim.modules.output.cif_reader` — 構造化 + narrative-version
   merge 済み CIF load 用 `CIFReader`。
 - `clinosim.codes` — code-system URI + 表示 lookup。

@@ -20,7 +20,6 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loinc import loinc_for
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.demographics.smoking_alcohol import _sdoh_effective_datetime
 from clinosim.modules.output.fhir_r4.lib.common import _social_category, display_entry, dual_slot_concept
@@ -30,7 +29,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_COMMON_PROFILE
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque care-level id ===
 # Structural key = pre-#854 id body (patient id).
@@ -68,7 +67,7 @@ def _bb_care_level(ctx: BundleContext) -> list[dict]:
         "id": _resolve_care_level_id(_cl_structural_key),
         "identifier": [wrap_as_identifier(_cl_structural_key, CARE_LEVEL_KEY_SYSTEM)],
         # chain #2: JP Core Observation_Common profile.
-        **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(ctx.country) else {}),
+        **profile_meta("Observation", ctx.country),
         "status": "final",
         "category": _social_category(ctx.country),
         "code": {

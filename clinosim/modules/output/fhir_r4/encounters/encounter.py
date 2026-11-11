@@ -20,7 +20,6 @@ from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import map_diagnosis_code, vocab_display
 from clinosim.locale.localized import localized_field
-from clinosim.modules._shared import is_jp
 from clinosim.modules.diagnosis.nonspecific_codes import is_never_principal_dx, is_visit_reason_zcode
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     encounter_admission_condition_id,
@@ -40,6 +39,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     wrap_as_identifier,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import _dept_display
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 
 # === Issue #854 Bucket B (PR-encounter): opaque Encounter.id ===
 # LEAK ROOT of the compound-id anti-pattern — the pre-#854 shape
@@ -724,11 +724,7 @@ def _build_encounter(
         "id": resolve_encounter_id(encounter_id),
         "identifier": [wrap_as_identifier(encounter_id, ENCOUNTER_KEY_SYSTEM)],
         # C2-20: JP Core Encounter profile.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Encounter"]}}
-            if is_jp(country)
-            else {}
-        ),
+        **profile_meta("Encounter", country),
         "status": map_encounter_status(enc.get("status", "")),
         "class": system_coding("hl7-v3-actcode", class_code, lang_for(country)),
         "subject": patient_ref(patient_id),

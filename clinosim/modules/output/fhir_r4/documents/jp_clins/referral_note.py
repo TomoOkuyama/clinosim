@@ -21,13 +21,13 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import uses_jp_clins_profile
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
     format_referral_destination_text,
     pick_external_hospital,
 )
 from clinosim.modules.output.fhir_r4.lib.common import _escape_html
+from clinosim.modules.output.fhir_r4.lib.profile_meta import language_uses
 
 # ---------------------------------------------------------------------------
 # JP-CLINS eReferral constants (verbatim from composition.py).
@@ -191,7 +191,7 @@ def _build_jp_clins_referral_note_composition(
     # Issue #924: 920 self-pin / 910 external-catalog sample.
     pid = _o(doc, "patient_id", "") or ""
     eid = _o(doc, "encounter_id", "") or ""
-    external_dest = pick_external_hospital(pid, eid, country="JP") if uses_jp_clins_profile(lang) else None
+    external_dest = pick_external_hospital(pid, eid, country="JP") if language_uses(lang, "jp_clins") else None
 
     top_entry_by_code: dict[str, list[dict[str, str]]] = {
         "920": _JP_ER_REFERRING_FROM_REF,

@@ -25,7 +25,7 @@ from clinosim.codes.snomed import snomed_for_phrase
 from clinosim.countries import lang_for
 from clinosim.locale.free_text import localize_procedure_name
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.immunization.visits import IMMUNIZATION_VISIT_DX, vaccination_visit_reason_codes
 from clinosim.modules.output.fhir_r4.conditions.conditions import _build_conditions
 from clinosim.modules.output.fhir_r4.demographics.patient import (
@@ -48,7 +48,7 @@ from clinosim.modules.output.fhir_r4.labs.observations import (
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
-from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_PROCEDURE_PROFILE
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 from clinosim.modules.output.fhir_r4.medications.medications import (
     _build_discharge_medication_request,
     _build_medication_admin,
@@ -859,7 +859,7 @@ def _bb_procedures(ctx: BundleContext) -> list[dict]:
             order.get("ordered_datetime", "") if isinstance(order, dict) else getattr(order, "ordered_datetime", "")
         )  # noqa: E501
         _lang = lang_for(ctx.country)
-        _profile = {"meta": {"profile": [JP_PROCEDURE_PROFILE]}} if is_jp(ctx.country) else {}
+        _profile = profile_meta("Procedure", ctx.country)
         # C4-03/18: PROCEDURE-Order path lacked
         # Procedure.category. Bind SNOMED 277132007 (Therapeutic procedure,
         # SNOMED CT) — these are treatment-side procedures (splint / bandage /

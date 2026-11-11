@@ -25,7 +25,6 @@ from clinosim.countries import country_code as _country_code
 from clinosim.countries import lang_for
 from clinosim.country_profile import country_profile
 from clinosim.locale.loader import load_addresses, load_code_mapping, load_reference_ranges
-from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.reference_data import (
     _JP_CONDITION_SEVERITY_CS,
     _SEVERITY_JP,
@@ -276,7 +275,9 @@ def severity_coding(severity: str, country: str = "US") -> dict[str, Any]:
     sev = severity.lower()
     _snomed_map = _SEVERITY_SNOMED.get(sev) or _SEVERITY_SNOMED.get("moderate") or {}
     snomed = dict(_snomed_map)
-    if is_jp(country):
+    # Issue #3203: the JP Core severity CodeSystem leads where the country
+    # applies JP Core.
+    if country_profile(country).uses("jp_core"):
         # JP: JP CS primary + SNOMED secondary(SNOMED は英語 display のまま
         # 保持 = 標準の英語 display と一致)。fallback は moderate(既存挙動と
         # 同一)。JP CS の display は spec 準拠(`中度`、`中等度` ではない)。

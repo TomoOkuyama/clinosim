@@ -91,8 +91,11 @@ Domain-README files enumerate the per-family builders.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `countries.lang_for` (and other
-  helpers in individual builders).
+- `clinosim.countries` — `lang_for` (and `clinosim.modules._shared` helpers
+  in individual builders).
+- `clinosim.country_profile` — each finishing pass and profile structure runs
+  where `profile.uses("jp_core" | "jp_clins" | "jp_echeckup" | "us_core")`
+  says the country applies the FHIR profile it serves (Issue #3203).
 - `clinosim.modules.output.cif_reader` — `CIFReader` for structural
   + narrative-version-merged CIF load.
 - `clinosim.codes` — code-system URI + display lookup.

@@ -96,8 +96,11 @@ NDJSON by id.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`,
-  `get_attr_or_key`.
+- `clinosim.modules._shared` — `get_attr_or_key`; `clinosim.countries` — `lang_for`.
+- `clinosim.country_profile` — the JP Core profile URLs (from
+  `lib/profile_meta.py`, including `Location`) and the JP-CLINS eCS hospital
+  Organization (identifier, telecom from `locale/<cc>/facility_identity.yaml`,
+  address) follow `profile.uses("jp_core" | "jp_clins")` (Issue #3203).
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`,
   `system_coding`, `_social_category`, `loinc_coding`,
   `attach_ecs_institutional_extensions`.

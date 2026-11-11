@@ -16,7 +16,7 @@ from functools import cache
 from typing import Any
 
 from clinosim.codes import data_table
-from clinosim.country_profile import country_profile
+from clinosim.country_profile import country_profile, supported_countries
 
 
 @cache
@@ -40,3 +40,18 @@ def profile_meta(resource_type: str, country: str, *fhir_profiles: str) -> dict[
     else ``{}`` — spread into a resource literal where ``meta`` belongs."""
     urls = declared_profiles(resource_type, country, *(fhir_profiles or ("jp_core",)))
     return {"meta": {"profile": urls}} if urls else {}
+
+
+def language_uses(lang: str, fhir_profile: str) -> bool:
+    """Whether output written in ``lang`` applies ``fhir_profile``: the profile
+    of a supported country whose output language is ``lang`` uses it (Issue
+    #3203). For builders keyed by the output language rather than the country
+    (the document Compositions)."""
+    from clinosim.locale.localized import normalize_lang
+
+    language = normalize_lang(lang)
+    return any(
+        country_profile(code).uses(fhir_profile)
+        for code in supported_countries()
+        if country_profile(code).language == language
+    )

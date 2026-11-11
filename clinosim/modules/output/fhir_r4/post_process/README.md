@@ -137,7 +137,9 @@ byte-identity is preserved across runs.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`.
+- `clinosim.country_profile` — the JP-CLINS eCS fields (resourceIdentifier
+  slice, MEDIS disease coding, MedicationRequest status pin) are populated
+  where `profile.uses("jp_clins")` (Issue #3203).
 - `clinosim.modules.output.fhir_r4.lib.common` —
   `derive_meta_last_updated` (populate); `lib.ids` —
   `derive_opaque_id` / `structural_key_system` (specimen).

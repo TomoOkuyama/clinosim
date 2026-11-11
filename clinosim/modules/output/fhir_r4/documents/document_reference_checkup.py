@@ -31,9 +31,9 @@ from typing import Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp
 from clinosim.modules.document import DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -93,7 +93,8 @@ def _bb_document_references_checkup(ctx: BundleContext) -> list[dict[str, Any]]:
     US や opt-in 無効の JP コホートでは空 list を返し byte-diff を保つ。
     """
     country = ctx.country or "us"
-    if not is_jp(country):
+    # Issue #3203: the health-checkup report is a JP-eCheckup document.
+    if not country_profile(country).uses("jp_echeckup"):
         return []
 
     raw_docs = _o(ctx.record, "documents", []) or []

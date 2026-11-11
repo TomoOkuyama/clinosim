@@ -30,7 +30,8 @@ def test_country_without_a_block_falls_back_to_us(monkeypatch) -> None:
     assert mortality.qx_for("DE", "M", 82) == 0.08
 
 
-def test_us_core_profiles_only_for_the_us() -> None:
+def test_us_core_profiles_only_for_the_us(monkeypatch) -> None:
+    import clinosim.country_profile as cp
     from clinosim.modules.output.fhir_r4.builder import _finalize_resource
 
     def profiles(country: str) -> list[str]:
@@ -39,7 +40,12 @@ def test_us_core_profiles_only_for_the_us() -> None:
         return resource.get("meta", {}).get("profile", [])
 
     assert any("us/core" in url for url in profiles("US"))
-    assert not any("us/core" in url for url in profiles("DE"))
+    assert not any("us/core" in url for url in profiles("JP"))
+    # Issue #3203: the profile stacking follows the country profile; a third
+    # country (a profile applying no FHIR profile) gets base FHIR.
+    real = cp._profile
+    monkeypatch.setattr(cp, "_profile", lambda code: real(code).model_copy(update={"fhir_profiles": ()}))
+    assert profiles("US") == []
 
 
 def test_template_demographics_uses_the_loader_schema() -> None:

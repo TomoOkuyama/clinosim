@@ -23,3 +23,6 @@ hospital:
   prefecture: 東京都
   institution_code: "1310000100"
   postal_code: "100-0000"
+  # Issue #3203: the hospital's work phone (Organization.telecom, required by
+  # JP_Organization_eCS); a placeholder number in the Tokyo 03 area.
+  phone: "03-0000-0000"
