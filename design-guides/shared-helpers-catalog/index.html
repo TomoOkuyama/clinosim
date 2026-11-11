@@ -2768,8 +2768,8 @@
 <td>Language names, the LLM "write in this language" instruction, and whether a language has authored narrative content.</td>
 </tr>
 <tr>
-<td><code>clinosim/modules/_shared.py</code> <code>uses_jp_clins_profile(lang)</code></td>
-<td>Whether FHIR resources are emitted under a JP-CLINS profile family.</td>
+<td><code>clinosim/modules/output/fhir_r4/lib/profile_meta.py</code> <code>language_uses(lang, fhir_profile)</code></td>
+<td>Whether output in a language applies a FHIR profile (the country profile of that output language), for builders keyed by the output language. Builders that have the country ask <code>country_profile(country).uses(...)</code>.</td>
 </tr>
 </tbody>
 </table>

@@ -2613,8 +2613,8 @@
 <td>言語名、LLM への「この言語で書け」指示、その言語に記述済みの narrative があるか。</td>
 </tr>
 <tr>
-<td><code>clinosim/modules/_shared.py</code> <code>uses_jp_clins_profile(lang)</code></td>
-<td>FHIR リソースを JP-CLINS プロファイル系で出すかどうか。</td>
+<td><code>clinosim/modules/output/fhir_r4/lib/profile_meta.py</code> <code>language_uses(lang, fhir_profile)</code></td>
+<td>ある出力言語の出力が FHIR profile を適用するか (その出力言語の国プロファイルで決まる)。出力言語で動く builder 向け。country を持つ builder は <code>country_profile(country).uses(...)</code> を使う。</td>
 </tr>
 </tbody>
 </table>
