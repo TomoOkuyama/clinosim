@@ -41,8 +41,8 @@ the shared rule.
   `DISCHARGE_RX_ID_PREFIX = "rxdc-"`, `OUTPATIENT_RX_ID_PREFIX =
   "rxopd-"`, `MEDICATION_REQUEST_KEY_SYSTEM =
   structural_key_system("medication-request-key")`; per-country
-  supply-duration unit (`_SUPPLY_DURATION_UNIT_JP = "日"` /
-  `_SUPPLY_DURATION_UNIT_US = "d"`, code `_SUPPLY_DURATION_CODE = "d"`);
+  supply-duration unit (the output language's `fhir_emit_text.unit_day`,
+  code `_SUPPLY_DURATION_CODE = "d"`);
   JP YJ + MEDIS uncoded constants (`_JP_YJ_CODE_URI`,
   `_JP_MEDICATION_CODE_NOCODED_CS`,
   `_JP_MEDICATION_CODE_NOCODED_CODE = "NOCODED"`,
@@ -107,8 +107,13 @@ Not applicable — pure builders over CIF orders + MAR records.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`,
-  `get_attr_or_key`.
+- `clinosim.modules._shared` — `get_attr_or_key`; `clinosim.countries` — `lang_for`.
+- `clinosim.country_profile` — `profile.uses("jp_core")` gates the JP Core
+  profile URLs and the `rpNumber` / `orderInRp` identifier slices,
+  `profile.uses("jp_clins")` the eCS `nocoded` medication coding; the drug
+  code system (`system_key_for("drug", country)`) decides whether codes come
+  from the catalog by route (YJ) and whether RxNorm display / SCD rules
+  apply (Issue #3202). Profile URLs come from `lib/profile_meta.py`.
 - `clinosim.codes.ucum` — `ucum_quantity` (every UCUM Quantity).
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — dosage / route / status
   helpers.

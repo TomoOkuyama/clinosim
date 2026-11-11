@@ -18,9 +18,10 @@ from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.snomed_concepts import NEWS2_SCALE
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label
-from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.observation.nursing import gcs_components
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -32,7 +33,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_COMMON_PROFILE
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 
 # Nurse-shift-plausible clock time for post-admission assessments
 # (Issue #1437). Day-0 assessments emit at the encounter's actual
@@ -301,7 +302,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             "resourceType": "Observation",
             "id": obs_id,
             # Chain #2: JP Core Observation_Common profile.
-            **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(ctx.country) else {}),
+            **profile_meta("Observation", ctx.country),
             "status": "final",
             "category": survey_category(lang_for(ctx.country)),
             "subject": subject,
@@ -353,8 +354,9 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             }
             # LOINC 2.83 carries a generic early-warning-score total (115635-5,
             # method EWS); NEWS2 is one such method, so US output adds it as a
-            # second coding. JP is left as-is: JP validators pin older LOINC.
-            if not is_jp(ctx.country):
+            # second coding. JP Core output is left as-is: the JP validators
+            # pin older LOINC (Issue #3202: gated on the profile).
+            if not country_profile(ctx.country).uses("jp_core"):
                 obs["code"]["coding"].append(loinc_coding("115635-5", lang))
             # Issue #2644: SNOMED CT International 1287358002 National Early
             # Warning Score (tx.fhir.org $lookup 2026-11-05).

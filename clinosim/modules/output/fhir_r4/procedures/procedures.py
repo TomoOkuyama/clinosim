@@ -19,7 +19,6 @@ from clinosim.countries import lang_for
 from clinosim.locale.free_text import localize_procedure_name
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import map_diagnosis_code
-from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding
@@ -29,8 +28,8 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_PROCEDURE_PROFILE
 from clinosim.modules.output.fhir_r4.lib.localization import _procedure_display
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 
 # Issue #854 Bucket A: opaque id + identifier[] round-trip for Procedure
 # (same pattern PR #357 established for antibiotic MedicationRequest, PR
@@ -99,6 +98,11 @@ def _build_procedure(
     """Build FHIR Procedure resource."""
     code_system_key = system_key_for("procedure", country)
     code_system = get_system_uri(code_system_key)
+    # Issue #3202: which CIF code is the country's own and whether a CPT
+    # code may be emitted follow the country's procedure code system, not the
+    # country (CIF keeps the CPT code in ``procedure_code_us`` and the K-code
+    # in ``procedure_code_jp``).
+    own_is_cpt = code_system_key == "cpt"
     lang = lang_for(country)
 
     # Use performedDateTime for point-in-time procedures, performedPeriod for longer ones
@@ -138,7 +142,7 @@ def _build_procedure(
         # Uncoded by design in this country (Issue #2340: e.g. JP 正常分娩 is
         # uninsured, US oxygen administration has no CPT code): name it from
         # the catalog, else from the other country's registered code.
-        other_code = proc_code_us if is_jp(country) else proc_code_jp
+        other_code = proc_code_jp if own_is_cpt else proc_code_us
         primary_display = (
             procedure_type_display(proc_type, primary_lang) if proc_type in _catalog_types() else ""
         ) or _procedure_display(other_code, primary_lang, fallback)
@@ -181,14 +185,14 @@ def _build_procedure(
     _primary_system = code_system
     if _primary_system_key_override:
         _primary_system = get_system_uri(_primary_system_key_override)
-    elif is_jp(country) and not proc_code_jp and proc_code_us and primary_code == proc_code_us:
+    elif not own_is_cpt and not proc_code_jp and proc_code_us and primary_code == proc_code_us:
         _primary_system = get_system_uri("cpt")
     # Issue #3009: JP output uses JP code systems only. CPT is a US code
     # system (AMA) and is never emitted on JP: a procedure with no K-code
     # keeps its Japanese ``code.text`` (and a SNOMED coding below when one
     # is verified) and no CPT coding (code-mapping spec: no other country's
     # system as a fallback).
-    _drop_primary = is_jp(country) and _primary_system == get_system_uri("cpt")
+    _drop_primary = not own_is_cpt and _primary_system == get_system_uri("cpt")
 
     # No primary coding without a code (an empty ``code`` is invalid FHIR);
     # the text and the SNOMED coding still describe it.
@@ -225,7 +229,7 @@ def _build_procedure(
         "id": resource_id,
         "identifier": [wrap_as_identifier(structural_key, PROCEDURE_KEY_SYSTEM)],
         # Chain #2: JP Core Procedure profile.
-        **({"meta": {"profile": [JP_PROCEDURE_PROFILE]}} if is_jp(country) else {}),
+        **profile_meta("Procedure", country),
         "status": "completed",
         "code": {
             **({"coding": coding_entries} if coding_entries else {}),

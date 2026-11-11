@@ -24,10 +24,11 @@ from clinosim.codes.icd10 import condition_label
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import country_code as _country_code
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping, map_diagnosis_code
 from clinosim.locale.localized import localized
-from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, get_attr_or_key, is_jp
+from clinosim.modules._shared import MED_STOP_ORDER_ID_MARKER, get_attr_or_key
 from clinosim.modules.order.absolute_dose import is_continuous_infusion
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -55,6 +56,7 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
     _localize_rate_adjustment,
     _split_rate_adjustment_suffix,
 )
+from clinosim.modules.output.fhir_r4.lib.profile_meta import declared_profiles, profile_meta
 from clinosim.types.encounter import ACUTE_COURSE
 
 # HL7 CodeSystem URIs for MedicationRequest classification (both callers
@@ -252,8 +254,6 @@ OUTPATIENT_RX_ID_PREFIX = "rxopd-"
 # US locale has NO fixed-value constraint (JP profiles never bind US resources), so
 # `unit` gets the UCUM Latin token `d` to match `code` — the JP character in a US
 # resource leaks Japanese-language text into English output (Issue #730).
-_SUPPLY_DURATION_UNIT_JP = t("fhir_emit_text.unit_day", "ja")
-_SUPPLY_DURATION_UNIT_US = "d"
 _SUPPLY_DURATION_CODE = "d"
 
 
@@ -322,7 +322,7 @@ def _build_medication_request_meta(
     country_code: str,
     medication_intent: str,
 ) -> dict[str, Any]:
-    """Build MedicationRequest.meta with profile (JP only) and tag[] (medication_intent).
+    """Build MedicationRequest.meta with profile (JP Core, Issue #3202) and tag[] (medication_intent).
 
     Issue #349 Phase 2: medication_intent ("empirical" or "narrowed") is emitted
     in meta.tag[] with system urn:clinosim:regimen-intent. For non-antibiotic
@@ -331,8 +331,9 @@ def _build_medication_request_meta(
     meta: dict[str, Any] = {}
 
     # JP Core profile
-    if is_jp(country_code):
-        meta["profile"] = ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"]
+    profiles = declared_profiles("MedicationRequest", country_code, "jp_core")
+    if profiles:
+        meta["profile"] = profiles
 
     # Medication intent tag (antibiotic regimens only)
     if medication_intent:
@@ -371,7 +372,7 @@ def _build_medication_request_identifiers(
     entries: list[dict[str, str]] = [
         wrap_as_identifier(structural_key, MEDICATION_REQUEST_KEY_SYSTEM),
     ]
-    if is_jp(country_code):
+    if country_profile(country_code).uses("jp_core"):
         entries.extend(
             [
                 {
@@ -514,10 +515,19 @@ def _mr_intent_from_order(order: dict, encounter_type: str = "") -> str:
     return "order"
 
 
+def _drug_codes_by_route(country_code: str) -> bool:
+    """Whether the country's drug code system codes a product form (YJ): its
+    codes come from the drug catalog by drug and route, and an order's own
+    code is not used (Issue #2347). Decided by the country profile's drug code
+    system (Issue #3202)."""
+    return system_key_for("drug", country_code) == "yj"
+
+
 def _drug_code_table(country_code: str, route: str) -> dict[str, str]:
-    """Drug name → code table the builders match order names against: RxNorm
-    for the US, the catalog's JP YJ product for ``route`` for JP (Issue #2347)."""
-    if is_jp(country_code):
+    """Drug name → code table the builders match order names against: the
+    country's code mapping (RxNorm for the US), or the catalog's YJ product for
+    ``route`` when the drug code system codes product forms (Issue #2347)."""
+    if _drug_codes_by_route(country_code):
         return jp_drug_code_table(route)
     return load_code_mapping("drug", country_code)
 
@@ -583,7 +593,7 @@ def _resolve_medication_concept(
     # missed the code_mapping match. Simultaneously honor Order.order_code
     # when the disease YAML already supplies an authoritative `code_yj` /
     # `code_rxnorm` (Order.order_code is set at place_admission_orders time).
-    code_value = "" if is_jp(country_code) else (order_code or "")
+    code_value = "" if _drug_codes_by_route(country_code) else (order_code or "")
     # Hoisted (Issue #852 follow-up): tokens are needed by BOTH the
     # code_mapping lookup (when order_code is empty) AND the JA multi-
     # word extension below (which must run regardless of order_code).
@@ -690,11 +700,11 @@ def _resolve_medication_concept(
     # unchanged — the JP tx-server accepts the Japanese 括弧付き
     # annotation form (``アセトアミノフェン（カロナール）``), and the YJ /
     # HOT CodeSystems have different display conventions.
-    if not is_jp(country_code) and display:
+    if drug_system_key == "rxnorm" and display:
         display = _TRADE_NAME_SUFFIX_RE.sub("", display).strip()
     # F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch。
     # US は従来通り RxNorm URI。
-    if is_jp(country_code) and drug_system_key == "yj" and code_value:
+    if drug_system_key == "yj" and code_value:
         code_system = _resolve_jp_drug_system_uri(code_value)
     else:
         code_system = get_system_uri(drug_system_key)
@@ -709,8 +719,7 @@ def _resolve_medication_concept(
     # ="yj" でも `_resolve_jp_drug_system_uri` が HOT7/HOT9/HOT13 に dispatch
     # した場合(全 HOT 系は別 CodeSystem)は対象外 = 通常 emit。
     _jp_yj_unverified = (
-        is_jp(country_code)
-        and drug_system_key == "yj"
+        drug_system_key == "yj"
         and bool(code_value)
         and code_system == _JP_YJ_CODE_URI
         and not _is_yj_code_valid(code_value)
@@ -723,7 +732,7 @@ def _resolve_medication_concept(
                 "display": display,
             }
         ]
-    elif is_jp(country_code):
+    elif country_profile(country_code).uses("jp_clins"):
         # #291 / #283:JP-CLINS eCS(JP_MedicationRequest-eCS)は
         # `medication[x].coding` min=1 を要求。code_mapping にヒットしない
         # ED 特異薬(点眼薬 / 泌尿器系一次治療薬 等)+ #283 で tx-server
@@ -870,7 +879,7 @@ def _build_mr_dispense_request(
     if _days and _days > 0:
         disp["expectedSupplyDuration"] = ucum_quantity(
             int(_days),
-            _SUPPLY_DURATION_UNIT_JP if is_jp(country) else _SUPPLY_DURATION_UNIT_US,
+            t("fhir_emit_text.unit_day", lang_for(country)),
             code=_SUPPLY_DURATION_CODE,
         )
     return disp
@@ -906,7 +915,7 @@ def _apply_rxnorm_scd(resource: dict[str, Any], country: str) -> None:
     the dose quantity (``dosageInstruction[0]`` / ``dosage``). No SCD is
     added when no single product fits that dose.
     """
-    if is_jp(country):
+    if system_key_for("drug", country) != "rxnorm":
         return
     concept = resource.get("medicationCodeableConcept") or {}
     codings = concept.get("coding") or []
@@ -1171,7 +1180,7 @@ def _build_discharge_rx_dispense(authored_on: str, duration_days: int | None, co
     if duration_days is not None:
         dispense["expectedSupplyDuration"] = ucum_quantity(
             duration_days,
-            _SUPPLY_DURATION_UNIT_JP if is_jp(country_code) else _SUPPLY_DURATION_UNIT_US,
+            t("fhir_emit_text.unit_day", lang_for(country_code)),
             code=_SUPPLY_DURATION_CODE,
         )
     return dispense
@@ -1682,7 +1691,7 @@ def _build_medication_admin(
     ]
     # clinosim_feedback P1-4: JP_MedicationAdministration.
     # identifier slice `rpNumber` + `orderInRp`(parent MR と同 URL / 同 値)。
-    if is_jp(country_code):
+    if country_profile(country_code).uses("jp_core"):
         ma_identifiers.extend(
             [
                 {
@@ -1699,11 +1708,7 @@ def _build_medication_admin(
         "resourceType": "MedicationAdministration",
         "id": _resolve_ma_id(_ma_structural_key),
         # chain #2: JP Core MedicationAdministration profile.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationAdministration"]}}
-            if is_jp(country_code)
-            else {}
-        ),
+        **profile_meta("MedicationAdministration", country_code),
         "identifier": ma_identifiers,
         "status": map_mar_status(mar.get("status", "completed")),
         "medicationCodeableConcept": med_concept,

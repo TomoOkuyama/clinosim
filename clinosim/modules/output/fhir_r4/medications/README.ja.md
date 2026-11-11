@@ -39,8 +39,8 @@ eCS profile で許可されない。`statusReason` は emit しない)。
   `OUTPATIENT_RX_ID_PREFIX = "rxopd-"`,
   `MEDICATION_REQUEST_KEY_SYSTEM =
   structural_key_system("medication-request-key")`;国別 supply
-  duration 単位 (`_SUPPLY_DURATION_UNIT_JP = "日"` /
-  `_SUPPLY_DURATION_UNIT_US = "d"`、code `_SUPPLY_DURATION_CODE = "d"`);
+  duration 単位 (出力言語の `fhir_emit_text.unit_day`、code
+  `_SUPPLY_DURATION_CODE = "d"`);
   JP YJ + MEDIS uncoded 定数 (`_JP_YJ_CODE_URI`,
   `_JP_MEDICATION_CODE_NOCODED_CS`,
   `_JP_MEDICATION_CODE_NOCODED_CODE = "NOCODED"`,
@@ -102,8 +102,13 @@ fragment builder のみを移し、`_bb_*` 登録は inline_bb に残した。
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`,
-  `get_attr_or_key`。
+- `clinosim.modules._shared` — `get_attr_or_key`。`clinosim.countries` — `lang_for`。
+- `clinosim.country_profile` — JP Core の profile URL と `rpNumber` /
+  `orderInRp` identifier slice は `profile.uses("jp_core")`、eCS の
+  `nocoded` 薬剤コードは `profile.uses("jp_clins")` で出し分ける。薬剤コード
+  体系 (`system_key_for("drug", country)`) が、コードを剤形別カタログ (YJ)
+  から引くか、RxNorm の表示・SCD 規則を適用するかを決める (Issue #3202)。
+  profile URL は `lib/profile_meta.py` から。
 - `clinosim.codes.ucum` — `ucum_quantity` (UCUM Quantity は全てここ)。
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`、
   dosage / route / status helper。
