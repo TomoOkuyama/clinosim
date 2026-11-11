@@ -39,7 +39,7 @@ from clinosim.codes.loinc import loinc_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
@@ -50,7 +50,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_COMMON_PROFILE
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 from clinosim.modules.population.encounter_anthropometry import (
     _parse_encounter_datetime,
     age_at_measurement,
@@ -121,7 +121,7 @@ def _build_one_observation(
         "resourceType": "Observation",
         "id": _resolve_anthropometric_id(structural_key),
         "identifier": [wrap_as_identifier(structural_key, ANTHROPOMETRIC_OBSERVATION_KEY_SYSTEM)],
-        **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
+        **profile_meta("Observation", country),
         "status": "final",
         "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
         "code": {

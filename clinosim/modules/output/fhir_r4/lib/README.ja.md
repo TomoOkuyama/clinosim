@@ -45,6 +45,9 @@ module から直接 import する (Issue #545 rename)。
     / `declared_profiles(...)`: 国プロファイルが適用する FHIR profile
     (`profile.uses(name)`) について、resource type の `meta.profile` URL を
     `clinosim/codes/data/fhir-profiles-<name>.yaml` から返す (Issue #3145)。
+    `<ResourceType>/<variant>` キー (`Observation/LabResult`、
+    `DiagnosticReport/Radiology` など) は表の `variants` 節を読み、builder
+    自身が宣言する profile variant に使う (Issue #3201)。
   - `dosage.py` — MedicationRequest / MedicationAdministration の
     Dosage helper (`build_dosage_instruction`、`build_route_concept`、
     `canonicalize_route`、`augment_iv_dosage_with_rate`、

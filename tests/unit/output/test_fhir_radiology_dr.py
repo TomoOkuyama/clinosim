@@ -310,14 +310,12 @@ def test_jp_radiology_dr_uses_radiology_profile_not_common():
     session 46 chain #2 は誤って `_Common` を使用していた(v5 で 499 errors)。
     walker `_apply_jp_core_profile` は variant profile 存在時 Common 追加を skip。
     """
-    from clinosim.modules.output.fhir_r4.labs.diagnostic_report import (
-        _JP_DR_RADIOLOGY_PROFILE,
-    )
+    jp_dr_radiology_profile = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Radiology"
 
     ctx = _make_ctx([_sample_study()], country="jp")
     dr = _rad_drs(ctx)[0]
     profs = dr.get("meta", {}).get("profile", [])
-    assert _JP_DR_RADIOLOGY_PROFILE in profs
+    assert jp_dr_radiology_profile in profs
     # Common profile は emit されない(walker が variant 検出で skip する)。
     # Ideally walker runs upstream at bundle assembly; ensure builder itself
     # does not emit Common as a builder-level default.

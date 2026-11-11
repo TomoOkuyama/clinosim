@@ -26,7 +26,6 @@ _EXPECTED = {
     "JP_MEDICATION_RP_GROUP_NUMBER_SYSTEM": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/Medication-RPGroupNumber",
     "JP_MEDICATION_ADMINISTRATION_INDEX_SYSTEM": "http://jpfhir.jp/fhir/core/mhlw/IdSystem/MedicationAdministrationIndex",
     "JP_OBSERVATION_COMMON_PROFILE": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common",
-    "JP_OBSERVATION_LAB_RESULT_PROFILE": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult",
     "JP_LOCATION_PROFILE": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location",
     "JP_ORGANIZATION_PROFILE": "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization",
     "JP_ORGANIZATION_ECS_PROFILE": "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Organization_eCS",

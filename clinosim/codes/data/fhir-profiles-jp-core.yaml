@@ -77,3 +77,17 @@ profiles:
     - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Device
   DeviceUseStatement:
     - http://jpfhir.jp/fhir/core/StructureDefinition/JP_DeviceUseStatement
+
+# Issue #3201: profile variants a builder declares itself, keyed
+# `<ResourceType>/<variant>` (read through
+# `clinosim/modules/output/fhir_r4/lib/profile_meta.py`). The post-process
+# stacking reads `profiles` only.
+variants:
+  Observation/LabResult:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult
+  DiagnosticReport/LabResult:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_LabResult
+  DiagnosticReport/Microbiology:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Microbiology
+  DiagnosticReport/Radiology:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Radiology
