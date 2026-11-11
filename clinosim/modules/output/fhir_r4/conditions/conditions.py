@@ -16,9 +16,10 @@ from clinosim.codes.icd10 import is_icd10_shaped
 from clinosim.codes.snomed import snomed_for
 from clinosim.countries import country_code as _country_code
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import condition_stage_display, map_diagnosis_code
-from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.diagnosis.nonspecific_codes import is_visit_reason_zcode
 from clinosim.modules.disease.protocol import load_all_disease_protocols
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
@@ -47,6 +48,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
 )
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_date, to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 
 # Condition.stage.summary SNOMED coding for staging systems with an unambiguous,
 # authoritatively-verified (tx.fhir.org $lookup) SNOMED CT concept. Keys are the
@@ -166,7 +168,6 @@ def _bodysite_for(code: str, country: str) -> dict | None:
     }
 
 
-_JP_CONDITION_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Condition"
 # Recorder / asserter for a problem-list Condition when the record has no encounter.
 _FALLBACK_RECORDER_ID = "DR-IM-001"
 
@@ -229,15 +230,16 @@ def _condition_skeleton(
     mapped_code: str,
 ) -> dict[str, Any]:
     """The elements every Condition starts with, in emit order. ``diagnosis_type``
-    adds the JP eCS DiagnosisType extension after ``meta`` (``None``: no extension)."""
-    jp = is_jp(ctx.country_code)
+    adds the JP eCS DiagnosisType extension after ``meta`` (``None``: no extension)
+    when the country applies JP-CLINS (Issue #3145)."""
+    ecs = country_profile(ctx.country_code).uses("jp_clins")
     return {
         "resourceType": "Condition",
         "id": condition_id,
         "identifier": [wrap_as_identifier(structural_key, CONDITION_KEY_SYSTEM)],
         # C2-20: JP Core Condition profile.
-        **({"meta": {"profile": [_JP_CONDITION_PROFILE]}} if jp else {}),
-        **({"extension": [_ecs_diagnosis_type_extension(diagnosis_type)]} if jp and diagnosis_type else {}),
+        **profile_meta("Condition", ctx.country_code),
+        **({"extension": [_ecs_diagnosis_type_extension(diagnosis_type)]} if ecs and diagnosis_type else {}),
         "clinicalStatus": dual_slot_concept("hl7-condition-clinical", clinical_status, ctx.lang),
         "verificationStatus": dual_slot_concept("hl7-condition-ver-status", "confirmed", ctx.lang),
         "category": [dual_slot_concept("hl7-condition-category", category, lang_for(ctx.country))],
@@ -422,7 +424,7 @@ def _primary_condition(
     # (matches the FHIR-standard code and the JP display CS
     # `http://jpfhir.jp/core/terminology/CodeSystemJPDisplay/ex-diagnosistype`).
     # Placed after `subject`, unlike the other kinds.
-    if is_jp(ctx.country_code):
+    if country_profile(ctx.country_code).uses("jp_clins"):
         cond.setdefault("extension", []).append(_ecs_diagnosis_type_extension("principal"))
 
     if severity:

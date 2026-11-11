@@ -45,6 +45,11 @@ rename).
     `JP_*_SYSTEM`); every builder imports these instead of writing the
     literal (Issue #2842, guarded by
     `tests/unit/output/test_jp_uri_constants_2842.py`).
+  - `profile_meta.py` — `profile_meta(resource_type, country, *fhir_profiles)`
+    / `declared_profiles(...)`: the `meta.profile` URLs of a resource type
+    for the FHIR profiles the country profile applies
+    (`profile.uses(name)`), read from
+    `clinosim/codes/data/fhir-profiles-<name>.yaml` (Issue #3145).
   - `dosage.py` — MedicationRequest / MedicationAdministration
     Dosage helpers (`build_dosage_instruction`, `build_route_concept`,
     `canonicalize_route`, `augment_iv_dosage_with_rate`,

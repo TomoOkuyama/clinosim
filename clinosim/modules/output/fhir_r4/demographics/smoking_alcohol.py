@@ -20,7 +20,6 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import _social_category, display_entry, dual_slot_concept
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
@@ -29,7 +28,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_COMMON_PROFILE
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 from clinosim.modules.sdoh import load_social_history
 
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque SDOH ids ===
@@ -67,7 +66,7 @@ def _obs(obs_id: str, country: str, loinc: str, loinc_text: str, value_system: s
         "resourceType": "Observation",
         "id": obs_id,
         # chain #2: JP Core Observation_Common profile.
-        **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
+        **profile_meta("Observation", country),
         "status": "final",
         "category": _social_category(country),
         "code": {

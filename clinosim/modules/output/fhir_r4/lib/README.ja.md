@@ -41,6 +41,10 @@ module から直接 import する (Issue #545 rename)。
     profile / identifier system URI (`JP_*_PROFILE`、`JP_*_SYSTEM`)。
     各 builder はリテラルを書かずこれを import する (Issue #2842、
     `tests/unit/output/test_jp_uri_constants_2842.py` で guard)。
+  - `profile_meta.py` — `profile_meta(resource_type, country, *fhir_profiles)`
+    / `declared_profiles(...)`: 国プロファイルが適用する FHIR profile
+    (`profile.uses(name)`) について、resource type の `meta.profile` URL を
+    `clinosim/codes/data/fhir-profiles-<name>.yaml` から返す (Issue #3145)。
   - `dosage.py` — MedicationRequest / MedicationAdministration の
     Dosage helper (`build_dosage_instruction`、`build_route_concept`、
     `canonicalize_route`、`augment_iv_dosage_with_rate`、

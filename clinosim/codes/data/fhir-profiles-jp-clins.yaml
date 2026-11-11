@@ -29,6 +29,10 @@ metadata:
   version: '1.13.0'
 
 profiles:
+  # Issue #3145: declared by the Patient builder itself (with the eCS
+  # must-support fields it emits); listed here so the URL is data.
+  Patient:
+    - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Patient_eCS
   Condition:
     - http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS
   AllergyIntolerance:

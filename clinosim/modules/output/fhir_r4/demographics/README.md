@@ -108,7 +108,12 @@ facade sorts NDJSON by id post-write.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `is_us`, `countries.lang_for`.
+- `clinosim.countries` — `lang_for`.
+- `clinosim.country_profile` — `country_profile(country).uses(...)` decides
+  whether the JP Core / JP-CLINS / US Core elements (meta.profile, kanji /
+  kana names, license identifier, NPI, US Core extensions) are emitted
+  (Issue #3145); `lib/profile_meta.py` reads the profile URLs from
+  `clinosim/codes/data/fhir-profiles-*.yaml`.
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `system_coding`,
   `_social_category`, `build_address`, `build_telecom`, `to_fhir_date`,
   `BundleContext`, plus fragment helpers.

@@ -22,11 +22,10 @@ from clinosim.codes.bcp47 import bcp47_display
 from clinosim.codes.loinc import loinc_coding
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
-from clinosim.country_profile import implementation, register_implementation
+from clinosim.country_profile import country_profile, implementation, register_implementation
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_identity_config, resident_insurer_number, vocab_display
 from clinosim.locale.loaders.fhir_identity import load_facility_identity
-from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.common import (
     _social_category,
     build_address,
@@ -43,7 +42,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_COMMON_PROFILE
+from clinosim.modules.output.fhir_r4.lib.profile_meta import declared_profiles, profile_meta
 
 # === Issue #1344: US Core Patient extensions ===
 # https://hl7.org/fhir/us/core/StructureDefinition-us-core-race.html
@@ -866,6 +865,24 @@ def _build_coverage_resources(
     return resources
 
 
+def _patient_meta(country: str) -> dict[str, Any]:
+    """``meta`` of the Patient: the JP Core and JP-CLINS eCS profiles the
+    country applies (URLs from ``codes/data/fhir-profiles-*.yaml``; Issue
+    #3145) and, with the eCS profile, ``meta.lastUpdated`` (eCS min=1)."""
+    urls = declared_profiles("Patient", country, "jp_core", "jp_clins")
+    if not urls:
+        return {}
+    meta: dict[str, Any] = {"profile": urls}
+    profile = country_profile(country)
+    if profile.uses("jp_clins"):
+        # Static deterministic timestamp mirrors `fhir_r4/encounters/facility.py`
+        # (pattern). Real-world lastUpdated is server-provided; clinosim's
+        # simulator has no such notion, so a fixed value keeps reproducibility
+        # byte-clean while satisfying the eCS min=1 requirement.
+        meta["lastUpdated"] = f"2026-01-01T00:00:00{profile.timezone}"
+    return {"meta": meta}
+
+
 def _build_patient(
     p: dict, country: str, encounters: list[dict] | None = None, snapshot_date: str | None = None
 ) -> dict:
@@ -889,8 +906,10 @@ def _build_patient(
     # C4-12: HumanName.use = "official" per FHIR R4 spec
     # and JP Core Patient recommendation for the registered / kanji name.
     names: list[dict[str, Any]] = []
-    if is_jp(country):
-        # Kanji entry — always emitted for JP.
+    _profile = country_profile(country)
+    if _profile.uses("jp_core"):
+        # Kanji entry — always emitted under JP Core (Issue #3145: the
+        # structure follows the FHIR profile the country applies).
         # Issue #378: JP_Patient_eCS requires `name.text` (min=1). Concatenate
         # kanji family + given with a single space (JP clinical convention:
         # "田中 徹") so the eCS profile assertion is data-complete.
@@ -964,24 +983,7 @@ def _build_patient(
         # cascade. SD-verified min=1 requirements: `meta.lastUpdated`,
         # `meta.profile`, `name`, `name.text`, `name.given`, `gender`,
         # `birthDate`, `address`, `address.text`.
-        **(
-            {
-                "meta": {
-                    "profile": [
-                        "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Patient",
-                        "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Patient_eCS",
-                    ],
-                    # Static deterministic timestamp mirrors `fhir_r4/encounters/facility.py`
-                    # (pattern). Real-world lastUpdated is server-
-                    # provided; clinosim's simulator has no such notion, so
-                    # a fixed value keeps reproducibility byte-clean while
-                    # satisfying the eCS min=1 requirement.
-                    "lastUpdated": "2026-01-01T00:00:00+09:00",
-                }
-            }
-            if is_jp(country)
-            else {}
-        ),
+        **_patient_meta(country),
         "identifier": [
             {
                 "use": "usual",
@@ -1038,7 +1040,7 @@ def _build_patient(
     # sim's population module currently only samples race/ethnicity for
     # US. Unknown / unmapped slugs are silently omitted rather than
     # emitting a fabricated OMB code (feedback_empty_vs_wrong_assertion).
-    if not is_jp(country):
+    if _profile.uses("us_core"):
         _uc_extensions: list[dict[str, Any]] = []
         _race_ext = _build_us_core_race_extension(str(p.get("race") or ""))
         if _race_ext:
@@ -1122,7 +1124,7 @@ def _build_patient(
         # space), while fhir-jp-validator registered the no-space form
         # (`English(US)`). The variant is a profile rule (JP output is
         # validated against JP Core), chosen by country (Issue #2481).
-        _lang_display = bcp47_display(lang, profile="jp-core" if is_jp(country) else None) or ""
+        _lang_display = bcp47_display(lang, profile="jp-core" if _profile.uses("jp_core") else None) or ""
         resource["communication"] = [
             {
                 "language": {
@@ -1148,7 +1150,8 @@ def _build_patient(
     # directly on this builder, not via `_apply_jp_clins_profile` post-hook.
     from clinosim.modules.output.fhir_r4.lib.ecs_extensions import attach_ecs_institutional_extensions
 
-    attach_ecs_institutional_extensions(resource, country, include_department=False)
+    if _profile.uses("jp_clins"):
+        attach_ecs_institutional_extensions(resource, country, include_department=False)
 
     return resource
 
@@ -1186,7 +1189,7 @@ def _build_occupation_observation(
         "id": _resolve_occupation_id(_occupation_key),
         "identifier": [wrap_as_identifier(_occupation_key, OCCUPATION_KEY_SYSTEM)],
         # chain #2: JP Core Observation_Common profile.
-        **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
+        **profile_meta("Observation", country),
         "status": "final",
         "category": _social_category(country),
         "code": {
