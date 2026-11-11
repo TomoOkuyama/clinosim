@@ -7,7 +7,6 @@ from typing import Any
 from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.countries import lang_for
-from clinosim.modules._shared import is_jp
 from clinosim.modules.code_status.engine import load_reference
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -18,7 +17,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_COMMON_PROFILE
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque code-status id ===
 # Structural key = pre-#854 id body: ``{enc or patient_id}``.
@@ -59,7 +58,7 @@ def _bb_code_status(ctx: BundleContext) -> list[dict]:
         "id": _resolve_code_status_id(_cs_structural_key),
         "identifier": [wrap_as_identifier(_cs_structural_key, CODE_STATUS_KEY_SYSTEM)],
         # chain #2: JP Core Observation_Common profile.
-        **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(ctx.country) else {}),
+        **profile_meta("Observation", ctx.country),
         "status": "final",
         "category": survey_category(lang_for(ctx.country)),
         "code": _concept(observable),

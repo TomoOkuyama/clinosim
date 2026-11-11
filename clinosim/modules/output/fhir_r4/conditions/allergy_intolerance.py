@@ -30,7 +30,6 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import uses_jp_clins_profile
 from clinosim.modules.allergy.engine import country_allergen_code
 from clinosim.modules.document import ALLERGY_ID_PREFIX
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -43,6 +42,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 
 # === Issue #854 Bucket C (PR-allergy-intolerance): opaque AI.id ===
 # Structural key = pre-#854 id body `{patient_id}-{allergy_id}` (`allergy-`
@@ -106,7 +106,7 @@ def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
         first_encounter_id = _o(encounters[0], "encounter_id", "") or ""
     out: list[dict[str, Any]] = []
     for a in allergies:
-        ai = _build_allergy_intolerance(a, ctx.patient_id, lang, country=str(ctx.country or ""))
+        ai = _build_allergy_intolerance(a, ctx.patient_id, lang, ctx.country)
         if ai is None:
             continue
         if recorder_ref:
@@ -125,9 +125,7 @@ def _bb_allergy_intolerances(ctx: BundleContext) -> list[dict[str, Any]]:
     return out
 
 
-def _build_allergy_intolerance(
-    allergy: Any, patient_id: str, lang: str = "en", country: str = ""
-) -> dict[str, Any] | None:
+def _build_allergy_intolerance(allergy: Any, patient_id: str, lang: str, country: str) -> dict[str, Any] | None:
     """Build one FHIR R4 AllergyIntolerance from an Allergy (dataclass or dict).
 
     Issue #942: when ``allergy.is_nka`` is True the emitted resource is the
@@ -176,11 +174,7 @@ def _build_allergy_intolerance(
         # no "no known allergy" entry, so it keeps SNOMED CT (JP Core binds
         # code with example strength) and does not claim the eCS profile
         # (``post_process.profile``).
-        own = (
-            None
-            if is_nka
-            else country_allergen_code(allergen_code, country or ("JP" if uses_jp_clins_profile(lang) else "US"))
-        )
+        own = None if is_nka else country_allergen_code(allergen_code, country)
         if own is not None:
             code["coding"] = [system_coding(own[0], own[1], lang)]
         else:
@@ -191,15 +185,9 @@ def _build_allergy_intolerance(
         "resourceType": "AllergyIntolerance",
         "id": _resolve_allergy_id(_ai_structural_key),
         "identifier": [wrap_as_identifier(_ai_structural_key, ALLERGY_KEY_SYSTEM)],
-        # chain #2: JP Core AllergyIntolerance profile.
-        # Gated via `uses_jp_clins_profile` (Phase 1d-60) so a future
-        # locale that should NOT trigger JP-CLINS can flip the predicate
-        # in one place; today equivalent to `lang == "ja"`.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance"]}}
-            if uses_jp_clins_profile(lang)
-            else {}
-        ),
+        # chain #2: JP Core AllergyIntolerance profile, declared when the
+        # country applies JP Core (Issue #3145).
+        **profile_meta("AllergyIntolerance", country),
         # Dual slot (Issue #2375): English HL7 display, localized text.
         "clinicalStatus": dual_slot_concept("hl7-allergyintolerance-clinical", clinical_status, lang),
         "verificationStatus": dual_slot_concept("hl7-allergyintolerance-verification", verification_status, lang),

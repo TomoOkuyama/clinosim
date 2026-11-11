@@ -72,8 +72,10 @@ sort するため line 順は決定論的。
 
 ## 依存
 
-- `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
-  `countries.lang_for`。
+- `clinosim.modules._shared` — `get_attr_or_key`、`countries.lang_for`。
+- `clinosim.country_profile` — JP Core の `meta.profile` と JP-CLINS eCS の
+  DiagnosisType extension は `profile.uses("jp_core" | "jp_clins")` で出し分ける
+  (Issue #3145)。URL は `lib/profile_meta.py` から。
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — fragment helper
   (`system_coding`, `build_diagnosis_codeable_concept`,
   `infer_severity`, `map_diagnosis_code`, `severity_coding`,

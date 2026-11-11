@@ -72,8 +72,10 @@ the emitted NDJSON by resource id so line order is deterministic.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
-  `countries.lang_for`.
+- `clinosim.modules._shared` — `get_attr_or_key`, `countries.lang_for`.
+- `clinosim.country_profile` — `profile.uses("jp_core" | "jp_clins")` gates
+  the JP Core `meta.profile` and the JP-CLINS eCS DiagnosisType extension
+  (Issue #3145); the URLs come from `lib/profile_meta.py`.
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — fragment helpers
   (`system_coding`, `build_diagnosis_codeable_concept`,
   `infer_severity`, `map_diagnosis_code`, `severity_coding`,

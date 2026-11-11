@@ -22,13 +22,13 @@ from clinosim.locale.loader import (
     role_display,
 )
 from clinosim.locale.localized import localized
-from clinosim.modules._shared import is_jp, is_us
 from clinosim.modules.output.fhir_r4.lib.common import (
     display_entry,
     dual_slot_concept,
     system_coding,
     text_if_localized,
 )
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 
 # Issue #1986: US Core 6.1.0 Practitioner profile marks the NPI
 # identifier slice as must-support. System URI is the HL7-registered
@@ -116,7 +116,7 @@ def _license_number(staff_id: str, salt: str, digits: int) -> str:
     return f"{value:0{digits}d}"
 
 
-def _build_jp_qualifications(staff: dict, staff_id: str) -> list[dict[str, Any]]:
+def _build_jp_qualifications(staff: dict, staff_id: str, country: str) -> list[dict[str, Any]]:
     """Build JP MHLW-coded ``Practitioner.qualification`` entries (Issue #962).
 
     Returns:
@@ -133,7 +133,7 @@ def _build_jp_qualifications(staff: dict, staff_id: str) -> list[dict[str, Any]]
           department) maps to a board in
           ``physician_specialty_boards``.
     """
-    cfg = load_practitioner_qualifications("JP")
+    cfg = load_practitioner_qualifications(country)
     if not cfg:
         return []
     role = staff.get("role", "")
@@ -167,7 +167,7 @@ def _build_jp_qualifications(staff: dict, staff_id: str) -> list[dict[str, Any]]
     return qualifications
 
 
-def _build_jp_license_identifier(staff: dict, staff_id: str) -> dict[str, Any] | None:
+def _build_jp_license_identifier(staff: dict, staff_id: str, country: str) -> dict[str, Any] | None:
     """Build the JP MHLW regulatory-license ``identifier`` entry (Issue #962).
 
     Returns ``None`` when the yaml is unavailable, the role is unmapped
@@ -177,7 +177,7 @@ def _build_jp_license_identifier(staff: dict, staff_id: str) -> dict[str, Any] |
     reader displaying `.value` directly sees the conventional 医籍番号
     rendering.
     """
-    cfg = load_practitioner_qualifications("JP")
+    cfg = load_practitioner_qualifications(country)
     if not cfg:
         return None
     role = staff.get("role", "")
@@ -199,16 +199,16 @@ def _build_jp_license_identifier(staff: dict, staff_id: str) -> dict[str, Any] |
 
 
 def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None, country: str = "US") -> dict:
-    """Build FHIR Practitioner resource. Uses roster data when available."""
+    """Build FHIR Practitioner resource. Uses roster data when available.
+
+    Issue #3145: the JP Core / US Core elements follow the FHIR profiles the
+    country profile applies (``profile.uses``)."""
+    profile = country_profile(country)
     resource: dict[str, Any] = {
         "resourceType": "Practitioner",
         "id": staff_id,
         # chain #2: JP Core Practitioner profile.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Practitioner"]}}
-            if is_jp(country)
-            else {}
-        ),
+        **profile_meta("Practitioner", country),
         "active": True,
         "identifier": [{"system": "urn:clinosim:staff", "value": staff_id}],
     }
@@ -218,15 +218,15 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
     # 薬剤師名簿登録番号 …) as a second identifier entry alongside the
     # internal staff key. Deterministic per-staff_id (SHA-256 salted),
     # RNG-neutral (never consumes master RNG). US path unchanged.
-    if staff and is_jp(country):
-        lic_ident = _build_jp_license_identifier(staff, staff_id)
+    if staff and profile.uses("jp_core"):
+        lic_ident = _build_jp_license_identifier(staff, staff_id, country)
         if lic_ident:
             resource["identifier"].append(lic_ident)
     # Issue #1986: US Core requires an NPI identifier on every
     # Practitioner. Deterministic per-staff_id (SHA-256 salted + Luhn
     # check digit), RNG-neutral. Emitted independently of the roster
     # entry so every US Practitioner reference resolves to an NPI.
-    if is_us(country):
+    if profile.uses("us_core"):
         resource["identifier"].append(_build_us_npi_identifier(staff_id))
     if staff:
         full_name = staff.get("name", "")
@@ -246,7 +246,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
         name_obj: dict[str, Any] = {"family": family, "given": [given] if given else []}
         # Issue #3141: the title is country data (country profile
         # ``formats.physician_name_prefix``; none in JP).
-        _prefix = country_profile(country).formats.physician_name_prefix
+        _prefix = profile.formats.physician_name_prefix
         if role in ("physician", "radiologist") and _prefix:
             name_obj["prefix"] = [_prefix]
         # C3-01: JP Core requires kanji (IDE)
@@ -256,7 +256,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
         # names.yaml carries kana column for every kanji entry so JP
         # rosters always fill this field.
         names_list: list[dict[str, Any]] = []
-        if is_jp(country):
+        if profile.uses("jp_core"):
             names_list.append(
                 {
                     **name_obj,
@@ -341,7 +341,7 @@ def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None
         # 循環器専門医`. Falls through to the pre-#962 v2-0360 / text-only
         # path when the yaml is absent or the role is unmapped so we
         # never regress existing qualification coverage.
-        jp_quals = _build_jp_qualifications(staff, staff_id) if is_jp(country) else []
+        jp_quals = _build_jp_qualifications(staff, staff_id, country) if profile.uses("jp_core") else []
         if jp_quals:
             resource["qualification"] = jp_quals
             qual = None
@@ -417,11 +417,7 @@ def _build_practitioner_role(
         "resourceType": "PractitionerRole",
         "id": f"role-{staff_id}",
         # chain #2: JP Core PractitionerRole profile.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole"]}}
-            if is_jp(country)
-            else {}
-        ),
+        **profile_meta("PractitionerRole", country),
         "active": True,
         "practitioner": {"reference": f"Practitioner/{staff_id}"},
     }
