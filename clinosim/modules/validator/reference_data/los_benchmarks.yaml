@@ -1,0 +1,18 @@
+# Length-of-stay benchmarks of the Tier 1 statistical-realism report
+# (clinosim/modules/validator/benchmarks.py run_benchmarks), keyed by country
+# slot (Issue #3184). Days of an inpatient stay: `expected` is the reference
+# value and `range` the [low, high] band reported as a pass.
+#
+# Values carried over unchanged from the code they replace; no source was
+# recorded with them.
+metadata:
+  kind: reference
+  name: los_benchmarks
+  source: clinosim
+
+us:
+  median_los: {expected: 4.5, range: [3, 7]}
+  mean_los: {expected: 5, range: [3, 8]}
+jp:
+  median_los: {expected: 14, range: [10, 20]}
+  mean_los: {expected: 15, range: [10, 22]}

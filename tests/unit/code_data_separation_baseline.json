@@ -38,10 +38,8 @@
     "modules/physiology/egfr.py": 1,
     "modules/population/_pregnancy.py": 1,
     "modules/population/mortality.py": 1,
-    "modules/validator/benchmarks.py": 4,
     "simulator/cli_simulate.py": 1,
     "simulator/enrichers.py": 1,
-    "simulator/perinatal.py": 4,
     "types/document.py": 2
   },
   "numeric_literals": {

@@ -33,10 +33,10 @@ from clinosim.age_bands import lookup_age_band
 from clinosim.codes.drugs import drug_display
 from clinosim.codes.hl7_encounter import ActPriority, AdmitSource, DischargeDisposition
 from clinosim.codes.procedures import country_procedure_code
+from clinosim.countries import country_slot
 from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_perinatal_config
-from clinosim.modules._shared import is_jp
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.staff.engine import FALLBACK_PHYSICIAN_ID, StaffRoster, assign_staff
 from clinosim.seeding import newborn_conditions_seed, newborn_seed, pregnancy_outcome_seed, text_seed
@@ -621,7 +621,7 @@ def simulate_delivery_encounter(
     # activating this feature is byte-neutral for any non-perinatal
     # patient).
     cs_cfg = cfg.get("cesarean") or {}
-    cs_prob = float((cs_cfg.get("probability") or {}).get("jp" if is_jp(country) else "us") or 0.0)
+    cs_prob = float(cs_cfg["probability"][country_slot(country)])
     cs_rng = determinism.default_rng(newborn_seed(f"cesarean|{patient.patient_id}"))
     is_cesarean = float(cs_rng.random()) < cs_prob
 
@@ -651,10 +651,10 @@ def simulate_delivery_encounter(
     encounter.encounter_type = EncounterType.INPATIENT
     encounter.status = EncounterStatus.COMPLETED
     if is_cesarean:
-        cs_los = int((cs_cfg.get("length_of_stay_days") or {}).get("jp" if is_jp(country) else "us") or 4)
+        cs_los = int(cs_cfg["length_of_stay_days"][country_slot(country)])
         los_days = cs_los
     else:
-        los_days = int((enc_cfg.get("length_of_stay_days") or {}).get("jp" if is_jp(country) else "us") or 2)
+        los_days = int(enc_cfg["length_of_stay_days"][country_slot(country)])
     encounter.discharge_datetime = visit_date + timedelta(days=los_days)
 
     staff = assign_staff("rounds", dept, roster, rng)
@@ -775,13 +775,23 @@ def simulate_delivery_encounter(
         from clinosim.types.encounter import Order, OrderStatus, OrderType
 
         _attending = encounter.attending_physician_id
-        _acetaminophen_slot = is_jp(country) or allergy_blocked(
+        # Postop analgesic: the country's drug, or the allergy substitute
+        # when the mother's allergies rule it out (perinatal.yaml
+        # cesarean.postop_analgesic, Issue #3184).
+        _analgesic_cfg = cs_cfg["postop_analgesic"]
+        _analgesic_key = _analgesic_cfg["by_country"][country_slot(country)]
+        _substitute_key = _analgesic_cfg["allergy_substitute"]
+        _analgesic = _analgesic_cfg["drugs"][_analgesic_key]
+        _substitute = _analgesic_cfg["drugs"][_substitute_key]
+        if _analgesic_key != _substitute_key and allergy_blocked(
             patient,
-            "Ketorolac",
+            _analgesic["name"],
             encounter_id=encounter.encounter_id,
             timestamp=visit_date,
-            substituted_with="Acetaminophen",
-        )
+            substituted_with=_substitute["name"],
+        ):
+            _analgesic = _substitute
+        _analgesic_sfx = str(_analgesic["order_suffix"])
         _cs_ord_specs: list[tuple[str, str, str, str, float, str, str, timedelta]] = [
             # (id_suffix, display_name, intent_en, intent_ja, dose, unit, route, timing_delta)
             (
@@ -834,26 +844,15 @@ def simulate_delivery_encounter(
                 "IV",
                 timedelta(minutes=10),
             ),
-            # Issue #1315: postop analgesic slot. Ketorolac (US ERAS
-            # obstetric standard) is not marketed in Japan (no YJ code,
-            # #2134); JP obstetric practice uses IV Acetaminophen
-            # (アセリオ 1 g IV) as the multimodal-analgesia primary, often
-            # paired with a PR NSAID. Use Acetaminophen for JP; keep
-            # Ketorolac (RxNorm) for US (the unchanged ERAS default).
-            #
-            # US uses the pre-#1315 suffix "CSKT" so US CIF Order ids +
-            # downstream opaque FHIR ids are byte-preserved; JP gets a
-            # distinct "CSAM" suffix per its drug identity.
-            # Issue #2924: a mother with an NSAID-ruling allergy (aspirin
-            # allergy) gets the IV Acetaminophen slot instead of Ketorolac.
+            # Issue #1315 / #2924: the postop analgesic chosen above.
             (
-                "CSAM" if _acetaminophen_slot else "CSKT",
-                "Acetaminophen" if _acetaminophen_slot else "Ketorolac",
-                (t("perinatal_intent.CSAM", "en") if _acetaminophen_slot else t("perinatal_intent.CSKT", "en")),
-                (t("perinatal_intent.CSAM", "ja") if _acetaminophen_slot else t("perinatal_intent.CSKT", "ja")),
-                1000.0 if _acetaminophen_slot else 30.0,
-                "mg",
-                "IV",
+                _analgesic_sfx,
+                str(_analgesic["name"]),
+                t(f"perinatal_intent.{_analgesic_sfx}", "en"),
+                t(f"perinatal_intent.{_analgesic_sfx}", "ja"),
+                float(_analgesic["dose"]),
+                str(_analgesic["unit"]),
+                str(_analgesic["route"]),
                 timedelta(minutes=60),
             ),
         ]

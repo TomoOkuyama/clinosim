@@ -7,10 +7,49 @@ Run after a full simulation to validate realism.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import cache
+from pathlib import Path
 from statistics import mean, median
+from typing import Any
 
-from clinosim.modules._shared import is_jp
+from pydantic import BaseModel, ConfigDict, Field, RootModel
+
+from clinosim.countries import country_slot
+from clinosim.datafiles import load_validated_yaml
 from clinosim.types.output import CIFDataset
+
+_LOS_BENCHMARKS = Path(__file__).parent / "reference_data" / "los_benchmarks.yaml"
+
+
+class _LosBenchmark(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    expected: float = Field(gt=0)
+    range: tuple[float, float]
+
+
+class _CountryLosBenchmarks(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    median_los: _LosBenchmark
+    mean_los: _LosBenchmark
+
+
+class _LosBenchmarksFile(RootModel[dict[str, _CountryLosBenchmarks]]):
+    """``reference_data/los_benchmarks.yaml``: country slot → benchmarks."""
+
+
+@cache
+def _los_table() -> dict[str, Any]:
+    return load_validated_yaml(_LOS_BENCHMARKS, _LosBenchmarksFile)
+
+
+def los_benchmarks(country: str) -> dict[str, Any]:
+    """The country's length-of-stay benchmarks (``median_los`` / ``mean_los``:
+    ``expected`` and ``range``) from ``reference_data/los_benchmarks.yaml``
+    (Issue #3184). A country without a profile or an entry raises
+    ``KeyError``."""
+    return dict(_los_table()[country_slot(country)])
 
 
 @dataclass
@@ -107,13 +146,14 @@ def run_benchmarks(dataset: CIFDataset, country: str = "JP") -> BenchmarkReport:
                     los_days.append(los)
 
     if los_days:
+        los_ref = los_benchmarks(country)
         report.add(
             BenchmarkResult(
                 name="median_los",
                 metric="Median LOS (days)",
                 generated_value=median(los_days),
-                expected_value=14 if is_jp(country) else 4.5,
-                expected_range=(10, 20) if is_jp(country) else (3, 7),
+                expected_value=los_ref["median_los"]["expected"],
+                expected_range=(los_ref["median_los"]["range"][0], los_ref["median_los"]["range"][1]),
             )
         )
 
@@ -122,8 +162,8 @@ def run_benchmarks(dataset: CIFDataset, country: str = "JP") -> BenchmarkReport:
                 name="mean_los",
                 metric="Mean LOS (days)",
                 generated_value=mean(los_days),
-                expected_value=15 if is_jp(country) else 5,
-                expected_range=(10, 22) if is_jp(country) else (3, 8),
+                expected_value=los_ref["mean_los"]["expected"],
+                expected_range=(los_ref["mean_los"]["range"][0], los_ref["mean_los"]["range"][1]),
             )
         )
 
