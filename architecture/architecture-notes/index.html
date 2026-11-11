@@ -3691,7 +3691,7 @@ state. These are <strong>country-specific</strong>, <strong>household-correlated
 <li><code>base.py</code> — <code>IdentityProvider</code> Protocol (country-pluggable seam; interface only)</li>
 <li><code>registry.py</code> — <code>country → provider</code> resolution (mirrors <code>healthcare_system</code>)</li>
 <li><code>generators.py</code> — check-digit number generators (country-agnostic pure functions)</li>
-<li><code>providers/jp.py</code> — JP rules (employer-level 記号, 社保/国保/後期高齢, 枝番,
+<li><code>clinosim/countries/jp/identity_provider.py</code> — JP rules (employer-level 記号, 社保/国保/後期高齢, 枝番,
   card/保険証 dated flags, 75-yr transition)</li>
 <li><code>providers/us.py</code> — thin (existing <code>_sample_insurance</code> behavior preserved)</li>
 </ul>

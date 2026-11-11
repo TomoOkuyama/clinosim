@@ -2628,12 +2628,12 @@ profile.</p>
   next to the generic code (for example the eGFR equations in
   <code>clinosim/modules/physiology/egfr.py</code>).</li>
 <li>A country-only algorithm lives in a country package
-  <code>clinosim/countries/&lt;cc&gt;/</code> (for example the JP insurer-number check
-  digit). When the first such package is created, the module
-  <code>clinosim/countries.py</code> becomes the package <code>clinosim/countries/__init__.py</code>,
-  which re-exports its current API so that existing
-  <code>from clinosim.countries import ...</code> imports keep working
-  (django-localflavor style).</li>
+  <code>clinosim/countries/&lt;cc&gt;/</code> (django-localflavor style). The country
+  helpers (<code>is_jp</code>, <code>lang_for</code>, <code>country_code</code>, ...) are the package's
+  <code>clinosim/countries/__init__.py</code> (formerly a single module, same
+  API). <code>clinosim/countries/jp/</code> holds the JP identity provider, the
+  JP-CLINS lab coding, the JP drug code-format dispatch, the YJ drug order
+  code, the JP copay rule and JTAS (Issue #3194).</li>
 <li>Registration is explicit: every module that registers an implementation
   is listed in <code>IMPLEMENTATION_MODULES</code> in <code>clinosim/country_profile.py</code>,
   and those modules are imported before a profile is validated. There is no

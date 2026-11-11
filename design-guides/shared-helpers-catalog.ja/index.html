@@ -2593,23 +2593,23 @@
 </thead>
 <tbody>
 <tr>
-<td><code>clinosim/countries.py</code> <code>is_jp(country)</code> / <code>is_us(country)</code></td>
+<td><code>clinosim/countries/__init__.py</code> <code>is_jp(country)</code> / <code>is_us(country)</code></td>
 <td>国固有の規則 (保険・プロファイル・コード体系)。国文字列を手で比較しない。表示言語の選択には使わない。</td>
 </tr>
 <tr>
-<td><code>clinosim/countries.py</code> <code>lang_for(country)</code> / <code>normalize_lang(lang)</code></td>
+<td><code>clinosim/countries/__init__.py</code> <code>lang_for(country)</code> / <code>normalize_lang(lang)</code></td>
 <td>国の出力言語と、言語引数の唯一の正規化。</td>
 </tr>
 <tr>
-<td><code>clinosim/countries.py</code> <code>country_code(country)</code></td>
+<td><code>clinosim/countries/__init__.py</code> <code>country_code(country)</code></td>
 <td>どの表記 (<code>"jp"</code>、旧来の locale キー <code>"japan"</code> など) からも <code>"JP"</code> / <code>"US"</code> を返す。大文字コードを取るヘルパー向け。<code>is_jp</code> も同じ表記を受け付ける。</td>
 </tr>
 <tr>
-<td><code>clinosim/countries.py</code> <code>country_slot(country, scheme=...)</code></td>
+<td><code>clinosim/countries/__init__.py</code> <code>country_slot(country, scheme=...)</code></td>
 <td>国別 YAML ブロックのセクションキー。</td>
 </tr>
 <tr>
-<td><code>clinosim/countries.py</code> <code>lang_name(lang, in_lang=)</code> / <code>output_language_instruction(lang)</code> / <code>has_authored_narrative(lang)</code></td>
+<td><code>clinosim/countries/__init__.py</code> <code>lang_name(lang, in_lang=)</code> / <code>output_language_instruction(lang)</code> / <code>has_authored_narrative(lang)</code></td>
 <td>言語名、LLM への「この言語で書け」指示、その言語に記述済みの narrative があるか。</td>
 </tr>
 <tr>

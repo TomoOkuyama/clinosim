@@ -3636,7 +3636,7 @@ clinosim-owned) keep the display in the output language.</p>
   <code>"snomed-ct"</code> / <code>"rxnorm"</code> / <code>"jlac10"</code> / <code>"k-codes"</code> / <code>"cpt"</code> /
   etc.).</li>
 <li>3<sup>rd</sup> argument = the output language, always derived via
-  <code>lang_for(ctx.country)</code> (<code>clinosim/countries.py</code>); inline branching
+  <code>lang_for(ctx.country)</code> (<code>clinosim/countries/__init__.py</code>); inline branching
   is forbidden (E.10).</li>
 <li>Return value = display string; <code>None</code> when absent (fall back with
   <code>or</code>).</li>
@@ -3938,7 +3938,7 @@ output-language label lives in <code>text</code>.</p>
 <strong><code>is_jp(ctx.country)</code></strong> / <strong><code>is_us(ctx.country)</code></strong> are for country
 rules only (reimbursement codes, profiles, JP-only sections), never
 for picking a display (code-mapping spec §5.1, §9). All three live
-in <code>clinosim/countries.py</code>. Do not write hand-rolled variants like
+in <code>clinosim/countries/__init__.py</code>. Do not write hand-rolled variants like
 <code>ctx.country.lower() == "jp"</code> — E.10. For a JP cohort:</p>
 <ul>
 <li><code>text</code> / <code>name</code> fields and the <code>coding.display</code> of non-English-only
@@ -4225,7 +4225,7 @@ emitted from <code>author_practitioner_id</code>).</p>
 </tr>
 <tr>
 <td><strong>Common-logic unification (2026-07-02)</strong></td>
-<td><strong>Established <code>is_jp</code> / <code>lang_for</code> (now in <code>clinosim/countries.py</code>) as the sole canonical idioms for JP country gating / output-language selection (replaced 5 divergent idioms — E.10) + <code>system_key_for(kind, country)</code> (<code>clinosim.codes</code>) = the single source of truth for country → code-system selection (E.11) + migrated <code>_fhir_localization.py</code>'s 3 inline YAML loaders to the canonical cached loaders in <code>clinosim/locale/loader.py</code> (<code>load_med_terms_ja</code> / <code>load_narrative_display_dict</code> / <code>load_department_display</code>; E.3 precedent) + added <code>hl7-endpoint-connection-type</code> / <code>hl7-endpoint-payload-type</code> / <code>hl7-subscriber-relationship</code> to <code>_BUILTIN_URIS</code> + moved aggregate loaders to their owner module (<code>load_all_disease_protocols</code> → <code>modules/disease/protocol.py</code>) + <code>@lru_cache</code>d the protocol / config loaders (shared instances = mutation forbidden)</strong></td>
+<td><strong>Established <code>is_jp</code> / <code>lang_for</code> (now in <code>clinosim/countries/__init__.py</code>) as the sole canonical idioms for JP country gating / output-language selection (replaced 5 divergent idioms — E.10) + <code>system_key_for(kind, country)</code> (<code>clinosim.codes</code>) = the single source of truth for country → code-system selection (E.11) + migrated <code>_fhir_localization.py</code>'s 3 inline YAML loaders to the canonical cached loaders in <code>clinosim/locale/loader.py</code> (<code>load_med_terms_ja</code> / <code>load_narrative_display_dict</code> / <code>load_department_display</code>; E.3 precedent) + added <code>hl7-endpoint-connection-type</code> / <code>hl7-endpoint-payload-type</code> / <code>hl7-subscriber-relationship</code> to <code>_BUILTIN_URIS</code> + moved aggregate loaders to their owner module (<code>load_all_disease_protocols</code> → <code>modules/disease/protocol.py</code>) + <code>@lru_cache</code>d the protocol / config loaders (shared instances = mutation forbidden)</strong></td>
 </tr>
 </tbody>
 </table>

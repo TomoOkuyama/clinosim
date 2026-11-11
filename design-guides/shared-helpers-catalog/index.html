@@ -2748,23 +2748,23 @@
 </thead>
 <tbody>
 <tr>
-<td><code>clinosim/countries.py</code> <code>is_jp(country)</code> / <code>is_us(country)</code></td>
+<td><code>clinosim/countries/__init__.py</code> <code>is_jp(country)</code> / <code>is_us(country)</code></td>
 <td>Country-specific rules (insurance, profiles, code systems). Never compare country strings by hand. Not for choosing a display language.</td>
 </tr>
 <tr>
-<td><code>clinosim/countries.py</code> <code>lang_for(country)</code> / <code>normalize_lang(lang)</code></td>
+<td><code>clinosim/countries/__init__.py</code> <code>lang_for(country)</code> / <code>normalize_lang(lang)</code></td>
 <td>The output language of a country, and the one normalisation of a language argument.</td>
 </tr>
 <tr>
-<td><code>clinosim/countries.py</code> <code>country_code(country)</code></td>
+<td><code>clinosim/countries/__init__.py</code> <code>country_code(country)</code></td>
 <td><code>"JP"</code> / <code>"US"</code> from any spelling (<code>"jp"</code>, the legacy locale key <code>"japan"</code>, ...) for helpers that take the upper-case code. <code>is_jp</code> accepts the same spellings.</td>
 </tr>
 <tr>
-<td><code>clinosim/countries.py</code> <code>country_slot(country, scheme=...)</code></td>
+<td><code>clinosim/countries/__init__.py</code> <code>country_slot(country, scheme=...)</code></td>
 <td>The section key of a per-country YAML block.</td>
 </tr>
 <tr>
-<td><code>clinosim/countries.py</code> <code>lang_name(lang, in_lang=)</code> / <code>output_language_instruction(lang)</code> / <code>has_authored_narrative(lang)</code></td>
+<td><code>clinosim/countries/__init__.py</code> <code>lang_name(lang, in_lang=)</code> / <code>output_language_instruction(lang)</code> / <code>has_authored_narrative(lang)</code></td>
 <td>Language names, the LLM "write in this language" instruction, and whether a language has authored narrative content.</td>
 </tr>
 <tr>

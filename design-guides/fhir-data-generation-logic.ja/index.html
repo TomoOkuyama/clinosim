@@ -3040,7 +3040,7 @@
 </span></code></pre></div>
 <ul>
 <li>第一引数 = code system key(<code>"loinc"</code> / <code>"icd-10-cm"</code> / <code>"snomed-ct"</code> / <code>"rxnorm"</code> / <code>"jlac10"</code> / <code>"k-codes"</code> / <code>"cpt"</code> / etc.)</li>
-<li>第三引数 = 出力言語。必ず <code>lang_for(ctx.country)</code>(<code>clinosim/countries.py</code>)で導出、inline 分岐禁止(E.10)</li>
+<li>第三引数 = 出力言語。必ず <code>lang_for(ctx.country)</code>(<code>clinosim/countries/__init__.py</code>)で導出、inline 分岐禁止(E.10)</li>
 <li>戻り値 = display string、不在時は <code>None</code>(<code>or</code> で fallback)</li>
 <li>code 自体を display として使うのは AD-30 違反 + 多言語破綻 = NG</li>
 </ul>
@@ -3300,7 +3300,7 @@
 </span></code></pre></div>
 <p>各 coding は dual-slot 規則(code-mapping spec §5.3)に従い、出力言語のラベルは <code>text</code> に置く。</p>
 <h3 id="d4-jp-localization-規約">D.4 JP localization 規約<a class="headerlink" href="#d4-jp-localization-規約" title="Permanent link">&para;</a></h3>
-<p>出力言語は <strong><code>lang_for(ctx.country)</code></strong> で決める。<strong><code>is_jp(ctx.country)</code></strong> / <strong><code>is_us(ctx.country)</code></strong> は国ルール(診療報酬コード、profile、JP 専用 section)専用で、display の選択には使わない(code-mapping spec §5.1、§9)。3 つとも <code>clinosim/countries.py</code> にある。<code>ctx.country.lower() == "jp"</code> 等の hand-rolled 変種を書かない — E.10。JP cohort で:</p>
+<p>出力言語は <strong><code>lang_for(ctx.country)</code></strong> で決める。<strong><code>is_jp(ctx.country)</code></strong> / <strong><code>is_us(ctx.country)</code></strong> は国ルール(診療報酬コード、profile、JP 専用 section)専用で、display の選択には使わない(code-mapping spec §5.1、§9)。3 つとも <code>clinosim/countries/__init__.py</code> にある。<code>ctx.country.lower() == "jp"</code> 等の hand-rolled 変種を書かない — E.10。JP cohort で:</p>
 <ul>
 <li><code>text</code> / <code>name</code> field と、英語専用でない system(JP Core、JP-CLINS、MEDIS、YJ、clinosim 独自)の <code>coding.display</code> = 日本語(<code>dual_slot_concept</code> / <code>system_coding</code>、または <code>display(..., lang_for(ctx.country)) or &lt;fallback&gt;</code> 経由)</li>
 <li>英語専用 system(LOINC、SNOMED CT、HL7 terminology、DICOM、UCUM)の <code>coding.display</code> = 英語。日本語ラベルは <code>dual_slot_concept</code> で <code>CodeableConcept.text</code> に入れる(code-mapping spec §5.3)。こうした coding 内の日本語 display は validation error</li>
@@ -3496,7 +3496,7 @@
 </tr>
 <tr>
 <td><strong>Common-logic unification (2026-07-02)</strong></td>
-<td><strong><code>is_jp</code> / <code>lang_for</code>(現在は <code>clinosim/countries.py</code>)を JP 国判定 / 出力言語選択の唯一の正準 idiom として確立(5 divergent idiom を置換、E.10)+ <code>system_key_for(kind, country)</code>(<code>clinosim.codes</code>)= 国→code system 選択の single source of truth(E.11)+ <code>_fhir_localization.py</code> の 3 inline YAML loader を <code>clinosim/locale/loader.py</code> canonical cached loader へ移設(<code>load_med_terms_ja</code> / <code>load_narrative_display_dict</code> / <code>load_department_display</code>、E.3 precedent)+ <code>_BUILTIN_URIS</code> に <code>hl7-endpoint-connection-type</code> / <code>hl7-endpoint-payload-type</code> / <code>hl7-subscriber-relationship</code> 追加 + aggregate loader owner-module 移設(<code>load_all_disease_protocols</code> → <code>modules/disease/protocol.py</code>)+ protocol / config loader <code>@lru_cache</code> 化(shared instance = mutate 禁止)</strong></td>
+<td><strong><code>is_jp</code> / <code>lang_for</code>(現在は <code>clinosim/countries/__init__.py</code>)を JP 国判定 / 出力言語選択の唯一の正準 idiom として確立(5 divergent idiom を置換、E.10)+ <code>system_key_for(kind, country)</code>(<code>clinosim.codes</code>)= 国→code system 選択の single source of truth(E.11)+ <code>_fhir_localization.py</code> の 3 inline YAML loader を <code>clinosim/locale/loader.py</code> canonical cached loader へ移設(<code>load_med_terms_ja</code> / <code>load_narrative_display_dict</code> / <code>load_department_display</code>、E.3 precedent)+ <code>_BUILTIN_URIS</code> に <code>hl7-endpoint-connection-type</code> / <code>hl7-endpoint-payload-type</code> / <code>hl7-subscriber-relationship</code> 追加 + aggregate loader owner-module 移設(<code>load_all_disease_protocols</code> → <code>modules/disease/protocol.py</code>)+ protocol / config loader <code>@lru_cache</code> 化(shared instance = mutate 禁止)</strong></td>
 </tr>
 </tbody>
 </table>
