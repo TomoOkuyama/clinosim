@@ -76,7 +76,7 @@ def _is_period_key(key: str) -> bool:
 _INSTANT_FIELDS = frozenset(("issued", "lastUpdated"))
 
 
-def _normalize_dt(v, country: str = "", want_instant: bool = False):
+def _normalize_dt(v, country: str, want_instant: bool = False):
     """string dateTime → country-specific TZ suffix 付与 / rewrite。
 
     Issue #570 locale gate: builders unconditionally emit ``+09:00`` (JST) via
@@ -110,7 +110,7 @@ def _normalize_dt(v, country: str = "", want_instant: bool = False):
     return v + tz
 
 
-def _normalize_dt_fields(resource, country: str = "") -> None:
+def _normalize_dt_fields(resource, country: str) -> None:
     """resource dict を再帰 walk、_DATETIME_FIELDS / _INSTANT_FIELDS / Period を正規化。
 
     Issue #570: threads ``country`` through so US cohorts append UTC (``Z``)

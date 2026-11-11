@@ -43,7 +43,7 @@ def test_drops_condition_recorded_after_death() -> None:
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2023-05-31")
+    kept = _drop_entries_after_death(entries, "2023-05-31", lang="en", country="US")
     assert kept == [], "post-death Condition must be dropped"
 
 
@@ -63,7 +63,7 @@ def test_keeps_chronic_condition_with_pre_death_onset() -> None:
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2023-05-31")
+    kept = _drop_entries_after_death(entries, "2023-05-31", lang="en", country="US")
     assert len(kept) == 1
 
 
@@ -81,7 +81,7 @@ def test_drops_allergy_recorded_after_death() -> None:
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2023-05-31")
+    kept = _drop_entries_after_death(entries, "2023-05-31", lang="en", country="US")
     assert kept == [], "post-death AllergyIntolerance must be dropped"
 
 
@@ -99,5 +99,5 @@ def test_drops_condition_abatement_after_death() -> None:
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2023-05-31")
+    kept = _drop_entries_after_death(entries, "2023-05-31", lang="en", country="US")
     assert kept == [], "post-death abatementDateTime must trigger drop"

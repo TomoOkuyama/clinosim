@@ -265,7 +265,7 @@ def infer_severity(record: dict) -> str:
     return ""
 
 
-def severity_coding(severity: str, country: str = "US") -> dict[str, Any]:
+def severity_coding(severity: str, country: str) -> dict[str, Any]:
     """Build FHIR Condition.severity CodeableConcept from severity string.
 
     iris4h-ai feedback F-4:JP output では JP_ConditionSeverity_CS
@@ -411,7 +411,7 @@ def build_telecom(contact: dict) -> list[dict[str, str]]:
     return telecoms
 
 
-def make_participant(code: str, practitioner_id: str, country: str = "US") -> dict[str, Any]:
+def make_participant(code: str, practitioner_id: str, country: str) -> dict[str, Any]:
     """Build an Encounter.participant entry; ``code`` is an HL7 v3-ParticipationType code (ATND / ADM / DIS)."""
     return {
         "type": [dual_slot_concept("hl7-v3-participationtype", code, lang_for(country))],

@@ -32,7 +32,7 @@ def test_drops_encounter_starting_after_death() -> None:
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2025-12-16")
+    kept = _drop_entries_after_death(entries, "2025-12-16", lang="en", country="US")
     assert kept == [], "post-death Encounter must be dropped"
 
 
@@ -46,7 +46,7 @@ def test_keeps_encounter_before_death() -> None:
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2025-12-16")
+    kept = _drop_entries_after_death(entries, "2025-12-16", lang="en", country="US")
     assert len(kept) == 1
 
 
@@ -62,7 +62,7 @@ def test_keeps_same_day_activity() -> None:
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2025-12-16")
+    kept = _drop_entries_after_death(entries, "2025-12-16", lang="en", country="US")
     assert len(kept) == 1
 
 
@@ -78,7 +78,7 @@ def test_patient_resource_always_kept() -> None:
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2025-12-16")
+    kept = _drop_entries_after_death(entries, "2025-12-16", lang="en", country="US")
     assert len(kept) == 1
 
 
@@ -92,7 +92,7 @@ def test_drops_immunization_after_death() -> None:
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2025-10-05")
+    kept = _drop_entries_after_death(entries, "2025-10-05", lang="en", country="US")
     assert kept == []
 
 
@@ -112,7 +112,7 @@ def test_drops_bundle_of_after_death_resources_wholesale() -> None:
         ("ServiceRequest", {"occurrenceDateTime": "2026-07-20T15:24:00+09:00"}),
     ]
     entries = [_entry({"resourceType": rt, "id": rt.lower() + "-x", **fields}) for rt, fields in types_and_dt_fields]
-    kept = _drop_entries_after_death(entries, "2025-12-16")
+    kept = _drop_entries_after_death(entries, "2025-12-16", lang="en", country="US")
     assert kept == [], f"expected all 8 resources dropped, kept={kept}"
 
 
@@ -120,7 +120,7 @@ def test_keeps_resource_with_no_dt_fields() -> None:
     """A resource that doesn't have any of the gating dateTime fields
     survives (nothing to compare — the filter is silent on it)."""
     entries = [_entry({"resourceType": "Coverage", "id": "cov-x", "status": "active"})]
-    kept = _drop_entries_after_death(entries, "2025-12-16")
+    kept = _drop_entries_after_death(entries, "2025-12-16", lang="en", country="US")
     assert len(kept) == 1
 
 
@@ -160,7 +160,7 @@ def test_encounter_clamps_period_end_when_home_disp_extends_past_death() -> None
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2026-01-09")
+    kept = _drop_entries_after_death(entries, "2026-01-09", lang="en", country="US")
     assert len(kept) == 1
     enc = kept[0]["resource"]
     # period.end clamped down to dod (calendar-date prefix)
@@ -195,7 +195,7 @@ def test_encounter_leaves_exp_disp_alone_but_still_clamps_end() -> None:
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2026-01-09")
+    kept = _drop_entries_after_death(entries, "2026-01-09", lang="en", country="US")
     enc = kept[0]["resource"]
     assert enc["period"]["end"] == "2026-01-09"
     # disp untouched — already exp
@@ -225,7 +225,7 @@ def test_encounter_period_end_before_dod_untouched() -> None:
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2026-01-09")
+    kept = _drop_entries_after_death(entries, "2026-01-09", lang="en", country="US")
     enc = kept[0]["resource"]
     # period.end intact
     assert enc["period"]["end"] == "2026-01-08T20:00:00Z"
@@ -247,6 +247,6 @@ def test_encounter_without_disp_still_clamps_end() -> None:
             }
         )
     ]
-    kept = _drop_entries_after_death(entries, "2026-01-09")
+    kept = _drop_entries_after_death(entries, "2026-01-09", lang="en", country="US")
     enc = kept[0]["resource"]
     assert enc["period"]["end"] == "2026-01-09"

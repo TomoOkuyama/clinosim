@@ -36,7 +36,7 @@ strip を最終化する post-processing pipeline (`post_process/`) を所有。
 
 ```python
 from clinosim.modules.output.fhir_r4 import (
-    convert_cif_to_fhir,             # (cif_dir, output_dir, country="US", narrative_version="current") -> None
+    convert_cif_to_fhir,             # (cif_dir, output_dir, country, narrative_version="current") -> None
     register_bundle_builder,         # (fn) — AD-56 plug-in 登録
     available_builders,              # () -> list[str] 登録 builder 名
 )

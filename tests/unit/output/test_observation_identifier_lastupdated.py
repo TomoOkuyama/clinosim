@@ -22,19 +22,19 @@ pytestmark = pytest.mark.unit
 
 def test_identifier_populated_from_resource_id():
     r: dict = {"resourceType": "Observation", "id": "lab-enc-1-0000", "effectiveDateTime": "2026-04-15T20:53:00+09:00"}
-    _populate_observation_identifier_and_last_updated(r)
+    _populate_observation_identifier_and_last_updated(r, country="US")
     assert r["identifier"] == [{"system": _CLINOSIM_OBSERVATION_ID_SYSTEM, "value": "lab-enc-1-0000"}]
 
 
 def test_meta_lastupdated_falls_back_to_effective_datetime():
     r: dict = {"resourceType": "Observation", "id": "obs1", "effectiveDateTime": "2026-04-15T20:53:00+09:00"}
-    _populate_observation_identifier_and_last_updated(r)
+    _populate_observation_identifier_and_last_updated(r, country="US")
     assert r["meta"]["lastUpdated"] == "2026-04-15T20:53:00+09:00"
 
 
 def test_meta_lastupdated_falls_back_to_issued():
     r: dict = {"resourceType": "Observation", "id": "obs1", "issued": "2026-04-15T20:53:00+09:00"}
-    _populate_observation_identifier_and_last_updated(r)
+    _populate_observation_identifier_and_last_updated(r, country="US")
     assert r["meta"]["lastUpdated"] == "2026-04-15T20:53:00+09:00"
 
 
@@ -44,7 +44,7 @@ def test_meta_lastupdated_falls_back_to_effective_period_end():
         "id": "obs1",
         "effectivePeriod": {"start": "2026-04-15T20:00:00+09:00", "end": "2026-04-15T20:53:00+09:00"},
     }
-    _populate_observation_identifier_and_last_updated(r)
+    _populate_observation_identifier_and_last_updated(r, country="US")
     assert r["meta"]["lastUpdated"] == "2026-04-15T20:53:00+09:00"
 
 
@@ -60,7 +60,7 @@ def test_idempotent_preserves_builder_populated_identifier_and_appends_internal(
         "identifier": [{"system": "http://example.com/other", "value": "PRE-EXISTING"}],
         "effectiveDateTime": "2026-04-15T20:53:00+09:00",
     }
-    _populate_observation_identifier_and_last_updated(r)
+    _populate_observation_identifier_and_last_updated(r, country="US")
     systems = [i["system"] for i in r["identifier"]]
     # 既存 identifier は保持されている
     assert "http://example.com/other" in systems
@@ -78,7 +78,7 @@ def test_idempotent_leaves_builder_populated_lastupdated_untouched():
         "meta": {"profile": ["p1"], "lastUpdated": "2025-01-01T00:00:00+09:00"},
         "effectiveDateTime": "2026-04-15T20:53:00+09:00",
     }
-    _populate_observation_identifier_and_last_updated(r)
+    _populate_observation_identifier_and_last_updated(r, country="US")
     assert r["meta"]["lastUpdated"] == "2025-01-01T00:00:00+09:00"
     assert r["meta"]["profile"] == ["p1"]  # unrelated meta fields preserved
 
@@ -86,7 +86,7 @@ def test_idempotent_leaves_builder_populated_lastupdated_untouched():
 def test_no_effective_datetime_no_lastupdated():
     """When the resource has no datetime source, don't fabricate one."""
     r: dict = {"resourceType": "Observation", "id": "obs1"}
-    _populate_observation_identifier_and_last_updated(r)
+    _populate_observation_identifier_and_last_updated(r, country="US")
     # identifier populated, but lastUpdated should NOT be a stub
     assert r["identifier"][0]["value"] == "obs1"
     assert "lastUpdated" not in r.get("meta", {})
@@ -94,6 +94,6 @@ def test_no_effective_datetime_no_lastupdated():
 
 def test_ignores_non_observation_resources():
     r: dict = {"resourceType": "Patient", "id": "pt1"}
-    _populate_observation_identifier_and_last_updated(r)
+    _populate_observation_identifier_and_last_updated(r, country="US")
     assert "identifier" not in r
     assert "meta" not in r

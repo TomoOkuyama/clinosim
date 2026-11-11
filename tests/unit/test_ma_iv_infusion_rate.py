@@ -36,26 +36,26 @@ def _has_rate(dosage: dict) -> bool:
 
 def test_kcl_iv_empty_dose_gets_rate_from_catalog() -> None:
     """The canonical B2 failure case: KCl ordered IV with no numeric dose."""
-    r = _build_medication_admin(_mar("Potassium chloride", "IV", dose=""), "PT-1", 0)
+    r = _build_medication_admin(_mar("Potassium chloride", "IV", dose=""), "PT-1", 0, country="US")
     d = r.get("dosage", {})
     assert _has_rate(d), f"KCl IV should get catalog rate; got {d}"
 
 
 def test_kcl_alias_iv_empty_dose_gets_rate() -> None:
-    r = _build_medication_admin(_mar("KCl", "IV", dose=""), "PT-1", 0)
+    r = _build_medication_admin(_mar("KCl", "IV", dose=""), "PT-1", 0, country="US")
     d = r.get("dosage", {})
     assert _has_rate(d)
 
 
 def test_ns_iv_bolus_gets_rate() -> None:
-    r = _build_medication_admin(_mar("Normal saline", "IV", dose=""), "PT-1", 0)
+    r = _build_medication_admin(_mar("Normal saline", "IV", dose=""), "PT-1", 0, country="US")
     d = r.get("dosage", {})
     assert _has_rate(d)
 
 
 def test_non_iv_drug_unchanged() -> None:
     """Non-IV route: augment must be a no-op (route gate)."""
-    r = _build_medication_admin(_mar("Amlodipine", "PO", dose="5mg"), "PT-1", 0)
+    r = _build_medication_admin(_mar("Amlodipine", "PO", dose="5mg"), "PT-1", 0, country="US")
     d = r.get("dosage", {})
     # PO drug with structured dose still emits `dose`, but never a rate
     assert not _has_rate(d)
@@ -69,7 +69,7 @@ def test_iv_bolus_drug_gets_an_infusion_period_not_a_timing() -> None:
 
     # Ceftriaxone is a bolus-mode antibiotic in iv_infusion_defaults.yaml
     duration = resolve_iv_infusion_default("Ceftriaxone", "")["duration_min"]
-    r = _build_medication_admin(_mar("Ceftriaxone", "IV", dose=""), "PT-1", 0)
+    r = _build_medication_admin(_mar("Ceftriaxone", "IV", dose=""), "PT-1", 0, country="US")
     assert "timing" not in r.get("dosage", {})
     assert "effectiveDateTime" not in r
     start, end = r["effectivePeriod"]["start"], r["effectivePeriod"]["end"]
@@ -82,7 +82,7 @@ def test_iv_bolus_drug_gets_an_infusion_period_not_a_timing() -> None:
 def test_continuous_iv_rate_is_dosage_rate_quantity() -> None:
     """A continuous-infusion catalog rate goes to ``dosage.rateQuantity``; R4
     MedicationAdministration.dosage has no ``doseAndRate`` (Issue #2559)."""
-    d = _build_medication_admin(_mar("Potassium chloride", "IV", dose=""), "PT-1", 0)["dosage"]
+    d = _build_medication_admin(_mar("Potassium chloride", "IV", dose=""), "PT-1", 0, country="US")["dosage"]
     assert "doseAndRate" not in d and "rateQuantity" in d
 
 
@@ -109,14 +109,16 @@ def test_ma_dosage_uses_only_r4_elements() -> None:
         ("Heparin", "12 U/kg/h"),
         ("Amlodipine", "5mg"),
     ):
-        r = _build_medication_admin(_mar(drug, "PO" if drug == "Amlodipine" else "IV", dose=dose), "PT-1", 0)
+        r = _build_medication_admin(
+            _mar(drug, "PO" if drug == "Amlodipine" else "IV", dose=dose), "PT-1", 0, country="US"
+        )
         assert set(r.get("dosage", {})) <= _R4_MA_DOSAGE, (drug, r.get("dosage"))
         assert not ("effectiveDateTime" in r and "effectivePeriod" in r), drug
 
 
 def test_iv_augment_preserves_existing_structured_dose() -> None:
     """If MA already parsed a structured dose, augment adds rate on top."""
-    r = _build_medication_admin(_mar("Normal saline", "IV", dose="100mL/h"), "PT-1", 0)
+    r = _build_medication_admin(_mar("Normal saline", "IV", dose="100mL/h"), "PT-1", 0, country="US")
     d = r.get("dosage", {})
     # /h suffix triggers the pre-existing inline path (rateQuantity set to
     # 100 mL/h); catalog augment is a no-op because rate already present.
@@ -157,6 +159,7 @@ def test_bolus_iv_dose_from_parent_order_when_mar_dose_is_route_only() -> None:
         "PT-1",
         0,
         parent_order=parent,
+        country="US",
     )
     d = r.get("dosage", {})
     assert _has_dose(d), f"Cefmetazole IV should backfill dose from parent Order (1 g); got {d}"
@@ -172,6 +175,7 @@ def test_bolus_iv_chemo_dose_from_parent_order() -> None:
         "PT-1",
         0,
         parent_order=parent,
+        country="US",
     )
     d = r.get("dosage", {})
     assert _has_dose(d), f"Carboplatin IV should backfill dose from parent Order (350 mg); got {d}"
@@ -187,6 +191,7 @@ def test_bolus_iv_dose_backfill_does_not_override_real_mar_dose() -> None:
         "PT-1",
         0,
         parent_order=parent,
+        country="US",
     )
     d = r.get("dosage", {})
     # dose.value must be 0.5 (from mar.dose), not 1.0 (from parent)
@@ -204,6 +209,7 @@ def test_bolus_iv_no_parent_no_mar_dose_emits_nothing() -> None:
         "PT-1",
         0,
         parent_order=None,
+        country="US",
     )
     d = r.get("dosage", {})
     assert not _has_dose(d), f"no dose source → expected no fabricated dose; got {d}"
@@ -211,5 +217,5 @@ def test_bolus_iv_no_parent_no_mar_dose_emits_nothing() -> None:
 
 def test_explicit_rate_in_the_dose_text_wins_over_the_amount_per_hour_guess() -> None:
     """An insulin drip written "0.1U/kg/h 持続" keeps U/kg/h (Issue #2559)."""
-    d = _build_medication_admin(_mar("Regular insulin", "IV", dose="0.1U/kg/h 持続"), "PT-1", 0)["dosage"]
+    d = _build_medication_admin(_mar("Regular insulin", "IV", dose="0.1U/kg/h 持続"), "PT-1", 0, country="US")["dosage"]
     assert d["rateQuantity"]["unit"] == "U/kg/h" and "doseAndRate" not in d

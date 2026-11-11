@@ -198,7 +198,7 @@ def _build_jp_license_identifier(staff: dict, staff_id: str, country: str) -> di
     }
 
 
-def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None = None, country: str = "US") -> dict:
+def _build_practitioner(staff_id: str, roster_map: dict[str, dict] | None, country: str) -> dict:
     """Build FHIR Practitioner resource. Uses roster data when available.
 
     Issue #3145: the JP Core / US Core elements follow the FHIR profiles the
@@ -389,8 +389,8 @@ def _role_qualification(role: str) -> tuple[str, dict[str, str]] | None:
 
 def _build_practitioner_role(
     staff_id: str,
-    roster_map: dict[str, dict] | None = None,
-    country: str = "US",
+    roster_map: dict[str, dict] | None,
+    country: str,
 ) -> dict | None:
     """Build FHIR PractitionerRole resource (specialty + department)."""
     staff = (roster_map or {}).get(staff_id)

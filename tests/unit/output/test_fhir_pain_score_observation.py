@@ -37,12 +37,12 @@ def test_pain_score_emits_observation(country: str) -> None:
 
 
 def test_pain_score_zero_is_emitted_and_missing_is_not() -> None:
-    zero = _pain(_build_vital_observations({**_VS, "pain_score": 0}, "P1", 1, encounter_id="E1"))
+    zero = _pain(_build_vital_observations({**_VS, "pain_score": 0}, "P1", 1, encounter_id="E1", country="US"))
     assert zero and zero[0]["valueInteger"] == 0
-    assert not _pain(_build_vital_observations({**_VS, "pain_score": None}, "P1", 1, encounter_id="E1"))
+    assert not _pain(_build_vital_observations({**_VS, "pain_score": None}, "P1", 1, encounter_id="E1", country="US"))
 
 
 def test_pain_observation_ids_are_unique_per_record() -> None:
-    a = _pain(_build_vital_observations(dict(_VS), "P1", 1, encounter_id="E1"))[0]["id"]
-    b = _pain(_build_vital_observations(dict(_VS), "P1", 2, encounter_id="E1"))[0]["id"]
+    a = _pain(_build_vital_observations(dict(_VS), "P1", 1, encounter_id="E1", country="US"))[0]["id"]
+    b = _pain(_build_vital_observations(dict(_VS), "P1", 2, encounter_id="E1", country="US"))[0]["id"]
     assert a != b

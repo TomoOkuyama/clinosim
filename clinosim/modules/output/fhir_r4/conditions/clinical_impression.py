@@ -94,9 +94,7 @@ def _day_abnormal_lab_idxs(record: dict, encounter_id: str, day: Any) -> list[in
     return out
 
 
-def _build_clinical_impression(
-    imp: Any, patient_id: str, country: str = "US", record: dict | None = None
-) -> dict[str, Any]:
+def _build_clinical_impression(imp: Any, patient_id: str, country: str, record: dict | None = None) -> dict[str, Any]:
     """Build one FHIR R4 ClinicalImpression from a ClinicalImpressionRecord.
 
     Issue #360 G4 (iris4h-ai 2026-07-22 feedback): JP output picks the

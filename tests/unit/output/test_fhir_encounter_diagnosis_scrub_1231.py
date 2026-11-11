@@ -54,6 +54,8 @@ def test_encounter_diagnosis_entry_dropped_when_condition_ref_dangles() -> None:
     kept = _drop_entries_after_death(
         [_entry(condition), _entry(encounter), _entry(kept_condition)],
         "2025-10-22",
+        lang="en",
+        country="US",
     )
     # The post-mortem Condition is dropped.
     assert not any(e["resource"].get("id") == "cond-postmortem" for e in kept)
@@ -88,6 +90,8 @@ def test_encounter_reason_reference_dropped_when_target_dangles() -> None:
     kept = _drop_entries_after_death(
         [_entry(condition), _entry(encounter), _entry(kept_condition)],
         "2025-10-22",
+        lang="en",
+        country="US",
     )
     enc = next(e["resource"] for e in kept if e["resource"]["id"] == "enc-imp-2")
     refs = [r["reference"] for r in enc.get("reasonReference", [])]
@@ -108,7 +112,7 @@ def test_encounter_with_all_diagnosis_dropped_ends_with_empty_list() -> None:
         "period": {"start": "2025-10-20T08:00:00", "end": "2025-10-27T14:00:00"},
         "diagnosis": [{"condition": {"reference": "Condition/cond-postmortem"}, "rank": 1}],
     }
-    kept = _drop_entries_after_death([_entry(condition), _entry(encounter)], "2025-10-22")
+    kept = _drop_entries_after_death([_entry(condition), _entry(encounter)], "2025-10-22", lang="en", country="US")
     enc = next(e["resource"] for e in kept if e["resource"]["id"] == "enc-imp-3")
     assert enc.get("diagnosis") == []
 
@@ -120,6 +124,6 @@ def test_encounter_no_diagnosis_field_unchanged() -> None:
         "id": "enc-plain",
         "period": {"start": "2025-10-20", "end": "2025-10-27"},
     }
-    kept = _drop_entries_after_death([_entry(encounter)], "2025-10-22")
+    kept = _drop_entries_after_death([_entry(encounter)], "2025-10-22", lang="en", country="US")
     assert len(kept) == 1
     assert kept[0]["resource"] == encounter

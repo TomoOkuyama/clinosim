@@ -1651,7 +1651,7 @@ def _build_medication_admin(
     mar: dict,
     patient_id: str,
     index: int,
-    country: str = "US",
+    country: str,
     encounter_id: str = "",
     primary_dx_code: str = "",
     rp_number: str = "1",

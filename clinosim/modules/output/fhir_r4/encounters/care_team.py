@@ -160,8 +160,8 @@ def _build_care_team(
     encounter: Any,
     patient_id: str,
     lang: str,
-    pharmacist_ids: list[str] | None = None,
-    country: str = "US",
+    pharmacist_ids: list[str] | None,
+    country: str,
     allied_ids_by_role: dict[str, list[str]] | None = None,
 ) -> dict[str, Any]:
     """Build one FHIR R4 CareTeam resource from an Encounter (dataclass or dict)."""

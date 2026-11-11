@@ -33,7 +33,7 @@ def test_coverage_period_end_after_dod_clamped_to_dod() -> None:
         "status": "active",
         "period": {"start": "2026-01-01", "end": "2026-12-31"},
     }
-    kept = _drop_entries_after_death([_entry(coverage)], "2026-04-26")
+    kept = _drop_entries_after_death([_entry(coverage)], "2026-04-26", lang="en", country="US")
     assert len(kept) == 1
     resource = kept[0]["resource"]
     assert resource["period"]["start"] == "2026-01-01"
@@ -47,7 +47,7 @@ def test_coverage_status_active_flipped_to_cancelled_on_death() -> None:
         "status": "active",
         "period": {"start": "2026-01-01", "end": "2026-12-31"},
     }
-    kept = _drop_entries_after_death([_entry(coverage)], "2026-04-26")
+    kept = _drop_entries_after_death([_entry(coverage)], "2026-04-26", lang="en", country="US")
     assert kept[0]["resource"]["status"] == "cancelled"
 
 
@@ -59,7 +59,7 @@ def test_coverage_period_end_before_dod_left_intact() -> None:
         "status": "cancelled",
         "period": {"start": "2024-04-01", "end": "2025-03-31"},
     }
-    kept = _drop_entries_after_death([_entry(coverage)], "2026-04-26")
+    kept = _drop_entries_after_death([_entry(coverage)], "2026-04-26", lang="en", country="US")
     assert kept[0]["resource"]["period"]["end"] == "2025-03-31"
     assert kept[0]["resource"]["status"] == "cancelled"
 
@@ -72,7 +72,7 @@ def test_coverage_starting_after_dod_dropped() -> None:
         "status": "active",
         "period": {"start": "2026-05-01", "end": "2027-03-31"},
     }
-    kept = _drop_entries_after_death([_entry(coverage)], "2026-04-26")
+    kept = _drop_entries_after_death([_entry(coverage)], "2026-04-26", lang="en", country="US")
     assert kept == []
 
 
@@ -84,7 +84,7 @@ def test_coverage_status_cancelled_stays_cancelled() -> None:
         "status": "cancelled",
         "period": {"start": "2026-01-01", "end": "2026-12-31"},
     }
-    kept = _drop_entries_after_death([_entry(coverage)], "2026-04-26")
+    kept = _drop_entries_after_death([_entry(coverage)], "2026-04-26", lang="en", country="US")
     assert kept[0]["resource"]["status"] == "cancelled"
     assert kept[0]["resource"]["period"]["end"] == "2026-04-26"
 
@@ -96,7 +96,7 @@ def test_coverage_without_period_end_left_alone() -> None:
         "status": "active",
         "period": {"start": "2026-01-01"},
     }
-    kept = _drop_entries_after_death([_entry(coverage)], "2026-04-26")
+    kept = _drop_entries_after_death([_entry(coverage)], "2026-04-26", lang="en", country="US")
     resource = kept[0]["resource"]
     assert "end" not in resource["period"]
     assert resource["status"] == "cancelled"

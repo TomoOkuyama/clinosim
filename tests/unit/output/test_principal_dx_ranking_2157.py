@@ -43,6 +43,7 @@ def test_principal_code_ranks_first(discharge: str, admit: str) -> None:
         primary_dx_code=discharge,
         admit_dx_code=admit,
         chronic_condition_codes=["E66.9"],
+        country="US",
     )
     ranked = _ranked(r)
     assert ranked[0] == ("AD", f"Condition/{encounter_admission_condition_id('POP-000001', 'ENC-1')}")
@@ -51,7 +52,7 @@ def test_principal_code_ranks_first(discharge: str, admit: str) -> None:
 
 
 def test_other_stays_keep_discharge_diagnosis_first() -> None:
-    r = _build_encounter(_ENC, patient_id="POP-000001", primary_dx_code="J18.9", admit_dx_code="R50.9")
+    r = _build_encounter(_ENC, patient_id="POP-000001", primary_dx_code="J18.9", admit_dx_code="R50.9", country="US")
     assert [u for u, _ in _ranked(r)] == ["DD", "AD"]
 
 

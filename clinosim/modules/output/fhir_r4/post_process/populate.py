@@ -464,7 +464,7 @@ _MEDIS_UNCODED_DISEASE_DISPLAY = t("fhir_emit_text.medis_uncoded", "ja")
 # removed hardcoded dicts were EN-only).
 
 
-def _conform_checkup_report_observation(resource: dict, country: str = "") -> None:
+def _conform_checkup_report_observation(resource: dict, country: str) -> None:
     """Shape a health-checkup result that declares the report Observation
     profile to it (Issue #3154; ``<country>/checkup_report_items.yaml``):
     only identifiers of the profile's identifier system, and none of the
@@ -496,7 +496,7 @@ def _conform_checkup_report_observation(resource: dict, country: str = "") -> No
             resource["identifier"] = kept
 
 
-def _populate_observation_identifier_and_last_updated(resource: dict, country: str = "US") -> None:
+def _populate_observation_identifier_and_last_updated(resource: dict, country: str) -> None:
     """Populate `Observation.identifier` and `Observation.meta.lastUpdated`.
 
     JP_Observation_LabResult_eCS (JP-CLINS 1.13.0) requires both fields:
@@ -855,7 +855,7 @@ def _effective_status_note(status: str) -> str:
     return t("fhir_emit_text.effective_status_note", "ja", status=label)
 
 
-def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") -> None:
+def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str) -> None:
     """Populate JP-CLINS eCS-required fields on Condition / AllergyIntolerance
     / MedicationRequest.
 
