@@ -3619,6 +3619,10 @@
 <td><code>tests/unit/output/test_fhir_language_literals_3180.py</code></td>
 </tr>
 <tr>
+<td>A literal <code>"en"</code> / <code>"ja"</code> passed to a lookup in the narrative renderers (<code>clinosim/modules/document</code>) is pinned with its reason (English fallback, language field, matching); the text takes the document language (<code>ctx.target_lang</code>); no <code>"ja" if ... else "en"</code></td>
+<td><code>tests/unit/modules/document/test_document_language_literals_3196.py</code></td>
+</tr>
+<tr>
 <td>Language-suffixed YAML fields that remain (§11) pair <code>&lt;base&gt;_ja</code> with <code>&lt;base&gt;_en</code></td>
 <td><code>tests/unit/locale/test_localized_field_shape_2398.py</code></td>
 </tr>
