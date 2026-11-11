@@ -78,7 +78,6 @@ from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import oxygen_device_label
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import primary_condition_ref
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -86,7 +85,7 @@ from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
-from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_PROCEDURE_PROFILE
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 from clinosim.modules.output.fhir_r4.procedures.procedures import (
     PROCEDURE_KEY_SYSTEM,
     _resolve_procedure_id,
@@ -346,7 +345,6 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
     enc_start_idx = _encounter_start_index(ctx)
     enc_att_idx = _encounter_attending_index(ctx)
     lang = lang_for(ctx.country)
-    is_jp_out = is_jp(ctx.country)
     # Issue #1352: only allow the "unattributed-vitals fallback" in
     # ``_oxygen_session_period`` when the record has exactly one encounter.
     # Multi-encounter records must strictly attribute on-O2 vitals to the
@@ -451,7 +449,7 @@ def _bb_oxygen_therapy(ctx: BundleContext) -> list[dict]:
             "resourceType": "Procedure",
             "id": proc_id,
             "identifier": [wrap_as_identifier(proc_structural_key, PROCEDURE_KEY_SYSTEM)],
-            **({"meta": {"profile": [JP_PROCEDURE_PROFILE]}} if is_jp_out else {}),
+            **profile_meta("Procedure", ctx.country),
             "status": "completed",
             # SNOMED Therapeutic procedure — matches _bb_procedures default.
             "category": dual_slot_concept("snomed-ct", "277132007", lang),

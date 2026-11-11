@@ -115,8 +115,8 @@ PINNED: dict[tuple[str, str, str], tuple[int, str]] = {
     # jp-condition-severity (JP Core) and SNOMED CT severity.
     ("fhir_r4/lib/reference_data.py", "display", "ja"): (1, JP_PROFILE),
     ("fhir_r4/lib/reference_data.py", "snomed_display", "en"): (1, ENGLISH_ONLY),
-    # JP Core fixedString unit, medication-nocoded (JP-CLINS) display.
-    ("fhir_r4/medications/medications.py", "t", "ja"): (1, JP_PROFILE),
+    # Medication-nocoded (JP-CLINS) display. The supply-duration unit is the
+    # output language's label (Issue #3202).
     ("fhir_r4/medications/medications.py", "registry_display", "ja"): (1, JP_PROFILE),
     ("fhir_r4/medications/medications.py", "code_lookup", "en"): (1, ENGLISH_ONLY),
     ("fhir_r4/medications/medications.py", "get", "en"): (2, MATCHING),

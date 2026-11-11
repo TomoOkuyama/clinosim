@@ -95,7 +95,12 @@ Not applicable — pure builders over CIF procedures / immunizations /
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`.
+- `clinosim.countries` — `lang_for`.
+- `clinosim.country_profile` — `profile.uses("jp_core")` gates the JP Core
+  profile URLs (from `lib/profile_meta.py`) and the NEWS2 LOINC coding the JP
+  validators do not carry; the procedure code system decides which CIF code is
+  the country's own and that a CPT code is not emitted where the system is
+  another one (Issue #3202).
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`,
   `survey_category`, `to_fhir_datetime`, fragment helpers;
   `lib.ids` — opaque ids.

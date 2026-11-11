@@ -18,7 +18,7 @@ from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
-from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.immunization.engine import vaccine_administration
 from clinosim.modules.observation.pediatric_ranges import age_in_completed_months
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
@@ -31,6 +31,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 
 # === Issue #854 Bucket C (PR-immunization): opaque Immunization.id ===
 # Structural key = pre-#854 id body `{patient_id}-{i}` (`imm-` prefix
@@ -162,11 +163,7 @@ def _bb_immunizations(ctx: BundleContext) -> list[dict]:
             "id": _resolve_immunization_id(_imm_structural_key),
             "identifier": [wrap_as_identifier(_imm_structural_key, IMMUNIZATION_KEY_SYSTEM)],
             # Chain #2: JP Core Immunization profile.
-            **(
-                {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_Immunization"]}}
-                if is_jp(ctx.country)
-                else {}
-            ),
+            **profile_meta("Immunization", ctx.country),
             "status": status,
             "vaccineCode": vaccine_code,
             "patient": patient_ref(ctx.patient_id),

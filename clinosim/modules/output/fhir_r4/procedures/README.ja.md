@@ -89,7 +89,12 @@ from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import (
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`。
+- `clinosim.countries` — `lang_for`。
+- `clinosim.country_profile` — JP Core の profile URL (`lib/profile_meta.py`
+  から) と、JP の validator が持たない NEWS2 の LOINC coding は
+  `profile.uses("jp_core")` で出し分ける。CIF のどちらのコードが自国のものか、
+  CPT 以外の体系の国で CPT コードを出さないことは処置コード体系で決める
+  (Issue #3202)。
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`,
   `survey_category`, `to_fhir_datetime`、fragment helper。
   `lib.ids` — opaque id。
