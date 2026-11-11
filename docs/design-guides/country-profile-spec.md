@@ -66,6 +66,7 @@ changes only when the country needs an algorithm no country has yet.
 | `fhir_profiles` | The FHIR profiles applied to output (`us_core`, `jp_core`, `jp_clins`, `jp_echeckup`). |
 | `features` | Country features switched on or off (`health_checkup`, `care_level`, `maternal_tdap`, ...). |
 | `formats` | Name order (`given_family` / `family_given`, applied by `formats.name_parts(family, given)`), date, time and date-time formats, and the physician name prefix (`physician_name_prefix`). |
+| `healthcare_system` | Stem of the country's healthcare-system YAML in `clinosim/config/` (`us`, `japan`); no root default. |
 | `implementations` | The named implementation per algorithm kind (`egfr_equation`, `triage_scale`, `copay_rule`, `insurer_number`, ...). |
 
 Address and phone formats are patterns in `clinosim/locale/<cc>/addresses.yaml`

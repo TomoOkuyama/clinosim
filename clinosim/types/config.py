@@ -7,6 +7,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from clinosim.country_profile import SupportedCountry
+
 #: exclude `PatientProfile` from `import *` so it does not collide
 # with the dataclass of the same name in `types/patient.py` (used at runtime
 # by simulator/inpatient/outpatient/emergency). Direct `from clinosim.types.
@@ -113,7 +115,7 @@ class PatientProfile(BaseModel):
 
     # Simulation inputs
     disease_id: str
-    country: Literal["US", "JP"] = "US"
+    country: SupportedCountry = "US"
     severity: Literal["mild", "moderate", "severe"] | None = None
     archetype: str | None = None
     count: int = 1

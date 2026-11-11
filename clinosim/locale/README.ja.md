@@ -219,8 +219,8 @@ clinosim/locale/
 4. トップレベル `clinosim/config/<country>.yaml` を追加して国別
    医療制度デフォルト (`lab_frequency_multiplier` /
    `discharge_criteria` / `target_los_multiplier` / コードシステム名)
-   を宣言し、`clinosim/modules/healthcare_system/loader.py` の国
-   マップに登録。
+   を宣言し、国プロファイル (`clinosim/locale/<cc>/country.yaml` の
+   `healthcare_system: <stem>`) で指名する。
 5. `SimulatorConfig.country` で切り替えるモジュールの国別 dispatch
    を拡張。
 6. 新規国をカバーする統合テストを追加。

@@ -24,7 +24,9 @@ _NOT_YET_MODELED: dict[str, str] = {}
 # Modules whose loader discovers its reference YAML by pattern (``*.yaml``
 # glob or ``f"{id}.yaml"``) and validates each file; every YAML in those
 # directories is covered. Pinned so a new pattern loader is reviewed.
-_PATTERN_LOADED_MODULES = {"disease", "encounter"}
+# healthcare_system: loads clinosim/config/<stem>.yaml, the stem named by the
+# country profile (Issue #3192), validated by HealthcareSystemConfig.
+_PATTERN_LOADED_MODULES = {"disease", "encounter", "healthcare_system"}
 
 
 # Simulator reference YAMLs (``simulator/reference_data``) are held to the

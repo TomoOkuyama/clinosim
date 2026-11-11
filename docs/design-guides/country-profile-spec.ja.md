@@ -57,6 +57,7 @@ YAML の読み込みと検証は
 | `fhir_profiles` | 出力に適用する FHIR プロファイル (`us_core`、`jp_core`、`jp_clins`、`jp_echeckup`)。 |
 | `features` | 国ごとに有効・無効を切り替える機能 (`health_checkup`、`care_level`、`maternal_tdap` など)。 |
 | `formats` | 氏名の順序 (`given_family` / `family_given`、`formats.name_parts(family, given)` で適用)、日付・時刻・日時の書式、医師名の敬称 (`physician_name_prefix`)。 |
+| `healthcare_system` | `clinosim/config/` にある国の医療制度 YAML のファイル名 (拡張子なし、`us`・`japan`)。root の既定値は無い。 |
 | `implementations` | アルゴリズムの種類ごとに使う実装の名前 (`egfr_equation`、`triage_scale`、`copay_rule`、`insurer_number` など)。 |
 
 住所と電話の書式は `clinosim/locale/<cc>/addresses.yaml` のパターン

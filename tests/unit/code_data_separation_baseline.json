@@ -3,7 +3,7 @@
     "audit/axes/jp_language.py": 1,
     "eval/axes/jp_clins_lab_compliance.py": 1,
     "eval/axes/jp_core_compliance.py": 1,
-    "eval/axes/locale.py": 3,
+    "eval/axes/locale.py": 1,
     "eval/axes/structural.py": 1,
     "eval/axes/us_core_compliance.py": 1,
     "locale/localized.py": 1,
@@ -39,7 +39,6 @@
     "modules/population/_pregnancy.py": 1,
     "modules/population/mortality.py": 1,
     "simulator/cli_simulate.py": 1,
-    "simulator/enrichers.py": 1,
     "types/document.py": 2
   },
   "numeric_literals": {

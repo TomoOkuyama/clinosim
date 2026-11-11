@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from clinosim.country_profile import SupportedCountry
 from clinosim.datafiles import load_data_yaml
 
 _HERE = Path(__file__).resolve().parent
@@ -174,7 +175,7 @@ class _WorkupImaging(BaseModel):
     note: str | None = None  # authoring note, not read
     # Issue #2870: countries the study is ordered in (empty = all), and the
     # share of screens read abnormal by severity.
-    countries: list[Literal["US", "JP"]] = []
+    countries: list[SupportedCountry] = []
     abnormal_rate_by_severity: dict[str, float] = {}
 
 
@@ -302,7 +303,7 @@ class ScreeningLab(BaseModel):
     age: str
     sex: _Sex = "any"
     min_bmi: float | None = None
-    countries: list[Literal["US", "JP"]] = []
+    countries: list[SupportedCountry] = []
 
     @field_validator("age")
     @classmethod

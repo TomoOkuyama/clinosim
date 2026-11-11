@@ -6,6 +6,8 @@ metadata:
   source: clinosim
 
 code: US
+# Healthcare-system config: clinosim/config/us.yaml.
+healthcare_system: us
 fhir_profiles: [us_core]
 features:
   maternal_tdap: true

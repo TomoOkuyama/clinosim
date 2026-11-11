@@ -25,7 +25,9 @@ code_systems:
 fhir_profiles: []
 # Country features (off unless a country switches them on).
 features:
-  health_checkup: true
+  # Issue #3192: the statutory health checkup (JP 特定健診) enricher; off unless
+  # a country switches it on (it never ran for the US).
+  health_checkup: false
   care_level: false
   maternal_tdap: false
 formats:

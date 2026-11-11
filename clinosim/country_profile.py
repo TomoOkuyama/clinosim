@@ -21,9 +21,9 @@ import importlib
 from collections.abc import Callable
 from functools import cache, lru_cache
 from pathlib import Path
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from clinosim.datafiles import load_data_yaml
 
@@ -32,6 +32,7 @@ __all__ = [
     "FHIR_PROFILES",
     "IMPLEMENTATION_MODULES",
     "CountryProfile",
+    "SupportedCountry",
     "country_profile",
     "deep_merge",
     "implementation",
@@ -101,6 +102,10 @@ class CountryProfile(BaseModel):
     features: dict[str, bool]
     formats: _Formats
     implementations: dict[str, str]
+    # Issue #3192: stem of the healthcare-system YAML in clinosim/config/
+    # (``us`` -> us.yaml). No root default: a country without one fails when
+    # the healthcare system is loaded.
+    healthcare_system: str | None = Field(default=None, pattern=r"^[a-z_]+$")
 
     @field_validator("code_systems")
     @classmethod
@@ -181,6 +186,18 @@ def supported_countries() -> tuple[str, ...]:
     return tuple(
         sorted(p.parent.name.upper() for p in _LOCALE.glob(f"*/{_PROFILE_FILE}") if not p.parent.name.startswith("_"))
     )
+
+
+def _supported_country(value: str) -> str:
+    if value not in supported_countries():
+        raise ValueError(f"country {value!r} has no country profile; supported: {list(supported_countries())}")
+    return value
+
+
+# A field holding an upper-case country code that has a country profile
+# (Issue #3192): replaces ``Literal["US", "JP"]`` so a country added by a
+# profile needs no type edit.
+SupportedCountry = Annotated[str, AfterValidator(_supported_country)]
 
 
 # Legacy spellings the simulator still carries ("japan" is the disease-YAML
