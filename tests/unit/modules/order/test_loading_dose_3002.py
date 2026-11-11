@@ -54,7 +54,9 @@ def test_jp_regimen_gives_300_mg_once_then_75_mg_daily() -> None:
     patient = SimpleNamespace(
         patient_id="P1", current_medications=[], age=65, allergies=[], chronic_conditions=[], safety_skip_log=[]
     )
-    orders = apply_drug_safety_gate_to_admission_orders(_orders("japan", "Clopidogrel"), patient, "ENC-1", _ADM, "D1")
+    orders = apply_drug_safety_gate_to_admission_orders(
+        _orders("japan", "Clopidogrel"), patient, "ENC-1", _ADM, "D1", country="us"
+    )
     assert len(orders) == 2, "the maintenance order is the loading order's continuation, not a second P2Y12"
     given: list = []
     for day in range(4):

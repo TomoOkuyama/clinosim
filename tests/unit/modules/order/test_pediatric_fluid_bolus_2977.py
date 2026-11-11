@@ -24,25 +24,25 @@ pytestmark = pytest.mark.unit
 
 
 def test_a_10_kg_childs_gastroenteritis_bolus_is_200_ml() -> None:
-    assert pediatric_order_name("IV normal saline 1000mL", 24, 10.0) == "IV normal saline 200mL"
+    assert pediatric_order_name("IV normal saline 1000mL", 24, 10.0, country="US") == "IV normal saline 200mL"
 
 
 def test_a_volume_in_litres_is_rewritten_in_ml() -> None:
-    assert pediatric_order_name("IV normal saline 1L", 72, 18.0) == "IV normal saline 360mL"
+    assert pediatric_order_name("IV normal saline 1L", 72, 18.0, country="US") == "IV normal saline 360mL"
 
 
 def test_the_bolus_never_exceeds_the_written_adult_volume() -> None:
-    assert pediatric_order_name("IV normal saline 1000mL", 180, 62.0) == "IV normal saline 1000mL"
-    assert pediatric_order_name("IV normal saline 500mL", 120, 32.0) == "IV normal saline 500mL"
+    assert pediatric_order_name("IV normal saline 1000mL", 180, 62.0, country="US") == "IV normal saline 1000mL"
+    assert pediatric_order_name("IV normal saline 500mL", 120, 32.0, country="US") == "IV normal saline 500mL"
 
 
 def test_lactated_ringer_is_weight_based_too() -> None:
-    assert pediatric_order_name("IV lactated Ringer 1000mL", 36, 14.0) == "IV lactated Ringer 280mL"
+    assert pediatric_order_name("IV lactated Ringer 1000mL", 36, 14.0, country="US") == "IV lactated Ringer 280mL"
 
 
 def test_adults_and_unsized_fluid_orders_are_unchanged() -> None:
-    assert pediatric_order_name("IV normal saline 1000mL", 240, 70.0) == "IV normal saline 1000mL"
-    assert pediatric_order_name("IV normal saline", 24, 10.0) == "IV normal saline"
+    assert pediatric_order_name("IV normal saline 1000mL", 240, 70.0, country="US") == "IV normal saline 1000mL"
+    assert pediatric_order_name("IV normal saline", 24, 10.0, country="US") == "IV normal saline"
 
 
 @pytest.mark.parametrize("country", ["US", "JP"])

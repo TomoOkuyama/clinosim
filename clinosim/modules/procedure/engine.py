@@ -107,7 +107,7 @@ def simulate_surgery(
     admission_time: datetime,
     protocol: Any,
     rng: np.random.Generator,
-    country: str = "JP",
+    country: str,
     surgeon_id: str = "",
     anesthesiologist_id: str = "",
     operating_rooms: int = 2,
@@ -499,7 +499,7 @@ def age_gated_procedures(
     age_days: int,
     start: datetime,
     first_index: int,
-    country: str = "US",
+    country: str,
 ) -> list[ProcedureRecord]:
     """The protocol's ``procedures_by_age_days`` performed for a patient
     ``age_days`` old (Issue #3063), numbered from ``first_index``. No random
@@ -536,7 +536,7 @@ def generate_bedside_procedures(
     admission_time: datetime,
     severity: str,
     rng: np.random.Generator,
-    country: str = "US",
+    country: str,
 ) -> list[ProcedureRecord]:
     """Generate bedside/routine procedures based on disease and severity.
 
@@ -656,7 +656,7 @@ def generate_rehab_sessions(
     surgery_date: datetime,
     total_days: int,
     rng: np.random.Generator,
-    country: str = "JP",
+    country: str,
 ) -> list[RehabSession]:
     """Generate rehabilitation sessions for post-surgical recovery."""
     sessions: list[RehabSession] = []

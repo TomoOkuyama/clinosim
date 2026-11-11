@@ -239,7 +239,7 @@ def _allergy_drift(
     person: PersonRecord,
     year: int,
     prng: np.random.Generator,
-    locale: str = "us",
+    locale: str,
 ) -> None:
     """Per-person annual allergy drift.
 
@@ -365,7 +365,7 @@ def _stroke_sequela_promotion(
     person: PersonRecord,
     year: int,
     prng: np.random.Generator,
-    locale: str = "us",
+    locale: str,
 ) -> None:
     """Promote past stroke hospitalization(s) to chronic sequela
     condition(s) on ``person.chronic_conditions``:

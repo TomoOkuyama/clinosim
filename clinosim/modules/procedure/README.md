@@ -88,12 +88,12 @@ from clinosim.modules.procedure import (
     ProcedureRecord,             # dataclass (from types.procedure, re-exported)
     RehabSession,                # dataclass (from types.procedure, re-exported)
     simulate_surgery,            # (patient, disease_id, encounter_id, admission_time, protocol, rng,
-                                 #  country="JP", surgeon_id="", anesthesiologist_id="", operating_rooms=2)
+                                 #  country, surgeon_id="", anesthesiologist_id="", operating_rooms=2)
                                  #  -> (ProcedureRecord, dict[str, float])
     generate_bedside_procedures, # (patient_id, encounter_id, disease_id, admission_time, severity, rng,
-                                 #  country="US") -> list[ProcedureRecord]
+                                 #  country) -> list[ProcedureRecord]
     generate_rehab_sessions,     # (patient_id, encounter_id, surgery_date, total_days, rng,
-                                 #  country="JP") -> list[RehabSession]
+                                 #  country) -> list[RehabSession]
 )
 from clinosim.modules.procedure.engine import (
     build_intubation_procedure,  # (patient_id, encounter_id, start, country, procedure_id) -> ProcedureRecord

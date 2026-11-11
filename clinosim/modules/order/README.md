@@ -157,9 +157,9 @@ from clinosim.modules.order.placed_order_mar import (
 from clinosim.modules.order.prescription_supersede import prescription_closures  # (records, run_end) -> {(encounter_id, seq): Closure}
 
 # Weight-based ED doses for children (Issue #2857)
-from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg, country="US") -> re-dosed name (unchanged for adults / unlisted drugs) | None (below minimum age)
-from clinosim.modules.order.pediatric_dose import redose_order_for_child  # (order, age_months, weight_kg, country="US") -> None; a minor's inpatient order re-dosed in place (Issue #3004)
-from clinosim.modules.order.pediatric_dose import pediatric_dose_text  # (drug, dose, age_months, weight_kg, country="US") -> a minor's prescription dose text
+from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg, country) -> re-dosed name (unchanged for adults / unlisted drugs) | None (below minimum age)
+from clinosim.modules.order.pediatric_dose import redose_order_for_child  # (order, age_months, weight_kg, country) -> None; a minor's inpatient order re-dosed in place (Issue #3004)
+from clinosim.modules.order.pediatric_dose import pediatric_dose_text  # (drug, dose, age_months, weight_kg, country) -> a minor's prescription dose text
 from clinosim.modules.order.pediatric_dose import maintenance_fluid_ml_per_h  # (weight_kg) -> Holliday-Segar mL/h
 
 # Per-country label dose limits (Issue #3012)

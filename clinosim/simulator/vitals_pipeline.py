@@ -439,7 +439,6 @@ def _generate_vitals(
     rng: np.random.Generator,
     disease_id: str = "",
     nurse_id: str = "",
-    country: str = "US",
 ) -> list[VitalSignRecord]:
     """Generate vital sign measurements for this day.
 

@@ -138,7 +138,7 @@ def test_per_stub_encounter_binding_via_run_unit(monkeypatch) -> None:
             json.dump(patient, f)
         os.makedirs(os.path.join(tmp, "narratives"), exist_ok=True)
 
-        pass_ = TemplateNarrativePass(cif_dir=tmp, version_id="test-1237")
+        pass_ = TemplateNarrativePass(cif_dir=tmp, version_id="test-1237", country="US")
         pass_.run()
 
     # `_build_context` was called with BOTH encounter ids (cache dedups

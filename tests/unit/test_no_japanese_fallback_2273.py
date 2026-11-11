@@ -52,5 +52,6 @@ def test_hedged_phrase_falls_back_to_english_not_japanese() -> None:
 
 
 @pytest.mark.parametrize("func", [daily_loop._run_daily_loop, discharge_rx.build_discharge_rx])
-def test_country_key_defaults_to_us(func) -> None:
-    assert inspect.signature(func).parameters["country_key"].default == "us"
+def test_country_key_is_required(func) -> None:
+    # Issue #3221: no default country (was "us"); a caller must pass it.
+    assert inspect.signature(func).parameters["country_key"].default is inspect.Parameter.empty

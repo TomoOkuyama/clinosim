@@ -105,7 +105,7 @@ class BenchmarkReport:
         )
 
 
-def run_benchmarks(dataset: CIFDataset, country: str = "JP") -> BenchmarkReport:
+def run_benchmarks(dataset: CIFDataset, country: str) -> BenchmarkReport:
     """Run Tier 1 statistical benchmarks against generated data."""
     report = BenchmarkReport()
     patients = dataset.patients

@@ -60,7 +60,7 @@ def load_reference() -> dict:
 
 
 @lru_cache(maxsize=2)
-def load_rates(country: str = "JP") -> dict:
+def load_rates(country: str) -> dict:
     """Load care-level rates for ``country``. Returns ``{}`` when the country
     profile has the ``care_level`` feature off (no-op path; Issue #3143) —
     care_level is currently JP-only, but the signature matches immunization /
@@ -106,7 +106,7 @@ def assign_care_level(age: int, country: str, rng: np.random.Generator) -> str:
         return ""
     ref = load_reference()
     levels = ref["levels"]
-    weights = list(load_rates().get(find_age_band_or_last(ref["age_bands"], int(age)), []))
+    weights = list(load_rates(country).get(find_age_band_or_last(ref["age_bands"], int(age)), []))
     if not weights or sum(weights) <= 0:
         return ""
     # fallback="raise" is defense-in-depth; the early-exit above guards zero-sum first

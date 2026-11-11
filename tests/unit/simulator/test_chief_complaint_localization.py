@@ -9,11 +9,12 @@ this leaked to `chief_complaint_ja` and downstream SOAP subjective.
 
 This test locks in the invariant: every simulator-side visit_reason
 producer now returns either a bilingual dict or a JA string when the
-country is JP, so `resolve_text(..., country="JP")` yields JA.
+country is JP, so `resolve_text(..., lang_for("JP"))` yields JA.
 """
 
 from __future__ import annotations
 
+from clinosim.countries import lang_for
 from clinosim.locale.text import resolve_text
 from clinosim.simulator.engine import (
     _HEALTH_SCREENING_VISIT_REASON,
@@ -43,13 +44,13 @@ def test_screening_fallback_has_bilingual_dict() -> None:
 
 def test_annual_health_screening_resolves_to_ja_for_jp() -> None:
     r = _HEALTH_SCREENING_VISIT_REASON["annual_health_screening"]
-    assert resolve_text(r, country="JP") == "年次健診"
-    assert resolve_text(r, country="US") == "Annual health screening"
+    assert resolve_text(r, lang_for("JP")) == "年次健診"
+    assert resolve_text(r, lang_for("US")) == "Annual health screening"
 
 
 def test_mammography_screening_resolves_to_ja_for_jp() -> None:
     r = _HEALTH_SCREENING_VISIT_REASON["mammography_screening"]
-    assert resolve_text(r, country="JP") == "マンモグラフィー検診"
+    assert resolve_text(r, lang_for("JP")) == "マンモグラフィー検診"
 
 
 def test_pediatric_visit_reason_fallback_returns_bilingual_dict() -> None:
@@ -60,4 +61,4 @@ def test_pediatric_visit_reason_fallback_returns_bilingual_dict() -> None:
     assert isinstance(result, dict)
     assert "en" in result and "ja" in result
     assert _is_pure_ja(result["ja"])
-    assert resolve_text(result, country="JP") == "小児外来受診"
+    assert resolve_text(result, lang_for("JP")) == "小児外来受診"

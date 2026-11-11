@@ -35,17 +35,17 @@ _SIX_YEARS = 6 * 12
     ],
 )
 def test_a_20_kg_childs_antibiotics_are_weight_based_and_capped(drug: str, written: str, child: str) -> None:
-    assert pediatric_dose_text(drug, written, _SIX_YEARS, 20.0) == child
+    assert pediatric_dose_text(drug, written, _SIX_YEARS, 20.0, country="US") == child
 
 
 def test_an_adult_keeps_the_written_dose() -> None:
-    assert pediatric_dose_text("meropenem", "1g", 30 * 12, 70.0) == "1g"
+    assert pediatric_dose_text("meropenem", "1g", 30 * 12, 70.0, country="US") == "1g"
 
 
 def test_an_inpatient_order_written_in_grams_is_redosed() -> None:
     o = Order(order_id="ORD-1", order_type=OrderType.MEDICATION, display_name="Meropenem", drug_id="meropenem")
     enrich_medication_order(o, dose_str="1g IV q8h")
-    redose_order_for_child(o, _SIX_YEARS, 20.0)
+    redose_order_for_child(o, _SIX_YEARS, 20.0, country="US")
     assert (o.dose_quantity, o.dose_unit) == (400.0, "mg")
 
 
@@ -92,7 +92,7 @@ def test_the_post_stay_antibiotic_regimen_of_a_child_is_weight_based() -> None:
     child = child_dosing(rec.patient, "enc-1", datetime(2026, 1, 6, 10), "US")
     assert child is not None
     order = rec.orders[0]  # ceftriaxone 1 g q24h for an adult (CAUTI)
-    expected = pediatric_dose_text("ceftriaxone", "1g", child.age_months, child.weight_kg)
+    expected = pediatric_dose_text("ceftriaxone", "1g", child.age_months, child.weight_kg, country="US")
     assert expected != "1g"
     assert f"{order.dose_quantity:g}{order.dose_unit}" == expected
     assert {m.dose for m in rec.medication_administrations} == {expected}

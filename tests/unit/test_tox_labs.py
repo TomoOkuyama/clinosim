@@ -49,7 +49,13 @@ def _ed_labs(condition: str, severity: str = "moderate", seeds: int = 6) -> dict
         )
         patient = activate_patient(person, rng, load_demographics("US"))
         record = _simulate_ed_visit(
-            patient, {"name": condition, **cond}, datetime(2024, 6, 1, 14), roster, rng, force_severity=severity
+            patient,
+            {"name": condition, **cond},
+            datetime(2024, 6, 1, 14),
+            roster,
+            rng,
+            force_severity=severity,
+            country="US",
         )
         for r in record.lab_results:
             out.setdefault(r.lab_name, []).append(r.value)

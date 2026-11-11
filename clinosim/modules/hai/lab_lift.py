@@ -209,7 +209,7 @@ def apply_hai_lab_lift(
     encounter,
     state_history: list[Any],
     admission_time: datetime,
-    country: str = "US",
+    country: str,
 ) -> int:
     """Apply HAI WBC + CRP forward-delta to existing lab_results.
 

@@ -28,10 +28,10 @@ do not fix issues.
 
 ## Scope
 
-- **In scope**: `run_benchmarks(dataset, country="JP") -> BenchmarkReport`
+- **In scope**: `run_benchmarks(dataset, country) -> BenchmarkReport`
   with per-row `BenchmarkResult` (name / metric / generated value /
   expected value / expected range / `pass` / `warn` / `fail` status /
-  deviation %); `run_consistency_checks(dataset, country="US") -> ConsistencyReport`
+  deviation %); `run_consistency_checks(dataset, country) -> ConsistencyReport`
   (`country` is currently unused)
   with per-issue `ConsistencyIssue` (`error` / `warning` severity);
   nine private consistency helpers (`_check_discharge_hgb`,
@@ -54,12 +54,12 @@ from the two submodules:
 from clinosim.modules.validator.benchmarks import (
     BenchmarkResult,             # dataclass: name / metric / generated / expected / range / status / deviation_pct
     BenchmarkReport,             # roll-up per run
-    run_benchmarks,              # (dataset, country="JP") -> BenchmarkReport
+    run_benchmarks,              # (dataset, country) -> BenchmarkReport
 )
 from clinosim.modules.validator.consistency import (
     ConsistencyIssue,            # dataclass: patient_id / severity / check_name / message
     ConsistencyReport,           # roll-up per run
-    run_consistency_checks,      # (dataset, country="US") -> ConsistencyReport
+    run_consistency_checks,      # (dataset, country) -> ConsistencyReport
 )
 ```
 

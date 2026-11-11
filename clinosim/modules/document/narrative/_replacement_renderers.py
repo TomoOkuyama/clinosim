@@ -33,7 +33,7 @@ from clinosim.modules.document.narrative._vitals_line import LLM_ARRIVAL, LLM_DA
 from clinosim.modules.document.narrative.template_generator import _filter_vitals_for_day
 
 
-def _render_chronic_list(chronic: list, lang: str = "en", country: str = "US") -> str:
+def _render_chronic_list(chronic: list, lang: str = "en", *, country: str) -> str:
     """chronic_conditions [{'code','system','severity','stage','onset_date'}, ...]
     → short comma-separated string of the form
     ``"<display> (<code>) (<stage>, <severity>)"``.

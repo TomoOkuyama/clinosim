@@ -170,7 +170,13 @@ def test_an_acute_visit_draws_what_a_well_child_visit_draws() -> None:
     for visit in ("well_child_infant", "pediatric_uri", "pediatric_otitis_media", "pediatric_injury"):
         rng = np.random.default_rng(7)
         _simulate_outpatient_visit(
-            _child(), "pediatric_visit", datetime(2025, 11, 3, 10, 5), StaffRoster(), rng, chronic_code=visit
+            _child(),
+            "pediatric_visit",
+            datetime(2025, 11, 3, 10, 5),
+            StaffRoster(),
+            rng,
+            chronic_code=visit,
+            country="US",
         )
         ends.append(rng.random())
     assert len(set(ends)) == 1

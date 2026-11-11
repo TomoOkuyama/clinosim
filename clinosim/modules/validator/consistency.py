@@ -59,7 +59,7 @@ class ConsistencyReport:
 
 def run_consistency_checks(
     dataset: CIFDataset,
-    country: str = "US",
+    country: str,
 ) -> ConsistencyReport:
     """Run all rule-based consistency checks on a CIFDataset."""
     report = ConsistencyReport()

@@ -69,7 +69,7 @@ from clinosim.modules.hai import (
 )
 # パッケージからは再 export されない:
 from clinosim.modules.hai.lab_lift import (
-    apply_hai_lab_lift,                            # (record, encounter, state_history, admission_time, country="US")
+    apply_hai_lab_lift,                            # (record, encounter, state_history, admission_time, country)
                                                    #   -> int (変更した observation 数。lab_results を mutate)
     _hai_lift_delta,                               # closed-form WBC / CRP delta
 )

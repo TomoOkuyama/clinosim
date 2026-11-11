@@ -253,7 +253,7 @@ def _narrow_dose_frequency(drug_key: str) -> tuple[str, str]:
     return NARROW_DOSE_DEFAULTS.get(drug_key, DEFAULT_NARROW_REGIMEN)
 
 
-def _apply_pass2(rec, snapshot: datetime, roster: Any = None, country: str = "US") -> None:
+def _apply_pass2(rec, snapshot: datetime, roster: Any, country: str) -> None:
     """PR3b-3 Pass 2: walk extensions['antibiotic'] empirical regimens, look
     up the HAI culture via MicrobiologyResult.hai_event_id, pick narrow target
     via ladder, dispatch one of the three outcomes (spec §2.4)."""

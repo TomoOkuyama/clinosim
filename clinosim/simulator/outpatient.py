@@ -290,7 +290,7 @@ def _visit_chief_complaint(
     raw_chief: str | dict = ""  # captured for the JP-side resolution below (Issue #360 G1)
     if spec.get("visit_reason"):
         raw_chief = spec["visit_reason"]
-        chief = resolve_text(raw_chief, country=country)
+        chief = resolve_text(raw_chief, lang_for(country))
     elif post_discharge_disease:
         # Look up disease-specific post-discharge reason
         fu = load_chronic_followup()
@@ -307,7 +307,7 @@ def _visit_chief_complaint(
                 "ja": t("encounter_intent.post_discharge_followup", "ja"),
             },
         )
-        chief = resolve_text(raw_chief, country=country)
+        chief = resolve_text(raw_chief, lang_for(country))
     else:
         # Try encounter protocol YAML for chief complaint
         try:
@@ -321,7 +321,7 @@ def _visit_chief_complaint(
                     "ja": t("encounter_intent.followup", "ja", code=chronic_code),
                 },
             )
-            chief = resolve_text(raw_chief, country=country)
+            chief = resolve_text(raw_chief, lang_for(country))
         except FileNotFoundError:
             chief = t("encounter_intent.followup", lang_for(country), code=chronic_code)
 
@@ -797,7 +797,7 @@ def _followup_procedures(
     visit_type: str,
     encounter: Encounter,
     visit_date: datetime,
-    country: str = "US",
+    country: str,
 ) -> list:
     procedures_list: list = []
 
@@ -1190,7 +1190,8 @@ def _simulate_outpatient_visit(
     chronic_code: str = "",
     followup_spec: dict | None = None,
     post_discharge_disease: str = "",
-    country: str = "US",
+    *,
+    country: str,
     config: SimulatorConfig | None = None,
     department_id: str = "internal_medicine",
 ) -> CIFPatientRecord:

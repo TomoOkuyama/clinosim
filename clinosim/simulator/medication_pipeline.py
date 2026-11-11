@@ -1014,7 +1014,7 @@ def apply_drug_safety_gate_to_orders(
     ordered_datetime: datetime,
     attending_id: str = "",
     protocol: Any = None,
-    country: str = "us",
+    country: str,
     already_accepted_meds: list[str] | None = None,
 ) -> list[Order]:
     """Filter a stream of candidate medication Orders through
@@ -1281,7 +1281,8 @@ def apply_drug_safety_gate_to_admission_orders(
     admission_time: datetime,
     attending_id: str,
     protocol: Any = None,
-    country: str = "us",
+    *,
+    country: str,
 ) -> list[Order]:
     """Backward-compat wrapper preserved from before C7b (#1100).
 

@@ -26,7 +26,7 @@ def _baby(dob: date) -> SimpleNamespace:
 
 
 def _events(dob: date, schedule: dict | None = None) -> list:
-    return generate_pediatric_events(_baby(dob), dob.year, np.random.default_rng(7), schedule, "US")
+    return generate_pediatric_events(_baby(dob), dob.year, np.random.default_rng(7), schedule, country="US")
 
 
 def _dobs() -> list[date]:

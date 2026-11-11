@@ -79,7 +79,7 @@ def test_admissions_need_the_psychiatric_ward(country: str) -> None:
 
     def count(depts: frozenset[str]) -> int:
         events = generate_monthly_events(
-            reg, 2024, 3, np.random.default_rng(1), demo=demo, master_seed=5, inpatient_departments=depts
+            reg, 2024, 3, np.random.default_rng(1), demo=demo, master_seed=5, inpatient_departments=depts, country="US"
         )
         return sum(e.disease_id == "psychosis_inpatient" for e in events)
 

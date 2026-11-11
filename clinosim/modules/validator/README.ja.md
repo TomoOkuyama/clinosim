@@ -25,10 +25,10 @@ repo 内の呼び出し元: `clinosim validate` CLI subcommand
 
 ## Scope
 
-- **In scope**: `run_benchmarks(dataset, country="JP") -> BenchmarkReport`
+- **In scope**: `run_benchmarks(dataset, country) -> BenchmarkReport`
   と per-row `BenchmarkResult` (name / metric / generated / expected /
   range / `pass` / `warn` / `fail` status / deviation %);
-  `run_consistency_checks(dataset, country="US") -> ConsistencyReport`
+  `run_consistency_checks(dataset, country) -> ConsistencyReport`
   (`country` は現状未使用) と
   per-issue `ConsistencyIssue` (`error` / `warning` severity);
   9 private consistency helper (`_check_discharge_hgb`,
@@ -50,12 +50,12 @@ repo 内の呼び出し元: `clinosim validate` CLI subcommand
 from clinosim.modules.validator.benchmarks import (
     BenchmarkResult,             # dataclass: name / metric / generated / expected / range / status / deviation_pct
     BenchmarkReport,             # run 単位 roll-up
-    run_benchmarks,              # (dataset, country="JP") -> BenchmarkReport
+    run_benchmarks,              # (dataset, country) -> BenchmarkReport
 )
 from clinosim.modules.validator.consistency import (
     ConsistencyIssue,            # dataclass: patient_id / severity / check_name / message
     ConsistencyReport,           # run 単位 roll-up
-    run_consistency_checks,      # (dataset, country="US") -> ConsistencyReport
+    run_consistency_checks,      # (dataset, country) -> ConsistencyReport
 )
 ```
 

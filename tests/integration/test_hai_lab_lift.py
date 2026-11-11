@@ -123,6 +123,7 @@ def test_no_hai_events_no_changes():
         _encounter(),
         _build_state_history([0.4] * 5),
         datetime(2026, 1, 8, 0),
+        country="US",
     )
     assert n == 0
     assert obs.value == 11800.0
@@ -160,7 +161,7 @@ def test_clabsi_full_lift_at_day_2_uses_closed_form_and_draw_hour():
         [wbc_order, crp_order],
     )
 
-    n = apply_hai_lab_lift(record, _encounter(), state_history, admission)
+    n = apply_hai_lab_lift(record, _encounter(), state_history, admission, country="US")
     assert n == 2
     assert wbc_obs.value == pytest.approx(11760 + 4800 * _circadian_wbc(6), abs=1.0)
     assert crp_obs.value == pytest.approx(
@@ -192,6 +193,7 @@ def test_pre_onset_observation_unchanged():
         _encounter(),
         _build_state_history([0.4] * 5),
         admission,
+        country="US",
     )
     assert obs.value == 11800.0
 
@@ -215,7 +217,7 @@ def test_ramp_at_day_1_is_full_lift():
         [obs],
         [order],
     )
-    apply_hai_lab_lift(record, _encounter(), state_history, admission)
+    apply_hai_lab_lift(record, _encounter(), state_history, admission, country="US")
     expected_delta = 400 * ((0.4 + 0.40) ** 3 - 0.4**3)
     assert obs.value == pytest.approx(25.9 + expected_delta, abs=0.5)
 
@@ -235,6 +237,7 @@ def test_encounter_mismatch_no_lift():
         _encounter(),
         _build_state_history([0.4] * 5),
         admission,
+        country="US",
     )
     assert obs.value == 25.9
 
@@ -254,6 +257,7 @@ def test_non_wbc_crp_observation_untouched():
         _encounter(),
         _build_state_history([0.4] * 5),
         admission,
+        country="US",
     )
     assert obs.value == 15.0
 
@@ -269,7 +273,7 @@ def test_multi_event_takes_max_not_sum():
         _hai_event(hai_type="cauti", onset_date="2026-01-10", hai_id="h2"),
     ]
     record = _record(events, [obs], [order])
-    apply_hai_lab_lift(record, _encounter(), state_history, admission)
+    apply_hai_lab_lift(record, _encounter(), state_history, admission, country="US")
     # Expected = baseline + delta_for_max_lift_0.40 (NOT delta_for_0.60)
     expected_delta_max = 400 * (0.80**3 - 0.4**3)
     expected_delta_sum = 400 * (1.00**3 - 0.4**3)
@@ -290,7 +294,7 @@ def test_state_history_index_is_post_day_state():
         [obs],
         [order],
     )
-    apply_hai_lab_lift(record, _encounter(), state_history, admission)
+    apply_hai_lab_lift(record, _encounter(), state_history, admission, country="US")
     # Lift on infl=0.8 with 0.35 lift → eff_infl=1.0 → CRP = 0.3 + 400 = 400.3
     # delta = 400 * (1.0^3 - 0.8^3) = 400 * 0.488 = 195.2
     assert obs.value == pytest.approx(0.3 + 400 * 0.8**3 + 195.2, abs=1.0)
@@ -315,7 +319,7 @@ def test_wbc_uses_order_draw_hour_not_result_hour():
         [obs],
         [order],
     )
-    apply_hai_lab_lift(record, _encounter(), state_history, admission)
+    apply_hai_lab_lift(record, _encounter(), state_history, admission, country="US")
     # Issue #1987: clabsi lift 0.40 → eff_infl=0.80, pre_circ delta = 4800.
     # delta = 4800 * circadian(6), NOT circadian(10) (the result hour)
     expected_delta = 4800 * _circadian_wbc(6)
@@ -334,7 +338,7 @@ def test_wbc_is_rounded_to_integer_precision():
         [obs],
         [order],
     )
-    apply_hai_lab_lift(record, _encounter(), state_history, admission)
+    apply_hai_lab_lift(record, _encounter(), state_history, admission, country="US")
     assert obs.value == int(obs.value), f"WBC was {obs.value} — PRECISION['WBC']=0 requires integer"
 
 
@@ -350,7 +354,7 @@ def test_obs_flag_recomputed_after_lift():
         [crp_obs],
         [crp_order],
     )
-    apply_hai_lab_lift(record, _encounter(), state_history, admission)
+    apply_hai_lab_lift(record, _encounter(), state_history, admission, country="US")
     # Lifted CRP ~143 mg/L is high
     assert crp_obs.flag in ("H", "critical")
 

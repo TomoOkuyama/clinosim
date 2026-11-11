@@ -86,7 +86,7 @@ def test_placement_draws_nothing() -> None:
     for dob in (date(2015, 8, 15), date(2021, 3, 1), date(2025, 11, 20)):
         a, b = np.random.default_rng(11), np.random.default_rng(11)
         generate_pediatric_events(_person(dob), 2026, a, country="US")
-        generate_pediatric_events(_person(dob), 2026, b)
+        generate_pediatric_events(_person(dob), 2026, b, country=None)
         assert a.random() == b.random()
 
 

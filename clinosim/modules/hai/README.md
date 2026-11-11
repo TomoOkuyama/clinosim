@@ -74,7 +74,7 @@ from clinosim.modules.hai import (
 )
 # Not re-exported by the package:
 from clinosim.modules.hai.lab_lift import (
-    apply_hai_lab_lift,                            # (record, encounter, state_history, admission_time, country="US")
+    apply_hai_lab_lift,                            # (record, encounter, state_history, admission_time, country)
                                                    #   -> int (# observations modified; mutates lab_results)
     _hai_lift_delta,                               # closed-form WBC / CRP delta
 )

@@ -352,8 +352,8 @@ def determine_flag(
     lab_name: str,
     value: float | str,
     sex: str = "F",
-    country: str = "US",
     *,
+    country: str,
     medications: Any = None,
     age: int | None = None,
 ) -> str | None:

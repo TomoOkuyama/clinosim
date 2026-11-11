@@ -53,7 +53,7 @@ from clinosim.locale.loader import (
     load_department_display,        # () -> dict[str, dict[str, str]] (shared)
 )
 from clinosim.locale.text import (
-    resolve_text,                   # (value, language, country) -> str
+    resolve_text,                   # (value, language) -> str
 )
 ```
 

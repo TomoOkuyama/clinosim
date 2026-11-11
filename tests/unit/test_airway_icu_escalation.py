@@ -42,7 +42,7 @@ def test_intubation_procedure_record(country: str, code: str) -> None:
 def test_disease_list_no_longer_intubates(disease: str) -> None:
     for seed in range(40):
         procs = generate_bedside_procedures(
-            "P1", "E1", disease, datetime(2026, 5, 1), "severe", np.random.default_rng(seed)
+            "P1", "E1", disease, datetime(2026, 5, 1), "severe", np.random.default_rng(seed), country="US"
         )
         assert all(p.procedure_type != "intubation" for p in procs)
 

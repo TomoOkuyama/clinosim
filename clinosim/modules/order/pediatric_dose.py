@@ -148,7 +148,7 @@ def neonatal_interval_hours(name: str, age_days: int | None) -> int | None:
 
 
 def pediatric_order_name(
-    name: str, age_months: int, weight_kg: float | None, country: str = "US", age_days: int | None = None
+    name: str, age_months: int, weight_kg: float | None, country: str, age_days: int | None = None
 ) -> str | None:
     """``name`` re-dosed for a child, unchanged for an adult or an unlisted drug,
     or None when the child is below the drug's minimum age. A country's
@@ -206,7 +206,7 @@ def _child_mg(
 
 
 def pediatric_dose_text(
-    drug: str, dose: str, age_months: int, weight_kg: float | None, country: str = "US", age_days: int | None = None
+    drug: str, dose: str, age_months: int, weight_kg: float | None, country: str, age_days: int | None = None
 ) -> str:
     """A prescription's dose text (``"75mg PO BID"``, ``"1g"``) re-dosed for a
     child (Issue #3004, #3082): its first mg or g strength becomes the child's
@@ -224,7 +224,7 @@ def pediatric_dose_text(
 
 
 def redose_order_for_child(
-    order: Any, age_months: int, weight_kg: float | None, country: str = "US", age_days: int | None = None
+    order: Any, age_months: int, weight_kg: float | None, country: str, age_days: int | None = None
 ) -> None:
     """Re-dose an inpatient medication order for a child in place (Issue
     #3004): a listed drug written in mg gets ``mg_per_kg`` × weight, a listed

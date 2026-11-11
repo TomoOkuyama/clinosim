@@ -270,7 +270,8 @@ def generate_pediatric_events(
     year: int,
     prng: np.random.Generator,
     schedule: dict[str, dict[str, Any]] | None = None,
-    country: str | None = None,
+    *,
+    country: str | None,
 ) -> list[Any]:
     """Emit `LifeEvent` records for the pediatric encounters `person` should have this year.
 

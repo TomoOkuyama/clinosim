@@ -90,19 +90,19 @@ class TestPrecision:
 @pytest.mark.unit
 class TestFlags:
     def test_high_flag(self):
-        assert determine_flag("CRP", 50.0) == "H"
+        assert determine_flag("CRP", 50.0, country="US") == "H"
 
     def test_low_flag(self):
-        assert determine_flag("Hb", 10.0, sex="M") == "L"  # below male ref range (13.5)
+        assert determine_flag("Hb", 10.0, sex="M", country="US") == "L"  # below male ref range (13.5)
 
     def test_normal_no_flag(self):
-        assert determine_flag("Na", 140.0) is None
+        assert determine_flag("Na", 140.0, country="US") is None
 
     def test_critical_k(self):
-        assert determine_flag("K", 7.0) == "critical"
+        assert determine_flag("K", 7.0, country="US") == "critical"
 
     def test_critical_low_hb(self):
-        assert determine_flag("Hb", 6.0) == "critical"  # below panic threshold 7.0
+        assert determine_flag("Hb", 6.0, country="US") == "critical"  # below panic threshold 7.0
 
 
 @pytest.mark.unit
@@ -113,8 +113,8 @@ class TestHbA1cSupport:
         assert "HbA1c" in PHYSIOLOGIC_LIMITS
 
     def test_hba1c_flag(self):
-        assert determine_flag("HbA1c", 8.0) == "H"  # diabetic, above normal range
-        assert determine_flag("HbA1c", 5.2) is None  # normal
+        assert determine_flag("HbA1c", 8.0, country="US") == "H"  # diabetic, above normal range
+        assert determine_flag("HbA1c", 5.2, country="US") is None  # normal
 
     def test_baseline_lab_normals_exported(self):
         from clinosim.modules.observation.engine import BASELINE_LAB_NORMALS

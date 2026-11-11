@@ -166,7 +166,7 @@ def test_render_chronic_list_ja_localizes_severity():
         {"code": "心不全", "stage": "NYHA III", "severity": "moderate"},
         {"code": "COPD", "stage": "GOLD 3", "severity": "severe"},
     ]
-    ja = _render_chronic_list(chronic, lang="ja")
+    ja = _render_chronic_list(chronic, lang="ja", country="US")
     assert "軽度" in ja
     assert "中等度" in ja
     assert "重度" in ja
@@ -183,7 +183,7 @@ def test_render_chronic_list_ja_localizes_severity():
 @pytest.mark.unit
 def test_render_chronic_list_en_leaves_severity_untranslated():
     chronic = [{"code": "essential HTN", "severity": "mild"}]
-    en = _render_chronic_list(chronic, lang="en")
+    en = _render_chronic_list(chronic, lang="en", country="US")
     assert "mild" in en
     assert "軽度" not in en
 
@@ -206,7 +206,7 @@ def test_render_chronic_list_resolves_icd_display_en():
     """G20 must render with its name, not just 'G20'. Issue #2994: the code
     is the one the US output emits for it (G20.C), named by its label."""
     chronic = [{"code": "G20", "system": "icd-10-cm", "severity": "mild"}]
-    en = _render_chronic_list(chronic, lang="en")
+    en = _render_chronic_list(chronic, lang="en", country="US")
     assert "Parkinson" in en, f"expected 'Parkinson' in {en!r}"
     assert "(G20.C)" in en, f"expected '(G20.C)' in {en!r}"
     assert "mild" in en
@@ -229,7 +229,7 @@ def test_render_chronic_list_legacy_no_system_passes_through():
     directly in ``code`` (e.g. ``code = 'essential HTN'``) must not
     trigger a spurious lookup."""
     chronic = [{"code": "essential HTN", "severity": "mild"}]
-    en = _render_chronic_list(chronic, lang="en")
+    en = _render_chronic_list(chronic, lang="en", country="US")
     # No paired display appended when system is absent.
     assert "essential HTN" in en
     # No accidental duplicate resolution (would produce
@@ -243,7 +243,7 @@ def test_render_chronic_list_unknown_code_falls_back_cleanly():
     ``code_lookup`` echoes the code back. The renderer must detect that
     and avoid emitting a redundant ``CODE (CODE)`` string."""
     chronic = [{"code": "ZZZ99", "system": "icd-10-cm", "severity": "mild"}]
-    en = _render_chronic_list(chronic, lang="en")
+    en = _render_chronic_list(chronic, lang="en", country="US")
     # Echoed code = no true display; renderer should skip the paren-display.
     assert "ZZZ99 (ZZZ99)" not in en
     assert "ZZZ99" in en
@@ -258,7 +258,7 @@ def test_render_chronic_list_multiple_icd_codes_all_resolved():
         {"code": "N18", "system": "icd-10-cm", "stage": "CKD G4"},
         {"code": "C34", "system": "icd-10-cm"},
     ]
-    en = _render_chronic_list(chronic, lang="en")
+    en = _render_chronic_list(chronic, lang="en", country="US")
     # I10 → hypertension family, N18 → chronic kidney, C34 → lung.
     # Issue #2994: the codes are the ones the US output emits.
     for token in ("hypertension", "(I10)", "(N18.9)", "CKD G4", "(C34.90)"):
@@ -337,6 +337,6 @@ def test_render_abnormal_labs_en_unchanged():
 @pytest.mark.unit
 def test_render_chronic_list_names_us_dementia_by_the_coded_condition():
     """Issue #2994: the internal dementia key F00 is coded F03.90 in US output."""
-    en = _render_chronic_list([{"code": "F00", "system": "icd-10-cm", "stage": "CDR 2"}], lang="en")
+    en = _render_chronic_list([{"code": "F00", "system": "icd-10-cm", "stage": "CDR 2"}], lang="en", country="US")
     assert "Alzheimer" not in en
     assert "Dementia (F03.90) (CDR 2)" in en

@@ -16,17 +16,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from clinosim.countries import lang_for
 from clinosim.locale.localized import localized
 
 
-def resolve_text(value: Any, language: str = "", country: str = "") -> str:
+def resolve_text(value: Any, language: str) -> str:
     """Resolve a YAML text field to the appropriate language.
 
     Args:
         value: Either a string or a dict with language keys (en, ja, etc.)
-        language: Target language code ("en", "ja")
-        country: Country code ("US", "JP") — used if language not specified
+        language: Target language code ("en", "ja"); a caller holding a
+            country passes ``lang_for(country)`` (Issue #3221: no implicit
+            country).
 
     Returns:
         The text in the requested language, else English, else ``""``
@@ -41,6 +41,6 @@ def resolve_text(value: Any, language: str = "", country: str = "") -> str:
 
     # Dict with language keys
     if isinstance(value, dict):
-        return localized(value, language or lang_for(country))
+        return localized(value, language)
 
     return str(value)

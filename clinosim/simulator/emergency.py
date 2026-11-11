@@ -11,7 +11,7 @@ import numpy as np
 from clinosim import determinism
 from clinosim.codes.hl7_encounter import ActPriority, DischargeDisposition
 from clinosim.codes.valuesets import code_by_chronic_prefix
-from clinosim.countries import country_slot
+from clinosim.countries import country_slot, lang_for
 from clinosim.locale.free_text import localize_drug_name, localize_free_text
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import order_test_display, treatment_intent_display
@@ -488,7 +488,7 @@ def _simulate_ed_visit(
     visit_time: datetime,
     roster: StaffRoster,
     rng: np.random.Generator,
-    country: str = "US",
+    country: str,
     config: object | None = None,
     force_severity: str | None = None,
     allowed_severities: tuple[str, ...] | None = None,
@@ -531,7 +531,7 @@ def _simulate_ed_visit(
     from clinosim.locale.text import resolve_text
 
     raw_chief = (protocol or condition).get("chief_complaint", cond_name)
-    chief = resolve_text(raw_chief, country=country)
+    chief = resolve_text(raw_chief, lang_for(country))
 
     encounter = create_inpatient_encounter(
         patient.patient_id,

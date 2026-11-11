@@ -69,7 +69,7 @@ from clinosim.modules.observation.engine import (
     round_to_precision,                  # (lab_name, value) -> float
     is_qualitative_test,                 # (lab_name) -> bool
     generate_lab_result,                 # (lab_name, true_value, rng) -> float | str
-    determine_flag,                      # (lab_name, value, sex="F", country="US", *, medications=None, age=None) -> "L" | "H" | "critical" | None
+    determine_flag,                      # (lab_name, value, sex="F", *, country, medications=None, age=None) -> "L" | "H" | "critical" | None
     therapeutic_range,                   # (lab_name, country, *, medications, age) -> (low, high, text) | None
     medication_name,                     # (med) -> drug name of a home medication / order
     medications_in_effect,               # (home_medications, medication_orders=None, admission_date=None, current_day=None) -> list

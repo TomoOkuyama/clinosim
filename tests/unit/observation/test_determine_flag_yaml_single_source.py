@@ -78,7 +78,7 @@ class TestFallbackBehaviour:
 
     def test_default_country_is_us(self):
         # Issue #570 convention: no country supplied → US.
-        assert determine_flag("WBC", 11000, sex="F") == "H"
+        assert determine_flag("WBC", 11000, sex="F", country="US") == "H"
 
 
 class TestYamlLoaderRoundTrip:
