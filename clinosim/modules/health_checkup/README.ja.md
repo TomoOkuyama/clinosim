@@ -101,7 +101,10 @@ tier 閾値 (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
 - `clinosim.determinism` — 測定ノイズ用 sub-RNG の生成。
 - `clinosim.modules.physiology.engine` — `patient_lipid_panel` (患者の
   脂質状態 — 性別・糖尿病・脂質異常症・スタチンの低下率 — から得る LDL
-  真値。入院・外来の検査値導出と共通、Issue #2928, #2941)、
+  真値。入院・外来の検査値導出と共通、Issue #2928, #2941)。服薬は健診日に
+  服用中のもの (`modules.patient.medication_timeline.medications_on`、
+  Issue #3199) で、健診後に始めた薬はまだ服用していない。健診 record の
+  患者はその服薬リストを持つので、報告書の問診もそれに答える。
   `clinosim.codes.valuesets` — `concept_group`。
 - `clinosim.locale` — `i18n.t`, `loader.load_reference_ranges`。
 - `hashlib.sha256` — 患者選定。

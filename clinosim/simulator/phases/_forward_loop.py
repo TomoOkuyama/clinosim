@@ -37,6 +37,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Any
 
+from clinosim.modules.patient.medication_timeline import note_encounter_medications
 from clinosim.modules.population.aging import advance_population
 from clinosim.modules.population.engine import LifeEvent, generate_monthly_events
 from clinosim.seeding import PHASE_LIFE_EVENT, derive_phase_rng
@@ -216,6 +217,10 @@ def run_forward_loop(ctx: ForwardContext, months: list[tuple[int, int]]) -> None
                     queue.push(postponed, "calendar", (event, postponed.date()))
             elif item.kind == "ed":
                 dispatch_ed_slot(item.payload, ed_sampler)
+            # Issue #3199: the medications each new record's patient takes
+            # from its end on, for readers that need them as of a day.
+            for record in ctx.patient_records[n_before:]:
+                note_encounter_medications(record)
             enroll_new_persons(year)
 
         print(

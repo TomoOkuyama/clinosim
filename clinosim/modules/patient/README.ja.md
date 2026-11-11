@@ -51,6 +51,13 @@ from clinosim.modules.patient.activator import activate_patient
 
 from clinosim.modules.patient.test_patient import create_test_patient
 # () -> PatientProfile  (決定論的 72 歳 JP 女性、HT + T2DM)
+
+from clinosim.modules.patient.medication_timeline import medications_on, note_encounter_medications
+# note_encounter_medications(record) -> None  (forward loop: record の患者がその最後の
+#   encounter 終了以降に服用する薬を、共有の visit ledger に記録)
+# medications_on(patient, when: datetime) -> list[HomeMedication]  (`when` 時点で服用中の
+#   薬。最初の encounter より前は最初の profile の開始時の薬、記録が無ければ現在の薬)
+#   — Issue #3199、乱数なし
 ```
 
 `_severity_activation.py` の stage / severity table は `activator.py`
@@ -196,6 +203,7 @@ clinosim/modules/patient/
   _patient_activator_thresholds.py     named threshold (478 LOC, Issue #637)
   _marital.py                          配偶関係と緊急連絡先の続柄 (locale marital_status.yaml、Issue #3189)
   _severity_activation.py              慢性疾患 stage + severity table (Issue #637 PR-D)
+  medication_timeline.py               ある日に服用中の常用薬 (Issue #3199)
   test_patient.py                      決定論的 create_test_patient() fixture
   reference_data/
     stage_severity.yaml                ICD base code → stage → severity score (STAGE_SEVERITY、Issue #2525)

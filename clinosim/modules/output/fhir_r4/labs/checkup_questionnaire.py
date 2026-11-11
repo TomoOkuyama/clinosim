@@ -7,7 +7,9 @@ medications), history of cerebrovascular / heart / kidney disease (chronic
 conditions) and smoking (smoking status). Items, answer codes and derivation
 rules live in ``locale/<cc>/checkup_questionnaire.yaml``; a country without
 the file (US) emits none. No random draws: every answer is read from the
-record, and an item whose source the record lacks is omitted.
+record, and an item whose source the record lacks is omitted. The checkup
+record's patient carries the medications in effect on the checkup date
+(Issue #3199), so a drug started after the checkup is not answered as taken.
 """
 
 from __future__ import annotations

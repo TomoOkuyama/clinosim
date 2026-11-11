@@ -109,7 +109,12 @@ thresholds (`CHECKUP_TYPE_SPECIFIC_AGE_MIN = 65`,
   sub-RNG.
 - `clinosim.modules.physiology.engine` — `patient_lipid_panel` (the true
   LDL from the patient's lipid state — sex, diabetes, dyslipidemia, statin
-  reduction — shared with encounter lab derivation, Issues #2928, #2941);
+  reduction — shared with encounter lab derivation, Issues #2928, #2941),
+  read with the home medications in effect on the checkup date
+  (`modules.patient.medication_timeline.medications_on`, Issue #3199): a
+  drug started after the checkup is not yet taken. The checkup record's
+  patient carries that medication list, so the report's questionnaire
+  answers it too;
   `clinosim.codes.valuesets` — `concept_group`.
 - `clinosim.locale` — `i18n.t`, `loader.load_reference_ranges`.
 - `hashlib.sha256` — patient selection.

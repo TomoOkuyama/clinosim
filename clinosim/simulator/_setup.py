@@ -160,6 +160,10 @@ def _activate_cached_person(
 
         restore_titrated_statin(patient)
         restore_lipid_add_on(patient)
+        # Issue #3199: the medications the person's first profile starts
+        # with — those in effect before their first encounter.
+        if patient.visit_ledger.medications_at_activation is None:
+            patient.visit_ledger.medications_at_activation = tuple(patient.current_medications)
         patient_cache[key] = patient
     return patient_cache[key]
 
