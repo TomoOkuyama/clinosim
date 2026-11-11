@@ -39,6 +39,25 @@ FHIR-emit-only, so CIF↔narrative-CIF consistency is preserved.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-11
+
+### Highlights
+
+About 1,090 commits since v0.6.5 (about 430 fixes, 300 refactors and 175 features). The entries below this summary were written as the changes landed; this summary lists the main areas.
+
+- **Country profile.** Country differences are expressed through a validated country profile (`clinosim/locale/_root/country.yaml` deep-merged with `locale/<cc>/country.yaml`, `clinosim/country_profile.py`): values live in locale YAML, country algorithms are registered implementations under `clinosim/countries/`, and FHIR structure is gated by `profile.uses(...)`. `country` is a required parameter throughout; an unknown country raises instead of borrowing US values. Design: `docs/design-guides/country-profile-spec.md`. A code/data-separation ratchet test (`tests/unit/test_code_data_separation_3137.py`) keeps country branches and numeric literals from growing.
+- **Longitudinal engine.** Adult chronic-disease onset (30 ICDs), stage ladders (CKD, NYHA, cancer AJCC / BCLC), BMI drift, HbA1c and medication escalation (statin intensity, ezetimibe, spironolactone) run through the longitudinal event engine instead of the aging pass.
+- **New clinical scope.** Psychiatric conditions (schizophrenia, bipolar disorder, opioid use disorder with MOUD) with ED crisis and admission pathways; alcohol-withdrawal and elective knee-arthroplasty admissions; weight-based pediatric dosing; pediatric acute and vaccination visits.
+- **JP-CLINS / JP-eCheckup conformance.** JP inpatient encounters carry the DPC discharge outcome and declare `JP_Encounter_eCS`; the health-checkup report conforms to JP-eCheckup 1.7.0 (Composition frame, eCheckup Observations for results and the questionnaire, conformant Patient / Encounter / author / custodian). The emergency contact is emitted as a `RelatedPerson`. The one remaining validator error per checkup report comes from the JP-CLINS and JP-eCheckup packages shipping the `doc-typecodes` CodeSystem under one URL with different versions.
+- **Codes and display text.** US medications coded at RxNorm SCD level; code displays corrected to the code systems' published names; wrong or non-existent SNOMED CT / LOINC codes replaced; JP output never carries US CPT codes; hard-coded display languages in FHIR output and narrative renderers removed (English-only code systems keep English `coding.display` with the localized text in `.text`).
+- **Data coherence.** A person's marital status (US Census ACS 2023 B12002, 令和2年国勢調査) and emergency contact stay the same across records; health-checkup answers and LDL read the medications active on the checkup date; checkup BMI is computed from the same visit's height and weight.
+- **Tooling.** HL7 FHIR Validator pinned (6.10.4) with a nightly run and document-Bundle validation; CI quality job (ruff + format + mypy) is required; master is protected by a ruleset with 19 required checks.
+
+### CIF drift (why this is a MINOR release)
+
+Under the versioning policy above, this release breaks CIF ↔ narrative-CIF consistency: structured CIF for the same `(seed, hospital_config, country, start, end, population)` differs from v0.6.5 (new conditions and pathways, longitudinal-engine draws, marital status, emergency contact, checkup BMI and medications, among others). Narrative CIF generated with v0.6.x must be regenerated with `clinosim narrate`.
+
+
 ### Removed
 
 - **`LLMService.generate`, `PatientSummary` and `ClinicalEventData`** (Issue #2556; deprecated in #2541, removed before any release shipped the deprecation). Documents come only from the narrative pipeline (`clinosim narrate`, through `LLMService.complete_prompt`). The legacy template builders, their `llm_template` phrase keys and the 15 per-document prompts (EN + JA) of that path are removed; `prompts/` keeps `narrative_seed.yaml` and `narrative_seed_bundle.yaml`. No CIF or FHIR output change.
