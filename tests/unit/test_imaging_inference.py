@@ -222,7 +222,7 @@ class TestFhirStubImagingStudy:
     def _build_and_get(self, study_record):
         from clinosim.modules.output.fhir_r4.labs.imaging_study import _build_imaging_study
 
-        return _build_imaging_study(study_record, "ja", enc_reason_by_id={})
+        return _build_imaging_study(study_record, "ja", "JP", enc_reason_by_id={})
 
     def test_stub_emits_empty_modality_array(self):
         from clinosim.types.imaging import ImagingStudyRecord
@@ -336,13 +336,13 @@ class TestFhirStubImagingStudy:
             report=None,
         )
         # JP output:procedureCode 要素を完全省略(required binding 回避)
-        r_jp = _build_imaging_study(study, "ja", enc_reason_by_id={})
+        r_jp = _build_imaging_study(study, "ja", "JP", enc_reason_by_id={})
         assert "procedureCode" not in r_jp, (
             f"JP procedureCode must be omitted (required binding cannot be satisfied "
             f"by text alone). Got: {r_jp.get('procedureCode')}"
         )
         # US output:従来通り LOINC coding + text 両方 emit(US は該当 binding なし)
-        r_us = _build_imaging_study(study, "en", enc_reason_by_id={})
+        r_us = _build_imaging_study(study, "en", "US", enc_reason_by_id={})
         if "procedureCode" in r_us and r_us["procedureCode"]:
             pc = r_us["procedureCode"][0]
             # US:LOINC coding + text 両方 emit(US は該当 binding なし)

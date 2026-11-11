@@ -49,7 +49,10 @@ rename).
     / `declared_profiles(...)`: the `meta.profile` URLs of a resource type
     for the FHIR profiles the country profile applies
     (`profile.uses(name)`), read from
-    `clinosim/codes/data/fhir-profiles-<name>.yaml` (Issue #3145).
+    `clinosim/codes/data/fhir-profiles-<name>.yaml` (Issue #3145). A
+    `<ResourceType>/<variant>` key (`Observation/LabResult`,
+    `DiagnosticReport/Radiology`, ...) reads the table's `variants`
+    section, for a profile variant the builder declares itself (Issue #3201).
   - `dosage.py` — MedicationRequest / MedicationAdministration
     Dosage helpers (`build_dosage_instruction`, `build_route_concept`,
     `canonicalize_route`, `augment_iv_dosage_with_rate`,

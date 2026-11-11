@@ -34,7 +34,6 @@ from clinosim.modules.output.fhir_r4.labs.microbiology import (
     JP_MB_DR_CATEGORY_LOINC,
     JP_MB_DR_CODE_CS,
     JP_MB_DR_CODE_VALUE,
-    JP_MB_DR_PROFILE_URI,
     _bb_microbiology,
 )
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
@@ -160,7 +159,9 @@ def test_mb_dr_jp_profile_and_category_and_code() -> None:
     assert len(reports) == 1
     dr = reports[0]
 
-    assert JP_MB_DR_PROFILE_URI in dr["meta"]["profile"], "JP MB DR must declare Microbiology profile"
+    assert dr["meta"]["profile"] == [
+        "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Microbiology"
+    ], "JP MB DR must declare Microbiology profile"
 
     cat = dr["category"]
     assert len(cat) >= 2

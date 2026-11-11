@@ -53,16 +53,16 @@ def _stub_study(description: str) -> dict[str, Any]:
 )
 def test_fhir_and_narrative_use_the_same_name(slug: str, ja: str) -> None:
     assert imaging_exam_display(slug, "ja") == ja
-    assert _build_imaging_study(_stub_study(slug), "ja")["description"] == ja
+    assert _build_imaging_study(_stub_study(slug), "ja", "JP")["description"] == ja
     assert _localize_imaging(slug, "ja") == ja
 
 
 def test_us_description_is_the_english_display_not_the_slug() -> None:
-    assert _build_imaging_study(_stub_study("FAST_Ultrasound"), "en")["description"] == "FAST ultrasound"
+    assert _build_imaging_study(_stub_study("FAST_Ultrasound"), "en", "US")["description"] == "FAST ultrasound"
 
 
 def test_unknown_exam_is_humanised_not_dropped() -> None:
-    assert _build_imaging_study(_stub_study("Unknown_Exam"), "ja")["description"] == "Unknown Exam"
+    assert _build_imaging_study(_stub_study("Unknown_Exam"), "ja", "JP")["description"] == "Unknown Exam"
 
 
 def test_exam_names_reach_the_shared_display_dict() -> None:

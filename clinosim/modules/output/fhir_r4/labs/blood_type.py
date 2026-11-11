@@ -54,7 +54,6 @@ from clinosim.codes.snomed import snomed_for
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.lib.common import display_entry, dual_slot_concept
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
@@ -64,7 +63,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_LAB_RESULT_PROFILE
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 
 # === Issue #854 Bucket A row 4 (PR-obs-standalone): opaque blood-type ids ===
 # ABO / RhD blood-type Observations. Structural key = pre-#854 id body
@@ -189,7 +188,7 @@ def _build_blood_type_obs(
         "id": obs_id,
         # JP Core Observation_LabResult profile so downstream JP-CLINS
         # validators pick these up alongside other lab Observations.
-        **({"meta": {"profile": [JP_OBSERVATION_LAB_RESULT_PROFILE]}} if is_jp(country) else {}),
+        **profile_meta("Observation/LabResult", country),
         "status": "final",
         "category": [dual_slot_concept("hl7-observation-category", _LAB_CATEGORY_CODE, lang)],
         "code": {

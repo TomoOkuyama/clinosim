@@ -17,7 +17,6 @@ __all__ = [
     "JP_MEDICATION_ADMINISTRATION_INDEX_SYSTEM",
     "JP_MEDICATION_RP_GROUP_NUMBER_SYSTEM",
     "JP_OBSERVATION_COMMON_PROFILE",
-    "JP_OBSERVATION_LAB_RESULT_PROFILE",
     "JP_ORGANIZATION_ECS_PROFILE",
     "JP_ORGANIZATION_PROFILE",
     "JP_PROCEDURE_PROFILE",
@@ -39,7 +38,8 @@ JP_MEDICATION_ADMINISTRATION_INDEX_SYSTEM = "http://jpfhir.jp/fhir/core/mhlw/IdS
 # --- Profiles (meta.profile) ----------------------------------------------- #
 
 JP_OBSERVATION_COMMON_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
-JP_OBSERVATION_LAB_RESULT_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_LabResult"
+# JP_Observation_LabResult: `variants: Observation/LabResult` in
+# codes/data/fhir-profiles-jp-core.yaml (Issue #3201).
 JP_LOCATION_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"
 JP_ORGANIZATION_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"
 JP_ORGANIZATION_ECS_PROFILE = "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Organization_eCS"

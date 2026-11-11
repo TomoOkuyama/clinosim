@@ -19,9 +19,10 @@ from clinosim.codes.loinc import loinc_for
 from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL, NO_GROWTH
 from clinosim.countries import country_code as _country_code
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_code_mapping, load_narrative_labels, resolve_localized_display
-from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.observation.engine import canonical_lab_name
 from clinosim.modules.observation.microbiology import (
     culture_order_match_window_hours,
@@ -42,8 +43,8 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_OBSERVATION_LAB_RESULT_PROFILE
 from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 from clinosim.modules.output.fhir_r4.post_process.specimen import (
     SPECIMEN_KEY_SYSTEM,
     _resolve_specimen_id,
@@ -110,7 +111,8 @@ def _resolve_mb_sus_id(structural_key: str) -> str:
 #   * `category:first.coding.code` fixedCode = `LP7819-8` on LOINC
 #   * `code.coding` patternCodeableConcept containing
 #     `{system: JP_DocumentCodes_CS, code: 18725-2}` ("微生物学的検査報告書")
-JP_MB_DR_PROFILE_URI = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Microbiology"
+# The profile URL is ``variants: DiagnosticReport/Microbiology`` in
+# ``codes/data/fhir-profiles-jp-core.yaml`` (Issue #3201).
 JP_MB_DR_CATEGORY_LOINC = "LP7819-8"
 JP_MB_DR_CODE_CS = get_system_uri("jp-document-codes")
 JP_MB_DR_CODE_VALUE = loinc_for("report", "microbiology")
@@ -330,7 +332,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
             "resourceType": "Observation",
             "id": org_id,
             # chain #2: JP Core Observation_LabResult profile.
-            **({"meta": {"profile": [JP_OBSERVATION_LAB_RESULT_PROFILE]}} if is_jp(ctx.country) else {}),
+            **profile_meta("Observation/LabResult", ctx.country),
             "status": "final",
             "category": lab_category,
             "code": culture_code,
@@ -401,7 +403,7 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
                 "resourceType": "Observation",
                 "id": sus_id,
                 # chain #2: JP Core Observation_LabResult profile.
-                **({"meta": {"profile": [JP_OBSERVATION_LAB_RESULT_PROFILE]}} if is_jp(ctx.country) else {}),
+                **profile_meta("Observation/LabResult", ctx.country),
                 "status": "final",
                 "category": lab_category,
                 "code": {"coding": [_sus_c], "text": _sus_code_text},
@@ -441,7 +443,8 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         # `code.coding` to contain a patternCodeableConcept for
         # `JP_DocumentCodes_CS 18725-2`, which LabResult does not accept).
         report_code: dict[str, Any] = culture_code
-        if is_jp(ctx.country):
+        jp_core = country_profile(ctx.country).uses("jp_core")
+        if jp_core:
             _jp_doc_coding = {
                 "system": JP_MB_DR_CODE_CS,
                 "code": JP_MB_DR_CODE_VALUE,
@@ -457,11 +460,11 @@ def _bb_microbiology(ctx: BundleContext) -> list[dict]:
         report: dict[str, Any] = {
             "resourceType": "DiagnosticReport",
             "id": _resolve_mb_dr_id(_mb_dr_structural_key),
-            **({"meta": {"profile": [JP_MB_DR_PROFILE_URI]}} if is_jp(ctx.country) else {}),
+            **profile_meta("DiagnosticReport/Microbiology", ctx.country),
             "status": "final",
             "category": (
                 # Issue #3026: English LOINC display, the label in text.
-                [dual_slot_concept("loinc", JP_MB_DR_CATEGORY_LOINC, lang)] if is_jp(ctx.country) else []
+                [dual_slot_concept("loinc", JP_MB_DR_CATEGORY_LOINC, lang)] if jp_core else []
             )
             + [
                 {

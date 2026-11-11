@@ -37,9 +37,10 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
 from clinosim.countries import country_code as _country_code
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.loader import imaging_exam_display, load_code_mapping
 from clinosim.locale.localized import localized_field
-from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.observation.engine import canonical_lab_name
 from clinosim.modules.order.panel_grouping import load_panel_definitions
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
@@ -1034,9 +1035,11 @@ def standalone_lab_order_code(o: Any, lang: str, country: str) -> LabOrderCode:
     # Issue #2299: the code mappings are keyed by canonical lab name.
     lab_key = canonical_lab_name(display_name)
     resolved_code = code_map.get(lab_key) or code_map.get(display_name)
-    # Two-tier fallback: when JP map missing entry, try LOINC (US) map.
+    # Two-tier fallback: when the map of a country whose lab code system is
+    # not LOINC lacks the entry, try the LOINC (US) map (Issue #3201: the
+    # country profile's lab code system decides).
     used_loinc_fallback = False
-    if not resolved_code and is_jp(country_code):
+    if not resolved_code and country_profile(country_code).code_system("lab") != "loinc":
         us_map = load_code_mapping("lab", "US")
         us_resolved = us_map.get(lab_key) or us_map.get(display_name)
         if us_resolved:

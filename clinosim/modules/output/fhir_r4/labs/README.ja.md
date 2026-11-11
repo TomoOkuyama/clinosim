@@ -97,7 +97,14 @@ from clinosim.modules.output.fhir_r4.labs._reference_ranges import (
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`。
+- `clinosim.countries` — `lang_for`。
+- `clinosim.country_profile` — JP Core の構造 (profile URL、検体検査・微生物・
+  放射線レポートの `category:first` LOINC slice、JP 文書コード、ImagingStudy
+  `procedureCode` の省略) を出すかは `profile.uses("jp_core")` で決める。
+  LOINC coding が相互運用用にすぎないか、検査オーダーが LOINC 表へ fallback
+  するかは `profile.code_system("lab")` で決める (Issue #3201)。profile URL
+  (`Observation/LabResult`・`DiagnosticReport/*` の variant を含む) は
+  `lib/profile_meta.py` から。
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`、
   fragment helper。
 - `..demographics.patient.patient_ref`、

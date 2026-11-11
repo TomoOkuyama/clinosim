@@ -32,10 +32,11 @@ from clinosim.codes import lookup as _codes_lookup
 from clinosim.codes.snomed_concepts import FINDING_ABNORMAL, FINDING_NORMAL
 from clinosim.codes.ucum import ucum_prose
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display, lab_result_display
 from clinosim.locale.localized import language_slot, localized_field
-from clinosim.modules._shared import get_attr_or_key, is_jp
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.imaging.engine import (
     RADIOLOGY_REPORT_ID_PREFIX,
     ImagingImpressionKeywords,
@@ -71,6 +72,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     wrap_as_identifier,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import localize_fixed_label
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 from clinosim.reference_data import load_reference_yaml
 from clinosim.types.encounter import OrderType
 
@@ -159,7 +161,8 @@ RADIOLOGY_CATEGORY_V2_0074 = "RAD"
 #   category:first  = LOINC LP29684-5(放射線)
 #   category:second = DICOM modality(CT/CR/MR ...)
 #   code.coding:radiologyReportCode = JP_DocumentCodes_CS 18748-4(画像検査報告書)
-_JP_DR_RADIOLOGY_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Radiology"
+# The profile URL is ``variants: DiagnosticReport/Radiology`` in
+# ``codes/data/fhir-profiles-jp-core.yaml`` (Issue #3201).
 _JP_DR_RADIOLOGY_CATEGORY_LOINC_CODE = "LP29684-5"
 _JP_DR_DICOM_MODALITY_SYSTEM = get_system_uri("dicom-modality")
 _JP_DOCUMENT_CODES_CS = get_system_uri("jp-document-codes")
@@ -624,6 +627,7 @@ def _lab_report_resource(
     to ``group.bucket`` when the caller has no report time.
     """
     lang = lang_for(country)
+    jp_core = country_profile(country).uses("jp_core")
     # Issue #854 Bucket B (PR-diagnostic-report): opaque lab-panel DR.id.
     _lab_dr_structural_key = structural_key
     res: dict[str, object] = {
@@ -631,15 +635,11 @@ def _lab_report_resource(
         "id": _resolve_lab_panel_dr_id(_lab_dr_structural_key),
         "identifier": [wrap_as_identifier(_lab_dr_structural_key, key_system)],
         # chain #2: JP Core DiagnosticReport_LabResult profile.
-        **(
-            {"meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_LabResult"]}}
-            if is_jp(country)
-            else {}
-        ),
+        **profile_meta("DiagnosticReport/LabResult", country),
         "status": "final",
         "category": (
             # Issue #3026: English LOINC display, the label in text.
-            [dual_slot_concept("loinc", JP_LAB_DR_CATEGORY_LOINC, lang_for(country))] if is_jp(country) else []
+            [dual_slot_concept("loinc", JP_LAB_DR_CATEGORY_LOINC, lang_for(country))] if jp_core else []
         )
         + [
             {
@@ -1102,10 +1102,10 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
     #   category:first  = LOINC LP29684-5 "放射線"
     #   category:second = DICOM modality(CT/CR/MR etc.)
     #   code.coding:radiologyReportCode = JP_DocumentCodes_CS 18748-4 "画像検査報告書"
-    _is_jp = is_jp(ctx.country)
+    _jp_core = country_profile(ctx.country).uses("jp_core")
     _jp_dr_category: list[dict] = []
     _jp_code_coding: list[dict] = []
-    if _is_jp:
+    if _jp_core:
         _lp_display = t("diagnostic_report_fhir.jp_radiology_category_display", lang)
         _jp_dr_category.append(
             {
@@ -1186,7 +1186,7 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         if proc_code
         else []
     )
-    _code_coding = (_jp_code_coding + _default_code_coding) if _is_jp else _default_code_coding
+    _code_coding = (_jp_code_coding + _default_code_coding) if _jp_core else _default_code_coding
 
     # Issue #854 Bucket B (PR-diagnostic-report): opaque radiology DR.id.
     # `rep_id` (CIF) retains the pre-#854 shape `imgrpt-{enc_id}-{idx}`
@@ -1202,10 +1202,10 @@ def _build_radiology_dr(study: Any, report: Any, ctx: Any) -> dict:
         "identifier": [wrap_as_identifier(_rad_dr_structural_key, RADIOLOGY_DR_KEY_SYSTEM)],
         # #218:JP Core DiagnosticReport_Radiology profile
         # (was _Common — chain #2 で見落とし、v5 で 499 errors)。
-        **({"meta": {"profile": [_JP_DR_RADIOLOGY_PROFILE]}} if _is_jp else {}),
+        **profile_meta("DiagnosticReport/Radiology", ctx.country),
         "status": _o(report, "status", "final"),
         "text": {"status": "generated", "div": div},
-        "category": _jp_dr_category if _is_jp else _default_category,
+        "category": _jp_dr_category if _jp_core else _default_category,
         "code": {
             **({"coding": _code_coding} if _code_coding else {}),
             "text": proc_display or t("diagnostic_report_fhir.radiology_title_bare", lang),

@@ -22,10 +22,11 @@ from clinosim.codes.snomed import snomed_for
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import country_code as _country_code
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import checkup_criterion, lab_display, lab_result_display, oxygen_device_label
 from clinosim.locale.localized import localized_field
-from clinosim.modules._shared import get_attr_or_key, is_jp, sanitize_id_token
+from clinosim.modules._shared import get_attr_or_key, sanitize_id_token
 from clinosim.modules.observation.engine import medications_in_effect
 from clinosim.modules.observation.pediatric_ranges import (
     PediatricVitalRange,
@@ -63,10 +64,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
     structural_key_system,
     wrap_as_identifier,
 )
-from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
-    JP_OBSERVATION_COMMON_PROFILE,
-    JP_OBSERVATION_LAB_RESULT_PROFILE,
-)
+from clinosim.modules.output.fhir_r4.lib.profile_meta import declared_profiles, profile_meta
 from clinosim.types.encounter import Order, OrderType
 
 
@@ -144,7 +142,11 @@ def lab_observation_coding(lab_name: str, order: dict, result: dict, country: st
     # a LocalCode coding).
     if _localcode is not None and _localcode.get("display"):
         display_name = _localcode["display"]
-    elif codings and not (is_jp(country) and codings[0].get("system") == get_system_uri("loinc")):
+    elif codings and not (
+        # Issue #3201: a LOINC coding in a country whose lab code system is
+        # another one is only the interop coding, not the country's code.
+        codings[0].get("system") == get_system_uri("loinc") and country_profile(country).code_system("lab") != "loinc"
+    ):
         display_name = codings[0]["display"]
     else:
         # No JP code (only the English LOINC interop coding, Issue #2300) or
@@ -225,9 +227,7 @@ def _build_lab_observation(
     # single ``laboratory`` category (JP_Observation_LabResult_eCS allows one)
     # cannot carry the ``vital-signs`` category those profiles require, so a
     # health-checkup BMI here cannot meet ``bmi``.
-    _profiles: list[str] = []
-    if is_jp(country):
-        _profiles.append(JP_OBSERVATION_LAB_RESULT_PROFILE)
+    _profiles: list[str] = declared_profiles("Observation/LabResult", country, "jp_core")
 
     # Issue #3154: a health-checkup result is the report's Observation — it
     # carries the country's checkup item coding and declares the report
@@ -594,7 +594,7 @@ def _build_vital_observations(
             "id": _resolve_vital_sign_observation_id(_vs_structural_key),
             "identifier": [wrap_as_identifier(_vs_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
             # chain #2: JP Core Observation_Common profile for vitals.
-            **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
+            **profile_meta("Observation", country),
             "status": "final",
             "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
@@ -657,7 +657,7 @@ def _build_vital_observations(
             "resourceType": "Observation",
             "id": _resolve_vital_sign_observation_id(_bp_structural_key),
             "identifier": [wrap_as_identifier(_bp_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
-            **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
+            **profile_meta("Observation", country),
             "status": "final",
             "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
@@ -704,7 +704,7 @@ def _build_vital_observations(
             "id": _resolve_vital_sign_observation_id(_loc_structural_key),
             "identifier": [wrap_as_identifier(_loc_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
             # chain #2: JP Core Observation_Common profile for vitals.
-            **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
+            **profile_meta("Observation", country),
             "status": "final",
             "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
@@ -764,7 +764,7 @@ def _build_vital_observations(
             "resourceType": "Observation",
             "id": _resolve_vital_sign_observation_id(_pain_structural_key),
             "identifier": [wrap_as_identifier(_pain_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
-            **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
+            **profile_meta("Observation", country),
             "status": "final",
             "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {
@@ -800,7 +800,7 @@ def _build_vital_observations(
             "id": _resolve_vital_sign_observation_id(_o2_structural_key),
             "identifier": [wrap_as_identifier(_o2_structural_key, VITAL_SIGN_OBSERVATION_KEY_SYSTEM)],
             # chain #2: JP Core Observation_Common profile for vitals.
-            **({"meta": {"profile": [JP_OBSERVATION_COMMON_PROFILE]}} if is_jp(country) else {}),
+            **profile_meta("Observation", country),
             "status": "final",
             "category": [dual_slot_concept("hl7-observation-category", "vital-signs", lang_for(country))],
             "code": {

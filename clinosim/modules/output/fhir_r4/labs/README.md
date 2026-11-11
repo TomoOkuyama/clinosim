@@ -102,7 +102,15 @@ Not applicable — pure builders over CIF + reference-range tables.
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`.
+- `clinosim.countries` — `lang_for`.
+- `clinosim.country_profile` — `profile.uses("jp_core")` decides whether the
+  JP Core structure is emitted (profile URLs, the `category:first` LOINC
+  slice of lab / microbiology / radiology reports, the JP document code, the
+  omitted ImagingStudy `procedureCode`); `profile.code_system("lab")` decides
+  whether a LOINC coding is only the interop coding and whether a lab order
+  falls back to the LOINC map (Issue #3201). Profile URLs (including the
+  `Observation/LabResult` and `DiagnosticReport/*` variants) come from
+  `lib/profile_meta.py`.
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`,
   fragment helpers.
 - `..demographics.patient.patient_ref`,

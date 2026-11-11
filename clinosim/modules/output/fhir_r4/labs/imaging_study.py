@@ -34,10 +34,10 @@ from clinosim.codes import get_system_uri
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed import snomed_for
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.loader import imaging_exam_display
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import uses_jp_clins_profile
 from clinosim.modules.imaging.engine import (  # canonical owners; re-exported below
     ENDPOINT_ID_PREFIX,
     IMAGING_STUDY_ID_PREFIX,
@@ -149,12 +149,12 @@ def _bb_imaging_studies(ctx: BundleContext) -> list[dict[str, Any]]:
             _cc = localized_field(_enc, "chief_complaint", lang)
             if _cc:
                 _enc_reason_by_id[_eid] = [{"text": _cc}]
-    return [_build_imaging_study(s, lang, _enc_reason_by_id) for s in studies]
+    return [_build_imaging_study(s, lang, ctx.country, _enc_reason_by_id) for s in studies]
 
 
 def _build_imaging_study(
-    study: Any, lang: str, enc_reason_by_id: dict[str, list[dict]] | None = None
-) -> dict[str, Any]:  # noqa: E501
+    study: Any, lang: str, country: str, enc_reason_by_id: dict[str, list[dict]] | None = None
+) -> dict[str, Any]:
     """Build one FHIR R4 ImagingStudy resource from an ImagingStudyRecord.
 
     cycle 8 拡張(案 D):stub-only ImagingStudy(modality/body_site
@@ -309,7 +309,7 @@ def _build_imaging_study(
                 #
                 # US path は LOINC coding + text 両方 emit(US profile は
                 # 該当 binding なし、情報保持)。
-                if not uses_jp_clins_profile(lang):
+                if not country_profile(country).uses("jp_core"):
                     res["procedureCode"] = [
                         {
                             "coding": [
