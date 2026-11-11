@@ -1529,8 +1529,19 @@ checkup_lab_results:
 # section headers; EN renders comma-separated labelled fields.
 checkup_questionnaire:
   full_line:
-    ja: "【既往歴】\n{history}\n【自覚症状】特記事項なし。\n【服薬】{meds}。\n【生活習慣】{smoking}、{alcohol}。\n【判定】{assessment}"
-    en: "History: {history}\nSymptoms: none noted.\nMedications: {meds}.\nLifestyle: smoking={smoking}, alcohol={alcohol}.\nAssessment: {assessment}"
+    ja: "【既往歴】\n{history}\n【自覚症状】特記事項なし。\n【服薬】{meds}。\n【生活習慣】{lifestyle}。\n【判定】{assessment}"
+    en: "History: {history}\nSymptoms: none noted.\nMedications: {meds}.\nLifestyle: {lifestyle}.\nAssessment: {assessment}"
+  # Issue #3211: the lifestyle items, joined with list_sep.serial; an item
+  # without a label is left out, and with none the line says so.
+  lifestyle_smoking:
+    ja: "{label}"
+    en: "smoking={label}"
+  lifestyle_alcohol:
+    ja: "{label}"
+    en: "alcohol={label}"
+  lifestyle_none:
+    ja: "記載なし"
+    en: "not recorded"
   assessment_followup_needed:
     ja: "既往に慢性疾患あり、かかりつけ医での継続経過観察を要す。"
     en: "Chronic condition(s) present; continued follow-up with primary care recommended."
@@ -1909,13 +1920,6 @@ fallback:
   follow_up_default:
     ja: "外来フォローアップ予定"
     en: "Follow up with outpatient provider"
-  # Checkup lifestyle label fallback prefix — JA appends
-  # `(区分未定義)` after the raw slug when the label catalog has
-  # no entry; EN uses the slug verbatim. Called via
-  # `t("fallback.checkup_lifestyle_unmapped", lang, key=<slug>)`.
-  checkup_lifestyle_unmapped:
-    ja: "{key}(区分未定義)"
-    en: "{key}"
 
 # FHIR emit-side per-resource text/display strings (Phase 1d-49).
 # From `clinosim/modules/output/fhir_r4/procedures/immunization.py` —

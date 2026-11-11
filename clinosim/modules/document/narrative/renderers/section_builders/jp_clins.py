@@ -25,6 +25,7 @@ from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
 from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import load_narrative_labels
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
@@ -508,27 +509,34 @@ def build_checkup_questionnaire(generator: TemplateNarrativeGenerator, ctx: Narr
     if current_meds:
         facts.append("ctx.patient.current_medications")
     med_text = (
-        t("list_sep.serial", lang).join(_render_home_med_name(m) for m in current_meds)
+        # Issue #3211: the drug name in the report's language (the catalog's
+        # Japanese name on JP output, as MedicationRequest.text).
+        t("list_sep.serial", lang).join(_render_home_med_name(m, lang) for m in current_meds)
         if current_meds
         else t("section_none.home_medications_alt", lang)
     )
 
-    # 生活習慣(smoking_status / alcohol_use). Vocabulary moved to
-    # ``narrative_labels.yaml::checkup_smoking_status / _alcohol_use``.
-    # Unknown values fall back to per-lang formatters (JA marks
-    # ``(区分未定義)``, EN emits the raw slug — matches pre-Phase-1d-38
-    # behaviour byte-for-byte).
+    # 生活習慣(smoking_status / alcohol_use): labels from
+    # ``narrative_labels.yaml::checkup_smoking_status / _alcohol_use``. A
+    # value without a label is left out rather than shown as its raw key
+    # (Issue #3211, code-mapping spec: no raw slugs in display text).
     smoking = _o(patient, "smoking_status", "never") or "never"
     alcohol = _o(patient, "alcohol_use", "none") or "none"
     facts.append("ctx.patient.smoking_status")
     facts.append("ctx.patient.alcohol_use")
-
-    def _checkup_lifestyle_label(section: str, key: str) -> str:
-        fallback = t("fallback.checkup_lifestyle_unmapped", lang, key=key)
-        return _label(section, key, lang, fallback=fallback)
-
-    smoking_disp = _checkup_lifestyle_label("checkup_smoking_status", smoking)
-    alcohol_disp = _checkup_lifestyle_label("checkup_alcohol_use", alcohol)
+    lifestyle_items = [
+        t(f"checkup_questionnaire.lifestyle_{item}", lang, label=label)
+        for item, section, key in (
+            ("smoking", "checkup_smoking_status", smoking),
+            ("alcohol", "checkup_alcohol_use", alcohol),
+        )
+        if key in load_narrative_labels().get(section, {}) and (label := _label(section, key, lang))
+    ]
+    lifestyle = (
+        t("list_sep.serial", lang).join(lifestyle_items)
+        if lifestyle_items
+        else t("checkup_questionnaire.lifestyle_none", lang)
+    )
 
     # Assessment: follow-up required when chronic conditions are present
     needs_followup = len(chronic) > 0
@@ -543,8 +551,7 @@ def build_checkup_questionnaire(generator: TemplateNarrativeGenerator, ctx: Narr
         lang,
         history=history_text,
         meds=med_text,
-        smoking=smoking_disp,
-        alcohol=alcohol_disp,
+        lifestyle=lifestyle,
         assessment=assessment,
     )
     return text, facts
