@@ -6,6 +6,8 @@ metadata:
   source: clinosim
 
 code: JP
+# Healthcare-system config: clinosim/config/japan.yaml.
+healthcare_system: japan
 language: ja
 timezone: "+09:00"
 code_systems:
@@ -19,6 +21,7 @@ code_systems:
 fhir_profiles: [jp_core, jp_clins, jp_echeckup]
 features:
   care_level: true
+  health_checkup: true
 formats:
   name_order: family_given
   date_format: "yyyy/MM/dd"

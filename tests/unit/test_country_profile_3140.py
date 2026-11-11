@@ -99,7 +99,7 @@ def test_features_match_today(country: str) -> None:
     p = country_profile(country)
     assert p.feature("care_level") is is_jp(country)  # enrichers.register_builtin_enrichers
     assert p.feature("maternal_tdap") is is_us(country)  # immunization.generate_pregnancy_tdap
-    assert p.feature("health_checkup") is True
+    assert p.feature("health_checkup") is is_jp(country)  # enrichers health_checkup gate
     with pytest.raises(KeyError):
         p.feature("teleportation")
 

@@ -14,8 +14,10 @@ module owns the load, cache, and country-dispatch contract.
 
 - **In scope**: reading `clinosim/config/{japan,us}.yaml` into a
   Pydantic `HealthcareSystemConfig`, per-country `@lru_cache`,
-  country-string normalisation (`"JP"` → `japan.yaml`, `"US"` →
-  `us.yaml`, anything else → `ValueError`).
+  the file named by the country profile (`healthcare_system` in
+  `clinosim/locale/<cc>/country.yaml`: JP → `japan.yaml`, US →
+  `us.yaml`; a country without a profile or without that key →
+  `KeyError`, Issue #3192).
 - **Out of scope**: hospital-level layout / bed count / department
   operations (in [`clinosim/config/hospital_*.yaml`](../../config/)
   and consumed by [`clinosim.modules.facility`](../facility/README.md)),
@@ -70,10 +72,9 @@ and the returned Pydantic model is shared read-only.
     `*_code_system` fields had no reader and were removed (#2208);
     code systems are chosen per country in `clinosim/codes` and LOS
     comes from the disease protocols.
-- Country dispatch table (in `loader.py`):
-  `{"JP": "japan.yaml", "US": "us.yaml"}`. To add a country, add
-  the YAML, extend the dict, and (if applicable) extend downstream
-  modules that switch on the string values above.
+- Country → file: the country profile's `healthcare_system` (the
+  stem of the file in `clinosim/config/`). To add a country, add the
+  YAML and name it in the country's `country.yaml`.
 - Extended reference material for future fields — comorbidity
   multipliers, insurance system tables, DPC / DRG parameters,
   screening programmes — is documented in the module's
@@ -112,11 +113,10 @@ down to the daily loop.
 
 ## Testing
 
-No dedicated tests today. The loader is exercised transitively by
-any test that boots the simulator (e.g. `pytest tests/integration -q`).
-Coverage gap tracked as a follow-up — a small unit test asserting
-JP → `japan.yaml`, US → `us.yaml`, and `ValueError` on an unknown
-code would be a low-cost win.
+`tests/unit/test_country_selection_3192.py` checks the file each
+profile names and that a country without one fails. The loader is also
+exercised by any test that boots the simulator (e.g.
+`pytest tests/integration -q`).
 
 ## Ownership
 

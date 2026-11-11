@@ -45,7 +45,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from clinosim.country_profile import country_profile
-from clinosim.modules._shared import is_jp
 
 logger = logging.getLogger(__name__)
 
@@ -544,7 +543,8 @@ def register_builtin_enrichers() -> None:
         # None-safe (care_level pattern): use getattr fallback so that
         # test_registry_helpers.run_stage(ctx.config=None) still passes.
         country = getattr(c, "country", "") if c is not None else ""
-        if not is_jp(country):
+        # Issue #3192: the country profile's health_checkup feature.
+        if not country or not country_profile(country).feature("health_checkup"):
             return False
         module_enabled = getattr(c, "module_enabled", None)
         if module_enabled is None:

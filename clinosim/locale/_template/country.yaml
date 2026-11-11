@@ -17,4 +17,5 @@ code: XX
 # fhir_profiles: []
 # features: {care_level: false}
 # formats: {name_order: given_family, physician_name_prefix: "Dr."}
+# healthcare_system: xx          # stem of the healthcare-system YAML in clinosim/config/
 # implementations: {egfr_equation: ckd_epi_2021}

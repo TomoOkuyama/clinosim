@@ -228,8 +228,8 @@ clinosim/locale/
 4. Add a top-level `clinosim/config/<country>.yaml` for the country
    healthcare-system defaults (`lab_frequency_multiplier`,
    `discharge_criteria`, `target_los_multiplier`, code-system names)
-   and register it in the country map of
-   `clinosim/modules/healthcare_system/loader.py`.
+   and name it in the country profile (`healthcare_system: <stem>` in
+   `clinosim/locale/<cc>/country.yaml`).
 5. Extend the country dispatch in the modules that switch on
    `SimulatorConfig.country`.
 6. Add integration tests covering the new country.

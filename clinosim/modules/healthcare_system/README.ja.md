@@ -13,8 +13,9 @@ cache / country dispatch 契約のみを持つ。
 
 - **In scope**: `clinosim/config/{japan,us}.yaml` を Pydantic
   `HealthcareSystemConfig` に読み込み、国別 `@lru_cache`、
-  country 文字列正規化 (`"JP"` → `japan.yaml`、`"US"` → `us.yaml`、
-  それ以外 → `ValueError`)。
+  国プロファイルが指名するファイル (`clinosim/locale/<cc>/country.yaml`
+  の `healthcare_system`: JP → `japan.yaml`、US → `us.yaml`。プロファイル
+  またはそのキーの無い国 → `KeyError`、Issue #3192)。
 - **Out of scope**: 病院レベルのレイアウト / ベッド数 / 部門運用
   ([`clinosim/config/hospital_*.yaml`](../../config/) にあり
   [`clinosim.modules.facility`](../facility/README.ja.md) が消費)、
@@ -66,9 +67,9 @@ country 文字列 (と on-disk YAML) の純粋関数で、返却される Pydant
   - 以前の `discharge_criteria`、`target_los_multiplier`、`*_code_system`
     はどこからも読まれていなかったため削除した (#2208)。コード体系は
     `clinosim/codes` で国ごとに決まり、在院日数は疾患プロトコルで決まる。
-- 国 dispatch 表 (`loader.py`):
-  `{"JP": "japan.yaml", "US": "us.yaml"}`。国追加時は YAML を追加、
-  dict を拡張、必要なら上記文字列を分岐する下流モジュールも拡張する。
+- 国 → ファイル: 国プロファイルの `healthcare_system` (`clinosim/config/`
+  のファイル名の stem)。国追加時は YAML を追加し、その国の
+  `country.yaml` で指名する。
 - 将来 field (comorbidity multiplier / 保険制度 / DPC/DRG /
   screening) の拡張参考資料は本モジュールの [`SPEC.md`](SPEC.md)
   に記載。現在の runtime `HealthcareSystemConfig` は意図的に v0.1
@@ -104,11 +105,10 @@ clinosim/modules/healthcare_system/
 
 ## テスト
 
-現時点で専用 test は無い。simulator を起動する任意の test
-(例: `pytest tests/integration -q`) で loader が間接的にカバーされる。
-coverage gap は follow-up として、JP → `japan.yaml`、US → `us.yaml`、
-未知コード → `ValueError` を assert する小さな unit test 追加が低コスト
-勝ち筋。
+`tests/unit/test_country_selection_3192.py` が各プロファイルの指名する
+ファイルと、指名の無い国が失敗することを確認する。simulator を起動する
+任意の test (例: `pytest tests/integration -q`) でも loader は間接的に
+カバーされる。
 
 ## Ownership
 

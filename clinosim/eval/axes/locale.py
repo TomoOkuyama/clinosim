@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from clinosim.audit.types import Cohort, iter_ndjson
 from clinosim.codes import get_system_uri
+from clinosim.country_profile import supported_countries
 from clinosim.eval.engine import EvalCheck, Outcome, Severity
 from clinosim.modules.output.fhir_r4.labs.coding_package import jp_clins_defined_system_uris
 
@@ -54,13 +55,14 @@ def _detect_country_from_cohort(cohort: Cohort, country: str) -> str:
     """When the cohort is stored in the flat layout ``<root>/fhir_r4/`` the
     directory name doesn't carry the country. Peek at the first Patient's
     ``address.country`` (or JP Core profile presence) to pick a lens."""
-    if country and country.upper() in ("US", "JP"):
+    # Issue #3192: any country with a profile.
+    if country and country.upper() in supported_countries():
         return country.upper()
     # Peek at the first Patient.
     for row in cohort.ndjson(country, "Patient", skip_malformed=True):
         for addr in row.get("address") or []:
             c = (addr.get("country") or "").upper()
-            if c in ("US", "JP"):
+            if c in supported_countries():
                 return c
         profile = ((row.get("meta") or {}).get("profile")) or []
         if any(p.startswith(_JP_CORE_URL_PREFIX) for p in profile):
