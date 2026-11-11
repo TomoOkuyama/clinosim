@@ -136,7 +136,7 @@ def _fhir_id_is_spec_valid(rid: str) -> bool:
 def convert_cif_to_fhir(
     cif_dir: str,
     output_dir: str,
-    country: str = "US",
+    country: str,
     narrative_version: str = "current",
 ) -> None:
     """Read CIF structural data and write FHIR R4 Bulk Data Export NDJSON files.
@@ -1386,7 +1386,7 @@ def _drop_entries_after_snapshot(entries: list[dict], snapshot_iso: str) -> tupl
     return kept, dropped, total_scrubbed
 
 
-def _drop_entries_after_death(entries: list[dict], dod_iso: str, lang: str = "en", country: str = "US") -> list[dict]:
+def _drop_entries_after_death(entries: list[dict], dod_iso: str, lang: str, country: str) -> list[dict]:
     """Filter out bundle entries whose timestamp is after the patient's date of death.
 
     Issue #926: universal safety gate applied per-record in `_build_bundle`.

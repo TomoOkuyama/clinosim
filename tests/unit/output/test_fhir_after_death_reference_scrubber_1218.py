@@ -64,7 +64,9 @@ def test_composition_entry_ref_scrubbed_when_observation_dropped() -> None:
         "effectiveDateTime": "2025-10-24T10:00:00",  # after dod → dropped
         "code": {"text": "HR"},
     }
-    kept = _drop_entries_after_death([_entry(composition), _entry(pre_mortem_obs), _entry(post_mortem_obs)], dod)
+    kept = _drop_entries_after_death(
+        [_entry(composition), _entry(pre_mortem_obs), _entry(post_mortem_obs)], dod, lang="en", country="US"
+    )
     resources = [e["resource"] for e in kept]
     ids = [r["id"] for r in resources]
     assert "comp-1" in ids
@@ -99,7 +101,7 @@ def test_diagnostic_report_result_ref_scrubbed_when_observation_dropped() -> Non
         "effectiveDateTime": "2025-10-24T10:00:00",
         "code": {"text": "WBC"},
     }
-    kept = _drop_entries_after_death([_entry(dr), _entry(obs_alive), _entry(obs_dead)], dod)
+    kept = _drop_entries_after_death([_entry(dr), _entry(obs_alive), _entry(obs_dead)], dod, lang="en", country="US")
     dr_survived = next(r for r in (e["resource"] for e in kept) if r["id"] == "dr-1")
     refs = [e["reference"] for e in dr_survived.get("result", [])]
     assert "Observation/obs-post-mortem-x" not in refs
@@ -126,7 +128,7 @@ def test_medadmin_dropped_cascade_scrubs_from_composition() -> None:
         "id": "ma-post-mortem",
         "effectivePeriod": {"start": "2025-10-24T08:00:00"},
     }
-    kept = _drop_entries_after_death([_entry(composition), _entry(ma)], dod)
+    kept = _drop_entries_after_death([_entry(composition), _entry(ma)], dod, lang="en", country="US")
     comp = next(r for r in (e["resource"] for e in kept) if r["id"] == "comp-plan")
     refs = [e["reference"] for e in comp["section"][0]["entry"]]
     assert "MedicationAdministration/ma-post-mortem" not in refs
@@ -152,7 +154,7 @@ def test_no_scrubbing_when_nothing_dropped() -> None:
         "effectiveDateTime": "2025-10-20T09:30:00",
         "code": {"text": "HR"},
     }
-    kept = _drop_entries_after_death([_entry(composition), _entry(obs)], dod)
+    kept = _drop_entries_after_death([_entry(composition), _entry(obs)], dod, lang="en", country="US")
     comp = next(r for r in (e["resource"] for e in kept) if r["id"] == "comp-1")
     refs = [e["reference"] for e in comp["section"][0]["entry"]]
     assert refs == ["Observation/obs-1"]

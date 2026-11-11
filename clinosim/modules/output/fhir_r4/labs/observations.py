@@ -533,7 +533,7 @@ def _build_vital_observations(
     vs: dict,
     patient_id: str,
     index: int,
-    country: str = "US",
+    country: str,
     encounter_id: str = "",
     *,
     birth_date: Any = None,

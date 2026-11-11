@@ -46,7 +46,7 @@ def test_encounter_with_period_end_after_death_survives() -> None:
         "status": "finished",
         "period": {"start": "2025-10-20T08:00:00", "end": "2025-10-27T14:00:00"},
     }
-    kept = _drop_entries_after_death([_entry(encounter)], "2025-10-22")
+    kept = _drop_entries_after_death([_entry(encounter)], "2025-10-22", lang="en", country="US")
     assert len(kept) == 1
     assert kept[0]["resource"]["id"] == "enc-imp-1"
 
@@ -58,7 +58,7 @@ def test_encounter_fully_before_death_still_survives() -> None:
         "id": "enc-past-1",
         "period": {"start": "2025-08-01", "end": "2025-08-15"},
     }
-    kept = _drop_entries_after_death([_entry(encounter)], "2025-10-22")
+    kept = _drop_entries_after_death([_entry(encounter)], "2025-10-22", lang="en", country="US")
     assert len(kept) == 1
 
 
@@ -69,7 +69,7 @@ def test_coverage_with_period_end_after_death_survives() -> None:
         "id": "cov-1",
         "period": {"start": "2024-04-01", "end": "2026-03-31"},
     }
-    kept = _drop_entries_after_death([_entry(coverage)], "2025-10-22")
+    kept = _drop_entries_after_death([_entry(coverage)], "2025-10-22", lang="en", country="US")
     assert len(kept) == 1
 
 
@@ -79,13 +79,13 @@ def test_care_team_with_period_end_after_death_survives() -> None:
         "id": "ct-1",
         "period": {"start": "2025-10-20", "end": "2025-10-27"},
     }
-    kept = _drop_entries_after_death([_entry(care_team)], "2025-10-22")
+    kept = _drop_entries_after_death([_entry(care_team)], "2025-10-22", lang="en", country="US")
     assert len(kept) == 1
 
 
 def test_practitioner_survives_regardless_of_dates() -> None:
     prac = {"resourceType": "Practitioner", "id": "dr-1"}
-    kept = _drop_entries_after_death([_entry(prac)], "2025-10-22")
+    kept = _drop_entries_after_death([_entry(prac)], "2025-10-22", lang="en", country="US")
     assert len(kept) == 1
 
 
@@ -99,7 +99,7 @@ def test_observation_after_death_is_still_dropped() -> None:
         "code": {"text": "HR"},
         "valueQuantity": {"value": 80},
     }
-    kept = _drop_entries_after_death([_entry(obs)], "2025-10-22")
+    kept = _drop_entries_after_death([_entry(obs)], "2025-10-22", lang="en", country="US")
     assert kept == []
 
 
@@ -109,7 +109,7 @@ def test_medication_admin_after_death_is_still_dropped() -> None:
         "id": "ma-post-mortem",
         "effectivePeriod": {"start": "2025-10-24T10:00:00"},
     }
-    kept = _drop_entries_after_death([_entry(ma)], "2025-10-22")
+    kept = _drop_entries_after_death([_entry(ma)], "2025-10-22", lang="en", country="US")
     assert kept == []
 
 
@@ -120,7 +120,7 @@ def test_medication_admin_same_day_as_death_survives() -> None:
         "id": "ma-terminal",
         "effectivePeriod": {"start": "2025-10-22T05:00:00"},
     }
-    kept = _drop_entries_after_death([_entry(ma)], "2025-10-22")
+    kept = _drop_entries_after_death([_entry(ma)], "2025-10-22", lang="en", country="US")
     assert len(kept) == 1
 
 
@@ -141,7 +141,7 @@ def test_encounter_starting_after_death_is_still_dropped() -> None:
         "id": "enc-bogus",
         "period": {"start": "2026-07-20T10:54:00+09:00", "end": "2026-08-03T20:14:00+09:00"},
     }
-    kept = _drop_entries_after_death([_entry(encounter)], "2025-12-16")
+    kept = _drop_entries_after_death([_entry(encounter)], "2025-12-16", lang="en", country="US")
     assert kept == [], "post-death admission Encounter must be dropped"
 
 
@@ -151,5 +151,5 @@ def test_coverage_starting_after_death_is_still_dropped() -> None:
         "id": "cov-bogus",
         "period": {"start": "2026-01-01", "end": "2027-03-31"},
     }
-    kept = _drop_entries_after_death([_entry(coverage)], "2025-12-16")
+    kept = _drop_entries_after_death([_entry(coverage)], "2025-12-16", lang="en", country="US")
     assert kept == []

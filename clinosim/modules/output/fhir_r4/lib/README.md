@@ -116,7 +116,7 @@ from clinosim.modules.output.fhir_r4.lib.ecs_extensions import (
     attach_ecs_institutional_extensions,
 )
 from clinosim.modules.output.fhir_r4.lib.dosage import (
-    build_dosage_instruction,             # (order, country="US") -> Dosage | None
+    build_dosage_instruction,             # (order, country, body=None) -> Dosage | None
     build_route_concept,                  # (raw_route, country) -> CodeableConcept | None
     map_mar_status,                       # (status) -> MedicationAdministration.status
 )

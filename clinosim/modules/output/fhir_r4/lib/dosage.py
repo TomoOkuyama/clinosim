@@ -705,7 +705,7 @@ def _route_frequency_term(route: str, frequency: str, lang: str) -> str:
 
 
 def build_dosage_instruction(
-    order: dict, country: str = "US", body: tuple[float, float] | None = None
+    order: dict, country: str, body: tuple[float, float] | None = None
 ) -> dict[str, Any] | None:
     """Build FHIR Dosage from structured order fields.
 

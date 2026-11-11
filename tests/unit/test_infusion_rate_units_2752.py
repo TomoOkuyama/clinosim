@@ -38,7 +38,7 @@ def test_a_rate_is_stated_as_rate_quantity() -> None:
         "route": "IV",
         "frequency": "DRIP",
     }
-    dar = (build_dosage_instruction(order) or {}).get("doseAndRate") or [{}]
+    dar = (build_dosage_instruction(order, country="US") or {}).get("doseAndRate") or [{}]
     assert "doseQuantity" not in dar[0]
     assert dar[0]["rateQuantity"]["code"] == "ug/kg/min" and dar[0]["rateQuantity"]["value"] == 0.3
 

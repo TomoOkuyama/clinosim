@@ -32,20 +32,20 @@ pytestmark = pytest.mark.unit
 
 def test_condition_identifier_populated_from_id():
     r: dict = {"resourceType": "Condition", "id": "cond-x-1", "recordedDate": "2025-06-11"}
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     assert r["identifier"] == [{"system": _ECS_IDENTIFIER_SYSTEMS["Condition"], "value": "cond-x-1"}]
 
 
 def test_condition_meta_lastupdated_from_recordeddate():
     r: dict = {"resourceType": "Condition", "id": "c1", "recordedDate": "2025-06-11", "onsetDateTime": "2014-11-02"}
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     # recordedDate wins over onsetDateTime (record-lifecycle, not clinical onset)
     assert r["meta"]["lastUpdated"] == "2025-06-11"
 
 
 def test_condition_meta_lastupdated_falls_back_to_onset_when_no_recorded():
     r: dict = {"resourceType": "Condition", "id": "c1", "onsetDateTime": "2014-11-02"}
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     assert r["meta"]["lastUpdated"] == "2014-11-02"
 
 
@@ -55,7 +55,7 @@ def test_condition_clinical_status_display_active():
         "id": "c1",
         "clinicalStatus": {"coding": [{"system": "hl7-cs", "code": "active"}]},
     }
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     assert r["clinicalStatus"]["coding"][0]["display"] == "Active"
 
 
@@ -65,7 +65,7 @@ def test_condition_verification_status_display_confirmed():
         "id": "c1",
         "verificationStatus": {"coding": [{"system": "hl7-cs", "code": "confirmed"}]},
     }
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     assert r["verificationStatus"]["coding"][0]["display"] == "Confirmed"
 
 
@@ -129,7 +129,7 @@ def test_jp_condition_medis_slice_creates_coding_list_when_empty():
 
 def test_allergy_identifier_populated_from_id():
     r: dict = {"resourceType": "AllergyIntolerance", "id": "allergy-x-1"}
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     assert r["identifier"] == [{"system": _ECS_IDENTIFIER_SYSTEMS["AllergyIntolerance"], "value": "allergy-x-1"}]
 
 
@@ -140,14 +140,14 @@ def test_allergy_status_displays_populated():
         "clinicalStatus": {"coding": [{"system": "hl7-cs", "code": "active"}]},
         "verificationStatus": {"coding": [{"system": "hl7-cs", "code": "unconfirmed"}]},
     }
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     assert r["clinicalStatus"]["coding"][0]["display"] == "Active"
     assert r["verificationStatus"]["coding"][0]["display"] == "Unconfirmed"
 
 
 def test_medication_request_meta_lastupdated_from_authored_on():
     r: dict = {"resourceType": "MedicationRequest", "id": "mr1", "authoredOn": "2025-11-25T14:24:00+09:00"}
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     assert r["meta"]["lastUpdated"] == "2025-11-25T14:24:00+09:00"
 
 
@@ -156,7 +156,7 @@ def test_medication_request_identifier_not_overwritten():
     already emits rpNumber + orderInRp identifier slices (session 51 rule)."""
     pre = [{"system": "http://jpfhir.jp/...RPGroupNumber", "value": "1"}]
     r: dict = {"resourceType": "MedicationRequest", "id": "mr1", "identifier": pre}
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     assert r["identifier"] == pre  # unchanged
 
 
@@ -172,13 +172,13 @@ def test_idempotent_second_pass_leaves_populated_fields_alone():
         "recordedDate": "2025-06-11",
         "clinicalStatus": {"coding": [{"system": "hl7-cs", "code": "active"}]},
     }
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     before = {
         "identifier": list(r.get("identifier", [])),
         "lastUpdated": r["meta"].get("lastUpdated"),
         "display": r["clinicalStatus"]["coding"][0].get("display"),
     }
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     assert r.get("identifier") == before["identifier"]
     assert r["meta"].get("lastUpdated") == before["lastUpdated"]
     assert r["clinicalStatus"]["coding"][0].get("display") == before["display"]
@@ -186,14 +186,14 @@ def test_idempotent_second_pass_leaves_populated_fields_alone():
 
 def test_ignores_unrelated_resource_types():
     r: dict = {"resourceType": "Patient", "id": "pt1"}
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     assert "identifier" not in r
     assert "meta" not in r
 
 
 def test_no_datetime_source_no_lastupdated():
     r: dict = {"resourceType": "Condition", "id": "c1"}
-    _populate_condition_ai_mr_ecs_fields(r)
+    _populate_condition_ai_mr_ecs_fields(r, country="US")
     assert "lastUpdated" not in r.get("meta", {})
 
 

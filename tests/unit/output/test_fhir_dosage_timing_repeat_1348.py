@@ -66,7 +66,7 @@ def test_freq_label_emits_timing_repeat(
     freq: str, expected_freq: int, expected_period: int, expected_unit: str
 ) -> None:
     order = {"dose_quantity": 10, "dose_unit": "mg", "route": "PO", "frequency": freq}
-    dosage = build_dosage_instruction(order)
+    dosage = build_dosage_instruction(order, country="US")
     assert dosage is not None
     repeat = dosage.get("timing", {}).get("repeat", {})
     assert repeat.get("frequency") == expected_freq, dosage
@@ -80,7 +80,7 @@ class TestPRNSemantics:
 
     def test_prn_alone_sets_asneeded_no_timing(self) -> None:
         order = {"dose_quantity": 100, "dose_unit": "mcg", "route": "INH", "frequency": "prn"}
-        dosage = build_dosage_instruction(order)
+        dosage = build_dosage_instruction(order, country="US")
         assert dosage is not None
         assert dosage.get("asNeededBoolean") is True
         # No fixed cadence.
@@ -88,7 +88,7 @@ class TestPRNSemantics:
 
     def test_q6h_prn_sets_both(self) -> None:
         order = {"dose_quantity": 500, "dose_unit": "mg", "route": "PO", "frequency": "q6h PRN"}
-        dosage = build_dosage_instruction(order)
+        dosage = build_dosage_instruction(order, country="US")
         assert dosage is not None
         assert dosage.get("asNeededBoolean") is True
         repeat = dosage["timing"]["repeat"]
@@ -97,7 +97,7 @@ class TestPRNSemantics:
 
     def test_tid_prn_sets_both(self) -> None:
         order = {"dose_quantity": 500, "dose_unit": "mg", "route": "PO", "frequency": "tid PRN"}
-        dosage = build_dosage_instruction(order)
+        dosage = build_dosage_instruction(order, country="US")
         assert dosage is not None
         assert dosage.get("asNeededBoolean") is True
         repeat = dosage["timing"]["repeat"]
@@ -106,7 +106,7 @@ class TestPRNSemantics:
 
     def test_prn_case_insensitive(self) -> None:
         order = {"dose_quantity": 500, "dose_unit": "mg", "route": "PO", "frequency": "Q6H PRN"}
-        dosage = build_dosage_instruction(order)
+        dosage = build_dosage_instruction(order, country="US")
         assert dosage is not None
         assert dosage.get("asNeededBoolean") is True
         repeat = dosage["timing"]["repeat"]
@@ -129,7 +129,7 @@ class TestUnknownFrequency:
             "route": "PO",
             "frequency": "q6h_first_24h_then_daily",
         }
-        dosage = build_dosage_instruction(order)
+        dosage = build_dosage_instruction(order, country="US")
         assert dosage is not None
         assert "timing" not in dosage or "repeat" not in (dosage.get("timing") or {})
         # The freeform label still lands in the text summary for provenance.

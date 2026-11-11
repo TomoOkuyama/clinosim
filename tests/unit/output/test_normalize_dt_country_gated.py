@@ -51,9 +51,10 @@ class TestNormalizeDtRewrite:
         result = _normalize_dt("2026-01-01T12:34:56+09:00", country="US")
         assert result == "2026-01-01T12:34:56Z"
 
-    def test_empty_country_defaults_to_utc(self):
-        result = _normalize_dt("2026-01-01T12:34:56+09:00")
-        assert result == "2026-01-01T12:34:56Z"
+    def test_country_is_required(self):
+        # Issue #3219: a missing country fails instead of reading as UTC.
+        with pytest.raises(TypeError):
+            _normalize_dt("2026-01-01T12:34:56+09:00")  # type: ignore[call-arg]
 
     def test_us_appends_tz_when_missing(self):
         result = _normalize_dt("2026-01-01T12:34:56", country="US")

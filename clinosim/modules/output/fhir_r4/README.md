@@ -37,7 +37,7 @@ adapter calls (the built-in `FhirR4Adapter` in
 
 ```python
 from clinosim.modules.output.fhir_r4 import (
-    convert_cif_to_fhir,             # (cif_dir, output_dir, country="US", narrative_version="current") -> None
+    convert_cif_to_fhir,             # (cif_dir, output_dir, country, narrative_version="current") -> None
     register_bundle_builder,         # (fn) — AD-56 plug-in registration
     available_builders,              # () -> list[str] of registered builder names
 )

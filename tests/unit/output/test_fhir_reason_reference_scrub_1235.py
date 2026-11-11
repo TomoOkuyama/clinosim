@@ -58,6 +58,8 @@ def test_medication_request_reason_reference_scrubbed() -> None:
     kept = _drop_entries_after_death(
         [_entry(_post_mortem_condition()), _entry(mr), _entry(_live_condition())],
         "2025-10-22",
+        lang="en",
+        country="US",
     )
     mr_res = next(e["resource"] for e in kept if e["resource"]["id"] == "mr-1")
     refs = [r["reference"] for r in mr_res.get("reasonReference", [])]
@@ -77,6 +79,8 @@ def test_medication_administration_reason_reference_scrubbed() -> None:
     kept = _drop_entries_after_death(
         [_entry(_post_mortem_condition()), _entry(ma), _entry(_live_condition())],
         "2025-10-22",
+        lang="en",
+        country="US",
     )
     ma_res = next(e["resource"] for e in kept if e["resource"]["id"] == "ma-1")
     refs = [r["reference"] for r in ma_res.get("reasonReference", [])]
@@ -96,6 +100,8 @@ def test_procedure_reason_reference_scrubbed() -> None:
     kept = _drop_entries_after_death(
         [_entry(_post_mortem_condition()), _entry(proc), _entry(_live_condition())],
         "2025-10-22",
+        lang="en",
+        country="US",
     )
     proc_res = next(e["resource"] for e in kept if e["resource"]["id"] == "proc-1")
     refs = [r["reference"] for r in proc_res.get("reasonReference", [])]
@@ -115,7 +121,7 @@ def test_mr_basedon_still_scrubbed_after_1235() -> None:
         "authoredOn": "2025-10-22T08:00:00",
         "basedOn": [{"reference": "ServiceRequest/sr-canceled"}],
     }
-    kept = _drop_entries_after_death([_entry(canceled_sr), _entry(mr)], "2025-10-22")
+    kept = _drop_entries_after_death([_entry(canceled_sr), _entry(mr)], "2025-10-22", lang="en", country="US")
     mr_res = next(e["resource"] for e in kept if e["resource"]["id"] == "mr-basedon")
     assert mr_res.get("basedOn", []) == []
 
@@ -133,6 +139,6 @@ def test_procedure_report_still_scrubbed_after_1235() -> None:
         "performedDateTime": "2025-10-22T09:00:00",
         "report": [{"reference": "DiagnosticReport/dr-postmortem"}],
     }
-    kept = _drop_entries_after_death([_entry(postmortem_dr), _entry(proc)], "2025-10-22")
+    kept = _drop_entries_after_death([_entry(postmortem_dr), _entry(proc)], "2025-10-22", lang="en", country="US")
     proc_res = next(e["resource"] for e in kept if e["resource"]["id"] == "proc-with-report")
     assert proc_res.get("report", []) == []

@@ -68,7 +68,7 @@ def test_us_observation_keeps_clinosim_namespace_only() -> None:
 def test_default_country_empty_uses_clinosim_namespace() -> None:
     """Backward-compat: pre-signature-change callers pass no country arg."""
     obs = {"resourceType": "Observation", "id": "obs-default"}
-    _populate_observation_identifier_and_last_updated(obs)
+    _populate_observation_identifier_and_last_updated(obs, country="US")
     ids = obs["identifier"]
     assert len(ids) == 1
     assert ids[0]["system"] == _CLINOSIM_OBSERVATION_ID_SYSTEM
