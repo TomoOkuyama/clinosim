@@ -187,7 +187,7 @@ def build_discharge_rx(
     rng: np.random.Generator | None = None,
     *,
     encounter_id: str = "",
-    country_key: str = "us",
+    country_key: str,
     final_renal_function: float = 1.0,
     ordered_drugs: Iterable[str] = (),
 ) -> PrescriptionRecord:

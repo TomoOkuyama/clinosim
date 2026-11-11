@@ -64,7 +64,7 @@ class TestReadmissionFlow:
         cif_dir = str(tmp_path / "cif")
         csv_dir = str(tmp_path / "csv")
         write_cif(readmission_dataset, cif_dir)
-        convert_cif_to_csv(cif_dir, csv_dir)
+        convert_cif_to_csv(cif_dir, csv_dir, country="US")
 
         assert os.path.exists(os.path.join(csv_dir, "diagnoses.csv"))
 

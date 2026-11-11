@@ -115,7 +115,7 @@ def test_injected_generator_flows_through_run(tmp_path: Path) -> None:
 
 @pytest.mark.unit
 def test_template_pass_default_generator_is_template(tmp_path: Path) -> None:
-    p = TemplateNarrativePass(cif_dir=str(tmp_path))
+    p = TemplateNarrativePass(cif_dir=str(tmp_path), country="US")
     assert isinstance(p.generator, TemplateNarrativeGenerator)
 
 
@@ -123,6 +123,6 @@ def test_template_pass_default_generator_is_template(tmp_path: Path) -> None:
 def test_template_pass_accepts_injected_generator(tmp_path: Path) -> None:
     _write_tiny_structural(tmp_path)
     stub = _StubGenerator()
-    p = TemplateNarrativePass(cif_dir=str(tmp_path), generator=stub)
+    p = TemplateNarrativePass(cif_dir=str(tmp_path), generator=stub, country="US")
     p.run()
     assert stub.calls >= 1

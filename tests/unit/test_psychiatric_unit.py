@@ -61,7 +61,7 @@ def _depression_events(depts: frozenset[str] | None) -> int:
     }
     reg = _Registry([_person("A", ["F32"]), _person("B", ["F33"]), _person("C", ["I10"])])
     events = generate_monthly_events(
-        reg, 2024, 3, np.random.default_rng(1), demo=demo, master_seed=5, inpatient_departments=depts
+        reg, 2024, 3, np.random.default_rng(1), demo=demo, master_seed=5, inpatient_departments=depts, country="US"
     )
     return sum(e.disease_id == "depression_inpatient" for e in events)
 

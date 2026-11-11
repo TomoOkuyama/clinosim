@@ -36,7 +36,7 @@ pytestmark = pytest.mark.unit
 def test_jp_copay_by_age_and_income(dob: date, on: date, income_q: float, pct: int) -> None:
     from clinosim.countries.jp.copay import jp_copay_pct
 
-    assert jp_copay_pct(dob, on, income_q) == pct
+    assert jp_copay_pct(dob, on, income_q, country="JP") == pct
 
 
 def _coverages(dob: str, category: str, encounters: list[dict]) -> list[dict]:

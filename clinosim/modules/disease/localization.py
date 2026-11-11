@@ -56,7 +56,7 @@ def target_los_config(
     return cfg if isinstance(cfg, dict) else None
 
 
-def _disease_chief_complaint(protocol: DiseaseProtocol, country: str = "US") -> str:
+def _disease_chief_complaint(protocol: DiseaseProtocol, country: str) -> str:
     """Get chief complaint from disease protocol YAML (multi-language support).
 
     CIF stores English always (AD-30). JP chief complaint is resolved at FHIR

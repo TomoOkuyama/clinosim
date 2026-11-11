@@ -27,7 +27,7 @@ def test_pediatric_visits_can_fall_after_the_27th() -> None:
     days: Counter[int] = Counter()
     for i in range(400):
         person = SimpleNamespace(person_id=f"P{i}", age=0, date_of_birth=date(2025, 1, 1), care_seeking_threshold=0.0)
-        for ev in generate_pediatric_events(person, 2025, np.random.default_rng(i)):
+        for ev in generate_pediatric_events(person, 2025, np.random.default_rng(i), country=None):
             days[ev.timestamp.day] += 1
     assert sum(days[d] for d in (28, 29, 30, 31)) > 0
 

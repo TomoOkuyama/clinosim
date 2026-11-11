@@ -75,7 +75,7 @@ class TestBeta:
         cif_dir = str(tmp_path / "cif")
         csv_dir = str(tmp_path / "csv")
         write_cif(beta_result, cif_dir)
-        convert_cif_to_csv(cif_dir, csv_dir)
+        convert_cif_to_csv(cif_dir, csv_dir, country="US")
 
         assert os.path.exists(os.path.join(csv_dir, "patients.csv"))
         assert os.path.exists(os.path.join(csv_dir, "vital_signs.csv"))

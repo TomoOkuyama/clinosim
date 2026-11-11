@@ -37,7 +37,7 @@ def _mk_person(dob: date, static_age: int, care_seek: float = 0.0) -> SimpleName
 
 
 def _run(person: SimpleNamespace, year: int, seed: int = 0) -> list:
-    return generate_pediatric_events(person, year, np.random.default_rng(seed))
+    return generate_pediatric_events(person, year, np.random.default_rng(seed), country=None)
 
 
 def test_static_age_6_but_year_makes_person_8_no_kindergarten_visit() -> None:

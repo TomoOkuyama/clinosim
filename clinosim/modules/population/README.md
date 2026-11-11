@@ -99,7 +99,7 @@ from clinosim.modules.population import (
     HospitalizationSummary,             # dataclass (types.population)
     LifeEvent,                          # dataclass (types.population)
     generate_population,                # (size, country, rng, base_year=2024, demo=None) -> PopulationRegistry
-    generate_monthly_events,            # (registry, year, month, rng, country="US", demo=None,
+    generate_monthly_events,            # (registry, year, month, rng, country, demo=None,
                                         #  master_seed=None, inpatient_departments=None) -> list[LifeEvent]
     generate_healthcare_calendar,       # (registry, year, country, rng) -> list[LifeEvent]
     BMI_OVERWEIGHT_THRESHOLD,           # float constants (_population_thresholds)

@@ -11,10 +11,14 @@ and fails on a call argument (positional or keyword) that is a supported
 country code or a legacy country spelling.
 
 Issue #3219: it also fails on a parameter default that is a literal country,
-and on any constant default of a ``country`` / ``country_code`` parameter
+and on any constant default of a ``country`` / ``country_code`` /
+``country_key`` parameter
 (``country: str = "US"`` or ``= ""``): a caller that forgets the country must
 fail (spec §3.3: an unknown country raises, never falls back silently), not
-get US structure.
+get US structure. Issue #3221 extends the default rule to all of
+``clinosim/``; the call-argument rule stays on ``fhir_r4/`` (other modules
+still pass literal countries where the code is country-specific, e.g. the
+``clinosim/countries/jp`` package).
 """
 
 from __future__ import annotations
@@ -28,7 +32,8 @@ from clinosim.country_profile import supported_countries
 
 pytestmark = pytest.mark.unit
 
-_FHIR_ROOT = Path(__file__).resolve().parents[3] / "clinosim" / "modules" / "output" / "fhir_r4"
+_SOURCE_ROOT = Path(__file__).resolve().parents[3] / "clinosim"
+_FHIR_ROOT = _SOURCE_ROOT / "modules" / "output" / "fhir_r4"
 # Legacy spellings the profile loader maps to a country code.
 _LEGACY = {"japan", "usa", "united states"}
 
@@ -52,7 +57,7 @@ def literal_country_arguments(source: str, literals: set[str]) -> list[tuple[int
     return found
 
 
-_COUNTRY_PARAMETERS = {"country", "country_code"}
+_COUNTRY_PARAMETERS = {"country", "country_code", "country_key"}
 
 
 def literal_country_defaults(source: str, literals: set[str]) -> list[tuple[int, str]]:
@@ -93,14 +98,16 @@ def test_the_guard_finds_literal_country_defaults() -> None:
     ]
 
 
-def test_fhir_output_declares_no_default_country() -> None:
+def test_clinosim_declares_no_default_country() -> None:
+    """Issue #3221: the default rule covers every module under ``clinosim/``
+    (Issue #3219 started with ``fhir_r4/``)."""
     literals = _country_literals()
     offenders = {
-        f"{path.relative_to(_FHIR_ROOT)}:{line} {name}"
-        for path in sorted(_FHIR_ROOT.rglob("*.py"))
+        f"{path.relative_to(_SOURCE_ROOT)}:{line} {name}"
+        for path in sorted(_SOURCE_ROOT.rglob("*.py"))
         for line, name in literal_country_defaults(path.read_text(encoding="utf-8"), literals)
     }
-    assert not offenders, f"Make the country a required parameter (Issue #3219): {sorted(offenders)}"
+    assert not offenders, f"Make the country a required parameter (Issues #3219, #3221): {sorted(offenders)}"
 
 
 def test_the_guard_finds_literal_country_arguments() -> None:

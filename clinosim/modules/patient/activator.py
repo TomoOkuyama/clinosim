@@ -1020,8 +1020,8 @@ def _log_allergy_skip(drug_name: str, allergies: list, skip_log: list) -> bool:
 def _derive_home_medications(
     chronic_conditions: list,
     rng: np.random.Generator | None = None,
-    country: str = "US",
     *,
+    country: str,
     patient_id: str = "",
     skip_log_out: list | None = None,
     patient_age: int | None = None,

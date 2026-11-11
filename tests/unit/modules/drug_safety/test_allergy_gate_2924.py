@@ -117,7 +117,7 @@ def test_allergy_conflict_names_the_allergy() -> None:
 def test_order_gate_substitutes_acetaminophen_for_ibuprofen_in_aspirin_allergy() -> None:
     patient = _patient(_allergy(ASPIRIN))
     out = apply_drug_safety_gate_to_orders(
-        [_order("Ibuprofen 400mg")], patient=patient, encounter_id="ENC-1", ordered_datetime=_WHEN
+        [_order("Ibuprofen 400mg")], patient=patient, encounter_id="ENC-1", ordered_datetime=_WHEN, country="us"
     )
     assert [o.display_name for o in out] == ["Acetaminophen"]
     (skip,) = patient.safety_skip_log
@@ -129,7 +129,7 @@ def test_order_gate_substitutes_acetaminophen_for_ibuprofen_in_aspirin_allergy()
 def test_order_gate_drops_amoxicillin_in_penicillin_allergy() -> None:
     patient = _patient(_allergy(PENICILLIN))
     out = apply_drug_safety_gate_to_orders(
-        [_order("Amoxicillin 500mg")], patient=patient, encounter_id="ENC-1", ordered_datetime=_WHEN
+        [_order("Amoxicillin 500mg")], patient=patient, encounter_id="ENC-1", ordered_datetime=_WHEN, country="us"
     )
     assert out == []
     assert patient.safety_skip_log[0].verdict.rule_id == "penicillin-allergy-penicillins"
@@ -152,6 +152,7 @@ def test_order_gate_substitutes_the_disease_alternative_for_a_penicillin() -> No
         encounter_id="ENC-1",
         ordered_datetime=_WHEN,
         protocol=protocol,
+        country="us",
     )
     assert [o.display_name for o in out] == ["Levofloxacin"]
     assert patient.safety_skip_log[0].substituted_with == "Levofloxacin"
@@ -160,7 +161,11 @@ def test_order_gate_substitutes_the_disease_alternative_for_a_penicillin() -> No
 def test_order_gate_keeps_hctz_with_a_caution_note_in_sulfonamide_allergy() -> None:
     patient = _patient(_allergy(SULFONAMIDE))
     out = apply_drug_safety_gate_to_orders(
-        [_order("Hydrochlorothiazide 12.5mg")], patient=patient, encounter_id="ENC-1", ordered_datetime=_WHEN
+        [_order("Hydrochlorothiazide 12.5mg")],
+        patient=patient,
+        encounter_id="ENC-1",
+        ordered_datetime=_WHEN,
+        country="us",
     )
     assert [o.display_name for o in out] == ["Hydrochlorothiazide 12.5mg"]
     assert out[0].notes and "sulfonamide" in out[0].notes[0]["text"].lower()
@@ -169,7 +174,11 @@ def test_order_gate_keeps_hctz_with_a_caution_note_in_sulfonamide_allergy() -> N
 
 def test_order_gate_keeps_amoxicillin_without_a_penicillin_allergy() -> None:
     out = apply_drug_safety_gate_to_orders(
-        [_order("Amoxicillin 500mg")], patient=_patient(_allergy(EGG)), encounter_id="ENC-1", ordered_datetime=_WHEN
+        [_order("Amoxicillin 500mg")],
+        patient=_patient(_allergy(EGG)),
+        encounter_id="ENC-1",
+        ordered_datetime=_WHEN,
+        country="us",
     )
     assert [o.display_name for o in out] == ["Amoxicillin 500mg"]
 
@@ -205,6 +214,7 @@ def test_discharge_rx_replaces_ibuprofen_in_aspirin_allergy() -> None:
         prescriber_id="DR-1",
         admission_time=_WHEN,
         encounter_id="ENC-1",
+        country_key="us",
     )
     assert [it["drug_name"] for it in rx.items] == ["Acetaminophen"]
     assert patient.safety_skip_log[0].substituted_with == "Acetaminophen"

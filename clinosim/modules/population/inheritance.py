@@ -106,7 +106,7 @@ def _phenotype_from_alleles(a1: str, a2: str) -> str:
 def derive_newborn_blood_type(
     newborn_patient_id: str,
     mother_blood_type: str,
-    country: str = "US",
+    country: str,
     father_blood_type: str | None = None,
 ) -> str:
     """Return the newborn's ABO phenotype inherited from the mother's
@@ -171,7 +171,7 @@ def _parent_rh_allele(
 def derive_newborn_rh_factor(
     newborn_patient_id: str,
     mother_rh_factor: str,
-    country: str = "US",
+    country: str,
     father_rh_factor: str | None = None,
 ) -> str:
     """Return the newborn's RhD phenotype ("+" or "-") inherited from

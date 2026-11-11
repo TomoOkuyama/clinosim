@@ -149,9 +149,9 @@ from clinosim.modules.order.placed_order_mar import (
 from clinosim.modules.order.prescription_supersede import prescription_closures  # (records, run_end) -> {(encounter_id, seq): Closure}
 
 # 小児 ED 投与量の体重換算 (Issue #2857)
-from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg, country="US") -> 再計算した名称 (成人 / 非掲載薬はそのまま) | None (最低年齢未満)
-from clinosim.modules.order.pediatric_dose import redose_order_for_child  # (order, age_months, weight_kg, country="US") -> None; 未成年の入院オーダーをその場で再計算 (Issue #3004)
-from clinosim.modules.order.pediatric_dose import pediatric_dose_text  # (drug, dose, age_months, weight_kg, country="US") -> 未成年の処方用量テキスト
+from clinosim.modules.order.pediatric_dose import pediatric_order_name  # (name, age_months, weight_kg, country) -> 再計算した名称 (成人 / 非掲載薬はそのまま) | None (最低年齢未満)
+from clinosim.modules.order.pediatric_dose import redose_order_for_child  # (order, age_months, weight_kg, country) -> None; 未成年の入院オーダーをその場で再計算 (Issue #3004)
+from clinosim.modules.order.pediatric_dose import pediatric_dose_text  # (drug, dose, age_months, weight_kg, country) -> 未成年の処方用量テキスト
 from clinosim.modules.order.pediatric_dose import maintenance_fluid_ml_per_h  # (weight_kg) -> Holliday-Segar の mL/h
 
 # 国別の添付文書用量上限 (Issue #3012)

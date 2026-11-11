@@ -136,7 +136,7 @@ def test_pediatric_events_empty_for_pre_birth_year_no_rng_draw() -> None:
     # Pre-birth year: no events, RNG not consumed.
     prng = np.random.default_rng(42)
     before = prng.bit_generator.state
-    events = generate_pediatric_events(newborn_person, 2023, prng, schedule=schedule)
+    events = generate_pediatric_events(newborn_person, 2023, prng, schedule=schedule, country=None)
     after = prng.bit_generator.state
     assert events == []
     assert before == after, "pre-birth short-circuit must not touch the per-person rng"
@@ -173,6 +173,7 @@ def test_pediatric_events_fire_in_birth_year_and_after() -> None:
         2025,
         np.random.default_rng(1),
         schedule=schedule,
+        country=None,
     )
     assert len(events_birth) >= 1
     assert all(e.disease_id == "well_child_infant" for e in events_birth)
@@ -183,6 +184,7 @@ def test_pediatric_events_fire_in_birth_year_and_after() -> None:
         2027,
         np.random.default_rng(1),
         schedule=schedule,
+        country=None,
     )
     assert len(events_toddler) >= 1
     assert all(e.disease_id == "well_child_toddler" for e in events_toddler)

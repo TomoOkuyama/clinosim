@@ -103,7 +103,7 @@ def simulate_abortion_encounter(
     discharge_dx: str,
     roster: StaffRoster,
     rng: np.random.Generator,
-    country: str = "US",
+    country: str,
     config: object | None = None,  # noqa: ARG001 — enricher parity
     hospital_ops: dict | None = None,
 ) -> list[CIFPatientRecord]:
@@ -314,7 +314,7 @@ def _newborn_phonetic(mother: PatientProfile, given_entry: dict) -> str | None:
     return f"{family} {given}" if given else family
 
 
-def _newborn_contact_from_mother(mother: PatientProfile, country: str = "US"):
+def _newborn_contact_from_mother(mother: PatientProfile, country: str):
     """Build a newborn `ContactInfo` seeded with the mother as the
     emergency contact (#1246). Direct telecom for the baby stays empty
     (a newborn cannot answer a phone); the mother's channels populate
@@ -353,7 +353,8 @@ def _build_newborn_patient(
     delivery_date: date,
     sex: str,
     snapshot_date: date | None = None,
-    country: str = "US",
+    *,
+    country: str,
     birth_order: int = 1,
 ) -> PatientProfile:
     """Build the newborn's PatientProfile — enough fields for the FHIR
@@ -567,7 +568,7 @@ def simulate_delivery_encounter(
     visit_date: datetime,
     roster: StaffRoster,
     rng: np.random.Generator,
-    country: str = "US",
+    country: str,
     config: object | None = None,
     hospital_ops: dict | None = None,
     # Issue #1564 Phase 1: when provided, the freshly-built newborn

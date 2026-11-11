@@ -47,8 +47,8 @@ def test_reported_value_and_unchanged_flags() -> None:
     assert reported_lab_value("CRP", 123.4, "mg/L", "US") == (123.4, "mg/L")
     assert reported_lab_value("WBC", 9800, "/uL", "JP") == (9800, "/uL")
     # The CIF flag is unchanged: JP judges 1.5 mg/L (0.15 mg/dL) high, 1.3 mg/L normal.
-    assert determine_flag("CRP", 1.5, "F", "JP") == "H"
-    assert determine_flag("CRP", 1.3, "F", "JP") is None
+    assert determine_flag("CRP", 1.5, "F", country="JP") == "H"
+    assert determine_flag("CRP", 1.3, "F", country="JP") is None
 
 
 def test_narrative_lab_results_are_in_the_reporting_unit() -> None:

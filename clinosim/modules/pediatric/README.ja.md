@@ -33,7 +33,7 @@ import:
 ```python
 from clinosim.modules.pediatric.calendar import (
     load_pediatric_schedule,     # (path=None) -> {encounter_key: entry_dict}
-    generate_pediatric_events,   # (person, year, prng, schedule=None, country=None) -> list[LifeEvent]
+    generate_pediatric_events,   # (person, year, prng, schedule=None, *, country: str | None) -> list[LifeEvent]
     place_vaccination_visit,     # 接種期間内の予防接種受診日 (Issue #2974)
     pediatric_presentation,      # (visit_id) -> Presentation | None (急性受診のみ)
     Presentation,                # 急性受診 1 件の臨床像を表す pydantic model

@@ -52,7 +52,7 @@ directly:
 from clinosim.modules.care_level.engine import (
     assign_care_level,   # (age, country, rng) -> "" | care-level code
     load_reference,      # -> {levels, age_bands, eligibility_gates}
-    load_rates,          # (country="JP") -> {age_band: [w0..w7]} ({} for non-JP)
+    load_rates,          # (country) -> {age_band: [w0..w7]} ({} for non-JP)
     patient_qualifies_for_secondary_ltci,  # (chronic_condition_codes) -> bool
 )
 from clinosim.modules.care_level.enricher import enrich_care_level

@@ -153,7 +153,7 @@ class TestGeneratePediatricEvents:
         # the call. Verify by taking a snapshot draw before + after.
         rng = np.random.default_rng(42)
         rng.random()  # burn one draw so we compare two subsequent draws with control
-        events = generate_pediatric_events(self._person(3), 2025, rng, schedule={})
+        events = generate_pediatric_events(self._person(3), 2025, rng, schedule={}, country=None)
         after_1 = rng.random()
 
         rng_control = np.random.default_rng(42)
@@ -175,7 +175,7 @@ class TestGeneratePediatricEvents:
                 "disease_id": "well_child_infant",
             }
         }
-        events = generate_pediatric_events(self._person(0), 2025, np.random.default_rng(1), schedule)
+        events = generate_pediatric_events(self._person(0), 2025, np.random.default_rng(1), schedule, country=None)
         assert len(events) == 8
         assert all(e.event_type == "pediatric_visit" for e in events)
         assert all(e.disease_id == "well_child_infant" for e in events)
@@ -193,7 +193,7 @@ class TestGeneratePediatricEvents:
                 "disease_id": "well_child_infant",
             }
         }
-        events = generate_pediatric_events(self._person(40), 2025, np.random.default_rng(1), schedule)
+        events = generate_pediatric_events(self._person(40), 2025, np.random.default_rng(1), schedule, country=None)
         assert events == []
 
     def test_multiple_entries_matching_same_age(self):
@@ -213,7 +213,7 @@ class TestGeneratePediatricEvents:
                 "disease_id": "immunization_visit",
             },
         }
-        events = generate_pediatric_events(self._person(5), 2025, np.random.default_rng(1), schedule)
+        events = generate_pediatric_events(self._person(5), 2025, np.random.default_rng(1), schedule, country=None)
         disease_ids = [e.disease_id for e in events]
         assert disease_ids.count("well_child") == 1
         assert disease_ids.count("immunization_visit") == 2
@@ -228,8 +228,8 @@ class TestGeneratePediatricEvents:
                 "disease_id": "well_child_infant",
             }
         }
-        ev_a = generate_pediatric_events(self._person(0), 2025, np.random.default_rng(42), schedule)
-        ev_b = generate_pediatric_events(self._person(0), 2025, np.random.default_rng(42), schedule)
+        ev_a = generate_pediatric_events(self._person(0), 2025, np.random.default_rng(42), schedule, country=None)
+        ev_b = generate_pediatric_events(self._person(0), 2025, np.random.default_rng(42), schedule, country=None)
         assert [e.timestamp for e in ev_a] == [e.timestamp for e in ev_b]
         assert [e.disease_id for e in ev_a] == [e.disease_id for e in ev_b]
 
@@ -242,30 +242,30 @@ class TestGeneratePediatricEvents:
         # entries always fire on their bands.
         rng = np.random.default_rng(0)
         # Infant 0-1yo — well_child_infant + immunization_infant guaranteed.
-        infant_events = generate_pediatric_events(self._person(0), 2025, rng)
+        infant_events = generate_pediatric_events(self._person(0), 2025, rng, country=None)
         infant_ids = {e.disease_id for e in infant_events}
         assert "well_child_infant" in infant_ids
         assert "immunization_infant" in infant_ids
         # Early childhood 3yo — well_child_early guaranteed; URI + otitis
         # probabilistic. All present-set must be a subset of the age-band-
         # allowed ids for that age.
-        early_events = generate_pediatric_events(self._person(3), 2025, np.random.default_rng(0))
+        early_events = generate_pediatric_events(self._person(3), 2025, np.random.default_rng(0), country=None)
         early_ids = {e.disease_id for e in early_events}
         assert "well_child_early" in early_ids
         assert early_ids.issubset({"well_child_early", "pediatric_otitis_media", "pediatric_uri"})
         # Kindergarten 5 — well_child_school + immunization_kindergarten guaranteed.
-        kg_events = generate_pediatric_events(self._person(5), 2025, np.random.default_rng(0))
+        kg_events = generate_pediatric_events(self._person(5), 2025, np.random.default_rng(0), country=None)
         kg_ids = {e.disease_id for e in kg_events}
         assert "well_child_school" in kg_ids
         assert "immunization_kindergarten" in kg_ids
         # School-age 8 — well_child_school guaranteed; URI + injury possible.
-        school_events = generate_pediatric_events(self._person(8), 2025, np.random.default_rng(0))
+        school_events = generate_pediatric_events(self._person(8), 2025, np.random.default_rng(0), country=None)
         school_ids = {e.disease_id for e in school_events}
         assert "well_child_school" in school_ids
         assert school_ids.issubset({"well_child_school", "pediatric_uri", "pediatric_injury"})
         # Adolescent 12 — well_child_school + immunization_adolescent guaranteed;
         # URI + injury + behavioural possible (pass 5).
-        adol_events = generate_pediatric_events(self._person(12), 2025, np.random.default_rng(0))
+        adol_events = generate_pediatric_events(self._person(12), 2025, np.random.default_rng(0), country=None)
         adol_ids = {e.disease_id for e in adol_events}
         assert "well_child_school" in adol_ids
         assert "immunization_adolescent" in adol_ids
@@ -279,13 +279,13 @@ class TestGeneratePediatricEvents:
             }
         )
         # Late adolescent 17 — well_child_school guaranteed; URI + injury + behavioural possible.
-        late_events = generate_pediatric_events(self._person(17), 2025, np.random.default_rng(0))
+        late_events = generate_pediatric_events(self._person(17), 2025, np.random.default_rng(0), country=None)
         late_ids = {e.disease_id for e in late_events}
         assert "well_child_school" in late_ids
         assert late_ids.issubset({"well_child_school", "pediatric_uri", "pediatric_injury", "pediatric_behavioural"})
         # Adult: zero events (out of every age band).
-        assert generate_pediatric_events(self._person(40), 2025, np.random.default_rng(0)) == []
-        assert generate_pediatric_events(self._person(90), 2025, np.random.default_rng(0)) == []
+        assert generate_pediatric_events(self._person(40), 2025, np.random.default_rng(0), country=None) == []
+        assert generate_pediatric_events(self._person(90), 2025, np.random.default_rng(0), country=None) == []
 
 
 def test_an_unknown_key_on_a_visit_fails(tmp_path) -> None:

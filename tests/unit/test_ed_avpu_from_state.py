@@ -25,7 +25,9 @@ def _visit(condition: dict, seed: int = 3) -> list[str]:
         person_id="T-1", household_id="H-1", age=40, sex="M", date_of_birth=datetime(1984, 1, 1).date()
     )
     patient = activate_patient(person, rng, load_demographics("US"))
-    record = _simulate_ed_visit(patient, condition, datetime(2024, 6, 1, 14, 0), roster, rng, force_severity="moderate")
+    record = _simulate_ed_visit(
+        patient, condition, datetime(2024, 6, 1, 14, 0), roster, rng, force_severity="moderate", country="US"
+    )
     # arrival vitals first; later records are post-treatment reassessments (#2090)
     return [v.consciousness_level for v in sorted(record.vital_signs, key=lambda v: v.timestamp)][:1]
 

@@ -56,7 +56,9 @@ def test_hypoxic_ed_patient_is_reassessed_and_observed_until_safe(monkeypatch: p
         person_id="T-1", household_id="H-1", age=40, sex="M", date_of_birth=datetime(1984, 1, 1).date()
     )
     patient = activate_patient(person, rng, load_demographics("US"))
-    record = _simulate_ed_visit(patient, condition, datetime(2024, 6, 1, 14, 0), roster, rng, force_severity="moderate")
+    record = _simulate_ed_visit(
+        patient, condition, datetime(2024, 6, 1, 14, 0), roster, rng, force_severity="moderate", country="US"
+    )
     vitals = sorted(record.vital_signs, key=lambda v: v.timestamp)
     assert len(vitals) >= 2
     assert vitals[0].spo2 < 92 <= vitals[-1].spo2

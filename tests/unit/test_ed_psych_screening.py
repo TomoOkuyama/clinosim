@@ -38,7 +38,13 @@ def _cssrs(severity: str) -> list[float]:
         )
         patient = activate_patient(person, rng, load_demographics("US"))
         record = _simulate_ed_visit(
-            patient, {"name": _COND, **cond}, datetime(2024, 6, 1, 14), roster, rng, force_severity=severity
+            patient,
+            {"name": _COND, **cond},
+            datetime(2024, 6, 1, 14),
+            roster,
+            rng,
+            force_severity=severity,
+            country="US",
         )
         out += [float(r.value) for r in record.lab_results if r.lab_name == "C-SSRS"]
     return out

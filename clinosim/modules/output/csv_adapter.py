@@ -19,7 +19,7 @@ from clinosim.simulator.complications import complication_names as _complication
 def convert_cif_to_csv(
     cif_dir: str,
     output_dir: str,
-    country: str = "US",
+    country: str,
     narrative_version: str = "current",
 ) -> None:
     """Read CIF structural data and write flat CSV files.

@@ -908,7 +908,6 @@ def _record_bedside_observations(stay: _Stay, run: _Run, day: int) -> None:
         rng,
         disease_id=stay.disease_id,
         nurse_id=ward_nurse_id,
-        country=stay.country,
     )  # noqa: E501
     run.vitals.extend(vitals_today)
     # Issue #2085: PRN analgesia / benzodiazepines on demand from today's
@@ -1091,7 +1090,8 @@ def _run_daily_loop(
     roster: StaffRoster,
     rng: np.random.Generator,
     chronic_monitoring: list[dict] | None = None,
-    country_key: str = "us",
+    *,
+    country_key: str,
     min_los: int = 3,
     hospital_state: Any = None,
     hospital_ops: dict | None = None,

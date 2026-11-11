@@ -36,6 +36,6 @@ def test_country_slot_of_a_country_without_a_profile_raises() -> None:
 
 
 def test_former_copies_are_case_insensitive() -> None:
-    assert resolve_text({"en": "Chest pain", "ja": "胸痛"}, country="jp") == "胸痛"
+    assert resolve_text({"en": "Chest pain", "ja": "胸痛"}, lang_for("jp")) == "胸痛"
     assert lookup("snomed-ct", "387713003", lang_for("jp")) == lookup("snomed-ct", "387713003", lang_for("JP"))
     assert _country_to_yaml_key("jp") == "japan"

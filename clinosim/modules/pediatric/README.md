@@ -35,7 +35,7 @@ directly from `calendar`:
 ```python
 from clinosim.modules.pediatric.calendar import (
     load_pediatric_schedule,     # (path=None) -> {encounter_key: entry_dict}
-    generate_pediatric_events,   # (person, year, prng, schedule=None, country=None) -> list[LifeEvent]
+    generate_pediatric_events,   # (person, year, prng, schedule=None, *, country: str | None) -> list[LifeEvent]
     place_vaccination_visit,     # vaccination-visit day inside a dose window (Issue #2974)
     pediatric_presentation,      # (visit_id) -> Presentation | None (acute visits only)
     Presentation,                # pydantic model of one acute-visit clinical picture

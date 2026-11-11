@@ -29,7 +29,7 @@ def jp_income_quantile(patient_id: str) -> float:
     return sha_quantile(f"jp-copay-income|{patient_id}")
 
 
-def jp_copay_pct(dob: date, on: date, income_q: float, country: str = "JP") -> int:
+def jp_copay_pct(dob: date, on: date, income_q: float, country: str) -> int:
     """JP 一部負担金割合 (%) on ``on`` (Issue #3016), from identity.yaml ``copay``:
     by age (school entry, 70, 75) and, from 70, by the income quantile."""
     from clinosim.modules.output.fhir_r4.demographics.patient import _age_gate_config, _age_on, _identity_cfg

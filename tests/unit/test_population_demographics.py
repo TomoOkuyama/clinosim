@@ -233,11 +233,11 @@ def test_lifestyle_risk_multiplier_increases_monthly_event_rate():
 
     for seed in range(trials):
         reg_s = _make_registry_with_person(55, "M", "current", 24.0)
-        events_s = generate_monthly_events(reg_s, 2024, 1, np.random.default_rng(seed), demo=demo)
+        events_s = generate_monthly_events(reg_s, 2024, 1, np.random.default_rng(seed), demo=demo, country="US")
         smoker_events += len(events_s)
 
         reg_n = _make_registry_with_person(55, "M", "never", 24.0)
-        events_n = generate_monthly_events(reg_n, 2024, 1, np.random.default_rng(seed), demo=demo)
+        events_n = generate_monthly_events(reg_n, 2024, 1, np.random.default_rng(seed), demo=demo, country="US")
         nonsmoker_events += len(events_n)
 
     assert smoker_events > nonsmoker_events, (

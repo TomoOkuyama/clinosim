@@ -9,7 +9,7 @@ from clinosim.modules.drug_safety.engine import (
 
 
 def test_pain_management_returns_acetaminophen() -> None:
-    alt = suggest_alternative("Ibuprofen", "pain_management")
+    alt = suggest_alternative("Ibuprofen", "pain_management", country="us")
     assert isinstance(alt, AlternativeDrug)
     assert alt.drug == "Acetaminophen"
     assert alt.drug_ja == "アセトアミノフェン"
@@ -17,25 +17,25 @@ def test_pain_management_returns_acetaminophen() -> None:
 
 
 def test_unknown_indication_returns_none() -> None:
-    assert suggest_alternative("Ibuprofen", "unknown_tag") is None
+    assert suggest_alternative("Ibuprofen", "unknown_tag", country="us") is None
 
 
 def test_none_indication_returns_none() -> None:
-    assert suggest_alternative("Ibuprofen", None) is None
+    assert suggest_alternative("Ibuprofen", None, country="us") is None
 
 
 def test_alternative_re_checks_against_active_meds() -> None:
     """If the first alternative is itself blocked, iterate to next entry."""
     # Pain management pool: Acetaminophen only — no rule against warfarin,
     # so presence of warfarin does NOT change the pick.
-    alt = suggest_alternative("Ibuprofen", "pain_management", active_meds=["Warfarin"])
+    alt = suggest_alternative("Ibuprofen", "pain_management", active_meds=["Warfarin"], country="us")
     assert alt is not None
     assert alt.drug == "Acetaminophen"
 
 
 def test_hypertension_pool_first_choice() -> None:
     """Hypertension pool starts with Amlodipine (no conflict with metoprolol)."""
-    alt = suggest_alternative("Verapamil", "hypertension_or_rate_control", active_meds=["Metoprolol"])
+    alt = suggest_alternative("Verapamil", "hypertension_or_rate_control", active_meds=["Metoprolol"], country="us")
     assert alt is not None
     assert alt.drug == "Amlodipine"
 
@@ -46,7 +46,7 @@ def test_hypertension_pool_iterates_when_active_hits_first_choice() -> None:
     This test just documents the iterator machinery works when a hit occurs."""
     # Currently no rule blocks Amlodipine so this is effectively test_hypertension_pool_first_choice
     # duplicated; keep as a placeholder for when a rule requiring iteration exists.
-    alt = suggest_alternative("Verapamil", "hypertension_or_rate_control", active_meds=[])
+    alt = suggest_alternative("Verapamil", "hypertension_or_rate_control", active_meds=[], country="us")
     assert alt is not None
     assert alt.drug == "Amlodipine"
 
@@ -115,6 +115,7 @@ def test_disease_ctx_falls_back_to_shared_pool_on_unknown_indication() -> None:
         "Ibuprofen",
         "pain_management",  # not in bacterial_pneumonia drugs block
         disease_ctx=protocol,
+        country="us",
     )
     assert alt is not None
     assert alt.drug == "Acetaminophen"

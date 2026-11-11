@@ -69,6 +69,7 @@ def test_order_gate_drops_tmp_smx_for_g6pd_patient() -> None:
         encounter_id="ENC-1",
         ordered_datetime=_WHEN,
         already_accepted_meds=[],
+        country="us",
     )
     assert [o.display_name for o in out] == []
     assert patient.safety_skip_log[0].verdict.rule_id == "sulfonamide-in-g6pd-deficiency"
@@ -81,6 +82,7 @@ def test_order_gate_keeps_tmp_smx_without_g6pd() -> None:
         encounter_id="ENC-1",
         ordered_datetime=_WHEN,
         already_accepted_meds=[],
+        country="us",
     )
     assert [o.display_name for o in out] == ["Trimethoprim/Sulfamethoxazole 160/800mg"]
 

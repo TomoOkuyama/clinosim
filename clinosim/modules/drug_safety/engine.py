@@ -485,7 +485,7 @@ def suggest_alternative(
     *,
     active_meds: Sequence[str] = (),
     disease_ctx: Any | None = None,
-    country: str = "us",
+    country: str,
     allergen_codes: Sequence[str] = (),
 ) -> AlternativeDrug | None:
     """Pick a conflict-free alternative for ``candidate`` given ``indication``.

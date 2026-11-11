@@ -53,8 +53,8 @@ class TestTroponinDerivation:
 class TestFlagAndCanonical:
     def test_sex_specific_cutoff(self):
         # 0.035 ng/mL: above female cutoff (0.03), at/below male cutoff (0.04)
-        assert determine_flag("Troponin_I", 0.035, sex="F") == "H"
-        assert determine_flag("Troponin_I", 0.035, sex="M") is None
+        assert determine_flag("Troponin_I", 0.035, sex="F", country="US") == "H"
+        assert determine_flag("Troponin_I", 0.035, sex="M", country="US") is None
 
     def test_canonical_lab_name(self):
         assert canonical_lab_name("Troponin") == "Troponin_I"

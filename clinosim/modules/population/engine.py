@@ -787,7 +787,7 @@ def generate_monthly_events(
     year: int,
     month: int,
     rng: np.random.Generator,
-    country: str = "US",
+    country: str,
     demo: dict | None = None,
     master_seed: int | None = None,
     inpatient_departments: frozenset[str] | None = None,

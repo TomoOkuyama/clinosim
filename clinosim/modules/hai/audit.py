@@ -20,6 +20,7 @@ Registered checks:
 from __future__ import annotations
 
 from datetime import datetime
+from functools import partial
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -34,6 +35,9 @@ from clinosim.types.hai import HAIEvent
 _HERE = Path(__file__).resolve().parent
 _REF_DIR = _HERE / "reference_data"
 _HAI_LIFT_YAML = _REF_DIR / "hai_lab_lift.yaml"
+# The synthetic proof record is a US encounter (WBC in cells/uL); the lift
+# needs its country (Issue #3221: no default country).
+_PROOF_COUNTRY = "US"
 
 
 def _build_cauti_proof():
@@ -86,7 +90,7 @@ def _build_cauti_proof():
         "encounter": encounter,
         "state_history": history,
         "admission_time": admission,
-        "apply_fn": apply_hai_lab_lift,
+        "apply_fn": partial(apply_hai_lab_lift, country=_PROOF_COUNTRY),
         "expected": [(wbc_obs, pre_value, expected_wbc_delta)],
     }
 

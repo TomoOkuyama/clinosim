@@ -32,14 +32,14 @@ def _order(name: str, dose_str: str = "", drug_id: str = "") -> Order:
 
 def test_an_18_9_kg_childs_inpatient_oseltamivir_is_38_mg() -> None:
     o = _order("Oseltamivir", "75mg PO BID", drug_id="oseltamivir")
-    redose_order_for_child(o, _SEVEN_YEARS, 18.9)
+    redose_order_for_child(o, _SEVEN_YEARS, 18.9, country="US")
     assert (o.dose_quantity, o.dose_unit, o.frequency) == (38.0, "mg", "BID")
 
 
 def test_a_supportive_order_is_redosed_in_its_name_too() -> None:
     name = "antipyretic: Acetaminophen 500mg PO q6h PRN temp >= 38.5"
     o = _order(name, name.split(": ", 1)[1])
-    redose_order_for_child(o, _SEVEN_YEARS, 18.9)
+    redose_order_for_child(o, _SEVEN_YEARS, 18.9, country="US")
     assert o.dose_quantity == 284.0
     assert o.display_name == "antipyretic: Acetaminophen 284mg PO q6h PRN temp >= 38.5"
 
@@ -48,53 +48,53 @@ def test_a_supportive_order_is_redosed_in_its_name_too() -> None:
 def test_maintenance_fluids_follow_holliday_segar(weight: float, rate: int) -> None:
     assert maintenance_fluid_ml_per_h(weight) == rate
     o = _order("IV_fluid: NS 80-125 mL/h", "NS 80-125 mL/h")
-    redose_order_for_child(o, _SEVEN_YEARS, weight)
+    redose_order_for_child(o, _SEVEN_YEARS, weight, country="US")
     assert (o.dose_quantity, o.dose_unit) == (float(rate), "mL/h")
     assert o.display_name == f"IV_fluid: NS {rate} mL/h"
 
 
 def test_the_written_adult_dose_or_rate_is_a_ceiling() -> None:
     o = _order("Oseltamivir", "75mg PO BID", drug_id="oseltamivir")
-    redose_order_for_child(o, 16 * 12, 62.0)
+    redose_order_for_child(o, 16 * 12, 62.0, country="US")
     assert o.dose_quantity == 75.0
     fluid = _order("IV_fluid: NS 80-125 mL/h", "NS 80-125 mL/h")
-    redose_order_for_child(fluid, 16 * 12, 70.0)  # Holliday-Segar 110 mL/h
+    redose_order_for_child(fluid, 16 * 12, 70.0, country="US")  # Holliday-Segar 110 mL/h
     assert fluid.dose_quantity == 110.0
     small = _order("IV_fluid: NS 80 mL/h", "NS 80 mL/h")
-    redose_order_for_child(small, 16 * 12, 70.0)
+    redose_order_for_child(small, 16 * 12, 70.0, country="US")
     assert small.dose_quantity == 80.0
 
 
 def test_redosing_is_idempotent_and_leaves_adults_alone() -> None:
     o = _order("Oseltamivir", "75mg PO BID", drug_id="oseltamivir")
-    redose_order_for_child(o, _SEVEN_YEARS, 18.9)
-    redose_order_for_child(o, _SEVEN_YEARS, 18.9)
+    redose_order_for_child(o, _SEVEN_YEARS, 18.9, country="US")
+    redose_order_for_child(o, _SEVEN_YEARS, 18.9, country="US")
     assert o.dose_quantity == 38.0
     adult = _order("Oseltamivir", "75mg PO BID", drug_id="oseltamivir")
-    redose_order_for_child(adult, 40 * 12, 60.0)
+    redose_order_for_child(adult, 40 * 12, 60.0, country="US")
     assert adult.dose_quantity == 75.0
 
 
 def test_a_per_kg_or_non_mg_order_is_unchanged() -> None:
     o = _order("Amoxicillin", "45mg/kg PO BID", drug_id="amoxicillin")
     before = (o.dose_quantity, o.dose_unit)
-    redose_order_for_child(o, _SEVEN_YEARS, 18.9)
+    redose_order_for_child(o, _SEVEN_YEARS, 18.9, country="US")
     assert (o.dose_quantity, o.dose_unit) == before
 
 
 def test_a_discharge_prescription_dose_is_redosed() -> None:
-    assert pediatric_dose_text("Oseltamivir", "75mg PO BID", _SEVEN_YEARS, 18.9) == "38mg PO BID"
-    assert pediatric_dose_text("Oseltamivir", "75mg PO BID", 40 * 12, 60.0) == "75mg PO BID"
+    assert pediatric_dose_text("Oseltamivir", "75mg PO BID", _SEVEN_YEARS, 18.9, country="US") == "38mg PO BID"
+    assert pediatric_dose_text("Oseltamivir", "75mg PO BID", 40 * 12, 60.0, country="US") == "75mg PO BID"
     # Cefazolin 25 mg/kg since Issue #3082; an unlisted drug keeps its dose.
-    assert pediatric_dose_text("Cefazolin", "1g IV q8h", _SEVEN_YEARS, 18.9) == "472mg IV q8h"
-    assert pediatric_dose_text("Amoxicillin", "1g PO", _SEVEN_YEARS, 18.9) == "1g PO"
+    assert pediatric_dose_text("Cefazolin", "1g IV q8h", _SEVEN_YEARS, 18.9, country="US") == "472mg IV q8h"
+    assert pediatric_dose_text("Amoxicillin", "1g PO", _SEVEN_YEARS, 18.9, country="US") == "1g PO"
 
 
 def test_a_childs_epinephrine_and_cetirizine_are_weight_based() -> None:
     from clinosim.modules.order.pediatric_dose import pediatric_order_name
 
-    assert pediatric_order_name("Epinephrine 0.3mg IM", 6 * 12, 17.2) == "Epinephrine 0.17mg IM"
-    assert pediatric_order_name("Cetirizine 10mg", 6 * 12, 17.2) == "Cetirizine 4.3mg"
+    assert pediatric_order_name("Epinephrine 0.3mg IM", 6 * 12, 17.2, country="US") == "Epinephrine 0.17mg IM"
+    assert pediatric_order_name("Cetirizine 10mg", 6 * 12, 17.2, country="US") == "Cetirizine 4.3mg"
 
 
 def test_a_country_override_applies_to_inpatient_orders() -> None:
