@@ -87,11 +87,12 @@ expected range 内なら `pass`、±50 % 拡大範囲内なら `warn`、それ�
 ## 定数と設定
 
 - Benchmark 期待値 + 許容範囲は `benchmarks.py` に inline (コード内に
-  per-benchmark の出典引用は無い)。
+  per-benchmark の出典引用は無い)。ただし国別の在院日数 benchmark は
+  `reference_data/los_benchmarks.yaml` (国スロット別、
+  `los_benchmarks(country)`、Issue #3184)。
 - Consistency check の範囲も同様に inline。Hb 退院 floor (7.0 g/dL)、
   抗凝固剤 / ICH hold、metformin hold、vital 別 physiologic 境界を
   anchor する。
-- YAML 無し。
 
 ## ディレクトリ構造
 
@@ -100,10 +101,12 @@ clinosim/modules/validator/
   __init__.py                    空
   benchmarks.py                  BenchmarkResult / BenchmarkReport / run_benchmarks
   consistency.py                 ConsistencyIssue / ConsistencyReport / run_consistency_checks + 9 helper
+  reference_data/
+    los_benchmarks.yaml          国別の在院日数 benchmark (Issue #3184)
   SPEC.md                        拡張設計参考 (runtime data ではない)
 ```
 
-**`audit.py` / `enricher.py` / `reference_data/` は存在しない**。
+**`audit.py` / `enricher.py` は存在しない**。
 
 ## Enricher 配線
 

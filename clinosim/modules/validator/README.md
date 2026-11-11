@@ -93,11 +93,13 @@ reports.
 ## Constants and configuration
 
 - Benchmark expected values + acceptance ranges live inline in
-  `benchmarks.py` (no per-benchmark source citations in the code).
+  `benchmarks.py` (no per-benchmark source citations in the code), except
+  the country-specific length-of-stay benchmarks, which are
+  `reference_data/los_benchmarks.yaml` keyed by country slot
+  (`los_benchmarks(country)`, Issue #3184).
 - Consistency-check ranges are similarly inline; they anchor
   the hemoglobin discharge floor (7.0 g/dL), anticoagulant / ICH
   holds, metformin holds, and per-vital physiologic bounds.
-- No YAML.
 
 ## Directory contents
 
@@ -106,11 +108,12 @@ clinosim/modules/validator/
   __init__.py                    empty
   benchmarks.py                  BenchmarkResult / BenchmarkReport / run_benchmarks
   consistency.py                 ConsistencyIssue / ConsistencyReport / run_consistency_checks + 9 helpers
+  reference_data/
+    los_benchmarks.yaml          LOS benchmarks by country (Issue #3184)
   SPEC.md                        extended design reference (not runtime)
 ```
 
-The module has **no `audit.py`, no `enricher.py`, no
-`reference_data/`**.
+The module has **no `audit.py` and no `enricher.py`**.
 
 ## Enricher wiring
 

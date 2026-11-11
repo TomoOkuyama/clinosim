@@ -207,6 +207,22 @@ cesarean:
   length_of_stay_days:
     jp: 8                                 # JSOG post-C-section LOS ~7-9 days
     us: 4                                 # US Medicare/HEDIS post-C-section ~3-4 days
+  # Issue #1315 / #2924 / #3184: the postoperative analgesic of the
+  # cesarean order bundle, 60 min after incision. Ketorolac (the US ERAS
+  # obstetric default) is not marketed in Japan (no YJ code, #2134); JP
+  # obstetric practice uses IV acetaminophen (アセリオ 1 g IV). A mother
+  # whose allergies rule out the country's drug (aspirin / NSAID allergy)
+  # gets `allergy_substitute`. `order_suffix` keys the order id and the
+  # perinatal_intent.<suffix> catalog text (US "CSKT" keeps the pre-#1315
+  # order ids).
+  postop_analgesic:
+    by_country:
+      us: ketorolac
+      jp: acetaminophen
+    allergy_substitute: acetaminophen
+    drugs:
+      ketorolac: {order_suffix: CSKT, name: Ketorolac, dose: 30.0, unit: mg, route: IV}
+      acetaminophen: {order_suffix: CSAM, name: Acetaminophen, dose: 1000.0, unit: mg, route: IV}
 
 # ---------------------------------------------------------------------------
 # Abortion outcome for Z34 pregnancies (Issue #957 Tier-3-B slice 3).
