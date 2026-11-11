@@ -685,7 +685,7 @@ def _finalize_resource(resource: dict, country: str, roster_map: dict[str, dict]
     if jp_core:
         _apply_jp_core_profile(resource)
     if jp_clins:
-        _apply_jp_clins_profile(resource)
+        _apply_jp_clins_profile(resource, country)
     if jp_core:
         # JP Core は Observation.category:first slice に
         # JP_SimpleObservationCategory_CS を、HL7 base Vital Signs

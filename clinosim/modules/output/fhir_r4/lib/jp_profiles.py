@@ -13,13 +13,10 @@ from __future__ import annotations
 __all__ = [
     "JP_COMPOSITION_EDISCHARGE_SUMMARY_PROFILE",
     "JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM",
-    "JP_LOCATION_PROFILE",
     "JP_MEDICATION_ADMINISTRATION_INDEX_SYSTEM",
     "JP_MEDICATION_RP_GROUP_NUMBER_SYSTEM",
-    "JP_OBSERVATION_COMMON_PROFILE",
     "JP_ORGANIZATION_ECS_PROFILE",
     "JP_ORGANIZATION_PROFILE",
-    "JP_PROCEDURE_PROFILE",
     "JP_RESOURCE_INSTANCE_IDENTIFIER_SYSTEM",
 ]
 
@@ -37,13 +34,11 @@ JP_MEDICATION_ADMINISTRATION_INDEX_SYSTEM = "http://jpfhir.jp/fhir/core/mhlw/IdS
 
 # --- Profiles (meta.profile) ----------------------------------------------- #
 
-JP_OBSERVATION_COMMON_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Observation_Common"
-# JP_Observation_LabResult: `variants: Observation/LabResult` in
-# codes/data/fhir-profiles-jp-core.yaml (Issue #3201).
-JP_LOCATION_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location"
+# JP_Observation_Common / _LabResult, JP_Location and JP_Procedure are read
+# from codes/data/fhir-profiles-jp-core.yaml (`profiles` / `variants`)
+# through lib/profile_meta.py (Issues #3145, #3201, #3216).
 JP_ORGANIZATION_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization"
 JP_ORGANIZATION_ECS_PROFILE = "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Organization_eCS"
-JP_PROCEDURE_PROFILE = "http://jpfhir.jp/fhir/core/StructureDefinition/JP_Procedure"
 JP_COMPOSITION_EDISCHARGE_SUMMARY_PROFILE = (
     "http://jpfhir.jp/fhir/eDischargeSummary/StructureDefinition/JP_Composition_eDischargeSummary"
 )

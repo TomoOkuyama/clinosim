@@ -57,13 +57,14 @@ from __future__ import annotations
 import re
 import unicodedata
 from enum import StrEnum
+from functools import cache
 from typing import Any, Protocol
 
 from clinosim.codes import code_exists, get_system_uri, system_key_for
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.countries import lang_for
-from clinosim.country_profile import implementation, register_implementation
+from clinosim.country_profile import country_profile, implementation, register_implementation, supported_countries
 from clinosim.locale.loader import lab_display, load_code_mapping
 from clinosim.modules.output.fhir_r4.labs.coding_package import LabCodeCandidate
 
@@ -121,6 +122,19 @@ def _sanitize_localcode_code(name: str) -> str:
 # Kind enum — finalized in PR 1, extended only with matching strategy.
 
 
+@cache
+def _loinc_lab_country() -> str:
+    """The country whose lab code mapping is the LOINC table: the first
+    supported country whose profile codes labs in LOINC (Issue #3216)."""
+    return next(c for c in supported_countries() if country_profile(c).code_system("lab") == "loinc")
+
+
+def loinc_lab_code_mapping() -> dict[str, str]:
+    """Canonical lab name → LOINC code (the lab code mapping of the country
+    that codes labs in LOINC, ``code_mapping_lab.yaml``)."""
+    return load_code_mapping("lab", _loinc_lab_country())
+
+
 def lab_loinc(lab_name: str, order: dict) -> str:
     """The US LOINC of analyte ``lab_name`` as resulted in ``order`` (``""`` if none).
 
@@ -134,7 +148,7 @@ def lab_loinc(lab_name: str, order: dict) -> str:
     override = (panel.get("component_loinc") or {}).get(lab_name)
     if override:
         return str(override)
-    return str(load_code_mapping("lab", "US").get(lab_name) or "")
+    return str(loinc_lab_code_mapping().get(lab_name) or "")
 
 
 class LabCodingKind(StrEnum):
@@ -215,10 +229,10 @@ class LegacyJSLMStrategy:
         result: dict,
         country: str,
     ) -> list[dict]:
-        code_map = load_code_mapping("lab", "JP")
+        code_map = load_code_mapping("lab", country)
         if lab_name in code_map:
             code_value = code_map[lab_name]
-            code_system_key = system_key_for("lab", "JP")
+            code_system_key = system_key_for("lab", country)
         else:
             # Unmapped: fall back to the order_code under LOINC only when it
             # is a registered LOINC code — a canonical lab name ("SBP") under
@@ -226,7 +240,7 @@ class LegacyJSLMStrategy:
             order_code = str(order.get("order_code", "") or "")
             code_value = order_code if order_code and code_exists("loinc", order_code, exact=True) else ""
             code_system_key = "loinc"
-        lang = lang_for("JP")
+        lang = lang_for(country)
         display_name = code_lookup(code_system_key, code_value, lang) if code_value else None
         if not display_name or display_name == code_value:
             display_name = lab_name
@@ -271,7 +285,7 @@ class LegacyLOINCStrategy:
     ) -> list[dict]:
         code_value = lab_loinc(lab_name, order)
         if code_value:
-            code_system_key = system_key_for("lab", "US")
+            code_system_key = system_key_for("lab", country)
         else:
             # Unmapped: the order_code goes under LOINC only when it is a
             # registered LOINC code, never an internal name (Issue #2584).
@@ -280,7 +294,7 @@ class LegacyLOINCStrategy:
             code_system_key = "loinc"
         if not code_value:
             return []
-        lang = lang_for("US")
+        lang = lang_for(country)
         display_name = code_lookup(code_system_key, code_value, lang)
         if not display_name or display_name == code_value:
             display_name = lab_name

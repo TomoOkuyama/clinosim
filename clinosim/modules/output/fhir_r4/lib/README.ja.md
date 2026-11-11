@@ -48,13 +48,14 @@ module から直接 import する (Issue #545 rename)。
     `<ResourceType>/<variant>` キー (`Observation/LabResult`、
     `DiagnosticReport/Radiology` など) は表の `variants` 節を読み、builder
     自身が宣言する profile variant に使う (Issue #3201)。
-    `language_uses(lang, fhir_profile)`: 出力言語で動く builder 向けに、その
-    言語の出力が FHIR profile を適用するかを返す (Issue #3203)。
   - `dosage.py` — MedicationRequest / MedicationAdministration の
     Dosage helper (`build_dosage_instruction`、`build_route_concept`、
     `canonicalize_route`、`augment_iv_dosage_with_rate`、
     `resolve_iv_infusion_default`、`map_mar_status`、再 export の
-    `strip_protocol_prefix`)。
+    `strip_protocol_prefix`)。`patientInstruction` は出力言語ごとに
+    `_PATIENT_INSTRUCTION_COMPOSERS` の composer で作る (日本語:
+    `locale/jp/patient_instructions_ja.yaml` の投与経路別テンプレート)。
+    それ以外の言語は頻度の時間帯フレーズを使う (Issue #3216)。
   - `fhir_time.py` — FHIR date / dateTime / instant 整形
     (`to_fhir_date`、`to_fhir_datetime`、`to_fhir_instant`、
     `tz_suffix_for_country`、`derive_meta_last_updated`)、
@@ -103,7 +104,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     survey_category,                      # (lang) -> survey category CodeableConcept list
 )
 from clinosim.modules.output.fhir_r4.lib.ecs_extensions import (
-    build_ecs_institution_extension,      # () -> JP eCS 機関 extension
+    build_ecs_institution_extension,      # (country) -> JP eCS 機関 extension
     build_ecs_department_extension,       # (department_text="") -> extension
     attach_ecs_institutional_extensions,
 )
@@ -146,8 +147,7 @@ from clinosim.modules.output.fhir_r4.lib.ids import (
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `is_us`,
-  `strip_protocol_prefix`。`clinosim.countries` — `lang_for`。
+- `clinosim.modules._shared` — `strip_protocol_prefix`。`clinosim.countries` — `lang_for`。
 - `clinosim.codes` — `get_system_uri`, `lookup`, `display`,
   `is_english_only_system`。`codes.icd10`、`codes.prefectures`、
   `codes.ucum`、`codes.snomed`、`codes.procedures`、`codes.drugs`。

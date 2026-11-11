@@ -119,7 +119,7 @@ def test_jp_ecs_profile_only_on_value_set_codes() -> None:
     )
     no_allergy, egg = _bb_allergy_intolerances(_ctx([nka, _allergy("303300008", "food")], "JP"))
     for resource in (no_allergy, egg):
-        _apply_jp_clins_profile(resource)
+        _apply_jp_clins_profile(resource, "JP")
     # No Known Allergy has no JFAGY code: it keeps JP Core (example binding) only.
     assert _ECS not in no_allergy["meta"]["profile"]
     assert no_allergy["meta"]["profile"] == ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_AllergyIntolerance"]

@@ -23,7 +23,6 @@ from clinosim.modules.output.fhir_r4.builder import _finalize_resource
 from clinosim.modules.output.fhir_r4.encounters.facility import _build_facility_bundle
 from clinosim.modules.output.fhir_r4.lib.common import severity_coding
 from clinosim.modules.output.fhir_r4.lib.ecs_extensions import attach_ecs_institutional_extensions
-from clinosim.modules.output.fhir_r4.lib.profile_meta import language_uses
 
 pytestmark = pytest.mark.unit
 
@@ -56,12 +55,6 @@ def _finalized(resource: dict, country: str) -> dict:
 
 def _facility(country: str) -> list[dict]:
     return [e["resource"] for e in _build_facility_bundle(_CONFIG, country)["entry"]]
-
-
-def test_language_uses_reads_the_country_profiles() -> None:
-    assert language_uses("ja", "jp_clins") and language_uses("ja-JP", "jp_core")
-    assert not language_uses("en", "jp_clins")
-    assert language_uses("en", "us_core")
 
 
 def test_jp_without_fhir_profiles_gets_base_fhir(with_profiles) -> None:

@@ -442,10 +442,10 @@ def _is_yj_code_valid(code: str) -> bool:
     return is_verified_yj(code)
 
 
-def _resolve_jp_drug_system_uri(code: str) -> str:
+def _resolve_jp_drug_system_uri(code: str, country: str) -> str:
     """JP Core NamingSystem URI for a JP drug code by format
     (``clinosim.codes.drugs.drug_system_uri``, Issue #2262)."""
-    return drug_system_uri(code, "JP")
+    return drug_system_uri(code, country)
 
 
 def _map_order_status_to_fhir(status: str) -> str:
@@ -705,7 +705,7 @@ def _resolve_medication_concept(
     # F-1: JP は code 形式ごとに HOT7/HOT9/HOT13/YJ URI へ dispatch。
     # US は従来通り RxNorm URI。
     if drug_system_key == "yj" and code_value:
-        code_system = _resolve_jp_drug_system_uri(code_value)
+        code_system = _resolve_jp_drug_system_uri(code_value, country_code)
     else:
         code_system = get_system_uri(drug_system_key)
 

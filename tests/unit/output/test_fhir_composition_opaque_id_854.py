@@ -73,7 +73,7 @@ def test_build_composition_generic_id_is_opaque() -> None:
         "format_type": "composition",
         "authored_datetime": "2026-05-12T14:00:00",
     }
-    r = _build_composition(doc, sections={}, lang="en")
+    r = _build_composition(doc, sections={}, lang="en", country="US")
     assert _OPAQUE_COMPOSITION_PATTERN.match(r["id"]), f"non-opaque Composition id: {r['id']!r}"
     # Structural key = doc-id body (with `doc-` prefix stripped).
     assert r["id"] == _resolve_composition_id("enc1-hp-1")
@@ -94,7 +94,7 @@ def test_build_composition_generic_identifier_value_matches_id() -> None:
         "format_type": "composition",
         "authored_datetime": "2026-05-12T14:00:00",
     }
-    r = _build_composition(doc, sections={}, lang="en")
+    r = _build_composition(doc, sections={}, lang="en", country="US")
     assert r["identifier"]["value"] == r["id"]
 
 

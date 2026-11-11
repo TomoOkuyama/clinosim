@@ -1036,11 +1036,14 @@ def standalone_lab_order_code(o: Any, lang: str, country: str) -> LabOrderCode:
     lab_key = canonical_lab_name(display_name)
     resolved_code = code_map.get(lab_key) or code_map.get(display_name)
     # Two-tier fallback: when the map of a country whose lab code system is
-    # not LOINC lacks the entry, try the LOINC (US) map (Issue #3201: the
-    # country profile's lab code system decides).
+    # not LOINC lacks the entry, try the LOINC map (Issue #3201: the country
+    # profile's lab code system decides; Issue #3216: the LOINC map is the one
+    # of the country that codes labs in LOINC).
     used_loinc_fallback = False
     if not resolved_code and country_profile(country_code).code_system("lab") != "loinc":
-        us_map = load_code_mapping("lab", "US")
+        from clinosim.modules.output.fhir_r4.labs.coding_strategy import loinc_lab_code_mapping
+
+        us_map = loinc_lab_code_mapping()
         us_resolved = us_map.get(lab_key) or us_map.get(display_name)
         if us_resolved:
             resolved_code = us_resolved

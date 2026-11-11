@@ -142,12 +142,11 @@ from clinosim.modules._shared import get_attr_or_key as _get
 ```python
 from clinosim.countries import lang_for
 from clinosim.locale.loader import narrative_label
-from clinosim.modules._shared import is_jp
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 
 lang = lang_for(ctx.country)                                    # "ja" / "en"
 obs = {"code": {"text": narrative_label("fall_risk_level", level, lang)}}  # 値: 多言語の表から
-if is_jp(ctx.country):                                          # JP Core プロファイルが必須とする構造
-    obs["meta"] = {"profile": [JP_OBSERVATION_COMMON_PROFILE]}
+obs.update(profile_meta("Observation", ctx.country))           # JP Core プロファイルが必須とする構造 (国プロファイルで判定)
 ```
 
 > **アンチパターン:** 手書きの国判定(`country == "JP"` / `country.lower() == "jp"` / `str(country).upper() == "JP"` / `lang = "ja" if country == "JP" else "en"`)— 大文字小文字の違いで JP の判定が黙って外れたことがあり、`is_jp` / `lang_for` が唯一の正規化点です。また、分岐で値を選ぶこと(`label = "転倒リスク高" if is_jp(country) else "High fall risk"`)— 値は多言語の表に置きます。

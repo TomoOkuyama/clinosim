@@ -40,7 +40,7 @@ def test_jp_eCheckup_composition_type_uses_doc_typecodes():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_checkup_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     systems = [c.get("system") for c in comp["type"]["coding"]]
     assert systems == [_DOC_TYPE_SYSTEM]
     assert comp["title"] == "検診・健診報告書"
@@ -52,7 +52,7 @@ def test_jp_eCheckup_composition_has_profile():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_checkup_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     profs = comp.get("meta", {}).get("profile", [])
     assert _PROFILE_URL in profs
 
@@ -63,7 +63,7 @@ def test_jp_eCheckup_composition_sections_flat_2():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_checkup_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     top = comp["section"]
     codes = [s["code"]["coding"][0]["code"] for s in top]
     assert codes == ["01031", "01032"], codes
@@ -77,7 +77,7 @@ def test_jp_eCheckup_composition_section_content():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_checkup_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     by_code = {s["code"]["coding"][0]["code"]: s for s in comp["section"]}
     assert "身体計測" in by_code["01031"]["text"]["div"]
     assert "既往歴" in by_code["01032"]["text"]["div"]
@@ -90,7 +90,7 @@ def test_us_locale_never_emits_eCheckup_profile():
 
     doc = _jp_checkup_doc()
     doc["language"] = "en"
-    comp = _build_composition(doc, doc["narrative"]["sections"], "en")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "en", country="US")
     profs = comp.get("meta", {}).get("profile", [])
     assert not any(p.startswith("http://jpfhir.jp/fhir/eCheckup/") for p in profs), profs
 

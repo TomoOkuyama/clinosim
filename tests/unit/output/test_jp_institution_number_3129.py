@@ -35,7 +35,7 @@ def test_the_hospital_code_is_a_10_digit_medical_code_of_its_prefecture() -> Non
 
 
 def test_the_extension_carries_the_hospital_code() -> None:
-    ext = build_ecs_institution_extension()
+    ext = build_ecs_institution_extension("JP")
     assert ext["valueIdentifier"]["value"] == load_facility_identity("JP")["institution_code"]
 
 

@@ -36,15 +36,15 @@ JP_YJ_CODE_URI = "http://capstandard.jp/iyaku.info/CodeSystem/YJ-code"
 def test_resolve_jp_drug_system_uri_per_format(code: str, expected_uri: str) -> None:
     from clinosim.modules.output.fhir_r4.medications.medications import _resolve_jp_drug_system_uri
 
-    assert _resolve_jp_drug_system_uri(code) == expected_uri
+    assert _resolve_jp_drug_system_uri(code, "JP") == expected_uri
 
 
 def test_resolve_jp_drug_system_uri_fallback_for_unknown_format() -> None:
     """認識外 format は HOT9 URI にフォールバック(将来の code 追加時の safe default)。"""
     from clinosim.modules.output.fhir_r4.medications.medications import _resolve_jp_drug_system_uri
 
-    assert _resolve_jp_drug_system_uri("weird_code") == MEDIS_HOT9_URI
-    assert _resolve_jp_drug_system_uri("12345") == MEDIS_HOT9_URI  # 5-digit not registered
+    assert _resolve_jp_drug_system_uri("weird_code", "JP") == MEDIS_HOT9_URI
+    assert _resolve_jp_drug_system_uri("12345", "JP") == MEDIS_HOT9_URI  # 5-digit not registered
 
 
 def _build_mr(code: str, country: str = "JP", *, drug: str = "Test drug", route: str = "") -> dict[str, Any]:

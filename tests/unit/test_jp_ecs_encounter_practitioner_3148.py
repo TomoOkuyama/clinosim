@@ -26,7 +26,7 @@ def _encounter(**over: object) -> dict:
 
 
 def _profiles(resource: dict) -> list[str]:
-    _apply_jp_clins_profile(resource)
+    _apply_jp_clins_profile(resource, "JP")
     return (resource.get("meta") or {}).get("profile", [])
 
 

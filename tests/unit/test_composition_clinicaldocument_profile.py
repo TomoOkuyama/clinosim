@@ -85,7 +85,7 @@ def test_jp_rehab_plan_composition_declares_clinicaldocument_profile() -> None:
     """Issue #340 regression pin: LOINC 34823-5 (rehabilitation_plan) が
     JP path で meta.profile に HL7 R4 clinicaldocument を宣言する。"""
     doc = _make_doc("34823-5")
-    comp = _build_composition(doc, _make_sections(), "ja")
+    comp = _build_composition(doc, _make_sections(), "ja", country="JP")
     profiles = comp.get("meta", {}).get("profile", [])
     assert _CLINICALDOCUMENT_PROFILE in profiles, (
         f"Issue #340: JP rehab_plan Composition must declare clinicaldocument "
@@ -97,7 +97,7 @@ def test_jp_rehab_plan_composition_declares_clinicaldocument_profile() -> None:
 def test_jp_admission_hp_declares_clinicaldocument_profile() -> None:
     """Sibling-sweep: LOINC 34117-2 (admission_hp) にも同 fix 適用。"""
     doc = _make_doc("34117-2")
-    comp = _build_composition(doc, _make_sections(), "ja")
+    comp = _build_composition(doc, _make_sections(), "ja", country="JP")
     profiles = comp.get("meta", {}).get("profile", [])
     assert _CLINICALDOCUMENT_PROFILE in profiles
 
@@ -105,7 +105,7 @@ def test_jp_admission_hp_declares_clinicaldocument_profile() -> None:
 def test_jp_ed_note_declares_clinicaldocument_profile() -> None:
     """Sibling-sweep: LOINC 34878-9 (ed_note) にも同 fix 適用。"""
     doc = _make_doc("34878-9")
-    comp = _build_composition(doc, _make_sections(), "ja")
+    comp = _build_composition(doc, _make_sections(), "ja", country="JP")
     profiles = comp.get("meta", {}).get("profile", [])
     assert _CLINICALDOCUMENT_PROFILE in profiles
 
@@ -113,7 +113,7 @@ def test_jp_ed_note_declares_clinicaldocument_profile() -> None:
 def test_jp_outpatient_soap_declares_clinicaldocument_profile() -> None:
     """Sibling-sweep: LOINC 34131-3 (outpatient_soap) にも同 fix 適用。"""
     doc = _make_doc("34131-3")
-    comp = _build_composition(doc, _make_sections(), "ja")
+    comp = _build_composition(doc, _make_sections(), "ja", country="JP")
     profiles = comp.get("meta", {}).get("profile", [])
     assert _CLINICALDOCUMENT_PROFILE in profiles
 
@@ -126,7 +126,7 @@ def test_jp_ecs_discharge_summary_uses_jp_clins_profile_only() -> None:
     baseDefinition = Composition 直下(clinicaldocument 経由でない)、
     既存 profile が完全な semantic を提供済みなので追加しない。"""
     doc = _make_doc("18842-5")
-    comp = _build_composition(doc, _make_sections(), "ja")
+    comp = _build_composition(doc, _make_sections(), "ja", country="JP")
     profiles = comp.get("meta", {}).get("profile", [])
     assert any("JP_Composition_eDischargeSummary" in p for p in profiles), (
         f"eDS Composition must carry JP-CLINS eDS profile, got {profiles}"
@@ -140,7 +140,7 @@ def test_jp_ecs_discharge_summary_uses_jp_clins_profile_only() -> None:
 def test_jp_ereferral_uses_jp_clins_profile_only() -> None:
     """Regression: LOINC 57133-1 は JP-CLINS eReferral dispatch 優先。"""
     doc = _make_doc("57133-1")
-    comp = _build_composition(doc, _make_sections(), "ja")
+    comp = _build_composition(doc, _make_sections(), "ja", country="JP")
     profiles = comp.get("meta", {}).get("profile", [])
     assert any("JP_Composition_eReferral" in p for p in profiles)
     assert _CLINICALDOCUMENT_PROFILE not in profiles
@@ -149,7 +149,7 @@ def test_jp_ereferral_uses_jp_clins_profile_only() -> None:
 def test_jp_echeckup_general_uses_jp_clins_profile_only() -> None:
     """Regression: LOINC 53576-5 は JP-eCheckup dispatch 優先。"""
     doc = _make_doc("53576-5")
-    comp = _build_composition(doc, _make_sections(), "ja")
+    comp = _build_composition(doc, _make_sections(), "ja", country="JP")
     profiles = comp.get("meta", {}).get("profile", [])
     assert any("JP_Composition_eCheckupGeneral" in p for p in profiles)
     assert _CLINICALDOCUMENT_PROFILE not in profiles
@@ -162,7 +162,7 @@ def test_us_composition_no_clinicaldocument_added() -> None:
     """US path は clinicaldocument profile を追加しない(fix scope は JP 限定、
     US 側 timeout 発生時に検討)。US path は既存挙動維持。"""
     doc = _make_doc("34823-5", language="en")
-    comp = _build_composition(doc, _make_sections(), "en")
+    comp = _build_composition(doc, _make_sections(), "en", country="US")
     profiles = comp.get("meta", {}).get("profile", [])
     assert _CLINICALDOCUMENT_PROFILE not in profiles, (
         f"US path Composition should NOT carry clinicaldocument profile (JP-only fix scope)、got {profiles}"

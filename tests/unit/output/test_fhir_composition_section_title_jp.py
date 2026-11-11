@@ -224,7 +224,7 @@ def test_jp_composition_section_titles_are_all_japanese() -> None:
         "adl_assessment": "ADLの記述",
         "nursing_history": "看護歴の記述",
     }
-    res = _build_composition_generic(_minimal_doc(), sections, lang="ja")
+    res = _build_composition_generic(_minimal_doc(), sections, lang="ja", country="JP")
     titles = [s["title"] for s in res["section"]]
     assert titles == ["現病歴", "身体所見", "ADL評価", "看護歴"]
 
@@ -244,7 +244,7 @@ def test_en_composition_section_titles_use_human_readable_english() -> None:
         "discharge_instructions": "Instructions.",
         "follow_up": "Follow-up plan.",
     }
-    res = _build_composition_generic(doc, sections, lang="en")
+    res = _build_composition_generic(doc, sections, lang="en", country="US")
     assert [s["title"] for s in res["section"]] == [
         "History of present illness",
         "Hospital course",
@@ -263,7 +263,7 @@ def test_issue_870_ed_and_rehab_sections_localize_ja() -> None:
         "ed_workup": "ED workup content",
         "disposition": "Discharge home",
     }
-    res_ed = _build_composition_generic(_minimal_doc(), ed_sections, lang="ja")
+    res_ed = _build_composition_generic(_minimal_doc(), ed_sections, lang="ja", country="JP")
     assert [s["title"] for s in res_ed["section"]] == ["救急外来での評価", "転帰"]
 
     rehab_sections = {
@@ -273,7 +273,7 @@ def test_issue_870_ed_and_rehab_sections_localize_ja() -> None:
         "basic_movement": "端座位保持可",
         "functional_status": "移乗要介助",
     }
-    res_rehab = _build_composition_generic(_minimal_doc(), rehab_sections, lang="ja")
+    res_rehab = _build_composition_generic(_minimal_doc(), rehab_sections, lang="ja", country="JP")
     assert [s["title"] for s in res_rehab["section"]] == [
         "目標",
         "セッション頻度",

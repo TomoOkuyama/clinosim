@@ -19,6 +19,7 @@ from typing import Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import get_system_uri
+from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative.registry import document_loinc
@@ -27,7 +28,6 @@ from clinosim.modules.output.fhir_r4.documents.referral_orgs import (
     pick_external_hospital,
 )
 from clinosim.modules.output.fhir_r4.lib.common import _escape_html
-from clinosim.modules.output.fhir_r4.lib.profile_meta import language_uses
 
 # ---------------------------------------------------------------------------
 # JP-CLINS eReferral constants (verbatim from composition.py).
@@ -69,6 +69,7 @@ def _build_jp_clins_referral_note_composition(
     sections: dict[str, str],
     lang: str,
     *,
+    country: str,
     roster_map: dict[str, dict] | None = None,
 ) -> dict[str, Any]:
     """JP-CLINS eReferral v1.13.0 準拠 Composition を emit する。
@@ -90,7 +91,7 @@ def _build_jp_clins_referral_note_composition(
         _section_title_from_section_display,
     )
 
-    comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map)
+    comp = _build_composition_generic(doc, sections, lang, country=country, roster_map=roster_map)
 
     # meta.profile 追加(既に含まれていれば skip)
     meta = comp.setdefault("meta", {})
@@ -191,7 +192,9 @@ def _build_jp_clins_referral_note_composition(
     # Issue #924: 920 self-pin / 910 external-catalog sample.
     pid = _o(doc, "patient_id", "") or ""
     eid = _o(doc, "encounter_id", "") or ""
-    external_dest = pick_external_hospital(pid, eid, country="JP") if language_uses(lang, "jp_clins") else None
+    external_dest = (
+        pick_external_hospital(pid, eid, country=country) if country_profile(country).uses("jp_clins") else None
+    )
 
     top_entry_by_code: dict[str, list[dict[str, str]]] = {
         "920": _JP_ER_REFERRING_FROM_REF,

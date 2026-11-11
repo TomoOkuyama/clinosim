@@ -74,7 +74,7 @@ def test_jp_clins_composition_type_uses_doc_typecodes():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     assert any(c.get("system") == _DOC_TYPE_SYSTEM and c.get("code") == "18842-5" for c in comp["type"]["coding"]), (
         comp["type"]
     )
@@ -85,7 +85,7 @@ def test_jp_clins_composition_has_profile():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     profs = comp.get("meta", {}).get("profile", [])
     assert _PROFILE_URL in profs
 
@@ -95,7 +95,7 @@ def test_jp_clins_composition_has_nested_structural_section():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     top = comp["section"]
     # Session 58 Chain #9: exactly one top-level section (300 構造情報セクション)
     # that nests the 10 required child slices (5 admission + 5 discharge)
@@ -128,7 +128,7 @@ def test_jp_clins_composition_child_section_text_div():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     parent = comp["section"][0]
     children_by_code = {c["code"]["coding"][0]["code"]: c for c in parent["section"]}
     # 312 = admission_reason
@@ -148,7 +148,7 @@ def test_jp_clins_composition_section_title_short_display_long():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     parent = comp["section"][0]
     assert parent["title"] == "構造情報"
     assert parent["code"]["coding"][0]["display"] == "構造情報セクション"
@@ -180,7 +180,7 @@ def test_jp_clins_composition_section_code_text_max_zero():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     parent = comp["section"][0]
     assert "text" not in parent["code"], parent["code"]
     for child in parent["section"]:
@@ -197,7 +197,7 @@ def test_jp_clins_composition_extension_version_present():
     )
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     exts = comp.get("extension", [])
     version_ext = [e for e in exts if e.get("url") == _JP_EDS_VERSION_EXTENSION_URL]
     assert len(version_ext) == 1
@@ -214,7 +214,7 @@ def test_jp_clins_composition_category_discharge():
     )
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     category = comp.get("category")
     assert isinstance(category, list) and len(category) == 1
     coding = category[0]["coding"][0]
@@ -232,7 +232,7 @@ def test_jp_clins_composition_category_discharge_display_matches_cs_authoritativ
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     coding = comp["category"][0]["coding"][0]
     # authoritative doc-subtypecodes CS: DISCHARGE → "退院時文書"
     assert coding["display"] == "退院時文書"
@@ -251,7 +251,7 @@ def test_jp_clins_composition_all_10_child_sections_have_nonempty_text_div():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     parent = comp["section"][0]
     for child in parent["section"]:
         code = child["code"]["coding"][0]["code"]
@@ -282,7 +282,7 @@ def test_jp_clins_composition_hospital_course_entry_from_free_text_map():
     _cif_doc_id = "doc-ENC-001-progressnote-01"
     _opaque_doc_id = document_reference_id_for_cif_doc_id(_cif_doc_id)
     enc_map = {"ENC-001": _opaque_doc_id}
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", enc_map)
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", enc_map, country="JP")
     children = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
     hcs = children["333"]  # hospitalCourseSection
     assert hcs.get("entry") == [{"reference": f"DocumentReference/{_opaque_doc_id}"}]
@@ -297,7 +297,7 @@ def test_jp_clins_composition_hospital_course_entry_dropped_when_no_free_text():
 
     doc = _jp_ds_doc()
     # empty map = no free-text doc for this encounter
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", {})
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", {}, country="JP")
     children = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
     hcs = children["333"]
     assert "entry" not in hcs  # never-fabricate: no ref, no entry
@@ -310,7 +310,7 @@ def test_jp_clins_composition_meta_lastupdated_from_authored_datetime():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     assert comp["meta"]["lastUpdated"] == "2026-01-20T10:00:00"
 
 
@@ -333,7 +333,7 @@ def test_jp_clins_composition_required_entries_reference_correct_resources():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     children_by_code = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
 
     # 322 = detailsOnAdmission → Encounter
@@ -368,7 +368,7 @@ def test_jp_clins_composition_entry_omitted_when_ids_missing():
 
     doc = _jp_ds_doc()
     doc["encounter_id"] = ""
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     children_by_code = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
     for code in ("322", "324", "344"):
         assert "entry" not in children_by_code[code], code
@@ -386,7 +386,7 @@ def test_jp_clins_composition_custodian_emitted():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     assert comp["custodian"]["reference"] == "Organization/hospital-main"
 
 
@@ -398,7 +398,7 @@ def test_jp_clins_composition_event_period_populated():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     event = comp.get("event")
     assert isinstance(event, list) and len(event) == 1
     period = event[0].get("period", {})
@@ -418,7 +418,7 @@ def test_jp_clins_composition_author_has_organization():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     authors = comp["author"]
     assert len(authors) >= 2
     refs = [a.get("reference", "") for a in authors]
@@ -433,7 +433,7 @@ def test_jp_clins_composition_title_is_ja():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     assert comp["title"] == "退院時サマリー"
 
 
@@ -446,7 +446,7 @@ def test_jp_clins_composition_identifier_uri_matches_spec():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     assert comp["identifier"]["system"] == "http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier"
 
 
@@ -455,7 +455,7 @@ def test_us_composition_identifier_keeps_clinosim_uri():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _us_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "en")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "en", country="US")
     assert comp["identifier"]["system"] == "urn:clinosim:composition-id"
 
 
@@ -464,7 +464,7 @@ def test_us_discharge_summary_composition_unchanged():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _us_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "en")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "en", country="US")
     # No JP-CLINS profile
     profs = comp.get("meta", {}).get("profile", [])
     assert not any(p.startswith("http://jpfhir.jp/fhir/eDischargeSummary/") for p in profs), profs

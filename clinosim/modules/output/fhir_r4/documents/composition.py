@@ -54,6 +54,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.loinc import loinc_for
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import role_display
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -99,7 +100,6 @@ from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
     JP_RESOURCE_INSTANCE_IDENTIFIER_SYSTEM,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import _clinician_role_rows
-from clinosim.modules.output.fhir_r4.lib.profile_meta import language_uses
 
 # === Issue #854 Bucket B (PR-composition): opaque Composition.id ===
 # Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
@@ -135,12 +135,10 @@ __all__ = [
 ]
 
 
-def _uses_jp_clins_profile(lang: str) -> bool:
-    """Whether a Composition written in ``lang`` follows the JP-CLINS document
-    profiles: the country profile of that output language applies
-    ``jp_clins`` (Issue #3203; the document builders are keyed by the output
-    language, not the country)."""
-    return language_uses(lang, "jp_clins")
+def _uses_jp_clins_profile(country: str) -> bool:
+    """Whether the country's Compositions follow the JP-CLINS document
+    profiles: its country profile applies ``jp_clins`` (Issue #3216)."""
+    return country_profile(country).uses("jp_clins")
 
 
 # #278:enc → free-text-doc-id 優先度用 LOINC 定数。
@@ -591,6 +589,7 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
                 lang,
                 enc_to_free_text,
                 enc_to_primary_cond,
+                country=ctx.country,
                 roster_map=ctx.roster_map,
                 encounter_index=enc_index,
             )
@@ -599,10 +598,10 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
         # eReferral 57133-1 doc-type). Same seed (patient_id +
         # encounter_id) as the builder, so the id is byte-identical to
         # the reference the builder wrote.
-        if _uses_jp_clins_profile(lang) and _o(doc, "loinc_code", "") == document_loinc("referral_note"):
+        if _uses_jp_clins_profile(ctx.country) and _o(doc, "loinc_code", "") == document_loinc("referral_note"):
             _pid = _o(doc, "patient_id", "") or ""
             _eid = _o(doc, "encounter_id", "") or ""
-            _dest = pick_external_hospital(_pid, _eid, country="JP")
+            _dest = pick_external_hospital(_pid, _eid, country=ctx.country)
             if _dest:
                 external_org_ids_referenced.add(_dest["id"])
 
@@ -613,7 +612,7 @@ def _bb_compositions(ctx: BundleContext) -> list[dict[str, Any]]:
     if external_org_ids_referenced:
         from clinosim.locale.loader import load_external_organizations
 
-        catalog_by_id = {e["id"]: e for e in load_external_organizations("JP")}
+        catalog_by_id = {e["id"]: e for e in load_external_organizations(ctx.country)}
         for org_id in sorted(external_org_ids_referenced):
             entry = catalog_by_id.get(org_id)
             if entry is None:
@@ -631,6 +630,7 @@ def _build_composition(
     enc_to_free_text: dict[str, str] | None = None,
     enc_to_primary_cond: dict[str, str] | None = None,
     *,
+    country: str,
     roster_map: dict[str, dict] | None = None,
     encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
 ) -> dict[str, Any]:
@@ -662,9 +662,9 @@ def _build_composition(
     # locale — US path also benefits from the specialized title.
     if task_type == "death_discharge_summary":
         return _build_death_discharge_summary_composition(
-            doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index
+            doc, sections, lang, country=country, roster_map=roster_map, encounter_index=encounter_index
         )
-    if _uses_jp_clins_profile(lang):
+    if _uses_jp_clins_profile(country):
         loinc = _o(doc, "loinc_code", "")
         if loinc == document_loinc("discharge_summary"):
             return _build_jp_clins_discharge_summary_composition(
@@ -673,22 +673,25 @@ def _build_composition(
                 lang,
                 enc_to_free_text or {},
                 enc_to_primary_cond or {},
+                country=country,
                 roster_map=roster_map,
                 encounter_index=encounter_index,
             )
         if loinc == document_loinc("referral_note"):
-            return _build_jp_clins_referral_note_composition(doc, sections, lang, roster_map=roster_map)
+            return _build_jp_clins_referral_note_composition(
+                doc, sections, lang, country=country, roster_map=roster_map
+            )
         # P2-13 PR3:JP-eCheckup General
         if loinc == document_loinc("health_checkup_report"):
             return _build_jp_echeckup_general_composition(
-                doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index
+                doc, sections, lang, country=country, roster_map=roster_map, encounter_index=encounter_index
             )
         # Issue #961:死亡診断書 (Death certificate). Emit under jpfhir
         # doc-typecodes (per JP dispatch convention for JP-authored
         # documents) plus a CodeableConcept.text carrying 死亡診断書.
         if loinc == document_loinc("death_certificate"):
             return _build_jp_death_certificate_composition(
-                doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index
+                doc, sections, lang, country=country, roster_map=roster_map, encounter_index=encounter_index
             )
         # Issue #340:JP-CLINS profile が存在しない JP path
         # Composition (rehabilitation_plan LOINC 34823-5、admission_hp
@@ -715,12 +718,16 @@ def _build_composition(
         # JP-CLINS eDS / eReferral / eCheckup の baseDefinition は Composition
         # 直下(clinicaldocument 経由でない)ため、それらの dispatch path は
         # 変更せず(既存 profile は追加の意味を提供済み)。
-        comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index)
+        comp = _build_composition_generic(
+            doc, sections, lang, country=country, roster_map=roster_map, encounter_index=encounter_index
+        )
         profs = comp.setdefault("meta", {}).setdefault("profile", [])
         if _CLINICALDOCUMENT_PROFILE not in profs:
             profs.append(_CLINICALDOCUMENT_PROFILE)
         return comp
-    return _build_composition_generic(doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index)
+    return _build_composition_generic(
+        doc, sections, lang, country=country, roster_map=roster_map, encounter_index=encounter_index
+    )
 
 
 def _build_composition_generic(
@@ -728,6 +735,7 @@ def _build_composition_generic(
     sections: dict[str, str],
     lang: str,
     *,
+    country: str,
     roster_map: dict[str, dict] | None = None,
     encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
 ) -> dict[str, Any]:
@@ -788,12 +796,10 @@ def _build_composition_generic(
     # to `http://jpfhir.jp/fhir/core/IdSystem/resourceInstance-identifier`
     # (StructureDefinition-JP-Composition-{eDS,eReferral}.json). US / generic
     # output keeps the clinosim namespace URI (no profile constraint). The
-    # decision follows the caller's profile family (JP-CLINS builders pass
-    # `lang="ja"`; generic / US pass `lang="en"`), routed through the
-    # `_uses_jp_clins_profile` predicate so a future locale that should NOT
-    # trigger the JP-CLINS URI can override the decision in one place.
+    # decision follows the country's profile family (Issue #3216:
+    # `_uses_jp_clins_profile(country)` reads the country profile).
     identifier_system = (
-        _JP_COMPOSITION_IDENTIFIER_SYSTEM if _uses_jp_clins_profile(lang) else "urn:clinosim:composition-id"
+        _JP_COMPOSITION_IDENTIFIER_SYSTEM if _uses_jp_clins_profile(country) else "urn:clinosim:composition-id"
     )
     res: dict[str, Any] = {
         "resourceType": "Composition",
@@ -1075,6 +1081,7 @@ def _build_jp_death_certificate_composition(
     sections: dict[str, str],
     lang: str,
     *,
+    country: str,
     roster_map: dict[str, dict] | None = None,
     encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
 ) -> dict[str, Any]:
@@ -1088,7 +1095,9 @@ def _build_jp_death_certificate_composition(
         (no JP-CLINS-specific StructureDefinition exists for this
         Composition type — see module comment)
     """
-    comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index)
+    comp = _build_composition_generic(
+        doc, sections, lang, country=country, roster_map=roster_map, encounter_index=encounter_index
+    )
 
     meta = comp.setdefault("meta", {})
     profs = meta.setdefault("profile", [])
@@ -1150,6 +1159,7 @@ def _build_death_discharge_summary_composition(
     sections: dict[str, str],
     lang: str,
     *,
+    country: str,
     roster_map: dict[str, dict] | None = None,
     encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
 ) -> dict[str, Any]:
@@ -1168,7 +1178,9 @@ def _build_death_discharge_summary_composition(
         JP-CLINS eDS is intentionally NOT asserted (section list
         differs — see module comment).
     """
-    comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map, encounter_index=encounter_index)
+    comp = _build_composition_generic(
+        doc, sections, lang, country=country, roster_map=roster_map, encounter_index=encounter_index
+    )
 
     meta = comp.setdefault("meta", {})
     profs = meta.setdefault("profile", [])
@@ -1180,7 +1192,7 @@ def _build_death_discharge_summary_composition(
         if ts:
             meta["lastUpdated"] = ts
 
-    if _uses_jp_clins_profile(lang):
+    if _uses_jp_clins_profile(country):
         # Emit under jpfhir doc-typecodes with the death-variant title
         # (feedback_dual_slot_at_emit_site_not_post_process — set `.text`
         # here rather than rely on a post-process walker). The LOINC

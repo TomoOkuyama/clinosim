@@ -63,7 +63,7 @@ Governing spec: [`code-mapping-and-localization-spec.ja.md`](code-mapping-and-lo
 | `clinosim/countries/__init__.py` `country_code(country)` | どの表記 (`"jp"`、旧来の locale キー `"japan"` など) からも `"JP"` / `"US"` を返す。大文字コードを取るヘルパー向け。`is_jp` も同じ表記を受け付ける。 |
 | `clinosim/countries/__init__.py` `country_slot(country, scheme=...)` | 国別 YAML ブロックのセクションキー。 |
 | `clinosim/countries/__init__.py` `lang_name(lang, in_lang=)` / `output_language_instruction(lang)` / `has_authored_narrative(lang)` | 言語名、LLM への「この言語で書け」指示、その言語に記述済みの narrative があるか。 |
-| `clinosim/modules/output/fhir_r4/lib/profile_meta.py` `language_uses(lang, fhir_profile)` | ある出力言語の出力が FHIR profile を適用するか (その出力言語の国プロファイルで決まる)。出力言語で動く builder 向け。country を持つ builder は `country_profile(country).uses(...)` を使う。 |
+| `clinosim/country_profile.py` `country_profile(country).uses(fhir_profile)` | 国の FHIR 出力が FHIR profile (`jp_core`、`jp_clins`、`jp_echeckup`、`us_core`) を適用するか。builder は country を受け取り、profile 構造を出力言語から決めない (Issue #3216)。 |
 
 ## 4. コードと表示名
 

@@ -103,7 +103,7 @@ def test_the_results_section_references_the_checkup_observations() -> None:
         }
     }
     sections = {"checkup_lab_results": "検査結果", "checkup_questionnaire": "問診"}
-    comp = _build_composition(doc, sections, "ja", encounter_index=index)
+    comp = _build_composition(doc, sections, "ja", encounter_index=index, country="JP")
     by_code = {s["code"]["coding"][0]["code"]: s for s in comp["section"]}
     assert by_code["01031"]["entry"] == refs
     assert "entry" not in by_code["01032"]

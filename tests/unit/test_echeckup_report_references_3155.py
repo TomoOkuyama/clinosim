@@ -68,7 +68,7 @@ def test_a_checkup_encounter_does_not_declare_ecs() -> None:
     # JP_Encounter_eCS fixes class.system to v3-ActCode.
     res = _build_encounter(_checkup_enc(), "P1", country="JP")
     assert not _encounter_satisfies_ecs(res)
-    _apply_jp_clins_profile(res)
+    _apply_jp_clins_profile(res, "JP")
     assert _ENC_ECS not in res["meta"]["profile"]
 
 
@@ -93,7 +93,7 @@ def test_the_checkup_report_has_a_practitioner_and_an_organization_author() -> N
         "format_type": "composition",
         "narrative": {"sections": {"body": "本文"}},
     }
-    comp = _build_composition(doc, {"body": "本文"}, "ja")
+    comp = _build_composition(doc, {"body": "本文"}, "ja", country="JP")
     assert [a["reference"] for a in comp["author"]] == ["Practitioner/DR-IM-002", "Organization/hospital-main"]
     assert comp["custodian"] == {"reference": "Organization/hospital-main"}
     # event.detail references the checkup Encounter, as the IG sample Bundle does.
@@ -115,5 +115,5 @@ def test_a_checkup_result_does_not_declare_the_ecs_lab_profile(checkup_result: b
         "meta": {"profile": list(profiles)},
         "category": [{"coding": [{"code": "laboratory"}]}],
     }
-    _apply_jp_clins_profile(obs)
+    _apply_jp_clins_profile(obs, "JP")
     assert (lab_ecs in obs["meta"]["profile"]) is not checkup_result
