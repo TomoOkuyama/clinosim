@@ -17,5 +17,5 @@ have their behaviour changed in any release; downstream code should reach only
 for names re-exported from ``clinosim.api``.
 """
 
-__version__ = "0.6.5"
+__version__ = "0.7.0"
 __all__ = ["__version__"]
