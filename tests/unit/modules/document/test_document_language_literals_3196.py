@@ -57,6 +57,8 @@ PINNED: dict[tuple[str, str, str], tuple[int, str]] = {
     ("narrative/renderers/_resolvers.py", "get", "ja"): (1, MATCHING),
     ("narrative/renderers/section_builders/discharge_summary.py", "get", "en"): (2, ENGLISH_FALLBACK),
     ("narrative/renderers/section_builders/outpatient_soap.py", "get", "en"): (1, ENGLISH_FALLBACK),
+    # The HPI pertinent negatives' English fallback (Issue #3206).
+    ("reference_data_loaders.py", "get", "en"): (1, ENGLISH_FALLBACK),
 }
 
 
@@ -191,3 +193,83 @@ def test_hpi_extras_are_written_in_the_document_language(monkeypatch: pytest.Mon
     assert en and ja
     assert all(ord(c) < 0x3000 for c in en), en
     assert any(ord(c) > 0x3000 for c in ja), ja
+
+
+# --- Fixed-language text outside lookups (Issue #3206) -----------------------
+
+# A label written as an English (or Japanese) string literal in a renderer
+# ("Vital signs: {x}", "Assessment: ... Plan: ...", "ROS: ...") bypasses the
+# phrase catalog; so does joining items with a literal Japanese separator.
+_LABEL_LITERAL = __import__("re").compile(r"^(?:[A-Z][A-Za-z ]+|ROS): ")
+
+
+def test_no_section_label_in_a_string_literal() -> None:
+    hits = []
+    renderers = ROOT / "narrative" / "renderers"
+    for path in sorted(renderers.rglob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if isinstance(node, ast.JoinedStr) and node.values:
+                head = node.values[0]
+                if isinstance(head, ast.Constant) and isinstance(head.value, str) and _LABEL_LITERAL.match(head.value):
+                    hits.append(f"{path.relative_to(ROOT).as_posix()}:{node.lineno}")
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "join"
+                and isinstance(node.func.value, ast.Constant)
+                and isinstance(node.func.value.value, str)
+                and any(ord(c) > 0x3000 for c in node.func.value.value)
+            ):
+                hits.append(f"{path.relative_to(ROOT).as_posix()}:{node.lineno}")
+    assert not hits, hits
+
+
+@pytest.mark.parametrize(
+    ("lang", "expected"), [("ja", "ROS: 発熱なし、下痢なし。"), ("en", "ROS: no fever, no diarrhea.")]
+)
+def test_hpi_ros_line_is_written_in_the_document_language(
+    monkeypatch: pytest.MonkeyPatch, lang: str, expected: str
+) -> None:
+    from clinosim.modules.document.narrative.renderers.section_builders import hpi
+
+    monkeypatch.setattr(hpi, "has_authored_narrative", lambda _lang: True)
+    monkeypatch.setattr(hpi, "_age_at", lambda _ctx: None)
+    ctx = _hpi_ctx(lang)
+    ctx.encounter = None
+    ctx.disease_protocol = SimpleNamespace(disease_id="diabetic_ketoacidosis")
+    assert hpi._compose_hpi_extras_from_state(ctx) == expected  # type: ignore[arg-type]
+
+
+def test_hpi_pertinent_negatives_fall_back_to_english() -> None:
+    from clinosim.modules.document.reference_data_loaders import hpi_pertinent_negatives
+
+    assert hpi_pertinent_negatives("acute_mi", "fr") == hpi_pertinent_negatives("acute_mi", "en")
+    assert hpi_pertinent_negatives("acute_mi", "ja")[0] == "労作時以外の胸痛エピソードなし"
+    assert hpi_pertinent_negatives("no_such_disease", "ja") == []
+
+
+@pytest.mark.parametrize(
+    ("lang", "expected"),
+    [
+        ("en", "Vital signs: BP 120/80. General: no additional exam findings recorded."),
+        ("ja", "バイタルサイン: BP 120/80。その他の身体所見の記載なし。"),
+    ],
+)
+def test_vitals_only_physical_exam_phrase(lang: str, expected: str) -> None:
+    from clinosim.locale.i18n import t
+
+    text = t(
+        "ed_physical_exam.vitals_prepend", lang, vitals="BP 120/80", text=t("physical_exam.no_other_findings", lang)
+    )
+    assert text == expected
+
+
+@pytest.mark.parametrize(
+    ("lang", "expected"),
+    [("en", "Assessment: A. Plan: P."), ("ja", "評価: A。 方針: P。")],
+)
+def test_inline_assessment_plan_phrase(lang: str, expected: str) -> None:
+    from clinosim.locale.i18n import t
+
+    a, p = ("A.", "P.") if lang == "en" else ("A。", "P。")
+    assert t("ap_combined.assessment_plan_inline", lang, assessment=a, plan=p) == expected

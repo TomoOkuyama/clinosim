@@ -75,7 +75,7 @@ from clinosim.modules.document import (
     # Reference-data loaders
     load_physical_exam_findings,    # () -> dict (@lru_cache, 6-layer validated)
     load_discharge_instructions,    # () -> dict (@lru_cache, 6-layer validated)
-    load_hpi_pertinent_negatives,   # () -> dict (@lru_cache)
+    load_hpi_pertinent_negatives,   # () -> {disease: {lang: [...]}} (@lru_cache)
 
     # Canonical ID prefixes
     DOC_REFERENCE_ID_PREFIX,        # "doc-"
@@ -184,7 +184,7 @@ clinosim/modules/document/
     document_type_specs.yaml         per-document-type registry
     section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
     physical_exam_findings.yaml      per-disease PE findings (baseline + override)
-    hpi_pertinent_negatives.yaml     HPI pertinent negatives (load_hpi_pertinent_negatives)
+    hpi_pertinent_negatives.yaml     HPI pertinent negatives, a language map per disease (hpi_pertinent_negatives(disease_id, lang), English fallback)
     bedside_procedure_codes.yaml     bedside procedure codes (load_bedside_procedure_codes)
     narrative_extras_whitelists.yaml narrative extra-context whitelists (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   sections exempt from the US H&P JA-char audit (audit.py)
