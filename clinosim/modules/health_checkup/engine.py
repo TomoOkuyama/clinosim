@@ -243,6 +243,22 @@ def _alive_on_checkup_date(ctx: Any, patient_id: str, patient: Any, checkup_date
     return dod is None or checkup_date < dod
 
 
+def _patient_on(patient: Any, when: datetime) -> Any:
+    """``patient`` with the home medications in effect at ``when``
+    (``modules.patient.medication_timeline``, Issue #3199); the same object
+    when they are the current ones."""
+    import dataclasses
+
+    from clinosim.modules.patient.medication_timeline import medications_on
+
+    meds = medications_on(patient, when)
+    if meds == list(_o(patient, "current_medications", None) or []):
+        return patient
+    if dataclasses.is_dataclass(patient) and not isinstance(patient, type):
+        return dataclasses.replace(patient, current_medications=meds)
+    return {**patient, "current_medications": meds}
+
+
 def _build_checkup_encounter(
     patient_id: str,
     checkup_date: date,
@@ -468,6 +484,10 @@ def enrich_health_checkup(ctx: Any) -> None:
             1,
             checkup_type=checkup_type,
         )
+        # Issue #3199: the checkup reads the medications in effect on its
+        # date (a drug started later is not yet taken), not the list the
+        # simulation ends with; the checkup record carries that profile.
+        patient = _patient_on(patient, encounter.admission_datetime)
         # per-patient sub-rng(AD-16):同 seed+同 patient_id → 同 lab 値。
         patient_rng = determinism.default_rng(derive_sub_seed(master_seed, hc_offset, patient_id))
         checkup_labs = _build_checkup_lab_results(

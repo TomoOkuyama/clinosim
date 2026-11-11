@@ -212,6 +212,13 @@ class OutpatientVisitLedger:
     # measured LDL, with the date.
     lipid_add_on: HomeMedication | None = None
     lipid_add_on_on: date | None = None
+    # Issue #3199 (modules/patient/medication_timeline.py): the home
+    # medications the patient takes from the end of each encounter on
+    # (end datetime, medications after the encounter), in simulation order,
+    # and those of the first activated profile — so a later reader (the
+    # health-checkup enricher) can take the medications in effect on a day.
+    medication_timeline: list[tuple[datetime, tuple[HomeMedication, ...]]] = field(default_factory=list)
+    medications_at_activation: tuple[HomeMedication, ...] | None = None
 
 
 @dataclass

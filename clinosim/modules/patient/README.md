@@ -56,6 +56,13 @@ from clinosim.modules.patient.activator import activate_patient
 
 from clinosim.modules.patient.test_patient import create_test_patient
 # () -> PatientProfile  (deterministic 72-year-old JP female with HT + T2DM)
+
+from clinosim.modules.patient.medication_timeline import medications_on, note_encounter_medications
+# note_encounter_medications(record) -> None  (forward loop: the medications the record's
+#   patient takes from the end of its last encounter on, on the shared visit ledger)
+# medications_on(patient, when: datetime) -> list[HomeMedication]  (those in effect at
+#   `when`; the first profile's starting list before the first encounter; the current
+#   list when nothing was noted) — Issue #3199, no random draws
 ```
 
 The stage / severity tables in `_severity_activation.py` are imported
@@ -210,6 +217,7 @@ clinosim/modules/patient/
   _patient_activator_thresholds.py     named thresholds (478 LOC, Issue #637)
   _marital.py                          marital status + contact relationship from locale marital_status.yaml (Issue #3189)
   _severity_activation.py              chronic-condition stage + severity tables (Issue #637 PR-D)
+  medication_timeline.py               home medications in effect on a day (Issue #3199)
   test_patient.py                      deterministic create_test_patient() fixture
   reference_data/
     stage_severity.yaml                ICD base code → stage → severity score (STAGE_SEVERITY, Issue #2525)
