@@ -11,7 +11,7 @@ import yaml
 from clinosim.locale.loader import load_vocabulary, narrative_label, vocab_display
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules.document.narrative._patient_info_renderers import _localize_token
-from clinosim.modules.document.narrative._replacement_localization import _localize_arrival_mode_ja
+from clinosim.modules.document.narrative._replacement_localization import localize_token
 from clinosim.modules.newborn.fhir_emit import _label as newborn_label
 from clinosim.modules.output.fhir_r4.demographics.patient import _build_occupation_observation
 from clinosim.modules.population._identity import DEVELOPMENTAL_STAGES
@@ -62,7 +62,7 @@ def test_narrative_llm_and_fhir_show_the_same_string(vocab: str, lang: str) -> N
             # The LLM anchor is running prose: same label, leading capital lowered.
             assert _localize_token(slug, vocab, lang).casefold() == expected.casefold()
         if vocab == "arrival_mode" and lang == "ja":
-            assert _localize_arrival_mode_ja(slug) == expected
+            assert localize_token(slug, "arrival_mode", "ja") == expected
         if vocab == "occupation" and slug not in DEVELOPMENTAL_STAGES:  # Issue #2630: no Observation for these
             obs = _build_occupation_observation(slug, "p1", "JP" if lang == "ja" else "US")
             assert obs is not None and expected in str(obs)

@@ -23,10 +23,11 @@ from typing import TYPE_CHECKING
 
 from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
+from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._narrative_utils import _age_at
 from clinosim.modules.document.narrative._template_helpers import (
-    _hpi_onset_en,
+    _hpi_onset,
     _pick_localized,
     _render_home_med_name,
 )
@@ -167,9 +168,8 @@ def _build_hpi_core(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     # deferred to the LLM narrative pass — a functional fallback beats
     # a locale leak).
     if not has_authored_narrative(lang):
-        onset_text_en = _hpi_onset_en(ctx.severity)
         facts.append(f"generic:hpi_onset_en.{ctx.severity}")
-        return onset_text_en, facts
+        return _hpi_onset(ctx.severity, lang), facts
 
     onset_pattern = _o(hpi_tmpl, "onset_pattern", {})
     if isinstance(onset_pattern, dict):
@@ -215,31 +215,30 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
     Previously (v9) emitted only demographics + CC + chronic and hit a
     median 23 chars. #984 lifts median to ~100-150 chars while staying
     template-only (no LLM dependency) and CIF-anchored (no fabrication)."""
-    if not has_authored_narrative(ctx.target_lang):
+    lang = ctx.target_lang
+    if not has_authored_narrative(lang):
         return ""
     patient = ctx.patient
     enc = ctx.encounter
     parts: list[str] = []
     age = _age_at(ctx) if patient else None
     sex = _o(patient, "sex", None) if patient else ""
-    # This branch only fires for JA output (early return above), so
-    # we pin lang=ja for the yaml lookup. hardcoded-review Phase A15.
-    sex_label = t(f"patient_demographics.sex_display.{str(sex).lower()}", "ja") if sex else ""
+    sex_label = t(f"patient_demographics.sex_display.{str(sex).lower()}", lang) if sex else ""
     # When the lookup misses (unknown sex code), t() falls through to
     # the raw key, which we don't want in the preamble. Treat a
     # dotted-key passthrough as empty so the age-only branch fires.
     if "." in sex_label:
         sex_label = ""
     if age and sex_label:
-        parts.append(t("patient_demographics.patient_preamble_with_sex", "ja", age=age, sex=sex_label))
+        parts.append(t("patient_demographics.patient_preamble_with_sex", lang, age=age, sex=sex_label))
     elif age:
-        parts.append(t("patient_demographics.patient_preamble_age_only", "ja", age=age))
+        parts.append(t("patient_demographics.patient_preamble_age_only", lang, age=age))
     # chief_complaint from encounter (真の CIF、v9 bug fix)
     cc = ""
     if enc is not None:
-        cc = _o(enc, "chief_complaint_ja", None) or _o(enc, "chief_complaint", None) or ""
+        cc = localized_field(enc, "chief_complaint", lang)
     if cc:
-        parts.append(t("narrative_text.hpi.chief_complaint", "ja", cc=cc))
+        parts.append(t("narrative_text.hpi.chief_complaint", lang, cc=cc))
     # Chronic short list — Issue #1333: route CIF base code through
     # map_diagnosis_code so display matches the FHIR emit-target.
     from clinosim.modules.document.narrative.renderers._shared_helpers import (
@@ -258,7 +257,7 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
         chronic_labels.append(disp or chronic_condition_code(code, country))
     if chronic_labels:
         parts.append(
-            t("narrative_text.hpi.history", "ja", items=t("narrative_text.hpi.list_sep", "ja").join(chronic_labels))
+            t("narrative_text.hpi.history", lang, items=t("narrative_text.hpi.list_sep", lang).join(chronic_labels))
         )
 
     # Issue #984: home meds reconciliation (top 3 to keep HPI compact).
@@ -269,18 +268,18 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
     if meds:
         med_labels: list[str] = []
         for m in meds[:3]:
-            name = _render_home_med_name(m, lang="ja")
+            name = _render_home_med_name(m, lang=lang)
             if name:
                 med_labels.append(name)
         if med_labels:
-            sep = t("narrative_text.hpi.list_sep", "ja")
+            sep = t("narrative_text.hpi.list_sep", lang)
             more = (
-                t("narrative_text.hpi.more_meds", "ja", n=len(meds) - len(med_labels))
+                t("narrative_text.hpi.more_meds", lang, n=len(meds) - len(med_labels))
                 if len(meds) > len(med_labels)
                 else ""
             )
             joined = sep.join(med_labels) + (f"{sep}{more}" if more else "")
-            parts.append(t("narrative_text.hpi.home_meds", "ja", items=joined))
+            parts.append(t("narrative_text.hpi.home_meds", lang, items=joined))
 
     # Issue #984: prior-care sentinel (derived — never claim a specific
     # institution or datetime not in CIF). Two branches:
@@ -288,9 +287,9 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
     #       で処方継続中" (evidence: patient is under ongoing care)
     #   (b) neither → omit (silent no-op)
     if conds and meds:
-        parts.append(t("narrative_text.hpi.prior_care_chronic", "ja"))
+        parts.append(t("narrative_text.hpi.prior_care_chronic", lang))
     elif meds:
-        parts.append(t("narrative_text.hpi.prior_care_outpatient", "ja"))
+        parts.append(t("narrative_text.hpi.prior_care_outpatient", lang))
 
     # Issue #984: ROS pertinent negatives from per-disease yaml pool.
     # Reads the FIRST-listed 2 negatives to keep HPI length realistic.

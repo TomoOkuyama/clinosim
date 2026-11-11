@@ -92,24 +92,6 @@ from clinosim.modules.document.narrative._narrative_utils import (
     _rewrite_pe_clause as _rewrite_pe_clause,
 )
 from clinosim.modules.document.narrative._template_helpers import (
-    _GENERIC_ASSESSMENT_EN as _GENERIC_ASSESSMENT_EN,
-)
-from clinosim.modules.document.narrative._template_helpers import (
-    _GENERIC_ASSESSMENT_JA as _GENERIC_ASSESSMENT_JA,
-)
-from clinosim.modules.document.narrative._template_helpers import (
-    _GENERIC_FALLBACK_EN as _GENERIC_FALLBACK_EN,
-)
-from clinosim.modules.document.narrative._template_helpers import (
-    _GENERIC_FALLBACK_JA as _GENERIC_FALLBACK_JA,
-)
-from clinosim.modules.document.narrative._template_helpers import (
-    _GENERIC_PLAN_EN as _GENERIC_PLAN_EN,
-)
-from clinosim.modules.document.narrative._template_helpers import (
-    _GENERIC_PLAN_JA as _GENERIC_PLAN_JA,
-)
-from clinosim.modules.document.narrative._template_helpers import (
     _KNOWN_PLACEHOLDERS as _KNOWN_PLACEHOLDERS,
 )
 from clinosim.modules.document.narrative._template_helpers import (
@@ -119,7 +101,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _format_vital_value as _format_vital_value,
 )
 from clinosim.modules.document.narrative._template_helpers import (
-    _hpi_onset_en as _hpi_onset_en,
+    _hpi_onset as _hpi_onset,
 )
 from clinosim.modules.document.narrative._template_helpers import (
     _pick_localized as _pick_localized,

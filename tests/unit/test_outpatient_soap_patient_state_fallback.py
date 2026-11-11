@@ -18,20 +18,20 @@ from types import SimpleNamespace
 
 import pytest
 
+from clinosim.locale.i18n import t
 from clinosim.modules.document.narrative.renderers.section_builders.outpatient_soap import (
     build_outpatient_assessment,
     build_outpatient_objective,
     build_outpatient_plan,
 )
-from clinosim.modules.document.narrative.template_generator import (
-    _GENERIC_ASSESSMENT_JA,
-    _GENERIC_FALLBACK_JA,
-    _GENERIC_PLAN_JA,
-    TemplateNarrativeGenerator,
-)
+from clinosim.modules.document.narrative.template_generator import TemplateNarrativeGenerator
 from clinosim.types.document import DocumentType
 
 pytestmark = pytest.mark.unit
+
+_GENERIC_FALLBACK_JA = t("fallback.generic_fallback", "ja")
+_GENERIC_ASSESSMENT_JA = t("fallback.generic_assessment", "ja")
+_GENERIC_PLAN_JA = t("fallback.generic_plan", "ja")
 
 
 def _ctx(

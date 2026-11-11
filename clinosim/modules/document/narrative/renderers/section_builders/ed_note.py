@@ -38,8 +38,6 @@ from clinosim.modules.document.narrative._localization import (
 )
 from clinosim.modules.document.narrative._narrative_utils import _age_months_at
 from clinosim.modules.document.narrative._template_helpers import (
-    _GENERIC_FALLBACK_EN,
-    _GENERIC_FALLBACK_JA,
     _fill_template_placeholders,
     _pick_localized,
 )
@@ -236,7 +234,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         # below. Treat the generic phrase (and the ED-specific fallback
         # phrase) as "no real template text" and fall through so the
         # orders / procedures / labs section can render instead.
-        if text and text not in {_GENERIC_FALLBACK_JA, _GENERIC_FALLBACK_EN, fallback}:
+        if text and text not in {t("fallback.generic_fallback", lang), fallback}:
             facts.append(f"encounter_protocol.narrative.ed_note_template.ed_workup_summary_{lang}")
             return text, facts
 
@@ -444,7 +442,7 @@ def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
         raw = language_slot(_o(ed_tmpl, "disposition", None), lang)
         extra = {f"disposition_display_{lang}": base} if base else None
         filled = _fill_template_placeholders(raw, ctx, lang, extra=extra) if raw else ""
-        if filled and filled not in {_GENERIC_FALLBACK_JA, _GENERIC_FALLBACK_EN, fallback}:
+        if filled and filled not in {t("fallback.generic_fallback", lang), fallback}:
             facts.append(f"encounter_protocol.narrative.ed_note_template.disposition_{lang}")
             text = filled
     if not text:

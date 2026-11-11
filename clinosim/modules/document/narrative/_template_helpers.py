@@ -357,17 +357,9 @@ def _fill_template_placeholders(
         return text
 
 
-# Generic fallback phrases per locale — Phase 1d-7: content moved to
-# ``narrative_phrases.yaml`` (section ``fallback:``). The three module
-# constants below are still assigned so callers referencing them by
-# bare name inside per-language conditional blocks continue to work;
-# the values now come from the language-agnostic phrase catalog.
-_GENERIC_FALLBACK_JA = t("fallback.generic_fallback", "ja")
-_GENERIC_FALLBACK_EN = t("fallback.generic_fallback", "en")
-_GENERIC_ASSESSMENT_JA = t("fallback.generic_assessment", "ja")
-_GENERIC_ASSESSMENT_EN = t("fallback.generic_assessment", "en")
-_GENERIC_PLAN_JA = t("fallback.generic_plan", "ja")
-_GENERIC_PLAN_EN = t("fallback.generic_plan", "en")
+# Generic fallback phrases (``fallback.generic_fallback`` /
+# ``generic_assessment`` / ``generic_plan`` in ``narrative_phrases.yaml``) are
+# looked up in the document language at each call site (Issue #3196).
 
 # JP/EN disposition-label map for `build_discharge_details`. Kept at
 # module scope because the equivalent function-local ``UPPER_CASE`` binding
@@ -431,27 +423,19 @@ def _render_safety_skips_line(skips: list[dict], lang: str) -> str:
 # `hpi_template.onset_pattern` is Japanese-only, so the EN locale must
 # synthesize its own text rather than fall back to the Japanese source
 # (which would leak CJK into US Composition `.section[].text.div`).
-# HPI onset templates now live in
+# HPI onset templates live in
 # `clinosim/locale/shared/narrative_phrases.yaml::hpi.onset.{mild,moderate,severe}`
 # (post-#1880 review, hardcoded-audit Finding 17). Resolved via
-# `clinosim.locale.i18n.t("hpi.onset.<severity>", lang="en")`.
+# `_hpi_onset(severity, lang)`.
 
 
-def _hpi_onset_en(severity: str) -> str:
-    """Resolve an EN HPI onset template by severity via narrative_phrases.yaml.
-
-    Falls back to the "moderate" phrasing when the severity is unknown,
-    matching the pre-#1880 `_HPI_ONSET_EN.get(ctx.severity) or
-    _HPI_ONSET_EN["moderate"]` idiom at the one call site in
-    `template_generator._render_hpi_onset`.
-    """
+def _hpi_onset(severity: str, lang: str) -> str:
+    """The generic HPI onset phrase for ``severity`` in ``lang`` (then
+    English) from ``narrative_phrases.yaml::hpi.onset``; the "moderate"
+    phrase when the severity has none."""
     from clinosim.locale.i18n import t
 
-    phrase = t(f"hpi.onset.{severity}", "en")
-    if phrase.startswith("hpi.onset."):
-        # i18n miss returns the key verbatim — fall back to "moderate".
-        phrase = t("hpi.onset.moderate", "en")
-    return phrase
+    return t(f"hpi.onset.{severity}", lang) or t("hpi.onset.moderate", lang)
 
 
 # Nursing section fallback phrases

@@ -416,7 +416,7 @@ def _build_extra_context(
         # todays_vitals_summary skipped only when template's objective
         # already renders vitals (empirically progress_note's objective
         # is exam narrative not vitals — so keep the vitals summary).
-        today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index, enc)
+        today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index, enc, ctx.target_lang)
         if today_vitals:
             extra["todays_vitals_summary"] = today_vitals
         active_meds = _render_active_meds(ctx.medications, ctx.day_index, lang=ctx.target_lang)
@@ -516,7 +516,7 @@ def _build_extra_context(
         if med_names:
             extra["home_medications"] = med_names
         if "objective" not in tmpl:
-            today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index, enc)
+            today_vitals = _render_vitals_for_day(ctx.vitals, ctx.day_index, enc, ctx.target_lang)
             if today_vitals:
                 extra["todays_vitals_summary"] = today_vitals
         # v6: same lab flag injection as progress_note — outpatient
@@ -538,7 +538,7 @@ def _build_extra_context(
             extra["arrival_mode"] = localize_token(str(arrival), "arrival_mode", ctx.target_lang)
         # initial_vitals: physical_exam template is narrative not
         # numeric, so numeric arrival vitals are complementary — keep.
-        first_vitals = _render_first_vitals(ctx.vitals)
+        first_vitals = _render_first_vitals(ctx.vitals, ctx.target_lang)
         if first_vitals:
             extra["initial_vitals"] = first_vitals
 

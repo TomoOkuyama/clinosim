@@ -33,10 +33,6 @@ _ALLOWED = {
         '"chief_complaint_ja": str(cc.get("ja") or "")',
     ): "fills the _ja field",
     (
-        "modules/document/narrative/_replacement_localization.py",
-        'en, ja = str(entry.get("en") or ""), str(entry.get("ja") or "")',
-    ): ("builds an EN→JA replacement pair"),
-    (
         "modules/document/narrative/renderers/_resolvers.py",
         'sec_data.get("en") or sec_data.get("ja")',
     ): "presence check",

@@ -149,7 +149,7 @@ def _render_newborn_workup_summary(workup: dict, lang: str = "en") -> str:
     return sep.join(parts)
 
 
-def _render_vitals_for_day(vitals: list, day_index: int, encounter: object | None = None) -> str:
+def _render_vitals_for_day(vitals: list, day_index: int, encounter: object | None, lang: str) -> str:
     """Filter vitals to today and pick a summary of key numeric fields.
 
     v6 (2026-08-16): Uses the shared ``_filter_vitals_for_day`` helper,
@@ -162,7 +162,7 @@ def _render_vitals_for_day(vitals: list, day_index: int, encounter: object | Non
     picks: list[str] = []
     max_pick = 3
     for v in filtered:
-        line = format_vitals_line(v, LLM_DAY, "en")
+        line = format_vitals_line(v, LLM_DAY, lang)
         if line:
             ts = _get(v, "timestamp", "")
             picks.append((str(ts)[:19] + " " if ts else "") + line)
@@ -203,10 +203,10 @@ def _render_supplemental_oxygen_today(vitals: list, day_index: int, encounter: o
     return ""
 
 
-def _render_first_vitals(vitals: list) -> str:
+def _render_first_vitals(vitals: list, lang: str) -> str:
     """First-recorded vitals (arrival vitals for ED)."""
     for v in vitals or []:
-        line = format_vitals_line(v, LLM_ARRIVAL, "en")
+        line = format_vitals_line(v, LLM_ARRIVAL, lang)
         if line:
             return line
     return ""
