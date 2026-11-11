@@ -2768,8 +2768,8 @@
 <td>Language names, the LLM "write in this language" instruction, and whether a language has authored narrative content.</td>
 </tr>
 <tr>
-<td><code>clinosim/modules/output/fhir_r4/lib/profile_meta.py</code> <code>language_uses(lang, fhir_profile)</code></td>
-<td>Whether output in a language applies a FHIR profile (the country profile of that output language), for builders keyed by the output language. Builders that have the country ask <code>country_profile(country).uses(...)</code>.</td>
+<td><code>clinosim/country_profile.py</code> <code>country_profile(country).uses(fhir_profile)</code></td>
+<td>Whether the country's FHIR output applies a FHIR profile (<code>jp_core</code>, <code>jp_clins</code>, <code>jp_echeckup</code>, <code>us_core</code>); builders take the country, never decide profile structure from the output language (Issue #3216).</td>
 </tr>
 </tbody>
 </table>
