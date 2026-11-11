@@ -22,12 +22,6 @@ from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules.document.narrative._template_helpers import (
-    _GENERIC_ASSESSMENT_EN,
-    _GENERIC_ASSESSMENT_JA,
-    _GENERIC_FALLBACK_EN,
-    _GENERIC_FALLBACK_JA,
-    _GENERIC_PLAN_EN,
-    _GENERIC_PLAN_JA,
     _render_safety_skips_line,
 )
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
@@ -67,8 +61,8 @@ def render_progress_note(
         # uses today's vitals line already known to be locale-neutral).
         composed_subj = generator._compose_progress_subjective_from_state(ctx)
         _obj_vitals = generator._compose_pe_vitals_line(ctx)
-        subjective = composed_subj or _GENERIC_FALLBACK_EN
-        objective = _obj_vitals if _obj_vitals else _GENERIC_FALLBACK_EN
+        subjective = composed_subj or t("fallback.generic_fallback", lang)
+        objective = _obj_vitals if _obj_vitals else t("fallback.generic_fallback", lang)
         if composed_subj:
             facts.append("ctx.progress_subjective.state_composed.en")
         if _obj_vitals:
@@ -77,8 +71,8 @@ def render_progress_note(
         # each encounter carries patient-specific reasoning.
         composed_assess = generator._compose_progress_assessment_from_state(ctx)
         composed_plan = generator._compose_progress_plan_from_state(ctx)
-        assessment = composed_assess or _GENERIC_ASSESSMENT_EN
-        plan = composed_plan or _GENERIC_PLAN_EN
+        assessment = composed_assess or t("fallback.generic_assessment", lang)
+        plan = composed_plan or t("fallback.generic_plan", lang)
         if composed_assess:
             facts.append("ctx.progress_assessment.state_composed.en")
         if composed_plan:
@@ -91,9 +85,9 @@ def render_progress_note(
         if traj_source:
             facts.append(traj_source)
 
-        _generic_s = _GENERIC_FALLBACK_JA
-        _generic_a = _GENERIC_ASSESSMENT_JA
-        _generic_p = _GENERIC_PLAN_JA
+        _generic_s = t("fallback.generic_fallback", lang)
+        _generic_a = t("fallback.generic_assessment", lang)
+        _generic_p = t("fallback.generic_plan", lang)
         # v9 (2026-08-17) density fix: _resolve_daily_trajectory_with_source
         # returns a placeholder dict (「特記事項なし」/「経過観察中」/「治療
         # 継続」) when the disease YAML has no daily_trajectory. Treat those

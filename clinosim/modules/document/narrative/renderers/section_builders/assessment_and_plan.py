@@ -31,12 +31,6 @@ from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
-from clinosim.modules.document.narrative._template_helpers import (
-    _GENERIC_ASSESSMENT_EN,
-    _GENERIC_ASSESSMENT_JA,
-    _GENERIC_PLAN_EN,
-    _GENERIC_PLAN_JA,
-)
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext
@@ -65,16 +59,16 @@ def build_assessment_and_plan(generator: TemplateNarrativeGenerator, ctx: Narrat
     # YAML content is still JA-only so EN skips that source.
     if not has_authored_narrative(lang):
         facts.append("composed:cif_state_en")
-        _en_assessment = _compose_ap_assessment_from_state(ctx) or _GENERIC_ASSESSMENT_EN
-        _en_plan = _compose_ap_plan_from_state(generator, ctx) or _GENERIC_PLAN_EN
+        _en_assessment = _compose_ap_assessment_from_state(ctx) or t("fallback.generic_assessment", lang)
+        _en_plan = _compose_ap_plan_from_state(generator, ctx) or t("fallback.generic_plan", lang)
         return f"Assessment: {_en_assessment} Plan: {_en_plan}", facts
 
     traj, traj_src = generator._resolve_daily_trajectory_with_source(ctx, ctx.clinical_course_archetype, 0)
     if traj_src:
         facts.append(traj_src)
 
-    _generic_a = _GENERIC_ASSESSMENT_JA
-    _generic_p = _GENERIC_PLAN_JA
+    _generic_a = t("fallback.generic_assessment", lang)
+    _generic_p = t("fallback.generic_plan", lang)
     # v9 (2026-08-17) density fix — v8 emitted only 19-char
     # "評価: 経過観察中。方針: 治療継続。". Compose an A&P from CIF
     # facts (diagnosis + severity + orders/procedures/meds today +

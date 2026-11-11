@@ -225,10 +225,9 @@ def build_present_illness(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     # no structural changes are needed. Text style harmonization will be
     # deferred to the LLM narrative pass when applicable.
     if not hpi_text:
-        # #1266 empty-severity guard (see `build_hpi`). JA severity
-        # translation via _localize_severity_ja is JA-locale-specific
-        # (JA disease severity ontology mapping); other locales use
-        # the raw token via the phrase template.
+        # #1266 empty-severity guard (see `build_hpi`). The severity
+        # token is localized in the document language (localize_token);
+        # a language without a label keeps the raw token.
         sev = str(ctx.severity or "").strip()
         from clinosim.modules.document.narrative._replacement_localization import localize_token
 

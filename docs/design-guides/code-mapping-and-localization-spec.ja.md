@@ -406,6 +406,7 @@ lab リストの各要素 (`labs`、`add_labs`、`additional_labs`、薬剤モ�
 | 言語を直接選ばない | `tests/unit/locale/test_no_direct_language_selection_2397.py` |
 | 言語をリテラルと比較しない (ラチェット: 残っている箇所は是正する Issue に紐づけて固定) | `tests/unit/locale/test_no_language_literal_comparison_2455.py` |
 | 出力層で表示名の検索に `"en"` / `"ja"` を固定で渡す箇所は理由 (英語専用・米国専用のコード体系、英語へのフォールバック、日本専用プロファイル、言語別フィールド、照合用) とともに固定する。`"ja" if ... else "en"` は使わない | `tests/unit/output/test_fhir_language_literals_3180.py` |
+| 叙述文書のレンダラ (`clinosim/modules/document`) で検索に `"en"` / `"ja"` を固定で渡す箇所は理由 (英語へのフォールバック、言語別フィールド、照合用) とともに固定し、本文は文書の言語 (`ctx.target_lang`) で書く。`"ja" if ... else "en"` は使わない | `tests/unit/modules/document/test_document_language_literals_3196.py` |
 | 残っている言語接尾辞付きの YAML フィールド (§11) は `<base>_ja` と `<base>_en` を対で持つ | `tests/unit/locale/test_localized_field_shape_2398.py` |
 | 日本語以外の出力に日本語を出さない、Python に日本語リテラルを書かない | `tests/unit/test_no_japanese_fallback_2273.py`、`tests/unit/test_no_japanese_literals_2277.py`、`tests/unit/test_narrative_literals_2400.py`、`tests/unit/test_module_literals_2406.py`、`tests/unit/test_simulator_literals_2405.py`、`tests/unit/output/test_fhir_lib_literals_2402.py`、`tests/unit/output/test_fhir_lab_condition_literals_2403.py`、`tests/unit/output/test_fhir_emitter_literals_2404.py` |
 | 第三国を米国扱いしない | `tests/unit/test_third_country_fallbacks_2203.py` |

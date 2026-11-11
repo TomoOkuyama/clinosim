@@ -17,9 +17,18 @@ and localizing them would harm readability.
 from __future__ import annotations
 
 from clinosim.modules.document.narrative.replacement_strategy import (
-    _localize_lab_names_in_sections_ja,
-    _localize_lab_names_in_text_ja,
+    localize_lab_names_in_sections,
+    localize_lab_names_in_text,
 )
+
+
+def _localize_lab_names_in_text_ja(text: str) -> str:
+    return localize_lab_names_in_text(text, "ja")
+
+
+def _localize_lab_names_in_sections_ja(sections: dict[str, str]) -> dict[str, str]:
+    return localize_lab_names_in_sections(sections, "ja")
+
 
 # ---- single-word lab names → JA -----------------------------------------
 

@@ -10,7 +10,7 @@ import clinosim
 from clinosim.codes.procedures import procedure_type_display
 from clinosim.locale.loader import load_llm_prompt_labels, narrative_label, prompt_label
 from clinosim.modules.document.narrative._localization import _localize_proc_type
-from clinosim.modules.document.narrative._replacement_localization import _lookup_ja_label, localize_oxygen_device
+from clinosim.modules.document.narrative._replacement_localization import localize_oxygen_device, localize_token
 from clinosim.modules.newborn import fhir_emit
 
 pytestmark = pytest.mark.unit
@@ -36,7 +36,7 @@ def test_oxygen_device_has_no_language_branch() -> None:
     key = next(iter(load_llm_prompt_labels()["oxygen_device"]))
     en = load_llm_prompt_labels()["oxygen_device"][key].get("en")
     assert localize_oxygen_device(key, "en") == (en or key)
-    assert localize_oxygen_device(key, "ja") == _lookup_ja_label(key, "oxygen_device")
+    assert localize_oxygen_device(key, "ja") == localize_token(key, "oxygen_device", "ja")
 
 
 @pytest.mark.parametrize("lang", ["ja", "JA", "JP"])

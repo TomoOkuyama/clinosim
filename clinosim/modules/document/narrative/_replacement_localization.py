@@ -1,11 +1,11 @@
-"""Replacement-strategy localization helpers (JA).
+"""Replacement-strategy localization helpers.
 
 First mechanical slice of the META #1633 P6 ``replacement_strategy``
 decomposition (sibling to the ``template_generator`` → ``_localization.py``
-split in #1671). The 12 helpers here cover severity / oxygen-device /
-arrival-mode / risk-level / Barthel-band token lookups
-plus the LLM-output post-processors that walk emitted narrative text
-and swap EN lab tokens for canonical JA katakana.
+split in #1671). The helpers here cover enum-like token lookups (severity /
+oxygen device / arrival mode / risk level / Barthel band) in the document
+language, plus the LLM-output post-processor that walks emitted narrative
+text and swaps English prose lab names for their names in that language.
 
 ``replacement_strategy.py`` re-exports every moved name via explicit
 ``from … import X as X`` aliases. Lab names resolve through
@@ -13,23 +13,14 @@ and swap EN lab tokens for canonical JA katakana.
 
 Phase 1d-2 (2026-09-23): the vocab tables live in
 ``clinosim/locale/shared/llm_prompt_labels.yaml``; adding a new
-target language is a data change, not a code change.
+target language is a data change, not a code change. Every helper takes
+the language; none is fixed to Japanese (Issue #3196).
 """
 
 from __future__ import annotations
 
 import re
-from functools import lru_cache
-
-
-def _lookup_ja_label(raw: str, section: str) -> str:
-    """Japanese label of a raw enum-like token in an LLM-prompt-labels
-    section; the raw input when unmapped (``prompt_label``, Issue #2396)."""
-    if not raw:
-        return raw
-    from clinosim.locale.loader import prompt_label
-
-    return prompt_label(section, raw, "ja", fallback=str(raw))
+from functools import cache
 
 
 def localize_token(raw: str, section: str, lang: str) -> str:
@@ -41,31 +32,6 @@ def localize_token(raw: str, section: str, lang: str) -> str:
     from clinosim.locale.loader import prompt_label
 
     return prompt_label(section, raw, lang, fallback=str(raw))
-
-
-def _localize_severity_ja(sev: str) -> str:
-    """mild → 軽度 (etc). Safe fallback returns input verbatim."""
-    return _lookup_ja_label(sev, "severity")
-
-
-def _localize_oxygen_device_ja(device: str) -> str:
-    """nasal_cannula → 鼻カニューラ (etc), see ``localize_oxygen_device``."""
-    return localize_oxygen_device(device, "ja")
-
-
-def _localize_arrival_mode_ja(mode: str) -> str:
-    """walk_in → 独歩来院 (etc)."""
-    return _lookup_ja_label(mode, "arrival_mode")
-
-
-def _localize_risk_level_ja(level: str) -> str:
-    """moderate_risk → 中等度リスク (etc)."""
-    return _lookup_ja_label(level, "risk_level")
-
-
-def _localize_barthel_band_ja(band: str) -> str:
-    """barthel_full → Barthel 自立 (etc)."""
-    return _lookup_ja_label(band, "barthel_band")
 
 
 def localize_oxygen_device(device: str, lang: str) -> str:
@@ -101,46 +67,54 @@ def localize_oxygen_device(device: str, lang: str) -> str:
 _PROSE_LAB_TERM = re.compile(r"[a-z][a-z ]*[a-z](?: [A-Z0-9]+)?")
 
 
-@lru_cache(maxsize=1)
-def _lab_prose_terms_ja() -> dict[str, str]:
+@cache
+def _lab_prose_terms(lang: str) -> dict[str, str]:
+    """English prose lab name (lower-cased) -> its name in ``lang``, for the
+    names whose ``lang`` entry differs from the English one."""
     from clinosim.locale.loader import load_lab_display
+    from clinosim.locale.localized import normalize_lang
 
+    code = normalize_lang(lang)
     terms: dict[str, str] = {}
     for entry in load_lab_display().values():
-        en, ja = str(entry.get("en") or ""), str(entry.get("ja") or "")
-        if ja and ja != en and _PROSE_LAB_TERM.fullmatch(en):
-            terms.setdefault(en.lower(), ja)
+        en, local = str(entry.get("en") or ""), str(entry.get(code) or "")
+        if local and local != en and _PROSE_LAB_TERM.fullmatch(en):
+            terms.setdefault(en.lower(), local)
     return terms
 
 
-@lru_cache(maxsize=1)
-def _get_lab_name_pattern() -> re.Pattern[str]:
-    keys = sorted(_lab_prose_terms_ja(), key=len, reverse=True)
+@cache
+def _get_lab_name_pattern(lang: str) -> re.Pattern[str] | None:
+    keys = sorted(_lab_prose_terms(lang), key=len, reverse=True)
+    if not keys:
+        return None
     return re.compile(
         r"\b(" + "|".join(re.escape(k) for k in keys) + r")\b",
         re.IGNORECASE,
     )
 
 
-def _localize_lab_names_in_text_ja(text: str) -> str:
-    """Post-process narrative text: substitute English lab names with
-    canonical Japanese katakana. Deterministic; safe on non-JA text
-    (only substitutes strings that appear in the JA table). Preserves
-    the surrounding text verbatim — only the matched lab-name token is
-    replaced.
+def localize_lab_names_in_text(text: str, lang: str) -> str:
+    """Post-process narrative text in ``lang``: substitute English prose lab
+    names with their ``lang`` names (アルブミン for "Albumin" in Japanese).
+    Deterministic; abbreviations and text without a table entry are kept
+    verbatim, and a language without differing names leaves the text
+    unchanged. Only the matched lab-name token is replaced.
     """
-    if not text:
+    pattern = _get_lab_name_pattern(lang)
+    if not text or pattern is None:
         return text
+    terms = _lab_prose_terms(lang)
 
     def _repl(m: re.Match) -> str:
-        return _lab_prose_terms_ja()[m.group(1).lower()]
+        return terms[m.group(1).lower()]
 
-    return _get_lab_name_pattern().sub(_repl, text)
+    return pattern.sub(_repl, text)
 
 
-def _localize_lab_names_in_sections_ja(sections: dict[str, str]) -> dict[str, str]:
+def localize_lab_names_in_sections(sections: dict[str, str], lang: str) -> dict[str, str]:
     """Apply the text-level lab-name post-processor to every section
     value. Returns a NEW dict; leaves the input untouched so caller
     replacement is explicit at the call site.
     """
-    return {k: _localize_lab_names_in_text_ja(v) for k, v in sections.items()}
+    return {k: localize_lab_names_in_text(v, lang) for k, v in sections.items()}

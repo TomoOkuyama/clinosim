@@ -34,8 +34,6 @@ from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_stage
 from clinosim.modules.document.narrative._template_helpers import (
-    _GENERIC_FALLBACK_EN,
-    _GENERIC_FALLBACK_JA,
     _render_home_med_name,
     allergen_display,
 )
@@ -350,7 +348,7 @@ def build_physical_examination(generator: TemplateNarrativeGenerator, ctx: Narra
             facts.append(f"ctx.vitals[day_{ctx.day_index}]")
             return f"Vital signs: {vitals_line}. General: no additional exam findings recorded.", facts
         facts.append("generic:physical_exam_en")
-        return _GENERIC_FALLBACK_EN, facts
+        return t("fallback.generic_fallback", lang), facts
 
     phys_exam = generator._resolve_physical_exam(ctx, ctx.clinical_course_archetype, ctx.day_index)
     if phys_exam:
@@ -358,7 +356,7 @@ def build_physical_examination(generator: TemplateNarrativeGenerator, ctx: Narra
 
     text = generator._format_physical_exam(phys_exam, ctx.severity, lang)
     if not text:
-        text = _GENERIC_FALLBACK_JA
+        text = t("fallback.generic_fallback", lang)
 
     # #980: rewrite contradicted clauses BEFORE #979 prepend so the
     # rewrite operates on the "labelled clause" shape produced by
@@ -370,7 +368,7 @@ def build_physical_examination(generator: TemplateNarrativeGenerator, ctx: Narra
     vitals_line = generator._compose_pe_vitals_line(ctx)
     if vitals_line:
         facts.append(f"ctx.vitals[day_{ctx.day_index}]")
-        text = t("ed_physical_exam.vitals_prepend", "ja", vitals=vitals_line, text=text)
+        text = t("ed_physical_exam.vitals_prepend", lang, vitals=vitals_line, text=text)
 
     return text, facts
 

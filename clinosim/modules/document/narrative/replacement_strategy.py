@@ -72,28 +72,10 @@ from clinosim.modules.document.narrative._replacement_localization import (
     _get_lab_name_pattern as _get_lab_name_pattern,
 )
 from clinosim.modules.document.narrative._replacement_localization import (
-    _localize_arrival_mode_ja as _localize_arrival_mode_ja,
+    localize_lab_names_in_sections as localize_lab_names_in_sections,
 )
 from clinosim.modules.document.narrative._replacement_localization import (
-    _localize_barthel_band_ja as _localize_barthel_band_ja,
-)
-from clinosim.modules.document.narrative._replacement_localization import (
-    _localize_lab_names_in_sections_ja as _localize_lab_names_in_sections_ja,
-)
-from clinosim.modules.document.narrative._replacement_localization import (
-    _localize_lab_names_in_text_ja as _localize_lab_names_in_text_ja,
-)
-from clinosim.modules.document.narrative._replacement_localization import (
-    _localize_oxygen_device_ja as _localize_oxygen_device_ja,
-)
-from clinosim.modules.document.narrative._replacement_localization import (
-    _localize_risk_level_ja as _localize_risk_level_ja,
-)
-from clinosim.modules.document.narrative._replacement_localization import (
-    _localize_severity_ja as _localize_severity_ja,
-)
-from clinosim.modules.document.narrative._replacement_localization import (
-    _lookup_ja_label as _lookup_ja_label,
+    localize_lab_names_in_text as localize_lab_names_in_text,
 )
 from clinosim.modules.document.narrative._replacement_localization import (
     localize_oxygen_device as localize_oxygen_device,
@@ -367,7 +349,7 @@ def _apply_template_seed_strategy(
     # prompt v11 hard-guard: JA post-processor for EN lab names — see the
     # matching invocation + comment in `_apply_template_seed_bundle_strategy`.
     if has_authored_narrative(language):
-        new_sections = _localize_lab_names_in_sections_ja(new_sections)
+        new_sections = localize_lab_names_in_sections(new_sections, language)
 
     # FREE_TEXT rejoin (session-88j Tier 1 uplift for progress_note): when
     # the template stored ordered (label, key) pairs in
@@ -689,7 +671,7 @@ def _apply_template_seed_bundle_strategy(
     # only. Standard abbreviations (BUN/CRP/BNP/WBC/HbA1c/eGFR/Cr/PT-INR
     # etc.) are preserved as-is per _LAB_NAME_JA's deliberate omission.
     if has_authored_narrative(language):
-        new_sections = _localize_lab_names_in_sections_ja(new_sections)
+        new_sections = localize_lab_names_in_sections(new_sections, language)
 
     # FREE_TEXT rejoin — same as per-section path.
     new_raw_text = template_output.raw_text

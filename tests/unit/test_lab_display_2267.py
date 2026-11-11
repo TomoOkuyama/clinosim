@@ -15,7 +15,7 @@ import pytest
 from clinosim.codes.ucum import ucum_prose
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.loader import lab_display, load_lab_display
-from clinosim.modules.document.narrative._replacement_localization import _localize_lab_names_in_text_ja
+from clinosim.modules.document.narrative._replacement_localization import localize_lab_names_in_text
 from clinosim.modules.output.fhir_r4.labs.diagnostic_report import _build_lab_panel_conclusion
 
 pytestmark = pytest.mark.unit
@@ -74,8 +74,8 @@ def test_unknown_token_is_humanised_or_given_fallback() -> None:
 
 
 def test_llm_guard_reads_the_same_table() -> None:
-    assert _localize_lab_names_in_text_ja("Total bilirubin 3.0 mg/dL, BUN 25") == "総ビリルビン 3.0 mg/dL, BUN 25"
-    assert _localize_lab_names_in_text_ja("Urine drug screen negative") == "尿中乱用薬物スクリーニング negative"
+    assert localize_lab_names_in_text("Total bilirubin 3.0 mg/dL, BUN 25", "ja") == "総ビリルビン 3.0 mg/dL, BUN 25"
+    assert localize_lab_names_in_text("Urine drug screen negative", "ja") == "尿中乱用薬物スクリーニング negative"
 
 
 def _order(name: str, value: float, unit: str, flag: str = "") -> dict:

@@ -16,16 +16,32 @@ from __future__ import annotations
 import pytest
 
 from clinosim.locale.loader import lab_display
+from clinosim.modules.document.narrative._replacement_localization import localize_oxygen_device, localize_token
 from clinosim.modules.document.narrative.replacement_strategy import (
-    _localize_arrival_mode_ja,
-    _localize_barthel_band_ja,
-    _localize_oxygen_device_ja,
-    _localize_risk_level_ja,
-    _localize_severity_ja,
     _render_abnormal_labs,
     _render_chronic_list,
     _render_supplemental_oxygen_today,
 )
+
+
+def _localize_severity_ja(raw: str) -> str:
+    return localize_token(raw, "severity", "ja")
+
+
+def _localize_oxygen_device_ja(raw: str) -> str:
+    return localize_oxygen_device(raw, "ja")
+
+
+def _localize_arrival_mode_ja(raw: str) -> str:
+    return localize_token(raw, "arrival_mode", "ja")
+
+
+def _localize_risk_level_ja(raw: str) -> str:
+    return localize_token(raw, "risk_level", "ja")
+
+
+def _localize_barthel_band_ja(raw: str) -> str:
+    return localize_token(raw, "barthel_band", "ja")
 
 
 @pytest.mark.unit
