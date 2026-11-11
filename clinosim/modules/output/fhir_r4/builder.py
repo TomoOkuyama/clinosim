@@ -21,7 +21,7 @@ from datetime import date, datetime
 from typing import Any
 
 from clinosim.countries import lang_for
-from clinosim.modules._shared import is_jp, is_us
+from clinosim.country_profile import country_profile
 from clinosim.modules.newborn.fhir_emit import (
     _bb_newborn_apgar,
     _bb_newborn_bilirubin,
@@ -674,12 +674,19 @@ def _finalize_resource(resource: dict, country: str, roster_map: dict[str, dict]
     Returns the companion Specimen built for a lab Observation (already
     finished), for the caller to emit before the resource, or None.
     """
-    if is_jp(country):
-        # C3-11..18: JP Core / JP-CLINS profile URLs at the adapter level so
-        # every resource type gains conformance declarations without touching
-        # each builder; idempotent (skips when meta.profile is populated).
+    # Issue #3203: each pass runs where the country profile applies the FHIR
+    # profile it serves (country-profile spec §5), in the order below.
+    profile = country_profile(country)
+    jp_core = profile.uses("jp_core")
+    jp_clins = profile.uses("jp_clins")
+    # C3-11..18: JP Core / JP-CLINS profile URLs at the adapter level so
+    # every resource type gains conformance declarations without touching
+    # each builder; idempotent (skips when meta.profile is populated).
+    if jp_core:
         _apply_jp_core_profile(resource)
+    if jp_clins:
         _apply_jp_clins_profile(resource)
+    if jp_core:
         # JP Core は Observation.category:first slice に
         # JP_SimpleObservationCategory_CS を、HL7 base Vital Signs
         # profile(bp / heartrate / oxygensat / bodytemp / resprate)は
@@ -697,12 +704,13 @@ def _finalize_resource(resource: dict, country: str, roster_map: dict[str, dict]
         # CodeableConcept 側の text は保持されるため人間可読性は
         # (text 未設定な Coding-direct field を除いて)維持。
         _strip_japanese_display_on_english_only_systems(resource)
+    if jp_clins:
         # PR-I (2026-07-17): populate JP-CLINS MedicationDosage_eCS
         # required fields on MedicationRequest.dosageInstruction[]
         # (extension:periodOfUse + timing.code with the uncoded dummy usage
         # code that satisfies R5020).
         _populate_jp_medication_dosage_ecs_fields(resource)
-    elif is_us(country):
+    if profile.uses("us_core"):
         # Issue #2203: only US output declares US Core; a third country gets
         # base FHIR rather than a foreign profile. Issue #1768 Cluster E T8a:
         # US Core v9 profile URL on every resource type for which US Core
@@ -727,7 +735,7 @@ def _finalize_resource(resource: dict, country: str, roster_map: dict[str, dict]
     if _lab_observation_needs_specimen(resource):
         specimen = _build_companion_specimen(resource, country)
         resource["specimen"] = {"reference": f"Specimen/{specimen['id']}"}
-        if is_jp(country):
+        if jp_core:
             # SNOMED `display` on Specimen.type is English-only; the JP text
             # stays in `type.text`.
             _strip_japanese_display_on_english_only_systems(specimen)

@@ -99,7 +99,11 @@ pure 関数。Stage 2 narrative pass は template path で決定論的
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`。
+- `clinosim.countries` — `lang_for`。
+- `lib/profile_meta.py` — `language_uses(lang, "jp_clins")`: Composition
+  builder は出力言語で動くため、JP-CLINS 文書への振り分けはその言語の国
+  プロファイルが JP-CLINS を適用するかで決める。健診 DocumentReference は
+  `profile.uses("jp_echeckup")` に従う (Issue #3203)。
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`,
   `_escape_html`, `derive_meta_last_updated`, `to_fhir_instant`。
   `lib.ids` — opaque id。

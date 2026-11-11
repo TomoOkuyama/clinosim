@@ -48,6 +48,10 @@ profiles:
     - http://jpfhir.jp/fhir/core/StructureDefinition/JP_PractitionerRole
   Organization:
     - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Organization
+  # Issue #3203: every Location (the facility bundle's hospital, department,
+  # ward, bed and operating-room Locations).
+  Location:
+    - http://jpfhir.jp/fhir/core/StructureDefinition/JP_Location
   DiagnosticReport:
     - http://jpfhir.jp/fhir/core/StructureDefinition/JP_DiagnosticReport_Common
   # RM-6c: Procedure profile so RECORD-based and ORDER-based

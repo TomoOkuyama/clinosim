@@ -23,9 +23,10 @@ from clinosim.codes import display as registry_display
 from clinosim.codes.icd10 import medis_disease_keyno
 from clinosim.codes.ucum import ucum_quantity
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label
-from clinosim.modules._shared import is_jp, practitioner_name
+from clinosim.modules._shared import practitioner_name
 from clinosim.modules.output.fhir_r4.lib.common import system_coding
 from clinosim.modules.output.fhir_r4.lib.fhir_time import derive_meta_last_updated
 from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_RESOURCE_INSTANCE_IDENTIFIER_SYSTEM
@@ -495,7 +496,7 @@ def _conform_checkup_report_observation(resource: dict, country: str = "") -> No
             resource["identifier"] = kept
 
 
-def _populate_observation_identifier_and_last_updated(resource: dict, country: str = "") -> None:
+def _populate_observation_identifier_and_last_updated(resource: dict, country: str = "US") -> None:
     """Populate `Observation.identifier` and `Observation.meta.lastUpdated`.
 
     JP_Observation_LabResult_eCS (JP-CLINS 1.13.0) requires both fields:
@@ -532,7 +533,7 @@ def _populate_observation_identifier_and_last_updated(resource: dict, country: s
         existing_systems = {i.get("system") for i in existing if isinstance(i, dict)}
         # JP output: canonical resourceInstance-identifier slice を必ず先頭に
         # (spec `Observation.identifier:resourceIdentifier.system` patternUri)。
-        if is_jp(country):
+        if country_profile(country).uses("jp_clins"):
             _ensure_jp_resource_identifier(resource)
         # 全 country: 内部 round-trip 用 identifier(既存 downstream consumer 用)。
         if _CLINOSIM_OBSERVATION_ID_SYSTEM not in existing_systems:
@@ -565,7 +566,7 @@ def _populate_jp_medication_dosage_ecs_fields(resource: dict) -> None:
     3. **`Dosage.timing.code.text` (min=1)** — human-readable frequency
        description; falls back to `Dosage.text` when unset.
 
-    JP only (the walker is registered inside the `is_jp(country)` branch).
+    JP-CLINS only (the walker runs where the country applies ``jp_clins``).
     Idempotent — leaves any builder-populated extension / timing.code alone.
 
     Feedback fix (2026-07-16, PR-I). Covers `dosageInstruction[N].extension` +
@@ -912,7 +913,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     if rt in _ECS_IDENTIFIER_SYSTEMS and resource.get("id"):
         if not resource.get("identifier"):
             resource["identifier"] = [{"system": _ECS_IDENTIFIER_SYSTEMS[rt], "value": resource["id"]}]
-        if is_jp(country):
+        if country_profile(country).uses("jp_clins"):
             _ensure_jp_resource_identifier(resource)
 
     # (2) meta.lastUpdated fallback chain.
@@ -959,7 +960,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     # input does not map cleanly. Idempotent: skips when a MEDIS
     # coding is already present so future per-ICD-10 curation can be
     # layered without conflict.
-    if rt == "Condition" and is_jp(country):
+    if rt == "Condition" and country_profile(country).uses("jp_clins"):
         code_field = resource.get("code")
         if isinstance(code_field, dict):
             codings = code_field.setdefault("coding", [])
@@ -1014,7 +1015,7 @@ def _populate_condition_ai_mr_ecs_fields(resource: dict, country: str = "US") ->
     # to structured consumers, but neither channel is prominent enough to
     # override the visible `status` field on a naive UI. Prior status text
     # is added below when it differs from "completed".
-    if rt == "MedicationRequest" and is_jp(country):
+    if rt == "MedicationRequest" and country_profile(country).uses("jp_clins"):
         _pre_pin_status = resource.get("status", "")
         resource["status"] = "completed"
         resource["intent"] = "order"

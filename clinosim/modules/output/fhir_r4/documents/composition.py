@@ -57,7 +57,6 @@ from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import role_display
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import uses_jp_clins_profile
 from clinosim.modules.document import COMPOSITION_ID_PREFIX, DOC_REFERENCE_ID_PREFIX
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.document.narrative.registry import (
@@ -100,6 +99,7 @@ from clinosim.modules.output.fhir_r4.lib.jp_profiles import (
     JP_RESOURCE_INSTANCE_IDENTIFIER_SYSTEM,
 )
 from clinosim.modules.output.fhir_r4.lib.localization import _clinician_role_rows
+from clinosim.modules.output.fhir_r4.lib.profile_meta import language_uses
 
 # === Issue #854 Bucket B (PR-composition): opaque Composition.id ===
 # Same pattern as PR #357 / #863 / #867 / #868 / #869 / #878 / #879 /
@@ -135,12 +135,12 @@ __all__ = [
 ]
 
 
-# `_uses_jp_clins_profile` was introduced module-locally in Phase 1d-54
-# and promoted to `clinosim.modules._shared.uses_jp_clins_profile` in
-# Phase 1d-60 (see that module's docstring). Kept as a module alias so
-# existing callsite spelling stays intact; new callers import the
-# shared symbol directly.
-_uses_jp_clins_profile = uses_jp_clins_profile
+def _uses_jp_clins_profile(lang: str) -> bool:
+    """Whether a Composition written in ``lang`` follows the JP-CLINS document
+    profiles: the country profile of that output language applies
+    ``jp_clins`` (Issue #3203; the document builders are keyed by the output
+    language, not the country)."""
+    return language_uses(lang, "jp_clins")
 
 
 # #278:enc → free-text-doc-id 優先度用 LOINC 定数。
@@ -1180,7 +1180,7 @@ def _build_death_discharge_summary_composition(
         if ts:
             meta["lastUpdated"] = ts
 
-    if uses_jp_clins_profile(lang):
+    if _uses_jp_clins_profile(lang):
         # Emit under jpfhir doc-typecodes with the death-variant title
         # (feedback_dual_slot_at_emit_site_not_post_process — set `.text`
         # here rather than rely on a post-process walker). The LOINC

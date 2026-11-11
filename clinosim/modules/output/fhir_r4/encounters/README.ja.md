@@ -93,8 +93,11 @@ NDJSON を id で sort する。
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`, `countries.lang_for`,
-  `get_attr_or_key`。
+- `clinosim.modules._shared` — `get_attr_or_key`。`clinosim.countries` — `lang_for`。
+- `clinosim.country_profile` — JP Core の profile URL (`lib/profile_meta.py`
+  から、`Location` を含む) と JP-CLINS eCS の病院 Organization (identifier、
+  `locale/<cc>/facility_identity.yaml` の telecom、address) は
+  `profile.uses("jp_core" | "jp_clins")` で出し分ける (Issue #3203)。
 - `clinosim.modules.output.fhir_r4.lib.{common,context,dosage,fhir_time}` — `BundleContext`,
   `system_coding`, `_social_category`, `loinc_coding`,
   `attach_ecs_institutional_extensions`。

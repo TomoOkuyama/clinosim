@@ -53,6 +53,8 @@ rename).
     `<ResourceType>/<variant>` key (`Observation/LabResult`,
     `DiagnosticReport/Radiology`, ...) reads the table's `variants`
     section, for a profile variant the builder declares itself (Issue #3201).
+    `language_uses(lang, fhir_profile)`: whether output in a language applies
+    a FHIR profile, for builders keyed by the output language (Issue #3203).
   - `dosage.py` — MedicationRequest / MedicationAdministration
     Dosage helpers (`build_dosage_instruction`, `build_route_concept`,
     `canonicalize_route`, `augment_iv_dosage_with_rate`,

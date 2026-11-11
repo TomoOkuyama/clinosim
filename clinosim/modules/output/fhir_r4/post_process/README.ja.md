@@ -137,7 +137,9 @@ byte-identity を保つ。
 
 ## 依存
 
-- `clinosim.modules._shared` — `is_jp`。
+- `clinosim.country_profile` — JP-CLINS eCS 項目 (resourceIdentifier slice、
+  MEDIS 病名コード、MedicationRequest status の固定) は
+  `profile.uses("jp_clins")` のときに埋める (Issue #3203)。
 - `clinosim.modules.output.fhir_r4.lib.common` —
   `derive_meta_last_updated` (populate)。`lib.ids` —
   `derive_opaque_id` / `structural_key_system` (specimen)。

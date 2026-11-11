@@ -5,9 +5,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from clinosim.country_profile import country_profile
 from clinosim.locale.loaders.fhir_identity import load_facility_identity
 from clinosim.locale.loaders.medical_display import department_display
-from clinosim.modules._shared import is_jp
 from clinosim.modules.output.fhir_r4.lib.jp_profiles import JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM
 
 __all__ = [
@@ -95,7 +95,7 @@ def attach_ecs_institutional_extensions(
     Set ``include_department=False`` for Patient (the Department extension's
     context excludes Patient per its SD).
     """
-    if not is_jp(country):
+    if not country_profile(country).uses("jp_clins"):
         return
     exts = resource.setdefault("extension", [])
     if not isinstance(exts, list):

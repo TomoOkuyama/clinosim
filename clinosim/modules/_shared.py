@@ -9,12 +9,10 @@ local duplication).
 from __future__ import annotations
 
 import calendar
-from functools import lru_cache
 from typing import Any
 
 import numpy as np
 
-from clinosim.countries import _country_language_map
 from clinosim.countries import is_jp as is_jp
 from clinosim.countries import is_us as is_us
 
@@ -42,37 +40,6 @@ def random_day_of_month(rng: np.random.Generator, year: int, month: int) -> int:
     the 28th-31st with no events (Issue #2177).
     """
     return int(rng.integers(1, calendar.monthrange(year, month)[1] + 1))
-
-
-def uses_jp_clins_profile(lang: str) -> bool:
-    """True when FHIR resources should emit under a JP-CLINS profile family.
-
-    Semantic predicate for the "which regulatory profile family?"
-    decision — historically conflated with ``lang == "ja"`` because
-    JP-locale output has always mapped 1:1 to JP-CLINS-conformant
-    resource variants (JP_Composition_eDS / eReferral / eCheckup,
-    JP_AllergyIntolerance, JP_DiagnosticReport_Radiology,
-    JP_Organization_eCS, etc.). Adding a locale that should NOT
-    trigger JP-CLINS (e.g. Portuguese output from a JP hospital
-    cohort emitting under a generic profile) means changing the
-    predicate here rather than surgically at each dispatch site.
-
-    The profile family is a country rule: JP-CLINS applies to the output
-    language of the JP country (``country_language.yaml``), so the
-    predicate reads that mapping instead of comparing the language with a
-    literal (Issue #2457). Introduced module-locally in Phase 1d-54
-    (`composition.py`); promoted to shared here in Phase 1d-60 so every
-    FHIR emit module can use one canonical predicate.
-    """
-    from clinosim.locale.localized import normalize_lang
-
-    return normalize_lang(lang) in _jp_clins_languages()
-
-
-@lru_cache(maxsize=1)
-def _jp_clins_languages() -> frozenset[str]:
-    """Output languages of the countries whose FHIR output uses JP-CLINS."""
-    return frozenset(language for country, language in _country_language_map().items() if is_jp(country))
 
 
 def strip_protocol_prefix(name: str) -> tuple[str, str]:
