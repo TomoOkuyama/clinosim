@@ -241,12 +241,11 @@ added in PR-A 2026-06-26; `is_jp` / `lang_for` added by the
 ```python
 from clinosim.countries import lang_for
 from clinosim.locale.loader import narrative_label
-from clinosim.modules._shared import is_jp
+from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 
 lang = lang_for(ctx.country)                                    # "ja" / "en"
 obs = {"code": {"text": narrative_label("fall_risk_level", level, lang)}}  # value: a localized table
-if is_jp(ctx.country):                                          # structure the JP Core profile mandates
-    obs["meta"] = {"profile": [JP_OBSERVATION_COMMON_PROFILE]}
+obs.update(profile_meta("Observation", ctx.country))           # structure the JP Core profile mandates (country profile)
 ```
 
 > **Anti-patterns:** a hand-rolled country decision (`country == "JP"` / `country.lower() == "jp"` / `str(country).upper() == "JP"` / `lang = "ja" if country == "JP" else "en"`) — case differences once silently disabled JP gating, and `is_jp` / `lang_for` are the single normalisation point; and a value chosen in a branch (`label = "転倒リスク高" if is_jp(country) else "High fall risk"`) — the value belongs in a localized table.

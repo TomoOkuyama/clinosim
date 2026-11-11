@@ -37,7 +37,7 @@ def _inpatient(status: str = "finished", disposition: dict | None = None, **over
 
 
 def _profiles(resource: dict) -> list[str]:
-    _apply_jp_clins_profile(resource)
+    _apply_jp_clins_profile(resource, "JP")
     return (resource.get("meta") or {}).get("profile", [])
 
 

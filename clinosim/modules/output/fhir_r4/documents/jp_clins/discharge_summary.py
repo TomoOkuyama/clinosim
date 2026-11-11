@@ -95,6 +95,7 @@ def _build_jp_clins_discharge_summary_composition(
     enc_to_free_text: dict[str, str] | None = None,
     enc_to_primary_cond: dict[str, str] | None = None,
     *,
+    country: str,
     roster_map: dict[str, dict] | None = None,
     encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
 ) -> dict[str, Any]:
@@ -122,7 +123,7 @@ def _build_jp_clins_discharge_summary_composition(
     # 共通 field(id / subject / date / author / encounter / attester /
     # custodian / confidentiality 等)は汎用 builder を再利用し、type と
     # section のみ上書きする。
-    comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map)
+    comp = _build_composition_generic(doc, sections, lang, country=country, roster_map=roster_map)
 
     # meta.profile 追加(既に含まれていれば skip)
     meta = comp.setdefault("meta", {})

@@ -83,6 +83,7 @@ def _build_jp_echeckup_general_composition(
     sections: dict[str, str],
     lang: str,
     *,
+    country: str,
     roster_map: dict[str, dict] | None = None,
     encounter_index: dict[str, dict[str, list[dict[str, str]]]] | None = None,
 ) -> dict[str, Any]:
@@ -100,7 +101,7 @@ def _build_jp_echeckup_general_composition(
         _derive_section_entries,
     )
 
-    comp = _build_composition_generic(doc, sections, lang, roster_map=roster_map)
+    comp = _build_composition_generic(doc, sections, lang, country=country, roster_map=roster_map)
 
     # meta.profile 追加
     meta = comp.setdefault("meta", {})

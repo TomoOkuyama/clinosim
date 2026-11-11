@@ -53,13 +53,14 @@ rename).
     `<ResourceType>/<variant>` key (`Observation/LabResult`,
     `DiagnosticReport/Radiology`, ...) reads the table's `variants`
     section, for a profile variant the builder declares itself (Issue #3201).
-    `language_uses(lang, fhir_profile)`: whether output in a language applies
-    a FHIR profile, for builders keyed by the output language (Issue #3203).
   - `dosage.py` — MedicationRequest / MedicationAdministration
     Dosage helpers (`build_dosage_instruction`, `build_route_concept`,
     `canonicalize_route`, `augment_iv_dosage_with_rate`,
     `resolve_iv_infusion_default`, `map_mar_status`, and the
-    re-exported `strip_protocol_prefix`).
+    re-exported `strip_protocol_prefix`). `patientInstruction` is composed
+    by the output language's entry in `_PATIENT_INSTRUCTION_COMPOSERS`
+    (Japanese: route templates from `locale/jp/patient_instructions_ja.yaml`);
+    other languages use the frequency timing phrase (Issue #3216).
   - `fhir_time.py` — FHIR date / dateTime / instant formatting
     (`to_fhir_date`, `to_fhir_datetime`, `to_fhir_instant`,
     `tz_suffix_for_country`, `derive_meta_last_updated`) with
@@ -110,7 +111,7 @@ from clinosim.modules.output.fhir_r4.lib.common import (
     survey_category,                      # (lang) -> survey category CodeableConcept list
 )
 from clinosim.modules.output.fhir_r4.lib.ecs_extensions import (
-    build_ecs_institution_extension,      # () -> JP eCS institution extension
+    build_ecs_institution_extension,      # (country) -> JP eCS institution extension
     build_ecs_department_extension,       # (department_text="") -> extension
     attach_ecs_institutional_extensions,
 )
@@ -153,8 +154,7 @@ scope (see `write_generator_metadata` docstring).
 
 ## Dependencies
 
-- `clinosim.modules._shared` — `is_jp`, `is_us`,
-  `strip_protocol_prefix`; `clinosim.countries` — `lang_for`.
+- `clinosim.modules._shared` — `strip_protocol_prefix`; `clinosim.countries` — `lang_for`.
 - `clinosim.codes` — `get_system_uri`, `lookup`, `display`,
   `is_english_only_system`; `codes.icd10`, `codes.prefectures`,
   `codes.ucum`, `codes.snomed`, `codes.procedures`, `codes.drugs`.

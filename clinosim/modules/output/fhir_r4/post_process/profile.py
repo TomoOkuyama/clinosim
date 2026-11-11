@@ -248,7 +248,7 @@ def _apply_length_unit(resource: dict, unit: str, display: str) -> None:
 _JP_ECS_LAST_UPDATED_PLACEHOLDER = "2026-01-01T00:00:00+09:00"
 
 
-def _apply_jp_clins_profile(resource: dict) -> None:
+def _apply_jp_clins_profile(resource: dict, country: str) -> None:
     """Attach JP-CLINS eCS profile URLs additively (idempotent).
 
     Called after `_apply_jp_core_profile`. Preserves existing meta.profile[]
@@ -313,7 +313,7 @@ def _apply_jp_clins_profile(resource: dict) -> None:
     # them as must-support. Skip Observation (follow-up) and Procedure
     # (extension SD context does not list Procedure).
     if rt in ("Condition", "AllergyIntolerance", "MedicationRequest"):
-        attach_ecs_institutional_extensions(resource, "JP", include_department=True)
+        attach_ecs_institutional_extensions(resource, country, include_department=True)
     # Issue #745: `JP_Immunization_eCS` mandates `meta.lastUpdated` (min=1,
     # must-support); the emit path never populated it. Fill the same
     # deterministic placeholder pattern used by patient.py + facility.py

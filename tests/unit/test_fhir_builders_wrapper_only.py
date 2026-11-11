@@ -56,7 +56,7 @@ def test_composition_builder_reads_narrative_sections():
         "language": "en",
     }
     sections = {"hpi": "text", "assessment_and_plan": "plan"}
-    resource = _build_composition(doc, sections, "en")
+    resource = _build_composition(doc, sections, "en", country="US")
 
     assert resource["resourceType"] == "Composition"
     # Issue #1037: US locale emits human-readable EN titles, not raw slugs.

@@ -40,7 +40,7 @@ def _doc(checkup_type: str = "occupational") -> dict:
 
 def _comp(checkup_type: str = "occupational") -> dict:
     sections = {"checkup_lab_results": "検査結果", "checkup_questionnaire": "問診結果"}
-    return _build_composition(_doc(checkup_type), sections, "ja")
+    return _build_composition(_doc(checkup_type), sections, "ja", country="JP")
 
 
 def test_version_extension_and_last_updated() -> None:

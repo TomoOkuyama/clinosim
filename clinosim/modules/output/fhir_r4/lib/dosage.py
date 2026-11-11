@@ -5,6 +5,7 @@ timing and ``Dosage`` construction, MAR dose parsing and status (split out of
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -14,7 +15,7 @@ from clinosim.countries import lang_for
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.free_text import localize_free_text
 from clinosim.locale.localized import localized
-from clinosim.modules._shared import is_jp, strip_protocol_prefix
+from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.output.fhir_r4.lib.common import system_coding
 from clinosim.modules.output.fhir_r4.lib.localization import (
     FREQUENCY_TEXT,
@@ -260,6 +261,42 @@ def _resolve_patient_instruction_ja(route: str, freq: str, freq_per_day: int | N
             # so telling the patient to take it orally is not misleading).
             return _ORAL_JA["generic"]
     return ""
+
+
+def _compose_instruction_ja(route: str, freq: str, freq_per_day: int | None) -> str:
+    """Japanese ``patientInstruction``: a timing-only label (qhs / ac / pc /
+    qam / qpm / prn) has no route dependency and is looked up first; else the
+    route-based template (``_resolve_patient_instruction_ja``)."""
+    return (
+        _TIMING_ONLY_JA.get(str(freq or "").strip())
+        or _TIMING_ONLY_JA.get((freq or "").lower().strip(), "")
+        or _resolve_patient_instruction_ja(route, freq, freq_per_day)
+    )
+
+
+_TIMING_PHRASE_EN: dict[str, str] = {
+    "qhs": "at bedtime",
+    "bedtime": "at bedtime",
+    "hs": "at bedtime",
+    "ac": "before meals",
+    "pc": "after meals",
+    "prn": "as needed",
+    "as needed": "as needed",
+}
+
+
+def _compose_instruction_timing(route: str, freq: str, freq_per_day: int | None) -> str:
+    """Default ``patientInstruction``: the timing phrase of the frequency
+    label only (qhs → "at bedtime")."""
+    return _TIMING_PHRASE_EN.get((freq or "").lower().strip(), "") if freq else ""
+
+
+# Issue #3216: the patient-instruction composer is a localization choice by
+# output language (a language with route-based templates registers its
+# composer here); every other language uses the timing phrase.
+_PATIENT_INSTRUCTION_COMPOSERS: dict[str, Callable[[str, str, int | None], str]] = {
+    "ja": _compose_instruction_ja,
+}
 
 
 # ────────────────────────────────────────────────────────────────────
@@ -793,7 +830,6 @@ def build_dosage_instruction(
     # #476 opt-in pattern) still takes precedence over the derived
     # phrase.
     _authored_instr = str(order.get("patient_instruction", "") or "")
-    _derived_instr = ""
     # Also derive from freq_per_day when the raw freq label is absent —
     # this covers the "dose+freq_per_day-only" order shape used by the
     # discharge_prescription pipeline where `frequency` is left empty
@@ -802,28 +838,8 @@ def build_dosage_instruction(
     if not freq and freq_per_day:
         _pd_to_key = {1: "qd", 2: "bid", 3: "tid", 4: "qid", 6: "q4h", 8: "q3h", 12: "q2h"}
         freq = _pd_to_key.get(int(freq_per_day), "")
-    if is_jp(country):
-        # Timing-only labels (qhs / ac / pc / qam / qpm / prn) have no
-        # route dependency — they describe WHEN, not HOW. Handle those
-        # first before falling through to the route-based composer.
-        _timing_only_ja = _TIMING_ONLY_JA
-        _flow_instr = (freq or "").lower().strip()
-        _flow_instr_orig = str(freq or "").strip()
-        _derived_instr = _timing_only_ja.get(_flow_instr_orig) or _timing_only_ja.get(_flow_instr, "")
-        if not _derived_instr:
-            _derived_instr = _resolve_patient_instruction_ja(route, freq, freq_per_day)
-    elif freq:
-        _flow_instr = freq.lower().strip()
-        _instr_en = {
-            "qhs": "at bedtime",
-            "bedtime": "at bedtime",
-            "hs": "at bedtime",
-            "ac": "before meals",
-            "pc": "after meals",
-            "prn": "as needed",
-            "as needed": "as needed",
-        }
-        _derived_instr = _instr_en.get(_flow_instr, "")
+    _composer = _PATIENT_INSTRUCTION_COMPOSERS.get(lang_for(country), _compose_instruction_timing)
+    _derived_instr = _composer(route, freq, freq_per_day)
     final_instr = _authored_instr or _derived_instr
     if final_instr:
         dosage["patientInstruction"] = final_instr

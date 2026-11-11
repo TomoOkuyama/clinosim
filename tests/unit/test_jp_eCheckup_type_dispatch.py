@@ -37,7 +37,7 @@ def test_occupational_dispatches_to_01031_01032():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _make_checkup_doc("occupational")
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     codes = [s["code"]["coding"][0]["code"] for s in comp["section"]]
     assert codes == ["01031", "01032"]
     for s in comp["section"]:
@@ -50,7 +50,7 @@ def test_specific_dispatches_to_01011_01012():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _make_checkup_doc("specific")
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     codes = [s["code"]["coding"][0]["code"] for s in comp["section"]]
     assert codes == ["01011", "01012"]
 
@@ -61,7 +61,7 @@ def test_regional_union_dispatches_to_01021_01022():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _make_checkup_doc("regional_union")
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     codes = [s["code"]["coding"][0]["code"] for s in comp["section"]]
     assert codes == ["01021", "01022"]
 
@@ -72,7 +72,7 @@ def test_missing_checkup_type_falls_back_to_occupational():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _make_checkup_doc("")
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     codes = [s["code"]["coding"][0]["code"] for s in comp["section"]]
     assert codes == ["01031", "01032"]
 
@@ -83,7 +83,7 @@ def test_unknown_checkup_type_falls_back_to_occupational():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _make_checkup_doc("gakko")  # 学校健診 = 未対応
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     codes = [s["code"]["coding"][0]["code"] for s in comp["section"]]
     assert codes == ["01031", "01032"]
 

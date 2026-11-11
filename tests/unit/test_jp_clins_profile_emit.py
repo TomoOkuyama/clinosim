@@ -23,7 +23,7 @@ _EGG = {"coding": [{"system": "http://jpfhir.jp/fhir/core/CodeSystem/JP_JfagyFoo
 class TestApplyJpClinsProfile:
     def test_allergy_gets_ecs_profile(self):
         r = {"resourceType": "AllergyIntolerance", "code": _EGG}
-        _apply_jp_clins_profile(r)
+        _apply_jp_clins_profile(r, "JP")
         assert r["meta"]["profile"] == ["http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_AllergyIntolerance_eCS"]
 
     def test_medication_request_gets_ecs_profile(self):
@@ -32,30 +32,30 @@ class TestApplyJpClinsProfile:
         # (Issue #445). Every MedicationRequest built from an inpatient Order carries a
         # structured route, so this is the realistic shape.
         r = {"resourceType": "MedicationRequest", "dosageInstruction": [{"text": "20mg PO daily"}]}
-        _apply_jp_clins_profile(r)
+        _apply_jp_clins_profile(r, "JP")
         assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS" in r["meta"]["profile"]
 
     def test_procedure_gets_ecs_profile(self):
         r = {"resourceType": "Procedure"}
-        _apply_jp_clins_profile(r)
+        _apply_jp_clins_profile(r, "JP")
         assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Procedure_eCS" in r["meta"]["profile"]
 
     def test_condition_gets_ecs_profile(self):
         r = {"resourceType": "Condition"}
-        _apply_jp_clins_profile(r)
+        _apply_jp_clins_profile(r, "JP")
         assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Condition_eCS" in r["meta"]["profile"]
 
     def test_idempotent_no_duplicate(self):
         r = {"resourceType": "AllergyIntolerance", "code": _EGG}
-        _apply_jp_clins_profile(r)
-        _apply_jp_clins_profile(r)
-        _apply_jp_clins_profile(r)
+        _apply_jp_clins_profile(r, "JP")
+        _apply_jp_clins_profile(r, "JP")
+        _apply_jp_clins_profile(r, "JP")
         profs = r["meta"]["profile"]
         assert len(profs) == 1
 
     def test_unregistered_resource_type_noop(self):
         r = {"resourceType": "Encounter"}
-        _apply_jp_clins_profile(r)
+        _apply_jp_clins_profile(r, "JP")
         assert "meta" not in r or not r.get("meta", {}).get("profile")
 
     def test_preserves_existing_jp_core_profile(self):
@@ -64,7 +64,7 @@ class TestApplyJpClinsProfile:
             "meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"]},
             "dosageInstruction": [{"text": "20mg PO daily"}],
         }
-        _apply_jp_clins_profile(r)
+        _apply_jp_clins_profile(r, "JP")
         assert "http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest" in r["meta"]["profile"]
         assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_MedicationRequest_eCS" in r["meta"]["profile"]
 
@@ -80,13 +80,13 @@ class TestApplyJpClinsProfile:
             "resourceType": "MedicationRequest",
             "meta": {"profile": ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"]},
         }
-        _apply_jp_clins_profile(r)
+        _apply_jp_clins_profile(r, "JP")
         assert r["meta"]["profile"] == ["http://jpfhir.jp/fhir/core/StructureDefinition/JP_MedicationRequest"]
 
     def test_medication_request_with_empty_dosage_list_also_withholds_ecs(self):
         """An empty `dosageInstruction` array satisfies min=1 no better than an absent one."""
         r = {"resourceType": "MedicationRequest", "dosageInstruction": []}
-        _apply_jp_clins_profile(r)
+        _apply_jp_clins_profile(r, "JP")
         assert not r.get("meta", {}).get("profile")
 
     def test_medication_request_filter_does_not_leak_to_other_resource_types(self):
@@ -99,7 +99,7 @@ class TestApplyJpClinsProfile:
             r = {"resourceType": rt}  # no dosageInstruction anywhere in sight
             if rt == "AllergyIntolerance":
                 r["code"] = _EGG
-            _apply_jp_clins_profile(r)
+            _apply_jp_clins_profile(r, "JP")
             assert url in r["meta"]["profile"]
 
 
@@ -119,7 +119,7 @@ class TestCategoryFilters:
                 }
             ],
         }
-        _apply_jp_clins_profile(r)
+        _apply_jp_clins_profile(r, "JP")
         assert "meta" not in r or not r.get("meta", {}).get("profile")
 
     def test_lab_observation_gets_clins_profile(self):
@@ -136,7 +136,7 @@ class TestCategoryFilters:
                 }
             ],
         }
-        _apply_jp_clins_profile(r)
+        _apply_jp_clins_profile(r, "JP")
         assert "http://jpfhir.jp/fhir/eCS/StructureDefinition/JP_Observation_LabResult_eCS" in r["meta"]["profile"]
 
     def test_diagnostic_report_no_clins_profile(self):
@@ -157,7 +157,7 @@ class TestCategoryFilters:
                 }
             ],
         }
-        _apply_jp_clins_profile(r)
+        _apply_jp_clins_profile(r, "JP")
         assert "meta" not in r or not r.get("meta", {}).get("profile")
 
 

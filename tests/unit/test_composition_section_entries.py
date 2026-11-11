@@ -191,7 +191,7 @@ def test_soap_composition_plan_section_has_medication_and_procedure_entries():
         }
     }
     doc = _soap_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "en", encounter_index=index)
+    comp = _build_composition(doc, doc["narrative"]["sections"], "en", encounter_index=index, country="US")
     sections_by_title = {s["title"]: s for s in comp["section"]}
     # Issue #1037: US locale titles are humanized ("plan" → "Plan").
     # Plan (P) → 2 MedicationRequest entries.
@@ -215,7 +215,7 @@ def test_soap_composition_omits_entry_when_index_has_no_resources():
     is 0..* and the spec-clean shape is absent, not an empty array.
     """
     doc = _soap_doc(encounter_id="ENC-EMPTY")
-    comp = _build_composition(doc, doc["narrative"]["sections"], "en", encounter_index={})
+    comp = _build_composition(doc, doc["narrative"]["sections"], "en", encounter_index={}, country="US")
     for section in comp["section"]:
         assert "entry" not in section, f"section {section.get('title')} should have no `entry` key"
 
@@ -227,7 +227,7 @@ def test_soap_composition_without_index_is_unchanged():
     change is additive.
     """
     doc = _soap_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "en")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "en", country="US")
     for section in comp["section"]:
         assert "entry" not in section
 
@@ -244,7 +244,7 @@ def test_jp_clins_ds_populates_admission_diagnoses_from_primary_when_no_index():
     primary shared between admission and discharge.
     """
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     children = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
     assert "entry" in children["342"], "342 admission diagnoses should carry a Condition entry"
     assert children["342"]["entry"][0]["reference"].startswith("Condition/")
@@ -261,7 +261,7 @@ def test_jp_clins_ds_444_populated_with_discharge_medication_requests():
             ],
         }
     }
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", encounter_index=index)
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", encounter_index=index, country="JP")
     children = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
     entries = children["444"].get("entry") or []
     assert {e["reference"] for e in entries} == {
@@ -289,7 +289,7 @@ def test_jp_clins_ds_344_extends_with_extra_conditions_from_index():
             ],
         }
     }
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", encounter_index=index)
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", encounter_index=index, country="JP")
     children = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
     entries = children["344"].get("entry") or []
     refs = [e["reference"] for e in entries]
@@ -304,6 +304,6 @@ def test_jp_clins_ds_444_absent_entry_when_no_medication_index():
     """Encounter with no MRs → 444 discharge_medications MUST NOT emit
     entry: [] (spec-clean absent, not empty array)."""
     doc = _jp_ds_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", encounter_index={})
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", encounter_index={}, country="JP")
     children = {c["code"]["coding"][0]["code"]: c for c in comp["section"][0]["section"]}
     assert "entry" not in children["444"]

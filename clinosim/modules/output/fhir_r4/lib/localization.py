@@ -19,7 +19,6 @@ from clinosim.locale.loader import load_med_terms as _load_med_terms
 from clinosim.locale.loader import load_med_terms_ja as _load_med_terms_ja
 from clinosim.locale.loader import load_narrative_display_dict as _load_narrative_display_dict
 from clinosim.locale.table import LocalizedTable
-from clinosim.modules._shared import is_jp, is_us
 
 # expose the private-name loader aliases so mypy's strict export
 # check passes at fhir_r4_adapter.py's import site.
@@ -37,8 +36,6 @@ __all__ = [
     "_load_med_terms",
     "_load_med_terms_ja",
     "code_lookup",
-    "is_jp",
-    "is_us",
 ]
 
 # ``_load_med_terms_ja`` / ``_load_narrative_display_dict`` / ``_load_department_display``

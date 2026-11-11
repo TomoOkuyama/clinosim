@@ -69,7 +69,7 @@ def _catalog(country: str) -> list[dict[str, Any]]:
 def pick_external_hospital(
     patient_id: str,
     encounter_id: str,
-    country: str = "JP",
+    country: str,
 ) -> dict[str, Any] | None:
     """Deterministically sample one external hospital for a referral encounter.
 

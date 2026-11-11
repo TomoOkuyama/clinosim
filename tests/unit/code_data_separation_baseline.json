@@ -17,7 +17,6 @@
     "modules/immunization/enricher.py": 1,
     "modules/newborn/engine.py": 4,
     "modules/output/fhir_r4/labs/coding_package.py": 1,
-    "modules/output/fhir_r4/lib/dosage.py": 1,
     "modules/physiology/egfr.py": 1,
     "modules/population/_pregnancy.py": 1,
     "modules/population/mortality.py": 1,

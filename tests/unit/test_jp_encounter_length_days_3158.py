@@ -58,14 +58,14 @@ def test_a_length_in_another_unit_of_a_day_or_more_is_converted() -> None:
 
 def test_a_day_or_longer_outpatient_visit_declares_ecs_with_length_in_days() -> None:
     enc = _encounter("2024-07-22T10:00:00+09:00", "2024-07-23T22:00:00+09:00")
-    _apply_jp_clins_profile(enc)
+    _apply_jp_clins_profile(enc, "JP")
     assert _ENC_ECS in enc["meta"]["profile"]
     assert (enc["length"]["value"], enc["length"]["unit"], enc["length"]["code"]) == (1.5, "日", "d")
 
 
 def test_a_finished_outpatient_visit_declares_ecs_without_a_minutes_length() -> None:
     enc = _encounter("2024-07-22T10:06:00+09:00", "2024-07-22T10:18:00+09:00")
-    _apply_jp_clins_profile(enc)
+    _apply_jp_clins_profile(enc, "JP")
     assert _ENC_ECS in enc["meta"]["profile"]
     assert "length" not in enc
 
@@ -75,6 +75,6 @@ def test_an_encounter_that_cannot_declare_ecs_keeps_its_length() -> None:
     enc = _encounter("2024-07-22T10:06:00+09:00", "2024-07-22T13:06:00+09:00", "EMER")
     enc["hospitalization"] = {"dischargeDisposition": {"text": "home"}}
     before = copy.deepcopy(enc["length"])
-    _apply_jp_clins_profile(enc)
+    _apply_jp_clins_profile(enc, "JP")
     assert enc["length"] == before
     assert _ENC_ECS not in (enc.get("meta") or {}).get("profile", [])

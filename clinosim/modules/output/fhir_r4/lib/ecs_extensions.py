@@ -46,7 +46,7 @@ _JP_ECS_INSTITUTION_ID_SYSTEM = JP_INSURANCE_MEDICAL_INSTITUTION_NO_SYSTEM
 _JP_ECS_DEPARTMENT_PLACEHOLDER = department_display("primary_care", "ja")
 
 
-def build_ecs_institution_extension() -> dict[str, Any]:
+def build_ecs_institution_extension(country: str) -> dict[str, Any]:
     """Return the `JP_eCS_InstitutionNumber` extension for JP eCS resources.
 
     Value is the hospital's 10-digit 医療機関コード (Issue #3129) — same as
@@ -56,7 +56,7 @@ def build_ecs_institution_extension() -> dict[str, Any]:
         "url": _JP_ECS_INSTITUTION_NUMBER_EXT_URL,
         "valueIdentifier": {
             "system": _JP_ECS_INSTITUTION_ID_SYSTEM,
-            "value": hospital_institution_code("JP"),
+            "value": hospital_institution_code(country),
         },
     }
 
@@ -102,6 +102,6 @@ def attach_ecs_institutional_extensions(
         return
     existing = {e.get("url") for e in exts if isinstance(e, dict)}
     if _JP_ECS_INSTITUTION_NUMBER_EXT_URL not in existing:
-        exts.append(build_ecs_institution_extension())
+        exts.append(build_ecs_institution_extension(country))
     if include_department and _JP_ECS_DEPARTMENT_EXT_URL not in existing:
         exts.append(build_ecs_department_extension(department_text))

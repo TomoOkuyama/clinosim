@@ -39,7 +39,7 @@ def test_jp_clins_referral_composition_type():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_referral_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     systems = {c.get("system") for c in comp["type"]["coding"]}
     # Session 57 v3 fix: eReferral profile constrains type.coding to max=1,
     # so only the doc-typecodes coding is emitted (LOINC dropped).
@@ -54,7 +54,7 @@ def test_jp_clins_referral_composition_profile():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_referral_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     profs = comp.get("meta", {}).get("profile", [])
     assert _PROFILE_URL in profs
 
@@ -64,7 +64,7 @@ def test_jp_clins_referral_composition_top_level_sections():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_referral_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     top = comp["section"]
     top_codes = [s["code"]["coding"][0]["code"] for s in top]
     assert top_codes == ["920", "910", "300"], top_codes
@@ -77,7 +77,7 @@ def test_jp_clins_referral_composition_structural_children():
     from clinosim.modules.output.fhir_r4.documents.composition import _build_composition
 
     doc = _jp_referral_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     structural = [s for s in comp["section"] if s["code"]["coding"][0]["code"] == "300"][0]
     child_codes = [c["code"]["coding"][0]["code"] for c in structural["section"]]
     assert child_codes == ["950", "340", "360"], child_codes
@@ -91,7 +91,7 @@ def test_jp_clins_referral_composition_section_content():
     )
 
     doc = _jp_referral_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     top_by_code = {s["code"]["coding"][0]["code"]: s for s in comp["section"]}
     # 920 紹介元 — 当院 pin unchanged (outgoing referral)
     assert "当院" in top_by_code["920"]["text"]["div"]
@@ -126,7 +126,7 @@ def test_jp_clins_referral_composition_chain9_pattern_top_level():
     )
 
     doc = _jp_referral_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
 
     # 1. extension:version
     exts = comp.get("extension", [])
@@ -197,7 +197,7 @@ def test_jp_clins_referral_composition_from_to_section_entries():
     )
 
     doc = _jp_referral_doc()
-    comp = _build_composition(doc, doc["narrative"]["sections"], "ja")
+    comp = _build_composition(doc, doc["narrative"]["sections"], "ja", country="JP")
     top_by_code = {s["code"]["coding"][0]["code"]: s for s in comp["section"]}
     assert top_by_code["920"].get("entry") == [{"reference": "Organization/hospital-main"}]
     ext = pick_external_hospital(doc["patient_id"], doc["encounter_id"], country="JP")

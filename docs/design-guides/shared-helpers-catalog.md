@@ -63,7 +63,7 @@ Governing spec: [`code-mapping-and-localization-spec.md`](code-mapping-and-local
 | `clinosim/countries/__init__.py` `country_code(country)` | `"JP"` / `"US"` from any spelling (`"jp"`, the legacy locale key `"japan"`, ...) for helpers that take the upper-case code. `is_jp` accepts the same spellings. |
 | `clinosim/countries/__init__.py` `country_slot(country, scheme=...)` | The section key of a per-country YAML block. |
 | `clinosim/countries/__init__.py` `lang_name(lang, in_lang=)` / `output_language_instruction(lang)` / `has_authored_narrative(lang)` | Language names, the LLM "write in this language" instruction, and whether a language has authored narrative content. |
-| `clinosim/modules/output/fhir_r4/lib/profile_meta.py` `language_uses(lang, fhir_profile)` | Whether output in a language applies a FHIR profile (the country profile of that output language), for builders keyed by the output language. Builders that have the country ask `country_profile(country).uses(...)`. |
+| `clinosim/country_profile.py` `country_profile(country).uses(fhir_profile)` | Whether the country's FHIR output applies a FHIR profile (`jp_core`, `jp_clins`, `jp_echeckup`, `us_core`); builders take the country, never decide profile structure from the output language (Issue #3216). |
 
 ## 4. Codes and display text
 
