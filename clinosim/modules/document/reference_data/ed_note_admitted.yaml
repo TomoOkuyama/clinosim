@@ -1,0 +1,100 @@
+# ED note of a patient admitted through the ED (Issue #3243).
+#
+# The ED note of a via-ED admission has no ED-visit protocol: its HPI is the
+# admitting disease's HPI and its examination the disease's day-0 physical
+# exam (physical_exam_findings), quoted after the ED arrival vital signs.
+# This file holds the data that keeps that text consistent with the ED
+# record: the arrival vitals and the triage arrival mode.
+
+metadata:
+  kind: reference
+  name: ed_note_admitted
+  source: clinosim
+
+# Adult limits of the arrival vital signs (a reading below ``low`` is low,
+# above ``high`` is high). The same bounds as the vital-sign Observation
+# reference ranges: heart rate 60-100 /min (AHA/ACC adult resting
+# definition of brady- / tachycardia), respiratory rate 12-20 /min (adult
+# reference), SpO2 >= 95 % on room air, systolic BP 90-140 mmHg (shock
+# work-up cut-off below 90; JSH 2019 / ACC/AHA 2017 hypertension at 140).
+# A child is judged against the age-banded range of
+# ``observation/reference_data/pediatric_reference_ranges.yaml`` where it
+# lists the vital.
+adult_vital_limits:
+  heart_rate: {low: 60, high: 100}
+  respiratory_rate: {low: 12, high: 20}
+  spo2: {low: 95}
+  systolic_bp: {low: 90, high: 140}
+
+# Exam clauses that state a vital sign. The day-0 exam is written per
+# severity, not from the patient's readings, so a clause whose statement
+# the arrival reading contradicts ("頻脈" with HR 84, "低血圧" with SBP 130,
+# "呼吸数正常" with RR 28) is left out of the ED note's exam.
+#
+# A finding is split into clauses at ``clause_separators``; within a clause
+# the longest matching term is read first and consumed (so "頻脈なし" is not
+# also read as "頻脈"). ``states`` lists the readings the term is consistent
+# with (low / normal / high); a clause is dropped when, for a vital it
+# states, the reading's state is in none of its terms' ``states``. A vital
+# with no reading is not judged. Terms are matched in the exam's language;
+# the authored day-0 exam text is Japanese.
+clause_separators:
+  ja: ["、", "・"]
+  en: [", ", "; "]
+
+exam_vital_terms:
+  - vital: heart_rate
+    states: [high]
+    terms:
+      ja: ["頻脈"]
+      en: ["tachycardia", "tachycardic"]
+  - vital: heart_rate
+    states: [low]
+    terms:
+      ja: ["徐脈"]
+      en: ["bradycardia", "bradycardic"]
+  - vital: heart_rate
+    states: [low, high]
+    terms:
+      ja: ["頻脈または徐脈"]
+      en: ["tachycardia or bradycardia"]
+  - vital: heart_rate
+    states: [low, normal]
+    terms:
+      ja: ["頻脈なし"]
+      en: ["no tachycardia"]
+  - vital: respiratory_rate
+    states: [high]
+    terms:
+      ja: ["呼吸数増加", "呼吸数軽度増加", "呼吸数著明増加", "呼吸数上昇", "呼吸数軽度上昇", "頻呼吸"]
+      en: ["tachypnea", "tachypneic"]
+  - vital: respiratory_rate
+    states: [normal]
+    terms:
+      ja: ["呼吸数正常"]
+      en: ["normal respiratory rate"]
+  - vital: spo2
+    states: [low]
+    terms:
+      ja: ["SpO2 低下", "SpO2低下", "SpO₂低下", "SpO₂ 低下", "SpO2 著明低下", "SpO2著明低下"]
+      en: ["hypoxemia", "hypoxic", "desaturation"]
+  - vital: systolic_bp
+    states: [low]
+    terms:
+      ja: ["血圧低下", "低血圧"]
+      en: ["hypotension", "hypotensive"]
+  - vital: systolic_bp
+    states: [high]
+    terms:
+      ja: ["高血圧"]
+      en: ["hypertension", "hypertensive"]
+
+# Arrival by ambulance stated in the HPI onset text. The triage record holds
+# how the patient arrived; when it is not one of ``ambulance_modes`` the
+# phrase is replaced, so the HPI does not say "brought in by ambulance" above
+# a triage line reading "Arrival mode: Walk-in".
+arrival:
+  ambulance_modes: [ambulance, helicopter]
+  phrases:
+    - text: {ja: "救急搬入", en: "brought in by ambulance"}
+      replacement: {ja: "救急外来を受診", en: "presented to the emergency department"}

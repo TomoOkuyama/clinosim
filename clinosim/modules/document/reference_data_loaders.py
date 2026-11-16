@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Annotated, Any, NamedTuple
+from typing import Annotated, Any, Literal, NamedTuple
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, RootModel, field_validator, model_validator
 
@@ -325,6 +325,78 @@ def hpi_pertinent_negatives(disease_id: str, lang: str) -> list[PertinentNegativ
         terms = entry.symptoms.get(code) or entry.symptoms.get("en") or []
         out.append(PertinentNegative(text, tuple(t.strip() for t in terms)))
     return out
+
+
+# ─────────────────────────────────────────────────────────────────
+# ed_note_admitted.yaml (Issue #3243)
+# ─────────────────────────────────────────────────────────────────
+
+_VitalState = Literal["low", "normal", "high"]
+
+
+class VitalLimits(BaseModel):
+    """Adult limits of one vital sign; a reading below ``low`` is low, above
+    ``high`` is high."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    low: float | None = None
+    high: float | None = None
+
+
+class ExamVitalTerm(BaseModel):
+    """Exam terms (per language) stating ``vital`` and the reading states
+    they are consistent with."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    vital: str
+    states: list[_VitalState] = Field(min_length=1)
+    terms: Annotated[dict[str, list[_Text]], AfterValidator(_has_english)]
+
+
+class LocalizedPhrase(BaseModel):
+    """A phrase per language; English is required (the fallback language)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    text: Annotated[dict[str, _Text], AfterValidator(_has_english)]
+    replacement: Annotated[dict[str, _Text], AfterValidator(_has_english)]
+
+
+class ArrivalPhrases(BaseModel):
+    """Ambulance-arrival phrases of the HPI and the triage arrival modes that
+    make them true."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    ambulance_modes: list[str] = Field(min_length=1)
+    phrases: list[LocalizedPhrase] = Field(min_length=1)
+
+
+class EdNoteAdmitted(BaseModel):
+    """Shape of ed_note_admitted.yaml: the data that keeps an admitted
+    patient's ED note consistent with the arrival vitals and triage."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    adult_vital_limits: dict[str, VitalLimits] = Field(min_length=1)
+    clause_separators: Annotated[dict[str, list[str]], AfterValidator(_has_english)]
+    exam_vital_terms: list[ExamVitalTerm] = Field(min_length=1)
+    arrival: ArrivalPhrases
+
+    @model_validator(mode="after")
+    def _terms_name_a_limited_vital(self) -> EdNoteAdmitted:
+        unknown = {term.vital for term in self.exam_vital_terms} - set(self.adult_vital_limits)
+        if unknown:
+            raise ValueError(f"exam_vital_terms name vitals without adult limits: {sorted(unknown)}")
+        return self
+
+
+@lru_cache(maxsize=1)
+def load_ed_note_admitted() -> EdNoteAdmitted:
+    """Load and validate ed_note_admitted.yaml. Cached singleton."""
+    return EdNoteAdmitted.model_validate(load_validated_yaml(_REF_DIR / "ed_note_admitted.yaml", EdNoteAdmitted))
 
 
 # ─────────────────────────────────────────────────────────────────

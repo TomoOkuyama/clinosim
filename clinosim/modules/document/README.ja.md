@@ -184,6 +184,7 @@ clinosim/modules/document/
     clinosim-nursing-content.yaml    急性疾患 / 慢性 ICD-10 別の看護記録内容 (load_nursing_content)
     cc-pe-consistency-keywords.yaml  主訴 ↔ 身体所見の整合 rail (narrative/_narrative_utils.py)
     chronic-med-class-hints.yaml     慢性疾患 assessment の薬効分類 hint (narrative/renderers/section_builders/outpatient_soap.py)
+    ed_note_admitted.yaml            ED 経由入院の ED 記録: 来院時バイタルの成人の判定範囲とバイタルを述べる所見語 (来院時の測定値と矛盾する day-0 身体所見の句は書かない)、トリアージの来院手段と照合する救急搬入の HPI 表現 (load_ed_note_admitted)
     hpi_pertinent_negatives.yaml     HPI pertinent negative、疾患ごとに言語別の文言と否定する症状語 (hpi_pertinent_negatives(disease_id, lang)、英語にフォールバック)。主訴の症状を否定する negative は出力しない
     bedside_procedure_codes.yaml     bedside procedure code (load_bedside_procedure_codes)
     death_cause_chain.yaml           死亡診断書の死因の連鎖: 直接死因になりうる合併症・続発コード・影響を及ぼした傷病名の区分 (load_death_cause_chain)

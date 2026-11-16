@@ -1064,6 +1064,7 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
+        "disease_protocol.narrative.hpi_template.onset_type.acute",
         "encounter.triage_data",
         "ctx.vitals[0]",
         "ctx.orders.ed",
@@ -1082,7 +1083,7 @@
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
         "disposition": "Admitted (Sudden severe headache, vomiting, altered consciousness)",
         "ed_workup": "Labs: PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K, glucose. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h",
-        "hpi": "Patient presented with severe symptoms.",
+        "hpi": "Symptoms began suddenly and worsened rapidly; brought in by ambulance.",
         "physical_exam": "On arrival: BP 131/74 mmHg, HR 96 bpm, RR 18 /min, SpO2 94%, T 36.3°C.",
         "triage_details": "Triage level: ESI Level 2. Arrival mode: Ambulance."
       },
