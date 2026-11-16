@@ -142,7 +142,8 @@ def test_japanese_certificate_uses_the_jp_codes() -> None:
     immediate, _ = build_dc_immediate_cause(None, ctx)
     underlying, _ = build_dc_underlying_cause(None, ctx)
     assert immediate.startswith("直接死因: 播種性血管内凝固症候群")
-    assert "（D65）" in immediate and "（ア）の原因: " in immediate and "（R65.1）" in immediate
+    # Septic shock is MHLW R57.2 敗血症性ショック (Issue #3269).
+    assert "（D65）" in immediate and "（ア）の原因: 敗血症性ショック（R57.2）" in immediate
     assert underlying == "原死因: 敗血症（A41.9）。"
 
 

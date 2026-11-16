@@ -171,7 +171,13 @@ course_archetypes:                 # archetype → probability + per-day state d
     treatment_modifications: {}
     daily_trajectory:              # DailyTrajectoryEntry per day (SOAP seeds)
       day_0: {subjective: "…", objective: "…", assessment: "…", plan: "…"}
-  dip_then_recovery: {…}
+  dip_then_recovery:
+    …
+    treatment_modifications:       # day_N → stop / start / action
+      day_2:
+        start:                     # keyed by `all` (every country) and/or a country slot (`japan`, `us`);
+          all: [{drug_id: norepinephrine, dose: "0.05-0.1 ug/kg/min"}]   # `all` entries come first (Issue #3325)
+        action: "icu_transfer"     # any other start key fails protocol validation
   # also: plateau_then_recovery, treatment_resistant, gradual_deterioration, sudden_deterioration
 
 archetype_modifiers:

@@ -461,6 +461,10 @@ codes:
   R57.0:
     en: Cardiogenic shock
     ja: "心原性ショック"
+  # Issue #3269: JP code of ICD-10-CM R65.21 (severe sepsis with septic shock).
+  R57.2:
+    en: Septic shock
+    ja: "敗血症性ショック"
   R69:
     en: Unknown and unspecified causes of morbidity
     ja: "原因不明及び詳細不明の疾病"

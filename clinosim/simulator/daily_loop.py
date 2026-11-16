@@ -34,6 +34,7 @@ from clinosim.modules.clinical_course.engine import (
     natural_recovery_directive,
 )
 from clinosim.modules.diagnosis.engine import update_differential
+from clinosim.modules.disease.localization import archetype_start_entries
 from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.drug_safety.hyperkalemia import (
     PotassiumHold,
@@ -804,10 +805,7 @@ def _start_archetype_treatments(stay: _Stay, run: _Run, day: int, mod: dict) -> 
     against itself (Issue #3283).
     """
     encounter_id = stay.encounter_id
-    start_meds = mod.get("start", {}).get(stay.country_key, mod.get("start", []))
-    if not isinstance(start_meds, list):
-        return
-    for med in start_meds:
+    for med in archetype_start_entries(mod, stay.country_key):
         if not isinstance(med, dict):
             continue
         drug = protocol_drug_name(med).strip()

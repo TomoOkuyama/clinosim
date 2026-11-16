@@ -170,6 +170,9 @@ clinosim/simulator/
                          follow-up visits
   diagnosis_rules.py     diagnosis-coding rule tables of the encounter
                          simulators (loads reference_data/diagnosis_rules.yaml)
+  sepsis_severity.py     severity code of a sepsis discharge diagnosis
+                         (septic shock / severe sepsis / sepsis) from the
+                         stay's vitals, MAR and labs (Issue #3269)
   event_refs.py          declared namespaces of LifeEvent.disease_id /
                          ConditionEvent.ground_truth_diseases values
 ```

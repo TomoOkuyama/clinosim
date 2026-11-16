@@ -22,7 +22,9 @@ one RNG-free POST_ENCOUNTER enricher that appends a lab-derived AKI
   (likelihood-ratio update per batch of `(finding, is_positive)`
   findings); `get_current_diagnosis_code` (resolves the working
   diagnosis — or the top candidate when none is set — through the
-  confidence-keyed `diagnosis_progression` table, skips candidates
+  confidence-keyed `diagnosis_progression` table — sepsis has no
+  confidence rows: its severity code is set from the stay's physiology by
+  `simulator/sepsis_severity.py`, Issue #3269 — skips candidates
   sex-locked for the patient (Issue #947), and returns the
   `UNRESOLVED_DIAGNOSIS_ICD` sentinel when nothing resolves); named
   non-specific / fallback codes (`UNRESOLVED_DIAGNOSIS_ICD = "R69"`,

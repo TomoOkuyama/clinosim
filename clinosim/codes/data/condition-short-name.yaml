@@ -254,6 +254,7 @@ codes:
   R57: {en: "Shock", ja: "ショック"}
   R57.0: {en: "Cardiogenic shock", ja: "心原性ショック"}
   R57.1: {en: "Hypovolemic shock", ja: "循環血液量減少性ショック"}
+  R57.2: {en: "Septic shock", ja: "敗血症性ショック"}   # JP code of ICD-10-CM R65.21 (Issue #3269)
   R69: {en: "Illness of unknown cause", ja: "原因不明の疾患"}
   R73.9: {en: "Hyperglycemia", ja: "高血糖"}
   S06.0: {en: "Concussion", ja: "脳振盪"}

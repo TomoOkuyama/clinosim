@@ -519,13 +519,13 @@ diagnosis_progression:
     - J44.1
   - - 0.9
     - J44.0
+  # Severe sepsis (R65.20) and septic shock (R65.21) are not certainty levels:
+  # the discharge code is set from the stay's organ dysfunction and shock
+  # physiology (simulator/reference_data/diagnosis_rules.yaml `sepsis_severity`,
+  # Issue #3269).
   sepsis:
   - - 0.0
     - A41.9
-  - - 0.7
-    - R65.20
-  - - 0.9
-    - R65.21
   cerebral_infarction:
   - - 0.0
     - I63.9

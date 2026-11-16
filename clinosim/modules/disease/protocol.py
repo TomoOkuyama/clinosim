@@ -742,7 +742,38 @@ class DiseaseProtocol(BaseModel):
                     f"{self.disease_id}: ventricular_rate names unknown archetypes {unknown} "
                     f"or lacks presenting_bpm for severities {missing}"
                 )
+        _validate_treatment_start_keys(self.disease_id, self.course_archetypes)
         return self
+
+
+ALL_COUNTRIES_KEY = "all"
+"""Key of a ``treatment_modifications.day_N.start`` block whose entries apply
+to every country (Issue #3325)."""
+
+
+def _validate_treatment_start_keys(disease_id: str, course_archetypes: dict[str, Any]) -> None:
+    """Every ``course_archetypes.<name>.treatment_modifications.day_N.start``
+    is keyed by a country slot (``japan`` / ``us``) or ``all``; any other key
+    would start nothing (Issue #3325: the sepsis shock starts sat under a key
+    the daily loop did not read)."""
+    from clinosim.countries import country_slot
+    from clinosim.country_profile import supported_countries
+
+    allowed = {ALL_COUNTRIES_KEY, *(country_slot(c, scheme="legacy_japan") for c in supported_countries())}
+    offenders: list[str] = []
+    for arch_name, arch in course_archetypes.items():
+        mods = (arch or {}).get("treatment_modifications") if isinstance(arch, dict) else None
+        for day, mod in (mods or {}).items():
+            start = mod.get("start") if isinstance(mod, dict) else None
+            if start is None:
+                continue
+            keys = set(start) if isinstance(start, dict) else {f"<{type(start).__name__}>"}
+            offenders += [f"{arch_name}.{day}.start.{k}" for k in sorted(keys - allowed)]
+    if offenders:
+        raise ValueError(
+            f"{disease_id}: treatment_modifications start blocks must be keyed by "
+            f"{sorted(allowed)}; unread keys: {', '.join(offenders)}"
+        )
 
 
 def _validate_incidence_block(disease_id: str, incidence: dict[str, Any]) -> None:
