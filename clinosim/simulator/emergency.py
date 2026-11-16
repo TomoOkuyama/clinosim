@@ -46,11 +46,8 @@ from clinosim.simulator._ed_thresholds import (
     ED_MED_ADMINISTRATION_DELAY_MIN,
     ED_OBSERVATION_EXTENSION_HOURS,
     ED_OBSERVATION_MAX_EXTENSIONS,
-    ED_PAIN_BASELINE,
-    ED_PAIN_INFLAMMATION_SCALE,
     ED_PAIN_MAX,
     ED_PAIN_MIN,
-    ED_PAIN_NOISE_STD,
     ED_REASSESS_BEFORE_DISCHARGE_MIN,
     ED_RELEASE_PAIN_MAX,
     ED_RELEASE_SBP_MIN,
@@ -66,7 +63,7 @@ from clinosim.simulator._ed_thresholds import (
 )
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, finalize_encounter
 from clinosim.simulator.lab_pipeline import patient_true_labs, relate_egfr_to_creatinine
-from clinosim.simulator.vitals_pipeline import _loc_for
+from clinosim.simulator.vitals_pipeline import _loc_for, ed_arrival_vitals
 from clinosim.types.clinical import ConditionEvent, PhysiologicalState
 from clinosim.types.encounter import (
     Encounter,
@@ -875,43 +872,21 @@ def _simulate_ed_visit(
         "administering_nurse", ""
     )  # noqa: E501
     vit_time = visit_time + timedelta(minutes=ED_VITALS_OFFSET_MIN)
-    raw = derive_observed_vitals(
-        _state,
-        patient.baseline_vitals,
-        vit_time,
-        rng,
-        age_months=age_in_completed_months(patient.date_of_birth, vit_time),
-    )
     # Issue #3063: a presentation defined by a fever charts a triage
     # temperature in the protocol's band, hashed from the encounter id (no draw).
     _band = ((protocol or {}).get("triage_temperature_c") or {}).get(severity)
-    if _band:
-        raw["temperature"] = presenting_temperature(_band, encounter.encounter_id)
-    # ED presentations are acute → pain skews higher, scaled by inflammation.
-    _pain_mean = _state.inflammation_level * ED_PAIN_INFLAMMATION_SCALE + ED_PAIN_BASELINE
-    pain = int(max(ED_PAIN_MIN, min(ED_PAIN_MAX, rng.normal(_pain_mean, ED_PAIN_NOISE_STD))))
-    if _state.pain_level:
-        pain = max(pain, int(min(ED_PAIN_MAX, round(_state.pain_level * PAIN_SCORE_SCALE))))
     # AVPU (Issue #2081): ED triage assesses consciousness from the state
     # (consciousness axis, then perfusion); scheduled clinic visits do not
     # assess it, so no AVPU / GCS is recorded for them.
-    if proto_enc_type == "outpatient":
-        avpu = ""
-    else:
-        avpu = _loc_for(_state, "", 0, rng)
     vitals = [
-        VitalSignRecord(
-            timestamp=vit_time,
-            temperature_celsius=round(raw["temperature"], 1),
-            heart_rate=int(round(raw["heart_rate"])),
-            systolic_bp=int(round(raw["systolic_bp"])),
-            diastolic_bp=int(round(raw["diastolic_bp"])),
-            respiratory_rate=int(round(raw["respiratory_rate"])),
-            spo2=round(raw["spo2"], 1),
-            pain_score=pain,
-            consciousness_level=avpu,
+        ed_arrival_vitals(
+            _state,
+            patient,
+            vit_time,
+            rng,
             measured_by=ed_nurse_id,
-            data_source="manual",
+            assess_avpu=proto_enc_type != "outpatient",
+            temperature=presenting_temperature(_band, encounter.encounter_id) if _band else None,
         )
     ]
 

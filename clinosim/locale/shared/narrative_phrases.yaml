@@ -153,6 +153,11 @@ ed:
   on_arrival_no_findings:
     ja: "来院時所見: {vitals}。特記の身体所見なし。"
     en: "On arrival: {vitals}. No focal findings on exam."
+  # Issue #3243: an admitted patient's ED note quotes the ED arrival vitals
+  # without asserting a normal exam (they are often abnormal).
+  on_arrival_vitals:
+    ja: "来院時所見: {vitals}。"
+    en: "On arrival: {vitals}."
   # Issue #3242: an admitted patient's ED note with no reading taken in the
   # ED (the stay's vitals start on the ward) states that nothing was
   # recorded instead of asserting a normal exam.

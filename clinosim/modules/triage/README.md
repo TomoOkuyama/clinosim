@@ -24,12 +24,27 @@ helicopter), then writes the result to `Encounter.triage_data`
 4. The result is clamped into the bounds; then the arrival-vitals cap
    (`triage_level_cap`, Issue #2082) applies and may go below them.
 
-Non-emergency encounters are a no-op.
+A stay admitted through the ED (inpatient / ICU encounter with
+`admit_source` `emd`, Issue #3243) was triaged in the ED too: it gets
+`triage_data` with the triage time at the ED arrival
+(`admitted_ed_stay()` before the admission), and the enricher appends
+the ED arrival vital-sign set to `record.vital_signs` — derived from the
+state the patient was admitted in (`physiological_states[0]`) by the
+same function as a standalone ED visit's triage vitals
+(`simulator.vitals_pipeline.ed_arrival_vitals`), measured by an ED nurse
+at the triage-vitals offset, with its GCS, and marked
+`data_source = ED_TRIAGE_DATA_SOURCE` (`"ed_triage"`) so the FHIR output
+places it on the ED bridge Encounter. For such a stay the ESI resources
+count only its initial order set (`order_set == "admission_initial"`,
+the ED orders) and the vitals cap reads only the arrival set. Other
+encounters are a no-op.
 
 ## Scope
 
 - **In scope**: `triage_enricher` (POST_ENCOUNTER order=93,
-  ED-only); `pick_triage_level(severity, level_system, rng)` —
+  ED visits and via-ED admissions); `admitted_ed_stay()` — the ED phase of
+  a via-ED admission, shared with the document engine and the FHIR bridge
+  Encounter; `pick_triage_level(severity, level_system, rng)` —
   YAML weight table by severity (shared by JTAS and ESI), restricted
   to the condition bounds; `triage_scale(country)` — the level system of
   the scale the country profile names (`implementations.triage_scale`:
@@ -63,6 +78,7 @@ from clinosim.modules.triage.engine import (
     has_high_risk_order,         # (record, orders) -> bool
     triage_level,                # (record, enc, drawn) -> final level
     triage_level_cap,            # (vitals) -> least-urgent level allowed
+    admitted_ed_stay,            # () -> timedelta, ED phase before a via-ED admission
     load_triage_protocols,       # () -> dict (@lru_cache, TriageProtocols-validated)
 )
 ```
@@ -78,11 +94,22 @@ from clinosim.modules.triage.engine import (
 - Two draws per encounter (level, then arrival mode). The bounds
   change which level the level draw maps to, not the number of draws,
   so the arrival mode is unchanged by them (Issue #2864).
+- A via-ED admission draws its arrival vitals (vitals noise, pain, AVPU,
+  the ED nurse when a roster is present, GCS) from the same
+  per-encounter RNG before the level and the arrival mode; ED visits
+  draw exactly as before. The nursing enricher keeps a GCS already set on
+  a vital-sign set and draws nothing for it, so its own stream is
+  unchanged (Issue #3243).
 
 ## Dependencies
 
 - `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
-  `normalize_probabilities`.
+  `normalize_probabilities`, `admitted_via_ed`, `ED_TRIAGE_DATA_SOURCE`,
+  `ORDER_SET_ADMISSION_INITIAL`, `get_or_create_container`.
+- `clinosim.simulator.vitals_pipeline` — `ed_arrival_vitals`;
+  `clinosim.simulator._ed_thresholds` — `ED_VITALS_OFFSET_MIN`;
+  `clinosim.modules.staff.engine` — `assign_staff`;
+  `clinosim.modules.observation.nursing` — `compute_gcs`.
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`.
 - `clinosim.types.triage` — `TriageData`.
 - `clinosim.modules.encounter.protocol` — `load_all_encounter_conditions`
@@ -98,7 +125,8 @@ from clinosim.modules.triage.engine import (
   country-independent `severity_to_triage_distribution`,
   `arrival_mode_base_distribution`,
   `arrival_mode_severity_multipliers` and the ESI v4 `resource_rule`
-  (`level_by_count`, `parenteral_routes`, `non_resource_procedures`). The `TriageProtocols` model
+  (`level_by_count`, `parenteral_routes`, `non_resource_procedures`), and
+  `admitted_ed_stay_minutes` (> 0; the ED phase of a via-ED admission). The `TriageProtocols` model
   (run by the first `load_triage_protocols()` call) checks: non-empty
   top level / `triage_systems` is exactly JTAS+ESI / each system has
   levels 1-5 / `arrival_modes` matches `SUPPORTED_ARRIVAL_MODES` /
@@ -137,8 +165,9 @@ Registered in
 - `name="triage"`, `stage=POST_ENCOUNTER`, `order=93`,
   `enabled=lambda c: True`.
 - Runs before `nursing_assignment` (order=94) and `document`
-  (order=95). ED-only inside the enricher body (non-ED encounters
-  are skipped).
+  (order=95), so the document module sees the triage data of a via-ED
+  admission and plans its triage note. ED visits and via-ED admissions
+  only inside the enricher body (other encounters are skipped).
 - The `audit.py` module registers with the AD-60 audit framework at
   import time (`register_audit_module`).
 
@@ -166,6 +195,9 @@ Individual files:
   — `TriageProtocols` validator coverage.
 - [`tests/unit/modules/triage/test_esi_bounds_2864.py`](../../../tests/unit/modules/triage/test_esi_bounds_2864.py)
   — bounded draw, resource rule, high-risk orders, vitals cap.
+- [`tests/unit/modules/triage/test_ed_admission_triage_3243.py`](../../../tests/unit/modules/triage/test_ed_admission_triage_3243.py)
+  — via-ED admissions: triage at the ED arrival, arrival vitals, ED-phase
+  orders and vitals cap, nursing GCS stream.
 
 ## Ownership
 

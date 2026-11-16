@@ -47,6 +47,7 @@ from clinosim.modules.output.fhir_r4.labs.observations import (
 )
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, system_coding
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
+from clinosim.modules.output.fhir_r4.lib.ed_reattribution import vital_sign_encounter_id
 from clinosim.modules.output.fhir_r4.lib.ids import wrap_as_identifier
 from clinosim.modules.output.fhir_r4.lib.profile_meta import profile_meta
 from clinosim.modules.output.fhir_r4.medications.medications import (
@@ -62,6 +63,7 @@ from clinosim.modules.output.fhir_r4.procedures.procedures import (
     _resolve_procedure_id,
     procedure_reason_codes,
 )
+from clinosim.modules.triage.engine import admitted_ed_stay
 from clinosim.simulator._ed_thresholds import ED_DEPARTMENT_ID, ED_WARD_ID
 
 
@@ -90,16 +92,15 @@ def _make_synth_ed_enc_dict(
         else getattr(imp_enc, "admission_datetime", "")
     )
     _imp_adm_str = str(_imp_adm) if _imp_adm else ""
-    # ED stay ~3.5 hours before IMP admission — clinical-realistic bridge.
+    # The ED phase is [admission - admitted_ed_stay(), admission] (Issue #3243).
     _ed_end_str = _imp_adm_str
     _ed_start_str = ""
     try:
         from datetime import datetime as _dt
-        from datetime import timedelta as _td
 
         if _imp_adm_str and "T" in _imp_adm_str:
             _dt0 = _dt.fromisoformat(_imp_adm_str.replace("Z", "+00:00"))
-            _ed_start_str = (_dt0 - _td(hours=3, minutes=30)).isoformat()
+            _ed_start_str = (_dt0 - admitted_ed_stay()).isoformat()
     except (ValueError, TypeError):
         pass
     _att = (
@@ -328,7 +329,7 @@ def _bb_vitals(ctx: BundleContext) -> list[dict]:
             ctx.patient_id,
             i,
             ctx.country,
-            ctx.primary_enc_id,
+            vital_sign_encounter_id(vs, ctx),
             birth_date=patient.get("date_of_birth"),
             age_years=patient.get("age"),
         ):

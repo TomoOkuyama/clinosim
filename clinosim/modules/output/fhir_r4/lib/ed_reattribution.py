@@ -16,22 +16,24 @@ for DocumentReference) from ``Encounter/{IMP_id}`` to
 ``Encounter/{IMP_id}-ED`` for resources that semantically belong to the
 ED stay.
 
-**Sole trigger: doc_type.** Composition / DocumentReference whose LOINC
-type code is 34878-9 (ED note, 救急科記録) or 54094-8 (ED triage note,
+**Document trigger: doc_type.** Composition / DocumentReference whose
+LOINC type code is 34878-9 (ED note, 救急科記録) or 54094-8 (ED triage note,
 トリアージ記録) is attributed to the ED bridge.
 
-**Why doc_type only, not timestamp:** an earlier draft added a
-timestamp-based fallback (route resources whose effective date falls
-within a 3.5-hour ED window before IMP admission). Testing against the
-p=200 s800 baseline showed CIF timestamps are unreliable proxies for
-semantic locus — nursing intake notes are stamped at 08:00 (which
-happens to land in the ED window preceding an 08:37 admission) but are
-clinically ward activity, not ED activity. Routing them to the -ED
-bridge would misrepresent the clinical narrative. Once the simulator
-grows a Phase B that emits genuinely ED-timed vitals / meds /
-procedures with explicit ED provenance, a separate, provenance-based
-routing hook can be added — but timestamp coincidence alone is too
-noisy to route on.
+**Vital-sign trigger: provenance** (Issue #3243). The ED arrival vital-sign
+set the triage enricher records for a via-ED admission carries
+``data_source == ED_TRIAGE_DATA_SOURCE``; its Observations (and the NEWS2 /
+GCS scored from it) are emitted on the ED bridge through
+:func:`vital_sign_encounter_id`, which the builders call when they emit.
+
+**Why not timestamp:** an earlier draft added a timestamp-based fallback
+(route resources whose effective date falls within the ED window before IMP
+admission). Testing against the p=200 s800 baseline showed CIF timestamps
+are unreliable proxies for semantic locus — nursing intake notes are stamped
+at 08:00 (which happens to land in the ED window preceding an 08:37
+admission) but are clinically ward activity, not ED activity. Routing them
+to the -ED bridge would misrepresent the clinical narrative. Only explicit
+provenance routes a resource.
 
 Idempotent: only rewrites when the current reference matches the IMP id
 exactly, so re-running the walker (or running it against already-attributed
@@ -42,7 +44,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from clinosim.modules._shared import get_attr_or_key
+from clinosim.modules._shared import ED_TRIAGE_DATA_SOURCE, admitted_via_ed, get_attr_or_key
 from clinosim.modules.document.narrative.registry import document_loinc
 from clinosim.modules.output.fhir_r4.encounters.encounter import resolve_encounter_id
 
@@ -99,6 +101,18 @@ def reattribute_encounter_to_ed_bridge(resource: dict, ctx: Any) -> None:
                 ref["reference"] = ed_ref
 
 
+def vital_sign_encounter_id(vs: Any, ctx: Any) -> str:
+    """CIF encounter id a vital-sign set's Observations reference: the ED
+    bridge ``{IMP}-ED`` for the ED arrival set of a via-ED admission
+    (``data_source == ED_TRIAGE_DATA_SOURCE``, Issue #3243), else the
+    record's primary encounter (``ctx.primary_enc_id``)."""
+    if get_attr_or_key(vs, "data_source", "") == ED_TRIAGE_DATA_SOURCE:
+        imp_id = _resolve_ed_imp_id(ctx)
+        if imp_id is not None:
+            return f"{imp_id}-ED"
+    return str(getattr(ctx, "primary_enc_id", "") or "")
+
+
 def _resolve_ed_imp_id(ctx: Any) -> str | None:
     """Return the IMP encounter id when the record has an ED-admitted
     (``admit_source == emd``) primary encounter; otherwise ``None``.
@@ -113,10 +127,7 @@ def _resolve_ed_imp_id(ctx: Any) -> str | None:
     encounters = ctx.record.get("encounters", []) if isinstance(ctx.record, dict) else []
     if encounters:
         imp = encounters[0]
-        admit_source = get_attr_or_key(imp, "admit_source")
-        # AdmitSource.EMD.value == "emd"; accept both the enum instance and
-        # the raw string that reaches this layer from serialized CIF.
-        if str(admit_source) == "emd" or str(admit_source).lower().endswith(".emd"):
+        if admitted_via_ed(imp):
             raw = get_attr_or_key(imp, "encounter_id") or ""
             if raw:
                 imp_id = str(raw)

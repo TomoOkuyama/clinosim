@@ -41,6 +41,19 @@ MED_STOP_ORDER_ID_MARKER: str = "-STOP-"
 ORDER_SET_ADMISSION_INITIAL: str = "admission_initial"
 ORDER_SET_ADMISSION_CARE: str = "admission_care"
 
+# ``VitalSignRecord.data_source`` of the arrival set the ED triage nurse
+# records for a patient admitted through the ED (Issue #3243), shared by the
+# writer (the triage enricher) and the readers (FHIR routes it to the ED
+# bridge Encounter).
+ED_TRIAGE_DATA_SOURCE: str = "ed_triage"
+
+
+def admitted_via_ed(encounter: Any) -> bool:
+    """True when ``encounter`` is a stay admitted through the ED
+    (``admit_source`` ``emd``, as the enum or its serialized string)."""
+    raw = get_attr_or_key(encounter, "admit_source", "") or ""
+    return str(getattr(raw, "value", raw)).lower() == "emd"
+
 
 def random_day_of_month(rng: np.random.Generator, year: int, month: int) -> int:
     """A uniform day of ``month`` (1 to its last day, incl. 29 Feb in leap years).

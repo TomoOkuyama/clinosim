@@ -57,7 +57,14 @@ def enrich_nursing(ctx) -> None:
             vsd = vs if isinstance(vs, dict) else vs.__dict__
             news2 = compute_news2(vsd) if news2_applies else None
             loc_val = vsd.get("consciousness_level", "") or ""
-            gcs = compute_gcs(loc_val, perfusion_status=1.0, rng=rng) if loc_val else None
+            # Issue #3243: a set whose GCS its writer already recorded (the ED
+            # arrival set of the triage enricher) keeps it and draws nothing
+            # from this stream.
+            gcs = (
+                compute_gcs(loc_val, perfusion_status=1.0, rng=rng)
+                if loc_val and vsd.get("gcs_score") is None
+                else None
+            )
             if isinstance(vs, dict):
                 if news2 is not None:
                     vs["news2_score"] = news2

@@ -1759,6 +1759,8 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
+        "encounter.triage_data",
+        "ctx.vitals[0]",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
         "ctx.encounter.chief_complaint",
@@ -1776,10 +1778,27 @@
         "disposition": "[Mock LLM response #17 — disposition]",
         "ed_workup": "Labs: CBC, coagulation studies, LFT, lipid panel, troponin I, troponin I (6 h repeat), CK-MB, BNP. Imaging: 12-lead ECG, echocardiogram, chest X-ray PA, coronary angiography, chest X-ray AP. Medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Procedures ordered: O2: Nasal cannula SpO2 >= 94%",
         "hpi": "[Mock LLM response #17 — hpi]",
-        "physical_exam": "Examination on arrival: not recorded",
-        "triage_details": "Triage information: not recorded"
+        "physical_exam": "On arrival: BP 121/75 mmHg, HR 108 bpm, RR 22 /min, SpO2 98%, T 37.9°C.",
+        "triage_details": "Triage level: ESI Level 2. Arrival mode: Private vehicle."
       },
       "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-308142489017-ED-62": {
+    "document_id": "doc-ENC-FORCED-0001-308142489017-ED-62",
+    "encounter_id": "ENC-FORCED-0001-308142489017",
+    "narrative": {
+      "facts_used": [
+        "encounter.triage_data"
+      ],
+      "generated_at": "2024-06-15T02:16:00Z",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {},
+      "text": "Triage level: ESI Level 2\nArrival mode: Private vehicle\nChief complaint: Chest pain, diaphoresis, dyspnea"
     }
   }
 }

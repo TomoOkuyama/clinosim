@@ -201,3 +201,79 @@ def test_missing_encounter_id_disables_routing():
     }
     reattribute_encounter_to_ed_bridge(resource, ctx)
     assert resource["encounter"]["reference"] == "Encounter/ENC-X"
+
+
+# ---- provenance trigger: ED arrival vitals (Issue #3243) ----------------------
+
+
+def _vitals_ctx(admit_source: str = "emd"):
+    from clinosim.modules._shared import ED_TRIAGE_DATA_SOURCE
+
+    record = {
+        "encounters": [{"encounter_id": _IMP_CIF, "admit_source": admit_source}],
+        "vital_signs": [
+            {
+                "timestamp": "2026-03-01T14:35:00",
+                "heart_rate": 118,
+                "consciousness_level": "V",
+                "news2_score": 7,
+                "gcs_score": 13,
+                "data_source": ED_TRIAGE_DATA_SOURCE,
+            },
+            {"timestamp": "2026-03-01T20:00:00", "heart_rate": 96, "data_source": "manual"},
+        ],
+        "orders": [],
+    }
+    return SimpleNamespace(
+        record=record,
+        patient_data={"age": 70},
+        patient_id="POP-000001",
+        country="US",
+        primary_enc_id=_IMP_CIF,
+    )
+
+
+def test_vital_sign_encounter_id_routes_only_the_ed_arrival_set():
+    from clinosim.modules.output.fhir_r4.lib.ed_reattribution import vital_sign_encounter_id
+
+    ctx = _vitals_ctx()
+    arrival, ward = ctx.record["vital_signs"]
+    assert vital_sign_encounter_id(arrival, ctx) == f"{_IMP_CIF}-ED"
+    assert vital_sign_encounter_id(ward, ctx) == _IMP_CIF
+
+
+def test_vital_sign_encounter_id_without_ed_admission_keeps_the_primary():
+    from clinosim.modules.output.fhir_r4.lib.ed_reattribution import vital_sign_encounter_id
+
+    ctx = _vitals_ctx(admit_source="outp")
+    assert vital_sign_encounter_id(ctx.record["vital_signs"][0], ctx) == _IMP_CIF
+
+
+def test_arrival_vital_observations_reference_the_ed_bridge():
+    from clinosim.modules.output.fhir_r4.lib.inline_bb import _bb_vitals
+
+    observations = _bb_vitals(_vitals_ctx())
+    hr = [o for o in observations if o["code"]["coding"][0]["code"] == "8867-4"]
+    assert [o["encounter"]["reference"] for o in hr] == [_ED_REF, _IMP_REF]
+
+
+def test_arrival_news2_and_gcs_reference_the_ed_bridge():
+    from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
+
+    refs = {
+        o["code"]["text"]: o["encounter"]["reference"]
+        for o in _bb_nursing_observations(_vitals_ctx())
+        if o.get("valueInteger") in (7, 13)
+    }
+    assert refs and set(refs.values()) == {_ED_REF}
+
+
+def test_bridge_period_starts_at_the_ed_arrival():
+    from datetime import datetime
+
+    from clinosim.modules.output.fhir_r4.lib.inline_bb import _make_synth_ed_enc_dict
+    from clinosim.modules.triage.engine import admitted_ed_stay
+
+    synth = _make_synth_ed_enc_dict(None, {"admission_datetime": "2026-03-01T18:00:00"}, f"{_IMP_CIF}-ED")
+    assert synth["admission_datetime"] == (datetime(2026, 3, 1, 18, 0) - admitted_ed_stay()).isoformat()
+    assert synth["discharge_datetime"] == "2026-03-01T18:00:00"

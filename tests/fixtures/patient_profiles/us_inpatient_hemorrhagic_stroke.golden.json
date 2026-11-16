@@ -1063,6 +1063,8 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
+        "encounter.triage_data",
+        "ctx.vitals[0]",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
         "ctx.encounter.chief_complaint",
@@ -1080,10 +1082,27 @@
         "disposition": "Admitted (Sudden severe headache, vomiting, altered consciousness)",
         "ed_workup": "Labs: PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K, glucose. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h",
         "hpi": "Patient presented with severe symptoms.",
-        "physical_exam": "Examination on arrival: not recorded",
-        "triage_details": "Triage information: not recorded"
+        "physical_exam": "On arrival: BP 131/74 mmHg, HR 96 bpm, RR 18 /min, SpO2 94%, T 36.3°C.",
+        "triage_details": "Triage level: ESI Level 2. Arrival mode: Ambulance."
       },
       "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-160487169457-ED-38": {
+    "document_id": "doc-ENC-FORCED-0001-160487169457-ED-38",
+    "encounter_id": "ENC-FORCED-0001-160487169457",
+    "narrative": {
+      "facts_used": [
+        "encounter.triage_data"
+      ],
+      "generated_at": "2024-06-15T02:16:00Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {},
+      "text": "Triage level: ESI Level 2\nArrival mode: Ambulance\nChief complaint: Sudden severe headache, vomiting, altered consciousness"
     }
   }
 }

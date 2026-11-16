@@ -2264,6 +2264,8 @@
       "facts_used": [
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.bacterial_pneumonia[1]",
+        "encounter.triage_data",
+        "ctx.vitals[0]",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
         "ctx.encounter.chief_complaint",
@@ -2281,10 +2283,27 @@
         "disposition": "入院適応（発熱・咳嗽・呼吸困難）",
         "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、CRP、PCT、クレアチニン、BUN、Na、K。画像: 胸部レントゲン (正面・側面)、胸部レントゲン (正面・側面)。投薬: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 酸素投与: 鼻カニューラ SpO2 >= 94%",
         "hpi": "中等度の症状で受診。",
-        "physical_exam": "来院時の身体所見: 記載なし",
-        "triage_details": "トリアージ情報：未記録"
+        "physical_exam": "来院時所見: BP 120/71 mmHg, HR 104 回/分, RR 25 回/分, SpO2 87%, T 38.2°C。",
+        "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 独歩来院。"
       },
       "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-885245253478-ED-79": {
+    "document_id": "doc-ENC-FORCED-0001-885245253478-ED-79",
+    "encounter_id": "ENC-FORCED-0001-885245253478",
+    "narrative": {
+      "facts_used": [
+        "encounter.triage_data"
+      ],
+      "generated_at": "2024-06-15T10:01:00+09:00",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "ja"
+      },
+      "sections": {},
+      "text": "トリアージレベル: JTAS レベル2\n来院形態: 独歩来院\n主訴: 発熱・咳嗽・呼吸困難"
     }
   }
 }

@@ -6,12 +6,13 @@ POST_ENCOUNTER enricher entry:triage_enricher(Task 3)。
 
 from __future__ import annotations
 
+from datetime import timedelta
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from clinosim import determinism
 from clinosim.country_profile import implementation, register_implementation
@@ -81,6 +82,7 @@ class TriageProtocols(BaseModel):
     arrival_mode_base_distribution: dict[str, float]
     resource_rule: _ResourceRule
     arrival_mode_severity_multipliers: dict[str, dict[str, float]]
+    admitted_ed_stay_minutes: int = Field(gt=0)
 
     @model_validator(mode="before")
     @classmethod
@@ -138,6 +140,12 @@ class TriageProtocols(BaseModel):
 def load_triage_protocols() -> dict[str, Any]:
     """Load triage_protocols.yaml + validate."""
     return load_validated_yaml(_REF_DIR / "triage_protocols.yaml", TriageProtocols)
+
+
+def admitted_ed_stay() -> timedelta:
+    """How long a patient admitted through the ED stays in the ED before the
+    admission (Issue #3243): the ED phase is ``[admission - this, admission]``."""
+    return timedelta(minutes=int(load_triage_protocols()["admitted_ed_stay_minutes"]))
 
 
 def pick_triage_level(
@@ -245,6 +253,12 @@ def pick_arrival_mode(severity: str, rng: np.random.Generator) -> str:
 
 from datetime import datetime  # noqa: E402 — kept here to avoid circular import at module top
 
+from clinosim.modules._shared import (  # noqa: E402
+    ED_TRIAGE_DATA_SOURCE,
+    ORDER_SET_ADMISSION_INITIAL,
+    admitted_via_ed,
+    get_or_create_container,
+)
 from clinosim.modules._shared import get_attr_or_key as _o  # noqa: E402
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed  # noqa: E402
 from clinosim.types.triage import TriageData  # noqa: E402
@@ -287,28 +301,84 @@ def has_high_risk_order(record: Any, orders: list[Any]) -> bool:
     return any(str(_o(o, "display_name", "") or "") in high_risk for o in orders)
 
 
+def _ed_orders(record: Any, enc: Any) -> list[Any]:
+    """The orders of the ED phase of ``enc``: the visit's orders, or for a
+    stay admitted through the ED its initial order set, which the ED
+    physician writes (Issue #3242)."""
+    enc_id = _o(enc, "encounter_id", "")
+    orders = [o for o in (_o(record, "orders", []) or []) if _o(o, "encounter_id", "") in ("", enc_id)]
+    if admitted_via_ed(enc):
+        orders = [o for o in orders if _o(o, "order_set", "") == ORDER_SET_ADMISSION_INITIAL]
+    return orders
+
+
+def _ed_vitals(record: Any, enc: Any) -> list[Any]:
+    """The timestamped vital-sign sets of the ED phase of ``enc``: every set
+    of an ED visit, the ED arrival set of a stay admitted through the ED."""
+    vitals = [v for v in (_o(record, "vital_signs", []) or []) if _o(v, "timestamp", None) is not None]
+    if admitted_via_ed(enc):
+        vitals = [v for v in vitals if _o(v, "data_source", "") == ED_TRIAGE_DATA_SOURCE]
+    return vitals
+
+
 def triage_level(record: Any, enc: Any, drawn: int) -> int:
     """Triage level of an ED encounter from the bounded severity draw (Issue
     #2864): a drawn 1-2 stands; a drawn 3-5 becomes the ESI v4 resource level;
     a high-risk order makes it 2 at most; the result stays inside the
     condition bounds. The vitals cap (Issue #2082) applies last and may go
-    below the bounds."""
-    enc_id = _o(enc, "encounter_id", "")
-    orders = [o for o in (_o(record, "orders", []) or []) if _o(o, "encounter_id", "") in ("", enc_id)]
+    below the bounds. For a stay admitted through the ED the orders and
+    vitals are those of its ED phase (Issue #3243)."""
+    orders = _ed_orders(record, enc)
     level = drawn if drawn <= 2 else resource_level(orders)
     if has_high_risk_order(record, orders):
         level = min(level, 2)
     lo, hi = condition_triage_bounds(record)
     level = min(max(level, lo), hi)
-    enc_vitals = [v for v in (_o(record, "vital_signs", []) or []) if _o(v, "timestamp", None) is not None]
+    enc_vitals = _ed_vitals(record, enc)
     if enc_vitals:
         arrival = min(enc_vitals, key=lambda v: _o(v, "timestamp", None))
         level = min(level, triage_level_cap(arrival))
     return level
 
 
+def _record_ed_arrival_vitals(ctx: Any, record: Any, arrival: datetime, rng: np.random.Generator) -> None:
+    """Append the arrival vital-sign set of a stay admitted through the ED
+    (Issue #3243), measured by an ED nurse at the triage-vitals offset after
+    ``arrival`` from the state the patient was admitted in
+    (``physiological_states[0]``), with its GCS when AVPU is recorded. No-op
+    without a recorded state."""
+    from clinosim.modules.observation.nursing import compute_gcs
+    from clinosim.modules.staff.engine import assign_staff
+    from clinosim.simulator._ed_thresholds import ED_VITALS_OFFSET_MIN
+    from clinosim.simulator.vitals_pipeline import ed_arrival_vitals
+
+    states = _o(record, "physiological_states", []) or []
+    if not states:
+        return
+    roster = _o(ctx, "roster", None)
+    nurse = (
+        assign_staff("medication_administration", "emergency_medicine", roster, rng).get("administering_nurse", "")
+        if roster is not None
+        else ""
+    )
+    vitals = ed_arrival_vitals(
+        states[0],
+        _o(record, "patient", None),
+        arrival + timedelta(minutes=ED_VITALS_OFFSET_MIN),
+        rng,
+        measured_by=nurse,
+        data_source=ED_TRIAGE_DATA_SOURCE,
+    )
+    if vitals.consciousness_level:
+        vitals.gcs_score = compute_gcs(vitals.consciousness_level, perfusion_status=1.0, rng=rng)
+    get_or_create_container(record, "vital_signs", list).append(vitals)
+
+
 def triage_enricher(ctx: Any) -> None:
-    """POST_ENCOUNTER enricher: populate triage_data on ED encounters.
+    """POST_ENCOUNTER enricher: populate triage_data on ED encounters and on
+    stays admitted through the ED (Issue #3243), whose triage time is the ED
+    arrival (``admitted_ed_stay`` before the admission) and which also get
+    the ED arrival vital-sign set.
 
     Country-gated: JP→JTAS、US→ESI。
     Determinism via derive_sub_seed(master, ENRICHER_SEED_OFFSETS["triage"],
@@ -333,17 +403,22 @@ def triage_enricher(ctx: Any) -> None:
             enc_type = _o(enc, "encounter_type", "")
             # enum vs str dual-access
             enc_type_str = enc_type.value if hasattr(enc_type, "value") else str(enc_type)
-            if enc_type_str.lower() not in ED_ENCOUNTER_TYPES:
+            # Issue #3243: a stay admitted through the ED was triaged in the ED.
+            admitted = enc_type_str.lower() not in ED_ENCOUNTER_TYPES and admitted_via_ed(enc)
+            if enc_type_str.lower() not in ED_ENCOUNTER_TYPES and not admitted:
                 continue
             severity = _o(enc, "severity", "moderate") or "moderate"
             enc_id = _o(enc, "encounter_id", "")
             sub_seed = derive_sub_seed(ctx.master_seed, ENRICHER_SEED_OFFSETS["triage"], enc_id)
             rng = determinism.default_rng(sub_seed)
+            admission_dt = _o(enc, "admission_datetime", None)
+            triage_time = admission_dt if isinstance(admission_dt, datetime) else None
+            if admitted and triage_time is not None:
+                triage_time = triage_time - admitted_ed_stay()
+                _record_ed_arrival_vitals(ctx, record, triage_time, rng)
             drawn = pick_triage_level(severity, level_system, rng, condition_triage_bounds(record))
             level = str(triage_level(record, enc, int(drawn)))
             arrival_mode = pick_arrival_mode(severity, rng)
-            admission_dt = _o(enc, "admission_datetime", None)
-            triage_time = admission_dt if isinstance(admission_dt, datetime) else None
             enc.triage_data = TriageData(
                 level=level,
                 level_system=level_system,

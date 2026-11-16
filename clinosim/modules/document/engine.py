@@ -65,6 +65,7 @@ from clinosim.codes.loinc import loinc_display
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.countries import lang_for
 from clinosim.locale.i18n import t
+from clinosim.modules._shared import admitted_via_ed
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document import (
     CLINICAL_IMPRESSION_ID_PREFIX,
@@ -74,6 +75,7 @@ from clinosim.modules.document import (
 )
 from clinosim.modules.document.narrative._narrative_utils import encounter_died
 from clinosim.modules.document.narrative.registry import document_loinc
+from clinosim.modules.triage.engine import admitted_ed_stay
 from clinosim.types.clinical import ClinicalDocument, ClinicalImpressionRecord
 from clinosim.types.document import DocumentType
 
@@ -556,15 +558,14 @@ def _ed_companion_documents(
     stubs stay on the IMP record (CY7-05: no new ``record.encounters``
     entry); the narrative pass fills them with the ED templates.
     """
-    admit_source = _o(encounter, "admit_source", None)
-    if not (str(admit_source) == "emd" or str(admit_source).lower().endswith(".emd")):
+    if not admitted_via_ed(encounter):
         return [], doc_seq
     ed_enc_id = f"{encounter_id}-ED"
     # Mid-ED-window authored time (synth Encounter.period is
-    # [admission-3.5h, admission]).
+    # [admission - admitted_ed_stay(), admission]).
     plan = _DocPlan(
         (admission_dt - timedelta(hours=2)).isoformat(),
-        (admission_dt - timedelta(hours=3, minutes=30)).isoformat(),
+        (admission_dt - admitted_ed_stay()).isoformat(),
         admission_dt.isoformat(),
     )
     # Issue #2998: the triage note is written from the ED phase's triage data;
