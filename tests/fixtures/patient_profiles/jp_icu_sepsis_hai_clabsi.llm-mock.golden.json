@@ -1311,7 +1311,8 @@
         "ctx.procedures[PROC-FORCED-0001-002]",
         "ctx.procedures.specimens_sent",
         "ctx.procedures[PROC-FORCED-0001-002]",
-        "ctx.procedures.outcome_code"
+        "ctx.procedures.outcome_code",
+        "ctx.procedures.procedure_type"
       ],
       "generated_at": "2024-06-15T04:42:31.801622+09:00",
       "generator": "llm-mock",
@@ -1352,7 +1353,8 @@
         "ctx.procedures[PROC-FORCED-0001-003]",
         "ctx.procedures.specimens_sent",
         "ctx.procedures[PROC-FORCED-0001-003]",
-        "ctx.procedures.outcome_code"
+        "ctx.procedures.outcome_code",
+        "ctx.procedures.procedure_type"
       ],
       "generated_at": "2024-06-15T03:21:02.833955+09:00",
       "generator": "llm-mock",
@@ -1393,7 +1395,8 @@
         "ctx.procedures[PROC-FORCED-0001-004]",
         "ctx.procedures.specimens_sent",
         "ctx.procedures[PROC-FORCED-0001-004]",
-        "ctx.procedures.outcome_code"
+        "ctx.procedures.outcome_code",
+        "ctx.procedures.procedure_type"
       ],
       "generated_at": "2024-06-15T13:36:46.728214+09:00",
       "generator": "llm-mock",

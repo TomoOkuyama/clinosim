@@ -1036,7 +1036,8 @@
         "ctx.procedures",
         "ctx.procedures",
         "ctx.procedures",
-        "ctx.procedures"
+        "ctx.procedures",
+        "ctx.icu_transferred_day"
       ],
       "generated_at": "2024-06-15T11:26:33.768897Z",
       "generator": "template",
@@ -1050,7 +1051,7 @@
         "op_course": "Operative course: planned procedure performed, operative time 32 min. Outcome: successful",
         "op_equipment": "Implants / devices: none",
         "op_findings": "Body site: Brain structure / No intraoperative complications",
-        "op_postop_plan": "Postoperative plan: ward-level monitoring. Vital signs, urine output, and wound assessment will be checked at frequent intervals to detect postoperative complications early.",
+        "op_postop_plan": "Postoperative plan: ward-level monitoring. Level of consciousness, pupils, limb movement, vital signs, and the wound will be checked at frequent intervals to detect rebleeding and other postoperative complications early.",
         "op_procedure_name": "Procedure: Craniectomy or craniotomy for evacuation of hematoma, supratentorial; intracerebral (code 61313); operative time 32 min",
         "op_specimens": "Specimens sent to pathology: none",
         "op_surgeon": "Primary surgeon: Clara Pittman / Assistants: none"

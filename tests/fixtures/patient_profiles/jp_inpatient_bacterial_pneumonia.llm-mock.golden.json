@@ -2237,7 +2237,8 @@
         "ctx.procedures[PROC-FORCED-0001-002]",
         "ctx.procedures.specimens_sent",
         "ctx.procedures[PROC-FORCED-0001-002]",
-        "ctx.procedures.outcome_code"
+        "ctx.procedures.outcome_code",
+        "ctx.procedures.procedure_type"
       ],
       "generated_at": "2024-06-15T17:29:38.724512+09:00",
       "generator": "llm-mock",

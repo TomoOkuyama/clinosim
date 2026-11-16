@@ -229,7 +229,9 @@ procedure:
   anesthesia: "general"
   estimated_blood_loss_ml: {mean: 150, sd: 100, min: 30, max: 500}
   approach:
-    "complex hand surgery / replantation": "debridement, fixation, tendon/nerve repair; replantation if amputation"
+    # Keyed by the recorded procedure type (the part of `type` before "/");
+    # replantation is not a modelled procedure (Issue #3284).
+    "complex hand surgery": "debridement, fixation, and tendon/nerve repair"
 
 target_los:
   japan:

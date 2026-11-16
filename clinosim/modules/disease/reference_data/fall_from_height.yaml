@@ -290,7 +290,7 @@ procedure:
   anesthesia: "general"
   estimated_blood_loss_ml: {mean: 500, sd: 400, min: 100, max: 2000}
   approach:
-    "orthopedic fracture fixation": "open reduction and internal fixation; spinal stabilization if indicated"
+    "orthopedic fracture fixation": "open reduction and internal fixation"  # spinal stabilization is not a modelled procedure (Issue #3284)
 
 target_los:
   japan:

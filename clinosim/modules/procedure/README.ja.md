@@ -120,6 +120,12 @@ Specimen を出す。
 catalog の麻酔と、呼び出し側の `performer_id` (encounter の担当医) を
 `primary_surgeon_id` に持ち、出血量・ASA 分類は持たない。
 
+処置後ケア (Issue #3257): 処置記録・手術記録の対象となる catalog の各項目は
+`aftercare` 区分 (`urinary_catheter`・`central_line`・`vascular_access`・
+`surgical_wound` など。`clinosim.codes.procedures.procedure_aftercare` で読む)
+を持つ。記録はその区分の `procedure_aftercare.<区分>` 文言を術後方針として
+書き、区分のない種別は `general` の方針になる。
+
 ## 決定論
 
 - `ENRICHER_SEED_OFFSETS` にサブ seed 未登録。全 entry は caller

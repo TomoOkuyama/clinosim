@@ -162,6 +162,20 @@ def _localize_op_approach(approach: str, lang: str) -> str:
     )
 
 
+def _op_approach_is_phrase(approach: str) -> bool:
+    """Whether a surgical approach is a whole description that takes no
+    "approach" / 「アプローチ」 suffix in the operative course (Issue #3284):
+    the ``phrase`` flag of its ``narrative_op_approach.yaml`` entry. An
+    unmapped value is raw text and is written as it is (no suffix)."""
+    key = str(approach or "").strip().lower()
+    if not key:
+        return False
+    from clinosim.locale.loader import load_narrative_op_approach
+
+    entry = load_narrative_op_approach().get(key)
+    return True if entry is None else bool(entry.get("phrase"))
+
+
 def _localize_op_implant(implant: str, lang: str) -> str:
     """Localize an implant / device string for the operative_note
     equipment field. Vocab lives in ``narrative_op_implants.yaml``
