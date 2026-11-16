@@ -1442,17 +1442,22 @@ diagnoses_and_complaint:
 # REHAB_PLAN (RP) section-builder line templates (Phase 1d-27).
 # From section_builders.care_plans.build_rp_rehab_team /
 # build_rp_functional_status / build_rp_session_frequency /
-# build_rp_discharge_estimate.
+# build_rp_discharge_estimate / build_rp_explanation_consent.
+# Issue #3261: the plan is written when rehabilitation starts, so these lines
+# carry the evaluation in force at that time and planned values only.
 rp_note:
   rehab_team_line:
     ja: "担当リハビリ職種：{disciplines}／{therapist_note}"
     en: "Rehab discipline(s): {disciplines} / {therapist_note}"
   functional_status_line:
-    ja: "機能的改善度：{progress}／リハビリへの参加度：{participation}／疼痛スコア：{pain}"
-    en: "Functional progress: {progress} / Participation: {participation} / Pain score: {pain}"
+    ja: "評価日：{date}／リハビリへの参加度：{participation}／疼痛スコア：{pain}"
+    en: "Evaluated: {date} / Participation: {participation} / Pain score: {pain}"
   session_frequency_line:
-    ja: "実施回数：{count}回（{first}〜{last}）、1回あたり{duration}分"
-    en: "Sessions: {count} ({first} to {last}), {duration} min each"
+    ja: "実施予定：1日1回、1回あたり{duration}分（{start}開始）"
+    en: "Planned: once daily, {duration} min per session (starting {start})"
+  explanation_given_line:
+    ja: "本人・家族への説明：説明済（{date}）"
+    en: "Explanation to patient/family: given ({date})"
   discharge_estimate_line:
     ja: "リハビリテーション終了の目安：入院後約{days}日"
     en: "Estimated rehabilitation completion: approximately {days} days post-admission"

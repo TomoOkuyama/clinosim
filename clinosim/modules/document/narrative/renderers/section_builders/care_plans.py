@@ -354,21 +354,40 @@ def build_rp_patient_and_diagnosis(
     return build_acp_diagnosis(generator, ctx)
 
 
+def _rp_sessions_known(ctx: NarrativeContext) -> tuple[list[Any], Any | None]:
+    """Issue #3261: the rehabilitation plan (別紙様式21) is written when
+    rehabilitation starts, from the initial evaluation. Returns the sessions
+    recorded at or before ``ctx.authored_datetime`` (sorted by date) and the
+    session in force at that time (the evaluation the plan rests on). Before
+    the first session: that first session only. No authored time: the whole
+    stay (the latest session in force)."""
+    sessions = sorted(ctx.rehab_sessions or [], key=lambda s: _o(s, "session_date", datetime(1970, 1, 1)))
+    if not sessions:
+        return [], None
+    as_of = getattr(ctx, "authored_datetime", None)
+    baseline = in_force_at(sessions, as_of, key="session_date")
+    if as_of is None:
+        return sessions, baseline
+    known = [s for s in sessions if _o(s, "session_date", datetime(1970, 1, 1)) <= as_of]
+    return (known or [sessions[0]]), baseline
+
+
 @section("rehab_team")
 def build_rp_rehab_team(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """リハ担当医・PT・OT・ST — therapy_type set from ctx.rehab_sessions.
-    generate_rehab_sessions (modules/procedure/engine.py) currently only
-    produces "PT" — this renders whatever therapy types are actually
-    present rather than implying multi-disciplinary coverage that doesn't
-    exist (design spec §3e / §4 out-of-scope note)."""
+    """リハ担当医・PT・OT・ST — therapy_type set from the sessions known when
+    the plan is written (Issue #3261). generate_rehab_sessions
+    (modules/procedure/engine.py) currently only produces "PT" — this renders
+    whatever therapy types are actually present rather than implying
+    multi-disciplinary coverage that doesn't exist (design spec §3e / §4
+    out-of-scope note). RehabSession carries no therapist, so the therapist
+    stays "not yet assigned" (the narrative does not invent a name)."""
     facts: list[str] = []
     lang = ctx.target_lang
-    therapy_types = sorted(
-        {str(_o(s, "therapy_type", "") or "") for s in (ctx.rehab_sessions or []) if _o(s, "therapy_type", "")}
-    )
+    known, _ = _rp_sessions_known(ctx)
+    therapy_types = sorted({str(_o(s, "therapy_type", "") or "") for s in known if _o(s, "therapy_type", "")})
     if not therapy_types:
         return (t("fallback.rp_team_fallback", lang)), facts
-    facts.append("ctx.rehab_sessions")
+    facts.append("ctx.rehab_sessions@authored")
     joined = t("list_sep.serial", lang).join(_label("rp_therapy_type", tt, lang, fallback=tt) for tt in therapy_types)
     therapist_note = t("fallback.rp_therapist_fallback", lang)
     return t("rp_note.rehab_team_line", lang, disciplines=joined, therapist_note=therapist_note), facts
@@ -376,26 +395,24 @@ def build_rp_rehab_team(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
 
 @section("functional_status")
 def build_rp_functional_status(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """機能評価 — latest (by session_date) session's functional_progress /
-    patient_participation / pain_score."""
+    """機能評価 — the evaluation in force when the plan is written (Issue
+    #3261): its date, patient_participation and pain_score. No functional
+    progress: progress is judged against this evaluation later."""
     facts: list[str] = []
     lang = ctx.target_lang
-    sessions = ctx.rehab_sessions or []
-    if not sessions:
+    _, baseline = _rp_sessions_known(ctx)
+    if baseline is None:
         return (t("fallback.rp_functional_fallback", lang)), facts
-    latest = max(sessions, key=lambda s: _o(s, "session_date", datetime(1970, 1, 1)))
-    facts.append("ctx.rehab_sessions")
-    progress = str(_o(latest, "functional_progress", "") or "")
-    participation = str(_o(latest, "patient_participation", "") or "")
-    pain = _o(latest, "pain_score", None)
-    progress_label = _label("rp_progress", progress, lang, fallback=progress)
+    facts.append("ctx.rehab_sessions@authored")
+    participation = str(_o(baseline, "patient_participation", "") or "")
+    pain = _o(baseline, "pain_score", None)
     participation_label = _label("rp_participation", participation, lang, fallback=participation)
     pain_text = f"{pain}/10" if pain is not None else t("section_none.pain_not_assessed", lang)
     return (
         t(
             "rp_note.functional_status_line",
             lang,
-            progress=progress_label,
+            date=_o(baseline, "session_date", datetime(1970, 1, 1)).date().isoformat(),
             participation=participation_label,
             pain=pain_text,
         ),
@@ -405,19 +422,19 @@ def build_rp_functional_status(generator: TemplateNarrativeGenerator, ctx: Narra
 
 @section("basic_movement")
 def build_rp_basic_movement(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """基本動作 — day_post_op から phase (early/mid/late) を再導出。
+    """基本動作 — day_post_op of the session in force when the plan is written
+    (Issue #3261) から phase (early/mid/late) を再導出。
     generate_rehab_sessions (modules/procedure/engine.py) が内部で使う閾値
     (<=3 early, <=14 mid, else late) と同一 — RehabSession に phase フィールド
     is absent, so recalculation is required. RehabSession.activities raw English
     text is not used (per design spec §4)。"""
     facts: list[str] = []
     lang = ctx.target_lang
-    sessions = ctx.rehab_sessions or []
-    if not sessions:
+    _, baseline = _rp_sessions_known(ctx)
+    if baseline is None:
         return (t("fallback.rp_movement_fallback", lang)), facts
-    latest = max(sessions, key=lambda s: _o(s, "session_date", datetime(1970, 1, 1)))
-    facts.append("ctx.rehab_sessions")
-    day_post_op = _o(latest, "day_post_op", 0) or 0
+    facts.append("ctx.rehab_sessions@authored")
+    day_post_op = _o(baseline, "day_post_op", 0) or 0
     if day_post_op <= 3:
         phase = "early"
     elif day_post_op <= 14:
@@ -429,28 +446,35 @@ def build_rp_basic_movement(generator: TemplateNarrativeGenerator, ctx: Narrativ
 
 @section("session_frequency")
 def build_rp_session_frequency(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """実施回数・期間・1回あたりの時間。"""
+    """実施頻度・1回あたりの時間・開始日 — planned values (Issue #3261): one
+    session a day (generate_rehab_sessions schedules at most one per day),
+    the session length and the start date. Neither the number of sessions nor
+    the last session date is known when the plan is written; the expected
+    end is the discharge_estimate section."""
     facts: list[str] = []
     lang = ctx.target_lang
-    sessions = ctx.rehab_sessions or []
-    if not sessions:
+    known, baseline = _rp_sessions_known(ctx)
+    if baseline is None:
         return (t("fallback.rp_frequency_fallback", lang)), facts
-    facts.append("ctx.rehab_sessions")
-    dates = [_o(s, "session_date", datetime(1970, 1, 1)) for s in sessions]
-    first_date, last_date = min(dates), max(dates)
-    duration = _o(sessions[0], "duration_minutes", 0) or 0
-    count = len(sessions)
+    facts.append("ctx.rehab_sessions@authored")
+    start = _o(known[0], "session_date", datetime(1970, 1, 1))
+    duration = _o(baseline, "duration_minutes", 0) or 0
     return (
-        t(
-            "rp_note.session_frequency_line",
-            lang,
-            count=count,
-            first=first_date.date().isoformat(),
-            last=last_date.date().isoformat(),
-            duration=duration,
-        ),
+        t("rp_note.session_frequency_line", lang, start=start.date().isoformat(), duration=duration),
         facts,
     )
+
+
+@section("explanation_consent")
+def build_rp_explanation_consent(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """本人・家族への説明 — the plan is explained to the patient when it is
+    written (別紙様式21), so the explanation is given on the authored date
+    (Issue #3261). No authored time: the fixed "pending" phrase."""
+    lang = ctx.target_lang
+    as_of = getattr(ctx, "authored_datetime", None)
+    if as_of is None:
+        return t("fallback.rp_explanation_fallback", lang), []
+    return t("rp_note.explanation_given_line", lang, date=as_of.date().isoformat()), ["ctx.authored_datetime"]
 
 
 @section("discharge_estimate")
@@ -478,7 +502,6 @@ _FIXED_PHRASE_SECTIONS: dict[str, str] = {
     "discharge_evaluation": "fallback.ncp_discharge_eval_fallback",  # 退院時及び終了時の総合的評価
     "goals": "fallback.rp_goals_fallback",  # 本人の希望・家族の希望
     "policy": "fallback.rp_policy_fallback",  # リハビリテーション治療方針
-    "explanation_consent": "fallback.rp_explanation_fallback",  # 本人・家族への説明(署名欄)
 }
 
 

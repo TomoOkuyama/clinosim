@@ -32,10 +32,6 @@ rp_therapy_type:
   OT: {en: Occupational therapy (OT), ja: 作業療法(OT)}
   PT: {en: Physical therapy (PT), ja: 理学療法(PT)}
   ST: {en: Speech therapy (ST), ja: 言語聴覚療法(ST)}
-rp_progress:
-  improved: {en: improved, ja: 改善}
-  stable: {en: stable, ja: 維持}
-  unable_to_assess: {en: unable to assess, ja: 評価不能}
 rp_participation:
   fair: {en: fair, ja: やや不良}
   good: {en: good, ja: 良好}
