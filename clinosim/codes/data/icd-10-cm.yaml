@@ -753,6 +753,14 @@ codes:
     en: "Traumatic metacarpophalangeal amputation of other and unspecified finger"
   T15.0:
     en: Foreign body in cornea
+  T22.211A:
+    en: Burn of second degree of right forearm, initial encounter
+  T22.212A:
+    en: Burn of second degree of left forearm, initial encounter
+  T23.201A:
+    en: Burn of second degree of right hand, unspecified site, initial encounter
+  T23.202A:
+    en: Burn of second degree of left hand, unspecified site, initial encounter
   T30.0:
     en: Burn of unspecified body region, unspecified degree
   T31.2:

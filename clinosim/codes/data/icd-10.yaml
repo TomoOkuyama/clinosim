@@ -483,6 +483,12 @@ codes:
   T15.0:
     en: Foreign body in cornea
     ja: "角膜内異物"
+  T22.2:
+    en: Burn of second degree of shoulder and upper limb, except wrist and hand
+    ja: "肩及び上肢の第２度熱傷，手首及び手を除く"
+  T23.2:
+    en: Burn of second degree of wrist and hand
+    ja: "手首及び手の第２度熱傷"
   T30:
     en: Burn and corrosion, body region unspecified
     ja: "熱傷及び腐食，部位不明"

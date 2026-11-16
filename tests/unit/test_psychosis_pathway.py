@@ -29,8 +29,8 @@ def _patient(*codes: str) -> SimpleNamespace:
 def test_ed_crisis_for_schizophrenia_or_bipolar() -> None:
     spec = load_encounter_condition(_ED)
     assert sorted(spec["requires_chronic_prefix"]) == ["F20", "F31"]
-    assert ed_diagnosis_code(spec, _patient("F20")) == "F20.9"
-    assert ed_diagnosis_code(spec, _patient("F31")) == "F31.9"
+    assert ed_diagnosis_code(spec, _patient("F20"), country="US", encounter_id="ENC-1") == "F20.9"
+    assert ed_diagnosis_code(spec, _patient("F31"), country="US", encounter_id="ENC-1") == "F31.9"
     assert ed_disposition(spec, "severe") is DischargeDisposition.PSY
     assert ed_disposition(spec, "mild") is DischargeDisposition.HOME
     assert ed_severity_restriction(spec, frozenset({"psychiatry"}))[0] == ("mild",)

@@ -10,7 +10,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from clinosim.country_profile import SupportedCountry
+from clinosim.country_profile import SupportedCountry, supported_countries
 from clinosim.datafiles import load_data_yaml
 
 _HERE = Path(__file__).resolve().parent
@@ -283,6 +283,26 @@ class _Treatment(BaseModel):
     locale_exclude: list[str] = Field(default_factory=list)
 
 
+class _DiagnosisVariant(BaseModel):
+    """One weighted ED diagnosis of a protocol whose code varies per visit
+    (Issue #3279: the site and side of a minor burn). ``codes`` is keyed by
+    country slot (``us`` / ``jp``, as ``locale_name``) and holds the code in
+    that country's diagnosis system (ICD-10-CM / MHLW ICD-10)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    weight: float = Field(gt=0.0)
+    codes: dict[str, str]
+
+    @field_validator("codes")
+    @classmethod
+    def _every_country_has_a_code(cls, value: dict[str, str]) -> dict[str, str]:
+        missing = sorted(c.lower() for c in supported_countries() if not value.get(c.lower()))
+        if missing:
+            raise ValueError(f"diagnosis variant {value} has no code for {missing}")
+        return value
+
+
 class _Prescription(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -491,7 +511,10 @@ class EncounterConditionProtocol(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     condition_id: str
-    icd10_code: str
+    # The visit's diagnosis code, or ``diagnosis_variants`` when the code
+    # varies per visit (Issue #3279); a protocol has exactly one of them.
+    icd10_code: str | None = None
+    diagnosis_variants: list[_DiagnosisVariant] = []
     chief_complaint: str | dict[str, str]  # str or {en: "...", ja: "..."}
     encounter_type: str
     department: str
@@ -578,6 +601,12 @@ class EncounterConditionProtocol(BaseModel):
     # ({en, ja}); the ED note's disposition lists them for a patient sent home.
     discharge_instructions: list[_DischargeInstruction | str] = []
     follow_up: dict[str, str] = {}
+
+    @model_validator(mode="after")
+    def _one_diagnosis_source(self) -> EncounterConditionProtocol:
+        if bool(self.icd10_code) == bool(self.diagnosis_variants):
+            raise ValueError(f"{self.condition_id}: give exactly one of icd10_code and diagnosis_variants")
+        return self
 
     @model_validator(mode="after")
     def _emergency_instructions_are_language_maps(self) -> EncounterConditionProtocol:

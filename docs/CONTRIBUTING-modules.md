@@ -1089,7 +1089,8 @@ similarly, and have consumers import it.
 - **English-first:** every entry in `codes/data/*.yaml` requires
   `en`; other languages (`ja`, etc.) are optional (CODES-1).
 - **Every emittable diagnosis code must be registered:** disease
-  `icd_codes` (primary + variants), encounter `icd10_code`,
+  `icd_codes` (primary + variants), encounter `icd10_code` or
+  per-country `diagnosis_variants` codes,
   `builtin_differentials.yaml` `differentials[*].icd` +
   `diagnosis_progression`. US billable in `icd-10-cm.yaml`;
   non-billable in `locale/us/code_mapping_diagnosis.yaml` folded to

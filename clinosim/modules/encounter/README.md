@@ -136,8 +136,9 @@ from clinosim.modules.encounter.discharge_outcome import discharge_outcome
   the cadence hours (06:00 / 06:30 / 09:00 / 14:00 / 18:00 / 18:30 /
   22:00) are fixed.
 - Protocol loaders are pure. `EncounterConditionProtocol` requires
-  `condition_id`, `icd10_code`, `chief_complaint`, `encounter_type` and
-  `department`, declares every optional section (workup, treatment,
+  `condition_id`, `chief_complaint`, `encounter_type`, `department` and
+  exactly one of `icd10_code` and `diagnosis_variants` (weighted
+  per-country codes for a diagnosis that varies per visit, Issue #3279), declares every optional section (workup, treatment,
   discharge prescriptions, narrative, ...) as a typed field, and rejects
   unknown keys (`extra="forbid"`). Every `route:` value is also checked against the shared
   route vocabulary at load time.

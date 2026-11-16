@@ -37,7 +37,7 @@ def test_ed_protocols_use_the_shared_key() -> None:
     data = load_encounter_condition("suicidal_ideation_depression")
     assert data.get("by_chronic_prefix")
     recurrent = SimpleNamespace(chronic_conditions=[ChronicCondition(code="F33.1")])
-    assert ed_diagnosis_code(data, recurrent) == data["by_chronic_prefix"]["F33"]
+    assert ed_diagnosis_code(data, recurrent, country="US", encounter_id="ENC-1") == data["by_chronic_prefix"]["F33"]
 
 
 def test_no_bare_snomed_literal_in_comparisons() -> None:

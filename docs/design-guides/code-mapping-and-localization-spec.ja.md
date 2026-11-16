@@ -192,6 +192,8 @@ occupation:
 
 疾患 YAML は、自分が持つコードを `icd_codes` (primary / variants / `by_chronic_prefix`)、`implied_chronic_codes`、`sequela_code` で参照する。薬は `drug_id` で、患者状態は value set 名で参照する。表示する文字列 (主訴、注記) はプロトコル自身の中で言語マップとして持つ。encounter condition の YAML も同じ規則に従う。
 
+encounter condition の YAML は診断を、1 つの `icd10_code` か `diagnosis_variants` のどちらか一方で与える (両方・どちらも無しは `EncounterConditionProtocol` が拒否する)。`diagnosis_variants` は受診ごとにコードが変わる condition (軽症熱傷の部位と左右、Issue #3279) の重み付きリストで、各 variant の `codes` は国スロット (`country_slot`: `us`、`jp`) ごとにその国の診断コード体系のコードを持つ。コードは他のコードと同じく検証して登録し (§8)、コードの無い国があれば loader が失敗する。受診のコードは `clinosim.simulator.emergency.ed_diagnosis_code(spec, patient, country=, encounter_id=)` が解決する: 該当する `by_chronic_prefix` があればそれ、無ければ encounter id に対する `determinism.sha_weighted_choice` で選んだ variant (受診の RNG stream から引かない。同じ受診はどの国でも同じ variant を選ぶ) のその国のコード、無ければ `icd10_code`。ガード: `tests/unit/test_minor_burn_diagnosis_3279.py`、`tests/unit/test_diagnosis_code_coverage.py` (各 variant コードがその国で登録済み)。
+
 lab リストの各要素 (`labs`、`add_labs`、`additional_labs`、薬剤モニタリング項目の `test`) は内部のオーダー名で、2 段階で解決する。
 
 1. `observation/reference_data/order_routing.yaml` が、単一の検査でない名前を振り分ける。バイタルサインと問診項目はオーダーしない。画像検査は指定の検査名で画像オーダーにする。名前付きの組 (例: `DIC_panel`) は構成検査ごとのオーダーにする。

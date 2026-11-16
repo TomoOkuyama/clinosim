@@ -139,13 +139,29 @@ def ed_disposition(protocol: dict | None, severity: str) -> DischargeDisposition
     return _ED_DISPOSITIONS.get(key, DischargeDisposition.HOME)
 
 
-def ed_diagnosis_code(spec: dict, patient: PatientProfile) -> str:
+def ed_diagnosis_code(spec: dict, patient: PatientProfile, *, country: str, encounter_id: str) -> str:
     """ICD-10 code of an ED visit: the first ``by_chronic_prefix`` entry whose
     prefix the patient carries (e.g. recurrent vs single-episode depression,
-    Issue #2124), else ``icd10_code``. Same key and helper as the disease
-    protocols' ``icd_codes.by_chronic_prefix`` (Issue #2290)."""
+    Issue #2124), else one of the protocol's weighted ``diagnosis_variants``
+    in ``country``'s code (Issue #3279: the site and side of a minor burn),
+    else ``icd10_code``. Same key and helper as the disease protocols'
+    ``icd_codes.by_chronic_prefix`` (Issue #2290).
+
+    The variant is drawn from a SHA of the encounter id, so it takes nothing
+    from the visit's RNG stream and the same visit picks the same variant in
+    every country."""
     refined = code_by_chronic_prefix(spec.get("by_chronic_prefix"), patient)
-    return refined or str(spec.get("icd10_code", "R69"))  # R69 = Illness, unspecified
+    if refined:
+        return refined
+    variants = spec.get("diagnosis_variants") or []
+    if variants:
+        index = determinism.sha_weighted_choice(
+            f"{encounter_id}|ed_diagnosis_variant",
+            tuple(str(i) for i in range(len(variants))),
+            tuple(float(v["weight"]) for v in variants),
+        )
+        return str(variants[int(index)]["codes"][country_slot(country)])
+    return str(spec.get("icd10_code") or "R69")  # R69 = Illness, unspecified
 
 
 def ed_lab_result_time(visit_time: datetime, ordered_datetime: datetime, result_offset_min: int) -> datetime:
@@ -772,10 +788,10 @@ def _simulate_ed_visit(
     # (drug_safety/reference_data/demographic_gates.yaml); adding a new
     # rule requires no changes to this dispatcher.
 
-    _proto_icd = (protocol or condition).get("icd10_code")
-    _indication_codes: list[str] = []
-    if _proto_icd:
-        _indication_codes.append(str(_proto_icd))
+    # The visit's diagnosis code (one source for the drug-safety indications
+    # here and the encounter diagnosis below).
+    icd_code = ed_diagnosis_code(protocol or condition, patient, country=country, encounter_id=encounter.encounter_id)
+    _indication_codes: list[str] = [icd_code]
     for _cc in patient.chronic_conditions:
         _cc_code = getattr(_cc, "code", None) or getattr(_cc, "icd10_code", None)
         if _cc_code:
@@ -977,9 +993,6 @@ def _simulate_ed_visit(
         priority=ActPriority.EM,
     )
     discharge_rx = _ed_discharge_prescription(protocol, patient, encounter, _indication_codes, country, cond_name)
-
-    # Use ICD-10 from encounter YAML (required by FHIR R4)
-    icd_code = ed_diagnosis_code(protocol or condition, patient)
 
     # C1-09: emit bedside procedures for ED severe cases.
     # Reuse the existing procedure engine (already keyed by internal condition
