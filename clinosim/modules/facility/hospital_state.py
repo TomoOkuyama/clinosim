@@ -198,10 +198,15 @@ class HospitalState:
     ) -> float:
         """Calculate delay in minutes based on current hospital state.
 
-        Uses queueing theory: delay = base_time / (1 - utilization) * (1 / staff)
+        Uses queueing theory: delay = base_time / (1 - utilization) * (1 / staff).
+        A resource with a ``delay_limits`` entry in the hospital config caps the
+        combined congestion x staffing slowdown (``max_load_factor``) and the
+        delay itself (``max_delay_min.<stat|routine>``) at its calibrated
+        turnaround benchmark (Issue #3287); other resources keep the generic caps.
         """
         base_times = hospital_ops.get("base_processing_time", {})
         report_times = hospital_ops.get("reporting_time", {})
+        limits = hospital_ops.get("delay_limits", {}).get(resource, {})
 
         # Base processing time
         if urgency == "stat":
@@ -249,10 +254,14 @@ class HospitalState:
                 reporting = float(report_times.get("routine", FALLBACK_REPORTING_ROUTINE_MIN))
             reporting *= staff_factor  # less staff → slower reporting
 
-        delay = base * congestion_factor * staff_factor + reporting
+        if "max_load_factor" in limits:
+            delay = base * min(congestion_factor * staff_factor, float(limits["max_load_factor"])) + reporting
+        else:
+            delay = base * congestion_factor * staff_factor + reporting
 
-        # Hard cap: stat results within 4h, routine within 12h
-        max_delay = DELAY_MAX_DELAY_STAT_MIN if urgency == "stat" else DELAY_MAX_DELAY_ROUTINE_MIN
+        urgency_key = "stat" if urgency == "stat" else "routine"
+        generic_max = DELAY_MAX_DELAY_STAT_MIN if urgency_key == "stat" else DELAY_MAX_DELAY_ROUTINE_MIN
+        max_delay = float(limits.get("max_delay_min", {}).get(urgency_key, generic_max))
         return min(delay, max_delay)
 
     def add_to_queue(

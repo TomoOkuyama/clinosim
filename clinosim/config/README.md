@@ -72,6 +72,8 @@ Key top-level keys:
 | `wards` / `ward_capacity` | Ward definitions and beds per ward | (see file) |
 | `resource_capacity` | Analysers / scanners / OR / ED / inpatient beds | `inpatient_beds: 50`, `ed_beds: 8` |
 | `staffing` | Nursing / physician / pharmacy counts | (see file) |
+| `base_processing_time` / `reporting_time` | Base minutes per order and imaging reporting minutes | `lab_routine: 55` |
+| `delay_limits` | Calibrated turnaround limits per resource (cited benchmark, Issue #3287) | `lab: {max_load_factor: 1.5, max_delay_min: {stat: 60, routine: 120}}` |
 
 ### `hospital_small.yaml` / `hospital_large.yaml`
 
