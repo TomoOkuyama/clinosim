@@ -2509,6 +2509,11 @@
 <td><code>tests/unit/test_prn_from_state.py</code>, <code>tests/unit/test_prn_inhaler_cadence_1318.py</code></td>
 </tr>
 <tr>
+<td>A potassium at or above the treatment threshold holds two scopes of drugs: <code>hold_classes</code> (ACE inhibitors, ARBs, potassium-sparing diuretics) from the result to discharge, and <code>hold_while_high_classes</code> (digoxin) only while the latest potassium before the dose stays at or above it. A held dose's reason is the latest potassium resulted before it. The order set records the dextrose given with the insulin as its own one-time dose.</td>
+<td><code>modules/drug_safety/hyperkalemia.py</code> (<code>PotassiumHold.high_at</code>, <code>reason_at</code>, <code>hyperkalemia_treatment_orders</code>); data <code>modules/drug_safety/reference_data/hyperkalemia_response.yaml</code>; applied in <code>simulator/daily_loop.py::_respond_to_hyperkalemia</code> and <code>medication_pipeline.py::_generate_mar</code></td>
+<td><code>tests/unit/drug_safety/test_hyperkalemia_response_2981.py</code>, <code>tests/unit/drug_safety/test_hyperkalemia_dextrose_digoxin_3232.py</code></td>
+</tr>
+<tr>
 <td>An order whose frequency is a cadence longer than a day (weekly, monthly, every other day) is given once on the day it is ordered and on every interval after; the cadence is read from the frequency-token catalog, so a weekly dose text is never defaulted to daily.</td>
 <td><code>modules/order/engine.py::dosing_interval_days</code>, <code>medication_pipeline.py::_generate_mar</code></td>
 <td><code>tests/unit/simulator/test_non_daily_mar_2982.py</code></td>
