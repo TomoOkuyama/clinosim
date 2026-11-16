@@ -91,12 +91,15 @@ from clinosim.modules.procedure import (
                                  #  country, surgeon_id="", anesthesiologist_id="", operating_rooms=2)
                                  #  -> (ProcedureRecord, dict[str, float])
     generate_bedside_procedures, # (patient_id, encounter_id, disease_id, admission_time, severity, rng,
-                                 #  country) -> list[ProcedureRecord]
+                                 #  country, *, performer_id) -> list[ProcedureRecord]
     generate_rehab_sessions,     # (patient_id, encounter_id, surgery_date, total_days, rng,
                                  #  country) -> list[RehabSession]
 )
 from clinosim.modules.procedure.engine import (
-    build_intubation_procedure,  # (patient_id, encounter_id, start, country, procedure_id) -> ProcedureRecord
+    build_intubation_procedure,  # (patient_id, encounter_id, start, country, procedure_id, *, performer_id)
+                                 #  -> ProcedureRecord
+    age_gated_procedures,        # (patient_id, encounter_id, rules, age_days, start, first_index, country,
+                                 #  *, performer_id) -> list[ProcedureRecord]
 )
 ```
 
@@ -108,6 +111,14 @@ CPT / K-code / names / anesthesia per bedside procedure come from the
 procedure catalog (`clinosim.codes.procedures.bedside_procedures()`
 over `codes/data/clinosim-procedure-catalog.yaml`, Issue #2263) and are
 projected into the `_BEDSIDE_PROCEDURES` tuple list in `engine.py`.
+
+Blood loss, ASA class and anesthesia (Issue #3257): `ProcedureRecord`
+defaults are empty (`estimated_blood_loss_ml` / `asa_class` None,
+`anesthesia_type` ""), meaning not recorded. Only `simulate_surgery`
+sets blood loss (disease YAML `procedure.estimated_blood_loss_ml`) and
+an ASA class. A bedside, age-gated or intubation record takes the
+catalog's anesthesia and the caller's `performer_id` (the encounter's
+attending) as `primary_surgeon_id`, and has no blood loss or ASA class.
 
 ## Determinism
 

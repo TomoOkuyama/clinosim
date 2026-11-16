@@ -32,5 +32,5 @@ class TestProcedureTypeLocation:
     def test_dataclass_fields_intact(self):
         rec = ProcedureRecord(procedure_id="P1", procedure_code="K0463")
         assert rec.procedure_id == "P1"
-        assert rec.asa_class == 2  # default preserved
+        assert rec.asa_class is None  # not assessed unless set (Issue #3257)
         assert RehabSession(therapy_type="OT").therapy_type == "OT"

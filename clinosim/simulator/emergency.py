@@ -984,6 +984,7 @@ def _simulate_ed_visit(
             severity,
             rng,
             country=country,
+            performer_id=encounter.attending_physician_id,
         )
         if severity in ("moderate", "severe")
         else []
@@ -1002,6 +1003,7 @@ def _simulate_ed_visit(
             encounter.admission_datetime,
             len(ed_procedures),
             country=country,
+            performer_id=encounter.attending_physician_id,
         )
     # Issue #2863: on the visit's own workflow, inside the ED stay.
     from clinosim.simulator.ed_procedures import time_ed_procedures

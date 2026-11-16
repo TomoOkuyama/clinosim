@@ -25,6 +25,7 @@ from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes.snomed_concepts import PROCEDURE_PARTIALLY_SUCCESSFUL, PROCEDURE_UNSUCCESSFUL
 from clinosim.locale.i18n import t
+from clinosim.locale.loader import load_narrative_labels
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
@@ -232,7 +233,7 @@ def build_op_blood_loss(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
     if proc is None:
         return t("op_note.blood_loss_not_documented", lang), []
     facts = ["ctx.procedures"]
-    ebl = _o(proc, "estimated_blood_loss_ml", 0) or 0
+    ebl = _o(proc, "estimated_blood_loss_ml", None)
     # Transfusion inference: check ctx.procedures for a blood_transfusion
     # ProcedureRecord in the same encounter (K920 / procedure_type
     # "blood_transfusion" from clinosim.modules.procedure.engine).
@@ -245,6 +246,9 @@ def build_op_blood_loss(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
         "op_note.blood_loss_transfusion_yes" if transfused else "op_note.blood_loss_transfusion_no",
         lang,
     )
+    if ebl is None:
+        # Issue #3257: blood loss is recorded only where it is modelled.
+        return t("op_note.blood_loss_not_recorded_line", lang, transfusion_part=transfusion_part), facts
     return t("op_note.blood_loss_line", lang, ebl=ebl, transfusion_part=transfusion_part), facts
 
 
@@ -416,15 +420,14 @@ def build_pn_analgesia(generator: TemplateNarrativeGenerator, ctx: NarrativeCont
     if proc is None:
         return t("proc_note.analgesia_not_documented", lang), facts
     anesth = str(_o(proc, "anesthesia_type", "") or "").strip().lower()
-    # Bedside procedures use local / sedation almost exclusively —
-    # if the record says "general" we still honor it (some
-    # cardioversion cases are done under brief GA). Analgesia
-    # vocabulary moved to ``narrative_labels.yaml::pn_analgesia_type``
-    # (Phase 1d-25). Fallback is ``local`` (bedside procedures default).
-    default_method = _label("pn_analgesia_type", "local", lang)
-    method = _label("pn_analgesia_type", anesth, lang, fallback=default_method)
     facts.append("ctx.procedures.anesthesia_type")
-    return t("proc_note.analgesia_line", lang, method=method), facts
+    # Issue #3257: "none" is a procedure done without anesthesia; an empty
+    # or unlabelled type is not recorded (never assumed to be local).
+    if anesth == "none":
+        return t("proc_note.analgesia_none", lang), facts
+    if anesth not in (load_narrative_labels().get("pn_analgesia_type") or {}):
+        return t("proc_note.analgesia_not_documented", lang), facts
+    return t("proc_note.analgesia_line", lang, method=_label("pn_analgesia_type", anesth, lang)), facts
 
 
 @section("pn_course")

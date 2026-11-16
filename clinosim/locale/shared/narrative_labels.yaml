@@ -145,6 +145,7 @@ op_anesthesia_type:
   local: {en: Local anesthesia, ja: 局所麻酔}
   sedation: {en: IV sedation, ja: 静脈麻酔（鎮静）}
   regional: {en: Regional anesthesia, ja: 区域麻酔}
+  none: {en: No anesthesia, ja: 麻酔なし}
 
 # Op-note SNOMED outcome-code dictionary (Phase 1d-24). Was
 # ``_OP_OUTCOME_JA`` / ``_OP_OUTCOME_EN``.

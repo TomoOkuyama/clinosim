@@ -83,12 +83,15 @@ from clinosim.modules.procedure import (
                                  #  country, surgeon_id="", anesthesiologist_id="", operating_rooms=2)
                                  #  -> (ProcedureRecord, dict[str, float])
     generate_bedside_procedures, # (patient_id, encounter_id, disease_id, admission_time, severity, rng,
-                                 #  country) -> list[ProcedureRecord]
+                                 #  country, *, performer_id) -> list[ProcedureRecord]
     generate_rehab_sessions,     # (patient_id, encounter_id, surgery_date, total_days, rng,
                                  #  country) -> list[RehabSession]
 )
 from clinosim.modules.procedure.engine import (
-    build_intubation_procedure,  # (patient_id, encounter_id, start, country, procedure_id) -> ProcedureRecord
+    build_intubation_procedure,  # (patient_id, encounter_id, start, country, procedure_id, *, performer_id)
+                                 #  -> ProcedureRecord
+    age_gated_procedures,        # (patient_id, encounter_id, rules, age_days, start, first_index, country,
+                                 #  *, performer_id) -> list[ProcedureRecord]
 )
 ```
 
@@ -100,6 +103,14 @@ code とともに
 catalog (`codes/data/clinosim-procedure-catalog.yaml` を引く
 `clinosim.codes.procedures.bedside_procedures()`、Issue #2263) 由来で、
 `engine.py` の `_BEDSIDE_PROCEDURES` tuple list に射影される。
+
+出血量・ASA 分類・麻酔 (Issue #3257): `ProcedureRecord` の既定値は空
+(`estimated_blood_loss_ml` / `asa_class` は None、`anesthesia_type` は "")
+で、「記録なし」を意味する。出血量 (疾患 YAML の
+`procedure.estimated_blood_loss_ml`) と ASA 分類を設定するのは
+`simulate_surgery` のみ。bedside / 年齢条件 / 気管挿管の record は
+catalog の麻酔と、呼び出し側の `performer_id` (encounter の担当医) を
+`primary_surgeon_id` に持ち、出血量・ASA 分類は持たない。
 
 ## 決定論
 

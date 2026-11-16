@@ -9,7 +9,10 @@
 > ASA is 2 / 3 / 4 from comorbidity count and age thresholds in
 > `_surgery_thresholds.py`, not the `calculate_asa` sketch below),
 > `generate_bedside_procedures`, `generate_rehab_sessions`, and
-> `build_intubation_procedure`. The real `RehabSession`
+> `build_intubation_procedure`. Only `simulate_surgery` records blood
+> loss and an ASA class; every other `ProcedureRecord` leaves them None
+> (not recorded) and takes its anesthesia from the procedure catalog
+> (Issue #3257). The real `RehabSession`
 > (`clinosim/types/procedure.py`) has no `therapist_id`, `goals_addressed`
 > or `notes`, uses `pain_score` instead of `pain_during_session`, and adds
 > `day_post_op`. See [`README.md`](README.md).

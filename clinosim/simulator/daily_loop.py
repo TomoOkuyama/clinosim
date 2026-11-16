@@ -333,6 +333,7 @@ def _escalate_on_arrival(stay: _Stay, run: _Run) -> None:
                 stay.admission_time + timedelta(hours=1),
                 stay.country,
                 f"PROC-{stay.patient.patient_id}-AIR00",
+                performer_id=stay.attending_id,
             )
         )
     if icu_escalation_needed(run.state):
@@ -1054,6 +1055,7 @@ def _escalate_airway_and_icu(stay: _Stay, run: _Run, day: int) -> None:
                 stay.admission_time + timedelta(days=day, hours=AIRWAY_ESCALATION_HOUR),
                 stay.country,
                 f"PROC-{stay.patient.patient_id}-AIR{day:02d}",
+                performer_id=stay.attending_id,
             )
         )
     if not run.icu_transferred and icu_escalation_needed(run.state):

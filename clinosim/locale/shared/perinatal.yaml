@@ -204,6 +204,9 @@ cesarean:
     us_code: "59510"                      # US CPT: Routine obstetric care incl. cesarean delivery and postpartum
     us_display: "Routine obstetric care, cesarean delivery"
     duration_minutes: 60                  # active cesarean surgery ~45-60 min (JSOG 2020)
+    # Spinal anesthesia: the cesarean intraoperative bundle orders intrathecal
+    # bupivacaine + fentanyl (simulator/perinatal.py, Issue #1285).
+    anesthesia: spinal
   length_of_stay_days:
     jp: 8                                 # JSOG post-C-section LOS ~7-9 days
     us: 4                                 # US Medicare/HEDIS post-C-section ~3-4 days
