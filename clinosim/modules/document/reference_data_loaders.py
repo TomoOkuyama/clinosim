@@ -497,3 +497,57 @@ class NarrativeExtrasWhitelists(BaseModel):
 
     biometrics: list[str]
     health_literacy: list[str]
+
+
+# ─────────────────────────────────────────────────────────────────
+# death_cause_chain.yaml (Issue #3255)
+# ─────────────────────────────────────────────────────────────────
+
+_ICD_CATEGORY_RANGE = r"^[A-Z][0-9]{2}(-[A-Z][0-9]{2})?$"
+
+
+def _registered_diagnosis_code(code: str) -> str:
+    """``code`` must name a registered ICD-10-CM code whose JP (WHO) form is
+    registered too, so both certificates can print it."""
+    from clinosim.codes import code_exists
+    from clinosim.codes.icd10 import icd10_system
+    from clinosim.locale.loaders.demographics import map_diagnosis_code
+
+    for country in ("US", "JP"):
+        emitted = map_diagnosis_code(code, country) or code
+        if not code_exists(icd10_system(country), emitted, exact=True):
+            raise ValueError(f"death_cause_chain.yaml: {code} ({country} {emitted}) is not a registered diagnosis code")
+    return code
+
+
+class DeathCauseChain(BaseModel):
+    """Shape of death_cause_chain.yaml: the complications that can be the
+    immediate cause of death (lower-case token -> internal ICD code or null),
+    the sequel discharge codes and the contributing-condition categories."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    immediate_cause_complications: dict[
+        Annotated[str, Field(pattern=r"^[a-z0-9_]+$")],
+        Annotated[str, AfterValidator(_registered_diagnosis_code)] | None,
+    ] = Field(min_length=1)
+    sequel_codes: list[Annotated[str, AfterValidator(_registered_diagnosis_code)]] = Field(min_length=1)
+    contributing_categories: dict[
+        str, Annotated[list[Annotated[str, Field(pattern=_ICD_CATEGORY_RANGE)]], Field(min_length=1)]
+    ] = Field(min_length=1)
+
+    def is_contributing(self, code: str) -> bool:
+        """Whether the 3-character category of ``code`` is in a contributing range."""
+        category = (code or "")[:3]
+        for spans in self.contributing_categories.values():
+            for span in spans:
+                low, _, high = span.partition("-")
+                if low <= category <= (high or low):
+                    return True
+        return False
+
+
+@lru_cache(maxsize=1)
+def load_death_cause_chain() -> DeathCauseChain:
+    """Load and validate death_cause_chain.yaml. Cached singleton."""
+    return DeathCauseChain.model_validate(load_validated_yaml(_REF_DIR / "death_cause_chain.yaml", DeathCauseChain))

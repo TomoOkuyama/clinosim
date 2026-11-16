@@ -186,6 +186,7 @@ clinosim/modules/document/
     chronic-med-class-hints.yaml     慢性疾患 assessment の薬効分類 hint (narrative/renderers/section_builders/outpatient_soap.py)
     hpi_pertinent_negatives.yaml     HPI pertinent negative、疾患ごとに言語別の文言と否定する症状語 (hpi_pertinent_negatives(disease_id, lang)、英語にフォールバック)。主訴の症状を否定する negative は出力しない
     bedside_procedure_codes.yaml     bedside procedure code (load_bedside_procedure_codes)
+    death_cause_chain.yaml           死亡診断書の死因の連鎖: 直接死因になりうる合併症・続発コード・影響を及ぼした傷病名の区分 (load_death_cause_chain)
     narrative_extras_whitelists.yaml narrative extra-context whitelist (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   US H&P の JA 文字 audit 対象外 section (audit.py)
     chronic_soap_templates.yaml      慢性疾患 SOAP note template

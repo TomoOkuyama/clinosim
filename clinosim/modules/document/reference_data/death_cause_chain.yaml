@@ -1,0 +1,84 @@
+# death_cause_chain.yaml — the cause-of-death sequence on the death
+# certificate (Issue #3255).
+#
+# Sources (read for this table):
+# - CDC/NCHS, Physicians' Handbook on Medical Certification of Death, 2003
+#   revision, pp. 12-14: Part I line (a) is "the final disease, injury, or
+#   complication directly causing the death", not a mechanism such as cardiac
+#   or respiratory arrest; the underlying cause ("the disease or injury that
+#   initiated the chain of events") goes on the lowest line used; an organ
+#   system failure listed as a cause always has its etiology on the line
+#   beneath it; "due to" written on one line is the same as an added line.
+#   Part II holds other significant conditions that contributed to death but
+#   did not result in the underlying cause; its worked cases (pp. 19-25) put
+#   diabetes, obesity, hypertension, hypercholesterolemia, congestive heart
+#   failure and cigarette smoking there.
+# - 厚生労働省「死亡診断書（死体検案書）記入マニュアル」令和8年度版 pp. 9-14:
+#   Ⅰ欄は（ア）直接死因、（イ）（ア）の原因 … の医学的因果関係の順; 疾患の
+#   終末期の状態としての心不全・呼吸不全は記入しないが、明らかな病態としての
+#   記入は問題ない; Ⅱ欄は直接には死因に関係しないがⅠ欄の傷病等の経過に
+#   影響を及ぼした傷病名 (例: 高血圧).
+# - ICD-10-CM FY2027 tabular, R65.2 Severe sepsis: "Code first underlying
+#   infection, such as: ... sepsis NOS (A41.9)"; "Use additional code to
+#   identify specific acute organ dysfunction, such as: acute kidney failure
+#   (N17.-), acute respiratory failure (J96.0-), ... disseminated
+#   intravascular coagulopathy [DIC] (D65)".
+#
+# immediate_cause_complications: the in-hospital complications
+#   (complications_occurred tokens, lower-case) that are a disease or
+#   complication directly causing death, with the internal diagnosis code
+#   (ICD-10-CM granularity; JP folds it to WHO ICD-10 through
+#   locale/jp/code_mapping_diagnosis.yaml). null = no code that names the
+#   condition (the certificate names it without a code). Complications that
+#   are mechanisms (arrhythmia, arrest), symptoms or minor events are absent:
+#   they are listed as in-hospital complications under contributing
+#   conditions.
+# sequel_codes: discharge diagnoses that describe a consequence of another
+#   disease (severe sepsis / septic shock). They are not the underlying cause;
+#   the admission diagnosis (the infection) is, and the sequel code sits
+#   between it and the immediate cause.
+# contributing_categories: ICD-10 3-character categories (or ranges of them)
+#   of chronic conditions that can contribute to death (Part II / Ⅱ欄).
+#   Other chronic conditions (cataract, osteoarthritis, GERD, ...) are not
+#   listed.
+
+metadata:
+  kind: reference
+  name: death_cause_chain
+  source: "CDC/NCHS Physicians' Handbook on Medical Certification of Death (2003); MHLW 死亡診断書（死体検案書）記入マニュアル 令和8年度版; CMS ICD-10-CM FY2027 tabular"
+
+immediate_cause_complications:
+  acute_heart_failure: I50.9
+  acute_kidney_injury: N17.9
+  acute_respiratory_distress_syndrome: J80
+  aki: N17.9
+  ards: J80
+  aspiration_pneumonia: J69.0
+  brain_herniation: G93.5
+  cardiogenic_shock: R57.0
+  cerebral_edema: G93.6
+  cerebral_herniation: G93.5
+  disseminated_intravascular_coagulation: D65
+  hemorrhagic_shock: null
+  hepatorenal_syndrome: K76.7
+  hospital_acquired_pneumonia: J18.9
+  mechanical_complication: null
+  pulmonary_embolism: I26.99
+  recurrent_pe: I26.99
+  respiratory_failure: J96.00
+  respiratory_failure_requiring_niv: J96.00
+  sepsis: A41.9
+
+sequel_codes:
+  - R65.20
+  - R65.21
+
+contributing_categories:
+  cardiovascular: [I10-I15, I20-I25, I27, I34-I37, I42, I48, I50, I60-I69, I70]
+  renal: [N18-N19]
+  metabolic: [E10-E14, E66, E78]
+  respiratory: [J41-J47, J84]
+  malignancy: [C00-C97]
+  neurocognitive: [F00-F03, G20, G30]
+  liver: [K70-K74]
+  substance_use: [F10, F17]

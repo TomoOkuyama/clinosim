@@ -4,7 +4,7 @@
     "source_url": "https://www.cms.gov/files/zip/2027-code-descriptions-tabular-order.zip",
     "source_file": "Code Descriptions/icd10cm_order_2027.txt (long description, columns 78-)",
     "extracted_at": "2026-11-10",
-    "clinosim_codes_total": 487,
+    "clinosim_codes_total": 493,
     "clinosim_codes_missing_from_source": [
       "F00",
       "J46",
@@ -195,6 +195,11 @@
     {
       "code": "D57.1",
       "display": "Sickle-cell disease without crisis",
+      "billable": true
+    },
+    {
+      "code": "D65",
+      "display": "Disseminated intravascular coagulation [defibrination syndrome]",
       "billable": true
     },
     {
@@ -500,6 +505,16 @@
     {
       "code": "G47.33",
       "display": "Obstructive sleep apnea (adult) (pediatric)",
+      "billable": true
+    },
+    {
+      "code": "G93.5",
+      "display": "Compression of brain",
+      "billable": true
+    },
+    {
+      "code": "G93.6",
+      "display": "Cerebral edema",
       "billable": true
     },
     {
@@ -998,6 +1013,11 @@
       "billable": true
     },
     {
+      "code": "J80",
+      "display": "Acute respiratory distress syndrome",
+      "billable": true
+    },
+    {
       "code": "J85.1",
       "display": "Abscess of lung with pneumonia",
       "billable": true
@@ -1220,6 +1240,11 @@
     {
       "code": "K76.6",
       "display": "Portal hypertension",
+      "billable": true
+    },
+    {
+      "code": "K76.7",
+      "display": "Hepatorenal syndrome",
       "billable": true
     },
     {
@@ -1811,6 +1836,11 @@
       "code": "R57",
       "display": "Shock, not elsewhere classified",
       "billable": false
+    },
+    {
+      "code": "R57.0",
+      "display": "Cardiogenic shock",
+      "billable": true
     },
     {
       "code": "R65.10",
