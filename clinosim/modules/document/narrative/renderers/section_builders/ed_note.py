@@ -451,7 +451,7 @@ def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
 
     Issue #981 density fix — attach a reasoning phrase drawn from
     the admit-diagnosis / disease_protocol / acuity so every
-    disposition sentence reads as "自宅退院（JTAS レベル 4、症状軽度）"
+    disposition sentence reads as "帰宅（JTAS レベル 4、症状軽度）"
     instead of the bare "自宅退院。症状経過に応じて再受診指示。" that
     the pre-#981 code produced (68% of ED docs).
     """

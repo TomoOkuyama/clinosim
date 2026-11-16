@@ -187,6 +187,7 @@ occupation:
 ### 3.8 Translation tables and the phrase catalog
 
 - **Translation table.** For names the generator writes as English free text (order strings, medication terms), a translation table maps the English text to other languages: `"dvt prophylaxis": {ja: DVT予防}`. It is read only through the free-text resolvers in §4.3. It never translates a code's display (that is the code system's own `ja`), and it never holds text whose source is a data file (that text carries its own language map at its source).
+- **Phrases before words.** The free-text resolvers substitute translation-table keys longest-first, so a multi-word phrase entry wins over its words. An annotation inside an order string ("avoid hypotonic fluids", "under fluoroscopy") is a phrase entry with an idiomatic translation. A single English word that has no translation out of context ("avoid", "under", "may", "not") has no entry: translated word by word it turns an annotation into a row of unrelated words, while without an entry an untranslated phrase stays readable in English (§6 rule 6) until it gets its own entry. `tests/unit/locale/test_phrase_translation_3266.py` rejects a protocol order string whose Japanese has three or more space-separated words inside one pair of parentheses.
 - **Phrase catalog.** Sentence templates keyed by dotted id (`prescription.next_visit`), with `{placeholder}` arguments, read through `t(key, lang, **kwargs)`.
 
 ### 3.9 Disease and encounter protocols

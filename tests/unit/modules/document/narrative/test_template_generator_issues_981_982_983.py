@@ -207,7 +207,7 @@ def test_ed_disposition_home_includes_jtas_and_reason_ja() -> None:
     ctx = _make_ctx(document_type=DocumentType.ED_NOTE, encounter=enc)
     gen = TemplateNarrativeGenerator()
     text, facts = build_ed_disposition(gen, ctx)
-    assert "自宅退院" in text
+    assert text.startswith("帰宅（JTAS レベル 4")  # Issue #3266: an ED patient sent home 帰宅
     assert "JTAS レベル 4" in text
     # Reason phrase comes from encounter.chief_complaint_ja.
     assert "発熱" in text

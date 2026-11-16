@@ -124,6 +124,37 @@ categories:
   # Issue #3106: a phrase in Japanese chart wording, matched before the `o2`
   # category and the single words.
   controlled o2: {ja: 調節酸素投与}
+
+  # Issue #3266: order annotations of the disease protocols, translated as
+  # whole phrases in Japanese chart wording. Matched before the single words,
+  # and after drug names (so a key never contains a drug name). Words that
+  # cannot be translated out of context (avoid, under, may, not, ...) have no
+  # `terms` entry: a phrase that uses them needs its own entry here.
+  avoid hypotonic fluids: {ja: 低張液は避ける}
+  "cautious — RV may not tolerate volume": {ja: 右室負荷に注意し慎重に}
+  avoid RV overload: {ja: 右室の容量負荷を避ける}
+  cerebral edema risk: {ja: 脳浮腫のリスク}
+  avoid sedation if TBI: {ja: 頭部外傷では鎮静を避ける}
+  avoid anticoagulant DVT prophylaxis first 24h: {ja: 最初の24時間は抗凝固薬による DVT 予防を避ける}
+  adjust for renal function: {ja: 腎機能に応じて調整}
+  hold if coagulopathy: {ja: 凝固異常時は中止}
+  see drugs section: {ja: 薬剤の項を参照}
+  IV over 2h: {ja: 2時間かけて静注}
+  IV over 1-2h: {ja: 1-2時間かけて静注}
+  IV over 5min: {ja: 5分かけて静注}
+  max 40mg JP dose: {ja: 最大 40mg}
+  IV bolus then: {ja: 静注ボーラス後}
+  IV loading then: {ja: 静注で負荷投与後}
+  Increase infusion rate: {ja: 投与速度を増量}
+  q1h PRN acute: {ja: 急性期は1時間毎に頓用}
+  PRN temp >= 38.5: {ja: 頓用（38.5℃以上の発熱時）}
+  mEq/L in IV fluids: {ja: mEq/L を輸液に混注}
+  mEq/L added to IV fluids: {ja: mEq/L を輸液に混注}
+  transition to oral: {ja: 経口へ移行}
+  Start anticoagulation per PE protocol: {ja: 肺塞栓症プロトコルに沿って抗凝固療法を開始}
+  Record volume and character: {ja: 量と性状を記録}
+  bolus for volume repletion: {ja: ボーラス（循環血液量の補充）}
+  under fluoroscopy: {ja: 透視下}
 terms:
   # Issue #3033: non-daily cadences and the topical route on administrations.
   WEEKLY: {ja: 週1回}
@@ -159,7 +190,6 @@ terms:
   drip: {ja: 点滴静注}
   infusion: {ja: 輸注}
   loading: {ja: 負荷投与}
-  avoid: {ja: 回避}
   hold: {ja: 保留}
   if: {ja: 場合}
   or: {ja: または}
@@ -247,7 +277,6 @@ terms:
   tPA: {ja: tPA}
   dose: {ja: 用量}
   max: {ja: 最大}
-  JP: {ja: 日本}
   ug: {ja: μg}
   cerebral: {ja: 脳}
   edema: {ja: 浮腫}
@@ -277,19 +306,14 @@ terms:
   start: {ja: 開始}
   anticoagulation: {ja: 抗凝固療法}
   protocol: {ja: プロトコル}
-  cautious: {ja: 慎重}
-  may: {ja: 可能性}
-  tolerate: {ja: 耐容}
-  volume: {ja: 容量}
+  cautious: {ja: 慎重に}
   replaces: {ja: 置換}
   prophylactic: {ja: 予防投与}
-  under: {ja: 下}
   fluoroscopy: {ja: 透視}
   catheter: {ja: カテーテル}
   patch: {ja: パッチ}
   RV: {ja: 右室}
   PE: {ja: PE（肺塞栓）}
-  not: {ja: できず}
   Ice pack: {ja: 氷嚢}
   ice pack: {ja: 氷嚢}
   Wound irrigation: {ja: 創部洗浄}
@@ -331,6 +355,7 @@ terms:
   # Issue #3106: multi-word dose and timing phrases in Japanese chart notation.
   # Entries are matched longest-first, so a phrase wins over its words.
   nasal spray: {ja: 点鼻}
+  nasal drops: {ja: 点鼻}  # Issue #3266
   IV drip: {ja: 点滴静注}
   # A route + cadence pair written as one term (dosage summary of an IV order
   # whose cadence is a drip); no `en` slot, so English keeps "IV DRIP".
