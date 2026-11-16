@@ -9,10 +9,16 @@
 #     codes/data/drugs.yaml) given at or after the result is held — the MAR
 #     records status "held" with the potassium value as the reason — for the
 #     rest of the stay;
+#   - every scheduled dose of a drug in `hold_while_high_classes` (digoxin)
+#     is held only while the latest potassium resulted before the dose is
+#     at or above the threshold, and given again once it falls below
+#     (Issue #3232);
+#   - the hold reason is the latest potassium resulted before the dose;
 #   - the country's `treatment` order set is placed as one-time doses on
 #     the first day a result reaches the threshold; on following days that
 #     stay at or above it only the `ongoing: true` entries (the potassium
-#     binder) are ordered again — calcium and insulin start an episode.
+#     binder) are ordered again — calcium, insulin and the dextrose given
+#     with it start an episode.
 #
 # Sources:
 #   - KDIGO 2024 Clinical Practice Guideline for the Evaluation and
@@ -24,7 +30,17 @@
 #   - UK Kidney Association, Clinical Practice Guideline: Treatment of Acute
 #     Hyperkalaemia in Adults (2020): K+ >= 6.0 mmol/L is treated with IV
 #     calcium (membrane stabilisation), insulin-glucose (shift) and a
-#     potassium binder (removal), then rechecked.
+#     potassium binder (removal), then rechecked. The October 2023 final
+#     version (section "Insulin-glucose", hospital algorithm): "10 units
+#     soluble insulin in 25 g glucose" by IV infusion, 25 g = 50 mL of 50%
+#     glucose — recorded as its own administration (Issue #3232). It lists
+#     digoxin among the drugs that raise potassium (inhibits Na+/K+-ATPase).
+#   - LANOXIN (digoxin) US prescribing information (DailyMed set id
+#     d91e3646-4c63-4512-ab22-db39c085c4dc, 2024-12): electrolyte
+#     abnormalities predispose to digoxin toxicity (5.3: obtain a level and
+#     interrupt or adjust the dose); hyperkalemia is a sign of digoxin
+#     toxicity (10.1). Digoxin is therefore held while the potassium is at or
+#     above the treatment threshold (Issue #3232).
 #   - JP: 日本腎臓学会「エビデンスに基づく CKD 診療ガイドライン 2023」;
 #     グルコン酸カルシウム静注・GI 療法・陽イオン交換樹脂 (ケイキサレート) を使用。
 #   - The per-country drug choice follows the acute kidney injury protocol's
@@ -34,7 +50,11 @@
 # Schema:
 #   treat_threshold_mmol_l — potassium (mmol/L) at or above which drugs are
 #                            held and the order set is placed
-#   hold_classes           — drug classes (codes/data/drugs.yaml) held
+#   hold_classes           — drug classes (codes/data/drugs.yaml) held from
+#                            the first result at or above the threshold to
+#                            discharge
+#   hold_while_high_classes — drug classes held only while the latest
+#                            potassium is at or above the threshold
 #   treatment.<CC>         — one-time orders; `dose` is the parseable order
 #                            dose (EN), `dose_text` the localised instruction,
 #                            `ongoing` repeats the entry on consecutive days
@@ -42,7 +62,7 @@
 metadata:
   kind: reference
   name: hyperkalemia_response
-  source: "KDIGO 2024 CKD guideline; 2022 AHA/ACC/HFSA HF guideline; UK Kidney Association acute hyperkalaemia guideline 2020"
+  source: "KDIGO 2024 CKD guideline; 2022 AHA/ACC/HFSA HF guideline; UK Kidney Association acute hyperkalaemia guideline 2020 (final version October 2023); LANOXIN prescribing information"
 
 treat_threshold_mmol_l: 6.0
 
@@ -50,6 +70,9 @@ hold_classes:
   - acei
   - arb
   - diuretic.k_sparing
+
+hold_while_high_classes:
+  - cardiac_glycoside
 
 treatment:
   US:
@@ -59,6 +82,9 @@ treatment:
     - drug_id: insulin_regular_human
       dose: "10 units IV"
       dose_text: {en: "10 units IV with 50 mL of 50% dextrose", ja: "10 単位を 50% ブドウ糖液 50 mL とともに静注"}
+    - drug_id: dextrose_50
+      dose: "50 mL IV"
+      dose_text: {en: "50 mL (25 g) IV with the insulin", ja: "50 mL (25 g) をインスリンとともに静注"}
     - drug_id: patiromer
       dose: "8.4 g PO"
       dose_text: {en: "8.4 g PO", ja: "8.4 g 内服"}
@@ -70,6 +96,9 @@ treatment:
     - drug_id: insulin_regular_human
       dose: "10 units IV"
       dose_text: {en: "10 units IV with 50 mL of 50% glucose (glucose-insulin therapy)", ja: "10 単位を 50% ブドウ糖液 50 mL とともに静注 (GI 療法)"}
+    - drug_id: dextrose_50
+      dose: "50 mL IV"
+      dose_text: {en: "50 mL (25 g) IV with the insulin (glucose-insulin therapy)", ja: "50 mL (25 g) をインスリンとともに静注 (GI 療法)"}
     - drug_id: sodium_polystyrene_sulfonate
       dose: "30 g PO"
       dose_text: {en: "30 g PO", ja: "30 g 内服"}

@@ -1966,4 +1966,13 @@ drugs:
     codes:
       rxnorm: "1795250"
     classes: ["iv_fluid"]
+  # Issue #3232: the 25 g glucose given with IV insulin for hyperkalemia
+  # (UKKA 2023: 50 mL of 50% glucose). RxNorm IN glucose; YJ 大塚糖液５０％.
+  dextrose_50:
+    names: {en: "Dextrose 50%", ja: "50%ブドウ糖液"}
+    codes:
+      rxnorm: "4850"
+      yj: {injection: "3231401H7023"}
+    classes: ["glucose_solution.hypertonic"]
+    aliases: ["D50W", "50% dextrose", "50% glucose"]
 
