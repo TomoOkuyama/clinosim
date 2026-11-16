@@ -2793,6 +2793,10 @@
 <td>入院中のある日に検査値へ作用している薬剤。</td>
 </tr>
 <tr>
+<td><code>clinosim/modules/patient/medication_timeline.py</code> <code>medications_on(patient, when)</code> / <code>medications_at_encounter(patient, start)</code></td>
+<td>ある日に服用中の常用薬 (健診)、および ED・外来の record が <code>home_medications_at_admission</code> に記録する受診開始時の常用薬 (HPI・常用薬セクションはこれを読む。<code>patient.current_medications</code> はシミュレーション終了時の薬)。</td>
+</tr>
+<tr>
 <td><code>clinosim/modules/physiology/statin_response.py</code> <code>statin_intensity(med)</code> / <code>statin_ldl_reduction(patient_id, medications)</code> / <code>ldl_reduction(patient_id, medications)</code> / <code>statin_treated_ldl(untreated_ldl, reduction)</code></td>
 <td>薬剤と用量から決まるスタチンの強度、患者のスタチンが未治療 LDL から除く患者ごとの割合、その後に非スタチン追加薬 (エゼチミブ) を掛けた割合、その低下後の LDL。脂質低下薬で下がる LDL (検査値導出、健診) はすべてこれを通す。</td>
 </tr>

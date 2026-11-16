@@ -2948,6 +2948,10 @@
 <td>The medications acting on lab values on a given day of a stay.</td>
 </tr>
 <tr>
+<td><code>clinosim/modules/patient/medication_timeline.py</code> <code>medications_on(patient, when)</code> / <code>medications_at_encounter(patient, start)</code></td>
+<td>The home medications in effect on a day (health checkup), and the list an ED / outpatient record keeps as its <code>home_medications_at_admission</code> (the HPI and home-medication sections read it, not <code>patient.current_medications</code>, which is the end-of-simulation list).</td>
+</tr>
+<tr>
 <td><code>clinosim/modules/physiology/statin_response.py</code> <code>statin_intensity(med)</code> / <code>statin_ldl_reduction(patient_id, medications)</code> / <code>ldl_reduction(patient_id, medications)</code> / <code>statin_treated_ldl(untreated_ldl, reduction)</code></td>
 <td>A statin's intensity from the drug and dose, the per-patient fraction of the untreated LDL the patient's statins remove, that fraction with the non-statin add-ons (ezetimibe) applied after it, and the LDL after that reduction. Every LDL a lipid-lowering drug lowers (lab derivation, health checkup) goes through these.</td>
 </tr>
