@@ -48,6 +48,9 @@ __all__ = [
     "NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT",
     "NUTRITION_PROTEIN_G_PER_KG_MIDPOINT",
     "bmi_band",
+    "NotableLabFindingRule",
+    "NotableLabRules",
+    "notable_lab_rules",
 ]
 
 
@@ -210,6 +213,72 @@ def bp_band(sbp: float, dbp: float, country: str) -> BpBand:
     if sbp >= bp.high_normal[0] or dbp >= bp.high_normal[1]:
         return "high_normal"
     return "normal"
+
+
+# ---------------------------------------------------------------------------
+# Notable inpatient lab results — selection cap, findings, KDIGO AKI
+# ---------------------------------------------------------------------------
+
+
+class _NotableLabMaxItems(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    note: int = Field(gt=0)
+    llm_context: int = Field(gt=0)
+
+
+class NotableLabFindingRule(BaseModel):
+    """When a flagged result names its abnormality: on a panic result only
+    (default), beyond ``beyond``, or on any flag of its side."""
+
+    model_config = ConfigDict(extra="forbid")
+    finding: str
+    beyond: float | None = None
+    any_flag: bool = False
+
+
+class _NotableLabFinding(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    high: NotableLabFindingRule | None = None
+    low: NotableLabFindingRule | None = None
+
+
+class _AkiCriteria(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    analyte: str
+    absolute_rise: float = Field(gt=0)
+    absolute_rise_unit: str
+    absolute_window_hours: int = Field(gt=0)
+    relative_rise: float = Field(gt=1)
+    relative_window_days: int = Field(gt=0)
+
+
+class NotableLabRules(BaseModel):
+    """``notable_labs.yaml`` (Issue #3230)."""
+
+    model_config = ConfigDict(extra="forbid")
+    window_hours: int = Field(gt=0)
+    max_items: _NotableLabMaxItems
+    findings: dict[str, _NotableLabFinding]
+    aki: _AkiCriteria
+
+    @model_validator(mode="after")
+    def _known_analytes(self) -> NotableLabRules:
+        from clinosim.modules.observation.engine import PRECISION
+
+        unknown = sorted(a for a in [*self.findings, self.aki.analyte] if a not in PRECISION)
+        if unknown:
+            raise ValueError(f"notable_labs.yaml: unknown lab analytes {unknown}")
+        return self
+
+
+_NOTABLE_LABS_YAML = Path(__file__).resolve().parents[1] / "reference_data" / "notable_labs.yaml"
+
+
+@lru_cache(maxsize=1)
+def notable_lab_rules() -> NotableLabRules:
+    """The window, selection cap, per-analyte findings and KDIGO AKI criteria
+    of a daily note's notable labs (``notable_labs.yaml``)."""
+    return NotableLabRules.model_validate(load_validated_yaml(_NOTABLE_LABS_YAML, NotableLabRules))
 
 
 # ---------------------------------------------------------------------------

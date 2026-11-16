@@ -125,6 +125,37 @@ def round_to_precision(lab_name: str, value: float) -> float:
     return round(value, decimals)
 
 
+def format_lab_value(lab_name: str, value: Any, unit: str = "") -> str:
+    """A lab value as text at the analyte's reported precision (Issue #3230):
+    ``WBC 13214.0`` -> ``13214``, ``Creatinine 1.7`` -> ``1.70``. A value in
+    another unit than the analyte's own (a country reporting unit, already
+    rounded by :func:`reported_lab_value`) or of an analyte without a
+    precision keeps its digits, without a trailing ``.0``. Text values are
+    returned unchanged."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return str(value)
+    canon = canonical_lab_name(lab_name)
+    decimals = PRECISION.get(canon)
+    if decimals is not None and (not unit or unit == LAB_UNITS.get(canon, unit)):
+        return f"{float(value):.{decimals}f}"
+    as_float = float(value)
+    return str(int(as_float)) if as_float.is_integer() else str(as_float)
+
+
+def panic_side(lab_name: str, value: Any) -> str | None:
+    """``"low"`` / ``"high"``: the panic threshold a value is beyond (the side
+    of a ``critical`` flag), else ``None``."""
+    limits = _PANIC_THRESHOLDS.get(canonical_lab_name(lab_name))
+    if limits is None or isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    low, high = limits
+    if low is not None and value < low:
+        return "low"
+    if high is not None and value > high:
+        return "high"
+    return None
+
+
 _QUALITATIVE_TESTS = {"Urinalysis", "Urine_culture", "Rapid_Strep", "Tetanus_status", "Urine_drug_screen"}
 
 

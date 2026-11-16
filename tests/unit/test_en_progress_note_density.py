@@ -22,6 +22,9 @@ def _ctx(lang: str = "en", **kw) -> SimpleNamespace:
     return SimpleNamespace(
         target_lang=lang,
         complications_occurred=kw.get("complications", []),
+        # Issue #3229: the Assessment reads the dated events; these tests
+        # date every complication before the note's day.
+        complications_events=[{"name": c, "onset_day": 0} for c in kw.get("complications", [])],
         lab_results=kw.get("labs", []),
         day_index=kw.get("day_index", 1),
         medications=kw.get("meds", []),
@@ -89,7 +92,8 @@ def test_en_assessment_cites_abnormal_labs_today() -> None:
     # Phase 1c-5 (2026-09-23): lab-name routed through _localize_lab_name;
     # EN table canonicalizes full-word labs to lowercase-first prose
     # ("creatinine", not "Creatinine"). Abbreviations stay uppercase.
-    assert "creatinine 2.1 mg/dL [H]" in out
+    # Issue #3230: values at the analyte's reported precision.
+    assert "creatinine 2.10 mg/dL [H]" in out
     assert "K 5.6 mmol/L [H]" in out
     assert "Notable labs today" in out
 

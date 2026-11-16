@@ -429,7 +429,11 @@ def _build_extra_context(
         # note quoted the admission labs verbatim.
         adm_dt = _get(enc, "admission_datetime")
         abnormal_today = _render_abnormal_labs(
-            ctx.lab_results, day_index=ctx.day_index, lang=ctx.target_lang, admission_datetime=adm_dt
+            ctx.lab_results,
+            day_index=ctx.day_index,
+            lang=ctx.target_lang,
+            admission_datetime=adm_dt,
+            as_of=getattr(ctx, "authored_datetime", None),
         )
         if abnormal_today:
             extra["abnormal_labs_today"] = abnormal_today
@@ -487,7 +491,9 @@ def _build_extra_context(
         # v6 blocker fix: hospital_course was collapsing to a 1-liner
         # template because LLM had nothing specific to work with.
         # Feed the whole-stay lab/procedure/vitals-extremes summary.
-        abnormal_stay = _render_abnormal_labs(ctx.lab_results, day_index=None, lang=ctx.target_lang)
+        abnormal_stay = _render_abnormal_labs(
+            ctx.lab_results, day_index=None, lang=ctx.target_lang, as_of=getattr(ctx, "authored_datetime", None)
+        )
         if abnormal_stay:
             extra["abnormal_labs_during_stay"] = abnormal_stay
         key_procs = _render_key_procedures(ctx.procedures)

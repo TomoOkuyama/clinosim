@@ -321,7 +321,7 @@ def test_render_abnormal_labs_ja_localizes_full_english_names():
     assert "CRP" in ja
     # Numeric values + flags preserved verbatim
     assert "1.42" in ja
-    assert "214.0" in ja
+    assert "214 mg/dL" in ja
     assert "[H]" in ja
     assert "[L]" in ja
 

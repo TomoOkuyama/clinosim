@@ -1,0 +1,64 @@
+# How an inpatient note picks and interprets the day's abnormal lab results
+# (Issue #3230). Read by
+# narrative/_narrative_interpretation_thresholds.py::notable_lab_rules and
+# applied by narrative/lab_timeseries.py::select_notable_labs.
+#
+# window_hours: a daily note with an authored time cites the results reported
+#   in this many hours up to that time (since the previous day's note), so a
+#   result reported after one note is cited by the next one; without an
+#   authored time, the results of the note's hospital day. A complication
+#   that began within the same window is worded as new
+#   (renderers/_composers.py::_complications_known_on_day).
+# max_items: how many analytes each surface lists; the rest are counted
+#   ("+k other abnormal results").
+# findings: the abnormality a flagged result of an analyte names, by the side
+#   of the reference range it is on (high / low; the panic flag "critical" is
+#   placed on its side by the panic thresholds of
+#   observation/reference_data/lab_constants.yaml). By default only a panic
+#   result names it (a value merely outside a country's reference interval,
+#   e.g. JCCLS K > 4.8, is not yet "hyperkalemia"); `beyond` names it for a
+#   flagged value strictly beyond that cut-off; `any_flag` for every flagged
+#   value on that side. A hemolysed specimen (flag H*) names "hemolyzed"
+#   instead. Display text: locale/shared/narrative_phrases.yaml
+#   lab_finding.<slug>.
+#   Na low beyond 135 mmol/L: hyponatraemia is "a serum sodium concentration
+#     < 135 mmol/l" (Spasovski G et al. Clinical practice guideline on
+#     diagnosis and treatment of hyponatraemia. Eur J Endocrinol
+#     2014;170(3):G1-47).
+#   Troponin any_flag: the flag H is a value above the reference upper limit
+#     (the 99th-percentile URL), which is what "troponin elevation" states.
+# aki: KDIGO 2012 Clinical Practice Guideline for Acute Kidney Injury,
+#   Recommendation 2.1.1 (Kidney Int Suppl 2012;2:19-36): AKI is an increase
+#   in serum creatinine by >= 0.3 mg/dL within 48 hours, or to >= 1.5 times
+#   baseline within the prior 7 days. Baseline = the lowest creatinine of the
+#   prior 7 days; the absolute rise applies only to results in mg/dL.
+metadata:
+  kind: reference
+  name: notable_labs
+  source: clinosim
+
+window_hours: 24
+
+max_items:
+  note: 4
+  llm_context: 8
+
+findings:
+  K:
+    high: {finding: hyperkalemia}
+    low: {finding: hypokalemia}
+  Na:
+    high: {finding: hypernatremia}
+    low: {finding: hyponatremia, beyond: 135}
+  Troponin_I:
+    high: {finding: troponin_elevation, any_flag: true}
+  Troponin:
+    high: {finding: troponin_elevation, any_flag: true}
+
+aki:
+  analyte: Creatinine
+  absolute_rise: 0.3
+  absolute_rise_unit: mg/dL
+  absolute_window_hours: 48
+  relative_rise: 1.5
+  relative_window_days: 7
