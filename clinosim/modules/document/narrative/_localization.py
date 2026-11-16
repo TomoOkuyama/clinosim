@@ -18,30 +18,32 @@ from __future__ import annotations
 
 
 def _localize_complication(name: str, lang: str) -> str:
-    """Return the localized display for a complication token; fall back to
-    the ``name.replace("_", " ")`` humanised form when the mapping is
-    missing so a novel complication still surfaces something clinically
-    readable rather than a machine slug.
+    """Return the localized display for a complication token from
+    ``locale/shared/narrative_complications.yaml`` (the requested language,
+    then English).
 
     Whitespace-tokens in the input (space-separated composite English
     complications authored in disease YAML, e.g.
     ``"urinary tract infection"``) collapse to underscore-slug lookup
     (``urinary_tract_infection``) so both forms resolve to the same
     entry — matches the Phase 1c-5 behaviour.
+
+    Every complication token the disease YAMLs emit has an ``en`` and a
+    ``ja`` name (guard test ``test_complication_labels_3300``, Issue #3300),
+    so the humanised slug of an unknown token is only the table's last
+    fallback (code-mapping spec §6.4).
     """
     if not name:
         return ""
-    key = str(name).strip().lower()
+    key = "_".join(str(name).strip().lower().split())
     if not key:
         return ""
-    key = "_".join(key.split())
-    from clinosim.locale.loader import load_narrative_complications, resolve_localized_display
+    from clinosim.locale.loader import load_narrative_complications
+    from clinosim.locale.table import LocalizedTable
 
-    return resolve_localized_display(
-        load_narrative_complications().get(key, {}),
-        lang,
-        fallback=key.replace("_", " "),
-    )
+    return LocalizedTable(
+        "narrative_complications.complications", load_narrative_complications, humanize_unknown=True
+    ).get(key, lang)
 
 
 def _localize_lab_flag(flag: str, lang: str) -> str:

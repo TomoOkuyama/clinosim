@@ -331,7 +331,7 @@ These rules are common to every resolver in §4, in both layers.
 1. **Order.** Requested language, then English, then the caller's **explicit** fallback.
 2. **What a fallback never is.** It is never another non-English language (Japanese in English output), the lookup key, the raw code, a raw id or a raw slug.
 3. **A missing code or id** returns `None` / `""` from the resolver. The caller decides what to show and passes it explicitly, or omits the element ("silence beats fabrication").
-4. **Humanised slugs.** A humanised slug (underscores → spaces) is allowed only as the last fallback of a display table for internal slugs. For example `imaging_exam_display`, `procedure_type_display`, `department_display` and `lab_display` humanise an unknown slug. It is allowed only when a unit test asserts that every slug the generator emits is in the table. A title-cased slug (`.title()`) is never allowed.
+4. **Humanised slugs.** A humanised slug (underscores → spaces) is allowed only as the last fallback of a display table for internal slugs. For example `imaging_exam_display`, `procedure_type_display`, `department_display`, `lab_display` and the complication names of `narrative_complications.yaml` humanise an unknown slug. It is allowed only when a unit test asserts that every slug the generator emits is in the table. A title-cased slug (`.title()`) is never allowed.
 5. **A missing English entry** is a data bug, and a test detects it. A missing non-English entry falls back to English (rule 1).
 6. **Free text with no table entry** stays in English: the free-text resolvers (§4.3) return their input unchanged.
 

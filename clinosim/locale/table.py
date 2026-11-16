@@ -103,7 +103,7 @@ def localized_tables() -> dict[str, LocalizedTable]:
         LocalizedTable("narrative_op_approach.op_approach", n.load_narrative_op_approach, "translation-table"),
         LocalizedTable("narrative_op_implants.op_implants", n.load_narrative_op_implants, "translation-table"),
         LocalizedTable("narrative_archetypes.archetypes", n.load_narrative_archetypes),
-        LocalizedTable("narrative_complications.complications", n.load_narrative_complications),
+        LocalizedTable("narrative_complications.complications", n.load_narrative_complications, humanize_unknown=True),
     ]
     tables += _bundle_tables("fhir_text_translations", n.load_fhir_text_translations, "translation-table")
     tables += _bundle_tables("vocabulary", n.load_vocabulary)
