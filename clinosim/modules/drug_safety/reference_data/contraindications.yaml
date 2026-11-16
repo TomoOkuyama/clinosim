@@ -298,6 +298,8 @@ discharge_reconciliation_rules:
   - p2y12-plus-p2y12
   - doac-plus-vka
   - statin-plus-statin
+  # Issue #3274: the admission gate's no-second-beta-blocker rule.
+  - beta-blocker-plus-beta-blocker
 
 # Issue #2717: antithrombotic plan when an anticoagulated patient (DOAC /
 # warfarin) leaves on dual antiplatelet therapy after an ACS / PCI. Aspirin

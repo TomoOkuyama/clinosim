@@ -32,7 +32,9 @@ the ED arrival vital-sign set to `record.vital_signs` — derived from the
 state the patient was admitted in (`physiological_states[0]`) by the
 same function as a standalone ED visit's triage vitals
 (`simulator.vitals_pipeline.ed_arrival_vitals`), measured by an ED nurse
-at the triage-vitals offset, with its GCS, and marked
+at the triage-vitals offset, with its GCS and, when the disease protocol
+declares a `ventricular_rate` (atrial fibrillation with RVR, Issue #3274),
+its presenting ventricular rate, and marked
 `data_source = ED_TRIAGE_DATA_SOURCE` (`"ed_triage"`) so the FHIR output
 places it on the ED bridge Encounter. For such a stay the ESI resources
 count only its initial order set (`order_set == "admission_initial"`,
@@ -107,6 +109,8 @@ from clinosim.modules.triage.engine import (
   `normalize_probabilities`, `admitted_via_ed`, `ED_TRIAGE_DATA_SOURCE`,
   `ORDER_SET_ADMISSION_INITIAL`, `get_or_create_container`.
 - `clinosim.simulator.vitals_pipeline` — `ed_arrival_vitals`;
+  `clinosim.simulator.ventricular_rate` — `presenting_ventricular_rate`;
+  `clinosim.modules.disease.protocol` — `load_all_disease_protocols`;
   `clinosim.simulator._ed_thresholds` — `ED_VITALS_OFFSET_MIN`;
   `clinosim.modules.staff.engine` — `assign_staff`;
   `clinosim.modules.observation.nursing` — `compute_gcs`.

@@ -182,6 +182,7 @@ from clinosim.simulator._vitals_schedule_thresholds import (
     VITALS_TID_HOURS,
 )
 from clinosim.simulator.adl_ceiling import barthel_item_caps
+from clinosim.simulator.ventricular_rate import VentricularRateCourse
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
     ADLAssessment,
@@ -350,9 +351,16 @@ def _generate_daily_io(
     )
 
 
-def _make_raw(state, patient, vit_time, rng):
+def _make_raw(state, patient, vit_time, rng, ventricular_rate: VentricularRateCourse | None = None):
     age_months = age_in_completed_months(patient.date_of_birth, vit_time)
-    return derive_observed_vitals(state, patient.baseline_vitals, vit_time, rng, age_months=age_months)
+    return derive_observed_vitals(
+        state,
+        patient.baseline_vitals,
+        vit_time,
+        rng,
+        age_months=age_months,
+        ventricular_rate=ventricular_rate.at(vit_time) if ventricular_rate is not None else None,
+    )
 
 
 def _o2_for(spo2, disease_id, rng):
@@ -429,6 +437,7 @@ def ed_arrival_vitals(
     assess_avpu: bool = True,
     temperature: float | None = None,
     data_source: str = "manual",
+    ventricular_rate: float | None = None,
 ) -> VitalSignRecord:
     """The full vital-sign set the ED triage nurse records on arrival.
 
@@ -437,8 +446,10 @@ def ed_arrival_vitals(
     pain score follows the ED model (inflammation-scaled, floored by the
     state's pain axis). ``assess_avpu`` records AVPU from the state (a
     scheduled clinic visit does not assess it). ``temperature`` replaces the
-    derived reading (a presentation defined by fever, Issue #3063). Draws, in
-    order: the vitals noise, one pain draw, then the AVPU draws.
+    derived reading (a presentation defined by fever, Issue #3063).
+    ``ventricular_rate`` is the presenting ventricular response of an
+    arrhythmia (Issue #3274). Draws, in order: the vitals noise, one pain
+    draw, then the AVPU draws.
     """
     raw = derive_observed_vitals(
         state,
@@ -446,6 +457,7 @@ def ed_arrival_vitals(
         timestamp,
         rng,
         age_months=age_in_completed_months(patient.date_of_birth, timestamp),
+        ventricular_rate=ventricular_rate,
     )
     if temperature is not None:
         raw["temperature"] = temperature
@@ -501,8 +513,13 @@ def _generate_vitals(
     rng: np.random.Generator,
     disease_id: str = "",
     nurse_id: str = "",
+    ventricular_rate: VentricularRateCourse | None = None,
 ) -> list[VitalSignRecord]:
     """Generate vital sign measurements for this day.
+
+    ``ventricular_rate`` is the stay's ventricular-rate course of an
+    arrhythmia protocol (Issue #3274); the draws are the same with or
+    without it.
 
     Realistic patterns:
     - Routine full vitals (T/HR/BP/RR/SpO2) at scheduled rounds (acuity-based frequency)
@@ -599,7 +616,7 @@ def _generate_vitals(
         )  # noqa: E501
         if vit_time < admission_time:
             continue
-        raw = _make_raw(state, patient, vit_time, rng)
+        raw = _make_raw(state, patient, vit_time, rng, ventricular_rate)
         actual_time = vit_time + timedelta(minutes=float(rng.normal(0, VITALS_FULL_JITTER_MIN_SD)))
 
         # CIF stores English nursing notes (AD-30). JP translation at FHIR output.
@@ -619,7 +636,7 @@ def _generate_vitals(
         # 1a. Febrile re-check: re-measure temperature 30-60 min later
         if raw["temperature"] >= HIGH_FEVER_RECHECK_C and rng.random() < FEBRILE_RECHECK_PROB:
             recheck_time = actual_time + timedelta(minutes=int(rng.uniform(*FEBRILE_RECHECK_WINDOW_MIN)))
-            recheck_raw = _make_raw(state, patient, recheck_time, rng)
+            recheck_raw = _make_raw(state, patient, recheck_time, rng, ventricular_rate)
             _emit(
                 recheck_time,
                 fields={"temp"},
@@ -644,7 +661,7 @@ def _generate_vitals(
             if mon_time < admission_time:
                 continue
             mon_time += timedelta(minutes=float(rng.normal(0, VITALS_MONITOR_JITTER_MIN_SD)))
-            raw = _make_raw(state, patient, mon_time, rng)
+            raw = _make_raw(state, patient, mon_time, rng, ventricular_rate)
             _emit(mon_time, fields={"hr", "spo2"}, raw=raw, note="continuous monitor")
 
     return vitals

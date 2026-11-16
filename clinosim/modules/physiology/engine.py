@@ -1351,12 +1351,17 @@ def derive_vital_signs(
     *,
     age_months: int | None = None,
     pulmonary_inflammation: bool = True,
+    ventricular_rate: float | None = None,
 ) -> dict[str, float]:
     """Derive vital signs from physiological state + baseline.
 
     ``age_months`` (completed months at ``timestamp``) selects the
     age-dependent respiratory-rate ceiling; ``None`` keeps the adult one.
-    ``pulmonary_inflammation`` is passed to :func:`room_air_saturation`."""
+    ``pulmonary_inflammation`` is passed to :func:`room_air_saturation`.
+    ``ventricular_rate`` (beats/min) is the ventricular response of an
+    arrhythmia such as atrial fibrillation (Issue #3274,
+    ``simulator.ventricular_rate``); the heart rate is the higher of it and
+    the physiology-derived rate."""
     infl = state.inflammation_level
     perf = state.perfusion_status
     vol = state.volume_status
@@ -1391,6 +1396,8 @@ def derive_vital_signs(
         hr += symp * SYMPATHETIC_HR_SCALE
     if oxy:
         hr += oxy * OXYGENATION_HR_SCALE
+    if ventricular_rate is not None:
+        hr = max(hr, ventricular_rate)
     hr = clamp(hr, HR_CLAMP_MIN, HR_CLAMP_MAX)
 
     # Blood pressure
@@ -1461,6 +1468,7 @@ def derive_observed_vitals(
     *,
     age_months: int | None = None,
     pulmonary_inflammation: bool = True,
+    ventricular_rate: float | None = None,
 ) -> dict[str, float]:
     """Physiology-derived vitals + realistic measurement noise.
 
@@ -1472,10 +1480,16 @@ def derive_observed_vitals(
     non-terminal patients). The respiratory-rate ceiling follows ``age_months``
     (Issue #2926, see :func:`derive_vital_signs`); only the bound moves, the
     draws are the same. ``pulmonary_inflammation`` is passed to
-    :func:`room_air_saturation` (Issue #2987).
+    :func:`room_air_saturation` (Issue #2987). ``ventricular_rate`` is passed
+    to :func:`derive_vital_signs` (Issue #3274); the draws are the same.
     """
     raw = derive_vital_signs(
-        state, baseline, timestamp, age_months=age_months, pulmonary_inflammation=pulmonary_inflammation
+        state,
+        baseline,
+        timestamp,
+        age_months=age_months,
+        pulmonary_inflammation=pulmonary_inflammation,
+        ventricular_rate=ventricular_rate,
     )
     for key in raw:
         noise_sd = OBSERVED_TEMPERATURE_NOISE_SD if key == "temperature" else OBSERVED_VITALS_NOISE_SD_DEFAULT

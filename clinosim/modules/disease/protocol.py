@@ -562,6 +562,70 @@ class ImagingOrderSpec(BaseModel):
     abnormal_rate_by_severity: dict[str, float] = Field(default_factory=dict)
 
 
+class RateBand(BaseModel):
+    """A per-encounter rate (beats/min): normal around ``mean`` with ``sd``,
+    clipped to ``[min, max]``."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    mean: float
+    sd: float = Field(ge=0)
+    min: float
+    max: float
+
+    @model_validator(mode="after")
+    def _ordered(self) -> RateBand:
+        if not self.min <= self.mean <= self.max:
+            raise ValueError(f"rate band needs min <= mean <= max, got {self.min} / {self.mean} / {self.max}")
+        return self
+
+
+class HoursToControl(BaseModel):
+    """Hours from the first rate-control dose to the controlled rate, by
+    course archetype (``default`` for an archetype not listed)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    default: float = Field(gt=0)
+    by_archetype: dict[str, float] = Field(default_factory=dict)
+
+
+class VentricularRateSpec(BaseModel):
+    """``ventricular_rate`` of an arrhythmia protocol (Issue #3274): the
+    ventricular rate the heart rate follows during the stay. Before the first
+    given dose of a ``rate_control_classes`` drug it is the presenting rate of
+    the severity; it then falls linearly to the controlled rate over the
+    archetype's ``hours_to_control``. The stay is held until the rate is below
+    ``discharge_below_bpm``."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    rate_control_classes: tuple[str, ...] = Field(min_length=1)
+    presenting_bpm: dict[str, RateBand] = Field(min_length=1)
+    controlled_bpm: RateBand
+    hours_to_control: HoursToControl
+    # The stay is not discharged (and is extended up to the maximum LOS)
+    # while the ventricular rate is at or above this rate.
+    discharge_below_bpm: float = Field(gt=0)
+    source: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _catalog_classes(self) -> VentricularRateSpec:
+        from clinosim.codes.drugs import all_drug_ids, drug_classes
+
+        known = {c for d in all_drug_ids() for c in drug_classes(d)}
+        unknown = sorted(set(self.rate_control_classes) - known)
+        if unknown:
+            raise ValueError(f"ventricular_rate.rate_control_classes {unknown} are not classes of any catalog drug")
+        if self.controlled_bpm.max >= self.discharge_below_bpm:
+            raise ValueError("ventricular_rate.controlled_bpm.max must be below discharge_below_bpm")
+        return self
+
+    def hours_to_control_for(self, archetype: str) -> float:
+        """Hours to the controlled rate for the course ``archetype``."""
+        return float(self.hours_to_control.by_archetype.get(archetype, self.hours_to_control.default))
+
+
 class DiseaseProtocol(BaseModel):
     """Loaded disease protocol from YAML. Validated by Pydantic."""
 
@@ -600,6 +664,9 @@ class DiseaseProtocol(BaseModel):
     # completeness audit axis (fix-point registry FP-COMPLETENESS-GATE).
     drug_interactions: list[dict[str, Any]] = []
     outcome_benchmarks: dict[str, Any] = {}
+    # Issue #3274: the ventricular rate of an arrhythmia presentation (AF
+    # with rapid ventricular response), read by simulator.ventricular_rate.
+    ventricular_rate: VentricularRateSpec | None = None
 
     # Disease metadata (eliminates hardcoding in simulator)
     chief_complaint: str | dict[str, str] = ""  # str or {en: "...", ja: "..."}
@@ -665,6 +732,16 @@ class DiseaseProtocol(BaseModel):
         arch_names = set(self.course_archetypes) or set(_FALLBACK_PROBABILITIES)
         _validate_archetype_modifiers(self.disease_id, self.archetype_modifiers, arch_names)
         _validate_course_archetypes(self.disease_id, self.course_archetypes)
+        if self.ventricular_rate is not None:
+            unknown = sorted(set(self.ventricular_rate.hours_to_control.by_archetype) - arch_names)
+            missing = sorted(
+                set((self.severity or {}).get("distribution") or {}) - set(self.ventricular_rate.presenting_bpm)
+            )
+            if unknown or missing:
+                raise ValueError(
+                    f"{self.disease_id}: ventricular_rate names unknown archetypes {unknown} "
+                    f"or lacks presenting_bpm for severities {missing}"
+                )
         return self
 
 

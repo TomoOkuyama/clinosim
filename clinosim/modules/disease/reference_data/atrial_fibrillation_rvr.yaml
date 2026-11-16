@@ -280,11 +280,6 @@ expected_vital_distributions:
       mean: 36.8
       sd: 0.4
       range: [36.0, 38.0]
-    heart_rate:
-      unit: "bpm"
-      mean: 135
-      sd: 20
-      range: [100, 200]
     systolic_bp:
       unit: "mmHg"
       mean: 130
@@ -300,6 +295,51 @@ expected_vital_distributions:
       mean: 96
       sd: 2
       range: [88, 99]
+
+# ============================================================
+# VENTRICULAR RATE (Issue #3274)
+# The heart rate of the stay is the higher of this rate and the
+# physiology-derived one. Before the first given dose of a rate-control drug
+# it is the presenting rate of the severity; it then falls linearly to the
+# controlled rate over the archetype's hours_to_control. Each rate is a hash
+# draw keyed on the encounter (simulator/ventricular_rate.py).
+# - Presenting bands: above 110/min, the upper end of the resting target
+#   "<100 to 110 bpm" (2023 ACC/AHA/ACCP/HRS AF guideline 7.1, rec 2, COR 2a;
+#   RACE II lenient control "<110 bpm"; JCS/JHRS 2020 不整脈薬物治療ガイドライン
+#   図「目標安静時心拍数＜110/分」), split by the severity boundaries above
+#   (mild < 130, moderate 130-150, severe > 150).
+# - Controlled band: below 100/min (guideline 7.1: "78% of lenient rate
+#   control participants having heart rate <100 bpm"; discharge criteria
+#   "Heart rate < 100 bpm" below).
+# - Hours to control: guideline 7.2.1 supportive text — IV diltiazem lowers
+#   the rate within minutes, IV digoxin over about 3 hours, and "At 24 hours,
+#   rate control was achieved in 119 of 150 patients (79%)"; the archetypes
+#   that reach the rate within 24 h (smooth, dip, sudden) are 73% of stays.
+#   Refractory archetypes follow their own course: plateau_then_recovery
+#   responds to the day-3 dose change, treatment_resistant to the day-2
+#   amiodarone, gradual_deterioration after the day-2 escalation.
+# - Discharge: not while the rate is at or above 100/min (discharge_criteria
+#   above: "Heart rate < 100 bpm on oral medication"); such a stay is
+#   extended a day at a time up to the maximum LOS.
+# ============================================================
+ventricular_rate:
+  rate_control_classes: [beta_blocker, ccb.non_dhp, cardiac_glycoside, antiarrhythmic.class_iii]
+  presenting_bpm:
+    mild: {mean: 121, sd: 4, min: 115, max: 129}
+    moderate: {mean: 140, sd: 5, min: 130, max: 150}
+    severe: {mean: 160, sd: 6, min: 151, max: 175}
+  controlled_bpm: {mean: 88, sd: 5, min: 75, max: 98}
+  hours_to_control:
+    default: 12
+    by_archetype:
+      smooth_recovery: 6
+      dip_then_recovery: 12
+      sudden_deterioration: 24
+      gradual_deterioration: 54
+      treatment_resistant: 60
+      plateau_then_recovery: 78
+  discharge_below_bpm: 100
+  source: "2023 ACC/AHA/ACCP/HRS AF guideline 7.1 (rec 2) and 7.2.1; JCS/JHRS 2020 不整脈薬物治療ガイドライン 第5章 4"
 
 # ============================================================
 # TREATMENT REFERENCE — Drug selection data

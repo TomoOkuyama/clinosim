@@ -78,8 +78,8 @@ from clinosim.modules.physiology.engine import (
                                       #  hba1c_latent=None, ldl_reduction=0.0) -> dict[analyte, float]
     lipid_panel,                      # (sex, has_diabetes, has_dyslipidemia, ldl_reduction=0.0) -> {"TC", "HDL", "TG", "LDL"}
     patient_lipid_panel,              # (patient) -> 在宅薬から求めた lipid_panel(...) (健診用)
-    derive_vital_signs,               # (state, baseline: BaselineVitals, timestamp, *, age_months=None, pulmonary_inflammation=True) -> dict[str, float]
-    derive_observed_vitals,           # (state, baseline: BaselineVitals, timestamp, rng, *, age_months=None, pulmonary_inflammation=True) -> dict[str, float]
+    derive_vital_signs,               # (state, baseline: BaselineVitals, timestamp, *, age_months=None, pulmonary_inflammation=True, ventricular_rate=None) -> dict[str, float]
+    derive_observed_vitals,           # (state, baseline: BaselineVitals, timestamp, rng, *, age_months=None, pulmonary_inflammation=True, ventricular_rate=None) -> dict[str, float]
 )
 ```
 
