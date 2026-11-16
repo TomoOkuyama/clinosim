@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 from clinosim.codes.icd10 import condition_label, icd10_display
 from clinosim.codes.procedures import catalog_procedure_types, procedure_code_display, procedure_type_display
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
+from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import map_diagnosis_code
 from clinosim.locale.loader import narrative_label as _label
@@ -182,3 +183,37 @@ def chronic_condition_coded(code: str, country: str, lang: str, sex: str = "") -
     coded list ("display [code]"); the display falls back to the code."""
     emit = chronic_condition_code(code, country, sex)
     return emit, icd10_display(emit, country, lang) or emit
+
+
+def _code_category(code: str) -> str:
+    return str(code).split(".")[0].strip().upper()
+
+
+def ordered_chronic_conditions(ctx: NarrativeContext) -> list[Any]:
+    """The patient's chronic conditions, every one of them, the encounter's own
+    problem first (Issue #3248): a condition whose ICD category is that of the
+    encounter's diagnosis (admission, discharge or working diagnosis — the
+    visit code of an outpatient follow-up) leads, the rest keep their stored
+    order. Entries without a code are dropped. A problem list renders this
+    whole list rather than the first few conditions in stored order."""
+    patient = ctx.patient
+    conditions = list(_o(patient, "chronic_conditions", []) or []) if patient is not None else []
+    country = country_code(ctx.locale)
+    sex = str(_o(patient, "sex", "") or "") if patient is not None else ""
+    visit_categories: set[str] = set()
+    for dx in getattr(ctx, "diagnoses", None) or []:
+        for key in ("admission_diagnosis_code", "discharge_diagnosis_code"):
+            if code := str(_o(dx, key, "") or ""):
+                visit_categories.add(_code_category(code))
+        for wd in _o(dx, "working_diagnoses", []) or []:
+            if code := str(_o(wd, "code", "") or ""):
+                visit_categories.add(_code_category(code))
+    own: list[Any] = []
+    rest: list[Any] = []
+    for c in conditions:
+        code = str(_o(c, "code", "") or (c if isinstance(c, str) else ""))
+        if not code:
+            continue
+        categories = {_code_category(code), _code_category(chronic_condition_code(code, country, sex))}
+        (own if categories & visit_categories else rest).append(c)
+    return own + rest

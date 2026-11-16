@@ -267,20 +267,20 @@ def _hpi_parts(ctx: NarrativeContext) -> _HpiParts:
         cc = _displayed_chief_complaint(cc, ctx)
     cc_sentence = t("narrative_text.hpi.chief_complaint", lang, cc=cc) if cc else ""
     parts: list[str] = []
-    # Chronic short list — Issue #1333: route CIF base code through
+    # Chronic history — Issue #1333: route CIF base code through
     # map_diagnosis_code so display matches the FHIR emit-target.
+    # Issue #3248: every condition, the encounter's own problem first.
     from clinosim.modules.document.narrative.renderers._shared_helpers import (
         chronic_condition_code,
         chronic_condition_label,
+        ordered_chronic_conditions,
     )
 
     country = country_code(ctx.locale)
     conds = _o(patient, "chronic_conditions", []) or []
     chronic_labels: list[str] = []
-    for c in conds[:3]:
+    for c in ordered_chronic_conditions(ctx):
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
-        if not code:
-            continue
         disp = chronic_condition_label(code, country, ctx.target_lang, str(_o(patient, "sex", "") or ""))
         chronic_labels.append(disp or chronic_condition_code(code, country))
     if chronic_labels:
