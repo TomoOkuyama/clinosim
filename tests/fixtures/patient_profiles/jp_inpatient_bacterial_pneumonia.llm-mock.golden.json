@@ -2264,7 +2264,6 @@
       "facts_used": [
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.bacterial_pneumonia[1]",
-        "ctx.vitals[0]",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
         "ctx.encounter.chief_complaint",
@@ -2280,9 +2279,9 @@
         "assessment": "[Mock LLM response #21 — assessment]",
         "chief_complaint": "3日前より発熱・湿性咳嗽・胸痛",
         "disposition": "[Mock LLM response #21 — disposition]",
-        "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、CRP、PCT、クレアチニン、BUN、Na、K。画像: 胸部レントゲン (正面・側面)、胸部レントゲン (正面・側面)、胸部 CT (単純)。投薬: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、メロペネム 1g 静注 8時間毎、エノキサパリン。処置指示: 酸素投与: 鼻カニューラ SpO2 >= 94%",
+        "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、CRP、PCT、クレアチニン、BUN、Na、K。画像: 胸部レントゲン (正面・側面)、胸部レントゲン (正面・側面)。投薬: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。処置指示: 酸素投与: 鼻カニューラ SpO2 >= 94%",
         "hpi": "[Mock LLM response #21 — hpi]",
-        "physical_exam": "来院時所見: BP 118/71 mmHg, HR 103 回/分, RR 19 回/分, SpO2 96%, T 38.2°C。特記の身体所見なし。",
+        "physical_exam": "来院時の身体所見: 記載なし",
         "triage_details": "トリアージ情報：未記録"
       },
       "text": ""

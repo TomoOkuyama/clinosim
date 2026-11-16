@@ -8,19 +8,24 @@ from __future__ import annotations
 import re
 from dataclasses import replace
 from datetime import datetime, time, timedelta
-from typing import Any
+from functools import lru_cache
+from pathlib import Path
+from typing import Annotated, Any
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, StrictStr
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import system_key_for
 from clinosim.codes.drugs import protocol_drug_name
 from clinosim.countries import country_slot
 from clinosim.country_profile import implementation, register_implementation
+from clinosim.datafiles import load_validated_yaml
 from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import order_test_display
 from clinosim.locale.localized import language_slot
+from clinosim.modules._shared import ORDER_SET_ADMISSION_CARE, ORDER_SET_ADMISSION_INITIAL
 from clinosim.modules._shared import get_attr_or_key as _s
 from clinosim.modules.imaging.engine import (
     _resolve_imaging_procedure_code_key,
@@ -236,6 +241,8 @@ def place_imaging_orders(
             imaging_body_site_code=body_site["snomed"],
             imaging_views=views,
             imaging_spec_meta={"abnormal_rate_by_severity": abnormal_rate, "contrast": contrast},
+            # Issue #3242: the admission day's imaging is part of the initial workup.
+            order_set=ORDER_SET_ADMISSION_INITIAL if day_index == 0 else "",
         )
         orders.append(order)
 
@@ -416,6 +423,7 @@ def _build_lab_order(
     panel_key: str,
     clinical_intent: str,
     clinical_intent_ja: str = "",
+    order_set: str = "",
 ) -> Order:
     """Build a single LAB Order (shared by admission + daily, panel + stand-alone).
 
@@ -444,6 +452,7 @@ def _build_lab_order(
         ordered_by=ordered_by,
         status=OrderStatus.PLACED,
         panel_key=panel_key,
+        order_set=order_set,
     )
 
 
@@ -503,6 +512,25 @@ def _category_name(category: str, lang: str) -> str:
     key = str(category or "").strip().lower()
     entry = cats.get(key) or cats.get(key.replace("_", " "))
     return localized(entry, lang, fallback=str(category)) if entry else str(category)
+
+
+_ADMISSION_ORDER_SETS = Path(__file__).resolve().parent / "reference_data" / "admission_order_sets.yaml"
+
+
+class _AdmissionOrderSets(BaseModel):
+    """Shape of ``admission_order_sets.yaml`` (Issue #3242)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    care_supportive_types: list[Annotated[StrictStr, Field(min_length=1)]] = Field(min_length=1)
+
+
+@lru_cache(maxsize=1)
+def admission_care_supportive_types() -> frozenset[str]:
+    """Supportive order types that are ward care written with the admission
+    (``Order.order_set`` ``"admission_care"``), not initial ED orders."""
+    data = load_validated_yaml(_ADMISSION_ORDER_SETS, _AdmissionOrderSets)
+    return frozenset(data["care_supportive_types"])
 
 
 def place_admission_orders(
@@ -604,6 +632,7 @@ def place_admission_orders(
                     clinical_intent_ja=t(
                         "encounter_intent.admission_workup", "ja", test=order_test_display(lab_spec["test"], "ja")
                     ),
+                    order_set=ORDER_SET_ADMISSION_INITIAL,
                 )
             )
             order_seq += 1
@@ -625,6 +654,7 @@ def place_admission_orders(
                 clinical_intent_ja=t(
                     "encounter_intent.admission_workup", "ja", test=order_test_display(lab_spec["test"], "ja")
                 ),
+                order_set=ORDER_SET_ADMISSION_INITIAL,
             )
         )
         order_seq += 1
@@ -666,6 +696,7 @@ def place_admission_orders(
             frequency_per_day=parsed.get("frequency_per_day"),
             route=parsed.get("route") or med_spec.get("route", ""),
             duration_days=med_spec.get("duration_days"),
+            order_set=ORDER_SET_ADMISSION_INITIAL,
         )
         _loading = split_loading_dose(dose_str)
         if _loading:
@@ -752,6 +783,13 @@ def place_admission_orders(
             ),
             ordered_by=ordered_by,
             status=OrderStatus.PLACED,
+            # Issue #3242: ward care written with the admission is not part of
+            # the initial (ED) orders.
+            order_set=(
+                ORDER_SET_ADMISSION_CARE
+                if sup_type in admission_care_supportive_types()
+                else ORDER_SET_ADMISSION_INITIAL
+            ),
         )
         # P1-3: Enrich MEDICATION orders with dose from detail_raw
         # so dose_quantity / dose_unit are correctly set (not display_name).
@@ -803,6 +841,7 @@ def place_admission_orders(
             ),
             ordered_by=ordered_by,
             status=OrderStatus.PLACED,
+            order_set=ORDER_SET_ADMISSION_INITIAL,
         )
         orders.append(order)
 

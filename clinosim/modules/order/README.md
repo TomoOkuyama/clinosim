@@ -286,6 +286,20 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   is applied to ED treatment orders, ED / clinic take-home prescriptions and
   the postpartum take-home bundle; encounter-YAML prescriptions also carry
   the JP regimen as `locale_name` / `locale_frequency`.
+- **Admission order sets** ([`reference_data/admission_order_sets.yaml`](reference_data/admission_order_sets.yaml),
+  read by `engine.admission_care_supportive_types`, validated by
+  `_AdmissionOrderSets`, `extra="forbid"`; Issue #3242): every order
+  `place_admission_orders` writes, and the admission day's
+  `place_imaging_orders` orders, carry `Order.order_set`
+  `"admission_initial"` (the initial workup and first treatment; for a
+  patient admitted through the ED, the ED orders), except supportive orders
+  of a `care_supportive_types` type (bed rest, diet, catheters, precautions,
+  ward prophylaxis), which carry `"admission_care"`. A drug-safety
+  substitute keeps the order set of the order it replaces. Every other order
+  (continued home medications, daily and later orders, ED-visit orders)
+  carries `""`. The ED note of an admitted patient lists only the
+  `"admission_initial"` orders as its workup. Written at creation, no
+  random draw.
 
 ## Directory contents
 
@@ -311,6 +325,7 @@ clinosim/modules/order/
     medication_supersede.yaml        class switches + PRN markers read by supersede.py (Issues #2615, #2983)
     pediatric_dosing.yaml            per-drug mg/kg, max mg, minimum age; per-fluid mL/kg, per-country overrides, Holliday-Segar bands, neonatal postnatal-age bands (Issue #2857, #2977, #3012, #3004, #3082, #3063)
     label_dose_limits.yaml           per-country label dose, doses a day, daily max read by label_dose.py (Issue #3012)
+    admission_order_sets.yaml        supportive order types that are ward care in the admission order set (Issue #3242)
   SPEC.md                            extended design reference (not runtime)
 ```
 

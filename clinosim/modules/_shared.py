@@ -32,6 +32,15 @@ from clinosim.countries import is_us as is_us
 # convention as ``ABX_ORDER_ID_PREFIX`` in ``modules/antibiotic/engine.py``.
 MED_STOP_ORDER_ID_MARKER: str = "-STOP-"
 
+# ``Order.order_set`` values (Issue #3242), shared by the writer (order
+# engine) and the readers (the ED note): the order set an admission order was
+# written in. ``ORDER_SET_ADMISSION_INITIAL`` is the initial workup and first
+# treatment (for a via-ED admission, the ED orders);
+# ``ORDER_SET_ADMISSION_CARE`` is the ward care written with the admission
+# (catheter, bed rest, diet, precautions). Other orders carry ``""``.
+ORDER_SET_ADMISSION_INITIAL: str = "admission_initial"
+ORDER_SET_ADMISSION_CARE: str = "admission_care"
+
 
 def random_day_of_month(rng: np.random.Generator, year: int, month: int) -> int:
     """A uniform day of ``month`` (1 to its last day, incl. 29 Feb in leap years).

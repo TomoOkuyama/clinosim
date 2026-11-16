@@ -1201,6 +1201,9 @@ def apply_drug_safety_gate_to_orders(
                 status=OrderStatus.PLACED,
                 route=alt.default_route,
                 frequency=alt.default_frequency.upper() if alt.default_frequency else "",
+                # Issue #3242: the substitute takes the replaced order's place
+                # in its order set.
+                order_set=order.order_set,
             )
             if alt.default_dose:
                 from clinosim.modules.order.engine import enrich_medication_order

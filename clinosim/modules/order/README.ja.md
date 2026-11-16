@@ -268,6 +268,18 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   まま)。ED の治療オーダー、ED / 外来の持ち帰り処方、産後の退院処方に適用。
   encounter YAML の処方も JP の用法を `locale_name` / `locale_frequency` で
   持つ。
+- **入院時オーダーセット** ([`reference_data/admission_order_sets.yaml`](reference_data/admission_order_sets.yaml)、
+  `engine.admission_care_supportive_types` が読み、`_AdmissionOrderSets`
+  (`extra="forbid"`) で検証、Issue #3242): `place_admission_orders` が出す
+  オーダーと入院日の `place_imaging_orders` のオーダーは `Order.order_set`
+  `"admission_initial"` (初期検査と初期治療。救急外来経由の入院では救急外来で
+  出たオーダー) を持つ。ただし `care_supportive_types` の種類の支持療法
+  オーダー (安静度、食事、カテーテル、各種予防策、病棟での予防投与) は
+  `"admission_care"` を持つ。薬剤安全性チェックによる代替薬は置き換えた
+  オーダーの order_set を引き継ぐ。それ以外のオーダー (持参薬の継続、
+  連日・以後のオーダー、救急外来受診のみのオーダー) は `""`。入院患者の
+  救急外来記録は `"admission_initial"` のオーダーだけを検査・処置として
+  記載する。生成時に設定し、乱数は引かない。
 
 ## ディレクトリ構造
 
@@ -293,6 +305,7 @@ clinosim/modules/order/
     medication_supersede.yaml        supersede.py が読む class 切替 + PRN marker (Issue #2615, #2983)
     pediatric_dosing.yaml            pediatric_dose.py が読む薬剤ごとの mg/kg・上限・最低年齢、輸液ごとの mL/kg、国別上書き、Holliday-Segar 帯、新生児の生後日数帯 (Issue #2857, #2977, #3012, #3004, #3082, #3063)
     label_dose_limits.yaml           label_dose.py が読む国別の 1 回量・1 日回数・1 日最大量 (Issue #3012)
+    admission_order_sets.yaml        入院時オーダーセットのうち病棟ケアにあたる支持療法オーダーの種類 (Issue #3242)
   SPEC.md                            拡張設計参考 (runtime data ではない)
 ```
 

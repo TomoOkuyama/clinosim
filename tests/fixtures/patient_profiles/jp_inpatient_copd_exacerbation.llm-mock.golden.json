@@ -1878,7 +1878,6 @@
       "facts_used": [
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.copd_exacerbation[1]",
-        "ctx.vitals[0]",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
         "ctx.encounter.chief_complaint",
@@ -1894,9 +1893,9 @@
         "assessment": "[Mock LLM response #18 — assessment]",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",
         "disposition": "[Mock LLM response #18 — disposition]",
-        "ed_workup": "検査: CBC (全血球算定)、CRP、ABG (動脈血ガス)、PCT、クレアチニン、BUN、Na、K。画像: 胸部レントゲン (正面・側面)、胸部 CT、胸部レントゲン (正面・側面)、胸部ポータブルレントゲン。投薬: サルブタモール、イプラトロピウム、プレドニゾロン、ステロイド: プレドニゾロン 40mg 経口 1日1回 x5 日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、セフトリアキソン 1g 静注 1日1回。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (1時間毎 頓用 急性期)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎",
+        "ed_workup": "検査: CBC (全血球算定)、CRP、PCT、クレアチニン、BUN、Na、K、血糖。画像: 胸部レントゲン (正面・側面)、胸部 CT、胸部レントゲン (正面・側面)。投薬: サルブタモール、イプラトロピウム、プレドニゾロン、ステロイド: プレドニゾロン 40mg 経口 1日1回 x5 日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (1時間毎 頓用 急性期)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎",
         "hpi": "[Mock LLM response #18 — hpi]",
-        "physical_exam": "来院時所見: BP 126/79 mmHg, HR 95 回/分, RR 25 回/分, SpO2 89%, T 37.5°C。特記の身体所見なし。",
+        "physical_exam": "来院時の身体所見: 記載なし",
         "triage_details": "トリアージ情報：未記録"
       },
       "text": ""

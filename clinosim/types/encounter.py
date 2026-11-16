@@ -300,6 +300,12 @@ class Order:
     # the order is created; "" for other order types or an uncatalogued drug
     # (Issue #2297).
     drug_id: str = ""
+    # Issue #3242: the order set the order was written in
+    # (``modules._shared.ORDER_SET_*``): ``"admission_initial"`` for the
+    # initial workup and first treatment of an admission, ``"admission_care"``
+    # for ward care written with it, ``""`` for every other order (home
+    # medications continued, later and ED-visit orders).
+    order_set: str = ""
 
     def __post_init__(self) -> None:
         if not self.drug_id and self.order_type == OrderType.MEDICATION and self.display_name:
