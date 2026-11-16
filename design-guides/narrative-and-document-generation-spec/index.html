@@ -2529,6 +2529,11 @@
 <td><code>clinosim.codes.display</code>, <code>clinosim.locale.loader.lab_display</code>, ...</td>
 <td>the code-mapping spec §10</td>
 </tr>
+<tr>
+<td>The ED note of a patient admitted through the ED (no ED-visit protocol) is written from the admitting disease, as the H&amp;P is: the HPI from the disease's <code>hpi_template</code> (in English the generic onset sentence of its <code>onset_type</code>), and the exam as the ED arrival vitals followed by the disease's day-0 physical exam. The exam leaves out a clause whose vital-sign statement the arrival reading contradicts ("頻脈" with a normal heart rate, "低血圧" with a normal blood pressure; adult limits and terms in <code>reference_data/ed_note_admitted.yaml</code>, a child's range from the pediatric reference ranges), its consciousness clause follows the arrival AVPU, and it never says "no focal findings". An ambulance arrival in the HPI is reworded when the triage arrival mode is not an ambulance.</td>
+<td><code>renderers/section_builders/hpi.py::_build_hpi_core</code>, <code>renderers/section_builders/ed_note.py::build_ed_physical_exam</code> / <code>agree_with_arrival_mode</code></td>
+<td><code>tests/unit/modules/document/narrative/test_ed_note_admitted_hpi_exam_3243.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-not-in-scope-here">4. Not in scope here<a class="headerlink" href="#4-not-in-scope-here" title="Permanent link">&para;</a></h2>

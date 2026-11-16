@@ -2529,6 +2529,11 @@
 <td><code>clinosim.codes.display</code>, <code>clinosim.locale.loader.lab_display</code> など</td>
 <td>コードマッピング仕様 §10</td>
 </tr>
+<tr>
+<td>ED 経由で入院した患者の ED 記録 (ED 受診プロトコルがない) は、入院時記録と同じく入院の原因疾患から書く: HPI は疾患の <code>hpi_template</code> から (英語は <code>onset_type</code> の汎用の発症文)、身体所見は来院時バイタルに続けて疾患の day-0 身体所見。来院時の測定値と矛盾するバイタルの記述を含む句 (心拍数が正常なのに「頻脈」、血圧が正常なのに「低血圧」。成人の判定範囲と語は <code>reference_data/ed_note_admitted.yaml</code>、小児は小児基準範囲) は書かず、意識の句は来院時の AVPU に合わせ、「特記の身体所見なし」とは書かない。HPI の救急搬入の表現は、トリアージの来院手段が救急車でなければ言い換える。</td>
+<td><code>renderers/section_builders/hpi.py::_build_hpi_core</code>, <code>renderers/section_builders/ed_note.py::build_ed_physical_exam</code> / <code>agree_with_arrival_mode</code></td>
+<td><code>tests/unit/modules/document/narrative/test_ed_note_admitted_hpi_exam_3243.py</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="4-本書の対象外">4. 本書の対象外<a class="headerlink" href="#4-本書の対象外" title="Permanent link">&para;</a></h2>
