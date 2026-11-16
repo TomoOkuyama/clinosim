@@ -2969,8 +2969,8 @@ and <a href="../configuration-and-reference-data-spec/">configuration-and-refere
 <li><strong><code>datetime.now()</code> / <code>date.today()</code> do not appear on the
   generation path.</strong> The files allowed to read a clock are pinned
   in <code>tests/unit/test_determinism_spec_guards.py</code>; adding more is
-  forbidden. Narrative
-  timestamps use the <code>_deterministic_timestamp</code> family.</li>
+  forbidden. A narrative's <code>generated_at</code> is the document's own
+  time (<code>NarrativePass._document_timestamp</code>).</li>
 <li><strong>The return value of an <code>@lru_cache</code>d loader is a shared
   instance — never mutate it</strong> (<code>load_disease_protocol</code> /
   <code>load_encounter_condition</code> / <code>load_healthcare_config</code> /

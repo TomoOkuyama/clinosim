@@ -2448,6 +2448,11 @@
 <td><code>tests/unit/modules/document/narrative/test_death_stay_documents_2875.py</code></td>
 </tr>
 <tr>
+<td>A narrative's <code>generated_at</code> is the document's own time: the stub's <code>authored_datetime</code>, else its <code>period_end</code>, else the encounter's <code>discharge_datetime</code>, with the country profile's <code>timezone</code> suffix (the representation FHIR <code>DocumentReference.date</code> uses); an explicit offset is kept, and no document time leaves it empty. It never precedes the document it stamps, does not depend on <code>rng_seed</code>, and never reads the wall clock (only the version manifest's <code>generated_at</code> does).</td>
+<td><code>clinosim/modules/document/narrative/passes.py::NarrativePass._document_timestamp</code></td>
+<td><code>tests/unit/modules/document/narrative/test_generated_at_document_time_3276.py</code></td>
+</tr>
+<tr>
 <td>The LLM is reached only through <code>LLMService.complete_prompt</code> (AD-11).</td>
 <td><code>clinosim/modules/llm_service/</code></td>
 <td><code>implementation-rules.md</code> §2 (review)</td>

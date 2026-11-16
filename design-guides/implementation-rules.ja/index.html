@@ -2714,8 +2714,8 @@
   <code>sha_quantile</code> / <code>sha_bernoulli</code> / <code>sha_normal</code> / <code>sha_weighted_choice</code> を使い、<code>hashlib.sha256</code> の式を
   inline で書かない。</li>
 <li><strong><code>datetime.now()</code> / <code>date.today()</code> を生成経路に書かない</strong>。時計を読んでよいファイルは
-  <code>tests/unit/test_determinism_spec_guards.py</code> に固定されており、増やすのは禁止。narrative の時刻は
-  <code>_deterministic_timestamp</code> 系。</li>
+  <code>tests/unit/test_determinism_spec_guards.py</code> に固定されており、増やすのは禁止。narrative の <code>generated_at</code> は
+  文書自身の時刻 (<code>NarrativePass._document_timestamp</code>)。</li>
 <li><strong><code>@lru_cache</code> 済み loader の戻り値は shared instance — mutate 絶対禁止</strong>
   (<code>load_disease_protocol</code> / <code>load_encounter_condition</code> / <code>load_healthcare_config</code> /
   <code>load_hospital_operations</code> / ほか全 cached loader)。</li>

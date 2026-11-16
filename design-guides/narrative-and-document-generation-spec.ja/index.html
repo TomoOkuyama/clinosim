@@ -2448,6 +2448,11 @@
 <td><code>tests/unit/modules/document/narrative/test_death_stay_documents_2875.py</code></td>
 </tr>
 <tr>
+<td>ナラティブの <code>generated_at</code> は文書自身の時刻とする: スタブの <code>authored_datetime</code>、無ければ <code>period_end</code>、無ければ受診の <code>discharge_datetime</code> に、国プロファイルの <code>timezone</code> を付ける(FHIR <code>DocumentReference.date</code> と同じ表記)。オフセット付きの値はそのまま使い、文書の時刻が無ければ空にする。記録する文書より前にならず、<code>rng_seed</code> に依存せず、実時間を読まない(実時間を使うのは版マニフェストの <code>generated_at</code> だけ)。</td>
+<td><code>clinosim/modules/document/narrative/passes.py::NarrativePass._document_timestamp</code></td>
+<td><code>tests/unit/modules/document/narrative/test_generated_at_document_time_3276.py</code></td>
+</tr>
+<tr>
 <td>LLM には <code>LLMService.complete_prompt</code> を通してのみ届く(AD-11)。</td>
 <td><code>clinosim/modules/llm_service/</code></td>
 <td><code>implementation-rules.ja.md</code> §2(レビュー)</td>
