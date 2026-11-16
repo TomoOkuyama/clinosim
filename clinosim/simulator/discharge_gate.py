@@ -66,6 +66,7 @@ from clinosim.simulator._discharge_gate_thresholds import (
     READMISSION_SEVERITY_LIFT_MAX,
     READMISSION_SEVERITY_LIFT_MIN,
 )
+from clinosim.simulator.vasoactive_support import vasoactive_weaning_rules
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.output import CIFPatientRecord
 
@@ -153,13 +154,19 @@ def _evaluate_readmission(
     )
 
 
-def unsafe_for_home(state: PhysiologicalState, symptom_floor: dict[str, float] | None) -> bool:
+def unsafe_for_home(
+    state: PhysiologicalState, symptom_floor: dict[str, float] | None, *, on_vasoactive_support: bool = False
+) -> bool:
     """True while the patient cannot be sent home (Issues #2055, #2084, #2239):
     uncontrolled autonomic symptoms, hypoxemia or impaired consciousness beyond
-    the chronic baseline, hypoperfusion, or uncontrolled systemic inflammation."""
+    the chronic baseline, hypoperfusion, or uncontrolled systemic inflammation;
+    or a vasopressor / inotrope infusion within the observation period before
+    discharge (``on_vasoactive_support``, Issue #3270 — the pressure it
+    maintains is not the patient's own)."""
     floor = symptom_floor or {}
     return (
-        state.sympathetic_activation >= DISCHARGE_SYMPATHETIC_MAX
+        on_vasoactive_support
+        or state.sympathetic_activation >= DISCHARGE_SYMPATHETIC_MAX
         or state.oxygenation_impairment - floor.get("oxygenation_impairment", 0.0) > DISCHARGE_OXYGENATION_EXCESS_MAX
         or state.consciousness_impairment - floor.get("consciousness_impairment", 0.0)
         >= DISCHARGE_CONSCIOUSNESS_EXCESS_MAX
@@ -169,13 +176,17 @@ def unsafe_for_home(state: PhysiologicalState, symptom_floor: dict[str, float] |
 
 
 def discharge_disposition_for(
-    final_state: PhysiologicalState, symptom_floor: dict[str, float] | None, died: bool
+    final_state: PhysiologicalState,
+    symptom_floor: dict[str, float] | None,
+    died: bool,
+    *,
+    on_vasoactive_support: bool = False,
 ) -> DischargeDisposition:
     """Expired, skilled nursing facility (still unsafe at the end of the stay),
     or home (Issue #2084)."""
     if died:
         return DischargeDisposition.EXP
-    if unsafe_for_home(final_state, symptom_floor):
+    if unsafe_for_home(final_state, symptom_floor, on_vasoactive_support=on_vasoactive_support):
         return DischargeDisposition.SNF
     return DischargeDisposition.HOME
 
@@ -185,6 +196,8 @@ def _check_discharge_ready(
     day: int,
     country_key: str,
     symptom_floor: dict[str, float] | None = None,
+    *,
+    on_vasoactive_support: bool = False,
 ) -> bool:
     """Check if patient meets state-based discharge criteria.
 
@@ -192,13 +205,14 @@ def _check_discharge_ready(
     hemodynamically stable (perfusion), no acute organ dysfunction.
     The thresholds are the country's (``locale/<cc>/care_practice.yaml``
     ``discharge_criteria``): JP stricter, US earlier discharge once clinically
-    stable.
+    stable. Never while on vasopressor / inotrope support or within the
+    observation period after it (``on_vasoactive_support``, Issue #3270).
     """
     # anemia_level < 0.60 ≈ Hgb > 7.0 g/dL for females and > 8.7 for males —
     # no patient should be discharged with Hgb below transfusion trigger.
     anemia_ok = state.anemia_level < DISCHARGE_ANEMIA_MAX
     # Autonomic symptoms, oxygenation, consciousness and perfusion safe for home.
-    symptoms_ok = not unsafe_for_home(state, symptom_floor)
+    symptoms_ok = not unsafe_for_home(state, symptom_floor, on_vasoactive_support=on_vasoactive_support)
 
     # Issue #3142: the country's criteria (locale/<cc>/care_practice.yaml).
     criteria = load_care_practice(country_key).discharge_criteria
@@ -218,6 +232,8 @@ def extend_stay_for_symptoms(
     los_ceiling: int,
     max_los: int | None,
     symptom_floor: dict[str, float] | None = None,
+    *,
+    on_vasoactive_support: bool = False,
 ) -> bool:
     """Whether to keep the patient one more day past the sampled stay.
 
@@ -225,9 +241,16 @@ def extend_stay_for_symptoms(
     symptoms are still uncontrolled at that point (e.g. alcohol withdrawal
     peaking on day 2-3) stays on, one day at a time, up to the protocol's
     maximum LOS. Conditions that never raise ``sympathetic_activation``
-    never extend.
+    never extend. A patient on vasopressor / inotrope support or within the
+    observation period after it (``on_vasoactive_support``, Issue #3270)
+    stays on past the maximum LOS too, by at most ``max_extension_days``
+    (``reference_data/vasoactive_weaning.yaml``).
     """
-    return max_los is not None and los_ceiling < max_los and unsafe_for_home(state, symptom_floor)
+    if max_los is None:
+        return False
+    if on_vasoactive_support:
+        return los_ceiling < max_los + vasoactive_weaning_rules().max_extension_days
+    return los_ceiling < max_los and unsafe_for_home(state, symptom_floor)
 
 
 def _mortality_day_weight(day: int) -> float:

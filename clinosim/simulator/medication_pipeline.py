@@ -244,21 +244,29 @@ def vasoactive_hold_rules() -> VasoactiveHoldRules:
     )
 
 
+def is_vasoactive_infusion(order: Order) -> bool:
+    """A vasopressor / inotrope order (``trigger_classes``) given as a
+    continuous infusion — not an oral vasopressor, a one-time dose or a
+    ``DISCONTINUE:`` marker."""
+    from clinosim.modules.order.absolute_dose import is_continuous_infusion
+
+    if order.order_type != OrderType.MEDICATION or order.single_dose:
+        return False
+    if (order.display_name or "").startswith("DISCONTINUE:"):
+        return False
+    if not set(vasoactive_hold_rules().trigger_classes) & set(drug_classes(order.drug_id or order.display_name)):
+        return False
+    return is_continuous_infusion(order.frequency or "", order.display_name or "")
+
+
 def vasoactive_infusions(orders: Iterable[Order]) -> tuple[tuple[datetime, datetime | None], ...]:
     """``(start, end)`` of every placed vasopressor / inotrope order that runs
     as a continuous infusion (``trigger_classes``): from its order time, or
     ``administer_from`` when later, to its end time (``None`` = still
     running)."""
-    from clinosim.modules.order.absolute_dose import is_continuous_infusion
-
-    trigger = set(vasoactive_hold_rules().trigger_classes)
     out: list[tuple[datetime, datetime | None]] = []
     for o in orders:
-        if o.order_type != OrderType.MEDICATION or o.status != OrderStatus.PLACED or o.single_dose:
-            continue
-        if not trigger & set(drug_classes(o.drug_id or o.display_name)):
-            continue
-        if not is_continuous_infusion(o.frequency or "", o.display_name or ""):
+        if o.status != OrderStatus.PLACED or not is_vasoactive_infusion(o):
             continue
         start = max(o.ordered_datetime, o.administer_from) if o.administer_from else o.ordered_datetime
         out.append((start, o.end_datetime))

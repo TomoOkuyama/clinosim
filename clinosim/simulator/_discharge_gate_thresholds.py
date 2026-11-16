@@ -69,6 +69,7 @@ __all__ = [
     "DISCHARGE_OXYGENATION_EXCESS_MAX",
     "DISCHARGE_CONSCIOUSNESS_EXCESS_MAX",
     "DISCHARGE_PERFUSION_SAFE_MIN",
+    "MAP_PULSE_PRESSURE_FRACTION",
 ]
 
 
@@ -220,6 +221,13 @@ a patient is not safe for home: the AVPU "V" cut-off (Issue #2084)."""
 DISCHARGE_PERFUSION_SAFE_MIN: float = 0.5
 """``perfusion_status`` below which a patient is hemodynamically unsafe for
 home (Issue #2084); the moderate-hypoperfusion AVPU band starts at 0.4."""
+
+MAP_PULSE_PRESSURE_FRACTION: float = 1 / 3
+"""Fraction of the pulse pressure (systolic minus diastolic) added to the
+diastolic pressure to estimate the mean arterial pressure from a cuff reading
+(MAP = DBP + (SBP - DBP) / 3), the standard bedside formula. Used by the
+vasopressor weaning rule (``vasoactive_support.py``, Issue #3270), whose
+target is a MAP."""
 
 DISCHARGE_INFLAMMATION_SAFE_MAX: float = 0.8
 """``inflammation_level`` at or above which systemic inflammation is

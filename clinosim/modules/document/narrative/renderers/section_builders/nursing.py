@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from clinosim.codes.hl7_encounter import DischargeDisposition
 from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
@@ -327,7 +328,16 @@ def build_nursing_admission_status(
         else:
             parts.append(t("nursing_admission_status.died_line", lang))
     else:
-        parts.append(t("nursing_admission_status.discharge_met_line", lang))
+        # Issue #3270: "discharge criteria met" only for a discharge home; a
+        # patient still not safe for home at the end of the stay goes to a
+        # facility for continued care.
+        disposition = str(_o(ctx.encounter, "discharge_disposition", "") or "")
+        facts.append("encounter.discharge_disposition")
+        if disposition in ("", DischargeDisposition.HOME):
+            parts.append(t("nursing_admission_status.discharge_met_line", lang))
+        else:
+            label = _label("discharge_disposition", disposition, lang, fallback=disposition)
+            parts.append(t("nursing_admission_status.continued_care_line", lang, disposition=label))
     return "".join(parts), facts
 
 

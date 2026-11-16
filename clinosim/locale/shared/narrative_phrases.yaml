@@ -1337,6 +1337,11 @@ nursing_admission_status:
   discharge_met_line:
     ja: "退院基準を満たし退院となった。"
     en: "Discharge criteria met."
+  # Issue #3270: a stay that ends in a facility (disposition snf), not home:
+  # the patient was not safe for home at the end of the stay.
+  continued_care_line:
+    ja: "自宅退院の基準は満たさず、継続加療目的に{disposition}となった。"
+    en: "Not yet safe for home; {disposition} for continued care."
   # Issue #2875: a stay that ended in death (discharge disposition exp)
   # records the death instead of discharge criteria.
   died_line_at:

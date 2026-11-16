@@ -1003,6 +1003,7 @@
     "narrative": {
       "facts_used": [
         "ctx.los_days",
+        "encounter.discharge_disposition",
         "ctx.intake_output_records",
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments@authored"

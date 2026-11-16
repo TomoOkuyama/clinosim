@@ -143,6 +143,8 @@ clinosim/simulator/
   outpatient.py          外来エンカウンターシミュレータ
   emergency.py           ED エンカウンターシミュレータ
   discharge_gate.py      退院タイミング判定ロジック
+  vasoactive_support.py  昇圧薬・強心薬の離脱 (MAP 目標達成かつショック離脱) と
+                         離脱後に退院まで 1 病日観察する判定 (Issue #3270)
   discharge_rx.py        退院時処方ビルダー
   enrichers.py           enricher レジストリ (post-population / post-records)
   outpatient_dept.py     外来フォローアップ診療科リゾルバ
@@ -232,7 +234,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   cli_test_encounter.py  `clinosim test-encounter` サブコマンド
 ```
 
-リファレンスデータ (`reference_data/`、7 YAML):
+リファレンスデータ (`reference_data/`、8 YAML):
 
 ```
   reference_data/adl_functional_ceilings.yaml  認知症 CDR 病期による病前 Barthel 上限 (adl_ceiling.py)
@@ -242,6 +244,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/renal_medication_rules.yaml  腎機能別投与規則 (medication_pipeline.py, discharge_rx.py)
   reference_data/statin_monitoring.yaml       脂質モニタリング / スタチン調整 (statin_monitoring.py)
   reference_data/vasoactive_hold.yaml         昇圧薬・強心薬の持続投与中に保留する薬 (medication_pipeline.py)
+  reference_data/vasoactive_weaning.yaml      昇圧薬・強心薬の離脱条件と離脱後の退院判定 (vasoactive_support.py)
 ```
 
 抽出済閾値定数 (14 ファイル、`_<area>_thresholds.py`):
