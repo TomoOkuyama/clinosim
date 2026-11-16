@@ -26,6 +26,9 @@ _EVENT_STEMS = {
     "deescalate": "deescalate",
 }
 _EVENTS_WITHOUT_SUBSTITUTE_VARIANT = frozenset({"hold"})
+# conflict_kind -> phrase-key stem of an avoidance that is not a drug-drug
+# conflict (the conflict is the allergy or the condition, not a drug).
+_AVOID_KIND_STEMS = {"allergy": "avoid_allergy", "disease": "avoid_condition"}
 
 
 def safety_skip_line(
@@ -41,9 +44,10 @@ def safety_skip_line(
     localization); identity when None."""
     event = str(skip.get("event_type") or "avoid").lower()
     stem = _EVENT_STEMS.get(event, "avoid")
-    if stem == "avoid" and skip.get("conflict_kind") == "allergy":
-        # Issue #2930: an allergy is not a co-administration conflict.
-        stem = "avoid_allergy"
+    if stem == "avoid" and skip.get("conflict_kind") in _AVOID_KIND_STEMS:
+        # Issue #2930: an allergy is not a co-administration conflict;
+        # Issue #3283: neither is a condition.
+        stem = _AVOID_KIND_STEMS[str(skip.get("conflict_kind"))]
     localize = drug_name or (lambda name: name)
     considered = localize(localized_field(skip, "considered", lang))
     # Issue #2992: the phrase supplies the sentence's own full stop, so a

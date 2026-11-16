@@ -599,9 +599,10 @@ course_archetypes:
     treatment_modifications:
       day_3:
         action: "consider_ivc_filter"
+        # Issue #3283: a rate change of the running heparin infusion.
         start:
-          japan: [{drug_id: heparin, dose: "increase_rate_by_20%"}]
-          us: [{drug_id: heparin, dose: "increase_rate_by_20%"}]
+          japan: [{drug_id: heparin, dose: "increase_rate_by_20%", adjusts_active: true}]
+          us: [{drug_id: heparin, dose: "increase_rate_by_20%", adjusts_active: true}]
     triggers:
       - day: 3
         condition: "recurrent_symptoms_or_new_pe"

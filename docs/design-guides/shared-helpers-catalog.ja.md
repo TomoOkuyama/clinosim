@@ -138,7 +138,7 @@ Governing specs: [`medication-lifecycle-spec.ja.md`](medication-lifecycle-spec.j
 | `clinosim/modules/drug_safety/engine.py` `allergy_entries(allergies)` | 患者のアレルギー記録から有効なアレルゲンコードを取り出す (非活動・否定・「アレルギーなし」は除外)。`check_candidate_against_allergies` の入力。 |
 | `clinosim/modules/drug_safety/engine.py` `check_candidate_against_allergies(candidate, allergen_codes)` | 候補薬を患者のアレルゲンコードと照合した、許可されない判定。処方経路はアレルギー照合を自作せず、これ (または `allergy_skip_verdict`) を呼ぶ。 |
 | `clinosim/modules/drug_safety/engine.py` `allergy_skip_verdict(candidate, allergies)` | 患者のアレルギー記録で候補薬を除外する最も重い判定。投与可能なら None。 |
-| `clinosim/modules/drug_safety/engine.py` `conflict_display(verdict)` | 判定が何と競合したかの (英語, 日本語) 表示。`SafetySkipEntry` 用で、記録されたアレルギーまたは有効薬を返す。 |
+| `clinosim/modules/drug_safety/engine.py` `conflict_display(verdict)` | 判定が何と競合したかの (英語, 日本語) 表示。`SafetySkipEntry` 用で、記録されたアレルギー、薬剤-疾患の規則の疾患名、または有効薬を返す。 |
 | `clinosim/simulator/medication_pipeline.py` `allergy_blocked(patient, drug_name, ...)` | 代替薬を出せない処方 (継続処方・固定バンドル項目) で、アレルギーにより除外なら True (スキップを記録)。 |
 | `clinosim/simulator/medication_pipeline.py` `log_allergy_skip(patient, drug_name, verdict, ...)` | アレルギーで除外した処方項目を、代替薬があればそれも添えて `patient.safety_skip_log` に記録する。 |
 | `clinosim/modules/order/pediatric_dose.py` `pediatric_order_name(name, age_months, weight_kg)` | 成人固定用量のオーダーを小児の体重から再計算する。最小月齢未満なら None。 |

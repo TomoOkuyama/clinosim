@@ -96,6 +96,11 @@ verdicts = drug_safety.check_candidate_against_allergies("Amoxicillin", codes)
 # → [SafetyVerdict(rule_id="penicillin-allergy-penicillins", severity="contraindicated", ...)]
 drug_safety.allergy_skip_verdict("Ibuprofen", patient.allergies)  # blocking verdict or None
 drug_safety.conflict_display(verdict)  # → ("Penicillin allergy", "ペニシリンアレルギー")
+# a drug-condition verdict names the rule's condition (Issue #3283)
+drug_safety.conflict_display(hf_verdict)  # → ("heart failure", "心不全")
+# The in-stay gate: a new order of a drug already given is a dose / rate
+# change of it, not checked against it (Issue #3283); off by default
+drug_safety.check_candidate_against_active("Heparin increase_rate_by_20%", ["Heparin"], same_drug_reorder=True)  # → []
 
 # Demographic (age / sex) gate
 dv = drug_safety.check_demographic_gate(
@@ -182,7 +187,9 @@ Six YAML files plus the drug catalog:
   CKD stage 4-5 by ICD prefix / CKD stage 4-5 by stage, metformin in
   CKD stage 3b-5, sulfonamide and nitrofurantoin in G6PD deficiency).
   The NSAID rules of heart failure and CKD stage 4-5 exclude antiplatelet
-  aspirin (`exclude_classes`, Issue #3234).
+  aspirin (`exclude_classes`, Issue #3234). Each rule names its
+  condition (`condition`, Issue #3283), which the skip record and the
+  notes give as the reason.
   Applied when chronic medications are sampled and, since Issue #2855,
   on every new order (`apply_drug_safety_gate_to_orders`) and every ED
   order or take-home prescription.

@@ -24,7 +24,7 @@ preserves the byte-neutral contract by moving them verbatim.
 from __future__ import annotations
 
 import functools
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal, NamedTuple
@@ -1133,6 +1133,8 @@ def apply_drug_safety_gate_to_orders(
     protocol: Any = None,
     country: str,
     already_accepted_meds: list[str] | None = None,
+    already_accepted_ids: Collection[str] = (),
+    same_drug_reorder: bool = False,
 ) -> list[Order]:
     """Filter a stream of candidate medication Orders through
     ``drug_safety.check_pair``, the drug-vs-disease rules and the
@@ -1159,6 +1161,15 @@ def apply_drug_safety_gate_to_orders(
     post-admission paths (daily_loop, POST_ENCOUNTER enrichers) should
     pass in the union of home meds + admission-accepted meds + any
     already-processed candidates for the current pass.
+
+    ``already_accepted_ids`` are the ids of orders accepted before this pass
+    (the admission orders, for the daily loop): a candidate that replaces
+    one of them (``prior_order_id``, a rate change of the running heparin)
+    follows its verdict, like a replacement of an order of this pass
+    (Issue #3283). With ``same_drug_reorder`` (the daily loop's step-up
+    orders), a candidate of a drug already accepted is a re-order of that
+    drug (a dose or rate change), not checked against it
+    (``drug_safety.check_candidate_against_active``).
 
     Every skip (with or without substitute) is appended to
     ``patient.safety_skip_log`` with ``encounter_id`` set and
@@ -1196,7 +1207,8 @@ def apply_drug_safety_gate_to_orders(
     # Issue #3002: a maintenance order that replaces an order of this pass
     # (``prior_order_id``, e.g. the loading dose of the same drug) follows
     # that order's verdict instead of being checked against it.
-    accepted_ids: set[str] = set()
+    # Issue #3283: and so does one that replaces an order accepted before it.
+    accepted_ids: set[str] = set(already_accepted_ids)
     rejected_ids: set[str] = set()
     # Issue #2924: the patient's active allergies rule out drugs too.
     allergen_codes = drug_safety.allergy_entries(getattr(patient, "allergies", None) or [])
@@ -1236,7 +1248,9 @@ def apply_drug_safety_gate_to_orders(
             accepted_ids.add(order.order_id)
             continue
 
-        verdicts = drug_safety.check_candidate_against_active(candidate, accepted_med_names)
+        verdicts = drug_safety.check_candidate_against_active(
+            candidate, accepted_med_names, same_drug_reorder=same_drug_reorder
+        )
         # Issue #2855: drug-vs-disease rules (e.g. oxidant drugs in G6PD
         # deficiency) apply to every new order, not only to chronic sampling.
         # Issue #2924: and the patient's allergies, except on a "DISCONTINUE: X"

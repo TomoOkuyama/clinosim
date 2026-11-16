@@ -86,6 +86,11 @@ verdicts = drug_safety.check_candidate_against_allergies("Amoxicillin", codes)
 # → [SafetyVerdict(rule_id="penicillin-allergy-penicillins", severity="contraindicated", ...)]
 drug_safety.allergy_skip_verdict("Ibuprofen", patient.allergies)  # 回避 verdict か None
 drug_safety.conflict_display(verdict)  # → ("Penicillin allergy", "ペニシリンアレルギー")
+# 薬剤-疾患の判定は rule の疾患名を返す (Issue #3283)
+drug_safety.conflict_display(hf_verdict)  # → ("heart failure", "心不全")
+# 入院中の gate: 投与中の薬剤の新規オーダーはその用量・速度の変更であり、
+# その薬剤自身とは照合しない (Issue #3283)。既定は off
+drug_safety.check_candidate_against_active("Heparin increase_rate_by_20%", ["Heparin"], same_drug_reorder=True)  # → []
 
 # 年齢 / 性別 gate
 dv = drug_safety.check_demographic_gate(
@@ -169,7 +174,8 @@ YAML 6 ファイル + 薬剤カタログ:
   CKD stage 4-5 (stage 指定) での NSAID、CKD stage 3b-5 での
   metformin、G6PD 欠乏症でのスルホンアミドとニトロフラントイン)。
   心不全・CKD stage 4-5 の NSAID rule は抗血小板薬アスピリンを除外する
-  (`exclude_classes`、Issue #3234)。
+  (`exclude_classes`、Issue #3234)。各 rule は疾患名 (`condition`、
+  Issue #3283) を持ち、回避記録と記録文はそれを理由として書く。
   慢性薬の抽選時に加え、Issue #2855 以降はすべての新規オーダー
   (`apply_drug_safety_gate_to_orders`) と ED のオーダー・持ち帰り処方にも適用。
 - `reference_data/demographic_gates.yaml` — 年齢 / 性別 rule (3 rule:

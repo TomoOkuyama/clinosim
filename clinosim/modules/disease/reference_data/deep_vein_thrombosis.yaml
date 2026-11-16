@@ -622,9 +622,11 @@ course_archetypes:
     treatment_modifications:
       day_2:
         action: "icu_transfer"
+        # Issue #3283: a rate change of the running heparin infusion
+        # (``adjusts_active``), written in the rate-change notation.
         start:
-          japan: [{drug_id: heparin, dose: "Increase infusion rate"}]
-          us: [{drug_id: heparin, dose: "Increase infusion rate"}]
+          japan: [{drug_id: heparin, dose: "increase_rate_by_20%", adjusts_active: true}]
+          us: [{drug_id: heparin, dose: "increase_rate_by_20%", adjusts_active: true}]
         action_2: "consider_systemic_thrombolysis"
     triggers:
       - day: 2

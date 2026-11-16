@@ -1500,6 +1500,14 @@ safety_skips:
   avoid_allergy_no_sub:
     ja: "・{conflict}のため{considered}は投与せず。"
     en: "- {considered} not given: {conflict}; no alternative selected."
+  # Issue #3283: drug avoided for a condition of the patient ({conflict} is
+  # the condition, e.g. "heart failure" / 「心不全」).
+  avoid_condition_with_sub:
+    ja: "・{conflict}のため{considered}は回避し、{substituted}を処方。"
+    en: "- {considered} avoided because of {conflict}; {substituted} prescribed instead."
+  avoid_condition_no_sub:
+    ja: "・{conflict}のため{considered}は投与せず。"
+    en: "- {considered} avoided because of {conflict}; no alternative selected."
   day_phrase_specific:
     ja: "第{day}病日"
     en: "on day {day}"
@@ -1549,6 +1557,12 @@ safety_skips_prompt:
   avoid_allergy_no_sub:
     ja: "- 回避: {considered} ({conflict}のため投与せず、代替薬は選択せず)"
     en: "- avoid: {considered} (not given: {conflict}); no alternative selected"
+  avoid_condition_with_sub:
+    ja: "- 回避: {considered} ({conflict}のため回避); 代替として {substituted} を処方"
+    en: "- avoid: {considered} (avoided because of {conflict}); substituted with {substituted}"
+  avoid_condition_no_sub:
+    ja: "- 回避: {considered} ({conflict}のため投与せず、代替薬は選択せず)"
+    en: "- avoid: {considered} (avoided because of {conflict}); no alternative selected"
 
 # Checkup lab-results section (Phase 1d-47). From
 # _build_checkup_lab_results — 4 measured items (BMI / BP / HbA1c /

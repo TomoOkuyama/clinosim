@@ -18,7 +18,7 @@ from typing import Any
 
 import numpy as np
 
-from clinosim.codes.drugs import has_drug, protocol_drug_name
+from clinosim.codes.drugs import has_drug, protocol_drug_name, same_drug
 from clinosim.countries import country_code
 from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
@@ -744,8 +744,51 @@ def _stop_archetype_medications(stay: _Stay, run: _Run, day: int, mod: dict) -> 
         )
 
 
+def _running_order(orders: list[Order], drug: str) -> Order | None:
+    """The latest order still giving ``drug`` (a catalog id or name), None
+    when there is none: a later ``DISCONTINUE: <drug>`` marker stops it."""
+    running: Order | None = None
+    for order in orders:
+        if order.order_type != OrderType.MEDICATION or order.status != OrderStatus.PLACED:
+            continue
+        name = order.display_name or ""
+        if name.startswith("DISCONTINUE:"):
+            if same_drug(name.removeprefix("DISCONTINUE:").strip(), drug):
+                running = None
+        elif same_drug(order.drug_id or name, drug):
+            running = order
+    return running
+
+
+def _adjustment_of(running: Order | None) -> dict[str, Any]:
+    """Order fields of a dose or rate change of ``running`` (Issue #3283):
+    it replaces that order and keeps how the drug is given (route, dose,
+    frequency, coding); the change itself is the order text
+    ("Heparin increase_rate_by_20%"), never parsed as a dose."""
+    if running is None:
+        return {}
+    return {
+        "prior_order_id": running.order_id,
+        "order_code": running.order_code,
+        "order_code_system": running.order_code_system,
+        "dose_quantity": running.dose_quantity,
+        "dose_unit": running.dose_unit,
+        "frequency": running.frequency,
+        "frequency_per_day": running.frequency_per_day,
+        "route": running.route,
+        "drug_id": running.drug_id,
+    }
+
+
 def _start_archetype_treatments(stay: _Stay, run: _Run, day: int, mod: dict) -> None:
-    """Start new medications or procedures."""
+    """Start new medications or procedures.
+
+    A medication entry with ``adjusts_active: true`` changes the dose or rate
+    of the drug's running order (a heparin rate increase): the new order
+    replaces that order (``prior_order_id``) and is given like it
+    (:func:`_adjustment_of`), and the drug-safety gate does not check it
+    against itself (Issue #3283).
+    """
     encounter_id = stay.encounter_id
     start_meds = mod.get("start", {}).get(stay.country_key, mod.get("start", []))
     if not isinstance(start_meds, list):
@@ -770,6 +813,11 @@ def _start_archetype_treatments(stay: _Stay, run: _Run, day: int, mod: dict) -> 
             else:
                 order_id = f"ORD-{encounter_id}-DEV-D{day}-{sanitize_id_token(drug, 8)}"
                 intent_key = "order_intent.archetype_device"
+            adjusted = (
+                _adjustment_of(_running_order(run.orders, str(med.get("drug_id") or drug)))
+                if order_type == OrderType.MEDICATION and med.get("adjusts_active") is True
+                else {}
+            )
             run.orders.append(
                 Order(
                     order_id=order_id,
@@ -782,6 +830,7 @@ def _start_archetype_treatments(stay: _Stay, run: _Run, day: int, mod: dict) -> 
                     clinical_intent_ja=t(intent_key, "ja", day=day),
                     ordered_datetime=stay.admission_time + timedelta(days=day, hours=10),
                     status=OrderStatus.PLACED,
+                    **adjusted,
                 )
             )
         elif proc:
@@ -1074,6 +1123,8 @@ def _gate_new_medication_orders(
     if not new_orders:
         return orders
     accepted = [o.display_name for o in pre_new if o.order_type == OrderType.MEDICATION and o.display_name]
+    # Issue #3283: a rate change of an admission order follows its verdict,
+    # and a re-order of an accepted drug is not checked against that drug.
     gated_new = apply_drug_safety_gate_to_orders(
         new_orders,
         patient=stay.patient,
@@ -1083,6 +1134,8 @@ def _gate_new_medication_orders(
         protocol=stay.protocol,
         country=stay.country_key,
         already_accepted_meds=accepted,
+        already_accepted_ids={o.order_id for o in pre_new if o.order_type == OrderType.MEDICATION},
+        same_drug_reorder=True,
     )
     return pre_new + gated_new
 
