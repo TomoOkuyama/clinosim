@@ -395,7 +395,7 @@ def test_e11_stage_hba1c_matches_longitudinal_latent():
     from clinosim.modules.longitudinal.engine import initial_snapshot
 
     person = _make_diabetic_person()
-    initial_snapshot(person, year=2024, init_rng=np.random.default_rng(7))
+    initial_snapshot(person, year=2024, init_rng=np.random.default_rng(7), country="US")
     person.longitudinal_history[0].continuous["hba1c"] = 8.4
 
     profile = activate_patient(person, np.random.default_rng(7), _minimal_demo_for_activate())
@@ -413,8 +413,8 @@ def test_e11_hba1c_deterministic_same_seed():
 
     person1 = _make_diabetic_person()
     person2 = _make_diabetic_person()
-    initial_snapshot(person1, year=2024, init_rng=np.random.default_rng(123))
-    initial_snapshot(person2, year=2024, init_rng=np.random.default_rng(123))
+    initial_snapshot(person1, year=2024, init_rng=np.random.default_rng(123), country="US")
+    initial_snapshot(person2, year=2024, init_rng=np.random.default_rng(123), country="US")
     h1 = person1.longitudinal_history[0].continuous["hba1c"]
     h2 = person2.longitudinal_history[0].continuous["hba1c"]
     assert h1 == h2

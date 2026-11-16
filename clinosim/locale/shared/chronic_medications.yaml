@@ -17,6 +17,10 @@
 #   hold_condition: (optional) condition to hold the drug
 #   monitoring_labs: (optional) additional labs to monitor
 #   monitoring_frequency: (optional) frequency of monitoring labs
+#   required_coverage: (optional, per ICD block; Issue #3253) list of rules
+#     {stage_in, any_of_classes, fill_class}: when the condition's stage is in
+#     `stage_in` and no drug of `any_of_classes` was picked, one member of
+#     `fill_class` is added by a SHA-salted weighted choice (no RNG draw).
 #
 # Issue #442 (bare-name + separate dose migration): dose was formerly baked
 # into `drug` / `drug_ja` strings (e.g. "Atorvastatin 10mg"). It's now a
@@ -515,6 +519,28 @@ F32:  # Depressive episode (single)
   # (first-line) + SNRI (augmentation). Atypicals on a separate
   # exclusive class.
   exclusive_classes: ["ssri", "snri", "atypical_antidepressant"]
+  # Issue #3253 — treatment coverage. The SSRI draw below leaves a residual
+  # "no SSRI" branch (35 % US, more in JP where fluoxetine is excluded);
+  # for a moderate-or-worse episode that branch is not a guideline option:
+  #   APA Practice Guideline for MDD, 3rd ed. (2010), as summarised in
+  #   Armstrong C, Am Fam Physician 2011;83(10):1219-27: mild to moderate
+  #   depression "should be treated with antidepressants or psychotherapy";
+  #   for severe depression "psychotherapy should not be used alone"; first-
+  #   line agents are an SSRI, an SNRI, mirtazapine or bupropion.
+  #   日本うつ病学会治療ガイドライン II. うつ病（DSM-5）/大うつ病性障害 2016
+  #   第 3 章 中等症・重症うつ病: 推奨される治療「新規抗うつ薬」(SSRI/SNRI/
+  #   ミルタザピン)、推奨されない治療「精神療法単独による治療」; 第 2 章
+  #   軽症うつ病: 新規抗うつ薬は「必要に応じて選択される」.
+  # The simulator records no psychotherapy, so a moderate-or-worse patient
+  # with no antidepressant from any listed class gets one from `fill_class`
+  # (the first-line SSRI members available in the country and age band,
+  # weighted by their `probability`), chosen by a SHA-salted draw so the
+  # per-patient sub-stream is not advanced. Mild / "none" bands keep the
+  # non-drug share (watchful waiting / psychotherapy follow-up).
+  required_coverage:
+    - stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]
+      any_of_classes: ["ssri", "snri", "atypical_antidepressant"]
+      fill_class: "ssri"
   medications:
     - {drug_id: sertraline, dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.32}
     - {drug_id: escitalopram, dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.22}
@@ -539,6 +565,11 @@ F33:  # Recurrent depressive disorder — same three-class shape + severity gate
   # severity gating convention mirrors F32: SNRI at moderate+,
   # atypical at moderately severe+.
   exclusive_classes: ["ssri", "snri", "atypical_antidepressant"]
+  # Issue #3253 — same treatment-coverage rule and sources as F32.
+  required_coverage:
+    - stage_in: ["PHQ-9 moderate", "PHQ-9 moderately severe", "PHQ-9 severe"]
+      any_of_classes: ["ssri", "snri", "atypical_antidepressant"]
+      fill_class: "ssri"
   medications:
     - {drug_id: sertraline, dose: "50mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.35}
     - {drug_id: escitalopram, dose: "10mg", drug_class: "ssri", route: "PO", frequency: "daily", probability: 0.25}

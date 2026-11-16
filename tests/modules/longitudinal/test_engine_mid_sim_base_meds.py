@@ -76,7 +76,7 @@ def test_mid_sim_i10_onset_activates_amlodipine(i10_onset_always_fires):
     """
     person = _make_person()
     rng = np.random.default_rng(42)
-    snap = longitudinal_engine.initial_snapshot(person, 2024, rng)
+    snap = longitudinal_engine.initial_snapshot(person, 2024, rng, country="US")
 
     assert "I10" in person.chronic_conditions
     assert "I10" in snap.new_complications
@@ -102,8 +102,8 @@ def test_mid_sim_advance_one_year_fire_activates_base_meds(i10_onset_always_fire
     person.chronic_conditions = ["I10"]
     person.current_medications.append(HomeMedication(drug_name="Amlodipine", route="PO", dose="5mg", frequency="daily"))
     rng = np.random.default_rng(42)
-    longitudinal_engine.initial_snapshot(person, 2024, rng)
-    longitudinal_engine.advance_one_year(person, 2025, rng)
+    longitudinal_engine.initial_snapshot(person, 2024, rng, country="US")
+    longitudinal_engine.advance_one_year(person, 2025, rng, country="US")
 
     amlo_count = sum(1 for hm in person.current_medications if hm.drug_name == "Amlodipine")
     assert amlo_count == 1
@@ -116,8 +116,8 @@ def test_mid_sim_base_meds_dedup_against_existing(i10_onset_always_fires):
     person = _make_person()
     person.current_medications.append(HomeMedication(drug_name="Amlodipine", route="PO", dose="5mg", frequency="daily"))
     rng = np.random.default_rng(42)
-    longitudinal_engine.initial_snapshot(person, 2024, rng)
-    longitudinal_engine.advance_one_year(person, 2025, rng)
+    longitudinal_engine.initial_snapshot(person, 2024, rng, country="US")
+    longitudinal_engine.advance_one_year(person, 2025, rng, country="US")
 
     amlo_count = sum(1 for hm in person.current_medications if hm.drug_name == "Amlodipine")
     assert amlo_count == 1

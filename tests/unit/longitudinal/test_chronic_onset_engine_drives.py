@@ -134,8 +134,8 @@ def test_engine_does_not_promote_legacy_state_period_codes():
         date_of_birth=date(1980, 1, 1),
         chronic_conditions=["Z34", "Z37", "I10"],
     )
-    initial_snapshot(person, year=2024, init_rng=np.random.default_rng(0))
-    advance_one_year(person, year=2025, year_rng=np.random.default_rng(0))
+    initial_snapshot(person, year=2024, init_rng=np.random.default_rng(0), country="US")
+    advance_one_year(person, year=2025, year_rng=np.random.default_rng(0), country="US")
 
     # Z34 / Z37 stay as inert passthrough on chronic_conditions (no new
     # append, no duplicate).

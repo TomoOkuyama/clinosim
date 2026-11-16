@@ -74,7 +74,7 @@ def test_non_dm_patient_has_no_hba1c_in_state_history() -> None:
         date_of_birth=date(1970, 6, 1),
         chronic_conditions=["I10"],  # HTN, no DM
     )
-    snap = initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0))
+    snap = initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0), country="US")
     assert "hba1c" not in snap.continuous
 
 
@@ -89,7 +89,7 @@ def test_pediatric_person_has_no_hba1c_in_state_history() -> None:
         date_of_birth=date(2014, 6, 1),
         chronic_conditions=["E11.9"],
     )
-    snap = initial_snapshot(person, year=2024, init_rng=np.random.default_rng(0))
+    snap = initial_snapshot(person, year=2024, init_rng=np.random.default_rng(0), country="US")
     assert "hba1c" not in snap.continuous
 
 
@@ -108,9 +108,9 @@ def test_hba1c_trajectory_respects_rbc_lifespan_bound() -> None:
     for seed in range(1000):
         person = _mk_dm_person(seed)
         rng = np.random.default_rng(seed)
-        initial_snapshot(person, year=2021, init_rng=rng)
+        initial_snapshot(person, year=2021, init_rng=rng, country="US")
         for y in range(2022, 2026):
-            advance_one_year(person, year=y, year_rng=rng)
+            advance_one_year(person, year=y, year_rng=rng, country="US")
         meas_rng = np.random.default_rng(1_000_000 + seed)
         meas_sigma = 0.20
         for snap in person.longitudinal_history:
@@ -132,9 +132,9 @@ def test_cohort_mean_hba1c_reverts_toward_target() -> None:
     for seed in range(500):
         person = _mk_dm_person(seed)
         rng = np.random.default_rng(seed)
-        initial_snapshot(person, year=2021, init_rng=rng)
+        initial_snapshot(person, year=2021, init_rng=rng, country="US")
         for y in range(2022, 2032):  # 10-year window to let AR(1) relax
-            advance_one_year(person, year=y, year_rng=rng)
+            advance_one_year(person, year=y, year_rng=rng, country="US")
         latents.extend(snap.continuous["hba1c"] for snap in person.longitudinal_history[-5:])
     cohort_mean = sum(latents) / len(latents)
     assert abs(cohort_mean - 7.3) < 0.3

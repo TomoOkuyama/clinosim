@@ -54,7 +54,7 @@ def test_engine_event_fires_and_appends_chronic(event_only_loader: Path) -> None
     emits_icd into new_complications AND appends to chronic_conditions."""
     person = _mk_person()
     rng = np.random.default_rng(0)
-    snap = initial_snapshot(person, year=2024, init_rng=rng)
+    snap = initial_snapshot(person, year=2024, init_rng=rng, country="US")
     assert snap.new_complications == ["E11.21"], snap
     assert "E11.21" in person.chronic_conditions, person.chronic_conditions
 
@@ -65,14 +65,14 @@ def test_engine_event_one_shot_does_not_re_fire(event_only_loader: Path) -> None
     re-fire — one_shot guard against person.chronic_conditions."""
     person = _mk_person()
     rng = np.random.default_rng(0)
-    initial_snapshot(person, year=2024, init_rng=rng)
+    initial_snapshot(person, year=2024, init_rng=rng, country="US")
     assert "E11.21" in person.chronic_conditions
     # Advance year 2025: already-chronic → event must not re-fire.
-    snap_2025 = advance_one_year(person, year=2025, year_rng=rng)
+    snap_2025 = advance_one_year(person, year=2025, year_rng=rng, country="US")
     assert snap_2025.new_complications == [], snap_2025
     assert person.chronic_conditions.count("E11.21") == 1, person.chronic_conditions
     # And another year — still no re-fire.
-    snap_2026 = advance_one_year(person, year=2026, year_rng=rng)
+    snap_2026 = advance_one_year(person, year=2026, year_rng=rng, country="US")
     assert snap_2026.new_complications == [], snap_2026
 
 
@@ -86,9 +86,9 @@ def test_engine_event_fires_mid_sim_after_initial_scope_entry(event_only_loader:
     behave idempotently when no fire condition is met."""
     person = _mk_person()
     rng = np.random.default_rng(0)
-    initial_snapshot(person, year=2024, init_rng=rng)
+    initial_snapshot(person, year=2024, init_rng=rng, country="US")
     # After sim-start fire, chronic_conditions carries E11.21; advancing
     # 3 more years keeps count stable.
     for yr in range(2025, 2028):
-        advance_one_year(person, year=yr, year_rng=rng)
+        advance_one_year(person, year=yr, year_rng=rng, country="US")
     assert person.chronic_conditions.count("E11.21") == 1, person.chronic_conditions

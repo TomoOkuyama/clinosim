@@ -119,7 +119,7 @@ def test_longitudinal_f33_onset_removes_pre_existing_f32():
     snapshot = YearSnapshot(year=2026)
     rng = np.random.default_rng(0)
 
-    _apply_pattern(forced_spec, snapshot, rng, person=person, prev_snapshot=None)
+    _apply_pattern(forced_spec, snapshot, rng, person=person, prev_snapshot=None, country="US")
 
     assert "F33" in person.chronic_conditions, "F33 must be appended"
     assert "F32" not in person.chronic_conditions, "F32 must be dropped when F33 fires (ICD-10-CM §F30-F39 subsumption)"
@@ -152,6 +152,6 @@ def test_longitudinal_f33_onset_leaves_person_without_f32_alone():
     snapshot = YearSnapshot(year=2026)
     rng = np.random.default_rng(0)
 
-    _apply_pattern(forced_spec, snapshot, rng, person=person, prev_snapshot=None)
+    _apply_pattern(forced_spec, snapshot, rng, person=person, prev_snapshot=None, country="US")
 
     assert person.chronic_conditions == ["I10", "F33"]

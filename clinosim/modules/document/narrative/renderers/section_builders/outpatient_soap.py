@@ -43,7 +43,7 @@ from clinosim.codes.valuesets import concept_group, iter_chronic_codes
 from clinosim.countries import country_code, has_authored_narrative
 from clinosim.determinism import sha_index
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import chronic_followup_interval_months
+from clinosim.locale.loader import chronic_followup_interval_months, load_chronic_followup
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
@@ -880,8 +880,18 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
             # the vitals and neither defers the judgement.
             condition_stage = str(_o(c, "stage", "") or "").strip()
             if condition_stage:
+                # Issue #3253: a condition followed for a drug class the
+                # patient does not take is not "management continued".
+                _fu = load_chronic_followup()
+                _fu_spec = _fu.get(code) or _fu.get(code.split(".")[0]) or {}
+                _med_class = _fu_spec.get("medication_class") if isinstance(_fu_spec, dict) else None
+                _untreated = bool(_med_class) and not any(
+                    medication_matches(m, classes=(_med_class,)) for m in cur_meds
+                )
                 follow = t(
-                    "chronic_assessment.chronic_stage_stable",
+                    "chronic_assessment.chronic_stage_untreated"
+                    if _untreated
+                    else "chronic_assessment.chronic_stage_stable",
                     lang,
                     label=label,
                     # Issue #3034: the stage label in the output language.

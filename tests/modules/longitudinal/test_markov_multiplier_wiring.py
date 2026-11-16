@@ -67,12 +67,13 @@ def test_advance_one_year_applies_multiplier_fn(ckd_loader: Path) -> None:
     for seed in range(trials):
         person = _mk_person(f"P{seed}")
         rng = np.random.default_rng(seed)
-        initial_snapshot(person, year=2024, init_rng=rng)
+        initial_snapshot(person, year=2024, init_rng=rng, country="US")
         advance_one_year(
             person,
             year=2025,
             year_rng=rng,
             multiplier_fn=lambda person, icd, year: 3.0,
+            country="US",
         )
         if person.longitudinal_history[-1].chronic_stages["N18"] == "CKD G2":
             hits += 1
@@ -88,8 +89,8 @@ def test_advance_one_year_without_multiplier_uses_base_rate(ckd_loader: Path) ->
     for seed in range(trials):
         person = _mk_person(f"P{seed}")
         rng = np.random.default_rng(seed)
-        initial_snapshot(person, year=2024, init_rng=rng)
-        advance_one_year(person, year=2025, year_rng=rng)
+        initial_snapshot(person, year=2024, init_rng=rng, country="US")
+        advance_one_year(person, year=2025, year_rng=rng, country="US")
         if person.longitudinal_history[-1].chronic_stages["N18"] == "CKD G2":
             hits += 1
     rate = hits / trials

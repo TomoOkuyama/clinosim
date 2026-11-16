@@ -55,10 +55,10 @@ def _mk_person() -> PersonRecord:
 def test_engine_dispatches_markov_to_chronic_stages(markov_only_loader: Path) -> None:
     person = _mk_person()
     rng = np.random.default_rng(0)
-    snap0 = initial_snapshot(person, year=2024, init_rng=rng)
+    snap0 = initial_snapshot(person, year=2024, init_rng=rng, country="US")
     assert snap0.chronic_stages == {"TEST": "A"}, snap0
     assert snap0.continuous == {}, snap0
 
-    snap1 = advance_one_year(person, year=2025, year_rng=rng)
+    snap1 = advance_one_year(person, year=2025, year_rng=rng, country="US")
     assert snap1.chronic_stages == {"TEST": "B"}, snap1
     assert snap1.continuous == {}, snap1

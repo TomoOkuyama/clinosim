@@ -16,9 +16,9 @@ Phase 1 で engine 本体と最初の属性 (HbA1c AR(1)) を導入した。以�
 ```python
 from clinosim.modules.longitudinal import (
     YearSnapshot,           # 年次状態コンテナ
-    advance_one_year,       # (person, year, year_rng) -> 新 YearSnapshot
+    advance_one_year,       # (person, year, year_rng, *, country) -> 新 YearSnapshot
     state_at,               # (person, when) -> YearSnapshot
-    initial_snapshot,       # (person, year, init_rng) -> 初回 YearSnapshot
+    initial_snapshot,       # (person, year, init_rng, *, country) -> 初回 YearSnapshot
     yearsnapshot_from_dict, # dict -> YearSnapshot (deserialise helper)
 )
 ```
@@ -27,7 +27,7 @@ from clinosim.modules.longitudinal import (
 
 ## 決定性
 
-- 毎年 1 本の `np.random.Generator` を caller が渡す (`advance_population` / `generate_population`)。属性は `depends_on` の topological order で逐次 draw。`rng_isolated: true` の event yaml は共有 stream を消費せず `seeding.longitudinal_event_seed(person_id, year, event_name)` の専用 generator を使う。新規 ICD 獲得時の base 常用薬追加は patient 単位の `chronic_medication_seed` を使う。
+- 毎年 1 本の `np.random.Generator` を caller が渡す (`advance_population` / `generate_population`)。属性は `depends_on` の topological order で逐次 draw。`rng_isolated: true` の event yaml は共有 stream を消費せず `seeding.longitudinal_event_seed(person_id, year, event_name)` の専用 generator を使う。新規 ICD 獲得時の base 常用薬追加は patient 単位の `chronic_medication_seed` を使い、その年の本人の `country` と年齢で選ぶ (Issue #3253: `locale_exclude` と薬剤の年齢帯が効くので、JP の新規うつ病に fluoxetine は付かない)。
 - `population.aging.aging_sub_seed(person_id, year, "longitudinal")` が年次 generator を seed、`aging_sub_seed(person_id, base_year, "longitudinal:init")` が Layer-1 init を seed。
 - `state_at(person, when)` は純関数 (RNG なし、`longitudinal_history` を走査して該当年を返し、無ければ `IndexError`)。
 - `advance_one_year` は空 history / duplicate year / backward year で `ValueError`。前方への年 gap は許容。

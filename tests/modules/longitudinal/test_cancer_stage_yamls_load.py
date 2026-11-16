@@ -127,6 +127,6 @@ def test_breast_subcode_matches_c50_prefix():
         date_of_birth=date(1970, 1, 1),
         chronic_conditions=["C50.1"],
     )
-    snap = le.initial_snapshot(p, 2024, np.random.default_rng(0))
+    snap = le.initial_snapshot(p, 2024, np.random.default_rng(0), country="US")
     assert "C50" in snap.chronic_stages
     assert snap.chronic_stages["C50"] in {"AJCC I", "AJCC II", "AJCC III", "AJCC IV"}

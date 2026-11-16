@@ -96,7 +96,7 @@ def _mk_person(*, chronic: list[str], age: int, person_id: str = "P1") -> Person
 def test_initial_snapshot_populates_hba1c_for_dm_person(hba1c_only_loader: Path) -> None:
     person = _mk_person(chronic=["E11.9"], age=55)
     rng = np.random.default_rng(42)
-    snap = initial_snapshot(person, year=2021, init_rng=rng)
+    snap = initial_snapshot(person, year=2021, init_rng=rng, country="US")
     assert snap.year == 2021
     assert "hba1c" in snap.continuous
     assert 4.5 <= snap.continuous["hba1c"] <= 14.0
@@ -107,16 +107,16 @@ def test_initial_snapshot_populates_hba1c_for_dm_person(hba1c_only_loader: Path)
 def test_initial_snapshot_omits_hba1c_for_non_dm_person(hba1c_only_loader: Path) -> None:
     person = _mk_person(chronic=["I10"], age=55)
     rng = np.random.default_rng(42)
-    snap = initial_snapshot(person, year=2021, init_rng=rng)
+    snap = initial_snapshot(person, year=2021, init_rng=rng, country="US")
     assert "hba1c" not in snap.continuous
 
 
 @pytest.mark.unit
 def test_advance_one_year_appends_and_returns_snapshot(hba1c_only_loader: Path) -> None:
     person = _mk_person(chronic=["E11.9"], age=55)
-    initial_snapshot(person, year=2021, init_rng=np.random.default_rng(42))
+    initial_snapshot(person, year=2021, init_rng=np.random.default_rng(42), country="US")
     rng2 = np.random.default_rng(43)
-    s1 = advance_one_year(person, year=2022, year_rng=rng2)
+    s1 = advance_one_year(person, year=2022, year_rng=rng2, country="US")
     assert s1.year == 2022
     assert person.longitudinal_history[-1] is s1
     assert len(person.longitudinal_history) == 2
@@ -126,37 +126,37 @@ def test_advance_one_year_appends_and_returns_snapshot(hba1c_only_loader: Path) 
 def test_advance_one_year_applies_ar1_step(deterministic_loader: Path) -> None:
     """phi=1 sigma=0 target=0 → h_next == h_prev."""
     person = _mk_person(chronic=["E11.9"], age=55)
-    s0 = initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0))
+    s0 = initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0), country="US")
     prev = s0.continuous["hba1c"]
-    s1 = advance_one_year(person, year=2022, year_rng=np.random.default_rng(0))
+    s1 = advance_one_year(person, year=2022, year_rng=np.random.default_rng(0), country="US")
     assert s1.continuous["hba1c"] == pytest.approx(prev, abs=1e-9)
 
 
 @pytest.mark.unit
 def test_advance_one_year_raises_on_duplicate_year(hba1c_only_loader: Path) -> None:
     person = _mk_person(chronic=["E11.9"], age=55)
-    initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0))
-    advance_one_year(person, year=2022, year_rng=np.random.default_rng(0))
+    initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0), country="US")
+    advance_one_year(person, year=2022, year_rng=np.random.default_rng(0), country="US")
     with pytest.raises(ValueError, match="already"):
-        advance_one_year(person, year=2022, year_rng=np.random.default_rng(0))
+        advance_one_year(person, year=2022, year_rng=np.random.default_rng(0), country="US")
 
 
 @pytest.mark.unit
 def test_advance_one_year_raises_on_backward_year(hba1c_only_loader: Path) -> None:
     """Review Focus 5. Year 5 then year 3 is a monotonicity break."""
     person = _mk_person(chronic=["E11.9"], age=55)
-    initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0))
-    advance_one_year(person, year=2022, year_rng=np.random.default_rng(0))
-    advance_one_year(person, year=2023, year_rng=np.random.default_rng(0))
+    initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0), country="US")
+    advance_one_year(person, year=2022, year_rng=np.random.default_rng(0), country="US")
+    advance_one_year(person, year=2023, year_rng=np.random.default_rng(0), country="US")
     with pytest.raises(ValueError, match="backward|monotonic|prior"):
-        advance_one_year(person, year=2021, year_rng=np.random.default_rng(0))
+        advance_one_year(person, year=2021, year_rng=np.random.default_rng(0), country="US")
 
 
 @pytest.mark.unit
 def test_advance_one_year_requires_non_empty_state_history(hba1c_only_loader: Path) -> None:
     person = _mk_person(chronic=["E11.9"], age=55)
     with pytest.raises(ValueError, match="initial_snapshot|empty"):
-        advance_one_year(person, year=2022, year_rng=np.random.default_rng(0))
+        advance_one_year(person, year=2022, year_rng=np.random.default_rng(0), country="US")
 
 
 @pytest.mark.unit
@@ -164,11 +164,11 @@ def test_mid_sim_scope_entry_starts_hba1c_latent(hba1c_only_loader: Path) -> Non
     """Review Focus 3. Non-DM at year 0 → add E11 before year 1
     advance → year-1 snapshot has `hba1c`."""
     person = _mk_person(chronic=["I10"], age=55)
-    initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0))
+    initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0), country="US")
     assert "hba1c" not in person.longitudinal_history[0].continuous
 
     person.chronic_conditions.append("E11.9")
-    s1 = advance_one_year(person, year=2022, year_rng=np.random.default_rng(1))
+    s1 = advance_one_year(person, year=2022, year_rng=np.random.default_rng(1), country="US")
     assert "hba1c" in s1.continuous
     assert 4.5 <= s1.continuous["hba1c"] <= 14.0
 
@@ -176,6 +176,6 @@ def test_mid_sim_scope_entry_starts_hba1c_latent(hba1c_only_loader: Path) -> Non
 @pytest.mark.unit
 def test_initial_snapshot_raises_if_already_populated(hba1c_only_loader: Path) -> None:
     person = _mk_person(chronic=["E11.9"], age=55)
-    initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0))
+    initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0), country="US")
     with pytest.raises(ValueError, match="already"):
-        initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0))
+        initial_snapshot(person, year=2021, init_rng=np.random.default_rng(0), country="US")

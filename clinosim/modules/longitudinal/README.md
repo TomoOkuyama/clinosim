@@ -16,9 +16,9 @@ Phase 1 shipped the engine plus the first attribute (HbA1c, AR(1)). Later phases
 ```python
 from clinosim.modules.longitudinal import (
     YearSnapshot,           # per-year state container
-    advance_one_year,       # (person, year, year_rng) -> new YearSnapshot
+    advance_one_year,       # (person, year, year_rng, *, country) -> new YearSnapshot
     state_at,               # (person, when) -> YearSnapshot
-    initial_snapshot,       # (person, year, init_rng) -> first YearSnapshot
+    initial_snapshot,       # (person, year, init_rng, *, country) -> first YearSnapshot
     yearsnapshot_from_dict, # dict -> YearSnapshot (deserialisation helper)
 )
 ```
@@ -27,7 +27,7 @@ Internals under `patterns/` (`ar1.py`, `markov.py`, `event.py`, dispatched throu
 
 ## Determinism
 
-- Each year, the engine is called with a single `np.random.Generator` passed by `advance_population` and `generate_population`. Draws per attribute execute in topological order of `depends_on` edges. Event yamls flagged `rng_isolated: true` draw from their own `seeding.longitudinal_event_seed(person_id, year, event_name)` generator instead of the shared per-person-year stream; base home meds added for a newly acquired ICD use the patient-scoped `chronic_medication_seed`.
+- Each year, the engine is called with a single `np.random.Generator` passed by `advance_population` and `generate_population`. Draws per attribute execute in topological order of `depends_on` edges. Event yamls flagged `rng_isolated: true` draw from their own `seeding.longitudinal_event_seed(person_id, year, event_name)` generator instead of the shared per-person-year stream; base home meds added for a newly acquired ICD use the patient-scoped `chronic_medication_seed` and are sampled for the person's `country` and age in that year (Issue #3253: `locale_exclude` and drug age bands apply, so a new depression in JP never gets fluoxetine).
 - `population.aging.aging_sub_seed(person_id, year, "longitudinal")` seeds the per-person per-year generator for `advance_one_year`; `aging_sub_seed(person_id, base_year, "longitudinal:init")` seeds the Layer-1 `initial_snapshot` call.
 - `state_at(person, when)` is pure (no RNG; scans `longitudinal_history` for the matching year and raises `IndexError` when absent).
 - `advance_one_year` raises `ValueError` on empty history, duplicate year or backward year; forward year gaps are permitted.

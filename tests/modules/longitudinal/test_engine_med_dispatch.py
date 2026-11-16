@@ -104,7 +104,7 @@ def test_engine_mutates_current_medications_on_fire(phase4a_yaml_dir):
     """
     person = _make_person(chronic=["E11.9"])
     rng = np.random.default_rng(42)
-    initial_snap = longitudinal_engine.initial_snapshot(person, 2024, rng)
+    initial_snap = longitudinal_engine.initial_snapshot(person, 2024, rng, country="US")
 
     assert any(hm.drug_name == "Empagliflozin" for hm in person.current_medications)
     assert "dm_escalate_sglt2i_e11" in initial_snap.med_additions
@@ -114,9 +114,9 @@ def test_engine_dedups_fire_marker_across_years(phase4a_yaml_dir):
     """A one_shot med event fires exactly once across the sim window."""
     person = _make_person(chronic=["E11.9"])
     rng = np.random.default_rng(42)
-    longitudinal_engine.initial_snapshot(person, 2024, rng)
-    snap_2025 = longitudinal_engine.advance_one_year(person, 2025, rng)
-    snap_2026 = longitudinal_engine.advance_one_year(person, 2026, rng)
+    longitudinal_engine.initial_snapshot(person, 2024, rng, country="US")
+    snap_2025 = longitudinal_engine.advance_one_year(person, 2025, rng, country="US")
+    snap_2026 = longitudinal_engine.advance_one_year(person, 2026, rng, country="US")
 
     emp_count = sum(1 for hm in person.current_medications if hm.drug_name == "Empagliflozin")
     assert emp_count == 1
@@ -133,8 +133,8 @@ def test_engine_does_not_duplicate_existing_drug(phase4a_yaml_dir):
         HomeMedication(drug_name="Empagliflozin", route="PO", dose="10mg", frequency="daily")
     )
     rng = np.random.default_rng(42)
-    longitudinal_engine.initial_snapshot(person, 2024, rng)
-    longitudinal_engine.advance_one_year(person, 2025, rng)
+    longitudinal_engine.initial_snapshot(person, 2024, rng, country="US")
+    longitudinal_engine.advance_one_year(person, 2025, rng, country="US")
 
     emp_count = sum(1 for hm in person.current_medications if hm.drug_name == "Empagliflozin")
     assert emp_count == 1

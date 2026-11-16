@@ -281,16 +281,33 @@ def radiation_therapy_code(country: str) -> str:
 
 
 def _visit_chief_complaint(
-    spec: dict, chronic_code: str, post_discharge_disease: str, country: str
+    spec: dict,
+    chronic_code: str,
+    post_discharge_disease: str,
+    country: str,
+    *,
+    home_medications: list,
 ) -> tuple[str, str | dict]:
     """The visit's chief complaint for ``country``, and the raw (possibly
-    bilingual) value it was resolved from (empty when none was authored)."""
+    bilingual) value it was resolved from (empty when none was authored).
+
+    Issue #3253: a follow-up whose spec names a ``medication_class`` uses
+    ``visit_reason_without_medication`` when none of ``home_medications``
+    belongs to that class."""
+    from clinosim.codes.drugs import medication_matches
     from clinosim.locale.text import resolve_text
 
     # Build visit reason from YAML spec or disease-specific post-discharge reason
     raw_chief: str | dict = ""  # captured for the JP-side resolution below (Issue #360 G1)
     if spec.get("visit_reason"):
         raw_chief = spec["visit_reason"]
+        med_class = spec.get("medication_class")
+        if (
+            med_class
+            and spec.get("visit_reason_without_medication")
+            and not any(medication_matches(m, classes=(med_class,)) for m in home_medications)
+        ):
+            raw_chief = spec["visit_reason_without_medication"]
         chief = resolve_text(raw_chief, lang_for(country))
     elif post_discharge_disease:
         # Look up disease-specific post-discharge reason
@@ -1215,7 +1232,9 @@ def _simulate_outpatient_visit(
     # statin titration changes patient.current_medications.
     home_medications_at_visit = medications_at_encounter(patient, visit_date)
     spec = followup_spec or {}
-    chief, raw_chief = _visit_chief_complaint(spec, chronic_code, post_discharge_disease, country)
+    chief, raw_chief = _visit_chief_complaint(
+        spec, chronic_code, post_discharge_disease, country, home_medications=home_medications_at_visit
+    )
     encounter = _open_visit_encounter(
         patient,
         visit_type,
