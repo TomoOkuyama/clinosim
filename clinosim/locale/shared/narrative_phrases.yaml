@@ -1726,9 +1726,6 @@ dc_duration:
   body_days:
     ja: "入院より約{los}日の経過で死亡{suffix}"
     en: "died approximately {los} days into the admission{suffix}"
-  body_weeks:
-    ja: "入院より約{weeks}週間（{los}日）の経過で死亡{suffix}"
-    en: "died approximately {weeks} week(s) ({los} d) into the admission{suffix}"
   body_long:
     ja: "入院より約{weeks}週間の長期経過で死亡{suffix}"
     en: "died after a prolonged {weeks}-week course during this admission{suffix}"
@@ -1743,9 +1740,10 @@ dc_duration:
   onset_body_days:
     ja: "{disease}の発症から死亡まで約{days}日"
     en: "approximately {days} days from onset of {disease} to death"
-  onset_body_weeks:
-    ja: "{disease}の発症から死亡まで約{weeks}週間（{days}日）"
-    en: "approximately {weeks} week(s) ({days} d) from onset of {disease} to death"
+  # Issue #3256: four weeks or more read in weeks; shorter in days.
+  onset_body_long:
+    ja: "{disease}の発症から死亡まで約{weeks}週間"
+    en: "approximately {weeks} weeks from onset of {disease} to death"
   onset_tail:
     ja: "。"
     en: "."
@@ -1872,25 +1870,41 @@ current_medications:
 
 # DDS treatment / terminal / circumstances / comorbidities / family
 # communication composers (Phase 1d-31). From _build_dds_*.
+# Issue #3256: the course names the drugs, procedures, ICU transfer and new
+# diagnoses of the stay (no counts); a palliative death (not for
+# resuscitation, no life support at death) does not say treatment was
+# continued.
 dds_treatment_course:
   los_part_with_days:
-    ja: "入院期間{los}日間において、"
-    en: "Over the {los}-day admission, "
+    ja: "入院期間{los}日間。"
+    en: "Length of stay: {los} days."
   los_part_admission:
-    ja: "入院当日より、"
-    en: "From admission, "
+    ja: "入院当日の経過。"
+    en: "Course on the day of admission."
   med_part:
-    ja: "薬剤{count}件の投与、"
-    en: "{count} medication order(s) were administered, "
+    ja: "投与薬剤は{list}であった。"
+    en: " Drugs given included {list}."
   proc_part:
-    ja: "処置{count}件を実施し、"
-    en: "{count} procedure(s) were performed, "
+    ja: "{list}を実施した。"
+    en: " Procedures: {list}."
+  icu_part:
+    ja: "入院{day}日目に集中治療室（ICU）に入室した。"
+    en: " Transferred to the intensive care unit on hospital day {day}."
   wk_part:
-    ja: "入院中に新たに{count}件の合併症・併存疾患が判明した。"
-    en: "and {count} additional working diagnosis/es emerged during the stay. "
+    ja: "入院中に新たに{list}を認めた。"
+    en: " New diagnoses during the stay: {list}."
+  wk_item:
+    ja: "{display}（入院{day}日目）"
+    en: "{display} (hospital day {day})"
+  list_with_more:
+    ja: "{list}ほか{count}件"
+    en: "{list} and {count} others"
   tail:
     ja: "集学的治療を継続したが救命に至らなかった。"
-    en: "Multidisciplinary treatment was continued, but the patient could not be saved."
+    en: " Multidisciplinary treatment was continued, but the patient could not be saved."
+  tail_palliative:
+    ja: "治療にもかかわらず病状は進行した。"
+    en: " Despite treatment, the condition progressed."
 
 dds_terminal_course:
   full_line:
@@ -1940,13 +1954,46 @@ dds_terminal_course:
     ja: "最終的に"
     en: "eventually"
 
+# Issue #3256: place (ICU / ward) x code status x life support in the
+# final hours x recorded CPR. Palliative / 看取り wording only for a
+# not-for-resuscitation death without life support.
 dds_circumstances_of_death:
+  place_icu:
+    ja: "集中治療室（ICU）にて"
+    en: "In the intensive care unit"
+  place_ward:
+    ja: "病棟にて"
+    en: "On the ward"
+  code_status:
+    ja: "蘇生方針: {status}。"
+    en: "Code status: {status}. "
   resuscitation:
-    ja: "入院中の病棟にて、担当医立会いのもと心肺蘇生術を施行するも反応なく、死亡確認となった。"
-    en: "On the ward, cardiopulmonary resuscitation was performed by the attending physician; the patient did not respond and death was confirmed."
-  natural:
-    ja: "入院中の病棟にて、担当医の看取りのもと自然な経過にて死亡確認となった。"
-    en: "On the ward, the patient died naturally under the attending physician's palliative bedside care, and death was confirmed."
+    ja: "{place}、心肺停止に対し担当医立会いのもと心肺蘇生術を施行するも反応なく、死亡確認となった。"
+    en: "{place}, cardiopulmonary resuscitation was performed by the attending physician for cardiopulmonary arrest; the patient did not respond and death was confirmed."
+  support_cpr_withheld:
+    ja: "{place}、{support}継続中に心肺停止に至った。蘇生方針に従い心肺蘇生術は行わず、死亡確認となった。"
+    en: "{place}, the patient had a cardiopulmonary arrest while on {support}; in accordance with the code status, cardiopulmonary resuscitation was not performed, and death was confirmed."
+  palliative:
+    ja: "{place}、蘇生方針に従い心肺蘇生術は行わず、担当医の看取りのもと死亡確認となった。"
+    en: "{place}, in accordance with the code status, cardiopulmonary resuscitation was not attempted; the patient died under the attending physician's palliative bedside care, and death was confirmed."
+  support_arrest:
+    ja: "{place}、{support}継続中に心肺停止に至り、死亡確認となった。"
+    en: "{place}, the patient had a cardiopulmonary arrest while on {support}, and death was confirmed."
+  arrest:
+    ja: "{place}、治療中に心肺停止に至り、死亡確認となった。"
+    en: "{place}, the patient had a cardiopulmonary arrest during treatment, and death was confirmed."
+  support_vasopressor:
+    ja: "昇圧薬（{drugs}）"
+    en: "vasopressor support ({drugs})"
+  support_inotrope:
+    ja: "強心薬（{drugs}）"
+    en: "inotropic support ({drugs})"
+  support_ventilation:
+    ja: "人工呼吸管理"
+    en: "mechanical ventilation"
+  support_and:
+    ja: "・"
+    en: " and "
 
 dds_complications_and_comorbidities:
   chronic_part:

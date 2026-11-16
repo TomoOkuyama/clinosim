@@ -598,3 +598,89 @@ class DeathCauseChain(BaseModel):
 def load_death_cause_chain() -> DeathCauseChain:
     """Load and validate death_cause_chain.yaml. Cached singleton."""
     return DeathCauseChain.model_validate(load_validated_yaml(_REF_DIR / "death_cause_chain.yaml", DeathCauseChain))
+
+
+# ─────────────────────────────────────────────────────────────────
+# death_course.yaml (Issue #3256)
+# ─────────────────────────────────────────────────────────────────
+
+
+def _snomed_code(code: str) -> str:
+    from clinosim.codes import code_exists
+
+    if not code_exists("snomed-ct", code, exact=True):
+        raise ValueError(f"death_course.yaml: SNOMED {code} is not in codes/data/snomed-ct.yaml")
+    return code
+
+
+def _catalog_drug_class(name: str) -> str:
+    from clinosim.codes.drugs import all_drug_ids, drug_classes
+
+    if not any(name in drug_classes(drug_id) for drug_id in all_drug_ids()):
+        raise ValueError(f"death_course.yaml: drug class {name!r} is not in codes/data/drugs.yaml")
+    return name
+
+
+def _catalog_procedure_type(name: str) -> str:
+    from clinosim.codes.procedures import catalog_procedure_types
+
+    if name not in catalog_procedure_types():
+        raise ValueError(f"death_course.yaml: procedure type {name!r} is not in the procedure catalog")
+    return name
+
+
+_DrugClass = Annotated[str, AfterValidator(_catalog_drug_class)]
+
+
+class _LifeSupport(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    window_hours: float = Field(gt=0)
+    drug_classes: list[_DrugClass] = Field(min_length=1)
+    excluded_drug_classes: list[_DrugClass] = Field(default_factory=list)
+    ventilation_devices: list[str] = Field(default_factory=list)
+    ventilation_procedure_types: list[Annotated[str, AfterValidator(_catalog_procedure_type)]] = Field(
+        default_factory=list
+    )
+
+
+class _Resuscitation(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    procedure_type_keywords: list[Annotated[str, Field(pattern=r"^[a-z]+$")]] = Field(min_length=1)
+    procedure_codes: list[str] = Field(min_length=1)
+
+
+class _TreatmentCourse(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    drug_class_priority: list[_DrugClass] = Field(default_factory=list)
+    max_named_drugs: int = Field(ge=1)
+    max_named_procedures: int = Field(ge=1)
+    max_named_diagnoses: int = Field(ge=1)
+
+
+class _Duration(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    days_below_weeks: int = Field(gt=7)
+
+
+class DeathCourse(BaseModel):
+    """Shape of death_course.yaml: what the death summary reads as the code
+    status, life support at death and a recorded CPR, the treatment-course
+    list lengths and the day/week boundary of the time to death."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    not_for_resuscitation_codes: list[Annotated[str, AfterValidator(_snomed_code)]] = Field(min_length=1)
+    life_support: _LifeSupport
+    resuscitation: _Resuscitation
+    treatment_course: _TreatmentCourse
+    duration: _Duration
+
+
+@lru_cache(maxsize=1)
+def load_death_course() -> DeathCourse:
+    """Load and validate death_course.yaml. Cached singleton."""
+    return DeathCourse.model_validate(load_validated_yaml(_REF_DIR / "death_course.yaml", DeathCourse))

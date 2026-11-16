@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from clinosim.codes.icd10 import is_icd10_shaped
 from clinosim.datafiles import load_data_yaml
 
 # reference_data is in the same package: clinosim/modules/disease/reference_data/
@@ -799,3 +800,18 @@ def alternatives_by_indication(
             country_entries = [country_entries]
         out.extend(country_entries)
     return out
+
+
+def working_diagnosis_code(value: str) -> str:
+    """ICD-10 code of a ``working_diagnoses[].disease_id`` (Issue #3028).
+
+    Pregnancy complications and lab-derived diagnoses store an ICD code there;
+    an in-hospital new disease (``simulator/_dispatch.py``) stores its disease
+    id, which resolves to that protocol's primary ICD code. Anything else is
+    ``""`` — a disease key is never emitted as an ICD code. Shared by the FHIR
+    secondary Condition and the death summary (Issue #3256)."""
+    if is_icd10_shaped(value):
+        return value
+    protocol = load_all_disease_protocols().get(value)
+    primary = str((protocol.icd_codes or {}).get("primary") or "") if protocol is not None else ""
+    return primary if is_icd10_shaped(primary) else ""

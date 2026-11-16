@@ -84,6 +84,7 @@ Governing spec: [`code-mapping-and-localization-spec.md`](code-mapping-and-local
 | `clinosim/codes/drugs.py` `route_class(route)` | The route class (oral, injection, inhalation, …) of a route string. |
 | `clinosim/codes/bcp47.py` `bcp47_display(tag, profile=)` | Display of a BCP 47 language tag. |
 | `clinosim/codes/hl7_encounter.py` `AdmitSource` / `DischargeDisposition` / `ActPriority` | HL7 encounter enumerations; use the enum members instead of string literals. |
+| `clinosim/modules/disease/protocol.py` `working_diagnosis_code(disease_id)` | ICD-10 code of a `working_diagnoses[].disease_id` (an ICD code, or a disease id resolved to its protocol's primary code; `""` otherwise). |
 
 ## 5. Localization of labels and free text
 

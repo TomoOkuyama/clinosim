@@ -27,7 +27,7 @@ from clinosim.country_profile import country_profile
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
 from clinosim.modules.document import specs_for_country
-from clinosim.modules.document.narrative.context import _build_newborn_workup, _build_safety_skips
+from clinosim.modules.document.narrative.context import _build_newborn_workup, _build_safety_skips, icu_transfer_day
 from clinosim.modules.document.narrative.fact_extractor import extract_all_facts
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.narrative.scenario_spine import build_narrative_spine
@@ -605,6 +605,10 @@ class NarrativePass(ABC):
             # Issue #2995: the home medications at admission (admission H&P);
             # the same field the ``build_narrative_context`` factory reads.
             home_medications_at_admission=patient_dict.get("home_medications_at_admission"),
+            # Issue #3256: code status and ICU transfer (death summary).
+            code_status=str(patient_dict.get("code_status", "") or ""),
+            icu_transferred=bool(patient_dict.get("icu_transferred", False)),
+            icu_transferred_day=icu_transfer_day(patient_dict.get("icu_transferred_day")),
         )
         ctx.narrative_spine = build_narrative_spine(
             disease_protocol,

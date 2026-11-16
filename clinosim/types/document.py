@@ -362,6 +362,15 @@ class NarrativeContext:
     # context line and per-doc-type block.
     newborn_workup: dict[str, Any] = field(default_factory=dict)
 
+    # === Issue #3256 (death summary setting) ===
+    # ``record.code_status`` (SNOMED resuscitation-status code, "" when none
+    # was assigned), ``record.icu_transferred`` and ``record.icu_transferred_day``
+    # (0-indexed LOS day, -1 when no transfer). The death summary states the
+    # place of death and the code status from these.
+    code_status: str = ""
+    icu_transferred: bool = False
+    icu_transferred_day: int = -1
+
 
 @dataclass
 class NarrativeOutput:
