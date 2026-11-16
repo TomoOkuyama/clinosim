@@ -155,11 +155,44 @@ vaccines:
 
   # ==================================================================
   # US ACIP pediatric primary series — Issue #1279.
-  # Coverage figures target the National Immunization Survey NIS-Child
-  # 2023 mid-band point estimates (see cdc.gov/vaccines/imz-managers/
-  # coverage/childvaxview/data-reports/). Real US coverage is high but
-  # not universal — the ~90 % floor here reflects NIS-Child completion
-  # rates for the 19-35-month cohort.
+  #
+  # `coverage_by_sex` (Issue #3288) is the MARGINAL coverage of each dose:
+  # the share of children who receive that dose. The engine gives dose k
+  # only after doses 1..k-1 and draws it with coverage_k / coverage_{k-1}
+  # (`engine.conditional_dose_coverage`), so the share of children with k
+  # doses is coverage_k and the share completing the series is the last
+  # dose's value (before, the values were applied as conditional
+  # probabilities: DTaP 0.95 x 0.93 x 0.92 x 0.86 x 0.85 = 0.59 completed
+  # five doses). The values never rise along a series. Sources:
+  # - NIS-Child: Hill HA et al., "Vaccination Coverage by Age 24 Months
+  #   Among Children Born in 2021 and 2022", MMWR 2026;75:146-155,
+  #   Table 1 (children born 2021-2022): DTaP >=3 92.7 %, >=4 80.7 %;
+  #   poliovirus >=3 92.1 %; MMR >=1 90.8 %; Hib primary series 91.9 %,
+  #   full series 77.6 %; HepB >=3 91.6 %; varicella >=1 90.0 %; PCV >=3
+  #   91.4 %, >=4 80.5 %; HepA >=1 87.1 %, >=2 by 35 months 78.7 %;
+  #   rotavirus (by 8 months) 74.2 %.
+  # - Kindergarten (SchoolVaxView): "Coverage with
+  #   Selected Vaccines and Exemption Rates Among Children in Kindergarten
+  #   — United States, 2023-24 School Year", MMWR 2024;73(41), national
+  #   estimates: DTaP 92.3 % (5 doses, or 4 if the fourth was given at
+  #   >= 4 years), poliovirus 92.6 % (4 doses), MMR 92.7 % (2 doses),
+  #   varicella 92.4 % (2 doses). (2025-26 SchoolVaxView: DTaP 92.0 %,
+  #   MMR and polio 92.4 %.)
+  # - NIS-Teen: "Vaccination Coverage Among Adolescents Aged 13-17 Years —
+  #   National Immunization Survey-Teen, United States, 2024", MMWR
+  #   2025;74(30), Table 1: Tdap >=1 91.3 %; MenACWY >=1 90.1 %, >=2
+  #   (age 17) 61.1 %; HPV >=1 boys 77.4 % / girls 79.1 %, up to date boys
+  #   61.6 % / girls 64.3 %.
+  # The last dose a child gets by kindergarten (DTaP 5, IPV 4, MMR 2,
+  # varicella 2) takes the kindergarten estimate; an earlier dose whose
+  # 24-month estimate is lower takes the kindergarten value too, because
+  # the engine has no late (after-window) dose: a child who misses a dose
+  # in its window never completes the series (DTaP dose 4 by 24 months is
+  # 80.7 %, most of the rest is given late). The first doses, which the
+  # tables do not report (DTaP 1-2, IPV 1, Hib 1-2, PCV 1-2, rotavirus
+  # 1-2; HepB 1, whose 79.3 % birth-dose estimate counts doses within 3
+  # days of birth while dose 1 here is by 1 month), keep their configured
+  # values (>= the reported doses).
   #
   # dose_number semantics + [age_days_min, age_days_max] windows follow
   # the same shape as the JP pediatric_series block. The engine
@@ -207,12 +240,12 @@ vaccines:
         min_interval_days: 28    # 4 weeks
         age_days_min: 30      # 1 month
         age_days_max: 90
-        coverage_by_sex: {M: 0.90, F: 0.90}
+        coverage_by_sex: {M: 0.916, F: 0.916}
       - dose_number: 3
         min_interval_days: 56    # 8 weeks
         age_days_min: 180     # 6 months
         age_days_max: 545     # up to 18 months
-        coverage_by_sex: {M: 0.90, F: 0.90}
+        coverage_by_sex: {M: 0.916, F: 0.916}
 
   pediatric_dtap:
     cvx: "20"
@@ -235,17 +268,17 @@ vaccines:
         min_interval_days: 28    # 4 weeks
         age_days_min: 180     # 6 months
         age_days_max: 210
-        coverage_by_sex: {M: 0.92, F: 0.92}
+        coverage_by_sex: {M: 0.927, F: 0.927}
       - dose_number: 4
         min_interval_days: 182    # 6 months
         age_days_min: 455     # 15 months
         age_days_max: 545     # 18 months
-        coverage_by_sex: {M: 0.86, F: 0.86}
+        coverage_by_sex: {M: 0.923, F: 0.923}
       - dose_number: 5
         min_interval_days: 182    # 6 months
         age_days_min: 1460    # 4 years
         age_days_max: 2190    # 6 years
-        coverage_by_sex: {M: 0.85, F: 0.85}
+        coverage_by_sex: {M: 0.923, F: 0.923}
 
   pediatric_ipv:
     cvx: "10"
@@ -263,17 +296,17 @@ vaccines:
         min_interval_days: 28    # 4 weeks
         age_days_min: 120     # 4 months
         age_days_max: 150
-        coverage_by_sex: {M: 0.92, F: 0.92}
+        coverage_by_sex: {M: 0.926, F: 0.926}
       - dose_number: 3
         min_interval_days: 28    # 4 weeks
         age_days_min: 180     # 6 months
         age_days_max: 545     # 6-18 months window
-        coverage_by_sex: {M: 0.91, F: 0.91}
+        coverage_by_sex: {M: 0.926, F: 0.926}
       - dose_number: 4
         min_interval_days: 182    # 6 months
         age_days_min: 1460    # 4 years
         age_days_max: 2190    # 6 years
-        coverage_by_sex: {M: 0.86, F: 0.86}
+        coverage_by_sex: {M: 0.926, F: 0.926}
 
   pediatric_hib:
     cvx: "17"
@@ -295,12 +328,12 @@ vaccines:
         min_interval_days: 28    # 4 weeks
         age_days_min: 180     # 6 months (some Hib products need only 2+booster)
         age_days_max: 210
-        coverage_by_sex: {M: 0.90, F: 0.90}
+        coverage_by_sex: {M: 0.919, F: 0.919}
       - dose_number: 4
         min_interval_days: 56    # 8 weeks
         age_days_min: 365     # 12 months
         age_days_max: 455     # 15 months
-        coverage_by_sex: {M: 0.88, F: 0.88}
+        coverage_by_sex: {M: 0.776, F: 0.776}
 
   pediatric_pcv13:
     cvx: "133"
@@ -322,12 +355,12 @@ vaccines:
         min_interval_days: 28    # 4 weeks
         age_days_min: 180     # 6 months
         age_days_max: 210
-        coverage_by_sex: {M: 0.90, F: 0.90}
+        coverage_by_sex: {M: 0.914, F: 0.914}
       - dose_number: 4
         min_interval_days: 56    # 8 weeks
         age_days_min: 365     # 12 months
         age_days_max: 455     # 15 months
-        coverage_by_sex: {M: 0.87, F: 0.87}
+        coverage_by_sex: {M: 0.805, F: 0.805}
 
   pediatric_rotavirus:
     cvx: "116"
@@ -344,12 +377,12 @@ vaccines:
         min_interval_days: 28    # 4 weeks
         age_days_min: 120     # 4 months
         age_days_max: 150
-        coverage_by_sex: {M: 0.80, F: 0.80}
+        coverage_by_sex: {M: 0.8, F: 0.8}
       - dose_number: 3
         min_interval_days: 28    # 4 weeks
         age_days_min: 180     # 6 months (must complete by 32 weeks / 8 mo)
         age_days_max: 240
-        coverage_by_sex: {M: 0.78, F: 0.78}
+        coverage_by_sex: {M: 0.742, F: 0.742}
 
   pediatric_mmr:
     cvx: "03"
@@ -362,12 +395,12 @@ vaccines:
       - dose_number: 1
         age_days_min: 365     # 12 months
         age_days_max: 455     # 15 months
-        coverage_by_sex: {M: 0.91, F: 0.91}
+        coverage_by_sex: {M: 0.927, F: 0.927}
       - dose_number: 2
         min_interval_days: 28    # 4 weeks
         age_days_min: 1460    # 4 years
         age_days_max: 2190    # 6 years
-        coverage_by_sex: {M: 0.90, F: 0.90}
+        coverage_by_sex: {M: 0.927, F: 0.927}
 
   pediatric_varicella:
     cvx: "21"
@@ -380,12 +413,12 @@ vaccines:
       - dose_number: 1
         age_days_min: 365     # 12 months
         age_days_max: 455     # 15 months
-        coverage_by_sex: {M: 0.90, F: 0.90}
+        coverage_by_sex: {M: 0.924, F: 0.924}
       - dose_number: 2
         min_interval_days: 84    # 3 months (age 12 months-12 years)
         age_days_min: 1460    # 4 years
         age_days_max: 2190    # 6 years
-        coverage_by_sex: {M: 0.89, F: 0.89}
+        coverage_by_sex: {M: 0.924, F: 0.924}
 
   # Pediatric annual influenza — every year from 6 months.
   # Modelled with the same `annual` frequency the adult path uses;
@@ -433,14 +466,14 @@ vaccines:
       - dose_number: 1
         age_days_min: 4015    # 11 years
         age_days_max: 4745    # 13 years
-        coverage_by_sex: {M: 0.87, F: 0.90}
+        coverage_by_sex: {M: 0.913, F: 0.913}
 
   # ==================================================================
   # US ACIP adolescent / early-childhood catch-up series — Issue #1279
   # second follow-up. HPV / MenACWY / Hep A were explicitly deferred
   # from the first pass pending CVX registration; codes verified
-  # 2026-09-12 via tx.fhir.org $lookup. NIS-Teen 2023 coverage
-  # midpoints used for `coverage_by_sex`.
+  # 2026-09-12 via tx.fhir.org $lookup. `coverage_by_sex`: marginal per
+  # dose (Issue #3288), NIS-Teen 2024 / NIS-Child (sources above).
   # ==================================================================
 
   pediatric_hepa:
@@ -454,12 +487,12 @@ vaccines:
       - dose_number: 1
         age_days_min: 365    # 12 months
         age_days_max: 545    # 18 months
-        coverage_by_sex: {M: 0.86, F: 0.87}
+        coverage_by_sex: {M: 0.871, F: 0.871}
       - dose_number: 2
         min_interval_days: 182    # 6 months
         age_days_min: 730    # 24 months (≥6 mo after dose 1)
         age_days_max: 1095   # 36 months
-        coverage_by_sex: {M: 0.82, F: 0.83}
+        coverage_by_sex: {M: 0.787, F: 0.787}
 
   pediatric_hpv:
     cvx: "165"
@@ -475,12 +508,12 @@ vaccines:
       - dose_number: 1
         age_days_min: 4015    # 11 years
         age_days_max: 4745    # 13 years
-        coverage_by_sex: {M: 0.76, F: 0.79}
+        coverage_by_sex: {M: 0.774, F: 0.791}
       - dose_number: 2
         min_interval_days: 150    # 5 months (2-dose series)
         age_days_min: 4195    # 6 mo after dose 1 (11.5 y)
         age_days_max: 5110    # 14 years
-        coverage_by_sex: {M: 0.68, F: 0.72}
+        coverage_by_sex: {M: 0.616, F: 0.643}
 
   pediatric_menacwy:
     cvx: "147"
@@ -492,9 +525,9 @@ vaccines:
       - dose_number: 1
         age_days_min: 4015    # 11 years
         age_days_max: 4745    # 13 years
-        coverage_by_sex: {M: 0.88, F: 0.90}
+        coverage_by_sex: {M: 0.901, F: 0.901}
       - dose_number: 2
         min_interval_days: 56    # 8 weeks
         age_days_min: 5840    # 16 years
         age_days_max: 6570    # 18 years
-        coverage_by_sex: {M: 0.60, F: 0.62}
+        coverage_by_sex: {M: 0.611, F: 0.611}

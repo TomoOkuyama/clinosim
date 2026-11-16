@@ -17,7 +17,8 @@ EHR documentation.
 
 - **In scope**: sampling `annual`, `every_n_years`, `once`, or
   `pediatric_series` vaccinations per schedule entry; per-age × sex
-  coverage lookup (per-dose `coverage_by_sex` for paediatric series);
+  coverage lookup (per-dose marginal `coverage_by_sex` for paediatric
+  series, drawn conditionally on the previous dose — Issue #3288);
   occurrence-date placement (annual → month drawn from
   `seasonal_distribution`, else fixed `season_month`; every-n-years →
   step of `interval_years` from the eligible start; once → month drawn
@@ -245,7 +246,7 @@ encounter documents).
   | `season_month` | `annual` only. Fixed month used when no `seasonal_distribution` (default 10). |
   | `seasonal_distribution` | `annual` only. `{month: weight}` for per-season month sampling. |
   | `wave_epochs` | `once` only. Epochs with `start` / `end` / `age_weight` / `monthly_curve`. |
-  | `doses` | `pediatric_series` only. Per dose: `age_days_min`, `age_days_max`, `dose_number`, `coverage_by_sex`; from dose 2 on, `min_interval_days` (minimum days after the previous dose; US CDC General Best Practice Guidelines Table 3-1, JP 予防接種実施規則) and optionally `min_interval_after_dose` (the earlier dose the interval counts from when it is not the previous one, e.g. JP hepatitis B dose 3: 139 days after dose 1) and `max_interval_days` (the latest the dose may come after that dose, e.g. JP Japanese encephalitis 1期初回 dose 2: 6-28 days; Issue #3006). The generator, the vaccination-visit binder and the encounter alignment all keep these rules (`engine.series_allows`). Issue #3001. |
+  | `doses` | `pediatric_series` only. Per dose: `age_days_min`, `age_days_max`, `dose_number`, `coverage_by_sex` (the dose's marginal coverage — the share of children who receive it, never rising along a series; a child who received the previous drawn dose gets this one with probability `coverage_k / coverage_{k-1}` (`engine.conditional_dose_coverage`, Issue #3288), so the completed series matches the cited national coverage: US NIS-Child / kindergarten / NIS-Teen, JP 厚生労働省「定期の予防接種実施者数」); from dose 2 on, `min_interval_days` (minimum days after the previous dose; US CDC General Best Practice Guidelines Table 3-1, JP 予防接種実施規則) and optionally `min_interval_after_dose` (the earlier dose the interval counts from when it is not the previous one, e.g. JP hepatitis B dose 3: 139 days after dose 1) and `max_interval_days` (the latest the dose may come after that dose, e.g. JP Japanese encephalitis 1期初回 dose 2: 6-28 days; Issue #3006). The generator, the vaccination-visit binder and the encounter alignment all keep these rules (`engine.series_allows`). Issue #3001. |
   | `catch_up_max_age_days` | `pediatric_series` only, optional. Oldest age (days) at which a child behind on the series is caught up at a `catch_up` vaccination visit (Issue #3282). US: CDC Child and Adolescent Catch-up Immunization Schedule — DTaP 2555 (< 7 y; Tdap/Td from 7 y), IPV / MMR / varicella / HepB / HepA 6938 (through 18 y). JP: 予防接種法施行令 target ages — DTaP-IPV and Japanese encephalitis 第1期 2737 (< 90 months). Absent (never caught up) where a late start changes the number of doses (Hib, PCV) or the target age has passed (rotavirus, BCG, JP hepatitis B / MR 第1期 / varicella). |
   | `available_from` | Program availability date (`YYYY-MM-DD`). |
   | `history_years` | Optional. EHR retention window (e.g. flu → 10 y). |
