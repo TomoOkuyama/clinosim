@@ -24,22 +24,22 @@ preserves the byte-neutral contract by moving them verbatim.
 from __future__ import annotations
 
 import functools
+from collections.abc import Iterable
 from datetime import datetime, timedelta
-from functools import cache
 from pathlib import Path
 from typing import Any, Literal, NamedTuple
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from clinosim import determinism
-from clinosim.codes.drugs import drug_classes, drug_key, drug_ref, get_drug, same_drug
+from clinosim.codes.drugs import all_drug_ids, drug_classes, drug_key, drug_ref, get_drug, same_drug
 from clinosim.countries import lang_for
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import order_test_display
-from clinosim.locale.localized import localized, localized_field
+from clinosim.locale.loader import hold_reason_display, load_medication_hold_reasons, order_test_display
+from clinosim.locale.localized import localized_field
 from clinosim.modules.drug_safety.hyperkalemia import PotassiumHold, holds_for_hyperkalemia, holds_while_hyperkalemic
 from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.physiology.renal_thresholds import (
@@ -168,6 +168,117 @@ def mar_vital_hold_reason(drug_name: str, vitals: Any) -> str | None:
     return None
 
 
+class _LatestVitals(NamedTuple):
+    """The vital signs a dose is judged on (one field per hold parameter)."""
+
+    systolic_bp: float | None
+    heart_rate: float | None
+
+
+def latest_vitals_at(vitals: Iterable[VitalSignRecord], at: datetime, baseline: Any) -> _LatestVitals:
+    """Per hold-parameter field, the latest value recorded at or before ``at``
+    in ``vitals``; the patient's baseline value when none is recorded yet
+    (Issue #3233)."""
+    latest: dict[str, tuple[datetime, float]] = {}
+    for vs in vitals:
+        if vs.timestamp > at:
+            continue
+        for field in _VITAL_HOLD_LABELS:
+            value = getattr(vs, field, None)
+            if value is not None and (field not in latest or vs.timestamp >= latest[field][0]):
+                latest[field] = (vs.timestamp, value)
+    return _LatestVitals(**{f: latest[f][1] if f in latest else getattr(baseline, f, None) for f in _VITAL_HOLD_LABELS})
+
+
+def apply_vital_holds(
+    mars: Iterable[MedicationAdministration], vitals: Iterable[VitalSignRecord], baseline: Any
+) -> None:
+    """Hold the given doses in ``mars`` that a vital-sign hold parameter
+    (``mar_vital_hold_reason``) stops, judged on the latest vital signs
+    recorded before each dose (``latest_vitals_at``; Issue #3233 — formerly
+    the pre-admission baseline, which never changes during the stay). A
+    refused dose, or one already held for another reason, is left as it is.
+    Draws nothing."""
+    records = list(vitals)
+    for mar in mars:
+        if mar.status != "given":
+            continue
+        reason = mar_vital_hold_reason(mar.drug_name, latest_vitals_at(records, mar.scheduled_datetime, baseline))
+        if reason:
+            mar.status, mar.hold_reason, mar.actual_datetime = "held", reason, None
+
+
+class VasoactiveHoldRules(BaseModel):
+    """Schema of ``reference_data/vasoactive_hold.yaml`` (Issue #3233)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    trigger_classes: tuple[str, ...] = Field(min_length=1)
+    held_classes: tuple[str, ...] = Field(min_length=1)
+    reason: str = Field(min_length=1)
+
+    @field_validator("trigger_classes", "held_classes")
+    @classmethod
+    def _catalog_classes(cls, v: tuple[str, ...]) -> tuple[str, ...]:
+        known = {c for d in all_drug_ids() for c in drug_classes(d)}
+        unknown = sorted(set(v) - known)
+        if unknown:
+            raise ValueError(f"drug classes {unknown} are not classes of any catalog drug")
+        return v
+
+    @field_validator("reason")
+    @classmethod
+    def _localized_reason(cls, v: str) -> str:
+        from clinosim.locale.loader import load_medication_hold_reasons
+
+        if v not in load_medication_hold_reasons():
+            raise ValueError(f"reason {v!r} is not in medication_hold_reasons.yaml")
+        return v
+
+
+@functools.cache
+def vasoactive_hold_rules() -> VasoactiveHoldRules:
+    """The validated vasopressor / inotrope hold rules."""
+    return VasoactiveHoldRules.model_validate(
+        load_data_yaml(Path(__file__).resolve().parent / "reference_data" / "vasoactive_hold.yaml")
+    )
+
+
+def vasoactive_infusions(orders: Iterable[Order]) -> tuple[tuple[datetime, datetime | None], ...]:
+    """``(start, end)`` of every placed vasopressor / inotrope order that runs
+    as a continuous infusion (``trigger_classes``): from its order time, or
+    ``administer_from`` when later, to its end time (``None`` = still
+    running)."""
+    from clinosim.modules.order.absolute_dose import is_continuous_infusion
+
+    trigger = set(vasoactive_hold_rules().trigger_classes)
+    out: list[tuple[datetime, datetime | None]] = []
+    for o in orders:
+        if o.order_type != OrderType.MEDICATION or o.status != OrderStatus.PLACED or o.single_dose:
+            continue
+        if not trigger & set(drug_classes(o.drug_id or o.display_name)):
+            continue
+        if not is_continuous_infusion(o.frequency or "", o.display_name or ""):
+            continue
+        start = max(o.ordered_datetime, o.administer_from) if o.administer_from else o.ordered_datetime
+        out.append((start, o.end_datetime))
+    return tuple(out)
+
+
+def vasoactive_hold_reason(
+    drug: str, at: datetime, infusions: Iterable[tuple[datetime, datetime | None]]
+) -> str | None:
+    """The hold reason of a dose of ``drug`` scheduled at ``at`` when it is in
+    ``held_classes`` and a vasopressor / inotrope infusion runs then, else
+    None (Issue #3233)."""
+    rules = vasoactive_hold_rules()
+    if not set(rules.held_classes) & set(drug_classes(drug)):
+        return None
+    if any(start <= at and (end is None or at < end) for start, end in infusions):
+        return rules.reason
+    return None
+
+
 def _log_disease_medication_hold(
     patient: PatientProfile,
     encounter_id: str,
@@ -226,27 +337,18 @@ def _log_disease_medication_hold(
     )
 
 
-# Small locale-aware translator for the free-form YAML `reason` strings
-# used in disease-protocol `medication_holds`. Only a handful of unique
-# reasons are used in production YAML today; the fallback returns the
-# raw string so a new reason lands correctly (English side) with an
-# imperfect JA rendering until translated. Kept in the pipeline module
-# (rather than a shared table) so it stays scoped to the hold semantic.
-@cache
-def _hold_reasons() -> dict[str, dict[str, str]]:
-    """Hold-reason displays (``locale/shared/medication_hold_reasons.yaml``,
-    Issue #2405), keyed by the reason text authored in disease YAMLs."""
-    path = Path(__file__).resolve().parents[1] / "locale" / "shared" / "medication_hold_reasons.yaml"
-    data = load_data_yaml(path) or {}
-    return {str(k): dict(v) for k, v in (data.get("reasons") or {}).items()}
+# The free-form YAML `reason` strings of disease-protocol `medication_holds`
+# in English and Japanese (``medication_hold_reasons.yaml``, Issue #2405),
+# through the locale loader the narrative uses too (Issue #3233).
+_hold_reasons = load_medication_hold_reasons
 
 
 def _hold_reason_english(reason: str) -> str:
-    return localized(_hold_reasons().get(reason), "en", fallback=reason)
+    return hold_reason_display(reason, "en")
 
 
 def _hold_reason_japanese(reason: str) -> str:
-    return localized(_hold_reasons().get(reason), "ja", fallback=reason)
+    return hold_reason_display(reason, "ja")
 
 
 def _admin_hours_from_frequency(freq_per_day: int) -> list[int]:
@@ -770,6 +872,12 @@ def _generate_mar(
     the potassium result are recorded as held; digoxin only while the latest
     potassium before the dose is at or above the threshold. The reason is the
     latest potassium before the dose (Issue #3232).
+
+    Antihypertensives, beta-blockers, diuretics and nitrates are held while a
+    vasopressor or inotrope infusion runs (``vasoactive_hold_reason``, Issue
+    #3233). The vital-sign hold parameters are not applied here: the caller
+    applies them with ``apply_vital_holds`` once the vital signs recorded
+    before each dose are known.
     """
     from clinosim.modules.order.engine import dosing_interval_days, enrich_medication_order
 
@@ -802,6 +910,8 @@ def _generate_mar(
     nurse_id = assign_staff("medication_administration", department, roster, rng).get(
         "administering_nurse", FALLBACK_NURSE_ID
     )
+
+    infusions = vasoactive_infusions(med_orders)
 
     for order in med_orders:
         drug_name = order.display_name
@@ -953,13 +1063,8 @@ def _generate_mar(
             status = "given"
             hold_reason = None
 
-            # Hold conditions (clinical)
-            # Issue #2296: hold parameters from chronic_medications.yaml
-            # hold_conditions (the former "antihypertensive" name test matched
-            # no drug and never fired).
-            vital_hold = mar_vital_hold_reason(drug_name, getattr(patient, "baseline_vitals", None))
-            if vital_hold:
-                status, hold_reason = "held", vital_hold
+            # The vital-sign hold parameters (Issue #2296) are applied once the
+            # day's vital signs are recorded (``apply_vital_holds``, #3233).
 
             # Patient refusal (~1.5%) and timing jitter: hashes of the
             # administration, not draws from the stay's stream, so the number
@@ -967,6 +1072,10 @@ def _generate_mar(
             _mar_salt = f"mar|{patient.patient_id}|{order.order_id}|{scheduled.isoformat()}"
             if determinism.sha_bernoulli(f"{_mar_salt}|refusal", MAR_PATIENT_REFUSAL_PROBABILITY):
                 status = "refused"
+            # Issue #3233: held while a vasopressor / inotrope infusion runs.
+            vasoactive_hold = vasoactive_hold_reason(order.drug_id or drug_name, scheduled, infusions)
+            if vasoactive_hold:
+                status, hold_reason = "held", vasoactive_hold
             # Issue #2981: held for hyperkalemia from the potassium result on;
             # Issue #3232: digoxin only while the latest potassium is high, and
             # the reason is the latest potassium before the dose.

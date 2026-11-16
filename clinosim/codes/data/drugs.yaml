@@ -492,7 +492,7 @@ drugs:
     codes:
       rxnorm: "4917"
       yj: {oral: "2171018K1039", injection: "2171403A2052"}
-    classes: []
+    classes: ["nitrate"]  # organic nitrate; held on vasopressor support (Issue #3233)
     default_route: IV
   ibuprofen:
     names: {en: "Ibuprofen", ja: "イブプロフェン"}
@@ -553,7 +553,7 @@ drugs:
     codes:
       rxnorm: "7512"
       yj: {injection: "2451401A1034"}
-    classes: []
+    classes: ["catecholamine", "vasopressor"]  # Issue #3233
     aliases: ["Noradrenaline"]
   omeprazole:
     names: {en: "Omeprazole", ja: "オメプラゾール"}
@@ -1165,7 +1165,7 @@ drugs:
     codes:
       rxnorm: "3616"
       yj: {injection: "2119404A1026"}
-    classes: []
+    classes: ["catecholamine", "inotrope"]  # Issue #3233
   trastuzumab:
     names: {en: "Trastuzumab", ja: "トラスツズマブ"}
     codes:

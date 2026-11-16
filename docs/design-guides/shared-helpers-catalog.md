@@ -97,6 +97,7 @@ Governing spec: [`code-mapping-and-localization-spec.md`](code-mapping-and-local
 | `clinosim/locale/i18n.py` `t(key, lang, **params)` | A phrase by key in the target language, with parameters interpolated. |
 | `clinosim/locale/text.py` `resolve_text(value, language, country)` | A YAML text field (plain string or language map) in the right language. |
 | `clinosim/locale/loaders/narrative.py` `vocab_display(...)` / `load_narrative_display_dict(...)` | Narrative vocabulary displays. |
+| `clinosim/locale/loaders/medical_display.py` `hold_reason_display(reason, lang)` | A medication hold reason (disease-protocol `reason`, MAR `hold_reason`) in a language; a measured value ("SBP < 90") as stored. |
 | `clinosim/locale/loaders/medical_display.py` `load_med_terms_ja()` | Japanese medical term dictionary. |
 | `clinosim/locale/free_text.py` `localize_drug_name` / `localize_procedure_name` / `localize_allergen_name` / `localize_free_text` | Translating names and order strings that are not coded. |
 | `clinosim/modules/output/fhir_r4/lib/localization.py` `localize_fixed_label(en_label, country)` | Fixed FHIR labels in the country's language. |

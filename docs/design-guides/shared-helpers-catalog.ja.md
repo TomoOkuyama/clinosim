@@ -97,6 +97,7 @@ Governing spec: [`code-mapping-and-localization-spec.ja.md`](code-mapping-and-lo
 | `clinosim/locale/i18n.py` `t(key, lang, **params)` | キーで引く対象言語のフレーズ (パラメータ埋め込み付き)。 |
 | `clinosim/locale/text.py` `resolve_text(value, language, country)` | YAML のテキスト項目 (文字列または言語マップ) を適切な言語で返す。 |
 | `clinosim/locale/loaders/narrative.py` `vocab_display(...)` / `load_narrative_display_dict(...)` | narrative 語彙の表示名。 |
+| `clinosim/locale/loaders/medical_display.py` `hold_reason_display(reason, lang)` | 投薬保留理由(疾患プロトコルの `reason`、MAR の `hold_reason`)の各言語表示。測定値("SBP < 90")はそのまま。 |
 | `clinosim/locale/loaders/medical_display.py` `load_med_terms_ja()` | 日本語の医学用語辞書。 |
 | `clinosim/locale/free_text.py` `localize_drug_name` / `localize_procedure_name` / `localize_allergen_name` / `localize_free_text` | コード化されていない名称やオーダー文字列の翻訳。 |
 | `clinosim/modules/output/fhir_r4/lib/localization.py` `localize_fixed_label(en_label, country)` | FHIR の固定ラベルを国の言語で。 |

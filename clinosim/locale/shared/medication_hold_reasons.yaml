@@ -1,6 +1,8 @@
 # Medication hold reasons (clinosim/simulator/medication_pipeline.py,
-# Issue #2405): the reason text authored in disease YAMLs (`reason:`) → its
-# English and Japanese display. A reason not listed displays as written.
+# Issue #2405): the reason text authored in disease YAMLs (`reason:`), or
+# stored as a MAR hold reason (Issue #3233), → its English and Japanese
+# display (`clinosim.locale.loader.hold_reason_display`). A reason not listed
+# displays as written.
 metadata:
   kind: display-table
   name: medication_hold_reasons
@@ -46,6 +48,11 @@ reasons:
   "Metformin held for renal function":
     en: "acute kidney injury / renal impairment"
     ja: "急性腎障害 / 腎機能低下"
+  # Issue #3233: the MAR reason of a dose held while a vasopressor or
+  # inotrope infusion runs (simulator/reference_data/vasoactive_hold.yaml).
+  "On vasopressor or inotrope infusion":
+    en: "on vasopressor or inotrope infusion"
+    ja: "昇圧薬・強心薬の持続投与中"
   "Sepsis — lactic acidosis risk, potential renal impairment":
     en: "sepsis (lactic acidosis + renal impairment risk)"
     ja: "敗血症 (乳酸アシドーシス・腎機能悪化リスクのため保留)"

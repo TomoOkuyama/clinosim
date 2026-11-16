@@ -230,7 +230,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   cli_test_encounter.py  `clinosim test-encounter` サブコマンド
 ```
 
-リファレンスデータ (`reference_data/`、5 YAML):
+リファレンスデータ (`reference_data/`、6 YAML):
 
 ```
   reference_data/chronic_propagation.yaml     慢性疾患の伝播 (helpers.py)
@@ -238,6 +238,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/icd10_sex_restrictions.yaml  ICD-10 の性別ゲート (sex_gating.py)
   reference_data/renal_medication_rules.yaml  腎機能別投与規則 (medication_pipeline.py, discharge_rx.py)
   reference_data/statin_monitoring.yaml       脂質モニタリング / スタチン調整 (statin_monitoring.py)
+  reference_data/vasoactive_hold.yaml         昇圧薬・強心薬の持続投与中に保留する薬 (medication_pipeline.py)
 ```
 
 抽出済閾値定数 (14 ファイル、`_<area>_thresholds.py`):
