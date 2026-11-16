@@ -2529,6 +2529,11 @@
 <td><code>tests/unit/simulator/test_vasoactive_hold_3233.py</code></td>
 </tr>
 <tr>
+<td>昇圧薬・強心薬の持続投与は、直前 24 時間に記録した血圧がすべて平均動脈圧 65 mmHg 以上(2 回以上の記録)、その間に新たな昇圧薬・強心薬の開始がなく、ショックを脱している(日次ループの <code>in_shock</code>)とき、その病日の開始時点で中止する。持続投与中の昇圧薬・強心薬はまとめて中止し(status stopped、終了時刻はその病日の開始)、以後は投与しない。最終病日に持続投与があった患者は退院可能とも自宅退院可能とも判定せず、そのために入院期間をプロトコルの最大在院日数から最大 <code>max_extension_days</code> 日まで延長する。</td>
+<td><code>simulator/vasoactive_support.py</code>(<code>stop_weaned_vasoactive_infusions</code>, <code>vasoactive_support_after</code>)、<code>medication_pipeline.py::is_vasoactive_infusion</code>。データ <code>simulator/reference_data/vasoactive_weaning.yaml</code>。<code>daily_loop.py</code>(<code>_wean_vasoactive_support</code>, <code>_on_vasoactive_support</code>)と <code>discharge_gate.py</code> で適用</td>
+<td><code>tests/unit/simulator/test_vasoactive_weaning_3270.py</code></td>
+</tr>
+<tr>
 <td>1 日より長い間隔の頻度 (週 1 回・月 1 回・隔日) のオーダーは、オーダーした日とその後の間隔ごとに 1 回投与する。間隔は頻度トークン表から読むので、週 1 回の用量文字列が 1 日 1 回に置き換わることはない。</td>
 <td><code>modules/order/engine.py::dosing_interval_days</code>, <code>medication_pipeline.py::_generate_mar</code></td>
 <td><code>tests/unit/simulator/test_non_daily_mar_2982.py</code></td>

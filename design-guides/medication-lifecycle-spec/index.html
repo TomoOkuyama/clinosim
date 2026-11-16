@@ -2534,6 +2534,11 @@
 <td><code>tests/unit/simulator/test_vasoactive_hold_3233.py</code></td>
 </tr>
 <tr>
+<td>A vasopressor or inotrope continuous infusion is stopped at the start of a hospital day once every blood pressure recorded in the preceding 24 hours has a mean arterial pressure of at least 65 mmHg (at least two readings), no vasoactive infusion started in that window, and the patient is out of shock (the daily loop's <code>in_shock</code>); all running vasoactive infusions stop together (status stopped, end time the start of the day) and no dose is given after. A patient is not discharge-ready or safe for home while an infusion ran on the last hospital day, and the stay is extended for it past the protocol's maximum stay by at most <code>max_extension_days</code>.</td>
+<td><code>simulator/vasoactive_support.py</code> (<code>stop_weaned_vasoactive_infusions</code>, <code>vasoactive_support_after</code>), <code>medication_pipeline.py::is_vasoactive_infusion</code>; data <code>simulator/reference_data/vasoactive_weaning.yaml</code>; applied in <code>daily_loop.py</code> (<code>_wean_vasoactive_support</code>, <code>_on_vasoactive_support</code>) and <code>discharge_gate.py</code></td>
+<td><code>tests/unit/simulator/test_vasoactive_weaning_3270.py</code></td>
+</tr>
+<tr>
 <td>An order whose frequency is a cadence longer than a day (weekly, monthly, every other day) is given once on the day it is ordered and on every interval after; the cadence is read from the frequency-token catalog, so a weekly dose text is never defaulted to daily.</td>
 <td><code>modules/order/engine.py::dosing_interval_days</code>, <code>medication_pipeline.py::_generate_mar</code></td>
 <td><code>tests/unit/simulator/test_non_daily_mar_2982.py</code></td>
