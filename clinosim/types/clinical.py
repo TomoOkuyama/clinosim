@@ -101,6 +101,15 @@ class ConditionEvent:
     # Presenting symptoms (what the patient reports)
     presenting_symptoms: list[dict] = field(default_factory=list)
 
+    # Outpatient visits (Issue #3249): the kind of visit the simulator ran
+    # ("chronic_followup" | "chemo_visit" | "post_discharge" |
+    # "health_screening" | "pediatric_visit") and the condition it was for
+    # (the chronic ICD code, the screening / pediatric schedule / encounter
+    # condition id, or the index disease of a post-discharge visit). Empty
+    # for every other encounter.
+    visit_type: str = ""
+    visit_condition_id: str = ""
+
 
 @dataclass
 class ClinicalDiagnosis:

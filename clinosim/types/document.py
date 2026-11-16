@@ -371,6 +371,17 @@ class NarrativeContext:
     icu_transferred: bool = False
     icu_transferred_day: int = -1
 
+    # === Issues #3249 / #3252 (outpatient visit reason) ===
+    # ``condition_event.visit_type`` / ``visit_condition_id`` of an outpatient
+    # visit (empty for an encounter that is not the record's own), the
+    # immunizations given at this encounter (``record.immunizations`` whose
+    # ``encounter_id`` is this encounter) and the imaging studies of this
+    # encounter (``record.extensions["imaging"]``).
+    visit_type: str = ""
+    visit_condition_id: str = ""
+    immunizations: list[Any] = field(default_factory=list)
+    imaging_studies: list[Any] = field(default_factory=list)
+
 
 @dataclass
 class NarrativeOutput:

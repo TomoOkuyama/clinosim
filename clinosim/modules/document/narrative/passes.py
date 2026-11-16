@@ -27,7 +27,12 @@ from clinosim.country_profile import country_profile
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
 from clinosim.modules.document import specs_for_country
-from clinosim.modules.document.narrative.context import _build_newborn_workup, _build_safety_skips, icu_transfer_day
+from clinosim.modules.document.narrative.context import (
+    _build_newborn_workup,
+    _build_safety_skips,
+    icu_transfer_day,
+    visit_reason_fields,
+)
 from clinosim.modules.document.narrative.fact_extractor import extract_all_facts
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
 from clinosim.modules.document.narrative.scenario_spine import build_narrative_spine
@@ -609,6 +614,9 @@ class NarrativePass(ABC):
             code_status=str(patient_dict.get("code_status", "") or ""),
             icu_transferred=bool(patient_dict.get("icu_transferred", False)),
             icu_transferred_day=icu_transfer_day(patient_dict.get("icu_transferred_day")),
+            # Issues #3249 / #3252: the visit kind, the vaccines given and the
+            # imaging studies of this encounter (outpatient SOAP).
+            **visit_reason_fields(patient_dict, encounter_dict),
         )
         ctx.narrative_spine = build_narrative_spine(
             disease_protocol,

@@ -108,6 +108,7 @@ simulator が使う submodule の入口 (再 export なし、path で import):
 encounter_datetime, country)` / `encounter_anthropometrics(...)` —
 1 encounter で計測された身長 / 体重 / BMI (小児は成長曲線パーセンタイル)。
 FHIR 体格 Observation と ED の体重換算投与量が共有する唯一の導出 (Issue #2990)。
+`growth_percentiles(...)` — 同じ成長モデル上での小児の各計測値のパーセンタイル (乳幼児健診の記録、Issue #3252)。
 
 再 export されない内部 helper (把握しておく価値のあるもの):
 `engine.py` の `Household` + `PopulationRegistry` dataclass、

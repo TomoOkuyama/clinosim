@@ -61,6 +61,16 @@ from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
     _render_safety_skips_line,
 )
+from clinosim.modules.document.narrative._visit_reason import (
+    join_sentences,
+    kind_lines,
+    kind_values,
+    known_conditions_tail,
+    next_visit_line,
+    visit_dx,
+    visit_kind,
+    vital_findings,
+)
 from clinosim.modules.document.narrative.renderers._shared_helpers import (
     chronic_condition_label,
     ordered_chronic_conditions,
@@ -127,7 +137,16 @@ def _get_soap_template(ctx: NarrativeContext) -> Any | None:
          (v9 new layer — closes the "chronic follow-up" gap for
          hypertension / DM / CKD / etc. which have no per-disease YAML)
       4. None → caller falls through to patient-state engine
+
+    Issue #3249: a visit with a visit-reason kind (chemotherapy,
+    post-discharge, acute illness, screening, vaccination, well-child) takes
+    its content from ``visit_reason_soap.yaml`` instead (``kind_lines``), so
+    no template applies; the chronic-condition template is the one of the
+    visit's own diagnosis (the condition the follow-up is for), not of the
+    patient's first chronic condition.
     """
+    if visit_kind(ctx):
+        return None
     ep = ctx.encounter_protocol
     if ep is not None:
         narrative = _o(ep, "narrative", None)
@@ -155,7 +174,10 @@ def _get_soap_template(ctx: NarrativeContext) -> Any | None:
     if has_authored_narrative(ctx.target_lang):
         from clinosim.modules.document.narrative._chronic_soap import resolve_chronic_soap
 
+        dx = visit_dx(ctx)
         patient = ctx.patient
+        if dx:
+            return resolve_chronic_soap([dx])
         if patient is not None:
             conds = _o(patient, "chronic_conditions", []) or []
             chronic_tmpl = resolve_chronic_soap(conds)
@@ -194,6 +216,12 @@ def build_outpatient_subjective(generator: TemplateNarrativeGenerator, ctx: Narr
     # a template exists, so the reader sees encounter-specific
     # variation on top of the disease-class seed.
     composed = _compose_outpatient_subjective_from_state(ctx)
+    # Issue #3249: the visit reason's own subjective lines.
+    kind = visit_kind(ctx)
+    reason_lines = kind_lines(ctx, kind, "subjective") if kind else []
+    if composed and reason_lines:
+        composed = join_sentences([composed, *reason_lines], lang)
+        facts.append("composed:visit_reason.subjective")
     soap = _get_soap_template(ctx)
     template_prose = ""
     if soap is not None:
@@ -279,7 +307,11 @@ def _compose_outpatient_subjective_from_state(ctx: NarrativeContext) -> str:
         parts.append(t("outpatient.visit_reason_with_cc", lang, cc=cc))
     else:
         parts.append(t("outpatient.visit_reason_no_cc", lang))
-    if chronic_labels:
+    if chronic_labels and visit_kind(ctx):
+        # Issue #3249: a visit made for another reason lists the chronic
+        # problems as known conditions, not as the reason for the visit.
+        parts.append(known_conditions_tail(chronic_labels, lang))
+    elif chronic_labels:
         sep = t("list_sep.serial", lang)
         parts.append(t("outpatient.chronic_followup", lang, list=sep.join(chronic_labels)))
     text = "".join(parts).strip()
@@ -314,6 +346,18 @@ def build_outpatient_objective(generator: TemplateNarrativeGenerator, ctx: Narra
     fallback = t("fallback.generic_fallback", lang)
 
     vital_line = generator._compose_vital_signs_line(ctx)
+    kind = visit_kind(ctx)
+    values = kind_values(ctx, kind)
+    reason_lines = kind_lines(ctx, kind, "objective", values)
+    if reason_lines:
+        # Issue #3249 / #3252: the visit reason's findings (growth, wound,
+        # pre-treatment labs, screening results).
+        facts.append("composed:visit_reason.objective")
+        body = join_sentences(reason_lines, lang)
+        if vital_line:
+            facts.append("ctx.vitals")
+            return f"{vital_line}{t('list_sep.period_space', lang)}{body}", facts
+        return body, facts
     template_prose = ""
     soap = _get_soap_template(ctx)
     if soap is not None:
@@ -374,6 +418,16 @@ def build_outpatient_assessment(generator: TemplateNarrativeGenerator, ctx: Narr
     # ("1. 2型糖尿病: HbA1c 6.8% — 目標 7.0% 未満 — 目標達成中"),
     # rather than emitting identically for 100+ diabetic patients.
     integrated = _compose_chronic_assessment_integrated(ctx)
+
+    # Issue #3249: the reason for the visit (and the vaccines given at it) is
+    # the first item; the chronic problems and the vital-sign findings follow.
+    # The problem a visit-reason item covers (the cancer of a chemotherapy
+    # visit) is not listed again.
+    kind = visit_kind(ctx)
+    reason_items = kind_lines(ctx, kind, "assessment")
+    if reason_items:
+        facts.append("composed:visit_reason.assessment")
+        integrated = _numbered(reason_items + _chronic_assessment_items(ctx, skip_code=visit_dx(ctx) if kind else ""))
 
     soap = _get_soap_template(ctx)
     if soap is not None:
@@ -535,6 +589,18 @@ def _compose_chronic_condition_line(ctx: NarrativeContext) -> str:
 
 
 def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
+    """The numbered chronic-condition and vital-sign items of the SOAP
+    Assessment (``_chronic_assessment_items``)."""
+    return _numbered(_chronic_assessment_items(ctx))
+
+
+def _numbered(items: list[str]) -> str:
+    """Issue #3248: the items are numbered once, at the end, so a staged
+    problem, a skipped entry and the vital-sign items cannot leave a gap."""
+    return "\n".join(f"{n}. {item}" for n, item in enumerate(items, 1))
+
+
+def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> list[str]:
     """SOAP Assessment enriched with today's vitals + labs + target
     comparison prose (Issue #985 personalization).
 
@@ -565,7 +631,7 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
     """
     patient = ctx.patient
     if patient is None:
-        return ""
+        return []
     conditions = _o(patient, "chronic_conditions", []) or []
     # Issue #1183: the empty-conditions early return silently dropped
     # abnormal-vital lines for patients with no chronic conditions.
@@ -576,25 +642,6 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
     v0 = vitals[0] if vitals else None
     sbp = _o(v0, "systolic_bp", None) if v0 else None
     dbp = _o(v0, "diastolic_bp", None) if v0 else None
-    # Issue #1181: cast remaining vitals to floats up-front so the
-    # observation-aware fallback below can quote them without a
-    # try/except per branch (also consumed by the #1183 vital-abnormal
-    # handler after the condition-dispatch loop).
-    _hr_raw = _o(v0, "heart_rate", None) if v0 else None
-    _t_raw = _o(v0, "temperature_celsius", None) if v0 else None
-    _spo2_raw = _o(v0, "spo2", None) if v0 else None
-    try:
-        hr_f = float(_hr_raw) if _hr_raw is not None else None
-    except (TypeError, ValueError):
-        hr_f = None
-    try:
-        temp_f = float(_t_raw) if _t_raw is not None else None
-    except (TypeError, ValueError):
-        temp_f = None
-    try:
-        spo2_f = float(_spo2_raw) if _spo2_raw is not None else None
-    except (TypeError, ValueError):
-        spo2_f = None
 
     # Issue #985: cite value regardless of flag — a target-comparison
     # assessment needs the actual number even when in-range.
@@ -632,8 +679,6 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
         """Shorthand for `_pick_med_containing(*_chronic_med_class_hints(key))`."""
         return _pick_med_containing(_chronic_med_class_hints(class_key, lang))
 
-    # Issue #3248: the items are numbered once, at the end, so a staged
-    # problem, a skipped entry and the vital-sign items cannot leave a gap.
     items: list[str] = []
     # Issue #3259: a problem is listed once (two codes with one name — I80
     # and I82 deep-vein thrombosis — are one item), and the diabetes control
@@ -641,6 +686,10 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
     # diabetes item; a complication item (E11.311 retinopathy) is listed
     # under its own name like any other problem.
     listed: set[str] = set()
+    # Issue #3249: the problem a visit-reason item already covers (the cancer
+    # of a chemotherapy visit) is not listed again.
+    if skip_code:
+        listed.add(chronic_condition_label(skip_code, country_code(ctx.locale), ctx.target_lang, _sex) or skip_code)
     diabetes_judged = False
     for c in ordered_chronic_conditions(ctx):
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
@@ -901,26 +950,32 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
             else:
                 items.append(t("chronic_assessment.chronic_noted", lang, label=label))
 
-    # Issue #1183: Assessment previously ignored abnormal vitals that
-    # were not paired with a matching chronic condition. Tachycardia
-    # was acknowledged in 2.5% of notes (20/790), hypoxemia in 0%
-    # (0/1,890), and fever in only 6.7% (2/30). Add a per-vital pass
-    # after the condition-dispatch loop so a HR ≥100 (adult) / SpO2 <95 /
-    # T ≥38 always surfaces in the Assessment prose regardless of
-    # the chronic-condition list. hr_f / temp_f / spo2_f are already
-    # parsed once at the top of this method (shared with PR B3's
-    # observation-aware fallback).
-    # Issue #2986: a child's heart rate is judged against the normal range
-    # for the age (``observation.pediatric_ranges``), not the adult 100/min.
-    if hr_f is not None and _is_tachycardic(hr_f, patient, v0, ctx):
-        items.append(t("chronic_assessment.tachycardia", lang, hr=int(round(hr_f))))
-    if spo2_f is not None and spo2_f < 95:
-        key = "chronic_assessment.hypoxemia_severe" if spo2_f < 90 else "chronic_assessment.hypoxemia"
-        items.append(t(key, lang, spo2=spo2_f))
-    if temp_f is not None and temp_f >= 38.0:
-        items.append(t("chronic_assessment.fever", lang, temp=temp_f))
+    # Issue #1183: an abnormal vital sign surfaces in the Assessment whatever
+    # the chronic-condition list. Issue #3251: as a finding linked to the
+    # known diagnosis, with the matching plan line (``_visit_vital_findings``).
+    items.extend(finding for finding, _plan in _visit_vital_findings(ctx))
+    return items
 
-    return "\n".join(f"{n}. {item}" for n, item in enumerate(items, 1))
+
+def _visit_vital_findings(ctx: NarrativeContext) -> list[tuple[str, str]]:
+    """``(assessment item, plan line)`` of each abnormal vital sign of the
+    visit's first vital set (``_visit_reason.vital_findings``). Issue #2986:
+    a child's heart rate is judged against the normal range for the age."""
+    vitals = list(ctx.vitals or [])
+    v0 = vitals[0] if vitals else None
+    if v0 is None or ctx.patient is None:
+        return []
+
+    def _float(name: str) -> float | None:
+        raw = _o(v0, name, None)
+        try:
+            return float(raw) if raw is not None else None
+        except (TypeError, ValueError):
+            return None
+
+    hr = _float("heart_rate")
+    tachycardic = hr is not None and _is_tachycardic(hr, ctx.patient, v0, ctx)
+    return vital_findings(ctx, hr, _float("temperature_celsius"), _float("spo2"), tachycardic)
 
 
 def _is_tachycardic(hr: float, patient: Any, vital: Any, ctx: NarrativeContext) -> bool:
@@ -971,10 +1026,23 @@ def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     lang = ctx.target_lang
     fallback = t("fallback.generic_plan", lang)
 
+    kind = visit_kind(ctx)
+    # Issue #3251: each vital-sign finding of the Assessment has its plan line.
+    vital_plans = [plan for _finding, plan in _visit_vital_findings(ctx)]
+    # Issues #3249 / #3252: the next visit the visit reason calls for (None:
+    # the chronic follow-up line; "": no scheduled return).
+    reason_next = next_visit_line(ctx, kind)
+
+    # Issues #3249 / #3252: the visit reason's plan (and the vaccines given).
+    reason_plan = kind_lines(ctx, kind, "plan")
+    if reason_plan:
+        facts.append("composed:visit_reason.plan")
+
     soap = _get_soap_template(ctx)
     if soap is not None:
         text = _pick_localized(soap, "plan", lang, ctx)
         if text:
+            text = "\n".join([text, *reason_plan])
             facts.append(f"encounter_protocol.narrative.outpatient_soap_template.plan_{lang}")
             # Issue #1180: the YAML `plan_<lang>` is a per-condition
             # constant, which made the Plan section byte-identical
@@ -988,6 +1056,9 @@ def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeC
             if titration:
                 text = f"{text}\n{titration}"
                 facts.append("ctx.discharge_medications.titration")
+            if vital_plans:
+                text = "\n".join([text, *vital_plans])
+                facts.append("ctx.vitals.today")
             tail = _compose_follow_up_line(ctx)
             if tail:
                 facts.append("encounter_protocol.next_visit_interval")
@@ -995,7 +1066,7 @@ def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeC
             return text, facts
 
     # v9 multi-line composition (density fix)
-    lines: list[str] = []
+    lines: list[str] = reason_plan
     titration = _compose_statin_titration_line(ctx)
     if titration:
         lines.append(titration)
@@ -1015,7 +1086,11 @@ def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeC
         lines.append(today_procs)
         facts.append("ctx.procedures.today")
 
-    follow_up = _compose_follow_up_line(ctx)
+    if vital_plans:
+        lines.extend(vital_plans)
+        facts.append("ctx.vitals.today")
+
+    follow_up = _compose_follow_up_line(ctx) if reason_next is None else reason_next
     if follow_up:
         lines.append(follow_up)
         facts.append("encounter_protocol.next_visit_interval")

@@ -355,3 +355,33 @@ def encounter_weight_kg(patient: Any, encounter_id: str, encounter_datetime: Any
     """Body weight (kg) charted on the encounter — the value of its
     body-weight Observation. Use it for weight-based doses."""
     return encounter_anthropometrics(patient, encounter_id, encounter_datetime, country)["weight_kg"]
+
+
+def growth_percentiles(patient: Any, encounter_id: str, encounter_datetime: Any, country: str) -> dict[str, int]:
+    """Percentile of each body measurement charted on the encounter for a
+    child (Issue #3252): ``{"height_cm", "weight_kg", "head_circumference_cm"?}``
+    -> whole percentile (1-99). The child's value is placed on the growth model
+    it was drawn from (``median(age) x (1 + cv x z)``), so the percentile is
+    ``Phi((value / median - 1) / cv)``. Empty for an adult or a patient whose
+    age at the encounter is unknown."""
+    data = {k: get_attr_or_key(patient, k, None) for k in _PATIENT_FIELDS}
+    age_years, age_months = age_at_measurement(data, encounter_datetime)
+    ref = _load_reference()
+    if age_months is None or age_years >= int(ref.get("adult_path_min_age_years", 18)):
+        return {}
+    values = _derive_anthropometrics(data, str(encounter_id or ""), age_years, country, age_months)
+    variation = ref.get("pediatric_growth_variation") or {}
+    sex = str(data.get("sex", "") or "M")
+    out: dict[str, int] = {}
+    for measure, key in (
+        ("height", "height_cm"),
+        ("weight", "weight_kg"),
+        ("head_circumference", "head_circumference_cm"),
+    ):
+        median = _median_at(country, sex, age_months, measure)
+        cv = float(variation.get(f"{measure}_cv", 0.0))
+        if key not in values or not median or cv <= 0:
+            continue
+        z = (values[key] / median - 1.0) / cv
+        out[key] = int(_clamp(round(50.0 * (1.0 + math.erf(z / math.sqrt(2.0)))), 1, 99))
+    return out

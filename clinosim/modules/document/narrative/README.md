@@ -260,6 +260,7 @@ clinosim/modules/document/narrative/
   semantic_check.py                        check_narratives (β-JP-1 verification gate)
   _hedging.py                              hedging phrase pool
   _chronic_soap.py                         chronic-disease SOAP resolver (v9 density fix)
+  _visit_reason.py                         visit_kind / kind_lines / vital_findings / next_visit_line — outpatient SOAP by visit reason (Issues #3249, #3251, #3252)
   _narrative_interpretation_thresholds.py  interpretation cutoff scalars (Issue #637)
   reference_data/
     chief_complaint_variants.yaml          chief-complaint phrasing variants (load_chief_complaint_variants)

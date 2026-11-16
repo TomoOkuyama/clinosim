@@ -1298,6 +1298,8 @@ def _simulate_outpatient_visit(
         condition_id=f"COND-{patient.patient_id}-OPD",
         condition_type="chronic_followup" if chronic_code else "post_discharge_followup",
         ground_truth_diseases=[dx_code] if dx_code else [],
+        visit_type=visit_type,
+        visit_condition_id=chronic_code or post_discharge_disease,
     )
     clinical_diagnosis = encounter_diagnosis(dx_code, country)
 

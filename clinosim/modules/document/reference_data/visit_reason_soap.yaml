@@ -1,0 +1,427 @@
+# Outpatient SOAP content by the reason for the visit (Issues #3249, #3251, #3252).
+#
+# The outpatient SOAP (narrative/renderers/section_builders/outpatient_soap.py)
+# is organised around the reason for the visit: the simulator records the kind
+# of visit it ran (CIF ``condition_event.visit_type``) and the condition it was
+# for (``condition_event.visit_condition_id``); ``visit_kinds`` maps them to one
+# of the kinds below. A visit with no kind is a chronic follow-up (or an
+# encounter-protocol visit) and keeps the chronic-condition note.
+#
+# Each kind lists the lines of each SOAP section, each a language map (English
+# required). ``{placeholder}`` values are composed from the visit's CIF data by
+# ``narrative/_visit_reason.py``; a line whose placeholder has no value for the
+# visit is left out (a fact the record does not hold is not written). A few
+# placeholders are conditions with an empty value (``{no_rx}``, ``{all_normal}``,
+# ``{no_labs}``): the line is written only in that case.
+# ``conditions`` adds lines for one visit condition after the kind's lines.
+#
+# Text records findings and decisions, never instructions to the reader
+# (Issue #3251): no "assess ...", "evaluate for ...", 「…を確認。」, 「…を聴取。」,
+# 「…評価要」 (guard: tests/unit/modules/document/narrative/test_visit_reason_soap_3249.py).
+#
+# Developmental milestones (``well_child.development``): CDC "Learn the Signs.
+# Act Early." milestone checklists (https://www.cdc.gov/act-early/milestones/,
+# pages for 2 months to 5 years, read 2026-11-16) — milestones most children
+# (75 % or more) reach by that age; one movement, one language and one social
+# milestone per age.
+metadata:
+  kind: reference
+  name: visit_reason_soap
+  source: clinosim
+
+visit_kinds:
+  # simulator visit_type -> kind
+  by_visit_type:
+    chemo_visit: chemotherapy
+    post_discharge: post_discharge
+    health_screening: screening
+  # visit condition id -> kind (takes precedence over the visit type)
+  by_condition:
+    flu_vaccination: vaccination
+    immunization_infant: vaccination
+    immunization_kindergarten: vaccination
+    immunization_adolescent: vaccination
+    well_child_infant: well_child
+    well_child_early: well_child
+    well_child_school: well_child
+    pediatric_bronchiolitis: acute_illness
+    pediatric_otitis_media: acute_illness
+    pediatric_uri: acute_illness
+    pediatric_injury: acute_illness
+  # A post-discharge visit after one of these admissions is a post-operative
+  # visit (the admission's treatment is an operation).
+  post_operative_conditions: [hip_fracture, acute_appendicitis, acute_cholecystitis]
+
+# How the plan states the next visit, per kind:
+#   chronic    the chronic follow-up interval (chronic_followup.yaml)
+#   cycle      the chemotherapy regimen's cycle interval (chemo_regimens.yaml)
+#   schedule   the visit's pediatric schedule cadence (pediatric_schedule.yaml)
+#   none       no scheduled return (return precautions are plan lines)
+next_visit:
+  chemotherapy: cycle
+  post_discharge: chronic
+  post_operative: chronic
+  screening: chronic
+  vaccination: chronic
+  well_child: schedule
+  acute_illness: none
+
+# The next visit of one visit condition, when it differs from its kind's.
+next_visit_by_condition:
+  immunization_infant: schedule
+  immunization_kindergarten: schedule
+  immunization_adolescent: schedule
+
+kinds:
+  # {therapy}: the regimen's kind of treatment (``therapy``); {cytotoxic}
+  # marks the lines of a cytotoxic regimen only.
+  chemotherapy:
+    subjective:
+      - en: "Presents for {therapy} for {cancer}."
+        ja: "{cancer}に対する{therapy}のため来院。"
+      - en: "No fever, bleeding, mouth sores or diarrhoea since the last cycle{cytotoxic}."
+        ja: "前コース後の発熱・出血・口内炎・下痢の訴えなし{cytotoxic}。"
+    objective:
+      - en: "Pre-treatment labs: {labs}."
+        ja: "投与前検査: {labs}。"
+    assessment:
+      - en: "{cancer}: {therapy} given today ({drugs})."
+        ja: "{cancer}: 本日{therapy}を施行 ({drugs})。"
+    plan:
+      - en: "{therapy_title} administered as ordered ({drugs})."
+        ja: "{therapy}を指示通り投与 ({drugs})。"
+      - en: "Patient told to come in at once for a temperature of 38°C or higher (risk of febrile neutropenia){cytotoxic}."
+        ja: "38°C 以上の発熱時は直ちに受診するよう説明 (発熱性好中球減少症のリスク){cytotoxic}。"
+
+  post_discharge:
+    subjective:
+      - en: "Seen after discharge from hospital for {index}."
+        ja: "{index}の入院加療後、退院後外来として受診。"
+    objective:
+      - en: "Follow-up labs: {labs}."
+        ja: "フォローアップ採血: {labs}。"
+      - en: "{imaging}"
+        ja: "{imaging}"
+    assessment:
+      - en: "{index}: post-discharge review{lab_status}."
+        ja: "{index}: 退院後経過観察{lab_status}。"
+    plan:
+      - en: "{index}: recovery followed in clinic; patient told to return if the symptoms of the admission recur."
+        ja: "{index}: 外来で回復経過を観察、入院時の症状が再燃した場合は早期受診するよう説明。"
+
+  post_operative:
+    subjective:
+      - en: "Post-operative visit after surgery for {index}."
+        ja: "{index}の術後外来として受診。"
+    objective:
+      - en: "Surgical wound healing, no erythema, swelling or discharge."
+        ja: "創部は治癒経過良好、発赤・腫脹・滲出液なし。"
+      - en: "Follow-up labs: {labs}."
+        ja: "フォローアップ採血: {labs}。"
+    assessment:
+      - en: "{index}: post-operative course{lab_status}."
+        ja: "{index}: 術後経過{lab_status}。"
+    plan:
+      - en: "Wound care completed; patient told to return for wound redness, discharge or fever."
+        ja: "創部処置終了、創部の発赤・滲出液・発熱があれば受診するよう説明。"
+
+  acute_illness:
+    assessment:
+      - en: "{dx}: acute illness managed in clinic."
+        ja: "{dx}: 外来で治療。"
+    plan:
+      - en: "{dx}: supportive care (fluids, rest, antipyretic as needed){no_rx}."
+        ja: "{dx}: 対症療法 (水分補給・安静・必要時解熱薬){no_rx}。"
+
+  screening:
+    objective:
+      - en: "Screening tests today: {items}."
+        ja: "本日の検査: {items}。"
+      - en: "{imaging}"
+        ja: "{imaging}"
+    assessment:
+      - en: "Screening: {screening_labs}."
+        ja: "検診: {screening_labs}。"
+    plan:
+      - en: "Results explained to the patient; abnormal results ({abnormal}) followed up at the next visit."
+        ja: "結果を説明、異常値 ({abnormal}) は次回受診時に再評価。"
+      - en: "Results explained to the patient; no abnormal laboratory result{all_normal}."
+        ja: "結果を説明、血液検査の異常なし{all_normal}。"
+      - en: "Results explained to the patient{no_labs}."
+        ja: "結果を説明{no_labs}。"
+
+  vaccination:
+    assessment:
+      - en: "Immunization: {vaccine_names} given today."
+        ja: "予防接種: 本日 {vaccine_names} を接種。"
+    plan:
+      - en: "Vaccines given: {vaccine_details}."
+        ja: "接種内容: {vaccine_details}。"
+
+  well_child:
+    objective:
+      - en: "Growth: {growth}."
+        ja: "身体計測: {growth}。"
+    assessment:
+      - en: "Well child: development appropriate for age — {development}."
+        ja: "健診: 年齢相応の発達 — {development}。"
+    plan:
+      - en: "Anticipatory guidance given: {guidance}."
+        ja: "保健指導: {guidance}。"
+
+# The kind of treatment of a chemotherapy-visit regimen, by the drug classes the
+# regimen contains (chemo_regimens.yaml ``contains_drug_classes``); any other
+# regimen is cytotoxic chemotherapy. A GnRH agonist is androgen-deprivation
+# (hormone) therapy, trastuzumab a HER2-targeted antibody, intravesical BCG an
+# immunotherapy.
+therapy_by_drug_class:
+  lhrh_agonist: hormonal
+  her2_antibody: targeted
+  immunotherapy: immunotherapy
+therapy:
+  cytotoxic: {en: "chemotherapy", ja: "化学療法"}
+  hormonal: {en: "hormone therapy", ja: "ホルモン療法"}
+  targeted: {en: "targeted therapy", ja: "分子標的治療"}
+  immunotherapy: {en: "immunotherapy", ja: "免疫療法"}
+
+# Lines for one visit condition, added after its kind's lines.
+conditions:
+  hip_fracture:
+    objective:
+      - en: "Walking with a walker; hip range of motion improving."
+        ja: "歩行器歩行、股関節可動域は改善傾向。"
+    plan:
+      - en: "Outpatient rehabilitation for gait continued."
+        ja: "歩行訓練の外来リハビリテーションを継続。"
+  pediatric_uri:
+    plan:
+      - en: "Caregiver told to return if fever lasts more than 3 days, breathing becomes difficult or the child drinks poorly."
+        ja: "発熱が3日以上続く、呼吸が苦しそう、水分がとれない場合は再診するよう保護者に説明。"
+  pediatric_otitis_media:
+    plan:
+      - en: "Caregiver told to return if ear pain or fever persists after 48-72 hours of treatment."
+        ja: "治療開始後 48-72 時間で耳痛・発熱が続く場合は再診するよう保護者に説明。"
+  pediatric_bronchiolitis:
+    plan:
+      - en: "Caregiver told to return for laboured breathing, poor feeding or fewer wet nappies."
+        ja: "呼吸が苦しそう、哺乳不良、尿量減少があれば再診するよう保護者に説明。"
+  pediatric_injury:
+    plan:
+      - en: "Patient told to return for increasing pain, swelling or inability to bear weight."
+        ja: "疼痛・腫脹の増悪や荷重できない場合は再診するよう説明。"
+
+# The vaccination record line of each vaccine given ({vaccine}, {dose}, {lot},
+# {route}, {site}); a dose without a dose number or a site leaves that part out.
+vaccine_detail:
+  dose:
+    en: " dose {dose}"
+    ja: " {dose}回目"
+  lot:
+    en: ", lot {lot}"
+    ja: "、ロット {lot}"
+  route:
+    en: ", {route}"
+    ja: "、{route}"
+  site:
+    en: " ({site})"
+    ja: " ({site})"
+
+# Prose of the route and site of a dose (the schedule's ``administration``
+# route and ``administration_sites`` SNOMED site, as the FHIR Immunization
+# codes them; locale/<cc>/immunization_schedule.yaml).
+vaccine_routes:
+  IM: {en: "IM", ja: "筋注"}
+  SC: {en: "SC", ja: "皮下注"}
+  PO: {en: "oral", ja: "経口"}
+  PERCUTANEOUS: {en: "percutaneous", ja: "経皮"}
+vaccine_sites:
+  "368208006": {en: "left upper arm", ja: "左上腕"}
+  "61396006": {en: "left thigh", ja: "左大腿"}
+
+# Plan lines after the vaccines given, per country (the record a country's law
+# or guidance asks for): US — the Vaccine Information Statement given before
+# each dose (42 U.S.C. 300aa-26); JP — the pre-vaccination questionnaire
+# (予診票) and the observation after the dose.
+vaccination_country_lines:
+  US:
+    - en: "Vaccine Information Statements given before vaccination; observed after vaccination with no immediate reaction."
+      ja: "接種前にワクチン情報説明書 (VIS) を交付、接種後の観察で即時型反応なし。"
+  JP:
+    - en: "Fit for vaccination on the pre-vaccination questionnaire and examination; observed after vaccination with no immediate reaction."
+      ja: "予診票と診察で接種可能と判断、接種後の観察で即時型反応なし。"
+
+# Abnormal vital signs of the visit: an assessment finding and a plan line,
+# linked to the diagnosis already known (Issue #3251). Variants by context:
+#   tachycardia: af (atrial fibrillation on the problem list), febrile (fever
+#                at the visit), default
+#   fever:       infection (the visit diagnosis is an infection; {dx}), default
+#   hypoxemia / hypoxemia_severe: known (a chronic lung or heart condition on
+#                the problem list; {condition}), default
+vital_findings:
+  tachycardia:
+    af:
+      assessment:
+        en: "Tachycardia: HR {hr} /min in known atrial fibrillation, resting rate above the rate-control target."
+        ja: "頻脈: HR {hr} 回/分、既知の心房細動で安静時心拍数がレートコントロール目標を上回る。"
+      plan:
+        en: "Atrial fibrillation: rate-control therapy to be stepped up; heart rate rechecked at the next visit."
+        ja: "心房細動: レートコントロール薬の増量を検討、次回受診時に心拍数を再評価。"
+    febrile:
+      assessment:
+        en: "Tachycardia: HR {hr} /min with fever."
+        ja: "頻脈: HR {hr} 回/分、発熱に伴う。"
+      plan:
+        en: "Heart rate rechecked once afebrile."
+        ja: "解熱後に心拍数を再検。"
+    default:
+      assessment:
+        en: "Tachycardia: HR {hr} /min, no palpitations or dizziness reported."
+        ja: "頻脈: HR {hr} 回/分、動悸・めまいの訴えなし。"
+      plan:
+        en: "Heart rate rechecked at the next visit; patient told to return for palpitations or dizziness."
+        ja: "次回受診時に心拍数を再検、動悸・めまいがあれば受診するよう説明。"
+  fever:
+    infection:
+      assessment:
+        en: "Fever: T {temp:.1f}°C, attributable to {dx}."
+        ja: "発熱: T {temp:.1f}°C、{dx}によるもの。"
+      plan:
+        en: "Fever: antipyretic as needed and fluids."
+        ja: "発熱: 必要時解熱薬と水分補給。"
+    default:
+      assessment:
+        en: "Fever: T {temp:.1f}°C, no localising source on examination."
+        ja: "発熱: T {temp:.1f}°C、診察上明らかな感染巣なし。"
+      plan:
+        en: "Fever: temperature rechecked in 2-3 days; patient told to return sooner for new symptoms."
+        ja: "発熱: 2-3日後に体温を再検、新たな症状が出れば早めに受診するよう説明。"
+  hypoxemia:
+    known:
+      assessment:
+        en: "Hypoxemia: SpO2 {spo2:.0f}% on room air, in keeping with known {condition}."
+        ja: "低酸素血症: SpO2 {spo2:.0f}% (室内気)、既知の{condition}によるもの。"
+      plan:
+        en: "SpO2 rechecked at the next visit; patient told to return for worsening breathlessness."
+        ja: "次回受診時に SpO2 を再検、息切れが増悪すれば受診するよう説明。"
+    default:
+      assessment:
+        en: "Hypoxemia: SpO2 {spo2:.0f}% on room air, no respiratory distress."
+        ja: "低酸素血症: SpO2 {spo2:.0f}% (室内気)、呼吸困難なし。"
+      plan:
+        en: "SpO2 rechecked at the next visit; patient told to return for breathlessness."
+        ja: "次回受診時に SpO2 を再検、息切れがあれば受診するよう説明。"
+  hypoxemia_severe:
+    known:
+      assessment:
+        en: "Severe hypoxemia: SpO2 {spo2:.0f}% on room air in known {condition}."
+        ja: "重度低酸素血症: SpO2 {spo2:.0f}% (室内気)、既知の{condition}。"
+      plan:
+        en: "Severe hypoxemia: same-day further evaluation arranged."
+        ja: "重度低酸素血症: 同日中の精査を手配。"
+    default:
+      assessment:
+        en: "Severe hypoxemia: SpO2 {spo2:.0f}% on room air."
+        ja: "重度低酸素血症: SpO2 {spo2:.0f}% (室内気)。"
+      plan:
+        en: "Severe hypoxemia: same-day further evaluation arranged."
+        ja: "重度低酸素血症: 同日中の精査を手配。"
+
+# Diagnosis code prefixes (ICD-10 / ICD-10-CM, matched on the code without the
+# dot) that link a vital-sign finding to a known diagnosis.
+vital_links:
+  # A fever explained by the visit diagnosis: acute upper respiratory
+  # infections (J00-J06), influenza and pneumonia (J09-J18), acute bronchitis
+  # and bronchiolitis (J20-J22), otitis media (H65-H66), urinary tract
+  # infection (N30, N390), infectious gastroenteritis (A08-A09), cellulitis (L03).
+  infection: [J00, J01, J02, J03, J04, J05, J06, J09, J10, J11, J12, J13, J14, J15, J16, J17, J18, J20, J21, J22, H65, H66, N30, N390, A08, A09, L03]
+  # Tachycardia in known atrial fibrillation / flutter.
+  atrial_fibrillation: [I48]
+  # Hypoxemia in a known chronic lung or heart condition: COPD, asthma,
+  # interstitial lung disease, heart failure.
+  chronic_cardiopulmonary: [J44, J45, J84, I50]
+
+# Shared phrases.
+phrases:
+  known_conditions:
+    en: " Known conditions: {list}."
+    ja: "既往: {list}。"
+  # {lab_status} of a post-discharge / post-operative assessment
+  lab_tail_normal:
+    en: "; follow-up labs within reference range"
+    ja: "、採血結果は基準範囲内"
+  lab_tail_abnormal:
+    en: "; abnormal labs: {list}"
+    ja: "、検査異常: {list}"
+  # {screening_labs} of a screening assessment
+  screening_labs_normal:
+    en: "no abnormal laboratory result"
+    ja: "血液検査に異常値なし"
+  screening_labs_abnormal:
+    en: "abnormal laboratory results: {list}"
+    ja: "血液検査の異常値: {list}"
+  percentile:
+    en: "({pct}th percentile)"
+    ja: "({pct} パーセンタイル)"
+  next_cycle:
+    en: "Next dose: in {days} days."
+    ja: "次回投与: {days}日後に予定。"
+  next_schedule:
+    en: "Next visit: in {months} months (pediatric schedule)."
+    ja: "次回: {months}か月後 (定期健診・接種スケジュール)。"
+
+# Developmental surveillance and anticipatory guidance of a well-child visit,
+# by age in completed months (clinosim.age_bands keys).
+well_child:
+  development:
+    "0-3":
+      en: "holds head up when on tummy, makes sounds other than crying, calms down when spoken to or picked up"
+      ja: "腹ばいで頭を上げる、泣き声以外の声を出す、話しかけたり抱き上げたりすると落ち着く"
+    "4-5":
+      en: "holds head steady without support, makes sounds back when talked to, smiles to get attention"
+      ja: "支えなしで首がすわる、話しかけると声を出して応える、自分から笑いかける"
+    "6-8":
+      en: "rolls from tummy to back, takes turns making sounds, knows familiar people"
+      ja: "腹ばいから仰向けに寝返る、声のやりとりをする、身近な人がわかる"
+    "9-11":
+      en: "sits without support, babbles (\"mamamama\", \"bababa\"), looks when called by name"
+      ja: "支えなしでおすわりする、「まんまん」「ばばば」など喃語を話す、名前を呼ぶと振り向く"
+    "12-17":
+      en: "walks holding on to furniture, waves bye-bye, plays pat-a-cake"
+      ja: "つたい歩きをする、バイバイと手を振る、手遊びを一緒にする"
+    "18-23":
+      en: "walks without holding on, says three or more words, points to show something interesting"
+      ja: "ひとり歩きをする、意味のある言葉を3語以上話す、興味のあるものを指さして伝える"
+    "24-29":
+      en: "runs, says two words together, notices when others are hurt or upset"
+      ja: "走る、2語文を話す、他の人が泣いていると気にかける"
+    "30-35":
+      en: "jumps with both feet, says about 50 words, plays next to other children"
+      ja: "両足でジャンプする、約50語を話す、他の子どもの隣で遊ぶ"
+    "36-47":
+      en: "uses a fork, says first name when asked, joins other children to play"
+      ja: "フォークを使う、名前を聞かれると言える、他の子どもの遊びに加わる"
+    "48-59":
+      en: "catches a large ball, speaks in sentences of four or more words, comforts others who are hurt or sad"
+      ja: "大きなボールを受け取る、4語以上の文で話す、悲しんでいる友達を慰める"
+    "60-71":
+      en: "hops on one foot, keeps a conversation going, takes turns when playing games"
+      ja: "片足跳びをする、会話を続けられる、遊びで順番を守る"
+    "72-143":
+      en: "school progress and peer relationships reported as age-appropriate"
+      ja: "学校生活・友人関係は年齢相応と報告"
+    "144+":
+      en: "school progress, mood and peer relationships reported as age-appropriate"
+      ja: "学校生活・気分・友人関係は年齢相応と報告"
+  guidance:
+    "0-11":
+      en: "safe sleep on the back, rear-facing car seat, feeding"
+      ja: "仰向け寝による安全な睡眠、チャイルドシートの使用、授乳・離乳食"
+    "12-47":
+      en: "car seat, poisoning and water safety, healthy eating"
+      ja: "チャイルドシートの使用、誤飲・水の事故の予防、食事"
+    "48-143":
+      en: "booster seat and road safety, physical activity, screen time, dental care"
+      ja: "交通安全、運動習慣、メディアの使用時間、歯みがき"
+    "144+":
+      en: "sleep, physical activity, screen time, substance use and road safety"
+      ja: "睡眠、運動習慣、メディアの使用時間、喫煙・飲酒の防止、交通安全"

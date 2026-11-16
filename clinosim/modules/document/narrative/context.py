@@ -112,7 +112,34 @@ def build_narrative_context(
         code_status=str(_o(record, "code_status", "") or ""),
         icu_transferred=bool(_o(record, "icu_transferred", False)),
         icu_transferred_day=icu_transfer_day(_o(record, "icu_transferred_day", None)),
+        **visit_reason_fields(record, encounter),
     )
+
+
+def visit_reason_fields(record: Any, encounter: Any) -> dict[str, Any]:
+    """The visit-reason facts of ``encounter`` (Issues #3249, #3252): the
+    simulator's ``visit_type`` / ``visit_condition_id`` when the encounter is
+    the record's own (an encounter appended to the record, such as the
+    immunization enricher's vaccination visit, is not the visit the condition
+    event describes), the immunizations given at the encounter and its imaging
+    studies."""
+    enc_id = str(_o(encounter, "encounter_id", "") or "")
+    encounters = _o(record, "encounters", []) or []
+    own = bool(encounters) and str(_o(encounters[0], "encounter_id", "") or "") == enc_id
+    event = _o(record, "condition_event", None)
+    extensions = _o(record, "extensions", {}) or {}
+    return {
+        "visit_type": str(_o(event, "visit_type", "") or "") if own else "",
+        "visit_condition_id": str(_o(event, "visit_condition_id", "") or "") if own else "",
+        "immunizations": [
+            i for i in (_o(record, "immunizations", []) or []) if enc_id and _o(i, "encounter_id", "") == enc_id
+        ],
+        "imaging_studies": [
+            s
+            for s in (extensions.get("imaging", []) if isinstance(extensions, dict) else []) or []
+            if enc_id and _o(s, "encounter_id", "") == enc_id
+        ],
+    }
 
 
 def icu_transfer_day(value: Any) -> int:
