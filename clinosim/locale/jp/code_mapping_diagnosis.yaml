@@ -104,6 +104,12 @@ E10.65: "E10.6"
 E11.10: "E11.1"
 E11.11: "E11.1"
 E11.65: "E11.6"
+# Issue #3259: the diabetic complication events (locale/shared/longitudinal/
+# event/dm_*.yaml) emit ICD-10-CM codes; WHO / MHLW codes the complication
+# by organ at four characters (dagger codes in the 基本分類表).
+E11.21: "E11.2"   # diabetic nephropathy → 腎合併症を伴うもの
+E11.311: "E11.3"  # diabetic retinopathy → 眼合併症を伴うもの
+E11.42: "E11.4"   # diabetic neuropathy → 神経（学的）合併症を伴うもの
 G43.909: "G43.9"
 H66.90: "H66.9"  # #2873: pediatric acute otitis media visit
 I26.02: "I26.0"

@@ -143,7 +143,7 @@ def test_japanese_certificate_uses_the_jp_codes() -> None:
     underlying, _ = build_dc_underlying_cause(None, ctx)
     assert immediate.startswith("直接死因: 播種性血管内凝固症候群")
     assert "（D65）" in immediate and "（ア）の原因: " in immediate and "（R65.1）" in immediate
-    assert underlying == "原死因: 敗血症，詳細不明（A41.9）。"
+    assert underlying == "原死因: 敗血症（A41.9）。"
 
 
 def test_complication_without_a_code_is_named_without_one() -> None:

@@ -61,12 +61,22 @@ def icd10_display(code: str, country: str, lang: str) -> str | None:
 
 
 def condition_short_name(code: str, lang: str) -> str | None:
-    """Clinical short name of a diagnosis (``COPD``, 「高血圧」), keyed by the
-    3-character ICD-10 category shared by ICD-10-CM and WHO ICD-10
-    (``codes/data/condition-short-name.yaml``); ``None`` when the category has
-    no short name."""
-    base = (code or "").split(".")[0]
-    return display("condition-short-name", base, lang) if base else None
+    """Clinical short name of a diagnosis (``COPD``, 「高血圧」) from
+    ``codes/data/condition-short-name.yaml``: the most specific key that
+    prefixes the code — the code itself, then the code with trailing
+    characters dropped down to its 3-character category (``E11.311`` →
+    ``E11.31`` → ``E11.3`` → ``E11``; Issue #3259). ``None`` when no key
+    matches."""
+    code = (code or "").strip()
+    if not code:
+        return None
+    category = code.split(".")[0]
+    key = code
+    while len(key) > len(category):
+        if name := display("condition-short-name", key, lang):
+            return name
+        key = key[:-1].rstrip(".")
+    return display("condition-short-name", category, lang)
 
 
 def condition_label(code: str, country: str, lang: str) -> str | None:

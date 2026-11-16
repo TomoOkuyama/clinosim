@@ -13,8 +13,8 @@ pytestmark = pytest.mark.unit
 @pytest.mark.parametrize(
     ("country", "display", "text"),
     [
-        ("US", "Chronic obstructive pulmonary disease with (acute) exacerbation", "COPD"),
-        ("JP", "急性増悪を伴う慢性閉塞性肺疾患，詳細不明", "COPD（慢性閉塞性肺疾患）"),
+        ("US", "Chronic obstructive pulmonary disease with (acute) exacerbation", "COPD exacerbation"),
+        ("JP", "急性増悪を伴う慢性閉塞性肺疾患，詳細不明", "COPD急性増悪"),
     ],
 )
 def test_administration_reason_j44_1_has_the_icd_display(country: str, display: str, text: str) -> None:

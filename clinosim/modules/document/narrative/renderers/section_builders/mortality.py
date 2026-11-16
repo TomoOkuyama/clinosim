@@ -24,8 +24,6 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from clinosim.codes import display as registry_display
-from clinosim.codes import lookup as code_lookup
-from clinosim.codes import system_key_for
 from clinosim.codes.drugs import drug_classes, drug_display
 from clinosim.countries import country_code
 from clinosim.locale.free_text import localize_drug_name
@@ -35,7 +33,7 @@ from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.disease.protocol import working_diagnosis_code
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_utils import _autopsy_performed_sha256
-from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_coded, procedure_names
+from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded, procedure_names
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.modules.document.reference_data_loaders import load_death_cause_chain, load_death_course
 from clinosim.types.document import NarrativeContext
@@ -143,14 +141,11 @@ def _dc_resolve_primary_cause(ctx: NarrativeContext) -> tuple[str, str, list[str
     code = _o(primary, "discharge_diagnosis_code", "") or _o(primary, "admission_diagnosis_code", "") or ""
     if not code:
         return "", "", facts
-    system = (
-        _o(primary, "discharge_diagnosis_system", "")
-        or _o(primary, "admission_diagnosis_system", "")
-        or system_key_for("diagnosis", ctx.locale.upper())
-    )
-    display = code_lookup(system, code, ctx.target_lang) if code else ""
+    # Issue #3259: the name of the code the output emits, as the
+    # certificate's coded lines name it.
+    _, display = diagnosis_coded(code, country_code(ctx.locale), ctx.target_lang, _sex(ctx))
     facts.append("ctx.diagnoses[0].discharge_diagnosis_code")
-    return code, (display or code), facts
+    return code, display, facts
 
 
 @dataclass(frozen=True)
@@ -184,7 +179,7 @@ def _complication_key(name: object) -> str:
 
 
 def _coded_cause(code: str, ctx: NarrativeContext, fact: str, onset: datetime | None = None) -> _Cause:
-    emit, display = chronic_condition_coded(code, country_code(ctx.locale), ctx.target_lang, _sex(ctx))
+    emit, display = diagnosis_coded(code, country_code(ctx.locale), ctx.target_lang, _sex(ctx))
     return _Cause(emit, display, code, onset, fact)
 
 
@@ -543,7 +538,7 @@ def build_dc_contributing_conditions(
             continue
         # Issue #2994: the code the output emits and its display (US
         # dementia F03.90, not the internal F00 category).
-        emit, display = chronic_condition_coded(code_val, country_code(ctx.locale), lang, _sex(ctx))
+        emit, display = diagnosis_coded(code_val, country_code(ctx.locale), lang, _sex(ctx))
         if emit[:3] in cause_categories:
             continue
         parts.append(t("list_item.inline_dx_with_code", lang, display=display, code=emit))
@@ -701,7 +696,7 @@ def _new_diagnoses(ctx: NarrativeContext, lang: str) -> list[str]:
         code = working_diagnosis_code(str(_o(wd, "disease_id", "") or ""))
         if not code:
             continue
-        _, display = chronic_condition_coded(code, country, lang, _sex(ctx))
+        _, display = diagnosis_coded(code, country, lang, _sex(ctx))
         onset_day = _o(wd, "onset_day", None)
         item = (
             t("dds_treatment_course.wk_item", lang, display=display, day=int(onset_day) + 1)
@@ -818,12 +813,10 @@ def build_dds_admission_state(generator: TemplateNarrativeGenerator, ctx: Narrat
     diagnoses = ctx.diagnoses or []
     primary = diagnoses[0] if diagnoses else None
     adm_code = _o(primary, "admission_diagnosis_code", "") if primary else ""
-    adm_sys = _o(primary, "admission_diagnosis_system", "") if primary else ""
     adm_disp = ""
     if adm_code:
-        adm_disp = (
-            registry_display(adm_sys or system_key_for("diagnosis", ctx.locale.upper()), adm_code, lang) or adm_code
-        )
+        # Issue #3259: the emitted code and its prose name.
+        adm_code, adm_disp = diagnosis_coded(adm_code, country_code(ctx.locale), lang, _sex(ctx))
         facts.append("ctx.diagnoses[0].admission_diagnosis_code")
     if adm_dt:
         facts.append("ctx.encounter.admission_datetime")
@@ -1008,7 +1001,7 @@ def build_dds_complications_and_comorbidities(
         code_val = _o(c, "code", "") or (c if isinstance(c, str) else "")
         if not code_val:
             continue
-        emit, disp = chronic_condition_coded(code_val, country_code(ctx.locale), lang, _sex(ctx))
+        emit, disp = diagnosis_coded(code_val, country_code(ctx.locale), lang, _sex(ctx))
         cond_labels.append(t("list_item.inline_dx_with_code", lang, display=disp, code=emit))
     if cond_labels:
         facts.append("ctx.patient.chronic_conditions")

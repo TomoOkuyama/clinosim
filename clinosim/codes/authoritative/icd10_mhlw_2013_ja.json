@@ -4,7 +4,8 @@
     "source_url": "https://www.mhlw.go.jp/toukei/sippei/xls/kihon2013.xlsx",
     "source_file": "kihon2013.xlsx (sheet 基本分類表データ, columns コード / コード名)",
     "extracted_at": "2026-11-01",
-    "note": "Japanese official names of the ICD-10 codes clinosim emits for JP, filtered from the full table (15,296 codes)."
+    "note": "Japanese official names of the ICD-10 codes clinosim emits for JP, filtered from the full table (15,296 codes).",
+    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259) were added on 2026-11-16 from the same kihon2013.xlsx table."
   },
   "concept": [
     {
@@ -182,6 +183,18 @@
     {
       "code": "E11.1",
       "display": "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，ケトアシドーシスを伴うもの"
+    },
+    {
+      "code": "E11.2",
+      "display": "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，腎合併症を伴うもの"
+    },
+    {
+      "code": "E11.3",
+      "display": "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，眼合併症を伴うもの"
+    },
+    {
+      "code": "E11.4",
+      "display": "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，神経（学的）合併症を伴うもの"
     },
     {
       "code": "E11.6",

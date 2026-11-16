@@ -13,7 +13,7 @@
       "S67.2"
     ],
     "note": "WHO ICD-10 authoritative displays for the codes clinosim emits.",
-    "later_additions": "T22.2 and T23.2 (Issue #3279) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
+    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
   },
   "concept": [
     {
@@ -943,6 +943,36 @@
     {
       "code": "E11.1",
       "display": "Type 2 diabetes mellitus : With ketoacidosis",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "E11"
+        }
+      ]
+    },
+    {
+      "code": "E11.2",
+      "display": "Type 2 diabetes mellitus : With renal complications",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "E11"
+        }
+      ]
+    },
+    {
+      "code": "E11.3",
+      "display": "Type 2 diabetes mellitus : With ophthalmic complications",
+      "property": [
+        {
+          "code": "parent",
+          "valueCode": "E11"
+        }
+      ]
+    },
+    {
+      "code": "E11.4",
+      "display": "Type 2 diabetes mellitus : With neurological complications",
       "property": [
         {
           "code": "parent",

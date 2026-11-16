@@ -265,7 +265,8 @@ def _compose_outpatient_subjective_from_state(ctx: NarrativeContext) -> str:
         # The prose sentence "Follow-up of chronic conditions: G47.30"
         # reads as a coding sheet, not a clinical note; a shorter list
         # with only resolvable items reads correctly.
-        if not disp:
+        # Issue #3259: two conditions with one name are listed once.
+        if not disp or disp in chronic_labels:
             continue
         chronic_labels.append(disp)
     # Compose
@@ -438,11 +439,14 @@ def _compose_ed_assessment_from_state(ctx: NarrativeContext) -> str:
     parts: list[str] = []
     if primary_dx_codes:
         disp_key = _label("code_system_icd_display", "primary", lang)
-        labels = []
+        country = country_code(ctx.locale)
+        labels: list[str] = []
         for code in primary_dx_codes:
-            # Strip pediatric/other prefixes — try registry lookup first
-            disp = registry_display(disp_key, code, lang) or code
-            labels.append(disp)
+            # Issue #3259: the prose name of the code the output emits; a
+            # non-ICD key falls back to the registry display, then the key.
+            disp = chronic_condition_label(code, country, lang) or registry_display(disp_key, code, lang) or code
+            if disp not in labels:
+                labels.append(disp)
         sep = t("list_sep.serial", lang)
         parts.append(t("ed_assessment.working_dx_line", lang, list=sep.join(labels)))
     else:
@@ -520,7 +524,10 @@ def _compose_chronic_condition_line(ctx: NarrativeContext) -> str:
     for c in ordered_chronic_conditions(ctx):
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
         # Issue #2994: the label of the condition the output codes.
-        labels.append(chronic_condition_label(code, country, lang, sex) or code)
+        label = chronic_condition_label(code, country, lang, sex) or code
+        # Issue #3259: two conditions with one name are listed once.
+        if label not in labels:
+            labels.append(label)
     if not labels:
         return ""
     sep = t("list_sep.serial", lang)
@@ -628,10 +635,20 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
     # Issue #3248: the items are numbered once, at the end, so a staged
     # problem, a skipped entry and the vital-sign items cannot leave a gap.
     items: list[str] = []
+    # Issue #3259: a problem is listed once (two codes with one name — I80
+    # and I82 deep-vein thrombosis — are one item), and the diabetes control
+    # judgement (HbA1c, glucose, medication) is written once, on the first
+    # diabetes item; a complication item (E11.311 retinopathy) is listed
+    # under its own name like any other problem.
+    listed: set[str] = set()
+    diabetes_judged = False
     for c in ordered_chronic_conditions(ctx):
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
         # Issue #2994: the label of the condition the output codes.
         label = chronic_condition_label(code, country_code(ctx.locale), ctx.target_lang, _sex) or code
+        if label in listed:
+            continue
+        listed.add(label)
         code_prefix = code.split(".")[0].upper()
         interp = ""
 
@@ -659,7 +676,8 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
             interp = f"BP {int(sbp)}/{int(dbp)} mmHg — {target} — {ctrl}{med_tail}" + t("list_sep.period", lang)
 
         # ── E11 / E10: Diabetes mellitus ───────────────────────────
-        elif concept_group("diabetes").contains(code_prefix):
+        elif concept_group("diabetes").contains(code_prefix) and not diabetes_judged:
+            diabetes_judged = True
             parts_dm: list[str] = []
             hba1c = lab_by_name.get("hba1c")
             if hba1c:

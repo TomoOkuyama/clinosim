@@ -28,7 +28,9 @@ def test_icd10_display_per_country_and_language() -> None:
 
 
 def test_condition_short_name_uses_the_category() -> None:
-    assert condition_short_name("J44.1", "en") == "COPD"
+    assert condition_short_name("J44.9", "en") == "COPD"
+    # A subcategory key names the code more specifically (Issue #3259).
+    assert condition_short_name("J44.1", "en") == "COPD exacerbation"
     assert condition_short_name("I10", "ja") == "高血圧"
     assert condition_short_name("Q99.9", "en") is None
 

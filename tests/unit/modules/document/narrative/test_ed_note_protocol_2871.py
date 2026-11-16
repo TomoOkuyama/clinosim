@@ -187,14 +187,14 @@ def test_low_acuity_note_never_says_visible_distress() -> None:
 
 def test_assessment_states_the_ed_diagnosis_en() -> None:
     text, facts = build_ed_assessment(_GEN, _ctx("minor_laceration", dx_code="T14.90"))
-    assert text == "ED diagnosis: Injury, unspecified. Chief complaint: Laceration requiring sutures."
+    assert text == "ED diagnosis: Injury. Chief complaint: Laceration requiring sutures."
     assert "ctx.diagnoses.admission_diagnosis_code" in facts
 
 
 def test_assessment_states_the_ed_diagnosis_ja() -> None:
     enc = _encounter(chief_complaint="裂傷（縫合が必要）")
     text, _ = build_ed_assessment(_GEN, _ctx("minor_laceration", "ja", encounter=enc, dx_code="T14.90"))
-    assert text == "救急外来診断: 部位不明の損傷。主訴: 裂傷（縫合が必要）。"
+    assert text == "救急外来診断: 外傷。主訴: 裂傷（縫合が必要）。"
 
 
 def test_assessment_without_a_diagnosis_uses_the_shared_builder() -> None:
@@ -205,7 +205,7 @@ def test_assessment_without_a_diagnosis_uses_the_shared_builder() -> None:
 def test_ed_note_renders_its_own_assessment_builder() -> None:
     spec = next(s for s in specs_for_country("us") if s.type_key == "ed_note")
     out = _GEN.generate(_ctx("minor_laceration", dx_code="T14.90"), spec)
-    assert out.sections["assessment"].startswith("ED diagnosis: Injury, unspecified.")
+    assert out.sections["assessment"].startswith("ED diagnosis: Injury.")
 
 
 def test_document_type_builders_name_a_section_of_that_document() -> None:

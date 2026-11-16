@@ -21,14 +21,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from clinosim.codes import lookup as code_lookup
-from clinosim.codes import system_key_for
+from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication
-from clinosim.modules.document.narrative.renderers._shared_helpers import procedure_names
+from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded, procedure_names
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.types.document import NarrativeContext
 
@@ -157,12 +156,8 @@ def build_discharge_diagnoses(generator: TemplateNarrativeGenerator, ctx: Narrat
         code = _o(dx, "discharge_diagnosis_code", "") or _o(dx, "admission_diagnosis_code", "")
         if not code:
             continue
-        system = (
-            _o(dx, "discharge_diagnosis_system", "")
-            or _o(dx, "admission_diagnosis_system", "")
-            or system_key_for("diagnosis", ctx.locale.upper())
-        )
-        display = code_lookup(system, code, ctx.target_lang)
+        # Issue #3259: the emitted code and its prose name.
+        code, display = diagnosis_coded(code, country_code(ctx.locale), ctx.target_lang)
         if display and display != code:
             parts.append(t("list_item.inline_dx_with_code", lang, display=display, code=code))
         else:

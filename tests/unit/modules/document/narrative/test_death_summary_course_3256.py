@@ -219,7 +219,7 @@ def test_treatment_course_names_the_procedures(lang: str, names: list[str]) -> N
 
 @pytest.mark.parametrize(
     ("lang", "name", "day"),
-    [("en", "Acute kidney failure", "hospital day 11"), ("ja", "急性腎不全", "入院11日目")],
+    [("en", "Acute kidney failure", "hospital day 11"), ("ja", "急性腎障害", "入院11日目")],
 )
 def test_treatment_course_names_the_new_diagnoses_with_their_day(lang: str, name: str, day: str) -> None:
     # onset_day is 0-indexed from admission; the admission day is hospital day 1.
@@ -227,6 +227,7 @@ def test_treatment_course_names_the_new_diagnoses_with_their_day(lang: str, name
     text = _course(_ctx(lang, working=working))
     assert f"{name}" in text and day in text
     assert "diagnosis/es" not in text and "1件の" not in text
+    assert "，詳細不明" not in text  # the clinical name (Issue #3259)
 
 
 @pytest.mark.parametrize(

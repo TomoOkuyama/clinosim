@@ -107,6 +107,20 @@ newborn_screen_outcome_text:
 code_system_icd_display:
   primary: {en: icd-10-cm, ja: icd-10}
 
+# Name a coded diagnosis list prints beside the code ("name (code)", "name
+# [code]": past medical history, admission / discharge diagnoses, death
+# certificate and death summary; Issue #3259), by output language.
+# ``display``: the official display of the code (the ICD-10-CM English
+# titles read as clinical names and carry no abbreviation, as a
+# certificate requires); ``label``: the clinical name (``condition_label``),
+# because the MHLW Japanese titles carry the classification's notation
+# (＜＞ synonyms, （症）, 「，詳細不明」) that a chart does not. A diagnosis
+# named in running prose without its
+# code (SOAP problems, H&P comorbidities, ED diagnosis, reason for
+# admission) always uses the clinical name.
+coded_diagnosis_name:
+  source: {en: display, ja: label}
+
 # ICD code-system lookup key for the FHIR emit-side ``get_display``
 # helper (JP uses the MHLW-augmented code system).
 code_system_icd_lookup:

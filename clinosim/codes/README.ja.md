@@ -230,7 +230,7 @@ JP-only-display 検出、システム別データ形状不変条件を網羅。
 | `jpfhir-eCheckup-report-category` | 9 |
 | `jpfhir-eCheckup-program-service` | 10 |
 | `jpfhir-eCheckup-observation` | 5 |
-| `condition-short-name` | 53 |
+| `condition-short-name` | 253 |
 | `clinosim-nursing-scores` | 1 |
 | `bcp-47-language` | 2 |
 

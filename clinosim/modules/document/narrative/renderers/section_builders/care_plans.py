@@ -21,9 +21,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from clinosim.codes import lookup as code_lookup
-from clinosim.codes import system_key_for
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
+from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
@@ -35,6 +34,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
     bmi_band,
 )
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
+from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded
 from clinosim.modules.document.narrative.renderers.section_builders._registry import (
     SectionBuilder,
     section,
@@ -103,12 +103,8 @@ def build_acp_diagnosis(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
         code = str(admission_code or discharge_code or "")
         if not code:
             continue
-        system = str(
-            _o(dx, "admission_diagnosis_system", "")
-            or _o(dx, "discharge_diagnosis_system", "")
-            or system_key_for("diagnosis", ctx.locale.upper())
-        )
-        display = code_lookup(system, code, ctx.target_lang)
+        # Issue #3259: the emitted code and its prose name.
+        code, display = diagnosis_coded(code, country_code(ctx.locale), ctx.target_lang)
         if display and display != code:
             parts.append(t("list_item.inline_dx_with_code", lang, display=display, code=code))
         else:

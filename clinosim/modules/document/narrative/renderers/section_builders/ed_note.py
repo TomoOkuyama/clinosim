@@ -25,9 +25,8 @@ import logging
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
-from clinosim.codes import display
 from clinosim.codes.ucum import ucum_prose
-from clinosim.countries import has_authored_narrative
+from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
 from clinosim.locale.loader import narrative_label as _label
@@ -43,6 +42,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _fill_template_placeholders,
     _pick_localized,
 )
+from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_label
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.modules.encounter.protocol import discharge_instructions_for_age
 from clinosim.types.document import DocumentType, NarrativeContext
@@ -561,10 +561,10 @@ def build_ed_assessment(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
 
 
 def _ed_diagnosis_display(ctx: NarrativeContext, lang: str) -> str:
-    """Display of the encounter's admission diagnosis code, or ``""``."""
+    """Clinical name of the encounter's admission diagnosis (the code the
+    output emits; Issue #3259), or ``""``."""
     for diagnosis in ctx.diagnoses or []:
         code = str(_o(diagnosis, "admission_diagnosis_code", "") or "")
-        system = str(_o(diagnosis, "admission_diagnosis_system", "") or "")
-        if code and system:
-            return display(system, code, lang) or ""
+        if code:
+            return chronic_condition_label(code, country_code(ctx.locale), lang) or ""
     return ""

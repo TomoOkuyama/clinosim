@@ -40,6 +40,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     allergen_display,
 )
 from clinosim.modules.document.narrative.renderers._resolvers import resolve_neonatal_exam
+from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.types.document import NarrativeContext
 
@@ -65,44 +66,21 @@ def build_past_medical_history(generator: TemplateNarrativeGenerator, ctx: Narra
         return none_text, facts
 
     facts.append("ctx.patient.chronic_conditions")
-    # Session-88j v3-review fix: resolve ICD code → localised disease
-    # display via code_lookup ("icd-10" for JP-native codes / "icd-10-cm"
-    # US). Previously the PMH section rendered raw codes ("J45 (Moderate
-    # persistent); I10 (Stage 1); …") which read as a coding sheet
-    # rather than a clinical PMH. LOOKUP failure falls back to the raw
-    # code so the field is never empty.
-    #
-    # Issue #1333 fix: route the CIF base code through
-    # ``map_diagnosis_code`` first so the narrative shows the same
-    # billable code (and display) that the FHIR Condition emits. The
-    # historical bug was US ``F00`` (dementia base) rendering as
-    # "Dementia in Alzheimer disease" (WHO F00 parent-display leaked
-    # from icd-10-cm.yaml) while FHIR emitted ``F03.90`` (unspecified
-    # dementia) via ``code_mapping_diagnosis/us.yaml`` — narrative
-    # ↔ FHIR disagreed on the disease name. Now the narrative looks
-    # up the emit-target's display and prints the emit-target code in
-    # the trailing ``[code]`` bracket.
-    from clinosim.locale.loader import map_diagnosis_code
-
+    # The PMH line names each condition by the prose name of the code the
+    # output emits and prints that code ("2型糖尿病 (HbA1c 7.9%) [E11.9]";
+    # Issue #1333 / #2994: US F00 → F03.90; Issue #3259: the clinical name,
+    # not the classification title — 「本態性（原発性＜一次性＞）高血圧（症）」 —
+    # which only the FHIR coding.display carries). A code with no name
+    # prints alone so the field is never empty.
     country = country_code(ctx.locale)
-    icd_system = _label("code_system_icd_display", "primary", lang)
+    sex = str(_o(patient, "sex", "") or "")
     lines = []
     for cond in conditions:
         code = _o(cond, "code", "")
         stage = _o(cond, "stage", "")
         if not code:
             continue
-        # Sex is not always available in ctx.patient shape; pass empty
-        # so map_diagnosis_code takes the ``default`` on sex-conditional
-        # entries (US C50 defaults to the female leaf per its docstring).
-        emit_code = map_diagnosis_code(code, country) or code
-        display = registry_display(icd_system, emit_code, lang) or emit_code
-        if display == emit_code:
-            # Try 3-char parent (E11.9 → E11) — many mappings live only
-            # at the category level.
-            base = emit_code.split(".")[0]
-            if base != emit_code:
-                display = registry_display(icd_system, base, lang) or emit_code
+        emit_code, display = diagnosis_coded(code, country, lang, sex)
         # Phase 1c-6 (2026-09-23): localize the severity /
         # persistence descriptor via ``_localize_stage`` so JA
         # emits 「気管支喘息 (軽度持続) [J45]」 rather than
