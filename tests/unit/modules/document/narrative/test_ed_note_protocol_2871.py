@@ -229,7 +229,7 @@ def test_discharged_patient_gets_instructions_and_follow_up_en() -> None:
 def test_discharged_patient_gets_instructions_and_follow_up_ja() -> None:
     enc = _encounter(level="4", chief_complaint="裂傷（縫合が必要）")
     text, _ = build_ed_disposition(_GEN, _ctx("minor_laceration", "ja", encounter=enc))
-    assert text.startswith("自宅退院（JTAS レベル 4、裂傷（縫合が必要））。")
+    assert text.startswith("帰宅（JTAS レベル 4、裂傷（縫合が必要））。")  # Issue #3266
     assert "。帰宅時指導: 24時間は創部を清潔・乾燥に保つ。" in text
     assert text.endswith("フォローアップ: 7〜10日後に抜糸（顔面は5日後）。")
     assert re.search(r"[A-Za-z]", text.replace("JTAS", "")) is None

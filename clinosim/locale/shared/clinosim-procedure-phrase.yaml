@@ -96,6 +96,9 @@ procedures:
   # --- Interventional procedures / 手技 ---
   Vertebroplasty: {ja: "椎体形成術"}
   Percutaneous vertebroplasty: {ja: "経皮的椎体形成術"}
+  # Issue #3266: the protocols' escalation orders, in Japanese procedure naming.
+  Percutaneous vertebroplasty under fluoroscopy: {ja: "透視下経皮的椎体形成術"}
+  Balloon kyphoplasty under fluoroscopy: {ja: "透視下バルーン椎体形成術"}
   Silver nitrate cauterization: {ja: "硝酸銀による焼灼"}
   Procedural sedation: {ja: "手技時鎮静"}
   Catheter-directed thrombolysis: {ja: "カテーテル血栓溶解療法"}
