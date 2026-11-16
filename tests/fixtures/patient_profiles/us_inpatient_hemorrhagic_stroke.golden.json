@@ -1077,7 +1077,7 @@
         "lang": "en"
       },
       "sections": {
-        "assessment": "ED diagnosis: Nontraumatic intracerebral hemorrhage, unspecified. Chief complaint: Sudden severe headache, vomiting, altered consciousness.",
+        "assessment": "ED diagnosis: Hemorrhagic stroke (ICH). Chief complaint: Sudden severe headache, vomiting, altered consciousness.",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
         "disposition": "Admitted (Sudden severe headache, vomiting, altered consciousness)",
         "ed_workup": "Labs: PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K, glucose. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h",

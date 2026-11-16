@@ -1,10 +1,16 @@
 # Clinical short-name / abbreviation for diagnosis codes (FHIR
-# Condition.code.text — "what clinicians type", search-friendly). Distinct
-# from the official long name in icd-10-cm.yaml / icd-10.yaml, which stays
-# in coding[].display (e.g. text="COPD" vs
-# display="Other chronic obstructive pulmonary disease"). Keyed by the
-# 3-character ICD-10 base code, shared across ICD-10-CM (US) and ICD-10 WHO
-# (JP) since base categories are identical between the two systems (AD-30).
+# Condition.code.text — "what clinicians type", search-friendly — and the
+# name of a diagnosis in narrative prose). Distinct from the official long
+# name in icd-10-cm.yaml / icd-10.yaml, which stays in coding[].display
+# (e.g. text="COPD" vs display="Other chronic obstructive pulmonary
+# disease"). Keyed by the 3-character ICD-10 category, shared across
+# ICD-10-CM (US) and ICD-10 WHO (JP) since base categories are identical
+# between the two systems (AD-30). A subcategory key (E11.3, J44.1) names a
+# code more specifically than its category and also covers every longer
+# code it prefixes (E11.311); it is added only where the WHO and ICD-10-CM
+# subcategories mean the same thing (R65.1 / R65.2 do not, so R65 has a
+# category key only). condition_short_name tries the longest key first
+# (Issue #3259).
 # This is clinosim's own abbreviation convention, not an external code
 # system — no authoritative source beyond internal clinical-writing
 # consistency (matches the project's existing _CONDITION_SHORT_NAME values
@@ -82,3 +88,209 @@ codes:
   C61: {en: "Prostate cancer", ja: "前立腺癌"}
   C67: {en: "Bladder cancer", ja: "膀胱癌"}
   C71: {en: "Malignant brain tumor", ja: "悪性脳腫瘍"}
+  # Issue #3259: the prose name of every other ICD-10 code the JP output
+  # emits whose MHLW title carries classification notation (＜＞ synonyms,
+  # ［］ inclusions, †/＊, （症）, 「，詳細不明」 / 「，部位不明」 qualifiers,
+  # full-width digits) or names a subcategory less precisely than the
+  # category key above. The coding display keeps the MHLW title verbatim.
+  # A guard test checks that no JP code's prose name carries that notation.
+  A05.9: {en: "Bacterial food poisoning", ja: "細菌性食中毒"}
+  A08.4: {en: "Viral gastroenteritis", ja: "ウイルス性腸炎"}
+  A15.0: {en: "Pulmonary tuberculosis", ja: "肺結核"}
+  A41.0: {en: "Staphylococcus aureus sepsis", ja: "黄色ブドウ球菌敗血症"}
+  A41.5: {en: "Gram-negative sepsis", ja: "グラム陰性菌敗血症"}
+  C79.5: {en: "Bone metastasis", ja: "悪性腫瘍の骨転移"}
+  D55.0: {en: "G6PD deficiency anemia", ja: "G6PD欠乏性貧血"}
+  D56.0: {en: "Alpha thalassemia", ja: "αサラセミア"}
+  D56.1: {en: "Beta thalassemia", ja: "βサラセミア"}
+  D57.1: {en: "Sickle cell anemia", ja: "鎌状赤血球症"}
+  D65: {en: "Disseminated intravascular coagulation (DIC)", ja: "播種性血管内凝固症候群（DIC）"}
+  E05.9: {en: "Thyrotoxicosis", ja: "甲状腺中毒症"}
+  E10.1: {en: "Diabetic ketoacidosis (DKA)", ja: "糖尿病性ケトアシドーシス"}
+  E11.1: {en: "Diabetic ketoacidosis (DKA)", ja: "糖尿病性ケトアシドーシス"}
+  E11.2: {en: "Diabetic nephropathy", ja: "糖尿病性腎症"}
+  E11.3: {en: "Diabetic retinopathy", ja: "糖尿病網膜症"}
+  E11.4: {en: "Diabetic neuropathy", ja: "糖尿病性神経障害"}
+  E66.0: {en: "Obesity due to excess calories", ja: "肥満"}
+  E66.01: {en: "Morbid obesity", ja: "高度肥満"}
+  E66.9: {en: "Obesity", ja: "肥満"}
+  E79.0: {en: "Hyperuricemia", ja: "高尿酸血症"}
+  E84: {en: "Cystic fibrosis", ja: "嚢胞性線維症"}
+  F10: {en: "Alcohol-related disorder", ja: "アルコール関連障害"}
+  F10.2: {en: "Alcohol dependence", ja: "アルコール依存症"}
+  F10.23: {en: "Alcohol withdrawal", ja: "アルコール離脱"}
+  F10.231: {en: "Alcohol withdrawal delirium", ja: "アルコール離脱せん妄"}
+  F10.3: {en: "Alcohol withdrawal", ja: "アルコール離脱"}
+  F10.4: {en: "Alcohol withdrawal delirium", ja: "アルコール離脱せん妄"}
+  F11.3: {en: "Opioid withdrawal", ja: "オピオイド離脱"}
+  F17.2: {en: "Nicotine dependence", ja: "ニコチン依存症"}
+  F20.9: {en: "Schizophrenia", ja: "統合失調症"}
+  F31: {en: "Bipolar disorder", ja: "双極性障害"}
+  F32.9: {en: "Depression", ja: "うつ病"}
+  F33.2: {en: "Recurrent depression, severe", ja: "反復性うつ病（重症）"}
+  F33.9: {en: "Recurrent depression", ja: "反復性うつ病"}
+  F41.0: {en: "Panic disorder", ja: "パニック障害"}
+  G10: {en: "Huntington disease", ja: "ハンチントン病"}
+  G43.1: {en: "Migraine with aura", ja: "前兆のある片頭痛"}
+  G43.9: {en: "Migraine", ja: "片頭痛"}
+  G45.9: {en: "Transient ischemic attack (TIA)", ja: "一過性脳虚血発作"}
+  H26: {en: "Cataract", ja: "白内障"}
+  H66.9: {en: "Otitis media", ja: "中耳炎"}
+  I21.0: {en: "Acute anterior wall MI", ja: "急性前壁心筋梗塞"}
+  I21.1: {en: "Acute inferior wall MI", ja: "急性下壁心筋梗塞"}
+  I21.4: {en: "Acute subendocardial MI (NSTEMI)", ja: "急性心内膜下心筋梗塞"}
+  I30.9: {en: "Acute pericarditis", ja: "急性心膜炎"}
+  I47.1: {en: "Supraventricular tachycardia", ja: "上室性頻拍"}
+  I48.0: {en: "Paroxysmal atrial fibrillation", ja: "発作性心房細動"}
+  I48.1: {en: "Persistent atrial fibrillation", ja: "持続性心房細動"}
+  I48.2: {en: "Chronic atrial fibrillation", ja: "慢性心房細動"}
+  I49.9: {en: "Arrhythmia", ja: "不整脈"}
+  I50.0: {en: "Congestive heart failure", ja: "うっ血性心不全"}
+  I50.1: {en: "Left ventricular failure", ja: "左心不全"}
+  I60: {en: "Subarachnoid hemorrhage", ja: "くも膜下出血"}
+  I61.3: {en: "Brainstem hemorrhage", ja: "脳幹出血"}
+  I61.4: {en: "Cerebellar hemorrhage", ja: "小脳出血"}
+  I61.5: {en: "Intraventricular hemorrhage", ja: "脳室内出血"}
+  I63.3: {en: "Thrombotic cerebral infarction", ja: "脳血栓症"}
+  I63.4: {en: "Embolic cerebral infarction", ja: "脳塞栓症"}
+  I64: {en: "Stroke", ja: "脳卒中"}
+  I71.0: {en: "Aortic dissection", ja: "大動脈解離"}
+  J06.9: {en: "Acute upper respiratory infection", ja: "急性上気道炎"}
+  J10.0: {en: "Influenza pneumonia", ja: "インフルエンザ肺炎"}
+  J11: {en: "Influenza", ja: "インフルエンザ"}
+  J11.0: {en: "Influenza pneumonia", ja: "インフルエンザ肺炎"}
+  J15.0: {en: "Klebsiella pneumonia", ja: "クレブシエラ肺炎"}
+  J15.1: {en: "Pseudomonas pneumonia", ja: "緑膿菌肺炎"}
+  J15.7: {en: "Mycoplasma pneumonia", ja: "マイコプラズマ肺炎"}
+  J18.0: {en: "Bronchopneumonia", ja: "気管支肺炎"}
+  J18.1: {en: "Lobar pneumonia", ja: "大葉性肺炎"}
+  J21: {en: "Acute bronchiolitis", ja: "急性細気管支炎"}
+  J44.0: {en: "COPD with acute lower respiratory infection", ja: "急性下気道感染を伴うCOPD"}
+  J44.1: {en: "COPD exacerbation", ja: "COPD急性増悪"}
+  J68.0: {en: "Chemical pneumonitis", ja: "化学性肺臓炎"}
+  J69.1: {en: "Lipoid pneumonia", ja: "リポイド肺炎"}
+  J80: {en: "Acute respiratory distress syndrome (ARDS)", ja: "急性呼吸窮迫症候群（ARDS）"}
+  J93: {en: "Pneumothorax", ja: "気胸"}
+  K21.9: {en: "GERD", ja: "胃食道逆流症"}
+  K25: {en: "Gastric ulcer", ja: "胃潰瘍"}
+  K25.4: {en: "Bleeding gastric ulcer", ja: "出血性胃潰瘍"}
+  K26: {en: "Duodenal ulcer", ja: "十二指腸潰瘍"}
+  K26.4: {en: "Bleeding duodenal ulcer", ja: "出血性十二指腸潰瘍"}
+  K35: {en: "Acute appendicitis", ja: "急性虫垂炎"}
+  K35.2: {en: "Acute appendicitis with generalized peritonitis", ja: "汎発性腹膜炎を伴う急性虫垂炎"}
+  K35.3: {en: "Acute appendicitis with localized peritonitis", ja: "限局性腹膜炎を伴う急性虫垂炎"}
+  K37: {en: "Appendicitis", ja: "虫垂炎"}
+  K46.0: {en: "Obstructed abdominal hernia", ja: "閉塞を伴う腹部ヘルニア"}
+  K50: {en: "Crohn disease", ja: "クローン病"}
+  K56.0: {en: "Paralytic ileus", ja: "麻痺性イレウス"}
+  K56.1: {en: "Intussusception", ja: "腸重積症"}
+  K56.2: {en: "Volvulus", ja: "腸軸捻転症"}
+  K56.5: {en: "Adhesive bowel obstruction", ja: "癒着性腸閉塞"}
+  K56.6: {en: "Bowel obstruction", ja: "腸閉塞"}
+  K64: {en: "Hemorrhoids", ja: "痔核"}
+  K65: {en: "Peritonitis", ja: "腹膜炎"}
+  K65.0: {en: "Acute peritonitis", ja: "急性腹膜炎"}
+  K72: {en: "Hepatic failure", ja: "肝不全"}
+  K76.0: {en: "Fatty liver", ja: "脂肪肝"}
+  K76.6: {en: "Portal hypertension", ja: "門脈圧亢進症"}
+  K76.9: {en: "Liver disease", ja: "肝疾患"}
+  K80.0: {en: "Gallstones with acute cholecystitis", ja: "急性胆嚢炎を伴う胆嚢結石"}
+  K80.2: {en: "Gallstones", ja: "胆嚢結石"}
+  K80.4: {en: "Bile duct stone with cholecystitis", ja: "胆嚢炎を伴う胆管結石"}
+  K80.5: {en: "Bile duct stone", ja: "胆管結石"}
+  K81.0: {en: "Acute cholecystitis", ja: "急性胆嚢炎"}
+  K85.1: {en: "Gallstone pancreatitis", ja: "胆石性膵炎"}
+  K85.2: {en: "Alcoholic pancreatitis", ja: "アルコール性膵炎"}
+  K85.3: {en: "Drug-induced pancreatitis", ja: "薬剤性膵炎"}
+  K92.0: {en: "Hematemesis", ja: "吐血"}
+  K92.1: {en: "Melena", ja: "黒色便"}
+  K92.9: {en: "Digestive system disease", ja: "消化器疾患"}
+  L02: {en: "Skin abscess", ja: "皮膚膿瘍"}
+  L08.9: {en: "Skin infection", ja: "皮膚感染症"}
+  L22: {en: "Diaper dermatitis", ja: "おむつ皮膚炎"}
+  M48.5: {en: "Collapsed vertebra", ja: "椎体圧潰"}
+  M51.1: {en: "Lumbar disc disorder with radiculopathy", ja: "神経根症を伴う腰椎椎間板障害"}
+  M54.9: {en: "Back pain", ja: "背部痛"}
+  M71.2: {en: "Baker cyst", ja: "ベーカー嚢腫"}
+  M72.6: {en: "Necrotizing fasciitis", ja: "壊死性筋膜炎"}
+  M79.6: {en: "Limb pain", ja: "四肢痛"}
+  M80: {en: "Osteoporosis with pathological fracture", ja: "病的骨折を伴う骨粗鬆症"}
+  M84.4: {en: "Pathological fracture", ja: "病的骨折"}
+  N12: {en: "Tubulointerstitial nephritis", ja: "尿細管間質性腎炎"}
+  N13.9: {en: "Obstructive uropathy", ja: "閉塞性尿路疾患"}
+  N18.3: {en: "CKD stage 3", ja: "慢性腎臓病（ステージ3）"}
+  N19: {en: "Kidney failure", ja: "腎不全"}
+  N23: {en: "Renal colic", ja: "腎疝痛"}
+  N30: {en: "Cystitis", ja: "膀胱炎"}
+  N30.0: {en: "Acute cystitis", ja: "急性膀胱炎"}
+  N83.2: {en: "Ovarian cyst", ja: "卵巣嚢腫"}
+  O03: {en: "Spontaneous abortion", ja: "自然流産"}
+  O04: {en: "Induced abortion", ja: "人工妊娠中絶"}
+  O14: {en: "Pre-eclampsia", ja: "妊娠高血圧腎症"}
+  O24.9: {en: "Diabetes in pregnancy", ja: "妊娠中の糖尿病"}
+  O42: {en: "Premature rupture of membranes", ja: "前期破水"}
+  O64: {en: "Obstructed labor due to malpresentation", ja: "胎位異常による分娩停止"}
+  P07: {en: "Preterm or low-birth-weight newborn", ja: "早産児・低出生体重児"}
+  P22: {en: "Respiratory distress of newborn", ja: "新生児呼吸窮迫"}
+  P59: {en: "Neonatal jaundice", ja: "新生児黄疸"}
+  P81.9: {en: "Temperature regulation disorder of newborn", ja: "新生児体温調節障害"}
+  Q87.4: {en: "Marfan syndrome", ja: "マルファン症候群"}
+  R00.0: {en: "Tachycardia", ja: "頻脈"}
+  R06.2: {en: "Wheezing", ja: "喘鳴"}
+  R07.3: {en: "Chest pain", ja: "胸痛"}
+  R07.4: {en: "Chest pain", ja: "胸痛"}
+  R10.4: {en: "Abdominal pain", ja: "腹痛"}
+  R29.8: {en: "Neurological or musculoskeletal symptoms", ja: "神経・筋骨格系の症状"}
+  R42: {en: "Dizziness", ja: "めまい"}
+  R50.9: {en: "Fever", ja: "発熱"}
+  R53: {en: "Malaise and fatigue", ja: "倦怠感"}
+  R53.1: {en: "Weakness", ja: "脱力感"}
+  R57: {en: "Shock", ja: "ショック"}
+  R57.0: {en: "Cardiogenic shock", ja: "心原性ショック"}
+  R57.1: {en: "Hypovolemic shock", ja: "循環血液量減少性ショック"}
+  R69: {en: "Illness of unknown cause", ja: "原因不明の疾患"}
+  R73.9: {en: "Hyperglycemia", ja: "高血糖"}
+  S06.0: {en: "Concussion", ja: "脳振盪"}
+  S06.9: {en: "Intracranial injury", ja: "頭蓋内損傷"}
+  S22: {en: "Fracture of rib, sternum or thoracic spine", ja: "肋骨・胸骨・胸椎骨折"}
+  S22.0: {en: "Thoracic vertebral fracture", ja: "胸椎骨折"}
+  S22.3: {en: "Rib fracture", ja: "肋骨骨折"}
+  S22.4: {en: "Multiple rib fractures", ja: "多発肋骨骨折"}
+  S36.1: {en: "Liver or gallbladder injury", ja: "肝・胆嚢損傷"}
+  S52.9: {en: "Forearm fracture", ja: "前腕骨折"}
+  S62.8: {en: "Hand fracture", ja: "手の骨折"}
+  S67.8: {en: "Crush injury of the hand", ja: "手の挫滅損傷"}
+  S68.1: {en: "Traumatic finger amputation", ja: "外傷性手指切断"}
+  S72.0: {en: "Femoral neck fracture", ja: "大腿骨頚部骨折"}
+  S72.1: {en: "Intertrochanteric femur fracture", ja: "大腿骨転子部骨折"}
+  S72.2: {en: "Subtrochanteric femur fracture", ja: "大腿骨転子下骨折"}
+  S86.9: {en: "Lower-leg muscle and tendon injury", ja: "下腿の筋・腱損傷"}
+  S93: {en: "Ankle or foot sprain or dislocation", ja: "足関節・足の捻挫・脱臼"}
+  S93.4: {en: "Ankle sprain", ja: "足関節捻挫"}
+  T07: {en: "Multiple injuries", ja: "多発外傷"}
+  T14: {en: "Injury", ja: "外傷"}
+  T18.9: {en: "Foreign body in the digestive tract", ja: "消化管異物"}
+  T22.2: {en: "Second-degree burn of the upper limb", ja: "上肢の第2度熱傷"}
+  T23.2: {en: "Second-degree burn of the hand", ja: "手の第2度熱傷"}
+  T30: {en: "Burn", ja: "熱傷"}
+  T54: {en: "Corrosive substance poisoning", ja: "腐食性物質中毒"}
+  T78: {en: "Adverse effect", ja: "有害作用"}
+  T78.4: {en: "Allergic reaction", ja: "アレルギー反応"}
+  T80.2: {en: "Infusion-related infection", ja: "輸液関連感染症"}
+  T83.5: {en: "Urinary device-related infection", ja: "尿路デバイス関連感染症"}
+  U07.1: {en: "COVID-19", ja: "COVID-19"}
+  V89.2: {en: "Motor vehicle accident", ja: "交通事故"}
+  W19: {en: "Fall", ja: "転倒・転落"}
+  Z09: {en: "Follow-up examination after treatment", ja: "治療後の経過観察"}
+  Z12: {en: "Cancer screening", ja: "がん検診"}
+  Z12.1: {en: "Colorectal cancer screening", ja: "大腸がん検診"}
+  Z12.3: {en: "Breast cancer screening", ja: "乳がん検診"}
+  Z23.2: {en: "BCG vaccination", ja: "BCG接種"}
+  Z26.9: {en: "Vaccination", ja: "予防接種"}
+  Z27.3: {en: "DTP-IPV vaccination", ja: "四種混合ワクチン接種"}
+  Z38: {en: "Liveborn infant", ja: "出生児"}
+  Z38.0: {en: "Singleton, born in hospital", ja: "院内出生の単胎児"}
+  Z48: {en: "Surgical follow-up care", ja: "術後経過観察"}
+  Z71: {en: "Counseling", ja: "健康相談"}
+  Z71.6: {en: "Tobacco cessation counseling", ja: "禁煙指導"}
+  Z87.5: {en: "History of pregnancy complications", ja: "妊娠合併症の既往"}

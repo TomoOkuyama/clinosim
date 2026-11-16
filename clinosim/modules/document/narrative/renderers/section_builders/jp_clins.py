@@ -21,8 +21,6 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING
 
-from clinosim.codes import lookup as code_lookup
-from clinosim.codes import system_key_for
 from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_narrative_labels
@@ -40,7 +38,7 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
 from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
 )
-from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_coded
+from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_label, diagnosis_coded
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.types.document import NarrativeContext
 
@@ -67,15 +65,10 @@ def build_admission_reason(generator: TemplateNarrativeGenerator, ctx: Narrative
     diagnoses = ctx.diagnoses or []
     primary = diagnoses[0] if diagnoses else None
     code = ""
-    system = ""
     if primary is not None:
         code = _o(primary, "admission_diagnosis_code", "") or _o(primary, "discharge_diagnosis_code", "")
-        system = (
-            _o(primary, "admission_diagnosis_system", "")
-            or _o(primary, "discharge_diagnosis_system", "")
-            or system_key_for("diagnosis", ctx.locale.upper())
-        )
-    display = code_lookup(system, code, lang) if code else ""
+    # Issue #3259: the prose name of the code the output emits.
+    display = (chronic_condition_label(code, country_code(ctx.locale), lang) or "") if code else ""
     if display and display != code:
         facts.append("ctx.diagnoses[0].admission_diagnosis_code")
         subject = display
@@ -190,12 +183,8 @@ def build_admission_diagnoses(generator: TemplateNarrativeGenerator, ctx: Narrat
         code = _o(dx, "admission_diagnosis_code", "") or _o(dx, "discharge_diagnosis_code", "")
         if not code:
             continue
-        system = (
-            _o(dx, "admission_diagnosis_system", "")
-            or _o(dx, "discharge_diagnosis_system", "")
-            or system_key_for("diagnosis", ctx.locale.upper())
-        )
-        display = code_lookup(system, code, ctx.target_lang)
+        # Issue #3259: the emitted code and its prose name.
+        code, display = diagnosis_coded(code, country_code(ctx.locale), ctx.target_lang)
         if display and display != code:
             lines.append(t("list_item.numbered_dx_with_code", lang, idx=idx, display=display, code=code))
         else:
@@ -315,12 +304,8 @@ def build_diagnoses_and_complaint(
         code = _o(dx, "discharge_diagnosis_code", "") or _o(dx, "admission_diagnosis_code", "")
         if not code:
             continue
-        system = (
-            _o(dx, "discharge_diagnosis_system", "")
-            or _o(dx, "admission_diagnosis_system", "")
-            or system_key_for("diagnosis", ctx.locale.upper())
-        )
-        display = code_lookup(system, code, lang)
+        # Issue #3259: the emitted code and its prose name.
+        code, display = diagnosis_coded(code, country_code(ctx.locale), lang)
         if display and display != code:
             dx_lines.append(t("list_item.numbered_dx_with_code", lang, idx=idx, display=display, code=code))
         else:
@@ -484,17 +469,16 @@ def build_checkup_questionnaire(generator: TemplateNarrativeGenerator, ctx: Narr
     patient = ctx.patient
 
     # Convert past medical history (chronic_conditions) codes to the
-    # display of the code the output emits, in the country's ICD-10
-    # system (JP: MHLW ICD-10; Issue #2994).
+    # prose name of the code the output emits (Issue #2994, #3259).
     chronic = _o(patient, "chronic_conditions", []) or []
     history_lines: list[str] = []
     for cond in chronic:
         code = _o(cond, "code", "")
         if not code:
             continue
-        # Issue #2994: the code the output emits for the condition and its
-        # display in the country's ICD-10 system (JP: MHLW ICD-10).
-        code, display = chronic_condition_coded(code, country_code(ctx.locale), lang)
+        # Issue #2994 / #3259: the code the output emits for the condition
+        # and its prose name.
+        code, display = diagnosis_coded(code, country_code(ctx.locale), lang)
         if display and display != code:
             history_lines.append(t("list_item.bullet_dx_with_code", lang, display=display, code=code))
         else:

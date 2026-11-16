@@ -672,6 +672,19 @@ codes:
   E11.1:
     en: 'Type 2 diabetes mellitus : With ketoacidosis'
     ja: "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，ケトアシドーシスを伴うもの"
+  # Issue #3259: the diabetic complication events code ICD-10-CM E11.21 /
+  # E11.311 / E11.42; JP folds them to these WHO dagger codes
+  # (code_mapping_diagnosis.yaml). en: tx.fhir.org $lookup (ICD-10-EN
+  # 2019-covid-expanded); ja: MHLW 基本分類表 (kihon2013.xlsx).
+  E11.2:
+    en: 'Type 2 diabetes mellitus : With renal complications'
+    ja: "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，腎合併症を伴うもの"
+  E11.3:
+    en: 'Type 2 diabetes mellitus : With ophthalmic complications'
+    ja: "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，眼合併症を伴うもの"
+  E11.4:
+    en: 'Type 2 diabetes mellitus : With neurological complications'
+    ja: "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，神経（学的）合併症を伴うもの"
   E11.6:
     en: 'Type 2 diabetes mellitus : With other specified complications'
     ja: "２型＜インスリン非依存性＞糖尿病＜NIDDM＞，その他の明示された合併症を伴うもの"

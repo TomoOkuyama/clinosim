@@ -17,7 +17,7 @@ pytestmark = pytest.mark.unit
     [
         ("J44.9", "COPD"),
         ("I50.9", "Heart failure (CHF)"),
-        ("N18.3", "CKD"),
+        ("N18.9", "CKD"),
         ("E11.9", "Type 2 diabetes (DM)"),
     ],
 )

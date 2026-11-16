@@ -56,5 +56,6 @@ def test_condition_label_prefers_the_short_name() -> None:
     assert condition_short_name("I10", "ja")
     assert condition_label("I10", "JP", "ja") == condition_short_name("I10", "ja")
     # No short name: the official display.
-    assert condition_label("S67.8", "JP", "ja") == "手首及び手のその他及び部位不明の挫滅損傷"
+    assert condition_short_name("K59.0", "ja") is None
+    assert condition_label("K59.0", "JP", "ja") == "便秘"
     assert condition_label("ZZZ.9", "JP", "ja") is None

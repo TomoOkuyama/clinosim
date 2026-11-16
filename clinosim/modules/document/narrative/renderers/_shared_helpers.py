@@ -194,11 +194,21 @@ def chronic_condition_label(code: str, country: str, lang: str, sex: str = "") -
     return condition_label(chronic_condition_code(code, country, sex), country, lang) if code else None
 
 
-def chronic_condition_coded(code: str, country: str, lang: str, sex: str = "") -> tuple[str, str]:
-    """``(emitted code, official display)`` of a chronic condition for a
-    coded list ("display [code]"); the display falls back to the code."""
+def diagnosis_coded(code: str, country: str, lang: str, sex: str = "") -> tuple[str, str]:
+    """``(emitted code, name)`` of a CIF diagnosis code — a chronic condition
+    or an encounter diagnosis, both stored as internal codes — for a coded
+    list ("name [code]", "name（code）"; Issue #3259). The code is the one
+    the output emits (``map_diagnosis_code``: JP folds ICD-10-CM E11.311 to
+    MHLW E11.3). The name follows ``narrative_labels.coded_diagnosis_name``
+    for the language: the official display (English) or the clinical name
+    of ``condition_label`` (Japanese: the MHLW title carries classification
+    notation); either falls back to the other, then to the code."""
     emit = chronic_condition_code(code, country, sex)
-    return emit, icd10_display(emit, country, lang) or emit
+    official = icd10_display(emit, country, lang)
+    clinical = condition_label(emit, country, lang)
+    if _label("coded_diagnosis_name", "source", lang, fallback="display") == "label":
+        return emit, clinical or official or emit
+    return emit, official or clinical or emit
 
 
 def _code_category(code: str) -> str:

@@ -73,7 +73,8 @@ def test_every_variant_code_has_a_display_naming_site_and_depth(country: str) ->
 
 @pytest.mark.parametrize(
     ("country", "lang", "site_words", "depth_word"),
-    [("US", "en", ("hand", "forearm"), "second degree"), ("JP", "ja", ("手", "上肢"), "第２度")],
+    # The ED diagnosis is the clinical name of the code (Issue #3259).
+    [("US", "en", ("hand", "upper limb"), "Second-degree burn"), ("JP", "ja", ("手", "上肢"), "第2度熱傷")],
 )
 def test_ed_assessment_names_site_and_depth(country: str, lang: str, site_words: tuple, depth_word: str) -> None:
     spec = load_encounter_condition("minor_burn")
@@ -82,6 +83,7 @@ def test_ed_assessment_names_site_and_depth(country: str, lang: str, site_words:
         code = ed_diagnosis_code(spec, _patient(), country=country, encounter_id=f"ENC-A-{i}")
         ctx = SimpleNamespace(
             target_lang=lang,
+            locale=country.lower(),
             diagnoses=[SimpleNamespace(admission_diagnosis_code=code, admission_diagnosis_system=system)],
             encounter=SimpleNamespace(**{f"chief_complaint_{lang}": spec["chief_complaint"][lang]}),
         )

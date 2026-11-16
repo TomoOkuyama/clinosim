@@ -32,7 +32,7 @@
         "family_history": "特記家族歴なし",
         "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "常用薬なし",
-        "past_medical_history": "慢性閉塞性肺疾患，詳細不明 [J44.9]",
+        "past_medical_history": "COPD（慢性閉塞性肺疾患） [J44.9]",
         "physical_examination": "バイタルサイン: BP 118/71 mmHg, HR 103/min, T 38.2°C, SpO2 96%, RR 19/min。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: その他"
       },
@@ -937,11 +937,11 @@
       },
       "sections": {
         "admission_details": "2024-06-15に入院した。",
-        "admission_diagnoses": "1. 肺炎，詳細不明（J18.9）",
-        "admission_reason": "肺炎，詳細不明のため入院となった。",
+        "admission_diagnoses": "1. 肺炎（J18.9）",
+        "admission_reason": "肺炎のため入院となった。",
         "chief_complaint": "3日前より発熱・湿性咳嗽・胸痛",
         "discharge_details": "2024-07-03自宅退院となった。",
-        "discharge_diagnoses": "ウイルス肺炎，詳細不明（J12.9）",
+        "discharge_diagnoses": "ウイルス性肺炎（J12.9）",
         "discharge_instructions": "[Mock LLM response #20 — discharge_instructions]",
         "discharge_medications": "アモキシシリン 250mg 経口 1日3回",
         "hospital_course": "[Mock LLM response #20 — hospital_course]",
@@ -2168,7 +2168,7 @@
         "lang": "ja"
       },
       "sections": {
-        "diagnosis": "肺炎，詳細不明（J18.9）",
+        "diagnosis": "肺炎（J18.9）",
         "estimated_los": "推定入院期間：約14日間",
         "other_plans": "その他：看護計画・リハビリテーション等の計画については看護記録を参照。",
         "other_staff": "担当なし",
