@@ -168,6 +168,11 @@ ed:
   on_arrival_vitals:
     ja: "来院時所見: {vitals}。"
     en: "On arrival: {vitals}."
+  # Issue #3243: the arrival vitals, then the admitting disease's day-0
+  # exam (per body system) for an admitted patient.
+  on_arrival_exam:
+    ja: "来院時所見: {vitals}。{exam}。"
+    en: "On arrival: {vitals}. {exam}."
   # Issue #3242: an admitted patient's ED note with no reading taken in the
   # ED (the stay's vitals start on the ward) states that nothing was
   # recorded instead of asserting a normal exam.

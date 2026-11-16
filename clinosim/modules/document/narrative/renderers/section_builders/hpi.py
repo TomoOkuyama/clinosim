@@ -141,8 +141,25 @@ def _build_hpi_core(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
                 return _join(
                     parts.demographics, text, parts.details, _ros_line(ctx, f"{parts.chief_complaint}{text}")
                 ), facts
-        return fallback or presented, facts
+        # Issue #3243: no ED-visit protocol (a patient admitted through the
+        # ED) — the admitting disease's HPI, as the H&P writes it, with the
+        # arrival as the triage record has it.
+        from clinosim.modules.document.narrative.renderers.section_builders.ed_note import agree_with_arrival_mode
 
+        text, facts = _disease_hpi(ctx, fallback, presented, facts, ed_note=True)
+        return agree_with_arrival_mode(text, ctx), facts
+
+    return _disease_hpi(ctx, fallback, presented, facts, ed_note=False)
+
+
+def _disease_hpi(
+    ctx: NarrativeContext, fallback: str, presented: str, facts: list[str], *, ed_note: bool
+) -> tuple[str, list[str]]:
+    """The HPI from the disease protocol's ``hpi_template`` (see
+    :func:`_build_hpi_core`). ``ed_note``: the English onset sentence is the
+    generic one of the disease's ``onset_type`` when it has one (Issue #3243),
+    so an injury is not written as symptoms developing over days."""
+    lang = ctx.target_lang
     proto = ctx.disease_protocol
     narrative = _o(proto, "narrative", None) if proto is not None else None
     hpi_tmpl = _o(narrative, "hpi_template", None) if narrative is not None else None
@@ -162,6 +179,9 @@ def _build_hpi_core(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     # deferred to the LLM narrative pass — a functional fallback beats
     # a locale leak).
     if not has_authored_narrative(lang):
+        typed = _typed_onset(hpi_tmpl, ctx, facts) if ed_note else ""
+        if typed:
+            return typed, facts
         facts.append(f"generic:hpi_onset_en.{ctx.severity}")
         return _hpi_onset(ctx.severity, lang), facts
 
@@ -183,13 +203,7 @@ def _onset_sentence(hpi_tmpl: object, ctx: NarrativeContext, facts: list[str]) -
     if onset_text:
         facts.append(f"disease_protocol.narrative.hpi_template.onset_pattern.{severity}")
     else:
-        onset_type = _o(hpi_tmpl, "onset_type", None)
-        if onset_type:
-            onset_text = t(f"hpi.onset_by_type.{onset_type}.{severity}", lang) or t(
-                f"hpi.onset_by_type.{onset_type}.moderate", lang
-            )
-            if onset_text:
-                facts.append(f"disease_protocol.narrative.hpi_template.onset_type.{onset_type}")
+        onset_text = _typed_onset(hpi_tmpl, ctx, facts)
     if not onset_text:
         return ""
     trigger_options = _o(hpi_tmpl, "trigger_options", []) or []
@@ -198,6 +212,21 @@ def _onset_sentence(hpi_tmpl: object, ctx: NarrativeContext, facts: list[str]) -
         facts.append("disease_protocol.narrative.hpi_template.trigger_options[0]")
         return f"{onset_text}{trigger}{t('punct.sentence_end', lang)}"
     return str(onset_text)
+
+
+def _typed_onset(hpi_tmpl: object, ctx: NarrativeContext, facts: list[str]) -> str:
+    """The generic onset sentence of the disease's ``onset_type`` for the
+    severity (``narrative_phrases.yaml::hpi.onset_by_type``), else ``""``."""
+    onset_type = _o(hpi_tmpl, "onset_type", None)
+    if not onset_type:
+        return ""
+    lang = ctx.target_lang
+    text = t(f"hpi.onset_by_type.{onset_type}.{ctx.severity or ''}", lang) or t(
+        f"hpi.onset_by_type.{onset_type}.moderate", lang
+    )
+    if text:
+        facts.append(f"disease_protocol.narrative.hpi_template.onset_type.{onset_type}")
+    return str(text or "")
 
 
 def _with_extras(ctx: NarrativeContext, onset: str, presented: str, facts: list[str]) -> tuple[str, list[str]]:

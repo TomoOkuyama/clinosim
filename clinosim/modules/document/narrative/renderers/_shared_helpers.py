@@ -47,7 +47,7 @@ def pydantic_day_findings_to_dict(day_findings: Any) -> dict[str, Any]:
 
 # Head-to-toe order of the exam systems. ``head`` / ``skin`` / ``umbilicus`` /
 # ``hips`` appear only in the newborn exam set (Issue #3260).
-_EXAM_SYSTEM_ORDER = (
+PHYSICAL_EXAM_SYSTEMS: tuple[str, ...] = (
     "general",
     "head",
     "skin",
@@ -59,6 +59,25 @@ _EXAM_SYSTEM_ORDER = (
     "neurological",
     "psychiatric",
 )
+"""The body systems of a physical exam findings dict, in written order."""
+
+
+def select_exam_text(entry: Any, severity: str) -> str:
+    """The finding of one body system for ``severity``: a plain string as is;
+    of a per-severity dict the "all" text, else the severity's, else the
+    moderate, mild or severe text; ``""`` when none."""
+    if isinstance(entry, str):
+        return entry
+    if isinstance(entry, dict):
+        return (
+            entry.get("all")
+            or entry.get(severity)
+            or entry.get("moderate")
+            or entry.get("mild")
+            or entry.get("severe")
+            or ""
+        )
+    return ""
 
 
 def format_physical_exam(phys_exam: dict[str, Any], severity: str, lang: str) -> str:
@@ -73,25 +92,11 @@ def format_physical_exam(phys_exam: dict[str, Any], severity: str, lang: str) ->
         return ""
 
     parts = []
-    for sys_key in _EXAM_SYSTEM_ORDER:
+    for sys_key in PHYSICAL_EXAM_SYSTEMS:
         entry = phys_exam.get(sys_key)
         if entry is None:
             continue
-        if isinstance(entry, str):
-            text = entry
-        elif isinstance(entry, dict):
-            text = (
-                entry.get("all")
-                or entry.get(severity)
-                or entry.get("moderate")
-                or entry.get("mild")
-                or entry.get("severe")
-                or ""
-            )
-            if text is None:
-                text = ""
-        else:
-            text = ""
+        text = select_exam_text(entry, severity)
         if text:
             label = _label("body_system", sys_key, lang, fallback=sys_key)
             parts.append(f"{label}: {text}")

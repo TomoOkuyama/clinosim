@@ -42,9 +42,16 @@ from clinosim.modules.document.narrative._template_helpers import (
     _fill_template_placeholders,
     _pick_localized,
 )
-from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_label
+from clinosim.modules.document.narrative.renderers._shared_helpers import (
+    PHYSICAL_EXAM_SYSTEMS,
+    chronic_condition_label,
+    select_exam_text,
+)
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
+from clinosim.modules.document.reference_data_loaders import load_ed_note_admitted
 from clinosim.modules.encounter.protocol import discharge_instructions_for_age
+from clinosim.modules.observation.pediatric_ranges import age_in_completed_months, pediatric_vital_range
+from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import DocumentType, NarrativeContext
 
 # An ED note rendered on an inpatient record is the ED part of a via-ED
@@ -95,6 +102,113 @@ def _is_ed_order(order: Any, admitted: bool) -> bool:
     medications continued, ward care written with the admission and later
     treatment are the stay's orders."""
     return not admitted or (_o(order, "order_set", "") or "") == ORDER_SET_ADMISSION_INITIAL
+
+
+def _admitted_arrival_exam(generator: TemplateNarrativeGenerator, ctx: NarrativeContext, facts: list[str]) -> str:
+    """The admitting disease's day-0 physical exam for the ED note of a via-ED
+    admission (Issue #3243), the source the H&P exam uses, without the
+    clauses the arrival reading (``ctx.vitals[0]``, the ED-time context)
+    contradicts, with the consciousness clause matched to the arrival AVPU.
+    ``""`` without a disease protocol or authored exam text in the language."""
+    lang = ctx.target_lang
+    if ctx.disease_protocol is None or not has_authored_narrative(lang) or not ctx.vitals:
+        return ""
+    arrival = ctx.vitals[0]
+    phys_exam = generator._resolve_physical_exam(ctx, ctx.clinical_course_archetype, 0)
+    severity = str(ctx.severity or "")
+    states = _arrival_vital_states(arrival, ctx)
+    findings = {}
+    for system in PHYSICAL_EXAM_SYSTEMS:
+        text = _agreeing_clauses(select_exam_text(phys_exam.get(system), severity), states, lang)
+        if text:
+            findings[system] = text
+    exam = generator._format_physical_exam(findings, severity, lang)
+    if not exam:
+        return ""
+    facts.append(f"physical_exam_findings.{ctx.clinical_course_archetype}.day_0")
+    # The consciousness clause follows the AVPU of the arrival reading's day.
+    exam, cc_facts = generator._apply_cc_pe_consistency(exam, replace(ctx, day_index=_arrival_day(arrival, ctx)))
+    facts.extend(cc_facts)
+    return exam
+
+
+def _arrival_day(arrival: Any, ctx: NarrativeContext) -> int:
+    """Calendar-day offset of the arrival reading from the admission date."""
+    when = parse_iso_datetime(_o(arrival, "timestamp", None), lenient=True)
+    admitted = parse_iso_datetime(_o(ctx.encounter, "admission_datetime", None), lenient=True)
+    if when is None or admitted is None:
+        return 0
+    return (when.date() - admitted.date()).days
+
+
+def _arrival_vital_states(arrival: Any, ctx: NarrativeContext) -> dict[str, str]:
+    """``{vital: "low" | "normal" | "high"}`` of the arrival reading, judged
+    against a child's age-banded range where one lists the vital, else the
+    adult limits of ``ed_note_admitted.yaml``. A vital without a value is
+    left out."""
+    limits = load_ed_note_admitted().adult_vital_limits
+    age_months = age_in_completed_months(_o(ctx.patient, "date_of_birth", None), _o(arrival, "timestamp", None))
+    states: dict[str, str] = {}
+    for vital, adult in limits.items():
+        value = _o(arrival, vital, None)
+        if value is None:
+            continue
+        child = pediatric_vital_range(vital, age_months)
+        low, high = (child.low, child.high) if child is not None else (adult.low, adult.high)
+        if low is not None and float(value) < low:
+            states[vital] = "low"
+        elif high is not None and float(value) > high:
+            states[vital] = "high"
+        else:
+            states[vital] = "normal"
+    return states
+
+
+def _agreeing_clauses(text: str, states: dict[str, str], lang: str) -> str:
+    """``text`` without the clauses whose vital-sign statement the arrival
+    reading contradicts (``ed_note_admitted.yaml::exam_vital_terms``)."""
+    if not text:
+        return ""
+    data = load_ed_note_admitted()
+    code = normalize_lang(lang)
+    separators = data.clause_separators.get(code) or data.clause_separators["en"]
+    terms = sorted(
+        ((term, entry) for entry in data.exam_vital_terms for term in entry.terms.get(code) or entry.terms["en"]),
+        key=lambda pair: -len(pair[0]),
+    )
+
+    def agrees(clause: str) -> bool:
+        stated: dict[str, set[str]] = {}
+        rest = clause.lower()
+        for term, entry in terms:
+            if term.lower() in rest:
+                rest = rest.replace(term.lower(), " ")
+                stated.setdefault(entry.vital, set()).update(entry.states)
+        return all(vital not in states or states[vital] in ok for vital, ok in stated.items())
+
+    def keep(piece: str, level: int) -> str:
+        if level == len(separators):
+            return piece if agrees(piece) else ""
+        sep = separators[level]
+        return sep.join(kept for kept in (keep(part, level + 1) for part in piece.split(sep)) if kept)
+
+    return keep(text, 0)
+
+
+def agree_with_arrival_mode(text: str, ctx: NarrativeContext) -> str:
+    """``text`` (the ED note's HPI) with an ambulance-arrival phrase replaced
+    by a neutral one when the triage record says the patient did not arrive
+    by ambulance (Issue #3243). Unchanged without a triage arrival mode."""
+    triage = _o(ctx.encounter, "triage_data", None) if ctx.encounter is not None else None
+    mode = str(_o(triage, "arrival_mode", "") or "") if triage is not None else ""
+    arrival = load_ed_note_admitted().arrival
+    if not text or not mode or mode in arrival.ambulance_modes:
+        return text
+    code = normalize_lang(ctx.target_lang)
+    for phrase in arrival.phrases:
+        said = phrase.text.get(code) or phrase.text["en"]
+        text = text.replace(said, phrase.replacement.get(code) or phrase.replacement["en"])
+    return text
 
 
 if TYPE_CHECKING:
@@ -151,10 +265,15 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
         vital_line = generator._compose_vital_signs_line(ctx)
         if vital_line:
             facts.append("ctx.vitals[0]")
-            # Issue #3243: an admitted patient's arrival vitals (often
-            # abnormal) are quoted without asserting a normal exam.
-            key = "ed.on_arrival_vitals" if _admitted_from_ed(ctx) else "ed.on_arrival_no_findings"
-            return t(key, lang, vitals=vital_line), facts
+            if not _admitted_from_ed(ctx):
+                return t("ed.on_arrival_no_findings", lang, vitals=vital_line), facts
+            # Issue #3243: an admitted patient's exam is the admitting
+            # disease's day-0 exam, agreeing with the arrival vitals; the
+            # arrival vitals alone when there is none (never "no findings").
+            exam = _admitted_arrival_exam(generator, ctx, facts)
+            if exam:
+                return t("ed.on_arrival_exam", lang, vitals=vital_line, exam=exam), facts
+            return t("ed.on_arrival_vitals", lang, vitals=vital_line), facts
         if _admitted_from_ed(ctx):
             # No reading from the ED period (Issue #3242): say nothing was
             # recorded rather than assert a normal exam.

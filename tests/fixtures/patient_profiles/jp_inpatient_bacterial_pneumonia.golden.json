@@ -2265,8 +2265,14 @@
       "facts_used": [
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.bacterial_pneumonia[1]",
+        "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
+        "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "ctx.patient.demographics",
+        "ctx.encounter.chief_complaint",
+        "ctx.patient.chronic_conditions",
         "encounter.triage_data",
         "ctx.vitals[0]",
+        "physical_exam_findings.smooth_recovery.day_0",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
         "ctx.encounter.chief_complaint",
@@ -2283,8 +2289,8 @@
         "chief_complaint": "3日前より発熱・湿性咳嗽・胸痛",
         "disposition": "入院適応（発熱・咳嗽・呼吸困難）",
         "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、CRP、PCT、クレアチニン、BUN、Na、K。画像: 胸部レントゲン (正面・側面)、胸部レントゲン (正面・側面)。投薬: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 酸素投与: 鼻カニューラ SpO2 >= 94%",
-        "hpi": "中等度の症状で受診。",
-        "physical_exam": "来院時所見: BP 120/71 mmHg, HR 104 回/分, RR 25 回/分, SpO2 87%, T 38.2°C。",
+        "hpi": "68歳女性患者。主訴: 3日前より発熱・湿性咳嗽・胸痛。発熱・咳嗽・喀痰が出現し、SpO2 低下を認め緊急受診。上気道感染後に発症。既往: COPD（慢性閉塞性肺疾患）。ROS: 喀血なし、夜間発汗なし。",
+        "physical_exam": "来院時所見: BP 120/71 mmHg, HR 104 回/分, RR 25 回/分, SpO2 87%, T 38.2°C。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし。",
         "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 独歩来院。"
       },
       "text": ""
