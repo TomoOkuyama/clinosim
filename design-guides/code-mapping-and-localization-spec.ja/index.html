@@ -3116,6 +3116,7 @@
 <h3 id="38-翻訳表とフレーズカタログ">3.8 翻訳表とフレーズカタログ<a class="headerlink" href="#38-翻訳表とフレーズカタログ" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>翻訳表。</strong> 生成器が英語の自由文字列で書く名称 (オーダ文字列、薬剤用語) は、翻訳表で英語の文字列を他の言語に対応付ける: <code>"dvt prophylaxis": {ja: DVT予防}</code>。§4.3 の自由文字列用の解決関数からのみ読む。コードの表示名は訳さない (それはコード体系自身の <code>ja</code>)。データファイルが元になっている文字列も持たない (その文字列は元の場所で言語マップを持つ)。</li>
+<li><strong>語より句を先に。</strong> 自由文字列用の解決関数は翻訳表のキーを長い順に置き換えるので、複数語の句のエントリはその語のエントリより優先される。オーダ文字列の注記 ("avoid hypotonic fluids"、"under fluoroscopy") は、自然な訳を持つ句のエントリにする。文脈なしでは訳せない英単語 ("avoid"、"under"、"may"、"not") 1 語だけのエントリは置かない: 1 語ずつ訳すと注記が無関係な語の羅列になる。エントリがなければ未訳の句は英語のまま読める (§6 規則 6) ので、句のエントリを足すまでそのままにする。<code>tests/unit/locale/test_phrase_translation_3266.py</code> は、プロトコルのオーダ文字列の日本語訳で 1 組の括弧内に空白区切りの語が 3 つ以上並ぶものを拒否する。</li>
 <li><strong>フレーズカタログ。</strong> ドット区切りの id (<code>prescription.next_visit</code>) をキーにした文テンプレートで、<code>{placeholder}</code> の引数を取る。<code>t(key, lang, **kwargs)</code> で読む。</li>
 </ul>
 <h3 id="39-疾患encounter-プロトコル">3.9 疾患・encounter プロトコル<a class="headerlink" href="#39-疾患encounter-プロトコル" title="Permanent link">&para;</a></h3>
