@@ -13,16 +13,13 @@ threading here.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from clinosim.codes.ucum import ucum_prose
 from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
-from clinosim.locale.loader import lab_display
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import (
     _localize_complication,
-    _localize_lab_flag,
 )
 from clinosim.modules.document.narrative._narrative_utils import (
     _cc_altered_consciousness_keywords,
@@ -232,6 +229,37 @@ def pick_stable_progress_phrase(ctx: NarrativeContext, *, lang: str) -> str:
     return resolve_localized_display(pool[idx], lang, fallback="")
 
 
+def _complications_known_on_day(ctx: NarrativeContext, as_of: Any) -> tuple[list[str], list[str]]:
+    """The stay's complications a note of hospital day ``ctx.day_index``
+    knows (Issue #3229), as (new, ongoing) name lists in onset order. A
+    complication counts from its ``onset_day``, and only once its
+    ``onset_datetime`` is at or before ``as_of`` (the authored time). It is
+    new when it began since the previous day's note (within the notes'
+    ``window_hours`` before ``as_of``; without both times, on its onset
+    day), ongoing afterwards. An entry without an onset day cannot be placed
+    on the note's clock and is left out (``NarrativeContext.complications_events``)."""
+    from datetime import timedelta
+
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+
+    new: list[str] = []
+    ongoing: list[str] = []
+    for event in list(getattr(ctx, "complications_events", []) or []):
+        name = str(_o(event, "name", "") or "")
+        onset_day = _o(event, "onset_day", None)
+        if not name or onset_day is None or int(onset_day) > ctx.day_index or name in new or name in ongoing:
+            continue
+        onset_at = parse_iso_datetime(_o(event, "onset_datetime", None), lenient=True)
+        if as_of is not None and onset_at is not None:
+            if onset_at > as_of:
+                continue
+            is_new = onset_at > as_of - timedelta(hours=notable_lab_rules().window_hours)
+        else:
+            is_new = int(onset_day) == ctx.day_index
+        (new if is_new else ongoing).append(name)
+    return new, ongoing
+
+
 def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
     """Inpatient progress_note Assessment from CIF facts.
 
@@ -248,44 +276,35 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
     patient-specific reasoning.
     """
     lang = ctx.target_lang
+    sep = t("list_sep.serial", lang)
     parts: list[str] = []
-    comps = list(getattr(ctx, "complications_occurred", []) or [])
-    if comps:
-        localised = [_localize_complication(str(c), ctx.target_lang) for c in comps[:3]]
-        sep = t("list_sep.serial", lang)
-        parts.append(t("progress.complications_noted", ctx.target_lang, list=sep.join(localised)))
+    as_of = getattr(ctx, "authored_datetime", None)
+    new_comps, ongoing_comps = _complications_known_on_day(ctx, as_of)
+    if new_comps:
+        localised = [_localize_complication(c, lang) for c in new_comps[:3]]
+        parts.append(t("progress.complication_new", lang, list=sep.join(localised)))
+    if ongoing_comps:
+        localised = [_localize_complication(c, lang) for c in ongoing_comps[:3]]
+        parts.append(t("progress.complications_noted", lang, list=sep.join(localised)))
+    # Issues #3230 / #3241: the day's flagged results known at the note's
+    # authored time, ranked and one per analyte (lab_timeseries.select_notable_labs).
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+    from clinosim.modules.document.narrative._notable_labs import notable_lab_entries
+
+    rules = notable_lab_rules()
     _lab_enc = getattr(ctx, "encounter", None)
-    _lab_adm_raw = _o(_lab_enc, "admission_datetime", None) if _lab_enc is not None else None
-    _lab_adm_dt = parse_iso_datetime(_lab_adm_raw, lenient=True) if _lab_adm_raw is not None else None
-    labs = list(ctx.lab_results or [])
-    abn: list[str] = []
-    for lab in labs:
-        flag = _o(lab, "flag", None)
-        if not flag:
-            continue
-        d = _o(lab, "day", None)
-        if d is None and _lab_adm_dt is not None:
-            _rdt = parse_iso_datetime(_o(lab, "result_datetime", None), lenient=True)
-            if _rdt is not None:
-                d = (_rdt.date() - _lab_adm_dt.date()).days
-        if d is not None and d != ctx.day_index:
-            continue
-        name = _o(lab, "lab_name", None)
-        val = _o(lab, "value", None)
-        unit = _o(lab, "unit", "") or ""
-        if name and val is not None:
-            disp_name = lab_display(name, ctx.target_lang)
-            disp_flag = _localize_lab_flag(flag, ctx.target_lang)
-            unit_disp = ucum_prose(unit)
-            if unit_disp and unit_disp.lower() == str(disp_name).lower():
-                unit_disp = ""
-            unit_part = f" {unit_disp}" if unit_disp else ""
-            abn.append(f"{disp_name} {val}{unit_part} [{disp_flag}]")
-        if len(abn) >= 6:
-            break
-    if abn:
-        sep = t("list_sep.serial", lang)
-        parts.append(t("progress.notable_labs", ctx.target_lang, list=sep.join(abn[:4])))
+    labs = notable_lab_entries(
+        list(ctx.lab_results or []),
+        _o(_lab_enc, "admission_datetime", None) if _lab_enc is not None else None,
+        ctx.day_index,
+        lang,
+        limit=rules.max_items.note,
+        as_of=as_of,
+    )
+    if labs and as_of is not None:
+        parts.append(t("progress.notable_labs_recent", lang, list=sep.join(labs), hours=rules.window_hours))
+    elif labs:
+        parts.append(t("progress.notable_labs", lang, list=sep.join(labs)))
     if not parts:
         parts.append(t("progress.stable_course_assessment", ctx.target_lang))
     return t("list_sep.chunk", lang).join(parts)

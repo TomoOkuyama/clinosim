@@ -40,7 +40,7 @@
     "modules/document/narrative/_patient_info_renderers.py": 2,
     "modules/document/narrative/_replacement_renderers.py": 7,
     "modules/document/narrative/registry.py": 2,
-    "modules/document/narrative/renderers/_composers.py": 9,
+    "modules/document/narrative/renderers/_composers.py": 8,
     "modules/document/narrative/renderers/nursing_shift_note.py": 1,
     "modules/document/narrative/renderers/section_builders/assessment_and_plan.py": 1,
     "modules/document/narrative/renderers/section_builders/care_plans.py": 2,

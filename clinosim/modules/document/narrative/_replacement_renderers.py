@@ -268,71 +268,33 @@ def _render_abnormal_labs(
     day_index: int | None,
     lang: str = "en",
     admission_datetime: Any = None,
+    as_of: Any = None,
 ) -> str:
-    """H / L / critical flagged labs, formatted for LLM injection.
+    """The notable flagged labs for LLM injection, worded and ranked exactly
+    as the template Assessment words them (Issue #3230:
+    ``_notable_labs.notable_lab_entries`` — one entry per analyte, critical
+    and interpreted results first, reported precision, previous value).
 
-    v6 blocker fix: v5 context omitted lab flags entirely so LLM
-    assessments ignored AST H, PT_INR H, Cr H etc. Session-90 fix:
-    the day-filter used to compare ``lab["day"]`` — but CIF
-    ``lab_results`` do not carry a ``day`` field (only
-    ``result_datetime``), so the filter never fired and progress notes
-    for every hospital day cited the day-0 admission labs verbatim
-    (POP-000021 DKA case, 12/12 daily notes all quoting Glucose 518,
-    pH 7.18, HCO3 10.1). Now delegates to
-    :mod:`clinosim.modules.document.narrative.lab_timeseries` which
-    computes day from ``result_datetime`` − ``admission_datetime``.
-
-    * ``day_index=None`` (discharge_summary): all abnormal labs.
-    * ``day_index=N`` (progress_note / soap): only labs measured on day N.
-      Requires ``admission_datetime``; if missing, degrades gracefully
-      by returning all abnormal labs (preserves session-88j behaviour
-      for callers that have not yet been migrated).
-
-    session-88j Phase B: when ``lang == "ja"`` translates full-English
-    lab names (Creatinine, Glucose, Lactate, Albumin, Sodium/Potassium,
-    …) to natural Japanese (クレアチニン, 血糖, 乳酸, アルブミン, ナトリウム,
-    …). Standard abbreviations (BUN, CRP, BNP, WBC, HbA1c, eGFR, Cr,
-    Na, K, PT-INR, …) are kept as-is since those are Japanese medical
-    convention.
+    * ``day_index=None`` (discharge summary, outpatient): the whole record.
+    * ``day_index=N`` (progress / shift notes): labs of hospital day N, the
+      day computed from ``result_datetime`` and ``admission_datetime``;
+      without ``admission_datetime`` the whole record.
+    * ``as_of``: the document's authored time; later results are left out
+      (Issue #3241).
     """
-    from clinosim.modules.document.narrative.lab_timeseries import labs_measured_on_day
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+    from clinosim.modules.document.narrative._notable_labs import notable_lab_entries
 
-    if day_index is not None and admission_datetime is not None:
-        source = labs_measured_on_day(lab_results, admission_datetime, day_index)
-    else:
-        source = list(lab_results or [])
-
-    picks: list[str] = []
-    max_pick = 8
-    for lab in source:
-        flag = _get(lab, "flag")
-        if not flag:
-            continue
-        name = _get(lab, "lab_name") or _get(lab, "name") or ""
-        val = _get(lab, "value")
-        unit = _get(lab, "unit") or ""
-        if not name or val is None:
-            continue
-        name = lab_display(str(name), lang)
-        val_str = f"{val}"
-        parts = f"{name} {val_str}"
-        if unit:
-            # Phase 1d-79: strip UCUM bracket / annotation from unit before
-            # injecting into LLM context — the LLM's Rule 3 verbatim-copy
-            # otherwise carries `mm[Hg]` / `{INR}` / `[pH]` into narrative
-            # prose. Mirrors the template-side fix in Phase 1d-65/1d-69.
-            unit_disp = ucum_prose(unit)
-            # Phase 1d-80: skip the unit when it equals the lab_name after
-            # bracket stripping. Real case: name="pH" + UCUM unit="[pH]" →
-            # unit_disp="pH" → visible duplicate "pH 7.11 pH [L]". This
-            # is unitless-scale idiom (pH is dimensionless) — drop unit.
-            if unit_disp and unit_disp.lower() != str(name).lower():
-                parts += f" {unit_disp}"
-        parts += f" [{flag}]"
-        picks.append(parts)
-        if len(picks) >= max_pick:
-            break
-    return "; ".join(picks) if picks else ""
+    day = day_index if admission_datetime is not None else None
+    entries = notable_lab_entries(
+        list(lab_results or []),
+        admission_datetime,
+        day,
+        lang,
+        limit=notable_lab_rules().max_items.llm_context,
+        as_of=as_of,
+    )
+    return "; ".join(entries)
 
 
 # _TREND_LABEL_JA / _TREND_LABEL_EN moved to

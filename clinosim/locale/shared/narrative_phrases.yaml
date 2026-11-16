@@ -46,9 +46,23 @@ progress:
   complications_noted:
     ja: "合併症 {list} を認識、対応継続中。"
     en: "Complications noted ({list}); management ongoing."
+  # A complication that began since the previous day's note (Issue #3229);
+  # afterwards complications_noted.
+  complication_new:
+    ja: "新たに {list} を合併、対応開始。"
+    en: "New complication ({list}); management started."
   notable_labs:
     ja: "本日の検査所見: {list}。"
     en: "Notable labs today: {list}."
+  # A daily note with an authored time: the results reported in the hours
+  # up to it (Issue #3241; notable_labs.yaml window_hours).
+  notable_labs_recent:
+    ja: "直近{hours}時間の検査所見: {list}。"
+    en: "Notable labs (past {hours} h): {list}."
+  # The abnormal results beyond the listed ones (Issue #3230).
+  notable_labs_more:
+    ja: "ほか異常値 {count} 項目"
+    en: "+{count} other abnormal"
   # From template_generator._compose_progress_subjective_from_state
   # (Phase 1d-17). Per-day inpatient subjective composed from vitals
   # deltas (fever / hypothermia / spo2 trend). Each key covers one
@@ -2885,3 +2899,27 @@ imaging_side:
     en: "Right {site_lower}"
     ja: "右{site}"
 
+# The abnormality a notable lab result names (Issue #3230;
+# document/reference_data/notable_labs.yaml findings and KDIGO AKI).
+lab_finding:
+  hyperkalemia:
+    ja: "高K血症"
+    en: "hyperkalemia"
+  hypokalemia:
+    ja: "低K血症"
+    en: "hypokalemia"
+  hypernatremia:
+    ja: "高Na血症"
+    en: "hypernatremia"
+  hyponatremia:
+    ja: "低Na血症"
+    en: "hyponatremia"
+  troponin_elevation:
+    ja: "トロポニン上昇"
+    en: "troponin elevation"
+  aki:
+    ja: "急性腎障害 (KDIGO基準)"
+    en: "AKI by KDIGO criteria"
+  hemolyzed:
+    ja: "溶血検体、再検"
+    en: "hemolyzed specimen, repeat"

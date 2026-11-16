@@ -242,7 +242,8 @@ clinosim/modules/document/narrative/
   section_extractor.py                     extract_for_composition (per-COMPOSITION section, AD-65 E3)
   template_generator.py                    TemplateNarrativeGenerator + placeholder engine (per-document rendering split into renderers/)
   renderers/                               per-document renderers (progress_note / nursing_shift_note / ed_triage_note / composition_sections + shared helpers) and section_builders/ (one module per Composition section family)
-  lab_timeseries.py                        lab time-series helpers for narrative rendering
+  lab_timeseries.py                        lab time-series helpers for narrative rendering; select_notable_labs (the abnormal labs a note cites, Issue #3230)
+  _notable_labs.py                         notable_lab_entries: wording of those labs for the template Assessment and the LLM context
   _localization.py                         JA/EN narrative-token localization helpers (META #1633 P6 slice 1)
   _template_helpers.py                     Template-rendering primitives (_label / _resolve_staff_name / _render_home_med_name / _pick_localized / _fill_template_placeholders / vital-placeholder resolution / fallback constants — META #1633 P6 slice 2)
   _narrative_utils.py                      Miscellaneous narrative helpers (nursing-content lookup / vitals-for-day / SHA-driven autopsy gate / age-at / ISO-datetime parse / chief-complaint keyword / encounter-salted pool pickers / PE clause rewrite — META #1633 P6 slice 3)
