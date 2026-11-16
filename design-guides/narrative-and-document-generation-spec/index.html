@@ -2510,6 +2510,11 @@
 <td><code>tests/unit/modules/document/narrative/test_death_cause_chain_3255.py</code></td>
 </tr>
 <tr>
+<td>The death summary's circumstances of death follow the record: the code status when one is recorded, the place (the ICU after an ICU transfer, else the ward) and the event — CPR when a resuscitation procedure is recorded; for a not-for-resuscitation patient, CPR withheld while the life support of the final hours (vasopressor / inotrope doses, ventilation) ran, or palliative bedside care without it; otherwise an arrest during treatment. Palliative wording is used only for that not-for-resuscitation death without life support, and its treatment course then does not say treatment was continued. The treatment course names the drugs given, the procedures, the ICU transfer day and the diagnoses that arose during the stay (no counts). Times to death under four weeks are written in days.</td>
+<td><code>clinosim/modules/document/narrative/renderers/section_builders/mortality.py::build_dds_circumstances_of_death</code>, <code>build_dds_treatment_course</code>; <code>reference_data/death_course.yaml</code></td>
+<td><code>tests/unit/modules/document/narrative/test_death_summary_course_3256.py</code></td>
+</tr>
+<tr>
 <td>Every <code>facts_used</code> tag names the source of the text it marks, with a prefix of one vocabulary: a structural-CIF field (<code>ctx.</code>, <code>patient.</code>, <code>encounter.</code>, <code>profile.</code>, <code>chronic.</code>, <code>physical_exam_findings</code>, <code>discharge_instructions</code>), static reference data (<code>disease_protocol.</code>, <code>encounter_protocol.</code>, <code>chief_complaint_variants.</code>), text composed from the CIF state (<code>composed:</code>), or a static template (<code>generic:</code>, <code>outpatient_soap_template.</code>). A tag outside it is reported by <code>check-narratives</code> as fabricated provenance.</td>
 <td><code>clinosim/modules/document/narrative/semantic_check.py::_ALLOWED_FACT_PREFIXES</code></td>
 <td><code>tests/unit/modules/document/narrative/test_narrative_spec_guards.py::test_every_facts_tag_literal_is_in_the_facts_vocabulary</code>, <code>tests/integration/test_check_narratives_mock.py</code></td>
