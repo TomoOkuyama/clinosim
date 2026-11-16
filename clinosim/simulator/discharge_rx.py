@@ -153,8 +153,9 @@ def _log_discharge_hold(
 def limit_triple_antithrombotic(items: list[dict], home_medications: list[str]) -> None:
     """Issue #2717: with an oral anticoagulant (on this prescription or at
     home), dual antiplatelet therapy becomes the anticoagulant + clopidogrel,
-    and aspirin a short course (not carried into the home medications)."""
-    from clinosim.codes.drugs import resolve_drug
+    and aspirin a short course (not carried into the home medications).
+    Issue #3234: the in-stay gate of an ACS admission applies the same plan
+    (``drug_safety.acs_plan_action``)."""
     from clinosim.modules import drug_safety
     from clinosim.modules.drug_safety.engine import triple_therapy_after_acs_plan
 
@@ -168,11 +169,11 @@ def limit_triple_antithrombotic(items: list[dict], home_medications: list[str]) 
     if not (on_oac and p2y12 and aspirin):
         return
     plan = triple_therapy_after_acs_plan()
-    keep = resolve_drug(str(plan.get("p2y12_with_oac", "clopidogrel")))
+    keep = drug_safety.acs_plan_p2y12_names()
     for item in p2y12:
-        if item["drug_name"] != keep.names.get("en"):
-            item["drug_name"] = keep.names.get("en", item["drug_name"])
-            item["drug_name_ja"] = keep.names.get("ja", item.get("drug_name_ja", ""))
+        if item["drug_name"] != keep.get("en"):
+            item["drug_name"] = keep.get("en", item["drug_name"])
+            item["drug_name_ja"] = keep.get("ja", item.get("drug_name_ja", ""))
             item["dose"] = str(plan.get("p2y12_dose", item.get("dose", "")))
     for item in aspirin:
         item["duration_days"] = int(plan.get("aspirin_days", 7))

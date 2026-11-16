@@ -63,8 +63,8 @@ def test_gate_drops_ibuprofen_and_substitutes_acetaminophen() -> None:
 
 
 def test_gate_drops_aspirin_when_warfarin_home_med() -> None:
-    """warfarin (home) + Aspirin (first_line) → skip Aspirin, no NSAID alternative
-    (pain_management → Acetaminophen is safe)."""
+    """warfarin (home) + Aspirin (first_line) → skip Aspirin with no substitute:
+    an analgesic is never substituted for an antiplatelet (Issue #3234)."""
     patient = _patient_with_home_meds("Warfarin")
     admission_orders = [_order("Aspirin", "ORD-ENC-1-ADM-M01")]
 
@@ -78,10 +78,9 @@ def test_gate_drops_aspirin_when_warfarin_home_med() -> None:
     )
     drug_names = [o.display_name for o in result]
     assert "Aspirin" not in drug_names
-    # Aspirin has substitution_hint=pain_management → Acetaminophen
-    assert "Acetaminophen" in drug_names
+    assert "Acetaminophen" not in drug_names
     assert len(patient.safety_skip_log) == 1
-    assert patient.safety_skip_log[0].substituted_with == "Acetaminophen"
+    assert not patient.safety_skip_log[0].substituted_with
 
 
 def test_gate_leaves_safe_pair_untouched() -> None:

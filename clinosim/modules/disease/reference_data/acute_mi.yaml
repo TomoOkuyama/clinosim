@@ -9,6 +9,10 @@ metadata:
 
 disease_id: acute_mi
 causes_myocardial_injury: true   # ACS → primary myocardial necrosis (high troponin/CK-MB), AD-55
+# Issue #3234: with an oral anticoagulant the in-stay antiplatelets follow the
+# drug_safety triple_therapy_after_acs plan (OAC + clopidogrel, short aspirin),
+# as the discharge prescription does (AUGUSTUS, NEJM 2019;380:1509).
+acs_antithrombotic_plan: true
 chief_complaint:
   en: "Chest pain, diaphoresis, dyspnea"
   ja: "胸痛・冷汗・呼吸困難"

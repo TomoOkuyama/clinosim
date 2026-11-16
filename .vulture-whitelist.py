@@ -300,6 +300,9 @@ _.arrival_mode_base_distribution  # triage/engine.py TriageProtocols
 _.resource_rule  # reference-YAML model field (Issue #2864)
 _.level_by_count  # reference-YAML model field (Issue #2864)
 _.exempt  # modules/drug_safety/_models.py _InteractionRule (Pydantic field; read from the YAML dict in engine._exempt, Issue #3003)
+_.p2y12_order_dose  # modules/drug_safety/_models.py _TripleTherapyPlan (Pydantic field; read from the YAML dict in engine.acs_plan_p2y12_alternative, Issue #3234)
+_.p2y12_order_frequency  # modules/drug_safety/_models.py _TripleTherapyPlan (Pydantic field; read from the YAML dict in engine.acs_plan_p2y12_alternative, Issue #3234)
+_.not_for_classes  # modules/drug_safety/_models.py _Indication (Pydantic field; read from the YAML dict in engine.suggest_alternative, Issue #3234)
 _.parenteral_routes  # reference-YAML model field (Issue #2864)
 _.non_resource_procedures  # reference-YAML model field (Issue #2864)
 

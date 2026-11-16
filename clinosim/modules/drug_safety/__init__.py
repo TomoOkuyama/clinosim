@@ -14,6 +14,10 @@ from clinosim.modules.drug_safety.demographic import (
 )
 from clinosim.modules.drug_safety.engine import (
     AlternativeDrug,
+    acs_plan_action,
+    acs_plan_p2y12_alternative,
+    acs_plan_p2y12_names,
+    acs_plan_verdict,
     allergy_entries,
     allergy_skip_verdict,
     check_candidate_against_active,
@@ -40,6 +44,10 @@ __all__ = [
     "SafetySkipEntry",
     "SafetyVerdict",
     "Severity",
+    "acs_plan_action",
+    "acs_plan_p2y12_alternative",
+    "acs_plan_p2y12_names",
+    "acs_plan_verdict",
     "allergy_entries",
     "allergy_skip_verdict",
     "canonical_name",

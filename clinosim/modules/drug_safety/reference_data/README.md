@@ -72,12 +72,20 @@ discharge_reconciliation_rules: [<rule id>, ...]   # rules the discharge Rx reco
 triple_therapy_after_acs:          # antithrombotic plan: anticoagulant + DAPT after ACS
   aspirin_days: <int >= 1>
   p2y12_with_oac: <catalog drug id>
-  p2y12_dose: "<dose string>"
+  p2y12_dose: "<dose string>"              # discharge item dose
+  p2y12_order_dose: "<dose string>"        # in-stay order (Issue #3234)
+  p2y12_order_frequency: "<frequency>"
+  replaces_rules: [<rule id>, ...]         # anticoagulant + antiplatelet rules the plan answers
+  rationale: {en: "...", ja: "..."}        # caution note / skip-log rationale
 ```
 
 `discharge_reconciliation_rules` must name rule ids defined in
 `rules` (read by `discharge_reconciliation_rules()`);
-`triple_therapy_after_acs` is read by `triple_therapy_after_acs_plan()`.
+`triple_therapy_after_acs` is read by `triple_therapy_after_acs_plan()`;
+its `replaces_rules` must name rule ids too. Issue #3234: in-stay, a
+protocol with `acs_antithrombotic_plan: true` applies the plan when every
+blocking verdict of an antiplatelet order is one of `replaces_rules`
+(`acs_plan_action`).
 
 Matching:
 - **Order-independent**: `check_pair(A, B) == check_pair(B, A)`.
@@ -115,6 +123,7 @@ rules:
       stage_in: [<stage strings>]          # optional (Issue #1769); entry must carry a matching stage
     severity: minor | moderate | major | contraindicated
     substitution_hint: <optional indication tag>
+    exclude_classes: [<catalog class>]   # optional (Issue #3234): the rule does not fire on these
     rationale:
       en: "..."
       ja: "..."
@@ -187,6 +196,7 @@ returning `None`.
 indications:
   <indication_tag>:
     description: "<one-line explanation>"
+    not_for_classes: [<catalog class>]   # optional (Issue #3234): no alternative for a candidate of these classes
     alternatives:
       - drug_id: <id in clinosim/codes/data/drugs.yaml>   # display (en + ja) resolved via the catalog
         default_dose: "<neutral dose string>"

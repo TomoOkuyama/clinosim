@@ -589,6 +589,10 @@ class DiseaseProtocol(BaseModel):
     admission_route: Literal["emergency", "elective"] = "emergency"
     procedure: dict[str, Any] = {}  # Surgical procedure details (approach, duration, etc.)
     medication_holds: list[dict[str, Any]] = []  # Home medications to hold during this admission
+    # Issue #3234: an acute coronary syndrome. A patient on an oral
+    # anticoagulant gets the in-stay antiplatelets of the drug_safety
+    # ``triple_therapy_after_acs`` plan (the one the discharge Rx applies).
+    acs_antithrombotic_plan: bool = False
     # Acute coronary syndrome → primary myocardial necrosis (drives high troponin/CK-MB,
     # vs the mild type-2 elevation any cardiac dysfunction produces). AD-55.
     causes_myocardial_injury: bool = False

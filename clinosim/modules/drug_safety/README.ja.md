@@ -150,18 +150,26 @@ YAML 6 ファイル + 薬剤カタログ:
 - 薬剤 class と alias: 薬剤カタログ
   (`clinosim/codes/data/drugs.yaml`、`clinosim.codes.drugs` 経由で読む)。
 - `reference_data/contraindications.yaml` — class × class rule
-  (19 rule: VKA+抗血小板薬、DOAC+P2Y12、抗凝固薬+NSAID (ヘパリンと
-  抗血小板薬アスピリンは除外、Issue #3003)、ヘパリン+ヘパリン、
+  (20 rule: VKA+抗血小板薬、DOAC+P2Y12、抗凝固薬+NSAID (ヘパリンと
+  抗血小板薬アスピリンは除外、Issue #3003。抗凝固薬全般とアスピリンも
+  除外、Issue #3234)、DOAC+アスピリン、ヘパリン+ヘパリン、
   β遮断薬+非DHP CCB、P2Y12+P2Y12、statin+statin、DOAC+VKA、
   ACEi+ARB、ACEi/ARB+K、ACEi/ARB+K 保持性利尿薬、statin+強力
   CYP3A4 阻害薬、allopurinol+thiopurine、SSRI+MAOI、SSRI+SNRI、
   NSAID 重複、lithium+利尿薬、lithium+ACEi/ARB、lithium+NSAID)、
   加えて `discharge_reconciliation_rules` list と
-  `triple_therapy_after_acs` 抗血栓療法 plan。
+  `triple_therapy_after_acs` 抗血栓療法 plan。抗血小板薬 + 経口抗凝固薬の
+  rule には代替薬を設けない (Issue #3234)。plan は退院処方
+  (`limit_triple_antithrombotic`) と、`acs_antithrombotic_plan` を宣言する
+  プロトコル (急性心筋梗塞) の入院中オーダー (`acs_plan_action`: アスピリン・
+  クロピドグレルは plan の注意付きで継続、他の P2Y12 阻害薬はクロピドグレルに
+  切替) に適用する。
 - `reference_data/disease_contraindications.yaml` — 薬剤 class ×
   慢性疾患 rule (7 rule: 心不全 / 肝硬変 / CKD stage 4-5 (ICD prefix) /
   CKD stage 4-5 (stage 指定) での NSAID、CKD stage 3b-5 での
   metformin、G6PD 欠乏症でのスルホンアミドとニトロフラントイン)。
+  心不全・CKD stage 4-5 の NSAID rule は抗血小板薬アスピリンを除外する
+  (`exclude_classes`、Issue #3234)。
   慢性薬の抽選時に加え、Issue #2855 以降はすべての新規オーダー
   (`apply_drug_safety_gate_to_orders`) と ED のオーダー・持ち帰り処方にも適用。
 - `reference_data/demographic_gates.yaml` — 年齢 / 性別 rule (3 rule:
@@ -178,7 +186,8 @@ YAML 6 ファイル + 薬剤カタログ:
   セレコキシブは注意のみ (Strom, NEJM 2003)。
 - `modules/drug_safety/reference_data/drug_substitution.yaml` — 汎用
   indication → 代替薬 pool (カタログ `drug_id` で key 付け。
-  pain_management → acetaminophen、hypertension_or_rate_control →
+  pain_management → acetaminophen (抗血小板薬には出さない、
+  `not_for_classes`、Issue #3234)、hypertension_or_rate_control →
   amlodipine / candesartan)。
 - `reference_data/hyperkalemia_response.yaml` — K の治療閾値
   (6.0 mmol/L。KDIGO 2024 CKD、2022 AHA/ACC/HFSA 心不全、UK Kidney

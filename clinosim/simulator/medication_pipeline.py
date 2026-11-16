@@ -1255,17 +1255,33 @@ def apply_drug_safety_gate_to_orders(
             key=lambda v: drug_safety.SEVERITY_RANK[v.severity],
             default=None,
         )
+        # Issue #3234: in an acute coronary syndrome a patient on an oral
+        # anticoagulant gets the antiplatelets of the ACS plan (the regimen
+        # the discharge prescription applies): aspirin / clopidogrel are given
+        # with the plan's caution, another P2Y12 inhibitor becomes clopidogrel.
+        plan_action = (
+            drug_safety.acs_plan_action(candidate, verdicts)
+            if worst is not None and getattr(protocol, "acs_antithrombotic_plan", False) is True
+            else None
+        )
+        if plan_action == "keep" and worst is not None:
+            worst = drug_safety.acs_plan_verdict(worst, keep=True)
 
         if worst is not None and worst.default_action == "skip":
             indication = worst.substitution_hint
-            alt = drug_safety.suggest_alternative(
-                candidate,
-                indication,
-                active_meds=accepted_med_names,
-                disease_ctx=protocol,
-                country=country,
-                allergen_codes=allergen_codes,
-            )
+            alt: drug_safety.AlternativeDrug | None
+            if plan_action == "switch":
+                worst = drug_safety.acs_plan_verdict(worst, keep=False)
+                alt = drug_safety.acs_plan_p2y12_alternative()
+            else:
+                alt = drug_safety.suggest_alternative(
+                    candidate,
+                    indication,
+                    active_meds=accepted_med_names,
+                    disease_ctx=protocol,
+                    country=country,
+                    allergen_codes=allergen_codes,
+                )
             conflict_en, conflict_ja = drug_safety.conflict_display(worst)
             patient.safety_skip_log.append(
                 SafetySkipEntry(

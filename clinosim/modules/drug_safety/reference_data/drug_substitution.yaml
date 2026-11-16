@@ -21,6 +21,9 @@ metadata:
 indications:
   pain_management:
     description: "General analgesia when NSAID or opioid is contraindicated."
+    # Issue #3234: an analgesic is no alternative to an antiplatelet (aspirin
+    # is an NSAID by class).
+    not_for_classes: [antiplatelet]
     alternatives:
       - drug_id: acetaminophen
         default_dose: "500mg"

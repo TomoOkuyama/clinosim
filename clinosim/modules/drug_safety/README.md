@@ -163,18 +163,26 @@ Six YAML files plus the drug catalog:
 - Drug classes and aliases: the drug catalog
   (`clinosim/codes/data/drugs.yaml`, read through `clinosim.codes.drugs`).
 - `reference_data/contraindications.yaml` — class × class rules
-  (19 rules: VKA+antiplatelet, DOAC+P2Y12, anticoagulant+NSAID (heparin
-  with antiplatelet aspirin exempt, Issue #3003), heparin+heparin,
+  (20 rules: VKA+antiplatelet, DOAC+P2Y12, anticoagulant+NSAID (heparin
+  with antiplatelet aspirin exempt, Issue #3003; aspirin with any
+  anticoagulant exempt, Issue #3234), DOAC+aspirin, heparin+heparin,
   BB+non-DHP CCB, P2Y12+P2Y12, statin+statin, DOAC+VKA, ACEi+ARB,
   ACEi/ARB+K, ACEi/ARB+K-sparing, statin+strong CYP3A4 inhibitor,
   allopurinol+thiopurine, SSRI+MAOI, SSRI+SNRI, NSAID stacking,
   lithium+diuretic, lithium+ACEi/ARB, lithium+NSAID), plus the
   `discharge_reconciliation_rules` list and the
-  `triple_therapy_after_acs` antithrombotic plan.
+  `triple_therapy_after_acs` antithrombotic plan. The antiplatelet +
+  oral-anticoagulant rules have no substitute (Issue #3234); the plan is
+  applied at discharge (`limit_triple_antithrombotic`) and, for a protocol
+  with `acs_antithrombotic_plan` (acute MI), to the in-stay orders
+  (`acs_plan_action`: aspirin / clopidogrel kept with the plan's caution,
+  another P2Y12 inhibitor switched to clopidogrel).
 - `reference_data/disease_contraindications.yaml` — drug class ×
   chronic-disease rules (7 rules: NSAID in heart failure / cirrhosis /
   CKD stage 4-5 by ICD prefix / CKD stage 4-5 by stage, metformin in
   CKD stage 3b-5, sulfonamide and nitrofurantoin in G6PD deficiency).
+  The NSAID rules of heart failure and CKD stage 4-5 exclude antiplatelet
+  aspirin (`exclude_classes`, Issue #3234).
   Applied when chronic medications are sampled and, since Issue #2855,
   on every new order (`apply_drug_safety_gate_to_orders`) and every ED
   order or take-home prescription.
@@ -193,8 +201,8 @@ Six YAML files plus the drug catalog:
   thiazide / loop diuretics and celecoxib (Strom, NEJM 2003).
 - `modules/drug_safety/reference_data/drug_substitution.yaml` — generic indication →
   alternative pool keyed by catalog `drug_id` (pain_management →
-  acetaminophen; hypertension_or_rate_control → amlodipine /
-  candesartan).
+  acetaminophen, never for an antiplatelet (`not_for_classes`, Issue
+  #3234); hypertension_or_rate_control → amlodipine / candesartan).
 - `reference_data/hyperkalemia_response.yaml` — the potassium treatment
   threshold (6.0 mmol/L; KDIGO 2024 CKD, 2022 AHA/ACC/HFSA heart failure
   and UK Kidney Association 2020 acute hyperkalaemia guidelines), the

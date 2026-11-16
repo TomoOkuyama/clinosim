@@ -73,13 +73,20 @@ discharge_reconciliation_rules: [<rule id>, ...]   # 退院処方で reconcile �
 triple_therapy_after_acs:          # ACS 後に抗凝固薬 + DAPT で退院する場合の抗血栓療法 plan
   aspirin_days: <1 以上の int>
   p2y12_with_oac: <カタログ drug id>
-  p2y12_dose: "<用量文字列>"
+  p2y12_dose: "<用量文字列>"               # 退院処方 item の用量
+  p2y12_order_dose: "<用量文字列>"         # 入院中オーダー (Issue #3234)
+  p2y12_order_frequency: "<頻度>"
+  replaces_rules: [<rule id>, ...]         # plan が扱う抗凝固薬 + 抗血小板薬の rule
+  rationale: {en: "...", ja: "..."}        # 注意 note / skip log の根拠
 ```
 
 `discharge_reconciliation_rules` は `rules` で定義済みの rule id を
 指す必要がある (`discharge_reconciliation_rules()` が読む)。
 `triple_therapy_after_acs` は `triple_therapy_after_acs_plan()` が
-読む。
+読み、その `replaces_rules` も rule id を指す必要がある。Issue #3234:
+`acs_antithrombotic_plan: true` のプロトコルでは、抗血小板薬オーダーを
+止める判定がすべて `replaces_rules` のときに入院中も plan を適用する
+(`acs_plan_action`)。
 
 照合:
 - **順序非依存**: `check_pair(A, B) == check_pair(B, A)`。
@@ -116,6 +123,7 @@ rules:
       stage_in: [<stage 文字列>]           # 任意 (Issue #1769)。entry が一致する stage を持つ必要あり
     severity: minor | moderate | major | contraindicated
     substitution_hint: <任意の indication tag>
+    exclude_classes: [<カタログ class>]  # 任意 (Issue #3234): この class の薬剤には適用しない
     rationale:
       en: "..."
       ja: "..."
@@ -187,6 +195,7 @@ COX-2 阻害薬、サルファ剤系抗菌薬アレルギーでの非抗菌薬�
 indications:
   <indication_tag>:
     description: "<1 行の説明>"
+    not_for_classes: [<カタログ class>]  # 任意 (Issue #3234): この class の候補には代替薬を出さない
     alternatives:
       - drug_id: <clinosim/codes/data/drugs.yaml の id>   # 表示名 (en + ja) はカタログから解決
         default_dose: "<中立的な用量文字列>"

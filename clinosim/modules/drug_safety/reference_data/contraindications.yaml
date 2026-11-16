@@ -18,7 +18,9 @@ rules:
     rationale:
       en: "VKA + antiplatelet substantially raises major bleeding risk. Allowed only under specific indications (recent PCI + AF ≤12mo, mechanical valve + secondary prevention) with GI protection."
       ja: "ワルファリン (VKA) と抗血小板薬の併用は重大出血リスクを大幅に上昇。特定の適応 (PCI 後 12 か月以内かつ AF、機械弁 + 二次予防) 下でのみ、消化管保護と併用。"
-    substitution_hint: pain_management
+    # Issue #3234: an analgesic is no alternative to an antiplatelet; the ACS
+    # regimen with an anticoagulant is ``triple_therapy_after_acs`` below.
+    substitution_hint: null
     source: "CHEST 2016 antithrombotic guidelines; JCS 2020 抗血栓療法"
 
   # Issue #1334 part 2 (META #1392 Cluster A): DOAC + P2Y12-inhibitor
@@ -26,9 +28,8 @@ rules:
   # discharge Rx pattern review found DOAC + Aspirin + Clopidogrel triple
   # therapy emitted on encounters without a documented PCI. DOAC + P2Y12
   # is contraindicated outside of the post-PCI+AF ≤6-week window; DOAC +
-  # Aspirin is already caught by ``anticoagulant-plus-nsaid`` below
-  # (Aspirin dual-classed as antiplatelet.cox_inhibitor + nsaid). This
-  # rule closes the third leg of the triple.
+  # Aspirin is ``doac-plus-aspirin`` below. This rule closes the third leg
+  # of the triple.
   - id: doac-plus-p2y12
     lhs: anticoagulant.doac
     rhs: antiplatelet.p2y12
@@ -36,7 +37,7 @@ rules:
     rationale:
       en: "DOAC + P2Y12 inhibitor (Clopidogrel/Prasugrel/Ticagrelor) raises major bleeding risk. Reserved to a brief post-PCI window in AF patients (≤6 weeks); long-term double therapy is not indicated."
       ja: "DOAC と P2Y12 阻害薬 (クロピドグレル/プラスグレル/チカグレロル) の併用は重大出血リスクを大幅に上昇。AF での PCI 直後 6 週以内に限定される二剤併用、長期併用は原則禁忌。"
-    substitution_hint: pain_management
+    substitution_hint: null
     source: "AUGUSTUS 2019, ENTRUST-AF-PCI 2019, JCS 2020 抗血栓療法"
 
   - id: anticoagulant-plus-nsaid
@@ -51,12 +52,31 @@ rules:
     # Issue #3003: heparin (unfractionated or low-molecular-weight) with
     # low-dose antiplatelet aspirin is the standard regimen of acute coronary
     # syndrome and PCI; the bleeding caution concerns analgesic NSAIDs.
-    # Aspirin with an oral anticoagulant stays caught (this rule for DOACs,
-    # vka-plus-antiplatelet for warfarin).
+    # Issue #3234: aspirin is an NSAID only by class; with an oral
+    # anticoagulant it is an antiplatelet question (doac-plus-aspirin,
+    # vka-plus-antiplatelet), never one answered with an analgesic.
     exempt:
       - lhs: anticoagulant.heparin
         rhs: antiplatelet
         source: "2025 ACC/AHA/ACEP/NAEMSP/SCAI ACS guideline; JCS 2018 急性冠症候群ガイドライン"
+      - lhs: anticoagulant
+        rhs: antiplatelet
+        source: "AUGUSTUS (Lopes RD et al. N Engl J Med 2019;380:1509-1524)"
+
+  # Issue #3234: the antiplatelet leg of DOAC + aspirin, formerly caught as an
+  # NSAID by anticoagulant-plus-nsaid (which offered acetaminophen). AUGUSTUS
+  # randomised AF patients after ACS / PCI on a P2Y12 inhibitor to aspirin or
+  # placebo: aspirin raised major or clinically relevant non-major bleeding
+  # (16.1% vs 9.0%, HR 1.89) without fewer ischaemic events.
+  - id: doac-plus-aspirin
+    lhs: anticoagulant.doac
+    rhs: antiplatelet.cox_inhibitor
+    severity: contraindicated
+    rationale:
+      en: "DOAC + aspirin raises major bleeding risk without reducing ischaemic events; after ACS / PCI aspirin is limited to a short peri-PCI course with the anticoagulant and a P2Y12 inhibitor."
+      ja: "DOAC とアスピリンの併用は虚血イベントを減らさずに重大出血リスクを上昇させる。ACS / PCI 後は抗凝固薬と P2Y12 阻害薬に加え、アスピリンは PCI 周術期の短期間に限る。"
+    substitution_hint: null
+    source: "AUGUSTUS (Lopes RD et al. N Engl J Med 2019;380:1509-1524)"
 
   - id: bb-plus-non-dhp-ccb
     lhs: beta_blocker
@@ -271,8 +291,22 @@ discharge_reconciliation_rules:
 # for at most a week, then the anticoagulant plus clopidogrel (the P2Y12
 # inhibitor studied with OAC; ticagrelor / prasugrel are switched).
 # AUGUSTUS (NEJM 2019;380:1509); ACC 2020 expert consensus; ESC 2023 ACS.
+# Issue #3234: the in-stay orders of a protocol that declares
+# ``acs_antithrombotic_plan`` follow the same plan: when the only block of an
+# antiplatelet order is one of ``replaces_rules`` (the anticoagulant), aspirin
+# and clopidogrel are given with the ``rationale`` as a caution, and another
+# P2Y12 inhibitor is switched to clopidogrel (``p2y12_order_*``).
 triple_therapy_after_acs:
   aspirin_days: 7
   p2y12_with_oac: clopidogrel
   p2y12_dose: "75mg PO daily"
+  p2y12_order_dose: "75mg"
+  p2y12_order_frequency: "daily"
+  replaces_rules:
+    - vka-plus-antiplatelet
+    - doac-plus-p2y12
+    - doac-plus-aspirin
+  rationale:
+    en: "Anticoagulant with antiplatelet therapy after ACS: clopidogrel is the P2Y12 inhibitor given with the anticoagulant, and aspirin is limited to a short course (up to 7 days) because it adds bleeding without fewer ischaemic events."
+    ja: "ACS 後の抗凝固薬と抗血小板薬の併用: 抗凝固薬と併用する P2Y12 阻害薬はクロピドグレルとし、アスピリンは虚血イベントを減らさず出血を増やすため短期間 (7 日以内) に限る。"
 
