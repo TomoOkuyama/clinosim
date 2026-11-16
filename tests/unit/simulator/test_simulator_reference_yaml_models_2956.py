@@ -12,6 +12,7 @@ import pytest
 from pydantic import BaseModel, ValidationError
 
 from clinosim.datafiles import load_data_yaml, load_validated_yaml
+from clinosim.simulator.adl_ceiling import AdlCeilingRules
 from clinosim.simulator.diagnosis_rules import DiagnosisRulesFile
 from clinosim.simulator.helpers import ChronicPropagationRules
 from clinosim.simulator.medication_pipeline import RenalMedicationRules, VasoactiveHoldRules
@@ -23,6 +24,7 @@ pytestmark = pytest.mark.unit
 _DIR = Path(__file__).resolve().parents[3] / "clinosim" / "simulator" / "reference_data"
 
 _MODELS: dict[str, type[BaseModel]] = {
+    "adl_functional_ceilings.yaml": AdlCeilingRules,
     "chronic_propagation.yaml": ChronicPropagationRules,
     "diagnosis_rules.yaml": DiagnosisRulesFile,
     "icd10_sex_restrictions.yaml": SexRestrictionRules,
@@ -61,6 +63,7 @@ def _stray_top_level_key(data: dict[str, Any]) -> None:
 # A misspelled (or misshapen) entry below the top level. Files whose sections
 # are plain lists or maps of scalars get a malformed nested value instead.
 _NESTED: dict[str, Callable[[dict[str, Any]], None]] = {
+    "adl_functional_ceilings.yaml": lambda d: d["conditions"][0].update(stage_atribute="x"),
     "chronic_propagation.yaml": lambda d: d["chronic_propagatable"].append("E11.9"),
     "diagnosis_rules.yaml": lambda d: _rename(d["unknown_condition_codes"]["default"], "admission", "admision"),
     "icd10_sex_restrictions.yaml": lambda d: d["male_only"].append({"code": "N40"}),

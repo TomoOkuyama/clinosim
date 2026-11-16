@@ -161,6 +161,8 @@ clinosim/simulator/
   ed_procedures.py       timing of bedside procedures within an ED visit
   screening_visit.py     scheduled screening visits run from their
                          encounter protocol (workup + screening labs)
+  adl_ceiling.py         premorbid Barthel item ceilings of staged chronic
+                         conditions (dementia CDR stage)
   statin_monitoring.py   lipid monitoring + statin titration at chronic
                          follow-up visits
   diagnosis_rules.py     diagnosis-coding rule tables of the encounter
@@ -239,9 +241,10 @@ CLI subcommand handlers (11 files):
   cli_test_encounter.py  `clinosim test-encounter` subcommand
 ```
 
-Reference data (`reference_data/`, 6 YAMLs):
+Reference data (`reference_data/`, 7 YAMLs):
 
 ```
+  reference_data/adl_functional_ceilings.yaml  premorbid Barthel ceiling by dementia CDR stage (adl_ceiling.py)
   reference_data/chronic_propagation.yaml     chronic-condition propagation (helpers.py)
   reference_data/diagnosis_rules.yaml         diagnosis-coding rules (diagnosis_rules.py)
   reference_data/icd10_sex_restrictions.yaml  ICD-10 sex gates (sex_gating.py)

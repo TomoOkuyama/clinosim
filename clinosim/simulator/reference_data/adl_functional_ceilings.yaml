@@ -1,0 +1,56 @@
+# Premorbid Barthel Index ceilings set by a staged chronic functional
+# condition (Issue #3237).
+#
+# Read by clinosim/simulator/adl_ceiling.py (`adl_ceiling_rules`,
+# `barthel_item_caps`) and applied in the inpatient ADL assessment
+# (simulator/vitals_pipeline.py::_generate_adl_assessment). A patient whose
+# chronic condition (`patient.chronic_conditions`, ICD code starting with the
+# stage attribute's `icd_base`) carries one of the stages below scores at most
+# the listed points on each Barthel item; the total ceiling is the sum of the
+# item ceilings (items not listed keep their full Barthel maximum). Acute
+# illness and in-hospital recovery move the score below this ceiling, never
+# above it. `stage_attribute` names a Markov stage attribute of
+# locale/shared/longitudinal/stage/ and every one of its states has an entry.
+#
+# Dementia (F00, Clinical Dementia Rating): each stage's "Personal Care" box
+# of the CDR scoring table (Knight Alzheimer Disease Research Center,
+# Washington University in St. Louis, CDR table, copyright 2001; the rating
+# of Morris JC, Neurology 1993;43:2412) is translated into the Barthel item
+# levels it rules out, using the Barthel Index item definitions and "The
+# Barthel ADL Index: Guidelines" (Mahoney FI, Barthel DW. Md State Med J
+# 1965;14:56-61; score sheet and guidelines as distributed by the Internet
+# Stroke Center): "The main aim is to establish degree of independence from
+# any help, physical or verbal, however minor and for whatever reason" (2),
+# "The need for supervision renders the patient not independent" (3), and
+# "Middle categories imply that the patient supplies over 50 per cent of the
+# effort" (6). The CDR box scores only the decline due to cognitive loss, so
+# the ceilings bound the self-care and continence items; mobility, transfers,
+# stairs and feeding are not bounded here.
+#   - CDR 0.5 "Fully capable of self-care": no ceiling.
+#   - CDR 1 "Needs prompting": verbal help is not independence (2, 3) ->
+#     bathing 0 ("dependent"; the item has no middle level), grooming 0
+#     ("needs to help with personal care"), dressing 5 ("needs help but can
+#     do about half unaided"). Ceiling 85.
+#   - CDR 2 "Requires assistance in dressing, hygiene, keeping of personal
+#     effects": as CDR 1, plus toilet use 5 ("needs some help, but can do
+#     something alone"; independent toileting includes "dressing, wiping").
+#     Ceiling 80.
+#   - CDR 3 "Requires much help with personal care; frequent incontinence":
+#     much help means the patient supplies less than half the effort, below
+#     the middle categories (6) -> dressing 0, toilet use 0, bathing 0,
+#     grooming 0; frequent incontinence is more than "occasional accident" ->
+#     bladder 0 ("incontinent"); the CDR does not say which continence is
+#     lost, so bowels are bounded at 5 ("occasional accident"), not 0.
+#     Ceiling 55.
+metadata:
+  kind: reference
+  name: adl_functional_ceilings
+  source: clinosim
+
+conditions:
+  - stage_attribute: dementia_stage_f00
+    item_caps_by_stage:
+      "CDR 0.5": {}
+      "CDR 1": {bathing: 0, grooming: 0, dressing: 5}
+      "CDR 2": {bathing: 0, grooming: 0, dressing: 5, toilet_use: 5}
+      "CDR 3": {bathing: 0, grooming: 0, dressing: 0, toilet_use: 0, bladder_control: 0, bowel_control: 5}
