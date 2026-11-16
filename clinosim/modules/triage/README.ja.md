@@ -22,12 +22,24 @@ level は ESI v4 に従い (Issue #2864)、JTAS の level も同じ規則に従�
 4. 結果を範囲内に clamp し、最後に来院時 vitals による上限
    (`triage_level_cap`、Issue #2082) を適用する (範囲を下回りうる)。
 
-非 emergency encounter は no-op。
+ED 経由の入院 (`admit_source` が `emd` の inpatient / ICU encounter、
+Issue #3243) も ED でトリアージを受けている: 来院時刻 (入院の
+`admitted_ed_stay()` 前) を triage time とする `triage_data` を持ち、
+enricher は ED 来院時のバイタルセットを `record.vital_signs` に追加する —
+入院時の状態 (`physiological_states[0]`) から単独 ED 受診のトリアージ
+バイタルと同じ関数 (`simulator.vitals_pipeline.ed_arrival_vitals`) で
+導出し、ED 看護師がトリアージバイタルの offset で測定、GCS 付き、
+FHIR 出力が ED bridge Encounter に載せられるよう
+`data_source = ED_TRIAGE_DATA_SOURCE` (`"ed_triage"`) を付ける。この入院
+では ESI resource は初期 order set (`order_set == "admission_initial"`、
+ED の order) のみを数え、vitals 上限は来院時セットのみを読む。その他の
+encounter は no-op。
 
 ## Scope
 
 - **In scope**: `triage_enricher` (POST_ENCOUNTER order=93、ED
-  限定)、`pick_triage_level(severity, level_system, rng)` — YAML
+  受診と ED 経由入院)、`admitted_ed_stay()` — ED 経由入院の ED 滞在
+  (document engine と FHIR bridge Encounter が共用)、`pick_triage_level(severity, level_system, rng)` — YAML
   weight 表 (severity 別、JTAS と ESI で共通、condition の範囲に制限)、
   `triage_scale(country)` — 国プロファイルが指名する尺度
   (`implementations.triage_scale`: `esi` / `jtas`、Issue #3144) の level
@@ -61,6 +73,7 @@ from clinosim.modules.triage.engine import (
     resource_level,              # (orders) -> 3 / 4 / 5
     has_high_risk_order,         # (record, orders) -> bool
     triage_level,                # (record, enc, drawn) -> 最終 level
+    admitted_ed_stay,            # () -> timedelta、ED 経由入院の入院前 ED 滞在
     triage_level_cap,            # (vitals) -> 許容される最非緊急 level
     load_triage_protocols,       # () -> dict (@lru_cache、TriageProtocols 検証済)
 )
@@ -77,11 +90,21 @@ from clinosim.modules.triage.engine import (
 - encounter あたり 2 draw (level → arrival mode)。範囲制限は level
   draw の写像先を変えるだけで draw 数は変えないため、arrival mode は
   影響を受けない (Issue #2864)。
+- ED 経由入院は来院時バイタル (バイタルノイズ、疼痛、AVPU、roster が
+  あれば ED 看護師、GCS) を同じ per-encounter RNG から level と
+  arrival mode の前に draw する。ED 受診の draw は従来どおり。nursing
+  enricher は既に GCS が入ったバイタルセットの GCS を保持し draw しない
+  ため、その stream は変わらない (Issue #3243)。
 
 ## 依存
 
 - `clinosim.modules._shared` — `get_attr_or_key`, `is_jp`,
-  `normalize_probabilities`。
+  `normalize_probabilities`, `admitted_via_ed`, `ED_TRIAGE_DATA_SOURCE`,
+  `ORDER_SET_ADMISSION_INITIAL`, `get_or_create_container`。
+- `clinosim.simulator.vitals_pipeline` — `ed_arrival_vitals`、
+  `clinosim.simulator._ed_thresholds` — `ED_VITALS_OFFSET_MIN`、
+  `clinosim.modules.staff.engine` — `assign_staff`、
+  `clinosim.modules.observation.nursing` — `compute_gcs`。
 - `clinosim.seeding` — `ENRICHER_SEED_OFFSETS`, `derive_sub_seed`。
 - `clinosim.types.triage` — `TriageData`。
 - `clinosim.modules.encounter.protocol` — `load_all_encounter_conditions`
@@ -97,7 +120,8 @@ from clinosim.modules.triage.engine import (
   country 非依存の `severity_to_triage_distribution`、
   `arrival_mode_base_distribution`、`arrival_mode_severity_multipliers`、
   ESI v4 の `resource_rule` (`level_by_count`、`parenteral_routes`、
-  `non_resource_procedures`)。
+  `non_resource_procedures`)、`admitted_ed_stay_minutes` (> 0、ED 経由
+  入院の ED 滞在)。
   `TriageProtocols` model (初回 `load_triage_protocols()` 呼出時に
   実行) の検査: top level 非空 / `triage_systems` が JTAS+ESI ちょうど /
   各 system の level が 1-5 / `arrival_modes` と
@@ -134,7 +158,9 @@ clinosim/modules/triage/
 - `name="triage"`, `stage=POST_ENCOUNTER`, `order=93`,
   `enabled=lambda c: True`。
 - `nursing_assignment` (order=94) と `document` (order=95) の前に
-  実行。enricher body 内で ED-only 判定 (非 ED encounter は skip)。
+  実行するため、document module は ED 経由入院の triage data を見て
+  トリアージ記録を計画できる。enricher body 内で ED 受診と ED 経由入院
+  のみを処理 (その他の encounter は skip)。
 - `audit.py` module は import 時に AD-60 audit framework に
   `register_audit_module` で登録される。
 
@@ -162,6 +188,9 @@ clinosim audit run -d <cohort_dir> --module triage
   — `TriageProtocols` validator coverage。
 - [`tests/unit/modules/triage/test_esi_bounds_2864.py`](../../../tests/unit/modules/triage/test_esi_bounds_2864.py)
   — 範囲制限付き抽選、resource 規則、high-risk order、vitals 上限。
+- [`tests/unit/modules/triage/test_ed_admission_triage_3243.py`](../../../tests/unit/modules/triage/test_ed_admission_triage_3243.py)
+  — ED 経由入院: 来院時の triage、来院時バイタル、ED 相の order と
+  vitals 上限、nursing GCS stream。
 
 ## Ownership
 

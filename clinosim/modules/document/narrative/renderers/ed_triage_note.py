@@ -46,7 +46,9 @@ def render_ed_triage_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> Narr
     level = _o(triage, "level", "") or ""
     level_system = _o(triage, "level_system", "") or ""
     arrival_mode = _o(triage, "arrival_mode", "") or ""
-    cc_summary = _o(triage, "chief_complaint_summary", "") or ""
+    # Issue #3243: an admission's ``chief_complaint`` is English with the
+    # localized text on ``chief_complaint_<lang>``; read that first.
+    cc_summary = _o(ctx.encounter, f"chief_complaint_{lang}", "") or _o(triage, "chief_complaint_summary", "") or ""
     arrival_display = _label("arrival_mode", arrival_mode, lang, fallback=arrival_mode)
 
     level_line = (

@@ -114,6 +114,7 @@ Governing spec: [`implementation-rules.md`](implementation-rules.md) §4.
 | `clinosim/modules/_shared.py` `strip_protocol_prefix(name)` | Removing the protocol/category prefix from a drug order string. |
 | `clinosim/modules/_shared.py` `sanitize_id_token(token, max_len)` | Turning free text into an id-safe token. |
 | `clinosim/modules/_shared.py` `practitioner_name(staff_id, roster_map)` | A staff member's roster name. |
+| `clinosim/modules/_shared.py` `admitted_via_ed(encounter)` | Whether a stay was admitted through the ED (`admit_source` `emd`, enum or serialized string). Do not compare `admit_source` strings inline. |
 
 ## 7. Clinical domain helpers
 

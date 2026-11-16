@@ -87,3 +87,11 @@ arrival_mode_severity_multipliers:
     private_vehicle: 0.5
     police: 2.0
     helicopter: 5.0
+
+# Time a patient admitted through the ED spends in the ED before the
+# admission (Issue #3243): the ED phase runs [admission - this, admission].
+# It places the ED arrival (triage time and arrival vitals) and is the period
+# of the ED Encounter the FHIR output synthesizes for the admission and the
+# window of its ED documents. clinosim convention (3.5 h), not a sourced
+# statistic.
+admitted_ed_stay_minutes: 210

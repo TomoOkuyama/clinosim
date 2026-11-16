@@ -450,6 +450,8 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
+        "encounter.triage_data",
+        "ctx.vitals[0]",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
         "ctx.encounter.chief_complaint",
@@ -467,10 +469,27 @@
         "disposition": "Admitted (Nausea, vomiting, abdominal pain, polyuria, altered consciousness)",
         "ed_workup": "Labs: glucose, β-hydroxybutyrate, Na, K, Cl, HCO3, BUN, creatinine. Imaging: chest X-ray PA, ECG, chest X-ray AP. Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0",
         "hpi": "Patient presented with severe symptoms.",
-        "physical_exam": "Examination on arrival: not recorded",
-        "triage_details": "Triage information: not recorded"
+        "physical_exam": "On arrival: BP 105/69 mmHg, HR 125 bpm, RR 21 /min, SpO2 100%, T 36.1°C.",
+        "triage_details": "Triage level: ESI Level 1. Arrival mode: Helicopter/air transport."
       },
       "text": ""
+    }
+  },
+  "doc-ENC-FORCED-0001-710895237827-ED-17": {
+    "document_id": "doc-ENC-FORCED-0001-710895237827-ED-17",
+    "encounter_id": "ENC-FORCED-0001-710895237827",
+    "narrative": {
+      "facts_used": [
+        "encounter.triage_data"
+      ],
+      "generated_at": "2024-06-15T02:16:00Z",
+      "generator": "template",
+      "generator_metadata": {
+        "generator": "template",
+        "lang": "en"
+      },
+      "sections": {},
+      "text": "Triage level: ESI Level 1\nArrival mode: Helicopter/air transport\nChief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness"
     }
   }
 }

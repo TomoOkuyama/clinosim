@@ -119,6 +119,13 @@ from clinosim.simulator._daily_io_thresholds import (
     IO_URINE_SD_FLOOR_ML,
     IO_URINE_SD_RATIO,
 )
+from clinosim.simulator._ed_thresholds import (
+    ED_PAIN_BASELINE,
+    ED_PAIN_INFLAMMATION_SCALE,
+    ED_PAIN_MAX,
+    ED_PAIN_MIN,
+    ED_PAIN_NOISE_STD,
+)
 from clinosim.simulator._loc_thresholds import (
     LOC_MODERATE_HYPOPERFUSION_THRESHOLD,
     LOC_MODERATE_V_OVER_P_PROBABILITY,
@@ -404,6 +411,55 @@ def _pain_score(state, day, rng) -> int:
     if level:
         pain = max(pain, int(min(VITALS_PAIN_MAX, round(level * PAIN_SCORE_SCALE))))
     return pain
+
+
+def ed_arrival_vitals(
+    state: PhysiologicalState,
+    patient: PatientProfile,
+    timestamp: datetime,
+    rng: np.random.Generator,
+    *,
+    measured_by: str = "",
+    assess_avpu: bool = True,
+    temperature: float | None = None,
+    data_source: str = "manual",
+) -> VitalSignRecord:
+    """The full vital-sign set the ED triage nurse records on arrival.
+
+    Physiology-derived like every other reading (AD-57): the true values come
+    from ``state``, then measurement noise. ED presentations are acute, so the
+    pain score follows the ED model (inflammation-scaled, floored by the
+    state's pain axis). ``assess_avpu`` records AVPU from the state (a
+    scheduled clinic visit does not assess it). ``temperature`` replaces the
+    derived reading (a presentation defined by fever, Issue #3063). Draws, in
+    order: the vitals noise, one pain draw, then the AVPU draws.
+    """
+    raw = derive_observed_vitals(
+        state,
+        patient.baseline_vitals,
+        timestamp,
+        rng,
+        age_months=age_in_completed_months(patient.date_of_birth, timestamp),
+    )
+    if temperature is not None:
+        raw["temperature"] = temperature
+    pain_mean = state.inflammation_level * ED_PAIN_INFLAMMATION_SCALE + ED_PAIN_BASELINE
+    pain = int(max(ED_PAIN_MIN, min(ED_PAIN_MAX, rng.normal(pain_mean, ED_PAIN_NOISE_STD))))
+    if state.pain_level:
+        pain = max(pain, int(min(ED_PAIN_MAX, round(state.pain_level * PAIN_SCORE_SCALE))))
+    return VitalSignRecord(
+        timestamp=timestamp,
+        temperature_celsius=round(raw["temperature"], 1),
+        heart_rate=int(round(raw["heart_rate"])),
+        systolic_bp=int(round(raw["systolic_bp"])),
+        diastolic_bp=int(round(raw["diastolic_bp"])),
+        respiratory_rate=int(round(raw["respiratory_rate"])),
+        spo2=round(raw["spo2"], 1),
+        pain_score=pain,
+        consciousness_level=_loc_for(state, "", 0, rng) if assess_avpu else "",
+        measured_by=measured_by,
+        data_source=data_source,
+    )
 
 
 def monitoring_tier(state: PhysiologicalState, disease_id: str, day: int) -> str:

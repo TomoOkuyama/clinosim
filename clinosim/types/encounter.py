@@ -87,7 +87,7 @@ class Encounter:
     priority: str = ""  # "EM" (emergency) | "UR" (urgent) | "R" (routine)
     # Tier 1 #3 additions
     primary_nurse_id: str = ""  # Set by nursing_enricher (inpatient only).
-    triage_data: TriageData | None = None  # Set by triage_enricher (ED only).
+    triage_data: TriageData | None = None  # Set by triage_enricher (ED visits and via-ED admissions).
     # AD-65 Bug C fix: severity sampled in emergency.py ("mild"/"moderate"/"severe"),
     # consumed by triage_enricher.pick_triage_level(). Previously sampled but never
     # stored on Encounter -> triage_enricher always defaulted to "moderate" -> no
@@ -332,7 +332,8 @@ class VitalSignRecord:
     )
     nursing_note: str = ""  # brief nursing assessment
     measured_by: str = ""  # nurse staff_id
-    data_source: str = "manual"  # "manual" | "device_auto"
+    # "manual" | "device_auto" | "ed_triage" (ED arrival set of a via-ED admission, Issue #3243)
+    data_source: str = "manual"
     news2_score: int | None = None  # NEWS2 aggregate (0-20), derived from this vital set
     gcs_score: int | None = None  # Glasgow Coma Scale total (3-15)
 

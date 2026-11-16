@@ -298,6 +298,7 @@ _.arrival_modes  # triage/engine.py TriageProtocols
 _.severity_to_triage_distribution  # triage/engine.py TriageProtocols
 _.arrival_mode_base_distribution  # triage/engine.py TriageProtocols
 _.resource_rule  # reference-YAML model field (Issue #2864)
+_.admitted_ed_stay_minutes  # reference-YAML model field (Issue #3243)
 _.level_by_count  # reference-YAML model field (Issue #2864)
 _.exempt  # modules/drug_safety/_models.py _InteractionRule (Pydantic field; read from the YAML dict in engine._exempt, Issue #3003)
 _.p2y12_order_dose  # modules/drug_safety/_models.py _TripleTherapyPlan (Pydantic field; read from the YAML dict in engine.acs_plan_p2y12_alternative, Issue #3234)

@@ -84,7 +84,10 @@ module から直接 import する (Issue #545 rename)。
     `_PR_NUMBER_RE = r"\(#(\d+)\)\s*$"`。
   - `ed_reattribution.py` — `convert_cif_to_fhir` が via-ED IMP
     encounter を合成 ED bridge encounter に再帰属する際に使う
-    `reattribute_encounter_to_ed_bridge` helper (N-3 PR #810 chain)。
+    `reattribute_encounter_to_ed_bridge` helper (N-3 PR #810 chain) と、
+    ED 来院時バイタルセット (`data_source == "ed_triage"`) とその
+    NEWS2 / GCS を bridge に載せる `vital_sign_encounter_id(vs, ctx)`
+    (Issue #3243)。
   - `ids.py` — opaque Resource.id 導出 (Issue #349):
     `CLINOSIM_IDENTIFIER_SYSTEM_PREFIX = "urn:clinosim:identifier:"`、
     `structural_key_system(kind)` (`urn:clinosim:identifier:<kind>`

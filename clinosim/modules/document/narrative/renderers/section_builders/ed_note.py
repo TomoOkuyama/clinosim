@@ -151,7 +151,10 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
         vital_line = generator._compose_vital_signs_line(ctx)
         if vital_line:
             facts.append("ctx.vitals[0]")
-            return t("ed.on_arrival_no_findings", lang, vitals=vital_line), facts
+            # Issue #3243: an admitted patient's arrival vitals (often
+            # abnormal) are quoted without asserting a normal exam.
+            key = "ed.on_arrival_vitals" if _admitted_from_ed(ctx) else "ed.on_arrival_no_findings"
+            return t(key, lang, vitals=vital_line), facts
         if _admitted_from_ed(ctx):
             # No reading from the ED period (Issue #3242): say nothing was
             # recorded rather than assert a normal exam.

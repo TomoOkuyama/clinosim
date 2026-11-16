@@ -27,6 +27,7 @@ from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept, survey_category, system_coding
 from clinosim.modules.output.fhir_r4.lib.context import BundleContext
+from clinosim.modules.output.fhir_r4.lib.ed_reattribution import vital_sign_encounter_id
 from clinosim.modules.output.fhir_r4.lib.fhir_time import to_fhir_datetime
 from clinosim.modules.output.fhir_r4.lib.ids import (
     derive_opaque_id,
@@ -291,7 +292,9 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
     default_nurse_id = encounters[0].get("primary_nurse_id", "") if encounters else ""
     out: list[dict] = []
 
-    def _obs_base(obs_id: str, effective: str | None, performer_id: str = "") -> dict[str, Any]:
+    def _obs_base(
+        obs_id: str, effective: str | None, performer_id: str = "", encounter: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Return the shared skeleton of a survey Observation.
 
         RM-1 (cycle 3 tail): performer forwarded when known
@@ -307,8 +310,8 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
             "category": survey_category(lang_for(ctx.country)),
             "subject": subject,
         }
-        if enc_ref:
-            resource["encounter"] = enc_ref
+        if encounter or enc_ref:
+            resource["encounter"] = encounter or enc_ref
         if effective:
             resource["effectiveDateTime"] = effective
         if performer_id:
@@ -328,11 +331,14 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         effective = to_fhir_datetime(ts) or None
 
         performer_id = vs.get("measured_by", "") or ""
+        # Issue #3243: the ED arrival set is scored on the ED bridge Encounter.
+        vs_enc = vital_sign_encounter_id(vs, ctx)
+        vs_enc_ref = encounter_ref(vs_enc) if vs_enc else None
         news2 = vs.get("news2_score")
         if news2 is not None and score_news2:
             # Issue #854 Bucket A row 4 (PR-obs-vs): opaque NEWS2 Observation.id.
             _news2_structural_key = f"{enc or ctx.patient_id}-{i}"
-            obs = _obs_base(_resolve_news2_score_id(_news2_structural_key), effective, performer_id)
+            obs = _obs_base(_resolve_news2_score_id(_news2_structural_key), effective, performer_id, vs_enc_ref)
             obs["identifier"] = [wrap_as_identifier(_news2_structural_key, NEWS2_SCORE_KEY_SYSTEM)]
             # Issue #269: NEWS2 does NOT have a canonical LOINC
             # 2.82 code — the previously-used `90557-9` is not in LOINC
@@ -368,7 +374,7 @@ def _bb_nursing_observations(ctx: BundleContext) -> list[dict]:
         if gcs is not None:
             # Issue #854 Bucket A row 4 (PR-obs-vs): opaque GCS Observation.id.
             _gcs_structural_key = f"{enc or ctx.patient_id}-{i}"
-            obs = _obs_base(_resolve_gcs_score_id(_gcs_structural_key), effective, performer_id)
+            obs = _obs_base(_resolve_gcs_score_id(_gcs_structural_key), effective, performer_id, vs_enc_ref)
             obs["identifier"] = [wrap_as_identifier(_gcs_structural_key, GCS_SCORE_KEY_SYSTEM)]
             obs["code"] = {
                 "coding": [loinc_coding("9269-2", lang)],

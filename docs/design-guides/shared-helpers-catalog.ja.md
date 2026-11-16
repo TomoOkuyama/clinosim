@@ -114,6 +114,7 @@ Governing spec: [`implementation-rules.ja.md`](implementation-rules.ja.md) §4�
 | `clinosim/modules/_shared.py` `strip_protocol_prefix(name)` | 薬剤オーダー文字列からプロトコル・分類の接頭辞を外す。 |
 | `clinosim/modules/_shared.py` `sanitize_id_token(token, max_len)` | 自由記述を id に使える文字列にする。 |
 | `clinosim/modules/_shared.py` `practitioner_name(staff_id, roster_map)` | 職員の名簿上の氏名。 |
+| `clinosim/modules/_shared.py` `admitted_via_ed(encounter)` | 入院が ED 経由か (`admit_source` が `emd`、enum でも直列化文字列でも)。`admit_source` 文字列をその場で比較しない。 |
 
 ## 7. 臨床ドメインのヘルパー
 

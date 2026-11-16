@@ -165,3 +165,14 @@ def test_ed_visit_sent_home_keeps_its_arrival_vitals() -> None:
     vitals = [_vital(datetime(2025, 11, 20, 18, 40), 95)]
     text, _ = build_ed_physical_exam(TemplateNarrativeGenerator(), _ctx("emergency", "en", [], vitals))
     assert "On arrival" in text and "HR 95" in text, text
+
+
+@pytest.mark.parametrize(
+    ("lang", "arrival", "no_findings"), [("en", "On arrival", "No focal"), ("ja", "来院時所見", "特記")]
+)
+def test_admitted_arrival_vitals_do_not_assert_a_normal_exam(lang: str, arrival: str, no_findings: str) -> None:
+    # Issue #3243: the ED arrival set is recorded; with no ED exam source the
+    # note quotes the vitals and does not claim "no focal findings".
+    vitals = [_vital(datetime(2025, 11, 20, 15, 10), 121)]
+    text, _ = build_ed_physical_exam(TemplateNarrativeGenerator(), _ctx("inpatient", lang, [], vitals))
+    assert arrival in text and "121" in text and no_findings not in text, text
