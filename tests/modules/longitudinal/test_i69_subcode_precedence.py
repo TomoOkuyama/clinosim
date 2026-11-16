@@ -101,8 +101,8 @@ def test_i69_subcode_selects_subcode_attribute(i69_family_loader: Path) -> None:
     """
     person = _mk_person(["I69.3"], "P_SUB")
     rng = np.random.default_rng(0)
-    initial_snapshot(person, year=2024, init_rng=rng)
-    snap = advance_one_year(person, year=2025, year_rng=rng)
+    initial_snapshot(person, year=2024, init_rng=rng, country="US")
+    snap = advance_one_year(person, year=2025, year_rng=rng, country="US")
     assert snap.chronic_stages["I69"] == "mRS 1", (
         f"expected sub-code outcome 'mRS 1', got {snap.chronic_stages['I69']!r} — "
         f"base-code yaml leaked WRONG, longest-prefix selection missing"
@@ -118,6 +118,6 @@ def test_i69_bare_base_code_selects_base_attribute(i69_family_loader: Path) -> N
     """
     person = _mk_person(["I69"], "P_BASE")
     rng = np.random.default_rng(0)
-    initial_snapshot(person, year=2024, init_rng=rng)
-    snap = advance_one_year(person, year=2025, year_rng=rng)
+    initial_snapshot(person, year=2024, init_rng=rng, country="US")
+    snap = advance_one_year(person, year=2025, year_rng=rng, country="US")
     assert snap.chronic_stages["I69"] == "WRONG", snap

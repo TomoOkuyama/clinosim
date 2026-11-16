@@ -14,6 +14,11 @@
 #     (Issue #3257); imaging, CPAP and polysomnography take `none`. Absent
 #     means not recorded: endoscopy sedation practice varies by facility and
 #     country, so colonoscopy / EGD records carry no anesthesia type.
+#   medication_class / visit_reason_without_medication — (Issue #3253) when
+#     the patient takes no drug of the catalog class `medication_class`, the
+#     visit reason is `visit_reason_without_medication` instead of
+#     `visit_reason`, and the outpatient assessment states that no
+#     pharmacotherapy is given.
 
 metadata:
   kind: reference
@@ -176,6 +181,16 @@ F32:  # Depression — single episode (Issue #1137 cluster axis 2)
   visit_reason:
     en: "Depression symptom monitoring, PHQ-9 scoring, antidepressant management"
     ja: "うつ病症状モニタリング・PHQ-9 評価・抗うつ薬調整"
+  # Issue #3253: the visit reason of a patient on no drug of
+  # `medication_class` (catalog class, codes/data/drugs.yaml) — a mild
+  # episode followed without medication. Supportive psychotherapy and
+  # psychoeducation are the basic intervention for every patient in the
+  # 日本うつ病学会治療ガイドライン II (2016) 第 2 章 軽症うつ病; the APA
+  # guideline (2010) accepts psychotherapy alone for mild depression.
+  medication_class: antidepressant
+  visit_reason_without_medication:
+    en: "Depression symptom monitoring, PHQ-9 scoring, supportive psychotherapy and psychoeducation"
+    ja: "うつ病症状モニタリング・PHQ-9 評価・支持的精神療法・心理教育"
   follow_up_interval_months: 3
   labs: []
   # PHQ-9 (Patient Health Questionnaire-9, LOINC 44249-1) +
@@ -196,6 +211,11 @@ F33:  # Recurrent depressive disorder (Issue #1137 cluster axis 2)
   visit_reason:
     en: "Recurrent depression monitoring, PHQ-9 scoring, long-term antidepressant management"
     ja: "反復性うつ病性障害フォローアップ・PHQ-9 評価・長期抗うつ薬管理"
+  # Issue #3253: see F32.
+  medication_class: antidepressant
+  visit_reason_without_medication:
+    en: "Recurrent depression monitoring, PHQ-9 scoring, supportive psychotherapy and psychoeducation"
+    ja: "反復性うつ病性障害フォローアップ・PHQ-9 評価・支持的精神療法・心理教育"
   follow_up_interval_months: 3
   labs: []
   labs_quarterly: ["PHQ-9", "C-SSRS"]

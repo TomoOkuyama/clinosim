@@ -158,9 +158,9 @@ def test_advance_one_year_does_not_re_fire_i10_for_baseline_i10_person():
             date_of_birth=date(1964, 1, 1),
             chronic_conditions=["I10"],
         )
-        initial_snapshot(person, 2024, np.random.default_rng(seed * 10))
+        initial_snapshot(person, 2024, np.random.default_rng(seed * 10), country="US")
         for yr in range(2025, 2030):
-            snap = advance_one_year(person, year=yr, year_rng=np.random.default_rng(seed * 100 + yr))
+            snap = advance_one_year(person, year=yr, year_rng=np.random.default_rng(seed * 100 + yr), country="US")
             if "I10" in snap.new_complications:
                 re_fires.append((seed, yr))
     assert not re_fires, (

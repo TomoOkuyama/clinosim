@@ -39,12 +39,12 @@ def _dm_person_with_history(hba1c_values: dict[int, float]) -> PersonRecord:
         date_of_birth=date(1970, 6, 1),
         chronic_conditions=["E11.9"],
     )
-    initial_snapshot(p, year=years[0], init_rng=np.random.default_rng(0))
+    initial_snapshot(p, year=years[0], init_rng=np.random.default_rng(0), country="US")
     p.longitudinal_history[0].continuous["hba1c"] = hba1c_values[years[0]]
     from clinosim.modules.longitudinal.engine import advance_one_year
 
     for y in years[1:]:
-        advance_one_year(p, year=y, year_rng=np.random.default_rng(0))
+        advance_one_year(p, year=y, year_rng=np.random.default_rng(0), country="US")
         p.longitudinal_history[-1].continuous["hba1c"] = hba1c_values[y]
     return p
 

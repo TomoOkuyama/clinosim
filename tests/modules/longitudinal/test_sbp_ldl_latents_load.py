@@ -38,7 +38,7 @@ def test_sbp_latent_out_of_scope_for_non_htn_person():
         date_of_birth=date(1980, 1, 1),
         chronic_conditions=["E11.9"],
     )
-    snap = le.initial_snapshot(p, 2024, np.random.default_rng(0))
+    snap = le.initial_snapshot(p, 2024, np.random.default_rng(0), country="US")
     assert "sbp" not in snap.continuous
 
 
@@ -69,5 +69,5 @@ def test_ldl_latent_out_of_scope_for_non_dyslipidemia_person():
         date_of_birth=date(1980, 1, 1),
         chronic_conditions=["E11.9"],
     )
-    snap = le.initial_snapshot(p, 2024, np.random.default_rng(0))
+    snap = le.initial_snapshot(p, 2024, np.random.default_rng(0), country="US")
     assert "ldl" not in snap.continuous

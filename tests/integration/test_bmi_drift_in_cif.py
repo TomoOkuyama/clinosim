@@ -39,7 +39,7 @@ def test_bmi_drift_produces_cohort_variance_over_5_years() -> None:
             if person.longitudinal_history[-1].year >= yr:
                 continue
             step_rng = np.random.default_rng(aging_sub_seed(person.person_id, yr, "longitudinal"))
-            advance_one_year(person, year=yr, year_rng=step_rng)
+            advance_one_year(person, year=yr, year_rng=step_rng, country="US")
 
     # Compute per-person BMI SD across the 5-year series.
     series_sds: list[float] = []

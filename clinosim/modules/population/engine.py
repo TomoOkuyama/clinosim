@@ -655,7 +655,7 @@ def _seed_person_extras(person: PersonRecord, country: str, base_year: int) -> N
     from clinosim.modules.population.aging import aging_sub_seed
 
     ls_rng = determinism.default_rng(aging_sub_seed(person.person_id, base_year, "longitudinal:init"))
-    initial_snapshot(person, year=base_year, init_rng=ls_rng)
+    initial_snapshot(person, year=base_year, init_rng=ls_rng, country=country)
     # Phase 3 longitudinal (Issue #1705): seed the per-person
     # BMI drift chain from the just-generated Layer-1 bmi value
     # so the sim-start snapshot's continuous["bmi"] matches

@@ -154,6 +154,21 @@ def sanitize_id_token(token: str, max_len: int = 40) -> str:
     return out[:max_len]
 
 
+def drug_spec_in_age_band(spec: dict, patient_age: int | None) -> bool:
+    """True when ``patient_age`` lies inside the drug spec's optional
+    ``age_min`` / ``age_max`` bounds (inclusive); always true for an unknown
+    age."""
+    if patient_age is None:
+        return True
+    _amax = spec.get("age_max")
+    _amin = spec.get("age_min")
+    if _amax is not None and patient_age > int(_amax):
+        return False
+    if _amin is not None and patient_age < int(_amin):
+        return False
+    return True
+
+
 def select_with_exclusive_classes(
     drug_specs: list[dict],
     exclusive_classes: set[str] | frozenset[str],
@@ -234,13 +249,8 @@ def select_with_exclusive_classes(
         # filtered before their Bernoulli loop (see docs). Silent skip
         # is intentional; the emit is a data-quality preference, not a
         # hard contraindication (call the drug-safety module for those).
-        if patient_age is not None:
-            _amax = spec.get("age_max")
-            _amin = spec.get("age_min")
-            if _amax is not None and patient_age > int(_amax):
-                continue
-            if _amin is not None and patient_age < int(_amin):
-                continue
+        if not drug_spec_in_age_band(spec, patient_age):
+            continue
         cls = spec.get("drug_class")
         if cls and cls in exclusive_classes:
             by_exclusive_class.setdefault(cls, []).append(spec)

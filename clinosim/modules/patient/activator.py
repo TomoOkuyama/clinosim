@@ -1017,6 +1017,50 @@ def _log_allergy_skip(drug_name: str, allergies: list, skip_log: list) -> bool:
     return True
 
 
+def _required_coverage_fills(
+    picks: list[dict],
+    medications: list[dict],
+    rules: list[dict] | tuple[()],
+    *,
+    stage: str,
+    salt: str,
+    patient_age: int | None,
+) -> list[dict]:
+    """Drug specs to add so each ``required_coverage`` rule of an ICD block
+    is met (Issue #3253).
+
+    A rule ``{stage_in, any_of_classes, fill_class}`` applies when the
+    condition's ``stage`` is in ``stage_in`` and none of ``picks`` belongs to
+    ``any_of_classes``; it then adds one ``fill_class`` member of
+    ``medications`` (already country- and stage-filtered by the caller; the
+    age band is applied here), chosen by :func:`determinism.sha_weighted_choice`
+    with the members' ``probability`` as weights. No RNG stream is advanced.
+    """
+    from clinosim.modules._shared import drug_spec_in_age_band
+
+    fills: list[dict] = []
+    for rule in rules:
+        if stage not in set(rule.get("stage_in") or ()):
+            continue
+        wanted = set(rule.get("any_of_classes") or ())
+        if any(str(p.get("drug_class") or "") in wanted for p in picks + fills):
+            continue
+        fill_class = str(rule.get("fill_class") or "")
+        pool = [
+            m
+            for m in medications
+            if str(m.get("drug_class") or "") == fill_class
+            and float(m.get("probability", 1.0)) > 0.0
+            and drug_spec_in_age_band(m, patient_age)
+        ]
+        if not pool:
+            continue
+        keys = tuple(str(i) for i in range(len(pool)))
+        weights = tuple(float(m.get("probability", 1.0)) for m in pool)
+        fills.append(pool[int(determinism.sha_weighted_choice(f"{salt}|{fill_class}", keys, weights))])
+    return fills
+
+
 def _derive_home_medications(
     chronic_conditions: list,
     rng: np.random.Generator | None = None,
@@ -1171,14 +1215,25 @@ def _derive_home_medications(
         # `select_with_exclusive_classes` in clinosim.modules._shared.
         from clinosim.modules._shared import select_with_exclusive_classes
 
-        for picked in select_with_exclusive_classes(
+        _picks = select_with_exclusive_classes(
             medications,
             exclusive_classes,
             rng,
             independent_mode="bernoulli",
             context=f"chronic_medications ICD {code}",
             patient_age=patient_age,
-        ):
+        )
+        # Issue #3253: a stage that the guidelines treat with a drug gets one
+        # when the draws above left it without (SHA-salted, no draw).
+        _picks += _required_coverage_fills(
+            _picks,
+            medications,
+            spec.get("required_coverage") or (),
+            stage=str(getattr(condition, "stage", "") or ""),
+            salt=f"chronic-med-coverage|{patient_id}|{code}",
+            patient_age=patient_age,
+        )
+        for picked in _picks:
             # Issue #1804 Phase 2.a: prefer the catalog's resolve_drug when
             # the yaml entry carries drug_id; fall back to the legacy
             # drug / drug_ja fields for entries not yet migrated

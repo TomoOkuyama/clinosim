@@ -38,12 +38,12 @@ def test_bmi_drift_stays_in_physiologic_range_over_50_years():
         bmi=22.0,
     )
     rng = np.random.default_rng(aging_sub_seed(person.person_id, 2024, "longitudinal:init"))
-    initial_snapshot(person, year=2024, init_rng=rng)
+    initial_snapshot(person, year=2024, init_rng=rng, country="US")
     # Seed Layer-1 continuity same way as population/engine.py would
     person.longitudinal_history[-1].continuous["bmi"] = float(person.bmi)
     for yr in range(2025, 2075):
         step_rng = np.random.default_rng(aging_sub_seed(person.person_id, yr, "longitudinal"))
-        advance_one_year(person, year=yr, year_rng=step_rng)
+        advance_one_year(person, year=yr, year_rng=step_rng, country="US")
     bmi_series = [snap.continuous.get("bmi") for snap in person.longitudinal_history]
     for i, bmi in enumerate(bmi_series):
         assert bmi is not None, f"year {i}: bmi missing from snapshot"

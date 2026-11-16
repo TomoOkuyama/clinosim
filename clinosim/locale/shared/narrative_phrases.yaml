@@ -1021,6 +1021,11 @@ chronic_assessment:
   chronic_stage_stable:
     ja: "{label}（{stage}）、本日は増悪所見なく、現行管理継続。"
     en: "{label} ({stage}); management continued, no acute change this visit."
+  # Issue #3253: a staged condition whose follow-up names a medication class
+  # (chronic_followup.yaml `medication_class`) the patient does not take.
+  chronic_stage_untreated:
+    ja: "{label}（{stage}）、薬物療法なし、非薬物療法と経過観察を継続。"
+    en: "{label} ({stage}); no pharmacotherapy, non-drug management and monitoring continued."
   chronic_noted:
     ja: "{label}: 問題リスト登録、本日の増悪所見なし。"
     en: "{label}: noted on problem list; no acute change this visit."

@@ -119,10 +119,16 @@ def _select_markov_winners(
     return winners
 
 
-def _add_base_chronic_meds_for_new_icd(person: PersonRecord, new_icd: str) -> None:
+def _add_base_chronic_meds_for_new_icd(
+    person: PersonRecord, new_icd: str, *, country: str, patient_age: int | None
+) -> None:
     """Phase 4b.2.δ — invoke the chronic-medication activation sampler
     for a single newly-acquired ICD and merge any sampled drugs into
     ``person.current_medications``.
+
+    Issue #3253: samples with the person's ``country`` (``locale_exclude``
+    keeps drugs not marketed there, e.g. fluoxetine in JP, off the list) and
+    ``patient_age`` (the age bands of the drug entries).
 
     Uses the per-patient ``chronic_medication_seed`` sub-RNG that the
     activator uses at base-year, so this call is RNG-shape neutral with
@@ -145,7 +151,8 @@ def _add_base_chronic_meds_for_new_icd(person: PersonRecord, new_icd: str) -> No
     sampled = _derive_home_medications(
         [ChronicCondition(code=new_icd, system="icd-10-cm")],
         patient_id=person.person_id,
-        country="US",
+        country=country,
+        patient_age=patient_age,
         # Issue #2924: not a drug the person is allergic to.
         allergies=list(getattr(person, "allergies", None) or []),
     )
@@ -176,6 +183,7 @@ def _apply_pattern(
     prev_snapshot: YearSnapshot | None,
     multiplier: float = 1.0,
     person: PersonRecord | None = None,
+    country: str,
 ) -> None:
     """Dispatch to the pattern's `initial` (prev is None) or `step`
     (prev provided). Mutates ``snapshot`` in place. Event-pattern
@@ -287,7 +295,7 @@ def _apply_pattern(
                 # unrelated code paths see no cursor shift. Dedup on
                 # ``drug_name`` prevents a duplicate when a patient already
                 # carries one of the base-regimen drugs from elsewhere.
-                _add_base_chronic_meds_for_new_icd(person, result.emits_icd)
+                _add_base_chronic_meds_for_new_icd(person, result.emits_icd, country=country, patient_age=_age)
             # snapshot.med_additions carries the fire_marker when set (dedup
             # token for Task 2's prior-year scan + CIF emit resolves back
             # via fire_marker → spec lookup). When no fire_marker is set,
@@ -334,6 +342,8 @@ def initial_snapshot(
     person: PersonRecord,
     year: int,
     init_rng: np.random.Generator,
+    *,
+    country: str,
 ) -> YearSnapshot:
     """Build the sim-start YearSnapshot for ``person`` at ``year``.
 
@@ -355,7 +365,7 @@ def initial_snapshot(
     for aid in order:
         if aid not in winners:
             continue
-        _apply_pattern(specs[aid], snap, init_rng, prev_snapshot=None, person=person)
+        _apply_pattern(specs[aid], snap, init_rng, prev_snapshot=None, person=person, country=country)
     # Phase 4b.2.γ: see `advance_one_year` — an event may have added a
     # chronic code mid-pass; dispatch any newly-in-scope Markov on the
     # same snapshot via its initial draw.
@@ -372,7 +382,7 @@ def initial_snapshot(
             assert isinstance(spec.body, MarkovSpec)
             if spec.body.icd_base in snap.chronic_stages:
                 continue
-            _apply_pattern(spec, snap, init_rng, prev_snapshot=None, person=person)
+            _apply_pattern(spec, snap, init_rng, prev_snapshot=None, person=person, country=country)
     person.longitudinal_history.append(snap)
     return snap
 
@@ -383,6 +393,7 @@ def advance_one_year(
     year_rng: np.random.Generator,
     *,
     multiplier_fn: Callable[[PersonRecord, str, int], float] | None = None,
+    country: str,
 ) -> YearSnapshot:
     """Advance ``person`` one year to ``year``.
 
@@ -430,7 +441,7 @@ def advance_one_year(
             mult = float(multiplier_fn(person, spec.body.icd_base, year))
         else:
             mult = 1.0
-        _apply_pattern(spec, snap, year_rng, prev_snapshot=prev, multiplier=mult, person=person)
+        _apply_pattern(spec, snap, year_rng, prev_snapshot=prev, multiplier=mult, person=person, country=country)
     # Phase 4b.2.γ: an event dispatched above may have appended a new
     # chronic code to `person.chronic_conditions`; re-evaluate scope so a
     # Markov attribute newly gated-in by that code dispatches its initial
@@ -451,7 +462,7 @@ def advance_one_year(
             assert isinstance(spec.body, MarkovSpec)
             if spec.body.icd_base in snap.chronic_stages:
                 continue
-            _apply_pattern(spec, snap, year_rng, prev_snapshot=prev, multiplier=1.0, person=person)
+            _apply_pattern(spec, snap, year_rng, prev_snapshot=prev, multiplier=1.0, person=person, country=country)
     person.longitudinal_history.append(snap)
     return snap
 

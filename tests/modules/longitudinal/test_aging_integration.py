@@ -67,7 +67,7 @@ def test_advance_population_appends_snapshot_per_alive_dm_person() -> None:
         date_of_death=date(2020, 1, 1),
     )
     for p in (dm, non_dm, dead):
-        initial_snapshot(p, year=2021, init_rng=np.random.default_rng(0))
+        initial_snapshot(p, year=2021, init_rng=np.random.default_rng(0), country="US")
 
     reg = _registry_with_persons(dm, non_dm, dead)
     advance_population(reg, year=2022, locale="US")

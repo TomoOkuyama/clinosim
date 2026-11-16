@@ -76,18 +76,18 @@ def test_mid_sim_scope_entry_draws_initial_distribution(ckd_only_loader: Path) -
         chronic_conditions=[],  # no N18 at sim start
     )
     rng = np.random.default_rng(0)
-    snap_start = initial_snapshot(person, year=2024, init_rng=rng)
+    snap_start = initial_snapshot(person, year=2024, init_rng=rng, country="US")
     assert "N18" not in snap_start.chronic_stages, snap_start
 
     # year 2025 — still no N18
-    snap_2025 = advance_one_year(person, year=2025, year_rng=rng)
+    snap_2025 = advance_one_year(person, year=2025, year_rng=rng, country="US")
     assert "N18" not in snap_2025.chronic_stages, snap_2025
 
     # mid-sim onset: aging pass added N18 before year 2026 advance
     person.chronic_conditions.append("N18")
 
     # year 2026 — N18 now in scope, no prior stage: draw from initial_distribution
-    snap_2026 = advance_one_year(person, year=2026, year_rng=rng)
+    snap_2026 = advance_one_year(person, year=2026, year_rng=rng, country="US")
     assert snap_2026.chronic_stages.get("N18") == "CKD G3a", (
         f"mid-sim scope entry failed; expected CKD G3a from init draw, got {snap_2026.chronic_stages.get('N18')!r}"
     )

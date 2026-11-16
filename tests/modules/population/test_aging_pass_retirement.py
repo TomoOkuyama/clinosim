@@ -48,11 +48,12 @@ def test_engine_ignores_legacy_state_period_codes():
         date_of_birth=date(1980, 1, 1),
         chronic_conditions=["Z34", "Z37", "I10"],
     )
-    initial_snapshot(person, year=2024, init_rng=np.random.default_rng(0))
+    initial_snapshot(person, year=2024, init_rng=np.random.default_rng(0), country="US")
     advance_one_year(
         person,
         year=2025,
         year_rng=np.random.default_rng(0),
+        country="US",
     )
     # Does not raise. New complications or chronic entries are a function
     # of the engine's own event dispatch, not of the legacy Z34/Z37 codes.

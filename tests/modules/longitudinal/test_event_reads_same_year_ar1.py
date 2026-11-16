@@ -83,7 +83,7 @@ def test_event_sees_same_year_ar1_latent(hba1c_and_event_loader: Path) -> None:
         chronic_conditions=["E11.9"],
     )
     rng = np.random.default_rng(0)
-    snap = initial_snapshot(person, year=2024, init_rng=rng)
+    snap = initial_snapshot(person, year=2024, init_rng=rng, country="US")
     assert snap.continuous.get("hba1c") == pytest.approx(10.0, abs=0.01), snap
     assert snap.new_complications == ["E11.21"], (
         f"event did not fire; new_complications={snap.new_complications!r} — "
