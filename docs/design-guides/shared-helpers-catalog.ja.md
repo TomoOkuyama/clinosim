@@ -183,5 +183,6 @@ Governing spec: [`narrative-and-document-generation-spec.ja.md`](narrative-and-d
 | `clinosim/modules/document/narrative/_hedging.py` `hedged_phrase` | 決定的に選ぶ留保付きの臨床表現。 |
 | `clinosim/modules/document/narrative/_chronic_soap.py` `resolve_chronic_soap` | 外来記録の慢性疾患 SOAP 文。 |
 | `clinosim/modules/document/narrative/_replacement_localization.py` `localize_token` | replacement strategy のセクション内のトークンのローカライズ。 |
+| `clinosim/modules/document/narrative/renderers/_shared_helpers.py` `ordered_chronic_conditions(ctx)` | 記録に書く慢性疾患の問題リスト。全疾患を、その受診・入院自体の疾患を先頭にして返す。 |
 
 English counterpart: [`shared-helpers-catalog.md`](shared-helpers-catalog.md).

@@ -183,5 +183,6 @@ Governing spec: [`narrative-and-document-generation-spec.md`](narrative-and-docu
 | `clinosim/modules/document/narrative/_hedging.py` `hedged_phrase` | Hedged clinical phrasing chosen deterministically. |
 | `clinosim/modules/document/narrative/_chronic_soap.py` `resolve_chronic_soap` | Chronic-condition SOAP text for outpatient notes. |
 | `clinosim/modules/document/narrative/_replacement_localization.py` `localize_token` | Localizing a token inside a replacement-strategy section. |
+| `clinosim/modules/document/narrative/renderers/_shared_helpers.py` `ordered_chronic_conditions(ctx)` | The patient's chronic problem list for a note: every condition, the encounter's own problem first. |
 
 Japanese counterpart: [`shared-helpers-catalog.ja.md`](shared-helpers-catalog.ja.md).

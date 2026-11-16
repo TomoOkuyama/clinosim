@@ -31,7 +31,11 @@ from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
-from clinosim.modules.document.narrative.renderers._shared_helpers import procedure_names
+from clinosim.modules.document.narrative.renderers._shared_helpers import (
+    chronic_condition_label,
+    ordered_chronic_conditions,
+    procedure_names,
+)
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext
@@ -141,10 +145,9 @@ def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
             parts.append(t("ap_assessment.disease_severity_line", lang, disease=disease_label, severity=_sev))
     # Chronic backdrop — Issue #1333: route CIF base code through
     # map_diagnosis_code so display matches the FHIR emit-target.
-    conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
+    # Issue #3248: every condition, the admission's own problem first.
+    conds = ordered_chronic_conditions(ctx)
     if conds:
-        from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_label
-
         country = country_code(ctx.locale)
         sex = str(_o(ctx.patient, "sex", "") or "")
 
@@ -153,7 +156,7 @@ def _compose_ap_assessment_from_state(ctx: NarrativeContext) -> str:
             base = _o(c, "code", "") or ""
             return (chronic_condition_label(base, country, lang, sex) or base) if base else ""
 
-        labels = [_resolve_chronic_label(c) for c in conds[:4]]
+        labels = [_resolve_chronic_label(c) for c in conds]
         labels = [lbl for lbl in labels if lbl]
         if labels:
             sep = t("list_sep.serial", lang)

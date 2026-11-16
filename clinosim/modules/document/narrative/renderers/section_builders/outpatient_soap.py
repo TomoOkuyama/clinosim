@@ -61,7 +61,10 @@ from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
     _render_safety_skips_line,
 )
-from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_label
+from clinosim.modules.document.narrative.renderers._shared_helpers import (
+    chronic_condition_label,
+    ordered_chronic_conditions,
+)
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.modules.document.reference_data_loaders import ChronicMedClassHints
 from clinosim.modules.observation.pediatric_ranges import age_in_completed_months, pediatric_vital_range
@@ -244,19 +247,17 @@ def _compose_outpatient_subjective_from_state(ctx: NarrativeContext) -> str:
     if enc is not None:
         cc = _o(enc, f"chief_complaint_{lang}", None) or _o(enc, "chief_complaint", None) or ""
     cc = str(cc)
-    # Chronic condition follow-up context (short list, code-lookup localized).
+    # Chronic condition follow-up context (code-lookup localized).
     # Issue #1333: route CIF base code through map_diagnosis_code so the
     # narrative display matches the FHIR emit-target (US F00 → F03.90
     # renders as "Unspecified dementia", not the WHO parent-code
     # "Dementia in Alzheimer disease").
+    # Issue #3248: every condition, the visit's own problem first.
     country = country_code(ctx.locale)
     sex = str(_o(patient, "sex", "") or "")
-    conditions = _o(patient, "chronic_conditions", []) or []
     chronic_labels: list[str] = []
-    for c in conditions[:3]:
+    for c in ordered_chronic_conditions(ctx):
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
-        if not code:
-            continue
         # Issue #2994: the label of the condition the output codes.
         disp = chronic_condition_label(code, country, lang, sex)
         # Issue #1777: when the display lookup misses, SKIP the entry
@@ -516,10 +517,8 @@ def _compose_chronic_condition_line(ctx: NarrativeContext) -> str:
     country = country_code(ctx.locale)
     sex = str(_o(patient, "sex", "") or "")
     labels: list[str] = []
-    for c in conditions:
+    for c in ordered_chronic_conditions(ctx):
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
-        if not code:
-            continue
         # Issue #2994: the label of the condition the output codes.
         labels.append(chronic_condition_label(code, country, lang, sex) or code)
     if not labels:
@@ -626,11 +625,11 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
         """Shorthand for `_pick_med_containing(*_chronic_med_class_hints(key))`."""
         return _pick_med_containing(_chronic_med_class_hints(class_key, lang))
 
-    lines: list[str] = []
-    for i, c in enumerate(conditions, 1):
+    # Issue #3248: the items are numbered once, at the end, so a staged
+    # problem, a skipped entry and the vital-sign items cannot leave a gap.
+    items: list[str] = []
+    for c in ordered_chronic_conditions(ctx):
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
-        if not code:
-            continue
         # Issue #2994: the label of the condition the output codes.
         label = chronic_condition_label(code, country_code(ctx.locale), ctx.target_lang, _sex) or code
         code_prefix = code.split(".")[0].upper()
@@ -846,7 +845,7 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
                 interp = t("list_sep.serial", lang).join(bits2) + (t("chronic_monitoring.act_control_review", lang))
 
         if interp:
-            lines.append(f"{i}. {label}: {interp}")
+            items.append(f"{label}: {interp}")
         else:
             # Issue #1776: the pre-fix fallback re-cited Objective-
             # section vitals (BP / HR / T / SpO2) and emitted a
@@ -870,10 +869,9 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
                     # Issue #3034: the stage label in the output language.
                     stage=_localize_stage(condition_stage, lang),
                 )
-                lines.append(follow)
+                items.append(follow)
             else:
-                follow = t("chronic_assessment.chronic_noted", lang, label=label)
-                lines.append(f"{i}. {follow}")
+                items.append(t("chronic_assessment.chronic_noted", lang, label=label))
 
     # Issue #1183: Assessment previously ignored abnormal vitals that
     # were not paired with a matching chronic condition. Tachycardia
@@ -886,22 +884,15 @@ def _compose_chronic_assessment_integrated(ctx: NarrativeContext) -> str:
     # observation-aware fallback).
     # Issue #2986: a child's heart rate is judged against the normal range
     # for the age (``observation.pediatric_ranges``), not the adult 100/min.
-    vital_lines: list[str] = []
     if hr_f is not None and _is_tachycardic(hr_f, patient, v0, ctx):
-        vital_lines.append(t("chronic_assessment.tachycardia", lang, hr=int(round(hr_f))))
+        items.append(t("chronic_assessment.tachycardia", lang, hr=int(round(hr_f))))
     if spo2_f is not None and spo2_f < 95:
         key = "chronic_assessment.hypoxemia_severe" if spo2_f < 90 else "chronic_assessment.hypoxemia"
-        vital_lines.append(t(key, lang, spo2=spo2_f))
+        items.append(t(key, lang, spo2=spo2_f))
     if temp_f is not None and temp_f >= 38.0:
-        vital_lines.append(t("chronic_assessment.fever", lang, temp=temp_f))
-    # Append with continued numbering so the Assessment reads as one list.
-    start = len(lines) + 1
-    for j, extra in enumerate(vital_lines):
-        lines.append(f"{start + j}. {extra}")
+        items.append(t("chronic_assessment.fever", lang, temp=temp_f))
 
-    if not lines:
-        return ""
-    return "\n".join(lines)
+    return "\n".join(f"{n}. {item}" for n, item in enumerate(items, 1))
 
 
 def _is_tachycardic(hr: float, patient: Any, vital: Any, ctx: NarrativeContext) -> bool:
