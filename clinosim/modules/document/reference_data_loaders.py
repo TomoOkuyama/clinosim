@@ -219,18 +219,70 @@ def load_physical_exam_findings() -> dict[str, Any]:
 # ─────────────────────────────────────────────────────────────────
 
 
+def _known_condition_groups(groups: list[str]) -> list[str]:
+    from clinosim.codes.valuesets import group_names
+
+    unknown = sorted(set(groups) - group_names())
+    if unknown:
+        raise ValueError(f"unknown condition group(s) {unknown} (codes/data/valuesets.yaml)")
+    return groups
+
+
+def _known_drugs(refs: list[str]) -> list[str]:
+    from clinosim.codes.drugs import all_drug_ids, drug_classes
+
+    known = set(all_drug_ids())
+    for drug_id in all_drug_ids():
+        known.update(drug_classes(drug_id))
+    unknown = sorted(set(refs) - known)
+    if unknown:
+        raise ValueError(f"unknown drug id or class {unknown} (codes/data/drugs.yaml)")
+    return refs
+
+
+class DischargeInstructionGate(BaseModel):
+    """When a discharge instruction applies to the patient (Issue #3254).
+
+    Every listed condition must hold; an omitted one does not restrict.
+    ``sex`` / ``smoking_status`` / ``alcohol_use`` list the patient values
+    the instruction is for (an unrecorded value keeps the instruction);
+    ``conditions`` / ``exclude_conditions`` name value-set groups
+    (``codes/data/valuesets.yaml``) matched against the patient's chronic
+    conditions and the encounter's diagnoses; ``discharge_drugs`` lists
+    catalog drug ids or classes of which at least one must be on the
+    discharge prescription — the drugs matched fill ``{drugs}``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    sex: list[str] | None = None
+    smoking_status: list[str] | None = None
+    alcohol_use: list[str] | None = None
+    conditions: Annotated[list[str], AfterValidator(_known_condition_groups)] = Field(default_factory=list)
+    exclude_conditions: Annotated[list[str], AfterValidator(_known_condition_groups)] = Field(default_factory=list)
+    discharge_drugs: Annotated[list[str], AfterValidator(_known_drugs)] = Field(default_factory=list)
+
+
 class _BilingualText(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     en: Any
     ja: Any
+    applies_when: DischargeInstructionGate | None = None
+
+    @model_validator(mode="after")
+    def _drugs_placeholder_needs_gate(self) -> _BilingualText:
+        if any("{drugs}" in str(text) for text in (self.en, self.ja)) and not (
+            self.applies_when and self.applies_when.discharge_drugs
+        ):
+            raise ValueError("an instruction with {drugs} needs applies_when.discharge_drugs")
+        return self
 
 
 class DischargeInstructions(BaseModel):
     """Shape of clinosim-discharge-instruction.yaml: a baseline with at least
     the hydrate / rest / follow_up instructions, and a ``disease_specific``
     section (possibly empty, entries possibly null); every instruction has
-    an ``en`` and a ``ja`` text."""
+    an ``en`` and a ``ja`` text and an optional ``applies_when`` gate."""
 
     model_config = ConfigDict(extra="forbid")
 

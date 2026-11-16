@@ -414,9 +414,18 @@ narrative:
     emergency:
       en: "Return immediately if: weight gain >2kg in 2 days, worsening dyspnea, leg swelling increases."
       ja: "2 日で 2 kg 以上の体重増加、呼吸困難の増悪、下腿浮腫の増悪があれば速やかに受診してください。"
+    # JA: 2025年改訂版 心不全診療ガイドライン (JCS/JHFS 2025) 第11章 2.4.3
+    # 「塩分摂取」— 適切な塩分摂取量のエビデンスは確立しておらず、過剰な
+    # 塩分摂取を避け個別性をふまえた塩分管理を考慮する (IIa, C-EO); 数値目標
+    # は示されていない (塩分 5-7.5 g の CQ も推奨を示せず)。よって JA に数値は
+    # 書かない (旧 「1 日 2 g 未満」 は US のナトリウム量を塩分量と誤訳したもの)。
+    # EN: 2022 AHA/ACC/HFSA Guideline for the Management of Heart Failure
+    # §7.1.2 — for stage C HF, avoiding excessive sodium intake is reasonable
+    # (2a, C-LD); no trials support a specific restriction level in HF, so no
+    # numeric target.
     diet_lifestyle:
-      en: "Strict sodium restriction (<2g/day). Fluid restriction per cardiologist. Daily weight monitoring."
-      ja: "厳格な塩分制限（1 日 2 g 未満）を守ってください。水分制限は循環器科医の指示に従い、毎日体重を記録してください。"
+      en: "Avoid excessive sodium (salt) intake and follow your clinician's individual advice on salt. Fluid restriction per cardiologist. Daily weight monitoring."
+      ja: "塩分の摂り過ぎを避け、主治医の指示に沿って減塩してください。水分制限は循環器科医の指示に従い、毎日体重を記録してください。"
 
 # Chronic conditions a stay commonly surfaces (new-onset findings in the
 # workup), added to the problem list at admission (RM-7d; moved from

@@ -13,18 +13,27 @@ on ``ctx`` plus reference-data loaders and are generator-free.
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+from clinosim.codes.drugs import drug_key, medication_matches
+from clinosim.codes.valuesets import concept_group, iter_chronic_codes
+from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._narrative_utils import is_neonate
 from clinosim.modules.document.reference_data_loaders import (
     load_discharge_instructions,
     load_physical_exam_findings,
 )
 from clinosim.timeutil import parse_iso_datetime
+
+# A sentence ends at a full stop followed by a space (English; "1.5 L" does
+# not end one) or at a Japanese full stop.
+_SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+|(?<=。)")
 
 if TYPE_CHECKING:
     from clinosim.modules.document.narrative.template_generator import (
@@ -210,27 +219,142 @@ def generic_trajectory(ctx: NarrativeContext) -> dict[str, str]:
     }
 
 
-def resolve_discharge_instructions(ctx: NarrativeContext) -> dict[str, dict[str, str]]:
-    """Merge baseline + disease_specific discharge instructions.
+def baseline_instruction_set(ctx: NarrativeContext) -> dict[str, Any]:
+    """The base layer of a discharge instruction sheet: the YAML ``baseline``
+    (adult) set. The one place a population-specific set replaces it — the
+    newborn set of Issue #3260 is selected here when ``is_neonate(ctx)`` — so the
+    disease layers and the patient gates apply to it unchanged."""
+    return load_discharge_instructions().get("baseline") or {}
 
-    disease_specific entries take precedence over baseline for shared keys.
-    Returns a flat dict {key: {en: "...", ja: "..."}}.
+
+def _patient_condition_codes(ctx: NarrativeContext) -> list[str]:
+    """The patient's chronic-condition codes plus the encounter's admission,
+    discharge and working diagnosis codes (an admission for heart failure
+    counts as heart failure)."""
+    patient = getattr(ctx, "patient", None)
+    codes = iter_chronic_codes(_o(patient, "chronic_conditions", []) if patient is not None else [])
+    for dx in getattr(ctx, "diagnoses", None) or []:
+        for key in ("admission_diagnosis_code", "discharge_diagnosis_code"):
+            if code := str(_o(dx, key, "") or ""):
+                codes.append(code)
+        for wd in _o(dx, "working_diagnoses", []) or []:
+            if code := str(_o(wd, "code", "") or ""):
+                codes.append(code)
+    return codes
+
+
+def _gate_drugs(ctx: NarrativeContext, refs: list[str]) -> list[Any]:
+    """Discharge-prescription items that are one of the catalog drugs or
+    classes ``refs``."""
+    meds = getattr(ctx, "discharge_medications", None) or []
+    return [m for m in meds if medication_matches(m, drugs=refs, classes=refs)]
+
+
+def _instruction_applies(gate: dict[str, Any] | None, ctx: NarrativeContext) -> bool:
+    """True when the ``applies_when`` gate (clinosim-discharge-instruction.yaml,
+    Issue #3254) holds for the patient. An unrecorded sex / smoking / alcohol
+    value keeps the instruction."""
+    if not gate:
+        return True
+    patient = getattr(ctx, "patient", None)
+    for field in ("sex", "smoking_status", "alcohol_use"):
+        allowed = gate.get(field)
+        value = str(_o(patient, field, "") or "") if patient is not None else ""
+        if allowed is not None and value and value not in allowed:
+            return False
+    codes = _patient_condition_codes(ctx)
+    for group in gate.get("conditions") or ():
+        if not any(concept_group(group).contains(c) for c in codes):
+            return False
+    for group in gate.get("exclude_conditions") or ():
+        if any(concept_group(group).contains(c) for c in codes):
+            return False
+    refs = gate.get("discharge_drugs") or []
+    return not refs or bool(_gate_drugs(ctx, refs))
+
+
+def _fill_drugs(entry: dict[str, Any], ctx: NarrativeContext) -> dict[str, str]:
+    """The entry's language texts with ``{drugs}`` replaced by the discharge
+    drugs its gate matched, named per language."""
+    texts = {lang: str(text) for lang, text in entry.items() if lang != "applies_when" and text}
+    if not any("{drugs}" in text for text in texts.values()):
+        return texts
+    refs = (entry.get("applies_when") or {}).get("discharge_drugs") or []
+    names: list[str] = []
+    seen: set[str] = set()
+    for med in _gate_drugs(ctx, refs):
+        name, _ = strip_protocol_prefix(str(_o(med, "drug_name", "") or ""))
+        if name and (key := drug_key(name)) not in seen:
+            seen.add(key)
+            names.append(name)
+    return {
+        lang: text.replace("{drugs}", t("list_sep.serial", lang).join(localize_drug_name(n, lang) for n in names))
+        for lang, text in texts.items()
+    }
+
+
+def _split_sentences(text: str) -> list[str]:
+    return [s for s in _SENTENCE_BREAK.split(text.strip()) if s.strip()]
+
+
+def _join_sentences(sentences: list[str]) -> str:
+    """Sentences rejoined as :func:`_split_sentences` found them: a space
+    after a Latin full stop, none after a Japanese one."""
+    out = ""
+    for sentence in sentences:
+        out += sentence if not out or out.endswith("。") else " " + sentence
+    return out
+
+
+def dedupe_instruction_sentences(merged: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
+    """Drop, per language, every sentence already said by an earlier entry
+    (case- and space-insensitive); an entry left with no text is dropped
+    (Issue #3254: baseline, disease-specific and protocol texts overlap)."""
+    seen: dict[str, set[str]] = {}
+    out: dict[str, dict[str, str]] = {}
+    for key, entry in merged.items():
+        kept_entry: dict[str, str] = {}
+        for lang, text in entry.items():
+            lang_seen = seen.setdefault(lang, set())
+            kept: list[str] = []
+            for sentence in _split_sentences(text):
+                norm = " ".join(sentence.casefold().split())
+                if norm not in lang_seen:
+                    lang_seen.add(norm)
+                    kept.append(sentence.strip())
+            kept_entry[lang] = _join_sentences(kept)
+        if any(kept_entry.values()):
+            out[key] = kept_entry
+    return out
+
+
+def resolve_discharge_instructions(ctx: NarrativeContext) -> dict[str, dict[str, str]]:
+    """The patient's discharge instructions, ``{key: {en: "...", ja: "..."}}``.
+
+    Layers, later ones replacing an earlier entry of the same key: the
+    baseline set (:func:`baseline_instruction_set`), the disease-specific
+    entries of clinosim-discharge-instruction.yaml, then the disease
+    protocol's ``narrative.discharge_instructions``. An entry whose
+    ``applies_when`` gate does not hold for the patient is skipped, so it
+    neither shows nor replaces the layer below (Issue #3254). ``{drugs}``
+    names the discharge drugs the gate matched, and a sentence already said
+    by an earlier entry is dropped.
     """
     di_data = load_discharge_instructions()
-    baseline: dict[str, Any] = di_data.get("baseline") or {}
     disease_specific: dict[str, Any] = di_data.get("disease_specific") or {}
 
     merged: dict[str, dict[str, str]] = {}
-    for key, entry in baseline.items():
-        if isinstance(entry, dict):
-            merged[key] = dict(entry)
+
+    def _layer(entries: dict[str, Any]) -> None:
+        for key, entry in entries.items():
+            if isinstance(entry, dict) and _instruction_applies(entry.get("applies_when"), ctx):
+                merged[key] = _fill_drugs(entry, ctx)
+
+    _layer(baseline_instruction_set(ctx))
 
     disease_id = _o(ctx.disease_protocol, "disease_id", None) if ctx.disease_protocol else None
     if disease_id and disease_id in disease_specific:
-        overrides = disease_specific[disease_id] or {}
-        for key, entry in overrides.items():
-            if isinstance(entry, dict):
-                merged[key] = dict(entry)
+        _layer(disease_specific[disease_id] or {})
 
     narrative = _o(ctx.disease_protocol, "narrative", None) if ctx.disease_protocol else None
     if narrative is not None:
@@ -242,4 +366,4 @@ def resolve_discharge_instructions(ctx: NarrativeContext) -> dict[str, dict[str,
                 if isinstance(sec_data, dict) and (sec_data.get("en") or sec_data.get("ja")):
                     merged[section] = dict(sec_data)
 
-    return merged
+    return dedupe_instruction_sentences(merged)

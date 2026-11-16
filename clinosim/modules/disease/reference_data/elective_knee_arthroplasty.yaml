@@ -298,8 +298,8 @@ narrative:
       en: "Return to ER for calf swelling, chest pain, fever, or wound drainage."
       ja: "ふくらはぎの腫れ、胸痛、発熱、創部からの浸出があれば救急受診してください。"
     diet_lifestyle:
-      en: "Maintain a balanced diet and stay hydrated."
-      ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+      en: "Maintain a balanced diet."
+      ja: "バランスの良い食事を心がけてください。"
 
 imaging_orders:
   - modality: CR

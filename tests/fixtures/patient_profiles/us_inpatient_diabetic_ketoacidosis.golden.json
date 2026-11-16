@@ -207,7 +207,7 @@
       "sections": {
         "admission_summary": "Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Admitted for inpatient care.",
         "discharge_diagnoses": "Type 2 diabetes mellitus with hyperglycemia (E11.65)",
-        "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Follow up with PCP in 7-10 days. Complete prescribed medications as directed. Return to ER if symptoms worsen. Follow diabetic diet plan; maintain hydration especially during illness (small sips frequently). Check blood glucose 4-6 times daily; check urine or blood ketones if BG >250 mg/dL. Return to ER for BG >300 mg/dL with ketones, persistent vomiting, deep breathing, or altered mental status. Gradual return to normal activity. Maintain balanced diet and adequate hydration.",
+        "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Follow up with PCP in 7-10 days. Complete prescribed medications as directed. Return to ER if symptoms worsen. Follow diabetic diet plan; maintain hydration especially during illness (small sips frequently). Check blood glucose 4-6 times daily; check urine or blood ketones if BG >250 mg/dL. Return to ER for BG >300 mg/dL with ketones, persistent vomiting, deep breathing, or altered mental status. Gradual return to normal activity. Maintain a balanced diet.",
         "discharge_medications": "Insulin Glargine",
         "follow_up": "Follow up with PCP in 7-10 days.",
         "hospital_course": "Length of stay: 3 days (primary reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness). Complications during stay: aspiration pneumonia, DVT. Key procedures: Central venous catheter insertion."

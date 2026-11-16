@@ -180,7 +180,7 @@ clinosim/modules/document/
     document_type_specs.yaml         文書種別 registry
     section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
     physical_exam_findings.yaml      per-disease PE 所見 (baseline + 新生児セット + override)
-    clinosim-discharge-instruction.yaml  退院指導 (load_discharge_instructions、旧 discharge_instructions.yaml、#1862)
+    clinosim-discharge-instruction.yaml  退院指導 (load_discharge_instructions、旧 discharge_instructions.yaml、#1862)。各項目に `applies_when` 条件 (性別・喫煙/飲酒状況・疾患群・退院処方薬、該当薬は `{drugs}` に展開) を付けられ、renderers/_resolvers.py resolve_discharge_instructions が評価し重複文を除く (#3254)
     clinosim-nursing-content.yaml    急性疾患 / 慢性 ICD-10 別の看護記録内容 (load_nursing_content)
     cc-pe-consistency-keywords.yaml  主訴 ↔ 身体所見の整合 rail (narrative/_narrative_utils.py)
     chronic-med-class-hints.yaml     慢性疾患 assessment の薬効分類 hint (narrative/renderers/section_builders/outpatient_soap.py)

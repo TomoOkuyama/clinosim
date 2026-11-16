@@ -1162,8 +1162,8 @@ narrative:
       en: "Return to ER if symptoms worsen."
       ja: "症状悪化があれば速やかに救急受診してください。"
     diet_lifestyle:
-      en: "Maintain balanced diet and adequate hydration."
-      ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+      en: "Maintain a balanced diet."
+      ja: "バランスの良い食事を心がけてください。"
 
 # Chronic conditions a stay commonly surfaces (new-onset findings in the
 # workup), added to the problem list at admission (RM-7d; moved from
