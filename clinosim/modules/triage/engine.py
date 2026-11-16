@@ -341,12 +341,28 @@ def triage_level(record: Any, enc: Any, drawn: int) -> int:
     return level
 
 
-def _record_ed_arrival_vitals(ctx: Any, record: Any, arrival: datetime, rng: np.random.Generator) -> None:
-    """Append the arrival vital-sign set of a stay admitted through the ED
-    (Issue #3243), measured by an ED nurse at the triage-vitals offset after
-    ``arrival`` from the state the patient was admitted in
-    (``physiological_states[0]``), with its GCS when AVPU is recorded. No-op
-    without a recorded state."""
+def _presenting_ventricular_rate(record: Any, enc: Any) -> float | None:
+    """The presenting ventricular rate of the stay ``enc`` when its disease
+    protocol declares one (Issue #3274) — the rate its ward vitals start
+    from, before any rate control; None otherwise."""
+    from clinosim.modules.disease.protocol import load_all_disease_protocols
+    from clinosim.simulator.ventricular_rate import presenting_ventricular_rate
+
+    names = _o(_o(record, "condition_event", None), "ground_truth_diseases", None) or []
+    protocol = load_all_disease_protocols().get(str(names[0])) if names else None
+    spec = getattr(protocol, "ventricular_rate", None)
+    if spec is None:
+        return None
+    return presenting_ventricular_rate(spec, _o(enc, "severity", "") or "", _o(enc, "encounter_id", ""))
+
+
+def _record_ed_arrival_vitals(ctx: Any, record: Any, enc: Any, arrival: datetime, rng: np.random.Generator) -> None:
+    """Append the arrival vital-sign set of a stay ``enc`` admitted through
+    the ED (Issue #3243), measured by an ED nurse at the triage-vitals offset
+    after ``arrival`` from the state the patient was admitted in
+    (``physiological_states[0]``), with its GCS when AVPU is recorded, and
+    the protocol's presenting ventricular rate (Issue #3274). No-op without a
+    recorded state."""
     from clinosim.modules.observation.nursing import compute_gcs
     from clinosim.modules.staff.engine import assign_staff
     from clinosim.simulator._ed_thresholds import ED_VITALS_OFFSET_MIN
@@ -368,6 +384,7 @@ def _record_ed_arrival_vitals(ctx: Any, record: Any, arrival: datetime, rng: np.
         rng,
         measured_by=nurse,
         data_source=ED_TRIAGE_DATA_SOURCE,
+        ventricular_rate=_presenting_ventricular_rate(record, enc),
     )
     if vitals.consciousness_level:
         vitals.gcs_score = compute_gcs(vitals.consciousness_level, perfusion_status=1.0, rng=rng)
@@ -415,7 +432,7 @@ def triage_enricher(ctx: Any) -> None:
             triage_time = admission_dt if isinstance(admission_dt, datetime) else None
             if admitted and triage_time is not None:
                 triage_time = triage_time - admitted_ed_stay()
-                _record_ed_arrival_vitals(ctx, record, triage_time, rng)
+                _record_ed_arrival_vitals(ctx, record, enc, triage_time, rng)
             drawn = pick_triage_level(severity, level_system, rng, condition_triage_bounds(record))
             level = str(triage_level(record, enc, int(drawn)))
             arrival_mode = pick_arrival_mode(severity, rng)

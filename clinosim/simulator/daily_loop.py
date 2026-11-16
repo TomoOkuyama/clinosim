@@ -123,6 +123,7 @@ from clinosim.simulator.vasoactive_support import (
     vasoactive_support_after,
     vasoactive_weaning_rules,
 )
+from clinosim.simulator.ventricular_rate import VentricularRateCourse, first_rate_control_dose
 from clinosim.simulator.vitals_pipeline import (
     _generate_adl_assessment,
     _generate_daily_io,
@@ -967,6 +968,29 @@ def _order_diet(stay: _Stay, run: _Run, day: int) -> None:
         run.prev_diet = diet
 
 
+def _ventricular_rate_course(stay: _Stay, run: _Run) -> VentricularRateCourse | None:
+    """The stay's ventricular-rate course when the protocol declares one
+    (Issue #3274), from the first rate-control dose given so far (today's
+    administrations are generated before today's vitals). Draws nothing."""
+    spec = stay.protocol.ventricular_rate
+    if spec is None:
+        return None
+    return VentricularRateCourse.build(
+        spec, stay.severity, stay.archetype, stay.encounter_id, first_rate_control_dose(spec, run.mars)
+    )
+
+
+def _ventricular_rate_uncontrolled(stay: _Stay, run: _Run, day: int) -> bool:
+    """True while the stay's ventricular rate at the end of ``day`` is at or
+    above the protocol's ``discharge_below_bpm`` (Issue #3274); False for a
+    protocol without a ventricular rate. Draws nothing."""
+    course = _ventricular_rate_course(stay, run)
+    if course is None or stay.protocol.ventricular_rate is None:
+        return False
+    end_of_day = stay.admission_time + timedelta(days=day + 1)
+    return course.at(end_of_day) >= stay.protocol.ventricular_rate.discharge_below_bpm
+
+
 def _record_bedside_observations(stay: _Stay, run: _Run, day: int) -> None:
     """Vitals, on-demand PRN doses, the daily I/O record and ADL assessment."""
     patient, rng = stay.patient, stay.rng
@@ -981,6 +1005,7 @@ def _record_bedside_observations(stay: _Stay, run: _Run, day: int) -> None:
         rng,
         disease_id=stay.disease_id,
         nurse_id=ward_nurse_id,
+        ventricular_rate=_ventricular_rate_course(stay, run),
     )  # noqa: E501
     run.vitals.extend(vitals_today)
     # Issue #2085: PRN analgesia / benzodiazepines on demand from today's
@@ -1314,16 +1339,18 @@ def _run_daily_loop(
         # Issue #3270: no discharge on or within the observation day after
         # vasopressor / inotrope support.
         on_support = _on_vasoactive_support(stay, run, day)
+        # Issue #3274: an arrhythmia stay stays until its rate is controlled.
+        rate_uncontrolled = _ventricular_rate_uncontrolled(stay, run, day)
         # Early discharge: if state-based criteria met before target_los
         # (not for protocols whose recovery the physiology does not model,
         # e.g. psychiatric admissions, Issue #2132).
-        if day >= min_los and getattr(protocol, "state_based_discharge", True):
+        if day >= min_los and getattr(protocol, "state_based_discharge", True) and not rate_uncontrolled:
             if _check_discharge_ready(run.state, day, country_key, symptom_floor, on_vasoactive_support=on_support):
                 break  # actual_los = day + 1
         if day + 1 >= los_ceiling:
             if not extend_stay_for_symptoms(
                 run.state, los_ceiling, max_los, symptom_floor, on_vasoactive_support=on_support
-            ):
+            ) and not (rate_uncontrolled and max_los is not None and los_ceiling < max_los):
                 break
             los_ceiling += 1
 

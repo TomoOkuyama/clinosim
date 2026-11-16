@@ -207,7 +207,7 @@ Other optional `DiseaseProtocol` fields used by some YAMLs:
 `expected_vital_distributions`, `sequela_code`, `minimum_severity`,
 `state_based_discharge`, `admission_route` (`emergency` | `elective`),
 `procedure`, `medication_holds`, `causes_myocardial_injury`, `causes_vte`,
-`acid_base_type`, `chronic_glycemic_control`, `acs_antithrombotic_plan`
+`acid_base_type`, `chronic_glycemic_control`, `ventricular_rate` (see below), `acs_antithrombotic_plan`
 (acute coronary syndrome: the in-stay antiplatelets of a patient on an oral
 anticoagulant follow the drug_safety `triple_therapy_after_acs` plan). There are no `display_name`,
 `category`, `reimbursement` (DPC / DRG) or `readmission` blocks;
@@ -393,6 +393,7 @@ The disease protocol's `order_protocols` define what the encounter module orders
 
 ### → observation
 - The state trajectory defines how state variables change → observation module converts these to lab values
+- `ventricular_rate` (arrhythmia presentations; Issue #3274) → the heart rate of the stay follows the ventricular response: `presenting_bpm` by severity until the first given dose of a `rate_control_classes` drug, then a linear fall to `controlled_bpm` over `hours_to_control` (by course archetype). Each rate is a hash draw keyed on the encounter (`simulator/ventricular_rate.py`); the vitals record the higher of it and the physiology-derived rate. The stay is not discharged while the rate is at or above `discharge_below_bpm`, and is extended a day at a time up to the maximum LOS
 - Lab ordering frequency affects how many data points are generated
 
 ### → population

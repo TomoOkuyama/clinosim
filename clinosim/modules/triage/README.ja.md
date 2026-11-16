@@ -28,7 +28,9 @@ Issue #3243) も ED でトリアージを受けている: 来院時刻 (入院�
 enricher は ED 来院時のバイタルセットを `record.vital_signs` に追加する —
 入院時の状態 (`physiological_states[0]`) から単独 ED 受診のトリアージ
 バイタルと同じ関数 (`simulator.vitals_pipeline.ed_arrival_vitals`) で
-導出し、ED 看護師がトリアージバイタルの offset で測定、GCS 付き、
+導出し、ED 看護師がトリアージバイタルの offset で測定、GCS 付き
+(疾患 protocol が `ventricular_rate` を持つ場合 (心房細動 RVR、Issue #3274)
+は来院時の心室応答数も反映)、
 FHIR 出力が ED bridge Encounter に載せられるよう
 `data_source = ED_TRIAGE_DATA_SOURCE` (`"ed_triage"`) を付ける。この入院
 では ESI resource は初期 order set (`order_set == "admission_initial"`、
@@ -102,6 +104,8 @@ from clinosim.modules.triage.engine import (
   `normalize_probabilities`, `admitted_via_ed`, `ED_TRIAGE_DATA_SOURCE`,
   `ORDER_SET_ADMISSION_INITIAL`, `get_or_create_container`。
 - `clinosim.simulator.vitals_pipeline` — `ed_arrival_vitals`、
+  `clinosim.simulator.ventricular_rate` — `presenting_ventricular_rate`、
+  `clinosim.modules.disease.protocol` — `load_all_disease_protocols`、
   `clinosim.simulator._ed_thresholds` — `ED_VITALS_OFFSET_MIN`、
   `clinosim.modules.staff.engine` — `assign_staff`、
   `clinosim.modules.observation.nursing` — `compute_gcs`。
