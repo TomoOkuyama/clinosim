@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
@@ -167,6 +168,49 @@ class _WorkupLab(BaseModel):
     result_distribution: _ResultDistribution | None = None
 
 
+class _ImagingRedFlag(BaseModel):
+    """One red flag that makes an ED study mandatory (Issue #3238). Every
+    criterion given must hold: age at least ``min_age``, a chronic condition
+    in each ``conditions`` value-set group, none in the ``without_conditions``
+    groups, and a home medication of one of the ``medication_classes``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    min_age: int | None = Field(default=None, ge=0)
+    conditions: list[str] = Field(default_factory=list)
+    without_conditions: list[str] = Field(default_factory=list)
+    medication_classes: list[str] = Field(default_factory=list)
+
+    @field_validator("conditions", "without_conditions")
+    @classmethod
+    def _known_groups(cls, groups: list[str]) -> list[str]:
+        from clinosim.codes.valuesets import concept_group
+
+        for group in groups:
+            try:
+                concept_group(group)
+            except KeyError as exc:
+                raise ValueError(str(exc)) from None
+        return groups
+
+    @field_validator("medication_classes")
+    @classmethod
+    def _known_classes(cls, classes: list[str]) -> list[str]:
+        from clinosim.codes.drugs import all_drug_ids, drug_classes
+
+        known = {c for d in all_drug_ids() for c in drug_classes(d)}
+        unknown = sorted(set(classes) - known)
+        if unknown:
+            raise ValueError(f"required_if: drug classes {unknown} name no catalog drug")
+        return classes
+
+    @model_validator(mode="after")
+    def _has_a_criterion(self) -> _ImagingRedFlag:
+        if self.min_age is None and not (self.conditions or self.medication_classes):
+            raise ValueError("required_if: a red flag needs min_age, conditions or medication_classes as a criterion")
+        return self
+
+
 class _WorkupImaging(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -177,6 +221,32 @@ class _WorkupImaging(BaseModel):
     # share of screens read abnormal by severity.
     countries: list[SupportedCountry] = []
     abnormal_rate_by_severity: dict[str, float] = {}
+    # Issue #3238: any one red flag orders the study regardless of probability.
+    required_if: list[_ImagingRedFlag] = Field(default_factory=list)
+
+
+def imaging_red_flag(spec: Mapping[str, Any], patient: Any, when: datetime) -> bool:
+    """True when ``patient`` meets one of the ``required_if`` red flags of the
+    workup imaging entry ``spec`` at the visit time ``when`` (Issue #3238)."""
+    from clinosim.codes.drugs import medication_matches
+    from clinosim.codes.valuesets import has_condition
+    from clinosim.modules.population.encounter_anthropometry import age_at_measurement
+
+    meds = list(getattr(patient, "current_medications", None) or [])
+    age = age_at_measurement(patient, when)[0]
+    for flag in spec.get("required_if") or ():
+        min_age = flag.get("min_age")
+        if min_age is not None and age < int(min_age):
+            continue
+        if not all(has_condition(patient, g) for g in flag.get("conditions") or ()):
+            continue
+        if any(has_condition(patient, g) for g in flag.get("without_conditions") or ()):
+            continue
+        classes = tuple(flag.get("medication_classes") or ())
+        if classes and not any(medication_matches(m, classes=classes) for m in meds):
+            continue
+        return True
+    return False
 
 
 class _AgeGatedProcedure(BaseModel):

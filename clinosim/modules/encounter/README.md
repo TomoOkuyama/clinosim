@@ -181,6 +181,18 @@ from clinosim.modules.encounter.discharge_outcome import discharge_outcome
   `transfer_pediatric` disposition (HL7 `other-hcf`); a hospital with a
   pediatric inpatient ward gets no such ED visits
   (`admitted_with_inpatient_unit`).
+- **ED imaging red flags** (Issue #3238): a `workup.imaging` entry may list
+  `required_if` red flags; one met orders the study even when its
+  `probability` draw skips it (`protocol.py::imaging_red_flag`, read by the
+  ED visit). Within one red flag every criterion must hold: `min_age`,
+  `conditions` / `without_conditions` (value-set groups of
+  `codes/data/valuesets.yaml`) and `medication_classes` (drug-catalog
+  classes of a home medication); groups and classes are checked at load.
+  Migraine orders head CT for onset after 50 without a known primary
+  headache disorder, immunocompromise or cancer (ACR Appropriateness
+  Criteria Headache, variant 7); concussion and the older-adult fall order it
+  for a patient on an anticoagulant (NICE NG232 1.5.13). The forced order's
+  time is a stream-free draw, so no other draw of the visit moves.
 - **Encounter-id shape** (`engine.py`):
   - `_ENCOUNTER_SUFFIX_MODULUS = 10**12` — 12-digit suffix modulus.
   - Encounter id format: `ENC-{patient_id}-{suffix:012d}`.

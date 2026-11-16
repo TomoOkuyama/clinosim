@@ -69,3 +69,7 @@ groups:
   # Prior ischaemic stroke (cerebral infarction and its sequelae): JAS 2022
   # secondary prevention with coronary heart disease (Issue #2942).
   prior_ischemic_stroke: {space: internal, match: prefix, members: [I63, I69.3]}
+  # --- ED imaging red flags (encounter workup required_if, Issue #3238) ---
+  # A known primary headache disorder (migraine G43, other headache syndromes
+  # G44): a headache in such a patient is not a headache of new onset.
+  primary_headache_disorder: {space: internal, match: prefix, members: [G43, G44]}

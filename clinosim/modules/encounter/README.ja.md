@@ -167,6 +167,17 @@ from clinosim.modules.encounter.discharge_outcome import discharge_outcome
   体重あたりの抗菌薬初回投与を行い、`transfer_pediatric` (HL7
   `other-hcf`) で転院搬送する。小児病棟のある病院ではこの ED 受診は生じない
   (`admitted_with_inpatient_unit`)。
+- **ED 画像検査のレッドフラグ** (Issue #3238): `workup.imaging` の各項目は
+  `required_if` にレッドフラグを列挙できる。いずれかに該当すると、
+  `probability` の抽選で外れても検査をオーダーする (`protocol.py::imaging_red_flag`、
+  ED 受診が読む)。1 つのレッドフラグ内の条件はすべて満たす必要がある:
+  `min_age`、`conditions` / `without_conditions` (`codes/data/valuesets.yaml`
+  の value-set group)、`medication_classes` (常用薬の薬剤カタログ分類)。group と
+  分類はロード時に検証する。片頭痛は 50 歳以降の発症 (一次性頭痛の既往なし)、
+  免疫不全、悪性腫瘍で頭部 CT を行う (ACR Appropriateness Criteria Headache の
+  variant 7)。脳振盪と高齢者の転倒は抗凝固薬内服中なら頭部 CT を行う (NICE
+  NG232 1.5.13)。強制オーダーの時刻は stream を使わない draw で決めるため、
+  受診内の他の draw は動かない。
 - **Encounter-id 形状** (`engine.py`):
   - `_ENCOUNTER_SUFFIX_MODULUS = 10**12` — 12 桁 suffix modulus。
   - Encounter id: `ENC-{patient_id}-{suffix:012d}`。
