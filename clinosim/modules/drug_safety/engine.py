@@ -78,6 +78,67 @@ def triple_therapy_after_acs_plan() -> dict[str, Any]:
     return dict(_contraindications_file()["triple_therapy_after_acs"])
 
 
+def acs_plan_p2y12_names() -> dict[str, str]:
+    """``{"en": ..., "ja": ...}`` catalog names of the P2Y12 inhibitor the ACS
+    plan gives with an oral anticoagulant (``p2y12_with_oac``). The one source
+    of that drug for the in-stay gate and the discharge prescription."""
+    from clinosim.codes.drugs import resolve_drug
+
+    return dict(resolve_drug(str(triple_therapy_after_acs_plan()["p2y12_with_oac"])).names)
+
+
+def acs_plan_action(candidate: str, verdicts: Sequence[SafetyVerdict]) -> str | None:
+    """What the ACS antithrombotic plan does with an in-stay ``candidate``
+    order whose ``verdicts`` block it (Issue #3234).
+
+    Returns ``None`` when the plan does not apply: nothing blocks the
+    candidate, or a blocking verdict comes from a rule outside the plan's
+    ``replaces_rules`` (a duplicate P2Y12 inhibitor, an allergy, a disease
+    rule). Otherwise ``"switch"`` for a P2Y12 inhibitor other than the plan's
+    (given as the plan's agent instead) and ``"keep"`` for aspirin or the
+    plan's own P2Y12 inhibitor (given, with the plan's caution).
+    """
+    blocking = [v for v in verdicts if v.default_action == "skip"]
+    replaces = set(triple_therapy_after_acs_plan()["replaces_rules"])
+    if not blocking or any(v.rule_id not in replaces for v in blocking):
+        return None
+    if "antiplatelet.p2y12" in resolve_classes(candidate) and canonical_name(candidate) != acs_plan_p2y12_names().get(
+        "en"
+    ):
+        return "switch"
+    return "keep"
+
+
+def acs_plan_verdict(base: SafetyVerdict, *, keep: bool) -> SafetyVerdict:
+    """``base`` (an anticoagulant + antiplatelet verdict) restated with the ACS
+    plan's rationale; for an order the plan keeps, at severity ``moderate``
+    (given with a note)."""
+    plan = triple_therapy_after_acs_plan()
+    return SafetyVerdict(
+        severity="moderate" if keep else base.severity,
+        rule_id=base.rule_id,
+        matched_classes=base.matched_classes,
+        matched_active_drug=base.matched_active_drug,
+        rationale_en=language_slot(plan.get("rationale"), "en") or None,
+        rationale_ja=language_slot(plan.get("rationale"), "ja") or None,
+        substitution_hint=None,
+    )
+
+
+def acs_plan_p2y12_alternative() -> AlternativeDrug:
+    """The in-stay order of the plan's P2Y12 inhibitor (``p2y12_order_*``)."""
+    plan = triple_therapy_after_acs_plan()
+    names = acs_plan_p2y12_names()
+    return AlternativeDrug(
+        drug=names.get("en", ""),
+        drug_ja=names.get("ja", "") or names.get("en", ""),
+        default_dose=str(plan["p2y12_order_dose"]),
+        default_route="PO",
+        default_frequency=str(plan["p2y12_order_frequency"]),
+        source_path="modules/drug_safety/reference_data/contraindications.yaml#triple_therapy_after_acs",
+    )
+
+
 @lru_cache(maxsize=1)
 def _load_rules() -> list[dict[str, Any]]:
     return list(_contraindications_file().get("rules", []))
@@ -256,6 +317,8 @@ def check_candidate_against_disease_state(
     for rule in _load_disease_rules():
         rule_class = str(rule.get("drug_class") or "")
         if rule_class and rule_class not in class_set:
+            continue
+        if class_set & set(rule.get("exclude_classes") or ()):
             continue
         predicate = rule.get("disease_predicate") or {}
         matched_entry = next(
@@ -501,6 +564,11 @@ def suggest_alternative(
     rule out (Issue #2924).
     """
     if indication is None:
+        return None
+    # Issue #3234: an indication's pool may rule out whole candidate classes
+    # (no analgesic for an antiplatelet), whichever source would supply it.
+    not_for = set((_load_shared_substitutions().get(indication) or {}).get("not_for_classes") or ())
+    if not_for & set(resolve_classes(candidate)):
         return None
 
     # Disease-YAML branch — alternatives_by_indication() on the disease protocol.

@@ -76,6 +76,11 @@ class _TripleTherapyPlan(BaseModel):
     aspirin_days: StrictInt = Field(ge=1)
     p2y12_with_oac: str
     p2y12_dose: str = Field(min_length=1)
+    # Issue #3234: the in-stay side of the plan (medication_pipeline gate).
+    p2y12_order_dose: str = Field(min_length=1)
+    p2y12_order_frequency: str = Field(min_length=1)
+    replaces_rules: list[str] = Field(min_length=1)
+    rationale: _Rationale
 
     @field_validator("p2y12_with_oac")
     @classmethod
@@ -99,9 +104,13 @@ class ContraindicationsFile(BaseModel):
 
     @model_validator(mode="after")
     def _reconciliation_names_rules(self) -> ContraindicationsFile:
-        unknown = sorted(set(self.discharge_reconciliation_rules) - {r.id for r in self.rules})
+        ids = {r.id for r in self.rules}
+        unknown = sorted(set(self.discharge_reconciliation_rules) - ids)
         if unknown:
             raise ValueError(f"discharge_reconciliation_rules names no rule: {unknown}")
+        unknown = sorted(set(self.triple_therapy_after_acs.replaces_rules) - ids)
+        if unknown:
+            raise ValueError(f"triple_therapy_after_acs.replaces_rules names no rule: {unknown}")
         return self
 
 
@@ -120,8 +129,12 @@ class _DiseaseRule(BaseModel):
     rationale: _Rationale
     source: str = Field(min_length=1)
     substitution_hint: str | None = None
+    # Issue #3234: classes the rule does not fire on (aspirin, an NSAID by
+    # class, given as an antiplatelet).
+    exclude_classes: list[str] = []
 
     _class = field_validator("drug_class")(classmethod(lambda cls, v: _check_class(v)))
+    _excluded = field_validator("exclude_classes")(classmethod(lambda cls, v: [_check_class(c) for c in v]))
 
 
 class DiseaseContraindicationsFile(BaseModel):
@@ -181,6 +194,11 @@ class _Indication(BaseModel):
     model_config = ConfigDict(extra="forbid")
     description: str = Field(min_length=1)
     alternatives: list[_Alternative] = Field(min_length=1)
+    # Issue #3234: candidates of these classes get no alternative from this
+    # pool (an analgesic never stands in for an antiplatelet).
+    not_for_classes: list[str] = []
+
+    _excluded = field_validator("not_for_classes")(classmethod(lambda cls, v: [_check_class(c) for c in v]))
 
 
 class DrugSubstitutionFile(BaseModel):

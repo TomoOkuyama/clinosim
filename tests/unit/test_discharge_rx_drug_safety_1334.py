@@ -31,13 +31,13 @@ def test_rivaroxaban_plus_prasugrel_pair_rule_fires():
     assert v.severity == "contraindicated"
 
 
-def test_apixaban_plus_aspirin_still_fires_anticoag_nsaid_rule():
-    """Regression: Aspirin is dual-classed antiplatelet + nsaid.
-    ``anticoagulant-plus-nsaid`` catches this pair; the new doac-p2y12 rule
-    does NOT displace it."""
+def test_apixaban_plus_aspirin_fires_the_antiplatelet_rule():
+    """Aspirin is dual-classed antiplatelet + nsaid; with a DOAC it is caught
+    as an antiplatelet (``doac-plus-aspirin``, Issue #3234), not as an
+    analgesic NSAID."""
     v = drug_safety.check_pair("Apixaban", "Aspirin")
     assert v.severity == "contraindicated"
-    assert v.rule_id == "anticoagulant-plus-nsaid"
+    assert v.rule_id == "doac-plus-aspirin"
 
 
 def test_apixaban_plus_atorvastatin_no_trigger():

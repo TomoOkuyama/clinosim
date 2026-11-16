@@ -203,7 +203,9 @@ Other optional `DiseaseProtocol` fields used by some YAMLs:
 `expected_vital_distributions`, `sequela_code`, `minimum_severity`,
 `state_based_discharge`, `admission_route` (`emergency` | `elective`),
 `procedure`, `medication_holds`, `causes_myocardial_injury`, `causes_vte`,
-`acid_base_type`, `chronic_glycemic_control`. There are no `display_name`,
+`acid_base_type`, `chronic_glycemic_control`, `acs_antithrombotic_plan`
+(acute coronary syndrome: the in-stay antiplatelets of a patient on an oral
+anticoagulant follow the drug_safety `triple_therapy_after_acs` plan). There are no `display_name`,
 `category`, `reimbursement` (DPC / DRG) or `readmission` blocks;
 readmission is driven by `readmission_eligible` and the simulator.
 

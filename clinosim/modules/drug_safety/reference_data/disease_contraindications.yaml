@@ -22,6 +22,9 @@
 #     ``I50.32``, …
 #   - ``disease_predicate.stage_in`` (optional, Issue #1769): the matched
 #     condition must also carry one of these stage strings.
+#   - ``exclude_classes`` (optional, Issue #3234): the rule does not fire on a
+#     drug that also belongs to one of these classes (low-dose aspirin is an
+#     NSAID by class but is given as an antiplatelet).
 #
 # Rules: NSAID vs HF / cirrhosis / CKD stage 4-5 (Cluster A of Issue #1392,
 # from the Issue #1350 random-sample review) and Metformin vs CKD G3b-G5
@@ -41,8 +44,11 @@ metadata:
   source: clinosim
 
 rules:
+  # Issue #3234: the heart-failure warning of the NSAID class labelling
+  # concerns non-aspirin NSAIDs (FDA Drug Safety Communication, July 2015).
   - id: nsaid-in-heart-failure
     drug_class: nsaid
+    exclude_classes: [antiplatelet]
     disease_predicate: {icd_prefix: ["I50"]}
     severity: major
     substitution_hint: pain_management
@@ -61,8 +67,11 @@ rules:
       ja: "NSAID は肝硬変で肝腎症候群・食道静脈瘤出血・急性腎障害リスクを増悪。アセトアミノフェン減量 (2 g/日以下) が安全、オピオイドは慎重投与。"
     source: "AASLD Practice Guidance 2021 (cirrhosis complications); 日本消化器病学会 肝硬変診療ガイドライン 2020"
 
+  # Issue #3234: low-dose aspirin is recommended for secondary prevention in
+  # CKD (KDIGO 2024 CKD guideline, recommendation 3.15.2.1).
   - id: nsaid-in-ckd-stage-4-5
     drug_class: nsaid
+    exclude_classes: [antiplatelet]
     disease_predicate: {icd_prefix: ["N18.4", "N18.5", "N18.6"]}
     severity: contraindicated
     substitution_hint: pain_management
@@ -75,8 +84,11 @@ rules:
   # the stage next to it (see the metformin rule below), so the code-based
   # rule above never fired for simulated patients. This twin matches the
   # stage; the rule above still covers an explicitly staged code.
+  # Issue #3234: low-dose aspirin is recommended for secondary prevention in
+  # CKD (KDIGO 2024 CKD guideline, recommendation 3.15.2.1).
   - id: nsaid-in-ckd-stage-4-5-by-stage
     drug_class: nsaid
+    exclude_classes: [antiplatelet]
     disease_predicate:
       icd_prefix: ["N18"]
       stage_in: ["CKD G4", "CKD G5"]

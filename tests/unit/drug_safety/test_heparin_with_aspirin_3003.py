@@ -1,7 +1,8 @@
 """Issue #3003: heparin with low-dose antiplatelet aspirin is the standard
 acute-coronary-syndrome regimen, so the anticoagulant + NSAID bleeding rule
 does not avoid heparin (or enoxaparin) because of aspirin. Analgesic NSAIDs
-with heparin, and aspirin with an oral anticoagulant, are still caught."""
+with heparin, and aspirin with an oral anticoagulant (as an antiplatelet,
+Issue #3234), are still caught."""
 
 from __future__ import annotations
 
@@ -25,7 +26,9 @@ def test_heparin_with_an_analgesic_nsaid_is_still_avoided(nsaid: str) -> None:
     assert v.severity == "contraindicated" and v.rule_id == "anticoagulant-plus-nsaid"
 
 
-@pytest.mark.parametrize(("anticoagulant", "rule"), [("Apixaban", "anticoagulant-plus-nsaid"), ("Warfarin", None)])
+@pytest.mark.parametrize(
+    ("anticoagulant", "rule"), [("Apixaban", "doac-plus-aspirin"), ("Warfarin", "vka-plus-antiplatelet")]
+)
 def test_aspirin_with_an_oral_anticoagulant_is_still_caught(anticoagulant: str, rule: str | None) -> None:
     v = drug_safety.check_pair(anticoagulant, "Aspirin")
     assert v.severity == "contraindicated"
