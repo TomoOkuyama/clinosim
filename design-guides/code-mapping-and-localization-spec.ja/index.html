@@ -3244,6 +3244,11 @@
 <td><code>""</code> / 人間可読化した type / <code>None</code></td>
 </tr>
 <tr>
+<td><code>modules.document.narrative.renderers._shared_helpers</code>: <code>resolve_procedure_display(proc, lang)</code>, <code>procedure_prose_name(proc, lang)</code>, <code>procedure_names(procedures, lang, admission=, day=)</code></td>
+<td>ナラティブでの CIF 処置 (コードのみ、AD-30) の名称 (Issue #3246): 手術記録が使うコード表示名 (K コード、次に CPT) / 文中の処置名 (カタログの臨床名、なければコード表示名) / 一覧の重複のない文中名 (指定時はその入院日に開始した処置のみ)。ナラティブは <code>procedure_name</code> / <code>name</code> キーを読まない</td>
+<td>カタログ名、なければ人間可読化した type / 同左 / <code>[]</code></td>
+</tr>
+<tr>
 <td><code>codes.ucum</code>: <code>ucum_code</code>, <code>ucum_quantity</code>, <code>ucum_prose</code></td>
 <td>UCUM コード / FHIR Quantity / 文章中の単位表記 (<code>mm[Hg]</code> → <code>mmHg</code>、<code>{INR}</code> → <code>""</code>)</td>
 <td>単位をそのまま返す</td>

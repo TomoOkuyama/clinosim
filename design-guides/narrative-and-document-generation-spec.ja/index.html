@@ -2443,6 +2443,11 @@
 <td><code>tests/unit/modules/document/narrative/test_vaccination_visit_own_data_2869.py</code></td>
 </tr>
 <tr>
+<td>文書は作成時刻 (<code>NarrativeContext.authored_datetime</code>、narrative pass が stub ごとに設定) までに記録されたものだけを反映する。日付つきの評価 (Barthel ADL、Braden / Morse リスク) はその時刻に有効なものを使い、入院時看護アセスメントは入院時の評価を、看護サマリーは最後の評価を記載する。看護記録 (勤務帯) は自分の勤務帯のバイタル (各項目の最新値と、現在値が閾値未満のときに勤務帯内で NEWS2 が緊急対応閾値以上だった先行測定) だけを記載し、他の勤務帯の値を流用しない。実際の在院日数はどの記録にも書かない。入院時の推定入院期間は疾患プロトコルの <code>target_los</code> から取り、無ければ「未定」とする。</td>
+<td><code>clinosim/modules/document/narrative/_as_of.py::in_force_at</code>, <code>_vitals_line.py::vitals_in_window</code>, <code>latest_vitals_set</code></td>
+<td><code>tests/unit/modules/document/narrative/test_nursing_time_correct_3236.py</code>, <code>tests/unit/test_narrative_context_wiring.py::test_per_stub_authored_datetime_via_run</code></td>
+</tr>
+<tr>
 <td>死亡で終わった入院(退院時転帰 <code>exp</code>)は一つの判定で見分け、planner(退院時サマリーに代えて死亡退院サマリーと死亡診断書)と、入院の終わりを言い表すすべてのセクションがそれを使う。この入院にも看護サマリーは残し、退院基準・患者指導・退院可能性の代わりに死亡確認時刻、家族への連絡、死後の処置を記す。最後の 2 日の経過記録の安定日フレーズは退院準備のプールではなく <code>terminal</code> プールから取る。</td>
 <td><code>clinosim/modules/document/narrative/_narrative_utils.py::encounter_died</code></td>
 <td><code>tests/unit/modules/document/narrative/test_death_stay_documents_2875.py</code></td>

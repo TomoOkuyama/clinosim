@@ -3255,6 +3255,11 @@
 <td><code>""</code> / humanised type / <code>None</code></td>
 </tr>
 <tr>
+<td><code>modules.document.narrative.renderers._shared_helpers</code>: <code>resolve_procedure_display(proc, lang)</code>, <code>procedure_prose_name(proc, lang)</code>, <code>procedure_names(procedures, lang, admission=, day=)</code></td>
+<td>a CIF procedure (codes only, AD-30) in narrative (Issue #3246): the code display (K-code, then CPT), as the operative note names it; the catalog's clinical name, else the code display, for a procedure in running text; the distinct prose names of a list, optionally only those started on one hospital day. Narrative never reads a <code>procedure_name</code> / <code>name</code> key</td>
+<td>catalog name, else humanised type / same / <code>[]</code></td>
+</tr>
+<tr>
 <td><code>codes.ucum</code>: <code>ucum_code</code>, <code>ucum_quantity</code>, <code>ucum_prose</code></td>
 <td>UCUM code / FHIR Quantity / the unit as written in prose (<code>mm[Hg]</code> → <code>mmHg</code>, <code>{INR}</code> → <code>""</code>)</td>
 <td>unit passed through</td>
