@@ -306,29 +306,36 @@ expected_vital_distributions:
 # Source: ESC 2020, AHA/ACC/HRS 2023, J-RHYTHM, JCS Guidelines
 # ============================================================
 drugs:
+  # Issue #3274: one rate-control agent, the first entry the drug-safety gate
+  # allows. Heart failure rules out a non-DHP CCB
+  # (disease_contraindications.yaml non-dhp-ccb-in-heart-failure) and a home
+  # beta-blocker rules out a second one (contraindications.yaml
+  # beta-blocker-plus-beta-blocker); when every entry is ruled out, digoxin
+  # (alternative_beta_blocker_contraindicated) is added to the home agent.
+  # JP: "欧米，わが国ともに第 1 選択薬はβ遮断薬である" (JCS/JHRS 2020
+  # 不整脈薬物治療ガイドライン 第5章 4); US: a beta-blocker or a non-DHP CCB
+  # (EF > 40%) for acute rate control, COR 1 (2023 ACC/AHA/ACCP/HRS AF
+  # guideline 7.2.1).
   first_line:
+    select: one_of
     japan:
-      - drug_id: diltiazem
-        dose: "10mg IV bolus, then 5-15mg/h drip"
-        route: IV
-        note: "Preferred rate control agent in Japan"
-        contraindication: "heart_failure_with_reduced_EF"
-        pregnancy_safe: false
       - drug_id: landiolol
         dose: "0.0625mg/kg/min IV"
         route: IV
         note: "Ultra-short-acting beta-blocker, Japan-specific"
         pregnancy_safe: false
+      - drug_id: diltiazem
+        dose: "10mg IV bolus, then 5-15mg/h drip"
+        route: IV
+        pregnancy_safe: false
     us:
       - drug_id: diltiazem
         dose: "0.25mg/kg IV bolus, then 5-15mg/h drip"
         route: IV
-        contraindication: "heart_failure_with_reduced_EF"
         pregnancy_safe: false
       - drug_id: metoprolol
         dose: "5mg IV q5min x3"
         route: IV
-        note: "Preferred if HFrEF"
         pregnancy_safe: false
 
   alternative_beta_blocker_contraindicated:
@@ -336,7 +343,7 @@ drugs:
     japan:
       - drug_id: digoxin
         dose: "0.25mg IV, then 0.125-0.25mg PO daily"
-        note: "When both CCB and beta-blocker contraindicated"
+        note: "Added to a beta-blocker, or when both CCB and beta-blocker are ruled out"
         renal_adjustment:
           eGFR_below_30: "0.0625mg PO daily"
         pregnancy_safe: false

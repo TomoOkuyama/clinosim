@@ -301,6 +301,26 @@ _LOCALIZED_DOSE_KEY_TYPOS: dict[str, str] = {
 # added in a follow-up commit after the 3 shipped YAMLs are migrated.
 _ALLOWED_ESCALATION_TYPES: frozenset[str] = frozenset({"medication", "procedure"})
 
+# Issue #3274: ``drugs.first_line.select`` says how the entries are given.
+# ``all`` (the default): every entry is ordered. ``one_of``: the entries are
+# alternatives in order of preference; the drug-safety gate gives the first
+# one that passes (``order.engine.first_line_alternative_groups``).
+FIRST_LINE_SELECT_ALL = "all"
+FIRST_LINE_SELECT_ONE_OF = "one_of"
+_FIRST_LINE_SELECTS: frozenset[str] = frozenset({FIRST_LINE_SELECT_ALL, FIRST_LINE_SELECT_ONE_OF})
+
+
+def validate_first_line_select(disease_id: str, drugs: dict[str, Any]) -> None:
+    """Fail loudly on an unknown ``drugs.first_line.select`` value (Issue #3274)."""
+    block = drugs.get("first_line") if isinstance(drugs, dict) else None
+    if not isinstance(block, dict) or "select" not in block:
+        return
+    if block["select"] not in _FIRST_LINE_SELECTS:
+        raise ValueError(
+            f"disease {disease_id!r}: drugs.first_line.select={block['select']!r} is not one of "
+            f"{sorted(_FIRST_LINE_SELECTS)}"
+        )
+
 
 def _validate_escalation_type_signal(disease_id: str, drugs: dict[str, Any]) -> None:
     """3-layer validation of drugs.escalation[*] entries (Issue #460).
@@ -727,6 +747,7 @@ def load_disease_protocol(disease_id: str) -> DiseaseProtocol:
     # Layer 2/3 (legacy marker reject + type/route co-occurrence) are wired in a
     # follow-up commit after the 3 shipped YAMLs are migrated (Task 5).
     _validate_escalation_type_signal(disease_id, data.get("drugs", {}) or {})
+    validate_first_line_select(disease_id, data.get("drugs", {}) or {})
     _validate_no_name_only_drug(disease_id, data)
 
     # Issue #458: import-time route vocabulary validation. Walks every `route:`

@@ -387,7 +387,7 @@ The disease protocol's `order_protocols` define what the encounter module orders
 - `trigger_orders` conditions → may trigger treatment changes during daily evaluation
 
 ### → treatment
-- `drugs.first_line` / `drugs.alternative_*` → first-line and alternative drugs
+- `drugs.first_line` / `drugs.alternative_*` → first-line and alternative drugs. Every first-line entry is ordered unless the block sets `select: one_of`: the entries are then alternatives in order of preference, and the admission drug-safety gate gives the first one that passes (`order.engine.first_line_alternative_groups`; Issue #3274)
 - `drugs.escalation` → escalation / de-escalation drugs
 - `drugs.discharge_oral` → oral switch for discharge
 

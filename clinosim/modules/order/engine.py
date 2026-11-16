@@ -533,6 +533,30 @@ def admission_care_supportive_types() -> frozenset[str]:
     return frozenset(data["care_supportive_types"])
 
 
+def _first_line_order_id(encounter_id: str, med_idx: int) -> str:
+    """Order id of the ``med_idx``-th ``drugs.first_line`` entry of an admission."""
+    return f"ORD-{encounter_id}-ADM-M{med_idx + 1:02d}"
+
+
+def first_line_alternative_groups(protocol: Any, encounter_id: str, country: str) -> tuple[tuple[str, ...], ...]:
+    """Issue #3274: the order ids :func:`place_admission_orders` gives the
+    ``drugs.first_line`` entries of ``country`` when the block declares
+    ``select: one_of`` — alternatives in order of preference, of which the
+    drug-safety gate gives only the first that passes
+    (``simulator.medication_pipeline.apply_drug_safety_gate_to_orders``).
+    ``()`` when every entry is to be ordered."""
+    from clinosim.modules.disease.protocol import FIRST_LINE_SELECT_ALL, FIRST_LINE_SELECT_ONE_OF
+
+    block = (_s(protocol, "drugs", None) or {}).get("first_line") or {}
+    if not isinstance(block, dict) or block.get("select", FIRST_LINE_SELECT_ALL) != FIRST_LINE_SELECT_ONE_OF:
+        return ()
+    entries = block.get(country.lower(), [])
+    if isinstance(entries, dict):
+        entries = [entries]
+    ids = tuple(_first_line_order_id(encounter_id, i) for i, spec in enumerate(entries) if isinstance(spec, dict))
+    return (ids,) if len(ids) > 1 else ()
+
+
 def place_admission_orders(
     protocol: dict,
     patient_id: str,
@@ -670,7 +694,7 @@ def place_admission_orders(
         dose_str = med_spec.get("dose", "")
         parsed = parse_dose_string(dose_str)
         drug_name = protocol_drug_name(med_spec) or "Unknown"
-        _order_id = f"ORD-{encounter_id}-ADM-M{med_idx + 1:02d}"
+        _order_id = _first_line_order_id(encounter_id, med_idx)
         order = Order(
             order_id=_order_id,
             encounter_id=encounter_id,
