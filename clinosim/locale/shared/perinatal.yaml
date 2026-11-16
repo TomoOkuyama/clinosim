@@ -345,3 +345,8 @@ newborn:
   # 0-day-old. Align with the framework's Issue #360 G7 developmental-
   # stage labels: age < 3 → "infant" (乳児 / Infant).
   occupation: "infant"
+  # Neonatal period: "the newborn period (the first 28 days of life)"
+  # (WHO fact sheet "Newborn mortality"). A patient younger than this many
+  # days at the start of an encounter is documented with the newborn
+  # templates (Issue #3260).
+  neonatal_period_days: 28

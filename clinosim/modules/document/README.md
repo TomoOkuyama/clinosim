@@ -183,7 +183,7 @@ clinosim/modules/document/
   reference_data/
     document_type_specs.yaml         per-document-type registry
     section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
-    physical_exam_findings.yaml      per-disease PE findings (baseline + override)
+    physical_exam_findings.yaml      per-disease PE findings (baseline + newborn set + override)
     hpi_pertinent_negatives.yaml     HPI pertinent negatives per disease: text and denied symptom terms per language (hpi_pertinent_negatives(disease_id, lang), English fallback); a negative that denies a chief-complaint symptom is skipped
     bedside_procedure_codes.yaml     bedside procedure codes (load_bedside_procedure_codes)
     death_cause_chain.yaml           death-certificate cause sequence: immediate-cause complications, sequel codes, contributing categories (load_death_cause_chain)

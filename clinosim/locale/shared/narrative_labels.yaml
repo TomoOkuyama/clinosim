@@ -121,6 +121,11 @@ body_system:
   abdominal: {en: Abdomen, ja: 腹部}
   neurological: {en: Neurological, ja: 神経}
   psychiatric: {en: Mental status, ja: 精神状態}
+  # Newborn exam set only (Issue #3260).
+  head: {en: Head, ja: 頭部}
+  skin: {en: Skin, ja: 皮膚}
+  umbilicus: {en: Umbilicus, ja: 臍}
+  hips: {en: Hips, ja: 股関節}
 
 # Sex-label vocabulary used in patient demographics prose.
 # Keys mirror the values ``PatientProfile.sex`` may carry

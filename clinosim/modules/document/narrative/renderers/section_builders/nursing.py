@@ -27,7 +27,7 @@ from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._localization import _localize_complication
-from clinosim.modules.document.narrative._narrative_utils import _lookup_nursing_content, encounter_died
+from clinosim.modules.document.narrative._narrative_utils import _lookup_nursing_content, encounter_died, is_neonate
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.types.document import NarrativeContext
@@ -117,10 +117,12 @@ def build_adl_assessment(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     facts: list[str] = []
     lang = ctx.target_lang
     latest = _adl_at(ctx)
-    if latest is None:
-        return (t("fallback.adl_fallback", lang)), facts
-    barthel = _o(latest, "barthel_score", None)
+    barthel = _o(latest, "barthel_score", None) if latest is not None else None
     if barthel is None:
+        # Issue #3260: a newborn is not scored for ADL and is never
+        # "independent"; it depends fully on care.
+        if is_neonate(ctx):
+            return t("neonate_nursing.adl", lang), ["ctx.patient.date_of_birth"]
         return (t("fallback.adl_fallback", lang)), facts
     facts.append("ctx.adl_assessments@authored")
     # Barthel band interpretation (standard)
@@ -152,6 +154,10 @@ def build_risk_assessments(generator: TemplateNarrativeGenerator, ctx: Narrative
     lang = ctx.target_lang
     latest = _risk_at(ctx)
     if latest is None:
+        # Issue #3260: the adult fall / pressure-injury scales do not apply
+        # to a newborn.
+        if is_neonate(ctx):
+            return t("neonate_nursing.risk", lang), ["ctx.patient.date_of_birth"]
         return (t("fallback.risk_fallback", lang)), facts
     braden = _o(latest, "braden_total", None)
     morse = _o(latest, "morse_total", None)

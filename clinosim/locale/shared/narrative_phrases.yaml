@@ -672,6 +672,31 @@ newborn:
     ja: "CCHD SpO2 右上肢 {ru} / 下肢 {le}"
     en: "CCHD SpO2 RU {ru} / LE {le}"
 
+# Newborn (neonatal period) variants of the H&P social history and the
+# nursing ADL / risk lines (Issue #3260). A neonate has no smoking,
+# alcohol or occupation history and is not scored on the adult Barthel /
+# Braden / Morse scales.
+neonate_history:
+  born_here:
+    ja: "院内出生"
+    en: "born in this hospital"
+  apgar:
+    ja: "Apgar {a1}点(1分)/{a5}点(5分)"
+    en: "Apgar {a1} (1 min) / {a5} (5 min)"
+  birth_line:
+    ja: "出生歴: {items}"
+    en: "Birth history: {items}"
+  caregiver_line:
+    ja: "養育者: {caregiver}"
+    en: "Caregiver: {caregiver}"
+neonate_nursing:
+  adl:
+    ja: "ADL：新生児のため全介助（授乳・清潔・おむつ交換）"
+    en: "ADL: newborn, fully dependent on care (feeding, bathing, diaper changes)"
+  risk:
+    ja: "新生児のため成人用の転倒・褥瘡スケールは適用外。転落防止・保温に留意"
+    en: "Newborn: adult fall and pressure-injury scales not applicable; fall prevention and thermal care in place"
+
 # List-formatting separators. Not per-section — used for joining
 # tokens in composite phrases. Keeping them in the phrase catalog
 # rather than hardcoded ternaries keeps punctuation choice per-locale

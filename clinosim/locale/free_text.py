@@ -202,11 +202,15 @@ def _drug_name_patterns(ja_dict: dict[str, str] | None = None) -> tuple[tuple[re
     return compiled
 
 
-def _translate(text: str, table: dict[str, str], lang: str) -> str:
+def _translate(text: str, table: dict[str, str], lang: str, *, keep_named: bool = False) -> str:
     """``text`` in ``lang`` over ``table`` (EN → ``lang``): exact match
     (case-insensitive, underscores as spaces, then without a ``category:``
     prefix), else every known name inside the string replaced (longest
-    first); dosage / route / frequency terms are translated last."""
+    first); dosage / route / frequency terms are translated last.
+
+    ``keep_named``: a name whose translation already appears in ``text`` is
+    left as written (Issue #3260: the brand in "ケイツーシロップ (メナテトレノン
+    2 mg 経口)" is not replaced by the generic the string already names)."""
     normalized = text.replace("_", " ")
     hit = table.get(normalized.lower())
     if hit:
@@ -218,6 +222,8 @@ def _translate(text: str, table: dict[str, str], lang: str) -> str:
     result = normalized
     changed = False
     for pattern, value in _drug_name_patterns(table):
+        if keep_named and value in normalized:
+            continue
         new_result, n = pattern.subn(value, result)
         if n > 0:
             result = new_result
@@ -260,7 +266,7 @@ def localize_drug_name(drug_name: str, lang: str) -> str:
         # Issue #2650: English keeps the name but spells out a protocol slug
         # ("IV_fluid: NS" -> "IV fluids: NS") from the med_terms ``en`` slots.
         return _localize_dosage_terms(drug_name, normalize_lang(lang))
-    return _translate(drug_name, _load_drug_display_dict(target), target)
+    return _translate(drug_name, _load_drug_display_dict(target), target, keep_named=True)
 
 
 _LEADING_SLUG = re.compile(r"^[A-Za-z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)+")

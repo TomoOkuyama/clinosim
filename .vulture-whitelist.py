@@ -990,3 +990,4 @@ _.attending_departments  # health_checkup CheckupStaffingFile field (validated y
 _.median_los  # validator _CountryLosBenchmarks field (validated yaml key, read by key, Issue #3184)
 _.mean_los  # validator _CountryLosBenchmarks field (validated yaml key, read by key, Issue #3184)
 _.care_supportive_types  # order _AdmissionOrderSets field (validated yaml key, read by key, Issue #3242)
+_.jaundice  # document/reference_data_loaders.py NeonatalExam (Pydantic field; read from the YAML dict in _resolvers.resolve_neonatal_exam, Issue #3260)
