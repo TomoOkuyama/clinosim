@@ -1,0 +1,80 @@
+# death_course.yaml — how the death discharge summary reads the record to
+# describe the circumstances of death and the course of the stay
+# (Issue #3256). Read by
+# clinosim/modules/document/narrative/renderers/section_builders/mortality.py
+# through clinosim.modules.document.reference_data_loaders.load_death_course.
+#
+# The circumstances of death follow the structured record: the place (the
+# ICU after an ICU transfer — the FHIR Encounter classHistory keeps the ICU
+# segment until discharge), the code status (CIFPatientRecord.code_status),
+# the life support running in the final hours and a recorded CPR. Palliative
+# bedside-care wording (看取り) is used only for a not-for-resuscitation death
+# without life support in the final hours.
+metadata:
+  kind: reference
+  name: death_course
+  source: clinosim
+
+# Code-status codes (SNOMED CT, codes/data/snomed-ct.yaml) that mean "not for
+# resuscitation". The code_status module stores 304253006 for its DNR,
+# DNR + DNI and comfort-care tiers (modules/code_status/reference_data/
+# code_status.yaml).
+not_for_resuscitation_codes: ["304253006"]
+
+# Life support running at death: a dose of a drug in one of `drug_classes`
+# (catalog classes, codes/data/drugs.yaml, with their dotted ancestors; a drug
+# also in `excluded_drug_classes` — oral midodrine — does not count) given in
+# the last `window_hours` before death, a vitals record in that window on a
+# device in `ventilation_devices`, or a procedure of a type in
+# `ventilation_procedure_types` started in that window. `window_hours` matches
+# the "final hours" the terminal-course section describes; clinosim records
+# no extubation, so an intubation earlier in the stay is not taken as
+# ventilation at death.
+life_support:
+  window_hours: 24
+  drug_classes: [vasopressor, inotrope]
+  excluded_drug_classes: [vasopressor.oral]
+  ventilation_devices: [ventilator]
+  ventilation_procedure_types: [intubation]
+
+# A recorded cardiopulmonary resuscitation: a procedure whose type contains
+# one of `procedure_type_keywords`, or whose code is one of `procedure_codes`
+# (ICD-10-PCS 5A12012 "Performance of cardiac output, single, manual"; CPT
+# 92950 "Cardiopulmonary resuscitation"; CPT 99288 "Physician direction of
+# emergency medical systems"). Code displays are not matched: the K-code J044
+# reads "intubation for resuscitation", which is not CPR.
+resuscitation:
+  procedure_type_keywords: [cpr, cardiopulmonary, resuscit, defibrill]
+  procedure_codes: ["5A12012", "92950", "99288"]
+
+# The treatment course names at most this many drugs, procedures and new
+# diagnoses, then "and N others". Drugs of the classes in
+# `drug_class_priority` (catalog classes, codes/data/drugs.yaml) come first,
+# in that order — life support, then the acute treatments a death summary
+# reports — and the other drugs follow, first given first, so a continued
+# home medication does not hide the vasopressor.
+treatment_course:
+  drug_class_priority:
+    - vasopressor
+    - inotrope
+    - thrombolytic
+    - antibiotic
+    - antifungal
+    - antiviral
+    - anticoagulant
+    - antiplatelet
+    - blood_product
+    - antiarrhythmic
+    - corticosteroid
+    - insulin
+    - diuretic
+    - opioid
+  max_named_drugs: 6
+  max_named_procedures: 6
+  max_named_diagnoses: 4
+
+# Time to death on the death certificate: written in days below
+# `days_below_weeks` days, in weeks from there ("approximately 11 days", not
+# "approximately 2 week(s) (11 d)").
+duration:
+  days_below_weeks: 28

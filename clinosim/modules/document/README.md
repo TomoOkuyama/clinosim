@@ -187,6 +187,7 @@ clinosim/modules/document/
     hpi_pertinent_negatives.yaml     HPI pertinent negatives per disease: text and denied symptom terms per language (hpi_pertinent_negatives(disease_id, lang), English fallback); a negative that denies a chief-complaint symptom is skipped
     bedside_procedure_codes.yaml     bedside procedure codes (load_bedside_procedure_codes)
     death_cause_chain.yaml           death-certificate cause sequence: immediate-cause complications, sequel codes, contributing categories (load_death_cause_chain)
+    death_course.yaml                death-summary circumstances and course: not-for-resuscitation codes, life support at death, CPR detection, list lengths, day/week boundary (load_death_course)
     narrative_extras_whitelists.yaml narrative extra-context whitelists (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   sections exempt from the US H&P JA-char audit (audit.py)
     clinosim-discharge-instruction.yaml  discharge instructions (load_discharge_instructions; was discharge_instructions.yaml, #1862)

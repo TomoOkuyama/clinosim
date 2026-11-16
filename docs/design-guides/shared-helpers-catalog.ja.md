@@ -84,6 +84,7 @@ Governing spec: [`code-mapping-and-localization-spec.ja.md`](code-mapping-and-lo
 | `clinosim/codes/drugs.py` `route_class(route)` | 投与経路文字列の経路クラス (経口・注射・吸入 …)。 |
 | `clinosim/codes/bcp47.py` `bcp47_display(tag, profile=)` | BCP 47 言語タグの表示名。 |
 | `clinosim/codes/hl7_encounter.py` `AdmitSource` / `DischargeDisposition` / `ActPriority` | HL7 の encounter 列挙。文字列リテラルではなく列挙メンバーを使う。 |
+| `clinosim/modules/disease/protocol.py` `working_diagnosis_code(disease_id)` | `working_diagnoses[].disease_id` の ICD-10 コード (ICD コードはそのまま、疾患 ID はプロトコルの primary コード、それ以外は `""`)。 |
 
 ## 5. ラベルと自由記述のローカライズ
 

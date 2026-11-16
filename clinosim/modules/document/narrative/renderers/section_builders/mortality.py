@@ -20,21 +20,24 @@ function. The class methods of the same name become thin delegators so
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
+from clinosim.codes.drugs import drug_classes, drug_display
 from clinosim.countries import country_code
+from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.disease.protocol import working_diagnosis_code
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_utils import _autopsy_performed_sha256
-from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_coded
+from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_coded, procedure_names
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
-from clinosim.modules.document.reference_data_loaders import load_death_cause_chain
+from clinosim.modules.document.reference_data_loaders import load_death_cause_chain, load_death_course
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -365,9 +368,6 @@ def _dc_duration_phrase(
         body = t("dc_duration.body_same_day", lang, suffix=suffix)
     elif bucket == "days":
         body = t("dc_duration.body_days", lang, los=los, suffix=suffix)
-    elif bucket == "weeks":
-        weeks = max(1, round(los / 7))
-        body = t("dc_duration.body_weeks", lang, weeks=weeks, los=los, suffix=suffix)
     else:  # "long"
         weeks = max(4, round(los / 7))
         body = t("dc_duration.body_long", lang, weeks=weeks, suffix=suffix)
@@ -377,14 +377,13 @@ def _dc_duration_phrase(
 
 def _dc_duration_bucket(days: int, hours: float | None) -> str:
     """The granularity of a time-to-death phrase: ``hours`` below a day (when
-    the hours are known), ``same_day``, ``days`` up to a week, ``weeks`` up to
-    four weeks, then ``long``."""
+    the hours are known), ``same_day``, ``days`` below the week boundary of
+    ``death_course.yaml`` (Issue #3256: "11 days", not "2 week(s) (11 d)"),
+    then ``long`` (weeks)."""
     if days <= 0:
         return "hours" if hours is not None and 0 < hours < 24 else "same_day"
-    if days <= 7:
+    if days < load_death_course().duration.days_below_weeks:
         return "days"
-    if days <= 28:
-        return "weeks"
     return "long"
 
 
@@ -401,8 +400,7 @@ def _dc_onset_duration(cause: _Cause, onset: datetime, death: datetime, lang: st
     elif bucket == "days":
         body = t("dc_duration.onset_body_days", lang, days=days, disease=cause.display)
     else:
-        weeks = max(1, round(days / 7))
-        body = t("dc_duration.onset_body_weeks", lang, weeks=weeks, days=days, disease=cause.display)
+        body = t("dc_duration.onset_body_long", lang, weeks=round(days / 7), disease=cause.display)
     return f"{t('dc_duration.prefix', lang)}{body}{t('dc_duration.onset_tail', lang)}"
 
 
@@ -649,6 +647,157 @@ def build_dc_autopsy_status(generator: TemplateNarrativeGenerator, ctx: Narrativ
 
 
 # ─────────────────────────────────────────────────────────────────────
+# DDS course helpers (Issue #3256): what the record shows about the stay and
+# the death, read by the rules of ``death_course.yaml``.
+# ─────────────────────────────────────────────────────────────────────
+
+
+def _given_doses(ctx: NarrativeContext) -> list[tuple[datetime, str]]:
+    """``(time, drug reference)`` of every MAR dose given, in time order. The
+    reference is the catalog drug id, else the recorded drug name."""
+    doses: list[tuple[datetime, str]] = []
+    for m in ctx.medications or []:
+        if str(_o(m, "status", "given") or "given") != "given":
+            continue
+        at = _as_datetime(_o(m, "actual_datetime", None)) or _as_datetime(_o(m, "scheduled_datetime", None))
+        ref = str(_o(m, "drug_id", "") or "") or str(_o(m, "drug_name", "") or "")
+        if at is not None and ref:
+            doses.append((at, ref))
+    return sorted(doses, key=lambda dose: dose[0])
+
+
+def _drug_name(ref: str, lang: str) -> str:
+    return drug_display(ref, lang) or localize_drug_name(ref, lang)
+
+
+def _drugs_given(ctx: NarrativeContext, lang: str) -> list[str]:
+    """Distinct names of the drugs given during the stay: the drugs of the
+    priority classes of ``death_course.yaml`` first, in class order, then the
+    others; first given first within each."""
+    priority = load_death_course().treatment_course.drug_class_priority
+    refs: list[str] = []
+    for _, ref in _given_doses(ctx):
+        if ref not in refs:
+            refs.append(ref)
+
+    def rank(ref: str) -> int:
+        classes = drug_classes(ref)
+        return next((i for i, cls in enumerate(priority) if cls in classes), len(priority))
+
+    names: list[str] = []
+    for ref in sorted(refs, key=rank):  # stable: first given first within a rank
+        name = _drug_name(ref, lang)
+        if name and name not in names:
+            names.append(name)
+    return names
+
+
+def _new_diagnoses(ctx: NarrativeContext, lang: str) -> list[str]:
+    """The diagnoses that arose during the stay (``working_diagnoses``), named
+    by their coded display with the hospital day of onset when recorded."""
+    country = country_code(ctx.locale)
+    items: list[str] = []
+    for wd in ctx.working_diagnoses or []:
+        code = working_diagnosis_code(str(_o(wd, "disease_id", "") or ""))
+        if not code:
+            continue
+        _, display = chronic_condition_coded(code, country, lang, _sex(ctx))
+        onset_day = _o(wd, "onset_day", None)
+        item = (
+            t("dds_treatment_course.wk_item", lang, display=display, day=int(onset_day) + 1)
+            if isinstance(onset_day, int)
+            else display
+        )
+        if item not in items:
+            items.append(item)
+    return items
+
+
+def _capped_list(names: list[str], cap: int, lang: str) -> str:
+    """``names`` joined as a list; past ``cap`` names, "and N others"."""
+    sep = t("list_sep.serial", lang)
+    if len(names) <= cap:
+        return sep.join(names)
+    return t("dds_treatment_course.list_with_more", lang, list=sep.join(names[:cap]), count=len(names) - cap)
+
+
+def _life_support_at_death(ctx: NarrativeContext) -> tuple[dict[str, list[str]], bool]:
+    """The life support running in the final hours (``death_course.yaml``):
+    the drugs given then per life-support class (first given first) and
+    whether the patient was ventilated. Nothing without a death time."""
+    death = _as_datetime(_o(ctx.encounter, "discharge_datetime", None))
+    if death is None:
+        return {}, False
+    rules = load_death_course().life_support
+    start = death - timedelta(hours=rules.window_hours)
+    drugs: dict[str, list[str]] = {}
+    for at, ref in _given_doses(ctx):
+        if not start <= at <= death:
+            continue
+        classes = drug_classes(ref)
+        if set(rules.excluded_drug_classes) & set(classes):
+            continue
+        cls = next((c for c in rules.drug_classes if c in classes), None)
+        if cls is not None and ref not in drugs.setdefault(cls, []):
+            drugs[cls].append(ref)
+
+    def in_window(value: object) -> bool:
+        at = _as_datetime(value)
+        return at is not None and start <= at <= death
+
+    ventilated = any(
+        str(_o(v, "oxygen_delivery_device", "") or "") in rules.ventilation_devices
+        and in_window(_o(v, "timestamp", None))
+        for v in ctx.vitals or []
+    ) or any(
+        str(_o(p, "procedure_type", "") or "") in rules.ventilation_procedure_types
+        and in_window(_o(p, "start_datetime", None))
+        for p in ctx.procedures or []
+    )
+    return {cls: refs for cls, refs in drugs.items() if refs}, ventilated
+
+
+def _life_support_phrases(ctx: NarrativeContext, lang: str) -> list[str]:
+    """The life support at death in words ("vasopressor support
+    (Norepinephrine)", "mechanical ventilation")."""
+    drugs, ventilated = _life_support_at_death(ctx)
+    sep = t("list_sep.serial", lang)
+    phrases = [
+        t(f"dds_circumstances_of_death.support_{cls}", lang, drugs=sep.join(_drug_name(r, lang) for r in refs))
+        for cls, refs in drugs.items()
+    ]
+    if ventilated:
+        phrases.append(t("dds_circumstances_of_death.support_ventilation", lang))
+    return phrases
+
+
+def _recorded_cpr(ctx: NarrativeContext) -> bool:
+    """Whether a cardiopulmonary resuscitation is recorded: CIF procedures
+    carry ``procedure_type`` and codes only (AD-30; Issue #3246), matched
+    against ``death_course.yaml``."""
+    rules = load_death_course().resuscitation
+    for p in ctx.procedures or []:
+        ptype = str(_o(p, "procedure_type", "") or "").lower()
+        codes = {str(_o(p, key, "") or "") for key in ("procedure_code", "procedure_code_us", "procedure_code_jp")}
+        if any(k in ptype for k in rules.procedure_type_keywords) or codes & set(rules.procedure_codes):
+            return True
+    return False
+
+
+def _not_for_resuscitation(ctx: NarrativeContext) -> bool:
+    return ctx.code_status in load_death_course().not_for_resuscitation_codes
+
+
+def _palliative_death(ctx: NarrativeContext) -> bool:
+    """A not-for-resuscitation death with no CPR and no life support in the
+    final hours — the only death described as palliative bedside care."""
+    if not _not_for_resuscitation(ctx) or _recorded_cpr(ctx):
+        return False
+    drugs, ventilated = _life_support_at_death(ctx)
+    return not drugs and not ventilated
+
+
+# ─────────────────────────────────────────────────────────────────────
 # DEATH_DISCHARGE_SUMMARY (LOINC 18842-5, 死亡退院サマリー) section builders.
 # ─────────────────────────────────────────────────────────────────────
 
@@ -701,36 +850,42 @@ def build_dds_admission_state(generator: TemplateNarrativeGenerator, ctx: Narrat
 def build_dds_treatment_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """治療経過 / Treatment course (multi-day summary).
 
-    Summarizes the LOS, the number of active medications (MAR),
-    procedures performed, and any in-hospital working diagnoses
-    that arose. Deterministic prose grounded in structural CIF
-    counts — the LLM pass can rewrite phrasing but cannot invent
-    procedures or diagnoses that the counts do not support.
+    Names what the record shows for the stay (Issue #3256): the drugs given
+    (first given first), the procedures, the ICU transfer with its hospital
+    day and the diagnoses that arose during the stay with theirs — names,
+    not counts, each list capped by ``death_course.yaml`` with "and N
+    others". A palliative death (``_palliative_death``) closes with the
+    condition progressing, not with treatment continued.
     """
     lang = ctx.target_lang
     facts: list[str] = ["ctx.los_days"]
+    caps = load_death_course().treatment_course
     los = ctx.los_days or 0
-    med_count = len(ctx.medications or [])
-    proc_count = len(ctx.procedures or [])
-    working = list(getattr(ctx, "working_diagnoses", []) or [])
-    working_count = len(working)
-    if med_count:
-        facts.append("ctx.medications")
-    if proc_count:
-        facts.append("ctx.procedures")
-    if working_count:
-        facts.append("ctx.working_diagnoses")
-
-    los_part = (
+    parts = [
         t("dds_treatment_course.los_part_with_days", lang, los=los)
         if los > 0
         else t("dds_treatment_course.los_part_admission", lang)
-    )
-    med_part = t("dds_treatment_course.med_part", lang, count=med_count) if med_count else ""
-    proc_part = t("dds_treatment_course.proc_part", lang, count=proc_count) if proc_count else ""
-    wk_part = t("dds_treatment_course.wk_part", lang, count=working_count) if working_count else ""
-    tail = t("dds_treatment_course.tail", lang)
-    return f"{los_part}{med_part}{proc_part}{wk_part}{tail}", facts
+    ]
+    drugs = _drugs_given(ctx, lang)
+    if drugs:
+        facts.append("ctx.medications")
+        parts.append(t("dds_treatment_course.med_part", lang, list=_capped_list(drugs, caps.max_named_drugs, lang)))
+    procedures = procedure_names(ctx.procedures, lang)
+    if procedures:
+        facts.append("ctx.procedures")
+        parts.append(
+            t("dds_treatment_course.proc_part", lang, list=_capped_list(procedures, caps.max_named_procedures, lang))
+        )
+    if ctx.icu_transferred and ctx.icu_transferred_day >= 0:
+        facts.append("ctx.icu_transferred_day")
+        parts.append(t("dds_treatment_course.icu_part", lang, day=ctx.icu_transferred_day + 1))
+    new_dx = _new_diagnoses(ctx, lang)
+    if new_dx:
+        facts.append("ctx.working_diagnoses")
+        parts.append(t("dds_treatment_course.wk_part", lang, list=_capped_list(new_dx, caps.max_named_diagnoses, lang)))
+    tail = "dds_treatment_course.tail_palliative" if _palliative_death(ctx) else "dds_treatment_course.tail"
+    parts.append(t(tail, lang))
+    return "".join(parts), facts
 
 
 @section("terminal_course")
@@ -785,36 +940,39 @@ def build_dds_circumstances_of_death(
 ) -> tuple[str, list[str]]:
     """死亡時状況 / Circumstances of death (bedside events).
 
-    Describes the bedside setting at time of death: location (in
-    hospital), resuscitation attempts (from CIF Procedure records
-    when present), and whether resuscitation was performed.
-    Deterministic default is "看取り" (comfort-care death) when no
-    CPR/resuscitation procedure is recorded, and "蘇生術施行" when
-    the CIF Procedure list contains a resuscitation code.
+    From the record (Issue #3256): the code status when one is recorded,
+    then the place of death (the ICU after an ICU transfer, else the ward)
+    and the event — CPR when a resuscitation procedure is recorded; for a
+    not-for-resuscitation patient, CPR withheld while the life support of
+    the final hours ran, or palliative bedside care (看取り) without it;
+    otherwise an arrest during treatment, naming the life support. The
+    rules are in ``death_course.yaml``.
     """
     lang = ctx.target_lang
     facts: list[str] = []
-    procedures = ctx.procedures or []
-    resuscitation = False
-    for p in procedures:
-        # CIF procedures carry ``procedure_type`` and codes only (AD-30;
-        # Issue #3246) — no ``name`` / ``code`` key. The type is matched by
-        # keyword and the codes against the CPR codes. Displays are not
-        # matched: the K-code J044 reads "intubation for resuscitation",
-        # which is not CPR.
-        ptype = str(_o(p, "procedure_type", "") or "").lower()
-        codes = {str(_o(p, key, "") or "") for key in ("procedure_code", "procedure_code_us", "procedure_code_jp")}
-        if any(k in ptype for k in ("cpr", "cardiopulmonary", "resuscit", "defibrill")):
-            resuscitation = True
-            break
-        if codes & {"5A12012", "92950", "99288"}:  # PCS / CPT CPR codes
-            resuscitation = True
-            break
-    if procedures:
+    if ctx.procedures:
         facts.append("ctx.procedures")
-
-    key = "dds_circumstances_of_death.resuscitation" if resuscitation else "dds_circumstances_of_death.natural"
-    return t(key, lang), facts
+    place = t(
+        "dds_circumstances_of_death.place_icu" if ctx.icu_transferred else "dds_circumstances_of_death.place_ward",
+        lang,
+    )
+    facts.append("ctx.icu_transferred")
+    support = _life_support_phrases(ctx, lang)
+    if support:
+        facts.append("ctx.medications")
+    support_text = t("dds_circumstances_of_death.support_and", lang).join(support)
+    if _recorded_cpr(ctx):
+        key = "dds_circumstances_of_death.resuscitation"
+    elif _not_for_resuscitation(ctx):
+        key = "dds_circumstances_of_death.support_cpr_withheld" if support else "dds_circumstances_of_death.palliative"
+    else:
+        key = "dds_circumstances_of_death.support_arrest" if support else "dds_circumstances_of_death.arrest"
+    event = t(key, lang, place=place, support=support_text)
+    status = registry_display("snomed-ct", ctx.code_status, lang) if ctx.code_status else ""
+    if not status:
+        return event, facts
+    facts.append("ctx.code_status")
+    return t("dds_circumstances_of_death.code_status", lang, status=status) + event, facts
 
 
 @section("cause_of_death")
