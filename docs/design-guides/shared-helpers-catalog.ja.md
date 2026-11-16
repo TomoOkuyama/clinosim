@@ -124,6 +124,7 @@ Governing specs: [`medication-lifecycle-spec.ja.md`](medication-lifecycle-spec.j
 | `clinosim/modules/physiology/engine.py` `scenario_flags_from_protocol` + `medication_flags_from_context` | 検査値導出に `**flags` として渡すフラグ。 |
 | `clinosim/modules/observation/engine.py` `canonical_lab_name(name)` / `get_lab_unit(name)` | 検査の正準名と標準単位。 |
 | `clinosim/modules/observation/engine.py` `medications_in_effect(home_medications, medication_orders, admission_date, current_day)` | 入院中のある日に検査値へ作用している薬剤。 |
+| `clinosim/modules/patient/medication_timeline.py` `medications_on(patient, when)` / `medications_at_encounter(patient, start)` | ある日に服用中の常用薬 (健診)、および ED・外来の record が `home_medications_at_admission` に記録する受診開始時の常用薬 (HPI・常用薬セクションはこれを読む。`patient.current_medications` はシミュレーション終了時の薬)。 |
 | `clinosim/modules/physiology/statin_response.py` `statin_intensity(med)` / `statin_ldl_reduction(patient_id, medications)` / `ldl_reduction(patient_id, medications)` / `statin_treated_ldl(untreated_ldl, reduction)` | 薬剤と用量から決まるスタチンの強度、患者のスタチンが未治療 LDL から除く患者ごとの割合、その後に非スタチン追加薬 (エゼチミブ) を掛けた割合、その低下後の LDL。脂質低下薬で下がる LDL (検査値導出、健診) はすべてこれを通す。 |
 | `clinosim/modules/physiology/engine.py` `lipid_panel(sex, has_diabetes, has_dyslipidemia, ldl_reduction)` / `patient_lipid_panel(patient)` | 脂質状態の TC / HDL / TG / LDL 真値、および患者の疾患と常用薬から得るその値。入院・外来の検査値と健診の両方が読み、患者ごとの未治療 LDL は一つになる。 |
 | `clinosim/modules/order/panel_grouping.py` `classify_lab_specs(...)` | 検査オーダーをパネルと単項目に分ける。 |

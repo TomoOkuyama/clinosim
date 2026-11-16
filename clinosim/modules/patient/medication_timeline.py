@@ -9,7 +9,8 @@ from its end on (:func:`note_encounter_medications`), on the visit ledger the
 per-year profiles of one person share; the profile first activated notes
 the medications it started with (``medications_at_activation``). A reader
 that needs the list as of an earlier day — the health-checkup enricher —
-calls :func:`medications_on`. No random draws.
+calls :func:`medications_on`; a simulator building an encounter's record
+calls :func:`medications_at_encounter`. No random draws.
 """
 
 from __future__ import annotations
@@ -51,3 +52,16 @@ def medications_on(patient: Any, when: datetime) -> list[Any]:
         return list(noted[-1])
     at_activation = getattr(ledger, "medications_at_activation", None)
     return list(at_activation) if at_activation is not None else current
+
+
+def medications_at_encounter(patient: Any, start: datetime) -> list[Any]:
+    """The home medications ``patient`` takes when an encounter starting at
+    ``start`` is simulated (Issue #3262): the live list, unless the ledger
+    notes an encounter that ends after ``start`` — the forward loop simulates
+    a stay whole when it begins, so the live list then already holds that
+    stay's discharge changes — in which case :func:`medications_on`."""
+    ledger = _o(patient, "visit_ledger", None)
+    timeline = getattr(ledger, "medication_timeline", None) or []
+    if any(end > start for end, _ in timeline):
+        return medications_on(patient, start)
+    return list(_o(patient, "current_medications", None) or [])

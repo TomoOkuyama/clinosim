@@ -32,6 +32,9 @@ from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
 )
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
+from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
+    home_medications_at_admission,
+)
 from clinosim.modules.document.reference_data_loaders import hpi_pertinent_negatives
 from clinosim.types.document import DocumentType, NarrativeContext
 
@@ -127,7 +130,7 @@ def _build_hpi_core(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
                         [
                             "ctx.patient.demographics",
                             "ctx.patient.chronic_conditions",
-                            "ctx.patient.current_medications",
+                            home_medications_at_admission(ctx)[1],
                         ]
                     )
                     return f"{text} {extras}".strip(), facts
@@ -207,7 +210,8 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
       - demographics: age + sex
       - chief_complaint from ``ctx.encounter``
       - chronic short list (top 3)
-      - home meds reconciliation (up to top 3 current_medications)
+      - home meds reconciliation (up to top 3 of the medications taken
+        when the encounter began, Issue #3262)
       - prior-care attempt sentinel (derived from chronic + med presence,
         never fabricated as a specific institution or datetime)
       - ROS pertinent negatives from per-disease yaml pool
@@ -261,10 +265,12 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
         )
 
     # Issue #984: home meds reconciliation (top 3 to keep HPI compact).
-    # CIF-anchored — omitted when current_medications is empty; never
-    # fabricated. Reuses _render_home_med_name so JA katakana localization
-    # matches the medications_at_home section.
-    meds = _o(patient, "current_medications", []) or []
+    # CIF-anchored — omitted when the patient took none; never fabricated.
+    # Issue #3262: the medications when the encounter began (the record's
+    # snapshot), not the end-of-simulation current_medications — the same
+    # list the medications_at_home section reads. Reuses
+    # _render_home_med_name so JA katakana localization matches it.
+    meds, _ = home_medications_at_admission(ctx)
     if meds:
         med_labels: list[str] = []
         for m in meds[:3]:
@@ -283,7 +289,7 @@ def _compose_hpi_extras_from_state(ctx: NarrativeContext) -> str:
 
     # Issue #984: prior-care sentinel (derived — never claim a specific
     # institution or datetime not in CIF). Two branches:
-    #   (a) patient has chronic conditions + current_medications → "かかりつけ医
+    #   (a) patient has chronic conditions + home medications → "かかりつけ医
     #       で処方継続中" (evidence: patient is under ongoing care)
     #   (b) neither → omit (silent no-op)
     if conds and meds:

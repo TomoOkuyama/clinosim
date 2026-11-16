@@ -23,6 +23,7 @@ from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.order.label_dose import within_label
 from clinosim.modules.order.pediatric_dose import pediatric_order_name
 from clinosim.modules.order.treatment_classifier import classify_encounter_treatment
+from clinosim.modules.patient.medication_timeline import medications_at_encounter
 from clinosim.modules.physiology._vital_signs_thresholds import PAIN_SCORE_SCALE
 from clinosim.modules.population.encounter_anthropometry import encounter_weight_kg
 from clinosim.modules.staff.engine import (
@@ -518,6 +519,10 @@ def _simulate_ed_visit(
         medication_flags_from_context,
         scenario_flags_from_protocol,
     )
+
+    # Issue #3262: the home medications at arrival, kept on the record for the
+    # ED note (later encounters replace patient.current_medications).
+    home_medications_at_arrival = medications_at_encounter(patient, visit_time)
 
     # Try to load detailed YAML protocol
     cond_name = condition.get("name", condition.get("condition_id", "ed_visit"))
@@ -1025,6 +1030,7 @@ def _simulate_ed_visit(
         procedures=ed_procedures,
         discharge_prescription=discharge_rx,
         medication_administrations=ed_mars,
+        home_medications_at_admission=home_medications_at_arrival,
         condition_event=ConditionEvent(
             condition_id=f"COND-{patient.patient_id}-ED",
             condition_type="ed_visit",
