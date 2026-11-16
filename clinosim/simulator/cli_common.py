@@ -60,6 +60,26 @@ def _run_exports(
         adapter.convert(cif_dir, os.path.join(output_root, adapter.subdir), ctx)
 
 
+# ---- _encounter_los_days ----
+def _encounter_los_days(record: CIFPatientRecord) -> int | None:
+    """Length of stay in whole days for the record's primary encounter (#3225).
+
+    Same rule as ``HospitalizationSummary.los_days`` and the document engine's
+    ``_compute_los_days`` (the LOS printed in the notes): the calendar-date
+    difference between admission and discharge, at least 1. Only an encounter
+    still in progress at the snapshot (no discharge datetime) falls back to the
+    physiological-state count (one state per simulated day plus the admission
+    state). Delivery and newborn stays carry no physiological states, so the
+    datetimes are the only valid source for them. ``None`` without an encounter.
+    """
+    if not record.encounters:
+        return None
+    enc = record.encounters[0]
+    if enc.discharge_datetime is not None:
+        return max(1, (enc.discharge_datetime.date() - enc.admission_datetime.date()).days)
+    return max(0, len(record.physiological_states) - 1)
+
+
 # ---- _print_summary (moved from cli.py) ----
 def _print_summary(dataset: CIFDataset, output_dir: str) -> None:
     """Print a summary report of generated data."""
@@ -91,7 +111,7 @@ def _print_summary(dataset: CIFDataset, output_dir: str) -> None:
     for r in inpatients:
         d = r.condition_event.ground_truth_diseases[0] if r.condition_event.ground_truth_diseases else "?"
         by_disease[d] += 1
-        los_by_disease[d].append(len(r.physiological_states) - 1)
+        los_by_disease[d].append(_encounter_los_days(r) or 0)
 
     if by_disease:
         print("\n  Disease distribution (inpatient):")
@@ -203,7 +223,7 @@ def _print_debug_record(record: CIFPatientRecord, index: int = 1) -> None:
     """Print detailed debug output for a single patient record."""
     r = record
     enc = r.encounters[0] if r.encounters else None
-    los = len(r.physiological_states) - 1 if r.physiological_states else 0
+    los = _encounter_los_days(r) or 0
 
     print(f"\n--- Patient {index}: {r.patient.patient_id} ---")
     print(f"  {r.patient.age}yo {r.patient.sex} | Chronic: {[c.code for c in r.patient.chronic_conditions]}")
