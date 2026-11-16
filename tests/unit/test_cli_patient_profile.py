@@ -173,7 +173,7 @@ def test_same_profile_produces_deterministic_narrative(tmp_path: Path):
 
     Structural CIF has pre-existing wall-clock nondeterminism (issue_date,
     MAR timestamps) unrelated to α-min-2c scope. Narrative output uses
-    _deterministic_timestamp (AD-16 discipline, PR #131 F-5 preserved)
+    the document's own time as generated_at (AD-16 discipline, no wall clock)
     so template narrative regression is byte-diff-stable.
     """
     profile_path = _write_profile(

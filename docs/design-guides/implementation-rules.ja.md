@@ -120,8 +120,8 @@ clinosim は **ロジックをコードに、定数・変数・パラメータ�
   `sha_quantile` / `sha_bernoulli` / `sha_normal` / `sha_weighted_choice` を使い、`hashlib.sha256` の式を
   inline で書かない。
 - **`datetime.now()` / `date.today()` を生成経路に書かない**。時計を読んでよいファイルは
-  `tests/unit/test_determinism_spec_guards.py` に固定されており、増やすのは禁止。narrative の時刻は
-  `_deterministic_timestamp` 系。
+  `tests/unit/test_determinism_spec_guards.py` に固定されており、増やすのは禁止。narrative の `generated_at` は
+  文書自身の時刻 (`NarrativePass._document_timestamp`)。
 - **`@lru_cache` 済み loader の戻り値は shared instance — mutate 絶対禁止**
   (`load_disease_protocol` / `load_encounter_condition` / `load_healthcare_config` /
   `load_hospital_operations` / ほか全 cached loader)。

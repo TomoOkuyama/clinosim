@@ -16,13 +16,14 @@ import os
 import re
 from abc import ABC, abstractmethod
 from dataclasses import asdict
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from clinosim.modules.llm_service.engine import LLMService
 
 from clinosim.countries import lang_for
+from clinosim.country_profile import country_profile
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import is_jp
 from clinosim.modules.document import specs_for_country
@@ -296,7 +297,11 @@ class NarrativePass(ABC):
                     # specific Procedure out of ``ctx.procedures``.
                     ctx.related_procedure_id = str(stub.get("related_procedure_id", "") or "")
                     output = self._generate(ctx, spec)
-                    wrapper = self._output_to_wrapper(output, generator=self._generator_name())
+                    wrapper = self._output_to_wrapper(
+                        output,
+                        generator=self._generator_name(),
+                        generated_at=self._document_timestamp(stub, encounter_dict),
+                    )
                     results.append(
                         {
                             "spec_key": spec.type_key,
@@ -784,30 +789,43 @@ class NarrativePass(ABC):
         docs: list[dict[str, Any]] = patient_dict.get("documents", []) or []
         return [doc for doc in docs if doc.get("task_type") == spec.type_key]
 
-    def _deterministic_timestamp(self) -> str:
-        """Deterministic per-document ``generated_at`` (AD-16).
+    def _document_timestamp(self, stub: dict[str, Any], encounter_dict: dict[str, Any]) -> str:
+        """Deterministic per-document ``generated_at``: the document's own time (Issue #3276).
 
-        Real narrative generation runs happen at varying wall-clock times, but
-        the byte-diff / regression contract (``test_template_pass_deterministic``)
-        requires identical output for identical (structural CIF, version_id,
-        rng_seed) inputs. Per-document timestamps are therefore derived from
-        ``rng_seed`` rather than ``datetime.utcnow()``. This mirrors the existing
-        codebase convention where wall-clock provenance is reserved for
-        manifest-level fields only (e.g. ``fhir_r4_adapter.py``'s
-        ``transactionTime`` — see manifest.json's ``generated_at`` below, which
-        intentionally keeps wall-clock semantics since it is not byte-diffed).
+        The stub's ``authored_datetime``, else its ``period_end``, else the
+        encounter's ``discharge_datetime``. A naive CIF time gets the
+        country profile's ``timezone`` suffix, the representation FHIR
+        ``DocumentReference.date`` uses for the same value; an explicit
+        offset is kept. No document time → ``""`` (never invented).
+
+        The byte-diff / regression contract (``test_template_pass_deterministic``)
+        requires identical output for identical inputs, so the wall clock is
+        not used here (AD-16); it is reserved for run metadata such as the
+        version manifest's ``generated_at``.
         """
-        base = datetime(2020, 1, 1, tzinfo=UTC) + timedelta(seconds=self.rng_seed)
-        return base.isoformat().replace("+00:00", "Z")
+        for raw in (
+            stub.get("authored_datetime"),
+            stub.get("period_end"),
+            encounter_dict.get("discharge_datetime") if isinstance(encounter_dict, dict) else None,
+        ):
+            dt = parse_iso_datetime(raw)
+            if dt is None:
+                continue
+            if dt.tzinfo is not None:
+                return dt.isoformat().replace("+00:00", "Z")
+            return dt.isoformat() + country_profile(self.country).timezone
+        return ""
 
-    def _output_to_wrapper(self, output: NarrativeOutput, generator: str) -> ClinicalDocumentNarrative:
+    def _output_to_wrapper(
+        self, output: NarrativeOutput, generator: str, generated_at: str
+    ) -> ClinicalDocumentNarrative:
         return ClinicalDocumentNarrative(
             text=output.raw_text,
             sections=output.sections,
             structured=output.structured,
             generator=generator,
             generator_metadata=output.metadata,
-            generated_at=self._deterministic_timestamp(),
+            generated_at=generated_at,
             facts_used=output.facts_used,
         )
 
@@ -876,8 +894,8 @@ class TemplateNarrativePass(NarrativePass):
         concurrency: int = 1,
     ):
         # F-5 adv-1: `self._rng` was allocated here from rng_seed but never
-        # consumed — TemplateNarrativeGenerator is deterministic modulo
-        # rng_seed via `_deterministic_timestamp` and fact ordering only.
+        # consumed — TemplateNarrativeGenerator is deterministic given the
+        # structural CIF (fact ordering only; no RNG draws).
         # Removed to eliminate the aspirational-scaffold no-op wiring
         # (β-JP-1 LLMNarrativePass will re-allocate if it needs one).
         super().__init__(

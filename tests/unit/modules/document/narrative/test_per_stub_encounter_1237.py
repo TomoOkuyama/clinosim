@@ -120,7 +120,7 @@ def test_per_stub_encounter_binding_via_run_unit(monkeypatch) -> None:
     def _fake_generate(self, ctx, spec):
         return SimpleNamespace(sections={"subjective": f"for {ctx._enc}"})
 
-    def _fake_output_to_wrapper(self, output, generator):
+    def _fake_output_to_wrapper(self, output, generator, generated_at):
         return SimpleNamespace(sections=output.sections, generator=generator, generator_metadata={})
 
     def _fake_write(self, narrative_dir, encounter_id, stub, wrapper, spec):
