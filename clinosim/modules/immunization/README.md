@@ -34,8 +34,8 @@ EHR documentation.
   lot number generation (structural placeholder, NOT an authoritative
   batch); Feb 29 birthday clamping to Feb 28 in non-leap years;
   optional `history_years` retention window (e.g. flu → 10 y).
-- **Out of scope**: paediatric immunization catch-up modelling,
-  reaction / adverse-event generation, scheduling immunization visits
+- **Out of scope**: paediatric catch-up outside the catch-up vaccination
+  visits (see *Encounter binding*), reaction / adverse-event generation, scheduling immunization visits
   in the simulator's encounter loop (vaccination encounters are only
   synthesised post hoc by the enricher), FHIR / CSV serialisation
   ([`clinosim.modules.output`](../output/README.md)), CVX display
@@ -151,7 +151,14 @@ their records, then binds each dose (deterministic, no rng):
    keeps at most one flu record. A pediatric immunization visit records
    the `pediatric_series` doses whose age window holds the visit age
    (the engine's dose moved there, or a new one when the series is on
-   track: dose 1, or the previous dose given);
+   track: dose 1, or the previous dose given). At a visit the pediatric
+   schedule flags `catch_up` (kindergarten, adolescent; Issue #3282) a
+   series the child is behind on (doses 1..k given before the visit, no
+   refusal charted) also gets its next dose k+1, once the visit age has
+   reached that dose's window and is within the series'
+   `catch_up_max_age_days`, and the series' minimum interval since dose k
+   holds — the continuation of the series, never a restart; one dose of a
+   series per visit;
 3. otherwise snaps the dose to the nearest outpatient encounter within
    ±60 days and records its `encounter_id`; a flu dose only to an
    encounter in its own season and vaccination months, and no dose to an
@@ -203,6 +210,10 @@ Other module dependencies are lazy imports in the enricher:
 ward nurse pools that `administered_by` is chosen from) and
 `clinosim.modules.document.engine.document_enricher` (companion
 encounter documents).
+`visits.py` lazily imports `clinosim.modules.pediatric.calendar.catch_up_visit_reasons`
+(the labels of the catch-up vaccination visits, Issue #3282),
+`clinosim.modules.population` (flu-visit candidacy and months) and
+`clinosim.modules.encounter.protocol` (the flu visit's chief complaint).
 
 ## Constants and configuration
 
@@ -235,6 +246,7 @@ encounter documents).
   | `seasonal_distribution` | `annual` only. `{month: weight}` for per-season month sampling. |
   | `wave_epochs` | `once` only. Epochs with `start` / `end` / `age_weight` / `monthly_curve`. |
   | `doses` | `pediatric_series` only. Per dose: `age_days_min`, `age_days_max`, `dose_number`, `coverage_by_sex`; from dose 2 on, `min_interval_days` (minimum days after the previous dose; US CDC General Best Practice Guidelines Table 3-1, JP 予防接種実施規則) and optionally `min_interval_after_dose` (the earlier dose the interval counts from when it is not the previous one, e.g. JP hepatitis B dose 3: 139 days after dose 1) and `max_interval_days` (the latest the dose may come after that dose, e.g. JP Japanese encephalitis 1期初回 dose 2: 6-28 days; Issue #3006). The generator, the vaccination-visit binder and the encounter alignment all keep these rules (`engine.series_allows`). Issue #3001. |
+  | `catch_up_max_age_days` | `pediatric_series` only, optional. Oldest age (days) at which a child behind on the series is caught up at a `catch_up` vaccination visit (Issue #3282). US: CDC Child and Adolescent Catch-up Immunization Schedule — DTaP 2555 (< 7 y; Tdap/Td from 7 y), IPV / MMR / varicella / HepB / HepA 6938 (through 18 y). JP: 予防接種法施行令 target ages — DTaP-IPV and Japanese encephalitis 第1期 2737 (< 90 months). Absent (never caught up) where a late start changes the number of doses (Hib, PCV) or the target age has passed (rotavirus, BCG, JP hepatitis B / MR 第1期 / varicella). |
   | `available_from` | Program availability date (`YYYY-MM-DD`). |
   | `history_years` | Optional. EHR retention window (e.g. flu → 10 y). |
   | `administration` | How a dose is given (Issue #3005): `route` (a `codes/data/snomed-maps.yaml` route key: `IM` / `SC` / `PO` / `PERCUTANEOUS`), `dose_ml` (omitted when the label states no fixed volume, e.g. BCG) and optional `dose_ml_by_age` `[{max_age_months, ml}]` (e.g. JP Japanese encephalitis 0.25 mL under 3 years). The schedule's top-level `administration_sites` gives the SNOMED body site per route and age band (infant IM in the thigh, upper arm otherwise; no site for an oral dose). Read by `engine.vaccine_administration(country, cvx, age_months)` for the FHIR Immunization `route` / `site` / `doseQuantity`. |
