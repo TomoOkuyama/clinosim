@@ -2492,6 +2492,11 @@
 <td><code>tests/unit/modules/drug_safety/test_self_conflict_3283.py</code></td>
 </tr>
 <tr>
+<td>A first-line block with <code>select: one_of</code> lists alternatives in order of preference (AF rate control): the admission gate gives the first entry that passes and drops the rest. A ruled-out entry is logged with the entry given in its place as its substitute; only when every entry is ruled out is the substitute of the first entry that has one added (digoxin beside a home beta-blocker). A non-dihydropyridine CCB is not given in heart failure (<code>non-dhp-ccb-in-heart-failure</code>) and a second beta-blocker is not added to one the patient takes (<code>beta-blocker-plus-beta-blocker</code>).</td>
+<td><code>modules/order/engine.py::first_line_alternative_groups</code>; <code>simulator/medication_pipeline.py::apply_drug_safety_gate_to_orders</code> (<code>alternative_groups</code>); <code>modules/disease/protocol.py::validate_first_line_select</code></td>
+<td><code>tests/unit/modules/order/test_af_rate_control_3274.py</code></td>
+</tr>
+<tr>
 <td>Hold rules come from one source at admission, administration and discharge: renal actions per drug, vital-sign hold parameters, the metformin renal threshold.</td>
 <td><code>medication_pipeline.py</code> (<code>renal_medication_rules</code>, <code>mar_vital_hold_reason</code>, <code>metformin_admission_hold_threshold</code>), <code>discharge_rx.py::renal_hold_drugs</code>; data <code>simulator/reference_data/renal_medication_rules.yaml</code>, <code>locale/shared/chronic_medications.yaml</code></td>
 <td><code>tests/unit/test_hold_rules_one_source_2296.py</code>, <code>tests/unit/test_medication_holds_acute_illness_1335.py</code></td>

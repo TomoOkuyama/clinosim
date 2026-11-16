@@ -2492,6 +2492,11 @@
 <td><code>tests/unit/modules/drug_safety/test_self_conflict_3283.py</code></td>
 </tr>
 <tr>
+<td><code>select: one_of</code> を持つ first-line ブロックは優先順の代替薬の並び(心房細動の心拍数調節)で、入院時 gate は最初に通過した項目だけを投与し残りを外す。回避した項目には、代わりに投与した項目を代替薬として記録する。全項目が回避されたときに限り、代替薬を持つ最初の項目の代替薬を追加する(自宅のβ遮断薬にジゴキシンを追加)。心不全では非ジヒドロピリジン系 Ca 拮抗薬を投与せず(<code>non-dhp-ccb-in-heart-failure</code>)、内服中のβ遮断薬に二剤目を追加しない(<code>beta-blocker-plus-beta-blocker</code>)。</td>
+<td><code>modules/order/engine.py::first_line_alternative_groups</code>、<code>simulator/medication_pipeline.py::apply_drug_safety_gate_to_orders</code>(<code>alternative_groups</code>)、<code>modules/disease/protocol.py::validate_first_line_select</code></td>
+<td><code>tests/unit/modules/order/test_af_rate_control_3274.py</code></td>
+</tr>
+<tr>
 <td>保留規則は入院時・投与時・退院時で一つの出所から読む(薬剤ごとの腎機能対応、バイタルの保留条件、メトホルミンの腎機能閾値)。</td>
 <td><code>medication_pipeline.py</code>(<code>renal_medication_rules</code>, <code>mar_vital_hold_reason</code>, <code>metformin_admission_hold_threshold</code>)、<code>discharge_rx.py::renal_hold_drugs</code>。データ <code>simulator/reference_data/renal_medication_rules.yaml</code>, <code>locale/shared/chronic_medications.yaml</code></td>
 <td><code>tests/unit/test_hold_rules_one_source_2296.py</code>, <code>tests/unit/test_medication_holds_acute_illness_1335.py</code></td>
