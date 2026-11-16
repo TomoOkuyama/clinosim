@@ -576,6 +576,21 @@ def _after_earlier_doses(occ: date, dose: dict, dose_num: int | None, given_on: 
     return max(occ, earliest)
 
 
+def conditional_dose_coverage(marginal: float, previous: float | None) -> float:
+    """The probability of giving a series dose to a child who received the
+    previous drawn dose (Issue #3288). ``coverage_by_sex`` stores each
+    dose's marginal coverage (the national share of children with that
+    dose); a dose is only drawn after the earlier ones were given, so its
+    threshold is ``marginal / previous`` (``previous``: the marginal of the
+    dose given last, ``None`` for the first drawn dose) and the share of
+    children reaching dose k is its marginal coverage."""
+    if previous is None:
+        return marginal
+    if previous <= 0:
+        return 0.0
+    return min(1.0, marginal / previous)
+
+
 def generate_immunizations(
     patient, schedule: dict, as_of: date, rng: np.random.Generator, nurse_ids: list[str] | None = None
 ) -> list:
@@ -728,6 +743,10 @@ def generate_immunizations(
             if dob is None:
                 continue
             series_discontinued = False
+            # Issue #3288: ``coverage_by_sex`` is each dose's marginal
+            # coverage; the marginal of the dose given last (None before the
+            # first drawn dose) turns it into the conditional threshold.
+            given_cov: float | None = None
             given_on: dict[int, date] = {}  # dose number -> date given
             for dose in v.get("doses") or []:
                 d_min = int(dose["age_days_min"])
@@ -769,7 +788,8 @@ def generate_immunizations(
                 age_at = _age_on(dob, occ, base_age)
                 cov = dose.get("coverage_by_sex") or {}
                 cov_val = float(cov.get(sex, next(iter(cov.values()), 0.0))) if cov else 0.0
-                if rng.random() < cov_val:
+                if rng.random() < conditional_dose_coverage(cov_val, given_cov):
+                    given_cov = cov_val
                     if occ > as_of:
                         # Not due yet at the snapshot: no record, and the
                         # later doses wait for it.

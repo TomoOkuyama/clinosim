@@ -14,7 +14,8 @@
 
 - **In scope**: schedule エントリごとの `annual` / `every_n_years` /
   `once` / `pediatric_series` サンプリング、年齢 × 性別 coverage lookup
-  (小児 series は dose 単位の `coverage_by_sex`)、接種日配置 (annual →
+  (小児 series は dose 単位の周辺接種率 `coverage_by_sex` を前の回の接種に
+  条件付けて抽選 — Issue #3288)、接種日配置 (annual →
   `seasonal_distribution` から月を抽選、無ければ固定 `season_month`、
   every_n_years → `interval_years` step、once → `wave_epochs` があれば
   epoch/月を抽選、無ければ資格期間内で uniform、pediatric_series →
@@ -218,7 +219,7 @@ Z26.9)。FHIR の Encounter・Procedure の `reasonCode` がこれを使い、US
   | `season_month` | `annual` 時のみ。`seasonal_distribution` が無い場合の固定接種月 (既定 10)。 |
   | `seasonal_distribution` | `annual` 時のみ。シーズン内の月抽選用 `{month: weight}`。 |
   | `wave_epochs` | `once` 時のみ。`start` / `end` / `age_weight` / `monthly_curve` を持つ epoch 列。 |
-  | `doses` | `pediatric_series` 時のみ。dose ごとに `age_days_min` / `age_days_max` / `dose_number` / `coverage_by_sex`。2 回目以降は `min_interval_days` (前回接種からの最小日数。US は CDC General Best Practice Guidelines Table 3-1、JP は予防接種実施規則) と、前回以外の回から数える場合の起点 `min_interval_after_dose` (任意。例: JP B型肝炎 3 回目は 1 回目から 139 日)、その起点からの最大間隔 `max_interval_days` (任意。例: JP 日本脳炎 第1期初回 2 回目は 6〜28 日、Issue #3006)。生成・予防接種受診への紐付け・encounter への寄せのいずれもこの規則を守る (`engine.series_allows`)。Issue #3001。 |
+  | `doses` | `pediatric_series` 時のみ。dose ごとに `age_days_min` / `age_days_max` / `dose_number` / `coverage_by_sex` (その回の周辺接種率 = その回を接種した子の割合。シリーズの後の回ほど小さいか等しい。前に抽選した回を接種した子は確率 `coverage_k / coverage_{k-1}` でこの回を接種し (`engine.conditional_dose_coverage`、Issue #3288)、シリーズ完了率が出典の全国値に一致する。US は NIS-Child / 幼稚園入園時 / NIS-Teen、JP は厚生労働省「定期の予防接種実施者数」)。2 回目以降は `min_interval_days` (前回接種からの最小日数。US は CDC General Best Practice Guidelines Table 3-1、JP は予防接種実施規則) と、前回以外の回から数える場合の起点 `min_interval_after_dose` (任意。例: JP B型肝炎 3 回目は 1 回目から 139 日)、その起点からの最大間隔 `max_interval_days` (任意。例: JP 日本脳炎 第1期初回 2 回目は 6〜28 日、Issue #3006)。生成・予防接種受診への紐付け・encounter への寄せのいずれもこの規則を守る (`engine.series_allows`)。Issue #3001。 |
   | `catch_up_max_age_days` | `pediatric_series` のみ、任意。接種が遅れた子を `catch_up` 受診でキャッチアップする上限日齢 (Issue #3282)。US は CDC Child and Adolescent Catch-up Immunization Schedule — DTaP 2555 (7 歳未満、7 歳以降は Tdap/Td)、IPV / MMR / 水痘 / B型肝炎 / A型肝炎 6938 (18 歳まで)。JP は予防接種法施行令の定期接種対象年齢 — 四種混合と日本脳炎 第1期 2737 (生後 90 月未満)。開始が遅れると接種回数が変わる系列 (Hib、肺炎球菌) と対象年齢を過ぎる系列 (ロタウイルス、BCG、JP の B型肝炎 / MR 第1期 / 水痘) には設定しない (キャッチアップしない)。 |
   | `available_from` | プログラム開始日 (`YYYY-MM-DD`)。 |
   | `history_years` | 任意。EHR 保持期間 (flu → 10 y 等)。 |
