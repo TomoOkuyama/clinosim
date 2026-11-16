@@ -992,3 +992,4 @@ _.mean_los  # validator _CountryLosBenchmarks field (validated yaml key, read by
 _.care_supportive_types  # order _AdmissionOrderSets field (validated yaml key, read by key, Issue #3242)
 _.jaundice  # document/reference_data_loaders.py NeonatalExam (Pydantic field; read from the YAML dict in _resolvers.resolve_neonatal_exam, Issue #3260)
 _.exclude_conditions  # document DischargeInstructionGate field (validated yaml key, read by key, Issue #3254)
+_.chronic_condition_stages  # observation _MorseForgetsLimitations field (validated yaml key, read by key, Issue #3307)

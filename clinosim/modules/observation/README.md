@@ -92,7 +92,8 @@ from clinosim.modules.observation.nursing import (
     compute_gcs,                         # (consciousness_level, perfusion_status, rng) -> int
     compute_braden,                      # (adl, consciousness_level, volume_status, rng) -> dict
     compute_morse_fall_risk,             # (age, adl, consciousness_level, has_iv, rng, has_secondary_diagnosis=False,
-                                         #  fell_recently=None) -> (score, risk_level, item_scores)
+                                         #  fell_recently=None, forgets_limitations=False) -> (score, risk_level, item_scores)
+    morse_forgets_limitations_from,      # (chronic_conditions, complications) -> first date the mental-status item scores, or None (Issue #3307)
 )
 from clinosim.modules.observation.nursing_enricher import enrich_nursing
 
@@ -170,7 +171,10 @@ from clinosim.modules.observation.microbiology import (
     [S, I, R] antibiogram triples with a positive sum.
   - `nursing_scores.yaml` — authoritative published-instrument
     bands for NEWS2, GCS, Braden, Morse (loaded by `_scores`,
-    consumed by the `compute_*` functions).
+    consumed by the `compute_*` functions). `morse.forgets_limitations`
+    lists the conditions that score the Morse mental-status item in an
+    alert patient: dementia at CDR 1-3 and in-hospital delirium from its
+    onset (Issue #3307).
   - `lab_constants.yaml` — per-lab units / CVs / precision / limits /
     normals / panic values.
   - `pediatric_reference_ranges.yaml` — age-banded pediatric vital and

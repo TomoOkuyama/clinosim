@@ -950,6 +950,12 @@ def _generate_mar(
         #    rarely hit today; kept for orders without a resolvable
         #    frequency at all (the catalog's ``default_interval_hours``).
         drug_upper = drug_name.upper()
+        # Issue #3311: no dose before the order. A daily-loop order dated
+        # "day N + 10 h" after an evening admission falls on the next calendar
+        # day, and a continued home medication is ordered an hour after
+        # admission; slots before the order time are not given.
+        not_before = max(getattr(order, "ordered_datetime", None) or admission_time, admission_time)
+        order_day = (not_before.date() - admission_time.date()).days
         _drug = get_drug(order.drug_id or drug_ref(drug_name))
         _scheduled_h = _drug.scheduled_interval_hours if _drug is not None else None
         _freq_per_day = getattr(order, "frequency_per_day", None)
@@ -1015,8 +1021,8 @@ def _generate_mar(
             continue
 
         stat_first_dose_time = None
-        if day == 0 and str(getattr(order, "urgency", "")).lower() == "stat":
-            stat_first_dose_time = admission_time + timedelta(
+        if day == order_day and str(getattr(order, "urgency", "")).lower() == "stat":
+            stat_first_dose_time = not_before + timedelta(
                 minutes=_first_dose_delay_min(patient.patient_id, order.order_id, "stat")
             )
 
@@ -1040,14 +1046,22 @@ def _generate_mar(
         # Guarded on ``stat_first_dose_time is None`` so STAT orders
         # keep their bundle-mandated 30-60min first dose window
         # unchanged.
-        if day == 0 and admin_hours and stat_first_dose_time is None:
-            day0_slots = [
-                datetime(admission_time.year, admission_time.month, admission_time.day, h, 0) for h in admin_hours
+        # Issue #3311: likewise on the day of a later order whose every slot
+        # of that day is before the order time (the first dose follows the
+        # order instead of preceding it).
+        if day == order_day and admin_hours and stat_first_dose_time is None:
+            order_day_slots = [
+                datetime(admission_time.year, admission_time.month, admission_time.day, h, 0) + timedelta(days=day)
+                for h in admin_hours
             ]
-            if all(s < admission_time for s in day0_slots):
+            if all(s < not_before for s in order_day_slots):
                 scheduled_times.append(
-                    admission_time
-                    + timedelta(minutes=_first_dose_delay_min(patient.patient_id, order.order_id, "day0"))
+                    not_before
+                    + timedelta(
+                        minutes=_first_dose_delay_min(
+                            patient.patient_id, order.order_id, "day0" if order_day == 0 else "first"
+                        )
+                    )
                 )
 
         for hour in admin_hours:
@@ -1055,7 +1069,7 @@ def _generate_mar(
                 days=day
             )
 
-            if scheduled < admission_time:
+            if scheduled < not_before:
                 continue
             # Skip the scheduled-grid slot if it is within 90min of the STAT
             # ad-hoc dose to avoid a double administration back-to-back.
@@ -1093,10 +1107,14 @@ def _generate_mar(
             ):
                 status, hold_reason = "held", potassium_hold.reason_at(scheduled)
 
+            # The early side of the jitter does not move a dose before its order.
             actual = (
-                scheduled
-                + timedelta(
-                    minutes=determinism.sha_normal(f"{_mar_salt}|jitter", MAR_JITTER_MEAN_MIN, MAR_JITTER_STD_MIN)
+                max(
+                    not_before,
+                    scheduled
+                    + timedelta(
+                        minutes=determinism.sha_normal(f"{_mar_salt}|jitter", MAR_JITTER_MEAN_MIN, MAR_JITTER_STD_MIN)
+                    ),
                 )
                 if status == "given"
                 else None

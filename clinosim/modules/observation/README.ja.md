@@ -84,7 +84,8 @@ from clinosim.modules.observation.nursing import (
     compute_gcs,                         # (consciousness_level, perfusion_status, rng) -> int
     compute_braden,                      # (adl, consciousness_level, volume_status, rng) -> dict
     compute_morse_fall_risk,             # (age, adl, consciousness_level, has_iv, rng, has_secondary_diagnosis=False,
-                                         #  fell_recently=None) -> (score, risk_level, item_scores)
+                                         #  fell_recently=None, forgets_limitations=False) -> (score, risk_level, item_scores)
+    morse_forgets_limitations_from,      # (chronic_conditions, complications) -> 精神状態項目を採点する最初の日、なければ None (Issue #3307)
 )
 from clinosim.modules.observation.nursing_enricher import enrich_nursing
 
@@ -158,7 +159,9 @@ from clinosim.modules.observation.microbiology import (
     [S, I, R] が 3 要素で合計が正であること。
   - `nursing_scores.yaml` — NEWS2 / GCS / Braden / Morse の
     authoritative 公表 instrument band (`_scores` が load し
-    `compute_*` が消費)。
+    `compute_*` が消費)。`morse.forgets_limitations` は意識清明の患者で
+    Morse の精神状態項目を採点する状態 (CDR 1-3 の認知症、発症日以降の
+    院内せん妄) を定める (Issue #3307)。
   - `lab_constants.yaml` — lab ごとの単位 / CV / 精度 / limit /
     正常値 / panic 値。
   - `pediatric_reference_ranges.yaml` — 年齢帯別の小児 vital / lab

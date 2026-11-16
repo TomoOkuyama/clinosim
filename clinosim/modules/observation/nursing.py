@@ -6,12 +6,16 @@ Data-driven via reference_data/nursing_scores.yaml (authoritative published inst
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
 from clinosim.datafiles import load_validated_yaml
+from clinosim.modules._shared import get_attr_or_key
 from clinosim.modules.observation._nursing_score_thresholds import (
     AVPU_TO_BRADEN_SENSORY,
     BARTHEL_DEFAULT,
@@ -164,6 +168,30 @@ def morse_fall_history(age: int, unit: float) -> bool:
     return unit < prob
 
 
+def morse_forgets_limitations_from(chronic_conditions: Iterable[Any], complications: Iterable[Any]) -> date | None:
+    """The first day on which an alert patient scores the Morse mental-status
+    item ("forgets limitations", Issue #3307): ``date.min`` for a chronic
+    condition at a listed stage (staged dementia), else the onset date of the
+    earliest listed in-hospital complication (delirium; ``date.min`` when its
+    onset is not recorded), else None. The rule is
+    ``morse.forgets_limitations`` in ``nursing_scores.yaml``."""
+    from clinosim.simulator.complications import normalized_complications
+
+    rule = _scores()["morse"]["forgets_limitations"]
+    stages = rule["chronic_condition_stages"]
+    for cc in chronic_conditions:
+        code = str(get_attr_or_key(cc, "code", "") or "")
+        stage = str(get_attr_or_key(cc, "stage", "") or "")
+        if any(code.startswith(prefix) and stage in listed for prefix, listed in stages.items()):
+            return date.min
+    onsets = [
+        date.fromisoformat(c["onset_datetime"][:10]) if c["onset_datetime"] else date.min
+        for c in normalized_complications(list(complications))
+        if c["name"] in rule["complications"]
+    ]
+    return min(onsets) if onsets else None
+
+
 def compute_morse_fall_risk(
     age: int,
     adl: dict,
@@ -172,12 +200,15 @@ def compute_morse_fall_risk(
     rng: np.random.Generator,
     has_secondary_diagnosis: bool = False,
     fell_recently: bool | None = None,
+    forgets_limitations: bool = False,
 ) -> tuple[int, str, dict[str, int]]:
     """Morse Fall Scale: ``(total, risk level, items)`` (Issue #2692).
 
     The six published items are scored and the total is their sum, so it is
     always a valid Morse score (a multiple of 5). The former ±5 jitter draw
     is still taken, and discarded, so the RNG stream is consumed as before.
+    The mental-status item scores an impaired level of consciousness or a
+    patient who ``forgets_limitations`` (Issue #3307).
     """
     cfg = _scores()["morse"]
     barthel = adl.get("barthel_score", BARTHEL_DEFAULT) if adl else BARTHEL_DEFAULT
@@ -199,7 +230,7 @@ def compute_morse_fall_risk(
             if barthel < MORSE_GAIT_WEAK_MAX_EXCLUSIVE
             else 0
         ),
-        "morse_mental": cfg["mental_status_forgets_limits"] if consciousness_level != "A" else 0,
+        "morse_mental": cfg["mental_status_forgets_limits"] if consciousness_level != "A" or forgets_limitations else 0,
     }
     rng.integers(MORSE_JITTER_LOW, MORSE_JITTER_HIGH, endpoint=True)  # kept for stream shape
     score = max(MORSE_SCORE_MIN, min(MORSE_SCORE_MAX, sum(items.values())))

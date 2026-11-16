@@ -109,6 +109,7 @@ def test_admission_before_first_slot_uses_scheduled_slot_not_ad_hoc():
     admission), the regular scheduled slot fires — no ad-hoc fallback."""
     admission_time = datetime(2026, 3, 26, 5, 0)  # 05:00 admit, before 08:00 slot
     order = _order("ORD-ENO", "DVT_prophylaxis: Enoxaparin 2000IU SC daily", "SC")
+    order.ordered_datetime = admission_time  # Issue #3311: a dose never precedes its order
     mars = _generate_mar(
         _patient(),
         [order],
