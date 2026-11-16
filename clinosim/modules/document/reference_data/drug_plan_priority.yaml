@@ -1,0 +1,49 @@
+# How a daily note's plan lists the medications (Issue #3247). Read by
+# narrative/_medication_plan.py::medication_plan_rules and applied by
+# narrative/_medication_plan.py::note_medications (progress-note plan) and
+# ranked_medication_names (H&P initial medications).
+#
+# tiers: the order in which a list names its drugs, highest first. A drug
+#   belongs to the first tier one of whose catalog classes
+#   (codes/data/drugs.yaml `classes`, with their dotted ancestors) it has, or
+#   failing that whose route class (codes/data/drugs.yaml `route_classes`)
+#   its administration route is in; every other drug comes after the tiers
+#   (chronic oral drugs). Within a tier the drugs keep the order the
+#   medication record lists them in. Life-sustaining infusions come first,
+#   then antimicrobials, anticoagulation, insulin and analgesia, then other
+#   parenteral drugs.
+# one_time_frequencies: order frequencies (case-insensitive) of a one-time
+#   order; such a dose (or one of an order marked single_dose) is written as
+#   given, not as a medication being continued.
+# as_needed_marker: the word (case-insensitive) in an order frequency that
+#   makes it an as-needed order ("Q6H PRN"); a drug given only as needed is
+#   continued when given, never started or stopped by a day it is (not)
+#   needed.
+# max_listed: how many drugs one list names; the rest are counted
+#   (narrative_phrases.yaml current_medications.truncate_suffix).
+
+metadata:
+  kind: reference
+  source: >-
+    Clinical convention for daily progress-note plans (life-sustaining and
+    time-critical therapy first); Issue #3247.
+
+tiers:
+  - name: vasoactive
+    classes: [vasopressor, inotrope]
+  - name: antimicrobial
+    classes: [antibiotic, antifungal, antiviral]
+  - name: anticoagulant
+    classes: [anticoagulant, thrombolytic]
+  - name: insulin
+    classes: [insulin]
+  - name: analgesic
+    classes: [opioid, analgesic, nsaid]
+  - name: parenteral
+    route_classes: [injection]
+
+one_time_frequencies: [once, stat]
+
+as_needed_marker: prn
+
+max_listed: 8

@@ -191,6 +191,7 @@ clinosim/modules/document/
     ja_only_fallback_sections.yaml   US H&P の JA 文字 audit 対象外 section (audit.py)
     chronic_soap_templates.yaml      慢性疾患 SOAP note template
     hedging_phrases.yaml             narrative hedging phrase pool
+    drug_plan_priority.yaml          経過記録の計画の薬剤の優先順位・単回投与の頻度・一覧の上限 (narrative/_medication_plan.py)
   narrative/                         narrative subpackage (Stage 2 pipeline) — narrative/README.md 参照
 ```
 

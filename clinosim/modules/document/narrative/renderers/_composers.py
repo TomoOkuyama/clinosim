@@ -310,76 +310,34 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
     return t("list_sep.chunk", lang).join(parts)
 
 
-def _today_medications(ctx: NarrativeContext) -> tuple[list[str], list[str]]:
-    """Today's MAR drugs as (continued, held) display lists, first-seen order,
-    at most six each. A drug with a held dose today is listed as held with
-    its reason ("Candesartan (K 6.5 mmol/L)"), not as continued (Issue #2981)."""
-    from clinosim.locale.free_text import localize_drug_name
-    from clinosim.locale.loader import hold_reason_display
-
-    lang = ctx.target_lang
-    _p_enc = getattr(ctx, "encounter", None)
-    _adm_raw = _o(_p_enc, "admission_datetime", None) if _p_enc is not None else None
-    _adm_dt = parse_iso_datetime(_adm_raw, lenient=True) if _adm_raw is not None else None
-    today: list[str] = []
-    held_reason: dict[str, str] = {}
-    for m in list(ctx.medications or []):
-        d = _o(m, "day", None)
-        if d is None and _adm_dt is not None:
-            _m_ts_raw = _o(m, "actual_datetime", None) or _o(m, "scheduled_datetime", None)
-            _m_ts = parse_iso_datetime(_m_ts_raw, lenient=True) if _m_ts_raw is not None else None
-            if _m_ts is not None:
-                d = (_m_ts.date() - _adm_dt.date()).days
-        if d is not None and d != ctx.day_index:
-            continue
-        name = _o(m, "drug_name", None) or _o(m, "medication", None) or _o(m, "name", None)
-        if not name:
-            continue
-        if name not in today:
-            today.append(name)
-        if _o(m, "status", None) == "held" and name not in held_reason:
-            held_reason[name] = str(_o(m, "hold_reason", None) or "")
-    continued = [localize_drug_name(str(n), lang) for n in today if n not in held_reason][:6]
-    # The reason in the note's language (Issue #3233); a measured value
-    # ("SBP < 90", "K 6.5 mmol/L") is written as stored.
-    held = [
-        f"{localize_drug_name(str(n), lang)} ({hold_reason_display(r, lang)})"
-        if r
-        else localize_drug_name(str(n), lang)
-        for n, r in held_reason.items()
-    ][:6]
-    return continued, held
-
-
 def compose_progress_held_line(ctx: NarrativeContext) -> str:
     """The plan line naming today's held drugs ("Held: ..."), or ``""`` — for
     an authored daily-trajectory plan, which lists no drugs (Issue #2981)."""
-    _, held = _today_medications(ctx)
-    return (
-        t("progress.meds_held", ctx.target_lang, list=t("list_sep.serial", ctx.target_lang).join(held)) if held else ""
-    )
+    from clinosim.modules.document.narrative._medication_plan import cap_names, note_medications
+
+    held = note_medications(ctx).held
+    return t("progress.meds_held", ctx.target_lang, list=cap_names(held, ctx.target_lang)) if held else ""
 
 
 def compose_progress_plan_from_state(ctx: NarrativeContext) -> str:
-    """Inpatient progress_note Plan from CIF facts.
+    """Inpatient progress_note Plan from CIF facts: the drugs of the note's
+    period — started, continued, given once, held and stopped, each ranked
+    by clinical priority (Issue #3247, ``_medication_plan.note_medications``)
+    — and today's procedures."""
+    from clinosim.modules.document.narrative._medication_plan import cap_names, note_medications
 
-    v9 (2026-08-17) density fix — lists today's active medications
-    (JA localized) and today's procedures / orders.
-
-    Issue #1074 B9 (session-99 2026-09-04): EN branch added — parallels
-    the JA structure so the EN plan section carries per-day med and
-    procedure lists instead of the generic ``Continue current
-    management`` fallback (measured on US p=2000 seed=500: 7.8 % of
-    1,409 progress notes shipped the fallback).
-    """
     lang = ctx.target_lang
     parts: list[str] = []
-    med_names, held = _today_medications(ctx)
-    if med_names:
-        sep = t("list_sep.serial", lang)
-        parts.append(t("progress.meds_continue", lang, list=sep.join(med_names)))
-    if held:
-        parts.append(t("progress.meds_held", lang, list=t("list_sep.serial", lang).join(held)))
+    meds = note_medications(ctx)
+    for key, names in (
+        ("progress.meds_started", meds.started),
+        ("progress.meds_continue", meds.continued),
+        ("progress.meds_given_once", meds.given_once),
+        ("progress.meds_held", meds.held),
+        ("progress.meds_stopped", meds.stopped),
+    ):
+        if names:
+            parts.append(t(key, lang, list=cap_names(names, lang)))
     # Today's procedures only, named from their codes (Issue #3246).
     procs = procedure_names(
         ctx.procedures,
