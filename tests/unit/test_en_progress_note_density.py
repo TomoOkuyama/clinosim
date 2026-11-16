@@ -137,7 +137,8 @@ def test_en_plan_lists_medications() -> None:
 
     gen = TemplateNarrativeGenerator()
     out = gen._compose_progress_plan_from_state(
-        _ctx("en", meds=[_med("Ceftriaxone"), _med("Azithromycin"), _med("Enoxaparin")])
+        # Issue #3247: given the day before too, so continued (not started).
+        _ctx("en", meds=[_med(n, d) for d in (0, 1) for n in ("Ceftriaxone", "Azithromycin", "Enoxaparin")])
     )
     assert "Ceftriaxone" in out
     assert "Azithromycin" in out
@@ -186,7 +187,7 @@ def test_ja_plan_still_uses_kanji_prose() -> None:
     )
 
     gen = TemplateNarrativeGenerator()
-    out = gen._compose_progress_plan_from_state(_ctx("ja", meds=[_med("Ceftriaxone")]))
+    out = gen._compose_progress_plan_from_state(_ctx("ja", meds=[_med("Ceftriaxone", 0), _med("Ceftriaxone")]))
     assert "薬物療法継続" in out
 
 
@@ -202,7 +203,7 @@ def test_en_med_filter_by_day() -> None:
             "en",
             day_index=2,
             meds=[
-                _med("Ceftriaxone", day=1),  # yesterday, filtered
+                _med("Ceftriaxone", day=0),  # before yesterday, filtered
                 _med("Enoxaparin", day=2),  # today, included
             ],
         )

@@ -156,6 +156,8 @@ def test_progress_plan_says_the_drug_is_held(lang: str, held_head: str, continue
     meds = [
         {"drug_name": "Candesartan 8mg", "day": 1, "status": "held", "hold_reason": "K 6.5 mmol/L"},
         {"drug_name": "Calcium Gluconate 1 g IV", "day": 1, "status": "given"},
+        {"drug_name": "Amlodipine 5mg", "day": 0, "status": "given"},
+        {"drug_name": "Amlodipine 5mg", "day": 1, "status": "given"},
     ]
     plan = compose_progress_plan_from_state(_ctx(lang, meds))
     held_part = plan[plan.index(held_head) :]

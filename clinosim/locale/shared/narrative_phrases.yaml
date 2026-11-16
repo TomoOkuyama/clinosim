@@ -123,15 +123,25 @@ progress:
     ja: "振戦・発汗軽快、離脱症状は改善傾向 (HR {hr})。"
     en: "Tremor and sweating settling, withdrawal improving (HR {hr})."
   # From template_generator._compose_progress_plan_from_state (Phase 1d-20).
-  # Per-day inpatient plan lines: continue-meds list, today's procs,
-  # observation fallback.
+  # Per-day inpatient plan lines: the drugs of the note's period by what
+  # happened to them (Issue #3247: started, continued, given once by a
+  # one-time order, held, stopped), today's procs, observation fallback.
+  meds_started:
+    ja: "開始: {list}。"
+    en: "Started: {list}."
   meds_continue:
     ja: "薬物療法継続: {list}。"
     en: "Continue current medications: {list}."
+  meds_given_once:
+    ja: "単回投与: {list}。"
+    en: "Given once: {list}."
   # Issue #2981: drugs whose doses were held today, with the hold reason.
   meds_held:
     ja: "休薬: {list}。"
     en: "Held: {list}."
+  meds_stopped:
+    ja: "中止: {list}。"
+    en: "Stopped: {list}."
   procs_today:
     ja: "本日の処置: {list}。"
     en: "Procedures today: {list}."
