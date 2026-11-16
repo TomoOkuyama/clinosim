@@ -191,7 +191,7 @@ clinosim/modules/document/
     death_course.yaml                death-summary circumstances and course: not-for-resuscitation codes, life support at death, CPR detection, list lengths, day/week boundary (load_death_course)
     narrative_extras_whitelists.yaml narrative extra-context whitelists (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   sections exempt from the US H&P JA-char audit (audit.py)
-    clinosim-discharge-instruction.yaml  discharge instructions (load_discharge_instructions; was discharge_instructions.yaml, #1862)
+    clinosim-discharge-instruction.yaml  discharge instructions (load_discharge_instructions; was discharge_instructions.yaml, #1862); entries may carry an `applies_when` gate (sex, smoking / alcohol status, condition groups, discharge drugs filling `{drugs}`) evaluated by renderers/_resolvers.py resolve_discharge_instructions, which also drops repeated sentences (#3254)
     clinosim-nursing-content.yaml    nursing-note content per acute disease / chronic ICD-10 (load_nursing_content)
     cc-pe-consistency-keywords.yaml  chief-complaint ↔ physical-exam consistency rails (narrative/_narrative_utils.py)
     chronic-med-class-hints.yaml     chronic-assessment medication-class hints (narrative/renderers/section_builders/outpatient_soap.py)

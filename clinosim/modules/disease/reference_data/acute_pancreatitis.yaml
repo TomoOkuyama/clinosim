@@ -790,8 +790,8 @@ narrative:
       en: "Return to ER if symptoms worsen."
       ja: "症状悪化があれば速やかに救急受診してください。"
     diet_lifestyle:
-      en: "Maintain balanced diet and adequate hydration."
-      ja: "バランスの良い食事と十分な水分摂取を心がけてください。"
+      en: "Maintain a balanced diet."
+      ja: "バランスの良い食事を心がけてください。"
 
 # ============================================================
 # IMAGING ORDERS (CO-1 / RM-5 continuation — session 43)

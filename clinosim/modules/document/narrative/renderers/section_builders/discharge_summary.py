@@ -290,7 +290,8 @@ def build_discharge_instructions(generator: TemplateNarrativeGenerator, ctx: Nar
     parts = []
     for key, bi_lang in instructions.items():
         # Issue #2273: missing language falls back to English, never Japanese.
-        text = bi_lang.get(lang) or bi_lang.get("en") or ""
+        # Issue #3254: a text emptied by sentence de-duplication stays empty.
+        text = bi_lang[lang] if lang in bi_lang else bi_lang.get("en") or ""
         if text:
             parts.append(text)
 
