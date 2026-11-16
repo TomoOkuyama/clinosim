@@ -21,6 +21,7 @@ from clinosim.country_profile import country_profile
 from clinosim.datafiles import load_data_yaml
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import is_jp, is_us
+from clinosim.modules._shared import set_attr_or_key as _set
 
 # ---------------------------------------------------------------------------
 # Immunization event recording (Issue #637)
@@ -64,6 +65,26 @@ def synthetic_lot_number(cvx: str, occurrence: date) -> str:
     mfr = f"{(_det_hash(cvx) % 900 + 100):03d}"
     batch = f"{(_det_hash(cvx, occurrence.year, occurrence.month) % 900 + 100):03d}"
     return f"L{mfr}-{occurrence.year:04d}{occurrence.month:02d}-{batch}"
+
+
+def lot_cvx_by_cvx(schedule: dict) -> dict[str, str]:
+    """CVX (the entry's and its products') → the schedule entry's CVX, the
+    key :func:`synthetic_lot_number` derives a dose's lot from."""
+    out: dict[str, str] = {}
+    for v in schedule.values():
+        for cvx in {str(v["cvx"])} | {str(p["cvx"]) for p in v.get("products") or []}:
+            out.setdefault(cvx, str(v["cvx"]))
+    return out
+
+
+def redate(imm: Any, day: date, lot_cvx: str) -> None:
+    """Move ``imm`` to ``day`` (Issue #3282): a given dose's lot is
+    regenerated for the new date (keyed by ``lot_cvx``, the schedule entry's
+    CVX), so no lot is dated after its administration. A declined dose has
+    no lot."""
+    _set(imm, "occurrence_date", day)
+    if (_get(imm, "status", "completed") or "completed") == "completed":
+        _set(imm, "lot_number", synthetic_lot_number(lot_cvx, day))
 
 
 def _declined(rng: np.random.Generator, coverage: float) -> bool:

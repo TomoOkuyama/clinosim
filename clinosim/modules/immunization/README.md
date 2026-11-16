@@ -84,6 +84,12 @@ grand-design contract) — the enricher's empty-map path is a no-op.
   two runs at a fixed seed. P1-7 caught the drift via
   `reproduce.sh`; `_det_hash` in `engine.py` now backs every lot-number
   computation.
+- **A re-dated dose gets the lot of its new date** (Issue #3282). The lot
+  `L<MFR>-<YYYYMM>-<BATCH>` embeds the dose month; every path that moves
+  `occurrence_date` (vaccination-visit binding, nearest-encounter
+  alignment, clinic-day hold) goes through `engine.redate`, which
+  regenerates the lot of a given dose, keyed by the schedule entry's CVX
+  (`lot_cvx_by_cvx`). No lot is dated after its administration.
 - Family-nurse assignment for `administered_by`: deterministic
   `nurse_ids[sum(ord(c) for c in patient_id) % len(nurse_ids)]` — one
   nurse per patient (RM-3, matches JP practice where nurses

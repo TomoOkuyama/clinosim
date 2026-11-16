@@ -73,6 +73,11 @@ from clinosim.modules.immunization.enricher import enrich_immunizations
   (`PYTHONHASHSEED`) ため、同一 seed でも lot number が run 間で変わる
   drift があった。P1-7 が `reproduce.sh` の determinism gate で検出、
   `engine.py` の `_det_hash` が現在 lot number 生成を担当。
+- **接種日を動かした接種は新しい日付の lot を持つ** (Issue #3282)。lot
+  `L<MFR>-<YYYYMM>-<BATCH>` は接種月を含む。`occurrence_date` を動かす経路
+  (接種 visit への紐付け、近傍 encounter への寄せ、診療日への移動) はすべて
+  `engine.redate` を通り、実施済みの接種の lot をスケジュール項目の CVX
+  (`lot_cvx_by_cvx`) で新しい日付から再生成する。接種日より後の月の lot は生じない。
 - 担当看護師 (`administered_by`) の割り当ては
   `nurse_ids[sum(ord(c) for c in patient_id) % len(nurse_ids)]` で
   決定論的に選出 (RM-3、実 JP practice に整合)。

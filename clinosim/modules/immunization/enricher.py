@@ -25,6 +25,8 @@ from clinosim.modules.immunization.engine import (
     generate_pregnancy_tdap,
     licensed_from_by_cvx,
     load_schedule,
+    lot_cvx_by_cvx,
+    redate,
     series_allows,
 )
 from clinosim.modules.immunization.visits import (
@@ -129,6 +131,7 @@ def _align_to_encounters(
     season_months: dict[str, frozenset[int]] | None = None,
     earliest_by_cvx: dict[str, date] | None = None,
     min_interval_by_cvx: dict[str, dict[int, DoseInterval]] | None = None,
+    lot_cvx: dict[str, str] | None = None,
 ) -> list:
     """Snap each immunization's occurrence_date to a nearby pediatric_visit
     encounter and stamp the encounter_id.
@@ -155,6 +158,8 @@ def _align_to_encounters(
         the series' minimum interval (``min_interval_by_cvx``,
         ``dose_intervals_by_cvx``; Issues #3001 / #3006). With no allowed visit
         the dose keeps its own date.
+      * A snapped dose's lot is regenerated for its new date (Issue #3282;
+        ``lot_cvx`` = ``lot_cvx_by_cvx``, the CVX the lot is keyed by).
 
     Never introduces a new encounter — the alignment only rebinds
     existing ones. Deterministic (no rng).
@@ -218,7 +223,8 @@ def _align_to_encounters(
                 best_day = _day
                 best_eid = _eid
         if best_day is not None and best_eid:
-            _set(imm, "occurrence_date", best_day)
+            _cvx = str(_get(imm, "vaccine_cvx", "") or "")
+            redate(imm, best_day, (lot_cvx or {}).get(_cvx, _cvx))
             _set(imm, "encounter_id", best_eid)
     return imm_recs
 
@@ -413,6 +419,7 @@ def enrich_immunizations(ctx) -> None:
     sim_start = _sim_window_start(ctx)
     visits_by_patient = vaccination_visits_by_patient(ctx.records)
     season_months = flu_season_months(schedule)
+    _lot_cvx = lot_cvx_by_cvx(schedule)
     # Issue #1245: a patient with N record files (per-encounter CIF sharding)
     # produced N copies of every synth VAX encounter — `generate_immunizations`
     # is deterministic per patient (same imm list on every call), so each
@@ -472,6 +479,7 @@ def enrich_immunizations(ctx) -> None:
             season_months,
             licensed_from_by_cvx(schedule, _get(patient, "date_of_birth", None)),
             _min_intervals,
+            _lot_cvx,
         )
         if roster is not None and hasattr(roster, "members"):
             _give_stay_doses_by_ward_nurse(recs, pool, roster, pid)
@@ -499,7 +507,8 @@ def enrich_immunizations(ctx) -> None:
                 and held != occ
                 and series_allows(imm, held, recs, _min_intervals.get(str(_get(imm, "vaccine_cvx", "") or "")))
             ):
-                _set(imm, "occurrence_date", held)
+                _cvx = str(_get(imm, "vaccine_cvx", "") or "")
+                redate(imm, held, _lot_cvx.get(_cvx, _cvx))
             # In-window orphan: emit companion encounter. The FIRST record
             # we visit for this patient hosts the encounter; later records
             # only link the imm to it (no cross-record duplicate append).
