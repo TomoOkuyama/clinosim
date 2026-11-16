@@ -30,10 +30,15 @@ def test_other_ed_conditions_still_go_home() -> None:
 
 def test_recurrent_depression_codes_f33() -> None:
     spec = load_encounter_condition(_COND)
-    assert ed_diagnosis_code(spec, _patient("F32.9")) == "F32.2"
-    assert ed_diagnosis_code(spec, _patient("F33.9")) == "F33.2"
-    assert ed_diagnosis_code(spec, _patient("F32.9", "F33.9")) == "F33.2"
-    assert ed_diagnosis_code(load_encounter_condition("anxiety_panic_attack"), _patient("F33.9")) == "F41.0"
+    assert ed_diagnosis_code(spec, _patient("F32.9"), country="US", encounter_id="ENC-1") == "F32.2"
+    assert ed_diagnosis_code(spec, _patient("F33.9"), country="US", encounter_id="ENC-1") == "F33.2"
+    assert ed_diagnosis_code(spec, _patient("F32.9", "F33.9"), country="US", encounter_id="ENC-1") == "F33.2"
+    assert (
+        ed_diagnosis_code(
+            load_encounter_condition("anxiety_panic_attack"), _patient("F33.9"), country="US", encounter_id="ENC-1"
+        )
+        == "F41.0"
+    )
 
 
 def test_condition_requires_depression_and_adult() -> None:

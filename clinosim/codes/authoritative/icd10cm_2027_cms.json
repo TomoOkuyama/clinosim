@@ -4,7 +4,7 @@
     "source_url": "https://www.cms.gov/files/zip/2027-code-descriptions-tabular-order.zip",
     "source_file": "Code Descriptions/icd10cm_order_2027.txt (long description, columns 78-)",
     "extracted_at": "2026-11-10",
-    "clinosim_codes_total": 483,
+    "clinosim_codes_total": 487,
     "clinosim_codes_missing_from_source": [
       "F00",
       "J46",
@@ -2100,6 +2100,26 @@
     {
       "code": "T18.9XXA",
       "display": "Foreign body of alimentary tract, part unspecified, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T22.211A",
+      "display": "Burn of second degree of right forearm, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T22.212A",
+      "display": "Burn of second degree of left forearm, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T23.201A",
+      "display": "Burn of second degree of right hand, unspecified site, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T23.202A",
+      "display": "Burn of second degree of left hand, unspecified site, initial encounter",
       "billable": true
     },
     {

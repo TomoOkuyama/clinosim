@@ -12,7 +12,8 @@
     "clinosim_codes_missing_from_source": [
       "S67.2"
     ],
-    "note": "WHO ICD-10 authoritative displays for the codes clinosim emits."
+    "note": "WHO ICD-10 authoritative displays for the codes clinosim emits.",
+    "later_additions": "T22.2 and T23.2 (Issue #3279) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
   },
   "concept": [
     {
@@ -8624,6 +8625,14 @@
           "valueString": "Swallowed foreign body NOS"
         }
       ]
+    },
+    {
+      "code": "T22.2",
+      "display": "Burn of second degree of shoulder and upper limb, except wrist and hand"
+    },
+    {
+      "code": "T23.2",
+      "display": "Burn of second degree of wrist and hand"
     },
     {
       "code": "T30",

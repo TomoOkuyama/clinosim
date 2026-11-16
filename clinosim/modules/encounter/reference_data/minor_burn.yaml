@@ -7,7 +7,22 @@ metadata:
   source: clinosim
 
 condition_id: minor_burn
-icd10_code: "T30.0"
+# Issue #3279: coded by site, side and depth, consistent with the chief
+# complaint (a partial-thickness = second-degree burn of the hand or arm),
+# never T30.0 (unspecified body region, unspecified degree). Each visit draws
+# one variant from a SHA of its encounter id; ``codes`` holds the code in each
+# country's diagnosis system (us: ICD-10-CM FY2027, initial encounter "A";
+# jp: MHLW ICD-10 2013 基本分類表).
+# Weights: the hand is the most commonly burned region in US ED burn visits
+# (34.4% of all burns; Lee A et al., Burns 2022;48(6):1347-1354, NEISS
+# 2000-2018, PMID 34924228). The hand 0.6 / forearm 0.4 split within hand/arm
+# burns and the even left/right split are clinosim estimates (no published
+# hand-vs-forearm share for ED burns was found).
+diagnosis_variants:
+  - {weight: 0.30, codes: {us: "T23.201A", jp: "T23.2"}}   # right hand, unspecified site
+  - {weight: 0.30, codes: {us: "T23.202A", jp: "T23.2"}}   # left hand, unspecified site
+  - {weight: 0.20, codes: {us: "T22.211A", jp: "T22.2"}}   # right forearm
+  - {weight: 0.20, codes: {us: "T22.212A", jp: "T22.2"}}   # left forearm
 chief_complaint:
   en: "Burn to hand/arm, partial thickness"
   ja: "手/腕の熱傷（部分層）"

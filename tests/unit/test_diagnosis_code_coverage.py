@@ -10,7 +10,8 @@ the subset is *closed over what is actually emittable*:
     (true WHO ICD-10 — JP no longer relies on ICD-10-CM cross-fallback; see AD/PR for
     JP WHO-granularity migration).
 
-C ranges over every disease icd_codes (primary + variants) and every encounter icd10_code,
+C ranges over every disease icd_codes (primary + variants), every encounter icd10_code and
+per-country diagnosis_variants code,
 plus every value (mapped target) in either diagnosis map.
 
 Regression guard for the "used-but-missing ICD code" gap (I21.2, I50.0, K57.11→K57.31, ...).
@@ -56,6 +57,17 @@ def _emittable_internal_codes() -> set[str]:
         d = yaml.safe_load(open(fp)) or {}
         if d.get("icd10_code"):
             codes.add(d["icd10_code"])
+    return codes
+
+
+def _encounter_variant_codes(country: str) -> set[str]:
+    """Per-country codes of the encounter protocols' ``diagnosis_variants``
+    (Issue #3279): each variant holds the code in that country's system."""
+    codes: set[str] = set()
+    for fp in glob.glob(os.path.join(ROOT, "clinosim/modules/encounter/reference_data/*.yaml")):
+        d = yaml.safe_load(open(fp)) or {}
+        for v in d.get("diagnosis_variants") or []:
+            codes.add(v["codes"][country])
     return codes
 
 
@@ -241,10 +253,19 @@ _CHRONIC_FOLLOWUP = _chronic_followup_codes()
 # has, so intersect with the locale demographics rather than assert every
 # followup key resolves in both locales (Issue #1035: C15/C16/C25/C67/C71
 # are JP-only cancers not present in US demographics).
-US_EMITTABLE = _COUNTRY_AGNOSTIC | _locale_chronic_codes("us") | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("us"))
+US_EMITTABLE = (
+    _COUNTRY_AGNOSTIC
+    | _locale_chronic_codes("us")
+    | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("us"))
+    | _encounter_variant_codes("us")
+)
 PERINATAL_JP = _perinatal_codes()
 JP_EMITTABLE = (
-    _COUNTRY_AGNOSTIC | _locale_chronic_codes("jp") | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("jp")) | PERINATAL_JP
+    _COUNTRY_AGNOSTIC
+    | _locale_chronic_codes("jp")
+    | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("jp"))
+    | PERINATAL_JP
+    | _encounter_variant_codes("jp")
 )
 
 
