@@ -155,6 +155,8 @@ clinosim/simulator/
   ed_procedures.py       ED 受診内のベッドサイド処置のタイミング
   screening_visit.py     エンカウンタープロトコルに基づく定期スクリーニング
                          受診 (workup + スクリーニング検査)
+  adl_ceiling.py         病期つき慢性疾患 (認知症 CDR 病期) による
+                         病前 Barthel 項目上限
   statin_monitoring.py   慢性疾患フォローアップでの脂質モニタリング +
                          スタチン調整
   diagnosis_rules.py     エンカウンターシミュレータの診断コーディング規則表
@@ -230,9 +232,10 @@ CLI サブコマンドハンドラ (11 ファイル):
   cli_test_encounter.py  `clinosim test-encounter` サブコマンド
 ```
 
-リファレンスデータ (`reference_data/`、6 YAML):
+リファレンスデータ (`reference_data/`、7 YAML):
 
 ```
+  reference_data/adl_functional_ceilings.yaml  認知症 CDR 病期による病前 Barthel 上限 (adl_ceiling.py)
   reference_data/chronic_propagation.yaml     慢性疾患の伝播 (helpers.py)
   reference_data/diagnosis_rules.yaml         診断コーディング規則 (diagnosis_rules.py)
   reference_data/icd10_sex_restrictions.yaml  ICD-10 の性別ゲート (sex_gating.py)

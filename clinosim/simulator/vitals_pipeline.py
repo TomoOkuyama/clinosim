@@ -174,6 +174,7 @@ from clinosim.simulator._vitals_schedule_thresholds import (
     VITALS_SPO2_LOW_NOTE_THRESHOLD,
     VITALS_TID_HOURS,
 )
+from clinosim.simulator.adl_ceiling import barthel_item_caps
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
     ADLAssessment,
@@ -239,6 +240,11 @@ def _generate_adl_assessment(
         base -= ADL_OLDEST_AGE_PENALTY
     elif age >= ADL_OLDER_AGE_THRESHOLD:
         base -= ADL_OLDER_AGE_PENALTY
+    # Premorbid ceiling of a staged chronic functional condition (dementia
+    # CDR stage, Issue #3237): the stay recovers towards it, never past it.
+    caps = barthel_item_caps(patient)
+    ceiling = sum(caps.values())
+    base = min(base, ceiling)
 
     # Acute illness reduces ADL
     infl_penalty = int(state.inflammation_level * ADL_INFLAMMATION_PENALTY_SCALE)
@@ -251,10 +257,10 @@ def _generate_adl_assessment(
     else:
         # Gradual recovery
         recovery = min(day * ADL_RECOVERY_PER_DAY, ADL_RECOVERY_MAX_TOTAL)
-        total = max(ADL_BARTHEL_MIN, min(ADL_BARTHEL_MAX, base - infl_penalty - perf_penalty + recovery))
+        total = max(ADL_BARTHEL_MIN, min(ceiling, base - infl_penalty - perf_penalty + recovery))
 
     total = int(rng.normal(total, ADL_BARTHEL_NOISE_SD))
-    total = max(ADL_BARTHEL_MIN, min(ADL_BARTHEL_MAX, total))
+    total = max(ADL_BARTHEL_MIN, min(ceiling, total))
 
     # Distribute across components proportionally (Issue #2693): each item
     # takes a score on its published scale (0/5/10[/15]; 0/5 for bathing and
@@ -262,16 +268,16 @@ def _generate_adl_assessment(
     # target total rounded to 5. The total is that sum.
     ratio = total / ADL_BARTHEL_MAX
     raw = {
-        "feeding": (ADL_COMP_FEEDING_MAX * min(1, ratio + ADL_RATIO_OFFSET_FEEDING), ADL_COMP_FEEDING_MAX),
-        "bathing": (ADL_COMP_BATHING_MAX * ratio, ADL_COMP_BATHING_MAX),
-        "grooming": (ADL_COMP_GROOMING_MAX * min(1, ratio + ADL_RATIO_OFFSET_GROOMING), ADL_COMP_GROOMING_MAX),
-        "dressing": (ADL_COMP_DRESSING_MAX * ratio, ADL_COMP_DRESSING_MAX),
-        "bowel_control": (ADL_COMP_BOWEL_MAX * min(1, ratio + ADL_RATIO_OFFSET_BOWEL), ADL_COMP_BOWEL_MAX),
-        "bladder_control": (ADL_COMP_BLADDER_MAX * min(1, ratio + ADL_RATIO_OFFSET_BLADDER), ADL_COMP_BLADDER_MAX),
-        "toilet_use": (ADL_COMP_TOILET_MAX * ratio, ADL_COMP_TOILET_MAX),
-        "transfers": (ADL_COMP_TRANSFERS_MAX * ratio, ADL_COMP_TRANSFERS_MAX),
-        "mobility": (ADL_COMP_MOBILITY_MAX * ratio, ADL_COMP_MOBILITY_MAX),
-        "stairs": (ADL_COMP_STAIRS_MAX * max(0, ratio - ADL_RATIO_OFFSET_STAIRS_DEFICIT), ADL_COMP_STAIRS_MAX),
+        "feeding": (ADL_COMP_FEEDING_MAX * min(1, ratio + ADL_RATIO_OFFSET_FEEDING), caps["feeding"]),
+        "bathing": (ADL_COMP_BATHING_MAX * ratio, caps["bathing"]),
+        "grooming": (ADL_COMP_GROOMING_MAX * min(1, ratio + ADL_RATIO_OFFSET_GROOMING), caps["grooming"]),
+        "dressing": (ADL_COMP_DRESSING_MAX * ratio, caps["dressing"]),
+        "bowel_control": (ADL_COMP_BOWEL_MAX * min(1, ratio + ADL_RATIO_OFFSET_BOWEL), caps["bowel_control"]),
+        "bladder_control": (ADL_COMP_BLADDER_MAX * min(1, ratio + ADL_RATIO_OFFSET_BLADDER), caps["bladder_control"]),
+        "toilet_use": (ADL_COMP_TOILET_MAX * ratio, caps["toilet_use"]),
+        "transfers": (ADL_COMP_TRANSFERS_MAX * ratio, caps["transfers"]),
+        "mobility": (ADL_COMP_MOBILITY_MAX * ratio, caps["mobility"]),
+        "stairs": (ADL_COMP_STAIRS_MAX * max(0, ratio - ADL_RATIO_OFFSET_STAIRS_DEFICIT), caps["stairs"]),
     }
     items = _barthel_items(raw, 5 * round(total / 5))
     return ADLAssessment(
