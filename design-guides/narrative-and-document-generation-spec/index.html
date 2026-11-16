@@ -2505,6 +2505,11 @@
 <td><code>tests/unit/modules/document/narrative/test_one_bp_target_3021.py</code></td>
 </tr>
 <tr>
+<td>The death certificate states one causal sequence, built by one walk of the record and shared by the death summary's cause of death (NCHS Physicians' Handbook 2003 Part I / Part II; MHLW 死亡診断書記入マニュアル Ⅰ欄 / Ⅱ欄). The immediate cause is the latest in-hospital complication that can cause death (a disease or complication, not a mechanism such as arrest); the underlying cause is the encounter's final diagnosis with its full code, except that a sequel code (severe sepsis / septic shock) is placed above the admission diagnosis (the infection) instead of being the underlying cause. Time to death runs from the immediate cause's onset when the record has it. Contributing conditions are the chronic conditions of the relevant categories that are not on a cause line, plus the other in-hospital complications, and the closing sentence appears once.</td>
+<td><code>clinosim/modules/document/narrative/renderers/section_builders/mortality.py::_dc_cause_chain</code>; <code>reference_data/death_cause_chain.yaml</code></td>
+<td><code>tests/unit/modules/document/narrative/test_death_cause_chain_3255.py</code></td>
+</tr>
+<tr>
 <td>Every <code>facts_used</code> tag names the source of the text it marks, with a prefix of one vocabulary: a structural-CIF field (<code>ctx.</code>, <code>patient.</code>, <code>encounter.</code>, <code>profile.</code>, <code>chronic.</code>, <code>physical_exam_findings</code>, <code>discharge_instructions</code>), static reference data (<code>disease_protocol.</code>, <code>encounter_protocol.</code>, <code>chief_complaint_variants.</code>), text composed from the CIF state (<code>composed:</code>), or a static template (<code>generic:</code>, <code>outpatient_soap_template.</code>). A tag outside it is reported by <code>check-narratives</code> as fabricated provenance.</td>
 <td><code>clinosim/modules/document/narrative/semantic_check.py::_ALLOWED_FACT_PREFIXES</code></td>
 <td><code>tests/unit/modules/document/narrative/test_narrative_spec_guards.py::test_every_facts_tag_literal_is_in_the_facts_vocabulary</code>, <code>tests/integration/test_check_narratives_mock.py</code></td>

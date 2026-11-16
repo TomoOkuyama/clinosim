@@ -2505,6 +2505,11 @@
 <td><code>tests/unit/modules/document/narrative/test_one_bp_target_3021.py</code></td>
 </tr>
 <tr>
+<td>死亡診断書は記録を一度たどって得た一つの因果の連鎖を記し、死亡退院サマリーの死因も同じ連鎖を使う (NCHS Physicians' Handbook 2003 Part I / Part II、厚生労働省「死亡診断書（死体検案書）記入マニュアル」Ⅰ欄・Ⅱ欄)。直接死因は死亡の原因となりうる入院中の合併症のうち最も遅く発症したもの (停止などの機序ではなく疾患・合併症)。原死因は入院の最終診断を完全なコードで記す。ただし続発の状態を表すコード (重症敗血症・敗血症性ショック) は原死因にせず、入院時診断 (感染症) の上の行に置く。直接死因までの期間は、記録に発症時刻があればそこから数える。影響を及ぼした傷病名は、死因の行にない関連区分の慢性疾患と、その他の入院中の合併症で、締めの文は一度だけ書く。</td>
+<td><code>clinosim/modules/document/narrative/renderers/section_builders/mortality.py::_dc_cause_chain</code>、<code>reference_data/death_cause_chain.yaml</code></td>
+<td><code>tests/unit/modules/document/narrative/test_death_cause_chain_3255.py</code></td>
+</tr>
+<tr>
 <td><code>facts_used</code> のタグは、それが示す文章の出所を一つの語彙の接頭辞で名指す。構造 CIF の項目(<code>ctx.</code>, <code>patient.</code>, <code>encounter.</code>, <code>profile.</code>, <code>chronic.</code>, <code>physical_exam_findings</code>, <code>discharge_instructions</code>)、静的な参照データ(<code>disease_protocol.</code>, <code>encounter_protocol.</code>, <code>chief_complaint_variants.</code>)、CIF の状態から組み立てた文章(<code>composed:</code>)、静的なテンプレート(<code>generic:</code>, <code>outpatient_soap_template.</code>)のいずれか。語彙の外のタグは <code>check-narratives</code> が捏造された出所として報告する。</td>
 <td><code>clinosim/modules/document/narrative/semantic_check.py::_ALLOWED_FACT_PREFIXES</code></td>
 <td><code>tests/unit/modules/document/narrative/test_narrative_spec_guards.py::test_every_facts_tag_literal_is_in_the_facts_vocabulary</code>, <code>tests/integration/test_check_narratives_mock.py</code></td>
