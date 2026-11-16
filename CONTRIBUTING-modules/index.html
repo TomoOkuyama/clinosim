@@ -4754,7 +4754,8 @@ similarly, and have consumers import it.</p>
 <li><strong>English-first:</strong> every entry in <code>codes/data/*.yaml</code> requires
   <code>en</code>; other languages (<code>ja</code>, etc.) are optional (CODES-1).</li>
 <li><strong>Every emittable diagnosis code must be registered:</strong> disease
-  <code>icd_codes</code> (primary + variants), encounter <code>icd10_code</code>,
+  <code>icd_codes</code> (primary + variants), encounter <code>icd10_code</code> or
+  per-country <code>diagnosis_variants</code> codes,
   <code>builtin_differentials.yaml</code> <code>differentials[*].icd</code> +
   <code>diagnosis_progression</code>. US billable in <code>icd-10-cm.yaml</code>;
   non-billable in <code>locale/us/code_mapping_diagnosis.yaml</code> folded to
