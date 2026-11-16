@@ -5,7 +5,7 @@
     "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (preferred term, synonyms, FSN)",
     "extracted_at": "2026-11-10",
     "edition_version": "http://snomed.info/sct/900000000000207008/version/20250201",
-    "clinosim_codes_total": 263,
+    "clinosim_codes_total": 266,
     "clinosim_codes_missing_from_source": [
       "303408005"
     ],
@@ -1795,6 +1795,32 @@
       ]
     },
     {
+      "code": "309205005",
+      "display": "Cholecystectomy specimen",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Cholecystectomy sample"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Excised gallbladder sample"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Cholecystectomy sample (specimen)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "Specimen from gallbladder obtained by cholecystectomy"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Cholecystectomy specimen (specimen)"
+        }
+      ]
+    },
+    {
       "code": "309343006",
       "display": "Physician",
       "designation": [
@@ -1815,6 +1841,24 @@
         {
           "use": "900000000000003001",
           "value": "Rehabilitation physician (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "309488006",
+      "display": "Partial colectomy specimen",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Partial colectomy sample"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Partial colectomy sample (specimen)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Partial colectomy specimen (specimen)"
         }
       ]
     },
@@ -2869,6 +2913,20 @@
         {
           "use": "900000000000003001",
           "value": "Structure of peripheral vein (body structure)"
+        }
+      ]
+    },
+    {
+      "code": "421615004",
+      "display": "Specimen from appendix obtained by appendectomy",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "Specimen from appendix obtained by appendicectomy"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "Specimen from appendix obtained by appendectomy (specimen)"
         }
       ]
     },

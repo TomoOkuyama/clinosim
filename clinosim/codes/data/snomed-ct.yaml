@@ -230,6 +230,17 @@ codes:
   '257261003':
     en: Swab
     ja: スワブ検体
+  # === Surgical specimens sent to pathology (Issue #3284) ===
+  # Verified active on tx.fhir.org $lookup (International Edition 2025-02-01).
+  '421615004':
+    en: Specimen from appendix obtained by appendectomy
+    ja: 虫垂切除標本
+  '309205005':
+    en: Cholecystectomy specimen
+    ja: 胆嚢摘出標本
+  '309488006':
+    en: Partial colectomy specimen
+    ja: 結腸部分切除標本
 
   # === Resuscitation / code status (AD-55 Base) ===
   # Verified active against SNOMED CT International via HL7 FHIR terminology

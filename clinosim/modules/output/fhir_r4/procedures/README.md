@@ -126,6 +126,16 @@ Not applicable — pure builders over CIF procedures / immunizations /
   precedence. JP output never carries CPT (Issue #3009): a procedure
   with no K-code keeps its Japanese `code.text` and a verified SNOMED
   coding when there is one.
+- **Surgical specimens** (`surgical_specimens.py`, Issue #3284): one
+  Specimen per `ProcedureRecord.specimens_sent` entry. `type` is the
+  SNOMED CT specimen concept (`snomed_for("specimen_type", key)`, dual
+  slot with the `surgical_specimen` label as `text`);
+  `collection.collectedDateTime` is the procedure end, `bodySite` the
+  procedure's, `collector` the surgeon. R4 Specimen has no element for
+  the collecting procedure, so the link is the R5
+  `Specimen.collection.procedure` cross-version extension
+  (`http://hl7.org/fhir/5.0/StructureDefinition/extension-Specimen.collection.procedure`)
+  referencing the Procedure id (`procedure_structural_key`).
 - **Oxygen therapy** (`oxygen_therapy.py`, Issue #796):
   - `_SNOMED_OXYGEN_THERAPY = "57485005"` — SNOMED CT code for
     oxygen administration.
@@ -161,6 +171,7 @@ clinosim/modules/output/fhir_r4/procedures/
   device.py                          _bb_device + _bb_device_use (from extensions["device"])
   nursing.py                         _bb_nursing_observations (NEWS2 / GCS / Braden / Morse / Barthel / intake-output survey Observation)
   oxygen_therapy.py                  _bb_oxygen_therapy + _SINGLE_TIMESTAMP_DWELL + _SNOMED_OXYGEN_THERAPY (Issue #796)
+  surgical_specimens.py              _bb_procedure_specimens (Specimen per ProcedureRecord.specimens_sent, Issue #3284)
 ```
 
 ## Testing

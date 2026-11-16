@@ -118,6 +118,16 @@ from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import (
   `procedure_system_key` override (例 `snomed-ct`) が優先。JP 出力は CPT を
   一切出さない (Issue #3009): K-code の無い処置は日本語 `code.text` と、
   検証済みなら SNOMED coding のみ。
+- **手術検体** (`surgical_specimens.py`、Issue #3284):
+  `ProcedureRecord.specimens_sent` の 1 件ごとに Specimen を 1 つ出す。
+  `type` は SNOMED CT の検体 concept (`snomed_for("specimen_type", key)`、
+  dual slot で `text` は `surgical_specimen` ラベル)、
+  `collection.collectedDateTime` は手術終了時刻、`bodySite` は Procedure と
+  同じ、`collector` は執刀医。R4 の Specimen には採取した処置を指す要素が
+  無いため、R5 の `Specimen.collection.procedure` の cross-version
+  extension
+  (`http://hl7.org/fhir/5.0/StructureDefinition/extension-Specimen.collection.procedure`)
+  で Procedure id (`procedure_structural_key`) を参照する。
 - **酸素療法** (`oxygen_therapy.py`、Issue #796):
   - `_SNOMED_OXYGEN_THERAPY = "57485005"` — 酸素投与の SNOMED CT
     code。
@@ -154,6 +164,7 @@ clinosim/modules/output/fhir_r4/procedures/
   device.py                          _bb_device + _bb_device_use (extensions["device"] 由来)
   nursing.py                         _bb_nursing_observations (NEWS2 / GCS / Braden / Morse / Barthel / intake-output survey Observation)
   oxygen_therapy.py                  _bb_oxygen_therapy + _SINGLE_TIMESTAMP_DWELL + _SNOMED_OXYGEN_THERAPY (Issue #796)
+  surgical_specimens.py              _bb_procedure_specimens (ProcedureRecord.specimens_sent ごとの Specimen、Issue #3284)
 ```
 
 ## テスト

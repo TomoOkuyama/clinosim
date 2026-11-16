@@ -255,6 +255,15 @@ soap_label:
   assessment: {en: "A:", ja: "A（評価）"}
   plan: {en: "P:", ja: "P（計画）"}
 
+# Clinical label of a surgical specimen (Issue #3284), keyed by the
+# ``specimen_type`` key the record stores (codes/data/snomed-maps.yaml); the
+# operative / procedure note line and FHIR Specimen.type.text. The coding
+# carries the SNOMED CT specimen concept's own display.
+surgical_specimen:
+  appendix: {en: Appendix, ja: 虫垂}
+  colon_segment: {en: Resected colon segment, ja: 切除結腸}
+  gallbladder: {en: Gallbladder, ja: 胆嚢}
+
 # Microbiology specimen container text (Phase 1d-50). Was
 # `_container_text_ja` / `_container_text_en` dict pair inside
 # `microbiology._bb_microbiology`. Emitted at

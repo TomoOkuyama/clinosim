@@ -104,6 +104,14 @@ catalog (`codes/data/clinosim-procedure-catalog.yaml` を引く
 `clinosim.codes.procedures.bedside_procedures()`、Issue #2263) 由来で、
 `engine.py` の `_BEDSIDE_PROCEDURES` tuple list に射影される。
 
+検体 (Issue #3284): 切除術は病理へ提出する組織を `specimens_sent` に
+`codes/data/snomed-maps.yaml` の `specimen_type` キー (`appendix`、
+`gallbladder`、`colon_segment`) で記録する。`simulate_surgery` と bedside
+経路が catalog の `specimens` 表
+(`clinosim.codes.procedures.procedure_specimens`) から写す。catalog データで
+乱数は引かない。手術記録 / 処置記録はラベルで列挙し、FHIR 出力は 1 件ずつ
+Specimen を出す。
+
 出血量・ASA 分類・麻酔 (Issue #3257): `ProcedureRecord` の既定値は空
 (`estimated_blood_loss_ml` / `asa_class` は None、`anesthesia_type` は "")
 で、「記録なし」を意味する。出血量 (疾患 YAML の

@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
+from clinosim.codes.procedures import specimen_label
 from clinosim.codes.snomed_concepts import PROCEDURE_PARTIALLY_SUCCESSFUL, PROCEDURE_UNSUCCESSFUL
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_narrative_labels
@@ -218,11 +219,17 @@ def build_op_specimens(generator: TemplateNarrativeGenerator, ctx: NarrativeCont
     if proc is None:
         return t("op_note.specimens_not_documented", lang), []
     facts = ["ctx.procedures"]
-    specimens = [str(s) for s in (_o(proc, "specimens_sent", []) or []) if s]
+    specimens = _specimen_labels(proc, lang)
     if not specimens:
         return t("op_note.specimens_none", lang), facts
     sep = t("list_sep.serial", lang)
     return t("op_note.specimens_line", lang, list=sep.join(specimens)), facts
+
+
+def _specimen_labels(proc: Any, lang: str) -> list[str]:
+    """Labels, in ``lang``, of the specimens a procedure sent to pathology
+    (``specimens_sent`` keys, Issue #3284)."""
+    return [specimen_label(str(s), lang) for s in (_o(proc, "specimens_sent", []) or []) if s]
 
 
 @section("op_blood_loss")
@@ -486,7 +493,7 @@ def build_pn_specimens(generator: TemplateNarrativeGenerator, ctx: NarrativeCont
     proc, facts = _pn_resolve_procedure(ctx)
     if proc is None:
         return t("proc_note.specimens_not_documented", lang), facts
-    specimens = [str(x) for x in (_o(proc, "specimens_sent", []) or []) if x]
+    specimens = _specimen_labels(proc, lang)
     facts.append("ctx.procedures.specimens_sent")
     if specimens:
         sep = t("list_sep.serial", lang)
