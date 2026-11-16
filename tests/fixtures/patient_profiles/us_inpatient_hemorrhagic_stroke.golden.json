@@ -21,7 +21,7 @@
       },
       "sections": {
         "allergies": "No known drug allergies (NKDA)",
-        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Sudden severe headache, vomiting, altered consciousness. Working diagnosis: hemorrhagic stroke (severity: severe). Comorbidities: Hypertension (HTN), Atrial fibrillation (AF). Plan: Estimated length of stay: ~14 days. Initial medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.",
+        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Sudden severe headache, vomiting, altered consciousness. Working diagnosis: hemorrhagic stroke (severity: severe). Comorbidities: Hypertension (HTN), Atrial fibrillation (AF). Plan: Estimated length of stay: ~14 days. Initial medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Workup / procedures: Urinary catheter insertion, Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion.",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
         "family_history": "No significant family history",
         "hpi": "Patient reports rapid symptom worsening prompting today's presentation.",
@@ -77,10 +77,10 @@
       "sections": {
         "assessment": "Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H], albumin 3.2 g/dL [L].",
         "objective": "BP 135/81 mmHg, HR 93/min, T 36.9°C, SpO2 95% (RA), RR 19/min",
-        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.",
+        "plan": "Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Procedures today: Urinary catheter insertion, Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion.",
         "subjective": "Hospital day 1. Pain persists (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 1. Pain persists (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 135/81 mmHg, HR 93/min, T 36.9°C, SpO2 95% (RA), RR 19/min\nA: Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H], albumin 3.2 g/dL [L].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h."
+      "text": "S: Hospital day 1. Pain persists (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 135/81 mmHg, HR 93/min, T 36.9°C, SpO2 95% (RA), RR 19/min\nA: Notable labs today: glucose 119.0 mg/dL [H], CRP 11.6 mg/L [H], WBC 11275.0 /uL [H], albumin 3.2 g/dL [L].\nP: Continue current medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h. Procedures today: Urinary catheter insertion, Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-03": {
@@ -439,6 +439,7 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
+        "ctx.procedures",
         "ctx.los_days",
         "ctx.diagnoses",
         "ctx.discharge_medications",
@@ -458,7 +459,7 @@
         "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Neurology/neurosurgery follow-up within 2-4 weeks. Repeat imaging per plan. Strict blood pressure control is essential. Do NOT restart anticoagulants without specialist approval. Return to ER immediately for: sudden severe headache, new or worsening weakness/speech difficulty, altered consciousness. Resume a normal diet gradually as tolerated. Strict blood pressure control (BP <140/90 target). Continue rehabilitation. Call ambulance immediately for severe headache, vomiting, weakness recurrence, or consciousness change. Activity restrictions per neurologist. Early rehabilitation as tolerated. Low-sodium diet. Blood pressure home monitoring twice daily.",
         "discharge_medications": "Amlodipine 5-10mg PO daily; Levetiracetam 500mg PO BID",
         "follow_up": "Neurology/neurosurgery follow-up within 2-4 weeks. Repeat imaging per plan.",
-        "hospital_course": "Length of stay: 8 days (primary reason: Sudden severe headache, vomiting, altered consciousness)."
+        "hospital_course": "Length of stay: 8 days (primary reason: Sudden severe headache, vomiting, altered consciousness). Key procedures: Urinary catheter insertion, Nasogastric tube insertion, Transthoracic echocardiography, Central venous catheter insertion, Craniotomy for intracranial hematoma evacuation."
       },
       "text": ""
     }

@@ -228,6 +228,7 @@ lab リストの各要素 (`labs`、`add_labs`、`additional_labs`、薬剤モ�
 | `codes.drugs`: `drug_ref(name_or_id)`, `has_drug(meds, drug_id_or_class)`, `medication_matches(med, drugs, classes)` | 名前・別名・自由文字列が指すカタログの `drug_id` / 投薬記録にその薬またはその分類の薬があるか (`drug_id`、なければ名前で判定) | `""` / `False` |
 | `codes.icd10`: `icd10_system(country)`, `icd10_display(code, country, lang)`, `condition_short_name(code, lang)`, `condition_label(code, country, lang)`, `medis_disease_keyno(icd)` | 国の ICD-10 体系 / 正式表示名 (JP の日本語は MHLW 2013 の名称をそのまま) / 臨床略称 (カテゴリ単位) / 文章と `Condition.code.text` に使う名称 (略称、なければ正式表示名) / MEDIS 病名管理番号 | キー / `None` / `None` / `None` / `None` |
 | `codes.procedures`: `procedure_code`, `procedure_type_display`, `procedure_code_display` | 処置コードと処置名 | `""` / 人間可読化した type / `None` |
+| `modules.document.narrative.renderers._shared_helpers`: `resolve_procedure_display(proc, lang)`, `procedure_prose_name(proc, lang)`, `procedure_names(procedures, lang, admission=, day=)` | ナラティブでの CIF 処置 (コードのみ、AD-30) の名称 (Issue #3246): 手術記録が使うコード表示名 (K コード、次に CPT) / 文中の処置名 (カタログの臨床名、なければコード表示名) / 一覧の重複のない文中名 (指定時はその入院日に開始した処置のみ)。ナラティブは `procedure_name` / `name` キーを読まない | カタログ名、なければ人間可読化した type / 同左 / `[]` |
 | `codes.ucum`: `ucum_code`, `ucum_quantity`, `ucum_prose` | UCUM コード / FHIR Quantity / 文章中の単位表記 (`mm[Hg]` → `mmHg`、`{INR}` → `""`) | 単位をそのまま返す |
 | `codes.prefectures.prefecture_code(name)` | JIS X 0401 コード | `""` |
 | `codes.snomed_concepts` | ロジックで使う名前付き SNOMED 概念 | — |

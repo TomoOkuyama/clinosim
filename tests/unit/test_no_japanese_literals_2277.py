@@ -39,8 +39,6 @@ _ALLOWED: dict[str, set[str]] = {
     # keywords matched against input text
     "modules/document/narrative/renderers/_composers.py": {"呼吸音清明", "意識清明"},
     # keywords matched against input text
-    "modules/document/narrative/renderers/section_builders/mortality.py": {"心肺蘇生", "蘇生"},
-    # keywords matched against input text
     "modules/document/narrative/renderers/section_builders/op_pn_notes.py": {"アプローチ"},
     # a leakage-detection pattern
     "modules/document/narrative/semantic_check.py": {"改善後のセクション本文"},

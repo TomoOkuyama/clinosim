@@ -190,6 +190,7 @@
       "facts_used": [
         "ctx.encounter.chief_complaint",
         "ctx.complications_occurred",
+        "ctx.procedures",
         "ctx.los_days",
         "ctx.diagnoses",
         "ctx.discharge_medications",
