@@ -147,6 +147,9 @@ clinosim/simulator/
   outpatient.py          outpatient encounter simulator
   emergency.py           ED encounter simulator
   discharge_gate.py      discharge-timing decision logic
+  vasoactive_support.py  vasopressor / inotrope weaning (MAP target met and
+                         out of shock) and the observation day off support
+                         before discharge (Issue #3270)
   discharge_rx.py        discharge-time prescription builder
   enrichers.py           enricher registry (post-population / post-records)
   outpatient_dept.py     outpatient follow-up department resolver
@@ -241,7 +244,7 @@ CLI subcommand handlers (11 files):
   cli_test_encounter.py  `clinosim test-encounter` subcommand
 ```
 
-Reference data (`reference_data/`, 7 YAMLs):
+Reference data (`reference_data/`, 8 YAMLs):
 
 ```
   reference_data/adl_functional_ceilings.yaml  premorbid Barthel ceiling by dementia CDR stage (adl_ceiling.py)
@@ -251,6 +254,7 @@ Reference data (`reference_data/`, 7 YAMLs):
   reference_data/renal_medication_rules.yaml  renal dosing rules (medication_pipeline.py, discharge_rx.py)
   reference_data/statin_monitoring.yaml       lipid monitoring / statin titration (statin_monitoring.py)
   reference_data/vasoactive_hold.yaml         drugs held during vasopressor / inotrope infusions (medication_pipeline.py)
+  reference_data/vasoactive_weaning.yaml      vasopressor / inotrope weaning and the discharge gate after it (vasoactive_support.py)
 ```
 
 Extracted threshold constants (14 files, `_<area>_thresholds.py`):

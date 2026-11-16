@@ -117,6 +117,12 @@ from clinosim.simulator.medication_pipeline import (
     dose_orders_for_child,
     generate_prn_administrations,
 )
+from clinosim.simulator.vasoactive_support import (
+    hospital_day_start,
+    stop_weaned_vasoactive_infusions,
+    vasoactive_support_after,
+    vasoactive_weaning_rules,
+)
 from clinosim.simulator.vitals_pipeline import (
     _generate_adl_assessment,
     _generate_daily_io,
@@ -189,17 +195,20 @@ def airway_escalation_needed(state: PhysiologicalState) -> bool:
     )
 
 
+def in_shock(state: PhysiologicalState) -> bool:
+    """Shock-level perfusion or distributive (septic) shock: vasopressor-level
+    care (Issues #2110, #3270)."""
+    return state.perfusion_status < ICU_SHOCK_PERFUSION_MAX or (
+        state.inflammation_level >= ICU_DISTRIBUTIVE_SHOCK_INFLAMMATION
+        and state.perfusion_status < ICU_DISTRIBUTIVE_SHOCK_PERFUSION_MAX
+    )
+
+
 def icu_escalation_needed(state: PhysiologicalState) -> bool:
     """Airway escalation, shock-level perfusion, distributive shock or a
     high-flow oxygen requirement: ICU care (Issues #2091, #2110)."""
     return (
-        airway_escalation_needed(state)
-        or state.perfusion_status < ICU_SHOCK_PERFUSION_MAX
-        or (
-            state.inflammation_level >= ICU_DISTRIBUTIVE_SHOCK_INFLAMMATION
-            and state.perfusion_status < ICU_DISTRIBUTIVE_SHOCK_PERFUSION_MAX
-        )
-        or state.oxygenation_impairment >= ICU_HIGH_FLOW_OXYGENATION
+        airway_escalation_needed(state) or in_shock(state) or state.oxygenation_impairment >= ICU_HIGH_FLOW_OXYGENATION
     )
 
 
@@ -250,6 +259,9 @@ class DailyLoopResult:
     escalation_procedures: list  # Issue #2091: state-driven intubation records
     differential: Any
     actual_los: int
+    # Issue #3270: a vasopressor / inotrope infusion ran within the observation
+    # period before discharge (only when the stay reached its hard cap).
+    on_vasoactive_support: bool = False
 
 
 @dataclass
@@ -1101,6 +1113,26 @@ def _record_terminal_course(stay: _Stay, run: _Run, day: int) -> None:
     )
 
 
+def _wean_vasoactive_support(stay: _Stay, run: _Run, day: int) -> None:
+    """Stop the running vasopressor / inotrope infusions at the start of the
+    day once the pressures recorded before it met the target and the patient
+    is out of shock (Issue #3270); no dose of them is given from then on.
+    Draws nothing."""
+    if day == 0:
+        return
+    stop_weaned_vasoactive_infusions(
+        run.orders, run.mars, run.vitals, in_shock(run.state), hospital_day_start(stay.admission_time, day)
+    )
+
+
+def _on_vasoactive_support(stay: _Stay, run: _Run, day: int) -> bool:
+    """Whether a vasopressor / inotrope infusion ran on any of the last
+    ``off_support_days_before_discharge`` hospital days up to ``day``
+    (Issue #3270)."""
+    off_days = vasoactive_weaning_rules().off_support_days_before_discharge
+    return vasoactive_support_after(run.orders, hospital_day_start(stay.admission_time, day + 1 - off_days))
+
+
 def _gate_new_medication_orders(
     stay: _Stay, admission_orders: list[Order], orders: list[Order], admission_ids: set[str]
 ) -> list[Order]:
@@ -1222,11 +1254,13 @@ def _run_daily_loop(
 
     comp_list = protocol.complications if protocol.complications else []
     # The sampled target LOS is the stay ceiling; it is extended one day at a
-    # time (up to max_los) while autonomic symptoms are uncontrolled. Stays
-    # that never extend run exactly ``target_los`` days as before.
+    # time (up to max_los) while autonomic symptoms are uncontrolled, and up to
+    # ``max_extension_days`` past max_los while on vasoactive support (Issue
+    # #3270). Stays that never extend run exactly ``target_los`` days as before.
     los_ceiling = target_los
     actual_los = max(1, target_los)  # a stay whose loop never runs
-    for day in range(max(target_los, max_los or 0)):
+    on_support = False
+    for day in range(max(target_los, max_los or 0) + vasoactive_weaning_rules().max_extension_days):
         actual_los = day + 1
         lab_state_pre_update = _advance_state(stay, run, day)
         if day >= 1:
@@ -1251,6 +1285,7 @@ def _run_daily_loop(
         _apply_archetype_modifications(stay, run, day)
         if day == TREATMENT_ESCALATION_DAY and run.state.inflammation_level > TREATMENT_ESCALATION_INFLAMMATION_MIN:
             _escalate_treatment(stay, run, day)
+        _wean_vasoactive_support(stay, run, day)
         mars_today = _generate_mar(
             patient,
             run.orders,
@@ -1276,14 +1311,19 @@ def _run_daily_loop(
             run.death_occurred = True
             _record_terminal_course(stay, run, day)
             break
+        # Issue #3270: no discharge on or within the observation day after
+        # vasopressor / inotrope support.
+        on_support = _on_vasoactive_support(stay, run, day)
         # Early discharge: if state-based criteria met before target_los
         # (not for protocols whose recovery the physiology does not model,
         # e.g. psychiatric admissions, Issue #2132).
         if day >= min_los and getattr(protocol, "state_based_discharge", True):
-            if _check_discharge_ready(run.state, day, country_key, symptom_floor):
+            if _check_discharge_ready(run.state, day, country_key, symptom_floor, on_vasoactive_support=on_support):
                 break  # actual_los = day + 1
         if day + 1 >= los_ceiling:
-            if not extend_stay_for_symptoms(run.state, los_ceiling, max_los, symptom_floor):
+            if not extend_stay_for_symptoms(
+                run.state, los_ceiling, max_los, symptom_floor, on_vasoactive_support=on_support
+            ):
                 break
             los_ceiling += 1
 
@@ -1306,6 +1346,7 @@ def _run_daily_loop(
         escalation_procedures=run.escalation_procedures,
         differential=run.differential,
         actual_los=actual_los,
+        on_vasoactive_support=on_support and not run.death_occurred,
     )
 
 

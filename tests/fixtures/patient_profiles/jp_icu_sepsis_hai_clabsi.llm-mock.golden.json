@@ -1155,6 +1155,7 @@
       "facts_used": [
         "ctx.los_days",
         "ctx.complications_occurred",
+        "encounter.discharge_disposition",
         "ctx.intake_output_records",
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments@authored"

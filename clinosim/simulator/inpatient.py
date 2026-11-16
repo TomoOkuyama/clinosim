@@ -367,6 +367,7 @@ def _finalize_discharge(
     death_occurred: bool,
     final_state: Any = None,
     symptom_floor: dict[str, float] | None = None,
+    on_vasoactive_support: bool = False,
 ) -> Any:
     """Build the discharge prescription + populate discharge-related
     ``encounter`` fields (physicians, admit source, disposition,
@@ -435,7 +436,10 @@ def _finalize_discharge(
         # EXP on death (#299), SNF when still unsafe for home at the end of
         # the stay (Issue #2084), otherwise HOME.
         encounter.discharge_disposition = discharge_disposition_for(
-            final_state if final_state is not None else state, symptom_floor, death_occurred
+            final_state if final_state is not None else state,
+            symptom_floor,
+            death_occurred,
+            on_vasoactive_support=on_vasoactive_support,
         )
     if not encounter.priority:
         encounter.priority = route_priority
@@ -929,6 +933,7 @@ def _simulate_patient(
         death_occurred=death_occurred,
         final_state=state_history[-1] if state_history else None,
         symptom_floor=symptom_floor,
+        on_vasoactive_support=loop_result.on_vasoactive_support,
     )
 
     # Discharge time: daytime (09-16) for planned discharge, any time for death

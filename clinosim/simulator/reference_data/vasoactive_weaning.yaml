@@ -1,0 +1,54 @@
+# Weaning a vasopressor / inotrope infusion and the discharge gate after it
+# (Issue #3270).
+#
+# Read by clinosim/simulator/vasoactive_support.py (`vasoactive_weaning_rules`)
+# and applied in the inpatient daily loop (simulator/daily_loop.py):
+#
+#   - Wean. At the start of each hospital day the running vasopressor and
+#     inotrope infusions (the `trigger_classes` of vasoactive_hold.yaml, given
+#     as continuous infusions) are stopped together when, over the
+#     `stable_hours` before, every blood pressure recorded has a mean arterial
+#     pressure of at least `map_target_mmhg`, at least `min_bp_readings` were
+#     recorded, no vasoactive infusion was started in that window, and the
+#     patient is out of shock (the daily loop's `in_shock`: shock-level
+#     perfusion or distributive shock, the same physiology that sends a patient
+#     to the ICU). The order ends at the start of the day; no dose of it is
+#     given after. Residual hypoperfusion without shock keeps the patient from
+#     going home through the discharge gate's own perfusion limit.
+#   - Discharge gate. A patient is not discharge-ready, not safe for home, and
+#     the stay is extended (up to the protocol's maximum stay, then by at most
+#     `max_extension_days` more), while a vasoactive infusion ran on any of the
+#     last `off_support_days_before_discharge` hospital days: the patient is
+#     observed off support before going home.
+#
+# Sources:
+#   - Surviving Sepsis Campaign: International Guidelines for Management of
+#     Sepsis and Septic Shock 2021 (Evans et al., Intensive Care Med 2021;
+#     47:1181-1247), Recommendation 9: "For adults with septic shock on
+#     vasopressors, we recommend an initial target mean arterial pressure
+#     (MAP) of 65 mm Hg over higher MAP targets." -> map_target_mmhg.
+#   - Norepinephrine bitartrate injection, US FDA prescribing information
+#     (openFDA set id 0ea48ab6-e166-df31-b132-70ef982a2d02), 2.1
+#     Discontinuation: "When discontinuing the infusion, reduce the flow rate
+#     gradually. Avoid abrupt withdrawal."; 5.2 Hypotension after Abrupt
+#     Discontinuation: "Sudden cessation of the infusion rate may result in
+#     marked hypotension." -> the infusion is stopped only after a stable
+#     period, and the patient is observed off support before discharge.
+#   - Dobutamine in 5% dextrose injection, US FDA prescribing information
+#     (openFDA set id 3418aa46-2d9a-39f3-e063-6294a90a2961): "ECG and blood
+#     pressure should be continuously monitored" (Precautions) — an inotrope
+#     infusion is monitored care, not care at home.
+# The lengths of the stable window (one day of recorded pressures) and of the
+# observation off support (one hospital day) and the extension cap are
+# clinosim modelling choices: the sources above require a gradual stop and
+# monitoring but give no duration.
+metadata:
+  kind: reference
+  name: vasoactive_weaning
+  source: clinosim
+
+map_target_mmhg: 65
+stable_hours: 24
+min_bp_readings: 2
+off_support_days_before_discharge: 1
+max_extension_days: 7
