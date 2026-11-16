@@ -49,7 +49,7 @@ def _order(order_id: str, drug: str, freq_per_day: int | None) -> Order:
         display_name=drug,
         urgency="routine",
         clinical_intent="",
-        ordered_datetime=datetime(2026, 6, 30, 5, 0),
+        ordered_datetime=datetime(2026, 6, 30, 0, 0),  # at admission (Issue #3311: no dose before the order)
         ordered_by="DR-1",
         status=OrderStatus.PLACED,
         route="PO",

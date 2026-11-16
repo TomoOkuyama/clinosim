@@ -169,6 +169,16 @@ class _Braden(BaseModel):
         return self
 
 
+class _MorseForgetsLimitations(BaseModel):
+    """Conditions that score the Morse mental-status item in an alert patient
+    (Issue #3307)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    chronic_condition_stages: dict[_Name, list[_Name]] = Field(min_length=1)
+    complications: list[_Name] = Field(default_factory=list)
+
+
 class _Morse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -180,6 +190,7 @@ class _Morse(BaseModel):
     fall_history_probability_by_age: list[tuple[_NonNegInt, _Prob]] = Field(min_length=1)
     secondary_diagnosis: _NonNegInt
     ambulatory_aid_by_barthel_mobility: dict[_NonNegInt, _NonNegInt] = Field(min_length=1)
+    forgets_limitations: _MorseForgetsLimitations
     # [score_low_inclusive, level]
     risk_levels: list[tuple[_NonNegInt, Literal["low", "moderate", "high"]]] = Field(min_length=1)
 

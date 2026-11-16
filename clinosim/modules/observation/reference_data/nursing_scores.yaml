@@ -105,6 +105,27 @@ morse:
   # (15); wheelchair-level mobility clutches furniture to move (30); immobile
   # (bed rest, nurse assist) = 0.
   ambulatory_aid_by_barthel_mobility: {15: 0, 10: 15, 5: 30, 0: 0}
+  # Issue #3307: the "mental status" item is "Oriented to own ability 0 /
+  # Overestimates/forgets limitations 15" (Morse JM, Morse RM, Tylko SJ.
+  # Development of a scale to identify the fall-prone patient. Can J Aging
+  # 1989;8:366-77, as reproduced in AHRQ "Preventing Falls in Hospitals",
+  # Tool 3H: Morse Fall Scale for Identifying Fall Risk Factors, content last
+  # reviewed July 2023). The item compares the patient's own judgement of
+  # what they can safely do with what they can do. Besides an impaired level
+  # of consciousness (AVPU other than A), it is scored for an alert patient
+  # whose judgement of their own ability is not reliable:
+  #   - dementia at CDR 1 or worse (Clinical Dementia Rating stages of the
+  #     F00 stage attribute, locale/shared/longitudinal/stage/dementia_f00.yaml),
+  #     whose memory and judgement deficits interfere with everyday activities;
+  #     CDR 0.5 (questionable dementia, fully capable of self-care) is not;
+  #   - in-hospital delirium (complication name), from the day of its onset
+  #     to the end of the stay (the simulator does not model its resolution).
+  # Clinical mapping chosen for this simulator, not part of the published
+  # scale, which leaves the judgement to the assessing nurse.
+  forgets_limitations:
+    chronic_condition_stages:      # ICD-10 code prefix -> stages that score
+      F00: ["CDR 1", "CDR 2", "CDR 3"]
+    complications: ["delirium"]
   risk_levels:           # [score_low_inclusive, level]
     - [0, "low"]
     - [25, "moderate"]

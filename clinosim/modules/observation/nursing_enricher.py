@@ -6,6 +6,8 @@ assessments. Uses a dedicated sub-seed so the main random stream is untouched.
 
 from __future__ import annotations
 
+from datetime import date, datetime
+
 from clinosim import determinism
 from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules._shared import set_attr_or_key as _set
@@ -15,6 +17,7 @@ from clinosim.modules.observation.nursing import (
     compute_gcs,
     compute_morse_fall_risk,
     compute_news2,
+    morse_forgets_limitations_from,
 )
 from clinosim.seeding import ENRICHER_SEED_OFFSETS, derive_sub_seed
 from clinosim.types.encounter import NursingRiskAssessment
@@ -22,6 +25,12 @@ from clinosim.types.encounter import NursingRiskAssessment
 # AVPU severity order: A (best/0) < V < P < U (worst/3).
 # Used to pick the most-impaired consciousness per day from same-day vitals.
 _AVPU_SEVERITY: dict[str, int] = {"A": 0, "V": 1, "P": 2, "U": 3}
+
+
+def _as_date(d) -> date:
+    if isinstance(d, datetime):
+        return d.date()
+    return d if isinstance(d, date) else date.fromisoformat(str(d)[:10])
 
 
 def enrich_nursing(ctx) -> None:
@@ -109,6 +118,11 @@ def enrich_nursing(ctx) -> None:
         _encs = _get(rec, "encounters", []) or []
         _enc_id = str(_get(_encs[0], "encounter_id", "") or "") if _encs else ""
         fell_recently = morse_fall_history(age, morse_fall_history_unit(pid or "x", _enc_id))
+        # Issue #3307: staged dementia / delirium score the mental-status item.
+        forgets_from = morse_forgets_limitations_from(
+            _get(patient, "chronic_conditions", None) or [] if patient else [],
+            _get(rec, "complications_occurred", None) or [],
+        )
         out = []
         for adl in adls:
             adld = adl if isinstance(adl, dict) else adl.__dict__
@@ -125,6 +139,7 @@ def enrich_nursing(ctx) -> None:
                 rng=rng,
                 has_secondary_diagnosis=has_secondary,
                 fell_recently=fell_recently,
+                forgets_limitations=forgets_from is not None and d is not None and forgets_from <= _as_date(d),
             )
             if d is None:
                 continue

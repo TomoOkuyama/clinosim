@@ -227,10 +227,10 @@
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 75.914 ng/mL [H] (prior 82.519; troponin elevation), CK-MB 35.1 ng/mL [H] (prior 42.4), glucose 116 mg/dL [H] (prior 118).",
         "objective": "BP 113/71 mmHg, HR 102 bpm, RR 20 /min, SpO2 96% (RA), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm, SpO2 min 92%)",
-        "plan": "Started: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip. Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
+        "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
         "subjective": "Hospital day 4. Persistent fever 38.8°C. Level of consciousness remains decreased (AVPU P)."
       },
-      "text": "S: Hospital day 4. Persistent fever 38.8°C. Level of consciousness remains decreased (AVPU P).\nO: BP 113/71 mmHg, HR 102 bpm, RR 20 /min, SpO2 96% (RA), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 75.914 ng/mL [H] (prior 82.519; troponin elevation), CK-MB 35.1 ng/mL [H] (prior 42.4), glucose 116 mg/dL [H] (prior 118).\nP: Started: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip. Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
+      "text": "S: Hospital day 4. Persistent fever 38.8°C. Level of consciousness remains decreased (AVPU P).\nO: BP 113/71 mmHg, HR 102 bpm, RR 20 /min, SpO2 96% (RA), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm, SpO2 min 92%)\nA: Notable labs (past 24 h): troponin I 75.914 ng/mL [H] (prior 82.519; troponin elevation), CK-MB 35.1 ng/mL [H] (prior 42.4), glucose 116 mg/dL [H] (prior 118).\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-06": {
@@ -277,10 +277,10 @@
       "sections": {
         "assessment": "Notable labs (past 24 h): troponin I 82.481 ng/mL [H] (prior 75.914; troponin elevation), creatinine 1.40 mg/dL [H] (prior 1.29), glucose 109 mg/dL [H] (prior 116), CK-MB 43.5 ng/mL [H] (prior 35.1).",
         "objective": "BP 116/69 mmHg, HR 105 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)",
-        "plan": "Continue current medications: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip, Heparin, Aspirin, Ticagrelor. Held: Nitroglycerin (on vasopressor or inotrope infusion).",
+        "plan": "Started: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip. Continue current medications: Heparin, Aspirin, Ticagrelor. Held: Nitroglycerin (on vasopressor or inotrope infusion).",
         "subjective": "Hospital day 5. Persistent fever 38.1°C. Level of consciousness remains decreased (AVPU P)."
       },
-      "text": "S: Hospital day 5. Persistent fever 38.1°C. Level of consciousness remains decreased (AVPU P).\nO: BP 116/69 mmHg, HR 105 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): troponin I 82.481 ng/mL [H] (prior 75.914; troponin elevation), creatinine 1.40 mg/dL [H] (prior 1.29), glucose 109 mg/dL [H] (prior 116), CK-MB 43.5 ng/mL [H] (prior 35.1).\nP: Continue current medications: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip, Heparin, Aspirin, Ticagrelor. Held: Nitroglycerin (on vasopressor or inotrope infusion)."
+      "text": "S: Hospital day 5. Persistent fever 38.1°C. Level of consciousness remains decreased (AVPU P).\nO: BP 116/69 mmHg, HR 105 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): troponin I 82.481 ng/mL [H] (prior 75.914; troponin elevation), creatinine 1.40 mg/dL [H] (prior 1.29), glucose 109 mg/dL [H] (prior 116), CK-MB 43.5 ng/mL [H] (prior 35.1).\nP: Started: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip. Continue current medications: Heparin, Aspirin, Ticagrelor. Held: Nitroglycerin (on vasopressor or inotrope infusion)."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-07": {
@@ -964,7 +964,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3\nPatient status: BP 111/67, HR 108, SpO2 94%, T 37.8°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nPatient status: BP 111/67, HR 108, SpO2 94%, T 37.8°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-26-night": {
@@ -986,7 +986,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4\nPatient status: BP 113/66, HR 106, SpO2 98%, T 37.3°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 4\nPatient status: BP 113/66, HR 106, SpO2 98%, T 37.3°C.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-27-day": {
