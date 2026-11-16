@@ -338,7 +338,7 @@ jobs:
         # Exact-pinned (Issue #449): CI and local envs resolve to the same
         # ruff version so lint failures reproduce byte-identically. Must
         # equal pyproject.toml's dev-extras ruff pin (a guard test checks it).
-        run: uv pip install --system "ruff==0.17.3"
+        run: uv pip install --system "ruff==0.17.4"
       - name: ruff check
         run: ruff check clinosim/ tests/
       - name: ruff format --check
