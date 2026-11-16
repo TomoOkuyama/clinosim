@@ -1092,7 +1092,11 @@ similarly, and have consumers import it.
   `icd_codes` (primary + variants), encounter `icd10_code` or
   per-country `diagnosis_variants` codes,
   `builtin_differentials.yaml` `differentials[*].icd` +
-  `diagnosis_progression`. US billable in `icd-10-cm.yaml`;
+  `diagnosis_progression`, and every chronic code: locale
+  `chronic_prevalence` / `comorbidity_correlations`, longitudinal
+  onset events (`emits_icd`), disease `sequela_code` /
+  `implied_chronic_codes`, and the unknown-condition / HAI rule
+  tables. US billable in `icd-10-cm.yaml`;
   non-billable in `locale/us/code_mapping_diagnosis.yaml` folded to
   a billable leaf. JP puts WHO 3-4 digit codes into `icd-10.yaml`
   (CM-grained codes fold into WHO parents via

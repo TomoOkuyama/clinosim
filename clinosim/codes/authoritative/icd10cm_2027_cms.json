@@ -4,7 +4,7 @@
     "source_url": "https://www.cms.gov/files/zip/2027-code-descriptions-tabular-order.zip",
     "source_file": "Code Descriptions/icd10cm_order_2027.txt (long description, columns 78-)",
     "extracted_at": "2026-11-10",
-    "clinosim_codes_total": 493,
+    "clinosim_codes_total": 497,
     "clinosim_codes_missing_from_source": [
       "F00",
       "J46",
@@ -14,7 +14,8 @@
       "S06.52",
       "S67.8"
     ],
-    "note": "ICD-10-CM codes in codes/data/icd-10-cm.yaml with the CMS long description (Issue #3127). billable = the order file's header flag (1 = valid for HIPAA-covered transactions). Codes missing from the source are WHO-only or retired codes the registry still lists; they are not emitted for the US."
+    "note": "ICD-10-CM codes in codes/data/icd-10-cm.yaml with the CMS long description (Issue #3127). billable = the order file's header flag (1 = valid for HIPAA-covered transactions). Codes missing from the source are WHO-only or retired codes the registry still lists; they are not emitted for the US.",
+    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt."
   },
   "concept": [
     {
@@ -275,6 +276,21 @@
     {
       "code": "E11.11",
       "display": "Type 2 diabetes mellitus with ketoacidosis with coma",
+      "billable": true
+    },
+    {
+      "code": "E11.21",
+      "display": "Type 2 diabetes mellitus with diabetic nephropathy",
+      "billable": true
+    },
+    {
+      "code": "E11.311",
+      "display": "Type 2 diabetes mellitus with unspecified diabetic retinopathy with macular edema",
+      "billable": true
+    },
+    {
+      "code": "E11.42",
+      "display": "Type 2 diabetes mellitus with diabetic polyneuropathy",
       "billable": true
     },
     {
@@ -2331,6 +2347,11 @@
       "code": "Z37",
       "display": "Outcome of delivery",
       "billable": false
+    },
+    {
+      "code": "Z37.0",
+      "display": "Single live birth",
+      "billable": true
     },
     {
       "code": "Z37.9",

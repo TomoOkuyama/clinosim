@@ -642,7 +642,7 @@ system = system_key_for("procedure", country)  # JP → "k-codes", 他 → "cpt"
 
 - **権威出典のみ:** CMS (ICD-10-CM), NLM (RxNorm, ICD-10-CM API `clinicaltables.nlm.nih.gov/api/icd10cm`), WHO (ICD-10, `icd.who.int/browse10`), Regenstrief (LOINC), AMA (CPT), JCCLS/JSLM (JLAC10), MHLW (YJ, K codes)。**コードを fabricate しない** (CODES-7: RxNorm CUI 18631 を 2 薬で共有した fabricated display が実例)。
 - **English-first:** `codes/data/*.yaml` の全エントリに `en` 必須、他言語 (`ja` 等) は任意 (CODES-1)。
-- **emittable な診断コードは全て登録:** disease の `icd_codes` (primary + variants)、encounter の `icd10_code`、`builtin_differentials.yaml` の `differentials[*].icd` + `diagnosis_progression`。US billable は `icd-10-cm.yaml`、非 billable は `locale/us/code_mapping_diagnosis.yaml` で billable leaf へ。JP は WHO 3-4 桁を `icd-10.yaml` に (CM 粒度は `locale/jp/code_mapping_diagnosis.yaml` で WHO 親へ畳む)。追加後は必ず:
+- **emittable な診断コードは全て登録:** disease の `icd_codes` (primary + variants)、encounter の `icd10_code`、`builtin_differentials.yaml` の `differentials[*].icd` + `diagnosis_progression`、および慢性疾患コード全般 (locale の `chronic_prevalence` / `comorbidity_correlations`、longitudinal onset event の `emits_icd`、disease の `sequela_code` / `implied_chronic_codes`、unknown condition / HAI のルール表)。US billable は `icd-10-cm.yaml`、非 billable は `locale/us/code_mapping_diagnosis.yaml` で billable leaf へ。JP は WHO 3-4 桁を `icd-10.yaml` に (CM 粒度は `locale/jp/code_mapping_diagnosis.yaml` で WHO 親へ畳む)。追加後は必ず:
 
 ```bash
 pytest tests/unit/test_diagnosis_code_coverage.py
