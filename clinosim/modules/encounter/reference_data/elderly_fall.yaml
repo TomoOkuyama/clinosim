@@ -38,7 +38,14 @@ workup:
     - {test: "Creatinine", probability: 0.3}
   imaging:
     - {test: "Hip_Xray_AP_Lateral", probability: 0.7}  # Issue #2699: the hip, the injury an older adult's fall most often needs imaged
-    - {test: "CT_Head", probability: 0.3}
+    # Issue #3238: a fall in a patient on an anticoagulant (VKA, DOAC,
+    # heparin), where a head strike is not excluded, is imaged for
+    # intracranial bleeding (NICE NG232 Head injury, 2023, recommendation
+    # 1.5.13).
+    - test: "CT_Head"
+      probability: 0.3
+      required_if:
+        - {medication_classes: [anticoagulant]}
 
 treatment:
   - {name: "Acetaminophen 1000mg", probability: 0.6, route: "PO", intent: "pain management"}

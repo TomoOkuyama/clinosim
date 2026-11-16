@@ -37,7 +37,19 @@ workup:
     - {test: "WBC", probability: 0.2}
     - {test: "CRP", probability: 0.15}
   imaging:
-    - {test: "CT_Head", probability: 0.3}  # rule out SAH if worst headache, first episode, or atypical features
+    # Issue #3238: CT of the head is ordered whenever a red flag for a
+    # secondary headache is present: onset after 50 (no known primary
+    # headache disorder), immunocompromise, or a history of cancer. ACR
+    # Appropriateness Criteria Headache (2022), variant 7 ("older age (>50
+    # years) of onset", "history of cancer or immunocompromise"): CT head
+    # without IV contrast usually appropriate. Otherwise the flat share
+    # stands (worst headache, first episode or atypical features).
+    - test: "CT_Head"
+      probability: 0.3
+      required_if:
+        - {min_age: 50, without_conditions: [primary_headache_disorder]}
+        - {conditions: [immunosuppressed]}
+        - {conditions: [malignancy]}
 
 # Issue #2134: ketorolac is not marketed in Japan; JP ED analgesia is IV
 # acetaminophen (アセリオ).

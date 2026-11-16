@@ -34,7 +34,13 @@ workup:
   vitals: true
   labs: []  # no routine labs for isolated concussion
   imaging:
-    - {test: "CT_Head", probability: 0.7}  # Canadian CT Head Rule
+    # Canadian CT Head Rule share; Issue #3238: a head injury in a patient on
+    # an anticoagulant (VKA, DOAC, heparin) is imaged (NICE NG232 Head
+    # injury, 2023, recommendation 1.5.13).
+    - test: "CT_Head"
+      probability: 0.7
+      required_if:
+        - {medication_classes: [anticoagulant]}
 
 treatment:
   - {name: "Neurological observation", probability: 1.0, route: "other", intent: "serial neuro checks q1h"}

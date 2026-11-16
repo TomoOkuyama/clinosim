@@ -18,6 +18,7 @@ from clinosim.locale.loader import order_test_display, treatment_intent_display
 from clinosim.modules._shared import normalize_probabilities
 from clinosim.modules.disease.severity import sample_severity_category
 from clinosim.modules.encounter.engine import create_inpatient_encounter
+from clinosim.modules.encounter.protocol import imaging_red_flag
 from clinosim.modules.observation.engine import get_lab_unit
 from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.order.label_dose import within_label
@@ -725,11 +726,21 @@ def _simulate_ed_visit(
     _dropped = {id(r) for r in relate_egfr_to_creatinine(orders, patient, country)}
     lab_results[:] = [r for r in lab_results if id(r) not in _dropped]
 
-    # Imaging from protocol
+    # Imaging from protocol. Issue #3238: a red flag orders the study even
+    # when the probability draw skips it; that order's time comes from a
+    # stream-free draw so the visit stream is consumed exactly as before.
     for i, img_spec in enumerate(workup.get("imaging", [])):
         test = img_spec.get("test", "")
         if rng.random() > img_spec.get("probability", 1.0):
-            continue
+            if not imaging_red_flag(img_spec, patient, visit_time):
+                continue
+            order_offset = determinism.sha_normal(
+                f"{encounter.encounter_id}|ed_imaging_red_flag|{i}",
+                ED_IMAGING_ORDER_OFFSET_MEAN_MIN,
+                ED_IMAGING_ORDER_OFFSET_STD_MIN,
+            )
+        else:
+            order_offset = rng.normal(ED_IMAGING_ORDER_OFFSET_MEAN_MIN, ED_IMAGING_ORDER_OFFSET_STD_MIN)
         orders.append(
             Order(
                 order_id=f"ORD-{encounter.encounter_id}-ED-I{i}",
@@ -740,8 +751,7 @@ def _simulate_ed_visit(
                 clinical_intent=t("encounter_intent.ed_imaging", "en", test=test),
                 # Issue #871: JA display for JP SR reasonCode.text.
                 clinical_intent_ja=t("encounter_intent.ed_imaging", "ja", test=order_test_display(test, "ja")),
-                ordered_datetime=visit_time
-                + timedelta(minutes=int(rng.normal(ED_IMAGING_ORDER_OFFSET_MEAN_MIN, ED_IMAGING_ORDER_OFFSET_STD_MIN))),
+                ordered_datetime=visit_time + timedelta(minutes=int(order_offset)),
                 ordered_by=encounter.attending_physician_id,
                 status=OrderStatus.PLACED,
             )
