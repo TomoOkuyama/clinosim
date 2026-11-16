@@ -2948,6 +2948,14 @@
 <td>The canonical lab name and its standard unit.</td>
 </tr>
 <tr>
+<td><code>clinosim/modules/observation/engine.py</code> <code>format_lab_value(name, value, unit)</code></td>
+<td>A lab value as text at the analyte's reported precision (no trailing <code>.0</code>).</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/lab_timeseries.py</code> <code>select_notable_labs(...)</code>, <code>clinosim/modules/document/narrative/_notable_labs.py</code> <code>notable_lab_entries(...)</code></td>
+<td>The abnormal labs a note cites (known at its authored time, one per analyte, ranked, interpreted) and their wording.</td>
+</tr>
+<tr>
 <td><code>clinosim/modules/observation/engine.py</code> <code>medications_in_effect(home_medications, medication_orders, admission_date, current_day)</code></td>
 <td>The medications acting on lab values on a given day of a stay.</td>
 </tr>

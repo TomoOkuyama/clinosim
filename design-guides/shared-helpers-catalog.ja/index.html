@@ -2793,6 +2793,14 @@
 <td>検査の正準名と標準単位。</td>
 </tr>
 <tr>
+<td><code>clinosim/modules/observation/engine.py</code> <code>format_lab_value(name, value, unit)</code></td>
+<td>検査値を項目の報告桁数で文字列化する (末尾の <code>.0</code> を付けない)。</td>
+</tr>
+<tr>
+<td><code>clinosim/modules/document/narrative/lab_timeseries.py</code> <code>select_notable_labs(...)</code>, <code>clinosim/modules/document/narrative/_notable_labs.py</code> <code>notable_lab_entries(...)</code></td>
+<td>記録が挙げる異常検査値 (作成時刻までに既知、項目ごとに一つ、優先順、所見付き) とその言い表し。</td>
+</tr>
+<tr>
 <td><code>clinosim/modules/observation/engine.py</code> <code>medications_in_effect(home_medications, medication_orders, admission_date, current_day)</code></td>
 <td>入院中のある日に検査値へ作用している薬剤。</td>
 </tr>
