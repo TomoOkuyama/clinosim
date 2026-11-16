@@ -163,6 +163,9 @@ clinosim/simulator/
                          スタチン調整
   diagnosis_rules.py     エンカウンターシミュレータの診断コーディング規則表
                          (reference_data/diagnosis_rules.yaml を読む)
+  sepsis_severity.py     敗血症の退院診断の重症度コード (敗血症性ショック /
+                         重症敗血症 / 敗血症) を入院中のバイタル・MAR・検査
+                         から決める (Issue #3269)
   event_refs.py          LifeEvent.disease_id / ConditionEvent.ground_truth_diseases
                          の値の名前空間宣言
 ```

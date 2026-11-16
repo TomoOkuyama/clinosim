@@ -184,8 +184,10 @@ Z71.89: "Z71.8"
 Z76.89: "Z76.8"
 
 # --- CM-granular codes from diagnosis/engine.py differentials + ED scenarios → WHO ICD-10.
-#     R65 axis differs (WHO = infectious/non-infectious × organ failure): CM severe-sepsis
-#     R65.20/.21 → WHO R65.1 (infectious + organ failure); CM SIRS R65.10 → WHO R65.2. ---
+#     R65 axis differs (WHO = infectious/non-infectious × organ failure): CM severe sepsis
+#     without shock R65.20 → WHO R65.1 (infectious + organ failure); CM SIRS R65.10 → WHO R65.2.
+#     CM severe sepsis with septic shock R65.21 → WHO R57.2 「敗血症性ショック」 (MHLW 基本分類表
+#     ICD-10 2013年版準拠 kihon2013.xlsx, R57.2; Issue #3269). ---
 E11.00: "E11.0"
 I48.92: "I48.9"
 I82.90: "I82.9"
@@ -193,7 +195,7 @@ M54.50: "M54.5"
 M71.20: "M71.2"
 R65.10: "R65.2"
 R65.20: "R65.1"
-R65.21: "R65.1"
+R65.21: "R57.2"
 S43.006A: "S43.0"
 T18.9XXA: "T18.9"
 V89.2XXA: "V89.2"

@@ -19,7 +19,9 @@ POST_ENCOUNTER enricher 1 本 (`lab_derived_dx.py`、Issue #1326) も所有す�
   built-in table に fallback); `update_differential`
   (`(finding, is_positive)` findings 単位の likelihood-ratio update);
   `get_current_diagnosis_code` (working diagnosis — 未設定なら最上位
-  候補 — を confidence キーの `diagnosis_progression` table で解決、
+  候補 — を confidence キーの `diagnosis_progression` table で解決。
+  敗血症は confidence 行を持たず、重症度コードは入院中の病態から
+  `simulator/sepsis_severity.py` が決める (Issue #3269)。
   患者の性別に解剖学的に不適合な候補は skip (Issue #947)、何も解決
   できなければ `UNRESOLVED_DIAGNOSIS_ICD` sentinel); named 非特異 /
   fallback コード (`UNRESOLVED_DIAGNOSIS_ICD = "R69"`,

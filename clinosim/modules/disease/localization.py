@@ -9,7 +9,7 @@ Extracted from ``simulator/helpers.py`` (Issue #544). These helpers all read
 from __future__ import annotations
 
 from clinosim.countries import country_slot
-from clinosim.modules.disease.protocol import DiseaseProtocol
+from clinosim.modules.disease.protocol import ALL_COUNTRIES_KEY, DiseaseProtocol
 
 
 def _country_to_yaml_key(country: str) -> str:
@@ -95,3 +95,12 @@ def _disease_chief_complaint_ja(protocol: DiseaseProtocol) -> str:
 def _disease_to_department(protocol: DiseaseProtocol) -> str:
     """Get the granular department from disease protocol YAML."""
     return protocol.department or "internal_medicine"
+
+
+def archetype_start_entries(mod: dict, country: str) -> list:
+    """The treatment starts of one archetype ``treatment_modifications`` day
+    for ``country``: the ``all`` entries, then the country's own (Issue
+    #3325). The block's keys are validated at protocol load
+    (``_validate_treatment_start_keys``)."""
+    start = mod.get("start") or {}
+    return [*(start.get(ALL_COUNTRIES_KEY) or []), *(start.get(_country_to_yaml_key(country)) or [])]

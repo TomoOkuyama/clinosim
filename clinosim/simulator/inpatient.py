@@ -77,6 +77,7 @@ from clinosim.simulator.discharge_gate import discharge_disposition_for
 from clinosim.simulator.discharge_rx import build_discharge_rx
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, fit_procedures_in_stay
 from clinosim.simulator.medication_pipeline import _generate_home_medication_orders
+from clinosim.simulator.sepsis_severity import sepsis_severity_code
 from clinosim.types.clinical import (
     ClinicalDiagnosis,
     ConditionEvent,
@@ -84,9 +85,12 @@ from clinosim.types.clinical import (
 from clinosim.types.config import HealthcareSystemConfig, SimulatorConfig
 from clinosim.types.encounter import (
     EncounterStatus,
+    MedicationAdministration,
     Order,
+    OrderResult,
     OrderStatus,
     OrderType,
+    VitalSignRecord,
 )
 from clinosim.types.output import CIFPatientRecord
 from clinosim.types.patient import PatientProfile
@@ -132,9 +136,16 @@ def _derive_final_diagnosis(
     patient: PatientProfile,
     config: SimulatorConfig,
     rng: np.random.Generator,
+    vitals: list[VitalSignRecord],
+    mars: list[MedicationAdministration],
+    lab_results: list[OrderResult],
 ) -> tuple[ClinicalDiagnosis, str]:
     """Walk the differential to a final discharge diagnosis + sample
     the mixed-case missed-secondary-dx coin flip.
+
+    A sepsis code is then set to its severity (septic shock / severe sepsis /
+    sepsis) from the stay's ``vitals``, ``mars`` and ``lab_results`` (Issue
+    #3269, ``sepsis_severity_code``).
 
     Returns ``(clinical_diagnosis, dx_name)``. ``dx_name`` is the
     human-readable diagnosis name (used by downstream narrative /
@@ -161,6 +172,11 @@ def _derive_final_diagnosis(
         from clinosim.codes import lookup
 
         dx_code, dx_name = refined, lookup("icd-10-cm", refined, "en")
+    severity_code = sepsis_severity_code(dx_code, vitals=vitals, mars=mars, lab_results=lab_results)
+    if severity_code != dx_code:
+        from clinosim.codes import lookup
+
+        dx_code, dx_name = severity_code, lookup("icd-10-cm", severity_code, "en")
 
     # Diagnosis correctness and missed diagnoses (AD-29)
     missed: list[str] = []
@@ -907,6 +923,9 @@ def _simulate_patient(
         patient=patient,
         config=config,
         rng=rng,
+        vitals=loop_result.vitals,
+        mars=loop_result.mars,
+        lab_results=loop_result.lab_results,
     )
 
     # Build ground truth diseases list

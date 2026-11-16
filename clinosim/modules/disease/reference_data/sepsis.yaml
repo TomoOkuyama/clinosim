@@ -345,7 +345,7 @@ expected_lab_distributions:
       median: 3.0
       iqr: [1.8, 5.5]
       range: [0.8, 15.0]
-      note: ">4 mmol/L defines septic shock (with vasopressor need)"
+      note: ">2 mmol/L with vasopressors to keep MAP >= 65 defines septic shock (Sepsis-3, JAMA 2016)"
     Creatinine:
       unit: "mg/dL"
       median: 1.6

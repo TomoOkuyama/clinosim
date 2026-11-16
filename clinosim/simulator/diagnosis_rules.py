@@ -67,6 +67,33 @@ class _DifferentialFindings(BaseModel):
     day1_imaging: dict[str, list[str]]
 
 
+class _SevereSepsis(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    code: str
+    vasopressor_classes: list[str]
+    labs_at_or_above: dict[str, float]
+    labs_below: dict[str, float]
+
+
+class _SepticShock(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    code: str
+    vasopressor_classes: list[str]
+    map_below: float
+    labs_above: dict[str, float]
+
+
+class _SepsisSeverity(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    codes: list[str]
+    sepsis_code: str
+    severe_sepsis: _SevereSepsis
+    septic_shock: _SepticShock
+
+
 class DiagnosisRulesFile(BaseModel):
     """Shape of ``diagnosis_rules.yaml`` (Issue #2956). The codes, ids and
     labs it names are checked against their registries by ``_check``."""
@@ -76,6 +103,7 @@ class DiagnosisRulesFile(BaseModel):
     visit_purpose_codes: _VisitPurposeCodes
     unknown_condition_codes: _UnknownConditionCodes
     differential_findings: _DifferentialFindings
+    sepsis_severity: _SepsisSeverity
 
 
 @dataclass(frozen=True)
@@ -96,6 +124,38 @@ class LabFindingRule:
 
 
 @dataclass(frozen=True)
+class OrganDysfunctionRule:
+    """Severe sepsis: a vasopressor given, or a lab at or above / below its
+    threshold (SOFA organ score of 2 or more)."""
+
+    code: str
+    vasopressor_classes: frozenset[str]
+    labs_at_or_above: dict[str, float]
+    labs_below: dict[str, float]
+
+
+@dataclass(frozen=True)
+class SepticShockRule:
+    """Septic shock: a vasopressor given, a MAP below ``map_below`` and a lab
+    above its threshold (lactate) — Sepsis-3."""
+
+    code: str
+    vasopressor_classes: frozenset[str]
+    map_below: float
+    labs_above: dict[str, float]
+
+
+@dataclass(frozen=True)
+class SepsisSeverityRules:
+    """Severity code of a sepsis discharge diagnosis (Issue #3269)."""
+
+    codes: frozenset[str]
+    sepsis_code: str
+    severe_sepsis: OrganDysfunctionRule
+    septic_shock: SepticShockRule
+
+
+@dataclass(frozen=True)
 class _DiagnosisRules:
     visit_fallback: str
     post_discharge: str
@@ -105,6 +165,7 @@ class _DiagnosisRules:
     unknown_by_pattern: dict[str, UnknownConditionCodes]
     lab_findings: dict[str, LabFindingRule]
     day1_imaging: dict[str, tuple[str, ...]]
+    sepsis_severity: SepsisSeverityRules
 
 
 def _unknown_codes(entry: dict[str, Any]) -> UnknownConditionCodes:
@@ -112,6 +173,26 @@ def _unknown_codes(entry: dict[str, Any]) -> UnknownConditionCodes:
         admission=str(entry["admission"]),
         unresolved=str(entry["unresolved"]),
         partially_resolved=str(entry["partially_resolved"]),
+    )
+
+
+def _sepsis_severity(entry: dict[str, Any]) -> SepsisSeverityRules:
+    severe, shock = entry["severe_sepsis"], entry["septic_shock"]
+    return SepsisSeverityRules(
+        codes=frozenset(str(c) for c in entry["codes"]),
+        sepsis_code=str(entry["sepsis_code"]),
+        severe_sepsis=OrganDysfunctionRule(
+            code=str(severe["code"]),
+            vasopressor_classes=frozenset(str(c) for c in severe["vasopressor_classes"]),
+            labs_at_or_above={str(k): float(v) for k, v in severe["labs_at_or_above"].items()},
+            labs_below={str(k): float(v) for k, v in severe["labs_below"].items()},
+        ),
+        septic_shock=SepticShockRule(
+            code=str(shock["code"]),
+            vasopressor_classes=frozenset(str(c) for c in shock["vasopressor_classes"]),
+            map_below=float(shock["map_below"]),
+            labs_above={str(k): float(v) for k, v in shock["labs_above"].items()},
+        ),
     )
 
 
@@ -131,12 +212,18 @@ def _check(rules: _DiagnosisRules) -> None:
     """Every ICD code is registered, every visit / disease id names a real
     pediatric schedule entry or disease YAML, every pattern has a label in the
     unknown-condition catalog and every lab is a known analyte."""
+    from clinosim.codes.drugs import all_drug_ids, drug_classes
     from clinosim.locale.loader import load_narrative_labels
     from clinosim.modules.observation.engine import get_lab_unit
     from clinosim.modules.pediatric.calendar import load_pediatric_schedule
 
     unknown_codes = [rules.unknown_default, *rules.unknown_by_pattern.values()]
+    sepsis = rules.sepsis_severity
     codes = {
+        *sepsis.codes,
+        sepsis.sepsis_code,
+        sepsis.severe_sepsis.code,
+        sepsis.septic_shock.code,
         rules.visit_fallback,
         rules.post_discharge,
         *rules.visit_type_default.values(),
@@ -152,7 +239,23 @@ def _check(rules: _DiagnosisRules) -> None:
     ]
     pattern_labels = load_narrative_labels().get("unknown_condition_pattern", {})
     problems += [f"unknown condition pattern {p}" for p in sorted(rules.unknown_by_pattern) if p not in pattern_labels]
-    problems += [f"unknown lab {lab}" for lab in sorted(rules.lab_findings) if not get_lab_unit(lab)]
+    sepsis_labs = {
+        *rules.lab_findings,
+        *sepsis.severe_sepsis.labs_at_or_above,
+        *sepsis.severe_sepsis.labs_below,
+        *sepsis.septic_shock.labs_above,
+    }
+    problems += [f"unknown lab {lab}" for lab in sorted(sepsis_labs) if not get_lab_unit(lab)]
+    problems += [
+        f"sepsis_severity: {c} is not one of codes"
+        for c in sorted({sepsis.sepsis_code, sepsis.severe_sepsis.code, sepsis.septic_shock.code} - sepsis.codes)
+    ]
+    catalog_classes = {c for d in all_drug_ids() for c in drug_classes(d)}
+    problems += [
+        f"unknown drug class {c}"
+        for c in sorted(sepsis.severe_sepsis.vasopressor_classes | sepsis.septic_shock.vasopressor_classes)
+        if c not in catalog_classes
+    ]
     disease_ids = {p.stem for p in (_MODULES / "disease" / "reference_data").glob("*.yaml")}
     problems += [f"unknown disease {d}" for d in sorted(rules.day1_imaging) if d not in disease_ids]
     if problems:
@@ -180,6 +283,7 @@ def _rules() -> _DiagnosisRules:
             for lab, e in findings["labs"].items()
         },
         day1_imaging={str(d): tuple(str(f) for f in fs) for d, fs in findings["day1_imaging"].items()},
+        sepsis_severity=_sepsis_severity(data["sepsis_severity"]),
     )
     _check(rules)
     return rules
@@ -216,3 +320,8 @@ def lab_finding_rules() -> dict[str, LabFindingRule]:
 def day1_imaging_findings(disease_id: str) -> tuple[str, ...]:
     """Imaging findings that are true on hospital day 1 for ``disease_id``."""
     return _rules().day1_imaging.get(disease_id, ())
+
+
+def sepsis_severity_rules() -> SepsisSeverityRules:
+    """The sepsis severity-code rules (Issue #3269)."""
+    return _rules().sepsis_severity

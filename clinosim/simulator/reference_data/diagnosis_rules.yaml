@@ -58,3 +58,46 @@ differential_findings:
   # Simulated imaging findings, true on hospital day 1, per disease id.
   day1_imaging:
     bacterial_pneumonia: [chest_xray_consolidation, procalcitonin_elevated]
+
+# Severity code of a sepsis discharge diagnosis (Issue #3269), set from the
+# stay's recorded facts, not from diagnostic confidence: the differential
+# resolves a sepsis stay to one of `codes`, and the stay is then coded
+#   - `septic_shock.code` when a drug of `vasopressor_classes` was given
+#     (MAR status given), a recorded mean arterial pressure was below
+#     `map_below` and a lab above `labs_above` (lactate);
+#   - else `severe_sepsis.code` when an organ dysfunction is recorded: a
+#     vasopressor given, or a lab at or above `labs_at_or_above` / below
+#     `labs_below`;
+#   - else `sepsis_code`.
+# Sources:
+#   - Singer M, et al. The Third International Consensus Definitions for
+#     Sepsis and Septic Shock (Sepsis-3). JAMA 2016;315(8):801-810, Box 3:
+#     septic shock is identified by "persisting hypotension requiring
+#     vasopressors to maintain MAP >=65 mm Hg and having a serum lactate level
+#     >2 mmol/L (18mg/dL) despite adequate volume resuscitation"; organ
+#     dysfunction is "an acute change in total SOFA score >=2 points
+#     consequent to the infection".
+#   - Same paper, Table 1 (SOFA): 2 points at creatinine 2.0-3.4 mg/dL,
+#     bilirubin 2.0-5.9 mg/dL, platelets <100 x10^3/uL; 3-4 points for any
+#     dose of norepinephrine or epinephrine. One organ at 2 points meets the
+#     SOFA >=2 change; respiratory (PaO2/FiO2) and CNS (GCS) are not used here.
+#   - Evans L, et al. Surviving Sepsis Campaign: international guidelines
+#     for management of sepsis and septic shock 2021. Intensive Care Med
+#     2021;47(11):1181-1247, Recommendation 9: an initial target MAP of
+#     65 mm Hg in adults with septic shock on vasopressors.
+# The mean arterial pressure of a cuff reading is DBP + (SBP - DBP) / 3.
+# Lab names are internal analytes (observation lab_constants.yaml units:
+# Lactate mmol/L, Creatinine mg/dL, T_Bil mg/dL, Plt 10*3/uL).
+sepsis_severity:
+  codes: ["A41.9", "R65.20", "R65.21"]
+  sepsis_code: "A41.9"
+  severe_sepsis:
+    code: "R65.20"
+    vasopressor_classes: [vasopressor]
+    labs_at_or_above: {Creatinine: 2.0, T_Bil: 2.0}
+    labs_below: {Plt: 100}
+  septic_shock:
+    code: "R65.21"
+    vasopressor_classes: [vasopressor]
+    map_below: 65
+    labs_above: {Lactate: 2.0}
