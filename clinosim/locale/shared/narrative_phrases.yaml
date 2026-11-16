@@ -1678,6 +1678,20 @@ dc_duration:
   tail:
     ja: "。入院前の経過は本記録範囲外。"
     en: ". Pre-admission course not captured in this record."
+  # Issue #3255: an immediate cause that began during the stay (an
+  # in-hospital complication) is timed from its onset.
+  onset_body_hours:
+    ja: "{disease}の発症から死亡まで約{hours}時間"
+    en: "approximately {hours} h from onset of {disease} to death"
+  onset_body_days:
+    ja: "{disease}の発症から死亡まで約{days}日"
+    en: "approximately {days} days from onset of {disease} to death"
+  onset_body_weeks:
+    ja: "{disease}の発症から死亡まで約{weeks}週間（{days}日）"
+    en: "approximately {weeks} week(s) ({days} d) from onset of {disease} to death"
+  onset_tail:
+    ja: "。"
+    en: "."
 
 # DC contributing conditions composer (Phase 1d-36).
 # JA and EN differ in sentence structure (JA places comp_part before
@@ -1697,11 +1711,16 @@ dc_contributing:
   comp_part:
     ja: "入院中に{comp_labels}を合併し臨床経過に影響した。"
     en: " In-hospital complication(s) — {comp_labels} — also affected the clinical course."
+  # After the comorbidity list, whose tail already says the course was
+  # affected (Issue #3255: JA said it twice).
+  comp_part_after_list:
+    ja: "入院中には{comp_labels}も合併した。"
+    en: " In-hospital complication(s) — {comp_labels} — also affected the clinical course."
   tail_with_list:
     ja: "死亡に至る臨床経過に影響したと考えられる。"
     en: "which plausibly contributed to the terminal course."
   compound_line:
-    ja: "{prefix}{list_part}{connector}{comp_part}{tail}"
+    ja: "{prefix}{list_part}{connector}{tail}{comp_part}"
     en: "{prefix}{list_part}{connector}{tail}{comp_part}"
 
 # admission/discharge/triage details composers (Phase 1d-32).
@@ -1901,19 +1920,29 @@ dds_family_communication:
 # From section_builders.mortality.build_dc_immediate_cause /
 # build_dc_underlying_cause / build_dc_manner_of_death /
 # build_dds_cause_of_death.
+# Issue #3255: {cause} is a cause with its code (coded_cause) or, for a
+# complication without one, its name alone. due_to is the line between the
+# immediate and the underlying cause (MHLW 「（イ）（ア）の原因」; NCHS
+# "due to (or as a consequence of)").
 death_cert_line:
+  coded_cause:
+    ja: "{display}（{code}）"
+    en: "{display} ({code})"
   immediate_cause:
-    ja: "直接死因: {display}（{code}）。"
-    en: "Immediate cause of death: {display} ({code})."
+    ja: "直接死因: {cause}。"
+    en: "Immediate cause of death: {cause}."
+  due_to:
+    ja: "（ア）の原因: {cause}。"
+    en: " Due to (or as a consequence of): {cause}."
   underlying_cause:
-    ja: "原死因: {display}（{chapter}）。"
-    en: "Underlying cause of death: {display} ({chapter})."
+    ja: "原死因: {cause}。"
+    en: "Underlying cause of death: {cause}."
   manner_natural:
     ja: "死因の種類: 病死及び自然死。"
     en: "Manner of death: natural / disease-related."
   cause_of_death:
-    ja: "死因: {display}（{code}）。"
-    en: "Cause of death: {display} ({code})."
+    ja: "死因: {cause}。"
+    en: "Cause of death: {cause}."
 
 # DDS admission-state composer (Phase 1d-26).
 # From section_builders.mortality.build_dds_admission_state.

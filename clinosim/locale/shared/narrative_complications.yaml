@@ -36,6 +36,7 @@ complications:
   atypical_pneumonia: {en: atypical pneumonia, ja: 非定型肺炎}
   bacteremia: {en: bacteremia, ja: 菌血症}
   bacterial_pneumonia: {en: bacterial pneumonia, ja: 細菌性肺炎}
+  brain_herniation: {en: brain herniation, ja: 脳ヘルニア}
   bronchiolitis: {en: bronchiolitis, ja: 細気管支炎}
   bronchitis: {en: bronchitis, ja: 気管支炎}
   burn_wound_infection: {en: burn wound infection, ja: 熱傷創部感染}
@@ -48,6 +49,7 @@ complications:
   cellulitis: {en: cellulitis, ja: 蜂窩織炎}
   central_line_associated_bloodstream_infection: {en: central line-associated bloodstream infection, ja: 中心静脈カテーテル関連血流感染症}
   cerebral_edema: {en: cerebral edema, ja: 脳浮腫}
+  cerebral_herniation: {en: cerebral herniation, ja: 脳ヘルニア}
   cerebral_infarction: {en: cerebral infarction, ja: 脳梗塞}
   chf_exacerbation: {en: CHF exacerbation, ja: うっ血性心不全増悪}
   chronic_pleural_effusion: {en: chronic pleural effusion, ja: 慢性胸水}
@@ -73,10 +75,12 @@ complications:
   heart_failure_exacerbation: {en: heart failure exacerbation, ja: 心不全増悪}
   hematoma_expansion: {en: hematoma expansion, ja: 血腫拡大}
   hemiarthroplasty: {en: hemiarthroplasty, ja: 人工骨頭置換術}
+  hemorrhagic_shock: {en: hemorrhagic shock, ja: 出血性ショック}
   hemorrhagic_stroke: {en: hemorrhagic stroke, ja: 出血性脳卒中}
   hemorrhagic_transformation: {en: hemorrhagic transformation, ja: 出血性変化}
   hepatic_dysfunction: {en: hepatic dysfunction, ja: 肝機能障害}
   hepatic_encephalopathy: {en: hepatic encephalopathy, ja: 肝性脳症}
+  hepatorenal_syndrome: {en: hepatorenal syndrome, ja: 肝腎症候群}
   hip_fracture: {en: hip fracture, ja: 大腿骨近位部骨折}
   hospital_acquired_pneumonia: {en: hospital-acquired pneumonia, ja: 院内肺炎}
   hydrocephalus: {en: hydrocephalus, ja: 水頭症}
@@ -99,6 +103,7 @@ complications:
   lung_abscess: {en: lung abscess, ja: 肺膿瘍}
   malnutrition: {en: malnutrition, ja: 低栄養}
   malnutrition_worsening: {en: worsening malnutrition, ja: 低栄養の悪化}
+  mechanical_complication: {en: mechanical complication of myocardial infarction, ja: 心筋梗塞の機械的合併症}
   metabolic_acidosis: {en: metabolic acidosis, ja: 代謝性アシドーシス}
   myocardial_infarction: {en: myocardial infarction, ja: 心筋梗塞}
   myocarditis: {en: myocarditis, ja: 心筋炎}
@@ -125,6 +130,7 @@ complications:
   rebleeding: {en: rebleeding, ja: 再出血}
   rebleeding_intracerebral: {en: intracerebral rebleeding, ja: 脳内再出血}
   recurrent_aspiration: {en: recurrent aspiration, ja: 反復性誤嚥}
+  recurrent_pe: {en: recurrent pulmonary embolism, ja: 肺塞栓症の再発}
   renal_abscess: {en: renal abscess, ja: 腎膿瘍}
   renal_failure: {en: renal failure, ja: 腎不全}
   respiratory_acidosis: {en: respiratory acidosis, ja: 呼吸性アシドーシス}

@@ -94,6 +94,8 @@ codes:
     en: "Malaise and fatigue"
   R57:
     en: "Shock, not elsewhere classified"
+  R57.0:
+    en: Cardiogenic shock
   S06:
     en: "Intracranial injury"
   S22:
@@ -225,6 +227,10 @@ codes:
   G47.33:
     en: Obstructive sleep apnea (adult) (pediatric)
     ja: 閉塞性睡眠時無呼吸症候群
+  G93.5:
+    en: Compression of brain
+  G93.6:
+    en: Cerebral edema
   I10:
     en: Essential (primary) hypertension
   I20.0:
@@ -400,6 +406,8 @@ codes:
     en: Pneumonitis due to inhalation of food and vomit
   J69.1:
     en: Pneumonitis due to inhalation of oils and essences
+  J80:
+    en: Acute respiratory distress syndrome
   K21:
     en: Gastro-esophageal reflux disease
   K25:
@@ -461,6 +469,8 @@ codes:
     en: Fatty (change of) liver, not elsewhere classified
   K76.6:
     en: Portal hypertension
+  K76.7:
+    en: Hepatorenal syndrome
   K80:
     en: Cholelithiasis
   K80.00:
@@ -1268,6 +1278,8 @@ codes:
     en: "Cystic fibrosis, unspecified"
   D57.1:
     en: "Sickle-cell disease without crisis"
+  D65:
+    en: Disseminated intravascular coagulation [defibrination syndrome]
   D66:
     en: "Hereditary factor VIII deficiency"
   D67:

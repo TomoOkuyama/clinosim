@@ -444,6 +444,9 @@ codes:
   R57:
     en: Shock, not elsewhere classified
     ja: "ショック，他に分類されないもの"
+  R57.0:
+    en: Cardiogenic shock
+    ja: "心原性ショック"
   R69:
     en: Unknown and unspecified causes of morbidity
     ja: "原因不明及び詳細不明の疾病"
@@ -759,6 +762,9 @@ codes:
   J69.1:
     en: Pneumonitis due to oils and essences
     ja: "油及びエッセンス剤による肺臓炎"
+  J80:
+    en: Adult respiratory distress syndrome
+    ja: "成人呼吸窮＜促＞迫症候群＜ARDS＞"
   J96.0:
     en: Acute respiratory failure
     ja: "急性呼吸不全"
@@ -813,6 +819,9 @@ codes:
   K76.6:
     en: Portal hypertension
     ja: "門脈圧亢進（症）"
+  K76.7:
+    en: Hepatorenal syndrome
+    ja: "肝腎症候群"
   K80.0:
     en: Calculus of gallbladder with acute cholecystitis
     ja: "急性胆のう＜嚢＞炎を伴う胆のう＜嚢＞結石"
@@ -1276,6 +1285,9 @@ codes:
   D57.1:
     en: "Sickle-cell anaemia without crisis"
     ja: "鎌状赤血球貧血，クリーゼを伴わないもの"
+  D65:
+    en: Disseminated intravascular coagulation [defibrination syndrome]
+    ja: "播種性血管内凝固症候群［脱線維素症候群］"
   D66:
     en: "Hereditary factor VIII deficiency"
     ja: "遺伝性第Ⅷ因子欠乏症"
@@ -1316,6 +1328,12 @@ codes:
   G47.3:
     en: Sleep apnoea
     ja: "睡眠時無呼吸"
+  G93.5:
+    en: Compression of brain
+    ja: "脳圧迫"
+  G93.6:
+    en: Cerebral oedema
+    ja: "脳浮腫"
   K76.0:
     en: Fatty (change of) liver, not elsewhere classified
     ja: "脂肪肝＜肝の脂肪化＞，他に分類されないもの"

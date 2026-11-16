@@ -19,6 +19,7 @@ function. The class methods of the same name become thin delegators so
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -33,6 +34,7 @@ from clinosim.modules.document.narrative._localization import _localize_complica
 from clinosim.modules.document.narrative._narrative_utils import _autopsy_performed_sha256
 from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_coded
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
+from clinosim.modules.document.reference_data_loaders import load_death_cause_chain
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -148,6 +150,132 @@ def _dc_resolve_primary_cause(ctx: NarrativeContext) -> tuple[str, str, list[str
     return code, (display or code), facts
 
 
+@dataclass(frozen=True)
+class _Cause:
+    """One condition on the certificate: its emitted code ("" when it has
+    none), its display, the internal code it came from, its onset (in-hospital
+    complications) and the record field it was read from."""
+
+    code: str
+    display: str
+    internal: str
+    onset: datetime | None
+    fact: str
+
+
+@dataclass(frozen=True)
+class _CauseChain:
+    """The certificate's causal sequence (Issue #3255): the immediate cause,
+    the condition between it and the underlying cause (``None`` when there is
+    none) and the underlying cause, plus the complication tokens used."""
+
+    immediate: _Cause
+    due_to: _Cause | None
+    underlying: _Cause
+    used_complications: frozenset[str]
+
+
+def _complication_key(name: object) -> str:
+    """A complication token as ``death_cause_chain.yaml`` keys it."""
+    return "_".join(str(name or "").strip().lower().split())
+
+
+def _coded_cause(code: str, ctx: NarrativeContext, fact: str, onset: datetime | None = None) -> _Cause:
+    emit, display = chronic_condition_coded(code, country_code(ctx.locale), ctx.target_lang, _sex(ctx))
+    return _Cause(emit, display, code, onset, fact)
+
+
+def _terminal_complication(ctx: NarrativeContext, death: datetime | None) -> tuple[_Cause, str] | None:
+    """The latest-onset in-hospital complication that can be the immediate
+    cause of death (``death_cause_chain.yaml``) and its token, or ``None``.
+    Onsets after the death are not considered; a complication without an
+    onset ranks before every dated one."""
+    table = load_death_cause_chain().immediate_cause_complications
+    best: tuple[datetime, int, str] | None = None
+    for index, event in enumerate(ctx.complications_events or []):
+        key = _complication_key(_o(event, "name", ""))
+        if key not in table:
+            continue
+        onset = _as_datetime(_o(event, "onset_datetime", None))
+        if onset is not None and death is not None and onset > death:
+            continue
+        rank = (onset or datetime.min, index, key)
+        if best is None or rank[:2] > best[:2]:
+            best = rank
+    if best is None:
+        return None
+    onset = best[0] if best[0] != datetime.min else None
+    key = best[2]
+    code = table[key]
+    if code:
+        return _coded_cause(code, ctx, "ctx.complications_events", onset), key
+    return _Cause("", _localize_complication(key, ctx.target_lang), "", onset, "ctx.complications_events"), key
+
+
+def _dc_cause_chain(ctx: NarrativeContext) -> _CauseChain | None:
+    """The causal sequence of the death certificate, from one walk of the
+    record (NCHS Physicians' Handbook 2003 Part I; MHLW 死亡診断書記入
+    マニュアル Ⅰ欄):
+
+    - underlying cause: the encounter's final diagnosis (discharge, else
+      admission code) with its full code; a sequel code (severe sepsis /
+      septic shock, ``death_cause_chain.yaml``) is not an underlying cause,
+      so the admission diagnosis (the infection) is, and the sequel sits
+      between them;
+    - immediate cause: the latest in-hospital complication that can cause
+      death, else the sequel, else the underlying cause itself (a single
+      condition is the whole sequence).
+
+    ``None`` when the record has no diagnosis code."""
+    diagnoses = ctx.diagnoses or []
+    primary = diagnoses[0] if diagnoses else None
+    if primary is None:
+        return None
+    discharge = str(_o(primary, "discharge_diagnosis_code", "") or "")
+    admission = str(_o(primary, "admission_diagnosis_code", "") or "")
+    final = discharge or admission
+    if not final:
+        return None
+    chain = load_death_cause_chain()
+    final_fact = (
+        "ctx.diagnoses[0].discharge_diagnosis_code" if discharge else "ctx.diagnoses[0].admission_diagnosis_code"
+    )
+    sequel: _Cause | None = None
+    if final in chain.sequel_codes and admission and admission not in chain.sequel_codes:
+        sequel = _coded_cause(final, ctx, final_fact)
+        underlying = _coded_cause(admission, ctx, "ctx.diagnoses[0].admission_diagnosis_code")
+    else:
+        underlying = _coded_cause(final, ctx, final_fact)
+    death = _as_datetime(_o(ctx.encounter, "discharge_datetime", None))
+    found = _terminal_complication(ctx, death)
+    if found is not None and found[0].code and found[0].code in {underlying.code, sequel.code if sequel else ""}:
+        found = None
+    if found is None:
+        immediate = sequel or underlying
+        return _CauseChain(immediate, None, underlying, frozenset())
+    terminal, key = found
+    table = chain.immediate_cause_complications
+    # Every token naming the same condition (``aki`` / ``acute_kidney_injury``).
+    used = frozenset(k for k in table if k == key or (table[key] and table[k] == table[key]))
+    return _CauseChain(terminal, sequel, underlying, used)
+
+
+def _cause_text(cause: _Cause, lang: str) -> str:
+    """A cause as the certificate prints it: display with code, or the name
+    alone when the condition has no code."""
+    if not cause.code:
+        return cause.display
+    return t("death_cert_line.coded_cause", lang, display=cause.display, code=cause.code)
+
+
+def _chain_facts(chain: _CauseChain) -> list[str]:
+    facts: list[str] = []
+    for cause in (chain.immediate, chain.due_to, chain.underlying):
+        if cause is not None and cause.fact not in facts:
+            facts.append(cause.fact)
+    return facts
+
+
 def _dc_disease_pattern(icd_code: str) -> str:
     """Return an "acute" / "chronic" / "unknown" pattern from ICD-10.
 
@@ -247,6 +375,37 @@ def _dc_duration_phrase(
     return f"{prefix}{chronic_lead}{body}{tail}"
 
 
+def _dc_duration_bucket(days: int, hours: float | None) -> str:
+    """The granularity of a time-to-death phrase: ``hours`` below a day (when
+    the hours are known), ``same_day``, ``days`` up to a week, ``weeks`` up to
+    four weeks, then ``long``."""
+    if days <= 0:
+        return "hours" if hours is not None and 0 < hours < 24 else "same_day"
+    if days <= 7:
+        return "days"
+    if days <= 28:
+        return "weeks"
+    return "long"
+
+
+def _dc_onset_duration(cause: _Cause, onset: datetime, death: datetime, lang: str) -> str:
+    """The 直接死因までの期間 phrase for an immediate cause with a recorded
+    onset: the onset-to-death interval with the buckets of
+    ``_dc_duration_bucket``."""
+    seconds = max(0.0, (death - onset).total_seconds())
+    whole_days, rest = divmod(seconds, 86400.0)
+    bucket = _dc_duration_bucket(int(whole_days), rest / 3600.0)
+    days = max(1, round(seconds / 86400.0))
+    if bucket in ("hours", "same_day"):
+        body = t("dc_duration.onset_body_hours", lang, hours=max(1, round(rest / 3600.0)), disease=cause.display)
+    elif bucket == "days":
+        body = t("dc_duration.onset_body_days", lang, days=days, disease=cause.display)
+    else:
+        weeks = max(1, round(days / 7))
+        body = t("dc_duration.onset_body_weeks", lang, weeks=weeks, days=days, disease=cause.display)
+    return f"{t('dc_duration.prefix', lang)}{body}{t('dc_duration.onset_tail', lang)}"
+
+
 def _dds_severity(severity: str, lang: str) -> str:
     """Return the localized severity label for the DDS narrative.
 
@@ -269,16 +428,21 @@ def _dds_severity(severity: str, lang: str) -> str:
 
 @section("immediate_cause_of_death")
 def build_dc_immediate_cause(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """直接死因 / Immediate cause of death.
+    """直接死因 / Immediate cause of death (Part I line (a)).
 
-    Sourced from the encounter's final ICD-10 diagnosis. When missing
-    (no clinical_diagnosis on record), emits a never-fabricate marker.
+    The immediate cause of ``_dc_cause_chain``; when a condition lies
+    between it and the underlying cause (septic shock under an organ
+    failure), that condition follows as the "due to" line. Without a
+    diagnosis on record, a never-fabricate marker.
     """
     lang = ctx.target_lang
-    code, display, facts = _dc_resolve_primary_cause(ctx)
-    if not code:
-        return t("death_cert.immediate_cause_not_documented", lang), facts
-    return t("death_cert_line.immediate_cause", lang, display=display, code=code), facts
+    chain = _dc_cause_chain(ctx)
+    if chain is None:
+        return t("death_cert.immediate_cause_not_documented", lang), []
+    text = t("death_cert_line.immediate_cause", lang, cause=_cause_text(chain.immediate, lang))
+    if chain.due_to is not None:
+        text += t("death_cert_line.due_to", lang, cause=_cause_text(chain.due_to, lang))
+    return text, _chain_facts(chain)
 
 
 @section("duration_of_immediate_cause")
@@ -299,53 +463,45 @@ def build_dc_duration_of_immediate_cause(
     Never fabricates a pre-admission onset date — clinosim CIF does
     not carry a first-onset date for acute events, so the template
     anchors on the observed admission-to-death interval and states
-    so explicitly.
+    so explicitly. An immediate cause that began during the stay (an
+    in-hospital complication, Issue #3255) is timed from its onset.
     """
     lang = ctx.target_lang
+    chain = _dc_cause_chain(ctx)
+    death = _as_datetime(_o(ctx.encounter, "discharge_datetime", None))
+    onset = chain.immediate.onset if chain is not None else None
+    if chain is not None and onset is not None and death is not None:
+        facts_onset = [chain.immediate.fact, "ctx.encounter.discharge_datetime"]
+        return _dc_onset_duration(chain.immediate, onset, death, lang), facts_onset
     facts: list[str] = ["ctx.los_days"]
     los = ctx.los_days or 0
-    code, display, _ = _dc_resolve_primary_cause(ctx)
-    pattern = _dc_disease_pattern(code)
-    if code:
-        facts.append("ctx.diagnoses[0].discharge_diagnosis_code")
+    display = chain.immediate.display if chain is not None else ""
+    pattern = _dc_disease_pattern(chain.underlying.internal) if chain is not None else "unknown"
+    if chain is not None:
+        facts.extend(_chain_facts(chain))
 
-    if los <= 0:
-        hours = _dc_admission_to_discharge_hours(ctx)
-        if hours is not None and 0 < hours < 24:
-            bucket = "hours"
-            bucket_hours = max(1, int(round(hours)))
-        else:
-            bucket = "same_day"
-            bucket_hours = 0
-    elif los <= 7:
-        bucket = "days"
-        bucket_hours = 0
-    elif los <= 28:
-        bucket = "weeks"
-        bucket_hours = 0
-    else:
-        bucket = "long"
-        bucket_hours = 0
+    hours = _dc_admission_to_discharge_hours(ctx) if los <= 0 else None
+    bucket = _dc_duration_bucket(los, hours)
+    bucket_hours = max(1, int(round(hours))) if bucket == "hours" and hours is not None else 0
 
     return _dc_duration_phrase(bucket, los, bucket_hours, pattern, display or "", lang), facts
 
 
 @section("underlying_cause_of_death")
 def build_dc_underlying_cause(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """原死因 / Underlying cause of death.
+    """原死因 / Underlying cause of death (the lowest line of Part I).
 
-    Same code as the immediate cause when the encounter has only a
-    single diagnosis (mirrors how a simple death certificate lists the
-    same ICD-10 on both lines). Uses the ICD-10 chapter root (letter +
-    first two digits) as the underlying-cause bucket when the discharge
-    dx has a decimal specifier.
+    The disease that started the sequence (``_dc_cause_chain``), with its
+    full code. It is the immediate cause too when the record shows a
+    single condition.
     """
     lang = ctx.target_lang
-    code, display, facts = _dc_resolve_primary_cause(ctx)
-    if not code:
-        return t("death_cert.underlying_cause_not_documented", lang), facts
-    chapter = code.split(".")[0] if "." in code else code
-    return t("death_cert_line.underlying_cause", lang, display=display, chapter=chapter), facts
+    chain = _dc_cause_chain(ctx)
+    if chain is None:
+        return t("death_cert.underlying_cause_not_documented", lang), []
+    return t("death_cert_line.underlying_cause", lang, cause=_cause_text(chain.underlying, lang)), [
+        chain.underlying.fact
+    ]
 
 
 @section("contributing_conditions")
@@ -359,7 +515,8 @@ def build_dc_contributing_conditions(
     contributed to the terminal event — a bare list is undersells
     the clinical linkage. Template enriches with:
       - Lead-in phrase naming the count (単発の / 複数の)
-      - The comorbidity list (up to 5) with codes
+      - The comorbidity list with codes: the conditions that can
+        contribute to death (``death_cause_chain.yaml``), up to 5
       - A neutral causal-context sentence tying them to the terminal
         event (using the disease pattern from the primary cause)
       - Optionally, any in-hospital complications observed
@@ -372,27 +529,41 @@ def build_dc_contributing_conditions(
     """
     lang = ctx.target_lang
     facts: list[str] = []
+    chain = _dc_cause_chain(ctx)
+    relevance = load_death_cause_chain()
+    # Categories already on a cause line (Part I) are not repeated here.
+    cause_categories = (
+        {c.code[:3] for c in (chain.immediate, chain.due_to, chain.underlying) if c is not None and c.code}
+        if chain is not None
+        else set()
+    )
     conds = _o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient else []
     parts: list[str] = []
-    for c in list(conds)[:5]:
+    for c in list(conds):
         code_val = _o(c, "code", "") or (c if isinstance(c, str) else "")
-        if not code_val:
+        if not code_val or not relevance.is_contributing(code_val):
             continue
         # Issue #2994: the code the output emits and its display (US
         # dementia F03.90, not the internal F00 category).
         emit, display = chronic_condition_coded(code_val, country_code(ctx.locale), lang, _sex(ctx))
+        if emit[:3] in cause_categories:
+            continue
         parts.append(t("list_item.inline_dx_with_code", lang, display=display, code=emit))
+    parts = parts[:5]
     if parts:
         facts.append("ctx.patient.chronic_conditions")
 
     # In-hospital complications add concrete detail beyond baseline
-    # comorbidities (the daily loop records these on the record).
-    comp_tokens = list(getattr(ctx, "complications_occurred", []) or [])[:3]
+    # comorbidities (the daily loop records these on the record); the one
+    # stated as the immediate cause is not repeated.
+    used = chain.used_complications if chain is not None else frozenset()
+    comp_tokens = [
+        tok for tok in getattr(ctx, "complications_occurred", []) or [] if _complication_key(tok) not in used
+    ][:3]
     if comp_tokens:
         facts.append("ctx.complications_occurred")
 
-    primary_code, _display, _ = _dc_resolve_primary_cause(ctx)
-    pattern = _dc_disease_pattern(primary_code)
+    pattern = _dc_disease_pattern(chain.underlying.internal) if chain is not None else "unknown"
 
     if not parts and not comp_tokens:
         return t("death_cert.contributing_none", lang), facts
@@ -418,7 +589,8 @@ def build_dc_contributing_conditions(
         # 1d-72 the composer just did ``.replace("_", " ")`` on the
         # raw complication key.
         comp_labels = comp_sep.join(_localize_complication(str(tok), lang) for tok in comp_tokens)
-        comp_part = t("dc_contributing.comp_part", lang, comp_labels=comp_labels)
+        comp_key = "dc_contributing.comp_part_after_list" if list_part else "dc_contributing.comp_part"
+        comp_part = t(comp_key, lang, comp_labels=comp_labels)
     if list_part:
         tail = t("dc_contributing.tail_with_list", lang)
         return t(
@@ -649,16 +821,14 @@ def build_dds_circumstances_of_death(
 def build_dds_cause_of_death(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """死因 / Cause of death (structured mirror of DC immediate cause).
 
-    Uses the same _dc_resolve_primary_cause helper so this DDS
-    section and the DC 直接死因 section are guaranteed to agree per
-    encounter (single-source-of-truth per
-    feedback_dr_conclusion_code_single_walk).
+    Uses the same ``_dc_cause_chain`` walk as the DC 直接死因 section so
+    the two documents agree per encounter.
     """
     lang = ctx.target_lang
-    code, display, facts = _dc_resolve_primary_cause(ctx)
-    if not code:
-        return t("death_cert.cause_of_death_not_documented", lang), facts
-    return t("death_cert_line.cause_of_death", lang, display=display, code=code), facts
+    chain = _dc_cause_chain(ctx)
+    if chain is None:
+        return t("death_cert.cause_of_death_not_documented", lang), []
+    return t("death_cert_line.cause_of_death", lang, cause=_cause_text(chain.immediate, lang)), [chain.immediate.fact]
 
 
 @section("complications_and_comorbidities")

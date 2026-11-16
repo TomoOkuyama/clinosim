@@ -615,6 +615,57 @@
       ]
     },
     {
+      "code": "D65",
+      "display": "Disseminated intravascular coagulation [defibrination syndrome]",
+      "definition": "Disseminated intravascular coagulation [defibrination syndrome]",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "D65-D69"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Afibrinogenaemia, acquired"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Consumption coagulopathy"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Diffuse or disseminated intravascular coagulation [DIC]"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Fibrinolytic haemorrhage, acquired"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Purpura:fibrinolytic"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Purpura:fulminans"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "that (complicating):abortion or ectopic or molar pregnancy[O00-O07][O08.1]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "that (complicating):in newborn[P60]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "that (complicating):pregnancy, childbirth and the puerperium[O45.0][O46.0][O67.0][O72.3], , ,"
+        }
+      ]
+    },
+    {
       "code": "D66",
       "display": "Hereditary factor VIII deficiency",
       "definition": "Hereditary factor VIII deficiency",
@@ -1491,6 +1542,60 @@
         {
           "code": "parent",
           "valueCode": "G47"
+        }
+      ]
+    },
+    {
+      "code": "G93.5",
+      "display": "Compression of brain",
+      "definition": "Compression of brain",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "G93"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Compressionof brain (stem)"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Herniationof brain (stem)"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "traumatic compression of brain (diffuse)[S06.2]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "traumatic compression of brain (diffuse)focal[S06.3]"
+        }
+      ]
+    },
+    {
+      "code": "G93.6",
+      "display": "Cerebral oedema",
+      "definition": "Cerebral oedema",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "G93"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "cerebral oedema:due to birth injury[P11.0]"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "cerebral oedema:traumatic[S06.1]"
         }
       ]
     },
@@ -3809,6 +3914,25 @@
       ]
     },
     {
+      "code": "J80",
+      "display": "Adult respiratory distress syndrome",
+      "definition": "Adult respiratory distress syndrome",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "J80-J84"
+        },
+        {
+          "code": "inclusion",
+          "valueString": "Adult hyaline membrane disease"
+        }
+      ]
+    },
+    {
       "code": "J85.1",
       "display": "Abscess of lung with pneumonia",
       "definition": "Abscess of lung with pneumonia",
@@ -4893,6 +5017,25 @@
         {
           "code": "parent",
           "valueCode": "K76"
+        }
+      ]
+    },
+    {
+      "code": "K76.7",
+      "display": "Hepatorenal syndrome",
+      "definition": "Hepatorenal syndrome",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "K76"
+        },
+        {
+          "code": "exclusion",
+          "valueString": "following labour and delivery[O90.4]"
         }
       ]
     },
@@ -7553,6 +7696,21 @@
         {
           "code": "exclusion",
           "valueString": "toxic shock syndrome[A48.3]"
+        }
+      ]
+    },
+    {
+      "code": "R57.0",
+      "display": "Cardiogenic shock",
+      "definition": "Cardiogenic shock",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "R57"
         }
       ]
     },
