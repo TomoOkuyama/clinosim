@@ -17,7 +17,8 @@ for the default hospital-operations YAML.
   named daily-pattern deltas from YAML), `calculate_delay(resource,
   urgency, hospital_ops)` (M/M/1-style base × congestion_factor ×
   staff_factor + reporting time, with hard caps at
-  `DELAY_MAX_DELAY_ROUTINE_MIN` / `DELAY_MAX_DELAY_STAT_MIN`),
+  `DELAY_MAX_DELAY_ROUTINE_MIN` / `DELAY_MAX_DELAY_STAT_MIN`, or the
+  resource's calibrated `delay_limits` from the hospital YAML),
   `add_to_queue` / `release_from_queue` (per-order utilisation
   bookkeeping), `load_hospital_operations()` YAML loader for the
   default config.
@@ -49,7 +50,7 @@ from clinosim.modules.facility.hospital_state import (
 | Method | Contract |
 |---|---|
 | `update_for_time(dt, hospital_ops)` | Sets shift-based staffing (`day` / `evening` / `night`), applies weekend modifier to lab / radiology / pharmacy / OR staff (nursing is unscaled) when `weekday >= WEEKEND_WEEKDAY_MIN`, releases the work whose completion time has passed, and recomputes every queue as baseline + work in progress + the `daily_patterns.*` deltas active at `dt` (the deltas no longer accumulate across calls, #2196). |
-| `calculate_delay(resource, urgency, hospital_ops)` | Returns delay in minutes for the given resource + urgency using `base × (1 / (1 - utilization)) × (1 / staff) + reporting_time × (1 / staff)`, with congestion + staff factors clamped by `DELAY_CONGESTION_CAP` + `DELAY_STAFF_CAP`, and the whole answer capped by `DELAY_MAX_DELAY_{STAT,ROUTINE}_MIN`. |
+| `calculate_delay(resource, urgency, hospital_ops)` | Returns delay in minutes for the given resource + urgency using `base × (1 / (1 - utilization)) × (1 / staff) + reporting_time × (1 / staff)`, with congestion + staff factors clamped by `DELAY_CONGESTION_CAP` + `DELAY_STAFF_CAP`, and the whole answer capped by `DELAY_MAX_DELAY_{STAT,ROUTINE}_MIN`; a resource with `delay_limits` in the YAML caps congestion × staff at `max_load_factor` and the delay at `max_delay_min.{stat,routine}` instead (Issue #3287). |
 | `add_to_queue(resource, hospital_ops, until=None)` | Adds `1/capacity` of work in progress on the resource until `until` (default: the resource's routine base processing time from the state timestamp). `calculate_result_time_from_state` passes the result time, so each order occupies the resource until its result is out (#2196). |
 | `release_from_queue(resource, hospital_ops)` | Releases `1/capacity` of work immediately. |
 
@@ -108,6 +109,11 @@ docstring for the byte-diff contract).
   - `base_processing_time.<resource>[_stat|_routine]` — base minutes
     per order (falls back to `FALLBACK_BASE_{STAT,ROUTINE}_MIN`).
   - `reporting_time.{stat, routine}` — imaging reporting minutes.
+  - `delay_limits.<resource>` — optional calibrated turnaround limits
+    (Issue #3287): `max_load_factor` caps congestion_factor ×
+    staff_factor, `max_delay_min.{stat, routine}` replaces the generic
+    delay caps. The shipped configs set it for `lab` from CAP Q-Probes
+    turnaround benchmarks (cited in the YAML); imaging has none.
   - `resource_capacity.{lab_analyzers, ct_scanners, mri_scanners,
     xray_rooms, ultrasound_rooms, operating_rooms}` — capacity
     integers used by `add_to_queue` / `release_from_queue`.

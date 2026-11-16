@@ -167,6 +167,29 @@ base_processing_time:
   or_minor: 30
   or_major: 90
 
+# Turnaround limits per resource (Issue #3287). The queueing model multiplies
+# the base processing time by congestion x staffing; without a ceiling a busy
+# night-shift laboratory returned routine chemistry after ~12 h. The lab's
+# combined slowdown is capped at `max_load_factor` and its delay (before the
+# +/-20% jitter) at `max_delay_min`, calibrated to CAP Q-Probes benchmarks as
+# summarised in Hawkins RC, "Laboratory turnaround time", Clin Biochem Rev
+# 2007;28:179-194:
+#   - routine early-morning inpatient collections, 657 institutions (Dale JC,
+#     Steindel SJ, Walsh M, Arch Pathol Lab Med 1998;122:865-70): institutional
+#     median total turnaround 73 min (IQR 58-92), non-ICU 80 min;
+#   - emergency STAT orders, 693 laboratories (Steindel SJ, Howanitz PJ, Arch
+#     Pathol Lab Med 2001;125:863-71): median laboratory 90%-completion time,
+#     order to report, 69 min (potassium) and 55 min (hemoglobin).
+# base x max_load_factor puts a saturated laboratory at the benchmark median
+# (routine) and inside the STAT 90%-completion time; max_delay_min bounds the
+# tail. Resources without an entry keep the generic 4 h / 12 h caps.
+delay_limits:
+  lab:
+    max_load_factor: 1.5
+    max_delay_min:
+      stat: 60
+      routine: 120
+
 reporting_time:
   stat: 15
   routine: 120

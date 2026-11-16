@@ -16,7 +16,8 @@ default hospital-operations YAML の loader も本モジュールが持つ。
   named `daily_patterns` delta 適用)、`calculate_delay(resource,
   urgency, hospital_ops)` (M/M/1 風 base × congestion_factor ×
   staff_factor + reporting time、hard cap は
-  `DELAY_MAX_DELAY_ROUTINE_MIN` / `DELAY_MAX_DELAY_STAT_MIN`)、
+  `DELAY_MAX_DELAY_ROUTINE_MIN` / `DELAY_MAX_DELAY_STAT_MIN`、または
+  病院 YAML の resource 別 `delay_limits`)、
   `add_to_queue` / `release_from_queue` (発注ごとの利用率簿記)、
   default config を load する `load_hospital_operations()`。
 - **Out of scope**: スタッフ *identity* / roster
@@ -45,7 +46,7 @@ from clinosim.modules.facility.hospital_state import (
 | Method | 契約 |
 | --- | --- |
 | `update_for_time(dt, hospital_ops)` | shift-based staffing (`day` / `evening` / `night`) を設定、`weekday >= WEEKEND_WEEKDAY_MIN` なら lab / radiology / pharmacy / OR staff に weekend modifier 適用 (nursing は非適用)、完了時刻を過ぎた処理中の仕事を解放し、各 queue を「基準値 + 処理中の仕事 + `dt` 時点で有効な `daily_patterns.*` の delta」として計算し直す (delta は呼び出しごとに積み上がらない、#2196)。 |
-| `calculate_delay(resource, urgency, hospital_ops)` | resource + urgency に対する遅延 (分) を `base × (1 / (1 - utilization)) × (1 / staff) + reporting_time × (1 / staff)` で返す。congestion + staff factor は `DELAY_CONGESTION_CAP` + `DELAY_STAFF_CAP` で clamp、最終値は `DELAY_MAX_DELAY_{STAT,ROUTINE}_MIN` で cap。 |
+| `calculate_delay(resource, urgency, hospital_ops)` | resource + urgency に対する遅延 (分) を `base × (1 / (1 - utilization)) × (1 / staff) + reporting_time × (1 / staff)` で返す。congestion + staff factor は `DELAY_CONGESTION_CAP` + `DELAY_STAFF_CAP` で clamp、最終値は `DELAY_MAX_DELAY_{STAT,ROUTINE}_MIN` で cap。YAML に `delay_limits` を持つ resource は congestion × staff を `max_load_factor`、遅延を `max_delay_min.{stat,routine}` で cap (Issue #3287)。 |
 | `add_to_queue(resource, hospital_ops, until=None)` | resource に `1/capacity` の処理中の仕事を `until` まで追加 (既定は state の時刻から routine の基準処理時間)。`calculate_result_time_from_state` は結果時刻を渡すため、各オーダーは結果が出るまで resource を占有する (#2196)。 |
 | `release_from_queue(resource, hospital_ops)` | `1/capacity` の仕事を即時に解放。 |
 
@@ -102,6 +103,11 @@ docstring 参照)。
   - `base_processing_time.<resource>[_stat|_routine]` — 発注ごとの
     base 分 (欠落時 `FALLBACK_BASE_{STAT,ROUTINE}_MIN`)。
   - `reporting_time.{stat, routine}` — imaging reporting 分。
+  - `delay_limits.<resource>` — 任意の較正済み TAT 上限 (Issue #3287):
+    `max_load_factor` が congestion_factor × staff_factor を、
+    `max_delay_min.{stat, routine}` が汎用の遅延上限を置き換える。同梱
+    config は `lab` に CAP Q-Probes の TAT ベンチマーク (出典は YAML に
+    記載) から設定、imaging には無し。
   - `resource_capacity.{lab_analyzers, ct_scanners, mri_scanners,
     xray_rooms, ultrasound_rooms, operating_rooms}` —
     `add_to_queue` / `release_from_queue` が使う capacity 整数。

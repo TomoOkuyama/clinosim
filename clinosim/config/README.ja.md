@@ -70,6 +70,8 @@ Python API はありません。`__init__.py` は意図的に空。consumer は
 | `wards` / `ward_capacity` | 病棟定義と病棟別ベッド数 | (ファイル参照) |
 | `resource_capacity` | 分析装置 / スキャナ / OR / ED / 入院ベッド | `inpatient_beds: 50`, `ed_beds: 8` |
 | `staffing` | 看護師 / 医師 / 薬剤師人員 | (ファイル参照) |
+| `base_processing_time` / `reporting_time` | 発注ごとの base 分と画像読影の報告分 | `lab_routine: 55` |
+| `delay_limits` | resource 別の較正済み TAT 上限 (出典付きベンチマーク、Issue #3287) | `lab: {max_load_factor: 1.5, max_delay_min: {stat: 60, routine: 120}}` |
 
 ### `hospital_small.yaml` / `hospital_large.yaml`
 
