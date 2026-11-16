@@ -92,8 +92,9 @@ class CIFPatientRecord:
     # list the admission medication reconciliation reads). ``patient`` is the
     # patient's profile at the end of the simulation, whose
     # ``current_medications`` later encounters replace; the admission H&P
-    # reads this snapshot. ``None`` for encounters that record none
-    # (outpatient, ED) and for CIF written before it existed.
+    # and the HPI read this snapshot. Issue #3262: ED and outpatient records
+    # carry the list at the start of the visit too. ``None`` for CIF
+    # written before it existed.
     home_medications_at_admission: list[HomeMedication] | None = None
     icu_transferred: bool = False
     # C5-22 (imaging chain closure): day (0-indexed LOS day) at

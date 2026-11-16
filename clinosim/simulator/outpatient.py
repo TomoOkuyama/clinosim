@@ -32,6 +32,7 @@ from clinosim.modules.observation.engine import (
     lab_panel_components,
 )
 from clinosim.modules.order.engine import enrich_medication_order
+from clinosim.modules.patient.medication_timeline import medications_at_encounter
 from clinosim.modules.pediatric.calendar import Presentation, pediatric_presentation
 from clinosim.modules.staff.engine import (
     FALLBACK_PHYSICIAN_ID,
@@ -1207,6 +1208,9 @@ def _simulate_outpatient_visit(
     gastroenterology, etc. The ``"internal_medicine"`` default preserves
     legacy behavior for callers that have not yet been migrated.
     """
+    # Issue #3262: the home medications at the visit, before its renewal or
+    # statin titration changes patient.current_medications.
+    home_medications_at_visit = medications_at_encounter(patient, visit_date)
     spec = followup_spec or {}
     chief, raw_chief = _visit_chief_complaint(spec, chronic_code, post_discharge_disease, country)
     encounter = _open_visit_encounter(
@@ -1303,6 +1307,7 @@ def _simulate_outpatient_visit(
         condition_event=condition_event,
         clinical_diagnosis=clinical_diagnosis,
         discharge_prescription=rx,
+        home_medications_at_admission=home_medications_at_visit,
         physiological_states=[],
     )
 

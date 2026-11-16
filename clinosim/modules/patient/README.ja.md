@@ -52,12 +52,17 @@ from clinosim.modules.patient.activator import activate_patient
 from clinosim.modules.patient.test_patient import create_test_patient
 # () -> PatientProfile  (決定論的 72 歳 JP 女性、HT + T2DM)
 
-from clinosim.modules.patient.medication_timeline import medications_on, note_encounter_medications
+from clinosim.modules.patient.medication_timeline import (
+    medications_at_encounter, medications_on, note_encounter_medications,
+)
 # note_encounter_medications(record) -> None  (forward loop: record の患者がその最後の
 #   encounter 終了以降に服用する薬を、共有の visit ledger に記録)
 # medications_on(patient, when: datetime) -> list[HomeMedication]  (`when` 時点で服用中の
 #   薬。最初の encounter より前は最初の profile の開始時の薬、記録が無ければ現在の薬)
 #   — Issue #3199、乱数なし
+# medications_at_encounter(patient, start: datetime) -> list[HomeMedication]  (ED・外来受診が
+#   home_medications_at_admission に記録する受診開始時の常用薬。現在の薬、ただし `start` より
+#   後に終わる入院が既にシミュレートされていれば medications_on(start)) — Issue #3262
 ```
 
 `_severity_activation.py` の stage / severity table は `activator.py`

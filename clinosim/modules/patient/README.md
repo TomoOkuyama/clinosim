@@ -57,12 +57,17 @@ from clinosim.modules.patient.activator import activate_patient
 from clinosim.modules.patient.test_patient import create_test_patient
 # () -> PatientProfile  (deterministic 72-year-old JP female with HT + T2DM)
 
-from clinosim.modules.patient.medication_timeline import medications_on, note_encounter_medications
+from clinosim.modules.patient.medication_timeline import (
+    medications_at_encounter, medications_on, note_encounter_medications,
+)
 # note_encounter_medications(record) -> None  (forward loop: the medications the record's
 #   patient takes from the end of its last encounter on, on the shared visit ledger)
 # medications_on(patient, when: datetime) -> list[HomeMedication]  (those in effect at
 #   `when`; the first profile's starting list before the first encounter; the current
 #   list when nothing was noted) — Issue #3199, no random draws
+# medications_at_encounter(patient, start: datetime) -> list[HomeMedication]  (the list an
+#   ED / outpatient visit records as its home_medications_at_admission: the live list,
+#   or medications_on(start) when an already-simulated stay ends after `start`) — Issue #3262
 ```
 
 The stage / severity tables in `_severity_activation.py` are imported
