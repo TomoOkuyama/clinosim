@@ -2509,6 +2509,11 @@
 <td><code>tests/unit/test_prn_from_state.py</code>, <code>tests/unit/test_prn_inhaler_cadence_1318.py</code></td>
 </tr>
 <tr>
+<td>昇圧薬・強心薬を持続投与している間(オーダー時刻から終了時刻まで)は、降圧薬・β遮断薬・利尿薬・硝酸薬の予定投与をすべて「昇圧薬・強心薬の持続投与中」を理由に保留する。経口の昇圧薬と単回投与は保留の契機にならない。バイタルの保留条件(SBP &lt; 90、HR &lt; 50)は、各投与の前に入院中に記録された最新のバイタルで判定する(最初の記録より前だけ入院前の基準値を使う)。その日のバイタルを記録した後に適用する。保留理由は <code>hold_reason_display</code> で記録の言語に表示する。</td>
+<td><code>medication_pipeline.py</code>(<code>vasoactive_infusions</code>, <code>vasoactive_hold_reason</code>, <code>apply_vital_holds</code>, <code>latest_vitals_at</code>)。データ <code>simulator/reference_data/vasoactive_hold.yaml</code>, <code>locale/shared/medication_hold_reasons.yaml</code>。<code>_generate_mar</code>、<code>daily_loop.py</code>、<code>unknown_condition.py</code> で適用</td>
+<td><code>tests/unit/simulator/test_vasoactive_hold_3233.py</code></td>
+</tr>
+<tr>
 <td>1 日より長い間隔の頻度 (週 1 回・月 1 回・隔日) のオーダーは、オーダーした日とその後の間隔ごとに 1 回投与する。間隔は頻度トークン表から読むので、週 1 回の用量文字列が 1 日 1 回に置き換わることはない。</td>
 <td><code>modules/order/engine.py::dosing_interval_days</code>, <code>medication_pipeline.py::_generate_mar</code></td>
 <td><code>tests/unit/simulator/test_non_daily_mar_2982.py</code></td>

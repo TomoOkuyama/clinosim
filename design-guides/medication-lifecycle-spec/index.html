@@ -2514,6 +2514,11 @@
 <td><code>tests/unit/drug_safety/test_hyperkalemia_response_2981.py</code>, <code>tests/unit/drug_safety/test_hyperkalemia_dextrose_digoxin_3232.py</code></td>
 </tr>
 <tr>
+<td>While a vasopressor or inotrope runs as a continuous infusion (from its order time to its end time), every scheduled dose of an antihypertensive, beta-blocker, diuretic or nitrate is held with the reason "on vasopressor or inotrope infusion"; an oral vasopressor or a one-time dose holds nothing. The vital-sign hold parameters (SBP &lt; 90, HR &lt; 50) are judged on the latest vital signs recorded in the stay before each dose (the pre-admission baseline only before the first ones), applied once the day's vital signs are recorded. A hold reason is displayed in the note's language through <code>hold_reason_display</code>.</td>
+<td><code>medication_pipeline.py</code> (<code>vasoactive_infusions</code>, <code>vasoactive_hold_reason</code>, <code>apply_vital_holds</code>, <code>latest_vitals_at</code>); data <code>simulator/reference_data/vasoactive_hold.yaml</code>, <code>locale/shared/medication_hold_reasons.yaml</code>; applied in <code>_generate_mar</code>, <code>daily_loop.py</code>, <code>unknown_condition.py</code></td>
+<td><code>tests/unit/simulator/test_vasoactive_hold_3233.py</code></td>
+</tr>
+<tr>
 <td>An order whose frequency is a cadence longer than a day (weekly, monthly, every other day) is given once on the day it is ordered and on every interval after; the cadence is read from the frequency-token catalog, so a weekly dose text is never defaulted to daily.</td>
 <td><code>modules/order/engine.py::dosing_interval_days</code>, <code>medication_pipeline.py::_generate_mar</code></td>
 <td><code>tests/unit/simulator/test_non_daily_mar_2982.py</code></td>
