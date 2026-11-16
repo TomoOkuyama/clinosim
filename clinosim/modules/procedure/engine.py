@@ -17,7 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from clinosim import determinism
 from clinosim.codes import data_table
-from clinosim.codes.procedures import bedside_procedures, country_procedure_code
+from clinosim.codes.procedures import bedside_procedures, country_procedure_code, procedure_specimens
 from clinosim.countries import country_slot
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.loader import load_care_practice, load_code_mapping
@@ -226,6 +226,9 @@ def simulate_surgery(
         preop_diagnosis=disease_id,
         postop_diagnosis=disease_id,
         approach=approach,
+        # Issue #3284: the tissue a resection sends to pathology (catalog data,
+        # no draw).
+        specimens_sent=list(procedure_specimens(proc_type)),
         category_code=meta.category_code,
         body_site_code=meta.body_site_code,
         outcome_code=_derive_outcome(intraop_comps),
@@ -494,6 +497,7 @@ def _bedside_record(
         duration_minutes=duration,
         primary_surgeon_id=performer_id,
         anesthesia_type=anesthesia,
+        specimens_sent=list(procedure_specimens(proc_type)),
         category_code=meta.category_code if meta else fallback_category,
         body_site_code=meta.body_site_code if meta else "",
         outcome_code=_SCT_OUTCOME_SUCCESS,

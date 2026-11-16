@@ -89,3 +89,30 @@ def procedure_code_display(codes: Iterable[str], lang: str) -> str | None:
             if hit:
                 return hit
     return None
+
+
+def procedure_specimens(proc_type: str) -> tuple[str, ...]:
+    """Specimens a procedure type removes and sends to histopathology, as
+    ``specimen_type`` keys of ``snomed-maps.yaml`` (the catalog's
+    ``specimens`` table, Issue #3284); empty for a procedure that sends none."""
+    return tuple(str(s) for s in (_catalog().get("specimens") or {}).get(proc_type) or ())
+
+
+def specimen_code(slug: str) -> str:
+    """SNOMED CT specimen concept of a ``specimens_sent`` entry; ``""`` when
+    the key is not mapped (Issue #3284)."""
+    from clinosim.codes.snomed import snomed_for
+
+    return snomed_for("specimen_type", slug) or "" if slug else ""
+
+
+def specimen_label(slug: str, lang: str) -> str:
+    """Clinical label of a ``specimens_sent`` entry in ``lang`` (then English):
+    the ``surgical_specimen`` narrative label ("Appendix" / 虫垂), else the
+    SNOMED CT display of its specimen concept. The operative note's specimen
+    line and FHIR ``Specimen.type.text`` (Issue #3284)."""
+    from clinosim.locale.loader import narrative_label
+
+    code = specimen_code(slug)
+    fallback = (display("snomed-ct", code, lang) if code else None) or slug.replace("_", " ")
+    return narrative_label("surgical_specimen", slug, lang, fallback=fallback)

@@ -138,6 +138,11 @@ specimen_type:
   blood: "119297000"
   arterial_blood: "122552005"  # blood gases (Issue #2582)
   urine: "122575003"
+  # Surgical specimens a resection sends to pathology (Issue #3284); the
+  # procedure catalog names them per procedure type (`specimens`).
+  appendix: "421615004"           # Specimen from appendix obtained by appendectomy
+  gallbladder: "309205005"        # Cholecystectomy specimen
+  colon_segment: "309488006"      # Partial colectomy specimen
 
 # Newborn screening procedures (Issue #2379).
 newborn_screen:

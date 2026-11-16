@@ -88,6 +88,16 @@ def _resolve_procedure_id(structural_key: str) -> str:
     return derive_opaque_id("proc-", structural_key)
 
 
+def procedure_structural_key(proc: dict, patient_id: str, index: int) -> str:
+    """Structural key of the Procedure built from CIF procedure ``proc`` (the
+    ``index``-th of the record): ``{encounter_id}-{procedure_id}``, or the
+    procedure id alone without an encounter. The one composition behind
+    ``Procedure.id`` and every reference to it (Issue #854, #3284)."""
+    enc_id = proc.get("encounter_id", "")
+    base_pid = proc.get("procedure_id") or f"proc-{patient_id}-{index:03d}"
+    return f"{enc_id}-{base_pid}" if enc_id else base_pid
+
+
 def _build_procedure(
     proc: dict,
     patient_id: str,
@@ -116,8 +126,7 @@ def _build_procedure(
     # (same base_pid across encounters hashes to different opaque ids because
     # enc_id is part of the key when populated).
     enc_id = proc.get("encounter_id", "")
-    base_pid = proc.get("procedure_id") or f"proc-{patient_id}-{index:03d}"
-    structural_key = f"{enc_id}-{base_pid}" if enc_id else base_pid
+    structural_key = procedure_structural_key(proc, patient_id, index)
     resource_id = _resolve_procedure_id(structural_key)
 
     # Per AD-30, CIF stores only codes. Displays resolved via code_lookup.

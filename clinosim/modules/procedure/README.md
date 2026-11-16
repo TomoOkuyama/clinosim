@@ -112,6 +112,14 @@ procedure catalog (`clinosim.codes.procedures.bedside_procedures()`
 over `codes/data/clinosim-procedure-catalog.yaml`, Issue #2263) and are
 projected into the `_BEDSIDE_PROCEDURES` tuple list in `engine.py`.
 
+Specimens (Issue #3284): a resection records the tissue it sends to
+histopathology in `specimens_sent`, as `specimen_type` keys of
+`codes/data/snomed-maps.yaml` (`appendix`, `gallbladder`,
+`colon_segment`), copied from the catalog's `specimens` table
+(`clinosim.codes.procedures.procedure_specimens`) by `simulate_surgery`
+and the bedside path. Catalog data, no draw. The operative / procedure
+note lists them by label and the FHIR output emits one Specimen each.
+
 Blood loss, ASA class and anesthesia (Issue #3257): `ProcedureRecord`
 defaults are empty (`estimated_blood_loss_ml` / `asa_class` None,
 `anesthesia_type` ""), meaning not recorded. Only `simulate_surgery`

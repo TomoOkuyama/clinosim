@@ -57,6 +57,8 @@ class ProcedureRecord:
 
     # Findings
     estimated_blood_loss_ml: int | None = None  # set only where the blood loss is modelled
+    # Tissue sent to histopathology, as ``specimen_type`` keys of
+    # codes/data/snomed-maps.yaml (``appendix``, ``gallbladder``; Issue #3284).
     specimens_sent: list[str] = field(default_factory=list)
     implants_used: list[str] = field(default_factory=list)
     intraop_complications: list[str] = field(default_factory=list)

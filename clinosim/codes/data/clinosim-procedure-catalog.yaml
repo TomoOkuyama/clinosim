@@ -19,6 +19,19 @@ metadata:
   name: clinosim-procedure-catalog
   source: clinosim
 
+# Tissue a resection removes and sends to histopathology, per procedure type
+# (Issue #3284), as `specimen_type` keys of codes/data/snomed-maps.yaml (SNOMED
+# CT specimen concepts). The procedure engine copies them into the record's
+# `specimens_sent`. Only the resections whose specimen is routinely submitted
+# are listed: the appendix after appendectomy, the gallbladder after
+# cholecystectomy and the resected colon after colectomy. Debridement, fracture
+# fixation, arthroplasty and hematoma evacuation send none (a hemiarthroplasty
+# femoral head is submitted by local practice only).
+specimens:
+  bowel_resection: [colon_segment]
+  laparoscopic appendectomy: [appendix]
+  laparoscopic cholecystectomy: [gallbladder]
+
 bedside:
   - {type: urinary_catheter, cpt: "51702", k_code: "J063", name: {en: "Urinary catheter insertion", ja: "尿道カテーテル挿入"}, anesthesia: none}
   - {type: central_line, cpt: "36556", k_code: "G005-2", name: {en: "Central venous catheter insertion", ja: "中心静脈カテーテル挿入"}, anesthesia: local}
