@@ -3238,7 +3238,7 @@
 </tr>
 <tr>
 <td><code>codes.icd10</code>: <code>icd10_system(country)</code>, <code>icd10_display(code, country, lang)</code>, <code>condition_short_name(code, lang)</code>, <code>condition_label(code, country, lang)</code>, <code>medis_disease_keyno(icd)</code></td>
-<td>ICD-10 system of a country; official display (JP Japanese: the MHLW 2013 name, verbatim); clinical short name (by category); the name used in prose and <code>Condition.code.text</code> (short name, then official display); MEDIS 病名管理番号</td>
+<td>ICD-10 system of a country; official display (JP Japanese: the MHLW 2013 name, verbatim — <code>coding.display</code> only); clinical short name (<code>condition-short-name.yaml</code>: the longest key that prefixes the code, subcategory before category, Issue #3259); the name used in prose and <code>Condition.code.text</code> (short name, then official display; every code the JP output emits has a short name whose Japanese carries none of the classification's notation — ＜＞, ［］, †/＊, （症）, 「，詳細不明」, full-width digits); MEDIS 病名管理番号</td>
 <td>key / <code>None</code> / <code>None</code> / <code>None</code> / <code>None</code></td>
 </tr>
 <tr>
@@ -3247,8 +3247,8 @@
 <td><code>""</code></td>
 </tr>
 <tr>
-<td><code>modules.document.narrative.renderers._shared_helpers</code>: <code>chronic_condition_code(code, country, sex)</code>, <code>chronic_condition_label(code, country, lang, sex)</code>, <code>chronic_condition_coded(code, country, lang, sex)</code></td>
-<td>a patient's chronic condition in narrative and LLM context (Issue #2994): the code the output emits for the internal key (<code>map_diagnosis_code</code>), its <code>condition_label</code> for prose, and <code>(code, official display)</code> for a coded list. Narrative never labels a chronic condition from the internal key's category title</td>
+<td><code>modules.document.narrative.renderers._shared_helpers</code>: <code>chronic_condition_code(code, country, sex)</code>, <code>chronic_condition_label(code, country, lang, sex)</code>, <code>diagnosis_coded(code, country, lang, sex)</code></td>
+<td>a CIF diagnosis code (a chronic condition or an encounter diagnosis, both internal) in narrative and LLM context (Issue #2994, #3259): the code the output emits (<code>map_diagnosis_code</code>), its <code>condition_label</code> for running prose (SOAP problems, comorbidities, ED diagnosis, reason for admission), and <code>(emitted code, name)</code> for a coded list (past medical history, admission / discharge diagnoses, death certificate and summary), the name chosen per language by <code>narrative_labels.coded_diagnosis_name</code> (English: the official display; Japanese: the clinical label). Narrative never prints the internal code, the internal key's category title or an MHLW classification title</td>
 <td>code / <code>None</code> / <code>(code, code)</code></td>
 </tr>
 <tr>
@@ -3600,6 +3600,10 @@
 <tr>
 <td>Emitted codes are registered</td>
 <td><code>tests/unit/codes/test_emitted_diagnosis_registered_2429.py</code>, <code>tests/unit/codes/test_procedure_codes_registered_2340.py</code></td>
+</tr>
+<tr>
+<td>Japanese diagnosis prose names carry no classification notation; JP codes are MHLW codes</td>
+<td><code>tests/unit/codes/test_jp_prose_names_3259.py</code></td>
 </tr>
 <tr>
 <td>A miss never echoes the code</td>

@@ -3237,8 +3237,13 @@
 </tr>
 <tr>
 <td><code>codes.icd10</code>: <code>icd10_system(country)</code>, <code>icd10_display(code, country, lang)</code>, <code>condition_short_name(code, lang)</code>, <code>condition_label(code, country, lang)</code>, <code>medis_disease_keyno(icd)</code></td>
-<td>国の ICD-10 体系 / 正式表示名 (JP の日本語は MHLW 2013 の名称をそのまま) / 臨床略称 (カテゴリ単位) / 文章と <code>Condition.code.text</code> に使う名称 (略称、なければ正式表示名) / MEDIS 病名管理番号</td>
+<td>国の ICD-10 体系 / 正式表示名 (JP の日本語は MHLW 2013 の名称をそのまま) / 臨床略称 (<code>condition-short-name.yaml</code> のうちコードの先頭に一致する最長のキー。細分類が分類より先、Issue #3259) / 文章と <code>Condition.code.text</code> に使う名称 (略称、なければ正式表示名。JP が出力するコードには、分類表の記法 — ＜＞、［］、†/＊、（症）、「，詳細不明」、全角数字 — を含まない日本語の略称が必ずある。MHLW の名称は <code>coding.display</code> にのみ使う) / MEDIS 病名管理番号</td>
 <td>キー / <code>None</code> / <code>None</code> / <code>None</code> / <code>None</code></td>
+</tr>
+<tr>
+<td><code>modules.document.narrative.renderers._shared_helpers</code>: <code>chronic_condition_code(code, country, sex)</code>, <code>chronic_condition_label(code, country, lang, sex)</code>, <code>diagnosis_coded(code, country, lang, sex)</code></td>
+<td>ナラティブと LLM コンテキストでの CIF 診断コード (慢性疾患と受診の診断。どちらも内部コード。Issue #2994、#3259): 出力するコード (<code>map_diagnosis_code</code>) / 文章中の名称 (<code>condition_label</code>。SOAP の問題、併存疾患、救急外来診断、入院理由) / コード付き一覧 (既往歴、入院・退院時診断、死亡診断書・死亡時サマリー) の <code>(出力コード, 名称)</code>。名称は <code>narrative_labels.coded_diagnosis_name</code> で言語ごとに選ぶ (英語: 正式表示名、日本語: 臨床名)。ナラティブは内部コード、内部キーのカテゴリ名、MHLW 分類表の名称を出さない</td>
+<td>コード / <code>None</code> / <code>(code, code)</code></td>
 </tr>
 <tr>
 <td><code>codes.procedures</code>: <code>procedure_code</code>, <code>procedure_type_display</code>, <code>procedure_code_display</code></td>
@@ -3584,6 +3589,10 @@
 <tr>
 <td>出力するコードが登録済み</td>
 <td><code>tests/unit/codes/test_emitted_diagnosis_registered_2429.py</code>、<code>tests/unit/codes/test_procedure_codes_registered_2340.py</code></td>
+</tr>
+<tr>
+<td>日本語の診断名 (文章) が分類表の記法を含まない、JP のコードが MHLW のコード</td>
+<td><code>tests/unit/codes/test_jp_prose_names_3259.py</code></td>
 </tr>
 <tr>
 <td>見つからないときにコードをそのまま返さない</td>
