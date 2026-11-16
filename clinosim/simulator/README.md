@@ -239,7 +239,7 @@ CLI subcommand handlers (11 files):
   cli_test_encounter.py  `clinosim test-encounter` subcommand
 ```
 
-Reference data (`reference_data/`, 5 YAMLs):
+Reference data (`reference_data/`, 6 YAMLs):
 
 ```
   reference_data/chronic_propagation.yaml     chronic-condition propagation (helpers.py)
@@ -247,6 +247,7 @@ Reference data (`reference_data/`, 5 YAMLs):
   reference_data/icd10_sex_restrictions.yaml  ICD-10 sex gates (sex_gating.py)
   reference_data/renal_medication_rules.yaml  renal dosing rules (medication_pipeline.py, discharge_rx.py)
   reference_data/statin_monitoring.yaml       lipid monitoring / statin titration (statin_monitoring.py)
+  reference_data/vasoactive_hold.yaml         drugs held during vasopressor / inotrope infusions (medication_pipeline.py)
 ```
 
 Extracted threshold constants (14 files, `_<area>_thresholds.py`):

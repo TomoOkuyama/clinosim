@@ -19,6 +19,7 @@ from typing import Any
 
 from clinosim.codes import data_table
 from clinosim.locale._io import _LOCALE_DIR, _load_yaml
+from clinosim.locale.localized import localized
 
 
 @lru_cache(maxsize=1)
@@ -151,3 +152,19 @@ def load_diet_type_display() -> dict[str, dict[str, str]]:
     """
     raw = _load_yaml(_LOCALE_DIR / "shared" / "diet_type_display.yaml", fallback={})
     return raw.get("diet_types", {}) or {}
+
+
+@lru_cache(maxsize=1)
+def load_medication_hold_reasons() -> dict[str, dict[str, str]]:
+    """Medication hold-reason displays (``locale/shared/medication_hold_reasons.yaml``,
+    Issue #2405), keyed by the reason text stored with the hold (a disease
+    YAML ``reason:``, or a MAR ``hold_reason``)."""
+    raw = _load_yaml(_LOCALE_DIR / "shared" / "medication_hold_reasons.yaml", fallback={})
+    return {str(k): dict(v) for k, v in (raw.get("reasons") or {}).items()}
+
+
+def hold_reason_display(reason: str, lang: str) -> str:
+    """A hold reason in ``lang`` (English fallback); a reason not in the table
+    (a measured value such as "SBP < 90" or "K 6.1 mmol/L") displays as
+    stored (Issue #3233)."""
+    return localized(load_medication_hold_reasons().get(reason), lang, fallback=reason)

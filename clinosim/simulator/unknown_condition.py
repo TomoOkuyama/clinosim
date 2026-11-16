@@ -114,7 +114,7 @@ def _simulate_unknown_condition(
     # Post-PR-B (`vitals_pipeline`) + PR-C (`medication_pipeline`), both
     # helpers live in their own topic modules and unknown_condition no longer
     # needs `inpatient.py` at all — direct imports from the topic modules.
-    from clinosim.simulator.medication_pipeline import _generate_mar
+    from clinosim.simulator.medication_pipeline import _generate_mar, apply_vital_holds
     from clinosim.simulator.vitals_pipeline import _generate_vitals
 
     state = initialize_state(patient.physiological_profile, patient.chronic_conditions, patient.patient_id)
@@ -359,9 +359,12 @@ def _simulate_unknown_condition(
         all_vitals.extend(_generate_vitals(state, patient, day, admission_time, rng, nurse_id=unk_nurse_id))
 
         # MAR for supportive medications
-        all_mars.extend(
-            _generate_mar(patient, all_orders, day, admission_time, department=department, roster=roster, rng=rng)
-        )  # noqa: E501
+        mars_today = _generate_mar(
+            patient, all_orders, day, admission_time, department=department, roster=roster, rng=rng
+        )
+        # Issue #3233: vital-sign holds read the vital signs recorded before each dose.
+        apply_vital_holds(mars_today, all_vitals, patient.baseline_vitals)
+        all_mars.extend(mars_today)
 
     encounter.status = EncounterStatus.COMPLETED
     encounter.discharge_datetime = admission_time + timedelta(days=target_los, hours=UNK_DISCHARGE_HOUR)

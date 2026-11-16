@@ -112,6 +112,7 @@ from clinosim.simulator.medication_pipeline import (
     ChildDosing,
     _generate_mar,
     _place_chronic_monitoring_orders,
+    apply_vital_holds,
     child_dosing,
     dose_orders_for_child,
     generate_prn_administrations,
@@ -1195,21 +1196,23 @@ def _run_daily_loop(
         _apply_archetype_modifications(stay, run, day)
         if day == TREATMENT_ESCALATION_DAY and run.state.inflammation_level > TREATMENT_ESCALATION_INFLAMMATION_MIN:
             _escalate_treatment(stay, run, day)
-        run.mars.extend(
-            _generate_mar(
-                patient,
-                run.orders,
-                day,
-                admission_time,
-                department=department,
-                roster=roster,
-                rng=rng,
-                potassium_hold=run.potassium_hold,
-                child=stay.child,
-            )
+        mars_today = _generate_mar(
+            patient,
+            run.orders,
+            day,
+            admission_time,
+            department=department,
+            roster=roster,
+            rng=rng,
+            potassium_hold=run.potassium_hold,
+            child=stay.child,
         )
+        run.mars.extend(mars_today)
         _order_diet(stay, run, day)
         _record_bedside_observations(stay, run, day)
+        # Issue #3233: the vital-sign hold parameters read the vital signs
+        # recorded before each dose (today's are recorded after the MAR).
+        apply_vital_holds(mars_today, run.vitals, patient.baseline_vitals)
         if comp_list and day >= 1:
             _apply_complications(stay, run, day, comp_list)
         _escalate_airway_and_icu(stay, run, day)

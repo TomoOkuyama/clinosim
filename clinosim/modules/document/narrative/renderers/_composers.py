@@ -296,6 +296,7 @@ def _today_medications(ctx: NarrativeContext) -> tuple[list[str], list[str]]:
     at most six each. A drug with a held dose today is listed as held with
     its reason ("Candesartan (K 6.5 mmol/L)"), not as continued (Issue #2981)."""
     from clinosim.locale.free_text import localize_drug_name
+    from clinosim.locale.loader import hold_reason_display
 
     lang = ctx.target_lang
     _p_enc = getattr(ctx, "encounter", None)
@@ -320,8 +321,12 @@ def _today_medications(ctx: NarrativeContext) -> tuple[list[str], list[str]]:
         if _o(m, "status", None) == "held" and name not in held_reason:
             held_reason[name] = str(_o(m, "hold_reason", None) or "")
     continued = [localize_drug_name(str(n), lang) for n in today if n not in held_reason][:6]
+    # The reason in the note's language (Issue #3233); a measured value
+    # ("SBP < 90", "K 6.5 mmol/L") is written as stored.
     held = [
-        f"{localize_drug_name(str(n), lang)} ({r})" if r else localize_drug_name(str(n), lang)
+        f"{localize_drug_name(str(n), lang)} ({hold_reason_display(r, lang)})"
+        if r
+        else localize_drug_name(str(n), lang)
         for n, r in held_reason.items()
     ][:6]
     return continued, held

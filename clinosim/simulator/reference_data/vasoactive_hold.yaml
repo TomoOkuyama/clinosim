@@ -1,0 +1,40 @@
+# Medications held while a vasopressor or inotrope infusion runs (Issue #3233).
+#
+# Read by clinosim/simulator/medication_pipeline.py (`vasoactive_hold_rules`,
+# `vasoactive_infusions`, `vasoactive_hold_reason`) and applied in the
+# inpatient MAR (`_generate_mar`): a scheduled dose of a drug in
+# `held_classes` (catalog classes, codes/data/drugs.yaml, matched with their
+# dotted ancestors) is recorded as held, with `reason`, while an order of a
+# drug in `trigger_classes` runs as a continuous infusion — from its order
+# time (or `administer_from`) until its end time. An oral vasopressor
+# (midodrine) and a one-time dose (epinephrine IM) are not infusions and hold
+# nothing. `reason` is a key of locale/shared/medication_hold_reasons.yaml,
+# which gives its English and Japanese display.
+#
+# A patient who needs a vasopressor or inotrope to keep a blood pressure is
+# in shock; drugs that lower the pressure or the cardiac output are held
+# while it runs. Sources (US FDA prescribing information, read on DailyMed /
+# openFDA):
+#   - Norepinephrine bitartrate injection: the infusion is titrated to
+#     maintain "a low to normal blood pressure (usually 80 mm Hg to 100 mm Hg
+#     systolic)" (Dosage and Administration 2.2) — a supported pressure is
+#     not evidence that the patient tolerates antihypertensives.
+#   - Carvedilol tablets: contraindicated in "cardiogenic shock or
+#     decompensated heart failure requiring the use of IV inotropic therapy";
+#     such patients "should first be weaned from intravenous therapy"
+#     (Contraindications 4).
+#   - Metoprolol tartrate injection: contraindicated with "systolic blood
+#     pressure <100 mmHg" and in "cardiogenic shock or decompensated heart
+#     failure" (Contraindications 4).
+#   - Nitroglycerin in 5% dextrose injection: "Severe hypotension and shock
+#     may occur with even small doses of nitroglycerin" (Precautions).
+#   - Furosemide tablets: "Excessive diuresis may cause dehydration and blood
+#     volume reduction with circulatory collapse" (Precautions).
+metadata:
+  kind: reference
+  name: vasoactive_hold
+  source: clinosim
+
+trigger_classes: [inotrope, vasopressor]
+held_classes: [antihypertensive, beta_blocker, diuretic, nitrate]
+reason: "On vasopressor or inotrope infusion"

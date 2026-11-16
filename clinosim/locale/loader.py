@@ -93,12 +93,14 @@ from clinosim.locale.loaders.fhir_identity import (
 from clinosim.locale.loaders.medical_display import (
     department_display,
     department_specialty_snomed,
+    hold_reason_display,
     load_clinician_roles,
     load_department_display,
     load_diet_type_display,
     load_frequency_tokens,
     load_med_terms,
     load_med_terms_ja,
+    load_medication_hold_reasons,
     load_occupation_display,
     role_display,
 )
@@ -168,6 +170,8 @@ __all__ = [
     "load_department_display",
     "role_display",
     "load_diet_type_display",
+    "hold_reason_display",
+    "load_medication_hold_reasons",
     "load_encounter_disposition_defaults",
     "load_external_organizations",
     "load_checkup_questionnaire",
