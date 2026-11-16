@@ -189,10 +189,15 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
-        "ctx.complications_occurred",
+        "ctx.medications",
         "ctx.procedures",
+        "ctx.complications_events",
+        "ctx.lab_results",
+        "ctx.discharge_medications",
+        "ctx.encounter.discharge_disposition",
         "ctx.los_days",
         "ctx.diagnoses",
+        "ctx.working_diagnoses",
         "ctx.discharge_medications",
         "discharge_instructions.baseline",
         "discharge_instructions.disease_specific.diabetic_ketoacidosis",
@@ -206,11 +211,11 @@
       },
       "sections": {
         "admission_summary": "Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Admitted for inpatient care.",
-        "discharge_diagnoses": "Type 2 diabetes mellitus with hyperglycemia (E11.65)",
+        "discharge_diagnoses": "Type 2 diabetes mellitus with hyperglycemia (E11.65). Secondary diagnoses: aspiration pneumonia, DVT.",
         "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Follow up with PCP in 7-10 days. Complete prescribed medications as directed. Return to ER if symptoms worsen. Follow diabetic diet plan; maintain hydration especially during illness (small sips frequently). Check blood glucose 4-6 times daily; check urine or blood ketones if BG >250 mg/dL. Return to ER for BG >300 mg/dL with ketones, persistent vomiting, deep breathing, or altered mental status. Gradual return to normal activity. Maintain a balanced diet.",
         "discharge_medications": "Insulin Glargine",
         "follow_up": "Follow up with PCP in 7-10 days.",
-        "hospital_course": "Length of stay: 3 days (primary reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness). Complications during stay: aspiration pneumonia, DVT. Key procedures: Central venous catheter insertion."
+        "hospital_course": "Length of stay: 3 days (primary reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness). Main treatment: anticoagulation (Enoxaparin); insulin (Insulin, Regular, Human); other parenteral drugs (Potassium Chloride). Key procedures: Central venous catheter insertion (2024-06-15). Complications during stay: aspiration pneumonia (onset hospital day 3), DVT (onset hospital day 3). Significant results: glucose 551 mg/dL [critical] (prior 578) on hospital day 1, treated with Insulin, Regular, Human; pH 7.04 [critical] on hospital day 1. Medication changes from admission: started Insulin Glargine. Condition at discharge: discharged home, Barthel Index 80/100."
       },
       "text": ""
     }

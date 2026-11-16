@@ -189,10 +189,15 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
-        "ctx.complications_occurred",
+        "ctx.medications",
         "ctx.procedures",
+        "ctx.complications_events",
+        "ctx.lab_results",
+        "ctx.discharge_medications",
+        "ctx.encounter.discharge_disposition",
         "ctx.los_days",
         "ctx.diagnoses",
+        "ctx.working_diagnoses",
         "ctx.discharge_medications",
         "discharge_instructions.baseline",
         "discharge_instructions.disease_specific.diabetic_ketoacidosis",
@@ -206,7 +211,7 @@
       },
       "sections": {
         "admission_summary": "Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Admitted for inpatient care.",
-        "discharge_diagnoses": "Type 2 diabetes mellitus with hyperglycemia (E11.65)",
+        "discharge_diagnoses": "Type 2 diabetes mellitus with hyperglycemia (E11.65). Secondary diagnoses: aspiration pneumonia, DVT.",
         "discharge_instructions": "[Mock LLM response #5 — discharge_instructions]",
         "discharge_medications": "Insulin Glargine",
         "follow_up": "Follow up with PCP in 7-10 days.",

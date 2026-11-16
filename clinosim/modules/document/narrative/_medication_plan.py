@@ -32,6 +32,7 @@ __all__ = [
     "MedicationPlanRules",
     "NoteMedications",
     "cap_names",
+    "drug_tier",
     "medication_plan_rules",
     "note_medications",
     "ranked_medication_names",
@@ -103,7 +104,9 @@ class _Drug:
     later: bool = False
 
 
-def _tier(drug_ref: str, route: str) -> int:
+def drug_tier(drug_ref: str, route: str) -> int:
+    """Index of the first tier of ``drug_plan_priority.yaml`` the drug belongs
+    to (by catalog class, else by route class); ``len(tiers)`` for none."""
     from clinosim.codes.drugs import drug_classes, route_class
 
     rules = medication_plan_rules()
@@ -116,7 +119,7 @@ def _tier(drug_ref: str, route: str) -> int:
 
 
 def _ranked(drugs: list[_Drug], keys: dict[int, str]) -> list[_Drug]:
-    tiers = {d.position: _tier(keys[d.position], d.route) for d in drugs}
+    tiers = {d.position: drug_tier(keys[d.position], d.route) for d in drugs}
     return sorted(drugs, key=lambda d: (tiers[d.position], d.position))
 
 

@@ -19,10 +19,10 @@ from clinosim.modules._shared import get_attr_or_key as _get
 from clinosim.modules.document.narrative._localization import _localize_lab_flag
 from clinosim.modules.document.narrative.lab_timeseries import NotableLab, select_notable_labs
 
-__all__ = ["notable_lab_entries"]
+__all__ = ["notable_lab_entries", "notable_lab_entry"]
 
 
-def _entry(item: NotableLab, lang: str) -> str:
+def notable_lab_entry(item: NotableLab, lang: str) -> str:
     from clinosim.modules.observation.engine import format_lab_value
 
     lab = item.lab
@@ -59,7 +59,7 @@ def notable_lab_entries(
     whole record) known at ``as_of``: at most ``limit`` analytes, then one
     ``progress.notable_labs_more`` entry counting the rest."""
     picks = select_notable_labs(lab_results, admission_datetime, day_index, as_of=as_of)
-    entries = [_entry(item, lang) for item in picks[:limit]]
+    entries = [notable_lab_entry(item, lang) for item in picks[:limit]]
     rest = len(picks) - limit
     if rest > 0:
         entries.append(t("progress.notable_labs_more", lang, count=rest))

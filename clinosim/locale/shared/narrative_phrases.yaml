@@ -652,15 +652,94 @@ hospital_course:
   los_head_with_reason:
     ja: "入院期間 {los} 日間（主病名/主訴: {reason}）。"
     en: "Length of stay: {los} days (primary reason: {reason})."
+  # Issue #3246: {day} is the hospital day (admission day = 1).
   complication_with_onset:
-    ja: "入院第{day}日目 {label}"
-    en: "{label} (onset day {day})"
+    ja: "{label}（入院第{day}日目発症）"
+    en: "{label} (onset hospital day {day})"
   complications_line:
     ja: "経過中の合併症: {list}。"
     en: "Complications during stay: {list}."
   procedures_line:
     ja: "主な処置・手技: {list}。"
     en: "Key procedures: {list}."
+  procedure_with_date:
+    ja: "{name}（{date}）"
+    en: "{name} ({date})"
+  readmission:
+    ja: "前回退院後の再入院。"
+    en: "Readmission after a recent hospital discharge."
+  readmission_numbered:
+    ja: "前回退院後の再入院（再入院{n}回目）。"
+    en: "Readmission after a recent hospital discharge (readmission {n})."
+  # Separates the groups of one sentence (treatment tiers, results, changes).
+  group_sep:
+    ja: "／"
+    en: "; "
+  treatments_line:
+    ja: "主な治療: {list}。"
+    en: "Main treatment: {list}."
+  treatment_group:
+    ja: "{label}（{list}）"
+    en: "{label} ({list})"
+  # One label per tier of reference_data/drug_plan_priority.yaml.
+  treatment_tier:
+    vasoactive:
+      ja: "昇圧薬・強心薬"
+      en: "vasoactive drugs"
+    antimicrobial:
+      ja: "抗微生物薬"
+      en: "antimicrobials"
+    anticoagulant:
+      ja: "抗凝固療法"
+      en: "anticoagulation"
+    insulin:
+      ja: "インスリン"
+      en: "insulin"
+    analgesic:
+      ja: "鎮痛薬"
+      en: "analgesia"
+    parenteral:
+      ja: "その他の注射薬"
+      en: "other parenteral drugs"
+  labs_line:
+    ja: "主な異常検査値: {list}。"
+    en: "Significant results: {list}."
+  lab_on_day:
+    ja: "入院第{day}日目 {entry}"
+    en: "{entry} on hospital day {day}"
+  lab_treated:
+    ja: "{item}、{list}で治療"
+    en: "{item}, treated with {list}"
+  med_changes_line:
+    ja: "入院時からの薬剤変更: {list}。"
+    en: "Medication changes from admission: {list}."
+  med_started:
+    ja: "開始 {list}"
+    en: "started {list}"
+  med_stopped:
+    ja: "中止 {list}"
+    en: "stopped {list}"
+  med_dose_changed:
+    ja: "用量変更 {list}"
+    en: "dose changed {list}"
+  med_dose_item:
+    ja: "{name}（{old}→{new}）"
+    en: "{name} ({old} to {new})"
+  med_unchanged:
+    ja: "入院時の常用薬から変更なし。"
+    en: "No changes to the medications taken at admission."
+  discharge_condition_line:
+    ja: "退院時の状態: {list}。"
+    en: "Condition at discharge: {list}."
+  barthel:
+    ja: "Barthel 指数 {score}/100"
+    en: "Barthel Index {score}/100"
+
+# Discharge diagnoses with the diagnoses that arose during the stay (Issue #3246).
+discharge_diagnoses:
+  with_secondary:
+    ja: "{primary}。副病名: {list}。"
+    en: "{primary}. Secondary diagnoses: {list}."
 
 # Chronic-condition SOAP lab-fragment templates.
 chronic_labs:

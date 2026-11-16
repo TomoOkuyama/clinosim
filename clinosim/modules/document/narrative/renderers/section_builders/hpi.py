@@ -57,7 +57,25 @@ def build_hpi(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> t
     the check at each return.
     """
     text, facts = _build_hpi_core(generator, ctx)
+    text, facts = _maybe_append_readmission(text, facts, ctx)
     return _maybe_append_newborn_workup(text, facts, ctx)
+
+
+def _maybe_append_readmission(text: str, facts: list[str], ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """Issue #3246: an admission that is a readmission says so after the
+    present illness (the hospital course's sentence). The ED note belongs to
+    the ED visit, which is not the readmission record."""
+    if ctx.document_type == DocumentType.ED_NOTE:
+        return text, facts
+    from clinosim.modules.document.narrative._hospital_course import readmission_sentence
+
+    sentence, fact = readmission_sentence(ctx)
+    if not sentence:
+        return text, facts
+    facts.append(fact)
+    if not text:
+        return sentence, facts
+    return f"{text}{t('list_sep.sentence_gap', ctx.target_lang)}{sentence}", facts
 
 
 def _maybe_append_newborn_workup(text: str, facts: list[str], ctx: NarrativeContext) -> tuple[str, list[str]]:

@@ -113,6 +113,9 @@ def build_narrative_context(
         icu_transferred=bool(_o(record, "icu_transferred", False)),
         icu_transferred_day=icu_transfer_day(_o(record, "icu_transferred_day", None)),
         **visit_reason_fields(record, encounter),
+        # Issue #3246: readmission (H&P HPI and discharge summary).
+        is_readmission=bool(_o(record, "is_readmission", False)),
+        readmission_number=int(_o(record, "readmission_number", 0) or 0),
     )
 
 

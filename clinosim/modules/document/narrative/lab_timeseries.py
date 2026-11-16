@@ -287,7 +287,9 @@ def _numeric(value: Any) -> float | None:
     return float(value)
 
 
-def _flag_side(lab: Any) -> str | None:
+def flag_side(lab: Any) -> str | None:
+    """The side of the reference range a flagged result is on (``"high"`` /
+    ``"low"``; a panic result by the panic thresholds), ``None`` unflagged."""
     from clinosim.modules.observation.engine import panic_side
 
     flag = str(_get(lab, "flag") or "")
@@ -403,7 +405,7 @@ def select_notable_labs(
         if flag in _HEMOLYZED_FLAGS:
             finding = "hemolyzed"
         else:
-            side = _flag_side(lab)
+            side = flag_side(lab)
             entry = rules.findings.get(canon)
             rule = getattr(entry, side) if entry is not None and side is not None else None
             if rule is not None and _names_finding(rule, side, flag, _numeric(_get(lab, "value"))):

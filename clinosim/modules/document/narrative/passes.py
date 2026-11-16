@@ -617,6 +617,9 @@ class NarrativePass(ABC):
             # Issues #3249 / #3252: the visit kind, the vaccines given and the
             # imaging studies of this encounter (outpatient SOAP).
             **visit_reason_fields(patient_dict, encounter_dict),
+            # Issue #3246: readmission (H&P HPI and discharge summary).
+            is_readmission=bool(patient_dict.get("is_readmission", False)),
+            readmission_number=int(patient_dict.get("readmission_number", 0) or 0),
         )
         ctx.narrative_spine = build_narrative_spine(
             disease_protocol,

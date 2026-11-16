@@ -196,6 +196,7 @@ clinosim/modules/document/
     hedging_phrases.yaml             narrative hedging phrase pool
     drug_plan_priority.yaml          経過記録の計画の薬剤の優先順位・単回投与の頻度・一覧の上限 (narrative/_medication_plan.py)
     progress_vitals.yaml             経過記録のバイタル要約: 経過の閾値・自己申告可能な AVPU・表示する極値・疼痛部位 (narrative/renderers/_composers.py)
+    hospital_course.yaml             退院時サマリーの入院経過: 治療薬の一覧の上限・異常検査値の対応薬・薬剤変更の上限 (narrative/_hospital_course.py)
   narrative/                         narrative subpackage (Stage 2 pipeline) — narrative/README.md 参照
 ```
 
