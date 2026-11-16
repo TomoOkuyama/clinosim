@@ -22,6 +22,7 @@ Generator-threaded helpers:
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import display
@@ -31,6 +32,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.locale.localized import language_slot, localized, normalize_lang
+from clinosim.modules._shared import ORDER_SET_ADMISSION_INITIAL
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import (
     _localize_imaging,
@@ -70,6 +72,29 @@ def _ed_cutoff(ctx: NarrativeContext) -> str:
     if not _admitted_from_ed(ctx):
         return ""
     return _iso(_o(ctx.encounter, "admission_datetime", ""))
+
+
+def _ed_time_context(ctx: NarrativeContext) -> NarrativeContext:
+    """``ctx`` limited to the vital signs taken by the ED departure, earliest
+    first, for an admitted patient (Issue #3242); ``ctx`` itself otherwise.
+
+    The stay's vitals start on the ward, after the patient left the ED; a
+    ward reading is not the arrival vitals.
+    """
+    cutoff = _ed_cutoff(ctx)
+    if not cutoff:
+        return ctx
+    stamped = [(_iso(_o(v, "timestamp", "")), v) for v in ctx.vitals or []]
+    ed_vitals = [v for when, v in sorted(stamped, key=lambda pair: pair[0]) if when and when <= cutoff]
+    return replace(ctx, vitals=ed_vitals)
+
+
+def _is_ed_order(order: Any, admitted: bool) -> bool:
+    """Whether ``order`` was written in the ED. On an admitted patient's
+    record only the admission's initial order set was (Issue #3242): home
+    medications continued, ward care written with the admission and later
+    treatment are the stay's orders."""
+    return not admitted or (_o(order, "order_set", "") or "") == ORDER_SET_ADMISSION_INITIAL
 
 
 if TYPE_CHECKING:
@@ -118,6 +143,7 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
     facts: list[str] = []
     lang = ctx.target_lang
     fallback = t("fallback.generic_fallback", lang)
+    ctx = _ed_time_context(ctx)
 
     ed_tmpl = generator._get_ed_note_template(ctx)
     if ed_tmpl is None:
@@ -126,6 +152,10 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
         if vital_line:
             facts.append("ctx.vitals[0]")
             return t("ed.on_arrival_no_findings", lang, vitals=vital_line), facts
+        if _admitted_from_ed(ctx):
+            # No reading from the ED period (Issue #3242): say nothing was
+            # recorded rather than assert a normal exam.
+            return t("ed.exam_not_recorded", lang), facts
         return fallback, facts
 
     # physical_exam maps a language to a structured per-body-system object,
@@ -254,10 +284,12 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     seen_imaging: set[str] = set()
     seen_meds: set[str] = set()
     seen_proc_orders: set[str] = set()
-    # The initial workup of a via-ED admission is placed as the stay's
-    # admission orders, so the order list is kept; only result values are
-    # limited to those available at the ED departure (Issue #2856).
+    # The ED workup of a via-ED admission is the stay's initial order set
+    # (Issue #3242; it is placed at the admission time, so it is selected by
+    # order set, not by time); result values are limited to those available
+    # at the ED departure (Issue #2856).
     cutoff = _ed_cutoff(ctx)
+    admitted = _admitted_from_ed(ctx)
     for order in ctx.orders or []:
         # Scope to the ED encounter only — record.orders can include a
         # follow-up outpatient order carried on the same patient file
@@ -266,6 +298,8 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
             oe = _o(order, "encounter_id", "") or ""
             if oe and oe != enc_id:
                 continue
+        if not _is_ed_order(order, admitted):
+            continue
         otype = _o(order, "order_type", "") or ""
         otype_str = str(otype.value if hasattr(otype, "value") else otype).lower()
         display_raw = _o(order, "display_name", "") or _o(order, "order_code", "")

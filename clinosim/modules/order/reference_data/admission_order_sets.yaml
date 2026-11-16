@@ -1,0 +1,54 @@
+# Order sets of the admission orders (Issue #3242).
+#
+# place_admission_orders writes the initial workup (labs, imaging), the
+# first-line drugs and the supportive orders of the disease protocol. For a
+# patient admitted through the ED these are the orders the ED physician
+# writes before the patient leaves the department (Order.order_set
+# "admission_initial"), except the ward care written with the admission:
+# nursing care, diet and activity, positioning, fluid-balance routines,
+# catheters and the ward's prophylaxis and precautions. Those supportive
+# types are listed here and get Order.order_set "admission_care"; the ED
+# note leaves them out of the ED workup.
+# Source: clinosim authoring (clinical convention: the admission order set
+# separates ward nursing, diet and activity orders from the initial
+# diagnostic and treatment orders).
+metadata:
+  kind: reference
+  name: admission_order_sets
+  source: clinosim
+
+care_supportive_types:
+  # Activity, diet, positioning
+  - bed_rest
+  - diet
+  - nutritional_support
+  - HOB_elevation
+  - head_elevation
+  - head_of_bed
+  # Nursing care and precautions
+  - fall_precautions
+  - aspiration_precautions
+  - oral_care
+  - isolation
+  - safety_observation
+  - suicide_precautions
+  - withdrawal_monitoring
+  # Fluid balance and ward monitoring routines
+  - fluid_restriction
+  - sodium_restriction
+  - IV_fluid_restriction
+  - I_and_O
+  - fluid_balance
+  - daily_weight
+  - urine_output_monitoring
+  - glucose_monitoring
+  - hold_nephrotoxins
+  # Ward devices and prophylaxis
+  - urinary_catheter
+  - foley_catheter
+  - compression_stocking
+  - DVT_prophylaxis
+  - stress_ulcer_prophylaxis
+  # Peri-operative orders
+  - wound_marking
+  - antibiotic_prophylaxis
