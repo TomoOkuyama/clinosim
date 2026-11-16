@@ -13,7 +13,7 @@
         "ctx.vitals[day_0]",
         "composed:cif_state_en"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-15T04:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "generator": "template",
@@ -46,7 +46,7 @@
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-15T04:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 0,
@@ -96,7 +96,7 @@
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-16T04:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 1,
@@ -146,7 +146,7 @@
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-17T04:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 2,
@@ -196,7 +196,7 @@
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-18T04:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 3,
@@ -246,7 +246,7 @@
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-19T04:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 4,
@@ -296,7 +296,7 @@
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-20T04:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 5,
@@ -346,7 +346,7 @@
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-21T04:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 6,
@@ -396,7 +396,7 @@
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-22T04:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 7,
@@ -446,7 +446,7 @@
         "discharge_instructions.disease_specific.hemorrhagic_stroke",
         "discharge_instructions.follow_up"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-23T09:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "generator": "template",
@@ -474,7 +474,7 @@
         "ctx.patient.chronic_conditions",
         "ctx.patient.chronic_conditions"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-15T04:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "generator": "template",
@@ -501,7 +501,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-15T08:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 0,
@@ -524,7 +524,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-15T16:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 0,
@@ -547,7 +547,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-16T00:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 1,
@@ -570,7 +570,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-16T08:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 1,
@@ -593,7 +593,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-16T16:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 1,
@@ -616,7 +616,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-17T00:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 2,
@@ -639,7 +639,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-17T08:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 2,
@@ -662,7 +662,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-17T16:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 2,
@@ -685,7 +685,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-18T00:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 3,
@@ -708,7 +708,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-18T08:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 3,
@@ -731,7 +731,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-18T16:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 3,
@@ -754,7 +754,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-19T00:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 4,
@@ -777,7 +777,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-19T08:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 4,
@@ -800,7 +800,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-19T16:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 4,
@@ -823,7 +823,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-20T00:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 5,
@@ -846,7 +846,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-20T08:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 5,
@@ -869,7 +869,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-20T16:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 5,
@@ -892,7 +892,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-21T00:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 6,
@@ -915,7 +915,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-21T08:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 6,
@@ -938,7 +938,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-21T16:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 6,
@@ -961,7 +961,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-22T00:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 7,
@@ -984,7 +984,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-22T08:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 7,
@@ -1007,7 +1007,7 @@
         "ctx.day_index",
         "ctx.los_days"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-22T16:00:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 7,
@@ -1029,7 +1029,7 @@
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments[-1]"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-23T09:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "generator": "template",
@@ -1059,7 +1059,7 @@
         "ctx.procedures",
         "ctx.procedures"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-15T11:26:33.768897Z",
       "generator": "template",
       "generator_metadata": {
         "generator": "template",
@@ -1091,7 +1091,7 @@
         "ctx.encounter.chief_complaint",
         "ctx.encounter.disposition"
       ],
-      "generated_at": "2020-01-01T00:00:42Z",
+      "generated_at": "2024-06-15T02:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "generator": "template",
