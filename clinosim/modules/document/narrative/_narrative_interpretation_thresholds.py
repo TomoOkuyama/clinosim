@@ -51,6 +51,9 @@ __all__ = [
     "NotableLabFindingRule",
     "NotableLabRules",
     "notable_lab_rules",
+    "ProgressVitalExtreme",
+    "ProgressVitalsRules",
+    "progress_vitals_rules",
 ]
 
 
@@ -341,3 +344,56 @@ NUTRITION_PROTEIN_G_PER_KG_MIDPOINT: float = 1.1
 nutrition-care-plan estimate. 1.0-1.2 g/kg/day is the standard
 initial-planning range for a general adult inpatient; 1.1 is the
 midpoint (design spec §3c)."""
+
+
+class _ProgressVitalsTrend(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    fever_c: float
+    fever_resolved_below_c: float
+    fever_rise_c: float = Field(gt=0)
+    hypothermia_below_c: float
+    spo2_desaturation_below: float
+    spo2_recovered_at_least: float
+    spo2_drop: float = Field(gt=0)
+
+
+class ProgressVitalExtreme(BaseModel):
+    """An extreme value of a note's period printed when beyond ``limit`` (or
+    at it, with ``inclusive``)."""
+
+    model_config = ConfigDict(extra="forbid")
+    vital: Literal["temperature_celsius", "heart_rate", "respiratory_rate", "systolic_bp", "spo2"]
+    side: Literal["max", "min"]
+    limit: float
+    inclusive: bool = False
+
+
+class ProgressVitalsRules(BaseModel):
+    """``progress_vitals.yaml`` (Issues #3235, #3247)."""
+
+    model_config = ConfigDict(extra="forbid")
+    trend: _ProgressVitalsTrend
+    self_report_avpu: list[Literal["A", "V", "P", "U"]] = Field(min_length=1)
+    extremes: list[ProgressVitalExtreme] = Field(min_length=1)
+    pain_sites: dict[str, dict[str, str]]
+
+    @model_validator(mode="after")
+    def _known_diseases(self) -> ProgressVitalsRules:
+        no_english = sorted(d for d, text in self.pain_sites.items() if "en" not in text or not text["en"].strip())
+        if no_english:
+            raise ValueError(f"progress_vitals.yaml: pain sites without English text {no_english}")
+        disease_dir = Path(__file__).resolve().parents[2] / "disease" / "reference_data"
+        unknown = sorted(d for d in self.pain_sites if not (disease_dir / f"{d}.yaml").exists())
+        if unknown:
+            raise ValueError(f"progress_vitals.yaml: unknown disease ids {unknown}")
+        return self
+
+
+_PROGRESS_VITALS_YAML = Path(__file__).resolve().parents[1] / "reference_data" / "progress_vitals.yaml"
+
+
+@lru_cache(maxsize=1)
+def progress_vitals_rules() -> ProgressVitalsRules:
+    """The trend thresholds, self-report AVPU levels, printed extremes and
+    pain sites of a progress note's vitals (``progress_vitals.yaml``)."""
+    return ProgressVitalsRules.model_validate(load_validated_yaml(_PROGRESS_VITALS_YAML, ProgressVitalsRules))

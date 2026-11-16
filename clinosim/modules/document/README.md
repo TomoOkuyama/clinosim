@@ -198,6 +198,7 @@ clinosim/modules/document/
     chronic_soap_templates.yaml      chronic-condition SOAP note templates
     hedging_phrases.yaml             narrative hedging phrase pool
     drug_plan_priority.yaml          progress-note plan drug ranking tiers, one-time frequencies, list cap (narrative/_medication_plan.py)
+    progress_vitals.yaml             progress-note vitals period summary: trend thresholds, self-report AVPU, printed extremes, pain sites (narrative/renderers/_composers.py)
   narrative/                         narrative subpackage (Stage 2 pipeline) — see narrative/README.md
 ```
 

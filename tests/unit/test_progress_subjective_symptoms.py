@@ -32,12 +32,12 @@ def _ctx(day0: dict, day1: dict, lang: str = "ja", disease: str = "hip_fracture"
 
 def test_pain_improving() -> None:
     text = compose_progress_subjective_from_state(_ctx({"pain_score": 8}, {"pain_score": 4}))
-    assert "疼痛" in text and "8" in text and "4" in text
+    assert "股関節部痛改善傾向" in text and "8" in text and "4" in text
 
 
 def test_pain_persistent_en() -> None:
     text = compose_progress_subjective_from_state(_ctx({"pain_score": 6}, {"pain_score": 6}, lang="en"))
-    assert "Pain" in text and "6" in text
+    assert "Persistent hip pain" in text and "6" in text
 
 
 def test_new_confusion_and_recovery() -> None:

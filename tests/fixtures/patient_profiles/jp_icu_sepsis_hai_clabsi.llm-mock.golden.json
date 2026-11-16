@@ -77,11 +77,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 107/65 mmHg, HR 119 回/分, RR 22 回/分, SpO2 96%, T 38.0°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 105/66 mmHg, HR 117 回/分, RR 19 回/分, SpO2 89% (RA), T 39.9°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 107/65 mmHg, HR 119 回/分, RR 22 回/分, SpO2 96%, T 38.0°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
+      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 105/66 mmHg, HR 117 回/分, RR 19 回/分, SpO2 89% (RA), T 39.9°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-03": {
@@ -124,11 +124,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "BP 104/62 mmHg, HR 122 回/分, RR 20 回/分, SpO2 98%, T 38.8°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 104/60 mmHg, HR 125 回/分, RR 22 回/分, SpO2 95% (酸素マスク 4.6 L/分), T 39.6°C (直近24時間: 最高体温 40.3°C、RR 最大 23 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 104/62 mmHg, HR 122 回/分, RR 20 回/分, SpO2 98%, T 38.8°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
+      "text": "S（主観） [Mock LLM response #3 — subjective]\nO（客観） BP 104/60 mmHg, HR 125 回/分, RR 22 回/分, SpO2 95% (酸素マスク 4.6 L/分), T 39.6°C (直近24時間: 最高体温 40.3°C、RR 最大 23 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #3 — assessment]\nP（計画） [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-04": {
@@ -171,11 +171,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 95/58 mmHg, HR 127 回/分, RR 19 回/分, SpO2 95%, T 38.7°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
+        "objective": "BP 95/58 mmHg, HR 127 回/分, RR 19 回/分, SpO2 95% (鼻カニューラ 2.6 L/分), T 38.7°C (直近24時間: 最高体温 40.4°C、HR 最大 132 回/分、RR 最大 25 回/分、SpO2 最低 93%)。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 95/58 mmHg, HR 127 回/分, RR 19 回/分, SpO2 95%, T 38.7°C。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
+      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 95/58 mmHg, HR 127 回/分, RR 19 回/分, SpO2 95% (鼻カニューラ 2.6 L/分), T 38.7°C (直近24時間: 最高体温 40.4°C、HR 最大 132 回/分、RR 最大 25 回/分、SpO2 最低 93%)。特記事項なし。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-05": {
@@ -218,11 +218,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 94/56 mmHg, HR 128 回/分, RR 22 回/分, SpO2 95%, T 39.5°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 94/56 mmHg, HR 128 回/分, RR 22 回/分, SpO2 95% (鼻カニューラ 3 L/分), T 39.5°C (直近24時間: 最高体温 40.3°C、HR 最大 136 回/分、RR 最大 23 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 94/56 mmHg, HR 128 回/分, RR 22 回/分, SpO2 95%, T 39.5°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
+      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 94/56 mmHg, HR 128 回/分, RR 22 回/分, SpO2 95% (鼻カニューラ 3 L/分), T 39.5°C (直近24時間: 最高体温 40.3°C、HR 最大 136 回/分、RR 最大 23 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-06": {
@@ -265,11 +265,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #6 — assessment]",
-        "objective": "BP 106/63 mmHg, HR 118 回/分, RR 23 回/分, SpO2 93%, T 40.1°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 106/63 mmHg, HR 118 回/分, RR 23 回/分, SpO2 93% (鼻カニューラ 3.3 L/分), T 40.1°C (直近24時間: HR 最大 136 回/分、RR 最大 24 回/分)。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #6 — plan]",
         "subjective": "[Mock LLM response #6 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 106/63 mmHg, HR 118 回/分, RR 23 回/分, SpO2 93%, T 40.1°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
+      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 106/63 mmHg, HR 118 回/分, RR 23 回/分, SpO2 93% (鼻カニューラ 3.3 L/分), T 40.1°C (直近24時間: HR 最大 136 回/分、RR 最大 24 回/分)。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-07": {
@@ -312,11 +312,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #7 — assessment]",
-        "objective": "BP 103/65 mmHg, HR 114 回/分, RR 21 回/分, SpO2 94%, T 39.1°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 103/65 mmHg, HR 114 回/分, RR 21 回/分, SpO2 94% (鼻カニューラ 3.9 L/分), T 39.1°C (直近24時間: 最高体温 40.0°C、HR 最大 123 回/分、RR 最大 24 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #7 — plan]",
         "subjective": "[Mock LLM response #7 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 103/65 mmHg, HR 114 回/分, RR 21 回/分, SpO2 94%, T 39.1°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
+      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 103/65 mmHg, HR 114 回/分, RR 21 回/分, SpO2 94% (鼻カニューラ 3.9 L/分), T 39.1°C (直近24時間: 最高体温 40.0°C、HR 最大 123 回/分、RR 最大 24 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-08": {
@@ -359,11 +359,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #8 — assessment]",
-        "objective": "BP 109/63 mmHg, HR 116 回/分, RR 21 回/分, SpO2 98%, T 39.4°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 109/63 mmHg, HR 116 回/分, RR 21 回/分, SpO2 98% (リザーバー付き酸素マスク 9.5 L/分), T 39.8°C (直近24時間: HR 最大 120 回/分、RR 最大 23 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
         "plan": "[Mock LLM response #8 — plan]",
         "subjective": "[Mock LLM response #8 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 109/63 mmHg, HR 116 回/分, RR 21 回/分, SpO2 98%, T 39.4°C。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
+      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 109/63 mmHg, HR 116 回/分, RR 21 回/分, SpO2 98% (リザーバー付き酸素マスク 9.5 L/分), T 39.8°C (直近24時間: HR 最大 120 回/分、RR 最大 23 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、症状改善傾向。循環器: 整、心雑音なし。呼吸器: 呼吸音清明、呼吸数正常。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-09": {
@@ -406,11 +406,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #9 — assessment]",
-        "objective": "BP 106/63 mmHg, HR 115 回/分, RR 18 回/分, SpO2 94%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 106/63 mmHg, HR 115 回/分, RR 18 回/分, SpO2 94% (鼻カニューラ 3.5 L/分), T 39.3°C (直近24時間: 最高体温 40.0°C、HR 最大 121 回/分、RR 最大 26 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #9 — plan]",
         "subjective": "[Mock LLM response #9 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 106/63 mmHg, HR 115 回/分, RR 18 回/分, SpO2 94%, T 39.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
+      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 106/63 mmHg, HR 115 回/分, RR 18 回/分, SpO2 94% (鼻カニューラ 3.5 L/分), T 39.3°C (直近24時間: 最高体温 40.0°C、HR 最大 121 回/分、RR 最大 26 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-10": {
@@ -453,11 +453,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #10 — assessment]",
-        "objective": "BP 112/64 mmHg, HR 114 回/分, RR 18 回/分, SpO2 96%, T 38.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 112/64 mmHg, HR 114 回/分, RR 18 回/分, SpO2 96% (酸素マスク 7.2 L/分), T 38.2°C (直近24時間: 最高体温 40.2°C、HR 最大 121 回/分、RR 最大 26 回/分、SpO2 最低 93%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #10 — plan]",
         "subjective": "[Mock LLM response #10 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 112/64 mmHg, HR 114 回/分, RR 18 回/分, SpO2 96%, T 38.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
+      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 112/64 mmHg, HR 114 回/分, RR 18 回/分, SpO2 96% (酸素マスク 7.2 L/分), T 38.2°C (直近24時間: 最高体温 40.2°C、HR 最大 121 回/分、RR 最大 26 回/分、SpO2 最低 93%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-100-night": {
@@ -720,11 +720,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #11 — assessment]",
-        "objective": "BP 109/66 mmHg, HR 110 回/分, RR 20 回/分, SpO2 96%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 109/66 mmHg, HR 110 回/分, RR 20 回/分, SpO2 96% (鼻カニューラ 3.3 L/分), T 38.5°C (直近24時間: 最高体温 39.6°C、HR 最大 119 回/分、RR 最大 23 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #11 — plan]",
         "subjective": "[Mock LLM response #11 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 109/66 mmHg, HR 110 回/分, RR 20 回/分, SpO2 96%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
+      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 109/66 mmHg, HR 110 回/分, RR 20 回/分, SpO2 96% (鼻カニューラ 3.3 L/分), T 38.5°C (直近24時間: 最高体温 39.6°C、HR 最大 119 回/分、RR 最大 23 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-110-day": {
@@ -987,11 +987,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #12 — assessment]",
-        "objective": "BP 114/66 mmHg, HR 109 回/分, RR 22 回/分, SpO2 92%, T 37.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 114/66 mmHg, HR 109 回/分, RR 22 回/分, SpO2 92% (鼻カニューラ 2.5 L/分), T 37.9°C (直近24時間: 最高体温 40.0°C、HR 最大 116 回/分)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #12 — plan]",
         "subjective": "[Mock LLM response #12 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 114/66 mmHg, HR 109 回/分, RR 22 回/分, SpO2 92%, T 37.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
+      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 114/66 mmHg, HR 109 回/分, RR 22 回/分, SpO2 92% (鼻カニューラ 2.5 L/分), T 37.9°C (直近24時間: 最高体温 40.0°C、HR 最大 116 回/分)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-120-evening": {
@@ -1284,11 +1284,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #13 — assessment]",
-        "objective": "BP 115/71 mmHg, HR 107 回/分, RR 16 回/分, SpO2 97%, T 39.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 115/71 mmHg, HR 107 回/分, RR 16 回/分, SpO2 97% (鼻カニューラ 3.6 L/分), T 39.5°C (直近24時間: 最高体温 39.8°C、HR 最大 115 回/分、RR 最大 25 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #13 — plan]",
         "subjective": "[Mock LLM response #13 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 115/71 mmHg, HR 107 回/分, RR 16 回/分, SpO2 97%, T 39.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
+      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 115/71 mmHg, HR 107 回/分, RR 16 回/分, SpO2 97% (鼻カニューラ 3.6 L/分), T 39.5°C (直近24時間: 最高体温 39.8°C、HR 最大 115 回/分、RR 最大 25 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-130-pn": {
@@ -1454,11 +1454,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #14 — assessment]",
-        "objective": "BP 114/70 mmHg, HR 106 回/分, RR 20 回/分, SpO2 96%, T 38.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 114/70 mmHg, HR 106 回/分, RR 20 回/分, SpO2 96% (酸素マスク 6.7 L/分), T 38.1°C (直近24時間: 最高体温 39.9°C、HR 最大 116 回/分、RR 最大 24 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #14 — plan]",
         "subjective": "[Mock LLM response #14 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 114/70 mmHg, HR 106 回/分, RR 20 回/分, SpO2 96%, T 38.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
+      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 114/70 mmHg, HR 106 回/分, RR 20 回/分, SpO2 96% (酸素マスク 6.7 L/分), T 38.1°C (直近24時間: 最高体温 39.9°C、HR 最大 116 回/分、RR 最大 24 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-15": {
@@ -1501,11 +1501,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #15 — assessment]",
-        "objective": "BP 118/70 mmHg, HR 107 回/分, RR 17 回/分, SpO2 98%, T 38.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 118/70 mmHg, HR 107 回/分, RR 17 回/分, SpO2 98% (酸素マスク 6.8 L/分), T 38.0°C (直近24時間: 最高体温 40.0°C、HR 最大 115 回/分、RR 最大 23 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #15 — plan]",
         "subjective": "[Mock LLM response #15 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 118/70 mmHg, HR 107 回/分, RR 17 回/分, SpO2 98%, T 38.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
+      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 118/70 mmHg, HR 107 回/分, RR 17 回/分, SpO2 98% (酸素マスク 6.8 L/分), T 38.0°C (直近24時間: 最高体温 40.0°C、HR 最大 115 回/分、RR 最大 23 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-16": {
@@ -1548,11 +1548,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #16 — assessment]",
-        "objective": "BP 116/72 mmHg, HR 105 回/分, RR 22 回/分, SpO2 92%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 116/72 mmHg, HR 105 回/分, RR 22 回/分, SpO2 92% (RA), T 38.7°C, 酸素投与終了 (直近24時間: 最高体温 39.7°C、HR 最大 111 回/分、RR 最大 24 回/分)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #16 — plan]",
         "subjective": "[Mock LLM response #16 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 116/72 mmHg, HR 105 回/分, RR 22 回/分, SpO2 92%, T 38.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
+      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 116/72 mmHg, HR 105 回/分, RR 22 回/分, SpO2 92% (RA), T 38.7°C, 酸素投与終了 (直近24時間: 最高体温 39.7°C、HR 最大 111 回/分、RR 最大 24 回/分)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-17": {
@@ -1595,11 +1595,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #17 — assessment]",
-        "objective": "BP 112/66 mmHg, HR 111 回/分, RR 22 回/分, SpO2 98%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 112/66 mmHg, HR 111 回/分, RR 22 回/分, SpO2 98% (リザーバー付き酸素マスク 9.2 L/分), T 38.5°C (直近24時間: 最高体温 40.0°C、HR 最大 112 回/分、RR 最大 26 回/分、SpO2 最低 93%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #17 — plan]",
         "subjective": "[Mock LLM response #17 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #17 — subjective]\nO（客観） BP 112/66 mmHg, HR 111 回/分, RR 22 回/分, SpO2 98%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #17 — assessment]\nP（計画） [Mock LLM response #17 — plan]"
+      "text": "S（主観） [Mock LLM response #17 — subjective]\nO（客観） BP 112/66 mmHg, HR 111 回/分, RR 22 回/分, SpO2 98% (リザーバー付き酸素マスク 9.2 L/分), T 38.5°C (直近24時間: 最高体温 40.0°C、HR 最大 112 回/分、RR 最大 26 回/分、SpO2 最低 93%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #17 — assessment]\nP（計画） [Mock LLM response #17 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-18": {
@@ -1642,11 +1642,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #18 — assessment]",
-        "objective": "BP 113/69 mmHg, HR 113 回/分, RR 21 回/分, SpO2 92%, T 38.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 113/69 mmHg, HR 113 回/分, RR 21 回/分, SpO2 92% (RA), T 38.9°C, 酸素投与終了 (直近24時間: 最高体温 39.6°C、HR 最大 121 回/分、RR 最大 24 回/分)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #18 — plan]",
         "subjective": "[Mock LLM response #18 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #18 — subjective]\nO（客観） BP 113/69 mmHg, HR 113 回/分, RR 21 回/分, SpO2 92%, T 38.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #18 — assessment]\nP（計画） [Mock LLM response #18 — plan]"
+      "text": "S（主観） [Mock LLM response #18 — subjective]\nO（客観） BP 113/69 mmHg, HR 113 回/分, RR 21 回/分, SpO2 92% (RA), T 38.9°C, 酸素投与終了 (直近24時間: 最高体温 39.6°C、HR 最大 121 回/分、RR 最大 24 回/分)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #18 — assessment]\nP（計画） [Mock LLM response #18 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-19": {
@@ -1689,11 +1689,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #19 — assessment]",
-        "objective": "BP 114/70 mmHg, HR 108 回/分, RR 19 回/分, SpO2 98%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 114/70 mmHg, HR 108 回/分, RR 19 回/分, SpO2 98% (酸素マスク 7.7 L/分), T 38.5°C (直近24時間: 最高体温 40.0°C、HR 最大 119 回/分、RR 最大 25 回/分、SpO2 最低 91%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #19 — plan]",
         "subjective": "[Mock LLM response #19 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #19 — subjective]\nO（客観） BP 114/70 mmHg, HR 108 回/分, RR 19 回/分, SpO2 98%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #19 — assessment]\nP（計画） [Mock LLM response #19 — plan]"
+      "text": "S（主観） [Mock LLM response #19 — subjective]\nO（客観） BP 114/70 mmHg, HR 108 回/分, RR 19 回/分, SpO2 98% (酸素マスク 7.7 L/分), T 38.5°C (直近24時間: 最高体温 40.0°C、HR 最大 119 回/分、RR 最大 25 回/分、SpO2 最低 91%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #19 — assessment]\nP（計画） [Mock LLM response #19 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-20": {
@@ -1736,11 +1736,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #20 — assessment]",
-        "objective": "BP 114/71 mmHg, HR 107 回/分, RR 23 回/分, SpO2 92%, T 38.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 114/71 mmHg, HR 107 回/分, RR 23 回/分, SpO2 92% (RA), T 38.3°C, 酸素投与終了 (直近24時間: 最高体温 39.0°C、HR 最大 117 回/分)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #20 — plan]",
         "subjective": "[Mock LLM response #20 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #20 — subjective]\nO（客観） BP 114/71 mmHg, HR 107 回/分, RR 23 回/分, SpO2 92%, T 38.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #20 — assessment]\nP（計画） [Mock LLM response #20 — plan]"
+      "text": "S（主観） [Mock LLM response #20 — subjective]\nO（客観） BP 114/71 mmHg, HR 107 回/分, RR 23 回/分, SpO2 92% (RA), T 38.3°C, 酸素投与終了 (直近24時間: 最高体温 39.0°C、HR 最大 117 回/分)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #20 — assessment]\nP（計画） [Mock LLM response #20 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-21": {
@@ -1783,11 +1783,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #21 — assessment]",
-        "objective": "BP 116/73 mmHg, HR 109 回/分, RR 23 回/分, SpO2 96%, T 38.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 116/73 mmHg, HR 109 回/分, RR 23 回/分, SpO2 96% (鼻カニューラ 3.5 L/分), T 38.2°C (直近24時間: 最高体温 39.8°C、HR 最大 115 回/分、RR 最大 25 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #21 — plan]",
         "subjective": "[Mock LLM response #21 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #21 — subjective]\nO（客観） BP 116/73 mmHg, HR 109 回/分, RR 23 回/分, SpO2 96%, T 38.2°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #21 — assessment]\nP（計画） [Mock LLM response #21 — plan]"
+      "text": "S（主観） [Mock LLM response #21 — subjective]\nO（客観） BP 116/73 mmHg, HR 109 回/分, RR 23 回/分, SpO2 96% (鼻カニューラ 3.5 L/分), T 38.2°C (直近24時間: 最高体温 39.8°C、HR 最大 115 回/分、RR 最大 25 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #21 — assessment]\nP（計画） [Mock LLM response #21 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-22": {
@@ -1830,11 +1830,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #22 — assessment]",
-        "objective": "BP 117/70 mmHg, HR 112 回/分, RR 22 回/分, SpO2 92%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 117/70 mmHg, HR 112 回/分, RR 22 回/分, SpO2 92% (RA), T 38.5°C, 酸素投与終了 (直近24時間: 最高体温 39.1°C、HR 最大 115 回/分、RR 最大 24 回/分)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #22 — plan]",
         "subjective": "[Mock LLM response #22 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #22 — subjective]\nO（客観） BP 117/70 mmHg, HR 112 回/分, RR 22 回/分, SpO2 92%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #22 — assessment]\nP（計画） [Mock LLM response #22 — plan]"
+      "text": "S（主観） [Mock LLM response #22 — subjective]\nO（客観） BP 117/70 mmHg, HR 112 回/分, RR 22 回/分, SpO2 92% (RA), T 38.5°C, 酸素投与終了 (直近24時間: 最高体温 39.1°C、HR 最大 115 回/分、RR 最大 24 回/分)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #22 — assessment]\nP（計画） [Mock LLM response #22 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-23": {
@@ -1877,11 +1877,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #23 — assessment]",
-        "objective": "BP 120/72 mmHg, HR 107 回/分, RR 23 回/分, SpO2 96%, T 38.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 120/72 mmHg, HR 107 回/分, RR 23 回/分, SpO2 96% (鼻カニューラ 3.6 L/分), T 38.1°C (直近24時間: 最高体温 39.3°C、HR 最大 116 回/分、RR 最大 24 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #23 — plan]",
         "subjective": "[Mock LLM response #23 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #23 — subjective]\nO（客観） BP 120/72 mmHg, HR 107 回/分, RR 23 回/分, SpO2 96%, T 38.1°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #23 — assessment]\nP（計画） [Mock LLM response #23 — plan]"
+      "text": "S（主観） [Mock LLM response #23 — subjective]\nO（客観） BP 120/72 mmHg, HR 107 回/分, RR 23 回/分, SpO2 96% (鼻カニューラ 3.6 L/分), T 38.1°C (直近24時間: 最高体温 39.3°C、HR 最大 116 回/分、RR 最大 24 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #23 — assessment]\nP（計画） [Mock LLM response #23 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-24": {
@@ -1924,11 +1924,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #24 — assessment]",
-        "objective": "BP 114/68 mmHg, HR 104 回/分, RR 23 回/分, SpO2 94%, T 37.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 114/68 mmHg, HR 104 回/分, RR 23 回/分, SpO2 94% (RA), T 37.8°C, 酸素投与終了 (直近24時間: 最高体温 39.2°C、HR 最大 115 回/分、RR 最大 25 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #24 — plan]",
         "subjective": "[Mock LLM response #24 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #24 — subjective]\nO（客観） BP 114/68 mmHg, HR 104 回/分, RR 23 回/分, SpO2 94%, T 37.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #24 — assessment]\nP（計画） [Mock LLM response #24 — plan]"
+      "text": "S（主観） [Mock LLM response #24 — subjective]\nO（客観） BP 114/68 mmHg, HR 104 回/分, RR 23 回/分, SpO2 94% (RA), T 37.8°C, 酸素投与終了 (直近24時間: 最高体温 39.2°C、HR 最大 115 回/分、RR 最大 25 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #24 — assessment]\nP（計画） [Mock LLM response #24 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-25": {
@@ -1971,11 +1971,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #25 — assessment]",
-        "objective": "BP 117/72 mmHg, HR 107 回/分, RR 21 回/分, SpO2 94%, T 39.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 117/72 mmHg, HR 107 回/分, RR 21 回/分, SpO2 94% (RA), T 39.0°C, 酸素投与終了 (直近24時間: 最高体温 39.5°C、HR 最大 115 回/分、RR 最大 24 回/分、SpO2 最低 91%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #25 — plan]",
         "subjective": "[Mock LLM response #25 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #25 — subjective]\nO（客観） BP 117/72 mmHg, HR 107 回/分, RR 21 回/分, SpO2 94%, T 39.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #25 — assessment]\nP（計画） [Mock LLM response #25 — plan]"
+      "text": "S（主観） [Mock LLM response #25 — subjective]\nO（客観） BP 117/72 mmHg, HR 107 回/分, RR 21 回/分, SpO2 94% (RA), T 39.0°C, 酸素投与終了 (直近24時間: 最高体温 39.5°C、HR 最大 115 回/分、RR 最大 24 回/分、SpO2 最低 91%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #25 — assessment]\nP（計画） [Mock LLM response #25 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-26": {
@@ -2018,11 +2018,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #26 — assessment]",
-        "objective": "BP 119/72 mmHg, HR 108 回/分, RR 23 回/分, SpO2 93%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 119/72 mmHg, HR 108 回/分, RR 23 回/分, SpO2 93% (鼻カニューラ 2.2 L/分), T 37.8°C (直近24時間: 最高体温 39.6°C、HR 最大 116 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #26 — plan]",
         "subjective": "[Mock LLM response #26 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #26 — subjective]\nO（客観） BP 119/72 mmHg, HR 108 回/分, RR 23 回/分, SpO2 93%, T 38.5°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #26 — assessment]\nP（計画） [Mock LLM response #26 — plan]"
+      "text": "S（主観） [Mock LLM response #26 — subjective]\nO（客観） BP 119/72 mmHg, HR 108 回/分, RR 23 回/分, SpO2 93% (鼻カニューラ 2.2 L/分), T 37.8°C (直近24時間: 最高体温 39.6°C、HR 最大 116 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #26 — assessment]\nP（計画） [Mock LLM response #26 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-27": {
@@ -2065,11 +2065,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #27 — assessment]",
-        "objective": "BP 122/75 mmHg, HR 106 回/分, RR 19 回/分, SpO2 98%, T 38.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 122/75 mmHg, HR 106 回/分, RR 19 回/分, SpO2 98% (酸素マスク 4.4 L/分), T 38.0°C (直近24時間: 最高体温 39.4°C、HR 最大 115 回/分、RR 最大 26 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #27 — plan]",
         "subjective": "[Mock LLM response #27 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #27 — subjective]\nO（客観） BP 122/75 mmHg, HR 106 回/分, RR 19 回/分, SpO2 98%, T 38.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #27 — assessment]\nP（計画） [Mock LLM response #27 — plan]"
+      "text": "S（主観） [Mock LLM response #27 — subjective]\nO（客観） BP 122/75 mmHg, HR 106 回/分, RR 19 回/分, SpO2 98% (酸素マスク 4.4 L/分), T 38.0°C (直近24時間: 最高体温 39.4°C、HR 最大 115 回/分、RR 最大 26 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #27 — assessment]\nP（計画） [Mock LLM response #27 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-28": {
@@ -2112,11 +2112,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #28 — assessment]",
-        "objective": "BP 118/71 mmHg, HR 107 回/分, RR 19 回/分, SpO2 93%, T 37.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 118/71 mmHg, HR 107 回/分, RR 19 回/分, SpO2 93% (鼻カニューラ 2.5 L/分), T 37.9°C (直近24時間: 最高体温 39.5°C、HR 最大 114 回/分、RR 最大 23 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #28 — plan]",
         "subjective": "[Mock LLM response #28 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #28 — subjective]\nO（客観） BP 118/71 mmHg, HR 107 回/分, RR 19 回/分, SpO2 93%, T 37.9°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #28 — assessment]\nP（計画） [Mock LLM response #28 — plan]"
+      "text": "S（主観） [Mock LLM response #28 — subjective]\nO（客観） BP 118/71 mmHg, HR 107 回/分, RR 19 回/分, SpO2 93% (鼻カニューラ 2.5 L/分), T 37.9°C (直近24時間: 最高体温 39.5°C、HR 最大 114 回/分、RR 最大 23 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #28 — assessment]\nP（計画） [Mock LLM response #28 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-29": {
@@ -2159,11 +2159,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #29 — assessment]",
-        "objective": "BP 118/72 mmHg, HR 110 回/分, RR 21 回/分, SpO2 98%, T 38.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 118/72 mmHg, HR 110 回/分, RR 21 回/分, SpO2 98% (酸素マスク 4.5 L/分), T 38.0°C (直近24時間: 最高体温 39.8°C、HR 最大 121 回/分、RR 最大 25 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #29 — plan]",
         "subjective": "[Mock LLM response #29 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #29 — subjective]\nO（客観） BP 118/72 mmHg, HR 110 回/分, RR 21 回/分, SpO2 98%, T 38.0°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #29 — assessment]\nP（計画） [Mock LLM response #29 — plan]"
+      "text": "S（主観） [Mock LLM response #29 — subjective]\nO（客観） BP 118/72 mmHg, HR 110 回/分, RR 21 回/分, SpO2 98% (酸素マスク 4.5 L/分), T 38.0°C (直近24時間: 最高体温 39.8°C、HR 最大 121 回/分、RR 最大 25 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #29 — assessment]\nP（計画） [Mock LLM response #29 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-30": {
@@ -2206,11 +2206,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #30 — assessment]",
-        "objective": "BP 120/70 mmHg, HR 108 回/分, RR 22 回/分, SpO2 94%, T 37.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 120/70 mmHg, HR 108 回/分, RR 22 回/分, SpO2 94% (RA), T 37.3°C, 酸素投与終了 (直近24時間: 最高体温 39.1°C、HR 最大 114 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #30 — plan]",
         "subjective": "[Mock LLM response #30 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #30 — subjective]\nO（客観） BP 120/70 mmHg, HR 108 回/分, RR 22 回/分, SpO2 94%, T 37.3°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #30 — assessment]\nP（計画） [Mock LLM response #30 — plan]"
+      "text": "S（主観） [Mock LLM response #30 — subjective]\nO（客観） BP 120/70 mmHg, HR 108 回/分, RR 22 回/分, SpO2 94% (RA), T 37.3°C, 酸素投与終了 (直近24時間: 最高体温 39.1°C、HR 最大 114 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #30 — assessment]\nP（計画） [Mock LLM response #30 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-31": {
@@ -2253,11 +2253,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #31 — assessment]",
-        "objective": "BP 119/72 mmHg, HR 109 回/分, RR 22 回/分, SpO2 97%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 119/72 mmHg, HR 109 回/分, RR 22 回/分, SpO2 97% (酸素マスク 4.9 L/分), T 38.8°C (直近24時間: 最高体温 39.4°C、HR 最大 114 回/分、RR 最大 24 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #31 — plan]",
         "subjective": "[Mock LLM response #31 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #31 — subjective]\nO（客観） BP 119/72 mmHg, HR 109 回/分, RR 22 回/分, SpO2 97%, T 38.8°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #31 — assessment]\nP（計画） [Mock LLM response #31 — plan]"
+      "text": "S（主観） [Mock LLM response #31 — subjective]\nO（客観） BP 119/72 mmHg, HR 109 回/分, RR 22 回/分, SpO2 97% (酸素マスク 4.9 L/分), T 38.8°C (直近24時間: 最高体温 39.4°C、HR 最大 114 回/分、RR 最大 24 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #31 — assessment]\nP（計画） [Mock LLM response #31 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-32": {
@@ -2300,11 +2300,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #32 — assessment]",
-        "objective": "BP 118/74 mmHg, HR 103 回/分, RR 22 回/分, SpO2 95%, T 37.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "objective": "BP 118/74 mmHg, HR 103 回/分, RR 22 回/分, SpO2 95% (鼻カニューラ 3.3 L/分), T 37.7°C (直近24時間: 最高体温 39.9°C、HR 最大 116 回/分、RR 最大 24 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし",
         "plan": "[Mock LLM response #32 — plan]",
         "subjective": "[Mock LLM response #32 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #32 — subjective]\nO（客観） BP 118/74 mmHg, HR 103 回/分, RR 22 回/分, SpO2 95%, T 37.7°C。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #32 — assessment]\nP（計画） [Mock LLM response #32 — plan]"
+      "text": "S（主観） [Mock LLM response #32 — subjective]\nO（客観） BP 118/74 mmHg, HR 103 回/分, RR 22 回/分, SpO2 95% (鼻カニューラ 3.3 L/分), T 37.7°C (直近24時間: 最高体温 39.9°C、HR 最大 116 回/分、RR 最大 24 回/分、SpO2 最低 92%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 呼吸音清明。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #32 — assessment]\nP（計画） [Mock LLM response #32 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-013699914137-33": {

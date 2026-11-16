@@ -8,7 +8,8 @@ any of them, so a change to how a vital is read or shown is made once.
 Placeholders available to a style's formats: the raw values ``{sbp}``
 ``{dbp}`` ``{hr}`` ``{rr}`` ``{spo2}`` ``{temp}``; integer forms ``{sbp_i}``
 ``{dbp_i}`` ``{hr_i}`` ``{rr_i}``; float forms ``{spo2_f}`` ``{temp_f}``; and
-the localized units ``{hr_unit}`` ``{rr_unit}``.
+the localized units ``{hr_unit}`` ``{rr_unit}``; and ``{o2}``, the oxygen
+device and flow of the reading (:func:`oxygen_text`).
 """
 
 from __future__ import annotations
@@ -26,10 +27,12 @@ __all__ = [
     "LLM_DAY",
     "NURSING_SHIFT",
     "PHYSICAL_EXAM",
+    "PROGRESS_DAY",
     "PROGRESS_OBJECTIVE",
     "VitalsLineStyle",
     "format_vitals_line",
     "latest_vitals_set",
+    "oxygen_text",
     "vitals_in_window",
 ]
 
@@ -53,7 +56,7 @@ class VitalsLineStyle:
     a vital appears only when its value is recorded (blood pressure needs
     both values unless ``systolic_only_format`` is set). ``room_air_format``,
     when set, replaces the SpO2 format for a reading without supplemental
-    oxygen.
+    oxygen; ``oxygen_format``, when set, for a reading on supplemental oxygen.
     """
 
     order: tuple[str, ...]
@@ -61,6 +64,7 @@ class VitalsLineStyle:
     separator: str
     systolic_only_format: str | None = None
     room_air_format: str | None = None
+    oxygen_format: str | None = None
 
 
 # Inpatient progress-note objective and the outpatient vitals line.
@@ -74,6 +78,17 @@ PROGRESS_OBJECTIVE = VitalsLineStyle(
         "temp": "T {temp:.1f}°C",
     },
     separator=", ",
+)
+
+# Inpatient progress-note Objective (Issues #3235, #3247): the progress
+# style with the oxygen therapy of the SpO2 reading — "SpO2 96% (nasal
+# cannula 3 L/min)" — or room air "SpO2 97% (RA)".
+PROGRESS_DAY = VitalsLineStyle(
+    order=PROGRESS_OBJECTIVE.order,
+    formats=PROGRESS_OBJECTIVE.formats,
+    separator=PROGRESS_OBJECTIVE.separator,
+    room_air_format="SpO2 {spo2:.0f}% (RA)",
+    oxygen_format="SpO2 {spo2:.0f}% ({o2})",
 )
 
 # Physical-examination vitals, as in JP acute-care admission notes:
@@ -143,6 +158,8 @@ class _Values(dict):
             value: Any = t("narrative_text.vital_unit.hr", self._lang)
         elif key == "rr_unit":
             value = t("narrative_text.vital_unit.rr", self._lang)
+        elif key == "o2":
+            value = oxygen_text(self["o2_device"], self["o2_flow"], self._lang)
         elif key.endswith("_i"):
             value = int(self[key[:-2]])
         elif key.endswith("_f"):
@@ -156,7 +173,11 @@ class _Values(dict):
 def format_vitals_line(vitals: Any, style: VitalsLineStyle, lang: str) -> str:
     """The vitals record ``vitals`` (mapping or object) in ``style``; ``""``
     when none of the style's vitals is recorded."""
-    values = _Values({name: get_attr_or_key(vitals, attr, None) for name, attr in _FIELDS.items()}, lang)
+    raw = {name: get_attr_or_key(vitals, attr, None) for name, attr in _FIELDS.items()}
+    raw["o2_device"] = get_attr_or_key(vitals, "oxygen_delivery_device", None)
+    raw["o2_flow"] = get_attr_or_key(vitals, "oxygen_flow_rate_lpm", None)
+    values = _Values(raw, lang)
+    on_oxygen = bool(get_attr_or_key(vitals, "on_supplemental_oxygen", False))
     parts: list[str] = []
     for vital in style.order:
         fmt: str | None
@@ -169,13 +190,30 @@ def format_vitals_line(vitals: Any, style: VitalsLineStyle, lang: str) -> str:
                 fmt = None
         elif not values[vital]:
             fmt = None
-        elif vital == "spo2" and style.room_air_format and not get_attr_or_key(vitals, "on_supplemental_oxygen", False):
+        elif vital == "spo2" and style.oxygen_format and on_oxygen:
+            fmt = style.oxygen_format
+        elif vital == "spo2" and style.room_air_format and not on_oxygen:
             fmt = style.room_air_format
         else:
             fmt = style.formats[vital]
         if fmt is not None:
             parts.append(fmt.format_map(values))
     return style.separator.join(parts)
+
+
+def oxygen_text(device: Any, flow: Any, lang: str) -> str:
+    """Supplemental oxygen as a record writes it: the device label
+    (``oxygen_device_label``) and the flow ("nasal cannula 3 L/min"), either
+    alone when the other is not recorded, else "on O2" (Issue #3247)."""
+    from clinosim.locale.loader import oxygen_device_label
+
+    label = (oxygen_device_label(str(device), lang) or str(device)) if device else ""
+    if flow is None:
+        return label or t("vital_o2.unspecified", lang)
+    rate = f"{float(flow):g}"
+    if label:
+        return t("vital_o2.device_flow", lang, device=label, flow=rate)
+    return t("vital_o2.flow_only", lang, flow=rate)
 
 
 def vitals_in_window(vitals: list[Any], start: datetime, end: datetime) -> list[Any]:

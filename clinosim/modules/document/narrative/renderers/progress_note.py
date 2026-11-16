@@ -59,8 +59,10 @@ def render_progress_note(
         # inpatient progress note. Now use the CIF-derived composers
         # (subjective covers hospital day / fever / desat; objective
         # uses today's vitals line already known to be locale-neutral).
+        # Issues #3235 / #3247: the same period summary (latest values,
+        # abnormal extremes, oxygen) as the JA Objective.
         composed_subj = generator._compose_progress_subjective_from_state(ctx)
-        _obj_vitals = generator._compose_pe_vitals_line(ctx)
+        _obj_vitals = generator._compose_today_vitals_line(ctx)
         subjective = composed_subj or t("fallback.generic_fallback", lang)
         objective = _obj_vitals if _obj_vitals else t("fallback.generic_fallback", lang)
         if composed_subj:
