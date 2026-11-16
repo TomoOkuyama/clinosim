@@ -1319,11 +1319,11 @@
         "lang": "ja"
       },
       "sections": {
-        "pn_analgesia": "麻酔・鎮静: 局所麻酔下に施行。",
+        "pn_analgesia": "麻酔・鎮静: なし（麻酔なしで施行）。",
         "pn_complications": "[Mock LLM response #35 — pn_complications]",
         "pn_consent": "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。",
         "pn_course": "[Mock LLM response #35 — pn_course]",
-        "pn_performer": "実施者: 記録なし。",
+        "pn_performer": "実施者: 石山 ミツ医師。",
         "pn_postop_plan": "[Mock LLM response #35 — pn_postop_plan]",
         "pn_procedure_name": "処置名: 留置カテーテル設置（J063）／術式区分: 尿道カテーテル挿入。",
         "pn_specimens": "検体の有無: 検体採取なし。"
@@ -1364,7 +1364,7 @@
         "pn_complications": "[Mock LLM response #36 — pn_complications]",
         "pn_consent": "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。",
         "pn_course": "[Mock LLM response #36 — pn_course]",
-        "pn_performer": "実施者: 記録なし。",
+        "pn_performer": "実施者: 石山 ミツ医師。",
         "pn_postop_plan": "[Mock LLM response #36 — pn_postop_plan]",
         "pn_procedure_name": "処置名: 中心静脈注射用カテーテル挿入（G005-2）／術式区分: 中心静脈カテーテル挿入。",
         "pn_specimens": "検体の有無: 検体採取なし。"
@@ -1405,7 +1405,7 @@
         "pn_complications": "[Mock LLM response #37 — pn_complications]",
         "pn_consent": "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。",
         "pn_course": "[Mock LLM response #37 — pn_course]",
-        "pn_performer": "実施者: 記録なし。",
+        "pn_performer": "実施者: 石山 ミツ医師。",
         "pn_postop_plan": "[Mock LLM response #37 — pn_postop_plan]",
         "pn_procedure_name": "処置名: 観血的動脈圧測定（D225）／術式区分: 動脈ライン挿入。",
         "pn_specimens": "検体の有無: 検体採取なし。"

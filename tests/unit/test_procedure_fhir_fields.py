@@ -99,6 +99,7 @@ def test_generate_bedside_procedures_populates_metadata(rng):
         severity="severe",
         rng=rng,
         country="JP",
+        performer_id="DR-1",
     )
     assert len(procs) > 0
     for p in procs:
@@ -255,6 +256,7 @@ def test_bedside_procedure_round_trip_to_fhir(rng):
         severity="severe",
         rng=rng,
         country="US",
+        performer_id="DR-1",
     )
     assert procs
     # dataclass → dict, stringify datetimes the same way cif_writer does

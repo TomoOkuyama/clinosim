@@ -49,12 +49,14 @@ class ProcedureRecord:
     anesthesiologist_id: str = ""
     assistant_ids: list[str] = field(default_factory=list)
 
-    # Anesthesia
-    anesthesia_type: str = "general"  # "general" | "spinal" | "local" | "sedation"
-    asa_class: int = 2
+    # Anesthesia. Empty / None means not recorded (Issue #3257): each
+    # constructor sets the anesthesia of its procedure (procedure catalog or
+    # the generator's YAML); only the surgical path assesses an ASA class.
+    anesthesia_type: str = ""  # "general" | "spinal" | "local" | "sedation" | "none"
+    asa_class: int | None = None
 
     # Findings
-    estimated_blood_loss_ml: int = 300
+    estimated_blood_loss_ml: int | None = None  # set only where the blood loss is modelled
     specimens_sent: list[str] = field(default_factory=list)
     implants_used: list[str] = field(default_factory=list)
     intraop_complications: list[str] = field(default_factory=list)

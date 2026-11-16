@@ -27,6 +27,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from clinosim import determinism
 from clinosim.codes import code_exists
 from clinosim.codes.loinc import loinc_for
+from clinosim.codes.procedures import procedure_anesthesia
 from clinosim.codes.snomed import snomed_for, snomed_map
 from clinosim.datafiles import load_data_yaml
 from clinosim.locale.i18n import t
@@ -511,6 +512,7 @@ def build_hearing_screen_procedure(record: Any) -> ProcedureRecord | None:
         start_datetime=sched,
         end_datetime=sched + timedelta(minutes=15),
         duration_minutes=15,
+        anesthesia_type=procedure_anesthesia("hearing_screen_aabr"),
         category_code=category_code,
         outcome_code=outcome_code,
     )
@@ -595,6 +597,7 @@ def build_metabolic_screen_procedure(record: Any, country: str) -> ProcedureReco
         start_datetime=sched,
         end_datetime=sched + timedelta(minutes=5),
         duration_minutes=5,
+        anesthesia_type=procedure_anesthesia("metabolic_screen_tandem_ms"),
         category_code=category_code,
         outcome_code=outcome_code,
     )

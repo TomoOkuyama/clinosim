@@ -173,6 +173,7 @@ def test_jp_procedure_without_a_k_code_is_recorded_and_emitted_without_an_empty_
             "severe",
             np.random.default_rng(seed),
             country="JP",
+            performer_id="DR-1",
         )
         found += [p for p in procs if p.procedure_type == "iv_line"]
     assert found

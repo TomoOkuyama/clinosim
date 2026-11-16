@@ -173,6 +173,7 @@ procedure:
   us_code: "96413"                  # US CPT: Chemotherapy administration, IV infusion, first hour
   us_display: "Chemotherapy administration, IV infusion, up to 1 hour"
   duration_minutes: 60              # infusion duration; encounter length includes prep/monitor
+  anesthesia: none
 
 # ---------------------------------------------------------------------------
 # Encounter reason strings emitted on Encounter.reasonCode / chief complaint.

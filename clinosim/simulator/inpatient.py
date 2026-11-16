@@ -828,6 +828,7 @@ def _simulate_patient(
         severity,
         rng,
         config.country,
+        performer_id=encounter.attending_physician_id,
     )
     procedures.extend(bedside)
 

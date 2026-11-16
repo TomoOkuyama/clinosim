@@ -728,10 +728,14 @@ def simulate_delivery_encounter(
         proc_code_jp = str(cs_proc.get("jp_code") or "")
         proc_code_us = str(cs_proc.get("us_code") or "")
         proc_duration_min = int(cs_proc.get("duration_minutes") or 60)
+        proc_anesthesia = str(cs_proc.get("anesthesia") or "")
     else:
         proc_code_jp = str(proc_cfg.get("jp_code") or "")
         proc_code_us = str(proc_cfg.get("us_code") or "")
         proc_duration_min = int(proc_cfg.get("duration_minutes") or 90)
+        # Vaginal delivery: labour analgesia (epidural or none) is not
+        # modelled, so the record states no anesthesia type (Issue #3257).
+        proc_anesthesia = str(proc_cfg.get("anesthesia") or "")
     proc_code = country_procedure_code(country, {"k-codes": proc_code_jp, "cpt": proc_code_us})
     procedure = ProcedureRecord(
         procedure_id=f"PROC-{patient.patient_id}-DELIVERY-{encounter.encounter_id[:8]}",
@@ -744,6 +748,7 @@ def simulate_delivery_encounter(
         start_datetime=visit_date,
         end_datetime=visit_date + timedelta(minutes=proc_duration_min),
         primary_surgeon_id=encounter.attending_physician_id,
+        anesthesia_type=proc_anesthesia,
     )
 
     # Issue #1285: emit the full cesarean intraoperative medication

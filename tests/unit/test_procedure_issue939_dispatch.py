@@ -43,6 +43,7 @@ def _run_cohort(
             severity=severity,
             rng=np.random.default_rng(i),
             country=country,
+            performer_id="DR-1",
         )
         for p in procs:
             hits[p.procedure_type] = hits.get(p.procedure_type, 0) + 1
@@ -118,6 +119,7 @@ class TestIssue939CodesAndCatalog:
                     severity="moderate",
                     rng=np.random.default_rng(i),
                     country=country,
+                    performer_id="DR-1",
                 )
                 for p in procs:
                     if p.procedure_type != proc_type:
@@ -171,6 +173,7 @@ class TestIssue939RngIsolation:
                 severity="moderate",
                 rng=rng,
                 country="JP",
+                performer_id="DR-1",
             )
             post = float(rng.random())
             return pre, post
@@ -201,6 +204,7 @@ class TestIssue939RngIsolation:
             admission_time=datetime(2025, 1, 1, 10, 0),
             severity="severe",
             country="JP",
+            performer_id="DR-1",
         )
         a = generate_bedside_procedures(rng=np.random.default_rng(9), **args)
         b = generate_bedside_procedures(rng=np.random.default_rng(9), **args)

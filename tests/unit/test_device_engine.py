@@ -155,7 +155,9 @@ def test_place_devices_for_encounter_includes_ventilator_when_intubated():
     rec.physiological_states = [PhysiologicalState(respiratory_fraction=0.8)]
     out = place_devices_for_encounter(rec, enc, cfg)
     assert not any(d.device_type == "mechanical_ventilator" for d in out)
-    rec.procedures = [build_intubation_procedure("P1", "enc1", datetime(2026, 1, 2, 10), "US", "PROC-P1-AIR01")]
+    rec.procedures = [
+        build_intubation_procedure("P1", "enc1", datetime(2026, 1, 2, 10), "US", "PROC-P1-AIR01", performer_id="DR-1")
+    ]
     out = place_devices_for_encounter(rec, enc, cfg)
     assert any(d.device_type == "mechanical_ventilator" for d in out)
 

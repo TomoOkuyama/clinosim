@@ -428,11 +428,17 @@ _ISSUE939_PROCEDURE_TYPES: frozenset[str] = frozenset(
 
 
 def build_intubation_procedure(
-    patient_id: str, encounter_id: str, start: datetime, country: str, procedure_id: str
+    patient_id: str,
+    encounter_id: str,
+    start: datetime,
+    country: str,
+    procedure_id: str,
+    *,
+    performer_id: str,
 ) -> ProcedureRecord:
     """Endotracheal intubation performed when the state crosses the airway
     threshold (Issue #2091): CPT 31500 / K-code J044, sedation, fixed duration
-    (no RNG draw)."""
+    (no RNG draw), performed by ``performer_id`` (Issue #3257)."""
     spec = {p[0]: p for p in _BEDSIDE_PROCEDURES}["intubation"]
     _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
     meta = _PROCEDURE_METADATA.get("intubation")
@@ -447,7 +453,7 @@ def build_intubation_procedure(
         start_datetime=start,
         end_datetime=start + timedelta(minutes=int(BEDSIDE_DURATION_MEAN_MIN)),
         duration_minutes=int(BEDSIDE_DURATION_MEAN_MIN),
-        primary_surgeon_id="",
+        primary_surgeon_id=performer_id,
         anesthesia_type=anesthesia,
         category_code=meta.category_code if meta else _SCT_CATEGORY_THERAPEUTIC,
         body_site_code=meta.body_site_code if meta else "",
@@ -467,8 +473,12 @@ def _bedside_record(
     duration: int,
     proc_idx: int,
     fallback_category: str,
+    performer_id: str,
 ) -> ProcedureRecord:
-    """One bedside procedure of the catalogue ``spec`` (names resolved downstream, AD-30)."""
+    """One bedside procedure of the catalogue ``spec`` (names resolved downstream, AD-30),
+    performed by ``performer_id`` under the catalogue's anesthesia. Blood loss and
+    ASA class stay unrecorded (None): the catalogue has no modelled value for them
+    (Issue #3257)."""
     _, cpt, kcode, _name_en, _name_ja, anesthesia = spec
     meta = _PROCEDURE_METADATA.get(proc_type)
     return ProcedureRecord(
@@ -482,7 +492,7 @@ def _bedside_record(
         start_datetime=start,
         end_datetime=start + timedelta(minutes=duration),
         duration_minutes=duration,
-        primary_surgeon_id="",
+        primary_surgeon_id=performer_id,
         anesthesia_type=anesthesia,
         category_code=meta.category_code if meta else fallback_category,
         body_site_code=meta.body_site_code if meta else "",
@@ -500,11 +510,13 @@ def age_gated_procedures(
     start: datetime,
     first_index: int,
     country: str,
+    *,
+    performer_id: str,
 ) -> list[ProcedureRecord]:
     """The protocol's ``procedures_by_age_days`` performed for a patient
-    ``age_days`` old (Issue #3063), numbered from ``first_index``. No random
-    draw: each rule in its age range is performed, for the mean bedside
-    duration."""
+    ``age_days`` old (Issue #3063), numbered from ``first_index``, by
+    ``performer_id``. No random draw: each rule in its age range is
+    performed, for the mean bedside duration."""
     proc_lookup = {p[0]: p for p in _BEDSIDE_PROCEDURES}
     results: list[ProcedureRecord] = []
     for rule in rules:
@@ -524,6 +536,7 @@ def age_gated_procedures(
                 int(BEDSIDE_DURATION_MEAN_MIN),
                 first_index + len(results),
                 _SCT_CATEGORY_THERAPEUTIC,
+                performer_id,
             )
         )
     return results
@@ -537,11 +550,15 @@ def generate_bedside_procedures(
     severity: str,
     rng: np.random.Generator,
     country: str,
+    *,
+    performer_id: str,
 ) -> list[ProcedureRecord]:
     """Generate bedside/routine procedures based on disease and severity.
 
     Uses rule-based matching: disease_id is matched against _PROCEDURE_RULES,
     and each candidate procedure fires with its probability, scaled by severity.
+    Every record is performed by ``performer_id`` (the encounter's attending;
+    Issue #3257).
     """
     severity_mult = {
         "severe": BEDSIDE_SEVERITY_SEVERE_MULTIPLIER,
@@ -592,6 +609,7 @@ def generate_bedside_procedures(
                 duration,
                 proc_idx,
                 _SCT_CATEGORY_THERAPEUTIC,
+                performer_id,
             )
         )
         proc_idx += 1
@@ -643,6 +661,7 @@ def generate_bedside_procedures(
                     duration,
                     proc_idx,
                     _SCT_CATEGORY_SURGICAL,
+                    performer_id,
                 )
             )
             proc_idx += 1

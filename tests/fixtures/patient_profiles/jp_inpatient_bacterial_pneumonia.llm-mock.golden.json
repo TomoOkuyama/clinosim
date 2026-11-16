@@ -2249,7 +2249,7 @@
         "pn_complications": "[Mock LLM response #22 — pn_complications]",
         "pn_consent": "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。",
         "pn_course": "[Mock LLM response #22 — pn_course]",
-        "pn_performer": "実施者: 記録なし。",
+        "pn_performer": "実施者: 若林 淳医師。",
         "pn_postop_plan": "[Mock LLM response #22 — pn_postop_plan]",
         "pn_procedure_name": "処置名: 気管支ファイバースコピー（D302）／術式区分: 気管支鏡検査。",
         "pn_specimens": "検体の有無: 検体採取なし。"

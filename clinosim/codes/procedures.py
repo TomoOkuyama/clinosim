@@ -59,6 +59,13 @@ def country_procedure_code(country: str, codes: dict[str, Any]) -> Any:
     return codes[system_key_for("procedure", country)]
 
 
+def procedure_anesthesia(proc_type: str) -> str:
+    """Anesthesia under which the catalog says a procedure type is done
+    (``none`` / ``local`` / ``sedation`` / ``general``); ``""`` (not recorded)
+    when the catalog does not say (Issue #3257)."""
+    return str((_entries().get(proc_type) or {}).get("anesthesia") or "")
+
+
 def procedure_type_display(proc_type: str, lang: str) -> str:
     """Name of a procedure type in ``lang`` (then English) from the catalog;
     an unknown type is humanised (underscores → spaces), never a raw slug."""

@@ -889,6 +889,7 @@ def _followup_procedures(
                     end_datetime=_proc_start
                     + timedelta(minutes=int(_proc.get("duration_minutes") or OUTPATIENT_PROCEDURE_DEFAULT_MIN)),
                     primary_surgeon_id=encounter.attending_physician_id,
+                    anesthesia_type=str(_proc.get("anesthesia") or ""),
                 )
             )
             if _frequency == "baseline_only":
@@ -947,6 +948,7 @@ def _chemo_cycle(
                 start_datetime=_chemo_start,
                 end_datetime=_chemo_start + timedelta(minutes=_chemo_dur_min),
                 primary_surgeon_id=encounter.attending_physician_id,
+                anesthesia_type=str(_chemo_proc.get("anesthesia") or ""),
             )
         )
 
@@ -1078,6 +1080,7 @@ def _radiation_therapy(
                     start_datetime=_rt_start,
                     end_datetime=_rt_start + timedelta(minutes=int(_rt_cfg.get("duration_minutes", 20))),
                     primary_surgeon_id=encounter.attending_physician_id,
+                    anesthesia_type=str(_rt_cfg.get("anesthesia") or ""),
                 )
             )
 

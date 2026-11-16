@@ -1150,6 +1150,10 @@ op_note:
   blood_loss_line:
     ja: "推定出血量：{ebl} mL{transfusion_part}"
     en: "Estimated blood loss: {ebl} mL{transfusion_part}"
+  # Issue #3257: a procedure whose record has no estimated blood loss.
+  blood_loss_not_recorded_line:
+    ja: "推定出血量：記録なし{transfusion_part}"
+    en: "Estimated blood loss: not recorded{transfusion_part}"
   blood_loss_transfusion_yes:
     ja: "、術中輸血あり"
     en: "; intraoperative transfusion given"
@@ -1168,6 +1172,10 @@ proc_note:
   analgesia_not_documented:
     ja: "麻酔・鎮静: 記録なし。"
     en: "Analgesia: not documented."
+  # Issue #3257: a procedure the catalog does without anesthesia.
+  analgesia_none:
+    ja: "麻酔・鎮静: なし（麻酔なしで施行）。"
+    en: "Analgesia: none; procedure performed without anesthesia."
   course_not_documented:
     ja: "処置経過: 記録なし。"
     en: "Course: not documented."
