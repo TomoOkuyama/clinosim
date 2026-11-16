@@ -124,6 +124,7 @@ rules:
     severity: minor | moderate | major | contraindicated
     substitution_hint: <optional indication tag>
     exclude_classes: [<catalog class>]   # optional (Issue #3234): the rule does not fire on these
+    condition: {en: "...", ja: "..."}    # required (Issue #3283): the condition, named in the skip record and notes
     rationale:
       en: "..."
       ja: "..."

@@ -192,14 +192,29 @@ def check_pair(drug_a: str, drug_b: str) -> SafetyVerdict:
 def check_candidate_against_active(
     candidate: str,
     active_meds: Sequence[str],
+    *,
+    same_drug_reorder: bool = False,
 ) -> list[SafetyVerdict]:
     """Return list of non-allowed verdicts (empty = safe to add).
 
     Each verdict carries ``matched_active_drug`` populated with the canonical
     name of the active med that triggered it.
+
+    ``same_drug_reorder`` (Issue #3283): an active med that is the
+    candidate's own drug is not checked against it — a new order of a drug
+    the patient is already given is a dose or rate change of that drug, not
+    an interaction (the in-stay order gate; ``modules/order/supersede.py``
+    then stops the earlier order). Off by default: reconciliation (a
+    duplicate home statin) and prophylaxis (no prophylactic heparin beside a
+    heparin infusion) rely on the class rules catching the same drug twice.
+    Interaction rules between different drugs of a class (heparin and
+    enoxaparin) fire either way.
     """
+    own = canonical_name(candidate) if same_drug_reorder else None
     out: list[SafetyVerdict] = []
     for active in active_meds:
+        if own is not None and canonical_name(active) == own:
+            continue
         v = check_pair(candidate, active)
         if v.is_allowed:
             continue
@@ -386,6 +401,13 @@ def _disease_rule_ids() -> frozenset[str]:
 
 
 @lru_cache(maxsize=1)
+def _disease_rule_conditions() -> dict[str, tuple[str, str]]:
+    """Rule id -> (English, Japanese) name of the condition a drug-condition
+    rule is about (``disease_contraindications.yaml`` ``condition``)."""
+    return {str(r["id"]): (str(r["condition"]["en"]), str(r["condition"]["ja"])) for r in _load_disease_rules()}
+
+
+@lru_cache(maxsize=1)
 def _pair_rule_ids() -> frozenset[str]:
     return frozenset(str(r["id"]) for r in _load_rules() if r.get("id"))
 
@@ -447,7 +469,11 @@ def check_candidate_against_allergies(candidate: str, allergen_codes: Sequence[s
 def conflict_display(verdict: SafetyVerdict) -> tuple[str, str]:
     """(English, Japanese) text of what ``verdict`` conflicts with, for a
     ``SafetySkipEntry``: the recorded allergy of an allergy rule ("Penicillin
-    allergy"), otherwise the active drug that triggered it."""
+    allergy"), the condition of a drug-condition rule ("heart failure",
+    Issue #3283), otherwise the active drug that triggered it."""
+    condition = _disease_rule_conditions().get(verdict.rule_id or "")
+    if condition is not None:
+        return condition
     if verdict.rule_id in _allergy_rule_ids() and verdict.matched_classes:
         from clinosim.codes import lookup
         from clinosim.locale.i18n import t

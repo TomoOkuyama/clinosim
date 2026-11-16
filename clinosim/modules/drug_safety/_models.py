@@ -127,6 +127,9 @@ class _DiseaseRule(BaseModel):
     drug_class: str
     severity: _RuleSeverity
     rationale: _Rationale
+    # Issue #3283: the condition the rule is about, named in the skip record
+    # and the notes ("Ibuprofen avoided because of heart failure").
+    condition: _Rationale
     source: str = Field(min_length=1)
     substitution_hint: str | None = None
     # Issue #3234: classes the rule does not fire on (aspirin, an NSAID by

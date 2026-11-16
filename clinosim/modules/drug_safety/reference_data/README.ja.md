@@ -124,6 +124,7 @@ rules:
     severity: minor | moderate | major | contraindicated
     substitution_hint: <任意の indication tag>
     exclude_classes: [<カタログ class>]  # 任意 (Issue #3234): この class の薬剤には適用しない
+    condition: {en: "...", ja: "..."}    # 必須 (Issue #3283): 疾患名。回避記録と記録文に書く
     rationale:
       en: "..."
       ja: "..."

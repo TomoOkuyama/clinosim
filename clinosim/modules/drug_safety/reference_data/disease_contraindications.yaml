@@ -22,6 +22,9 @@
 #     ``I50.32``, …
 #   - ``disease_predicate.stage_in`` (optional, Issue #1769): the matched
 #     condition must also carry one of these stage strings.
+#   - ``condition``: the condition the rule is about, in English and
+#     Japanese; the skip record and the notes name it ("Ibuprofen avoided
+#     because of heart failure", Issue #3283).
 #   - ``exclude_classes`` (optional, Issue #3234): the rule does not fire on a
 #     drug that also belongs to one of these classes (low-dose aspirin is an
 #     NSAID by class but is given as an antiplatelet).
@@ -52,6 +55,7 @@ rules:
     disease_predicate: {icd_prefix: ["I50"]}
     severity: major
     substitution_hint: pain_management
+    condition: {en: "heart failure", ja: "心不全"}
     rationale:
       en: "NSAIDs precipitate HF exacerbation via renal Na+/water retention and prostaglandin-mediated vasoconstriction. Substitute with acetaminophen or topical NSAID."
       ja: "NSAID は腎 Na+/水貯留とプロスタグランジン阻害による血管収縮により心不全増悪を惹起。アセトアミノフェンまたは外用 NSAID に切替。"
@@ -62,6 +66,7 @@ rules:
     disease_predicate: {icd_prefix: ["K74", "K70.3"]}
     severity: contraindicated
     substitution_hint: pain_management
+    condition: {en: "liver cirrhosis", ja: "肝硬変"}
     rationale:
       en: "NSAIDs risk hepatorenal syndrome, variceal bleeding, and acute kidney injury in cirrhosis. Acetaminophen at reduced dose (≤2 g/day) is safer; opioids with caution."
       ja: "NSAID は肝硬変で肝腎症候群・食道静脈瘤出血・急性腎障害リスクを増悪。アセトアミノフェン減量 (2 g/日以下) が安全、オピオイドは慎重投与。"
@@ -75,6 +80,7 @@ rules:
     disease_predicate: {icd_prefix: ["N18.4", "N18.5", "N18.6"]}
     severity: contraindicated
     substitution_hint: pain_management
+    condition: {en: "CKD stage 4-5", ja: "慢性腎臓病（G4-G5）"}
     rationale:
       en: "NSAIDs cause afferent arteriolar vasoconstriction and are contraindicated at eGFR < 30 mL/min/1.73m2 (KDIGO CKD stage 4-5). Substitute with acetaminophen or topical NSAID; opioids with dose reduction."
       ja: "NSAID は腎輸入細動脈収縮により eGFR < 30 (CKD ステージ 4-5) では禁忌。アセトアミノフェンまたは外用 NSAID に切替、オピオイドは減量投与。"
@@ -94,6 +100,7 @@ rules:
       stage_in: ["CKD G4", "CKD G5"]
     severity: contraindicated
     substitution_hint: pain_management
+    condition: {en: "CKD stage 4-5", ja: "慢性腎臓病（G4-G5）"}
     rationale:
       en: "NSAIDs cause afferent arteriolar vasoconstriction and are contraindicated at eGFR < 30 mL/min/1.73m2 (KDIGO CKD stage 4-5). Substitute with acetaminophen or topical NSAID; opioids with dose reduction."
       ja: "NSAID は腎輸入細動脈収縮により eGFR < 30 (CKD ステージ 4-5) では禁忌。アセトアミノフェンまたは外用 NSAID に切替、オピオイドは減量投与。"
@@ -116,6 +123,7 @@ rules:
       stage_in: ["CKD G3b", "CKD G4", "CKD G5"]
     severity: contraindicated
     substitution_hint: null
+    condition: {en: "CKD stage 3b-5", ja: "慢性腎臓病（G3b-G5）"}
     rationale:
       en: "Metformin is contraindicated at eGFR < 30 (CKD stage 4-5) per the FDA label (lactic acidosis risk) and discouraged at CKD stage 3b (eGFR 30-44); KDIGO 2024 preferred strategy is to substitute with a renal-safe DM agent (DPP-4 inhibitor like linagliptin, basal insulin, or repaglinide)."
       ja: "メトホルミンは eGFR < 30 (CKD ステージ 4-5) で禁忌 (FDA 添付文書、乳酸アシドーシスリスク)。eGFR 30-44 (CKD ステージ 3b) でも推奨されない (KDIGO 2024)。腎機能障害時は DPP-4 阻害薬 (リナグリプチン等)・基礎インスリン・レパグリニドへの切替を推奨。"
@@ -127,6 +135,7 @@ rules:
     drug_class: antibiotic.sulfonamide
     disease_predicate: {icd_prefix: ["D55.0"]}
     severity: contraindicated
+    condition: {en: "G6PD deficiency", ja: "G6PD欠乏症"}
     rationale:
       en: "Sulfonamides (sulfamethoxazole) can cause acute haemolytic anaemia in G6PD deficiency. Use a non-oxidant antibiotic."
       ja: "スルホンアミド系 (スルファメトキサゾール) は G6PD 欠乏症で急性溶血性貧血を起こしうる。酸化ストレスを起こさない抗菌薬を選択。"
@@ -136,6 +145,7 @@ rules:
     drug_class: antibiotic.nitrofuran
     disease_predicate: {icd_prefix: ["D55.0"]}
     severity: contraindicated
+    condition: {en: "G6PD deficiency", ja: "G6PD欠乏症"}
     rationale:
       en: "Nitrofurantoin can cause haemolytic anaemia in G6PD deficiency. Use a non-oxidant antibiotic."
       ja: "ニトロフラントインは G6PD 欠乏症で溶血性貧血を起こしうる。酸化ストレスを起こさない抗菌薬を選択。"

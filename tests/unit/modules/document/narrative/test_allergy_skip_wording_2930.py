@@ -80,8 +80,9 @@ def test_allergy_skip_has_no_interaction_wording(lang: str, substituted: bool) -
     [
         ("interaction", "en", "- Amoxicillin avoided due to concurrent Warfarin; no alternative selected."),
         ("interaction", "ja", "・アモキシシリン は ワルファリン との併用禁忌のため処方せず。"),
-        ("disease", "en", "- Amoxicillin avoided due to concurrent Heart failure; no alternative selected."),
-        ("disease", "ja", "・アモキシシリン は 心不全 との併用禁忌のため処方せず。"),
+        # Issue #3283: a condition is not a co-administration conflict either.
+        ("disease", "en", "- Amoxicillin avoided because of Heart failure; no alternative selected."),
+        ("disease", "ja", "・心不全のためアモキシシリンは投与せず。"),
         (None, "en", "- Amoxicillin avoided due to concurrent Warfarin; no alternative selected."),
     ],
 )
