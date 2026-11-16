@@ -79,6 +79,7 @@ def _make_ctx(
     rehab_sessions: list[Any] | None = None,
     target_lang: str = "ja",
     locale: str = "jp",
+    authored_datetime: datetime | None = None,
 ) -> NarrativeContext:
     return NarrativeContext(
         patient=PatientProfile(patient_id="pt-rp-test"),
@@ -100,6 +101,7 @@ def _make_ctx(
         target_lang=target_lang,
         locale=locale,
         rehab_sessions=rehab_sessions if rehab_sessions is not None else [_rehab_session()],
+        authored_datetime=authored_datetime,
     )
 
 
@@ -149,27 +151,6 @@ def test_rehab_team_fallback_when_no_sessions() -> None:
     assert out.sections["rehab_team"].strip() != ""
 
 
-def test_functional_status_reflects_latest_session() -> None:
-    spec = _make_spec()
-    older = _rehab_session(
-        day_post_op=1,
-        session_date=datetime(2026, 7, 2, 10, 0),
-        functional_progress="stable",
-        pain_score=6,
-    )
-    latest = _rehab_session(
-        day_post_op=5,
-        session_date=datetime(2026, 7, 6, 10, 0),
-        functional_progress="improved",
-        pain_score=2,
-    )
-    ctx = _make_ctx(rehab_sessions=[older, latest])
-    gen = TemplateNarrativeGenerator()
-    out = gen.generate(ctx, spec)
-    assert "改善" in out.sections["functional_status"]
-    assert "2/10" in out.sections["functional_status"]
-
-
 def test_basic_movement_early_phase_for_day_post_op_1() -> None:
     spec = _make_spec()
     ctx = _make_ctx(rehab_sessions=[_rehab_session(day_post_op=1)])
@@ -186,18 +167,6 @@ def test_basic_movement_late_phase_for_day_post_op_20() -> None:
     assert "後期" in out.sections["basic_movement"]
 
 
-def test_session_frequency_counts_and_dates() -> None:
-    spec = _make_spec()
-    s1 = _rehab_session(day_post_op=1, session_date=datetime(2026, 7, 2, 10, 0))
-    s2 = _rehab_session(day_post_op=2, session_date=datetime(2026, 7, 3, 10, 0))
-    ctx = _make_ctx(rehab_sessions=[s1, s2])
-    gen = TemplateNarrativeGenerator()
-    out = gen.generate(ctx, spec)
-    assert "2" in out.sections["session_frequency"]
-    assert "2026-07-02" in out.sections["session_frequency"]
-    assert "2026-07-03" in out.sections["session_frequency"]
-
-
 def test_discharge_estimate_is_undetermined_when_no_disease_protocol() -> None:
     """Issue #3240: the realized ctx.los_days is never stated as an estimate."""
     spec = _make_spec()
@@ -207,3 +176,81 @@ def test_discharge_estimate_is_undetermined_when_no_disease_protocol() -> None:
     out = gen.generate(ctx, spec)
     assert "14" not in out.sections["discharge_estimate"]
     assert "未定" in out.sections["discharge_estimate"]
+
+
+# ── Issue #3261: the plan is written at the start of rehabilitation ──────
+
+
+def _stay_sessions() -> list[dict[str, Any]]:
+    """POD1 baseline session (authored the same afternoon) + later sessions
+    that happen after the plan was written."""
+    return [
+        _rehab_session(
+            day_post_op=1,
+            session_date=datetime(2026, 7, 2, 10, 0),
+            functional_progress="stable",
+            patient_participation="fair",
+            pain_score=6,
+        ),
+        _rehab_session(
+            day_post_op=8,
+            session_date=datetime(2026, 7, 9, 10, 0),
+            functional_progress="improved",
+            pain_score=2,
+        ),
+        _rehab_session(
+            day_post_op=20,
+            session_date=datetime(2026, 7, 21, 10, 0),
+            functional_progress="improved",
+            pain_score=1,
+            therapy_type="OT",
+        ),
+    ]
+
+
+def _plan_sections(**kw: Any) -> dict[str, str]:
+    ctx = _make_ctx(rehab_sessions=_stay_sessions(), authored_datetime=datetime(2026, 7, 2, 13, 45), **kw)
+    return TemplateNarrativeGenerator().generate(ctx, _make_spec()).sections
+
+
+def test_functional_status_uses_the_session_known_at_authoring_3261() -> None:
+    fs = _plan_sections()["functional_status"]
+    assert "6/10" in fs
+    assert "やや不良" in fs
+    assert "2026-07-02" in fs
+    assert "改善" not in fs
+    assert "1/10" not in fs and "2/10" not in fs
+
+
+def test_basic_movement_uses_the_session_known_at_authoring_3261() -> None:
+    assert "早期" in _plan_sections()["basic_movement"]
+
+
+def test_session_frequency_is_planned_not_counted_3261() -> None:
+    sf = _plan_sections()["session_frequency"]
+    assert "1日1回" in sf
+    assert "40分" in sf
+    assert "2026-07-02" in sf
+    assert "2026-07-21" not in sf
+    assert "3回" not in sf
+
+
+def test_rehab_team_lists_only_disciplines_known_at_authoring_3261() -> None:
+    team = _plan_sections()["rehab_team"]
+    assert "PT" in team
+    assert "OT" not in team
+
+
+def test_explanation_given_on_authored_date_3261() -> None:
+    ex = _plan_sections()["explanation_consent"]
+    assert "説明済" in ex
+    assert "2026-07-02" in ex
+    assert "予定" not in ex
+
+
+def test_rehab_plan_en_has_no_japanese_3261() -> None:
+    sections = _plan_sections(target_lang="en", locale="us")
+    text = " ".join(sections.values())
+    assert not any("぀" <= c <= "ヿ" or "一" <= c <= "鿿" for c in text), text
+    assert "once daily" in sections["session_frequency"]
+    assert "2026-07-02" in sections["explanation_consent"]

@@ -345,7 +345,7 @@ def load_narrative_labels() -> dict[str, dict[str, dict[str, str]]]:
     ``clinosim/modules/document/narrative/template_generator.py``
     (shift_labels / family_relation /
     ed_acuity_reason / arrival_mode / smoking / alcohol / occupation
-    / rp_therapy_type / rp_progress / rp_participation / rp_phase).
+    / rp_therapy_type / rp_participation / rp_phase).
 
     Adding a new target language is a data change across each
     ``{lang: display}`` entry — the loader is language-agnostic.
