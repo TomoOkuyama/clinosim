@@ -6,8 +6,7 @@
       "facts_used": [
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.sepsis[3]",
-        "disease_protocol.narrative.hpi_template.onset_pattern.severe",
-        "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "disease_protocol.narrative.hpi_template.onset_type.subacute",
         "ctx.patient.demographics",
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
@@ -29,7 +28,7 @@
         "assessment_and_plan": "【評価】主訴「発熱・意識変容・低血圧」で入院。 病態: 敗血症 (重度)。 併存疾患: 慢性腎臓病。\n【方針】予定入院期間: 約35日。 薬物療法: メロペネム、バンコマイシン、輸液: 乳酸リンゲル液 30 mL/kg ボーラス 以内 3 時間、解熱剤: アセトアミノフェン 1000mg 静注 6時間毎 頓用 体温 >= 38.5。 検査・処置: 尿道カテーテル挿入、中心静脈カテーテル挿入、動脈ライン挿入。",
         "chief_complaint": "3日前より倦怠感・本日ぐったり",
         "family_history": "特記家族歴なし",
-        "hpi": "症状急速に増悪、本日受診。 急性発症 74歳男性患者。主訴: 発熱・意識変容・低血圧。既往: 慢性腎臓病。ROS: 頭痛なし、痙攣なし。",
+        "hpi": "74歳男性患者。主訴: 3日前より倦怠感・本日ぐったり。数日前より出現した症状が急速に増悪し、本日受診。既往: 慢性腎臓病。ROS: 頭痛なし、痙攣なし。",
         "medications_at_home": "常用薬なし",
         "past_medical_history": "慢性腎臓病，詳細不明 [N18.9]",
         "physical_examination": "バイタルサイン: BP 107/65 mmHg, HR 119/min, T 38.0°C, SpO2 96%, RR 22/min。一般状態: 意識やや低下、苦痛強い。循環器: 整、心雑音なし。呼吸器: 呼吸促迫、補助呼吸筋使用。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
@@ -2317,8 +2316,7 @@
         "ctx.diagnoses",
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.sepsis[3]",
-        "disease_protocol.narrative.hpi_template.onset_pattern.severe",
-        "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "disease_protocol.narrative.hpi_template.onset_type.subacute",
         "ctx.patient.demographics",
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
@@ -2348,7 +2346,7 @@
         "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 1-2 週間以内に外来受診をお願いします。 処方された薬を指示通り内服してください。 症状悪化があれば速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。 1 日 2 回体温測定。体調に合わせた休息・食事を心がけ、抗菌薬は最後まで内服してください。 発熱 38℃ 以上、悪寒、意識障害、頻脈、尿量減少、新たな疼痛出現時は救急受診してください。 徐々に通常活動を再開してください。 バランスの良い食事と十分な水分摂取を心がけてください。",
         "discharge_medications": "レボフロキサシン 500mg 経口 1日1回",
         "hospital_course": "入院期間 31 日間（主病名/主訴: 発熱・意識変容・低血圧）。 経過中の合併症: 急性腎障害、クロストリジウム・ディフィシル腸炎。 主な処置・手技: 尿道カテーテル挿入、中心静脈カテーテル挿入、動脈ライン挿入。",
-        "present_illness": "症状急速に増悪、本日受診。 急性発症 74歳男性患者。主訴: 発熱・意識変容・低血圧。既往: 慢性腎臓病。ROS: 頭痛なし、痙攣なし。"
+        "present_illness": "74歳男性患者。主訴: 3日前より倦怠感・本日ぐったり。数日前より出現した症状が急速に増悪し、本日受診。既往: 慢性腎臓病。ROS: 頭痛なし、痙攣なし。"
       },
       "text": ""
     }

@@ -456,7 +456,15 @@ class HpiTemplate(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    # How the illness begins (Issue #3228): ``injury`` (an injury today),
+    # ``acute`` (abrupt, hours), ``subacute`` (days), ``gradual`` (weeks) or
+    # ``elective`` (planned admission). Selects the generic onset sentence
+    # ``narrative_phrases.yaml::hpi.onset_by_type`` when ``onset_pattern`` has
+    # no authored text, so the onset agrees with the mechanism.
+    onset_type: Literal["injury", "acute", "subacute", "gradual", "elective"] | None = None
     onset_pattern: dict[str, str] = Field(default_factory=dict)  # mild/moderate/severe → text
+    # Sentence clauses (without the final 。); the first is written after the
+    # onset sentence. Never an onset adjective such as 急性発症 (use onset_type).
     trigger_options: list[str] = Field(default_factory=list)
 
 

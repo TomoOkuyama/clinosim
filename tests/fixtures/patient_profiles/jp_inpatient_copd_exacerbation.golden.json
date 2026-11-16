@@ -6,8 +6,7 @@
       "facts_used": [
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.copd_exacerbation[1]",
-        "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
-        "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "disease_protocol.narrative.hpi_template.onset_type.subacute",
         "ctx.patient.demographics",
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
@@ -30,7 +29,7 @@
         "assessment_and_plan": "【評価】主訴「呼吸困難増悪・喀痰増加・喘鳴」で入院。 病態: COPD 増悪 (中等度)。 併存疾患: COPD（慢性閉塞性肺疾患）。\n【方針】予定入院期間: 約12日。 薬物療法: サルブタモール、イプラトロピウム、プレドニゾロン、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",
         "family_history": "特記家族歴なし",
-        "hpi": "症状は数日前より出現し漸次増悪。 急性発症 78歳男性患者。主訴: 呼吸困難増悪・喀痰増加・喘鳴。既往: COPD（慢性閉塞性肺疾患）。ROS: 胸痛なし、喀血なし。",
+        "hpi": "78歳男性患者。主訴: 1週間前より痰の量と粘稠度が増加。症状は数日前より出現し漸次増悪。既往: COPD（慢性閉塞性肺疾患）。ROS: 胸痛なし、喀血なし。",
         "medications_at_home": "常用薬なし",
         "past_medical_history": "慢性閉塞性肺疾患，詳細不明 [J44.9]",
         "physical_examination": "バイタルサイン: BP 126/79 mmHg, HR 95/min, T 37.5°C, SpO2 89%, RR 25/min。一般状態: 意識清明、苦痛様。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし、項部硬直なし",
@@ -770,8 +769,7 @@
         "ctx.diagnoses",
         "ctx.encounter.chief_complaint_ja",
         "chief_complaint_variants.copd_exacerbation[1]",
-        "disease_protocol.narrative.hpi_template.onset_pattern.moderate",
-        "disease_protocol.narrative.hpi_template.trigger_options[0]",
+        "disease_protocol.narrative.hpi_template.onset_type.subacute",
         "ctx.patient.demographics",
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
@@ -799,7 +797,7 @@
         "discharge_instructions": "十分な水分摂取を心がけてください。 十分な休息をとり、無理な活動は控えてください。 退院後 1-2 週間以内に外来受診をお願いします。 処方された薬を指示通り内服してください。 症状悪化があれば速やかに救急受診してください。 食事は体調に合わせて徐々に通常食に戻してください。 労作時は口すぼめ呼吸を実施してください。吸入器は正しい手技で使用 (スペーサー処方時は併用)。 呼吸困難増悪、痰量・膿性度増加、発熱、SpO2 90% 未満時は救急受診してください。 禁煙が最も重要な治療です。ニコチン置換療法の相談も受け付けています。 徐々に通常活動を再開してください。 バランスの良い食事と十分な水分摂取を心がけてください。",
         "discharge_medications": "プレドニゾロン 20mg 経口 1日1回; アモキシシリン/クラブラン酸 250mg 経口 1日3回",
         "hospital_course": "入院期間 15 日間（主病名/主訴: 呼吸困難増悪・喀痰増加・喘鳴）。 経過中の合併症: せん妄。",
-        "present_illness": "症状は数日前より出現し漸次増悪。 急性発症 78歳男性患者。主訴: 呼吸困難増悪・喀痰増加・喘鳴。既往: COPD（慢性閉塞性肺疾患）。ROS: 胸痛なし、喀血なし。"
+        "present_illness": "78歳男性患者。主訴: 1週間前より痰の量と粘稠度が増加。症状は数日前より出現し漸次増悪。既往: COPD（慢性閉塞性肺疾患）。ROS: 胸痛なし、喀血なし。"
       },
       "text": ""
     }

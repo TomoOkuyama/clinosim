@@ -226,7 +226,7 @@ class TemplateNarrativeGenerator:
     # free-standing function in ``renderers/section_builders/hpi.py``
     # (full-review Phase C1o, CRITICAL C1). The 3 HPI-cluster helpers
     # (``_build_hpi_core``, ``_maybe_append_newborn_workup``,
-    # ``_compose_hpi_extras_from_state``) moved alongside.
+    # ``_hpi_parts``) moved alongside.
     # ─────────────────────────────────────────────────────────────────
 
     # ─────────────────────────────────────────────────────────────────

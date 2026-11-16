@@ -171,11 +171,12 @@ outcome_benchmarks:
 
 narrative:
   hpi_template:
+    onset_type: gradual
     onset_pattern:
       moderate: "数週間前より服薬が途絶え、不眠・興奮が増悪し幻覚・妄想が出現。"
       severe: "興奮が著しく、幻覚・妄想に左右された行動や躁状態がみられる。"
     trigger_options:
-      - "服薬中断"
+      - "服薬中断が誘因"
       - "心理社会的ストレス"
   physical_exam_findings:
     smooth_recovery:

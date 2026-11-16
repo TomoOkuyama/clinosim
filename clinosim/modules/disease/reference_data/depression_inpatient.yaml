@@ -175,11 +175,12 @@ outcome_benchmarks:
 
 narrative:
   hpi_template:
+    onset_type: gradual
     onset_pattern:
       moderate: "数週間前より抑うつ気分・不眠・食欲低下が増悪し、希死念慮が出現。"
       severe: "抑うつ気分が増悪し、具体的な自殺計画を伴う希死念慮が出現。"
     trigger_options:
-      - "心理社会的ストレス"
+      - "心理社会的ストレスが誘因"
       - "抗うつ薬の自己中断"
   physical_exam_findings:
     smooth_recovery:

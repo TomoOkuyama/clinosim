@@ -1,16 +1,22 @@
 # Per-disease pertinent-negative pool for HPI enrichment (Issue #984).
 #
-# The HPI section historically emitted only "急性発症 80歳女性患者。主訴: ...。
-# 既往: ...。" (median 23 chars). Real EHR HPI narratives include ROS
-# pertinent negatives ("発熱なし・下痢なし" for DKA, "胸痛なし・片麻痺なし"
-# for PE) that document what was actively asked and ruled out — clinically
-# essential for disposition reasoning.
+# Real EHR HPI narratives include ROS pertinent negatives ("発熱なし・下痢なし"
+# for DKA, "胸痛なし・片麻痺なし" for PE) that document what was actively
+# asked and ruled out — clinically essential for disposition reasoning.
 #
-# Each disease_id maps to a language map of negative phrases (``ja``, ``en``;
-# a missing language falls back to English). The template generator joins
-# the first 2 as a "ROS: ..." tail on the HPI in the document language
-# (``narrative_text.hpi.ros`` / ``list_sep``, Issue #3206). Fallback (missing
-# disease_id) omits the ROS tail rather than fabricating.
+# Each disease_id maps to an ordered list of negatives. An entry has:
+#   text:     the negative phrase per language (``ja``, ``en``; English is
+#             required and is the fallback language, Issue #3206)
+#   symptoms: (optional) per language, the symptom terms the negative denies.
+#             When one of them is present (not itself negated) in the chief
+#             complaint or the onset text of the encounter, the negative would
+#             deny the patient's own complaint and is skipped (Issue #3228).
+#             Entries without ``symptoms`` (e.g. "外傷の既往確認",
+#             "他部位外傷精査中") deny nothing the patient presents with and are
+#             never filtered. Matching ignores letter case.
+# The HPI writes the first 2 entries left after filtering as a "ROS: ..." tail
+# in the document language (``narrative_text.hpi.ros`` / ``list_sep``).
+# Missing disease_id → no ROS tail rather than a fabricated one.
 #
 # Design notes:
 #   - Content is disease-specific mnemonics for "what an admitting physician
@@ -27,331 +33,259 @@ metadata:
   source: clinosim
 
 diabetic_ketoacidosis:
-  ja:
-    - "発熱なし"
-    - "下痢なし"
-    - "胸痛なし"
-  en:
-    - "no fever"
-    - "no diarrhea"
-    - "no chest pain"
+  - text: {ja: "発熱なし", en: "no fever"}
+    symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+  - text: {ja: "下痢なし", en: "no diarrhea"}
+    symptoms: {ja: ["下痢"], en: ["diarrhea"]}
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
 
 acute_mi:
-  ja:
-    - "労作時以外の胸痛エピソードなし"
-    - "失神なし"
-    - "動悸持続なし"
-  en:
-    - "no chest pain episodes other than on exertion"
-    - "no syncope"
-    - "no sustained palpitations"
+  - text: {ja: "労作時以外の胸痛エピソードなし", en: "no chest pain episodes other than on exertion"}
+  - text: {ja: "失神なし", en: "no syncope"}
+    symptoms: {ja: ["失神", "意識消失"], en: ["syncope", "faint", "loss of consciousness"]}
+  - text: {ja: "動悸持続なし", en: "no sustained palpitations"}
+    symptoms: {ja: ["動悸"], en: ["palpitation"]}
 
 heart_failure_exacerbation:
-  ja:
-    - "胸痛なし"
-    - "発熱なし"
-    - "喀血なし"
-  en:
-    - "no chest pain"
-    - "no fever"
-    - "no hemoptysis"
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
+  - text: {ja: "発熱なし", en: "no fever"}
+    symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+  - text: {ja: "喀血なし", en: "no hemoptysis"}
+    symptoms: {ja: ["喀血", "血痰"], en: ["hemoptysis", "coughing up blood"]}
 
 bacterial_pneumonia:
-  ja:
-    - "喀血なし"
-    - "胸痛なし"
-    - "夜間発汗なし"
-  en:
-    - "no hemoptysis"
-    - "no chest pain"
-    - "no night sweats"
+  - text: {ja: "喀血なし", en: "no hemoptysis"}
+    symptoms: {ja: ["喀血", "血痰"], en: ["hemoptysis", "coughing up blood"]}
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
+  - text: {ja: "夜間発汗なし", en: "no night sweats"}
+    symptoms: {ja: ["寝汗", "夜間発汗"], en: ["night sweat"]}
 
 aspiration_pneumonia:
-  ja:
-    - "誤嚥自覚なし"
-    - "胸痛なし"
-    - "喀血なし"
-  en:
-    - "no recalled aspiration"
-    - "no chest pain"
-    - "no hemoptysis"
+  - text: {ja: "誤嚥自覚なし", en: "no recalled aspiration"}
+    symptoms: {ja: ["誤嚥", "むせ"], en: ["aspiration", "choking"]}
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
+  - text: {ja: "喀血なし", en: "no hemoptysis"}
+    symptoms: {ja: ["喀血", "血痰"], en: ["hemoptysis", "coughing up blood"]}
 
 copd_exacerbation:
-  ja:
-    - "胸痛なし"
-    - "喀血なし"
-    - "下肢浮腫なし"
-  en:
-    - "no chest pain"
-    - "no hemoptysis"
-    - "no leg edema"
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
+  - text: {ja: "喀血なし", en: "no hemoptysis"}
+    symptoms: {ja: ["喀血", "血痰"], en: ["hemoptysis", "coughing up blood"]}
+  - text: {ja: "下肢浮腫なし", en: "no leg edema"}
+    symptoms: {ja: ["浮腫", "むくみ"], en: ["edema", "swelling"]}
 
 asthma_exacerbation:
-  ja:
-    - "胸痛なし"
-    - "発熱なし"
-    - "喀血なし"
-  en:
-    - "no chest pain"
-    - "no fever"
-    - "no hemoptysis"
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
+  - text: {ja: "発熱なし", en: "no fever"}
+    symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+  - text: {ja: "喀血なし", en: "no hemoptysis"}
+    symptoms: {ja: ["喀血", "血痰"], en: ["hemoptysis", "coughing up blood"]}
 
 pulmonary_embolism:
-  ja:
-    - "胸痛なし"
-    - "片麻痺なし"
-    - "喀血なし"
-  en:
-    - "no chest pain"
-    - "no hemiparesis"
-    - "no hemoptysis"
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
+  - text: {ja: "片麻痺なし", en: "no hemiparesis"}
+    symptoms: {ja: ["麻痺", "脱力"], en: ["hemiparesis", "weakness", "paralysis"]}
+  - text: {ja: "喀血なし", en: "no hemoptysis"}
+    symptoms: {ja: ["喀血", "血痰"], en: ["hemoptysis", "coughing up blood"]}
 
 deep_vein_thrombosis:
-  ja:
-    - "呼吸困難なし"
-    - "胸痛なし"
-    - "外傷の既往なし"
-  en:
-    - "no dyspnea"
-    - "no chest pain"
-    - "no history of trauma"
+  - text: {ja: "呼吸困難なし", en: "no dyspnea"}
+    symptoms: {ja: ["呼吸困難", "息切れ", "呼吸苦", "息苦し"], en: ["dyspnea", "shortness of breath", "breathless"]}
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
+  - text: {ja: "外傷の既往なし", en: "no history of trauma"}
+    symptoms: {ja: ["外傷", "受傷", "打撲", "転倒", "転落"], en: ["trauma", "injury", "fall"]}
 
 atrial_fibrillation_rvr:
-  ja:
-    - "胸痛なし"
-    - "失神なし"
-    - "呼吸困難なし"
-  en:
-    - "no chest pain"
-    - "no syncope"
-    - "no dyspnea"
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
+  - text: {ja: "失神なし", en: "no syncope"}
+    symptoms: {ja: ["失神", "意識消失"], en: ["syncope", "faint", "loss of consciousness"]}
+  - text: {ja: "呼吸困難なし", en: "no dyspnea"}
+    symptoms: {ja: ["呼吸困難", "息切れ", "呼吸苦", "息苦し"], en: ["dyspnea", "shortness of breath", "breathless"]}
 
 cerebral_infarction:
-  ja:
-    - "頭痛なし"
-    - "痙攣なし"
-    - "外傷なし"
-  en:
-    - "no headache"
-    - "no seizures"
-    - "no trauma"
+  - text: {ja: "頭痛なし", en: "no headache"}
+    symptoms: {ja: ["頭痛"], en: ["headache"]}
+  - text: {ja: "痙攣なし", en: "no seizures"}
+    symptoms: {ja: ["痙攣", "けいれん"], en: ["seizure", "convulsion"]}
+  - text: {ja: "外傷なし", en: "no trauma"}
+    symptoms: {ja: ["外傷", "受傷", "打撲", "転倒", "転落"], en: ["trauma", "injury", "fall"]}
 
 hemorrhagic_stroke:
-  ja:
-    - "外傷なし"
-    - "痙攣なし"
-    - "発熱なし"
-  en:
-    - "no trauma"
-    - "no seizures"
-    - "no fever"
+  - text: {ja: "外傷なし", en: "no trauma"}
+    symptoms: {ja: ["外傷", "受傷", "打撲", "転倒", "転落"], en: ["trauma", "injury", "fall"]}
+  - text: {ja: "痙攣なし", en: "no seizures"}
+    symptoms: {ja: ["痙攣", "けいれん"], en: ["seizure", "convulsion"]}
+  - text: {ja: "発熱なし", en: "no fever"}
+    symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
 
 subdural_hematoma:
-  ja:
-    - "痙攣なし"
-    - "嘔吐なし"
-    - "発熱なし"
-  en:
-    - "no seizures"
-    - "no vomiting"
-    - "no fever"
+  - text: {ja: "痙攣なし", en: "no seizures"}
+    symptoms: {ja: ["痙攣", "けいれん"], en: ["seizure", "convulsion"]}
+  - text: {ja: "嘔吐なし", en: "no vomiting"}
+    symptoms: {ja: ["嘔吐"], en: ["vomiting"]}
+  - text: {ja: "発熱なし", en: "no fever"}
+    symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
 
 sepsis:
-  ja:
-    - "頭痛なし"
-    - "痙攣なし"
-    - "皮疹なし"
-  en:
-    - "no headache"
-    - "no seizures"
-    - "no rash"
+  - text: {ja: "頭痛なし", en: "no headache"}
+    symptoms: {ja: ["頭痛"], en: ["headache"]}
+  - text: {ja: "痙攣なし", en: "no seizures"}
+    symptoms: {ja: ["痙攣", "けいれん"], en: ["seizure", "convulsion"]}
+  - text: {ja: "皮疹なし", en: "no rash"}
+    symptoms: {ja: ["皮疹", "発疹"], en: ["rash"]}
 
 urinary_tract_infection:
-  ja:
-    - "側腹部痛なし"
-    - "血尿なし"
-    - "嘔吐なし"
-  en:
-    - "no flank pain"
-    - "no hematuria"
-    - "no vomiting"
+  - text: {ja: "側腹部痛なし", en: "no flank pain"}
+    symptoms: {ja: ["側腹部痛", "腰背部痛", "腰痛", "背部痛"], en: ["flank pain", "back pain"]}
+  - text: {ja: "血尿なし", en: "no hematuria"}
+    symptoms: {ja: ["血尿"], en: ["hematuria", "blood in urine"]}
+  - text: {ja: "嘔吐なし", en: "no vomiting"}
+    symptoms: {ja: ["嘔吐"], en: ["vomiting"]}
 
 cellulitis:
-  ja:
-    - "外傷の既往確認"
-    - "発熱なし"
-    - "リンパ節腫脹なし"
-  en:
-    - "history of trauma asked"
-    - "no fever"
-    - "no lymphadenopathy"
+  - text: {ja: "外傷の既往確認", en: "history of trauma asked"}
+  - text: {ja: "発熱なし", en: "no fever"}
+    symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+  - text: {ja: "リンパ節腫脹なし", en: "no lymphadenopathy"}
+    symptoms: {ja: ["リンパ節"], en: ["lymph"]}
 
 gi_bleeding:
-  ja:
-    - "胸痛なし"
-    - "腹痛なし"
-    - "外傷なし"
-  en:
-    - "no chest pain"
-    - "no abdominal pain"
-    - "no trauma"
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
+  - text: {ja: "腹痛なし", en: "no abdominal pain"}
+    symptoms: {ja: ["腹痛", "腹部痛", "心窩部痛"], en: ["abdominal pain", "stomach pain", "epigastric"]}
+  - text: {ja: "外傷なし", en: "no trauma"}
+    symptoms: {ja: ["外傷", "受傷", "打撲", "転倒", "転落"], en: ["trauma", "injury", "fall"]}
 
 acute_appendicitis:
-  ja:
-    - "下痢なし"
-    - "血便なし"
-    - "尿路症状なし"
-  en:
-    - "no diarrhea"
-    - "no bloody stools"
-    - "no urinary symptoms"
+  - text: {ja: "下痢なし", en: "no diarrhea"}
+    symptoms: {ja: ["下痢"], en: ["diarrhea"]}
+  - text: {ja: "血便なし", en: "no bloody stools"}
+    symptoms: {ja: ["血便", "下血", "タール便", "黒色便"], en: ["bloody stool", "melena", "rectal bleeding", "black stool"]}
+  - text: {ja: "尿路症状なし", en: "no urinary symptoms"}
+    symptoms: {ja: ["排尿", "頻尿", "尿路"], en: ["urinary", "dysuria"]}
 
 acute_cholecystitis:
-  ja:
-    - "黄疸なし"
-    - "血便なし"
-    - "背部痛なし"
-  en:
-    - "no jaundice"
-    - "no bloody stools"
-    - "no back pain"
+  - text: {ja: "黄疸なし", en: "no jaundice"}
+    symptoms: {ja: ["黄疸"], en: ["jaundice"]}
+  - text: {ja: "血便なし", en: "no bloody stools"}
+    symptoms: {ja: ["血便", "下血", "タール便", "黒色便"], en: ["bloody stool", "melena", "rectal bleeding", "black stool"]}
+  - text: {ja: "背部痛なし", en: "no back pain"}
+    symptoms: {ja: ["背部痛", "背中", "腰背部痛"], en: ["back pain"]}
 
 acute_pancreatitis:
-  ja:
-    - "血便なし"
-    - "胸痛なし"
-    - "黄疸なし"
-  en:
-    - "no bloody stools"
-    - "no chest pain"
-    - "no jaundice"
+  - text: {ja: "血便なし", en: "no bloody stools"}
+    symptoms: {ja: ["血便", "下血", "タール便", "黒色便"], en: ["bloody stool", "melena", "rectal bleeding", "black stool"]}
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
+  - text: {ja: "黄疸なし", en: "no jaundice"}
+    symptoms: {ja: ["黄疸"], en: ["jaundice"]}
 
 acute_kidney_injury:
-  ja:
-    - "血尿なし"
-    - "浮腫なし"
-    - "発熱なし"
-  en:
-    - "no hematuria"
-    - "no edema"
-    - "no fever"
+  - text: {ja: "血尿なし", en: "no hematuria"}
+    symptoms: {ja: ["血尿"], en: ["hematuria", "blood in urine"]}
+  - text: {ja: "浮腫なし", en: "no edema"}
+    symptoms: {ja: ["浮腫", "むくみ"], en: ["edema", "swelling"]}
+  - text: {ja: "発熱なし", en: "no fever"}
+    symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
 
 liver_cirrhosis_decompensated:
-  ja:
-    - "胸痛なし"
-    - "発熱なし"
-    - "皮疹なし"
-  en:
-    - "no chest pain"
-    - "no fever"
-    - "no rash"
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
+  - text: {ja: "発熱なし", en: "no fever"}
+    symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+  - text: {ja: "皮疹なし", en: "no rash"}
+    symptoms: {ja: ["皮疹", "発疹"], en: ["rash"]}
 
 ileus:
-  ja:
-    - "血便なし"
-    - "発熱なし"
-    - "尿路症状なし"
-  en:
-    - "no bloody stools"
-    - "no fever"
-    - "no urinary symptoms"
+  - text: {ja: "血便なし", en: "no bloody stools"}
+    symptoms: {ja: ["血便", "下血", "タール便", "黒色便"], en: ["bloody stool", "melena", "rectal bleeding", "black stool"]}
+  - text: {ja: "発熱なし", en: "no fever"}
+    symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}
+  - text: {ja: "尿路症状なし", en: "no urinary symptoms"}
+    symptoms: {ja: ["排尿", "頻尿", "尿路"], en: ["urinary", "dysuria"]}
 
 hip_fracture:
-  ja:
-    - "頭部打撲なし"
-    - "意識消失なし"
-    - "胸痛なし"
-  en:
-    - "no head strike"
-    - "no loss of consciousness"
-    - "no chest pain"
+  - text: {ja: "頭部打撲なし", en: "no head strike"}
+    symptoms: {ja: ["頭部打撲", "頭部外傷", "頭を打"], en: ["head strike", "head injury"]}
+  - text: {ja: "意識消失なし", en: "no loss of consciousness"}
+    symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
 
 vertebral_compression_fracture:
-  ja:
-    - "外傷契機なし"
-    - "下肢麻痺なし"
-    - "膀胱直腸障害なし"
-  en:
-    - "no traumatic trigger"
-    - "no leg weakness"
-    - "no bladder or bowel dysfunction"
+  - text: {ja: "外傷契機なし", en: "no traumatic trigger"}
+    symptoms: {ja: ["外傷", "受傷", "転倒", "転落"], en: ["trauma", "injury", "fall"]}
+  - text: {ja: "下肢麻痺なし", en: "no leg weakness"}
+    symptoms: {ja: ["麻痺", "脱力"], en: ["weakness", "paralysis"]}
+  - text: {ja: "膀胱直腸障害なし", en: "no bladder or bowel dysfunction"}
+    symptoms: {ja: ["膀胱直腸障害", "尿閉", "失禁"], en: ["bladder", "bowel", "incontinence", "retention"]}
 
 wrist_fracture_surgical:
-  ja:
-    - "頭部打撲なし"
-    - "意識消失なし"
-    - "他部位骨折なし"
-  en:
-    - "no head strike"
-    - "no loss of consciousness"
-    - "no other fractures"
+  - text: {ja: "頭部打撲なし", en: "no head strike"}
+    symptoms: {ja: ["頭部打撲", "頭部外傷", "頭を打"], en: ["head strike", "head injury"]}
+  - text: {ja: "意識消失なし", en: "no loss of consciousness"}
+    symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
+  - text: {ja: "他部位骨折なし", en: "no other fractures"}
 
 crush_injury_hand:
-  ja:
-    - "頭部外傷なし"
-    - "他部位外傷なし"
-    - "意識消失なし"
-  en:
-    - "no head injury"
-    - "no other injuries"
-    - "no loss of consciousness"
+  - text: {ja: "頭部外傷なし", en: "no head injury"}
+    symptoms: {ja: ["頭部外傷", "頭部打撲", "頭を打"], en: ["head injury", "head strike"]}
+  - text: {ja: "他部位外傷なし", en: "no other injuries"}
+  - text: {ja: "意識消失なし", en: "no loss of consciousness"}
+    symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
 
 industrial_burn_severe:
-  ja:
-    - "気道熱傷疑いなし"
-    - "頭部外傷なし"
-    - "意識消失なし"
-  en:
-    - "no suspected inhalation injury"
-    - "no head injury"
-    - "no loss of consciousness"
+  - text: {ja: "気道熱傷疑いなし", en: "no suspected inhalation injury"}
+    symptoms: {ja: ["気道熱傷", "嗄声"], en: ["inhalation injury", "hoarse"]}
+  - text: {ja: "頭部外傷なし", en: "no head injury"}
+    symptoms: {ja: ["頭部外傷", "頭部打撲", "頭を打"], en: ["head injury", "head strike"]}
+  - text: {ja: "意識消失なし", en: "no loss of consciousness"}
+    symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
 
 electrical_injury:
-  ja:
-    - "意識消失なし"
-    - "痙攣なし"
-    - "動悸なし"
-  en:
-    - "no loss of consciousness"
-    - "no seizures"
-    - "no palpitations"
+  - text: {ja: "意識消失なし", en: "no loss of consciousness"}
+    symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
+  - text: {ja: "痙攣なし", en: "no seizures"}
+    symptoms: {ja: ["痙攣", "けいれん"], en: ["seizure", "convulsion"]}
+  - text: {ja: "動悸なし", en: "no palpitations"}
+    symptoms: {ja: ["動悸"], en: ["palpitation"]}
 
 traffic_accident_severe:
-  ja:
-    - "他部位外傷精査中"
-    - "意識消失なし"
-    - "胸腹部痛なし"
-  en:
-    - "other injuries under evaluation"
-    - "no loss of consciousness"
-    - "no chest or abdominal pain"
+  - text: {ja: "他部位外傷精査中", en: "other injuries under evaluation"}
+  - text: {ja: "意識消失なし", en: "no loss of consciousness"}
+    symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
+  - text: {ja: "胸腹部痛なし", en: "no chest or abdominal pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "腹痛", "腹部痛", "胸腹部痛"], en: ["chest pain", "abdominal pain"]}
 
 fall_from_height:
-  ja:
-    - "意識消失なし"
-    - "頭部打撲なし"
-    - "胸背部痛精査中"
-  en:
-    - "no loss of consciousness"
-    - "no head strike"
-    - "chest and back pain under evaluation"
+  - text: {ja: "意識消失なし", en: "no loss of consciousness"}
+    symptoms: {ja: ["意識消失", "失神", "意識障害"], en: ["loss of consciousness", "syncope", "unresponsive"]}
+  - text: {ja: "頭部打撲なし", en: "no head strike"}
+    symptoms: {ja: ["頭部打撲", "頭部外傷", "頭を打"], en: ["head strike", "head injury"]}
+  - text: {ja: "胸背部痛精査中", en: "chest and back pain under evaluation"}
 
 influenza:
-  ja:
-    - "呼吸困難なし"
-    - "胸痛なし"
-    - "下痢なし"
-  en:
-    - "no dyspnea"
-    - "no chest pain"
-    - "no diarrhea"
+  - text: {ja: "呼吸困難なし", en: "no dyspnea"}
+    symptoms: {ja: ["呼吸困難", "息切れ", "呼吸苦", "息苦し"], en: ["dyspnea", "shortness of breath", "breathless"]}
+  - text: {ja: "胸痛なし", en: "no chest pain"}
+    symptoms: {ja: ["胸痛", "胸部痛", "胸部圧迫", "前胸部"], en: ["chest pain", "chest pressure", "chest tightness"]}
+  - text: {ja: "下痢なし", en: "no diarrhea"}
+    symptoms: {ja: ["下痢"], en: ["diarrhea"]}
 
 subarachnoid_hemorrhage:
-  ja:
-    - "外傷なし"
-    - "痙攣なし"
-    - "発熱なし"
-  en:
-    - "no trauma"
-    - "no seizures"
-    - "no fever"
+  - text: {ja: "外傷なし", en: "no trauma"}
+    symptoms: {ja: ["外傷", "受傷", "打撲", "転倒", "転落"], en: ["trauma", "injury", "fall"]}
+  - text: {ja: "痙攣なし", en: "no seizures"}
+    symptoms: {ja: ["痙攣", "けいれん"], en: ["seizure", "convulsion"]}
+  - text: {ja: "発熱なし", en: "no fever"}
+    symptoms: {ja: ["発熱", "高熱", "微熱", "熱発"], en: ["fever"]}

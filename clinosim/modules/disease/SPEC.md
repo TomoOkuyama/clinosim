@@ -188,7 +188,11 @@ complications:
     cascade: [empyema]
 
 narrative:                         # NarrativeSpec
-  hpi_template: {onset_pattern: {mild: "…", moderate: "…", severe: "…"}, trigger_options: […]}
+  hpi_template:                    # HPI onset (Issue #3228)
+    onset_type: subacute           # injury | acute | subacute | gradual | elective; selects the generic
+                                   # onset sentence (narrative_phrases hpi.onset_by_type) when onset_pattern is empty
+    onset_pattern: {mild: "…", moderate: "…", severe: "…"}   # optional authored onset per severity (JA)
+    trigger_options: ["上気道感染後に発症"]   # sentence clauses; the first follows the onset. Never 急性発症 (use onset_type)
   physical_exam_findings: {smooth_recovery: {day_0: …, day_3: …}}
   discharge_instructions: {follow_up: {en: "…", ja: "…"}, …}
 

@@ -225,12 +225,11 @@ outcome_benchmarks:
 
 narrative:
   hpi_template:
+    onset_type: subacute
     onset_pattern:
       mild: "飲酒中断翌日より軽度の振戦が出現。"
       moderate: "飲酒中断後 1-2 日で振戦・発汗・不安が出現し増悪。"
       severe: "飲酒中断後に振戦が増悪し、幻視・見当識障害を伴う。"
-    trigger_options:
-      - "飲酒中断"
   physical_exam_findings:
     smooth_recovery:
       day_0:
