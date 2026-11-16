@@ -47,6 +47,7 @@ from clinosim.modules.immunization.engine import (
     flu_season_of,
     licensed_on,
     product_cvx,
+    redate,
     series_allows,
     synthetic_lot_number,
 )
@@ -168,12 +169,10 @@ def _completed(imm: Any) -> bool:
 
 def _give_at(imm: Any, vaccine: dict, visit: VaccinationVisit) -> None:
     """Re-date ``imm`` to ``visit`` and bind it there."""
-    _set(imm, "occurrence_date", visit.day)
+    redate(imm, visit.day, str(vaccine["cvx"]))
     _set(imm, "encounter_id", visit.encounter_id)
     _set(imm, "vaccine_cvx", product_cvx(vaccine, visit.day))
     _set(imm, "primary_source", True)
-    if _completed(imm):
-        _set(imm, "lot_number", synthetic_lot_number(str(vaccine["cvx"]), visit.day))
 
 
 def _new_dose(vaccine: dict, visit: VaccinationVisit, nurse: str, dose_number: int | None = None) -> Any:
