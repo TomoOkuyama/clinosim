@@ -26,6 +26,7 @@ from typing import TYPE_CHECKING, Any
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
 from clinosim.codes import system_key_for
+from clinosim.codes.hl7_encounter import AdmitSource
 from clinosim.codes.icd10 import condition_label
 from clinosim.countries import country_code, has_authored_narrative, lang_for
 from clinosim.locale.i18n import t
@@ -33,10 +34,12 @@ from clinosim.locale.loader import map_family_history_code
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_stage
+from clinosim.modules.document.narrative._narrative_utils import is_neonate
 from clinosim.modules.document.narrative._template_helpers import (
     _render_home_med_name,
     allergen_display,
 )
+from clinosim.modules.document.narrative.renderers._resolvers import resolve_neonatal_exam
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.types.document import NarrativeContext
 
@@ -205,6 +208,9 @@ def build_social_history(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     if patient is None:
         return t("fallback.generic_fallback", lang), facts
 
+    if is_neonate(ctx):
+        return _neonatal_social_history(ctx, lang)
+
     smoking_status = _o(patient, "smoking_status", "unknown") or "unknown"
     alcohol_use = _o(patient, "alcohol_use", "unknown") or "unknown"
     occupation = _o(patient, "occupation", "") or ""
@@ -233,6 +239,34 @@ def build_social_history(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
 
     fallback = t("fallback.generic_fallback", lang)
     return "; ".join(parts) if parts else fallback, facts
+
+
+def _neonatal_social_history(ctx: NarrativeContext, lang: str) -> tuple[str, list[str]]:
+    """Issue #3260: a neonate's social history is the birth history (born in
+    this hospital, Apgar scores) and the caregiver, not smoking / alcohol /
+    occupation. Only what the CIF records is stated; the delivery mode is
+    on the mother's record and is not repeated here."""
+    facts: list[str] = []
+    birth: list[str] = []
+    if _o(ctx.encounter, "admit_source", "") == AdmitSource.BORN:
+        birth.append(t("neonate_history.born_here", lang))
+        facts.append("ctx.encounter.admit_source")
+    workup = ctx.newborn_workup or {}
+    a1, a5 = workup.get("apgar_1min"), workup.get("apgar_5min")
+    if a1 is not None and a5 is not None:
+        birth.append(t("neonate_history.apgar", lang, a1=a1, a5=a5))
+        facts.append("ctx.newborn_workup.apgar")
+    parts: list[str] = []
+    if birth:
+        parts.append(t("neonate_history.birth_line", lang, items=t("list_sep.serial", lang).join(birth)))
+    relationship = _o(_o(ctx.patient, "contact", None), "emergency_contact_relationship", "") or ""
+    caregiver = registry_display("hl7-v3-rolecode", relationship, lang) if relationship else None
+    if caregiver:
+        parts.append(t("neonate_history.caregiver_line", lang, caregiver=caregiver))
+        facts.append("ctx.patient.contact.emergency_contact_relationship")
+    if not parts:
+        return t("fallback.generic_fallback", lang), facts
+    return "; ".join(parts), facts
 
 
 @section("family_history")
@@ -344,10 +378,20 @@ def build_physical_examination(generator: TemplateNarrativeGenerator, ctx: Narra
     # objective vitals instead of being blank.
     if not has_authored_narrative(lang):
         vitals_line = generator._compose_pe_vitals_line(ctx)
+        # Issue #3260: the newborn exam set carries every language, so a
+        # neonate gets it in English too.
+        neonatal_text = ""
+        if is_neonate(ctx):
+            neonatal_text = generator._format_physical_exam(
+                resolve_neonatal_exam(ctx, ctx.day_index), ctx.severity, lang
+            )
+            facts.append("physical_exam_findings.neonatal")
         if vitals_line:
             facts.append(f"ctx.vitals[day_{ctx.day_index}]")
-            text = t("physical_exam.no_other_findings", lang)
+            text = neonatal_text or t("physical_exam.no_other_findings", lang)
             return t("ed_physical_exam.vitals_prepend", lang, vitals=vitals_line, text=text), facts
+        if neonatal_text:
+            return neonatal_text, facts
         facts.append("generic:physical_exam_en")
         return t("fallback.generic_fallback", lang), facts
 

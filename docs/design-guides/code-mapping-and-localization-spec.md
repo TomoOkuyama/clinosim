@@ -270,7 +270,7 @@ For names that reach the generator as English free text and have no code or cata
 
 | Function | Table | Returns |
 |---|---|---|
-| `localize_drug_name(name, lang)` | drug catalog names and aliases, admin-form variants (`load_drug_display_dict`) | the name in `lang`; unchanged when `lang` has no entry |
+| `localize_drug_name(name, lang)` | drug catalog names and aliases, admin-form variants (`load_drug_display_dict`) | the name in `lang`; unchanged when `lang` has no entry; a name whose translation the string already contains is kept (a brand next to its generic) |
 | `localize_procedure_name(name, lang)` | procedure phrases and imaging exams (`load_procedure_display_dict`), exact match first, then the free-text translator for a composite order string | same |
 | `localize_allergen_name(name, lang)` | allergen and substance names (`load_allergen_display_dict`) | same |
 | `localize_free_text(text, lang)` | every table (`load_narrative_display_dict`) and the dosage / route / frequency terms (`med_terms.yaml`) | same |

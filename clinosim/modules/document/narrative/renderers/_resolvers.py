@@ -13,14 +13,18 @@ on ``ctx`` plus reference-data loaders and are generator-free.
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from clinosim.locale.i18n import t
+from clinosim.locale.localized import localized
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._narrative_utils import is_neonate
 from clinosim.modules.document.reference_data_loaders import (
     load_discharge_instructions,
     load_physical_exam_findings,
 )
+from clinosim.timeutil import parse_iso_datetime
 
 if TYPE_CHECKING:
     from clinosim.modules.document.narrative.template_generator import (
@@ -70,6 +74,11 @@ def resolve_physical_exam(
             if day_entry is not None:
                 return day_entry if isinstance(day_entry, dict) else {}
 
+    # Issue #3260: a neonate without a disease-authored exam gets the newborn
+    # exam set, not the adult baseline.
+    if is_neonate(ctx):
+        return resolve_neonatal_exam(ctx, day_index)
+
     baseline = pex_data.get("baseline", {})
 
     arch_baseline = baseline.get(archetype, {})
@@ -89,6 +98,46 @@ def resolve_physical_exam(
                 return day_entry if isinstance(day_entry, dict) else {}
 
     return {}
+
+
+def resolve_neonatal_exam(ctx: NarrativeContext, day_index: int) -> dict[str, str]:
+    """The newborn exam set of ``physical_exam_findings.yaml`` ``neonatal`` in
+    ``ctx.target_lang`` (Issue #3260), as ``{body_system: text}``. The skin
+    finding is the jaundice band of the latest total bilirubin measured by
+    the note's time; none measured yet reads as the first band."""
+    neonatal = load_physical_exam_findings()["neonatal"]
+    lang = ctx.target_lang
+    exam = {system: localized(text, lang) for system, text in neonatal["systems"].items()}
+    bilirubin = _bilirubin_known_at(ctx, day_index)
+    bands = neonatal["jaundice"]
+    band = bands[0]
+    for candidate in bands:
+        if bilirubin is not None and bilirubin >= candidate["min_mg_dl"]:
+            band = candidate
+    exam["skin"] = localized(band["text"], lang)
+    return exam
+
+
+def _bilirubin_known_at(ctx: NarrativeContext, day_index: int) -> float | None:
+    """Latest total bilirubin (mg/dL) measured by the document's authored time,
+    or by the end of ``day_index`` when the document has no authored time."""
+    series = (getattr(ctx, "newborn_workup", None) or {}).get("bilirubin_series") or []
+    as_of = getattr(ctx, "authored_datetime", None)
+    as_of_naive = as_of.replace(tzinfo=None) if as_of is not None else None
+    latest: tuple[tuple[int, datetime], float] | None = None
+    for entry in series:
+        at = parse_iso_datetime(entry.get("timestamp"), lenient=True)
+        at_naive = at.replace(tzinfo=None) if at is not None else None
+        day = entry.get("day")
+        if as_of_naive is not None and at_naive is not None:
+            if at_naive > as_of_naive:
+                continue
+        elif day is None or day > day_index:
+            continue
+        key = (day if isinstance(day, int) else -1, at_naive or datetime.min)
+        if latest is None or key >= latest[0]:
+            latest = (key, float(entry["value_mg_dl"]))
+    return latest[1] if latest is not None else None
 
 
 def resolve_daily_trajectory(

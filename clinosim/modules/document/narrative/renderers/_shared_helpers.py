@@ -45,6 +45,22 @@ def pydantic_day_findings_to_dict(day_findings: Any) -> dict[str, Any]:
     return result
 
 
+# Head-to-toe order of the exam systems. ``head`` / ``skin`` / ``umbilicus`` /
+# ``hips`` appear only in the newborn exam set (Issue #3260).
+_EXAM_SYSTEM_ORDER = (
+    "general",
+    "head",
+    "skin",
+    "cardiovascular",
+    "respiratory",
+    "abdominal",
+    "umbilicus",
+    "hips",
+    "neurological",
+    "psychiatric",
+)
+
+
 def format_physical_exam(phys_exam: dict[str, Any], severity: str, lang: str) -> str:
     """Format a physical exam findings dict to a single text string.
 
@@ -57,7 +73,7 @@ def format_physical_exam(phys_exam: dict[str, Any], severity: str, lang: str) ->
         return ""
 
     parts = []
-    for sys_key in ("general", "cardiovascular", "respiratory", "abdominal", "neurological", "psychiatric"):
+    for sys_key in _EXAM_SYSTEM_ORDER:
         entry = phys_exam.get(sys_key)
         if entry is None:
             continue

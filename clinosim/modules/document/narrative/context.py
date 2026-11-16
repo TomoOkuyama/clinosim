@@ -127,6 +127,7 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
         "apgar_1min":      int | None,
         "apgar_5min":      int | None,
         "bilirubin_peak":  float | None,   # mg/dL peak from bilirubin list
+        "bilirubin_series": list[dict],    # {timestamp, day, value_mg_dl} per measurement
         "cchd_ru_spo2":    int | None,     # right-upper SpO2
         "cchd_le_spo2":    int | None,     # lower-extremity SpO2
         "has_aabr":        bool,           # AABR hearing screen Procedure present
@@ -161,13 +162,19 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
     # `value`. Read all three (real shape first) — S114 verify (Issue
     # #1412) found only `value_mg_dl` populated on p=10000 production.
     bili_values: list[float] = []
+    bili_series: list[dict[str, Any]] = []
     for entry in newborn_ext.get("bilirubin") or []:
         val = _o(entry, "value_mg_dl", None) or _o(entry, "total_bilirubin_mg_dl", None) or _o(entry, "value", None)
         if val is not None:
             try:
                 bili_values.append(float(val))
             except (TypeError, ValueError):
-                pass
+                continue
+            # Issue #3260: the dated series, so an exam reports only the
+            # bilirubin measured by its own time.
+            bili_series.append(
+                {"timestamp": _o(entry, "timestamp", None), "day": _o(entry, "day", None), "value_mg_dl": float(val)}
+            )
     bilirubin_peak = max(bili_values) if bili_values else None
 
     # CCHD SpO2 — walk entries for the right-upper (pre-ductal) and
@@ -251,6 +258,7 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
         "apgar_1min": apgar_by_min.get(1),
         "apgar_5min": apgar_by_min.get(5),
         "bilirubin_peak": bilirubin_peak,
+        "bilirubin_series": bili_series,
         "cchd_ru_spo2": cchd_ru,
         "cchd_le_spo2": cchd_le,
         "has_aabr": has_aabr,

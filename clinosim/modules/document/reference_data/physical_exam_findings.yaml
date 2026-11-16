@@ -80,6 +80,66 @@ baseline:
       abdominal: "平坦、軟"
       neurological: "麻痺なし"
 
+# Newborn exam set (Issue #3260). Used instead of ``baseline`` for a patient
+# in the neonatal period (``narrative._narrative_utils.is_neonate``) when the
+# disease authors no exam of its own, in every output language. Elements and
+# normal findings follow Lewis ML, "A Comprehensive Newborn Examination:
+# Part I. General, Head and Neck, Cardiopulmonary" and "Part II. Skin, Trunk,
+# Extremities, Neurologic", Am Fam Physician 2014;90(5):289-296 and 297-302
+# (pink skin, flexed posture, vigorous cry, equal movement of the extremities;
+# anterior fontanelle; equal breath sounds, no retractions / grunting / nasal
+# flaring; benign vs pathologic murmurs; cord checked for bleeding and
+# infection; Barlow and Ortolani maneuvers; tone and the suck, root, grasp
+# and Moro reflexes).
+#
+# ``jaundice`` is the skin finding, chosen by the latest total bilirubin
+# measured by the note's time (none measured: the first band). Each band is
+# the lowest value (mg/dL) at which it applies. The extent follows the Kramer
+# dermal zones (1 head and neck, 2 trunk to the umbilicus, 3 groin and upper
+# thighs, 4 knees / elbows to ankles / wrists, 5 hands and feet) with Kramer's
+# finding that zone 2 corresponds to bilirubin below 12 mg/dL and zone 3
+# below 15 mg/dL, as summarised in Sampurna MTA et al., "Kramer Score, an
+# Evidence of Its Use in Accordance with Indonesian Hyperbilirubinemia
+# Published Guideline", Int J Environ Res Public Health 2021;18:6173. Below
+# 5 mg/dL is reported as no jaundice: total bilirubin >= 5 mg/dL is the
+# jaundice threshold of "The Effect of Maternal Diet on Neonatal Jaundice: A
+# Case-Control Study", Sultan Qaboos Univ Med J 2025.
+neonatal:
+  systems:
+    general:
+      en: "Active, vigorous cry, pink skin, moves all extremities equally"
+      ja: "活気良好、啼泣良好、皮膚色良好、四肢の動きに左右差なし"
+    head:
+      en: "Anterior fontanelle soft and flat"
+      ja: "大泉門平坦・軟"
+    cardiovascular:
+      en: "Regular rhythm, no murmur"
+      ja: "整、心雑音なし"
+    respiratory:
+      en: "Breath sounds clear and equal; no retractions, grunting or nasal flaring"
+      ja: "呼吸音清・左右差なし、陥没呼吸・呻吟・鼻翼呼吸なし"
+    abdominal:
+      en: "Soft, not distended"
+      ja: "平坦、軟、膨満なし"
+    umbilicus:
+      en: "Cord stump without bleeding or signs of infection"
+      ja: "臍帯断端に出血・発赤なし"
+    hips:
+      en: "Barlow and Ortolani negative"
+      ja: "開排制限なし、Barlow・Ortolani テスト陰性"
+    neurological:
+      en: "Normal tone; suck, rooting, grasp and Moro reflexes present"
+      ja: "筋緊張良好、吸啜反射・探索反射・把握反射・モロー反射あり"
+  jaundice:
+    - min_mg_dl: 0
+      text: {en: "No jaundice", ja: "黄疸なし"}
+    - min_mg_dl: 5
+      text: {en: "Mild jaundice of the face and upper trunk", ja: "顔面から体幹上部に軽度の黄疸"}
+    - min_mg_dl: 12
+      text: {en: "Jaundice extending to the lower trunk and thighs", ja: "下腹部から大腿まで黄疸あり"}
+    - min_mg_dl: 15
+      text: {en: "Jaundice extending to the arms and legs", ja: "四肢まで黄疸あり"}
+
 # Per-disease overrides (supplement or replace baseline when present)
 # Only bacterial_pneumonia is populated in Task 5 as structural demonstration.
 # Other priority diseases (aspiration_pneumonia, hemorrhagic_stroke,

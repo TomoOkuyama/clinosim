@@ -294,6 +294,30 @@ def _age_months_at(ctx: NarrativeContext) -> int | None:
     return int(static_age) * 12 if static_age is not None else None
 
 
+def is_neonate(ctx: NarrativeContext) -> bool:
+    """True when ``ctx.patient`` is in the neonatal period at the start of
+    ``ctx.encounter``: age in days from ``date_of_birth`` below
+    ``perinatal.yaml`` ``newborn.neonatal_period_days`` (Issue #3260). The
+    one gate for the newborn variants of the H&P, exam and nursing builders.
+    False when either date is missing."""
+    dates = _birth_and_visit_dates(ctx)
+    if dates is None:
+        return False
+    dob, ref = dates
+    try:
+        days = (ref - dob).days
+    except TypeError:
+        return False
+    return 0 <= days < _neonatal_period_days()
+
+
+@cache
+def _neonatal_period_days() -> int:
+    from clinosim.locale.loader import load_perinatal_config
+
+    return int(load_perinatal_config()["newborn"]["neonatal_period_days"])
+
+
 # ─────────────────────────────────────────────────────────────────
 # Issue #979 / #980: CC × physical_examination consistency helpers
 # ─────────────────────────────────────────────────────────────────

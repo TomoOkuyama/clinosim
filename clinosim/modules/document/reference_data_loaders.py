@@ -44,6 +44,8 @@ _PHYSICAL_EXAM_REQUIRED_BASELINE_DAY = "day_0"
 _PHYSICAL_EXAM_BODY_SYSTEMS = frozenset(
     {"general", "cardiovascular", "respiratory", "abdominal", "neurological", "psychiatric"}
 )
+# Issue #3260: body systems of the newborn exam set only.
+_NEONATAL_EXAM_BODY_SYSTEMS = _PHYSICAL_EXAM_BODY_SYSTEMS | {"head", "skin", "umbilicus", "hips"}
 
 # Required keys in baseline for discharge instructions.
 _DISCHARGE_BASELINE_REQUIRED_KEYS = ("hydrate", "rest", "follow_up")
@@ -123,6 +125,50 @@ def _not_empty(data: Any, file: str) -> Any:
     return data
 
 
+def _english_text(text: dict[str, str]) -> dict[str, str]:
+    if "en" not in text or not str(text["en"]).strip():
+        raise ValueError("a language map needs a non-empty 'en' entry")
+    return text
+
+
+_EnglishLangMap = Annotated[dict[str, str], AfterValidator(_english_text)]
+
+
+class _JaundiceBand(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    min_mg_dl: float = Field(ge=0)
+    text: _EnglishLangMap
+
+
+class NeonatalExam(BaseModel):
+    """The newborn exam set (Issue #3260): one language map per body system
+    and the jaundice bands, ascending from 0 mg/dL."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    systems: dict[str, _EnglishLangMap] = Field(min_length=1)
+    jaundice: list[_JaundiceBand] = Field(min_length=1)
+
+    @field_validator("systems")
+    @classmethod
+    def _known_systems(cls, systems: dict[str, dict[str, str]]) -> dict[str, dict[str, str]]:
+        unknown = set(systems) - _NEONATAL_EXAM_BODY_SYSTEMS
+        if unknown:
+            raise ValueError(
+                f"physical_exam_findings.yaml: neonatal.systems has unknown body systems {sorted(unknown)}"
+            )
+        return systems
+
+    @field_validator("jaundice")
+    @classmethod
+    def _ascending_from_zero(cls, bands: list[_JaundiceBand]) -> list[_JaundiceBand]:
+        lows = [band.min_mg_dl for band in bands]
+        if lows[0] != 0 or lows != sorted(set(lows)):
+            raise ValueError("physical_exam_findings.yaml: neonatal.jaundice must ascend strictly from min_mg_dl 0")
+        return bands
+
+
 class PhysicalExamFindings(BaseModel):
     """Shape of physical_exam_findings.yaml: the baseline must carry the
     ``uncomplicated_improvement`` / ``day_0`` exam with at least one
@@ -132,6 +178,7 @@ class PhysicalExamFindings(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     baseline: dict[str, dict[str, Any]] = Field(min_length=1)
+    neonatal: NeonatalExam
     findings: Any
 
     @model_validator(mode="before")
