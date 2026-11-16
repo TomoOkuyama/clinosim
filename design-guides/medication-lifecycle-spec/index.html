@@ -2487,6 +2487,11 @@
 <td><code>tests/unit/drug_safety/test_antiplatelet_substitution_3234.py</code></td>
 </tr>
 <tr>
+<td>A dose or rate change of a running drug (a disease-course <code>start:</code> entry with <code>adjusts_active: true</code>, the heparin rate increase of DVT / PE) replaces the drug's running order (<code>prior_order_id</code>) and follows that order's gate verdict; in the daily loop's gate a new order of a drug already given is not checked against that drug (<code>same_drug_reorder</code>). Rules between different drugs of a class (heparin and enoxaparin) still apply. A drug-condition skip records the condition as its reason (<code>condition</code> of the rule).</td>
+<td><code>simulator/daily_loop.py</code> (<code>_start_archetype_treatments</code>, <code>_gate_new_medication_orders</code>); <code>simulator/medication_pipeline.py::apply_drug_safety_gate_to_orders</code>; <code>modules/drug_safety/engine.py</code> (<code>check_candidate_against_active</code>, <code>conflict_display</code>)</td>
+<td><code>tests/unit/modules/drug_safety/test_self_conflict_3283.py</code></td>
+</tr>
+<tr>
 <td>Hold rules come from one source at admission, administration and discharge: renal actions per drug, vital-sign hold parameters, the metformin renal threshold.</td>
 <td><code>medication_pipeline.py</code> (<code>renal_medication_rules</code>, <code>mar_vital_hold_reason</code>, <code>metformin_admission_hold_threshold</code>), <code>discharge_rx.py::renal_hold_drugs</code>; data <code>simulator/reference_data/renal_medication_rules.yaml</code>, <code>locale/shared/chronic_medications.yaml</code></td>
 <td><code>tests/unit/test_hold_rules_one_source_2296.py</code>, <code>tests/unit/test_medication_holds_acute_illness_1335.py</code></td>

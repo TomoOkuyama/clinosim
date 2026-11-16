@@ -2487,6 +2487,11 @@
 <td><code>tests/unit/drug_safety/test_antiplatelet_substitution_3234.py</code></td>
 </tr>
 <tr>
+<td>投与中の薬剤の用量・速度の変更(病態経過の <code>start:</code> で <code>adjusts_active: true</code> を持つ項目、DVT・PE のヘパリン速度増量)は、その薬剤の投与中のオーダーを置き換え(<code>prior_order_id</code>)、そのオーダーの gate 判定に従う。日次ループの gate では、投与中の薬剤の新規オーダーをその薬剤自身とは照合しない(<code>same_drug_reorder</code>)。同じ系統の別の薬剤(ヘパリンとエノキサパリン)の規則は従来どおり適用する。薬剤と疾患の規則による回避は、規則の疾患名(<code>condition</code>)を理由として記録する。</td>
+<td><code>simulator/daily_loop.py</code>(<code>_start_archetype_treatments</code>, <code>_gate_new_medication_orders</code>)、<code>simulator/medication_pipeline.py::apply_drug_safety_gate_to_orders</code>、<code>modules/drug_safety/engine.py</code>(<code>check_candidate_against_active</code>, <code>conflict_display</code>)</td>
+<td><code>tests/unit/modules/drug_safety/test_self_conflict_3283.py</code></td>
+</tr>
+<tr>
 <td>保留規則は入院時・投与時・退院時で一つの出所から読む(薬剤ごとの腎機能対応、バイタルの保留条件、メトホルミンの腎機能閾値)。</td>
 <td><code>medication_pipeline.py</code>(<code>renal_medication_rules</code>, <code>mar_vital_hold_reason</code>, <code>metformin_admission_hold_threshold</code>)、<code>discharge_rx.py::renal_hold_drugs</code>。データ <code>simulator/reference_data/renal_medication_rules.yaml</code>, <code>locale/shared/chronic_medications.yaml</code></td>
 <td><code>tests/unit/test_hold_rules_one_source_2296.py</code>, <code>tests/unit/test_medication_holds_acute_illness_1335.py</code></td>
