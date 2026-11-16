@@ -95,18 +95,61 @@ progress:
     ja: "SpO2 改善 (前日 {ps:.0f}% → 本日 {s:.0f}%)。"
     en: "SpO2 recovering (prev {ps:.0f}% → today {s:.0f}%)."
   # Issue #2095: pain / consciousness / withdrawal trends from recorded vitals.
+  # {pain} is the disease's pain (progress_vitals.yaml pain_sites), else
+  # pain_generic (Issue #3235).
+  pain_generic:
+    ja: "疼痛"
+    en: "pain"
   pain_improving:
-    ja: "疼痛改善傾向 (NRS 前日 {p} → 本日 {q})。"
-    en: "Pain improving (NRS {p} → {q})."
+    ja: "{pain}改善傾向 (NRS 前日 {p} → 本日 {q})。"
+    en: "Improving {pain} (NRS {p} → {q})."
   pain_worsening:
-    ja: "疼痛増強 (NRS 前日 {p} → 本日 {q})。"
-    en: "Pain worsening (NRS {p} → {q})."
+    ja: "{pain}増強 (NRS 前日 {p} → 本日 {q})。"
+    en: "Worsening {pain} (NRS {p} → {q})."
   pain_persistent:
-    ja: "疼痛持続 (NRS {q})。"
-    en: "Pain persists (NRS {q})."
+    ja: "{pain}持続 (NRS {q})。"
+    en: "Persistent {pain} (NRS {q})."
   pain_controlled:
-    ja: "疼痛コントロール良好 (NRS {p} → {q})。"
-    en: "Pain well controlled (NRS {p} → {q})."
+    ja: "{pain}コントロール良好 (NRS {p} → {q})。"
+    en: "Well-controlled {pain} (NRS {p} → {q})."
+  # Issues #3235 / #3247: the Objective vitals of a progress note — the
+  # extreme values of the note's period beyond the latest ones, oxygen
+  # weaned within the period, and no reading in the period.
+  vitals_extremes_recent:
+    ja: "(直近{hours}時間: {list})"
+    en: "(past {hours} h: {list})"
+  vitals_extremes_today:
+    ja: "(本日: {list})"
+    en: "(today: {list})"
+  vitals_o2_weaned:
+    ja: "酸素投与終了"
+    en: "weaned off supplemental O2"
+  vitals_none_recent:
+    ja: "直近{hours}時間のバイタル記録なし"
+    en: "No vital signs recorded in the past {hours} h"
+  vitals_none_today:
+    ja: "本日のバイタル記録なし"
+    en: "No vital signs recorded today"
+  # Units as in the vitals line (narrative_text.vital_unit).
+  vital_extreme:
+    temperature_celsius_max:
+      ja: "最高体温 {v:.1f}°C"
+      en: "Tmax {v:.1f}°C"
+    heart_rate_max:
+      ja: "HR 最大 {v:.0f} 回/分"
+      en: "HR max {v:.0f} bpm"
+    heart_rate_min:
+      ja: "HR 最小 {v:.0f} 回/分"
+      en: "HR min {v:.0f} bpm"
+    respiratory_rate_max:
+      ja: "RR 最大 {v:.0f} 回/分"
+      en: "RR max {v:.0f} /min"
+    systolic_bp_min:
+      ja: "収縮期血圧 最低 {v:.0f} mmHg"
+      en: "SBP min {v:.0f} mmHg"
+    spo2_min:
+      ja: "SpO2 最低 {v:.0f}%"
+      en: "SpO2 min {v:.0f}%"
   confusion_new:
     ja: "意識レベル低下あり (AVPU {a})、見当識の確認を継続。"
     en: "New decrease in level of consciousness (AVPU {a}); orientation being monitored."
@@ -509,6 +552,19 @@ oxygen:
   device_line:
     ja: "酸素投与: {device}"
     en: "O2: {device}"
+
+# Supplemental oxygen of a vitals reading in the progress-note Objective
+# (_vitals_line.oxygen_text, Issue #3247).
+vital_o2:
+  device_flow:
+    ja: "{device} {flow} L/分"
+    en: "{device} {flow} L/min"
+  flow_only:
+    ja: "酸素 {flow} L/分"
+    en: "O2 {flow} L/min"
+  unspecified:
+    ja: "酸素投与中"
+    en: "on O2"
 
 # Allergy / criticality parens (JA uses full-width parens).
 allergy:

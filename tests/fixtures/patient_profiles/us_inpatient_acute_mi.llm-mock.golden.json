@@ -76,11 +76,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 116/72 mmHg, HR 111/min, T 36.2°C, SpO2 96% (RA), RR 15/min",
+        "objective": "BP 121/75 mmHg, HR 108 bpm, RR 22 /min, SpO2 98% (RA), T 37.9°C",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 116/72 mmHg, HR 111/min, T 36.2°C, SpO2 96% (RA), RR 15/min\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
+      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 121/75 mmHg, HR 108 bpm, RR 22 /min, SpO2 98% (RA), T 37.9°C\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-03": {
@@ -126,11 +126,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #3 — assessment]",
-        "objective": "BP 115/71 mmHg, HR 109/min, T 37.3°C, SpO2 93%, RR 20/min",
+        "objective": "BP 117/73 mmHg, HR 106 bpm, RR 22 /min, SpO2 99% (RA), T 37.7°C, weaned off supplemental O2 (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)",
         "plan": "[Mock LLM response #3 — plan]",
         "subjective": "[Mock LLM response #3 — subjective]"
       },
-      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 115/71 mmHg, HR 109/min, T 37.3°C, SpO2 93%, RR 20/min\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
+      "text": "S: [Mock LLM response #3 — subjective]\nO: BP 117/73 mmHg, HR 106 bpm, RR 22 /min, SpO2 99% (RA), T 37.7°C, weaned off supplemental O2 (past 24 h: Tmax 39.2°C, HR max 117 bpm, SpO2 min 92%)\nA: [Mock LLM response #3 — assessment]\nP: [Mock LLM response #3 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-04": {
@@ -176,11 +176,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 111/69 mmHg, HR 108/min, T 36.7°C, SpO2 96% (RA), RR 15/min",
+        "objective": "BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (RA), T 37.0°C, weaned off supplemental O2 (past 24 h: Tmax 39.1°C, HR max 117 bpm, RR max 23 /min, SpO2 min 92%)",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 111/69 mmHg, HR 108/min, T 36.7°C, SpO2 96% (RA), RR 15/min\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
+      "text": "S: [Mock LLM response #4 — subjective]\nO: BP 113/68 mmHg, HR 106 bpm, RR 17 /min, SpO2 98% (RA), T 37.0°C, weaned off supplemental O2 (past 24 h: Tmax 39.1°C, HR max 117 bpm, RR max 23 /min, SpO2 min 92%)\nA: [Mock LLM response #4 — assessment]\nP: [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-05": {
@@ -226,11 +226,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 113/71 mmHg, HR 106/min, T 37.5°C, SpO2 96% (RA), RR 20/min",
+        "objective": "BP 113/71 mmHg, HR 102 bpm, RR 20 /min, SpO2 96% (RA), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm, SpO2 min 92%)",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "text": "S: [Mock LLM response #5 — subjective]\nO: BP 113/71 mmHg, HR 106/min, T 37.5°C, SpO2 96% (RA), RR 20/min\nA: [Mock LLM response #5 — assessment]\nP: [Mock LLM response #5 — plan]"
+      "text": "S: [Mock LLM response #5 — subjective]\nO: BP 113/71 mmHg, HR 102 bpm, RR 20 /min, SpO2 96% (RA), T 37.5°C (past 24 h: Tmax 38.8°C, HR max 114 bpm, SpO2 min 92%)\nA: [Mock LLM response #5 — assessment]\nP: [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-06": {
@@ -276,11 +276,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #6 — assessment]",
-        "objective": "BP 116/69 mmHg, HR 102/min, T 36.6°C, SpO2 96% (RA), RR 19/min",
+        "objective": "BP 116/69 mmHg, HR 105 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)",
         "plan": "[Mock LLM response #6 — plan]",
         "subjective": "[Mock LLM response #6 — subjective]"
       },
-      "text": "S: [Mock LLM response #6 — subjective]\nO: BP 116/69 mmHg, HR 102/min, T 36.6°C, SpO2 96% (RA), RR 19/min\nA: [Mock LLM response #6 — assessment]\nP: [Mock LLM response #6 — plan]"
+      "text": "S: [Mock LLM response #6 — subjective]\nO: BP 116/69 mmHg, HR 105 bpm, RR 19 /min, SpO2 94% (RA), T 36.6°C (past 24 h: Tmax 38.1°C, HR max 114 bpm, SpO2 min 93%)\nA: [Mock LLM response #6 — assessment]\nP: [Mock LLM response #6 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-07": {
@@ -326,11 +326,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #7 — assessment]",
-        "objective": "BP 113/71 mmHg, HR 102/min, T 36.5°C, SpO2 95% (RA), RR 15/min",
+        "objective": "BP 113/71 mmHg, HR 103 bpm, RR 15 /min, SpO2 94% (RA), T 36.5°C, weaned off supplemental O2 (past 24 h: Tmax 38.1°C, HR max 112 bpm, SpO2 min 93%)",
         "plan": "[Mock LLM response #7 — plan]",
         "subjective": "[Mock LLM response #7 — subjective]"
       },
-      "text": "S: [Mock LLM response #7 — subjective]\nO: BP 113/71 mmHg, HR 102/min, T 36.5°C, SpO2 95% (RA), RR 15/min\nA: [Mock LLM response #7 — assessment]\nP: [Mock LLM response #7 — plan]"
+      "text": "S: [Mock LLM response #7 — subjective]\nO: BP 113/71 mmHg, HR 103 bpm, RR 15 /min, SpO2 94% (RA), T 36.5°C, weaned off supplemental O2 (past 24 h: Tmax 38.1°C, HR max 112 bpm, SpO2 min 93%)\nA: [Mock LLM response #7 — assessment]\nP: [Mock LLM response #7 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-08": {
@@ -376,11 +376,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #8 — assessment]",
-        "objective": "BP 118/70 mmHg, HR 104/min, T 37.9°C, SpO2 94% (RA), RR 16/min",
+        "objective": "BP 118/70 mmHg, HR 102 bpm, RR 16 /min, SpO2 98% (RA), T 37.9°C (past 24 h: Tmax 38.9°C, HR max 112 bpm, SpO2 min 93%)",
         "plan": "[Mock LLM response #8 — plan]",
         "subjective": "[Mock LLM response #8 — subjective]"
       },
-      "text": "S: [Mock LLM response #8 — subjective]\nO: BP 118/70 mmHg, HR 104/min, T 37.9°C, SpO2 94% (RA), RR 16/min\nA: [Mock LLM response #8 — assessment]\nP: [Mock LLM response #8 — plan]"
+      "text": "S: [Mock LLM response #8 — subjective]\nO: BP 118/70 mmHg, HR 102 bpm, RR 16 /min, SpO2 98% (RA), T 37.9°C (past 24 h: Tmax 38.9°C, HR max 112 bpm, SpO2 min 93%)\nA: [Mock LLM response #8 — assessment]\nP: [Mock LLM response #8 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-09": {
@@ -426,11 +426,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #9 — assessment]",
-        "objective": "BP 114/69 mmHg, HR 102/min, T 36.7°C, SpO2 97% (RA), RR 19/min",
+        "objective": "BP 114/69 mmHg, HR 103 bpm, RR 19 /min, SpO2 96% (RA), T 36.7°C, weaned off supplemental O2 (past 24 h: Tmax 38.2°C, HR max 112 bpm, SpO2 min 92%)",
         "plan": "[Mock LLM response #9 — plan]",
         "subjective": "[Mock LLM response #9 — subjective]"
       },
-      "text": "S: [Mock LLM response #9 — subjective]\nO: BP 114/69 mmHg, HR 102/min, T 36.7°C, SpO2 97% (RA), RR 19/min\nA: [Mock LLM response #9 — assessment]\nP: [Mock LLM response #9 — plan]"
+      "text": "S: [Mock LLM response #9 — subjective]\nO: BP 114/69 mmHg, HR 103 bpm, RR 19 /min, SpO2 96% (RA), T 36.7°C, weaned off supplemental O2 (past 24 h: Tmax 38.2°C, HR max 112 bpm, SpO2 min 92%)\nA: [Mock LLM response #9 — assessment]\nP: [Mock LLM response #9 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-10": {
@@ -476,11 +476,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #10 — assessment]",
-        "objective": "BP 111/71 mmHg, HR 103/min, T 36.9°C, SpO2 97% (RA), RR 18/min",
+        "objective": "BP 111/71 mmHg, HR 100 bpm, RR 18 /min, SpO2 94% (RA), T 36.9°C, weaned off supplemental O2 (past 24 h: Tmax 38.0°C, HR max 109 bpm, SpO2 min 92%)",
         "plan": "[Mock LLM response #10 — plan]",
         "subjective": "[Mock LLM response #10 — subjective]"
       },
-      "text": "S: [Mock LLM response #10 — subjective]\nO: BP 111/71 mmHg, HR 103/min, T 36.9°C, SpO2 97% (RA), RR 18/min\nA: [Mock LLM response #10 — assessment]\nP: [Mock LLM response #10 — plan]"
+      "text": "S: [Mock LLM response #10 — subjective]\nO: BP 111/71 mmHg, HR 100 bpm, RR 18 /min, SpO2 94% (RA), T 36.9°C, weaned off supplemental O2 (past 24 h: Tmax 38.0°C, HR max 109 bpm, SpO2 min 92%)\nA: [Mock LLM response #10 — assessment]\nP: [Mock LLM response #10 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-11": {
@@ -526,11 +526,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #11 — assessment]",
-        "objective": "BP 118/68 mmHg, HR 104/min, T 35.8°C, SpO2 98% (RA), RR 20/min",
+        "objective": "BP 118/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 109 bpm, RR max 21 /min, SpO2 min 93%)",
         "plan": "[Mock LLM response #11 — plan]",
         "subjective": "[Mock LLM response #11 — subjective]"
       },
-      "text": "S: [Mock LLM response #11 — subjective]\nO: BP 118/68 mmHg, HR 104/min, T 35.8°C, SpO2 98% (RA), RR 20/min\nA: [Mock LLM response #11 — assessment]\nP: [Mock LLM response #11 — plan]"
+      "text": "S: [Mock LLM response #11 — subjective]\nO: BP 118/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 109 bpm, RR max 21 /min, SpO2 min 93%)\nA: [Mock LLM response #11 — assessment]\nP: [Mock LLM response #11 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-12": {
@@ -576,11 +576,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #12 — assessment]",
-        "objective": "BP 117/70 mmHg, HR 99/min, T 36.0°C, SpO2 97% (RA), RR 23/min",
+        "objective": "BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)",
         "plan": "[Mock LLM response #12 — plan]",
         "subjective": "[Mock LLM response #12 — subjective]"
       },
-      "text": "S: [Mock LLM response #12 — subjective]\nO: BP 117/70 mmHg, HR 99/min, T 36.0°C, SpO2 97% (RA), RR 23/min\nA: [Mock LLM response #12 — assessment]\nP: [Mock LLM response #12 — plan]"
+      "text": "S: [Mock LLM response #12 — subjective]\nO: BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)\nA: [Mock LLM response #12 — assessment]\nP: [Mock LLM response #12 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-13": {
@@ -626,11 +626,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #13 — assessment]",
-        "objective": "BP 112/69 mmHg, HR 96/min, T 36.4°C, SpO2 96% (RA), RR 17/min",
+        "objective": "BP 112/69 mmHg, HR 100 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)",
         "plan": "[Mock LLM response #13 — plan]",
         "subjective": "[Mock LLM response #13 — subjective]"
       },
-      "text": "S: [Mock LLM response #13 — subjective]\nO: BP 112/69 mmHg, HR 96/min, T 36.4°C, SpO2 96% (RA), RR 17/min\nA: [Mock LLM response #13 — assessment]\nP: [Mock LLM response #13 — plan]"
+      "text": "S: [Mock LLM response #13 — subjective]\nO: BP 112/69 mmHg, HR 100 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)\nA: [Mock LLM response #13 — assessment]\nP: [Mock LLM response #13 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-14": {
@@ -676,11 +676,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #14 — assessment]",
-        "objective": "BP 116/72 mmHg, HR 97/min, T 36.9°C, SpO2 99% (RA), RR 16/min",
+        "objective": "BP 116/72 mmHg, HR 101 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 106 bpm, SpO2 min 93%)",
         "plan": "[Mock LLM response #14 — plan]",
         "subjective": "[Mock LLM response #14 — subjective]"
       },
-      "text": "S: [Mock LLM response #14 — subjective]\nO: BP 116/72 mmHg, HR 97/min, T 36.9°C, SpO2 99% (RA), RR 16/min\nA: [Mock LLM response #14 — assessment]\nP: [Mock LLM response #14 — plan]"
+      "text": "S: [Mock LLM response #14 — subjective]\nO: BP 116/72 mmHg, HR 101 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 106 bpm, SpO2 min 93%)\nA: [Mock LLM response #14 — assessment]\nP: [Mock LLM response #14 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-15": {
@@ -726,11 +726,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #15 — assessment]",
-        "objective": "BP 119/74 mmHg, HR 96/min, T 36.4°C, SpO2 96% (RA), RR 17/min",
+        "objective": "BP 119/74 mmHg, HR 97 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C, weaned off supplemental O2 (past 24 h: HR max 105 bpm, SpO2 min 93%)",
         "plan": "[Mock LLM response #15 — plan]",
         "subjective": "[Mock LLM response #15 — subjective]"
       },
-      "text": "S: [Mock LLM response #15 — subjective]\nO: BP 119/74 mmHg, HR 96/min, T 36.4°C, SpO2 96% (RA), RR 17/min\nA: [Mock LLM response #15 — assessment]\nP: [Mock LLM response #15 — plan]"
+      "text": "S: [Mock LLM response #15 — subjective]\nO: BP 119/74 mmHg, HR 97 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C, weaned off supplemental O2 (past 24 h: HR max 105 bpm, SpO2 min 93%)\nA: [Mock LLM response #15 — assessment]\nP: [Mock LLM response #15 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-16": {

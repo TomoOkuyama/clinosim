@@ -35,8 +35,10 @@ from clinosim.modules.document.narrative._narrative_utils import (
 )
 from clinosim.modules.document.narrative._vitals_line import (
     PHYSICAL_EXAM,
+    PROGRESS_DAY,
     PROGRESS_OBJECTIVE,
     format_vitals_line,
+    latest_vitals_set,
 )
 from clinosim.modules.document.narrative.renderers._shared_helpers import procedure_names
 from clinosim.timeutil import parse_iso_datetime
@@ -78,50 +80,59 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
     neutral-observation vocabulary radiologists / nurses use for a
     day with no acute change, not a fabricated symptom claim.
     """
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import progress_vitals_rules
+
     lang = ctx.target_lang
-    picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
-    prev = _filter_vitals_for_day(ctx.vitals, ctx.day_index - 1, ctx.encounter) if ctx.day_index > 0 else []
+    # Issue #3235: the readings of the note's period and of the previous
+    # period, compared by their extremes (never by single readings).
+    picks = _note_period_vitals(ctx)
+    prev = _note_period_vitals(ctx, previous=True)
     parts: list[str] = []
     los = ctx.los_days or 0
     day_1indexed = ctx.day_index + 1
     if los > 0:
         parts.append(t("progress.hospital_day", lang, day=day_1indexed))
 
+    trend = progress_vitals_rules().trend
     abnormal_added = False
-    if picks:
-        v = picks[0]
-        temp = _o(v, "temperature_celsius", None)
-        spo2 = _o(v, "spo2", None)
-        temp_f = float(temp) if temp is not None else None
-        spo2_f = float(spo2) if spo2 is not None else None
+    tmax, tmin = _extreme(picks, "temperature_celsius", max), _extreme(picks, "temperature_celsius", min)
+    spo2_min = _extreme(picks, "spo2", min)
+    prev_tmax, prev_spo2 = _extreme(prev, "temperature_celsius", max), _extreme(prev, "spo2", min)
 
-        prev_temp = float(_o(prev[0], "temperature_celsius", None) or 0.0) if prev else 0.0
-        prev_spo2 = float(_o(prev[0], "spo2", None) or 0.0) if prev else 0.0
+    if tmax is not None and tmax >= trend.fever_c:
+        if prev_tmax is not None and prev_tmax < trend.fever_c:
+            parts.append(t("progress.fever_new_onset", lang, t=tmax))
+        elif prev_tmax is not None and tmax > prev_tmax + trend.fever_rise_c:
+            parts.append(t("progress.fever_worsening", lang, t=tmax))
+        else:
+            parts.append(t("progress.fever_persistent", lang, t=tmax))
+        abnormal_added = True
+    elif tmin is not None and tmin < trend.hypothermia_below_c:
+        parts.append(t("progress.hypothermia", lang, t=tmin))
+        abnormal_added = True
+    elif (
+        prev_tmax is not None
+        and prev_tmax >= trend.fever_c
+        and tmax is not None
+        and tmax < trend.fever_resolved_below_c
+    ):
+        parts.append(t("progress.fever_resolving", lang, pt=prev_tmax, t=tmax))
+        abnormal_added = True
 
-        if temp_f is not None and temp_f >= 38.0:
-            if prev_temp and prev_temp < 38.0:
-                parts.append(t("progress.fever_new_onset", lang, t=temp_f))
-            elif prev_temp and temp_f > prev_temp + 0.3:
-                parts.append(t("progress.fever_worsening", lang, t=temp_f))
-            else:
-                parts.append(t("progress.fever_persistent", lang, t=temp_f))
-            abnormal_added = True
-        elif temp_f is not None and temp_f < 36.0:
-            parts.append(t("progress.hypothermia", lang, t=temp_f))
-            abnormal_added = True
-        elif prev_temp >= 38.0 and temp_f is not None and temp_f < 37.5:
-            parts.append(t("progress.fever_resolving", lang, pt=prev_temp, t=temp_f))
-            abnormal_added = True
-
-        if spo2_f is not None and spo2_f < 92:
-            if prev_spo2 and spo2_f < prev_spo2 - 2:
-                parts.append(t("progress.spo2_worsening", lang, s=spo2_f))
-            else:
-                parts.append(t("progress.spo2_desaturating", lang, s=spo2_f))
-            abnormal_added = True
-        elif prev_spo2 and prev_spo2 < 92 and spo2_f is not None and spo2_f >= 94:
-            parts.append(t("progress.spo2_recovering", lang, ps=prev_spo2, s=spo2_f))
-            abnormal_added = True
+    if spo2_min is not None and spo2_min < trend.spo2_desaturation_below:
+        if prev_spo2 is not None and spo2_min < prev_spo2 - trend.spo2_drop:
+            parts.append(t("progress.spo2_worsening", lang, s=spo2_min))
+        else:
+            parts.append(t("progress.spo2_desaturating", lang, s=spo2_min))
+        abnormal_added = True
+    elif (
+        prev_spo2 is not None
+        and prev_spo2 < trend.spo2_desaturation_below
+        and spo2_min is not None
+        and spo2_min >= trend.spo2_recovered_at_least
+    ):
+        parts.append(t("progress.spo2_recovering", lang, ps=prev_spo2, s=spo2_min))
+        abnormal_added = True
 
     symptom_parts = _progress_symptom_phrases(ctx, picks, prev, lang)
     parts.extend(symptom_parts)
@@ -131,6 +142,38 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
         phrase = pick_stable_progress_phrase(ctx, lang=lang)
         parts.append(phrase)
     return t("list_sep.chunk", lang).join(parts)
+
+
+def _note_period_vitals(ctx: NarrativeContext, *, previous: bool = False) -> list:
+    """The vital-sign readings of a daily note's period, oldest first
+    (Issues #3235, #3247): with an authored time, those of the
+    ``notable_labs.yaml`` ``window_hours`` up to it (the period since the
+    previous day's note — the window the note's labs and drugs use); without
+    one, those of the note's hospital day. ``previous``: the period before."""
+    from datetime import timedelta
+
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+
+    as_of = getattr(ctx, "authored_datetime", None)
+    if as_of is None:
+        day = ctx.day_index - 1 if previous else ctx.day_index
+        return _filter_vitals_for_day(ctx.vitals, day, ctx.encounter) if day >= 0 else []
+    window = timedelta(hours=notable_lab_rules().window_hours)
+    end = as_of - window if previous else as_of
+    timed = []
+    for i, v in enumerate(ctx.vitals or []):
+        when = parse_iso_datetime(_o(v, "timestamp", None), lenient=True)
+        if when is not None and end - window < when <= end:
+            timed.append((when, i, v))
+    timed.sort(key=lambda x: (x[0], x[1]))
+    return [v for _, _, v in timed]
+
+
+def _extreme(readings: list, attr: str, pick: Any) -> float | None:
+    """``pick`` (``max`` / ``min``) of ``attr`` over ``readings``; ``None``
+    when no reading records it."""
+    values = [float(x) for x in (_o(r, attr, None) for r in readings) if x is not None]
+    return pick(values) if values else None
 
 
 _AVPU_ORDER = {"A": 0, "V": 1, "P": 2, "U": 3}
@@ -153,19 +196,29 @@ def _progress_symptom_phrases(ctx: NarrativeContext, today: list, prev: list, la
         levels = [lv for lv in levels if lv in _AVPU_ORDER]
         return max(levels, key=_AVPU_ORDER.__getitem__) if levels else ""
 
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import progress_vitals_rules
+
+    rules = progress_vitals_rules()
+    avpu, prev_avpu = _worst_avpu(today), _worst_avpu(prev)
+    # Issue #3235: a self-reported score only while the patient can give one
+    # (no behavioural pain scale is recorded), named by the disease's pain.
     pain, prev_pain = _max(today, "pain_score"), _max(prev, "pain_score")
-    if pain is not None:
+    if pain is not None and (not avpu or avpu in rules.self_report_avpu):
+        disease_id = getattr(getattr(ctx, "disease_protocol", None), "disease_id", "") or ""
+        from clinosim.locale.loader import resolve_localized_display
+
+        site = rules.pain_sites.get(disease_id)
+        label = (resolve_localized_display(site, lang, fallback="") if site else "") or t("progress.pain_generic", lang)
         if prev_pain is not None and prev_pain >= _SUBJ_PAIN_NOTABLE and pain < _SUBJ_PAIN_NOTABLE:
-            out.append(t("progress.pain_controlled", lang, p=prev_pain, q=pain))
+            out.append(t("progress.pain_controlled", lang, pain=label, p=prev_pain, q=pain))
         elif pain >= _SUBJ_PAIN_NOTABLE:
             if prev_pain is not None and pain <= prev_pain - _SUBJ_PAIN_CHANGE:
-                out.append(t("progress.pain_improving", lang, p=prev_pain, q=pain))
+                out.append(t("progress.pain_improving", lang, pain=label, p=prev_pain, q=pain))
             elif prev_pain is not None and pain >= prev_pain + _SUBJ_PAIN_CHANGE:
-                out.append(t("progress.pain_worsening", lang, p=prev_pain, q=pain))
+                out.append(t("progress.pain_worsening", lang, pain=label, p=prev_pain, q=pain))
             else:
-                out.append(t("progress.pain_persistent", lang, q=pain))
+                out.append(t("progress.pain_persistent", lang, pain=label, q=pain))
 
-    avpu, prev_avpu = _worst_avpu(today), _worst_avpu(prev)
     if avpu and avpu != "A":
         key = "progress.confusion_persistent" if prev_avpu and prev_avpu != "A" else "progress.confusion_new"
         out.append(t(key, lang, a=avpu))
@@ -354,23 +407,61 @@ def compose_progress_plan_from_state(ctx: NarrativeContext) -> str:
 
 
 def compose_today_vitals_line(ctx: NarrativeContext) -> str:
-    """Compose today's numeric vital-signs summary for inpatient
-    progress_note objective. Filters ``ctx.vitals`` by day, using the
-    explicit ``day`` field when present and falling back to a
-    timestamp-derived day offset against ``ctx.encounter.admission_datetime``
-    when the field is None (which it always is in current CIF fullsets
-    — 346-record admissions store only ISO ``timestamp``, no day tag,
-    so the original day-field filter yielded EVERY vital on every
-    day and the LLM saw the same T=38.1°C repeated for 15
-    consecutive progress notes).
+    """The vital signs of an inpatient progress note's Objective (Issues
+    #3235, #3247), from all readings of the note's period
+    (:func:`_note_period_vitals`): the latest recorded value of each vital,
+    SpO2 with its oxygen therapy (device and flow) or room air, "weaned off
+    O2" when an earlier reading of the period was on oxygen, then the
+    period's extreme values beyond the ``progress_vitals.yaml`` limits that
+    differ from the latest value ("Tmax 38.8°C"). A period without a reading
+    says so (never another period's reading)."""
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
+        notable_lab_rules,
+        progress_vitals_rules,
+    )
 
-    Fallback chain: day-field match → timestamp-derived day →
-    first record (initial admission vitals).
-    """
-    picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
-    if not picks:
-        return ""
-    return format_vitals_line(picks[0], PROGRESS_OBJECTIVE, ctx.target_lang)
+    lang = ctx.target_lang
+    readings = _note_period_vitals(ctx)
+    timed = getattr(ctx, "authored_datetime", None) is not None
+    hours = notable_lab_rules().window_hours
+    if not readings:
+        return t("progress.vitals_none_recent" if timed else "progress.vitals_none_today", lang, hours=hours)
+    latest = latest_vitals_set(readings)
+    bits = [format_vitals_line(latest, PROGRESS_DAY, lang)]
+    if not latest.get("on_supplemental_oxygen") and any(_o(r, "on_supplemental_oxygen", False) for r in readings):
+        bits.append(t("progress.vitals_o2_weaned", lang))
+    line = PROGRESS_DAY.separator.join(b for b in bits if b)
+
+    shown: list[str] = []
+    for rule in progress_vitals_rules().extremes:
+        value = _extreme(readings, rule.vital, max if rule.side == "max" else min)
+        if value is None or value == latest.get(rule.vital):
+            continue
+        limit = _vital_limit(ctx, rule.vital, rule.side, rule.limit)
+        beyond = value > limit if rule.side == "max" else value < limit
+        if beyond or (rule.inclusive and value == limit):
+            shown.append(t(f"progress.vital_extreme.{rule.vital}_{rule.side}", lang, v=value))
+    if shown:
+        key = "progress.vitals_extremes_recent" if timed else "progress.vitals_extremes_today"
+        extremes = t(key, lang, hours=hours, list=t("list_sep.serial", lang).join(shown))
+        line = f"{line} {extremes}" if line else extremes
+    return line
+
+
+def _vital_limit(ctx: NarrativeContext, vital: str, side: str, adult: float) -> float:
+    """The limit of ``vital`` on ``side`` for the patient: the age-banded
+    pediatric range where it lists the vital, else the adult ``limit``. The
+    temperature limit (fever) is the same at any age."""
+    from clinosim.modules.observation.pediatric_ranges import age_in_completed_months, pediatric_vital_range
+
+    if vital == "temperature_celsius":
+        return adult
+    as_of = getattr(ctx, "authored_datetime", None) or _o(getattr(ctx, "encounter", None), "admission_datetime", None)
+    months = age_in_completed_months(_o(getattr(ctx, "patient", None), "date_of_birth", None), as_of)
+    child = pediatric_vital_range(vital, months)
+    if child is None:
+        return adult
+    return child.high if side == "max" else child.low
 
 
 def compose_pe_vitals_line(ctx: NarrativeContext) -> str:

@@ -1,0 +1,111 @@
+# How an inpatient progress note reads the vital signs of its period
+# (Issues #3235, #3247). Read by
+# narrative/_narrative_interpretation_thresholds.py::progress_vitals_rules and
+# applied by narrative/renderers/_composers.py (progress Subjective and the
+# Objective vitals line).
+#
+# A progress note with an authored time summarises the readings of the
+# notable_labs.yaml `window_hours` up to that time (the period since the
+# previous day's note); without an authored time, the readings of its
+# hospital day. The Objective prints the latest recorded value of each vital
+# (with the oxygen device and flow of the SpO2 reading), then the extreme
+# values of the period that are abnormal and differ from the latest value.
+# Trend words in the Subjective (new / persistent / worsening / resolving
+# fever, SpO2 trend) compare the period's extremes with the previous
+# period's extremes, never single readings.
+metadata:
+  kind: reference
+  name: progress_vitals
+  source: clinosim
+
+# Subjective trend thresholds (the values the progress-note composer used
+# inline before Issue #3235).
+#   fever_c: fever at or above 38.0 °C (fever definition used across the
+#     pediatric and adult vital ranges, observation/reference_data/
+#     pediatric_reference_ranges.yaml).
+#   fever_resolved_below_c: a previous-period fever counts as resolving when
+#     the period's maximum is below this.
+#   fever_rise_c: a period maximum this much above the previous maximum is a
+#     worsening fever.
+#   hypothermia_below_c: a period minimum below this is hypothermia.
+#   spo2_desaturation_below / spo2_recovered_at_least / spo2_drop: SpO2
+#     desaturation is a period minimum below 92 % (the oxygen-start trigger of
+#     the vitals generator); recovered when the minimum is back at 94 % or
+#     more; worsening when it fell more than spo2_drop points below the
+#     previous minimum.
+trend:
+  fever_c: 38.0
+  fever_resolved_below_c: 37.5
+  fever_rise_c: 0.3
+  hypothermia_below_c: 36.0
+  spo2_desaturation_below: 92
+  spo2_recovered_at_least: 94
+  spo2_drop: 2
+
+# A self-reported pain score (NRS) is quoted only while the patient's worst
+# AVPU level of the period is one of these. A patient who responds only to
+# pain or not at all cannot self-report; clinosim records no behavioural pain
+# scale (CPOT / BPS / PAINAD), so no pain score is quoted then.
+self_report_avpu: [A, V]
+
+# Extreme values of the period printed after the latest values, when beyond
+# these adult limits (a child is judged against the age-banded range of
+# pediatric_reference_ranges.yaml where it lists the vital). Temperature and
+# SpO2 limits do not depend on age.
+#   temperature_celsius high 38.0: fever.
+#   heart_rate 60-100 /min: AHA/ACC adult resting definition of brady- /
+#     tachycardia.
+#   respiratory_rate high 20 /min: adult reference 12-20 /min.
+#   systolic_bp low 90 mmHg: hypotension (shock work-up cut-off).
+#   spo2 low 94 %: below the BTS 2017 target range of 94-98 % for adults not
+#     at risk of hypercapnia (O'Driscoll BR et al., Thorax 2017;72:i1-i90).
+# Each entry names the side printed (max for a high limit, min for a low one);
+# a value strictly beyond `limit` is printed, or at it too with `inclusive`.
+extremes:
+  - vital: temperature_celsius
+    side: max
+    limit: 38.0
+    inclusive: true
+  - vital: heart_rate
+    side: max
+    limit: 100
+  - vital: heart_rate
+    side: min
+    limit: 60
+  - vital: respiratory_rate
+    side: max
+    limit: 20
+  - vital: systolic_bp
+    side: min
+    limit: 90
+  - vital: spo2
+    side: min
+    limit: 94
+
+# The pain a progress note names with its pain score, by the encounter's
+# disease (disease_id of disease/reference_data/<id>.yaml). A disease not
+# listed has no single pain site (sepsis, pneumonia, heart failure, ...): the
+# note says "pain" without a site. Japanese is the pain noun a Japanese
+# record writes (胸痛, 右下腹部痛); English is the noun phrase.
+pain_sites:
+  acute_appendicitis: {ja: 右下腹部痛, en: right lower quadrant pain}
+  acute_cholecystitis: {ja: 右季肋部痛, en: right upper quadrant pain}
+  acute_mi: {ja: 胸痛, en: chest pain}
+  acute_pancreatitis: {ja: 上腹部痛, en: epigastric pain}
+  crush_injury_hand: {ja: 手部痛, en: hand pain}
+  deep_vein_thrombosis: {ja: 患肢痛, en: pain in the affected leg}
+  diabetic_ketoacidosis: {ja: 腹痛, en: abdominal pain}
+  elective_knee_arthroplasty: {ja: 膝関節部痛, en: knee pain}
+  electrical_injury: {ja: 受傷部痛, en: pain at the injury site}
+  fall_from_height: {ja: 受傷部痛, en: pain at the injury site}
+  hemorrhagic_stroke: {ja: 頭痛, en: headache}
+  hip_fracture: {ja: 股関節部痛, en: hip pain}
+  ileus: {ja: 腹痛, en: abdominal pain}
+  industrial_burn_severe: {ja: 熱傷創部痛, en: burn wound pain}
+  pulmonary_embolism: {ja: 胸痛, en: chest pain}
+  subdural_hematoma: {ja: 頭痛, en: headache}
+  traffic_accident_severe: {ja: 受傷部痛, en: pain at the injury site}
+  urinary_tract_infection: {ja: 側腹部痛, en: flank pain}
+  vertebral_compression_fracture: {ja: 腰背部痛, en: back pain}
+  wrist_fracture_surgical: {ja: 手関節部痛, en: wrist pain}
+  cellulitis: {ja: 患部痛, en: pain at the affected site}
