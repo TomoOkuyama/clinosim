@@ -208,10 +208,15 @@ Inpatient response to a potassium result (Issue #2981), read by
   are held and the order set is placed (6.0).
 - `hold_classes` — catalog classes whose doses are held from the result to
   discharge (`acei`, `arb`, `diuretic.k_sparing`).
+- `hold_while_high_classes` — catalog classes whose doses are held only
+  while the latest potassium before the dose is at or above the threshold
+  (`cardiac_glycoside`, Issue #3232). A held dose's reason is the latest
+  potassium resulted before it.
 - `treatment.<US|JP>` — one-time orders: `drug_id` (catalog), `dose` (the
   parseable order dose, e.g. `1 g IV`) and `dose_text.{en,ja}` (the
   localised instruction); `ongoing: true` (the binder) repeats the entry
-  on consecutive days at or above the threshold.
+  on consecutive days at or above the threshold. The dextrose given with
+  the insulin is its own entry (`dextrose_50`, 50 mL IV; Issue #3232).
 
 ## Adding a new rule
 

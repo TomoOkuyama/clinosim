@@ -190,8 +190,13 @@ def _drug_name_patterns(ja_dict: dict[str, str] | None = None) -> tuple[tuple[re
     cached = _DRUG_PATTERNS_CACHE.get(id(table))
     if cached is not None and cached[0] is table:
         return cached[1]
+    # Issue #3232: word-edge lookarounds instead of ``\b``, so a name that
+    # ends in a symbol ("Dextrose 50%", "4-Factor PCC (Kcentra)") still matches
+    # inside an order string; identical to ``\b`` for names that start and
+    # end with a letter or digit.
     compiled = tuple(
-        (re.compile(r"(?i)\b" + re.escape(k) + r"\b"), v) for k, v in sorted(table.items(), key=lambda x: -len(x[0]))
+        (re.compile(r"(?i)(?<!\w)" + re.escape(k) + r"(?!\w)"), v)
+        for k, v in sorted(table.items(), key=lambda x: -len(x[0]))
     )
     _DRUG_PATTERNS_CACHE[id(table)] = (table, compiled)
     return compiled

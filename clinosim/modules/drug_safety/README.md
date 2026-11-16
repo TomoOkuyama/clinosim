@@ -34,11 +34,12 @@ drug-vs-age/sex (`check_demographic_gate`) and drug-vs-recorded-allergy
 - Inpatient hyperkalemia response (`hyperkalemia.py`,
   `hyperkalemia_response.yaml`, Issue #2981): a resulted potassium
   >= 6.0 mmol/L holds every ACE inhibitor, ARB and potassium-sparing
-  diuretic dose scheduled from that result to discharge (MAR status
-  `held`, reason `K <value> mmol/L`, shown as `Held: ...` / `休薬: ...` in
-  the progress-note plan) and places the country's treatment order set
-  (calcium gluconate, regular insulin with 50% dextrose, a potassium
-  binder) as one-time doses on the first day a result reaches the
+  diuretic dose scheduled from that result to discharge, and digoxin while
+  the latest potassium stays >= 6.0 mmol/L (MAR status `held`, reason
+  `K <value> mmol/L` of the latest potassium before the dose, shown as
+  `Held: ...` / `休薬: ...` in the progress-note plan; Issue #3232) and
+  places the country's treatment order set (calcium gluconate, regular
+  insulin, 50% dextrose 50 mL, a potassium binder) as one-time doses on the first day a result reaches the
   threshold; while it stays there on consecutive days only the binder is
   ordered again.
   Called by the inpatient daily loop; no RNG.

@@ -208,10 +208,14 @@ active 薬と再照合する。最初に conflict の無い entry を採用す�
   (mmol/L、6.0)。
 - `hold_classes` — 結果時刻から退院まで休薬するカタログ class
   (`acei`、`arb`、`diuretic.k_sparing`)。
+- `hold_while_high_classes` — 投与前の最新 K が閾値以上の間だけ休薬する
+  カタログ class (`cardiac_glycoside`、Issue #3232)。休薬理由は投与前に
+  結果が出た最新の K 値。
 - `treatment.<US|JP>` — 単回オーダー: `drug_id` (カタログ)、`dose`
   (解析可能なオーダー用量、例 `1 g IV`)、`dose_text.{en,ja}`
   (各言語の用法指示)、`ongoing: true` (K 吸着薬) は閾値以上が続く日に
-  繰り返す。
+  繰り返す。インスリンとともに投与するブドウ糖は独立したエントリ
+  (`dextrose_50`、50 mL 静注、Issue #3232)。
 
 ## rule の追加手順
 

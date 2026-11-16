@@ -78,6 +78,8 @@ _BRANDS: dict[str, tuple[str, ...]] = {
     "Insulin, Regular, Human": ("インスリンヒト",),
     "Sliding scale insulin": ("インスリンヒト",),
     "Vitamin K": ("フィトナジオン",),
+    # Issue #3232: the catalog name leads with the strength (50%ブドウ糖液).
+    "Dextrose 50%": ("ブドウ糖",),
 }
 
 

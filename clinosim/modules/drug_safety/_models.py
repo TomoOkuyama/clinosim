@@ -256,6 +256,9 @@ class HyperkalemiaResponseFile(BaseModel):
     model_config = ConfigDict(extra="forbid")
     treat_threshold_mmol_l: float = Field(gt=0)
     hold_classes: list[str] = Field(min_length=1)
+    # Issue #3232: held only while the latest potassium is at or above the
+    # threshold (digoxin), not for the rest of the stay.
+    hold_while_high_classes: list[str] = Field(default_factory=list)
     # Keyed by upper-case country code (``clinosim.countries.country_code``).
     treatment: dict[str, list[_HyperkalemiaTreatment]] = Field(min_length=1)
 
@@ -267,7 +270,7 @@ class HyperkalemiaResponseFile(BaseModel):
             raise ValueError(f"treatment keys must be supported country codes, got {unknown}")
         return v
 
-    @field_validator("hold_classes")
+    @field_validator("hold_classes", "hold_while_high_classes")
     @classmethod
     def _classes(cls, v: list[str]) -> list[str]:
         return [_check_class(c) for c in v]

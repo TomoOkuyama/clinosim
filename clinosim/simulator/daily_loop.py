@@ -12,7 +12,7 @@ Function bodies moved verbatim; byte-diff-neutral vs pre-extraction.
 from __future__ import annotations
 
 from copy import deepcopy
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -38,11 +38,13 @@ from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.drug_safety.hyperkalemia import (
     PotassiumHold,
     hyperkalemia_treatment_orders,
+    potassium_history,
     potassium_hold_from_results,
 )
 from clinosim.modules.observation.engine import canonical_lab_name, lab_panel_components, medications_in_effect
 from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.order.engine import (
+    parse_dose_string,
     place_daily_lab_orders,
     place_imaging_orders,
     protocol_drug_order_code,
@@ -591,17 +593,24 @@ def _result_labs(stay: _Stay, run: _Run, day: int, lab_state_pre_update: Physiol
 def _respond_to_hyperkalemia(stay: _Stay, run: _Run, day: int, day_results_start: int) -> None:
     """Issue #2981: a potassium result at or above the treatment threshold
     holds ACE inhibitors, ARBs and potassium-sparing diuretics for the rest of
-    the stay and places the hyperkalemia order set (calcium, insulin with
-    dextrose, a potassium binder) that day — only the binder again while the
-    potassium stays high on consecutive days. No draws: a stay whose potassium
-    stays below the threshold is unchanged."""
+    the stay and places the hyperkalemia order set (calcium, insulin, the
+    dextrose given with it, a potassium binder) that day — only the binder
+    again while the potassium stays high on consecutive days. Issue #3232:
+    the hold carries every potassium resulted so far, so each dose is judged
+    (digoxin) and explained by the latest one. No draws: a stay whose
+    potassium stays below the threshold is unchanged."""
     today = potassium_hold_from_results(run.lab_results[day_results_start:])
+    if run.potassium_hold is None and today is None:
+        return
+    history = potassium_history(run.lab_results)
+    if run.potassium_hold is not None:
+        run.potassium_hold = replace(run.potassium_hold, history=history)
     if today is None:
         return
     continuing = run.hyperkalemia_last_day == day - 1
     run.hyperkalemia_last_day = day
     if run.potassium_hold is None:
-        run.potassium_hold = today
+        run.potassium_hold = replace(today, history=history)
     run.orders.extend(
         hyperkalemia_treatment_orders(
             today,
@@ -611,6 +620,7 @@ def _respond_to_hyperkalemia(stay: _Stay, run: _Run, day: int, day_results_start
             day=day,
             ordered_by=stay.attending_id,
             continuing=continuing,
+            parse_dose=parse_dose_string,
         )
     )
 

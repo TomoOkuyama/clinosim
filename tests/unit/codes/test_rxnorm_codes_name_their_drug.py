@@ -33,6 +33,7 @@ _SYNONYMS: dict[str, str] = {
     "Buscopan 10mg": "butylscopolamine",
     "Buscopan 20mg": "butylscopolamine",
     "Crystalloid": "sodium",
+    "Dextrose 50%": "glucose",
     "Hypertonic Saline": "sodium",
     "Hypertonic Saline 23.4%": "sodium",
     "Hypertonic saline": "sodium",
