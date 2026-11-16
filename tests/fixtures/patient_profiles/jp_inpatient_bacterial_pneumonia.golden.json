@@ -2237,7 +2237,8 @@
         "ctx.procedures[PROC-FORCED-0001-002]",
         "ctx.procedures.specimens_sent",
         "ctx.procedures[PROC-FORCED-0001-002]",
-        "ctx.procedures.outcome_code"
+        "ctx.procedures.outcome_code",
+        "ctx.procedures.procedure_type"
       ],
       "generated_at": "2024-06-15T17:29:38.724512+09:00",
       "generator": "template",
@@ -2251,7 +2252,7 @@
         "pn_consent": "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。",
         "pn_course": "処置経過: 所要時間37分にて実施。手技は問題なく完遂した。",
         "pn_performer": "実施者: 若林 淳医師。",
-        "pn_postop_plan": "術後方針: バイタル・穿刺部位（挿入部）を経時的に観察し、合併症の早期発見に努める。翌日以降にフォロー画像・検査を予定する。",
+        "pn_postop_plan": "術後方針: 咽頭麻酔が切れるまで絶飲食とし、SpO2と血痰の有無を観察する。",
         "pn_procedure_name": "処置名: 気管支ファイバースコピー（D302）／術式区分: 気管支鏡検査。",
         "pn_specimens": "検体の有無: 検体採取なし。"
       },

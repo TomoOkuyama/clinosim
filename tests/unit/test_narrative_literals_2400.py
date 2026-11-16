@@ -21,7 +21,6 @@ _MATCH_KEYS = {
     "renderers/_composers.py": {"意識清明", "呼吸音清明"},
     "context.py": {"代謝異常", "フィトナジオン", "エリスロマイシン"},
     "renderers/section_builders/mortality.py": {"蘇生", "心肺蘇生"},
-    "renderers/section_builders/op_pn_notes.py": {"アプローチ"},
     "_patient_info_renderers.py": {"就業中"},
     "semantic_check.py": {"改善後のセクション本文"},
 }

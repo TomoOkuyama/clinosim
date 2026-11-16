@@ -128,6 +128,13 @@ an ASA class. A bedside, age-gated or intubation record takes the
 catalog's anesthesia and the caller's `performer_id` (the encounter's
 attending) as `primary_surgeon_id`, and has no blood loss or ASA class.
 
+Aftercare (Issue #3257): each catalog entry with a procedure or operative
+note carries an `aftercare` category (`urinary_catheter`, `central_line`,
+`vascular_access`, `surgical_wound`, ...; read by
+`clinosim.codes.procedures.procedure_aftercare`). The notes write the
+category's `procedure_aftercare.<category>` phrase as the post-procedure
+plan; a type without one gets the `general` plan.
+
 ## Determinism
 
 - No sub-seed offset in `ENRICHER_SEED_OFFSETS`. Every entry point

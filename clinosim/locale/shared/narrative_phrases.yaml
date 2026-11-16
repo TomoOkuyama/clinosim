@@ -1161,9 +1161,6 @@ op_note:
   postop_dest_ward:
     ja: "病棟にて経過観察"
     en: "ward-level monitoring"
-  postop_monitor:
-    ja: "バイタルサイン・尿量・創部所見を頻回に観察し、術後合併症の早期発見に努める。"
-    en: "Vital signs, urine output, and wound assessment will be checked at frequent intervals to detect postoperative complications early."
   # Op-note procedure_name + anesthesia + surgeon + findings + course
   # + specimens + blood_loss composers (Phase 1d-24). Each key covers
   # a headed line whose sub-parts (approach / code / duration paren,
@@ -1258,6 +1255,70 @@ op_note:
     ja: "、術中輸血なし"
     en: "; no intraoperative transfusion"
 
+# Care after a procedure, by the catalog's ``aftercare`` category
+# (codes/data/clinosim-procedure-catalog.yaml; Issue #3257). The procedure
+# note writes it as the post-procedure plan; the operative note writes it after
+# the recovery destination. ``general`` is the plan of a procedure type the
+# catalog gives no category.
+procedure_aftercare:
+  general:
+    ja: "バイタルサインを観察し、手技に伴う合併症の早期発見に努める。"
+    en: "Vital signs will be monitored for early detection of procedure-related complications."
+  surgical_wound:
+    ja: "バイタルサイン・尿量・創部所見を頻回に観察し、術後合併症の早期発見に努める。"
+    en: "Vital signs, urine output, and wound assessment will be checked at frequent intervals to detect postoperative complications early."
+  neurosurgical:
+    ja: "意識レベル・瞳孔所見・四肢の動きとバイタルサイン、創部を頻回に観察し、再出血などの術後合併症の早期発見に努める。"
+    en: "Level of consciousness, pupils, limb movement, vital signs, and the wound will be checked at frequent intervals to detect rebleeding and other postoperative complications early."
+  vascular_access:
+    ja: "穿刺部の止血と末梢動脈の触知を確認し、心電図モニターで胸部症状・ST変化を観察する。"
+    en: "Access-site hemostasis and distal pulses will be checked, and the ECG and chest symptoms monitored for recurrent ischemia."
+  device_pocket:
+    ja: "創部（ジェネレーター植込み部）の血腫・感染徴候を観察し、心電図モニターでペーシング・センシング不全の有無を確認する。"
+    en: "The generator pocket will be checked for hematoma and signs of infection, and pacing and sensing confirmed on ECG monitoring."
+  urinary_catheter:
+    ja: "尿量・尿の性状を観察し、カテーテルの屈曲・閉塞や尿路感染徴候に注意する。不要となれば速やかに抜去する。"
+    en: "Urine output and appearance will be monitored, the catheter checked for kinking or blockage, and signs of urinary tract infection watched for. The catheter will be removed as soon as it is no longer needed."
+  gastric_tube:
+    ja: "使用前にチューブ先端の位置を確認し、排液量・性状と鼻腔の皮膚トラブルを観察する。"
+    en: "Tube position will be confirmed before use, and drainage volume and character and the nasal skin monitored."
+  ileus_tube:
+    ja: "排液量・性状と腹部症状を観察し、腹部X線でチューブの進み具合を確認する。"
+    en: "Drainage volume and character and abdominal symptoms will be monitored, and tube advancement checked on abdominal X-ray."
+  central_line:
+    ja: "胸部X線でカテーテル先端位置と気胸の有無を確認し、刺入部の出血・感染徴候を観察する。"
+    en: "Catheter tip position will be confirmed and pneumothorax excluded on chest X-ray, and the insertion site monitored for bleeding and signs of infection."
+  arterial_line:
+    ja: "動脈圧波形を確認し、刺入部の出血・血腫と末梢循環を観察する。"
+    en: "The arterial waveform will be checked, and the insertion site monitored for bleeding or hematoma and distal perfusion."
+  lumbar_puncture:
+    ja: "穿刺部の出血・髄液漏出と穿刺後頭痛の有無を観察する。"
+    en: "The puncture site will be monitored for bleeding or leakage, and post-dural puncture headache watched for."
+  thoracentesis:
+    ja: "呼吸状態・SpO2を観察し、胸部X線で気胸の有無を確認する。"
+    en: "Breathing and SpO2 will be monitored, and pneumothorax excluded on chest X-ray."
+  chest_tube:
+    ja: "排液量・性状とエアリークの有無、呼吸状態を観察し、胸部X線でドレーン位置と肺の再膨張を確認する。"
+    en: "Drainage volume and character, air leak, and breathing will be monitored, and tube position and lung re-expansion checked on chest X-ray."
+  paracentesis:
+    ja: "血圧の変動と穿刺部からの腹水漏出を観察する。"
+    en: "Blood pressure and the puncture site for ascitic fluid leakage will be monitored."
+  intubation:
+    ja: "カプノメトリと胸部X線で気管チューブの位置を確認し、カフ圧を管理しつつ人工呼吸管理を継続する。"
+    en: "Endotracheal tube position will be confirmed by capnography and chest X-ray, and mechanical ventilation continued with cuff pressure management."
+  cardioversion:
+    ja: "鎮静から覚醒するまで意識レベル・呼吸状態を観察し、心電図モニターで調律を確認する。"
+    en: "Level of consciousness and breathing will be observed until recovery from sedation, and the rhythm monitored on ECG."
+  blood_transfusion:
+    ja: "輸血副反応の有無をバイタルサインとともに観察し、輸血後にヘモグロビン値を再検する。"
+    en: "Vital signs will be monitored for transfusion reactions, and hemoglobin rechecked after the transfusion."
+  dialysis:
+    ja: "透析後の血圧・体液バランスと電解質を確認し、バスキュラーアクセス部の出血を観察する。"
+    en: "Blood pressure, fluid balance, and electrolytes will be checked after the session, and the vascular access site monitored for bleeding."
+  bronchoscopy:
+    ja: "咽頭麻酔が切れるまで絶飲食とし、SpO2と血痰の有無を観察する。"
+    en: "Nothing by mouth until the topical throat anesthesia wears off; SpO2 and hemoptysis will be monitored."
+
 # Procedure note (処置記録) fallbacks — separate from op_note.
 proc_note:
   procedure_not_documented:
@@ -1301,9 +1362,11 @@ proc_note:
   postop_unsuccessful:
     ja: "術後方針: 手技目的を達成できなかったため、代替治療（外科的介入 または内視鏡的再アプローチ）を検討する。バイタル・症状の変化を厳重に監視する。"
     en: "Post-procedure plan: because the intended goal was not achieved, alternative therapy (surgical or repeat endoscopic approach) will be considered. Continue close monitoring of vitals and symptoms."
-  postop_baseline:
-    ja: "術後方針: バイタル・穿刺部位（挿入部）を経時的に観察し、合併症の早期発見に努める。翌日以降にフォロー画像・検査を予定する。"
-    en: "Post-procedure plan: monitor vitals and the puncture / insertion site serially for early detection of complications. Follow-up imaging or labs will be scheduled the next day."
+  # Issue #3257: the plan is the procedure's aftercare
+  # (``procedure_aftercare.<category>``, category from the procedure catalog).
+  postop_plan_line:
+    ja: "術後方針: {plan}"
+    en: "Post-procedure plan: {plan}"
   # Procedure-name composer sub-parts (Phase 1d-25).
   procedure_head:
     ja: "処置名: {display}"

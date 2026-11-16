@@ -18,13 +18,13 @@ their own ``_pn_resolve_procedure`` helper (also moved here).
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import display as registry_display
 from clinosim.codes import lookup as code_lookup
-from clinosim.codes.procedures import specimen_label
-from clinosim.codes.snomed_concepts import PROCEDURE_PARTIALLY_SUCCESSFUL, PROCEDURE_UNSUCCESSFUL
+from clinosim.codes.procedures import procedure_aftercare, specimen_label
+from clinosim.codes.snomed_concepts import PROCEDURE_UNSUCCESSFUL
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import load_narrative_labels
 from clinosim.locale.loader import narrative_label as _label
@@ -35,9 +35,11 @@ from clinosim.modules.document.narrative._localization import (
     _localize_op_approach,
     _localize_op_implant,
     _localize_proc_type,
+    _op_approach_is_phrase,
 )
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
+from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext
 
 if TYPE_CHECKING:
@@ -177,16 +179,15 @@ def build_op_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     end_dt = _o(proc, "end_datetime", None)
     approach_part = ""
     if approach:
-        # Phase 1d-78: widen from endswith to substring — the raw
-        # yaml fallback strings (e.g. "laparoscopic approach with
-        # 4-port technique") carry "approach" in the MIDDLE, not
-        # at the end. Endswith-only detection let the template
-        # append a second " approach" → "…technique approach"
-        # (US) or "…technique アプローチにて" (JA on unmapped
-        # composite). Substring detection catches both cases.
-        approach_lower = approach.lower()
-        already_has_suffix = "approach" in approach_lower or "アプローチ" in approach
-        key = "op_note.course_approach_part_bare" if already_has_suffix else "op_note.course_approach_part"
+        # Issue #3284: an approach entry marked ``phrase`` in
+        # narrative_op_approach.yaml is a whole description ("medial
+        # parapatellar approach", 「3ポート法」) that takes no "approach" /
+        # 「アプローチ」 suffix; a single token ("laparoscopic") does.
+        key = (
+            "op_note.course_approach_part_bare"
+            if _op_approach_is_phrase(approach_raw)
+            else "op_note.course_approach_part"
+        )
         approach_part = t(key, lang, approach=approach)
     time_part = ""
     if isinstance(start_dt, datetime) and isinstance(end_dt, datetime):
@@ -284,21 +285,46 @@ def build_op_equipment(generator: TemplateNarrativeGenerator, ctx: NarrativeCont
 
 @section("op_postop_plan")
 def build_op_postop_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """術後方針 — recovery destination + monitoring plan (derived)."""
+    """術後方針 — recovery destination + the procedure's aftercare.
+
+    Issue #3257: the destination is where the patient was when the procedure
+    ended (ICU or ward), not inferred from complications; the monitoring
+    sentence is the catalog aftercare of the procedure type (access site
+    after PCI, wound after open surgery)."""
     lang = ctx.target_lang
     proc = generator._primary_surgical_procedure(ctx)
     if proc is None:
         return t("op_note.postop_plan_not_documented", lang), []
-    facts = ["ctx.procedures"]
+    facts = ["ctx.procedures", "ctx.icu_transferred_day"]
+    in_icu = _in_icu_at(ctx, _o(proc, "end_datetime", None) or _o(proc, "start_datetime", None))
+    dest = t("op_note.postop_dest_icu" if in_icu else "op_note.postop_dest_ward", lang)
+    return t("op_note.postop_plan_line", lang, dest=dest, monitor=_aftercare_text(proc, lang)), facts
+
+
+def _in_icu_at(ctx: NarrativeContext, when: Any) -> bool:
+    """Whether the patient was in the ICU at ``when``: an ICU encounter, or a
+    stay transferred to the ICU on or before that time. The ICU period starts
+    ``icu_transferred_day`` days after admission and lasts to discharge, the
+    interval FHIR ``Encounter.classHistory`` gives it. A transfer with no
+    recorded day counts for the whole stay."""
     enc_type_raw = _o(ctx.encounter, "encounter_type", None)
-    enc_type = str(_o(enc_type_raw, "value", enc_type_raw) or "").lower()
-    outcome_code = str(_o(proc, "outcome_code", "") or "")
-    intraop = list(_o(proc, "intraop_complications", []) or [])
-    # Recovery destination: ICU/high-acuity or general ward
-    icu_flag = enc_type == "icu" or bool(intraop) or outcome_code == PROCEDURE_PARTIALLY_SUCCESSFUL
-    dest = t("op_note.postop_dest_icu" if icu_flag else "op_note.postop_dest_ward", lang)
-    monitor = t("op_note.postop_monitor", lang)
-    return t("op_note.postop_plan_line", lang, dest=dest, monitor=monitor), facts
+    if str(_o(enc_type_raw, "value", enc_type_raw) or "").lower() == "icu":
+        return True
+    if not getattr(ctx, "icu_transferred", False):
+        return False
+    day = getattr(ctx, "icu_transferred_day", -1)
+    admitted = parse_iso_datetime(_o(ctx.encounter, "admission_datetime", None), lenient=True)
+    at = parse_iso_datetime(when, lenient=True)
+    if not isinstance(day, int) or day < 0 or admitted is None or at is None:
+        return True
+    return at >= admitted + timedelta(days=day)
+
+
+def _aftercare_text(proc: Any, lang: str) -> str:
+    """The aftercare sentence of a procedure: ``procedure_aftercare.<category>``
+    for the catalog category of its type, else the ``general`` one."""
+    category = procedure_aftercare(str(_o(proc, "procedure_type", "") or ""))
+    return (t(f"procedure_aftercare.{category}", lang) if category else "") or t("procedure_aftercare.general", lang)
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -504,15 +530,18 @@ def build_pn_specimens(generator: TemplateNarrativeGenerator, ctx: NarrativeCont
 
 @section("pn_postop_plan")
 def build_pn_postop_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """術後方針 / Post-procedure plan — outcome-aware boilerplate."""
+    """術後方針 / Post-procedure plan — the procedure's aftercare.
+
+    An unsuccessful procedure gets the escalation-of-care plan; otherwise the
+    plan is the catalog aftercare of the procedure type (Issue #3257: catheter
+    care after a urinary catheter, tube position after intubation), never one
+    puncture-site / follow-up-imaging boilerplate for every procedure."""
     lang = ctx.target_lang
     proc, facts = _pn_resolve_procedure(ctx)
     if proc is None:
         return t("proc_note.postop_plan_not_documented", lang), facts
     outcome_code = str(_o(proc, "outcome_code", "") or "")
-    facts.append("ctx.procedures.outcome_code")
-    # Simple, defensible plans: baseline monitoring for successful
-    # procedures; escalation-of-care phrasing for unsuccessful ones.
+    facts.extend(["ctx.procedures.outcome_code", "ctx.procedures.procedure_type"])
     if outcome_code == PROCEDURE_UNSUCCESSFUL:
         return t("proc_note.postop_unsuccessful", lang), facts
-    return t("proc_note.postop_baseline", lang), facts
+    return t("proc_note.postop_plan_line", lang, plan=_aftercare_text(proc, lang)), facts

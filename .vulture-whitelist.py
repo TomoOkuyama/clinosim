@@ -993,3 +993,4 @@ _.care_supportive_types  # order _AdmissionOrderSets field (validated yaml key, 
 _.jaundice  # document/reference_data_loaders.py NeonatalExam (Pydantic field; read from the YAML dict in _resolvers.resolve_neonatal_exam, Issue #3260)
 _.exclude_conditions  # document DischargeInstructionGate field (validated yaml key, read by key, Issue #3254)
 _.chronic_condition_stages  # observation _MorseForgetsLimitations field (validated yaml key, read by key, Issue #3307)
+PROCEDURE_PARTIALLY_SUCCESSFUL  # codes/snomed_concepts.py named concept guarded against bare literals by tests/unit/test_code_references_2290.py (no reader after Issue #3257)

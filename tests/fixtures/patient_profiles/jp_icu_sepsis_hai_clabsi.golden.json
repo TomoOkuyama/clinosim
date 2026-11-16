@@ -1311,7 +1311,8 @@
         "ctx.procedures[PROC-FORCED-0001-002]",
         "ctx.procedures.specimens_sent",
         "ctx.procedures[PROC-FORCED-0001-002]",
-        "ctx.procedures.outcome_code"
+        "ctx.procedures.outcome_code",
+        "ctx.procedures.procedure_type"
       ],
       "generated_at": "2024-06-15T04:42:31.801622+09:00",
       "generator": "template",
@@ -1325,7 +1326,7 @@
         "pn_consent": "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。",
         "pn_course": "処置経過: 所要時間29分にて実施。手技は問題なく完遂した。",
         "pn_performer": "実施者: 石山 ミツ医師。",
-        "pn_postop_plan": "術後方針: バイタル・穿刺部位（挿入部）を経時的に観察し、合併症の早期発見に努める。翌日以降にフォロー画像・検査を予定する。",
+        "pn_postop_plan": "術後方針: 尿量・尿の性状を観察し、カテーテルの屈曲・閉塞や尿路感染徴候に注意する。不要となれば速やかに抜去する。",
         "pn_procedure_name": "処置名: 留置カテーテル設置（J063）／術式区分: 尿道カテーテル挿入。",
         "pn_specimens": "検体の有無: 検体採取なし。"
       },
@@ -1352,7 +1353,8 @@
         "ctx.procedures[PROC-FORCED-0001-003]",
         "ctx.procedures.specimens_sent",
         "ctx.procedures[PROC-FORCED-0001-003]",
-        "ctx.procedures.outcome_code"
+        "ctx.procedures.outcome_code",
+        "ctx.procedures.procedure_type"
       ],
       "generated_at": "2024-06-15T03:21:02.833955+09:00",
       "generator": "template",
@@ -1366,7 +1368,7 @@
         "pn_consent": "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。",
         "pn_course": "処置経過: 所要時間10分にて実施。手技は問題なく完遂した。",
         "pn_performer": "実施者: 石山 ミツ医師。",
-        "pn_postop_plan": "術後方針: バイタル・穿刺部位（挿入部）を経時的に観察し、合併症の早期発見に努める。翌日以降にフォロー画像・検査を予定する。",
+        "pn_postop_plan": "術後方針: 胸部X線でカテーテル先端位置と気胸の有無を確認し、刺入部の出血・感染徴候を観察する。",
         "pn_procedure_name": "処置名: 中心静脈注射用カテーテル挿入（G005-2）／術式区分: 中心静脈カテーテル挿入。",
         "pn_specimens": "検体の有無: 検体採取なし。"
       },
@@ -1393,7 +1395,8 @@
         "ctx.procedures[PROC-FORCED-0001-004]",
         "ctx.procedures.specimens_sent",
         "ctx.procedures[PROC-FORCED-0001-004]",
-        "ctx.procedures.outcome_code"
+        "ctx.procedures.outcome_code",
+        "ctx.procedures.procedure_type"
       ],
       "generated_at": "2024-06-15T13:36:46.728214+09:00",
       "generator": "template",
@@ -1407,7 +1410,7 @@
         "pn_consent": "インフォームド・コンセント: 患者本人（または家族）に手技の目的・方法・予想される合併症について文書で説明し、同意を得た。",
         "pn_course": "処置経過: 所要時間39分にて実施。手技は問題なく完遂した。",
         "pn_performer": "実施者: 石山 ミツ医師。",
-        "pn_postop_plan": "術後方針: バイタル・穿刺部位（挿入部）を経時的に観察し、合併症の早期発見に努める。翌日以降にフォロー画像・検査を予定する。",
+        "pn_postop_plan": "術後方針: 動脈圧波形を確認し、刺入部の出血・血腫と末梢循環を観察する。",
         "pn_procedure_name": "処置名: 観血的動脈圧測定（D225）／術式区分: 動脈ライン挿入。",
         "pn_specimens": "検体の有無: 検体採取なし。"
       },

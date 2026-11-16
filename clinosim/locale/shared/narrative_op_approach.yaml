@@ -1,6 +1,13 @@
 # Operative-note surgical-approach localization (single-word + composite).
 #
-# Format: <slug>: {en: <english>, ja: <日本語>}
+# Format: <lower-cased approach>: {en: <english>, ja: <日本語>, phrase: <bool>}
+# The key is the `procedure.approach` value of a disease YAML
+# (modules/disease/reference_data/*.yaml), lower-cased; every such value has an
+# entry with `en` and `ja` (guard: tests/unit/test_procedure_aftercare_plan_3257.py,
+# Issue #3284). An entry without `en` reads as its key in English.
+# `phrase: true` marks a whole description ("medial parapatellar approach",
+# 「3ポート法」): the operative course writes it as it is, while a single token
+# ("laparoscopic") takes the "approach" / 「アプローチ」 suffix.
 # Add new language: extend each entry with `<lang_code>: <display>`.
 # Load via ``clinosim.locale.loader.load_narrative_op_approach()``.
 
@@ -10,20 +17,29 @@ metadata:
   source: clinosim
 
 op_approach:
-  anterior approach: {ja: 前方アプローチ}
+  anterior approach: {ja: 前方アプローチ, phrase: true}
   endovascular: {en: endovascular, ja: 血管内}
-  kocher incision: {ja: コッハー切開}
+  kocher incision: {en: Kocher incision, ja: コッハー切開, phrase: true}
   laparoscopic: {en: laparoscopic, ja: 腹腔鏡下}
-  lateral approach: {ja: 外側アプローチ}
-  lateral approach to proximal femur: {ja: 大腿骨近位部への外側アプローチ}
-  mcburney incision: {ja: マクバーニー切開}
-  medial approach: {ja: 内側アプローチ}
-  median sternotomy: {ja: 胸骨正中切開}
-  midline laparotomy: {ja: 正中切開}
+  lateral approach: {ja: 外側アプローチ, phrase: true}
+  lateral approach to proximal femur: {en: lateral approach to proximal femur, ja: 大腿骨近位部への外側アプローチ, phrase: true}
+  mcburney incision: {en: McBurney incision, ja: マクバーニー切開, phrase: true}
+  medial approach: {ja: 内側アプローチ, phrase: true}
+  median sternotomy: {ja: 胸骨正中切開, phrase: true}
+  midline laparotomy: {ja: 正中切開, phrase: true}
   open: {en: open, ja: 開腹}
   percutaneous: {en: percutaneous, ja: 経皮的}
-  posterior approach: {ja: 後方アプローチ}
-  posterolateral approach to hip joint: {ja: 股関節への後外側アプローチ}
+  posterior approach: {ja: 後方アプローチ, phrase: true}
+  posterolateral approach to hip joint: {en: posterolateral approach to hip joint, ja: 股関節への後外側アプローチ, phrase: true}
   robotic: {en: robotic-assisted, ja: ロボット支援下}
   thoracoscopic: {en: thoracoscopic, ja: 胸腔鏡下}
-  transverse laparotomy: {ja: 横切開}
+  transverse laparotomy: {ja: 横切開, phrase: true}
+  # Whole-phrase approaches of the surgical disease protocols (Issue #3284).
+  laparoscopic approach with 3-port technique: {en: laparoscopic approach with 3-port technique, ja: 3ポート法, phrase: true}
+  laparoscopic approach with 4-port technique: {en: laparoscopic approach with 4-port technique, ja: 4ポート法, phrase: true}
+  medial parapatellar approach: {en: medial parapatellar approach, ja: 内側傍膝蓋アプローチ, phrase: true}
+  volar approach (modified henry) to distal radius: {en: volar approach (modified Henry) to distal radius, ja: 橈骨遠位端への掌側アプローチ（Henry 変法）, phrase: true}
+  open reduction and internal fixation: {en: open reduction and internal fixation, ja: 観血的整復固定術, phrase: true}
+  debridement, fixation, and tendon/nerve repair: {en: "debridement, fixation, and tendon/nerve repair", ja: デブリードマン・骨接合・腱/神経修復, phrase: true}
+  midline laparotomy for abdominal exploration and damage control: {en: midline laparotomy for abdominal exploration and damage control, ja: 正中切開による開腹・ダメージコントロール手術, phrase: true}
+  staged escharectomy followed by split-thickness autograft: {en: staged escharectomy followed by split-thickness autograft, ja: 段階的焼痂切除後の分層植皮, phrase: true}

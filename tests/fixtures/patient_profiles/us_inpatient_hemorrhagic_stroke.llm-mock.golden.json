@@ -1036,7 +1036,8 @@
         "ctx.procedures",
         "ctx.procedures",
         "ctx.procedures",
-        "ctx.procedures"
+        "ctx.procedures",
+        "ctx.icu_transferred_day"
       ],
       "generated_at": "2024-06-15T11:26:33.768897Z",
       "generator": "llm-mock",

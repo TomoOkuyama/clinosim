@@ -38,8 +38,6 @@ _ALLOWED: dict[str, set[str]] = {
     "modules/document/narrative/context.py": {"エリスロマイシン", "フィトナジオン", "代謝異常"},
     # keywords matched against input text
     "modules/document/narrative/renderers/_composers.py": {"呼吸音清明", "意識清明"},
-    # keywords matched against input text
-    "modules/document/narrative/renderers/section_builders/op_pn_notes.py": {"アプローチ"},
     # a leakage-detection pattern
     "modules/document/narrative/semantic_check.py": {"改善後のセクション本文"},
     # regexes that parse ordered imaging names

@@ -13,6 +13,14 @@
 # visit), and peripheral IV placement has no separate fee in the 点数表.
 # `named` (end of file) names further procedure types that are not bedside
 # procedures. Read through clinosim.codes.procedures.
+#
+# `aftercare` (Issue #3257) is the category of care after the procedure; it
+# selects the post-procedure plan the operative / procedure note writes (text
+# per category: `procedure_aftercare.<category>` in
+# locale/shared/narrative_phrases.yaml, read through
+# clinosim.codes.procedures.procedure_aftercare). A type without it gets the
+# `general` plan. Every procedure type that has a procedure note
+# (modules/document/reference_data/bedside_procedure_codes.yaml) carries one.
 
 metadata:
   kind: catalog
@@ -33,20 +41,20 @@ specimens:
   laparoscopic cholecystectomy: [gallbladder]
 
 bedside:
-  - {type: urinary_catheter, cpt: "51702", k_code: "J063", name: {en: "Urinary catheter insertion", ja: "尿道カテーテル挿入"}, anesthesia: none}
-  - {type: central_line, cpt: "36556", k_code: "G005-2", name: {en: "Central venous catheter insertion", ja: "中心静脈カテーテル挿入"}, anesthesia: local}
-  - {type: arterial_line, cpt: "36620", k_code: "D225", name: {en: "Arterial line insertion", ja: "動脈ライン挿入"}, anesthesia: local}
-  - {type: lumbar_puncture, cpt: "62270", k_code: "D403", name: {en: "Lumbar puncture", ja: "腰椎穿刺"}, anesthesia: local}
-  - {type: thoracentesis, cpt: "32555", k_code: "J008", name: {en: "Thoracentesis", ja: "胸腔穿刺"}, anesthesia: local}
-  - {type: paracentesis, cpt: "49083", k_code: "J010", name: {en: "Paracentesis", ja: "腹腔穿刺"}, anesthesia: local}
-  - {type: intubation, cpt: "31500", k_code: "J044", name: {en: "Endotracheal intubation", ja: "気管挿管"}, anesthesia: sedation}
-  - {type: nasogastric_tube, cpt: "43752", k_code: "J034-2", name: {en: "Nasogastric tube insertion", ja: "経鼻胃管挿入"}, anesthesia: none}
-  - {type: chest_tube, cpt: "32551", k_code: "J019", name: {en: "Chest tube insertion", ja: "胸腔ドレーン挿入"}, anesthesia: local}
+  - {type: urinary_catheter, cpt: "51702", k_code: "J063", name: {en: "Urinary catheter insertion", ja: "尿道カテーテル挿入"}, anesthesia: none, aftercare: urinary_catheter}
+  - {type: central_line, cpt: "36556", k_code: "G005-2", name: {en: "Central venous catheter insertion", ja: "中心静脈カテーテル挿入"}, anesthesia: local, aftercare: central_line}
+  - {type: arterial_line, cpt: "36620", k_code: "D225", name: {en: "Arterial line insertion", ja: "動脈ライン挿入"}, anesthesia: local, aftercare: arterial_line}
+  - {type: lumbar_puncture, cpt: "62270", k_code: "D403", name: {en: "Lumbar puncture", ja: "腰椎穿刺"}, anesthesia: local, aftercare: lumbar_puncture}
+  - {type: thoracentesis, cpt: "32555", k_code: "J008", name: {en: "Thoracentesis", ja: "胸腔穿刺"}, anesthesia: local, aftercare: thoracentesis}
+  - {type: paracentesis, cpt: "49083", k_code: "J010", name: {en: "Paracentesis", ja: "腹腔穿刺"}, anesthesia: local, aftercare: paracentesis}
+  - {type: intubation, cpt: "31500", k_code: "J044", name: {en: "Endotracheal intubation", ja: "気管挿管"}, anesthesia: sedation, aftercare: intubation}
+  - {type: nasogastric_tube, cpt: "43752", k_code: "J034-2", name: {en: "Nasogastric tube insertion", ja: "経鼻胃管挿入"}, anesthesia: none, aftercare: gastric_tube}
+  - {type: chest_tube, cpt: "32551", k_code: "J019", name: {en: "Chest tube insertion", ja: "胸腔ドレーン挿入"}, anesthesia: local, aftercare: chest_tube}
   - {type: wound_debridement, cpt: "97597", k_code: "K002", name: {en: "Wound debridement", ja: "創傷デブリードマン"}, anesthesia: local}
-  - {type: cardioversion, cpt: "92960", k_code: "J047", name: {en: "Electrical cardioversion", ja: "電気的カルジオバージョン"}, anesthesia: sedation}
-  - {type: blood_transfusion, cpt: "36430", k_code: "K920", name: {en: "Blood transfusion", ja: "輸血"}, anesthesia: none}
-  - {type: dialysis_acute, cpt: "90935", k_code: "J038", name: {en: "Acute hemodialysis", ja: "急性血液透析"}, anesthesia: none}
-  - {type: bronchoscopy, cpt: "31622", k_code: "D302", name: {en: "Bronchoscopy", ja: "気管支鏡検査"}, anesthesia: sedation}
+  - {type: cardioversion, cpt: "92960", k_code: "J047", name: {en: "Electrical cardioversion", ja: "電気的カルジオバージョン"}, anesthesia: sedation, aftercare: cardioversion}
+  - {type: blood_transfusion, cpt: "36430", k_code: "K920", name: {en: "Blood transfusion", ja: "輸血"}, anesthesia: none, aftercare: blood_transfusion}
+  - {type: dialysis_acute, cpt: "90935", k_code: "J038", name: {en: "Acute hemodialysis", ja: "急性血液透析"}, anesthesia: none, aftercare: dialysis}
+  - {type: bronchoscopy, cpt: "31622", k_code: "D302", name: {en: "Bronchoscopy", ja: "気管支鏡検査"}, anesthesia: sedation, aftercare: bronchoscopy}
   - {type: echocardiography, cpt: "93306", k_code: "D215", name: {en: "Transthoracic echocardiography", ja: "経胸壁心エコー"}, anesthesia: none}
   - {type: ecg_12lead, cpt: "93000", k_code: "D208", name: {en: "12-lead ECG", ja: "12誘導心電図"}, anesthesia: none}
   - {type: iv_line, cpt: "36000", k_code: "", name: {en: "IV line placement", ja: "末梢静脈路確保"}, anesthesia: local}
@@ -54,11 +62,11 @@ bedside:
   - {type: short_arm_splint, cpt: "29125", k_code: "J122", name: {en: "Short arm splint", ja: "短腕シーネ固定"}, anesthesia: none}
   - {type: reduction_closed, cpt: "25605", k_code: "K0444", name: {en: "Closed reduction of wrist fracture", ja: "手関節骨折徒手整復"}, anesthesia: local}
   - {type: oxygen_therapy, cpt: "", k_code: "J024", name: {en: "Oxygen therapy", ja: "酸素療法"}, anesthesia: none}
-  - {type: coronary_pci, cpt: "92920", k_code: "K546", name: {en: "Percutaneous coronary intervention (PCI)", ja: "経皮的冠動脈形成術"}, anesthesia: local}
-  - {type: pacemaker_implant, cpt: "33208", k_code: "K597", name: {en: "Permanent pacemaker implantation", ja: "ペースメーカー移植術"}, anesthesia: local}
-  - {type: craniotomy_hematoma_evacuation, cpt: "61313", k_code: "K1643", name: {en: "Craniotomy for intracranial hematoma evacuation", ja: "頭蓋内血腫除去術（開頭）"}, anesthesia: general}
-  - {type: ileus_tube_placement, cpt: "44500", k_code: "J034", name: {en: "Long tube (ileus tube) placement for bowel obstruction", ja: "イレウス用ロングチューブ挿入法"}, anesthesia: none}
-  - {type: bowel_resection, cpt: "44140", k_code: "K719", name: {en: "Colectomy (bowel resection)", ja: "結腸切除術"}, anesthesia: general}
+  - {type: coronary_pci, cpt: "92920", k_code: "K546", name: {en: "Percutaneous coronary intervention (PCI)", ja: "経皮的冠動脈形成術"}, anesthesia: local, aftercare: vascular_access}
+  - {type: pacemaker_implant, cpt: "33208", k_code: "K597", name: {en: "Permanent pacemaker implantation", ja: "ペースメーカー移植術"}, anesthesia: local, aftercare: device_pocket}
+  - {type: craniotomy_hematoma_evacuation, cpt: "61313", k_code: "K1643", name: {en: "Craniotomy for intracranial hematoma evacuation", ja: "頭蓋内血腫除去術（開頭）"}, anesthesia: general, aftercare: neurosurgical}
+  - {type: ileus_tube_placement, cpt: "44500", k_code: "J034", name: {en: "Long tube (ileus tube) placement for bowel obstruction", ja: "イレウス用ロングチューブ挿入法"}, anesthesia: none, aftercare: ileus_tube}
+  - {type: bowel_resection, cpt: "44140", k_code: "K719", name: {en: "Colectomy (bowel resection)", ja: "結腸切除術"}, anesthesia: general, aftercare: surgical_wound}
 
 # Procedure types the generator records outside the bedside dispatch, named
 # here so Procedure.code.text reads in the output language instead of the
@@ -80,14 +88,14 @@ named:
   # Surgical procedure types the procedure engine records from the disease
   # protocols' `procedure.type` (Issue #3107); JP names per 診療報酬点数表
   # wording.
-  - {type: ORIF, name: {en: "Open reduction and internal fixation (ORIF)", ja: "観血的整復固定術"}}
-  - {type: hemiarthroplasty, name: {en: "Hemiarthroplasty", ja: "人工骨頭置換術"}}
-  - {type: laparoscopic appendectomy, name: {en: "Laparoscopic appendectomy", ja: "腹腔鏡下虫垂切除術"}}
-  - {type: laparoscopic cholecystectomy, name: {en: "Laparoscopic cholecystectomy", ja: "腹腔鏡下胆嚢摘出術"}}
-  - {type: complex hand surgery, name: {en: "Complex hand surgery", ja: "手の複合組織損傷手術"}}
-  - {type: Total knee arthroplasty, name: {en: "Total knee arthroplasty", ja: "人工膝関節全置換術"}}
-  - {type: orthopedic fracture fixation, name: {en: "Fracture fixation", ja: "骨折観血的手術"}}
-  - {type: debridement and skin grafting, name: {en: "Debridement and skin grafting", ja: "デブリードマン・植皮術"}}
-  - {type: Craniotomy, name: {en: "Craniotomy", ja: "開頭術"}}
-  - {type: exploratory laparotomy, name: {en: "Exploratory laparotomy", ja: "試験開腹術"}}
-  - {type: ORIF with volar locking plate, name: {en: "ORIF with volar locking plate", ja: "掌側ロッキングプレート固定術"}}
+  - {type: ORIF, name: {en: "Open reduction and internal fixation (ORIF)", ja: "観血的整復固定術"}, aftercare: surgical_wound}
+  - {type: hemiarthroplasty, name: {en: "Hemiarthroplasty", ja: "人工骨頭置換術"}, aftercare: surgical_wound}
+  - {type: laparoscopic appendectomy, name: {en: "Laparoscopic appendectomy", ja: "腹腔鏡下虫垂切除術"}, aftercare: surgical_wound}
+  - {type: laparoscopic cholecystectomy, name: {en: "Laparoscopic cholecystectomy", ja: "腹腔鏡下胆嚢摘出術"}, aftercare: surgical_wound}
+  - {type: complex hand surgery, name: {en: "Complex hand surgery", ja: "手の複合組織損傷手術"}, aftercare: surgical_wound}
+  - {type: Total knee arthroplasty, name: {en: "Total knee arthroplasty", ja: "人工膝関節全置換術"}, aftercare: surgical_wound}
+  - {type: orthopedic fracture fixation, name: {en: "Fracture fixation", ja: "骨折観血的手術"}, aftercare: surgical_wound}
+  - {type: debridement and skin grafting, name: {en: "Debridement and skin grafting", ja: "デブリードマン・植皮術"}, aftercare: surgical_wound}
+  - {type: Craniotomy, name: {en: "Craniotomy", ja: "開頭術"}, aftercare: neurosurgical}
+  - {type: exploratory laparotomy, name: {en: "Exploratory laparotomy", ja: "試験開腹術"}, aftercare: surgical_wound}
+  - {type: ORIF with volar locking plate, name: {en: "ORIF with volar locking plate", ja: "掌側ロッキングプレート固定術"}, aftercare: surgical_wound}

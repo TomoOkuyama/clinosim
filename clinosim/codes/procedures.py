@@ -66,6 +66,15 @@ def procedure_anesthesia(proc_type: str) -> str:
     return str((_entries().get(proc_type) or {}).get("anesthesia") or "")
 
 
+def procedure_aftercare(proc_type: str) -> str:
+    """Aftercare category of a procedure type (``urinary_catheter``,
+    ``vascular_access``, ``surgical_wound`` ...), which selects the plan the
+    operative / procedure note writes after it; ``""`` when the catalog does
+    not say (Issue #3257). The text of each category is the
+    ``procedure_aftercare.<category>`` phrase."""
+    return str((_entries().get(proc_type) or {}).get("aftercare") or "")
+
+
 def procedure_type_display(proc_type: str, lang: str) -> str:
     """Name of a procedure type in ``lang`` (then English) from the catalog;
     an unknown type is humanised (underscores → spaces), never a raw slug."""
