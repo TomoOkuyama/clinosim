@@ -37,6 +37,7 @@ from clinosim.modules.pediatric.calendar import (
     load_pediatric_schedule,     # (path=None) -> {encounter_key: entry_dict}
     generate_pediatric_events,   # (person, year, prng, schedule=None, *, country: str | None) -> list[LifeEvent]
     place_vaccination_visit,     # vaccination-visit day inside a dose window (Issue #2974)
+    catch_up_visit_reasons,      # () -> frozenset of the catch-up visits' labels (Issue #3282)
     pediatric_presentation,      # (visit_id) -> Presentation | None (acute visits only)
     Presentation,                # pydantic model of one acute-visit clinical picture
 )
@@ -103,6 +104,7 @@ Each `encounters:` entry:
 | `disease_id` | Copied onto `LifeEvent.disease_id`; used for department resolution and the visit-reason lookup. |
 | `visit_reason` | Optional. Bilingual `{en, ja}` dict or string, read by `simulator/_setup.py::_pediatric_visit_reason` and emitted as the encounter's chief complaint. |
 | `vaccination` | Optional, default `false`. A visit held to give vaccines (reason Z23). With a country, `generate_pediatric_events` moves it inside a series dose window of that country's immunization schedule that opens in the year and overlaps the age band (the day nearest the drawn date), and drops it when no window opens, so the visit always has a dose due (`place_vaccination_visit`, Issue #2974). Draws are unchanged. |
+| `catch_up` | Optional, default `false`; needs `vaccination: true`. The visit also catches up a series the child is behind on: the immunization module gives the series' next dose there, within the series' `catch_up_max_age_days` (Issue #3282). Set on the kindergarten and adolescent visits; their `visit_reason` names no vaccines, since the doses given are the visit's Immunization records. `catch_up_visit_reasons()` returns these visits' labels in every language, which the immunization module matches against the chief complaint. |
 | `min_age_days` | Optional, default `0`. Youngest age in days at the visit: a visit drawn earlier is dropped (the draws are unchanged). The acute-illness entries open to infants (URI, otitis media, bronchiolitis) set `29`: a febrile infant of 28 days or less is admitted for a sepsis workup (AAP 2021 febrile infant guideline), not seen as an outpatient cold (Issue #2978). |
 
 Each `presentations:` entry is keyed by an `encounters:` `disease_id`

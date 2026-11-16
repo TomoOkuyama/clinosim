@@ -27,7 +27,7 @@
   (「Encounter 紐付け」節参照)、合成 lot number 生成 (構造 placeholder、
   正式 batch ではない)、閏日 (Feb 29) 生まれの非閏年 Feb 28 clamp、
   任意 `history_years` の EHR 保持期間 (flu → 10 y 等)。
-- **Out of scope**: 小児接種歴の遡及モデリング、副反応 / 副作用生成、
+- **Out of scope**: キャッチアップ受診以外での小児のキャッチアップ接種 (「Encounter 紐付け」節参照)、副反応 / 副作用生成、
   simulator の encounter loop での接種受診スケジューリング (接種
   encounter は enricher が事後合成するのみ)、
   FHIR / CSV serialization ([`clinosim.modules.output`](../output/README.ja.md))、
@@ -133,6 +133,11 @@ in-progress snapshot でのバックデート出力を防ぐ。
    インフルエンザ記録は最大 1 件。小児予防接種受診は、受診時の年齢が
    接種年齢窓に入る `pediatric_series` の接種を記録する (engine の接種を
    移す、または系列が継続中 — 1 回目か前回接種済み — なら新規作成)。
+   小児スケジュールが `catch_up` とする受診 (就学前・思春期、Issue #3282)
+   では、接種が遅れている系列 (受診前に 1..k 回接種済みで拒否の記録なし) に
+   次の k+1 回目も接種する。条件は受診時の年齢がその回の接種窓の開始に達し、
+   系列の `catch_up_max_age_days` 以内で、k 回目からの最小間隔を満たすこと。
+   系列の継続であってやり直しではなく、1 受診で 1 系列 1 回まで。
 3. それ以外は ±60 日以内で最も近い外来 encounter に snap し
    `encounter_id` を記録。インフルエンザは同シーズンかつ接種月の
    encounter に限る。ワクチンの `min_age_days` 下限より前の encounter には
@@ -180,6 +185,10 @@ Z26.9)。FHIR の Encounter・Procedure の `reasonCode` がこれを使い、US
 選ぶ外来 (primary care) / 病棟の看護師 pool) と
 `clinosim.modules.document.engine.document_enricher` (付随 encounter
 の文書生成)。
+`visits.py` は `clinosim.modules.pediatric.calendar.catch_up_visit_reasons`
+(キャッチアップ受診のラベル、Issue #3282)、`clinosim.modules.population`
+(インフルエンザ受診の対象者と月)、`clinosim.modules.encounter.protocol`
+(インフルエンザ受診の主訴) を遅延 import する。
 
 ## 定数と設定
 
@@ -210,6 +219,7 @@ Z26.9)。FHIR の Encounter・Procedure の `reasonCode` がこれを使い、US
   | `seasonal_distribution` | `annual` 時のみ。シーズン内の月抽選用 `{month: weight}`。 |
   | `wave_epochs` | `once` 時のみ。`start` / `end` / `age_weight` / `monthly_curve` を持つ epoch 列。 |
   | `doses` | `pediatric_series` 時のみ。dose ごとに `age_days_min` / `age_days_max` / `dose_number` / `coverage_by_sex`。2 回目以降は `min_interval_days` (前回接種からの最小日数。US は CDC General Best Practice Guidelines Table 3-1、JP は予防接種実施規則) と、前回以外の回から数える場合の起点 `min_interval_after_dose` (任意。例: JP B型肝炎 3 回目は 1 回目から 139 日)、その起点からの最大間隔 `max_interval_days` (任意。例: JP 日本脳炎 第1期初回 2 回目は 6〜28 日、Issue #3006)。生成・予防接種受診への紐付け・encounter への寄せのいずれもこの規則を守る (`engine.series_allows`)。Issue #3001。 |
+  | `catch_up_max_age_days` | `pediatric_series` のみ、任意。接種が遅れた子を `catch_up` 受診でキャッチアップする上限日齢 (Issue #3282)。US は CDC Child and Adolescent Catch-up Immunization Schedule — DTaP 2555 (7 歳未満、7 歳以降は Tdap/Td)、IPV / MMR / 水痘 / B型肝炎 / A型肝炎 6938 (18 歳まで)。JP は予防接種法施行令の定期接種対象年齢 — 四種混合と日本脳炎 第1期 2737 (生後 90 月未満)。開始が遅れると接種回数が変わる系列 (Hib、肺炎球菌) と対象年齢を過ぎる系列 (ロタウイルス、BCG、JP の B型肝炎 / MR 第1期 / 水痘) には設定しない (キャッチアップしない)。 |
   | `available_from` | プログラム開始日 (`YYYY-MM-DD`)。 |
   | `history_years` | 任意。EHR 保持期間 (flu → 10 y 等)。 |
   | `administration` | 接種方法 (Issue #3005): `route` (`codes/data/snomed-maps.yaml` の route キー: `IM` / `SC` / `PO` / `PERCUTANEOUS`)、`dose_ml` (BCG のように添付文書に固定量がない場合は省略)、任意の `dose_ml_by_age` `[{max_age_months, ml}]` (例: JP 日本脳炎 3 歳未満 0.25 mL)。schedule 最上位の `administration_sites` が経路と月齢帯ごとの SNOMED 接種部位を与える (乳幼児の筋注は大腿、それ以外は上腕、経口は部位なし)。`engine.vaccine_administration(country, cvx, age_months)` が FHIR Immunization の `route` / `site` / `doseQuantity` に使う。 |

@@ -53,6 +53,10 @@ class _Visit(BaseModel):
     # A visit held to give vaccines (reason Z23): placed on a day a dose of
     # the country's immunization schedule is due (Issue #2974).
     vaccination: bool = False
+    # A vaccination visit that also catches up a series the child is behind
+    # on (Issue #3282): the series' next dose, within the schedule's
+    # ``catch_up_max_age_days``.
+    catch_up: bool = False
     # Youngest age in days at the visit (Issue #2978): an acute-illness visit
     # is not held in the first 28 days of life, when a febrile infant is
     # admitted for a sepsis workup rather than seen as an outpatient.
@@ -76,6 +80,8 @@ class _Visit(BaseModel):
     def _ordered(self) -> _Visit:
         if self.age_min > self.age_max:
             raise ValueError("age_min > age_max")
+        if self.catch_up and not self.vaccination:
+            raise ValueError("catch_up needs vaccination: true")
         return self
 
 
@@ -192,6 +198,19 @@ def load_pediatric_schedule(path: Path | None = None) -> dict[str, dict[str, Any
     """
     config = _load_schedule(path) if path is not None else _load_schedule()
     return {key: entry.model_dump(exclude_none=True) for key, entry in config.encounters.items()}
+
+
+@lru_cache(maxsize=1)
+def catch_up_visit_reasons() -> frozenset[str]:
+    """Every language's ``visit_reason`` of the vaccination visits flagged
+    ``catch_up`` (Issue #3282) — the chief complaint such a visit carries."""
+    out: set[str] = set()
+    for entry in _load_schedule().encounters.values():
+        if not entry.catch_up:
+            continue
+        reason = entry.visit_reason
+        out.update(str(v) for v in (reason.values() if isinstance(reason, dict) else [reason]) if v)
+    return frozenset(out)
 
 
 @lru_cache(maxsize=4)

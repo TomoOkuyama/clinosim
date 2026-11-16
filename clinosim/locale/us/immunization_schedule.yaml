@@ -179,12 +179,25 @@ vaccines:
   # Guidelines for Immunization, Table 3-1 (recommended and minimum ages
   # and intervals between vaccine doses). Aligning a dose to a nearby visit
   # never breaks it, nor puts two doses of a series on one visit.
+  #
+  # `catch_up_max_age_days` (Issue #3282): the oldest age (days) at which a
+  # child behind on the series is caught up at a catch-up vaccination visit
+  # (pediatric_schedule.yaml `catch_up: true`) with the series' next dose.
+  # Source: CDC Child and Adolescent Catch-up Immunization Schedule (Table 2,
+  # ages 4 months-18 years) and its Notes. DTaP: the 4 months-6 years table
+  # (from 7 years Tdap/Td is used) -> 2555 days (< 7 y). IPV, MMR, varicella,
+  # HepB, HepA: catch-up through age 18 years -> 6938 days (< 19 y). No limit
+  # (no catch-up) where a late start changes the number of doses: Hib
+  # ("Unvaccinated at age 15-59 months: Administer 1 dose"), PCV ("Healthy
+  # children ages 2-4 years with any incomplete PCV series: 1 dose PCV"),
+  # rotavirus ("maximum age for the final dose is 8 months, 0 days").
   pediatric_hepb:
     cvx: "08"
     min_age: 0
     frequency: pediatric_series
     administration: {route: IM, dose_ml: 0.5}
     available_from: "1991-11-01"
+    catch_up_max_age_days: 6938
     doses:
       - dose_number: 1
         age_days_min: 0       # birth dose
@@ -207,6 +220,7 @@ vaccines:
     frequency: pediatric_series
     administration: {route: IM, dose_ml: 0.5}
     available_from: "1997-01-01"
+    catch_up_max_age_days: 2555
     doses:
       - dose_number: 1
         age_days_min: 60      # 2 months
@@ -239,6 +253,7 @@ vaccines:
     frequency: pediatric_series
     administration: {route: IM, dose_ml: 0.5}
     available_from: "2000-01-01"    # US switched fully to IPV
+    catch_up_max_age_days: 6938
     doses:
       - dose_number: 1
         age_days_min: 60      # 2 months
@@ -342,6 +357,7 @@ vaccines:
     frequency: pediatric_series
     administration: {route: SC, dose_ml: 0.5}
     available_from: "1971-01-01"    # MMR combined licensure
+    catch_up_max_age_days: 6938
     doses:
       - dose_number: 1
         age_days_min: 365     # 12 months
@@ -359,6 +375,7 @@ vaccines:
     frequency: pediatric_series
     administration: {route: SC, dose_ml: 0.5}
     available_from: "1995-03-01"    # US Varicella vaccine licensure
+    catch_up_max_age_days: 6938
     doses:
       - dose_number: 1
         age_days_min: 365     # 12 months
@@ -432,6 +449,7 @@ vaccines:
     frequency: pediatric_series
     administration: {route: IM, dose_ml: 0.5}
     available_from: "2006-10-01"       # ACIP universal 12-23 mo recommendation
+    catch_up_max_age_days: 6938
     doses:
       - dose_number: 1
         age_days_min: 365    # 12 months

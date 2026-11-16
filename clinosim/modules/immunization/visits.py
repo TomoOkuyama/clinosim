@@ -25,6 +25,14 @@ date), so the dose is not charted on another day or on a synthesised
   gives nothing (the child has not kept up the series, which is not
   restarted out of order) documents the due dose as ``not-done``, so a
   vaccination visit always records an Immunization (Issue #2974).
+- Catch-up (Issue #3282): a visit the pediatric schedule flags
+  ``catch_up`` (kindergarten, adolescent) also gives the next dose of a
+  series the child is behind on — the continuation of the series, never a
+  restart — when the visit age is past that dose's window opening and
+  within the series' ``catch_up_max_age_days`` (US: CDC catch-up
+  schedule; JP: 予防接種法施行令 target ages) and the series' minimum
+  interval since the last dose holds. A series with a charted refusal is
+  not caught up; a series without the limit is never caught up.
 
 Deterministic, draws nothing.
 """
@@ -93,6 +101,7 @@ class VaccinationVisit:
     encounter_id: str
     day: date
     is_flu: bool
+    catch_up: bool = False
 
 
 @lru_cache(maxsize=1)
@@ -116,7 +125,10 @@ def vaccination_visits_by_patient(records: list) -> dict[str, list[VaccinationVi
     A visit's reason is the encounter's own admission diagnosis, else its
     record's (one outpatient visit per record).
     """
+    from clinosim.modules.pediatric.calendar import catch_up_visit_reasons
+
     flu_chiefs = _flu_visit_chief_complaints()
+    catch_up_chiefs = catch_up_visit_reasons()
     out: dict[str, dict[str, VaccinationVisit]] = {}
     for rec in records:
         patient = _get(rec, "patient")
@@ -132,7 +144,9 @@ def vaccination_visits_by_patient(records: list) -> dict[str, list[VaccinationVi
             if (_get(enc, "admission_diagnosis_code", "") or rec_dx) != IMMUNIZATION_VISIT_DX:
                 continue
             chiefs = {_get(enc, "chief_complaint", "") or "", _get(enc, "chief_complaint_ja", "") or ""}
-            out.setdefault(pid, {})[eid] = VaccinationVisit(eid, adm.date(), bool(chiefs & flu_chiefs))
+            out.setdefault(pid, {})[eid] = VaccinationVisit(
+                eid, adm.date(), bool(chiefs & flu_chiefs), bool(chiefs & catch_up_chiefs)
+            )
     return {pid: sorted(v.values(), key=lambda x: (x.day, x.encounter_id)) for pid, v in out.items()}
 
 
@@ -346,9 +360,53 @@ def _bind_pediatric(imms: list, visits: list[VaccinationVisit], patient: Any, sc
                 imms.append(new)
                 hosted.add(id(new))
                 given_here.add(id(vaccine))
+        if visit.catch_up:
+            _catch_up(imms, visit, schedule, age_days, given_here, hosted, intervals, nurse)
         if not given_here:
             _chart_not_done(imms, visit, series, age_days, hosted)
     return imms
+
+
+def _catch_up(
+    imms: list,
+    visit: VaccinationVisit,
+    schedule: dict,
+    age_days: int,
+    given_here: set[int],
+    hosted: set[int],
+    intervals: dict,
+    nurse: str,
+) -> None:
+    """Give the next dose of each series the child is behind on (module
+    docstring, Issue #3282). Doses 1..k given before the visit, no refusal
+    charted, dose k+1 due by age and within the catch-up age limit."""
+    for vaccine in schedule.values():
+        limit = vaccine.get("catch_up_max_age_days")
+        if vaccine.get("frequency") != "pediatric_series" or limit is None or id(vaccine) in given_here:
+            continue
+        if age_days > int(limit) or _parse(str(vaccine["available_from"])) > visit.day:
+            continue
+        cvx = _cvx_codes(vaccine)
+        same = [i for i in imms if _get(i, "dose_number", None) is not None and str(_get(i, "vaccine_cvx", "")) in cvx]
+        if any(not _completed(i) for i in same):
+            continue
+        numbers = sorted(int(_get(i, "dose_number")) for i in same)
+        if numbers != list(range(1, len(numbers) + 1)):
+            continue
+        if any(
+            not isinstance(_get(i, "occurrence_date", None), date) or _get(i, "occurrence_date") >= visit.day
+            for i in same
+        ):
+            continue
+        nxt = next((d for d in vaccine.get("doses") or [] if int(d.get("dose_number", 0)) == len(numbers) + 1), None)
+        if nxt is None or age_days < int(nxt["age_days_min"]):
+            continue
+        new = _new_dose(vaccine, visit, nurse, len(numbers) + 1)
+        if not series_allows(new, visit.day, imms, intervals.get(str(vaccine["cvx"]))):
+            continue
+        imms.append(new)
+        hosted.add(id(new))
+        given_here.add(id(vaccine))
 
 
 def _chart_not_done(imms: list, visit: VaccinationVisit, series: list, age_days: int, hosted: set[int]) -> None:
