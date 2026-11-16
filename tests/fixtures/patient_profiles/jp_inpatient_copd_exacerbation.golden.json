@@ -811,7 +811,7 @@
       "facts_used": [
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
-        "ctx.adl_assessments[-1]",
+        "ctx.adl_assessments@authored",
         "ctx.disease_protocol.disease_id",
         "ctx.patient.chronic_conditions",
         "ctx.disease_protocol.disease_id"
@@ -823,7 +823,7 @@
         "lang": "ja"
       },
       "sections": {
-        "adl_assessment": "Barthel 指数 100/100 → 自立（食事10、入浴5、移動15、トイレ動作10）",
+        "adl_assessment": "Barthel 指数 65/100 → 軽度介助（食事5、入浴5、移動10、トイレ動作5）",
         "care_plan": "看護計画: SpO2 持続モニタ + 酸素投与量調整、呼吸パターン・副雑音を勤務帯ごとに評価、起坐位で呼吸楽な体位保持を支援、吸入手技を毎回付き添い確認。",
         "nursing_diagnosis": "看護診断: ガス交換障害、気道クリアランス不十分、活動耐性低下、不安 (呼吸困難関連)、ガス交換障害のリスク。",
         "nursing_history": "入院目的: 呼吸困難増悪・喀痰増加・喘鳴。既往: COPD（慢性閉塞性肺疾患）。",
@@ -838,10 +838,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-15T16:00:00+09:00",
       "generator": "template",
@@ -852,7 +851,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 15 日間\n患者状態: BP 126/79, HR 95, SpO2 89%, T 37.5°C、酸素投与: 鼻カニューラ 2.5 L/min。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目\n患者状態: BP 123/75, HR 87, SpO2 90%, T 37.8°C、酸素投与: 鼻カニューラ 2.2 L/min。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-20-night": {
@@ -861,10 +860,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-16T00:00:00+09:00",
       "generator": "template",
@@ -875,7 +873,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 15 日間\n患者状態: BP 128/75, HR 93, SpO2 92%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 2 日目\n患者状態: BP 128/75, HR 87, SpO2 90%, T 37.2°C、酸素投与: 鼻カニューラ 3.5 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-21-day": {
@@ -884,10 +882,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-16T08:00:00+09:00",
       "generator": "template",
@@ -898,7 +895,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 15 日間\n患者状態: BP 128/75, HR 93, SpO2 92%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 2 日目\n患者状態: BP 126/73, HR 95, SpO2 88%, T 37.8°C。\n投薬継続: サルブタモール、イプラトロピウム。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-22-evening": {
@@ -907,10 +904,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-16T16:00:00+09:00",
       "generator": "template",
@@ -921,7 +917,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 15 日間\n患者状態: BP 128/75, HR 93, SpO2 92%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 2 日目\n患者状態: BP 122/73, HR 93, SpO2 91%, T 36.8°C、酸素投与: 鼻カニューラ 3.2 L/min。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-23-night": {
@@ -930,10 +926,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-17T00:00:00+09:00",
       "generator": "template",
@@ -944,7 +939,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 15 日間\n患者状態: BP 121/74, HR 90, SpO2 90%, T 36.8°C。\n投薬継続: サルブタモール、イプラトロピウム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 3 日目\n患者状態: BP 128/77, HR 90, SpO2 91%, T 36.9°C。\n投薬継続: サルブタモール、イプラトロピウム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-24-day": {
@@ -953,10 +948,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-17T08:00:00+09:00",
       "generator": "template",
@@ -967,7 +961,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 15 日間\n患者状態: BP 121/74, HR 90, SpO2 90%, T 36.8°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 3 日目\n患者状態: BP 129/75, HR 99, SpO2 88%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-25-evening": {
@@ -976,10 +970,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-17T16:00:00+09:00",
       "generator": "template",
@@ -990,7 +983,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 15 日間\n患者状態: BP 121/74, HR 90, SpO2 90%, T 36.8°C。\n投薬継続: サルブタモール、イプラトロピウム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 3 日目\n患者状態: BP 125/73, HR 90, SpO2 93%, T 37.7°C。\n投薬継続: サルブタモール、イプラトロピウム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-26-night": {
@@ -999,10 +992,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-18T00:00:00+09:00",
       "generator": "template",
@@ -1013,7 +1005,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 15 日間\n患者状態: BP 127/78, HR 88, SpO2 90%, T 37.4°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 4 日目\n患者状態: BP 127/78, HR 87, SpO2 94%, T 37.4°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-27-day": {
@@ -1022,10 +1014,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-18T08:00:00+09:00",
       "generator": "template",
@@ -1036,7 +1027,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 15 日間\n患者状態: BP 127/78, HR 88, SpO2 90%, T 37.4°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 4 日目\n患者状態: BP 127/75, HR 92, SpO2 89%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-28-evening": {
@@ -1045,10 +1036,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-18T16:00:00+09:00",
       "generator": "template",
@@ -1059,7 +1049,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 15 日間\n患者状態: BP 127/78, HR 88, SpO2 90%, T 37.4°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 4 日目\n患者状態: BP 126/73, HR 89, SpO2 94%, T 37.6°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-29-night": {
@@ -1068,10 +1058,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-19T00:00:00+09:00",
       "generator": "template",
@@ -1082,7 +1071,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 15 日間\n患者状態: BP 121/76, HR 82, SpO2 93%, T 36.9°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 5 日目\n患者状態: BP 121/76, HR 84, SpO2 91%, T 36.9°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-30-day": {
@@ -1091,10 +1080,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-19T08:00:00+09:00",
       "generator": "template",
@@ -1105,7 +1093,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 15 日間\n患者状態: BP 121/76, HR 82, SpO2 93%, T 36.9°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 5 日目\n患者状態: BP 122/77, HR 92, SpO2 98%, T 38.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-31-evening": {
@@ -1114,10 +1102,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-19T16:00:00+09:00",
       "generator": "template",
@@ -1128,7 +1115,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 15 日間\n患者状態: BP 121/76, HR 82, SpO2 93%, T 36.9°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 5 日目\n患者状態: BP 125/77, HR 87, SpO2 97%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-32-night": {
@@ -1137,10 +1124,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-20T00:00:00+09:00",
       "generator": "template",
@@ -1151,7 +1137,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 15 日間\n患者状態: BP 123/73, HR 82, SpO2 95%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 6 日目\n患者状態: BP 123/73, HR 81, SpO2 94%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-33-day": {
@@ -1160,10 +1146,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-20T08:00:00+09:00",
       "generator": "template",
@@ -1174,7 +1159,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 15 日間\n患者状態: BP 123/73, HR 82, SpO2 95%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 6 日目\n患者状態: BP 123/76, HR 86, SpO2 89%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-34-evening": {
@@ -1183,10 +1168,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-20T16:00:00+09:00",
       "generator": "template",
@@ -1197,7 +1181,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 15 日間\n患者状態: BP 123/73, HR 82, SpO2 95%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 6 日目\n患者状態: BP 123/73, HR 86, SpO2 96%, T 38.1°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-35-night": {
@@ -1206,10 +1190,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-21T00:00:00+09:00",
       "generator": "template",
@@ -1220,7 +1203,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 15 日間\n患者状態: BP 121/75, HR 84, SpO2 95%, T 36.8°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 7 日目\n患者状態: BP 121/75, HR 81, SpO2 94%, T 36.8°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-36-day": {
@@ -1229,10 +1212,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-21T08:00:00+09:00",
       "generator": "template",
@@ -1243,7 +1225,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 15 日間\n患者状態: BP 121/75, HR 84, SpO2 95%, T 36.8°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 7 日目\n患者状態: BP 123/77, HR 88, SpO2 97%, T 38.0°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-37-evening": {
@@ -1252,10 +1234,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-21T16:00:00+09:00",
       "generator": "template",
@@ -1266,7 +1247,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 15 日間\n患者状態: BP 121/75, HR 84, SpO2 95%, T 36.8°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 7 日目\n患者状態: BP 125/75, HR 86, SpO2 94%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-38-night": {
@@ -1275,10 +1256,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-22T00:00:00+09:00",
       "generator": "template",
@@ -1289,7 +1269,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 15 日間\n患者状態: BP 126/76, HR 83, SpO2 94%, T 38.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 8 日目\n患者状態: BP 126/76, HR 80, SpO2 94%, T 38.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-39-day": {
@@ -1298,10 +1278,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-22T08:00:00+09:00",
       "generator": "template",
@@ -1312,7 +1291,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 15 日間\n患者状態: BP 126/76, HR 83, SpO2 94%, T 38.5°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 8 日目\n患者状態: BP 128/74, HR 87, SpO2 92%, T 37.9°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-40-evening": {
@@ -1321,10 +1300,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-22T16:00:00+09:00",
       "generator": "template",
@@ -1335,7 +1313,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 15 日間\n患者状態: BP 126/76, HR 83, SpO2 94%, T 38.5°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 8 日目\n患者状態: BP 125/73, HR 84, SpO2 92%, T 37.9°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-41-night": {
@@ -1344,10 +1322,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-23T00:00:00+09:00",
       "generator": "template",
@@ -1358,7 +1335,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 15 日間\n患者状態: BP 123/78, HR 78, SpO2 94%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 9 日目\n患者状態: BP 123/78, HR 79, SpO2 95%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-42-day": {
@@ -1367,10 +1344,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-23T08:00:00+09:00",
       "generator": "template",
@@ -1381,7 +1357,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 15 日間\n患者状態: BP 123/78, HR 78, SpO2 94%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 9 日目\n患者状態: BP 125/77, HR 87, SpO2 92%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-43-evening": {
@@ -1390,10 +1366,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-23T16:00:00+09:00",
       "generator": "template",
@@ -1404,7 +1379,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 15 日間\n患者状態: BP 123/78, HR 78, SpO2 94%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 9 日目\n患者状態: BP 125/76, HR 85, SpO2 96%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-44-night": {
@@ -1413,10 +1388,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-24T00:00:00+09:00",
       "generator": "template",
@@ -1427,7 +1401,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 15 日間\n患者状態: BP 125/73, HR 81, SpO2 92%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 10 日目\n患者状態: BP 125/73, HR 80, SpO2 95%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-45-day": {
@@ -1436,10 +1410,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-24T08:00:00+09:00",
       "generator": "template",
@@ -1450,7 +1423,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 15 日間\n患者状態: BP 125/73, HR 81, SpO2 92%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 10 日目\n患者状態: BP 127/73, HR 89, SpO2 96%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-46-evening": {
@@ -1459,10 +1432,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-24T16:00:00+09:00",
       "generator": "template",
@@ -1473,7 +1445,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 15 日間\n患者状態: BP 125/73, HR 81, SpO2 92%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 10 日目\n患者状態: BP 122/75, HR 82, SpO2 93%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-47-night": {
@@ -1482,10 +1454,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-25T00:00:00+09:00",
       "generator": "template",
@@ -1496,7 +1467,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 11 日目 / 入院予定 15 日間\n患者状態: BP 121/75, HR 83, SpO2 95%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 11 日目\n患者状態: BP 121/75, HR 81, SpO2 97%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-48-day": {
@@ -1505,10 +1476,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-25T08:00:00+09:00",
       "generator": "template",
@@ -1519,7 +1489,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 11 日目 / 入院予定 15 日間\n患者状態: BP 121/75, HR 83, SpO2 95%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 11 日目\n患者状態: BP 122/75, HR 84, SpO2 95%, T 37.6°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-49-evening": {
@@ -1528,10 +1498,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-25T16:00:00+09:00",
       "generator": "template",
@@ -1542,7 +1511,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 11 日目 / 入院予定 15 日間\n患者状態: BP 121/75, HR 83, SpO2 95%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 11 日目\n患者状態: BP 125/76, HR 84, SpO2 94%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-50-night": {
@@ -1551,10 +1520,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-26T00:00:00+09:00",
       "generator": "template",
@@ -1565,7 +1533,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 12 日目 / 入院予定 15 日間\n患者状態: BP 122/75, HR 81, SpO2 96%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 12 日目\n患者状態: BP 122/75, HR 81, SpO2 96%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-51-day": {
@@ -1574,10 +1542,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-26T08:00:00+09:00",
       "generator": "template",
@@ -1588,7 +1555,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 12 日目 / 入院予定 15 日間\n患者状態: BP 122/75, HR 81, SpO2 96%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 12 日目\n患者状態: BP 126/70, HR 85, SpO2 94%, T 37.8°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-52-evening": {
@@ -1597,10 +1564,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-26T16:00:00+09:00",
       "generator": "template",
@@ -1611,7 +1577,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 12 日目 / 入院予定 15 日間\n患者状態: BP 122/75, HR 81, SpO2 96%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 12 日目\n患者状態: BP 126/71, HR 82, SpO2 92%, T 36.2°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-53-night": {
@@ -1620,10 +1586,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-27T00:00:00+09:00",
       "generator": "template",
@@ -1634,7 +1599,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 13 日目 / 入院予定 15 日間\n患者状態: BP 126/74, HR 77, SpO2 97%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 13 日目\n患者状態: BP 126/74, HR 83, SpO2 95%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-54-day": {
@@ -1643,10 +1608,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-27T08:00:00+09:00",
       "generator": "template",
@@ -1657,7 +1621,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 13 日目 / 入院予定 15 日間\n患者状態: BP 126/74, HR 77, SpO2 97%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 13 日目\n患者状態: BP 125/73, HR 81, SpO2 99%, T 36.9°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-55-evening": {
@@ -1666,10 +1630,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-27T16:00:00+09:00",
       "generator": "template",
@@ -1680,7 +1643,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 13 日目 / 入院予定 15 日間\n患者状態: BP 126/74, HR 77, SpO2 97%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 13 日目\n患者状態: BP 122/70, HR 84, SpO2 92%, T 37.1°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-56-night": {
@@ -1689,10 +1652,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-28T00:00:00+09:00",
       "generator": "template",
@@ -1703,7 +1665,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 14 日目 / 入院予定 15 日間\n患者状態: BP 123/77, HR 84, SpO2 99%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 14 日目\n患者状態: BP 123/77, HR 83, SpO2 94%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-57-day": {
@@ -1712,10 +1674,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-28T08:00:00+09:00",
       "generator": "template",
@@ -1726,7 +1687,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 14 日目 / 入院予定 15 日間\n患者状態: BP 123/77, HR 84, SpO2 99%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 14 日目\n患者状態: BP 126/79, HR 85, SpO2 96%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-58-evening": {
@@ -1735,10 +1696,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-28T16:00:00+09:00",
       "generator": "template",
@@ -1749,7 +1709,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 14 日目 / 入院予定 15 日間\n患者状態: BP 123/77, HR 84, SpO2 99%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 14 日目\n患者状態: BP 123/74, HR 84, SpO2 94%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-59-night": {
@@ -1758,10 +1718,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-29T00:00:00+09:00",
       "generator": "template",
@@ -1772,7 +1731,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 15 日目 / 入院予定 15 日間\n患者状態: BP 124/74, HR 81, SpO2 96%, T 37.1°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 15 日目\n患者状態: BP 124/74, HR 79, SpO2 94%, T 37.1°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-60-day": {
@@ -1781,10 +1740,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-29T08:00:00+09:00",
       "generator": "template",
@@ -1795,7 +1753,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 15 日目 / 入院予定 15 日間\n患者状態: BP 124/74, HR 81, SpO2 96%, T 37.1°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 15 日目\n患者状態: BP 124/73, HR 85, SpO2 94%, T 38.2°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-61-evening": {
@@ -1804,10 +1762,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-29T16:00:00+09:00",
       "generator": "template",
@@ -1818,7 +1775,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 15 日目 / 入院予定 15 日間\n患者状態: BP 124/74, HR 81, SpO2 96%, T 37.1°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 15 日目\n患者状態: BP 125/75, HR 81, SpO2 96%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-616171532456-62": {
@@ -1830,7 +1787,7 @@
         "ctx.complications_occurred",
         "ctx.intake_output_records",
         "ctx.disease_protocol.disease_id",
-        "ctx.adl_assessments[-1]"
+        "ctx.adl_assessments@authored"
       ],
       "generated_at": "2024-06-30T12:01:00+09:00",
       "generator": "template",

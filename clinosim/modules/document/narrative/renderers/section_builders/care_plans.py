@@ -27,6 +27,7 @@ from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._localization import _localize_proc_type
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
     NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT,
@@ -179,6 +180,8 @@ def build_acp_estimated_los(generator: TemplateNarrativeGenerator, ctx: Narrativ
     """推定される入院期間 — see _estimated_los_days for the shared calculation."""
     lang = ctx.target_lang
     los_days, facts = generator._estimated_los_days(ctx)
+    if not los_days:
+        return t("acp.estimated_los_undetermined", lang), facts
     return t("acp.estimated_los_line", lang, days=los_days), facts
 
 
@@ -278,12 +281,13 @@ def build_ncp_nutrition_assessment(
         facts.append("ctx.patient.chronic_conditions")
         parts.append(t("nutrition_special.prefix", lang) + t("list_sep.serial", lang).join(risk_conds))
     # ADL
-    adls = list(getattr(ctx, "adl_assessments", None) or [])
-    if adls:
-        b = _o(adls[-1], "barthel_score", None)
+    # Issue #3236: the ADL assessment in force when the plan was written.
+    adl = in_force_at(list(getattr(ctx, "adl_assessments", None) or []), getattr(ctx, "authored_datetime", None))
+    if adl is not None:
+        b = _o(adl, "barthel_score", None)
         if b is not None and b < 60:
             parts.append(t("nutrition.feeding_assist", lang))
-            facts.append("ctx.adl_assessments[-1]")
+            facts.append("ctx.adl_assessments@authored")
     if not parts:
         return (t("fallback.ncp_assessment_fallback", lang)), facts
     head = t("nutrition.assessment_head", lang)
@@ -456,6 +460,8 @@ def build_rp_discharge_estimate(generator: TemplateNarrativeGenerator, ctx: Narr
     リハ完了フレーミングの文言のみ異なる)。"""
     lang = ctx.target_lang
     los_days, facts = generator._estimated_los_days(ctx)
+    if not los_days:
+        return t("rp_note.discharge_estimate_undetermined", lang), facts
     return t("rp_note.discharge_estimate_line", lang, days=los_days), facts
 
 

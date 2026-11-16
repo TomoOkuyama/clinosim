@@ -119,6 +119,7 @@ class _News2(BaseModel):
     systolic_bp: list[_Band] = Field(min_length=1)
     heart_rate: list[_Band] = Field(min_length=1)
     consciousness: dict[_Avpu, _NonNegInt] = Field(min_length=4)
+    urgent_response_threshold: _NonNegInt
 
     @model_validator(mode="after")
     def _bands(self) -> _News2:

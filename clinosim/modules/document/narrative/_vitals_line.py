@@ -14,10 +14,12 @@ the localized units ``{hr_unit}`` ``{rr_unit}``.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key
+from clinosim.timeutil import parse_iso_datetime
 
 __all__ = [
     "LLM_ARRIVAL",
@@ -27,6 +29,8 @@ __all__ = [
     "PROGRESS_OBJECTIVE",
     "VitalsLineStyle",
     "format_vitals_line",
+    "latest_vitals_set",
+    "vitals_in_window",
 ]
 
 _FIELDS = {
@@ -37,6 +41,8 @@ _FIELDS = {
     "spo2": "spo2",
     "temp": "temperature_celsius",
 }
+# Recorded with the SpO2 reading they qualify.
+_OXYGEN_FIELDS = ("on_supplemental_oxygen", "oxygen_delivery_device", "oxygen_flow_rate_lpm")
 
 
 @dataclass(frozen=True)
@@ -170,3 +176,32 @@ def format_vitals_line(vitals: Any, style: VitalsLineStyle, lang: str) -> str:
         if fmt is not None:
             parts.append(fmt.format_map(values))
     return style.separator.join(parts)
+
+
+def vitals_in_window(vitals: list[Any], start: datetime, end: datetime) -> list[Any]:
+    """The readings timed in ``[start, end)``, oldest first (Issue #3239)."""
+    timed: list[tuple[datetime, int, Any]] = []
+    for i, v in enumerate(vitals or []):
+        ts = parse_iso_datetime(get_attr_or_key(v, "timestamp", None), lenient=True)
+        if ts is not None and start <= ts < end:
+            timed.append((ts, i, v))
+    timed.sort(key=lambda x: (x[0], x[1]))
+    return [v for _, _, v in timed]
+
+
+def latest_vitals_set(readings: list[Any]) -> dict[str, Any]:
+    """The latest recorded value of each vital over ``readings`` (oldest
+    first), as one record :func:`format_vitals_line` reads (with the latest
+    AVPU level). A reading often carries only some vitals; the oxygen fields
+    come from the reading that gave the SpO2."""
+    merged: dict[str, Any] = {}
+    for attr in (*_FIELDS.values(), "consciousness_level"):
+        for v in reversed(readings):
+            value = get_attr_or_key(v, attr, None)
+            if value is not None:
+                merged[attr] = value
+                if attr == "spo2":
+                    for o2 in _OXYGEN_FIELDS:
+                        merged[o2] = get_attr_or_key(v, o2, None)
+                break
+    return merged

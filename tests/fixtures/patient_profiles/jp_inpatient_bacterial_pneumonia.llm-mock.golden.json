@@ -957,7 +957,7 @@
       "facts_used": [
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
-        "ctx.adl_assessments[-1]",
+        "ctx.adl_assessments@authored",
         "ctx.disease_protocol.disease_id",
         "ctx.patient.chronic_conditions",
         "ctx.disease_protocol.disease_id"
@@ -969,7 +969,7 @@
         "lang": "ja"
       },
       "sections": {
-        "adl_assessment": "Barthel 指数 95/100 → 自立（食事10、入浴5、移動15、トイレ動作10）",
+        "adl_assessment": "Barthel 指数 60/100 → 中等度介助（食事5、入浴0、移動10、トイレ動作5）",
         "care_plan": "看護計画: SpO2 継続モニタと酸素投与量調整、咳嗽介助 + 排痰支援 (体位ドレナージ / ネブライザ)、発熱時の水分補給促進、解熱後発汗の清潔ケア、標準予防策の徹底 + 訪問者へ手指衛生指導。",
         "nursing_diagnosis": "看護診断: ガス交換障害、気道クリアランス不十分、発熱による体温調節不足、感染拡大リスク、ガス交換障害のリスク。",
         "nursing_history": "入院目的: 発熱・咳嗽・呼吸困難。既往: COPD（慢性閉塞性肺疾患）。",
@@ -984,10 +984,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-15T16:00:00+09:00",
       "generator": "llm-mock",
@@ -998,7 +997,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 1 日目 / 入院予定 18 日間\n患者状態: BP 118/71, HR 103, SpO2 96%, T 38.2°C、酸素投与: 鼻カニューラ 3.8 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 1 日目\n患者状態: BP 118/69, HR 102, SpO2 93%, T 38.6°C。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-23-night": {
@@ -1007,10 +1006,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-16T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1021,7 +1019,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 2 日目 / 入院予定 18 日間\n患者状態: BP 123/75, HR 99, SpO2 93%, T 37.9°C。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 2 日目\n患者状態: BP 122/69, HR 100, SpO2 95%, T 37.8°C、酸素投与: 鼻カニューラ 3.6 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-24-day": {
@@ -1030,10 +1028,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-16T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1044,7 +1041,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 2 日目 / 入院予定 18 日間\n患者状態: BP 123/75, HR 99, SpO2 93%, T 37.9°C。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 2 日目\n患者状態: BP 122/69, HR 105, SpO2 93%, T 38.3°C。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-25-evening": {
@@ -1053,10 +1050,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-16T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1067,7 +1063,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 2 日目 / 入院予定 18 日間\n患者状態: BP 123/75, HR 99, SpO2 93%, T 37.9°C。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 2 日目\n患者状態: BP 120/74, HR 99, SpO2 96%, T 37.6°C。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-26-night": {
@@ -1076,10 +1072,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-17T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1090,7 +1085,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 3 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 98, SpO2 96%, T 37.5°C、酸素投与: 鼻カニューラ 3.3 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 3 日目\n患者状態: BP 118/76, HR 94, SpO2 95%, T 36.0°C。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-27-day": {
@@ -1099,10 +1094,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-17T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1113,7 +1107,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 3 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 98, SpO2 96%, T 37.5°C、酸素投与: 鼻カニューラ 3.3 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 3 日目\n患者状態: BP 119/74, HR 104, SpO2 95%, T 37.9°C、酸素投与: 鼻カニューラ 2.7 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-28-evening": {
@@ -1122,10 +1116,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-17T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1136,7 +1129,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 3 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 98, SpO2 96%, T 37.5°C、酸素投与: 鼻カニューラ 3.3 L/min。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 3 日目\n患者状態: BP 119/74, HR 97, SpO2 95%, T 37.6°C。\n投薬継続: アンピシリン/スルバクタム、輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-29-night": {
@@ -1145,10 +1138,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-18T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1159,7 +1151,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 4 日目 / 入院予定 18 日間\n患者状態: BP 122/71, HR 96, SpO2 95%, T 37.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 4 日目\n患者状態: BP 120/74, HR 96, SpO2 95%, T 37.2°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-30-day": {
@@ -1168,10 +1160,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-18T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1182,7 +1173,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 4 日目 / 入院予定 18 日間\n患者状態: BP 122/71, HR 96, SpO2 95%, T 37.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 4 日目\n患者状態: BP 120/73, HR 101, SpO2 94%, T 38.1°C、酸素投与: 鼻カニューラ 2.2 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-31-evening": {
@@ -1191,10 +1182,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-18T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1205,7 +1195,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 4 日目 / 入院予定 18 日間\n患者状態: BP 122/71, HR 96, SpO2 95%, T 37.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 4 日目\n患者状態: BP 123/73, HR 97, SpO2 96%, T 37.5°C、酸素投与: 鼻カニューラ 2.6 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-32-night": {
@@ -1214,10 +1204,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-19T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1228,7 +1217,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 5 日目 / 入院予定 18 日間\n患者状態: BP 120/74, HR 97, SpO2 98%, T 37.2°C、酸素投与: 鼻カニューラ 3.8 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 5 日目\n患者状態: BP 119/74, HR 95, SpO2 95%, T 38.3°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-33-day": {
@@ -1237,10 +1226,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-19T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1251,7 +1239,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 5 日目 / 入院予定 18 日間\n患者状態: BP 120/74, HR 97, SpO2 98%, T 37.2°C、酸素投与: 鼻カニューラ 3.8 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 5 日目\n患者状態: BP 121/72, HR 102, SpO2 93%, T 37.9°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-34-evening": {
@@ -1260,10 +1248,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-19T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1274,7 +1261,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 5 日目 / 入院予定 18 日間\n患者状態: BP 120/74, HR 97, SpO2 98%, T 37.2°C、酸素投与: 鼻カニューラ 3.8 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 5 日目\n患者状態: BP 122/71, HR 100, SpO2 93%, T 38.1°C、酸素投与: 鼻カニューラ 2.6 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-35-night": {
@@ -1283,10 +1270,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-20T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1297,7 +1283,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 6 日目 / 入院予定 18 日間\n患者状態: BP 121/72, HR 97, SpO2 94%, T 37.1°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 6 日目\n患者状態: BP 121/73, HR 94, SpO2 94%, T 37.1°C、酸素投与: 鼻カニューラ 3.4 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-36-day": {
@@ -1306,10 +1292,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-20T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1320,7 +1305,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 6 日目 / 入院予定 18 日間\n患者状態: BP 121/72, HR 97, SpO2 94%, T 37.1°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 6 日目\n患者状態: BP 118/75, HR 101, SpO2 92%, T 38.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-37-evening": {
@@ -1329,10 +1314,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-20T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1343,7 +1327,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 6 日目 / 入院予定 18 日間\n患者状態: BP 121/72, HR 97, SpO2 94%, T 37.1°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 6 日目\n患者状態: BP 120/73, HR 99, SpO2 95%, T 37.8°C、酸素投与: 鼻カニューラ 3.2 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-38-night": {
@@ -1352,10 +1336,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-21T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1366,7 +1349,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 7 日目 / 入院予定 18 日間\n患者状態: BP 117/73, HR 97, SpO2 95%, T 37.7°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 7 日目\n患者状態: BP 115/73, HR 96, SpO2 96%, T 38.1°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-39-day": {
@@ -1375,10 +1358,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-21T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1389,7 +1371,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 7 日目 / 入院予定 18 日間\n患者状態: BP 117/73, HR 97, SpO2 95%, T 37.7°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 7 日目\n患者状態: BP 124/73, HR 98, SpO2 96%, T 37.6°C、酸素投与: 鼻カニューラ 3.1 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-40-evening": {
@@ -1398,10 +1380,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-21T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1412,7 +1393,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 7 日目 / 入院予定 18 日間\n患者状態: BP 117/73, HR 97, SpO2 95%, T 37.7°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 7 日目\n患者状態: BP 122/71, HR 98, SpO2 96%, T 37.9°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-41-night": {
@@ -1421,10 +1402,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-22T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1435,7 +1415,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 8 日目 / 入院予定 18 日間\n患者状態: BP 118/74, HR 93, SpO2 94%, T 37.7°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 8 日目\n患者状態: BP 118/74, HR 94, SpO2 95%, T 37.7°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-42-day": {
@@ -1444,10 +1424,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-22T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1458,7 +1437,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 8 日目 / 入院予定 18 日間\n患者状態: BP 118/74, HR 93, SpO2 94%, T 37.7°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 8 日目\n患者状態: BP 121/78, HR 100, SpO2 98%, T 38.1°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-43-evening": {
@@ -1467,10 +1446,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-22T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1481,7 +1459,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 8 日目 / 入院予定 18 日間\n患者状態: BP 118/74, HR 93, SpO2 94%, T 37.7°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 8 日目\n患者状態: BP 117/70, HR 97, SpO2 95%, T 38.5°C、酸素投与: 鼻カニューラ 3.5 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-44-night": {
@@ -1490,10 +1468,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-23T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1504,7 +1481,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 9 日目 / 入院予定 18 日間\n患者状態: BP 120/72, HR 92, SpO2 94%, T 37.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 9 日目\n患者状態: BP 120/72, HR 99, SpO2 96%, T 37.4°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-45-day": {
@@ -1513,10 +1490,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-23T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1527,7 +1503,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 9 日目 / 入院予定 18 日間\n患者状態: BP 120/72, HR 92, SpO2 94%, T 37.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 9 日目\n患者状態: BP 118/75, HR 103, SpO2 94%, T 38.6°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-46-evening": {
@@ -1536,10 +1512,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-23T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1550,7 +1525,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 9 日目 / 入院予定 18 日間\n患者状態: BP 120/72, HR 92, SpO2 94%, T 37.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 9 日目\n患者状態: BP 119/73, HR 94, SpO2 97%, T 38.8°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-47-night": {
@@ -1559,10 +1534,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-24T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1573,7 +1547,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 10 日目 / 入院予定 18 日間\n患者状態: BP 119/73, HR 100, SpO2 96%, T 37.6°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 10 日目\n患者状態: BP 119/73, HR 96, SpO2 92%, T 37.6°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-48-day": {
@@ -1582,10 +1556,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-24T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1596,7 +1569,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 10 日目 / 入院予定 18 日間\n患者状態: BP 119/73, HR 100, SpO2 96%, T 37.6°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 10 日目\n患者状態: BP 119/70, HR 100, SpO2 94%, T 38.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-49-evening": {
@@ -1605,10 +1578,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-24T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1619,7 +1591,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 10 日目 / 入院予定 18 日間\n患者状態: BP 119/73, HR 100, SpO2 96%, T 37.6°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 10 日目\n患者状態: BP 124/71, HR 96, SpO2 94%, T 38.1°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-50-night": {
@@ -1628,10 +1600,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-25T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1642,7 +1613,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 11 日目 / 入院予定 18 日間\n患者状態: BP 118/73, HR 95, SpO2 96%, T 37.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 11 日目\n患者状態: BP 118/73, HR 95, SpO2 97%, T 37.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-51-day": {
@@ -1651,10 +1622,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-25T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1665,7 +1635,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 11 日目 / 入院予定 18 日間\n患者状態: BP 118/73, HR 95, SpO2 96%, T 37.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 11 日目\n患者状態: BP 121/74, HR 104, SpO2 97%, T 38.4°C、酸素投与: 鼻カニューラ 3.5 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-52-evening": {
@@ -1674,10 +1644,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-25T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1688,7 +1657,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 11 日目 / 入院予定 18 日間\n患者状態: BP 118/73, HR 95, SpO2 96%, T 37.5°C、酸素投与: 鼻カニューラ 3.6 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 11 日目\n患者状態: BP 122/76, HR 102, SpO2 97%, T 38.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-53-night": {
@@ -1697,10 +1666,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-26T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1711,7 +1679,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 12 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 97, SpO2 93%, T 37.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 12 日目\n患者状態: BP 121/73, HR 96, SpO2 93%, T 37.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-54-day": {
@@ -1720,10 +1688,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-26T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1734,7 +1701,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 12 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 97, SpO2 93%, T 37.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 12 日目\n患者状態: BP 122/71, HR 102, SpO2 97%, T 38.4°C、酸素投与: 鼻カニューラ 3.4 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-55-evening": {
@@ -1743,10 +1710,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-26T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1757,7 +1723,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 12 日目 / 入院予定 18 日間\n患者状態: BP 121/73, HR 97, SpO2 93%, T 37.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 12 日目\n患者状態: BP 121/73, HR 103, SpO2 93%, T 37.6°C、酸素投与: 鼻カニューラ 2.7 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-56-night": {
@@ -1766,10 +1732,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-27T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1780,7 +1745,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 13 日目 / 入院予定 18 日間\n患者状態: BP 118/74, HR 97, SpO2 93%, T 38.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 13 日目\n患者状態: BP 118/74, HR 99, SpO2 94%, T 38.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-57-day": {
@@ -1789,10 +1754,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-27T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1803,7 +1767,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 13 日目 / 入院予定 18 日間\n患者状態: BP 118/74, HR 97, SpO2 93%, T 38.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 13 日目\n患者状態: BP 119/71, HR 103, SpO2 92%, T 38.2°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-58-evening": {
@@ -1812,10 +1776,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-27T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1826,7 +1789,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 13 日目 / 入院予定 18 日間\n患者状態: BP 118/74, HR 97, SpO2 93%, T 38.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 13 日目\n患者状態: BP 119/71, HR 99, SpO2 93%, T 38.2°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-59-night": {
@@ -1835,10 +1798,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-28T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1849,7 +1811,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 14 日目 / 入院予定 18 日間\n患者状態: BP 120/70, HR 93, SpO2 94%, T 39.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 14 日目\n患者状態: BP 120/70, HR 100, SpO2 98%, T 37.6°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-60-day": {
@@ -1858,10 +1820,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-28T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1872,7 +1833,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 14 日目 / 入院予定 18 日間\n患者状態: BP 120/70, HR 93, SpO2 94%, T 39.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 14 日目\n患者状態: BP 117/71, HR 102, SpO2 97%, T 38.4°C、酸素投与: 鼻カニューラ 3.3 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-61-evening": {
@@ -1881,10 +1842,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-28T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1895,7 +1855,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 14 日目 / 入院予定 18 日間\n患者状態: BP 120/70, HR 93, SpO2 94%, T 39.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 14 日目\n患者状態: BP 120/71, HR 98, SpO2 92%, T 38.1°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-62-night": {
@@ -1904,10 +1864,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-29T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1918,7 +1877,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 15 日目 / 入院予定 18 日間\n患者状態: BP 116/75, HR 100, SpO2 93%, T 37.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 15 日目\n患者状態: BP 116/75, HR 100, SpO2 93%, T 37.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-63-day": {
@@ -1927,10 +1886,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-29T08:00:00+09:00",
       "generator": "llm-mock",
@@ -1941,7 +1899,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 15 日目 / 入院予定 18 日間\n患者状態: BP 116/75, HR 100, SpO2 93%, T 37.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 15 日目\n患者状態: BP 115/74, HR 99, SpO2 93%, T 39.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-64-evening": {
@@ -1950,10 +1908,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-29T16:00:00+09:00",
       "generator": "llm-mock",
@@ -1964,7 +1921,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 15 日目 / 入院予定 18 日間\n患者状態: BP 116/75, HR 100, SpO2 93%, T 37.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 15 日目\n患者状態: BP 121/73, HR 100, SpO2 97%, T 38.0°C、酸素投与: 酸素マスク 4.2 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用 体温 >= 38.5。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-65-night": {
@@ -1973,10 +1930,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-30T00:00:00+09:00",
       "generator": "llm-mock",
@@ -1987,7 +1943,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 16 日目 / 入院予定 18 日間\n患者状態: BP 118/73, HR 97, SpO2 94%, T 37.9°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 16 日目\n患者状態: BP 118/73, HR 98, SpO2 94%, T 37.9°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-66-day": {
@@ -1996,10 +1952,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-30T08:00:00+09:00",
       "generator": "llm-mock",
@@ -2010,7 +1965,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 16 日目 / 入院予定 18 日間\n患者状態: BP 118/73, HR 97, SpO2 94%, T 37.9°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 16 日目\n患者状態: BP 116/72, HR 105, SpO2 94%, T 37.5°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-67-evening": {
@@ -2019,10 +1974,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-30T16:00:00+09:00",
       "generator": "llm-mock",
@@ -2033,7 +1987,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 16 日目 / 入院予定 18 日間\n患者状態: BP 118/73, HR 97, SpO2 94%, T 37.9°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 16 日目\n患者状態: BP 122/74, HR 100, SpO2 95%, T 38.3°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-68-night": {
@@ -2042,10 +1996,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-07-01T00:00:00+09:00",
       "generator": "llm-mock",
@@ -2056,7 +2009,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 17 日目 / 入院予定 18 日間\n患者状態: BP 120/73, HR 100, SpO2 96%, T 38.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 17 日目\n患者状態: BP 120/73, HR 96, SpO2 93%, T 38.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-69-day": {
@@ -2065,10 +2018,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-07-01T08:00:00+09:00",
       "generator": "llm-mock",
@@ -2079,7 +2031,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 17 日目 / 入院予定 18 日間\n患者状態: BP 120/73, HR 100, SpO2 96%, T 38.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 17 日目\n患者状態: BP 118/73, HR 105, SpO2 98%, T 38.2°C、酸素投与: 酸素マスク 4.8 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-70-evening": {
@@ -2088,10 +2040,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-07-01T16:00:00+09:00",
       "generator": "llm-mock",
@@ -2102,7 +2053,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 17 日目 / 入院予定 18 日間\n患者状態: BP 120/73, HR 100, SpO2 96%, T 38.4°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 17 日目\n患者状態: BP 119/72, HR 100, SpO2 96%, T 38.0°C、酸素投与: 鼻カニューラ 2.7 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-71-night": {
@@ -2111,10 +2062,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-07-02T00:00:00+09:00",
       "generator": "llm-mock",
@@ -2125,7 +2075,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "【看護記録(深夜)】 入院 18 日目 / 入院予定 18 日間\n患者状態: BP 118/73, HR 101, SpO2 95%, T 37.8°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(深夜)】 入院 18 日目\n患者状態: BP 118/73, HR 103, SpO2 98%, T 37.8°C、酸素投与: 鼻カニューラ 3.8 L/min。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-72-day": {
@@ -2134,10 +2084,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-07-02T08:00:00+09:00",
       "generator": "llm-mock",
@@ -2148,7 +2097,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "【看護記録(日勤)】 入院 18 日目 / 入院予定 18 日間\n患者状態: BP 118/73, HR 101, SpO2 95%, T 37.8°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(日勤)】 入院 18 日目\n患者状態: BP 119/74, HR 106, SpO2 93%, T 37.7°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-73-evening": {
@@ -2157,10 +2106,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-07-02T16:00:00+09:00",
       "generator": "llm-mock",
@@ -2171,7 +2119,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 18 日目 / 入院予定 18 日間\n患者状態: BP 118/73, HR 101, SpO2 95%, T 37.8°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 18 日目\n患者状態: BP 119/70, HR 102, SpO2 93%, T 37.8°C。\n投薬継続: 輸液: 生理食塩液 80-125 mL/h、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-74": {
@@ -2183,7 +2131,7 @@
         "ctx.complications_occurred",
         "ctx.intake_output_records",
         "ctx.disease_protocol.disease_id",
-        "ctx.adl_assessments[-1]"
+        "ctx.adl_assessments@authored"
       ],
       "generated_at": "2024-07-03T09:01:00+09:00",
       "generator": "llm-mock",

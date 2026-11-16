@@ -216,14 +216,15 @@ def test_surgery_schedule_none_planned_when_no_procedures() -> None:
     assert out.sections["surgery_schedule"].strip() != ""
 
 
-def test_estimated_los_falls_back_to_ctx_los_days_without_disease_protocol() -> None:
-    """No disease_protocol (e.g. unknown-condition path) -> fall back to the
-    realized ctx.los_days (adv-1: only a fallback now, not the primary source)."""
+def test_estimated_los_is_undetermined_without_disease_protocol() -> None:
+    """No disease_protocol (e.g. unknown-condition path) -> no estimate; the
+    realized ctx.los_days is not known at admission (Issue #3240)."""
     spec = _make_spec()
     ctx = _make_ctx(los_days=12, disease_protocol=None)
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
-    assert "12" in out.sections["estimated_los"]
+    assert "12" not in out.sections["estimated_los"]
+    assert "未定" in out.sections["estimated_los"]
 
 
 def test_estimated_los_uses_disease_protocol_target_los_mean_when_available() -> None:
@@ -241,15 +242,16 @@ def test_estimated_los_uses_disease_protocol_target_los_mean_when_available() ->
     assert "7" not in out.sections["estimated_los"]
 
 
-def test_estimated_los_falls_back_when_severity_not_in_target_los() -> None:
+def test_estimated_los_is_undetermined_when_severity_not_in_target_los() -> None:
     """disease_protocol present but target_los has no entry for ctx.severity
-    -> fall back to ctx.los_days rather than crashing or emitting a blank."""
+    -> no estimate rather than the realized ctx.los_days (Issue #3240)."""
     spec = _make_spec()
     proto = _make_disease_protocol(target_los={"japan": {"mild": {"mean": 5, "sd": 1, "min": 3, "max": 8}}})
     ctx = _make_ctx(los_days=9, disease_protocol=proto, severity="severe", locale="jp")
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
-    assert "9" in out.sections["estimated_los"]
+    assert "9" not in out.sections["estimated_los"]
+    assert "未定" in out.sections["estimated_los"]
 
 
 def test_special_nutrition_management_is_always_no() -> None:

@@ -337,11 +337,10 @@ class TemplateNarrativeGenerator:
 
     def _estimated_los_days(self, ctx: NarrativeContext) -> tuple[int, list[str]]:
         """disease_protocol.target_los[country][severity].mean → whole days,
-        RNG-free (target_los is a static YAML dict, read with no sampling —
-        adv-1 finding on admission_care_plan: ctx.los_days, the already-realized
-        LOS, is tautologically 100% accurate and unrealistic for a document
-        meant to represent an AT-ADMISSION prediction). Falls back to
-        ctx.los_days only when disease_protocol is unavailable.
+        RNG-free (target_los is a static YAML dict, read with no sampling).
+        ``0`` (no estimate) when the protocol has no slot for the country and
+        severity: the realized ``ctx.los_days`` is not known at admission and
+        is never used as the estimate (Issue #3240).
 
         Shared by build_acp_estimated_los and build_rp_discharge_estimate —
         extracted once rehabilitation_plan became the 2nd consumer
@@ -352,17 +351,12 @@ class TemplateNarrativeGenerator:
         if proto is not None:
             # Issue #550: canonical resolver — same fallback ladder as the
             # inpatient simulator. The narrative path takes the mean rather
-            # than sampling (RNG-free per this method's docstring above), and
-            # falls back to the observed encounter length when the protocol
-            # has no matching (country, severity) slot.
+            # than sampling (RNG-free per this method's docstring above).
             country = country_code(ctx.locale)
             los_cfg = target_los_config(proto, country, ctx.severity) or {}
             if "mean" in los_cfg:
                 los = los_cfg["mean"]
                 facts.append("disease_protocol.target_los")
-        if not los:
-            los = ctx.los_days or 1
-            facts.append("ctx.los_days")
         return round(los), facts
 
     # ─────────────────────────────────────────────────────────────────

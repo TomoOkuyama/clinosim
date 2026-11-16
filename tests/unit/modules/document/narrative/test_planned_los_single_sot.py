@@ -96,14 +96,16 @@ def test_acp_estimated_los_matches_ap_plan() -> None:
     assert m_plan.group(1) == m_acp.group(1)
 
 
-def test_falls_back_to_actual_when_protocol_missing() -> None:
-    # No disease_protocol → `_estimated_los_days` falls back to
-    # `ctx.los_days`, and both slots share that value.
+def test_no_estimate_when_protocol_missing() -> None:
+    # No disease_protocol → no estimate (Issue #3240): the realized
+    # `ctx.los_days` is never stated as the at-admission estimate.
     ctx = _mk_ctx_with_protocol(actual_los=25, protocol_mean_los=17)
     ctx.disease_protocol = None
     gen = TemplateNarrativeGenerator()
     plan_text = gen._compose_ap_plan_from_state(ctx)
-    assert "約25日" in plan_text
+    assert "約25日" not in plan_text
+    acp_text, _ = build_acp_estimated_los(gen, ctx)
+    assert "未定" in acp_text
 
 
 def test_english_variant() -> None:

@@ -500,6 +500,9 @@ acp:
   estimated_los_line:
     ja: "推定入院期間：約{days}日間"
     en: "Estimated length of stay: approximately {days} days"
+  estimated_los_undetermined:
+    ja: "推定入院期間：未定"
+    en: "Estimated length of stay: to be determined"
 
 # Nutrition composite phrases (Phase 1d-8 / 1d-11 merged).
 nutrition:
@@ -599,14 +602,17 @@ nursing_shift:
     ja: "【看護記録】"
     en: "[Nursing Shift Note]"
   header_line:
-    ja: "{title} 入院 {day} 日目 / 入院予定 {los} 日間"
-    en: "{title} Day {day} / LOS {los} days"
+    ja: "{title} 入院 {day} 日目"
+    en: "{title} Day {day}"
   patient_status_head:
     ja: "患者状態: "
     en: "Patient status: "
   no_vital_record:
     ja: "バイタル記録なし。"
     en: "no vital record."
+  unstable_reading:
+    ja: "{time} NEWS2 {score} ({vitals})"
+    en: "NEWS2 {score} at {time} ({vitals})"
   meds_head:
     ja: "投薬継続: "
     en: "Meds administered: "
@@ -1371,6 +1377,9 @@ rp_note:
   discharge_estimate_line:
     ja: "リハビリテーション終了の目安：入院後約{days}日"
     en: "Estimated rehabilitation completion: approximately {days} days post-admission"
+  discharge_estimate_undetermined:
+    ja: "リハビリテーション終了の目安：未定"
+    en: "Estimated rehabilitation completion: to be determined"
 
 # Drug-safety event narrative line templates (Phase 1d-39).
 # From _render_safety_skips_line — one line per skip/hold/substitute/

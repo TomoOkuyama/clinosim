@@ -471,7 +471,7 @@
       "facts_used": [
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
-        "ctx.adl_assessments[-1]",
+        "ctx.adl_assessments@authored",
         "ctx.patient.chronic_conditions",
         "ctx.patient.chronic_conditions"
       ],
@@ -482,7 +482,7 @@
         "lang": "en"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 95/100 → independent (Feeding 10, Bathing 5, Mobility 15, Toilet use 10)",
+        "adl_assessment": "Barthel Index 60/100 → moderate assistance (Feeding 5, Bathing 5, Mobility 10, Toilet use 5)",
         "care_plan": "Care plan: monitor BP AM/PM; escalate to MD if goal not met.",
         "nursing_diagnosis": "Nursing diagnoses: risk for inadequate BP control.",
         "nursing_history": "Admission reason: Sudden severe headache, vomiting, altered consciousness. PMH: Hypertension (HTN), Atrial fibrillation (AF).",
@@ -497,10 +497,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-15T08:00:00Z",
       "generator": "llm-mock",
@@ -511,7 +510,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 8 days\nPatient status: BP 135/81, HR 93, SpO2 95%, T 36.9°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1\nPatient status: BP 136/78, HR 103, SpO2 95%, T 37.7°C; nasal cannula 3.2 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-13-evening": {
@@ -520,10 +519,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-15T16:00:00Z",
       "generator": "llm-mock",
@@ -534,7 +532,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 8 days\nPatient status: BP 135/81, HR 93, SpO2 95%, T 36.9°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1\nPatient status: BP 134/80, HR 101, SpO2 98%, T 37.6°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-14-night": {
@@ -543,10 +541,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-16T00:00:00Z",
       "generator": "llm-mock",
@@ -557,7 +554,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 8 days\nPatient status: BP 126/82, HR 100, SpO2 94%, T 37.7°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2\nPatient status: BP 131/77, HR 98, SpO2 96%, T 38.2°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-15-day": {
@@ -566,10 +563,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-16T08:00:00Z",
       "generator": "llm-mock",
@@ -580,7 +576,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 8 days\nPatient status: BP 126/82, HR 100, SpO2 94%, T 37.7°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2\nPatient status: BP 133/79, HR 105, SpO2 97%, T 38.5°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-16-evening": {
@@ -589,10 +585,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-16T16:00:00Z",
       "generator": "llm-mock",
@@ -603,7 +598,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 8 days\nPatient status: BP 126/82, HR 100, SpO2 94%, T 37.7°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nPatient status: BP 132/80, HR 101, SpO2 96%, T 38.0°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-17-night": {
@@ -612,10 +607,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-17T00:00:00Z",
       "generator": "llm-mock",
@@ -626,7 +620,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 8 days\nPatient status: BP 136/79, HR 99, SpO2 92%, T 37.8°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 3\nPatient status: BP 132/82, HR 104, SpO2 96%, T 38.4°C; nasal cannula 3.3 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-18-day": {
@@ -635,10 +629,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-17T08:00:00Z",
       "generator": "llm-mock",
@@ -649,7 +642,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 8 days\nPatient status: BP 136/79, HR 99, SpO2 92%, T 37.8°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3\nPatient status: BP 133/80, HR 104, SpO2 97%, T 38.5°C; simple face mask 4.8 L/min.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-19-evening": {
@@ -658,10 +651,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-17T16:00:00Z",
       "generator": "llm-mock",
@@ -672,7 +664,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 8 days\nPatient status: BP 136/79, HR 99, SpO2 92%, T 37.8°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nPatient status: BP 138/82, HR 102, SpO2 98%, T 38.3°C; simple face mask 4.6 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-20-night": {
@@ -681,10 +673,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-18T00:00:00Z",
       "generator": "llm-mock",
@@ -695,7 +686,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 8 days\nPatient status: BP 133/78, HR 103, SpO2 98%, T 37.6°C; simple face mask 4.1 L/min.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 4\nPatient status: BP 134/78, HR 103, SpO2 95%, T 37.5°C; nasal cannula 3.5 L/min.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-21-day": {
@@ -704,10 +695,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-18T08:00:00Z",
       "generator": "llm-mock",
@@ -718,7 +708,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 8 days\nPatient status: BP 133/78, HR 103, SpO2 98%, T 37.6°C; simple face mask 4.1 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 4\nPatient status: BP 133/80, HR 107, SpO2 93%, T 38.5°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h, Sodium Chloride 23.4% Injectable Solution 23.4% 30mL IV over 15min via central line.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-22-evening": {
@@ -727,10 +717,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-18T16:00:00Z",
       "generator": "llm-mock",
@@ -741,7 +730,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4 / LOS 8 days\nPatient status: BP 133/78, HR 103, SpO2 98%, T 37.6°C; simple face mask 4.1 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 4\nPatient status: BP 133/74, HR 103, SpO2 97%, T 38.2°C; nasal cannula 3.9 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-23-night": {
@@ -750,10 +739,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-19T00:00:00Z",
       "generator": "llm-mock",
@@ -764,7 +752,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5 / LOS 8 days\nPatient status: BP 132/82, HR 98, SpO2 96%, T 38.2°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 5\nPatient status: BP 131/80, HR 102, SpO2 92%, T 37.7°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-24-day": {
@@ -773,10 +761,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-19T08:00:00Z",
       "generator": "llm-mock",
@@ -787,7 +774,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5 / LOS 8 days\nPatient status: BP 132/82, HR 98, SpO2 96%, T 38.2°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 5\nPatient status: BP 136/76, HR 108, SpO2 96%, T 37.7°C; simple face mask 4.8 L/min.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-25-evening": {
@@ -796,10 +783,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-19T16:00:00Z",
       "generator": "llm-mock",
@@ -810,7 +796,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5 / LOS 8 days\nPatient status: BP 132/82, HR 98, SpO2 96%, T 38.2°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 5\nPatient status: BP 129/80, HR 99, SpO2 96%, T 38.1°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-26-night": {
@@ -819,10 +805,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-20T00:00:00Z",
       "generator": "llm-mock",
@@ -833,7 +818,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 6 / LOS 8 days\nPatient status: BP 133/78, HR 101, SpO2 92%, T 37.6°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 6\nPatient status: BP 136/79, HR 98, SpO2 94%, T 37.1°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-27-day": {
@@ -842,10 +827,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-20T08:00:00Z",
       "generator": "llm-mock",
@@ -856,7 +840,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 6 / LOS 8 days\nPatient status: BP 133/78, HR 101, SpO2 92%, T 37.6°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 6\nPatient status: BP 131/80, HR 107, SpO2 97%, T 38.5°C; nasal cannula 3.6 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-28-evening": {
@@ -865,10 +849,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-20T16:00:00Z",
       "generator": "llm-mock",
@@ -879,7 +862,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6 / LOS 8 days\nPatient status: BP 133/78, HR 101, SpO2 92%, T 37.6°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 6\nPatient status: BP 130/78, HR 100, SpO2 93%, T 37.5°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-29-night": {
@@ -888,10 +871,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-21T00:00:00Z",
       "generator": "llm-mock",
@@ -902,7 +884,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 7 / LOS 8 days\nPatient status: BP 133/78, HR 100, SpO2 94%, T 37.3°C; nasal cannula 2.3 L/min.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 7\nPatient status: BP 133/78, HR 101, SpO2 93%, T 37.3°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-30-day": {
@@ -911,10 +893,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-21T08:00:00Z",
       "generator": "llm-mock",
@@ -925,7 +906,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 8 days\nPatient status: BP 133/78, HR 100, SpO2 94%, T 37.3°C; nasal cannula 2.3 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 7\nPatient status: BP 132/78, HR 106, SpO2 93%, T 38.3°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-31-evening": {
@@ -934,10 +915,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-21T16:00:00Z",
       "generator": "llm-mock",
@@ -948,7 +928,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7 / LOS 8 days\nPatient status: BP 133/78, HR 100, SpO2 94%, T 37.3°C; nasal cannula 2.3 L/min.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 7\nPatient status: BP 135/79, HR 100, SpO2 96%, T 37.6°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-32-night": {
@@ -957,10 +937,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-22T00:00:00Z",
       "generator": "llm-mock",
@@ -971,7 +950,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8 / LOS 8 days\nPatient status: BP 134/81, HR 100, SpO2 92%, T 37.3°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 8\nPatient status: BP 132/81, HR 97, SpO2 94%, T 37.3°C.\nMeds administered: Nicardipine, Labetalol, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-33-day": {
@@ -980,10 +959,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-22T08:00:00Z",
       "generator": "llm-mock",
@@ -994,7 +972,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 8 / LOS 8 days\nPatient status: BP 134/81, HR 100, SpO2 92%, T 37.3°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 8\nPatient status: BP 133/80, HR 103, SpO2 95%, T 37.8°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-34-evening": {
@@ -1003,10 +981,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2024-06-22T16:00:00Z",
       "generator": "llm-mock",
@@ -1017,7 +994,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 8 / LOS 8 days\nPatient status: BP 134/81, HR 100, SpO2 92%, T 37.3°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 8\nPatient status: BP 135/82, HR 100, SpO2 94%, T 37.4°C.\nMeds administered: Nicardipine, IV fluids: NS 80 mL/h.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-160487169457-35": {
@@ -1028,7 +1005,7 @@
         "ctx.los_days",
         "ctx.intake_output_records",
         "ctx.patient.chronic_conditions",
-        "ctx.adl_assessments[-1]"
+        "ctx.adl_assessments@authored"
       ],
       "generated_at": "2024-06-23T09:16:00Z",
       "generator": "llm-mock",

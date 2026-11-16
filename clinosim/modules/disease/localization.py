@@ -29,7 +29,7 @@ def target_los_config(
     ``(country, severity)`` slot, or ``None`` when the protocol has no entry
     for it. The caller decides how to interpret ``None`` — the inpatient
     simulator falls back to a hardcoded default distribution, while the
-    narrative template generator falls back to the observed ``ctx.los_days``.
+    narrative template generator states no estimate.
 
     Fallback shape:
 
@@ -40,8 +40,8 @@ def target_los_config(
       inpatient simulator's pre-canonical behaviour verbatim.
     * **Severity**: no fallback — the caller receives ``None`` when the
       severity slot is missing so it can apply its own domain-appropriate
-      default (a hardcoded distribution for sampling vs the observed
-      encounter length for a narrative sentence).
+      default (a hardcoded distribution for sampling vs no estimate in a
+      narrative sentence).
 
     Placed here (not in ``protocol.py`` as Issue #550's proposal suggested)
     because this module already owns ``_country_to_yaml_key``; keeping the
