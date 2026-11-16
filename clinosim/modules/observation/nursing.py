@@ -78,6 +78,12 @@ def compute_news2(vs: dict) -> int:
     return max(NEWS2_SCORE_MIN, min(NEWS2_SCORE_MAX, total))
 
 
+def news2_urgent_response_threshold() -> int:
+    """The NEWS2 aggregate at or above which a reading calls for an urgent
+    clinical response (Issue #3239)."""
+    return int(_scores()["news2"]["urgent_response_threshold"])
+
+
 def compute_gcs(consciousness_level: str, perfusion_status: float, rng: np.random.Generator) -> int:
     cfg = _scores()["gcs"]
     base = int(cfg["avpu_base"].get(consciousness_level, 15))

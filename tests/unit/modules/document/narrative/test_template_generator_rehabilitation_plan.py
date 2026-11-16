@@ -198,10 +198,12 @@ def test_session_frequency_counts_and_dates() -> None:
     assert "2026-07-03" in out.sections["session_frequency"]
 
 
-def test_discharge_estimate_uses_los_days_fallback_when_no_disease_protocol() -> None:
+def test_discharge_estimate_is_undetermined_when_no_disease_protocol() -> None:
+    """Issue #3240: the realized ctx.los_days is never stated as an estimate."""
     spec = _make_spec()
     ctx = _make_ctx()
     ctx.los_days = 14
     gen = TemplateNarrativeGenerator()
     out = gen.generate(ctx, spec)
-    assert "14" in out.sections["discharge_estimate"]
+    assert "14" not in out.sections["discharge_estimate"]
+    assert "未定" in out.sections["discharge_estimate"]

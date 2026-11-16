@@ -20,10 +20,17 @@ from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.engine import SHIFT_HOURS, SHIFT_SCHEDULE
+from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._narrative_utils import _filter_vitals_for_day
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name
-from clinosim.modules.document.narrative._vitals_line import NURSING_SHIFT, format_vitals_line
+from clinosim.modules.document.narrative._vitals_line import (
+    NURSING_SHIFT,
+    format_vitals_line,
+    latest_vitals_set,
+    vitals_in_window,
+)
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
+from clinosim.modules.observation.nursing import compute_news2, news2_urgent_response_threshold
 from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext, NarrativeOutput
 
@@ -41,6 +48,22 @@ def _shift_window(encounter: Any, day_index: int, shift_key: str) -> tuple[datet
         start = day_start + timedelta(hours=starts[shift_key])
         return (start, start + timedelta(hours=SHIFT_HOURS))
     return (day_start, day_start + timedelta(days=1))
+
+
+def _unstable_reading(readings: list[Any], current: dict[str, Any]) -> Any | None:
+    """The earlier reading of the shift with the highest NEWS2, when that
+    score reaches the urgent-response threshold while the status line's
+    values ``current`` (the latest value of each vital) are below it: an
+    unstable episode of the shift the current state would not show. Readings
+    without a NEWS2 (children) are never reported; the later one wins a tie."""
+    scored = [(int(sc), i, v) for i, v in enumerate(readings[:-1]) if (sc := _o(v, "news2_score", None)) is not None]
+    if not scored:
+        return None
+    score, _, worst = max(scored, key=lambda x: (x[0], x[1]))
+    threshold = news2_urgent_response_threshold()
+    if score < threshold or compute_news2(current) >= threshold:
+        return None
+    return worst
 
 
 def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> NarrativeOutput:
@@ -63,7 +86,6 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
     lang = ctx.target_lang
 
     day_num = ctx.day_index + 1  # 1-based display
-    los = ctx.los_days or 1
 
     shift_key = ctx.shift or ""
     shift_label = ""
@@ -79,14 +101,18 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
         nurse_disp = _resolve_staff_name(nurse_id, ctx.roster_map)
         nurse_line = t("nursing_shift.nurse_line", lang, name=nurse_disp)
 
-    # v9 (2026-08-17) density fix: replace 「バイタルサイン安定 / 特記事項なし」
-    # boilerplate with CIF-sourced per-shift narrative (today's vitals,
-    # supplemental O2 flag, active meds, ADL trend, risk flags).
-    picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
-    v = picks[0] if picks else None
+    # Issue #3239: the vital signs of this shift's window (the latest value
+    # of each vital, plus an earlier unstable reading of the shift), never
+    # another shift's readings. Without an admission time, the calendar day.
+    window = _shift_window(ctx.encounter, ctx.day_index, shift_key)
+    if window is not None:
+        picks = vitals_in_window(ctx.vitals, window[0], window[1])
+    else:
+        picks = _filter_vitals_for_day(ctx.vitals, ctx.day_index, ctx.encounter)
+    v = latest_vitals_set(picks) if picks else None
 
     status_bits: list[str] = []
-    if v is not None:
+    if v:
         on_o2 = _o(v, "on_supplemental_oxygen", False)
         device = _o(v, "oxygen_delivery_device", None)
         flow = _o(v, "oxygen_flow_rate_lpm", None)
@@ -110,7 +136,21 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
                     status_bits.append(t("oxygen.device_line", lang, device=device_disp))
             else:
                 status_bits.append(t("nursing.supplemental_o2", lang))
-        facts.append("ctx.vitals.today")
+        unstable = _unstable_reading(picks, v)
+        if unstable is not None:
+            when = parse_iso_datetime(_o(unstable, "timestamp", None), lenient=True)
+            unstable_line = format_vitals_line(unstable, NURSING_SHIFT, lang)
+            if when is not None and unstable_line:
+                status_bits.append(
+                    t(
+                        "nursing_shift.unstable_reading",
+                        lang,
+                        time=when.strftime("%H:%M"),
+                        vitals=unstable_line,
+                        score=_o(unstable, "news2_score", None),
+                    )
+                )
+        facts.append("ctx.vitals.shift")
 
     # Issue #2651: the drugs given in this shift (the 8-hour shift window of
     # this hospital day; the whole calendar day for a note with no shift),
@@ -118,7 +158,6 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
     # shift-note brevity.
     med_names: list[str] = []
     seen: set[str] = set()
-    window = _shift_window(ctx.encounter, ctx.day_index, shift_key)
     for m in ctx.medications or []:
         if str(_o(m, "status", "given") or "given") != "given":
             continue
@@ -137,11 +176,12 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
         if len(med_names) >= 3:
             break
 
-    # Risk flag today
-    risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+    # Issue #3236: the risk assessment in force at this shift.
+    latest = in_force_at(
+        list(getattr(ctx, "nursing_risk_assessments", None) or []), getattr(ctx, "authored_datetime", None)
+    )
     risk_bit = ""
-    if risks:
-        latest = risks[-1]
+    if latest is not None:
         fall = _o(latest, "fall_risk_level", None)
         if fall and str(fall).lower() in ("high", "moderate"):
             # Localize the risk-level enum via the shared morse_band
@@ -152,14 +192,16 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
             if fall_disp == f"morse_band.{str(fall).lower()}":
                 fall_disp = str(fall)
             risk_bit = t("nursing_shift.fall_risk_line", lang, level=fall_disp)
-            facts.append("ctx.nursing_risk_assessments[-1]")
+            facts.append("ctx.nursing_risk_assessments@authored")
 
     title = (
         t("nursing_shift.title_with_shift", lang, shift=shift_label)
         if shift_label
         else t("nursing_shift.title_no_shift", lang)
     )
-    header = t("nursing_shift.header_line", lang, title=title, day=day_num, los=los)
+    # Issue #3240: the hospital day only — the final length of stay is not
+    # known while the patient is on the ward.
+    header = t("nursing_shift.header_line", lang, title=title, day=day_num)
     # status_bits separator differs by locale: JA uses 「、」, EN uses
     # "; " — matched by list_sep.semicolon. Trailing period picked
     # via list_sep.period (「。」 / ".").
@@ -187,7 +229,6 @@ def render_nursing_shift_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> 
     raw_text = "\n".join(lines)
 
     facts.append("ctx.day_index")
-    facts.append("ctx.los_days")
 
     metadata: dict[str, Any] = {
         "generator": "template",

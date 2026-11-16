@@ -770,7 +770,7 @@
       "facts_used": [
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
-        "ctx.adl_assessments[-1]",
+        "ctx.adl_assessments@authored",
         "ctx.patient.chronic_conditions",
         "ctx.patient.chronic_conditions"
       ],
@@ -781,7 +781,7 @@
         "lang": "en"
       },
       "sections": {
-        "adl_assessment": "Barthel Index 95/100 → independent (Feeding 10, Bathing 5, Mobility 15, Toilet use 10)",
+        "adl_assessment": "Barthel Index 60/100 → moderate assistance (Feeding 5, Bathing 5, Mobility 10, Toilet use 5)",
         "care_plan": "Care plan: monitor BP AM/PM; escalate to MD if goal not met.",
         "nursing_diagnosis": "Nursing diagnoses: risk for inadequate BP control.",
         "nursing_history": "Admission reason: Chest pain, diaphoresis, dyspnea. PMH: Chronic ischemic heart disease (IHD), Hypertension (HTN), Dyslipidemia.",
@@ -796,10 +796,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -810,7 +809,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1 / LOS 14 days\nPatient status: BP 116/72, HR 111, SpO2 96%, T 36.2°C.\nMeds administered: Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1\nPatient status: BP 119/71, HR 117, SpO2 95%, T 38.2°C.\nMeds administered: Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-19-evening": {
@@ -819,10 +818,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -833,7 +831,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 1 / LOS 14 days\nPatient status: BP 116/72, HR 111, SpO2 96%, T 36.2°C.\nMeds administered: Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 1\nPatient status: BP 122/73, HR 112, SpO2 96%, T 37.4°C.\nMeds administered: Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-20-night": {
@@ -842,10 +840,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -856,7 +853,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2 / LOS 14 days\nPatient status: BP 115/71, HR 109, SpO2 93%, T 37.3°C; nasal cannula 3.2 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2\nPatient status: BP 117/72, HR 107, SpO2 98%, T 37.5°C; simple face mask 4.9 L/min.\nMeds administered: Aspirin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-21-day": {
@@ -865,10 +862,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -879,7 +875,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2 / LOS 14 days\nPatient status: BP 115/71, HR 109, SpO2 93%, T 37.3°C; nasal cannula 3.2 L/min.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2\nPatient status: BP 118/72, HR 112, SpO2 99%, T 36.6°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-22-evening": {
@@ -888,10 +884,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -902,7 +897,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2 / LOS 14 days\nPatient status: BP 115/71, HR 109, SpO2 93%, T 37.3°C; nasal cannula 3.2 L/min.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nPatient status: BP 113/70, HR 112, SpO2 94%, T 37.6°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-23-night": {
@@ -911,10 +906,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -925,7 +919,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3 / LOS 14 days\nPatient status: BP 111/69, HR 108, SpO2 96%, T 36.7°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 3\nPatient status: BP 113/67, HR 102, SpO2 100%, T 36.8°C.\nMeds administered: Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-24-day": {
@@ -934,10 +928,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -948,7 +941,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3 / LOS 14 days\nPatient status: BP 111/69, HR 108, SpO2 96%, T 36.7°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3\nPatient status: BP 111/71, HR 108, SpO2 93%, T 38.5°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-25-evening": {
@@ -957,10 +950,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -971,7 +963,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3 / LOS 14 days\nPatient status: BP 111/69, HR 108, SpO2 96%, T 36.7°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nPatient status: BP 111/67, HR 108, SpO2 94%, T 37.8°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-26-night": {
@@ -980,10 +972,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -994,7 +985,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 4 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 96%, T 37.5°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 4\nPatient status: BP 113/66, HR 106, SpO2 98%, T 37.3°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-27-day": {
@@ -1003,10 +994,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1017,7 +1007,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 4 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 96%, T 37.5°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 4\nPatient status: BP 112/68, HR 114, SpO2 96%, T 38.1°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-28-evening": {
@@ -1026,10 +1016,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1040,7 +1029,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4 / LOS 14 days\nPatient status: BP 113/71, HR 106, SpO2 96%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 4\nPatient status: BP 112/70, HR 107, SpO2 94%, T 36.3°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-29-night": {
@@ -1049,10 +1038,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1063,7 +1051,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5 / LOS 14 days\nPatient status: BP 116/69, HR 102, SpO2 96%, T 36.6°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 5\nPatient status: BP 115/70, HR 105, SpO2 93%, T 38.1°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-30-day": {
@@ -1072,10 +1060,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1086,7 +1073,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 5 / LOS 14 days\nPatient status: BP 116/69, HR 102, SpO2 96%, T 36.6°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 5\nPatient status: BP 112/69, HR 111, SpO2 94%, T 37.3°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-31-evening": {
@@ -1095,10 +1082,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1109,7 +1095,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5 / LOS 14 days\nPatient status: BP 116/69, HR 102, SpO2 96%, T 36.6°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 5\nPatient status: BP 113/72, HR 105, SpO2 98%, T 37.6°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-32-night": {
@@ -1118,10 +1104,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1132,7 +1117,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 6 / LOS 14 days\nPatient status: BP 113/71, HR 102, SpO2 95%, T 36.5°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 6\nPatient status: BP 113/71, HR 105, SpO2 94%, T 36.1°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-33-day": {
@@ -1141,10 +1126,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1155,7 +1139,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 6 / LOS 14 days\nPatient status: BP 113/71, HR 102, SpO2 95%, T 36.5°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 6\nPatient status: BP 114/69, HR 108, SpO2 95%, T 38.0°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-34-evening": {
@@ -1164,10 +1148,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1178,7 +1161,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 6 / LOS 14 days\nPatient status: BP 113/71, HR 102, SpO2 95%, T 36.5°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 6\nPatient status: BP 113/71, HR 105, SpO2 97%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-35-night": {
@@ -1187,10 +1170,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1201,7 +1183,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 7 / LOS 14 days\nPatient status: BP 118/70, HR 104, SpO2 94%, T 37.9°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 7\nPatient status: BP 110/67, HR 102, SpO2 96%, T 37.6°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-36-day": {
@@ -1210,10 +1192,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1224,7 +1205,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 7 / LOS 14 days\nPatient status: BP 118/70, HR 104, SpO2 94%, T 37.9°C.\nMeds administered: Heparin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 7\nPatient status: BP 113/70, HR 107, SpO2 98%, T 38.2°C.\nMeds administered: Heparin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-37-evening": {
@@ -1233,10 +1214,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1247,7 +1227,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 7 / LOS 14 days\nPatient status: BP 118/70, HR 104, SpO2 94%, T 37.9°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 7\nPatient status: BP 112/68, HR 105, SpO2 92%, T 37.0°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-38-night": {
@@ -1256,10 +1236,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1270,7 +1249,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 8 / LOS 14 days\nPatient status: BP 114/69, HR 102, SpO2 97%, T 36.7°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 8\nPatient status: BP 114/71, HR 103, SpO2 95%, T 37.2°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-39-day": {
@@ -1279,10 +1258,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1293,7 +1271,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 8 / LOS 14 days\nPatient status: BP 114/69, HR 102, SpO2 97%, T 36.7°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 8\nPatient status: BP 115/72, HR 107, SpO2 96%, T 37.8°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-40-evening": {
@@ -1302,10 +1280,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1316,7 +1293,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 8 / LOS 14 days\nPatient status: BP 114/69, HR 102, SpO2 97%, T 36.7°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 8\nPatient status: BP 112/69, HR 109, SpO2 97%, T 37.4°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-41-night": {
@@ -1325,10 +1302,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1339,7 +1315,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 9 / LOS 14 days\nPatient status: BP 111/71, HR 103, SpO2 97%, T 36.9°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 9\nPatient status: BP 114/70, HR 104, SpO2 93%, T 36.9°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-42-day": {
@@ -1348,10 +1324,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1362,7 +1337,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 9 / LOS 14 days\nPatient status: BP 111/71, HR 103, SpO2 97%, T 36.9°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 9\nPatient status: BP 113/74, HR 106, SpO2 98%, T 37.3°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-43-evening": {
@@ -1371,10 +1346,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1385,7 +1359,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 9 / LOS 14 days\nPatient status: BP 111/71, HR 103, SpO2 97%, T 36.9°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 9\nPatient status: BP 115/70, HR 104, SpO2 100%, T 37.1°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-44-night": {
@@ -1394,10 +1368,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1408,7 +1381,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 10 / LOS 14 days\nPatient status: BP 118/68, HR 104, SpO2 98%, T 35.8°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 10\nPatient status: BP 111/72, HR 104, SpO2 96%, T 36.6°C.\nMeds administered: Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-45-day": {
@@ -1417,10 +1390,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1431,7 +1403,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 10 / LOS 14 days\nPatient status: BP 118/68, HR 104, SpO2 98%, T 35.8°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 10\nPatient status: BP 112/66, HR 105, SpO2 96%, T 38.1°C.\nMeds administered: Aspirin, Ticagrelor, Heparin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-46-evening": {
@@ -1440,10 +1412,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1454,7 +1425,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 10 / LOS 14 days\nPatient status: BP 118/68, HR 104, SpO2 98%, T 35.8°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 10\nPatient status: BP 113/69, HR 102, SpO2 94%, T 38.0°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-47-night": {
@@ -1463,10 +1434,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1477,7 +1447,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 11 / LOS 14 days\nPatient status: BP 117/70, HR 99, SpO2 97%, T 36.0°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 11\nPatient status: BP 115/68, HR 98, SpO2 94%, T 36.5°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-48-day": {
@@ -1486,10 +1456,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1500,7 +1469,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 11 / LOS 14 days\nPatient status: BP 117/70, HR 99, SpO2 97%, T 36.0°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 11\nPatient status: BP 113/71, HR 103, SpO2 96%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-49-evening": {
@@ -1509,10 +1478,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1523,7 +1491,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 11 / LOS 14 days\nPatient status: BP 117/70, HR 99, SpO2 97%, T 36.0°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 11\nPatient status: BP 115/72, HR 102, SpO2 98%, T 37.1°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-50-night": {
@@ -1532,10 +1500,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1546,7 +1513,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 12 / LOS 14 days\nPatient status: BP 112/69, HR 96, SpO2 96%, T 36.4°C.\nMeds administered: Heparin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 12\nPatient status: BP 114/69, HR 101, SpO2 95%, T 36.6°C.\nMeds administered: Heparin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-51-day": {
@@ -1555,10 +1522,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1569,7 +1535,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 12 / LOS 14 days\nPatient status: BP 112/69, HR 96, SpO2 96%, T 36.4°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 12\nPatient status: BP 114/74, HR 105, SpO2 96%, T 37.0°C.\nMeds administered: Aspirin, Ticagrelor, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-52-evening": {
@@ -1578,10 +1544,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1592,7 +1557,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 12 / LOS 14 days\nPatient status: BP 112/69, HR 96, SpO2 96%, T 36.4°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 12\nPatient status: BP 118/70, HR 102, SpO2 94%, T 37.5°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-53-night": {
@@ -1601,10 +1566,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1615,7 +1579,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 13 / LOS 14 days\nPatient status: BP 116/72, HR 97, SpO2 99%, T 36.9°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 13\nPatient status: BP 117/69, HR 102, SpO2 96%, T 36.5°C.\nMeds administered: Ticagrelor, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-54-day": {
@@ -1624,10 +1588,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1638,7 +1601,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 13 / LOS 14 days\nPatient status: BP 116/72, HR 97, SpO2 99%, T 36.9°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 13\nPatient status: BP 115/70, HR 98, SpO2 95%, T 36.2°C.\nMeds administered: Aspirin, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-55-evening": {
@@ -1647,10 +1610,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1661,7 +1623,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 13 / LOS 14 days\nPatient status: BP 116/72, HR 97, SpO2 99%, T 36.9°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 13\nPatient status: BP 118/73, HR 100, SpO2 93%, T 36.6°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-56-night": {
@@ -1670,10 +1632,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1684,7 +1645,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 14 / LOS 14 days\nPatient status: BP 119/74, HR 96, SpO2 96%, T 36.4°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 14\nPatient status: BP 118/71, HR 100, SpO2 95%, T 36.6°C.\nMeds administered: Aspirin, Heparin, Nitroglycerin.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-57-day": {
@@ -1693,10 +1654,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1707,7 +1667,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 14 / LOS 14 days\nPatient status: BP 119/74, HR 96, SpO2 96%, T 36.4°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 14\nPatient status: BP 117/70, HR 103, SpO2 98%, T 37.9°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-58-evening": {
@@ -1716,10 +1676,9 @@
     "narrative": {
       "facts_used": [
         "ctx.shift",
-        "ctx.vitals.today",
+        "ctx.vitals.shift",
         "ctx.medications.today",
-        "ctx.day_index",
-        "ctx.los_days"
+        "ctx.day_index"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",
@@ -1730,7 +1689,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 14 / LOS 14 days\nPatient status: BP 119/74, HR 96, SpO2 96%, T 36.4°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 14\nPatient status: BP 120/70, HR 101, SpO2 98%, T 36.3°C.\nMeds administered: Ticagrelor, Nitroglycerin, Dobutamine 2-20ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-59": {
@@ -1741,7 +1700,7 @@
         "ctx.los_days",
         "ctx.intake_output_records",
         "ctx.patient.chronic_conditions",
-        "ctx.adl_assessments[-1]"
+        "ctx.adl_assessments@authored"
       ],
       "generated_at": "2020-01-01T00:00:42Z",
       "generator": "llm-mock",

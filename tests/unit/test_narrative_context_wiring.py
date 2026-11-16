@@ -10,6 +10,7 @@ plus old-CIF (pre-1a JSON) backward compat.
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -427,3 +428,38 @@ def test_old_cif_without_new_fields_defaults_cleanly():
     assert ctx.allergies == []
     assert ctx.day_index == 0
     assert ctx.los_days == 1
+
+
+def test_per_stub_authored_datetime_via_run(tmp_path: Path):
+    """Issue #3236: each stub's authored time reaches ctx.authored_datetime."""
+    pd = _patient_dict()
+    pd["documents"] = [
+        {
+            "document_id": f"doc-ENC-1-progress_note-day-{d}",
+            "task_type": "progress_note",
+            "loinc_code": "11506-3",
+            "format_type": "free_text",
+            "period_start": f"2025-06-0{d + 1}T00:00:00",
+            "authored_datetime": f"2025-06-0{d + 1}T09:30:00",
+            "narrative": None,
+        }
+        for d in range(2)
+    ]
+    structural = tmp_path / "structural" / "patients"
+    structural.mkdir(parents=True)
+    (structural / "ENC-1.json").write_text(json.dumps(pd, ensure_ascii=False))
+
+    captured: list[object] = []
+
+    class CapturingGenerator:
+        def generate(self, ctx, spec):
+            captured.append(ctx.authored_datetime)
+            return NarrativeOutput(raw_text="x")
+
+    TemplateNarrativePass(
+        cif_dir=str(tmp_path),
+        country="US",
+        tasks=["progress_note"],
+        generator=CapturingGenerator(),
+    ).run()
+    assert captured == [datetime(2025, 6, 1, 9, 30), datetime(2025, 6, 2, 9, 30)]

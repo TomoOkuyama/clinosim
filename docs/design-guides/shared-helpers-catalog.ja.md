@@ -171,6 +171,8 @@ Governing spec: [`narrative-and-document-generation-spec.ja.md`](narrative-and-d
 | ヘルパー | 用途 |
 |---|---|
 | `clinosim/modules/document/narrative/_vitals_line.py` `format_vitals_line` | 全文書が使う唯一のバイタル行。 |
+| `clinosim/modules/document/narrative/_vitals_line.py` `vitals_in_window` / `latest_vitals_set` | ある時間枠 (看護の勤務帯) の測定と、その中の各バイタルの最新値。 |
+| `clinosim/modules/document/narrative/_as_of.py` `in_force_at(records, as_of)` | 文書の作成時刻に有効な日付つき記録 (ADL、看護リスク評価)。在院中最後の記録を位置で取らない。 |
 | `clinosim/modules/document/narrative/_narrative_interpretation_thresholds.py` `bmi_band` / `bp_band` | BMI と血圧の文言の区分。 |
 | `clinosim/modules/document/narrative/_safety_skips.py` `safety_skip_line` | 保留・スキップされた投与 (安全イベント) の文。 |
 | `clinosim/modules/document/narrative/_template_helpers.py` `allergen_display` | 文書中のアレルゲン名。 |

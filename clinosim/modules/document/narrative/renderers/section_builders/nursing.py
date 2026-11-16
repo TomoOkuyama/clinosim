@@ -25,6 +25,7 @@ from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_utils import _lookup_nursing_content, encounter_died
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
@@ -40,6 +41,21 @@ if TYPE_CHECKING:
 # ─────────────────────────────────────────────────────────────────────
 # ADMISSION_NURSING_ASSESSMENT section builders.
 # ─────────────────────────────────────────────────────────────────────
+
+
+def _adl_at(ctx: NarrativeContext) -> object | None:
+    """The ADL (Barthel) assessment in force when the document was written
+    (Issue #3236): the admission one in an admission note, the last one in
+    a discharge summary."""
+    return in_force_at(list(getattr(ctx, "adl_assessments", None) or []), getattr(ctx, "authored_datetime", None))
+
+
+def _risk_at(ctx: NarrativeContext) -> object | None:
+    """The Braden / Morse assessment in force when the document was written
+    (Issue #3236)."""
+    return in_force_at(
+        list(getattr(ctx, "nursing_risk_assessments", None) or []), getattr(ctx, "authored_datetime", None)
+    )
 
 
 @section("nursing_history")
@@ -101,14 +117,13 @@ def build_adl_assessment(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
     v9 density fix — v8 emitted 12-char "ADL：自立（問題なし）"."""
     facts: list[str] = []
     lang = ctx.target_lang
-    adls = list(getattr(ctx, "adl_assessments", None) or [])
-    if not adls:
+    latest = _adl_at(ctx)
+    if latest is None:
         return (t("fallback.adl_fallback", lang)), facts
-    latest = adls[-1]
     barthel = _o(latest, "barthel_score", None)
     if barthel is None:
         return (t("fallback.adl_fallback", lang)), facts
-    facts.append("ctx.adl_assessments[-1]")
+    facts.append("ctx.adl_assessments@authored")
     # Barthel band interpretation (standard)
     if barthel >= 91:
         band = t("barthel_band.independent", lang)
@@ -136,14 +151,13 @@ def build_risk_assessments(generator: TemplateNarrativeGenerator, ctx: Narrative
     fix — v8 emitted 12-char placeholder."""
     facts: list[str] = []
     lang = ctx.target_lang
-    risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
-    if not risks:
+    latest = _risk_at(ctx)
+    if latest is None:
         return (t("fallback.risk_fallback", lang)), facts
-    latest = risks[-1]
     braden = _o(latest, "braden_total", None)
     morse = _o(latest, "morse_total", None)
     fall_lvl = _o(latest, "fall_risk_level", None)
-    facts.append("ctx.nursing_risk_assessments[-1]")
+    facts.append("ctx.nursing_risk_assessments@authored")
     parts: list[str] = []
     if braden is not None:
         # Braden risk bands: >18 low / 15-18 mild / 13-14 moderate / 10-12 high / ≤9 severe
@@ -198,9 +212,8 @@ def build_nursing_diagnosis(generator: TemplateNarrativeGenerator, ctx: Narrativ
 
     # Risk-derived NDx (unchanged from pre-session-104 semantics —
     # appended on top of the YAML-driven items, past the cap).
-    risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
-    if risks:
-        latest = risks[-1]
+    latest = _risk_at(ctx)
+    if latest is not None:
         fall = _o(latest, "fall_risk_level", None)
         if fall and str(fall).lower() in ("high", "moderate"):
             fr = t("fall_risk.short_label", lang)
@@ -245,11 +258,10 @@ def build_care_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     # risk-derived version would double-cover. Skip whenever ANY
     # existing action already opens with the fall-precaution /
     # PU-prevention prefix (locale-specific).
-    risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
+    latest = _risk_at(ctx)
     _fall_prefix = t("nursing.fall_precautions", lang)
     _pu_prefix = t("nursing.pu_prevention", lang)
-    if risks:
-        latest = risks[-1]
+    if latest is not None:
         if str(_o(latest, "fall_risk_level", "") or "").lower() in ("high", "moderate"):
             if not any(a.startswith(_fall_prefix) for a in actions):
                 actions.append(t("nursing.fall_precautions_action", lang))
@@ -381,21 +393,19 @@ def build_discharge_readiness(generator: TemplateNarrativeGenerator, ctx: Narrat
     lang = ctx.target_lang
     if encounter_died(ctx.encounter):
         return t("discharge_readiness.after_death", lang), ["encounter.discharge_disposition"]
-    adls = list(getattr(ctx, "adl_assessments", None) or [])
-    risks = list(getattr(ctx, "nursing_risk_assessments", None) or [])
     parts: list[str] = []
-    if adls:
-        latest = adls[-1]
-        barthel = _o(latest, "barthel_score", None)
+    adl = _adl_at(ctx)
+    if adl is not None:
+        barthel = _o(adl, "barthel_score", None)
         if barthel is not None:
-            facts.append("ctx.adl_assessments[-1]")
+            facts.append("ctx.adl_assessments@authored")
             parts.append(t("rehab.discharge_barthel_line", lang, score=barthel))
-    if risks:
-        latest = risks[-1]
+    latest = _risk_at(ctx)
+    if latest is not None:
         fall = _o(latest, "fall_risk_level", None)
         braden = _o(latest, "braden_total", None)
         if fall or braden is not None:
-            facts.append("ctx.nursing_risk_assessments[-1]")
+            facts.append("ctx.nursing_risk_assessments@authored")
             bits = []
             if fall:
                 # Localize fall_risk_level via the shared morse_band

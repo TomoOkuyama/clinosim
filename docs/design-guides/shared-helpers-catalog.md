@@ -171,6 +171,8 @@ Governing spec: [`narrative-and-document-generation-spec.md`](narrative-and-docu
 | Helper | Use it for |
 |---|---|
 | `clinosim/modules/document/narrative/_vitals_line.py` `format_vitals_line` | The one vital-signs line used by every document. |
+| `clinosim/modules/document/narrative/_vitals_line.py` `vitals_in_window` / `latest_vitals_set` | The readings of a time window (a nursing shift) and the latest value of each vital over them. |
+| `clinosim/modules/document/narrative/_as_of.py` `in_force_at(records, as_of)` | The dated record (ADL, nursing risk assessment) in force at a document's authored time; never the last of the stay by position. |
 | `clinosim/modules/document/narrative/_narrative_interpretation_thresholds.py` `bmi_band` / `bp_band` | BMI and blood-pressure wording bands. |
 | `clinosim/modules/document/narrative/_safety_skips.py` `safety_skip_line` | The sentence for a held or skipped dose (safety event). |
 | `clinosim/modules/document/narrative/_template_helpers.py` `allergen_display` | Allergen names in documents. |

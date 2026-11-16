@@ -78,6 +78,7 @@ from clinosim.modules.observation.engine import (
 # 看護 flowsheet
 from clinosim.modules.observation.nursing import (
     compute_news2,                       # (vs: dict) -> int
+    news2_urgent_response_threshold,     # () -> int (RCP 2017 urgent-response aggregate)
     compute_gcs,                         # (consciousness_level, perfusion_status, rng) -> int
     compute_braden,                      # (adl, consciousness_level, volume_status, rng) -> dict
     compute_morse_fall_risk,             # (age, adl, consciousness_level, has_iv, rng, has_secondary_diagnosis=False,

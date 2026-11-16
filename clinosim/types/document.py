@@ -8,6 +8,7 @@ returns a ``NarrativeOutput``.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import StrEnum
 from typing import Any, Protocol, runtime_checkable
 
@@ -224,6 +225,10 @@ class NarrativeContext:
     # for daily_3shift stubs; "" otherwise). NarrativePass sets this per stub;
     # the generator resolves the localized label at render time (AD-30 spirit).
     shift: str = ""
+    # Issue #3236: the document's authored time (ClinicalDocument.authored_datetime),
+    # set per stub by NarrativePass. Builders read only data recorded up to it
+    # (``narrative/_as_of.py``); None when the document has no authored time.
+    authored_datetime: datetime | None = None
 
     # === chain 1a adv-1 (I-1): discharge prescription, separated ===
     # Normalized discharge_prescription.items ({"drug_name", "dose"} per
