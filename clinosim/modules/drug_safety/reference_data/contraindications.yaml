@@ -99,6 +99,19 @@ rules:
     substitution_hint: null
     source: "ACC/AHA 2016 DAPT focused update; ESC 2023 ACS guidelines"
 
+  # Issue #3274: an AF admission's IV metoprolol was added to the home
+  # metoprolol succinate. A beta-blocker the patient already takes is
+  # continued (or its dose changed); a second one is a duplication.
+  - id: beta-blocker-plus-beta-blocker
+    lhs: beta_blocker
+    rhs: beta_blocker
+    severity: contraindicated
+    rationale:
+      en: "Two beta-blockers are a therapeutic duplication (additive bradycardia, AV block and hypotension); a patient already on a beta-blocker has that agent continued or its dose adjusted, and another class is added for further rate control."
+      ja: "β遮断薬二剤は治療重複 (徐脈・房室ブロック・低血圧の増強)。β遮断薬内服中の患者はその薬剤を継続または増減量し、さらなる心拍数調節には別系統の薬剤を追加する。"
+    substitution_hint: null
+    source: "2023 ACC/AHA/ACCP/HRS AF Guideline 7.2.1 (digoxin alone or in combination when beta-blockers and non-DHP CCB are ineffective or contraindicated, COR 2a); JCS/JHRS 2020 不整脈薬物治療ガイドライン 表44 (β遮断薬に追加してのジギタリス投与, クラス IIa)"
+
   - id: statin-plus-statin
     lhs: statin
     rhs: statin

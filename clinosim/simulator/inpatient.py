@@ -31,6 +31,7 @@ from clinosim.modules.disease.protocol import DiseaseProtocol, load_disease_prot
 from clinosim.modules.disease.severity import category_from_score
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.order.engine import (
+    first_line_alternative_groups,
     place_admission_orders,
     place_imaging_orders,
 )
@@ -777,6 +778,8 @@ def _simulate_patient(
         attending_id,
         protocol=protocol,
         country=country_key,
+        # Issue #3274: first-line alternatives give one agent.
+        alternative_groups=first_line_alternative_groups(protocol, encounter.encounter_id, country_key),
     )
 
     # Tracking

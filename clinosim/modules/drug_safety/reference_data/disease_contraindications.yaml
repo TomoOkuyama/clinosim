@@ -61,6 +61,21 @@ rules:
       ja: "NSAID は腎 Na+/水貯留とプロスタグランジン阻害による血管収縮により心不全増悪を惹起。アセトアミノフェンまたは外用 NSAID に切替。"
     source: "AHA/ACC/HFSA 2022 Heart Failure Guideline; JCS 2021 急性・慢性心不全診療ガイドライン"
 
+  # Issue #3274: diltiazem / verapamil depress contractility. The simulator
+  # does not model the ejection fraction, so the rule covers every heart
+  # failure: JCS/JHRS 2020 asks for the cardiac function to be checked
+  # (echocardiography or BNP) before a non-DHP CCB is chosen.
+  - id: non-dhp-ccb-in-heart-failure
+    drug_class: ccb.non_dhp
+    disease_predicate: {icd_prefix: ["I50"]}
+    severity: contraindicated
+    substitution_hint: hypertension_or_rate_control
+    condition: {en: "heart failure", ja: "心不全"}
+    rationale:
+      en: "Non-dihydropyridine calcium-channel blockers (diltiazem, verapamil) have a negative inotropic effect and can worsen heart failure; with reduced LV systolic function they are not given, and a beta-blocker is used for rate control."
+      ja: "非ジヒドロピリジン系カルシウム拮抗薬 (ジルチアゼム、ベラパミル) は陰性変力作用により心不全を増悪させうる。左室収縮能低下例では投与せず、心拍数調節にはβ遮断薬を用いる。"
+    source: "2023 ACC/AHA/ACCP/HRS AF Guideline 7.2.1 (IV non-DHP CCB in moderate or severe LV systolic dysfunction, COR 3: Harm) and 7.2.2 (LVEF < 40%, COR 3: Harm); JCS/JHRS 2020 不整脈薬物治療ガイドライン 表44 (心機能低下例の非ジヒドロピリジン系 Ca 拮抗薬, クラス III)"
+
   - id: nsaid-in-cirrhosis
     drug_class: nsaid
     disease_predicate: {icd_prefix: ["K74", "K70.3"]}

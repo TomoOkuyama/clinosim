@@ -1135,6 +1135,7 @@ def apply_drug_safety_gate_to_orders(
     already_accepted_meds: list[str] | None = None,
     already_accepted_ids: Collection[str] = (),
     same_drug_reorder: bool = False,
+    alternative_groups: Iterable[Iterable[str]] = (),
 ) -> list[Order]:
     """Filter a stream of candidate medication Orders through
     ``drug_safety.check_pair``, the drug-vs-disease rules and the
@@ -1170,6 +1171,14 @@ def apply_drug_safety_gate_to_orders(
     orders), a candidate of a drug already accepted is a re-order of that
     drug (a dose or rate change), not checked against it
     (``drug_safety.check_candidate_against_active``).
+
+    ``alternative_groups`` (Issue #3274) are groups of order ids that are
+    alternatives in order of preference (a ``drugs.first_line`` block with
+    ``select: one_of``, ``order.engine.first_line_alternative_groups``): the
+    first member that passes is given and the later ones are dropped. A
+    member that is ruled out is logged with the member given in its place
+    as the substitute; only when every member is ruled out does the
+    substitute of the first member that has one take the group's place.
 
     Every skip (with or without substitute) is appended to
     ``patient.safety_skip_log`` with ``encounter_id`` set and
@@ -1214,6 +1223,60 @@ def apply_drug_safety_gate_to_orders(
     allergen_codes = drug_safety.allergy_entries(getattr(patient, "allergies", None) or [])
     condition_codes = drug_safety.condition_entries(patient.chronic_conditions or [])
 
+    # Issue #3274: alternative groups, by the members present in this pass.
+    _present = {o.order_id for o in candidate_orders}
+    _groups = [[oid for oid in ids if oid in _present] for ids in alternative_groups]
+    group_of = {oid: gi for gi, ids in enumerate(_groups) for oid in ids}
+    group_chosen: set[int] = set()
+    group_ruled_out: dict[int, list[tuple[SafetySkipEntry, Order, str | None]]] = {}
+
+    def _choose(order: Order) -> None:
+        """A group member is given: the members ruled out before it name it
+        as their substitute."""
+        gi = group_of.get(order.order_id)
+        if gi is None:
+            return
+        group_chosen.add(gi)
+        for entry, _order, _hint in group_ruled_out.pop(gi, []):
+            entry.substituted_with = order.display_name
+            entry.substituted_with_ja = drug_safety.japanese_display(order.display_name) or localize_drug_name(
+                order.display_name, "ja"
+            )
+
+    def _substitute_order(order: Order, candidate: str, alt: drug_safety.AlternativeDrug) -> Order:
+        nonlocal substitute_seq
+        substitute_seq += 1
+        sub_order = Order(
+            order_id=f"ORD-{encounter_id}-SUB-{substitute_seq:02d}",
+            encounter_id=encounter_id,
+            patient_id=patient.patient_id,
+            order_type=OrderType.MEDICATION,
+            order_code="",
+            display_name=alt.drug,
+            urgency=order.urgency or "routine",
+            clinical_intent=t("order_intent.contraindication_alternative", "en", candidate=candidate, drug=alt.drug),
+            clinical_intent_ja=t(
+                "order_intent.contraindication_alternative",
+                "ja",
+                # Issue #3107: the avoided drug's Japanese name.
+                candidate=localize_drug_name(candidate, "ja"),
+                drug=alt.drug_ja,
+            ),
+            ordered_datetime=order.ordered_datetime,
+            ordered_by=order.ordered_by or attending_id,
+            status=OrderStatus.PLACED,
+            route=alt.default_route,
+            frequency=alt.default_frequency.upper() if alt.default_frequency else "",
+            # Issue #3242: the substitute takes the replaced order's place
+            # in its order set.
+            order_set=order.order_set,
+        )
+        if alt.default_dose:
+            from clinosim.modules.order.engine import enrich_medication_order
+
+            enrich_medication_order(sub_order, alt.default_dose)
+        return sub_order
+
     for order in candidate_orders:
         if order.order_type != OrderType.MEDICATION:
             out.append(order)
@@ -1231,6 +1294,11 @@ def apply_drug_safety_gate_to_orders(
         if _prior in rejected_ids:
             rejected_ids.add(order.order_id)
             continue
+        _group = group_of.get(order.order_id)
+        if _group is not None and _group in group_chosen:
+            # Issue #3274: an alternative to the member already given.
+            rejected_ids.add(order.order_id)
+            continue
 
         # Issue #1066: home-medication continuation orders re-emit drugs already
         # in ``patient.current_medications``. The activator has already made
@@ -1246,6 +1314,7 @@ def apply_drug_safety_gate_to_orders(
             out.append(order)
             accepted_med_names.append(candidate)
             accepted_ids.add(order.order_id)
+            _choose(order)
             continue
 
         verdicts = drug_safety.check_candidate_against_active(
@@ -1284,7 +1353,11 @@ def apply_drug_safety_gate_to_orders(
         if worst is not None and worst.default_action == "skip":
             indication = worst.substitution_hint
             alt: drug_safety.AlternativeDrug | None
-            if plan_action == "switch":
+            if _group is not None:
+                # Issue #3274: a later member may be given instead; the
+                # substitute is chosen once every member is ruled out.
+                alt = None
+            elif plan_action == "switch":
                 worst = drug_safety.acs_plan_verdict(worst, keep=False)
                 alt = drug_safety.acs_plan_p2y12_alternative()
             else:
@@ -1312,43 +1385,35 @@ def apply_drug_safety_gate_to_orders(
                 )
             )
             rejected_ids.add(order.order_id)
+            if _group is not None:
+                ruled_out = group_ruled_out.setdefault(_group, [])
+                ruled_out.append((patient.safety_skip_log[-1], order, indication))
+                if order.order_id != _groups[_group][-1]:
+                    continue
+                # Every member is ruled out: the substitute of the first
+                # member that has one.
+                for entry, member, hint in ruled_out:
+                    member_drug = member.display_name or ""
+                    alt = drug_safety.suggest_alternative(
+                        member_drug,
+                        hint,
+                        active_meds=accepted_med_names,
+                        disease_ctx=protocol,
+                        country=country,
+                        allergen_codes=allergen_codes,
+                    )
+                    if alt is not None:
+                        entry.substituted_with = alt.drug
+                        entry.substituted_with_ja = alt.drug_ja
+                        out.append(_substitute_order(member, member_drug, alt))
+                        accepted_med_names.append(alt.drug)
+                        break
+                continue
             if alt is None:
                 # Fully skip — order dropped
                 continue
             # Emit substitute in place
-            substitute_seq += 1
-            sub_order = Order(
-                order_id=f"ORD-{encounter_id}-SUB-{substitute_seq:02d}",
-                encounter_id=encounter_id,
-                patient_id=patient.patient_id,
-                order_type=OrderType.MEDICATION,
-                order_code="",
-                display_name=alt.drug,
-                urgency=order.urgency or "routine",
-                clinical_intent=t(
-                    "order_intent.contraindication_alternative", "en", candidate=candidate, drug=alt.drug
-                ),
-                clinical_intent_ja=t(
-                    "order_intent.contraindication_alternative",
-                    "ja",
-                    # Issue #3107: the avoided drug's Japanese name.
-                    candidate=localize_drug_name(candidate, "ja"),
-                    drug=alt.drug_ja,
-                ),
-                ordered_datetime=order.ordered_datetime,
-                ordered_by=order.ordered_by or attending_id,
-                status=OrderStatus.PLACED,
-                route=alt.default_route,
-                frequency=alt.default_frequency.upper() if alt.default_frequency else "",
-                # Issue #3242: the substitute takes the replaced order's place
-                # in its order set.
-                order_set=order.order_set,
-            )
-            if alt.default_dose:
-                from clinosim.modules.order.engine import enrich_medication_order
-
-                enrich_medication_order(sub_order, alt.default_dose)
-            out.append(sub_order)
+            out.append(_substitute_order(order, candidate, alt))
             accepted_med_names.append(alt.drug)
             continue
 
@@ -1364,6 +1429,7 @@ def apply_drug_safety_gate_to_orders(
         out.append(order)
         accepted_med_names.append(candidate)
         accepted_ids.add(order.order_id)
+        _choose(order)
 
     return out
 
@@ -1433,6 +1499,7 @@ def apply_drug_safety_gate_to_admission_orders(
     protocol: Any = None,
     *,
     country: str,
+    alternative_groups: Iterable[Iterable[str]] = (),
 ) -> list[Order]:
     """Backward-compat wrapper preserved from before C7b (#1100).
 
@@ -1454,4 +1521,5 @@ def apply_drug_safety_gate_to_admission_orders(
         protocol=protocol,
         country=country,
         already_accepted_meds=None,
+        alternative_groups=alternative_groups,
     )
