@@ -45,6 +45,9 @@ __all__ = [
     "NARRATIVE_LDL_ELEVATED_THRESHOLD",
     "NARRATIVE_LDL_HIGH_THRESHOLD",
     "NARRATIVE_ADULT_TACHYCARDIA_HR",
+    "NARRATIVE_FEVER_C",
+    "NARRATIVE_HYPOXEMIA_SPO2",
+    "NARRATIVE_SEVERE_HYPOXEMIA_SPO2",
     "NUTRITION_ENERGY_KCAL_PER_KG_MIDPOINT",
     "NUTRITION_PROTEIN_G_PER_KG_MIDPOINT",
     "bmi_band",
@@ -325,6 +328,17 @@ NARRATIVE_ADULT_TACHYCARDIA_HR: int = 100
 tachycardia (the conventional adult definition, > 100 /min resting;
 AHA/ACC). A child's limit is the upper end of the normal range for the
 age in ``observation.pediatric_ranges`` (Issue #2986)."""
+
+NARRATIVE_FEVER_C: float = 38.0
+"""Body temperature (°C) at or above which the outpatient SOAP Assessment
+notes a fever (the conventional clinical fever threshold)."""
+
+NARRATIVE_HYPOXEMIA_SPO2: float = 95.0
+"""SpO2 (%) below which the outpatient SOAP Assessment notes hypoxemia."""
+
+NARRATIVE_SEVERE_HYPOXEMIA_SPO2: float = 90.0
+"""SpO2 (%) below which the outpatient SOAP Assessment notes severe
+hypoxemia."""
 
 
 # ---------------------------------------------------------------------------

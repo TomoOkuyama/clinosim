@@ -195,7 +195,8 @@ clinosim/modules/document/
     clinosim-nursing-content.yaml    nursing-note content per acute disease / chronic ICD-10 (load_nursing_content)
     cc-pe-consistency-keywords.yaml  chief-complaint ↔ physical-exam consistency rails (narrative/_narrative_utils.py)
     chronic-med-class-hints.yaml     chronic-assessment medication-class hints (narrative/renderers/section_builders/outpatient_soap.py)
-    chronic_soap_templates.yaml      chronic-condition SOAP note templates
+    chronic_soap_templates.yaml      chronic-condition SOAP note templates (the visit diagnosis's entry; findings, not instructions)
+    visit_reason_soap.yaml           outpatient SOAP by visit reason: visit kinds, per-kind S/O/A/P lines, vital-sign findings with plan lines, vaccine record, well-child development and guidance (narrative/_visit_reason.py)
     hedging_phrases.yaml             narrative hedging phrase pool
     drug_plan_priority.yaml          progress-note plan drug ranking tiers, one-time frequencies, list cap (narrative/_medication_plan.py)
   narrative/                         narrative subpackage (Stage 2 pipeline) — see narrative/README.md

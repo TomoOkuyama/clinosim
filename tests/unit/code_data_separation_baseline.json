@@ -45,7 +45,7 @@
     "modules/document/narrative/renderers/section_builders/care_plans.py": 2,
     "modules/document/narrative/renderers/section_builders/mortality.py": 1,
     "modules/document/narrative/renderers/section_builders/nursing.py": 12,
-    "modules/document/narrative/renderers/section_builders/outpatient_soap.py": 9,
+    "modules/document/narrative/renderers/section_builders/outpatient_soap.py": 6,
     "modules/hai/__init__.py": 2,
     "modules/identity/generators.py": 2,
     "modules/imaging/engine.py": 1,

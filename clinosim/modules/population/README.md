@@ -120,7 +120,9 @@ window=None)`, `mortality.draw_community_death` /
 encounter_datetime, country)` / `encounter_anthropometrics(...)` — the
 height / weight / BMI charted at one encounter (growth-curve percentile
 for children), the single derivation behind the FHIR body-measurement
-Observations and the weight-based ED doses (Issue #2990).
+Observations and the weight-based ED doses (Issue #2990);
+`growth_percentiles(...)` — a child's percentile of each of those
+measurements on the same growth model (the well-child note, Issue #3252).
 
 Internal helpers (not re-exported) worth knowing about:
 `Household` + `PopulationRegistry` dataclasses in `engine.py`;
