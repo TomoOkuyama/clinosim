@@ -31,6 +31,7 @@ from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import _localize_complication
+from clinosim.modules.document.narrative.renderers._shared_helpers import procedure_names
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import NarrativeContext
@@ -222,11 +223,12 @@ def _compose_ap_plan_from_state(generator: TemplateNarrativeGenerator, ctx: Narr
         sep = t("list_sep.serial", lang)
         parts.append(t("ap_plan.initial_meds", lang, list=sep.join(med_names)))
     # Ordered procedures (workup)
-    procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:4]]
-    procs = [p for p in procs if p]
+    # Admission-day procedures, named from their codes (Issue #3246); a
+    # later operation is not yet done when the H&P is written.
+    procs = procedure_names(ctx.procedures, lang, admission=_adm_raw, day=0)[:4]
     if procs:
         sep = t("list_sep.serial", lang)
-        parts.append(t("ap_plan.workup_procedures", lang, list=sep.join(str(p) for p in procs)))
+        parts.append(t("ap_plan.workup_procedures", lang, list=sep.join(procs)))
     if not parts:
         parts.append(t("ap_plan.observation_fallback", lang))
     return t("list_sep.chunk", lang).join(parts)

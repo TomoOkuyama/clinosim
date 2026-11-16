@@ -12,12 +12,13 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from clinosim.codes.icd10 import condition_label, icd10_display
-from clinosim.codes.procedures import procedure_code_display
+from clinosim.codes.procedures import catalog_procedure_types, procedure_code_display, procedure_type_display
 from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import map_diagnosis_code
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.timeutil import parse_iso_datetime
 
 if TYPE_CHECKING:
     from clinosim.types.document import NarrativeContext
@@ -111,14 +112,52 @@ def resolve_procedure_display(proc: Any, lang: str) -> str:
     Mirrors ``clinosim/modules/output/hospital_course_extractor._resolve_procedure_name``
     so the operative note reads the same authoritative code catalog as
     the FHIR emit path — a single edit of the k-codes yaml updates both
-    (single-edit-point rule).
+    (single-edit-point rule). Unlike that extractor, a procedure with no
+    code display is named from the procedure catalog, not its raw type.
     """
     disp = procedure_code_display(
         (str(_o(proc, key, "") or "") for key in ("procedure_code", "procedure_code_jp", "procedure_code_us")), lang
     )
     if disp:
         return disp
-    return str(_o(proc, "procedure_type", "") or "")
+    # A code with no K-code / CPT display (the SNOMED CT newborn screens) is
+    # named from the procedure catalog in ``lang`` (then English), never by
+    # its raw ``procedure_type`` slug — as the FHIR emit does (Issue #3081).
+    return procedure_type_display(str(_o(proc, "procedure_type", "") or ""), lang)
+
+
+def procedure_prose_name(proc: Any, lang: str) -> str:
+    """Name of a CIF procedure in running text (Issue #3246): the procedure
+    catalog's clinical name ("Arterial line insertion", 「動脈ライン挿入」),
+    the name the FHIR ``Procedure`` falls back to (Issue #2263), else the code
+    display from ``resolve_procedure_display``. A billing descriptor such as
+    CPT 36620 "Arterial catheterization or cannulation for sampling,
+    monitoring or transfusion; percutaneous" reads poorly in a list."""
+    ptype = str(_o(proc, "procedure_type", "") or "")
+    if ptype in catalog_procedure_types():
+        return procedure_type_display(ptype, lang)
+    return resolve_procedure_display(proc, lang)
+
+
+def procedure_names(procedures: Any, lang: str, *, admission: Any = None, day: int | None = None) -> list[str]:
+    """Distinct prose names of CIF procedures, in record order (Issue #3246).
+
+    CIF ``ProcedureRecord`` holds codes only (AD-30), so each name comes from
+    ``procedure_prose_name``. With ``day``, only the procedures that
+    started on that hospital day (calendar-day offset of ``start_datetime``
+    from ``admission``) are named; a procedure whose day cannot be derived
+    (no admission or start time) is kept, like a medication without a day."""
+    adm = parse_iso_datetime(admission, lenient=True) if admission is not None else None
+    names: list[str] = []
+    for proc in procedures or []:
+        if day is not None and adm is not None:
+            start = parse_iso_datetime(_o(proc, "start_datetime", None), lenient=True)
+            if start is not None and (start.date() - adm.date()).days != day:
+                continue
+        name = procedure_prose_name(proc, lang)
+        if name and name not in names:
+            names.append(name)
+    return names
 
 
 def chronic_condition_code(code: str, country: str, sex: str = "") -> str:

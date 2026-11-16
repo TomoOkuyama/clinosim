@@ -921,6 +921,7 @@
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
         "ctx.complications_occurred",
+        "ctx.procedures",
         "ctx.los_days",
         "ctx.encounter.discharge_datetime",
         "ctx.diagnoses",

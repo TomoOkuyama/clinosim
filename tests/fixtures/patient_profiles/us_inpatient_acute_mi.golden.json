@@ -21,7 +21,7 @@
       },
       "sections": {
         "allergies": "No known drug allergies (NKDA)",
-        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Chest pain, diaphoresis, dyspnea. Working diagnosis: acute myocardial infarction (severity: severe). Comorbidities: Chronic ischemic heart disease (IHD), Hypertension (HTN), Dyslipidemia. Plan: Estimated length of stay: ~7 days. Initial medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin.",
+        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Chest pain, diaphoresis, dyspnea. Working diagnosis: acute myocardial infarction (severity: severe). Comorbidities: Chronic ischemic heart disease (IHD), Hypertension (HTN), Dyslipidemia. Plan: Estimated length of stay: ~7 days. Initial medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Workup / procedures: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI).",
         "chief_complaint": "Chest pain, diaphoresis, dyspnea",
         "family_history": "No significant family history",
         "hpi": "Patient reports rapid symptom worsening prompting today's presentation.",
@@ -77,10 +77,10 @@
       "sections": {
         "assessment": "Notable labs today: LDL 113.0 mg/dL [H], troponin I 68.499 ng/mL [H], troponin I 97.882 ng/mL [H], CK-MB 58.5 ng/mL [H].",
         "objective": "BP 116/72 mmHg, HR 111/min, T 36.2°C, SpO2 96% (RA), RR 15/min",
-        "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin.",
+        "plan": "Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Procedures today: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI).",
         "subjective": "Hospital day 1. Pain persists (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 1. Pain persists (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 116/72 mmHg, HR 111/min, T 36.2°C, SpO2 96% (RA), RR 15/min\nA: Notable labs today: LDL 113.0 mg/dL [H], troponin I 68.499 ng/mL [H], troponin I 97.882 ng/mL [H], CK-MB 58.5 ng/mL [H].\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin."
+      "text": "S: Hospital day 1. Pain persists (NRS 6). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 116/72 mmHg, HR 111/min, T 36.2°C, SpO2 96% (RA), RR 15/min\nA: Notable labs today: LDL 113.0 mg/dL [H], troponin I 68.499 ng/mL [H], troponin I 97.882 ng/mL [H], CK-MB 58.5 ng/mL [H].\nP: Continue current medications: Aspirin, Ticagrelor, Heparin, Nitroglycerin. Procedures today: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI)."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-03": {
@@ -739,6 +739,7 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
+        "ctx.procedures",
         "ctx.los_days",
         "ctx.diagnoses",
         "ctx.discharge_medications",
@@ -758,7 +759,7 @@
         "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended. Take ALL cardiac medications as prescribed: aspirin, statin, beta-blocker, ACE inhibitor/ARB. Do NOT stop without consulting cardiologist. Call 911 immediately for: chest pain, severe shortness of breath, palpitations, syncope. Resume a normal diet gradually as tolerated. Take dual antiplatelet therapy (DAPT) and statin daily. Cardiac rehab attendance strongly recommended. Restricted activity for 4-6 weeks. Avoid heavy lifting. Gradual return per cardiologist guidance. Call ambulance immediately for chest pain lasting >15 min, dyspnea, syncope, or cold sweats. Low-fat, low-sodium diet. Smoking cessation mandatory. Limit alcohol. Weight management.",
         "discharge_medications": "Aspirin 81mg PO daily; Ticagrelor 90mg PO BID; Atorvastatin 80mg PO daily",
         "follow_up": "Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended.",
-        "hospital_course": "Length of stay: 14 days (primary reason: Chest pain, diaphoresis, dyspnea)."
+        "hospital_course": "Length of stay: 14 days (primary reason: Chest pain, diaphoresis, dyspnea). Key procedures: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI)."
       },
       "text": ""
     }

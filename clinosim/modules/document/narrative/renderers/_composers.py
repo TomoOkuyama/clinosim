@@ -41,6 +41,7 @@ from clinosim.modules.document.narrative._vitals_line import (
     PROGRESS_OBJECTIVE,
     format_vitals_line,
 )
+from clinosim.modules.document.narrative.renderers._shared_helpers import procedure_names
 from clinosim.timeutil import parse_iso_datetime
 
 if TYPE_CHECKING:
@@ -355,11 +356,16 @@ def compose_progress_plan_from_state(ctx: NarrativeContext) -> str:
         parts.append(t("progress.meds_continue", lang, list=sep.join(med_names)))
     if held:
         parts.append(t("progress.meds_held", lang, list=t("list_sep.serial", lang).join(held)))
-    procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:4]]
-    procs = [p for p in procs if p]
+    # Today's procedures only, named from their codes (Issue #3246).
+    procs = procedure_names(
+        ctx.procedures,
+        lang,
+        admission=_o(getattr(ctx, "encounter", None), "admission_datetime", None),
+        day=ctx.day_index,
+    )[:4]
     if procs:
         sep = t("list_sep.serial", lang)
-        parts.append(t("progress.procs_today", lang, list=sep.join(str(p) for p in procs)))
+        parts.append(t("progress.procs_today", lang, list=sep.join(procs)))
     if not parts:
         parts.append(t("progress.observation_fallback", lang))
     return t("list_sep.chunk", lang).join(parts)

@@ -625,15 +625,17 @@ def build_dds_circumstances_of_death(
     procedures = ctx.procedures or []
     resuscitation = False
     for p in procedures:
-        code = str(_o(p, "code", "") or "")
-        name = str(_o(p, "name", "") or "").lower()
-        # ICD-10-PCS / CPT / SNOMED codes for CPR / defibrillation are
-        # detected by name substring — the CIF Procedure list is small
-        # so this is O(n) with n ≤ tens.
-        if any(k in name for k in ("cpr", "cardiopulmonary", "resuscit", "defibrill", "蘇生", "心肺蘇生")):
+        # CIF procedures carry ``procedure_type`` and codes only (AD-30;
+        # Issue #3246) — no ``name`` / ``code`` key. The type is matched by
+        # keyword and the codes against the CPR codes. Displays are not
+        # matched: the K-code J044 reads "intubation for resuscitation",
+        # which is not CPR.
+        ptype = str(_o(p, "procedure_type", "") or "").lower()
+        codes = {str(_o(p, key, "") or "") for key in ("procedure_code", "procedure_code_us", "procedure_code_jp")}
+        if any(k in ptype for k in ("cpr", "cardiopulmonary", "resuscit", "defibrill")):
             resuscitation = True
             break
-        if code in {"5A12012", "92950", "99288"}:  # PCS / CPT CPR codes
+        if codes & {"5A12012", "92950", "99288"}:  # PCS / CPT CPR codes
             resuscitation = True
             break
     if procedures:

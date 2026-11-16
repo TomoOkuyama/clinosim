@@ -148,10 +148,16 @@ def test_en_plan_lists_procedures() -> None:
 
     gen = TemplateNarrativeGenerator()
     out = gen._compose_progress_plan_from_state(
-        _ctx("en", procs=[{"procedure_name": "Chest X-ray"}, {"procedure_name": "CT abdomen"}])
+        _ctx(
+            "en",
+            procs=[
+                {"procedure_type": "ecg_12lead", "procedure_code": "93000"},
+                {"procedure_type": "echocardiography", "procedure_code": "93306"},
+            ],
+        )
     )
-    assert "Chest X-ray" in out
-    assert "CT abdomen" in out
+    assert "12-lead ECG" in out
+    assert "Transthoracic echocardiography" in out
     assert "Procedures today" in out
 
 

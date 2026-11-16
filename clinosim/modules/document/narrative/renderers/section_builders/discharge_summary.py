@@ -28,6 +28,7 @@ from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication
+from clinosim.modules.document.narrative.renderers._shared_helpers import procedure_names
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.types.document import NarrativeContext
 
@@ -109,19 +110,9 @@ def build_hospital_course(generator: TemplateNarrativeGenerator, ctx: NarrativeC
         sep = t("list_sep.serial", lang)
         parts.append(t("hospital_course.complications_line", lang, list=sep.join(phrases)))
 
-    # Sentence 3: key procedures performed
-    proc_names: list[str] = []
-    seen: set[str] = set()
-    for pr in ctx.procedures or []:
-        nm = _o(pr, "procedure_name", None) or _o(pr, "name", None) or _o(pr, "display_name", None)
-        if not nm:
-            continue
-        if nm in seen:
-            continue
-        seen.add(nm)
-        proc_names.append(str(nm))
-        if len(proc_names) >= 6:
-            break
+    # Sentence 3: key procedures performed. CIF procedures carry codes
+    # only, so names come from the code resolver (Issue #3246).
+    proc_names = procedure_names(ctx.procedures, lang)[:6]
     if proc_names:
         facts.append("ctx.procedures")
         sep = t("list_sep.serial", lang)
