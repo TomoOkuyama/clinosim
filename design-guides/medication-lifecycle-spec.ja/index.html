@@ -2497,6 +2497,11 @@
 <td><code>tests/unit/modules/order/test_af_rate_control_3274.py</code></td>
 </tr>
 <tr>
+<td><code>ventricular_rate</code> を持つ protocol(頻拍性心房細動)は、心拍数を心室応答数と生理から導いた値の高い方で記録する。心室応答数は最初に投与された心拍数調節薬までは重症度別の来院時値、その後はコース archetype の調節所要時間で調節後の値まで直線的に下がる。この値が <code>discharge_below_bpm</code> 以上の間は退院させず、最大在院日数まで延長する。</td>
+<td><code>simulator/ventricular_rate.py</code>。データは疾患 YAML の <code>ventricular_rate</code> ブロック。<code>daily_loop.py</code>(<code>_ventricular_rate_course</code>, <code>_ventricular_rate_uncontrolled</code>)とトリアージの ED 来院時バイタルで適用</td>
+<td><code>tests/unit/test_af_ventricular_rate_3274.py</code></td>
+</tr>
+<tr>
 <td>保留規則は入院時・投与時・退院時で一つの出所から読む(薬剤ごとの腎機能対応、バイタルの保留条件、メトホルミンの腎機能閾値)。</td>
 <td><code>medication_pipeline.py</code>(<code>renal_medication_rules</code>, <code>mar_vital_hold_reason</code>, <code>metformin_admission_hold_threshold</code>)、<code>discharge_rx.py::renal_hold_drugs</code>。データ <code>simulator/reference_data/renal_medication_rules.yaml</code>, <code>locale/shared/chronic_medications.yaml</code></td>
 <td><code>tests/unit/test_hold_rules_one_source_2296.py</code>, <code>tests/unit/test_medication_holds_acute_illness_1335.py</code></td>
@@ -2593,7 +2598,7 @@
 <td><code>tests/unit/test_build_discharge_rx_continue_at_discharge.py</code>, <code>tests/unit/test_discharge_rx_drug_safety_1334.py</code>, <code>tests/unit/test_discharge_oral_route_integrity.py</code></td>
 </tr>
 <tr>
-<td>退院時・在宅薬の有効化・経年履歴は一つの規則リストで突き合わせる。リストの規則が名指す系統の 2 剤目は加えない(スタチン 1 剤、P2Y12 阻害薬 1 剤、抗凝固薬 1 剤、ACE 阻害薬と ARB の併用なし)。</td>
+<td>退院時・在宅薬の有効化・経年履歴は一つの規則リストで突き合わせる。リストの規則が名指す系統の 2 剤目は加えない(スタチン 1 剤、P2Y12 阻害薬 1 剤、抗凝固薬 1 剤、β遮断薬 1 剤 (Issue #3274)、ACE 阻害薬と ARB の併用なし)。</td>
 <td><code>modules/drug_safety/engine.py::discharge_reconciliation_rules</code>。呼び出し元 <code>discharge_rx.py</code>, <code>modules/patient/activator.py</code>, <code>modules/longitudinal/engine.py</code></td>
 <td><code>tests/unit/test_discharge_reconciliation_2713.py</code></td>
 </tr>

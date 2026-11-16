@@ -2497,6 +2497,11 @@
 <td><code>tests/unit/modules/order/test_af_rate_control_3274.py</code></td>
 </tr>
 <tr>
+<td>A protocol with a <code>ventricular_rate</code> (AF with rapid ventricular response) records the heart rate as the higher of its ventricular rate and the physiology-derived rate: the presenting rate of the severity until the first given dose of a rate-control class, then a linear fall to the controlled rate over the course archetype's hours to control. The stay is not discharged, and is extended up to the maximum LOS, while that rate is at or above <code>discharge_below_bpm</code>.</td>
+<td><code>simulator/ventricular_rate.py</code>; data: the <code>ventricular_rate</code> block of the disease YAML; applied in <code>daily_loop.py</code> (<code>_ventricular_rate_course</code>, <code>_ventricular_rate_uncontrolled</code>) and the triage ED arrival vitals</td>
+<td><code>tests/unit/test_af_ventricular_rate_3274.py</code></td>
+</tr>
+<tr>
 <td>Hold rules come from one source at admission, administration and discharge: renal actions per drug, vital-sign hold parameters, the metformin renal threshold.</td>
 <td><code>medication_pipeline.py</code> (<code>renal_medication_rules</code>, <code>mar_vital_hold_reason</code>, <code>metformin_admission_hold_threshold</code>), <code>discharge_rx.py::renal_hold_drugs</code>; data <code>simulator/reference_data/renal_medication_rules.yaml</code>, <code>locale/shared/chronic_medications.yaml</code></td>
 <td><code>tests/unit/test_hold_rules_one_source_2296.py</code>, <code>tests/unit/test_medication_holds_acute_illness_1335.py</code></td>
@@ -2598,7 +2603,7 @@
 <td><code>tests/unit/test_build_discharge_rx_continue_at_discharge.py</code>, <code>tests/unit/test_discharge_rx_drug_safety_1334.py</code>, <code>tests/unit/test_discharge_oral_route_integrity.py</code></td>
 </tr>
 <tr>
-<td>Discharge, activation of home medications and the longitudinal history reconcile against one rule list: a second agent of a class a listed rule names is not added (one statin, one P2Y12 inhibitor, one anticoagulant, no ACE inhibitor with an ARB).</td>
+<td>Discharge, activation of home medications and the longitudinal history reconcile against one rule list: a second agent of a class a listed rule names is not added (one statin, one P2Y12 inhibitor, one anticoagulant, one beta-blocker (Issue #3274), no ACE inhibitor with an ARB).</td>
 <td><code>modules/drug_safety/engine.py::discharge_reconciliation_rules</code>; callers <code>discharge_rx.py</code>, <code>modules/patient/activator.py</code>, <code>modules/longitudinal/engine.py</code></td>
 <td><code>tests/unit/test_discharge_reconciliation_2713.py</code></td>
 </tr>
