@@ -977,6 +977,7 @@ complications:
 # ============================================================
 narrative:
   hpi_template:
+    onset_type: acute
     onset_pattern:
       mild: "数時間前より前胸部の締め付け感が断続的に出現。"
       moderate: "突然の胸痛（前胸部圧迫感・絞扼感）、冷汗、悪心を認め救急受診。"

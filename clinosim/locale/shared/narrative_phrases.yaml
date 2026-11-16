@@ -797,7 +797,7 @@ patient_demographics:
     ja: "{age}歳"
     en: "{age} y/o"
   # Short bilingual sex-code display, keyed by lowercased sex code
-  # (`m`, `f`). Used by `section_builders.hpi._compose_hpi_extras_from_state` and
+  # (`m`, `f`). Used by `section_builders.hpi._hpi_parts` and
   # elsewhere a short JA sex label is composed inline (hardcoded-review
   # Phase A15).
   sex_display:
@@ -1355,6 +1355,60 @@ hpi:
       en: "Patient reports symptoms developing over several days with progressive worsening."
     severe:
       en: "Patient reports rapid symptom worsening prompting today's presentation."
+  # Onset sentence by the disease's hpi_template.onset_type (Issue #3228),
+  # used when the disease YAML has no authored onset_pattern text, so a
+  # fracture after a fall never reads as a gradual multi-day onset.
+  onset_by_type:
+    injury:
+      mild:
+        ja: "本日受傷し受診。"
+        en: "Injured today and presented for evaluation."
+      moderate:
+        ja: "本日受傷し、救急外来を受診。"
+        en: "Injured today and presented to the emergency department."
+      severe:
+        ja: "本日受傷し、救急搬入。"
+        en: "Injured today and brought in by ambulance."
+    acute:
+      mild:
+        ja: "本日急に症状が出現し受診。"
+        en: "Symptoms began abruptly today, prompting presentation."
+      moderate:
+        ja: "数時間前より急に症状が出現し、増悪するため受診。"
+        en: "Symptoms began abruptly a few hours ago and worsened, prompting presentation."
+      severe:
+        ja: "突然症状が出現し急速に増悪、救急搬入。"
+        en: "Symptoms began suddenly and worsened rapidly; brought in by ambulance."
+    subacute:
+      mild:
+        ja: "症状は数日前より緩徐に出現。"
+        en: "Symptoms developed gradually over the preceding days."
+      moderate:
+        ja: "症状は数日前より出現し漸次増悪。"
+        en: "Symptoms developed over several days with progressive worsening."
+      severe:
+        ja: "数日前より出現した症状が急速に増悪し、本日受診。"
+        en: "Symptoms that began over the preceding days worsened rapidly, prompting today's presentation."
+    gradual:
+      mild:
+        ja: "数週間前より症状が緩徐に出現。"
+        en: "Symptoms developed gradually over the preceding weeks."
+      moderate:
+        ja: "数週間前より症状が出現し、徐々に増悪。"
+        en: "Symptoms developed over the preceding weeks with gradual worsening."
+      severe:
+        ja: "数週間前より出現した症状が増悪し、本日受診。"
+        en: "Symptoms present for several weeks worsened, prompting today's presentation."
+    elective:
+      mild:
+        ja: "治療目的に予定入院。"
+        en: "Admitted electively for planned treatment."
+      moderate:
+        ja: "治療目的に予定入院。"
+        en: "Admitted electively for planned treatment."
+      severe:
+        ja: "治療目的に予定入院。"
+        en: "Admitted electively for planned treatment."
 
 # Diagnoses + chief-complaint compound section (JP-CLINS referral 340).
 # From section_builders.jp_clins.build_diagnoses_and_complaint.

@@ -266,6 +266,7 @@ outcome_benchmarks:
 
 narrative:
   hpi_template:
+    onset_type: elective
     onset_pattern:
       mild: "数年来の膝関節痛あり、保存療法に抵抗性。"
       moderate: "数年来の膝関節痛が増悪し、保存療法に抵抗性のため手術目的に入院。"

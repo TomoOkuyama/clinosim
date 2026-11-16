@@ -177,6 +177,7 @@ def _hpi_ctx(lang: str) -> SimpleNamespace:
         patient=patient,
         encounter=enc,
         disease_protocol=None,
+        encounter_protocol=None,
         reference_date=None,
     )
 
@@ -188,8 +189,8 @@ def test_hpi_extras_are_written_in_the_document_language(monkeypatch: pytest.Mon
 
     monkeypatch.setattr(hpi, "has_authored_narrative", lambda _lang: True)
     monkeypatch.setattr(hpi, "_age_at", lambda _ctx: 60)
-    en = hpi._compose_hpi_extras_from_state(_hpi_ctx("en"))  # type: ignore[arg-type]
-    ja = hpi._compose_hpi_extras_from_state(_hpi_ctx("ja"))  # type: ignore[arg-type]
+    en = "".join(hpi._hpi_parts(_hpi_ctx("en")))  # type: ignore[arg-type]
+    ja = "".join(hpi._hpi_parts(_hpi_ctx("ja")))  # type: ignore[arg-type]
     assert en and ja
     assert all(ord(c) < 0x3000 for c in en), en
     assert any(ord(c) > 0x3000 for c in ja), ja
@@ -237,14 +238,14 @@ def test_hpi_ros_line_is_written_in_the_document_language(
     ctx = _hpi_ctx(lang)
     ctx.encounter = None
     ctx.disease_protocol = SimpleNamespace(disease_id="diabetic_ketoacidosis")
-    assert hpi._compose_hpi_extras_from_state(ctx) == expected  # type: ignore[arg-type]
+    assert hpi._ros_line(ctx, "") == expected  # type: ignore[arg-type]
 
 
 def test_hpi_pertinent_negatives_fall_back_to_english() -> None:
     from clinosim.modules.document.reference_data_loaders import hpi_pertinent_negatives
 
     assert hpi_pertinent_negatives("acute_mi", "fr") == hpi_pertinent_negatives("acute_mi", "en")
-    assert hpi_pertinent_negatives("acute_mi", "ja")[0] == "労作時以外の胸痛エピソードなし"
+    assert hpi_pertinent_negatives("acute_mi", "ja")[0].text == "労作時以外の胸痛エピソードなし"
     assert hpi_pertinent_negatives("no_such_disease", "ja") == []
 
 

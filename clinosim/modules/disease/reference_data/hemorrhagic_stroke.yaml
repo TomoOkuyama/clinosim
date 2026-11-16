@@ -811,6 +811,7 @@ complications:
 # ============================================================
 narrative:
   hpi_template:
+    onset_type: acute
     onset_pattern:
       mild: "数時間前より急激な頭痛・嘔吐が出現、軽度の片麻痺を認め救急受診。"
       moderate: "突然の激しい頭痛・嘔吐と意識障害が出現し救急搬入。"

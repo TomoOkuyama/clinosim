@@ -812,12 +812,13 @@ complications:
 # ============================================================
 narrative:
   hpi_template:
+    onset_type: subacute
     onset_pattern:
       mild: "数日前より咳嗽・微熱が出現。徐々に増悪し受診。"
       moderate: "発熱・咳嗽・喀痰が出現し、SpO2 低下を認め緊急受診。"
       severe: "高熱・呼吸困難が急速に増悪、SpO2 著明低下にて救急搬入。"
     trigger_options:
-      - "上気道感染後"
+      - "上気道感染後に発症"
       - "誤嚥歴なし"
       - "喫煙歴あり"
       - "免疫抑制状態"

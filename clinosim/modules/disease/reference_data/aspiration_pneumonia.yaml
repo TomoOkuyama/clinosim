@@ -854,6 +854,7 @@ complications:
 # ============================================================
 narrative:
   hpi_template:
+    onset_type: subacute
     onset_pattern:
       mild: "食事・飲水時のむせ・咳込みが続いており、徐々に発熱・咳嗽が出現。"
       moderate: "誤嚥エピソード後に発熱・咳嗽・呼吸困難が出現し受診。"

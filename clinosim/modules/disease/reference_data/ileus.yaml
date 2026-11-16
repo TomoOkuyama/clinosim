@@ -692,12 +692,7 @@ complications:
 # ============================================================
 narrative:
   hpi_template:
-    onset_pattern:
-      mild: "症状は数日前より緩徐に出現。"
-      moderate: "症状は数日前より出現し漸次増悪。"
-      severe: "症状急速に増悪、本日受診。"
-    trigger_options:
-      - "急性発症"
+    onset_type: subacute
   physical_exam_findings:
     smooth_recovery:
       day_0:

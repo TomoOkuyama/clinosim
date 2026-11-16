@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated, Any, NamedTuple
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, RootModel, field_validator, model_validator
 
@@ -222,45 +222,62 @@ def load_discharge_instructions() -> dict[str, Any]:
 # ─────────────────────────────────────────────────────────────────
 
 
-def _has_english(entry: dict[str, list[str]]) -> dict[str, list[str]]:
+def _has_english(entry: dict[str, str]) -> dict[str, str]:
     if "en" not in entry:
-        raise ValueError("every disease needs English negatives (the fallback language)")
+        raise ValueError("every negative needs English text (the fallback language)")
     return entry
 
 
-class HpiPertinentNegatives(RootModel[dict[str, Annotated[dict[str, list[str]], AfterValidator(_has_english)]]]):
-    """Shape of hpi_pertinent_negatives.yaml: per disease, a language map of
-    pertinent negative phrases; English is required (Issue #3206)."""
+class HpiPertinentNegative(BaseModel):
+    """One pertinent negative: its text per language and, per language, the
+    symptom terms it denies (Issue #3228)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    text: Annotated[dict[str, _Text], AfterValidator(_has_english)]
+    symptoms: dict[str, list[_Text]] = Field(default_factory=dict)
+
+
+class HpiPertinentNegatives(RootModel[dict[str, list[HpiPertinentNegative]]]):
+    """Shape of hpi_pertinent_negatives.yaml: per disease, an ordered list of
+    pertinent negatives; English text is required (Issue #3206)."""
+
+
+class PertinentNegative(NamedTuple):
+    """A pertinent negative resolved to one language: the phrase and the
+    symptom terms it denies (empty when it denies none)."""
+
+    text: str
+    symptoms: tuple[str, ...]
 
 
 @lru_cache(maxsize=1)
-def load_hpi_pertinent_negatives() -> dict[str, dict[str, list[str]]]:
+def load_hpi_pertinent_negatives() -> dict[str, list[HpiPertinentNegative]]:
     """Load hpi_pertinent_negatives.yaml. Cached singleton.
 
-    Returns a ``{disease_id: {lang: [neg_phrase, ...]}}`` mapping (blank
-    phrases dropped). Missing file → empty dict (silent no-op ROS tail;
-    template falls back to the pre-#984 HPI body).
+    Returns a ``{disease_id: [HpiPertinentNegative, ...]}`` mapping. Missing
+    file → empty dict (silent no-op ROS tail).
     """
     path = _REF_DIR / "hpi_pertinent_negatives.yaml"
     if not path.exists():
         return {}
     data = load_validated_yaml(path, HpiPertinentNegatives) or {}
-    out: dict[str, dict[str, list[str]]] = {}
-    for disease_id, by_lang in data.items():
-        out[str(disease_id)] = {
-            str(lang): [str(p).strip() for p in phrases if isinstance(p, str) and p.strip()]
-            for lang, phrases in by_lang.items()
-        }
-    return out
+    return {str(d): [HpiPertinentNegative.model_validate(e) for e in entries] for d, entries in data.items()}
 
 
-def hpi_pertinent_negatives(disease_id: str, lang: str) -> list[str]:
-    """The pertinent negatives of ``disease_id`` in ``lang``, else English,
-    else ``[]`` (spec §6 rule 1)."""
+def hpi_pertinent_negatives(disease_id: str, lang: str) -> list[PertinentNegative]:
+    """The pertinent negatives of ``disease_id`` in ``lang``, else English
+    (text and symptom terms each fall back separately), else ``[]`` (spec
+    §6 rule 1)."""
     from clinosim.locale.localized import normalize_lang
 
-    by_lang = load_hpi_pertinent_negatives().get(disease_id) or {}
-    return list(by_lang.get(normalize_lang(lang)) or by_lang.get("en") or [])
+    code = normalize_lang(lang)
+    out: list[PertinentNegative] = []
+    for entry in load_hpi_pertinent_negatives().get(disease_id) or []:
+        text = (entry.text.get(code) or entry.text["en"]).strip()
+        terms = entry.symptoms.get(code) or entry.symptoms.get("en") or []
+        out.append(PertinentNegative(text, tuple(t.strip() for t in terms)))
+    return out
 
 
 # ─────────────────────────────────────────────────────────────────
