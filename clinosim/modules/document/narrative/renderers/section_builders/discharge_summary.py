@@ -27,7 +27,7 @@ from clinosim.locale.localized import localized_field
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication
-from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded, procedure_names
+from clinosim.modules.document.narrative.renderers._shared_helpers import diagnosis_coded
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.types.document import NarrativeContext
 
@@ -41,14 +41,12 @@ if TYPE_CHECKING:
 def build_hospital_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """Build hospital_course template seed.
 
-    v6 blocker fix (2026-08-16): v5 returned a single hardcoded
-    sentence ("入院 N 日間の治療を経て経過良好。症状は改善し退院となった。"),
-    producing 11/11 identical outputs across a p=100 run because
-    the LLM had a bland seed AND no factual anchor from context.
-    This version enumerates the concrete facts (complications,
-    procedures, key med classes) so both the template fallback and
-    the LLM prompt see per-patient specificity. The LLM still
-    composes the final prose.
+    The length of stay with the primary reason, then the sentences of
+    ``narrative/_hospital_course.py`` (Issue #3246): readmission, main
+    treatments by drug tier, procedures with dates, complications with the
+    hospital day of onset, significant results with their treatment,
+    medication changes from admission and the condition at discharge. The
+    LLM, when enabled, composes its prose from these facts.
     """
     facts: list[str] = []
     lang = ctx.target_lang
@@ -78,55 +76,28 @@ def build_hospital_course(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     else:
         parts.append(t("hospital_course.los_head", lang, los=los))
 
-    # Sentence 2: complications (blocker 1 — MUST be surfaced)
-    # Issue #848: when a working_diagnoses entry carries an
-    # onset_day, prefer the "入院第N日発症" / "developed on hospital
-    # day N" rendering — the intra-admission timing is the clinical
-    # signal that separates a new-disease event (MI on day 30) from a
-    # protocol-standard complication of the primary disease (AKI in
-    # sepsis). Falls back to the plain "経過中の合併症" phrasing when
-    # no onset day is known (legacy complications_occurred entries).
-    comps = list(getattr(ctx, "complications_occurred", []) or [])
-    wds = list(getattr(ctx, "working_diagnoses", []) or [])
-    wd_by_disease = {str(wd.get("disease_id", "")): wd for wd in wds if isinstance(wd, dict)}
-    if comps:
-        facts.append("ctx.complications_occurred")
-        phrases: list[str] = []
-        for c in comps[:6]:
-            cid = str(c)
-            # Phase 1c-2 (2026-09-22): localize the complication token
-            # to JA/EN; unmapped values fall back to a humanised
-            # ("_"-stripped) form so novel complications still surface.
-            label = _localize_complication(cid, lang)
-            wd = wd_by_disease.get(cid)
-            onset_day = wd.get("onset_day") if wd else None
-            if onset_day is not None and int(onset_day) > 0:
-                phrases.append(t("hospital_course.complication_with_onset", lang, day=int(onset_day), label=label))
-            else:
-                phrases.append(label)
-        if wds:
-            facts.append("ctx.working_diagnoses")
-        sep = t("list_sep.serial", lang)
-        parts.append(t("hospital_course.complications_line", lang, list=sep.join(phrases)))
+    # Issue #3246: the course itself — readmission, main treatments,
+    # procedures with dates, complications with onset, significant results
+    # and their treatment, medication changes, condition at discharge. Each
+    # sentence is written only when the record has its facts.
+    from clinosim.modules.document.narrative import _hospital_course as hc
 
-    # Sentence 3: key procedures performed. CIF procedures carry codes
-    # only, so names come from the code resolver (Issue #3246).
-    proc_names = procedure_names(ctx.procedures, lang)[:6]
-    if proc_names:
-        facts.append("ctx.procedures")
-        sep = t("list_sep.serial", lang)
-        parts.append(t("hospital_course.procedures_line", lang, list=sep.join(proc_names)))
+    for build in (
+        hc.readmission_sentence,
+        hc.treatments_sentence,
+        hc.procedures_sentence,
+        hc.complications_sentence,
+        hc.notable_labs_sentence,
+        hc.medication_changes_sentence,
+        hc.discharge_condition_sentence,
+    ):
+        sentence, fact = build(ctx)
+        if sentence:
+            parts.append(sentence)
+            facts.append(fact)
 
-    # v7 (2026-08-16 pm): closer removed. v6 emitted
-    # "治療経過は臨床経過（アーキタイプ）に沿って推移した。" in
-    # every JP discharge_summary because the JP-only
-    # llm_enabled_sections_jp bug (see DocumentTypeSpec) dropped
-    # hospital_course from LLM replacement — so the template seed
-    # became the final output and the internal "アーキタイプ" token
-    # leaked to every one of 11 patients. Both the union-semantics
-    # fix in DocumentTypeSpec and this closer removal are needed.
     facts.append("ctx.los_days")
-    return " ".join(parts), facts
+    return t("list_sep.sentence_gap", lang).join(parts), facts
 
 
 @section("discharge_diagnoses")
@@ -164,11 +135,68 @@ def build_discharge_diagnoses(generator: TemplateNarrativeGenerator, ctx: Narrat
             parts.append(code)
 
     if parts:
-        return "; ".join(parts), facts
+        primary = "; ".join(parts)
+        secondary = _secondary_diagnoses(ctx, diagnoses)
+        if secondary:
+            facts.append("ctx.working_diagnoses")
+            return t(
+                "discharge_diagnoses.with_secondary",
+                lang,
+                primary=primary,
+                list=t("list_sep.serial", lang).join(secondary),
+            ), facts
+        return primary, facts
 
     # No codes — fall back
     cc_text, _ = section_builder("chief_complaint")(generator, ctx)
     return cc_text, []
+
+
+def _secondary_diagnoses(ctx: NarrativeContext, diagnoses: list) -> list[str]:
+    """The diagnoses that arose during the stay (Issue #3246): each working
+    diagnosis the FHIR output codes as a secondary Condition
+    (``working_diagnosis_code``, the code and display the output emits), then
+    the in-hospital complications that no listed code already names, by name
+    and without a code (they have no Condition). The final diagnosis's
+    ICD-10 category (discharge code, else admission code) is not repeated."""
+    from clinosim.modules.disease.protocol import working_diagnosis_code
+    from clinosim.modules.document.reference_data_loaders import load_death_cause_chain
+
+    lang = ctx.target_lang
+    country = country_code(ctx.locale)
+    sex = str(_o(ctx.patient, "sex", "") or "") if ctx.patient is not None else ""
+    seen: set[str] = set()
+    for dx in diagnoses:
+        code = str(_o(dx, "discharge_diagnosis_code", "") or "") or str(_o(dx, "admission_diagnosis_code", "") or "")
+        if code:
+            seen.add(code.split(".")[0])
+    items: list[str] = []
+    for wd in ctx.working_diagnoses or []:
+        code = working_diagnosis_code(str(_o(wd, "disease_id", "") or ""))
+        if not code or code.split(".")[0] in seen:
+            continue
+        seen.add(code.split(".")[0])
+        emitted, display = diagnosis_coded(code, country, lang, sex)
+        items.append(
+            t("list_item.inline_dx_with_code", lang, display=display, code=emitted) if display != emitted else emitted
+        )
+    # A complication token's diagnosis code, where one names it, keeps a
+    # complication already listed as a coded diagnosis from repeating.
+    complication_codes = load_death_cause_chain().immediate_cause_complications
+    names: set[str] = set()
+    for event in ctx.complications_events or []:
+        token = str(_o(event, "name", "") or "")
+        key = "_".join(token.strip().lower().split())
+        code = complication_codes.get(key) or ""
+        if not token or (code and code.split(".")[0] in seen):
+            continue
+        label = _localize_complication(token, lang)
+        if label and label not in names:
+            names.add(label)
+            items.append(label)
+            if code:
+                seen.add(code.split(".")[0])
+    return items
 
 
 @section("discharge_medications")

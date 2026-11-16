@@ -381,6 +381,12 @@ class NarrativeContext:
     visit_condition_id: str = ""
     immunizations: list[Any] = field(default_factory=list)
     imaging_studies: list[Any] = field(default_factory=list)
+    # === Issue #3246 (readmission) ===
+    # ``record.is_readmission`` and ``record.readmission_number`` (1 = first
+    # readmission). The record holds only the previous stay's id, so the
+    # narrative states the readmission without describing that stay.
+    is_readmission: bool = False
+    readmission_number: int = 0
 
 
 @dataclass

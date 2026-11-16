@@ -1,0 +1,62 @@
+# What the discharge-summary hospital course writes besides the length of
+# stay (Issue #3246). Read by narrative/_hospital_course.py::hospital_course_rules.
+#
+# treatments: the drugs given during the stay, grouped by the tiers of
+#   drug_plan_priority.yaml (the ranking the daily plan uses), in tier order.
+#   Drugs of no tier (oral maintenance drugs) are not main treatments; their
+#   changes are written by the medication-change sentence. Drugs of
+#   excluded_classes (codes/data/drugs.yaml `classes`: maintenance fluids) are
+#   not named either, nor the drugs of excluded_drugs (maintenance fluids the
+#   drug catalog gives no class).
+#   max_named_per_tier: drugs named per tier; the rest are counted
+#   (narrative_phrases.yaml current_medications.truncate_suffix).
+# notable_labs: the stay's results that are a panic value or name an
+#   abnormality (notable_labs.yaml findings, KDIGO AKI, hemolysed specimen),
+#   picked day by day by lab_timeseries.select_notable_labs; per analyte and
+#   abnormality the most extreme value and its hospital day.
+#   max_listed: results named; the rest are counted.
+#   response_window_hours: a drug of the abnormality's response list given
+#   within this many hours after the result is written as its treatment.
+#   responses: per analyte (canonical lab name) and side (high / low), the
+#   catalog drug ids and drug classes that treat the abnormality. An analyte
+#   without an entry is written without a treatment.
+# medication_changes: the home medications at admission against the discharge
+#   prescription (started / stopped / dose changed).
+#   max_listed: drugs named per list; the rest are counted.
+
+metadata:
+  kind: reference
+  name: hospital_course
+  source: >-
+    Content of a hospital discharge summary (treatments, procedures,
+    complications, significant results and their management, medication
+    changes, condition at discharge); acute treatments of hyper- and
+    hypokalaemia, hyponatraemia and hyper- and hypoglycaemia as clinical
+    convention; Issue #3246.
+
+treatments:
+  max_named_per_tier: 4
+  excluded_classes: [electrolyte_solution, iv_fluid, glucose_solution]
+  excluded_drugs: [lactated_ringer_solution, lactated_ringers_injectable_solution]
+
+notable_labs:
+  max_listed: 4
+  response_window_hours: 12
+  responses:
+    K:
+      high:
+        drugs: [calcium_gluconate, insulin_regular_human, sodium_bicarbonate]
+        classes: [potassium_binder]
+      low:
+        classes: [potassium_supplement]
+    Na:
+      low:
+        drugs: [sodium_chloride_3_injection]
+    Glucose:
+      high:
+        classes: [insulin]
+      low:
+        classes: [glucose_solution]
+
+medication_changes:
+  max_listed: 6

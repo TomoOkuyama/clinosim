@@ -739,7 +739,11 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
+        "ctx.medications",
         "ctx.procedures",
+        "ctx.lab_results",
+        "ctx.discharge_medications",
+        "ctx.encounter.discharge_disposition",
         "ctx.los_days",
         "ctx.diagnoses",
         "ctx.discharge_medications",
