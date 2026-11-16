@@ -136,6 +136,15 @@ codes:
     en: "Persons encountering health services in other circumstances"
   E11.9:
     en: Type 2 diabetes mellitus without complications
+  # Issue #3327: the diabetic-complication onset events (longitudinal
+  # dm_nephropathy / dm_retinopathy / dm_neuropathy) emit these codes; CMS
+  # FY2027 long descriptions (icd10cm_order_2027.txt), all billable.
+  E11.21:
+    en: Type 2 diabetes mellitus with diabetic nephropathy
+  E11.311:
+    en: Type 2 diabetes mellitus with unspecified diabetic retinopathy with macular edema
+  E11.42:
+    en: Type 2 diabetes mellitus with diabetic polyneuropathy
   E66:
     en: Overweight and obesity
     ja: 過体重及び肥満
@@ -220,7 +229,6 @@ codes:
   # 2026-10-22 via tx.fhir.org $lookup against icd-10-cm.
   G35:
     en: Multiple sclerosis
-    ja: 多発性硬化症
   G47.30:
     en: Sleep apnea, unspecified
     ja: 睡眠時無呼吸，詳細不明
@@ -306,10 +314,8 @@ codes:
   # Issue #1777: I69.* sequelae codes drive the stroke-followup narrative.
   I69.1:
     en: Sequelae of nontraumatic intracerebral hemorrhage
-    ja: 非外傷性脳内出血の続発・後遺症
   I69.3:
     en: Sequelae of cerebral infarction
-    ja: 脳梗塞の続発・後遺症
   I66.0:
     en: Occlusion and stenosis of middle cerebral artery
   I80:
@@ -834,6 +840,10 @@ codes:
     ja: "正常妊娠の管理、種別・妊娠期詳細不明"
   Z37:
     en: "Outcome of delivery"
+  # Issue #3327: the delivery discharge code (perinatal.yaml /
+  # simulator/perinatal.py) for a single live birth; CMS FY2027, billable.
+  Z37.0:
+    en: Single live birth
   Z37.9:
     en: "Outcome of delivery, unspecified"
     ja: "分娩の転帰、詳細不明"

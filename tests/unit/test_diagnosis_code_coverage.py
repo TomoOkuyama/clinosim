@@ -11,7 +11,10 @@ the subset is *closed over what is actually emittable*:
     JP WHO-granularity migration).
 
 C ranges over every disease icd_codes (primary + variants), every encounter icd10_code and
-per-country diagnosis_variants code,
+per-country diagnosis_variants code, the differential tables, family history, the locale
+chronic prevalence and comorbidity tables, chronic follow-up, the Python-written lifestyle
+codes, perinatal codes, the longitudinal onset events, stroke sequelae and implied chronic
+codes, the unknown-condition and HAI rule tables (Issue #3327),
 plus every value (mapped target) in either diagnosis map.
 
 Regression guard for the "used-but-missing ICD code" gap (I21.2, I50.0, K57.11→K57.31, ...).
@@ -100,6 +103,44 @@ def _family_history_codes() -> set[str]:
     return set((data.get("conditions") or {}).keys())
 
 
+def _chronic_onset_and_sequela_codes() -> set[str]:
+    """Chronic codes added to a person after population generation (10th
+    emittable source, Issue #3327): the longitudinal onset events
+    (``emits_icd``), the stroke sequela a disease adds at discharge
+    (``sequela_code``: I69.1, I69.3) and the chronic codes a disease implies
+    at admission (``implied_chronic_codes``). They become Condition codes and
+    narrative diagnosis names like any other chronic condition."""
+    codes: set[str] = set()
+    for fp in glob.glob(os.path.join(ROOT, "clinosim/locale/shared/longitudinal/event/*.yaml")):
+        d = yaml.safe_load(open(fp)) or {}
+        if d.get("emits_icd"):
+            codes.add(d["emits_icd"])
+    for fp in glob.glob(os.path.join(ROOT, "clinosim/modules/disease/reference_data/*.yaml")):
+        d = yaml.safe_load(open(fp)) or {}
+        if d.get("sequela_code"):
+            codes.add(d["sequela_code"])
+        codes |= set(d.get("implied_chronic_codes") or [])
+    return codes
+
+
+def _rule_table_codes() -> set[str]:
+    """Diagnosis codes of the simulator's rule tables (11th emittable source,
+    Issue #3327): the unknown-condition admission / discharge codes
+    (``diagnosis_rules.yaml``) and the hospital-acquired infection codes
+    (``hai_codes.yaml``, US billable; JP folds them through
+    code_mapping_diagnosis)."""
+    codes: set[str] = set()
+    fp = os.path.join(ROOT, "clinosim/simulator/reference_data/diagnosis_rules.yaml")
+    rules = (yaml.safe_load(open(fp)) or {}).get("unknown_condition_codes") or {}
+    for row in [rules.get("default") or {}, *(rules.get("by_pattern") or {}).values()]:
+        codes |= {v for v in row.values() if isinstance(v, str)}
+    fp = os.path.join(ROOT, "clinosim/modules/hai/reference_data/hai_codes.yaml")
+    for row in ((yaml.safe_load(open(fp)) or {}).get("hai_codes") or {}).values():
+        if isinstance(row, dict) and row.get("icd10_us_billable"):
+            codes.add(row["icd10_us_billable"])
+    return codes
+
+
 _ICD_LIKE = re.compile(r"^[A-Z][0-9]{2}(\.[0-9A-Z]{1,4})?$")
 
 
@@ -174,7 +215,10 @@ def _locale_chronic_codes(country: str) -> set[str]:
         return set()
     data = yaml.safe_load(open(fp)) or {}
     codes: set[str] = set()
-    chronic = data.get("chronic_conditions") or {}
+    # Issue #3327: the prevalence table is ``chronic_prevalence``; this read
+    # ``chronic_conditions`` (a key demographics.yaml does not have), so the
+    # chronic channel was empty and G35 reached JP output unregistered.
+    chronic = data.get("chronic_prevalence") or {}
     if isinstance(chronic, dict):
         codes |= set(chronic.keys())
     # comorbidity_correlations: {source_icd: {target_icd: multiplier}} — both
@@ -213,7 +257,7 @@ def _perinatal_codes() -> set[str]:
     emittable source, Issue #3010): the codes of ``perinatal.yaml`` (delivery
     discharge, pregnancy complications, newborn conditions) and those the
     perinatal simulator writes (abortion outcomes, newborn Z38.0). Checked
-    for JP only: the US registry gaps of this channel are a separate fix."""
+    for both countries (US since Issue #3327, which registered Z37.0)."""
     codes: set[str] = set()
     fp = os.path.join(ROOT, "clinosim/locale/shared/perinatal.yaml")
 
@@ -245,26 +289,35 @@ US_MAP = _map("clinosim/locale/us/code_mapping_diagnosis.yaml")
 JP_MAP = _map("clinosim/locale/jp/code_mapping_diagnosis.yaml")
 INTERNAL = _emittable_internal_codes()
 LIFESTYLE = _lifestyle_codes()
+ONSET_SEQUELA = _chronic_onset_and_sequela_codes()
+RULE_TABLES = _rule_table_codes()
 _COUNTRY_AGNOSTIC = (
-    INTERNAL | _engine_differential_codes() | _family_history_codes() | _perinatal_admission_codes() | LIFESTYLE
+    INTERNAL
+    | _engine_differential_codes()
+    | _family_history_codes()
+    | _perinatal_admission_codes()
+    | LIFESTYLE
+    | ONSET_SEQUELA
+    | RULE_TABLES
 )
 _CHRONIC_FOLLOWUP = _chronic_followup_codes()
 # chronic_followup only fires for chronic conditions the locale actually
 # has, so intersect with the locale demographics rather than assert every
 # followup key resolves in both locales (Issue #1035: C15/C16/C25/C67/C71
 # are JP-only cancers not present in US demographics).
+PERINATAL = _perinatal_codes()
 US_EMITTABLE = (
     _COUNTRY_AGNOSTIC
     | _locale_chronic_codes("us")
     | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("us"))
+    | PERINATAL
     | _encounter_variant_codes("us")
 )
-PERINATAL_JP = _perinatal_codes()
 JP_EMITTABLE = (
     _COUNTRY_AGNOSTIC
     | _locale_chronic_codes("jp")
     | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("jp"))
-    | PERINATAL_JP
+    | PERINATAL
     | _encounter_variant_codes("jp")
 )
 
@@ -373,4 +426,32 @@ def test_lifestyle_channel_finds_the_python_written_codes() -> None:
     """The lifestyle channel must keep seeing the codes written from Python
     (a refactor that renames the pattern would silently empty it)."""
     assert {"F17.210", "F10.20", "E66.3", "E66.01", "E66.9", "G47.30", "K76.0", "E88.81", "Z87.59"} <= LIFESTYLE
-    assert {"O03.9", "O04.5", "Z37.0", "Z38.0", "O24.9", "O42.9"} <= PERINATAL_JP
+    assert {"O03.9", "O04.5", "Z37.0", "Z38.0", "O24.9", "O42.9"} <= PERINATAL
+
+
+def test_chronic_channels_see_the_codes_added_after_population_generation() -> None:
+    """Issue #3327: G35 (demographics prevalence, onset event), I69.1 / I69.3
+    (stroke sequela), the diabetic complications (onset events) and the rule
+    tables were outside every channel, so they reached output unregistered."""
+    assert {"G35", "I10", "E11.9"} <= _locale_chronic_codes("jp")
+    assert {"G35", "I10", "E11.9"} <= _locale_chronic_codes("us")
+    assert {"G35", "E11.21", "E11.311", "E11.42", "I69.1", "I69.3", "N18"} <= ONSET_SEQUELA
+    assert {"R53.1", "R50.9", "R68.8", "T80.211A", "J95.851"} <= RULE_TABLES
+
+
+@pytest.mark.parametrize(
+    ("code", "en", "ja", "short_ja"),
+    [
+        ("G35", "Multiple sclerosis", "多発性硬化症", "多発性硬化症"),
+        ("I69.1", "Sequelae of intracerebral haemorrhage", "脳内出血の続発・後遺症", "脳出血後遺症"),
+        ("I69.3", "Sequelae of cerebral infarction", "脳梗塞の続発・後遺症", "脳梗塞後遺症"),
+    ],
+)
+def test_jp_chronic_codes_have_official_and_clinical_names(code: str, en: str, ja: str, short_ja: str) -> None:
+    """Issue #3327: WHO English (tx.fhir.org), MHLW Japanese (基本分類表) and
+    a clinical short name for prose."""
+    from clinosim.codes.icd10 import condition_label, icd10_display
+
+    assert icd10_display(code, "JP", "en") == en
+    assert icd10_display(code, "JP", "ja") == ja
+    assert condition_label(code, "JP", "ja") == short_ja

@@ -193,6 +193,20 @@ codes:
     # family_history / FamilyMemberHistory emission of unspecified stroke.
     en: Stroke, not specified as haemorrhage or infarction
     ja: "脳卒中，脳出血又は脳梗塞と明示されないもの"
+  # Issue #3327: chronic codes the simulator emits for JP (G35 from the
+  # demographics prevalence table and the longitudinal onset event; I69.1 /
+  # I69.3 as the stroke sequela a haemorrhagic stroke / cerebral infarction
+  # discharge adds). en: tx.fhir.org $lookup (ICD-10-EN 2019-covid-expanded);
+  # ja: MHLW 基本分類表 (kihon2013.xlsx).
+  G35:
+    en: Multiple sclerosis
+    ja: "多発性硬化症"
+  I69.1:
+    en: Sequelae of intracerebral haemorrhage
+    ja: "脳内出血の続発・後遺症"
+  I69.3:
+    en: Sequelae of cerebral infarction
+    ja: "脳梗塞の続発・後遺症"
   I80:
     en: Phlebitis and thrombophlebitis
     ja: "静脈炎及び血栓（性）静脈炎"

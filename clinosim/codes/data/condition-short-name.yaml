@@ -131,6 +131,10 @@ codes:
   F33.9: {en: "Recurrent depression", ja: "反復性うつ病"}
   F41.0: {en: "Panic disorder", ja: "パニック障害"}
   G10: {en: "Huntington disease", ja: "ハンチントン病"}
+  # Issue #3327: multiple sclerosis and the stroke sequelae (WHO and ICD-10-CM
+  # I69.1 / I69.3 both name the sequelae of a non-traumatic intracerebral
+  # haemorrhage / a cerebral infarction).
+  G35: {en: "Multiple sclerosis (MS)", ja: "多発性硬化症"}
   G43.1: {en: "Migraine with aura", ja: "前兆のある片頭痛"}
   G43.9: {en: "Migraine", ja: "片頭痛"}
   G45.9: {en: "Transient ischemic attack (TIA)", ja: "一過性脳虚血発作"}
@@ -154,6 +158,8 @@ codes:
   I63.3: {en: "Thrombotic cerebral infarction", ja: "脳血栓症"}
   I63.4: {en: "Embolic cerebral infarction", ja: "脳塞栓症"}
   I64: {en: "Stroke", ja: "脳卒中"}
+  I69.1: {en: "Sequelae of intracerebral hemorrhage", ja: "脳出血後遺症"}
+  I69.3: {en: "Sequelae of cerebral infarction", ja: "脳梗塞後遺症"}
   I71.0: {en: "Aortic dissection", ja: "大動脈解離"}
   J06.9: {en: "Acute upper respiratory infection", ja: "急性上気道炎"}
   J10.0: {en: "Influenza pneumonia", ja: "インフルエンザ肺炎"}

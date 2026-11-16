@@ -13,7 +13,7 @@
       "S67.2"
     ],
     "note": "WHO ICD-10 authoritative displays for the codes clinosim emits.",
-    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
+    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
   },
   "concept": [
     {
@@ -1433,6 +1433,10 @@
       ]
     },
     {
+      "code": "G35",
+      "display": "Multiple sclerosis"
+    },
+    {
       "code": "G43",
       "display": "Migraine",
       "definition": "Migraine",
@@ -2755,6 +2759,14 @@
           "valueCode": "I66"
         }
       ]
+    },
+    {
+      "code": "I69.1",
+      "display": "Sequelae of intracerebral haemorrhage"
+    },
+    {
+      "code": "I69.3",
+      "display": "Sequelae of cerebral infarction"
     },
     {
       "code": "I71.0",

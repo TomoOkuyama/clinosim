@@ -5,7 +5,7 @@
     "source_file": "kihon2013.xlsx (sheet 基本分類表データ, columns コード / コード名)",
     "extracted_at": "2026-11-01",
     "note": "Japanese official names of the ICD-10 codes clinosim emits for JP, filtered from the full table (15,296 codes).",
-    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259) were added on 2026-11-16 from the same kihon2013.xlsx table."
+    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table."
   },
   "concept": [
     {
@@ -329,6 +329,10 @@
       "display": "パーキンソン＜Parkinson＞病"
     },
     {
+      "code": "G35",
+      "display": "多発性硬化症"
+    },
+    {
       "code": "G43",
       "display": "片頭痛"
     },
@@ -527,6 +531,14 @@
     {
       "code": "I66.0",
       "display": "中大脳動脈の閉塞及び狭窄"
+    },
+    {
+      "code": "I69.1",
+      "display": "脳内出血の続発・後遺症"
+    },
+    {
+      "code": "I69.3",
+      "display": "脳梗塞の続発・後遺症"
     },
     {
       "code": "I71.0",
