@@ -63,6 +63,21 @@ exam_vital_terms:
     terms:
       ja: ["頻脈なし"]
       en: ["no tachycardia"]
+  - vital: heart_rate
+    states: [normal]
+    terms:
+      ja: ["心拍数正常"]
+      en: ["heart rate normal", "normal heart rate"]
+  - vital: heart_rate
+    states: [normal, high]
+    terms:
+      ja: ["心拍数正常〜軽度頻脈"]
+      en: ["normal to mildly tachycardic"]
+  - vital: respiratory_rate
+    states: [low]
+    terms:
+      ja: ["呼吸数低下"]
+      en: ["respiratory depression", "decreased respiratory rate"]
   - vital: respiratory_rate
     states: [high]
     terms:
@@ -72,7 +87,7 @@ exam_vital_terms:
     states: [normal]
     terms:
       ja: ["呼吸数正常"]
-      en: ["normal respiratory rate"]
+      en: ["normal respiratory rate", "respiratory rate normal"]
   - vital: spo2
     states: [low]
     terms:

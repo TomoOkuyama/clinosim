@@ -146,6 +146,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_2",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -179,11 +180,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #4 — assessment]",
-        "objective": "BP 119/77 mmHg, HR 99 回/分, RR 21 回/分, SpO2 94% (RA), T 37.6°C, 酸素投与終了 (直近24時間: 最高体温 38.8°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める、SpO2 低下。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 119/77 mmHg, HR 99 回/分, RR 21 回/分, SpO2 94% (RA), T 37.6°C, 酸素投与終了 (直近24時間: 最高体温 38.8°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。身体所見: 前日と著変なし",
         "plan": "[Mock LLM response #4 — plan]",
         "subjective": "[Mock LLM response #4 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 119/77 mmHg, HR 99 回/分, RR 21 回/分, SpO2 94% (RA), T 37.6°C, 酸素投与終了 (直近24時間: 最高体温 38.8°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める、SpO2 低下。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
+      "text": "S（主観） [Mock LLM response #4 — subjective]\nO（客観） BP 119/77 mmHg, HR 99 回/分, RR 21 回/分, SpO2 94% (RA), T 37.6°C, 酸素投与終了 (直近24時間: 最高体温 38.8°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #4 — assessment]\nP（計画） [Mock LLM response #4 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-05": {
@@ -194,6 +195,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_3",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -227,11 +229,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #5 — assessment]",
-        "objective": "BP 120/75 mmHg, HR 100 回/分, RR 20 回/分, SpO2 97% (鼻カニューラ 3.2 L/分), T 38.0°C (直近24時間: 最高体温 38.5°C、HR 最大 104 回/分、RR 最大 21 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、頻呼吸、SpO2 低下、酸素投与下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 120/75 mmHg, HR 100 回/分, RR 20 回/分, SpO2 97% (鼻カニューラ 3.2 L/分), T 38.0°C (直近24時間: 最高体温 38.5°C、HR 最大 104 回/分、RR 最大 21 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、頻呼吸、SpO2 低下、酸素投与下。腹部: 平坦、軟。神経: 前日と著変なし",
         "plan": "[Mock LLM response #5 — plan]",
         "subjective": "[Mock LLM response #5 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 120/75 mmHg, HR 100 回/分, RR 20 回/分, SpO2 97% (鼻カニューラ 3.2 L/分), T 38.0°C (直近24時間: 最高体温 38.5°C、HR 最大 104 回/分、RR 最大 21 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、頻呼吸、SpO2 低下、酸素投与下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
+      "text": "S（主観） [Mock LLM response #5 — subjective]\nO（客観） BP 120/75 mmHg, HR 100 回/分, RR 20 回/分, SpO2 97% (鼻カニューラ 3.2 L/分), T 38.0°C (直近24時間: 最高体温 38.5°C、HR 最大 104 回/分、RR 最大 21 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、頻呼吸、SpO2 低下、酸素投与下。腹部: 平坦、軟。神経: 前日と著変なし\nA（評価） [Mock LLM response #5 — assessment]\nP（計画） [Mock LLM response #5 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-06": {
@@ -242,6 +244,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_4",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -275,11 +278,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #6 — assessment]",
-        "objective": "BP 118/77 mmHg, HR 98 回/分, RR 19 回/分, SpO2 92% (RA), T 37.4°C, 酸素投与終了 (直近24時間: 最高体温 38.4°C、HR 最大 103 回/分)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 118/77 mmHg, HR 98 回/分, RR 19 回/分, SpO2 92% (RA), T 37.4°C, 酸素投与終了 (直近24時間: 最高体温 38.4°C、HR 最大 103 回/分)。検査所見改善。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。一般状態、循環器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #6 — plan]",
         "subjective": "[Mock LLM response #6 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 118/77 mmHg, HR 98 回/分, RR 19 回/分, SpO2 92% (RA), T 37.4°C, 酸素投与終了 (直近24時間: 最高体温 38.4°C、HR 最大 103 回/分)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
+      "text": "S（主観） [Mock LLM response #6 — subjective]\nO（客観） BP 118/77 mmHg, HR 98 回/分, RR 19 回/分, SpO2 92% (RA), T 37.4°C, 酸素投与終了 (直近24時間: 最高体温 38.4°C、HR 最大 103 回/分)。検査所見改善。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。一般状態、循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #6 — assessment]\nP（計画） [Mock LLM response #6 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-07": {
@@ -290,6 +293,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_5",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -323,11 +327,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #7 — assessment]",
-        "objective": "BP 116/72 mmHg, HR 99 回/分, RR 17 回/分, SpO2 93% (RA), T 37.5°C, 酸素投与終了 (直近24時間: 最高体温 38.9°C、HR 最大 106 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 116/72 mmHg, HR 99 回/分, RR 17 回/分, SpO2 93% (RA), T 37.5°C, 酸素投与終了 (直近24時間: 最高体温 38.9°C、HR 最大 106 回/分、SpO2 最低 92%)。検査所見改善。身体所見: 前日と著変なし",
         "plan": "[Mock LLM response #7 — plan]",
         "subjective": "[Mock LLM response #7 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 116/72 mmHg, HR 99 回/分, RR 17 回/分, SpO2 93% (RA), T 37.5°C, 酸素投与終了 (直近24時間: 最高体温 38.9°C、HR 最大 106 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
+      "text": "S（主観） [Mock LLM response #7 — subjective]\nO（客観） BP 116/72 mmHg, HR 99 回/分, RR 17 回/分, SpO2 93% (RA), T 37.5°C, 酸素投与終了 (直近24時間: 最高体温 38.9°C、HR 最大 106 回/分、SpO2 最低 92%)。検査所見改善。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #7 — assessment]\nP（計画） [Mock LLM response #7 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-08": {
@@ -339,6 +343,7 @@
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_6",
         "ctx.vitals.consciousness_level:pe_consciousness",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -372,11 +377,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #8 — assessment]",
-        "objective": "BP 121/69 mmHg, HR 99 回/分, RR 20 回/分, SpO2 95% (鼻カニューラ 2.5 L/分), T 38.5°C (直近24時間: 最高体温 39.0°C、HR 最大 104 回/分、SpO2 最低 92%)。検査所見改善。一般状態: JCS I-3、呼びかけに応答するも見当識障害あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 121/69 mmHg, HR 99 回/分, RR 20 回/分, SpO2 95% (鼻カニューラ 2.5 L/分), T 38.5°C (直近24時間: 最高体温 39.0°C、HR 最大 104 回/分、SpO2 最低 92%)。検査所見改善。一般状態: JCS I-3、呼びかけに応答するも見当識障害あり。循環器、呼吸器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #8 — plan]",
         "subjective": "[Mock LLM response #8 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 121/69 mmHg, HR 99 回/分, RR 20 回/分, SpO2 95% (鼻カニューラ 2.5 L/分), T 38.5°C (直近24時間: 最高体温 39.0°C、HR 最大 104 回/分、SpO2 最低 92%)。検査所見改善。一般状態: JCS I-3、呼びかけに応答するも見当識障害あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
+      "text": "S（主観） [Mock LLM response #8 — subjective]\nO（客観） BP 121/69 mmHg, HR 99 回/分, RR 20 回/分, SpO2 95% (鼻カニューラ 2.5 L/分), T 38.5°C (直近24時間: 最高体温 39.0°C、HR 最大 104 回/分、SpO2 最低 92%)。検査所見改善。一般状態: JCS I-3、呼びかけに応答するも見当識障害あり。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #8 — assessment]\nP（計画） [Mock LLM response #8 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-09": {
@@ -387,6 +392,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_7",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -420,11 +426,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #9 — assessment]",
-        "objective": "BP 117/73 mmHg, HR 98 回/分, RR 13 回/分, SpO2 94% (RA), T 37.7°C, 酸素投与終了 (直近24時間: 最高体温 38.8°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 117/73 mmHg, HR 98 回/分, RR 13 回/分, SpO2 94% (RA), T 37.7°C, 酸素投与終了 (直近24時間: 最高体温 38.8°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。身体所見: 前日と著変なし",
         "plan": "[Mock LLM response #9 — plan]",
         "subjective": "[Mock LLM response #9 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 117/73 mmHg, HR 98 回/分, RR 13 回/分, SpO2 94% (RA), T 37.7°C, 酸素投与終了 (直近24時間: 最高体温 38.8°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
+      "text": "S（主観） [Mock LLM response #9 — subjective]\nO（客観） BP 117/73 mmHg, HR 98 回/分, RR 13 回/分, SpO2 94% (RA), T 37.7°C, 酸素投与終了 (直近24時間: 最高体温 38.8°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #9 — assessment]\nP（計画） [Mock LLM response #9 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-10": {
@@ -435,6 +441,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_8",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -468,11 +475,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #10 — assessment]",
-        "objective": "BP 119/71 mmHg, HR 95 回/分, RR 16 回/分, SpO2 94% (RA), T 37.4°C, 酸素投与終了 (直近24時間: 最高体温 38.5°C、HR 最大 106 回/分、SpO2 最低 93%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 119/71 mmHg, HR 95 回/分, RR 16 回/分, SpO2 94% (RA), T 37.4°C, 酸素投与終了 (直近24時間: 最高体温 38.5°C、HR 最大 106 回/分、SpO2 最低 93%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器、呼吸器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #10 — plan]",
         "subjective": "[Mock LLM response #10 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 119/71 mmHg, HR 95 回/分, RR 16 回/分, SpO2 94% (RA), T 37.4°C, 酸素投与終了 (直近24時間: 最高体温 38.5°C、HR 最大 106 回/分、SpO2 最低 93%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
+      "text": "S（主観） [Mock LLM response #10 — subjective]\nO（客観） BP 119/71 mmHg, HR 95 回/分, RR 16 回/分, SpO2 94% (RA), T 37.4°C, 酸素投与終了 (直近24時間: 最高体温 38.5°C、HR 最大 106 回/分、SpO2 最低 93%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #10 — assessment]\nP（計画） [Mock LLM response #10 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-11": {
@@ -484,6 +491,7 @@
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_9",
         "ctx.vitals.consciousness_level:pe_consciousness",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -517,11 +525,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #11 — assessment]",
-        "objective": "BP 118/72 mmHg, HR 101 回/分, RR 14 回/分, SpO2 93% (RA), T 37.6°C, 酸素投与終了 (直近24時間: 最高体温 38.8°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。一般状態: JCS I-3、呼びかけに応答するも見当識障害あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 118/72 mmHg, HR 101 回/分, RR 14 回/分, SpO2 93% (RA), T 37.6°C, 酸素投与終了 (直近24時間: 最高体温 38.8°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。一般状態: JCS I-3、呼びかけに応答するも見当識障害あり。循環器、呼吸器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #11 — plan]",
         "subjective": "[Mock LLM response #11 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 118/72 mmHg, HR 101 回/分, RR 14 回/分, SpO2 93% (RA), T 37.6°C, 酸素投与終了 (直近24時間: 最高体温 38.8°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。一般状態: JCS I-3、呼びかけに応答するも見当識障害あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
+      "text": "S（主観） [Mock LLM response #11 — subjective]\nO（客観） BP 118/72 mmHg, HR 101 回/分, RR 14 回/分, SpO2 93% (RA), T 37.6°C, 酸素投与終了 (直近24時間: 最高体温 38.8°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。一般状態: JCS I-3、呼びかけに応答するも見当識障害あり。循環器、呼吸器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #11 — assessment]\nP（計画） [Mock LLM response #11 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-12": {
@@ -532,6 +540,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_10",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -565,11 +574,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #12 — assessment]",
-        "objective": "BP 117/72 mmHg, HR 103 回/分, RR 15 回/分, SpO2 92% (RA), T 37.5°C, 酸素投与終了 (直近24時間: 最高体温 39.3°C、HR 最大 108 回/分)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 117/72 mmHg, HR 103 回/分, RR 15 回/分, SpO2 92% (RA), T 37.5°C, 酸素投与終了 (直近24時間: 最高体温 39.3°C、HR 最大 108 回/分)。検査所見改善。身体所見: 前日と著変なし",
         "plan": "[Mock LLM response #12 — plan]",
         "subjective": "[Mock LLM response #12 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 117/72 mmHg, HR 103 回/分, RR 15 回/分, SpO2 92% (RA), T 37.5°C, 酸素投与終了 (直近24時間: 最高体温 39.3°C、HR 最大 108 回/分)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
+      "text": "S（主観） [Mock LLM response #12 — subjective]\nO（客観） BP 117/72 mmHg, HR 103 回/分, RR 15 回/分, SpO2 92% (RA), T 37.5°C, 酸素投与終了 (直近24時間: 最高体温 39.3°C、HR 最大 108 回/分)。検査所見改善。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #12 — assessment]\nP（計画） [Mock LLM response #12 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-13": {
@@ -580,6 +589,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_11",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -613,11 +623,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #13 — assessment]",
-        "objective": "BP 120/73 mmHg, HR 100 回/分, RR 15 回/分, SpO2 92% (RA), T 37.5°C, 酸素投与終了 (直近24時間: 最高体温 38.9°C、HR 最大 108 回/分、RR 最大 21 回/分)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、頻呼吸、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 120/73 mmHg, HR 100 回/分, RR 15 回/分, SpO2 92% (RA), T 37.5°C, 酸素投与終了 (直近24時間: 最高体温 38.9°C、HR 最大 108 回/分、RR 最大 21 回/分)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。呼吸器: 呼吸数改善、湿性ラ音軽減、頻呼吸、SpO2 低下。循環器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #13 — plan]",
         "subjective": "[Mock LLM response #13 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 120/73 mmHg, HR 100 回/分, RR 15 回/分, SpO2 92% (RA), T 37.5°C, 酸素投与終了 (直近24時間: 最高体温 38.9°C、HR 最大 108 回/分、RR 最大 21 回/分)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、頻呼吸、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
+      "text": "S（主観） [Mock LLM response #13 — subjective]\nO（客観） BP 120/73 mmHg, HR 100 回/分, RR 15 回/分, SpO2 92% (RA), T 37.5°C, 酸素投与終了 (直近24時間: 最高体温 38.9°C、HR 最大 108 回/分、RR 最大 21 回/分)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。呼吸器: 呼吸数改善、湿性ラ音軽減、頻呼吸、SpO2 低下。循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #13 — assessment]\nP（計画） [Mock LLM response #13 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-14": {
@@ -628,6 +638,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_12",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -661,11 +672,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #14 — assessment]",
-        "objective": "BP 117/74 mmHg, HR 101 回/分, RR 18 回/分, SpO2 92% (RA), T 38.4°C, 酸素投与終了 (直近24時間: HR 最大 104 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 117/74 mmHg, HR 101 回/分, RR 18 回/分, SpO2 92% (RA), T 38.4°C, 酸素投与終了 (直近24時間: HR 最大 104 回/分、SpO2 最低 92%)。検査所見改善。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。一般状態、循環器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #14 — plan]",
         "subjective": "[Mock LLM response #14 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 117/74 mmHg, HR 101 回/分, RR 18 回/分, SpO2 92% (RA), T 38.4°C, 酸素投与終了 (直近24時間: HR 最大 104 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
+      "text": "S（主観） [Mock LLM response #14 — subjective]\nO（客観） BP 117/74 mmHg, HR 101 回/分, RR 18 回/分, SpO2 92% (RA), T 38.4°C, 酸素投与終了 (直近24時間: HR 最大 104 回/分、SpO2 最低 92%)。検査所見改善。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。一般状態、循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #14 — assessment]\nP（計画） [Mock LLM response #14 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-15": {
@@ -676,6 +687,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_13",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -709,11 +721,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #15 — assessment]",
-        "objective": "BP 120/70 mmHg, HR 102 回/分, RR 17 回/分, SpO2 94% (RA), T 37.6°C, 酸素投与終了 (直近24時間: 最高体温 39.4°C、HR 最大 106 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 120/70 mmHg, HR 102 回/分, RR 17 回/分, SpO2 94% (RA), T 37.6°C, 酸素投与終了 (直近24時間: 最高体温 39.4°C、HR 最大 106 回/分、SpO2 最低 92%)。検査所見改善。身体所見: 前日と著変なし",
         "plan": "[Mock LLM response #15 — plan]",
         "subjective": "[Mock LLM response #15 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 120/70 mmHg, HR 102 回/分, RR 17 回/分, SpO2 94% (RA), T 37.6°C, 酸素投与終了 (直近24時間: 最高体温 39.4°C、HR 最大 106 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
+      "text": "S（主観） [Mock LLM response #15 — subjective]\nO（客観） BP 120/70 mmHg, HR 102 回/分, RR 17 回/分, SpO2 94% (RA), T 37.6°C, 酸素投与終了 (直近24時間: 最高体温 39.4°C、HR 最大 106 回/分、SpO2 最低 92%)。検査所見改善。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #15 — assessment]\nP（計画） [Mock LLM response #15 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-16": {
@@ -724,6 +736,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_14",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -757,11 +770,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #16 — assessment]",
-        "objective": "BP 117/75 mmHg, HR 98 回/分, RR 15 回/分, SpO2 94% (RA), T 37.4°C, 酸素投与終了 (直近24時間: 最高体温 38.4°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 117/75 mmHg, HR 98 回/分, RR 15 回/分, SpO2 94% (RA), T 37.4°C, 酸素投与終了 (直近24時間: 最高体温 38.4°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。身体所見: 前日と著変なし",
         "plan": "[Mock LLM response #16 — plan]",
         "subjective": "[Mock LLM response #16 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 117/75 mmHg, HR 98 回/分, RR 15 回/分, SpO2 94% (RA), T 37.4°C, 酸素投与終了 (直近24時間: 最高体温 38.4°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
+      "text": "S（主観） [Mock LLM response #16 — subjective]\nO（客観） BP 117/75 mmHg, HR 98 回/分, RR 15 回/分, SpO2 94% (RA), T 37.4°C, 酸素投与終了 (直近24時間: 最高体温 38.4°C、HR 最大 105 回/分、SpO2 最低 92%)。検査所見改善。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #16 — assessment]\nP（計画） [Mock LLM response #16 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-17": {
@@ -772,6 +785,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_15",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -805,11 +819,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #17 — assessment]",
-        "objective": "BP 118/73 mmHg, HR 101 回/分, RR 18 回/分, SpO2 98% (酸素マスク 4.6 L/分), T 37.9°C (直近24時間: 最高体温 39.5°C、HR 最大 105 回/分、SpO2 最低 93%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下、酸素投与下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 118/73 mmHg, HR 101 回/分, RR 18 回/分, SpO2 98% (酸素マスク 4.6 L/分), T 37.9°C (直近24時間: 最高体温 39.5°C、HR 最大 105 回/分、SpO2 最低 93%)。検査所見改善。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下、酸素投与下。一般状態、循環器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #17 — plan]",
         "subjective": "[Mock LLM response #17 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #17 — subjective]\nO（客観） BP 118/73 mmHg, HR 101 回/分, RR 18 回/分, SpO2 98% (酸素マスク 4.6 L/分), T 37.9°C (直近24時間: 最高体温 39.5°C、HR 最大 105 回/分、SpO2 最低 93%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下、酸素投与下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #17 — assessment]\nP（計画） [Mock LLM response #17 — plan]"
+      "text": "S（主観） [Mock LLM response #17 — subjective]\nO（客観） BP 118/73 mmHg, HR 101 回/分, RR 18 回/分, SpO2 98% (酸素マスク 4.6 L/分), T 37.9°C (直近24時間: 最高体温 39.5°C、HR 最大 105 回/分、SpO2 最低 93%)。検査所見改善。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下、酸素投与下。一般状態、循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #17 — assessment]\nP（計画） [Mock LLM response #17 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-18": {
@@ -820,6 +834,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_16",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -853,11 +868,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #18 — assessment]",
-        "objective": "BP 120/73 mmHg, HR 107 回/分, RR 19 回/分, SpO2 93% (RA), T 38.4°C, 酸素投与終了 (直近24時間: 最高体温 38.6°C、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 120/73 mmHg, HR 107 回/分, RR 19 回/分, SpO2 93% (RA), T 38.4°C, 酸素投与終了 (直近24時間: 最高体温 38.6°C、SpO2 最低 92%)。検査所見改善。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。一般状態、循環器、腹部、神経: 前日と著変なし",
         "plan": "[Mock LLM response #18 — plan]",
         "subjective": "[Mock LLM response #18 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #18 — subjective]\nO（客観） BP 120/73 mmHg, HR 107 回/分, RR 19 回/分, SpO2 93% (RA), T 38.4°C, 酸素投与終了 (直近24時間: 最高体温 38.6°C、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #18 — assessment]\nP（計画） [Mock LLM response #18 — plan]"
+      "text": "S（主観） [Mock LLM response #18 — subjective]\nO（客観） BP 120/73 mmHg, HR 107 回/分, RR 19 回/分, SpO2 93% (RA), T 38.4°C, 酸素投与終了 (直近24時間: 最高体温 38.6°C、SpO2 最低 92%)。検査所見改善。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。一般状態、循環器、腹部、神経: 前日と著変なし\nA（評価） [Mock LLM response #18 — assessment]\nP（計画） [Mock LLM response #18 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-19": {
@@ -868,6 +883,7 @@
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_1",
         "ctx.vitals.today",
         "physical_exam_findings.smooth_recovery.day_17",
+        "ctx.exam.unchanged_from_previous_day",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -901,11 +917,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #19 — assessment]",
-        "objective": "BP 118/73 mmHg, HR 98 回/分, RR 17 回/分, SpO2 92% (RA), T 37.8°C, 酸素投与終了 (直近24時間: 最高体温 38.2°C、HR 最大 104 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし",
+        "objective": "BP 118/73 mmHg, HR 98 回/分, RR 17 回/分, SpO2 92% (RA), T 37.8°C, 酸素投与終了 (直近24時間: 最高体温 38.2°C、HR 最大 104 回/分、SpO2 最低 92%)。検査所見改善。身体所見: 前日と著変なし",
         "plan": "[Mock LLM response #19 — plan]",
         "subjective": "[Mock LLM response #19 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #19 — subjective]\nO（客観） BP 118/73 mmHg, HR 98 回/分, RR 17 回/分, SpO2 92% (RA), T 37.8°C, 酸素投与終了 (直近24時間: 最高体温 38.2°C、HR 最大 104 回/分、SpO2 最低 92%)。検査所見改善。一般状態: 意識清明、苦痛軽減、発熱あり。循環器: 頻脈改善傾向。呼吸器: 呼吸数改善、湿性ラ音軽減、SpO2 低下。腹部: 平坦、軟。神経: 麻痺なし\nA（評価） [Mock LLM response #19 — assessment]\nP（計画） [Mock LLM response #19 — plan]"
+      "text": "S（主観） [Mock LLM response #19 — subjective]\nO（客観） BP 118/73 mmHg, HR 98 回/分, RR 17 回/分, SpO2 92% (RA), T 37.8°C, 酸素投与終了 (直近24時間: 最高体温 38.2°C、HR 最大 104 回/分、SpO2 最低 92%)。検査所見改善。身体所見: 前日と著変なし\nA（評価） [Mock LLM response #19 — assessment]\nP（計画） [Mock LLM response #19 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-20": {
