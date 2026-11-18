@@ -71,9 +71,9 @@ def test_cerebral_infarction_no_prior_ac_discharge_rx_includes_chronic_continuat
     """cerebral_infarction admission without prior chronic AC condition.
 
     Post-fix expectation:
-      - anticoagulant present in every patient's discharge_rx
-        (JP: Edoxaban 0.8 / Warfarin 0.2, sum=1.0 → categorical always fires)
-      - Aspirin (antiplatelet) present in every patient (implicit prob 1.0)
+      - exactly one antithrombotic strategy in every patient's discharge_rx:
+        an anticoagulant when the patient carries AF, else aspirin, never both
+        (Issue #3277: secondary prevention after ischemic stroke)
       - Atorvastatin (statin) present in every patient (implicit prob 1.0)
       - antihypertensive present (Amlodipine + Candesartan JP, both always)
 
@@ -113,15 +113,15 @@ def test_cerebral_infarction_no_prior_ac_discharge_rx_includes_chronic_continuat
         )
     )
 
-    # Anticoag: JP categorical draw sums to 1.0 → every patient should receive
-    # one. Assert full-cohort presence (not just ">=1").
-    assert all(c >= 1 for c in anticoag_counts), (
-        f"anticoagulant absent in some patients — continue_at_discharge loop "
-        f"regressed. anticoag_counts={anticoag_counts}. "
-        f"names_per_patient={per_patient_names}"
-    )
-    # Antiplatelet, statin, antihypertensive: independent-always → every patient.
-    assert aspirin_seen == len(survivors), f"Aspirin absent in {len(survivors) - aspirin_seen} patients"
+    # One antithrombotic strategy per patient (Issue #3277): an anticoagulant
+    # (AF) or aspirin, never both and never neither.
+    has_aspirin = [any("アスピリン" in n or "aspirin" in n for n in names) for names in per_patient_names]
+    missing = [i for i, (c, a) in enumerate(zip(anticoag_counts, has_aspirin)) if c == 0 and not a]
+    both = [i for i, (c, a) in enumerate(zip(anticoag_counts, has_aspirin)) if c >= 1 and a]
+    assert not missing, f"no antithrombotic in patients {missing}. names_per_patient={per_patient_names}"
+    assert not both, f"anticoagulant plus aspirin in patients {both}. names_per_patient={per_patient_names}"
+    assert aspirin_seen + sum(1 for c in anticoag_counts if c >= 1) == len(survivors)
+    # Statin, antihypertensive: independent-always → every patient.
     assert statin_seen == len(survivors), f"Atorvastatin absent in {len(survivors) - statin_seen} patients"
     assert antihyp_seen == len(survivors), f"antihypertensive absent in {len(survivors) - antihyp_seen} patients"
 
