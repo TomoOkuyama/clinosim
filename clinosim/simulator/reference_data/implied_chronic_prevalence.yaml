@@ -1,0 +1,31 @@
+# Prevalence of a chronic condition among the patients of a disease whose YAML
+# lists it in ``implied_chronic_codes`` (Issue #3263).
+#
+# An implied code absent from this file is carried by every patient of the
+# disease (the former behaviour). A code listed here is carried by that share
+# of the disease's patients: each patient is drawn once, from a hash of
+# (patient_id, disease_id, code), so the same patient gets the same answer at
+# every stay and no master RNG stream moves.
+metadata:
+  kind: reference
+  name: implied_chronic_prevalence
+  source: clinosim
+
+prevalence:
+  cerebral_infarction:
+    # Known atrial fibrillation before an ischemic stroke: 425 of 1,928
+    # incident ischemic strokes in the Oxford Vascular Study had prior AF
+    # (22.0%). Yiin GSC, Li L, Bejot Y, Rothwell PM. Time Trends in Atrial
+    # Fibrillation-Associated Stroke and Premorbid Anticoagulation:
+    # Population-Based Study and Systematic Review. Stroke 2019;50:21-27
+    # (PMC6314508). AF first found at or after the stroke is not "implied".
+    I48: 0.22
+  atrial_fibrillation_rvr:
+    # Heart failure among patients with atrial fibrillation: 67% of the 9,484
+    # patients of the ORBIT-AF registry had no heart failure, so about 33% did
+    # (the registry reports the "none" share; 33% is its complement). Steinberg
+    # BA, Kim S, Fonarow GC, et al. Drivers of hospitalization for patients with
+    # atrial fibrillation: results from ORBIT-AF. Am Heart J 2014;167:735-742
+    # (PMC4006943). An outpatient registry, so a conservative value for an
+    # admitted cohort.
+    I50: 0.33

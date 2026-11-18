@@ -182,6 +182,33 @@ def is_finite_course(item: dict) -> bool:
     return 0 < days <= ACUTE_COURSE_MAX_DAYS
 
 
+def _persist_implied_chronic(person: Any, record: CIFPatientRecord, disease_id: str) -> None:
+    """Add the chronic conditions ``disease_id`` implies to the person record.
+
+    Uses the same rule and the same per-patient draw as the encounter profile,
+    and the same backdated onset, so the person's later encounters list what
+    this stay listed. Draws nothing from the simulation RNG.
+    """
+    from clinosim.modules.patient.activator import derive_implied_chronic_onset
+    from clinosim.simulator.implied_chronic import implied_chronic_codes_to_add
+
+    if not record.encounters:
+        return
+    admitted = record.encounters[0].admission_datetime.date()
+    have = {c.split(".")[0] for c in person.chronic_conditions}
+    for code in implied_chronic_codes_to_add(
+        disease_id,
+        patient_id=person.person_id,
+        sex=str(getattr(person, "sex", "") or ""),
+        age=int(getattr(person, "age", 0) or 0),
+        have_bases=have,
+    ):
+        person.chronic_conditions.append(code)
+        person.chronic_onset.setdefault(
+            code, derive_implied_chronic_onset(person.person_id, code, admitted, person.date_of_birth)
+        )
+
+
 def _deactivate_to_layer1(
     person: Any,
     record: CIFPatientRecord,
@@ -218,6 +245,11 @@ def _deactivate_to_layer1(
             existing_bases = {c.split(".")[0] for c in person.chronic_conditions}
             if chronic not in existing_bases:
                 person.chronic_conditions.append(chronic)
+
+    # Issue #3263: the chronic conditions the stay added to the encounter's
+    # problem list (``inpatient._attach_implied_chronic_conditions``) belong
+    # to the person too, so later encounters keep them.
+    _persist_implied_chronic(person, record, disease_id)
 
     # Issue #452 PR 1: `PersonRecord.current_medications` is now
     # `list[HomeMedication]` — carry route / dose / frequency through from

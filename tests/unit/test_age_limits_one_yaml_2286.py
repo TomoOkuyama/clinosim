@@ -8,7 +8,7 @@ import pytest
 
 from clinosim.eval.axes import clinical as eval_clinical
 from clinosim.locale.loader import load_chronic_age_limits
-from clinosim.simulator import inpatient
+from clinosim.simulator import implied_chronic, inpatient
 
 pytestmark = pytest.mark.unit
 
@@ -22,8 +22,8 @@ def test_yaml_holds_all_three_tables() -> None:
 
 def test_consumers_read_the_yaml() -> None:
     limits = load_chronic_age_limits()
-    assert inpatient._implied_chronic_min_age("N18") == limits["implied_chronic_min_years"]["N18"]
-    assert inpatient._implied_chronic_min_age("E11.9") == limits["implied_chronic_min_years"]["E11"]
+    assert implied_chronic.implied_chronic_min_age("N18") == limits["implied_chronic_min_years"]["N18"]
+    assert implied_chronic.implied_chronic_min_age("E11.9") == limits["implied_chronic_min_years"]["E11"]
     assert eval_clinical._adult_only_internal_codes() == tuple(limits["adult_only_codes"])
 
 

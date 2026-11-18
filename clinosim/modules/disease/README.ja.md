@@ -288,3 +288,7 @@ pytest tests/unit -k disease -q
 [`CONTRIBUTING.md`](../../../CONTRIBUTING.ja.md)。
 
 英語版: [`README.md`](README.md)。
+
+## 暗黙の慢性疾患 (Issue #3263)
+
+疾患 YAML の `implied_chronic_codes` は、入院の問題リストと person レコードの両方に加えられ、以後の受診にも引き継がれる。一部の患者だけが持つコードは `simulator/reference_data/implied_chronic_prevalence.yaml` に割合を持つ (脳梗塞前の既知の心房細動 22%、心房細動患者の心不全 33%)。割合は ID のハッシュから患者ごとに 1 回だけ引く。`SPEC.md` を参照。
