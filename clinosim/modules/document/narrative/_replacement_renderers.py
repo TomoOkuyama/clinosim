@@ -94,7 +94,9 @@ def _render_chronic_list(chronic: list, lang: str = "en", *, country: str) -> st
     return "; ".join(parts) if parts else ""
 
 
-def _render_newborn_workup_summary(workup: dict, lang: str = "en") -> str:
+def _render_newborn_workup_summary(
+    workup: dict, lang: str = "en", *, birth: bool = False, screening_only: bool = False
+) -> str:
     """Issue #1404: one-line neonatal workup anchor for admission_hp
     narrative. Reads the projection built by
     ``context._build_newborn_workup`` and composes a JA/EN sentence
@@ -109,9 +111,22 @@ def _render_newborn_workup_summary(workup: dict, lang: str = "en") -> str:
         return ""
     parts: list[str] = []
 
+    if birth:
+        # Issue #3245: the birth data of the record (the LLM context).
+        info = workup.get("birth") or {}
+        days = info.get("gestational_age_days")
+        if isinstance(days, int) and days > 0:
+            parts.append(t("neonate_history.gestational_age", lang, weeks=days // 7, days=days % 7))
+        if info.get("delivery_mode"):
+            parts.append(t(f"neonate_history.delivery_mode.{info['delivery_mode']}", lang))
+        if workup.get("birth_weight_kg"):
+            parts.append(t("neonate_history.birth_weight", lang, kg=f"{float(workup['birth_weight_kg']):g}"))
+        if workup.get("birth_length_cm"):
+            parts.append(t("neonate_history.birth_length", lang, cm=f"{float(workup['birth_length_cm']):g}"))
+
     a1 = workup.get("apgar_1min")
     a5 = workup.get("apgar_5min")
-    if a1 is not None or a5 is not None:
+    if (a1 is not None or a5 is not None) and not screening_only:
         a1_str = str(a1) if a1 is not None else "-"
         a5_str = str(a5) if a5 is not None else "-"
         parts.append(t("newborn.apgar_line", lang, a1=a1_str, a5=a5_str))

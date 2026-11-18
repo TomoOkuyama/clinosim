@@ -108,6 +108,15 @@ def compose_hospital_course(ctx: NarrativeContext, *, with_results: bool = True)
             parts.append(sentence)
             facts.append(fact)
 
+    # Issue #3245: a newborn's screening results, once resulted (the H&P and
+    # the early notes cite only what existed then).
+    from clinosim.modules.document.narrative.renderers._composers import newborn_screening_to_date
+
+    screening = newborn_screening_to_date(ctx)
+    if screening:
+        parts.append(t("progress.newborn_screening", lang, list=screening))
+        facts.append("ctx.newborn_workup")
+
     facts.append("ctx.los_days")
     return t("list_sep.sentence_gap", lang).join(parts), facts
 

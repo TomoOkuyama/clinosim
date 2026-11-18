@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any
 from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized, normalize_lang
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules.document.narrative._narrative_utils import is_neonate
 from clinosim.modules.document.narrative.renderers._exam_agreement import agreeing_clauses
 from clinosim.modules.document.reference_data_loaders import load_disease_exam
 
@@ -30,8 +31,12 @@ _SEVERITY_ORDER = ("moderate", "mild", "severe")
 
 
 def _disease_id(ctx: NarrativeContext) -> str:
+    """The admitting disease: the disease protocol's, else (a mixed-diagnosis
+    admission, Issue #3245) the principal disease of the condition event."""
     proto = ctx.disease_protocol
-    return str(_o(proto, "disease_id", "") or "") if proto is not None else ""
+    if proto is not None:
+        return str(_o(proto, "disease_id", "") or "")
+    return str(getattr(ctx, "principal_disease_id", "") or "")
 
 
 def _by_severity(entry: dict[str, Any], severity: str) -> dict[str, str]:
@@ -62,7 +67,7 @@ def admission_exam(ctx: NarrativeContext, reading: Any | None, states: dict[str,
     data = load_disease_exam()
     entry = data.diseases.get(_disease_id(ctx))
     if entry is None:
-        return {}
+        return _delivery_exam(ctx, reading)
     lang = ctx.target_lang
     severity = str(ctx.severity or "")
     general = entry.general if entry.general is not None else _by_severity(data.general, severity)
@@ -77,6 +82,18 @@ def admission_exam(ctx: NarrativeContext, reading: Any | None, states: dict[str,
         if finding:
             findings[system] = finding
     return findings
+
+
+def admission_general_exam(ctx: NarrativeContext, reading: Any | None) -> dict[str, str]:
+    """``{"general": ...}``: the consciousness clause of the quoted reading and
+    the severity's general appearance, for an admission with no authored exam."""
+    data = load_disease_exam()
+    lang = ctx.target_lang
+    level = str(_o(reading, "consciousness_level", "") or "") if reading is not None else ""
+    alertness = localized(data.consciousness.get(level, {}), lang)
+    appearance = localized(_by_severity(data.general, str(ctx.severity or "")), lang)
+    text = t("list_sep.serial", lang).join(x for x in (alertness, appearance) if x)
+    return {"general": text} if text else {}
 
 
 def _clause_separator(lang: str) -> str:
@@ -168,6 +185,11 @@ def exam_findings(
     if ctx.day_index == 0:
         findings = admission_exam(ctx, reading, states)
         source = f"physical_exam_findings.disease_exam.{_disease_id(ctx)}" if findings else ""
+    if not findings and ctx.day_index == 0 and not _disease_id(ctx) and not is_neonate(ctx):
+        # An admission without a diagnosis (Issue #3245): the general appearance
+        # only; no system is declared normal without a finding to say so.
+        findings = admission_general_exam(ctx, reading)
+        source = "physical_exam_findings.disease_exam.general" if findings else ""
     if not findings and has_authored_narrative(ctx.target_lang):
         phys_exam = generator._resolve_physical_exam(ctx, ctx.clinical_course_archetype, ctx.day_index)
         findings = {
@@ -180,3 +202,65 @@ def exam_findings(
     if ruled != findings:
         source = source or "physical_exam_findings.disease_exam.rules"
     return ruled, source
+
+
+def _gestational_age_days(ctx: NarrativeContext) -> int | None:
+    """Days from the LMP of the mother's pregnancy period to the admission
+    (``None`` without a pregnancy period that has an LMP and spans it)."""
+    from datetime import date
+
+    from clinosim.timeutil import parse_iso_datetime
+
+    admitted = parse_iso_datetime(_o(ctx.encounter, "admission_datetime", None), lenient=True)
+    if admitted is None:
+        return None
+    day = admitted.date()
+    for period in _o(ctx.patient, "state_periods", []) or [] if ctx.patient is not None else []:
+        if _o(period, "state_type", "") != "pregnancy":
+            continue
+        lmp = (_o(period, "metadata", {}) or {}).get("lmp")
+        end = _o(period, "end_date", None)
+        start = _o(period, "start_date", None)
+        try:
+            lmp_day = date.fromisoformat(str(lmp)[:10]) if lmp else None
+            start_day = date.fromisoformat(str(start)[:10]) if start else None
+            end_day = date.fromisoformat(str(end)[:10]) if end else None
+        except ValueError:
+            continue
+        if (
+            lmp_day
+            and lmp_day <= day
+            and (start_day is None or start_day <= day)
+            and (end_day is None or day <= end_day)
+        ):
+            return (day - lmp_day).days
+    return None
+
+
+def _delivery_exam(ctx: NarrativeContext, reading: Any | None) -> dict[str, str]:
+    """The exam of a delivery admission (admission diagnosis O80 / O82):
+    general appearance and the obstetric finding with the gestational age,
+    ``{}`` for any other stay."""
+    rule = load_disease_exam().delivery
+    code = ""
+    for dx in ctx.diagnoses or []:
+        code = str(_o(dx, "admission_diagnosis_code", "") or "")
+        if code:
+            break
+    mode = rule.admission_codes.get(code)
+    if mode is None:
+        return {}
+    data = load_disease_exam()
+    lang = ctx.target_lang
+    exam = rule.modes[mode]
+    level = str(_o(reading, "consciousness_level", "") or "") if reading is not None else ""
+    alertness = localized(data.consciousness.get(level, {}), lang)
+    days = _gestational_age_days(ctx)
+    if days is not None and days > 0:
+        obstetric = localized(exam.obstetric, lang).format(weeks=days // 7, days=days % 7)
+    else:
+        obstetric = localized(exam.obstetric_no_age, lang)
+    return {
+        "general": t("list_sep.serial", lang).join(x for x in (alertness, localized(exam.general, lang)) if x),
+        "obstetric": obstetric,
+    }

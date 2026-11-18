@@ -365,7 +365,16 @@ def _plan_daily(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
     # immediate discharge). Issue #337: LOS=1 keeps its one progress note —
     # the eDS Composition (discharge_once) needs a hospitalCourseSection
     # entry target even for one-day stays.
-    return [_point(f.admission_dt + timedelta(days=day)) for day in range(f.los_days)]
+    # Issue #3241: the day-0 note may be authored some hours after the
+    # admission (after the H&P of the same day); its period still starts at
+    # the admission day, so it stays a hospital-day-0 note.
+    offset = timedelta(hours=float(getattr(spec, "authored_after_admission_hours", 0.0) or 0.0))
+    plans = []
+    for day in range(f.los_days):
+        day_dt = f.admission_dt + timedelta(days=day)
+        authored = min(day_dt + offset, f.end_dt) if day == 0 and offset else day_dt
+        plans.append(_DocPlan(authored.isoformat(), day_dt.isoformat(), authored.isoformat()))
+    return plans
 
 
 def _plan_daily_3shift(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:

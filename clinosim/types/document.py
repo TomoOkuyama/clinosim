@@ -403,6 +403,11 @@ class NarrativeContext:
     # narrative states the readmission without describing that stay.
     is_readmission: bool = False
     readmission_number: int = 0
+    # === Issue #3245 (mixed-diagnosis admission) ===
+    # The principal disease id of an admission whose condition event is
+    # ``mixed`` (no single disease protocol): ``ground_truth_diseases[0]``, ""
+    # when there is none. Selects the exam of the principal diagnosis.
+    principal_disease_id: str = ""
 
 
 @dataclass

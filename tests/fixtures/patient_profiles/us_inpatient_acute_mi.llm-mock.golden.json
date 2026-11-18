@@ -53,7 +53,7 @@
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
-      "generated_at": "2024-06-15T04:16:00Z",
+      "generated_at": "2024-06-15T08:16:00Z",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 0,
@@ -83,11 +83,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 121/75 mmHg, HR 108 bpm, RR 22 /min, SpO2 98% (RA), T 37.9°C",
+        "objective": "BP 115/71 mmHg, HR 110 bpm, RR 18 /min, SpO2 95% (RA), T 38.0°C (past 24 h: HR max 112 bpm, RR max 22 /min)",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 121/75 mmHg, HR 108 bpm, RR 22 /min, SpO2 98% (RA), T 37.9°C\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
+      "text": "S: [Mock LLM response #2 — subjective]\nO: BP 115/71 mmHg, HR 110 bpm, RR 18 /min, SpO2 95% (RA), T 38.0°C (past 24 h: HR max 112 bpm, RR max 22 /min)\nA: [Mock LLM response #2 — assessment]\nP: [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-308142489017-03": {

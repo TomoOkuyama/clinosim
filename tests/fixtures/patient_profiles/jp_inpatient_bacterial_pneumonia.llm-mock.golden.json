@@ -53,7 +53,7 @@
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
-      "generated_at": "2024-06-15T12:01:00+09:00",
+      "generated_at": "2024-06-15T16:01:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "day_index": 0,
@@ -83,11 +83,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 120/71 mmHg, HR 104 回/分, RR 25 回/分, SpO2 87% (RA), T 38.2°C。バイタル安定、検査所見あり。一般状態: 意識清明、中等度の苦痛様。呼吸器: 患側肺野で断続性ラ音と気管支呼吸音を聴取、呼吸数増加",
+        "objective": "BP 118/71 mmHg, HR 104 回/分, RR 19 回/分, SpO2 96% (鼻カニューラ 3.6 L/分), T 38.2°C (直近24時間: RR 最大 25 回/分、SpO2 最低 87%)。バイタル安定、検査所見あり。一般状態: 意識清明、中等度の苦痛様。呼吸器: 患側肺野で断続性ラ音と気管支呼吸音を聴取",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 120/71 mmHg, HR 104 回/分, RR 25 回/分, SpO2 87% (RA), T 38.2°C。バイタル安定、検査所見あり。一般状態: 意識清明、中等度の苦痛様。呼吸器: 患側肺野で断続性ラ音と気管支呼吸音を聴取、呼吸数増加\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
+      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 118/71 mmHg, HR 104 回/分, RR 19 回/分, SpO2 96% (鼻カニューラ 3.6 L/分), T 38.2°C (直近24時間: RR 最大 25 回/分、SpO2 最低 87%)。バイタル安定、検査所見あり。一般状態: 意識清明、中等度の苦痛様。呼吸器: 患側肺野で断続性ラ音と気管支呼吸音を聴取\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-03": {
@@ -2187,7 +2187,7 @@
         "surgery_schedule": "手術：予定なし",
         "symptoms": "3日前より発熱・湿性咳嗽・胸痛",
         "test_schedule": "検査：担当医の判断により決定",
-        "treatment_plan": "【評価】主訴「発熱・咳嗽・呼吸困難」で入院。病態: 細菌性肺炎 (中等度)。併存疾患: COPD（慢性閉塞性肺疾患）。\n【方針】予定入院期間: 約14日。薬物療法: アンピシリン/スルバクタム、エノキサパリン、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、輸液: 生理食塩液 125 mL/h。検査・処置: 気管支鏡検査。",
+        "treatment_plan": "【評価】主訴「発熱・咳嗽・呼吸困難」で入院。病態: 細菌性肺炎 (中等度)。併存疾患: COPD（慢性閉塞性肺疾患）。\n【方針】予定入院期間: 約14日。薬物療法: アンピシリン/スルバクタム、エノキサパリン、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、輸液: 生理食塩液 125 mL/h。検査・処置: 気管支鏡検査。入院時検査: CBC (全血球算定)、LFT (肝機能パネル)、CRP、PCT、クレアチニン、BUN、Na、K、胸部レントゲン (正面・側面)。支持療法・モニタリング: 酸素投与: 鼻カニューラ SpO2 >= 94%。",
         "ward_and_room": "病棟：4階東病棟　病室：04号室"
       },
       "text": ""

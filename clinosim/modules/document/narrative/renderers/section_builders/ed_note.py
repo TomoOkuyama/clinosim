@@ -135,7 +135,7 @@ def _admitted_arrival_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
     and the stroke deficit of the patient (Issue #3227). ``""`` without a
     disease protocol or an exam text in the language."""
     lang = ctx.target_lang
-    if ctx.disease_protocol is None or not ctx.vitals:
+    if (ctx.disease_protocol is None and not ctx.principal_disease_id) or not ctx.vitals:
         return ""
     arrival = ctx.vitals[0]
     severity = str(ctx.severity or "")

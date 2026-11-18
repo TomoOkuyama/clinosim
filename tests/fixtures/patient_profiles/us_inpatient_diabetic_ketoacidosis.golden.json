@@ -28,7 +28,7 @@
       "sections": {
         "admission_results": "Laboratory (abnormal): glucose 551 mg/dL [critical] (prior 578); pH 7.04 [critical]; Cl 107 mmol/L [H]; lactate 3.0 mmol/L [H]; +4 other abnormal. Imaging and studies: chest X-ray PA (Lungs clear. Heart size normal); ECG (Sinus tachycardia without ischemic changes); chest X-ray AP (Left lower lobe consolidation)",
         "allergies": "No known drug allergies (NKDA)",
-        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Working diagnosis: diabetic ketoacidosis (severity: severe). Comorbidities: Type 2 diabetes (DM), Dyslipidemia. Plan: Estimated length of stay: ~5 days. Initial medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Workup / procedures: Central venous catheter insertion.",
+        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Working diagnosis: diabetic ketoacidosis (severity: severe). Comorbidities: Type 2 diabetes (DM), Dyslipidemia. Plan: Estimated length of stay: ~5 days. Initial medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Workup / procedures: Central venous catheter insertion. Admission work-up: glucose, β-hydroxybutyrate, Na, K, Cl, HCO3, BUN, creatinine, chest X-ray PA, ECG, chest X-ray AP. Supportive care and monitoring: monitoring: Continuous cardiac monitoring, glucose check: Fingerstick glucose q1h, intake and output: Strict intake and output monitoring.",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "family_history": "No significant family history",
         "hpi": "34 y/o female patient. Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Symptoms that began over the preceding days worsened rapidly, prompting today's presentation. History: Type 2 diabetes (DM), Dyslipidemia. ROS: no fever, no diarrhea.",
@@ -53,7 +53,7 @@
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
-      "generated_at": "2024-06-15T04:16:00Z",
+      "generated_at": "2024-06-15T08:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 0,
@@ -82,12 +82,12 @@
         }
       },
       "sections": {
-        "assessment": "Clinical course stable, no significant change.",
-        "objective": "BP 105/69 mmHg, HR 125 bpm, RR 21 /min, SpO2 100% (RA), T 36.1°C",
-        "plan": "Procedures today: Central venous catheter insertion.",
+        "assessment": "Notable labs (past 24 h): glucose 551 mg/dL [critical] (prior 578), pH 7.04 [critical], Cl 107 mmol/L [H], lactate 3.0 mmol/L [H], +5 other abnormal.",
+        "objective": "BP 107/67 mmHg, HR 119 bpm, RR 22 /min, SpO2 97% (RA), T 36.3°C (past 24 h: HR max 125 bpm, SpO2 min 94%)",
+        "plan": "Continue current medications: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Procedures today: Central venous catheter insertion.",
         "subjective": "Hospital day 1. No new subjective complaints."
       },
-      "text": "S: Hospital day 1. No new subjective complaints.\nO: BP 105/69 mmHg, HR 125 bpm, RR 21 /min, SpO2 100% (RA), T 36.1°C\nA: Clinical course stable, no significant change.\nP: Procedures today: Central venous catheter insertion."
+      "text": "S: Hospital day 1. No new subjective complaints.\nO: BP 107/67 mmHg, HR 119 bpm, RR 22 /min, SpO2 97% (RA), T 36.3°C (past 24 h: HR max 125 bpm, SpO2 min 94%)\nA: Notable labs (past 24 h): glucose 551 mg/dL [critical] (prior 578), pH 7.04 [critical], Cl 107 mmol/L [H], lactate 3.0 mmol/L [H], +5 other abnormal.\nP: Continue current medications: IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Procedures today: Central venous catheter insertion."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-03": {

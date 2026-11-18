@@ -55,6 +55,7 @@ PHYSICAL_EXAM_SYSTEMS: tuple[str, ...] = (
     "cardiovascular",
     "respiratory",
     "abdominal",
+    "obstetric",
     "musculoskeletal",
     "extremities",
     "umbilicus",

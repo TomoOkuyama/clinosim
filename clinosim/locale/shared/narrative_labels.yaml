@@ -143,6 +143,7 @@ body_system:
   # Disease exams (Issue #3245).
   musculoskeletal: {en: Musculoskeletal, ja: 運動器}
   extremities: {en: Extremities, ja: 四肢}
+  obstetric: {en: Obstetric, ja: 産科}
 
 # Sex-label vocabulary used in patient demographics prose.
 # Keys mirror the values ``PatientProfile.sex`` may carry

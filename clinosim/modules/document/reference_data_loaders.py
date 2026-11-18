@@ -463,7 +463,7 @@ def load_ed_note_admitted() -> EdNoteAdmitted:
 
 # Body systems an authored disease exam may write (the order they are written
 # in is ``renderers/_shared_helpers.PHYSICAL_EXAM_SYSTEMS``).
-_DISEASE_EXAM_BODY_SYSTEMS = _NEONATAL_EXAM_BODY_SYSTEMS | {"musculoskeletal", "extremities"}
+_DISEASE_EXAM_BODY_SYSTEMS = _NEONATAL_EXAM_BODY_SYSTEMS | {"musculoskeletal", "extremities", "obstetric"}
 _SEVERITY_KEYS = ("mild", "moderate", "severe")
 _AVPU_LEVELS = ("A", "V", "P", "U")
 _NIHSS_MAX_SCORE = 42  # the NIH Stroke Scale totals 0-42
@@ -551,6 +551,39 @@ class StrokeExam(BaseModel):
         return self
 
 
+class DeliveryModeExam(BaseModel):
+    """The exam of one mode of delivery (Issue #3245)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    general: _EnglishLangMap
+    obstetric: _EnglishLangMap
+    obstetric_no_age: _EnglishLangMap
+
+    @model_validator(mode="after")
+    def _placeholders(self) -> DeliveryModeExam:
+        for text in self.obstetric.values():
+            if "{weeks}" not in text or "{days}" not in text:
+                raise ValueError("disease_exam.yaml: delivery obstetric text needs {weeks} and {days}")
+        return self
+
+
+class DeliveryExam(BaseModel):
+    """Admission diagnosis codes of a delivery stay and the exam of each mode."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    admission_codes: dict[str, str] = Field(min_length=1)
+    modes: dict[str, DeliveryModeExam] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _modes_defined(self) -> DeliveryExam:
+        unknown = set(self.admission_codes.values()) - set(self.modes)
+        if unknown:
+            raise ValueError(f"disease_exam.yaml: delivery codes name undefined modes {sorted(unknown)}")
+        return self
+
+
 class DiseaseExam(BaseModel):
     """Shape of disease_exam.yaml."""
 
@@ -560,6 +593,7 @@ class DiseaseExam(BaseModel):
     general: dict[str, _EnglishLangMap]
     atrial_fibrillation: AtrialFibrillationExam
     stroke: StrokeExam
+    delivery: DeliveryExam
     diseases: dict[str, DiseaseExamEntry] = Field(min_length=1)
 
     @model_validator(mode="before")

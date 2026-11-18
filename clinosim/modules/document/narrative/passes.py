@@ -628,6 +628,7 @@ class NarrativePass(ABC):
             # the same field the ``build_narrative_context`` factory reads.
             home_medications_at_admission=patient_dict.get("home_medications_at_admission"),
             # Issue #3256: code status and ICU transfer (death summary).
+            principal_disease_id=self._principal_disease_id(condition_event),
             code_status=str(patient_dict.get("code_status", "") or ""),
             icu_transferred=bool(patient_dict.get("icu_transferred", False)),
             icu_transferred_day=icu_transfer_day(patient_dict.get("icu_transferred_day")),
@@ -719,6 +720,16 @@ class NarrativePass(ABC):
                 disease_id,
             )
             return None
+
+    @staticmethod
+    def _principal_disease_id(condition_event: Any) -> str:
+        """``ground_truth_diseases[0]`` of a ``mixed`` condition event (an
+        admission for several diseases has no single protocol; Issue #3245),
+        else ``""``. The caller checks that it names a disease."""
+        if str(_o(condition_event, "condition_type", "") or "") != "mixed":
+            return ""
+        gt = _o(condition_event, "ground_truth_diseases", []) or []
+        return str(gt[0]) if gt else ""
 
     @staticmethod
     def _resolve_encounter_protocol(condition_event: Any) -> Any | None:

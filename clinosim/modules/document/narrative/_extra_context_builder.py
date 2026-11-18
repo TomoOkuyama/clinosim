@@ -473,6 +473,7 @@ def _build_extra_context(
             summary = _render_newborn_workup_summary(
                 newborn_workup_known_at(newborn_workup, getattr(ctx, "authored_datetime", None)),
                 lang=ctx.target_lang,
+                birth=True,
             )
             if summary:
                 extra["newborn_workup_summary"] = summary
