@@ -19,7 +19,7 @@ from typing import Any
 import numpy as np
 
 from clinosim import determinism
-from clinosim.codes.drugs import has_drug, protocol_drug_name, same_drug
+from clinosim.codes.drugs import drug_classes, has_drug, protocol_drug_name, same_drug
 from clinosim.countries import country_code
 from clinosim.locale.free_text import localize_drug_name
 from clinosim.locale.i18n import t
@@ -44,6 +44,7 @@ from clinosim.modules.drug_safety.hyperkalemia import (
     potassium_hold_from_results,
 )
 from clinosim.modules.observation.engine import canonical_lab_name, lab_panel_components, medications_in_effect
+from clinosim.modules.observation.fluid_balance_model import fluid_params, volume_status_shift
 from clinosim.modules.observation.order_routing import lab_order_targets
 from clinosim.modules.order.engine import (
     parse_dose_string,
@@ -1150,6 +1151,18 @@ def _ventricular_rate_uncontrolled(stay: _Stay, run: _Run, day: int) -> bool:
     return course.at(end_of_day) >= stay.protocol.ventricular_rate.discharge_below_bpm
 
 
+def _loop_diuretic_given(mars: list[MedicationAdministration], day_date: Any) -> bool:
+    """True when a loop diuretic dose was given on ``day_date``."""
+    classes = set(fluid_params().loop_diuretic.drug_classes)
+    for m in mars:
+        if m.status != "given":
+            continue
+        when = m.actual_datetime or m.scheduled_datetime
+        if when.date() == day_date and classes & set(drug_classes(m.drug_id)):
+            return True
+    return False
+
+
 def _record_bedside_observations(stay: _Stay, run: _Run, day: int) -> None:
     """Vitals, on-demand PRN doses, the daily I/O record and ADL assessment."""
     patient, rng = stay.patient, stay.rng
@@ -1173,7 +1186,21 @@ def _record_bedside_observations(stay: _Stay, run: _Run, day: int) -> None:
     run.mars.extend(generate_prn_administrations(run.orders, vitals_today, run.state, run.prn_last_given))
 
     # Daily I/O record
-    run.io_records.append(_generate_daily_io(run.state, patient, day, stay.admission_time, rng))
+    # Issue #3271: the day's intake / output follows the disease, the loop
+    # diuretic given today and the physiological state, and its net balance
+    # feeds back into volume_status (read from tomorrow's state).
+    io_date = (stay.admission_time + timedelta(days=day)).date()
+    io = _generate_daily_io(
+        run.state,
+        patient,
+        day,
+        stay.admission_time,
+        rng,
+        disease_id=stay.disease_id,
+        on_loop_diuretic=_loop_diuretic_given(run.mars, io_date),
+    )
+    run.io_records.append(io)
+    apply_state_delta(run.state, "volume_status", volume_status_shift(io.net_balance_ml, patient.weight_kg))
 
     # ADL assessment (admission, weekly, discharge approach)
     adl = _generate_adl_assessment(run.state, patient, day, stay.admission_time, rng)
@@ -1279,6 +1306,17 @@ def _dies_today(stay: _Stay, run: _Run, day: int, expected_mortality_multiplier:
         )
         / expected_mortality_multiplier,
     )
+
+
+def _drop_doses_after_death(stay: _Stay, run: _Run, day: int) -> None:
+    """No dose is charted after the death: the doses of the death day's
+    hospital day (which runs 24 hours from the admission time) charted after
+    the death time are removed, e.g. the rest-of-day doses of a vasopressor
+    started for the terminal hypotension (Issue #3332). Draws nothing."""
+    from clinosim.simulator.inpatient import _planned_discharge_datetime
+
+    death_time = _planned_discharge_datetime(stay.admission_time, day + 1, 0)
+    run.mars[:] = [m for m in run.mars if (m.actual_datetime or m.scheduled_datetime) <= death_time]
 
 
 def _record_terminal_course(stay: _Stay, run: _Run, day: int) -> None:
@@ -1504,6 +1542,7 @@ def _run_daily_loop(
             _start_vasopressor_for_hypotension(
                 stay, run, day, [v for v in run.vitals if day_start <= v.timestamp < day_start + timedelta(days=1)]
             )
+            _drop_doses_after_death(stay, run, day)
             break
         # Issue #3270: no discharge on or within the observation day after
         # vasopressor / inotrope support.

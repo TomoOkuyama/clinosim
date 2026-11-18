@@ -54,6 +54,15 @@ from clinosim.modules.observation.fluid_balance import (
     MAINTENANCE_IV_ML,
     MAINTENANCE_IV_SD,
 )
+from clinosim.modules.observation.fluid_balance_model import (
+    FluidContext,
+    fluid_params,
+    insensible_loss_ml,
+    iv_regimen,
+    oral_cap_ml,
+    urine_mean_ml,
+    weight_scale,
+)
 from clinosim.modules.observation.oxygenation import SPO2_HYPOXEMIA_TRIGGER, SPO2_SEVERE_HYPOXEMIA
 from clinosim.modules.observation.pediatric_ranges import age_in_completed_months
 from clinosim.modules.observation.vitals_thresholds import (
@@ -301,41 +310,65 @@ def _generate_daily_io(
     day: int,
     admission_time: datetime,
     rng: np.random.Generator,
+    disease_id: str = "",
+    on_loop_diuretic: bool = False,
 ) -> IntakeOutputRecord:
-    """Generate daily intake/output record."""
-    # IV fluid: higher in early days, less as patient improves
-    if day <= IO_EARLY_DAY_THRESHOLD:
-        iv = int(rng.normal(AGGRESSIVE_IV_ML, AGGRESSIVE_IV_SD))  # aggressive hydration
+    """Generate daily intake/output record.
+
+    The three draws (IV, oral, urine) keep their order and count; what changed
+    in Issue #3271 is the mean each is drawn around, which now follows the
+    clinical situation (fluid restriction, resuscitation, renal function,
+    volume status, perfusion, a loop diuretic given today) and the charted
+    output includes the estimated insensible loss. See
+    ``clinosim.modules.observation.fluid_balance_model``.
+    """
+    ctx = FluidContext(disease_id=disease_id, weight_kg=patient.weight_kg, on_loop_diuretic=on_loop_diuretic)
+    scale = weight_scale(ctx.weight_kg)
+    regimen = iv_regimen(state, ctx, day, IO_EARLY_DAY_THRESHOLD)
+    intake_p = fluid_params().intake
+    if regimen == "restricted":
+        iv = int(rng.normal(intake_p.kvo_iv_ml * scale, intake_p.kvo_iv_sd * scale))
+    elif regimen == "early":
+        iv = int(rng.normal(intake_p.early_day_iv_ml * scale, intake_p.early_day_iv_sd * scale))
+    elif day <= IO_EARLY_DAY_THRESHOLD:
+        iv = int(rng.normal(AGGRESSIVE_IV_ML * scale, AGGRESSIVE_IV_SD * scale))  # resuscitation volumes
     elif state.volume_status < DEHYDRATION_IV_TRIGGER:
-        iv = int(rng.normal(DEHYDRATION_IV_ML, DEHYDRATION_IV_SD))  # dehydrated
+        iv = int(rng.normal(DEHYDRATION_IV_ML * scale, DEHYDRATION_IV_SD * scale))  # dehydrated
     else:
-        iv = int(rng.normal(MAINTENANCE_IV_ML, MAINTENANCE_IV_SD))  # maintenance
+        iv = int(rng.normal(MAINTENANCE_IV_ML * scale, MAINTENANCE_IV_SD * scale))  # maintenance
 
     # Oral intake: improves as patient recovers
     if day == 0:
-        oral = int(rng.normal(IO_ORAL_DAY0_MEAN_ML, IO_ORAL_DAY0_STD_ML))  # NPO or minimal
+        oral_mean, oral_sd = IO_ORAL_DAY0_MEAN_ML, IO_ORAL_DAY0_STD_ML  # NPO or minimal
     elif state.inflammation_level > IO_POOR_APPETITE_INFLAMMATION_THRESHOLD:
-        oral = int(rng.normal(IO_ORAL_POOR_APPETITE_MEAN_ML, IO_ORAL_POOR_APPETITE_STD_ML))  # poor appetite
+        oral_mean, oral_sd = IO_ORAL_POOR_APPETITE_MEAN_ML, IO_ORAL_POOR_APPETITE_STD_ML  # poor appetite
     else:
-        oral = int(rng.normal(IO_ORAL_RECOVERING_MEAN_ML, IO_ORAL_RECOVERING_STD_ML))  # recovering
+        oral_mean, oral_sd = IO_ORAL_RECOVERING_MEAN_ML, IO_ORAL_RECOVERING_STD_ML  # recovering
+    oral_cap = oral_cap_ml(state, ctx)
+    scaled_oral_mean = oral_mean * scale if oral_cap is None else min(oral_mean * scale, oral_cap)
+    oral = int(rng.normal(scaled_oral_mean, oral_sd * scale))
 
-    # Urine output: correlates with renal function and hydration
-    base_urine = IO_URINE_BASE_ML_PER_UNIT_RENAL * state.renal_function
-    urine_sd = max(IO_URINE_SD_FLOOR_ML, base_urine * IO_URINE_SD_RATIO)  # SD proportional to base
-    urine = int(max(ANURIA_FLOOR_ML, rng.normal(base_urine, urine_sd)))  # min 50ml (anuria threshold)
-
-    # Drain (post-surgical only, simplified)
-    drain = 0
-
-    # Issue #2648: stool charted on the I/O sheet, drawn from a per-patient,
+    # Stool charted on the I/O sheet (Issue #2648), drawn from a per-patient,
     # per-day sub-stream so the stay RNG (and every later draw) is unchanged.
     other_rng = determinism.default_rng(daily_output_seed(patient.patient_id, day))
     stool_p = IO_STOOL_DAY0_PROBABILITY if day == 0 else IO_STOOL_DAILY_PROBABILITY
-    other = int(max(0.0, other_rng.normal(IO_STOOL_MEAN_ML, IO_STOOL_SD_ML))) if other_rng.random() < stool_p else 0
+    stool = int(max(0.0, other_rng.normal(IO_STOOL_MEAN_ML, IO_STOOL_SD_ML))) if other_rng.random() < stool_p else 0
+    # "Other" output also carries the estimated insensible loss (Issue #3271).
+    other = stool + int(insensible_loss_ml(ctx.weight_kg))
 
     iv = max(0, iv)
     oral = max(0, oral)
     total_in = iv + oral
+
+    # Urine output follows intake, renal function, volume status, perfusion and diuretics.
+    base_urine = IO_URINE_BASE_ML_PER_UNIT_RENAL * state.renal_function * scale
+    urine_mean = urine_mean_ml(state, ctx, total_in, other, base_urine)
+    urine_sd = max(IO_URINE_SD_FLOOR_ML * scale, urine_mean * IO_URINE_SD_RATIO)  # SD proportional to mean
+    urine = int(max(ANURIA_FLOOR_ML, rng.normal(urine_mean, urine_sd)))  # min 50ml (anuria threshold)
+
+    # Drain (post-surgical only, simplified)
+    drain = 0
+
     total_out = urine + drain + other
     net = total_in - total_out
 

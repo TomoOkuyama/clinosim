@@ -487,3 +487,7 @@ The observation module ONLY handles Layer 3 (noise and missingness). It does NOT
 - Missingness (context-dependent: nighttime, patient refusal, difficult draw)
 - Timing offsets (order → collection → result → review)
 - Explainable anomaly patterns (hemolysis artifacts, IV line contamination, postprandial effects)
+
+## Daily intake / output (Issue #3271)
+
+The daily record is coupled to the physiology (`fluid_balance_model.py`, parameters in `reference_data/fluid_balance.yaml`). The IV, oral and urine draws keep their order and count; the means follow the clinical situation. Fluid-restricted patients (heart failure, cirrhosis, volume overload, poor cardiac or renal function) get carrier-volume IV and a capped oral intake; resuscitation diseases keep the acute-phase volumes; others get a lower acute-phase IV. Urine follows the intake not lost otherwise (insensible loss of about 800 mL/day at 70 kg, charted with "other" output) up to the kidney's capacity, scaled by volume status and perfusion; a failing kidney stays below the KDIGO 0.5 mL/kg/h oliguria criterion; a loop diuretic given that day drives a responding patient to a net-negative balance. The day's net balance then shifts `volume_status`.
