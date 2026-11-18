@@ -24,7 +24,7 @@ from clinosim.locale.i18n import t
 from clinosim.locale.localized import localized
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules._shared import strip_protocol_prefix
-from clinosim.modules.document.narrative._narrative_utils import is_neonate
+from clinosim.modules.document.narrative._narrative_utils import _age_at, is_neonate
 from clinosim.modules.document.reference_data_loaders import (
     load_discharge_instructions,
     load_physical_exam_findings,
@@ -262,6 +262,12 @@ def _instruction_applies(gate: dict[str, Any] | None, ctx: NarrativeContext) -> 
         value = str(_o(patient, field, "") or "") if patient is not None else ""
         if allowed is not None and value and value not in allowed:
             return False
+    age = _age_at(ctx)
+    if age is not None and (
+        (gate.get("age_min") is not None and age < int(gate["age_min"]))
+        or (gate.get("age_max") is not None and age > int(gate["age_max"]))
+    ):
+        return False
     codes = _patient_condition_codes(ctx)
     for group in gate.get("conditions") or ():
         if not any(concept_group(group).contains(c) for c in codes):

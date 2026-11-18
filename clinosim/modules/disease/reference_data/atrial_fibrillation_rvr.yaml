@@ -460,19 +460,19 @@ drugs:
     japan:
       - drug_id: bisoprolol
         dose: "2.5-5mg PO daily"
-        duration_days: 0   # chronic
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
         note: "Rate control maintenance"
       - drug_id: edoxaban
         dose: "60mg PO daily"
-        duration_days: 0   # chronic
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
         note: "If CHA2DS2-VASc indicates anticoagulation"
     us:
       - drug_id: metoprolol_succinate
         dose: "25-100mg PO daily"
-        duration_days: 0
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
       - drug_id: apixaban
         dose: "5mg PO BID"
-        duration_days: 0
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
         note: "If CHA2DS2-VASc indicates anticoagulation"
 
 # ============================================================

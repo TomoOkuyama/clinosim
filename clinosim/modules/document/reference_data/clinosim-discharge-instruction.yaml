@@ -16,6 +16,8 @@
 # layer below). Keys (all optional, all must hold):
 #   sex / smoking_status / alcohol_use: patient values the entry is for
 #     (an unrecorded value keeps the entry)
+#   age_min / age_max: inclusive age in years at the encounter (Issue #3264;
+#     an unknown age keeps the entry)
 #   conditions / exclude_conditions: codes/data/valuesets.yaml groups, matched
 #     against chronic conditions and the encounter's diagnoses
 #   discharge_drugs: catalog drug ids or classes (codes/data/drugs.yaml); at
@@ -180,19 +182,50 @@ disease_specific:
       en: "Pulmonology follow-up in 2-4 weeks; annual influenza and pneumococcal vaccination recommended."
       ja: "2-4 週後に呼吸器科外来受診。毎年インフルエンザ・肺炎球菌ワクチン接種を推奨します。"
 
+  # Issue #3264: asthma self-monitoring follows age. GINA 2024: the written
+  # action plan is based on symptoms or, only in adults, peak expiratory flow
+  # (chapter 11, children 5 years and younger), and long-term PEF monitoring is
+  # generally recommended only for severe asthma or poor perception of airflow
+  # limitation (chapter 3). Peak flow is therefore taught from age 12; younger
+  # children follow symptoms. Control is reviewed with the ACT from 12, the
+  # Childhood ACT for 4-11 and a caregiver symptom review below 4. The
+  # controller named is the one on the discharge prescription ({drugs}).
   asthma_exacerbation:
     daily_care:
       en: "Use peak flow meter daily; record morning and evening readings. Avoid known triggers."
       ja: "毎日朝夕にピークフローメーターで測定し記録してください。既知のトリガー曝露は避けてください。"
-    medications:
-      en: "Continue ICS/LABA daily controller. Use SABA (short-acting) as rescue up to every 4 hours."
-      ja: "ICS/LABA コントローラーを毎日継続。発作時は SABA (短時間作用型) を 4 時間ごとに使用可。"
+      applies_when: {age_min: 12}
+    daily_care_child:
+      en: "Avoid known triggers (smoke, dust, pets, colds). Keep a diary of cough, wheeze and night waking and bring it to the follow-up visit."
+      ja: "既知の誘因 (たばこの煙・ほこり・ペット・風邪) を避けてください。咳・喘鳴・夜間覚醒の様子を記録し、次回受診時に持参してください。"
+      applies_when: {age_max: 11}
+    controller:
+      en: "Continue {drugs} every day as the controller, even when symptoms improve."
+      ja: "長期管理薬 ({drugs}) は症状が改善しても毎日続けてください。"
+      applies_when: {discharge_drugs: [budesonide, fluticasone_propionate, fluticasone_salmeterol]}
+    reliever:
+      en: "Use the short-acting reliever (SABA) when symptoms occur, up to every 4 hours."
+      ja: "症状が出たときは短時間作用型β2刺激薬 (SABA) を 4 時間おきまで使用できます。"
     warning_signs:
       en: "Return to ER for peak flow <50% personal best, SABA needed >q4h, difficulty speaking, or blue lips."
       ja: "ピークフロー個人ベスト値の 50% 未満、SABA を 4 時間より頻回使用、会話困難、チアノーゼ時は救急受診。"
-    follow_up:
+      applies_when: {age_min: 12}
+    warning_signs_child:
+      en: "Return to ER if the reliever is needed more often than every 4 hours, breathing is fast or labored with the chest pulling in, speech or feeding is difficult, or the lips turn blue."
+      ja: "発作治療薬を 4 時間より頻回に使う、呼吸が速い・陥没呼吸がある、話す・飲むことが困難、唇が青くなる場合は救急受診してください。"
+      applies_when: {age_max: 11}
+    control_review:
       en: "Pulmonology follow-up in 2-4 weeks; ACT questionnaire review."
       ja: "2-4 週後に呼吸器科外来受診。ACT 質問票でコントロール状況を再評価します。"
+      applies_when: {age_min: 12}
+    control_review_child:
+      en: "Pediatric follow-up in 2-4 weeks; review control with the Childhood ACT."
+      ja: "2-4 週後に小児科外来受診。小児喘息コントロールテスト (C-ACT) でコントロール状況を再評価します。"
+      applies_when: {age_min: 4, age_max: 11}
+    control_review_toddler:
+      en: "Pediatric follow-up in 2-4 weeks; control is reviewed with the caregiver (daytime symptoms, night waking, reliever use)."
+      ja: "2-4 週後に小児科外来受診。保護者から症状・夜間覚醒・発作治療薬の使用頻度を聴取して再評価します。"
+      applies_when: {age_max: 3}
 
   diabetic_ketoacidosis:
     daily_care:

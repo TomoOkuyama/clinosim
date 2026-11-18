@@ -258,7 +258,7 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   rule of the range's unit: the starting (lower) dose by default, the upper
   rate for a maintenance-fluid rate in mL/h (the rate the MAR has always
   given, and the written adult rate the pediatric Holliday-Segar rule caps).
-  The written range stays on the entry as `titration_range`. A range with no
+  The written range stays on the entry as `titration_range`. A `discharge_oral` maintenance drug states the 28-day renewal supply as `duration_days` (never 0 / "ongoing"), and a discharge supply longer than the acute-course ceiling (14 days) is a continuous course of therapy in FHIR. A range with no
   dose unit ("target INR 1.5-2.5", "q6-8h") or after "target" / a comparison
   sign is not a dose and is left. No random draw.
 - **Pediatric dosing** ([`reference_data/pediatric_dosing.yaml`](reference_data/pediatric_dosing.yaml),

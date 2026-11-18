@@ -508,30 +508,30 @@ drugs:
     japan:
       - drug_id: spironolactone
         dose: "50-100mg PO daily"
-        duration_days: 0   # chronic
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
       - drug_id: furosemide
         dose: "20-40mg PO daily"
-        duration_days: 0
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
       - drug_id: lactulose
         dose: "30mL PO TID"
-        duration_days: 0
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
       - drug_id: rifaximin
         dose: "400mg PO TID"
-        duration_days: 0
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
         probability: 0.50
     us:
       - drug_id: spironolactone
         dose: "100mg PO daily"
-        duration_days: 0
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
       - drug_id: furosemide
         dose: "40mg PO daily"
-        duration_days: 0
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
       - drug_id: lactulose
         dose: "30mL PO TID"
-        duration_days: 0
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
       - drug_id: rifaximin
         dose: "550mg PO BID"
-        duration_days: 0
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
         probability: 0.60
 
 # ============================================================

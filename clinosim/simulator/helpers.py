@@ -242,10 +242,10 @@ def _deactivate_to_layer1(
     # supply schedule.
     #
     # ``duration_days == 0`` is the disease-YAML convention for "long-term
-    # / unspecified" (see e.g. ``atrial_fibrillation_rvr.yaml``'s
-    # ``continue_home_medications`` block which sets Apixaban /
-    # Metoprolol_succinate with ``duration_days: 0`` to mark them as
-    # indefinite AFib therapy). Treating 0 as an acute short course
+    # / unspecified" (see e.g. older ``atrial_fibrillation_rvr.yaml``
+    # entries that set Apixaban / Metoprolol_succinate to ``duration_days: 0``
+    # to mark them as indefinite AFib therapy; the protocols now give such a
+    # maintenance drug the 28-day renewal supply, Issue #3265). Treating 0 as an acute short course
     # would drop lifelong secondary-prevention drugs from the persistent
     # home-medication list — the exact regression this filter was meant
     # to avoid, in reverse.

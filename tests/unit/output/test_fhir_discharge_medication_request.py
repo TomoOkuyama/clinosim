@@ -245,6 +245,8 @@ def test_course_of_therapy_reflects_open_ended_supply() -> None:
     acute = _build({**_DISCHARGE_ITEM, "duration_days": 5}, encounter_type="inpatient")
     chronic = _build({**_DISCHARGE_ITEM, "duration_days": 0}, encounter_type="inpatient")
     renewal = _build(_DISCHARGE_ITEM, encounter_type="outpatient")
+    supply = _build({**_DISCHARGE_ITEM, "duration_days": 28}, encounter_type="inpatient")
+    assert supply["courseOfTherapyType"]["coding"][0]["code"] == "continuous"
     assert acute["courseOfTherapyType"]["coding"][0]["code"] == "acute"
     assert chronic["courseOfTherapyType"]["coding"][0]["code"] == "continuous"
     assert renewal["courseOfTherapyType"]["coding"][0]["code"] == "continuous"
