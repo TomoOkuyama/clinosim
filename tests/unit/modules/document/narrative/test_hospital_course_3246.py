@@ -266,3 +266,17 @@ def test_maintenance_fluids_are_not_treatments() -> None:
         ],
     )
     assert hc.treatments_sentence(ctx) == ("", "")
+
+
+@pytest.mark.parametrize("lang", ["en", "ja"])
+def test_moderate_hyperkalemia_without_critical_flag_is_listed_with_its_treatment(lang: str) -> None:
+    """K 6.2 (flag H, not critical) is named hyperkalaemia and listed (Issue #3334)."""
+    ctx = _ctx(
+        lang,
+        lab_results=[_lab("K", 6.2, "mmol/L", "H", "2025-12-05T17:40:00")],
+        medications=[_mar("calcium_gluconate", "Calcium Gluconate 1 g IV", "IV", "2025-12-05T18:30:00")],
+    )
+    text, _ = build_hospital_course(TemplateNarrativeGenerator(), ctx)
+    assert "6.2" in text
+    assert t("lab_finding.hyperkalemia", lang) in text
+    assert ("Calcium Gluconate" if lang == "en" else "グルコン酸カルシウム") in text

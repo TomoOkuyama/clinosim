@@ -25,6 +25,19 @@
 #     < 135 mmol/l" (Spasovski G et al. Clinical practice guideline on
 #     diagnosis and treatment of hyponatraemia. Eur J Endocrinol
 #     2014;170(3):G1-47).
+#   K high beyond 5.5 mmol/L: hyperkalaemia is a serum potassium >= 5.5
+#     mmol/l, mild 5.5-5.9, moderate 6.0-6.4, severe >= 6.5 (UK Kidney
+#     Association, Clinical Practice Guidelines: Treatment of Acute
+#     Hyperkalaemia in Adults, final version October 2023, Background; the
+#     rule names a value above the 5.5 boundary, so K 5.5 itself stays
+#     unnamed). The flag assignment (engine.determine_flag) marks K >= 6.5
+#     critical, the guideline's "severe".
+#   K low beyond 3.5 mmol/L and Na high beyond 145 mmol/L: "Hypokalemia is
+#     serum potassium concentration < 3.5 mEq/L (< 3.5 mmol/L)";
+#     "Hypernatremia is a serum sodium concentration > 145 mEq/L (> 145
+#     mmol/L)" (MSD Manual Professional Version, Electrolyte Disorders:
+#     Hypokalemia / Hypernatremia, consulted November 2026).
+#   Glucose is not named: no cited threshold was read for it.
 #   Troponin any_flag: the flag H is a value above the reference upper limit
 #     (the 99th-percentile URL), which is what "troponin elevation" states.
 # aki: KDIGO 2012 Clinical Practice Guideline for Acute Kidney Injury,
@@ -45,10 +58,10 @@ max_items:
 
 findings:
   K:
-    high: {finding: hyperkalemia}
-    low: {finding: hypokalemia}
+    high: {finding: hyperkalemia, beyond: 5.5}
+    low: {finding: hypokalemia, beyond: 3.5}
   Na:
-    high: {finding: hypernatremia}
+    high: {finding: hypernatremia, beyond: 145}
     low: {finding: hyponatremia, beyond: 135}
   Troponin_I:
     high: {finding: troponin_elevation, any_flag: true}

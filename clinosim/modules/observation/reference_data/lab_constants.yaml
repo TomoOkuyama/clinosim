@@ -400,7 +400,10 @@ baseline_normals:
 # Critical / panic thresholds — clinically-defined absolute cutoffs that
 # override H/L flags. Safety-critical values derived from clinical convention,
 # not lab-normal statistics, so they do not vary between JCCLS (JP) and CLSI
-# (US) reference standards and are shared by both locales.
+# (US) reference standards and are shared by both locales. A high cut-off is
+# itself critical (value >= cut-off; K >= 6.5 mmol/L is "severe"
+# hyperkalaemia, UK Kidney Association, Treatment of Acute Hyperkalaemia in
+# Adults, October 2023); a low cut-off is critical below it (value < cut-off).
 panic_thresholds:
   K: [2.5, 6.5]
   Hb: [7.0, null]  # critical low only (Hb < 7.0 = critical)

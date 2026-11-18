@@ -525,12 +525,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs (past 24 h): creatinine 2.66 mg/dL [H] (prior 2.54; AKI by KDIGO criteria), troponin I 65.608 ng/mL [H] (prior 61.221; troponin elevation), glucose 108 mg/dL [H] (prior 118), K 5.8 mmol/L [H] (prior 5.2), +1 other abnormal.",
+        "assessment": "Notable labs (past 24 h): creatinine 2.66 mg/dL [H] (prior 2.54; AKI by KDIGO criteria), K 5.8 mmol/L [H] (prior 5.2; hyperkalemia), troponin I 65.608 ng/mL [H] (prior 61.221; troponin elevation), glucose 108 mg/dL [H] (prior 118), +1 other abnormal.",
         "objective": "BP 118/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 109 bpm, RR max 21 /min, SpO2 min 93%)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
         "subjective": "Hospital day 10. Hypothermia 35.8°C noted. Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 10. Hypothermia 35.8°C noted. Level of consciousness remains decreased (AVPU V).\nO: BP 118/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 109 bpm, RR max 21 /min, SpO2 min 93%)\nA: Notable labs (past 24 h): creatinine 2.66 mg/dL [H] (prior 2.54; AKI by KDIGO criteria), troponin I 65.608 ng/mL [H] (prior 61.221; troponin elevation), glucose 108 mg/dL [H] (prior 118), K 5.8 mmol/L [H] (prior 5.2), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
+      "text": "S: Hospital day 10. Hypothermia 35.8°C noted. Level of consciousness remains decreased (AVPU V).\nO: BP 118/68 mmHg, HR 100 bpm, RR 20 /min, SpO2 94% (RA), T 35.8°C (past 24 h: HR max 109 bpm, RR max 21 /min, SpO2 min 93%)\nA: Notable labs (past 24 h): creatinine 2.66 mg/dL [H] (prior 2.54; AKI by KDIGO criteria), K 5.8 mmol/L [H] (prior 5.2; hyperkalemia), troponin I 65.608 ng/mL [H] (prior 61.221; troponin elevation), glucose 108 mg/dL [H] (prior 118), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-12": {
@@ -575,12 +575,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs (past 24 h): troponin I 94.249 ng/mL [H] (prior 65.608; troponin elevation), creatinine 2.59 mg/dL [H] (prior 2.66; AKI by KDIGO criteria), glucose 112 mg/dL [H] (prior 108), K 5.6 mmol/L [H] (prior 5.8), +1 other abnormal.",
+        "assessment": "Notable labs (past 24 h): troponin I 94.249 ng/mL [H] (prior 65.608; troponin elevation), K 5.6 mmol/L [H] (prior 5.8; hyperkalemia), creatinine 2.59 mg/dL [H] (prior 2.66; AKI by KDIGO criteria), glucose 112 mg/dL [H] (prior 108), +1 other abnormal.",
         "objective": "BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
         "subjective": "Hospital day 11. New-onset fever 38.7°C. Level of consciousness remains decreased (AVPU V)."
       },
-      "text": "S: Hospital day 11. New-onset fever 38.7°C. Level of consciousness remains decreased (AVPU V).\nO: BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)\nA: Notable labs (past 24 h): troponin I 94.249 ng/mL [H] (prior 65.608; troponin elevation), creatinine 2.59 mg/dL [H] (prior 2.66; AKI by KDIGO criteria), glucose 112 mg/dL [H] (prior 108), K 5.6 mmol/L [H] (prior 5.8), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
+      "text": "S: Hospital day 11. New-onset fever 38.7°C. Level of consciousness remains decreased (AVPU V).\nO: BP 117/70 mmHg, HR 101 bpm, RR 23 /min, SpO2 96% (RA), T 36.0°C (past 24 h: Tmax 38.7°C, HR max 106 bpm, SpO2 min 94%)\nA: Notable labs (past 24 h): troponin I 94.249 ng/mL [H] (prior 65.608; troponin elevation), K 5.6 mmol/L [H] (prior 5.8; hyperkalemia), creatinine 2.59 mg/dL [H] (prior 2.66; AKI by KDIGO criteria), glucose 112 mg/dL [H] (prior 108), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-13": {
@@ -625,12 +625,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs (past 24 h): troponin I 58.303 ng/mL [H] (prior 94.249; troponin elevation), creatinine 2.72 mg/dL [H] (prior 2.59; AKI by KDIGO criteria), BNP 107.5 pg/mL [H] (prior 81.8), glucose 117 mg/dL [H] (prior 112), +2 other abnormal.",
+        "assessment": "Notable labs (past 24 h): troponin I 58.303 ng/mL [H] (prior 94.249; troponin elevation), K 6.0 mmol/L [H] (prior 5.6; hyperkalemia), creatinine 2.72 mg/dL [H] (prior 2.59; AKI by KDIGO criteria), BNP 107.5 pg/mL [H] (prior 81.8), +2 other abnormal.",
         "objective": "BP 112/69 mmHg, HR 100 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor. Given once: Insulin, Regular, Human 10 units IV, Calcium Gluconate 1 g IV, Dextrose 50% 50 mL IV, Patiromer 8.4 g PO.",
         "subjective": "Hospital day 12. Level of consciousness improved, now alert (prev AVPU V)."
       },
-      "text": "S: Hospital day 12. Level of consciousness improved, now alert (prev AVPU V).\nO: BP 112/69 mmHg, HR 100 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)\nA: Notable labs (past 24 h): troponin I 58.303 ng/mL [H] (prior 94.249; troponin elevation), creatinine 2.72 mg/dL [H] (prior 2.59; AKI by KDIGO criteria), BNP 107.5 pg/mL [H] (prior 81.8), glucose 117 mg/dL [H] (prior 112), +2 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor. Given once: Insulin, Regular, Human 10 units IV, Calcium Gluconate 1 g IV, Dextrose 50% 50 mL IV, Patiromer 8.4 g PO."
+      "text": "S: Hospital day 12. Level of consciousness improved, now alert (prev AVPU V).\nO: BP 112/69 mmHg, HR 100 bpm, RR 17 /min, SpO2 94% (RA), T 36.4°C (past 24 h: HR max 109 bpm, RR max 23 /min)\nA: Notable labs (past 24 h): troponin I 58.303 ng/mL [H] (prior 94.249; troponin elevation), K 6.0 mmol/L [H] (prior 5.6; hyperkalemia), creatinine 2.72 mg/dL [H] (prior 2.59; AKI by KDIGO criteria), BNP 107.5 pg/mL [H] (prior 81.8), +2 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor. Given once: Insulin, Regular, Human 10 units IV, Calcium Gluconate 1 g IV, Dextrose 50% 50 mL IV, Patiromer 8.4 g PO."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-14": {
@@ -675,12 +675,12 @@
         }
       },
       "sections": {
-        "assessment": "Notable labs (past 24 h): troponin I 67.335 ng/mL [H] (prior 58.303; troponin elevation), creatinine 2.94 mg/dL [H] (prior 2.72; AKI by KDIGO criteria), glucose 106 mg/dL [H] (prior 117), K 5.6 mmol/L [H] (prior 6.0), +1 other abnormal.",
+        "assessment": "Notable labs (past 24 h): K 5.6 mmol/L [H] (prior 6.0; hyperkalemia), troponin I 67.335 ng/mL [H] (prior 58.303; troponin elevation), creatinine 2.94 mg/dL [H] (prior 2.72; AKI by KDIGO criteria), glucose 106 mg/dL [H] (prior 117), +1 other abnormal.",
         "objective": "BP 116/72 mmHg, HR 101 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 106 bpm, SpO2 min 93%)",
         "plan": "Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor.",
         "subjective": "Hospital day 13. New-onset fever 38.2°C."
       },
-      "text": "S: Hospital day 13. New-onset fever 38.2°C.\nO: BP 116/72 mmHg, HR 101 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 106 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): troponin I 67.335 ng/mL [H] (prior 58.303; troponin elevation), creatinine 2.94 mg/dL [H] (prior 2.72; AKI by KDIGO criteria), glucose 106 mg/dL [H] (prior 117), K 5.6 mmol/L [H] (prior 6.0), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
+      "text": "S: Hospital day 13. New-onset fever 38.2°C.\nO: BP 116/72 mmHg, HR 101 bpm, RR 16 /min, SpO2 98% (RA), T 36.9°C (past 24 h: Tmax 38.2°C, HR max 106 bpm, SpO2 min 93%)\nA: Notable labs (past 24 h): K 5.6 mmol/L [H] (prior 6.0; hyperkalemia), troponin I 67.335 ng/mL [H] (prior 58.303; troponin elevation), creatinine 2.94 mg/dL [H] (prior 2.72; AKI by KDIGO criteria), glucose 106 mg/dL [H] (prior 117), +1 other abnormal.\nP: Continue current medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-15": {
@@ -763,7 +763,7 @@
         "discharge_instructions": "Drink plenty of fluids. Get adequate rest and avoid overexertion. Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended. Take your heart medications (Aspirin, Ticagrelor, Atorvastatin) every day as prescribed. Do NOT stop them without consulting your cardiologist. Call 911 immediately for: chest pain, severe shortness of breath, palpitations, syncope. Resume a normal diet gradually as tolerated. Restricted activity for 4-6 weeks. Avoid heavy lifting. Gradual return per cardiologist guidance. Call ambulance immediately for chest pain lasting >15 min, dyspnea, syncope, or cold sweats. Low-fat, low-sodium diet. Weight management.",
         "discharge_medications": "Aspirin 81mg PO daily; Ticagrelor 90mg PO BID; Atorvastatin 80mg PO daily",
         "follow_up": "Cardiology follow-up within 1-2 weeks. Cardiac rehabilitation enrollment recommended.",
-        "hospital_course": "Length of stay: 14 days (primary reason: Chest pain, diaphoresis, dyspnea). Main treatment: vasoactive drugs (Dobutamine); anticoagulation (Heparin); insulin (Insulin, Regular, Human); analgesia (Aspirin); other parenteral drugs (Nitroglycerin, Calcium Gluconate). Key procedures: Urinary catheter insertion (2024-06-15), Arterial line insertion (2024-06-15), Transthoracic echocardiography (2024-06-15), Percutaneous coronary intervention (PCI) (2024-06-15). Significant results: troponin I 97.882 ng/mL [H] (prior 68.499; troponin elevation) on hospital day 1; creatinine 2.94 mg/dL [H] (prior 2.72; AKI by KDIGO criteria) on hospital day 12. Medication changes from admission: started Aspirin, Ticagrelor, Atorvastatin. Condition at discharge: discharged to skilled nursing facility, Barthel Index 95/100."
+        "hospital_course": "Length of stay: 14 days (primary reason: Chest pain, diaphoresis, dyspnea). Main treatment: vasoactive drugs (Dobutamine); anticoagulation (Heparin); insulin (Insulin, Regular, Human); analgesia (Aspirin); other parenteral drugs (Nitroglycerin, Calcium Gluconate). Key procedures: Urinary catheter insertion (2024-06-15), Arterial line insertion (2024-06-15), Transthoracic echocardiography (2024-06-15), Percutaneous coronary intervention (PCI) (2024-06-15). Significant results: troponin I 97.882 ng/mL [H] (prior 68.499; troponin elevation) on hospital day 1; K 6.0 mmol/L [H] (prior 5.6; hyperkalemia) on hospital day 11, treated with Insulin, Regular, Human, Patiromer, Calcium Gluconate; creatinine 2.94 mg/dL [H] (prior 2.72; AKI by KDIGO criteria) on hospital day 12. Medication changes from admission: started Aspirin, Ticagrelor, Atorvastatin. Condition at discharge: discharged to skilled nursing facility, Barthel Index 95/100."
       },
       "text": ""
     }
