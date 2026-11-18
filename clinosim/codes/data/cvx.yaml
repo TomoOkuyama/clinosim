@@ -73,6 +73,9 @@ codes:
   "106":
     en: "DTaP, 5 pertussis antigens"
     ja: "DTaP-IPV（四種混合・ジフテリア・破傷風・百日咳・不活化ポリオ）"
+  "120":
+    en: "DTaP-Hib-IPV"
+    ja: "DTaP-IPV-Hib（五種混合・ジフテリア・百日咳・破傷風・不活化ポリオ・Hib）"
   "158":
     en: "influenza, injectable, quadrivalent, contains preservative"
     ja: "インフルエンザ（不活化・4価・小児用）"

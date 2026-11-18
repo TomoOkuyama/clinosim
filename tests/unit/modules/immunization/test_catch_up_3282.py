@@ -147,7 +147,11 @@ def test_catch_up_limits_in_the_schedules() -> None:
     for name in ("pediatric_hib", "pediatric_pcv13", "pediatric_rotavirus"):
         assert "catch_up_max_age_days" not in us[name]
     jp = load_schedule("JP")
-    assert {n for n, v in jp.items() if "catch_up_max_age_days" in v} == {"pediatric_dtap_ipv", "pediatric_je"}
+    assert {n for n, v in jp.items() if "catch_up_max_age_days" in v} == {
+        "pediatric_dtap_ipv",
+        "pediatric_dtap_ipv_hib",
+        "pediatric_je",
+    }
     for v in list(us.values()) + list(jp.values()):
         if "catch_up_max_age_days" in v:
             assert v["frequency"] == "pediatric_series"

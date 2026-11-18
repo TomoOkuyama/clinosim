@@ -56,6 +56,7 @@ from clinosim.modules.immunization.engine import (
     licensed_on,
     product_cvx,
     redate,
+    schedule_for_birth,
     series_allows,
     synthetic_lot_number,
 )
@@ -457,6 +458,7 @@ def bind_to_vaccination_visits(
     flu vaccination visits (``is_flu_visit_candidate``). Returns the
     patient's immunization list, sorted by date.
     """
+    schedule = schedule_for_birth(schedule, _get(patient, "date_of_birth", None))
     imms = _bind_flu(
         imms,
         visits,

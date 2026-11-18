@@ -55,6 +55,12 @@ def _det_hash(*args: object) -> int:
     return int(hashlib.sha256(key).hexdigest(), 16)
 
 
+def _unit_hash(*args: object) -> float:
+    """A deterministic uniform value in [0, 1) from ``args`` (sha256), for a
+    draw that must not consume the patient's RNG stream."""
+    return (_det_hash(*args) % 10**9) / 10**9
+
+
 def synthetic_lot_number(cvx: str, occurrence: date) -> str:
     """Synthetic manufacturer-style lot number ``L<MFR>-<YYYYMM>-<BATCH>``.
 
@@ -576,6 +582,41 @@ def _after_earlier_doses(occ: date, dose: dict, dose_num: int | None, given_on: 
     return max(occ, earliest)
 
 
+def schedule_for_birth(schedule: dict, dob: date | None) -> dict:
+    """The schedule entries that apply to a patient born on ``dob``.
+
+    An entry may carry ``birth_from`` / ``birth_until`` (inclusive birth
+    dates): a routine vaccine replaced by another product for children born
+    after a date (JP 4-valent DPT-IPV and Hib → 5-valent DPT-IPV-Hib, born
+    from 2024-02-01) applies only to the birth cohort that gets it, so a
+    child's series is not split between the two products. Unknown birth
+    date: the schedule unchanged."""
+    if dob is None:
+        return schedule
+    out = {}
+    for name, v in schedule.items():
+        lo, hi = v.get("birth_from"), v.get("birth_until")
+        if lo is not None and dob < _parse(str(lo)):
+            continue
+        if hi is not None and dob > _parse(str(hi)):
+            continue
+        out[name] = v
+    return out
+
+
+def independent_dose_coverage(marginal: float, previous: float, if_previous_missed: float) -> float:
+    """The probability of a dose that does not depend on the previous one
+    (JP MR 第2期), for a child who received the previous dose (Issue #3301).
+
+    The dose's marginal coverage splits into the previous dose's marginal
+    ``previous`` times this threshold plus ``1 - previous`` times
+    ``if_previous_missed`` (the rate for a child who missed the previous
+    dose), so the share of children with the dose stays ``marginal``."""
+    if previous <= 0:
+        return min(1.0, marginal)
+    return min(1.0, max(0.0, (marginal - (1.0 - previous) * if_previous_missed) / previous))
+
+
 def conditional_dose_coverage(marginal: float, previous: float | None) -> float:
     """The probability of giving a series dose to a child who received the
     previous drawn dose (Issue #3288). ``coverage_by_sex`` stores each
@@ -612,7 +653,7 @@ def generate_immunizations(
     # depending on vaccine — flu/pneumococcal in the elderly; HPV in
     # adolescents. Sampled per schedule entry via the same rng stream.
 
-    for _name, v in schedule.items():
+    for _name, v in schedule_for_birth(schedule, dob).items():
         cvx = str(v["cvx"])
         min_age = int(v["min_age"])
         avail = _parse(v["available_from"])
@@ -749,6 +790,7 @@ def generate_immunizations(
             given_cov: float | None = None
             given_on: dict[int, date] = {}  # dose number -> date given
             for dose in v.get("doses") or []:
+                independent = bool(dose.get("independent_of_previous"))
                 d_min = int(dose["age_days_min"])
                 d_max = int(dose["age_days_max"])
                 w_start = date.fromordinal(dob.toordinal() + d_min)
@@ -760,6 +802,31 @@ def generate_immunizations(
                     # emission range for this patient (already past it at
                     # sim start, or not yet reached at as_of). Skip WITHOUT
                     # drawing rng to preserve adult vaccine RNG cascade.
+                    continue
+                if series_discontinued and independent:
+                    # Issue #3301: the dose does not depend on the previous
+                    # one (JP MR 第2期, one dose in the year before school
+                    # for every child), so a child who missed the previous
+                    # dose is still offered it, at a lower rate. Drawn from
+                    # a sub-RNG seeded by the child and the dose (the
+                    # stream is not touched); recorded under its schedule
+                    # position (the 第2期 dose), nothing charted when not given.
+                    snapped = _snap_dose_date_to_well_child(dob, d_min, d_max, pid)
+                    occ = max(eff_start, min(eff_end, snapped))
+                    dose_num = int(dose.get("dose_number", 0)) or None
+                    missed_rate = float(dose.get("coverage_if_previous_missed", 0.0))
+                    if occ <= as_of and _unit_hash(pid, cvx, dose_num, "previous-missed") < missed_rate:
+                        if dose_num is not None:
+                            given_on[dose_num] = occ
+                        out.append(
+                            ImmunizationRecord(
+                                vaccine_cvx=product_cvx(v, occ),
+                                occurrence_date=occ,
+                                administered_by=default_nurse,
+                                lot_number=synthetic_lot_number(cvx, occ),
+                                dose_number=dose_num,
+                            )
+                        )
                     continue
                 if series_discontinued:
                     # A prior dose in this series was missed / declined.
@@ -788,7 +855,13 @@ def generate_immunizations(
                 age_at = _age_on(dob, occ, base_age)
                 cov = dose.get("coverage_by_sex") or {}
                 cov_val = float(cov.get(sex, next(iter(cov.values()), 0.0))) if cov else 0.0
-                if rng.random() < conditional_dose_coverage(cov_val, given_cov):
+                if independent and given_cov is not None:
+                    threshold = independent_dose_coverage(
+                        cov_val, given_cov, float(dose.get("coverage_if_previous_missed", 0.0))
+                    )
+                else:
+                    threshold = conditional_dose_coverage(cov_val, given_cov)
+                if rng.random() < threshold:
                     given_cov = cov_val
                     if occ > as_of:
                         # Not due yet at the snapshot: no record, and the
