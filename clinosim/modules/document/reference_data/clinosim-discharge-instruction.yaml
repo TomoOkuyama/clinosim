@@ -25,6 +25,8 @@
 #   discharge_drugs: catalog drug ids or classes (codes/data/drugs.yaml); at
 #     least one must be on the discharge prescription. `{drugs}` in the text
 #     names the prescribed drugs that matched.
+#   aki_at_discharge: true — the stay's final creatinine still meets the KDIGO
+#     AKI definition (simulator/aki_response.py; Issue #3281).
 # Write one patient-specific statement per entry (smoking, alcohol, sex-
 # specific care, a named drug) so each can be gated on its own.
 #
@@ -59,6 +61,18 @@ baseline:
   follow_up:
     en: "Follow up with your primary care provider within 7-10 days."
     ja: "退院後 1-2 週間以内にかかりつけ医を受診してください。"
+  # Issue #3281: discharged with the creatinine still meeting the AKI
+  # definition. KDIGO Clinical Practice Guideline for Acute Kidney Injury
+  # (2012) Recommendation 2.3.4: "Evaluate patients 3 months after AKI for
+  # resolution, new onset, or worsening of pre-existing CKD." The guideline
+  # gives no interval for an earlier recheck; the one-week creatinine recheck
+  # at the follow-up visit and the restart of the held drugs after it are
+  # clinosim modelling choices. The drugs held at discharge are those of
+  # simulator/reference_data/aki_response.yaml.
+  aki_recheck:
+    en: "Your kidney function was reduced during this stay. Have your blood creatinine rechecked at your follow-up visit about 1 week after discharge, and have your kidney function evaluated again about 3 months after this illness. Any medicines that were stopped because of the kidney injury (such as anti-inflammatory pain relievers, blood pressure medicines of the ACE inhibitor or ARB type, water pills and metformin) should not be restarted until your doctor has reviewed the recheck result."
+    ja: "今回の入院中に腎機能が低下しました。退院後 1 週間ほどを目安に外来で血清クレアチニンを再検査し、この病気から約 3 か月後にも腎機能を再評価してください。腎機能低下のため中止した薬(消炎鎮痛薬、ACE 阻害薬・ARB などの降圧薬、利尿薬、メトホルミンなど)がある場合は、再検査の結果を主治医が確認するまで再開しないでください。"
+    applies_when: {aki_at_discharge: true}
   medications:
     en: "Take all prescribed medications as directed. Do not stop early without consulting your doctor."
     ja: "処方された薬はすべて指示通りに内服してください。医師に相談なく中止しないでください。"

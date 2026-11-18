@@ -23,7 +23,12 @@
 #     the stay is extended by at most `max_extension_days` beyond the sampled
 #     stay, while the creatinine meets the AKI definition and has not fallen
 #     fallen by `recovery_fall_fraction` from its peak, or a temperature of at least
-#     `fever_celsius` was recorded in the last `fever_window_hours`.
+#     `fever_celsius` was recorded in the last `fever_window_hours`. A stay
+#     that reaches the cap unresolved keeps the disposition it would otherwise
+#     have had; the discharge instructions then add an outpatient creatinine
+#     recheck and the restart of the held drugs after it
+#     (modules/document/reference_data/clinosim-discharge-instruction.yaml,
+#     `aki_recheck`).
 #
 # Sources (read in full text on 2026-11-18):
 #   - KDIGO Clinical Practice Guideline for Acute Kidney Injury, Kidney Int

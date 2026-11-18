@@ -288,6 +288,11 @@ def _instruction_applies(gate: dict[str, Any] | None, ctx: NarrativeContext) -> 
             return False
     if gate.get("vitamin_k_given") and not (getattr(ctx, "newborn_workup", None) or {}).get("has_vitamin_k"):
         return False
+    if gate.get("aki_at_discharge"):
+        from clinosim.simulator.aki_response import aki_active_from_records
+
+        if not aki_active_from_records(getattr(ctx, "lab_results", None) or []):
+            return False
     refs = gate.get("discharge_drugs") or []
     return not refs or bool(_gate_drugs(ctx, refs))
 

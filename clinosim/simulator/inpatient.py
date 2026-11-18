@@ -373,7 +373,6 @@ def _finalize_discharge(
     final_state: Any = None,
     symptom_floor: dict[str, float] | None = None,
     on_vasoactive_support: bool = False,
-    findings_unresolved: bool = False,
     aki_at_discharge: bool = False,
 ) -> Any:
     """Build the discharge prescription + populate discharge-related
@@ -449,7 +448,6 @@ def _finalize_discharge(
             symptom_floor,
             death_occurred,
             on_vasoactive_support=on_vasoactive_support,
-            findings_unresolved=findings_unresolved,
         )
     if not encounter.priority:
         encounter.priority = route_priority
@@ -956,7 +954,6 @@ def _simulate_patient(
         final_state=state_history[-1] if state_history else None,
         symptom_floor=symptom_floor,
         on_vasoactive_support=loop_result.on_vasoactive_support,
-        findings_unresolved=loop_result.findings_unresolved,
         aki_at_discharge=loop_result.aki_at_discharge,
     )
 

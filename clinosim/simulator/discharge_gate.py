@@ -159,20 +159,16 @@ def unsafe_for_home(
     symptom_floor: dict[str, float] | None,
     *,
     on_vasoactive_support: bool = False,
-    findings_unresolved: bool = False,
 ) -> bool:
     """True while the patient cannot be sent home (Issues #2055, #2084, #2239):
     uncontrolled autonomic symptoms, hypoxemia or impaired consciousness beyond
     the chronic baseline, hypoperfusion, or uncontrolled systemic inflammation;
     or a vasopressor / inotrope infusion within the observation period before
     discharge (``on_vasoactive_support``, Issue #3270 — the pressure it
-    maintains is not the patient's own), or acute kidney injury that has not
-    begun to recover or a fever in the last day (``findings_unresolved``,
-    Issue #3281)."""
+    maintains is not the patient's own)."""
     floor = symptom_floor or {}
     return (
         on_vasoactive_support
-        or findings_unresolved
         or state.sympathetic_activation >= DISCHARGE_SYMPATHETIC_MAX
         or state.oxygenation_impairment - floor.get("oxygenation_impairment", 0.0) > DISCHARGE_OXYGENATION_EXCESS_MAX
         or state.consciousness_impairment - floor.get("consciousness_impairment", 0.0)
@@ -188,15 +184,12 @@ def discharge_disposition_for(
     died: bool,
     *,
     on_vasoactive_support: bool = False,
-    findings_unresolved: bool = False,
 ) -> DischargeDisposition:
     """Expired, skilled nursing facility (still unsafe at the end of the stay),
     or home (Issue #2084)."""
     if died:
         return DischargeDisposition.EXP
-    if unsafe_for_home(
-        final_state, symptom_floor, on_vasoactive_support=on_vasoactive_support, findings_unresolved=findings_unresolved
-    ):
+    if unsafe_for_home(final_state, symptom_floor, on_vasoactive_support=on_vasoactive_support):
         return DischargeDisposition.SNF
     return DischargeDisposition.HOME
 
@@ -225,14 +218,13 @@ def _check_discharge_ready(
     # no patient should be discharged with Hgb below transfusion trigger.
     anemia_ok = state.anemia_level < DISCHARGE_ANEMIA_MAX
     # Autonomic symptoms, oxygenation, consciousness and perfusion safe for home.
-    symptoms_ok = not unsafe_for_home(
-        state, symptom_floor, on_vasoactive_support=on_vasoactive_support, findings_unresolved=findings_unresolved
-    )
+    symptoms_ok = not unsafe_for_home(state, symptom_floor, on_vasoactive_support=on_vasoactive_support)
 
     # Issue #3142: the country's criteria (locale/<cc>/care_practice.yaml).
     criteria = load_care_practice(country_key).discharge_criteria
     return (
-        state.inflammation_level < criteria.inflammation_max
+        not findings_unresolved
+        and state.inflammation_level < criteria.inflammation_max
         and state.perfusion_status > criteria.perfusion_min
         and state.renal_function > criteria.renal_min
         and abs(state.volume_status) < criteria.volume_abs_max

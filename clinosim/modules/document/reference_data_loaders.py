@@ -252,7 +252,9 @@ class DischargeInstructionGate(BaseModel):
     (``codes/data/valuesets.yaml``) matched against the patient's chronic
     conditions and the encounter's diagnoses; ``discharge_drugs`` lists
     catalog drug ids or classes of which at least one must be on the
-    discharge prescription — the drugs matched fill ``{drugs}``."""
+    discharge prescription — the drugs matched fill ``{drugs}``;
+    ``aki_at_discharge`` keeps the instruction for a patient whose final
+    creatinine still meets the AKI definition (Issue #3281)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -265,6 +267,8 @@ class DischargeInstructionGate(BaseModel):
     exclude_conditions: Annotated[list[str], AfterValidator(_known_condition_groups)] = Field(default_factory=list)
     discharge_drugs: Annotated[list[str], AfterValidator(_known_drugs)] = Field(default_factory=list)
     vitamin_k_given: bool | None = None
+    # Issue #3281: the stay's final creatinine still meets the KDIGO AKI definition.
+    aki_at_discharge: bool = False
 
 
 class _BilingualText(BaseModel):
