@@ -68,13 +68,21 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Bitten by a dog {onset_en}, with a wound to the hand or leg. Animal ownership, rabies vaccination status of the dog, and tetanus history reviewed."
-      ja: "{onset_ja}に犬に咬まれ、手または下肢に創を受傷。飼い主の有無、犬の狂犬病予防接種歴、破傷風予防接種歴を確認。"
+      en: "Bitten by a dog {onset_en}, with a wound to the {bite_site_en}."
+      ja: "{onset_ja}に犬に咬まれ、{bite_site_ja}に創を受傷。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        skin: "Puncture and tear wounds with surrounding erythema over the {bite_site_en}; no active bleeding"
+        musculoskeletal: "Range of motion preserved; distal sensation and capillary refill intact"
       ja:
         general: '意識清明、{appearance_ja}'
+        skin: "{bite_site_ja}に刺創・裂創と周囲の発赤あり、活動性出血なし"
+        musculoskeletal: "可動域は保たれ、末梢の感覚・毛細血管再充満は正常"
+    variants:
+      bite_site:
+        en: ["hand", "leg"]
+        ja: ["手", "下肢"]
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

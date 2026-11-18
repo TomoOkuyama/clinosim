@@ -87,13 +87,17 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Brief loss of consciousness {onset_en} with spontaneous full recovery. Prodrome, exertion, palpitations, and injury from the fall reviewed."
-      ja: "{onset_ja}に一過性の意識消失があり、自然に完全回復。前駆症状・労作との関連・動悸・転倒による外傷の有無を確認。"
+      en: "Brief loss of consciousness {onset_en} with spontaneous full recovery."
+      ja: "{onset_ja}に一過性の意識消失があり、自然に完全回復。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        cardiovascular: "Regular rhythm, no murmur; no carotid bruit"
+        neurological: "No focal deficit, gait steady, no tongue bite"
       ja:
         general: '意識清明、{appearance_ja}'
+        cardiovascular: "整脈、心雑音なし、頸動脈雑音なし"
+        neurological: "局所神経脱落所見なし、歩行安定、舌咬傷なし"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

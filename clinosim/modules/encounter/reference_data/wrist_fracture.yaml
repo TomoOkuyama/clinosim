@@ -85,8 +85,10 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        musculoskeletal: "Swelling and tenderness over the distal radius with deformity; fingers warm with brisk capillary refill; sensation and finger movement intact"
       ja:
         general: '意識清明、{appearance_ja}'
+        musculoskeletal: "橈骨遠位部に腫脹・圧痛と変形あり、手指は温かく毛細血管再充満は良好、感覚・手指の運動は正常"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

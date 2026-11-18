@@ -81,8 +81,16 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        cardiovascular: "Regular rhythm, no murmur, no peripheral edema"
+        respiratory: "Breath sounds clear bilaterally, no wheeze"
+        neurological: "No focal deficit; fine tremor of the hands"
+        psychiatric: "Anxious but cooperative, oriented, thought content without suicidal ideation"
       ja:
         general: '意識清明、{appearance_ja}'
+        cardiovascular: "整脈、心雑音なし、末梢浮腫なし"
+        respiratory: "両側呼吸音清明、喘鳴なし"
+        neurological: "局所神経脱落所見なし、手指に細かい振戦あり"
+        psychiatric: "不安は強いが協力的、見当識良好、希死念慮なし"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

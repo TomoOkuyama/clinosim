@@ -62,7 +62,15 @@ def render_ed_triage_note(ctx: NarrativeContext, spec: DocumentTypeSpec) -> Narr
         else t("triage_note.arrival_line_none", lang)
     )
     cc_line = t("triage_note.cc_line", lang, cc=cc_summary) if cc_summary else t("triage_note.cc_line_none", lang)
-    raw_text = "\n".join([level_line, arrival_line, cc_line])
+    lines = [level_line, arrival_line, cc_line]
+    # Issue #3244: the vital signs taken at triage.
+    from clinosim.modules.document.narrative.renderers.section_builders.ed_note import ed_vitals_text
+
+    vitals = ed_vitals_text(ctx)
+    if vitals:
+        facts.append("ctx.vitals[0]")
+        lines.append(t("triage_note.vitals_line", lang, vitals=vitals))
+    raw_text = "\n".join(lines)
 
     return NarrativeOutput(
         raw_text=raw_text,

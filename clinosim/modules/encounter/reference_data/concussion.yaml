@@ -98,13 +98,17 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Struck the head {onset_en}, followed by headache and brief confusion. No loss of consciousness. Mechanism, vomiting, and anticoagulant use reviewed."
-      ja: "{onset_ja}に頭部を打撲し、その後頭痛と一過性の混乱が出現。意識消失なし。受傷機転・嘔吐の有無・抗凝固薬内服を確認。"
+      en: "Struck the head {onset_en}, followed by headache and brief confusion. No loss of consciousness."
+      ja: "{onset_ja}に頭部を打撲し、その後頭痛と一過性の混乱が出現。意識消失なし。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        heent: "Scalp without laceration or hematoma; pupils equal and reactive"
+        neurological: "GCS 15, oriented, speech fluent, cranial nerves intact, no focal weakness, gait steady"
       ja:
         general: '意識清明、{appearance_ja}'
+        heent: "頭皮に裂創・血腫なし、瞳孔は左右同大で対光反射あり"
+        neurological: "GCS 15、見当識良好、発語は流暢、脳神経異常なし、局所の筋力低下なし、歩行安定"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

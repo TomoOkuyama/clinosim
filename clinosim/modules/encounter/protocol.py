@@ -46,6 +46,8 @@ class EdPhysicalExam(BaseModel):
     neurological: str = ""
     musculoskeletal: str = ""
     psychiatric: str = ""  # mental status examination (Issue #2129)
+    skin: str = ""  # wound / burn / rash (Issue #3244)
+    heent: str = ""  # head, eye, ear, nose, throat (Issue #3244)
 
 
 class EdNoteTemplate(BaseModel):
@@ -60,6 +62,21 @@ class EdNoteTemplate(BaseModel):
     physical_exam: dict[str, EdPhysicalExam] = Field(default_factory=dict)
     ed_workup_summary: dict[str, str] = Field(default_factory=dict)
     disposition: dict[str, str] = Field(default_factory=dict)
+    # Issue #3251 / #3244: findings that differ by visit, as parallel language
+    # lists. ``{<name>_<lang>}`` in any template text of the note resolves to
+    # the entry the encounter id picks, the same one in every section and in
+    # every language.
+    variants: dict[str, dict[str, list[str]]] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _variants_are_parallel(self) -> EdNoteTemplate:
+        for name, by_lang in self.variants.items():
+            if "en" not in by_lang or not by_lang["en"]:
+                raise ValueError(f"variants.{name}: needs a non-empty 'en' list")
+            sizes = {lang: len(items) for lang, items in by_lang.items()}
+            if len(set(sizes.values())) != 1 or not all(i.strip() for items in by_lang.values() for i in items):
+                raise ValueError(f"variants.{name}: language lists must be non-empty and the same length ({sizes})")
+        return self
 
 
 class EdTriageTemplate(BaseModel):

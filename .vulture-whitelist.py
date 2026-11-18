@@ -379,6 +379,8 @@ _.abdominal  # encounter/protocol.py:37
 _.neurological  # encounter/protocol.py:38
 _.musculoskeletal  # encounter/protocol.py:39
 _.psychiatric  # encounter/protocol.py (EdPhysicalExam; read by name in the ED note exam renderer)
+_.skin  # encounter/protocol.py (EdPhysicalExam; read by name in the ED note exam renderer)
+_.heent  # encounter/protocol.py (EdPhysicalExam; read by name in the ED note exam renderer)
 _.chief_complaint  # encounter/protocol.py:50
 _.hpi  # encounter/protocol.py:51
 _.physical_exam  # encounter/protocol.py:52

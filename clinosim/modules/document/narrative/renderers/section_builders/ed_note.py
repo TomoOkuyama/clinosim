@@ -30,7 +30,7 @@ from clinosim.countries import country_code, has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import lab_display
 from clinosim.locale.loader import narrative_label as _label
-from clinosim.locale.localized import language_slot, localized, normalize_lang
+from clinosim.locale.localized import language_slot, localized, localized_field, normalize_lang
 from clinosim.modules._shared import ORDER_SET_ADMISSION_INITIAL
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._localization import (
@@ -42,6 +42,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _fill_template_placeholders,
     _pick_localized,
 )
+from clinosim.modules.document.narrative._vitals_line import PHYSICAL_EXAM, format_vitals_line
 from clinosim.modules.document.narrative.renderers._shared_helpers import (
     PHYSICAL_EXAM_SYSTEMS,
     chronic_condition_label,
@@ -94,6 +95,25 @@ def _ed_time_context(ctx: NarrativeContext) -> NarrativeContext:
     stamped = [(_iso(_o(v, "timestamp", "")), v) for v in ctx.vitals or []]
     ed_vitals = [v for when, v in sorted(stamped, key=lambda pair: pair[0]) if when and when <= cutoff]
     return replace(ctx, vitals=ed_vitals)
+
+
+def ed_vitals_text(ctx: NarrativeContext) -> str:
+    """The ED arrival vitals of the visit in prose (Issue #3244), with the
+    pain score when one is recorded; ``""`` without a reading from the ED.
+    The reading is the first one of ``ctx.vitals`` taken by the ED departure
+    (``_ed_time_context``), in every locale."""
+    if not getattr(ctx, "vitals", None):
+        return ""
+    vitals = list(_ed_time_context(ctx).vitals or [])
+    if not vitals:
+        return ""
+    arrival = vitals[0]
+    line = format_vitals_line(arrival, PHYSICAL_EXAM, ctx.target_lang)
+    pain = _o(arrival, "pain_score", None)
+    if pain is not None:
+        pain_text = t("ed_physical_exam.pain_score", ctx.target_lang, score=int(pain))
+        line = f"{line}, {pain_text}" if line else pain_text
+    return line
 
 
 def _is_ed_order(order: Any, admitted: bool) -> bool:
@@ -297,7 +317,17 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
     # a part whose unknown placeholders collapsed it to the generic phrase
     # carries no information and would repeat per body system — drop it;
     # if every part collapses, the section-level fallback below fires once.
-    systems = ("general", "cardiovascular", "respiratory", "abdominal", "neurological", "psychiatric")
+    systems = (
+        "general",
+        "heent",
+        "cardiovascular",
+        "respiratory",
+        "abdominal",
+        "skin",
+        "musculoskeletal",
+        "neurological",
+        "psychiatric",
+    )
     parts = []
     for sys_key in systems:
         val = _o(pe, sys_key, "") or ""
@@ -310,21 +340,17 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
         facts.append(f"encounter_protocol.narrative.ed_note_template.{field}_{lang}")  # provenance label as before
         sep = t("list_sep.period_space", lang)
         text = sep.join(parts)
-        # JA-locale narrative enhancements (Issues #980 + #979). Both
-        # are JA-specific by design: the rewrite pools + trigger
-        # keywords in _apply_cc_pe_consistency are JP terminology,
-        # and the vitals-line prepend is an inpatient-JA convention
-        # not yet mirrored elsewhere. Adding a new locale (fr / zh)
-        # would need its own contradiction-rewrite pool and
-        # vitals-line style — this is a locale-specific data pipeline
-        # gate, not a display translation.
+        # The contradiction rewrite pools + trigger keywords of
+        # _apply_cc_pe_consistency are JP terminology (a locale-specific data
+        # pipeline gate, not a display translation; Issue #980). The arrival
+        # vitals prepend is written in every locale (Issues #979, #3244).
         if has_authored_narrative(lang):
             text, cc_facts = generator._apply_cc_pe_consistency(text, ctx)
             facts.extend(cc_facts)
-            vitals_line = generator._compose_pe_vitals_line(ctx)
-            if vitals_line:
-                facts.append(f"ctx.vitals[day_{ctx.day_index}]")
-                text = t("ed_physical_exam.vitals_prepend", lang, vitals=vitals_line, text=text)
+        vitals_line = ed_vitals_text(ctx)
+        if vitals_line:
+            facts.append("ctx.vitals[0]")
+            text = t("ed_physical_exam.vitals_prepend", lang, vitals=vitals_line, text=text)
         return text, facts
 
     return fallback, facts
@@ -352,6 +378,47 @@ def _ed_imaging_display(order: Any, lang: str) -> str:
         if named:
             return named
     return _localize_imaging(name, lang) if name else ""
+
+
+def _order_result_text(order: Any, lang: str, cutoff: str) -> str:
+    """``"WBC 8.2 10*3/uL"`` (with the flag, ``[H]``) for an ED lab order whose
+    numeric or categorical result was available by ``cutoff``, else ``""``
+    (Issue #3244)."""
+    result = _o(order, "result", None)
+    if not result:
+        return ""
+    value = _o(result, "value", None)
+    name = _o(result, "lab_name", "") or ""
+    if value is None or value == "" or not name:
+        return ""
+    when = _iso(_o(result, "result_datetime", ""))
+    if cutoff and when and when > cutoff:
+        return ""
+    unit_disp = ucum_prose(_o(result, "unit", "") or "")
+    disp_name = lab_display(name, lang)
+    if unit_disp and unit_disp.lower() == str(disp_name).lower():
+        unit_disp = ""
+    text = f"{disp_name} {value}" + (f" {unit_disp}" if unit_disp else "")
+    flag = _o(result, "flag", None)
+    return f"{text} [{_localize_lab_flag(flag, lang)}]" if flag else text
+
+
+def _imaging_impression(order: Any, ctx: NarrativeContext, lang: str, cutoff: str) -> str:
+    """The impression of the ED imaging order's report in ``lang``, ``""``
+    without a report (or one issued after ``cutoff``; Issue #3244)."""
+    order_id = _o(order, "order_id", "")
+    for study in ctx.imaging_studies or []:
+        if not order_id or _o(study, "order_id", "") != order_id:
+            continue
+        report = _o(study, "report", None)
+        if not report:
+            return ""
+        issued = _iso(_o(report, "issued_datetime", ""))
+        if cutoff and issued and issued > cutoff:
+            return ""
+        text = localized_field(report, "impression_text", lang, fallback=_o(report, "impression_text", "") or "")
+        return str(text or "").strip().rstrip("。.")
+    return ""
 
 
 @section("ed_workup")
@@ -404,6 +471,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     enc_id = _o(ctx.encounter, "encounter_id", "") if ctx.encounter is not None else ""
     seen_labs: set[str] = set()  # panel-key or display-name dedup
     seen_imaging: set[str] = set()
+    lab_values: dict[str, str] = {}  # lab name -> "name value unit [flag]" (Issue #3244)
     seen_meds: set[str] = set()
     seen_proc_orders: set[str] = set()
     # The ED workup of a via-ED admission is the stay's initial order set
@@ -431,13 +499,21 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
             if key and str(key) not in seen_labs:
                 seen_labs.add(str(key))
                 lab_names.append(str(display))
+                resulted = _order_result_text(order, lang, cutoff)
+                if resulted:
+                    lab_values[str(display)] = resulted
         elif otype_str == "imaging":
             modality = str(_o(order, "imaging_modality", "") or "").upper()
             display = display_raw or modality
-            key = f"{modality}|{display}"
+            shown = _ed_imaging_display(order, lang) or str(display)
+            # One entry per study name in the note language (Issue #3244).
+            key = shown.casefold()
             if display and key not in seen_imaging:
                 seen_imaging.add(key)
-                imaging_names.append(_ed_imaging_display(order, lang) or str(display))
+                impression = _imaging_impression(order, ctx, lang, cutoff)
+                imaging_names.append(
+                    t("ed_workup.imaging_result", lang, name=shown, impression=impression) if impression else shown
+                )
         elif otype_str == "medication":
             if display_raw and str(display_raw) not in seen_meds:
                 seen_meds.add(str(display_raw))
@@ -452,7 +528,7 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         # ("Creatinine" / "CBC" / "Urinalysis" / "Total_bilirubin"
         # etc.) via ``lab_display``. Pre-fix, the JA emission
         # embedded English tokens verbatim under 「検査:」.
-        lab_names_disp = [lab_display(n, ctx.target_lang) for n in lab_names[:8]]
+        lab_names_disp = [lab_values.get(n) or lab_display(n, ctx.target_lang) for n in lab_names[:8]]
         parts.append(t("ed_workup.labs_head", lang) + t("list_sep.serial", lang).join(lab_names_disp))
     if imaging_names:
         # Phase 1c-4 (2026-09-23): localise imaging codes
@@ -536,7 +612,10 @@ def build_ed_workup(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
             if unit_disp and unit_disp.lower() == str(disp_name).lower():
                 unit_disp = ""
             unit_part = f" {unit_disp}" if unit_disp else ""
-            abn_labs.append(f"{disp_name} {val}{unit_part} [{disp_flag}]")
+            abn_text = f"{disp_name} {val}{unit_part} [{disp_flag}]"
+            # Already given with its value in the lab list above (Issue #3244).
+            if abn_text not in {lab_values.get(n) for n in lab_names[:8]}:
+                abn_labs.append(abn_text)
     if abn_labs:
         parts.append(t("ed_workup.abnormal_head", lang) + t("list_sep.serial", lang).join(abn_labs[:4]))
 
@@ -616,12 +695,35 @@ def build_ed_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeCo
         sep = t("ed.instruction_sep", lang)
         parts.append(t("ed.discharge_instructions", lang, list=sep.join(instructions)))
         facts.append("encounter_protocol.discharge_instructions")
+    prescribed = _discharge_prescription_text(ctx, lang)
+    if prescribed:
+        parts.append(t("ed.discharge_prescription", lang, list=prescribed))
+        facts.append("ctx.discharge_medications")
     follow_up = localized(_o(proto, "follow_up", None), lang) if proto is not None else ""
     if follow_up:
         parts.append(t("ed.follow_up", lang, text=follow_up))
         facts.append("encounter_protocol.follow_up")
     # The instruction / follow-up phrases carry their own leading separator.
     return "".join(parts), facts
+
+
+def _discharge_prescription_text(ctx: NarrativeContext, lang: str) -> str:
+    """The take-home prescription of the ED visit, one entry per drug with its
+    dose, in the note language (Issue #3244); ``""`` when none was written."""
+    from clinosim.locale.free_text import localize_drug_name
+
+    names: list[str] = []
+    seen: set[str] = set()
+    for med in ctx.discharge_medications or []:
+        drug = str(_o(med, "drug_name", "") or "").strip()
+        if not drug or drug.casefold() in seen:
+            continue
+        seen.add(drug.casefold())
+        shown = localize_drug_name(drug, lang) or drug
+        dose = str(localized_field(med, "dose", lang) or _o(med, "dose", "") or "").strip()
+        # The strength is often part of the drug name already ("Ibuprofen 600mg").
+        names.append(f"{shown} {dose}" if dose and dose not in drug else shown)
+    return t("list_sep.serial", lang).join(names)
 
 
 def _encounter_disposition(generator: TemplateNarrativeGenerator, ctx: NarrativeContext, lang: str) -> tuple[str, str]:

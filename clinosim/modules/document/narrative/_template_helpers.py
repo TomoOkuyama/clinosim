@@ -197,6 +197,33 @@ def _appearance_phrase(ctx: NarrativeContext, lang: str) -> str:
     return t(f"ed_appearance.level_{ed_triage_level(ctx)}", lang)
 
 
+def _variant_placeholders(fields: set[str], ctx: NarrativeContext) -> dict[str, str]:
+    """``{<name>_<lang>}`` placeholders naming an ``ed_note_template.variants``
+    entry (Issue #3244): the entry the encounter id picks, the same index in
+    every language and every section of the visit's documents. A language
+    without its list falls back to English."""
+    from clinosim.determinism import sha_index
+    from clinosim.modules.document.narrative.renderers._ed_helpers import get_ed_note_template
+
+    tmpl = get_ed_note_template(ctx)
+    variants = _o(tmpl, "variants", None) if tmpl is not None else None
+    if not variants:
+        return {}
+    enc_id = str(_o(ctx.encounter, "encounter_id", "") or "") if ctx.encounter is not None else ""
+    resolved: dict[str, str] = {}
+    for field in fields:
+        name, _, lang = field.rpartition("_")
+        by_lang = variants.get(name)
+        if not by_lang:
+            continue
+        items = by_lang.get(lang) or by_lang["en"]
+        # Names sharing a group (``burn__site``, ``burn__mechanism``) pick the
+        # same index, so the site and the mechanism of a visit agree.
+        group = name.split("__")[0]
+        resolved[field] = items[sha_index(f"{enc_id}|ed-variant|{group}", len(by_lang["en"]))]
+    return resolved
+
+
 def _language_placeholders(fields: set[str], ctx: NarrativeContext) -> dict[str, str]:
     """Resolve the ``{onset_<lang>}`` / ``{appearance_<lang>}`` placeholders
     present in ``fields`` (plus ``{onset_days}`` for a day-unit onset);
@@ -215,6 +242,7 @@ def _language_placeholders(fields: set[str], ctx: NarrativeContext) -> dict[str,
             phrase = _appearance_phrase(ctx, name.removeprefix(_APPEARANCE_PREFIX))
             if phrase:
                 resolved[name] = phrase
+    resolved.update(_variant_placeholders(fields - resolved.keys(), ctx))
     return {k: v for k, v in resolved.items() if v}
 
 

@@ -75,15 +75,25 @@ narrative:
         cardiovascular: Heart rate normal
         respiratory: Respiratory rate normal
         abdominal: 'Abdomen: assessment not indicated'
-        musculoskeletal: 'Right/left ankle: swelling (+), ecchymosis ({ecchymosis_en}), tenderness over anterior talofibular ligament (+), malleolar/calcaneal tenderness ({bone_pain_en}). Limited ROM. Neurovascularly intact.'
+        musculoskeletal: '{ankle__side_en} ankle: swelling (+), ecchymosis ({ankle__ecchymosis_en}), tenderness over anterior talofibular ligament (+), malleolar/calcaneal tenderness ({ankle__bone_pain_en}). Limited ROM. Neurovascularly intact.'
         neurological: Distal neurovascular status intact
       ja:
         general: '意識清明、{appearance_ja}'
         cardiovascular: 心拍数正常
         respiratory: 呼吸数正常
         abdominal: 腹部：評価不要
-        musculoskeletal: 右/左足関節：腫脹（+）、皮下出血（{ecchymosis_ja}）、前距腓靭帯部圧痛（+）、踵骨・内外くるぶし圧痛（{bone_pain_ja}）。ROM制限あり。神経血管正常。
+        musculoskeletal: '{ankle__side_ja}足関節：腫脹（+）、皮下出血（{ankle__ecchymosis_ja}）、前距腓靭帯部圧痛（+）、踵骨・内外くるぶし圧痛（{ankle__bone_pain_ja}）。ROM制限あり。神経血管正常。'
         neurological: 遠位神経・血管正常
+    variants:
+      ankle__side:
+        en: ["Right", "Left", "Right", "Left"]
+        ja: ["右", "左", "右", "左"]
+      ankle__ecchymosis:
+        en: ["+", "+", "-", "-"]
+        ja: ["+", "+", "-", "-"]
+      ankle__bone_pain:
+        en: ["-", "+", "-", "+"]
+        ja: ["-", "+", "-", "+"]
     ed_workup_summary:
       en: 'Ankle X-ray ({xray_views_en}): {xray_result_en}. No fracture identified / fracture confirmed.'
       ja: 足関節X線（{xray_views_ja}）：{xray_result_ja}。骨折なし/骨折確認。

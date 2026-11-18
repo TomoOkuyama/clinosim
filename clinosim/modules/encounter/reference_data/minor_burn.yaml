@@ -83,13 +83,22 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Sustained a burn to the hand or arm {onset_en}. Mechanism (scald, contact, or flame) and first aid reviewed."
-      ja: "{onset_ja}に手または腕に熱傷を受傷。受傷機転（熱湯・接触・火炎）と応急処置の内容を確認。"
+      en: "Sustained a burn to the {burn__site_en} {onset_en}: {burn__mechanism_en}."
+      ja: "{onset_ja}に{burn__site_ja}に熱傷を受傷。{burn__mechanism_ja}。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        skin: "Partial-thickness burn of the {burn__site_en}, 1% of body surface area or less: erythema with intact and ruptured blisters, moist, blanching and painful to touch; not circumferential; capillary refill brisk"
       ja:
         general: '意識清明、{appearance_ja}'
+        skin: "{burn__site_ja}に部分層熱傷（体表面積1%以下）。紅斑と水疱（破れたものを含む）、湿潤、圧迫で退色、接触痛あり。全周性ではない。毛細血管再充満は良好"
+    variants:
+      burn__site:
+        en: ["dorsum of the right hand", "palm of the left hand", "right forearm", "left forearm"]
+        ja: ["右手背", "左手掌", "右前腕", "左前腕"]
+      burn__mechanism:
+        en: ["scald from hot water while cooking, cooled under running water immediately", "contact with a hot pan, cooled under running water for several minutes", "flame flash while lighting a stove, cooled with cold water", "hot oil splash, covered with a wet cloth"]
+        ja: ["調理中の熱湯によるやけどで、直後に流水で冷却した", "熱いフライパンへの接触で、数分間流水で冷却した", "コンロ点火時の炎によるやけどで、冷水で冷却した", "熱い油のはねで、濡れタオルで覆った"]
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

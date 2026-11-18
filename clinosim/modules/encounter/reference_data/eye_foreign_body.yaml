@@ -71,13 +71,15 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Foreign body sensation in the eye began {onset_en} while working, with tearing and redness. Use of eye protection reviewed."
-      ja: "{onset_ja}に作業中に眼内異物感が出現し、流涙・充血を伴う。保護眼鏡の使用状況を確認。"
+      en: "Foreign body sensation in the eye began {onset_en} while working, with tearing and redness."
+      ja: "{onset_ja}に作業中に眼内異物感が出現し、流涙・充血を伴う。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        heent: "Conjunctival injection and tearing; a foreign body is seen on the cornea; visual acuity preserved"
       ja:
         general: '意識清明、{appearance_ja}'
+        heent: "結膜充血と流涙あり、角膜上に異物を認める、視力は保たれている"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

@@ -105,7 +105,9 @@ def test_the_country_filter_leaves_the_visit_stream_unchanged(serve) -> None:
 
 def test_the_order_carries_the_abnormal_rate(serve) -> None:
     rate = {"any": 0.25, "severe": 0.5}
-    cond = _condition("wrist_fracture", [{"test": "Wrist_Xray_AP_Lateral", "probability": 1.0, "abnormal_rate_by_severity": rate}])
+    cond = _condition(
+        "wrist_fracture", [{"test": "Wrist_Xray_AP_Lateral", "probability": 1.0, "abnormal_rate_by_severity": rate}]
+    )
     serve(cond)
     [order] = [o for o in _visit(cond, 3).orders if o.order_type == OrderType.IMAGING]
     assert order.imaging_spec_meta["abnormal_rate_by_severity"] == rate

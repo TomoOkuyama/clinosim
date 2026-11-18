@@ -92,8 +92,12 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        cardiovascular: "Regular rhythm, no peripheral edema"
+        respiratory: "Prolonged expiration with diffuse expiratory wheeze and scattered rhonchi; reduced air entry at the bases"
       ja:
         general: '意識清明、{appearance_ja}'
+        cardiovascular: "整脈、末梢浮腫なし"
+        respiratory: "呼気延長、びまん性の呼気性喘鳴と散在性のいびき音あり、両下肺野で呼吸音減弱"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

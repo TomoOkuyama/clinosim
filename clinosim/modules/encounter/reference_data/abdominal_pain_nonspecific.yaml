@@ -105,13 +105,13 @@ narrative:
         general: 'Alert and oriented, {appearance_en}'
         cardiovascular: Normal to mildly tachycardic, regular heart sounds
         respiratory: Respiratory rate normal, breath sounds clear
-        abdominal: 'Abdomen: flat to mildly distended, hypoactive to hyperactive bowel sounds. Tenderness: {pain_site_en}. Peritoneal signs: {peritoneal_sign_en}. Murphy sign negative.'
+        abdominal: 'Abdomen: flat to mildly distended, bowel sounds present. Mild tenderness over the periumbilical to lower abdomen without guarding or rebound; no peritoneal signs. Murphy sign negative.'
         neurological: No paralysis, no altered mentation
       ja:
         general: '意識清明、{appearance_ja}'
         cardiovascular: 心拍数正常〜軽度頻脈、心音整
         respiratory: 呼吸数正常、呼吸音清明
-        abdominal: 腹部：平坦〜軽度膨満、腸音減弱〜亢進。圧痛：{pain_site_ja}。腹膜刺激徴候：{peritoneal_sign_ja}。Murphy徴候陰性。
+        abdominal: 腹部：平坦〜軽度膨満、腸音あり。臍周囲〜下腹部に軽度の圧痛、筋性防御・反跳痛なし、腹膜刺激徴候なし。Murphy徴候陰性。
         neurological: 麻痺なし、意識障害なし
     ed_workup_summary:
       en: 'Labs obtained (WBC, CRP, liver enzymes, creatinine). {imaging_summary_en}. Urinalysis: {ua_result_en}.'

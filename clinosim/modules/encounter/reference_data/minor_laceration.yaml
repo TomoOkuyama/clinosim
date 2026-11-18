@@ -69,13 +69,15 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Sustained a laceration {onset_en}; bleeding controlled with direct pressure. Mechanism, wound contamination, and tetanus status reviewed."
-      ja: "{onset_ja}に裂傷を受傷し、圧迫で止血。受傷機転・創汚染の有無・破傷風予防接種歴を確認。"
+      en: "Sustained a laceration {onset_en}; bleeding controlled with direct pressure."
+      ja: "{onset_ja}に裂傷を受傷し、圧迫で止血。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        skin: "Laceration with clean edges, no active bleeding after pressure; no foreign body or tendon exposure seen; sensation and capillary refill distal to the wound intact"
       ja:
         general: '意識清明、{appearance_ja}'
+        skin: "辺縁の整った裂創、圧迫後の活動性出血なし、異物・腱露出なし、創より末梢の感覚・毛細血管再充満は正常"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

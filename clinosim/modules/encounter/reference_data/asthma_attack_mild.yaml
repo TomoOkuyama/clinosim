@@ -89,8 +89,12 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        cardiovascular: "Regular rhythm, no murmur"
+        respiratory: "Diffuse expiratory wheeze with prolonged expiration; speaks in full sentences, no accessory muscle use"
       ja:
         general: '意識清明、{appearance_ja}'
+        cardiovascular: "整脈、心雑音なし"
+        respiratory: "びまん性の呼気性喘鳴と呼気延長あり、会話は文章で可能、補助呼吸筋の使用なし"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'
