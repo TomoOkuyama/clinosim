@@ -1400,3 +1400,21 @@ codes:
   Z38.0:
     en: "Singleton, born in hospital"
     ja: "単胎児，院内出生"
+  T20.0:
+    en: Burn of unspecified degree of head and neck
+    ja: "頭部及び頚部の程度不明の熱傷"
+  T21.0:
+    en: Burn of unspecified degree of trunk
+    ja: "体幹の程度不明の熱傷"
+  T22.0:
+    en: Burn of unspecified degree of shoulder and upper limb, except wrist and hand
+    ja: "肩及び上肢の程度不明の熱傷，手首及び手を除く"
+  T23.0:
+    en: Burn of unspecified degree of wrist and hand
+    ja: "手首及び手の程度不明の熱傷"
+  T24.0:
+    en: Burn of unspecified degree of hip and lower limb, except ankle and foot
+    ja: "股関節部及び下肢の程度不明の熱傷，足首及び足を除く"
+  T25.0:
+    en: Burn of unspecified degree of ankle and foot
+    ja: "足首及び足の程度不明の熱傷"

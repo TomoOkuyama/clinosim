@@ -50,6 +50,8 @@ def _emittable_internal_codes() -> set[str]:
     for fp in glob.glob(os.path.join(ROOT, "clinosim/modules/disease/reference_data/*.yaml")):
         d = yaml.safe_load(open(fp)) or {}
         ic = d.get("icd_codes", {})
+        for entry in d.get("secondary_diagnosis") or []:
+            codes.add(entry["code"])
         if isinstance(ic, dict):
             if ic.get("primary"):
                 codes.add(ic["primary"])

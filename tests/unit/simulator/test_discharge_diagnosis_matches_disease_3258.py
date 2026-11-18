@@ -207,3 +207,62 @@ def test_derive_final_diagnosis_records_the_stay_code_and_external_cause() -> No
     assert us.external_cause_code.startswith(("W11", "W12", "W13"))
     jp, _ = _derive_final_diagnosis(config=SimpleNamespace(country="JP"), **kw)  # type: ignore[arg-type]
     assert jp.external_cause_code == ""
+
+
+# ---- Issue #3258, burn site and extent ----
+
+from clinosim.simulator.injury_coding import secondary_diagnosis_codes  # noqa: E402
+
+_BURN_SITE_SHARES = {
+    "T20.0": 33,
+    "T20.07": 15,
+    "T21.0": 38,
+    "T22.0": 45,
+    "T23.0": 42,
+    "T24.0": 39,
+    "T25.0": 19,
+    "T21.05": 12,
+}
+
+
+def test_burn_stay_is_coded_by_site_with_the_aba_shares_as_weights() -> None:
+    protocol = load_disease_protocol("industrial_burn_severe")
+    assert {v["code"]: v["probability"] for v in protocol.icd_codes["variants"]} == _BURN_SITE_SHARES
+    codes = [stay_primary_code(protocol, f"ENC-{i}") for i in range(4000)]
+    total = sum(_BURN_SITE_SHARES.values())
+    for code, share in _BURN_SITE_SHARES.items():
+        assert abs(codes.count(code) / len(codes) - share / total) < 0.03, code
+
+
+def test_burn_site_codes_state_no_degree_and_extent_is_secondary() -> None:
+    protocol = load_disease_protocol("industrial_burn_severe")
+    for code in _BURN_SITE_SHARES:
+        # US: the unspecified-degree leaf, initial encounter; JP: the WHO T2x.0 code.
+        us = map_diagnosis_code(code, "US")
+        assert us.startswith(code[:3]) and us.endswith("A") and code_exists("icd-10-cm", us)
+        jp = map_diagnosis_code(code, "JP")
+        assert jp in {"T20.0", "T21.0", "T22.0", "T23.0", "T24.0", "T25.0"} and code_exists("icd-10", jp)
+    assert {secondary_diagnosis_codes(protocol, f"ENC-{i}")[0] for i in range(200)} == {"T31.2", "T31.3"}
+    assert map_diagnosis_code("T31.2", "US") == "T31.20" and map_diagnosis_code("T31.3", "US") == "T31.30"
+    assert secondary_diagnosis_codes(load_disease_protocol("fall_from_height"), "ENC-1") == []
+
+
+def test_derive_final_diagnosis_records_burn_extent_beside_the_site() -> None:
+    protocol = load_disease_protocol("industrial_burn_severe")
+    differential = initialize_differential("industrial_burn_severe", 40, protocol_diagnostic=protocol.diagnostic)
+    patient = SimpleNamespace(sex="M", age=40, chronic_conditions=[], patient_id="P-1")
+    dx, _ = _derive_final_diagnosis(
+        differential=differential,
+        protocol=protocol,
+        secondary_protocol=None,
+        secondary_disease_id=None,
+        patient=patient,
+        config=SimpleNamespace(country="JP"),
+        rng=np.random.default_rng(0),  # type: ignore[arg-type]
+        vitals=[],
+        mars=[],
+        lab_results=[],
+        encounter_id="ENC-7",
+    )
+    assert dx.admission_diagnosis_code == dx.discharge_diagnosis_code in _BURN_SITE_SHARES
+    assert dx.secondary_diagnosis_codes and dx.secondary_diagnosis_codes[0] in {"T31.2", "T31.3"}

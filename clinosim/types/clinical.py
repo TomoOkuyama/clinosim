@@ -128,6 +128,9 @@ class ClinicalDiagnosis:
     # Issue #3258: the secondary external-cause code of an injury admission
     # (US: ICD-10-CM V00-Y99 with the 7th character); "" when none is recorded.
     external_cause_code: str = ""
+    # Issue #3258: further coded secondary diagnoses of the stay, e.g. the
+    # extent of a burn (T31.x) beside the principal burn site.
+    secondary_diagnosis_codes: list[str] = field(default_factory=list)
 
     # Hidden fields (in CIF, not in clinical output)
     diagnosis_correct: bool = True  # does discharge dx match ground truth?

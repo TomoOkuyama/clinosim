@@ -15,13 +15,44 @@ requires_surgery: true
 minimum_severity: moderate
 readmission_eligible: false
 
+# Issue #3258: the stay's principal diagnosis is the burn site, drawn per stay
+# (``sample_variants``, SHA of the encounter id) with the weight of each body
+# area set to its share of burn cases from the American Burn Association 2023
+# Annual Burn Injury Summary Report (inpatient care at US burn centers,
+# 2018-2022, 152,312 cases; chart "Body % of Total Burn Cases", 103,393 cases
+# with valid body-area detail): head 33, neck 15, trunk 38, arms 45, hands 42,
+# buttocks or genitalia 12, legs 39, feet 19. Those shares overlap (a case can
+# burn several areas); using them as weights to pick ONE principal site is a
+# clinosim modelling choice. Buttocks/genitalia is coded as the buttock
+# (T21.05, sex-neutral). The burn degree is NOT modelled: no distribution of
+# burn depth in admitted burn patients could be read, so every site code is the
+# "unspecified degree" code (T20.0-T25.0; US T2x...XA, initial encounter) and no
+# degree is stated anywhere. The earlier T30.0 (unspecified region) and T54.3
+# (corrosive toxic effect) variants are dropped: the site is now always coded.
 icd_codes:
-  primary: "T31.2"
+  primary: "T21.0"   # trunk: a fallback only; every stay draws a site from the variants below
+  sample_variants: true
   variants:
-    - {code: "T31.2", name: "Burns involving 20-29% of body surface", probability: 0.45}
-    - {code: "T31.3", name: "Burns involving 30-39% of body surface", probability: 0.25}
-    - {code: "T30.0", name: "Burn of unspecified body region, unspecified degree", probability: 0.20}
-    - {code: "T54.3", name: "Toxic effect of corrosive alkalis and alkali-like substances", probability: 0.10}
+    - {code: "T20.0", name: "Burn of unspecified degree of head, face and neck", probability: 33}
+    - {code: "T20.07", name: "Burn of unspecified degree of neck", probability: 15}
+    - {code: "T21.0", name: "Burn of unspecified degree of trunk", probability: 38}
+    - {code: "T22.0", name: "Burn of unspecified degree of shoulder and upper limb, except wrist and hand", probability: 45}
+    - {code: "T23.0", name: "Burn of unspecified degree of wrist and hand", probability: 42}
+    - {code: "T24.0", name: "Burn of unspecified degree of hip and lower limb, except ankle and foot", probability: 39}
+    - {code: "T25.0", name: "Burn of unspecified degree of ankle and foot", probability: 19}
+    - {code: "T21.05", name: "Burn of unspecified degree of buttock", probability: 12}
+
+# The extent of the burn (ICD-10 T31, percent of body surface) is the secondary
+# diagnosis. The weights are the earlier clinosim values (T31.2 0.45 : T31.3
+# 0.25), UNSOURCED: the ABA report gives only <10% / 10-19% / 20%+ size groups
+# (85,966 / 14,579 / 9,140 cases) and does not split the 20%+ group. The US
+# mapping of T31.x also names a third-degree share of 0-9% because ICD-10-CM
+# T31 has no unspecified-degree code; that share is a coding requirement, not
+# a modelled depth.
+secondary_diagnosis:
+  - {code: "T31.2", weight: 0.45}
+  - {code: "T31.3", weight: 0.25}
+
 # Issue #3258: the secondary external-cause code of the admission (ICD-10-CM
 # V00-Y99, 7th character A = initial encounter), drawn per stay from a SHA of the
 # encounter id. US only: Japanese claims and the MHLW disease-name master do not

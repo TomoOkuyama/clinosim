@@ -518,6 +518,7 @@ def _secondary_conditions(ctx: _ConditionContext, dx: dict, seen_codes: set[str]
     # secondary encounter-diagnosis Condition.
     if dx.get("external_cause_code"):
         entries.append({"disease_id": dx["external_cause_code"], "source": "external_cause"})
+    entries.extend({"disease_id": c, "source": "secondary_code"} for c in dx.get("secondary_diagnosis_codes") or [])
     for idx, wd in enumerate(entries):
         code_raw = working_diagnosis_code(str((wd.get("disease_id") or "") if isinstance(wd, dict) else ""))
         if not code_raw:
@@ -537,7 +538,7 @@ def _secondary_conditions(ctx: _ConditionContext, dx: dict, seen_codes: set[str]
             structural_key=encounter_secondary_condition_key(ctx.patient_id, ctx.encounter_id, idx),
             # "differential" is the closest ``ex-diagnosistype`` code for an
             # entry under active consideration; "secondary" is not in that value set.
-            diagnosis_type="clinical" if source == "external_cause" else "differential",
+            diagnosis_type="clinical" if source in ("external_cause", "secondary_code") else "differential",
             clinical_status="resolved" if ctx.resolved_at_discharge else "active",
             category="encounter-diagnosis",
             mapped_code=mapped,

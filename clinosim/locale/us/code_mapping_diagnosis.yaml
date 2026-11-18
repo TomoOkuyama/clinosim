@@ -154,7 +154,16 @@ T75.4: "T75.4XXA"     # Electrocution, initial encounter
 S32.0: "S32.009A"     # Fracture of unspecified lumbar vertebra, initial (closed)
 S22.0: "S22.009A"     # Fracture of unspecified thoracic vertebra, initial (closed)
 S06.9: "S06.9X0A"     # Unspecified intracranial injury without loss of consciousness, initial
+T20.0: "T20.00XA"     # Burn of unspecified degree of head, face, and neck, unspecified site, initial (Issue #3258)
+T20.07: "T20.07XA"    # Burn of unspecified degree of neck, initial
+T21.0: "T21.00XA"     # Burn of unspecified degree of trunk, unspecified site, initial
+T21.05: "T21.05XA"    # Burn of unspecified degree of buttock, initial
+T22.0: "T22.00XA"     # Burn of unspecified degree of shoulder and upper limb, except wrist and hand, unspecified site, initial
+T23.0: "T23.009A"     # Burn of unspecified degree of unspecified hand, unspecified site, initial
+T24.0: "T24.009A"     # Burn of unspecified degree of unspecified site of unspecified lower limb, except ankle and foot, initial
+T25.0: "T25.029A"     # Burn of unspecified degree of unspecified foot, initial
 T31.2: "T31.20"       # Burns of 20-29% of body surface with 0% to 9% third degree burns
+T31.3: "T31.30"       # Burns of 30-39% of body surface with 0% to 9% third degree burns
 T14.90: "T14.90XA"    # Injury, unspecified, initial encounter
 T15.0: "T15.00XA"     # Foreign body in cornea, unspecified eye, initial encounter
 T54.9: "T54.91XA"     # Toxic effect of unspecified corrosive substance, initial

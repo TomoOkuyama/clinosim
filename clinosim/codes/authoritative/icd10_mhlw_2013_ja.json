@@ -5,7 +5,7 @@
     "source_file": "kihon2013.xlsx (sheet 基本分類表データ, columns コード / コード名)",
     "extracted_at": "2026-11-01",
     "note": "Japanese official names of the ICD-10 codes clinosim emits for JP, filtered from the full table (15,296 codes).",
-    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table."
+    "later_additions": "E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327) were added on 2026-11-16 from the same kihon2013.xlsx table. T20.0-T25.0 (Issue #3258) were added on 2026-11-18 from the same kihon2013.xlsx table."
   },
   "concept": [
     {
@@ -1461,12 +1461,36 @@
       "display": "消化管内異物，部位不明"
     },
     {
+      "code": "T20.0",
+      "display": "頭部及び頚部の程度不明の熱傷"
+    },
+    {
+      "code": "T21.0",
+      "display": "体幹の程度不明の熱傷"
+    },
+    {
+      "code": "T22.0",
+      "display": "肩及び上肢の程度不明の熱傷，手首及び手を除く"
+    },
+    {
       "code": "T22.2",
       "display": "肩及び上肢の第２度熱傷，手首及び手を除く"
     },
     {
+      "code": "T23.0",
+      "display": "手首及び手の程度不明の熱傷"
+    },
+    {
       "code": "T23.2",
       "display": "手首及び手の第２度熱傷"
+    },
+    {
+      "code": "T24.0",
+      "display": "股関節部及び下肢の程度不明の熱傷，足首及び足を除く"
+    },
+    {
+      "code": "T25.0",
+      "display": "足首及び足の程度不明の熱傷"
     },
     {
       "code": "T30",

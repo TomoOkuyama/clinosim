@@ -1365,3 +1365,37 @@ codes:
     en: Unspecified fracture of unspecified thoracic vertebra, initial encounter for closed fracture
   S06.9X0A:
     en: Unspecified intracranial injury without loss of consciousness, initial encounter
+  T20.0:
+    en: Burn of unspecified degree of head, face, and neck
+  T20.00XA:
+    en: Burn of unspecified degree of head, face, and neck, unspecified site, initial encounter
+  T20.07:
+    en: Burn of unspecified degree of neck
+  T20.07XA:
+    en: Burn of unspecified degree of neck, initial encounter
+  T21.0:
+    en: Burn of unspecified degree of trunk
+  T21.00XA:
+    en: Burn of unspecified degree of trunk, unspecified site, initial encounter
+  T21.05:
+    en: Burn of unspecified degree of buttock
+  T21.05XA:
+    en: Burn of unspecified degree of buttock, initial encounter
+  T22.0:
+    en: Burn of unspecified degree of shoulder and upper limb, except wrist and hand
+  T22.00XA:
+    en: Burn of unspecified degree of shoulder and upper limb, except wrist and hand, unspecified site, initial encounter
+  T23.0:
+    en: Burn of unspecified degree of wrist and hand
+  T23.009A:
+    en: Burn of unspecified degree of unspecified hand, unspecified site, initial encounter
+  T24.0:
+    en: Burn of unspecified degree of lower limb, except ankle and foot
+  T24.009A:
+    en: Burn of unspecified degree of unspecified site of unspecified lower limb, except ankle and foot, initial encounter
+  T25.0:
+    en: Burn of unspecified degree of ankle and foot
+  T25.029A:
+    en: Burn of unspecified degree of unspecified foot, initial encounter
+  T31.30:
+    en: Burns involving 30-39% of body surface with 0% to 9% third degree burns
