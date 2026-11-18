@@ -37,6 +37,9 @@ progress:
   # From template_generator._compose_progress_assessment_from_state and
   # _compose_progress_plan_from_state — inpatient progress_note fallback
   # phrasing when no complications / labs / plan detail is available.
+  newborn_screening:
+    ja: "新生児スクリーニング・予防投与（本記載時点まで）: {list}。"
+    en: "Newborn screening and prophylaxis to date: {list}."
   stable_course_assessment:
     ja: "経過観察中、著変なし。"
     en: "Clinical course stable, no significant change."
@@ -353,6 +356,12 @@ ap_plan:
   observation_fallback:
     ja: "経過観察・症状に応じた対応。"
     en: "Observation with symptom-directed management."
+  initial_workup:
+    ja: "入院時検査: {list}。"
+    en: "Admission work-up: {list}."
+  supportive_care:
+    ja: "支持療法・モニタリング: {list}。"
+    en: "Supportive care and monitoring: {list}."
   planned_surgery:
     ja: "手術予定: {name}。"
     en: "Surgery planned: {name}."
@@ -882,6 +891,32 @@ neonate_history:
   birth_line:
     ja: "出生歴: {items}"
     en: "Birth history: {items}"
+  # Birth data of the newborn's record (Issue #3245).
+  gestational_age:
+    ja: "在胎 {weeks} 週 {days} 日"
+    en: "gestational age {weeks}w{days}d"
+  delivery_mode:
+    vaginal:
+      ja: "経腟分娩"
+      en: "vaginal delivery"
+    cesarean:
+      ja: "帝王切開分娩"
+      en: "cesarean delivery"
+  birth_weight:
+    ja: "出生体重 {kg} kg"
+    en: "birth weight {kg} kg"
+  birth_length:
+    ja: "出生時身長 {cm} cm"
+    en: "birth length {cm} cm"
+  birth_data_not_recorded:
+    ja: "出生時データの記録なし"
+    en: "birth data not recorded"
+  maternal_line:
+    ja: "母体歴: {items}"
+    en: "Maternal history: {items}"
+  maternal_age:
+    ja: "母体年齢 {age} 歳"
+    en: "maternal age {age}"
   caregiver_line:
     ja: "養育者: {caregiver}"
     en: "Caregiver: {caregiver}"

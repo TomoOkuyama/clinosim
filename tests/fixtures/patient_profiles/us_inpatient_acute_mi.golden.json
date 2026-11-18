@@ -28,7 +28,7 @@
       "sections": {
         "admission_results": "Laboratory (abnormal): troponin I 97.882 ng/mL [H] (prior 68.499; troponin elevation); BUN 20.1 mg/dL [H]; glucose 119 mg/dL [H]; CK-MB 58.5 ng/mL [H]; +1 other abnormal. Imaging and studies: 12-lead ECG (ST-T changes suggesting acute myocardial ischemia); echocardiogram (No acute abnormal findings within the imaged range); chest X-ray PA (No acute cardiopulmonary process); coronary angiography (Culprit lesion identified; indication for percutaneous coronary intervention); chest X-ray AP (Cardiogenic pulmonary congestion, consider left ventricular dysfunction from acute MI)",
         "allergies": "No known drug allergies (NKDA)",
-        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Chest pain, diaphoresis, dyspnea. Working diagnosis: acute myocardial infarction (severity: severe). Comorbidities: Chronic ischemic heart disease (IHD), Hypertension (HTN), Dyslipidemia. Plan: Estimated length of stay: ~7 days. Initial medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor. Workup / procedures: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI).",
+        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Chest pain, diaphoresis, dyspnea. Working diagnosis: acute myocardial infarction (severity: severe). Comorbidities: Chronic ischemic heart disease (IHD), Hypertension (HTN), Dyslipidemia. Plan: Estimated length of stay: ~7 days. Initial medications: Heparin, Aspirin, Nitroglycerin, Ticagrelor. Workup / procedures: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI). Admission work-up: CBC, coagulation studies, LFT, lipid panel, troponin I, troponin I (6 h repeat), CK-MB, BNP, 12-lead ECG, echocardiogram, chest X-ray PA, coronary angiography. Supportive care and monitoring: O2: Nasal cannula SpO2 >= 94%, IV access: Two large-bore peripheral IVs, continuous monitoring: Continuous ECG telemetry, BP q15min x 4h then q1h, bed rest: Bed rest for initial 12-24h, NPO: NPO until catheterization assessment.",
         "chief_complaint": "Chest pain, diaphoresis, dyspnea",
         "family_history": "No significant family history",
         "hpi": "62 y/o male patient. Chief complaint: Chest pain, diaphoresis, dyspnea. Symptoms began suddenly and worsened rapidly; brought in by ambulance. History: Chronic ischemic heart disease (IHD), Hypertension (HTN), Dyslipidemia. ROS: no chest pain episodes other than on exertion, no syncope.",
@@ -53,7 +53,7 @@
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
-      "generated_at": "2024-06-15T04:16:00Z",
+      "generated_at": "2024-06-15T08:16:00Z",
       "generator": "template",
       "generator_metadata": {
         "day_index": 0,
@@ -82,12 +82,12 @@
         }
       },
       "sections": {
-        "assessment": "Clinical course stable, no significant change.",
-        "objective": "BP 121/75 mmHg, HR 108 bpm, RR 22 /min, SpO2 98% (RA), T 37.9°C",
-        "plan": "Procedures today: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI).",
-        "subjective": "Hospital day 1. Persistent chest pain (NRS 7). New decrease in level of consciousness (AVPU V); orientation being monitored."
+        "assessment": "Notable labs (past 24 h): troponin I 97.882 ng/mL [H] (prior 68.499; troponin elevation), BUN 20.1 mg/dL [H], glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], +1 other abnormal.",
+        "objective": "BP 115/71 mmHg, HR 110 bpm, RR 18 /min, SpO2 95% (RA), T 38.0°C (past 24 h: HR max 112 bpm, RR max 22 /min)",
+        "plan": "Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor. Procedures today: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI).",
+        "subjective": "Hospital day 1. Persistent fever 38.0°C. Persistent chest pain (NRS 7). New decrease in level of consciousness (AVPU V); orientation being monitored."
       },
-      "text": "S: Hospital day 1. Persistent chest pain (NRS 7). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 121/75 mmHg, HR 108 bpm, RR 22 /min, SpO2 98% (RA), T 37.9°C\nA: Clinical course stable, no significant change.\nP: Procedures today: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI)."
+      "text": "S: Hospital day 1. Persistent fever 38.0°C. Persistent chest pain (NRS 7). New decrease in level of consciousness (AVPU V); orientation being monitored.\nO: BP 115/71 mmHg, HR 110 bpm, RR 18 /min, SpO2 95% (RA), T 38.0°C (past 24 h: HR max 112 bpm, RR max 22 /min)\nA: Notable labs (past 24 h): troponin I 97.882 ng/mL [H] (prior 68.499; troponin elevation), BUN 20.1 mg/dL [H], glucose 119 mg/dL [H], CK-MB 58.5 ng/mL [H], +1 other abnormal.\nP: Continue current medications: Heparin, Nitroglycerin. Given once: Aspirin, Ticagrelor. Procedures today: Urinary catheter insertion, Arterial line insertion, Transthoracic echocardiography, Percutaneous coronary intervention (PCI)."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-03": {

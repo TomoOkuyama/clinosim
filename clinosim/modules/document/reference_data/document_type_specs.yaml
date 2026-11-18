@@ -46,6 +46,10 @@ specs:
     countries_supported: [us, jp]
     encounter_types_supported: [inpatient, icu, rehab_inpatient]
     generation_frequency: daily
+    # The hospital-day-0 note is written after the H&P of the same day
+    # (admission_hp: 3 h), an hour later (Issue #3241); later days are
+    # authored at the admission time of day as before.
+    authored_after_admission_hours: 4
     # Session-88j Tier 1 uplift (importance score 9, 7,764 docs on JP
     # p=10000): progress_note is FREE_TEXT (DocumentReference emit), but
     # `_render_progress_note_text` also populates `sections` +

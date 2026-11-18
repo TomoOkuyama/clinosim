@@ -253,9 +253,34 @@ def _neonatal_social_history(ctx: NarrativeContext, lang: str) -> tuple[str, lis
     if a1 is not None and a5 is not None:
         birth.append(t("neonate_history.apgar", lang, a1=a1, a5=a5))
         facts.append("ctx.newborn_workup.apgar")
+    # Issue #3245: the birth data the newborn's record holds (the mother's
+    # delivery: gestational age, mode of delivery; the newborn profile's birth
+    # weight and length). An item the record lacks is not written; without any
+    # the birth history says so.
+    info = workup.get("birth") or {}
+    days = info.get("gestational_age_days")
+    if isinstance(days, int) and days > 0:
+        birth.append(t("neonate_history.gestational_age", lang, weeks=days // 7, days=days % 7))
+        facts.append("ctx.newborn_workup.birth.gestational_age_days")
+    if info.get("delivery_mode"):
+        birth.append(t(f"neonate_history.delivery_mode.{info['delivery_mode']}", lang))
+        facts.append("ctx.newborn_workup.birth.delivery_mode")
+    weight, length = workup.get("birth_weight_kg"), workup.get("birth_length_cm")
+    if weight:
+        birth.append(t("neonate_history.birth_weight", lang, kg=f"{float(weight):g}"))
+        facts.append("ctx.patient.weight_kg")
+    if length:
+        birth.append(t("neonate_history.birth_length", lang, cm=f"{float(length):g}"))
+        facts.append("ctx.patient.height_cm")
+    if not (info or weight or length):
+        birth.append(t("neonate_history.birth_data_not_recorded", lang))
     parts: list[str] = []
     if birth:
         parts.append(t("neonate_history.birth_line", lang, items=t("list_sep.serial", lang).join(birth)))
+    maternal = _maternal_history(ctx, info)
+    if maternal:
+        parts.append(maternal)
+        facts.append("ctx.newborn_workup.birth.maternal_condition_codes")
     relationship = _o(_o(ctx.patient, "contact", None), "emergency_contact_relationship", "") or ""
     caregiver = registry_display("hl7-v3-rolecode", relationship, lang) if relationship else None
     if caregiver:
@@ -264,6 +289,25 @@ def _neonatal_social_history(ctx: NarrativeContext, lang: str) -> tuple[str, lis
     if not parts:
         return t("fallback.generic_fallback", lang), facts
     return "; ".join(parts), facts
+
+
+def _maternal_history(ctx: NarrativeContext, info: dict[str, Any]) -> str:
+    """The mother's age and chronic conditions at the delivery, as the newborn's
+    maternal history (Issue #3245); ``""`` when the birth record has none."""
+    from clinosim.modules.document.narrative.renderers._shared_helpers import chronic_condition_label
+
+    lang = ctx.target_lang
+    country = country_code(ctx.locale)
+    labels = [
+        chronic_condition_label(str(code), country, lang, "female") or str(code)
+        for code in info.get("maternal_condition_codes") or []
+    ]
+    items: list[str] = []
+    if info.get("maternal_age"):
+        items.append(t("neonate_history.maternal_age", lang, age=info["maternal_age"]))
+    if labels:
+        items.append(t("list_sep.serial", lang).join(labels))
+    return t("neonate_history.maternal_line", lang, items=t("list_sep.serial", lang).join(items)) if items else ""
 
 
 @section("family_history")

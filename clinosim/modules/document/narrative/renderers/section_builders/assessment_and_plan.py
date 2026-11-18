@@ -90,7 +90,7 @@ def build_assessment_and_plan(generator: TemplateNarrativeGenerator, ctx: Narrat
         traj_a if (traj_a and traj_a not in _placeholders) else (_compose_ap_assessment_from_state(ctx) or _generic_a)
     )
     if traj_p and traj_p not in _placeholders:
-        plan = t("list_sep.chunk", lang).join([traj_p, *admission_plan_items(ctx)])
+        plan = t("list_sep.chunk", lang).join([traj_p, *admission_order_items(ctx), *admission_plan_items(ctx)])
     else:
         plan = _compose_ap_plan_from_state(generator, ctx) or _generic_p
     text = t("ap_combined.assessment_plan_block", lang, assessment=assessment, plan=plan)
@@ -200,10 +200,61 @@ def _compose_ap_plan_from_state(generator: TemplateNarrativeGenerator, ctx: Narr
     if procs:
         sep = t("list_sep.serial", lang)
         parts.append(t("ap_plan.workup_procedures", lang, list=sep.join(procs)))
+    parts.extend(admission_order_items(ctx))
     parts.extend(admission_plan_items(ctx))
     if not parts:
         parts.append(t("ap_plan.observation_fallback", lang))
     return t("list_sep.chunk", lang).join(parts)
+
+
+_ADMISSION_ORDER_SETS = ("admission_initial", "admission_care")
+_MAX_LABS, _MAX_IMAGING, _MAX_SUPPORTIVE = 8, 4, 6
+
+
+def admission_order_items(ctx: NarrativeContext) -> list[str]:
+    """The admission's initial work-up and supportive care / monitoring from
+    the CIF orders of the admission order sets (Issue #3245): the lab panels
+    and imaging studies ordered, then the therapy and procedure orders (diet,
+    oxygen, monitoring, VTE prophylaxis, ...), each named in the note language.
+    The drugs are written by ``ap_plan.initial_meds``. ``[]`` for an admission
+    with no such orders."""
+    from clinosim.locale.free_text import localize_procedure_name
+    from clinosim.locale.loader import imaging_exam_display, lab_display
+
+    lang = ctx.target_lang
+    enc_id = str(_o(ctx.encounter, "encounter_id", "") or "") if ctx.encounter is not None else ""
+    labs: list[str] = []
+    imaging: list[str] = []
+    supportive: list[str] = []
+    for order in ctx.orders or []:
+        if (_o(order, "order_set", "") or "") not in _ADMISSION_ORDER_SETS:
+            continue
+        order_enc = str(_o(order, "encounter_id", "") or "")
+        if enc_id and order_enc and order_enc != enc_id:
+            continue
+        otype = _o(order, "order_type", "") or ""
+        kind = str(getattr(otype, "value", otype)).lower()
+        raw = str(_o(order, "display_name", "") or "")
+        if kind == "lab":
+            name = lab_display(str(_o(order, "panel_key", "") or raw), lang)
+            if name and name not in labs:
+                labs.append(name)
+        elif kind == "imaging":
+            name = imaging_exam_display(raw, lang)
+            if name and name not in imaging:
+                imaging.append(name)
+        elif kind in ("therapy", "procedure") and raw:
+            name = localize_procedure_name(raw, lang)
+            if name and name not in supportive:
+                supportive.append(name)
+    sep = t("list_sep.serial", lang)
+    items: list[str] = []
+    if labs or imaging:
+        listed = [*labs[:_MAX_LABS], *imaging[:_MAX_IMAGING]]
+        items.append(t("ap_plan.initial_workup", lang, list=sep.join(listed)))
+    if supportive:
+        items.append(t("ap_plan.supportive_care", lang, list=sep.join(supportive[:_MAX_SUPPORTIVE])))
+    return items
 
 
 def admission_plan_items(ctx: NarrativeContext) -> list[str]:

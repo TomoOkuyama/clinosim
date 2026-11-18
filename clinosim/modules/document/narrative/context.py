@@ -329,6 +329,11 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
         "has_vitamin_k": has_vitamin_k,
         "has_ophthalmic": has_ophthalmic,
         "event_times": event_times,
+        # Issue #3245: the birth data of the newborn's record (the mother's
+        # delivery) and the newborn profile's own birth weight and length.
+        "birth": dict(newborn_ext.get("birth") or {}),
+        "birth_weight_kg": _o(patient, "weight_kg", None),
+        "birth_length_cm": _o(patient, "height_cm", None),
         "cchd_at": _cchd_time(newborn_ext),
     }
 

@@ -95,6 +95,37 @@ stroke:
   # how the deficit and the score are written together
   nihss_format: {en: "{deficit}; NIHSS {score}", ja: "{deficit}（NIHSS {score}点）"}
 
+# Delivery admission (Issue #3245): a mother's delivery stay has no disease
+# protocol, so its exam is the obstetric exam of the mode of delivery the
+# admission diagnosis gives (ICD-10 O80 single spontaneous delivery, O82
+# delivery by caesarean section) with the gestational age the pregnancy
+# period's LMP gives at the admission. ``obstetric`` is the text with
+# ``{weeks}`` / ``{days}``; ``obstetric_no_age`` the one for a record without
+# an LMP. Contractions are written only for the spontaneous delivery.
+delivery:
+  admission_codes: {O80: vaginal, O82: cesarean}
+  modes:
+    vaginal:
+      general:
+        en: "uncomfortable during contractions"
+        ja: "陣痛時に苦痛様"
+      obstetric:
+        en: "gravid uterus, fundal height consistent with {weeks}w{days}d gestation, uterine contractions palpable"
+        ja: "妊娠子宮を触知し、子宮底長は在胎 {weeks} 週 {days} 日相当、子宮収縮を触知する"
+      obstetric_no_age:
+        en: "gravid uterus, uterine contractions palpable"
+        ja: "妊娠子宮を触知し、子宮収縮を触知する"
+    cesarean:
+      general:
+        en: "in no acute distress"
+        ja: "著明な苦痛なし"
+      obstetric:
+        en: "gravid uterus, fundal height consistent with {weeks}w{days}d gestation"
+        ja: "妊娠子宮を触知し、子宮底長は在胎 {weeks} 週 {days} 日相当"
+      obstetric_no_age:
+        en: "gravid uterus"
+        ja: "妊娠子宮を触知する"
+
 diseases:
   acute_appendicitis:
     systems:

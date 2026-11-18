@@ -386,9 +386,26 @@ def compose_progress_assessment_from_state(ctx: NarrativeContext) -> str:
         parts.append(t("progress.notable_labs_recent", lang, list=sep.join(labs), hours=rules.window_hours))
     elif labs:
         parts.append(t("progress.notable_labs", lang, list=sep.join(labs)))
+    screening = newborn_screening_to_date(ctx)
+    if screening:
+        parts.append(t("progress.newborn_screening", lang, list=screening))
     if not parts:
         parts.append(t("progress.stable_course_assessment", ctx.target_lang))
     return t("list_sep.chunk", lang).join(parts)
+
+
+def newborn_screening_to_date(ctx: NarrativeContext) -> str:
+    """The newborn screening results, measurements and prophylaxis recorded by
+    the note's authored time (Issue #3245; the H&P cites none of them),
+    ``""`` for a patient who is not a newborn or has none yet."""
+    from clinosim.modules.document.narrative._replacement_renderers import _render_newborn_workup_summary
+    from clinosim.modules.document.narrative.context import newborn_workup_known_at
+
+    workup = getattr(ctx, "newborn_workup", None) or {}
+    if not workup.get("is_neonate"):
+        return ""
+    known = newborn_workup_known_at(workup, getattr(ctx, "authored_datetime", None))
+    return _render_newborn_workup_summary(known, lang=ctx.target_lang, screening_only=True)
 
 
 def compose_progress_held_line(ctx: NarrativeContext) -> str:

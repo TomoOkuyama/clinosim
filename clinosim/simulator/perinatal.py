@@ -563,6 +563,29 @@ def _maternal_vitals(
     return out
 
 
+def _birth_data(mother: PatientProfile, delivered_at: datetime, cesarean: bool) -> dict[str, Any]:
+    """What the mother's record says about the birth, for the newborn's H&P
+    (Issue #3245): ``gestational_age_days`` (the delivery date minus the LMP of
+    the pregnancy period that delivers on it; ``None`` when no period gives an
+    LMP), ``delivery_mode``, ``maternal_age`` and the mother's chronic
+    condition codes. No random draw."""
+    delivery_day = delivered_at.date()
+    gestational_days: int | None = None
+    for period in getattr(mother, "state_periods", None) or []:
+        if getattr(period, "state_type", "") != "pregnancy":
+            continue
+        lmp = (getattr(period, "metadata", None) or {}).get("lmp")
+        lmp_day = date.fromisoformat(str(lmp)[:10]) if lmp else None
+        if lmp_day is not None and lmp_day <= delivery_day and period.is_active_at(delivery_day):
+            gestational_days = (delivery_day - lmp_day).days
+    return {
+        "gestational_age_days": gestational_days,
+        "delivery_mode": "cesarean" if cesarean else "vaginal",
+        "maternal_age": mother.age,
+        "maternal_condition_codes": [c.code for c in mother.chronic_conditions if c.code],
+    }
+
+
 def simulate_delivery_encounter(
     patient: PatientProfile,
     visit_date: datetime,
@@ -1199,6 +1222,11 @@ def simulate_delivery_encounter(
 
     newborn_record = CIFPatientRecord(
         patient=newborn,
+        # Issue #3245: the birth data the mother's delivery gives the newborn's
+        # record (gestational age from the pregnancy period's LMP, the mode of
+        # delivery, the mother's age and chronic conditions); the birth weight
+        # and length are the newborn profile's own.
+        extensions={"newborn": {"birth": _birth_data(patient, visit_date, is_cesarean)}},
         home_medications_at_admission=[],  # Issue #2995: a newborn takes nothing at home
         encounters=[newborn_encounter],
         orders=[],

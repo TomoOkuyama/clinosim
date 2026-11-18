@@ -110,9 +110,12 @@ def test_newborn_social_history_has_birth_history_not_smoking(gen, lang) -> None
     for word in ("喫煙", "飲酒", "職業", "Smoking", "Alcohol", "Occupation"):
         assert word not in text
     if lang == "ja":
-        assert text == "出生歴: 院内出生、Apgar 8点(1分)/10点(5分); 養育者: 母"
+        assert text == "出生歴: 院内出生、Apgar 8点(1分)/10点(5分)、出生時データの記録なし; 養育者: 母"
     else:
-        assert text == "Birth history: born in this hospital, Apgar 8 (1 min) / 10 (5 min); Caregiver: mother"
+        assert (
+            text == "Birth history: born in this hospital, Apgar 8 (1 min) / 10 (5 min), birth data not recorded; "
+            "Caregiver: mother"
+        )
         assert not _CJK.search(text)
 
 
@@ -154,7 +157,8 @@ def test_newborn_jaundice_follows_the_bilirubin_known_at_the_note(gen) -> None:
 
 def test_adult_exam_still_uses_the_adult_baseline(gen) -> None:
     text, _ = build_physical_examination(gen, _ctx("ja", adult=True))
-    assert "大泉門" not in text and "神経:" in text
+    # Issue #3245: an adult admission without a diagnosis has the general appearance only.
+    assert "大泉門" not in text and "一般状態:" in text and "神経:" not in text
 
 
 # ── nursing ADL / risk ───────────────────────────────────────────────────
