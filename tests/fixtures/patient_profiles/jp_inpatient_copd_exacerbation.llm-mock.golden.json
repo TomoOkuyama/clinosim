@@ -765,6 +765,54 @@
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
+        "ctx.vitals.today",
+        "physical_exam_findings.dip_then_recovery.day_15",
+        "encounter.chief_complaint:pe_respiratory",
+        "ctx.day_index",
+        "ctx.clinical_course_archetype"
+      ],
+      "generated_at": "2024-06-30T12:01:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 15,
+        "generator": "llm",
+        "lang": "ja",
+        "raw_text_rejoin": {
+          "order": [
+            [
+              "S（主観）",
+              "subjective"
+            ],
+            [
+              "O（客観）",
+              "objective"
+            ],
+            [
+              "A（評価）",
+              "assessment"
+            ],
+            [
+              "P（計画）",
+              "plan"
+            ]
+          ],
+          "separator": "\n"
+        }
+      },
+      "sections": {
+        "assessment": "[Mock LLM response #17 — assessment]",
+        "objective": "BP 123/74 mmHg, HR 84 回/分, RR 15 回/分, SpO2 93% (RA), T 36.6°C (直近24時間: 最高体温 38.2°C、RR 最大 22 回/分、SpO2 最低 91%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし",
+        "plan": "[Mock LLM response #17 — plan]",
+        "subjective": "[Mock LLM response #17 — subjective]"
+      },
+      "text": "S（主観） [Mock LLM response #17 — subjective]\nO（客観） BP 123/74 mmHg, HR 84 回/分, RR 15 回/分, SpO2 93% (RA), T 36.6°C (直近24時間: 最高体温 38.2°C、RR 最大 22 回/分、SpO2 最低 91%)。特記事項なし。一般状態: 意識清明、全身状態良好。循環器: 整、心雑音なし。呼吸器: 両肺に笛声音聴取、呼気延長あり。腹部: 平坦、軟。神経: 神経学的異常なし\nA（評価） [Mock LLM response #17 — assessment]\nP（計画） [Mock LLM response #17 — plan]"
+    }
+  },
+  "doc-ENC-FORCED-0001-616171532456-18": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-18",
+    "encounter_id": "ENC-FORCED-0001-616171532456",
+    "narrative": {
+      "facts_used": [
         "ctx.diagnoses[0].admission_diagnosis_code",
         "ctx.encounter.admission_datetime",
         "ctx.diagnoses",
@@ -786,7 +834,7 @@
         "discharge_instructions.baseline",
         "discharge_instructions.disease_specific.copd_exacerbation"
       ],
-      "generated_at": "2024-06-30T12:01:00+09:00",
+      "generated_at": "2024-07-01T09:01:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "llm",
@@ -797,18 +845,18 @@
         "admission_diagnoses": "1. COPD急性増悪（J44.1）",
         "admission_reason": "COPD急性増悪のため入院となった。",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",
-        "discharge_details": "2024-06-30自宅退院となった。",
+        "discharge_details": "2024-07-01自宅退院となった。",
         "discharge_diagnoses": "COPD急性増悪（J44.1）。副病名: せん妄。",
-        "discharge_instructions": "[Mock LLM response #17 — discharge_instructions]",
+        "discharge_instructions": "[Mock LLM response #18 — discharge_instructions]",
         "discharge_medications": "プレドニゾロン 20mg 経口 1日1回; アモキシシリン/クラブラン酸 250mg 経口 1日3回",
-        "hospital_course": "[Mock LLM response #17 — hospital_course]",
-        "present_illness": "[Mock LLM response #17 — present_illness]"
+        "hospital_course": "[Mock LLM response #18 — hospital_course]",
+        "present_illness": "[Mock LLM response #18 — present_illness]"
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-18": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-18",
+  "doc-ENC-FORCED-0001-616171532456-19": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-19",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -834,8 +882,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-19-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-19-evening",
+  "doc-ENC-FORCED-0001-616171532456-20-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-20-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -856,8 +904,8 @@
       "text": "【看護記録(準夜)】 入院 1 日目\n患者状態: BP 123/75, HR 87, SpO2 90%, T 37.8°C、酸素投与: 鼻カニューラ 2.2 L/min。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-20-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-20-night",
+  "doc-ENC-FORCED-0001-616171532456-21-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-21-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -878,8 +926,8 @@
       "text": "【看護記録(深夜)】 入院 2 日目\n患者状態: BP 128/75, HR 87, SpO2 90%, T 37.2°C、酸素投与: 鼻カニューラ 3.5 L/min。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-21-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-21-day",
+  "doc-ENC-FORCED-0001-616171532456-22-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-22-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -900,8 +948,8 @@
       "text": "【看護記録(日勤)】 入院 2 日目\n患者状態: BP 126/73, HR 95, SpO2 88%, T 37.8°C。\n投薬継続: サルブタモール、イプラトロピウム。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-22-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-22-evening",
+  "doc-ENC-FORCED-0001-616171532456-23-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-23-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -922,8 +970,8 @@
       "text": "【看護記録(準夜)】 入院 2 日目\n患者状態: BP 122/73, HR 93, SpO2 91%, T 36.8°C、酸素投与: 鼻カニューラ 3.2 L/min。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-23-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-23-night",
+  "doc-ENC-FORCED-0001-616171532456-24-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-24-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -944,8 +992,8 @@
       "text": "【看護記録(深夜)】 入院 3 日目\n患者状態: BP 128/77, HR 91, SpO2 91%, T 36.9°C。\n投薬継続: サルブタモール、イプラトロピウム、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-24-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-24-day",
+  "doc-ENC-FORCED-0001-616171532456-25-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-25-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -966,8 +1014,8 @@
       "text": "【看護記録(日勤)】 入院 3 日目\n患者状態: BP 129/75, HR 100, SpO2 88%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-25-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-25-evening",
+  "doc-ENC-FORCED-0001-616171532456-26-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-26-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -988,8 +1036,8 @@
       "text": "【看護記録(準夜)】 入院 3 日目\n患者状態: BP 125/73, HR 90, SpO2 93%, T 37.7°C。\n投薬継続: サルブタモール、イプラトロピウム、セフトリアキソン 1g 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-26-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-26-night",
+  "doc-ENC-FORCED-0001-616171532456-27-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-27-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1010,8 +1058,8 @@
       "text": "【看護記録(深夜)】 入院 4 日目\n患者状態: BP 127/78, HR 88, SpO2 94%, T 37.4°C、酸素投与: 酸素マスク 4.6 L/min。\n投薬継続: サルブタモール、イプラトロピウム、セフトリアキソン 1g 静注 1日1回。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-27-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-27-day",
+  "doc-ENC-FORCED-0001-616171532456-28-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-28-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1032,8 +1080,8 @@
       "text": "【看護記録(日勤)】 入院 4 日目\n患者状態: BP 127/75, HR 93, SpO2 89%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-28-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-28-evening",
+  "doc-ENC-FORCED-0001-616171532456-29-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-29-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1054,8 +1102,8 @@
       "text": "【看護記録(準夜)】 入院 4 日目\n患者状態: BP 126/73, HR 90, SpO2 94%, T 37.6°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-29-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-29-night",
+  "doc-ENC-FORCED-0001-616171532456-30-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-30-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1076,8 +1124,8 @@
       "text": "【看護記録(深夜)】 入院 5 日目\n患者状態: BP 122/76, HR 83, SpO2 91%, T 36.9°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-30-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-30-day",
+  "doc-ENC-FORCED-0001-616171532456-31-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-31-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1098,8 +1146,8 @@
       "text": "【看護記録(日勤)】 入院 5 日目\n患者状態: BP 123/77, HR 92, SpO2 98%, T 38.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-31-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-31-evening",
+  "doc-ENC-FORCED-0001-616171532456-32-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-32-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1120,8 +1168,8 @@
       "text": "【看護記録(準夜)】 入院 5 日目\n患者状態: BP 126/77, HR 87, SpO2 97%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-32-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-32-night",
+  "doc-ENC-FORCED-0001-616171532456-33-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-33-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1142,8 +1190,8 @@
       "text": "【看護記録(深夜)】 入院 6 日目\n患者状態: BP 122/73, HR 82, SpO2 94%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-33-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-33-day",
+  "doc-ENC-FORCED-0001-616171532456-34-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-34-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1164,8 +1212,8 @@
       "text": "【看護記録(日勤)】 入院 6 日目\n患者状態: BP 122/76, HR 87, SpO2 89%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-34-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-34-evening",
+  "doc-ENC-FORCED-0001-616171532456-35-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-35-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1186,8 +1234,8 @@
       "text": "【看護記録(準夜)】 入院 6 日目\n患者状態: BP 122/73, HR 87, SpO2 96%, T 38.1°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-35-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-35-night",
+  "doc-ENC-FORCED-0001-616171532456-36-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-36-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1208,8 +1256,8 @@
       "text": "【看護記録(深夜)】 入院 7 日目\n患者状態: BP 120/74, HR 83, SpO2 94%, T 36.8°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-36-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-36-day",
+  "doc-ENC-FORCED-0001-616171532456-37-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-37-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1230,8 +1278,8 @@
       "text": "【看護記録(日勤)】 入院 7 日目\n患者状態: BP 122/76, HR 89, SpO2 97%, T 38.0°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-37-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-37-evening",
+  "doc-ENC-FORCED-0001-616171532456-38-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-38-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1252,8 +1300,8 @@
       "text": "【看護記録(準夜)】 入院 7 日目\n患者状態: BP 124/74, HR 88, SpO2 94%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-38-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-38-night",
+  "doc-ENC-FORCED-0001-616171532456-39-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-39-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1274,8 +1322,8 @@
       "text": "【看護記録(深夜)】 入院 8 日目\n患者状態: BP 125/75, HR 81, SpO2 94%, T 38.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-39-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-39-day",
+  "doc-ENC-FORCED-0001-616171532456-40-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-40-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1296,8 +1344,8 @@
       "text": "【看護記録(日勤)】 入院 8 日目\n患者状態: BP 127/73, HR 88, SpO2 92%, T 37.9°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-40-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-40-evening",
+  "doc-ENC-FORCED-0001-616171532456-41-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-41-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1318,8 +1366,8 @@
       "text": "【看護記録(準夜)】 入院 8 日目\n患者状態: BP 124/72, HR 85, SpO2 92%, T 37.9°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-41-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-41-night",
+  "doc-ENC-FORCED-0001-616171532456-42-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-42-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1340,8 +1388,8 @@
       "text": "【看護記録(深夜)】 入院 9 日目\n患者状態: BP 123/78, HR 79, SpO2 95%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-42-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-42-day",
+  "doc-ENC-FORCED-0001-616171532456-43-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-43-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1362,8 +1410,8 @@
       "text": "【看護記録(日勤)】 入院 9 日目\n患者状態: BP 125/77, HR 87, SpO2 92%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-43-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-43-evening",
+  "doc-ENC-FORCED-0001-616171532456-44-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-44-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1384,8 +1432,8 @@
       "text": "【看護記録(準夜)】 入院 9 日目\n患者状態: BP 125/76, HR 85, SpO2 96%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-44-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-44-night",
+  "doc-ENC-FORCED-0001-616171532456-45-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-45-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1406,8 +1454,8 @@
       "text": "【看護記録(深夜)】 入院 10 日目\n患者状態: BP 125/72, HR 80, SpO2 95%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-45-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-45-day",
+  "doc-ENC-FORCED-0001-616171532456-46-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-46-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1428,8 +1476,8 @@
       "text": "【看護記録(日勤)】 入院 10 日目\n患者状態: BP 127/72, HR 89, SpO2 96%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-46-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-46-evening",
+  "doc-ENC-FORCED-0001-616171532456-47-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-47-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1450,8 +1498,8 @@
       "text": "【看護記録(準夜)】 入院 10 日目\n患者状態: BP 122/74, HR 83, SpO2 93%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-47-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-47-night",
+  "doc-ENC-FORCED-0001-616171532456-48-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-48-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1472,8 +1520,8 @@
       "text": "【看護記録(深夜)】 入院 11 日目\n患者状態: BP 121/75, HR 81, SpO2 97%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-48-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-48-day",
+  "doc-ENC-FORCED-0001-616171532456-49-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-49-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1494,8 +1542,8 @@
       "text": "【看護記録(日勤)】 入院 11 日目\n患者状態: BP 122/75, HR 84, SpO2 95%, T 37.6°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-49-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-49-evening",
+  "doc-ENC-FORCED-0001-616171532456-50-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-50-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1516,8 +1564,8 @@
       "text": "【看護記録(準夜)】 入院 11 日目\n患者状態: BP 125/76, HR 84, SpO2 94%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-50-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-50-night",
+  "doc-ENC-FORCED-0001-616171532456-51-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-51-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1538,8 +1586,8 @@
       "text": "【看護記録(深夜)】 入院 12 日目\n患者状態: BP 121/75, HR 81, SpO2 96%, T 37.0°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-51-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-51-day",
+  "doc-ENC-FORCED-0001-616171532456-52-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-52-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1560,8 +1608,8 @@
       "text": "【看護記録(日勤)】 入院 12 日目\n患者状態: BP 125/70, HR 85, SpO2 94%, T 37.8°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-52-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-52-evening",
+  "doc-ENC-FORCED-0001-616171532456-53-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-53-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1582,8 +1630,8 @@
       "text": "【看護記録(準夜)】 入院 12 日目\n患者状態: BP 125/71, HR 83, SpO2 92%, T 36.2°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-53-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-53-night",
+  "doc-ENC-FORCED-0001-616171532456-54-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-54-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1604,8 +1652,8 @@
       "text": "【看護記録(深夜)】 入院 13 日目\n患者状態: BP 126/74, HR 84, SpO2 95%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-54-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-54-day",
+  "doc-ENC-FORCED-0001-616171532456-55-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-55-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1626,8 +1674,8 @@
       "text": "【看護記録(日勤)】 入院 13 日目\n患者状態: BP 125/73, HR 82, SpO2 99%, T 36.9°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-55-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-55-evening",
+  "doc-ENC-FORCED-0001-616171532456-56-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-56-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1648,8 +1696,8 @@
       "text": "【看護記録(準夜)】 入院 13 日目\n患者状態: BP 122/70, HR 85, SpO2 92%, T 37.1°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-56-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-56-night",
+  "doc-ENC-FORCED-0001-616171532456-57-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-57-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1670,8 +1718,8 @@
       "text": "【看護記録(深夜)】 入院 14 日目\n患者状態: BP 123/77, HR 85, SpO2 94%, T 37.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-57-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-57-day",
+  "doc-ENC-FORCED-0001-616171532456-58-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-58-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1692,8 +1740,8 @@
       "text": "【看護記録(日勤)】 入院 14 日目\n患者状態: BP 126/79, HR 87, SpO2 96%, T 37.3°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-58-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-58-evening",
+  "doc-ENC-FORCED-0001-616171532456-59-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-59-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1714,8 +1762,8 @@
       "text": "【看護記録(準夜)】 入院 14 日目\n患者状態: BP 123/74, HR 86, SpO2 94%, T 37.2°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-59-night": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-59-night",
+  "doc-ENC-FORCED-0001-616171532456-60-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-60-night",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1736,8 +1784,8 @@
       "text": "【看護記録(深夜)】 入院 15 日目\n患者状態: BP 124/74, HR 81, SpO2 94%, T 37.1°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-60-day": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-60-day",
+  "doc-ENC-FORCED-0001-616171532456-61-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-61-day",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1758,8 +1806,8 @@
       "text": "【看護記録(日勤)】 入院 15 日目\n患者状態: BP 124/73, HR 86, SpO2 94%, T 38.2°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-61-evening": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-61-evening",
+  "doc-ENC-FORCED-0001-616171532456-62-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-62-evening",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1777,11 +1825,77 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "【看護記録(準夜)】 入院 15 日目\n患者状態: BP 125/75, HR 83, SpO2 96%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、エノキサパリン。\n観察・ケア継続、特記事項なし。"
+      "text": "【看護記録(準夜)】 入院 15 日目\n患者状態: BP 125/75, HR 83, SpO2 96%, T 36.7°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-62": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-62",
+  "doc-ENC-FORCED-0001-616171532456-63-night": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-63-night",
+    "encounter_id": "ENC-FORCED-0001-616171532456",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.shift",
+        "ctx.medications.today",
+        "ctx.day_index"
+      ],
+      "generated_at": "2024-06-30T00:00:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 15,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "night"
+      },
+      "sections": {},
+      "text": "【看護記録(深夜)】 入院 16 日目\n患者状態: BP 123/74, HR 86, SpO2 96%, T 36.6°C。\n投薬継続: サルブタモール、イプラトロピウム。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-616171532456-64-day": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-64-day",
+    "encounter_id": "ENC-FORCED-0001-616171532456",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.shift",
+        "ctx.medications.today",
+        "ctx.day_index"
+      ],
+      "generated_at": "2024-06-30T08:00:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 15,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "day"
+      },
+      "sections": {},
+      "text": "【看護記録(日勤)】 入院 16 日目\n患者状態: BP 122/78, HR 89, SpO2 94%, T 36.2°C。\n投薬継続: サルブタモール、イプラトロピウム、プレドニゾロン。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-616171532456-65-evening": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-65-evening",
+    "encounter_id": "ENC-FORCED-0001-616171532456",
+    "narrative": {
+      "facts_used": [
+        "ctx.shift",
+        "ctx.vitals.shift",
+        "ctx.medications.today",
+        "ctx.day_index"
+      ],
+      "generated_at": "2024-06-30T16:00:00+09:00",
+      "generator": "llm-mock",
+      "generator_metadata": {
+        "day_index": 15,
+        "generator": "template",
+        "lang": "ja",
+        "shift": "evening"
+      },
+      "sections": {},
+      "text": "【看護記録(準夜)】 入院 16 日目\n患者状態: BP 125/76, HR 87, SpO2 94%, T 36.5°C。\n投薬継続: サルブタモール、イプラトロピウム、メロペネム 1g 静注 8時間毎。\n観察・ケア継続、特記事項なし。"
+    }
+  },
+  "doc-ENC-FORCED-0001-616171532456-66": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-66",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1795,23 +1909,23 @@
         "ctx.disease_protocol.disease_id",
         "ctx.adl_assessments@authored"
       ],
-      "generated_at": "2024-06-30T12:01:00+09:00",
+      "generated_at": "2024-07-01T09:01:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "template",
         "lang": "ja"
       },
       "sections": {
-        "admission_status": "入院期間: 15日間。入院理由: 呼吸困難増悪・喀痰増加・喘鳴。経過中の合併症: せん妄。退院基準を満たし退院となった。",
+        "admission_status": "入院期間: 16日間。入院理由: 呼吸困難増悪・喀痰増加・喘鳴。経過中の合併症: せん妄。退院基準を満たし退院となった。",
         "discharge_readiness": "退院準備: 退院時 Barthel 100/100。",
-        "nursing_interventions_provided": "与薬 211 回 (薬剤 7 種類)、バイタルサイン測定 224 回、酸素投与下の観察 21 回、入院期間合計 IN 14943 mL / OUT 15220 mL (差 -277 mL)、指導: 吸入器の使い方を一緒に確認し、息切れが強いときは早めに知らせるよう説明する。",
+        "nursing_interventions_provided": "与薬 225 回 (薬剤 7 種類)、バイタルサイン測定 239 回、酸素投与下の観察 21 回、入院期間合計 IN 15441 mL / OUT 15901 mL (差 -460 mL)、指導: 吸入器の使い方を一緒に確認し、息切れが強いときは早めに知らせるよう説明する。",
         "patient_education": "患者教育: 吸入器手技の再確認 (定量吸入・スペーサ使用法)、増悪の早期サイン認識 (痰の色調変化・SpO2 低下)、呼吸リハビリの継続方法。"
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-63": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-63",
+  "doc-ENC-FORCED-0001-616171532456-67": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-67",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1843,8 +1957,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-64": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-64",
+  "doc-ENC-FORCED-0001-616171532456-68": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-68",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1877,8 +1991,8 @@
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-ED-65": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-ED-65",
+  "doc-ENC-FORCED-0001-616171532456-ED-69": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-ED-69",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [
@@ -1904,19 +2018,19 @@
         "lang": "ja"
       },
       "sections": {
-        "assessment": "[Mock LLM response #18 — assessment]",
+        "assessment": "[Mock LLM response #19 — assessment]",
         "chief_complaint": "1週間前より痰の量と粘稠度が増加",
-        "disposition": "[Mock LLM response #18 — disposition]",
+        "disposition": "[Mock LLM response #19 — disposition]",
         "ed_workup": "検査: CBC (全血球算定)、CRP、PCT、クレアチニン、BUN、Na、K、血糖。画像: 胸部レントゲン (正面・側面)、胸部 CT。投薬: サルブタモール、イプラトロピウム、プレドニゾロン、ステロイド: プレドニゾロン 40mg 経口 1日1回 x5 日間、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 気管支拡張薬: サルブタモール 2.5mg ネブライザー 4時間毎 (急性期は1時間毎に頓用)、気管支拡張薬: イプラトロピウム 0.5mg ネブライザー 6時間毎",
-        "hpi": "[Mock LLM response #18 — hpi]",
+        "hpi": "[Mock LLM response #19 — hpi]",
         "physical_exam": "来院時所見: BP 126/79 mmHg, HR 86 回/分, RR 28 回/分, SpO2 81%, T 37.1°C。一般状態: 意識清明、中等度の苦痛様。呼吸器: 喘鳴、呼吸音減弱、呼気延長、呼吸数増加。",
         "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 救急車搬送。アレルギー: 薬物アレルギーなし（NKDA）。"
       },
       "text": ""
     }
   },
-  "doc-ENC-FORCED-0001-616171532456-ED-66": {
-    "document_id": "doc-ENC-FORCED-0001-616171532456-ED-66",
+  "doc-ENC-FORCED-0001-616171532456-ED-70": {
+    "document_id": "doc-ENC-FORCED-0001-616171532456-ED-70",
     "encounter_id": "ENC-FORCED-0001-616171532456",
     "narrative": {
       "facts_used": [

@@ -279,9 +279,6 @@ class DailyLoopResult:
     # Issue #3270: a vasopressor / inotrope infusion ran within the observation
     # period before discharge (only when the stay reached its hard cap).
     on_vasoactive_support: bool = False
-    # Issue #3281: acute kidney injury not recovering or a fever at the end of
-    # the stay (only when the extension cap was reached).
-    findings_unresolved: bool = False
     # Issue #3281: the final creatinine meets the AKI definition.
     aki_at_discharge: bool = False
 
@@ -1610,7 +1607,6 @@ def _run_daily_loop(
         differential=run.differential,
         actual_los=actual_los,
         on_vasoactive_support=on_support and not run.death_occurred,
-        findings_unresolved=unresolved and not run.death_occurred,
         aki_at_discharge=run.aki.active and not run.death_occurred,
     )
 

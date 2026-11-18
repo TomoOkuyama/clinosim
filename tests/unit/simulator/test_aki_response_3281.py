@@ -77,7 +77,7 @@ def test_gate_defers_discharge_for_findings() -> None:
     state = PhysiologicalState()
     assert _check_discharge_ready(state, 5, "us")
     assert not _check_discharge_ready(state, 5, "us", findings_unresolved=True)
-    assert discharge_disposition_for(state, {}, died=False, findings_unresolved=True) != DischargeDisposition.HOME
+    assert discharge_disposition_for(state, {}, died=False) == DischargeDisposition.HOME
     bad = aki_course([_cr(0, 0.8), _cr(1, 1.5), _cr(2, 2.0)])
     assert discharge_findings_unresolved(bad, [])
     assert discharge_findings_unresolved(aki_course([]), [_temp(0, 38.5)])
@@ -176,3 +176,31 @@ def test_prn_nsaid_is_not_given_while_aki_is_active() -> None:
     course = aki_course([_cr(0, 0.8), _cr(1, 2.0)])
     assert generate_prn_administrations([order], vitals, PhysiologicalState(), {}, course) == []
     assert generate_prn_administrations([order], vitals, PhysiologicalState(), {}, aki_course([_cr(0, 0.8)]))
+
+
+def _instruction_ctx(creatinine: list[float], lang: str):
+    from types import SimpleNamespace
+
+    labs = [
+        {"result_datetime": (_T0 + timedelta(days=d)).isoformat(), "lab_name": "Creatinine", "value": v}
+        for d, v in enumerate(creatinine)
+    ]
+    return SimpleNamespace(
+        patient=SimpleNamespace(sex="M", smoking_status="never", alcohol_use="none", chronic_conditions=[]),
+        disease_protocol=None,
+        diagnoses=[],
+        discharge_medications=[],
+        lab_results=labs,
+        target_lang=lang,
+        locale="jp" if lang == "ja" else "us",
+    )
+
+
+def test_discharge_instructions_add_a_creatinine_recheck_after_aki_only() -> None:
+    from clinosim.modules.document.narrative.renderers._resolvers import resolve_discharge_instructions
+
+    entry = resolve_discharge_instructions(_instruction_ctx([0.8, 1.5, 2.0], "en")).get("aki_recheck", {})
+    assert "creatinine rechecked" in entry["en"] and "3 months" in entry["en"] and "restarted" in entry["en"]
+    assert "再検査" in entry["ja"] and "再開しないで" in entry["ja"]
+    assert "aki_recheck" not in resolve_discharge_instructions(_instruction_ctx([0.8, 0.9], "en"))
+    assert "aki_recheck" not in resolve_discharge_instructions(_instruction_ctx([], "en"))

@@ -7,7 +7,8 @@ of nephrotoxic or renally cleared drugs (NSAIDs, ACE inhibitors / ARBs,
 thiazide and potassium-sparing diuretics, metformin) are held
 (``AkiCourse.holds``), and the discharge gate keeps the patient in hospital
 while the creatinine has not fallen or a fever persists
-(``discharge_findings_unresolved``). Values live in
+(``discharge_findings_unresolved``); a stay that reaches the extension cap
+keeps its disposition and the discharge instructions carry the recheck. Values live in
 ``reference_data/aki_response.yaml``. Everything here is RNG-free.
 """
 
@@ -158,3 +159,21 @@ def discharge_findings_unresolved(course: AkiCourse, vitals: Iterable[VitalSignR
     """True while the patient is not fit to go home for the kidneys or a
     fever: AKI that has not begun to recover, or a fever in the last day."""
     return course.not_improving or fever_persists(vitals)
+
+
+def aki_active_from_records(records: Iterable[object]) -> bool:
+    """Whether the final creatinine of ``records`` (``OrderResult`` objects or
+    their JSON dicts) meets the AKI definition — the discharge instructions'
+    gate (``applies_when: {aki_at_discharge: true}``)."""
+
+    def field(rec: object, name: str) -> object:
+        return rec.get(name) if isinstance(rec, dict) else getattr(rec, name, None)
+
+    results: list[OrderResult] = []
+    for rec in records:
+        when, value = field(rec, "result_datetime"), field(rec, "value")
+        if isinstance(when, str):
+            when = datetime.fromisoformat(when)
+        if isinstance(when, datetime) and isinstance(value, (int, float)):
+            results.append(OrderResult(result_datetime=when, lab_name=str(field(rec, "lab_name") or ""), value=value))
+    return aki_course(results).active
