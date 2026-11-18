@@ -306,3 +306,49 @@ def get_current_diagnosis_code(
             return (target_candidate.icd_code, _display(target_candidate.icd_code))
         return UNRESOLVED_DIAGNOSIS_ICD, _display(UNRESOLVED_DIAGNOSIS_ICD)
     return code, _display(code)
+
+
+def discharge_diagnosis_code(
+    diff: DifferentialDiagnosis,
+    *,
+    disease_id: str,
+    primary_code: str,
+    protocol_progression: dict | None = None,
+    patient_sex: str | None = None,
+) -> tuple[str, str]:
+    """Returns (ICD code, display name) of the discharge diagnosis of a stay
+    whose ground-truth disease is ``disease_id`` (Issue #3258).
+
+    The differential is a diagnostic work-up, not the diagnosis: its top
+    candidate can be another disease (viral pneumonia for a bacterial one,
+    a kidney stone for pyelonephritis) or the built-in default differential
+    of a disease without its own table (pneumonia for a trauma protocol). The
+    discharge diagnosis is the candidate of the ground-truth disease (the one
+    named ``disease_id``, else the one coded ``primary_code``), stepped through
+    its diagnosis progression by that candidate's own confidence. When the
+    differential holds no such candidate, the progression of ``disease_id``
+    applies at the top candidate's confidence, and without a progression the
+    disease's ``primary_code`` is the discharge code. Draws nothing.
+    """
+    own = next((c for c in diff.candidates if c.disease_code == disease_id), None) or next(
+        (c for c in diff.candidates if primary_code and c.icd_code == primary_code), None
+    )
+    if own is not None:
+        # Restrict the walk to the ground-truth candidate, keeping the sex gate.
+        restricted = DifferentialDiagnosis(
+            candidates=[own], working_diagnosis=own.disease_code, confirmed=diff.confirmed, timestamp=diff.timestamp
+        )
+        return get_current_diagnosis_code(
+            restricted, protocol_progression=protocol_progression, patient_sex=patient_sex
+        )
+    rows = (protocol_progression or {}).get(disease_id) or DIAGNOSIS_PROGRESSION.get(disease_id)
+    if rows and primary_code:
+        confidence = diff.candidates[0].probability if diff.candidates else 0
+        code = rows[0][1]
+        for row in rows:
+            if confidence >= row[0]:
+                code = row[1]
+        return code, _display(code)
+    if primary_code:
+        return primary_code, _display(primary_code)
+    return get_current_diagnosis_code(diff, protocol_progression=protocol_progression, patient_sex=patient_sex)

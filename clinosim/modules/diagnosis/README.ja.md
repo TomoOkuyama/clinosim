@@ -23,7 +23,11 @@ POST_ENCOUNTER enricher 1 本 (`lab_derived_dx.py`、Issue #1326) も所有す�
   敗血症は confidence 行を持たず、重症度コードは入院中の病態から
   `simulator/sepsis_severity.py` が決める (Issue #3269)。
   患者の性別に解剖学的に不適合な候補は skip (Issue #947)、何も解決
-  できなければ `UNRESOLVED_DIAGNOSIS_ICD` sentinel); named 非特異 /
+  できなければ `UNRESOLVED_DIAGNOSIS_ICD` sentinel);
+  `discharge_diagnosis_code` (入院の退院時診断, Issue #3258 — ground-truth
+  疾患の候補を使い、鑑別の別候補は使わない。該当候補を持たない疾患
+  (組み込みの既定鑑別を使う外傷 protocol 等) は自身の progression か
+  primary コードで退院する); named 非特異 /
   fallback コード (`UNRESOLVED_DIAGNOSIS_ICD = "R69"`,
   `ICD_COUGH = "R05"`。R50.9 / R53.1 / R68.8 / Z09 は follow-up sweep
   で抽出予定で未実装); ICD-10 predicate `is_visit_reason_zcode`
@@ -49,6 +53,7 @@ from clinosim.modules.diagnosis.engine import (
     initialize_differential,         # (disease_id, age, protocol_diagnostic=None) -> DifferentialDiagnosis
     update_differential,             # (diff, findings, confirmation_threshold=0.90, protocol_lr_table=None) -> DifferentialDiagnosis
     get_current_diagnosis_code,      # (diff, protocol_progression=None, patient_sex=None) -> (icd_code, display)
+    discharge_diagnosis_code,        # (diff, *, disease_id, primary_code, protocol_progression=None, patient_sex=None) -> (icd_code, display)
 )
 from clinosim.modules.diagnosis.nonspecific_codes import (
     UNRESOLVED_DIAGNOSIS_ICD,        # "R69"

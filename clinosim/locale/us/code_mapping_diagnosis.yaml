@@ -132,6 +132,26 @@ S52.50: "S52.509A"    # Fracture lower end unspecified radius, initial (closed)
 S72.00: "S72.009A"    # Fracture neck of unspecified femur, initial (closed)
 S93.40: "S93.409A"    # Sprain of unspecified ankle ligament, initial encounter
 T07: "T07.XXXA"       # Unspecified multiple injuries, initial encounter
+
+# --- Disease-own discharge codes that are not billable in ICD-10-CM FY2027 (Issue #3258) ---
+#     Each source is a category / header code (CMS order file billable flag 0); the target
+#     is the unspecified-site / initial-encounter leaf (billable flag 1) of the same
+#     condition, as the simulator does not model the site, laterality or vessel.
+K35.2: "K35.209"      # Acute appendicitis with generalized peritonitis, unspecified as to perforation
+I21.0: "I21.09"       # STEMI involving other coronary artery of anterior wall
+K85.1: "K85.10"       # Biliary acute pancreatitis without necrosis or infection
+I48.1: "I48.19"       # Other persistent atrial fibrillation
+L03.11: "L03.119"     # Cellulitis of unspecified part of limb
+I63.3: "I63.30"       # Cerebral infarction due to thrombosis of unspecified cerebral artery
+I80.20: "I80.209"     # Phlebitis and thrombophlebitis of unspecified deep vessels of unspecified lower extremity
+I82.40: "I82.409"     # Acute embolism and thrombosis of unspecified deep veins of unspecified lower extremity
+S72.0: "S72.009A"     # Fracture of unspecified part of neck of unspecified femur, initial (closed)
+K56.6: "K56.609"      # Unspecified intestinal obstruction, unspecified as to partial versus complete
+I26.0: "I26.09"       # Other pulmonary embolism with acute cor pulmonale
+M80.08: "M80.08XA"    # Age-related osteoporosis with current pathological fracture, vertebra(e), initial
+S67.2: "S67.20XA"     # Crushing injury of unspecified hand, initial encounter
+T75.4: "T75.4XXA"     # Electrocution, initial encounter
+T31.2: "T31.20"       # Burns of 20-29% of body surface with 0% to 9% third degree burns
 T14.90: "T14.90XA"    # Injury, unspecified, initial encounter
 T15.0: "T15.00XA"     # Foreign body in cornea, unspecified eye, initial encounter
 T54.9: "T54.91XA"     # Toxic effect of unspecified corrosive substance, initial

@@ -13,7 +13,7 @@ from clinosim.modules.clinical_course.engine import (
     select_archetype,
 )
 from clinosim.modules.diagnosis.engine import (
-    get_current_diagnosis_code,
+    discharge_diagnosis_code,
     initialize_differential,
 )
 from clinosim.modules.diagnosis.nonspecific_codes import UNRESOLVED_DIAGNOSIS_ICD
@@ -162,8 +162,13 @@ def _derive_final_diagnosis(
     # lets `get_current_diagnosis_code` walk to the next-ranked sex-compatible
     # candidate when the top pick is anatomy-locked to the opposite sex
     # (e.g. `prostatitis`/N41.0 on a UTI female patient). Non-RNG walk.
-    dx_code, dx_name = get_current_diagnosis_code(
+    # Issue #3258: the discharge diagnosis is the ground-truth disease's own
+    # code, never another candidate of the differential.
+    disease_id = str(getattr(protocol, "disease_id", "") or "")
+    dx_code, dx_name = discharge_diagnosis_code(
         differential,
+        disease_id=disease_id,
+        primary_code=str(protocol.icd_codes.get("primary", "")),
         protocol_progression=yaml_progression,
         patient_sex=patient.sex,
     )

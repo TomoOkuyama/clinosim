@@ -1307,3 +1307,27 @@ codes:
   Q87.40:
     en: "Marfan syndrome, unspecified"
     ja: "マルファン症候群、詳細不明"
+  K35.209:
+    en: Acute appendicitis with generalized peritonitis, without abscess, unspecified as to perforation
+  I21.09:
+    en: ST elevation (STEMI) myocardial infarction involving other coronary artery of anterior wall
+  K85.10:
+    en: Biliary acute pancreatitis without necrosis or infection
+  I48.19:
+    en: Other persistent atrial fibrillation
+  L03.119:
+    en: Cellulitis of unspecified part of limb
+  I63.30:
+    en: Cerebral infarction due to thrombosis of unspecified cerebral artery
+  I82.409:
+    en: Acute embolism and thrombosis of unspecified deep veins of unspecified lower extremity
+  M80.08XA:
+    en: Age-related osteoporosis with current pathological fracture, vertebra(e), initial encounter for fracture
+  S67.20XA:
+    en: Crushing injury of unspecified hand, initial encounter
+  T75.4XXA:
+    en: Electrocution, initial encounter
+  T31.20:
+    en: Burns involving 20-29% of body surface with 0% to 9% third degree burns
+  I26.09:
+    en: Other pulmonary embolism with acute cor pulmonale

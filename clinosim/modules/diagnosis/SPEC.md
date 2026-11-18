@@ -78,7 +78,11 @@ P(Disease|Test) ∝ P(Test|Disease) × P(Disease)
 > The age adjustment applies only to `heart_failure` (age >= 75, x1.5);
 > referral-based prior adjustment, therapeutic trials,
 > `apply_diagnostic_drift`, `review_status()` and the LLM integration
-> points are not implemented. See [`README.md`](README.md).
+> points are not implemented. The inpatient discharge diagnosis comes from
+> `discharge_diagnosis_code(diff, *, disease_id, primary_code, ...)`
+> (Issue #3258), which restricts the walk to the ground-truth disease's
+> candidate: the differential's top candidate may be another disease and is
+> never the discharge diagnosis. See [`README.md`](README.md).
 
 ### Bayesian update engine
 
