@@ -146,6 +146,8 @@ clinosim/simulator/
   discharge_gate.py      退院タイミング判定ロジック
   vasoactive_support.py  昇圧薬・強心薬の離脱 (MAP 目標達成かつショック離脱) と
                          離脱後に退院まで 1 病日観察する判定 (Issue #3270)
+  vasopressor_initiation.py  記録された平均血圧が輸液後も低い場合に昇圧薬を開始する
+                         (固定病日ではなく生理状態駆動, Issue #3332)
   discharge_rx.py        退院時処方ビルダー
   enrichers.py           enricher レジストリ (post-population / post-records)
   outpatient_dept.py     外来フォローアップ診療科リゾルバ
@@ -248,6 +250,7 @@ CLI サブコマンドハンドラ (11 ファイル):
   reference_data/renal_medication_rules.yaml  腎機能別投与規則 (medication_pipeline.py, discharge_rx.py)
   reference_data/statin_monitoring.yaml       脂質モニタリング / スタチン調整 (statin_monitoring.py)
   reference_data/vasoactive_hold.yaml         昇圧薬・強心薬の持続投与中に保留する薬 (medication_pipeline.py)
+  reference_data/vasopressor_initiation.yaml  低血圧と輸液後の昇圧薬開始条件 (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      昇圧薬・強心薬の離脱条件と離脱後の退院判定 (vasoactive_support.py)
 ```
 

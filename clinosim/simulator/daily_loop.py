@@ -18,6 +18,7 @@ from typing import Any
 
 import numpy as np
 
+from clinosim import determinism
 from clinosim.codes.drugs import has_drug, protocol_drug_name, same_drug
 from clinosim.countries import country_code
 from clinosim.locale.free_text import localize_drug_name
@@ -67,6 +68,7 @@ from clinosim.modules.staff.engine import (
     StaffRoster,
     assign_staff,
 )
+from clinosim.seeding import vasopressor_start_seed
 from clinosim.simulator._daily_loop_thresholds import (
     AIRWAY_CONSCIOUSNESS_MIN,
     AIRWAY_ESCALATION_HOUR,
@@ -123,6 +125,12 @@ from clinosim.simulator.vasoactive_support import (
     stop_weaned_vasoactive_infusions,
     vasoactive_support_after,
     vasoactive_weaning_rules,
+)
+from clinosim.simulator.vasopressor_initiation import (
+    add_on_vasopressor_indicated,
+    first_line_vasopressor,
+    is_vasopressor_start,
+    vasopressor_start_time,
 )
 from clinosim.simulator.ventricular_rate import VentricularRateCourse, first_rate_control_dose
 from clinosim.simulator.vitals_pipeline import (
@@ -805,8 +813,17 @@ def _start_archetype_treatments(stay: _Stay, run: _Run, day: int, mod: dict) -> 
     against itself (Issue #3283).
     """
     encounter_id = stay.encounter_id
+    day_time = stay.admission_time + timedelta(days=day, hours=10)
     for med in archetype_start_entries(mod, stay.country_key):
         if not isinstance(med, dict):
+            continue
+        # Issue #3332: a vasopressor starts from the recorded pressure
+        # (``_start_vasopressor_for_hypotension``), not on this day; a second
+        # one only while a vasopressor runs and the pressure stays low.
+        if is_vasopressor_start(med) and (
+            _running_drug(run.orders, str(med.get("drug_id") or protocol_drug_name(med)))
+            or not add_on_vasopressor_indicated(run.orders, run.vitals, day_time)
+        ):
             continue
         drug = protocol_drug_name(med).strip()
         proc = med.get("procedure", "").strip()
@@ -866,6 +883,58 @@ def _start_archetype_treatments(stay: _Stay, run: _Run, day: int, mod: dict) -> 
         # Skip entries with neither drug nor procedure
 
 
+def _running_drug(orders: list[Order], drug: str) -> bool:
+    """Whether a placed order of ``drug`` (a drug id or name) exists."""
+    return any(o.status == OrderStatus.PLACED and same_drug(o.drug_id or o.display_name, drug) for o in orders)
+
+
+def _start_vasopressor_for_hypotension(stay: _Stay, run: _Run, day: int, vitals_today: list[VitalSignRecord]) -> None:
+    """Start the protocol's first-line vasopressor when the day's recorded
+    mean arterial pressure is low despite fluids (Issue #3332), and chart its
+    doses of the rest of the day. The staff draw of those doses uses an own
+    sub-RNG, so no draw of the stay's stream is added."""
+    entry = first_line_vasopressor(stay.protocol, stay.archetype, stay.country_key)
+    if entry is None:
+        return
+    start = vasopressor_start_time(run.orders, vitals_today, hospital_day_start(stay.admission_time, day))
+    if start is None:
+        return
+    drug_name = protocol_drug_name(entry)
+    dose = entry.get("dose", "")
+    target = f"{vasoactive_weaning_rules().map_target_mmhg:g}"
+    order = Order(
+        order_id=f"ORD-{stay.encounter_id}-VASO-D{day}-{sanitize_id_token(drug_name, 8)}",
+        encounter_id=stay.encounter_id,
+        patient_id=stay.patient.patient_id,
+        order_type=OrderType.MEDICATION,
+        order_code=protocol_drug_order_code(entry, stay.country_key),
+        order_code_system=protocol_drug_order_code_system(entry, stay.country_key),
+        display_name=f"{drug_name} {dose}".strip(),
+        urgency="urgent",
+        clinical_intent=t("order_intent.vasopressor_for_hypotension", "en", day=day, target=target),
+        clinical_intent_ja=t("order_intent.vasopressor_for_hypotension", "ja", day=day, target=target),
+        ordered_datetime=start,
+        ordered_by=stay.attending_id,
+        status=OrderStatus.PLACED,
+        route=entry.get("route", "IV"),
+        dose_text_ja=language_slot(entry.get("dose_text"), "ja"),
+        dose_text_en=language_slot(entry.get("dose_text"), "en"),
+    )
+    run.orders.append(order)
+    run.mars.extend(
+        _generate_mar(
+            stay.patient,
+            [order],
+            day,
+            stay.admission_time,
+            department=stay.department,
+            roster=stay.roster,
+            rng=determinism.default_rng(vasopressor_start_seed(stay.encounter_id, day)),
+            child=stay.child,
+        )
+    )
+
+
 def _escalate_treatment(stay: _Stay, run: _Run, day: int) -> None:
     """Treatment escalation: inflammation not improving by day 3.
 
@@ -889,6 +958,10 @@ def _escalate_treatment(stay: _Stay, run: _Run, day: int) -> None:
         if esc_prob is not None and float(esc_prob) < 1.0:
             if stay.rng.random() >= float(esc_prob):
                 continue
+        # Issue #3332: a vasopressor starts from the recorded pressure, not
+        # on the escalation day.
+        if is_vasopressor_start(esc_drug):
+            continue
         drug_name = protocol_drug_name(esc_drug) or str(esc_drug.get("procedure") or "")
         dose = esc_drug.get("dose", "")
         indication = esc_drug.get("indication", "no improvement")
@@ -1006,6 +1079,7 @@ def _record_bedside_observations(stay: _Stay, run: _Run, day: int) -> None:
         ventricular_rate=_ventricular_rate_course(stay, run),
     )  # noqa: E501
     run.vitals.extend(vitals_today)
+    _start_vasopressor_for_hypotension(stay, run, day, vitals_today)
     # Issue #2085: PRN analgesia / benzodiazepines on demand from today's
     # pain scores and autonomic state.
     run.mars.extend(generate_prn_administrations(run.orders, vitals_today, run.state, run.prn_last_given))
@@ -1336,6 +1410,11 @@ def _run_daily_loop(
         if _dies_today(stay, run, day, expected_mortality_multiplier):
             run.death_occurred = True
             _record_terminal_course(stay, run, day)
+            # Issue #3332: the terminal hypotension is treated like any other.
+            day_start = hospital_day_start(stay.admission_time, day)
+            _start_vasopressor_for_hypotension(
+                stay, run, day, [v for v in run.vitals if day_start <= v.timestamp < day_start + timedelta(days=1)]
+            )
             break
         # Issue #3270: no discharge on or within the observation day after
         # vasopressor / inotrope support.

@@ -233,7 +233,7 @@ def urosepsis_with_norepinephrine():
     from clinosim.types.config import ForcedScenario, SimulatorConfig
 
     scenario = ForcedScenario(
-        disease_id="urinary_tract_infection", count=3, severity="severe", archetype="sudden_deterioration"
+        disease_id="urinary_tract_infection", count=8, severity="severe", archetype="sudden_deterioration"
     )
     return run_forced(scenario, SimulatorConfig(random_seed=7, country="US"))
 
@@ -245,7 +245,8 @@ def test_simulated_stay_weans_norepinephrine_and_observes_before_discharge(urose
     for record in urosepsis_with_norepinephrine.patients:
         enc = record.encounters[0]
         vaso = [o for o in record.orders if is_vasoactive_infusion(o)]
-        assert vaso, "the archetype starts norepinephrine"
+        if not vaso:  # Issue #3332: a vasopressor starts only from recorded hypotension.
+            continue
         if enc.discharge_disposition == DischargeDisposition.EXP or enc.discharge_datetime is None:
             continue
         ids = {o.order_id for o in vaso}

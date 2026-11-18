@@ -431,6 +431,13 @@ def radiation_therapy_seed(encounter_id: str) -> int:
     return _digest_int(f"rt:{encounter_id}", 8)
 
 
+def vasopressor_start_seed(encounter_id: str, day: int) -> int:
+    """Per-(encounter, hospital day) seed of the staff draw of the
+    medication administrations of a vasopressor started from hypotension
+    (Issue #3332, 64-bit); the stay's own RNG is not read."""
+    return _digest_int(f"vasopressor-start:{encounter_id}:{day}", 8)
+
+
 def avpu_day_seed(patient_id: str, day: int) -> int:
     """Per-(patient, hospital day) seed of the day-stable AVPU level (64-bit)."""
     return _digest_int(f"avpu:{patient_id}:{day}", 8)
