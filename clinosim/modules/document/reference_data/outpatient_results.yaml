@@ -1,0 +1,36 @@
+# How an outpatient note states the results behind a chronic problem
+# (Issues #3231, #3273). Read by narrative/_outpatient_results.py.
+#
+# prior_lab_analytes: canonical analytes whose latest result before the note
+#   (a lab of an earlier encounter of the patient, with its date) is cited when
+#   the visit has none of its own, instead of the stage stored on the problem
+#   list (which the simulation does not refresh from its labs).
+# ckd_g_stages: eGFR (mL/min/1.73 m2) lower bound of each CKD G category, in
+#   descending order. These are the KDIGO GFR category cut-offs the notes used
+#   before this file existed, carried over unchanged (not re-verified against
+#   the KDIGO 2012 guideline text in this change).
+# screening_scores: scores reported as "<name> <value>" in the Assessment.
+#   positive_from: a score at or above it is a positive screen, followed by the
+#   plan line `follow_up` (locale/shared/narrative_phrases.yaml
+#   outpatient_results.follow_up_<follow_up>). The simulator records the C-SSRS
+#   as the ideation severity 0-5 (observation/reference_data/lab_constants.yaml),
+#   so any value >= 1 is a positive screen.
+metadata:
+  kind: reference
+  name: outpatient_results
+  source: clinosim
+
+prior_lab_analytes: [HbA1c, LDL, eGFR, Creatinine, Hb]
+
+ckd_g_stages:
+  - {min_egfr: 90, stage: G1}
+  - {min_egfr: 60, stage: G2}
+  - {min_egfr: 45, stage: G3a}
+  - {min_egfr: 30, stage: G3b}
+  - {min_egfr: 15, stage: G4}
+  - {min_egfr: 0, stage: G5}
+
+screening_scores:
+  PHQ-9: {}
+  GAD-7: {}
+  C-SSRS: {positive_from: 1, follow_up: suicide_risk}

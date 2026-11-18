@@ -32,13 +32,15 @@ Generator-threaded helpers (stay on the class):
 
 from __future__ import annotations
 
+import re
+from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 
 from clinosim.codes import display as registry_display
-from clinosim.codes.drugs import medication_matches
+from clinosim.codes.drugs import drug_key, medication_matches
 from clinosim.codes.valuesets import concept_group, iter_chronic_codes
 from clinosim.countries import country_code, has_authored_narrative
 from clinosim.determinism import sha_index
@@ -56,6 +58,11 @@ from clinosim.modules.document.narrative._narrative_interpretation_thresholds im
     chronic_control_targets,
 )
 from clinosim.modules.document.narrative._narrative_utils import _age_at
+from clinosim.modules.document.narrative._outpatient_results import (
+    ckd_g_stage,
+    prior_lab_values,
+    screening_scores,
+)
 from clinosim.modules.document.narrative._template_helpers import (
     _pick_localized,
     _render_home_med_name,
@@ -76,9 +83,13 @@ from clinosim.modules.document.narrative.renderers._shared_helpers import (
     ordered_chronic_conditions,
 )
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
+from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
+    home_medications_at_admission,
+)
 from clinosim.modules.document.reference_data_loaders import AsthmaControlInstruments, ChronicMedClassHints
 from clinosim.modules.observation.pediatric_ranges import age_in_completed_months, pediatric_vital_range
 from clinosim.reference_data import load_reference_yaml
+from clinosim.simulator.statin_monitoring import ldl_risk_threshold as statin_ldl_risk_threshold
 from clinosim.simulator.statin_monitoring import ldl_target as statin_ldl_target
 from clinosim.types.document import DocumentType, NarrativeContext
 
@@ -146,6 +157,17 @@ def _asthma_control_phrase_key(age: int | None) -> str:
         if drug_spec_in_age_band(b, age):
             return str(b["phrase"])
     return str(bands[0]["phrase"])
+
+
+# Lab names (lowercase) one source supplies together when a visit has none of
+# them (Issue #3273): renal function and the blood count are never mixed from
+# a visit and an earlier one.
+_LAB_GROUPS: tuple[tuple[str, ...], ...] = (
+    ("hba1c",),
+    ("ldl",),
+    ("egfr", "creatinine", "cr"),
+    ("hb", "hemoglobin"),
+)
 
 
 def _get_soap_template(ctx: NarrativeContext) -> Any | None:
@@ -372,11 +394,15 @@ def build_outpatient_objective(generator: TemplateNarrativeGenerator, ctx: Narra
     kind = visit_kind(ctx)
     values = kind_values(ctx, kind)
     reason_lines = kind_lines(ctx, kind, "objective", values)
+    # Issue #3231: the flagged lab results and screening scores of the visit.
+    results = _result_objective(ctx)
+    if results:
+        facts.append("ctx.lab_results.today")
     if reason_lines:
         # Issue #3249 / #3252: the visit reason's findings (growth, wound,
         # pre-treatment labs, screening results).
         facts.append("composed:visit_reason.objective")
-        body = join_sentences(reason_lines, lang)
+        body = join_sentences([*reason_lines, *([results] if results else [])], lang)
         if vital_line:
             facts.append("ctx.vitals")
             return f"{vital_line}{t('list_sep.period_space', lang)}{body}", facts
@@ -391,15 +417,19 @@ def build_outpatient_objective(generator: TemplateNarrativeGenerator, ctx: Narra
             # supply the section.
             template_prose = ""
 
+    sep = t("list_sep.period_space", lang)
+    tail = f"{sep}{results}" if results else ""
     if vital_line and template_prose:
         facts.extend(["ctx.vitals", "outpatient_soap_template.objective"])
-        return f"{vital_line}。{template_prose.strip()}", facts
+        return f"{vital_line}。{template_prose.strip()}{tail}", facts
     if vital_line:
         facts.append("ctx.vitals")
-        return vital_line, facts
+        return f"{vital_line}{tail}", facts
     if template_prose:
         facts.append("outpatient_soap_template.objective")
-        return template_prose.strip(), facts
+        return f"{template_prose.strip()}{tail}", facts
+    if results:
+        return results, facts
     return fallback, facts
 
 
@@ -624,6 +654,29 @@ def _numbered(items: list[str]) -> str:
 
 
 def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> list[str]:
+    """The Assessment items of the chronic problems (``_chronic_assessment``),
+    then the visit's abnormal results and screening scores (Issue #3231) and
+    its abnormal vital signs (Issue #1183)."""
+    items = _chronic_assessment(ctx, skip_code).items
+    items.extend(finding for finding, _plan in _visit_result_findings(ctx))
+    # Issue #1183: an abnormal vital sign surfaces in the Assessment whatever
+    # the chronic-condition list. Issue #3251: as a finding linked to the
+    # known diagnosis, with the matching plan line (``_visit_vital_findings``).
+    items.extend(finding for finding, _plan in _visit_vital_findings(ctx))
+    return items
+
+
+@dataclass
+class _ChronicAssessment:
+    """The per-problem Assessment items, the lab names they cite (lowercase)
+    and the plan lines the judgements call for."""
+
+    items: list[str] = field(default_factory=list)
+    cited: set[str] = field(default_factory=set)
+    plans: list[str] = field(default_factory=list)
+
+
+def _chronic_assessment(ctx: NarrativeContext, skip_code: str = "") -> _ChronicAssessment:
     """SOAP Assessment enriched with today's vitals + labs + target
     comparison prose (Issue #985 personalization).
 
@@ -653,8 +706,9 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
     stub falls through when no measurement is available.
     """
     patient = ctx.patient
+    out = _ChronicAssessment()
     if patient is None:
-        return []
+        return out
     conditions = _o(patient, "chronic_conditions", []) or []
     # Issue #1183: the empty-conditions early return silently dropped
     # abnormal-vital lines for patients with no chronic conditions.
@@ -675,6 +729,28 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
         if not name or val is None:
             continue
         lab_by_name[name] = (val, _o(lab, "unit", None))
+    # Issue #3273: an analyte the visit did not measure is cited from the
+    # latest earlier result (with its date) rather than from the stage stored
+    # on the problem list. A group (renal function, blood count) is taken
+    # whole from one source, never mixed.
+    measured_on: dict[str, str] = {}
+    for _group in _LAB_GROUPS:
+        if any(n in lab_by_name for n in _group):
+            continue
+        _prior = prior_lab_values(ctx)
+        _have = [n for n in _group if n in _prior]
+        if _have:
+            _pick = _have[0]
+            lab_by_name[_pick] = (_prior[_pick][0], _prior[_pick][1])
+            measured_on[_pick] = _prior[_pick][2]
+
+    def _when(*names: str) -> str:
+        """`` (measured YYYY-MM-DD)`` for the first of ``names`` taken from an
+        earlier visit, else empty."""
+        for n in names:
+            if n in measured_on:
+                return t("outpatient_results.measured_on", ctx.target_lang, date=measured_on[n])
+        return ""
 
     lang = ctx.target_lang
     _sex = str(_o(patient, "sex", "") or "")
@@ -685,24 +761,26 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
     # Render in the target locale and match hints in the target locale so
     # a US assessment cites the English drug name and a JP assessment
     # cites the katakana name.
-    cur_meds = _o(patient, "current_medications", []) or []
-    med_names_display = [_render_home_med_name(m, lang=ctx.target_lang) for m in cur_meds]
-    med_names_display = [n for n in med_names_display if n]
-
-    def _pick_med_containing(hints: tuple[str, ...]) -> str | None:
-        """Return the first current-med whose (language-rendered) name
-        contains any hint; the hints are in the same language."""
-        for n in med_names_display:
-            for h in hints:
-                if h in n:
-                    return n
-        return None
+    # Issue #3250 / #3262: the medications at the start of the visit.
+    cur_meds = home_medications_at_admission(ctx)[0]
+    med_rows = [m for m in cur_meds if _render_home_med_name(m, lang=ctx.target_lang)]
+    med_names_display = [_render_home_med_name(m, lang=ctx.target_lang) for m in med_rows]
 
     def _pick_med_by_class(class_key: str) -> str | None:
-        """Shorthand for `_pick_med_containing(*_chronic_med_class_hints(key))`."""
-        return _pick_med_containing(_chronic_med_class_hints(class_key, lang))
+        """Every current medication of a chronic-condition class, joined
+        (Issue #3250: all the drugs of the class, not the first): a name
+        containing a hint of ``chronic-med-class-hints.yaml`` (in the output
+        language) or a drug of the class's catalog drug classes."""
+        hints = _chronic_med_class_hints(class_key, lang)
+        classes = tuple(_chronic_med_class_hints_raw().get(class_key, {}).get("drug_classes") or ())
+        picked = [
+            n
+            for n, m in zip(med_names_display, med_rows, strict=True)
+            if any(h in n for h in hints) or (classes and medication_matches(m, classes=classes))
+        ]
+        return t("list_sep.serial", lang).join(picked) if picked else None
 
-    items: list[str] = []
+    items = out.items
     # Issue #3259: a problem is listed once (two codes with one name — I80
     # and I82 deep-vein thrombosis — are one item), and the diabetes control
     # judgement (HbA1c, glucose, medication) is written once, on the first
@@ -715,6 +793,7 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
         listed.add(chronic_condition_label(skip_code, country_code(ctx.locale), ctx.target_lang, _sex) or skip_code)
     diabetes_judged = False
     for c in ordered_chronic_conditions(ctx):
+        _dm_judged_before = diabetes_judged
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
         # Issue #2994: the label of the condition the output codes.
         label = chronic_condition_label(code, country_code(ctx.locale), ctx.target_lang, _sex) or code
@@ -746,6 +825,9 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
             med = _pick_med_by_class("hypertension")
             med_tail = t("chronic_assessment.med_continue_tail", lang, med=med) if med else ""
             interp = f"BP {int(sbp)}/{int(dbp)} mmHg — {target} — {ctrl}{med_tail}" + t("list_sep.period", lang)
+            # Issue #3250: a reading above target calls for a plan action.
+            if bp_control(float(sbp), float(dbp), _bp_target, ctx.locale) != "at_goal":
+                out.plans.append(t("outpatient_results.plan_bp_above_target", lang))
 
         # ── E11 / E10: Diabetes mellitus ───────────────────────────
         elif concept_group("diabetes").contains(code_prefix) and not diabetes_judged:
@@ -765,13 +847,14 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
                 except (TypeError, ValueError):
                     ctrl = ""
                 target = t("control_status.hba1c_target_below_7", lang)
-                parts_dm.append(
-                    f"HbA1c {v}{u or '%'} — {target} — {ctrl}" if ctrl else f"HbA1c {v}{u or '%'} — {target}"
-                )
+                out.cited.add("hba1c")
+                _hb = f"HbA1c {v}{u or '%'}{_when('hba1c')}"
+                parts_dm.append(f"{_hb} — {target} — {ctrl}" if ctrl else f"{_hb} — {target}")
             # 尿アルブミン (pertinent info when measured)
             ualb = lab_by_name.get("urine_albumin") or lab_by_name.get("albuminuria")
             if ualb:
                 v, u = ualb
+                out.cited.update(("urine_albumin", "albuminuria"))
                 parts_dm.append(t("chronic_labs.urine_albumin", lang, value=v, unit=u or "mg/gCr"))
             # 空腹時血糖 — Issue #1188 F4: Nathan formula consistency
             # gate. `eAG (mg/dL) ≈ 28.7 × HbA1c − 46.7`. When HbA1c is
@@ -801,6 +884,7 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
                     except (TypeError, ValueError):
                         pass
                 if _emit_glucose:
+                    out.cited.add("glucose")
                     parts_dm.append(t("chronic_labs.glucose_line", lang, value=v_g, unit=u_g or "mg/dL"))
             med = _pick_med_by_class("diabetes")
             if med:
@@ -817,11 +901,21 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
             # (statin_monitoring.ldl_target); none in the US, whose
             # guideline sets no LDL target.
             _target = statin_ldl_target(SimpleNamespace(chronic_conditions=conditions), ctx.locale)
+            # Issue #3272: without a target (the US) the LDL is judged against
+            # the patient's risk-based decision threshold, never called "at
+            # goal" against a band that is not a goal.
+            _threshold = statin_ldl_risk_threshold(SimpleNamespace(chronic_conditions=conditions), ctx.locale)
             if ldl:
                 v, u = ldl
+                out.cited.add("ldl")
                 try:
                     vf = float(v)
-                    if vf >= _ldl.high:
+                    if _target is None and _threshold is not None:
+                        _side = "above" if vf >= _threshold[0] else "below"
+                        ctrl = t(
+                            f"chronic_assessment.ldl_threshold_{_side}_{_threshold[1]}", lang, ldl=f"{_threshold[0]:g}"
+                        )
+                    elif vf >= _ldl.high:
                         ctrl = t("control_status.high_ldl_statin_underresponse", lang)
                     elif vf >= _ldl.borderline:
                         ctrl = t("control_status.borderline_intensification", lang)
@@ -838,7 +932,9 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
                 )
                 med = _pick_med_by_class("dyslipidemia")
                 med_tail = t("chronic_assessment.med_continue_tail", lang, med=med) if med else ""
-                interp = f"LDL {v} {u or 'mg/dL'} — {target_part}{ctrl}{med_tail}" + t("list_sep.period", lang)
+                interp = f"LDL {v} {u or 'mg/dL'}{_when('ldl')} — {target_part}{ctrl}{med_tail}" + t(
+                    "list_sep.period", lang
+                )
 
         # ── N18: Chronic kidney disease ────────────────────────────
         elif code_prefix.startswith("N18"):
@@ -848,19 +944,7 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
             if egfr:
                 v, u = egfr
                 try:
-                    vf = float(v)
-                    if vf >= 90:
-                        stage = "G1"
-                    elif vf >= 60:
-                        stage = "G2"
-                    elif vf >= 45:
-                        stage = "G3a"
-                    elif vf >= 30:
-                        stage = "G3b"
-                    elif vf >= 15:
-                        stage = "G4"
-                    else:
-                        stage = "G5"
+                    stage = ckd_g_stage(float(v))
                 except (TypeError, ValueError):
                     stage = ""
                 stage_ja = t("chronic_labs.ckd_stage", lang, stage=stage)
@@ -868,10 +952,12 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
                 # annotation that reads as a placeholder in narrative.
                 # Prefer the plain human display for prose emit.
                 display_u = "mL/min/1.73m²" if u and "1.73" in str(u) else (u or "mL/min/1.73m²")
-                parts_ckd.append(f"eGFR {v} {display_u} ({stage_ja})")
+                out.cited.update(("egfr", "creatinine", "cr"))
+                parts_ckd.append(f"eGFR {v} {display_u}{_when('egfr')} ({stage_ja})")
             if cr and not egfr:
                 v, u = cr
-                parts_ckd.append(f"Cr {v} {u or 'mg/dL'}")
+                out.cited.update(("creatinine", "cr"))
+                parts_ckd.append(f"Cr {v} {u or 'mg/dL'}{_when('creatinine', 'cr')}")
             if parts_ckd:
                 interp = t("list_sep.serial", lang).join(parts_ckd) + (t("chronic_monitoring.renal_function", lang))
 
@@ -902,8 +988,15 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
                 target = t("chronic_assessment.inr_target_standard", lang)
                 parts_afib.append(f"PT-INR {v} — {target} — {ctrl}" if ctrl else f"PT-INR {v} — {target}")
             elif on_doac:
-                parts_afib.extend(_doac_monitoring_values(lab_by_name))
-                parts_afib.append(t("chronic_assessment.doac_renal_bleeding_review", lang))
+                parts_afib.extend(_doac_monitoring_values(lab_by_name, measured_on, lang))
+                out.cited.update(("egfr", "creatinine", "cr", "hb", "hemoglobin"))
+                # Issue #3231: the renal review is stated only when a renal
+                # result is available; otherwise the plan orders it.
+                if any(n in lab_by_name for n in ("egfr", "creatinine", "cr")):
+                    parts_afib.append(t("chronic_assessment.doac_renal_bleeding_review", lang))
+                else:
+                    parts_afib.append(t("chronic_assessment.doac_renal_to_check", lang))
+                    out.plans.append(t("outpatient_results.plan_doac_renal_check", lang))
             med = _pick_med_by_class("afib_anticoagulation")
             if med:
                 parts_afib.append(t("prescription.medication_continue", lang, med=med))
@@ -951,6 +1044,14 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
             # entry with no acute change. Neither phrase re-quotes
             # the vitals and neither defers the judgement.
             condition_stage = str(_o(c, "stage", "") or "").strip()
+            # Issue #3259 / #3273: a diabetic complication's stored stage is an
+            # HbA1c, the diabetes' own staging, not the complication's: omitted.
+            if (
+                _dm_judged_before
+                and concept_group("diabetes").contains(code_prefix)
+                and _HBA1C_IN_STAGE.search(condition_stage)
+            ):
+                condition_stage = ""
             if condition_stage:
                 # Issue #3253: a condition followed for a drug class the
                 # patient does not take is not "management continued".
@@ -963,7 +1064,11 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
                 follow = t(
                     "chronic_assessment.chronic_stage_untreated"
                     if _untreated
-                    else "chronic_assessment.chronic_stage_stable",
+                    else (
+                        "chronic_assessment.chronic_stage_above_target"
+                        if _stage_hba1c_above_target(condition_stage)
+                        else "chronic_assessment.chronic_stage_stable"
+                    ),
                     lang,
                     label=label,
                     # Issue #3034: the stage label in the output language.
@@ -973,11 +1078,76 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
             else:
                 items.append(t("chronic_assessment.chronic_noted", lang, label=label))
 
-    # Issue #1183: an abnormal vital sign surfaces in the Assessment whatever
-    # the chronic-condition list. Issue #3251: as a finding linked to the
-    # known diagnosis, with the matching plan line (``_visit_vital_findings``).
-    items.extend(finding for finding, _plan in _visit_vital_findings(ctx))
-    return items
+    return out
+
+
+_HBA1C_IN_STAGE = re.compile(r"HbA1c\s*([0-9]+(?:\.[0-9]+)?)")
+
+
+def _stage_hba1c_above_target(stage: str) -> bool:
+    """Whether a stored stage text is an HbA1c at or above the target of the
+    diabetes control judgement (Issue #3273): such a stage is not "no acute
+    change"."""
+    m = _HBA1C_IN_STAGE.search(stage)
+    return m is not None and float(m.group(1)) >= NARRATIVE_HBA1C_DIABETES_THRESHOLD + 0.5
+
+
+def _result_lab_entries(ctx: NarrativeContext, *, uncited_only: bool) -> list[str]:
+    """The visit's flagged lab results worded as in the inpatient notes
+    (``_notable_labs``), at most ``max_items.note`` and a count of the rest;
+    with ``uncited_only`` the analytes the chronic-problem items already cite
+    are left out (Issue #3231)."""
+    from clinosim.modules.document.narrative._narrative_interpretation_thresholds import notable_lab_rules
+    from clinosim.modules.document.narrative._notable_labs import notable_lab_entries
+
+    labs = list(ctx.lab_results or [])
+    if uncited_only:
+        cited = _chronic_assessment(ctx).cited
+        labs = [lab for lab in labs if str(_o(lab, "lab_name", "") or "").lower() not in cited]
+    return notable_lab_entries(labs, None, None, ctx.target_lang, limit=notable_lab_rules().max_items.note)
+
+
+def _score_text(name: str, value: float, positive: bool, lang: str) -> str:
+    text = f"{name} {value:g}"
+    return f"{text} {t('outpatient_results.positive_screen', lang)}" if positive else text
+
+
+def _visit_result_findings(ctx: NarrativeContext) -> list[tuple[str, str]]:
+    """``(assessment item, plan line)`` for the visit's results that no
+    chronic-problem item cites (Issue #3231): the flagged lab results, and the
+    screening scores (a positive screen with its follow-up plan)."""
+    lang = ctx.target_lang
+    out: list[tuple[str, str]] = []
+    # A screening visit's own Assessment already lists its abnormal results.
+    entries = [] if visit_kind(ctx) == "screening" else _result_lab_entries(ctx, uncited_only=True)
+    if entries:
+        out.append(
+            (
+                t("outpatient_results.abnormal_labs", lang, list=t("list_sep.semicolon", lang).join(entries)),
+                t("outpatient_results.plan_abnormal_labs", lang),
+            )
+        )
+    scores = screening_scores(list(ctx.lab_results or []))
+    if scores:
+        text = t("list_sep.serial", lang).join(_score_text(n, v, f is not None, lang) for n, v, f in scores)
+        follow_ups = [t(f"outpatient_results.follow_up_{f}", lang) for _n, _v, f in scores if f]
+        out.append((t("outpatient_results.screening_scores", lang, list=text), "\n".join(follow_ups)))
+    return out
+
+
+def _result_objective(ctx: NarrativeContext) -> str:
+    """The Objective sentence(s) of the visit's flagged lab results and
+    screening scores (Issue #3231); empty when it has none."""
+    lang = ctx.target_lang
+    parts: list[str] = []
+    entries = _result_lab_entries(ctx, uncited_only=False)
+    if entries:
+        parts.append(t("outpatient_results.objective_labs", lang, list=t("list_sep.semicolon", lang).join(entries)))
+    scores = screening_scores(list(ctx.lab_results or []))
+    if scores:
+        text = t("list_sep.serial", lang).join(_score_text(n, v, f is not None, lang) for n, v, f in scores)
+        parts.append(t("outpatient_results.objective_scores", lang, list=text))
+    return join_sentences(parts, lang) if parts else ""
 
 
 def _visit_vital_findings(ctx: NarrativeContext) -> list[tuple[str, str]]:
@@ -1012,22 +1182,32 @@ def _is_tachycardic(hr: float, patient: Any, vital: Any, ctx: NarrativeContext) 
     return hr > rng.high if rng is not None else hr >= NARRATIVE_ADULT_TACHYCARDIA_HR
 
 
-def _doac_monitoring_values(lab_by_name: dict[str, tuple[Any, str | None]]) -> list[str]:
-    """Today's renal function and blood count of a DOAC patient, as cited
-    in the AF assessment (Issue #2993): eGFR (else creatinine), then Hb."""
+def _doac_monitoring_values(
+    lab_by_name: dict[str, tuple[Any, str | None]], measured_on: dict[str, str], lang: str
+) -> list[str]:
+    """The renal function and blood count of a DOAC patient, as cited in the
+    AF assessment (Issue #2993): eGFR (else creatinine), then Hb; a result of
+    an earlier visit carries its date (Issue #3273)."""
+
+    def _when(*names: str) -> str:
+        for n in names:
+            if n in measured_on:
+                return t("outpatient_results.measured_on", lang, date=measured_on[n])
+        return ""
+
     out: list[str] = []
     egfr = lab_by_name.get("egfr")
     cr = lab_by_name.get("cr") or lab_by_name.get("creatinine")
     if egfr:
         v, u = egfr
-        out.append(f"eGFR {v} {'mL/min/1.73m²' if not u or '1.73' in str(u) else u}")
+        out.append(f"eGFR {v} {'mL/min/1.73m²' if not u or '1.73' in str(u) else u}{_when('egfr')}")
     elif cr:
         v, u = cr
-        out.append(f"Cr {v} {u or 'mg/dL'}")
+        out.append(f"Cr {v} {u or 'mg/dL'}{_when('creatinine', 'cr')}")
     hb = lab_by_name.get("hb") or lab_by_name.get("hemoglobin")
     if hb:
         v, u = hb
-        out.append(f"Hb {v} {u or 'g/dL'}")
+        out.append(f"Hb {v} {u or 'g/dL'}{_when('hb', 'hemoglobin')}")
     return out
 
 
@@ -1052,6 +1232,13 @@ def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     kind = visit_kind(ctx)
     # Issue #3251: each vital-sign finding of the Assessment has its plan line.
     vital_plans = [plan for _finding, plan in _visit_vital_findings(ctx)]
+    # Issues #3231 / #3250: the plan lines of the chronic-problem judgements
+    # (BP above target, DOAC renal check) and of the abnormal results.
+    vital_plans = [
+        *dict.fromkeys(_chronic_assessment(ctx).plans),
+        *(line for _finding, plan in _visit_result_findings(ctx) for line in plan.split("\n") if line),
+        *vital_plans,
+    ]
     # Issues #3249 / #3252: the next visit the visit reason calls for (None:
     # the chronic follow-up line; "": no scheduled return).
     reason_next = next_visit_line(ctx, kind)
@@ -1094,15 +1281,22 @@ def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     if titration:
         lines.append(titration)
         facts.append("ctx.discharge_medications.titration")
-    continuation = _compose_current_medications_line(ctx)
-    if continuation:
-        lines.append(continuation)
-        facts.append("ctx.patient.current_medications")
-
+    # Issue #3250: one medication list. With a prescription issued at the
+    # visit, that prescription and its difference from the medications at the
+    # start of the visit; without one, the medications continued.
     today_rx = _compose_today_prescription_line(ctx)
     if today_rx:
         lines.append(today_rx)
         facts.append("ctx.discharge_medications")
+        changes = _compose_medication_changes_line(ctx)
+        if changes:
+            lines.append(changes)
+            facts.append(home_medications_at_admission(ctx)[1])
+    else:
+        continuation = _compose_current_medications_line(ctx)
+        if continuation:
+            lines.append(continuation)
+            facts.append(home_medications_at_admission(ctx)[1])
 
     today_procs = _compose_today_procedures_line(ctx)
     if today_procs:
@@ -1258,18 +1452,61 @@ def _compose_follow_up_line(ctx: NarrativeContext) -> str:
     return t("prescription.next_visit", lang, days=d)
 
 
-def _compose_current_medications_line(ctx: NarrativeContext) -> str:
-    """List the patient's current medications for the Plan section.
+def _med_key(med: Any) -> str:
+    """Identity of a medication across the home list and the prescription: the
+    catalog drug id (of the id, else of the name), else the folded name."""
+    name, _cat = strip_protocol_prefix(str(_o(med, "drug_name", "") or ""))
+    return drug_key(str(_o(med, "drug_id", "") or name))
 
-    Reads from `ctx.patient.current_medications` (chronic Rx list, populated
-    by the population enricher). Returns "" when the list is empty.
+
+def _compose_medication_changes_line(ctx: NarrativeContext) -> str:
+    """How today's prescription differs from the medications at the start of
+    the visit (Issue #3250): drugs started, drugs whose dose changed, and home
+    drugs not on the prescription ("not renewed", the prescription does not
+    say they were stopped). An identical list says so."""
+    from clinosim.locale.free_text import localize_drug_name
+
+    lang = ctx.target_lang
+    rx = [m for m in (getattr(ctx, "discharge_medications", None) or []) if _o(m, "drug_name", "")]
+    if not rx:
+        return ""
+    home = {_med_key(m): m for m in home_medications_at_admission(ctx)[0] if _med_key(m)}
+    today = {_med_key(m): m for m in rx}
+
+    def _name(m: Any) -> str:
+        return str(localize_drug_name(strip_protocol_prefix(str(_o(m, "drug_name", "")))[0], lang))
+
+    def _dose(m: Any) -> str:
+        return str(_o(m, "dose", "") or "").replace(" ", "").lower()
+
+    started = [_name(m) for k, m in today.items() if k not in home]
+    changed = [
+        f"{_name(m)} ({_o(home[k], 'dose', '')} → {_o(m, 'dose', '')})"
+        for k, m in today.items()
+        if k in home and _dose(m) and _dose(home[k]) and _dose(m) != _dose(home[k])
+    ]
+    not_renewed = [str(_render_home_med_name(m, lang=lang)) for k, m in home.items() if k not in today]
+    parts = [
+        t(f"outpatient_results.med_{key}", lang, list=t("list_sep.semicolon", lang).join(names))
+        for key, names in (("started", started), ("changed", changed), ("not_renewed", not_renewed))
+        if names
+    ]
+    if not parts:
+        return t("outpatient_results.med_unchanged", lang) if home else ""
+    return t("outpatient_results.med_changes", lang, parts=t("list_sep.semicolon", lang).join(parts))
+
+
+def _compose_current_medications_line(ctx: NarrativeContext) -> str:
+    """List the patient's medications at the start of the visit for the Plan
+    section (``home_medications_at_admission``: the record's snapshot, else the
+    patient's ``current_medications``). Returns "" when the list is empty.
 
     v9 (2026-08-17): drug names JA localization enabled + truncate
     widened to 10 (v8 = 5, which frequently produced "他 N 剤"
     information loss for polypharmacy patients).
     """
-    patient = ctx.patient
-    meds = _o(patient, "current_medications", []) or []
+    # Issue #3262: the medications at the start of the visit.
+    meds = home_medications_at_admission(ctx)[0]
     if not meds:
         return ""
     lang = ctx.target_lang

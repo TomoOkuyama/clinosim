@@ -235,6 +235,10 @@ class NarrativeContext:
     # set per stub by NarrativePass. Builders read only data recorded up to it
     # (``narrative/_as_of.py``); None when the document has no authored time.
     authored_datetime: datetime | None = None
+    # Issue #3273: the lab results of the patient's other encounters (values in
+    # the country's reporting unit). A note cites the latest result before it
+    # (``narrative/_outpatient_results.py``) instead of a stored stage.
+    prior_lab_results: list[Any] = field(default_factory=list)
 
     # === chain 1a adv-1 (I-1): discharge prescription, separated ===
     # Normalized discharge_prescription.items ({"drug_name", "dose"} per

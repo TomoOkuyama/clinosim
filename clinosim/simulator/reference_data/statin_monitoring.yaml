@@ -51,7 +51,16 @@
 # applies to them (`ldl_target`), with the tier, so the note and the
 # titration read one threshold (Issue #2942). US rules have no tier: the
 # 2018 ACC/AHA guideline sets statin intensity and add-on thresholds, not an
-# LDL target, so the US note states none.
+# LDL target, so the US note states none; it states the patient's decision
+# threshold instead: a US rule has a `basis` (the risk group of the threshold;
+# `ldl_risk_threshold`, Issue #3272) and the note words the LDL as above or
+# below that threshold. Source (2018 AHA/ACC multisociety guideline on the
+# management of blood cholesterol, Executive Summary, read in PMC7403606):
+# Top 10 Take-Home Messages 3 ("In very high-risk ASCVD, use a LDL-C threshold
+# of 70 mg/dL to consider addition of nonstatins to statin therapy") and 4
+# (severe primary hypercholesterolemia, LDL-C >= 190 mg/dL: high-intensity
+# statin without a risk estimate; LDL-C >= 100 mg/dL on treatment: ezetimibe
+# is reasonable).
 #
 # `steps`: drug_id -> {current dose mg: next dose mg}. A drug or dose not
 # listed is not titrated (e.g. JP rosuvastatin 20 mg, already above the usual
@@ -94,8 +103,8 @@ maintenance_min_days: 150
 countries:
   US:
     step_up_ldl:
-      - {value_set: clinical_ascvd, ldl_mg_dl: 70}
-      - {ldl_mg_dl: 190}
+      - {value_set: clinical_ascvd, ldl_mg_dl: 70, basis: clinical_ascvd}
+      - {ldl_mg_dl: 190, basis: severe_hypercholesterolemia}
     steps:
       atorvastatin: {10: 40, 20: 40, 40: 80}
       rosuvastatin: {5: 20, 10: 20, 20: 40}

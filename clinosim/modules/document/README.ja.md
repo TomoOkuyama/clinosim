@@ -196,6 +196,7 @@ clinosim/modules/document/
     ja_only_fallback_sections.yaml   US H&P の JA 文字 audit 対象外 section (audit.py)
     chronic_soap_templates.yaml      慢性疾患 SOAP note template (受診の診断コードの項目、指示ではなく所見を記載)
     visit_reason_soap.yaml           受診理由別の外来 SOAP: 受診種別、種別ごとの S/O/A/P 文、バイタル異常の所見と計画、接種記録、乳幼児健診の発達と保健指導 (narrative/_visit_reason.py)
+    outpatient_results.yaml          外来 SOAP の検査結果: 過去の検査を引く項目、CKD G 分類、スクリーニングスコア (narrative/_outpatient_results.py)
     hedging_phrases.yaml             narrative hedging phrase pool
     drug_plan_priority.yaml          経過記録の計画の薬剤の優先順位・単回投与の頻度・一覧の上限 (narrative/_medication_plan.py)
     progress_vitals.yaml             経過記録のバイタル要約: 経過の閾値・自己申告可能な AVPU・表示する極値・疼痛部位 (narrative/renderers/_composers.py)

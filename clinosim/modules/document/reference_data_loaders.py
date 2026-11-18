@@ -809,6 +809,9 @@ class _ChronicMedClassHint(BaseModel):
     prefix: str
     en: list[str]
     ja: list[str]
+    # Catalog drug classes (codes/data/drugs.yaml) of the condition's drugs: a
+    # medication of one of them is cited whatever its name (Issue #3250).
+    drug_classes: list[str] = []
 
 
 class ChronicMedClassHints(BaseModel):
