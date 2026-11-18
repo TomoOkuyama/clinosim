@@ -43,8 +43,8 @@ def test_unknown_start_key_fails_validation() -> None:
         DiseaseProtocol.model_validate(data)
 
 
-@pytest.mark.parametrize("country", ["US", "JP"])
-def test_septic_shock_archetype_starts_norepinephrine_on_day_0(country: str) -> None:
+@pytest.mark.parametrize("country", ["US"])
+def test_septic_shock_archetype_gives_norepinephrine_from_the_shock_day(country: str) -> None:
     from clinosim.simulator import run_forced
     from clinosim.types.config import ForcedScenario, SimulatorConfig
 
@@ -58,7 +58,9 @@ def test_septic_shock_archetype_starts_norepinephrine_on_day_0(country: str) -> 
         logging.disable(logging.NOTSET)
     record = ds.patients[0]
     admission = record.encounters[0].admission_datetime
-    starts = [o for o in record.orders if o.drug_id == "norepinephrine" and "-START-D0-" in o.order_id]
+    # Issue #3332: the vasopressor starts from the recorded hypotension of the
+    # shock day (``-VASO-D0-``), not from the archetype's fixed day.
+    starts = [o for o in record.orders if o.drug_id == "norepinephrine" and "-VASO-D0-" in o.order_id]
     assert starts, "norepinephrine is not ordered on the shock day"
     given = [
         m

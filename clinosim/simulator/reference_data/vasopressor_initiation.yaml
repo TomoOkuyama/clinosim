@@ -1,0 +1,58 @@
+# Starting a vasopressor infusion from the recorded blood pressure
+# (Issue #3332).
+#
+# Read by clinosim/simulator/vasopressor_initiation.py
+# (`vasopressor_initiation_rules`) and applied in the inpatient daily loop
+# (simulator/daily_loop.py). The mean-arterial-pressure target is the one of
+# the weaning rule (`vasoactive_weaning.yaml`, `map_target_mmhg`): a vasopressor
+# is started when the pressure is below the target it is later weaned to.
+#
+#   - Start. After the day's vital signs are recorded, a stay whose protocol
+#     names a vasopressor (the archetype's own start, the protocol's
+#     `vasopressors` / `escalation` blocks, or any archetype's) and that has no
+#     vasopressor infusion running starts the protocol's first-line vasopressor
+#     when `min_low_readings` mean arterial pressures of the day are below the
+#     target, each recorded at least `fluid_resuscitation_hours` after the
+#     stay's first IV fluid order (`fluid_drug_ids`) was written — a pressure
+#     that stays low despite fluids. The order is written
+#     `order_delay_minutes` after the last of those readings.
+#   - Fixed-day starts of a vasopressor in the disease protocols (archetype
+#     `treatment_modifications` starts and escalation blocks) are not applied
+#     on their day. A second vasopressor listed there (vasopressin) is started
+#     on its day only while a vasopressor already runs and a pressure recorded
+#     after that infusion started was below the target.
+#
+# Sources (read this session, Surviving Sepsis Campaign: International
+# Guidelines for Management of Sepsis and Septic Shock 2021, Evans et al.,
+# Intensive Care Med 2021;47:1181-1247, full text on PubMed Central):
+#   - Recommendation 5: "at least 30 mL/kg of intravenous (IV) crystalloid
+#     fluid" within the first 3 hours of resuscitation -> the fluid window.
+#   - Recommendation 9: "an initial target mean arterial pressure (MAP) of 65
+#     mm Hg over higher MAP targets" (the target of vasoactive_weaning.yaml).
+#   - Recommendation 37: "For adults with septic shock, we recommend using
+#     norepinephrine as the first-line agent over other vasopressors."
+#   - Recommendation 38: "we suggest adding vasopressin instead of escalating
+#     the dose of norepinephrine" (for septic shock on norepinephrine with
+#     inadequate MAP levels).
+#   - Recommendation 44: "starting vasopressors peripherally to restore MAP
+#     rather than delaying initiation until a central venous access is
+#     secured".
+#   - Sepsis-3 (Singer et al., JAMA 2016;315(8):801-810, Box 3): septic shock
+#     is "persisting hypotension requiring vasopressors to maintain MAP >=65 mm
+#     Hg ... despite adequate volume resuscitation" -> two low readings, after
+#     fluids.
+# The two-reading rule (one low cuff reading is a measurement, not persisting
+# hypotension) and the order delay are clinosim modelling choices; the
+# guideline gives no count or delay. The guideline recommendations concern
+# septic shock; the same MAP target is applied to every protocol that names a
+# vasopressor (cardiogenic, hypovolaemic and other shock) because the
+# protocols give no other target.
+metadata:
+  kind: reference
+  name: vasopressor_initiation
+  source: clinosim
+
+min_low_readings: 2
+fluid_resuscitation_hours: 3
+order_delay_minutes: 30
+fluid_drug_ids: [lactated_ringer_solution, normal_saline, ringer_solution]

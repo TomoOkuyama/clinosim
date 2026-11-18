@@ -19,6 +19,7 @@ from clinosim.simulator.medication_pipeline import RenalMedicationRules, Vasoact
 from clinosim.simulator.sex_gating import SexRestrictionRules
 from clinosim.simulator.statin_monitoring import StatinMonitoringRules
 from clinosim.simulator.vasoactive_support import VasoactiveWeaningRules
+from clinosim.simulator.vasopressor_initiation import VasopressorInitiationRules
 
 pytestmark = pytest.mark.unit
 
@@ -33,6 +34,7 @@ _MODELS: dict[str, type[BaseModel]] = {
     "statin_monitoring.yaml": StatinMonitoringRules,
     "vasoactive_hold.yaml": VasoactiveHoldRules,
     "vasoactive_weaning.yaml": VasoactiveWeaningRules,
+    "vasopressor_initiation.yaml": VasopressorInitiationRules,
 }
 
 
@@ -73,6 +75,7 @@ _NESTED: dict[str, Callable[[dict[str, Any]], None]] = {
     "statin_monitoring.yaml": lambda d: _rename(d["countries"]["US"]["step_up_ldl"][0], "ldl_mg_dl", "ldl_mgdl"),
     "vasoactive_hold.yaml": lambda d: d["held_classes"].append("antihypertensives"),
     "vasoactive_weaning.yaml": lambda d: d.update(stable_hours={"hours": 24}),
+    "vasopressor_initiation.yaml": lambda d: d["fluid_drug_ids"].append({"drug": "normal_saline"}),
 }
 
 

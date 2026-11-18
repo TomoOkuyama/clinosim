@@ -151,6 +151,9 @@ clinosim/simulator/
   vasoactive_support.py  vasopressor / inotrope weaning (MAP target met and
                          out of shock) and the observation day off support
                          before discharge (Issue #3270)
+  vasopressor_initiation.py  starts a vasopressor from the recorded mean arterial
+                         pressure (low despite fluids) instead of a fixed day
+                         (Issue #3332)
   discharge_rx.py        discharge-time prescription builder
   enrichers.py           enricher registry (post-population / post-records)
   outpatient_dept.py     outpatient follow-up department resolver
@@ -258,6 +261,7 @@ Reference data (`reference_data/`, 8 YAMLs):
   reference_data/renal_medication_rules.yaml  renal dosing rules (medication_pipeline.py, discharge_rx.py)
   reference_data/statin_monitoring.yaml       lipid monitoring / statin titration (statin_monitoring.py)
   reference_data/vasoactive_hold.yaml         drugs held during vasopressor / inotrope infusions (medication_pipeline.py)
+  reference_data/vasopressor_initiation.yaml  starting a vasopressor from low pressure after fluids (vasopressor_initiation.py)
   reference_data/vasoactive_weaning.yaml      vasopressor / inotrope weaning and the discharge gate after it (vasoactive_support.py)
 ```
 

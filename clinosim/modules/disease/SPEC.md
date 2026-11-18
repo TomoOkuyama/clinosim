@@ -178,6 +178,9 @@ course_archetypes:                 # archetype → probability + per-day state d
         start:                     # keyed by `all` (every country) and/or a country slot (`japan`, `us`);
           all: [{drug_id: norepinephrine, dose: "0.05-0.1 ug/kg/min"}]   # `all` entries come first (Issue #3325)
         action: "icu_transfer"     # any other start key fails protocol validation
+        # a vasopressor listed in `start` (or in an escalation block) is not started on its day: it starts when the
+        # recorded MAP is low despite fluids (simulator/vasopressor_initiation.py, Issue #3332); a second one only on
+        # persisting hypotension while a vasopressor runs
   # also: plateau_then_recovery, treatment_resistant, gradual_deterioration, sudden_deterioration
 
 archetype_modifiers:
