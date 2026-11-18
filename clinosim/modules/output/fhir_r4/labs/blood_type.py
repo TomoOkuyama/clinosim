@@ -247,7 +247,14 @@ def _typed_stay_resources(ctx: BundleContext, order: Any, abo_snomed: str, rh_sn
     oid = str(_o(order, "order_id", "") or "")
     based_on = [{"reference": f"ServiceRequest/{order_to_sr_id(order, {})}"}]
     result = _o(order, "result") or {}
-    when = to_fhir_datetime(_o(result, "result_datetime", None) or _o(order, "ordered_datetime", None))
+    # Issue #3359: the specimen is collected at the order and reported after the
+    # laboratory turnaround the simulator already drew for the result (the
+    # inpatient lab turnaround model, Issue #3287) - effective is the order,
+    # issued the result, as for the other laboratory reports.
+    ordered = to_fhir_datetime(_o(order, "ordered_datetime", None))
+    resulted = to_fhir_datetime(_o(result, "result_datetime", None))
+    when = ordered or resulted
+    issued = resulted or when
     enc_id = str(_o(order, "encounter_id", "") or ctx.primary_enc_id)
     performer = _blood_type_performer_ref(ctx)
     specs = [
@@ -272,6 +279,7 @@ def _typed_stay_resources(ctx: BundleContext, order: Any, abo_snomed: str, rh_sn
         o["basedOn"] = based_on
         if when:
             o["effectiveDateTime"] = when
+            o["issued"] = issued
         if performer:
             o["performer"] = [{"reference": performer}]
         out.append(o)
@@ -301,7 +309,7 @@ def _typed_stay_resources(ctx: BundleContext, order: Any, abo_snomed: str, rh_sn
     }
     if when:
         report["effectiveDateTime"] = when
-        report["issued"] = when
+        report["issued"] = issued
     return [*out, report]
 
 

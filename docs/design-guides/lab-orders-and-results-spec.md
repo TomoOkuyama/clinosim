@@ -43,7 +43,7 @@ Related specs, linked rather than restated:
 |---|---|---|
 | A culture result comes from a culture order: one result per draw of the stay's culture orders, and a profile culture that no protocol order placed is ordered at admission. FHIR links each culture result to its order(s) through one matcher. | `observation/microbiology.py` (`culture_draws`, `culture_results`), `fhir_r4/labs/microbiology.py::culture_orders_for` | `tests/unit/test_cultures_from_orders_2640.py` |
 | A lab ServiceRequest is completed by its result (a DiagnosticReport or a culture), and revoked when its stay ends without one. | `fhir_r4/labs/service_request.py` | `tests/unit/test_lab_orders_resulted_or_cancelled_2661.py::test_an_unresulted_order_of_a_discharged_stay_is_revoked`, `tests/unit/output/test_fhir_microbiology_links_2585.py::test_the_orders_a_culture_reports_are_completed_and_the_others_are_not`, `tests/integration/test_servicerequest_snapshot.py` |
-| A type-and-screen order is resulted by the blood group and antibody screen it reports; its DiagnosticReport names the hospital Organization as performer. | `simulator/lab_pipeline.py::TYPE_AND_SCREEN`, `fhir_r4/labs/blood_type.py` | `tests/unit/output/test_type_and_screen_2587.py`, `tests/unit/output/test_screen_report_performer_3357.py` |
+| A type-and-screen order is resulted by the blood group and antibody screen it reports; its DiagnosticReport names the hospital Organization as performer and is effective at the order (collection) and issued at the result time drawn by the inpatient lab turnaround model. | `simulator/lab_pipeline.py::TYPE_AND_SCREEN`, `fhir_r4/labs/blood_type.py` | `tests/unit/output/test_type_and_screen_2587.py`, `tests/unit/output/test_screen_report_performer_3357.py` |
 
 ## 5. Eval bounds
 
