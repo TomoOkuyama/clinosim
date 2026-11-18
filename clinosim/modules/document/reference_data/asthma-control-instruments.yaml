@@ -1,0 +1,21 @@
+---
+# asthma-control-instruments.yaml — the control instrument an outpatient
+# asthma follow-up note names, by age (Issue #3264).
+#
+# Source: GINA 2024 Global Strategy for Asthma Management and Prevention,
+# chapter 2 (children 6-11 years: the Childhood Asthma Control Test can be
+# used for children aged 4-11 years) and chapter 11 (children 5 years and
+# younger: few objective measures are validated for children under 4 years;
+# the control assessment is symptom-based, from the parent / caregiver). The
+# Asthma Control Test (ACT) is the adult / adolescent instrument (12 years
+# and older). A patient of unknown age falls to the adult band.
+#
+# `phrase` is an `narrative_phrases.yaml` key (EN + JA authored).
+# Bands are matched in order; `age_min` / `age_max` are inclusive.
+metadata:
+  kind: reference
+
+bands:
+  - {age_min: 12, phrase: chronic_monitoring.act_control_review}
+  - {age_min: 4, age_max: 11, phrase: chronic_monitoring.cact_control_review}
+  - {age_max: 3, phrase: chronic_monitoring.symptom_control_review}

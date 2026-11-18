@@ -45,8 +45,8 @@ from clinosim.determinism import sha_index
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import chronic_followup_interval_months, load_chronic_followup
 from clinosim.locale.loader import narrative_label as _label
+from clinosim.modules._shared import drug_spec_in_age_band, strip_protocol_prefix
 from clinosim.modules._shared import get_attr_or_key as _o
-from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._localization import _localize_complication, _localize_stage
 from clinosim.modules.document.narrative._narrative_interpretation_thresholds import (
     NARRATIVE_ADULT_TACHYCARDIA_HR,
@@ -76,7 +76,7 @@ from clinosim.modules.document.narrative.renderers._shared_helpers import (
     ordered_chronic_conditions,
 )
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
-from clinosim.modules.document.reference_data_loaders import ChronicMedClassHints
+from clinosim.modules.document.reference_data_loaders import AsthmaControlInstruments, ChronicMedClassHints
 from clinosim.modules.observation.pediatric_ranges import age_in_completed_months, pediatric_vital_range
 from clinosim.reference_data import load_reference_yaml
 from clinosim.simulator.statin_monitoring import ldl_target as statin_ldl_target
@@ -123,6 +123,29 @@ def _chronic_med_class_hints(class_key: str, lang: str) -> tuple[str, ...]:
     row = _chronic_med_class_hints_raw().get(class_key) or {}
     hints = row.get(normalize_lang(lang)) or row.get("en") or []
     return tuple(str(h) for h in hints if isinstance(h, str))
+
+
+@cache
+def _asthma_control_bands() -> tuple[dict[str, Any], ...]:
+    """Age bands of `asthma-control-instruments.yaml` (Issue #3264)."""
+    raw = load_reference_yaml(
+        Path(__file__).resolve().parents[4] / "document" / "reference_data" / "asthma-control-instruments.yaml"
+    )
+    AsthmaControlInstruments.model_validate(raw)
+    return tuple(raw["bands"])
+
+
+def _asthma_control_phrase_key(age: int | None) -> str:
+    """The phrase key of the asthma control instrument for ``age``: the ACT
+    from 12 years, the Childhood ACT for 4-11, a caregiver symptom review
+    below 4 (GINA 2024). An unknown age takes the adult instrument."""
+    bands = _asthma_control_bands()
+    if age is None:
+        return str(bands[0]["phrase"])
+    for b in bands:
+        if drug_spec_in_age_band(b, age):
+            return str(b["phrase"])
+    return str(bands[0]["phrase"])
 
 
 def _get_soap_template(ctx: NarrativeContext) -> Any | None:
@@ -909,7 +932,7 @@ def _chronic_assessment_items(ctx: NarrativeContext, skip_code: str = "") -> lis
             if med:
                 bits2.append(t("prescription.medication_continue", lang, med=med))
             if bits2:
-                interp = t("list_sep.serial", lang).join(bits2) + (t("chronic_monitoring.act_control_review", lang))
+                interp = t("list_sep.serial", lang).join(bits2) + t(_asthma_control_phrase_key(_age_at(ctx)), lang)
 
         if interp:
             items.append(f"{label}: {interp}")

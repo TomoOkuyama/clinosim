@@ -396,6 +396,7 @@ When expanding chronic conditions, assign standard medications per condition:
 | Dyslipidemia | Statin (rosuvastatin), ezetimibe | Statin (atorvastatin), ezetimibe |
 | Atrial fibrillation | DOAC (edoxaban, apixaban), rate control | DOAC (apixaban, rivaroxaban), rate control |
 | COPD | LAMA (tiotropium), ICS/LABA | LAMA, ICS/LABA (budesonide/formoterol) |
+| Asthma | Age-banded (Issue #3264): 2-5 y budesonide nebulized 250 mcg bid, 6-11 y fluticasone propionate pMDI 50 mcg bid (low-dose ICS, GINA 2024 Box 11-3 / Box 4-2), 12+ y fluticasone/salmeterol; salbutamol as needed | Same |
 | Heart failure | ACE-I/ARB, β-blocker, MRA, SGLT2i | Same + sacubitril/valsartan |
 | Osteoporosis | Bisphosphonate (alendronate), VitD | Bisphosphonate, denosumab |
 | CKD | ARB, SGLT2i (if eGFR allows), ESA (if advanced) | Same |

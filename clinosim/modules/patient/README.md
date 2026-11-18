@@ -148,6 +148,10 @@ from clinosim.modules.patient.activator import (
   `pick_active_chemo_regimen` (lazy).
 - `clinosim.modules.population._pediatric_anthropometry` —
   growth-chart height parameters for the pediatric branch.
+- Asthma (J45) home medication is age-banded in `chronic_medications.yaml`
+  through `age_min` / `age_max` (Issue #3264): budesonide nebulized 2-5 y,
+  fluticasone propionate pMDI 6-11 y, fluticasone/salmeterol from 12 y
+  (GINA 2024 Box 11-3 / Box 4-2; a band consumes no random draw).
 - `clinosim.locale.loader` — `load_names(country)` (emergency-contact
   given names), `load_chronic_medications`, `load_chemo_regimens`.
 - `clinosim.seeding` — `chronic_medication_seed`,

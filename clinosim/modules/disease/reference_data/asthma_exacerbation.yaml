@@ -378,7 +378,13 @@ drugs:
         dose: "30-40mg PO daily"
         duration_days: 5
         note: "Taper over 5-7 days"
+      # Issue #3264: the ICS/LABA combination is the adult / adolescent
+      # (12+) controller; a child resumes the low-dose ICS of the chronic
+      # regimen (GINA 2024 Box 11-3 / Box 4-2; chronic_medications.yaml J45).
+      - {drug_id: budesonide, dose: "250mcg", route: "INH", frequency: "bid", duration_days: 28, age_min: 2, age_max: 5}
+      - {drug_id: fluticasone_propionate, dose: "50mcg", route: "INH", frequency: "bid", duration_days: 28, age_min: 6, age_max: 11}
       - drug_id: fluticasone_salmeterol
+        age_min: 12
         duration_days: 28   # maintenance controller: same supply as the chronic renewal, so it stays a home medication
         dose: ""   # Issue #476: no numeric dose exists. Authored JP + EN
                    # instructions live in `dose_ja` / `dose_en` (below) — read
@@ -400,7 +406,10 @@ drugs:
       - drug_id: prednisone
         dose: "40-50mg PO daily"
         duration_days: 5
+      - {drug_id: budesonide, dose: "250mcg", route: "INH", frequency: "bid", duration_days: 28, age_min: 2, age_max: 5}
+      - {drug_id: fluticasone_propionate, dose: "50mcg", route: "INH", frequency: "bid", duration_days: 28, age_min: 6, age_max: 11}
       - drug_id: fluticasone_salmeterol
+        age_min: 12
         duration_days: 28   # maintenance controller: same supply as the chronic renewal, so it stays a home medication
         dose: ""   # Issue #476 (same rationale as japan side above).
         dose_text:

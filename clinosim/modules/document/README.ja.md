@@ -183,6 +183,7 @@ clinosim/modules/document/
     clinosim-discharge-instruction.yaml  退院指導 (load_discharge_instructions、旧 discharge_instructions.yaml、#1862)。各項目に `applies_when` 条件 (性別・喫煙/飲酒状況・疾患群・退院処方薬、該当薬は `{drugs}` に展開) を付けられ、renderers/_resolvers.py resolve_discharge_instructions が評価し重複文を除く (#3254)
     clinosim-nursing-content.yaml    急性疾患 / 慢性 ICD-10 別の看護記録内容 (load_nursing_content)
     cc-pe-consistency-keywords.yaml  主訴 ↔ 身体所見の整合 rail (narrative/_narrative_utils.py)
+    asthma-control-instruments.yaml  年齢別の喘息コントロール評価 (12 歳以上 ACT、4-11 歳 C-ACT、4 歳未満は保護者への症状聴取; Issue #3264, GINA 2024)
     chronic-med-class-hints.yaml     慢性疾患 assessment の薬効分類 hint (narrative/renderers/section_builders/outpatient_soap.py)
     ed_note_admitted.yaml            ED 経由入院の ED 記録: 来院時バイタルの成人の判定範囲とバイタルを述べる所見語 (来院時の測定値と矛盾する day-0 身体所見の句は書かない)、トリアージの来院手段と照合する救急搬入の HPI 表現 (load_ed_note_admitted)
     hpi_pertinent_negatives.yaml     HPI pertinent negative、疾患ごとに言語別の文言と否定する症状語 (hpi_pertinent_negatives(disease_id, lang)、英語にフォールバック)。主訴の症状を否定する negative は出力しない

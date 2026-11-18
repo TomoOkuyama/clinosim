@@ -24,6 +24,12 @@ codes:
   '284635':  # Issue #2150: was 108761 (RxNav: wrong / unknown code)
     en: fluticasone / salmeterol
     ja: フルチカゾン/サルメテロール（アドエア）
+  '19831':
+    en: budesonide
+    ja: ブデソニド（パルミコート）
+  '41126':
+    en: fluticasone
+    ja: フルチカゾン（フルタイド）
   '11055':
     en: Urokinase
     ja: ウロキナーゼ

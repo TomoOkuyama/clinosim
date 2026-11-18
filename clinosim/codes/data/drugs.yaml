@@ -242,6 +242,20 @@ drugs:
       rxnorm: "284635"  # Issue #2150: was 108761
       yj: {inhalation: "2290800G2039"}
     classes: []
+  budesonide:
+    names: {en: "Budesonide", ja: "ブデソニド"}
+    codes:
+      rxnorm: "19831"
+      yj: {inhalation: "2290701G4020"}
+    classes: []
+    aliases: ["パルミコート", "Pulmicort"]
+  fluticasone_propionate:
+    names: {en: "Fluticasone propionate", ja: "フルチカゾンプロピオン酸エステル"}
+    codes:
+      rxnorm: "41126"
+      yj: {inhalation: "2290700G7032"}
+    classes: []
+    aliases: ["フルタイド", "Flovent"]
   vancomycin:
     names: {en: "Vancomycin", ja: "バンコマイシン"}
     codes:

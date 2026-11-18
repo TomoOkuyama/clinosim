@@ -33,6 +33,16 @@ from clinosim.types.encounter import PrescriptionRecord
 from clinosim.types.patient import PatientProfile
 
 
+def _age_years_at(patient: PatientProfile, when: datetime) -> int | None:
+    """The patient's completed years at ``when`` (None without a date of
+    birth): the age a discharge_oral entry's ``age_min`` / ``age_max`` gate
+    reads (Issue #3264)."""
+    from clinosim.modules.observation.pediatric_ranges import age_in_completed_months
+
+    months = age_in_completed_months(getattr(patient, "date_of_birth", None), when)
+    return None if months is None else months // 12
+
+
 def renal_hold_drugs() -> frozenset[str]:
     """Drugs held at discharge when renal function is impaired: the shared
     renal drug list (``simulator/reference_data/renal_medication_rules.yaml``; Issue
@@ -469,6 +479,7 @@ def build_discharge_rx(
         rng,
         independent_mode="always",
         context=f"disease {disease_id!r} discharge_oral",
+        patient_age=_age_years_at(patient, admission_time),
     ):
         _append_item(picked)
 
