@@ -6,8 +6,8 @@
 #   Drugs of no tier (oral maintenance drugs) are not main treatments; their
 #   changes are written by the medication-change sentence. Drugs of
 #   excluded_classes (codes/data/drugs.yaml `classes`: maintenance fluids) are
-#   not named either, nor the drugs of excluded_drugs (maintenance fluids the
-#   drug catalog gives no class).
+#   not named either (Lactated Ringer's is an electrolyte_solution in the
+#   catalog, so no drug needs naming in excluded_drugs).
 #   max_named_per_tier: drugs named per tier; the rest are counted
 #   (narrative_phrases.yaml current_medications.truncate_suffix).
 # notable_labs: the stay's results that are a panic value or name an
@@ -37,7 +37,6 @@ metadata:
 treatments:
   max_named_per_tier: 4
   excluded_classes: [electrolyte_solution, iv_fluid, glucose_solution]
-  excluded_drugs: [lactated_ringer_solution, lactated_ringers_injectable_solution]
 
 notable_labs:
   max_listed: 4

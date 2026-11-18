@@ -1,0 +1,108 @@
+# How a daily progress note's physical exam and general state follow the
+# vital signs of the note's period (Issue #3235). Read by
+# narrative/_progress_exam.py and applied by narrative/renderers/progress_note.py
+# (the H&P exam is the admission-day exam and is not judged here).
+#
+# The progress-note exam is the disease's authored exam of the nearest earlier
+# day, written per severity and not from the patient's readings. A statement
+# of that text a reading of the note's period contradicts ("全身状態良好" on a
+# febrile day, "呼吸数正常" at RR 28, "頻脈" at HR 80) is left out, and an
+# abnormal reading the exam does not state is added to the matching system
+# ("発熱あり", "頻脈", "SpO2 低下、酸素投与下"). The same vocabulary of vital-
+# stating terms as the ED note of an admitted patient
+# (ed_note_admitted.yaml exam_vital_terms) is read, plus ``extra_terms``.
+
+metadata:
+  kind: reference
+  name: progress_exam
+  source: clinosim
+
+# A reading of the period is abnormal when it is below ``low`` or above
+# ``high`` (at ``high`` too with ``high_inclusive``); the period's state of a
+# vital is that of its most abnormal reading (high / low, else normal).
+#   temperature_celsius high 38.0 inclusive: fever (progress_vitals.yaml
+#     trend.fever_c).
+#   heart_rate 60-100 /min: AHA/ACC adult resting definition of brady- /
+#     tachycardia.
+#   respiratory_rate high 20 /min: adult reference 12-20 /min.
+#   spo2 low 94 %: below the BTS 2017 target range of 94-98 % for adults not
+#     at risk of hypercapnia (O'Driscoll BR et al., Thorax 2017;72:i1-i90).
+#   systolic_bp low 90 mmHg: hypotension (shock work-up cut-off).
+#   pain_score high 3 (0-10 NRS): a score of 4 or more is notable pain
+#     (the Subjective's pain threshold, composers._SUBJ_PAIN_NOTABLE).
+# A child is judged against the age-banded range of
+# observation/reference_data/pediatric_reference_ranges.yaml where it lists
+# the vital (not temperature, pain).
+limits:
+  temperature_celsius: {high: 38.0, high_inclusive: true}
+  heart_rate: {low: 60, high: 100}
+  respiratory_rate: {low: 12, high: 20}
+  spo2: {low: 94}
+  systolic_bp: {low: 90}
+  pain_score: {high: 3}
+
+# Exam clauses are split at these separators (outermost first); a clause is
+# kept or left out as a whole.
+clause_separators:
+  ja: ["。", "、", "・"]
+  en: [". ", ", ", "; "]
+
+# Terms that state more than one vital or a patient state, in addition to the
+# single-vital terms of ed_note_admitted.yaml.
+#   vitals: the vitals the term speaks for; ``agree: all`` keeps the clause
+#     only when every listed vital is in ``states`` (a statement of general
+#     well-being), ``agree: any`` when at least one is (a statement of
+#     illness or distress).
+#   states: low / normal / high; ``pain_score`` high is notable pain.
+extra_terms:
+  - vitals: [temperature_celsius]
+    agree: any
+    states: [high]
+    terms:
+      ja: ["発熱", "熱感", "高熱"]
+      en: ["febrile", "fever"]
+  - vitals: [temperature_celsius]
+    agree: all
+    states: [normal, low]
+    terms:
+      ja: ["発熱なし", "解熱"]
+      en: ["afebrile"]
+  - vitals: [temperature_celsius, heart_rate, respiratory_rate, spo2, systolic_bp]
+    agree: all
+    states: [normal]
+    terms:
+      ja: ["全身状態良好", "症状改善傾向", "全身状態安定", "状態安定", "呼吸状態安定", "バイタル安定", "苦痛なし"]
+      en: ["general condition good", "symptoms improving", "condition stable", "no distress"]
+  - vitals: [temperature_celsius, heart_rate, respiratory_rate, spo2, systolic_bp, pain_score]
+    agree: any
+    states: [low, high]
+    terms:
+      ja: ["苦痛様", "苦痛強い", "苦悶様"]
+      en: ["in distress", "appears distressed"]
+
+# Findings added when the period's state of a vital is abnormal and the
+# system's exam does not already state it. ``system`` is the exam body
+# system (physical_exam_findings.yaml); a vital named "on_oxygen" is the oxygen therapy itself (state high when the latest
+# reading of the period is on supplemental oxygen).
+state_findings:
+  - {vital: temperature_celsius, state: high, system: general, text: {ja: 発熱あり, en: febrile}}
+  - {vital: heart_rate, state: high, system: cardiovascular, text: {ja: 頻脈, en: tachycardia}}
+  - {vital: heart_rate, state: low, system: cardiovascular, text: {ja: 徐脈, en: bradycardia}}
+  - {vital: systolic_bp, state: low, system: cardiovascular, text: {ja: 血圧低下, en: hypotension}}
+  - {vital: respiratory_rate, state: high, system: respiratory, text: {ja: 頻呼吸, en: tachypnea}}
+  - {vital: spo2, state: low, system: respiratory, text: {ja: SpO2 低下, en: hypoxemia}}
+  - {vital: on_oxygen, state: high, system: respiratory, text: {ja: 酸素投与下, en: on supplemental oxygen}}
+
+# The abnormal states of the period named when a note's Assessment says how
+# the course changed (fewer / more abnormal states than the previous period).
+# "consciousness" high is an AVPU level other than Alert; "on_oxygen" high is
+# supplemental oxygen.
+course_items:
+  - {vital: temperature_celsius, state: high, name: {ja: 発熱, en: fever}}
+  - {vital: heart_rate, state: high, name: {ja: 頻脈, en: tachycardia}}
+  - {vital: heart_rate, state: low, name: {ja: 徐脈, en: bradycardia}}
+  - {vital: respiratory_rate, state: high, name: {ja: 頻呼吸, en: tachypnea}}
+  - {vital: spo2, state: low, name: {ja: SpO2 低下, en: low SpO2}}
+  - {vital: systolic_bp, state: low, name: {ja: 血圧低下, en: hypotension}}
+  - {vital: consciousness, state: high, name: {ja: 意識レベル低下, en: reduced consciousness}}
+  - {vital: on_oxygen, state: high, name: {ja: 酸素投与, en: oxygen therapy}}

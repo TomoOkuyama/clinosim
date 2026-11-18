@@ -191,6 +191,29 @@ progress:
   procs_today:
     ja: "本日の処置: {list}。"
     en: "Procedures today: {list}."
+  # The post-operative day of the latest operation known at the note time
+  # (Issue #3247); ``proc`` is the operation's name.
+  op_day:
+    ja: "手術当日 ({proc})。"
+    en: "Day of surgery ({proc})."
+  post_op_day:
+    ja: "術後{n}日目 ({proc})。"
+    en: "Post-operative day {n} ({proc})."
+  # A complication with the hospital day it began on (Issue #3247).
+  complication_with_onset:
+    ja: "{name} (入院{day}日目発症)"
+    en: "{name}, onset hospital day {day}"
+  # How the abnormal vital states of the period changed against the previous
+  # period (progress_exam.yaml course_items; Issue #3247).
+  course_improving:
+    ja: "前日より経過改善傾向 ({list}は消失)。"
+    en: "Improving compared with the previous day ({list} resolved)."
+  course_worsening:
+    ja: "前日より増悪傾向 (新たに {list})。"
+    en: "Worsening compared with the previous day (new {list})."
+  course_persisting:
+    ja: "{list}が持続、改善に乏しい。"
+    en: "Abnormal vital signs persisting ({list}); no improvement yet."
   observation_fallback:
     ja: "治療継続、経過観察。"
     en: "Continue current management, observe course."
@@ -744,9 +767,9 @@ hospital_course:
     antimicrobial:
       ja: "抗微生物薬"
       en: "antimicrobials"
-    anticoagulant:
-      ja: "抗凝固療法"
-      en: "anticoagulation"
+    antithrombotic:
+      ja: "抗血栓療法"
+      en: "antithrombotic therapy"
     insulin:
       ja: "インスリン"
       en: "insulin"

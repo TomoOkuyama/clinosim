@@ -21,11 +21,21 @@ from typing import TYPE_CHECKING
 from clinosim.countries import has_authored_narrative
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
+from clinosim.modules.document.narrative._progress_exam import (
+    agreeing_clauses,
+    any_abnormal,
+    period_states,
+    progress_exam_findings,
+)
 from clinosim.modules.document.narrative._template_helpers import (
     _render_safety_skips_line,
 )
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
-from clinosim.modules.document.narrative.renderers._composers import pe_vitals_reading
+from clinosim.modules.document.narrative.renderers._composers import (
+    _note_period_vitals,
+    apply_cc_pe_consistency,
+    pe_vitals_reading,
+)
 from clinosim.modules.document.narrative.renderers._disease_exam import exam_findings
 from clinosim.modules.document.narrative.renderers._exam_agreement import arrival_vital_states
 from clinosim.types.document import NarrativeContext, NarrativeOutput
@@ -108,7 +118,7 @@ def render_progress_note(
 
         subjective = _prefer(traj.get("subjective"), generator._compose_progress_subjective_from_state(ctx), _generic_s)
         _obj_raw = traj.get("objective")
-        objective = _obj_raw if (_obj_raw and _obj_raw not in _placeholders) else _generic_s
+        objective = _obj_raw if (_obj_raw and _obj_raw not in _placeholders) else ""
         assessment = _prefer(traj.get("assessment"), generator._compose_progress_assessment_from_state(ctx), _generic_a)
         composed_plan_ja = generator._compose_progress_plan_from_state(ctx)
         plan = _prefer(traj.get("plan"), composed_plan_ja, _generic_p)
@@ -128,24 +138,41 @@ def render_progress_note(
         # itself must carry per-day BP/HR/RR/SpO2/T; otherwise it collapses
         # to a static disease_YAML string across all days of a stay.
         today_vitals_line = generator._compose_today_vitals_line(ctx)
+        # Issue #3235: the objective text, the general state and the exam follow
+        # the readings of the note's period; the "no special findings" filler
+        # is not written beside an abnormal reading.
+        readings = _note_period_vitals(ctx)
+        states = period_states(ctx, readings)
+        objective = agreeing_clauses(objective, states, lang)
+        if not objective and not any_abnormal(states):
+            objective = _generic_s
         if today_vitals_line:
             facts.append("ctx.vitals.today")
-            objective = f"{today_vitals_line}。{objective}"
+            objective = f"{today_vitals_line}。{objective}" if objective else today_vitals_line
+        objective = objective or _generic_s
 
         # Add physical exam findings to the objective section (JP only,
         # EN skips to prevent CJK leak — sibling of build_physical_examination fix)
-        # Issue #3227: the same exam findings as the H&P (the AF rhythm and
-        # the stroke deficit included), not the archetype baseline alone.
+        # Issue #3227: the same disease exam as the H&P (the AF rhythm and the
+        # stroke deficit included), not the archetype baseline alone.
+        # Issue #3235: evaluated for the note's day, the clauses the period's
+        # vital signs contradict are left out and its abnormal readings added.
         reading = pe_vitals_reading(ctx)
         phys_exam, exam_source = exam_findings(
             generator, ctx, reading, arrival_vital_states(reading, ctx) if reading is not None else {}
         )
         if exam_source:
             facts.append(exam_source)
-        phys_summary = generator._format_physical_exam(phys_exam, ctx.severity, lang)
-        # Issue #2086: same consciousness / CC consistency rewrite as the H&P PE.
+        phys_summary = generator._format_physical_exam(
+            progress_exam_findings(ctx, readings, phys_exam, str(ctx.severity or ""), lang) if phys_exam else {},
+            ctx.severity,
+            lang,
+        )
+        # Issue #2086: the consciousness clause follows the day's AVPU. The
+        # admission chief-complaint rewrites (altered consciousness, severe
+        # dyspnea) belong to the admission exam, not to every later day.
         if phys_summary:
-            phys_summary, pe_facts = generator._apply_cc_pe_consistency(phys_summary, ctx)
+            phys_summary, pe_facts = apply_cc_pe_consistency(phys_summary, ctx, use_chief_complaint=False)
             facts.extend(pe_facts)
         if phys_summary:
             objective = f"{objective}。{phys_summary}"

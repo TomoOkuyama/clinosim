@@ -467,7 +467,7 @@ drugs:
     codes:
       rxnorm: "1008377"  # Issue #2150: was 47613
       yj: {injection: "3319534A4046"}
-    classes: []
+    classes: ["electrolyte_solution"]
     aliases: ["Lactated Ringer", "Lactated Ringers", "Lactated Ringer's",
               "Lactated Ringer's solution", "LR"]
             # Plural / apostrophe / abbreviation variants used in disease YAMLs
@@ -1242,7 +1242,7 @@ drugs:
     names: {en: "Lactated Ringers Injectable Solution", ja: "乳酸リンゲル液"}
     codes:
       rxnorm: "847630"
-    classes: []
+    classes: ["electrolyte_solution"]
   osimertinib:
     names: {en: "Osimertinib", ja: "オシメルチニブ"}
     codes:
