@@ -1157,6 +1157,7 @@
         "ctx.complications_occurred",
         "encounter.discharge_disposition",
         "ctx.intake_output_records",
+        "ctx.disease_protocol.disease_id",
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments@authored"
       ],
@@ -1170,7 +1171,7 @@
         "admission_status": "入院期間: 31日間。入院理由: 発熱・意識変容・低血圧。経過中の合併症: 急性腎障害、クロストリジウム・ディフィシル腸炎。退院基準を満たし退院となった。",
         "discharge_readiness": "退院準備: 退院時 Barthel 100/100。",
         "nursing_interventions_provided": "入院期間合計 IN 50374 mL / OUT 18454 mL (差 +31920 mL)。",
-        "patient_education": "患者教育: 腎機能保護、蛋白制限。"
+        "patient_education": "患者教育: 抗菌薬の指示通りの継続と感染予防 (手指衛生)、発熱・悪寒・意識変化が出たときの早期受診、基礎疾患の管理、腎機能保護、蛋白制限。"
       },
       "text": ""
     }
@@ -2367,7 +2368,9 @@
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments@authored",
+        "ctx.disease_protocol.disease_id",
         "ctx.patient.chronic_conditions",
+        "ctx.disease_protocol.disease_id",
         "ctx.patient.chronic_conditions"
       ],
       "generated_at": "2024-06-15T02:31:00+09:00",
@@ -2378,8 +2381,8 @@
       },
       "sections": {
         "adl_assessment": "Barthel 指数 50/100 → 中等度介助（食事5、入浴5、移動5、トイレ動作5）",
-        "care_plan": "看護計画: 尿量・浮腫観察、電解質モニタ。",
-        "nursing_diagnosis": "看護診断: 腎機能低下・電解質異常のリスク。",
+        "care_plan": "看護計画: 看護問題「感染 (敗血症)」。目標: 感染源が管理され、血圧・尿量・意識が保たれる。観察計画 (OP): バイタルサイン・意識・尿量・末梢循環を頻回に観察する、乳酸値や培養結果など検査結果の変化を確認する。ケア計画 (TP): 指示された輸液・抗菌薬・昇圧薬を確実かつ適時に投与する、体温管理と清潔ケアを行い、カテーテル刺入部の感染を予防する。教育計画 (EP): 家族へ病状と面会時の手指衛生を説明する。併存疾患・リスクへの対応: 尿量・浮腫観察、電解質モニタ。",
+        "nursing_diagnosis": "看護診断: 感染 (敗血症)、組織循環不全のリスク、体温調節不足、ガス交換障害のリスク、腎機能低下・電解質異常のリスク。",
         "nursing_history": "入院目的: 発熱・意識変容・低血圧。既往: 慢性腎臓病。",
         "risk_assessments": "転倒・褥瘡リスク：評価中"
       },

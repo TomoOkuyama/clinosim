@@ -1,40 +1,38 @@
-# Session 104 Tier 2 — per-condition nursing content (nursing_diagnoses /
-# care_plan / patient_education) for admission_nursing_assessment (doc-05)
-# and nursing_discharge_summary (doc-10).
+# Per-condition nursing content (nursing_diagnoses / care plan /
+# patient_education) for admission_nursing_assessment and
+# nursing_discharge_summary.
 #
-# Behavior before 2026-09-06: the nursing_diagnosis / care_plan /
-# patient_education builders keyed on 6 chronic ICD-10 prefixes
-# (I10 / I50 / E11 / N18 / J45 / J44) — completely disease-agnostic for
-# ACUTE admission reasons, so every COPD-exacerbation admission got the
-# same nursing content as a DVT admission (whichever chronic conditions
-# happened to be present).
+# Two lookup axes (narrative/_narrative_utils._lookup_nursing_content):
+#   1. `acute_disease.<disease_id>` - matched against
+#      ctx.disease_protocol.disease_id (the admission problem). One entry per
+#      simulated disease (Issue #3267): the admission problem is planned first.
+#   2. `chronic_icd10.<code>` - matched against the patient's chronic-condition
+#      code prefix (comorbidities).
 #
-# Post-session-104: two lookup axes are merged (acute-first, chronic-second):
-#   1. `acute_disease.<disease_id>` — matched against
-#      ctx.disease_protocol.disease_id (the admission reason).
-#   2. `chronic_icd10.<code>` — matched against
-#      ctx.patient.chronic_conditions[].code prefix (comorbidities).
+# Merge: acute items first, then chronic items, de-duplicated and capped.
+# When the disease has an acute entry, a chronic entry contributes only when
+# it carries `comorbidity: true` (a comorbidity whose monitoring is part of
+# any inpatient stay: glycemic control, fluid / weight, renal function). The
+# other chronic entries (BP control, respiratory) describe problems of their
+# own disease and would read as a problem of this admission (an AMI planned
+# for "risk for inadequate BP control", a urinary tract infection planned for
+# gas exchange). Without an acute entry every chronic entry applies.
 #
-# Merge algorithm:
-#   items_out = dedup(acute_items + chronic_items)[:cap]
-# where cap = 5 (nursing_diagnoses) / 4 (care_plan) / 4 (patient_education).
-# Acute items always rank above chronic items so the primary admission
-# reason drives the nursing framing.
+# Entry fields (each a `ja` / `en` pair):
+#   nursing_diagnoses: the nursing problems; the first is the main problem.
+#   care_plan_detail: `goal` (one sentence) and the interventions of the
+#     Japanese nursing-plan classification - `observation` (OP), `care` (TP)
+#     and `education` (EP) lists. The flat `care_plan` list is the
+#     alternative for an entry without detail, and is derived from the three
+#     lists (in that order) when only the detail is given.
+#   patient_education: teaching topics for the discharge.
+#   smoking_education (optional): topics shown only to a current or former
+#     smoker (smoking_status other than "never"), so a never-smoker is not
+#     taught cessation.
 #
-# When neither axis matches, the template falls back to the
-# generic-fallback constant it used pre-session-104 (unchanged behavior).
-#
-# Pilot scope: 5 acute diseases matching the top-5 inpatient LOS drivers
-# observed in US p=10k s=326 (session 104 verify): copd_exacerbation,
-# diabetic_ketoacidosis, heart_failure_exacerbation, bacterial_pneumonia,
-# cerebral_infarction. Additional acute diseases can be added incrementally
-# without any code change — the loader treats missing entries as "use
-# chronic-only path".
-#
-# Curation source: nursing-diagnosis (NANDA-I 2024-2026), care-plan
-# (NIC 8th ed. domains), patient-education (AHA / ADA / ATS / ASA
-# published patient guides). No verbatim copyrighted text — paraphrased
-# clinical concept only.
+# The labels are generic nursing-diagnosis / nursing-intervention concepts
+# paraphrased by the project; they carry no thresholds and no verbatim text of
+# NANDA-I or NIC (both copyrighted).
 
 metadata:
   kind: reference
@@ -42,186 +40,1642 @@ metadata:
   source: clinosim
 
 acute_disease:
-
   copd_exacerbation:
     nursing_diagnoses:
       ja:
-        - ガス交換障害
-        - 気道クリアランス不十分
-        - 活動耐性低下
-        - 不安 (呼吸困難関連)
+      - ガス交換障害
+      - 気道クリアランス不十分
+      - 活動耐性低下
+      - 不安 (呼吸困難関連)
       en:
-        - impaired gas exchange
-        - ineffective airway clearance
-        - activity intolerance
-        - anxiety (dyspnea-related)
-    care_plan:
-      ja:
-        - SpO2 持続モニタ + 酸素投与量調整
-        - 呼吸パターン・副雑音を勤務帯ごとに評価
-        - 起坐位で呼吸楽な体位保持を支援
-        - 吸入手技を毎回付き添い確認
-      en:
-        - continuous SpO2 monitoring + O2 titration
-        - respiratory pattern + adventitious sounds q shift
-        - support upright / tripod positioning for dyspnea relief
-        - direct-observed inhaler technique at each dose
+      - impaired gas exchange
+      - ineffective airway clearance
+      - activity intolerance
+      - anxiety (dyspnea-related)
+    care_plan_detail:
+      goal:
+        ja: 呼吸困難が軽減し、SpO2 が指示範囲で保たれる。
+        en: Dyspnea eases and SpO2 stays within the ordered range.
+      observation:
+        ja:
+        - SpO2 を持続モニタし、呼吸パターン・副雑音を勤務帯ごとに評価する
+        - 吸入手技を毎回付き添って確認する
+        en:
+        - Monitor SpO2 continuously; assess respiratory pattern and adventitious sounds every shift
+        - Observe inhaler technique at each dose
+      care:
+        ja:
+        - 酸素投与量を指示に従い調整する
+        - 起坐位など呼吸の楽な体位保持を支援する
+        en:
+        - Titrate oxygen as ordered
+        - Support an upright or tripod position for dyspnea relief
+      education:
+        ja:
+        - 吸入器の使い方を一緒に確認し、息切れが強いときは早めに知らせるよう説明する
+        en:
+        - Review inhaler technique together and ask the patient to report worsening breathlessness early
     patient_education:
       ja:
-        - 吸入器手技の再確認 (定量吸入・スペーサ使用法)
-        - 増悪の早期サイン認識 (痰の色調変化・SpO2 低下)
-        - 禁煙継続支援と受動喫煙回避
-        - 呼吸リハビリの継続方法
+      - 吸入器手技の再確認 (定量吸入・スペーサ使用法)
+      - 増悪の早期サイン認識 (痰の色調変化・SpO2 低下)
+      - 呼吸リハビリの継続方法
       en:
-        - inhaler technique reinforcement (MDI + spacer use)
-        - early exacerbation signs (sputum color change, SpO2 drop)
-        - smoking cessation reinforcement + secondhand smoke avoidance
-        - pulmonary rehabilitation continuation
-
+      - inhaler technique reinforcement (MDI + spacer use)
+      - early exacerbation signs (sputum color change, SpO2 drop)
+      - pulmonary rehabilitation continuation
+    smoking_education:
+      ja:
+      - 禁煙継続支援と受動喫煙回避
+      en:
+      - smoking cessation reinforcement + secondhand smoke avoidance
   diabetic_ketoacidosis:
     nursing_diagnoses:
       ja:
-        - 体液量不足
-        - 電解質バランス異常のリスク
-        - 血糖コントロール変動
-        - 感染徴候観察
+      - 体液量不足
+      - 電解質バランス異常のリスク
+      - 血糖コントロール変動
+      - 感染徴候観察
       en:
-        - deficient fluid volume
-        - risk for electrolyte imbalance
-        - unstable glycemic control
-        - risk for infection
-    care_plan:
-      ja:
-        - IN/OUT を 1 時間毎に計測、輸液速度調整を医師と連携
-        - 血糖・血清 K を 1-2 時間毎にモニタ、低血糖・低 K を早期認識
-        - 意識状態とクスマウル呼吸を継続観察
-        - 感染源探索 (尿・下気道) と体温トレンド記録
-      en:
-        - hourly I/O, coordinate IV rate titration with MD
-        - q1-2h glucose + serum K monitoring, early hypoglycemia / hypokalemia recognition
-        - continuous mental-status + Kussmaul-respiration assessment
-        - infection source workup (urine / LRT) + temperature trending
+      - deficient fluid volume
+      - risk for electrolyte imbalance
+      - unstable glycemic control
+      - risk for infection
+    care_plan_detail:
+      goal:
+        ja: 脱水と高血糖が補正され、血糖・電解質が安定する。
+        en: Dehydration and hyperglycemia are corrected and glucose and electrolytes are stable.
+      observation:
+        ja:
+        - IN/OUT を 1 時間毎に計測し、血糖・血清 K を 1-2 時間毎に確認する
+        - 意識状態とクスマウル呼吸を継続観察する
+        en:
+        - Measure I/O hourly and check glucose and serum K every 1-2 hours
+        - Observe mental status and Kussmaul respiration continuously
+      care:
+        ja:
+        - 輸液速度の調整を医師と連携して行う
+        - 感染源 (尿・下気道) の観察と体温トレンドの記録を行う
+        en:
+        - Coordinate IV rate titration with the physician
+        - Look for an infection source (urine / lower respiratory tract) and record the temperature trend
+      education:
+        ja:
+        - 低血糖・高血糖の症状を説明し、気分不良時は早めに知らせるよう伝える
+        en:
+        - Explain hypo- and hyperglycemia symptoms and ask the patient to report feeling unwell early
     patient_education:
       ja:
-        - シックデイルール (発熱・嘔吐時の インスリン調整と受診タイミング)
-        - 血糖自己測定 + ケトン尿試験紙の使用法
-        - 低血糖症状と即応 (ブドウ糖・グルカゴン)
-        - 定期通院とインスリン投与遵守の重要性
+      - シックデイルール (発熱・嘔吐時のインスリン調整と受診タイミング)
+      - 血糖自己測定とケトン尿試験紙の使用法
+      - 低血糖症状と対応 (ブドウ糖・グルカゴン)
+      - 定期通院とインスリン投与遵守の重要性
       en:
-        - sick-day rules (insulin dose + when to seek care during illness)
-        - self blood-glucose monitoring + urine-ketone strips
-        - hypoglycemia recognition + rescue (glucose tabs / glucagon)
-        - importance of routine follow-up + insulin adherence
-
+      - sick-day rules (insulin dose + when to seek care during illness)
+      - self blood-glucose monitoring + urine-ketone strips
+      - hypoglycemia recognition + rescue (glucose tabs / glucagon)
+      - importance of routine follow-up + insulin adherence
   heart_failure_exacerbation:
     nursing_diagnoses:
       ja:
-        - 体液量過剰
-        - 心拍出量減少
-        - 活動耐性低下
-        - 不安 (呼吸困難関連)
+      - 体液量過剰
+      - 心拍出量減少
+      - 活動耐性低下
+      - 不安 (呼吸困難関連)
       en:
-        - excess fluid volume
-        - decreased cardiac output
-        - activity intolerance
-        - anxiety (dyspnea-related)
-    care_plan:
-      ja:
-        - 毎日同一条件で体重測定・浮腫程度を記録
-        - IN/OUT 厳密管理、水分制限 (指示量) 遵守
-        - 起坐位保持・下肢挙上を支援
-        - 利尿薬投与後の血圧・尿量を継続観察
-      en:
-        - daily weight (same conditions) + edema grading
-        - strict I/O, adhere to prescribed fluid restriction
-        - support upright positioning + leg elevation
-        - post-diuretic BP + urine output monitoring
+      - excess fluid volume
+      - decreased cardiac output
+      - activity intolerance
+      - anxiety (dyspnea-related)
+    care_plan_detail:
+      goal:
+        ja: 呼吸困難と浮腫が軽減し、体重が目標体重へ近づく。
+        en: Dyspnea and edema lessen and weight moves toward the target weight.
+      observation:
+        ja:
+        - 毎日同一条件で体重を測定し、浮腫の程度を記録する
+        - 利尿薬投与後の血圧・尿量を継続観察する
+        en:
+        - Weigh daily under the same conditions and grade edema
+        - Monitor BP and urine output after diuretic doses
+      care:
+        ja:
+        - IN/OUT を厳密に管理し、水分制限 (指示量) を守れるよう支援する
+        - 起坐位保持・下肢挙上を支援する
+        en:
+        - Keep strict I/O and support the prescribed fluid restriction
+        - Support upright positioning and leg elevation
+      education:
+        ja:
+        - 体重増加や息切れが強くなったときはすぐ知らせるよう説明する
+        en:
+        - Explain that weight gain or worsening breathlessness should be reported at once
     patient_education:
       ja:
-        - 毎日の体重測定と 2 日で 2kg 増加時の連絡基準
-        - 減塩食 (1 日 6g 以下) と加工食品回避
-        - 服薬遵守 (利尿薬・β遮断薬・ACEi/ARB)
-        - 息切れ・下肢浮腫増悪時の早期受診
+      - 毎日の体重測定と 2 日で 2kg 増加時の連絡基準
+      - 減塩食 (1 日 6g 以下) と加工食品回避
+      - 服薬遵守 (利尿薬・β遮断薬・ACEi/ARB)
+      - 息切れ・下肢浮腫増悪時の早期受診
       en:
-        - daily weight + call criteria for 2 kg gain in 2 days
-        - low-sodium diet (< 6 g/d) + processed-food avoidance
-        - medication adherence (diuretic / β-blocker / ACEi-ARB)
-        - early return for worsening dyspnea / lower-extremity edema
-
+      - daily weight + call criteria for 2 kg gain in 2 days
+      - low-sodium diet (< 6 g/d) + processed-food avoidance
+      - medication adherence (diuretic / β-blocker / ACEi-ARB)
+      - early return for worsening dyspnea / lower-extremity edema
   bacterial_pneumonia:
     nursing_diagnoses:
       ja:
-        - ガス交換障害
-        - 気道クリアランス不十分
-        - 発熱による体温調節不足
-        - 感染拡大リスク
+      - ガス交換障害
+      - 気道クリアランス不十分
+      - 発熱による体温調節不足
+      - 感染拡大リスク
       en:
-        - impaired gas exchange
-        - ineffective airway clearance
-        - hyperthermia (fever-related)
-        - risk for infection spread
-    care_plan:
-      ja:
-        - SpO2 継続モニタと酸素投与量調整
-        - 咳嗽介助 + 排痰支援 (体位ドレナージ / ネブライザ)
-        - 発熱時の水分補給促進、解熱後発汗の清潔ケア
-        - 標準予防策の徹底 + 訪問者へ手指衛生指導
-      en:
-        - continuous SpO2 + O2 titration
-        - cough assistance + secretion clearance (positioning / nebulizer)
-        - hydration during fever, hygiene after diaphoresis
-        - standard precautions + hand-hygiene teaching for visitors
+      - impaired gas exchange
+      - ineffective airway clearance
+      - hyperthermia (fever-related)
+      - risk for infection spread
+    care_plan_detail:
+      goal:
+        ja: 解熱し、呼吸状態が改善して酸素需要が減る。
+        en: Fever resolves, breathing improves and oxygen need falls.
+      observation:
+        ja:
+        - SpO2 を継続モニタし、呼吸状態・喀痰の性状を勤務帯ごとに観察する
+        - 体温の推移を記録する
+        en:
+        - Monitor SpO2 continuously; observe breathing and sputum every shift
+        - Record the temperature trend
+      care:
+        ja:
+        - 酸素投与量調整と咳嗽・排痰の支援 (体位ドレナージ・ネブライザ)を行う
+        - 発熱時の水分補給を促し、解熱後の発汗の清潔ケアを行う
+        en:
+        - Titrate oxygen and assist cough and secretion clearance (positioning / nebulizer)
+        - Encourage hydration during fever and provide hygiene after diaphoresis
+      education:
+        ja:
+        - 標準予防策を行い、面会者へ手指衛生を説明する
+        en:
+        - Apply standard precautions and teach visitors hand hygiene
     patient_education:
       ja:
-        - 抗菌薬の内服完遂 (症状改善後も指示日数まで)
-        - 咳嗽・喀痰・呼吸困難再燃時の早期受診
-        - 手指衛生と咳エチケット、家族への感染予防
-        - 肺炎球菌・インフルエンザワクチン推奨
+      - 抗菌薬の内服完遂 (症状改善後も指示日数まで)
+      - 咳嗽・喀痰・呼吸困難再燃時の早期受診
+      - 手指衛生と咳エチケット、家族への感染予防
+      - 肺炎球菌・インフルエンザワクチン推奨
       en:
-        - complete full antibiotic course (even after symptoms improve)
-        - early return for recurrent cough / sputum / dyspnea
-        - hand hygiene + cough etiquette, household infection prevention
-        - pneumococcal + influenza vaccination recommended
-
+      - complete full antibiotic course (even after symptoms improve)
+      - early return for recurrent cough / sputum / dyspnea
+      - hand hygiene + cough etiquette, household infection prevention
+      - pneumococcal + influenza vaccination recommended
+    smoking_education:
+      ja:
+      - 禁煙の継続支援
+      en:
+      - support for smoking cessation
   cerebral_infarction:
     nursing_diagnoses:
       ja:
-        - 脳血流減少に関連した神経学的変化のリスク
-        - 転倒・外傷リスク
-        - 嚥下障害のリスク
-        - コミュニケーション障害
+      - 脳血流減少に関連した神経学的変化のリスク
+      - 転倒・外傷リスク
+      - 嚥下障害のリスク
+      - コミュニケーション障害
       en:
-        - risk for altered neurological status related to cerebral perfusion
-        - risk for falls / injury
-        - risk for impaired swallowing
-        - impaired verbal communication
-    care_plan:
-      ja:
-        - NIHSS ベースの神経学的評価を勤務帯ごとに実施
-        - 嚥下スクリーニング後の食事形態調整、誤嚥予防
-        - "転倒予防: ベッド柵・センサーマット・ナースコール手元"
-        - 患側肢のポジショニング + 早期リハビリ連携
-      en:
-        - NIHSS-based neurological assessment q shift
-        - swallow screening → diet-form modification, aspiration precautions
-        - "fall precautions: bed rails, sensor mat, call bell within reach"
-        - affected-limb positioning + early rehab coordination
+      - risk for altered neurological status related to cerebral perfusion
+      - risk for falls / injury
+      - risk for impaired swallowing
+      - impaired verbal communication
+    care_plan_detail:
+      goal:
+        ja: 神経症状の悪化なく経過し、誤嚥・転倒なく早期離床を進められる。
+        en: The neurological status does not worsen, and early mobilization proceeds without aspiration or falls.
+      observation:
+        ja:
+        - NIHSS に基づく神経学的評価を勤務帯ごとに行う
+        - 嚥下スクリーニングの結果と食事中のむせを観察する
+        en:
+        - Assess neurological status by NIHSS every shift
+        - Observe the swallow screen result and coughing during meals
+      care:
+        ja:
+        - 食事形態を調整し、誤嚥を予防する
+        - ベッド柵・センサーマット・ナースコールを手元に置き転倒を予防する。患側肢のポジショニングと早期リハビリ連携を行う
+        en:
+        - Adjust the diet form and take aspiration precautions
+        - Prevent falls (bed rails, sensor mat, call bell within reach); position the affected limbs and coordinate early rehabilitation
+      education:
+        ja:
+        - 症状が変化したときはすぐ知らせるよう説明する
+        en:
+        - Ask the patient and family to report any change in symptoms at once
     patient_education:
       ja:
-        - 抗血栓薬の服薬遵守と出血症状の観察
-        - 血圧・血糖・脂質管理と生活習慣改善
-        - 再発サイン (FAST) の家族共有
-        - 通所リハビリの継続と自宅環境整備
+      - 抗血栓薬の服薬遵守と出血症状の観察
+      - 血圧・血糖・脂質管理と生活習慣改善
+      - 再発サイン (FAST) の家族共有
+      - 通所リハビリの継続と自宅環境整備
       en:
-        - antithrombotic adherence + bleeding-sign monitoring
-        - BP / glucose / lipid control + lifestyle modification
-        - stroke-recurrence signs (FAST) shared with family
-        - outpatient rehab continuation + home-environment safety
+      - antithrombotic adherence + bleeding-sign monitoring
+      - BP / glucose / lipid control + lifestyle modification
+      - stroke-recurrence signs (FAST) shared with family
+      - outpatient rehab continuation + home-environment safety
+    smoking_education:
+      ja:
+      - 禁煙の継続支援
+      en:
+      - support for smoking cessation
+  acute_mi:
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (胸痛)
+      - 心拍出量減少
+      - 不整脈・心筋虚血再発のリスク
+      - 不安
+      en:
+      - acute pain (chest pain)
+      - decreased cardiac output
+      - risk for arrhythmia and recurrent ischemia
+      - anxiety
+    care_plan_detail:
+      goal:
+        ja: 胸痛が消失し、循環動態と心電図が安定した状態で安静度を拡大できる。
+        en: Chest pain resolves and the activity level can be widened with stable hemodynamics and ECG.
+      observation:
+        ja:
+        - 胸痛の部位・強さ・持続を観察し、心電図モニタとバイタルサイン・尿量を確認する
+        - 胸部症状に伴う冷汗・呼吸困難・意識の変化を観察する
+        en:
+        - Observe the site, severity and duration of chest pain; check ECG monitor, vital signs and urine output
+        - Watch for diaphoresis, dyspnea or altered consciousness with chest symptoms
+      care:
+        ja:
+        - 指示された安静度を守り、心臓リハビリの指示に沿って段階的に離床を進める
+        - 疼痛時は指示薬を投与して効果を確認する
+        en:
+        - Keep the ordered activity level and mobilize stepwise as the cardiac rehabilitation plan allows
+        - Give ordered analgesia for pain and check its effect
+      education:
+        ja:
+        - 胸痛や動悸が出たときはすぐナースコールで知らせるよう説明する
+        en:
+        - Explain that chest pain or palpitations should be reported at once by call bell
+    patient_education:
+      ja:
+      - 処方薬 (抗血小板薬など) の服薬継続と出血症状の観察
+      - 心臓リハビリと活動の進め方
+      - 胸痛再発時の救急要請
+      en:
+      - continuing prescribed drugs (e.g. antiplatelets) and watching for bleeding
+      - cardiac rehabilitation and pacing of activity
+      - calling emergency services if chest pain recurs
+    smoking_education:
+      ja:
+      - 禁煙の継続支援
+      en:
+      - support for smoking cessation
+  atrial_fibrillation_rvr:
+    nursing_diagnoses:
+      ja:
+      - 心拍出量減少
+      - 不整脈に関連した不安
+      - 活動耐性低下
+      - 塞栓症のリスク
+      en:
+      - decreased cardiac output
+      - anxiety related to arrhythmia
+      - activity intolerance
+      - risk for thromboembolism
+    care_plan_detail:
+      goal:
+        ja: 心拍数が指示範囲に落ち着き、動悸やめまいなく過ごせる。
+        en: The heart rate settles within the ordered range, free of palpitations and dizziness.
+      observation:
+        ja:
+        - 心電図モニタで心拍数・リズムを観察し、血圧・自覚症状を確認する
+        - 抗凝固療法中は出血症状を観察する
+        en:
+        - Observe heart rate and rhythm on the ECG monitor; check BP and symptoms
+        - Observe for bleeding during anticoagulation
+      care:
+        ja:
+        - 安静を保ち、動悸時の対応を指示に沿って行う
+        - 指示薬 (心拍数調節薬) の投与後に心拍数・血圧を確認する
+        en:
+        - Keep the patient at rest and respond to palpitations as ordered
+        - Check heart rate and BP after rate-control drugs
+      education:
+        ja:
+        - 動悸・めまい・胸部不快が出たら知らせるよう説明する
+        en:
+        - Ask the patient to report palpitations, dizziness or chest discomfort
+    patient_education:
+      ja:
+      - 脈拍の自己測定と動悸時の対応
+      - 抗凝固薬の服薬遵守と出血症状の観察
+      - 塞栓症状 (片麻痺・ろれつ不良) の早期受診
+      en:
+      - pulse self-check and what to do with palpitations
+      - anticoagulant adherence + bleeding-sign monitoring
+      - early return for embolic signs (weakness on one side, slurred speech)
+  aspiration_pneumonia:
+    nursing_diagnoses:
+      ja:
+      - ガス交換障害
+      - 誤嚥のリスク
+      - 気道クリアランス不十分
+      - 栄養摂取不足のリスク
+      en:
+      - impaired gas exchange
+      - risk for aspiration
+      - ineffective airway clearance
+      - risk for imbalanced nutrition
+    care_plan_detail:
+      goal:
+        ja: 誤嚥を繰り返さずに経過し、呼吸状態が改善する。
+        en: No further aspiration occurs and breathing improves.
+      observation:
+        ja:
+        - SpO2・呼吸状態・喀痰を観察し、食事中のむせと摂取量を確認する
+        - 体温の推移を記録する
+        en:
+        - Observe SpO2, breathing and sputum; check coughing during meals and intake
+        - Record the temperature trend
+      care:
+        ja:
+        - 食事時の姿勢 (座位 30-60 度以上)と食事形態を調整し、食後の口腔ケアを行う
+        - 排痰を支援し、酸素投与量を調整する
+        en:
+        - Adjust posture (upright) and diet form at meals and provide oral care after meals
+        - Assist expectoration and titrate oxygen
+      education:
+        ja:
+        - ゆっくり少量ずつ食べるよう説明し、家族にも食事介助の方法を伝える
+        en:
+        - Teach slow, small mouthfuls and show the family how to assist at meals
+    patient_education:
+      ja:
+      - 食事姿勢・食形態の工夫と口腔ケアの継続
+      - むせ・発熱・咳嗽の再燃時の早期受診
+      - 嚥下機能評価とリハビリの継続
+      en:
+      - meal posture, food texture and continued oral care
+      - early return for choking, fever or cough
+      - continuing swallow assessment and rehabilitation
+  asthma_exacerbation:
+    nursing_diagnoses:
+      ja:
+      - 気道クリアランス不十分
+      - ガス交換障害
+      - 不安 (呼吸困難関連)
+      - 吸入手技・自己管理の知識不足
+      en:
+      - ineffective airway clearance
+      - impaired gas exchange
+      - anxiety (dyspnea-related)
+      - deficient knowledge of inhaler use and self-management
+    care_plan_detail:
+      goal:
+        ja: 喘鳴と呼吸困難が軽減し、SpO2 が指示範囲で保たれる。
+        en: Wheeze and dyspnea ease and SpO2 stays within the ordered range.
+      observation:
+        ja:
+        - 呼吸音・呼吸数・SpO2 を勤務帯ごとに評価する
+        - 吸入手技と症状の変化を観察する
+        en:
+        - Assess breath sounds, respiratory rate and SpO2 every shift
+        - Observe inhaler technique and symptom changes
+      care:
+        ja:
+        - 起坐位など楽な体位を保ち、指示薬 (吸入・酸素) を投与して効果を確認する
+        - 安心できるよう声かけを行い、誘因 (ほこり・寝具) を避ける
+        en:
+        - Keep an upright comfortable position; give ordered inhaled drugs and oxygen and check the effect
+        - Reassure the patient and avoid triggers (dust, bedding)
+      education:
+        ja:
+        - 発作時の吸入薬の使い方を一緒に確認する
+        en:
+        - Review the use of the rescue inhaler together
+    patient_education:
+      ja:
+      - 吸入器手技の再確認
+      - 増悪の誘因 (感染・アレルゲン) と早期サインの認識
+      - 長期管理薬の継続と発作時の受診目安
+      en:
+      - inhaler technique reinforcement
+      - recognizing triggers (infection, allergens) and early signs
+      - continuing controller medication and when to seek care
+    smoking_education:
+      ja:
+      - 禁煙・受動喫煙回避の支援
+      en:
+      - support for smoking cessation and avoiding secondhand smoke
+  urinary_tract_infection:
+    nursing_diagnoses:
+      ja:
+      - 感染 (尿路感染) の持続
+      - 排尿障害
+      - 発熱による体温調節不足
+      - 脱水のリスク
+      en:
+      - infection (urinary tract)
+      - impaired urinary elimination
+      - hyperthermia (fever-related)
+      - risk for deficient fluid volume
+    care_plan_detail:
+      goal:
+        ja: 解熱し、排尿時痛などの症状が消失して尿量が保たれる。
+        en: Fever resolves, voiding symptoms disappear and urine output is maintained.
+      observation:
+        ja:
+        - 体温・排尿回数・尿量・尿の性状と排尿時痛を観察する
+        - 悪寒戦慄や血圧低下など敗血症徴候を観察する
+        en:
+        - Observe temperature, voiding frequency, urine volume and character, and dysuria
+        - Watch for rigors or falling BP suggesting sepsis
+      care:
+        ja:
+        - 指示された抗菌薬を確実に投与し、飲水を促す
+        - 陰部清潔ケアを行い、カテーテル留置時は尿の流出を保つ
+        en:
+        - Give the ordered antibiotic reliably and encourage fluids
+        - Provide perineal hygiene and keep urine draining if a catheter is in place
+      education:
+        ja:
+        - 尿をがまんせず、陰部は前から後ろへ拭くよう説明する
+        en:
+        - Explain not holding urine and wiping front to back
+    patient_education:
+      ja:
+      - 抗菌薬の内服完遂
+      - 水分摂取と排尿習慣
+      - 発熱・背部痛・血尿の再燃時の受診
+      en:
+      - completing the antibiotic course
+      - fluid intake and voiding habits
+      - return for fever, flank pain or hematuria
+  sepsis:
+    nursing_diagnoses:
+      ja:
+      - 感染 (敗血症)
+      - 組織循環不全のリスク
+      - 体温調節不足
+      - ガス交換障害のリスク
+      en:
+      - infection (sepsis)
+      - risk for inadequate tissue perfusion
+      - hyperthermia / thermoregulation
+      - risk for impaired gas exchange
+    care_plan_detail:
+      goal:
+        ja: 感染源が管理され、血圧・尿量・意識が保たれる。
+        en: The source of infection is controlled and BP, urine output and consciousness are maintained.
+      observation:
+        ja:
+        - バイタルサイン・意識・尿量・末梢循環を頻回に観察する
+        - 乳酸値や培養結果など検査結果の変化を確認する
+        en:
+        - Observe vital signs, consciousness, urine output and peripheral perfusion frequently
+        - Follow changes in lactate and culture results
+      care:
+        ja:
+        - 指示された輸液・抗菌薬・昇圧薬を確実かつ適時に投与する
+        - 体温管理と清潔ケアを行い、カテーテル刺入部の感染を予防する
+        en:
+        - Give ordered fluids, antimicrobials and vasopressors reliably and on time
+        - Manage temperature, provide hygiene and protect catheter sites from infection
+      education:
+        ja:
+        - 家族へ病状と面会時の手指衛生を説明する
+        en:
+        - Explain the condition to the family and hand hygiene for visits
+    patient_education:
+      ja:
+      - 抗菌薬の指示通りの継続と感染予防 (手指衛生)
+      - 発熱・悪寒・意識変化が出たときの早期受診
+      - 基礎疾患の管理
+      en:
+      - taking antimicrobials as directed and infection prevention (hand hygiene)
+      - early return for fever, chills or confusion
+      - managing underlying conditions
+  cellulitis:
+    nursing_diagnoses:
+      ja:
+      - 皮膚統合性障害
+      - 感染 (蜂窩織炎)
+      - 急性疼痛
+      - 活動耐性低下
+      en:
+      - impaired skin integrity
+      - infection (cellulitis)
+      - acute pain
+      - activity intolerance
+    care_plan_detail:
+      goal:
+        ja: 発赤・腫脹・疼痛が軽減し、皮膚の状態が改善する。
+        en: Redness, swelling and pain lessen and the skin improves.
+      observation:
+        ja:
+        - 患部の発赤・腫脹・熱感・疼痛の範囲を毎日観察し、境界をマーキングする
+        - 体温と創部の浸出液を観察する
+        en:
+        - Observe the extent of redness, swelling, warmth and pain daily, marking the border
+        - Observe temperature and wound drainage
+      care:
+        ja:
+        - 患肢を挙上して安静を保ち、清潔を保つ
+        - 指示された抗菌薬を確実に投与し、疼痛時は指示薬を使う
+        en:
+        - Elevate and rest the limb and keep it clean
+        - Give the ordered antibiotic reliably and analgesia for pain
+      education:
+        ja:
+        - 患部を掻かない、清潔を保つよう説明する
+        en:
+        - Explain not scratching and keeping the area clean
+    patient_education:
+      ja:
+      - 抗菌薬の内服完遂
+      - 皮膚の保清・保湿と外傷予防
+      - 発赤拡大・発熱の再燃時の受診
+      en:
+      - completing the antibiotic course
+      - skin hygiene, moisturizing and injury prevention
+      - return for spreading redness or fever
+  hemorrhagic_stroke:
+    nursing_diagnoses:
+      ja:
+      - 頭蓋内圧亢進・神経学的変化のリスク
+      - 転倒・外傷リスク
+      - 嚥下障害のリスク
+      - セルフケア不足
+      en:
+      - risk for raised intracranial pressure and altered neurological status
+      - risk for falls / injury
+      - risk for impaired swallowing
+      - self-care deficit
+    care_plan_detail:
+      goal:
+        ja: 血圧が指示範囲に保たれ、神経症状の悪化なく経過する。
+        en: BP stays within the ordered range and neurological status does not worsen.
+      observation:
+        ja:
+        - 意識レベル・瞳孔・麻痺・頭痛・嘔吐を頻回に観察し、血圧を確認する
+        - 嚥下状態を評価する
+        en:
+        - Observe consciousness, pupils, weakness, headache and vomiting frequently and check BP
+        - Assess swallowing
+      care:
+        ja:
+        - 指示された降圧管理と安静を守り、頭部挙上を保つ
+        - 転倒予防策を行い、拘縮予防の体位変換と早期リハビリ連携を行う
+        en:
+        - Keep ordered BP control and bed rest with the head raised
+        - Take fall precautions, reposition to prevent contracture and coordinate early rehabilitation
+      education:
+        ja:
+        - 頭痛・吐き気・手足の動かしにくさが出たらすぐ知らせるよう説明する
+        en:
+        - Ask the patient to report headache, nausea or weakness at once
+    patient_education:
+      ja:
+      - 血圧管理と減塩・服薬継続
+      - 再発サインと救急要請の目安
+      - リハビリの継続と自宅環境整備
+      en:
+      - BP control, salt restriction and medication adherence
+      - recurrence signs and when to call for help
+      - continuing rehabilitation and home safety
+    smoking_education:
+      ja:
+      - 禁煙の継続支援
+      en:
+      - support for smoking cessation
+  subdural_hematoma:
+    nursing_diagnoses:
+      ja:
+      - 頭蓋内圧亢進・神経学的変化のリスク
+      - 転倒・外傷リスク
+      - 急性疼痛 (頭痛)
+      - 認知・意識障害のリスク
+      en:
+      - risk for raised intracranial pressure and altered neurological status
+      - risk for falls / injury
+      - acute pain (headache)
+      - risk for altered cognition / consciousness
+    care_plan_detail:
+      goal:
+        ja: 意識レベルと神経症状が悪化せず、頭痛が軽減する。
+        en: Consciousness and neurological signs do not worsen and headache lessens.
+      observation:
+        ja:
+        - 意識レベル・瞳孔・麻痺・頭痛・嘔吐を勤務帯ごとに観察する
+        - 抗血栓薬の服用歴と出血傾向を確認する
+        en:
+        - Observe consciousness, pupils, weakness, headache and vomiting every shift
+        - Confirm antithrombotic use and bleeding tendency
+      care:
+        ja:
+        - 安静と頭部挙上を保ち、指示された血圧管理を行う
+        - 転倒予防策 (ベッド柵・離床センサー) を行う
+        en:
+        - Keep rest with the head raised and ordered BP control
+        - Take fall precautions (bed rails, bed-exit sensor)
+      education:
+        ja:
+        - 頭痛や意識の変化、手足の動かしにくさは早めに知らせるよう説明する
+        en:
+        - Ask the patient and family to report headache, drowsiness or weakness early
+    patient_education:
+      ja:
+      - 転倒予防と頭部打撲後の受診目安
+      - 抗血栓薬の服用中は出血に注意
+      - 退院後の症状 (頭痛・歩行障害・物忘れ) の観察
+      en:
+      - fall prevention and when to seek care after a head blow
+      - bleeding precautions while taking antithrombotics
+      - watching for headache, gait trouble or memory change after discharge
+  gi_bleeding:
+    nursing_diagnoses:
+      ja:
+      - 体液量不足 (出血)
+      - 組織循環不全のリスク
+      - 貧血に関連した活動耐性低下
+      - 不安
+      en:
+      - deficient fluid volume (bleeding)
+      - risk for inadequate tissue perfusion
+      - activity intolerance related to anemia
+      - anxiety
+    care_plan_detail:
+      goal:
+        ja: 出血が止まり、バイタルサインとヘモグロビン値が安定する。
+        en: Bleeding stops and vital signs and hemoglobin are stable.
+      observation:
+        ja:
+        - 血圧・脈拍・顔色と吐下血の量・性状を観察し、IN/OUT を確認する
+        - ヘモグロビン値の推移を確認する
+        en:
+        - Observe BP, pulse, color and the volume and character of hematemesis / melena; check I/O
+        - Follow the hemoglobin trend
+      care:
+        ja:
+        - 指示された輸液・輸血を安全に行い、安静と絶食を保つ
+        - 内視鏡検査・処置の前後の準備と観察を行う
+        en:
+        - Give ordered fluids and transfusion safely and keep rest and fasting
+        - Prepare for and observe before and after endoscopy
+      education:
+        ja:
+        - 黒色便や吐血、ふらつきがあればすぐ知らせるよう説明する
+        en:
+        - Ask the patient to report black stools, vomiting of blood or dizziness at once
+    patient_education:
+      ja:
+      - 出血の原因薬 (NSAIDs など)の見直しと服薬遵守
+      - 黒色便・吐血・ふらつき時の早期受診
+      - 食事・飲酒の注意
+      en:
+      - reviewing drugs that cause bleeding (e.g. NSAIDs) and adherence
+      - early return for black stools, vomiting blood or dizziness
+      - diet and alcohol guidance
+    smoking_education:
+      ja:
+      - 禁煙の継続支援
+      en:
+      - support for smoking cessation
+  acute_appendicitis:
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (腹痛)
+      - 感染のリスク
+      - 体液量不足のリスク
+      - 術前・術後の不安
+      en:
+      - acute pain (abdominal pain)
+      - risk for infection
+      - risk for deficient fluid volume
+      - perioperative anxiety
+    care_plan_detail:
+      goal:
+        ja: 腹痛が軽減し、術後は合併症なく離床・経口摂取を進められる。
+        en: Abdominal pain lessens and, after surgery, mobilization and oral intake progress without complications.
+      observation:
+        ja:
+        - 腹痛の部位・強さ・腹部所見と体温を観察する
+        - 術後は創部・ドレーン排液・バイタルサインを観察する
+        en:
+        - Observe the site and severity of abdominal pain, abdominal findings and temperature
+        - After surgery observe the wound, drain output and vital signs
+      care:
+        ja:
+        - 指示された絶食・輸液・抗菌薬を行い、疼痛時は指示薬を投与して効果を確認する
+        - 術後は早期離床と創部の清潔保持を支援する
+        en:
+        - Keep ordered fasting, IV fluids and antibiotics and give analgesia for pain with effect checks
+        - After surgery support early mobilization and wound cleanliness
+      education:
+        ja:
+        - 痛みの変化は我慢せず知らせるよう説明する
+        en:
+        - Explain that any change in pain should be reported rather than endured
+    patient_education:
+      ja:
+      - 術後の創部管理と入浴・活動の再開時期
+      - 発熱・腹痛・創部の発赤の再燃時の受診
+      - 食事の進め方
+      en:
+      - wound care and when to resume bathing and activity after surgery
+      - return for fever, abdominal pain or wound redness
+      - advancing the diet
+  acute_cholecystitis:
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (右上腹部痛)
+      - 感染のリスク
+      - 体液量不足のリスク
+      - 栄養摂取不足のリスク
+      en:
+      - acute pain (right upper abdominal pain)
+      - risk for infection
+      - risk for deficient fluid volume
+      - risk for imbalanced nutrition
+    care_plan_detail:
+      goal:
+        ja: 腹痛と発熱が軽減し、食事を再開できる。
+        en: Abdominal pain and fever lessen and diet can be resumed.
+      observation:
+        ja:
+        - 腹痛の部位・強さ、体温、黄疸の有無を観察する
+        - 悪心・嘔吐と食事摂取状況を観察する
+        en:
+        - Observe the site and severity of pain, temperature and jaundice
+        - Observe nausea, vomiting and intake
+      care:
+        ja:
+        - 指示された絶食・輸液・抗菌薬を確実に行い、疼痛時は指示薬を使う
+        - 手術・ドレナージ施行時は処置前後の観察とドレーン管理を行う
+        en:
+        - Keep ordered fasting, IV fluids and antibiotics and give analgesia for pain
+        - If surgery or drainage is done, observe before and after and manage the drain
+      education:
+        ja:
+        - 食事再開後に痛みが出たら知らせるよう説明する
+        en:
+        - Ask the patient to report pain after meals resume
+    patient_education:
+      ja:
+      - 脂肪の多い食事の調整
+      - 発熱・腹痛・黄疸の再燃時の受診
+      - 術後・ドレーン留置時の創部管理
+      en:
+      - limiting fatty meals
+      - return for fever, abdominal pain or jaundice
+      - wound and drain care after surgery or drainage
+  acute_pancreatitis:
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (上腹部痛)
+      - 体液量不足のリスク
+      - 栄養摂取不足のリスク
+      - 感染・臓器障害のリスク
+      en:
+      - acute pain (epigastric pain)
+      - risk for deficient fluid volume
+      - risk for imbalanced nutrition
+      - risk for infection and organ dysfunction
+    care_plan_detail:
+      goal:
+        ja: 腹痛が軽減し、循環と尿量が保たれたまま食事を再開できる。
+        en: Abdominal pain lessens and diet is resumed with circulation and urine output maintained.
+      observation:
+        ja:
+        - 腹痛の部位・強さ、悪心・嘔吐を観察し、バイタルサインと尿量を確認する
+        - 呼吸状態と血糖・電解質の変化を確認する
+        en:
+        - Observe the site and severity of pain, nausea and vomiting; check vital signs and urine output
+        - Check breathing, glucose and electrolytes
+      care:
+        ja:
+        - 指示された絶食・大量輸液を確実に行い、疼痛時は指示薬を使う
+        - 食事再開時は段階的に進め、症状の再燃を観察する
+        en:
+        - Keep ordered fasting and aggressive IV fluids and give analgesia for pain
+        - Advance diet stepwise and observe for recurrence of symptoms
+      education:
+        ja:
+        - 飲酒や脂肪の多い食事が再発の原因になることを説明する
+        en:
+        - Explain that alcohol and fatty meals can trigger recurrence
+    patient_education:
+      ja:
+      - 禁酒と脂肪制限の食事
+      - 腹痛・嘔吐の再燃時の受診
+      - 胆石など原因疾患の治療の継続
+      en:
+      - alcohol abstinence and a low-fat diet
+      - return for abdominal pain or vomiting
+      - continuing treatment of the cause such as gallstones
+  acute_kidney_injury:
+    nursing_diagnoses:
+      ja:
+      - 体液量の変動 (過剰・不足)
+      - 電解質バランス異常のリスク
+      - 腎機能低下の悪化リスク
+      - 感染のリスク
+      en:
+      - fluctuating fluid volume (excess or deficit)
+      - risk for electrolyte imbalance
+      - risk for worsening renal function
+      - risk for infection
+    care_plan_detail:
+      goal:
+        ja: 尿量が保たれ、腎機能と電解質が改善傾向となる。
+        en: Urine output is maintained and renal function and electrolytes improve.
+      observation:
+        ja:
+        - 尿量と IN/OUT・体重・浮腫を観察する
+        - カリウムなどの電解質と腎機能の検査値を確認する
+        en:
+        - Observe urine output, I/O, weight and edema
+        - Check potassium and other electrolytes and renal function
+      care:
+        ja:
+        - 指示された輸液・水分量を守り、腎毒性のある薬剤の使用状況を確認する
+        - 必要に応じて透析の準備と観察を行う
+        en:
+        - Keep ordered fluids and fluid limits and review nephrotoxic drug use
+        - Prepare for and observe dialysis when needed
+      education:
+        ja:
+        - 尿量が減る、むくみが増えるなどの変化は知らせるよう説明する
+        en:
+        - Ask the patient to report reduced urine or increasing swelling
+    patient_education:
+      ja:
+      - 腎臓に負担となる薬 (NSAIDs など) の回避
+      - 水分・食事 (塩分・カリウム) の指示
+      - 定期的な採血・腎機能フォロー
+      en:
+      - avoiding drugs that stress the kidneys (e.g. NSAIDs)
+      - fluid and diet (salt, potassium) instructions
+      - regular blood tests and renal follow-up
+  liver_cirrhosis_decompensated:
+    nursing_diagnoses:
+      ja:
+      - 体液量過剰 (腹水・浮腫)
+      - 出血のリスク
+      - 肝性脳症による意識・認知変化のリスク
+      - 栄養摂取不足のリスク
+      en:
+      - excess fluid volume (ascites / edema)
+      - risk for bleeding
+      - risk for altered consciousness from hepatic encephalopathy
+      - risk for imbalanced nutrition
+    care_plan_detail:
+      goal:
+        ja: 腹水・浮腫が軽減し、意識が保たれ出血なく経過する。
+        en: Ascites and edema lessen, consciousness is maintained and there is no bleeding.
+      observation:
+        ja:
+        - 体重・腹囲・浮腫・尿量を毎日観察する
+        - 意識レベル・羽ばたき振戦・黒色便や吐血を観察する
+        en:
+        - Observe weight, abdominal girth, edema and urine output daily
+        - Observe consciousness, asterixis, black stools and hematemesis
+      care:
+        ja:
+        - 塩分・水分の指示を守れるよう支援し、排便コントロール (便秘予防) を行う
+        - 皮膚の清潔と保湿を行い、転倒を予防する
+        en:
+        - Support the ordered salt and fluid limits and prevent constipation
+        - Keep the skin clean and moist and prevent falls
+      education:
+        ja:
+        - 意識がぼんやりする、黒い便が出るなどの変化はすぐ知らせるよう説明する
+        en:
+        - Ask the patient to report drowsiness or black stools at once
+    patient_education:
+      ja:
+      - 禁酒と塩分制限・栄養の指導
+      - 服薬 (利尿薬・ラクツロースなど) の継続
+      - 吐血・黒色便・意識変化時の救急受診
+      en:
+      - alcohol abstinence, salt restriction and nutrition guidance
+      - continuing drugs (diuretics, lactulose etc.)
+      - emergency visit for vomiting blood, black stools or confusion
+  pulmonary_embolism:
+    nursing_diagnoses:
+      ja:
+      - ガス交換障害
+      - 心拍出量減少のリスク
+      - 出血のリスク (抗凝固療法)
+      - 不安
+      en:
+      - impaired gas exchange
+      - risk for decreased cardiac output
+      - risk for bleeding (anticoagulation)
+      - anxiety
+    care_plan_detail:
+      goal:
+        ja: 呼吸困難が軽減し、酸素化と循環が安定する。
+        en: Dyspnea lessens and oxygenation and circulation are stable.
+      observation:
+        ja:
+        - SpO2・呼吸数・血圧・胸痛を継続観察する
+        - 抗凝固療法中の出血症状と下肢の腫脹・疼痛を観察する
+        en:
+        - Observe SpO2, respiratory rate, BP and chest pain continuously
+        - Observe bleeding on anticoagulation and leg swelling or pain
+      care:
+        ja:
+        - 指示された安静度と酸素投与を守り、抗凝固薬を確実に投与する
+        - 弾性ストッキングや下肢の運動を指示に沿って行う
+        en:
+        - Keep the ordered activity level and oxygen; give anticoagulants reliably
+        - Apply compression stockings and leg exercises as ordered
+      education:
+        ja:
+        - 息苦しさや胸の痛みが出たらすぐ知らせるよう説明する
+        en:
+        - Ask the patient to report breathlessness or chest pain at once
+    patient_education:
+      ja:
+      - 抗凝固薬の服薬遵守と出血症状の観察
+      - 長時間の同一姿勢を避け、水分・運動を心がける
+      - 息切れ・胸痛・下肢腫脹の再燃時の受診
+      en:
+      - anticoagulant adherence and watching for bleeding
+      - avoiding long immobility; fluids and activity
+      - return for breathlessness, chest pain or leg swelling
+    smoking_education:
+      ja:
+      - 禁煙の継続支援
+      en:
+      - support for smoking cessation
+  deep_vein_thrombosis:
+    nursing_diagnoses:
+      ja:
+      - 組織循環 (末梢) の変調
+      - 出血のリスク (抗凝固療法)
+      - 急性疼痛 (下肢)
+      - 肺塞栓症のリスク
+      en:
+      - altered peripheral tissue perfusion
+      - risk for bleeding (anticoagulation)
+      - acute pain (leg)
+      - risk for pulmonary embolism
+    care_plan_detail:
+      goal:
+        ja: 下肢の腫脹・疼痛が軽減し、塞栓症状と出血を認めない。
+        en: Leg swelling and pain lessen with no embolic symptoms or bleeding.
+      observation:
+        ja:
+        - 下肢の腫脹・疼痛・色調・周径を観察する
+        - 息切れ・胸痛など肺塞栓症の徴候と出血症状を観察する
+        en:
+        - Observe leg swelling, pain, color and circumference
+        - Observe for breathlessness or chest pain suggesting embolism, and for bleeding
+      care:
+        ja:
+        - 抗凝固薬を確実に投与し、指示された安静度で離床を進める
+        - 弾性ストッキングの装着と下肢挙上を行う
+        en:
+        - Give anticoagulants reliably and mobilize as ordered
+        - Apply compression stockings and elevate the leg
+      education:
+        ja:
+        - 息苦しさや胸の痛みはすぐ知らせるよう説明する
+        en:
+        - Ask the patient to report breathlessness or chest pain at once
+    patient_education:
+      ja:
+      - 抗凝固薬の服薬遵守と出血症状の観察
+      - 弾性ストッキングの使用と適度な運動・水分摂取
+      - 息切れ・胸痛・下肢腫脹の増悪時の受診
+      en:
+      - anticoagulant adherence and watching for bleeding
+      - compression stockings, moderate activity and fluids
+      - return for breathlessness, chest pain or worsening leg swelling
+  ileus:
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (腹部膨満・腹痛)
+      - 体液・電解質バランス異常のリスク
+      - 消化管運動障害 (便秘・排ガス停止)
+      - 誤嚥のリスク
+      en:
+      - acute pain (abdominal distension / pain)
+      - risk for fluid and electrolyte imbalance
+      - impaired gastrointestinal motility (constipation / no flatus)
+      - risk for aspiration
+    care_plan_detail:
+      goal:
+        ja: 腹部膨満と嘔吐が軽減し、排ガス・排便がみられる。
+        en: Abdominal distension and vomiting lessen and flatus and stool pass.
+      observation:
+        ja:
+        - 腹部膨満・腹痛・嘔吐、排ガス・排便の有無と腸蠕動音を観察する
+        - 胃管・イレウス管の排液量と性状、IN/OUT を確認する
+        en:
+        - Observe distension, pain, vomiting, flatus and stool, and bowel sounds
+        - Check output and character from the nasogastric / ileus tube and I/O
+      care:
+        ja:
+        - 指示された絶食と輸液を行い、管の固定・管理を行う
+        - 可能な範囲で離床を促し、疼痛時は指示薬を使う
+        en:
+        - Keep ordered fasting and IV fluids and secure and manage the tube
+        - Encourage mobilization within limits and give analgesia for pain
+      education:
+        ja:
+        - 腹痛・吐き気・おなかの張りが強くなったら知らせるよう説明する
+        en:
+        - Ask the patient to report worsening pain, nausea or bloating
+    patient_education:
+      ja:
+      - 食事再開後の食べ方 (少量ずつ・よく噛む)
+      - 便通の管理
+      - 腹痛・嘔吐・排便停止時の受診
+      en:
+      - eating after resumption (small amounts, chewing well)
+      - bowel regimen
+      - return for abdominal pain, vomiting or no bowel movement
+  hip_fracture:
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (股関節部)
+      - 身体可動性障害
+      - 転倒・外傷のリスク
+      - 術後合併症 (感染・せん妄・深部静脈血栓症) のリスク
+      en:
+      - acute pain (hip)
+      - impaired physical mobility
+      - risk for falls / injury
+      - risk for postoperative complications (infection, delirium, DVT)
+    care_plan_detail:
+      goal:
+        ja: 疼痛が管理され、術後は合併症なく離床・歩行訓練を進められる。
+        en: Pain is controlled and after surgery mobilization and gait training proceed without complications.
+      observation:
+        ja:
+        - 疼痛の程度、創部、下肢の循環・しびれ・腫脹を観察する
+        - せん妄の徴候と術後のバイタルサインを観察する
+        en:
+        - Observe pain, the wound and limb perfusion, numbness and swelling
+        - Observe for delirium and postoperative vital signs
+      care:
+        ja:
+        - 指示された荷重制限を守り、疼痛を管理して早期離床とリハビリを支援する
+        - 転倒予防策を行い、体位変換・弾性ストッキングで褥瘡と血栓を予防する
+        en:
+        - Keep the ordered weight-bearing limits, control pain and support early mobilization and rehabilitation
+        - Take fall precautions; prevent pressure injury and clots by repositioning and compression stockings
+      education:
+        ja:
+        - 術後の動作の制限 (脱臼予防・荷重) と転倒予防について説明する
+        en:
+        - Teach postoperative movement limits (dislocation precautions, weight bearing) and fall prevention
+    patient_education:
+      ja:
+      - 荷重制限と動作の注意、リハビリの継続
+      - 転倒予防の住環境整備
+      - 創部の発赤・熱感・疼痛増悪時の受診
+      en:
+      - weight-bearing limits, movement precautions and continued rehabilitation
+      - making the home safe against falls
+      - return for wound redness, warmth or worsening pain
+  vertebral_compression_fracture:
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (背部痛)
+      - 身体可動性障害
+      - 転倒・外傷のリスク
+      - 便秘のリスク
+      en:
+      - acute pain (back pain)
+      - impaired physical mobility
+      - risk for falls / injury
+      - risk for constipation
+    care_plan_detail:
+      goal:
+        ja: 疼痛が軽減し、コルセットを使って安全に離床できる。
+        en: Pain lessens and the patient can get up safely using the brace.
+      observation:
+        ja:
+        - 背部痛の程度と下肢のしびれ・脱力・排尿排便の変化を観察する
+        - 疼痛時の動作と離床時の状態を観察する
+        en:
+        - Observe back pain and any leg numbness, weakness or bladder / bowel change
+        - Observe movement and condition when getting up
+      care:
+        ja:
+        - 体位変換・起き上がり動作 (ログロール) を介助し、指示薬で疼痛を管理する
+        - コルセット装着を支援し、排便コントロールを行う
+        en:
+        - Assist repositioning and getting up (log-roll) and manage pain with ordered drugs
+        - Assist brace wear and manage bowels
+      education:
+        ja:
+        - 痛みを強くしない起き上がり方と、下肢のしびれや脱力はすぐ知らせることを説明する
+        en:
+        - Teach getting up without aggravating pain and to report leg numbness or weakness at once
+    patient_education:
+      ja:
+      - コルセットの使い方と動作の注意
+      - 骨粗鬆症治療の継続と転倒予防
+      - 下肢のしびれ・脱力・排尿障害時の受診
+      en:
+      - brace use and movement precautions
+      - continuing osteoporosis treatment and fall prevention
+      - return for leg numbness, weakness or urinary trouble
+  wrist_fracture_surgical:
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (手関節部)
+      - 末梢神経血管障害のリスク
+      - 感染のリスク
+      - セルフケア不足 (利き手の場合)
+      en:
+      - acute pain (wrist)
+      - risk for peripheral neurovascular dysfunction
+      - risk for infection
+      - self-care deficit (if dominant hand)
+    care_plan_detail:
+      goal:
+        ja: 疼痛と腫脹が管理され、術後は合併症なく手指の運動を進められる。
+        en: Pain and swelling are controlled and after surgery finger exercises proceed without complications.
+      observation:
+        ja:
+        - 疼痛、手指の色調・温度・しびれ・動きを観察する
+        - 創部の出血・腫脹・浸出液を観察する
+        en:
+        - Observe pain and the color, warmth, numbness and movement of the fingers
+        - Observe the wound for bleeding, swelling and drainage
+      care:
+        ja:
+        - 患肢を挙上し、指示された固定を保つ
+        - 疼痛時は指示薬を投与し、日常動作の介助を行う
+        en:
+        - Elevate the limb and keep the ordered immobilization
+        - Give analgesia for pain and assist daily activities
+      education:
+        ja:
+        - 指を動かす運動と、しびれや色の変化はすぐ知らせることを説明する
+        en:
+        - Teach finger exercises and to report numbness or color change at once
+    patient_education:
+      ja:
+      - 固定中の手指の運動と挙上
+      - 創部の管理と入浴の注意
+      - しびれ・腫脹・発熱時の受診
+      en:
+      - finger exercises and elevation while immobilized
+      - wound care and bathing precautions
+      - return for numbness, swelling or fever
+  alcohol_withdrawal:
+    nursing_diagnoses:
+      ja:
+      - 離脱症状 (振戦・発汗・不穏) の出現リスク
+      - けいれん・せん妄のリスク
+      - 転倒・外傷のリスク
+      - 栄養摂取不足のリスク
+      en:
+      - risk for withdrawal symptoms (tremor, sweating, agitation)
+      - risk for seizure and delirium
+      - risk for falls / injury
+      - risk for imbalanced nutrition
+    care_plan_detail:
+      goal:
+        ja: 離脱症状が重症化せず、安全に落ち着いて過ごせる。
+        en: Withdrawal does not become severe and the patient stays safe and calm.
+      observation:
+        ja:
+        - 脈拍・血圧・体温・発汗・振戦・見当識を頻回に観察する
+        - 離脱スコアの評価と、けいれん・幻覚の有無を観察する
+        en:
+        - Observe pulse, BP, temperature, sweating, tremor and orientation frequently
+        - Assess the withdrawal score and observe for seizures and hallucinations
+      care:
+        ja:
+        - 指示薬 (ベンゾジアゼピンやビタミン B1 など) を確実に投与し、反応を確認する
+        - 静かな環境を整え、転倒・自傷を予防する
+        en:
+        - Give ordered drugs (benzodiazepines, thiamine etc.) reliably and check the response
+        - Provide a quiet environment and prevent falls and self-injury
+      education:
+        ja:
+        - 症状は治療で和らぐことを伝え、つらいときは知らせるよう説明する
+        en:
+        - Explain that symptoms ease with treatment and to say when distressed
+    patient_education:
+      ja:
+      - 断酒の継続と相談窓口・専門外来の利用
+      - 栄養 (ビタミン B1) と食事の摂取
+      - 再飲酒時・離脱症状が出たときの受診
+      en:
+      - continuing abstinence and using counseling and specialist clinics
+      - nutrition (thiamine) and regular meals
+      - seeking care on relapse or withdrawal symptoms
+  crush_injury_hand:
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (手)
+      - 末梢循環・神経障害のリスク
+      - 感染のリスク
+      - セルフケア不足
+      en:
+      - acute pain (hand)
+      - risk for impaired peripheral perfusion and nerve function
+      - risk for infection
+      - self-care deficit
+    care_plan_detail:
+      goal:
+        ja: 疼痛と腫脹が管理され、創部感染や循環障害を起こさない。
+        en: Pain and swelling are controlled with no wound infection or circulatory compromise.
+      observation:
+        ja:
+        - 疼痛、指先の色調・温度・毛細血管再充満・しびれを観察する
+        - 創部の出血・浸出液・発赤を観察する
+        en:
+        - Observe pain and fingertip color, warmth, capillary refill and numbness
+        - Observe the wound for bleeding, drainage and redness
+      care:
+        ja:
+        - 患肢を挙上し、創処置・包帯交換を無菌的に行う
+        - 疼痛時は指示薬を投与し、日常動作を介助する
+        en:
+        - Elevate the limb and change dressings aseptically
+        - Give analgesia for pain and assist daily activities
+      education:
+        ja:
+        - 創部を濡らさない、指先の色が悪いときは知らせることを説明する
+        en:
+        - Teach keeping the wound dry and reporting pale or dusky fingertips
+    patient_education:
+      ja:
+      - 創部の管理と処置の継続
+      - 手指のリハビリテーション
+      - 腫脹・発熱・しびれの増悪時の受診
+      en:
+      - wound care and continued dressings
+      - hand rehabilitation
+      - return for swelling, fever or worsening numbness
+  depression_inpatient:
+    nursing_diagnoses:
+      ja:
+      - 抑うつ気分
+      - 自傷・自殺のリスク
+      - 睡眠パターン変調
+      - セルフケア不足
+      en:
+      - depressed mood
+      - risk for self-harm / suicide
+      - disturbed sleep pattern
+      - self-care deficit
+    care_plan_detail:
+      goal:
+        ja: 安全が守られ、睡眠・食事が保たれて気分の落ち込みが軽減する。
+        en: The patient stays safe, sleeps and eats adequately and mood improves.
+      observation:
+        ja:
+        - 気分・希死念慮・言動を毎日観察し、睡眠と食事摂取量を確認する
+        - 服薬の効果と副作用 (眠気・消化器症状) を観察する
+        en:
+        - Observe mood, suicidal thoughts and behavior daily and check sleep and intake
+        - Observe drug effect and adverse effects (drowsiness, GI symptoms)
+      care:
+        ja:
+        - 危険物の管理など安全な環境を整え、傾聴の時間を確保する
+        - 生活リズムを整え、できるセルフケアを支持する
+        en:
+        - Keep a safe environment (hazard control) and set aside time to listen
+        - Support a regular routine and the self-care the patient can do
+      education:
+        ja:
+        - つらい気持ちは我慢せず、いつでも看護師に話してよいと伝える
+        en:
+        - Tell the patient they can talk to staff at any time about distress
+    patient_education:
+      ja:
+      - 服薬の継続と自己判断での中止を避けること
+      - 睡眠・活動リズムの整え方
+      - 外来通院の継続と症状悪化時の相談先
+      en:
+      - continuing medication and not stopping on their own
+      - keeping a steady sleep and activity rhythm
+      - continuing outpatient visits and whom to contact if worse
+  psychosis_inpatient:
+    nursing_diagnoses:
+      ja:
+      - 不穏・興奮
+      - 自他への暴力・自傷のリスク
+      - 思考過程の混乱
+      - 服薬アドヒアランス不良のリスク
+      en:
+      - agitation
+      - risk for violence toward self / others
+      - disturbed thought processes
+      - risk for non-adherence to medication
+    care_plan_detail:
+      goal:
+        ja: 興奮が落ち着き、安全に服薬しながら安定して過ごせる。
+        en: Agitation settles and the patient stays stable and safe while taking medication.
+      observation:
+        ja:
+        - 幻覚・妄想・興奮の程度と言動を勤務帯ごとに観察する
+        - 服薬状況と副作用 (錐体外路症状・過鎮静) を観察する
+        en:
+        - Observe hallucinations, delusions, agitation and behavior every shift
+        - Observe medication use and adverse effects (extrapyramidal signs, oversedation)
+      care:
+        ja:
+        - 刺激の少ない落ち着いた環境を整え、安全を確保する
+        - 指示された服薬を確実に介助する
+        en:
+        - Provide a low-stimulus calm environment and ensure safety
+        - Assist the ordered medication reliably
+      education:
+        ja:
+        - 症状や困りごとは遠慮なく伝えてよいと説明する
+        en:
+        - Explain that symptoms and worries can be shared freely
+    patient_education:
+      ja:
+      - 服薬継続の大切さと副作用の相談
+      - 睡眠・ストレスの管理と再燃サインの認識
+      - 外来通院の継続と家族への支援
+      en:
+      - importance of continuing medication and reporting side effects
+      - sleep and stress management and relapse signs
+      - continuing outpatient care and family support
+  elective_knee_arthroplasty:
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (術後)
+      - 身体可動性障害
+      - 術後感染・深部静脈血栓症のリスク
+      - 転倒のリスク
+      en:
+      - acute pain (postoperative)
+      - impaired physical mobility
+      - risk for postoperative infection and DVT
+      - risk for falls
+    care_plan_detail:
+      goal:
+        ja: 疼痛が管理され、合併症なく膝の可動域と歩行が拡大する。
+        en: Pain is controlled and knee range of motion and walking improve without complications.
+      observation:
+        ja:
+        - 疼痛、創部の出血・腫脹・浸出液、下肢の腫脹・しびれ・ふくらはぎの痛みを観察する
+        - バイタルサインと膝の可動域を観察する
+        en:
+        - Observe pain, wound bleeding, swelling and drainage, and leg swelling, numbness or calf pain
+        - Observe vital signs and knee range of motion
+      care:
+        ja:
+        - 指示された鎮痛と冷却を行い、早期離床とリハビリを支援する
+        - 弾性ストッキング・足関節運動で血栓を予防し、転倒予防策を行う
+        en:
+        - Give ordered analgesia and cooling and support early mobilization and rehabilitation
+        - Prevent clots with compression stockings and ankle exercises and take fall precautions
+      education:
+        ja:
+        - リハビリの進め方と、ふくらはぎの痛みや腫れはすぐ知らせることを説明する
+        en:
+        - Explain the rehabilitation steps and to report calf pain or swelling at once
+    patient_education:
+      ja:
+      - 自宅でのリハビリと活動の注意
+      - 創部の管理と入浴の時期
+      - 発熱・創部の発赤・下肢腫脹時の受診
+      en:
+      - home exercises and activity precautions
+      - wound care and when to bathe
+      - return for fever, wound redness or leg swelling
+  electrical_injury:
+    nursing_diagnoses:
+      ja:
+      - 不整脈・心障害のリスク
+      - 熱傷による皮膚統合性障害
+      - 急性疼痛
+      - 腎障害 (横紋筋融解) のリスク
+      en:
+      - risk for arrhythmia and cardiac injury
+      - impaired skin integrity from burns
+      - acute pain
+      - risk for renal injury (rhabdomyolysis)
+    care_plan_detail:
+      goal:
+        ja: 心電図異常と腎障害を起こさず、熱傷創が清潔に保たれ疼痛が管理される。
+        en: No ECG abnormality or kidney injury develops, burns stay clean and pain is controlled.
+      observation:
+        ja:
+        - 心電図モニタ・バイタルサイン・尿量と尿の色調を観察する
+        - 熱傷創の深さ・範囲・浸出液と末梢循環を観察する
+        en:
+        - Observe ECG monitor, vital signs, urine volume and urine color
+        - Observe burn depth, extent and drainage and peripheral perfusion
+      care:
+        ja:
+        - 指示された輸液・疼痛管理を行い、創処置を無菌的に行う
+        - 安静を保ち、必要に応じて患肢を挙上する
+        en:
+        - Give ordered fluids and pain control and dress wounds aseptically
+        - Keep rest and elevate the limb as needed
+      education:
+        ja:
+        - 胸の違和感や動悸、尿の色の変化は知らせるよう説明する
+        en:
+        - Ask the patient to report chest discomfort, palpitations or dark urine
+    patient_education:
+      ja:
+      - 創部の管理と処置の継続
+      - 動悸・胸痛・筋肉痛・尿量減少時の受診
+      - 再発予防のための安全な作業環境
+      en:
+      - wound care and continued dressings
+      - return for palpitations, chest pain, muscle pain or reduced urine
+      - a safe work environment to prevent recurrence
+  fall_from_height:
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (外傷部)
+      - 多発外傷に伴う出血・循環変動のリスク
+      - 身体可動性障害
+      - 神経学的変化・脊髄損傷のリスク
+      en:
+      - acute pain (injury sites)
+      - risk for bleeding and circulatory instability from multiple trauma
+      - impaired physical mobility
+      - risk for neurological change and spinal cord injury
+    care_plan_detail:
+      goal:
+        ja: 新たな出血や神経症状の悪化がなく、疼痛が管理されて安全に離床できる。
+        en: There is no new bleeding or neurological deterioration, pain is controlled and the patient can mobilize safely.
+      observation:
+        ja:
+        - バイタルサイン・意識・疼痛・四肢の動きとしびれを頻回に観察する
+        - 創部・ドレーンの出血・排液量と尿量を確認する
+        en:
+        - Observe vital signs, consciousness, pain and limb movement and numbness frequently
+        - Check bleeding and drainage from wounds and drains and urine output
+      care:
+        ja:
+        - 指示された安静度・体位 (脊椎保護) を守り、疼痛を管理する
+        - 創部と固定具の管理を行い、褥瘡と深部静脈血栓症を予防する
+        en:
+        - Keep the ordered activity level and positioning (spinal protection) and control pain
+        - Manage wounds and splints and prevent pressure injury and DVT
+      education:
+        ja:
+        - 痛みやしびれの変化はすぐ知らせるよう説明する
+        en:
+        - Ask the patient to report changes in pain or numbness at once
+    patient_education:
+      ja:
+      - 骨折部の保護と安静度・荷重制限の遵守
+      - リハビリテーションの継続
+      - しびれ・脱力・排尿障害・疼痛増悪時の受診
+      en:
+      - protecting fracture sites and observing activity and weight-bearing limits
+      - continuing rehabilitation
+      - return for numbness, weakness, urinary trouble or worsening pain
+  industrial_burn_severe:
+    nursing_diagnoses:
+      ja:
+      - 皮膚統合性障害 (広範囲熱傷)
+      - 体液量不足のリスク
+      - 感染のリスク
+      - 急性疼痛
+      en:
+      - impaired skin integrity (extensive burns)
+      - risk for deficient fluid volume
+      - risk for infection
+      - acute pain
+    care_plan_detail:
+      goal:
+        ja: 循環血液量と尿量が保たれ、創が感染なく治癒へ向かい、疼痛が管理される。
+        en: Circulating volume and urine output are maintained, wounds heal without infection and pain is controlled.
+      observation:
+        ja:
+        - 尿量・バイタルサイン・IN/OUT を頻回に観察し、体温を確認する
+        - 熱傷創の状態・浸出液・感染徴候と気道症状を観察する
+        en:
+        - Observe urine output, vital signs and I/O frequently and check temperature
+        - Observe wound state, drainage, signs of infection and airway symptoms
+      care:
+        ja:
+        - 指示された輸液管理と疼痛管理を確実に行う
+        - 無菌的な創処置・保温と体位管理を行う
+        en:
+        - Carry out ordered fluid resuscitation and pain control reliably
+        - Provide aseptic wound care, warming and positioning
+      education:
+        ja:
+        - 処置の目的と痛みへの対処法を説明する
+        en:
+        - Explain the purpose of dressings and how pain is managed
+    patient_education:
+      ja:
+      - 創部管理と瘢痕・拘縮予防のリハビリ
+      - 感染徴候 (発熱・浸出液増加) 時の受診
+      - 皮膚の保護と日焼け予防
+      en:
+      - wound care and rehabilitation to prevent scar and contracture
+      - return for signs of infection (fever, more drainage)
+      - skin protection and sun avoidance
+  influenza:
+    nursing_diagnoses:
+      ja:
+      - 発熱による体温調節不足
+      - 脱水のリスク
+      - 感染拡大のリスク
+      - ガス交換障害のリスク
+      en:
+      - hyperthermia (fever-related)
+      - risk for deficient fluid volume
+      - risk for infection spread
+      - risk for impaired gas exchange
+    care_plan_detail:
+      goal:
+        ja: 解熱し、水分摂取が保たれ、呼吸状態の悪化がない。
+        en: Fever resolves, fluid intake is maintained and breathing does not worsen.
+      observation:
+        ja:
+        - 体温・SpO2・呼吸状態を観察し、水分摂取量と尿量を確認する
+        - 意識の変化や咳・喀痰の変化を観察する
+        en:
+        - Observe temperature, SpO2 and breathing and check fluid intake and urine output
+        - Observe changes in consciousness, cough and sputum
+      care:
+        ja:
+        - 飛沫予防策 (個室・マスク) を行い、安静と保温・解熱時の清拭を支援する
+        - 水分補給を促し、指示された抗ウイルス薬・解熱薬を投与する
+        en:
+        - Apply droplet precautions (single room, mask) and support rest and sponging after fever
+        - Encourage fluids and give ordered antivirals and antipyretics
+      education:
+        ja:
+        - 咳エチケットと手指衛生を説明する
+        en:
+        - Teach cough etiquette and hand hygiene
+    patient_education:
+      ja:
+      - 手指衛生・咳エチケットと家族への感染予防
+      - 水分・栄養の摂取と十分な休養
+      - 呼吸困難・意識変化・高熱の持続時の受診
+      en:
+      - hand hygiene, cough etiquette and protecting household members
+      - fluids, nutrition and enough rest
+      - return for breathlessness, confusion or persistent high fever
+  traffic_accident_severe:
+    nursing_diagnoses:
+      ja:
+      - 多発外傷に伴う出血・循環変動のリスク
+      - 急性疼痛
+      - 神経学的変化のリスク
+      - 身体可動性障害
+      en:
+      - risk for bleeding and circulatory instability from multiple trauma
+      - acute pain
+      - risk for neurological change
+      - impaired physical mobility
+    care_plan_detail:
+      goal:
+        ja: 新たな出血や意識障害の悪化がなく、疼痛が管理されて安全に離床できる。
+        en: There is no new bleeding or worsening of consciousness, pain is controlled and the patient can mobilize safely.
+      observation:
+        ja:
+        - バイタルサイン・意識レベル・瞳孔・疼痛を頻回に観察する
+        - 創部・ドレーンの排液と尿量、四肢の動きとしびれを確認する
+        en:
+        - Observe vital signs, consciousness, pupils and pain frequently
+        - Check wound and drain output, urine output and limb movement and numbness
+      care:
+        ja:
+        - 指示された安静度・体位を守り、疼痛を管理する
+        - 創部と固定具の管理を行い、褥瘡・深部静脈血栓症・肺合併症を予防する
+        en:
+        - Keep the ordered activity level and positioning and control pain
+        - Manage wounds and splints and prevent pressure injury, DVT and pulmonary complications
+      education:
+        ja:
+        - 痛み・頭痛・吐き気・しびれの変化はすぐ知らせるよう説明する
+        en:
+        - Ask the patient to report changes in pain, headache, nausea or numbness at once
+    patient_education:
+      ja:
+      - 骨折・創部の管理と安静度の遵守
+      - リハビリテーションの継続
+      - 頭痛・嘔吐・意識変化・疼痛増悪時の受診
+      en:
+      - fracture and wound care and observing activity limits
+      - continuing rehabilitation
+      - return for headache, vomiting, confusion or worsening pain
 
-# Chronic ICD-10 axis — mirrors the pre-session-104 hardcoded map for
-# byte-diff safety. Verbatim carry-over of the 6 prefixes the code path
-# already understood. Add new prefixes here without touching template
-# code.
+# Chronic ICD-10 axis: the six comorbidity prefixes (I10 / I50 / E11 / N18 /
+# J45 / J44). Add new prefixes here without touching template code. `comorbidity:
+# true` marks an entry applied alongside an acute entry (see above).
 chronic_icd10:
 
   I10:
@@ -236,6 +1690,7 @@ chronic_icd10:
       en: [home BP monitoring + low-salt diet]
 
   I50:
+    comorbidity: true
     nursing_diagnoses:
       ja: [体液貯留・活動耐性低下]
       en: [fluid retention / activity intolerance]
@@ -247,6 +1702,7 @@ chronic_icd10:
       en: [fluid/salt restriction, daily weight]
 
   E11:
+    comorbidity: true
     nursing_diagnoses:
       ja: [血糖コントロール変動]
       en: [unstable glycemic control]
@@ -258,6 +1714,7 @@ chronic_icd10:
       en: [SMBG + hypoglycemia response]
 
   N18:
+    comorbidity: true
     nursing_diagnoses:
       ja: [腎機能低下・電解質異常のリスク]
       en: [renal impairment / electrolyte imbalance risk]
@@ -287,5 +1744,8 @@ chronic_icd10:
       ja: [呼吸パターン観察、酸素投与量調整]
       en: [respiratory pattern check, O2 titration]
     patient_education:
-      ja: [禁煙、呼吸リハビリ継続]
-      en: [smoking cessation + pulmonary rehab continuation]
+      ja: [呼吸リハビリ継続]
+      en: [pulmonary rehab continuation]
+    smoking_education:
+      ja: [禁煙]
+      en: [smoking cessation]

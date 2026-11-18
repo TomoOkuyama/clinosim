@@ -32,6 +32,7 @@ from clinosim.modules.document.narrative._narrative_utils import (
     _pick_from_pool_by_encounter,
     _rewrite_pe_clause,
     encounter_died,
+    is_neonate,
 )
 from clinosim.modules.document.narrative._vitals_line import (
     PHYSICAL_EXAM,
@@ -138,10 +139,36 @@ def compose_progress_subjective_from_state(ctx: NarrativeContext) -> str:
     parts.extend(symptom_parts)
     abnormal_added = abnormal_added or bool(symptom_parts)
 
-    if not abnormal_added:
+    if is_neonate(ctx):
+        # Issue #3260: a newborn's day is described by feeding, voiding and
+        # stooling and the jaundice of the bilirubin measured so far, not by
+        # the adult stable-day pool.
+        parts.extend(_newborn_subjective_parts(ctx))
+    elif not abnormal_added:
         phrase = pick_stable_progress_phrase(ctx, lang=lang)
         parts.append(phrase)
     return t("list_sep.chunk", lang).join(parts)
+
+
+def _newborn_subjective_parts(ctx: NarrativeContext) -> list[str]:
+    """The newborn progress-note subjective sentences (Issue #3260): the day of
+    life, the well-newborn feeding and elimination line, and the latest total
+    bilirubin measured by the note's time. Feeding and elimination are not
+    recorded in the simulation record; for a stay without complications they
+    are the neutral well-newborn observation, as the adult stable-day pool is
+    for an adult."""
+    from clinosim.modules.document.narrative.renderers._resolvers import latest_bilirubin_at
+
+    lang = ctx.target_lang
+    parts = [t("neonate_progress.day_of_life", lang, day=ctx.day_index)]
+    if not getattr(ctx, "complications_events", None):
+        parts.append(t("neonate_progress.feeding_elimination", lang))
+    latest = latest_bilirubin_at(ctx, ctx.day_index)
+    if latest is not None:
+        day, value = latest
+        key = "neonate_progress.bilirubin_dated" if day is not None else "neonate_progress.bilirubin"
+        parts.append(t(key, lang, v=value, day=day))
+    return parts
 
 
 def _note_period_vitals(ctx: NarrativeContext, *, previous: bool = False) -> list:

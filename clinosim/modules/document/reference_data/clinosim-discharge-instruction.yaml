@@ -67,6 +67,39 @@ baseline:
     en: "Resume a normal diet gradually as tolerated."
     ja: "食事は体調に合わせて徐々に通常食に戻してください。"
 
+# Newborn set (Issue #3260): replaces `baseline` for a patient in the neonatal
+# period (renderers/_resolvers.baseline_instruction_set), written to the parents.
+# The adult baseline (drink plenty of fluids, take all medications by mouth)
+# does not apply to a newborn. The statements are general newborn-care guidance
+# without numeric thresholds; the AAP policy statement "Hospital Stay for
+# Healthy Term Newborn Infants" (Pediatrics 2015) could not be read in this
+# change (publisher returned 403), so none of its figures is quoted.
+neonatal:
+  feeding:
+    en: "Feed your baby breast milk or formula whenever he or she shows hunger cues, and keep a record of feeds."
+    ja: "赤ちゃんがほしがるサインを見せたら、母乳または育児用ミルクを与え、授乳の回数を記録してください。"
+  voiding_stooling:
+    en: "Count wet and dirty diapers each day; call your pediatrician if there are fewer than usual."
+    ja: "毎日の排尿・排便 (おむつの濡れ・汚れ) の回数を数え、普段より少ないときは小児科に連絡してください。"
+  jaundice:
+    en: "Check your baby's skin and eyes for yellowing in good light; call your pediatrician if the yellow color spreads, or if your baby is very sleepy or feeds poorly."
+    ja: "明るい場所で皮膚や白目の黄色みを確認し、黄色みが広がる、または眠りがちで哺乳が弱いときは小児科に連絡してください。"
+  weight:
+    en: "Your baby's weight is checked at the follow-up visit to confirm that feeding is adequate."
+    ja: "授乳が足りているかを確認するため、受診時に赤ちゃんの体重を測定します。"
+  safe_sleep:
+    en: "Place your baby on his or her back to sleep on a firm, flat surface in a separate sleep space, with no soft bedding."
+    ja: "寝かせるときはあおむけにし、硬く平らな寝具の上で、柔らかい布団やぬいぐるみを置かないでください。"
+  cord_care:
+    en: "Keep the umbilical cord stump clean and dry until it falls off."
+    ja: "へその緒の部分は清潔にして乾かし、自然に取れるまで見守ってください。"
+  warning_signs:
+    en: "Call your pediatrician or return to the emergency department right away if your baby has a fever, breathes with difficulty, is hard to wake, or refuses to feed."
+    ja: "発熱、呼吸が苦しそう、起こしても起きにくい、ミルクを飲まないといった様子があれば、すぐに小児科へ連絡するか救急外来を受診してください。"
+  follow_up:
+    en: "Take your baby to the pediatrician for the follow-up visit arranged at discharge."
+    ja: "退院時に案内した時期に、小児科で赤ちゃんの診察 (1か月健診を含む) を受けてください。"
+
 # Per-disease overrides — supplement or replace baseline entries.
 
 disease_specific:

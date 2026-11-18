@@ -18,7 +18,6 @@ Generator-threaded helpers used:
 
 from __future__ import annotations
 
-import hashlib
 from typing import TYPE_CHECKING
 
 from clinosim.countries import country_code, has_authored_narrative
@@ -260,33 +259,57 @@ def build_referral_destination(generator: TemplateNarrativeGenerator, ctx: Narra
     return t("referral.referral_destination_line", lang), facts
 
 
-# Ordered key tuple for build_referral_purpose SHA256 index sampling
-# (Phase 1d-28). Key order is load-bearing: it defines which YAML slot
-# maps to which hash-index, so cohort determinism depends on preserving it.
-_REFERRAL_PURPOSE_KEYS: tuple[str, ...] = (
-    "option_1",
-    "option_2",
-    "option_3",
-    "option_4",
-)
-
-
 @section("referral_purpose")
 def build_referral_purpose(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """950 紹介目的セクション:標準セットから決定的に一つ選択。
-
-    encounter_id の hash で 4 選択肢から index 決定。cohort 全体で
-    分布は stable、encounter 個別ではばらつき保持。
+    """950 紹介目的セクション:紹介先は常に他院なので、目的は継続加療か
+    リハビリテーション継続のいずれか。入院中にリハビリテーションを実施した
+    (リハビリ入院、またはリハビリセッションの記録がある)場合は後者、
+    それ以外は前者 (Issue #3268)。
     """
     facts: list[str] = []
     lang = ctx.target_lang
-    enc = ctx.encounter
-    enc_id = _o(enc, "encounter_id", "") or "ENC-UNKNOWN"
-    digest = hashlib.sha256(enc_id.encode("utf-8")).digest()
-    idx = digest[0] % len(_REFERRAL_PURPOSE_KEYS)
-    picked = _label("referral_purpose_options", _REFERRAL_PURPOSE_KEYS[idx], lang)
-    facts.append(f"ctx.encounter.encounter_id[hash-idx={idx}]")
+    rehab = bool(getattr(ctx, "rehab_sessions", None)) or "rehab" in str(
+        getattr(getattr(ctx, "encounter_type", None), "value", getattr(ctx, "encounter_type", "")) or ""
+    )
+    key = "rehabilitation" if rehab else "continued_treatment"
+    facts.append("ctx.rehab_sessions" if rehab else "ctx.encounter")
+    picked = _label("referral_purpose_options", key, lang)
     return t("referral.referral_purpose_line", lang, purpose=picked), facts
+
+
+@section("clinical_course_ref")
+def build_referral_clinical_course(
+    generator: TemplateNarrativeGenerator, ctx: NarrativeContext
+) -> tuple[str, list[str]]:
+    """330 臨床経過セクション(診療情報提供書用):退院サマリーの入院経過
+    (``compose_hospital_course``)を、検査結果を除いて再利用する (Issue #3268)。"""
+    from clinosim.modules.document.narrative.renderers.section_builders.discharge_summary import (
+        compose_hospital_course,
+    )
+
+    return compose_hospital_course(ctx, with_results=False)
+
+
+@section("medication_orders_ref")
+def build_referral_medication_orders(
+    generator: TemplateNarrativeGenerator, ctx: NarrativeContext
+) -> tuple[str, list[str]]:
+    """430 投薬指示セクション(診療情報提供書用):退院処方
+    (``build_discharge_medications``)を再利用する (Issue #3268)。"""
+    return section_builder("discharge_medications")(generator, ctx)
+
+
+@section("test_results_ref")
+def build_referral_test_results(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """620 検査結果セクション(診療情報提供書用):入院中の主な異常検査結果
+    (``_hospital_course.notable_labs_sentence``)。異常値の記録がなければ
+    その旨を記す (Issue #3268)。"""
+    from clinosim.modules.document.narrative import _hospital_course as hc
+
+    sentence, fact = hc.notable_labs_sentence(ctx)
+    if sentence:
+        return sentence, [fact]
+    return t("referral.no_notable_results", ctx.target_lang), []
 
 
 @section("diagnoses_and_complaint")

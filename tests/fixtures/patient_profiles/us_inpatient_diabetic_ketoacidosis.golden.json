@@ -229,7 +229,8 @@
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments@authored",
         "ctx.disease_protocol.disease_id",
-        "ctx.disease_protocol.disease_id"
+        "ctx.disease_protocol.disease_id",
+        "ctx.patient.chronic_conditions"
       ],
       "generated_at": "2024-06-15T04:16:00Z",
       "generator": "template",
@@ -239,7 +240,7 @@
       },
       "sections": {
         "adl_assessment": "Barthel Index 80/100 → minimal assistance (Feeding 10, Bathing 5, Mobility 10, Toilet use 5)",
-        "care_plan": "Care plan: hourly I/O, coordinate IV rate titration with MD; q1-2h glucose + serum K monitoring, early hypoglycemia / hypokalemia recognition; continuous mental-status + Kussmaul-respiration assessment; infection source workup (urine / LRT) + temperature trending.",
+        "care_plan": "Care plan: Nursing problem: deficient fluid volume. Goal: Dehydration and hyperglycemia are corrected and glucose and electrolytes are stable. Observation: Measure I/O hourly and check glucose and serum K every 1-2 hours; Observe mental status and Kussmaul respiration continuously. Care: Coordinate IV rate titration with the physician; Look for an infection source (urine / lower respiratory tract) and record the temperature trend. Education: Explain hypo- and hyperglycemia symptoms and ask the patient to report feeling unwell early. Comorbidity and risk measures: glucose monitoring; hypoglycemia surveillance.",
         "nursing_diagnosis": "Nursing diagnoses: deficient fluid volume, risk for electrolyte imbalance, unstable glycemic control, risk for infection.",
         "nursing_history": "Admission reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. PMH: Type 2 diabetes (DM), Dyslipidemia.",
         "risk_assessments": "Fall / pressure ulcer risk: assessment pending"

@@ -19,7 +19,7 @@ dispatch needed in this cluster.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from clinosim.codes.hl7_encounter import DischargeDisposition
 from clinosim.countries import country_code
@@ -28,7 +28,12 @@ from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._localization import _localize_complication
-from clinosim.modules.document.narrative._narrative_utils import _lookup_nursing_content, encounter_died, is_neonate
+from clinosim.modules.document.narrative._narrative_utils import (
+    _lookup_nursing_content,
+    encounter_died,
+    is_neonate,
+    nursing_care_plan_detail,
+)
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.types.document import NarrativeContext
@@ -256,6 +261,9 @@ def build_care_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
     as pre-session-104.
     """
     lang = ctx.target_lang
+    detail = nursing_care_plan_detail(ctx, lang)
+    if detail is not None:
+        return _structured_care_plan(ctx, detail)
     actions, facts = _lookup_nursing_content(ctx, "care_plan", lang, cap=4)
 
     # Risk-driven actions. Semantic-prefix dedup (session-104): the
@@ -284,6 +292,59 @@ def build_care_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         sep = t("list_sep.semicolon", lang)
         return head + sep.join(actions) + t("list_sep.period", lang), facts
     return (t("fallback.care_plan_fallback", lang)), facts
+
+
+# Comorbidity actions listed after the admission problem's own plan, and the
+# lookup cap that leaves the merged list uncut.
+_MAX_COMORBIDITY_ACTIONS = 2
+_ALL_ITEMS = 1000
+# Braden total at or below which pressure-injury prevention is planned (as in
+# build_nursing_diagnosis / build_care_plan), and the no-risk default.
+_BRADEN_AT_RISK = 14
+_BRADEN_NO_RISK = 25
+
+
+def _structured_care_plan(ctx: NarrativeContext, detail: dict[str, Any]) -> tuple[str, list[str]]:
+    """The care plan of an admission problem with a ``care_plan_detail``
+    (Issue #3267): the nursing problem, the goal, and the observation (OP),
+    care (TP) and education (EP) interventions; then the comorbidity and
+    risk-driven actions (fall / pressure-injury precautions from the latest
+    risk assessment) the problem's own interventions do not already cover."""
+    lang = ctx.target_lang
+    semicolon = t("list_sep.semicolon", lang)
+    planned = [*detail["observation"], *detail["care"], *detail["education"]]
+    facts = ["ctx.disease_protocol.disease_id"]
+    parts = [t("nursing.care_plan_problem", lang, problem=detail["problem"])]
+    if detail["goal"]:
+        parts.append(t("nursing.care_plan_goal", lang, goal=detail["goal"]))
+    for part, key in (("observation", "op"), ("care", "tp"), ("education", "ep")):
+        if detail[part]:
+            parts.append(t(f"nursing.care_plan_{key}", lang, items=semicolon.join(detail[part])))
+
+    # Comorbidity monitoring the content file applies to any stay.
+    all_items, lookup_facts = _lookup_nursing_content(ctx, "care_plan", lang, cap=_ALL_ITEMS)
+    extras = [a for a in all_items if a not in planned][:_MAX_COMORBIDITY_ACTIONS]
+    if extras and "ctx.patient.chronic_conditions" in lookup_facts:
+        facts.append("ctx.patient.chronic_conditions")
+
+    latest = _risk_at(ctx)
+    if latest is not None:
+        fall_prefix, pu_prefix = t("nursing.fall_precautions", lang), t("nursing.pu_prevention", lang)
+        covered = planned + extras
+        if str(_o(latest, "fall_risk_level", "") or "").lower() in ("high", "moderate"):
+            if not any(fall_prefix in a for a in covered):
+                extras.append(t("nursing.fall_precautions_action", lang))
+                facts.append("ctx.nursing_risk_assessments")
+        if (_o(latest, "braden_total", _BRADEN_NO_RISK) or _BRADEN_NO_RISK) <= _BRADEN_AT_RISK and not any(
+            pu_prefix in a for a in covered
+        ):
+            extras.append(t("nursing.pu_prevention_action", lang))
+            if "ctx.nursing_risk_assessments" not in facts:
+                facts.append("ctx.nursing_risk_assessments")
+    if extras:
+        parts.append(t("nursing.care_plan_other", lang, items=semicolon.join(extras)))
+    head = t("nursing.care_plan_head", lang)
+    return head + t("list_sep.period_space", lang).join(parts) + t("list_sep.period", lang), facts
 
 
 # ─────────────────────────────────────────────────────────────────────

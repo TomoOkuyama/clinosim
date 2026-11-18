@@ -475,8 +475,8 @@
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments@authored",
-        "ctx.patient.chronic_conditions",
-        "ctx.patient.chronic_conditions"
+        "ctx.disease_protocol.disease_id",
+        "ctx.disease_protocol.disease_id"
       ],
       "generated_at": "2024-06-15T04:16:00Z",
       "generator": "llm-mock",
@@ -486,8 +486,8 @@
       },
       "sections": {
         "adl_assessment": "Barthel Index 60/100 → moderate assistance (Feeding 5, Bathing 5, Mobility 10, Toilet use 5)",
-        "care_plan": "Care plan: monitor BP AM/PM; escalate to MD if goal not met.",
-        "nursing_diagnosis": "Nursing diagnoses: risk for inadequate BP control.",
+        "care_plan": "Care plan: Nursing problem: risk for raised intracranial pressure and altered neurological status. Goal: BP stays within the ordered range and neurological status does not worsen. Observation: Observe consciousness, pupils, weakness, headache and vomiting frequently and check BP; Assess swallowing. Care: Keep ordered BP control and bed rest with the head raised; Take fall precautions, reposition to prevent contracture and coordinate early rehabilitation. Education: Ask the patient to report headache, nausea or weakness at once.",
+        "nursing_diagnosis": "Nursing diagnoses: risk for raised intracranial pressure and altered neurological status, risk for falls / injury, risk for impaired swallowing, self-care deficit.",
         "nursing_history": "Admission reason: Sudden severe headache, vomiting, altered consciousness. PMH: Hypertension (HTN), Atrial fibrillation (AF).",
         "risk_assessments": "Fall / pressure ulcer risk: assessment pending"
       },
@@ -1008,7 +1008,7 @@
         "ctx.los_days",
         "encounter.discharge_disposition",
         "ctx.intake_output_records",
-        "ctx.patient.chronic_conditions",
+        "ctx.disease_protocol.disease_id",
         "ctx.adl_assessments@authored"
       ],
       "generated_at": "2024-06-23T09:16:00Z",
@@ -1021,7 +1021,7 @@
         "admission_status": "Hospital stay: 8 days. Admission reason: Sudden severe headache, vomiting, altered consciousness. Discharge criteria met.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 95/100.",
         "nursing_interventions_provided": "Cumulative IN 10052 mL / OUT 9297 mL (net +755 mL).",
-        "patient_education": "Patient education: home BP monitoring + low-salt diet."
+        "patient_education": "Patient education: BP control, salt restriction and medication adherence; recurrence signs and when to call for help; continuing rehabilitation and home safety."
       },
       "text": ""
     }

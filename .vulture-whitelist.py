@@ -996,3 +996,8 @@ _.jaundice  # document/reference_data_loaders.py NeonatalExam (Pydantic field; r
 _.exclude_conditions  # document DischargeInstructionGate field (validated yaml key, read by key, Issue #3254)
 _.chronic_condition_stages  # observation _MorseForgetsLimitations field (validated yaml key, read by key, Issue #3307)
 PROCEDURE_PARTIALLY_SUCCESSFUL  # codes/snomed_concepts.py named concept guarded against bare literals by tests/unit/test_code_references_2290.py (no reader after Issue #3257)
+_.goal  # document _NursingCareDetail field (validated yaml key, read by key in _narrative_utils.nursing_care_plan_detail, Issue #3267)
+_.care  # document _NursingCareDetail field (validated yaml key, read by key, Issue #3267)
+_.education  # document _NursingCareDetail field (validated yaml key, read by key, Issue #3267)
+_.smoking_education  # document _NursingContentEntry field (validated yaml key, read by key, Issue #3267)
+_.comorbidity  # document _NursingContentEntry field (validated yaml key, read by key, Issue #3267)

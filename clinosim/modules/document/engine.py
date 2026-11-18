@@ -407,7 +407,8 @@ def _plan_discharge_once_if_deceased(spec: Any, f: _EncounterFacts) -> list[_Doc
 def _plan_discharge_fraction_20pct(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
     # P2-13 PR2b: JP-CLINS 診療情報提供書 on a deterministic 20% of discharges
     # (AD-16: stable string hashing, no sub-seed).
-    if f.is_in_progress or not _referral_note_fires(f.encounter_id, f.pid):
+    # Issue #3268: a patient who died in hospital is not referred on.
+    if f.is_in_progress or _died(f) or not _referral_note_fires(f.encounter_id, f.pid):
         return []
     return [_whole_stay(f)]
 

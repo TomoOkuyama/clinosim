@@ -760,6 +760,27 @@ present_illness_ref:
     ja: "現病歴"
   loinc: "10164-2"
 
+# Referral letter sections for the clinical course, the medication orders
+# and the test results (Issue #3268); JP-CLINS eReferral section codes
+# 330 / 430 / 620 (see the referral Composition builder).
+clinical_course_ref:
+  title:
+    en: "Clinical course"
+    ja: "臨床経過"
+  loinc: ""  # no LOINC section code means this section (Issue #2391)
+
+medication_orders_ref:
+  title:
+    en: "Medication orders"
+    ja: "投薬指示"
+  loinc: ""  # no LOINC section code means this section (Issue #2391)
+
+test_results_ref:
+  title:
+    en: "Test results"
+    ja: "検査結果"
+  loinc: ""  # no LOINC section code means this section (Issue #2391)
+
 # ---------------------------------------------------------------------------
 # Health checkup — 健康診断 sections
 # ---------------------------------------------------------------------------

@@ -112,12 +112,13 @@ For a deterministic 20% subset of `country=JP` inpatient / icu / rehab_inpatient
 - `Composition.type.coding[0]` = `{system: doc-typecodes, code: 57133-1, display: 診療情報提供書}` (single coding; no separate LOINC coding).
 - `Composition.section` is a two-level tree:
   - Top-level: **920** 紹介元 / **910** 紹介先 / **300** 構造情報
-  - Under 300: **950** 紹介目的 / **340** 傷病名・主訴 / **360** 現病歴
+  - Under 300: **950** 紹介目的 / **340** 傷病名・主訴 / **360** 現病歴, then the optional **330** 臨床経過 (hospital course), **620** 検査結果 (significant results) and **430** 投薬指示 (discharge prescription) when the document carries them (the REF-branch codes of the JP-CLINS document-section CodeSystem; slices `clinicalCourseSection` / `examsStudySection` / `medicationSection` of the profile)
 
 Simulation approximations:
 - **紹介元** = this hospital (clinosim simulates a single facility).
 - **紹介先** = an external hospital picked deterministically (sha256 of `(patient_id, encounter_id)`) from `clinosim/locale/jp/external_organizations.yaml`; each referenced hospital is emitted as its own `Organization` resource (`clinosim/modules/output/fhir_r4/documents/referral_orgs.py`).
-- **紹介目的** = deterministic pick from `{継続加療 / 精査依頼 / 他科紹介 / リハビリテーション継続}` per `encounter_id` hash.
+- **紹介目的** = 継続加療, or リハビリテーション継続 when the stay included rehabilitation (the destination is always another institution, so no internal-referral purpose is written). No referral note is emitted for an in-hospital death.
+- **臨床経過 / 検査結果 / 投薬指示** reuse the discharge summary's hospital-course sentences (without the results sentence), its significant-results sentence and its discharge prescription; the 現病歴 leaves out the admission ROS.
 - **傷病名・主訴** = combines the encounter's diagnosis list (code + Japanese display) with the disease-YAML chief complaint.
 - **現病歴** = HPI derived from `disease_protocol.narrative.hpi_template` (same source as the discharge summary's present_illness section).
 

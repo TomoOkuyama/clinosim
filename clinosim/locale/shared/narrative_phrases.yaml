@@ -847,6 +847,20 @@ neonate_history:
   caregiver_line:
     ja: "養育者: {caregiver}"
     en: "Caregiver: {caregiver}"
+# Newborn progress-note subjective sentences (Issue #3260).
+neonate_progress:
+  day_of_life:
+    ja: "日齢{day}。"
+    en: "Day of life {day}."
+  feeding_elimination:
+    ja: "哺乳良好、排尿・排便あり。"
+    en: "Feeding well; voiding and stooling."
+  bilirubin_dated:
+    ja: "黄疸の評価: 総ビリルビン {v:.1f} mg/dL (日齢{day}の測定)。"
+    en: "Jaundice review: total bilirubin {v:.1f} mg/dL (day of life {day})."
+  bilirubin:
+    ja: "黄疸の評価: 総ビリルビン {v:.1f} mg/dL。"
+    en: "Jaundice review: total bilirubin {v:.1f} mg/dL."
 neonate_nursing:
   adl:
     ja: "ADL：新生児のため全介助（授乳・清潔・おむつ交換）"
@@ -897,6 +911,27 @@ nursing:
   care_plan_head:
     ja: "看護計画: "
     en: "Care plan: "
+  # Structured care plan of the admission problem (Issue #3267): the nursing
+  # problem, the goal and the observation / care / education interventions
+  # (OP / TP / EP in Japanese nursing plans).
+  care_plan_problem:
+    ja: "看護問題「{problem}」"
+    en: "Nursing problem: {problem}"
+  care_plan_goal:
+    ja: "目標: {goal}"
+    en: "Goal: {goal}"
+  care_plan_op:
+    ja: "観察計画 (OP): {items}"
+    en: "Observation: {items}"
+  care_plan_tp:
+    ja: "ケア計画 (TP): {items}"
+    en: "Care: {items}"
+  care_plan_ep:
+    ja: "教育計画 (EP): {items}"
+    en: "Education: {items}"
+  care_plan_other:
+    ja: "併存疾患・リスクへの対応: {items}"
+    en: "Comorbidity and risk measures: {items}"
   fall_precautions:
     ja: "転倒予防"
     en: "fall precautions"
@@ -1606,11 +1641,16 @@ referral:
     ja: "紹介元:当院(急性期一般病棟)。担当医師の署名により発行。"
     en: "Referring institution: this hospital (acute-care general ward)."
   referral_destination_line:
-    ja: "紹介先:他院。当該患者の継続加療を目的として本情報提供書を作成する。"
-    en: "Referral destination: unspecified other institution (continued care)."
+    ja: "紹介先:他院。"
+    en: "Referral destination: another institution."
   referral_purpose_line:
     ja: "紹介目的:{purpose}のため。"
     en: "Referral purpose: {purpose}."
+  # Issue #3268: the results section when the stay recorded no significant
+  # abnormal result.
+  no_notable_results:
+    ja: "入院中に特記すべき異常検査結果の記録なし。"
+    en: "No significant abnormal result recorded during the stay."
 
 # HPI-fallback phrase pair used by build_present_illness (with
 # admission clause) and build_present_illness_ref (without).
