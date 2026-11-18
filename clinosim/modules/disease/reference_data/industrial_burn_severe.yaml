@@ -22,6 +22,19 @@ icd_codes:
     - {code: "T31.3", name: "Burns involving 30-39% of body surface", probability: 0.25}
     - {code: "T30.0", name: "Burn of unspecified body region, unspecified degree", probability: 0.20}
     - {code: "T54.3", name: "Toxic effect of corrosive alkalis and alkali-like substances", probability: 0.10}
+# Issue #3258: the secondary external-cause code of the admission (ICD-10-CM
+# V00-Y99, 7th character A = initial encounter), drawn per stay from a SHA of the
+# encounter id. US only: Japanese claims and the MHLW disease-name master do not
+# carry these as diagnoses, so JP lists none (not verified against a primary
+# source this work). The mechanism choice is a clinosim estimate (no published
+# share for it was found); the weights below are not measured data.
+external_cause:
+  us:
+    - {code: "X04.XXXA", weight: 0.25}   # exposure to ignition of highly flammable material
+    - {code: "X17.XXXA", weight: 0.25}   # contact with hot engines, machinery and tools
+    - {code: "X12.XXXA", weight: 0.20}   # contact with other hot fluids
+    - {code: "X19.XXXA", weight: 0.20}   # contact with other heat and hot substances
+    - {code: "X00.0XXA", weight: 0.10}   # exposure to flames in uncontrolled fire in building
 
 incidence:
   japan:

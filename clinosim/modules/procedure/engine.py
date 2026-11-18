@@ -111,12 +111,17 @@ def simulate_surgery(
     surgeon_id: str = "",
     anesthesiologist_id: str = "",
     operating_rooms: int = 2,
+    overrides: dict[str, Any] | None = None,
 ) -> tuple[ProcedureRecord, dict[str, float]]:
     """Simulate a surgical procedure. Returns the record and state impacts.
 
     Currently supports: hip fracture ORIF/hemiarthroplasty.
     """
     proc_data = protocol.procedure if hasattr(protocol, "procedure") and protocol.procedure else {}
+    # Issue #3258: the operation the stay's diagnosis calls for
+    # (``procedure.by_diagnosis``) replaces the protocol's default one.
+    proc_data = {**proc_data, **(overrides or {})}
+    override_key = proc_data.get("procedure_mapping_key")
 
     hours_to_surgery = _hours_to_surgery(proc_data, country, rng)
 
@@ -171,7 +176,12 @@ def simulate_surgery(
         intraop_comps.append("anesthesia_hypotension")
 
     # Procedure type (hip fracture specific)
-    if disease_id == "hip_fracture":
+    if override_key:
+        proc_type = str(proc_data.get("type", "surgery"))
+        proc_code_jp = load_code_mapping("procedure", "JP")[override_key]
+        proc_code_us = load_code_mapping("procedure", "US")[override_key]
+        implants = [str(i) for i in proc_data.get("implants") or []]
+    elif disease_id == "hip_fracture":
         if rng.random() < HIP_FRACTURE_ORIF_PROBABILITY:
             proc_type = "ORIF"
             proc_code_jp = load_code_mapping("procedure", "JP")["ORIF_femur"]

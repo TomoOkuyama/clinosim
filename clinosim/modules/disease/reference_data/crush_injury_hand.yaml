@@ -22,6 +22,17 @@ icd_codes:
     - {code: "S67.2", name: "Crushing injury of hand", probability: 0.60}
     - {code: "S68.1", name: "Traumatic amputation of finger", probability: 0.25}
     - {code: "S67.8", name: "Crushing injury of other parts of wrist and hand", probability: 0.15}
+# Issue #3258: the secondary external-cause code of the admission (ICD-10-CM
+# V00-Y99, 7th character A = initial encounter), drawn per stay from a SHA of the
+# encounter id. US only: Japanese claims and the MHLW disease-name master do not
+# carry these as diagnoses, so JP lists none (not verified against a primary
+# source this work). The mechanism choice is a clinosim estimate (no published
+# share for it was found); the weights below are not measured data.
+external_cause:
+  us:
+    - {code: "W23.0XXA", weight: 0.50}   # caught, crushed, jammed or pinched between moving objects
+    - {code: "W23.1XXA", weight: 0.20}   # ... between stationary objects
+    - {code: "W23.2XXA", weight: 0.30}   # ... between a moving and a stationary object
 
 incidence:
   japan:
