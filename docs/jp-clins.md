@@ -112,7 +112,7 @@ For a deterministic 20% subset of `country=JP` inpatient / icu / rehab_inpatient
 - `Composition.type.coding[0]` = `{system: doc-typecodes, code: 57133-1, display: 診療情報提供書}` (single coding; no separate LOINC coding).
 - `Composition.section` is a two-level tree:
   - Top-level: **920** 紹介元 / **910** 紹介先 / **300** 構造情報
-  - Under 300: **950** 紹介目的 / **340** 傷病名・主訴 / **360** 現病歴, then the optional **330** 臨床経過 (hospital course), **620** 検査結果 (significant results) and **430** 投薬指示 (discharge prescription) when the document carries them (the REF-branch codes of the JP-CLINS document-section CodeSystem; slices `clinicalCourseSection` / `examsStudySection` / `medicationSection` of the profile)
+  - Under 300: **950** 紹介目的 / **340** 傷病名・主訴 / **360** 現病歴, then the optional **370** 既往歴, **550** 家族歴, **330** 臨床経過 (hospital course), **620** 検査結果 (significant abnormal labs, imaging impressions and cultures) and **430** 投薬指示 (discharge prescription) when the document carries them; a top-level **220** 備考・連絡情報 (allergies, code status) follows 300 (the REF-branch codes of the JP-CLINS document-section CodeSystem; slices `clinicalCourseSection` / `examsStudySection` / `medicationSection` of the profile)
 
 Simulation approximations:
 - **紹介元** = this hospital (clinosim simulates a single facility).

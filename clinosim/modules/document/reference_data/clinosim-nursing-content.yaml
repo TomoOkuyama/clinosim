@@ -6,6 +6,11 @@
 #   1. `acute_disease.<disease_id>` - matched against
 #      ctx.disease_protocol.disease_id (the admission problem). One entry per
 #      simulated disease (Issue #3267): the admission problem is planned first.
+#   1b. `neonatal` - the entry of a patient in the neonatal period (Issue
+#      #3260), used instead of the disease / category entries.
+#   1c. `diagnosis_category.<key>` - for an admission without a disease
+#      protocol: the entry whose `icd10_prefixes` is the longest match of the
+#      admission diagnosis code (Issue #3267).
 #   2. `chronic_icd10.<code>` - matched against the patient's chronic-condition
 #      code prefix (comorbidities).
 #
@@ -1672,6 +1677,782 @@ acute_disease:
       - fracture and wound care and observing activity limits
       - continuing rehabilitation
       - return for headache, vomiting, confusion or worsening pain
+
+
+# Newborn entry (Issue #3260): used for a patient in the neonatal period in
+# place of the disease / category entries; the education is written to the
+# parents.
+neonatal:
+  nursing_diagnoses:
+    ja:
+    - 新生児の哺乳確立の支援
+    - 体温調節不足のリスク
+    - 新生児黄疸のリスク
+    - 感染のリスク
+    en:
+    - support for establishing feeding
+    - risk for ineffective thermoregulation
+    - risk for neonatal jaundice
+    - risk for infection
+  care_plan_detail:
+    goal:
+      ja: 哺乳が確立し、体温・体重・黄疸の経過が正常範囲で退院できる。
+      en: Feeding is established and temperature, weight and jaundice are on a normal course at discharge.
+    observation:
+      ja:
+      - 体温・呼吸・心拍と皮膚色 (黄疸) を勤務帯ごとに観察する
+      - 哺乳の状況と排尿・排便の回数を観察する
+      en:
+      - Observe temperature, breathing, heart rate and skin color (jaundice) every shift
+      - Observe feeding and the number of wet and dirty diapers
+    care:
+      ja:
+      - 保温と母児同室・カンガルーケアなどの授乳支援を行う
+      - 臍の清潔を保ち、手指衛生を徹底する
+      en:
+      - Keep the baby warm and support feeding (rooming-in, skin-to-skin)
+      - Keep the cord clean and apply strict hand hygiene
+    education:
+      ja:
+      - 授乳の方法と児の飢餓サインを母親・家族に説明する
+      en:
+      - Teach the mother and family how to feed and to recognise hunger cues
+  patient_education:
+    ja:
+    - 授乳の方法と回数、排尿・排便の確認
+    - 黄疸の見方と受診の目安
+    - あおむけ寝・安全な寝具などの安全な睡眠環境
+    - 臍の管理と沐浴
+    - 退院後の小児科受診 (1か月健診を含む)
+    en:
+    - feeding method and frequency, checking diapers
+    - how to check for jaundice and when to seek care
+    - safe sleep (on the back, firm flat surface)
+    - cord care and bathing
+    - follow-up pediatric visits
+
+# Admission-diagnosis category entries (Issue #3267) for an admission without a
+# disease protocol: the category of the admission diagnosis (ICD-10 code prefix,
+# longest match wins) plans the nursing care instead of the generic text. A
+# category is a coarse problem class (the ICD-10 chapter, with stroke in
+# neurological and the circulatory remainder in cardiovascular).
+diagnosis_category:
+  infectious:
+    icd10_prefixes:
+    - A
+    - B
+    nursing_diagnoses:
+      ja:
+      - 感染 (全身・局所)
+      - 体温調節不足
+      - 脱水のリスク
+      - 感染拡大のリスク
+      en:
+      - infection
+      - hyperthermia / thermoregulation
+      - risk for deficient fluid volume
+      - risk for infection spread
+    care_plan_detail:
+      goal:
+        ja: 解熱し、感染徴候が改善して全身状態が安定する。
+        en: Fever resolves, signs of infection improve and the general condition is stable.
+      observation:
+        ja:
+        - 体温・脈拍・血圧・意識を観察する
+        - 感染部位の症状と検査結果の推移を確認する
+        en:
+        - Observe temperature, pulse, BP and consciousness
+        - Follow symptoms at the infection site and test results
+      care:
+        ja:
+        - 指示された抗微生物薬を確実に投与する
+        - 標準予防策を行い、水分摂取を促す
+        en:
+        - Give the ordered antimicrobial reliably
+        - Apply standard precautions and encourage fluids
+      education:
+        ja:
+        - 手指衛生を説明する
+        en:
+        - Teach hand hygiene
+    patient_education:
+      ja:
+      - 抗微生物薬の内服完遂
+      - 手指衛生と感染予防
+      - 発熱の再燃時の受診
+      en:
+      - completing the antimicrobial course
+      - hand hygiene and infection prevention
+      - return for recurrent fever
+  neoplasm:
+    icd10_prefixes:
+    - C
+    - D0
+    - D1
+    - D2
+    - D3
+    - D4
+    nursing_diagnoses:
+      ja:
+      - 疼痛のリスク
+      - 栄養摂取不足のリスク
+      - 不安・予後への恐れ
+      - 感染のリスク
+      en:
+      - risk for pain
+      - risk for imbalanced nutrition
+      - anxiety about the illness and prognosis
+      - risk for infection
+    care_plan_detail:
+      goal:
+        ja: 症状が緩和され、治療を安心して受けられる。
+        en: Symptoms are relieved and the patient can receive treatment with reassurance.
+      observation:
+        ja:
+        - 疼痛・倦怠感・食事摂取量を観察する
+        - 治療の副作用 (悪心・骨髄抑制など) を観察する
+        en:
+        - Observe pain, fatigue and intake
+        - Observe treatment adverse effects (nausea, myelosuppression etc.)
+      care:
+        ja:
+        - 指示された疼痛・症状緩和を行う
+        - 感染予防と清潔ケアを行い、思いを傾聴する
+        en:
+        - Carry out the ordered pain and symptom relief
+        - Provide infection prevention and hygiene care and listen to concerns
+      education:
+        ja:
+        - 治療の予定と副作用への対処を説明する
+        en:
+        - Explain the treatment plan and how to handle adverse effects
+    patient_education:
+      ja:
+      - 治療の副作用と対処
+      - 感染予防
+      - 症状増悪時の連絡先
+      en:
+      - treatment adverse effects and what to do
+      - infection prevention
+      - whom to contact if symptoms worsen
+  blood:
+    icd10_prefixes:
+    - D5
+    - D6
+    - D7
+    - D8
+    nursing_diagnoses:
+      ja:
+      - 活動耐性低下 (貧血・血液疾患関連)
+      - 出血・感染のリスク
+      - 不安
+      en:
+      - activity intolerance related to anemia or blood disease
+      - risk for bleeding and infection
+      - anxiety
+    care_plan_detail:
+      goal:
+        ja: 症状が悪化せず、安全に活動を拡大できる。
+        en: Symptoms do not worsen and activity can be widened safely.
+      observation:
+        ja:
+        - 顔色・息切れ・動悸と出血傾向を観察する
+        - 血液検査値の推移を確認する
+        en:
+        - Observe color, breathlessness, palpitations and bleeding tendency
+        - Follow blood test results
+      care:
+        ja:
+        - 休息と活動のバランスを調整し、転倒を予防する
+        - 指示された輸血・薬剤投与を安全に行う
+        en:
+        - Balance rest and activity and prevent falls
+        - Give ordered transfusion and drugs safely
+      education:
+        ja:
+        - ふらつき・出血があれば知らせるよう説明する
+        en:
+        - Ask the patient to report dizziness or bleeding
+    patient_education:
+      ja:
+      - 服薬の継続
+      - 出血・感染の予防
+      - 症状増悪時の受診
+      en:
+      - continuing medication
+      - preventing bleeding and infection
+      - return if symptoms worsen
+  endocrine:
+    icd10_prefixes:
+    - E
+    nursing_diagnoses:
+      ja:
+      - 血糖・代謝コントロール変動
+      - 体液・電解質バランス異常のリスク
+      - 感染のリスク
+      en:
+      - unstable glycemic / metabolic control
+      - risk for fluid and electrolyte imbalance
+      - risk for infection
+    care_plan_detail:
+      goal:
+        ja: 血糖・代謝が安定し、自己管理の方法を理解できる。
+        en: Glucose and metabolism are stable and the patient understands self-management.
+      observation:
+        ja:
+        - 血糖値と低血糖・高血糖の症状を観察する
+        - 水分出納・体重と意識状態を観察する
+        en:
+        - Observe glucose and symptoms of hypo- and hyperglycemia
+        - Observe fluid balance, weight and consciousness
+      care:
+        ja:
+        - 指示された薬剤 (インスリンなど) を確実に投与する
+        - 食事摂取量に合わせた対応を医師と連携して行う
+        en:
+        - Give ordered drugs (e.g. insulin) reliably
+        - Coordinate with the physician according to intake
+      education:
+        ja:
+        - 低血糖時の対応を説明する
+        en:
+        - Explain how to respond to hypoglycemia
+    patient_education:
+      ja:
+      - 血糖自己測定と低血糖への対応
+      - 食事・服薬の継続
+      - 定期受診
+      en:
+      - self blood-glucose monitoring and hypoglycemia response
+      - continuing diet and medication
+      - regular follow-up
+  mental:
+    icd10_prefixes:
+    - F
+    nursing_diagnoses:
+      ja:
+      - 安全の確保が必要な状態
+      - 睡眠パターン変調
+      - セルフケア不足
+      - 不安
+      en:
+      - risk to safety
+      - disturbed sleep pattern
+      - self-care deficit
+      - anxiety
+    care_plan_detail:
+      goal:
+        ja: 安全が守られ、睡眠・食事が保たれて気持ちが落ち着く。
+        en: The patient stays safe, sleeps and eats adequately and feels calmer.
+      observation:
+        ja:
+        - 気分・言動・睡眠・食事摂取量を観察する
+        - 服薬の効果と副作用を観察する
+        en:
+        - Observe mood, behavior, sleep and intake
+        - Observe drug effect and adverse effects
+      care:
+        ja:
+        - 安全な環境を整え、傾聴の時間を確保する
+        - 生活リズムを整える
+        en:
+        - Provide a safe environment and time to listen
+        - Support a regular routine
+      education:
+        ja:
+        - つらいときはいつでも相談してよいと伝える
+        en:
+        - Tell the patient they can talk to staff at any time
+    patient_education:
+      ja:
+      - 服薬の継続と自己判断での中止を避けること
+      - 睡眠・活動リズム
+      - 外来通院の継続
+      en:
+      - continuing medication and not stopping on their own
+      - sleep and activity rhythm
+      - continuing outpatient visits
+  neurological:
+    icd10_prefixes:
+    - G
+    - I6
+    nursing_diagnoses:
+      ja:
+      - 神経学的変化のリスク
+      - 転倒・外傷リスク
+      - 嚥下障害のリスク
+      - セルフケア不足
+      en:
+      - risk for altered neurological status
+      - risk for falls / injury
+      - risk for impaired swallowing
+      - self-care deficit
+    care_plan_detail:
+      goal:
+        ja: 神経症状が悪化せず、安全に離床・リハビリを進められる。
+        en: Neurological status does not worsen and mobilization and rehabilitation proceed safely.
+      observation:
+        ja:
+        - 意識レベル・麻痺・言語・瞳孔を勤務帯ごとに観察する
+        - 嚥下状態を観察する
+        en:
+        - Observe consciousness, weakness, speech and pupils every shift
+        - Observe swallowing
+      care:
+        ja:
+        - 転倒予防策を行い、誤嚥を予防する
+        - 体位変換と早期リハビリ連携を行う
+        en:
+        - Take fall precautions and prevent aspiration
+        - Reposition and coordinate early rehabilitation
+      education:
+        ja:
+        - 症状の変化はすぐ知らせるよう説明する
+        en:
+        - Ask the patient to report any change at once
+    patient_education:
+      ja:
+      - 服薬の継続
+      - 再発・増悪のサインと受診の目安
+      - リハビリと生活環境の整備
+      en:
+      - continuing medication
+      - signs of recurrence or worsening and when to seek care
+      - rehabilitation and home safety
+    smoking_education:
+      ja:
+      - 禁煙の継続支援
+      en:
+      - support for smoking cessation
+  cardiovascular:
+    icd10_prefixes:
+    - I0
+    - I1
+    - I2
+    - I3
+    - I4
+    - I5
+    - I7
+    - I8
+    - I9
+    nursing_diagnoses:
+      ja:
+      - 心拍出量減少のリスク
+      - 活動耐性低下
+      - 急性疼痛 (胸部症状)
+      - 不安
+      en:
+      - risk for decreased cardiac output
+      - activity intolerance
+      - acute pain (chest symptoms)
+      - anxiety
+    care_plan_detail:
+      goal:
+        ja: 循環動態が安定し、症状なく活動を拡大できる。
+        en: Hemodynamics are stable and activity can be widened without symptoms.
+      observation:
+        ja:
+        - 血圧・脈拍・心電図モニタと胸部症状を観察する
+        - 浮腫・体重・尿量を観察する
+        en:
+        - Observe BP, pulse, ECG monitor and chest symptoms
+        - Observe edema, weight and urine output
+      care:
+        ja:
+        - 指示された安静度と薬剤投与を守る
+        - 症状出現時は医師へ報告する
+        en:
+        - Keep the ordered activity level and drugs
+        - Report symptoms to the physician
+      education:
+        ja:
+        - 胸痛・動悸・息切れがあればすぐ知らせるよう説明する
+        en:
+        - Ask the patient to report chest pain, palpitations or breathlessness at once
+    patient_education:
+      ja:
+      - 服薬の継続
+      - 血圧・体重の自己管理と減塩
+      - 症状増悪時の受診
+      en:
+      - continuing medication
+      - self-monitoring of BP and weight, salt restriction
+      - return if symptoms worsen
+    smoking_education:
+      ja:
+      - 禁煙の継続支援
+      en:
+      - support for smoking cessation
+  respiratory:
+    icd10_prefixes:
+    - J
+    nursing_diagnoses:
+      ja:
+      - ガス交換障害
+      - 気道クリアランス不十分
+      - 活動耐性低下
+      - 不安 (呼吸困難関連)
+      en:
+      - impaired gas exchange
+      - ineffective airway clearance
+      - activity intolerance
+      - anxiety (dyspnea-related)
+    care_plan_detail:
+      goal:
+        ja: 呼吸困難が軽減し、SpO2 が指示範囲で保たれる。
+        en: Dyspnea eases and SpO2 stays within the ordered range.
+      observation:
+        ja:
+        - SpO2・呼吸数・呼吸音を観察する
+        - 喀痰の性状と体温を観察する
+        en:
+        - Observe SpO2, respiratory rate and breath sounds
+        - Observe sputum and temperature
+      care:
+        ja:
+        - 酸素投与量を指示に従い調整し、楽な体位を保つ
+        - 排痰を支援する
+        en:
+        - Titrate oxygen as ordered and keep a comfortable position
+        - Assist expectoration
+      education:
+        ja:
+        - 息苦しさが強くなったら知らせるよう説明する
+        en:
+        - Ask the patient to report worsening breathlessness
+    patient_education:
+      ja:
+      - 吸入・服薬の継続
+      - 感染予防 (手指衛生・ワクチン)
+      - 症状増悪時の受診
+      en:
+      - continuing inhalers and medication
+      - infection prevention (hand hygiene, vaccination)
+      - return if symptoms worsen
+    smoking_education:
+      ja:
+      - 禁煙の継続支援
+      en:
+      - support for smoking cessation
+  digestive:
+    icd10_prefixes:
+    - K
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (腹痛)
+      - 栄養摂取不足のリスク
+      - 体液・電解質バランス異常のリスク
+      - 消化管症状 (悪心・嘔吐・排便異常)
+      en:
+      - acute pain (abdominal pain)
+      - risk for imbalanced nutrition
+      - risk for fluid and electrolyte imbalance
+      - gastrointestinal symptoms (nausea, vomiting, altered bowel habit)
+    care_plan_detail:
+      goal:
+        ja: 腹部症状が軽減し、食事・排泄が回復する。
+        en: Abdominal symptoms lessen and eating and elimination recover.
+      observation:
+        ja:
+        - 腹痛・悪心・嘔吐・排便・排ガスを観察する
+        - 出血徴候 (吐下血) と水分出納を観察する
+        en:
+        - Observe abdominal pain, nausea, vomiting, stool and flatus
+        - Observe for bleeding (hematemesis, melena) and fluid balance
+      care:
+        ja:
+        - 指示された絶食・輸液・薬剤を行い、疼痛を管理する
+        - 食事再開時は段階的に進める
+        en:
+        - Carry out ordered fasting, fluids and drugs and manage pain
+        - Advance the diet stepwise
+      education:
+        ja:
+        - 症状の変化はすぐ知らせるよう説明する
+        en:
+        - Ask the patient to report any change in symptoms
+    patient_education:
+      ja:
+      - 食事の進め方
+      - 服薬の継続
+      - 腹痛・嘔吐・出血時の受診
+      en:
+      - advancing the diet
+      - continuing medication
+      - return for abdominal pain, vomiting or bleeding
+  skin:
+    icd10_prefixes:
+    - L
+    nursing_diagnoses:
+      ja:
+      - 皮膚統合性障害
+      - 感染のリスク
+      - 急性疼痛
+      en:
+      - impaired skin integrity
+      - risk for infection
+      - acute pain
+    care_plan_detail:
+      goal:
+        ja: 皮膚の炎症・疼痛が軽減し、感染が拡大しない。
+        en: Skin inflammation and pain lessen and infection does not spread.
+      observation:
+        ja:
+        - 患部の発赤・腫脹・熱感・浸出液と体温を観察する
+        en:
+        - Observe redness, swelling, warmth and drainage of the area, and temperature
+      care:
+        ja:
+        - 患部を清潔に保ち、指示された処置と薬剤を行う
+        en:
+        - Keep the area clean and carry out ordered care and drugs
+      education:
+        ja:
+        - 患部を掻かない・清潔を保つよう説明する
+        en:
+        - Explain not scratching and keeping the area clean
+    patient_education:
+      ja:
+      - 皮膚の保清と保湿
+      - 服薬・処置の継続
+      - 発赤拡大・発熱時の受診
+      en:
+      - skin hygiene and moisturizing
+      - continuing medication and dressings
+      - return for spreading redness or fever
+  musculoskeletal:
+    icd10_prefixes:
+    - M
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛
+      - 身体可動性障害
+      - 転倒・外傷のリスク
+      - セルフケア不足
+      en:
+      - acute pain
+      - impaired physical mobility
+      - risk for falls / injury
+      - self-care deficit
+    care_plan_detail:
+      goal:
+        ja: 疼痛が管理され、安全に離床・動作ができる。
+        en: Pain is controlled and the patient can get up and move safely.
+      observation:
+        ja:
+        - 疼痛の程度・部位と動作時の状態を観察する
+        - 神経症状 (しびれ・脱力) と皮膚の状態を観察する
+        en:
+        - Observe pain and its site and condition on movement
+        - Observe neurological symptoms (numbness, weakness) and skin
+      care:
+        ja:
+        - 指示された疼痛管理と安静度を守り、離床を支援する
+        - 転倒予防策を行う
+        en:
+        - Keep ordered pain control and activity limits and support mobilization
+        - Take fall precautions
+      education:
+        ja:
+        - 動作時の注意点を説明する
+        en:
+        - Explain precautions during movement
+    patient_education:
+      ja:
+      - 動作の注意とリハビリの継続
+      - 転倒予防の住環境整備
+      - しびれ・疼痛増悪時の受診
+      en:
+      - movement precautions and continued rehabilitation
+      - making the home safe against falls
+      - return for numbness or worsening pain
+  genitourinary:
+    icd10_prefixes:
+    - N
+    nursing_diagnoses:
+      ja:
+      - 排尿障害
+      - 感染のリスク
+      - 体液量・電解質バランス異常のリスク
+      - 急性疼痛
+      en:
+      - impaired urinary elimination
+      - risk for infection
+      - risk for fluid and electrolyte imbalance
+      - acute pain
+    care_plan_detail:
+      goal:
+        ja: 排尿状態と腎機能が改善し、症状が軽減する。
+        en: Voiding and renal function improve and symptoms lessen.
+      observation:
+        ja:
+        - 尿量・排尿回数・尿の性状・排尿時痛を観察する
+        - 体温と腎機能・電解質の検査値を確認する
+        en:
+        - Observe urine volume, voiding frequency, urine character and dysuria
+        - Check temperature and renal function and electrolytes
+      care:
+        ja:
+        - 飲水・水分出納を管理し、陰部の清潔を保つ
+        - 指示された薬剤を確実に投与する
+        en:
+        - Manage fluids and I/O and keep the perineum clean
+        - Give ordered drugs reliably
+      education:
+        ja:
+        - 尿量の減少・血尿・発熱は知らせるよう説明する
+        en:
+        - Ask the patient to report reduced urine, hematuria or fever
+    patient_education:
+      ja:
+      - 水分摂取と排尿習慣
+      - 服薬の継続
+      - 発熱・背部痛・血尿時の受診
+      en:
+      - fluid intake and voiding habits
+      - continuing medication
+      - return for fever, flank pain or hematuria
+  obstetric:
+    icd10_prefixes:
+    - O
+    nursing_diagnoses:
+      ja:
+      - 産褥期の子宮復古・出血のリスク
+      - 急性疼痛 (産褥・会陰部)
+      - 母乳育児・育児への適応
+      - 感染のリスク
+      en:
+      - risk for postpartum bleeding and altered uterine involution
+      - acute pain (postpartum, perineal)
+      - adjustment to breastfeeding and infant care
+      - risk for infection
+    care_plan_detail:
+      goal:
+        ja: 異常出血や感染なく産褥経過し、育児の準備ができる。
+        en: The postpartum course is free of abnormal bleeding or infection and the mother is ready for infant care.
+      observation:
+        ja:
+        - 子宮収縮・悪露の量と性状・バイタルサインを観察する
+        - 創部 (会陰・帝王切開創) と疼痛を観察する
+        en:
+        - Observe uterine contraction, lochia and vital signs
+        - Observe the wound (perineum or cesarean incision) and pain
+      care:
+        ja:
+        - 早期離床と排泄・清潔を支援する
+        - 授乳と母児同室の支援を行う
+        en:
+        - Support early mobilization, elimination and hygiene
+        - Support breastfeeding and rooming-in
+      education:
+        ja:
+        - 産褥の過ごし方と異常出血時の連絡を説明する
+        en:
+        - Explain postpartum self-care and whom to call for heavy bleeding
+    patient_education:
+      ja:
+      - 産褥期の過ごし方と悪露の変化
+      - 授乳・育児の方法
+      - 出血・発熱・創部の痛み時の受診
+      - 産後健診
+      en:
+      - postpartum self-care and lochia changes
+      - breastfeeding and infant care
+      - return for bleeding, fever or wound pain
+      - postpartum check-up
+  symptoms:
+    icd10_prefixes:
+    - R
+    nursing_diagnoses:
+      ja:
+      - 原因精査中の症状 (倦怠感・疼痛など)
+      - 活動耐性低下
+      - 転倒のリスク
+      - 不安
+      en:
+      - symptoms under investigation (fatigue, pain etc.)
+      - activity intolerance
+      - risk for falls
+      - anxiety
+    care_plan_detail:
+      goal:
+        ja: 症状が悪化せず、検査の結果を理解して安心して過ごせる。
+        en: Symptoms do not worsen and the patient understands the results and feels reassured.
+      observation:
+        ja:
+        - 症状の程度・バイタルサイン・食事摂取量を観察する
+        - 検査結果の経過を確認する
+        en:
+        - Observe symptom severity, vital signs and intake
+        - Follow test results
+      care:
+        ja:
+        - 安静と活動のバランスを調整し、転倒を予防する
+        - 検査・処置の前後の準備と観察を行う
+        en:
+        - Balance rest and activity and prevent falls
+        - Prepare for and observe around tests and procedures
+      education:
+        ja:
+        - 症状の変化は知らせるよう説明する
+        en:
+        - Ask the patient to report changes in symptoms
+    patient_education:
+      ja:
+      - 症状の観察と受診の目安
+      - 服薬・生活習慣の見直し
+      - 外来での経過観察
+      en:
+      - symptom monitoring and when to seek care
+      - review of medication and lifestyle
+      - outpatient follow-up
+  injury:
+    icd10_prefixes:
+    - S
+    - T
+    nursing_diagnoses:
+      ja:
+      - 急性疼痛 (外傷部)
+      - 身体可動性障害
+      - 出血・感染のリスク
+      - 転倒・外傷のリスク
+      en:
+      - acute pain (injury site)
+      - impaired physical mobility
+      - risk for bleeding and infection
+      - risk for falls / injury
+    care_plan_detail:
+      goal:
+        ja: 疼痛が管理され、創・固定部の合併症なく安全に離床できる。
+        en: Pain is controlled and the patient can get up safely without wound or splint complications.
+      observation:
+        ja:
+        - 疼痛、創部・固定部の状態、末梢循環・しびれを観察する
+        - バイタルサインと出血・浸出液を観察する
+        en:
+        - Observe pain, the wound and splint, peripheral perfusion and numbness
+        - Observe vital signs, bleeding and drainage
+      care:
+        ja:
+        - 指示された安静度・荷重制限を守り、疼痛を管理する
+        - 創処置・固定具の管理を行う
+        en:
+        - Keep ordered activity and weight-bearing limits and manage pain
+        - Manage wound care and splints
+      education:
+        ja:
+        - 動作の制限としびれ・腫脹があれば知らせることを説明する
+        en:
+        - Explain movement limits and to report numbness or swelling
+    patient_education:
+      ja:
+      - 創部・固定の管理と動作の注意
+      - リハビリテーションの継続
+      - しびれ・腫脹・発熱時の受診
+      en:
+      - wound and splint care and movement precautions
+      - continuing rehabilitation
+      - return for numbness, swelling or fever
 
 # Chronic ICD-10 axis: the six comorbidity prefixes (I10 / I50 / E11 / N18 /
 # J45 / J44). Add new prefixes here without touching template code. `comorbidity:

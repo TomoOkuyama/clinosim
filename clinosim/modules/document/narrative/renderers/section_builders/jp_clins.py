@@ -302,14 +302,118 @@ def build_referral_medication_orders(
 @section("test_results_ref")
 def build_referral_test_results(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
     """620 検査結果セクション(診療情報提供書用):入院中の主な異常検査結果
-    (``_hospital_course.notable_labs_sentence``)。異常値の記録がなければ
-    その旨を記す (Issue #3268)。"""
+    (``_hospital_course.notable_labs_sentence``)、画像検査の所見、培養検査の
+    結果 (Issue #3268)。どれも記録がなければその旨を記す。"""
     from clinosim.modules.document.narrative import _hospital_course as hc
 
-    sentence, fact = hc.notable_labs_sentence(ctx)
-    if sentence:
-        return sentence, [fact]
-    return t("referral.no_notable_results", ctx.target_lang), []
+    lang = ctx.target_lang
+    sentences: list[str] = []
+    facts: list[str] = []
+    labs, fact = hc.notable_labs_sentence(ctx)
+    if labs:
+        sentences.append(labs)
+        facts.append(fact)
+    imaging = _imaging_results(ctx)
+    if imaging:
+        sentences.append(t("referral.imaging_line", lang, list=t("list_sep.semicolon", lang).join(imaging)))
+        facts.append("ctx.imaging_studies")
+    cultures = _culture_results(ctx)
+    if cultures:
+        sentences.append(t("referral.culture_line", lang, list=t("list_sep.semicolon", lang).join(cultures)))
+        facts.append("ctx.microbiology")
+    if not sentences:
+        return t("referral.no_notable_results", lang), []
+    return t("list_sep.sentence_gap", lang).join(sentences), facts
+
+
+def _imaging_results(ctx: NarrativeContext) -> list[str]:
+    """``"<exam>: <impression>"`` of each final imaging report of the stay, in
+    the note language (the impression text authored in that language, else
+    English)."""
+    from clinosim.locale.loader import imaging_exam_display
+
+    lang = ctx.target_lang
+    out: list[str] = []
+    for study in getattr(ctx, "imaging_studies", None) or []:
+        report = _o(study, "report", None) or {}
+        impression = str(
+            _o(report, f"impression_text_{lang}", None) or _o(report, "impression_text", None) or ""
+        ).strip()
+        if not impression:
+            continue
+        name = imaging_exam_display(str(_o(study, "description", "") or ""), lang)
+        item = t("referral.imaging_item", lang, exam=name, impression=impression.rstrip("。.")) if name else impression
+        if item not in out:  # the same exam and impression repeated on the record is stated once
+            out.append(item)
+    return out
+
+
+def _culture_results(ctx: NarrativeContext) -> list[str]:
+    """One entry per culture of the stay: the specimen, the organism isolated
+    with its susceptibilities (antibiotic and S / I / R), or no growth."""
+    from clinosim.codes import display
+
+    lang = ctx.target_lang
+    sep = t("list_sep.serial", lang)
+    out: list[str] = []
+    for culture in getattr(ctx, "microbiology", None) or []:
+        specimen = str(display("snomed-ct", str(_o(culture, "specimen_snomed", "") or ""), lang) or "")
+        specimen = specimen.removesuffix(t("referral.specimen_suffix", lang)).strip()
+        if not specimen:
+            specimen = str(_o(culture, "specimen", "") or "")
+        if not _o(culture, "growth", False):
+            out.append(t("referral.culture_no_growth", lang, specimen=specimen))
+            continue
+        organism = str(display("snomed-ct", str(_o(culture, "organism_snomed", "") or ""), lang) or "")
+        drugs = []
+        for s in (_o(culture, "susceptibilities", []) or [])[:_MAX_LISTED_SUSCEPTIBILITIES]:
+            name = str(display("loinc", str(_o(s, "antibiotic_loinc", "") or ""), lang) or "")
+            name = name.removesuffix(t("referral.susceptibility_suffix", lang)).strip()
+            if name:
+                drugs.append(t("referral.culture_susceptibility", lang, drug=name, result=_o(s, "interpretation", "")))
+        item = t("referral.culture_growth", lang, specimen=specimen, organism=organism)
+        if drugs:
+            item += t("referral.culture_susceptibilities", lang, list=sep.join(drugs))
+        out.append(item)
+    return out
+
+
+# Susceptibility results listed per isolate.
+_MAX_LISTED_SUSCEPTIBILITIES = 4
+
+
+@section("past_history_ref")
+def build_referral_past_history(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """370 既往歴セクション(診療情報提供書用):既往歴 builder を再利用
+    (記録がなければ「特記既往歴なし」)(Issue #3268)。"""
+    return section_builder("past_medical_history")(generator, ctx)
+
+
+@section("family_history_ref")
+def build_referral_family_history(
+    generator: TemplateNarrativeGenerator, ctx: NarrativeContext
+) -> tuple[str, list[str]]:
+    """550 家族歴セクション(診療情報提供書用):家族歴 builder を再利用
+    (Issue #3268)。"""
+    return section_builder("family_history")(generator, ctx)
+
+
+@section("remarks_ref")
+def build_referral_remarks(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
+    """220 備考・連絡情報セクション(診療情報提供書用):アレルギーと、記録が
+    あればコードステータス (Issue #3268)。"""
+    from clinosim.codes import display
+
+    lang = ctx.target_lang
+    allergies, facts = section_builder("allergies")(generator, ctx)
+    parts = [allergies] if allergies else []
+    status = str(display("snomed-ct", ctx.code_status, lang) or "") if ctx.code_status else ""
+    if status:
+        parts.append(t("referral.remarks_code_status", lang, status=status))
+        facts = [*facts, "ctx.code_status"]
+    if not parts:
+        return t("referral.no_remarks", lang), []
+    return t("list_sep.sentence_gap", lang).join(parts), facts
 
 
 @section("diagnoses_and_complaint")

@@ -21,11 +21,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from clinosim.codes.drugs import drug_key
 from clinosim.codes.hl7_encounter import DischargeDisposition
 from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import strip_protocol_prefix
 from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._localization import _localize_complication
 from clinosim.modules.document.narrative._narrative_utils import (
@@ -35,6 +37,7 @@ from clinosim.modules.document.narrative._narrative_utils import (
     nursing_care_plan_detail,
 )
 from clinosim.modules.document.narrative._template_helpers import _resolve_staff_name, allergen_display
+from clinosim.modules.document.narrative.renderers._shared_helpers import procedure_prose_name
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.types.document import NarrativeContext
 
@@ -113,7 +116,9 @@ def build_nursing_history(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     if len(parts) <= 1:
         parts.append(t("fallback.nursing_history_fallback", lang))
     facts.extend(["ctx.encounter.chief_complaint", "ctx.patient.chronic_conditions"])
-    return "".join(parts), facts
+    # Issue #3267: the sentences are separated by the locale's sentence gap
+    # (a space in English), not run together ("CKD.Allergy").
+    return t("list_sep.sentence_gap", lang).join(p.strip() for p in parts), facts
 
 
 @section("adl_assessment")
@@ -313,7 +318,7 @@ def _structured_care_plan(ctx: NarrativeContext, detail: dict[str, Any]) -> tupl
     lang = ctx.target_lang
     semicolon = t("list_sep.semicolon", lang)
     planned = [*detail["observation"], *detail["care"], *detail["education"]]
-    facts = ["ctx.disease_protocol.disease_id"]
+    facts = [detail["fact"]]
     parts = [t("nursing.care_plan_problem", lang, problem=detail["problem"])]
     if detail["goal"]:
         parts.append(t("nursing.care_plan_goal", lang, goal=detail["goal"]))
@@ -406,18 +411,46 @@ def build_nursing_admission_status(
 def build_nursing_interventions_provided(
     generator: TemplateNarrativeGenerator, ctx: NarrativeContext
 ) -> tuple[str, list[str]]:
-    """Build nursing_interventions_provided from CIF procedures / MAR /
-    intake-output totals. v9 density fix — v8 emitted 15-char placeholder."""
+    """Build nursing_interventions_provided from the care the record shows
+    (Issue #3267): medication administration, monitoring, oxygen therapy,
+    procedures, rehabilitation, fall / pressure-injury precautions, the
+    cumulative intake / output and the education given. A newborn's list names
+    the prophylaxis drugs given and the screening procedures."""
     facts: list[str] = []
     lang = ctx.target_lang
+    sep = t("list_sep.serial", lang)
     parts: list[str] = []
-    procs = [_o(pr, "procedure_name", None) or _o(pr, "name", None) for pr in (ctx.procedures or [])[:5]]
+
+    given = [m for m in (ctx.medications or []) if str(_o(m, "status", "") or "") == "given"]
+    if given:
+        names = _distinct_drug_names(given, lang)
+        facts.append("ctx.medications")
+        if is_neonate(ctx):
+            parts.append(t("nursing_interventions.neonatal_drugs", lang, list=sep.join(names)))
+        else:
+            parts.append(t("nursing_interventions.medications", lang, n=len(given), k=len(names)))
+    readings = list(ctx.vitals or [])
+    if readings:
+        facts.append("ctx.vitals")
+        parts.append(t("nursing_interventions.monitoring", lang, n=len(readings)))
+        on_oxygen = sum(1 for v in readings if _o(v, "on_supplemental_oxygen", False))
+        if on_oxygen:
+            parts.append(t("nursing_interventions.oxygen", lang, n=on_oxygen))
+    procs = [procedure_prose_name(pr, lang) for pr in (ctx.procedures or [])[:_MAX_LISTED_PROCEDURES]]
     procs = [p for p in procs if p]
     if procs:
         facts.append("ctx.procedures")
-        parts.append(
-            t("discharge_readiness.procedures_head", lang) + t("list_sep.serial", lang).join(str(p) for p in procs)
-        )
+        parts.append(t("discharge_readiness.procedures_head", lang) + sep.join(procs))
+    sessions = list(getattr(ctx, "rehab_sessions", None) or [])
+    if sessions:
+        facts.append("ctx.rehab_sessions")
+        parts.append(t("nursing_interventions.rehab", lang, n=len(sessions)))
+    if _any_risk(ctx, "fall_risk_level", lambda v: str(v).lower() in ("high", "moderate")):
+        facts.append("ctx.nursing_risk_assessments")
+        parts.append(t("nursing_interventions.fall_precautions", lang))
+    if _any_risk(ctx, "braden_total", lambda v: v is not None and v <= _BRADEN_AT_RISK):
+        facts.append("ctx.nursing_risk_assessments")
+        parts.append(t("nursing_interventions.pu_prevention", lang))
     # Intake/output totals
     io = list(getattr(ctx, "intake_output_records", None) or [])
     if io:
@@ -429,9 +462,40 @@ def build_nursing_interventions_provided(
         parts.append(
             t("nursing_interventions.io_line", lang, in_ml=total_in, out_ml=total_out, net=total_in - total_out)
         )
+    detail = nursing_care_plan_detail(ctx, lang)
+    if detail is not None and detail["education"] and not encounter_died(ctx.encounter):
+        facts.append(detail["fact"])
+        parts.append(
+            t("nursing_interventions.education", lang, items=t("list_sep.semicolon", lang).join(detail["education"]))
+        )
     if parts:
         return t("list_sep.semicolon", lang).join(parts) + t("list_sep.period", lang), facts
     return (t("fallback.interventions_fallback", lang)), facts
+
+
+# Procedures named in the interventions list.
+_MAX_LISTED_PROCEDURES = 5
+
+
+def _distinct_drug_names(administrations: list[Any], lang: str) -> list[str]:
+    """The distinct drugs of ``administrations`` in first-given order, named
+    in ``lang`` without protocol prefixes."""
+    from clinosim.locale.free_text import localize_drug_name
+
+    names: list[str] = []
+    seen: set[str] = set()
+    for m in administrations:
+        name, _ = strip_protocol_prefix(str(_o(m, "drug_name", "") or ""))
+        key = drug_key(name)
+        if name and key not in seen:
+            seen.add(key)
+            names.append(localize_drug_name(name, lang))
+    return names
+
+
+def _any_risk(ctx: NarrativeContext, field: str, test: Any) -> bool:
+    """True when any risk assessment of the stay has ``field`` satisfying ``test``."""
+    return any(test(_o(r, field, None)) for r in (getattr(ctx, "nursing_risk_assessments", None) or []))
 
 
 @section("patient_education")

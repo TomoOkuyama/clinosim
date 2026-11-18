@@ -781,6 +781,24 @@ medication_orders_ref:
     ja: "投薬指示"
   loinc: ""  # no LOINC section code means this section (Issue #2391)
 
+past_history_ref:
+  title:
+    en: "Past history"
+    ja: "既往歴"
+  loinc: ""  # no LOINC section code means this section (Issue #2391)
+
+family_history_ref:
+  title:
+    en: "Family history"
+    ja: "家族歴"
+  loinc: ""  # no LOINC section code means this section (Issue #2391)
+
+remarks_ref:
+  title:
+    en: "Remarks and communication"
+    ja: "備考・連絡情報"
+  loinc: ""  # no LOINC section code means this section (Issue #2391)
+
 test_results_ref:
   title:
     en: "Test results"

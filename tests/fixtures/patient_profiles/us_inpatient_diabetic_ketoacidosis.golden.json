@@ -439,7 +439,11 @@
         "ctx.los_days",
         "ctx.complications_occurred",
         "encounter.discharge_disposition",
+        "ctx.medications",
+        "ctx.vitals",
+        "ctx.procedures",
         "ctx.intake_output_records",
+        "ctx.disease_protocol.disease_id",
         "ctx.disease_protocol.disease_id",
         "ctx.adl_assessments@authored"
       ],
@@ -452,7 +456,7 @@
       "sections": {
         "admission_status": "Hospital stay: 3 days. Admission reason: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Complications: aspiration pneumonia, DVT. Discharge criteria met.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 80/100.",
-        "nursing_interventions_provided": "Cumulative IN 6605 mL / OUT 5785 mL (net +820 mL).",
+        "nursing_interventions_provided": "Medication administration: 43 doses (4 drugs); Vital-sign monitoring: 24 sets; Procedures: Central venous catheter insertion; Cumulative IN 6605 mL / OUT 5785 mL (net +820 mL); Education: Explain hypo- and hyperglycemia symptoms and ask the patient to report feeling unwell early.",
         "patient_education": "Patient education: sick-day rules (insulin dose + when to seek care during illness); self blood-glucose monitoring + urine-ketone strips; hypoglycemia recognition + rescue (glucose tabs / glucagon); importance of routine follow-up + insulin adherence."
       },
       "text": ""

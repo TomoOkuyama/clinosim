@@ -421,6 +421,34 @@ def medication_changes_sentence(ctx: NarrativeContext) -> tuple[str, str]:
     return line, "ctx.discharge_medications"
 
 
+def newborn_prophylaxis_sentence(ctx: NarrativeContext) -> tuple[str, str]:
+    """The doses given to a newborn during the stay (vitamin K, eye
+    prophylaxis), each with its day of life, as the medication administration
+    record shows them (Issue #3260). Only recorded doses are stated; no further
+    dose or schedule is asserted. ``""`` for any other patient."""
+    from clinosim.modules.document.narrative._narrative_utils import _birth_and_visit_dates, is_neonate
+
+    if not is_neonate(ctx):
+        return "", ""
+    dates = _birth_and_visit_dates(ctx)
+    lang = ctx.target_lang
+    items: list[str] = []
+    seen: set[str] = set()
+    for when, med in _given(ctx):
+        ref = _drug_ref(med)
+        if ref in seen:
+            continue
+        seen.add(ref)
+        name = _drug_name(med, lang)
+        if when is not None and dates is not None:
+            items.append(t("hospital_course.newborn_dose_on_day", lang, name=name, day=(when.date() - dates[0]).days))
+        else:
+            items.append(name)
+    if not items:
+        return "", ""
+    return t("hospital_course.newborn_given_line", lang, list=t("list_sep.serial", lang).join(items)), "ctx.medications"
+
+
 def discharge_condition_sentence(ctx: NarrativeContext) -> tuple[str, str]:
     """Where the patient went and the Barthel Index in force at discharge."""
     from clinosim.locale.loader import narrative_label

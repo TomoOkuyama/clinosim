@@ -114,6 +114,8 @@ def build_narrative_context(
         icu_transferred=bool(_o(record, "icu_transferred", False)),
         icu_transferred_day=icu_transfer_day(_o(record, "icu_transferred_day", None)),
         **visit_reason_fields(record, encounter),
+        # Issue #3268: the encounter's culture results.
+        microbiology=encounter_microbiology(record, encounter),
         # Issue #3246: readmission (H&P HPI and discharge summary).
         is_readmission=bool(_o(record, "is_readmission", False)),
         readmission_number=int(_o(record, "readmission_number", 0) or 0),
@@ -144,6 +146,12 @@ def visit_reason_fields(record: Any, encounter: Any) -> dict[str, Any]:
             if enc_id and _o(s, "encounter_id", "") == enc_id
         ],
     }
+
+
+def encounter_microbiology(record: Any, encounter: Any) -> list[Any]:
+    """The culture results of ``encounter`` (Issue #3268)."""
+    enc_id = str(_o(encounter, "encounter_id", "") or "")
+    return [m for m in (_o(record, "microbiology", []) or []) if enc_id and _o(m, "encounter_id", "") == enc_id]
 
 
 def icu_transfer_day(value: Any) -> int:

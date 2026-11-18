@@ -96,3 +96,25 @@ care_location:
   ER: {en: Emergency Room, ja: 救急外来}
   OPD: {en: Outpatient Clinic, ja: 外来}
   operating_room: {en: Operating Room, ja: 手術室}
+
+# Ward display names for narratives (Issue #3267): the ward id of the
+# hospital configuration (floor + east / west, 1F / 2F, NBN) written as a ward
+# name; ER and OPD are in care_location. Unlisted ids fall back to the
+# generic "ward {id}" phrase.
+ward_name:
+  2E: {en: 2nd floor east ward, ja: 2階東病棟}
+  2W: {en: 2nd floor west ward, ja: 2階西病棟}
+  3E: {en: 3rd floor east ward, ja: 3階東病棟}
+  3W: {en: 3rd floor west ward, ja: 3階西病棟}
+  4E: {en: 4th floor east ward, ja: 4階東病棟}
+  4W: {en: 4th floor west ward, ja: 4階西病棟}
+  5E: {en: 5th floor east ward, ja: 5階東病棟}
+  5W: {en: 5th floor west ward, ja: 5階西病棟}
+  6E: {en: 6th floor east ward, ja: 6階東病棟}
+  6W: {en: 6th floor west ward, ja: 6階西病棟}
+  7E: {en: 7th floor east ward, ja: 7階東病棟}
+  7W: {en: 7th floor west ward, ja: 7階西病棟}
+  8E: {en: 8th floor east ward, ja: 8階東病棟}
+  1F: {en: 1st floor ward, ja: 1階病棟}
+  2F: {en: 2nd floor ward, ja: 2階病棟}
+  NBN: {en: Newborn nursery, ja: 新生児室}

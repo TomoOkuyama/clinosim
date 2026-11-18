@@ -395,6 +395,8 @@ class NarrativeContext:
     visit_condition_id: str = ""
     immunizations: list[Any] = field(default_factory=list)
     imaging_studies: list[Any] = field(default_factory=list)
+    # === Issue #3268: the encounter's culture results (referral letter) ===
+    microbiology: list[Any] = field(default_factory=list)
     # === Issue #3246 (readmission) ===
     # ``record.is_readmission`` and ``record.readmission_number`` (1 = first
     # readmission). The record holds only the previous stay's id, so the

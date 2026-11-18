@@ -49,12 +49,24 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
     # compositionSection.section:clinicalCourseSection / examsStudySection /
     # medicationSection; codes of the REF branch of the document-section
     # CodeSystem).
+    "past_history_ref": "370",
+    "family_history_ref": "550",
     "clinical_course_ref": "330",
     "test_results_ref": "620",
     "medication_orders_ref": "430",
 }
 # The optional slices are emitted only when the document carries their text.
-_JP_REFERRAL_OPTIONAL_CHILDREN = frozenset({"clinical_course_ref", "test_results_ref", "medication_orders_ref"})
+_JP_REFERRAL_OPTIONAL_CHILDREN = frozenset(
+    {
+        "past_history_ref",
+        "family_history_ref",
+        "clinical_course_ref",
+        "test_results_ref",
+        "medication_orders_ref",
+    }
+)
+# 備考・連絡情報 (remarksCommunicationSection) is a top-level section, after 300.
+_JP_REFERRAL_REMARKS_CODE = "220"
 
 # 920 (referralFromOrganization) self-pin — see composition.py's
 # original docstring for the Issue #924 self-loop fix rationale.
@@ -244,5 +256,7 @@ def _build_jp_clins_referral_note_composition(
             "section": struct_children,
         }
     )
+    if sections.get("remarks_ref"):
+        top_sections.append(_one_section(_JP_REFERRAL_REMARKS_CODE, sections["remarks_ref"]))
     comp["section"] = top_sections
     return comp

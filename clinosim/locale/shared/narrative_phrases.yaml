@@ -625,7 +625,10 @@ acp:
   # ACP ward / room / LOS lines (Phase 1d-29).
   ward_and_room_line:
     ja: "病棟：{ward}　病室：{bed}"
-    en: "Ward: {ward}, Room: {bed}"
+    en: "Ward: {ward}, Bed: {bed}"
+  bed_display:
+    ja: "{n}号室"
+    en: "{n}"
   ward_tbd:
     ja: "未定"
     en: "TBD"
@@ -682,6 +685,13 @@ adl_detail:
 # Discharge-summary hospital_course composer phrases (Phase 1d-19).
 # From section_builders.discharge_summary.build_hospital_course.
 hospital_course:
+  # Issue #3260: the doses recorded for a newborn (vitamin K, eye prophylaxis).
+  newborn_given_line:
+    ja: "新生児への投与: {list}。"
+    en: "Given to the newborn: {list}."
+  newborn_dose_on_day:
+    ja: "{name} (日齢{day})"
+    en: "{name} (day of life {day})"
   los_head:
     ja: "入院期間 {los} 日間。"
     en: "Length of stay: {los} days."
@@ -1714,6 +1724,31 @@ nursing_admission_status:
 
 # Nursing interventions in/out line (Phase 1d-30).
 nursing_interventions:
+  # Issue #3267: the care the record shows, one clause per kind.
+  medications:
+    ja: "与薬 {n} 回 (薬剤 {k} 種類)"
+    en: "Medication administration: {n} doses ({k} drugs)"
+  neonatal_drugs:
+    ja: "新生児への投与: {list}"
+    en: "Newborn prophylaxis given: {list}"
+  monitoring:
+    ja: "バイタルサイン測定 {n} 回"
+    en: "Vital-sign monitoring: {n} sets"
+  oxygen:
+    ja: "酸素投与下の観察 {n} 回"
+    en: "Oxygen therapy: observed on {n} sets of vital signs"
+  rehab:
+    ja: "リハビリテーション {n} 回"
+    en: "Rehabilitation: {n} sessions"
+  fall_precautions:
+    ja: "転倒予防策の実施"
+    en: "Fall precautions"
+  pu_prevention:
+    ja: "褥瘡予防ケアの実施"
+    en: "Pressure-injury prevention care"
+  education:
+    ja: "指導: {items}"
+    en: "Education: {items}"
   io_line:
     ja: "入院期間合計 IN {in_ml} mL / OUT {out_ml} mL (差 {net:+} mL)"
     en: "Cumulative IN {in_ml} mL / OUT {out_ml} mL (net {net:+} mL)"
@@ -1757,6 +1792,41 @@ referral:
     en: "Referral purpose: {purpose}."
   # Issue #3268: the results section when the stay recorded no significant
   # abnormal result.
+  imaging_line:
+    ja: "画像検査: {list}。"
+    en: "Imaging: {list}."
+  imaging_item:
+    ja: "{exam}: {impression}"
+    en: "{exam}: {impression}"
+  # Suffixes of the registry display of a specimen / susceptibility test code,
+  # dropped when the name is written inside a culture sentence.
+  specimen_suffix:
+    ja: "検体"
+    en: " specimen"
+  susceptibility_suffix:
+    ja: "感受性"
+    en: " [Susceptibility]"
+  culture_line:
+    ja: "培養検査: {list}。"
+    en: "Cultures: {list}."
+  culture_no_growth:
+    ja: "{specimen}培養は発育なし"
+    en: "{specimen} culture: no growth"
+  culture_growth:
+    ja: "{specimen}培養で{organism}を検出"
+    en: "{specimen} culture grew {organism}"
+  culture_susceptibilities:
+    ja: " (感受性: {list})"
+    en: " (susceptibility: {list})"
+  culture_susceptibility:
+    ja: "{drug} {result}"
+    en: "{drug} {result}"
+  remarks_code_status:
+    ja: "コードステータス: {status}。"
+    en: "Code status: {status}."
+  no_remarks:
+    ja: "特記すべき連絡事項なし。"
+    en: "No specific remarks."
   no_notable_results:
     ja: "入院中に特記すべき異常検査結果の記録なし。"
     en: "No significant abnormal result recorded during the stay."

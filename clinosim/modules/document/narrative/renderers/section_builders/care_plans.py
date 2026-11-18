@@ -25,6 +25,7 @@ from clinosim.codes.snomed_concepts import SURGICAL_PROCEDURE
 from clinosim.countries import country_code
 from clinosim.locale.i18n import t
 from clinosim.locale.loader import narrative_label as _label
+from clinosim.locale.loader import vocab_display
 from clinosim.modules._shared import get_attr_or_key as _o
 from clinosim.modules.document.narrative._as_of import in_force_at
 from clinosim.modules.document.narrative._localization import _localize_proc_type
@@ -55,7 +56,9 @@ if TYPE_CHECKING:
 
 @section("ward_and_room")
 def build_acp_ward_and_room(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """病棟（病室）— Encounter.ward_id + bed_number."""
+    """病棟（病室）— Encounter.ward_id + bed_number, the ward written as its
+    name (「3階西病棟」「新生児室」) and the bed without the ward prefix
+    (Issue #3267)."""
     facts: list[str] = []
     lang = ctx.target_lang
     ward = str(_o(ctx.encounter, "ward_id", "") or "")
@@ -67,6 +70,17 @@ def build_acp_ward_and_room(generator: TemplateNarrativeGenerator, ctx: Narrativ
     if bed:
         facts.append("encounter.bed_number")
     tbd = t("acp.ward_tbd", lang)
+    if ward:
+        ward = (
+            vocab_display("ward_name", ward, lang)
+            or vocab_display("care_location", ward, lang)
+            or t("fhir_emit_text.ward", lang, n=ward)
+        )
+    if bed:
+        number = (
+            bed.split("-", 1)[1] if "-" in bed and bed.split("-", 1)[0] == _o(ctx.encounter, "ward_id", "") else bed
+        )
+        bed = t("acp.bed_display", lang, n=number)
     return t("acp.ward_and_room_line", lang, ward=ward or tbd, bed=bed or tbd), facts
 
 
