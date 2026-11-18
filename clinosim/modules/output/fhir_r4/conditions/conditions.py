@@ -32,6 +32,7 @@ from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     encounter_secondary_condition_id,
     encounter_secondary_condition_key,
     needs_admission_diagnosis_condition,
+    primary_merges_into_chronic,
 )
 from clinosim.modules.output.fhir_r4.conditions.primary_ref import (
     is_chronic_primary as _encounter_primary_is_chronic,
@@ -308,7 +309,11 @@ def _build_conditions(record: dict, patient_id: str, country: str) -> list[dict]
 
     Generates, in order: the primary encounter diagnosis, the admission
     diagnosis, secondary (working) diagnoses, the patient's chronic
-    conditions and past births. Deduplicates by ICD base code.
+    conditions and past births. Deduplicates by the full emitted diagnosis code
+    (Issue #3333): distinct codes that share a 3-character ICD-10 category
+    (E11.9 / E11.311 / E11.42) are distinct diagnoses and each keeps its own
+    Condition; two source codes that map to the same emitted code (JP maps
+    several ICD-10-CM codes onto one MHLW code) are the same diagnosis.
     """
     ctx = _ConditionContext(
         patient_id=patient_id,
@@ -355,35 +360,11 @@ def _primary_condition(
     if not dx_code or is_visit_reason_zcode(dx_code) or _encounter_primary_is_chronic(record):
         return None
     base_code = dx_code.split(".")[0]
-    seen_codes.add(base_code)
-
-    # The patient's chronic conditions by ICD base. C4-05 / C4-07..09: a
-    # chronic primary also inherits their severity and stage when
-    # infer_severity returns empty (routine outpatient follow-up with no
-    # physiological states — 65.8% of I10 lacked severity before).
-    chronic_onset_by_base: dict[str, str] = {}
-    chronic_severity_by_base: dict[str, str] = {}
-    chronic_stage_by_base: dict[str, str] = {}
-    for chronic in chronic_list:
-        code, onset, severity_, stage = _chronic_fields(chronic)
-        if code:
-            base = code.split(".")[0]
-            chronic_onset_by_base.setdefault(base, onset or "")
-            chronic_severity_by_base.setdefault(base, severity_ or "")
-            chronic_stage_by_base.setdefault(base, stage or "")
+    seen_codes.add(ctx.mapped(dx_code) or dx_code)
 
     # Determine severity from physiological states
     severity = infer_severity(record)
 
-    # A primary diagnosis that is one of the patient's chronic conditions
-    # (e.g. an outpatient diabetes follow-up coding E11.9) is ongoing, not
-    # resolved at the visit: mark it active with the chronic onset date.
-    is_chronic_primary = base_code in chronic_onset_by_base
-    chronic_onset = chronic_onset_by_base.get(base_code, "") if is_chronic_primary else ""
-    # C4-05: chronic-primary severity fallback, so problem-list severity is
-    # consistent with the encounter diagnosis.
-    if not severity and is_chronic_primary:
-        severity = chronic_severity_by_base.get(base_code, "")
     # CY6-21 (Chain-6): acute encounter-diagnosis severity fallback.
     # ED visits sampled from encounter YAMLs carry a severity category
     # ("mild"/"moderate"/"severe") on Encounter (AD-65 Bug C
@@ -398,10 +379,10 @@ def _primary_condition(
         if enc_severity:
             severity = enc_severity
 
-    # clinicalStatus: resolved if discharged alive, active if deceased (didn't resolve)
-    if is_chronic_primary:
-        clinical_status = "active"
-    elif ctx.is_inpatient:
+    # clinicalStatus: resolved if discharged alive, active if deceased (didn't
+    # resolve). A primary that is one of the patient's chronic conditions never
+    # reaches here: it is carried by the chronic Condition (early return above).
+    if ctx.is_inpatient:
         clinical_status = "active" if ctx.deceased or not ctx.discharge_dt else "resolved"
     else:
         clinical_status = "resolved"
@@ -429,27 +410,11 @@ def _primary_condition(
     if severity:
         cond["severity"] = severity_coding(severity, ctx.country)
 
-    # For chronic-primary: prior established diagnosis; for acute: clinical
-    # presentation + supporting labs.
-    cond["evidence"] = _evidence(
-        ctx, "condition_evidence.prior_diagnosis" if is_chronic_primary else "condition_evidence.clinical_and_labs"
-    )
+    # Clinical presentation + supporting labs (a chronic primary is carried by
+    # the chronic Condition and never reaches here).
+    cond["evidence"] = _evidence(ctx, "condition_evidence.clinical_and_labs")
 
-    # C4-07..10: a staged chronic primary (DM/COPD/HF/CKD) carries the same
-    # stage as the patient's problem-list entry for the same disease.
-    if is_chronic_primary:
-        stage = chronic_stage_by_base.get(base_code, "")
-        if stage:
-            cond["stage"] = _stage(stage, ctx.country)
-
-    if chronic_onset:
-        # Chronic primary: onset is the disease onset date (typically month-year
-        # granularity; keep as date-only). recordedDate is the visit — use full
-        # datetime from admission so time-series UIs sort correctly.
-        cond["onsetDateTime"] = to_fhir_date(chronic_onset)
-        if ctx.admission_dt:
-            cond["recordedDate"] = to_fhir_datetime(ctx.admission_dt)
-    elif ctx.admission_dt:
+    if ctx.admission_dt:
         # Encounter-diagnosis onset = admission time (full datetime). Issue #821
         # (N-7): consumer time-series UIs sort by these fields and were
         # broken by date-only precision.
@@ -464,9 +429,8 @@ def _primary_condition(
 
     # CY8-24: abatementDateTime = discharge for an acute episode (cellulitis,
     # pneumonia, …) whose encounter has completed. Chain F: never for a
-    # chronic primary (clinicalStatus=active + abatement violates R4 `con-4`)
-    # nor for a deceased patient (the diagnosis did not resolve).
-    if ctx.encounters and not is_chronic_primary and not ctx.deceased:
+    # deceased patient (the diagnosis did not resolve).
+    if ctx.encounters and not ctx.deceased:
         discharge = ctx.encounter.get("discharge_datetime", "")
         if discharge and ctx.encounter.get("status", "") in ("completed", "finished"):
             # Issue #821 (N-7): abatement is the discharge time (full datetime).
@@ -501,7 +465,12 @@ def _admission_condition(ctx: _ConditionContext, dx: dict, chronic_list: list) -
     if not (
         ctx.encounter_id
         and needs_admission_diagnosis_condition(admit_raw, primary_raw, chronic_raw)
-        and needs_admission_diagnosis_condition(admit_mapped, primary_mapped, chronic_mapped)
+        and needs_admission_diagnosis_condition(
+            admit_mapped,
+            primary_mapped,
+            chronic_mapped,
+            primary_merged=primary_merges_into_chronic(primary_raw, chronic_raw),
+        )
     ):
         return None
     cond = _condition_skeleton(
@@ -548,14 +517,13 @@ def _secondary_conditions(ctx: _ConditionContext, dx: dict, seen_codes: set[str]
         code_raw = working_diagnosis_code(str((wd.get("disease_id") or "") if isinstance(wd, dict) else ""))
         if not code_raw:
             continue
-        base = code_raw.split(".")[0]
-        # The primary / a chronic Condition already owns this ICD base.
-        if base in seen_codes:
-            continue
-        seen_codes.add(base)
         mapped = ctx.mapped(code_raw)
         if not mapped:
             continue
+        # The primary / a chronic Condition already owns this exact code.
+        if mapped in seen_codes:
+            continue
+        seen_codes.add(mapped)
         onset_dt = str(wd.get("onset_datetime") or "") if isinstance(wd, dict) else ""
         source = str(wd.get("source") or "") if isinstance(wd, dict) else ""
         cond = _condition_skeleton(
@@ -602,10 +570,10 @@ def _chronic_conditions(ctx: _ConditionContext, chronic_list: list, seen_codes: 
         code, onset, severity, stage = _chronic_fields(chronic)
         if not code:
             continue
-        base = code.split(".")[0]
-        if base in seen_codes:
+        mapped_code = ctx.mapped(code)
+        if (mapped_code or code) in seen_codes:
             continue
-        seen_codes.add(base)
+        seen_codes.add(mapped_code or code)
         cond = _condition_skeleton(
             ctx,
             # C4-02: patient-scoped id so the per-encounter re-emissions collapse
@@ -616,7 +584,7 @@ def _chronic_conditions(ctx: _ConditionContext, chronic_list: list, seen_codes: 
             diagnosis_type="clinical",
             clinical_status="active",
             category="problem-list-item",
-            mapped_code=ctx.mapped(code),
+            mapped_code=mapped_code,
         )
         if severity:
             cond["severity"] = severity_coding(severity, ctx.country)
@@ -672,7 +640,7 @@ def _past_birth_conditions(ctx: _ConditionContext, record: dict, seen_codes: set
         if not end_date:
             continue
         # Defensive: Z87 is not a chronic code, so this is not an expected path.
-        if "Z87" in seen_codes:
+        if any(c.startswith("Z87") for c in seen_codes):
             break
         seq = len(conditions)
         cond = _condition_skeleton(
