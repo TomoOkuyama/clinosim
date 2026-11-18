@@ -64,13 +64,22 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Exposed to a chemical at work {onset_en} (skin, eye, or inhalation). The substance and its safety data sheet were reviewed."
-      ja: "{onset_ja}に作業中に化学物質に曝露（皮膚・眼・吸入）。物質名と安全データシート（SDS）を確認。"
+      en: "Exposed to a chemical at work {onset_en} ({chemical__route_en})."
+      ja: "{onset_ja}に作業中に化学物質に曝露（{chemical__route_ja}）。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        heent: "{chemical__finding_en}"
       ja:
         general: '意識清明、{appearance_ja}'
+        heent: "{chemical__finding_ja}"
+    variants:
+      chemical__route:
+        en: ["skin contact", "eye splash", "inhalation"]
+        ja: ["皮膚接触", "眼への飛入", "吸入"]
+      chemical__finding:
+        en: ["Erythema of the exposed skin without blistering", "Conjunctival injection and tearing, no corneal opacity", "Breath sounds clear, no stridor, no wheeze"]
+        ja: ["曝露部の皮膚に紅斑あり、水疱なし", "結膜充血と流涙あり、角膜混濁なし", "呼吸音清明、吸気性喘鳴・喘鳴なし"]
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

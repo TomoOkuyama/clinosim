@@ -92,8 +92,10 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        abdominal: "Mild suprapubic tenderness; no costovertebral angle tenderness; no guarding"
       ja:
         general: '意識清明、{appearance_ja}'
+        abdominal: "恥骨上部に軽度の圧痛あり、肋骨脊柱角叩打痛なし、筋性防御なし"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

@@ -108,8 +108,10 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        abdominal: "Soft abdomen without peritoneal signs; costovertebral angle tenderness on the affected side; restless, unable to find a comfortable position"
       ja:
         general: '意識清明、{appearance_ja}'
+        abdominal: "腹部は軟、腹膜刺激徴候なし、患側の肋骨脊柱角叩打痛あり、落ち着きなく楽な姿勢がとれない"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

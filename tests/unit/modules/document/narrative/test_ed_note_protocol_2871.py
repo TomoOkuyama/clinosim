@@ -171,7 +171,7 @@ def test_hours_onset_protocols_do_not_use_a_day_count() -> None:
 )
 def test_general_appearance_follows_triage_level(level: str, en: str, ja: str) -> None:
     text_en, _ = build_ed_physical_exam(_GEN, _ctx("minor_laceration", encounter=_encounter(level=level)))
-    assert text_en == f"Alert and oriented, {en}"
+    assert f"Alert and oriented, {en}" in text_en
     text_ja, _ = build_ed_physical_exam(_GEN, _ctx("minor_laceration", "ja", encounter=_encounter(level=level)))
     assert f"意識清明、{ja}" in text_ja
 

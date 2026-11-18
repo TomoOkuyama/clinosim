@@ -60,13 +60,15 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Nosebleed began {onset_en} and did not stop with direct pressure at home. Anticoagulant use and bleeding history reviewed."
-      ja: "{onset_ja}より鼻出血が出現し、自宅での圧迫で止血しなかった。抗凝固薬内服・出血傾向を確認。"
+      en: "Nosebleed began {onset_en} and did not stop with direct pressure at home."
+      ja: "{onset_ja}より鼻出血が出現し、自宅での圧迫で止血しなかった。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        heent: "Active anterior bleeding from one nostril; no posterior pooling in the oropharynx; no septal hematoma"
       ja:
         general: '意識清明、{appearance_ja}'
+        heent: "一側鼻腔から前方への活動性出血あり、咽頭後壁への血液流入なし、鼻中隔血腫なし"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

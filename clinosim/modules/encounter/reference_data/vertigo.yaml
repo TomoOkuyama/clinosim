@@ -68,8 +68,10 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        neurological: "Nystagmus on positional testing; cranial nerves, limb strength and finger-nose coordination normal; no dysarthria"
       ja:
         general: '意識清明、{appearance_ja}'
+        neurological: "頭位変換でのみ眼振あり、脳神経・四肢筋力・指鼻試験は正常、構音障害なし"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

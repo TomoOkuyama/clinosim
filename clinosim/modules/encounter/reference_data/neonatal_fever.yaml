@@ -136,8 +136,12 @@ narrative:
     physical_exam:
       en:
         general: Febrile neonate, fontanelle flat
+        heent: "Anterior fontanelle soft and flat"
+        skin: "No rash or petechiae; capillary refill under 2 seconds"
       ja:
         general: 発熱あり、大泉門平坦
+        heent: "大泉門は平坦で軟"
+        skin: "発疹・点状出血なし、毛細血管再充満2秒未満"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

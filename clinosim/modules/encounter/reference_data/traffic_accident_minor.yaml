@@ -72,13 +72,17 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Involved in a motor vehicle collision {onset_en} without loss of consciousness, with neck and back pain since. Seatbelt use and airbag deployment reviewed."
-      ja: "{onset_ja}に交通事故で受傷、意識消失なし。以後、頸部・背部痛あり。シートベルト着用・エアバッグ作動の有無を確認。"
+      en: "Involved in a motor vehicle collision {onset_en} without loss of consciousness, with neck and back pain since."
+      ja: "{onset_ja}に交通事故で受傷、意識消失なし。以後、頸部・背部痛あり。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        abdominal: "Soft, non-tender"
+        musculoskeletal: "Cervical and lumbar paraspinal tenderness without midline bony tenderness; limb strength full"
       ja:
         general: '意識清明、{appearance_ja}'
+        abdominal: "腹部は軟、圧痛なし"
+        musculoskeletal: "頸部・腰部の傍脊柱筋に圧痛あり、正中の骨性圧痛なし、四肢筋力は保たれている"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

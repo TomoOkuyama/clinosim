@@ -90,13 +90,23 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Itching and hives began {onset_en}, with mild swelling of the lips or eyelids. No throat tightness, wheezing, or lightheadedness."
-      ja: "{onset_ja}より掻痒を伴う膨疹が出現し、口唇・眼瞼に軽度の腫脹を伴う。咽頭絞扼感・喘鳴・ふらつきなし。"
+      en: "Itching and hives began {onset_en}, with mild swelling of the {swelling_site_en}. No throat tightness, wheezing, or lightheadedness."
+      ja: "{onset_ja}より掻痒を伴う膨疹が出現し、{swelling_site_ja}に軽度の腫脹を伴う。咽頭絞扼感・喘鳴・ふらつきなし。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        heent: "Mild swelling of the {swelling_site_en}; tongue and uvula not swollen, oropharynx clear"
+        skin: "Scattered blanching urticarial wheals over the trunk and limbs"
+        respiratory: "No stridor or wheeze, breath sounds clear"
       ja:
         general: '意識清明、{appearance_ja}'
+        heent: "{swelling_site_ja}に軽度の腫脹。舌・口蓋垂の腫脹なし、咽頭所見なし"
+        skin: "体幹・四肢に散在する膨疹（圧迫で退色）"
+        respiratory: "喘鳴なし、呼吸音清明"
+    variants:
+      swelling_site:
+        en: ["lips", "eyelids"]
+        ja: ["口唇", "眼瞼"]
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

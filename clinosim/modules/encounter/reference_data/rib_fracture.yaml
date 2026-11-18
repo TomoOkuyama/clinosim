@@ -84,8 +84,10 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        respiratory: "Reproducible tenderness over the lateral chest wall with splinting on deep breaths; breath sounds equal bilaterally; no subcutaneous emphysema"
       ja:
         general: '意識清明、{appearance_ja}'
+        respiratory: "側胸壁に再現性のある圧痛あり、深呼吸時に疼痛で呼吸が浅くなる、呼吸音は左右差なし、皮下気腫なし"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

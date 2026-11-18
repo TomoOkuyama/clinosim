@@ -58,13 +58,19 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Accidentally swallowed a foreign body {onset_en}. No drooling, choking, or chest pain. Type and size of the object reviewed."
-      ja: "{onset_ja}に異物を誤飲。流涎・窒息・胸痛なし。異物の種類と大きさを確認。"
+      en: "Accidentally swallowed a foreign body {onset_en}. No drooling, choking, or chest pain."
+      ja: "{onset_ja}に異物を誤飲。流涎・窒息・胸痛なし。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        heent: "Oropharynx clear, no drooling, airway patent"
+        respiratory: "No stridor; breath sounds clear"
+        abdominal: "Soft, non-tender, not distended"
       ja:
         general: '意識清明、{appearance_ja}'
+        heent: "咽頭所見なし、流涎なし、気道開通"
+        respiratory: "吸気性喘鳴なし、呼吸音清明"
+        abdominal: "腹部は軟、圧痛・膨満なし"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

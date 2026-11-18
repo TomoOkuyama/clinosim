@@ -94,13 +94,15 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Became unable to pass urine {onset_en}, with increasing suprapubic pain and distension. Voiding history and anticholinergic medications reviewed."
-      ja: "{onset_ja}より排尿できなくなり、恥骨上部痛・下腹部膨満が増強。排尿障害の既往・抗コリン薬内服を確認。"
+      en: "Became unable to pass urine {onset_en}, with increasing suprapubic pain and distension."
+      ja: "{onset_ja}より排尿できなくなり、恥骨上部痛・下腹部膨満が増強。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        abdominal: "Distended lower abdomen with a tender, dull suprapubic mass"
       ja:
         general: '意識清明、{appearance_ja}'
+        abdominal: "下腹部は膨隆し、恥骨上部に圧痛を伴う濁音の腫瘤を触れる"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

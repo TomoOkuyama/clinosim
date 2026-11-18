@@ -104,8 +104,8 @@ narrative:
       en: Fever, sore throat, cough, rhinorrhea
       ja: 発熱・咽頭痛・咳嗽・鼻汁
     hpi:
-      en: "Fever, sore throat, cough, and rhinorrhea began {onset_en}. Sick contacts and influenza vaccination history reviewed. No dyspnea, chest pain, or altered mentation."
-      ja: "{onset_ja}より発熱・咽頭痛・咳嗽・鼻汁が出現。接触歴・インフルエンザ予防接種歴を確認。呼吸困難・胸痛・意識変容なし。"
+      en: "Fever, sore throat, cough, and rhinorrhea began {onset_en}. No dyspnea, chest pain, or altered mentation."
+      ja: "{onset_ja}より発熱・咽頭痛・咳嗽・鼻汁が出現。呼吸困難・胸痛・意識変容なし。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}, temperature {temp}C'

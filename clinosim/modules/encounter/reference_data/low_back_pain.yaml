@@ -107,8 +107,12 @@ narrative:
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        musculoskeletal: "Lumbar paraspinal tenderness with muscle spasm, no midline spinal tenderness; forward flexion limited by pain; straight-leg raise negative"
+        neurological: "Lower-limb strength 5/5, sensation intact, reflexes symmetric; no saddle anesthesia"
       ja:
         general: '意識清明、{appearance_ja}'
+        musculoskeletal: "腰部傍脊柱筋の圧痛と筋スパズムあり、正中の脊椎圧痛なし、前屈は疼痛で制限、下肢伸展挙上テスト陰性"
+        neurological: "下肢筋力5/5、感覚正常、反射は左右対称、サドル麻痺なし"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'

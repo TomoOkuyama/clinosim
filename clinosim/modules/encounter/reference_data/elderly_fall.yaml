@@ -101,13 +101,19 @@ narrative:
       en: '{chief_complaint_en} complaint'
       ja: '{chief_complaint_ja}の訴え'
     hpi:
-      en: "Fell at home {onset_en} without loss of consciousness. Mechanism, head strike, and anticoagulant use reviewed."
-      ja: "{onset_ja}に自宅で転倒、意識消失なし。受傷機転・頭部打撲の有無・抗凝固薬内服を確認。"
+      en: "Fell at home {onset_en} without loss of consciousness."
+      ja: "{onset_ja}に自宅で転倒、意識消失なし。"
     physical_exam:
       en:
         general: 'Alert and oriented, {appearance_en}'
+        heent: "No scalp hematoma or laceration"
+        musculoskeletal: "No leg shortening or external rotation; hip movement painless; no spinal bony tenderness"
+        neurological: "No focal deficit"
       ja:
         general: '意識清明、{appearance_ja}'
+        heent: "頭皮に血腫・裂創なし"
+        musculoskeletal: "下肢の短縮・外旋なし、股関節の運動痛なし、脊柱の骨性圧痛なし"
+        neurological: "局所神経脱落所見なし"
     ed_workup_summary:
       en: '{lab_summary_en}, {imaging_summary_en}'
       ja: '{lab_summary_ja}、{imaging_summary_ja}'
