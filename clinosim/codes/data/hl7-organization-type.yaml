@@ -9,3 +9,5 @@ codes:
   prov: {en: "Healthcare Provider", ja: "医療機関"}
   dept: {en: "Hospital Department", ja: "診療科"}
   pay: {en: "Payer", ja: "保険者"}
+  govt: {en: "Government", ja: "政府機関"}
+  other: {en: "Other", ja: "その他"}

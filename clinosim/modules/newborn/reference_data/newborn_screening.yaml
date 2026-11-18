@@ -157,6 +157,38 @@ metabolic_screen:
     collection_method_text:
       en: "Heel-stick capillary blood collection"
       ja: "踵採血 (毛細血管採血)"
+  # Laboratory that performs the screen and signs the result (Issue #3357),
+  # emitted once per country as an Organization and referenced as the
+  # DiagnosticReport / Observation performer. Per country because the
+  # arrangement differs:
+  #   * US — newborn screening programs are state- or territory-based and
+  #     the testing is done by state / territorial public health
+  #     laboratories (APHL, "Newborn Screening", aphl.org/programs/newborn_screening,
+  #     read 2026-11-18: "Public health laboratories screen nearly four
+  #     million newborns born in the US each year"; "Newborn screening
+  #     programs are state- or territory-based").
+  #   * JP — the implementing bodies are the prefectures and designated
+  #     cities, and the test is commissioned to a prefectural / municipal
+  #     public health institute or another institution able to run it
+  #     (厚生労働省子ども家庭局母子保健課長通知 子母発0330第2号
+  #     「先天性代謝異常等検査の実施について」 平成30年3月30日, 別紙
+  #     2 実施主体 / 5 検査機関, read 2026-11-18). Example arrangements
+  #     such as Osaka Prefecture sending the filter-paper specimen to the
+  #     大阪母子医療センター (大阪府 新生児マススクリーニング
+  #     page, read 2026-11-18) show it is commonly a medical institution.
+  # type_code: HL7 organization-type (verified on tx.fhir.org).
+  performer_organization:
+    us:
+      id: newborn-screening-lab
+      type_code: govt
+      name:
+        en: "State Public Health Newborn Screening Laboratory"
+    jp:
+      id: newborn-screening-lab
+      type_code: other
+      name:
+        ja: "新生児マス・スクリーニング検査機関 (都道府県・指定都市委託)"
+        en: "Newborn Screening Laboratory (commissioned by prefecture or designated city)"
   diagnostic_report:
     # Same LOINC 54089-8 for the aggregate report — matches SR.code.
     code_display:

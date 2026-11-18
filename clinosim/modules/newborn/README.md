@@ -28,7 +28,10 @@ in the [#1252 design comment](https://github.com/TomoOkuyama/clinosim/issues/125
   - AABR hearing screen (`Procedure`, SNOMED 413083006 — N5).
   - Tandem-MS metabolic mass screen (`Procedure`, SNOMED 428447008,
     plus `ServiceRequest` + `Specimen` + `Observation` +
-    `DiagnosticReport` workflow — N6 / N6b).
+    `DiagnosticReport` workflow — N6 / N6b). The report and its
+    result name the per-country screening-laboratory `Organization`
+    (`metabolic_screen.performer_organization` in the YAML) as
+    `performer`.
   - Transcutaneous bilirubin, CCHD pulse-ox screen (`Observation`) and
     US erythromycin ophthalmic prophylaxis (`MedicationAdministration`;
     JP config declares no drug, so nothing is emitted) — N7.

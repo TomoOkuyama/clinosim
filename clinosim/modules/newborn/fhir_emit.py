@@ -584,6 +584,47 @@ def _metabolic_screen_timing(ext: dict[str, Any]) -> dict[str, str]:
     }
 
 
+def _screening_lab_cfg(country: str) -> dict[str, Any] | None:
+    """The country's screening-laboratory entry (YAML), or None."""
+    from clinosim.modules.newborn.engine import load_newborn_config
+
+    orgs = (load_newborn_config().get("metabolic_screen") or {}).get("performer_organization") or {}
+    cfg = orgs.get(str(country or "us").lower())
+    return cfg if isinstance(cfg, dict) and cfg.get("id") else None
+
+
+def _screening_lab_performer(ctx: Any) -> list[dict[str, str]]:
+    """``performer`` reference to the screening laboratory Organization."""
+    cfg = _screening_lab_cfg(str(getattr(ctx, "country", "us") or "us"))
+    return [{"reference": f"Organization/{cfg['id']}"}] if cfg else []
+
+
+def _bb_newborn_screening_laboratory(ctx: Any) -> list[dict]:
+    """The Organization that performs the newborn metabolic screen (Issue
+    #3357); the same id is emitted for every newborn and de-duplicated on
+    write, so it exists once per export."""
+    from clinosim.countries import lang_for
+    from clinosim.locale.localized import localized
+    from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
+
+    if _read_metabolic_screen_ext(ctx) is None:
+        return []
+    country = str(getattr(ctx, "country", "us") or "us")
+    cfg = _screening_lab_cfg(country)
+    if cfg is None:
+        return []
+    lang = lang_for(country)
+    return [
+        {
+            "resourceType": "Organization",
+            "id": cfg["id"],
+            "active": True,
+            "type": [dual_slot_concept("hl7-organization-type", str(cfg["type_code"]), lang)],
+            "name": localized(cfg.get("name"), lang),
+        }
+    ]
+
+
 def _bb_newborn_metabolic_screen_observation(ctx: Any) -> list[dict]:
     """Overall-interpretation Observation (LOINC 57130-7) referenced from the
     metabolic-screen DiagnosticReport ``result[]``. Carries the same pass /
@@ -625,6 +666,8 @@ def _bb_newborn_metabolic_screen_observation(ctx: Any) -> list[dict]:
         "basedOn": [{"reference": f"ServiceRequest/{_metabolic_screen_sr_id(patient_id)}"}],
         "specimen": {"reference": f"Specimen/{_metabolic_screen_specimen_id(patient_id)}"},
     }
+    if performer := _screening_lab_performer(ctx):
+        resource["performer"] = performer
     outcome_concept = _metabolic_screen_outcome_concept(ext, lang)
     if outcome_concept is not None:
         resource["valueCodeableConcept"] = outcome_concept
@@ -713,6 +756,8 @@ def _bb_newborn_metabolic_screen_diagnostic_report(ctx: Any) -> list[dict]:
         "specimen": [{"reference": f"Specimen/{spec_id}"}],
         "conclusion": conclusion,
     }
+    if performer := _screening_lab_performer(ctx):
+        resource["performer"] = performer
     outcome_concept = _metabolic_screen_outcome_concept(ext, lang)
     if outcome_concept is not None:
         resource["conclusionCode"] = [outcome_concept]

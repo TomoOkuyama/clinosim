@@ -30,6 +30,7 @@ from clinosim.modules.newborn.fhir_emit import (
     _bb_newborn_metabolic_screen_observation,
     _bb_newborn_metabolic_screen_service_request,
     _bb_newborn_metabolic_screen_specimen,
+    _bb_newborn_screening_laboratory,
 )
 from clinosim.modules.output.cif_reader import CIFReader
 from clinosim.modules.output.fhir_r4.conditions.allergy_intolerance import _bb_allergy_intolerances
@@ -603,6 +604,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_newborn_apgar,  # Issue #1252 N4: Apgar score at 1 min / 5 min for newborns
     _bb_newborn_bilirubin,  # Issue #1252 N7: transcutaneous bilirubin daily readings
     _bb_newborn_cchd_pulse_ox,  # Issue #1252 N7: CCHD pulse-ox screen (RH + foot)
+    _bb_newborn_screening_laboratory,  # Issue #3357: performer Organization of the screen
     _bb_newborn_metabolic_screen_service_request,  # Issue #1252 N6b: metabolic screen SR
     _bb_newborn_metabolic_screen_specimen,  # Issue #1252 N6b: heel-stick capillary Specimen
     _bb_newborn_metabolic_screen_observation,  # 57130-7 overall interpretation, DR.result[] target
