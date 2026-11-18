@@ -78,6 +78,26 @@ class _Dose(_Strict):
     schedule_days: list[int] = Field(default_factory=list)
 
 
+class _PerformerOrg(_Strict):
+    """The laboratory that performs a screen, per country (Issue #3357)."""
+
+    id: str = Field(min_length=1)
+    type_code: str
+    name: dict[str, str]
+
+    @field_validator("type_code")
+    @classmethod
+    def _org_type(cls, code: str) -> str:
+        return _code("hl7-organization-type", code)
+
+    @field_validator("name")
+    @classmethod
+    def _has_name(cls, name: dict[str, str]) -> dict[str, str]:
+        if not name:
+            raise ValueError("performer_organization name needs at least one language")
+        return name
+
+
 class _Screen(_Strict):
     result_weights: dict[str, float]
     procedure_code: str
@@ -89,6 +109,7 @@ class _Screen(_Strict):
     service_request: dict[str, Any] = Field(default_factory=dict)
     specimen: dict[str, Any] = Field(default_factory=dict)
     diagnostic_report: dict[str, Any] = Field(default_factory=dict)
+    performer_organization: dict[str, _PerformerOrg] = Field(default_factory=dict)
 
     @field_validator("procedure_code", "category_code", "outcome_pass", "outcome_refer")
     @classmethod

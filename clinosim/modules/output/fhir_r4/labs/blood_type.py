@@ -294,6 +294,9 @@ def _typed_stay_resources(ctx: BundleContext, order: Any, abo_snomed: str, rh_sn
         "subject": patient_ref(ctx.patient_id),
         "encounter": encounter_ref(enc_id),
         "basedOn": based_on,
+        # Issue #3357: the hospital laboratory / blood bank reports it, as the
+        # other in-house laboratory reports do.
+        "performer": [{"reference": "Organization/hospital-main"}],
         "result": [{"reference": f"Observation/{o['id']}"} for o in out],
     }
     if when:

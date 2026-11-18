@@ -31,7 +31,9 @@ Issue #1252 で起票。module 境界の根拠と、`perinatal.py` や
   - タンデムマス法による先天代謝異常マススクリーニング
     (`Procedure`、SNOMED 428447008、加えて `ServiceRequest` +
     `Specimen` + `Observation` + `DiagnosticReport` の workflow —
-    N6 / N6b)。
+    N6 / N6b)。report と result の `performer` は国別のスクリーニング
+    検査機関 `Organization` (YAML の
+    `metabolic_screen.performer_organization`)。
   - 経皮ビリルビン、CCHD パルスオキシメトリスクリーニング
     (`Observation`)、US のエリスロマイシン眼軟膏予防投与
     (`MedicationAdministration`。JP config は薬剤を宣言しないため
