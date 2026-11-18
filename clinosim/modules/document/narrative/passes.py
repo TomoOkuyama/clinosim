@@ -750,7 +750,8 @@ class NarrativePass(ABC):
                 schedule_days = _o(item, "duration_days", None) or _o(item, "days_supply", None)
                 if _o(item, "frequency", None):
                     entry["rx_frequency"] = str(_o(item, "frequency", ""))
-                if schedule_days:
+                # A chronic line's supply can be a word ("ongoing"), not a count.
+                if isinstance(schedule_days, (int, float)) and schedule_days > 0:
                     entry["rx_duration_days"] = int(schedule_days)
                 # Issue #2877: a statin titration, stated in the plan.
                 # Issue #3107: a dose instruction authored for another

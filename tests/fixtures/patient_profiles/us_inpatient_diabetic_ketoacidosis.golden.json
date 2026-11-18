@@ -458,6 +458,7 @@
         "ctx.encounter.chief_complaint",
         "disease_protocol.narrative.hpi_template.onset_type.subacute",
         "encounter.triage_data",
+        "ctx.allergies",
         "ctx.vitals[0]",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
@@ -477,7 +478,7 @@
         "ed_workup": "Labs: glucose, β-hydroxybutyrate, Na, K, Cl, HCO3, BUN, creatinine. Imaging: chest X-ray PA, ECG, chest X-ray AP. Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0",
         "hpi": "Symptoms that began over the preceding days worsened rapidly, prompting today's presentation.",
         "physical_exam": "On arrival: BP 105/69 mmHg, HR 125 bpm, RR 21 /min, SpO2 100%, T 36.1°C.",
-        "triage_details": "Triage level: ESI Level 1. Arrival mode: Helicopter/air transport."
+        "triage_details": "Triage level: ESI Level 1. Arrival mode: Helicopter/air transport. Allergies: No known drug allergies (NKDA)."
       },
       "text": ""
     }
@@ -488,7 +489,8 @@
     "narrative": {
       "facts_used": [
         "encounter.triage_data",
-        "ctx.vitals[0]"
+        "ctx.vitals[0]",
+        "ctx.allergies"
       ],
       "generated_at": "2024-06-15T02:16:00Z",
       "generator": "template",
@@ -497,7 +499,7 @@
         "lang": "en"
       },
       "sections": {},
-      "text": "Triage level: ESI Level 1\nArrival mode: Helicopter/air transport\nChief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness\nTriage vital signs: BP 105/69 mmHg, HR 125/min, T 36.1°C, SpO2 100% (RA), RR 21/min, pain 1/10"
+      "text": "Triage level: ESI Level 1\nArrival mode: Helicopter/air transport\nChief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness\nTriage vital signs: BP 105/69 mmHg, HR 125/min, T 36.1°C, SpO2 100% (RA), RR 21/min, pain 1/10\nAllergies: No known drug allergies (NKDA)"
     }
   }
 }
