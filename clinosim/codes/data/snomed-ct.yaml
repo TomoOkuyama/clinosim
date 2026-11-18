@@ -1033,3 +1033,13 @@ codes:
   '233428003':
     en: Thrombolysis of vein
     ja: 静脈血栓溶解療法
+  # === FamilyMemberHistory "no known condition" (Issue #3356) ===
+  # Situation concept stating that the relative has no relevant family
+  # history; emitted as FamilyMemberHistory.condition.code when the history
+  # was taken and nothing notable was found. Verified via tx.fhir.org
+  # $lookup (preferred term "No family history of" is an incomplete
+  # sentence on its own; "No significant family history" is a listed synonym
+  # and matches the narrative family-history section).
+  '160266009':
+    en: No significant family history
+    ja: 特記家族歴なし

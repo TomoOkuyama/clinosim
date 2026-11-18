@@ -47,7 +47,7 @@ PINNED: dict[tuple[str, str, str], tuple[int, str]] = {
     ("fhir_r4/conditions/clinical_impression.py", "registry_display", "en"): (1, ENGLISH_ONLY),
     ("fhir_r4/conditions/code_status.py", "code_lookup", "en"): (1, ENGLISH_ONLY),
     ("fhir_r4/conditions/conditions.py", "code_lookup", "en"): (3, ENGLISH_ONLY),
-    ("fhir_r4/demographics/family_history.py", "registry_display", "en"): (1, ENGLISH_ONLY),
+    ("fhir_r4/demographics/family_history.py", "registry_display", "en"): (2, ENGLISH_ONLY),
     ("fhir_r4/demographics/patient.py", "loinc_coding", "en"): (1, ENGLISH_ONLY),
     # hl7-coverage-class coding.display; the label is text_if_localized(...).
     ("fhir_r4/demographics/patient.py", "t", "en"): (4, ENGLISH_ONLY),
