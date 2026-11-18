@@ -4,11 +4,12 @@
 # prior_lab_analytes: canonical analytes whose latest result before the note
 #   (a lab of an earlier encounter of the patient, with its date) is cited when
 #   the visit has none of its own, instead of the stage stored on the problem
-#   list (which the simulation does not refresh from its labs).
-# ckd_g_stages: eGFR (mL/min/1.73 m2) lower bound of each CKD G category, in
-#   descending order. These are the KDIGO GFR category cut-offs the notes used
-#   before this file existed, carried over unchanged (not re-verified against
-#   the KDIGO 2012 guideline text in this change).
+#   list (which longitudinal/stage_refresh.py restates from the labs of the
+#   same record).
+# hold_followup_days: a drug held during an earlier encounter (a safety hold
+#   logged in `patient.safety_skip_log`, event type `hold`) is stated in the
+#   Plan of an outpatient visit within this many days of the hold: resumed on
+#   today's prescription, or still on hold (Issue #3250).
 # screening_scores: scores reported as "<name> <value>" in the Assessment.
 #   positive_from: a score at or above it is a positive screen, followed by the
 #   plan line `follow_up` (locale/shared/narrative_phrases.yaml
@@ -22,13 +23,7 @@ metadata:
 
 prior_lab_analytes: [HbA1c, LDL, eGFR, Creatinine, Hb]
 
-ckd_g_stages:
-  - {min_egfr: 90, stage: G1}
-  - {min_egfr: 60, stage: G2}
-  - {min_egfr: 45, stage: G3a}
-  - {min_egfr: 30, stage: G3b}
-  - {min_egfr: 15, stage: G4}
-  - {min_egfr: 0, stage: G5}
+hold_followup_days: 90
 
 screening_scores:
   PHQ-9: {}

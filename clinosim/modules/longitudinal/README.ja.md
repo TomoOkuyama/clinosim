@@ -65,6 +65,7 @@ clinosim/modules/longitudinal/
   engine.py        advance_one_year / state_at / initial_snapshot + event の副作用 (base 常用薬、うつ病 mutex)
   loader.py        yaml → AttributeSpec + depends_on の topological sort
   med_lookup.py    resolve_med_name — event の emits_meds 薬剤名 → HomeMedication
+  stage_refresh.py post-records enricher `stage_refresh`: 各 record の CKD G 分類 (最新 eGFR) と HbA1c の stage を最新の検査から再記述 (Issue #3273)
   snapshot.py      YearSnapshot / yearsnapshot_from_dict の再 export (clinosim.types.longitudinal)
   patterns/
     __init__.py    PATTERN_REGISTRY
@@ -73,7 +74,7 @@ clinosim/modules/longitudinal/
     event.py       event firing
 ```
 
-`enricher.py`・`audit.py`・`reference_data/` は存在しない。yaml は `clinosim/locale/shared/longitudinal/` 配下にある。
+`audit.py` は存在しない。属性 yaml は `clinosim/locale/shared/longitudinal/` 配下にあり、`reference_data/stage_from_labs.yaml` が `stage_refresh.py` の検査から stage への規則 (eGFR からの KDIGO 2024 CKD G 分類、HbA1c stage の書式) を持つ。`stage_refresh` enricher (POST_RECORDS、order 900、乱数を引かない) は各 record の `chronic_conditions[].stage` を、その record の終了時点で分かっている stage の検査の最新結果から書き直し、保存された stage と検査が一致するようにする。該当する検査が無い record はエンジンの stage のままとする。
 
 ## Enricher 配線
 

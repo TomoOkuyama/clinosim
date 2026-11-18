@@ -114,6 +114,7 @@ class VisitReasonSoap(BaseModel):
     next_visit_by_condition: dict[str, Literal["chronic", "cycle", "schedule", "none"]] = Field(default_factory=dict)
     kinds: dict[Kind, _Lines]
     conditions: dict[str, _Lines] = Field(default_factory=dict)
+    retinopathy_codes: list[str] = Field(min_length=1)
     vaccine_detail: dict[Literal["dose", "lot", "route", "site"], _LangText]
     vaccine_routes: dict[str, _LangText]
     vaccine_sites: dict[str, _LangText]
@@ -488,7 +489,22 @@ def kind_values(ctx: Any, kind: str) -> dict[str, Any]:
     elif kind == "well_child":
         _well_child_values(ctx, values)
     _vaccine_values(ctx, values)
+    _retinopathy_values(ctx, values)
     return values
+
+
+def _retinopathy_values(ctx: Any, values: dict[str, Any]) -> None:
+    """The problem-list status of diabetic retinopathy at a retinopathy
+    screening visit: ``retinopathy_known`` or ``retinopathy_none`` (empty
+    values, which select the line of that case)."""
+    if str(getattr(ctx, "visit_condition_id", "") or "") != "diabetic_retinopathy_screening":
+        return
+    codes = [
+        str(_o(c, "code", "") or (c if isinstance(c, str) else ""))
+        for c in (_o(ctx.patient, "chronic_conditions", []) or [] if ctx.patient is not None else [])
+    ]
+    known = any(_code_matches(c, load_visit_reason_soap().retinopathy_codes) for c in codes)
+    values["retinopathy_known" if known else "retinopathy_none"] = ""
 
 
 def _render(entries: list[_LangText], lang: str, values: dict[str, Any]) -> list[str]:

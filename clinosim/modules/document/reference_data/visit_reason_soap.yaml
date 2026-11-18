@@ -38,6 +38,7 @@ visit_kinds:
   # visit condition id -> kind (takes precedence over the visit type)
   by_condition:
     flu_vaccination: vaccination
+    diabetic_retinopathy_screening: screening
     immunization_infant: vaccination
     immunization_kindergarten: vaccination
     immunization_adolescent: vaccination
@@ -185,7 +186,21 @@ therapy:
   immunotherapy: {en: "immunotherapy", ja: "免疫療法"}
 
 # Lines for one visit condition, added after its kind's lines.
+#   diabetic_retinopathy_screening: the fundus examination is the visit; the
+#   record holds no finding of it, so the note states the retinopathy status of
+#   the problem list ({retinopathy_known} / {retinopathy_none}: written only in
+#   that case; `retinopathy_codes` are the ICD-10 prefixes of diabetic
+#   retinopathy, Issue #3249).
 conditions:
+  diabetic_retinopathy_screening:
+    assessment:
+      - en: "Diabetic retinopathy screening (fundus examination): diabetic retinopathy is on the problem list{retinopathy_known}."
+        ja: "糖尿病網膜症スクリーニング (眼底検査): 糖尿病網膜症は問題リストに登録済み{retinopathy_known}。"
+      - en: "Diabetic retinopathy screening (fundus examination): no diabetic retinopathy on the problem list{retinopathy_none}."
+        ja: "糖尿病網膜症スクリーニング (眼底検査): 問題リストに糖尿病網膜症の登録なし{retinopathy_none}。"
+    plan:
+      - en: "Fundus examination result reported to the diabetes care team; annual screening continued."
+        ja: "眼底検査の結果を糖尿病診療チームへ報告、年 1 回のスクリーニングを継続。"
   hip_fracture:
     objective:
       - en: "Walking with a walker; hip range of motion improving."
@@ -209,6 +224,9 @@ conditions:
     plan:
       - en: "Patient told to return for increasing pain, swelling or inability to bear weight."
         ja: "疼痛・腫脹の増悪や荷重できない場合は再診するよう説明。"
+
+# ICD-10 prefixes (without the dot) of diabetic retinopathy.
+retinopathy_codes: [E103, E113, E133]
 
 # The vaccination record line of each vaccine given ({vaccine}, {dose}, {lot},
 # {route}, {site}); a dose without a dose number or a site leaves that part out.

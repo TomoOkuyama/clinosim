@@ -231,3 +231,74 @@ def test_pass_reads_the_labs_of_the_patients_other_records(tmp_path):
     p = TemplateNarrativePass(cif_dir=str(tmp_path), country="US")
     got = p._patient_prior_labs(str(tmp_path), "ENC-POP-000001-bbb.json")
     assert [lab["lab_name"] for lab in got] == ["eGFR"]
+
+
+# ── #3250: safety holds of an earlier admission ───────────────────────
+
+
+def _hold(drug: str, held_on: str, reason: str = "acute kidney injury") -> dict:
+    return {"drug": drug, "drug_ja": "", "reason": reason, "reason_ja": "", "held_on": held_on}
+
+
+def test_drug_held_in_the_last_admission_is_resumed_with_its_reason():
+    home = [_med("Hydrochlorothiazide", "25mg")]
+    rx = [_med("Hydrochlorothiazide", "25mg"), _med("Candesartan", "8mg")]
+    ctx = _ctx("US", [{"code": "I10"}], meds=home, home=home, rx=rx)
+    ctx.prior_safety_holds = [_hold("Candesartan", "2026-02-20")]
+    p = build_outpatient_plan(TemplateNarrativeGenerator(), ctx)[0]
+    assert "Candesartan: held on 2026-02-20 for acute kidney injury, resumed on today's prescription." in p
+
+
+def test_drug_still_held_is_stated_and_an_old_hold_is_not():
+    home = [_med("Hydrochlorothiazide", "25mg")]
+    ctx = _ctx("US", [{"code": "I10"}], meds=home, home=home, rx=[_med("Hydrochlorothiazide", "25mg")])
+    ctx.prior_safety_holds = [_hold("Candesartan", "2026-02-20"), _hold("Metformin", "2025-06-01")]
+    p = build_outpatient_plan(TemplateNarrativeGenerator(), ctx)[0]
+    assert "Candesartan: held on 2026-02-20 for acute kidney injury, hold continued today." in p
+    assert "Metformin" not in p
+
+
+# ── #3273: stage refresh from labs ────────────────────────────────────
+
+
+def test_stage_refresh_restates_ckd_and_hba1c_from_the_latest_labs():
+    from types import SimpleNamespace
+
+    from clinosim.modules.longitudinal.stage_refresh import ckd_stage_label, refresh_stages_from_labs
+    from clinosim.types.patient import ChronicCondition, PatientProfile
+
+    def rec(enc, when, labs, stage_ckd="CKD G3a"):
+        patient = PatientProfile(
+            patient_id="P1",
+            chronic_conditions=[
+                ChronicCondition(code="N18.30", stage=stage_ckd),
+                ChronicCondition(code="E11.9", stage="HbA1c 8.5%"),
+            ],
+        )
+        return SimpleNamespace(
+            patient=patient,
+            encounters=[{"encounter_id": enc, "admission_datetime": when, "discharge_datetime": when}],
+            lab_results=labs,
+        )
+
+    r1 = rec("E1", "2026-01-01T09:00:00", [_lab("eGFR", 27.0, at="2026-01-01T10:00:00")])
+    r2 = rec("E2", "2026-02-01T09:00:00", [_lab("HbA1c", 8.8, at="2026-02-01T10:00:00")])
+    r0 = rec("E0", "2025-12-01T09:00:00", [])
+    refresh_stages_from_labs(SimpleNamespace(records=[r2, r1, r0]))
+    assert [c.stage for c in r0.patient.chronic_conditions] == ["CKD G3a", "HbA1c 8.5%"]  # no lab known yet
+    assert [c.stage for c in r1.patient.chronic_conditions] == ["CKD G4", "HbA1c 8.5%"]
+    assert [c.stage for c in r2.patient.chronic_conditions] == ["CKD G4", "HbA1c 8.8%"]
+    assert ckd_stage_label(44.9) == "CKD G3b" and ckd_stage_label(14.0) == "CKD G5"
+
+
+# ── #3249: retinopathy screening visit ────────────────────────────────
+
+
+def test_retinopathy_screening_visit_states_the_fundus_examination():
+    ctx = _ctx("US", [{"code": "E11.9"}])
+    ctx.visit_type, ctx.visit_condition_id = "chronic_followup", "diabetic_retinopathy_screening"
+    s = _soap(ctx)
+    assert "fundus" in s["A"] and "no diabetic retinopathy on the problem list" in s["A"]
+    ctx2 = _ctx("US", [{"code": "E11.9"}, {"code": "E11.311"}])
+    ctx2.visit_type, ctx2.visit_condition_id = "chronic_followup", "diabetic_retinopathy_screening"
+    assert "diabetic retinopathy is on the problem list" in _soap(ctx2)["A"]

@@ -1,8 +1,8 @@
 """The results an outpatient note states behind a chronic problem (Issues #3231, #3273).
 
 ``reference_data/outpatient_results.yaml`` names the analytes whose latest
-earlier result a note cites when the visit has none of its own, the CKD G
-categories and the screening scores. The helpers here read them:
+earlier result a note cites when the visit has none of its own and the
+screening scores. The helpers here read them:
 
 - :func:`prior_lab_values`: the latest result before the note of each such
   analyte, from the labs of the patient's earlier encounters
@@ -27,13 +27,6 @@ from clinosim.timeutil import parse_iso_datetime
 _REF_FILE = Path(__file__).resolve().parents[1] / "reference_data" / "outpatient_results.yaml"
 
 
-class _CkdStage(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    min_egfr: float = Field(ge=0)
-    stage: str
-
-
 class _Score(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -48,14 +41,11 @@ class OutpatientResults(BaseModel):
 
     metadata: dict[str, Any] = Field(default_factory=dict)
     prior_lab_analytes: list[str] = Field(min_length=1)
-    ckd_g_stages: list[_CkdStage] = Field(min_length=1)
+    hold_followup_days: int = Field(gt=0)
     screening_scores: dict[str, _Score]
 
     @model_validator(mode="after")
     def _check(self) -> OutpatientResults:
-        bounds = [s.min_egfr for s in self.ckd_g_stages]
-        if bounds != sorted(bounds, reverse=True) or bounds[-1] != 0:
-            raise ValueError("ckd_g_stages must descend and end at min_egfr 0")
         for name, score in self.screening_scores.items():
             if (score.positive_from is None) != (score.follow_up is None):
                 raise ValueError(f"screening_scores {name}: positive_from and follow_up go together")
@@ -69,11 +59,11 @@ def outpatient_results() -> OutpatientResults:
 
 
 def ckd_g_stage(egfr: float) -> str:
-    """The KDIGO CKD G category of an eGFR (mL/min/1.73 m2)."""
-    for row in outpatient_results().ckd_g_stages:
-        if egfr >= row.min_egfr:
-            return row.stage
-    return outpatient_results().ckd_g_stages[-1].stage
+    """The KDIGO CKD G category of an eGFR (mL/min/1.73 m2), from
+    ``modules/longitudinal/reference_data/stage_from_labs.yaml``."""
+    from clinosim.modules.longitudinal.stage_refresh import ckd_g_category
+
+    return ckd_g_category(egfr)
 
 
 def note_time(ctx: Any) -> datetime | None:
