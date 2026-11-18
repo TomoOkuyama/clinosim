@@ -1,0 +1,71 @@
+# Acute kidney injury during the stay: drugs held, and the discharge gate
+# (Issue #3281).
+#
+# Read by clinosim/simulator/aki_response.py (`aki_response_rules`) and applied
+# in the inpatient daily loop (simulator/daily_loop.py) and the discharge
+# prescription (simulator/discharge_rx.py):
+#
+#   - Detection. From the stay's serum creatinine results (`creatinine_lab`).
+#     A result meets the AKI definition when it is at least
+#     `abs_rise_mg_dl` above the lowest result of the preceding
+#     `abs_rise_window_hours`, or at least `ratio` times the lowest result of
+#     the stay so far (the baseline: a pre-admission value is not modelled,
+#     and a stay-long baseline keeps an injury that builds over more than the
+#     7 days of KDIGO 2.1.1 active until the creatinine recovers).
+#   - Hold. A scheduled dose of a drug in `hold_classes` or `hold_drugs`
+#     (catalog classes / drug ids, codes/data/drugs.yaml) is recorded as held,
+#     with `reason`, while the latest creatinine resulted before the dose
+#     meets the AKI definition; it is given again once the creatinine no
+#     longer does. At discharge the same drugs are left off the prescription
+#     while the final creatinine meets the definition, and continue
+#     (restarted) once it no longer does.
+#   - Discharge gate. A patient is not discharge-ready, not safe for home, and
+#     the stay is extended by at most `max_extension_days` beyond the sampled
+#     stay, while the creatinine meets the AKI definition and has not fallen
+#     fallen by `recovery_fall_fraction` from its peak, or a temperature of at least
+#     `fever_celsius` was recorded in the last `fever_window_hours`.
+#
+# Sources (read in full text on 2026-11-18):
+#   - KDIGO Clinical Practice Guideline for Acute Kidney Injury, Kidney Int
+#     Suppl 2012;2:1-138. Recommendation 2.1.1: AKI is an "Increase in SCr by
+#     >=0.3 mg/dl (>=26.5 umol/l) within 48 hours; or Increase in SCr to >=1.5
+#     times baseline, which is known or presumed to have occurred within the
+#     prior 7 days" -> abs_rise_mg_dl, ratio and their windows; Table 2 stage 1
+#     is 1.5-1.9 times baseline or a >=0.3 mg/dl increase.
+#   - KDIGO AKI 2012, Chapter 3.2 (General supportive management of patients
+#     with AKI): early management of AKI aims "to prevent further injury and
+#     to facilitate recovery of renal function", achieved by "the knowledge of
+#     the changes in pharmacokinetics of many drugs with discontinuation of all
+#     potentially nephrotoxic drugs, and dose adaptation of drugs excreted by
+#     the kidneys to the patient's renal function" -> NSAIDs, ACE inhibitors /
+#     ARBs and metformin (renally cleared, lactic acidosis) are held.
+#   - KDIGO AKI 2012, Recommendation 3.4.2: "We suggest not using diuretics
+#     to treat AKI, except in the management of volume overload. (2C)" ->
+#     thiazide and potassium-sparing diuretics are held; the loop diuretic is
+#     kept (volume overload is its indication).
+#   - KDIGO AKI 2012, Recommendation 3.8.1: aminoglycosides are not used
+#     "unless no suitable, less nephrotoxic, therapeutic alternatives are
+#     available" (the drug catalog has no aminoglycoside, so no rule applies).
+# Not covered: vancomycin and enoxaparin renal dose adjustment (enoxaparin is
+# already reduced or held by renal_medication_rules.yaml; no vancomycin
+# level model exists). Aspirin, a member of the catalog class `nsaid`, is not
+# held: the antiplatelet dose is not the nephrotoxic NSAID exposure, so the
+# NSAIDs are listed by drug id. The fever threshold (38.0 degrees C), the
+# 24-hour window, the 10% fall that counts as recovering and the extension
+# cap are clinosim modelling choices; no source read in this work fixes them.
+metadata:
+  kind: reference
+  name: aki_response
+  source: clinosim
+
+creatinine_lab: Creatinine
+abs_rise_mg_dl: 0.3
+abs_rise_window_hours: 48
+ratio: 1.5
+recovery_fall_fraction: 0.1
+hold_classes: [nsaid.cox2_selective, nsaid.preferential_cox2, acei_arb, diuretic.thiazide, diuretic.k_sparing, biguanide]
+hold_drugs: [ibuprofen, naproxen, diclofenac, loxoprofen, ketorolac, indomethacin]
+reason: "Acute kidney injury: nephrotoxic or renally cleared drug held (KDIGO 2012)"
+fever_celsius: 38.0
+fever_window_hours: 24
+max_extension_days: 5

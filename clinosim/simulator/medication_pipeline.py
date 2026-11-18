@@ -55,6 +55,7 @@ from clinosim.simulator._mar_thresholds import (
     MAR_STAT_FIRST_DOSE_DELAY_MAX_EXCLUSIVE,
     MAR_STAT_FIRST_DOSE_DELAY_MIN,
 )
+from clinosim.simulator.aki_response import AkiCourse, aki_response_rules, holds_for_aki
 from clinosim.simulator.helpers import _determine_route
 from clinosim.types.clinical import PhysiologicalState
 from clinosim.types.encounter import (
@@ -676,6 +677,7 @@ def generate_prn_administrations(
     vitals_today: list[VitalSignRecord],
     state: PhysiologicalState,
     last_given: dict[str, datetime],
+    aki: AkiCourse | None = None,
 ) -> list[MedicationAdministration]:
     """On-demand doses of PRN analgesics / benzodiazepines (Issue #2085).
 
@@ -683,6 +685,8 @@ def generate_prn_administrations(
     benzodiazepines while ``sympathetic_activation`` >= 0.25 (CIWA-Ar >= 8-10).
     The order's frequency is the minimum interval; ``last_given`` (order_id ->
     last dose time) carries it across days. Deterministic (no RNG draw).
+    ``aki`` (Issue #3281): an NSAID is not given while the latest creatinine
+    meets the AKI definition.
     """
     out: list[MedicationAdministration] = []
     prn_orders = [
@@ -704,6 +708,9 @@ def generate_prn_administrations(
                 due = state.sympathetic_activation >= PRN_SYMPATHETIC_MIN
             if not due:
                 continue
+            if aki is not None and holds_for_aki(order.drug_id or order.display_name):
+                if aki.active_at(vs.timestamp):
+                    continue
             per_day = int(getattr(order, "frequency_per_day", None) or 4)
             interval = timedelta(hours=24 / max(per_day, 1))
             prev = last_given.get(order.order_id)
@@ -868,6 +875,7 @@ def _generate_mar(
     rng: np.random.Generator,
     potassium_hold: PotassiumHold | None = None,
     child: ChildDosing | None = None,
+    aki: AkiCourse | None = None,
 ) -> list[MedicationAdministration]:
     """Generate MAR entries for medication orders on this day.
 
@@ -880,6 +888,10 @@ def _generate_mar(
     the potassium result are recorded as held; digoxin only while the latest
     potassium before the dose is at or above the threshold. The reason is the
     latest potassium before the dose (Issue #3232).
+
+    ``aki`` (Issue #3281): doses of an NSAID, ACE inhibitor / ARB, thiazide or
+    potassium-sparing diuretic or metformin are held while the latest
+    creatinine before the dose meets the KDIGO AKI definition.
 
     Antihypertensives, beta-blockers, diuretics and nitrates are held while a
     vasopressor or inotrope infusion runs (``vasoactive_hold_reason``, Issue
@@ -927,6 +939,7 @@ def _generate_mar(
             continue  # given on demand by generate_prn_administrations (Issue #2085)
         k_held = potassium_hold is not None and holds_for_hyperkalemia(order.drug_id or drug_name)
         k_held_while_high = potassium_hold is not None and holds_while_hyperkalemic(order.drug_id or drug_name)
+        aki_held = aki is not None and holds_for_aki(order.drug_id or drug_name)
         # Determine administration times based on drug and route
         route = order.route or _determine_route(drug_name, order.clinical_intent, order.drug_id)
 
@@ -1106,6 +1119,9 @@ def _generate_mar(
                 or (k_held_while_high and potassium_hold.high_at(scheduled))
             ):
                 status, hold_reason = "held", potassium_hold.reason_at(scheduled)
+            # Issue #3281: held while the creatinine meets the AKI definition.
+            if aki_held and aki is not None and aki.active_at(scheduled):
+                status, hold_reason = "held", aki_response_rules().reason
 
             # The early side of the jitter does not move a dose before its order.
             actual = (

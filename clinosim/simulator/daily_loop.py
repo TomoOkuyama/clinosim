@@ -102,6 +102,12 @@ from clinosim.simulator._daily_loop_thresholds import (
     TREATMENT_ESCALATION_DAY,
     TREATMENT_ESCALATION_INFLAMMATION_MIN,
 )
+from clinosim.simulator.aki_response import (
+    AkiCourse,
+    aki_course,
+    aki_response_rules,
+    discharge_findings_unresolved,
+)
 from clinosim.simulator.complications import build_complication
 from clinosim.simulator.diagnosis_rules import day1_imaging_findings, lab_finding_rules
 from clinosim.simulator.discharge_gate import (
@@ -273,6 +279,11 @@ class DailyLoopResult:
     # Issue #3270: a vasopressor / inotrope infusion ran within the observation
     # period before discharge (only when the stay reached its hard cap).
     on_vasoactive_support: bool = False
+    # Issue #3281: acute kidney injury not recovering or a fever at the end of
+    # the stay (only when the extension cap was reached).
+    findings_unresolved: bool = False
+    # Issue #3281: the final creatinine meets the AKI definition.
+    aki_at_discharge: bool = False
 
 
 @dataclass
@@ -341,6 +352,7 @@ class _Run:
     lab_time: datetime | None = None  # the most recent morning lab draw (none before day 1)
     potassium_hold: PotassiumHold | None = None  # Issue #2981: hyperkalemia hold, from the first K >= threshold
     hyperkalemia_last_day: int | None = None  # Issue #2981: last day with K >= threshold
+    aki: AkiCourse = field(default_factory=AkiCourse)  # Issue #3281: creatinine course, KDIGO AKI per result
 
 
 def _escalate_on_arrival(stay: _Stay, run: _Run) -> None:
@@ -1183,7 +1195,7 @@ def _record_bedside_observations(stay: _Stay, run: _Run, day: int) -> None:
     _start_vasopressor_for_hypotension(stay, run, day, vitals_today)
     # Issue #2085: PRN analgesia / benzodiazepines on demand from today's
     # pain scores and autonomic state.
-    run.mars.extend(generate_prn_administrations(run.orders, vitals_today, run.state, run.prn_last_given))
+    run.mars.extend(generate_prn_administrations(run.orders, vitals_today, run.state, run.prn_last_given, run.aki))
 
     # Daily I/O record
     # Issue #3271: the day's intake / output follows the disease, the loop
@@ -1486,6 +1498,7 @@ def _run_daily_loop(
     los_ceiling = target_los
     actual_los = max(1, target_los)  # a stay whose loop never runs
     on_support = False
+    unresolved = False
     for day in range(max(target_los, max_los or 0) + vasoactive_weaning_rules().max_extension_days):
         actual_los = day + 1
         lab_state_pre_update = _advance_state(stay, run, day)
@@ -1506,6 +1519,7 @@ def _run_daily_loop(
             )
         day_results_start = _result_labs(stay, run, day, lab_state_pre_update)
         _respond_to_hyperkalemia(stay, run, day, day_results_start)
+        run.aki = aki_course(run.lab_results)
         if day >= 1:
             _update_diagnosis(stay, run, day, day_results_start)
         _apply_archetype_modifications(stay, run, day)
@@ -1523,6 +1537,7 @@ def _run_daily_loop(
             rng=rng,
             potassium_hold=run.potassium_hold,
             child=stay.child,
+            aki=run.aki,
         )
         run.mars.extend(mars_today)
         _order_diet(stay, run, day)
@@ -1549,17 +1564,30 @@ def _run_daily_loop(
         on_support = _on_vasoactive_support(stay, run, day)
         # Issue #3274: an arrhythmia stay stays until its rate is controlled.
         rate_uncontrolled = _ventricular_rate_uncontrolled(stay, run, day)
+        # Issue #3281: nor while AKI is not recovering or a fever persists.
+        unresolved = discharge_findings_unresolved(run.aki, run.vitals)
         # Early discharge: if state-based criteria met before target_los
         # (not for protocols whose recovery the physiology does not model,
         # e.g. psychiatric admissions, Issue #2132).
         if day >= min_los and getattr(protocol, "state_based_discharge", True) and not rate_uncontrolled:
-            if _check_discharge_ready(run.state, day, country_key, symptom_floor, on_vasoactive_support=on_support):
+            if _check_discharge_ready(
+                run.state,
+                day,
+                country_key,
+                symptom_floor,
+                on_vasoactive_support=on_support,
+                findings_unresolved=unresolved,
+            ):
                 break  # actual_los = day + 1
         if day + 1 >= los_ceiling:
             if not extend_stay_for_symptoms(
                 run.state, los_ceiling, max_los, symptom_floor, on_vasoactive_support=on_support
             ) and not (rate_uncontrolled and max_los is not None and los_ceiling < max_los):
-                break
+                # Issue #3281: one more day (at most ``max_extension_days``
+                # past the sampled stay) while AKI is not recovering or a
+                # fever persists.
+                if not (unresolved and los_ceiling < target_los + aki_response_rules().max_extension_days):
+                    break
             los_ceiling += 1
 
     orders = _gate_new_medication_orders(stay, admission_orders, run.orders, run.admission_order_ids)
@@ -1582,6 +1610,8 @@ def _run_daily_loop(
         differential=run.differential,
         actual_los=actual_los,
         on_vasoactive_support=on_support and not run.death_occurred,
+        findings_unresolved=unresolved and not run.death_occurred,
+        aki_at_discharge=run.aki.active and not run.death_occurred,
     )
 
 

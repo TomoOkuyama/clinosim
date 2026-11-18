@@ -27,6 +27,11 @@ reasons:
   "AKI: RAAS blockade held per KDIGO 2012 § 3.5.2":
     en: "AKI (KDIGO 2012 § 3.5.2 RAAS hold)"
     ja: "急性腎障害 (KDIGO 2012 § 3.5.2 RAAS 抑制保留)"
+  # Issue #3281: the MAR / discharge reason of a drug held during acute kidney
+  # injury (simulator/reference_data/aki_response.yaml).
+  "Acute kidney injury: nephrotoxic or renally cleared drug held (KDIGO 2012)":
+    en: "acute kidney injury (nephrotoxic or renally cleared drug held, KDIGO 2012)"
+    ja: "急性腎障害 (腎毒性または腎排泄性の薬剤のため保留、KDIGO 2012)"
   "Active intracranial hemorrhage — anticoagulation contraindicated":
     en: "active intracranial hemorrhage (anticoagulant contraindicated)"
     ja: "頭蓋内出血の活動性 (抗凝固薬は禁忌のため保留)"
