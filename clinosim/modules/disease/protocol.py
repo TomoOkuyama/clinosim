@@ -626,6 +626,36 @@ class VentricularRateSpec(BaseModel):
         return float(self.hours_to_control.by_archetype.get(archetype, self.hours_to_control.default))
 
 
+class AntithromboticCountryPlan(BaseModel):
+    """One country's timing of the antithrombotic plan (days of the stay,
+    day 0 = the admission day)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    antiplatelet_start_day: int = Field(ge=0)
+    dapt_start_day: int = Field(ge=0)
+    anticoagulant_start_day: dict[str, int] = Field(min_length=1)
+
+
+class AntithromboticPlanSpec(BaseModel):
+    """``antithrombotic_plan`` of a protocol (Issue #3277): which of the
+    ``drugs`` blocks hold the antiplatelet and anticoagulant agents, who is
+    anticoagulated instead of given an antiplatelet, and the in-stay start
+    days by country (read by ``simulator.antithrombotic_plan``)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    antiplatelet_block: str = Field(min_length=1)
+    anticoagulant_block: str = Field(min_length=1)
+    # ICD-10 codes (prefix match) of the chronic conditions that indicate an
+    # oral anticoagulant (atrial fibrillation).
+    oac_indication_codes: tuple[str, ...] = Field(min_length=1)
+    # Severities of a minor stroke, given short-term dual antiplatelet therapy.
+    dapt_severities: tuple[str, ...] = ()
+    dapt_days: int = Field(gt=0)
+    by_country: dict[str, AntithromboticCountryPlan] = Field(min_length=1)
+
+
 class DiseaseProtocol(BaseModel):
     """Loaded disease protocol from YAML. Validated by Pydantic."""
 
@@ -667,6 +697,8 @@ class DiseaseProtocol(BaseModel):
     # Issue #3274: the ventricular rate of an arrhythmia presentation (AF
     # with rapid ventricular response), read by simulator.ventricular_rate.
     ventricular_rate: VentricularRateSpec | None = None
+    # Issue #3277: in-stay and discharge antithrombotic regimen of a stroke.
+    antithrombotic_plan: AntithromboticPlanSpec | None = None
 
     # Disease metadata (eliminates hardcoding in simulator)
     chief_complaint: str | dict[str, str] = ""  # str or {en: "...", ja: "..."}
@@ -743,12 +775,37 @@ class DiseaseProtocol(BaseModel):
                     f"or lacks presenting_bpm for severities {missing}"
                 )
         _validate_treatment_start_keys(self.disease_id, self.course_archetypes)
+        if self.antithrombotic_plan is not None:
+            _validate_antithrombotic_plan(self.disease_id, self.antithrombotic_plan, self.drugs, self.severity)
         return self
 
 
 ALL_COUNTRIES_KEY = "all"
 """Key of a ``treatment_modifications.day_N.start`` block whose entries apply
 to every country (Issue #3325)."""
+
+
+def _validate_antithrombotic_plan(
+    disease_id: str, plan: AntithromboticPlanSpec, drugs: dict[str, Any], severity: dict[str, Any]
+) -> None:
+    """The plan names drug blocks that exist for every country it covers, gives
+    every severity of the disease an anticoagulant start day, and names real
+    severities (a typo would silently never match)."""
+    severities = set((severity or {}).get("distribution") or {})
+    for block_name in (plan.antiplatelet_block, plan.anticoagulant_block):
+        block = drugs.get(block_name)
+        if not isinstance(block, dict):
+            raise ValueError(f"{disease_id}: antithrombotic_plan names drugs.{block_name}, which is not a drug block")
+        missing = sorted(set(plan.by_country) - set(block))
+        if missing:
+            raise ValueError(f"{disease_id}: drugs.{block_name} lacks entries for {missing}")
+    unknown = sorted(set(plan.dapt_severities) - severities)
+    if unknown:
+        raise ValueError(f"{disease_id}: antithrombotic_plan.dapt_severities {unknown} are not severities")
+    for country, country_plan in plan.by_country.items():
+        absent = sorted(severities - set(country_plan.anticoagulant_start_day))
+        if absent:
+            raise ValueError(f"{disease_id}: antithrombotic_plan.{country} lacks anticoagulant_start_day for {absent}")
 
 
 def _validate_treatment_start_keys(disease_id: str, course_archetypes: dict[str, Any]) -> None:

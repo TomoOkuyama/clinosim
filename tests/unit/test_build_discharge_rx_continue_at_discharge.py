@@ -74,6 +74,8 @@ def test_cerebral_infarction_japan_probability_matches_yaml_declared_split(patie
             datetime(2026, 1, 1),
             np.random.default_rng(seed),
             country_key="japan",
+            # Issue #3277: the anticoagulant is a hash choice per encounter.
+            encounter_id=f"ENC-{seed}",
         )
         if _has(rx.items, "Edoxaban"):
             counts["Edoxaban"] += 1
@@ -98,6 +100,8 @@ def test_cerebral_infarction_us_probability_matches_yaml_declared_split(patient_
             datetime(2026, 1, 1),
             np.random.default_rng(seed),
             country_key="us",
+            # Issue #3277: the anticoagulant is a hash choice per encounter.
+            encounter_id=f"ENC-{seed}",
         )
         if _has(rx.items, "Apixaban"):
             counts["Apixaban"] += 1
@@ -156,6 +160,8 @@ def test_cross_source_dedup_without_chronic_af_allows_new_loop_anticoag(patient_
             datetime(2026, 1, 1),
             np.random.default_rng(seed),
             country_key="japan",
+            # Issue #3277: the anticoagulant is a hash choice per encounter.
+            encounter_id=f"ENC-{seed}",
         )
         if _has(rx.items, "Edoxaban") or _has(rx.items, "Warfarin"):
             seen += 1

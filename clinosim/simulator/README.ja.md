@@ -149,6 +149,8 @@ clinosim/simulator/
   vasopressor_initiation.py  記録された平均血圧が輸液後も低い場合に昇圧薬を開始する
                          (固定病日ではなく生理状態駆動, Issue #3332)
   discharge_rx.py        退院時処方ビルダー
+  antithrombotic_plan.py 脳梗塞の入院中・退院時の抗血栓療法
+                         (プロトコルの `antithrombotic_plan`, Issue #3277)
   enrichers.py           enricher レジストリ (post-population / post-records)
   outpatient_dept.py     外来フォローアップ診療科リゾルバ
   perinatal.py           分娩エンカウンター + 新生児 emit

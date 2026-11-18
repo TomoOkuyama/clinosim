@@ -448,46 +448,40 @@ drugs:
   # (single edit point, `select_with_exclusive_classes` shared with
   # `chronic_medications.yaml` and `discharge_oral`). Sources for each
   # category are cited inline (JCS 2019 / AHA-ASA 2021 / JCS 2015 etc.).
+  # Issue #3277: the antiplatelet entries hold the MAINTENANCE regimen (the
+  # discharge prescription reads `dose`); the in-stay orders of
+  # `antithrombotic_plan` (simulator/antithrombotic_plan.py) write
+  # "<loading_dose> loading, then <dose>" from the same entries. `dapt_addon`
+  # marks the second agent of the short-term dual antiplatelet regimen for a
+  # minor non-cardioembolic stroke; it is given for the plan's `dapt_days` only.
   antiplatelet:
-    # Historical structural note: this block used to nest an intermediate
-    # `first_line:` layer. The nested form had no Python consumer at any
-    # depth (grep -rn 'first_line' shows only top-level `drugs.first_line`
-    # and `admission.medications.first_line` — both unrelated). Flattened
-    # 2026-07-29 (session 72) to align with the schema `build_discharge_rx`
-    # expects (block[country_key] → list[drug_spec]).
     continue_at_discharge: true
     japan:
       - drug_id: aspirin
-        dose: "160-300mg loading, then 100mg PO daily"
+        loading_dose: "160-300mg PO"
+        dose: "100mg PO daily"
         route: PO
-        start_timing: "within 24-48h (after 24h if tPA given)"
         pregnancy_safe: false
+        note: "Aspirin 160-300 mg/day in the acute phase, 100 mg/day for maintenance (JSS Guideline 2021)"
       - drug_id: clopidogrel
-        # Issue #1334: chronic-discharge dose is 75mg qd, NOT the 300mg
-        # loading dose (which is administered ONCE at admission and
-        # should not appear in the maintenance MR). Prior "300mg
-        # loading, then 75mg PO daily" string parsed to
-        # ``doseQuantity.value = 300`` — a load dose emitted as a
-        # daily-taken discharge Rx (clinically wrong; readers assumed
-        # patients received 300 mg × N days). Loading is deferred to
-        # the acute-admission single-dose emit path.
+        dapt_addon: true
+        loading_dose: "300mg PO"
         dose: "75mg PO daily"
         route: PO
-        probability: 0.40  # dual antiplatelet for minor stroke / high-risk TIA
-        note: "DAPT (aspirin + clopidogrel) for 21 days in minor stroke; 300 mg PO loading dose given ONCE at admission per POINT/CHANCE"
+        note: "Short-term DAPT (aspirin + clopidogrel) for minor non-cardioembolic stroke / high-risk TIA"
     us:
       - drug_id: aspirin
-        dose: "325mg loading, then 81mg PO daily"
+        loading_dose: "160-300mg PO"
+        dose: "81mg PO daily"
         route: PO
-        start_timing: "within 24-48h (after 24h if tPA given)"
         pregnancy_safe: false
+        note: "AHA/ASA 2019 early management 3.9 rec 1: aspirin within 24 to 48 hours, trial doses 160 to 300 mg"
       - drug_id: clopidogrel
-        # Issue #1334: chronic-discharge dose (75mg qd), not the 300mg
-        # load. See JP block above for the full rationale.
+        dapt_addon: true
+        loading_dose: "300mg PO"
         dose: "75mg PO daily"
         route: PO
-        probability: 0.40
-        note: "DAPT for 21 days per POINT/CHANCE trial for minor stroke; 300 mg PO loading dose given ONCE at admission"
+        note: "AHA/ASA 2019 early management 3.9 rec 2: DAPT for 21 days, minor noncardioembolic stroke (NIHSS <= 3), not alteplase treated"
 
   # Anticoagulation for cardioembolic stroke secondary prevention.
   # JP guideline: JCS 2019 脳卒中治療ガイドライン → DOAC (edoxaban / apixaban /
@@ -1064,6 +1058,49 @@ imaging_orders:
 # Chronic conditions a stay commonly surfaces (new-onset findings in the
 # workup), added to the problem list at admission (RM-7d; moved from
 # simulator/inpatient.py in Issue #2291).
+# Issue #3277: the in-stay and discharge antithrombotic regimen
+# (simulator/antithrombotic_plan.py; the drugs are the `antiplatelet` and
+# `anticoagulation` blocks of `drugs`).
+# - A patient with an oral-anticoagulant indication (a chronic condition
+#   matching `oac_indication_codes`, or an anticoagulant already taken at
+#   home) gets the anticoagulant, not an antiplatelet, on top of it: the
+#   in-stay anticoagulant starts on `anticoagulant_start_day` of the stay's
+#   severity (an aspirin bridge from `antiplatelet_start_day` until then) and
+#   the discharge prescription carries it without an antiplatelet (AHA/ASA 2019
+#   6.6.2 rec 2: adding antiplatelet therapy to an oral anticoagulant is of
+#   uncertain usefulness, class IIb).
+# - Every other patient gets aspirin on `antiplatelet_start_day`; a stay of
+#   `dapt_severities` (minor stroke) gets aspirin + clopidogrel from
+#   `dapt_start_day`, the clopidogrel for 21 days (AHA/ASA 2019 3.9 rec 2).
+# - Timing. US: aspirin within 24 to 48 hours (AHA/ASA 2019 3.9 rec 1, class I,
+#   LOE A), DAPT within 24 hours of onset (rec 2), oral anticoagulation
+#   "between 4 and 14 days after the onset of neurological symptoms" for most
+#   patients (6.6.2 rec 1, class IIa, LOE B-NR); the day within that range by
+#   severity is a simulation choice, the guideline does not grade it.
+#   JP: aspirin 160-300 mg/day and DAPT for mild non-cardioembolic stroke, and
+#   a DOAC "1, 2, 3, or 4 days" after onset for TIA / mild / moderate / severe
+#   stroke (the "1-2-3-4 day rule"), as summarised by Medical Management of
+#   Acute Stroke based on Japan Stroke Society Guidelines and the Japan Stroke
+#   Data Bank (J Atheroscler Thromb 2024;31(12)); the 2021 guideline text
+#   itself was not read.
+# - Thrombolysis is not modelled, so no patient waits 24 hours for aspirin
+#   after alteplase.
+antithrombotic_plan:
+  antiplatelet_block: antiplatelet
+  anticoagulant_block: anticoagulation
+  oac_indication_codes: ["I48"]
+  dapt_severities: ["mild"]
+  dapt_days: 21
+  by_country:
+    japan:
+      antiplatelet_start_day: 1
+      dapt_start_day: 0
+      anticoagulant_start_day: {mild: 2, moderate: 3, severe: 4}
+    us:
+      antiplatelet_start_day: 1
+      dapt_start_day: 0
+      anticoagulant_start_day: {mild: 4, moderate: 7, severe: 14}
+
 implied_chronic_codes: ["I10", "I48", "I25", "E78"]
 
 # Chronic sequela recorded on survival at discharge (moved from

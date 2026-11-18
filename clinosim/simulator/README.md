@@ -155,6 +155,8 @@ clinosim/simulator/
                          pressure (low despite fluids) instead of a fixed day
                          (Issue #3332)
   discharge_rx.py        discharge-time prescription builder
+  antithrombotic_plan.py in-stay and discharge antithrombotic regimen of a
+                         stroke (protocol `antithrombotic_plan`, Issue #3277)
   enrichers.py           enricher registry (post-population / post-records)
   outpatient_dept.py     outpatient follow-up department resolver
   perinatal.py           delivery encounter + newborn emission

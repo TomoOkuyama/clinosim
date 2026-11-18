@@ -557,6 +557,78 @@ def first_line_alternative_groups(protocol: Any, encounter_id: str, country: str
     return (ids,) if len(ids) > 1 else ()
 
 
+def protocol_medication_orders(
+    med_spec: dict[str, Any],
+    *,
+    order_id: str,
+    encounter_id: str,
+    patient_id: str,
+    country: str,
+    ordered_datetime: datetime,
+    ordered_by: str,
+    urgency: str = "stat",
+    order_set: str = ORDER_SET_ADMISSION_INITIAL,
+) -> list[Order]:
+    """The medication order(s) of one protocol drug entry (``drugs.first_line``
+    style): one order, or for an "X loading, then Y" dose the one-time loading
+    order and the maintenance order replacing it (Issue #3002). Draws nothing."""
+    dose_str = med_spec.get("dose", "")
+    parsed = parse_dose_string(dose_str)
+    drug_name = protocol_drug_name(med_spec) or "Unknown"
+    order = Order(
+        order_id=order_id,
+        encounter_id=encounter_id,
+        patient_id=patient_id,
+        order_type=OrderType.MEDICATION,
+        order_code=protocol_drug_order_code(med_spec, country),
+        order_code_system=protocol_drug_order_code_system(med_spec, country),
+        display_name=drug_name,
+        urgency=urgency,
+        clinical_intent=t("encounter_intent.first_line", "en", drug=drug_name),
+        # Issue #871: JA display for JP SR reasonCode.text. `drug_name`
+        # is preserved as-is (may be EN or already-JA depending on the
+        # disease YAML source); localize_drug_name is a rendering-layer
+        # concern for downstream display.
+        clinical_intent_ja=t("encounter_intent.first_line", "ja", drug=localize_drug_name(drug_name, "ja")),
+        ordered_datetime=ordered_datetime,
+        ordered_by=ordered_by,
+        status=OrderStatus.PLACED,
+        dose_quantity=parsed.get("dose_quantity"),
+        dose_unit=parsed.get("dose_unit", ""),
+        frequency=parsed.get("frequency", ""),
+        frequency_per_day=parsed.get("frequency_per_day"),
+        route=parsed.get("route") or med_spec.get("route", ""),
+        duration_days=med_spec.get("duration_days"),
+        order_set=order_set,
+    )
+    out: list[Order] = []
+    _loading = split_loading_dose(dose_str)
+    if _loading:
+        # Issue #3002: "X loading, then Y" is a one-time loading order and
+        # the maintenance order Y written with it, given from the next day.
+        # The maintenance order replaces the loading order
+        # (MedicationRequest.priorPrescription). No extra RNG draw.
+        load_parsed = parse_dose_string(_loading[0])
+        loading = replace(
+            order,
+            dose_quantity=load_parsed.get("dose_quantity"),
+            dose_unit=load_parsed.get("dose_unit", ""),
+            frequency="once",
+            frequency_per_day=1,
+            route=load_parsed.get("route") or order.route,
+            duration_days=None,
+            single_dose=True,
+            notes=[],
+        )
+        out.append(loading)
+        order.order_id = f"{order_id}-MAINT"
+        order.urgency = "routine"
+        order.prior_order_id = loading.order_id
+        order.administer_from = datetime.combine(order.ordered_datetime.date() + timedelta(days=1), time())
+    out.append(order)
+    return out
+
+
 def place_admission_orders(
     protocol: dict,
     patient_id: str,
@@ -691,61 +763,18 @@ def place_admission_orders(
     for med_idx, med_spec in enumerate(first_line_raw):
         if not isinstance(med_spec, dict):
             continue
-        dose_str = med_spec.get("dose", "")
-        parsed = parse_dose_string(dose_str)
-        drug_name = protocol_drug_name(med_spec) or "Unknown"
-        _order_id = _first_line_order_id(encounter_id, med_idx)
-        order = Order(
-            order_id=_order_id,
-            encounter_id=encounter_id,
-            patient_id=patient_id,
-            order_type=OrderType.MEDICATION,
-            order_code=protocol_drug_order_code(med_spec, country),
-            order_code_system=protocol_drug_order_code_system(med_spec, country),
-            display_name=drug_name,
-            urgency="stat",
-            clinical_intent=t("encounter_intent.first_line", "en", drug=drug_name),
-            # Issue #871: JA display for JP SR reasonCode.text. `drug_name`
-            # is preserved as-is (may be EN or already-JA depending on the
-            # disease YAML source); localize_drug_name is a rendering-layer
-            # concern for downstream display.
-            clinical_intent_ja=t("encounter_intent.first_line", "ja", drug=localize_drug_name(drug_name, "ja")),
-            ordered_datetime=admission_time
-            + timedelta(minutes=int(rng.normal(ADMISSION_MED_PLACEMENT_MEAN_MIN, ADMISSION_MED_PLACEMENT_STD_MIN))),
-            ordered_by=ordered_by,
-            status=OrderStatus.PLACED,
-            dose_quantity=parsed.get("dose_quantity"),
-            dose_unit=parsed.get("dose_unit", ""),
-            frequency=parsed.get("frequency", ""),
-            frequency_per_day=parsed.get("frequency_per_day"),
-            route=parsed.get("route") or med_spec.get("route", ""),
-            duration_days=med_spec.get("duration_days"),
-            order_set=ORDER_SET_ADMISSION_INITIAL,
-        )
-        _loading = split_loading_dose(dose_str)
-        if _loading:
-            # Issue #3002: "X loading, then Y" is a one-time loading order and
-            # the maintenance order Y written with it, given from the next day.
-            # The maintenance order replaces the loading order
-            # (MedicationRequest.priorPrescription). No extra RNG draw.
-            load_parsed = parse_dose_string(_loading[0])
-            loading = replace(
-                order,
-                dose_quantity=load_parsed.get("dose_quantity"),
-                dose_unit=load_parsed.get("dose_unit", ""),
-                frequency="once",
-                frequency_per_day=1,
-                route=load_parsed.get("route") or order.route,
-                duration_days=None,
-                single_dose=True,
-                notes=[],
+        orders.extend(
+            protocol_medication_orders(
+                med_spec,
+                order_id=_first_line_order_id(encounter_id, med_idx),
+                encounter_id=encounter_id,
+                patient_id=patient_id,
+                country=country,
+                ordered_datetime=admission_time
+                + timedelta(minutes=int(rng.normal(ADMISSION_MED_PLACEMENT_MEAN_MIN, ADMISSION_MED_PLACEMENT_STD_MIN))),
+                ordered_by=ordered_by,
             )
-            orders.append(loading)
-            order.order_id = f"{_order_id}-MAINT"
-            order.urgency = "routine"
-            order.prior_order_id = loading.order_id
-            order.administer_from = datetime.combine(order.ordered_datetime.date() + timedelta(days=1), time())
-        orders.append(order)
+        )
 
     # Supportive orders — classify into medication vs. care plan/therapy via
     # the canonical treatment_classifier (single source of truth shared with

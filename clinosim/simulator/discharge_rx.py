@@ -201,11 +201,14 @@ def build_discharge_rx(
     country_key: str,
     final_renal_function: float = 1.0,
     ordered_drugs: Iterable[str] = (),
+    severity: str = "",
 ) -> PrescriptionRecord:
     """Build discharge prescription from protocol.
 
     ``ordered_drugs`` are the names of the stay's medication orders; with the
     home medications they are the drugs a discharge hold may name (Issue #2992).
+    ``severity`` is the stay's severity category (the antithrombotic plan of a
+    stroke protocol, Issue #3277).
 
     Applies renal contraindication checks so that nephrotoxic drugs or drugs
     requiring renal clearance are not prescribed at discharge if the patient's
@@ -509,10 +512,15 @@ def build_discharge_rx(
     _reconcile = _ds.discharge_reconciliation_rules()
     _current_names = [m.drug_name for m in patient.current_medications if m.drug_name]
     _current_keys = {_dedup_key(n) for n in _current_names}
+    from clinosim.simulator.antithrombotic_plan import started_in_stay_keys
+
+    plan_agents = started_in_stay_keys(protocol, country_key)
     for med in combined:
         drug_name = med.drug_name
         if not drug_name:
             continue
+        if _dedup_key(drug_name) in plan_agents and _dedup_key(drug_name) not in baseline_keys:
+            continue  # Issue #3277: an antithrombotic of the stay follows the plan below
         if _dedup_key(drug_name) not in _current_keys and any(
             v.rule_id in _reconcile for v in _ds.check_candidate_against_active(drug_name, _current_names)
         ):
@@ -580,6 +588,24 @@ def build_discharge_rx(
         if not isinstance(block, dict):
             continue
         if not block.get("continue_at_discharge"):
+            continue
+        # Issue #3277: the antithrombotic blocks of a protocol's plan follow
+        # the plan (an anticoagulant for an indication, else aspirin) instead
+        # of every entry being added on top of each other.
+        from clinosim.simulator.antithrombotic_plan import discharge_specs
+
+        plan_specs = discharge_specs(
+            patient,
+            protocol,
+            cat_name,
+            severity=severity,
+            country_key=country_key,
+            encounter_id=encounter_id,
+            prescribed=[str(it.get("drug_name", "")) for it in items],
+        )
+        if plan_specs is not None:
+            for spec in plan_specs:
+                _append_item(spec, chronic_continuation=True)
             continue
         cat_exclusive = set(block.get("exclusive_classes") or ())
         # Cross-source guard: chronic ICD already emitted a drug of this class.
