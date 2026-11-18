@@ -76,6 +76,7 @@ from clinosim.simulator.daily_loop import SYMPTOM_AXES, _run_daily_loop
 from clinosim.simulator.discharge_gate import discharge_disposition_for
 from clinosim.simulator.discharge_rx import build_discharge_rx
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, fit_procedures_in_stay
+from clinosim.simulator.injury_coding import external_cause_code, stay_primary_code, surgery_for_diagnosis
 from clinosim.simulator.medication_pipeline import _generate_home_medication_orders
 from clinosim.simulator.sepsis_severity import sepsis_severity_code
 from clinosim.types.clinical import (
@@ -139,6 +140,7 @@ def _derive_final_diagnosis(
     vitals: list[VitalSignRecord],
     mars: list[MedicationAdministration],
     lab_results: list[OrderResult],
+    encounter_id: str = "",
 ) -> tuple[ClinicalDiagnosis, str]:
     """Walk the differential to a final discharge diagnosis + sample
     the mixed-case missed-secondary-dx coin flip.
@@ -168,7 +170,7 @@ def _derive_final_diagnosis(
     dx_code, dx_name = discharge_diagnosis_code(
         differential,
         disease_id=disease_id,
-        primary_code=str(protocol.icd_codes.get("primary", "")),
+        primary_code=stay_primary_code(protocol, encounter_id),
         protocol_progression=yaml_progression,
         patient_sex=patient.sex,
     )
@@ -197,9 +199,10 @@ def _derive_final_diagnosis(
     # ED / OPD paths and the FHIR emitter routed via the registry — CIF-side
     # diagnosis_system was inconsistent across encounter types.
     clinical_diagnosis = encounter_diagnosis(
-        diagnosis_code_for_patient(protocol, patient, protocol.icd_codes.get("primary", "")),
+        diagnosis_code_for_patient(protocol, patient, stay_primary_code(protocol, encounter_id)),
         config.country,
         discharge_code=dx_code,
+        external_cause_code=external_cause_code(protocol, encounter_id, config.country),
         # Issue #551: the engine returns ``UNRESOLVED_DIAGNOSIS_ICD`` (R69) when
         # the differential did not converge. Previous code compared against
         # ``"R05"`` (Cough) — a real ICD-10 code, which made legitimate cough
@@ -813,7 +816,11 @@ def _simulate_patient(
 
     # Surgery (protocol-driven: requires_surgery flag in YAML)
     surgery_pain: tuple[int, float] | None = None  # Issue #2080: (operative day, pain level)
-    if protocol.requires_surgery:
+    # Issue #3258: the operation follows the stay's injury diagnosis.
+    operate, surgery_overrides = surgery_for_diagnosis(
+        protocol, stay_primary_code(protocol, encounter.encounter_id), severity
+    )
+    if operate:
         # Surgeon from the owning surgical department, anesthesiologist from
         # anesthesiology (Issue #2068)
         surgeon_id, anes_id = select_surgical_team(roster, department, rng)
@@ -831,6 +838,7 @@ def _simulate_patient(
             surgeon_id=surgeon_id,
             anesthesiologist_id=anes_id,
             operating_rooms=operating_rooms,
+            overrides=surgery_overrides,
         )
         procedures.append(proc)
         for var, delta in impacts.items():
@@ -931,6 +939,7 @@ def _simulate_patient(
         vitals=loop_result.vitals,
         mars=loop_result.mars,
         lab_results=loop_result.lab_results,
+        encounter_id=encounter.encounter_id,
     )
 
     # Build ground truth diseases list

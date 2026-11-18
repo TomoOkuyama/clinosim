@@ -74,6 +74,16 @@ def _encounter_variant_codes(country: str) -> set[str]:
     return codes
 
 
+def _external_cause_codes(country: str) -> set[str]:
+    """Per-country external-cause codes of the disease protocols (Issue #3258)."""
+    codes: set[str] = set()
+    for fp in glob.glob(os.path.join(ROOT, "clinosim/modules/disease/reference_data/*.yaml")):
+        d = yaml.safe_load(open(fp)) or {}
+        for entry in (d.get("external_cause") or {}).get(country) or []:
+            codes.add(entry["code"])
+    return codes
+
+
 def _engine_differential_codes() -> set[str]:
     """ICD codes in the built-in differential/progression tables (3rd emittable source:
     working/discharge diagnoses) loaded from diagnosis/reference_data."""
@@ -312,6 +322,7 @@ US_EMITTABLE = (
     | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("us"))
     | PERINATAL
     | _encounter_variant_codes("us")
+    | _external_cause_codes("us")
 )
 JP_EMITTABLE = (
     _COUNTRY_AGNOSTIC
@@ -319,6 +330,7 @@ JP_EMITTABLE = (
     | (_CHRONIC_FOLLOWUP & _locale_chronic_codes("jp"))
     | PERINATAL
     | _encounter_variant_codes("jp")
+    | _external_cause_codes("jp")
 )
 
 

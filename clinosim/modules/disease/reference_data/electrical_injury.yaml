@@ -22,6 +22,16 @@ icd_codes:
     - {code: "T75.4", name: "Electrocution / shock from electric current", probability: 0.70}
     - {code: "T30.0", name: "Burn, unspecified body region", probability: 0.25}
     - {code: "I49.9", name: "Cardiac arrhythmia, unspecified", probability: 0.05}
+# Issue #3258: the secondary external-cause code of the admission (ICD-10-CM
+# V00-Y99, 7th character A = initial encounter), drawn per stay from a SHA of the
+# encounter id. US only: Japanese claims and the MHLW disease-name master do not
+# carry these as diagnoses, so JP lists none (not verified against a primary
+# source this work). The mechanism choice is a clinosim estimate (no published
+# share for it was found); the weights below are not measured data.
+external_cause:
+  us:
+    - {code: "W86.1XXA", weight: 0.70}   # exposure to industrial wiring, appliances and electrical machinery
+    - {code: "W85.XXXA", weight: 0.30}   # exposure to electric transmission lines
 
 incidence:
   japan:

@@ -69,7 +69,8 @@ def test_injury_protocol_discharges_with_its_injury_code(disease_id: str) -> Non
     protocol = load_disease_protocol(disease_id)
     differential = initialize_differential(disease_id, 45, protocol_diagnostic=protocol.diagnostic)
     dx, _ = _derive(disease_id, differential)
-    assert dx.discharge_diagnosis_code == protocol.icd_codes["primary"]
+    own = {protocol.icd_codes["primary"], *(v["code"] for v in protocol.icd_codes.get("variants") or [])}
+    assert dx.discharge_diagnosis_code in own
     assert dx.discharge_diagnosis_code != "J12.9"
 
 
@@ -121,3 +122,88 @@ def test_every_disease_discharge_code_is_billable_in_the_us() -> None:
             if target not in billable:
                 bad[f"{disease_id}:{code}"] = target
     assert not bad
+
+
+# ---- Issue #3258, injury admissions: sampled diagnosis, operation, external cause ----
+
+from clinosim.simulator.injury_coding import external_cause_code, stay_primary_code, surgery_for_diagnosis  # noqa: E402
+
+
+def test_fall_from_height_samples_its_diagnosis_by_the_yaml_weights() -> None:
+    protocol = load_disease_protocol("fall_from_height")
+    codes = [stay_primary_code(protocol, f"ENC-{i}") for i in range(2000)]
+    share = {c: codes.count(c) / len(codes) for c in set(codes)}
+    assert set(share) == {"T07", "S32.0", "S72.0", "S22.0", "S06.9"}
+    assert abs(share["T07"] - 0.40) < 0.05 and abs(share["S06.9"] - 0.10) < 0.03
+    assert stay_primary_code(protocol, "ENC-1") == stay_primary_code(protocol, "ENC-1")
+
+
+def test_other_protocols_keep_their_primary_code() -> None:
+    assert stay_primary_code(load_disease_protocol("crush_injury_hand"), "ENC-1") == "S67.2"
+
+
+def test_femoral_neck_fixation_and_head_injury_follow_the_diagnosis() -> None:
+    protocol = load_disease_protocol("fall_from_height")
+    operate, spec = surgery_for_diagnosis(protocol, "S72.0", "moderate")
+    assert operate and spec["procedure_mapping_key"] == "ORIF_femur"
+    assert surgery_for_diagnosis(protocol, "S06.9", "moderate") == (False, {})
+    operate, spec = surgery_for_diagnosis(protocol, "S06.9", "severe")
+    assert operate and spec["type"] == "Craniotomy"
+    # A diagnosis without an entry keeps the protocol's default operation.
+    assert surgery_for_diagnosis(protocol, "S32.0", "severe") == (True, {})
+
+
+def test_simulate_surgery_uses_the_diagnosis_override() -> None:
+    from datetime import datetime
+
+    from clinosim.modules.procedure.engine import simulate_surgery
+
+    protocol = load_disease_protocol("fall_from_height")
+    _, spec = surgery_for_diagnosis(protocol, "S72.0", "moderate")
+    patient = SimpleNamespace(patient_id="P-1", age=45, chronic_conditions=[])
+    proc, _ = simulate_surgery(
+        patient,
+        "fall_from_height",
+        "ENC-1",
+        datetime(2026, 1, 1),
+        protocol,
+        np.random.default_rng(1),
+        "US",
+        overrides=spec,
+    )
+    assert proc.procedure_type == "ORIF" and proc.procedure_code_us == "27236" and proc.procedure_code_jp == "K0463"
+
+
+def test_external_cause_is_us_only_and_follows_the_mechanism_of_the_disease() -> None:
+    fall = load_disease_protocol("fall_from_height")
+    assert external_cause_code(fall, "ENC-1", "US") in {"W11.XXXA", "W12.XXXA", "W13.2XXA", "W13.8XXA"}
+    assert external_cause_code(fall, "ENC-1", "JP") == ""
+    crush = load_disease_protocol("crush_injury_hand")
+    assert external_cause_code(crush, "ENC-1", "US").startswith("W23")
+    assert external_cause_code(load_disease_protocol("industrial_burn_severe"), "ENC-2", "US").startswith("X")
+    assert external_cause_code(load_disease_protocol("electrical_injury"), "ENC-3", "US").startswith("W8")
+    assert external_cause_code(load_disease_protocol("bacterial_pneumonia"), "ENC-1", "US") == ""
+
+
+def test_derive_final_diagnosis_records_the_stay_code_and_external_cause() -> None:
+    protocol = load_disease_protocol("fall_from_height")
+    encounter_id = next(f"ENC-{i}" for i in range(200) if stay_primary_code(protocol, f"ENC-{i}") == "S72.0")
+    differential = initialize_differential("fall_from_height", 45, protocol_diagnostic=protocol.diagnostic)
+    patient = SimpleNamespace(sex="M", age=45, chronic_conditions=[], patient_id="P-1")
+    kw = dict(
+        differential=differential,
+        protocol=protocol,
+        secondary_protocol=None,
+        secondary_disease_id=None,
+        patient=patient,
+        rng=np.random.default_rng(0),
+        vitals=[],
+        mars=[],
+        lab_results=[],
+        encounter_id=encounter_id,
+    )
+    us, _ = _derive_final_diagnosis(config=SimpleNamespace(country="US"), **kw)  # type: ignore[arg-type]
+    assert us.admission_diagnosis_code == us.discharge_diagnosis_code == "S72.0"
+    assert us.external_cause_code.startswith(("W11", "W12", "W13"))
+    jp, _ = _derive_final_diagnosis(config=SimpleNamespace(country="JP"), **kw)  # type: ignore[arg-type]
+    assert jp.external_cause_code == ""

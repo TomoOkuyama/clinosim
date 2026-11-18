@@ -151,6 +151,9 @@ I26.0: "I26.09"       # Other pulmonary embolism with acute cor pulmonale
 M80.08: "M80.08XA"    # Age-related osteoporosis with current pathological fracture, vertebra(e), initial
 S67.2: "S67.20XA"     # Crushing injury of unspecified hand, initial encounter
 T75.4: "T75.4XXA"     # Electrocution, initial encounter
+S32.0: "S32.009A"     # Fracture of unspecified lumbar vertebra, initial (closed)
+S22.0: "S22.009A"     # Fracture of unspecified thoracic vertebra, initial (closed)
+S06.9: "S06.9X0A"     # Unspecified intracranial injury without loss of consciousness, initial
 T31.2: "T31.20"       # Burns of 20-29% of body surface with 0% to 9% third degree burns
 T14.90: "T14.90XA"    # Injury, unspecified, initial encounter
 T15.0: "T15.00XA"     # Foreign body in cornea, unspecified eye, initial encounter

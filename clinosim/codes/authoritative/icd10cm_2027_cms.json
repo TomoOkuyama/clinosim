@@ -4,7 +4,7 @@
     "source_url": "https://www.cms.gov/files/zip/2027-code-descriptions-tabular-order.zip",
     "source_file": "Code Descriptions/icd10cm_order_2027.txt (long description, columns 78-)",
     "extracted_at": "2026-11-10",
-    "clinosim_codes_total": 509,
+    "clinosim_codes_total": 526,
     "clinosim_codes_missing_from_source": [
       "F00",
       "J46",
@@ -15,7 +15,7 @@
       "S67.8"
     ],
     "note": "ICD-10-CM codes in codes/data/icd-10-cm.yaml with the CMS long description (Issue #3127). billable = the order file's header flag (1 = valid for HIPAA-covered transactions). Codes missing from the source are WHO-only or retired codes the registry still lists; they are not emitted for the US.",
-    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt. K35.209, I21.09, K85.10, I48.19, L03.119, I63.30, I82.409, M80.08XA, S67.20XA, T75.4XXA, T31.20, I26.09 (Issue #3258, US billable discharge codes) were added from the same icd10cm_order_2027.txt."
+    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt. K35.209, I21.09, K85.10, I48.19, L03.119, I63.30, I82.409, M80.08XA, S67.20XA, T75.4XXA, T31.20, I26.09 (Issue #3258, US billable discharge codes) were added from the same icd10cm_order_2027.txt. W11.XXXA, W12.XXXA, W13.2XXA, W13.8XXA, W23.0XXA, W23.1XXA, W23.2XXA, X04.XXXA, X17.XXXA, X12.XXXA, X19.XXXA, X00.0XXA, W86.1XXA, W85.XXXA, S32.009A, S22.009A, S06.9X0A (Issue #3258, injury external-cause and discharge codes) were added from the same icd10cm_order_2027.txt."
   },
   "concept": [
     {
@@ -1974,6 +1974,11 @@
       "billable": false
     },
     {
+      "code": "S06.9X0A",
+      "display": "Unspecified intracranial injury without loss of consciousness, initial encounter",
+      "billable": true
+    },
+    {
       "code": "S22",
       "display": "Fracture of rib(s), sternum and thoracic spine",
       "billable": false
@@ -1982,6 +1987,11 @@
       "code": "S22.0",
       "display": "Fracture of thoracic vertebra",
       "billable": false
+    },
+    {
+      "code": "S22.009A",
+      "display": "Unspecified fracture of unspecified thoracic vertebra, initial encounter for closed fracture",
+      "billable": true
     },
     {
       "code": "S22.39XA",
@@ -2002,6 +2012,11 @@
       "code": "S32.0",
       "display": "Fracture of lumbar vertebra",
       "billable": false
+    },
+    {
+      "code": "S32.009A",
+      "display": "Unspecified fracture of unspecified lumbar vertebra, initial encounter for closed fracture",
+      "billable": true
     },
     {
       "code": "S32.10XA",
@@ -2309,6 +2324,26 @@
       "billable": true
     },
     {
+      "code": "W11.XXXA",
+      "display": "Fall on and from ladder, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "W12.XXXA",
+      "display": "Fall on and from scaffolding, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "W13.2XXA",
+      "display": "Fall from, out of or through roof, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "W13.8XXA",
+      "display": "Fall from, out of or through other building or structure, initial encounter",
+      "billable": true
+    },
+    {
       "code": "W19",
       "display": "Unspecified fall",
       "billable": false
@@ -2319,6 +2354,21 @@
       "billable": true
     },
     {
+      "code": "W23.0XXA",
+      "display": "Caught, crushed, jammed, or pinched between moving objects, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "W23.1XXA",
+      "display": "Caught, crushed, jammed, or pinched between stationary objects, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "W23.2XXA",
+      "display": "Caught, crushed, jammed or pinched between a moving and stationary object, initial encounter",
+      "billable": true
+    },
+    {
       "code": "W54",
       "display": "Contact with dog",
       "billable": false
@@ -2326,6 +2376,41 @@
     {
       "code": "W54.0XXA",
       "display": "Bitten by dog, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "W85.XXXA",
+      "display": "Exposure to electric transmission lines, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "W86.1XXA",
+      "display": "Exposure to industrial wiring, appliances and electrical machinery, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "X00.0XXA",
+      "display": "Exposure to flames in uncontrolled fire in building or structure, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "X04.XXXA",
+      "display": "Exposure to ignition of highly flammable material, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "X12.XXXA",
+      "display": "Contact with other hot fluids, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "X17.XXXA",
+      "display": "Contact with hot engines, machinery and tools, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "X19.XXXA",
+      "display": "Contact with other heat and hot substances, initial encounter",
       "billable": true
     },
     {

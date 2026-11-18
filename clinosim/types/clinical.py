@@ -125,6 +125,9 @@ class ClinicalDiagnosis:
     working_diagnoses: list[dict] = field(default_factory=list)  # [{code, day, confidence}]
     discharge_diagnosis_code: str = ""  # ICD at discharge
     discharge_diagnosis_system: str = "icd-10-cm"
+    # Issue #3258: the secondary external-cause code of an injury admission
+    # (US: ICD-10-CM V00-Y99 with the 7th character); "" when none is recorded.
+    external_cause_code: str = ""
 
     # Hidden fields (in CIF, not in clinical output)
     diagnosis_correct: bool = True  # does discharge dx match ground truth?

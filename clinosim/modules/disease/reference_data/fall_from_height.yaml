@@ -18,12 +18,25 @@ readmission_eligible: false
 
 icd_codes:
   primary: "T07"
+  sample_variants: true   # Issue #3258: each stay draws one of the variants below by its probability
   variants:
     - {code: "T07", name: "Multiple injuries, unspecified", probability: 0.40}
     - {code: "S32.0", name: "Fracture of lumbar vertebra", probability: 0.20}
     - {code: "S72.0", name: "Fracture of neck of femur", probability: 0.15}
     - {code: "S22.0", name: "Fracture of thoracic vertebra", probability: 0.15}
     - {code: "S06.9", name: "Intracranial injury, unspecified", probability: 0.10}
+# Issue #3258: the secondary external-cause code of the admission (ICD-10-CM
+# V00-Y99, 7th character A = initial encounter), drawn per stay from a SHA of the
+# encounter id. US only: Japanese claims and the MHLW disease-name master do not
+# carry these as diagnoses, so JP lists none (not verified against a primary
+# source this work). The mechanism choice is a clinosim estimate (no published
+# share for it was found); the weights below are not measured data.
+external_cause:
+  us:
+    - {code: "W11.XXXA", weight: 0.30}   # fall on and from ladder
+    - {code: "W12.XXXA", weight: 0.35}   # fall on and from scaffolding
+    - {code: "W13.2XXA", weight: 0.20}   # fall from, out of or through roof
+    - {code: "W13.8XXA", weight: 0.15}   # fall from other building or structure
 
 incidence:
   japan:
@@ -281,7 +294,27 @@ drugs:
       - {drug_id: acetaminophen, dose: "1000mg PO q6h"}
       - {drug_id: enoxaparin, dose: "40mg SC daily"}
 
+# Issue #3258: the operation follows the stay's injury diagnosis; a diagnosis
+# without an entry keeps the default fixation below (the multiple-injury case).
+# The severity split for the intracranial injury (craniotomy when severe, none
+# when moderate) is a clinosim modelling assumption, not a published rule.
 procedure:
+  by_diagnosis:
+    "S72.0":   # femoral-neck fracture of a working-age patient: internal fixation
+      type: "ORIF"
+      procedure_mapping_key: "ORIF_femur"
+      implants: ["intramedullary nail"]
+      approach: "open reduction and internal fixation"
+    "S06.9":
+      by_severity:
+        moderate: "none"
+        severe:
+          type: "Craniotomy"
+          procedure_code_jp: "K164-2"
+          procedure_code_us: "61312"
+          approach: "craniotomy for evacuation"
+          typical_duration_minutes: {mean: 90, sd: 30, min: 30, max: 180}
+          estimated_blood_loss_ml: {mean: 200, sd: 150, min: 50, max: 600}
   postoperative_pain_level: 0.65   # operative-day pain floor (Issue #2080)
   type: "orthopedic fracture fixation"
   procedure_code_jp: "K142"

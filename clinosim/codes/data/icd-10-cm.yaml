@@ -1331,3 +1331,37 @@ codes:
     en: Burns involving 20-29% of body surface with 0% to 9% third degree burns
   I26.09:
     en: Other pulmonary embolism with acute cor pulmonale
+  W11.XXXA:
+    en: Fall on and from ladder, initial encounter
+  W12.XXXA:
+    en: Fall on and from scaffolding, initial encounter
+  W13.2XXA:
+    en: Fall from, out of or through roof, initial encounter
+  W13.8XXA:
+    en: Fall from, out of or through other building or structure, initial encounter
+  W23.0XXA:
+    en: Caught, crushed, jammed, or pinched between moving objects, initial encounter
+  W23.1XXA:
+    en: Caught, crushed, jammed, or pinched between stationary objects, initial encounter
+  W23.2XXA:
+    en: Caught, crushed, jammed or pinched between a moving and stationary object, initial encounter
+  X04.XXXA:
+    en: Exposure to ignition of highly flammable material, initial encounter
+  X17.XXXA:
+    en: Contact with hot engines, machinery and tools, initial encounter
+  X12.XXXA:
+    en: Contact with other hot fluids, initial encounter
+  X19.XXXA:
+    en: Contact with other heat and hot substances, initial encounter
+  X00.0XXA:
+    en: Exposure to flames in uncontrolled fire in building or structure, initial encounter
+  W86.1XXA:
+    en: Exposure to industrial wiring, appliances and electrical machinery, initial encounter
+  W85.XXXA:
+    en: Exposure to electric transmission lines, initial encounter
+  S32.009A:
+    en: Unspecified fracture of unspecified lumbar vertebra, initial encounter for closed fracture
+  S22.009A:
+    en: Unspecified fracture of unspecified thoracic vertebra, initial encounter for closed fracture
+  S06.9X0A:
+    en: Unspecified intracranial injury without loss of consciousness, initial encounter

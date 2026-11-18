@@ -684,6 +684,9 @@ class DiseaseProtocol(BaseModel):
     # companion); "emergency" = admitted through the ED (default).
     admission_route: Literal["emergency", "elective"] = "emergency"
     procedure: dict[str, Any] = {}  # Surgical procedure details (approach, duration, etc.)
+    # Issue #3258: per-country weighted external-cause codes of an injury admission
+    # ({country_slot: [{code, weight}]}); a country without a list records none.
+    external_cause: dict[str, list[dict[str, Any]]] = {}
     medication_holds: list[dict[str, Any]] = []  # Home medications to hold during this admission
     # Issue #3234: an acute coronary syndrome. A patient on an oral
     # anticoagulant gets the in-stay antiplatelets of the drug_safety

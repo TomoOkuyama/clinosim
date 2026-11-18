@@ -195,6 +195,8 @@ occupation:
 
 encounter condition の YAML は診断を、1 つの `icd10_code` か `diagnosis_variants` のどちらか一方で与える (両方・どちらも無しは `EncounterConditionProtocol` が拒否する)。`diagnosis_variants` は受診ごとにコードが変わる condition (軽症熱傷の部位と左右、Issue #3279) の重み付きリストで、各 variant の `codes` は国スロット (`country_slot`: `us`、`jp`) ごとにその国の診断コード体系のコードを持つ。コードは他のコードと同じく検証して登録し (§8)、コードの無い国があれば loader が失敗する。受診のコードは `clinosim.simulator.emergency.ed_diagnosis_code(spec, patient, country=, encounter_id=)` が解決する: 該当する `by_chronic_prefix` があればそれ、無ければ encounter id に対する `determinism.sha_weighted_choice` で選んだ variant (受診の RNG stream から引かない。同じ受診はどの国でも同じ variant を選ぶ) のその国のコード、無ければ `icd10_code`。ガード: `tests/unit/test_minor_burn_diagnosis_3279.py`、`tests/unit/test_diagnosis_code_coverage.py` (各 variant コードがその国で登録済み)。
 
+外傷の protocol は、コードを持つフィールドをさらに 3 つ持てる (Issue #3258)。いずれも `clinosim/simulator/injury_coding.py` が encounter id の SHA から解決する (入院の RNG stream から引かない)。`icd_codes.sample_variants: true` は、重み付きの `icd_codes.variants` から 1 件を入院ごとに選び、入院時・退院時のコードにする (`stay_primary_code`)。`procedure.by_diagnosis` は入院のコードが要する手術への対応で、protocol の `procedure` の上書き、`none`、またはその 2 つの `by_severity` 選択である (`surgery_for_diagnosis`)。`external_cause.<国スロット>` は副次の外因コードの重み付きリストで、`clinical_diagnosis.external_cause_code` に記録し、encounter-diagnosis Condition をもう 1 件出力する (`external_cause_code`)。リストの無い国は外因を記録しない。JP は、日本の請求実務で外因章を傷病名として記録しないため (一次情報では未確認) リストを持たない。コードは他と同じく登録し (§8)、`tests/unit/test_diagnosis_code_coverage.py` が国ごとの外因コードを検証する。
+
 lab リストの各要素 (`labs`、`add_labs`、`additional_labs`、薬剤モニタリング項目の `test`) は内部のオーダー名で、2 段階で解決する。
 
 1. `observation/reference_data/order_routing.yaml` が、単一の検査でない名前を振り分ける。バイタルサインと問診項目はオーダーしない。画像検査は指定の検査名で画像オーダーにする。名前付きの組 (例: `DIC_panel`) は構成検査ごとのオーダーにする。
