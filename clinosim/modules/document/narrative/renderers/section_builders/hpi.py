@@ -252,7 +252,9 @@ def _with_extras(ctx: NarrativeContext, onset: str, presented: str, facts: list[
     home medications and the ROS line (Issue #3228 order). ``presented``
     (``受診となった。``) stands in only when the HPI would otherwise be empty."""
     parts = _hpi_parts(ctx)
-    ros = _ros_line(ctx, f"{parts.chief_complaint}{onset}")
+    # Issue #3268: a referral letter's present illness leaves out the
+    # admission ROS.
+    ros = "" if ctx.document_type == DocumentType.REFERRAL_NOTE else _ros_line(ctx, f"{parts.chief_complaint}{onset}")
     if parts.demographics or parts.chief_complaint or parts.details or ros:
         facts.extend(["ctx.patient.demographics", "ctx.encounter.chief_complaint", "ctx.patient.chronic_conditions"])
     text = _join(parts.demographics, parts.chief_complaint, onset, parts.details, ros)

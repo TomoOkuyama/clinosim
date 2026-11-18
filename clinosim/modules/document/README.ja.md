@@ -181,7 +181,7 @@ clinosim/modules/document/
     section_catalog.yaml             Composition section slug catalog (narrative/registry.py, composition.py)
     physical_exam_findings.yaml      per-disease PE 所見 (baseline + 新生児セット + override)
     clinosim-discharge-instruction.yaml  退院指導 (load_discharge_instructions、旧 discharge_instructions.yaml、#1862)。各項目に `applies_when` 条件 (性別・喫煙/飲酒状況・疾患群・退院処方薬、該当薬は `{drugs}` に展開) を付けられ、renderers/_resolvers.py resolve_discharge_instructions が評価し重複文を除く (#3254)
-    clinosim-nursing-content.yaml    急性疾患 / 慢性 ICD-10 別の看護記録内容 (load_nursing_content)
+    clinosim-nursing-content.yaml    急性疾患別 (看護診断・目標と OP/TP/EP の看護計画・教育) と慢性 ICD-10 併存疾患別の看護記録内容 (load_nursing_content)
     cc-pe-consistency-keywords.yaml  主訴 ↔ 身体所見の整合 rail (narrative/_narrative_utils.py)
     clinosim-discharge-instruction.yaml  退院指導。項目は `applies_when` (性別・喫煙・飲酒・疾患・退院薬、および喘息増悪のピークフロー・長期管理薬・コントロール評価文の `age_min` / `age_max`; Issue #3264) で絞れる
     asthma-control-instruments.yaml  年齢別の喘息コントロール評価 (12 歳以上 ACT、4-11 歳 C-ACT、4 歳未満は保護者への症状聴取; Issue #3264, GINA 2024)

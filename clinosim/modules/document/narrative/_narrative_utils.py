@@ -41,21 +41,75 @@ def encounter_died(encounter: Any) -> bool:
     return encounter is not None and _o(encounter, "discharge_disposition", "") == DischargeDisposition.EXP
 
 
+def _entry_items(entry: dict[str, Any], field: str, lang: str, smoker: bool) -> list[str]:
+    """The ``lang`` items of ``field`` in one nursing-content entry. A flat
+    ``care_plan`` is derived from ``care_plan_detail`` (observation, care and
+    education lists in that order) when the entry has only the detail, and a
+    ``patient_education`` list is followed by the entry's ``smoking_education``
+    for a patient who smokes or has smoked (Issue #3267)."""
+    items: list[str] = list((entry.get(field) or {}).get(lang) or [])
+    if field == "care_plan" and not items:
+        detail = entry.get("care_plan_detail") or {}
+        for part in ("observation", "care", "education"):
+            items.extend((detail.get(part) or {}).get(lang) or [])
+    if field == "patient_education" and smoker:
+        items.extend((entry.get("smoking_education") or {}).get(lang) or [])
+    return items
+
+
+def _is_smoker(patient: Any) -> bool:
+    """True unless the patient is recorded as a never-smoker (an unrecorded
+    status keeps the smoking teaching, as the discharge-instruction gates do)."""
+    return str(_o(patient, "smoking_status", "") or "") != "never"
+
+
+def _acute_nursing_entry(ctx: NarrativeContext) -> dict[str, Any] | None:
+    """The ``acute_disease`` entry of the admission's disease, or ``None``."""
+    from clinosim.modules.document.reference_data_loaders import load_nursing_content
+
+    disease_id = getattr(ctx.disease_protocol, "disease_id", "") or "" if ctx.disease_protocol is not None else ""
+    try:
+        entry = (load_nursing_content().get("acute_disease") or {}).get(disease_id)
+    except (FileNotFoundError, ValueError, OSError):
+        return None
+    return entry if isinstance(entry, dict) else None
+
+
+def nursing_care_plan_detail(ctx: NarrativeContext, lang: str) -> dict[str, Any] | None:
+    """The admission problem's care plan in ``lang`` (Issue #3267):
+    ``{"problem", "goal", "observation", "care", "education"}`` for a disease
+    whose acute entry carries ``care_plan_detail``; ``None`` otherwise. The
+    problem is the entry's main (first) nursing diagnosis."""
+    entry = _acute_nursing_entry(ctx)
+    detail = (entry or {}).get("care_plan_detail")
+    if not detail:
+        return None
+    diagnoses = ((entry or {}).get("nursing_diagnoses") or {}).get(lang) or []
+    return {
+        "problem": diagnoses[0] if diagnoses else "",
+        "goal": str((detail.get("goal") or {}).get(lang) or "").rstrip("。."),
+        "observation": list((detail.get("observation") or {}).get(lang) or []),
+        "care": list((detail.get("care") or {}).get(lang) or []),
+        "education": list((detail.get("education") or {}).get(lang) or []),
+    }
+
+
 def _lookup_nursing_content(ctx: NarrativeContext, field: str, lang: str, cap: int) -> tuple[list[str], list[str]]:
-    """Session 104 Tier 2: merge acute-disease + chronic-ICD10 nursing
-    content items for the given field
-    (``"nursing_diagnoses" / "care_plan" / "patient_education"``).
+    """Merge acute-disease + chronic-ICD10 nursing content items for the given
+    field (``"nursing_diagnoses" / "care_plan" / "patient_education"``).
 
     Merge order: acute (from ``ctx.disease_protocol.disease_id``) first,
-    chronic (from ``ctx.patient.chronic_conditions[].code``) second.
-    Items are deduplicated by exact-string equality and capped at
-    ``cap`` items total. Facts-used trace lists the two sources
+    chronic (from ``ctx.patient.chronic_conditions[].code``) second. Items
+    are deduplicated by exact-string equality and capped at ``cap`` items
+    total. When the disease has an acute entry, a chronic entry counts only if
+    it is flagged ``comorbidity`` (Issue #3267: the admission problem is
+    planned first and a comorbidity's own disease problems are not read as
+    problems of this admission). Facts-used trace lists the two sources
     consulted so the downstream ``facts_used`` field stays honest.
 
-    Returns ``(items, facts)``. When the YAML is unavailable or
-    matches nothing, returns ``([], [])`` — callers fall back to their
-    existing sentinel-fallback strings (byte-identical to the
-    pre-session-104 chronic-only path for non-pilot encounters).
+    Returns ``(items, facts)``. When the YAML is unavailable or matches
+    nothing, returns ``([], [])`` and callers fall back to their sentinel
+    strings.
     """
     from clinosim.modules.document.reference_data_loaders import (
         load_nursing_content,
@@ -69,16 +123,12 @@ def _lookup_nursing_content(ctx: NarrativeContext, field: str, lang: str, cap: i
     items: list[str] = []
     facts: list[str] = []
     seen: set[str] = set()
+    smoker = _is_smoker(ctx.patient) if ctx.patient is not None else True
 
     # --- Acute-first: ctx.disease_protocol.disease_id anchor ----------
-    disease_id = ""
-    if ctx.disease_protocol is not None:
-        disease_id = getattr(ctx.disease_protocol, "disease_id", "") or ""
-    acute_axis = data.get("acute_disease") or {}
-    if disease_id and disease_id in acute_axis:
-        entry = acute_axis[disease_id]
-        acute_items = (entry.get(field) or {}).get(lang) or []
-        for x in acute_items:
+    acute_entry = _acute_nursing_entry(ctx)
+    if acute_entry is not None:
+        for x in _entry_items(acute_entry, field, lang, smoker):
             if not x or x in seen:
                 continue
             items.append(x)
@@ -98,10 +148,9 @@ def _lookup_nursing_content(ctx: NarrativeContext, field: str, lang: str, cap: i
         code = _o(c, "code", "") or (c if isinstance(c, str) else "")
         prefix = str(code).split(".")[0].upper() if code else ""
         entry = chronic_axis.get(prefix)
-        if not entry:
+        if not entry or (acute_entry is not None and not entry.get("comorbidity")):
             continue
-        chronic_items = (entry.get(field) or {}).get(lang) or []
-        for x in chronic_items:
+        for x in _entry_items(entry, field, lang, smoker):
             if not x or x in seen:
                 continue
             items.append(x)

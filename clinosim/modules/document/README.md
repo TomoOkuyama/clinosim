@@ -192,7 +192,7 @@ clinosim/modules/document/
     narrative_extras_whitelists.yaml narrative extra-context whitelists (narrative/_extra_context_builder.py)
     ja_only_fallback_sections.yaml   sections exempt from the US H&P JA-char audit (audit.py)
     clinosim-discharge-instruction.yaml  discharge instructions (load_discharge_instructions; was discharge_instructions.yaml, #1862); entries may carry an `applies_when` gate (sex, smoking / alcohol status, condition groups, discharge drugs filling `{drugs}`) evaluated by renderers/_resolvers.py resolve_discharge_instructions, which also drops repeated sentences (#3254)
-    clinosim-nursing-content.yaml    nursing-note content per acute disease / chronic ICD-10 (load_nursing_content)
+    clinosim-nursing-content.yaml    nursing-note content per acute disease (diagnoses, goal + OP/TP/EP care plan, education) / chronic ICD-10 comorbidity (load_nursing_content)
     cc-pe-consistency-keywords.yaml  chief-complaint ↔ physical-exam consistency rails (narrative/_narrative_utils.py)
     clinosim-discharge-instruction.yaml  discharge instructions; an entry may be gated by `applies_when` (sex, smoking, alcohol, conditions, discharge drugs, and `age_min` / `age_max` for the asthma exacerbation peak-flow, controller and control-review texts, Issue #3264)
     asthma-control-instruments.yaml  asthma control instrument by age: ACT 12+, Childhood ACT 4-11, caregiver symptom review under 4 (Issue #3264, GINA 2024)

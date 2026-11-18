@@ -39,7 +39,15 @@ if TYPE_CHECKING:
 
 @section("hospital_course")
 def build_hospital_course(generator: TemplateNarrativeGenerator, ctx: NarrativeContext) -> tuple[str, list[str]]:
-    """Build hospital_course template seed.
+    """Build hospital_course template seed (see :func:`compose_hospital_course`)."""
+    return compose_hospital_course(ctx)
+
+
+def compose_hospital_course(ctx: NarrativeContext, *, with_results: bool = True) -> tuple[str, list[str]]:
+    """The hospital course of a stay: the shared body of the discharge
+    summary's course and the referral letter's clinical course (Issue #3268).
+    ``with_results=False`` leaves out the significant-results sentence, for a
+    document that states the results in a section of their own.
 
     The length of stay with the primary reason, then the sentences of
     ``narrative/_hospital_course.py`` (Issue #3246): readmission, main
@@ -82,7 +90,7 @@ def build_hospital_course(generator: TemplateNarrativeGenerator, ctx: NarrativeC
     # sentence is written only when the record has its facts.
     from clinosim.modules.document.narrative import _hospital_course as hc
 
-    for build in (
+    builders = (
         hc.readmission_sentence,
         hc.treatments_sentence,
         hc.procedures_sentence,
@@ -90,7 +98,10 @@ def build_hospital_course(generator: TemplateNarrativeGenerator, ctx: NarrativeC
         hc.notable_labs_sentence,
         hc.medication_changes_sentence,
         hc.discharge_condition_sentence,
-    ):
+    )
+    for build in builders:
+        if build is hc.notable_labs_sentence and not with_results:
+            continue
         sentence, fact = build(ctx)
         if sentence:
             parts.append(sentence)

@@ -219,10 +219,8 @@ checkup_alcohol_use:
 # matters for RNG-neutral determinism — the Python side keeps a small
 # tuple of ordered keys.
 referral_purpose_options:
-  option_1: {en: continued treatment, ja: 継続加療}
-  option_2: {en: further investigation, ja: 精査依頼}
-  option_3: {en: specialty consultation, ja: 他科紹介}
-  option_4: {en: continued rehabilitation, ja: リハビリテーション継続}
+  continued_treatment: {en: continued treatment, ja: 継続加療}
+  rehabilitation: {en: continued rehabilitation, ja: リハビリテーション継続}
 
 # Discharge disposition labels (Phase 1d-32). Was ``_JA_DISPO_LABEL``
 # and ``_EN_DISPO_LABEL`` module-level dicts. FHIR / eDS

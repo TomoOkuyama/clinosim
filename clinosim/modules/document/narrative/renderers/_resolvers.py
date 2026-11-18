@@ -130,10 +130,18 @@ def resolve_neonatal_exam(ctx: NarrativeContext, day_index: int) -> dict[str, st
 def _bilirubin_known_at(ctx: NarrativeContext, day_index: int) -> float | None:
     """Latest total bilirubin (mg/dL) measured by the document's authored time,
     or by the end of ``day_index`` when the document has no authored time."""
+    latest = latest_bilirubin_at(ctx, day_index)
+    return latest[1] if latest is not None else None
+
+
+def latest_bilirubin_at(ctx: NarrativeContext, day_index: int) -> tuple[int | None, float] | None:
+    """``(day of life, mg/dL)`` of the latest total bilirubin measured by the
+    document's authored time (or the end of ``day_index``), ``None`` when none
+    was measured yet (Issue #3260)."""
     series = (getattr(ctx, "newborn_workup", None) or {}).get("bilirubin_series") or []
     as_of = getattr(ctx, "authored_datetime", None)
     as_of_naive = as_of.replace(tzinfo=None) if as_of is not None else None
-    latest: tuple[tuple[int, datetime], float] | None = None
+    latest: tuple[tuple[int, datetime], int | None, float] | None = None
     for entry in series:
         at = parse_iso_datetime(entry.get("timestamp"), lenient=True)
         at_naive = at.replace(tzinfo=None) if at is not None else None
@@ -145,8 +153,8 @@ def _bilirubin_known_at(ctx: NarrativeContext, day_index: int) -> float | None:
             continue
         key = (day if isinstance(day, int) else -1, at_naive or datetime.min)
         if latest is None or key >= latest[0]:
-            latest = (key, float(entry["value_mg_dl"]))
-    return latest[1] if latest is not None else None
+            latest = (key, day if isinstance(day, int) else None, float(entry["value_mg_dl"]))
+    return (latest[1], latest[2]) if latest is not None else None
 
 
 def resolve_daily_trajectory(
@@ -224,7 +232,10 @@ def baseline_instruction_set(ctx: NarrativeContext) -> dict[str, Any]:
     (adult) set. The one place a population-specific set replaces it — the
     newborn set of Issue #3260 is selected here when ``is_neonate(ctx)`` — so the
     disease layers and the patient gates apply to it unchanged."""
-    return load_discharge_instructions().get("baseline") or {}
+    data = load_discharge_instructions()
+    if is_neonate(ctx) and data.get("neonatal"):
+        return data["neonatal"]
+    return data.get("baseline") or {}
 
 
 def _patient_condition_codes(ctx: NarrativeContext) -> list[str]:

@@ -776,8 +776,8 @@
         "ctx.encounter.chief_complaint",
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments@authored",
-        "ctx.patient.chronic_conditions",
-        "ctx.patient.chronic_conditions"
+        "ctx.disease_protocol.disease_id",
+        "ctx.disease_protocol.disease_id"
       ],
       "generated_at": "2024-06-15T04:16:00Z",
       "generator": "template",
@@ -787,8 +787,8 @@
       },
       "sections": {
         "adl_assessment": "Barthel Index 60/100 → moderate assistance (Feeding 5, Bathing 5, Mobility 10, Toilet use 5)",
-        "care_plan": "Care plan: monitor BP AM/PM; escalate to MD if goal not met.",
-        "nursing_diagnosis": "Nursing diagnoses: risk for inadequate BP control.",
+        "care_plan": "Care plan: Nursing problem: acute pain (chest pain). Goal: Chest pain resolves and the activity level can be widened with stable hemodynamics and ECG. Observation: Observe the site, severity and duration of chest pain; check ECG monitor, vital signs and urine output; Watch for diaphoresis, dyspnea or altered consciousness with chest symptoms. Care: Keep the ordered activity level and mobilize stepwise as the cardiac rehabilitation plan allows; Give ordered analgesia for pain and check its effect. Education: Explain that chest pain or palpitations should be reported at once by call bell.",
+        "nursing_diagnosis": "Nursing diagnoses: acute pain (chest pain), decreased cardiac output, risk for arrhythmia and recurrent ischemia, anxiety.",
         "nursing_history": "Admission reason: Chest pain, diaphoresis, dyspnea. PMH: Chronic ischemic heart disease (IHD), Hypertension (HTN), Dyslipidemia.",
         "risk_assessments": "Fall / pressure ulcer risk: assessment pending"
       },
@@ -1705,7 +1705,7 @@
         "ctx.los_days",
         "encounter.discharge_disposition",
         "ctx.intake_output_records",
-        "ctx.patient.chronic_conditions",
+        "ctx.disease_protocol.disease_id",
         "ctx.adl_assessments@authored"
       ],
       "generated_at": "2024-06-29T09:16:00Z",
@@ -1718,7 +1718,7 @@
         "admission_status": "Hospital stay: 14 days. Admission reason: Chest pain, diaphoresis, dyspnea. Not yet safe for home; discharged to skilled nursing facility for continued care.",
         "discharge_readiness": "Discharge readiness: Discharge Barthel 95/100.",
         "nursing_interventions_provided": "Cumulative IN 20178 mL / OUT 10344 mL (net +9834 mL).",
-        "patient_education": "Patient education: home BP monitoring + low-salt diet."
+        "patient_education": "Patient education: continuing prescribed drugs (e.g. antiplatelets) and watching for bleeding; cardiac rehabilitation and pacing of activity; calling emergency services if chest pain recurs."
       },
       "text": ""
     }

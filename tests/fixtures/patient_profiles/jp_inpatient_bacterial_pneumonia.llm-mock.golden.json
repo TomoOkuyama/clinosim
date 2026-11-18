@@ -963,7 +963,6 @@
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments@authored",
         "ctx.disease_protocol.disease_id",
-        "ctx.patient.chronic_conditions",
         "ctx.disease_protocol.disease_id"
       ],
       "generated_at": "2024-06-15T12:01:00+09:00",
@@ -974,8 +973,8 @@
       },
       "sections": {
         "adl_assessment": "Barthel 指数 60/100 → 中等度介助（食事5、入浴0、移動10、トイレ動作5）",
-        "care_plan": "看護計画: SpO2 継続モニタと酸素投与量調整、咳嗽介助 + 排痰支援 (体位ドレナージ / ネブライザ)、発熱時の水分補給促進、解熱後発汗の清潔ケア、標準予防策の徹底 + 訪問者へ手指衛生指導。",
-        "nursing_diagnosis": "看護診断: ガス交換障害、気道クリアランス不十分、発熱による体温調節不足、感染拡大リスク、ガス交換障害のリスク。",
+        "care_plan": "看護計画: 看護問題「ガス交換障害」。目標: 解熱し、呼吸状態が改善して酸素需要が減る。観察計画 (OP): SpO2 を継続モニタし、呼吸状態・喀痰の性状を勤務帯ごとに観察する、体温の推移を記録する。ケア計画 (TP): 酸素投与量調整と咳嗽・排痰の支援 (体位ドレナージ・ネブライザ)を行う、発熱時の水分補給を促し、解熱後の発汗の清潔ケアを行う。教育計画 (EP): 標準予防策を行い、面会者へ手指衛生を説明する。",
+        "nursing_diagnosis": "看護診断: ガス交換障害、気道クリアランス不十分、発熱による体温調節不足、感染拡大リスク。",
         "nursing_history": "入院目的: 発熱・咳嗽・呼吸困難。既往: COPD（慢性閉塞性肺疾患）。",
         "risk_assessments": "転倒・褥瘡リスク：評価中"
       },

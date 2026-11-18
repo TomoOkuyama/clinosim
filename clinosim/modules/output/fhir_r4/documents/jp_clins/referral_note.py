@@ -45,7 +45,16 @@ _JP_REFERRAL_STRUCTURAL_CHILDREN: dict[str, str] = {
     "referral_purpose": "950",
     "diagnoses_and_complaint": "340",
     "present_illness_ref": "360",
+    # Issue #3268: optional eReferral sections (Composition.section:
+    # compositionSection.section:clinicalCourseSection / examsStudySection /
+    # medicationSection; codes of the REF branch of the document-section
+    # CodeSystem).
+    "clinical_course_ref": "330",
+    "test_results_ref": "620",
+    "medication_orders_ref": "430",
 }
+# The optional slices are emitted only when the document carries their text.
+_JP_REFERRAL_OPTIONAL_CHILDREN = frozenset({"clinical_course_ref", "test_results_ref", "medication_orders_ref"})
 
 # 920 (referralFromOrganization) self-pin — see composition.py's
 # original docstring for the Issue #924 self-loop fix rationale.
@@ -215,6 +224,8 @@ def _build_jp_clins_referral_note_composition(
     # 300 structural, nesting 950 / 340 / 360
     struct_children: list[dict[str, Any]] = []
     for key, code in _JP_REFERRAL_STRUCTURAL_CHILDREN.items():
+        if key in _JP_REFERRAL_OPTIONAL_CHILDREN and not sections.get(key):
+            continue
         struct_children.append(_one_section(code, sections.get(key, "") or ""))
     struct_parent_disp = registry_display("jpfhir-doc-section", "300", lang) or t("fhir_emit_text.struct_section", "ja")
     struct_parent_title = _section_title_from_section_display(struct_parent_disp)

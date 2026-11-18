@@ -60,8 +60,10 @@ def test_shipped_yaml_is_accepted(model: type[BaseModel]) -> None:
             "both buckets",
         ),
         (rdl.NursingContent, lambda d: d.update({"chronic_icd10": {}}), "empty or not a mapping"),
-        (rdl.NursingContent, lambda d: _first(d["acute_disease"]).pop("care_plan"), "care_plan"),
-        (rdl.NursingContent, lambda d: _first(d["acute_disease"])["care_plan"]["ja"].append(" "), "non-empty string"),
+        (rdl.NursingContent, lambda d: _first(d["chronic_icd10"]).pop("care_plan"), "care_plan"),
+        (rdl.NursingContent, lambda d: _first(d["chronic_icd10"])["care_plan"]["ja"].append(" "), "non-empty string"),
+        (rdl.NursingContent, lambda d: _first(d["acute_disease"])["care_plan_detail"].pop("goal"), "goal"),
+        (rdl.NursingContent, lambda d: _first(d["acute_disease"])["care_plan_detail"]["care"].pop("en"), "en"),
     ],
 )
 def test_rejections(model: type[BaseModel], break_it: _Break, message: str) -> None:

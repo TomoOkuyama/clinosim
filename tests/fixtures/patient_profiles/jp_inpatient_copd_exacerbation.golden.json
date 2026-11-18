@@ -815,7 +815,6 @@
         "ctx.patient.chronic_conditions",
         "ctx.adl_assessments@authored",
         "ctx.disease_protocol.disease_id",
-        "ctx.patient.chronic_conditions",
         "ctx.disease_protocol.disease_id"
       ],
       "generated_at": "2024-06-15T12:01:00+09:00",
@@ -826,8 +825,8 @@
       },
       "sections": {
         "adl_assessment": "Barthel 指数 65/100 → 軽度介助（食事5、入浴5、移動10、トイレ動作5）",
-        "care_plan": "看護計画: SpO2 持続モニタ + 酸素投与量調整、呼吸パターン・副雑音を勤務帯ごとに評価、起坐位で呼吸楽な体位保持を支援、吸入手技を毎回付き添い確認。",
-        "nursing_diagnosis": "看護診断: ガス交換障害、気道クリアランス不十分、活動耐性低下、不安 (呼吸困難関連)、ガス交換障害のリスク。",
+        "care_plan": "看護計画: 看護問題「ガス交換障害」。目標: 呼吸困難が軽減し、SpO2 が指示範囲で保たれる。観察計画 (OP): SpO2 を持続モニタし、呼吸パターン・副雑音を勤務帯ごとに評価する、吸入手技を毎回付き添って確認する。ケア計画 (TP): 酸素投与量を指示に従い調整する、起坐位など呼吸の楽な体位保持を支援する。教育計画 (EP): 吸入器の使い方を一緒に確認し、息切れが強いときは早めに知らせるよう説明する。",
+        "nursing_diagnosis": "看護診断: ガス交換障害、気道クリアランス不十分、活動耐性低下、不安 (呼吸困難関連)。",
         "nursing_history": "入院目的: 呼吸困難増悪・喀痰増加・喘鳴。既往: COPD（慢性閉塞性肺疾患）。",
         "risk_assessments": "転倒・褥瘡リスク：評価中"
       },
@@ -1802,7 +1801,7 @@
         "admission_status": "入院期間: 15日間。入院理由: 呼吸困難増悪・喀痰増加・喘鳴。経過中の合併症: せん妄。退院基準を満たし退院となった。",
         "discharge_readiness": "退院準備: 退院時 Barthel 100/100。",
         "nursing_interventions_provided": "入院期間合計 IN 21132 mL / OUT 16880 mL (差 +4252 mL)。",
-        "patient_education": "患者教育: 吸入器手技の再確認 (定量吸入・スペーサ使用法)、増悪の早期サイン認識 (痰の色調変化・SpO2 低下)、禁煙継続支援と受動喫煙回避、呼吸リハビリの継続方法。"
+        "patient_education": "患者教育: 吸入器手技の再確認 (定量吸入・スペーサ使用法)、増悪の早期サイン認識 (痰の色調変化・SpO2 低下)、呼吸リハビリの継続方法。"
       },
       "text": ""
     }

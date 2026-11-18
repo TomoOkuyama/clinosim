@@ -291,6 +291,7 @@ class DischargeInstructions(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     baseline: dict[str, _BilingualText] = Field(min_length=1)
+    neonatal: dict[str, _BilingualText] | None = Field(default=None, min_length=1)
     disease_specific: dict[str, dict[str, _BilingualText] | None] | None
 
     @model_validator(mode="before")
@@ -553,12 +554,47 @@ class _NursingTexts(BaseModel):
     en: _TextList
 
 
+class _NursingGoal(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    ja: _Text
+    en: _Text
+
+
+class _NursingCareDetail(BaseModel):
+    """The care plan of an admission problem in the Japanese nursing-plan
+    classification: a goal and the observation (OP), care (TP) and education
+    (EP) interventions (Issue #3267)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    goal: _NursingGoal
+    observation: _NursingTexts
+    care: _NursingTexts
+    education: _NursingTexts
+
+
 class _NursingContentEntry(BaseModel):
+    """One disease or chronic-condition entry. ``care_plan`` (a flat list of
+    interventions) and ``care_plan_detail`` (goal + OP / TP / EP) are
+    alternatives: an entry carries at least one. ``comorbidity`` (chronic
+    entries) applies the entry alongside an acute entry; ``smoking_education``
+    is taught to a current or former smoker only."""
+
     model_config = ConfigDict(extra="forbid")
 
     nursing_diagnoses: _NursingTexts
-    care_plan: _NursingTexts
+    care_plan: _NursingTexts | None = None
+    care_plan_detail: _NursingCareDetail | None = None
     patient_education: _NursingTexts
+    smoking_education: _NursingTexts | None = None
+    comorbidity: bool = False
+
+    @model_validator(mode="after")
+    def _has_a_care_plan(self) -> _NursingContentEntry:
+        if self.care_plan is None and self.care_plan_detail is None:
+            raise ValueError("a nursing content entry needs care_plan or care_plan_detail")
+        return self
 
 
 class NursingContent(BaseModel):

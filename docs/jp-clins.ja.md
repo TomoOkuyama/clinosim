@@ -171,7 +171,10 @@ extension leak を浮上させた。
 - `Composition.section` は 2 レベル tree:
   - Top-level: **920** 紹介元 / **910** 紹介先 / **300** 構造情報
   - 300 の下: **950** 紹介目的 / **340** 傷病名・主訴 /
-    **360** 現病歴
+    **360** 現病歴。続けて、文書に内容があれば任意の **330** 臨床経過 /
+    **620** 検査結果 / **430** 投薬指示 (JP-CLINS document-section
+    CodeSystem の REF 系コード; profile の `clinicalCourseSection` /
+    `examsStudySection` / `medicationSection`)
 
 シミュレーション近似:
 - **紹介元** = 当院 (clinosim は単一施設をシミュレート)。
@@ -179,8 +182,12 @@ extension leak を浮上させた。
   `(patient_id, encounter_id)` の sha256 で決定的に選んだ外部病院。
   参照された病院はそれぞれ `Organization` リソースとして emit
   (`clinosim/modules/output/fhir_r4/documents/referral_orgs.py`)。
-- **紹介目的** = `encounter_id` ハッシュに基づく `{継続加療 / 精査
-  依頼 / 他科紹介 / リハビリテーション継続}` の決定的選択。
+- **紹介目的** = 継続加療、入院中にリハビリテーションを実施した場合は
+  リハビリテーション継続 (紹介先は常に他院なので、院内の他科紹介は
+  書かない)。院内死亡の入院では診療情報提供書を出さない。
+- **臨床経過 / 検査結果 / 投薬指示** = 退院時サマリーの入院経過 (検査結果
+  の文を除く)・主な異常検査結果の文・退院処方を再利用。現病歴は入院時
+  ROS を含めない。
 - **傷病名・主訴** = エンカウンター診断リスト (code + 日本語 display)
   と疾患 YAML の chief complaint を結合。
 - **現病歴** = `disease_protocol.narrative.hpi_template` 由来の HPI
