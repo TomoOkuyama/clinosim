@@ -27,7 +27,7 @@ from clinosim.modules.disease.localization import (
     _disease_to_department,
     target_los_config,
 )
-from clinosim.modules.disease.protocol import DiseaseProtocol, load_disease_protocol
+from clinosim.modules.disease.protocol import DiseaseProtocol
 from clinosim.modules.disease.severity import category_from_score
 from clinosim.modules.encounter.engine import create_inpatient_encounter
 from clinosim.modules.order.engine import (
@@ -77,6 +77,7 @@ from clinosim.simulator.daily_loop import SYMPTOM_AXES, _run_daily_loop
 from clinosim.simulator.discharge_gate import discharge_disposition_for
 from clinosim.simulator.discharge_rx import build_discharge_rx
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, fit_procedures_in_stay
+from clinosim.simulator.implied_chronic import implied_chronic_codes_to_add
 from clinosim.simulator.injury_coding import (
     external_cause_code,
     secondary_diagnosis_codes,
@@ -222,16 +223,6 @@ def _derive_final_diagnosis(
     return clinical_diagnosis, dx_name
 
 
-def _implied_chronic_min_age(code: str) -> int | None:
-    """Minimum patient age for an implied chronic condition, by ICD-10 base
-    code (``implied_chronic_min_years`` in ``chronic_onset_min_age.yaml``;
-    Issue #2286), or None when unrestricted."""
-    from clinosim.locale.loader import load_chronic_age_limits
-
-    value = (load_chronic_age_limits().get("implied_chronic_min_years") or {}).get(code.split(".")[0])
-    return int(value) if value is not None else None
-
-
 """Minimum-age gate per implied-chronic ICD (p=500 review session 89).
 
 Mirrors ``demographics.yaml:chronic_prevalence`` lower bound so the
@@ -253,26 +244,12 @@ def _attach_implied_chronic_conditions(
     Mutates ``patient.chronic_conditions`` in place, skipping codes
     already present, sex-locked ICDs on the wrong sex (via
     ``is_sex_locked_for``), and age-restricted ICDs on younger
-    patients (via ``_implied_chronic_min_age``). The onset date is
+    patients (via ``implied_chronic_min_age``). The onset date is
     backdated 1-14 years from a ``(patient_id, code)`` SHA hash so
     it precedes the acute admission while remaining RNG-neutral.
 
     Extracted from ``_simulate_patient`` per META #1633 P6.
     """
-    # Issue #947: sex-lock table lives in
-    # ``clinosim/simulator/reference_data/icd10_sex_restrictions.yaml`` and is
-    # consulted via ``clinosim.simulator.sex_gating.is_sex_locked_for`` so
-    # every anatomy-locked code (N40 BPH, N41 prostatitis, N70–N77 female
-    # PID, O00–O9A pregnancy, C50–C63 sex-specific malignancies) is covered.
-    from clinosim.simulator.sex_gating import is_sex_locked_for
-
-    # RM-7d / Issue #2291: the disease YAML's ``implied_chronic_codes``.
-    try:
-        implied = list(load_disease_protocol(disease_id).implied_chronic_codes)
-    except (FileNotFoundError, KeyError, ValueError):
-        implied = []
-    if not implied:
-        return
     from clinosim.modules.patient.activator import derive_implied_chronic_onset
     from clinosim.types.patient import ChronicCondition
 
@@ -280,20 +257,16 @@ def _attach_implied_chronic_conditions(
         (c.code.split(".")[0] if hasattr(c, "code") else str(c).split(".")[0])
         for c in (getattr(patient, "chronic_conditions", []) or [])
     }
-    patient_sex = str(getattr(patient, "sex", "") or "").upper()[:1]
     patient_age = int(getattr(patient, "age", 0) or 0)
     adm_date = getattr(admission_time, "date", lambda: admission_time)()
     dob = getattr(patient, "date_of_birth", None)
-    for code in implied:
-        base = code.split(".")[0]
-        if base in existing_codes:
-            continue
-        if is_sex_locked_for(code, patient_sex):
-            continue  # skip sex-restricted ICD for the wrong sex
-        min_age = _implied_chronic_min_age(base)
-        if min_age is not None and patient_age < min_age:
-            continue  # skip age-restricted ICD for younger patients
-        existing_codes.add(base)
+    for code in implied_chronic_codes_to_add(
+        disease_id,
+        patient_id=patient.patient_id,
+        sex=str(getattr(patient, "sex", "") or ""),
+        age=patient_age,
+        have_bases=existing_codes,
+    ):
         # Issue #1339: backdate the implied-chronic onset from
         # (patient_id, code) hash so it precedes the acute admission
         # by 1-14 years, matching the population-time sampling window.

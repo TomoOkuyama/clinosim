@@ -210,6 +210,14 @@ drug_interactions:
   - {drug_a: Levofloxacin, drug_b: Warfarin, severity: major, effect: "…", action: "…"}
 ```
 
+`implied_chronic_codes` are chronic conditions a stay surfaces. A code carried by
+only part of the disease's patients is listed in
+`simulator/reference_data/implied_chronic_prevalence.yaml` (disease -> ICD base
+code -> share, with its source); each patient is drawn once from a hash of
+`(patient_id, disease_id, code)`, and a code not listed is carried by every
+patient. Implied codes are added to the encounter's problem list and to the
+person record, so the person's later encounters keep them (Issue #3263).
+
 Other optional `DiseaseProtocol` fields used by some YAMLs:
 `presenting_symptoms`, `diagnostic` (`differential`, `likelihood_ratios`,
 `diagnosis_progression`, `confirmation_threshold`, `diagnostic_difficulty`),

@@ -299,3 +299,7 @@ Individual files:
 `maintainers@` — see [`CONTRIBUTING.md`](../../../CONTRIBUTING.md).
 
 Japanese counterpart: [`README.ja.md`](README.ja.md).
+
+## Implied chronic conditions (Issue #3263)
+
+A disease YAML's `implied_chronic_codes` are added to the admission's problem list and to the person record, so later encounters keep them. A code only some patients carry has a share in `simulator/reference_data/implied_chronic_prevalence.yaml` (known atrial fibrillation before an ischemic stroke, 22%; heart failure among atrial fibrillation patients, 33%), drawn once per patient from a hash of the ids. See `SPEC.md`.
