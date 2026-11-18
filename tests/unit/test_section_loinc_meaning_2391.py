@@ -79,6 +79,7 @@ _REVIEWED = {
     "social_history": "29762-2",
     "patient_education": "34895-3",
     "ed_workup": "30954-2",
+    "admission_results": "30954-2",
     "disposition": "8650-4",
     "treatment_plan": "18776-5",
     "test_schedule": "18776-5",

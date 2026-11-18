@@ -335,7 +335,12 @@ def _iso(value: Any) -> str:
 
 
 def _plan_admission_once(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:
-    return [_point(f.admission_dt)]
+    # Issue #3241: a spec may be authored some hours after the admission (the
+    # H&P, once the admission work-up has results), never after the stay ends;
+    # its period still starts at the admission, so it is a hospital-day-0 note.
+    offset = timedelta(hours=float(getattr(spec, "authored_after_admission_hours", 0.0) or 0.0))
+    authored = min(f.admission_dt + offset, f.end_dt) if offset else f.admission_dt
+    return [_DocPlan(authored.isoformat(), f.admission_dt.isoformat(), authored.isoformat())]
 
 
 def _plan_admission_once_los_gt_7(spec: Any, f: _EncounterFacts) -> list[_DocPlan]:

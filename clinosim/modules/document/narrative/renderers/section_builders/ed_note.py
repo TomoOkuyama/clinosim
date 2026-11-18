@@ -43,6 +43,8 @@ from clinosim.modules.document.narrative._template_helpers import (
     _pick_localized,
 )
 from clinosim.modules.document.narrative._vitals_line import PHYSICAL_EXAM, format_vitals_line
+from clinosim.modules.document.narrative.renderers._disease_exam import admission_exam, apply_exam_rules
+from clinosim.modules.document.narrative.renderers._exam_agreement import agreeing_clauses, arrival_vital_states
 from clinosim.modules.document.narrative.renderers._shared_helpers import (
     PHYSICAL_EXAM_SYSTEMS,
     chronic_condition_label,
@@ -51,7 +53,6 @@ from clinosim.modules.document.narrative.renderers._shared_helpers import (
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section, section_builder
 from clinosim.modules.document.reference_data_loaders import load_ed_note_admitted
 from clinosim.modules.encounter.protocol import discharge_instructions_for_age
-from clinosim.modules.observation.pediatric_ranges import age_in_completed_months, pediatric_vital_range
 from clinosim.timeutil import parse_iso_datetime
 from clinosim.types.document import DocumentType, NarrativeContext
 
@@ -126,26 +127,33 @@ def _is_ed_order(order: Any, admitted: bool) -> bool:
 
 def _admitted_arrival_exam(generator: TemplateNarrativeGenerator, ctx: NarrativeContext, facts: list[str]) -> str:
     """The admitting disease's day-0 physical exam for the ED note of a via-ED
-    admission (Issue #3243), the source the H&P exam uses, without the
-    clauses the arrival reading (``ctx.vitals[0]``, the ED-time context)
-    contradicts, with the consciousness clause matched to the arrival AVPU.
-    ``""`` without a disease protocol or authored exam text in the language."""
+    admission (Issue #3243), the source the H&P exam uses (``disease_exam.yaml``
+    in the note language, else the protocol exam of languages with authored
+    narrative content), without the clauses the arrival reading
+    (``ctx.vitals[0]``, the ED-time context) contradicts, with the
+    consciousness clause matched to the arrival AVPU, and with the AF rhythm
+    and the stroke deficit of the patient (Issue #3227). ``""`` without a
+    disease protocol or an exam text in the language."""
     lang = ctx.target_lang
-    if ctx.disease_protocol is None or not has_authored_narrative(lang) or not ctx.vitals:
+    if ctx.disease_protocol is None or not ctx.vitals:
         return ""
     arrival = ctx.vitals[0]
-    phys_exam = generator._resolve_physical_exam(ctx, ctx.clinical_course_archetype, 0)
     severity = str(ctx.severity or "")
-    states = _arrival_vital_states(arrival, ctx)
-    findings = {}
-    for system in PHYSICAL_EXAM_SYSTEMS:
-        text = _agreeing_clauses(select_exam_text(phys_exam.get(system), severity), states, lang)
-        if text:
-            findings[system] = text
+    states = arrival_vital_states(arrival, ctx)
+    findings = admission_exam(ctx, arrival, states)
+    source = "physical_exam_findings.disease_exam"
+    if not findings and has_authored_narrative(lang):
+        phys_exam = generator._resolve_physical_exam(ctx, ctx.clinical_course_archetype, 0)
+        for system in PHYSICAL_EXAM_SYSTEMS:
+            text = agreeing_clauses(select_exam_text(phys_exam.get(system), severity), states, lang)
+            if text:
+                findings[system] = text
+        source = f"physical_exam_findings.{ctx.clinical_course_archetype}.day_0"
+    findings = apply_exam_rules(ctx, findings, admission_day=True)
     exam = generator._format_physical_exam(findings, severity, lang)
     if not exam:
         return ""
-    facts.append(f"physical_exam_findings.{ctx.clinical_course_archetype}.day_0")
+    facts.append(source)
     # The consciousness clause follows the AVPU of the arrival reading's day.
     exam, cc_facts = generator._apply_cc_pe_consistency(exam, replace(ctx, day_index=_arrival_day(arrival, ctx)))
     facts.extend(cc_facts)
@@ -159,60 +167,6 @@ def _arrival_day(arrival: Any, ctx: NarrativeContext) -> int:
     if when is None or admitted is None:
         return 0
     return (when.date() - admitted.date()).days
-
-
-def _arrival_vital_states(arrival: Any, ctx: NarrativeContext) -> dict[str, str]:
-    """``{vital: "low" | "normal" | "high"}`` of the arrival reading, judged
-    against a child's age-banded range where one lists the vital, else the
-    adult limits of ``ed_note_admitted.yaml``. A vital without a value is
-    left out."""
-    limits = load_ed_note_admitted().adult_vital_limits
-    age_months = age_in_completed_months(_o(ctx.patient, "date_of_birth", None), _o(arrival, "timestamp", None))
-    states: dict[str, str] = {}
-    for vital, adult in limits.items():
-        value = _o(arrival, vital, None)
-        if value is None:
-            continue
-        child = pediatric_vital_range(vital, age_months)
-        low, high = (child.low, child.high) if child is not None else (adult.low, adult.high)
-        if low is not None and float(value) < low:
-            states[vital] = "low"
-        elif high is not None and float(value) > high:
-            states[vital] = "high"
-        else:
-            states[vital] = "normal"
-    return states
-
-
-def _agreeing_clauses(text: str, states: dict[str, str], lang: str) -> str:
-    """``text`` without the clauses whose vital-sign statement the arrival
-    reading contradicts (``ed_note_admitted.yaml::exam_vital_terms``)."""
-    if not text:
-        return ""
-    data = load_ed_note_admitted()
-    code = normalize_lang(lang)
-    separators = data.clause_separators.get(code) or data.clause_separators["en"]
-    terms = sorted(
-        ((term, entry) for entry in data.exam_vital_terms for term in entry.terms.get(code) or entry.terms["en"]),
-        key=lambda pair: -len(pair[0]),
-    )
-
-    def agrees(clause: str) -> bool:
-        stated: dict[str, set[str]] = {}
-        rest = clause.lower()
-        for term, entry in terms:
-            if term.lower() in rest:
-                rest = rest.replace(term.lower(), " ")
-                stated.setdefault(entry.vital, set()).update(entry.states)
-        return all(vital not in states or states[vital] in ok for vital, ok in stated.items())
-
-    def keep(piece: str, level: int) -> str:
-        if level == len(separators):
-            return piece if agrees(piece) else ""
-        sep = separators[level]
-        return sep.join(kept for kept in (keep(part, level + 1) for part in piece.split(sep)) if kept)
-
-    return keep(text, 0)
 
 
 def agree_with_arrival_mode(text: str, ctx: NarrativeContext) -> str:

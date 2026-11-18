@@ -14,7 +14,7 @@ from typing import Any
 from clinosim.modules._shared import get_attr_or_key
 from clinosim.timeutil import parse_iso_datetime
 
-__all__ = ["in_force_at"]
+__all__ = ["in_force_at", "recorded_by"]
 
 
 def in_force_at(records: list[Any], as_of: datetime | None, key: str = "date") -> Any | None:
@@ -37,3 +37,19 @@ def in_force_at(records: list[Any], as_of: datetime | None, key: str = "date") -
         if best_at is None or at >= best_at:
             best, best_at = row, at
     return best if best is not None else rows[0]
+
+
+def recorded_by(records: list[Any], as_of: datetime | None, key: str = "timestamp") -> list[Any]:
+    """The records whose ``key`` time is at or before ``as_of`` (Issue #3241):
+    what existed when a document was written. A record without a parseable
+    time is kept (it cannot be placed after the document); ``as_of`` None (no
+    authored time): every record."""
+    rows = list(records or [])
+    if as_of is None:
+        return rows
+    kept: list[Any] = []
+    for row in rows:
+        at = parse_iso_datetime(get_attr_or_key(row, key, None), lenient=True)
+        if at is None or at <= as_of:
+            kept.append(row)
+    return kept

@@ -457,6 +457,136 @@ def load_ed_note_admitted() -> EdNoteAdmitted:
 
 
 # ─────────────────────────────────────────────────────────────────
+# disease_exam.yaml (Issues #3245, #3227)
+# ─────────────────────────────────────────────────────────────────
+
+# Body systems an authored disease exam may write (the order they are written
+# in is ``renderers/_shared_helpers.PHYSICAL_EXAM_SYSTEMS``).
+_DISEASE_EXAM_BODY_SYSTEMS = _NEONATAL_EXAM_BODY_SYSTEMS | {"musculoskeletal", "extremities"}
+_SEVERITY_KEYS = ("mild", "moderate", "severe")
+_AVPU_LEVELS = ("A", "V", "P", "U")
+_NIHSS_MAX_SCORE = 42  # the NIH Stroke Scale totals 0-42
+
+
+def _lang_or_severity_text(entry: dict[str, Any]) -> dict[str, Any]:
+    """One exam text: a language map, or a ``mild`` / ``moderate`` / ``severe``
+    map of language maps (at least one severity)."""
+    if "en" in entry:
+        _english_text(entry)
+        return entry
+    if not entry or set(entry) - set(_SEVERITY_KEYS):
+        raise ValueError(f"an exam text is a language map or a map of {_SEVERITY_KEYS}, got keys {sorted(entry)}")
+    for text in entry.values():
+        _english_text(text)
+    return entry
+
+
+_ExamText = Annotated[dict[str, Any], AfterValidator(_lang_or_severity_text)]
+
+
+class DiseaseExamEntry(BaseModel):
+    """The admission exam of one disease: its ``general`` appearance (else
+    the severity default) and the findings of the systems it affects."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    general: _EnglishLangMap | None = None
+    systems: dict[str, _ExamText]
+
+    @field_validator("systems")
+    @classmethod
+    def _known_systems(cls, systems: dict[str, Any]) -> dict[str, Any]:
+        unknown = set(systems) - _DISEASE_EXAM_BODY_SYSTEMS
+        if unknown:
+            raise ValueError(f"disease_exam.yaml: unknown body systems {sorted(unknown)}")
+        return systems
+
+
+class AtrialFibrillationExam(BaseModel):
+    """When the exam writes an irregularly irregular rhythm (Issue #3227)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    disease_ids: list[str]
+    condition_code_prefixes: list[str] = Field(min_length=1)
+    irregular_stages: list[str] = Field(min_length=1)
+    irregular: _EnglishLangMap
+    regular_clauses: dict[str, list[str]]
+
+    @field_validator("regular_clauses")
+    @classmethod
+    def _english_clauses(cls, clauses: dict[str, list[str]]) -> dict[str, list[str]]:
+        if "en" not in clauses or not clauses["en"]:
+            raise ValueError("regular_clauses needs English clauses")
+        return clauses
+
+
+class StrokeExam(BaseModel):
+    """The focal deficit of an acute stroke exam (Issue #3227): one text per
+    side of the weakness and severity, and the NIHSS band of each severity."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    disease_ids: list[str] = Field(min_length=1)
+    nihss: dict[str, Annotated[list[int], Field(min_length=2, max_length=2)]]
+    right: dict[str, _EnglishLangMap]
+    left: dict[str, _EnglishLangMap]
+    nihss_format: _EnglishLangMap
+
+    @model_validator(mode="after")
+    def _complete(self) -> StrokeExam:
+        for name, bands in (("nihss", self.nihss), ("right", self.right), ("left", self.left)):
+            missing = set(_SEVERITY_KEYS) - set(bands)
+            if missing:
+                raise ValueError(f"disease_exam.yaml: stroke.{name} lacks severities {sorted(missing)}")
+        for severity, (low, high) in self.nihss.items():
+            if not 0 <= low <= high <= _NIHSS_MAX_SCORE:
+                raise ValueError(
+                    f"disease_exam.yaml: stroke.nihss.{severity} must be within 0-{_NIHSS_MAX_SCORE} and ascending"
+                )
+        for text in self.nihss_format.values():
+            if "{score}" not in text or "{deficit}" not in text:
+                raise ValueError("disease_exam.yaml: stroke.nihss_format needs {deficit} and {score} placeholders")
+        return self
+
+
+class DiseaseExam(BaseModel):
+    """Shape of disease_exam.yaml."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    consciousness: dict[str, _EnglishLangMap]
+    general: dict[str, _EnglishLangMap]
+    atrial_fibrillation: AtrialFibrillationExam
+    stroke: StrokeExam
+    diseases: dict[str, DiseaseExamEntry] = Field(min_length=1)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _non_empty(cls, data: Any) -> Any:
+        return _not_empty(data, "disease_exam.yaml")
+
+    @model_validator(mode="after")
+    def _complete(self) -> DiseaseExam:
+        if set(self.consciousness) != set(_AVPU_LEVELS):
+            raise ValueError(f"disease_exam.yaml: consciousness must have exactly the levels {_AVPU_LEVELS}")
+        if set(self.general) != set(_SEVERITY_KEYS):
+            raise ValueError(f"disease_exam.yaml: general must have exactly the severities {_SEVERITY_KEYS}")
+        disease_dir = _HERE.parent / "disease" / "reference_data"
+        named = {*self.diseases, *self.atrial_fibrillation.disease_ids, *self.stroke.disease_ids}
+        unknown = sorted(d for d in named if not (disease_dir / f"{d}.yaml").exists())
+        if unknown:
+            raise ValueError(f"disease_exam.yaml: unknown disease ids {unknown}")
+        return self
+
+
+@lru_cache(maxsize=1)
+def load_disease_exam() -> DiseaseExam:
+    """Load and validate disease_exam.yaml. Cached singleton."""
+    return DiseaseExam.model_validate(load_validated_yaml(_REF_DIR / "disease_exam.yaml", DiseaseExam))
+
+
+# ─────────────────────────────────────────────────────────────────
 # chief_complaint_variants.yaml (Issue #983)
 # ─────────────────────────────────────────────────────────────────
 

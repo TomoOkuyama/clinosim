@@ -1,0 +1,359 @@
+# Admission physical examination of the admitting disease (Issues #3245,
+# #3227).
+#
+# The admission H&P (and the ED note of a patient admitted through the ED)
+# writes the examination of the problem that brought the patient in: the
+# findings of the systems the disease affects, in English and Japanese, after
+# the vital signs and a general-appearance clause. A system the disease does
+# not touch is left unwritten (no "normal" assertion is invented for it).
+#
+# ``diseases.<disease_id>.systems.<body system>`` is one language map
+# (``{en: ..., ja: ...}``, English required) or a per-severity map
+# (``{mild: {en, ja}, moderate: {en, ja}, severe: {en, ja}}``). A clause that
+# states a vital sign ("tachycardia", "hypotension", "tachypnea",
+# "hypoxemia"; ed_note_admitted.yaml::exam_vital_terms) is left out when the
+# reading the note quotes contradicts it, and the findings are separated by
+# ", " (English) or "、" (Japanese) so the clauses can be told apart.
+#
+# The findings are the textbook examination findings of each condition. They
+# are the clinosim author's description of a typical presentation, not
+# measurements: nothing here is a CIF value or a threshold, and a CIF value
+# that disagrees (the vitals) wins by the clause filter above.
+
+metadata:
+  kind: reference
+  name: disease_exam
+  source: clinosim
+
+# The consciousness clause, from the AVPU level of the quoted reading. A note
+# without a reading states no level.
+consciousness:
+  A: {en: "alert", ja: "意識清明"}
+  V: {en: "drowsy, responds to voice", ja: "傾眠、呼びかけに反応する"}
+  P: {en: "responds only to painful stimulus", ja: "痛み刺激にのみ反応する"}
+  U: {en: "unresponsive", ja: "刺激に反応しない"}
+
+# The general appearance of the admitted patient when the disease has no
+# ``general`` entry of its own.
+general:
+  mild: {en: "mildly ill-appearing", ja: "軽度の苦痛様"}
+  moderate: {en: "ill-appearing, in moderate distress", ja: "中等度の苦痛様"}
+  severe: {en: "acutely ill-appearing, in marked distress", ja: "強い苦痛様、重篤感あり"}
+
+# Atrial fibrillation (Issue #3227): a patient in AF has an irregularly
+# irregular pulse. The rhythm clause of the cardiovascular finding ("regular
+# rhythm", 「整」) is replaced by the AF rhythm, or the AF rhythm is written
+# alone when the disease has no cardiovascular finding. Applies to the
+# admission for AF itself and to a patient whose chronic atrial fibrillation
+# (ICD-10 I48) is not in the paroxysmal stage (a paroxysmal AF patient may be
+# in sinus rhythm between episodes, so the regular rhythm stays).
+atrial_fibrillation:
+  disease_ids: [atrial_fibrillation_rvr]
+  condition_code_prefixes: ["I48"]
+  irregular_stages: ["Persistent", "Long-standing persistent", "Permanent"]
+  irregular: {en: "irregularly irregular rhythm", ja: "脈は不整（絶対性不整脈）"}
+  regular_clauses:
+    en: ["regular rhythm", "regular rate and rhythm", "regular"]
+    ja: ["整"]
+
+# Acute stroke (Issue #3227): the focal deficit that brought the patient in,
+# never "no paralysis". The CIF records the stroke and its severity but not
+# which hemisphere, so the side of the weakness is drawn per encounter from a
+# hash of the encounter id (the same in every document of the stay) and the
+# deficit follows from it: weakness of the right side comes from the dominant
+# (left) hemisphere with aphasia and gaze deviation to the left, weakness of
+# the left side from the right hemisphere with hemispatial neglect and gaze
+# deviation to the right. ``nihss`` is the NIH Stroke Scale band of each
+# severity, the bands of cerebral_infarction.yaml (moderate 5-15, severe > 15)
+# with 1-4 for mild; the score of the admission exam is drawn inside the band
+# from a hash of the encounter id. It is written on the admission day only.
+stroke:
+  disease_ids: [cerebral_infarction, hemorrhagic_stroke]
+  nihss: {mild: [1, 4], moderate: [5, 15], severe: [16, 25]}
+  # weakness of the right side (dominant-hemisphere lesion)
+  right:
+    mild:
+      en: "mild right arm weakness with drift, mild right facial droop, mild dysarthria"
+      ja: "右上肢の軽度麻痺（バレー徴候陽性）、右顔面の軽度麻痺、軽度の構音障害"
+    moderate:
+      en: "right hemiparesis (MMT 3/5, arm weaker than leg), right facial palsy, dysarthria, non-fluent aphasia, gaze deviated to the left"
+      ja: "右片麻痺（MMT 3/5、上肢＞下肢）、右顔面麻痺、構音障害、運動性失語、左方への共同偏視"
+    severe:
+      en: "dense right hemiplegia (MMT 0-1/5), right facial palsy, global aphasia, forced gaze deviation to the left"
+      ja: "右完全片麻痺（MMT 0-1/5）、右顔面麻痺、全失語、左方への共同偏視"
+  # weakness of the left side (non-dominant-hemisphere lesion)
+  left:
+    mild:
+      en: "mild left arm weakness with drift, mild left facial droop, mild dysarthria"
+      ja: "左上肢の軽度麻痺（バレー徴候陽性）、左顔面の軽度麻痺、軽度の構音障害"
+    moderate:
+      en: "left hemiparesis (MMT 3/5, arm weaker than leg), left facial palsy, dysarthria, left hemispatial neglect, gaze deviated to the right"
+      ja: "左片麻痺（MMT 3/5、上肢＞下肢）、左顔面麻痺、構音障害、左半側空間無視、右方への共同偏視"
+    severe:
+      en: "dense left hemiplegia (MMT 0-1/5), left facial palsy, dysarthria, left hemispatial neglect, forced gaze deviation to the right"
+      ja: "左完全片麻痺（MMT 0-1/5）、左顔面麻痺、構音障害、左半側空間無視、右方への共同偏視"
+  # how the deficit and the score are written together
+  nihss_format: {en: "{deficit}; NIHSS {score}", ja: "{deficit}（NIHSS {score}点）"}
+
+diseases:
+  acute_appendicitis:
+    systems:
+      abdominal:
+        en: "tenderness at McBurney point with rebound tenderness and guarding"
+        ja: "右下腹部（McBurney 点）に圧痛、反跳痛と筋性防御を認める"
+  acute_cholecystitis:
+    systems:
+      abdominal:
+        en: "right upper quadrant tenderness with a positive Murphy sign, voluntary guarding"
+        ja: "右上腹部に圧痛、Murphy 徴候陽性、筋性防御を認める"
+  acute_kidney_injury:
+    systems:
+      abdominal:
+        en: "soft, no suprapubic distension, no costovertebral angle tenderness"
+        ja: "軟、下腹部の膨隆なし、肋骨脊柱角叩打痛なし"
+  acute_mi:
+    general:
+      en: "pale, diaphoretic, in distress from chest discomfort"
+      ja: "顔面蒼白、冷汗を伴い、胸部不快感による苦悶様"
+    systems:
+      cardiovascular:
+        en: "regular rhythm, no new murmur or rub, jugular venous pressure not elevated"
+        ja: "整、新規の雑音・心膜摩擦音なし、頸静脈怒張なし"
+      respiratory:
+        mild: {en: "clear to auscultation bilaterally", ja: "呼吸音清、ラ音なし"}
+        moderate: {en: "clear to auscultation bilaterally", ja: "呼吸音清、ラ音なし"}
+        severe: {en: "bibasilar crackles, tachypnea", ja: "両下肺野で断続性ラ音を聴取、呼吸数増加"}
+  acute_pancreatitis:
+    systems:
+      abdominal:
+        en: "epigastric tenderness with voluntary guarding, decreased bowel sounds"
+        ja: "心窩部に圧痛と筋性防御、腸蠕動音の低下"
+  alcohol_withdrawal:
+    general:
+      en: "diaphoretic, restless"
+      ja: "発汗、落ち着きなし"
+    systems:
+      cardiovascular:
+        en: "tachycardia, no murmur"
+        ja: "頻脈、心雑音なし"
+      neurological:
+        en: "coarse tremor of the outstretched hands, brisk reflexes"
+        ja: "手指の粗大な振戦、腱反射亢進"
+      psychiatric:
+        en: "anxious, agitated"
+        ja: "不安・焦燥が強い"
+  aspiration_pneumonia:
+    systems:
+      respiratory:
+        en: "coarse crackles over the dependent lung fields, tachypnea"
+        ja: "背側・下肺野に粗い断続性ラ音を聴取、呼吸数増加"
+      neurological:
+        en: "impaired swallowing, coughs when drinking"
+        ja: "嚥下機能低下、水分摂取時にむせを認める"
+  asthma_exacerbation:
+    systems:
+      respiratory:
+        mild: {en: "scattered expiratory wheezes, prolonged expiration", ja: "呼気時の喘鳴を散在性に聴取、呼気延長"}
+        moderate: {en: "diffuse expiratory wheezes, prolonged expiration, tachypnea, speaks in phrases", ja: "びまん性の呼気性喘鳴、呼気延長、呼吸数増加、短文で会話"}
+        severe: {en: "diffuse wheezes, accessory muscle use, tachypnea, speaks only in words", ja: "びまん性喘鳴、補助呼吸筋の使用、呼吸数増加、単語でしか話せない"}
+  atrial_fibrillation_rvr:
+    systems:
+      cardiovascular:
+        en: "tachycardia, no murmur"
+        ja: "頻脈、心雑音なし"
+      respiratory:
+        en: "clear to auscultation bilaterally"
+        ja: "呼吸音清"
+  bacterial_pneumonia:
+    systems:
+      respiratory:
+        en: "crackles and bronchial breath sounds over the affected lung field, tachypnea"
+        ja: "患側肺野で断続性ラ音と気管支呼吸音を聴取、呼吸数増加"
+  cellulitis:
+    systems:
+      skin:
+        en: "erythema, warmth, swelling and tenderness of the affected area with an ill-defined border"
+        ja: "患部に発赤・熱感・腫脹・圧痛を認め、境界は不明瞭"
+  cerebral_infarction:
+    systems: {}
+  copd_exacerbation:
+    systems:
+      respiratory:
+        mild: {en: "diffuse expiratory wheezes, prolonged expiration", ja: "呼気性喘鳴を聴取、呼気延長"}
+        moderate: {en: "diffuse wheezes, decreased breath sounds, prolonged expiration, tachypnea", ja: "喘鳴、呼吸音減弱、呼気延長、呼吸数増加"}
+        severe: {en: "diffuse wheezes, markedly decreased breath sounds, accessory muscle use, tachypnea", ja: "喘鳴、呼吸音の著明な減弱、補助呼吸筋の使用、呼吸数増加"}
+  crush_injury_hand:
+    systems:
+      extremities:
+        en: "swelling, bruising and tenderness of the crushed hand with painful, limited finger movement"
+        ja: "受傷した手に腫脹・皮下出血・圧痛を認め、指の運動は疼痛のため制限される"
+  deep_vein_thrombosis:
+    systems:
+      extremities:
+        en: "unilateral leg swelling with calf tenderness, warmth and pitting edema"
+        ja: "片側下肢の腫脹、下腿の圧痛と熱感、圧痕性浮腫を認める"
+  depression_inpatient:
+    systems:
+      psychiatric:
+        en: "depressed mood, constricted affect, psychomotor retardation, poor eye contact"
+        ja: "抑うつ気分、感情の平板化、精神運動抑制、視線が合いにくい"
+  diabetic_ketoacidosis:
+    general:
+      en: "dehydrated, in distress"
+      ja: "脱水を認め、苦痛様"
+    systems:
+      respiratory:
+        en: "deep, rapid (Kussmaul) respirations, fruity breath odor"
+        ja: "深く速い呼吸（Kussmaul 呼吸）、アセトン臭"
+      abdominal:
+        en: "diffuse mild tenderness without guarding"
+        ja: "びまん性に軽度の圧痛、筋性防御なし"
+      skin:
+        en: "dry mucous membranes, decreased skin turgor"
+        ja: "口腔粘膜の乾燥、皮膚ツルゴールの低下"
+  elective_knee_arthroplasty:
+    systems:
+      musculoskeletal:
+        en: "knee deformity with joint line tenderness and limited range of motion"
+        ja: "膝関節の変形、関節裂隙の圧痛、可動域制限を認める"
+      extremities:
+        en: "distal pulses palpable, sensation intact"
+        ja: "足背動脈を触知、感覚は保たれている"
+  electrical_injury:
+    systems:
+      skin:
+        en: "burn wounds at the electrical contact sites"
+        ja: "通電部位に熱傷創を認める"
+  fall_from_height:
+    systems:
+      musculoskeletal:
+        en: "pain, swelling and tenderness over the injured sites with restricted movement"
+        ja: "受傷部位に疼痛・腫脹・圧痛を認め、運動が制限される"
+  gi_bleeding:
+    general:
+      en: "pale, ill-appearing"
+      ja: "顔面蒼白、苦痛様"
+    systems:
+      cardiovascular:
+        en: "tachycardia, no murmur"
+        ja: "頻脈、心雑音なし"
+      abdominal:
+        en: "soft, mild epigastric tenderness, no peritoneal signs"
+        ja: "軟、心窩部に軽度の圧痛、腹膜刺激徴候なし"
+      skin:
+        en: "pale conjunctivae"
+        ja: "眼瞼結膜の蒼白"
+  heart_failure_exacerbation:
+    systems:
+      cardiovascular:
+        en: "tachycardia, S3 gallop, elevated jugular venous pressure"
+        ja: "頻脈、III 音（ギャロップ）を聴取、頸静脈怒張"
+      respiratory:
+        en: "bibasilar crackles, tachypnea"
+        ja: "両下肺野で断続性ラ音を聴取、呼吸数増加"
+      extremities:
+        en: "bilateral pitting leg edema"
+        ja: "両下腿に圧痕性浮腫"
+  hemorrhagic_stroke:
+    systems: {}
+  hip_fracture:
+    systems:
+      musculoskeletal:
+        en: "affected leg shortened and externally rotated, groin tenderness, unable to bear weight, pain on passive hip motion"
+        ja: "患側下肢の短縮と外旋、鼠径部の圧痛、荷重不能、股関節の他動運動で疼痛"
+      extremities:
+        en: "distal pulses palpable, sensation intact"
+        ja: "足背動脈を触知、末梢の感覚は保たれている"
+  ileus:
+    systems:
+      abdominal:
+        en: "distended and tympanic, diminished bowel sounds, mild diffuse tenderness"
+        ja: "腹部膨満、鼓音、腸蠕動音の減弱、びまん性に軽度の圧痛"
+  industrial_burn_severe:
+    systems:
+      skin:
+        en: "partial- to full-thickness burns over a large body surface area"
+        ja: "広範囲に深達性の熱傷（II 度〜III 度）を認める"
+  influenza:
+    systems:
+      respiratory:
+        en: "clear to auscultation or scattered rhonchi, dry cough"
+        ja: "呼吸音清または軽度の連続性ラ音、乾性咳嗽"
+      head:
+        en: "pharyngeal erythema without exudate"
+        ja: "咽頭の発赤、白苔なし"
+  liver_cirrhosis_decompensated:
+    systems:
+      abdominal:
+        en: "distended abdomen with shifting dullness, splenomegaly"
+        ja: "腹部膨満、移動性濁音を認め、脾腫を触知"
+      skin:
+        en: "jaundice, spider angiomata, palmar erythema"
+        ja: "黄疸、クモ状血管腫、手掌紅斑"
+      extremities:
+        en: "bilateral leg edema"
+        ja: "両下腿に浮腫"
+  psychosis_inpatient:
+    systems:
+      psychiatric:
+        en: "disorganized thought, hallucinations and delusions, poor insight"
+        ja: "思考のまとまりのなさ、幻覚・妄想を認め、病識に乏しい"
+  pulmonary_embolism:
+    systems:
+      cardiovascular:
+        mild: {en: "regular rhythm, no murmur", ja: "整、心雑音なし"}
+        moderate: {en: "tachycardia, no murmur", ja: "頻脈、心雑音なし"}
+        severe: {en: "tachycardia, hypotension, elevated jugular venous pressure", ja: "頻脈、血圧低下、頸静脈怒張"}
+      respiratory:
+        en: "tachypnea, clear to auscultation"
+        ja: "呼吸数増加、呼吸音清"
+  sepsis:
+    general:
+      en: "ill-appearing"
+      ja: "重篤感がある"
+    systems:
+      cardiovascular:
+        mild: {en: "tachycardia, regular rhythm", ja: "頻脈、整"}
+        moderate: {en: "tachycardia, regular rhythm", ja: "頻脈、整"}
+        severe: {en: "tachycardia, hypotension, delayed capillary refill", ja: "頻脈、血圧低下、毛細血管再充満時間の延長"}
+      respiratory:
+        en: "tachypnea"
+        ja: "呼吸数増加"
+      skin:
+        mild: {en: "warm skin", ja: "皮膚は温かい"}
+        moderate: {en: "warm skin", ja: "皮膚は温かい"}
+        severe: {en: "mottled, cool extremities", ja: "皮膚のまだら模様、四肢冷感"}
+  subdural_hematoma:
+    systems:
+      head:
+        en: "scalp contusion at the site of injury"
+        ja: "受傷部位に頭皮の挫傷"
+      neurological:
+        en: "fluctuating alertness, mild weakness of the limbs opposite the lesion"
+        ja: "意識レベルの変動、病変と反対側の軽度の筋力低下"
+  traffic_accident_severe:
+    systems:
+      musculoskeletal:
+        en: "multiple contusions and abrasions with tenderness and restricted movement over the injured sites"
+        ja: "多発する打撲・擦過傷、受傷部位に圧痛と運動制限を認める"
+  urinary_tract_infection:
+    systems:
+      abdominal:
+        en: "suprapubic tenderness, costovertebral angle tenderness on the affected side"
+        ja: "恥骨上部に圧痛、患側の肋骨脊柱角叩打痛"
+  vertebral_compression_fracture:
+    systems:
+      musculoskeletal:
+        en: "point tenderness over the fractured vertebra, pain on percussion of the spinous process, limited trunk movement"
+        ja: "骨折椎体の限局した圧痛、棘突起の叩打痛、体幹の動きが疼痛のため制限される"
+      neurological:
+        en: "lower-limb strength and sensation preserved"
+        ja: "下肢の筋力・感覚は保たれている"
+  wrist_fracture_surgical:
+    systems:
+      musculoskeletal:
+        en: "swelling, deformity and tenderness of the distal radius with limited wrist movement"
+        ja: "橈骨遠位端に腫脹・変形・圧痛を認め、手関節の運動が制限される"
+      extremities:
+        en: "fingers warm, sensation intact"
+        ja: "手指は温かく、感覚は保たれている"

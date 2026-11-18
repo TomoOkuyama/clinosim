@@ -25,6 +25,9 @@ from clinosim.modules.document.narrative._template_helpers import (
     _render_safety_skips_line,
 )
 from clinosim.modules.document.narrative.registry import DocumentTypeSpec
+from clinosim.modules.document.narrative.renderers._composers import pe_vitals_reading
+from clinosim.modules.document.narrative.renderers._disease_exam import exam_findings
+from clinosim.modules.document.narrative.renderers._exam_agreement import arrival_vital_states
 from clinosim.types.document import NarrativeContext, NarrativeOutput
 
 if TYPE_CHECKING:
@@ -131,9 +134,14 @@ def render_progress_note(
 
         # Add physical exam findings to the objective section (JP only,
         # EN skips to prevent CJK leak — sibling of build_physical_examination fix)
-        phys_exam = generator._resolve_physical_exam(ctx, ctx.clinical_course_archetype, ctx.day_index)
-        if phys_exam:
-            facts.append(f"physical_exam_findings.{ctx.clinical_course_archetype}.day_{ctx.day_index}")
+        # Issue #3227: the same exam findings as the H&P (the AF rhythm and
+        # the stroke deficit included), not the archetype baseline alone.
+        reading = pe_vitals_reading(ctx)
+        phys_exam, exam_source = exam_findings(
+            generator, ctx, reading, arrival_vital_states(reading, ctx) if reading is not None else {}
+        )
+        if exam_source:
+            facts.append(exam_source)
         phys_summary = generator._format_physical_exam(phys_exam, ctx.severity, lang)
         # Issue #2086: same consciousness / CC consistency rewrite as the H&P PE.
         if phys_summary:

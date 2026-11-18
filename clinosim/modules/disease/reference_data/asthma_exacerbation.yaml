@@ -519,8 +519,6 @@ course_archetypes:
       day_0:
         subjective: "症状あり"
         objective: "バイタル安定、検査所見あり"
-        assessment: "初期診断確定、治療開始"
-        plan: "治療継続、経過観察"
       day_1:
         subjective: "症状緩和傾向"
         objective: "バイタル安定、検査所見改善"

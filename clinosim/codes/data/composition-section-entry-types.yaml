@@ -43,6 +43,7 @@ sections:
   medications_at_home: [MedicationRequest]
   physical_exam: [Observation]
   physical_examination: [Observation]
+  admission_results: [Observation, DiagnosticReport]
   triage_details: [Observation]
 
   # Discharge summary (US path — JP eDS uses jp-clins-eds-section-codes.yaml)

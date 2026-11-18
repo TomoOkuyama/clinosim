@@ -32,6 +32,7 @@ from clinosim.modules.document.narrative._template_helpers import (
     _pick_localized,
     _render_home_med_name,
 )
+from clinosim.modules.document.narrative.context import newborn_workup_known_at
 from clinosim.modules.document.narrative.renderers.section_builders._registry import section
 from clinosim.modules.document.narrative.renderers.section_builders.patient_history import (
     home_medications_at_admission,
@@ -93,7 +94,10 @@ def _maybe_append_newborn_workup(text: str, facts: list[str], ctx: NarrativeCont
         _render_newborn_workup_summary,
     )
 
-    summary = _render_newborn_workup_summary(workup, lang=ctx.target_lang)
+    # Issue #3241: a screening or measurement dated after the note is not yet known.
+    summary = _render_newborn_workup_summary(
+        newborn_workup_known_at(workup, getattr(ctx, "authored_datetime", None)), lang=ctx.target_lang
+    )
     if not summary:
         return text, facts
     # Terminate the appended fragment with the locale-appropriate
@@ -164,19 +168,15 @@ def _build_hpi_core(generator: TemplateNarrativeGenerator, ctx: NarrativeContext
         # arrival as the triage record has it.
         from clinosim.modules.document.narrative.renderers.section_builders.ed_note import agree_with_arrival_mode
 
-        text, facts = _disease_hpi(ctx, fallback, presented, facts, ed_note=True)
+        text, facts = _disease_hpi(ctx, fallback, presented, facts)
         return agree_with_arrival_mode(text, ctx), facts
 
-    return _disease_hpi(ctx, fallback, presented, facts, ed_note=False)
+    return _disease_hpi(ctx, fallback, presented, facts)
 
 
-def _disease_hpi(
-    ctx: NarrativeContext, fallback: str, presented: str, facts: list[str], *, ed_note: bool
-) -> tuple[str, list[str]]:
+def _disease_hpi(ctx: NarrativeContext, fallback: str, presented: str, facts: list[str]) -> tuple[str, list[str]]:
     """The HPI from the disease protocol's ``hpi_template`` (see
-    :func:`_build_hpi_core`). ``ed_note``: the English onset sentence is the
-    generic one of the disease's ``onset_type`` when it has one (Issue #3243),
-    so an injury is not written as symptoms developing over days."""
+    :func:`_build_hpi_core`), in the document language."""
     lang = ctx.target_lang
     proto = ctx.disease_protocol
     narrative = _o(proto, "narrative", None) if proto is not None else None
@@ -187,21 +187,17 @@ def _disease_hpi(
         # encounters whose disease YAML has no narrative section.
         return _with_extras(ctx, fallback, presented, facts)
 
-    # US-locale leak fix. `hpi_template.onset_pattern` and
-    # `trigger_options` in disease YAMLs are JP-only strings. The EN
-    # locale previously emitted the JP text (tagged
-    # `:ja_only_fallback`), which surfaced as CJK in US Composition
-    # `.section[].text.div`. The EN locale now synthesizes a
-    # locale-neutral English phrase per severity and skips
-    # `trigger_options` entirely (per-disease English wording is
-    # deferred to the LLM narrative pass — a functional fallback beats
-    # a locale leak).
     if not has_authored_narrative(lang):
-        typed = _typed_onset(hpi_tmpl, ctx, facts) if ed_note else ""
-        if typed:
-            return typed, facts
-        facts.append(f"generic:hpi_onset_en.{ctx.severity}")
-        return _hpi_onset(ctx.severity, lang), facts
+        # `hpi_template.onset_pattern` and `trigger_options` are authored in
+        # Japanese only, so English writes the generic sentence of the
+        # disease's `onset_type` (Issue #3245: the H&P too, so an injury is
+        # not written as symptoms developing over days), else the severity
+        # sentence, followed by the same history / medications / ROS parts.
+        onset = _typed_onset(hpi_tmpl, ctx, facts)
+        if not onset:
+            facts.append(f"generic:hpi_onset_en.{ctx.severity}")
+            onset = _hpi_onset(ctx.severity, lang)
+        return _with_extras(ctx, onset, presented, facts)
 
     onset = _onset_sentence(hpi_tmpl, ctx, facts)
     return _with_extras(ctx, onset or fallback, presented, facts)
@@ -262,8 +258,12 @@ def _with_extras(ctx: NarrativeContext, onset: str, presented: str, facts: list[
 
 
 def _join(*sentences: str) -> str:
-    """Concatenate HPI sentences (each already ends with its punctuation)."""
-    return "".join(s.strip() for s in sentences if s and s.strip())
+    """Concatenate HPI sentences (each already ends with its punctuation): a
+    space after a Latin full stop, none after a Japanese one."""
+    out = ""
+    for sentence in (s.strip() for s in sentences if s and s.strip()):
+        out += f" {sentence}" if out and out[-1] in ".!?" else sentence
+    return out
 
 
 class _HpiParts(NamedTuple):
@@ -291,8 +291,6 @@ def _hpi_parts(ctx: NarrativeContext) -> _HpiParts:
     the onset text as well. Template-only (no LLM dependency) and CIF-anchored
     (no fabrication)."""
     lang = ctx.target_lang
-    if not has_authored_narrative(lang):
-        return _HpiParts("", "", "")
     patient = ctx.patient
     enc = ctx.encounter
     demographics = ""
@@ -370,7 +368,7 @@ def _hpi_parts(ctx: NarrativeContext) -> _HpiParts:
     elif meds:
         parts.append(t("narrative_text.hpi.prior_care_outpatient", lang))
 
-    return _HpiParts(demographics, cc_sentence, "".join(parts))
+    return _HpiParts(demographics, cc_sentence, _join(*parts))
 
 
 def _displayed_chief_complaint(cc: str, ctx: NarrativeContext) -> str:
@@ -403,7 +401,7 @@ def _ros_line(ctx: NarrativeContext, presented_text: str) -> str:
     chief complaint and onset text, Issue #3228) and are not already written
     there. ``""`` without a disease or negatives — never fabricated."""
     lang = ctx.target_lang
-    if not has_authored_narrative(lang) or ctx.disease_protocol is None:
+    if ctx.disease_protocol is None:
         return ""
     disease_id = str(_o(ctx.disease_protocol, "disease_id", "") or "")
     if not disease_id:

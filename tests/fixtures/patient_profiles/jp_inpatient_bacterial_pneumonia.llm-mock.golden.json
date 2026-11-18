@@ -15,17 +15,20 @@
         "ctx.patient.smoking_status",
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
-        "physical_exam_findings.smooth_recovery.day_0",
         "ctx.vitals[day_0]",
+        "physical_exam_findings.disease_exam.bacterial_pneumonia",
+        "ctx.lab_results.known_at_note_time",
+        "ctx.imaging_studies.known_at_note_time",
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0"
       ],
-      "generated_at": "2024-06-15T12:01:00+09:00",
+      "generated_at": "2024-06-15T15:01:00+09:00",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "llm",
         "lang": "ja"
       },
       "sections": {
+        "admission_results": "検査（異常値）: AST 31 U/L [H]、血糖 115 mg/dL [H]、Na 136 mmol/L [L]、PCT 1.84 ng/mL [H]、ほか異常値 5 項目。画像・生理検査: 胸部レントゲン (正面・側面)（急性心肺疾患を示唆する所見なし）、胸部レントゲン (正面・側面)（右下葉肺炎像）",
         "allergies": "薬物アレルギーなし（NKDA）",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "3日前より発熱・湿性咳嗽・胸痛",
@@ -33,7 +36,7 @@
         "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "常用薬なし",
         "past_medical_history": "COPD（慢性閉塞性肺疾患） [J44.9]",
-        "physical_examination": "バイタルサイン: BP 118/71 mmHg, HR 103/min, T 38.2°C, SpO2 96%, RR 19/min。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "physical_examination": "バイタルサイン: BP 118/71 mmHg, HR 103/min, T 38.2°C, SpO2 96%, RR 19/min。一般状態: 意識清明、中等度の苦痛様。呼吸器: 患側肺野で断続性ラ音と気管支呼吸音を聴取",
         "social_history": "喫煙歴: 非喫煙者; 飲酒歴: 飲酒なし; 職業: その他"
       },
       "text": ""
@@ -46,7 +49,7 @@
       "facts_used": [
         "disease_protocol.course_archetypes.smooth_recovery.daily_trajectory.day_0",
         "ctx.vitals.today",
-        "physical_exam_findings.smooth_recovery.day_0",
+        "physical_exam_findings.disease_exam.bacterial_pneumonia",
         "ctx.day_index",
         "ctx.clinical_course_archetype"
       ],
@@ -80,11 +83,11 @@
       },
       "sections": {
         "assessment": "[Mock LLM response #2 — assessment]",
-        "objective": "BP 120/71 mmHg, HR 104 回/分, RR 25 回/分, SpO2 87% (RA), T 38.2°C。バイタル安定、検査所見あり。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし",
+        "objective": "BP 120/71 mmHg, HR 104 回/分, RR 25 回/分, SpO2 87% (RA), T 38.2°C。バイタル安定、検査所見あり。一般状態: 意識清明、中等度の苦痛様。呼吸器: 患側肺野で断続性ラ音と気管支呼吸音を聴取、呼吸数増加",
         "plan": "[Mock LLM response #2 — plan]",
         "subjective": "[Mock LLM response #2 — subjective]"
       },
-      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 120/71 mmHg, HR 104 回/分, RR 25 回/分, SpO2 87% (RA), T 38.2°C。バイタル安定、検査所見あり。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
+      "text": "S（主観） [Mock LLM response #2 — subjective]\nO（客観） BP 120/71 mmHg, HR 104 回/分, RR 25 回/分, SpO2 87% (RA), T 38.2°C。バイタル安定、検査所見あり。一般状態: 意識清明、中等度の苦痛様。呼吸器: 患側肺野で断続性ラ音と気管支呼吸音を聴取、呼吸数増加\nA（評価） [Mock LLM response #2 — assessment]\nP（計画） [Mock LLM response #2 — plan]"
     }
   },
   "doc-ENC-FORCED-0001-885245253478-03": {
@@ -2180,7 +2183,7 @@
         "surgery_schedule": "手術：予定なし",
         "symptoms": "3日前より発熱・湿性咳嗽・胸痛",
         "test_schedule": "検査：担当医の判断により決定",
-        "treatment_plan": "【評価】初期診断確定、治療開始\n【方針】治療継続、経過観察",
+        "treatment_plan": "【評価】主訴「発熱・咳嗽・呼吸困難」で入院。病態: 細菌性肺炎 (中等度)。併存疾患: COPD（慢性閉塞性肺疾患）。\n【方針】予定入院期間: 約14日。薬物療法: アンピシリン/スルバクタム、エノキサパリン、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）、輸液: 生理食塩液 125 mL/h。検査・処置: 気管支鏡検査。",
         "ward_and_room": "病棟：4E　病室：4E-04"
       },
       "text": ""
@@ -2277,7 +2280,7 @@
         "encounter.triage_data",
         "ctx.allergies",
         "ctx.vitals[0]",
-        "physical_exam_findings.smooth_recovery.day_0",
+        "physical_exam_findings.disease_exam",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
         "ctx.encounter.chief_complaint",
@@ -2295,7 +2298,7 @@
         "disposition": "[Mock LLM response #21 — disposition]",
         "ed_workup": "検査: CBC (全血球算定)、LFT (肝機能パネル)、CRP、PCT、クレアチニン、BUN、Na、K。画像: 胸部レントゲン (正面・側面)。投薬: アンピシリン/スルバクタム、輸液: 生理食塩液 125 mL/h、解熱剤: アセトアミノフェン 500mg 経口 6時間毎 頓用（38.5℃以上の発熱時）。処置指示: 酸素投与: 鼻カニューラ SpO2 >= 94%",
         "hpi": "[Mock LLM response #21 — hpi]",
-        "physical_exam": "来院時所見: BP 120/71 mmHg, HR 104 回/分, RR 25 回/分, SpO2 87%, T 38.2°C。一般状態: 意識清明、中等度苦痛様、発汗あり。循環器: 頻脈（心拍数 90-110）、心雑音なし。呼吸器: 呼吸数増加（20-28/分）、気管支呼吸音・湿性ラ音を認める。腹部: 平坦、軟、圧痛なし。神経: 麻痺なし。",
+        "physical_exam": "来院時所見: BP 120/71 mmHg, HR 104 回/分, RR 25 回/分, SpO2 87%, T 38.2°C。一般状態: 意識清明、中等度の苦痛様。呼吸器: 患側肺野で断続性ラ音と気管支呼吸音を聴取、呼吸数増加。",
         "triage_details": "トリアージレベル: JTAS レベル2。来院形態: 独歩来院。アレルギー: 薬物アレルギーなし（NKDA）。"
       },
       "text": ""

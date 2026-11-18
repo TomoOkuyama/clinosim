@@ -251,6 +251,15 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
     procedures = _o(record, "procedures", None) or []
     has_aabr = False
     has_metabolic = False
+    # Issue #3241: when each item was done, so a note carries only what
+    # existed at its authored time (:func:`newborn_workup_known_at`).
+    event_times: dict[str, str] = {}
+
+    def _note_time(event: str, value: Any) -> None:
+        text = str(value or "")
+        if text and (event not in event_times or text < event_times[event]):
+            event_times[event] = text
+
     for proc in procedures:
         ptype = str(_o(proc, "procedure_type", "") or "").lower()
         pid = str(_o(proc, "procedure_id", "") or "").upper()
@@ -263,6 +272,7 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
             or "HEARING-SCREEN" in pid
         ):
             has_aabr = True
+            _note_time("aabr", _o(proc, "start_datetime", None))
         if (
             "tandem" in haystack
             or "metabolic_screen" in haystack
@@ -271,6 +281,7 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
             or "METABOLIC-SCREEN" in pid
         ):
             has_metabolic = True
+            _note_time("metabolic", _o(proc, "start_datetime", None))
 
     # Real MedicationAdministrationRecord shape uses `drug_name`
     # (not `medication_display_name` / `display_name`).
@@ -281,16 +292,20 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
         display = str(
             _o(mar, "drug_name", "") or _o(mar, "medication_display_name", "") or _o(mar, "display_name", "") or ""
         ).lower()
+        mar_time = _o(mar, "actual_datetime", None) or _o(mar, "scheduled_datetime", None)
         if "vitamin k" in display or "phytonadione" in display or "フィトナジオン" in display:
             has_vitamin_k = True
+            _note_time("vitamin_k", mar_time)
         if "erythromycin" in display or "エリスロマイシン" in display:
             # Ophthalmic prophylaxis in US neonates is erythromycin
             # 0.5% ophthalmic ointment. Explicit OPH route also flags.
             route = str(_o(mar, "route", "") or "").lower()
             if route in ("oph", "ophthalmic", "eye") or "eye" in display or "ophthalmic" in display:
                 has_ophthalmic = True
+                _note_time("ophthalmic", mar_time)
         if "silver nitrate" in display or "povidone" in display:
             has_ophthalmic = True
+            _note_time("ophthalmic", mar_time)
 
     return {
         "is_neonate": True,
@@ -304,7 +319,46 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
         "has_metabolic": has_metabolic,
         "has_vitamin_k": has_vitamin_k,
         "has_ophthalmic": has_ophthalmic,
+        "event_times": event_times,
+        "cchd_at": _cchd_time(newborn_ext),
     }
+
+
+def _cchd_time(newborn_ext: dict[str, Any]) -> str:
+    """The earliest time of the newborn's CCHD pulse-oximetry readings."""
+    times = [str(_o(e, "timestamp", "") or "") for e in newborn_ext.get("cchd_pulse_ox") or []]
+    return min((x for x in times if x), default="")
+
+
+def newborn_workup_known_at(workup: dict[str, Any], as_of: Any) -> dict[str, Any]:
+    """``workup`` limited to what existed at ``as_of`` (Issue #3241): a
+    screening or measurement dated after the document is left out. The Apgar
+    scores are birth data and stay. ``as_of`` None, or an item with no time:
+    kept."""
+    if not workup or as_of is None:
+        return workup
+    from clinosim.timeutil import parse_iso_datetime
+
+    def after(text: Any) -> bool:
+        at = parse_iso_datetime(text, lenient=True)
+        return at is not None and at > as_of
+
+    times = workup.get("event_times") or {}
+    out = dict(workup)
+    for key, event in (
+        ("has_aabr", "aabr"),
+        ("has_metabolic", "metabolic"),
+        ("has_vitamin_k", "vitamin_k"),
+        ("has_ophthalmic", "ophthalmic"),
+    ):
+        if out.get(key) and after(times.get(event)):
+            out[key] = False
+    if after(workup.get("cchd_at")):
+        out["cchd_ru_spo2"] = out["cchd_le_spo2"] = None
+    series = [e for e in workup.get("bilirubin_series") or [] if not after(e.get("timestamp"))]
+    out["bilirubin_series"] = series
+    out["bilirubin_peak"] = max((e["value_mg_dl"] for e in series), default=None)
+    return out
 
 
 def _build_safety_skips(patient: Any, encounter: Any) -> list[dict[str, Any]]:

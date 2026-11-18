@@ -5,21 +5,28 @@
     "narrative": {
       "facts_used": [
         "ctx.encounter.chief_complaint",
-        "generic:hpi_onset_en.severe",
+        "disease_protocol.narrative.hpi_template.onset_type.acute",
+        "ctx.patient.demographics",
+        "ctx.encounter.chief_complaint",
+        "ctx.patient.chronic_conditions",
         "ctx.patient.chronic_conditions",
         "ctx.patient.smoking_status",
         "ctx.patient.alcohol_use",
         "ctx.patient.occupation",
         "ctx.vitals[day_0]",
+        "physical_exam_findings.disease_exam.hemorrhagic_stroke",
+        "ctx.lab_results.known_at_note_time",
+        "ctx.imaging_studies.known_at_note_time",
         "composed:cif_state_en"
       ],
-      "generated_at": "2024-06-15T04:16:00Z",
+      "generated_at": "2024-06-15T07:16:00Z",
       "generator": "llm-mock",
       "generator_metadata": {
         "generator": "llm",
         "lang": "en"
       },
       "sections": {
+        "admission_results": "Laboratory (abnormal): glucose 119 mg/dL [H]; CRP 11.6 mg/L [H]; albumin 3.2 g/dL [L]; WBC 11275 /uL [H]. Imaging and studies: CT head (non-contrast) (No acute intracranial process)",
         "allergies": "No known drug allergies (NKDA)",
         "assessment_and_plan": "[Mock LLM response #1 — assessment_and_plan]",
         "chief_complaint": "Sudden severe headache, vomiting, altered consciousness",
@@ -27,7 +34,7 @@
         "hpi": "[Mock LLM response #1 — hpi]",
         "medications_at_home": "No home medications",
         "past_medical_history": "Essential (primary) hypertension [I10]; Unspecified atrial fibrillation [I48.91]",
-        "physical_examination": "Vital signs: BP 135/81 mmHg, HR 93/min, T 36.9°C, SpO2 95% (RA), RR 19/min. General: no additional exam findings recorded.",
+        "physical_examination": "Vital signs: BP 135/81 mmHg, HR 93/min, T 36.9°C, SpO2 95% (RA), RR 19/min. General: drowsy, responds to voice, acutely ill-appearing, in marked distress. Neurological: dense left hemiplegia (MMT 0-1/5), left facial palsy, dysarthria, left hemispatial neglect, forced gaze deviation to the right; NIHSS 24",
         "social_history": "Smoking: Non-smoker; Alcohol: Non-drinker; Occupation: Other"
       },
       "text": ""
@@ -1069,9 +1076,13 @@
       "facts_used": [
         "ctx.encounter.chief_complaint",
         "disease_protocol.narrative.hpi_template.onset_type.acute",
+        "ctx.patient.demographics",
+        "ctx.encounter.chief_complaint",
+        "ctx.patient.chronic_conditions",
         "encounter.triage_data",
         "ctx.allergies",
         "ctx.vitals[0]",
+        "physical_exam_findings.disease_exam",
         "ctx.orders.ed",
         "ctx.diagnoses.admission_diagnosis_code",
         "ctx.encounter.chief_complaint",
@@ -1089,7 +1100,7 @@
         "disposition": "[Mock LLM response #11 — disposition]",
         "ed_workup": "Labs: PT-INR, APTT, fibrinogen, creatinine, BUN, Na, K, glucose. Imaging: CT head (non-contrast), head CT angiography, head CT (without contrast). Medications: Nicardipine, Labetalol, IV fluids: NS 80 mL/h",
         "hpi": "[Mock LLM response #11 — hpi]",
-        "physical_exam": "On arrival: BP 131/74 mmHg, HR 96 bpm, RR 18 /min, SpO2 94%, T 36.3°C.",
+        "physical_exam": "On arrival: BP 131/74 mmHg, HR 96 bpm, RR 18 /min, SpO2 94%, T 36.3°C. General: drowsy, responds to voice, acutely ill-appearing, in marked distress. Neurological: dense left hemiplegia (MMT 0-1/5), left facial palsy, dysarthria, left hemispatial neglect, forced gaze deviation to the right; NIHSS 24.",
         "triage_details": "Triage level: ESI Level 2. Arrival mode: Ambulance. Allergies: No known drug allergies (NKDA)."
       },
       "text": ""

@@ -300,6 +300,28 @@ physical_exam:
     ja: "その他の身体所見の記載なし。"
     en: "General: no additional exam findings recorded."
 
+# admission_hp results section (Issue #3245): the results available when the
+# H&P was written (Issue #3241).
+admission_results:
+  labs_abnormal:
+    ja: "検査（異常値）: {list}"
+    en: "Laboratory (abnormal): {list}"
+  labs_normal:
+    ja: "検査: 報告済みの {n} 項目に異常値なし"
+    en: "Laboratory: {n} results reported, none abnormal"
+  labs_pending:
+    ja: "検査: 結果待ち"
+    en: "Laboratory: results pending"
+  imaging:
+    ja: "画像・生理検査: {list}"
+    en: "Imaging and studies: {list}"
+  imaging_item:
+    ja: "{name}（{impression}）"
+    en: "{name} ({impression})"
+  none_yet:
+    ja: "記載時点で結果の報告なし"
+    en: "No results available at the time of this note"
+
 # admission_hp Assessment section composer phrases (Phase 1d-18).
 # From template_generator._compose_ap_assessment_from_state.
 ap_assessment:
@@ -331,6 +353,12 @@ ap_plan:
   observation_fallback:
     ja: "経過観察・症状に応じた対応。"
     en: "Observation with symptom-directed management."
+  planned_surgery:
+    ja: "手術予定: {name}。"
+    en: "Surgery planned: {name}."
+  code_status:
+    ja: "蘇生方針: {status}。"
+    en: "Code status: {status}."
 
 # admission_hp assessment+plan merged body (Phase A15 hardcoded-review).
 # Used by `build_assessment_and_plan` to compose the final `【評価】` /
