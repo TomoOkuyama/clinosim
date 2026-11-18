@@ -210,6 +210,7 @@ vaccines:
     frequency: pediatric_series
     administration: {route: SC, dose_ml: 0.5}
     available_from: "2012-11-01"    # 四種混合 (DTaP-IPV) 導入
+    birth_until: "2024-01-31"    # 2024-02-01 以降出生児は五種混合 (下の pediatric_dtap_ipv_hib)
     catch_up_max_age_days: 2737
     doses:
       - dose_number: 1
@@ -231,6 +232,58 @@ vaccines:
         age_days_min: 365    # 1歳
         age_days_max: 545    # 1歳半 (18か月)
         coverage_by_sex: {M: 0.937, F: 0.937}
+  # Issue #3301: 五種混合 (DTaP-IPV-Hib、CVX 120 "DTaP-Hib-IPV"、CDC IIS CVX
+  # 一覧で Active を確認) は 2024-04 から第1期の定期接種に使われ、四種混合 +
+  # 単独 Hib に代わる。実施要領「第2 各論 1 (1)」: 初回接種は生後2月から生後7月
+  # に至るまでを標準的な接種期間として 20 日以上 (標準的には 20 日から 56 日
+  # まで) の間隔で3回、追加接種は初回接種終了後 6 月以上 (標準的には 6 月から
+  # 18 月まで) の間隔で 1 回 (五種混合では Hib 単独のような開始月齢による回数の
+  # 減少は不要)。同 第1 総論 (15): 初回接種は原則として同一種類のワクチンを
+  # 必要回数接種する。そこで series は出生日で分ける: 2024-02-01 以降出生児
+  # (第1回が生後2月 = 2024-04-01 以降) は五種混合、それ以前の出生児は従来の
+  # 四種混合 + Hib (`birth_from` / `birth_until`)。接種率は令和5年度 実施率の
+  # 四種混合と Hib の低い方 (Hib 96.4% / 追加 DPT-IPV 93.7%) を用いる。令和6年度
+  # の五種混合の実施率表は確認していない。
+  # 出典: 厚生労働省「5種混合ワクチン」
+  # (https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kenkou_iryou/kenkou/kekkaku-kansenshou/yobou-sesshu/vaccine/dpt-ipv-hib/index.html)
+  # 「2024年4月以降、1期では5種混合ワクチンを用いた接種をします」、
+  # 定期接種実施要領 (令和7年9月30日改正) (https://www.mhlw.go.jp/content/001471610.pdf)。
+  pediatric_dtap_ipv_hib:
+    cvx: "120"
+    min_age: 0
+    frequency: pediatric_series
+    administration: {route: SC, dose_ml: 0.5}
+    available_from: "2024-04-01"    # 第1期に五種混合を使用
+    birth_from: "2024-02-01"
+    catch_up_max_age_days: 2737
+    doses:
+      - dose_number: 1
+        age_days_min: 60     # 生後 2 か月
+        age_days_max: 90
+        coverage_by_sex: {M: 0.964, F: 0.964}
+      - dose_number: 2
+        min_interval_days: 20    # 20日以上
+        age_days_min: 91
+        age_days_max: 120
+        coverage_by_sex: {M: 0.964, F: 0.964}
+      - dose_number: 3
+        min_interval_days: 20    # 20日以上
+        age_days_min: 121
+        age_days_max: 150
+        coverage_by_sex: {M: 0.964, F: 0.964}
+      - dose_number: 4
+        min_interval_days: 182    # 初回3回目から6か月以上
+        age_days_min: 365    # 1歳 (初回終了後 6 から 18 か月の間隔)
+        age_days_max: 545    # 1歳半 (18か月)
+        coverage_by_sex: {M: 0.937, F: 0.937}
+  # Issue #3301: 第2期は第1期の接種歴によらず、小学校就学前1年間の者に1回
+  # (実施要領「第2 各論 2 (1) イ」: 5歳以上7歳未満で小学校就学の始期に達する日の
+  # 1年前の日から当該始期に達する日の前日までの間にある者に1回、令和7年9月30日
+  # 改正)。第1期を受けなかった子も第2期の対象なので、2回目は 1回目の有無に
+  # 依存しない (`independent_of_previous`)。1回目を受けた子の2回目の確率は
+  # 2回目の周辺接種率 (0.92) が保たれるよう `independent_dose_coverage` で決め、
+  # 第1期を受けなかった子の接種率 `coverage_if_previous_missed` は出典のない
+  # 仮定値 (0.5)。dose_number は接種回数でなく期の位置 (第2期 = 2)。
   pediatric_mr:
     cvx: "04"
     min_age: 0
@@ -243,6 +296,8 @@ vaccines:
         age_days_max: 730    # 2歳
         coverage_by_sex: {M: 0.949, F: 0.949}
       - dose_number: 2
+        independent_of_previous: true
+        coverage_if_previous_missed: 0.5   # 仮定値 (出典なし)、周辺接種率は 0.92 のまま
         min_interval_days: 27    # 注射生ワクチンの間隔 27日以上
         age_days_min: 1825   # 5歳 (就学前)
         age_days_max: 2555   # 7歳
@@ -302,6 +357,7 @@ vaccines:
     frequency: pediatric_series
     administration: {route: SC, dose_ml: 0.5}
     available_from: "2013-04-01"    # 定期化
+    birth_until: "2024-01-31"    # 2024-02-01 以降出生児は五種混合
     doses:
       - dose_number: 1
         age_days_min: 60     # 生後 2 か月
