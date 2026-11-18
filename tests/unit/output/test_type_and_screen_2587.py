@@ -58,3 +58,15 @@ def test_a_typing_from_history_is_not_a_new_laboratory_result() -> None:
     assert not any(
         c.get("code") == "laboratory" for o in out for cat in o.get("category", []) for c in cat.get("coding", [])
     )
+
+
+def test_type_and_screen_is_issued_after_collection_3359() -> None:
+    """Issue #3359: effective is the collection (order) time, issued the result
+    time after the blood-bank turnaround, on the report and its Observations."""
+    out = _bb_blood_type(_ctx([_TS]))
+    report = next(r for r in out if r["resourceType"] == "DiagnosticReport")
+    assert report["effectiveDateTime"].startswith("2025-03-01T10:00")
+    assert report["issued"].startswith("2025-03-01T10:50")
+    for o in (r for r in out if r["resourceType"] == "Observation" and r.get("basedOn")):
+        assert o["effectiveDateTime"] == report["effectiveDateTime"]
+        assert o["issued"] == report["issued"]
