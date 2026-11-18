@@ -4,7 +4,7 @@
     "source_url": "https://www.cms.gov/files/zip/2027-code-descriptions-tabular-order.zip",
     "source_file": "Code Descriptions/icd10cm_order_2027.txt (long description, columns 78-)",
     "extracted_at": "2026-11-10",
-    "clinosim_codes_total": 497,
+    "clinosim_codes_total": 509,
     "clinosim_codes_missing_from_source": [
       "F00",
       "J46",
@@ -15,7 +15,7 @@
       "S67.8"
     ],
     "note": "ICD-10-CM codes in codes/data/icd-10-cm.yaml with the CMS long description (Issue #3127). billable = the order file's header flag (1 = valid for HIPAA-covered transactions). Codes missing from the source are WHO-only or retired codes the registry still lists; they are not emitted for the US.",
-    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt."
+    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt. K35.209, I21.09, K85.10, I48.19, L03.119, I63.30, I82.409, M80.08XA, S67.20XA, T75.4XXA, T31.20, I26.09 (Issue #3258, US billable discharge codes) were added from the same icd10cm_order_2027.txt."
   },
   "concept": [
     {
@@ -564,6 +564,11 @@
       "billable": false
     },
     {
+      "code": "I21.09",
+      "display": "ST elevation (STEMI) myocardial infarction involving other coronary artery of anterior wall",
+      "billable": true
+    },
+    {
       "code": "I21.1",
       "display": "ST elevation (STEMI) myocardial infarction of inferior wall",
       "billable": false
@@ -614,6 +619,11 @@
       "billable": true
     },
     {
+      "code": "I26.09",
+      "display": "Other pulmonary embolism with acute cor pulmonale",
+      "billable": true
+    },
+    {
       "code": "I26.9",
       "display": "Pulmonary embolism without acute cor pulmonale",
       "billable": false
@@ -657,6 +667,11 @@
       "code": "I48.1",
       "display": "Persistent atrial fibrillation",
       "billable": false
+    },
+    {
+      "code": "I48.19",
+      "display": "Other persistent atrial fibrillation",
+      "billable": true
     },
     {
       "code": "I48.2",
@@ -744,6 +759,11 @@
       "billable": false
     },
     {
+      "code": "I63.30",
+      "display": "Cerebral infarction due to thrombosis of unspecified cerebral artery",
+      "billable": true
+    },
+    {
       "code": "I63.4",
       "display": "Cerebral infarction due to embolism of cerebral arteries",
       "billable": false
@@ -802,6 +822,11 @@
       "code": "I82.40",
       "display": "Acute embolism and thrombosis of unspecified deep veins of lower extremity",
       "billable": false
+    },
+    {
+      "code": "I82.409",
+      "display": "Acute embolism and thrombosis of unspecified deep veins of unspecified lower extremity",
+      "billable": true
     },
     {
       "code": "I82.41",
@@ -1114,6 +1139,11 @@
       "billable": false
     },
     {
+      "code": "K35.209",
+      "display": "Acute appendicitis with generalized peritonitis, without abscess, unspecified as to perforation",
+      "billable": true
+    },
+    {
       "code": "K35.3",
       "display": "Acute appendicitis with localized peritonitis",
       "billable": false
@@ -1329,6 +1359,11 @@
       "billable": false
     },
     {
+      "code": "K85.10",
+      "display": "Biliary acute pancreatitis without necrosis or infection",
+      "billable": true
+    },
+    {
       "code": "K85.2",
       "display": "Alcohol induced acute pancreatitis",
       "billable": false
@@ -1397,6 +1432,11 @@
       "code": "L03.11",
       "display": "Cellulitis of other parts of limb",
       "billable": false
+    },
+    {
+      "code": "L03.119",
+      "display": "Cellulitis of unspecified part of limb",
+      "billable": true
     },
     {
       "code": "L03.12",
@@ -1502,6 +1542,11 @@
       "code": "M80.08",
       "display": "Age-related osteoporosis with current pathological fracture, vertebra(e)",
       "billable": false
+    },
+    {
+      "code": "M80.08XA",
+      "display": "Age-related osteoporosis with current pathological fracture, vertebra(e), initial encounter for fracture",
+      "billable": true
     },
     {
       "code": "M81",
@@ -2039,6 +2084,11 @@
       "billable": false
     },
     {
+      "code": "S67.20XA",
+      "display": "Crushing injury of unspecified hand, initial encounter",
+      "billable": true
+    },
+    {
       "code": "S68.1",
       "display": "Traumatic metacarpophalangeal amputation of other and unspecified finger",
       "billable": false
@@ -2184,6 +2234,11 @@
       "billable": false
     },
     {
+      "code": "T31.20",
+      "display": "Burns involving 20-29% of body surface with 0% to 9% third degree burns",
+      "billable": true
+    },
+    {
       "code": "T31.3",
       "display": "Burns involving 30-39% of body surface",
       "billable": false
@@ -2212,6 +2267,11 @@
       "code": "T75.4",
       "display": "Electrocution",
       "billable": false
+    },
+    {
+      "code": "T75.4XXA",
+      "display": "Electrocution, initial encounter",
+      "billable": true
     },
     {
       "code": "T78",

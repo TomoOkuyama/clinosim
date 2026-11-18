@@ -26,7 +26,12 @@ one RNG-free POST_ENCOUNTER enricher that appends a lab-derived AKI
   confidence rows: its severity code is set from the stay's physiology by
   `simulator/sepsis_severity.py`, Issue #3269 — skips candidates
   sex-locked for the patient (Issue #947), and returns the
-  `UNRESOLVED_DIAGNOSIS_ICD` sentinel when nothing resolves); named
+  `UNRESOLVED_DIAGNOSIS_ICD` sentinel when nothing resolves);
+  `discharge_diagnosis_code` (the inpatient discharge diagnosis, Issue
+  #3258 — the candidate of the ground-truth disease, never another
+  candidate of the differential; a disease without such a candidate, e.g.
+  a trauma protocol on the built-in default differential, discharges with
+  its own progression or primary code); named
   non-specific / fallback codes (`UNRESOLVED_DIAGNOSIS_ICD = "R69"`,
   `ICD_COUGH = "R05"`; R50.9 / R53.1 / R68.8 / Z09 are tracked for a
   follow-up sweep and not yet extracted); ICD-10 predicates
@@ -53,6 +58,7 @@ from clinosim.modules.diagnosis.engine import (
     initialize_differential,         # (disease_id, age, protocol_diagnostic=None) -> DifferentialDiagnosis
     update_differential,             # (diff, findings, confirmation_threshold=0.90, protocol_lr_table=None) -> DifferentialDiagnosis
     get_current_diagnosis_code,      # (diff, protocol_progression=None, patient_sex=None) -> (icd_code, display)
+    discharge_diagnosis_code,        # (diff, *, disease_id, primary_code, protocol_progression=None, patient_sex=None) -> (icd_code, display)
 )
 from clinosim.modules.diagnosis.nonspecific_codes import (
     UNRESOLVED_DIAGNOSIS_ICD,        # "R69"
