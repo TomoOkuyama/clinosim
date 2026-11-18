@@ -935,6 +935,94 @@ def _start_vasopressor_for_hypotension(stay: _Stay, run: _Run, day: int, vitals_
     )
 
 
+def _apply_antithrombotic_plan(stay: _Stay, run: _Run, day: int) -> None:
+    """Start or stop the stay's antithrombotic agents of ``day`` (Issue #3277,
+    ``simulator.antithrombotic_plan``): aspirin (plus clopidogrel for a minor
+    stroke) for a patient without an anticoagulant indication; for one with
+    it, aspirin until the anticoagulant starts. A new agent goes through the
+    drug-safety gate at once, so a contraindicated one is skipped (logged)
+    instead of given. Draws nothing."""
+    if stay.protocol.antithrombotic_plan is None:
+        return
+    from clinosim.locale.free_text import localize_drug_name
+    from clinosim.modules.order.engine import protocol_medication_orders
+    from clinosim.simulator.antithrombotic_plan import steps_for_day
+    from clinosim.simulator.medication_pipeline import apply_drug_safety_gate_to_orders
+
+    steps = steps_for_day(
+        stay.patient,
+        stay.protocol,
+        severity=stay.severity,
+        country_key=stay.country_key,
+        encounter_id=stay.encounter_id,
+        day=day,
+        is_running=lambda drug: _running_order(run.orders, drug) is not None,
+        hemorrhage="hemorrhagic_transformation" in run.active_complications,
+    )
+    if not steps:
+        return
+    when = stay.admission_time + (timedelta(days=day, hours=10) if day else timedelta(hours=2))
+    new_orders: list[Order] = []
+    for idx, step in enumerate(steps):
+        drug = protocol_drug_name(step.spec)
+        if step.action == "stop":
+            new_orders.append(
+                Order(
+                    order_id=(
+                        f"ORD-{stay.encounter_id}{MED_STOP_ORDER_ID_MARKER}D{day}-AT{idx}-{sanitize_id_token(drug, 8)}"
+                    ),
+                    patient_id=stay.patient.patient_id,
+                    order_type=OrderType.MEDICATION,
+                    display_name=f"DISCONTINUE: {drug}",
+                    urgency="routine",
+                    clinical_intent=t("order_intent.archetype_stop", "en", day=day, drug=drug),
+                    clinical_intent_ja=t(
+                        "order_intent.archetype_stop", "ja", day=day, drug=localize_drug_name(drug, "ja")
+                    ),
+                    ordered_datetime=when,
+                    status=OrderStatus.PLACED,
+                )
+            )
+            continue
+        new_orders.extend(
+            protocol_medication_orders(
+                step.spec,
+                order_id=f"ORD-{stay.encounter_id}-ANTITHR-D{day}-{sanitize_id_token(drug, 8)}",
+                encounter_id=stay.encounter_id,
+                patient_id=stay.patient.patient_id,
+                country=stay.country_key,
+                ordered_datetime=when,
+                ordered_by=stay.attending_id,
+                urgency="urgent",
+                order_set="",
+            )
+        )
+    stops = [o for o in new_orders if (o.display_name or "").startswith("DISCONTINUE:")]
+    starts = [o for o in new_orders if o not in stops]
+    accepted = [
+        o.display_name
+        for o in run.orders
+        if o.order_type == OrderType.MEDICATION
+        and o.display_name
+        and not o.display_name.startswith("DISCONTINUE:")
+        and _running_order(run.orders, o.drug_id or o.display_name) is not None
+    ]
+    gated = apply_drug_safety_gate_to_orders(
+        starts,
+        patient=stay.patient,
+        encounter_id=stay.encounter_id,
+        ordered_datetime=when,
+        attending_id=stay.attending_id,
+        protocol=stay.protocol,
+        country=stay.country_key,
+        already_accepted_meds=[
+            *(m.drug_name for m in stay.patient.current_medications or [] if m.drug_name),
+            *accepted,
+        ],
+    )
+    run.orders.extend([*stops, *gated])
+
+
 def _escalate_treatment(stay: _Stay, run: _Run, day: int) -> None:
     """Treatment escalation: inflammation not improving by day 3.
 
@@ -1383,6 +1471,7 @@ def _run_daily_loop(
         if day >= 1:
             _update_diagnosis(stay, run, day, day_results_start)
         _apply_archetype_modifications(stay, run, day)
+        _apply_antithrombotic_plan(stay, run, day)
         if day == TREATMENT_ESCALATION_DAY and run.state.inflammation_level > TREATMENT_ESCALATION_INFLAMMATION_MIN:
             _escalate_treatment(stay, run, day)
         _wean_vasoactive_support(stay, run, day)

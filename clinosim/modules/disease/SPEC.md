@@ -216,7 +216,7 @@ Other optional `DiseaseProtocol` fields used by some YAMLs:
 `expected_vital_distributions`, `sequela_code`, `minimum_severity`,
 `state_based_discharge`, `admission_route` (`emergency` | `elective`),
 `procedure`, `medication_holds`, `causes_myocardial_injury`, `causes_vte`,
-`acid_base_type`, `chronic_glycemic_control`, `ventricular_rate` (see below), `acs_antithrombotic_plan`
+`acid_base_type`, `chronic_glycemic_control`, `ventricular_rate` (see below), `antithrombotic_plan` (see below), `acs_antithrombotic_plan`
 (acute coronary syndrome: the in-stay antiplatelets of a patient on an oral
 anticoagulant follow the drug_safety `triple_therapy_after_acs` plan). There are no `display_name`,
 `category`, `reimbursement` (DPC / DRG) or `readmission` blocks;
@@ -403,6 +403,7 @@ The disease protocol's `order_protocols` define what the encounter module orders
 ### → observation
 - The state trajectory defines how state variables change → observation module converts these to lab values
 - `ventricular_rate` (arrhythmia presentations; Issue #3274) → the heart rate of the stay follows the ventricular response: `presenting_bpm` by severity until the first given dose of a `rate_control_classes` drug, then a linear fall to `controlled_bpm` over `hours_to_control` (by course archetype). Each rate is a hash draw keyed on the encounter (`simulator/ventricular_rate.py`); the vitals record the higher of it and the physiology-derived rate. The stay is not discharged while the rate is at or above `discharge_below_bpm`, and is extended a day at a time up to the maximum LOS
+- `antithrombotic_plan` (ischemic stroke; Issue #3277) → the antithrombotic regimen of the stay and of the discharge prescription (`simulator/antithrombotic_plan.py`). It names the `drugs` blocks of the antiplatelet and the anticoagulant (`antiplatelet_block`, `anticoagulant_block`; entries carry the maintenance `dose`, an optional `loading_dose`, and `dapt_addon: true` on the second agent of short-term DAPT), the chronic ICD-10 prefixes that indicate an oral anticoagulant (`oac_indication_codes`, matched against the patient's chronic conditions and the protocol's `implied_chronic_codes`), the severities treated as a minor stroke (`dapt_severities`) and `dapt_days`, and by country (`by_country`) the in-stay start days: `antiplatelet_start_day`, `dapt_start_day`, `anticoagulant_start_day` by severity. Validated at load (blocks exist for every country, every severity has an anticoagulant start day). A patient without an indication gets aspirin (loading dose, then maintenance), plus clopidogrel for a minor stroke; one with an indication gets aspirin until the anticoagulant starts, then the anticoagulant alone; one on a home anticoagulant gets nothing added; hemorrhagic transformation stops running agents. The discharge prescription carries the anticoagulant or the aspirin (never both for the same indication), the stay's anticoagulant by a hash of the patient and encounter ids, and maintenance doses only
 - Lab ordering frequency affects how many data points are generated
 
 ### → population
