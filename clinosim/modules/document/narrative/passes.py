@@ -745,6 +745,13 @@ class NarrativePass(ABC):
             drug = str(_o(item, "drug_name", "") or _o(item, "drug", "") or "")
             if drug:
                 entry: dict[str, Any] = {"drug_name": drug, "dose": str(_o(item, "dose", "") or "")}
+                # Issue #3244: the schedule of the line (frequency and number of
+                # days), read by the ED disposition's take-home prescription.
+                schedule_days = _o(item, "duration_days", None) or _o(item, "days_supply", None)
+                if _o(item, "frequency", None):
+                    entry["rx_frequency"] = str(_o(item, "frequency", ""))
+                if schedule_days:
+                    entry["rx_duration_days"] = int(schedule_days)
                 # Issue #2877: a statin titration, stated in the plan.
                 # Issue #3107: a dose instruction authored for another
                 # language (``dose_<lang>``; English is the base ``dose``

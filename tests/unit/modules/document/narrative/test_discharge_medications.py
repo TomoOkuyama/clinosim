@@ -79,7 +79,7 @@ def test_collect_discharge_medications_normalizes_outpatient_drug_key():
         },
     }
     meds = NarrativePass._collect_discharge_medications(patient_dict)
-    assert meds == [{"drug_name": "Metformin", "dose": ""}]
+    assert meds == [{"drug_name": "Metformin", "dose": "", "rx_duration_days": 30}]
 
 
 def test_collect_discharge_medications_empty_when_no_rx():

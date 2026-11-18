@@ -231,3 +231,38 @@ def test_ed_hpi_states_findings_not_instructions(cond: str) -> None:
     hpi = load_encounter_condition(cond)["narrative"]["ed_note_template"]["hpi"]
     for lang, text in hpi.items():
         assert not _INSTRUCTION.search(text), (cond, lang, text)
+
+
+# --- allergies and the prescription schedule ----------------------------------------
+
+
+@pytest.mark.parametrize("lang,word", [("en", "Allergies"), ("ja", "アレルギー")])
+def test_the_triage_note_and_triage_details_state_the_allergies(lang: str, word: str) -> None:
+    from clinosim.modules.document.narrative.renderers.section_builders.ed_note import build_triage_details
+
+    out = render_ed_triage_note(_ctx("low_back_pain", lang), SimpleNamespace())
+    assert word in out.raw_text
+    details, facts = build_triage_details(_GEN, _ctx("low_back_pain", lang))
+    assert word in details and "ctx.allergies" in facts
+
+
+def test_a_recorded_allergy_is_named() -> None:
+    allergy = SimpleNamespace(allergen_code="372687004", is_nka=False, criticality="")
+    out = render_ed_triage_note(_ctx("low_back_pain", "en", allergies=[allergy]), SimpleNamespace())
+    assert "Amoxicillin" in out.raw_text, out.raw_text
+
+
+def test_the_prescription_line_carries_frequency_and_days() -> None:
+    meds = [{"drug_name": "Ibuprofen", "dose": "600mg", "rx_frequency": "tid", "rx_duration_days": 10}]
+    en, _ = build_ed_disposition(_GEN, _ctx("low_back_pain", "en", discharge_medications=meds))
+    assert "Ibuprofen 600mg tid x10d" in en, en
+    ja, _ = build_ed_disposition(_GEN, _ctx("low_back_pain", "ja", discharge_medications=meds))
+    assert "10日分" in ja and "tid" not in ja, ja
+
+
+def test_the_collector_carries_the_schedule_of_an_ed_prescription() -> None:
+    from clinosim.modules.document.narrative.passes import NarrativePass
+
+    rx = {"items": [{"drug_name": "Ibuprofen", "dose": "600mg", "frequency": "tid", "duration_days": 10}]}
+    [med] = NarrativePass._collect_discharge_medications({"discharge_prescription": rx})
+    assert med["rx_frequency"] == "tid" and med["rx_duration_days"] == 10

@@ -2069,6 +2069,10 @@ triage_details:
   system_level:
     ja: "{system} レベル{level}"
     en: "{system} Level {level}"
+  # Issue #3244: the allergies taken at triage.
+  allergies:
+    ja: "アレルギー: {list}。"
+    en: " Allergies: {list}."
 
 # ED_TRIAGE_NOTE free-text renderer phrases (Phase 1d-33).
 # From _render_ed_triage_note_text.
@@ -2095,6 +2099,9 @@ triage_note:
   vitals_line:
     ja: "トリアージ時バイタルサイン: {vitals}"
     en: "Triage vital signs: {vitals}"
+  allergies_line:
+    ja: "アレルギー: {list}"
+    en: "Allergies: {list}"
 
 # Current-medications composer phrases (Phase 1d-33).
 # From _compose_current_medications_line — polypharmacy Plan-section
