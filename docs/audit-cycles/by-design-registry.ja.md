@@ -80,12 +80,12 @@
 ### fmh-onsetstring-omitted-for-healthy-relatives
 
 - **id**: `fmh-onsetstring-omitted-for-healthy-relatives`
-- **observation**: `FamilyMemberHistory.ndjson` の一部 (概ね 15–20%) で `condition[].onsetString` が欠落。
-- **by_design_reason**: `fhir_r4/demographics/family_history.py`(`_bb_family_history` の `if conditions:` ガード)は relative の `condition_codes` が空の場合 `condition[]` を emit しない。従って onsetString を attach する対象自体がない。健常な relative(疾患履歴無し) = clinically-realistic。FHIR R4 `FamilyMemberHistory.condition` は 0..*。
-- **signature**: onsetString 欠落 FMH で `"condition" not in resource`(そもそも condition array が存在しない)であること。`condition` array があるのに onsetString が欠落 = 真のバグ(本レジストリ対象外)。
+- **observation**: `FamilyMemberHistory.ndjson` の一部 (概ね 15–20%) で `condition[]` に `onsetString` が無い。
+- **by_design_reason**: `fhir_r4/demographics/family_history.py`(`_bb_family_history` の `if conditions:` ガード)は relative の `condition_codes` が空の場合、SNOMED CT 160266009 ("No significant family history"、Issue #3356) の `condition[]` を 1 件 emit する。これは疾患が無いことを述べる entry なので発症時期は存在しない。健常な relative(疾患履歴無し) = clinically-realistic。
+- **signature**: onsetString 欠落の FMH condition で `condition[].code.coding[0].code == "160266009"` であること。他のコードで onsetString が欠落 = 真のバグ(本レジストリ対象外)。
 - **established**: 2026-07-11 (Chain 2 verify)
 - **established_pr**: `1481306d2f`
-- **revalidation_check**: onsetString 欠落全 FMH で `"condition" not in resource` を確認。
+- **revalidation_check**: onsetString 欠落全 FMH condition で `code == "160266009"` を確認。
 
 ### co8-non-jp-marketed-drugs
 

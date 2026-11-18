@@ -28,6 +28,11 @@ FAMILY_MEMBER_HISTORY_ID_PREFIX = "fmh-"
 FAMILY_MEMBER_HISTORY_KEY_SYSTEM = structural_key_system("family-member-history-key")
 
 
+# SNOMED CT 160266009, situation "No relevant family history" (registered in
+# codes/data/snomed-ct.yaml, verified via tx.fhir.org $lookup).
+NO_FAMILY_HISTORY_SNOMED = "160266009"
+
+
 def _resolve_family_member_history_id(structural_key: str) -> str:
     """Return the opaque FHIR FamilyMemberHistory.id from a structural key.
 
@@ -88,6 +93,29 @@ def _resolve_family_history_code(code: str, country: str) -> str:
     return map_family_history_code(code, country)
 
 
+def _build_no_known_condition_codeable(lang: str) -> dict[str, Any]:
+    """CodeableConcept stating "no significant family history" (Issue #3356).
+
+    SNOMED CT is English-only here, so the English display stays in
+    ``coding[0].display`` and the target-language label goes in ``text``
+    (same dual-slot pattern as the relationship, Issue #360).
+    """
+    en_display = registry_display("snomed-ct", NO_FAMILY_HISTORY_SNOMED, "en") or NO_FAMILY_HISTORY_SNOMED
+    target_display = registry_display("snomed-ct", NO_FAMILY_HISTORY_SNOMED, lang) or en_display
+    result: dict[str, Any] = {
+        "coding": [
+            {
+                "system": get_system_uri("snomed-ct"),
+                "code": NO_FAMILY_HISTORY_SNOMED,
+                "display": en_display,
+            }
+        ]
+    }
+    if target_display != en_display:
+        result["text"] = target_display
+    return result
+
+
 def _bb_family_history(ctx: BundleContext) -> list[dict]:
     """Build FHIR FamilyMemberHistory from CIF family_history (v3-RoleCode + ICD).
 
@@ -145,5 +173,12 @@ def _bb_family_history(ctx: BundleContext) -> list[dict]:
         ]
         if conditions:
             res["condition"] = conditions
+        else:
+            # Issue #3356: a relative with no sampled condition means the
+            # history was taken and nothing notable was found (the narrative
+            # family-history section says the same). FHIR R4 has no "none"
+            # element: condition.code is 1..1 and dataAbsentReason means "not
+            # available", so state it as a coded situation concept.
+            res["condition"] = [{"code": _build_no_known_condition_codeable(lang)}]
         out.append(res)
     return out

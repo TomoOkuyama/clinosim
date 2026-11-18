@@ -128,7 +128,7 @@ clinosim/modules/family_history/
 | Consumer | 場所 | 役割 |
 | --- | --- | --- |
 | CSV adapter | [`clinosim/modules/output/csv_adapter.py`](../output/csv_adapter.py) (`convert_cif_to_csv`) | `record["family_history"]` から `family_history.csv` を書き出し (患者単位)。 |
-| FHIR `FamilyMemberHistory` builder | [`clinosim/modules/output/fhir_r4/demographics/family_history.py`](../output/fhir_r4/demographics/family_history.py) | 近親ごとに `FamilyMemberHistory` を 1 件出力。id は structural key `{patient_id}-NN` (identifier に保持) から導出した opaque な `fmh-<12hex>` で write 時 de-dup。 |
+| FHIR `FamilyMemberHistory` builder | [`clinosim/modules/output/fhir_r4/demographics/family_history.py`](../output/fhir_r4/demographics/family_history.py) | 近親ごとに `FamilyMemberHistory` を 1 件出力。id は structural key `{patient_id}-NN` (identifier に保持) から導出した opaque な `fmh-<12hex>` で write 時 de-dup。疾患が sampling されなかった近親には SNOMED CT 160266009 ("No significant family history") の `condition` を 1 件出力し (`coding` は英語 display、JP は `text` に日本語)、「聴取したが特記なし」と欠落を受け手が区別できる。 |
 | Enricher registry | [`clinosim/simulator/enrichers.py:254`](../../simulator/enrichers.py) | POST_RECORDS 登録。 |
 
 ## テスト

@@ -78,12 +78,12 @@ Each entry has six fields:
 ### fmh-onsetstring-omitted-for-healthy-relatives
 
 - **id**: `fmh-onsetstring-omitted-for-healthy-relatives`
-- **observation**: Some fraction (roughly 15–20%) of `FamilyMemberHistory.ndjson` records are missing `condition[].onsetString`.
-- **by_design_reason**: `fhir_r4/demographics/family_history.py` (`_bb_family_history`, the `if conditions:` guard) does not emit `condition[]` when the relative's `condition_codes` is empty, so there is no target to attach onsetString to. Healthy relatives (no disease history) = clinically realistic. FHIR R4 `FamilyMemberHistory.condition` has cardinality 0..*.
-- **signature**: For every FMH missing onsetString, `"condition" not in resource` (i.e., the condition array does not exist at all). If the condition array is present but onsetString is missing, that is a real bug (out of scope for this registry).
+- **observation**: Some fraction (roughly 15–20%) of `FamilyMemberHistory.ndjson` records have a `condition[]` entry without `onsetString`.
+- **by_design_reason**: `fhir_r4/demographics/family_history.py` (`_bb_family_history`, the `if conditions:` guard) emits a single `condition[]` entry coded SNOMED CT 160266009 ("No significant family history", Issue #3356) when the relative's `condition_codes` is empty. That entry states an absence, so there is no onset to record. Healthy relatives (no disease history) = clinically realistic.
+- **signature**: For every FMH condition missing onsetString, `condition[].code.coding[0].code == "160266009"`. A condition with any other code but no onsetString is a real bug (out of scope for this registry).
 - **established**: 2026-07-11 (Chain 2 verify)
 - **established_pr**: `1481306d2f`
-- **revalidation_check**: Confirm `"condition" not in resource` for every FMH missing onsetString.
+- **revalidation_check**: Confirm `code == "160266009"` for every FMH condition missing onsetString.
 
 ### co8-non-jp-marketed-drugs
 

@@ -5,7 +5,7 @@
     "source_file": "https://tx.fhir.org/r4/CodeSystem/$lookup (preferred term, synonyms, FSN)",
     "extracted_at": "2026-11-10",
     "edition_version": "http://snomed.info/sct/900000000000207008/version/20250201",
-    "clinosim_codes_total": 269,
+    "clinosim_codes_total": 270,
     "clinosim_codes_missing_from_source": [
       "303408005"
     ],
@@ -743,6 +743,44 @@
         {
           "use": "900000000000003001",
           "value": "Laboratory technician (occupation)"
+        }
+      ]
+    },
+    {
+      "code": "160266009",
+      "display": "No family history of",
+      "designation": [
+        {
+          "use": "900000000000013009",
+          "value": "No family history of"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "No relevant family history"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "No relevant FH: family history"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "No relevant family history (context-dependent category)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "No significant family history"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "No relevant family history (situation)"
+        },
+        {
+          "use": "900000000000003001",
+          "value": "No family history of clinical finding (situation)"
+        },
+        {
+          "use": "900000000000013009",
+          "value": "No family history of clinical finding"
         }
       ]
     },
