@@ -4757,7 +4757,11 @@ similarly, and have consumers import it.</p>
   <code>icd_codes</code> (primary + variants), encounter <code>icd10_code</code> or
   per-country <code>diagnosis_variants</code> codes,
   <code>builtin_differentials.yaml</code> <code>differentials[*].icd</code> +
-  <code>diagnosis_progression</code>. US billable in <code>icd-10-cm.yaml</code>;
+  <code>diagnosis_progression</code>, and every chronic code: locale
+  <code>chronic_prevalence</code> / <code>comorbidity_correlations</code>, longitudinal
+  onset events (<code>emits_icd</code>), disease <code>sequela_code</code> /
+  <code>implied_chronic_codes</code>, and the unknown-condition / HAI rule
+  tables. US billable in <code>icd-10-cm.yaml</code>;
   non-billable in <code>locale/us/code_mapping_diagnosis.yaml</code> folded to
   a billable leaf. JP puts WHO 3-4 digit codes into <code>icd-10.yaml</code>
   (CM-grained codes fold into WHO parents via
