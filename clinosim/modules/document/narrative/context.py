@@ -101,6 +101,7 @@ def build_narrative_context(
         family_history=_o(record, "family_history", []) or [],
         # Issue #1066 — encounter-filtered drug_safety avoidance log for narrative surface.
         safety_skips=safety_skips,
+        prior_safety_holds=build_prior_safety_holds(patient, encounter),
         # Issue #2995: home medications at admission (admission H&P).
         home_medications_at_admission=_o(record, "home_medications_at_admission", None),
         # Issue #1404 — neonatal admission workup projection (Apgar,
@@ -358,6 +359,30 @@ def newborn_workup_known_at(workup: dict[str, Any], as_of: Any) -> dict[str, Any
     series = [e for e in workup.get("bilirubin_series") or [] if not after(e.get("timestamp"))]
     out["bilirubin_series"] = series
     out["bilirubin_peak"] = max((e["value_mg_dl"] for e in series), default=None)
+    return out
+
+
+def build_prior_safety_holds(patient: Any, encounter: Any) -> list[dict[str, Any]]:
+    """The safety holds of ``patient.safety_skip_log`` logged for encounters
+    other than ``encounter`` (Issue #3250): a drug held during an earlier
+    admission, for the plan of the visit that follows it. Each entry is
+    ``{drug, drug_ja, reason, reason_ja, held_on}`` (``held_on``: ISO date)."""
+    if patient is None or encounter is None:
+        return []
+    encounter_id = _o(encounter, "id", None) or _o(encounter, "encounter_id", None)
+    out: list[dict[str, Any]] = []
+    for entry in _o(patient, "safety_skip_log", []) or []:
+        if _o(entry, "event_type", "avoid") != "hold" or _o(entry, "encounter_id", None) == encounter_id:
+            continue
+        out.append(
+            {
+                "drug": _o(entry, "candidate_drug", None) or "",
+                "drug_ja": _o(entry, "candidate_drug_ja", None) or "",
+                "reason": _o(entry, "active_conflict", None) or "",
+                "reason_ja": _o(entry, "active_conflict_ja", None) or "",
+                "held_on": str(_o(entry, "timestamp", "") or "")[:10],
+            }
+        )
     return out
 
 

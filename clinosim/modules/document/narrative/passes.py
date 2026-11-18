@@ -30,6 +30,7 @@ from clinosim.modules.document import specs_for_country
 from clinosim.modules.document.narrative.context import (
     _build_newborn_workup,
     _build_safety_skips,
+    build_prior_safety_holds,
     icu_transfer_day,
     visit_reason_fields,
 )
@@ -620,6 +621,7 @@ class NarrativePass(ABC):
             # CIF and rendered narrative. Delegate to the same helpers
             # here so the two factories stay in lockstep.
             safety_skips=_build_safety_skips(patient_dict.get("patient"), encounter_dict),
+            prior_safety_holds=build_prior_safety_holds(patient_dict.get("patient"), encounter_dict),
             newborn_workup=_build_newborn_workup(patient_dict, patient_dict.get("patient")),
             # Issue #2995: the home medications at admission (admission H&P);
             # the same field the ``build_narrative_context`` factory reads.

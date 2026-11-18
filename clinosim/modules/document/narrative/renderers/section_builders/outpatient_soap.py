@@ -1269,6 +1269,10 @@ def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeC
             if vital_plans:
                 text = "\n".join([text, *vital_plans])
                 facts.append("ctx.vitals.today")
+            template_holds = _compose_safety_hold_lines(ctx)
+            if template_holds:
+                text = "\n".join([text, *template_holds])
+                facts.append("ctx.prior_safety_holds")
             tail = _compose_follow_up_line(ctx)
             if tail:
                 facts.append("encounter_protocol.next_visit_interval")
@@ -1297,6 +1301,11 @@ def build_outpatient_plan(generator: TemplateNarrativeGenerator, ctx: NarrativeC
         if continuation:
             lines.append(continuation)
             facts.append(home_medications_at_admission(ctx)[1])
+    # Issue #3250: a drug held for a safety reason during an earlier admission.
+    hold_lines = _compose_safety_hold_lines(ctx)
+    if hold_lines:
+        lines.extend(hold_lines)
+        facts.append("ctx.prior_safety_holds")
 
     today_procs = _compose_today_procedures_line(ctx)
     if today_procs:
@@ -1457,6 +1466,50 @@ def _med_key(med: Any) -> str:
     catalog drug id (of the id, else of the name), else the folded name."""
     name, _cat = strip_protocol_prefix(str(_o(med, "drug_name", "") or ""))
     return drug_key(str(_o(med, "drug_id", "") or name))
+
+
+def _compose_safety_hold_lines(ctx: NarrativeContext) -> list[str]:
+    """The Plan lines of the drugs held for a safety reason during an earlier
+    encounter, within ``hold_followup_days`` of it (Issue #3250): the drug
+    resumed on today's prescription (with the reason it was held), or still on
+    hold (it is not on the prescription and not among the medications at the
+    start of the visit). The latest hold of a drug counts."""
+    from datetime import date as _date
+
+    from clinosim.locale.free_text import localize_drug_name
+    from clinosim.modules.document.narrative._outpatient_results import note_time, outpatient_results
+
+    holds = list(getattr(ctx, "prior_safety_holds", None) or [])
+    if not holds:
+        return []
+    lang = ctx.target_lang
+    when = note_time(ctx)
+    window = outpatient_results().hold_followup_days
+    prescribed = {_med_key(m) for m in (getattr(ctx, "discharge_medications", None) or [])}
+    at_start = {_med_key(m) for m in home_medications_at_admission(ctx)[0]}
+    latest: dict[str, dict[str, Any]] = {}
+    for hold in holds:
+        try:
+            held_on = _date.fromisoformat(str(hold.get("held_on", "")))
+        except ValueError:
+            continue
+        if when is not None and not 0 <= (when.date() - held_on).days <= window:
+            continue
+        key = drug_key(str(hold.get("drug", "")))
+        if key and (key not in latest or hold["held_on"] >= latest[key]["held_on"]):
+            latest[key] = hold
+    lines: list[str] = []
+    for key, hold in latest.items():
+        reason = str(hold.get(f"reason_{lang}") or hold.get("reason", ""))
+        drug = str(localize_drug_name(str(hold.get("drug", "")), lang))
+        if key in prescribed and key not in at_start:
+            phrase = "outpatient_results.hold_resumed"
+        elif key not in prescribed and key not in at_start:
+            phrase = "outpatient_results.hold_continued"
+        else:
+            continue
+        lines.append(t(phrase, lang, drug=drug, date=hold["held_on"], reason=reason))
+    return lines
 
 
 def _compose_medication_changes_line(ctx: NarrativeContext) -> str:

@@ -560,3 +560,18 @@ def register_builtin_enrichers() -> None:
             run=enrich_health_checkup,
         )
     )
+
+    # Chronic stages restated from the latest labs (Issue #3273). Runs after
+    # every other POST_RECORDS enricher (order 900) so the labs it reads are
+    # final; draws no random number.
+    from clinosim.modules.longitudinal.stage_refresh import refresh_stages_from_labs
+
+    register_enricher(
+        Enricher(
+            name="stage_refresh",
+            stage=POST_RECORDS,
+            order=900,
+            enabled=lambda c: True,
+            run=refresh_stages_from_labs,
+        )
+    )
