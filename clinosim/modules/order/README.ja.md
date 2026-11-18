@@ -243,7 +243,7 @@ from clinosim.modules.order.label_dose import within_label  # (name, frequency, 
   `dose` / `detail` の範囲を読み込み時に 1 回だけ単位ごとの規則で 1 つに
   決める: 既定は開始用量 (下限)、mL/h の維持輸液速度のみ上限 (MAR が従来
   記録してきた速度であり、小児の Holliday-Segar 則が上限とする成人速度)。
-  書かれた範囲は `titration_range` として項目に残る。用量単位を持たない範囲
+  書かれた範囲は `titration_range` として項目に残る。`discharge_oral` の維持薬は `duration_days` に 28 日 (継続処方の供給日数) を書く (0 や "ongoing" は不可)。急性コース上限 (14 日) を超える退院処方は FHIR で継続的な治療コースになる。用量単位を持たない範囲
   ("target INR 1.5-2.5"、"q6-8h")、"target" や比較記号の後の範囲は用量でない
   ので触れない。乱数は引かない。
 - **小児投与量** ([`reference_data/pediatric_dosing.yaml`](reference_data/pediatric_dosing.yaml)、

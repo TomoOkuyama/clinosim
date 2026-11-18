@@ -521,7 +521,7 @@ drugs:
         dose_text:
           en: "Per established regimen"
           ja: "既存のインスリンレジメンどおり"
-        duration_days: ongoing
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
         route: "SC"    # session 73 Issue #455: without this key the
                        # `_append_item` fallback at inpatient.py:2039 fills
                        # "PO" which falsely asserts oral administration for
@@ -533,7 +533,7 @@ drugs:
         dose_text:
           en: "Per established regimen"
           ja: "既存のインスリンレジメンどおり"
-        duration_days: ongoing
+        duration_days: 28   # chronic: the 28-day renewal supply of a maintenance drug
         route: "SC"    # session 73 Issue #455 (same rationale as japan side).
 
 # ============================================================

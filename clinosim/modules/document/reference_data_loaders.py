@@ -244,6 +244,8 @@ class DischargeInstructionGate(BaseModel):
     """When a discharge instruction applies to the patient (Issue #3254).
 
     Every listed condition must hold; an omitted one does not restrict.
+    ``age_min`` / ``age_max`` (inclusive, years at the encounter; an unknown
+    age keeps the instruction) bound the age (Issue #3264);
     ``sex`` / ``smoking_status`` / ``alcohol_use`` list the patient values
     the instruction is for (an unrecorded value keeps the instruction);
     ``conditions`` / ``exclude_conditions`` name value-set groups
@@ -255,6 +257,8 @@ class DischargeInstructionGate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     sex: list[str] | None = None
+    age_min: int | None = None
+    age_max: int | None = None
     smoking_status: list[str] | None = None
     alcohol_use: list[str] | None = None
     conditions: Annotated[list[str], AfterValidator(_known_condition_groups)] = Field(default_factory=list)

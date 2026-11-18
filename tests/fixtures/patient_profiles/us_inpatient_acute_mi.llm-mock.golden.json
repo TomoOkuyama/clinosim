@@ -1034,7 +1034,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 4\nPatient status: BP 112/70, HR 107, SpO2 94%, T 36.3°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 4\nPatient status: BP 112/70, HR 107, SpO2 94%, T 36.3°C.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip, Norepinephrine 0.05ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-29-night": {
@@ -1056,7 +1056,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 5\nPatient status: BP 115/70, HR 105, SpO2 93%, T 38.1°C.\nMeds administered: Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 5\nPatient status: BP 115/70, HR 105, SpO2 93%, T 38.1°C.\nMeds administered: Dobutamine 2ug/kg/min IV drip, Norepinephrine 0.05ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-30-day": {
@@ -1100,7 +1100,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 5\nPatient status: BP 113/72, HR 105, SpO2 98%, T 37.6°C.\nMeds administered: Ticagrelor, Dobutamine 2-20ug/kg/min IV drip, Norepinephrine 0.05-0.3ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 5\nPatient status: BP 113/72, HR 105, SpO2 98%, T 37.6°C.\nMeds administered: Ticagrelor, Dobutamine 2ug/kg/min IV drip, Norepinephrine 0.05ug/kg/min IV drip.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-308142489017-32-night": {

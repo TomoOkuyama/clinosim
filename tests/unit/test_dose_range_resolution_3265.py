@@ -71,3 +71,23 @@ def test_an_iv_fluid_order_is_named_by_one_rate() -> None:
     assert all("-" not in o.display_name for o in fluids)
     assert fluids[0].dose_quantity == 125.0
     assert "125 mL/h" in fluids[0].display_name
+
+
+def test_no_discharge_oral_entry_is_open_ended() -> None:
+    """Every discharge_oral entry states a supply in days: the 28-day renewal
+    supply of a maintenance drug, never 0 or "ongoing"."""
+    bad = []
+    for disease_id, protocol in load_all_disease_protocols().items():
+        block = protocol.drugs.get("discharge_oral")
+        if not isinstance(block, dict):
+            continue
+        for key in ("japan", "us"):
+            entries = block.get(key) or []
+            for e in [entries] if isinstance(entries, dict) else entries:
+                if (
+                    isinstance(e, dict)
+                    and "duration_days" in e
+                    and not (isinstance(e["duration_days"], int) and e["duration_days"] > 0)
+                ):
+                    bad.append((disease_id, key, e.get("drug_id"), e["duration_days"]))
+    assert not bad, bad

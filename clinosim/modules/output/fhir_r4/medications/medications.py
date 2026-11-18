@@ -57,6 +57,7 @@ from clinosim.modules.output.fhir_r4.lib.localization import (
     _split_rate_adjustment_suffix,
 )
 from clinosim.modules.output.fhir_r4.lib.profile_meta import declared_profiles, profile_meta
+from clinosim.simulator._stay_thresholds import ACUTE_COURSE_MAX_DAYS
 from clinosim.types.encounter import ACUTE_COURSE
 
 # HL7 CodeSystem URIs for MedicationRequest classification (both callers
@@ -137,13 +138,17 @@ def _course_for_discharge(is_discharge: bool, duration_days: int | None, course:
     An item marked as a short course for an acute illness (``course`` ==
     ``ACUTE_COURSE``, Issue #2873) is acute. Otherwise a non-discharge
     script (i.e. an outpatient renewal) is continuous by definition. A
-    discharge script with an open-ended supply (no ``duration_days``) is a
-    maintenance therapy handed over at discharge — continuous. A discharge
-    script with an explicit duration is a short course — acute.
+    discharge script with an open-ended supply (no ``duration_days``) or a
+    supply longer than the acute-course ceiling (the 28-day renewal supply
+    of a maintenance drug, Issue #3265) is maintenance therapy handed over at
+    discharge — continuous. A discharge script with a shorter duration is a
+    short course — acute.
     """
     if course == ACUTE_COURSE and duration_days is not None:
         return _COURSE_ACUTE
-    return _COURSE_CONTINUOUS if ((not is_discharge) or duration_days is None) else _COURSE_ACUTE
+    if (not is_discharge) or duration_days is None or duration_days > ACUTE_COURSE_MAX_DAYS:
+        return _COURSE_CONTINUOUS
+    return _COURSE_ACUTE
 
 
 def _derive_mr_category(
