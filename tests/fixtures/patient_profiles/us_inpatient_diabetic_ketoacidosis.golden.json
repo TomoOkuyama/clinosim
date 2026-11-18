@@ -21,7 +21,7 @@
       },
       "sections": {
         "allergies": "No known drug allergies (NKDA)",
-        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Working diagnosis: diabetic ketoacidosis (severity: severe). Comorbidities: Type 2 diabetes (DM), Dyslipidemia. Plan: Estimated length of stay: ~5 days. Initial medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0. Workup / procedures: Central venous catheter insertion.",
+        "assessment_and_plan": "Assessment: Admitted for evaluation and management of: Nausea, vomiting, abdominal pain, polyuria, altered consciousness. Working diagnosis: diabetic ketoacidosis (severity: severe). Comorbidities: Type 2 diabetes (DM), Dyslipidemia. Plan: Estimated length of stay: ~5 days. Initial medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0. Workup / procedures: Central venous catheter insertion.",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "family_history": "No significant family history",
         "hpi": "Patient reports rapid symptom worsening prompting today's presentation.",
@@ -127,10 +127,10 @@
       "sections": {
         "assessment": "Notable labs (past 24 h): glucose 551 mg/dL [critical] (prior 578), pH 7.04 [critical], Cl 107 mmol/L [H], lactate 3.0 mmol/L [H], +5 other abnormal.",
         "objective": "BP 117/72 mmHg, HR 108 bpm, RR 19 /min, SpO2 93% (RA), T 35.7°C (past 24 h: HR max 121 bpm, RR max 24 /min)",
-        "plan": "Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.",
+        "plan": "Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0.",
         "subjective": "Hospital day 2. Hypothermia 35.7°C noted."
       },
-      "text": "S: Hospital day 2. Hypothermia 35.7°C noted.\nO: BP 117/72 mmHg, HR 108 bpm, RR 19 /min, SpO2 93% (RA), T 35.7°C (past 24 h: HR max 121 bpm, RR max 24 /min)\nA: Notable labs (past 24 h): glucose 551 mg/dL [critical] (prior 578), pH 7.04 [critical], Cl 107 mmol/L [H], lactate 3.0 mmol/L [H], +5 other abnormal.\nP: Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0."
+      "text": "S: Hospital day 2. Hypothermia 35.7°C noted.\nO: BP 117/72 mmHg, HR 108 bpm, RR 19 /min, SpO2 93% (RA), T 35.7°C (past 24 h: HR max 121 bpm, RR max 24 /min)\nA: Notable labs (past 24 h): glucose 551 mg/dL [critical] (prior 578), pH 7.04 [critical], Cl 107 mmol/L [H], lactate 3.0 mmol/L [H], +5 other abnormal.\nP: Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-04": {
@@ -177,10 +177,10 @@
       "sections": {
         "assessment": "Notable labs (past 24 h): Na 146 mmol/L [H] (prior 145), Cl 109 mmol/L [H] (prior 105), HCO3 12.3 mmol/L [L] (prior 11.5), glucose 409 mg/dL [H] (prior 435), +3 other abnormal.",
         "objective": "BP 113/74 mmHg, HR 104 bpm, RR 19 /min, SpO2 98% (RA), T 36.1°C (past 24 h: HR max 107 bpm, RR max 21 /min)",
-        "plan": "Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.",
+        "plan": "Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0.",
         "subjective": "Hospital day 3. Day before planned discharge; symptoms stable, discharge instructions reviewed."
       },
-      "text": "S: Hospital day 3. Day before planned discharge; symptoms stable, discharge instructions reviewed.\nO: BP 113/74 mmHg, HR 104 bpm, RR 19 /min, SpO2 98% (RA), T 36.1°C (past 24 h: HR max 107 bpm, RR max 21 /min)\nA: Notable labs (past 24 h): Na 146 mmol/L [H] (prior 145), Cl 109 mmol/L [H] (prior 105), HCO3 12.3 mmol/L [L] (prior 11.5), glucose 409 mg/dL [H] (prior 435), +3 other abnormal.\nP: Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0."
+      "text": "S: Hospital day 3. Day before planned discharge; symptoms stable, discharge instructions reviewed.\nO: BP 113/74 mmHg, HR 104 bpm, RR 19 /min, SpO2 98% (RA), T 36.1°C (past 24 h: HR max 107 bpm, RR max 21 /min)\nA: Notable labs (past 24 h): Na 146 mmol/L [H] (prior 145), Cl 109 mmol/L [H] (prior 105), HCO3 12.3 mmol/L [L] (prior 11.5), glucose 409 mg/dL [H] (prior 435), +3 other abnormal.\nP: Continue current medications: Enoxaparin, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-05": {
@@ -266,7 +266,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 1\nPatient status: BP 112/68, HR 114, SpO2 99%, T 36.4°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 1\nPatient status: BP 112/68, HR 114, SpO2 99%, T 36.4°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-08-evening": {
@@ -310,7 +310,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 2\nPatient status: BP 112/75, HR 107, SpO2 97%, T 36.6°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 2\nPatient status: BP 112/75, HR 107, SpO2 97%, T 36.6°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-10-day": {
@@ -332,7 +332,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 2\nPatient status: BP 117/71, HR 105, SpO2 98%, T 37.0°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 2\nPatient status: BP 117/71, HR 105, SpO2 98%, T 37.0°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-11-evening": {
@@ -354,7 +354,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 2\nPatient status: BP 115/75, HR 106, SpO2 98%, T 37.1°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 2\nPatient status: BP 115/75, HR 106, SpO2 98%, T 37.1°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-12-night": {
@@ -376,7 +376,7 @@
         "shift": "night"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - night shift] Day 3\nPatient status: BP 119/71, HR 107, SpO2 96%, T 36.5°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - night shift] Day 3\nPatient status: BP 119/71, HR 107, SpO2 96%, T 36.5°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-13-day": {
@@ -398,7 +398,7 @@
         "shift": "day"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - day shift] Day 3\nPatient status: BP 115/75, HR 103, SpO2 97%, T 36.5°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - day shift] Day 3\nPatient status: BP 115/75, HR 103, SpO2 97%, T 36.5°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-14-evening": {
@@ -420,7 +420,7 @@
         "shift": "evening"
       },
       "sections": {},
-      "text": "[Nursing Shift Note - evening shift] Day 3\nPatient status: BP 113/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
+      "text": "[Nursing Shift Note - evening shift] Day 3\nPatient status: BP 113/72, HR 101, SpO2 96%, T 36.7°C.\nMeds administered: IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0.\nObservation and care ongoing, no significant findings."
     }
   },
   "doc-ENC-FORCED-0001-710895237827-15": {
@@ -474,7 +474,7 @@
         "assessment": "ED diagnosis: Diabetic ketoacidosis (DKA). Chief complaint: Nausea, vomiting, abdominal pain, polyuria, altered consciousness.",
         "chief_complaint": "Nausea, vomiting, abdominal pain, polyuria, altered consciousness",
         "disposition": "Admitted (Nausea, vomiting, abdominal pain, polyuria, altered consciousness)",
-        "ed_workup": "Labs: glucose, β-hydroxybutyrate, Na, K, Cl, HCO3, BUN, creatinine. Imaging: chest X-ray PA, ECG, chest X-ray AP. Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20-40 mEq/L in IV fluids, target K 4.0-5.0",
+        "ed_workup": "Labs: glucose, β-hydroxybutyrate, Na, K, Cl, HCO3, BUN, creatinine. Imaging: chest X-ray PA, ECG, chest X-ray AP. Medications: Insulin, Regular, Human, Normal Saline, Potassium Chloride, IV fluids: NS 1000mL/h x 1h, then 500mL/h x 4h, then 250mL/h, IV insulin: Regular insulin 0.1 U/kg/h continuous drip (after K >= 3.3), potassium replacement: KCl 20 mEq/L in IV fluids, target K 4.0-5.0",
         "hpi": "Symptoms that began over the preceding days worsened rapidly, prompting today's presentation.",
         "physical_exam": "On arrival: BP 105/69 mmHg, HR 125 bpm, RR 21 /min, SpO2 100%, T 36.1°C.",
         "triage_details": "Triage level: ESI Level 1. Arrival mode: Helicopter/air transport."
