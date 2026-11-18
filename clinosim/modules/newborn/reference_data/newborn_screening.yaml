@@ -107,6 +107,34 @@ metabolic_screen:
   schedule_day:
     jp: 4
     us: 1
+  # Turnaround from the heel-stick collection to the result being reported
+  # (Issue #3358): a dried blood spot is posted to a screening laboratory,
+  # run in batches and reported back, so the result is days after the draw.
+  # ``days`` is a weight per whole day after collection; the time of day is
+  # uniform in ``hour_range`` (laboratory reporting hours). Drawn from a
+  # sub-RNG of its own (sha256 of the baby id), never from the outcome stream.
+  #   * US — ACHDNC time-frame goals (Report of the Task Force on Newborn
+  #     Screening 2005, quoted in GAO-17-196 n. 12): specimens reach the
+  #     laboratory within 3 days of collection, most results are available
+  #     within 2 days of arrival, and all results are available for the first
+  #     post-discharge visit within 5 days of collection; the 2017 benchmark
+  #     is 7 days of birth for non-time-critical presumptive positives. The
+  #     weights are a modelling choice that spreads the 2-5 day goal window
+  #     with a short tail to 7 days; no published per-day distribution was
+  #     read.
+  #   * JP — Sapporo City Institute of Public Health, newborn mass-screening
+  #     page: the result is known "about 1 week" after the specimen reaches
+  #     the laboratory, and results are sent to the delivering facility once a
+  #     week. That gives roughly 8-14 days after the collection; the weights
+  #     are a modelling choice within that window (a national figure was not
+  #     found).
+  result_turnaround:
+    us:
+      days: {2: 0.15, 3: 0.30, 4: 0.30, 5: 0.17, 6: 0.05, 7: 0.03}
+      hour_range: [9, 17]
+    jp:
+      days: {8: 0.15, 9: 0.15, 10: 0.15, 11: 0.15, 12: 0.15, 13: 0.15, 14: 0.10}
+      hour_range: [9, 17]
   # Result distribution — weighted sample keyed on baby_id (fresh
   # sub-seed). ~99.7 % pass in real cohorts (locale-invariant).
   result_weights: {pass: 0.997, refer: 0.003}

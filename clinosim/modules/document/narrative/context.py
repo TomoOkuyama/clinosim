@@ -180,6 +180,8 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
         "cchd_le_spo2":    int | None,     # lower-extremity SpO2
         "has_aabr":        bool,           # AABR hearing screen Procedure present
         "has_metabolic":   bool,           # tandem-MS metabolic screen Procedure present
+        "metabolic_result_datetime": datetime | str | None,  # when the screen is reported (Issue #3358)
+        "metabolic_outcome_key": "pass" | "refer" | None,
         "has_vitamin_k":   bool,           # Vitamin K MAR present
         "has_ophthalmic":  bool,           # ophthalmic prophylaxis MAR present
       }
@@ -316,8 +318,11 @@ def _build_newborn_workup(record: Any, patient: Any) -> dict[str, Any]:
             has_ophthalmic = True
             _note_time("ophthalmic", mar_time)
 
+    metabolic_ext = newborn_ext.get("metabolic_screen") or {}
     return {
         "is_neonate": True,
+        "metabolic_result_datetime": _o(metabolic_ext, "result_datetime", None),
+        "metabolic_outcome_key": _o(metabolic_ext, "outcome_key", None),
         "apgar_1min": apgar_by_min.get(1),
         "apgar_5min": apgar_by_min.get(5),
         "bilirubin_peak": bilirubin_peak,
@@ -344,6 +349,26 @@ def _cchd_time(newborn_ext: dict[str, Any]) -> str:
     return min((x for x in times if x), default="")
 
 
+def newborn_metabolic_status(workup: dict[str, Any], as_of: Any) -> str:
+    """The newborn metabolic screen as known at ``as_of`` (Issue #3358), the one
+    rule every document reads: ``"not_collected"`` (never done, or collected
+    after ``as_of``: say nothing), ``"pending"`` (collected, the dried blood
+    spot not yet reported: submitted, result pending) or ``"resulted"`` (``as_of``
+    at or after the reported time). ``as_of`` None (no document time) or a
+    record without a result time never states a result."""
+    from clinosim.timeutil import parse_iso_datetime
+
+    if not workup.get("has_metabolic"):
+        return "not_collected"
+    if as_of is None:
+        return "pending"
+    collected = parse_iso_datetime((workup.get("event_times") or {}).get("metabolic"), lenient=True)
+    if collected is not None and collected > as_of:
+        return "not_collected"
+    result = parse_iso_datetime(workup.get("metabolic_result_datetime"), lenient=True)
+    return "resulted" if result is not None and result <= as_of else "pending"
+
+
 def newborn_workup_known_at(workup: dict[str, Any], as_of: Any) -> dict[str, Any]:
     """``workup`` limited to what existed at ``as_of`` (Issue #3241): a
     screening or measurement dated after the document is left out. The Apgar
@@ -359,9 +384,12 @@ def newborn_workup_known_at(workup: dict[str, Any], as_of: Any) -> dict[str, Any
 
     times = workup.get("event_times") or {}
     out = dict(workup)
+    # Issue #3358: the metabolic screen is known from its collection and
+    # resulted only from its reported time (one status for every caller).
+    out["metabolic_status"] = newborn_metabolic_status(workup, as_of)
+    out["has_metabolic"] = out["metabolic_status"] != "not_collected"
     for key, event in (
         ("has_aabr", "aabr"),
-        ("has_metabolic", "metabolic"),
         ("has_vitamin_k", "vitamin_k"),
         ("has_ophthalmic", "ophthalmic"),
     ):

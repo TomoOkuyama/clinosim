@@ -558,26 +558,31 @@ def _metabolic_screen_outcome_concept(ext: dict[str, Any], lang: str) -> dict[st
 
 
 def _metabolic_screen_timing(ext: dict[str, Any]) -> dict[str, str]:
-    """effectiveDateTime = heel-stick collection; issued = collection + 1 h.
+    """effectiveDateTime = heel-stick collection; issued = the CIF result time.
 
-    Nominal tandem-MS turnaround is 24-72 h; 1 h keeps the timestamps inside
-    the birth-admission window regardless of LOS. ``collected`` is a datetime
-    on the in-memory enricher path and a naive ISO string after a CIF JSON
-    round-trip.
+    The result time (``result_datetime``, days after collection — Issue #3358)
+    is the laboratory's reporting time; a CIF written before that field existed
+    falls back to collection + 1 h. Both are datetimes on the in-memory enricher
+    path and naive ISO strings after a CIF JSON round-trip.
     """
     from datetime import datetime as _dt
     from datetime import timedelta as _td
 
+    def _parse(value: Any) -> _dt | None:
+        if isinstance(value, _dt):
+            return value
+        try:
+            return _dt.fromisoformat(str(value))
+        except ValueError:
+            return None
+
     collected = ext.get("collected_datetime")
     if collected is None:
         return {}
-    if isinstance(collected, _dt):
-        issued_dt: _dt | None = collected + _td(hours=1)
-    else:
-        try:
-            issued_dt = _dt.fromisoformat(str(collected)) + _td(hours=1)
-        except ValueError:
-            issued_dt = None
+    issued_dt = _parse(ext.get("result_datetime")) if ext.get("result_datetime") else None
+    if issued_dt is None:
+        base = _parse(collected)
+        issued_dt = base + _td(hours=1) if base is not None else None
     return {
         "effectiveDateTime": _iso(collected),
         "issued": _iso(issued_dt) if issued_dt is not None else _iso(collected),
