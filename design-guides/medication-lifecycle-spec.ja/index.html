@@ -2618,6 +2618,11 @@
 <td><code>tests/unit/test_limit_triple_therapy_2717.py</code></td>
 </tr>
 <tr>
+<td>脳卒中プロトコルの <code>antithrombotic_plan</code> が、入院中と退院処方に一つの抗血栓療法を与える。経口抗凝固薬の適応がない患者はアスピリン(24-48 時間以内、負荷量のあと維持量)、軽症脳梗塞ではクロピドグレルを加える。適応のある患者(心房細動。プロトコルの暗黙の慢性疾患コードを含む)は、抗凝固薬の開始日までアスピリン、その日からは抗凝固薬のみとし、退院処方は抗血小板薬なしで抗凝固薬を載せる。在宅で抗凝固薬を服用中の患者には何も加えない。出血性変化があれば実行中の薬剤を止める。退院処方の抗血栓薬は維持量(負荷量の文言なし)。抗凝固薬は患者 ID とエンカウンター ID のハッシュで選び、入院中と退院時で同じ薬になる。</td>
+<td><code>simulator/antithrombotic_plan.py</code>(<code>steps_for_day</code>, <code>discharge_specs</code>)、<code>simulator/daily_loop.py::_apply_antithrombotic_plan</code>、<code>simulator/discharge_rx.py::build_discharge_rx</code>。データは <code>cerebral_infarction.yaml</code> の <code>drugs.antiplatelet</code> / <code>drugs.anticoagulation</code> / <code>antithrombotic_plan</code></td>
+<td><code>tests/unit/test_stroke_antithrombotic_plan_3277.py</code></td>
+</tr>
+<tr>
 <td>退院処方の有限の投与期間(1〜14 日)は在宅薬に引き継がない。0 や期間なしは無期限として引き継ぐ。</td>
 <td><code>simulator/helpers.py::is_finite_course</code>、<code>simulator/_stay_thresholds.py::ACUTE_COURSE_MAX_DAYS</code></td>
 <td><code>tests/unit/test_finite_course_2757.py</code></td>
