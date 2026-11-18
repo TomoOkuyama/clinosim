@@ -287,13 +287,18 @@ def build_ed_physical_exam(generator: TemplateNarrativeGenerator, ctx: Narrative
         "neurological",
         "psychiatric",
     )
+    # Issue #3235: a fixed vital statement of the template ("心拍数正常",
+    # "Respiratory rate normal") the arrival reading contradicts is left out.
+    states = arrival_vital_states(ctx.vitals[0], ctx) if ctx.vitals else {}
     parts = []
     for sys_key in systems:
         val = _o(pe, sys_key, "") or ""
         if val:
             filled = _fill_template_placeholders(str(val), ctx, lang)
             if filled and filled != fallback:
-                parts.append(filled)
+                filled = agreeing_clauses(filled, states, lang) if states else filled
+                if filled:
+                    parts.append(filled)
 
     if parts:
         facts.append(f"encounter_protocol.narrative.ed_note_template.{field}_{lang}")  # provenance label as before
