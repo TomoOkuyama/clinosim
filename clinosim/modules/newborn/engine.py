@@ -19,10 +19,10 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, NonNegativeFloat, PositiveInt, field_validator
 
 from clinosim import determinism
 from clinosim.codes import code_exists
@@ -98,6 +98,27 @@ class _PerformerOrg(_Strict):
         return name
 
 
+class _Turnaround(_Strict):
+    """Days from collection to the reported result (weights) and the reporting hours."""
+
+    days: dict[PositiveInt, NonNegativeFloat]
+    hour_range: tuple[Annotated[int, Field(ge=0, le=23)], Annotated[int, Field(ge=0, le=23)]]
+
+    @field_validator("days")
+    @classmethod
+    def _days(cls, days: dict[int, float]) -> dict[int, float]:
+        if not days or sum(days.values()) <= 0:
+            raise ValueError("newborn_screening.yaml result_turnaround days need a positive weight")
+        return days
+
+    @field_validator("hour_range")
+    @classmethod
+    def _hours(cls, hr: tuple[int, int]) -> tuple[int, int]:
+        if hr[0] > hr[1]:
+            raise ValueError(f"newborn_screening.yaml result_turnaround hour_range low > high: {hr}")
+        return hr
+
+
 class _Screen(_Strict):
     result_weights: dict[str, float]
     procedure_code: str
@@ -106,6 +127,7 @@ class _Screen(_Strict):
     outcome_refer: str
     hours_after_admission: int | None = Field(default=None, ge=0)
     schedule_day: dict[str, int] = Field(default_factory=dict)
+    result_turnaround: dict[str, _Turnaround] = Field(default_factory=dict)
     service_request: dict[str, Any] = Field(default_factory=dict)
     specimen: dict[str, Any] = Field(default_factory=dict)
     diagnostic_report: dict[str, Any] = Field(default_factory=dict)
@@ -704,6 +726,8 @@ def build_metabolic_screen_workflow_data(record: Any, country: str) -> dict[str,
         # The order is authored at admission and completed at heel-stick.
         "ordered_datetime": admit_dt,
         "collected_datetime": sched,
+        # Reported days after the draw (Issue #3358); the FHIR ``issued`` reads this.
+        "result_datetime": _metabolic_screen_result_datetime(cfg, pid, sched, locale_key),
         "outcome_key": outcome_key,
         "outcome_code": outcome_code,
         # Copy through the yaml codes so the FHIR emit does not need
@@ -739,6 +763,25 @@ def build_metabolic_screen_workflow_data(record: Any, country: str) -> dict[str,
         "dr_category_code": str(dr_cfg.get("category_code") or "LAB"),
         "dr_category_display": str(dr_cfg.get("category_display") or "Laboratory"),
     }
+
+
+def _metabolic_screen_result_datetime(cfg: dict[str, Any], pid: str, collected: datetime, locale_key: str) -> datetime:
+    """When the screening laboratory reports the result (Issue #3358).
+
+    Days after collection and the reporting hour come from
+    ``metabolic_screen.result_turnaround`` for the locale. The draw uses its own
+    sub-RNG (sha256 of the baby id), so the outcome stream is untouched.
+    """
+    turn = (cfg.get("result_turnaround") or {}).get(locale_key) or (cfg.get("result_turnaround") or {}).get("us")
+    if not turn:
+        return collected
+    rng = determinism.default_rng(text_seed(f"newborn-metabolic-result|{pid}"))
+    days = sorted(int(d) for d in turn["days"])
+    raw = np.array([float(turn["days"][d]) for d in days], dtype=float)
+    day = days[int(rng.choice(len(days), p=raw / raw.sum()))]
+    lo, hi = (int(h) for h in turn["hour_range"])
+    time_of_day = timedelta(hours=lo + (hi - lo) * float(rng.random()))
+    return datetime(collected.year, collected.month, collected.day) + timedelta(days=day) + time_of_day
 
 
 def build_bilirubin_observations(record: Any) -> list[dict[str, Any]]:

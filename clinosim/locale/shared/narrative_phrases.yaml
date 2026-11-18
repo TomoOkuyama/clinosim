@@ -856,9 +856,15 @@ newborn:
   aabr_completed:
     ja: "AABR 聴覚スクリーン提出済"
     en: "AABR hearing screen completed"
-  tandem_ms_submitted:
-    ja: "タンデム MS 代謝異常症スクリーン提出済"
-    en: "tandem-MS metabolic screen submitted"
+  tandem_ms_pending:
+    ja: "タンデム MS 代謝異常症スクリーン提出済 (結果待ち)"
+    en: "tandem-MS metabolic screen submitted, result pending"
+  tandem_ms_resulted_pass:
+    ja: "タンデム MS 代謝異常症スクリーン結果は異常なし"
+    en: "tandem-MS metabolic screen resulted, no abnormality detected"
+  tandem_ms_resulted_refer:
+    ja: "タンデム MS 代謝異常症スクリーン結果は要精査"
+    en: "tandem-MS metabolic screen resulted, referred for confirmatory testing"
   vitamin_k_admin:
     ja: "ビタミン K 投与済"
     en: "Vitamin K administered"

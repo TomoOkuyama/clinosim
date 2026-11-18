@@ -69,7 +69,13 @@ from clinosim.modules.newborn import (
 ```
 
 `engine.build_metabolic_screen_workflow_data` (not re-exported) builds
-the ServiceRequest / Specimen / DiagnosticReport payload.
+the ServiceRequest / Specimen / DiagnosticReport payload. The payload carries
+`collected_datetime` (heel-stick) and `result_datetime` (when the screening
+laboratory reports, Issue #3358): days after collection, drawn from
+`metabolic_screen.result_turnaround` (per country, ACHDNC time-frame goals for the
+US, a Sapporo City figure for JP) with its own sha256 sub-RNG. The FHIR
+DiagnosticReport and Observation `issued` read `result_datetime`; a narrative
+written before that time says the result is pending. Every document reads the screen through the one status helper `document.narrative.context.newborn_metabolic_status` (not collected: nothing is said; collected: submitted, result pending; at or after `result_datetime`: the result).
 
 ## Where outputs land
 

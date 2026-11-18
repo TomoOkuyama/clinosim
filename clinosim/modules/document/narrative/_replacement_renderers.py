@@ -104,11 +104,19 @@ def _render_newborn_workup_summary(
     A&P (Vitamin K / AABR / metabolic screen / bilirubin / CCHD /
     ophthalmic prophylaxis) sections.
 
+    The metabolic screen is a dried blood spot reported days after the draw
+    (Issue #3358): the status at the document's time comes from
+    ``context.newborn_metabolic_status`` (``workup["metabolic_status"]`` once
+    ``newborn_workup_known_at`` has limited the workup): "submitted, result
+    pending" before the reported time, the result from it on.
+
     Missing elements drop silently — the summary always reflects what
     the CIF actually carries. Never fabricates a screening not run.
     """
     if not workup:
         return ""
+    from clinosim.modules.document.narrative.context import newborn_metabolic_status
+
     parts: list[str] = []
 
     if birth:
@@ -134,8 +142,12 @@ def _render_newborn_workup_summary(
     if workup.get("has_aabr"):
         parts.append(t("newborn.aabr_completed", lang))
 
-    if workup.get("has_metabolic"):
-        parts.append(t("newborn.tandem_ms_submitted", lang))
+    metabolic = workup.get("metabolic_status") or newborn_metabolic_status(workup, None)
+    if metabolic == "pending":
+        parts.append(t("newborn.tandem_ms_pending", lang))
+    elif metabolic == "resulted":
+        outcome = "refer" if workup.get("metabolic_outcome_key") == "refer" else "pass"
+        parts.append(t(f"newborn.tandem_ms_resulted_{outcome}", lang))
 
     bili = workup.get("bilirubin_peak")
     if bili is not None:

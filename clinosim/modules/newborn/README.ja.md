@@ -72,7 +72,12 @@ from clinosim.modules.newborn import (
 ```
 
 `engine.build_metabolic_screen_workflow_data` (再 export されない) が
-ServiceRequest / Specimen / DiagnosticReport の payload を構築する。
+ServiceRequest / Specimen / DiagnosticReport の payload を構築する。payload は
+`collected_datetime` (足底採血) と `result_datetime` (検査機関が結果を報告する時刻、
+Issue #3358) を持つ。結果は採血の数日後で、`metabolic_screen.result_turnaround`
+(国別。US は ACHDNC の time-frame goals、JP は札幌市の公表値に基づく) から
+専用の sha256 サブ RNG で引く。FHIR の DiagnosticReport / Observation の `issued` は
+`result_datetime` を読む。この時刻より前に書かれる文書は結果待ちと記述する。全文書は単一の状態関数 `document.narrative.context.newborn_metabolic_status` で扱う (未採取: 記載なし、採取後: 提出済・結果待ち、`result_datetime` 以降: 結果)。
 
 ## 出力先
 
