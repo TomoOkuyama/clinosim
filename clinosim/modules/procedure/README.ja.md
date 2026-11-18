@@ -21,7 +21,10 @@ encounter 単位の procedure emission を 3 家族に対して所有:
    別サブ RNG で draw。
 3. **術後 rehab** (`generate_rehab_sessions`) — post-op day 1 から
    退院日までの日次 PT スケジュール。early / mid / late phase の
-   活動、疼痛モデル、skip-day / 拒否確率を持つ。
+   活動、疼痛モデル、skip-day / 拒否確率を持つ。各セッションは職種の
+   roster 担当療法士 (`therapist_id`、Issue #3319) を記録する。担当者は
+   `staff.assign_rehab_therapist` が encounter と職種ごとに決定論的に選ぶ
+   (RNG 消費なし、同じ encounter の CareTeam に載る療法士と同一人物)。
 4. **気管挿管** (`build_intubation_procedure`、Issue #2091) — state が
    気道閾値を越えたとき `simulator/daily_loop.py` が作る決定論的な
    挿管 `ProcedureRecord`。

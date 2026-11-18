@@ -88,6 +88,9 @@ class RehabSession:
     patient_id: str = ""
     encounter_id: str = ""
     therapy_type: str = "PT"  # "PT" | "OT" | "ST"
+    # Roster staff id of the therapist who delivered the session (Issue #3319);
+    # "" when the roster has no therapist of the discipline.
+    therapist_id: str = ""
     session_date: datetime = field(default_factory=lambda: _UNSET_DATETIME)
     duration_minutes: int = 40
     day_post_op: int = 0

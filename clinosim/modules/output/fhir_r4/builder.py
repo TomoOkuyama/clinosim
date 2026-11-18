@@ -115,6 +115,7 @@ from clinosim.modules.output.fhir_r4.procedures.device import (
 from clinosim.modules.output.fhir_r4.procedures.immunization import _bb_immunizations
 from clinosim.modules.output.fhir_r4.procedures.nursing import _bb_nursing_observations
 from clinosim.modules.output.fhir_r4.procedures.oxygen_therapy import _bb_oxygen_therapy
+from clinosim.modules.output.fhir_r4.procedures.rehab_sessions import _bb_rehab_sessions
 from clinosim.modules.output.fhir_r4.procedures.surgical_specimens import _bb_procedure_specimens
 from clinosim.simulator import log as sim_log
 
@@ -614,6 +615,7 @@ _BUNDLE_BUILDERS: list[Callable[[BundleContext], list[dict]]] = [
     _bb_procedures,
     _bb_procedure_specimens,  # Issue #3284: resected tissue sent to pathology
     _bb_oxygen_therapy,
+    _bb_rehab_sessions,  # Issue #3319: one Procedure per rehabilitation session, with its therapist
     _bb_practitioners,
     _bb_nursing_observations,
     _bb_immunizations,

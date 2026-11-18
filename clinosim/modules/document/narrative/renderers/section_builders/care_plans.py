@@ -375,8 +375,8 @@ def build_rp_rehab_team(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
     (modules/procedure/engine.py) currently only produces "PT" — this renders
     whatever therapy types are actually present rather than implying
     multi-disciplinary coverage that doesn't exist (design spec §3e / §4
-    out-of-scope note). RehabSession carries no therapist, so the therapist
-    stays "not yet assigned" (the narrative does not invent a name)."""
+    out-of-scope note). The named therapist is the roster therapist recorded
+    on the sessions (``RehabSession.therapist_id``, Issue #3319)."""
     facts: list[str] = []
     lang = ctx.target_lang
     known, _ = _rp_sessions_known(ctx)
@@ -385,7 +385,20 @@ def build_rp_rehab_team(generator: TemplateNarrativeGenerator, ctx: NarrativeCon
         return (t("fallback.rp_team_fallback", lang)), facts
     facts.append("ctx.rehab_sessions@authored")
     joined = t("list_sep.serial", lang).join(_label("rp_therapy_type", tt, lang, fallback=tt) for tt in therapy_types)
-    therapist_note = t("fallback.rp_therapist_fallback", lang)
+    # The therapists who delivered the sessions known when the plan is
+    # written (Issue #3319), in order of first session; "not yet assigned"
+    # only when no known session records one (the narrative never invents a
+    # name).
+    names: list[str] = []
+    for s in known:
+        name = _resolve_staff_name(str(_o(s, "therapist_id", "") or ""), ctx.roster_map)
+        if name and name not in names:
+            names.append(name)
+    therapist_note = (
+        t("rp_note.therapist_named", lang, names=t("list_sep.serial", lang).join(names))
+        if names
+        else t("fallback.rp_therapist_fallback", lang)
+    )
     return t("rp_note.rehab_team_line", lang, disciplines=joined, therapist_note=therapist_note), facts
 
 

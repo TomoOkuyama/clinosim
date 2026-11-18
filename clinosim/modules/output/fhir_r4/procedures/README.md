@@ -40,7 +40,12 @@ FHIR resource-family taxonomy.
   `Procedure` with `performedPeriod` for continuous oxygen therapy;
   single-timestamp events dwell for `_SINGLE_TIMESTAMP_DWELL =
   timedelta(minutes=15)` around the flagged sample);
-  `_SNOMED_OXYGEN_THERAPY = "57485005"`.
+  `_SNOMED_OXYGEN_THERAPY = "57485005"`;
+  `_bb_rehab_sessions` (Issue #3319 — one `Procedure` per CIF
+  `RehabSession`: SNOMED session code per discipline from the clinician-role
+  registry, `performedPeriod`, `performer` = the roster therapist with the
+  therapist's SNOMED occupation as `function`; a refused session is
+  `not-done` with `statusReason`).
 - **Out of scope**: procedure / device / immunization / nursing
   **generation**
   ([`clinosim.modules.procedure`](../../../procedure/README.md)、
@@ -171,6 +176,7 @@ clinosim/modules/output/fhir_r4/procedures/
   device.py                          _bb_device + _bb_device_use (from extensions["device"])
   nursing.py                         _bb_nursing_observations (NEWS2 / GCS / Braden / Morse / Barthel / intake-output survey Observation)
   oxygen_therapy.py                  _bb_oxygen_therapy + _SINGLE_TIMESTAMP_DWELL + _SNOMED_OXYGEN_THERAPY (Issue #796)
+  rehab_sessions.py                  _bb_rehab_sessions (Procedure per RehabSession with its therapist performer, Issue #3319)
   surgical_specimens.py              _bb_procedure_specimens (Specimen per ProcedureRecord.specimens_sent, Issue #3284)
 ```
 

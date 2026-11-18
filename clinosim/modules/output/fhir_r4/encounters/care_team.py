@@ -44,6 +44,7 @@ from clinosim.locale.loader import load_addresses
 from clinosim.locale.localized import localized_field
 from clinosim.locale.patterns import format_hash_pattern
 from clinosim.modules._shared import get_attr_or_key as _o
+from clinosim.modules._shared import pick_allied_staff_id
 from clinosim.modules.output.fhir_r4.demographics.patient import patient_ref
 from clinosim.modules.output.fhir_r4.encounters.encounter import encounter_ref
 from clinosim.modules.output.fhir_r4.lib.common import dual_slot_concept
@@ -270,12 +271,10 @@ def _build_care_team(
             # Salt the hash with role name so distinct roles pick distinct
             # staff on the same encounter — otherwise two roles with equal
             # pool size would always co-select the same index.
-            hash_key = f"{role_name}:{encounter_id}"
-            idx = sum(ord(c) for c in hash_key) % len(pool)
             participants.append(
                 {
                     "role": _role_coding(snomed_code),
-                    "member": {"reference": f"Practitioner/{pool[idx]}"},
+                    "member": {"reference": f"Practitioner/{pick_allied_staff_id(pool, role_name, encounter_id)}"},
                 }
             )
 

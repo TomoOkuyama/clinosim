@@ -690,8 +690,13 @@ def generate_rehab_sessions(
     total_days: int,
     rng: np.random.Generator,
     country: str,
+    therapist_id: str = "",
 ) -> list[RehabSession]:
-    """Generate rehabilitation sessions for post-surgical recovery."""
+    """Generate rehabilitation sessions for post-surgical recovery.
+
+    ``therapist_id`` is the roster physical therapist of the stay
+    (``assign_rehab_therapist``), recorded on every session (Issue #3319); it
+    is an input, so no draw is added to ``rng``."""
     sessions: list[RehabSession] = []
 
     # Rehab starts POD 1 (day after surgery)
@@ -746,6 +751,7 @@ def generate_rehab_sessions(
             patient_id=patient_id,
             encounter_id=encounter_id,
             therapy_type="PT",
+            therapist_id=therapist_id,
             session_date=surgery_date + timedelta(days=day_offset, hours=REHAB_SESSION_START_HOUR),
             duration_minutes=duration,
             day_post_op=day_offset,

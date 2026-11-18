@@ -258,6 +258,7 @@ def convert_cif_to_csv(
                     "patient_id": patient_id,
                     "session_id": rehab.get("session_id"),
                     "therapy_type": rehab.get("therapy_type"),
+                    "therapist_id": rehab.get("therapist_id"),
                     "session_date": rehab.get("session_date"),
                     "duration_minutes": rehab.get("duration_minutes"),
                     "day_post_op": rehab.get("day_post_op"),
