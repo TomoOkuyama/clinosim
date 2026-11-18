@@ -13,7 +13,7 @@
       "S67.2"
     ],
     "note": "WHO ICD-10 authoritative displays for the codes clinosim emits.",
-    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327), R57.2 (Issue #3269) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded)."
+    "later_additions": "T22.2 and T23.2 (Issue #3279), E11.2, E11.3 and E11.4 (Issue #3259), G35, I69.1 and I69.3 (Issue #3327), R57.2 (Issue #3269) were added on 2026-11-16 from tx.fhir.org CodeSystem/$lookup on http://hl7.org/fhir/sid/icd-10 (ICD-10-EN 2019-covid-expanded). T20.0, T21.0, T22.0, T23.0, T24.0, T25.0 (Issue #3258, tx.fhir.org $lookup 2026-11-18)."
   },
   "concept": [
     {
@@ -8842,12 +8842,102 @@
       ]
     },
     {
+      "code": "T20.0",
+      "display": "Burn of unspecified degree of head and neck",
+      "definition": "Burn of unspecified degree of head and neck",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "T20"
+        }
+      ]
+    },
+    {
+      "code": "T21.0",
+      "display": "Burn of unspecified degree of trunk",
+      "definition": "Burn of unspecified degree of trunk",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "T21"
+        }
+      ]
+    },
+    {
+      "code": "T22.0",
+      "display": "Burn of unspecified degree of shoulder and upper limb, except wrist and hand",
+      "definition": "Burn of unspecified degree of shoulder and upper limb, except wrist and hand",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "T22"
+        }
+      ]
+    },
+    {
       "code": "T22.2",
       "display": "Burn of second degree of shoulder and upper limb, except wrist and hand"
     },
     {
+      "code": "T23.0",
+      "display": "Burn of unspecified degree of wrist and hand",
+      "definition": "Burn of unspecified degree of wrist and hand",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "T23"
+        }
+      ]
+    },
+    {
       "code": "T23.2",
       "display": "Burn of second degree of wrist and hand"
+    },
+    {
+      "code": "T24.0",
+      "display": "Burn of unspecified degree of hip and lower limb, except ankle and foot",
+      "definition": "Burn of unspecified degree of hip and lower limb, except ankle and foot",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "T24"
+        }
+      ]
+    },
+    {
+      "code": "T25.0",
+      "display": "Burn of unspecified degree of ankle and foot",
+      "definition": "Burn of unspecified degree of ankle and foot",
+      "property": [
+        {
+          "code": "kind",
+          "valueCode": "category"
+        },
+        {
+          "code": "parent",
+          "valueCode": "T25"
+        }
+      ]
     },
     {
       "code": "T30",

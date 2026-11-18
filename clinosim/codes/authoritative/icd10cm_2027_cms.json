@@ -4,7 +4,7 @@
     "source_url": "https://www.cms.gov/files/zip/2027-code-descriptions-tabular-order.zip",
     "source_file": "Code Descriptions/icd10cm_order_2027.txt (long description, columns 78-)",
     "extracted_at": "2026-11-10",
-    "clinosim_codes_total": 526,
+    "clinosim_codes_total": 543,
     "clinosim_codes_missing_from_source": [
       "F00",
       "J46",
@@ -15,7 +15,7 @@
       "S67.8"
     ],
     "note": "ICD-10-CM codes in codes/data/icd-10-cm.yaml with the CMS long description (Issue #3127). billable = the order file's header flag (1 = valid for HIPAA-covered transactions). Codes missing from the source are WHO-only or retired codes the registry still lists; they are not emitted for the US.",
-    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt. K35.209, I21.09, K85.10, I48.19, L03.119, I63.30, I82.409, M80.08XA, S67.20XA, T75.4XXA, T31.20, I26.09 (Issue #3258, US billable discharge codes) were added from the same icd10cm_order_2027.txt. W11.XXXA, W12.XXXA, W13.2XXA, W13.8XXA, W23.0XXA, W23.1XXA, W23.2XXA, X04.XXXA, X17.XXXA, X12.XXXA, X19.XXXA, X00.0XXA, W86.1XXA, W85.XXXA, S32.009A, S22.009A, S06.9X0A (Issue #3258, injury external-cause and discharge codes) were added from the same icd10cm_order_2027.txt."
+    "later_additions": "E11.21, E11.311, E11.42 and Z37.0 (Issue #3327) were added on 2026-11-16 from the same icd10cm_order_2027.txt. K35.209, I21.09, K85.10, I48.19, L03.119, I63.30, I82.409, M80.08XA, S67.20XA, T75.4XXA, T31.20, I26.09 (Issue #3258, US billable discharge codes) were added from the same icd10cm_order_2027.txt. W11.XXXA, W12.XXXA, W13.2XXA, W13.8XXA, W23.0XXA, W23.1XXA, W23.2XXA, X04.XXXA, X17.XXXA, X12.XXXA, X19.XXXA, X00.0XXA, W86.1XXA, W85.XXXA, S32.009A, S22.009A, S06.9X0A (Issue #3258, injury external-cause and discharge codes) were added from the same icd10cm_order_2027.txt. T20.0, T20.00XA, T20.07, T20.07XA, T21.0, T21.00XA, T21.05, T21.05XA, T22.0, T22.00XA, T23.0, T23.009A, T24.0, T24.009A, T25.0, T25.029A, T31.30 (Issue #3258, burn site codes) were added from the same icd10cm_order_2027.txt."
   },
   "concept": [
     {
@@ -2214,6 +2214,56 @@
       "billable": true
     },
     {
+      "code": "T20.0",
+      "display": "Burn of unspecified degree of head, face, and neck",
+      "billable": false
+    },
+    {
+      "code": "T20.00XA",
+      "display": "Burn of unspecified degree of head, face, and neck, unspecified site, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T20.07",
+      "display": "Burn of unspecified degree of neck",
+      "billable": false
+    },
+    {
+      "code": "T20.07XA",
+      "display": "Burn of unspecified degree of neck, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T21.0",
+      "display": "Burn of unspecified degree of trunk",
+      "billable": false
+    },
+    {
+      "code": "T21.00XA",
+      "display": "Burn of unspecified degree of trunk, unspecified site, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T21.05",
+      "display": "Burn of unspecified degree of buttock",
+      "billable": false
+    },
+    {
+      "code": "T21.05XA",
+      "display": "Burn of unspecified degree of buttock, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T22.0",
+      "display": "Burn of unspecified degree of shoulder and upper limb, except wrist and hand",
+      "billable": false
+    },
+    {
+      "code": "T22.00XA",
+      "display": "Burn of unspecified degree of shoulder and upper limb, except wrist and hand, unspecified site, initial encounter",
+      "billable": true
+    },
+    {
       "code": "T22.211A",
       "display": "Burn of second degree of right forearm, initial encounter",
       "billable": true
@@ -2224,6 +2274,16 @@
       "billable": true
     },
     {
+      "code": "T23.0",
+      "display": "Burn of unspecified degree of wrist and hand",
+      "billable": false
+    },
+    {
+      "code": "T23.009A",
+      "display": "Burn of unspecified degree of unspecified hand, unspecified site, initial encounter",
+      "billable": true
+    },
+    {
       "code": "T23.201A",
       "display": "Burn of second degree of right hand, unspecified site, initial encounter",
       "billable": true
@@ -2231,6 +2291,26 @@
     {
       "code": "T23.202A",
       "display": "Burn of second degree of left hand, unspecified site, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T24.0",
+      "display": "Burn of unspecified degree of lower limb, except ankle and foot",
+      "billable": false
+    },
+    {
+      "code": "T24.009A",
+      "display": "Burn of unspecified degree of unspecified site of unspecified lower limb, except ankle and foot, initial encounter",
+      "billable": true
+    },
+    {
+      "code": "T25.0",
+      "display": "Burn of unspecified degree of ankle and foot",
+      "billable": false
+    },
+    {
+      "code": "T25.029A",
+      "display": "Burn of unspecified degree of unspecified foot, initial encounter",
       "billable": true
     },
     {
@@ -2257,6 +2337,11 @@
       "code": "T31.3",
       "display": "Burns involving 30-39% of body surface",
       "billable": false
+    },
+    {
+      "code": "T31.30",
+      "display": "Burns involving 30-39% of body surface with 0% to 9% third degree burns",
+      "billable": true
     },
     {
       "code": "T40.411A",

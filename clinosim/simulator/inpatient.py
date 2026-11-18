@@ -77,7 +77,12 @@ from clinosim.simulator.daily_loop import SYMPTOM_AXES, _run_daily_loop
 from clinosim.simulator.discharge_gate import discharge_disposition_for
 from clinosim.simulator.discharge_rx import build_discharge_rx
 from clinosim.simulator.encounter_setup import attach_orders, encounter_diagnosis, fit_procedures_in_stay
-from clinosim.simulator.injury_coding import external_cause_code, stay_primary_code, surgery_for_diagnosis
+from clinosim.simulator.injury_coding import (
+    external_cause_code,
+    secondary_diagnosis_codes,
+    stay_primary_code,
+    surgery_for_diagnosis,
+)
 from clinosim.simulator.medication_pipeline import _generate_home_medication_orders
 from clinosim.simulator.sepsis_severity import sepsis_severity_code
 from clinosim.types.clinical import (
@@ -204,6 +209,7 @@ def _derive_final_diagnosis(
         config.country,
         discharge_code=dx_code,
         external_cause_code=external_cause_code(protocol, encounter_id, config.country),
+        secondary_diagnosis_codes=secondary_diagnosis_codes(protocol, encounter_id),
         # Issue #551: the engine returns ``UNRESOLVED_DIAGNOSIS_ICD`` (R69) when
         # the differential did not converge. Previous code compared against
         # ``"R05"`` (Cough) — a real ICD-10 code, which made legitimate cough

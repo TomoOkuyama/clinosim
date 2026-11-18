@@ -165,6 +165,8 @@ S52.51: "S52.5"
 S52.52: "S52.5"
 S52.59: "S52.5"
 S62.90XA: "S62.8"  # #284: HAPI ICD-10 CS puts this concept under S62.8, not S62.9
+T20.07: "T20.0"   # Issue #3258: WHO / MHLW have no separate neck code under T20 (頭部及び頚部)
+T21.05: "T21.0"   # Issue #3258: WHO / MHLW have no buttock code under T21 (体幹)
 S67.2: "S67.8"  # #2360: ICD-10-CM crushing injury of hand; WHO / MHLW 2013 has S67.0 and S67.8 only
 S72.00: "S72.0"
 S72.10: "S72.1"

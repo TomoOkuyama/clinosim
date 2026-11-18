@@ -61,3 +61,18 @@ def external_cause_code(protocol: Any, encounter_id: str, country: str) -> str:
         tuple(str(e["code"]) for e in entries),
         tuple(float(e["weight"]) for e in entries),
     )
+
+
+def secondary_diagnosis_codes(protocol: Any, encounter_id: str) -> list[str]:
+    """The secondary diagnosis codes of the stay: one of the protocol's weighted
+    ``secondary_diagnosis`` entries, or none when it lists none."""
+    entries = getattr(protocol, "secondary_diagnosis", None) or []
+    if not entries:
+        return []
+    return [
+        determinism.sha_weighted_choice(
+            f"{encounter_id}|injury_secondary_diagnosis",
+            tuple(str(e["code"]) for e in entries),
+            tuple(float(e["weight"]) for e in entries),
+        )
+    ]

@@ -277,6 +277,13 @@ codes:
   T07: {en: "Multiple injuries", ja: "多発外傷"}
   T14: {en: "Injury", ja: "外傷"}
   T18.9: {en: "Foreign body in the digestive tract", ja: "消化管異物"}
+  T20: {en: "Burn of the head or neck", ja: "頭頚部の熱傷"}
+  T21: {en: "Burn of the trunk", ja: "体幹の熱傷"}
+  T22: {en: "Burn of the upper limb", ja: "上肢の熱傷"}
+  T23: {en: "Burn of the wrist or hand", ja: "手首・手の熱傷"}
+  T24: {en: "Burn of the lower limb", ja: "下肢の熱傷"}
+  T25: {en: "Burn of the ankle or foot", ja: "足首・足の熱傷"}
+  T31: {en: "Burn by extent of body surface", ja: "熱傷の体表面積"}
   T22.2: {en: "Second-degree burn of the upper limb", ja: "上肢の第2度熱傷"}
   T23.2: {en: "Second-degree burn of the hand", ja: "手の第2度熱傷"}
   T30: {en: "Burn", ja: "熱傷"}
