@@ -3454,7 +3454,8 @@
 <li><strong>代替値にしてはいけないもの</strong>: 英語以外の別の言語 (英語出力に日本語など)、引いたキー、生のコード、生の id、生の slug。</li>
 <li><strong>コードや id が見つからない</strong>ときは、解決関数は <code>None</code> / <code>""</code> を返す。何を表示するかは呼び出し側が決めて明示的に渡すか、要素ごと省く (「捏造より沈黙」)。</li>
 <li><strong>slug の人間可読化</strong>: slug の <code>_</code> を空白に置き換える処理は、内部 slug の表示表の最後のフォールバックに限って使える。例: <code>imaging_exam_display</code>、<code>procedure_type_display</code>、<code>department_display</code>、<code>lab_display</code>、<code>narrative_complications.yaml</code> の合併症名は未知の slug を人間可読化する。使えるのは、生成器が出力する slug がすべて表にあることを unit test で確認している場合だけ。<code>.title()</code> で語頭を大文字にした slug は使わない。</li>
-<li><strong>英語のエントリが欠けている</strong>のはデータのバグで、テストで検出する。英語以外のエントリが欠けている場合は英語にフォールバックする (規則 1)。</li>
+<li><strong>英語のエントリが欠けている</strong>のはデータのバグで、テストで検出する。英語以外のエントリが欠けている場合は英語にフォールバックする (規則 1)。
+5a. <strong>意図的に空のエントリは「欠落」ではない</strong>: 言語スロットが <code>""</code> で存在する場合 (例: 日本語の <code>list_sep.sentence_gap</code>。句点の後に空白を入れないため) は、その言語では <code>""</code> を返す。英語にフォールバックするのはスロットが無い (または文字列でない) 場合だけ。§4 の言語マップを読む解決関数はすべて <code>locale.localized</code> (空と欠落を区別したい呼び出し側は <code>localized_or_none</code>) で値を選ぶ。要求言語のスロットを真偽値で判定してはいけない。両方の場合を <code>tests/unit/locale/test_empty_phrase_3339.py</code> が固定する。</li>
 <li><strong>表にない自由文字列</strong>は英語のまま残す。自由文字列用の解決関数 (§4.3) は入力をそのまま返す。</li>
 </ol>
 <h2 id="7-拡張の手順">7. 拡張の手順<a class="headerlink" href="#7-拡張の手順" title="Permanent link">&para;</a></h2>
