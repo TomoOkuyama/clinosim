@@ -134,7 +134,9 @@ def t(key: str, lang: str, /, **params: object) -> str:
             → "Encounter reason: fièvre"
 
     Resolution:
-      1. ``entry[lang]`` — the caller's requested locale.
+      1. ``entry[lang]`` — the caller's requested locale. A slot present
+         with ``""`` is an intentionally empty phrase and is returned as
+         ``""`` (Issue #3339), e.g. the Japanese ``list_sep.sentence_gap``.
       2. ``entry["en"]`` — universal fallback (only when ``lang``
          slot is absent from the YAML entry).
       3. ``""`` — never the key (Issue #2395: a phrase key is not output

@@ -333,6 +333,7 @@ These rules are common to every resolver in §4, in both layers.
 3. **A missing code or id** returns `None` / `""` from the resolver. The caller decides what to show and passes it explicitly, or omits the element ("silence beats fabrication").
 4. **Humanised slugs.** A humanised slug (underscores → spaces) is allowed only as the last fallback of a display table for internal slugs. For example `imaging_exam_display`, `procedure_type_display`, `department_display`, `lab_display` and the complication names of `narrative_complications.yaml` humanise an unknown slug. It is allowed only when a unit test asserts that every slug the generator emits is in the table. A title-cased slug (`.title()`) is never allowed.
 5. **A missing English entry** is a data bug, and a test detects it. A missing non-English entry falls back to English (rule 1).
+5a. **An intentionally empty entry is not missing.** A language slot present with `""` (for example Japanese `list_sep.sentence_gap`, because Japanese has no space after a full stop) returns `""` for that language. Only an absent slot (or a non-string value) falls back to English. Every resolver of §4 that reads a language map selects the value through `locale.localized` (`localized_or_none` when the caller must tell empty from missing); a truthiness test on the requested-language slot is not allowed. `tests/unit/locale/test_empty_phrase_3339.py` pins both cases.
 6. **Free text with no table entry** stays in English: the free-text resolvers (§4.3) return their input unchanged.
 
 ## 7. Extending
